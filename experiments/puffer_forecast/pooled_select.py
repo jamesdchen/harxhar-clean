@@ -18,14 +18,24 @@ import math
 import re
 import sys
 
+# (2026-10-15, the pooled ridge init) _we / _wl / _ll: wd_enc / wd_lin / lr_lin when the tune grid carries them
 ID_RE = re.compile(
-    r"^ptune_(baseline|all_features)_L(\d+)_H(\d+)_lr([0-9.]+)(?:_wd([0-9.e+-]+))?_s(\d+)$"
+    r"^ptune_(baseline|all_features)_L(\d+)_H(\d+)_lr([0-9.]+)(?:_wd([0-9.e+-]+))?(?:_we([0-9.e+-]+))?"
+    r"(?:_wl([0-9.e+-]+))?(?:_ll([0-9.e+-]+))?_s(\d+)$"
 )
-CFG_RE = re.compile(r"^L(\d+)_H(\d+)_lr([0-9.]+)(?:_wd([0-9.e+-]+))?$")
+CFG_RE = re.compile(
+    r"^L(\d+)_H(\d+)_lr([0-9.]+)(?:_wd([0-9.e+-]+))?(?:_we([0-9.e+-]+))?(?:_wl([0-9.e+-]+))?(?:_ll([0-9.e+-]+))?$"
+)
 
 
-def cfg_name(L, H, lr, wd):
-    return "L%s_H%s_lr%s" % (L, H, lr) + ("" if wd is None else "_wd%s" % wd)
+def cfg_name(L, H, lr, wd, we=None, wl=None, ll=None):
+    return (
+        "L%s_H%s_lr%s" % (L, H, lr)
+        + ("" if wd is None else "_wd%s" % wd)
+        + ("" if we is None else "_we%s" % we)
+        + ("" if wl is None else "_wl%s" % wl)
+        + ("" if ll is None else "_ll%s" % ll)
+    )
 
 
 def load_y(path):
@@ -45,6 +55,9 @@ def main():
     ap.add_argument("--out", required=True)
     ap.add_argument("--selection", required=True)
     ap.add_argument("--save-first-origin", action="store_true")
+    # mse (default) or qlike: the plain QLIKE of the seed-averaged validation forecast, r = y^2 / f^2, over the
+    # validation rows with y > 0 (QLIKE is undefined at a zero target; the pooled panel has RV printed 0 on 33 bars)
+    ap.add_argument("--criterion", choices=("mse", "qlike"), default="mse")
     a = ap.parse_args()
     plan = json.loads(open(a.plan).read())
     block = [b for b in plan["blocks"] if b["k"] == a.k][0]
@@ -55,11 +68,11 @@ def main():
             m = ID_RE.match(r["id"])
             if m is None:
                 continue
-            d, L, H, lr, wd, _ = m.groups()
+            d, L, H, lr, wd, we, wl, ll, _ = m.groups()
             epochs[r["id"]] = int(r["best_epoch"])
             if r["status"] != "ok":
                 raise SystemExit("tune job %s status %s" % (r["id"], r["status"]))
-            ran.setdefault(d, set()).add(cfg_name(L, H, lr, wd))
+            ran.setdefault(d, set()).add(cfg_name(L, H, lr, wd, we, wl, ll))
     fc = {}
     with open(a.tune_out + "/preds.csv", newline="") as fh:
         for r in csv.DictReader(fh):
@@ -68,10 +81,10 @@ def main():
             m = ID_RE.match(r["id"])
             if m is None:
                 continue
-            d, L, H, lr, wd, seed = m.groups()
-            fc.setdefault(d, {}).setdefault(cfg_name(L, H, lr, wd), {}).setdefault(
-                int(r["row"]), {}
-            )[int(seed)] = float(r["f"])
+            d, L, H, lr, wd, we, wl, ll, seed = m.groups()
+            fc.setdefault(d, {}).setdefault(
+                cfg_name(L, H, lr, wd, we, wl, ll), {}
+            ).setdefault(int(r["row"]), {})[int(seed)] = float(r["f"])
     sel, lines = {}, []
     for d in plan["designs"]:
         if set(fc.get(d, {})) != ran.get(d, set()) or not ran.get(d):
@@ -87,8 +100,20 @@ def main():
                     raise SystemExit(
                         "%s %s row %s: %s seeds" % (d, cfg, row, len(by_seed))
                     )
-                e = sum(by_seed.values()) / float(len(seeds)) - float(y[row])
-                sse += e * e
+                f = sum(by_seed.values()) / float(len(seeds))
+                if a.criterion == "qlike":
+                    yv = float(y[row])
+                    if not yv > 0.0:
+                        continue
+                    if not (f > 0.0) or not math.isfinite(f):
+                        sse = float("nan")
+                        n += 1
+                        continue
+                    q = (yv * yv) / (f * f)
+                    sse += q - math.log(q) - 1.0
+                else:
+                    e = f - float(y[row])
+                    sse += e * e
                 n += 1
             mse = sse / n
             if not math.isfinite(mse):
@@ -98,7 +123,7 @@ def main():
         if best is None:
             raise SystemExit("design %s: no finite validation MSE" % d)
         mse, cfg, n_val = best
-        L, H, lr, wd = CFG_RE.match(cfg).groups()
+        L, H, lr, wd, we, wl, ll = CFG_RE.match(cfg).groups()
         if wd is None:
             wd = plan["wd_fixed"]
         per_seed = {}
@@ -122,12 +147,30 @@ def main():
                     fc_n=nx - o,
                     wd=wd,
                 )
+                for key, v in (("wd_enc", we), ("wd_lin", wl), ("lr_lin", ll)):
+                    if (
+                        v is not None
+                    ):  # the selected configuration's (over a common one)
+                        base[key] = v
+                if (
+                    "lin_init_refit" in plan
+                ):  # the shortcut's ridge init of this refit's window
+                    wl_s = (
+                        wl
+                        if wl is not None
+                        else "%g" % float(plan["common"].get("wd_lin", 0))
+                    )
+                    base["lin_init"] = plan["lin_init_refit"].format(
+                        design=d, origin=o, L=L, wl=wl_s
+                    )
                 for k, v in plan["common"].items():
                     base.setdefault(k, v)
                 if a.save_first_origin and i == 0:
                     base["save_params"] = 1
                 lines.append(" ".join("%s=%s" % (k, v) for k, v in base.items()))
         sel[d] = dict(cfg=cfg, wd=wd, val_mse=mse, n_val=n_val, best_epoch=per_seed)
+        if a.criterion != "mse":  # (val_mse then holds the criterion's value)
+            sel[d]["criterion"] = a.criterion
         print("block %s %s %s val_mse %.6f n_val %s" % (a.k, d, cfg, mse, n_val))
     with open(a.out, "w") as fh:
         fh.write("\n".join(lines) + "\n")

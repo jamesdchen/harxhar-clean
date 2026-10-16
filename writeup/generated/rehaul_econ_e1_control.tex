@@ -32,8 +32,6 @@ XGBoost\tnote{a} & $12.5^{***}$ & $1.77$ & $1.27$ & $58.7$ & $27.8$ & $1.56^{**\
  & $(3.82)^{\phantom{***}}$ &  &  &  &  & $(2.56)^{\phantom{***}}$ \\[2pt]
 Random forest\tnote{a} & $11.2^{***}$ & $1.58$ & $1.11$ & $56.8$ & $30.4$ & $1.38^{**\phantom{*}}$ \\
  & $(3.38)^{\phantom{***}}$ &  &  &  &  & $(2.07)^{\phantom{***}}$ \\[2pt]
-MinGRU\tnote{b} & $10.8^{***}$ & $1.53$ & $1.05$ & $56.2$ & $32.8$ & $1.33^{**\phantom{*}}$ \\
- & $(3.09)^{\phantom{***}}$ &  &  &  &  & $(2.02)^{\phantom{***}}$ \\[2pt]
 \addlinespace[4pt]
 \multicolumn{7}{@{}l}{\textit{Panel B: Pooled intraday models}} \\
 \addlinespace[2pt]
@@ -58,7 +56,6 @@ benchmark (\rheShortSh); in parentheses, the HAC $t$-statistic of the mean retur
 $^{*}$, $^{**}$ and $^{***}$ denote significance at the 10\%, 5\% and 1\% levels.
 \item[a] The specification with the highest $\SR$ at mid-quotes among the estimator's \rheTreeSpecs{} on the full
 predictor set, so selected ex post on the out-of-sample period. LightGBM: random search, re-estimated every 10 trading days, selected on squared-error loss; XGBoost: random search, re-estimated daily, selected on squared-error loss; random forest: Optuna search (10 trials), re-tuned every 25 trading days, selected on squared-error loss.
-\item[b] MinGRU network (ridge-initialized, trained and selected on QLIKE; Section~\ref{sec:rh_methods_models}).
 \end{tablenotes}
 \end{threeparttable}
 \end{table}

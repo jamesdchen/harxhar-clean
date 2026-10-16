@@ -1,0 +1,7 @@
+lgbm lean_vol_vix 56
+lgbm lean_vol_vix 61
+lgbm lean_vol_vix 62
+lgbm lean_vol_vix 73
+lgbm lean_vol_vix 74
+lgbm lean_vol_vix 94
+lgbm lean_vol_vix 95

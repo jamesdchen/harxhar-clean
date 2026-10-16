@@ -1,0 +1,2 @@
+a walk lean_vol_vix reclasso 1.0 causal 246000 273250 96000
+a walk lean_vol_vix reclasso 1.0 causal 273250 -1 96000

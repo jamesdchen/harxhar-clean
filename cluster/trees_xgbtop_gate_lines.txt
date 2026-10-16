@@ -1,0 +1,8 @@
+t1 baseline 0 2000 5 /scratch1/jc_905/harxhar-mask linear_subsection_trees_mask
+t1 all_features 0 2000 5 /scratch1/jc_905/harxhar-mask linear_subsection_trees_mask
+t1 all_features 8 3152 5 /scratch1/jc_905/harxhar-mask linear_subsection_trees_mask
+t1 lean_vol_vix 0 2000 5 /scratch1/jc_905/harxhar-momvolvix-trees linear_subsection_trees_mask_momvolvix
+t10 baseline 0 2000 20 /scratch1/jc_905/harxhar-mask linear_subsection_trees_mask
+t10 all_features 0 2000 20 /scratch1/jc_905/harxhar-mask linear_subsection_trees_mask
+t10 all_features 1 3430 20 /scratch1/jc_905/harxhar-mask linear_subsection_trees_mask
+t10 lean_vol_vix 0 2000 20 /scratch1/jc_905/harxhar-momvolvix-trees linear_subsection_trees_mask_momvolvix

@@ -1,88 +1,88 @@
 series,fill,stat,lag,value,band_95,outside_band
-sign(s): per-bar ridge (live-feasible),mid,acf,1,0.0111331,0.0666035,False
-sign(s): per-bar ridge (live-feasible),mid,acf,2,-0.035356,0.0666035,False
-sign(s): per-bar ridge (live-feasible),mid,acf,3,0.0280681,0.0666035,False
-sign(s): per-bar ridge (live-feasible),mid,acf,4,-0.0171721,0.0666035,False
-sign(s): per-bar ridge (live-feasible),mid,acf,5,-0.00200979,0.0666035,False
-sign(s): per-bar ridge (live-feasible),mid,acf,6,-0.00570444,0.0666035,False
-sign(s): per-bar ridge (live-feasible),mid,acf,7,0.0181953,0.0666035,False
-sign(s): per-bar ridge (live-feasible),mid,acf,8,-0.0520199,0.0666035,False
-sign(s): per-bar ridge (live-feasible),mid,acf,9,0.00569114,0.0666035,False
-sign(s): per-bar ridge (live-feasible),mid,acf,10,0.07535,0.0666035,True
-sign(s): per-bar ridge (live-feasible),mid,ljung_box_p,5,0.829149,,False
-sign(s): per-bar ridge (live-feasible),mid,ljung_box_p,10,0.454176,,False
-sign(s): per-bar ridge (live-feasible),mid,ljung_box_p,21,0.8686,,False
-sign(s): per-bar ridge (live-feasible),mid,variance_ratio,2,1.00668,,False
-sign(s): per-bar ridge (live-feasible),mid,variance_ratio_z_robust,2,0.207368,1.96,False
-sign(s): per-bar ridge (live-feasible),mid,variance_ratio,5,0.966575,,False
-sign(s): per-bar ridge (live-feasible),mid,variance_ratio_z_robust,5,-0.475297,1.96,False
-sign(s): per-bar ridge (live-feasible),mid,variance_ratio,10,0.946891,,False
-sign(s): per-bar ridge (live-feasible),mid,variance_ratio_z_robust,10,-0.488062,1.96,False
-sign(s): per-bar ridge (live-feasible),mid,variance_ratio,21,1.02874,,False
-sign(s): per-bar ridge (live-feasible),mid,variance_ratio_z_robust,21,0.174914,1.96,False
-sign(s): per-bar ridge (live-feasible),crossed,acf,1,0.0125714,0.0666035,False
-sign(s): per-bar ridge (live-feasible),crossed,acf,2,-0.0359632,0.0666035,False
-sign(s): per-bar ridge (live-feasible),crossed,acf,3,0.0287329,0.0666035,False
-sign(s): per-bar ridge (live-feasible),crossed,acf,4,-0.016686,0.0666035,False
-sign(s): per-bar ridge (live-feasible),crossed,acf,5,-0.00194808,0.0666035,False
-sign(s): per-bar ridge (live-feasible),crossed,acf,6,-0.000311667,0.0666035,False
-sign(s): per-bar ridge (live-feasible),crossed,acf,7,0.0163581,0.0666035,False
-sign(s): per-bar ridge (live-feasible),crossed,acf,8,-0.0543447,0.0666035,False
-sign(s): per-bar ridge (live-feasible),crossed,acf,9,0.00614649,0.0666035,False
-sign(s): per-bar ridge (live-feasible),crossed,acf,10,0.074083,0.0666035,True
-sign(s): per-bar ridge (live-feasible),crossed,ljung_box_p,5,0.816815,,False
-sign(s): per-bar ridge (live-feasible),crossed,ljung_box_p,10,0.44913,,False
-sign(s): per-bar ridge (live-feasible),crossed,ljung_box_p,21,0.855999,,False
-sign(s): per-bar ridge (live-feasible),crossed,variance_ratio,2,1.00811,,False
-sign(s): per-bar ridge (live-feasible),crossed,variance_ratio_z_robust,2,0.25043,1.96,False
-sign(s): per-bar ridge (live-feasible),crossed,variance_ratio,5,0.970016,,False
-sign(s): per-bar ridge (live-feasible),crossed,variance_ratio_z_robust,5,-0.422677,1.96,False
-sign(s): per-bar ridge (live-feasible),crossed,variance_ratio,10,0.954524,,False
-sign(s): per-bar ridge (live-feasible),crossed,variance_ratio_z_robust,10,-0.414341,1.96,False
-sign(s): per-bar ridge (live-feasible),crossed,variance_ratio,21,1.04445,,False
-sign(s): per-bar ridge (live-feasible),crossed,variance_ratio_z_robust,21,0.26869,1.96,False
-sign(s): per-bar ridge (all features),mid,acf,1,-0.0249601,0.0666035,False
-sign(s): per-bar ridge (all features),mid,acf,2,-0.0684311,0.0666035,True
-sign(s): per-bar ridge (all features),mid,acf,3,-0.000101033,0.0666035,False
-sign(s): per-bar ridge (all features),mid,acf,4,0.0168417,0.0666035,False
-sign(s): per-bar ridge (all features),mid,acf,5,0.0210911,0.0666035,False
-sign(s): per-bar ridge (all features),mid,acf,6,0.00908323,0.0666035,False
-sign(s): per-bar ridge (all features),mid,acf,7,-0.024084,0.0666035,False
-sign(s): per-bar ridge (all features),mid,acf,8,-0.0248182,0.0666035,False
-sign(s): per-bar ridge (all features),mid,acf,9,-0.0148553,0.0666035,False
-sign(s): per-bar ridge (all features),mid,acf,10,0.0117459,0.0666035,False
-sign(s): per-bar ridge (all features),mid,ljung_box_p,5,0.385999,,False
-sign(s): per-bar ridge (all features),mid,ljung_box_p,10,0.75479,,False
-sign(s): per-bar ridge (all features),mid,ljung_box_p,21,0.907995,,False
-sign(s): per-bar ridge (all features),mid,variance_ratio,2,0.969661,,False
-sign(s): per-bar ridge (all features),mid,variance_ratio_z_robust,2,-0.957516,1.96,False
-sign(s): per-bar ridge (all features),mid,variance_ratio,5,0.874812,,False
-sign(s): per-bar ridge (all features),mid,variance_ratio_z_robust,5,-1.79132,1.96,False
-sign(s): per-bar ridge (all features),mid,variance_ratio,10,0.862611,,False
-sign(s): per-bar ridge (all features),mid,variance_ratio_z_robust,10,-1.26767,1.96,False
-sign(s): per-bar ridge (all features),mid,variance_ratio,21,0.888818,,False
-sign(s): per-bar ridge (all features),mid,variance_ratio_z_robust,21,-0.678868,1.96,False
-sign(s): per-bar ridge (all features),crossed,acf,1,-0.0248597,0.0666035,False
-sign(s): per-bar ridge (all features),crossed,acf,2,-0.0685588,0.0666035,True
-sign(s): per-bar ridge (all features),crossed,acf,3,-0.00167134,0.0666035,False
-sign(s): per-bar ridge (all features),crossed,acf,4,0.0156785,0.0666035,False
-sign(s): per-bar ridge (all features),crossed,acf,5,0.0210551,0.0666035,False
-sign(s): per-bar ridge (all features),crossed,acf,6,0.0133108,0.0666035,False
-sign(s): per-bar ridge (all features),crossed,acf,7,-0.0259226,0.0666035,False
-sign(s): per-bar ridge (all features),crossed,acf,8,-0.0273729,0.0666035,False
-sign(s): per-bar ridge (all features),crossed,acf,9,-0.0145355,0.0666035,False
-sign(s): per-bar ridge (all features),crossed,acf,10,0.0104844,0.0666035,False
-sign(s): per-bar ridge (all features),crossed,ljung_box_p,5,0.388439,,False
-sign(s): per-bar ridge (all features),crossed,ljung_box_p,10,0.733786,,False
-sign(s): per-bar ridge (all features),crossed,ljung_box_p,21,0.876129,,False
-sign(s): per-bar ridge (all features),crossed,variance_ratio,2,0.969667,,False
-sign(s): per-bar ridge (all features),crossed,variance_ratio_z_robust,2,-0.947377,1.96,False
-sign(s): per-bar ridge (all features),crossed,variance_ratio,5,0.874078,,False
-sign(s): per-bar ridge (all features),crossed,variance_ratio_z_robust,5,-1.7827,1.96,False
-sign(s): per-bar ridge (all features),crossed,variance_ratio,10,0.862688,,False
-sign(s): per-bar ridge (all features),crossed,variance_ratio_z_robust,10,-1.25518,1.96,False
-sign(s): per-bar ridge (all features),crossed,variance_ratio,21,0.887731,,False
-sign(s): per-bar ridge (all features),crossed,variance_ratio_z_robust,21,-0.680623,1.96,False
+sign(s): per-bar ridge (live-feasible),mid,acf,1,-0.0213499,0.0666035,False
+sign(s): per-bar ridge (live-feasible),mid,acf,2,-0.00258097,0.0666035,False
+sign(s): per-bar ridge (live-feasible),mid,acf,3,0.0237678,0.0666035,False
+sign(s): per-bar ridge (live-feasible),mid,acf,4,-0.000246313,0.0666035,False
+sign(s): per-bar ridge (live-feasible),mid,acf,5,-0.0402771,0.0666035,False
+sign(s): per-bar ridge (live-feasible),mid,acf,6,-0.0104469,0.0666035,False
+sign(s): per-bar ridge (live-feasible),mid,acf,7,0.0326537,0.0666035,False
+sign(s): per-bar ridge (live-feasible),mid,acf,8,-0.0515826,0.0666035,False
+sign(s): per-bar ridge (live-feasible),mid,acf,9,0.0100804,0.0666035,False
+sign(s): per-bar ridge (live-feasible),mid,acf,10,0.0682797,0.0666035,True
+sign(s): per-bar ridge (live-feasible),mid,ljung_box_p,5,0.804755,,False
+sign(s): per-bar ridge (live-feasible),mid,ljung_box_p,10,0.453489,,False
+sign(s): per-bar ridge (live-feasible),mid,ljung_box_p,21,0.954532,,False
+sign(s): per-bar ridge (live-feasible),mid,variance_ratio,2,0.974116,,False
+sign(s): per-bar ridge (live-feasible),mid,variance_ratio_z_robust,2,-0.807444,1.96,False
+sign(s): per-bar ridge (live-feasible),mid,variance_ratio,5,0.945701,,False
+sign(s): per-bar ridge (live-feasible),mid,variance_ratio_z_robust,5,-0.7735,1.96,False
+sign(s): per-bar ridge (live-feasible),mid,variance_ratio,10,0.873433,,False
+sign(s): per-bar ridge (live-feasible),mid,variance_ratio_z_robust,10,-1.16744,1.96,False
+sign(s): per-bar ridge (live-feasible),mid,variance_ratio,21,0.896863,,False
+sign(s): per-bar ridge (live-feasible),mid,variance_ratio_z_robust,21,-0.630445,1.96,False
+sign(s): per-bar ridge (live-feasible),crossed,acf,1,-0.0207665,0.0666035,False
+sign(s): per-bar ridge (live-feasible),crossed,acf,2,0.00128042,0.0666035,False
+sign(s): per-bar ridge (live-feasible),crossed,acf,3,0.022632,0.0666035,False
+sign(s): per-bar ridge (live-feasible),crossed,acf,4,0.00152922,0.0666035,False
+sign(s): per-bar ridge (live-feasible),crossed,acf,5,-0.0386855,0.0666035,False
+sign(s): per-bar ridge (live-feasible),crossed,acf,6,-0.00979225,0.0666035,False
+sign(s): per-bar ridge (live-feasible),crossed,acf,7,0.0302334,0.0666035,False
+sign(s): per-bar ridge (live-feasible),crossed,acf,8,-0.0531802,0.0666035,False
+sign(s): per-bar ridge (live-feasible),crossed,acf,9,0.0116166,0.0666035,False
+sign(s): per-bar ridge (live-feasible),crossed,acf,10,0.0663483,0.0666035,False
+sign(s): per-bar ridge (live-feasible),crossed,ljung_box_p,5,0.830748,,False
+sign(s): per-bar ridge (live-feasible),crossed,ljung_box_p,10,0.487571,,False
+sign(s): per-bar ridge (live-feasible),crossed,ljung_box_p,21,0.961787,,False
+sign(s): per-bar ridge (live-feasible),crossed,variance_ratio,2,0.97485,,False
+sign(s): per-bar ridge (live-feasible),crossed,variance_ratio_z_robust,2,-0.779108,1.96,False
+sign(s): per-bar ridge (live-feasible),crossed,variance_ratio,5,0.949897,,False
+sign(s): per-bar ridge (live-feasible),crossed,variance_ratio_z_robust,5,-0.705845,1.96,False
+sign(s): per-bar ridge (live-feasible),crossed,variance_ratio,10,0.8754,,False
+sign(s): per-bar ridge (live-feasible),crossed,variance_ratio_z_robust,10,-1.13736,1.96,False
+sign(s): per-bar ridge (live-feasible),crossed,variance_ratio,21,0.89776,,False
+sign(s): per-bar ridge (live-feasible),crossed,variance_ratio_z_robust,21,-0.621378,1.96,False
+sign(s): per-bar ridge (all features),mid,acf,1,-0.0198745,0.0666035,False
+sign(s): per-bar ridge (all features),mid,acf,2,-0.0231369,0.0666035,False
+sign(s): per-bar ridge (all features),mid,acf,3,-0.000482571,0.0666035,False
+sign(s): per-bar ridge (all features),mid,acf,4,-0.000187579,0.0666035,False
+sign(s): per-bar ridge (all features),mid,acf,5,-0.0150131,0.0666035,False
+sign(s): per-bar ridge (all features),mid,acf,6,0.00471798,0.0666035,False
+sign(s): per-bar ridge (all features),mid,acf,7,-0.0313445,0.0666035,False
+sign(s): per-bar ridge (all features),mid,acf,8,-0.0232699,0.0666035,False
+sign(s): per-bar ridge (all features),mid,acf,9,0.0127897,0.0666035,False
+sign(s): per-bar ridge (all features),mid,acf,10,-0.0111076,0.0666035,False
+sign(s): per-bar ridge (all features),mid,ljung_box_p,5,0.962081,,False
+sign(s): per-bar ridge (all features),mid,ljung_box_p,10,0.989151,,False
+sign(s): per-bar ridge (all features),mid,ljung_box_p,21,0.962372,,False
+sign(s): per-bar ridge (all features),mid,variance_ratio,2,0.97474,,False
+sign(s): per-bar ridge (all features),mid,variance_ratio_z_robust,2,-0.802916,1.96,False
+sign(s): per-bar ridge (all features),mid,variance_ratio,5,0.919669,,False
+sign(s): per-bar ridge (all features),mid,variance_ratio_z_robust,5,-1.15504,1.96,False
+sign(s): per-bar ridge (all features),mid,variance_ratio,10,0.842758,,False
+sign(s): per-bar ridge (all features),mid,variance_ratio_z_robust,10,-1.45698,1.96,False
+sign(s): per-bar ridge (all features),mid,variance_ratio,21,0.746924,,False
+sign(s): per-bar ridge (all features),mid,variance_ratio_z_robust,21,-1.55073,1.96,False
+sign(s): per-bar ridge (all features),crossed,acf,1,-0.021981,0.0666035,False
+sign(s): per-bar ridge (all features),crossed,acf,2,-0.0202956,0.0666035,False
+sign(s): per-bar ridge (all features),crossed,acf,3,-0.00201835,0.0666035,False
+sign(s): per-bar ridge (all features),crossed,acf,4,-0.00155405,0.0666035,False
+sign(s): per-bar ridge (all features),crossed,acf,5,-0.0154664,0.0666035,False
+sign(s): per-bar ridge (all features),crossed,acf,6,0.00558077,0.0666035,False
+sign(s): per-bar ridge (all features),crossed,acf,7,-0.0342087,0.0666035,False
+sign(s): per-bar ridge (all features),crossed,acf,8,-0.0252415,0.0666035,False
+sign(s): per-bar ridge (all features),crossed,acf,9,0.0135147,0.0666035,False
+sign(s): per-bar ridge (all features),crossed,acf,10,-0.0151163,0.0666035,False
+sign(s): per-bar ridge (all features),crossed,ljung_box_p,5,0.96315,,False
+sign(s): per-bar ridge (all features),crossed,ljung_box_p,10,0.982281,,False
+sign(s): per-bar ridge (all features),crossed,ljung_box_p,21,0.950267,,False
+sign(s): per-bar ridge (all features),crossed,variance_ratio,2,0.972693,,False
+sign(s): per-bar ridge (all features),crossed,variance_ratio_z_robust,2,-0.86621,1.96,False
+sign(s): per-bar ridge (all features),crossed,variance_ratio,5,0.91616,,False
+sign(s): per-bar ridge (all features),crossed,variance_ratio_z_robust,5,-1.19626,1.96,False
+sign(s): per-bar ridge (all features),crossed,variance_ratio,10,0.831203,,False
+sign(s): per-bar ridge (all features),crossed,variance_ratio_z_robust,10,-1.55369,1.96,False
+sign(s): per-bar ridge (all features),crossed,variance_ratio,21,0.72202,,False
+sign(s): per-bar ridge (all features),crossed,variance_ratio_z_robust,21,-1.69782,1.96,False
 always short,mid,acf,1,-0.0643135,0.0666035,False
 always short,mid,acf,2,0.0360071,0.0666035,False
 always short,mid,acf,3,-0.0587571,0.0666035,False

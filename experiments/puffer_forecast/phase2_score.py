@@ -18,6 +18,12 @@ differences (atm_straddle_lib.newey_west_t), positions that differ.
     python experiments/puffer_forecast/phase2_score.py RUN_DIR [OUT_NAME]
 Writes results/puffer_forecast_2026-10-12/<OUT_NAME, default phase2>/{scores.csv, contrasts.csv, forecasts.csv,
 selection.csv, compute.csv}; Phase 2b (phase2b.py: window mask, input clip, wider lr grid) uses OUT_NAME phase2b.
+
+2026-10-15 (user, data audit #10): every score is against the ACTUAL realized variance (close_linear_pretune.Scorer's
+target is rv_unclipped; the fit-space MSE is against sqrt(RV / B)), not the winsorized training target.  The walks'
+seed-mean forecasts do not change, so a scored walk is re-scored from its stored forecasts.csv alone:
+    python experiments/puffer_forecast/phase2_score.py --rescore OUT_NAME
+rewrites only <OUT_NAME>/scores.csv and contrasts.csv (forecasts.csv, selection.csv and compute.csv are kept).
 """
 
 from __future__ import annotations
@@ -66,17 +72,24 @@ def run_gpu_models(run: Path) -> set[str]:
 def main() -> None:  # noqa: C901 -- one report
     import atm_straddle_lib as asl
 
-    run = Path(sys.argv[1])
-    gpus = run_gpu_models(run)
-    if (
-        len(gpus) != 1
-    ):  # user, 2026-10-13: every NN number for the paper from ONE recorded GPU type
-        raise SystemExit(
-            f"{run}: GPU models across the run's env.txt files: {sorted(gpus) or 'none recorded'}; "
-            "score only a walk run on one GPU type"
-        )
-    print(f"GPU model of the run: {next(iter(gpus))}")
-    out = OUT.parent / sys.argv[2] if len(sys.argv) > 2 else OUT
+    rescore = (
+        sys.argv[1] == "--rescore"
+    )  # 2026-10-15: re-score the stored forecasts (data audit #10)
+    if rescore:
+        out = OUT.parent / sys.argv[2]
+        assert (out / "forecasts.csv").is_file(), f"{out}: no forecasts.csv to re-score"
+    else:
+        run = Path(sys.argv[1])
+        gpus = run_gpu_models(run)
+        if (
+            len(gpus) != 1
+        ):  # user, 2026-10-13: every NN number for the paper from ONE recorded GPU type
+            raise SystemExit(
+                f"{run}: GPU models across the run's env.txt files: {sorted(gpus) or 'none recorded'}; "
+                "score only a walk run on one GPU type"
+            )
+        print(f"GPU model of the run: {next(iter(gpus))}")
+        out = OUT.parent / sys.argv[2] if len(sys.argv) > 2 else OUT
     out.mkdir(parents=True, exist_ok=True)
     inp = json.loads((FR.INP / "inputs.json").read_text())
     W = int(inp["W"])
@@ -93,7 +106,9 @@ def main() -> None:  # noqa: C901 -- one report
     Bday = S.B.reindex(S.days).to_numpy(float)
 
     # ---------------------------------------------------------------- the minGRU walk-forward forecasts
-    blocks = sorted(run.glob("block*"), key=lambda p: int(p.name[5:]))
+    blocks = (
+        [] if rescore else sorted(run.glob("block*"), key=lambda p: int(p.name[5:]))
+    )
     preds, sel_rows, fit_rows = [], [], []
     for b in blocks:
         k = int(b.name[5:])
@@ -128,6 +143,8 @@ def main() -> None:  # noqa: C901 -- one report
         ):  # Phase 2b: inputs kept by the window mask, standardised values clipped
             for m in DESIGNS:
                 jm = jo[jo["id"].str.contains(f"_{m}_")]
+                if jm.empty:  # a one-design walk (2026-10-15, the wd_enc study's fixed-wd_enc walks)
+                    continue
                 extra[f"n_inputs_{m}_min"] = int(jm["n_inputs"].min())
                 extra[f"n_inputs_{m}_max"] = int(jm["n_inputs"].max())
                 extra[f"clipped_{m}_per_refit"] = float(jm["n_clipped"].mean())
@@ -157,16 +174,22 @@ def main() -> None:  # noqa: C901 -- one report
             tune_epochs=int(jt["epochs_run"].sum()),
             tune_wall=wall_of(b / "tune", jt),
         )
-    preds = pd.concat(preds)
-    pd.DataFrame(sel_rows).to_csv(out / "selection.csv", index=False)
-    pd.DataFrame(fit_rows).to_csv(out / "compute.csv", index=False)
-    ens = (
-        preds.groupby(["design", "row"])["f"]
-        .agg(["mean", "count", "std"])
-        .reset_index()
-    )
-    assert (ens["count"] == 5).all(), ens["count"].value_counts()
-    ens.to_csv(out / "forecasts.csv", index=False)
+    if rescore:  # the stored seed means; selection.csv and compute.csv stay as written by the scoring run
+        ens = pd.read_csv(out / "forecasts.csv")
+        designs = [m for m in DESIGNS if m in set(ens["design"])]
+        assert (ens["count"] == 5).all(), ens["count"].value_counts()
+    else:
+        preds = pd.concat(preds)
+        designs = [m for m in DESIGNS if m in set(preds["design"])]
+        pd.DataFrame(sel_rows).to_csv(out / "selection.csv", index=False)
+        pd.DataFrame(fit_rows).to_csv(out / "compute.csv", index=False)
+        ens = (
+            preds.groupby(["design", "row"])["f"]
+            .agg(["mean", "count", "std"])
+            .reset_index()
+        )
+        assert (ens["count"] == 5).all(), ens["count"].value_counts()
+        ens.to_csv(out / "forecasts.csv", index=False)
 
     # ---------------------------------------------------------------- daily losses of every candidate
     def from_pred(pred: np.ndarray) -> dict:
@@ -175,14 +198,15 @@ def main() -> None:  # noqa: C901 -- one report
     def from_plain(plain: np.ndarray) -> dict:
         d = S.daily_from_plain(plain)
         f = np.sqrt(plain / Bday)
-        d["mse_fit"] = (f - y_adj[day_row]) ** 2
+        # d["mse_fit"] = (f - y_adj[day_row]) ** 2  # 2026-10-15 (user): parked -- scored against the trimmed target; scores now use actual RV (data audit #10)
+        d["mse_fit"] = (f - S.y_adj) ** 2  # vs sqrt(actual RV / B)
         from close_murphy_splits_headline import elementary
 
         d["es1"] = elementary(d["plain"] / S.iv, S.target / S.iv, 1.0)
         return d
 
     cands: dict[tuple[str, str], dict] = {}
-    for m in DESIGNS:
+    for m in designs:
         e = ens[ens["design"] == m]
         pred = np.full(len(fdates), np.nan)
         pred[e["row"].to_numpy() - W] = e["mean"].to_numpy()
@@ -245,8 +269,9 @@ def main() -> None:  # noqa: C901 -- one report
     contrasts.to_csv(out / "contrasts.csv", index=False)
     pd.set_option("display.width", 250)
     pd.set_option("display.max_columns", 30)
-    print(pd.DataFrame(sel_rows).to_string(index=False))
-    print(pd.DataFrame(fit_rows).to_string(index=False))
+    if not rescore:
+        print(pd.DataFrame(sel_rows).to_string(index=False))
+        print(pd.DataFrame(fit_rows).to_string(index=False))
     print(scores.to_string(index=False))
     print(contrasts.to_string(index=False))
 

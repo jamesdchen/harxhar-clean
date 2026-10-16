@@ -1,0 +1,2 @@
+xgb cluster/xgbtop_xgb_config.json 0 5 1 ref/tree_expert_10/chunk_000.npz
+xgb cluster/xgbtop_xgb_config.json 50 5 1 ref/tree_expert_10/chunk_050.npz

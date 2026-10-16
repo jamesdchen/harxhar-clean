@@ -24,6 +24,8 @@ Reads the captures written by ``experiments/model_diagnostics_1530.py capture``
    a penalty re-choice, a between-tune re-anchor, or in the warm path (the data).
 
 Run:  python experiments/model_diagnostics_1530_regimes.py
+      python experiments/model_diagnostics_1530_regimes.py figures   (redraw the figures
+      from the saved outputs only)
 """
 
 from __future__ import annotations
@@ -148,6 +150,131 @@ def sim_supwald(p: int, rng: np.random.Generator) -> np.ndarray:
         q = (br**2).sum(-1) / (pis[keep] * (1 - pis[keep]))[None, :]
         out[a : a + m] = q.max(1)
     return out
+
+
+# --------------------------------------------------------------------------- figures
+# drawn by main(); redrawn from its saved outputs by figures().  Names are presented
+# through md.disp (no adj_ prefix).
+def _marker(cand, covid_lo, covid_hi, deck_lo, deck_hi):
+    def marks(ax, labels=False):
+        for cname, cdate, kind in cand:
+            ax.axvline(
+                cdate,
+                color="#b2182b" if kind == "penalty" else "#2166ac",
+                lw=0.7,
+                ls="--" if kind == "penalty" else ":",
+            )
+        ax.axvspan(covid_lo, covid_hi, color="#2166ac", alpha=0.08, lw=0)
+        ax.axvspan(deck_lo, deck_hi, color="0.93", zorder=0)
+
+    return marks
+
+
+def _fig_weights_counterfactual(plt, out, cal, show_cols, names, R, F, marks):
+    nc = 4
+    nr = int(np.ceil(len(show_cols) / nc))
+    fig, axes = plt.subplots(nr, nc, figsize=(11, 2.1 * nr + 0.5), sharex=True)
+    axes = np.atleast_1d(axes).ravel()
+    for a_i, c in enumerate(show_cols):
+        ax = axes[a_i]
+        j = names.index(c)
+        marks(ax)
+        ax.plot(
+            cal,
+            F[100.0]["Z"][:, j],
+            color="#1b9e77",
+            lw=0.8,
+            label="penalty held at 100",
+        )
+        ax.plot(
+            cal,
+            F[1000.0]["Z"][:, j],
+            color="#d95f02",
+            lw=0.8,
+            label="penalty held at 1000",
+        )
+        ax.plot(
+            cal,
+            R["Z"][:, j],
+            color="k",
+            lw=1.2,
+            ls=(0, (1, 1.5)),
+            label="arm of record",
+        )
+        ax.set_title(md.disp(c), fontsize=8)
+        ax.tick_params(labelsize=6)
+        ax.axhline(0, color="0.6", lw=0.4)
+    for ax in axes[len(show_cols) :]:
+        ax.axis("off")
+    h, lab = axes[0].get_legend_handles_labels()
+    fig.legend(h, lab, loc="lower center", ncol=3, fontsize=7, frameon=False)
+    fig.tight_layout(rect=(0, 0.04, 1, 1))
+    fig.savefig(out / "regimes_weights_counterfactual.png", dpi=150)
+    plt.close(fig)
+
+
+def _fig_shap_share(plt, out, cal, shares, cols8, rest, stem, cand):
+    palette = ["#1b9e77", "#d95f02", "#7570b3", "#e7298a", "#66a61e", "#e6ab02"]
+    fig, axes = plt.subplots(
+        len(ROLL_WINDOWS), 1, figsize=(11, 2.4 * len(ROLL_WINDOWS) + 0.6), sharex=True
+    )
+    for ax, w in zip(axes, ROLL_WINDOWS):
+        sh = shares[w]
+        stack = [sh[g_].to_numpy() for g_ in cols8] + [sh[rest].sum(1).to_numpy()]
+        ax.stackplot(
+            cal,
+            *stack,
+            colors=palette + ["0.8"],
+            labels=[md.disp(stem[g_]) for g_ in cols8] + ["all other series"],
+            lw=0,
+        )
+        for cname, cdate, kind in cand:
+            ax.axvline(cdate, color="k", lw=0.7, ls="--" if kind == "penalty" else ":")
+        ax.set_ylim(0, 1)
+        ax.set_ylabel(f"share, {w}-session window", fontsize=7)
+        ax.tick_params(labelsize=7)
+    axes[0].legend(
+        fontsize=6, ncol=4, loc="upper left", bbox_to_anchor=(0, 1.35), frameon=False
+    )
+    fig.tight_layout()
+    fig.savefig(out / "regimes_shap_share.png", dpi=150)
+    plt.close(fig)
+
+
+def _fig_lasso_vix(plt, out, cal, swL, vcols, names, nzL, LA, LF, marks):
+    lag_cols: dict[int | None, str] = dict(
+        zip(md.LAGS, ["#1b9e77", "#d95f02", "#7570b3", "#e7298a", "#66a61e", "#a6761d"])
+    )
+    fig, axes = plt.subplots(1, 3, figsize=(11, 2.8), sharex=True)
+    for ax, gname in zip(axes, VIX_FAMILY):
+        marks(ax)
+        for k in swL:
+            ax.axvline(cal[k], color="#b2182b", lw=1.2, alpha=0.5)
+        for c in vcols:
+            gg, kk, lag = md.parse_feature(c)
+            if gg != gname:
+                continue
+            j = names.index(c)
+            if not nzL[:, j].any():
+                continue
+            ax.plot(
+                cal,
+                LA["Z"][:, j],
+                color=lag_cols.get(lag, "k"),
+                lw=1.0,
+                label=md.disp(c),
+            )
+            ax.plot(
+                cal, LF["Z"][:, j], color=lag_cols.get(lag, "k"), lw=0.6, ls=(0, (2, 2))
+            )
+        ax.axhline(0, color="0.5", lw=0.5)
+        ax.set_title(f"lasso: {md.disp(md.var_stem(gname, names))}", fontsize=8)
+        ax.tick_params(labelsize=6)
+        if ax.get_legend_handles_labels()[0]:
+            ax.legend(fontsize=5.5, loc="best")
+    fig.tight_layout()
+    fig.savefig(out / "regimes_lasso_vix.png", dpi=150)
+    plt.close(fig)
 
 
 # --------------------------------------------------------------------------- main
@@ -836,60 +963,10 @@ def main() -> None:  # noqa: C901 - one linear report
     J["lasso"]["corr_ridge"] = float(rho)
 
     # ---- figures
-    deck_lo, deck_hi = d.index.min(), d.index.max()
-
-    def marks(ax, labels=False):
-        for cname, cdate, kind in cand:
-            ax.axvline(
-                cdate,
-                color="#b2182b" if kind == "penalty" else "#2166ac",
-                lw=0.7,
-                ls="--" if kind == "penalty" else ":",
-            )
-        ax.axvspan(covid_lo, covid_hi, color="#2166ac", alpha=0.08, lw=0)
-        ax.axvspan(deck_lo, deck_hi, color="0.93", zorder=0)
+    marks = _marker(cand, covid_lo, covid_hi, d.index.min(), d.index.max())
 
     # (a) weights with the fixed-penalty counterfactuals
-    nc = 4
-    nr = int(np.ceil(len(show_cols) / nc))
-    fig, axes = plt.subplots(nr, nc, figsize=(11, 2.1 * nr + 0.5), sharex=True)
-    axes = np.atleast_1d(axes).ravel()
-    for a_i, c in enumerate(show_cols):
-        ax = axes[a_i]
-        j = names.index(c)
-        marks(ax)
-        ax.plot(
-            cal,
-            F[100.0]["Z"][:, j],
-            color="#1b9e77",
-            lw=0.8,
-            label="penalty held at 100",
-        )
-        ax.plot(
-            cal,
-            F[1000.0]["Z"][:, j],
-            color="#d95f02",
-            lw=0.8,
-            label="penalty held at 1000",
-        )
-        ax.plot(
-            cal,
-            R["Z"][:, j],
-            color="k",
-            lw=1.2,
-            ls=(0, (1, 1.5)),
-            label="arm of record",
-        )
-        ax.set_title(c, fontsize=8)
-        ax.tick_params(labelsize=6)
-        ax.axhline(0, color="0.6", lw=0.4)
-    for ax in axes[len(show_cols) :]:
-        ax.axis("off")
-    h, lab = axes[0].get_legend_handles_labels()
-    fig.legend(h, lab, loc="lower center", ncol=3, fontsize=7, frameon=False)
-    fig.tight_layout(rect=(0, 0.04, 1, 1))
-    fig.savefig(OUT / "regimes_weights_counterfactual.png", dpi=150)
-    plt.close(fig)
+    _fig_weights_counterfactual(plt, OUT, cal, show_cols, names, R, F, marks)
 
     # (b) sup-Wald paths
     show = [
@@ -932,61 +1009,10 @@ def main() -> None:  # noqa: C901 - one linear report
     plt.close(fig)
 
     # (c) rolling SHAP shares
-    cols8 = order[:N_TOP]
-    palette = ["#1b9e77", "#d95f02", "#7570b3", "#e7298a", "#66a61e", "#e6ab02"]
-    fig, axes = plt.subplots(
-        len(ROLL_WINDOWS), 1, figsize=(11, 2.4 * len(ROLL_WINDOWS) + 0.6), sharex=True
-    )
-    for ax, w in zip(axes, ROLL_WINDOWS):
-        sh = shares[w]
-        stack = [sh[g_].to_numpy() for g_ in cols8] + [sh[rest].sum(1).to_numpy()]
-        ax.stackplot(
-            cal,
-            *stack,
-            colors=palette + ["0.8"],
-            labels=[stem[g_] for g_ in cols8] + ["all other series"],
-            lw=0,
-        )
-        for cname, cdate, kind in cand:
-            ax.axvline(cdate, color="k", lw=0.7, ls="--" if kind == "penalty" else ":")
-        ax.set_ylim(0, 1)
-        ax.set_ylabel(f"share, {w}-session window", fontsize=7)
-        ax.tick_params(labelsize=7)
-    axes[0].legend(
-        fontsize=6, ncol=4, loc="upper left", bbox_to_anchor=(0, 1.35), frameon=False
-    )
-    fig.tight_layout()
-    fig.savefig(OUT / "regimes_shap_share.png", dpi=150)
-    plt.close(fig)
+    _fig_shap_share(plt, OUT, cal, shares, order[:N_TOP], rest, stem, cand)
 
     # (d) the lasso's VIX-family weights
-    lag_cols: dict[int | None, str] = dict(
-        zip(md.LAGS, ["#1b9e77", "#d95f02", "#7570b3", "#e7298a", "#66a61e", "#a6761d"])
-    )
-    fig, axes = plt.subplots(1, 3, figsize=(11, 2.8), sharex=True)
-    for ax, gname in zip(axes, VIX_FAMILY):
-        marks(ax)
-        for k in swL:
-            ax.axvline(cal[k], color="#b2182b", lw=1.2, alpha=0.5)
-        for c in vcols:
-            gg, kk, lag = md.parse_feature(c)
-            if gg != gname:
-                continue
-            j = names.index(c)
-            if not nzL[:, j].any():
-                continue
-            ax.plot(cal, LA["Z"][:, j], color=lag_cols.get(lag, "k"), lw=1.0, label=c)
-            ax.plot(
-                cal, LF["Z"][:, j], color=lag_cols.get(lag, "k"), lw=0.6, ls=(0, (2, 2))
-            )
-        ax.axhline(0, color="0.5", lw=0.5)
-        ax.set_title(f"lasso: {md.var_stem(gname, names)}", fontsize=8)
-        ax.tick_params(labelsize=6)
-        if ax.get_legend_handles_labels()[0]:
-            ax.legend(fontsize=5.5, loc="best")
-    fig.tight_layout()
-    fig.savefig(OUT / "regimes_lasso_vix.png", dpi=150)
-    plt.close(fig)
+    _fig_lasso_vix(plt, OUT, cal, swL, vcols, names, nzL, LA, LF, marks)
 
     J["n"] = n
     J["deck_n"] = len(d)
@@ -1006,5 +1032,61 @@ def main() -> None:  # noqa: C901 - one linear report
     )
 
 
+def figures(out: Path = OUT) -> None:
+    """Redraw main()'s three name-bearing figures (weights counterfactual, rolling SHAP
+    shares, the lasso's VIX columns) from its saved outputs: the captures, regimes.json and
+    regimes_shap_share_rolling*.csv.  No test is re-run and no CSV / JSON is written; the
+    sup-Wald figure carries no design names and is left as it is."""
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    J = json.loads((OUT / "regimes.json").read_text(encoding="utf-8"))
+    R = load(None)
+    F = {100.0: load("ridge_fixed100"), 1000.0: load("ridge_fixed1000")}
+    LA = load("reclasso")
+    LF = load(f"reclasso_fixed{float(LA['alpha'][-1]):g}")
+    names = R["names"]
+    for o in (*F.values(), LA, LF):
+        assert o["names"] == names and (o["stamp"] == R["stamp"]).all()
+    cal = R["day"]
+    d = pd.read_parquet(
+        REPO / "results" / "atm_straddle_0dte_1530" / "daily_sub_live_ridge.parquet"
+    )
+    d.index = pd.DatetimeIndex(d.index).as_unit("ns")
+    cand = [(a, pd.Timestamp(b), k) for a, b, k in J["dates"]["cand"]]
+    covid_lo, covid_hi = (pd.Timestamp(x) for x in J["dates"]["covid"])
+    marks = _marker(cand, covid_lo, covid_hi, d.index.min(), d.index.max())
+    # the series order main() used, checked against the saved one
+    active = np.flatnonzero((R["sd"] > 0).any(0) & (np.abs(R["th"][:, :-1]) > 0).any(0))
+    grp = np.array([md.parse_feature(x)[0] for x in names])
+    gset = sorted(set(grp[active]))
+    Ga = {g_: R["C"][:, grp == g_].sum(1) for g_ in gset}
+    order = sorted(gset, key=lambda g_: -Ga[g_].std(ddof=1))
+    stem = {g_: md.var_stem(g_, names) for g_ in gset}
+    assert [stem[g_] for g_ in order[:N_TOP]] == J["top"], J["top"]
+    assert [stem[g_] for g_ in order[N_TOP:]] == J["rest"], J["rest"]
+    shares = {
+        w: pd.read_csv(
+            OUT / f"regimes_shap_share_rolling{w}.csv", index_col=0, parse_dates=True
+        )
+        for w in ROLL_WINDOWS
+    }
+    for w in ROLL_WINDOWS:
+        assert (shares[w].index == cal).all() and sorted(shares[w].columns) == gset
+    swL = np.flatnonzero(np.diff(LA["alpha"]) != 0) + 1
+    assert [str(cal[k].date()) for k in swL] == [s for s, _ in J["lasso"]["switches"]]
+    vcols = [c for c in names if md.parse_feature(c)[0] in VIX_FAMILY]
+    nzL = LA["th"][:, :-1] != 0
+    _fig_weights_counterfactual(plt, out, cal, J["show_cols"], names, R, F, marks)
+    _fig_shap_share(plt, out, cal, shares, order[:N_TOP], order[N_TOP:], stem, cand)
+    _fig_lasso_vix(plt, out, cal, swL, vcols, names, nzL, LA, LF, marks)
+    print(f"redrew 3 figures in {out}")
+
+
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) > 1 and sys.argv[1] == "figures":
+        figures()  # redraw the name-bearing figures from the saved outputs only
+    else:
+        main()

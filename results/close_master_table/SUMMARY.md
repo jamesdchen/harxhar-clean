@@ -1,6 +1,6 @@
 # Master table for the closing strategy (A4) — summary
 
-Written by `experiments/master_table_close.py --arm-root linear_subsection_dedup` on 2026-10-14 00:00; every number below is read from
+Written by `experiments/master_table_close.py --arm-root linear_subsection_dedup` on 2026-10-15 14:09; every number below is read from
 `master_table.csv` (and `before_after.csv`, `recal_vs_plain.csv`) of the same run. Full table: `writeup/master_table_close.pdf`; tex: `writeup/generated/table_master_close.tex`. Every forecast is the plain back-transform f²·B; every number is a point estimate.
 
 ## Provenance: design, window mask, CPU class
@@ -35,15 +35,15 @@ Written by `experiments/master_table_close.py --arm-root linear_subsection_dedup
 
 ## Scorer, days, reference
 
-- **Scorer: the plain back-transform.** Every forecast is used as f²·B (f = the model's forecast on the adjusted scale sqrt(RV/B), B = the diurnal baseline; the `yhat`² · `baseline` of `results/spxw_pnl/yhat_*.parquet`); QLIKE (`qlike_raw`) against the per-bar spec's 16:00 target; the trade is the deck's 15:30 sign(s) on the straddle (`trade_1530`): buy when f²·B exceeds the 15:30 implied variance, sell otherwise. The research scorer's 16:00-bar recalibration (f² + s)·B (s = the forecast's own trailing 250-session mean squared adjusted-scale error, lagged one) was removed on 2026-10-06 (user decision); it survives only as the diagnostic column `pred_clock` and in `recal_vs_plain.csv` (section below). The notebook's 13-bar Mincer–Zarnowitz map is **not** used either: no number here may be set beside a notebook number.
+- **Scorer: the plain back-transform.** Every forecast is used as f²·B (f = the model's forecast on the adjusted scale sqrt(RV/B), B = the diurnal baseline; the `yhat`² · `baseline` of `results/spxw_pnl/yhat_*.parquet`); QLIKE (`qlike_raw`) against the ACTUAL 15:30-16:00 realized variance (`rv_unclipped`; since 2026-10-15, data audit #10 -- the models still fit the spec's winsorized target, whose QLIKE is the diagnostic `qlike_raw_trimmed`); the trade is the deck's 15:30 sign(s) on the straddle (`trade_1530`): buy when f²·B exceeds the 15:30 implied variance, sell otherwise. The research scorer's 16:00-bar recalibration (f² + s)·B (s = the forecast's own trailing 250-session mean squared adjusted-scale error, lagged one) was removed on 2026-10-06 (user decision); it survives only as the diagnostic column `pred_clock` and in `recal_vs_plain.csv` (section below). The notebook's 13-bar Mincer–Zarnowitz map is **not** used either: no number here may be set beside a notebook number.
 - **Point estimates only.** The circular block bootstrap is disabled (commit b761b28: every draw is the original sample), so no interval is reported. The inference shown is the Diebold–Mariano statistic on the daily QLIKE difference (`dm_test`, Newey–West variance with the Harvey–Leybourne–Newbold correction) and the Newey–West HAC t of the daily mid-return difference (`newey_west_t`); counts 'significant' use the two-sided 5 % level of those statistics.
 - **Days:** table A = 295 forecasts in 20 families (+ 9 check rows) on the same 866 trade days (2020-01-03 .. 2024-04-30); intersection over table A = 866 of 866 trade days. Every family that covers the 866 trade days is in table A. Table B = 21 forecasts scored on their own days (paired with the reference on those days): 21 chain-period buckets forecasts from 2022-01-03 on 550 trade days. Forecasts that failed to load: none.
 - **Which forecasts drop days:** no table-A forecast misses a trade day; 0 forecasts miss trade days inside their own window. The 21 table-B forecasts start at their comparison window (2022-01-03), so each omits the 316 earlier trade days by design (their implied-vol inputs are real chain data only from then; compare_mfiv_harlag.CHAIN_START). Coverage per forecast: `master_table_days.csv`.
-- **Reference:** the block-diagonal ridge (`blk2`, `yhat_blk2_fomc1.parquet`) — the paper's headline forecast (HAR ladder, penalty 1, plus the exogenous block, penalty 100, on the panel of record), the forecast the paper's 15:30 deck trades. Under this scorer it has QLIKE 0.1068 and sign(s) Sharpe 1.28 mid / 0.80 crossed (the deck's own map gives it 1.34 mid; the difference is the scorer). Second reference: always short, Sharpe 0.20 mid / -0.27 crossed.
+- **Reference:** the block-diagonal ridge (`blk2`, `yhat_blk2_fomc1.parquet`) — the paper's headline forecast (HAR ladder, penalty 1, plus the exogenous block, penalty 100, on the panel of record), the forecast the paper's 15:30 deck trades. Under this scorer it has QLIKE 0.1092 and sign(s) Sharpe 1.28 mid / 0.80 crossed (the deck's own map gives it 1.34 mid; the difference is the scorer). Second reference: always short, Sharpe 0.20 mid / -0.27 crossed.
 
 ## (a) Recommended headline forecast
 
-**per-bar ridge [live_feasible]** (`sub_ridge_live_feasible`), scored with the plain forecast. On the 866 days: QLIKE 0.1184 (+10.9 % vs the reference, DM +0.60, p 0.549); sign(s) Sharpe 1.79 mid / 1.31 crossed, mean +0.126 per unit premium (crossed +0.093), hit rate 57.0 %, buys on 269 days (31.1 %). Sharpe difference vs the reference: mid +0.51, crossed +0.51 (HAC t +1.12, p 0.262 on the daily mid-return difference); vs always short: mid +1.59, crossed +1.58 (HAC t +2.26, p 0.024).
+**per-bar ridge [live_feasible]** (`sub_ridge_live_feasible`), scored with the plain forecast. On the 866 days: QLIKE 0.1206 (+10.4 % vs the reference, DM +0.59, p 0.559); sign(s) Sharpe 1.79 mid / 1.31 crossed, mean +0.126 per unit premium (crossed +0.093), hit rate 57.0 %, buys on 269 days (31.1 %). Sharpe difference vs the reference: mid +0.51, crossed +0.51 (HAC t +1.12, p 0.262 on the daily mid-return difference); vs always short: mid +1.59, crossed +1.58 (HAC t +2.26, p 0.024).
 
 - **Does any forecast now beat the headline?** Of the 294 other table-A forecasts (check rows and exact duplicates left out), 30 have a higher Sharpe point estimate at the mid fill (31 crossed); with the HAC t of the daily mid-return difference significant at 5 %: 2 (per-bar ridge [live_vix_only] (+0.73, HAC t +2.46, p 0.014); per-bar ridge [free_vix_only] (+0.70, HAC t +2.45, p 0.014)). 282 have a lower QLIKE point estimate; with DM p < 0.05: 0.
   Highest Sharpe differences over the headline (mid, point estimates): per-bar ridge [live_vix_only] +0.73 (t +2.46, p 0.014); per-bar ridge [free_vix_only] +0.70 (t +2.45, p 0.014); Optuna per-bar XGBoost, TUNE_PER 25, best of 50, QLIKE-selected [live_feasible] +0.40 (t +1.05, p 0.292); per-bar ridge [lean_vol_vix] +0.31 (t +0.83, p 0.407); per-bar ridge [free_feasible] +0.28 (t +1.14, p 0.253).
@@ -56,30 +56,30 @@ Why this one:
 
   | alternative | QLIKE | % vs headline | DM | Sharpe mid / crossed | ΔSharpe mid vs headline | ΔSharpe crossed vs headline | HAC t (mid) | same position |
   |---|---:|---:|---:|---|---:|---:|---:|---:|
-  | per-bar lasso [live_feasible] | 0.0931 | -21.4 | -1.28 | 1.87 / 1.39 | +0.08 | +0.08 | +0.19 | 90.2 % |
-  | per-bar elastic net [live_feasible] | 0.0950 | -19.7 | -1.26 | 1.56 / 1.08 | -0.23 | -0.22 | -0.55 | 91.7 % |
-  | per-bar ridge [all_features] | 0.1164 | -1.7 | -0.25 | 1.71 / 1.22 | -0.08 | -0.08 | -0.18 | 87.4 % |
-  | per-bar ridge [baseline] | 0.0946 | -20.1 | -1.16 | 1.36 / 0.88 | -0.43 | -0.43 | -0.77 | 83.9 % |
-  | per-bar lasso [free_vix_only] | 0.0940 | -20.6 | -1.24 | 1.91 / 1.43 | +0.12 | +0.12 | +0.29 | 89.8 % |
-  | per-bar ridge [free_vix_only] | 0.1194 | +0.9 | +0.27 | 2.49 / 2.02 | +0.70 | +0.71 | +2.45 | 96.5 % |
-  | per-bar LightGBM [live_feasible] | 0.0939 | -20.7 | -1.26 | 1.54 / 1.05 | -0.25 | -0.25 | -0.60 | 86.3 % |
-  | per-bar XGBoost [live_feasible] | 0.0943 | -20.4 | -1.23 | 1.78 / 1.29 | -0.01 | -0.01 | -0.03 | 87.5 % |
-  | per-bar XGBoost [lean_vol_vix] | 0.0923 | -22.1 | -1.36 | 1.78 / 1.30 | -0.01 | -0.01 | -0.02 | 87.5 % |
-  | per-bar XGBoost, daily refit [lean_vol_vix] | 0.0911 | -23.0 | -1.39 | 1.76 / 1.28 | -0.03 | -0.03 | -0.07 | 87.2 % |
-  | tuned per-bar XGBoost [live_feasible], MSE-selected | 0.1003 | -15.3 | -1.00 | 1.96 / 1.48 | +0.17 | +0.17 | +0.36 | 85.3 % |
-  | tuned per-bar LightGBM [live_feasible], MSE-selected | 0.0932 | -21.3 | -1.28 | 1.76 / 1.28 | -0.03 | -0.03 | -0.06 | 86.8 % |
-  | tuned per-bar XGBoost, daily refit [live_feasible], QLIKE-selected | 0.0986 | -16.7 | -1.04 | 1.99 / 1.51 | +0.20 | +0.21 | +0.43 | 85.8 % |
-  | tuned per-bar random forest, daily refit [lean_vol_vix], QLIKE-selected | 0.0926 | -21.8 | -1.28 | 1.47 / 0.98 | -0.32 | -0.33 | -0.59 | 88.9 % |
-  | Optuna per-bar XGBoost, TUNE_PER 25, best of 50, QLIKE-selected [live_feasible] | 0.0970 | -18.1 | -1.07 | 2.19 / 1.70 | +0.40 | +0.39 | +1.05 | 85.7 % |
-  | Optuna per-bar random forest, TUNE_PER 250, best of 50 [lean_vol_vix] | 0.0930 | -21.5 | -1.26 | 1.29 / 0.80 | -0.50 | -0.51 | -1.01 | 89.0 % |
-  | per-bar LSTM [baseline] | 0.1009 | -14.8 | -0.86 | 1.37 / 0.88 | -0.42 | -0.42 | -0.81 | 80.6 % |
-  | per-bar LSTM, QLIKE-selected [baseline] | 0.0992 | -16.2 | -0.95 | 1.13 / 0.65 | -0.66 | -0.66 | -1.26 | 83.7 % |
-  | intraday-sequence LSTM [all_features] | 0.1117 | -5.6 | -0.38 | 1.55 / 1.06 | -0.24 | -0.24 | -0.49 | 80.4 % |
-  | intraday-sequence LSTM, QLIKE-selected [live_feasible] | 0.1070 | -9.6 | -0.63 | 1.46 / 0.97 | -0.33 | -0.34 | -0.77 | 82.1 % |
+  | per-bar lasso [live_feasible] | 0.0950 | -21.2 | -1.30 | 1.87 / 1.39 | +0.08 | +0.08 | +0.19 | 90.2 % |
+  | per-bar elastic net [live_feasible] | 0.0973 | -19.3 | -1.25 | 1.56 / 1.08 | -0.23 | -0.22 | -0.55 | 91.7 % |
+  | per-bar ridge [all_features] | 0.1184 | -1.8 | -0.26 | 1.71 / 1.22 | -0.08 | -0.08 | -0.18 | 87.4 % |
+  | per-bar ridge [baseline] | 0.0968 | -19.7 | -1.15 | 1.36 / 0.88 | -0.43 | -0.43 | -0.77 | 83.9 % |
+  | per-bar lasso [free_vix_only] | 0.0959 | -20.5 | -1.25 | 1.91 / 1.43 | +0.12 | +0.12 | +0.29 | 89.8 % |
+  | per-bar ridge [free_vix_only] | 0.1216 | +0.8 | +0.26 | 2.49 / 2.02 | +0.70 | +0.71 | +2.45 | 96.5 % |
+  | per-bar LightGBM [live_feasible] | 0.0959 | -20.5 | -1.27 | 1.54 / 1.05 | -0.25 | -0.25 | -0.60 | 86.3 % |
+  | per-bar XGBoost [live_feasible] | 0.0966 | -19.9 | -1.22 | 1.78 / 1.29 | -0.01 | -0.01 | -0.03 | 87.5 % |
+  | per-bar XGBoost [lean_vol_vix] | 0.0943 | -21.8 | -1.37 | 1.78 / 1.30 | -0.01 | -0.01 | -0.02 | 87.5 % |
+  | per-bar XGBoost, daily refit [lean_vol_vix] | 0.0932 | -22.7 | -1.40 | 1.76 / 1.28 | -0.03 | -0.03 | -0.07 | 87.2 % |
+  | tuned per-bar XGBoost [live_feasible], MSE-selected | 0.1025 | -15.0 | -1.00 | 1.96 / 1.48 | +0.17 | +0.17 | +0.36 | 85.3 % |
+  | tuned per-bar LightGBM [live_feasible], MSE-selected | 0.0954 | -20.9 | -1.28 | 1.76 / 1.28 | -0.03 | -0.03 | -0.06 | 86.8 % |
+  | tuned per-bar XGBoost, daily refit [live_feasible], QLIKE-selected | 0.1008 | -16.4 | -1.03 | 1.99 / 1.51 | +0.20 | +0.21 | +0.43 | 85.8 % |
+  | tuned per-bar random forest, daily refit [lean_vol_vix], QLIKE-selected | 0.0949 | -21.3 | -1.27 | 1.47 / 0.98 | -0.32 | -0.33 | -0.59 | 88.9 % |
+  | Optuna per-bar XGBoost, TUNE_PER 25, best of 50, QLIKE-selected [live_feasible] | 0.0995 | -17.5 | -1.05 | 2.19 / 1.70 | +0.40 | +0.39 | +1.05 | 85.7 % |
+  | Optuna per-bar random forest, TUNE_PER 250, best of 50 [lean_vol_vix] | 0.0953 | -20.9 | -1.25 | 1.29 / 0.80 | -0.50 | -0.51 | -1.01 | 89.0 % |
+  | per-bar LSTM [baseline] | 0.1034 | -14.2 | -0.84 | 1.37 / 0.88 | -0.42 | -0.42 | -0.81 | 80.6 % |
+  | per-bar LSTM, QLIKE-selected [baseline] | 0.1017 | -15.7 | -0.94 | 1.13 / 0.65 | -0.66 | -0.66 | -1.26 | 83.7 % |
+  | intraday-sequence LSTM [all_features] | 0.1140 | -5.4 | -0.37 | 1.55 / 1.06 | -0.24 | -0.24 | -0.49 | 80.4 % |
+  | intraday-sequence LSTM, QLIKE-selected [live_feasible] | 0.1091 | -9.5 | -0.64 | 1.46 / 0.97 | -0.33 | -0.34 | -0.77 | 82.1 % |
 
 - Over all 294 other table-A forecasts (point estimates): 30 trade better than the headline at the mid fill (31 crossed), 2 of them with the HAC t of the daily mid-return difference significant at 5 %; 264 trade worse (30 significant); 282 have a lower QLIKE (0 with DM p < 0.05), 12 a higher one (3 with DM p < 0.05).
 - Against the reference, 148 of 294 table-A forecasts have a higher mid-fill Sharpe (147 at the crossed fill); 4 of them with the HAC t of the daily mid-return difference significant at 5 %. Against always short, 293 (mid) and 293 (crossed) of 295 have a higher Sharpe; 109 with a significant HAC t (mid).
-- On forecast accuracy alone the best live-feasible forecast is per-bar LightGBM, daily refit [live_feasible] (QLIKE 0.0911, Sharpe 1.61 / 1.12); a QLIKE-first choice would take it. The trade does not rank forecasts the way QLIKE does (section b), which is why the headline names the scorer AND the trade numbers.
+- On forecast accuracy alone the best live-feasible forecast is per-bar LightGBM, daily refit [live_feasible] (QLIKE 0.0933, Sharpe 1.61 / 1.12); a QLIKE-first choice would take it. The trade does not rank forecasts the way QLIKE does (section b), which is why the headline names the scorer AND the trade numbers.
 
 ## Scorer change: recalibrated -> plain (2026-10-06)
 
@@ -94,20 +94,20 @@ The recalibration was removed on 2026-10-06 (user decision): every number in thi
 ## Before / after the 16:00 campaign (both sides plain)
 
 Before = the pre-campaign master table (commit 6177b74; snapshot `results/spxw_pnl/pre_dedup_2026-09-29/`), re-scored here with the plain forecast from its daily frame's `plain` column; after = this run; every key present in both is paired on the same days (`before_after.csv`; difference = after minus before; point estimates, HAC t of the daily mid-return difference).
-- **Headline** (`sub_ridge_live_feasible`; design de-dup (the mask had already dropped the session-edge columns: float path only); re-run on hoffman2 (was carc)): QLIKE 0.1184 -> 0.1184 (+0.00 %); Sharpe mid 1.79 -> 1.79 (+0.00, HAC t n/a), crossed 1.31 -> 1.31 (+0.00); positions changed on 0 of 866 days; largest relative change of the plain forecast 1.13e-12.
-- **Reference** (`blk2`; nothing): QLIKE 0.1068 -> 0.1068 (+0.00 %); Sharpe mid 1.28 -> 1.28 (+0.00, HAC t n/a), crossed 0.80 -> 0.80 (+0.00); positions changed on 0 of 866 days; largest relative change of the plain forecast 0.00e+00.
+- **Headline** (`sub_ridge_live_feasible`; design de-dup (the mask had already dropped the session-edge columns: float path only); re-run on hoffman2 (was carc)): QLIKE 0.1206 -> 0.1206 (+0.00 %); Sharpe mid 1.79 -> 1.79 (+0.00, HAC t n/a), crossed 1.31 -> 1.31 (+0.00); positions changed on 0 of 866 days; largest relative change of the plain forecast 1.13e-12.
+- **Reference** (`blk2`; nothing): QLIKE 0.1092 -> 0.1092 (+0.00 %); Sharpe mid 1.28 -> 1.28 (+0.00, HAC t n/a), crossed 0.80 -> 0.80 (+0.00); positions changed on 0 of 866 days; largest relative change of the plain forecast 0.00e+00.
 
 | family | keys in both | what changed | QLIKE % change, median (min .. max) | ΔSharpe mid, median (min .. max) | ΔSharpe crossed, median (min .. max) | HAC t significant, up / down | positions changed, median (max) |
 |---|---:|---|---|---|---|---|---|
 | paper | 9 | nothing; nothing (the campaign did not re-run it | +0.00 (+0.00 .. +0.00) | +0.00 (+0.00 .. +0.00) | +0.00 (+0.00 .. +0.00) | 0 / 0 | 0 (0) |
-| per-bar linear | 10 | design de-dup (the mask had already dropped the session-edge columns: float path only) | +0.00 (-0.00 .. +0.05) | +0.00 (+0.00 .. +0.00) | +0.00 (+0.00 .. +0.00) | 0 / 0 | 0 (0) |
+| per-bar linear | 10 | design de-dup (the mask had already dropped the session-edge columns: float path only) | +0.00 (-0.00 .. +0.04) | +0.00 (+0.00 .. +0.00) | +0.00 (+0.00 .. +0.00) | 0 / 0 | 0 (0) |
 | pooled twin | 9 | nothing | +0.00 (+0.00 .. +0.00) | +0.00 (+0.00 .. +0.00) | +0.00 (+0.00 .. +0.00) | 0 / 0 | 0 (0) |
-| VIX-only family | 21 | design de-dup (the mask had already dropped the session-edge columns: float path only) | +0.00 (-0.03 .. +0.06) | +0.00 (-0.01 .. +0.00) | +0.00 (-0.01 .. +0.00) | 0 / 0 | 0 (1) |
-| per-bar tree (untuned) | 9 | design de-dup + per-window mask + CPU-class pinning (refit cadence unchanged, every 10) | +0.67 (-2.01 .. +1.94) | -0.10 (-0.62 .. +0.05) | -0.10 (-0.62 .. +0.05) | 0 / 2 | 37 (61) |
-| per-bar tree (tuned) | 18 | design de-dup + per-window mask + CPU-class pinning (refit / tuning cadence unchanged) | +1.16 (-5.21 .. +13.66) | +0.01 (-0.69 .. +0.48) | +0.01 (-0.69 .. +0.48) | 0 / 2 | 60 (89) |
-| LSTM | 6 | design de-dup + per-window mask + refit cadence 10 -> 1 + CPU-class pinning | -4.21 (-17.72 .. -1.80) | +0.10 (-0.31 .. +0.56) | +0.10 (-0.31 .. +0.56) | 0 / 0 | 110 (154) |
+| VIX-only family | 21 | design de-dup (the mask had already dropped the session-edge columns: float path only) | +0.00 (-0.03 .. +0.05) | +0.00 (-0.01 .. +0.00) | +0.00 (-0.01 .. +0.00) | 0 / 0 | 0 (1) |
+| per-bar tree (untuned) | 9 | design de-dup + per-window mask + CPU-class pinning (refit cadence unchanged, every 10) | +0.71 (-1.80 .. +1.58) | -0.10 (-0.62 .. +0.05) | -0.10 (-0.62 .. +0.05) | 0 / 2 | 37 (61) |
+| per-bar tree (tuned) | 18 | design de-dup + per-window mask + CPU-class pinning (refit / tuning cadence unchanged) | +1.59 (-5.24 .. +13.14) | +0.01 (-0.69 .. +0.48) | +0.01 (-0.69 .. +0.48) | 0 / 2 | 60 (89) |
+| LSTM | 6 | design de-dup + per-window mask + refit cadence 10 -> 1 + CPU-class pinning | -3.25 (-17.29 .. -1.50) | +0.10 (-0.31 .. +0.56) | +0.10 (-0.31 .. +0.56) | 0 / 0 | 110 (154) |
 | direct rest-of-day at 15:30 (check) | 9 | design de-dup + CPU-architecture pinning to the per-bar twin | -0.00 (-0.00 .. +0.01) | +0.00 (+0.00 .. +0.00) | +0.00 (+0.00 .. +0.00) | 0 / 0 | 0 (0) |
-| implied-vol representations | 15 | design de-dup (the mask had already dropped the session-edge columns: float path only) | +0.00 (-0.00 .. +0.06) | +0.00 (+0.00 .. +0.02) | +0.00 (+0.00 .. +0.02) | 0 / 0 | 0 (1) |
+| implied-vol representations | 15 | design de-dup (the mask had already dropped the session-edge columns: float path only) | +0.00 (-0.00 .. +0.05) | +0.00 (+0.00 .. +0.02) | +0.00 (+0.00 .. +0.02) | 0 / 0 | 0 (1) |
 | HAR-ladder variants | 9 | design de-dup (the mask had already dropped the session-edge columns: float path only) | +0.00 (-0.01 .. +0.02) | +0.00 (-0.05 .. +0.00) | +0.00 (-0.05 .. +0.00) | 0 / 0 | 0 (2) |
 | chain-period buckets | 21 | design de-dup (the mask had already dropped the session-edge columns: float path only) | -0.00 (-0.00 .. +0.00) | +0.00 (+0.00 .. +0.00) | +0.00 (+0.00 .. +0.00) | 0 / 0 | 0 (0) |
 
@@ -117,54 +117,54 @@ Keys whose own mid-fill return moved with the HAC t significant at 5 % (Sharpe b
 
 ## (b) QLIKE vs Sharpe across models
 
-- **paper** (9): QLIKE 0.1054 .. 0.1232, Sharpe mid 0.43 .. 1.50; best QLIKE lasso (fixed 1e-4), earlier panel [on disk, unused by the paper] (0.1054, Sharpe 1.36); best Sharpe lasso (causally tuned) (1.50, QLIKE 0.1090).
-- **per-bar linear** (22): QLIKE 0.0914 .. 0.1184, Sharpe mid 1.23 .. 2.11; best QLIKE per-bar lasso [all_features], pre-tuned (0.0914, Sharpe 1.88); best Sharpe per-bar ridge [lean_vol_vix] (2.11, QLIKE 0.0966).
-- **pooled twin** (21): QLIKE 0.0995 .. 0.1067, Sharpe mid 0.69 .. 1.50; best QLIKE pooled elastic net [all_features], same spec (0.0995, Sharpe 1.15); best Sharpe pooled elastic net [all_features], pre-tuned (1.50, QLIKE 0.1016).
-- **VIX-only family** (21): QLIKE 0.0922 .. 0.1407, Sharpe mid 0.74 .. 2.53; best QLIKE per-bar lasso [vix_rvol] (0.0922, Sharpe 0.79); best Sharpe per-bar ridge [live_vix_only] (2.53, QLIKE 0.1179).
-- **per-bar tree (untuned)** (15): QLIKE 0.0923 .. 0.0993, Sharpe mid 0.73 .. 1.78; best QLIKE per-bar XGBoost [lean_vol_vix] (0.0923, Sharpe 1.78); best Sharpe per-bar XGBoost [lean_vol_vix] (1.78, QLIKE 0.0923).
-- **per-bar tree (untuned, daily refit)** (15): QLIKE 0.0911 .. 0.0986, Sharpe mid 0.66 .. 1.76; best QLIKE per-bar XGBoost, daily refit [lean_vol_vix] (0.0911, Sharpe 1.76); best Sharpe per-bar XGBoost, daily refit [lean_vol_vix] (1.76, QLIKE 0.0911).
-- **per-bar tree (tuned)** (24): QLIKE 0.0932 .. 0.1118, Sharpe mid 0.65 .. 1.96; best QLIKE tuned per-bar LightGBM [live_feasible], MSE-selected (0.0932, Sharpe 1.76); best Sharpe tuned per-bar XGBoost [live_feasible], MSE-selected (1.96, QLIKE 0.1003).
-- **per-bar tree (random search, daily)** (24): QLIKE 0.0926 .. 0.1093, Sharpe mid 0.46 .. 1.99; best QLIKE tuned per-bar random forest, daily refit [lean_vol_vix], QLIKE-selected (0.0926, Sharpe 1.47); best Sharpe tuned per-bar XGBoost, daily refit [live_feasible], QLIKE-selected (1.99, QLIKE 0.0986).
-- **per-bar tree (Optuna, TUNE_PER=1, best-of-50)** (12): QLIKE 0.0941 .. 0.1028, Sharpe mid 0.59 .. 1.50; best QLIKE Optuna per-bar random forest, TUNE_PER 1, best of 50 [lean_vol_vix] (0.0941, Sharpe 1.50); best Sharpe Optuna per-bar random forest, TUNE_PER 1, best of 50 [lean_vol_vix] (1.50, QLIKE 0.0941).
-- **per-bar tree (Optuna, TUNE_PER=5, best-of-50)** (12): QLIKE 0.0939 .. 0.1016, Sharpe mid 0.41 .. 1.48; best QLIKE Optuna per-bar random forest, TUNE_PER 5, best of 50 [lean_vol_vix] (0.0939, Sharpe 1.48); best Sharpe Optuna per-bar random forest, TUNE_PER 5, best of 50 [lean_vol_vix] (1.48, QLIKE 0.0939).
-- **per-bar tree (Optuna, TUNE_PER=25, best-of-50)** (24): QLIKE 0.0934 .. 0.1042, Sharpe mid 0.45 .. 2.19; best QLIKE Optuna per-bar random forest, TUNE_PER 25, best of 50, QLIKE-selected [lean_vol_vix] (0.0934, Sharpe 1.24); best Sharpe Optuna per-bar XGBoost, TUNE_PER 25, best of 50, QLIKE-selected [live_feasible] (2.19, QLIKE 0.0970).
-- **per-bar tree (Optuna, TUNE_PER=250, best-of-50)** (12): QLIKE 0.0930 .. 0.1068, Sharpe mid 0.64 .. 1.88; best QLIKE Optuna per-bar random forest, TUNE_PER 250, best of 50 [lean_vol_vix] (0.0930, Sharpe 1.29); best Sharpe Optuna per-bar LightGBM, TUNE_PER 250, best of 50 [live_feasible] (1.88, QLIKE 0.0990).
-- **per-bar tree (Optuna, TUNE_PER=1, best-of-25)** (12): QLIKE 0.0944 .. 0.1029, Sharpe mid 0.46 .. 1.43; best QLIKE Optuna per-bar random forest, TUNE_PER 1, best of 25 [lean_vol_vix] (0.0944, Sharpe 1.06); best Sharpe Optuna per-bar random forest, TUNE_PER 1, best of 25 [live_feasible] (1.43, QLIKE 0.0963).
-- **per-bar tree (Optuna, TUNE_PER=25, best-of-25)** (12): QLIKE 0.0948 .. 0.1016, Sharpe mid 0.33 .. 1.31; best QLIKE Optuna per-bar random forest, TUNE_PER 25, best of 25 [lean_vol_vix] (0.0948, Sharpe 1.31); best Sharpe Optuna per-bar random forest, TUNE_PER 25, best of 25 [lean_vol_vix] (1.31, QLIKE 0.0948).
-- **per-bar tree (Optuna, TUNE_PER=1, best-of-10)** (12): QLIKE 0.0948 .. 0.1025, Sharpe mid 0.59 .. 1.57; best QLIKE Optuna per-bar random forest, TUNE_PER 1, best of 10 [lean_vol_vix] (0.0948, Sharpe 1.10); best Sharpe Optuna per-bar LightGBM, TUNE_PER 1, best of 10 [lean_vol_vix] (1.57, QLIKE 0.0974).
-- **per-bar tree (Optuna, TUNE_PER=25, best-of-10)** (12): QLIKE 0.0937 .. 0.1053, Sharpe mid 0.29 .. 1.71; best QLIKE Optuna per-bar random forest, TUNE_PER 25, best of 10 [lean_vol_vix] (0.0937, Sharpe 1.41); best Sharpe Optuna per-bar XGBoost, TUNE_PER 25, best of 10 [lean_vol_vix] (1.71, QLIKE 0.1005).
-- **LSTM** (6): QLIKE 0.0992 .. 0.1345, Sharpe mid 0.42 .. 1.37; best QLIKE per-bar LSTM, QLIKE-selected [baseline] (0.0992, Sharpe 1.13); best Sharpe per-bar LSTM [baseline] (1.37, QLIKE 0.1009).
-- **LSTM (intraday sequence)** (6): QLIKE 0.1070 .. 0.1129, Sharpe mid 0.76 .. 1.55; best QLIKE intraday-sequence LSTM, QLIKE-selected [live_feasible] (0.1070, Sharpe 1.46); best Sharpe intraday-sequence LSTM [all_features] (1.55, QLIKE 0.1117).
-- **implied-vol representations** (15): QLIKE 0.0919 .. 0.1145, Sharpe mid 1.25 .. 1.90; best QLIKE per-bar elastic net [ivrep_vrp] (0.0919, Sharpe 1.59); best Sharpe per-bar elastic net [ivrep_term] (1.90, QLIKE 0.0943).
-- **HAR-ladder variants** (9): QLIKE 0.0930 .. 0.2288, Sharpe mid -0.12 .. 2.02; best QLIKE per-bar lasso [live_feasible], HAR ladder base2 (0.0930, Sharpe 2.02); best Sharpe per-bar lasso [live_feasible], HAR ladder base2 (2.02, QLIKE 0.0930).
-- Over all of table A the lowest QLIKE is per-bar XGBoost, daily refit [lean_vol_vix] (0.0911; Sharpe 1.76, rank 42 of 295 on Sharpe) and the highest Sharpe is per-bar ridge [live_vix_only] (2.53; QLIKE 0.1179, rank 282 of 295 on QLIKE). Median over table A: QLIKE 0.0986, Sharpe mid 1.28, crossed 0.80.
-- Against the reference's QLIKE, 259 forecasts have a lower point estimate (better), 137 of them with DM p < 0.05; 35 a higher one, 6 with DM p < 0.05.
+- **paper** (9): QLIKE 0.1078 .. 0.1270, Sharpe mid 0.43 .. 1.50; best QLIKE lasso (fixed 1e-4), earlier panel [on disk, unused by the paper] (0.1078, Sharpe 1.36); best Sharpe lasso (causally tuned) (1.50, QLIKE 0.1115).
+- **per-bar linear** (22): QLIKE 0.0931 .. 0.1206, Sharpe mid 1.23 .. 2.11; best QLIKE per-bar lasso [all_features], pre-tuned (0.0931, Sharpe 1.88); best Sharpe per-bar ridge [lean_vol_vix] (2.11, QLIKE 0.0985).
+- **pooled twin** (21): QLIKE 0.1019 .. 0.1098, Sharpe mid 0.69 .. 1.50; best QLIKE pooled elastic net [all_features], same spec (0.1019, Sharpe 1.15); best Sharpe pooled elastic net [all_features], pre-tuned (1.50, QLIKE 0.1040).
+- **VIX-only family** (21): QLIKE 0.0944 .. 0.1431, Sharpe mid 0.74 .. 2.53; best QLIKE per-bar lasso [vix_rvol] (0.0944, Sharpe 0.79); best Sharpe per-bar ridge [live_vix_only] (2.53, QLIKE 0.1201).
+- **per-bar tree (untuned)** (15): QLIKE 0.0943 .. 0.1018, Sharpe mid 0.73 .. 1.78; best QLIKE per-bar XGBoost [lean_vol_vix] (0.0943, Sharpe 1.78); best Sharpe per-bar XGBoost [lean_vol_vix] (1.78, QLIKE 0.0943).
+- **per-bar tree (untuned, daily refit)** (15): QLIKE 0.0932 .. 0.1010, Sharpe mid 0.66 .. 1.76; best QLIKE per-bar XGBoost, daily refit [lean_vol_vix] (0.0932, Sharpe 1.76); best Sharpe per-bar XGBoost, daily refit [lean_vol_vix] (1.76, QLIKE 0.0932).
+- **per-bar tree (tuned)** (24): QLIKE 0.0954 .. 0.1141, Sharpe mid 0.65 .. 1.96; best QLIKE tuned per-bar LightGBM [live_feasible], MSE-selected (0.0954, Sharpe 1.76); best Sharpe tuned per-bar XGBoost [live_feasible], MSE-selected (1.96, QLIKE 0.1025).
+- **per-bar tree (random search, daily)** (24): QLIKE 0.0949 .. 0.1120, Sharpe mid 0.46 .. 1.99; best QLIKE tuned per-bar random forest, daily refit [lean_vol_vix], QLIKE-selected (0.0949, Sharpe 1.47); best Sharpe tuned per-bar XGBoost, daily refit [live_feasible], QLIKE-selected (1.99, QLIKE 0.1008).
+- **per-bar tree (Optuna, TUNE_PER=1, best-of-50)** (12): QLIKE 0.0966 .. 0.1055, Sharpe mid 0.59 .. 1.50; best QLIKE Optuna per-bar random forest, TUNE_PER 1, best of 50 [lean_vol_vix] (0.0966, Sharpe 1.50); best Sharpe Optuna per-bar random forest, TUNE_PER 1, best of 50 [lean_vol_vix] (1.50, QLIKE 0.0966).
+- **per-bar tree (Optuna, TUNE_PER=5, best-of-50)** (12): QLIKE 0.0964 .. 0.1044, Sharpe mid 0.41 .. 1.48; best QLIKE Optuna per-bar random forest, TUNE_PER 5, best of 50 [lean_vol_vix] (0.0964, Sharpe 1.48); best Sharpe Optuna per-bar random forest, TUNE_PER 5, best of 50 [lean_vol_vix] (1.48, QLIKE 0.0964).
+- **per-bar tree (Optuna, TUNE_PER=25, best-of-50)** (24): QLIKE 0.0958 .. 0.1064, Sharpe mid 0.45 .. 2.19; best QLIKE Optuna per-bar random forest, TUNE_PER 25, best of 50, QLIKE-selected [lean_vol_vix] (0.0958, Sharpe 1.24); best Sharpe Optuna per-bar XGBoost, TUNE_PER 25, best of 50, QLIKE-selected [live_feasible] (2.19, QLIKE 0.0995).
+- **per-bar tree (Optuna, TUNE_PER=250, best-of-50)** (12): QLIKE 0.0953 .. 0.1100, Sharpe mid 0.64 .. 1.88; best QLIKE Optuna per-bar random forest, TUNE_PER 250, best of 50 [lean_vol_vix] (0.0953, Sharpe 1.29); best Sharpe Optuna per-bar LightGBM, TUNE_PER 250, best of 50 [live_feasible] (1.88, QLIKE 0.1015).
+- **per-bar tree (Optuna, TUNE_PER=1, best-of-25)** (12): QLIKE 0.0969 .. 0.1058, Sharpe mid 0.46 .. 1.43; best QLIKE Optuna per-bar random forest, TUNE_PER 1, best of 25 [lean_vol_vix] (0.0969, Sharpe 1.06); best Sharpe Optuna per-bar random forest, TUNE_PER 1, best of 25 [live_feasible] (1.43, QLIKE 0.0991).
+- **per-bar tree (Optuna, TUNE_PER=25, best-of-25)** (12): QLIKE 0.0974 .. 0.1040, Sharpe mid 0.33 .. 1.31; best QLIKE Optuna per-bar random forest, TUNE_PER 25, best of 25 [lean_vol_vix] (0.0974, Sharpe 1.31); best Sharpe Optuna per-bar random forest, TUNE_PER 25, best of 25 [lean_vol_vix] (1.31, QLIKE 0.0974).
+- **per-bar tree (Optuna, TUNE_PER=1, best-of-10)** (12): QLIKE 0.0975 .. 0.1051, Sharpe mid 0.59 .. 1.57; best QLIKE Optuna per-bar random forest, TUNE_PER 1, best of 10 [lean_vol_vix] (0.0975, Sharpe 1.10); best Sharpe Optuna per-bar LightGBM, TUNE_PER 1, best of 10 [lean_vol_vix] (1.57, QLIKE 0.0996).
+- **per-bar tree (Optuna, TUNE_PER=25, best-of-10)** (12): QLIKE 0.0962 .. 0.1076, Sharpe mid 0.29 .. 1.71; best QLIKE Optuna per-bar random forest, TUNE_PER 25, best of 10 [lean_vol_vix] (0.0962, Sharpe 1.41); best Sharpe Optuna per-bar XGBoost, TUNE_PER 25, best of 10 [lean_vol_vix] (1.71, QLIKE 0.1029).
+- **LSTM** (6): QLIKE 0.1017 .. 0.1380, Sharpe mid 0.42 .. 1.37; best QLIKE per-bar LSTM, QLIKE-selected [baseline] (0.1017, Sharpe 1.13); best Sharpe per-bar LSTM [baseline] (1.37, QLIKE 0.1034).
+- **LSTM (intraday sequence)** (6): QLIKE 0.1091 .. 0.1153, Sharpe mid 0.76 .. 1.55; best QLIKE intraday-sequence LSTM, QLIKE-selected [live_feasible] (0.1091, Sharpe 1.46); best Sharpe intraday-sequence LSTM [all_features] (1.55, QLIKE 0.1140).
+- **implied-vol representations** (15): QLIKE 0.0941 .. 0.1166, Sharpe mid 1.25 .. 1.90; best QLIKE per-bar elastic net [ivrep_vrp] (0.0941, Sharpe 1.59); best Sharpe per-bar elastic net [ivrep_term] (1.90, QLIKE 0.0966).
+- **HAR-ladder variants** (9): QLIKE 0.0950 .. 0.2333, Sharpe mid -0.12 .. 2.02; best QLIKE per-bar lasso [live_feasible], HAR ladder base2 (0.0950, Sharpe 2.02); best Sharpe per-bar lasso [live_feasible], HAR ladder base2 (2.02, QLIKE 0.0950).
+- Over all of table A the lowest QLIKE is per-bar lasso [all_features], pre-tuned (0.0931; Sharpe 1.88, rank 20 of 295 on Sharpe) and the highest Sharpe is per-bar ridge [live_vix_only] (2.53; QLIKE 0.1201, rank 282 of 295 on QLIKE). Median over table A: QLIKE 0.1010, Sharpe mid 1.28, crossed 0.80.
+- Against the reference's QLIKE, 254 forecasts have a lower point estimate (better), 135 of them with DM p < 0.05; 40 a higher one, 6 with DM p < 0.05.
 
 Rank correlation across table-A forecasts (check rows and exact duplicates excluded), point estimate (a negative value = lower QLIKE goes with higher Sharpe):
 
 | set | forecasts | QLIKE | Sharpe | Spearman |
 |---|---:|---|---|---:|
-| all table-A forecasts | 295 | plain | mid | -0.28 |
-| all table-A forecasts | 295 | plain | crossed | -0.28 |
-| per-bar forecasts (linear, VIX-only, trees, tuned, LSTM, bucket studies) | 265 | plain | mid | -0.27 |
-| per-bar forecasts (linear, VIX-only, trees, tuned, LSTM, bucket studies) | 265 | plain | crossed | -0.27 |
-| per-bar linear + VIX-only family | 43 | plain | mid | +0.49 |
-| per-bar linear + VIX-only family | 43 | plain | crossed | +0.49 |
-| per-bar nonlinear (every tree rung, LSTM) | 198 | plain | mid | -0.34 |
-| per-bar nonlinear (every tree rung, LSTM) | 198 | plain | crossed | -0.34 |
-| 48-bar forecasts (paper + pooled twins) | 30 | plain | mid | -0.39 |
-| 48-bar forecasts (paper + pooled twins) | 30 | plain | crossed | -0.41 |
+| all table-A forecasts | 295 | plain | mid | -0.29 |
+| all table-A forecasts | 295 | plain | crossed | -0.29 |
+| per-bar forecasts (linear, VIX-only, trees, tuned, LSTM, bucket studies) | 265 | plain | mid | -0.28 |
+| per-bar forecasts (linear, VIX-only, trees, tuned, LSTM, bucket studies) | 265 | plain | crossed | -0.28 |
+| per-bar linear + VIX-only family | 43 | plain | mid | +0.45 |
+| per-bar linear + VIX-only family | 43 | plain | crossed | +0.45 |
+| per-bar nonlinear (every tree rung, LSTM) | 198 | plain | mid | -0.36 |
+| per-bar nonlinear (every tree rung, LSTM) | 198 | plain | crossed | -0.35 |
+| 48-bar forecasts (paper + pooled twins) | 30 | plain | mid | -0.42 |
+| 48-bar forecasts (paper + pooled twins) | 30 | plain | crossed | -0.44 |
 
-Reading: across all of table A the rank correlation of QLIKE with Sharpe is -0.28. The 30 forecasts fitted on all 48 bars have median QLIKE 0.1049 and median Sharpe 1.23; the 265 per-bar forecasts median QLIKE 0.0979 and median Sharpe 1.31; among the per-bar forecasts alone it is -0.27; 24 per-bar forecasts sit in the worst quarter on both counts (per-bar ridge [live_feasible], HAR ladder intra; per-bar lasso [live_feasible], HAR ladder intra; per-bar elastic net [live_feasible], HAR ladder intra; per-bar LSTM [all_features]; per-bar LSTM, QLIKE-selected [all_features]; intraday-sequence LSTM [baseline]; ...); within the per-bar linear and VIX-only family (QLIKE 0.0914 .. 0.1407, Sharpe 0.74 .. 2.53) it is +0.49.
+Reading: across all of table A the rank correlation of QLIKE with Sharpe is -0.29. The 30 forecasts fitted on all 48 bars have median QLIKE 0.1074 and median Sharpe 1.23; the 265 per-bar forecasts median QLIKE 0.1005 and median Sharpe 1.31; among the per-bar forecasts alone it is -0.28; 25 per-bar forecasts sit in the worst quarter on both counts (per-bar ridge [live_feasible], HAR ladder intra; per-bar lasso [live_feasible], HAR ladder intra; per-bar elastic net [live_feasible], HAR ladder intra; per-bar LSTM [all_features]; per-bar LSTM, QLIKE-selected [all_features]; tuned per-bar XGBoost, daily refit [baseline], MSE-selected; ...); within the per-bar linear and VIX-only family (QLIKE 0.0931 .. 0.1431, Sharpe 0.74 .. 2.53) it is +0.45.
 
 ## (c) Extreme back-transform values
 
 - **Rule (named):** PLAIN_FLOOR(d) = the smallest 16:00 target of the previous 250 sessions (FLOOR_W, the parked recalibration's window), lagged one session. A plain forecast f²·B below it forecasts a quieter 15:30–16:00 half hour than any of the past year; it is flagged, listed in `master_table_extremes.csv`, and the QLIKE is reported as is (`qlike_raw`, the reported number) and, as a diagnostic, with flagged forecasts raised to the floor (`qlike_raw_floored`). Nothing is clipped.
 - **On the trade days:** 0 flagged forecasts over all forecasts, so `qlike_raw_floored` = `qlike_raw` for 325 of 325 rows.
 - **On every 16:00 session of the arm span** (1406 sessions, the arm span 2018-06-25 .. 2024-04-30 after the floor's 63-session warm-up, early closes included): 448 flagged rows over 177 forecasts, 448 of them on 8 early-close sessions (2019-07-03, 2019-11-29, 2019-12-24, 2020-11-27, 2020-12-24, 2022-11-25, 2023-07-03, 2023-11-24): 13:00 closes, where the 15:30–16:00 bar lies after the cash close and the trade frame never enters. Negative adjusted-scale forecasts occur there too (the plain back-transform squares them).
-  - per-bar ridge [all_features] on 2023-11-24 (early close): f = 0.0047 on the adjusted scale, plain forecast 5.51e-11 vs floor 2.14e-07 and target 1.94e-07; that one day's QLIKE is 3516.8. Over all 1406 sessions the QLIKE is 2.6419 as is, 0.1327 floored, 0.1293 without early closes; on the trade days 0.1164.
-  - per-bar LSTM [live_feasible] on 2020-11-27 (early close): f = -0.0079 on the adjusted scale, plain forecast 7.41e-10 vs floor 1.22e-07 and target 4.9e-07; that one day's QLIKE is 654.8. Over all 1406 sessions the QLIKE is 0.6085 as is, 0.1427 floored, 0.1378 without early closes; on the trade days 0.1199.
-  - per-bar ridge [live_feasible_plus_ivslice], 500 sessions on 2023-07-03 (early close): f = -0.0185 on the adjusted scale, plain forecast 1.05e-09 vs floor 2.14e-07 and target 4.56e-07; that one day's QLIKE is 427.2. Over all 1406 sessions the QLIKE is 0.4410 as is, 0.1330 floored, 0.1313 without early closes; on the trade days 0.0860.
+  - per-bar ridge [all_features] on 2023-11-24 (early close): f = 0.0047 on the adjusted scale, plain forecast 5.51e-11 vs floor 2.14e-07 and realized variance 1.94e-07; that one day's QLIKE is 3516.8. Over all 1406 sessions the QLIKE is 2.6480 as is, 0.1392 floored, 0.1344 without early closes; on the trade days 0.1184.
+  - per-bar LSTM [live_feasible] on 2020-11-27 (early close): f = -0.0079 on the adjusted scale, plain forecast 7.41e-10 vs floor 1.22e-07 and realized variance 4.9e-07; that one day's QLIKE is 654.8. Over all 1406 sessions the QLIKE is 0.6169 as is, 0.1511 floored, 0.1444 without early closes; on the trade days 0.1237.
+  - per-bar ridge [live_feasible_plus_ivslice], 500 sessions on 2023-07-03 (early close): f = -0.0185 on the adjusted scale, plain forecast 1.05e-09 vs floor 2.14e-07 and realized variance 4.56e-07; that one day's QLIKE is 427.2. Over all 1406 sessions the QLIKE is 0.4471 as is, 0.1391 floored, 0.1357 without early closes; on the trade days 0.0883.
 - The handoff's '16:00 ridge QLIKE 2.65 unrecalibrated' is this same early-close day: `score_rest_of_day.csv` reports the plain QLIKE 2.6480 for the all_features ridge at the 15:30 clock on 1406 sessions against the unclipped variance; the trade frame excludes early closes, so it does not enter any number of this table.
 
 ## Gates
@@ -177,17 +177,17 @@ Reported, not asserted (2000): stored numbers written with the recalibrated fore
 
 | forecast | QLIKE | Δ% vs ref | DM | Sharpe mid | Sharpe crossed | ΔSharpe mid vs ref | HAC t vs ref | ΔSharpe mid vs short | buy days |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| per-bar ridge [live_vix_only] | 0.1179 | +10.5 | +0.56 | 2.53 | 2.05 | +1.24 | +2.78 | +2.32 | 272 |
-| per-bar ridge [free_vix_only] | 0.1194 | +11.9 | +0.58 | 2.49 | 2.02 | +1.21 | +2.65 | +2.29 | 271 |
-| Optuna per-bar XGBoost, TUNE_PER 25, best of 50, QLIKE-selected [live_feasible] | 0.0970 | -9.1 | -2.48 | 2.19 | 1.70 | +0.91 | +1.97 | +1.99 | 231 |
-| per-bar ridge [lean_vol_vix] | 0.0966 | -9.6 | -1.88 | 2.11 | 1.63 | +0.83 | +1.87 | +1.90 | 257 |
-| per-bar ridge [free_feasible] | 0.1407 | +31.8 | +0.90 | 2.08 | 1.59 | +0.79 | +1.47 | +1.87 | 254 |
-| per-bar elastic net [all_features] | 0.0986 | -7.6 | -2.03 | 2.04 | 1.56 | +0.76 | +1.63 | +1.84 | 256 |
-| per-bar ridge [live_vix_rvol] | 0.1134 | +6.2 | +0.41 | 2.04 | 1.56 | +0.76 | +1.66 | +1.83 | 272 |
-| per-bar ridge [free_feasible_vol] | 0.1198 | +12.2 | +0.61 | 2.03 | 1.55 | +0.75 | +1.51 | +1.83 | 268 |
-| per-bar lasso [live_feasible], HAR ladder base2 | 0.0930 | -12.8 | -3.87 | 2.02 | 1.54 | +0.74 | +2.05 | +1.82 | 237 |
-| per-bar lasso [all_features] | 0.0973 | -8.9 | -2.78 | 2.00 | 1.53 | +0.72 | +1.53 | +1.80 | 259 |
-| tuned per-bar XGBoost, daily refit [live_feasible], QLIKE-selected | 0.0986 | -7.7 | -1.87 | 1.99 | 1.51 | +0.71 | +1.49 | +1.79 | 252 |
-| tuned per-bar XGBoost [live_feasible], MSE-selected | 0.1003 | -6.1 | -1.41 | 1.96 | 1.48 | +0.68 | +1.48 | +1.75 | 260 |
+| per-bar ridge [live_vix_only] | 0.1201 | +10.0 | +0.55 | 2.53 | 2.05 | +1.24 | +2.78 | +2.32 | 272 |
+| per-bar ridge [free_vix_only] | 0.1216 | +11.4 | +0.57 | 2.49 | 2.02 | +1.21 | +2.65 | +2.29 | 271 |
+| Optuna per-bar XGBoost, TUNE_PER 25, best of 50, QLIKE-selected [live_feasible] | 0.0995 | -8.9 | -2.46 | 2.19 | 1.70 | +0.91 | +1.97 | +1.99 | 231 |
+| per-bar ridge [lean_vol_vix] | 0.0985 | -9.8 | -1.94 | 2.11 | 1.63 | +0.83 | +1.87 | +1.90 | 257 |
+| per-bar ridge [free_feasible] | 0.1431 | +31.0 | +0.90 | 2.08 | 1.59 | +0.79 | +1.47 | +1.87 | 254 |
+| per-bar elastic net [all_features] | 0.1006 | -7.9 | -2.10 | 2.04 | 1.56 | +0.76 | +1.63 | +1.84 | 256 |
+| per-bar ridge [live_vix_rvol] | 0.1156 | +5.9 | +0.40 | 2.04 | 1.56 | +0.76 | +1.66 | +1.83 | 272 |
+| per-bar ridge [free_feasible_vol] | 0.1220 | +11.7 | +0.60 | 2.03 | 1.55 | +0.75 | +1.51 | +1.83 | 268 |
+| per-bar lasso [live_feasible], HAR ladder base2 | 0.0950 | -13.0 | -3.76 | 2.02 | 1.54 | +0.74 | +2.05 | +1.82 | 237 |
+| per-bar lasso [all_features] | 0.0996 | -8.8 | -2.80 | 2.00 | 1.53 | +0.72 | +1.53 | +1.80 | 259 |
+| tuned per-bar XGBoost, daily refit [live_feasible], QLIKE-selected | 0.1008 | -7.7 | -1.82 | 1.99 | 1.51 | +0.71 | +1.49 | +1.79 | 252 |
+| tuned per-bar XGBoost [live_feasible], MSE-selected | 0.1025 | -6.2 | -1.40 | 1.96 | 1.48 | +0.68 | +1.48 | +1.75 | 260 |
 
 Wording: sign(s) = buy the straddle when the plain 16:00 forecast f²·B exceeds the 15:30 implied variance, sell otherwise; straddle = nearest out-of-the-money call + nearest out-of-the-money put, same-day expiry, one position; the last-30-min trade enters at 15:30 and settles at the close. Buckets: `baseline` = HAR + calendar (`har_ma_*`, calendar dummies), `all_features` = the full design, `live_feasible` = the 16 series a 15:30 forecaster rebuilds live (ES return moments and liquidity, VIX/VVIX/VIX3M (`vix_ma_*` …), FOMC calendar), `vix_only` = HAR + calendar + VIX level, `live_vix_only` = live_feasible minus VVIX and VIX3M, `free_vix_only` = the free feed (ES 1-min bars + VIX + FOMC calendar). Tree rungs: T10 / T1 = the shipped configuration refit every 10 sessions / every session; RS10 / RS1 = random search (32 candidates, every 250 sessions) refit every 10 / every session; Optuna = TPE, 50 trials per tuning point, tuning every TUNE_PER sessions, best of the first k trials, refit every session.

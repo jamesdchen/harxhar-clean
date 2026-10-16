@@ -25,15 +25,15 @@ Estimation sample, after the 3{,}125-interval burn-in & \mbox{1998-06-04} & \mbo
 Rolling-window forecasts & \mbox{2001-07-13} & \mbox{2024-04-30} & 276{,}317 & -- \\
 Tree hyperparameter pre-sample (before 2003) & \mbox{1998-06-04} & \mbox{2002-12-31} & 36{,}285 & 24{,}000 \\
 \addlinespace
-\multicolumn{5}{@{}l}{\textit{Panel C: Out-of-sample period (trading days)}} \\
-All trading days (closing-interval forecasts) & \mbox{2020-01-03} & \mbox{2024-04-30} & 1{,}087 & -- \\
-Evaluation days ($T_{\mathrm{oos}}$): SPXW expiration days (872) less early-close days (6) & \mbox{2020-01-03} & \mbox{2024-04-30} & 866 & -- \\
+\multicolumn{5}{@{}l}{\textit{Panel C: Evaluation samples (trading days)}} \\
+Evaluation span ($T_{\mathrm{oos}}$): trading days on which every forecast exists, less early-close days (6) & \mbox{2020-01-03} & \mbox{2024-04-30} & 1{,}082 & -- \\
+\quad Option-data subsample ($T_{\mathrm{opt}}$): SPXW expiration days (872) less early-close days (6) & \mbox{2020-01-03} & \mbox{2024-04-30} & 866 & -- \\
 Later SPXW expiration days, held out (413 full trading days) & \mbox{2024-05-01} & \mbox{2025-12-31} & 419 & -- \\
 \bottomrule
 \end{tabular}
 \begin{tablenotes}[flushleft]
 \footnotesize
-\item \textit{Notes:} Dates are interval-end dates (ET); Obs.\ and the rolling estimation window $W$ are in the units of each panel. The burn-in, 3{,}125 intervals, is the longest HAR horizon and is applied to each series as built (the closing-interval series, the intraday grid and, for the linear pre-sample, the series of the two intervals of the last hour), so the closing-interval sample starts in 2010 and the pre-sample in 2004. The pooled linear models use $W = 96{,}000$ intervals (2{,}000 trading days); the tree pre-sample is re-estimated every 250 intervals. Each validation sample follows a 25-day gap and a 2{,}000-day estimation sample (Section~\ref{sec:rh_methods_tuning}). Full trading days: expiration days that are not early-close days.
+\item \textit{Notes:} Dates are interval-end dates (ET); Obs.\ and the rolling estimation window $W$ are in the units of each panel. The burn-in, 3{,}125 intervals, is the longest HAR horizon and is applied to each series as built (the closing-interval series, the intraday grid and, for the linear pre-sample, the series of the two intervals of the last hour), so the closing-interval sample starts in 2010 and the pre-sample in 2004. The pooled linear models use $W = \rhdmPooledLinWindow$ intervals (\cmPtFitWin{} trading days); the tree pre-sample is re-estimated every 250 intervals. Each validation sample follows a 25-day gap and a \cmPtFitWin-day estimation sample (Section~\ref{sec:rh_exp_samples}). Full trading days: expiration days that are not early-close days. Panel C: the evaluation span holds every trading day on which all rolling forecasts exist (Section~\ref{sec:rh_results_eval}); the straddle economics use its option-data subsample (Section~\ref{sec:rh_econ}).
 \end{tablenotes}
 \end{threeparttable}
 \end{table}

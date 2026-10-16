@@ -1121,7 +1121,9 @@ def panel(title: str, ncol: int) -> str:
 
 
 SAMPLE = (
-    r"$K = \rhfiNRefits$ refits, one every \rhfiRefitEvery{} trading days, over the out-of-sample period "
+    # 2026-10-15 (coordinator): parked -- "refit(s)" -> "re-estimation(s)" in the notes and captions; was:
+    # r"$K = \rhfiNRefits$ refits, one every \rhfiRefitEvery{} trading days, over the out-of-sample period "
+    r"$K = \rhfiNRefits$ re-estimations, one every \rhfiRefitEvery{} trading days, over the out-of-sample period "
     r"\rhfiFirst{} to \rhfiLast{} ($|\mathcal O| = \rhfiNOos$ trading days)"
 )
 PROBE = r"the continuous noise probe $\varepsilon^{\mathrm{U}}$"
@@ -1217,16 +1219,25 @@ def tab_summary(T: dict) -> None:
         r"groups), " + SAMPLE + r". "
         r"Each panel lists the five leading groups by the measure in the column header (Section~\ref{sec:rh_fi}): the "
         r"lasso's selection count "
-        r"$K_A$ (refits with a nonzero coefficient on group $A$, of $K$; ties broken by the lasso's coefficient "
+        # 2026-10-15 (coordinator): parked -- "refit(s)" -> "re-estimation(s)" in the notes and captions; was:
+        # r"$K_A$ (refits with a nonzero coefficient on group $A$, of $K$; ties broken by the lasso's coefficient "
+        r"$K_A$ (re-estimations with a nonzero coefficient on group $A$, of $K$; ties broken by the lasso's "
+        r"coefficient "
         r"share), the ridge's share "
         r"$S_A$ of the absolute coefficients $\sum_k\sum_j|\hat\beta_{k,j}|$ and its share $S^{\mathrm{sd}}_A$ of the "
         r"absolute standardized coefficients $\sum_k\sum_j|\hat\beta_{k,j}|\,\mathrm{sd}_{k,j}$, and the tree "
         r"ensembles' mean rank $\bar r_A$ by mean absolute SHAP value (1 = most important). "
-        r"Kendall's $W$ is the concordance of the $K$ per-refit rankings ($W = 1$: the same ranking at every refit). "
+        # 2026-10-15 (coordinator): parked -- "refit(s)" -> "re-estimation(s)" in the notes and captions; was:
+        # r"Kendall's $W$ is the concordance of the $K$ per-refit rankings ($W = 1$: the same ranking at every refit). "
+        r"Kendall's $W$ is the concordance of the $K$ rankings, one per re-estimation ($W = 1$: the same ranking at "
+        r"every re-estimation). "
         r"Series above probe: exogenous series with a predictor that beats "
         + PROBE
         + r", added in "
-        r"\rhfiNProbe{} probe fits (lasso: selected in a larger share of refits than the probe in its fits; ridge "
+        # 2026-10-15 (coordinator): parked -- "refit(s)" -> "re-estimation(s)" in the notes and captions; was:
+        # r"\rhfiNProbe{} probe fits (lasso: selected in a larger share of refits than the probe in its fits; ridge "
+        r"\rhfiNProbe{} probe fits (lasso: selected in a larger share of re-estimations than the probe in its fits; "
+        r"ridge "
         r"and trees: a larger $|\hat\beta_{k,j}|$ or mean $|\phi_{t,j}|$ than the probe's in at least half of the "
         r"probe fits). "
         r"Group symbols as in Table~\ref{tab:rh_dm_dictionary}."
@@ -1295,7 +1306,10 @@ def tab_linear(T: dict) -> None:
         r"$\omega_j = \underline{\omega}$ on the HAR benchmark block (Panel A). "
         r"Panel B lists the "
         + str(len(ex))
-        + r" exogenous series with the largest lasso selection count $K_A$, the number of refits with a nonzero "
+        # 2026-10-15 (coordinator): parked -- "refit(s)" -> "re-estimation(s)" in the notes and captions; was:
+        # + r" exogenous series with the largest lasso selection count $K_A$, the number of refits with a nonzero "
+        + r" exogenous series with the largest lasso selection count $K_A$, the number of re-estimations with a "
+        r"nonzero "
         r"coefficient on group $A$ (ties broken by the lasso's $S_A$; measures defined in Section~\ref{sec:rh_fi}); "
         + str(n_never)
         + r" of the \rhfiNUnits{} groups are never selected. "
@@ -1307,7 +1321,10 @@ def tab_linear(T: dict) -> None:
         r"$S^{\mathrm{sd}}_A$: its share of the absolute standardized coefficients "
         r"$\sum_k\sum_j|\hat\beta_{k,j}|\,\mathrm{sd}_{k,j}$, which put the robust-scaled series averages and the "
         r"unscaled indicator averages and dummies on one scale. "
-        r"$\bar r_A$: mean over refits of the group's rank by $\lVert\hat{\bm\beta}_{k,A}\rVert_1$ (1 = largest)."
+        # 2026-10-15 (coordinator): parked -- "refit(s)" -> "re-estimation(s)" in the notes and captions; was:
+        # r"$\bar r_A$: mean over refits of the group's rank by $\lVert\hat{\bm\beta}_{k,A}\rVert_1$ (1 = largest)."
+        r"$\bar r_A$: mean over re-estimations of the group's rank by $\lVert\hat{\bm\beta}_{k,A}\rVert_1$ "
+        r"(1 = largest)."
     )
     table(
         GEN / "rehaul_fi_linear.tex",
@@ -1369,10 +1386,16 @@ def tab_trees(T: dict) -> None:
     notes = (
         r"Path-dependent TreeSHAP values of \citet{lundberg2020local} for the closing-interval tree ensembles on the "
         r"full predictor set, " + SAMPLE + r". "
-        r"At refit $k$, group $A$ is ranked among the \rhfiNUnits{} groups by its mean absolute SHAP value on the "
+        # 2026-10-15 (coordinator): parked -- "refit(s)" -> "re-estimation(s)" in the notes and captions; was:
+        # r"At refit $k$, group $A$ is ranked among the \rhfiNUnits{} groups by its mean absolute SHAP value on the "
+        r"At re-estimation $k$, group $A$ is ranked among the \rhfiNUnits{} groups by its mean absolute SHAP value "
+        r"on the "
         r"out-of-sample block, $I_{k,A} = |\mathcal O_k|^{-1}\sum_{t\in\mathcal O_k}|\phi_{t,A}|$ (rank $r_{k,A}$, "
         r"1 = largest). "
-        r"$\bar r_A$: mean of $r_{k,A}$ over the refits; Top 5: share of refits with $r_{k,A} \le 5$. "
+        # 2026-10-15 (coordinator): parked -- "refit(s)" -> "re-estimation(s)" in the notes and captions; was:
+        # r"$\bar r_A$: mean of $r_{k,A}$ over the refits; Top 5: share of refits with $r_{k,A} \le 5$. "
+        r"$\bar r_A$: mean of $r_{k,A}$ over the re-estimations; Top 5: share of re-estimations with "
+        r"$r_{k,A} \le 5$. "
         r"Rows: the "
         + str(len(top))
         + r" groups with the lowest $\bar r_A$ averaged over the three models. "
@@ -1446,7 +1469,10 @@ def tab_inter(T: dict) -> None:
     check(S["top_w_pairs"] == 50, "interaction W over the top 50 pairs")
     notes = (
         r"SHAP interaction values $\phi_{t,jl}$ of \citet{lundberg2020local} for the re-estimated closing-interval "
-        r"tree ensembles on the out-of-sample blocks of the $K = \rhfiNRefits$ refits ($|\mathcal O| = \rhfiNOos$ "
+        # 2026-10-15 (coordinator): parked -- "refit(s)" -> "re-estimation(s)" in the notes and captions; was:
+        # r"tree ensembles on the out-of-sample blocks of the $K = \rhfiNRefits$ refits ($|\mathcal O| = \rhfiNOos$ "
+        r"tree ensembles on the out-of-sample blocks of the $K = \rhfiNRefits$ re-estimations "
+        r"($|\mathcal O| = \rhfiNOos$ "
         r"trading days). "
         r"Group pairs: the "
         + word(n_ser)
@@ -1455,17 +1481,32 @@ def tab_inter(T: dict) -> None:
         r"($\times 10^{3}$, on the scale of $y_t$); predictor pairs: the "
         + word(n_col)
         + r" with the largest mean $|\phi_{t,jl} + \phi_{t,lj}|$. "
-        r"$\bar r_{AB}$ and Top 10: the pair's mean rank among the \rhfiNPairs{} group pairs over the refits and the "
-        r"share of refits in which it ranks in the top ten. "
+        # 2026-10-15 (coordinator): parked -- "refit(s)" -> "re-estimation(s)" in the notes and captions; was:
+        # r"$\bar r_{AB}$ and Top 10: the pair's mean rank among the \rhfiNPairs{} group pairs over the refits and the "
+        r"$\bar r_{AB}$ and Top 10: the pair's mean rank among the \rhfiNPairs{} group pairs over the re-estimations "
+        r"and the "
+        # 2026-10-15 (coordinator): parked -- "refit(s)" -> "re-estimation(s)" in the notes and captions; was:
+        # r"share of refits in which it ranks in the top ten. "
+        r"share of re-estimations in which it ranks in the top ten. "
         r"$H^2$: the statistic of \citet{FriedmanPopescu2008}, in percent; $H^2_{\min}$: the same numerator over the "
-        r"smaller single-group partial-dependence variance; both pooled over \rhfiHRefits{} refits and computed for "
+        # 2026-10-15 (coordinator): parked -- "refit(s)" -> "re-estimation(s)" in the notes and captions; was:
+        # r"smaller single-group partial-dependence variance; both pooled over \rhfiHRefits{} refits and computed for "
+        r"smaller single-group partial-dependence variance; both pooled over \rhfiHRefits{} re-estimations and "
+        r"computed for "
         r"each model's top \rhfiHTopSeries{} group pairs and top "
         + word(S["H"]["top_cols"])
         + r" predictor pairs (--: not computed). "
         r"Probe floor: median over the \rhfiNProbe{} probe fits of the largest $\bar I$ between "
         + PROBE
-        + r" and a group. Kendall's $W$ of the per-refit rankings of each model's top \rhfiTopWPairs{} pairs: "
-        r"\rhfiLgbmInterW{} (LightGBM), \rhfiXgbInterW{} (XGBoost) and \rhfiRfInterW{} (random forest)."
+        # 2026-10-15 (coordinator): parked -- "refit(s)" -> "re-estimation(s)" in the notes and captions; was:
+        # + r" and a group. Kendall's $W$ of the per-refit rankings of each model's top \rhfiTopWPairs{} pairs: "
+        # 2026-10-15 (finish): parked -- the float was 6.07pt taller than the page; the Kendall's W sentence is cut
+        # from the notes (the same three macros are stated in the text, 08_feature_importance.tex, "Kendall's $W$ over
+        # each model's top \rhfiTopWPairs{} pairs"). Was:
+        # + r" and a group. Kendall's $W$ of the rankings, one per re-estimation, of each model's top "
+        # r"\rhfiTopWPairs{} pairs: "
+        # r"\rhfiLgbmInterW{} (LightGBM), \rhfiXgbInterW{} (XGBoost) and \rhfiRfInterW{} (random forest)."
+        + r" and a group."
     )
     table(
         GEN / "rehaul_fi_inter.tex",
@@ -1678,12 +1719,19 @@ def fig_ranks(T: dict) -> None:
     # )
     roll = 11
     cap = (
-        r"Mean absolute SHAP rank of the leading predictor groups over time. At refit $k$ (one every "
+        # 2026-10-15 (coordinator): parked -- "refit(s)" -> "re-estimation(s)" in the notes and captions; was:
+        # r"Mean absolute SHAP rank of the leading predictor groups over time. At refit $k$ (one every "
+        r"Mean absolute SHAP rank of the leading predictor groups over time. At re-estimation $k$ (one every "
         r"\rhfiRefitEvery{} trading days), $r_{k,A}$ is the rank of group $A$ among the \rhfiNUnits{} groups by its "
         r"mean absolute SHAP value on the out-of-sample block $\mathcal O_k$ (1 = largest; log scale), plotted at the "
-        r"block's first day $t_k$. Thin lines: one point per refit; thick lines: centered rolling median over "
+        # 2026-10-15 (coordinator): parked -- "refit(s)" -> "re-estimation(s)" in the notes and captions; was:
+        # r"block's first day $t_k$. Thin lines: one point per refit; thick lines: centered rolling median over "
+        r"block's first day $t_k$. Thin lines: one point per re-estimation; thick lines: centered rolling median "
+        r"over "
         + str(roll)
-        + r" refits (about "
+        # 2026-10-15 (coordinator): parked -- "refit(s)" -> "re-estimation(s)" in the notes and captions; was:
+        # + r" refits (about "
+        + r" re-estimations (about "
         + str(roll * S["refit_every"])
         + r" trading days). Groups: the six with the lowest mean rank $\bar r_A$ averaged over the three tree "
         r"ensembles; Kendall's $W$ is in Table~\ref{tab:rh_fi_summary}."

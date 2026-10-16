@@ -1,0 +1,5 @@
+baseline xgb 2000 bar1600 0 2000 -1 2000
+lean_vol_vix xgb 2000 bar1600 0 2000 -1 2000
+all_features xgb 2000 bar1600 0 2000 2489 2000
+all_features xgb 2000 bar1600 1 2489 2979 2000
+all_features xgb 2000 bar1600 2 2979 -1 2000

@@ -1,0 +1,7 @@
+gate,value,ok
+f-arm planner reproduces the stored ridge all_features f arm,0.0,True
+f-arm planner reproduces the stored lasso all_features f arm,0.0,True
+f-arm planner reproduces the stored enet all_features f arm,0.0,True
+f-arm planner reproduces the stored ridge baseline f arm,0.0,True
+f-arm planner reproduces the stored lasso baseline f arm,0.0,True
+f-arm planner reproduces the stored enet baseline f arm,0.0,True

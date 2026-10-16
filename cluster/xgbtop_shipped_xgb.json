@@ -1,0 +1,32 @@
+{
+ "family": "xgb",
+ "name": "xgb_opt_06",
+ "arm": "tree_expert_16",
+ "sha": "195b74503d9d",
+ "dev_screen_mse": 0.10807554130151135,
+ "dev_rank_among_xgb_optuna_entries": "7 of 8",
+ "role": "the shipped per-bar XGBoost until 2026-10-07 (specs/causal_tune_trees.py XGB_PARAMS); used here only for the reproduction gate (token xgb06)",
+ "selection_rule": "hand-picked 7th-ranked dev entry, basis unrecorded (results/rf_devmenu_2026-10-06/SUMMARY.md section 1)",
+ "params": {
+  "max_depth": 4,
+  "learning_rate": 0.010853165384309853,
+  "n_estimators": 339,
+  "min_child_weight": 24.86134158090589,
+  "subsample": 0.6086526390529718,
+  "colsample_bytree": 0.6975888053713192,
+  "reg_alpha": 1.087850849987857,
+  "reg_lambda": 0.00041206887024929935,
+  "gamma": 1.1082753230505144e-05,
+  "tree_method": "hist"
+ },
+ "provenance": {
+  "window": 24000,
+  "source": "harxhar-clean/results/unification_carc/tree_expert_16/chunk_000.npz, meta['tree_config'] (every chunk of the arm carries the same sha)",
+  "source_file_sha256": "e3c49d2a2c2d85257abe66ad4b9d6bdc8559420349d44b77c807d4e319637845",
+  "sha_rule": "experiments/tree_menu_dev.py _sha: sha256 of json.dumps({family, **params}, sort_keys=True), first 12 hex digits (re-derived: matches)",
+  "also_recorded_in": "experiments/tree_menu_dev_rf.py STORED (identical params and sha)",
+  "dev_rescore": "results/rf_devmenu_2026-10-06/SUMMARY.md section 3b: tree_menu_dev._screen_score re-run on CARC epyc-7513 = 0.10807554130151135, rel diff 0",
+  "menu": "experiments/tree_menu_dev.py 1998-2002 dev-span Optuna menu (20-arm bank tree_expert_00..19)",
+  "note": "params are the pooled-window values (24,000-bar window); specs/causal_tune_trees.py scales min_child_weight by TRAIN_WIN / 24000 for its per-bar window (TRAIN_WIN 2000: x 1/12)"
+ }
+}

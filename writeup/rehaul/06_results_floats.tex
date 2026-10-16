@@ -16,14 +16,28 @@
 % fig:rh_qlike_sharpe (the existing QLIKE-vs-Sharpe figure).
 % The pooled ridge-init MinGRU (results/puffer_forecast_2026-10-12/pooled_rinit_study/, refit monthly) is in T1, T2,
 % T3, F1 and F2 since 2026-10-15; the pooled forest on all features is still interim (dagger).
+% 2026-10-15 (finish, user): NN content parked -- the MinGRU leaves fig:rh_cumulative's caption (the generator agent
+% removes it from T1-T3 and the figure).
 
 % 2026-10-15 (consolidation): parked -- the number files are loaded once in the preamble of paper_rehaul.tex (the first
 % line was an unguarded second load of rehaul_results_numbers).
 % \input{generated/rehaul_results_numbers}
 % \ifdefined\fqsPairs\else\input{generated/fig_qlike_sharpe_numbers}\fi
 
+% ---------------------------------------------------------------- Experimental setup: M1, M2 (moved from 05)
+% 2026-10-15 (user): parked -- implementation tables belong in the appendix; moved to 10_appendix_floats.tex, next to
+% "Implementation details" (app:rh_impl). Generator: writeup/make_rehaul_data_methods.py. Labels: tab:rh_dm_hyper,
+% tab:rh_dm_hyper_search (both in generated/rehaul_dm_hyper.tex), tab:rh_dm_tuning. Was:
+% \input{generated/rehaul_dm_tuning}
+% \input{generated/rehaul_dm_hyper}
+
+% ---------------------------------------------------------------- OOS: MSE, QLIKE, R2_OOS by model x predictor set
+% 2026-10-15 (user): first results table; generator writeup/make_rehaul_oos_table.py (label tab:rh_oos).
+\input{generated/rehaul_results_oos}
+
 % ---------------------------------------------------------------- T1 + F1: HAR + calendar vs all features
-\input{generated/rehaul_results_t1_axis1}
+% 2026-10-15 (user): parked -- "park all tables that I haven't mentioned in this chat"
+% \input{generated/rehaul_results_t1_axis1}
 
 % 2026-10-15 (user): parked -- non-standard figure; focus on legible tables
 % \begin{figure}[htbp]
@@ -50,7 +64,8 @@
 % \end{figure}
 
 % ---------------------------------------------------------------- T2 + F2: pooled vs per-bar
-\input{generated/rehaul_results_t2_pooled}
+% 2026-10-15 (user): parked -- "park all tables that I haven't mentioned in this chat"
+% \input{generated/rehaul_results_t2_pooled}
 
 % 2026-10-15 (user): parked -- non-standard figure; focus on legible tables
 % \begin{figure}[htbp]
@@ -74,33 +89,39 @@
 % \end{figure}
 
 % ---------------------------------------------------------------- T3 + F3: the model set against the per-bar OLS
-\input{generated/rehaul_results_t3_ranking}
+% 2026-10-15 (user): parked -- "park all tables that I haven't mentioned in this chat"
+% \input{generated/rehaul_results_t3_ranking}
 
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=\linewidth]{figures/rehaul_results_f3_cumulative.pdf}
-% 2026-10-15 (notation pass): parked -- code jargon (per-bar, family, fixed settings, session); dummy day index s -> u (s is the window row)
-% \caption{Cumulative daily QLIKE difference against the per-bar OLS on HAR + calendar, $\sum_{s \le t}
-% (L_s^{\text{model}} - L_s^{\text{OLS}})$, for the best per-bar forecast of each family, all on all features: the lasso,
-% XGBoost (fixed settings, refit every session) and the MinGRU (ridge-initialised, trained and selected on QLIKE). Below
-% zero, the model has accumulated less QLIKE than the OLS; the end value divided by \rhrDays{} is the difference in mean
-% QLIKE. Over the shaded window, 24 February to 30 April 2020, the sums change by \rhrCumLassoWindow{} (lasso),
-% \rhrCumXgbWindow{} (XGBoost) and \rhrCumNnWindow{} (MinGRU); over the full sample they end at \rhrCumLassoTotal,
-% \rhrCumXgbTotal{} and \rhrCumNnTotal.}
-% 2026-10-15 (consolidation): dummy day index u -> t' (u is an exogenous series); cumulative-loss plot in the style
-% of \citet{WelchGoyal2008}, now cited.
-\caption{Cumulative QLIKE loss differential relative to the closing-interval OLS on the HAR benchmark. The figure
-plots $\sum_{t' \le t} d_{t'}$, where $d_{t'} = L_{t'}^{\text{model}} - L_{t'}^{\text{OLS}}$ is the daily loss
-differential, as in \citet{WelchGoyal2008}, for the closing-interval model with the lowest mean QLIKE in each model
-class, each on the full predictor set: the lasso,
-XGBoost (fixed hyperparameters, re-estimated daily) and the MinGRU network (ridge-initialized, trained and selected on
-QLIKE). Values below zero mean that the model has accumulated a smaller loss than the OLS; the final value divided by
-\rhrDays{} equals the difference in mean QLIKE. Losses are computed against actual realized variance. Over the shaded
-window, 24 February to 30 April 2020, the cumulative differentials change by \rhrCumLassoWindow{} (lasso),
-\rhrCumXgbWindow{} (XGBoost) and \rhrCumNnWindow{} (MinGRU); over the full out-of-sample period they end at
-\rhrCumLassoTotal, \rhrCumXgbTotal{} and \rhrCumNnTotal.}
-\label{fig:rh_cumulative}
-\end{figure}
+% 2026-10-15 (user): parked -- "I need all plots parked"
+% \begin{figure}[htbp]
+% \centering
+% \includegraphics[width=\linewidth]{figures/rehaul_results_f3_cumulative.pdf}
+% % 2026-10-15 (notation pass): parked -- code jargon (per-bar, family, fixed settings, session); dummy day index s -> u (s is the window row)
+% % \caption{Cumulative daily QLIKE difference against the per-bar OLS on HAR + calendar, $\sum_{s \le t}
+% % (L_s^{\text{model}} - L_s^{\text{OLS}})$, for the best per-bar forecast of each family, all on all features: the lasso,
+% % XGBoost (fixed settings, refit every session) and the MinGRU (ridge-initialised, trained and selected on QLIKE). Below
+% % zero, the model has accumulated less QLIKE than the OLS; the end value divided by \rhrDays{} is the difference in mean
+% % QLIKE. Over the shaded window, 24 February to 30 April 2020, the sums change by \rhrCumLassoWindow{} (lasso),
+% % \rhrCumXgbWindow{} (XGBoost) and \rhrCumNnWindow{} (MinGRU); over the full sample they end at \rhrCumLassoTotal,
+% % \rhrCumXgbTotal{} and \rhrCumNnTotal.}
+% % 2026-10-15 (consolidation): dummy day index u -> t' (u is an exogenous series); cumulative-loss plot in the style
+% % of \citet{WelchGoyal2008}, now cited.
+% % 2026-10-15 (user): parked -- NN content parked for now. The caption below drops the MinGRU line, its
+% % \rhrCumNnWindow / \rhrCumNnTotal macros and "the network (ridge-initialized, trained and selected on QLIKE)"; the
+% % generator agent drops the MinGRU line from the figure. Old caption: "... the lasso, XGBoost (fixed hyperparameters,
+% % re-estimated daily) and the MinGRU network (ridge-initialized, trained and selected on QLIKE) ... change by
+% % \rhrCumLassoWindow{} (lasso), \rhrCumXgbWindow{} (XGBoost) and \rhrCumNnWindow{} (MinGRU); over the full
+% % out-of-sample period they end at \rhrCumLassoTotal, \rhrCumXgbTotal{} and \rhrCumNnTotal."
+% \caption{Cumulative QLIKE loss differential relative to the closing-interval OLS on the HAR benchmark. The figure
+% plots $\sum_{t' \le t} d_{t'}$, where $d_{t'} = L_{t'}^{\text{model}} - L_{t'}^{\text{OLS}}$ is the daily loss
+% differential, as in \citet{WelchGoyal2008}, for the closing-interval model with the lowest mean QLIKE in each model
+% class, each on the full predictor set: the lasso and XGBoost (fixed hyperparameters, re-estimated daily). Values below
+% zero mean that the model has accumulated a smaller loss than the OLS; the final value divided by \rhrDays{} equals the
+% difference in mean QLIKE. Losses are computed against actual realized variance. Over the shaded window, 24 February to
+% 30 April 2020, the cumulative differentials change by \rhrCumLassoWindow{} (lasso) and \rhrCumXgbWindow{} (XGBoost);
+% over the full out-of-sample period they end at \rhrCumLassoTotal{} and \rhrCumXgbTotal.}
+% \label{fig:rh_cumulative}
+% \end{figure}
 
 % ---------------------------------------------------------------- F5: why QLIKE is the primary loss
 % 2026-10-15 (user): parked -- non-standard figure; focus on legible tables

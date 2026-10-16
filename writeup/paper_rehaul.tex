@@ -44,12 +44,22 @@
 % files are parked, so nothing is defined twice. Generators: make_table_close_main.py (close_main_numbers),
 % make_fig_qlike_sharpe.py (fig_qlike_sharpe_numbers), make_rehaul_results.py, make_rehaul_economics.py,
 % make_rehaul_fi.py, make_rehaul_appendix.py (rehaul_*_numbers).
+% 2026-10-15 (number macros): added make_rehaul_data_methods.py (rehaul_dm_numbers: \rhdm... sample counts and
+% constants), make_buckets_tex.py (buckets_numbers: \bkSize... group sizes), and the --numbers-only modes of
+% experiments/close_{murphy_splits,compounding,shift_test}_headline.py (close_*_numbers: \hmurRhoESLossMid, \cmp...,
+% \shiftSwing... / \shiftNoiseBand), whose table-mixed appendix_close_*.tex files are not loaded here.
 \input{generated/close_main_numbers}
 \input{generated/fig_qlike_sharpe_numbers}
 \input{generated/rehaul_results_numbers}
 \input{generated/rehaul_econ_numbers}
 \input{generated/rehaul_fi_numbers}
 \input{generated/rehaul_app_numbers}
+\input{generated/rehaul_dm_numbers}
+\input{generated/buckets_numbers}
+\input{generated/close_murphy_splits_numbers}
+\input{generated/close_compounding_numbers}
+\input{generated/close_shift_test_numbers}
+\input{generated/rehaul_oos_numbers}
 
 % 2026-10-15 (consolidation): parked -- "closing bar" is code jargon (guide section 1: the closing half hour).
 % \title{Forecasting Closing-Bar Variance for 0DTE SPX Options\\\large Bullet-point draft of the full paper}
@@ -61,7 +71,8 @@ paper}
 \begin{document}
 \maketitle
 
-\input{rehaul/01_introduction}
+% 2026-10-15 (user): parked -- introduction parked for now
+% \input{rehaul/01_introduction}
 \input{rehaul/02_related_work}
 \input{rehaul/03_data}
 \input{rehaul/03_data_floats}
@@ -71,13 +82,19 @@ paper}
 \input{rehaul/05_methods_floats}
 \input{rehaul/06_results}
 \input{rehaul/06_results_floats}
-\input{rehaul/07_economics}
-\input{rehaul/07_economics_floats}
+% 2026-10-15 (user): variable importance moved to the end of Experiments and results, as a subsection (was after
+% Economic value, as its own section).
 \input{rehaul/08_feature_importance}
 \input{rehaul/08_feature_importance_floats}
 \input{rehaul/08b_fi_measures_floats}
-\clearpage
-\input{rehaul/09_conclusion}
+\input{rehaul/07_economics}
+\input{rehaul/07_economics_floats}
+% \input{rehaul/08_feature_importance}
+% \input{rehaul/08_feature_importance_floats}
+% \input{rehaul/08b_fi_measures_floats}
+% 2026-10-15 (user): parked -- conclusion parked for now
+% \clearpage
+% \input{rehaul/09_conclusion}
 
 \bibliographystyle{plainnat}
 \bibliography{references}

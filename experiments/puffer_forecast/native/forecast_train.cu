@@ -34,6 +34,14 @@
 //        is refilled as soon as its model stops; same numbers as the wave path (gated byte for byte)
 //        --pack K [--pack-slots S] (2026-10-13, experiment): refit jobs packed K at a time into one
 //        block-diagonal model (see 'packing' below); tune jobs through the pool
+//        (2026-10-15, native_g7) job key wd_enc: decoupled decay of the encoder's input columns with the linear
+//        arms' per-column penalty factors (fc_enc_decay); a pool slot whose new shape does not fit on the device
+//        next to the running slots waits for a running job to finish instead of exiting (pool_malloc, run_pool)
+//        (2026-10-15, native_g8) job keys lin / lr_lin / wd_lin / lin_init / dec_zero: a learned linear shortcut
+//        f = link(c + s [o + v.x]) beside the MinGRU branch (fc_lin_add / fc_lin_grad / fc_lin_adam), and a
+//        zero-initialised decoder (the ReZero / Fixup residual start)
+//        (2026-10-15, native_g9) job key es=qlike (tune jobs): early stopping on the validation QLIKE (the eval's
+//        val_qlike) instead of the validation MSE
 //   forecast_train losscheck IN OUT            (the loss kernel on given (o, y): gradient checks)
 //   forecast_train gradcheck --jobs FILE --out DIR   (one forward / backward of each job, dumped)
 #ifndef PRECISION_FLOAT
@@ -246,6 +254,107 @@ __global__ void fc_weight_decay(float* __restrict__ w, const float* __restrict__
     w[i] = w[i] * (1.0f - (*lr_ptr) * wd);
 }
 
+// Encoder-input decay (user, 2026-10-15, native_g7; job key wd_enc > 0; fix 1 of the all_features diagnosis): the
+// linear arms' penalty structure on the encoder's input columns, decoupled as wd above --
+// W_enc[:, c] <- W_enc[:, c] (1 - lr_t wd_enc pf[c]), pf[c] the regular stack's penalty factor of the c-th kept
+// design column (close_linear_pretune.structure with R_BB = 0.01: 1 for an exogenous column, 0.01 for a HAR +
+// calendar backbone column), read from <data>/enc_pf.f64 (one float64 per design column) and mapped through the
+// window's keep set (trainer_host).  Only the encoder's first P - 1 columns: its last (constant-input, bias) column,
+// the decoder and the MinGRU matrices are never touched.  Launched just before muon_step and AFTER wd's kernel
+// when both are set (the encoder's input columns then get (1 - lr_t wd)(1 - lr_t wd_enc pf[c])); wd_enc = 0
+// launches nothing.
+__global__ void fc_enc_decay(float* __restrict__ w, const float* __restrict__ lr_ptr, float wd_enc,
+        const float* __restrict__ pf, long enc_n, int P) {
+    long i = (long)blockIdx.x * blockDim.x + threadIdx.x;
+    if (i >= enc_n) {
+        return;
+    }
+    int c = (int)(i % P);
+    if (c == P - 1) {
+        return;
+    }
+    w[i] = w[i] * (1.0f - (*lr_ptr) * wd_enc * pf[c]);
+}
+
+// ============================================================================ linear shortcut (native_g8)
+// (user, 2026-10-15; job key lin=1) f = link(c + s [o + v.x]) -- identity: f = mu_y + sd_y (o + v.x) -- with o the
+// MinGRU branch's decoder output at the last step, x the last step's input row (the kept columns and the constant
+// column, read from the gathered obs) and v a learned vector over those P inputs (v = 0 at the start), trained by
+// the same loss with its own Adam.  fc_lin_add adds v.x to the decoder output in place (upstream's decoder backward
+// reads its saved input and grad_out, never its output), so fc_loss_train / fc_eval see o' = o + v.x unchanged;
+// part (if not NULL) keeps v.x per row (preds.csv kind fc_lin).  One block per row, a deterministic block reduce
+// over the P inputs.
+__global__ void fc_lin_add(precision_t* __restrict__ dec, int T, int od1, const precision_t* __restrict__ obs,
+        int P, const float* __restrict__ v, float* __restrict__ part) {
+    __shared__ float sm[128];
+    __shared__ float tot;
+    int b = blockIdx.x, tid = threadIdx.x;
+    const precision_t* x = obs + ((long)b * T + T - 1) * P;
+    float acc = 0.0f;
+    for (int c = tid; c < P; c += blockDim.x) {
+        acc += v[c] * to_float(x[c]);
+    }
+    sm[tid] = acc;
+    block_reduce_sum(sm, &tot, tid, blockDim.x, 1);
+    if (tid == 0) {
+        long i = ((long)b * T + T - 1) * od1;
+        dec[i] = from_float(to_float(dec[i]) + tot);
+        if (part != NULL) {
+            part[b] = tot;
+        }
+    }
+}
+
+// dL/dv_c = sum_b grad_logits[b, T-1] x[b, c]: grad_logits is dL/do' already (mask, 1 / n_real, and the non-finite
+// samples zeroed by fc_loss_train), so the shortcut masks exactly as the branch does.  One block per input column, a
+// deterministic block reduce over the batch.
+__global__ void fc_lin_grad(const float* __restrict__ gl, int T, const precision_t* __restrict__ obs, int P, int B,
+        float* __restrict__ g) {
+    __shared__ float sm[256];
+    int c = blockIdx.x, tid = threadIdx.x;
+    float acc = 0.0f;
+    for (int b = tid; b < B; b += blockDim.x) {
+        acc += gl[(long)b * T + T - 1] * to_float(obs[((long)b * T + T - 1) * P + c]);
+    }
+    sm[tid] = acc;
+    block_reduce_sum(sm, g + c, tid, blockDim.x, 1);
+}
+
+// v's own optimiser (one block).  wd_lin is an L2 penalty under Adam: g_c += wd_lin pf[c] v_c (the gradient of
+// 1/2 wd_lin sum_c pf_c v_c^2; the constant column c = P - 1, the intercept, has none), added BEFORE the clip --
+// not decoupled decay, whose fixed point under Adam is a box |v_c| <= 1 / (wd_lin pf_c), not a ridge (wd_enc on
+// the branch's encoder stays decoupled).  Then v's own global clip at max_norm (min(max_norm / (|g| + 1e-6), 1),
+// Muon's formula, separate from Muon's clip of the branch) and Adam (bias-corrected, beta 0.9 / 0.999, eps 1e-8) at
+// lr_lin_t = lin_sched[epoch] (the cosine shape of lr), step count t = epoch S + k + 1.
+__global__ void fc_lin_adam(float* __restrict__ v, float* __restrict__ m, float* __restrict__ s2,
+        const float* __restrict__ g, const float* __restrict__ pf, float wd_lin, const float* __restrict__ lin_sched,
+        const int* __restrict__ epoch_ptr, int S, int k, float max_norm, int P) {
+    __shared__ float sm[256];
+    __shared__ float ss;
+    int tid = threadIdx.x;
+    float acc = 0.0f;
+    for (int c = tid; c < P; c += blockDim.x) {
+        float gc = g[c] + ((pf != NULL && c < P - 1) ? wd_lin * pf[c] * v[c] : 0.0f);
+        acc += gc * gc;
+    }
+    sm[tid] = acc;
+    block_reduce_sum(sm, &ss, tid, blockDim.x, 1);
+    __syncthreads();
+    float clip = fminf(max_norm / (sqrtf(ss) + 1e-6f), 1.0f);
+    int e = *epoch_ptr;
+    float lr = lin_sched[e];
+    float t = (float)(e * S + k + 1);
+    float bc1 = 1.0f - powf(0.9f, t), bc2 = 1.0f - powf(0.999f, t);
+    for (int c = tid; c < P; c += blockDim.x) {
+        float gc = (g[c] + ((pf != NULL && c < P - 1) ? wd_lin * pf[c] * v[c] : 0.0f)) * clip;
+        float mc = 0.9f * m[c] + 0.1f * gc;
+        float sc = 0.999f * s2[c] + 0.001f * gc * gc;
+        m[c] = mc;
+        s2[c] = sc;
+        v[c] = v[c] - lr * (mc / bc1) / (sqrtf(sc / bc2) + 1e-8f);
+    }
+}
+
 // Per-step log (1 thread): mean loss, global grad norm (Muon's pre-clip sum of squares), counts.
 __global__ void fc_step_log(const float* __restrict__ step_out, const float* __restrict__ grad_sumsq,
         const int* __restrict__ epoch_ptr, int S, int k, float n_real, float* __restrict__ log_loss,
@@ -269,14 +378,15 @@ __global__ void fc_epoch_end(int* __restrict__ epoch_ptr) {
 }
 
 // Evaluation (1 block): f for each real row -> pred; [sum sq err, sum qlike] -> val log at epoch e; and,
-// with track != 0, keep the best epoch (strictly lower validation MSE) and its predictions -- only while
-// the run is alive under early stopping (e - best_epoch < patience: the LSTM's loop, which breaks at
-// the first epoch with ep - best_ep >= patience), so epochs run past the stop never change the result.
+// with track != 0, keep the best epoch (strictly lower validation MSE; es_ql != 0, native_g9: strictly lower
+// validation QLIKE, the val_qlike logged beside it) and its predictions -- only while the run is alive under early
+// stopping (e - best_epoch < patience: the LSTM's loop, which breaks at the first epoch with ep - best_ep >=
+// patience), so epochs run past the stop never change the result.
 __global__ void fc_eval(const precision_t* __restrict__ dec, int T, int od1,
         const float* __restrict__ y, int n, const LossParams* __restrict__ lpd, float* __restrict__ pred,
         const int* __restrict__ epoch_ptr, float* __restrict__ val_mse_log,
         float* __restrict__ val_ql_log, int track, int patience, float* __restrict__ best,
-        int* __restrict__ best_epoch, float* __restrict__ best_pred) {
+        int* __restrict__ best_epoch, float* __restrict__ best_pred, int es_ql) {
     __shared__ float sm[2 * 256];
     __shared__ float red[2];
     __shared__ int improved;
@@ -310,9 +420,11 @@ __global__ void fc_eval(const precision_t* __restrict__ dec, int T, int od1,
             int e = *epoch_ptr;
             float mse = red[0] / (float)n;
             val_mse_log[e] = mse;
-            val_ql_log[e] = red[1] / (float)n;
-            if (track && e - *best_epoch < patience && isfinite(mse) && mse < *best) {
-                *best = mse;
+            float ql = red[1] / (float)n;
+            val_ql_log[e] = ql;
+            float crit = es_ql ? ql : mse;  // the early-stopping criterion (es=qlike: the validation QLIKE)
+            if (track && e - *best_epoch < patience && isfinite(crit) && crit < *best) {
+                *best = crit;
                 *best_epoch = e + 1;
                 improved = 1;
             }
@@ -406,6 +518,40 @@ static const std::vector<int>& keep_for(Data* d, int w0, int w1) {
     return g_keep_cache[key] = window_keep(d, w0, w1);
 }
 
+// wd_enc's (and native_g8 wd_lin's) penalty factors of a design (2026-10-15): <dir>/enc_pf.f64, one finite float64
+// >= 0 per design column (experiments/puffer_forecast/wd_enc_study.py writes them from close_linear_pretune.structure);
+// read once
+static std::map<std::string, std::vector<double>> g_enc_pf;
+
+static const std::vector<double>& enc_pf_for(Data* d, const std::string& id) {
+    auto it = g_enc_pf.find(d->dir);
+    if (it != g_enc_pf.end()) {
+        return it->second;
+    }
+    std::string path = d->dir + "/enc_pf.f64";
+    FILE* f = fopen(path.c_str(), "rb");
+    long bytes = -1;
+    if (f && fseek(f, 0, SEEK_END) == 0) {
+        bytes = ftell(f);
+        fseek(f, 0, SEEK_SET);
+    }
+    std::vector<double> v(d->p);
+    if (!f || bytes != (long)d->p * 8 || fread(v.data(), 8, v.size(), f) != v.size()) {
+        fprintf(stderr, "job %s: wd_enc > 0 or wd_lin > 0 needs %s: %d float64 penalty factors, one per design "
+            "column (%ld bytes found)\n", id.c_str(), path.c_str(), d->p, bytes);
+        exit(2);
+    }
+    fclose(f);
+    for (int c = 0; c < d->p; c++) {
+        if (!(v[c] >= 0.0) || !std::isfinite(v[c])) {
+            fprintf(stderr, "job %s: %s column %d: penalty factor %g is not a finite value >= 0\n", id.c_str(),
+                path.c_str(), c, v[c]);
+            exit(2);
+        }
+    }
+    return g_enc_pf[d->dir] = v;
+}
+
 static Data* load_data(const std::string& dir) {
     auto it = g_data.find(dir);
     if (it != g_data.end()) {
@@ -446,6 +592,11 @@ struct Job {
     float stop_loss;
     std::string link;
     float wd;
+    float wd_enc;
+    int lin, dec_zero;
+    int es_ql;
+    float lr_lin, wd_lin;
+    std::string lin_init;
     std::string epochs_from, init_from;
     std::string get(const char* k, const char* dflt) const {
         auto it = kv.find(k);
@@ -514,6 +665,25 @@ static std::vector<Job> read_jobs(const char* path) {
         j.link = j.get("link", "identity");
         // decoupled weight decay (user, 2026-10-14): W <- W (1 - lr_t wd) before each Muon step; 0 = none
         j.wd = atof(j.get("wd", "0").c_str());
+        // encoder-input decay (user, 2026-10-15, native_g7): W_enc[:, c] <- W_enc[:, c] (1 - lr_t wd_enc pf[c]) before
+        // each Muon step (fc_enc_decay; pf from <data>/enc_pf.f64); 0 = none
+        j.wd_enc = atof(j.get("wd_enc", "0").c_str());
+        // linear shortcut (user, 2026-10-15, native_g8): lin=1 -> f = link(c + s [o + v.x]), v by its own Adam at
+        // lr_lin (required), wd_lin an L2 penalty on v (pf as wd_enc's, intercept excluded), lin_init a file of P
+        // fp32 starting values (default 0); dec_zero=1 zeroes the decoder after every weight load
+        j.lin = atoi(j.get("lin", "0").c_str());
+        j.lr_lin = atof(j.get("lr_lin", "0").c_str());
+        j.wd_lin = atof(j.get("wd_lin", "0").c_str());
+        j.lin_init = j.get("lin_init", "");
+        j.dec_zero = atoi(j.get("dec_zero", "0").c_str());
+        // early stopping (native_g9, tune jobs): es=mse (default) or es=qlike -- the best epoch, its validation
+        // forecasts and best_val (jobs_out best_val_mse then holds the validation QLIKE) by the validation QLIKE
+        std::string es = j.get("es", "mse");
+        j.es_ql = es == "qlike" ? 1 : 0;
+        if (es != "mse" && es != "qlike") {
+            fprintf(stderr, "job %s: es must be mse or qlike\n", j.id.c_str());
+            exit(2);
+        }
         j.seed = atoi(j.get("seed", "73").c_str());
         j.lr = atof(j.get("lr", "0.015").c_str());
         j.min_lr_ratio = atof(j.get("min_lr_ratio", "0.0").c_str());
@@ -533,7 +703,7 @@ static std::vector<Job> read_jobs(const char* path) {
             "L", "H", "layers", "batch", "max_epochs", "patience", "epochs", "epochs_from", "init_from",
             "save_params", "mask", "zclip", "xstd", "fc_train", "seed", "lr", "min_lr_ratio", "anneal",
             "momentum", "max_grad_norm", "huber_q", "qlike_eps", "qlike_cap_q", "phase", "stop_loss", "link",
-            "wd"};
+            "wd", "wd_enc", "lin", "lr_lin", "wd_lin", "lin_init", "dec_zero", "es"};
         for (auto& kv : j.kv) {
             bool ok = false;
             for (const char* k : known) {
@@ -546,6 +716,40 @@ static std::vector<Job> read_jobs(const char* path) {
         }
         if (!(j.wd >= 0.0f) || !std::isfinite(j.wd)) {
             fprintf(stderr, "job %s: wd must be a finite value >= 0\n", j.id.c_str());
+            exit(2);
+        }
+        if (!(j.wd_enc >= 0.0f) || !std::isfinite(j.wd_enc)) {
+            fprintf(stderr, "job %s: wd_enc must be a finite value >= 0\n", j.id.c_str());
+            exit(2);
+        }
+        if (j.wd_enc > 0.0f) {  // the design's penalty factors exist, one per column, finite and >= 0
+            enc_pf_for(load_data(j.data), j.id);
+        }
+        if ((j.lin != 0 && j.lin != 1) || (j.dec_zero != 0 && j.dec_zero != 1)) {
+            fprintf(stderr, "job %s: lin and dec_zero must be 0 or 1\n", j.id.c_str());
+            exit(2);
+        }
+        if (!j.lin && (j.kv.count("lr_lin") || j.kv.count("wd_lin") || j.kv.count("lin_init"))) {
+            fprintf(stderr, "job %s: lr_lin / wd_lin / lin_init need lin=1\n", j.id.c_str());
+            exit(2);
+        }
+        if (j.lin && (!j.kv.count("lr_lin") || !(j.lr_lin >= 0.0f) || !std::isfinite(j.lr_lin))) {
+            fprintf(stderr, "job %s: lin=1 needs lr_lin, a finite value >= 0\n", j.id.c_str());
+            exit(2);
+        }
+        if (!(j.wd_lin >= 0.0f) || !std::isfinite(j.wd_lin)) {
+            fprintf(stderr, "job %s: wd_lin must be a finite value >= 0\n", j.id.c_str());
+            exit(2);
+        }
+        if (j.wd_lin > 0.0f) {  // wd_lin's factors are wd_enc's (enc_pf.f64 through keep)
+            enc_pf_for(load_data(j.data), j.id);
+        }
+        if (j.es_ql && j.mode != "tune") {
+            fprintf(stderr, "job %s: es=qlike is for tune jobs (refits have no validation)\n", j.id.c_str());
+            exit(2);
+        }
+        if (j.dec_zero && !j.init_from.empty()) {
+            fprintf(stderr, "job %s: dec_zero=1 and init_from exclude each other\n", j.id.c_str());
             exit(2);
         }
         if (j.link != "identity" && j.link != "softplus") {
@@ -643,9 +847,16 @@ struct Trainer {
     int* d_best_epoch = NULL;
     LossParams* d_lp = NULL;
     float* d_rows = NULL;  // fc_train: the training and forecast rows' forecasts (N + n_eval)
+    float* d_enc_pf = NULL;  // wd_enc > 0: the encoder columns' penalty factors (P; the bias column's 0)
+    // lin=1: v, Adam's two moments, v's gradient, wd_lin's factors (wd_lin > 0), lr_lin's schedule, v.x of the
+    // eval rows (preds kind fc_lin)
+    float *d_lin_v = NULL, *d_lin_m = NULL, *d_lin_s = NULL, *d_lin_g = NULL, *d_lin_pf = NULL;
+    float *d_lin_sched = NULL, *d_lin_part = NULL;
     cudaGraphExec_t graph = NULL;
     // host-side job data (trainer_host) for the device load (trainer_load)
     std::vector<float> hZ, hY;
+    std::vector<float> h_enc_pf;  // wd_enc > 0: pf of the kept columns (keep order), then 0 for the bias column
+    std::vector<float> h_lin_pf, h_lin_init, lin_sched;  // lin=1 (see the device buffers)
     const std::vector<int>* hperm = NULL;
     const std::vector<int>* loaded_perm = NULL;  // the permutation now on the device (pool reuse)
     // host results
@@ -685,8 +896,16 @@ static void enqueue_step(Trainer& t, int k) {
     gather(t.stream, t.d_Z, t.P, t.d_y, t.d_perm, t.d_epoch, t.S * t.B, k * t.B, t.B, t.T, t.row0, t.N, t.d_obs,
         t.d_ymb, t.d_mask);
     Prec dec = net_forward(&t.arch, t.w, t.tr_acts, t.d_obs, t.B, t.T, t.P, t.d_state, j.layers, j.H, t.stream);
+    if (j.lin) {  // o' = o + v.x (see fc_lin_add)
+        fc_lin_add<<<t.B, 128, 0, t.stream>>>(dec.data, t.T, 2, t.d_obs, t.P, t.d_lin_v, NULL);
+    }
     fc_loss_train<<<1, 256, 0, t.stream>>>(dec.data, t.T, 2, t.d_ymb, t.d_mask, t.B, t.d_lp,
         1.0f / (float)n_real, t.d_gl, t.d_step_out);
+    if (j.lin) {  // the shortcut's gradient and its Adam step (arch_backward never reads v)
+        fc_lin_grad<<<t.P, 256, 0, t.stream>>>(t.d_gl, t.T, t.d_obs, t.P, t.B, t.d_lin_g);
+        fc_lin_adam<<<1, 256, 0, t.stream>>>(t.d_lin_v, t.d_lin_m, t.d_lin_s, t.d_lin_g, t.d_lin_pf, j.wd_lin,
+            t.d_lin_sched, t.d_epoch, t.S, k, j.max_grad_norm, t.P);
+    }
     Float gl = {.data = t.d_gl, .shape = {t.B, t.T, 1}};
     Float gv = {.data = t.d_gv, .shape = {t.B, t.T}};
     arch_backward(&t.arch, t.w, t.tr_acts, gl, Float(), gv, t.stream);
@@ -694,6 +913,11 @@ static void enqueue_step(Trainer& t, int k) {
         long n = t.params.total_elems;
         fc_weight_decay<<<(int)((n + 255) / 256), 256, 0, t.stream>>>(t.master.data, t.muon.lr, j.wd, n,
             (long)j.H * t.P, t.P);
+    }
+    if (j.wd_enc > 0.0f) {  // the encoder's input columns, after wd (see fc_enc_decay); wd_enc = 0 launches nothing
+        long ne = (long)j.H * t.P;
+        fc_enc_decay<<<(int)((ne + 255) / 256), 256, 0, t.stream>>>(t.master.data, t.muon.lr, j.wd_enc, t.d_enc_pf,
+            ne, t.P);
     }
     if (g_math == 1) {  // --tf32-ns: Muon's GEMMs (Newton-Schulz) in TF32; forward / backward stay fp32
         cublasSetMathMode(t.h, CUBLAS_TF32_TENSOR_OP_MATH);
@@ -712,8 +936,11 @@ static void enqueue_eval(Trainer& t, int track) {
         t.d_eobs, t.d_eymb, t.d_emask);
     Prec dec = net_forward(&t.arch, t.w, t.ev_acts, t.d_eobs, t.B_eval, t.T, t.P, t.d_estate, j.layers, j.H,
         t.stream);
+    if (j.lin) {
+        fc_lin_add<<<t.B_eval, 128, 0, t.stream>>>(dec.data, t.T, 2, t.d_eobs, t.P, t.d_lin_v, t.d_lin_part);
+    }
     fc_eval<<<1, 256, 0, t.stream>>>(dec.data, t.T, 2, t.tune ? t.d_eymb : NULL, t.n_eval, t.d_lp, t.d_pred,
-        t.d_epoch, t.d_val_mse, t.d_val_ql, track, j.patience, t.d_best, t.d_best_epoch, t.d_best_pred);
+        t.d_epoch, t.d_val_mse, t.d_val_ql, track, j.patience, t.d_best, t.d_best_epoch, t.d_best_pred, j.es_ql);
 }
 
 // forecasts of n consecutive window rows (row0, row0 + 1, ...) with the current weights, into out[0 .. n):
@@ -727,8 +954,11 @@ static void enqueue_rows(Trainer& t, float* out, int row0, int n) {
             t.d_emask);
         Prec dec = net_forward(&t.arch, t.w, t.ev_acts, t.d_eobs, t.B_eval, t.T, t.P, t.d_estate, j.layers, j.H,
             t.stream);
+        if (j.lin) {
+            fc_lin_add<<<t.B_eval, 128, 0, t.stream>>>(dec.data, t.T, 2, t.d_eobs, t.P, t.d_lin_v, NULL);
+        }
         fc_eval<<<1, 256, 0, t.stream>>>(dec.data, t.T, 2, NULL, n_real, t.d_lp, out + (long)k * t.B_eval,
-            t.d_epoch, NULL, NULL, 0, 0, NULL, NULL, NULL);
+            t.d_epoch, NULL, NULL, 0, 0, NULL, NULL, NULL, 0);
     }
 }
 
@@ -775,17 +1005,87 @@ static T_* dalloc(size_t n) {
 
 // stream-ordered versions (2026-10-13 speed review, gate 4): a slot's shape buffers come from the device's
 // memory pool on the slot's own stream and go back to it there, so a pool re-shape never synchronises the device
+// (2026-10-15, native_g7) a stream-ordered allocation that the device cannot serve.  The pooled walk's wd-grid tune
+// (13137036) ran out of memory: with wd in the shape key, up to all 12 baseline slots could hold the largest shape
+// (H 256, L 48: its 2,400-sequence validation activations alone are 1.6 GB) at once.  Gate 7 (13140171) showed that
+// giving the pool's cached memory back does not help (1.5 GB free after the trim): the slots' live buffers exceed the
+// device.  So: first give the pool's unused memory back (cudaMemPoolTrimTo 0) and retry once; if that fails too, a
+// pool re-shape (g_alloc_soft, run_pool) marks the shape as not fitting (g_alloc_failed: the remaining buffers of
+// the shape are skipped, NULL) and run_pool frees what was allocated, puts the job back at the front of its queue and
+// lets the slot wait until a running job finishes; anywhere else the run stops.  A re-shape that fits but leaves
+// less than kHeadroom of device memory outside the pool counts as not fitting too (gate 7's second build: a shape
+// squeezed in after a trim left the device so full that another slot's cudaGraphLaunch ran out of memory).  An
+// allocation that is served takes the old path exactly (the numbers never depend on where a buffer lives or which
+// slot runs a job).
+static cudaMemPool_t g_mempool = NULL;
+static long g_n_trim = 0, g_n_defer = 0;
+static bool g_alloc_soft = false, g_alloc_failed = false;
+static const size_t kHeadroom = (size_t)1 << 30;  // 1 GiB for graph instantiation / launches, cuBLAS
+
+// device memory outside the pool after a re-shape: at least kHeadroom (else the pool's unused memory goes back first)
+static bool headroom_ok(cudaStream_t st) {
+    size_t fr = 0, tot = 0;
+    CK(cudaMemGetInfo(&fr, &tot));
+    if (fr >= kHeadroom || !g_mempool) {
+        return true;
+    }
+    CK(cudaStreamSynchronize(st));
+    CK(cudaMemPoolTrimTo(g_mempool, 0));
+    g_n_trim++;
+    CK(cudaMemGetInfo(&fr, &tot));
+    return fr >= kHeadroom;
+}
+
+static void pool_malloc(void** p, size_t bytes, cudaStream_t st, const char* what) {
+    *p = NULL;
+    if (g_alloc_failed) {  // an earlier buffer of this shape did not fit: skip the rest
+        return;
+    }
+    cudaError_t e = cudaMallocAsync(p, bytes, st);
+    if (e == cudaErrorMemoryAllocation && g_mempool) {
+        (void)cudaGetLastError();
+        size_t fr = 0, tot = 0;
+        if (g_alloc_soft) {
+            CK(cudaStreamSynchronize(st));  // the slot's own frees (its previous shape) complete
+        } else {
+            CK(cudaDeviceSynchronize());
+        }
+        CK(cudaMemPoolTrimTo(g_mempool, 0));
+        g_n_trim++;
+        cudaMemGetInfo(&fr, &tot);
+        fprintf(stderr, "[%.1f] %s: %zu bytes did not fit; pool trimmed (%ld so far), %.0f MiB free, retrying\n",
+            now_s(), what, bytes, g_n_trim, fr / 1048576.0);
+        *p = NULL;
+        e = cudaMallocAsync(p, bytes, st);
+    }
+    if (e == cudaErrorMemoryAllocation && g_alloc_soft) {
+        (void)cudaGetLastError();
+        *p = NULL;
+        g_alloc_failed = true;
+        return;
+    }
+    if (e != cudaSuccess) {
+        fprintf(stderr, "CUDA error cudaMallocAsync (%s, %zu bytes): %s\n", what, bytes, cudaGetErrorString(e));
+        exit(2);
+    }
+}
+
 template <typename T_>
 static T_* dalloc_s(size_t n, cudaStream_t st) {
     T_* p = NULL;
-    CK(cudaMallocAsync((void**)&p, std::max<size_t>(n, 1) * sizeof(T_), st));
-    CK(cudaMemsetAsync(p, 0, std::max<size_t>(n, 1) * sizeof(T_), st));
+    pool_malloc((void**)&p, std::max<size_t>(n, 1) * sizeof(T_), st, "dalloc_s");
+    if (p) {  // (NULL: a pool re-shape that does not fit, see pool_malloc)
+        CK(cudaMemsetAsync(p, 0, std::max<size_t>(n, 1) * sizeof(T_), st));
+    }
     return p;
 }
 
 // upstream alloc_create's layout (16-byte aligned entries in one block, zeroed), stream-ordered
 static void alloc_create_s(Allocator* a, cudaStream_t st) {
-    CK(cudaMallocAsync(&a->mem, std::max<long>(a->total_bytes, 1), st));
+    pool_malloc(&a->mem, std::max<long>(a->total_bytes, 1), st, "alloc_create_s");
+    if (!a->mem) {  // a pool re-shape that does not fit (see pool_malloc)
+        return;
+    }
     CK(cudaMemsetAsync(a->mem, 0, std::max<long>(a->total_bytes, 1), st));
     long offset = 0;
     for (int i = 0; i < a->num_regs; i++) {
@@ -903,6 +1203,38 @@ static void trainer_host(Trainer& t) {
     }
     int p = (int)t.keep.size();
     t.P = p + 1;  // + constant column (the upstream encoder / decoder have no bias)
+    t.h_enc_pf.clear();
+    if (j.wd_enc > 0.0f) {  // the kept columns' penalty factors, in the encoder's column order; the bias column 0
+        const std::vector<double>& pf = enc_pf_for(d, j.id);
+        t.h_enc_pf.assign(t.P, 0.0f);
+        for (int c = 0; c < p; c++) {
+            t.h_enc_pf[c] = (float)pf[t.keep[c]];
+        }
+    }
+    t.h_lin_pf.clear();
+    t.h_lin_init.clear();
+    if (j.lin && j.wd_lin > 0.0f) {  // wd_lin's factors: wd_enc's mapping (the intercept's 0)
+        const std::vector<double>& pf = enc_pf_for(d, j.id);
+        t.h_lin_pf.assign(t.P, 0.0f);
+        for (int c = 0; c < p; c++) {
+            t.h_lin_pf[c] = (float)pf[t.keep[c]];
+        }
+    }
+    if (j.lin && !j.lin_init.empty()) {  // v's starting values: P fp32 (kept columns, then the constant column)
+        t.h_lin_init.resize(t.P);
+        FILE* fv = fopen(j.lin_init.c_str(), "rb");
+        long fb = -1;
+        if (fv && fseek(fv, 0, SEEK_END) == 0) {
+            fb = ftell(fv);
+            fseek(fv, 0, SEEK_SET);
+        }
+        if (!fv || fb != (long)t.P * 4 || fread(t.h_lin_init.data(), 4, t.P, fv) != (size_t)t.P) {
+            fprintf(stderr, "job %s: lin_init %s is not %d fp32 values (%ld bytes)\n", j.id.c_str(),
+                j.lin_init.c_str(), t.P, fb);
+            exit(2);
+        }
+        fclose(fv);
+    }
     std::vector<double> mu(p, 0.0), sd(p, 0.0);
     if (!j.xstd) {  // the prescaled design's kept columns, unchanged (float32 bit for bit), no clip
         std::vector<float>& Z = t.hZ;
@@ -1030,6 +1362,15 @@ static void trainer_host(Trainer& t) {
         double u = (double)e / (double)j.max_epochs;
         t.lr_sched[e] = j.anneal ? lr_min + 0.5f * (j.lr - lr_min) * (1.0f + (float)cos(M_PI * u)) : j.lr;
     }
+    t.lin_sched.clear();
+    if (j.lin) {  // lr_lin on the same cosine shape
+        t.lin_sched.resize(j.max_epochs);
+        for (int e = 0; e < j.max_epochs; e++) {
+            float lr_min = j.min_lr_ratio * j.lr_lin;
+            double u = (double)e / (double)j.max_epochs;
+            t.lin_sched[e] = j.anneal ? lr_min + 0.5f * (j.lr_lin - lr_min) * (1.0f + (float)cos(M_PI * u)) : j.lr_lin;
+        }
+    }
     t.hperm = perm_for(j.seed, t.N, t.S, t.B, j.max_epochs);
     t.epochs_run = 0;
     t.best_epoch = 0;
@@ -1110,6 +1451,20 @@ static void trainer_alloc(Trainer& t) {
     t.d_best_pred = dalloc_s<float>(t.B_eval, t.stream);
     t.d_lp = dalloc_s<LossParams>(1, t.stream);
     t.d_rows = dalloc_s<float>((size_t)t.N + t.n_eval, t.stream);
+    if (j.wd_enc > 0.0f) {
+        t.d_enc_pf = dalloc_s<float>(t.P, t.stream);
+    }
+    if (j.lin) {
+        t.d_lin_v = dalloc_s<float>(t.P, t.stream);
+        t.d_lin_m = dalloc_s<float>(t.P, t.stream);
+        t.d_lin_s = dalloc_s<float>(t.P, t.stream);
+        t.d_lin_g = dalloc_s<float>(t.P, t.stream);
+        t.d_lin_sched = dalloc_s<float>(maxe, t.stream);
+        t.d_lin_part = dalloc_s<float>(t.B_eval, t.stream);
+        if (j.wd_lin > 0.0f) {
+            t.d_lin_pf = dalloc_s<float>(t.P, t.stream);
+        }
+    }
     t.loaded_perm = NULL;
     CK(cudaStreamSynchronize(0));  // muon_init's allocations (legacy stream): done before any slot-stream use
 }
@@ -1166,6 +1521,25 @@ static void trainer_load(Trainer& t, bool cache_weights) {
         CK(cudaMemcpyAsync(t.params.mem, w0.data(), w0.size() * 4, cudaMemcpyHostToDevice, t.stream));
     }
     cudaStream_t st = t.stream;
+    if (j.dec_zero) {  // the decoder (both rows, [2, H] after the encoder's [H, P]) to 0: the branch starts at 0
+        CK(cudaMemsetAsync((float*)t.params.mem + (size_t)j.H * t.P, 0, (size_t)2 * j.H * sizeof(float), st));
+    }
+    if (j.lin) {  // every job starts v (0 or lin_init) and Adam's moments afresh: a reused slot holds no state
+        if (t.h_lin_init.empty()) {
+            CK(cudaMemsetAsync(t.d_lin_v, 0, t.P * sizeof(float), st));
+        } else {
+            CK(cudaMemcpyAsync(t.d_lin_v, t.h_lin_init.data(), t.P * sizeof(float), cudaMemcpyHostToDevice, st));
+        }
+        CK(cudaMemsetAsync(t.d_lin_m, 0, t.P * sizeof(float), st));
+        CK(cudaMemsetAsync(t.d_lin_s, 0, t.P * sizeof(float), st));
+        CK(cudaMemsetAsync(t.d_lin_g, 0, t.P * sizeof(float), st));
+        CK(cudaMemsetAsync(t.d_lin_part, 0, t.B_eval * sizeof(float), st));
+        CK(cudaMemcpyAsync(t.d_lin_sched, t.lin_sched.data(), j.max_epochs * sizeof(float), cudaMemcpyHostToDevice,
+            st));
+        if (j.wd_lin > 0.0f) {
+            CK(cudaMemcpyAsync(t.d_lin_pf, t.h_lin_pf.data(), t.P * sizeof(float), cudaMemcpyHostToDevice, st));
+        }
+    }
     CK(cudaMemcpyAsync(t.muon.lr, &j.lr, sizeof(float), cudaMemcpyHostToDevice, st));
     CK(cudaMemsetAsync(t.muon.mb.data, 0, numel(t.muon.mb.shape) * sizeof(float), st));
     int maxe = j.max_epochs;
@@ -1177,6 +1551,9 @@ static void trainer_load(Trainer& t, bool cache_weights) {
     }
     CK(cudaMemcpyAsync(t.d_lr_sched, t.lr_sched.data(), maxe * 4, cudaMemcpyHostToDevice, st));
     CK(cudaMemcpyAsync(t.d_lp, &t.lp, sizeof(LossParams), cudaMemcpyHostToDevice, st));
+    if (j.wd_enc > 0.0f) {  // this window's mapping (the same P can come with other kept columns)
+        CK(cudaMemcpyAsync(t.d_enc_pf, t.h_enc_pf.data(), t.P * sizeof(float), cudaMemcpyHostToDevice, st));
+    }
     CK(cudaMemsetAsync(t.d_epoch, 0, sizeof(int), st));
     CK(cudaMemsetAsync(t.d_nf_total, 0, sizeof(int), st));
     CK(cudaMemsetAsync(t.d_best_epoch, 0, sizeof(int), st));
@@ -1219,6 +1596,18 @@ static std::string shape_key(const Trainer& t) {
     snprintf(b, sizeof(b), "%s|P%d|T%d|H%d|Ly%d|B%d|tune%d|N%d|r%d|S%d|ctx%d|ne%d|er%d|me%d|pat%d|mom%.9g|mgn%.9g|wd%.9g",
         j.data.c_str(), t.P, t.T, j.H, j.layers, t.B, t.tune, t.N, t.row0, t.S, t.n_ctx, t.n_eval, t.eval_row0,
         j.max_epochs, j.patience, (double)j.momentum, (double)j.max_grad_norm, (double)j.wd);
+    if (j.wd_enc > 0.0f) {  // (wd_enc = 0 keeps native_g6's key)
+        snprintf(b + strlen(b), sizeof(b) - strlen(b), "|we%.9g", (double)j.wd_enc);
+    }
+    if (j.lin) {  // (lin and dec_zero off keep native_g7's key)
+        snprintf(b + strlen(b), sizeof(b) - strlen(b), "|lin|ll%.9g|wl%.9g", (double)j.lr_lin, (double)j.wd_lin);
+    }
+    if (j.dec_zero) {
+        snprintf(b + strlen(b), sizeof(b) - strlen(b), "|dz");
+    }
+    if (j.es_ql) {  // (es=mse keeps native_g8's key)
+        snprintf(b + strlen(b), sizeof(b) - strlen(b), "|esq");
+    }
     return std::string(b);
 }
 
@@ -1244,7 +1633,8 @@ static void trainer_free_shape(Trainer& t) {
         (void**)&t.d_lr_sched, (void**)&t.d_step_out, (void**)&t.d_log_loss, (void**)&t.d_log_gn,
         (void**)&t.d_log_cap, (void**)&t.d_log_nf, (void**)&t.d_nf_total, (void**)&t.d_val_mse,
         (void**)&t.d_val_ql, (void**)&t.d_best, (void**)&t.d_best_epoch, (void**)&t.d_pred, (void**)&t.d_best_pred,
-        (void**)&t.d_rows};
+        (void**)&t.d_rows, (void**)&t.d_enc_pf, (void**)&t.d_lin_v, (void**)&t.d_lin_m, (void**)&t.d_lin_s,
+        (void**)&t.d_lin_g, (void**)&t.d_lin_pf, (void**)&t.d_lin_sched, (void**)&t.d_lin_part};
     for (void** pp : ours) {
         if (*pp) {
             CK(cudaFreeAsync(*pp, t.stream));
@@ -1311,6 +1701,18 @@ static void write_trainer(Out& o, Trainer& t, double wave_wall, int wave_size, d
         FILE* fk = fopen((pd + "/" + j.id + ".keep.i32").c_str(), "wb");  // the design columns fed (in order)
         fwrite(t.keep.data(), 4, t.keep.size(), fk);
         fclose(fk);
+        if (j.wd_enc > 0.0f) {  // the encoder columns' penalty factors as used (P; the bias column's 0)
+            FILE* fe = fopen((pd + "/" + j.id + ".encpf.f32").c_str(), "wb");
+            fwrite(t.h_enc_pf.data(), 4, t.h_enc_pf.size(), fe);
+            fclose(fe);
+        }
+        if (j.lin) {  // the shortcut v (P: the kept columns, then the constant column)
+            std::vector<float> v(t.P);
+            CK(cudaMemcpy(v.data(), t.d_lin_v, t.P * 4, cudaMemcpyDeviceToHost));
+            FILE* fl = fopen((pd + "/" + j.id + ".lin.f32").c_str(), "wb");
+            fwrite(v.data(), 4, v.size(), fl);
+            fclose(fl);
+        }
     }
     int E = t.epochs_run;
     std::vector<float> ll((size_t)E * t.S), gn((size_t)E * t.S), cap((size_t)E * t.S), nf((size_t)E * t.S);
@@ -1340,13 +1742,21 @@ static void write_trainer(Out& o, Trainer& t, double wave_wall, int wave_size, d
     for (int b = 0; b < t.n_eval; b++) {
         fprintf(o.preds, "%s,%s,%d,%.9g\n", j.id.c_str(), t.tune ? "val" : "fc", j.w0 + t.eval_row0 + b, pr[b]);
     }
+    if (j.lin && !t.tune) {  // the shortcut's term v.x of each forecast row (pre-link, o units)
+        std::vector<float> lp(t.n_eval);
+        CK(cudaMemcpy(lp.data(), t.d_lin_part, t.n_eval * 4, cudaMemcpyDeviceToHost));
+        for (int b = 0; b < t.n_eval; b++) {
+            fprintf(o.preds, "%s,fc_lin,%d,%.9g\n", j.id.c_str(), j.w0 + t.eval_row0 + b, lp[b]);
+        }
+    }
     fprintf(o.jobs, "%s,%s,%s,%s,%d,%d,%d,%d,%d,%d,%.6g,%d,%d,%d,%d,%d,%d,%.9g,%.9g,%.9g,%.9g,%.9g,%d,%s,"
-        "%.4f,%.4f,%.4f,%.4f,%d,%ld,%.4f,%d,%ld,%s,%.9g,%s,%.9g\n",
+        "%.4f,%.4f,%.4f,%.4f,%d,%ld,%.4f,%d,%ld,%s,%.9g,%s,%.9g,%.9g,%d,%.9g,%.9g,%d,%s\n",
         j.id.c_str(), j.data.c_str(), j.mode.c_str(), j.loss.c_str(), j.w0, j.w1, j.L, j.H, j.layers, j.batch,
         j.lr, j.seed, t.N, t.S, E, t.best_epoch, t.n_eval, t.best_val, t.mu_y, t.sd_y, t.lp.huber_delta,
         t.lp.qlike_cap, t.nf_total, t.status.c_str(), t.t_setup, t.t_capture, t.t_end - t.t_start,
         wave_wall, wave_size, (long)t.params.total_elems, wave_train, t.P - 1, t.n_clipped, math_name(),
-        (double)j.stop_loss, j.link.c_str(), (double)j.wd);
+        (double)j.stop_loss, j.link.c_str(), (double)j.wd, (double)j.wd_enc, j.lin, (double)j.lr_lin, (double)j.wd_lin,
+        j.dec_zero, j.es_ql ? "qlike" : "mse");
 }
 
 // ============================================================================ run
@@ -1463,6 +1873,18 @@ static void run_pool(std::vector<Job>& todo, int K, int chunk, Out& o, int phase
         snprintf(b, sizeof(b), "%s|%s|L%d|H%d|Ly%d|B%d|W%d|me%d|pat%d|vt%d|em%d|fc%d|mom%.9g|mgn%.9g|P%d|wd%.9g",
             j.data.c_str(), j.mode.c_str(), j.L, j.H, j.layers, j.batch, j.w1 - j.w0, j.max_epochs, j.patience,
             j.val_tail, j.embargo, j.fc_n, (double)j.momentum, (double)j.max_grad_norm, P, (double)j.wd);
+        if (j.wd_enc > 0.0f) {  // (wd_enc = 0 keeps native_g6's queue key)
+            snprintf(b + strlen(b), sizeof(b) - strlen(b), "|we%.9g", (double)j.wd_enc);
+        }
+        if (j.lin) {
+            snprintf(b + strlen(b), sizeof(b) - strlen(b), "|lin|ll%.9g|wl%.9g", (double)j.lr_lin, (double)j.wd_lin);
+        }
+        if (j.dec_zero) {
+            snprintf(b + strlen(b), sizeof(b) - strlen(b), "|dz");
+        }
+        if (j.es_ql) {
+            snprintf(b + strlen(b), sizeof(b) - strlen(b), "|esq");
+        }
         queues[b].push_back(q);
     }
     size_t remaining = todo.size();
@@ -1487,6 +1909,8 @@ static void run_pool(std::vector<Job>& todo, int K, int chunk, Out& o, int phase
     };
     int n_active = 0;
     long n_capture = 0;
+    long n_done = 0;                      // jobs finished so far
+    std::vector<long> wait_done(K, -1);  // a deferred slot (its shape did not fit) waits for n_done > wait_done
     double sum_setup = 0, sum_capture = 0, sum_train = 0;
     std::vector<char> pending(K, 0), finalizing(K, 0);
     float* h_loss = NULL;  // stop_loss: each slot's last-epoch minibatch losses
@@ -1516,19 +1940,44 @@ static void run_pool(std::vector<Job>& todo, int K, int chunk, Out& o, int phase
         bool progressed = false;
         for (int i = 0; i < K; i++) {
             Trainer& t = slots[i];
-            if (active[i] || remaining == 0) {
+            if (active[i] || remaining == 0 || n_done <= wait_done[i]) {
                 continue;
             }
             double t0 = now_s();
-            t.job = todo[take(i)];
+            size_t qi = take(i);
+            t.job = todo[qi];
             trainer_host(t);
             std::string key = shape_key(t);
             bool cap = false;
             if (!allocated[i] || key != keys[i]) {
                 if (allocated[i]) {
                     trainer_free_shape(t);
+                    allocated[i] = 0;
                 }
+                g_alloc_soft = true;
                 trainer_alloc(t);
+                g_alloc_soft = false;
+                if (!g_alloc_failed && !headroom_ok(t.stream)) {
+                    g_alloc_failed = true;
+                }
+                if (g_alloc_failed) {  // the shape does not fit next to the running slots (see pool_malloc)
+                    g_alloc_failed = false;
+                    trainer_free_shape(t);
+                    CK(cudaStreamSynchronize(t.stream));  // its memory back to the device, not only to the pool
+                    CK(cudaMemPoolTrimTo(g_mempool, 0));
+                    if (n_active == 0) {
+                        fprintf(stderr, "job %s: its shape does not fit on the device even with no other slot running\n",
+                            t.job.id.c_str());
+                        exit(2);
+                    }
+                    queues[slot_pkey[i]].push_front(qi);
+                    remaining++;
+                    wait_done[i] = n_done;
+                    g_n_defer++;
+                    fprintf(stderr, "[%.1f] slot %d: job %s deferred (its shape does not fit next to %d running "
+                        "slots; %ld deferrals so far)\n", now_s(), i, t.job.id.c_str(), n_active, g_n_defer);
+                    continue;
+                }
                 allocated[i] = 1;
                 keys[i] = key;
                 cap = true;
@@ -1568,6 +2017,7 @@ static void run_pool(std::vector<Job>& todo, int K, int chunk, Out& o, int phase
                 write_trainrows(o.preds, t);
                 active[i] = 0;
                 n_active--;
+                n_done++;
                 continue;
             }
             int ep = h_buf[3 * i], be = h_buf[3 * i + 1];
@@ -1608,6 +2058,7 @@ static void run_pool(std::vector<Job>& todo, int K, int chunk, Out& o, int phase
             write_trainrows(o.preds, t);
             active[i] = 0;
             n_active--;
+            n_done++;
         }
         if (!progressed) {
             usleep(20);
@@ -1616,7 +2067,7 @@ static void run_pool(std::vector<Job>& todo, int K, int chunk, Out& o, int phase
     CK(cudaDeviceSynchronize());
     double wall = now_s() - w0;
     for (int i = 0; i < K; i++) {
-        if (allocated[i]) {
+        if (slots[i].stream) {  // (a deferred slot may hold no shape but has its stream / handles)
             trainer_free(slots[i]);
         }
     }
@@ -1634,8 +2085,9 @@ static void run_pool(std::vector<Job>& todo, int K, int chunk, Out& o, int phase
     fprintf(f, "%d,%zu,%d,%.4f,%.4f,%.4f,%ld,%.4f\n", phase, todo.size(), K, wall, sum_setup, sum_capture, n_capture,
         sum_train);
     fclose(f);
-    fprintf(stderr, "[%.1f] pool phase %d: %zu jobs on %d slots in %.2f s (setup %.2f s, %ld captures %.2f s)\n",
-        now_s(), phase, todo.size(), K, wall, sum_setup, n_capture, sum_capture);
+    fprintf(stderr, "[%.1f] pool phase %d: %zu jobs on %d slots in %.2f s (setup %.2f s, %ld captures %.2f s, "
+        "%ld pool trims, %ld deferrals)\n", now_s(), phase, todo.size(), K, wall, sum_setup, n_capture, sum_capture,
+        g_n_trim, g_n_defer);
 }
 
 // ============================================================================ packing (--pack K, 2026-10-13)
@@ -2138,12 +2590,13 @@ static void pack_write(Out& o, PackSlot& ps) {
         }
         long n1 = ps.per_model + H;  // single-model parameter count (with its value row)
         fprintf(o.jobs, "%s,%s,%s,%s,%d,%d,%d,%d,%d,%d,%.6g,%d,%d,%d,%d,%d,%d,%.9g,%.9g,%.9g,%.9g,%.9g,%d,%s,"
-            "%.4f,%.4f,%.4f,%.4f,%d,%ld,%.4f,%d,%ld,%s,%.9g,%s,%.9g\n",
+            "%.4f,%.4f,%.4f,%.4f,%d,%ld,%.4f,%d,%ld,%s,%.9g,%s,%.9g,%.9g,%d,%.9g,%.9g,%d,%s\n",
             j.id.c_str(), j.data.c_str(), j.mode.c_str(), j.loss.c_str(), j.w0, j.w1, j.L, j.H, j.layers, j.batch,
             j.lr, j.seed, t.N, t.S, E, 0, t.n_eval, 0.0f, t.mu_y, t.sd_y, t.lp.huber_delta, t.lp.qlike_cap, nft[k],
             nft[k] > 0.01 * E * t.N ? "abort_nonfinite" : "ok", ps.t_setup / K, ps.t_capture / K,
             ps.t_end - ps.t_start, -1.0, K, n1, -1.0, t.P - 1, t.n_clipped, math_name(), (double)j.stop_loss,
-            j.link.c_str(), (double)j.wd);
+            j.link.c_str(), (double)j.wd, (double)j.wd_enc, j.lin, (double)j.lr_lin, (double)j.wd_lin, j.dec_zero,
+            j.es_ql ? "qlike" : "mse");
     }
 }
 
@@ -2349,6 +2802,7 @@ static int cmd_run(int argc, char** argv) {
         CK(cudaDeviceGetDefaultMemPool(&mp, 0));
         uint64_t keep_all = UINT64_MAX;
         CK(cudaMemPoolSetAttribute(mp, cudaMemPoolAttrReleaseThreshold, &keep_all));
+        g_mempool = mp;  // pool_malloc's trim-and-retry
     }
     fprintf(stderr, "run: math %s, gather %s, CUDA_DEVICE_MAX_CONNECTIONS %s\n", math_name(),
         g_gather_old ? "fc_gather (FT_GATHER_OLD)" : "fc_gather_seq",
@@ -2365,6 +2819,14 @@ static int cmd_run(int argc, char** argv) {
     for (auto& j : jobs) {
         if (j.wd > 0.0f && use_pack) {
             fprintf(stderr, "job %s: wd > 0 is not supported under --pack\n", j.id.c_str());
+            return 2;
+        }
+        if (j.wd_enc > 0.0f && use_pack) {
+            fprintf(stderr, "job %s: wd_enc > 0 is not supported under --pack\n", j.id.c_str());
+            return 2;
+        }
+        if ((j.lin || j.dec_zero || j.es_ql) && use_pack) {
+            fprintf(stderr, "job %s: lin / dec_zero / es=qlike are not supported under --pack\n", j.id.c_str());
             return 2;
         }
         if (j.link != "identity" && use_pack) {
@@ -2386,7 +2848,8 @@ static int cmd_run(int argc, char** argv) {
     o.preds = fopen((od + "/preds.csv").c_str(), "w");
     fprintf(o.jobs, "id,data,mode,loss,w0,w1,L,H,layers,batch,lr,seed,N,S,epochs_run,best_epoch,n_eval,"
         "best_val_mse,mu_y,sd_y,huber_delta,qlike_cap,nonfinite,status,t_setup,t_capture,t_train,wave_wall,"
-        "wave_size,n_params,wave_train_wall,n_inputs,n_clipped,math,stop_loss,link,wd\n");
+        "wave_size,n_params,wave_train_wall,n_inputs,n_clipped,math,stop_loss,link,wd,wd_enc,lin,lr_lin,wd_lin,"
+        "dec_zero,es\n");
     fprintf(o.steps, "id,epoch,step,loss,grad_norm,n_capped,n_nonfinite\n");
     fprintf(o.epochs, "id,epoch,lr,val_mse,val_qlike\n");
     fprintf(o.preds, "id,kind,row,f\n");
@@ -2496,8 +2959,23 @@ static int cmd_gradcheck(int argc, char** argv) {
         gather(t.stream, t.d_Z, t.P, t.d_y, t.d_perm, t.d_epoch, t.S * t.B, 0, t.B, t.T, t.row0, t.N, t.d_obs,
             t.d_ymb, t.d_mask);
         Prec dec = net_forward(&t.arch, t.w, t.tr_acts, t.d_obs, t.B, t.T, t.P, t.d_state, j.layers, j.H, t.stream);
+        CK(cudaStreamSynchronize(t.stream));
+        dump(b + ".dec.f32", dec.data, (size_t)t.B * t.T * 2);  // the branch's output o (before the shortcut)
+        if (j.lin) {
+            dump(b + ".lin0.f32", t.d_lin_v, t.P);
+            fc_lin_add<<<t.B, 128, 0, t.stream>>>(dec.data, t.T, 2, t.d_obs, t.P, t.d_lin_v, NULL);
+        }
         fc_loss_train<<<1, 256, 0, t.stream>>>(dec.data, t.T, 2, t.d_ymb, t.d_mask, t.B, t.d_lp,
             1.0f / (float)n_real, t.d_gl, t.d_step_out);
+        if (j.lin) {
+            fc_lin_grad<<<t.P, 256, 0, t.stream>>>(t.d_gl, t.T, t.d_obs, t.P, t.B, t.d_lin_g);
+            CK(cudaStreamSynchronize(t.stream));
+            dump(b + ".lingrad.f32", t.d_lin_g, t.P);
+            dump(b + ".decp.f32", dec.data, (size_t)t.B * t.T * 2);  // o' = o + v.x
+            if (j.wd_lin > 0.0f) {
+                dump(b + ".linpf.f32", t.d_lin_pf, t.P);
+            }
+        }
         Float gl = {.data = t.d_gl, .shape = {t.B, t.T, 1}};
         Float gv = {.data = t.d_gv, .shape = {t.B, t.T}};
         arch_backward(&t.arch, t.w, t.tr_acts, gl, Float(), gv, t.stream);
@@ -2507,7 +2985,7 @@ static int cmd_gradcheck(int argc, char** argv) {
         dump(b + ".obs.f32", t.d_obs, (size_t)t.B * t.T * t.P);
         dump(b + ".y.f32", t.d_ymb, t.B);
         dump(b + ".mask.f32", t.d_mask, t.B);
-        dump(b + ".dec.f32", dec.data, (size_t)t.B * t.T * 2);
+        dump(b + ".gl.f32", t.d_gl, (size_t)t.B * t.T);
         dump(b + ".step.f32", t.d_step_out, 3);
         dump(b + ".Z.f32", t.d_Z, (size_t)t.n_ctx * t.P);
         dump(b + ".yrow.f32", t.d_y, t.n_ctx);
@@ -2515,6 +2993,11 @@ static int cmd_gradcheck(int argc, char** argv) {
             FILE* fk = fopen((b + ".keep.i32").c_str(), "wb");
             fwrite(t.keep.data(), 4, t.keep.size(), fk);
             fclose(fk);
+            if (j.wd_enc > 0.0f) {
+                FILE* fe = fopen((b + ".encpf.f32").c_str(), "wb");
+                fwrite(t.h_enc_pf.data(), 4, t.h_enc_pf.size(), fe);
+                fclose(fe);
+            }
         }
         std::vector<int> perm((size_t)j.max_epochs * t.S * t.B);
         CK(cudaMemcpy(perm.data(), t.d_perm, perm.size() * 4, cudaMemcpyDeviceToHost));
@@ -2526,10 +3009,12 @@ static int cmd_gradcheck(int argc, char** argv) {
             "\"row0\": %d, \"n_ctx\": %d, \"eval_row0\": %d, \"n_eval\": %d, \"n_params\": %ld, "
             "\"loss_kind\": %d, \"mu_y\": %.9g, \"sd_y\": %.9g, \"huber_delta\": %.9g, \"qlike_eps\": %.9g, "
             "\"qlike_cap\": %.9g, \"lr\": %.9g, \"momentum\": %.9g, \"max_grad_norm\": %.9g, \"n_real\": %d, "
-            "\"link\": %d, \"link_c\": %.9g, \"link_s\": %.9g}\n",
+            "\"link\": %d, \"link_c\": %.9g, \"link_s\": %.9g, \"lin\": %d, \"lr_lin\": %.9g, \"wd_lin\": %.9g, "
+            "\"dec_zero\": %d}\n",
             t.B, t.T, t.P, j.H, j.layers, t.S, t.N, t.row0, t.n_ctx, t.eval_row0, t.n_eval,
             (long)t.params.total_elems, t.lp.kind, t.lp.mu_y, t.lp.sd_y, t.lp.huber_delta, t.lp.qlike_eps,
-            t.lp.qlike_cap, j.lr, j.momentum, j.max_grad_norm, n_real, t.lp.link, t.lp.link_c, t.lp.link_s);
+            t.lp.qlike_cap, j.lr, j.momentum, j.max_grad_norm, n_real, t.lp.link, t.lp.link_c, t.lp.link_s, j.lin,
+            j.lr_lin, j.wd_lin, j.dec_zero);
         fclose(f);
         trainer_free(t);
     }

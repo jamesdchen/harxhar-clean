@@ -31,7 +31,14 @@ IN=$ROOT/inputs/$INPUTS
 PY=/usr/bin/python3
 mkdir -p "$RUN"; cd "$RUN"; ln -sfn "$ROOT/data" data
 { hostname; date; nvidia-smi --query-gpu=name,driver_version,memory.total --format=csv,noheader
-  md5sum "$ROOT/$SRC"/*.cu* "$ROOT/phase2_select.py" "$IN"/blocks.json "$IN"/tune_block*.txt "$ROOT"/data/*/*; } > env.txt 2>&1
+  md5sum "$ROOT/$SRC"/*.cu* "$ROOT/phase2_select.py" "$IN"/blocks.json "$IN"/tune_block*.txt
+  # (2026-10-15) the data files only (data/lin_init/<design>/ is a directory of variant (b)'s ridge inits: one
+  # aggregate hash of them; md5sum on the directory exited this set -e script before it started)
+  find "$ROOT"/data/ -mindepth 2 -maxdepth 2 -type f | sort | xargs md5sum
+  if [ -d "$ROOT/data/lin_init" ]; then
+    echo "lin_init $(cd "$ROOT/data" && find lin_init -type f | sort | xargs cat | md5sum | cut -c1-32) \
+$(find "$ROOT/data/lin_init" -type f | wc -l) files"
+  fi; } > env.txt 2>&1
 GPU_TYPE=${GPU_TYPE:?"GPU_TYPE (p100 / v100 / a40 / a100 / l40s) is required, with the same --constraint"}
 case "$GPU_TYPE" in p100) M="P100" ;; v100) M="V100" ;; a40) M="A40" ;; a100) M="A100" ;; l40s) M="L40S" ;;
   *) echo "unknown GPU_TYPE $GPU_TYPE"; exit 1 ;; esac
@@ -56,7 +63,11 @@ BIN=$RUN/forecast_train
 # SAVE_FIRST=1 (2026-10-14, weight-decay study): each block's first origin's refits save their weights
 SEL_EXTRA=""
 [ "${SAVE_FIRST:-0}" = 1 ] && SEL_EXTRA="--save-first-origin"
-for k in 0 1 2 3 4; do
+# (2026-10-15) SEL_CRITERION=qlike: phase2_select on the validation QLIKE; BLOCKS: the blocks this job runs (the 5
+# blocks are independent: one job per block runs a walk in one block's wall time)
+[ -n "${SEL_CRITERION:-}" ] && SEL_EXTRA="$SEL_EXTRA --criterion $SEL_CRITERION"
+BLOCKS=${BLOCKS:-0 1 2 3 4}
+for k in $BLOCKS; do
   mkdir -p "$RUN/block${k}"
   echo "BLOCK $k tune $(date)"
   "$BIN" run --jobs "$IN/tune_block${k}.txt" --out "$RUN/block${k}/tune" --concurrent 48 --chunk 5 --pool

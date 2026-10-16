@@ -31,7 +31,16 @@ functions are imported, never re-implemented:
                2000-session per-bar arm carries the IDENTICAL 16:00 target (gated
                below), so one frame -- TARGET_ARM -- serves every forecast; a table
                that is not a per-bar arm (the paper's pooled forecasts) is scored
-               against the same target on the same stamps.
+               against the same target on the same stamps.  The models FIT this
+               trimmed target; it is no longer the scoring truth (next item).
+  * truth      2026-10-15 (user, data audit #10): every out-of-sample score -- QLIKE,
+               the DM statistic, calibration, the extremes' QLIKE, the QLIKE-vs-Sharpe
+               rank correlation, the per-day frame's qlike_raw -- is against the ACTUAL
+               realized variance rv_unclipped (the production table's rv_raw), not the
+               winsorized true_raw.  The trimmed-target QLIKE is kept as the DIAGNOSTIC
+               columns qlike_raw_trimmed / qlike_pct_vs_ref_trimmed (the stored-number
+               gates below compare stored research numbers, written on the trimmed
+               target, against it).  On 5 of the 866 trade days the target was cut.
   * forecast   the plain back-transform  plain = f^2 B  (f = the model's forecast on
                the adjusted scale sqrt(RV/B), B the diurnal baseline; no
                second-moment term, no level/slope map).  QLIKE (column qlike_raw),
@@ -72,8 +81,9 @@ deck trades (daily_blk2.parquet).  Every row answers "does this forecast improve
 the paper's?".  Second reference: always short (q = -1 every day, no forecast).
 
 COLUMNS per forecast (point estimates only): 16:00 QLIKE of the plain forecast
-(qlike_raw, against the spec's target; qlike_raw_unclipped against the unclipped
-realized variance of the production table); % difference vs the reference and the
+(qlike_raw, against the actual (unclipped) realized variance of the production table since
+2026-10-15; qlike_raw_trimmed, a diagnostic, against the spec's winsorized target -- it was
+qlike_raw before, and qlike_raw_unclipped was the actual one); % difference vs the reference and the
 Diebold-Mariano HAC statistic on the daily QLIKE difference
 (src.evaluation.diebold_mariano.dm_test, the research scorers' test); sign(s) Sharpe
 mid and crossed, mean return, hit rate (share of days the position earns > 0), buy
@@ -230,6 +240,12 @@ def design_of_root() -> str:
 
 # the unclipped realized variance (every production table carries the same rv_raw)
 PRODUCTION = SPXW / "yhat_blk2_fomc1.parquet"
+# 2026-10-15 (user, data audit #10): the scoring truth of every out-of-sample number is the ACTUAL realized
+# variance (the frame's rv_unclipped, PRODUCTION's rv_raw), not the winsorized training target true_raw
+SCORE_TRUTH = "rv_unclipped"
+TRIMMED = (
+    "true_raw"  # the training target, scored only in the *_trimmed diagnostic columns
+)
 REFERENCE = "blk2"  # key of the fixed reference forecast (the paper's headline)
 ALWAYS_SHORT = "always_short"
 TRADE_BAR = "16:00"
@@ -1221,27 +1237,39 @@ def score_one(args: tuple) -> dict:
         "first_day": str(days.min().date()),
         "last_day": str(days.max().date()),
     }
-    # ---- forecast accuracy: QLIKE of the PLAIN forecast f^2 B against the spec's target (also vs
-    # the unclipped RV).  2026-10-06: recalibration removed, user decision -- every number below
-    # uses fd["plain"]; the recalibrated pred_clock lines are parked (commented out).
-    y = fd["true_raw"]
+    # ---- forecast accuracy: QLIKE of the PLAIN forecast f^2 B against the ACTUAL realized variance
+    # (2026-10-15, data audit #10; the trimmed-target QLIKE is the diagnostic qlike_raw_trimmed).
+    # 2026-10-06: recalibration removed, user decision -- every number below uses fd["plain"]; the
+    # recalibrated pred_clock lines are parked (commented out).
+    # y = fd["true_raw"]  # 2026-10-15 (user): parked -- scored against the trimmed target; scores now use actual RV (data audit #10)
+    y = fd[SCORE_TRUTH]
     q_plain = slc.qlike(y, fd["plain"])
     floor = fd["plain_floor"]
     flag = fd["plain"] < floor
     q_plain_fl = slc.qlike(y, fd["plain"].where(~flag, floor))
-    q_ref = slc.qlike(rd["true_raw"], rd["plain"])
-    q_plain_u = slc.qlike(fd["rv_unclipped"], fd["plain"])
-    q_ref_u = slc.qlike(rd["rv_unclipped"], rd["plain"])
+    # q_ref = slc.qlike(rd["true_raw"], rd["plain"])  # 2026-10-15 (user): parked -- scored against the trimmed target; scores now use actual RV (data audit #10)
+    q_ref = slc.qlike(rd[SCORE_TRUTH], rd["plain"])
+    # q_plain_u = slc.qlike(fd["rv_unclipped"], fd["plain"])  # 2026-10-15: = q_plain now
+    # q_ref_u = slc.qlike(rd["rv_unclipped"], rd["plain"])  # 2026-10-15: = q_ref now
+    q_plain_t = slc.qlike(
+        fd[TRIMMED], fd["plain"]
+    )  # diagnostic: the trimmed-target QLIKE
+    q_ref_t = slc.qlike(rd[TRIMMED], rd["plain"])
     # q_rec = slc.qlike(y, fd["pred_clock"])
     # q_ref = slc.qlike(rd["true_raw"], rd["pred_clock"])
     # q_rec_u = slc.qlike(fd["rv_unclipped"], fd["pred_clock"])
     # q_ref_u = slc.qlike(rd["rv_unclipped"], rd["pred_clock"])
     out.update(
         {
-            "qlike_raw": float(q_plain.mean()),  # THE reported QLIKE (plain f^2 B)
+            "qlike_raw": float(
+                q_plain.mean()
+            ),  # THE reported QLIKE (plain f^2 B, actual RV)
             "qlike_raw_floored": float(q_plain_fl.mean()),
             "n_extreme_days": int(flag.sum()),
-            "qlike_raw_unclipped": float(q_plain_u.mean()),
+            # "qlike_raw_unclipped": float(q_plain_u.mean()),  # 2026-10-15 (user): parked -- now qlike_raw itself (data audit #10)
+            "qlike_raw_trimmed": float(
+                q_plain_t.mean()
+            ),  # diagnostic: vs the winsorized target
             # "qlike_recal": float(q_rec.mean()),
             # "qlike_recal_unclipped": float(q_rec_u.mean()),
             # "n_recal_below_floor": int((fd["pred_clock"] < floor).sum()),
@@ -1262,8 +1290,9 @@ def score_one(args: tuple) -> dict:
                 "dm_hac_lag": dm["hac_lag"],
             }
         )
-    out["qlike_pct_vs_ref_unclipped"] = float(
-        100.0 * (q_plain_u.mean() / q_ref_u.mean() - 1.0)
+    # out["qlike_pct_vs_ref_unclipped"] = float(100.0 * (q_plain_u.mean() / q_ref_u.mean() - 1.0))  # 2026-10-15 (user): parked -- now qlike_pct_vs_ref itself (data audit #10)
+    out["qlike_pct_vs_ref_trimmed"] = float(  # diagnostic: vs the winsorized target
+        100.0 * (q_plain_t.mean() / q_ref_t.mean() - 1.0)
     )
     out["calib_mean_realized_over_forecast"] = float(y.mean() / fd["plain"].mean())
     out["share_realized_above_forecast"] = float((y > fd["plain"]).mean())
@@ -1569,10 +1598,13 @@ def repro_gates(
             # the plain QLIKE is the reported number: asserted with the de-dup root
             # 2026-10-13: reported, not asserted, for a key switched to its top-entry table (PERBAR_SWITCH)
             switched = perbar_switch_active() and perbar_switch_path(key) is not None
+            # 2026-10-15 (data audit #10): the stored qlike_raw was scored on the trimmed target, so it is
+            # compared with this run's trimmed-target diagnostic, not with the reported (actual-RV) qlike_raw
             chk(
-                f"linear_subsection_trees_optuna_mask/report/{f.name} qlike_raw (plain)",
+                f"linear_subsection_trees_optuna_mask/report/{f.name} qlike_raw (plain; trimmed target)",
                 key,
-                "qlike_raw",
+                # "qlike_raw",  # 2026-10-15 (user): parked -- scored against the trimmed target; scores now use actual RV (data audit #10)
+                "qlike_raw_trimmed",
                 float(r["qlike_raw"]),
                 CAMP_PLAIN,
                 dedup and not switched,
@@ -1646,10 +1678,12 @@ def repro_gates(
             if key == ALWAYS_SHORT:
                 continue
             # the old plain QLIKE column is the new reported QLIKE: same forecast, same days
+            # 2026-10-15 (data audit #10): on the trimmed target, as the snapshot was scored
             chk(
-                f"{RECAL_SNAPSHOT.parent.name}/master_table.csv qlike_raw (plain) = this run's qlike_raw",
+                f"{RECAL_SNAPSHOT.parent.name}/master_table.csv qlike_raw (plain) = this run's qlike_raw_trimmed",
                 key,
-                "qlike_raw",
+                # "qlike_raw",  # 2026-10-15 (user): parked -- scored against the trimmed target; scores now use actual RV (data audit #10)
+                "qlike_raw_trimmed",
                 float(snap.loc[key, "qlike_raw"]),
                 SNAP,
                 False,
@@ -1678,7 +1712,9 @@ def recal_vs_plain(
     pred_clock) against the plain forecast -- QLIKE, Sharpe mid / crossed, buy share, positions.
 
     2026-10-06: recalibration removed, user decision.  Nothing here is a reported number of the
-    master table; it records what removing the recalibration changed.
+    master table; it records what removing the recalibration changed.  2026-10-15 (data audit #10):
+    that change was made and recorded on the trimmed target, and the stored recalibrated numbers it is
+    gated against were scored on it, so both QLIKEs here stay on the trimmed target (qlike_raw_trimmed).
     """
     rows = []
     t_ = tab.set_index("key")
@@ -1694,7 +1730,8 @@ def recal_vs_plain(
             "table": t_.loc[k, "table"],
             "n_days": len(days),
             "n_days_recal_defined": n_rec,
-            "qlike_plain": float(t_.loc[k, "qlike_raw"]),
+            # "qlike_plain": float(t_.loc[k, "qlike_raw"]),  # 2026-10-15: qlike_raw is on actual RV now
+            "qlike_plain": float(t_.loc[k, "qlike_raw_trimmed"]),
             "Sharpe_mid_plain": float(t_.loc[k, "Sharpe_mid"]),
             "Sharpe_crossed_plain": float(t_.loc[k, "Sharpe_crossed"]),
             "pct_buy_plain": float(t_.loc[k, "pct_buy"]),
@@ -1817,7 +1854,9 @@ def write_summary(
     L.append(
         "- **Scorer: the plain back-transform.** Every forecast is used as f²·B (f = the model's forecast on the adjusted scale "
         "sqrt(RV/B), B = the diurnal baseline; the `yhat`² · `baseline` of `results/spxw_pnl/yhat_*.parquet`); QLIKE (`qlike_raw`) "
-        "against the per-bar spec's 16:00 target; the trade is the deck's 15:30 sign(s) on the straddle (`trade_1530`): buy when "
+        # "against the per-bar spec's 16:00 target; the trade is"  # 2026-10-15 (user): parked -- scored against the trimmed target; scores now use actual RV (data audit #10)
+        "against the ACTUAL 15:30-16:00 realized variance (`rv_unclipped`; since 2026-10-15, data audit #10 -- the models still fit the "
+        "spec's winsorized target, whose QLIKE is the diagnostic `qlike_raw_trimmed`); the trade is the deck's 15:30 sign(s) on the straddle (`trade_1530`): buy when "
         "f²·B exceeds the 15:30 implied variance, sell otherwise. The research scorer's 16:00-bar recalibration (f² + s)·B "
         f"(s = the forecast's own trailing 250-session mean squared adjusted-scale error, lagged one) was removed on {RECAL_REMOVED} "
         "(user decision); it survives only as the diagnostic column `pred_clock` and in `recal_vs_plain.csv` (section below). "
@@ -2379,8 +2418,12 @@ def main() -> int:
         m = f["plain_floor"].notna()
         g = f[m]
         fl = g["plain"] < g["plain_floor"]
-        qp = slc.qlike(g["true_raw"], g["plain"])
-        qpf = slc.qlike(g["true_raw"], g["plain"].where(~fl, g["plain_floor"]))
+        # 2026-10-15 (user): parked -- scored against the trimmed target; scores now use actual RV (data audit #10)
+        # qp = slc.qlike(g["true_raw"], g["plain"])
+        # qpf = slc.qlike(g["true_raw"], g["plain"].where(~fl, g["plain_floor"]))
+        # (PLAIN_FLOOR itself stays the trimmed target's trailing minimum: a forecast-side rule, not a score)
+        qp = slc.qlike(g[SCORE_TRUTH], g["plain"])
+        qpf = slc.qlike(g[SCORE_TRUTH], g["plain"].where(~fl, g["plain_floor"]))
         qne = qp[~g["early_close"]]
         allsess.append(
             {
@@ -2405,9 +2448,11 @@ def main() -> int:
                     "plain_forecast": rr["plain"],
                     "plain_floor": rr["plain_floor"],
                     "target_true_raw": rr["true_raw"],
+                    "rv_unclipped": rr[SCORE_TRUTH],  # 2026-10-15: the scoring truth
+                    # "qlike_raw_this_day": float(slc.qlike(pd.Series([rr["true_raw"]]), pd.Series([rr["plain"]])).iloc[0]),  # 2026-10-15 (user): parked -- scored against the trimmed target; scores now use actual RV (data audit #10)
                     "qlike_raw_this_day": float(
                         slc.qlike(
-                            pd.Series([rr["true_raw"]]), pd.Series([rr["plain"]])
+                            pd.Series([rr[SCORE_TRUTH]]), pd.Series([rr["plain"]])
                         ).iloc[0]
                     ),
                     # "recal_forecast": rr["pred_clock"],  # 2026-10-06: recalibration removed, user decision
@@ -2424,6 +2469,7 @@ def main() -> int:
             "plain_forecast",
             "plain_floor",
             "target_true_raw",
+            "rv_unclipped",
             "qlike_raw_this_day",
         ],
     )
@@ -2456,7 +2502,8 @@ def main() -> int:
     cm = common
     for k in core["key"]:
         f = frames[k].set_index(frames[k].index.normalize()).loc[cm]
-        q_of[("plain", k)] = slc.qlike(f["true_raw"], f["plain"]).to_numpy(float)
+        # q_of[("plain", k)] = slc.qlike(f["true_raw"], f["plain"]).to_numpy(float)  # 2026-10-15 (user): parked -- scored against the trimmed target; scores now use actual RV (data audit #10)
+        q_of[("plain", k)] = slc.qlike(f[SCORE_TRUTH], f["plain"]).to_numpy(float)
         # q_of[("recal", k)] = slc.qlike(f["true_raw"], f["pred_clock"]).to_numpy(float)  # 2026-10-06: removed
         t = trade_days(f["plain"], deck.loc[cm])
         r_of[("mid", k)] = t["mid"].to_numpy()
@@ -2503,10 +2550,15 @@ def main() -> int:
                     "pred_clock": dd[
                         "pred_clock"
                     ].to_numpy(),  # diagnostic only (parked recalibration)
-                    "target": dd["true_raw"].to_numpy(),
-                    "rv_unclipped": dd["rv_unclipped"].to_numpy(),
+                    "target": dd[
+                        "true_raw"
+                    ].to_numpy(),  # the training (winsorized) target, NOT the scoring truth
+                    "rv_unclipped": dd[
+                        "rv_unclipped"
+                    ].to_numpy(),  # the scoring truth (2026-10-15)
                     "iv_var": deck.loc[dd.index, "iv_var"].to_numpy(float),
-                    "qlike_raw": slc.qlike(dd["true_raw"], dd["plain"]).to_numpy(),
+                    # "qlike_raw": slc.qlike(dd["true_raw"], dd["plain"]).to_numpy(),  # 2026-10-15 (user): parked -- scored against the trimmed target; scores now use actual RV (data audit #10)
+                    "qlike_raw": slc.qlike(dd[SCORE_TRUTH], dd["plain"]).to_numpy(),
                     # "qlike_recal": slc.qlike(dd["true_raw"], dd["pred_clock"]).to_numpy(),  # 2026-10-06: removed
                     "q": t["q"].to_numpy(),
                     "ret_mid": t["mid"].to_numpy(),
@@ -2917,7 +2969,7 @@ def extreme_lines(tab: pd.DataFrame, ext: pd.DataFrame) -> list[str]:
             t = A.set_index("key").loc[r["key"]]
             out.append(
                 f"  - {t['label']} on {r['stamp'][:10]}{' (early close)' if r['early_close'] else ''}: f = {r['yhat']:.4f} on the adjusted scale, "
-                f"plain forecast {r['plain_forecast']:.3g} vs floor {r['plain_floor']:.3g} and target {r['target_true_raw']:.3g}; that one day's "
+                f"plain forecast {r['plain_forecast']:.3g} vs floor {r['plain_floor']:.3g} and realized variance {r['rv_unclipped']:.3g}; that one day's "
                 f"QLIKE is {r['qlike_raw_this_day']:.1f}. Over all {int(t['sessions'])} sessions the QLIKE is {t['qlike_raw_all_sessions']:.4f} as is, "
                 f"{t['qlike_raw_floored_all_sessions']:.4f} floored, {t['qlike_raw_all_sessions_no_early_close']:.4f} without early closes; on the trade "
                 f"days {t['qlike_raw']:.4f}."
@@ -3106,13 +3158,17 @@ def before_after(
     now = tab.set_index("key")
     bd = pd.read_parquet(bd_p)
     db: dict[str, pd.DataFrame] = {}
+    # 2026-10-15 (data audit #10): both sides on the actual RV (the pre-campaign frame carries rv_unclipped);
+    # the gate against the pre-campaign table's stored qlike_raw (trimmed target) reads qlike_raw_trimmed
     for k, g in bd.groupby("key"):
         g = g.set_index("day").sort_index()
         t = trade_days(g["plain"], deck.loc[g.index]).reindex(g.index)
         db[k] = pd.DataFrame(
             {
                 "plain": g["plain"],
-                "qlike_raw": slc.qlike(g["target"], g["plain"]),
+                # "qlike_raw": slc.qlike(g["target"], g["plain"]),  # 2026-10-15 (user): parked -- scored against the trimmed target; scores now use actual RV (data audit #10)
+                "qlike_raw": slc.qlike(g[SCORE_TRUTH], g["plain"]),
+                "qlike_raw_trimmed": slc.qlike(g["target"], g["plain"]),
                 "q": t["q"],
                 "ret_mid": t["mid"],
                 "ret_crossed": t["crossed"],
@@ -3131,7 +3187,9 @@ def before_after(
             db[k] = pd.DataFrame(
                 {
                     "plain": g["plain"],
-                    "qlike_raw": slc.qlike(g["target"], g["plain"]),
+                    # "qlike_raw": slc.qlike(g["target"], g["plain"]),  # 2026-10-15 (user): parked -- scored against the trimmed target; scores now use actual RV (data audit #10)
+                    "qlike_raw": slc.qlike(g[SCORE_TRUTH], g["plain"]),
+                    "qlike_raw_trimmed": slc.qlike(g["target"], g["plain"]),
                     "q": t["q"],
                     "ret_mid": t["mid"],
                     "ret_crossed": t["crossed"],
@@ -3205,10 +3263,14 @@ def before_after(
                         ),
                     }
                 )
+                # 2026-10-15 (data audit #10): the stored qlike_raw of the pre-campaign table is on the trimmed
+                # target, so the two gates below compare it with the before side's trimmed-target QLIKE
+                q_before_t = float(bb_all["qlike_raw_trimmed"].mean())
                 if (
                     k in PAPER_SWITCHED
                 ):  # 2026-10-07: the replaced forecast's stored row, for the record
-                    dv = abs(row["qlike_raw_before"] - float(b_["qlike_raw"]))
+                    # dv = abs(row["qlike_raw_before"] - float(b_["qlike_raw"]))  # 2026-10-15 (user): parked -- scored against the trimmed target; scores now use actual RV (data audit #10)
+                    dv = abs(q_before_t - float(b_["qlike_raw"]))
                     gates.append(
                         {
                             "gate": "before/after: switched paper row -- the switched table's plain QLIKE vs the replaced "
@@ -3222,10 +3284,11 @@ def before_after(
                         }
                     )
                 elif len(bb_all) == int(b_["n_days"]):
-                    dv = abs(row["qlike_raw_before"] - float(b_["qlike_raw"]))
+                    # dv = abs(row["qlike_raw_before"] - float(b_["qlike_raw"]))  # 2026-10-15 (user): parked -- scored against the trimmed target; scores now use actual RV (data audit #10)
+                    dv = abs(q_before_t - float(b_["qlike_raw"]))
                     gates.append(
                         {
-                            "gate": "before/after: the pre-campaign daily frame's plain QLIKE reproduces the pre-campaign table's qlike_raw",
+                            "gate": "before/after: the pre-campaign daily frame's plain QLIKE (trimmed target) reproduces the pre-campaign table's qlike_raw",
                             "forecast": k,
                             "n": len(bb_all),
                             "value": dv,

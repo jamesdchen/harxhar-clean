@@ -1,0 +1,3 @@
+rf baseline 0:0:2
+rf lean_vol_vix 0:0:1
+rf all_features 0:0:1

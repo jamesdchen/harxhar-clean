@@ -1,0 +1,13 @@
+baseline xgb 2000 bar1600 0 2000 2020 2000
+baseline xgb 2000 bar1600 1 2020 -1 2000
+lean_vol_vix xgb 2000 bar1600 0 2000 2020 2000
+lean_vol_vix xgb 2000 bar1600 1 2020 -1 2000
+all_features xgb 2000 bar1600 0 2000 2020 2000
+all_features xgb 2000 bar1600 1 2020 2201 2000
+all_features xgb 2000 bar1600 2 2201 2382 2000
+all_features xgb 2000 bar1600 3 2382 2563 2000
+all_features xgb 2000 bar1600 4 2563 2744 2000
+all_features xgb 2000 bar1600 5 2744 2925 2000
+all_features xgb 2000 bar1600 6 2925 3106 2000
+all_features xgb 2000 bar1600 7 3106 3287 2000
+all_features xgb 2000 bar1600 8 3287 -1 2000

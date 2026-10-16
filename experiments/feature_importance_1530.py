@@ -4,8 +4,8 @@ Stages (``python experiments/feature_importance_1530.py <stage> [args]``):
 
 design     Re-builds the exact per-bar design the tree campaign fitted
            (specs/causal_tune_trees.py: run_executor, SEGMENT bar1600, global lags,
-           2000-session window, prescale, impute_indicate) for the buckets baseline
-           (HAR + calendar), live_feasible and all_features, on a scratch data dir holding
+           2000-session window, prescale, impute_indicate) for all_features
+           (baseline and live_feasible commented out), on a scratch data dir holding
            only the vendor files the bucket reads (never the option chain).  The
            fit_predict handed to run_executor only records X, y and the column names.
            Gate: the out-of-sample stamps, targets and column names equal the stored tree
@@ -38,6 +38,8 @@ linear     Per-bar ridge and lasso (specs/causal_tune_linear.py; the coefficient
 aggregate  Shares averaged over refits (all, by year, by causal VIX tercile), rank
            correlations between measures and across models, top-5 stability, cluster and
            series tables, unique-value counts, the probe table, figures and SUMMARY.md.
+across_time  Beside that full-sample mean: the per-refit value and rank, the mean of
+           those ranks, and the mean and the rank inside each year and VIX tercile.
 
 Outputs: results/feature_importance_1530/ (CSVs, PNGs, SUMMARY.md); inputs and per-refit
 arrays in results/feature_importance_1530/_work/ (npz, not committed).
@@ -61,6 +63,7 @@ from feature_importance_1530_trees import (  # noqa: E402
     CLUSTER_CORR,
     OUT,
     PARAMS,
+    PART_TAG,
     PROBE_NAMES,
     REFIT_EVERY,
     REPO,
@@ -625,7 +628,11 @@ def _tree_chunks(bucket: str, model: str) -> dict:
     canary's short files are not part of the fleet and are left out)."""
     import glob
 
-    fs = sorted(glob.glob(str(WORK / "trees" / f"trees_{bucket}_{model}_*_*.npz")))
+    # fs = sorted(glob.glob(str(WORK / "trees" / f"trees_{bucket}_{model}_*_*.npz")))
+    # 2026-10-08: the part token of the model (PART_TAG: the trial-255 forest's parts are rf255)
+    fs = sorted(
+        glob.glob(str(WORK / "trees" / f"trees_{bucket}_{PART_TAG[model]}_*_*.npz"))
+    )
     fleet = []
     for f in fs:
         a, b = (int(x) for x in Path(f).stem.split("_")[-2:])
@@ -1362,6 +1369,7 @@ def aggregate(buckets: tuple[str, ...] = BUCKETS) -> None:  # noqa: C901 - one r
     if tuple(buckets) == BUCKETS:
         tuned_trees(mean_tabs)
     figures(mean_tabs)
+    across_time(buckets)
 
 
 def tuned_trees(mean_tabs: dict) -> None:
@@ -1420,6 +1428,15 @@ def tuned_trees(mean_tabs: dict) -> None:
     R.to_csv(OUT / "tuned_trees_series.csv", index=False, float_format="%.6g")
 
 
+def _show(name: str) -> str:
+    """A design name as a figure presents it: without the leading ``adj_`` (user decision
+    2026-10-06; display only, the tables keep the stored names). Strips every name start,
+    so a cluster label (``C12: adj_vix_ma_1 +3``) works too."""
+    import re
+
+    return re.sub(r"\badj_", "", str(name))
+
+
 def figures(mean_tabs: dict) -> None:  # noqa: C901 - one figure set
     import matplotlib
 
@@ -1435,12 +1452,14 @@ def figures(mean_tabs: dict) -> None:  # noqa: C901 - one figure set
         "rf": "#eda100",
     }
     SLOTS = {
-        "tree": ("mdi", "split", "perm_p2_qlike", "shap"),
+        # "tree": ("mdi", "split", "perm_p2_qlike", "shap"),  # 2026-10-12 (user): split count, P1 and the linear QLIKE permutation dropped from the figures
+        "tree": ("mdi", "perm_p2_mse", "perm_p2_qlike", "shap"),
         "linear": ("bsd", "drop_mse", "perm_p2_mse", "shap"),
     }
     SLOT_TITLE = (
         "built-in: MDI / gain (trees), |beta x sd| (linear), share",
-        "split count (trees), drop-column dMSE (linear)",
+        # "split count (trees), drop-column dMSE (linear)",  # 2026-10-12 (user): split count, P1 and the linear QLIKE permutation dropped from the figures
+        "permutation P2 dMSE (trees), drop-column dMSE (linear)",
         "permutation P2 on the tail: dQLIKE (trees), dMSE (linear)",
         "SHAP mean |phi|, share",
     )
@@ -1474,7 +1493,7 @@ def figures(mean_tabs: dict) -> None:  # noqa: C901 - one figure set
                         capsize=1.5,
                     )
                 ax.set_yticks(y)
-                ax.set_yticklabels(t["label"], fontsize=5.8)
+                ax.set_yticklabels([_show(x) for x in t["label"]], fontsize=5.8)
                 ax.tick_params(axis="x", labelsize=6)
                 ax.axvline(0, color="0.5", lw=0.5)
                 for sp_ in ("top", "right"):
@@ -1506,8 +1525,10 @@ def figures(mean_tabs: dict) -> None:  # noqa: C901 - one figure set
 
     # heat map of ranks across measures (series level; cluster level for live_feasible)
     HEAT = {
-        "tree": ("mdi", "split", "perm_p1_qlike", "perm_p2_qlike", "shap"),
-        "linear": ("bsd", "perm_p1_mse", "perm_p2_mse", "drop_mse", "shap"),
+        # "tree": ("mdi", "split", "perm_p1_qlike", "perm_p2_qlike", "shap"),  # 2026-10-12 (user): split count, P1 and the linear QLIKE permutation dropped from the figures
+        # "linear": ("bsd", "perm_p1_mse", "perm_p2_mse", "drop_mse", "shap"),
+        "tree": ("mdi", "perm_p2_qlike", "perm_p2_mse", "shap"),
+        "linear": ("bsd", "perm_p2_mse", "drop_mse", "shap"),
     }
     SHORT = {
         "mdi": "MDI",
@@ -1521,7 +1542,7 @@ def figures(mean_tabs: dict) -> None:  # noqa: C901 - one figure set
         "shap": "SHAP",
     }
     for bucket, level, nmax in (
-        ("baseline", "series", 30),
+        # ("baseline", "series", 30),  # baseline commented out
         ("live_feasible", "series", 30),
         ("all_features", "series", 30),
         ("live_feasible", "cluster", 30),
@@ -1567,7 +1588,7 @@ def figures(mean_tabs: dict) -> None:  # noqa: C901 - one figure set
         ax.set_xticks(np.arange(len(cols)))
         ax.set_xticklabels(cols, rotation=60, ha="right", fontsize=6)
         ax.set_yticks(np.arange(len(H)))
-        ax.set_yticklabels(H.index, fontsize=6)
+        ax.set_yticklabels([_show(x) for x in H.index], fontsize=6)
         for x in np.cumsum(
             [len(HEAT["tree" if mo in TREE_MODELS else "linear"]) for mo in MODELS]
         )[:-1]:
@@ -1586,6 +1607,10 @@ def figures(mean_tabs: dict) -> None:  # noqa: C901 - one figure set
         fig.savefig(OUT / f"fig_rank_heatmap_{bucket}_{level}.png", dpi=150)
         plt.close(fig)
 
+    if (
+        "live_feasible" not in have
+    ):  # live_feasible commented out: its two figures below
+        return
     # cardinality: MDI / split vs permutation against the number of distinct values
     U = pd.read_csv(OUT / "unique_values.csv")
     bucket = "live_feasible"
@@ -1665,7 +1690,7 @@ def figures(mean_tabs: dict) -> None:  # noqa: C901 - one figure set
     ax.set_xticks(np.arange(len(cols)))
     ax.set_xticklabels(cols, rotation=60, ha="right", fontsize=6)
     ax.set_yticks(np.arange(len(H)))
-    ax.set_yticklabels(H.index, fontsize=6)
+    ax.set_yticklabels([_show(x) for x in H.index], fontsize=6)
     for x in np.cumsum(
         [len(HEAT["tree" if mo in TREE_MODELS else "linear"]) for mo in MODELS]
     )[:-1]:
@@ -1679,6 +1704,307 @@ def figures(mean_tabs: dict) -> None:  # noqa: C901 - one figure set
     fig.tight_layout()
     fig.savefig(OUT / "fig_top5_stability_live_feasible.png", dpi=150)
     plt.close(fig)
+
+
+def _ranks_eligible(v: np.ndarray, elig: np.ndarray) -> np.ndarray:
+    """Rank of each row among the eligible columns. 1 = largest; an ineligible column
+    stays 0; ties share the smallest rank, as `_rank_desc`."""
+    rk = np.zeros(v.shape, dtype=np.int32)
+    idx = np.flatnonzero(elig)
+    if len(idx) == 0:
+        return rk
+    block = np.asarray(v[:, idx], dtype=np.float64)
+    for k in range(v.shape[0]):
+        rk[k, idx] = _rank_desc(block[k])
+    return rk
+
+
+def _wmean(v: np.ndarray, w: np.ndarray) -> np.ndarray:
+    """Tail-length-weighted mean down axis 0. `v` is (n, units), `w` is (n,)."""
+    return (w[:, None] * v).sum(axis=0) / w.sum()
+
+
+def _labels_at(level: str, unames: list, maps: dict, d: dict, stems: dict) -> list:
+    """The same display labels the aggregate writes into `by_measure/`."""
+    if level == "series":
+        return [stems[g] for g in unames]
+    if level == "cluster":
+        return [
+            c
+            if len(maps["c_idx"][c]) == 1
+            else f"{c}: {d['names'][maps['c_idx'][c][0]]} +{len(maps['c_idx'][c]) - 1}"
+            for c in unames
+        ]
+    return list(unames)
+
+
+def _leader_pair(score: np.ndarray, elig: np.ndarray) -> tuple[int, int | None]:
+    """Index of the largest eligible score, and of the next one. The first maximum
+    wins a tie, as `stability_by_stratum.csv`."""
+    idx = np.flatnonzero(elig)
+    a = int(idx[int(np.argmax(score[idx]))])
+    rest = idx[idx != a]
+    if len(rest) == 0:
+        return a, None
+    return a, int(rest[int(np.argmax(score[rest]))])
+
+
+def across_time(buckets: tuple[str, ...] = BUCKETS) -> None:
+    """Means and ranks of every measure at each refit, beside the mean over refits.
+
+    The tables in `by_measure/` rank the tail-length-weighted mean of the per-refit
+    measure (`value`, `rank`). This writes three more views of the same per-refit
+    matrix, without changing that mean:
+
+    - `across_time_summary.csv` — every level. The full-sample mean and its rank;
+      the tail-weighted mean of the per-refit ranks, the median rank, and the share
+      of refits at rank 1; the mean and the rank inside each calendar year and each
+      causal VIX tercile.
+    - `across_time_leaders.csv` — who leads each of those slices, and on what share
+      of the slice's refits that unit is rank 1.
+    - `across_time_refits_series.parquet` — series level, one row per refit and unit,
+      the measure and its rank.
+
+    `shap` is the per-refit share. `shap_abs` is the per-refit mean |phi| before the
+    share. Dividing by one positive total leaves the per-refit ranks equal; a mean
+    over several refits does not, because each refit's total differs.
+    """
+    sys.path.insert(0, str(REPO / "experiments"))
+    import model_diagnostics_1530 as md
+
+    OUT.mkdir(parents=True, exist_ok=True)
+    summary_rows: list[dict] = []
+    leader_rows: list[dict] = []
+    panels: list[pd.DataFrame] = []
+    rank_mismatches = 0
+    for bucket in buckets:
+        d = load_input(bucket)
+        K = n_refits(d["n_oos"])
+        kk = np.array([tail_rows(d, k)[2] for k in range(K)], dtype=float)
+        counted = np.bincount(np.arange(d["n_oos"]) // REFIT_EVERY, minlength=K)
+        assert np.array_equal(counted, kk.astype(int)), (bucket, counted, kk)
+        maps = _unit_maps(d)
+        years, terc = _vix_labels(d)
+        U = unique_counts(d)
+        varies = U["windows_constant"].to_numpy() < K
+        stems = {g: md.var_stem(g, d["names"]) for g in maps["series"]}
+        stems["calendar"] = "calendar (DOW_*, is_*, ...)"
+        dates = np.array([str(d["date_oos"][tail_rows(d, k)[0]]) for k in range(K)])
+        ys = sorted(set(int(y) for y in years))
+        print(
+            f"[across_time] {bucket}: {K} refits, {dates[0]} .. {dates[-1]}", flush=True
+        )
+        for model in MODELS:
+            R = _load_model(bucket, model, d)
+            assert len(R["phi"]) == d["n_oos"], (bucket, model, len(R["phi"]))
+            shap_rank: dict[str, np.ndarray] = {}
+            for level in LEVELS:
+                unames, members, _ = _level_units(d, maps, level)
+                disp = _labels_at(level, unames, maps, d, stems)
+                nu = len(unames)
+                elig = np.array([varies[cols].any() for cols in members])
+                V = _per_refit(d, maps, R, R["fam"], level)
+                meas = list(TREE_MEASURES if R["fam"] == "tree" else LIN_MEASURES)
+                meas.append("shap_abs")
+                n_cols = [len(c) for c in members]
+                for m in meas:
+                    v = np.asarray(V[m], dtype=np.float64)
+                    rk = _ranks_eligible(v, elig)
+                    if m == "shap":
+                        shap_rank[level] = rk
+                    elif m == "shap_abs" and not np.array_equal(rk, shap_rank[level]):
+                        rank_mismatches += int((rk != shap_rank[level]).sum())
+                    mean = _wmean(v, kk)
+                    rom = np.zeros(nu, dtype=int)
+                    if elig.any():
+                        rom[elig] = _rank_desc(mean[elig])
+                    mean_rank = _wmean(rk.astype(np.float64), kk)
+                    median_rank = np.median(rk, axis=0).astype(np.float64)
+                    frac_rank1 = (rk == 1).mean(axis=0).astype(np.float64)
+                    mean_rank[~elig] = np.nan
+                    median_rank[~elig] = np.nan
+                    frac_rank1[~elig] = np.nan
+                    y_mean = {}
+                    y_rank = {}
+                    for yv in ys:
+                        sel = years == yv
+                        my = _wmean(v[sel], kk[sel])
+                        ry = np.zeros(nu, dtype=int)
+                        if elig.any():
+                            ry[elig] = _rank_desc(my[elig])
+                        y_mean[yv] = my
+                        y_rank[yv] = ry
+                    t_mean = {}
+                    t_rank = {}
+                    for tv in VIX_TERCILES:
+                        sel = terc == tv
+                        mt = _wmean(v[sel], kk[sel])
+                        rt = np.zeros(nu, dtype=int)
+                        if elig.any():
+                            rt[elig] = _rank_desc(mt[elig])
+                        t_mean[tv] = mt
+                        t_rank[tv] = rt
+                    for q, name in enumerate(unames):
+                        rec = dict(
+                            bucket=bucket,
+                            model=model,
+                            measure=m,
+                            level=level,
+                            unit=name,
+                            label=disp[q],
+                            n_columns=n_cols[q],
+                            eligible=bool(elig[q]),
+                            mean_over_time=float(mean[q]),
+                            rank_of_mean=int(rom[q]),
+                            mean_rank=float(mean_rank[q]),
+                            median_rank=float(median_rank[q]),
+                            frac_rank1=float(frac_rank1[q]),
+                        )
+                        for yv in ys:
+                            rec[f"y{yv}"] = float(y_mean[yv][q])
+                            rec[f"rank_y{yv}"] = int(y_rank[yv][q])
+                        for tv in VIX_TERCILES:
+                            rec[f"vix_{tv}"] = float(t_mean[tv][q])
+                            rec[f"rank_vix_{tv}"] = int(t_rank[tv][q])
+                        summary_rows.append(rec)
+                    if not elig.any():
+                        continue
+                    slices = [("all", "all", mean, np.ones(K, dtype=bool))]
+                    for yv in ys:
+                        slices.append(("year", str(yv), y_mean[yv], years == yv))
+                    for tv in VIX_TERCILES:
+                        slices.append(("vix_tercile", tv, t_mean[tv], terc == tv))
+                    for stratum, sval, score, sel in slices:
+                        a, b = _leader_pair(score, elig)
+                        leader_rows.append(
+                            dict(
+                                bucket=bucket,
+                                model=model,
+                                measure=m,
+                                level=level,
+                                stratum=stratum,
+                                value=sval,
+                                refits=int(np.asarray(sel).sum()),
+                                leader=unames[a],
+                                leader_label=disp[a],
+                                leader_mean=float(score[a]),
+                                leader_frac_rank1=float((rk[sel, a] == 1).mean()),
+                                runner_up="" if b is None else unames[b],
+                                runner_up_label="" if b is None else disp[b],
+                                runner_up_mean=np.nan if b is None else float(score[b]),
+                            )
+                        )
+                    if level == "series":
+                        panels.append(
+                            pd.DataFrame(
+                                dict(
+                                    bucket=bucket,
+                                    model=model,
+                                    measure=m,
+                                    refit=np.repeat(np.arange(K), nu),
+                                    date=np.repeat(dates, nu),
+                                    year=np.repeat(years, nu),
+                                    vix_tercile=np.repeat(
+                                        np.asarray(terc, dtype=str), nu
+                                    ),
+                                    kk=np.repeat(kk, nu),
+                                    unit=np.tile(unames, K),
+                                    label=np.tile(disp, K),
+                                    n_columns=np.tile(n_cols, K),
+                                    eligible=np.tile(elig, K),
+                                    value=v.reshape(-1),
+                                    rank=rk.reshape(-1),
+                                )
+                            )
+                        )
+    summary = pd.DataFrame(summary_rows)
+    leaders = pd.DataFrame(leader_rows)
+    panel = pd.concat(panels, ignore_index=True)
+    summary.to_csv(OUT / "across_time_summary.csv", index=False, float_format="%.6g")
+    leaders.to_csv(OUT / "across_time_leaders.csv", index=False, float_format="%.6g")
+    panel_path = OUT / "across_time_refits_series.parquet"
+    panel.to_parquet(panel_path, index=False)
+    print(
+        f"[across_time] wrote {OUT / 'across_time_summary.csv'} ({len(summary)} rows), "
+        f"{OUT / 'across_time_leaders.csv'} ({len(leaders)} rows), "
+        f"{panel_path} ({len(panel)} rows)",
+        flush=True,
+    )
+    _check_across_time(summary, leaders)
+    if rank_mismatches:
+        print(
+            f"[across_time] shap vs shap_abs per-refit rank cells that differ: {rank_mismatches}",
+            flush=True,
+        )
+    else:
+        print("[across_time] shap and shap_abs per-refit ranks match", flush=True)
+
+
+def _check_across_time(summary: pd.DataFrame, leaders: pd.DataFrame) -> None:
+    """The full-sample mean and the slice leader must match the tables already written.
+
+    Year and VIX means in `series_level_all.csv` were written at 6 significant figures,
+    so a gap at that scale is the file's own rounding. Ranks are exact.
+    """
+    head_path = OUT / "series_level_all.csv"
+    if head_path.is_file():
+        old = pd.read_csv(head_path)
+        new = summary[
+            (summary["level"] == "series") & (summary["measure"] != "shap_abs")
+        ]
+        m = new.merge(
+            old, on=["bucket", "model", "measure", "unit"], suffixes=("_new", "_old")
+        )
+        d_mean = float(np.nanmax(np.abs(m["mean_over_time"] - m["value"])))
+        d_rank = int((m["rank_of_mean"] != m["rank"]).sum())
+        print(
+            f"[across_time] vs series_level_all: matched {len(m)} of {len(new)}; "
+            f"max |mean - value| {d_mean:.1e}; rank mismatches {d_rank}",
+            flush=True,
+        )
+        sh = summary[
+            (summary["level"] == "series") & (summary["measure"] == "shap_abs")
+        ]
+        base = old[old["measure"] == "shap"][
+            ["bucket", "model", "unit", "mean_abs_phi"]
+        ]
+        g = sh.merge(base, on=["bucket", "model", "unit"])
+        if len(g):
+            d_abs = float(np.nanmax(np.abs(g["mean_over_time"] - g["mean_abs_phi"])))
+            print(
+                f"[across_time] shap_abs mean vs stored mean_abs_phi: "
+                f"max gap {d_abs:.1e} on {len(g)} rows",
+                flush=True,
+            )
+        gaps = []
+        for col in old.columns:
+            year = col.startswith("y") and col[1:].isdigit()
+            if year or col.startswith("vix_"):
+                a, b = f"{col}_new", f"{col}_old"
+                if a in m.columns and b in m.columns:
+                    gaps.append(float(np.nanmax(np.abs(m[a] - m[b]))))
+        if gaps:
+            print(
+                f"[across_time] vs stored year and VIX means: max gap {max(gaps):.1e}",
+                flush=True,
+            )
+    stab_path = OUT / "stability_by_stratum.csv"
+    if not stab_path.is_file():
+        return
+    st = pd.read_csv(stab_path, dtype={"value": str})
+    led = leaders[leaders["stratum"] != "all"]
+    j = led.merge(
+        st,
+        on=["bucket", "model", "measure", "level", "stratum", "value"],
+        how="inner",
+        suffixes=("", "_stab"),
+    )
+    # stability stores the display label in `leader`; this file's `leader` is the unit name
+    differ = j[j["leader_label"] != j["leader_stab"]]
+    print(
+        f"[across_time] vs stability_by_stratum leaders: {len(differ)} differ of {len(j)}",
+        flush=True,
+    )
 
 
 if __name__ == "__main__":
@@ -1695,6 +2021,8 @@ if __name__ == "__main__":
         capture_bucket(sys.argv[2], sys.argv[3])
     elif stage == "aggregate":
         aggregate(tuple(sys.argv[2].split(",")) if len(sys.argv) > 2 else BUCKETS)
+    elif stage == "across_time":
+        across_time(tuple(sys.argv[2].split(",")) if len(sys.argv) > 2 else BUCKETS)
     elif stage == "figures":
         figures({})
     elif stage == "linear_part":  # linear <bucket> <est> <k0> <k1>

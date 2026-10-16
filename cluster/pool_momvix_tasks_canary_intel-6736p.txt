@@ -1,0 +1,4 @@
+gate moments ridge 2000 295250 -1 96000
+gate moments reclasticnet 2000 295250 -1 96000
+gate baseline ridge 2000 295250 -1 96000
+gate baseline reclasticnet 2000 295250 -1 96000

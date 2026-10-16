@@ -1,4 +1,4 @@
-\begin{thebibliography}{75}
+\begin{thebibliography}{70}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -159,6 +159,14 @@ Andrea Bucci.
   502--531, 2020.
 \newblock \doi{10.1093/jjfinec/nbaa008}.
 
+\bibitem[Campbell and Thompson(2008)]{CampbellThompson2008}
+John~Y. Campbell and Samuel~B. Thompson.
+\newblock Predicting excess stock returns out of sample: Can anything beat the
+  historical average?
+\newblock \emph{Review of Financial Studies}, 21\penalty0 (4):\penalty0
+  1509--1531, 2008.
+\newblock \doi{10.1093/rfs/hhm055}.
+
 \bibitem[Carr and Wu(2009)]{CarrWu2009}
 Peter Carr and Liuren Wu.
 \newblock Variance risk premiums.
@@ -203,12 +211,6 @@ Chukwuma Dim, Bjorn Eraker, and Grigory Vilkov.
 \newblock \url{https://ssrn.com/abstract=4692190}, 2024.
 \newblock Working paper, SSRN 4692190.
 
-\bibitem[Duan(1983)]{Duan1983}
-Naihua Duan.
-\newblock Smearing estimate: A nonparametric retransformation method.
-\newblock \emph{Journal of the American Statistical Association}, 78\penalty0
-  (383):\penalty0 605--610, 1983.
-
 \bibitem[Ehm et~al.(2016)Ehm, Gneiting, Jordan, and Kr{\"u}ger]{Ehm2016}
 Werner Ehm, Tilmann Gneiting, Alexander Jordan, and Fabian Kr{\"u}ger.
 \newblock Of quantiles and expectiles: Consistent scoring functions, {C}hoquet
@@ -229,14 +231,6 @@ Robert~F. Engle and Magdalena~E. Sokalska.
 \newblock \emph{Journal of Financial Econometrics}, 10\penalty0 (1):\penalty0
   54--83, 2012.
 \newblock \doi{10.1093/jjfinec/nbr005}.
-
-\bibitem[Feng et~al.(2024)Feng, Tung, Ahmed, Bengio, and
-  Hajimirsadeghi]{Feng2024}
-Leo Feng, Frederick Tung, Mohamed~Osama Ahmed, Yoshua Bengio, and Hossein
-  Hajimirsadeghi.
-\newblock Were {RNNs} all we needed?
-\newblock \url{https://arxiv.org/abs/2410.01201}, 2024.
-\newblock arXiv preprint arXiv:2410.01201.
 
 \bibitem[Fleming et~al.(2001)Fleming, Kirby, and
   Ostdiek]{FlemingKirbyOstdiek2001}
@@ -324,14 +318,6 @@ Arthur~E. Hoerl and Robert~W. Kennard.
 \newblock Ridge regression: Biased estimation for nonorthogonal problems.
 \newblock \emph{Technometrics}, 12\penalty0 (1):\penalty0 55--67, 1970.
 
-\bibitem[Jordan et~al.(2024)Jordan, Jin, Boza, You, Cesista, Newhouse, and
-  Bernstein]{Jordan2024Muon}
-Keller Jordan, Yuchen Jin, Vlado Boza, Jiacheng You, Franz Cesista, Laker
-  Newhouse, and Jeremy Bernstein.
-\newblock Muon: An optimizer for hidden layers in neural networks.
-\newblock \url{https://kellerjordan.github.io/posts/muon/}, December 2024.
-\newblock Blog post.
-
 \bibitem[Ke et~al.(2017)Ke, Meng, Finley, Wang, Chen, Ma, Ye, and Liu]{Ke2017}
 Guolin Ke, Qi~Meng, Thomas Finley, Taifeng Wang, Wei Chen, Weidong Ma, Qiwei
   Ye, and Tie-Yan Liu.
@@ -378,12 +364,6 @@ Scott~M. Lundberg, Gabriel Erion, Hugh Chen, Alex DeGrave, Jordan~M. Prutkin,
   for trees.
 \newblock \emph{Nature Machine Intelligence}, 2\penalty0 (1):\penalty0 56--67,
   2020.
-
-\bibitem[Manning and Mullahy(2001)]{ManningMullahy2001}
-Willard~G. Manning and John Mullahy.
-\newblock Estimating log models: to transform or not to transform?
-\newblock \emph{Journal of Health Economics}, 20\penalty0 (4):\penalty0
-  461--494, 2001.
 
 \bibitem[Merton(1973)]{Merton1973}
 Robert~C. Merton.
@@ -435,13 +415,6 @@ Carolin Strobl, Anne-Laure Boulesteix, Achim Zeileis, and Torsten Hothorn.
 \newblock \emph{BMC Bioinformatics}, 8:\penalty0 25, 2007.
 \newblock \doi{10.1186/1471-2105-8-25}.
 
-\bibitem[Suarez(2024)]{Suarez2024}
-Joseph Suarez.
-\newblock {PufferLib}: Making reinforcement learning libraries and environments
-  play nice.
-\newblock \url{https://arxiv.org/abs/2406.12905}, 2024.
-\newblock arXiv preprint arXiv:2406.12905.
-
 \bibitem[Taylor and Xu(1997)]{TaylorXu1997}
 Stephen~J. Taylor and Xinzhong Xu.
 \newblock The incremental volatility information in one million foreign
@@ -476,14 +449,6 @@ Grigory Vilkov.
 \newblock \url{https://ssrn.com/abstract=4641356}, 2026.
 \newblock Working paper, SSRN 4641356; first posted 2023 as ``{0DTE} Trading
   Rules''.
-
-\bibitem[Welch and Goyal(2008)]{WelchGoyal2008}
-Ivo Welch and Amit Goyal.
-\newblock A comprehensive look at the empirical performance of equity premium
-  prediction.
-\newblock \emph{Review of Financial Studies}, 21\penalty0 (4):\penalty0
-  1455--1508, 2008.
-\newblock \doi{10.1093/rfs/hhm014}.
 
 \bibitem[White(2000)]{White2000}
 Halbert White.

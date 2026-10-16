@@ -1,0 +1,17 @@
+{
+ "name": "preview_trial163",
+ "sha": "trial163",
+ "source": "results/rf_devmenu_2026-10-06/preview_trial163/rf_config.json (PREVIEW: the 400-trial search's leader, trial 163, dev MSE 0.10847958424049822)",
+ "params": {
+  "n_estimators": 355,
+  "max_depth": 14,
+  "min_samples_leaf": 27,
+  "max_features": 0.7356104726223699,
+  "max_samples": 0.8810869892182808,
+  "bootstrap": true
+ },
+ "provenance": {
+  "window": 24000,
+  "note": "tuned on the dev-span procedure's 24,000-bar pooled window (experiments/tree_menu_dev.py); specs/causal_tune_trees_rfdev.py scales min_samples_leaf to the per-bar window"
+ }
+}

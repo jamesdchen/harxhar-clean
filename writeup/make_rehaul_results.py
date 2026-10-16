@@ -8,10 +8,21 @@ SCORING (one convention for every number written here)
   truth      the ACTUAL (unwinsorised) 15:30-16:00 RV (``rv_unclipped`` of master_table_daily.parquet; 2026-10-15,
              data audit #10: the models still fit the winsorised target, ``target``, but every score here is
              against the actual RV -- QLIKE, the squared error, DM);
-  days       the 866 trade days 2020-01-03 .. 2024-04-30, early closes excluded;
+  # days       the 866 trade days 2020-01-03 .. 2024-04-30, early closes excluded;  -- 2026-10-15 (user): parked --
+  #            accuracy is scored over every rolling forecast, not over the option-data days only (next line)
+  days       ACCURACY (QLIKE, squared error, DM, ranks, the figures' loss series): the common rolling span of
+             experiments/rolling_eval_2026_10_15.py (common_span(): 2020-01-03 .. 2024-04-30, the 1,082 trading days on
+             which every forecast of tab:rh_oos exists, early closes dropped; every forecast comes from a model
+             re-estimated on its trailing window).  User (2026-10-15): "Out of sample period doesn't make sense for
+             forecasts because we're performing rolling backtests. The forecasting results need to be calculated to
+             reflect such (that the out of sample forecasts are done on a rolling basis after the burn in training
+             window)".  TRADES (Sharpe, HAC t): the 866 days of the option-data subsample (a same-day SPXW
+             expiration), early closes excluded, as before.  --span mt866 re-runs every accuracy number on the 866
+             days and asserts the values of record (the reproduction gates; it writes under
+             results/rolling_eval_2026-10-15/mt866_check/, never into generated/ or figures/);
   loss       daily QLIKE  L_t = r - log r - 1,  r = RV_t / sigma2_t;  squared error in variance space;
   DM         src.evaluation.diebold_mariano.dm_test on the daily QLIKE difference (a minus b): Bartlett
-             Newey-West at dm_test's automatic lag (6 on 866 days), HLN factor, two-sided normal p;
+             Newey-West at dm_test's automatic lag (6 on 866 days and on 1,082), HLN factor, two-sided normal p;
              DM < 0 favours a;
   trade      sign(s) straddle at the midpoint: q_t = +1 if sigma2_t > IV variance else -1, return q_t R_t;
              Sharpe = mean / sd * sqrt(252); the change is tested by notebooks/atm_straddle_lib.newey_west_t
@@ -60,13 +71,23 @@ TABLE LEGIBILITY (2026-10-15)
   appendix (its \\input moves from 06_results_floats.tex to 10_appendix_floats.tex).  Replaced code is parked in
   comments marked "2026-10-15 (table legibility)".
 
-Run:  python writeup/make_rehaul_results.py
+NN PARKED (2026-10-15, user: "park all of the NN stuff for now")
+  The per-bar and pooled MinGRU leave every table and figure: T1 / T2 rows (FAMILY_ROWS -> NN_ROW), the four MinGRU
+  forecasts of the ranking (T3, T3 full: ranks recompute among the 116 others), the MinGRU line of F3 (and F5) and the
+  MinGRU clauses of the notes.  Their forecasts are still loaded and gated against the studies' values, and their
+  \\rhr...Nn... macros (CumNn*, NnAllQ, NnAf*, NNPooledSeeds, Q/VsBm/Af/PoolVsClose Nn*) stay defined with unchanged
+  values but unused by the floats, so prose that still cites them compiles.  Parked code is marked
+  "2026-10-15 (user): parked -- NN content parked for now".
+
+Run:  python writeup/make_rehaul_results.py [--span rolling | mt866]
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 import math
+import re
 import sys
 from pathlib import Path
 
@@ -77,8 +98,13 @@ ROOT = Path(__file__).resolve().parent  # writeup/
 REPO = ROOT.parent
 sys.path.insert(0, str(REPO))
 sys.path.insert(0, str(REPO / "notebooks"))
+sys.path.insert(0, str(REPO / "experiments"))
 from src.evaluation.diebold_mariano import dm_test  # noqa: E402
 import atm_straddle_lib as asl  # noqa: E402
+import rolling_eval_2026_10_15 as rolling  # noqa: E402  (2026-10-15: the common rolling span of every accuracy number)
+
+# 2026-10-15 (user, restructure): the GUI's sizing scorer, as make_rehaul_economics.py calls it (pooled sizing medians)
+from master_table_gui import rows as gui  # noqa: E402
 
 import matplotlib  # noqa: E402
 
@@ -121,17 +147,26 @@ QUOTES = REPO / "results" / "atm_straddle_0dte_1530" / "daily_a0.parquet"
 GUI_DAILY = REPO / "results" / "close_master_table_gui" / "master_table_daily.parquet"
 
 OLS = "sub_ols_baseline"
-NDAYS = 866
+NDAYS = 866  # the option-data subsample: trades and Sharpe ratios (and every accuracy number under --span mt866)
+# 2026-10-15 (user): accuracy over every rolling forecast -- SPAN "rolling" scores QLIKE / squared error / DM / ranks on
+# rolling.common_span() (ACC holds each forecast's frame there, keyed by id() of its trade frame in `by`); "mt866"
+# scores them on the 866 days, as before, and asserts the values of record
+SPAN = "rolling"
+ACC: dict[int, pd.DataFrame] = {}
+NN_PLAIN: dict[
+    str, pd.Series
+] = {}  # the MinGRU forecasts on every day they exist (filled by nn_frames / nn_pooled)
 ANN = 252.0**0.5
 SIG = 0.05
 LEVELS = (0.10, 0.05, 0.01)  # the star levels (2026-10-15, table legibility)
-DM_LAG = 6  # dm_test's automatic Newey-West lag on 866 days (asserted in pair)
+DM_LAG = 6  # dm_test's automatic Newey-West lag on 866 days and on the 1,082-day rolling span (asserted in pair)
 HAC_LAG = 14  # newey_west_t's lag floor(1.5 n^(1/3)) on 866 days (asserted in pair)
 Z95 = 1.959963984540054
 CRASH = (
     pd.Timestamp("2020-02-24"),
     pd.Timestamp("2020-04-30"),
 )  # the outline's exclusion window
+TOP_DAYS = 10  # the tail check: days of largest gain over the short straddle dropped (= make_rehaul_economics.TOP_DAYS)
 
 # --------------------------------------------------------------------------- data
 
@@ -227,6 +262,9 @@ def nn_frames(ref: pd.DataFrame, quotes: pd.DataFrame) -> dict[str, pd.DataFrame
         )
         assert not f.index.duplicated().any()
         out[f"mingru_rinitq_{b}"] = frame(f**2 * b_day.reindex(f.index), ref, quotes)
+        NN_PLAIN[f"mingru_rinitq_{b}"] = f**2 * b_day.reindex(
+            f.index
+        )  # every day (2026-10-15: rolling span)
     return out
 
 
@@ -263,6 +301,9 @@ def nn_pooled_frames(
             index=g["day"],
         )
         out[f"mingru_pooled_rinitq_{b}"] = frame(plain, ref, quotes)
+        NN_PLAIN[f"mingru_pooled_rinitq_{b}"] = (
+            plain  # every 16:00 row (2026-10-15: rolling span)
+        )
     assert len(set(NN_POOLED_SEEDS)) == 1
     return out
 
@@ -306,7 +347,72 @@ def load_all() -> tuple[pd.DataFrame, pd.DataFrame, dict[str, pd.DataFrame]]:
     )
     by["pooltree_lgbm_all_features"] = by["lgbm"]
     by["pooltree_xgb_all_features"] = by["xgb"]
+    if SPAN == "rolling":
+        build_acc(s, by)
     return m, s, by
+
+
+ACC_ALIAS = {
+    "pooltree_lgbm_all_features": "lgbm",
+    "pooltree_xgb_all_features": "xgb",
+}  # the master table's keys
+
+
+def build_acc(s: pd.DataFrame, by: dict[str, pd.DataFrame]) -> None:
+    """2026-10-15 (user: accuracy over every rolling forecast): the accuracy frame (plain, actual RV, daily QLIKE) of
+    every forecast this script scores, on the common rolling span rolling.common_span(), keyed by id() of its trade
+    frame (aliased keys share one frame).  Gate: on the 866 option-data days it carries the trade frame's forecast
+    and truth."""
+    days = rolling.common_span()
+    rv = rolling.history().reindex(days)
+    assert np.isfinite(rv.to_numpy()).all() and (rv > 0).all()
+    keys = (
+        set(s["key"])
+        | set(NN_PLAIN)
+        | {k for _, _, pb, pool in FAMILY_ROWS + [NN_ROW] for k in (*pb, *(pool or ()))}
+    )
+    keys |= {f"pooltree_{e}_baseline" for e in ("lgbm", "xgb", "rf")} | {
+        "pooltree_rf_all_features"
+    }
+    for k in sorted(keys):
+        f = by[ACC_ALIAS.get(k, k)]
+        if id(f) in ACC:
+            continue
+        plain = (
+            NN_PLAIN[k]
+            if k in NN_PLAIN
+            else rolling.scored(ACC_ALIAS.get(k, k))["plain"]
+        )
+        p = plain.reindex(days)
+        assert np.isfinite(p.to_numpy()).all() and (p > 0).all(), (
+            k,
+            int(p.isna().sum()),
+        )
+        r = (rv / p).to_numpy(float)
+        a = pd.DataFrame(
+            {"plain": p, "rv_unclipped": rv, "qlike_raw": r - np.log(r) - 1.0},
+            index=days,
+        )
+        assert f.index.isin(days).all(), k
+        rel = float(np.max(np.abs(a["plain"].reindex(f.index) / f["plain"] - 1.0)))
+        assert rel <= 1e-10, (k, rel)
+        assert np.array_equal(
+            a["rv_unclipped"].reindex(f.index).to_numpy(), f["rv_unclipped"].to_numpy()
+        ), k
+        ACC[id(f)] = a
+    print(
+        f"accuracy frames: {len(ACC)} forecasts on the common rolling span {days[0].date()} .. {days[-1].date()} "
+        f"({len(days)} days; trades on the {NDAYS} option-data days)"
+    )
+
+
+def acc_of(f: pd.DataFrame) -> pd.DataFrame:
+    """The frame every accuracy number is computed on: the rolling-span frame (SPAN rolling) or the trade frame."""
+    return ACC[id(f)] if SPAN == "rolling" else f
+
+
+def n_acc() -> int:
+    return len(rolling.common_span()) if SPAN == "rolling" else NDAYS
 
 
 # --------------------------------------------------------------------------- statistics
@@ -318,9 +424,11 @@ def sharpe(x: pd.Series) -> float:
 
 def level(f: pd.DataFrame) -> dict:
     # e = f["target"] - f["plain"]  # 2026-10-15 (user): parked -- scored against the trimmed target; scores now use actual RV (data audit #10)
-    e = f["rv_unclipped"] - f["plain"]
+    # e = f["rv_unclipped"] - f["plain"]  # 2026-10-15 (user): parked -- accuracy on the rolling span (acc_of)
+    a = acc_of(f)
+    e = a["rv_unclipped"] - a["plain"]
     return {
-        "qlike": float(f["qlike_raw"].mean()),
+        "qlike": float(a["qlike_raw"].mean()),
         "mse": float((e**2).mean()),
         "sharpe": sharpe(f["ret_mid"]),
         "sharpe_x": sharpe(f["ret_crossed"]),
@@ -328,18 +436,26 @@ def level(f: pd.DataFrame) -> dict:
 
 
 def pair(a: pd.DataFrame, b: pd.DataFrame) -> dict:
-    """a minus b on the common days: QLIKE % change, DM, p; squared-error % change and DM; Sharpe change, HAC t."""
-    j = a[["qlike_raw", "ret_mid", "rv_unclipped", "plain"]].join(
-        b[["qlike_raw", "ret_mid", "plain"]], rsuffix="_b", how="inner"
+    """a minus b on the common days: QLIKE % change, DM, p; squared-error % change and DM; Sharpe change, HAC t.
+    2026-10-15: the accuracy statistics on acc_of() (the common rolling span), the trade statistics on the 866 days."""
+    # j = a[["qlike_raw", "ret_mid", "rv_unclipped", "plain"]].join(  # 2026-10-15 (user): parked -- one frame for
+    #     b[["qlike_raw", "ret_mid", "plain"]], rsuffix="_b", how="inner"  # accuracy and trades; split below
+    # )
+    # assert len(j) == NDAYS, len(j)
+    j = acc_of(a)[["qlike_raw", "rv_unclipped", "plain"]].join(
+        acc_of(b)[["qlike_raw", "plain"]], rsuffix="_b", how="inner"
     )
-    assert len(j) == NDAYS, len(j)
+    assert len(j) == n_acc(), len(j)
+    jt = a[["ret_mid"]].join(b[["ret_mid"]], rsuffix="_b", how="inner")
+    assert len(jt) == NDAYS, len(jt)
     dm = dm_test(j["qlike_raw"].to_numpy(), j["qlike_raw_b"].to_numpy())
     assert dm["hac_lag"] == DM_LAG
     # se_a, se_b = (j["target"] - j["plain"]) ** 2, (j["target"] - j["plain_b"]) ** 2  # 2026-10-15 (user): parked -- scored against the trimmed target; scores now use actual RV (data audit #10)
     se_a = (j["rv_unclipped"] - j["plain"]) ** 2
     se_b = (j["rv_unclipped"] - j["plain_b"]) ** 2
     dms = dm_test(se_a.to_numpy(), se_b.to_numpy())
-    t, lag = asl.newey_west_t(j["ret_mid"] - j["ret_mid_b"])
+    # t, lag = asl.newey_west_t(j["ret_mid"] - j["ret_mid_b"])  # 2026-10-15: trades on jt (parked: one frame)
+    t, lag = asl.newey_west_t(jt["ret_mid"] - jt["ret_mid_b"])
     assert lag == HAC_LAG
     pct = 100.0 * (j["qlike_raw"].mean() / j["qlike_raw_b"].mean() - 1.0)
     return {
@@ -352,7 +468,8 @@ def pair(a: pd.DataFrame, b: pd.DataFrame) -> dict:
         "mse_pct": float(100.0 * (se_a.mean() / se_b.mean() - 1.0)),
         "dm_mse": float(dms["dm"]),
         "p_mse": float(dms["p"]),
-        "dsh": sharpe(j["ret_mid"]) - sharpe(j["ret_mid_b"]),
+        # "dsh": sharpe(j["ret_mid"]) - sharpe(j["ret_mid_b"]),  # 2026-10-15: trades on jt
+        "dsh": sharpe(jt["ret_mid"]) - sharpe(jt["ret_mid_b"]),
         "t": float(t),
         "p_t": float(math.erfc(abs(t) / math.sqrt(2.0))),
     }
@@ -408,13 +525,22 @@ FAMILY_ROWS = [
         ("subtree_daily_baseline_rf", "subtree_daily_all_features_rf"),
         ("pooltree_rf_baseline", "pooltree_rf_all_features"),
     ),
-    (
-        NN_NAME,
-        NN,
-        ("mingru_rinitq_baseline", "mingru_rinitq_all_features"),
-        ("mingru_pooled_rinitq_baseline", "mingru_pooled_rinitq_all_features"),
-    ),
+    # 2026-10-15 (user): parked -- NN content parked for now (the MinGRU row is NN_ROW below; no table or figure shows it)
+    # (
+    #     NN_NAME,
+    #     NN,
+    #     ("mingru_rinitq_baseline", "mingru_rinitq_all_features"),
+    #     ("mingru_pooled_rinitq_baseline", "mingru_pooled_rinitq_all_features"),
+    # ),
 ]
+# 2026-10-15 (user): NN content parked for now -- the MinGRU row, out of FAMILY_ROWS: main() still pairs it, for the value
+# gates and the \rhr...Nn... macros (kept defined, unused by the floats), but drops it from every table and figure.
+NN_ROW = (
+    NN_NAME,
+    NN,
+    ("mingru_rinitq_baseline", "mingru_rinitq_all_features"),
+    ("mingru_pooled_rinitq_baseline", "mingru_pooled_rinitq_all_features"),
+)
 INTERIM = {
     "pooltree_rf_all_features"
 }  # the pooled forest on all features: 16:00 rows of a walk still running
@@ -945,9 +1071,13 @@ def tex_escape(s: str) -> str:
 # The four tables in the finance-journal style of NOTATION_GUIDE_2026-10-15.md section 8 (see the module docstring).
 HEAD = "% AUTO-GENERATED by writeup/make_rehaul_results.py -- do not edit."
 STAR_NOTE = "$^{*}$, $^{**}$ and $^{***}$ denote significance at the 10\\%, 5\\% and 1\\% levels."
+# NOTE_SAMPLE = (  # 2026-10-15 (user): parked -- accuracy over every rolling forecast, trades on the option days
+#     "The out-of-sample period runs from \\rhrSampleStart{} to \\rhrSampleEnd{} ($T_{\\mathrm{oos}} = \\rhrDays$ "
+#     "trading days). QLIKE is the mean loss ...
 NOTE_SAMPLE = (
-    "The out-of-sample period runs from \\rhrSampleStart{} to \\rhrSampleEnd{} ($T_{\\mathrm{oos}} = \\rhrDays$ "
-    "trading days). QLIKE is the mean loss $\\bar L$, with $L_t = \\QLIKE(\\RV_t, \\hat\\sigma^2_t)$, $\\RV_t$ the "
+    "Rolling forecasts from \\rhoosSpanStart{} to \\rhoosSpanEnd{} ($T_{\\mathrm{oos}} = \\rhoosDays$ trading "
+    "days, each forecast from a model estimated on its trailing window; Section~\\ref{sec:rh_results_eval}); Sharpe "
+    "ratios and HAC $t$-statistics on the \\rhrDays{} days of the option-data subsample. QLIKE is the mean loss $\\bar L$, with $L_t = \\QLIKE(\\RV_t, \\hat\\sigma^2_t)$, $\\RV_t$ the "
     "actual realized variance of the closing half hour and $\\hat\\sigma^2_t = \\hat y_t^{\\,2} s^2_{t,c}$ the "
     "variance forecast."
 )
@@ -1004,8 +1134,12 @@ def table_t1(rows: list[dict]) -> str:
         + STAR_NOTE
         + " "
         + NOTE_TREES
-        + ", and the MinGRU is ridge-initialized and trained and selected on QLIKE "
-        "(Section~\\ref{sec:rh_methods_models})."
+        # 2026-10-15 (user): parked -- NN content parked for now
+        # + ", and the MinGRU is ridge-initialized and trained and selected on QLIKE "
+        # "(Section~\\ref{sec:rh_methods_models})."
+        # 2026-10-15 (finish): parked -- the re-estimation schedule moved to Appendix B.2 (sec:rh_exp_schemes). Was:
+        # + " (Section~\\ref{sec:rh_methods_models})."
+        + " (Section~\\ref{sec:rh_exp_schemes})."
     )
     return "\n".join(
         [
@@ -1073,8 +1207,14 @@ def table_t2(rows: list[dict]) -> str:
         + STAR_NOTE
         + " "
         + NOTE_TREES
-        + "; the pooled intraday trees are re-estimated at every interval and the pooled intraday MinGRU monthly, "
-        "each on a rolling window of past intervals (Section~\\ref{sec:rh_methods_setup})."
+        # 2026-10-15 (user): parked -- NN content parked for now
+        # + "; the pooled intraday trees are re-estimated at every interval and the pooled intraday MinGRU monthly, "
+        # "each on a rolling window of past intervals (Section~\\ref{sec:rh_methods_setup})."
+        # 2026-10-15 (finish): parked -- the pooled trees' schedule moved to Appendix B.2 (sec:rh_exp_schemes). Was:
+        # + "; the pooled intraday trees are re-estimated at every interval, on a rolling window of past intervals "
+        # "(Section~\\ref{sec:rh_methods_setup})."
+        + "; the pooled intraday trees are re-estimated at every interval, on a rolling window of past intervals "
+        "(Section~\\ref{sec:rh_exp_schemes})."
     )
     return "\n".join(
         [
@@ -1195,8 +1335,13 @@ def table_t3_full(rank: pd.DataFrame) -> str:
         "then the re-estimation frequency or, for Optuna, the re-tuning frequency and the number of trials searched; "
         "d: trading days (Section~\\ref{sec:rh_methods_tuning}). Panel C holds the earlier draft's pooled intraday "
         "linear models, with a block, fixed or re-tuned penalty; ``no FOMC'' marks the earlier draft's predictor set, "
-        "which lacks the FOMC predictors. The pooled intraday trees are re-estimated at every interval and the pooled "
-        "intraday MinGRU monthly (Section~\\ref{sec:rh_methods_setup}). $^{\\ddagger}$Not in the model set counted in "
+        # 2026-10-15 (user): parked -- NN content parked for now
+        # "which lacks the FOMC predictors. The pooled intraday trees are re-estimated at every interval and the pooled "
+        # "intraday MinGRU monthly (Section~\\ref{sec:rh_methods_setup}). $^{\\ddagger}$Not in the model set counted in "
+        # 2026-10-15 (finish): parked -- the pooled trees' schedule moved to Appendix B.2 (sec:rh_exp_schemes). Was:
+        # "(Section~\\ref{sec:rh_methods_setup}). $^{\\ddagger}$Not in the model set counted in "
+        "which lacks the FOMC predictors. The pooled intraday trees are re-estimated at every interval "
+        "(Section~\\ref{sec:rh_exp_schemes}). $^{\\ddagger}$Not in the model set counted in "
         "the text; $^{\\dagger}$preliminary (see Table~\\ref{tab:rh_axis1})."
     )
     out = [
@@ -1324,16 +1469,17 @@ def legend_handles(sig_note: bool = True) -> list:
             mec=C[TREE],
             label="per-bar tree",
         ),
-        Line2D(
-            [],
-            [],
-            ls="",
-            marker=MK[NN],
-            ms=5.5,
-            mfc=C[NN],
-            mec=C[NN],
-            label="per-bar MinGRU",
-        ),
+        # 2026-10-15 (user): parked -- NN content parked for now
+        # Line2D(
+        #     [],
+        #     [],
+        #     ls="",
+        #     marker=MK[NN],
+        #     ms=5.5,
+        #     mfc=C[NN],
+        #     mec=C[NN],
+        #     label="per-bar MinGRU",
+        # ),
         Line2D(
             [],
             [],
@@ -1571,7 +1717,10 @@ def fig_f2(rows: list[dict], levels: dict[str, dict]) -> None:
     axes[0].set_ylim(ys[-1] - 0.6, 0.6)
     axes[0].set_xlim(0.0885, 0.1285)
     axes[1].tick_params(axis="y", left=False)
-    h = legend_handles(sig_note=False)[:3] + [
+    # 2026-10-15 (user): parked -- NN content parked for now: [:3] took the MinGRU handle too; [:2] is the per-bar
+    # linear and tree handles
+    # h = legend_handles(sig_note=False)[:3] + [
+    h = legend_handles(sig_note=False)[:2] + [
         Line2D([], [], color=INK, lw=0.7, label="per-bar OLS, HAR + cal."),
         Line2D(
             [],
@@ -1606,23 +1755,36 @@ def fig_f2(rows: list[dict], levels: dict[str, dict]) -> None:
     save(fig, "rehaul_results_f2_dumbbell")
 
 
+def cum_diff(by: dict[str, pd.DataFrame], key: str) -> tuple[pd.Series, dict]:
+    """Daily QLIKE loss differential of a forecast minus the closing-interval OLS, with its sums over all days and over
+    the 24 Feb - 30 Apr 2020 window (F3; 2026-10-15: also the parked MinGRU's \\rhrCumNn* macros, off the figure)."""
+    # ref = by[OLS]["qlike_raw"]  # 2026-10-15: parked -- accuracy on the rolling span (acc_of)
+    # d = (by[key]["qlike_raw"] - ref).reindex(ref.index)
+    ref = acc_of(by[OLS])["qlike_raw"]
+    d = (acc_of(by[key])["qlike_raw"] - ref).reindex(ref.index)
+    w = (d.index >= CRASH[0]) & (d.index <= CRASH[1])
+    return d, {"total": float(d.sum()), "window": float(d[w].sum())}
+
+
 def fig_f3(by: dict[str, pd.DataFrame], best: list[tuple[str, str, str]]) -> dict:
     """Cumulative daily QLIKE loss differential (model minus the closing-interval OLS on the HAR benchmark) for the
     closing-interval forecast with the lowest mean QLIKE in each model class."""
     from matplotlib.patches import Patch
 
     fig, ax = plt.subplots(figsize=(W, 2.75), layout="constrained")
-    ref = by[OLS]["qlike_raw"]
+    # ref = by[OLS]["qlike_raw"]  # 2026-10-15: parked -- accuracy on the rolling span (acc_of)
+    ref = acc_of(by[OLS])["qlike_raw"]
     ax.axvspan(CRASH[0], CRASH[1], color=SHADE, lw=0, zorder=0)
     ax.axhline(0, color=INK, lw=0.7, zorder=1)
     out, ends = {}, []
     for key, fam, label in best:
-        d = (by[key]["qlike_raw"] - ref).reindex(ref.index)
+        # d = (by[key]["qlike_raw"] - ref).reindex(ref.index)  # 2026-10-15: moved to cum_diff (same numbers)
+        d, out[key] = cum_diff(by, key)
         cs = d.cumsum()
         ax.plot(cs.index, cs.to_numpy(), color=C[fam], lw=1.4, label=label, zorder=3)
         ends.append((float(cs.iloc[-1]), label.split(",")[0]))
-        w = (d.index >= CRASH[0]) & (d.index <= CRASH[1])
-        out[key] = {"total": float(d.sum()), "window": float(d[w].sum())}
+        # w = (d.index >= CRASH[0]) & (d.index <= CRASH[1])  # 2026-10-15: moved to cum_diff (same numbers)
+        # out[key] = {"total": float(d.sum()), "window": float(d[w].sum())}
     x_end = ref.index[-1] + pd.Timedelta(days=15)
     for v, lab in ends:
         ax.text(x_end, v, lab, color=INK, fontsize=8, va="center", ha="left")
@@ -1672,7 +1834,8 @@ def fig_f5(
         gridspec_kw={"width_ratios": [1.1, 1.0]},
         layout="constrained",
     )
-    f = by[OLS]
+    # f = by[OLS]  # 2026-10-15: parked -- accuracy on the rolling span (acc_of)
+    f = acc_of(by[OLS])
     # se = (f["target"] - f["plain"]) ** 2  # 2026-10-15 (user): parked -- scored against the trimmed target; scores now use actual RV (data audit #10)
     se = (f["rv_unclipped"] - f["plain"]) ** 2
     share = 100 * se / se.sum()
@@ -1701,10 +1864,12 @@ def fig_f5(
         "ols_top5_share": float(top.sum()),
         "ols_top5_days": [str(d.date()) for d in top.index],
     }
-    k = np.arange(1, NDAYS + 1)
+    # k = np.arange(1, NDAYS + 1)  # 2026-10-15: parked -- the rolling span's day count
+    k = np.arange(1, len(f) + 1)
     dash = (0, (3, 1.6))
     for key, fam, label in show:
-        g = by[key]
+        # g = by[key]  # 2026-10-15: parked -- accuracy on the rolling span (acc_of)
+        g = acc_of(by[key])
         for loss, ls in (("se", "-"), ("ql", dash)):
             # v = ((g["target"] - g["plain"]) ** 2) if loss == "se" else g["qlike_raw"]  # 2026-10-15 (user): parked -- scored against the trimmed target; scores now use actual RV (data audit #10)
             v = (
@@ -1720,7 +1885,8 @@ def fig_f5(
                     str(d.date()) for d in v.sort_values(ascending=False).index[:5]
                 ]
     b.set_xscale("log")
-    b.set_xlim(1, NDAYS)
+    # b.set_xlim(1, NDAYS)  # 2026-10-15: parked -- the rolling span's day count
+    b.set_xlim(1, len(f))
     b.set_ylim(0, 100)
     b.axvline(5, color=FRAME, lw=0.6, zorder=1)
     b.set_xlabel("Largest-loss days included, $k$ (log scale)")
@@ -1756,13 +1922,34 @@ def fig_f5(
 
 
 def main() -> None:
+    global SPAN, GEN, FIG
+    ap = argparse.ArgumentParser()
+    ap.add_argument(
+        "--span",
+        choices=("rolling", "mt866"),
+        default="rolling",
+        help="rolling: accuracy on the common rolling span (writes the paper's files); mt866: on the 866 option-data "
+        "days, asserting the values of record (writes under results/rolling_eval_2026-10-15/mt866_check/ only)",
+    )
+    SPAN = ap.parse_args().span
+    if SPAN == "mt866":
+        GEN = FIG = REPO / "results" / "rolling_eval_2026-10-15" / "mt866_check"
     m, s, by = load_all()
-    lv = {k: level(f) for k, f in by.items()}
+    # lv = {k: level(f) for k, f in by.items()}  # 2026-10-15: parked -- rolling frames exist for the forecasts used
+    lv = {k: level(f) for k, f in by.items() if SPAN == "mt866" or id(f) in ACC}
+    gate_866 = (
+        SPAN == "mt866"
+    )  # the values of record below are the 866-day accuracy numbers
 
     # ---- known values (outline, section 6) ----
     # 2026-10-15 (data audit #10): every QLIKE / DM below is against the actual RV; the values asserted before
     # (trimmed target) are kept in the comments, old -> new also in PAPER_REHAUL_OUTLINE_2026-10-15.md
     def near(x, v, tol):
+        # assert abs(x - v) <= tol, (x, v)  # 2026-10-15: accuracy values of record hold on the 866 days only
+        if gate_866:
+            assert abs(x - v) <= tol, (x, v)
+
+    def near_t(x, v, tol):  # trade statistics: the 866 option-data days in every mode
         assert abs(x - v) <= tol, (x, v)
 
     near(lv[OLS]["qlike"], 0.0967, 5e-5)  # was 0.0946
@@ -1772,14 +1959,16 @@ def main() -> None:
     near(lv["mingru_rinitq_baseline"]["qlike"], 0.1006, 5e-5)  # was 0.0985
     near(lv["blk2"]["qlike"], 0.1092, 5e-5)  # was 0.1068
     near(lv["a0"]["qlike"], 0.1270, 5e-5)  # was 0.1232
-    near(lv[OLS]["sharpe"], 1.37, 5e-3)
+    near_t(lv[OLS]["sharpe"], 1.37, 5e-3)
     for k in s["key"]:  # every model-set row reproduces master_table.csv
         near(lv[k]["qlike"], float(m.loc[k, "qlike_raw"]), 1e-12)
-        near(lv[k]["sharpe"], float(m.loc[k, "Sharpe_mid"]), 1e-9)
+        near_t(lv[k]["sharpe"], float(m.loc[k, "Sharpe_mid"]), 1e-9)
 
     # ---- T1: all vs HAR + cal. within each family ----
+    # 2026-10-15 (user): NN content parked for now -- the MinGRU (NN_ROW) is still paired, for the gates and its macros
+    # (T1 / T2 lookups), and dropped from the table and figure rows below
     t1 = []
-    for name, fam, pb, pool in FAMILY_ROWS:
+    for name, fam, pb, pool in FAMILY_ROWS + [NN_ROW]:
         t1.append(
             {
                 "name": name,
@@ -1804,6 +1993,9 @@ def main() -> None:
         r for r in t1 if r["fit"] == "pooled"
     ]
     T1 = {(r["fit"], r["name"]): r for r in t1}
+    # 2026-10-15 (user): parked -- NN content parked for now; T1 rows: 14 -> 12
+    t1 = [r for r in t1 if r["family"] != NN]
+    assert len(t1) == 2 * len(FAMILY_ROWS) == 12, len(t1)
     # 2026-10-15 (user): parked -- scored against the trimmed target; scores now use actual RV (data audit #10):
     # expect_t1 = {  # (fit, name): (QLIKE base, QLIKE all, % change, DM)  -- the outline's T1, trimmed target
     #     ("per-bar", "Ridge"): (0.0946, 0.0958, 1.2, 0.26),
@@ -1855,8 +2047,8 @@ def main() -> None:
         "Random forest": (0.18, 0.34),
     }
     for nme, (dsh, t) in expect_dsh.items():
-        near(T1[("per-bar", nme)]["dsh"], dsh, 0.005 + 1e-9)
-        near(T1[("per-bar", nme)]["t"], t, 0.02)
+        near_t(T1[("per-bar", nme)]["dsh"], dsh, 0.005 + 1e-9)
+        near_t(T1[("per-bar", nme)]["t"], t, 0.02)
 
     # all 51 input-set pairs of the model set (the fig_qlike_sharpe counts)
     allf = [k for k in s.loc[s["input_set"] == "all_features", "key"]]
@@ -1874,16 +2066,66 @@ def main() -> None:
         int(((af["mse_pct"] > 0) & (af["p_mse"] < SIG)).sum()),
     )
     # (51, 38, 2) on the trimmed target (parked 2026-10-15, data audit #10)
-    assert (n_af, n_lower, n_lower_sig) == (51, 38, 3), (n_af, n_lower, n_lower_sig)
-    assert (n_mse_up, n_mse_up_sig) == (51, 0), (n_mse_up, n_mse_up_sig)
+    assert n_af == 51, n_af
+    if gate_866:  # 2026-10-15: the 866-day values of record
+        assert (n_af, n_lower, n_lower_sig) == (51, 38, 3), (n_af, n_lower, n_lower_sig)
+        assert (n_mse_up, n_mse_up_sig) == (51, 0), (n_mse_up, n_mse_up_sig)
     assert (
         int((af["dsh"] > 0).sum()) == 50
         and int(((af["dsh"] > 0) & (af["p_t"] < SIG)).sum()) == 4
     )
 
+    # ---- 2026-10-15: the trees against the closing-interval ridge on the same predictor set (Model classes, 6.5) ----
+    # The 48 tree forecasts of the model set the campaign compared with the ridge (writeup/make_table_close_main.py
+    # \cmTrVsRidge*: re-estimated every 10 sessions or daily, untuned or random search, and Optuna best of 50 at
+    # TUNE_PER 1 / 5 / 25 / 250, MSE rule), each against the ridge of record subpt_ridge_<set>, re-scored here on this
+    # run's span (the campaign's counts were written on the 866 days with the campaign-era XGBoost / forest).
+    tr_keys = [
+        k
+        for k in s["key"]
+        if re.fullmatch(
+            r"subtree_(?:(?:lgbm|xgb|rf)_(?:baseline|all_features)|(?:daily_|tuned_|tuned_daily_|optuna_tp\d+_)"
+            r"(?:baseline|all_features)_(?:lgbm|xgb|rf))",
+            k,
+        )
+    ]
+    assert len(tr_keys) == 48, len(tr_keys)
+    tr = pd.DataFrame(
+        [
+            pair(
+                by[k],
+                by[
+                    "subpt_ridge_"
+                    + ("all_features" if "all_features" in k else "baseline")
+                ],
+            )
+            for k in tr_keys
+        ],
+        index=tr_keys,
+    )
+    n_tr_above = int((tr["pct"] > 0).sum())
+    n_tr_above_sig = int(((tr["pct"] > 0) & (tr["p"] < SIG)).sum())
+    n_tr_below_sig = int(((tr["pct"] < 0) & (tr["p"] < SIG)).sum())
+    print(
+        f"trees vs the closing-interval ridge ({SPAN}): QLIKE higher in {n_tr_above} of {len(tr)}, "
+        f"{n_tr_above_sig} significantly; lower and significant: {n_tr_below_sig}"
+    )
+    # 2026-10-15: the Feb-Apr 2020 claim of 6.3 ("excluding February--April 2020, the lasso on the full predictor set
+    # has a lower MSE than the benchmark forecast"), on this run's span
+    la_, ol_ = acc_of(by["subpt_lasso_all_features"]), acc_of(by[OLS])
+    out_w = (la_.index < CRASH[0]) | (la_.index > CRASH[1])
+    mse_ex = [
+        float(((x["rv_unclipped"] - x["plain"])[out_w] ** 2).mean()) for x in (la_, ol_)
+    ]
+    lasso_mse_ex_pct = 100.0 * (mse_ex[0] / mse_ex[1] - 1.0)
+    print(
+        f"lasso (full) vs OLS, MSE outside 24 Feb - 30 Apr 2020: {lasso_mse_ex_pct:+.1f} %"
+    )
+
     # ---- T2: pooled minus per-bar ----
     t2 = []
-    for name, fam, pb, pool in FAMILY_ROWS:
+    # 2026-10-15 (user): NN content parked for now -- NN_ROW for the gates and macros only (dropped from the rows below)
+    for name, fam, pb, pool in FAMILY_ROWS + [NN_ROW]:
         if pool is None:
             t2.append(
                 {
@@ -1906,6 +2148,9 @@ def main() -> None:
             r[b] = pair(by[pool[i]], by[pb[i]])
         t2.append(r)
     T2 = {r["name"]: r for r in t2}
+    # 2026-10-15 (user): parked -- NN content parked for now; T2 rows per panel: 7 -> 6
+    t2 = [r for r in t2 if r["family"] != NN]
+    assert len(t2) == len(FAMILY_ROWS) == 6, len(t2)
     # trimmed target (parked 2026-10-15): Ridge (12.8, 6.6, 1.56), Lasso (12.2, 14.2, 3.19), Elastic net (12.6, 7.8, 2.00)
     expect_t2 = {
         "Ridge": (13.6, 7.2, 1.61),
@@ -1916,7 +2161,7 @@ def main() -> None:
         near(T2[nme]["baseline"]["pct"], pb_, 0.05 + 1e-9)
         near(T2[nme]["all_features"]["pct"], pa_, 0.05 + 1e-9)
         near(T2[nme]["all_features"]["dm"], dma, 0.005 + 1e-9)
-        assert 3.35 <= T2[nme]["baseline"]["dm"] <= 3.55
+        assert not gate_866 or 3.35 <= T2[nme]["baseline"]["dm"] <= 3.55
     for est, nme, sc in (
         ("lgbm", "LightGBM", "score_lgbm"),
         ("xgb", "XGBoost", "score_xgb"),
@@ -1927,7 +2172,7 @@ def main() -> None:
         for b in ("baseline", "all_features"):
             near(T2[nme][b]["pct"], float(pp.loc[b, "qlike_pct"]), 1e-6)
             near(T2[nme][b]["dm"], float(pp.loc[b, "dm"]), 1e-6)
-            near(T2[nme][b]["t"], float(pp.loc[b, "hac_t_mid"]), 1e-6)
+            near_t(T2[nme][b]["t"], float(pp.loc[b, "hac_t_mid"]), 1e-6)
         lvp = pd.read_csv(POOLTREE / sc / "levels.csv")
         lvp = lvp[lvp["forecast"].str.startswith("pooled")].set_index("bucket")
         near(
@@ -1942,11 +2187,11 @@ def main() -> None:
         )
     for nme in ("LightGBM", "XGBoost", "Random forest"):
         # trimmed target (parked 2026-10-15): HAR + cal. 24.0-27.5 % / DM 4.3-4.8; all features 11.0-14.0 % / DM 2.7-3.0
-        assert (
+        assert not gate_866 or (
             25.0 <= T2[nme]["baseline"]["pct"] <= 28.0
             and 4.2 <= T2[nme]["baseline"]["dm"] <= 4.6
         )
-        assert (
+        assert not gate_866 or (
             11.0 <= T2[nme]["all_features"]["pct"] <= 14.2
             and 2.7 <= T2[nme]["all_features"]["dm"] <= 3.1
         )
@@ -1964,21 +2209,21 @@ def main() -> None:
     pa, pb0 = "mingru_pooled_rinitq_all_features", "mingru_pooled_rinitq_baseline"
     near(lv[pa]["qlike"], 0.1141, 5e-5)  # was 0.1121 (trimmed target)
     near(lv[pb0]["qlike"], 0.1177, 5e-5)  # was 0.1151
-    near(lv[pa]["sharpe"], 0.34, 5e-3)
-    near(lv[pa]["sharpe_x"], -0.13, 5e-3)
-    near(lv[pb0]["sharpe"], 0.78, 5e-3)
-    near(lv[pb0]["sharpe_x"], 0.31, 5e-3)
+    near_t(lv[pa]["sharpe"], 0.34, 5e-3)
+    near_t(lv[pa]["sharpe_x"], -0.13, 5e-3)
+    near_t(lv[pb0]["sharpe"], 0.78, 5e-3)
+    near_t(lv[pb0]["sharpe_x"], 0.31, 5e-3)
     sc = pd.read_csv(NN_POOLED / "at1600_scores.csv")
     sc = sc[sc["model"] == "pooled ridge-init QLIKE (MinGRU)"].set_index("design")
     for b, k in (("all_features", pa), ("baseline", pb0)):
         near(lv[k]["qlike"], float(sc.loc[b, "qlike"]), 1e-9)
-        near(lv[k]["sharpe"], float(sc.loc[b, "sharpe_mid"]), 1e-6)
-        near(lv[k]["sharpe_x"], float(sc.loc[b, "sharpe_crossed"]), 1e-6)
+        near_t(lv[k]["sharpe"], float(sc.loc[b, "sharpe_mid"]), 1e-6)
+        near_t(lv[k]["sharpe_x"], float(sc.loc[b, "sharpe_crossed"]), 1e-6)
     near(T1[("pooled", NN_NAME)]["pct"], -3.0, 0.05)  # was -2.7 (trimmed target)
     near(T1[("pooled", NN_NAME)]["p"], 0.47, 0.005)  # was 0.52
     near(T2[NN_NAME]["all_features"]["pct"], 18.1, 0.05)  # was 18.2
     near(T2[NN_NAME]["baseline"]["pct"], 17.0, 0.05)  # was 16.8
-    assert (
+    assert not gate_866 or (
         T2[NN_NAME]["all_features"]["p"] < 1e-4 * 1.5
         and T2[NN_NAME]["baseline"]["p"] < 2e-3  # was < 1.5e-3
     )
@@ -2000,14 +2245,15 @@ def main() -> None:
         c = cn.loc[(mod, vs)]
         near(got["pct"], float(c["qlike_pct"]), 1e-6)
         near(got["p"], float(c["p_qlike"]), 1e-6)  # the study's p is dm_test's: same DM
-        near(got["t"], float(c["hac_t_mid"]), 1e-6)
+        near_t(got["t"], float(c["hac_t_mid"]), 1e-6)
 
     # ---- T3: ranking vs the per-bar OLS ----
     extra = [
-        "mingru_rinitq_baseline",
-        "mingru_rinitq_all_features",
-        "mingru_pooled_rinitq_baseline",
-        "mingru_pooled_rinitq_all_features",
+        # 2026-10-15 (user): parked -- NN content parked for now (ranks recompute among the other forecasts)
+        # "mingru_rinitq_baseline",
+        # "mingru_rinitq_all_features",
+        # "mingru_pooled_rinitq_baseline",
+        # "mingru_pooled_rinitq_all_features",
         "pooltree_lgbm_baseline",
         "pooltree_xgb_baseline",
         "pooltree_rf_baseline",
@@ -2039,6 +2285,13 @@ def main() -> None:
         rows.append(r)
     rank = pd.DataFrame(rows).set_index("key").sort_values("qlike")
     rank["rank"] = np.arange(1, len(rank) + 1)
+    # 2026-10-15 (user): NN content parked for now -- the four MinGRU forecasts leave the ranking: forecasts ranked
+    # 120 -> 116; the per-bar OLS ranks 9 -> 8 (the per-bar MinGRU on the full predictor set was 5th, above it)
+    assert not rank.index.str.startswith("mingru_").any()
+    assert len(rank) == 116, len(rank)  # was 120
+    assert not gate_866 or int(rank.loc[OLS, "rank"]) == 8, rank.loc[
+        OLS, "rank"
+    ]  # was 9
     ms = rank[rank["in_set"] & (rank.index != OLS)]
     n_set, n_lower3, n_lower3_sig, n_worse_sig = (
         len(ms),
@@ -2047,7 +2300,13 @@ def main() -> None:
         int(((ms["pct"] > 0) & (ms["p"] < SIG)).sum()),
     )
     # (111, 7, 0, 48) on the trimmed target (parked 2026-10-15)
-    assert (n_set, n_lower3, n_lower3_sig, n_worse_sig) == (111, 7, 0, 51), (
+    assert n_set == 111, n_set
+    assert not gate_866 or (n_set, n_lower3, n_lower3_sig, n_worse_sig) == (
+        111,
+        7,
+        0,
+        51,
+    ), (
         n_set,
         n_lower3,
         n_lower3_sig,
@@ -2061,7 +2320,7 @@ def main() -> None:
         .abs()
         .max()
     )
-    assert lin_base_max < 0.05
+    assert not gate_866 or lin_base_max < 0.05
     head = [OLS, "a0", "blk2"]
     for _, _, pb, pool in FAMILY_ROWS:
         head += list(pb) + (list(pool) if pool else [])
@@ -2089,10 +2348,15 @@ def main() -> None:
     sub3 = rank.loc[
         head
     ]  # T3: the closing-interval rows rank above the pooled intraday rows (panels keep the order)
-    assert (
+    t3_split = bool(
         sub3.loc[sub3["fit"] == "per-bar", "rank"].max()
         < sub3.loc[sub3["fit"] == "pooled", "rank"].min()
     )
+    assert not gate_866 or t3_split  # 2026-10-15: the 866-day ordering of record
+    if not t3_split:
+        print(
+            "T3 (parked): on this span a pooled intraday headline row ranks above a closing-interval one"
+        )
     assert (
         set(rank["panel"]) == {"A", "B", "C"}
         and (rank.loc[rank["panel"] == "A", "fit"] == "per-bar").all()
@@ -2113,16 +2377,20 @@ def main() -> None:
     best = [
         ("subpt_lasso_all_features", LIN, "Lasso"),
         ("subtree_daily_all_features_xgb", TREE, "XGBoost"),
-        ("mingru_rinitq_all_features", NN, "MinGRU"),
+        # ("mingru_rinitq_all_features", NN, "MinGRU"),  # 2026-10-15 (user): parked -- NN content parked for now
     ]
     for key, fam, _ in best:  # the best per-bar forecast of each family on QLIKE
         famrows = rank[(rank["family"] == fam) & (rank["fit"] == "per-bar")]
-        assert famrows.index[0] == key, (fam, famrows.index[0])
+        assert not gate_866 or famrows.index[0] == key, (fam, famrows.index[0])
     cum = fig_f3(by, best)
+    # 2026-10-15 (user): NN content parked for now -- the MinGRU is off F3 (and F5); its \rhrCumNn* sums stay defined
+    nnk = NN_ROW[2][1]  # the per-bar MinGRU on the full predictor set (was best[2])
+    cum[nnk] = cum_diff(by, nnk)[1]
     show: list[tuple[str, str | None, str]] = [(OLS, None, "OLS, HAR + cal."), *best]
     f5 = fig_f5(by, show)  # (typed for mypy, 2026-10-15; same list as before)
     se_top5 = [f5[f"{k}_se_top5"] for k, *_ in [(OLS,)] + best]
-    assert all(0.85 <= x / 100 <= 0.925 for x in se_top5), (
+    assert len(se_top5) == 3  # F5 forecasts: 4 -> 3 (MinGRU parked)
+    assert not gate_866 or all(0.85 <= x / 100 <= 0.925 for x in se_top5), (
         se_top5
     )  # outline: five March 2020 days carry 85-92 % (83-91 % on the trimmed target)
     for k, *_ in [
@@ -2150,14 +2418,246 @@ def main() -> None:
     )
     print("wrote generated/rehaul_results_t{1_axis1,2_pooled,3_ranking,3_full}.tex")
 
+    # ---- 2026-10-15: the claims the prose of 06_results.tex makes on the rolling span (asserted, so it can't drift) ----
+    if SPAN == "rolling":
+        sig_t1 = {(r["fit"], r["name"]) for r in t1 if r["p"] < SIG}
+        assert sig_t1 == {
+            ("pooled", "LightGBM"),
+            ("pooled", "XGBoost"),
+            ("pooled", "Random forest"),
+            ("pooled", "Elastic net"),
+        }, (
+            sig_t1
+        )  # 6.3: the pooled trees and the pooled elastic net are the significant reductions
+        assert all(r["pct"] < 0 for r in t1), (
+            "6.3: Full lowers QLIKE in every model class"
+        )
+        assert all(r[b]["pct"] > 0 for r in t2 for b in ("baseline", "all_features")), (
+            "6.4: pooled > closing"
+        )
+        assert {
+            r["name"] for r in t2 if r["family"] == LIN and r["all_features"]["p"] < SIG
+        } == {"Lasso"}
+        assert all(r["baseline"]["p"] < SIG for r in t2), (
+            "6.4: every HAR-benchmark difference significant"
+        )
+        assert all(r["all_features"]["p"] < SIG for r in t2 if r["family"] == TREE), (
+            "6.4: trees, full set"
+        )
+        top4 = set(rank.index[:4])
+        assert top4 == {
+            "subpt_lasso_all_features",
+            "subpt_enet_all_features",
+            "subpt_ridge_all_features",
+            "subtree_daily_all_features_xgb",
+        }, (
+            top4
+        )  # 6.5: the four most accurate, each closing-interval on the full set ...
+        assert all(
+            rank.loc[k, "p"] >= SIG for k in top4
+        )  # ... none significantly better than the benchmark
+        assert lasso_mse_ex_pct < 0, (
+            "6.3: outside Feb-Apr 2020 the lasso (full) has the lower MSE"
+        )
+        assert (
+            list(rank.index[-3:]).count("pooltree_lgbm_baseline")
+            + list(rank.index[-3:]).count("pooltree_rf_baseline")
+            == 2
+        ), "6.5: the pooled trees on HAR are among the least accurate"
+
+    # ---- 2026-10-15 (user, restructure): "I need the last 30 min scheme to be moved to the end of the economic
+    # application section as a final cherry on top instead of competing with the exogenous feature signal story".
+    # Experiments and the body of Economic value now present the pooled intraday models only (the 12 forecasts of T1
+    # Panel B); the closing-interval (last-30-minutes) results move to the final subsection of Economic value
+    # (sec:rh_econ_last30). Pooled-only statistics for that prose, each claim asserted. The model-set versions they
+    # replace in the body are recomputed here from the same frames and gated against their macros of record
+    # (close_main_numbers: \cmMasterVsShort*; rehaul_econ_numbers: \rheShortSh, \rheEnet*, \rheSz*, \rheTailNeg), so
+    # the pooled numbers use the same construction.
+    pool_keys = [
+        k for *_, pool in FAMILY_ROWS for k in pool
+    ]  # T1 Panel B: 6 classes x (HAR, Full)
+    pool_full = [pool[1] for *_, pool in FAMILY_ROWS]
+    pool_har = [pool[0] for *_, pool in FAMILY_ROWS]
+    lin_n = [n for n, fam, *_ in FAMILY_ROWS if fam == LIN]
+    tree_n = [n for n, fam, *_ in FAMILY_ROWS if fam == TREE]
+    pool_of = {n: pool for n, _, _, pool in FAMILY_ROWS}
+    assert len(pool_keys) == 12 and len(lin_n) == 3 and len(tree_n) == 3
+    t1p = {n: T1[("pooled", n)] for n in lin_n + tree_n}
+    t1c = {n: T1[("per-bar", n)] for n in lin_n + tree_n}
+
+    # the short-straddle benchmark (q_t = -1) and each forecast's sign strategy against it (866 days)
+    ref_ix = by[OLS].index
+    assert np.allclose(np.abs(by[OLS]["q"]), 1.0)
+    r_book = by[OLS]["ret_mid"] * by[OLS]["q"]  # the straddle return R_t (q = +-1)
+    short_mid = -r_book
+    near_t(sharpe(short_mid), 0.20, 5e-3)  # = \rheShortSh
+
+    def vs_short(k: str) -> dict:
+        f = by[k]
+        assert f.index.equals(ref_ix), k
+        d = f["ret_mid"] - short_mid
+        t_, lag_ = asl.newey_west_t(d)
+        assert lag_ == HAC_LAG
+        return {
+            "dsh": sharpe(f["ret_mid"]) - sharpe(short_mid),
+            "t": float(t_),
+            "p": float(math.erfc(abs(t_) / math.sqrt(2.0))),
+            "tail": float(d.sum() - d.nlargest(TOP_DAYS).sum()),
+        }
+
+    vs_ms = {
+        k: vs_short(k) for k in s["key"]
+    }  # gate: the model set reproduces its macros of record
+    assert sum(v["dsh"] > 0 for v in vs_ms.values()) == 112  # \cmMasterVsShortAbove
+    assert (
+        sum(v["t"] > Z95 for v in vs_ms.values()) == 20
+    )  # \cmMasterVsShortAboveSig = \rheSigVsShort
+    assert sum(v["tail"] < 0 for v in vs_ms.values()) == 102  # \rheTailNeg
+    en = "subpt_enet_all_features"  # \rheEnetSh, \rheEnetShX, \rheEnetT
+    near_t(lv[en]["sharpe"], 1.92, 5e-3)
+    near_t(lv[en]["sharpe_x"], 1.43, 5e-3)
+    near_t(vs_ms[en]["t"], 2.56, 5e-3)
+    vs_sh = {
+        k: vs_short(k)
+        for _, _, pb, pool in FAMILY_ROWS + [NN_ROW]
+        for k in (*pb, *pool)
+    }
+    pool_sig_short = {k for k in pool_keys if vs_sh[k]["t"] > Z95}
+
+    # sizing: the GUI's scorer on the gap plain - iv_var, scored after the 252-day warm-up (= make_rehaul_economics.py)
+    qbook = pd.read_parquet(
+        QUOTES, columns=["R", "exit", "bid_c", "bid_p", "ask_c", "ask_p"]
+    )
+    qbook.index = pd.to_datetime(qbook.index).normalize()
+    qbook = qbook.reindex(ref_ix)
+    assert np.allclose(
+        qbook["R"].to_numpy(float), r_book.to_numpy(float), rtol=1e-12, atol=1e-15
+    )
+
+    def sizing(k: str) -> dict:
+        f = by[k]
+        return gui._score_sizes(
+            (f["plain"] - f["iv_var"]).to_numpy(float),
+            qbook["R"].to_numpy(float),
+            qbook["exit"].to_numpy(float),
+            (qbook["bid_c"] + qbook["bid_p"]).to_numpy(float),
+            (qbook["ask_c"] + qbook["ask_p"]).to_numpy(float),
+        )
+
+    sz_ms = {
+        k: sizing(k) for k in s["key"]
+    }  # gate: \rheSzSignMed, \rheSzClipMed, \rheSzLfssMed, \rheSzRankMed
+    meds_ms = tuple(
+        round(float(np.median([v[r]["sharpe_mid"] for v in sz_ms.values()])), 2)
+        for r in ("sign", "clip", "lfss", "rank")
+    )
+    assert meds_ms == (0.92, 1.34, 1.12, 1.34), meds_ms
+    assert (
+        sum(v["clip"]["d_vs_sign"] > 0 for v in sz_ms.values()) == 98
+    )  # \rheSzClipBeats
+    sz_pool = {k: sizing(k) for k in pool_keys}
+
+    def med_sz(r: str) -> float:
+        return float(np.median([sz_pool[k][r]["sharpe_mid"] for k in pool_keys]))
+
+    # squared-error concentration of the pooled forecasts on the full predictor set (rolling span)
+    se_pool, ql_pool = [], []
+    for k in pool_full:
+        a_ = acc_of(by[k])
+        se_ = (a_["rv_unclipped"] - a_["plain"]) ** 2
+        top_ = se_.nlargest(5)
+        se_pool.append(100.0 * float(top_.sum() / se_.sum()))
+        ql_pool.append(
+            100.0 * float(a_["qlike_raw"].loc[top_.index].sum() / a_["qlike_raw"].sum())
+        )
+        assert SPAN != "rolling" or all(
+            str(d.date()).startswith("2020-03") for d in top_.index
+        ), (k, top_.index)
+
+    # the pooled forecasts against the benchmark forecast (the closing-interval OLS on HAR), and their QLIKE levels
+    vb_pool = {k: pair(by[k], by[OLS]) for k in pool_keys}
+    qv = {k: lv[k]["qlike"] for k in pool_keys}
+
+    def qs(names: list[str], i: int) -> list[float]:
+        return [qv[pool_of[n][i]] for n in names]
+
+    vb_lin_full = [vb_pool[pool_of[n][1]]["pct"] for n in lin_n]
+    vb_tree_full = [vb_pool[pool_of[n][1]]["pct"] for n in tree_n]
+    vb_har = [vb_pool[k]["pct"] for k in pool_har]
+    sh_full = [lv[k]["sharpe"] for k in pool_full]
+    sh_har = [lv[k]["sharpe"] for k in pool_har]
+    dsh_pool = [t1p[n]["dsh"] for n in lin_n + tree_n]
+    if (
+        SPAN == "rolling"
+    ):  # the prose's claims (06_results.tex, 07_economics.tex), asserted
+        # 5.3: the full predictor set lowers QLIKE in every pooled class; significant for the trees and the enet; the
+        # trees' reductions are the largest; the squared error is mixed, never significant
+        assert all(r["pct"] < 0 for r in t1p.values())
+        assert {n for n, r in t1p.items() if r["p"] < SIG} == set(tree_n) | {
+            "Elastic net"
+        }
+        assert min(abs(t1p[n]["pct"]) for n in tree_n) > max(
+            abs(t1p[n]["pct"]) for n in lin_n
+        )
+        assert not any(r["p_mse"] < SIG for r in t1p.values())
+        # 5.5: the three most accurate pooled forecasts are the linear models on the full predictor set; linear below
+        # trees on each predictor set; every pooled forecast above the benchmark forecast, on the full predictor set
+        # significantly for the trees only, on the HAR benchmark all at 1 %; the full set narrows the gap in each class
+        assert set(sorted(pool_keys, key=lambda k: qv[k])[:3]) == {
+            pool_of[n][1] for n in lin_n
+        }
+        assert max(qs(lin_n, 1)) < min(qs(tree_n, 1)) and max(qs(lin_n, 0)) < min(
+            qs(tree_n, 0)
+        )
+        assert all(vb_pool[k]["pct"] > 0 for k in pool_keys)
+        assert {n for n in lin_n + tree_n if vb_pool[pool_of[n][1]]["p"] < SIG} == set(
+            tree_n
+        )
+        assert all(vb_pool[k]["p"] < 0.01 for k in pool_har)
+        assert all(
+            vb_pool[pool_of[n][1]]["pct"] < vb_pool[pool_of[n][0]]["pct"]
+            for n in lin_n + tree_n
+        )
+        # final subsection: the full predictor set lowers QLIKE in every closing-interval class, none at 5 %
+        assert all(r["pct"] < 0 for r in t1c.values()) and not any(
+            r["p"] < SIG for r in t1c.values()
+        )
+    # 6.3 (trade statistics, 866 days in every mode): every pooled sign strategy above the short straddle, the
+    # significant gains are the three trees on the full predictor set; the three highest pooled Sharpe ratios are the
+    # elastic net, ridge and LightGBM on the full predictor set; the full set raises every pooled Sharpe ratio, never
+    # significantly; without its 10 best days every pooled forecast's gain over the short straddle is negative
+    assert all(vs_sh[k]["dsh"] > 0 for k in pool_keys)
+    assert pool_sig_short == {pool_of[n][1] for n in tree_n}, pool_sig_short
+    assert sorted(pool_keys, key=lambda k: -lv[k]["sharpe"])[:3] == [
+        "poolpt_enet_all_features",
+        "poolpt_ridge_all_features",
+        "pooltree_lgbm_all_features",
+    ]
+    assert min(sh_full) > max(sh_har)
+    assert all(x > 0 for x in dsh_pool) and not any(t1p[n]["p_t"] < SIG for n in t1p)
+    assert all(vs_sh[k]["tail"] < 0 for k in pool_keys)
+    assert sum(sz_pool[k]["clip"]["d_vs_sign"] > 0 for k in pool_keys) == 11
+    # final subsection: the closing-interval elastic net and lasso on the full predictor set earn a higher Sharpe ratio
+    # than every pooled intraday forecast
+    assert min(
+        lv[k]["sharpe"] for k in ("subpt_enet_all_features", "subpt_lasso_all_features")
+    ) > max(lv[k]["sharpe"] for k in pool_keys)
+    # ... and the elastic net's is the highest of the model set (= \cmMasterShMax)
+    assert max(s["key"], key=lambda k: lv[k]["sharpe"]) == "subpt_enet_all_features"
+
     # ---- macros for the captions ----
     def pm(x: float, nd: int) -> str:
         s_ = f"{x:+.{nd}f}"
         return f"\\ensuremath{{{s_[0] if s_[0] == '+' else '-'}}}{s_[1:]}"
 
-    lasso, xgbk, nnk = (k for k, *_ in best)
+    # lasso, xgbk, nnk = (k for k, *_ in best)  # 2026-10-15 (user): parked -- NN content parked for now
+    lasso, xgbk = (k for k, *_ in best)  # nnk: set above, off the figure
     nums = {
-        "Days": (str(NDAYS), "trade days scored"),
+        # "Days": (str(NDAYS), "trade days scored"),  # 2026-10-15: parked -- the comment; the value is unchanged
+        "Days": (
+            str(NDAYS),
+            "days of the option-data subsample: trades, Sharpe ratios (accuracy: rhoosDays of rehaul_oos_numbers)",
+        ),
         "NNPooledSeeds": (
             str(NN_POOLED_SEEDS[0]),
             "seeds averaged in the pooled MinGRU forecast",
@@ -2193,14 +2693,14 @@ def main() -> None:
         ),
         "SETopFiveMin": (
             f"{min(se_top5):.0f}",
-            "min over the four F5 forecasts: % of squared error on the 5 largest days",
+            "min over the F5 forecasts (OLS, lasso, XGBoost; MinGRU parked): % of squared error on the 5 largest days",
         ),
-        "SETopFiveMax": (f"{max(se_top5):.0f}", "max over the four F5 forecasts"),
+        "SETopFiveMax": (f"{max(se_top5):.0f}", "max over the F5 forecasts"),
         "QLTopFiveMin": (
             f"{min(ql_top5):.0f}",
-            "min over the four F5 forecasts: % of total QLIKE on the 5 largest days",
+            "min over the F5 forecasts (OLS, lasso, XGBoost; MinGRU parked): % of total QLIKE on the 5 largest days",
         ),
-        "QLTopFiveMax": (f"{max(ql_top5):.0f}", "max over the four F5 forecasts"),
+        "QLTopFiveMax": (f"{max(ql_top5):.0f}", "max over the F5 forecasts"),
         "CumLassoTotal": (
             pm(cum[lasso]["total"], 2),
             "lasso, all features: sum over days of the QLIKE difference vs the OLS",
@@ -2217,7 +2717,10 @@ def main() -> None:
             pm(cum[xgbk]["window"], 2),
             "... of which in 24 Feb - 30 Apr 2020",
         ),
-        "CumNnTotal": (pm(cum[nnk]["total"], 2), "MinGRU, all features: sum over days"),
+        "CumNnTotal": (
+            pm(cum[nnk]["total"], 2),
+            "MinGRU, all features: sum over days (parked: off F3, unused by the floats)",
+        ),
         "CumNnWindow": (
             pm(cum[nnk]["window"], 2),
             "... of which in 24 Feb - 30 Apr 2020",
@@ -2315,10 +2818,33 @@ def main() -> None:
     # benchmark (NOTATION_GUIDE 6b), so the prose can drop its typed values; every value is the one the tables print.
     d0, d1 = by[OLS].index[0], by[OLS].index[-1]
     assert (str(d0.date()), str(d1.date())) == ("2020-01-03", "2024-04-30"), (d0, d1)
+    cs_ = rolling.common_span()
+    assert (cs_[0], cs_[-1]) == (d0, d1), (
+        cs_[0],
+        cs_[-1],
+    )  # 2026-10-15: the rolling span has the same ends
     nums.update(
         {
-            "SampleStart": (f"{d0.day} {d0:%B %Y}", "first out-of-sample day"),
-            "SampleEnd": (f"{d1.day} {d1:%B %Y}", "last out-of-sample day"),
+            # 2026-10-15: parked -- "first / last out-of-sample day"; the dates are unchanged (asserted above)
+            "SampleStart": (
+                f"{d0.day} {d0:%B %Y}",
+                "first day of the option-data subsample (= of the rolling span)",
+            ),
+            "SampleEnd": (
+                f"{d1.day} {d1:%B %Y}",
+                "last day of the option-data subsample (= of the rolling span)",
+            ),
+            "TrVsRidgeN": (
+                str(len(tr)),
+                "tree forecasts compared with the closing-interval ridge, same predictors",
+            ),
+            "TrVsRidgeQAbove": (str(n_tr_above), "... with the higher average QLIKE"),
+            "TrVsRidgeQAboveSig": (str(n_tr_above_sig), "... and DM p < 0.05"),
+            "TrVsRidgeQBelowSig": (str(n_tr_below_sig), "... lower and DM p < 0.05"),
+            "LassoMseExCrashPct": (
+                mnum(lasso_mse_ex_pct, 1),
+                "lasso (full) vs the HAR benchmark: MSE % change outside 24 Feb - 30 Apr 2020",
+            ),
             "DMLag": (
                 str(DM_LAG),
                 "Newey-West lag q_NW of every DM statistic (dm_test's automatic lag)",
@@ -2352,17 +2878,22 @@ def main() -> None:
     m_bm: dict[str, tuple[str, str]] = {}
     m_af: dict[str, tuple[str, str]] = {}
     m_pc: dict[str, tuple[str, str]] = {}
-    for name, _, pb, pool in FAMILY_ROWS:
+    # 2026-10-15 (user): NN content parked for now -- NN_ROW keeps its Nn macros defined (unused by the floats); its
+    # forecasts are no longer in the ranking, so only the others are checked against the T3 rows
+    for name, _, pb, pool in FAMILY_ROWS + [NN_ROW]:
         mt = tok[name]
         for scope, ks in (("Close", pb), ("Pool", pool)):
             for i, b in enumerate(("baseline", "all_features")):
                 k = ks[i]
                 vb = pair(by[k], by[OLS])
-                rk = rank.loc[alias.get(k, k)]  # = the T3 rows
-                assert (
-                    abs(vb["pct"] - rk["pct"]) < 1e-12
-                    and abs(vb["dm"] - rk["dm"]) < 1e-12
-                ), k
+                if name == NN_NAME:
+                    assert alias.get(k, k) not in rank.index, k
+                else:
+                    rk = rank.loc[alias.get(k, k)]  # = the T3 rows
+                    assert (
+                        abs(vb["pct"] - rk["pct"]) < 1e-12
+                        and abs(vb["dm"] - rk["dm"]) < 1e-12
+                    ), k
                 pre = f"{mt}{scope}{xtok[b]}"
                 m_q[f"Q{pre}"] = (q4(lv[k]["qlike"]), f"mean QLIKE, {k}")
                 m_bm.update(
@@ -2386,7 +2917,170 @@ def main() -> None:
                     f"T2, {name} on {xtok[b]}: pooled vs per-bar",
                 )
             )
-    for fam_ in (m_q, m_bm, m_af, m_pc):
+    # 2026-10-15 (user, restructure): per-model trade macros (the sign strategy on the option-data subsample), for the
+    # pooled intraday body of Economic value and its last-30-minutes final subsection
+    m_sh: dict[str, tuple[str, str]] = {}
+    for name, _, pb, pool in FAMILY_ROWS + [NN_ROW]:
+        mt = tok[name]
+        for scope, ks in (("Close", pb), ("Pool", pool)):
+            for i, b in enumerate(("baseline", "all_features")):
+                k = ks[i]
+                pre = f"{mt}{scope}{xtok[b]}"
+                m_sh[f"Sh{pre}"] = (
+                    mnum(lv[k]["sharpe"], 2),
+                    f"sign-strategy Sharpe ratio, mid-quotes, {k}",
+                )
+                m_sh[f"ShX{pre}"] = (
+                    mnum(lv[k]["sharpe_x"], 2),
+                    "... at quoted bid/ask prices",
+                )
+                m_sh[f"VsShort{pre}T"] = (
+                    mnum(vs_sh[k]["t"], 2),
+                    "... HAC t of the daily mid-return differential over the short straddle",
+                )
+        for scope, fit in (("Close", "per-bar"), ("Pool", "pooled")):
+            r_ = T1[(fit, name)]
+            m_sh[f"Af{mt}{scope}DSh"] = (
+                pm(r_["dsh"], 2),
+                f"T1, {fit} {name}: Sharpe mid, Full minus HAR",
+            )
+            m_sh[f"Af{mt}{scope}DShT"] = (
+                mnum(r_["t"], 2),
+                "... HAC t of the daily mid-return differential",
+            )
+    # 2026-10-15 (user, restructure): pooled-only aggregates (asserted above) and the closing-interval T1 summary
+    m_pool = {
+        "PoolN": (
+            str(len(pool_keys)),
+            "pooled intraday forecasts (T1 Panel B: 6 classes x HAR, Full)",
+        ),
+        "AfPoolPairs": (str(len(t1p)), "pooled Full vs HAR pairs (one per class)"),
+        "AfPoolLower": (
+            str(sum(r["pct"] < 0 for r in t1p.values())),
+            "... QLIKE lower with Full",
+        ),
+        "AfPoolLowerSig": (
+            str(sum(r["pct"] < 0 and r["p"] < SIG for r in t1p.values())),
+            "... and DM p < 0.05",
+        ),
+        "AfPoolMseHigher": (
+            str(sum(r["mse_pct"] > 0 for r in t1p.values())),
+            "... MSE higher with Full",
+        ),
+        "AfPoolMseHigherSig": (
+            str(sum(r["mse_pct"] > 0 and r["p_mse"] < SIG for r in t1p.values())),
+            "... and DM (squared error) p < 0.05",
+        ),
+        "AfPoolShHigher": (
+            str(sum(x > 0 for x in dsh_pool)),
+            "... Sharpe mid higher with Full",
+        ),
+        "AfPoolShHigherSig": (
+            str(sum(r["dsh"] > 0 and r["p_t"] < SIG for r in t1p.values())),
+            "... and HAC t p < 0.05",
+        ),
+        "AfPoolDShMin": (
+            pm(min(dsh_pool), 2),
+            "... Sharpe mid change, Full minus HAR: min",
+        ),
+        "AfPoolDShMax": (pm(max(dsh_pool), 2), "... max"),
+        "AfPoolDShMed": (pm(float(np.median(dsh_pool)), 2), "... median"),
+        "AfClosePairs": (
+            str(len(t1c)),
+            "closing-interval Full vs HAR pairs (one per class)",
+        ),
+        "AfCloseLower": (
+            str(sum(r["pct"] < 0 for r in t1c.values())),
+            "... QLIKE lower with Full",
+        ),
+        "AfCloseLowerSig": (
+            str(sum(r["pct"] < 0 and r["p"] < SIG for r in t1c.values())),
+            "... and DM p < 0.05",
+        ),
+        "AfClosePctMin": (
+            mnum(min(r["pct"] for r in t1c.values()), 1),
+            "... QLIKE % change: min",
+        ),
+        "AfClosePctMax": (mnum(max(r["pct"] for r in t1c.values()), 1), "... max"),
+        "PoolSETopFiveMin": (
+            f"{min(se_pool):.0f}",
+            "pooled forecasts on Full: % of total squared error on their 5 largest days (all in March 2020), min",
+        ),
+        "PoolSETopFiveMax": (f"{max(se_pool):.0f}", "... max"),
+        "PoolQLTopFiveMin": (
+            f"{min(ql_pool):.0f}",
+            "... % of total QLIKE on those days, min",
+        ),
+        "PoolQLTopFiveMax": (f"{max(ql_pool):.0f}", "... max"),
+        "PoolQLinFullMin": (
+            q4(min(qs(lin_n, 1))),
+            "mean QLIKE, pooled linear models on Full: min",
+        ),
+        "PoolQLinFullMax": (q4(max(qs(lin_n, 1))), "... max"),
+        "PoolQTreeFullMin": (
+            q4(min(qs(tree_n, 1))),
+            "mean QLIKE, pooled trees on Full: min",
+        ),
+        "PoolQTreeFullMax": (q4(max(qs(tree_n, 1))), "... max"),
+        "PoolQLinHarMin": (
+            q4(min(qs(lin_n, 0))),
+            "mean QLIKE, pooled linear models on HAR: min",
+        ),
+        "PoolQLinHarMax": (q4(max(qs(lin_n, 0))), "... max"),
+        "PoolQTreeHarMin": (
+            q4(min(qs(tree_n, 0))),
+            "mean QLIKE, pooled trees on HAR: min",
+        ),
+        "PoolQTreeHarMax": (q4(max(qs(tree_n, 0))), "... max"),
+        "VsBmPoolLinFullPctMin": (
+            f"{min(vb_lin_full):.1f}",
+            "pooled linear on Full vs the benchmark forecast: QLIKE % change, min (all > 0)",
+        ),
+        "VsBmPoolLinFullPctMax": (f"{max(vb_lin_full):.1f}", "... max"),
+        "VsBmPoolTreeFullPctMin": (
+            f"{min(vb_tree_full):.1f}",
+            "pooled trees on Full vs the benchmark forecast: min",
+        ),
+        "VsBmPoolTreeFullPctMax": (f"{max(vb_tree_full):.1f}", "... max"),
+        "VsBmPoolHarPctMin": (
+            f"{min(vb_har):.1f}",
+            "pooled models on HAR vs the benchmark forecast: min",
+        ),
+        "VsBmPoolHarPctMax": (f"{max(vb_har):.1f}", "... max"),
+        "PoolShortAbove": (
+            str(sum(vs_sh[k]["dsh"] > 0 for k in pool_keys)),
+            "pooled forecasts whose sign strategy has a higher Sharpe mid than the short straddle",
+        ),
+        "PoolShortSig": (
+            str(len(pool_sig_short)),
+            "... with HAC t > 1.96 (the three trees on Full)",
+        ),
+        "PoolShHarMin": (
+            mnum(min(sh_har), 2),
+            "Sharpe mid of the pooled forecasts on HAR: min",
+        ),
+        "PoolShHarMax": (mnum(max(sh_har), 2), "... max"),
+        "PoolShFullMin": (
+            mnum(min(sh_full), 2),
+            "Sharpe mid of the pooled forecasts on Full: min",
+        ),
+        "PoolShFullMax": (mnum(max(sh_full), 2), "... max"),
+        "PoolSzSignMed": (
+            f"{med_sz('sign'):.2f}",
+            "sizing sign: median Sharpe mid over the pooled forecasts, 614 days",
+        ),
+        "PoolSzClipMed": (f"{med_sz('clip'):.2f}", "sizing robust clip: median"),
+        "PoolSzRankMed": (f"{med_sz('rank'):.2f}", "sizing rank of |gap|: median"),
+        "PoolSzClipBeats": (
+            str(sum(sz_pool[k]["clip"]["d_vs_sign"] > 0 for k in pool_keys)),
+            "pooled forecasts with clip Sharpe mid above sign",
+        ),
+        "PoolTailNeg": (
+            str(sum(vs_sh[k]["tail"] < 0 for k in pool_keys)),
+            "pooled forecasts whose gain over the short straddle is < 0 without their 10 best days",
+        ),
+    }
+    for fam_ in (m_q, m_bm, m_af, m_pc, m_sh, m_pool):
         assert not set(fam_) & set(nums), set(fam_) & set(nums)
         nums.update(fam_)
     # 2026-10-15 (table legibility): parked -- the header now lists the macro families (NOTATION_GUIDE 6b)
@@ -2396,15 +3090,31 @@ def main() -> None:
     # ]
     lines = [
         "% AUTO-GENERATED by writeup/make_rehaul_results.py -- do not edit. Macro definitions only (no tables); loaded",
-        "% once by the preamble of paper_rehaul.tex. Every QLIKE is against the actual realized variance of the closing",
-        "% half hour on the \\rhrDays out-of-sample trading days; DM: dm_test, HLN-corrected, Newey-West lag \\rhrDMLag;",
+        # 2026-10-15 (user): parked -- accuracy over every rolling forecast. Was: "Every QLIKE is against the actual
+        # realized variance of the closing half hour on the \\rhrDays out-of-sample trading days; DM: dm_test, ..."
+        "% once by the preamble of paper_rehaul.tex. Every QLIKE, squared error and DM is against the actual realized",
+        (
+            "% variance of the closing half hour on the common rolling span (\\rhoosDays trading days, \\rhoosSpanStart"
+            " to \\rhoosSpanEnd); every Sharpe ratio and HAC t on the \\rhrDays days of the option-data subsample."
+            if SPAN == "rolling"
+            else "% variance of the closing half hour. mt866 CHECK RUN: every number on the 866 option-data days."
+        ),
+        "% DM: dm_test, HLN-corrected, Newey-West lag \\rhrDMLag;",
         "% HAC t: newey_west_t, lag \\rhrHACLag; p two-sided normal; stars at the 10 / 5 / 1 % levels.",
-        "% Per-model families (<M> = Ridge, Lasso, Enet, Lgbm, Xgb, Rf, Nn; <S> = Close | Pool, the closing-interval or",
+        # 2026-10-15 (user): parked -- NN content parked for now
+        # "% Per-model families (<M> = Ridge, Lasso, Enet, Lgbm, Xgb, Rf, Nn; <S> = Close | Pool, the closing-interval or",
+        "% Per-model families (<M> = Ridge, Lasso, Enet, Lgbm, Xgb, Rf; Nn, the MinGRU, is parked from every table and",
+        "% figure (2026-10-15) but its macros stay defined; <S> = Close | Pool, the closing-interval or",
         "% pooled intraday model; <X> = Har | Full, the predictor set):",
         "%   \\rhrQ<M><S><X>                             mean QLIKE;",
         "%   \\rhrVsBm<M><S><X>{Pct,Dm,Pval,Stars}       against the HAR benchmark, the closing-interval OLS on HAR (T3);",
         "%   \\rhrAf<M><S>{Pct,Dm,Pval,Stars}            full predictor set against HAR, same model (T1);",
-        "%   \\rhrPoolVsClose<M><X>{Pct,Dm,Pval,Stars}   pooled intraday against closing-interval, same class (T2).",
+        "%   \\rhrPoolVsClose<M><X>{Pct,Dm,Pval,Stars}   pooled intraday against closing-interval, same class (T2);",
+        # 2026-10-15 (user, restructure): the trade families (option-data subsample)
+        "%   \\rhrSh<M><S><X>, \\rhrShX<M><S><X>           sign-strategy Sharpe ratio at mid-quotes, at bid/ask;",
+        "%   \\rhrVsShort<M><S><X>T                       HAC t of its daily return differential over the short straddle;",
+        "%   \\rhrAf<M><S>{DSh,DShT}                      Sharpe ratio (mid), Full minus HAR, and its HAC t.",
+        "% Pooled-only aggregates (\\rhrPool..., \\rhrAfPool..., \\rhrVsBmPool...) and \\rhrAfClose...: below.",
         "% Pct = 100 (Lbar_A / Lbar_B - 1), 1 decimal, negative favors A (the first-named forecast); Dm: 2 decimals;",
         "% Pval: the whole statement, $p = 0.18$ or $p < 0.001$; Stars: superscript stars, empty if not significant.",
     ]

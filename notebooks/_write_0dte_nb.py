@@ -27,6 +27,19 @@ nb.cells = [
         r"""
 # Same-day-expiry nearest-out-of-the-money call and put, 15:30 → 16:00
 
+> **2026-10-06: recalibration removed (user decision).** Every forecast is
+> used as its plain back-transform $\widehat{RV}=\hat y^2B$: the forecast of
+> $\sqrt{RV/B}$ squared, times the time-of-day baseline $B$, with nothing
+> estimated on top. The session-bar Mincer–Zarnowitz map of the earlier
+> runs is parked in `atm_straddle_lib` (`recal=True`) and appears only in
+> the old-against-new table at the end of §10's rule tables. No interval is
+> read: the library's block bootstrap is commented out (2026-10-03), so a
+> printed interval equals its point estimate. Sizing (§10): the robust
+> clip replaces the proportional size and the centred rank is parked (user
+> decision, same day). Typed numbers in the markdown readings date from
+> the recalibrated run of 2026-09-24 unless a reading says otherwise;
+> every printed output is the plain run's.
+
 One trade per expiration day. At 15:30 ET the **straddle** is the pair of
 **nearest out-of-the-money** legs, bought or sold together as one position:
 
@@ -44,19 +57,23 @@ The signal compares the forecast of realized variance over the final
 half hour with the variance the option market quotes for that same
 half hour, both in variance units:
 $s=\widehat{RV}-(\mathrm{IV}_{\mathrm{hourly}}/\sqrt{2})^2$, where
-$\widehat{RV}=(m^2+\hat\sigma^2)B$ is the model's forecast mapped onto
-the realized scale by a recalibration estimated from past data only
-(§7). The position rules are scored on the same 866 days. The headline
+$\widehat{RV}=\hat y^2B$ is the model's forecast of $\sqrt{RV/B}$ squared
+and multiplied by the time-of-day baseline $B$ (§7). The position rules
+are scored on the same 866 days. The headline
 is the **$\mathrm{sign}(s)$** portfolio, which sells the straddle when the market's
 quoted variance exceeds the forecast and buys it when the forecast
-exceeds the price: on the
-block-diagonal ridge forecast — the ridge fitted on the FOMC panel, this
-notebook's panel of record — it earns an annualized Sharpe ratio of
-1.34 ($t = 2.48$). The **always-short** portfolio, which uses no
-forecast, is the control, at a Sharpe ratio of 0.20.
+exceeds the price; its Sharpe ratio on the block-diagonal ridge forecast
+— the ridge fitted on the FOMC panel, this notebook's panel of record —
+is printed in §10. The **always-short** portfolio, which uses no
+forecast, is the control.
+<!-- 2026-10-06 parked (recalibration removed, user decision): "where
+$\widehat{RV}=(m^2+\hat\sigma^2)B$ is the model's forecast mapped onto the
+realized scale by a recalibration estimated from past data only (§7) ... it
+earns an annualized Sharpe ratio of 1.34 ($t = 2.48$) ... the control, at a
+Sharpe ratio of 0.20." -->
 
 The notebook runs as follows. Sections 1–6 build the instrument and its
-return; §7 loads the variance forecasts and recalibrates them; §8 puts
+return; §7 loads the variance forecasts and back-transforms them; §8 puts
 the quoted implied volatility in the same units; §9 forms the signal and
 the position; §10 tabulates the rules across the eight forecast
 tables and tests each portfolio against the control day by day, then
@@ -483,7 +500,8 @@ regular-hours bar**. The one this trade uses is the model of the
    that half hour of the previous 2,000 sessions (about eight years) and
    on nothing else, so its coefficients belong to the last half hour
    alone. The twelve other regular-hours bars have models of their own;
-   here they are used only by the recalibration of §7.
+   the trade does not use them (they entered only the session-bar
+   recalibration, removed 2026-10-06).
 2. **Target.** The bar's realized variance over its time-of-day
    baseline, square-rooted and winsorized, $y=\sqrt{RV/B}$ — the same
    target as every model in this notebook.
@@ -508,7 +526,7 @@ regular-hours bar**. The one this trade uses is the model of the
    sessions (after a 25-session gap); the best holds until the next
    choice. The coefficients themselves are re-solved every session.
 5. **Output.** The 15:30 prediction of $y$ for the 15:30–16:00 bar,
-   turned into a variance by the recalibration of §7. That is the
+   turned into a variance by the plain back-transform of §7. That is the
    $\widehat{RV}$ that $\mathrm{sign}(s)$ compares with the implied
    variance.
 
@@ -519,25 +537,16 @@ difference there is the coefficients alone. The per-bar lasso and
 elastic net differ from the per-bar ridge only in the penalty (L1, or
 half L1 and half L2).
 
-**From stored forecast to a variance.** Forecasts are stored on the
-fitted scale $y=\sqrt{RV/B}$ ($B$ the time-of-day profile), winsorized.
-Each is mapped to a 30-minute variance by a Mincer–Zarnowitz
-recalibration fitted on the trailing 250 days only:
-
-- fit $m=a+b\,\hat y$ and the residual variance $\hat\sigma^2$ against
-  the unwinsorized realized $\sqrt{RV/B}$, by weighted least squares
-  with weights $1/\max(\hat y, q_{10})^2$ ($q_{10}$ the window's tenth
-  percentile of $\hat y$);
-- $\widehat{RV}=(m^2+\hat\sigma^2)\,B$ — the expected realized variance
-  of the 15:30–16:00 bar;
-- the fit uses only the bars the paper scores, 10:00 to 16:00; bars
-  outside that window are mispredicted by a factor of 50 to 100 and,
-  when they were included, pushed the forecast-to-realized ratio from
-  1.08 to 1.14.
-
-**Mean, not median.** The map targets the mean of realized variance: the trade is scored on what the position earns, and a long straddle is paid by the right tail.
-
-Housekeeping: closed-form fit shared with the intraday notebook; per-model tables cached on their inputs.
+**From stored forecast to a variance (2026-10-06: recalibration removed,
+user decision).** Forecasts are stored on the fitted scale
+$y=\sqrt{RV/B}$ ($B$ the time-of-day profile), winsorized. Each is used
+as its plain back-transform, $\widehat{RV}=\hat y^2B$, with nothing
+estimated on top: no level map, no residual-variance term, no weighting,
+no session mask. Squaring a forecast of $\sqrt{RV/B}$ tends to forecast
+$RV$ low (Jensen), which tilts $\mathrm{sign}(s)$ toward selling; the
+tilt is left in. The cell after the rule tables of §10 sets this
+against the earlier runs' session-bar map, recomputed from the parked
+library code.
 """
     ),
     code(
@@ -552,16 +561,16 @@ _PATHS = asl.yhat_paths(REPO)
 TABLED = list(asl.MODEL_ORDER) + list(asl.SUBSAMPLE_ORDER)
 TWINS = {t: w for t, w in asl.SUBSAMPLE_TWIN.items() if w is not None and _PATHS[w].exists()}
 YHATS = {tag: _PATHS[tag] for tag in TABLED + list(TWINS.values())}
-# The recalibration lives in atm_straddle_lib: flat 250-day window, fit
-# restricted to the scored session bars (rows labelled 10:30-16:00 ET) so off-session
-# dynamics cannot pollute the calibration. Delegate rather than duplicate.
-# method="mean" is this notebook's map.
+# 2026-10-06: recalibration removed, user decision. The library's loaders return the plain
+# rv_hat = yhat^2 * B (asl.RECALIBRATE is False). The session-bar map (flat 250-session window,
+# fit on the rows labelled 10:30-16:00 ET) is parked in atm_straddle_lib and is called once, with
+# recal=True, by the old-against-new cell after §10's rule tables; nothing else reads it.
 second_order_raw = asl.second_order_raw
 load_yhat_1530 = asl.load_yhat_1530
 
 
 def load_yhat_1530_cached(tag: str, path: Path, need_dates, method: str = "mean") -> pd.DataFrame:
-    # cache key = source file size and mtime, the fitting method, and the set of option days
+    # the plain yhat^2 * B on the option days (uncached; the parked map alone is cached)
     return asl.load_yhat_1530_cached(tag, path, need_dates, CACHE, method=method)
 
 
@@ -598,11 +607,22 @@ for tag, rv in models.items():
     print("---")
 """
     ),
+    # 2026-10-06 parked (recalibration removed, user decision): the §7 description of the map --
+    # "Each is mapped to a 30-minute variance by a Mincer–Zarnowitz recalibration fitted on the
+    # trailing 250 days only: fit m = a + b yhat and the residual variance sigma^2 against the
+    # unwinsorized realized sqrt(RV/B), by weighted least squares with weights 1/max(yhat, q10)^2
+    # (q10 the window's tenth percentile of yhat); RVhat = (m^2 + sigma^2) B -- the expected realized
+    # variance of the 15:30-16:00 bar; the fit uses only the bars the paper scores, 10:00 to 16:00;
+    # bars outside that window are mispredicted by a factor of 50 to 100 and, when they were
+    # included, pushed the forecast-to-realized ratio from 1.08 to 1.14. Mean, not median. The map
+    # targets the mean of realized variance: the trade is scored on what the position earns, and a
+    # long straddle is paid by the right tail. Housekeeping: closed-form fit shared with the intraday
+    # notebook; per-model tables cached on their inputs."
     md(
         r"""### Panels, provenance and exclusions
 
 - Panel of record: the FOMC panel (block ridge, fixed lasso, per-bar forecasts); trees, tuned lasso and elastic net are on the earlier panel.
-- Fit mask: session bars 10:30–16:00; early closes and holiday futures-only bars out.
+- Session mask: bars 10:30–16:00; early closes and holiday futures-only bars out. Since 2026-10-06 it enters no forecast (it was the fit window of the removed map); the cell still counts it.
 - Profile $B$ still carries post-close bars of early-close days (bound 0.06 Sharpe).
 - Sharpe annualized by $\sqrt{252}$ per trade day; the frame ends 2024-04-30 with the forecasts.
 - Per-model provenance printed below; tree settings unrecoverable.
@@ -1562,6 +1582,49 @@ print("saved", OUT / "paired_tests.csv")
 """
     ),
     md(
+        r"""### Old against new: the parked recalibration against the plain forecast (2026-10-06)
+
+Until 2026-10-05 every forecast here was mapped by the session-bar
+Mincer–Zarnowitz recalibration, $(m^2+\hat\sigma^2)B$ with $(a,b,\hat\sigma^2)$
+fitted on the trailing 250 sessions' regular-hours bars. The cell
+recomputes that map from the library's parked code (`recal=True`) and sets
+each forecast's $\mathrm{sign}(s)$ under it against the plain $\hat y^2B$
+the notebook now trades, on the same days and returns. It is a record of
+the change; nothing after it reads the recalibrated forecasts.
+"""
+    ),
+    code(
+        r"""# --- 2026-10-06 old against new: the parked session-bar map against the plain back-transform
+with ThreadPoolExecutor(max_workers=len(MODEL_ORDER)) as _pool:
+    _fut = {_t: _pool.submit(asl.load_yhat_1530_cached, _t, YHATS[_t], need_dates, CACHE, "mean", True)
+            for _t in MODEL_ORDER}
+    _models_recal = {_t: _fut[_t].result() for _t in MODEL_ORDER}
+_ovn = []
+for _t in MODEL_ORDER:
+    _old = make_book(_models_recal[_t])[0]
+    assert common.difference(_old.index).empty, _t   # the map's warm-up ends years before the option days
+    _o, _n = _old.loc[common], books[_t].loc[common]
+    assert np.array_equal(_o["R"].to_numpy(float), _n["R"].to_numpy(float)), _t   # same days, same returns
+    _m = models[_t].loc[common]   # the traded forecast is the plain yhat^2 * B, to the bit
+    assert np.array_equal(_n["rv_hat"].to_numpy(float), (_m["yhat"] ** 2 * _m["baseline"]).to_numpy(float)), _t
+    _ovn.append({"forecast": LABEL[_t],
+                 "median rv_hat plain / recalibrated": float((_n["rv_hat"] / _o["rv_hat"]).median()),
+                 "buy % recalibrated": 100.0 * float((_o["pos"] > 0).mean()),
+                 "buy % plain": 100.0 * float((_n["pos"] > 0).mean()),
+                 "same position %": 100.0 * float((_o["pos"] == _n["pos"]).mean()),
+                 "Sharpe sign(s) recalibrated": _sharpe_ann((_o["pos"] * _o["R"]).to_numpy(float)),
+                 "Sharpe sign(s) plain": _sharpe_ann((_n["pos"] * _n["R"]).to_numpy(float))})
+recal_vs_plain = pd.DataFrame(_ovn).set_index("forecast")
+recal_vs_plain["dSharpe plain - recalibrated"] = (recal_vs_plain["Sharpe sign(s) plain"]
+                                                  - recal_vs_plain["Sharpe sign(s) recalibrated"])
+recal_vs_plain.to_csv(OUT / "recal_vs_plain_sign_s.csv")
+print(f"sign(s) at the midpoint on the {len(common)} days: the parked session-bar map (recal=True) against the plain "
+      "yhat^2 * B the notebook trades")
+print(recal_vs_plain.to_string(float_format=lambda v: f"{v:.3f}"))
+print("saved", OUT / "recal_vs_plain_sign_s.csv")
+"""
+    ),
+    md(
         r"""### Per-bar against pooled: which is the better variance forecast?
 
 The last block of the paired table compares each per-bar forecast with its
@@ -1572,26 +1635,26 @@ penalizes a forecast that is too low more than one that is too high. It is
 computed bar by bar for the 13 regular-hours bars (bar ends 10:00 to
 16:00), on the same 866 days as §10.
 
-- **The same map on both sides.** Each table goes through the §7
-  recalibration, fitted on its own forecasts, so the 16:00 column is
-  exactly the forecast §9 trades. The 10:00 bar (09:30–10:00) lies outside
-  the map's fit window; its forecast uses the map fitted on the other
-  bars.
+- **The same back-transform on both sides.** Each table's forecast is
+  the plain $\hat y^2B$ of §7, so the 16:00 column is exactly the
+  forecast §9 trades (2026-10-06; the earlier runs put both tables
+  through the §7 recalibration, each fitted on its own forecasts).
 - **Session mean**: each day's mean loss over the 13 bars, so every test
   runs on one number per day.
 - **% difference**: $100\,(\overline{\mathrm{QLIKE}}_{\text{per-bar}}/\overline{\mathrm{QLIKE}}_{\text{pooled}}-1)$.
   Negative means the per-bar forecast has the lower loss.
-- **Interval**: 95% circular block bootstrap of days on the % difference
-  (blocks of 21 days, 2,000 draws, the resampled days of the paired tests
-  above).
+- **Interval** (not read; 2026-10-06): the library's block bootstrap is
+  commented out, so the printed interval equals the point estimate. Read
+  the DM $t$.
 - **DM t**: the Diebold–Mariano statistic, the
   heteroskedasticity- and autocorrelation-robust $t$ of the mean daily
   loss difference (Bartlett kernel, lag $\lfloor 1.5\,n^{1/3}\rfloor$).
 
 The cell opens with three gates. It reproduces, from the stored arm
 files, the comparison saved with the per-bar runs (the same forecasts,
-each bar recalibrated on its own, all 1,087 sessions from 2020-01-03 to
-2024-04-30). It checks that the notebook's per-bar and pooled tables hold
+each bar recalibrated on its own by the research scorer, all 1,087
+sessions from 2020-01-03 to 2024-04-30; a reproduction check of that
+file only, its recalibrated numbers are not used below). It checks that the notebook's per-bar and pooled tables hold
 exactly those forecasts. It checks that every table's 16:00 column is
 the forecast §9 trades.
 """
@@ -1627,18 +1690,19 @@ for _hh in QL_BARS:
         _lb = _slc.qlike(_jj["true_raw"], _jj["pred_clock_P"])[_mk]
         _lo, _hi = _sls.day_block_ci(_la - _lb)
         _s = _stored[(_stored["segment"] == _seg) & (_stored["sample"] == _smp)].iloc[0]
-        for _mine_v, _theirs in ((int(_mk.sum()), "n"), (_la.mean(), "QLIKE_a"), (_lb.mean(), "QLIKE_b"),
-                                 (_lo, "ci_lo"), (_hi, "ci_hi")):
+        # 2026-10-06: the interval ends are no longer compared. The stored file's intervals came from the
+        # day-block bootstrap, which is commented out since 2026-10-03 (it now returns the point estimate),
+        # and no interval is read any more (user decision). Parked: (_lo, "ci_lo"), (_hi, "ci_hi").
+        for _mine_v, _theirs in ((int(_mk.sum()), "n"), (_la.mean(), "QLIKE_a"), (_lb.mean(), "QLIKE_b")):
             assert np.isclose(_mine_v, _s[_theirs], rtol=1e-9, atol=1e-12), (_seg, _smp, _theirs, _mine_v, _s[_theirs])
             _n_chk += 1
         if _hh == "16:00" and _smp == "deck period":
             _gate16 = {"n": int(_mk.sum()), "a": float(_la.mean()), "b": float(_lb.mean()), "lo": _lo, "hi": _hi}
 print(f"GATE 1  {_n_chk} numbers of the stored per-bar vs pooled comparison ({_bk}, {_est}, 2000-session window, "
       f"subsection_vs_pooled_causal.csv) reproduced from the arm files to 1e-9: 13 bars x 2 samples x "
-      f"(rows, QLIKE per-bar, QLIKE pooled, interval low, interval high)")
+      f"(rows, QLIKE per-bar, QLIKE pooled); the stored intervals are not compared (bootstrap commented out)")
 print(f"        its 16:00 bar on all {_gate16['n']} sessions 2020-01-03..2024-04-30, each bar recalibrated on its own: "
-      f"QLIKE {_gate16['a']:.4f} per-bar vs {_gate16['b']:.4f} pooled ({100 * (_gate16['a'] / _gate16['b'] - 1):+.1f}%; "
-      f"interval on the mean daily difference {_gate16['lo']:+.4f} to {_gate16['hi']:+.4f})")
+      f"QLIKE {_gate16['a']:.4f} per-bar vs {_gate16['b']:.4f} pooled ({100 * (_gate16['a'] / _gate16['b'] - 1):+.1f}%)")
 
 # GATE 2: the notebook's per-bar and pooled tables carry exactly the arms' forecasts
 _arm_all = pd.concat(_arm_bars)
@@ -1647,11 +1711,16 @@ for _t, _src in ((_tsub, _arm_all), (_tpool, _ref)):
     _tb["date"] = pd.to_datetime(_tb["t"], utc=True).dt.tz_convert("America/New_York").dt.tz_localize(None)
     _j = _tb.set_index("date")[["yhat"]].join(_src[["pred_adj"]], how="inner")
     assert len(_j) == len(_tb), (_t, len(_j), len(_tb))
-    assert float((_j["yhat"] - _j["pred_adj"]).abs().max()) == 0.0, _t
-    print(f"GATE 2  {YHATS[_t].name} holds the arm's forecast exactly on all {len(_tb):,} stamps")
+    # 2026-10-06: the per-bar tables were rebuilt on the de-duplicated design on 2026-09-29 (checklist
+    # I1: 12 session-edge columns dropped; within one bar they are collinear with the intercept), while
+    # the arms above and the pooled twins are the earlier design's. For the ridge the two agree to float
+    # noise, so the gate holds to 1e-6 relative instead of bit for bit (it was == 0.0).
+    _rel = float(((_j["yhat"] - _j["pred_adj"]).abs() / _j["pred_adj"].abs()).max())
+    assert _rel <= 1e-6, (_t, _rel)
+    print(f"GATE 2  {YHATS[_t].name} holds the arm's forecast on all {len(_tb):,} stamps (max rel {_rel:.1e})")
 
 
-# the §7 map on every stamp of each table (load_yhat_panel: the 15:30 loader's fit, every stamp)
+# the §7 back-transform on every stamp of each table (load_yhat_panel: plain yhat^2 * B, every stamp)
 def _ql_frame(tag):
     p = asl.load_yhat_panel(YHATS[tag], method="mean")
     p["hhmm"] = p["et"].dt.strftime("%H:%M")
@@ -1702,7 +1771,7 @@ for _t, _w in TWINS.items():
 ql_tab = pd.DataFrame(ql_rows)
 ql_tab.to_csv(OUT / "perbar_vs_pooled_qlike.csv", index=False)
 _ord = list(QL_NAME.values())
-print(f"per-bar forecast minus its pooled twin, QLIKE through the §7 map, on the {len(common)} days of §10.")
+print(f"per-bar forecast minus its pooled twin, QLIKE of the plain forecast (§7), on the {len(common)} days of §10.")
 print(f"DM t = HAC t of the mean daily loss difference (Bartlett, lag {int(ql_tab['lag'].iloc[0])}); interval = 95% "
       f"circular block bootstrap of days on the % difference (blocks {PAIR_BLOCK}, {PAIR_B} draws, the resampled days "
       "of the paired tests above)")
@@ -1783,22 +1852,33 @@ print("saved", OUT / "perbar_vs_pooled_qlike.csv")
 ### Sizing by the size of the forecast gap
 
 $\mathrm{sign}(s)$ bets the same amount every day. The alternative bets
-in proportion to the forecast gap $s$ (the variance risk premium with
-its sign turned round, $\mathrm{VRP}=-s$), so that the position is large
-when the forecast and the price disagree by a lot. Three sizes, each set
-from **earlier deck days only**:
+more when the forecast gap $s$ (the variance risk premium with its sign
+turned round, $\mathrm{VRP}=-s$) is large, so that the position is large
+when the forecast and the price disagree by a lot. Two sizes, each set
+from **earlier deck days only** (2026-10-06, user decision: the robust
+clip replaces the proportional size, and the centred rank is removed;
+both are parked in the code):
 
-- **(a) proportional**: $q_d=s_d/\mathrm{rms}_d$, with $\mathrm{rms}_d$
-  the root mean square of $s$ over the deck days before $d$. Unbounded.
+- **robust clip**: $q_d=\mathrm{clip}(s_d/\tilde m_d,-1,1)$, with
+  $\tilde m_d$ the median of $|s|$ over the deck days before $d$
+  (expanding; the first day has no history). It takes the side of
+  $\mathrm{sign}(s)$, is a full straddle once $|s_d|$ reaches the median
+  earlier gap, and scales down below it.
 - **(b) rank, sign kept**: $q_d=\mathrm{sign}(s_d)\,\hat F_d(|s_d|)$,
   where $\hat F_d(x)$ is the share of earlier deck days whose $|s|$ is at
   most $x$. Between $-1$ and $1$ by construction; it always takes the
   side of $\mathrm{sign}(s)$, and is flat on a day whose $|s|$ is below
   every earlier one.
-- **(c) centred rank**: $q_d=2\hat F_d(s_d)-1$, where $\hat F_d(x)$ is the
-  share of earlier deck days whose $s$ is at most $x$. Between $-1$ and
-  $1$; it can take the side opposite to $\mathrm{sign}(s)$, because a day
-  with a slightly negative $s$ can still rank above the median.
+
+The forecasts are the paper's eight and the per-bar forecasts on HAR +
+calendar and on all features (2026-10-06, user decision: the per-bar
+live-feasible forecasts are left out, live-feasible is no longer part of
+the paper).
+<!-- 2026-10-06 parked (user decision: robust clip replaces proportional; centred rank removed):
+- (a) proportional: q_d = s_d / rms_d, with rms_d the root mean square of s over the deck days
+  before d. Unbounded.
+- (c) centred rank: q_d = 2 F_d(s_d) - 1, F_d(x) the share of earlier deck days whose s is at
+  most x. Between -1 and 1; it can take the side opposite to sign(s). -->
 
 Fills are at the midpoint ($q_dR_d$) and crossed (a buy pays the ask, a
 sale receives the bid). The gap $s$ starts with the option chain on
@@ -1807,9 +1887,9 @@ days after one year (252 deck days) of history, the warm-up §18's
 weights use. The second scores every day from the second (865 days),
 with whatever history exists; the first day has none. $\mathrm{sign}(s)$
 is rescored on the same days. The test is the annualized Sharpe ratio of
-the sized rule minus that of $\mathrm{sign}(s)$, with a 95% percentile
-interval from the circular block bootstrap of days (blocks of 21 days,
-2,000 draws). A Sharpe ratio does not depend on the scale of the
+the sized rule minus that of $\mathrm{sign}(s)$, a point estimate (no
+interval since 2026-10-06; the interval columns of the output file are
+left empty). A Sharpe ratio does not depend on the scale of the
 position, so rules with different average sizes compare directly.
 
 **What earlier work found.** An earlier sizing study on the
@@ -1823,14 +1903,22 @@ return.
 """
     ),
     code(
-        r"""# --- sizing by the size of the forecast gap: position proportional to s, against sign(s)
+        r"""# --- sizing by the size of the forecast gap, against sign(s)
 # Each size uses PRIOR deck days only (strictly before d); s = rv_hat - iv_var is known at 15:30.
-#   (a) proportional    q = s / rms,            rms = root mean square of s over prior days (unbounded)
+#   robust clip         q = clip(s / med, -1, 1), med = median |s| over prior days (expanding)
 #   (b) rank, sign kept q = sign(s) * F(|s|),   F = share of prior days with |s| <= today's |s|, in [-1, 1]
+# 2026-10-06 (user decision): the robust clip replaces the proportional size and the centred rank
+# is removed; both are parked below, not deleted:
+#   (a) proportional    q = s / rms,            rms = root mean square of s over prior days (unbounded)
 #   (c) centred rank    q = 2 F(s) - 1,         F = share of prior days with s <= today's s, in [-1, 1]
+# The sizes are writeup/master_table_gui/rows.py _position_sizes, to the bit (the GUI re-derives
+# them from the daily books and gates the Sharpe ratios of this file at 1e-8).
 # Fills: midpoint, q * R; crossed, buy at the ask (q > 0) or sell at the bid (q < 0).
+import bisect
+
 VS_WARMUP = int(asl.PERIODS_PER_YEAR)  # one year of prior deck days, as the causal weights use
-VS_RULES = ["(a) proportional s/rms", "(b) rank of |s|, sign kept", "(c) centred rank 2F(s)-1"]
+VS_RULES = ["(d) robust clip s/med|s|", "(b) rank of |s|, sign kept"]
+# VS_RULES = ["(a) proportional s/rms", "(b) rank of |s|, sign kept", "(c) centred rank 2F(s)-1"]  # parked 2026-10-06
 VS_BLOCKS = {f"after {VS_WARMUP}-day warm-up": VS_WARMUP, "from the second day": 1}
 
 
@@ -1839,12 +1927,20 @@ def _vs_sizes(s: np.ndarray) -> dict:
     k = np.arange(n)
     prior = k[None, :] < k[:, None]  # prior[i, j]: day j is strictly before day i
     n_prior = np.where(k > 0, k, np.nan)  # day 0 has no history
-    rms = np.sqrt(np.concatenate([[np.nan], np.cumsum(s ** 2)[:-1]]) / n_prior)
+    # rms = np.sqrt(np.concatenate([[np.nan], np.cumsum(s ** 2)[:-1]]) / n_prior)  # (a) proportional, parked
     a = np.abs(s)
     F_abs = ((a[None, :] <= a[:, None]) & prior).sum(axis=1) / n_prior
-    F_s = ((s[None, :] <= s[:, None]) & prior).sum(axis=1) / n_prior
+    # F_s = ((s[None, :] <= s[:, None]) & prior).sum(axis=1) / n_prior  # (c) centred rank, parked
+    med = np.full(n, np.nan)  # median |s| over the prior days
+    seen: list = []
+    for t in range(n):
+        m = len(seen)
+        if m:
+            med[t] = seen[m // 2] if m % 2 else 0.5 * (seen[m // 2 - 1] + seen[m // 2])
+        bisect.insort(seen, float(a[t]))
     sgn = np.where(s > 0, 1.0, -1.0)  # the deck's pos: s == 0 is short
-    return {"sign(s)": sgn, VS_RULES[0]: s / rms, VS_RULES[1]: sgn * F_abs, VS_RULES[2]: 2.0 * F_s - 1.0}
+    return {"sign(s)": sgn, VS_RULES[0]: np.clip(s / med, -1.0, 1.0), VS_RULES[1]: sgn * F_abs}
+    # parked 2026-10-06: "(a) proportional s/rms": s / rms, "(c) centred rank 2F(s)-1": 2.0 * F_s - 1.0
 
 
 def _vs_crossed(q, ex, bid, ask) -> np.ndarray:
@@ -1888,7 +1984,7 @@ def _vs_score(tag: str):
         for rule, q_all in Q.items():
             q = q_all[sl]
             assert np.isfinite(q).all(), (tag, rule, b)
-            if rule in VS_RULES[1:]:
+            if rule in VS_RULES:
                 assert (np.abs(q) <= 1.0).all(), (tag, rule, b)  # bounded by construction
             rec = {"tag": tag, "forecast": LABEL[tag], "rule": rule, "block": b, "days": len(q),
                    "mean |q|": float(np.abs(q).mean()), "max |q|": float(np.abs(q).max()),
@@ -1901,16 +1997,22 @@ def _vs_score(tag: str):
                                 f"basic lo {f}": np.nan, f"basic hi {f}": np.nan, f"reading {f}": ""})
                     continue
                 hat = _sharpe_ann(x) - _sharpe_ann(base[f])
-                lo, hi = (float(v) for v in np.percentile(_vs_boot_sharpe(x, idx) - base_boot[f], [2.5, 97.5]))
-                rec.update({f"dSharpe {f}": hat, f"lo {f}": lo, f"hi {f}": hi,
-                            f"basic lo {f}": 2 * hat - hi, f"basic hi {f}": 2 * hat - lo,
-                            f"reading {f}": _interval_reading(lo, hi)})
+                # 2026-10-06: intervals removed (user decision); the columns stay, empty, so readers keep
+                # their schema. Parked:
+                # lo, hi = (float(v) for v in np.percentile(_vs_boot_sharpe(x, idx) - base_boot[f], [2.5, 97.5]))
+                # rec.update({f"lo {f}": lo, f"hi {f}": hi, f"basic lo {f}": 2 * hat - hi,
+                #             f"basic hi {f}": 2 * hat - lo, f"reading {f}": _interval_reading(lo, hi)})
+                rec.update({f"dSharpe {f}": hat, f"lo {f}": np.nan, f"hi {f}": np.nan,
+                            f"basic lo {f}": np.nan, f"basic hi {f}": np.nan, f"reading {f}": ""})
             rows.append(rec)
     return rows, _sharpe_ann(Q["sign(s)"] * R), _sharpe_ann(ref)
 
 
 _vs_rows, _vs_gate = [], {}
-for _tag in MODEL_ORDER:
+# 2026-10-06 (user decision: live-feasible is not part of the paper any more): the three per-bar
+# live-feasible forecasts are left out of the sizing study; parked: for _tag in MODEL_ORDER:
+VS_TAGS = [_t for _t in MODEL_ORDER if not _t.startswith("sub_live_")]
+for _tag in VS_TAGS:
     _r, _mine, _ref = _vs_score(_tag)
     assert abs(_mine - _ref) < 1e-12, _tag
     _vs_rows += _r
@@ -1926,14 +2028,12 @@ print(f"gate: bid > 0 and bid <= entry <= ask on all {len(common)} days; crossed
 print(f"blocks: {VS_WARMUP} prior deck days before the first scored day ({len(common) - VS_WARMUP} days), and every day "
       f"from the second ({len(common) - 1} days): the first day has no prior s to scale by, so {len(common) - 1} days is as "
       f"close to the {len(common)} as a causal size gets")
-print(f"paired block bootstrap of days (blocks {PAIR_BLOCK}, {PAIR_B} draws), sized rule minus sign(s) on the same days, "
-      "percentile interval\n")
+print("sized rule minus sign(s) on the same days, point estimates (no interval since 2026-10-06)\n")
 
 _cols = ["rule", "block", "days", "mean |q|", "max |q|", "same sign", "opposite sign",
-         "Sharpe mid", "dSharpe mid", "lo mid", "hi mid", "Sharpe crossed", "dSharpe crossed", "lo crossed", "hi crossed",
-         "reading mid", "reading crossed"]
+         "Sharpe mid", "dSharpe mid", "Sharpe crossed", "dSharpe crossed"]
 with pd.option_context("display.width", 300, "display.max_columns", 30, "display.float_format", lambda v: f"{v: .3f}"):
-    for _tag in ("blk2", "sub_live_ridge"):
+    for _tag in ("blk2", "sub_ridge"):  # 2026-10-06: was ("blk2", "sub_live_ridge")
         print(LABEL[_tag])
         print(vs_tab.loc[vs_tab["tag"] == _tag, _cols].to_string(index=False))
         print()
@@ -1944,20 +2044,21 @@ with pd.option_context("display.width", 300, "display.max_columns", 30, "display
         _rec = {"rule": _rule, "block": _b, "forecasts": len(_g)}
         for _f in ("mid", "crossed"):
             _d = _g[f"dSharpe {_f}"]
-            _rec.update({f"{_f}: dS>0": int((_d > 0).sum()), f"{_f}: CI>0": int((_g[f"lo {_f}"] > 0).sum()),
-                         f"{_f}: CI<0": int((_g[f"hi {_f}"] < 0).sum()), f"{_f}: min": _d.min(),
+            _rec.update({f"{_f}: dS>0": int((_d > 0).sum()), f"{_f}: min": _d.min(),
                          f"{_f}: median": _d.median(), f"{_f}: max": _d.max()})
         _sum.append(_rec)
     vs_sum = pd.DataFrame(_sum)
-    print(f"across the {len(MODEL_ORDER)} forecasts: count with dSharpe > 0, count whose percentile interval lies above / "
-          "below zero, and the spread of dSharpe")
+    print(f"across the {len(VS_TAGS)} forecasts: count with dSharpe > 0 and the spread of dSharpe")
     print(vs_sum.to_string(index=False))
 print("\nsaved", OUT / "vrp_sized_rules.csv")
 """
     ),
     md(
         r"""
-**Reading (every number from the cell above).**
+**Reading.** 2026-10-06: the plain run's numbers are the cell's printed
+output above; the reading below is the recalibrated run of 2026-09-24,
+with the proportional size and the centred rank, both since parked, and
+is kept as a record only.
 
 - **Proportional sizing (a) loses to $\mathrm{sign}(s)$ for all 15
   forecasts**, at both fills and in both blocks. After the warm-up the
@@ -2001,9 +2102,10 @@ they sit below the implied variance on almost every day and collapse
 the rule into always short (Sharpe about $0.2$). For $k>0$ the
 later forecast is therefore placed on the traded bar's own scale: the
 model's fitted-scale forecast $\hat y$ from the later row, the same
-recalibration $m=a+b\,\hat y$ and $\hat\sigma^2$ already fitted for the
-trade, and the traded bar's profile $B$,
-$\widehat{RV}^{(k)}=(m(\hat y_{16{:}00+30k})^2+\hat\sigma^2)\,B_{16{:}00}$
+plain back-transform as the trade, and the traded bar's profile $B$,
+$\widehat{RV}^{(k)}=\hat y_{16{:}00+30k}^2\,B_{16{:}00}$ (2026-10-06; the
+earlier runs applied the session-bar map's $m=a+b\,\hat y$ and
+$\hat\sigma^2$ here)
 — so the only thing that changes is what the model had seen. The star
 is the end of the road: the traded bar's realized variance in place of
 the forecast.
@@ -2031,8 +2133,8 @@ def sharpe_ann(x):
 
 
 def load_panel_mz(path):
-    # every 30-min row with the trade's recalibration: rv_hat and its pieces m and s2,
-    # from the library's fit (same session mask, same early-close drop as the traded row)
+    # every 30-min row with the trade's back-transform: rv_hat = yhat^2 * B, with m = yhat and s2 = 0
+    # (2026-10-06, plain; the same early-close drop as the traded row)
     return asl.load_yhat_panel_mz(path)
 
 
@@ -3527,23 +3629,26 @@ by ridge, lasso and elastic net.
 The first cell is a gate. It re-scores the stored forecasts the way the
 research comparison scored them, and asserts that every number matches
 the stored comparison. That scorer recalibrates each bar on its own and
-trades the 16:00-bar forecast. The second cell puts the same forecasts
-through this notebook's recalibration (§7) and sign(s) trade (§9), on
-the same days as §10. It first checks that its live-feasible rows equal
-the §10 rows exactly.
+trades the 16:00-bar forecast; since 2026-10-06 (recalibration removed,
+user decision) its numbers are kept only as the record of the earlier
+scoring, in the columns marked "recalibrated, parked". The second cell
+scores the same forecasts as the notebook now does: the plain
+$\hat y^2B$ (§7), the sign(s) trade (§9), on the same days as §10, with
+QLIKE computed here on the plain forecasts. It first checks that its
+live-feasible rows equal the §10 rows exactly.
 
 Table columns:
 
-- **16:00 QLIKE vs live-feasible (%)**: forecast loss on the 15:30–16:00
-  bar, relative to the live-feasible forecast on the same rows. Negative
-  is better.
-- **13-bar mean QLIKE vs live-feasible (%)**: the same, averaged over the
-  13 bars from 10:00 to 16:00.
-- **Sharpe mid / crossed (research scorer)**: the sign(s) trade at the
-  midpoint and at the quotes (buy at the ask, sell at the bid),
-  annualized.
-- **Sharpe mid / crossed (this notebook)**: the same trade through this
-  notebook's recalibration; comparable with §10.
+- **16:00 QLIKE vs live-feasible (%)**: forecast loss of the plain
+  forecast on the 15:30–16:00 bar, relative to the live-feasible
+  forecast on the same days. Negative is better.
+- **13-bar mean QLIKE vs live-feasible (%)**: the same, bar by bar for the
+  13 bars from 10:00 to 16:00, averaged over the bars.
+- **Sharpe mid / crossed**: the sign(s) trade at the midpoint and at the
+  quotes (buy at the ask, sell at the bid), annualized; comparable with
+  §10.
+- **... (research scorer, recalibrated, parked)**: the research
+  comparison's QLIKE and Sharpe ratios, each bar recalibrated on its own.
 - **n days**: days traded.
 
 These forecasts are not added to the eight columns of the other tables.
@@ -3591,8 +3696,28 @@ print(f"      ridge, HAR + calendar + VIX only: 16:00 QLIKE {_r['q16']:+.2f}% vs
 """
     ),
     code(
-        r"""# --- the same forecasts through this notebook's recalibration and trade, on the §10 days
+        r"""# --- the same forecasts through this notebook's back-transform and trade, on the §10 days
+# 2026-10-06: plain yhat^2 * B everywhere; QLIKE is computed here on the plain forecasts (the research
+# scorer's recalibrated QLIKE and Sharpe are kept in columns marked "recalibrated, parked").
 VX_PATHS = asl.vixonly_yhat_paths(REPO)
+_VX_BARS = [f"{_h:02d}:{_mm:02d}" for _h in range(10, 17) for _mm in (0, 30) if (_h, _mm) <= (16, 0)]
+
+
+def _vx_qlike_bars(path):
+    # plain forecast and realized variance, days = common, columns = the 13 session bars (bar-end labels)
+    _p = asl.load_yhat_panel(path)
+    _p["hhmm"] = _p["et"].dt.strftime("%H:%M")
+    _p = _p[_p["date"].isin(common) & _p["hhmm"].isin(_VX_BARS)]
+    _y = _p.pivot(index="date", columns="hhmm", values="rv_raw").reindex(index=common, columns=_VX_BARS)
+    _f = _p.pivot(index="date", columns="hhmm", values="rv_hat").reindex(index=common, columns=_VX_BARS)
+    assert _y.notna().all().all() and _f.notna().all().all() and (_y > 0).all().all() and (_f > 0).all().all()
+    _r = _y / _f
+    return _r - np.log(_r) - 1.0, _f["16:00"]
+
+
+_vx_ql, _vx_f16 = {}, {}
+for _k, _path in VX_PATHS.items():
+    _vx_ql[_k], _vx_f16[_k] = _vx_qlike_bars(_path)
 vx_rows = []
 for (_b, _e), _path in VX_PATHS.items():
     _rv = load_yhat_1530_cached(f"vx_{_e}_{_b}", _path, need_dates, "mean")
@@ -3612,16 +3737,24 @@ for (_b, _e), _path in VX_PATHS.items():
     _ex = _pxc["exit"].to_numpy(float)
     _crs = np.where(_q > 0.0, _ex / _ask - 1.0, -(_ex / _bid - 1.0))
     _x = vx_research[(_b, _e)]
+    _qa, _qr = _vx_ql[(_b, _e)], _vx_ql[("live_feasible", _e)]
+    # the 16:00 column of the QLIKE frame is the forecast this cell trades, to the bit
+    assert np.array_equal(_vx_f16[(_b, _e)].to_numpy(float), _pxc["rv_hat"].to_numpy(float)), (_b, _e)
     vx_rows.append({"estimator": _e, "column set": asl.VIXONLY_BUCKET_LABEL[_b],
-                    "16:00 QLIKE vs live-feasible (%)": _x["q16"], "13-bar mean QLIKE vs live-feasible (%)": _x["q13"],
-                    "Sharpe mid (research scorer)": _x["mid"], "Sharpe crossed (research scorer)": _x["crossed"],
-                    "Sharpe mid (this notebook)": _sharpe_ann(_mid), "Sharpe crossed (this notebook)": _sharpe_ann(_crs),
-                    "n days": len(common)})
+                    "16:00 QLIKE vs live-feasible (%)": 100.0 * (_qa["16:00"].mean() / _qr["16:00"].mean() - 1.0),
+                    "13-bar mean QLIKE vs live-feasible (%)": float(np.mean(
+                        [100.0 * (_qa[_h].mean() / _qr[_h].mean() - 1.0) for _h in _VX_BARS])),
+                    "Sharpe mid": _sharpe_ann(_mid), "Sharpe crossed": _sharpe_ann(_crs),
+                    "n days": len(common),
+                    "16:00 QLIKE vs live-feasible (%) (research scorer, recalibrated, parked)": _x["q16"],
+                    "13-bar mean QLIKE vs live-feasible (%) (research scorer, recalibrated, parked)": _x["q13"],
+                    "Sharpe mid (research scorer, recalibrated, parked)": _x["mid"],
+                    "Sharpe crossed (research scorer, recalibrated, parked)": _x["crossed"]})
 vx_tab = pd.DataFrame(vx_rows).set_index(["estimator", "column set"])
 vx_tab.to_csv(OUT / "vix_bucket.csv")
 print("GATE  the live-feasible rows equal the §10 sign(s) rows (forecast, position, Sharpe) for all three estimators")
-print(f"per-bar forecasts, {VX_TW}-session rolling window; QLIKE and the research-scorer Sharpe ratios from the gate above; "
-      f"'this notebook' = §7 recalibration and §9 sign(s) on the {len(common)} common days")
+print(f"per-bar forecasts, {VX_TW}-session rolling window; QLIKE and Sharpe of the plain forecast (§7) and §9 sign(s) "
+      f"on the {len(common)} common days; the parked columns are the research scorer's recalibrated record")
 with pd.option_context("display.width", 250, "display.max_columns", 20):
     print(vx_tab.to_string(float_format=lambda v: f"{v:.2f}"))
 print("saved", OUT / "vix_bucket.csv")
@@ -3629,7 +3762,10 @@ print("saved", OUT / "vix_bucket.csv")
     ),
     md(
         r"""
-**Reading (ridge; every number from the two cells above).**
+**Reading.** 2026-10-06: the plain run's numbers are the printed
+output above; the reading below is the recalibrated run of 2026-09-24
+(research-scorer and notebook recalibrations) and is kept as a record
+only.
 
 - The VIX alone, with HAR and the calendar, gives the best 16:00
   forecast: QLIKE 5.9% below the live-feasible set. Over the 13 bars it
@@ -4173,7 +4309,8 @@ The columns of a single row map onto the construction as follows.
   the official close from yfinance `^GSPC`.
 - `R` is `exit/entry - 1`.
 - `yhat` is the forecast on the fitted scale, $\widehat{\sqrt{RV/B}}$;
-  `rv_hat = (m^2 + s2) * B` converts it to a 30-minute variance.
+  `rv_hat = yhat^2 * B` converts it to a 30-minute variance (2026-10-06;
+  the earlier runs used the session-bar map, `(m^2 + s2) * B`).
 - The quoted implied volatility is hourly, so
   `iv_30 = iv_hourly / sqrt(2)` and `iv_var = iv_30**2`.
 - `signal = rv_hat - iv_var`; the variance risk premium is
@@ -4197,8 +4334,10 @@ print(row[cols].T.to_string())
 print("checks: R = exit/entry - 1 ->", float(row["exit"].iloc[0] / row["entry"].iloc[0] - 1.0),
       "| iv_var = iv_hourly^2/2 ->", float(row["iv_hourly"].iloc[0] ** 2 / 2.0),
       "| signal = rv_hat - iv_var ->", float(row["rv_hat"].iloc[0] - row["iv_var"].iloc[0]))
-if {"m", "s2", "baseline"} <= set(row.columns):
-    print("check: rv_hat = (m^2 + s2) * B ->", float((row["m"].iloc[0] ** 2 + row["s2"].iloc[0]) * row["baseline"].iloc[0]))
+print("check: rv_hat = yhat^2 * B ->", float(row["yhat"].iloc[0] ** 2 * row["baseline"].iloc[0]))
+# parked 2026-10-06 (recalibration removed): the map's pieces m and s2 are no longer columns
+# if {"m", "s2", "baseline"} <= set(row.columns):
+#     print("check: rv_hat = (m^2 + s2) * B ->", float((row["m"].iloc[0] ** 2 + row["s2"].iloc[0]) * row["baseline"].iloc[0]))
 """
     ),
     md(

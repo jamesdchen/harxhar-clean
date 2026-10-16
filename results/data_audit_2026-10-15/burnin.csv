@@ -1,0 +1,4 @@
+design,rows,first,W,first_forecast
+record (burn-in after the slice),3469,2010-07-12,2000,2018-06-25
+burn-in in bar space (before the slice),6490,1998-06-04,2000,2006-06-13
+record last-hour design (the pre-tune's source),10069,2004-04-13,4000,2012-03-29

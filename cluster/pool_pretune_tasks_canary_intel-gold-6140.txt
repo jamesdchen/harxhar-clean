@@ -1,0 +1,4 @@
+gate walk all_features reclasso 1.0 causal 295250 -1 96000
+gate walk baseline reclasso 1.0 causal 295250 -1 96000
+gate walk lean_vol_vix reclasso 1.0 causal 295250 -1 96000
+smoke walk lean_vol_vix reclasso 0.01 causal 295250 -1 96000

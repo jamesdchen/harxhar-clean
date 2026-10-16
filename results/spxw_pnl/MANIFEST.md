@@ -25,13 +25,18 @@ bit, chunk by chunk.
 
 ## The eight tables in use
 
+2026-10-07 (user decision, `writeup/MASTER_TABLE_REVIEW_2026-10-01.md` item 76): the `xgb` tag reads
+`yhat_tree10.parquet` (bank arm 10 = `xgb_opt_00`, the top entry of the 1998-2002 dev-span search, the
+rule LightGBM and the random forest follow) instead of `yhat_tree16.parquet` (arm 16 = `xgb_opt_06`,
+7th-ranked, hand-picked after post-2002 scoring). The arm-16 row is parked under the unused tables below.
+
 | tag | file | sha256 | bytes | arm | panel | chunk tree |
 | --- | --- | --- | --- | --- | --- | --- |
 | `a0` | `yhat_a0.parquet` | `e3e4d9caaddfe7421fa4f5da6acbedeaa458bb221d8ef26c1a5d7995ffc7be9d` | 9,543,510 | `a0_ols_har` | incumbent (FOMC-panel run pending) | `results/unification_carc/a0_ols_har`, 100/100 chunks bit-exact |
 | `blk2` | `yhat_blk2_fomc1.parquet` | `f0edd6db636c8ae82e0d08f397f523b5fac46695259a51bb3955e4cb829bb6a1` | 9,543,510 | `blk2_user` | FOMC (panel of record) | `results/unification_fomc1/blk2_user`, 100/100 chunks bit-exact |
 | `blk2_inc` | `yhat_blk2.parquet` | `70e363048bb81945ade1544eb17412c07f13cc47e889f48b84d970fe164589f9` | 9,543,510 | `blk2_user` | incumbent (no FOMC columns; diagnostic row) | `results/unification_carc/blk2_user`, 100/100 chunks bit-exact |
 | `lgbm` | `yhat_tree00.parquet` | `e52bb99852c0fa7e2fdf05385e28be8f372da52a00a8487c64d274c137de37e4` | 9,543,510 | `tree_expert_00` | incumbent (FOMC-panel run pending) | `results/unification_carc/tree_expert_00`, 100/100 chunks bit-exact |
-| `xgb` | `yhat_tree16.parquet` | `cc9fe56b858ccd64825754d8d51a82c37b13f061efdee5697b91d13201b4258b` | 8,958,047 | `tree_expert_16` | incumbent (FOMC-panel run pending) | `results/unification_carc/tree_expert_16`, 100/100 chunks bit-exact |
+| `xgb` | `yhat_tree10.parquet` | `ebd540db48768c80e9426116449db6399fcb5d090f40b3140cfeb85ac65a2cde` | 8,958,922 | `tree_expert_10` | incumbent (FOMC-panel run pending) | `results/unification_carc/tree_expert_10`, 100/100 chunks (dumped 2026-10-07) |
 | `lasso_t` | `yhat_b2lasso_tuned.parquet` | `f3965d42324f004e1acae61417db3a880369ffb66f57c603e71d2689f9f6c9c5` | 9,543,512 | `b2_lasso_tuned` | incumbent (FOMC-panel run pending) | `results/unification_carc/b2_lasso_tuned`, 100/100 chunks bit-exact |
 | `lasso_f` | `yhat_b2lasso_fomc1.parquet` | `79e82822c027355762762b334337795c1305257544da091024f2881961c90301` | 9,543,510 | `b2_lasso` | FOMC (panel of record) | `results/unification_fomc1/b2_lasso`, 100/100 chunks bit-exact |
 | `enet` | `yhat_b3enet_tuned.parquet` | `26356bd813cbda4f0b876ebb4f000827886841f17f5d32e73b752be3eee25e0e` | 9,543,510 | `b3_enet_tuned` | incumbent (FOMC-panel run pending) | `results/unification_carc/b3_enet_tuned`, 100/100 chunks bit-exact |
@@ -40,6 +45,7 @@ bit, chunk by chunk.
 
 | file | sha256 | bytes | arm | panel | chunk tree |
 | --- | --- | --- | --- | --- | --- |
+| `yhat_tree16.parquet` (2026-10-07 parked: was the `xgb` tag) | `cc9fe56b858ccd64825754d8d51a82c37b13f061efdee5697b91d13201b4258b` | 8,958,047 | `tree_expert_16` | incumbent | `results/unification_carc/tree_expert_16`, 100/100 chunks bit-exact |
 | `yhat_b2lasso.parquet` | `69b2734bca6c2406daf49b0b1c1d48bb814c4896bc389d4016ff18244f7acc1b` | 9,543,512 | `b2_lasso` | incumbent | `results/unification_carc/b2_lasso`, 100/100 chunks bit-exact |
 
 The fixed lasso is reported on the panel of record, so no tag points at this
@@ -94,7 +100,12 @@ files carry only `arm`, `chunk_index`, `chunk_start`, `chunk_end`,
 `n_rows_panel` and `wall_sec` — no code sha, no library versions, no thread
 count, no refit cadence.
 
-**Dump commands.** Recorded for `lasso_f` only:
+**Dump commands.** 2026-10-07: `yhat_tree10.parquet` was dumped with
+`python experiments/dump_unif_yhat.py --arm tree_expert_10 --root harxhar-clean/results/unification_carc`
+at 2026-10-07 20:52 PDT; every one of its 100 chunks' meta carries sha `88bec9f385c7` (`xgb_opt_00`); `t`,
+`baseline` and `rv_raw` are identical to `yhat_tree16` row for row; the same command on `tree_expert_16`
+reproduces `yhat_tree16.parquet` byte for byte (`results/atm_straddle_0dte_1530/TREE10_DONE`).
+Before that, recorded for `lasso_f` only:
 
 ```
 python experiments/dump_unif_yhat.py --arm b2_lasso \
@@ -129,7 +140,9 @@ copy, not a second dump.
 | `blk2`, `blk2_inc` | block-diagonal ridge, penalties 1 on the backbone block and 100 on the exogenous block, HAR ladder base 2; recorded in the chunk meta's arm spec |
 | `lasso_f` | fixed penalty 1e-4, confirmed in code |
 | `lasso_t`, `enet` | causally tuned: enumerated penalty grid, validation tail = the 125 bars ending at the 15:30 bar after a 25-bar embargo, selection criterion is fit-scale SSE (deliberately not the reported loss); retuned every 250 solves |
-| `lgbm`, `xgb` | **unrecoverable.** Arms 00 and 16 of a frozen 20-arm bank defined by `experiments/tree_menu.json`, which is absent from disk and from every commit in the main repository's history; the Optuna journals and per-chunk trial records are gone as well. The two arms were hand-picked from the bank rather than taken from the scorer's expert selection, and the basis for the pick is unrecorded. Arm 16 was the 7th-ranked XGBoost development trial under the nominal freeze. Library versions were not pinned and are not recorded. Arm 16's predictions were float32 in the chunk npz, which is why `yhat_tree16.parquet` is smaller on disk. |
+| `lgbm` | arm 00, unchanged: see the parked 2026-09-05 row below |
+| `xgb` | 2026-10-07: arm 10 = `xgb_opt_00` (sha `88bec9f385c7`), the top entry of the 1998-2002 dev-span search; its settings (pooled 24,000-bar window values) are in `results/trees_xgbtop_1600/xgb_config.json`, re-derived from every chunk's meta `tree_config` |
+| (2026-10-07 parked: the `lgbm`, `xgb` row as written 2026-09-05, when `xgb` was arm 16) | **unrecoverable.** Arms 00 and 16 of a frozen 20-arm bank defined by `experiments/tree_menu.json`, which is absent from disk and from every commit in the main repository's history; the Optuna journals and per-chunk trial records are gone as well. The two arms were hand-picked from the bank rather than taken from the scorer's expert selection, and the basis for the pick is unrecorded. Arm 16 was the 7th-ranked XGBoost development trial under the nominal freeze. Library versions were not pinned and are not recorded. Arm 16's predictions were float32 in the chunk npz, which is why `yhat_tree16.parquet` is smaller on disk. |
 
 ## Identity checks re-run 2026-09-05
 

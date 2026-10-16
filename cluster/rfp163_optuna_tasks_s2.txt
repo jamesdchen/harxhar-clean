@@ -1,0 +1,11 @@
+baseline rf 2000 bar1600 0 2000 -1 2000
+lean_vol_vix rf 2000 bar1600 0 2000 2734 2000
+lean_vol_vix rf 2000 bar1600 1 2734 -1 2000
+all_features rf 2000 bar1600 0 2000 2183 2000
+all_features rf 2000 bar1600 1 2183 2367 2000
+all_features rf 2000 bar1600 2 2367 2550 2000
+all_features rf 2000 bar1600 3 2550 2734 2000
+all_features rf 2000 bar1600 4 2734 2918 2000
+all_features rf 2000 bar1600 5 2918 3101 2000
+all_features rf 2000 bar1600 6 3101 3285 2000
+all_features rf 2000 bar1600 7 3285 -1 2000

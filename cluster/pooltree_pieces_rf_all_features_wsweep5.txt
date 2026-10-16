@@ -1,0 +1,7 @@
+rf all_features 17:150:156
+rf all_features 25:1029:1032
+rf all_features 25:1166:1169
+rf all_features 25:2563:2566
+rf all_features 73:1710:1713
+rf all_features 73:1714:1722
+rf all_features 73:1910:1914

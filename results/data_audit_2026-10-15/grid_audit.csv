@@ -1,0 +1,12 @@
+check,n,detail
+RV prints removed by the weekend cut,2,2006-09-01 20:30; 2020-04-24 20:30
+RV bars kept on Friday after the 17:00 ET CME close (bar ends 17:30..20:00),6035,4254 from 2010; median volume 38 vs 1382 at Mon-Thu 19:00; median numobs 18
+"RV bars kept in the daily 17:00-18:00 ET maintenance window (bar ends 17:30, 18:00, Mon-Thu)",9039,"median volume 17:30 578, 18:00 68; median numobs 24"
+RV == 0 bars kept,935,at 16:00: 2
+16:00 RV rows on days with no NYSE session (no stock-file or VIX RTH print),0,
+... of which inside the per-bar design span (2010-07-12 .. 2024-04-30),0,
+16:00 RV rows on NYSE early-close days (post-13:00 futures bars; target = post-close variance),28,2002-07-03; 2006-11-24; 2007-07-03; 2007-11-23; 2008-11-28; 2009-12-24; 2010-11-26; 2011-11-25; 2012-07-03; 2012-11-23; 2012-12-24; 2013-07-03; 2013-11-29; 2013-12-24; 2014-07-03; 2014-11-28; 2014-12-24; 2015-11-27; 2015-12-24; 2018-07-03; 2019-07-03; 2019-11-29; 2019-12-24; 2020-11-27; 2020-12-24; 2022-11-25; 2023-07-03; 2023-11-24
+... of which inside the per-bar design span (training rows of the per-bar models),22,2010-11-26; 2011-11-25; 2012-07-03; 2012-11-23; 2012-12-24; 2013-07-03; 2013-11-29; 2013-12-24; 2014-07-03; 2014-11-28; 2014-12-24; 2015-11-27; 2015-12-24; 2018-07-03; 2019-07-03; 2019-11-29; 2019-12-24; 2020-11-27; 2020-12-24; 2022-11-25; 2023-07-03; 2023-11-24
+... of which inside the scored window 2020-01-03 .. 2024-04-30 (dropped from the 866 trade days),5,2020-11-27; 2020-12-24; 2022-11-25; 2023-07-03; 2023-11-24
+NYSE full sessions without an ES 16:00 bar (the session is absent from the per-bar design),8,1998-11-27; 1998-12-24; 1999-11-26; 1999-12-31; 2000-07-03; 2000-11-24; 2002-07-05; 2003-12-26
+RTH bars (10:00..16:00) missing from the ES tape on NYSE full sessions,36,on 9 days; from 2010-07-12: 0: 

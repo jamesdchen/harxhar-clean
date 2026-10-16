@@ -1,0 +1,21 @@
+{
+ "family": "rf",
+ "name": "rf400_rf_opt_00",
+ "sha": "88eebb5fa9e8",
+ "trial": 255,
+ "dev_screen_mse": 0.10845556430376364,
+ "params": {
+  "n_estimators": 485,
+  "max_depth": 20,
+  "min_samples_leaf": 12,
+  "max_features": 0.9013236540796851,
+  "max_samples": 0.41297156429787285,
+  "bootstrap": true
+ },
+ "provenance": {
+  "window": 24000,
+  "source": "results/rf_devmenu_2026-10-06/budget400/rf_config.json (the 400-trial dev-span search's top entry)",
+  "source_file_sha256": "56a9479df37ace6d74d996059d4400ef06f3c15792f26f7abaa87768be4f35ee",
+  "leaf_scaling": "none: the pooled 24,000-bar window is the window it was tuned on"
+ }
+}

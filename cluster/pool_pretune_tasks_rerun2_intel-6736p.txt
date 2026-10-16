@@ -1,0 +1,2 @@
+gate walk all_features ridge 1.0 causal 295250 -1 96000
+gate walk all_features reclasticnet 1.0 causal 295250 -1 96000

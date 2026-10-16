@@ -1,0 +1,41 @@
+pair,lag_bars,subset,n,corr
+SPX spot (chain) vs ES sumret,-2,all,10462,0.016821781299180574
+SPX spot (chain) vs ES sumret,-2,EDT,6744,0.020114917935829573
+SPX spot (chain) vs ES sumret,-2,EST,3718,0.008122297966147527
+SPX spot (chain) vs ES sumret,-2,DST transition weeks,420,0.034412425252835915
+SPX spot (chain) vs ES sumret,-1,all,10461,0.010451032885285042
+SPX spot (chain) vs ES sumret,-1,EDT,6744,0.0012896610678023574
+SPX spot (chain) vs ES sumret,-1,EST,3717,0.0346849710056353
+SPX spot (chain) vs ES sumret,-1,DST transition weeks,420,0.03313938612580351
+SPX spot (chain) vs ES sumret,0,all,10460,0.9985337025307449
+SPX spot (chain) vs ES sumret,0,EDT,6744,0.9985844245608475
+SPX spot (chain) vs ES sumret,0,EST,3716,0.9984022645337581
+SPX spot (chain) vs ES sumret,0,DST transition weeks,420,0.9985060446390389
+SPX spot (chain) vs ES sumret,1,all,10460,0.007254301223565515
+SPX spot (chain) vs ES sumret,1,EDT,6744,-0.0015159143609053637
+SPX spot (chain) vs ES sumret,1,EST,3716,0.03044311928613557
+SPX spot (chain) vs ES sumret,1,DST transition weeks,420,0.02530110653302849
+SPX spot (chain) vs ES sumret,2,all,10460,0.013607325689370418
+SPX spot (chain) vs ES sumret,2,EDT,6744,0.011134270895835886
+SPX spot (chain) vs ES sumret,2,EST,3716,0.020159452551432918
+SPX spot (chain) vs ES sumret,2,DST transition weeks,420,-0.1158091546747607
+VW stock cube-root sumret3 vs ES sumret,-2,all,86003,0.0022135434394033662
+VW stock cube-root sumret3 vs ES sumret,-2,EDT,53926,-0.0008254253765235159
+VW stock cube-root sumret3 vs ES sumret,-2,EST,32077,0.008459328287283973
+VW stock cube-root sumret3 vs ES sumret,-2,DST transition weeks,2275,-0.02071396257076399
+VW stock cube-root sumret3 vs ES sumret,-1,all,85986,0.04659972876043267
+VW stock cube-root sumret3 vs ES sumret,-1,EDT,53925,0.04622388548491934
+VW stock cube-root sumret3 vs ES sumret,-1,EST,32061,0.04778225700803481
+VW stock cube-root sumret3 vs ES sumret,-1,DST transition weeks,2275,0.05648586310003282
+VW stock cube-root sumret3 vs ES sumret,0,all,85965,0.36923138497911817
+VW stock cube-root sumret3 vs ES sumret,0,EDT,53923,0.3448321140165615
+VW stock cube-root sumret3 vs ES sumret,0,EST,32042,0.42241340828382207
+VW stock cube-root sumret3 vs ES sumret,0,DST transition weeks,2275,0.36619935723617797
+VW stock cube-root sumret3 vs ES sumret,1,all,85942,0.017252429895992873
+VW stock cube-root sumret3 vs ES sumret,1,EDT,53917,0.015791105704615373
+VW stock cube-root sumret3 vs ES sumret,1,EST,32025,0.020401597850107145
+VW stock cube-root sumret3 vs ES sumret,1,DST transition weeks,2275,0.013480093813755622
+VW stock cube-root sumret3 vs ES sumret,2,all,85257,0.00790850665095373
+VW stock cube-root sumret3 vs ES sumret,2,EDT,53534,0.009528411954095393
+VW stock cube-root sumret3 vs ES sumret,2,EST,31723,0.00464617056006456
+VW stock cube-root sumret3 vs ES sumret,2,DST transition weeks,2275,-0.0028621725185010933

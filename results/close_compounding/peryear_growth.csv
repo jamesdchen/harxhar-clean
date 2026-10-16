@@ -1,24 +1,24 @@
 series,fill,year,days,g_ann
-headline sign(s),mid,2020,158,0.8694358894365788
-headline sign(s),mid,2021,158,0.7906510309609351
-headline sign(s),mid,2022,219,-0.010133112266786428
-headline sign(s),mid,2023,248,1.2852843699512126
-headline sign(s),mid,2024,83,2.148611015723856
-headline sign(s),crossed,2020,158,0.4419911724683683
-headline sign(s),crossed,2021,158,0.47895156709791165
-headline sign(s),crossed,2022,219,-0.19063461044993085
-headline sign(s),crossed,2023,248,1.1070147330618527
-headline sign(s),crossed,2024,83,1.9562070219265495
-reference sign(s) (this scorer),mid,2020,158,0.5711276345072094
-reference sign(s) (this scorer),mid,2021,158,0.19535728434635644
-reference sign(s) (this scorer),mid,2022,219,0.08001637120882117
-reference sign(s) (this scorer),mid,2023,248,0.7035873172561843
-reference sign(s) (this scorer),mid,2024,83,0.34965470742768345
-reference sign(s) (this scorer),crossed,2020,158,0.14398622459879074
-reference sign(s) (this scorer),crossed,2021,158,-0.13026096382561894
-reference sign(s) (this scorer),crossed,2022,219,-0.10017367007682115
-reference sign(s) (this scorer),crossed,2023,248,0.52161180594855
-reference sign(s) (this scorer),crossed,2024,83,0.1526092153737412
+headline sign(s),mid,2020,158,0.48696980946722507
+headline sign(s),mid,2021,158,0.3273075985546515
+headline sign(s),mid,2022,219,0.1731939168923146
+headline sign(s),mid,2023,248,1.5005163784206166
+headline sign(s),mid,2024,83,1.9955492047162342
+headline sign(s),crossed,2020,158,0.04174937943281874
+headline sign(s),crossed,2021,158,0.00400175171929148
+headline sign(s),crossed,2022,219,-0.0076163211509811405
+headline sign(s),crossed,2023,248,1.3205920323463682
+headline sign(s),crossed,2024,83,1.8010177663734406
+reference sign(s) (this scorer),mid,2020,158,0.7176534103548137
+reference sign(s) (this scorer),mid,2021,158,-0.1181723884535466
+reference sign(s) (this scorer),mid,2022,219,0.22895530709082768
+reference sign(s) (this scorer),mid,2023,248,1.1913181175685703
+reference sign(s) (this scorer),mid,2024,83,0.3664869939069125
+reference sign(s) (this scorer),crossed,2020,158,0.2805493632461235
+reference sign(s) (this scorer),crossed,2021,158,-0.451395325033982
+reference sign(s) (this scorer),crossed,2022,219,0.04780716212273729
+reference sign(s) (this scorer),crossed,2023,248,1.0081483619850689
+reference sign(s) (this scorer),crossed,2024,83,0.16885140736082682
 always short,mid,2020,158,-0.37584384367505397
 always short,mid,2021,158,-0.531644041202034
 always short,mid,2022,219,0.6884888398024436

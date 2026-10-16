@@ -1,0 +1,9 @@
+moments_vol_vix lgbm 2000 bar1600 0 2000 2734 2000
+moments_vol_vix lgbm 2000 bar1600 1 2734 -1 2000
+moments_vol_vix xgb 2000 bar1600 0 2000 2489 2000
+moments_vol_vix xgb 2000 bar1600 1 2489 2979 2000
+moments_vol_vix xgb 2000 bar1600 2 2979 -1 2000
+moments_vol_vix rf 2000 bar1600 0 2000 2367 2000
+moments_vol_vix rf 2000 bar1600 1 2367 2734 2000
+moments_vol_vix rf 2000 bar1600 2 2734 3101 2000
+moments_vol_vix rf 2000 bar1600 3 3101 -1 2000

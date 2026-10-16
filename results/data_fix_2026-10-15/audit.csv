@@ -1,0 +1,67 @@
+series,source,domain,n_obs,n_neg,n_zero,min,max,invalid_nulled,first_invalid,last_invalid,sign_data_old,prints_deciding_sign,sign_name_new,name_rule_registered,sign_data_after_null,name_eq_data_after_null,diurnal_old,diurnal_new,transform_old,transform_new,log_floor_hits_old,log_floor_hits_new,mode_inflated,mode,changed
+RV,core_stats,">= 0 (target, never nulled)",303442,0,935,0.0,0.0019340574896902,0,,,False,0,False,True,False,True,mean,mean,sqrt,sqrt,0,0,False,,False
+sumret,core_stats,signed,303442,141358,14097,-0.0426447024936091,0.06347396750495,0,,,True,141358,True,True,True,True,s.d.,s.d.,identity,identity,0,0,False,,False
+sumabsret,core_stats,>= 0,303442,0,935,0.0,0.2053940175563537,0,,,False,0,False,True,False,True,mean,mean,identity,identity,0,0,False,,False
+sumret3,core_stats,signed,303442,145862,8382,-2.4069018454653176e-05,5.492921688268654e-05,0,,,True,145862,True,True,True,True,s.d.,s.d.,cube root,cube root,0,0,False,,False
+sumret4,core_stats,>= 0,303442,0,935,0.0,2.0844227761956688e-06,0,,,False,0,False,True,False,True,mean,mean,signed 4th root,signed 4th root,0,0,False,,False
+sumpret2,core_stats,>= 0,303442,0,2998,0.0,0.0015886616111544,0,,,False,0,False,True,False,True,mean,mean,sqrt,sqrt,0,0,False,,False
+sumbipow,core_stats,>= 0,303441,0,5055,0.0,0.0013305689843523,0,,,False,0,False,True,False,True,mean,mean,sqrt,sqrt,0,0,False,,False
+sumautocov,core_stats,signed,303441,201386,5069,-0.0003611711803355,0.0004142786762253,0,,,True,201386,True,True,True,True,s.d.,s.d.,signed sqrt,signed sqrt,0,0,False,,False
+sumvolume,core_stats,> 0,303442,0,21852,0.0,1175712.736,21852,1998-01-05 01:30,2003-06-30 08:00,False,0,False,True,False,True,mean,mean,log,log,21852,0,False,,True
+numobs,core_stats,> 0,303442,0,0,1.0,30.0,0,,,False,0,False,True,False,True,mean,mean,log,log,0,0,True,30.0,False
+sumret2_ewstock,ewstock_stats,>= 0,187814,0,6862,0.0,0.0387021656767259,0,,,False,0,False,True,False,True,mean,mean,sqrt,sqrt,0,0,False,,False
+sumret3_ewstock,ewstock_stats,signed,181785,87210,848,-0.0752116757206144,0.0622217442618385,0,,,True,87210,True,True,True,True,s.d.,s.d.,cube root,cube root,0,0,False,,False
+sumret4_ewstock,ewstock_stats,>= 0,187814,0,6862,0.0,0.2492654891106599,0,,,False,0,False,True,False,True,mean,mean,signed 4th root,signed 4th root,0,0,False,,False
+sumabsret_ewstock,ewstock_stats,>= 0,187814,0,6862,0.0,0.1149207871915412,0,,,False,0,False,True,False,True,mean,mean,identity,identity,0,0,False,,False
+sumbipow_ewstock,ewstock_stats,>= 0,187814,0,13358,0.0,0.0142880093029802,0,,,False,0,False,True,False,True,mean,mean,sqrt,sqrt,0,0,False,,False
+sumpret2_ewstock,ewstock_stats,>= 0,187814,0,6473,0.0,0.0895899654255378,0,,,False,0,False,True,False,True,mean,mean,sqrt,sqrt,0,0,False,,False
+turnover_ewstock,ewstock_stats,> 0,187814,0,0,3.280621402183516e-07,5.185920319271164,0,,,False,0,False,True,False,True,mean,mean,sqrt,sqrt,0,0,False,,False
+buyturnover_ewstock,ewstock_stats,>= 0,187814,0,1353,0.0,3.3108137052560247,0,,,False,0,False,True,False,True,mean,mean,sqrt,sqrt,0,0,False,,False
+sellturnover_ewstock,ewstock_stats,>= 0,187814,0,1565,0.0,3.7302006279333777,0,,,False,0,False,True,False,True,mean,mean,sqrt,sqrt,0,0,False,,False
+effspread_ewstock,ewstock_stats,> 0,187814,0,43,0.0,5.100644973177803,43,1998-01-07 08:30,2012-11-08 04:00,False,0,False,True,False,True,mean,mean,sqrt,sqrt,0,0,False,,True
+spread_ewstock,ewstock_stats,> 0,187724,0,0,0.0002340047641981,1.8129375492128,0,,,False,0,False,True,False,True,mean,mean,log,log,0,0,False,,False
+sumret2_vwstock,vwstock_stats,>= 0,187814,0,6862,0.0,0.0535700432217136,0,,,False,0,False,True,False,True,mean,mean,sqrt,sqrt,0,0,False,,False
+sumret3_vwstock,vwstock_stats,signed,181785,87545,848,-0.0897251986801996,0.0664724812542391,0,,,True,87545,True,True,True,True,s.d.,s.d.,cube root,cube root,0,0,False,,False
+sumret4_vwstock,vwstock_stats,>= 0,187814,0,6862,0.0,0.2973660075209762,0,,,False,0,False,True,False,True,mean,mean,signed 4th root,signed 4th root,0,0,False,,False
+sumabsret_vwstock,vwstock_stats,>= 0,187814,0,6862,0.0,0.1020062460450326,0,,,False,0,False,True,False,True,mean,mean,identity,identity,0,0,False,,False
+sumbipow_vwstock,vwstock_stats,>= 0,187814,0,13358,0.0,0.0209466124169962,0,,,False,0,False,True,False,True,mean,mean,sqrt,sqrt,0,0,False,,False
+sumpret2_vwstock,vwstock_stats,>= 0,187814,0,6473,0.0,0.0516125520680464,0,,,False,0,False,True,False,True,mean,mean,sqrt,sqrt,0,0,False,,False
+turnover_vwstock,vwstock_stats,> 0,187814,0,0,3.280621402183517e-07,15.663918279824808,0,,,False,0,False,True,False,True,mean,mean,sqrt,sqrt,0,0,False,,False
+buyturnover_vwstock,vwstock_stats,>= 0,187814,0,1353,0.0,8.482624169029888,0,,,False,0,False,True,False,True,mean,mean,sqrt,sqrt,0,0,False,,False
+sellturnover_vwstock,vwstock_stats,>= 0,187814,0,1565,0.0,9.35900779669876,0,,,False,0,False,True,False,True,mean,mean,sqrt,sqrt,0,0,False,,False
+effspread_vwstock,vwstock_stats,> 0,187814,0,43,0.0,5.100644973177803,43,1998-01-07 08:30,2012-11-08 04:00,False,0,False,True,False,True,mean,mean,sqrt,sqrt,0,0,False,,True
+spread_vwstock,vwstock_stats,> 0,187724,1,0,-0.0003175717094524,1.9445507889651013,1,2018-11-12 11:00,2018-11-12 11:00,True,1,False,True,False,True,s.d.,mean,identity,log,0,0,False,,True
+stocktwits_attention,spy_and_sentiment,>= 0,184517,0,0,1.0,25376.0,0,,,False,0,False,True,False,True,mean,mean,log,log,0,0,False,,False
+stocktwits_sentiment,spy_and_sentiment,signed,162245,4261,2019,-1.0,1.0,0,,,True,4261,True,True,True,True,none,none,identity,identity,0,0,False,,False
+stocktwits_sentcount,spy_and_sentiment,>= 0,162245,0,0,1.0,16634.0,0,,,False,0,False,True,False,True,mean,mean,log,log,0,0,False,,False
+vix,vix_and_voldemand,> 0,85624,0,0,8.95,84.56,0,,,False,0,False,True,False,True,none,none,log,log,0,0,False,,False
+vvix,vix_and_voldemand,> 0,38508,0,0,60.53,204.7,0,,,False,0,False,True,False,True,none,none,log,log,0,0,False,,False
+vix3m,vix_and_voldemand,> 0,50150,0,0,11.83,79.95,0,,,False,0,False,True,False,True,none,none,log,log,0,0,False,,False
+voldemand_spx_open_and_close,vix_and_voldemand,signed,54040,17875,8010,-5271899.378889417,6352463.778820984,0,,,True,17875,True,True,True,True,s.d.,s.d.,identity,identity,0,0,True,0.0,False
+voldemand_spx_open_only,vix_and_voldemand,signed,54040,12108,8621,-13353298.977374133,10507750.34437064,0,,,True,12108,True,True,True,True,s.d.,s.d.,identity,identity,0,0,True,0.0,False
+voldemand_all_open_and_close,vix_and_voldemand,signed,54040,17621,7829,-5167609.256464284,6769639.4568829965,0,,,True,17621,True,True,True,True,s.d.,s.d.,identity,identity,0,0,True,0.0,False
+voldemand_all_open_only,vix_and_voldemand,signed,54040,9677,8502,-13866093.406729886,10501980.274091106,0,,,True,9677,True,True,True,True,s.d.,s.d.,identity,identity,0,0,True,0.0,False
+ofi_ewstock,derived,signed,187788,83953,36,-1.0,1.0,0,,,True,83953,True,True,True,True,s.d.,s.d.,identity,identity,0,0,False,,False
+ofi_vwstock,derived,signed,187788,84676,36,-1.0,1.0,0,,,True,84676,True,True,True,True,s.d.,s.d.,identity,identity,0,0,False,,False
+fomc_release,derived,>= 0,297308,0,297102,0.0,1.0,0,,,False,0,False,True,False,True,none,none,log,log,297102,297102,True,0.0,False
+fomc_day,derived,>= 0,297308,0,288119,0.0,1.0,0,,,False,0,False,True,False,True,none,none,log,log,288119,288119,True,0.0,False
+fomc_until_inv,derived,>= 0,297308,0,0,0.00031525851197982345,1.0,0,,,False,0,False,True,False,True,none,none,log,log,0,0,False,,False
+fomc_since_inv,derived,>= 0,296641,0,0,0.00031525851197982345,1.0,0,,,False,0,False,True,False,True,none,none,log,log,0,0,False,,False
+ivslice_annvol,spxw_ivslice,> 0,10387,0,0,7.651893510883305,375.98883051636653,0,,,False,0,False,True,False,True,mean,mean,log,log,0,0,False,,False
+ivslice_perbar_rv,spxw_ivslice,> 0,10387,0,0,3.3396916667749275e-07,0.0008063404099535992,0,,,False,0,False,True,False,True,mean,mean,sqrt,sqrt,0,0,False,,False
+ivslice_vvix,spxw_ivslice,> 0,10386,0,0,0.02435064750860645,0.3479421638180512,0,,,False,0,False,True,False,True,none,none,log,log,0,0,False,,False
+mfiv0_annvol,spxw_mfiv,> 0,10891,0,0,18.14457172308199,758.0908589424384,0,,,False,0,False,True,False,True,mean,mean,log,log,0,0,False,,False
+mfiv0_perbar_rv,spxw_mfiv,> 0,10891,0,0,1.8778546829458508e-06,0.003278015916108168,0,,,False,0,False,True,False,True,mean,mean,sqrt,sqrt,0,0,False,,False
+mfiv0_vvix,spxw_mfiv,> 0,10885,0,0,0.037217145533378695,0.942284250528176,0,,,False,0,False,True,False,True,none,none,log,log,0,0,False,,False
+impl30_perbar_rv,vix_representations,> 0,85624,0,0,6.622230489417989e-07,5.911370370370371e-05,0,,,False,0,False,True,False,True,mean,mean,sqrt,sqrt,0,0,False,,False
+vix_slope_3m,vix_representations,signed,50150,3652,38,-0.35263203877446353,0.3389238191190181,0,,,True,3652,True,True,True,True,none,none,identity,identity,0,0,False,,False
+vvix_over_vix,vix_representations,> 0,38508,0,0,2.068759143503126,10.570312499999998,0,,,False,0,False,True,False,True,none,none,log,log,0,0,False,,False
+vix_chg_1bar,vix_representations,signed,85623,43413,3310,-0.6307191963582661,0.5942272110998355,0,,,True,43413,True,True,True,True,none,none,identity,identity,0,0,False,,False
+vix_chg_1d,vix_representations,signed,84036,45240,365,-0.5598120908969562,0.9853779556508524,0,,,True,45240,True,True,True,True,none,none,identity,identity,0,0,False,,False
+vix_chg_5d,vix_representations,signed,83935,44928,196,-0.7238711668313904,1.2693431447877872,0,,,True,44928,True,True,True,True,none,none,identity,identity,0,0,False,,False
+vix_vrp_1d,vix_representations,signed,85624,9457,0,-2.671678757828275,2.847861382040473,0,,,True,9457,True,True,True,True,none,none,identity,identity,0,0,False,,False
+vix_vrp_5d,vix_representations,signed,85624,9291,0,-1.481561590805453,2.1956591663639826,0,,,True,9291,True,True,True,True,none,none,identity,identity,0,0,False,,False
+vix_vrp_22d,vix_representations,signed,85624,12839,0,-1.4582078529210885,2.16776723318024,0,,,True,12839,True,True,True,True,none,none,identity,identity,0,0,False,,False
+ivslice_over_vix,vix_representations,> 0,9739,0,0,0.5259033340813267,6.3774925676130785,0,,,False,0,False,True,False,True,none,none,log,log,0,0,False,,False
+vix_volofvol_5d,vix_rvol,> 0,57727,0,0,0.005905087673694734,0.1056731951849477,0,,,False,0,False,True,False,True,none,none,log,log,0,0,False,,False
+vix_volofvol_22d,vix_rvol,> 0,57567,0,0,0.008021712256220753,0.056923847952091246,0,,,False,0,False,True,False,True,none,none,log,log,0,0,False,,False

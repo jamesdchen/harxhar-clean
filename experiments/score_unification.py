@@ -1,4 +1,26 @@
-"""Harvest + score the unification campaign (paper2) under the paper's smearing contract.
+"""Harvest + score the unification campaign (paper2) on the PLAIN back-transform.
+
+SCORING CONVENTION (2026-10-06, user decision -- recalibration removed from the
+paper): ``--convention plain`` (the default) scores every arm on its plain
+back-transform ``f = yhat^2 * B`` -- the adjusted-scale forecast squared times
+the persisted diurnal baseline -- with no Duan smearing factor, no
+Mincer-Zarnowitz map and no second-moment term.  Every headline macro, DM test,
+increment and table is computed on that forecast; the tree-bank selector and
+hedge are fed the experts' plain forecasts and plain tail losses; the
+conditional-variance sidecar arms (a recalibration exhibit) are not assembled;
+the smear-sensitivity table and its Kendall-tau macros are not written.  The
+scored ROW SET is unchanged: the first present window of each arm (formerly
+the calibration burn-in) is still held out, so the evaluation panel and every
+paired join are identical to the earlier contract runs.  The contract below is
+kept, unchanged, behind ``--convention contract`` to reproduce the pre-2026-10-06
+numbers; in plain mode its pooled QLIKE is still computed per arm and written to
+``plain_vs_contract.csv`` (sibling of ``--out``) for the old -> new audit only.
+
+NO-HISTORY BARS (2026-10-06, user decision): bars whose persisted diurnal
+baseline is the target transform's no-history fill (DIURNAL_NO_HISTORY_BASELINE:
+fewer than five earlier same-slot observations) are not scored, in every arm and
+every DM sample (65 bars on the main panel).  ``--keep-no-history-bars``
+reproduces the earlier row set.
 
 Reads the per-task npz trees written by ``src/unification.py`` (the executor is
 the source of truth for the schema: row_id, t, y_fit, yhat, rv_raw, baseline,
@@ -129,6 +151,46 @@ from src.evaluation.metrics import mz_regression  # noqa: E402
 
 EXPECTED_CHUNKS = 100
 A0 = "a0_ols_har"
+# Scoring convention, set once by main() from --convention (module-level so the
+# per-chunk scorer and the harvest need no extra plumbing).  "plain" (default,
+# 2026-10-06): f = yhat^2 * B.  "contract": the calibrated stack below.
+_CONVENTION = "plain"
+# Optional arm filter (--arms, full-match regex on the arm dir name); None = all.
+_ARM_RE: re.Pattern[str] | None = None
+
+# DIURNAL-HISTORY VALIDITY RULE (user decision 2026-10-06).  The target
+# transform (src/features/transforms/target.py, diurnal adjustment) writes the
+# baseline as exactly this value wherever the same-slot rolling mean has fewer
+# than DIURNAL_MIN_PERIODS earlier observations ("baseline.replace(0, 1.0)
+# .fillna(1.0)"): a bar whose time-of-day slot has no usable history.  On such
+# a bar B_t is not a variance scale (~6 orders of magnitude above a 30-minute
+# variance), the plain forecast yhat^2 * B is meaningless and its per-bar QLIKE
+# is ~11-17.  These bars are NOT SCORED: valid &= (baseline != sentinel), in
+# every arm, before scoring and in the burn-in state, so they leave every
+# pooled loss and every DM sample.  On the main panel they are 65 bars -- the
+# first five appearances of 13 slots that began printing after the panel start.
+# ``--keep-no-history-bars`` restores the pre-2026-10-06 row set (reproduces the
+# earlier plain and contract numbers exactly).
+DIURNAL_NO_HISTORY_BASELINE = 1.0
+_EXCLUDE_NO_HISTORY = True
+
+
+def _scored_mask(c: dict) -> np.ndarray:
+    """The executor's valid_mask, minus (by default) the bars whose diurnal
+    baseline is the no-history value (see DIURNAL_NO_HISTORY_BASELINE)."""
+    valid = np.asarray(c["valid"], dtype=bool)
+    if not _EXCLUDE_NO_HISTORY:
+        return valid
+    return valid & (
+        np.asarray(c["baseline"], dtype=np.float64) != DIURNAL_NO_HISTORY_BASELINE
+    )
+
+
+def _arm_selected(arm_dir: str) -> bool:
+    """True when the arm dir's basename passes the --arms filter (or no filter)."""
+    return _ARM_RE is None or bool(_ARM_RE.fullmatch(os.path.basename(arm_dir)))
+
+
 # Chunks that are illegal BY DESIGN for the 24000-bar-window product /
 # transmission arms (selection/frame block + training window -> first legal
 # OOS row 48000). v3 geometry (panel 300,317 -> ~2,763-bar chunks): row
@@ -1205,6 +1267,11 @@ _INCREMENT_PAIRS: list[tuple[str, str]] = [
     ("tree_tuned", "blk3_tuned"),
     ("tree_tuned", "blk4_trail_tuned"),
     ("tree_hedge", "tree_tuned"),
+    # head-to-head of the penalty families on the full design, tested
+    # directly rather than through the incumbent (2026-10-06):
+    # \unifIncrBTwoLassoTuned{DM,DQ}, \unifIncrBThreeEnetTuned{DM,DQ}
+    ("b2_lasso_tuned", "b1_ridge_tuned_fine"),
+    ("b3_enet_tuned", "b1_ridge_tuned_fine"),
     # transmission dig: each variant's increment over the untouched 3-block
     # lower rung, plus the two head-to-heads the paper quotes
     ("blk4_trailSym", "blk3_user"),
@@ -1262,6 +1329,12 @@ class ArmResult:
     f_min: float | None = None  # min finite raw forecast (positivity check)
     qlike_none: float | None = None  # sensitivity: no correction
     qlike_duan: float | None = None  # sensitivity: in-window fit-scale Duan
+    # the calibrated-contract pooled QLIKE, kept in plain mode for the
+    # old -> new audit CSV only (never a headline number)
+    qlike_contract: float | None = None
+    # square-root-scale accuracy of yhat against the unwinsorized realization
+    # sqrt(rv_raw / B) on the scored bars: mse, mae, mz_alpha, mz_beta, r2
+    fit_stats: dict = field(default_factory=dict)
     masked_col_events: int = 0
     dropped_col_events: int = 0
     dm_t: float | None = None
@@ -1286,6 +1359,7 @@ class ArmResult:
     loss_duan: np.ndarray = field(default_factory=lambda: np.empty(0))
     err2: np.ndarray = field(default_factory=lambda: np.empty(0))
     f_raw: np.ndarray = field(default_factory=lambda: np.empty(0))
+    f_none: np.ndarray = field(default_factory=lambda: np.empty(0))  # yhat^2 * B
     rv_raw: np.ndarray = field(default_factory=lambda: np.empty(0))
     yhat: np.ndarray = field(default_factory=lambda: np.empty(0))
 
@@ -1339,7 +1413,7 @@ def _burnin_state(c: dict) -> dict:
     successor's variance residuals are measured against. If the in-sample
     fit is degenerate the identity stands in; the successor's own mean fit
     is then degenerate too and flags itself."""
-    yhat, valid = c["yhat"], c["valid"]
+    yhat, valid = c["yhat"], _scored_mask(c)
     y_raw = _y_raw_of(c["rv_raw"], c["baseline"])
     a, b = 0.0, 1.0
     s = valid & np.isfinite(y_raw) & np.isfinite(yhat)
@@ -1354,7 +1428,8 @@ def _score_chunk_causal(c: dict, prev: dict | None, res: ArmResult) -> dict:
     """Score one evaluation window under the calibrated second-moment stack
     (smearing.tex): the mean map and the scalar variance are both fit on the
     PREVIOUS window and applied here — causal, hence deployable."""
-    yhat, rv_raw, baseline, valid = c["yhat"], c["rv_raw"], c["baseline"], c["valid"]
+    yhat, rv_raw, baseline = c["yhat"], c["rv_raw"], c["baseline"]
+    valid = _scored_mask(c)  # executor mask minus the no-history bars
     n = len(yhat)
     # 1. unwinsorized sqrt-scale target
     y_raw = _y_raw_of(rv_raw, baseline)
@@ -1453,6 +1528,8 @@ def _score_chunk_causal(c: dict, prev: dict | None, res: ArmResult) -> dict:
         "loss_duan": loss_duan,
         "err2": err2,
         "f": f,
+        "f_none": f_none,
+        "y_raw": y_raw,
         "rv_raw": rv_raw,
         "yhat": yhat,
         "valid": valid,
@@ -1668,10 +1745,36 @@ def _harvest_arm(
     res.row_id = row_id[~dupe]
     res.n_gaps = int((np.diff(res.row_id) > 1).sum()) if len(res.row_id) > 1 else 0
 
-    for name in ("loss", "loss_none", "loss_duan", "err2", "f", "rv_raw", "yhat", "t"):
+    for name in (
+        "loss",
+        "loss_none",
+        "loss_duan",
+        "err2",
+        "f",
+        "f_none",
+        "rv_raw",
+        "yhat",
+        "t",
+    ):
         arr = np.concatenate([c[name] for c in chunks])[keep]
         setattr(res, {"f": "f_raw"}.get(name, name), arr)
     valid = np.concatenate([c["valid"] for c in chunks])[keep]
+    # benchmark-table diagnostics on the square-root scale (methods): yhat
+    # against the unwinsorized realization sqrt(rv_raw / B), scored bars only
+    y_raw = np.concatenate([c["y_raw"] for c in chunks])[keep]
+    fs = valid & np.isfinite(y_raw) & np.isfinite(res.yhat)
+    if fs.sum() >= 3:
+        yr, yh = y_raw[fs], res.yhat[fs]
+        e = yr - yh
+        mz_fit = _ols2(yh, yr)
+        res.fit_stats = {
+            "mse": float(np.mean(e**2)),
+            "mae": float(np.mean(np.abs(e))),
+            "mz_alpha": mz_fit[0] if mz_fit else float("nan"),
+            "mz_beta": mz_fit[1] if mz_fit else float("nan"),
+            "r2": float(1.0 - np.sum(e**2) / np.sum((yr - yr.mean()) ** 2)),
+        }
+    del y_raw
 
     res.n_rows = len(res.row_id)
     res.n_valid = int(valid.sum())
@@ -1683,6 +1786,20 @@ def _harvest_arm(
         res.qlike_none = float(np.nanmean(res.loss_none))
     if np.isfinite(res.loss_duan).any():
         res.qlike_duan = float(np.nanmean(res.loss_duan))
+    if _CONVENTION == "plain":
+        # 2026-10-06: the plain back-transform IS the scored forecast.  The
+        # contract's pooled level is kept for the old -> new audit CSV only;
+        # every downstream consumer (DM joins, increments, tree selector and
+        # hedge, MZ, tables, macros) reads loss / f_raw, now the plain pair.
+        res.qlike_contract = res.qlike
+        res.loss = res.loss_none
+        res.f_raw = res.f_none
+        res.n_qlike = int(np.isfinite(res.loss).sum())
+        res.qlike = float(np.nanmean(res.loss)) if res.n_qlike else None
+        # memory: the Duan column is pooled above and never read again, and
+        # the per-bar fit-scale forecast has no consumer after scoring
+        res.loss_duan = np.empty(0)
+        res.yhat = np.empty(0)
     ffin = res.f_raw[np.isfinite(res.f_raw)]
     if ffin.size:
         res.f_min = float(ffin.min())
@@ -1730,7 +1847,9 @@ _TREE_MENU_PATH = os.path.join(
 def _tree_family_of() -> dict[str, str]:
     """Map tree_expert_<k> -> family tag from the frozen menu (mixed-family
     expansion 2026-08-07); '?' per expert when the menu is not deployed
-    alongside the scorer (harvest still runs; the exhibit columns degrade)."""
+    alongside the scorer (harvest still runs; the exhibit columns degrade).
+    When the menu is absent, ``_TREE_META`` (filled by main() from each
+    expert's own chunk meta, 2026-10-06) supplies the family instead."""
     try:
         with open(_TREE_MENU_PATH, encoding="utf-8") as fh:
             menu = json.load(fh)
@@ -1739,7 +1858,41 @@ def _tree_family_of() -> dict[str, str]:
             for k, e in enumerate(menu)
         }
     except (OSError, ValueError):
-        return {}
+        return {arm: m.get("family", "?") for arm, m in _TREE_META.items()}
+
+
+# expert arm -> {"name", "family"} read from the expert's first chunk meta
+# (meta.tree_config); filled by _read_tree_meta() in main().
+_TREE_META: dict[str, dict[str, str]] = {}
+
+
+def _read_tree_meta(roots: list[str]) -> None:
+    """Fill ``_TREE_META`` from the first readable chunk of each expert arm
+    (the executor persists the expert's frozen config, name and family in
+    every chunk's meta.tree_config)."""
+    for arm in _TREE_EXPERTS:
+        if arm in _TREE_META:
+            continue
+        for root in roots:
+            arm_dir = os.path.join(root, arm)
+            if not os.path.isdir(arm_dir):
+                continue
+            for fn in sorted(os.listdir(arm_dir)):
+                if not _CHUNK_RE.match(fn):
+                    continue
+                try:
+                    with np.load(os.path.join(arm_dir, fn), allow_pickle=False) as z:
+                        tc = json.loads(str(z["meta"])).get("tree_config") or {}
+                except Exception:
+                    continue
+                if isinstance(tc, dict) and tc.get("name"):
+                    _TREE_META[arm] = {
+                        "name": str(tc.get("name")),
+                        "family": str(tc.get("family", "?")),
+                    }
+                    break
+            if arm in _TREE_META:
+                break
 
 
 def _qlike_bar(f: np.ndarray, rv: np.ndarray) -> np.ndarray:
@@ -2023,6 +2176,144 @@ def _fmt(x: float | None, spec: str) -> str:
     return "" if x is None else format(x, spec)
 
 
+def _n_tex(n: int) -> str:
+    """A row count as the paper types it: ``$273{,}489$``."""
+    return "$" + f"{int(n):,}".replace(",", "{,}") + "$"
+
+
+def _sci_tex(x: float) -> str:
+    """Two significant digits in text mode: ``$3.3 \\times 10^{-7}$`` below
+    1e-2, a plain three-significant-digit decimal otherwise."""
+    if not np.isfinite(x):
+        return "---"
+    if x != 0 and abs(x) < 1e-2:
+        mant, ex = f"{x:.1e}".split("e")
+        return rf"${mant} \times 10^{{{int(ex)}}}$"
+    return f"${x:.3g}$"
+
+
+def _tree_bank_lines(
+    by_root: dict[str, list[ArmResult]], sel_rows: list[dict]
+) -> list[str]:
+    """Tree expert-bank exhibit macros (results, Table tab:tree_bank), all on
+    the ROOT that carries the primary ``tree_hedge`` row, so every number in
+    the exhibit comes from one environment.  Experts are split by their
+    frozen menu name (``*_opt_*`` = Optuna-selected, ``*_sobol_*`` = seeded
+    Sobol control) read from the chunk meta; DM is each expert's own DM vs
+    that root's a0 (full rows), the hedge pairs are paired per-bar DM on
+    common rows (2003+, the hedge's row set)."""
+    lines: list[str] = []
+
+    def emit(name: str, value: str) -> None:
+        lines.append(rf"\newcommand{{\{name}}}{{{value}}}")
+
+    hedges = [r for es in by_root.values() for r in es if r.arm == "tree_hedge"]
+    hedge = _pick_primary(hedges)
+    pend = r"\pending{tree bank awaiting harvest}"
+    names = [
+        "NExperts", "NBeat", "NBeatSig", "NOpt", "NSobol", "NSobolBeat",
+        "BestQLIKE", "BestDM", "MedianQLIKE", "WorstOptQLIKE", "WorstOptDM",
+        "OptBestDM", "OptWorstDM", "SobolBestQLIKE", "SobolWorstQLIKE",
+        "HedgeVsBestDQ", "HedgeVsBestDM", "HedgeVsBlkTwoDQ", "HedgeVsBlkTwoDM",
+        "SelN", "SelXgbN", "SelLgbmN", "SelTopPct",
+    ]  # fmt: skip
+    if hedge is None:
+        for n in names:
+            emit(f"unifTreeBank{n}", pend)
+        return lines
+    root = hedge.root
+    entries = by_root.get(root, [])
+    experts = [
+        r
+        for r in entries
+        if r.arm in _TREE_EXPERTS and r.n_rows and not r.incomplete and r.qlike
+    ]
+    a0 = next((r for r in entries if r.arm == A0), None)
+    if not experts or a0 is None or a0.qlike is None:
+        for n in names:
+            emit(f"unifTreeBank{n}", pend)
+        return lines
+
+    def is_sobol(r: ArmResult) -> bool:
+        return "sobol" in _TREE_META.get(r.arm, {}).get("name", "")
+
+    opt = [r for r in experts if not is_sobol(r)]
+    sob = [r for r in experts if is_sobol(r)]
+    beat = [r for r in experts if (r.delta_join if r.delta_join is not None else 0) < 0]
+    beat_sig = [r for r in experts if r.dm_t is not None and r.dm_t < -1.96]
+    best = min(experts, key=lambda r: r.qlike)
+    worst_opt = max(opt, key=lambda r: r.qlike) if opt else None
+    emit("unifTreeBankNExperts", str(len(experts)))
+    emit("unifTreeBankNBeat", str(len(beat)))
+    emit("unifTreeBankNBeatSig", str(len(beat_sig)))
+    emit("unifTreeBankNOpt", str(len(opt)))
+    emit("unifTreeBankNSobol", str(len(sob)))
+    emit("unifTreeBankNSobolBeat", str(sum(1 for r in sob if r in beat)))
+    emit("unifTreeBankBestQLIKE", f"{best.qlike:.5f}")
+    emit("unifTreeBankBestDM", _fmt(best.dm_t, "+.1f") or pend)
+    emit(
+        "unifTreeBankMedianQLIKE", f"{float(np.median([r.qlike for r in experts])):.5f}"
+    )
+    if worst_opt is not None:
+        emit("unifTreeBankWorstOptQLIKE", f"{worst_opt.qlike:.5f}")
+        emit("unifTreeBankWorstOptDM", _fmt(worst_opt.dm_t, "+.1f") or pend)
+        dms = [r.dm_t for r in opt if r.dm_t is not None]
+        emit("unifTreeBankOptBestDM", f"{min(dms):+.1f}" if dms else pend)
+        emit("unifTreeBankOptWorstDM", f"{max(dms):+.1f}" if dms else pend)
+    else:
+        for n in ("WorstOptQLIKE", "WorstOptDM", "OptBestDM", "OptWorstDM"):
+            emit(f"unifTreeBank{n}", pend)
+    sq = sorted(r.qlike for r in sob)
+    emit("unifTreeBankSobolBestQLIKE", f"{sq[0]:.5f}" if sq else pend)
+    emit("unifTreeBankSobolWorstQLIKE", f"{sq[-1]:.5f}" if sq else pend)
+
+    def paired(other: ArmResult | None) -> tuple[str, str]:
+        if other is None or not other.n_rows:
+            return pend, pend
+        _, ia, ib = np.intersect1d(
+            hedge.row_id, other.row_id, assume_unique=True, return_indices=True
+        )
+        if not len(ia):
+            return pend, pend
+        dm = dm_test(hedge.loss[ia], other.loss[ib], h=1)
+        dq = dm.get("mean_diff", float("nan"))
+        t = dm.get("dm", float("nan"))
+        return (
+            f"{dq:+.5f}" if np.isfinite(dq) else pend,
+            f"{t:+.1f}" if np.isfinite(t) else pend,
+        )
+
+    dq, t = paired(best)
+    emit("unifTreeBankHedgeVsBestDQ", dq)
+    emit("unifTreeBankHedgeVsBestDM", t)
+    blk2 = next((r for r in entries if r.arm == "blk2_user" and not r.incomplete), None)
+    dq, t = paired(blk2)
+    emit("unifTreeBankHedgeVsBlkTwoDQ", dq)
+    emit("unifTreeBankHedgeVsBlkTwoDM", t)
+
+    sel = [s for s in sel_rows if s["root"] == root]
+    n_sel = len(sel)
+    fam = {}
+    by_arm_cnt: dict[str, int] = {}
+    for s in sel:
+        fam[s["family"]] = fam.get(s["family"], 0) + 1
+        by_arm_cnt[s["selected_arm"]] = by_arm_cnt.get(s["selected_arm"], 0) + 1
+    emit("unifTreeBankSelN", str(n_sel) if n_sel else pend)
+    emit("unifTreeBankSelXgbN", str(fam.get("xgb", 0)) if n_sel else pend)
+    emit("unifTreeBankSelLgbmN", str(fam.get("lgbm", 0)) if n_sel else pend)
+    top = max(by_arm_cnt.values()) if by_arm_cnt else 0
+    emit(
+        "unifTreeBankSelTopPct",
+        rf"{round(100 * top / n_sel):d}\%" if n_sel else pend,
+    )
+    print(
+        f"[tree bank @ {root}] experts={len(experts)} opt={len(opt)} "
+        f"sobol={len(sob)} beat={len(beat)} best={best.arm} {best.qlike:.5f} "
+        f"selection families={fam} top={top}/{n_sel}"
+    )
+    return lines
+
+
 def _tex_escape(s: str) -> str:
     return s.replace("_", r"\_")
 
@@ -2046,12 +2337,28 @@ def _macro_lines(
     from datetime import datetime, timezone
 
     stamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%MZ")
+    if _CONVENTION == "plain":
+        scoring = [
+            "% Scoring (2026-10-06, recalibration removed): every forecast is its",
+            "% plain back-transform f = yhat^2 * B (adjusted-scale forecast squared",
+            "% times the diurnal baseline) -- no smearing factor, no MZ map, no",
+            "% second-moment term; rv_raw evaluation target; DM vs the same root's",
+            "% a0 (src/evaluation/diebold_mariano).  Row set unchanged from the",
+            "% contract runs (first present window of each arm held out).",
+            "% Parked (not emitted): unifAzeroQLIKENone, unifAzeroQLIKEDuan,",
+            "% unifSmearTauNone, unifSmearTauDuan, the condvar arms and their",
+            "% increments -- all exist only to compare recalibration choices.",
+        ]
+    else:
+        scoring = [
+            "% Scoring: causal calibrated second-moment stack (smearing.tex) --",
+            "% prev-window MZ mean + conditional-variance maps; rv_raw evaluation",
+            "% target; DM vs the same root's a0 (src/evaluation/diebold_mariano).",
+        ]
     lines = [
         "% GENERATED FILE -- do not edit by hand.",
         f"% Written by experiments/score_unification.py at {stamp}.",
-        "% Scoring: causal calibrated second-moment stack (smearing.tex) --",
-        "% prev-window MZ mean + conditional-variance maps; rv_raw evaluation",
-        "% target; DM vs the same root's a0 (src/evaluation/diebold_mariano).",
+        *scoring,
         r"% \unifAzeroRsq is a0's Mincer-Zarnowitz R^2 (rv_raw on raw forecast).",
         "% Incomplete arms render as red pending boxes until harvest completes.",
     ]
@@ -2077,19 +2384,62 @@ def _macro_lines(
         _fmt(a0.mz_beta, ".3f") if a0_done and a0.mz_beta is not None else pend(A0),
     )
     # Benchmark row under the two alternative smear conventions (appendix
-    # master table); \unifAzeroQLIKE above stays the contract value.
-    emit(
-        "unifAzeroQLIKENone",
-        _fmt(a0.qlike_none, ".5f")
-        if a0_done and a0.qlike_none is not None
-        else pend(A0),
-    )
-    emit(
-        "unifAzeroQLIKEDuan",
-        _fmt(a0.qlike_duan, ".5f")
-        if a0_done and a0.qlike_duan is not None
-        else pend(A0),
-    )
+    # master table); \unifAzeroQLIKE above stays the contract value.  Contract
+    # mode only: under the plain convention these comparison macros are parked.
+    if _CONVENTION != "plain":
+        emit(
+            "unifAzeroQLIKENone",
+            _fmt(a0.qlike_none, ".5f")
+            if a0_done and a0.qlike_none is not None
+            else pend(A0),
+        )
+        emit(
+            "unifAzeroQLIKEDuan",
+            _fmt(a0.qlike_duan, ".5f")
+            if a0_done and a0.qlike_duan is not None
+            else pend(A0),
+        )
+    else:
+        # Raw-scale absolute-error spread of the benchmark's plain forecast
+        # (methods: why squared-error metrics on the raw scale are
+        # uninformative): median and maximum |RV - f| over the scored bars.
+        if a0_done:
+            ok = np.isfinite(a0.loss)
+            ae = np.abs(a0.rv_raw[ok] - a0.f_raw[ok])
+            emit("unifAzeroMedAbsErr", _sci_tex(float(np.median(ae))))
+            emit("unifAzeroMaxAbsErr", _sci_tex(float(np.max(ae))))
+            # share of the raw-scale sum of squared errors carried by the ten
+            # largest errors (how few spike bars dominate a squared aggregate)
+            se = np.sort(ae**2)[::-1]
+            top = rf"{round(100 * float(se[:10].sum() / se.sum())):d}\%"
+            emit("unifAzeroTopTenSSEPct", top)
+        else:
+            emit("unifAzeroMedAbsErr", pend(A0))
+            emit("unifAzeroMaxAbsErr", pend(A0))
+            emit("unifAzeroTopTenSSEPct", pend(A0))
+    # Row counts the text quotes (2026-10-06: they move with the no-history
+    # validity rule, so they are emitted, never typed): the benchmark's scored
+    # bars, the bars entering its pooled QLIKE (positive pairs), the same for
+    # the two-block ridge, and the tree aggregates' common 2003+ row set.
+    emit("unifAzeroN", _n_tex(a0.n_valid) if a0_done else pend(A0))
+    # the benchmark table's square-root-scale rows (were typed from an earlier
+    # build; now computed on the scored bars of the stored outputs)
+    for key, name, spec in (
+        ("r2", "unifAzeroFitRsq", ".3f"),
+        ("mz_alpha", "unifAzeroFitMZalpha", ".3f"),
+        ("mz_beta", "unifAzeroFitMZbeta", ".3f"),
+        ("mse", "unifAzeroFitMSE", ".4f"),
+        ("mae", "unifAzeroFitMAE", ".4f"),
+    ):
+        v = a0.fit_stats.get(key) if a0_done else None
+        emit(name, "$" + format(v, spec) + "$" if v is not None else pend(A0))
+    emit("unifAzeroNQlike", _n_tex(a0.n_qlike) if a0_done else pend(A0))
+    b2u = _pick_primary(by_arm.get("blk2_user", []))
+    ok_b2u = b2u is not None and not b2u.incomplete
+    emit("unifBlkTwoUserNQlike", _n_tex(b2u.n_qlike) if ok_b2u else pend("blk2_user"))
+    hed = _pick_primary(by_arm.get("tree_hedge", []))
+    ok_hed = hed is not None and not hed.incomplete
+    emit("unifTreeHedgeN", _n_tex(hed.n_valid) if ok_hed else pend("tree_hedge"))
 
     a0q = a0.qlike if a0_done else None
     for arm, camel in _REGISTRY:
@@ -2122,15 +2472,17 @@ def _macro_lines(
             )
     # Smear-sensitivity rank stability: Kendall tau of each alternative
     # convention's arm ranking against the contract's, over completed arms.
+    # Contract mode only (parked under the plain convention, 2026-10-06).
     pend_tau = r"\pending{smear sensitivity awaiting harvest}"
-    emit(
-        "unifSmearTauNone",
-        _fmt(tau_none, ".3f") if tau_none is not None else pend_tau,
-    )
-    emit(
-        "unifSmearTauDuan",
-        _fmt(tau_duan, ".3f") if tau_duan is not None else pend_tau,
-    )
+    if _CONVENTION != "plain":
+        emit(
+            "unifSmearTauNone",
+            _fmt(tau_none, ".3f") if tau_none is not None else pend_tau,
+        )
+        emit(
+            "unifSmearTauDuan",
+            _fmt(tau_duan, ".3f") if tau_duan is not None else pend_tau,
+        )
     # Ladder-increment statistics (product / transmission marginal value):
     # paired per-bar DM between adjacent rungs, keyed by the upper rung;
     # pending until BOTH arms of the pair are complete.
@@ -2286,6 +2638,8 @@ def _increments(by_arm: dict[str, list[ArmResult]]) -> list[dict]:
     """
     out: list[dict] = []
     for hi_arm, lo_arm in _INCREMENT_PAIRS:
+        if _CONVENTION == "plain" and "_condvar" in hi_arm + lo_arm:
+            continue  # recalibration exhibit: not assembled under plain
         hi = _pick_primary(by_arm.get(hi_arm, []))
         lo = _pick_primary(by_arm.get(lo_arm, []))
         rec: dict = {
@@ -2426,8 +2780,41 @@ def main(argv: list[str] | None = None) -> int:
             f"{_HARVEST_CACHE_DIR}); every chunk npz is re-read"
         ),
     )
+    ap.add_argument(
+        "--convention",
+        choices=("plain", "contract"),
+        default="plain",
+        help=(
+            "plain (default, 2026-10-06): f = yhat^2 * B, no recalibration; "
+            "contract: the retired calibrated second-moment stack"
+        ),
+    )
+    ap.add_argument(
+        "--arms",
+        default=None,
+        help=(
+            "regex (full match) restricting which arm dirs are harvested and "
+            "read by the exhibits; default: every arm (2026-10-06: a full "
+            "two-root pass holds ~6 GB of per-bar arrays)"
+        ),
+    )
+    ap.add_argument(
+        "--keep-no-history-bars",
+        action="store_true",
+        help=(
+            "score the bars whose diurnal baseline is the no-history value "
+            "(DIURNAL_NO_HISTORY_BASELINE); reproduces the pre-2026-10-06 numbers"
+        ),
+    )
     args = ap.parse_args(argv)
+    global _CONVENTION, _ARM_RE, _EXCLUDE_NO_HISTORY
+    _CONVENTION = args.convention
+    _EXCLUDE_NO_HISTORY = not args.keep_no_history_bars
+    print(f"no-history (B = sentinel) bars excluded: {_EXCLUDE_NO_HISTORY}")
+    _ARM_RE = re.compile(args.arms) if args.arms else None
+    print(f"scoring convention: {_CONVENTION}")
     cache = HarvestCache(enabled=not args.no_cache)
+    _read_tree_meta(args.roots)
 
     # 1. DISCOVER + 2/3. VALIDATE + SCORE per (root, arm).
     labels: dict[str, str] = {}
@@ -2441,7 +2828,7 @@ def main(argv: list[str] | None = None) -> int:
             continue
         for arm in sorted(os.listdir(root)):
             arm_dir = os.path.join(root, arm)
-            if not os.path.isdir(arm_dir):
+            if not os.path.isdir(arm_dir) or not _arm_selected(arm_dir):
                 continue
             if not any(_CHUNK_RE.match(f) for f in os.listdir(arm_dir)):
                 continue
@@ -2581,7 +2968,7 @@ def main(argv: list[str] | None = None) -> int:
             "blk3_ewFixed_H12000",
         ):
             arm_dir = os.path.join(root, _pen_arm)
-            if not os.path.isdir(arm_dir):
+            if not os.path.isdir(arm_dir) or not _arm_selected(arm_dir):
                 continue
             acc: dict[tuple[int, str], list[float]] = {}
             gam: dict[tuple[int, str], list[float]] = {}
@@ -2847,7 +3234,7 @@ def main(argv: list[str] | None = None) -> int:
     for root in args.roots:
         for _fine_arm in _FINE_GRID_ARMS:
             arm_dir = os.path.join(root, _fine_arm)
-            if not os.path.isdir(arm_dir):
+            if not os.path.isdir(arm_dir) or not _arm_selected(arm_dir):
                 continue
             hit: dict[tuple[int, str], list[float]] = {}
             coarse: dict[str, set[float]] = {}
@@ -2959,7 +3346,7 @@ def main(argv: list[str] | None = None) -> int:
     for root in args.roots:
         for _est_arm in _ESTIMATOR_PEN_ARMS:
             arm_dir = os.path.join(root, _est_arm)
-            if not os.path.isdir(arm_dir):
+            if not os.path.isdir(arm_dir) or not _arm_selected(arm_dir):
                 continue
             alphas: list[float] = []
             l1s: list[float] = []
@@ -3086,7 +3473,7 @@ def main(argv: list[str] | None = None) -> int:
     for root in args.roots:
         for _sh_arm in _SHRINK_ARMS:
             arm_dir = os.path.join(root, _sh_arm)
-            if not os.path.isdir(arm_dir):
+            if not os.path.isdir(arm_dir) or not _arm_selected(arm_dir):
                 continue
             recs: list[dict] = []
             for fn in sorted(os.listdir(arm_dir)):
@@ -3200,7 +3587,13 @@ def main(argv: list[str] | None = None) -> int:
     # 4b. CONDITIONAL-VARIANCE SYNTHETICS: *_condvar variants from the
     # sidecar banks + the adoption-trajectory CSV.
     adoption_rows: list[dict] = []
-    for r in _assemble_condvar_arms(by_root, args.variance_sidecar_root, adoption_rows):
+    condvar_root = args.variance_sidecar_root
+    if _CONVENTION == "plain":
+        # the condvar arms swap the CONTRACT's second-moment term for a
+        # conditional one: a recalibration exhibit with no plain analogue.
+        print("plain convention: conditional-variance sidecar arms not assembled")
+        condvar_root = ""
+    for r in _assemble_condvar_arms(by_root, condvar_root, adoption_rows):
         results.append(r)
         by_root.setdefault(r.root, []).append(r)
     if adoption_rows:
@@ -3321,13 +3714,50 @@ def main(argv: list[str] | None = None) -> int:
             )
     os.makedirs(args.tex_dir, exist_ok=True)
     sens_lines, tau_none, tau_duan = _smear_sensitivity(by_arm)
+    macro_lines = _macro_lines(by_arm, tau_none, tau_duan, incs)
+    if _CONVENTION == "plain":
+        macro_lines += _tree_bank_lines(by_root, tree_sel_rows)
     outputs = {
-        "campaign_numbers.tex": _macro_lines(by_arm, tau_none, tau_duan, incs),
+        "campaign_numbers.tex": macro_lines,
         "table_buckets.tex": _buckets_table(by_arm),
         "table_lasso_ridge.tex": _lasso_ridge_table(by_arm),
         "table_blocks.tex": _blocks_table(by_arm),
-        "table_smear_sensitivity.tex": sens_lines,
     }
+    if _CONVENTION == "plain":
+        # 2026-10-06: the smear-sensitivity table compares recalibration
+        # choices and is parked; the old -> new audit goes to a CSV instead
+        # (pooled plain vs contract QLIKE and within-convention ranks over the
+        # completed arms) and never into the paper.
+        audit = [
+            r
+            for r in results
+            if not r.incomplete and r.qlike is not None and r.qlike_contract is not None
+        ]
+        rk_p = {
+            id(r): i + 1 for i, r in enumerate(sorted(audit, key=lambda r: r.qlike))
+        }
+        rk_c = {
+            id(r): i + 1
+            for i, r in enumerate(sorted(audit, key=lambda r: r.qlike_contract))
+        }
+        pvc = os.path.join(
+            os.path.dirname(os.path.abspath(args.out)), "plain_vs_contract.csv"
+        )
+        with open(pvc, "w", newline="") as fh:
+            w = csv.writer(fh)
+            w.writerow(
+                ["arm", "root", "n_bars", "qlike_plain", "qlike_contract",
+                 "rank_plain", "rank_contract", "dm_t_plain_vs_a0"]
+            )  # fmt: skip
+            for r in audit:
+                w.writerow(
+                    [r.arm, r.root, r.n_valid, _fmt(r.qlike, ".10g"),
+                     _fmt(r.qlike_contract, ".10g"), rk_p[id(r)], rk_c[id(r)],
+                     _fmt(r.dm_t, ".6g")]
+                )  # fmt: skip
+        print(f"plain vs contract audit -> {pvc}")
+    else:
+        outputs["table_smear_sensitivity.tex"] = sens_lines
     for name, lines in outputs.items():
         with open(os.path.join(args.tex_dir, name), "w", newline="\n") as fh:
             fh.write("\n".join(lines) + "\n")

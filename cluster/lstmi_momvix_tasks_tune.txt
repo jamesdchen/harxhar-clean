@@ -1,0 +1,6 @@
+moments_vix lstm_intraday 2000 bar1600 0 2000 2001 2000 tune
+moments_vix lstm_intraday 2000 bar1600 250 2250 2251 2000 tune
+moments_vix lstm_intraday 2000 bar1600 500 2500 2501 2000 tune
+moments_vix lstm_intraday 2000 bar1600 750 2750 2751 2000 tune
+moments_vix lstm_intraday 2000 bar1600 1000 3000 3001 2000 tune
+moments_vix lstm_intraday 2000 bar1600 1250 3250 3251 2000 tune

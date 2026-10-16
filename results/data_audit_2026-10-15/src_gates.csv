@@ -1,0 +1,8 @@
+gate,ok,value
+"a: src, every 2026-10-15 flag off, 16:00 all_features design == the 2026-10-06 local rebuild, bit for bit",True,0.0
+"a: src, every 2026-10-15 flag off, 16:00 baseline design == the 2026-10-06 local rebuild, bit for bit",True,0.0
+"a: src, every flag off, 16:00 all_features design vs the design of record (max abs; the 2026-10-06 rebuild's own 5.403e-11, AVX-512 host)",True,5.402966962719802e-11
+"b: src with the 12 audited switches on == the audit's own variant build (16:00 all_features, 6,462 x 628), bit for bit",True,0.0
+"b: src with the 12 audited switches on == the audit's own variant build (16:00 baseline, 6,462 x 22), bit for bit",True,0.0
+"a: pooled panel, every flag off: 216 columns of 8 series (voldemand, numobs, sumret3_ew, vix, spread_vw, sentiment, ofi_vw, sumvolume; base-2 ladder, 24,000-bar scaling, guards, masked scaling) == the same build by the pre-change src (git HEAD), bit for bit",True,0.0
+"note: prep_cache_all_features_b2.npz (built 2026-08-08) differs from ANY rebuild on this host, old or new code, by 1e-15..1.7e-10 on 96 of those 216 columns (rounding; the earlier audit's pooled gate used a 1e-9 tolerance)",True,1.747e-10

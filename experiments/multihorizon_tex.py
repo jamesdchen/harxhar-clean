@@ -6,6 +6,10 @@ Reads results/multihorizon/ttc_{pooled,byhour,coefs}.csv and writes
     writeup/generated/table_multihorizon_byhour.tex  by-entry-hour body (M2)
 
 Every number in the section is minted here from the CSVs.
+
+2026-10-06 (recalibration removed, user decision): the CSVs now come from
+the plain run of multihorizon_ttc.py (every construction's fitted log value
+back-transformed by exp() alone, no rescale); macro names are unchanged.
 """
 
 from __future__ import annotations
@@ -160,6 +164,7 @@ def main() -> None:
     lines = [
         "% GENERATED FILE -- do not edit by hand.",
         "% Written by experiments/multihorizon_tex.py from results/multihorizon/*.csv.",
+        "% 2026-10-06: plain back-transforms, no rescale (recalibration removed).",
     ]
     for k in sorted(macros):
         lines.append(f"\\newcommand{{\\{k}}}{{{macros[k]}}}")

@@ -1,0 +1,8 @@
+1 xgb all_features 0 2382 2577 2000 646
+1 xgb all_features 1 2577 2779 2000 646
+1 xgb all_features 2 2779 2970 2000 646
+1 xgb all_features 3 2971 3096 2000 646
+2 xgb all_features 4 3096 3221 2000 646
+2 xgb all_features 5 3221 3346 2000 646
+2 xgb all_features 6 3346 -1 2000 636
+2 xgb baseline 0 2382 -1 2000 164

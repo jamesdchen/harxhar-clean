@@ -1,0 +1,12 @@
+0 lgbm baseline 0 2382 -1 2000 0
+0 lgbm all_features 0 2382 2570 2000 0
+0 lgbm add_voldemand_spx_open_only 0 2382 -1 2000 0
+0 lgbm loo_vvix 0 2382 2570 2000 0
+0 xgb baseline 0 2382 -1 2000 0
+0 xgb all_features 0 2382 2570 2000 0
+0 xgb add_voldemand_spx_open_only 0 2382 -1 2000 0
+0 xgb loo_vvix 0 2382 2570 2000 0
+0 rf baseline 0 2382 2701 2000 0
+0 rf all_features 0 2382 2421 2000 0
+0 rf add_voldemand_spx_open_only 0 2382 2701 2000 0
+0 rf loo_vvix 0 2382 2421 2000 0

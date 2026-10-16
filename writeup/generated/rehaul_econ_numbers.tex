@@ -7,7 +7,7 @@
 \providecommand{\rheEnetSh}{}\renewcommand{\rheEnetSh}{1.92}  % per-bar enet all features, Sharpe mid
 \providecommand{\rheEnetShX}{}\renewcommand{\rheEnetShX}{1.43}  % ... crossed
 \providecommand{\rheEnetT}{}\renewcommand{\rheEnetT}{2.56}  % ... HAC t vs always short
-\providecommand{\rheNNSh}{}\renewcommand{\rheNNSh}{1.53}  % MinGRU all features, Sharpe mid
+\providecommand{\rheNNSh}{}\renewcommand{\rheNNSh}{1.53}  % MinGRU all features, Sharpe mid (parked)
 \providecommand{\rheNNShX}{}\renewcommand{\rheNNShX}{1.05}  % ... crossed
 \providecommand{\rheNNBaseSh}{}\renewcommand{\rheNNBaseSh}{1.04}  % MinGRU HAR + calendar, Sharpe mid
 \providecommand{\rheNNBaseShX}{}\renewcommand{\rheNNBaseShX}{0.57}  % ... crossed
@@ -42,12 +42,12 @@
 \providecommand{\rheSzWarmup}{}\renewcommand{\rheSzWarmup}{252}  % sizing: days that only build the scale
 \providecommand{\rheSzDays}{}\renewcommand{\rheSzDays}{614}  % sizing: days scored
 \providecommand{\rheTopDays}{}\renewcommand{\rheTopDays}{10}  % the tail check: days of largest gain dropped
-\providecommand{\rheTopRMin}{}\renewcommand{\rheTopRMin}{2.99}  % smallest straddle return R_t among the 4 models' top days
+\providecommand{\rheTopRMin}{}\renewcommand{\rheTopRMin}{2.99}  % smallest straddle return R_t among the 3 models' top days (MinGRU parked)
 \providecommand{\rheGainEnet}{}\renewcommand{\rheGainEnet}{\ensuremath{+}104.7}  % Closing-interval elastic net: cumulative gain over always short, premia
 \providecommand{\rheGainExEnet}{}\renewcommand{\rheGainExEnet}{\ensuremath{+}15.6}  % ... without its 10 best days
 \providecommand{\rheGainLgbm}{}\renewcommand{\rheGainLgbm}{\ensuremath{+}98.1}  % Closing-interval LightGBM: cumulative gain over always short, premia
 \providecommand{\rheGainExLgbm}{}\renewcommand{\rheGainExLgbm}{\ensuremath{+}2.4}  % ... without its 10 best days
-\providecommand{\rheGainNN}{}\renewcommand{\rheGainNN}{\ensuremath{+}81.1}  % Closing-interval MinGRU: cumulative gain over always short, premia
+\providecommand{\rheGainNN}{}\renewcommand{\rheGainNN}{\ensuremath{+}81.1}  % Closing-interval MinGRU (parked): cumulative gain over always short, premia
 \providecommand{\rheGainExNN}{}\renewcommand{\rheGainExNN}{\ensuremath{-}6.2}  % ... without its 10 best days
 \providecommand{\rheGainPoolEnet}{}\renewcommand{\rheGainPoolEnet}{\ensuremath{+}79.3}  % Pooled intraday elastic net: cumulative gain over always short, premia
 \providecommand{\rheGainExPoolEnet}{}\renewcommand{\rheGainExPoolEnet}{\ensuremath{-}6.3}  % ... without its 10 best days

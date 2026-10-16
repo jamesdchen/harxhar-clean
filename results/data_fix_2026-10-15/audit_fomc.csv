@@ -1,0 +1,5 @@
+series,transform,values_raw,n_ones,adj_on_zeros,ones_surviving_winsor,ones_clipped_to_floor
+fomc_release,log,"[0.0, 1.0]",206.0,[-27.631],0.0,206.0
+fomc_day,log,"[0.0, 1.0]",9189.0,[-27.631],8365.0,618.0
+fomc_until_inv,log,"[0.00031525851197982345, 0.000315357931251971, 0.0003154574132492114]",,,,
+fomc_since_inv,log,"[0.00031525851197982345, 0.000315357931251971, 0.0003154574132492114]",,,,

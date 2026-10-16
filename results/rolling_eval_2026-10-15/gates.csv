@@ -1,0 +1,245 @@
+gate,item,value,ok
+source = master_table_close.discover(),sub_ols_baseline,results\linear_subsection_dedup\baseline\bar1600\reclasso\tw2000\causal_tune_linear\incumbent_ols\results_bar1600.csv,True
+source = master_table_close.discover(),a0,results\spxw_pnl\yhat_a0.parquet,True
+source = master_table_close.discover(),subpt_ridge_baseline,results\spxw_pnl\yhat_subpt_ridge_baseline.parquet,True
+source = master_table_close.discover(),poolpt_ridge_baseline,results\spxw_pnl\yhat_poolpt_ridge_baseline.parquet,True
+source = master_table_close.discover(),subpt_ridge_all_features,results\spxw_pnl\yhat_subpt_ridge_all_features.parquet,True
+source = master_table_close.discover(),poolpt_ridge_all_features,results\spxw_pnl\yhat_poolpt_ridge_all_features.parquet,True
+source = master_table_close.discover(),subpt_lasso_baseline,results\spxw_pnl\yhat_subpt_lasso_baseline.parquet,True
+source = master_table_close.discover(),poolpt_lasso_baseline,results\spxw_pnl\yhat_poolpt_lasso_baseline.parquet,True
+source = master_table_close.discover(),subpt_lasso_all_features,results\spxw_pnl\yhat_subpt_lasso_all_features.parquet,True
+source = master_table_close.discover(),poolpt_lasso_all_features,results\spxw_pnl\yhat_poolpt_lasso_all_features.parquet,True
+source = master_table_close.discover(),subpt_enet_baseline,results\spxw_pnl\yhat_subpt_enet_baseline.parquet,True
+source = master_table_close.discover(),poolpt_enet_baseline,results\spxw_pnl\yhat_poolpt_enet_baseline.parquet,True
+source = master_table_close.discover(),subpt_enet_all_features,results\spxw_pnl\yhat_subpt_enet_all_features.parquet,True
+source = master_table_close.discover(),poolpt_enet_all_features,results\spxw_pnl\yhat_poolpt_enet_all_features.parquet,True
+source = master_table_close.discover(),subtree_daily_baseline_lgbm,results\spxw_pnl\yhat_subtree_daily_baseline_lgbm.parquet,True
+source = master_table_close.discover(),subtree_daily_all_features_lgbm,results\spxw_pnl\yhat_subtree_daily_all_features_lgbm.parquet,True
+source = master_table_close.discover(),lgbm,results\spxw_pnl\yhat_tree00.parquet,True
+source = master_table_close.discover(),subtree_daily_baseline_xgb,results\trees_xgbtop_1600\yhat_subtree_daily_baseline_xgbtop.parquet,True
+source = master_table_close.discover(),subtree_daily_all_features_xgb,results\trees_xgbtop_1600\yhat_subtree_daily_all_features_xgbtop.parquet,True
+source = master_table_close.discover(),xgb,results\spxw_pnl\yhat_tree10.parquet,True
+source = master_table_close.discover(),subtree_daily_baseline_rf,results\trees_rf400_1600\yhat_subtree_daily_baseline_rf400.parquet,True
+source = master_table_close.discover(),subtree_daily_all_features_rf,results\trees_rf400_1600\yhat_subtree_daily_all_features_rf400.parquet,True
+core_stats 16:00 prints on non-NYSE days (from 1998-01-05),core_stats,0,True
+16:00 forecasts on NYSE sessions only,sub_ols_baseline,0,True
+16:00 forecasts on NYSE sessions only,a0,0,True
+table rv_raw = core_stats 16:00 sumret2 on every scored day,a0,0.0,True
+16:00 forecasts on NYSE sessions only,subpt_ridge_baseline,0,True
+table rv_raw = core_stats 16:00 sumret2 on every scored day,subpt_ridge_baseline,0.0,True
+16:00 forecasts on NYSE sessions only,poolpt_ridge_baseline,0,True
+table rv_raw = core_stats 16:00 sumret2 on every scored day,poolpt_ridge_baseline,0.0,True
+16:00 forecasts on NYSE sessions only,subpt_ridge_all_features,0,True
+table rv_raw = core_stats 16:00 sumret2 on every scored day,subpt_ridge_all_features,0.0,True
+16:00 forecasts on NYSE sessions only,poolpt_ridge_all_features,0,True
+table rv_raw = core_stats 16:00 sumret2 on every scored day,poolpt_ridge_all_features,0.0,True
+16:00 forecasts on NYSE sessions only,subpt_lasso_baseline,0,True
+table rv_raw = core_stats 16:00 sumret2 on every scored day,subpt_lasso_baseline,0.0,True
+16:00 forecasts on NYSE sessions only,poolpt_lasso_baseline,0,True
+table rv_raw = core_stats 16:00 sumret2 on every scored day,poolpt_lasso_baseline,0.0,True
+16:00 forecasts on NYSE sessions only,subpt_lasso_all_features,0,True
+table rv_raw = core_stats 16:00 sumret2 on every scored day,subpt_lasso_all_features,0.0,True
+16:00 forecasts on NYSE sessions only,poolpt_lasso_all_features,0,True
+table rv_raw = core_stats 16:00 sumret2 on every scored day,poolpt_lasso_all_features,0.0,True
+16:00 forecasts on NYSE sessions only,subpt_enet_baseline,0,True
+table rv_raw = core_stats 16:00 sumret2 on every scored day,subpt_enet_baseline,0.0,True
+16:00 forecasts on NYSE sessions only,poolpt_enet_baseline,0,True
+table rv_raw = core_stats 16:00 sumret2 on every scored day,poolpt_enet_baseline,0.0,True
+16:00 forecasts on NYSE sessions only,subpt_enet_all_features,0,True
+table rv_raw = core_stats 16:00 sumret2 on every scored day,subpt_enet_all_features,0.0,True
+16:00 forecasts on NYSE sessions only,poolpt_enet_all_features,0,True
+table rv_raw = core_stats 16:00 sumret2 on every scored day,poolpt_enet_all_features,0.0,True
+16:00 forecasts on NYSE sessions only,subtree_daily_baseline_lgbm,0,True
+table rv_raw = core_stats 16:00 sumret2 on every scored day,subtree_daily_baseline_lgbm,0.0,True
+16:00 forecasts on NYSE sessions only,pooltree_lgbm_baseline,0,True
+table rv_raw = core_stats 16:00 sumret2 on every scored day,pooltree_lgbm_baseline,0.0,True
+16:00 forecasts on NYSE sessions only,subtree_daily_all_features_lgbm,0,True
+table rv_raw = core_stats 16:00 sumret2 on every scored day,subtree_daily_all_features_lgbm,0.0,True
+16:00 forecasts on NYSE sessions only,lgbm,0,True
+table rv_raw = core_stats 16:00 sumret2 on every scored day,lgbm,0.0,True
+16:00 forecasts on NYSE sessions only,subtree_daily_baseline_xgb,0,True
+table rv_raw = core_stats 16:00 sumret2 on every scored day,subtree_daily_baseline_xgb,0.0,True
+16:00 forecasts on NYSE sessions only,pooltree_xgb_baseline,0,True
+table rv_raw = core_stats 16:00 sumret2 on every scored day,pooltree_xgb_baseline,0.0,True
+16:00 forecasts on NYSE sessions only,subtree_daily_all_features_xgb,0,True
+table rv_raw = core_stats 16:00 sumret2 on every scored day,subtree_daily_all_features_xgb,0.0,True
+16:00 forecasts on NYSE sessions only,xgb,0,True
+table rv_raw = core_stats 16:00 sumret2 on every scored day,xgb,0.0,True
+16:00 forecasts on NYSE sessions only,subtree_daily_baseline_rf,0,True
+table rv_raw = core_stats 16:00 sumret2 on every scored day,subtree_daily_baseline_rf,0.0,True
+16:00 forecasts on NYSE sessions only,pooltree_rf_baseline,0,True
+table rv_raw = core_stats 16:00 sumret2 on every scored day,pooltree_rf_baseline,0.0,True
+16:00 forecasts on NYSE sessions only,subtree_daily_all_features_rf,0,True
+table rv_raw = core_stats 16:00 sumret2 on every scored day,subtree_daily_all_features_rf,0.0,True
+16:00 forecasts on NYSE sessions only,pooltree_rf_all_features,0,True
+table rv_raw = core_stats 16:00 sumret2 on every scored day,pooltree_rf_all_features,0.0,True
+master days,sub_ols_baseline,866 2020-01-03 .. 2024-04-30,True
+master days inside the key's scored days,sub_ols_baseline,0,True
+"plain = master_table_daily plain (866 days, rel)",sub_ols_baseline,0.0,True
+truth = master_table_daily rv_unclipped (866 days),sub_ols_baseline,0,True
+daily QLIKE = master_table_daily qlike_raw,sub_ols_baseline,0.0,True
+QLIKE = master_table.csv qlike_raw (866 days),sub_ols_baseline,8.326672684688674e-17,True
+master days inside the key's scored days,a0,0,True
+"plain = master_table_daily plain (866 days, rel)",a0,8.077982727172639e-13,True
+truth = master_table_daily rv_unclipped (866 days),a0,0,True
+daily QLIKE = master_table_daily qlike_raw,a0,9.978684545330907e-13,True
+QLIKE = master_table.csv qlike_raw (866 days),a0,-1.2212453270876722e-15,True
+master days inside the key's scored days,subpt_ridge_baseline,0,True
+"plain = master_table_daily plain (866 days, rel)",subpt_ridge_baseline,0.0,True
+truth = master_table_daily rv_unclipped (866 days),subpt_ridge_baseline,0,True
+daily QLIKE = master_table_daily qlike_raw,subpt_ridge_baseline,0.0,True
+QLIKE = master_table.csv qlike_raw (866 days),subpt_ridge_baseline,6.938893903907228e-17,True
+master days inside the key's scored days,poolpt_ridge_baseline,0,True
+"plain = master_table_daily plain (866 days, rel)",poolpt_ridge_baseline,0.0,True
+truth = master_table_daily rv_unclipped (866 days),poolpt_ridge_baseline,0,True
+daily QLIKE = master_table_daily qlike_raw,poolpt_ridge_baseline,0.0,True
+QLIKE = master_table.csv qlike_raw (866 days),poolpt_ridge_baseline,2.7755575615628914e-17,True
+master days inside the key's scored days,subpt_ridge_all_features,0,True
+"plain = master_table_daily plain (866 days, rel)",subpt_ridge_all_features,0.0,True
+truth = master_table_daily rv_unclipped (866 days),subpt_ridge_all_features,0,True
+daily QLIKE = master_table_daily qlike_raw,subpt_ridge_all_features,0.0,True
+QLIKE = master_table.csv qlike_raw (866 days),subpt_ridge_all_features,5.551115123125783e-17,True
+master days inside the key's scored days,poolpt_ridge_all_features,0,True
+"plain = master_table_daily plain (866 days, rel)",poolpt_ridge_all_features,0.0,True
+truth = master_table_daily rv_unclipped (866 days),poolpt_ridge_all_features,0,True
+daily QLIKE = master_table_daily qlike_raw,poolpt_ridge_all_features,0.0,True
+QLIKE = master_table.csv qlike_raw (866 days),poolpt_ridge_all_features,0.0,True
+master days inside the key's scored days,subpt_lasso_baseline,0,True
+"plain = master_table_daily plain (866 days, rel)",subpt_lasso_baseline,0.0,True
+truth = master_table_daily rv_unclipped (866 days),subpt_lasso_baseline,0,True
+daily QLIKE = master_table_daily qlike_raw,subpt_lasso_baseline,0.0,True
+QLIKE = master_table.csv qlike_raw (866 days),subpt_lasso_baseline,5.551115123125783e-17,True
+master days inside the key's scored days,poolpt_lasso_baseline,0,True
+"plain = master_table_daily plain (866 days, rel)",poolpt_lasso_baseline,0.0,True
+truth = master_table_daily rv_unclipped (866 days),poolpt_lasso_baseline,0,True
+daily QLIKE = master_table_daily qlike_raw,poolpt_lasso_baseline,0.0,True
+QLIKE = master_table.csv qlike_raw (866 days),poolpt_lasso_baseline,8.326672684688674e-17,True
+master days inside the key's scored days,subpt_lasso_all_features,0,True
+"plain = master_table_daily plain (866 days, rel)",subpt_lasso_all_features,0.0,True
+truth = master_table_daily rv_unclipped (866 days),subpt_lasso_all_features,0,True
+daily QLIKE = master_table_daily qlike_raw,subpt_lasso_all_features,0.0,True
+QLIKE = master_table.csv qlike_raw (866 days),subpt_lasso_all_features,0.0,True
+master days inside the key's scored days,poolpt_lasso_all_features,0,True
+"plain = master_table_daily plain (866 days, rel)",poolpt_lasso_all_features,0.0,True
+truth = master_table_daily rv_unclipped (866 days),poolpt_lasso_all_features,0,True
+daily QLIKE = master_table_daily qlike_raw,poolpt_lasso_all_features,0.0,True
+QLIKE = master_table.csv qlike_raw (866 days),poolpt_lasso_all_features,0.0,True
+master days inside the key's scored days,subpt_enet_baseline,0,True
+"plain = master_table_daily plain (866 days, rel)",subpt_enet_baseline,0.0,True
+truth = master_table_daily rv_unclipped (866 days),subpt_enet_baseline,0,True
+daily QLIKE = master_table_daily qlike_raw,subpt_enet_baseline,0.0,True
+QLIKE = master_table.csv qlike_raw (866 days),subpt_enet_baseline,1.3877787807814457e-17,True
+master days inside the key's scored days,poolpt_enet_baseline,0,True
+"plain = master_table_daily plain (866 days, rel)",poolpt_enet_baseline,0.0,True
+truth = master_table_daily rv_unclipped (866 days),poolpt_enet_baseline,0,True
+daily QLIKE = master_table_daily qlike_raw,poolpt_enet_baseline,0.0,True
+QLIKE = master_table.csv qlike_raw (866 days),poolpt_enet_baseline,0.0,True
+master days inside the key's scored days,subpt_enet_all_features,0,True
+"plain = master_table_daily plain (866 days, rel)",subpt_enet_all_features,0.0,True
+truth = master_table_daily rv_unclipped (866 days),subpt_enet_all_features,0,True
+daily QLIKE = master_table_daily qlike_raw,subpt_enet_all_features,0.0,True
+QLIKE = master_table.csv qlike_raw (866 days),subpt_enet_all_features,0.0,True
+master days inside the key's scored days,poolpt_enet_all_features,0,True
+"plain = master_table_daily plain (866 days, rel)",poolpt_enet_all_features,0.0,True
+truth = master_table_daily rv_unclipped (866 days),poolpt_enet_all_features,0,True
+daily QLIKE = master_table_daily qlike_raw,poolpt_enet_all_features,0.0,True
+QLIKE = master_table.csv qlike_raw (866 days),poolpt_enet_all_features,6.938893903907228e-17,True
+master days inside the key's scored days,subtree_daily_baseline_lgbm,0,True
+"plain = master_table_daily plain (866 days, rel)",subtree_daily_baseline_lgbm,4.440892098500626e-16,True
+truth = master_table_daily rv_unclipped (866 days),subtree_daily_baseline_lgbm,0,True
+daily QLIKE = master_table_daily qlike_raw,subtree_daily_baseline_lgbm,0.0,True
+QLIKE = master_table.csv qlike_raw (866 days),subtree_daily_baseline_lgbm,2.7755575615628914e-17,True
+master days inside the key's scored days,pooltree_lgbm_baseline,0,True
+pooltree key: forecast on every master day,pooltree_lgbm_baseline,0,True
+master days inside the key's scored days,subtree_daily_all_features_lgbm,0,True
+"plain = master_table_daily plain (866 days, rel)",subtree_daily_all_features_lgbm,3.3306690738754696e-16,True
+truth = master_table_daily rv_unclipped (866 days),subtree_daily_all_features_lgbm,0,True
+daily QLIKE = master_table_daily qlike_raw,subtree_daily_all_features_lgbm,2.220446049250313e-16,True
+QLIKE = master_table.csv qlike_raw (866 days),subtree_daily_all_features_lgbm,4.163336342344337e-17,True
+master days inside the key's scored days,lgbm,0,True
+"plain = master_table_daily plain (866 days, rel)",lgbm,8.077982727172639e-13,True
+truth = master_table_daily rv_unclipped (866 days),lgbm,0,True
+daily QLIKE = master_table_daily qlike_raw,lgbm,5.526690216584029e-13,True
+QLIKE = master_table.csv qlike_raw (866 days),lgbm,-8.049116928532385e-16,True
+master days inside the key's scored days,subtree_daily_baseline_xgb,0,True
+"plain = master_table_daily plain (866 days, rel)",subtree_daily_baseline_xgb,3.3306690738754696e-16,True
+truth = master_table_daily rv_unclipped (866 days),subtree_daily_baseline_xgb,0,True
+daily QLIKE = master_table_daily qlike_raw,subtree_daily_baseline_xgb,4.440892098500626e-16,True
+QLIKE = master_table.csv qlike_raw (866 days),subtree_daily_baseline_xgb,0.0,True
+master days inside the key's scored days,pooltree_xgb_baseline,0,True
+pooltree key: forecast on every master day,pooltree_xgb_baseline,0,True
+master days inside the key's scored days,subtree_daily_all_features_xgb,0,True
+"plain = master_table_daily plain (866 days, rel)",subtree_daily_all_features_xgb,3.3306690738754696e-16,True
+truth = master_table_daily rv_unclipped (866 days),subtree_daily_all_features_xgb,0,True
+daily QLIKE = master_table_daily qlike_raw,subtree_daily_all_features_xgb,2.220446049250313e-16,True
+QLIKE = master_table.csv qlike_raw (866 days),subtree_daily_all_features_xgb,5.551115123125783e-17,True
+master days inside the key's scored days,xgb,0,True
+"plain = master_table_daily plain (866 days, rel)",xgb,8.077982727172639e-13,True
+truth = master_table_daily rv_unclipped (866 days),xgb,0,True
+daily QLIKE = master_table_daily qlike_raw,xgb,5.853095785823825e-13,True
+QLIKE = master_table.csv qlike_raw (866 days),xgb,-8.326672684688674e-16,True
+master days inside the key's scored days,subtree_daily_baseline_rf,0,True
+"plain = master_table_daily plain (866 days, rel)",subtree_daily_baseline_rf,2.220446049250313e-16,True
+truth = master_table_daily rv_unclipped (866 days),subtree_daily_baseline_rf,0,True
+daily QLIKE = master_table_daily qlike_raw,subtree_daily_baseline_rf,0.0,True
+QLIKE = master_table.csv qlike_raw (866 days),subtree_daily_baseline_rf,0.0,True
+master days inside the key's scored days,pooltree_rf_baseline,0,True
+pooltree key: forecast on every master day,pooltree_rf_baseline,0,True
+master days inside the key's scored days,subtree_daily_all_features_rf,0,True
+"plain = master_table_daily plain (866 days, rel)",subtree_daily_all_features_rf,2.220446049250313e-16,True
+truth = master_table_daily rv_unclipped (866 days),subtree_daily_all_features_rf,0,True
+daily QLIKE = master_table_daily qlike_raw,subtree_daily_all_features_rf,2.220446049250313e-16,True
+QLIKE = master_table.csv qlike_raw (866 days),subtree_daily_all_features_rf,1.3877787807814457e-17,True
+master days inside the key's scored days,pooltree_rf_all_features,0,True
+pooltree key: forecast on every master day,pooltree_rf_all_features,0,True
+master days inside the common span,common,0,True
+common span = common_span() (the generators' API),common,1082,True
+scored() = this run's frame,sub_ols_baseline,1460,True
+scored() = this run's frame,a0,5685,True
+scored() = this run's frame,subpt_ridge_baseline,1460,True
+scored() = this run's frame,poolpt_ridge_baseline,1082,True
+scored() = this run's frame,subpt_ridge_all_features,1460,True
+scored() = this run's frame,poolpt_ridge_all_features,1082,True
+scored() = this run's frame,subpt_lasso_baseline,1460,True
+scored() = this run's frame,poolpt_lasso_baseline,1082,True
+scored() = this run's frame,subpt_lasso_all_features,1460,True
+scored() = this run's frame,poolpt_lasso_all_features,1082,True
+scored() = this run's frame,subpt_enet_baseline,1460,True
+scored() = this run's frame,poolpt_enet_baseline,1082,True
+scored() = this run's frame,subpt_enet_all_features,1460,True
+scored() = this run's frame,poolpt_enet_all_features,1082,True
+scored() = this run's frame,subtree_daily_baseline_lgbm,1460,True
+scored() = this run's frame,pooltree_lgbm_baseline,5685,True
+scored() = this run's frame,subtree_daily_all_features_lgbm,1460,True
+scored() = this run's frame,lgbm,5685,True
+scored() = this run's frame,subtree_daily_baseline_xgb,1460,True
+scored() = this run's frame,pooltree_xgb_baseline,5685,True
+scored() = this run's frame,subtree_daily_all_features_xgb,1460,True
+scored() = this run's frame,xgb,5685,True
+scored() = this run's frame,subtree_daily_baseline_rf,1460,True
+scored() = this run's frame,pooltree_rf_baseline,5685,True
+scored() = this run's frame,subtree_daily_all_features_rf,1460,True
+scored() = this run's frame,pooltree_rf_all_features,1460,True
+every scored day is a history day,all,0,True
+mt866 QLIKE = master_table.csv qlike_raw,sub_ols_baseline,0.09667759540315979,True
+mt866 QLIKE = master_table.csv qlike_raw,a0,0.12700794056922057,True
+mt866 QLIKE = master_table.csv qlike_raw,subpt_ridge_baseline,0.09667596150566386,True
+mt866 QLIKE = master_table.csv qlike_raw,poolpt_ridge_baseline,0.10982435416399043,True
+mt866 QLIKE = master_table.csv qlike_raw,subpt_ridge_all_features,0.09749556350316356,True
+mt866 QLIKE = master_table.csv qlike_raw,poolpt_ridge_all_features,0.1045380579956247,True
+mt866 QLIKE = master_table.csv qlike_raw,subpt_lasso_baseline,0.09667232900570505,True
+mt866 QLIKE = master_table.csv qlike_raw,poolpt_lasso_baseline,0.10924101667182348,True
+mt866 QLIKE = master_table.csv qlike_raw,subpt_lasso_all_features,0.0931103005765187,True
+mt866 QLIKE = master_table.csv qlike_raw,poolpt_lasso_all_features,0.1069477850938374,True
+mt866 QLIKE = master_table.csv qlike_raw,subpt_enet_baseline,0.09665334259014662,True
+mt866 QLIKE = master_table.csv qlike_raw,poolpt_enet_baseline,0.1095812846600979,True
+mt866 QLIKE = master_table.csv qlike_raw,subpt_enet_all_features,0.095830608730956,True
+mt866 QLIKE = master_table.csv qlike_raw,poolpt_enet_all_features,0.10396851022147337,True
+mt866 QLIKE = master_table.csv qlike_raw,subtree_daily_baseline_lgbm,0.10104398541287483,True
+mt866 QLIKE = master_table.csv qlike_raw,subtree_daily_all_features_lgbm,0.09613261263707314,True
+mt866 QLIKE = master_table.csv qlike_raw,lgbm,0.1089772698314241,True
+mt866 QLIKE = master_table.csv qlike_raw,subtree_daily_baseline_xgb,0.1000599416473554,True
+mt866 QLIKE = master_table.csv qlike_raw,subtree_daily_all_features_xgb,0.09574621657270375,True
+mt866 QLIKE = master_table.csv qlike_raw,xgb,0.10924786431731497,True
+mt866 QLIKE = master_table.csv qlike_raw,subtree_daily_baseline_rf,0.0991736065694692,True
+mt866 QLIKE = master_table.csv qlike_raw,subtree_daily_all_features_rf,0.09913494501096441,True

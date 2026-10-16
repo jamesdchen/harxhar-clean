@@ -1,0 +1,13 @@
+rf all_features arms 0 4
+rf all_features arms 1 4
+rf all_features arms 2 4
+rf all_features arms 3 4
+xgb all_features arms 0 2
+xgb all_features arms 1 2
+rf baseline arms 0 1
+xgb baseline arms 0 1
+rf moments_vix arms 0 2
+rf moments_vix arms 1 2
+xgb moments_vix arms 0 1
+rf lean_vol_vix arms 0 1
+xgb lean_vol_vix arms 0 1

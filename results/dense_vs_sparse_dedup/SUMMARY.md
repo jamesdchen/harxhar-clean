@@ -12,7 +12,7 @@ Consequently every ridge and lasso forecast is the first pass's: the largest rel
 
 The tree spec changed locally since the cluster runs (md5 7696a895d40d now; another campaign's WINDOW_MASK axis): the cluster ran md5 4bb0f7155908: commit 47f7f9c; model section (parameters, make_model, contributions) identical to the local spec.
 
-Series names are the design's column stems: `har_ma_*` = the target's own HAR ladder (realized variance, means of the last 1, 5, 25, 125, 625, 3125 bars), `adj_sumabsret_ma_*` = absolute returns, `adj_sumret4_ma_*` = 4th-power returns, `adj_sumpret2_ma_*` = upside squared returns, `adj_sumbipow_ma_*` = bipower variation, `adj_sumvolume_ma_*` = ES volume, `adj_vix_ma_*` / `adj_vvix_ma_*` / `adj_vix3m_ma_*` = VIX, VVIX, VIX3M, `*_ewstock` / `*_vwstock` = the same statistics on equal- / value-weighted constituent stocks.
+Series names are the design's column stems: `har_ma_*` = the target's own HAR ladder (realized variance, means of the last 1, 5, 25, 125, 625, 3125 bars), `sumabsret_ma_*` = absolute returns, `sumret4_ma_*` = 4th-power returns, `sumpret2_ma_*` = upside squared returns, `sumbipow_ma_*` = bipower variation, `sumvolume_ma_*` = ES volume, `vix_ma_*` / `vvix_ma_*` / `vix3m_ma_*` = VIX, VVIX, VIX3M, `*_ewstock` / `*_vwstock` = the same statistics on equal- / value-weighted constituent stocks. Every exogenous input is divided by its time-of-day baseline, and `har_ma_*` are trailing means of the adjusted target, so no name carries a prefix.
 
 ## Answer in brief: the first pass's statements, first pass → de-dup + mask
 
@@ -90,13 +90,13 @@ Share of each model's forecast variance carried by a correlated group (|corr| > 
 | design | group (design columns) | ridge | lasso | LightGBM | XGBoost | random forest |
 |---|---|---:|---:|---:|---:|---:|
 | live_feasible | `har_ma_1`, `har_ma_5` | 30.8 % (30.8) | 55.1 % (55.1) | 58.3 % (46.1) | 60.9 % (50.2) | 77.5 % (39.3) |
-|  | `adj_sumabsret`, `adj_sumret4`, `adj_sumpret2`, `adj_sumbipow` at `_ma_1`, `_ma_5` | 25.0 % (25.0) | 8.3 % (8.3) | 8.3 % (4.0) | 9.2 % (6.6) | 5.9 % (6.1) |
+|  | `sumabsret`, `sumret4`, `sumpret2`, `sumbipow` at `_ma_1`, `_ma_5` | 25.0 % (25.0) | 8.3 % (8.3) | 8.3 % (4.0) | 9.2 % (6.6) | 5.9 % (6.1) |
 |  | `har_ma_25`, `har_ma_125` | 17.1 % (17.1) | 21.4 % (21.4) | 9.0 % (6.7) | 9.6 % (7.9) | 4.4 % (2.1) |
-|  | `adj_sumvolume` at `_ma_1`, `_ma_5` | 6.6 % (6.6) | 4.3 % (4.3) | 5.4 % (4.8) | 5.7 % (4.8) | 2.2 % (2.1) |
+|  | `sumvolume` at `_ma_1`, `_ma_5` | 6.6 % (6.6) | 4.3 % (4.3) | 5.4 % (4.8) | 5.7 % (4.8) | 2.2 % (2.1) |
 | all_features | `har_ma_1`, `har_ma_5` | 28.3 % (28.3) | 50.8 % (50.8) | 56.4 % (48.0) | 56.2 % (48.1) | 75.1 % (34.7) |
-|  | `adj_sumabsret_ewstock`, `adj_sumabsret_vwstock` at `_ma_1`, `_ma_5` | 21.0 % (21.0) | 16.1 % (16.1) | 4.3 % (4.0) | 4.4 % (3.8) | 3.6 % (3.4) |
+|  | `sumabsret_ewstock`, `sumabsret_vwstock` at `_ma_1`, `_ma_5` | 21.0 % (21.0) | 16.1 % (16.1) | 4.3 % (4.0) | 4.4 % (3.8) | 3.6 % (3.4) |
 |  | `har_ma_25`, `har_ma_125` | 15.1 % (15.1) | 19.6 % (19.6) | 8.8 % (6.9) | 9.8 % (6.9) | 3.4 % (1.7) |
-|  | `adj_sumabsret`, `adj_sumret4`, `adj_sumpret2`, `adj_sumbipow` at `_ma_1`, `_ma_5` | 14.2 % (14.2) | 1.4 % (1.4) | 6.7 % (3.4) | 8.0 % (4.9) | 4.9 % (5.0) |
+|  | `sumabsret`, `sumret4`, `sumpret2`, `sumbipow` at `_ma_1`, `_ma_5` | 14.2 % (14.2) | 1.4 % (1.4) | 6.7 % (3.4) | 8.0 % (4.9) | 4.9 % (5.0) |
 
 ## 2. The sparsity sweep: ridge, lasso and LightGBM on the same top-k inputs
 

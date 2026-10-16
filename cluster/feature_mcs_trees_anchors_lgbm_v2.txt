@@ -1,0 +1,9 @@
+1 lgbm all_features 0 2382 2553 2000 662
+1 lgbm all_features 1 2553 2731 2000 662
+1 lgbm all_features 2 2731 2902 2000 662
+1 lgbm all_features 3 2903 3036 2000 662
+2 lgbm all_features 4 3036 3146 2000 662
+2 lgbm all_features 5 3146 3255 2000 662
+2 lgbm all_features 6 3255 3366 2000 662
+2 lgbm all_features 7 3366 -1 2000 627
+3 lgbm baseline 0 2382 -1 2000 175

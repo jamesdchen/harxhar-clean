@@ -11,6 +11,14 @@ p-value < alpha. MCS p-value of an eliminated model = the running max of the tes
 survivors have MCS p-value >= alpha. Reference: Hansen, Lunde & Nason (2011, Econometrica).
 
 numpy-only. losses: dict{name: per-bar loss array on the SAME OOS rows}. Lower loss = better.
+
+Resampling (``resample``): the repo's bootstrap helpers are switched off (commit b761b28, a repo-wide
+decision to report no intervals), so by DEFAULT every replicate is the sample itself and the p-values are
+degenerate.  ``resample=True`` restores the circular moving-block bootstrap of commit 50cfa99 exactly (the
+same RandomState(seed) draws: ceil(T / block) block starts uniform on 0..T-1, blocks of ``block``
+consecutive rows wrapping mod T, truncated to T rows; one index per replicate shared by every model).
+It is opt-in for the studies that need a real MCS (experiments/feature_mcs_report.py, 2026-10-08); the
+default behaviour of every other caller is unchanged.
 """
 
 from __future__ import annotations
@@ -18,20 +26,30 @@ from __future__ import annotations
 import numpy as np
 
 
-def _boot_col_means(L: np.ndarray, B: int, block: int, seed: int) -> np.ndarray:
+def _boot_col_means(
+    L: np.ndarray, B: int, block: int, seed: int, resample: bool = False
+) -> np.ndarray:
     """Moving-block bootstrap: return (B, m) where entry [b, i] = mean over a resampled time index of
     column i. The SAME resampled index is used across all models within a replicate (preserves the
-    cross-model correlation). Indices shared across MCS rounds (computed once for the full model set)."""
+    cross-model correlation). Indices shared across MCS rounds (computed once for the full model set).
+    resample=False (default): the circular block bootstrap is switched off and every replicate is the
+    sample; resample=True: the circular block bootstrap (see the module docstring)."""
     T, m = L.shape
-    # Circular block bootstrap commented out: every replicate is the sample.
-    del seed, block
-    # rng = np.random.RandomState(seed)
-    # nblk = int(np.ceil(T / block))
-    # starts = rng.randint(0, T, size=(B, nblk))
-    # offs = np.arange(block)
     out = np.empty((B, m), dtype=np.float64)
-    idx = np.arange(T)
+    if not resample:
+        # Circular block bootstrap commented out: every replicate is the sample.
+        idx = np.arange(T)
+        for b in range(B):
+            out[b] = L[idx].mean(axis=0)
+        return out
+    rng = np.random.RandomState(seed)
+    nblk = int(np.ceil(T / block))
+    starts = rng.randint(0, T, size=(B, nblk))
+    offs = np.arange(block)
     for b in range(B):
+        idx = ((starts[b][:, None] + offs).ravel() % T)[
+            :T
+        ]  # length-T circular block index
         out[b] = L[idx].mean(axis=0)
     return out
 
@@ -42,8 +60,10 @@ def model_confidence_set(
     B: int = 2000,
     block: int | None = None,
     seed: int = 0,
+    resample: bool = False,
 ) -> dict:
-    """MCS at confidence 1-alpha. Returns dict:
+    """MCS at confidence 1-alpha (resample: see the module docstring; False = the repo default, every
+    bootstrap replicate is the sample). Returns dict:
     mcs        -- list of surviving model names (the confidence set),
     pvals      -- {name: MCS p-value}; in the set iff p-value >= alpha,
     eliminated -- names in elimination order (worst first),
@@ -60,7 +80,7 @@ def model_confidence_set(
         )  # ~ persistence-scaled block length
     col_mean = L.mean(axis=0)  # full-sample mean loss per model
     Lstar = _boot_col_means(
-        L, B, block, seed
+        L, B, block, seed, resample
     )  # (B, m) bootstrap col means -- computed ONCE
 
     active = list(range(m))

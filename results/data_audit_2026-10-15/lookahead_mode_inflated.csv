@@ -1,0 +1,23 @@
+series,data_up_to,mode_inflated,mode,share,same_as_shipped
+numobs,2018-06-25,True,30.0,0.6374483468829978,True
+numobs,2020-01-03,True,30.0,0.658333233027199,True
+numobs,full sample (shipped),True,30.0,0.7150756981564846,True
+stocktwits_sentiment,2018-06-25,True,1.0,0.21310938058723033,False
+voldemand_spx_open_and_close,2018-06-25,True,0.0,0.7137053116792624,True
+voldemand_spx_open_and_close,2020-01-03,True,0.0,0.7133056299552415,True
+voldemand_spx_open_and_close,full sample (shipped),True,0.0,0.5933571848774807,True
+voldemand_spx_open_only,2018-06-25,True,0.0,0.7172642975826767,True
+voldemand_spx_open_only,2020-01-03,True,0.0,0.7174433400663813,True
+voldemand_spx_open_only,full sample (shipped),True,0.0,0.6025596388652108,True
+voldemand_all_open_and_close,2018-06-25,True,0.0,0.711443426059924,True
+voldemand_all_open_and_close,2020-01-03,True,0.0,0.7112590206529573,True
+voldemand_all_open_and_close,full sample (shipped),True,0.0,0.5889990755525675,True
+voldemand_all_open_only,2018-06-25,True,0.0,0.7160100766468349,True
+voldemand_all_open_only,2020-01-03,True,0.0,0.7163666456073535,True
+voldemand_all_open_only,full sample (shipped),True,0.0,0.598963898526887,True
+fomc_release,2018-06-25,True,0.0,0.9992873933805797,True
+fomc_release,2020-01-03,True,0.0,0.9992938448143734,True
+fomc_release,full sample (shipped),True,0.0,0.9791063860638936,True
+fomc_day,2018-06-25,True,0.0,0.9687539378033466,True
+fomc_day,2020-01-03,True,0.0,0.9688368901888564,True
+fomc_day,full sample (shipped),True,0.0,0.9495027056241391,True

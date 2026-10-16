@@ -23,6 +23,25 @@
 % (d_t is the loss differential); x^{(k)}_t -> \bar u^{(k)}_t (Predictors); Q_p -> Q_{0.01}, Q_{0.99} (p is the
 % number of predictors); Muon matrix R x C -> d_out x d_in (R_t is the straddle return); plain-text citations ->
 % \citep. FLAGs (1), (2), (3) and (7) resolved in the text, to match the code; FLAG (4) left for the user.
+% 2026-10-15 (finish): validation-fold index j -> v (j is the predictor / lag index); the DM horizon h is dropped
+% (one-step-ahead forecasts, h = 1 substituted in the HLN factor and in q_NW; h stays only the boosting Hessian
+% h_{t'}); "intraday periodicity factor" -> "diurnal adjustment" (user; s^2_{t,i} unchanged); smearing mention
+% parked (user). The whole MinGRU network (model bullet, its training, the network grid and the network tuning with
+% the seed index) is parked (user: "park all of the NN stuff for now"), so Lambda, Lambda^+, f^NN, \bm h_tau, \bm v,
+% ell, nu, H, mu_y, sigma_y, S, E_max, \mathcal L and \bm\vartheta \in \Theta no longer appear in the text.
+% 2026-10-15 (finish, user): Models describes the tree method only ("Closing-interval trees" -> "Tree ensembles"; the
+% "Pooled intraday trees" bullet parked); closing-interval vs pooled is to be placed elsewhere by the user.
+% 2026-10-15 (user, restructure): Methods says what (symbols), Experiments says how it was run (values, procedures).
+% Problem formulation is scheme-neutral ("re-estimated every period") and symbolic: the diurnal window 20 / 5 -> n_d,
+% \underline n_d; the winsorization window 240 and levels 1/99 -> n_w and the bounds \underline Q_{t,i}, \overline
+% Q_{t,i}; n_gap, n_val and W symbolic; their values are in 06_results.tex, "Experimental setup" (sec:rh_exp_setup,
+% sec:rh_exp_samples, sec:rh_exp_schemes). New subsection "Training schemes" (sec:rh_methods_schemes, after Models,
+% conceptual). "Tuned hyperparameters" (sec:rh_methods_hyper) and "Tuning procedures" (sec:rh_methods_tuning) moved
+% to 06_results.tex with their labels and tables, and then (user) to the appendix, "Implementation details"
+% (10_appendix.tex, app:rh_impl); the forward pointers say Appendix~\ref{...}.
+% 2026-10-15 (user): "Forecast evaluation" (sec:rh_results_eval) moved here from 06_results.tex, before Statistical
+% tests, with the specific numbers removed (values in Experimental setup, sec:rh_exp_setup); its DM, Newey--West and
+% lag-truncation bullets merged into Statistical tests, whose lag values (\fqsDMLag, \fqsHACLag) moved out likewise.
 
 \section{Methods}
 \label{sec:rh_methods}
@@ -31,56 +50,83 @@
 \begin{itemize}
 % 2026-10-15 (notation pass): parked -- code jargon replaced by the standard description below.
 % \item \textbf{Time-series regression,} run as a causal walk-forward backtest; every input known at 15:30.
-\item \textbf{Rolling-window out-of-sample exercise,} re-estimated daily; every predictor is in the information
-  set $\mathcal F_t$ at the 15:30 ET forecast origin.
+% 2026-10-15 (user): parked -- "re-estimated daily" -> "re-estimated every period" (two training schemes,
+% Section~\ref{sec:rh_methods_schemes}). Was: "\textbf{Rolling-window out-of-sample exercise,} re-estimated daily;
+% every predictor is in the information set $\mathcal F_t$ at the 15:30 ET forecast origin."
+% 2026-10-15 (user): parked -- last-30-min scheme moved to the end of the economics section (sec:rh_econ_last30); the
+% pooled intraday scheme is the paper's training scheme. Was: "... A period is a trading day under the
+% closing-interval scheme and an intraday interval under the pooled intraday scheme
+% (Section~\ref{sec:rh_methods_schemes})."
+\item \textbf{Rolling-window out-of-sample exercise,} re-estimated every period; every predictor is in the
+  information set $\mathcal F_t$ at the 15:30 ET forecast origin. A period is a 30-minute intraday interval under the
+  pooled intraday scheme (Section~\ref{sec:rh_methods_schemes}) and a trading day for the benchmark forecast
+  (Section~\ref{sec:rh_results_eval}).
 \item \textbf{Notation:} $t = 1, \dots, T$ indexes trading days and $i = 1, \dots, M$ the 30-minute intraday
   intervals of day $t$, overnight included; $i = c$ is the closing interval, the closing half hour (15:30--16:00 ET).
   \begin{itemize}
   \item $\RV_{t,i} = \sum_{k=1}^{N_{t,i}} r_{t,i,k}^2$: realized variance of interval $(t,i)$, with $r_{t,i,k}$
     its $k$th one-minute log return, $N_{t,i} \le 30$ \citep{AndersenBollerslevDieboldLabys2003}.
-  \item Only the closing interval is modeled in the closing-interval model, so $\RV_t \equiv \RV_{t,c}$.
+  % 2026-10-15 (user): parked -- scheme-neutral wording (the target is the closing interval under both schemes).
+  % Was: \item Only the closing interval is modeled in the closing-interval model, so $\RV_t \equiv \RV_{t,c}$.
+  \item The forecast target is the closing interval: $\RV_t \equiv \RV_{t,c}$.
   \item $(t, i-j)$: the $j$th retained interval before $(t,i)$, possibly on an earlier trading day.
   \item $\mathcal F_t$: all data through 15:30 ET on day $t$; $\E_t[\cdot] \equiv \E[\,\cdot \mid \mathcal F_t]$ and
     $\Var_t(\cdot) \equiv \Var(\,\cdot \mid \mathcal F_t)$.
   \end{itemize}
-\item \textbf{Intraday periodicity factor} \citep{AndersenBollerslev1997}: the trailing mean of $\RV$ in the same
+% 2026-10-15 (user): parked -- the window lengths 20 and 5 are implementation; they move to Experimental setup
+% (sec:rh_exp_samples) as n_d and \underline n_d. Was:
+% \mathcal D_{t,i} = \{\text{last } 20 \text{ trading days } t' < t \text{ with interval } i\}, \qquad
+% |\mathcal D_{t,i}| \ge 5 . ... \item Intervals with $|\mathcal D_{t,i}| < 5$: not scored.
+\item \textbf{Diurnal adjustment} \citep{AndersenBollerslev1997}: the trailing mean of $\RV$ in the same
   interval, strictly before day $t$,
   \begin{gather*}
     s^2_{t,i} = \frac{1}{|\mathcal D_{t,i}|}\sum_{t' \in \mathcal D_{t,i}} \RV_{t',i}, \\
-    \mathcal D_{t,i} = \{\text{last } 20 \text{ trading days } t' < t \text{ with interval } i\}, \qquad
-    |\mathcal D_{t,i}| \ge 5 .
+    \mathcal D_{t,i} = \{\text{last } n_{\mathrm{d}} \text{ trading days } t' < t \text{ with interval } i\}, \qquad
+    |\mathcal D_{t,i}| \ge \underline n_{\mathrm{d}} .
   \end{gather*}
   \begin{itemize}
-  \item Intervals with $|\mathcal D_{t,i}| < 5$: not scored.
+  \item Intervals with $|\mathcal D_{t,i}| < \underline n_{\mathrm{d}}$: not scored. Values of $n_{\mathrm{d}}$ and
+    $\underline n_{\mathrm{d}}$: Appendix~\ref{sec:rh_exp_samples}.
   \end{itemize}
   % src/features/transforms/target.py:24-25, 286-298 (per slot rolling(20, min_periods=5).mean().shift(1); no
   % per-slot band on the target).
-\item \textbf{Target:} periodicity-adjusted realized volatility (the square root stabilizes the variance),
-  winsorized on that scale at the rolling 1st/99th percentiles:
+% 2026-10-15 (user): parked -- the window 240 and the levels 1/99 are implementation; they move to Experimental setup
+% (sec:rh_exp_samples) as n_w and the bounds \underline Q, \overline Q (no generic quantile level: guide 6b). Was:
+% "winsorized on that scale at the rolling 1st/99th percentiles: ... \mathcal Y_{t,i} = \{y_{t,i-j} : j = 1, \dots,
+% 240\}, \tilde y_{t,i} = \clip(y_{t,i}, Q_{0.01}(\mathcal Y_{t,i}), Q_{0.99}(\mathcal Y_{t,i}))"; "\item $Q_{0.01}(\cdot)$,
+% $Q_{0.99}(\cdot)$: empirical 1st and 99th percentiles; $\clip$ truncates ..."; "\item Bounds: rolling quantiles of
+% the previous 240 intervals, all intervals of the day pooled."
+\item \textbf{Target:} diurnally adjusted realized volatility (the square root stabilizes the variance),
+  winsorized on that scale at rolling lower and upper empirical quantiles:
   \begin{gather*}
     y_{t,i} = \sqrt{\RV_{t,i} / s^2_{t,i}}, \qquad
-    \mathcal Y_{t,i} = \{y_{t,i-j} : j = 1, \dots, 240\}, \\
-    \tilde y_{t,i} = \clip\bigl(y_{t,i},\; Q_{0.01}(\mathcal Y_{t,i}),\; Q_{0.99}(\mathcal Y_{t,i})\bigr).
+    \mathcal Y_{t,i} = \{y_{t,i-j} : j = 1, \dots, n_{\mathrm{w}}\}, \\
+    \tilde y_{t,i} = \clip\bigl(y_{t,i},\; \underline Q_{t,i},\; \overline Q_{t,i}\bigr).
   \end{gather*}
   \begin{itemize}
   % 2026-10-15 (consolidation): parked -- the generic level p clashes with the number of predictors p.
   % \item $Q_p(\cdot)$: empirical $p$-quantile; $\clip$ truncates its first argument to the interval between the
   %   other two.
-  \item $Q_{0.01}(\cdot)$, $Q_{0.99}(\cdot)$: empirical 1st and 99th percentiles; $\clip$ truncates its first
-    argument to the interval between the other two.
-  \item Bounds: rolling quantiles of the previous 240 intervals, all intervals of the day pooled.
+  \item $\underline Q_{t,i}$, $\overline Q_{t,i}$: lower and upper empirical quantiles of $\mathcal Y_{t,i}$, the
+    previous $n_{\mathrm{w}}$ intervals, all intervals of the day pooled; $\clip$ truncates its first argument to the
+    interval between the other two. Levels and $n_{\mathrm{w}}$: Appendix~\ref{sec:rh_exp_samples}.
   % 2026-10-15 (notation pass): parked -- the scorer now uses the actual RV (user decision 2026-10-15, data audit
   % #10), so y and the winsorized y can no longer share one symbol; the winsorized target is written out below.
   % \item Models fit $\tilde y_t$; from here on $y_t$ denotes $\tilde y_t$.
   \item Models fit $\tilde y_{t,i}$; out-of-sample scores use the unwinsorized $\RV_{t,c}$.
   % 2026-10-15 (notation pass): parked -- "bar", "session" and "stamped 16:00" replaced by the (t, i) indices.
   % \item Per bar: $t$ is the session; its row is the 15:30--16:00 bar, stamped 16:00.
-  \item Closing-interval model: one observation per trading day $t$, the closing interval; $y_t \equiv y_{t,c}$
-    and $\tilde y_t \equiv \tilde y_{t,c}$.
+  % 2026-10-15 (user): parked -- moved to Training schemes ("one observation per trading day"); the generic
+  % definitions of y_t and tilde y_t stay. Was:
+  % \item Closing-interval model: one observation per trading day $t$, the closing interval; $y_t \equiv y_{t,c}$
+  %   and $\tilde y_t \equiv \tilde y_{t,c}$.
+  \item $y_t \equiv y_{t,c}$ and $\tilde y_t \equiv \tilde y_{t,c}$: the closing interval's values.
   \end{itemize}
   % target.py:96-97, 450-516 (1/99, window 240, shift(1), min_periods = 240 for the target). Stale "5/95" in the
   % rolling_winsorize docstring and in experiments/master_table_close.py:30; the code is 1/99 (outline flag 16).
-\item \textbf{Back-transform:} square and rescale; no smearing \citep{Duan1983}, no recalibration:
+% 2026-10-15 (user): parked -- no smearing mentions. Was:
+% \item \textbf{Back-transform:} square and rescale; no smearing \citep{Duan1983}, no recalibration:
+\item \textbf{Back-transform:} square and rescale, with no recalibration:
   \[
     \hat\sigma^2_t = \hat y_t^{\,2}\, s^2_{t,c},
   \]
@@ -111,22 +157,31 @@
   % 2026-10-15: scorer = actual RV_{t,c} (unwinsorized), as sections/methods.tex:183-185 already stated; the
   % pointers above (master_table_close.py:29-31, rows.py:602) are the pre-switch scorer.
 % 2026-10-15 (notation pass): the "Fit objective" bullet moved below the windows, which define its sample.
-\item \textbf{Rolling estimation window} $\mathcal W_t = \{t - W, \dots, t-1\}$ of length $W$.
-  \begin{itemize}
-  \item Closing-interval model ($\mathcal I = \{c\}$, the intervals used in estimation): the closing interval only;
-    $W = \cmPtFitWin$ trading days; re-estimated daily.
-  \item Pooled intraday model ($\mathcal I = \{1, \dots, M\}$): all $M = 48$ intervals; $W = 24{,}000$ intervals,
-    $\mathcal W_{t,i} = \{(t, i-W), \dots, (t, i-1)\}$; re-estimated every interval (trees) or every 21 trading
-    days (network).
-  \end{itemize}
+\item \textbf{Rolling estimation window} $\mathcal W_t = \{t - W, \dots, t-1\}$: the last $W$ periods before the
+  forecast origin; $\mathcal I$ denotes the intervals used in estimation ($\mathcal I$ for each scheme:
+  Section~\ref{sec:rh_methods_schemes}; values of $W$: Appendix~\ref{sec:rh_exp_schemes}).
+  % 2026-10-15 (user): parked -- moved to Training schemes (the scheme-specific windows). Was:
+  % \item \textbf{Rolling estimation window} $\mathcal W_t = \{t - W, \dots, t-1\}$ of length $W$.
+  %   \begin{itemize}
+  %   \item Closing-interval model ($\mathcal I = \{c\}$, the intervals used in estimation): the closing interval only;
+  %     $W = \cmPtFitWin$ trading days; re-estimated daily.
+  %   \item Pooled intraday model ($\mathcal I = \{1, \dots, M\}$): all $M = 48$ intervals; $W = 24{,}000$ intervals,
+  %     $\mathcal W_{t,i} = \{(t, i-W), \dots, (t, i-1)\}$; re-estimated every interval (trees).
+  %   % 2026-10-15 (user): parked -- NN content parked for now. Was: "re-estimated every interval (trees) or every 21
+  %   % trading days (network)."
+  %   \end{itemize}
+% 2026-10-15 (user): parked -- the sizes n_gap = \cmPtEmbargo and n_val = \rhdmValTail (typed 125 before phase 2)
+% are implementation; they move to Experimental setup (sec:rh_exp_samples). Was: "an estimation sample, a
+% \cmPtEmbargo-observation gap and a 125-observation validation sample: ... $n_{\mathrm{gap}} = \cmPtEmbargo$,
+% $n_{\mathrm{val}} = 125$. Observation $t$ never enters."
 \item \textbf{Hyperparameter-selection splits run forward in time} \citep{gu2020empirical}: an estimation sample, a
-  \cmPtEmbargo-observation gap and a 125-observation validation sample:
+  gap of $n_{\mathrm{gap}}$ observations and a validation sample of $n_{\mathrm{val}}$ observations:
   \begin{gather*}
     \mathcal W^{\mathrm{est}}_t = \{t - W, \dots, t - n_{\mathrm{val}} - n_{\mathrm{gap}} - 1\}, \\
     \mathcal W^{\mathrm{gap}}_t = \{t - n_{\mathrm{val}} - n_{\mathrm{gap}}, \dots, t - n_{\mathrm{val}} - 1\}, \\
-    \mathcal W^{\mathrm{val}}_t = \{t - n_{\mathrm{val}}, \dots, t - 1\},
+    \mathcal W^{\mathrm{val}}_t = \{t - n_{\mathrm{val}}, \dots, t - 1\}.
   \end{gather*}
-  $n_{\mathrm{gap}} = \cmPtEmbargo$, $n_{\mathrm{val}} = 125$. Observation $t$ never enters.
+  Observation $t$ never enters. Values of $n_{\mathrm{gap}}$ and $n_{\mathrm{val}}$: Appendix~\ref{sec:rh_exp_samples}.
   % src/models/reclasso_har.py:255-265 (forward_window_split); specs/causal_tune_linear.py:157-162.
 % 2026-10-15 (consolidation): parked -- FLAG (1) resolved to match the code: the forecast at origin t is estimated
 % on the full window W_t; W^est_t applies only while hyperparameters are selected. Old bullet:
@@ -149,7 +204,8 @@
   \item During hyperparameter selection only, each candidate configuration is estimated on the estimation sample
     $\mathcal W^{\mathrm{est}}_t$ in place of $\mathcal W_t$ and evaluated on the validation sample
     $\mathcal W^{\mathrm{val}}_t$.
-  \item Exception: the QLIKE-trained network.
+  % 2026-10-15 (user): parked -- NN content parked for now
+%   \item Exception: the QLIKE-trained network.
   \end{itemize}
 \end{itemize}
 
@@ -176,7 +232,8 @@
   % src/features/extractors/har.py:18-50 (base 5, rolling mean shifted 1). sections/data_prep.tex:325-331 says
   % base 2; the code uses base 5 (outline flag 1).
 \item \textbf{Ridge \citep{HoerlKennard1970}, lasso \citep{Tibshirani1996} and elastic net \citep{ZouHastie2005},}
-  written in the scikit-learn parametrization (the $\lambda$ grids below are on this scale) and solved exactly as
+  written in the scikit-learn parametrization (the $\lambda$ grids of Appendix~\ref{sec:rh_methods_hyper} are on this
+  scale) and solved exactly as
   the window rolls:
   \begin{align*}
     \hat{\bm\beta}^{\mathrm{ridge}}_t &= \argmin_{\beta_0, \bm\beta} \sum_{t' \in \mathcal W_t}
@@ -206,9 +263,11 @@
     $\bm X_t$ stacks the rows $(1, \bm x_{t'}^\top)$, $t' \in \mathcal W_t$, and
     $\bm\omega = (\omega_0, \dots, \omega_p)^\top$.
   \item Lasso, elastic net: exact online homotopy \citep{Garrigues2008}, one observation in, one out.
+  % 2026-10-15 (user): parked -- last-30-min scheme moved to the end of the economics section. Was: "...; in the
+  % closing-interval model this always removes five of the 16 calendar dummies (Section~\ref{sec:rh_predictors})."
   \item At every fit, only the screened columns $\mathcal J_t$ enter: predictors constant within the window or
-    exact copies of another column are dropped; in the closing-interval model this always removes five of the 16
-    calendar dummies (Section~\ref{sec:rh_predictors}).
+    exact copies of another column are dropped; in a model estimated on the closing interval only, this always
+    removes five of the 16 calendar dummies (Section~\ref{sec:rh_predictors}).
   \end{itemize}
   % experiments/close_exogpen_kernel.c:3-12, 650-676: ridge D_j = lambda omega_j on X'X; lasso / enet
   % mu_j = n lambda alpha omega_j, lam2_j = n lambda (1 - alpha) omega_j, i.e. the 1/(2n) objective above
@@ -217,8 +276,10 @@
   % rs_of(): baseline uses r = 1 only.
   % Code vs paper: sections/methods.tex:313-345 writes the lasso and elastic net without the 1/(2n) factor, and
   % says rho is free in {0.25, 0.5, 0.75, 1}; every close elastic net fixes rho = 0.5 (outline flag 5).
-\item \textbf{Closing-interval trees:} LightGBM, XGBoost and random forest, on the same observations and windows as
-  the linear models.
+% 2026-10-15 (user): parked -- closing-interval vs pooled is handled elsewhere; Models describes the tree method only.
+% Was: \item \textbf{Closing-interval trees:} LightGBM, XGBoost and random forest, on the same observations and
+%   windows as the linear models.
+\item \textbf{Tree ensembles:} gradient boosting (LightGBM, XGBoost) and random forest.
   \begin{itemize}
   \item \textbf{Gradient boosting} \citep{Friedman2001}, in LightGBM \citep{Ke2017} and XGBoost \citep{Chen2016}:
     loss $\tfrac12 (\tilde y - F)^2$, rounds $b = 1, \dots, B$, learning rate $\eta$:
@@ -246,243 +307,295 @@
   \end{itemize}
   % Code vs paper: sections/methods.tex:404 says h_i = 2 for squared error; both libraries' L2 objectives are
   % (1/2)(y - F)^2, so h_{t'} = 1 and XGBoost's min_child_weight counts rows.
-\item \textbf{Pooled intraday trees:} one fixed hyperparameter configuration per tree method, never re-selected,
-  re-estimated every interval on a panel of 1,144 predictors (Table~\ref{tab:rh_dm_tuning}).
-  % 2026-10-15 (consolidation): checked against specs/causal_tune_trees.py (docstring: the pooled LightGBM and XGBoost
-  % are arms tree_expert_00 and tree_expert_16 of the frozen 20-arm bank) -- this bullet was right; the tuning table's
-  % row (bank combination: best configuration or exponential weights) was corrected in make_rehaul_data_methods.py.
-\item \textbf{MinGRU network} (the minGRU of \citet{Feng2024}, in PufferLib 5.0 \citep{Suarez2024}, native CUDA): an
-  encoder, one MinGRU layer with highway gates and a decoder, trained with Muon \citep{Jordan2024Muon}. On the
-  predictors of the last
-  $\ell$ observations, $\bm x_{t-\ell+1:t}$, with $\tau = t-\ell+1, \dots, t$ and
-  $\bm W_l = [\bm W_l^{h};\, \bm W_l^{z};\, \bm W_l^{\psi}]$ split into three row blocks:
-  \begin{align*}
-    \bm\xi_\tau &= \bm W_e\, (\bm x_\tau, 1), & \tilde{\bm h}_\tau &= \Lambda^{+}(\bm W_l^{h}\, \bm\xi_\tau), \\
-    \bm z_\tau &= \Lambda(\bm W_l^{z}\, \bm\xi_\tau), & \bm\psi_\tau &= \Lambda(\bm W_l^{\psi}\, \bm\xi_\tau), \\
-    \bm h_\tau &= (1 - \bm z_\tau) \odot \bm h_{\tau-1} + \bm z_\tau \odot \tilde{\bm h}_\tau, & \bm h_{t-\ell} &= \bm 0, \\
-    \bm h^{\ast}_\tau &= \bm\psi_\tau \odot \bm h_\tau + (1 - \bm\psi_\tau) \odot \bm\xi_\tau, &
-    o_t &= \bm w_d^\top \bm h^{\ast}_t = f^{\mathrm{NN}}(\bm x_{t-\ell+1:t}).
-  \end{align*}
-  % 2026-10-15 (notation pass): parked -- old display, with the pre-activations (a, b, pi) named (a clashes with
-  % the availability indicator a_{t,i}, pi with the constant), phi (reserved for SHAP), sigma (volatility), u
-  % (exogenous series) and g (the variance-stabilizing map):
-  % \xi_\tau = W_e (x_\tau, 1), [a_\tau; b_\tau; \pi_\tau] = W_l \xi_\tau, z_\tau = \sigma(b_\tau),
-  % \tilde h_\tau = \phi(a_\tau), h_\tau = (1 - z_\tau) h_{\tau-1} + z_\tau \tilde h_\tau, h_{t-L} = 0,
-  % u_\tau = \omega_\tau h_\tau + (1 - \omega_\tau) \xi_\tau, \omega_\tau = \sigma(\pi_\tau),
-  % o_t = w_d^\top u_t = g(x_{t-L+1:t}).
-  % experiments/puffer_forecast/reference.py:4-7, 103-125 and torch_train.py:64-92 (both gated against upstream
-  % src/algo.cu): the gates read only the layer input xi_tau, never h_{tau-1}; the highway mixes h with the
-  % encoded input xi_tau = W_e x_tau, not with raw x. The encoder has no bias: the constant input's column is it.
-  \begin{itemize}
-  \item $\Lambda(a) = 1/(1 + e^{-a})$: the logistic function; $\Lambda^{+}(a) = a + \tfrac12$ for $a \ge 0$ and
-    $\Lambda(a)$ otherwise, elementwise; $\bm z_\tau$: update gate; $\bm\psi_\tau$: highway gate;
-    $\bm h_\tau \in \mathbb R^H$: hidden state of width $H$; $\bm h^{\ast}_\tau$: highway output; $\odot$:
-    elementwise product.
-  \item \textbf{Softplus output,} so every forecast is positive ($\softplus(a) = \log(1 + e^{a})$):
-    \[
-      \hat y_t = \softplus(\varpi_0 + \varpi_1 o_t), \qquad \varpi_0 = \softplus^{-1}(\mu_y), \qquad
-      \varpi_1 = \sigma_y / \Lambda(\varpi_0).
-    \]
-    $\mu_y, \sigma_y$: mean and standard deviation of $\tilde y$ over the training observations;
-    $\hat y_t \approx \mu_y + \sigma_y o_t$ near $o_t = 0$.
-    % forecast_train.cu:74-97 (LossParams, fc_link). Code names: c = varpi_0, s = varpi_1.
-  \item \textbf{Linear shortcut:} a linear term beside the recurrent branch $f^{\mathrm{NN}}$,
-    \[
-      \hat y_t = \softplus\bigl(\varpi_0 + \varpi_1\,[\, \bm v^\top (\bm x_t, 1) + f^{\mathrm{NN}}(\bm x_{t-\ell+1:t}) \,]\bigr).
-    \]
-    Zero-initialized decoder: $f^{\mathrm{NN}} \equiv 0$ at the start.
-    % forecast_train.cu:40-41, 280-305 (fc_lin_add: o' = o + v.x, x the last step's row with the constant),
-    % job key dec_zero.
-  % 2026-10-15 (notation pass): "Training loss" and "Cosine schedule" moved up, ahead of the optimizer bullets
-  % that use them; "Ridge initialization" moved below the shortcut penalty, whose weight decay it uses.
-  % 2026-10-15 (consolidation): parked -- FLAG (3) resolved to match fc_loss: the realization is floored at
-  % max(tilde y^2, eps^2) and log r is clamped to [-80, 80]. Old display:
-  % \mathcal L_{t'} = \QLIKE\bigl(\tilde y_{t'}^{\,2},\; \hat y_{t'}^{\,2} + \varepsilon^2\bigr).
-  \item \textbf{Training loss,} per observation $t'$: squared error $\mathcal L_{t'} = (\hat y_{t'} - \tilde y_{t'})^2$,
-    or QLIKE with a floor $\varepsilon$ on both the realization and the forecast and a clamp on the log ratio:
-    \[
-      \mathcal L_{t'} = r_{t'} - \log r_{t'} - 1, \qquad
-      \log r_{t'} = \clip\Bigl(\log \frac{\max(\tilde y_{t'}^{\,2},\, \varepsilon^2)}{\hat y_{t'}^{\,2} + \varepsilon^2},\
-        -80,\ 80\Bigr),
-    \]
-    that is, $\mathcal L_{t'} = \QLIKE\bigl(\max(\tilde y_{t'}^{\,2}, \varepsilon^2),\; \hat y_{t'}^{\,2} + \varepsilon^2\bigr)$
-    whenever the clamp does not bind. $|\partial \mathcal L_{t'} / \partial \hat y_{t'}|$ capped at a training-window
-    quantile; $\bar{\mathcal L}$: the minibatch mean of $\mathcal L_{t'}$.
-    % forecast_train.cu:22-27, 99-130 (fc_loss). Old form: l_t = r_t - log r_t - 1, r_t = y_t^2 / (yhat_t^2 + eps^2).
-    % 2026-10-15 (notation pass): parked -- the scorer was switched to the actual RV (data audit #10). Old note:
-    % Realisation: the winsorised y_t^2, as the scorer.
-    % Realization: the winsorized tilde-y^2, as in estimation; the out-of-sample scorer uses the actual RV.
-    % 2026-10-15 (notation pass): FLAG, math not changed -- fc_loss floors the realization too, max(y^2, eps^2),
-    % and clamps log r to [-80, 80]; the display omits both.
-    % 2026-10-15 (consolidation): resolved -- the display above now has both (forecast_train.cu:117-123).
-  \item \textbf{Cosine schedule} over $E_{\max} = 200$ epochs, epoch learning rate $\eta_e$ from $\eta_0$:
-    \[
-      \eta_e = \tfrac12\, \eta_0 \bigl(1 + \cos(\pi e / E_{\max})\bigr), \qquad e = 0, \dots, E_{\max} - 1 .
-    \]
-    % forecast_train.cu:1352-1373 (min_lr_ratio = 0 in every job, so eta_min = 0).
-  \item \textbf{Muon with decoupled weight decay} $\nu$, every matrix
-    $\bm W \in \mathbb R^{d_{\mathrm{out}} \times d_{\mathrm{in}}}$:
-    \[
-      \bm M \leftarrow 0.95\, \bm M + \bm G, \qquad
-      \bm W \leftarrow \bm W (1 - \eta_e\, \nu) - \eta_e \sqrt{\max(1, d_{\mathrm{out}}/d_{\mathrm{in}})}\;
-        \mathrm{NS}_5(\bm G + 0.95\, \bm M).
-    \]
-    % 2026-10-15 (consolidation): R x C -> d_out x d_in (R_t is the straddle return).
-    $\bm G$: gradient of $\bar{\mathcal L}$, global norm clipped at 1.0; $\bm M$: momentum; $\mathrm{NS}_5$: five
-    Newton--Schulz steps.
-    % reference.py:192-221 (muon_step: Frobenius-normalised input to NS); forecast_train.cu:240-255
-    % (fc_weight_decay, launched before muon_step; the encoder's constant-input column is not decayed).
-  \item \textbf{Encoder input decay} $\nu_{\mathrm{enc}}$, column by column, in proportion to the linear models'
-    penalty weights $\omega_j$:
-    \[
-      \bm w_{e,j} \leftarrow \bm w_{e,j}\, (1 - \eta_e\, \nu_{\mathrm{enc}}\, \omega_j), \qquad j = 1, \dots, p,
-    \]
-    with $\bm w_{e,j}$ the $j$th column of $\bm W_e$.
-    % forecast_train.cu:257-277 (fc_enc_decay, after wd, before muon_step).
-  \item \textbf{Shortcut penalty} $\nu_{\mathrm{lin}}$: L2 under Adam, not decoupled; $\bm\omega$ is $0$ on the
-    constant, so the intercept is unpenalized:
-    \[
-      \nabla_{\bm v} \leftarrow \nabla_{\bm v} \bar{\mathcal L} + \nu_{\mathrm{lin}}\, \bm\omega \odot \bm v
-      = \nabla_{\bm v} \Bigl(\bar{\mathcal L} + \tfrac12\, \nu_{\mathrm{lin}} \textstyle\sum_j \omega_j v_j^2\Bigr).
-    \]
-    Adam with moment decay rates 0.9 and 0.999, its own gradient clip and its own learning rate
-    $\eta_{\mathrm{lin}}$ on the same cosine schedule.
-    % forecast_train.cu:323-358 (fc_lin_adam).
-  % 2026-10-15 (consolidation): parked -- FLAG (2) resolved to match ridge_init_study.py: the closed form uses only
-  % the window's rows with a full look-back of ell observations (the first ell - 1 rows are dropped). Old display:
-  % \bm v^{\mathrm{init}} = \argmin_{\bm v} \frac{1}{|\mathcal W^{\mathrm{est}}_t|} \sum_{t' \in \mathcal W^{\mathrm{est}}_t}
-  %   (\bm v^\top (\bm x_{t'}, 1) - \zeta_{t'})^2 + \frac{\lambda^{\mathrm{init}}}{2} \sum_j \omega_j v_j^2.
-  \item \textbf{Ridge initialization,} each window's closed form on the window's rows with a full look-back of
-    $\ell$ observations,
-    $\mathcal W^{\ell}_t = \{t' \in \mathcal W_t : t' - \ell + 1 \ge t - W\}$, the first $\ell - 1$ rows dropped
-    (during hyperparameter selection, the rows of $\mathcal W^{\mathrm{est}}_t$ with a full look-back):
-    \begin{align*}
-      \bm v^{\mathrm{init}} &= \argmin_{\bm v} \frac{1}{|\mathcal W^{\ell}_t|} \sum_{t' \in \mathcal W^{\ell}_t}
-        \bigl(\bm v^\top (\bm x_{t'}, 1) - \zeta_{t'}\bigr)^2 + \frac{\lambda^{\mathrm{init}}}{2} \sum_j \omega_j\, v_j^2, \\
-      \zeta_{t'} &= \frac{\tilde y_{t'} - \mu_y}{\sigma_y}, \qquad \lambda^{\mathrm{init}} = \frac{\nu_{\mathrm{lin}}}{\sigma_y^2}.
-    \end{align*}
-    % experiments/puffer_forecast/ridge_init_study.py:4-11, 59-75: solve(X'X/n + lam/2 diag(pf), X'z/n); the sum
-    % starts at the block's first row with a full sequence (row ell - 1).
-    % 2026-10-15 (notation pass): FLAG, math not changed -- per that pointer the sum and n run over the
-    % estimation-sample rows with a full look-back (the first ell - 1 rows dropped), not over all of W^est_t.
-    % 2026-10-15 (consolidation): resolved -- the display above sums over W^ell_t (ridge_init_study.py:4-11: tune
-    % jobs use the fit rows only; refits use the 2,000-row window minus its first L - 1 rows).
-  \item \textbf{Trained, early-stopped and selected on QLIKE.}
-  \end{itemize}
+% 2026-10-15 (user): parked -- closing-interval vs pooled is handled elsewhere; Models describes the tree method only
+% (2026-10-15, user: moved to Training schemes, sec:rh_methods_schemes; this parked copy is kept for the record.)
+% \item \textbf{Pooled intraday trees:} one fixed hyperparameter configuration per tree method, never re-selected,
+%   re-estimated every interval on a panel of 1,144 predictors (Table~\ref{tab:rh_dm_tuning}).
+%   % 2026-10-15 (consolidation): checked against specs/causal_tune_trees.py (docstring: the pooled LightGBM and XGBoost
+%   % are arms tree_expert_00 and tree_expert_16 of the frozen 20-arm bank) -- this bullet was right; the tuning table's
+%   % row (bank combination: best configuration or exponential weights) was corrected in make_rehaul_data_methods.py.
+% 2026-10-15 (user): parked -- NN content parked for now
+% \item \textbf{MinGRU network} (the minGRU of \citet{Feng2024}, in PufferLib 5.0 \citep{Suarez2024}, native CUDA): an
+%   encoder, one MinGRU layer with highway gates and a decoder, trained with Muon \citep{Jordan2024Muon}. On the
+%   predictors of the last
+%   $\ell$ observations, $\bm x_{t-\ell+1:t}$, with $\tau = t-\ell+1, \dots, t$ and
+%   $\bm W_l = [\bm W_l^{h};\, \bm W_l^{z};\, \bm W_l^{\psi}]$ split into three row blocks:
+%   \begin{align*}
+%     \bm\xi_\tau &= \bm W_e\, (\bm x_\tau, 1), & \tilde{\bm h}_\tau &= \Lambda^{+}(\bm W_l^{h}\, \bm\xi_\tau), \\
+%     \bm z_\tau &= \Lambda(\bm W_l^{z}\, \bm\xi_\tau), & \bm\psi_\tau &= \Lambda(\bm W_l^{\psi}\, \bm\xi_\tau), \\
+%     \bm h_\tau &= (1 - \bm z_\tau) \odot \bm h_{\tau-1} + \bm z_\tau \odot \tilde{\bm h}_\tau, & \bm h_{t-\ell} &= \bm 0, \\
+%     \bm h^{\ast}_\tau &= \bm\psi_\tau \odot \bm h_\tau + (1 - \bm\psi_\tau) \odot \bm\xi_\tau, &
+%     o_t &= \bm w_d^\top \bm h^{\ast}_t = f^{\mathrm{NN}}(\bm x_{t-\ell+1:t}).
+%   \end{align*}
+%   % 2026-10-15 (notation pass): parked -- old display, with the pre-activations (a, b, pi) named (a clashes with
+%   % the availability indicator a_{t,i}, pi with the constant), phi (reserved for SHAP), sigma (volatility), u
+%   % (exogenous series) and g (the variance-stabilizing map):
+%   % \xi_\tau = W_e (x_\tau, 1), [a_\tau; b_\tau; \pi_\tau] = W_l \xi_\tau, z_\tau = \sigma(b_\tau),
+%   % \tilde h_\tau = \phi(a_\tau), h_\tau = (1 - z_\tau) h_{\tau-1} + z_\tau \tilde h_\tau, h_{t-L} = 0,
+%   % u_\tau = \omega_\tau h_\tau + (1 - \omega_\tau) \xi_\tau, \omega_\tau = \sigma(\pi_\tau),
+%   % o_t = w_d^\top u_t = g(x_{t-L+1:t}).
+%   % experiments/puffer_forecast/reference.py:4-7, 103-125 and torch_train.py:64-92 (both gated against upstream
+%   % src/algo.cu): the gates read only the layer input xi_tau, never h_{tau-1}; the highway mixes h with the
+%   % encoded input xi_tau = W_e x_tau, not with raw x. The encoder has no bias: the constant input's column is it.
+%   \begin{itemize}
+%   \item $\Lambda(a) = 1/(1 + e^{-a})$: the logistic function; $\Lambda^{+}(a) = a + \tfrac12$ for $a \ge 0$ and
+%     $\Lambda(a)$ otherwise, elementwise; $\bm z_\tau$: update gate; $\bm\psi_\tau$: highway gate;
+%     $\bm h_\tau \in \mathbb R^H$: hidden state of width $H$; $\bm h^{\ast}_\tau$: highway output; $\odot$:
+%     elementwise product.
+%   \item \textbf{Softplus output,} so every forecast is positive ($\softplus(a) = \log(1 + e^{a})$):
+%     \[
+%       \hat y_t = \softplus(\varpi_0 + \varpi_1 o_t), \qquad \varpi_0 = \softplus^{-1}(\mu_y), \qquad
+%       \varpi_1 = \sigma_y / \Lambda(\varpi_0).
+%     \]
+%     $\mu_y, \sigma_y$: mean and standard deviation of $\tilde y$ over the training observations;
+%     $\hat y_t \approx \mu_y + \sigma_y o_t$ near $o_t = 0$.
+%     % forecast_train.cu:74-97 (LossParams, fc_link). Code names: c = varpi_0, s = varpi_1.
+%   \item \textbf{Linear shortcut:} a linear term beside the recurrent branch $f^{\mathrm{NN}}$,
+%     \[
+%       \hat y_t = \softplus\bigl(\varpi_0 + \varpi_1\,[\, \bm v^\top (\bm x_t, 1) + f^{\mathrm{NN}}(\bm x_{t-\ell+1:t}) \,]\bigr).
+%     \]
+%     Zero-initialized decoder: $f^{\mathrm{NN}} \equiv 0$ at the start.
+%     % forecast_train.cu:40-41, 280-305 (fc_lin_add: o' = o + v.x, x the last step's row with the constant),
+%     % job key dec_zero.
+%   % 2026-10-15 (notation pass): "Training loss" and "Cosine schedule" moved up, ahead of the optimizer bullets
+%   % that use them; "Ridge initialization" moved below the shortcut penalty, whose weight decay it uses.
+%   % 2026-10-15 (consolidation): parked -- FLAG (3) resolved to match fc_loss: the realization is floored at
+%   % max(tilde y^2, eps^2) and log r is clamped to [-80, 80]. Old display:
+%   % \mathcal L_{t'} = \QLIKE\bigl(\tilde y_{t'}^{\,2},\; \hat y_{t'}^{\,2} + \varepsilon^2\bigr).
+%   \item \textbf{Training loss,} per observation $t'$: squared error $\mathcal L_{t'} = (\hat y_{t'} - \tilde y_{t'})^2$,
+%     or QLIKE with a floor $\varepsilon$ on both the realization and the forecast and a clamp on the log ratio:
+%     \[
+%       \mathcal L_{t'} = r_{t'} - \log r_{t'} - 1, \qquad
+%       \log r_{t'} = \clip\Bigl(\log \frac{\max(\tilde y_{t'}^{\,2},\, \varepsilon^2)}{\hat y_{t'}^{\,2} + \varepsilon^2},\
+%         -80,\ 80\Bigr),
+%     \]
+%     that is, $\mathcal L_{t'} = \QLIKE\bigl(\max(\tilde y_{t'}^{\,2}, \varepsilon^2),\; \hat y_{t'}^{\,2} + \varepsilon^2\bigr)$
+%     whenever the clamp does not bind. $|\partial \mathcal L_{t'} / \partial \hat y_{t'}|$ capped at a training-window
+%     quantile; $\bar{\mathcal L}$: the minibatch mean of $\mathcal L_{t'}$.
+%     % forecast_train.cu:22-27, 99-130 (fc_loss). Old form: l_t = r_t - log r_t - 1, r_t = y_t^2 / (yhat_t^2 + eps^2).
+%     % 2026-10-15 (notation pass): parked -- the scorer was switched to the actual RV (data audit #10). Old note:
+%     % Realisation: the winsorised y_t^2, as the scorer.
+%     % Realization: the winsorized tilde-y^2, as in estimation; the out-of-sample scorer uses the actual RV.
+%     % 2026-10-15 (notation pass): FLAG, math not changed -- fc_loss floors the realization too, max(y^2, eps^2),
+%     % and clamps log r to [-80, 80]; the display omits both.
+%     % 2026-10-15 (consolidation): resolved -- the display above now has both (forecast_train.cu:117-123).
+%   \item \textbf{Cosine schedule} over $E_{\max} = 200$ epochs, epoch learning rate $\eta_e$ from $\eta_0$:
+%     \[
+%       \eta_e = \tfrac12\, \eta_0 \bigl(1 + \cos(\pi e / E_{\max})\bigr), \qquad e = 0, \dots, E_{\max} - 1 .
+%     \]
+%     % forecast_train.cu:1352-1373 (min_lr_ratio = 0 in every job, so eta_min = 0).
+%   \item \textbf{Muon with decoupled weight decay} $\nu$, every matrix
+%     $\bm W \in \mathbb R^{d_{\mathrm{out}} \times d_{\mathrm{in}}}$:
+%     \[
+%       \bm M \leftarrow 0.95\, \bm M + \bm G, \qquad
+%       \bm W \leftarrow \bm W (1 - \eta_e\, \nu) - \eta_e \sqrt{\max(1, d_{\mathrm{out}}/d_{\mathrm{in}})}\;
+%         \mathrm{NS}_5(\bm G + 0.95\, \bm M).
+%     \]
+%     % 2026-10-15 (consolidation): R x C -> d_out x d_in (R_t is the straddle return).
+%     $\bm G$: gradient of $\bar{\mathcal L}$, global norm clipped at 1.0; $\bm M$: momentum; $\mathrm{NS}_5$: five
+%     Newton--Schulz steps.
+%     % reference.py:192-221 (muon_step: Frobenius-normalised input to NS); forecast_train.cu:240-255
+%     % (fc_weight_decay, launched before muon_step; the encoder's constant-input column is not decayed).
+%   \item \textbf{Encoder input decay} $\nu_{\mathrm{enc}}$, column by column, in proportion to the linear models'
+%     penalty weights $\omega_j$:
+%     \[
+%       \bm w_{e,j} \leftarrow \bm w_{e,j}\, (1 - \eta_e\, \nu_{\mathrm{enc}}\, \omega_j), \qquad j = 1, \dots, p,
+%     \]
+%     with $\bm w_{e,j}$ the $j$th column of $\bm W_e$.
+%     % forecast_train.cu:257-277 (fc_enc_decay, after wd, before muon_step).
+%   \item \textbf{Shortcut penalty} $\nu_{\mathrm{lin}}$: L2 under Adam, not decoupled; $\bm\omega$ is $0$ on the
+%     constant, so the intercept is unpenalized:
+%     \[
+%       \nabla_{\bm v} \leftarrow \nabla_{\bm v} \bar{\mathcal L} + \nu_{\mathrm{lin}}\, \bm\omega \odot \bm v
+%       = \nabla_{\bm v} \Bigl(\bar{\mathcal L} + \tfrac12\, \nu_{\mathrm{lin}} \textstyle\sum_j \omega_j v_j^2\Bigr).
+%     \]
+%     Adam with moment decay rates 0.9 and 0.999, its own gradient clip and its own learning rate
+%     $\eta_{\mathrm{lin}}$ on the same cosine schedule.
+%     % forecast_train.cu:323-358 (fc_lin_adam).
+%   % 2026-10-15 (consolidation): parked -- FLAG (2) resolved to match ridge_init_study.py: the closed form uses only
+%   % the window's rows with a full look-back of ell observations (the first ell - 1 rows are dropped). Old display:
+%   % \bm v^{\mathrm{init}} = \argmin_{\bm v} \frac{1}{|\mathcal W^{\mathrm{est}}_t|} \sum_{t' \in \mathcal W^{\mathrm{est}}_t}
+%   %   (\bm v^\top (\bm x_{t'}, 1) - \zeta_{t'})^2 + \frac{\lambda^{\mathrm{init}}}{2} \sum_j \omega_j v_j^2.
+%   \item \textbf{Ridge initialization,} each window's closed form on the window's rows with a full look-back of
+%     $\ell$ observations,
+%     $\mathcal W^{\ell}_t = \{t' \in \mathcal W_t : t' - \ell + 1 \ge t - W\}$, the first $\ell - 1$ rows dropped
+%     (during hyperparameter selection, the rows of $\mathcal W^{\mathrm{est}}_t$ with a full look-back):
+%     \begin{align*}
+%       \bm v^{\mathrm{init}} &= \argmin_{\bm v} \frac{1}{|\mathcal W^{\ell}_t|} \sum_{t' \in \mathcal W^{\ell}_t}
+%         \bigl(\bm v^\top (\bm x_{t'}, 1) - \zeta_{t'}\bigr)^2 + \frac{\lambda^{\mathrm{init}}}{2} \sum_j \omega_j\, v_j^2, \\
+%       \zeta_{t'} &= \frac{\tilde y_{t'} - \mu_y}{\sigma_y}, \qquad \lambda^{\mathrm{init}} = \frac{\nu_{\mathrm{lin}}}{\sigma_y^2}.
+%     \end{align*}
+%     % experiments/puffer_forecast/ridge_init_study.py:4-11, 59-75: solve(X'X/n + lam/2 diag(pf), X'z/n); the sum
+%     % starts at the block's first row with a full sequence (row ell - 1).
+%     % 2026-10-15 (notation pass): FLAG, math not changed -- per that pointer the sum and n run over the
+%     % estimation-sample rows with a full look-back (the first ell - 1 rows dropped), not over all of W^est_t.
+%     % 2026-10-15 (consolidation): resolved -- the display above sums over W^ell_t (ridge_init_study.py:4-11: tune
+%     % jobs use the fit rows only; refits use the 2,000-row window minus its first L - 1 rows).
+%   \item \textbf{Trained, early-stopped and selected on QLIKE.}
+%   \end{itemize}
 \end{itemize}
 
-\subsection{Tuned hyperparameters}
-\label{sec:rh_methods_hyper}
+\subsection{Training schemes}
+\label{sec:rh_methods_schemes}
+% 2026-10-15 (user): conceptual only (which intervals enter estimation, one observation per day or per interval,
+% what a period is); the window lengths, re-estimation frequencies and the pooled panel's size are in
+% "Experimental setup" (06_results.tex, sec:rh_exp_setup). The first version of this subsection, with the numbers,
+% is parked below.
+% 2026-10-15 (user): parked -- last-30-min scheme moved to the end of the economics section (its definition is now the
+% first bullet of sec:rh_econ_last30, 07_economics.tex); the pooled intraday scheme is the paper's training scheme,
+% and one sentence points forward. Was:
+% \begin{itemize}
+% \item \textbf{Closing-interval scheme} (the closing-interval model, $\mathcal I = \{c\}$): estimated on the last
+%   30 minutes of each trading day only, the closing interval $i = c$ (15:30--16:00 ET); one observation per trading
+%   day, so a period is a trading day and $\mathcal W_t = \{t - W, \dots, t - 1\}$ holds $W$ trading days.
+% \item \textbf{Pooled intraday scheme} (the pooled intraday model, $\mathcal I = \{1, \dots, M\}$): estimated on
+%   all $M$ 30-minute intervals of each day, overnight included; one observation per interval, so a period is an
+%   intraday interval and the window $\mathcal W_{t,i} = \{(t, i-W), \dots, (t, i-1)\}$ holds the $W$ intervals
+%   before $(t,i)$.
+% \item Values of $W$ and $M$, re-estimation frequencies and the pooled predictor panel:
+%   Appendix~\ref{sec:rh_exp_schemes}.
+% \end{itemize}
 \begin{itemize}
-\item \textbf{Linear penalties,} chosen by hyperparameter selection on a pre-sample, one grid value per decade
-  (Table~\ref{tab:rh_dm_hyper}):
+\item \textbf{Pooled intraday scheme} (the pooled intraday model, $\mathcal I = \{1, \dots, M\}$), the paper's
+  training scheme: estimated on all $M$ 30-minute intervals of each day, overnight included; one observation per
+  interval, so a period is an intraday interval and the window $\mathcal W_{t,i} = \{(t, i-W), \dots, (t, i-1)\}$
+  holds the $W$ intervals before $(t,i)$.
+\item Only the forecasts of the closing interval $i = c$, made at the 15:30 ET forecast origin, are scored and traded.
+\item Values of $W$ and $M$, re-estimation frequencies and the pooled predictor panel:
+  Appendix~\ref{sec:rh_exp_schemes}.
+\item A refinement that trains on the last 30 minutes of each trading day only is the subject of
+  Section~\ref{sec:rh_econ_last30}.
+\end{itemize}
+% 2026-10-15 (user): parked -- moved to Experimental setup (06_results.tex), the numbers being implementation. Was:
+% % 2026-10-15 (user): new subsection. The two training schemes, formerly split across Problem formulation (the
+% % windows, the closing-interval observation) and Models (the pooled intraday trees); the generic definitions stay in
+% % Problem formulation. Pooled windows by model class from generated/rehaul_dm_tuning.tex (Panel B) and the code:
+% % linear 2,000 trading days x 48 = 96,000 intervals (experiments/pool_linear_pretune.py:65-66, TW_DAYS, PERIODS_PER_DAY;
+% % asserted by make_rehaul_data_methods.py), trees 24,000 (specs/causal_tune_trees.py:165, POOLED_WINDOW_ROWS).
+% \begin{itemize}
+% \item \textbf{Closing-interval scheme} (the closing-interval model, $\mathcal I = \{c\}$): estimated on the last
+%   30 minutes of each trading day only, the closing interval $i = c$ (15:30--16:00 ET).
+%   \begin{itemize}
+%   \item One observation per trading day; a period is a trading day.
+%   \item Rolling window $\mathcal W_t = \{t - W, \dots, t - 1\}$, $W = \cmPtFitWin$ trading days, for every model
+%     class.
+%   \end{itemize}
+% \item \textbf{Pooled intraday scheme} (the pooled intraday model, $\mathcal I = \{1, \dots, M\}$): estimated on all
+%   $M = \rhdmNIntervals$ 30-minute intervals of each day, overnight included; a period is an intraday interval.
+%   \begin{itemize}
+%   \item Rolling window $\mathcal W_{t,i} = \{(t, i-W), \dots, (t, i-1)\}$ of $W$ intervals: $W = 96{,}000$
+%     ($\cmPtFitWin$ trading days) for the linear models and $W = \rhdmPooledWindow$ for the trees.
+%     % FLAG: 96{,}000 typed, no macro yet (= \cmPtFitWin x \rhdmNIntervals; generated/rehaul_dm_tuning.tex prints it).
+%   \item Full predictor set: \rhdmNColsPooled{} predictors (Section~\ref{sec:rh_predictors}).
+%   \item Trees: one fixed hyperparameter configuration per tree method, never re-selected, re-estimated every interval
+%     (Table~\ref{tab:rh_dm_tuning}).
+%     % 2026-10-15 (user): un-parked from Models ("Pooled intraday trees"), where it was parked; 1,144 ->
+%     % \rhdmNColsPooled (moved to the bullet above). Checked against specs/causal_tune_trees.py (docstring: the pooled
+%     % LightGBM and XGBoost are arms tree_expert_00 and tree_expert_16 of the frozen 20-arm bank).
+%   \end{itemize}
+% \end{itemize}
+
+% 2026-10-15 (user): the subsection "Tuned hyperparameters" (label sec:rh_methods_hyper) moved to 06_results.tex, the
+% start of "Experiments and results"; its tables (generated/rehaul_dm_hyper.tex) moved to 06_results_floats.tex.
+
+% 2026-10-15 (user): the subsection "Tuning procedures" (label sec:rh_methods_tuning) moved to 06_results.tex,
+% "Experimental setup" (implementation: how the models were run); its table tab:rh_dm_tuning moved with it.
+
+\subsection{Forecast evaluation}
+\label{sec:rh_results_eval}
+% 2026-10-15 (user): moved here from 06_results.tex ("Experiments and results", where it followed Experimental
+% setup), label sec:rh_results_eval kept (no \ref to it in the paper or in generated/), with the specific numbers
+% removed: Methods states what is evaluated and how, in symbols. Values now live in Experiments: the out-of-sample
+% dates and T_oos (\rheSampleStart, \rheSampleEnd, \cmNdays = \rhrDays) in Experimental setup (sec:rh_exp_setup) and
+% Data (sec:rh_data); the lags q_NW (\fqsDMLag, \fqsHACLag) in Experimental setup and the table notes. The two result
+% statements (the benchmark forecast's average QLIKE \rhrOlsQ and its sign strategy's \SR = \fqsOlsSh) are parked in
+% 06_results.tex: they duplicate Model classes and Tables tab:rh_rank and tab:rh_econ_control. The bullets
+% "Diebold--Mariano test", "Long-run variance" and "Lag truncation" duplicated Statistical tests (next subsection)
+% and are merged into it. The original subsection is parked, verbatim, in 06_results.tex.
+\begin{itemize}
+\item \textbf{Forecast and realization.} The variance forecast is the back-transformed fit,
+  $\hat\sigma^2_t = \hat y_t^{\,2}\, s^2_{t,c}$ (Section~\ref{sec:rh_methods_setup}), with no bias correction. The
+  realization is the actual realized variance of the closing interval, $\RV_t \equiv \RV_{t,c}$; it is not
+  winsorized (the winsorized $\tilde y_{t,c}$ enters estimation only).
+  % 2026-10-15 (user): parked -- "Out of sample period doesn't make sense for forecasts because we're performing
+  % rolling backtests ..."; T_oos keeps its symbol, redefined as the forecast origins of the rolling exercise. Was:
+  % "The out-of-sample period is the set $\mathcal T_{\mathrm{oos}}$ of trading days on which the forecasts are
+  % scored, with $T_{\mathrm{oos}} = |\mathcal T_{\mathrm{oos}}|$ (its dates and $T_{\mathrm{oos}}$: Experimental
+  % setup, Section~\ref{sec:rh_exp_setup})."
+\item \textbf{Evaluation set.} Every forecast comes from a model re-estimated on its trailing window, so every
+  forecast is out of sample. $\mathcal T_{\mathrm{oos}}$ is the set of forecast origins, trading days, after the
+  initial estimation window and after the pre-sample on which hyperparameters are selected, on which every forecast
+  compared exists; early-close days are excluded, and $T_{\mathrm{oos}} = |\mathcal T_{\mathrm{oos}}|$ (its dates
+  and $T_{\mathrm{oos}}$: Experimental setup, Section~\ref{sec:rh_exp_setup}).
+  % 2026-10-15 (user): numbers removed -- "(15:30--16:00 ET)" (the closing interval, defined in Problem formulation)
+  % and "T_oos = \rhrDays trading days"; the clause "in the HAC formulas, t - j is the out-of-sample day j days
+  % before t" is covered by Statistical tests ("numbered t = 1, ..., |O| in time order").
+\item \textbf{Loss.} The daily QLIKE loss $L_t = \QLIKE(\RV_t, \hat\sigma^2_t)$ \citep{Patton2011}, defined in
+  % Section~\ref{sec:rh_methods_setup}, and its out-of-sample average:  % 2026-10-15: parked -- "over T_oos"
+  Section~\ref{sec:rh_methods_setup}, and its average over $\mathcal T_{\mathrm{oos}}$:
   \[
-    \lambda^{\mathrm{ridge}} \in \{10^{-2}, \dots, 10^{3}\}, \qquad
-    \lambda^{\mathrm{lasso}}, \lambda^{\mathrm{enet}} \in \{10^{-6}, \dots, 10^{-2}\}.
+  \overline{\QLIKE} = \bar L = \frac{1}{T_{\mathrm{oos}}}\sum_{t \in \mathcal T_{\mathrm{oos}}} L_t .
   \]
-  % specs/causal_tune_linear.py:164-172 (ESTIMATOR_GRIDS).
-  \begin{itemize}
-  \item full predictor set: ridge $10^{3}$, lasso and elastic net $10^{-2}$ (top edge);
-  \item HAR benchmark: the lower edge of each grid.
-  \end{itemize}
-\item \textbf{Trees,} fixed hyperparameters from a search on a 1998--2002 pre-sample (Table~\ref{tab:rh_dm_hyper};
-  search spaces of the re-tuned specifications in Table~\ref{tab:rh_dm_hyper_search}):
-  \begin{itemize}
-  \item LightGBM and XGBoost: the best trial of an Optuna search \citep{Akiba2019};
-  \item random forest: trial 255 of \cmTreeProvRfTrials{} ($B = \cmTreeProvRfTrees$ trees, maximum depth
-    \cmTreeProvRfDepth, share of predictors tried at each split \cmTreeProvRfFeatures, bootstrap sample share
-    \cmTreeProvRfSamples);
-  \item leaf minimums are rescaled to the \cmPtFitWin-observation window:
-    $n_{\min} \leftarrow n_{\min} \cdot \cmPtFitWin / 24{,}000$.
-  % 2026-10-15 (consolidation): typed 400, 485, 20, 0.90, 0.41, 2,000 -> \cmTreeProv..., \cmPtFitWin (same values).
-  \end{itemize}
-  % specs/causal_tune_trees.py:160-177 (_leaf_scale = TRAIN_WIN / POOLED_WINDOW_ROWS; LightGBM rounds, min 1).
-\item \textbf{Network grid} $\Theta$, with $\bm\vartheta \in \Theta$ a hyperparameter configuration
-  (Table~\ref{tab:rh_dm_hyper_search}, Panel B):
-  \begin{itemize}
-  \item closing-interval model: $(\ell, H, \eta_0) \in \{5,20\} \times \{16,64\} \times \{0.003,0.01,0.03\}$;
-  \item crossed with $\nu_{\mathrm{enc}}$, $\nu_{\mathrm{lin}}$ and $\eta_{\mathrm{lin}}$;
-  \item pooled intraday model: $(\ell, H, \eta_0) \in \{20,48\} \times \{64,256\} \times \{0.001,0.003\}$.
-  \end{itemize}
-\end{itemize}
-
-\subsection{Tuning procedures}
-\label{sec:rh_methods_tuning}
-% 2026-10-15 (consolidation): Table pointers to tab:rh_dm_tuning / tab:rh_dm_hyper_search added (data-methods
-% generator item 1).
-\begin{itemize}
-\item \textbf{Windows, re-estimation and re-selection frequencies and criteria} of every model class:
-  Table~\ref{tab:rh_dm_tuning}.
-\item \textbf{Linear:}
-  \begin{itemize}
-  \item hyperparameter selection on a pre-sample of \cmPtFolds{} folds of \cmPtFoldLen{} trading days
-    (\cmPtValFirst{} to \cmPtValLast), on validation MSE:
-    \[
-      \hat\lambda = \argmin_{\lambda} \frac14 \sum_{j=1}^{4} \mathrm{MSE}^{\mathrm{val}}_j(\lambda),
-    \]
-    with $\mathrm{MSE}^{\mathrm{val}}_j(\lambda)$ the mean squared error of $\tilde y$ on the validation sample of
-    fold $j$;
-  \item a light re-tune at each re-tuning date (every \cmPtBlock{} trading days): the grid neighbors
-    $\mathcal C \subseteq \{\lambda^{-}, \lambda^{+}\}$ (one decade below and above, where on the grid) challenge the
-    incumbent $\lambda$;
-  % 2026-10-15 (notation pass): parked -- "Newey--West t" replaced by the statistic the code computes, the
-  % HLN-corrected Diebold--Mariano statistic (see the code pointer below). Old display:
-  % t\bigl(\{e_i^2(\alpha') - e_i^2(\alpha_k)\}_i\bigr) < -z_{0.05/m}, \qquad m = |\mathcal C|, \qquad z_a = \Phi^{-1}(1 - a);
-  \item the best challenger $\lambda'$ (lowest validation MSE) replaces it only if the Diebold--Mariano
-    statistic $\DM$ of Section~\ref{sec:rh_methods_tests}, on the paired squared errors, is significantly negative:
-    \[
-      \DM\bigl(\{e_{t'}^2(\lambda') - e_{t'}^2(\lambda)\}_{t'}\bigr) < -z_{0.05/|\mathcal C|}, \qquad
-      z_{0.05/|\mathcal C|} = \Phi^{-1}\bigl(1 - 0.05/|\mathcal C|\bigr);
-    \]
-  \item $e_{t'}(\lambda) = \tilde y_{t'} - \hat y_{t'}(\lambda)$, $t'$ over two 125-day validation folds; $\Phi$: the
-    standard normal distribution function.
-  \end{itemize}
-  % experiments/close_linear_pretune.py:572-597 (light_retune): t is dm_test's HLN-corrected statistic on the
-  % paired squared errors; z = inv_cdf(1 - 0.05 / len(cands)).
-  % Code vs paper: sections/methods_close_option.tex:369-370 states -z_{0.05/2}; the code divides by the number of
-  % challengers (|C| = 1 at a grid edge) (outline flag 7).
-\item \textbf{Trees,} in increasing order of tuning effort:
-  \begin{itemize}
-  \item fixed hyperparameters, re-estimated every 10 trading days or daily;
-  \item random search every 250 trading days;
-  \item Optuna \citep{Akiba2019}: \rhappOptTrials{} trials, re-tuned every 1, 5, 25 or 250 trading days, best of the
-    first 10, 25 or \rhappOptTrials{} trials (search spaces in Table~\ref{tab:rh_dm_hyper_search}, Panel A).
-  \end{itemize}
-\item \textbf{Network:}
-  \begin{itemize}
-  \item seed average over $S$ seeds, $\hat y^{(j)}_t$ the forecast of seed $j$:
-    \[
-      \hat y_t = \frac1S \sum_{j=1}^{S} \hat y_t^{(j)};
-    \]
-  \item the hyperparameters are re-selected at the start of each of \rhappNblocks{} blocks of 250 forecast origins,
-    on the validation sample:
-    \[
-      \hat{\bm\vartheta}_t = \argmin_{\bm\vartheta \in \Theta} \frac{1}{|\mathcal W^{\mathrm{val}}_t|}
-        \sum_{t' \in \mathcal W^{\mathrm{val}}_t} \mathcal L^{\mathrm{val}}\bigl(\tilde y_{t'}, \hat y_{t'}(\bm\vartheta)\bigr),
-      \qquad \mathcal L^{\mathrm{val}}(y, \hat y) \in \bigl\{(y - \hat y)^2,\ \QLIKE(y^2, \hat y^{\,2})\bigr\};
-    \]
-  \item each seed's early-stopping epoch $e^\ast_j = \argmin_e \bar{\mathcal L}^{\mathrm{val}}_{j,e}$ is kept and the
-    network is re-estimated from scratch at every origin; $\bar{\mathcal L}^{\mathrm{val}}_{j,e}$: seed $j$'s mean
-    training loss on $\mathcal W^{\mathrm{val}}_t$ after epoch $e$;
-  \item the forecast is the mean of $S = 5$ seeds (\rhrNNPooledSeeds{} in the pooled intraday model).
-  \end{itemize}
-  % experiments/puffer_forecast/phase2_select.py:94-135 (choose: seed mean first, then the loss; QLIKE plain on
-  % r = y^2 / f^2, winsorised y); forecast_train.cu:383-430 (early stopping, patience 20).
-\item \textbf{Every selection uses only data available at the forecast origin;} the out-of-sample period is never
-  used for a choice.
+% 2026-10-15 (user): parked -- last-30-min scheme moved to the end of the economics section; the benchmark forecast is
+% unchanged, described without the scheme's name. Was: "\textbf{Benchmark forecast.} The closing-interval OLS
+% regression on the HAR benchmark, the HAR components and the calendar dummies \citep{Corsi2009}
+% (Section~\ref{sec:rh_methods_models})."
+\item \textbf{Benchmark forecast.} The daily HAR regression \citep{Corsi2009}: OLS on the HAR benchmark, the HAR
+  components and the calendar dummies (Section~\ref{sec:rh_methods_models}), estimated on the closing interval
+  only, one observation per trading day, and re-estimated every trading day.
+  % 2026-10-15 (user): its average QLIKE (\rhrOlsQ) and its sign strategy's \SR (\fqsOlsSh) are results; parked in
+  % 06_results.tex (they are in Model classes, Table tab:rh_rank and Table tab:rh_econ_control). The sign strategy is
+  % defined in Economic value (sec:rh_econ_strategy).
+\item \textbf{Relative loss.} For forecast $A$ against forecast $B$ (the benchmark forecast unless stated otherwise),
+  the loss differential is $d_t = L^{A}_t - L^{B}_t$, and the percentage change in average QLIKE is
+  \[
+  \Delta\% = 100\,\frac{\bar d}{\bar L^{B}}, \qquad \bar d = \frac{1}{T_{\mathrm{oos}}}\sum_{t \in \mathcal T_{\mathrm{oos}}} d_t .
+  \]
+  Its significance is tested with the Diebold--Mariano statistic of Section~\ref{sec:rh_methods_tests}.
+% Code: master_table_close.py:233 sets REFERENCE = "blk2" for qlike_pct_vs_ref and dm_vs_ref; only the GUI's DM
+% (master_table_gui/rows.py:1585-1605) is against the per-bar OLS. The % and DM vs the OLS need porting.
+\item \textbf{Squared-error and absolute-error loss,} in variance units:
+  \[
+  \mathrm{MSE} = \frac{1}{T_{\mathrm{oos}}}\sum_{t \in \mathcal T_{\mathrm{oos}}}\bigl(\RV_t - \hat\sigma^2_t\bigr)^2,
+  \qquad
+  \mathrm{MAE} = \frac{1}{T_{\mathrm{oos}}}\sum_{t \in \mathcal T_{\mathrm{oos}}}\bigl|\RV_t - \hat\sigma^2_t\bigr|.
+  \]
+% 2026-10-15: parked -- look-ahead reference (the out-of-sample mean); replaced by the historical mean of
+% Campbell and Thompson (2008), as computed for tab:rh_oos (make_rehaul_oos_table.py).
+% \item \textbf{Out-of-sample $R^2$,} with the out-of-sample mean of the realized variance as the reference forecast:
+%   R^2_{\mathrm{OOS}} = 1 - \sum (\RV_t - \hat\sigma^2_t)^2 / \sum (\RV_t - \overline{\RV})^2,
+%   \overline{\RV} = \frac{1}{T_{\mathrm{oos}}}\sum_{t \in \mathcal T_{\mathrm{oos}}} \RV_t .
+\item \textbf{Out-of-sample $R^2$} \citep{CampbellThompson2008}, with the historical mean of the realized variance,
+  known at the forecast origin, as the reference forecast:
+  \[
+  R^2_{\mathrm{OOS}} = 1 - \frac{\sum_{t \in \mathcal T_{\mathrm{oos}}} \bigl(\RV_t - \hat\sigma^2_t\bigr)^2}{\sum_{t \in \mathcal T_{\mathrm{oos}}} \bigl(\RV_t - \overline{\RV}_{t-1}\bigr)^2},
+  \qquad
+  \overline{\RV}_{t-1} = \frac{1}{|\{t' < t\}|}\sum_{t' < t} \RV_{t'} ,
+  \]
+  the expanding mean over every earlier trading day (start in Section~\ref{sec:rh_exp_setup}).
+  % 2026-10-15 (user): "as the benchmark forecast" -> "as the reference forecast" ("the benchmark forecast" is the
+  % OLS on the HAR benchmark, guide 6b).
+% Code: master_table_gui/rows.py:1549-1563. ybar is the mean over all N scored days: look-ahead. A causal
+% benchmark would use the expanding mean of RV_{t'}, t' < t.
+\item \textbf{Calibration:} the ratio of average realized to average forecast variance, $\overline{\RV}/\overline{\hat\sigma^2}$,
+  and the frequency of under-prediction, $\frac{1}{T_{\mathrm{oos}}}\sum_{t \in \mathcal T_{\mathrm{oos}}} \mathbf{1}\{\RV_t > \hat\sigma^2_t\}$.
 \end{itemize}
 
 \subsection{Statistical tests}
 \label{sec:rh_methods_tests}
 \begin{itemize}
 \item \textbf{Diebold--Mariano test} \citep{DieboldMariano1995} on the daily QLIKE loss differential of two
-  forecasts $A$ and $B$, with the Harvey--Leybourne--Newbold small-sample correction
+  forecasts $A$ and $B$, with the Harvey--Leybourne--Newbold small-sample correction for one-step-ahead forecasts
   \citep{HarveyLeybourneNewbold1997}:
   \[
     d_t = L_t^{A} - L_t^{B}, \qquad
-    \DM = \sqrt{\frac{|\mathcal O| + 1 - 2h + h(h-1)/|\mathcal O|}{|\mathcal O|}}\;
-      \frac{\bar d}{\sqrt{\hat\Omega / |\mathcal O|}}, \qquad h = 1 .
+    \DM = \sqrt{\frac{|\mathcal O| - 1}{|\mathcal O|}}\;
+      \frac{\bar d}{\sqrt{\hat\Omega / |\mathcal O|}} .
   \]
+  % 2026-10-15 (finish): parked -- the horizon symbol h (also the boosting Hessian h_{t'}) dropped; every forecast
+  % is one step ahead, so h = 1 is substituted: (|O| + 1 - 2h + h(h-1)/|O|)/|O| = (|O| - 1)/|O|. Was:
+  % \DM = \sqrt{\frac{|\mathcal O| + 1 - 2h + h(h-1)/|\mathcal O|}{|\mathcal O|}}\;
+  %   \frac{\bar d}{\sqrt{\hat\Omega / |\mathcal O|}}, \qquad h = 1 .
   % 2026-10-15 (notation pass): parked -- the uncorrected and corrected statistics merged into one symbol, \DM
   % (the HLN-corrected one, as the code reports); n scored days -> |O|. Old display:
   % \mathrm{DM} = \frac{\bar d}{\sqrt{\hat\Omega / n}}, \qquad
@@ -491,11 +604,23 @@
   \item $A$, $B$: forecasts $f_{m,\mathcal X,\mathcal I}$, indexed by the model $m$, the predictor set
     $\mathcal X \in \{\mathrm{HAR}, \mathrm{Full}\}$ and the intervals used in estimation
     $\mathcal I \in \{\{c\}, \{1, \dots, M\}\}$.
-  \item $\mathcal O$: the out-of-sample days of the exercise, numbered $t = 1, \dots, |\mathcal O|$ in time order;
-    $\mathcal O = \mathcal T_{\mathrm{oos}}$, $|\mathcal T_{\mathrm{oos}}| = T_{\mathrm{oos}}$, in the headline
-    comparison.
-  \item $\bar d$: mean loss differential over $\mathcal O$; $h$: forecast horizon; two-sided $p$-value from the
-    standard normal.
+  % 2026-10-15 (user): parked -- "out-of-sample days"; the evaluation set and the option-data subsample. Was:
+  % "\item $\mathcal O$: the out-of-sample days of the exercise, numbered $t = 1, \dots, |\mathcal O|$ in time order;
+  %   $\mathcal O = \mathcal T_{\mathrm{oos}}$, $|\mathcal T_{\mathrm{oos}}| = T_{\mathrm{oos}}$, in the headline
+  %   comparison."
+  \item $\mathcal O$: the days on which the two series are compared, numbered $t = 1, \dots, |\mathcal O|$ in time
+    order: $\mathcal O = \mathcal T_{\mathrm{oos}}$, $|\mathcal T_{\mathrm{oos}}| = T_{\mathrm{oos}}$, for forecast
+    accuracy and the option-data subsample $\mathcal T_{\mathrm{opt}} \subset \mathcal T_{\mathrm{oos}}$ for the
+    straddle returns (Experimental setup, Section~\ref{sec:rh_exp_setup}).
+  \item $\bar d$: mean loss differential over $\mathcal O$; two-sided $p$-value from the standard normal,
+    $p = 2\bigl\{1 - \Phi(|\DM|)\bigr\}$, with $\Phi$ the standard normal distribution function.
+  \item $\DM < 0$ favors forecast $A$. ``Significant'' means significant at the 5\% level ($p < 0.05$).
+  % 2026-10-15 (user): merged from Forecast evaluation (moved from 06_results.tex): the p-value formula, the sign
+  % convention and the meaning of "significant". Was: "\item $\bar d$: mean loss differential over $\mathcal O$;
+  % two-sided $p$-value from the standard normal."
+  % 2026-10-15 (finish): parked -- h dropped (one-step-ahead forecasts). Was:
+  % \item $\bar d$: mean loss differential over $\mathcal O$; $h$: forecast horizon; two-sided $p$-value from the
+  %   standard normal.
   \end{itemize}
 % 2026-10-15 (consolidation): parked -- lag truncation q -> q_NW (q_t is the position), autocovariance lag k -> j (k
 % is the HAR horizon), typed q = 6 / q = 14 -> \fqsDMLag / \fqsHACLag, plain-text citations -> \citep. The 1/|O|
@@ -516,22 +641,47 @@
     \hat\gamma_j = \frac{1}{|\mathcal O|} \sum_{t=j+1}^{|\mathcal O|} (d_t - \bar d)(d_{t-j} - \bar d).
   \]
   \begin{itemize}
-  \item DM: $q_{\mathrm{NW}} = \max\bigl(h - 1, \lfloor 4 (|\mathcal O|/100)^{2/9} \rfloor\bigr)$, which gives
-    $q_{\mathrm{NW}} = \fqsDMLag$ on $\mathcal T_{\mathrm{oos}}$.
+  \item DM: $q_{\mathrm{NW}} = \lfloor 4 (|\mathcal O|/100)^{2/9} \rfloor$ (its value on
+    $\mathcal T_{\mathrm{oos}}$: Experimental setup, Section~\ref{sec:rh_exp_setup}).
+  % 2026-10-15 (user): parked -- moved to Methods with Forecast evaluation, numbers removed (the lag value now lives in
+  % Experimental setup, 06_results.tex). Was: "\item DM: $q_{\mathrm{NW}} = \lfloor 4 (|\mathcal O|/100)^{2/9}
+  % \rfloor$, which gives $q_{\mathrm{NW}} = \fqsDMLag$ on $\mathcal T_{\mathrm{oos}}$."
+  % 2026-10-15 (finish): parked -- h = 1 substituted (max(h - 1, .) = max(0, .) is the floor term). Was:
+  % \item DM: $q_{\mathrm{NW}} = \max\bigl(h - 1, \lfloor 4 (|\mathcal O|/100)^{2/9} \rfloor\bigr)$, which gives
+  %   $q_{\mathrm{NW}} = \fqsDMLag$ on $\mathcal T_{\mathrm{oos}}$.
   \end{itemize}
   % src/evaluation/diebold_mariano.py:33-93.
   % 2026-10-15 (notation pass): FLAG, math not changed -- dm_test computes gamma_k as np.mean(dc[k:] * dc[:-k]),
   % i.e. divides by |O| - k, not |O|; newey_west_t (the return test below) divides by |O|, as displayed.
   % 2026-10-15 (consolidation): FLAG (4) still open (user decision); the lag index is now j, the divisor unchanged.
   % 06_results.tex displays the code's |O| - j divisor for the DM statistic; the two agree once the user decides.
+  % 2026-10-15 (user): the 06_results.tex display (Forecast evaluation, "Long-run variance", T_oos - j divisor and
+  % explicit Bartlett weights w_j) moved to Methods and was merged into this bullet; it is parked in 06_results.tex.
+  % This display (1/|O|) is now the paper's only one; FLAG (4) still decides the divisor.
 % 2026-10-15 (consolidation): FLAG (7) resolved -- newey_west_t is also applied to a single strategy's mean return
 % (Economic value, Table rh_econ_control), so the bullet is worded for any daily return series.
-\item \textbf{HAC $t$-statistic of a mean daily return} (Newey--West, no HLN correction):
-  $t = \bar r / \sqrt{\hat\Omega_r / |\mathcal O|}$, with $\hat\Omega_r$ the Newey--West variance above computed on a
-  daily return series $r_t$ in place of $d_t$: a single strategy's return (a test of its mean return) or the difference
-  between two strategies' returns (a test of the mean return differential);
-  $q_{\mathrm{NW}} = \lfloor 1.5\, |\mathcal O|^{1/3} \rfloor$, which gives $q_{\mathrm{NW}} = \fqsHACLag$ on
-  $\mathcal T_{\mathrm{oos}}$.
+\item \textbf{HAC $t$-statistic of a mean daily return} (Newey--West, no HLN correction), for a daily return
+  series $r_t$, either a single strategy's return (a test of its mean return) or the difference between two
+  strategies' returns (a test of the mean return differential):
+  \[
+    t = \frac{\bar r}{\sqrt{\hat\Omega_r / |\mathcal O|}},
+  \]
+  with $\hat\Omega_r$ the Newey--West variance above computed on $r_t$ in place of $d_t$ and
+  % $q_{\mathrm{NW}} = \lfloor 1.5\, |\mathcal O|^{1/3} \rfloor$ (its value on $\mathcal T_{\mathrm{oos}}$:  % 2026-10-15:
+  % Experimental setup, Section~\ref{sec:rh_exp_setup}).  % parked -- the returns are on the option-data subsample
+  $q_{\mathrm{NW}} = \lfloor 1.5\, |\mathcal O|^{1/3} \rfloor$ (its value on $\mathcal T_{\mathrm{opt}}$:
+  Experimental setup, Section~\ref{sec:rh_exp_setup}).
+  % 2026-10-15 (user): parked -- lag value removed from Methods, as for the DM lag (Forecast evaluation moved here,
+  % numbers removed); it now lives in Experimental setup. Was: "... $q_{\mathrm{NW}} = \lfloor 1.5\, |\mathcal O|^{1/3}
+  % \rfloor$, which gives $q_{\mathrm{NW}} = \fqsHACLag$ on $\mathcal T_{\mathrm{oos}}$."
+  % 2026-10-15 (finish): parked -- same content; the formula moved to a display (the inline version left an underfull
+  % line). Was:
+  % \item \textbf{HAC $t$-statistic of a mean daily return} (Newey--West, no HLN correction):
+  %   $t = \bar r / \sqrt{\hat\Omega_r / |\mathcal O|}$, with $\hat\Omega_r$ the Newey--West variance above computed on a
+  %   daily return series $r_t$ in place of $d_t$: a single strategy's return (a test of its mean return) or the difference
+  %   between two strategies' returns (a test of the mean return differential);
+  %   $q_{\mathrm{NW}} = \lfloor 1.5\, |\mathcal O|^{1/3} \rfloor$, which gives $q_{\mathrm{NW}} = \fqsHACLag$ on
+  %   $\mathcal T_{\mathrm{oos}}$.
   % notebooks/atm_straddle_lib.py:1240-1261 (newey_west_t).
 \item \textbf{Model confidence set} \citep{HansenLundeNason2011}, \textbf{superior predictive ability}
   \citep{Hansen2005} and \textbf{StepM} \citep{RomanoWolf2005} for the comparison of predictor sets.

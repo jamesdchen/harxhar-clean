@@ -1441,6 +1441,25 @@ def _sig(lo: float, hi: float) -> bool:
     return bool(lo > 0 or hi < 0)
 
 
+def _disp(name: str) -> str:
+    """A design name as presented: the leading adj_ dropped (adj_vix_ma_* -> vix_ma_*).
+
+    Every exogenous input is divided by its time-of-day baseline and har_ma_* are trailing
+    means of the adjusted target, so no presented name carries a prefix.  Display only:
+    the CSVs, keys and code keep the design's own names."""
+    return name[4:] if name.startswith("adj_") else name
+
+
+def _ticked(cols: str) -> str:
+    """Space-separated design columns as presented: `a`, `b`, ..."""
+    return ", ".join(f"`{_disp(x)}`" for x in cols.split())
+
+
+def _pick_key(cols: str) -> str:
+    """The order alternative picks are listed in: by the design's own names, ticked."""
+    return "`" + cols.replace(" ", "`, `") + "`"
+
+
 def _members(members: str) -> str:
     """A group's design columns, compressed: stems with a common lag set are listed once."""
     import re
@@ -1449,7 +1468,7 @@ def _members(members: str) -> str:
     for m in members.split():
         mm = re.fullmatch(r"(.+)_ma_(\d+)", m)
         if mm is None:
-            return ", ".join(f"`{x}`" for x in members.split())
+            return _ticked(members)
         by.setdefault(mm.group(1), []).append(mm.group(2))
     lagsets = {tuple(v) for v in by.values()}
     if len(lagsets) == 1:
@@ -1458,11 +1477,11 @@ def _members(members: str) -> str:
         if stems == ["har"]:  # the target's own ladder: har_ma_<lag>
             return ", ".join(f"`har_ma_{x}`" for x in lg)
         return (
-            ", ".join(f"`{x}`" for x in stems)
+            ", ".join(f"`{_disp(x)}`" for x in stems)
             + " at "
             + ", ".join(f"`_ma_{x}`" for x in lg)
         )
-    return ", ".join(f"`{x}`" for x in members.split())
+    return _ticked(members)
 
 
 def write_summary() -> None:  # noqa: C901 - one linear report
@@ -1650,10 +1669,12 @@ def write_summary() -> None:  # noqa: C901 - one linear report
     a("")
     a(
         "Series names are the design's column stems: `har_ma_*` = the target's own HAR ladder (realized variance, means of "
-        "the last 1, 5, 25, 125, 625, 3125 bars), `adj_sumabsret_ma_*` = absolute returns, `adj_sumret4_ma_*` = 4th-power "
-        "returns, `adj_sumpret2_ma_*` = upside squared returns, `adj_sumbipow_ma_*` = bipower variation, "
-        "`adj_sumvolume_ma_*` = ES volume, `adj_vix_ma_*` / `adj_vvix_ma_*` / `adj_vix3m_ma_*` = VIX, VVIX, VIX3M, "
-        "`*_ewstock` / `*_vwstock` = the same statistics on equal- / value-weighted constituent stocks."
+        "the last 1, 5, 25, 125, 625, 3125 bars), `sumabsret_ma_*` = absolute returns, `sumret4_ma_*` = 4th-power "
+        "returns, `sumpret2_ma_*` = upside squared returns, `sumbipow_ma_*` = bipower variation, "
+        "`sumvolume_ma_*` = ES volume, `vix_ma_*` / `vvix_ma_*` / `vix3m_ma_*` = VIX, VVIX, VIX3M, "
+        "`*_ewstock` / `*_vwstock` = the same statistics on equal- / value-weighted constituent stocks. Every "
+        "exogenous input is divided by its time-of-day baseline, and `har_ma_*` are trailing means of the adjusted "
+        "target, so no name carries a prefix."
     )
     a("")
     # ---- brief
@@ -1823,10 +1844,10 @@ def write_summary() -> None:  # noqa: C901 - one linear report
         f"{', '.join(starts)}) the k columns with the largest |correlation with the target| over the {TW} sessions before "
         "the block's first forecast are kept for that block (constant or duplicated columns are never picked); the same "
         "columns go to all three models, which then refit exactly as their specs do. The picks (`screen_picks.csv`): "
-        f"k = 1 is {', '.join(f'`{x}`' for x in k1)} in every block; k = 2 is "
-        f"{' / '.join(sorted({'`' + x.replace(' ', '`, `') + '`' for x in pk[(AF, 2)]}))}; k = 4 is "
-        f"{' or '.join(sorted({'`' + x.replace(' ', '`, `') + '`' for x in pk[(AF, 4)]}))}; k = 8 in the last block is "
-        f"`{pk[(AF, 8)][-1].replace(' ', '`, `')}` (`all_features`). A second rule (each linear model's own top-k "
+        f"k = 1 is {', '.join(f'`{_disp(x)}`' for x in k1)} in every block; k = 2 is "
+        f"{' / '.join(_ticked(x) for x in sorted(set(pk[(AF, 2)]), key=_pick_key))}; k = 4 is "
+        f"{' or '.join(_ticked(x) for x in sorted(set(pk[(AF, 4)]), key=_pick_key))}; k = 8 in the last block is "
+        f"{_ticked(pk[(AF, 8)][-1])} (`all_features`). A second rule (each linear model's own top-k "
         "standardized weights, β × window sd, at the block start) is in `sweep.csv` (rule `own`)."
     )
     a("")

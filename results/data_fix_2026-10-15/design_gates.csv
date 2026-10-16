@@ -1,0 +1,9 @@
+gate,ok,value
+"variant old (flags off) == the 2026-10-06 local rebuild, bit for bit",True,
+old local vs design of record: max abs diff (host floating point),True,5.402966962719802e-11
+"bar1600 baseline design: fix == 2026-10-06 local, bit for bit",True,
+"last30 baseline design: fix == 2026-10-06 local, bit for bit",True,
+fix bar1600: columns changed vs old local,True,34.0
+fix last30: columns changed vs old local,True,35.0
+fix_fomc bar1600: columns changed vs old local,True,46.0
+fix_fomc last30: columns changed vs old local,True,47.0

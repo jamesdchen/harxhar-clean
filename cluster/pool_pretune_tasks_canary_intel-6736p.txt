@@ -1,0 +1,8 @@
+gate walk all_features ridge 1.0 causal 295250 -1 96000
+gate walk all_features reclasticnet 1.0 causal 295250 -1 96000
+gate walk baseline ridge 1.0 causal 295250 -1 96000
+gate walk baseline reclasticnet 1.0 causal 295250 -1 96000
+gate walk lean_vol_vix ridge 1.0 causal 295250 -1 96000
+gate walk lean_vol_vix reclasticnet 1.0 causal 295250 -1 96000
+smoke walk lean_vol_vix reclasticnet 0.01 causal 295250 -1 96000
+pre pretune lean_vol_vix reclasticnet 0.01 causal 246112 246113 145200

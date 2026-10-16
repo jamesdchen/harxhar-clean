@@ -154,9 +154,12 @@ def test_with_panel_rv_refuses_a_stamp_the_panel_lacks(tmp_path):
 def test_recalibrate_calls_the_decks_loader_and_picks_the_session(
     tmp_path, monkeypatch
 ):
+    # 2026-10-06: recalibration removed from the live card, user decision.  The card asks the
+    # deck's loader for the plain back-transform (recal=False): rv_hat = yhat^2 * baseline,
+    # m = yhat, s2 = 0.  The fake loader returns that shape; the parked map is recal=True.
     calls: list[dict] = []
 
-    def fake_loader(tag, path, need_dates, cache, method="mean"):
+    def fake_loader(tag, path, need_dates, cache, method="mean", recal=True):
         calls.append(
             {
                 "tag": tag,
@@ -164,17 +167,20 @@ def test_recalibrate_calls_the_decks_loader_and_picks_the_session(
                 "need": list(need_dates),
                 "cache": Path(cache),
                 "method": method,
+                "recal": recal,
             }
         )
         idx = pd.DatetimeIndex(DAYS)
+        yhat = [1.0, 1.1, 1.2]
+        base = [2e-6, 2e-6, 2e-6]
         return pd.DataFrame(
             {
-                "yhat": [1.0, 1.1, 1.2],
-                "baseline": [2e-6, 2e-6, 2e-6],
+                "yhat": yhat,
+                "baseline": base,
                 "rv_raw": [1e-6, 3e-6, 2e-6],
-                "rv_hat": [3e-6, 4e-6, 5e-6],
-                "m": [1.0, 1.05, 1.1],
-                "s2": [0.1, 0.1, 0.1],
+                "rv_hat": [y * y * b for y, b in zip(yhat, base)],
+                "m": yhat,
+                "s2": [0.0, 0.0, 0.0],
                 "yhat_vol": [0.0, 0.0, 0.0],
                 "m_vol": [0.0, 0.0, 0.0],
             },
@@ -196,14 +202,15 @@ def test_recalibrate_calls_the_decks_loader_and_picks_the_session(
     )
     out = forecast.rv_hat_for(DAYS[1], table, _ROOT, tmp_path)
     assert out == {
-        "rv_hat": 4e-6,
+        "rv_hat": 1.1 * 1.1 * 2e-6,
         "yhat": 1.1,
         "baseline": 2e-6,
-        "mz_m": 1.05,
-        "mz_s2": 0.1,
+        "mz_m": 1.1,
+        "mz_s2": 0.0,
     }
     c = calls[0]
     assert c["method"] == "mean" and c["need"] == [DAYS[1]]
+    assert c["recal"] is False  # the card asks for the plain back-transform
     assert c["path"].exists() and c["cache"].is_dir()
     saved = pd.read_parquet(c["path"])
     assert str(saved["t"].dtype).startswith("datetime64[") and "UTC" in str(

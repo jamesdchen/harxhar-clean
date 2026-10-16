@@ -10,11 +10,17 @@
 % the minute index k of r_{t,i,k} is a bound summation index only (k is the HAR horizon); positive semivariance
 % named RS^+_{t,i} (addenda A.2); typed sample counts -> macros where one exists (\cmPtFitWin, \rhfiNOos, \cmNdays,
 % \cmPtPreStart, \cmPtValFirst/Last, \rheSampleStart/End).
+% 2026-10-15 (finish, user): "intraday periodicity factor" -> "diurnal adjustment", "periodicity-adjusted" ->
+% "diurnally adjusted" (term rename only; the symbol s^2_{t,i} stays).
+% 2026-10-15 (finish, phase 2): typed 1,291, 300,317, 303,442, 3,125, 24,000, 3,469, 872, 6 -> \rhdm... macros; the
+% pooled window stated per model class (trees \rhdmPooledWindow, linear 96,000, typed with a FLAG); the held-out count
+% corrected (\rhdmHeldOutExpirations later expirations, \rhdmHeldOut full trading days).
 
 \section{Data}
 \label{sec:rh_data}
 \begin{itemize}
-\item \textbf{Sources} (Table~\ref{tab:rh_dm_sources}).
+% 2026-10-15 (user): parked -- "park all tables that I haven't mentioned in this chat". Was: \item \textbf{Sources} (Table~\ref{tab:rh_dm_sources}).
+\item \textbf{Sources}.
   \begin{itemize}
   \item \textbf{E-mini S\&P 500 futures (ES),} nearly 24 hours a day, 1998--2024, sampled on a 30-minute grid.
     Trading day $t = 1, \dots, T$; intraday interval $i = 1, \dots, M$, the half-hour intervals of the day; the
@@ -58,7 +64,7 @@
   \item Cboe option-volume series (the volatility-demand group), 2011 to August 2023.
   \item \textbf{FOMC} announcement times, 1993 to November 2023.
   \item \textbf{SPXW option quotes on expiration days} (S\&P 500 Weeklys), every 30 minutes: bid, ask, midquote,
-    underlying level, implied volatility and delta. 1,291 expirations, 2020--2025.
+    underlying level, implied volatility and delta. \rhdmSpxwExpirations{} expirations, 2020--2025.
   \item \todo{name the vendor of each file}.
   \end{itemize}
 \item \textbf{Intraday grid and cleaning.}
@@ -86,7 +92,7 @@
     % CODE: FFILL_LIMIT = 26 is defined (executor.py:75) but never passed: ffill_limit=None (executor.py:476,
     % 540, 736-745). The old text ("neutral fill where there is no history") was wrong: the median replaces
     % every unobserved row (executor.py:602-605; outline flag 6).
-  \item Intraday periodicity factor \citep{AndersenBollerslev1997}. $\mathcal{D}_{t,i}$: the last 20 trading days
+  \item Diurnal adjustment \citep{AndersenBollerslev1997}. $\mathcal{D}_{t,i}$: the last 20 trading days
     $t' < t$ on which interval $i$ is retained.
     \[
       s^2_{t,i} = \frac{1}{|\mathcal{D}_{t,i}|} \sum_{t' \in \mathcal{D}_{t,i}} \RV_{t',i},
@@ -95,7 +101,7 @@
   \item $|\mathcal{D}_{t,i}| < 5$: $s^2_{t,i} = 1$, and the interval is excluded from evaluation.
     % target.py:288-297 (rolling(20, min_periods=5).mean().shift(1) within slot). The target's s^2_{t,i} has no
     % slot band: slot_band = 0 for the target (target.py:626-627); the [0.5, 2] band is exogenous-only.
-  \item Target, the periodicity-adjusted realized volatility, and its winsorized version:
+  \item Target, the diurnally adjusted realized volatility, and its winsorized version:
     \[
       y_{t,i} = \sqrt{\RV_{t,i} / s^2_{t,i}}, \qquad
       \tilde y_{t,i} = \clip\bigl(y_{t,i},\ Q_{0.01}(\mathcal{Y}_{t,i}),\ Q_{0.99}(\mathcal{Y}_{t,i})\bigr),
@@ -112,18 +118,25 @@
     % CODE: the executor scores true_raw = tilde_y_{t,c}^2 s^2_{t,c} (metrics.py:50), i.e. the winsorised RV, not
     % RV_{t,c}.
   \end{itemize}
-\item \textbf{Samples} (Table~\ref{tab:rh_dm_samples}).
+\item \textbf{Samples} (Appendix Table~\ref{tab:rh_dm_samples}).
+  % 2026-10-15 (user): the samples table moved to the appendix (Implementation details); the pointer says so.
   \begin{itemize}
-  \item Pooled intraday sample: 300,317 half-hour intervals from June 1998, with a rolling estimation window of
-    $W = 24{,}000$ intervals:
+  % 2026-10-15 (finish, phase 2): parked -- one pooled window W = 24,000 was wrong for the linear models
+  % (tab:rh_dm_tuning, experiments/pool_linear_pretune.py:65-66: 2,000 days x 48 = 96,000); typed counts -> macros.
+  % Was: "Pooled intraday sample: 300,317 half-hour intervals from June 1998, with a rolling estimation window of
+  % $W = 24{,}000$ intervals: 300{,}317 = 303{,}442 ... - 3{,}125 ..."; "3,469 trading days"; "\rhfiNOos = 3{,}469 - ...".
+  \item Pooled intraday sample: \rhdmPooledRows{} half-hour intervals from June 1998, with rolling estimation windows
+    of $W = \rhdmPooledWindow$ intervals (trees) and $W = \rhdmPooledLinWindow$ intervals (linear models;
+    Appendix~\ref{sec:rh_exp_schemes}):
+    % 2026-10-15 (finish): FLAG resolved -- typed 96{,}000 -> \rhdmPooledLinWindow (make_rehaul_data_methods.py, same value).
     \[
-      300{,}317 = 303{,}442 \text{ intervals on the grid} - 3{,}125 \text{ burn-in intervals}.
+      \rhdmPooledRows = \rhdmGridRows \text{ intervals on the grid} - \rhdmBurnIn \text{ burn-in intervals}.
     \]
-  \item Closing-interval sample ($i = c$): 3,469 trading days, July 2010 to April 2024, with a rolling estimation
-    window of $W = \cmPtFitWin$ trading days.
+  \item Closing-interval sample ($i = c$): \rhdmCloseDays{} trading days, July 2010 to April 2024, with a rolling
+    estimation window of $W = \cmPtFitWin$ trading days.
   \item \rhfiNOos{} rolling-window forecasts from June 2018:
     \[
-      \rhfiNOos = 3{,}469 - \cmPtFitWin .
+      \rhfiNOos = \rhdmCloseDays - \cmPtFitWin .
     \]
     % The 3,125-row burn-in is dropped after slicing to one row per session (executor.py:348-349), so it
     % removes 1998-2010 sessions (outline flag 9).
@@ -131,14 +144,31 @@
     % out-of-sample days, the same 2018-2024 forecasts); 3,469 has no macro yet.
   \item Hyperparameter selection for the linear models on a pre-sample: closing-interval observations from
     \cmPtPreStart; validation samples from \cmPtValFirst{} to \cmPtValLast.
-  \item Out-of-sample period: \rheSampleStart{} to \rheSampleEnd.
+  % 2026-10-15 (user): parked -- "Out of sample period doesn't make sense for forecasts because we're performing
+  % rolling backtests. The forecasting results need to be calculated to reflect such (that the out of sample forecasts
+  % are done on a rolling basis after the burn in training window)". Accuracy is now evaluated over every rolling
+  % forecast (the evaluation span); the 866 expiration days are the option-data subsample of the economics. Was:
+  % \item Out-of-sample period: \rheSampleStart{} to \rheSampleEnd.
+  %   \[
+  %     T_{\mathrm{oos}} = \cmNdays \text{ trading days} = \rhdmExpirationsOos \text{ SPXW expirations}
+  %       - \rhdmEarlyCloses \text{ early-close days}.
+  %   \]
+  \item Evaluation span $\mathcal T_{\mathrm{oos}}$: \rhoosSpanStart{} to \rhoosSpanEnd, the
+    $T_{\mathrm{oos}} = \rhoosDays$ trading days on which every rolling forecast exists, less \rhoosEarlyCloses{}
+    early-close days. It starts with the pooled intraday linear forecasts, after the pre-sample above
+    (Section~\ref{sec:rh_results_eval}).
+  \item Option-data subsample $\mathcal T_{\mathrm{opt}} \subset \mathcal T_{\mathrm{oos}}$, on which the straddle
+    strategy is evaluated (Section~\ref{sec:rh_econ}):
     \[
-      T_{\mathrm{oos}} = \cmNdays \text{ trading days} = 872 \text{ SPXW expirations} - 6 \text{ early-close days}.
+      T_{\mathrm{opt}} = \cmNdays \text{ trading days} = \rhdmExpirationsOos \text{ SPXW expirations}
+        - \rhdmEarlyCloses \text{ early-close days}.
     \]
     % 2026-10-15 (consolidation): parked -- typed 866 and month-level dates; now \cmNdays, \rheSampleStart/End,
     % \cmPtPreStart, \cmPtValFirst/Last. Was: "back to 2004; validation samples in 2016--2019"; "January 2020 to
     % April 2024"; T_oos = 866.
-  \item The 413 later expirations are held out.
-    % 1,291 - 872 = 419 later expirations; 413 presumably excludes their 6 early closes. Check.
+  % 2026-10-15 (finish, phase 2): parked -- wrong count: 419 later expirations, 413 of them full trading days. Was:
+  % \item The 413 later expirations are held out.
+  %   % 1,291 - 872 = 419 later expirations; 413 presumably excludes their 6 early closes. Check.
+  \item The \rhdmHeldOutExpirations{} later expirations (\rhdmHeldOut{} full trading days) are held out.
   \end{itemize}
 \end{itemize}

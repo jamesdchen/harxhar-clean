@@ -1,0 +1,8 @@
+rf all_features 0,1,2,3,4,5,6,7,8,9
+xgb all_features 0,1,2,3,4,5,6,7,8,9
+rf baseline 0,1,2,3,4,5,6,7,8,9
+xgb baseline 0,1,2,3,4,5,6,7,8,9
+rf moments_vix 0,1,2,3,4,5,6,7,8,9
+xgb moments_vix 0,1,2,3,4,5,6,7,8,9
+rf lean_vol_vix 0,1,2,3,4,5,6,7,8,9
+xgb lean_vol_vix 0,1,2,3,4,5,6,7,8,9

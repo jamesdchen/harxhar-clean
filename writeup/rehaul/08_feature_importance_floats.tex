@@ -119,38 +119,39 @@
 % \end{figure}
 
 % Source: generated/appendix_campaign_16h_featimp.tex (re-laid out: generated/rehaul_app_featimp_harma.tex)
-\begin{table}[htbp]
-\centering
-\small
-\begin{threeparttable}
-% 2026-10-15 (notation pass): parked -- code identifier har_ma_* and 'ladder' replaced by 'HAR components'
-% \caption{Draft, measures under review. The \texttt{har\_ma\_*} ladder's importance in the trees, first pass to
-% the current design (all features), old $\to$ new.}
-% 2026-10-15 (table legibility): short caption, details in the notes; notes cut to about five sentences, method
-% details referred to Methods. The pre-notation-pass caption and notes are parked in the comments here.
-\caption{Importance of the HAR components in the tree models}
-\label{tab:rh_app_fi_harma}
-\input{generated/rehaul_app_featimp_harma}
-\begin{tablenotes}[flushleft]
-\footnotesize
-% 2026-10-15 (notation pass): parked -- code jargon (ladder, unmasked, window-masked, P2, tail loss, _x_close)
-% \item[] \emph{Notes:} first pass: the old design (with the \rhappNsessionEdge{} session-edge interactions), trees
-% unmasked; new: those columns dropped and every tree fit window-masked. MDI and TreeSHAP: the ladder's share of the
-% model's total. Perm.\ P2 $\Delta$QLIKE: the loss increase when the ladder's rows are replaced by rows drawn from the
-% training window, in \% of the model's tail loss. \texttt{\_x\_close} share: the part of the old ladder's MDI that sat
-% on its \rhappNsessionEdgeHalf{} \texttt{\_x\_close} copies. MDI rank among the series. XGBoost and the random forest
-% also changed settings between the passes, so their before/after mixes that change with the design and the mask.
-% 2026-10-15 (consolidation): "opening-/closing-session dummies" -> opening-/closing-interval dummies (addenda A.3:
-% Open, Close).
-\item[] \textit{Notes:} Draft, measures under review. Closing-interval tree models on the full predictor set, first
-pass (old) $\to$ current design (new); the first pass includes the \rhappNsessionEdge{} interactions of the HAR
-components with the opening- and closing-interval dummies and no column screening, the current design drops those
-interactions and screens out constant and duplicate columns in every estimation window. MDI and SHAP: the HAR
-components' share of the model's total; permutation $\Delta$QLIKE: the increase in QLIKE when their values are
-replaced by rows drawn from the estimation window, in percent of the model's out-of-sample loss. Close-interaction
-share: the part of the old MDI carried by the \rhappNsessionEdgeHalf{} closing-interval interactions, which at the
-closing interval are copies of the HAR components; MDI rank: rank among the series. XGBoost and the random forest
-also changed hyperparameters between the passes, so their changes mix design, screening and hyperparameters.
-\end{tablenotes}
-\end{threeparttable}
-\end{table}
+% 2026-10-15 (user): parked -- "park all tables that I haven't mentioned in this chat"
+% \begin{table}[htbp]
+% \centering
+% \small
+% \begin{threeparttable}
+% % 2026-10-15 (notation pass): parked -- code identifier har_ma_* and 'ladder' replaced by 'HAR components'
+% % \caption{Draft, measures under review. The \texttt{har\_ma\_*} ladder's importance in the trees, first pass to
+% % the current design (all features), old $\to$ new.}
+% % 2026-10-15 (table legibility): short caption, details in the notes; notes cut to about five sentences, method
+% % details referred to Methods. The pre-notation-pass caption and notes are parked in the comments here.
+% \caption{Importance of the HAR components in the tree models}
+% \label{tab:rh_app_fi_harma}
+% \input{generated/rehaul_app_featimp_harma}
+% \begin{tablenotes}[flushleft]
+% \footnotesize
+% % 2026-10-15 (notation pass): parked -- code jargon (ladder, unmasked, window-masked, P2, tail loss, _x_close)
+% % \item[] \emph{Notes:} first pass: the old design (with the \rhappNsessionEdge{} session-edge interactions), trees
+% % unmasked; new: those columns dropped and every tree fit window-masked. MDI and TreeSHAP: the ladder's share of the
+% % model's total. Perm.\ P2 $\Delta$QLIKE: the loss increase when the ladder's rows are replaced by rows drawn from the
+% % training window, in \% of the model's tail loss. \texttt{\_x\_close} share: the part of the old ladder's MDI that sat
+% % on its \rhappNsessionEdgeHalf{} \texttt{\_x\_close} copies. MDI rank among the series. XGBoost and the random forest
+% % also changed settings between the passes, so their before/after mixes that change with the design and the mask.
+% % 2026-10-15 (consolidation): "opening-/closing-session dummies" -> opening-/closing-interval dummies (addenda A.3:
+% % Open, Close).
+% \item[] \textit{Notes:} Draft, measures under review. Closing-interval tree models on the full predictor set, first
+% pass (old) $\to$ current design (new); the first pass includes the \rhappNsessionEdge{} interactions of the HAR
+% components with the opening- and closing-interval dummies and no column screening, the current design drops those
+% interactions and screens out constant and duplicate columns in every estimation window. MDI and SHAP: the HAR
+% components' share of the model's total; permutation $\Delta$QLIKE: the increase in QLIKE when their values are
+% replaced by rows drawn from the estimation window, in percent of the model's out-of-sample loss. Close-interaction
+% share: the part of the old MDI carried by the \rhappNsessionEdgeHalf{} closing-interval interactions, which at the
+% closing interval are copies of the HAR components; MDI rank: rank among the series. XGBoost and the random forest
+% also changed hyperparameters between the passes, so their changes mix design, screening and hyperparameters.
+% \end{tablenotes}
+% \end{threeparttable}
+% \end{table}

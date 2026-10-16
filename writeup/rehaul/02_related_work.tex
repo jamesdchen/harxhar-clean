@@ -8,6 +8,12 @@
 % days, kept apart from the paper's closing-interval \RV_t); B_t -> s^2_{t,i}; h (forecast) -> v (h is the DM
 % horizon); \beta -> \bm\beta; \lambda_1, \lambda_2 -> \lambda, \alpha (the guide's penalty and mixing; \lambda_1,
 % \lambda_2 stay XGBoost's); g = pooled -> pooled intraday model.
+% 2026-10-15 (finish, user): "Intraday periodicity" heading -> "Diurnal pattern"; "periodicity factor" -> "diurnal
+% adjustment" (term rename only; s^2_{t,i} stays; Andersen-Bollerslev's own "intraday periodicity" kept); the
+% retransformation (smearing) bullet parked.
+% 2026-10-15 (finish): the Introduction is parked, so this section opens the paper; symbols used here are now defined
+% at first use (E_t, the daily target RV^{(d)}_{t+1}, RV_{t,i} and s^2_{t,i}, the measures Q and P, RV_t, \bm x_t,
+% QLIKE, \bm y, \bm X, lambda, phi_{t,j}); the MinGRU and PufferLib cites are parked (user: NN content parked).
 
 % 2026-10-15 (consolidation): the HAR model in Corsi's own daily, weekly and monthly notation, so that the
 % superscript (k) keeps one unit in the paper (k intraday intervals, the HAR horizon); X -> \bm X.
@@ -19,11 +25,17 @@
 %   $\E_t[\RV^{(1)}_{t+1}] = \beta_0 + \sum_{k} \beta_k\, \RV^{(k)}_t$, $k \in \{1,5,22\}$ trading days, with
 %   $\RV^{(k)}_t$ the average daily realized variance over the last $k$ trading days. Our HAR components
 %   $\bar y^{(k)}_t$ take the same averages of $y$ over $k$ intraday intervals.\newline
+% 2026-10-15 (finish): parked -- the Introduction is parked, so Related work opens the paper; the bullet now defines
+% E_t and the daily target and reads standalone. Was: "$\E_t[\RV_{t+1}] = \beta_0 + ...$, with $\RV^{(d)}_t$, ... the
+% average daily realized variance over the last 1, 5 and 22 trading days. Our HAR components $\bar y^{(k)}_t$ take the
+% same averages of $y$ over $k$ intraday intervals."
 \item \textbf{Realized variance and the HAR model:}
-  $\E_t[\RV_{t+1}] = \beta_0 + \beta_d\, \RV^{(d)}_t + \beta_w\, \RV^{(w)}_t + \beta_m\, \RV^{(m)}_t$, with
-  $\RV^{(d)}_t$, $\RV^{(w)}_t$ and $\RV^{(m)}_t$ the average daily realized variance over the last 1, 5 and 22
-  trading days. Our HAR components $\bar y^{(k)}_t$ take the same averages of $y$ over $k$ intraday
-  intervals.\newline
+  $\E_t[\RV^{(d)}_{t+1}] = \beta_0 + \beta_d\, \RV^{(d)}_t + \beta_w\, \RV^{(w)}_t + \beta_m\, \RV^{(m)}_t$, with
+  $\E_t$ the expectation given the information at the forecast origin on day $t$ (here 15:30 ET) and
+  $\RV^{(d)}_t$, $\RV^{(w)}_t$ and
+  $\RV^{(m)}_t$ the average daily realized variance over the last 1, 5 and 22 trading days. Our HAR components
+  $\bar y^{(k)}_t$ take the same averages over $k$ intraday intervals of $y$, the square root of realized variance
+  divided by its diurnal adjustment (Section~\ref{sec:rh_data}).\newline
   \citet{Corsi2009}, \citet{AndersenBollerslevDieboldLabys2003}, \citet{BarndorffNielsenShephard2004},
   \citet{AndersenBollerslevDiebold2007}, \citet{CorsiMittnikPigorschPigorsch2008},
   \citet{BollerslevPattonQuaedvlieg2016}, \citet{BekiermanManner2018}, \citet{BennedsenLundePakkanen2022},
@@ -36,19 +48,22 @@
   % 2026-10-15 (bib pass): parked -- the [to add] placeholder, now a \citet key in references.bib. Was:
   % \item \todo{to add: Barndorff-Nielsen--Shephard 2002 (realized variance)}.
   \end{itemize}
-\item \textbf{Intraday periodicity:} volatility follows a U-shaped intraday pattern; the standard adjustment
-  divides by a periodicity factor, here $y_{t,i} = \sqrt{\RV_{t,i}/s^2_{t,i}}$.\newline
+\item \textbf{Diurnal pattern:} volatility follows a U-shaped intraday pattern; the standard adjustment
+  divides by a diurnal adjustment, here $y_{t,i} = \sqrt{\RV_{t,i}/s^2_{t,i}}$, with $\RV_{t,i}$ the realized
+  variance of intraday interval $i$ on day $t$ and $s^2_{t,i}$ its diurnal adjustment.\newline
   \citet{AndersenBollerslev1997} (intraday periodicity), \citet{EngleGallo2006} (intraday measures as indicators of
   daily volatility), \citet{HizmeriBevilacqua2025} (morning volatility uncertainty).
   % 2026-10-15 (notation pass): EngleGallo2006 is a multiple-indicators model of daily volatility, not a periodicity
   % paper; its claim is narrowed to what it shows.
   \begin{itemize}
-  \item \citet{TaylorXu1997} (periodicity factor), \citet{EngleSokalska2012} (intraday volatility).
+  \item \citet{TaylorXu1997} (diurnal adjustment), \citet{EngleSokalska2012} (intraday volatility).
   % 2026-10-15 (bib pass): parked -- the [to add] placeholder, now \citet keys in references.bib. Was:
   % \item \todo{to add: Taylor--Xu 1997 (periodicity factor); Engle--Sokalska 2012 (intraday volatility)}.
   \end{itemize}
 \item \textbf{0DTE options and the variance risk premium:} the variance risk premium, implied minus expected
-  realized variance, $\E^{\mathbb{Q}}_t[\RV_t] - \E^{\mathbb{P}}_t[\RV_t]$, is positive on average.\newline
+  realized variance, $\E^{\mathbb{Q}}_t[\RV_t] - \E^{\mathbb{P}}_t[\RV_t]$ under the risk-neutral ($\mathbb Q$)
+  and physical ($\mathbb P$) measures, with $\RV_t$ the realized variance to expiration, is positive on
+  average.\newline
   \citet{HizmeriBevilacqua2025}; option pricing and implied volatility \citet{BlackScholes1973},
   \citet{Merton1973}.
   \begin{itemize}
@@ -60,20 +75,23 @@
   %   Dim--Eraker--Vilkov 2024; Vilkov, 0DTE trading rules; Almeida--Freire--Hizmeri 2025; Carr--Wu 2009;
   %   Bollerslev--Tauchen--Zhou 2009}.
   \end{itemize}
-\item \textbf{Machine learning for volatility and returns:} a nonlinear $f(\bm x_t)$ of many predictors.\newline
+\item \textbf{Machine learning for volatility and returns:} a nonlinear function $f(\bm x_t)$ of a vector
+  $\bm x_t$ of many predictors.\newline
   \citet{gu2020empirical} (returns), \citet{christensen2023machine} (realized volatility); gradient-boosted trees
   \citet{Ke2017} (LightGBM), \citet{Chen2016} (XGBoost); hyperparameter optimization \citet{Akiba2019} (Optuna).
   \begin{itemize}
+  % 2026-10-15 (user): parked -- NN content parked for now. Was: "...; realized volatility: \citet{Bucci2020},
+  % \citet{RahimikiaPoon2020}, \citet{ZhangZhangCucuringuQian2024}; MinGRU \citet{Feng2024}; PufferLib \citet{Suarez2024}."
   \item \citet{Breiman2001} (random forests), \citet{Friedman2001} (gradient boosting); realized volatility:
-    \citet{Bucci2020}, \citet{RahimikiaPoon2020}, \citet{ZhangZhangCucuringuQian2024}; MinGRU \citet{Feng2024};
-    PufferLib \citet{Suarez2024}.
+    \citet{Bucci2020}, \citet{RahimikiaPoon2020}, \citet{ZhangZhangCucuringuQian2024}.
   % 2026-10-15 (bib pass): parked -- the [to add] placeholder, now \citet keys in references.bib. Was:
   % \item \todo{to add: Breiman 2001; Friedman 2001 (gradient boosting); Bucci 2020; Rahimikia--Poon 2020;
   %   Zhang--Zhang--Cucuringu--Qian 2024; MinGRU (Feng et al.\ 2024); PufferLib}.
   \end{itemize}
 \item \textbf{Forecast evaluation:} QLIKE is robust to noise in the volatility proxy: with a conditionally unbiased
   proxy it ranks forecasts as the true conditional variance would, and
-  $\argmin_{v > 0} \E_t[\QLIKE(\RV_t, v)] = \E_t[\RV_t]$.\newline
+  $\argmin_{v > 0} \E_t[\QLIKE(\RV_t, v)] = \E_t[\RV_t]$, with
+  $\QLIKE(\RV, v) = \RV/v - \log(\RV/v) - 1$.\newline
   \citet{Patton2011} (robust loss functions), \citet{DieboldMariano1995} with the small-sample correction of
   \citet{HarveyLeybourneNewbold1997}, \citet{HansenLundeNason2011} (model confidence set), \citet{Ehm2016}
   (Murphy diagrams, elementary scores), \citet{MincerZarnowitz1969} (forecast-efficiency regressions).
@@ -89,7 +107,8 @@
     \hat{\bm\beta} = \argmin_{\bm\beta} \lVert \bm y - \bm X\bm\beta \rVert_2^2
       + \lambda\bigl(\alpha \lVert\bm\beta\rVert_1 + \tfrac{1-\alpha}{2} \lVert\bm\beta\rVert_2^2\bigr)
   \]
-  (ridge $\alpha = 0$, lasso $\alpha = 1$); multi-penalty ridge gives each block of predictors its own penalty,
+  for a response vector $\bm y$, a predictor matrix $\bm X$ and a penalty strength $\lambda$ (ridge $\alpha = 0$,
+  lasso $\alpha = 1$); multi-penalty ridge gives each block of predictors its own penalty,
   $\lambda \sum_j \omega_j \beta_j^2$ with the penalty weight $\omega_j$ constant within a block.\newline
   \citet{GiannoneLenzaPrimiceri2021} (the illusion of sparsity), \citet{ShenXiu2025} (weak signals),
   \citet{KozakNagelSantosh2020} (shrinking the cross-section), \citet{HoerlKennard1970} (ridge),
@@ -103,10 +122,12 @@
   %   parametrization)}.
   \end{itemize}
 \item \textbf{Variable importance:} Shapley additive explanations (SHAP) decompose each forecast additively,
-  $\hat y_t = \phi_0 + \sum_{j=1}^{p} \phi_{t,j}$.\newline
+  $\hat y_t = \phi_0 + \sum_{j=1}^{p} \phi_{t,j}$, with $\phi_{t,j}$ the contribution of predictor $j$ of $p$ and
+  $\phi_0$ the average forecast.\newline
   \citet{lundberg2017unified} (SHAP), \citet{lundberg2018consistent} (TreeSHAP), \citet{aas2021explaining}
   (dependent features).
-\item \textbf{Retransformation} (one sentence): a smearing estimate would correct $\hat y_t^{\,2} s^2_{t,c}$ for
-  retransformation bias; we do not.\newline
-  \citet{Duan1983}, \citet{ManningMullahy2001}.
+% 2026-10-15 (user): parked -- no smearing mentions
+% \item \textbf{Retransformation} (one sentence): a smearing estimate would correct $\hat y_t^{\,2} s^2_{t,c}$ for
+%   retransformation bias; we do not.\newline
+%   \citet{Duan1983}, \citet{ManningMullahy2001}.
 \end{itemize}

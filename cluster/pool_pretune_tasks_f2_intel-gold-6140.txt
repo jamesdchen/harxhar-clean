@@ -1,0 +1,8 @@
+fc walk all_features reclasso 0.01 cluster/pool_pretune_sched/h2_all_features_reclasso.json 246750 253750 96000 results/pool_pretune/design/intel-gold-6140/all_features
+fc walk all_features reclasso 0.01 cluster/pool_pretune_sched/h2_all_features_reclasso.json 253750 260750 96000 results/pool_pretune/design/intel-gold-6140/all_features
+fc walk all_features reclasso 0.01 cluster/pool_pretune_sched/h2_all_features_reclasso.json 260750 267750 96000 results/pool_pretune/design/intel-gold-6140/all_features
+fc walk all_features reclasso 0.01 cluster/pool_pretune_sched/h2_all_features_reclasso.json 267750 274750 96000 results/pool_pretune/design/intel-gold-6140/all_features
+fc walk all_features reclasso 0.01 cluster/pool_pretune_sched/h2_all_features_reclasso.json 274750 281750 96000 results/pool_pretune/design/intel-gold-6140/all_features
+fc walk all_features reclasso 0.01 cluster/pool_pretune_sched/h2_all_features_reclasso.json 281750 288750 96000 results/pool_pretune/design/intel-gold-6140/all_features
+fc walk all_features reclasso 0.01 cluster/pool_pretune_sched/h2_all_features_reclasso.json 288750 295750 96000 results/pool_pretune/design/intel-gold-6140/all_features
+fc walk all_features reclasso 0.01 cluster/pool_pretune_sched/h2_all_features_reclasso.json 295750 -1 96000 results/pool_pretune/design/intel-gold-6140/all_features

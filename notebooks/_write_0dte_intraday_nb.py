@@ -29,6 +29,15 @@ nb.cells = [
         r"""
 # 0DTE nearest-OTM straddle, every 30-min bar
 
+> **2026-10-06: recalibration removed (user decision).** Every forecast
+> is used as its plain back-transform $\widehat{RV}=\hat y^2B$ (§5); the
+> session-bar Mincer–Zarnowitz map of the earlier runs is parked in
+> `atm_straddle_lib` (`recal=True`). No interval is read: the library's
+> block bootstrap is commented out (2026-10-03), so a printed interval
+> equals its point estimate. Typed numbers in the markdown readings date
+> from the recalibrated run unless a reading says otherwise; every
+> printed output is the plain run's.
+
 This notebook is **not** the paper 15:30→close trade
 (`atm_straddle_rv_iv.ipynb`). It is one explicit choice of two
 intraday extensions, spelled out before any table.
@@ -61,7 +70,7 @@ day.
 Every position-forming quantity at bar $t$ is one of two things: the
 bar's **own entry quote** (the tradable price at decision time), or
 an estimate built **strictly from prior days, lagged at least one
-day** — the smear's $(a,b,\hat\sigma^2)$, the diurnal profile $w$,
+day** — the time-of-day baseline $B$, the diurnal profile $w$,
 the per-clock leverage medians. Realized exits enter only as
 outcomes, never as inputs. No quantity differences two quotes taken
 at different times: that construction (the implied-decay $\Delta V$)
@@ -82,8 +91,8 @@ estimator and every forecast feature carries the one-bar shift.
 
 ## Choice 2 — IV (same window as $\widehat{RV}$)
 
-$\widehat{RV}_t$ is next-**30-min** realized variance (smeared
-one-bar-ahead $y$). Implied variance has to live on that same window.
+$\widehat{RV}_t$ is next-**30-min** realized variance (the plain
+back-transform $\hat y^2B$ of the one-bar-ahead $y$; 2026-10-06). Implied variance has to live on that same window.
 
 | pairing | implied variance | forecast | when it is right |
 |---|---|---|---|
@@ -543,45 +552,70 @@ print("30-min pairing: iv_var = (IV_hr)^2 * 0.5  [used]")
 print("remaining-session pairing would need hours_left * (IV_hr)^2 and remaining RV [not used]")
 """
     ),
+    # 2026-10-06 parked (recalibration removed, user decision): the §5 description of the map --
+    # ## 5. Forecasts and the smear (same map as the close trade)
+    #
+    # The close trade and this notebook share `second_order_raw` /
+    # `load_yhat_panel`:
+    #
+    # 1. Forecasts live on $y=\sqrt{RV/B}$. Actual $y$ on each bar:
+    #    $\sqrt{\mathrm{rv\_raw}/B}$.
+    # 2. **Only regular-session bars enter the fit** (rows labelled
+    #    10:30–16:00, the bars 10:00–15:30), and the mask goes further: a
+    #    date is in the fit only if the panel carries a stamp-16:00 row for
+    #    it, and dates on the 2001–2025 NYSE 13:00 early-close calendar are
+    #    excluded whole. Off-session bars, the futures-only bars printed on
+    #    NYSE holidays, and the post-close half-session bars are all
+    #    mispredicted by orders of magnitude and would pollute the
+    #    calibration. The cell prints the surviving fit-row count and how
+    #    many panel rows fall on early-close dates.
+    # 3. Sessions are counted on those fit rows, so for evaluation session
+    #    $d\ge 63$ the window is the **250 trading sessions strictly before
+    #    $d$** — prior days only; same-day bars are not in the window. The
+    #    fit is weighted least
+    #    squares with weights $1/\max(\widehat{y},q_{10})^{2}$, $q_{10}$ the
+    #    window's tenth percentile of $\widehat{y}$ (the variance-stabilizing
+    #    weighting under multiplicative errors), solved one session at a
+    #    time.
+    # 4. Fit $m=a+b\,\widehat{y}$ and the weighted residual variance
+    #    $\hat\sigma^{2}$ on that window. Apply **that session's**
+    #    $(a,b,\hat\sigma^{2})$ to **each** bar $t$ of day $d$:
+    #    $\widehat{RV}_t=(m_t^{2}+\hat\sigma^{2}_d)B_t$. The §5b cell prints
+    #    the resulting calibration by year.
+    #
+    # The close-trade notebook runs this on the full panel, then **keeps the 15:30
+    # row**. This notebook keeps every row. Coefficients $(a_d,b_d,\hat\sigma^{2}_d)$
+    # are the same object. What changes is which $t$ you score, not how the
+    # smear is fit.
+    #
+    # $\widehat{RV}_t$ is $E[RV]$ for the **next 30-min bar**, not remaining
+    # session.
     md(
         r"""
-## 5. Forecasts and the smear (same map as the close trade)
+## 5. Forecasts (the same back-transform as the close trade)
 
-The close trade and this notebook share `second_order_raw` /
-`load_yhat_panel`:
+2026-10-06: recalibration removed (user decision). The close trade and
+this notebook share `load_yhat_panel`, which returns the plain
+back-transform:
 
-1. Forecasts live on $y=\sqrt{RV/B}$. Actual $y$ on each bar:
-   $\sqrt{\mathrm{rv\_raw}/B}$.
-2. **Only regular-session bars enter the fit** (rows labelled
-   10:30–16:00, the bars 10:00–15:30), and the mask goes further: a
-   date is in the fit only if the panel carries a stamp-16:00 row for
-   it, and dates on the 2001–2025 NYSE 13:00 early-close calendar are
-   excluded whole. Off-session bars, the futures-only bars printed on
-   NYSE holidays, and the post-close half-session bars are all
-   mispredicted by orders of magnitude and would pollute the
-   calibration. The cell prints the surviving fit-row count and how
+1. Forecasts live on $y=\sqrt{RV/B}$, $B$ the time-of-day baseline.
+2. $\widehat{RV}_t=\widehat{y}_t^{\,2}B_t$ on every bar, with nothing
+   estimated on top: no level map, no residual-variance term, no
+   weighting. Squaring a forecast of $\sqrt{RV/B}$ tends to forecast
+   $RV$ low (Jensen); the §5b cell prints the ratio of forecast to
+   realized by year.
+3. The regular-session mask (rows labelled 10:30–16:00 on dates with a
+   stamp-16:00 row; the 2001–2025 NYSE 13:00 early-close dates out) is
+   kept as the `in_fit` flag. The profile $w$ of §5b is built on those
+   rows and the alignment check below uses it; it fits nothing in the
+   forecast any more. The cell prints the flagged-row count and how
    many panel rows fall on early-close dates.
-3. Sessions are counted on those fit rows, so for evaluation session
-   $d\ge 63$ the window is the **250 trading sessions strictly before
-   $d$** — prior days only; same-day bars are not in the window. The
-   fit is weighted least
-   squares with weights $1/\max(\widehat{y},q_{10})^{2}$, $q_{10}$ the
-   window's tenth percentile of $\widehat{y}$ (the variance-stabilizing
-   weighting under multiplicative errors), solved one session at a
-   time.
-4. Fit $m=a+b\,\widehat{y}$ and the weighted residual variance
-   $\hat\sigma^{2}$ on that window. Apply **that session's**
-   $(a,b,\hat\sigma^{2})$ to **each** bar $t$ of day $d$:
-   $\widehat{RV}_t=(m_t^{2}+\hat\sigma^{2}_d)B_t$. The §5b cell prints
-   the resulting calibration by year.
 
-The close-trade notebook runs this on the full panel, then **keeps the 15:30
-row**. This notebook keeps every row. Coefficients $(a_d,b_d,\hat\sigma^{2}_d)$
-are the same object. What changes is which $t$ you score, not how the
-smear is fit.
+The close-trade notebook keeps the 15:30 row of the same forecast; this
+notebook keeps every row.
 
-$\widehat{RV}_t$ is $E[RV]$ for the **next 30-min bar**, not remaining
-session.
+$\widehat{RV}_t$ forecasts $RV$ for the **next 30-min bar**, not the
+remaining session.
 
 **Alignment.** Panel stamps are **bar-end labelled**: the row at
 stamp $\tau$ carries the realized variance of $[\tau-30,\tau]$ and
@@ -593,7 +627,7 @@ issued at $t$ for the bar actually held — and that row's realized
 variance is the bar's own. Earlier versions paired stamp $t$ with
 trade $t$: causal (a *stale* forecast, the opposite of lookahead)
 but one bar behind, and it shifted every per-clock realized
-attribution by one row. The loader marks every row it actually fit
+attribution by one row. The loader flags every regular-session row
 (`in_fit`); the cell asserts that every joined trade bar is one of
 them, which is the alignment check in one line.
 
@@ -620,7 +654,7 @@ else:
     df = asl.load_yhat_panel(_blk2)
     panels["blk2"] = df.set_index("t")[["rv_hat", "yhat", "rv_raw", "baseline", "in_fit", "early_close"]]
     print(LABEL["blk2"] + " panel: bars", len(panels["blk2"]),
-          "| in the MZ fit", int(df["in_fit"].sum()),
+          "| in the session mask (in_fit)", int(df["in_fit"].sum()),
           "| rows on early-close dates (no forecast issued)", int(df["early_close"].sum()))
 
 pkg["t"] = pd.to_datetime(pkg["timestamp"], utc=True)
@@ -647,9 +681,9 @@ work["signal"] = work["rv_hat"] - work["iv_var_chris"]
 work = work.dropna(subset=["R", "rv_hat"])
 print("dropped at forecast join (no forecast row for the bar; the 9:35 bars by construction, the rest outside the forecast panel)", n_pre - len(work), "kept", len(work))
 # Alignment check in one line: the trade bars 10:00-15:30 join stamps 10:30-16:00, which is
-# exactly the loader's session fit mask, so every joined row must be one the smear was fit on.
-assert bool(work["in_fit"].all()), "a joined trade bar is outside the smear's fit mask"
-print("every joined bar is inside the smear's session fit mask (in_fit)")
+# exactly the loader's session mask, so every joined row must carry the in_fit flag.
+assert bool(work["in_fit"].all()), "a joined trade bar is outside the session mask (in_fit)"
+print("every joined bar is inside the session mask (in_fit)")
 print("bars kept with no vendor implied volatility (censored solver node -> flat in the sign(s) rules):",
       int(work["iv_hourly"].isna().sum()))
 print("last scored bar is 15:30, cash-settled at the official close (paper payoff); no 16:00 quotes anywhere")
@@ -681,19 +715,19 @@ G_t=C^{\mathrm{BS}}(S_t,K_c,K_p;\sqrt{V_{H,t}})-C^{\mathrm{BS}}(S_t,K_c,K_p;\sqr
 
 $s^{\mathrm{m}}$ is the variance gap on the next bar; $G$ is the expected change in the package mid, in index points (Black-76, $r=0$). Rules in §6 still use $\mathrm{sign}(s^{\mathrm{m}})$.
 
-At 15:30, $w_t=1$ and $h_t=\tfrac12$, so the slice is the deck's $\mathrm{IV}^2/2$; the cell checks this, and that the 15:30 positions equal the deck's on every day but the censored-implied ones. Bars with a censored implied quote have no slice and sit flat ($q=0$). The cell also prints the recalibrated forecast's mean $\widehat{RV}/RV$ on the scored bars by year, as a calibration check.
+At 15:30, $w_t=1$ and $h_t=\tfrac12$, so the slice is the deck's $\mathrm{IV}^2/2$; the cell checks this, and that the 15:30 positions equal the deck's on every day but the censored-implied ones. Bars with a censored implied quote have no slice and sit flat ($q=0$). The cell also prints the plain forecast's mean $\widehat{RV}/RV$ on the scored bars by year (squaring a forecast of $\sqrt{RV/B}$ forecasts low).
 """
     ),
     code(
         r"""
-# The fit-set fix lives in asl.second_order_raw (session-only MZ fit).
-# Verify calibration on the scored panel per year and pooled: the pooled
-# ratio of means is dominated by 2020's variance, so read the per-year view.
+# 2026-10-06: rv_hat is the plain yhat^2 * B (recalibration removed, user decision). Its ratio to
+# realized on the scored panel per year and pooled: the pooled ratio of means is dominated by
+# 2020's variance, so read the per-year view.
 ok = np.isfinite(work["rv_hat"]) & np.isfinite(work["rv_raw"])
 _cal = work.loc[ok].groupby(work.loc[ok, "date"].dt.year).apply(
     lambda g: float(g["rv_hat"].mean() / g["rv_raw"].mean()), include_groups=False
 )
-print("mean rv_hat/rv_raw by year, session-fit smear:")
+print("mean rv_hat/rv_raw by year, plain yhat^2 * B:")
 print(_cal.round(3).to_string())
 print("pooled", round(float(work.loc[ok, "rv_hat"].mean() / work.loc[ok, "rv_raw"].mean()), 3),
       "- the pooled ratio of means is dominated by 2020, so read the per-year view")
@@ -1043,13 +1077,20 @@ def _ci_str(ci):
 # Recorded at the last regeneration on the frame this notebook prints. They are
 # change-detectors: if the construction moves, the assert fails and the number here is
 # re-derived from the new run — never loosened to accommodate it.
-RECORDED = {"hybrid": 2.9723, "flat_close": 3.4300, "close_sign_s": 1.3943, "close_sign_s_flat": 1.8325}
+# 2026-10-06: recalibration removed (user decision). "flat_close" uses no forecast and stays a
+# gate. The three forecast-dependent values were recorded under the session-bar map; they are now
+# printed against this run as an old-against-new comparison, not asserted.
+RECORDED = {"flat_close": 3.4300}
+RECORDED_RECAL = {"hybrid": 2.9723, "close_sign_s": 1.3943, "close_sign_s_flat": 1.8325}
+_ovn_recal = {}
 
 # --- 1. the hybrid with the settlement leg sized by sign, and its forecast-free control
 print("1. rule table rows (daily-sum Sharpe, this frame:", int(tab.loc["always short", "n_days"]), "days)")
 print(tab.loc[list(q), ["n_days", "mean_daily", "t_mean", "Sharpe_ann", "pct_buy"]].to_string())
-assert abs(float(tab.loc["always short, sign(s) close", "Sharpe_ann"]) - RECORDED["hybrid"]) < 0.01, \
-    tab.loc["always short, sign(s) close", "Sharpe_ann"]
+_ovn_recal["hybrid"] = float(tab.loc["always short, sign(s) close", "Sharpe_ann"])
+# parked 2026-10-06 (recorded under the removed map):
+# assert abs(float(tab.loc["always short, sign(s) close", "Sharpe_ann"]) - RECORDED["hybrid"]) < 0.01, \
+#     tab.loc["always short, sign(s) close", "Sharpe_ann"]
 assert abs(float(tab.loc["always short, flat at 15:30", "Sharpe_ann"]) - RECORDED["flat_close"]) < 0.01, \
     tab.loc["always short, flat at 15:30", "Sharpe_ann"]
 _d_flat = _daily(q["always short, flat at 15:30"] * work["R"])
@@ -1094,8 +1135,12 @@ for _name, _qbase in (("sign(s)", pos_m.loc[_close.index].fillna(0.0).to_numpy()
                       "event-day mean (unfiltered)": float(_r0.to_numpy()[_ev].mean()),
                       "other-day mean": float(_r0.to_numpy()[~_ev].mean())})
     if _name == "sign(s)":
-        assert abs(_sh(_r0) - RECORDED["close_sign_s"]) < 0.02 and \
-            abs(_sh(_r1) - RECORDED["close_sign_s_flat"]) < 0.02, (_sh(_r0), _sh(_r1))
+        _ovn_recal["close_sign_s"], _ovn_recal["close_sign_s_flat"] = _sh(_r0), _sh(_r1)
+        # parked 2026-10-06 (recorded under the removed map):
+        # assert abs(_sh(_r0) - RECORDED["close_sign_s"]) < 0.02 and \
+        #     abs(_sh(_r1) - RECORDED["close_sign_s_flat"]) < 0.02, (_sh(_r0), _sh(_r1))
+print("old against new (2026-10-06): Sharpe recorded under the session-bar map -> this plain run:",
+      "; ".join(f"{_k} {RECORDED_RECAL[_k]:.4f} -> {_v:.4f}" for _k, _v in _ovn_recal.items()))
 _cal = pd.DataFrame(_cal_rows).set_index("rule at 15:30")
 print(_cal.T.to_string())
 _cal.to_csv(OUT / "close_leg_calendar_forward_test.csv")

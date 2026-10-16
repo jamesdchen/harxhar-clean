@@ -2455,11 +2455,12 @@ def write_summary() -> None:  # noqa: C901 - one linear report
     a("")
     a(
         "Series names are the design's column stems: `har_ma_*` = the target's own HAR ladder (realized variance, "
-        "means of the last 1, 5, 25, 125, 625, 3125 bars), `adj_sumabsret_ma_*` = absolute returns, "
-        "`adj_sumret4_ma_*` = 4th-power returns, `adj_sumpret2_ma_*` = upside squared returns, "
-        "`adj_sumbipow_ma_*` = bipower variation, `adj_sumvolume_ma_*` = ES volume, `adj_vix_ma_*` / "
-        "`adj_vvix_ma_*` / `adj_vix3m_ma_*` = VIX, VVIX, VIX3M, `*_ewstock` / `*_vwstock` = the same statistics on "
-        "equal- / value-weighted constituent stocks."
+        "means of the last 1, 5, 25, 125, 625, 3125 bars), `sumabsret_ma_*` = absolute returns, "
+        "`sumret4_ma_*` = 4th-power returns, `sumpret2_ma_*` = upside squared returns, "
+        "`sumbipow_ma_*` = bipower variation, `sumvolume_ma_*` = ES volume, `vix_ma_*` / "
+        "`vvix_ma_*` / `vix3m_ma_*` = VIX, VVIX, VIX3M, `*_ewstock` / `*_vwstock` = the same statistics on "
+        "equal- / value-weighted constituent stocks. Every exogenous input is divided by its time-of-day "
+        "baseline, and `har_ma_*` are trailing means of the adjusted target, so no name carries a prefix."
     )
     a("")
     # ---- brief

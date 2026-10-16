@@ -1,0 +1,8 @@
+forecast,qlike,sharpe_mid,sharpe_crossed,note
+blk2 (published),0.10566399017920744,1.3581435705692408,0.8761091438703213,
+blk2 (full),0.10566399017924177,1.3581435705692408,0.8761091438703213,
+blk2 (dedup),0.10613196256358899,1.3351087707270772,0.8529682414496068,
+dedup vs full,0.44288729164343454,2.5078019586159623,4.0,qlike = % change; sharpe_mid column = DM; sharpe_crossed column = positions changed
+gate: replicated full vs published yhat_blk2 (max rel diff),5.773248145231939e-12,,,
+"exog copies dropped per window (median, max)",336.0,336.0,,
+"forecast change dedup vs full (median, max abs rel)",0.0029436064964772912,0.022783974295892295,,

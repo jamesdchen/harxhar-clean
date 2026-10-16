@@ -1,0 +1,5 @@
+b walk lean_vol_vix reclasso 0.01 causal 246000 273250 96000
+b walk lean_vol_vix reclasso 0.01 causal 273250 -1 96000
+a walk baseline reclasso 1.0 causal 246000 -1 96000
+pre pretune lean_vol_vix reclasso 0.01 causal 246112 246113 145200
+pre pretune baseline reclasso 1.0 causal 246112 246113 145200

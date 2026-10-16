@@ -1,0 +1,3 @@
+live_feasible ridge 2000 295250 -1 96000
+live_feasible reclasso 2000 295250 -1 96000
+live_feasible reclasticnet 2000 295250 -1 96000

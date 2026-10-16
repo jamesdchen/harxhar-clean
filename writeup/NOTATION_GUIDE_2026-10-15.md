@@ -39,8 +39,8 @@ When only the closing interval is modeled, write $\RV_t \equiv \RV_{t,c}$. State
 |---|---|---|---|
 | One-minute log return | (implicit) | $r_{t,i,k}$, $k = 1, \dots, 30$ | ABDL (2003) |
 | Interval realized variance | $RV_t$, $RV_j$ | $\RV_{t,i} = \sum_k r_{t,i,k}^2$ (upright `\RV`) | ABDL (2003); Barndorff-Nielsen and Shephard (2002) |
-| Diurnal baseline | $B_t$, "diurnal baseline", "B" | intraday periodicity factor $s^2_{t,i}$: the mean of $\RV$ in interval $i$ over the previous 20 trading days; "periodicity factor" | Andersen and Bollerslev (1997); Taylor and Xu (1997) |
-| Target | $y_t = \sqrt{RV_t/B_t}$ | $y_{t,i} = \sqrt{\RV_{t,i} / s^2_{t,i}}$, "periodicity-adjusted realized volatility" | |
+| Diurnal baseline | $B_t$, "diurnal baseline", "B" | diurnal adjustment $s^2_{t,i}$ (user 2026-10-15; was "intraday periodicity factor"): the mean of $\RV$ in interval $i$ over the previous 20 trading days; "periodicity factor" | Andersen and Bollerslev (1997); Taylor and Xu (1997) |
+| Target | $y_t = \sqrt{RV_t/B_t}$ | $y_{t,i} = \sqrt{\RV_{t,i} / s^2_{t,i}}$, "diurnally adjusted realized volatility" | |
 | Winsorized target (fit only) | $\tilde y_t$ | $\tilde y_{t,i}$; "winsorized at the rolling 1st/99th percentiles" | |
 | Fitted / forecast | $\hat y_t$ | $\hat y_{t}$; variance forecast $\hat\sigma^2_{t} = \hat y_t^{\,2}\, s^2_{t,c}$ | |
 | Scoring | QLIKE vs the winsorized target | QLIKE vs the actual $\RV_{t,c}$ (user decision 2026-10-15, data audit #10): $L_t = \QLIKE(\RV_t, \hat\sigma^2_t)$ | Patton (2011) |
@@ -95,7 +95,7 @@ When only the closing interval is modeled, write $\RV_t \equiv \RV_{t,c}$. State
 | all features, "all_features" | **full predictor set** |
 | arm, f arm, subpt, sub_* | specification, or drop the code name and describe it |
 | walk, walk-forward backtest | rolling-window out-of-sample exercise; "re-estimated daily" |
-| test period, test window | out-of-sample period |
+| test period, test window, out-of-sample period (2026-10-15: every rolling forecast is out of sample) | evaluation span $\mathcal T_{\mathrm{oos}}$ (forecast accuracy); option-data subsample $\mathcal T_{\mathrm{opt}}$ (straddle economics) |
 | trade days | trading days |
 | shipped settings, untuned | fixed hyperparameters |
 | pre-tuning, pre-tune | hyperparameter selection on a pre-sample |
@@ -151,8 +151,13 @@ When only the closing interval is modeled, write $\RV_t \equiv \RV_{t,c}$. State
   - Position $q_t = \sign(\hat\sigma^2_t - \mathrm{IV}^2_t)$.
   - $R_t$ is the straddle's simple return.
   - The unconditional short-straddle benchmark is $q_t \equiv -1$.
-  - No $s_t$ for the signal; $s$ is the periodicity factor.
+  - No $s_t$ for the signal; $s$ is the diurnal adjustment.
 - **Out-of-sample day set:** $\mathcal T_{\mathrm{oos}}$, with $|\mathcal T_{\mathrm{oos}}| = T_{\mathrm{oos}}$ (headline).
+  2026-10-15 (user: accuracy over every rolling forecast): $\mathcal T_{\mathrm{oos}}$ is the evaluation span, the
+  forecast origins after the initial estimation window and the hyperparameter pre-sample on which every forecast
+  compared exists (\rhoosSpanStart--\rhoosSpanEnd, \rhoosDays days); the straddle economics use its option-data
+  subsample $\mathcal T_{\mathrm{opt}} \subset \mathcal T_{\mathrm{oos}}$, $|\mathcal T_{\mathrm{opt}}| =
+  T_{\mathrm{opt}}$ (\rhrDays days). Do not write "out-of-sample period".
   Variable importance uses its own $\mathcal O$.
 - **Forecast index:** $f_{m,\mathcal X,\mathcal I}$, where $m$ is the model, $\mathcal X \in \{\text{HAR}, \text{Full}\}$
   the predictor set, and $\mathcal I \in \{\{c\}, \{1,\dots,M\}\}$ the estimation sample (closing interval or pooled).
@@ -162,7 +167,7 @@ When only the closing interval is modeled, write $\RV_t \equiv \RV_{t,c}$. State
   $\Delta$%, DM and significance macros against the HAR benchmark, so Results and Economics can replace their remaining
   typed numbers (each file's header lists them).
 - **Row index inside an estimation window:** $t'$ (sums $\sum_{t' \in \mathcal W_t}$), not $s$, since $s$ is the
-  periodicity factor. The minute index $k$ in $r_{t,i,k}$ is a local summation index only.
+  diurnal adjustment. The minute index $k$ in $r_{t,i,k}$ is a local summation index only.
 
 - **Final consolidation (2026-10-15), binding; overrides the bullets above where they differ:**
   - Newey-West lag truncation $q_{\mathrm{NW}}$ everywhere (text, notes, generators); values `\fqsDMLag`/`\rhrDMLag`
@@ -215,7 +220,7 @@ for now."
 - **Caption:** a short title only, e.g. "Forecast accuracy: HAR benchmark versus full predictor set". Everything else
   goes in the notes.
 - **Notes:** below the table, in `threeparttable` `tablenotes`, starting `\textit{Notes:}`.
-  - At most about five sentences: the sample (out-of-sample period, number of trading days, as macros), the loss, the
+  - At most about five sentences: the sample (evaluation span or option-data subsample, number of trading days, as macros), the loss, the
     test and its lag, the significance markers, and any symbol not defined in the text.
   - Method details belong in Methods. Refer to them ("see Section~\ref{...}") instead of repeating them.
 - **Significance:** finance convention. Use stars on the statistic or estimate: `$^{*}$`, `$^{**}$`, `$^{***}$` for

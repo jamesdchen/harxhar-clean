@@ -1,0 +1,23 @@
+{
+ "family": "lgbm",
+ "name": "lgbm_opt_00",
+ "arm": "tree_expert_00",
+ "sha": "abab811bd4b6",
+ "dev_screen_mse": 0.10744949046943114,
+ "params": {
+  "num_leaves": 20,
+  "learning_rate": 0.01296404565731986,
+  "n_estimators": 392,
+  "min_child_samples": 98,
+  "feature_fraction": 0.7017000121697539,
+  "bagging_fraction": 0.5636236714089857,
+  "lambda_l1": 1.0413823540826713e-08,
+  "lambda_l2": 0.015950303832251992,
+  "bagging_freq": 1
+ },
+ "provenance": {
+  "window": 24000,
+  "source": "harxhar-clean/results/unification_carc/tree_expert_00/chunk_000.npz meta tree_config",
+  "source_file_sha256": "561c2faf2c1755edd4fe24635c645bc5ba2ca77b402ee1b6ce3985fd90e1d191"
+ }
+}

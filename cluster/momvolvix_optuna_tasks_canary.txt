@@ -1,0 +1,3 @@
+moments_vol_vix lgbm 2000 bar1600 0 2000 2020 2000
+moments_vol_vix xgb 2000 bar1600 0 2000 2020 2000
+moments_vol_vix rf 2000 bar1600 0 2000 2020 2000

@@ -1,0 +1,12 @@
+rf all_features control 0 4
+rf all_features control 1 4
+rf all_features control 2 4
+rf all_features control 3 4
+xgb all_features control 0 2
+xgb all_features control 1 2
+rf baseline control 0 1
+xgb baseline control 0 1
+rf moments_vix control 0 1
+xgb moments_vix control 0 1
+rf lean_vol_vix control 0 1
+xgb lean_vol_vix control 0 1

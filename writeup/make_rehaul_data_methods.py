@@ -440,6 +440,7 @@ def panel() -> dict:
     check(
         uw["DEFAULT_WINDOW_BARS"] == W, "pooled window 24,000 bars (src/unification.py)"
     )
+    P["pooled_window"] = uw["DEFAULT_WINDOW_BARS"]
     P["pooled_fc"] = (t.iloc[burn + W], t.iloc[-1], len(df) - burn - W)
     # the tree development span: pooled rows strictly before the first bar of 2003 (experiments/tree_menu_dev.py)
     tm = consts(
@@ -601,6 +602,25 @@ def panel() -> dict:
         and d_(days.min()) == clp["FIRST_TRADE_DAY"],
         "1,087 16:00 sessions in the test period, first trade day 2020-01-03",
     )
+    # 2026-10-15 (user): the evaluation span of the accuracy statistics -- every trading day on which all rolling
+    # forecasts of tab:rh_oos exist, early closes dropped (experiments/rolling_eval_2026_10_15.py common_span())
+    sys.path.insert(0, str(REPO / "experiments"))
+    import rolling_eval_2026_10_15 as rolling
+
+    span = rolling.common_span()
+    P["span"] = span
+    P["span_ec"] = int(
+        ((rolling.EARLY >= span.min()) & (rolling.EARLY <= span.max())).sum()
+    )
+    check(
+        set(days).issubset(set(span)) and d_(span.min()) == clp["FIRST_TRADE_DAY"],
+        "the 866 option-data days lie in the evaluation span, which starts on the first trade day",
+    )
+    nyse = rolling.nyse_sessions(str(span.min().date()), str(span.max().date()))
+    check(
+        len(span) == len(nyse) - P["span_ec"] and set(span) <= set(nyse),
+        "the evaluation span = every NYSE session of 2020-01-03 .. 2024-04-30 less the early closes",
+    )
     return P
 
 
@@ -751,7 +771,8 @@ DESC = {
     "sumpret2": r"Positive realized semivariance, $\sum_k r_{t,i,k}^2\,\mathbf{1}\{r_{t,i,k} > 0\}$",
     "sumbipow": r"Bipower variation, $\mathrm{BV}_{t,i} = \sum_{k \ge 2} |r_{t,i,k}|\,|r_{t,i,k-1}|$",
     "sumautocov": r"First-order realized autocovariance, $\mathrm{AC}_{t,i} = \sum_{k \ge 2} r_{t,i,k}\, r_{t,i,k-1}$",
-    "sumvolume": "ES contract volume",
+    # 2026-10-15 (notation, final consolidation): "ES" in words is "E-mini S&P 500 futures"
+    "sumvolume": "E-mini S\\&P 500 futures contract volume",
     "numobs": r"Number of one-minute returns, $N_{t,i} \le 30$",
     "turnover": "turnover",
     "buyturnover": "buyer-initiated turnover",
@@ -785,7 +806,7 @@ DESC_XS = {
 }
 # the source of each data file, in words (Table tab:rh_dm_sources)
 SOURCE_WORDS = {
-    "core_stats": "ES futures",
+    "core_stats": "E-mini S\\&P 500 futures",
     "ewstock_stats": "Constituents",
     "vwstock_stats": "Constituents",
     "spy_and_sentiment": "StockTwits",
@@ -913,6 +934,11 @@ def design_tables(P: dict, bmap: dict[str, str]) -> dict:
         act=act,
         cal=A["calendar"],
         cal_const=P["cal_const"],
+        # 2026-10-15 (number macros): the pooled panel's composition, for rehaul_dm_numbers.tex
+        n_pooled=len(pooled_names),
+        n_series_pooled=len(Q["series"]["value"]),
+        n_active_pooled=len(Q["series"]["active"]),
+        n_edge_pooled=len(Q["edge"]),
     )
 
 
@@ -2194,20 +2220,30 @@ def write_samples(P: dict) -> None:
             ]
         ),
         r"\addlinespace",
-        panel_row("Panel C: Out-of-sample period (trading days)", 5),
+        # 2026-10-15 (user: "Out of sample period doesn't make sense for forecasts because we're performing rolling
+        # backtests ..."): Panel C names the evaluation span of the accuracy statistics (every rolling forecast of
+        # tab:rh_oos exists; experiments/rolling_eval_2026_10_15.py common_span()) and the option-data subsample of the
+        # straddle economics.  Parked -- was:
+        # panel_row("Panel C: Out-of-sample period (trading days)", 5),
+        # cells(["All trading days (closing-interval forecasts)", D_(clp["FIRST_TRADE_DAY"]), D_(c1),
+        #        n_(P["test16"]), NA]),
+        # cells([rf"Evaluation days ($T_{{\mathrm{{oos}}}}$): SPXW expiration days ({n_(P['exp_to_end'])}) less "
+        #        rf"early-close days ({P['ec_to_end']})", D_(days.min()), D_(days.max()), n_(len(days)), NA]),
+        panel_row("Panel C: Evaluation samples (trading days)", 5),
         cells(
             [
-                "All trading days (closing-interval forecasts)",
-                D_(clp["FIRST_TRADE_DAY"]),
-                D_(c1),
-                n_(P["test16"]),
+                rf"Evaluation span ($T_{{\mathrm{{oos}}}}$): trading days on which every forecast exists, less "
+                rf"early-close days ({P['span_ec']})",
+                D_(P["span"].min()),
+                D_(P["span"].max()),
+                n_(len(P["span"])),
                 NA,
             ]
         ),
         cells(
             [
-                rf"Evaluation days ($T_{{\mathrm{{oos}}}}$): SPXW expiration days ({n_(P['exp_to_end'])}) less "
-                rf"early-close days ({P['ec_to_end']})",
+                rf"\quad Option-data subsample ($T_{{\mathrm{{opt}}}}$): SPXW expiration days "
+                rf"({n_(P['exp_to_end'])}) less early-close days ({P['ec_to_end']})",
                 D_(days.min()),
                 D_(days.max()),
                 n_(len(days)),
@@ -2232,12 +2268,30 @@ def write_samples(P: dict) -> None:
         r"(the closing-interval series, the intraday grid and, for the linear pre-sample, the series of the two "
         rf"intervals of the last hour), so the closing-interval sample starts in {b0.year} and the pre-sample in "
         rf"{r0.year}.",
-        rf"The pooled linear models use $W = {n_(clp['TW'] * ppd)}$ intervals ({n_(clp['TW'])} trading days); the "
+        # 2026-10-15 (finish): parked -- the computed 96{,}000 and 2{,}000 -> \rhdmPooledLinWindow (write_numbers) and
+        # \cmPtFitWin (checked below), and the pointer -> Appendix B.1 (sec:rh_exp_samples), where the gap and the
+        # validation sample are stated. Was:
+        # rf"The pooled linear models use $W = {n_(clp['TW'] * ppd)}$ intervals ({n_(clp['TW'])} trading days); the "
+        # rf"tree pre-sample is re-estimated every {P['tm']['SCREEN_REFIT']} intervals.",
+        # rf"Each validation sample follows a {clp['EMBARGO']}-day gap and a {n_(clp['TW'])}-day estimation sample "
+        # r"(Section~\ref{sec:rh_methods_tuning}).",
+        r"The pooled linear models use $W = \rhdmPooledLinWindow$ intervals (\cmPtFitWin{} trading days); the "
         rf"tree pre-sample is re-estimated every {P['tm']['SCREEN_REFIT']} intervals.",
-        rf"Each validation sample follows a {clp['EMBARGO']}-day gap and a {n_(clp['TW'])}-day estimation sample "
-        r"(Section~\ref{sec:rh_methods_tuning}).",
-        "Full trading days: expiration days that are not early-close days.",
+        rf"Each validation sample follows a {clp['EMBARGO']}-day gap and a \cmPtFitWin-day estimation sample "
+        r"(Section~\ref{sec:rh_exp_samples}).",
+        # "Full trading days: expiration days that are not early-close days.",  # 2026-10-15: + the evaluation span
+        r"Full trading days: expiration days that are not early-close days. Panel C: the evaluation span holds every "
+        r"trading day on which all rolling forecasts exist (Section~\ref{sec:rh_results_eval}); the straddle economics "
+        r"use its option-data subsample (Section~\ref{sec:rh_econ}).",
     ]
+    check(
+        macros()["cmPtFitWin"] == n_(clp["TW"]),
+        r"\cmPtFitWin = the closing-interval window (samples-table notes)",
+    )
+    check(
+        pooled_lin_window(clp) == clp["TW"] * ppd,
+        r"\rhdmPooledLinWindow = 2,000 trading days x 48 intervals (samples-table notes)",
+    )
     write(
         "rehaul_dm_samples.tex",
         ftable(
@@ -2439,7 +2493,8 @@ def write_dictionary(rows: list[dict], D: dict) -> None:
             "Variable",
             "Description",
             "Source",
-            stack("Periodicity", "adjustment", align="l"),
+            # 2026-10-15 (user): "periodicity adjustment" -> "diurnal adjustment" (the symbol s^2_{t,i} stays)
+            stack("Diurnal", "adjustment", align="l"),
             stack("Transform", "$g(v)$", align="l"),
             stack("Predictors,", r"$k \in \mathcal K$", align="l"),
         ]
@@ -2469,7 +2524,7 @@ def write_dictionary(rows: list[dict], D: dict) -> None:
         r"(the mode and its share of intervals are in the description).",
         rf"$\mathcal K = \{{{', '.join(str(r) for r in resolve_har_lags())}\}}$ in the closing-interval model and "
         rf"$\{{1, 2, 4, \dots, {2 ** (kq - 1)}\}}$ in the pooled intraday model, which omits the FOMC group.",
-        r"Periodicity adjustment: division by the trailing same-interval mean (mean) or standard deviation (s.d.); "
+        r"Diurnal adjustment: division by the trailing same-interval mean (mean) or standard deviation (s.d.); "
         r"$g$: the variance-stabilizing map; the volatility-demand series take $\operatorname{asinh}(u_{t,i} / "
         r"\kappa_{t,i})$ in place of both (Section~\ref{sec:rh_predictors}).",
         rf"A series is signed if it has any negative value: ${series_tex(sp['series'])}$ has "
@@ -2760,15 +2815,37 @@ def write_hyper(P: dict, TS: dict, LP: dict, NN: dict) -> None:
         rf"At each of the {L[('ridge', 'baseline')][1].split(' of ')[1]} re-selection points a grid neighbor may "
         rf"replace it (Section~\ref{{sec:rh_methods_tuning}}); this happened {sum(map(sum, fired_n.values()))} times "
         rf"in {fired_of} re-selections ({fired}, for the HAR benchmark and the full predictor set).",
+        # 2026-10-15 (finish): parked -- the computed "trial 255 of 400", 24{,}000 and 2{,}000 -> \rhdmRfTrial of
+        # \cmTreeProvRfTrials, \rhdmPooledWindow and \cmPtFitWin (same values, checked below). Was:
+        # r"Panel B: the best trial of an Optuna search on the pooled intraday pre-sample "
+        # rf"({n_(P['tm']['WINDOW'])}-interval window; random forest: trial {rf['trial']} of "
+        # rf"{rf['trials']['complete_considered']}), ranked by MSE and then held fixed for both predictor sets; (log): "
+        # r"searched on a logarithmic scale.",
+        # rf"$n_{{\min}}$ was selected on {n_(T['POOLED_WINDOW_ROWS'])} intervals and is rescaled to the "
+        # rf"{n_(OUTLINE['perbar_window'])}-day window (rescaled value in parentheses).",
         r"Panel B: the best trial of an Optuna search on the pooled intraday pre-sample "
-        rf"({n_(P['tm']['WINDOW'])}-interval window; random forest: trial {rf['trial']} of "
-        rf"{rf['trials']['complete_considered']}), ranked by MSE and then held fixed for both predictor sets; (log): "
+        r"(\rhdmPooledWindow-interval window; random forest: trial \rhdmRfTrial{} of "
+        r"\cmTreeProvRfTrials), ranked by MSE and then held fixed for both predictor sets; (log): "
         r"searched on a logarithmic scale.",
-        rf"$n_{{\min}}$ was selected on {n_(T['POOLED_WINDOW_ROWS'])} intervals and is rescaled to the "
-        rf"{n_(OUTLINE['perbar_window'])}-day window (rescaled value in parentheses).",
+        r"$n_{\min}$ was selected on \rhdmPooledWindow{} intervals and is rescaled to the "
+        r"\cmPtFitWin-day window (rescaled value in parentheses).",
         rf"Implementations: LightGBM \citep{{Ke2017}} with {impl['LightGBM']}, XGBoost \citep{{Chen2016}} with "
         rf"{impl['XGBoost']} and the scikit-learn random forest with {impl['random forest']}; random seeds are fixed.",
     ]
+    # the macros of the notes above carry the values this run computes
+    check(
+        P["tm"]["WINDOW"] == T["POOLED_WINDOW_ROWS"] == P["pooled_window"],
+        r"Optuna pre-sample window = leaf-rescaling denominator = \rhdmPooledWindow",
+    )
+    check(
+        str(rf["trial"]) == TYPED["rhdmRfTrial"]
+        and TS["M"]["cmTreeProvRfTrials"] == str(rf["trials"]["complete_considered"]),
+        r"random forest: trial \rhdmRfTrial{} of \cmTreeProvRfTrials",
+    )
+    check(
+        TS["M"]["cmPtFitWin"] == n_(OUTLINE["perbar_window"]),
+        r"\cmPtFitWin = the closing-interval window (hyperparameter-table notes)",
+    )
     ta = ftable(
         "tab:rh_dm_hyper",
         "Hyperparameters: penalized regressions and tree ensembles.",
@@ -2778,15 +2855,21 @@ def write_hyper(P: dict, TS: dict, LP: dict, NN: dict) -> None:
     )
 
     # ------------------------------------------------------------------ (ii) re-selected in the rolling window
-    spec_b = "@{}l" + P_(0.36) + "lr@{}"
+    # 2026-10-15 (user): parked -- NN content parked for now. Panel B (the MinGRU networks) is parked, and with it the
+    # "Selected (count)" column, which only the network rows filled (every tree row read "--"); the panel headings
+    # lose their letters, since one panel remains.
+    # spec_b = "@{}l" + P_(0.36) + "lr@{}"
+    # body_b = [r"\toprule", cells(["Model", "Hyperparameter", "Search space", "Selected (count)"]), r"\midrule",
+    #           panel_row(rf"Panel A: Tree ensembles, closing-interval models ({op['N_TRIALS_DEFAULT']} Optuna trials "
+    #                     r"per re-selection)", 4)]
+    spec_b = "@{}l" + P_(0.40) + "l@{}"
     body_b = [
         r"\toprule",
-        cells(["Model", "Hyperparameter", "Search space", "Selected (count)"]),
+        cells(["Model", "Hyperparameter", "Search space"]),
         r"\midrule",
         panel_row(
-            rf"Panel A: Tree ensembles, closing-interval models ({op['N_TRIALS_DEFAULT']} Optuna trials per "
-            r"re-selection)",
-            4,
+            rf"Tree ensembles, closing-interval models ({op['N_TRIALS_DEFAULT']} Optuna trials per re-selection)",
+            3,
         ),
     ]
     # 2026-10-15 (consolidation): the forest's depth axis as actually searched. The Optuna jobs' default
@@ -2830,9 +2913,17 @@ def write_hyper(P: dict, TS: dict, LP: dict, NN: dict) -> None:
             else:
                 lo = xlo if (fam == "xgb" and k == "reg_lambda") else v[1]
                 space = rng(lo, v[2], v[3])
+            # 2026-10-15 (user): parked -- NN content parked for now (the "Selected" column, NA for every tree row)
+            # body_b.append(cells([MODEL[fam] if i == 0 else "", tree_word(fam, k), space, NA]))
             body_b.append(
-                cells([MODEL[fam] if i == 0 else "", tree_word(fam, k), space, NA])
+                cells([MODEL[fam] if i == 0 else "", tree_word(fam, k), space])
             )
+    # 2026-10-15 (user): parked -- NN content parked for now: the Selected cell of the random-search row and the
+    # Panel B heading.
+    # body_b += [r"\addlinespace", cells(["Random search", "The same hyperparameters",
+    #                                     rf"{ts['N_CANDIDATES']} candidates", NA]),
+    #            r"\addlinespace",
+    #            panel_row("Panel B: MinGRU network (ridge-initialized, trained and selected on QLIKE)", 4)]
     body_b += [
         r"\addlinespace",
         cells(
@@ -2840,13 +2931,7 @@ def write_hyper(P: dict, TS: dict, LP: dict, NN: dict) -> None:
                 "Random search",
                 "The same hyperparameters",
                 rf"{ts['N_CANDIDATES']} candidates",
-                NA,
             ]
-        ),
-        r"\addlinespace",
-        panel_row(
-            "Panel B: MinGRU network (ridge-initialized, trained and selected on QLIKE)",
-            4,
         ),
     ]
     q, pr = NN["q"], NN["pooled_rq"]
@@ -2881,9 +2966,16 @@ def write_hyper(P: dict, TS: dict, LP: dict, NN: dict) -> None:
     #                   base_keys)
     # body_b += nn_rows(f"MinGRU, pooled intraday model, trained on squared error ({p['n']} configurations)", p,
     #                   base_keys + (("wd", "wd", r"Weight decay, $\nu$"),))
-    body_b += nn_rows(f"Closing-interval model ({q['n']} configurations)", q, q_keys)
-    body_b.append(r"\addlinespace")
-    body_b += nn_rows(f"Pooled intraday model ({pr['n']} configurations)", pr, q_keys)
+    # 2026-10-15 (user): parked -- NN content parked for now (Panel B rows). The network checks below still run.
+    # body_b += nn_rows(f"Closing-interval model ({q['n']} configurations)", q, q_keys)
+    # body_b.append(r"\addlinespace")
+    # body_b += nn_rows(f"Pooled intraday model ({pr['n']} configurations)", pr, q_keys)
+    nn_panel = nn_rows(f"Closing-interval model ({q['n']} configurations)", q, q_keys)
+    nn_panel += nn_rows(f"Pooled intraday model ({pr['n']} configurations)", pr, q_keys)
+    check(
+        len(nn_panel) == 2 + 2 * len(q_keys),
+        "the parked network panel still builds (two models x six hyperparameters)",
+    )
     body_b.append(r"\bottomrule")
     bc = q["common"]
     check(
@@ -2909,8 +3001,12 @@ def write_hyper(P: dict, TS: dict, LP: dict, NN: dict) -> None:
         nsets == len(set(pr["sel"]["design"])) == 2,
         "two predictor sets in each MinGRU walk of record",
     )
+    # 2026-10-15 (user): parked -- NN content parked for now: the "Panel A:" prefix (one panel remains), the Panel B
+    # note (the network's fixed settings) and the "Selected" note (the network picks).
+    # notes_b = [rf"Panel A: at each re-selection, ...", ..., r"Panel B: the network of Section~\ref{...}; fixed: ...",
+    #            rf"Selected: the modal choice over the {nblk // nsets} blocks and {nsets} predictor sets, with its count."]
     notes_b = [
-        rf"Panel A: at each re-selection, {op['N_TRIALS_DEFAULT']} trials of Optuna's TPE sampler start from the "
+        rf"At each re-selection, {op['N_TRIALS_DEFAULT']} trials of Optuna's TPE sampler start from the "
         r"fixed hyperparameters of Table~\ref{tab:rh_dm_hyper} and are ranked by validation MSE (in one "
         r"specification, QLIKE); hyperparameters not listed stay fixed, and $B$ is set by early stopping with "
         rf"patience $\lceil 1/\eta \rceil$ and capped at $\lceil {oj['ROUNDS_CAP_MULT']} B^{{\mathrm{{fix}}}} "
@@ -2918,12 +3014,13 @@ def write_hyper(P: dict, TS: dict, LP: dict, NN: dict) -> None:
         rf"Random search: the fixed configuration and {ts['N_CANDIDATES'] - 1} candidates drawn once from product "
         rf"grids of {n_(int(msz.group(1)))} (LightGBM), {n_(int(msz.group(2)))} (XGBoost) and {msz.group(3)} "
         r"(random forest) configurations.",
-        r"Panel B: the network of Section~\ref{sec:rh_methods_models}; fixed: "
-        rf"{bc['layers']} MinGRU layer, batch size {bc['batch']}, at most $E_{{\max}} = {bc['max_epochs']}$ epochs "
-        rf"(pooled intraday model: {pr['common']['max_epochs']}) with patience {bc['patience']} "
-        rf"({pr['common']['patience']}), Muon momentum {bc['momentum']}, gradient-norm clip {bc['max_grad_norm']}, "
-        r"cosine learning-rate schedule.",
-        rf"Selected: the modal choice over the {nblk // nsets} blocks and {nsets} predictor sets, with its count.",
+        # 2026-10-15 (user): parked -- NN content parked for now
+        # r"Panel B: the network of Section~\ref{sec:rh_methods_models}; fixed: "
+        # rf"{bc['layers']} MinGRU layer, batch size {bc['batch']}, at most $E_{{\max}} = {bc['max_epochs']}$ epochs "
+        # rf"(pooled intraday model: {pr['common']['max_epochs']}) with patience {bc['patience']} "
+        # rf"({pr['common']['patience']}), Muon momentum {bc['momentum']}, gradient-norm clip {bc['max_grad_norm']}, "
+        # r"cosine learning-rate schedule.",
+        # rf"Selected: the modal choice over the {nblk // nsets} blocks and {nsets} predictor sets, with its count.",
     ]
     tb = ftable(
         "tab:rh_dm_hyper_search",
@@ -2932,7 +3029,11 @@ def write_hyper(P: dict, TS: dict, LP: dict, NN: dict) -> None:
         body_b,
         notes_b,
     )
-    write("rehaul_dm_hyper.tex", ta + "\n" + tb.replace(HEAD, ""))
+    # 2026-10-15 (user): parked -- "park all tables that I haven't mentioned in this chat"; tab:rh_dm_hyper_search
+    # now goes to its own file (generated/rehaul_dm_hyper_search.tex, not \input), tab:rh_dm_hyper stays.
+    # Was: write("rehaul_dm_hyper.tex", ta + "\n" + tb.replace(HEAD, ""))
+    write("rehaul_dm_hyper.tex", ta)
+    write("rehaul_dm_hyper_search.tex", tb)
 
 
 def write_tuning(P: dict, TS: dict, NN: dict) -> None:
@@ -2961,7 +3062,10 @@ def write_tuning(P: dict, TS: dict, NN: dict) -> None:
         REPO / "specs" / "causal_tune_linear.py", ("TUNE_PER", "VAL_TAIL", "EMBARGO")
     )
     tp = sorted({v[0] for v in op["PATHS"].values()})
-    q, pr = NN["q"], NN["pooled_rq"]
+    # 2026-10-15 (user): parked -- NN content parked for now (the pooled MinGRU row read NN["pooled_rq"]; the
+    # closing-interval walk's 125 / 25 check below still reads NN["q"])
+    # q, pr = NN["q"], NN["pooled_rq"]
+    q = NN["q"]
     nexp = consts(REPO / "src" / "unification.py", ("N_TREE_EXPERTS",))[
         "N_TREE_EXPERTS"
     ]
@@ -2990,9 +3094,17 @@ def write_tuning(P: dict, TS: dict, NN: dict) -> None:
     ppd = pl["PERIODS_PER_DAY"]
     x = r"$\times$"
     vg = f"{clp['VAL_TAIL']} / {clp['EMBARGO']}"
-    spec = (
-        "@{}" + P_(0.20) + "r" + P_(0.125) + P_(0.145) + P_(0.16) + P_(0.165) + "r@{}"
-    )
+    # 2026-10-15 (user): parked -- NN content parked for now: the MinGRU rows of both panels, and the seed column $S$
+    # (seeds averaged), which only the network filled (trees 1, linear --). The last cell of every row below is
+    # dropped with it; nrow() keeps the parked rows' code readable.
+    # spec = "@{}" + P_(0.20) + "r" + P_(0.125) + P_(0.145) + P_(0.16) + P_(0.165) + "r@{}"
+    spec = "@{}" + P_(0.20) + "r" + P_(0.125) + P_(0.145) + P_(0.16) + P_(0.195) + "@{}"
+
+    def nrow(c: list[str]) -> str:
+        """A row without its parked seed cell."""
+        check(len(c) == 7, "a tuning row as built: six cells and the parked seed cell")
+        return cells(c[:6])
+
     body = [
         r"\toprule",
         cells(
@@ -3003,13 +3115,13 @@ def write_tuning(P: dict, TS: dict, NN: dict) -> None:
                 stack("Re-selected", "every", align="l"),
                 stack("Validation", "sample / gap", align="l"),
                 "Criterion",
-                "$S$",
+                # "$S$",  # 2026-10-15 (user): parked -- NN content parked for now
             ]
         ),
         r"\midrule",
-        panel_row("Panel A: Closing-interval models (trading days)", 7),
-        cells(["OLS", W, "1", NA, NA, NA, NA]),
-        cells(
+        panel_row("Panel A: Closing-interval models (trading days)", 6),
+        nrow(["OLS", W, "1", NA, NA, NA, NA]),
+        nrow(
             [
                 "Ridge, Lasso, Elastic net",
                 W,
@@ -3021,7 +3133,7 @@ def write_tuning(P: dict, TS: dict, NN: dict) -> None:
                 NA,
             ]
         ),
-        cells(
+        nrow(
             [
                 "Trees, fixed hyperparameters",
                 W,
@@ -3032,7 +3144,7 @@ def write_tuning(P: dict, TS: dict, NN: dict) -> None:
                 "1",
             ]
         ),
-        cells(
+        nrow(
             [
                 "Trees, random search",
                 W,
@@ -3043,7 +3155,7 @@ def write_tuning(P: dict, TS: dict, NN: dict) -> None:
                 "1",
             ]
         ),
-        cells(
+        nrow(
             [
                 "Trees, Optuna",
                 W,
@@ -3054,20 +3166,13 @@ def write_tuning(P: dict, TS: dict, NN: dict) -> None:
                 "1",
             ]
         ),
-        cells(
-            [
-                "MinGRU",
-                W,
-                "1",
-                rf"{q['blocks']['block']} ({len(q['blocks']['blocks'])} blocks)",
-                f"{q['common']['val_tail']} / {q['common']['embargo']}",
-                "QLIKE of the seed mean",
-                str(len(q["seeds"])),
-            ]
-        ),
+        # 2026-10-15 (user): parked -- NN content parked for now
+        # nrow(["MinGRU", W, "1", rf"{q['blocks']['block']} ({len(q['blocks']['blocks'])} blocks)",
+        #       f"{q['common']['val_tail']} / {q['common']['embargo']}", "QLIKE of the seed mean",
+        #       str(len(q["seeds"]))]),
         r"\addlinespace",
-        panel_row("Panel B: Pooled intraday models (30-minute intervals)", 7),
-        cells(
+        panel_row("Panel B: Pooled intraday models (30-minute intervals)", 6),
+        nrow(
             [
                 "Ridge, Lasso, Elastic net",
                 n_(pl["TW_DAYS"] * ppd),
@@ -3087,7 +3192,7 @@ def write_tuning(P: dict, TS: dict, NN: dict) -> None:
         # cells([rf"Trees, fixed hyperparameters ({nexp} configurations)", n_(OUTLINE["pooled_window"]), "1",
         #        f"{su['TREE_TUNE_EVERY']}", f"{su['TREE_TAIL']} / {su['TREE_EMBARGO']}",
         #        "QLIKE: best configuration, or exponential weights", "1"]),
-        cells(
+        nrow(
             [
                 r"Trees, fixed hyperparameters (one configuration per method)",
                 n_(OUTLINE["pooled_window"]),
@@ -3103,17 +3208,10 @@ def write_tuning(P: dict, TS: dict, NN: dict) -> None:
         # cells(["MinGRU", n_(p["W"]), f"{p['refit']} days",
         #        rf"{q['blocks']['block']} days ({len(q['blocks']['blocks'])} blocks)",
         #        f"{n_(p['VAL'])} / {p['EMB']}", "MSE of the seed mean", str(len(p["seeds"]))]),
-        cells(
-            [
-                "MinGRU",
-                n_(pr["W"]),
-                f"{pr['refit']} days",
-                rf"{pr['per_block']} re-estimations ({pr['blocks']} blocks)",
-                f"{n_(pr['VAL'])} / {pr['EMB']}",
-                "QLIKE of the seed mean",
-                str(len(pr["seeds"])),
-            ]
-        ),
+        # 2026-10-15 (user): parked -- NN content parked for now
+        # nrow(["MinGRU", n_(pr["W"]), f"{pr['refit']} days",
+        #       rf"{pr['per_block']} re-estimations ({pr['blocks']} blocks)", f"{n_(pr['VAL'])} / {pr['EMB']}",
+        #       "QLIKE of the seed mean", str(len(pr["seeds"]))]),
         r"\bottomrule",
     ]
     # 2026-10-15 (table legibility): parked -- the seed values (now "All random seeds are fixed"; the values stay in
@@ -3131,10 +3229,12 @@ def write_tuning(P: dict, TS: dict, NN: dict) -> None:
         r"a choice.",
         r"Re-estimated and re-selected every: the spacing of successive estimations and hyperparameter selections, "
         r"in the units of the panel; $\mathcal C$: the grid neighbors that challenge the selected penalty.",
-        r"Criteria are computed on the scale of $\tilde y_{t,i}$ unless QLIKE is named; $S$: the number of random "
-        r"seeds averaged; all random seeds are fixed.",
-        r"Optuna starts a new search at each re-selection; the MinGRU network is re-estimated from scratch at each "
-        r"origin, each seed at its early-stopping epoch; the pooled trees use one fixed configuration per method (for "
+        # 2026-10-15 (user): parked -- NN content parked for now: the seed column's definition and the network's
+        # re-estimation clause. Was: "...unless QLIKE is named; $S$: the number of random seeds averaged; all random
+        # seeds are fixed." and "Optuna starts a new search at each re-selection; the MinGRU network is re-estimated
+        # from scratch at each origin, each seed at its early-stopping epoch; the pooled trees use ..."
+        r"Criteria are computed on the scale of $\tilde y_{t,i}$ unless QLIKE is named; all random seeds are fixed.",
+        r"Optuna starts a new search at each re-selection; the pooled trees use one fixed configuration per method (for "
         rf"LightGBM and XGBoost, single arms of a {nexp}-configuration development bank), re-estimated at every "
         rf"interval (part of them only every {bank_every}th).",
     ]
@@ -3148,6 +3248,258 @@ def write_tuning(P: dict, TS: dict, NN: dict) -> None:
             notes,
         ),
     )
+
+
+# ============================================================================ number macros
+# 2026-10-15 (number macros): the sample counts and constants the Data, Predictors and Methods sections (and the
+# Introduction) still typed, as \rhdm... macros in a macro-only file loaded once by the preamble of paper_rehaul.tex.
+# TYPED holds each value as the text typed it on 2026-10-15; the run stops if a computed value differs, so a change
+# in the data or the code cannot move a number silently (update the text and TYPED together).
+NUMBERS_FILE = "rehaul_dm_numbers.tex"
+BUCKETS_NUMBERS = (
+    GEN / "buckets_numbers.tex"
+)  # \bkSize<Bucket>: the group sizes 7/14/6/6/3/3/4/4 (make_buckets_tex.py)
+BK_SIZE = {
+    "moments": "bkSizeMom",
+    "liquidity": "bkSizeLiq",
+    "market_ew": "bkSizeMew",
+    "market_vw": "bkSizeMvw",
+    "sentiment": "bkSizeSent",
+    "implied_vol": "bkSizeIv",
+    "vol_demand": "bkSizeVd",
+    "fomc": "bkSizeFomc",
+}
+TYPED = {
+    "rhdmNIntervals": "48",
+    "rhdmGridRows": "303{,}442",
+    "rhdmBurnIn": "3{,}125",
+    "rhdmPooledRows": "300{,}317",
+    "rhdmPooledWindow": "24{,}000",
+    "rhdmPooledLinWindow": "96{,}000",
+    "rhdmCloseDays": "3{,}469",
+    "rhdmExpirationsOos": "872",
+    "rhdmEarlyCloses": "6",
+    "rhdmHeldOut": "413",
+    "rhdmHeldOutExpirations": "419",
+    "rhdmSpxwExpirations": "1{,}291",
+    "rhdmNColsPooled": "1{,}144",
+    "rhdmNSeriesPooled": "43",
+    "rhdmNHorizonsPooled": "12",
+    "rhdmNHorizonsClose": "6",
+    "rhdmNCalendar": "16",
+    "rhdmNEdgePooled": "24",
+    "rhdmNActive": "7",
+    "rhdmNActivePooled": "5",
+    "rhdmValTail": "125",
+    "rhdmRetuneFolds": "two",
+    "rhdmRfTrial": "255",
+}
+WORDS = {1: "one", 2: "two", 3: "three", 4: "four", 5: "five"}
+# 2026-10-15 (finish): the pooled linear models' window, 2,000 trading days x 48 intervals = 96,000, had no macro
+# (typed with a FLAG in 03_data.tex, 06_results.tex and 10_appendix.tex); \rhdmPooledLinWindow reads it from the code.
+POOL_LINEAR = REPO / "experiments" / "pool_linear_pretune.py"
+_POOLED_LIN_W: dict[str, int] = {}
+
+
+def pooled_lin_window(clp: dict) -> int:
+    """The pooled linear models' rolling estimation window W, in intervals: TW_DAYS x PERIODS_PER_DAY of
+    experiments/pool_linear_pretune.py:65-67 (W = 2,000 trading days x 48 = 96,000)."""
+    if "W" not in _POOLED_LIN_W:
+        pl = consts(POOL_LINEAR, ("TW_DAYS", "PERIODS_PER_DAY", "W"))
+        check(
+            pl["W"] == pl["TW_DAYS"] * pl["PERIODS_PER_DAY"],
+            "pool_linear_pretune.py: W = TW_DAYS x PERIODS_PER_DAY",
+        )
+        check(
+            pl["TW_DAYS"] == clp["TW"],
+            "pooled linear window in trading days = the closing-interval window (2,000)",
+        )
+        check(
+            pl["PERIODS_PER_DAY"] == TG.PERIODS_PER_DAY == 48,
+            "48 intervals a day (pool_linear_pretune.py = src/features/transforms/target.py)",
+        )
+        assert pl["W"] == 96_000, f"pooled linear window {pl['W']} != 96,000"
+        _POOLED_LIN_W["W"] = int(pl["W"])
+    return _POOLED_LIN_W["W"]
+
+
+def preamble_number_files() -> list[Path]:
+    """The number files paper_rehaul.tex loads in its preamble (the \\input{generated/...} lines before
+    \\begin{document}), this generator's own file excluded."""
+    pre = (REPO / "writeup" / "paper_rehaul.tex").read_text(encoding="utf-8")
+    pre = pre.split(r"\begin{document}")[0]
+    out = []
+    for line in pre.splitlines():
+        m = re.match(r"\s*\\input\{generated/([\w-]+)\}", line)
+        if m and m.group(1) + ".tex" != NUMBERS_FILE:
+            out.append(GEN / (m.group(1) + ".tex"))
+    return out
+
+
+def defined_macros(p: Path) -> dict[str, str]:
+    """name -> value of every \\newcommand / \\providecommand in a number file (values to the first unbraced '}')."""
+    out: dict[str, str] = {}
+    for m in re.finditer(
+        r"\\(?:newcommand|providecommand)\{\\(\w+)\}\{([^{}]*(?:\{[^{}]*\}[^{}]*)*)\}",
+        need(p).read_text(encoding="utf-8"),
+    ):
+        out.setdefault(m.group(1), m.group(2))
+    return out
+
+
+def write_numbers(P: dict, D: dict, TS: dict, LP: dict) -> None:
+    """rehaul_dm_numbers.tex: macro definitions only (no tables)."""
+    clp, M = P["clp"], TS["M"]
+    ppd = TG.PERIODS_PER_DAY
+    clocks = P["df"]["t"].dt.strftime("%H:%M").nunique()
+    check(
+        clocks == ppd == 48,
+        f"{ppd} half-hour intervals a day: every clock time occurs on the grid",
+    )
+    check(
+        P["pooled_window"] == TS["T"]["POOLED_WINDOW_ROWS"],
+        "the pooled window (src/unification.py) = the trees' leaf-rescaling denominator (specs/causal_tune_trees.py)",
+    )
+    check(
+        clp["VAL_TAIL"] == LP["G"]["VAL_TAIL"] and clp["EMBARGO"] == LP["G"]["EMBARGO"],
+        "validation sample and gap: close_linear_pretune.py = specs/causal_tune_linear.py",
+    )
+    check(
+        M["cmPtEmbargo"] == str(clp["EMBARGO"]),
+        r"the gap is \cmPtEmbargo (close_main_numbers.tex); no new macro",
+    )
+    lat, lat_full = P["later"]
+    check(
+        lat - lat_full
+        == int(
+            SRC["exp"][SRC["exp"].index > pd.Timestamp(clp["LAST_TRADE_DAY"])].sum()
+        ),
+        "held-out expirations less their early closes = the held-out full trading days",
+    )
+    # the group sizes are \bkSize* of buckets_numbers.tex (macro-only; loaded by the preamble): same counts here
+    bk = defined_macros(BUCKETS_NUMBERS)
+    check(
+        all(bk[BK_SIZE[b]] == str(D["nser"][b]) for b in BUCKET_LABEL),
+        r"\bkSize* (buckets_numbers.tex) = the series per group, from src/data/loading.py SUBGROUPS",
+    )
+    vals = {
+        "rhdmNIntervals": (
+            str(ppd),
+            "intraday intervals a day, M (half hours; the pooled intraday model)",
+        ),
+        "rhdmGridRows": (
+            n_(P["grid"][2]),
+            "intervals on the intraday grid (observed RV, weekend break out)",
+        ),
+        "rhdmBurnIn": (n_(P["burn"]), "burn-in intervals, the longest HAR horizon"),
+        "rhdmPooledRows": (
+            n_(P["pooled"][2]),
+            "pooled intraday sample, intervals after the burn-in",
+        ),
+        "rhdmPooledWindow": (
+            n_(P["pooled_window"]),
+            "pooled rolling estimation window W, intervals",
+        ),
+        "rhdmPooledLinWindow": (
+            n_(pooled_lin_window(clp)),
+            "pooled linear models' rolling estimation window W, intervals (2,000 trading days x 48)",
+        ),
+        "rhdmCloseDays": (
+            n_(P["perbar"][2]),
+            "closing-interval sample, trading days after the burn-in",
+        ),
+        "rhdmExpirationsOos": (
+            str(P["exp_to_end"]),
+            # "SPXW expirations to the end of the out-of-sample period",  # 2026-10-15: parked -- the wording
+            "SPXW expirations to the end of the evaluation span (2024-04-30)",
+        ),
+        "rhdmEarlyCloses": (
+            str(P["ec_to_end"]),
+            # "of which early-close days (T_oos = expirations less these)",  # 2026-10-15: parked -- the wording
+            "of which early-close days (T_opt, the option-data subsample = expirations less these)",
+        ),
+        "rhdmHeldOut": (
+            str(lat_full),
+            "later SPXW expirations held out: full trading days",
+        ),
+        "rhdmHeldOutExpirations": (
+            str(lat),
+            "later SPXW expirations held out: all, early closes included",
+        ),
+        "rhdmSpxwExpirations": (
+            n_(len(SRC["exp"])),
+            "SPXW expirations in the option file",
+        ),
+        "rhdmNColsPooled": (
+            n_(D["n_pooled"]),
+            "columns of the pooled intraday model's full predictor set",
+        ),
+        "rhdmNSeriesPooled": (
+            str(D["n_series_pooled"]),
+            "exogenous series in the pooled panel (pre-FOMC)",
+        ),
+        "rhdmNHorizonsPooled": (
+            str(D["kq"]),
+            "HAR horizons, pooled intraday model (base 2)",
+        ),
+        "rhdmNHorizonsClose": (
+            str(D["k"]),
+            "HAR horizons, closing-interval model (base 5)",
+        ),
+        "rhdmNCalendar": (str(len(D["cal"])), "calendar-dummy columns (both models)"),
+        "rhdmNEdgePooled": (
+            str(D["n_edge_pooled"]),
+            "HAR x opening/closing-interval dummy columns (pooled)",
+        ),
+        "rhdmNActive": (
+            str(len(D["act"])),
+            "series with an activity indicator, closing-interval model",
+        ),
+        "rhdmNActivePooled": (
+            str(D["n_active_pooled"]),
+            "series with an activity indicator, pooled panel",
+        ),
+        "rhdmValTail": (
+            str(clp["VAL_TAIL"]),
+            "validation sample n_val, observations (the gap is \\cmPtEmbargo)",
+        ),
+        "rhdmRetuneFolds": (
+            WORDS[clp["RETUNE_FOLDS"]],
+            "validation folds of the linear light re-tune",
+        ),
+        "rhdmRfTrial": (
+            str(TS["rf"]["trial"]),
+            "the random forest's fixed configuration: Optuna trial number",
+        ),
+    }
+    check(
+        D["n_pooled"]
+        == D["kq"]
+        + len(D["cal"])
+        + D["n_edge_pooled"]
+        + 2 * D["n_series_pooled"] * D["kq"]
+        + D["n_active_pooled"] * D["kq"],
+        "1,144 = 12 + 16 + 24 + 43 x 12 + 43 x 12 + 5 x 12 (the Predictors section's display)",
+    )
+    check(set(vals) == set(TYPED), "every \\rhdm macro has its typed value")
+    for k, (v, _) in vals.items():
+        check(v == TYPED[k], rf"\{k} = {v} (typed {TYPED[k]})")
+    # no name clash with the other number files of the preamble
+    others: dict[str, str] = {}
+    for p in preamble_number_files():
+        for name in defined_macros(p):
+            others.setdefault(name, p.name)
+    clash = sorted(k for k in vals if k in others)
+    check(not clash, f"no \\rhdm name defined in another preamble number file: {clash}")
+    lines = [
+        "% AUTO-GENERATED by writeup/make_rehaul_data_methods.py -- do not edit; re-run the script.",
+        "% Macro definitions only (no tables); loaded once by the preamble of paper_rehaul.tex. Sample counts and",
+        "% constants of the Introduction and the Data, Predictors and Methods sections, each computed from the data,",
+        "% the specs and the result files (asserted against the values the text typed on 2026-10-15). The group sizes",
+        "% are \\bkSize<Group> (buckets_numbers.tex), the gap \\cmPtEmbargo (close_main_numbers.tex).",
+    ]
+    lines += [rf"\newcommand{{\{k}}}{{{v}}}  % {what}" for k, (v, what) in vals.items()]
+    write(NUMBERS_FILE, "\n".join(lines) + "\n")
 
 
 # ============================================================================ main
@@ -3205,6 +3557,7 @@ def main() -> None:
     write_dictionary(rows, D)
     write_hyper(P, TS, LP, NN)
     write_tuning(P, TS, NN)
+    write_numbers(P, D, TS, LP)
     print(f"{len(CHECKS)} checks passed")
     for c in CHECKS:
         print("  ok:", c)

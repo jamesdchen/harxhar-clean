@@ -1,0 +1,6 @@
+0 t1 all_features rf 2000 bar1600 0 2000 2003 2000
+0 t1 baseline rf 2000 bar1600 0 2000 2138 2000
+0 t1 lean_vol_vix rf 2000 bar1600 0 2000 2023 2000
+0 t10 all_features rf 2000 bar1600 0 2000 2030 2000
+0 t10 baseline rf 2000 bar1600 0 2000 2740 2000
+0 t10 lean_vol_vix rf 2000 bar1600 0 2000 2200 2000

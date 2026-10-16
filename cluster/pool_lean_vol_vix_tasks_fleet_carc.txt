@@ -1,0 +1,3 @@
+lean_vol_vix ridge 2000 20 10250
+lean_vol_vix reclasso 2000 20 10250
+lean_vol_vix reclasticnet 2000 20 10250

@@ -9,8 +9,12 @@ extends to that horizon, using ONLY information available at t
 in the yhat exports, no option data.
 
 Constructions (per entry hour h, expanding fits over strictly earlier
-days, minimum 63, applied one day forward, then the causal QLIKE-optimal
-multiplicative rescale c_h = expanding mean of realized/forecast):
+days, minimum 63, applied one day forward; each fitted log value is
+back-transformed by exp() alone -- the plain back-transform, no smearing
+factor and no rescale (2026-10-06, recalibration removed by user decision;
+the per-bar inputs are already the plain yhat^2 * B). The archived run's
+causal QLIKE-optimal multiplicative rescale c_h = expanding mean of
+realized/forecast is reproduced only under --recal):
 
   M1  one-step mapped:  log RV_{t,T} ~ a_h + b_h log vhat_t
         vhat_t = the model's forecast for bar t+1, issued at t.
@@ -50,6 +54,10 @@ Opt-in (the default run's outputs are unchanged by these flags):
                      A non-default file requires --tag.
   --tag TAG          suffix for every output file (ttc<TAG>_*.csv), so a
                      variant never overwrites the default outputs.
+  --recal            reproduce the archived (pre-2026-10-06) run: every
+                     forecast, M0 included, times the causal rescale c_h.
+                     Requires --tag. Archived outputs of the default run:
+                     results/multihorizon/recal_2026-09-24/.
 """
 
 from __future__ import annotations
@@ -69,6 +77,7 @@ ENTRY = GRID[:-1]  # last bar has no remaining horizon
 BLK2_FILE = "yhat_blk2.parquet"
 TAG = ""
 SAVE_FORECASTS = False
+RECAL = False  # 2026-10-06: plain back-transform by default (no rescale)
 FORECAST_KEYS = (
     "M0",
     "a0_M1",
@@ -130,6 +139,10 @@ def _expanding_ols(y: np.ndarray, X: np.ndarray) -> np.ndarray:
 
 
 def _causal_scale(y: np.ndarray, f: np.ndarray) -> np.ndarray:
+    """The forecast as issued: plain exp() back-transform, or (--recal only)
+    times the causal rescale c = expanding mean of realized/forecast."""
+    if not RECAL:
+        return f
     r = pd.Series(y / np.maximum(f, 1e-18))
     return r.expanding(min_periods=BURN).mean().shift(1).to_numpy(float) * f
 
@@ -173,13 +186,15 @@ def configure(
     blk2_file: str = "yhat_blk2.parquet",
     tag: str = "",
     save_forecasts: bool = False,
+    recal: bool = False,
 ) -> None:
-    """Set the grid, the blk2 input and the output names (defaults = the committed run)."""
-    global GRID, ENTRY, BLK2_FILE, TAG, SAVE_FORECASTS
-    if (through_close or blk2_file != "yhat_blk2.parquet") and not tag:
+    """Set the grid, the blk2 input and the output names (defaults = the plain run, 2026-10-06)."""
+    global GRID, ENTRY, BLK2_FILE, TAG, SAVE_FORECASTS, RECAL
+    if (through_close or blk2_file != "yhat_blk2.parquet" or recal) and not tag:
         raise SystemExit(
-            "--through-close / --blk2-file need --tag: a variant never overwrites the default outputs"
+            "--through-close / --blk2-file / --recal need --tag: a variant never overwrites the default outputs"
         )
+    RECAL = recal
     GRID = [f"{h:02d}:{m:02d}" for h in range(10, 16) for m in (0, 30)]
     if through_close:
         GRID = GRID + ["16:00"]  # the bar ending at the close (bar-end labels)
@@ -224,7 +239,7 @@ def main() -> None:
         ly = np.log(y)
         lso = np.log(np.maximum(sofar[:, i], 1e-18))
         lprev = np.r_[np.nan, ly[:-1]]  # yesterday's realized same-horizon
-        # M0 naive: expanding mean of log y (shifted), then causal scale
+        # M0 naive: expanding mean of log y (shifted), exp() back-transform
         f0 = np.exp(
             pd.Series(ly).expanding(min_periods=BURN).mean().shift(1).to_numpy(float)
         )
@@ -308,7 +323,7 @@ def main() -> None:
                 last_fit_day = dpos
             f[r_] = Z[r_] @ beta
         P["f"] = np.exp(f)
-        # causal scale per hour
+        # back-transform per hour (plain; the causal rescale only under --recal)
         q = np.full(len(P), np.nan)
         for i in range(len(ENTRY)):
             sel = (P["hidx"] == i).to_numpy()
@@ -395,6 +410,7 @@ if __name__ == "__main__":
     ap.add_argument("--through-close", action="store_true")
     ap.add_argument("--blk2-file", default="yhat_blk2.parquet")
     ap.add_argument("--tag", default="")
+    ap.add_argument("--recal", action="store_true")
     a = ap.parse_args()
-    configure(a.through_close, a.blk2_file, a.tag, a.save_forecasts)
+    configure(a.through_close, a.blk2_file, a.tag, a.save_forecasts, a.recal)
     main()

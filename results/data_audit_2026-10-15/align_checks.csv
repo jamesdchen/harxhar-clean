@@ -1,0 +1,17 @@
+check,n,value,detail
+trade days whose 15:30 ET entry stamp has the UTC clock of its DST state (19:30 EDT / 20:30 EST),866,866.0,
+trade days with the vendor's hours_to_expiration = 0.5 at the entry stamp,866,866.0,
+trade days on an NYSE early-close date,866,0.0,
+expirations 2020-01-03..2024-04-30 in the chain,872,872.0,
+chain early_close flags vs the NYSE calendar (2020-2024): symmetric difference,6,0.0,flagged: 2020-11-27; 2020-12-24; 2021-11-26; 2022-11-25; 2023-07-03; 2023-11-24
+expirations on a day with no stock-file print (non-NYSE day),872,0.0,
+chain rows on trade days whose stamp + hours_to_expiration is not 16:00 ET,5312958,0.0,
+DST-transition weeks 2020-2025 whose spot/ES correlation peaks at lag 0,12,9.0,
+DST-transition weeks 2007-2024 whose stock-file/ES correlation peaks at lag 0,35,28.0,not at lag 0: 2015-11-02/2015-11-08; 2016-11-07/2016-11-13; 2017-03-13/2017-03-19; 2018-11-05/2018-11-11; 2019-11-04/2019-11-10; 2020-11-02/2020-11-08; 2023-03-13/2023-03-19
+"corr(log S_close / S at 15:30, ES sumret of the 16:00 bar (15:30-16:00)) on trade days",866,0.9945,
+"corr(log S_close / S at 15:30, ES sumret of the 15:30 bar) on trade days",866,0.0865,
+"corr(log S_close / S at 15:30, ES sumret of the 16:30 bar) on trade days",866,-0.1275,
+"... the 16:00 bar, DST-transition-week trade days only",35,0.998,
+median of ES RV(16:00 bar) / (log S_close/S)^2 on trade days,866,1.928,
+trade days without an ES 16:00 bar,866,0.0,
+trade days without a stock-file 15:30 or 16:00 bar,866,0.0,

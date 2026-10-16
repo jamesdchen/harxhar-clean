@@ -15,11 +15,17 @@ Two steps.
               results/strategy_variations/legs_1530_1600.parquet.
   (default)   scores every variation from that small file on the straddle
               trade's 866 days: sign(s) with the per-bar ridge on the
-              live-feasible set (research scorer, 16:00-bar recalibration) and
-              with the block-diagonal ridge (the paper's forecast, deck scorer),
-              plus always short; fills mid and crossed; two return frames;
-              paired block-bootstrap intervals of each variation minus the
-              straddle; the bid-ask cost line; a figure; the LaTeX table.
+              live-feasible set and with the block-diagonal ridge (the paper's
+              forecast, deck scorer), plus always short; fills mid and crossed;
+              two return frames; each variation minus the straddle, paired, as
+              a point estimate; the bid-ask cost line; a figure; the LaTeX table.
+
+2026-10-06 (recalibration removed, user decision): both forecasts are their
+plain back-transform f^2 * B (the per-bar ridge from its arm's pred_adj and
+baseline; the block-diagonal ridge through the re-run deck), and no interval is
+computed or shown: the *_lo / *_hi columns of the CSVs are kept, empty, so their
+readers keep the schema.  Parked: the research scorer's 16:00-bar recalibration
+(pred_clock) and the paired block-bootstrap intervals.
 
 Usage:
     python experiments/strategy_variations_1530.py --extract
@@ -331,12 +337,16 @@ def price_structure(L: list[Leg], b: DayBook, S_close: float) -> dict[str, Any]:
 
 
 def research_pred_1600() -> pd.Series:
-    """The research scorer's forecast of the 15:30-16:00 bar (causal per-clock term), 16:00-stamped."""
+    """The per-bar ridge's forecast of the 15:30-16:00 bar, 16:00-stamped: plain pred_adj^2 * B.
+
+    2026-10-06: recalibration removed (user decision).  Parked: the research scorer's
+    causal per-clock term, ``r["pred_clock"]``.
+    """
     from compare_mfiv_harlag import _prep
 
     r = _prep(RESEARCH_ARM)
     assert r is not None, RESEARCH_ARM
-    f = r["pred_clock"]
+    f = r["pred_adj"] ** 2 * r["baseline"]  # was: f = r["pred_clock"]
     return f[f.index.strftime("%H:%M") == "16:00"]
 
 
@@ -383,8 +393,10 @@ def stats_row(x: np.ndarray, q: np.ndarray) -> dict[str, float]:
     n = len(x)
     tot = float(x.sum())
     top = float(np.sort(x)[::-1][:TAIL_DAYS].sum())
-    bs = boot_sharpe(x)
-    lo, hi = np.nanpercentile(bs, [2.5, 97.5])
+    # 2026-10-06: intervals removed (user decision); parked:
+    # bs = boot_sharpe(x)
+    # lo, hi = np.nanpercentile(bs, [2.5, 97.5])
+    lo = hi = np.nan
     return {
         "n": n,
         "mean": float(x.mean()),
@@ -405,13 +417,15 @@ def stats_row(x: np.ndarray, q: np.ndarray) -> dict[str, float]:
 
 
 def paired_row(a: np.ndarray, b: np.ndarray) -> dict[str, float]:
-    idx = boot_idx(len(a))
-    da, db = a[idx], b[idx]
-    ds = _draw_sharpe(da) - _draw_sharpe(db)
-    dm = (da - db).mean(axis=1)
     t_hac, _ = asl.newey_west_t(a - b)
-    s_lo, s_hi = np.nanpercentile(ds, [2.5, 97.5])
-    m_lo, m_hi = np.nanpercentile(dm, [2.5, 97.5])
+    # 2026-10-06: intervals removed (user decision); parked:
+    # idx = boot_idx(len(a))
+    # da, db = a[idx], b[idx]
+    # ds = _draw_sharpe(da) - _draw_sharpe(db)
+    # dm = (da - db).mean(axis=1)
+    # s_lo, s_hi = np.nanpercentile(ds, [2.5, 97.5])
+    # m_lo, m_hi = np.nanpercentile(dm, [2.5, 97.5])
+    s_lo = s_hi = m_lo = m_hi = np.nan
     return {
         "dSharpe": sharpe(a) - sharpe(b),
         "dSharpe_lo": float(s_lo),
@@ -630,7 +644,7 @@ def score() -> None:
 
     ref = trade_1530(research_pred_1600())
     print(
-        f"gate: straddle sign(s) Sharpe, research scorer mid {sh(RULE_RESEARCH, 'mid'):.4f} (scorer {ref['Sharpe_mid']:.4f}), "
+        f"gate: straddle sign(s) Sharpe, per-bar ridge (plain) mid {sh(RULE_RESEARCH, 'mid'):.4f} (scorer {ref['Sharpe_mid']:.4f}), "
         f"crossed {sh(RULE_RESEARCH, 'crossed'):.4f} (scorer {ref['Sharpe_crossed']:.4f}); deck scorer mid "
         f"{sh(RULE_DECK, 'mid'):.4f} crossed {sh(RULE_DECK, 'crossed'):.4f}; always short mid {sh(RULE_SHORT, 'mid'):.4f} "
         f"crossed {sh(RULE_SHORT, 'crossed'):.4f}"
@@ -895,19 +909,15 @@ def make_figure(head: pd.DataFrame) -> None:
             yy = np.array([ypos[v] for v in g["variation"]]) + (
                 0.17 if k == 0 else -0.17
             )
-            lo = g["Sharpe_lo"].to_numpy(float)
-            hi = g["Sharpe_hi"].to_numpy(float)
-            ax.hlines(
-                yy,
-                np.clip(lo, lo_x, hi_x),
-                np.clip(hi, lo_x, hi_x),
-                color=colors[fill],
-                lw=1.4,
-            )
-            for yv, a, b in zip(yy, lo, hi):
-                if b > hi_x:
+            # 2026-10-06: intervals removed (user decision); the interval bars are parked:
+            # lo = g["Sharpe_lo"].to_numpy(float)
+            # hi = g["Sharpe_hi"].to_numpy(float)
+            # ax.hlines(yy, np.clip(lo, lo_x, hi_x), np.clip(hi, lo_x, hi_x), color=colors[fill], lw=1.4)
+            sv = g["Sharpe"].to_numpy(float)
+            for yv, v in zip(yy, sv):
+                if v > hi_x:
                     ax.plot(hi_x, yv, ">", ms=5, color=colors[fill], clip_on=False)
-                if a < lo_x:
+                if v < lo_x:
                     ax.plot(lo_x, yv, "<", ms=5, color=colors[fill], clip_on=False)
             ax.plot(
                 np.clip(g["Sharpe"].to_numpy(float), lo_x, hi_x),
@@ -917,7 +927,7 @@ def make_figure(head: pd.DataFrame) -> None:
                 color=colors[fill],
                 mfc=colors[fill] if fill == "mid" else "white",
                 mew=1.5,
-                label=f"{fill} fill, 95% interval",
+                label=f"{fill} fill",
             )
             st = g[g["variation"] == "straddle"]
             ax.axvline(float(st["Sharpe"].iloc[0]), color=colors[fill], lw=0.8, ls="--")
@@ -926,10 +936,8 @@ def make_figure(head: pd.DataFrame) -> None:
             if fam[a] != fam[b]:
                 ax.axhline((ypos[a] + ypos[b]) / 2, color=grid, lw=0.8)
         ax.set_xlim(lo_x, hi_x)
-        title = rule.replace(
-            ", research scorer", "\n(research scorer: 16:00-bar recalibration)"
-        )
-        title = title.replace(", deck scorer", "\n(deck scorer, as in the paper)")
+        title = rule.replace(", research scorer", "\n(plain forecast f^2 B)")
+        title = title.replace(", deck scorer", "\n(deck, plain forecast f^2 B)")
         if rule == RULE_SHORT:
             title += "\n(no forecast)"
         ax.set_title(title, fontsize=9, color="#0b0b0b")
@@ -946,7 +954,7 @@ def make_figure(head: pd.DataFrame) -> None:
     fig.suptitle(
         "Strategy variations of the 15:30 last-30-min trade, same 866 days: Sharpe ratio by variation "
         "and width, mid vs crossed fills\n(dashed: the straddle under the same rule and fill; arrows: "
-        f"an interval that runs past {hi_x:g} or below {lo_x:g})",
+        f"a point past {hi_x:g} or below {lo_x:g}; point estimates, no intervals)",
         fontsize=10,
     )
     fig.tight_layout()
@@ -1062,23 +1070,24 @@ def _results_table(
 ) -> list[str]:
     h = head[head["rule"] == rule]
     out = [
-        # 9 columns at 3pt of padding overran the text width by 27.8pt; 1pt fits
-        r"\begingroup\footnotesize\setlength{\tabcolsep}{1pt}",
-        r"\begin{longtable}{lrrlrrlrr}",
+        # 9 columns at 3pt of padding overran the text width by 27.8pt; 1pt fit them.  Since
+        # 2026-10-06 (no interval columns) seven columns fit at 4pt.
+        r"\begingroup\footnotesize\setlength{\tabcolsep}{4pt}",
+        r"\begin{longtable}{lrrrrrr}",
         # caption + label only in the first head: a head under \endhead is
         # repeated on every page the table spans, which redefines the label
         r"\caption{" + caption + r"}\label{" + label + r"}\\",
         r"\toprule",
-        r"& \multicolumn{3}{c}{mid fill} & \multicolumn{3}{c}{crossed fill} & worst & cost \\",
-        r"\cmidrule(lr){2-4}\cmidrule(lr){5-7}",
-        r"variation & Sharpe & $\Delta$Sharpe & [95\% interval] & Sharpe & $\Delta$Sharpe & [95\% interval] & day & share \\",
+        r"& \multicolumn{2}{c}{mid fill} & \multicolumn{2}{c}{crossed fill} & worst & cost \\",
+        r"\cmidrule(lr){2-3}\cmidrule(lr){4-5}",
+        r"variation & Sharpe & $\Delta$Sharpe & Sharpe & $\Delta$Sharpe & day & share \\",
         r"\midrule",
         r"\endfirsthead",
         r"\caption[]{(continued)}\\",
         r"\toprule",
-        r"& \multicolumn{3}{c}{mid fill} & \multicolumn{3}{c}{crossed fill} & worst & cost \\",
-        r"\cmidrule(lr){2-4}\cmidrule(lr){5-7}",
-        r"variation & Sharpe & $\Delta$Sharpe & [95\% interval] & Sharpe & $\Delta$Sharpe & [95\% interval] & day & share \\",
+        r"& \multicolumn{2}{c}{mid fill} & \multicolumn{2}{c}{crossed fill} & worst & cost \\",
+        r"\cmidrule(lr){2-3}\cmidrule(lr){4-5}",
+        r"variation & Sharpe & $\Delta$Sharpe & Sharpe & $\Delta$Sharpe & day & share \\",
         r"\midrule",
         r"\endhead",
     ]
@@ -1093,13 +1102,11 @@ def _results_table(
         share = _cost_share(cst, vn, "own")
         if vn == "straddle":
             dm = dx = "---"
-            im = ix = ""
         else:
             dm, dx = _f(m["dSharpe"]), _f(x["dSharpe"])
-            im = f"[{_f(m['dSharpe_lo'])}, {_f(m['dSharpe_hi'])}]"
-            ix = f"[{_f(x['dSharpe_lo'])}, {_f(x['dSharpe_hi'])}]"
+        # 2026-10-06: the [95% interval] columns are removed (user decision)
         out.append(
-            f"{_tex_label(vn)} & {_f(m['Sharpe'])} & {dm} & {im} & {_f(x['Sharpe'])} & {dx} & {ix} "
+            f"{_tex_label(vn)} & {_f(m['Sharpe'])} & {dm} & {_f(x['Sharpe'])} & {dx} "
             f"& {_f(m['worst_day'])} & {_f(share)} \\\\"
         )
     out += [r"\bottomrule", r"\end{longtable}", r"\endgroup", ""]
@@ -1107,14 +1114,14 @@ def _results_table(
 
 
 def _best_note(hr: pd.DataFrame, best_mid: str, best_x: str) -> str:
-    """The paired difference of a best row that is not the straddle, with its interval."""
+    """The paired difference of a best row that is not the straddle (point estimate, 2026-10-06)."""
     notes = []
     for vn, fill in ((best_mid, "mid"), (best_x, "crossed")):
         if vn != "straddle":
             r = hr.loc[(vn, fill)]
             notes.append(
                 f" The {fill}-fill lead of the {_tex_label(vn)} row over the straddle is "
-                f"{_f(float(r['dSharpe']))} [{_f(float(r['dSharpe_lo']))}, {_f(float(r['dSharpe_hi']))}]."
+                f"{_f(float(r['dSharpe']))}."
             )
     return "".join(notes)
 
@@ -1126,9 +1133,8 @@ def make_tex(head: pd.DataFrame, cost: pd.DataFrame) -> None:
         for v in dict.fromkeys(head["variation"])
         if v.startswith(("iron butterfly", "straddle + wing"))
     ]
-    below = {
-        f: sum(float(hr.loc[(v, f), "dSharpe_hi"]) < 0 for v in wing) for f in FILLS
-    }
+    # 2026-10-06: point estimates (was: the interval's upper end, dSharpe_hi, below zero)
+    below = {f: sum(float(hr.loc[(v, f), "dSharpe"]) < 0 for v in wing) for f in FILLS}
     cst = cost.set_index("variation")
     ifly = [_cost_share(cst, f"iron butterfly, w{int(w)}", "own") for w in WIDTHS]
     icon = [_cost_share(cst, f"iron condor, w{int(w)}", "own") for w in WIDTHS]
@@ -1162,8 +1168,9 @@ def make_tex(head: pd.DataFrame, cost: pd.DataFrame) -> None:
         r"and sold at the bid). The return is the day's profit and loss in index points divided by",
         r"that day's straddle premium at the same fill, so every row shares the straddle row's",
         r"denominator and a paired difference isolates the structure; the straddle row is the",
-        r"straddle trade's return. Intervals are 95\% circular block bootstrap intervals (block 21",
-        r"days, 2{,}000 draws), paired against the straddle on the same days, rule and fill.",
+        r"straddle trade's return. The forecast is used as its plain back-transform, the",
+        r"forecast of $\sqrt{RV/B}$ squared times the time-of-day baseline $B$. Every figure is a",
+        r"point estimate; a difference is paired against the straddle on the same days, rule and fill.",
         "",
         r"\begingroup\footnotesize\setlength{\tabcolsep}{3pt}",
         r"\begin{longtable}{p{2.7cm}p{4.3cm}p{3.4cm}p{1.6cm}p{3.4cm}}",
@@ -1182,14 +1189,23 @@ def make_tex(head: pd.DataFrame, cost: pd.DataFrame) -> None:
     ]
     lines += [" & ".join(r) + r" \\" for r in TEX_DEFS]
     lines += [r"\bottomrule", r"\end{longtable}", r"\endgroup", ""]
+    # 2026-10-06 (user decisions): live-feasible is no longer part of the paper, and the headline
+    # forecast (the per-bar ridge on live-feasible, RESEARCH_ARM) is being replaced.  Its paragraph
+    # and table are written as LaTeX comments under a TODO-HEADLINE line; the CSVs still carry the
+    # rule, for the main text's macros, until RESEARCH_ARM points at the new headline.
     lines += [
+        "% TODO-HEADLINE: the paragraph and the results table for the headline forecast return when the",
+        "% new headline is chosen (RESEARCH_ARM in experiments/strategy_variations_1530.py).",
+        "% 2026-10-06 parked (live-feasible removed from the paper, user decision):",
+    ]
+    _park = [
         r"\paragraph{What the variations show.} Under $\mathrm{sign}(s)$ with the per-bar ridge",
         r"(Table~\ref{tab:app_strategy_variations_res}), the highest Sharpe ratio at the midpoint is",
         f"the {_tex_label(best_mid)} row ({_f(float(sh_mid[best_mid]))}; the straddle",
         f"{_f(float(sh_mid['straddle']))}), and at crossed fills the {_tex_label(best_x)} row",
         f"({_f(float(sh_x[best_x]))}).{_best_note(hr, best_mid, best_x)} Wings cost the rule at crossed fills: {below['crossed']}",
-        f"of the {len(wing)} iron-butterfly and wing-hedge rows lie below the straddle with an interval",
-        f"that excludes zero, against {below['mid']} of {len(wing)} at the midpoint, where the cost shrinks",
+        f"of the {len(wing)} iron-butterfly and wing-hedge rows lie below the straddle,",
+        f"against {below['mid']} of {len(wing)} at the midpoint, where the cost shrinks",
         r"as the wing moves out. The median entry cost (crossed minus mid) is",
         f"{_pct(_cost_share(cst, 'straddle', 'own'))} of the straddle's own premium, "
         f"{_pct(ifly[0])} (w10) falling to {_pct(ifly[-1])} (w50) of the iron",
@@ -1198,36 +1214,50 @@ def make_tex(head: pd.DataFrame, cost: pd.DataFrame) -> None:
         f"premium against {_pct(_cost_share(cst, 'straddle', 'straddle'))} for the straddle itself.",
         "",
     ]
-    lines += _results_table(
+    _park += _results_table(
         head,
         cost,
         RULE_RESEARCH,
         r"Strategy variations under $\mathrm{sign}(s)$ with the per-bar ridge on the live-feasible set"
-        r" (16:00-bar recalibration), 866 days (861 for the butterflies at $w=25,50$). Sharpe ratios"
+        r" (plain forecast), 866 days (861 for the butterflies at $w=25,50$). Sharpe ratios"
         r" annualized by $\sqrt{252}$ per trade day, return per straddle premium; $\Delta$Sharpe:"
-        r" the variation minus the straddle, paired. Worst day: mid fill, in straddle premiums."
+        r" the variation minus the straddle, paired, a point estimate. Worst day: mid fill, in straddle premiums."
         r" Cost share: the median crossed-minus-mid entry cost over the structure's own absolute"
         r" midpoint premium, averaged over the buying and the selling side.",
         "tab:app_strategy_variations_res",
     )
+    lines += ["% " + ln if ln else "%" for ln in "\n".join(_park).split("\n")]
+    lines += [
+        "",
+        r"Table~\ref{tab:app_strategy_variations_res_blk} scores every variation under",
+        r"$\mathrm{sign}(s)$ on the block-diagonal ridge, the paper's forecast, and",
+        r"Table~\ref{tab:app_strategy_variations_res_short} under always short.",
+        "",
+    ]
     lines += _results_table(
         head,
         cost,
         RULE_DECK,
-        r"As Table~\ref{tab:app_strategy_variations_res}, with $\mathrm{sign}(s)$ on the block-diagonal"
-        r" ridge (the paper's forecast, with the paper's recalibration over the session bars).",
+        r"Strategy variations under $\mathrm{sign}(s)$ with the block-diagonal ridge (the paper's"
+        r" forecast, plain), 866 days (861 for the butterflies at $w=25,50$). Sharpe ratios"
+        r" annualized by $\sqrt{252}$ per trade day, return per straddle premium; $\Delta$Sharpe:"
+        r" the variation minus the straddle, paired, a point estimate. Worst day: mid fill, in straddle"
+        r" premiums. Cost share: the median crossed-minus-mid entry cost over the structure's own"
+        r" absolute midpoint premium, averaged over the buying and the selling side.",
         "tab:app_strategy_variations_res_blk",
     )
     lines += _results_table(
         head,
         cost,
         RULE_SHORT,
-        r"As Table~\ref{tab:app_strategy_variations_res}, always short (no forecast): every structure"
-        r" sold every day.",
+        r"As Table~\ref{tab:app_strategy_variations_res_blk}, always short (no forecast): every"
+        r" structure sold every day.",
         "tab:app_strategy_variations_res_short",
     )
     TEX.parent.mkdir(parents=True, exist_ok=True)
-    TEX.write_text("\n".join(lines), encoding="utf-8")
+    TEX.write_text(
+        "\n".join(lines), encoding="utf-8", newline="\n"
+    )  # LF on Windows too
     print("wrote", TEX)
 
 

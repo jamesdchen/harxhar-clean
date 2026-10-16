@@ -13,22 +13,24 @@ research tables (t = the ET stamp in UTC at microsecond resolution, yhat =
 pred_adj, baseline = true_raw / true_adj^2, rv_raw = the PANEL's realized
 variance at the stamp -- never the arm's winsorized true_raw), and today's
 16:00 row goes through the deck's own loader, ``asl.load_yhat_1530_mz_cached``
-(the causal second-order MZ map fitted on the session's regular-hours rows), to
-``rv_hat``.
+with ``recal=False``, to its plain back-transform ``rv_hat = yhat^2 * baseline``
+(2026-10-06: recalibration removed from the live card, user decision; the
+causal second-order MZ map fitted on the session's regular-hours rows is parked
+and callable as ``recalibrate(..., recal=True)``).
 
-Why all 13 bars when only the 16:00 row is traded: the deck's recalibration is
-fitted on the whole session's rows, not the close alone.  Measured 2026-09-23:
-with the 16:00 rows alone the map is 4-5 % off the deck's rv_hat and disagrees
-with sign(s) on 89 of 866 days; with the 13-bar table it reproduces the deck to
-0.00 on 866/866 days (``assert_reproduces_deck`` is that gate, kept runnable).
+Why all 13 bars when only the 16:00 row is traded: the MZ map was fitted on the
+whole session's rows, not the close alone (measured 2026-09-23: with the 16:00
+rows alone the map was 4-5 % off the deck's rv_hat).  The plain back-transform
+reads only the 16:00 row; the 13 arms stay because ``assert_reproduces_deck``
+compares the whole table with the research table, and the parked map needs them.
 
 The 16:00 row of today does not exist at 15:30 -- its target has not
 happened.  The executor drops rows with no target, so the run appends a
 PLACEHOLDER row for today's 16:00 stamp carrying the 15:30 bar's realized
 variance as a dummy target.  Nothing the row predicts depends on that value:
 the HAR features are ``shift(1)`` of earlier rows, the diurnal baseline is a
-``shift(1)`` rolling statistic of the slot, and the MZ coefficients of a
-session use strictly prior sessions.  ``assert_placeholder_invariance`` is the
+``shift(1)`` rolling statistic of the slot (and the parked MZ map's
+coefficients of a session use strictly prior sessions).  ``assert_placeholder_invariance`` is the
 test of exactly that claim on a past day: the arms run with the true target
 and with a placeholder must give the same ``pred_adj`` and baseline on every
 row up to and including that session.
@@ -75,7 +77,7 @@ BUCKET = "free_vix_only"
 ESTIMATOR = "ridge"
 #: The traded row's segment: the 15:30-16:00 bar, forecast at 15:30.
 SEGMENT = "bar1600"
-#: Every regular-hours bar: the recalibration is fitted on all of them.
+#: Every regular-hours bar (the parked MZ map was fitted on all of them).
 BARS: tuple[str, ...] = tuple(
     f"bar{h:02d}{m:02d}" for h in range(10, 17) for m in (0, 30) if (h, m) <= (16, 0)
 )
@@ -213,6 +215,57 @@ def fomc_release_rows(csv_path: Path, stamps: pd.DatetimeIndex) -> pd.DataFrame:
     return pd.DataFrame({"endbartime": st, "fomc release": val})
 
 
+# 2026-10-15 (user): the data-audit fixes ("fix all 8", results/data_audit_2026-10-15/) landed in
+# src/ behind module flags that default to True.  Live keeps the PRE-FIX chain until the user moves
+# it: with PIN_PRE_AUDIT_SRC (the one switch) every run's copy of src/ has these flags set False,
+# which reproduces the pre-2026-10-15 src bit for bit (the audit's gate a).  The repo's src/ is
+# never edited.  SPLICE_VIX_FREE_FEED (the Yahoo hourly VIX splice of the historical panel) is
+# among them, so it can never act in live even if a free_feed/ folder appeared in a run's data/.
+# Measured on the live panel through 2026-09-30 (bar1600 free_vix_only ridge arm): see
+# results/data_audit_2026-10-15/live_flag_check.csv.
+PIN_PRE_AUDIT_SRC: bool = True
+PINNED_AUDIT_FLAGS: dict[str, tuple[str, ...]] = {
+    "src/data/loading.py": ("FOMC_CALENDAR_FIX", "SPLICE_VIX_FREE_FEED"),
+    "src/features/transforms/target.py": (
+        "FOMC_FLAGS_IDENTITY",
+        "CAUSAL_SD_FLOOR",
+        "CAUSAL_ASINH_ROUTING",
+    ),
+    "src/backtest/executor.py": (
+        "APPLY_FFILL_LIMIT",
+        "ACTIVE_FROM_OBSERVED",
+        "CAUSAL_MODE_INFLATION",
+        "CAUSAL_NEUTRAL_FILL",
+        "CAUSAL_GUARD_MODE",
+        "B_REGULAR_BARS_ONLY",
+        "DROP_EARLY_CLOSE_SESSIONS",
+        "ERODE_IN_BARS",
+        "BURNIN_IN_BAR_SPACE",
+    ),
+}
+
+
+def pin_audit_flags(src_root: Path) -> dict[str, list[str]]:
+    """Set the 2026-10-15 audit flags False in a COPY of src/ (``src_root`` holds src/); refuse
+    unless every flag is found exactly once as ``NAME: bool = True``."""
+    import re
+
+    done: dict[str, list[str]] = {}
+    for rel, names in PINNED_AUDIT_FLAGS.items():
+        f = Path(src_root) / rel
+        text = f.read_text(encoding="utf-8")
+        for name in names:
+            pat = re.compile(rf"^{name}: bool = True$", re.MULTILINE)
+            if len(pat.findall(text)) != 1:
+                raise RuntimeError(f"pin_audit_flags: {name} not found once in {rel}")
+            text = pat.sub(
+                f"{name}: bool = False  # pinned by live (PIN_PRE_AUDIT_SRC)", text
+            )
+        f.write_text(text, encoding="utf-8")
+        done[rel] = list(names)
+    return done
+
+
 def _copy_code(repo: Path, root: Path) -> None:
     root = Path(root)
     if root.exists():
@@ -224,6 +277,8 @@ def _copy_code(repo: Path, root: Path) -> None:
         root / "src",
         ignore=shutil.ignore_patterns("__pycache__", "*.pyc"),
     )
+    if PIN_PRE_AUDIT_SRC:
+        pin_audit_flags(root)
     shutil.copy2(
         repo / "specs" / "causal_tune_linear.py",
         root / "specs" / "causal_tune_linear.py",
@@ -519,13 +574,20 @@ def recalibrate(
     repo: Path,
     scratch: Path,
     tag: str = "close_signal",
+    recal: bool = False,
 ) -> pd.DataFrame:
     """The deck's loader on the assembled table: rv_hat, m, s2 per requested session date.
 
-    ``asl.load_yhat_1530_mz_cached`` -- the causal second-order MZ map fitted
-    on the regular-hours rows of prior sessions, the 15:30 book's own loader --
-    returns a frame indexed by session date with yhat, baseline, rv_raw, rv_hat,
-    m, s2, yhat_vol, m_vol for the 16:00 rows of the requested dates.
+    ``asl.load_yhat_1530_mz_cached`` -- the 15:30 book's own loader -- returns a
+    frame indexed by session date with yhat, baseline, rv_raw, rv_hat, m, s2,
+    yhat_vol, m_vol for the 16:00 rows of the requested dates.
+
+    2026-10-06: recalibration removed from the live card, user decision.  By
+    default (``recal=False``) rv_hat is the plain back-transform yhat^2 * baseline,
+    with m = yhat and s2 = 0.  The causal second-order MZ map fitted on the
+    regular-hours rows of prior sessions is parked and stays callable with
+    ``recal=True``.  The name is kept: tests, the fast-path check and the frozen
+    study copies call it.
     """
     asl = _asl(repo)
     scratch = Path(scratch)
@@ -533,7 +595,11 @@ def recalibrate(
     cache.mkdir(parents=True, exist_ok=True)
     p = scratch / f"yhat_{tag}.parquet"
     table.to_parquet(p, index=False)
-    out = asl.load_yhat_1530_mz_cached(tag, p, need_dates, cache, method="mean")
+    # 2026-10-06: recalibration removed from the live card, user decision.  Parked (recal=True):
+    # out = asl.load_yhat_1530_mz_cached(tag, p, need_dates, cache, method="mean")
+    out = asl.load_yhat_1530_mz_cached(
+        tag, p, need_dates, cache, method="mean", recal=recal
+    )
     idx = pd.DatetimeIndex(pd.to_datetime(out.index))
     out = out.copy()
     out.index = idx.tz_localize(None) if idx.tz is not None else idx
@@ -543,7 +609,11 @@ def recalibrate(
 def rv_hat_for(
     session: pd.Timestamp, table: pd.DataFrame, repo: Path, scratch: Path
 ) -> dict[str, float]:
-    """Today's 16:00 row through the deck's loader: rv_hat and its pieces."""
+    """Today's 16:00 row through the deck's loader: rv_hat and its pieces.
+
+    2026-10-06: plain back-transform (``recalibrate`` default); ``mz_m`` is then
+    yhat and ``mz_s2`` is 0 -- the keys are kept so the card's record keeps its shape.
+    """
     day = pd.Timestamp(session).normalize()
     px = recalibrate(table, [day], repo, scratch)
     if day not in px.index:
@@ -567,7 +637,7 @@ def forecast_session(
     python: str = sys.executable,
     workers: int = WORKERS,
 ) -> dict[str, float]:
-    """End to end for one session: placeholder row, extended root, 13 arms, table, MZ.
+    """End to end for one session: placeholder row, extended root, 13 arms, table, rv_hat.
 
     The path of record: one spec process per bar.  ``forecast_session_fast``
     is the same forecast from one shared pass (``arms_shared``).
@@ -860,6 +930,8 @@ def assert_reproduces_deck(
     yhat_rel_tol: float = 1e-6,
     rv_hat_rel_tol: float = 1e-7,
     reuse_arms: bool = False,
+    recal: bool = False,
+    deck_file: Path | None = None,
 ) -> dict[str, float]:
     """The live path on the vendor panel alone must BE the research: table and deck.
 
@@ -869,7 +941,9 @@ def assert_reproduces_deck(
     every row -- every stamp present on both sides, baseline and rv_raw EXACTLY,
     yhat to ``yhat_rel_tol`` -- and (2) equality of the loader's rv_hat with the
     deck ``daily_sub_live_ridge.parquet`` on every deck day to ``rv_hat_rel_tol``
-    with EVERY sign(s) agreeing.
+    with EVERY sign(s) agreeing.  2026-10-06: both sides are the plain
+    back-transform (the deck was re-run on it the same day); ``recal=True`` gates
+    the parked MZ map against a deck file written under it.
 
     Tolerances, and why they are not zero.  The research arms ran on CARC
     (Linux, its BLAS); this gate runs them on the operator's machine.  Same
@@ -919,11 +993,13 @@ def assert_reproduces_deck(
     ).max()
     d_base = np.abs(both["baseline"] - both["baseline_ref"]).max()
     d_rv = np.abs(both["rv_raw"] - both["rv_raw_ref"]).max()
-    deck = pd.read_parquet(
-        repo / "results" / "atm_straddle_0dte_1530" / f"daily_{DECK_TAG}.parquet"
-    ).sort_index()
+    if deck_file is None:
+        deck_file = (
+            repo / "results" / "atm_straddle_0dte_1530" / f"daily_{DECK_TAG}.parquet"
+        )
+    deck = pd.read_parquet(deck_file).sort_index()
     deck.index = pd.DatetimeIndex(pd.to_datetime(deck.index)).normalize()
-    px = recalibrate(tab, deck.index, repo, scratch, tag="gate_deck")
+    px = recalibrate(tab, deck.index, repo, scratch, tag="gate_deck", recal=recal)
     x = px["rv_hat"].reindex(deck.index)
     rel_rv = (np.abs(x - deck["rv_hat"]) / deck["rv_hat"]).to_numpy(float)
     matched = int(np.isfinite(rel_rv).sum())

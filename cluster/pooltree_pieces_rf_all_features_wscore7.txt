@@ -1,0 +1,7 @@
+rf all_features 73:1629:1630
+rf all_features 73:1713:1714
+rf all_features 74:1821:1822
+rf all_features 74:1869:1870
+rf all_features 74:1917:1918
+rf all_features 74:2309:2310
+rf all_features 78:309:310

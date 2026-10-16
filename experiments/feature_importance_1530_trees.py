@@ -27,6 +27,8 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import platform
+import socket
 import sys
 import time
 import warnings
@@ -60,8 +62,16 @@ SEG = "bar1600"
 TW = 2000  # sessions in every training window (the per-bar campaign's TRAIN_WIN)
 # sessions between tree refits (specs/causal_tune_trees.py REFIT_EVERY)
 REFIT_EVERY = 10
-BUCKETS = ("baseline", "all_features")  # live_feasible commented out
-BUCKET_ID = {b: i for i, b in enumerate(BUCKETS)}  # seeds the shared permutation draws
+BUCKETS = ("all_features",)  # baseline commented out; live_feasible commented out
+# BUCKET_ID = {b: i for i, b in enumerate(BUCKETS)}  # seeds the shared permutation draws
+# 2026-10-07: pinned to the ids the stored runs drew with (BUCKETS of 2026-09-29 = baseline, live_feasible,
+# all_features; checked against the stored parts' draw_md5).  Enumerating the shortened BUCKETS moved
+# all_features from 2 to 0, so a re-run would have drawn other permutations than the stored models of the bucket.
+BUCKET_ID = {
+    "baseline": 0,
+    "live_feasible": 1,
+    "all_features": 2,
+}  # seeds the shared permutation draws
 TREE_MODELS = ("lgbm", "xgb", "rf")
 SEED = 42  # the tree spec's model seed
 # The professor's example threshold for "highly correlated"; complete linkage makes every
@@ -83,6 +93,12 @@ MAX_BATCH_ROWS = 20000  # rows per predict call when scoring the permuted tails 
 # the tree_expert_00 / tree_expert_16 chunk meta; the leaf minimums scaled there from the
 # pooled 24,000-row window to the 2,000-row per-bar window).  The trees stage asserts
 # they equal the 'params' saved in each stored run's npz meta.
+# 2026-10-07 (user decision, writeup/MASTER_TABLE_REVIEW_2026-10-01.md item 76): XGBoost takes the TOP entry of
+# the 1998-2002 dev-span search, xgb_opt_00 (bank arm tree_expert_10, sha 88bec9f385c7), as LightGBM and the
+# random forest do; the pooled-window values below are results/trees_xgbtop_1600/xgb_config.json "config.params"
+# (min_child_weight scaled here as before).  The stored forecasts of the per-bar runs on these settings are the
+# xgbtop T10 tables (results/trees_xgbtop_1600/yhat_subtree_xgbtop_<bucket>.parquet, masked); the input files'
+# stored_xgb still holds the xgb_opt_06 run, so the refit-vs-stored gap of an xgb part is NOT the gate any more.
 POOLED_WINDOW_ROWS = 24000
 LGBM_PARAMS: dict = {
     "num_leaves": 20,
@@ -95,19 +111,92 @@ LGBM_PARAMS: dict = {
     "lambda_l2": 0.015950303832251992,
     "bagging_freq": 1,
 }
+# 2026-10-07 parked: xgb_opt_06 (bank arm tree_expert_16, sha 195b74503d9d, 7th-ranked dev entry)
+# XGB_PARAMS: dict = {
+#     "max_depth": 4,
+#     "learning_rate": 0.010853165384309853,
+#     "n_estimators": 339,
+#     "min_child_weight": 24.86134158090589 * TW / POOLED_WINDOW_ROWS,
+#     "subsample": 0.6086526390529718,
+#     "colsample_bytree": 0.6975888053713192,
+#     "reg_alpha": 1.087850849987857,
+#     "reg_lambda": 0.00041206887024929935,
+#     "gamma": 1.1082753230505144e-05,
+#     "tree_method": "hist",
+# }
 XGB_PARAMS: dict = {
-    "max_depth": 4,
-    "learning_rate": 0.010853165384309853,
-    "n_estimators": 339,
-    "min_child_weight": 24.86134158090589 * TW / POOLED_WINDOW_ROWS,
-    "subsample": 0.6086526390529718,
-    "colsample_bytree": 0.6975888053713192,
-    "reg_alpha": 1.087850849987857,
-    "reg_lambda": 0.00041206887024929935,
-    "gamma": 1.1082753230505144e-05,
+    "max_depth": 5,
+    "learning_rate": 0.01233734017817195,
+    "n_estimators": 367,
+    # the spec's own order of operations (specs/causal_tune_trees.py: x (TRAIN_WIN / 24000)); here it differs from
+    # x TW / 24000 by one ulp (4.183434982611182 vs ...183), the same for xgb_opt_06's 24.86...
+    "min_child_weight": 50.20121979133419 * (TW / POOLED_WINDOW_ROWS),
+    "subsample": 0.6551492349018447,
+    "colsample_bytree": 0.6538448390071842,
+    "reg_alpha": 0.021478436574914658,
+    "reg_lambda": 1.15908122770414e-05,
+    "gamma": 1.5147505105071128e-06,
     "tree_method": "hist",
 }
-RF_PARAMS: dict = {"n_estimators": 100}
+# RF_PARAMS: dict = {"n_estimators": 100}
+# 2026-10-08 parked: the library-default forest above.  User decision 2026-10-08: the forest takes the top entry of
+# its 400-trial 1998-2002 dev-span search, trial 255 (results/rf_devmenu_2026-10-06/budget400/rf_config.json,
+# rf_opt_00, sha 88eebb5fa9e8), as LightGBM and XGBoost take theirs; min_samples_leaf scaled to the 2,000-row window
+# exactly as the per-bar spec does (max(1, round(12 x 2000 / 24000)) = 1; specs/causal_tune_trees_rf400.py).  Its
+# parts are written as trees_<bucket>_rf255_<k0>_<k1>.npz (PART_TAG) beside the kept default-forest parts
+# (trees_<bucket>_rf_*).  FEATIMP_RF_SETTINGS=default restores the old forest and its part names: the
+# reproduction gate of the refit code against the stored default-forest parts.
+RF_DEFAULT_PARAMS: dict = {"n_estimators": 100}
+RF255_POOLED_MIN_SAMPLES_LEAF = 12
+RF255_PARAMS: dict = {
+    "n_estimators": 485,
+    "max_depth": 20,
+    "min_samples_leaf": max(
+        1, round(RF255_POOLED_MIN_SAMPLES_LEAF * (TW / POOLED_WINDOW_ROWS))
+    ),
+    "max_features": 0.9013236540796851,
+    "max_samples": 0.41297156429787285,
+    "bootstrap": True,
+}
+RF_SETTINGS = os.environ.get("FEATIMP_RF_SETTINGS", "rf255")
+assert RF_SETTINGS in ("rf255", "default"), RF_SETTINGS
+RF_PARAMS: dict = RF255_PARAMS if RF_SETTINGS == "rf255" else RF_DEFAULT_PARAMS
+# the part-file token of each model (2026-10-08: the trial-255 forest's parts are rf255)
+PART_TAG = {
+    "lgbm": "lgbm",
+    "xgb": "xgb",
+    "rf": "rf255" if RF_SETTINGS == "rf255" else "rf",
+}
+# 2026-10-08: sklearn's multi-threaded RandomForest.predict adds the trees in thread-finish order (not
+# bit-reproducible); every forest predict (tail, permutation P1 / P2, probe) runs with n_jobs=1.  The fit is
+# reproducible at any thread count (per-tree seeds are drawn before the pool); FEATIMP_RF_FIT_THREADS > 0 sets the
+# forest's fit threads (default: the input file's thread count, 1).
+RF_FIT_THREADS = int(os.environ.get("FEATIMP_RF_FIT_THREADS", "0"))
+
+
+def cpu_tag() -> str:
+    """host | CPU model of this process (recorded per refit; 2026-10-08)."""
+    model = platform.processor() or ""
+    try:
+        with open("/proc/cpuinfo", encoding="utf-8") as h:
+            for line in h:
+                if line.startswith("model name"):
+                    model = line.split(":", 1)[1].strip()
+                    break
+    except OSError:
+        pass
+    return f"{socket.gethostname()}|{model}"
+
+
+def fit_tree(mdl: str, thr: int, X: np.ndarray, y: np.ndarray):
+    """make_model + fit; the forest fits at RF_FIT_THREADS (if set) and then predicts single-threaded."""
+    m = make_model(mdl, RF_FIT_THREADS if (mdl == "rf" and RF_FIT_THREADS > 0) else thr)
+    m.fit(X, y)
+    if mdl == "rf":
+        m.set_params(n_jobs=1)
+    return m
+
+
 PARAMS = {"lgbm": LGBM_PARAMS, "xgb": XGB_PARAMS, "rf": RF_PARAMS}
 
 warnings.filterwarnings("ignore", message="X does not have valid feature names")
@@ -314,7 +403,7 @@ def run_trees(bucket: str, models: list[str], k0: int, k1: int) -> None:
     k1 = min(k1, K)
     for mdl in models:
         thr = d["threads"][mdl]
-        out = WORK / "trees" / f"trees_{bucket}_{mdl}_{k0:03d}_{k1:03d}.npz"
+        out = WORK / "trees" / f"trees_{bucket}_{PART_TAG[mdl]}_{k0:03d}_{k1:03d}.npz"
         if out.exists():
             print(f"{out.name} exists, skipped", flush=True)
             continue
@@ -346,6 +435,7 @@ def run_trees(bucket: str, models: list[str], k0: int, k1: int) -> None:
                 "probe_q0",
                 "n_keep",
                 "kept",
+                "cpu",
             )
         }
         t_all = time.time()
@@ -359,9 +449,10 @@ def run_trees(bucket: str, models: list[str], k0: int, k1: int) -> None:
             rec["n_keep"].append(len(keep))
             rec["kept"].append(kept)
             a = time.time()
-            m = make_model(mdl, thr)
-            m.fit(sub(Xtr, keep), ytr)
+            # m = make_model(mdl, thr); m.fit(sub(Xtr, keep), ytr)  (2026-10-08: fit_tree, forest predicts on 1 thread)
+            m = fit_tree(mdl, thr, sub(Xtr, keep), ytr)
             rec["fit_sec"].append(time.time() - a)
+            rec["cpu"].append(cpu_tag())
             pred = m.predict(sub(Xt, keep))
             rec["pred"].append(pred)
             rec["pred_gap"].append(
@@ -466,6 +557,7 @@ def run_trees(bucket: str, models: list[str], k0: int, k1: int) -> None:
             probe_q0=np.array(rec["probe_q0"]),
             n_keep=np.array(rec["n_keep"], dtype=np.int64),
             kept=np.array(rec["kept"], dtype=bool),
+            cpu=np.array(rec["cpu"], dtype=str),
             meta=json.dumps(
                 dict(
                     bucket=bucket,
@@ -480,6 +572,10 @@ def run_trees(bucket: str, models: list[str], k0: int, k1: int) -> None:
                     probe_seed=PROBE_SEED,
                     probe_names=PROBE_NAMES,
                     window_mask=WINDOW_MASK,
+                    part_tag=PART_TAG[mdl],
+                    host=socket.gethostname(),
+                    cpu=cpu_tag(),
+                    rf_fit_threads=RF_FIT_THREADS if mdl == "rf" else None,
                     versions=versions,
                     wall_sec=time.time() - t_all,
                 )
@@ -509,8 +605,8 @@ def probe(rec, mdl, thr, k, Xtr, ytr, Xt, yt, rv, base, W) -> None:
     keep = window_cols(
         Ptr
     )  # the probe fit's own window mask (the noise is always kept)
-    m = make_model(mdl, thr)
-    m.fit(sub(Ptr, keep), ytr)
+    # m = make_model(mdl, thr); m.fit(sub(Ptr, keep), ytr)  (2026-10-08: fit_tree)
+    m = fit_tree(mdl, thr, sub(Ptr, keep), ytr)
     pred = m.predict(sub(Pt, keep))
     gain, split = native(mdl, m, len(keep))
     gain, split = spread(gain, keep, p), spread(split, keep, p)
@@ -568,7 +664,7 @@ if __name__ == "__main__":
         bad = []
         for mdl in ms:
             z = np.load(
-                WORK / "trees" / f"trees_{b}_{mdl}_{a:03d}_{e:03d}.npz",
+                WORK / "trees" / f"trees_{b}_{PART_TAG[mdl]}_{a:03d}_{e:03d}.npz",
                 allow_pickle=True,
             )
             g = float(z["pred_gap"].max())

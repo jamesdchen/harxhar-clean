@@ -16,6 +16,8 @@
 % \ifdefined\cmNdays\else\input{generated/close_main_numbers}\fi
 % \ifdefined\fqsPairs\else\input{generated/fig_qlike_sharpe_numbers}\fi
 % \ifdefined\rhfiNExog\else\input{generated/rehaul_fi_numbers}\fi
+% 2026-10-15 (finish, user): "intraday periodicity factor" -> "diurnal adjustment" and "periodicity-adjusted" ->
+% "diurnally adjusted" (term rename only; the symbol s^2_{t,c} stays); smearing mention removed.
 
 \section{Introduction}
 \label{sec:rh_intro}
@@ -48,8 +50,8 @@
     % 2026-10-15 (notation pass): parked -- s_t clashes with the periodicity factor s^2_{t,c}; the rule is written
     % on its argument (07_economics.tex defines the signal its sizing rules need).
     % \hat\sigma^2_t = \hat y_t^{2} B_t, \qquad q_t = \sign(s_t), \qquad s_t = \hat\sigma^2_t - (IV^{30}_t)^2 .
-  \item $y_t = \sqrt{\RV_t / s^2_{t,c}}$: periodicity-adjusted realized volatility. $s^2_{t,c}$: the intraday
-    periodicity factor, the mean of $\RV$ in the closing interval over the previous 20 trading days
+  \item $y_t = \sqrt{\RV_t / s^2_{t,c}}$: diurnally adjusted realized volatility. $s^2_{t,c}$: the diurnal
+    adjustment, the mean of $\RV$ in the closing interval over the previous 20 trading days
     \citep{AndersenBollerslev1997}. $\mathrm{IV}_t^2$: the option-implied variance of the closing half hour, from
     the 15:30 at-the-money SPXW implied volatilities.
   \item $q_t = +1$ buys the straddle, $q_t = -1$ sells it ($q_t = -1$ on ties); the strategy's daily return is
@@ -110,8 +112,10 @@
   \item \emph{Method.} A rolling-window out-of-sample exercise, re-estimated daily, in which every hyperparameter is
     selected on data before the forecast origin. We measure what re-estimation frequency, hyperparameter
     re-selection and search budgets add out of sample. Forecasts are retransformed as $\hat y_t^{\,2} s^2_{t,c}$,
-    with no smearing or recalibration. The model classes include a MinGRU recurrent network \citep{Feng2024},
+    with no recalibration. The model classes include a MinGRU recurrent network \citep{Feng2024},
     regularized like the linear models.
+    % 2026-10-15 (user): parked -- no smearing mentions. Was: "... as $\hat y_t^{\,2} s^2_{t,c}$, with no smearing or
+    % recalibration."
     % 2026-10-15 (bib pass): parked -- the typed citation, now a \citep key in references.bib. Was:
     % MinGRU: Feng et al. (2024) -- not yet in references.bib.
   \item \emph{Findings.} The full predictor set lowers $\overline{\QLIKE}$ relative to the HAR benchmark in

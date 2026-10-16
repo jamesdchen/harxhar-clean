@@ -1,0 +1,33 @@
+series,data_up_to,pinned_share,routed_to_asinh,shipped_routing
+sumret,2018-06-25,0.0010428389552491733,False,False
+sumret,2020-01-03,0.0009629388894907257,False,False
+sumret,2022-01-03,0.0008749384808880626,False,False
+sumret,full sample (shipped),0.000790925448685416,False,False
+spread_vwstock,2018-06-25,0.24056122116441658,False,False
+spread_vwstock,2020-01-03,0.22500270826562668,False,False
+spread_vwstock,2022-01-03,0.2169154772971692,False,False
+spread_vwstock,full sample (shipped),0.21174062918119443,False,False
+voldemand_spx_open_and_close,2018-06-25,0.8848227825550423,True,True
+voldemand_spx_open_and_close,2020-01-03,0.8716964174661066,True,True
+voldemand_spx_open_and_close,2022-01-03,0.8509177740106816,True,True
+voldemand_spx_open_and_close,full sample (shipped),0.7781816623934722,True,True
+voldemand_spx_open_only,2018-06-25,0.8841188662602492,True,True
+voldemand_spx_open_only,2020-01-03,0.8708016867479548,True,True
+voldemand_spx_open_only,2022-01-03,0.8479466287526658,True,True
+voldemand_spx_open_only,full sample (shipped),0.7762043487717587,True,True
+voldemand_all_open_and_close,2018-06-25,0.8848227825550423,True,True
+voldemand_all_open_and_close,2020-01-03,0.8716964174661066,True,True
+voldemand_all_open_and_close,2022-01-03,0.8510162045897814,True,True
+voldemand_all_open_and_close,full sample (shipped),0.7785211012318664,True,True
+voldemand_all_open_only,2018-06-25,0.8843013630774178,True,True
+voldemand_all_open_only,2020-01-03,0.8709702010536157,True,True
+voldemand_all_open_only,2022-01-03,0.8501886586099415,True,True
+voldemand_all_open_only,full sample (shipped),0.7782904146426665,True,True
+ofi_ewstock,2018-06-25,0.07040901012857335,False,False
+ofi_ewstock,2020-01-03,0.07648543354317376,False,False
+ofi_ewstock,2022-01-03,0.07911631213430306,False,False
+ofi_ewstock,full sample (shipped),0.07967585238694709,False,False
+ofi_vwstock,2018-06-25,0.04204813570810938,False,False
+ofi_vwstock,2020-01-03,0.0425939968784731,False,False
+ofi_vwstock,2022-01-03,0.041158564371775945,False,False
+ofi_vwstock,full sample (shipped),0.03890034998451104,False,False

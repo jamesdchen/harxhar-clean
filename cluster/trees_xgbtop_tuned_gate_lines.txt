@@ -1,0 +1,6 @@
+rs10 baseline 0 2000 20
+rs1 baseline 0 2000 5
+rs10 all_features 0 2000 20
+rs1 all_features 0 2000 3
+rs10 lean_vol_vix 0 2000 20
+rs1 lean_vol_vix 0 2000 5

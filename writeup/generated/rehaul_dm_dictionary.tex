@@ -10,32 +10,32 @@
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{\dimexpr(\linewidth-10\tabcolsep)*110/1000\relax}>{\raggedright\arraybackslash}p{\dimexpr(\linewidth-10\tabcolsep)*440/1000\relax}>{\raggedright\arraybackslash}p{\dimexpr(\linewidth-10\tabcolsep)*120/1000\relax}>{\raggedright\arraybackslash}p{\dimexpr(\linewidth-10\tabcolsep)*100/1000\relax}>{\raggedright\arraybackslash}p{\dimexpr(\linewidth-10\tabcolsep)*110/1000\relax}>{\raggedright\arraybackslash}p{\dimexpr(\linewidth-10\tabcolsep)*120/1000\relax}@{}}
 \caption{Predictor definitions.}\label{tab:rh_dm_dictionary}\\
 \toprule
-Variable & Description & Source & \makecell[lb]{Periodicity \\ adjustment} & \makecell[lb]{Transform \\ $g(v)$} & \makecell[lb]{Predictors, \\ $k \in \mathcal K$} \\
+Variable & Description & Source & \makecell[lb]{Diurnal \\ adjustment} & \makecell[lb]{Transform \\ $g(v)$} & \makecell[lb]{Predictors, \\ $k \in \mathcal K$} \\
 \midrule
 \endfirsthead
 \multicolumn{6}{@{}l}{\textit{Table \ref{tab:rh_dm_dictionary} (continued)}}\\
 \toprule
-Variable & Description & Source & \makecell[lb]{Periodicity \\ adjustment} & \makecell[lb]{Transform \\ $g(v)$} & \makecell[lb]{Predictors, \\ $k \in \mathcal K$} \\
+Variable & Description & Source & \makecell[lb]{Diurnal \\ adjustment} & \makecell[lb]{Transform \\ $g(v)$} & \makecell[lb]{Predictors, \\ $k \in \mathcal K$} \\
 \midrule
 \endhead
 \midrule
 \multicolumn{6}{r@{}}{\textit{continued on the next page}}\\
 \endfoot
 \bottomrule
-\multicolumn{6}{@{}p{\linewidth}@{}}{\footnotesize\raggedright\rule{0pt}{2.5ex}\textit{Notes:} Each series $u$ enters as $u^{(k)}$, its adjusted, transformed and winsorized value averaged over the previous $k$ intervals, and as $\bar a^{(k)}(u)$, the share of those intervals on which it was observed; series with an activity indicator also enter as $\bar\chi^{(k)}(u)$, the share off their mode (the mode and its share of intervals are in the description). $\mathcal K = \{1, 5, 25, 125, 625, 3125\}$ in the closing-interval model and $\{1, 2, 4, \dots, 2048\}$ in the pooled intraday model, which omits the FOMC group. Periodicity adjustment: division by the trailing same-interval mean (mean) or standard deviation (s.d.); $g$: the variance-stabilizing map; the volatility-demand series take $\operatorname{asinh}(u_{t,i} / \kappa_{t,i})$ in place of both (Section~\ref{sec:rh_predictors}). A series is signed if it has any negative value: $\mathrm{Spread}^{\mathrm{VW}}$ has a single negative value (2018-11-12 11:00 ET) and so takes $g(v) = v$ and the s.d.\ adjustment, where $\mathrm{Spread}^{\mathrm{EW}}$ takes $\log v$ and the mean. Unnormalized and unscaled: without the factors $\sqrt{N_{t,i}} / \RV_{t,i}^{3/2}$ (skewness), $N_{t,i}/3$ (quarticity) and $\pi/2$ (bipower variation).}\\
+\multicolumn{6}{@{}p{\linewidth}@{}}{\footnotesize\raggedright\rule{0pt}{2.5ex}\textit{Notes:} Each series $u$ enters as $u^{(k)}$, its adjusted, transformed and winsorized value averaged over the previous $k$ intervals, and as $\bar a^{(k)}(u)$, the share of those intervals on which it was observed; series with an activity indicator also enter as $\bar\chi^{(k)}(u)$, the share off their mode (the mode and its share of intervals are in the description). $\mathcal K = \{1, 5, 25, 125, 625, 3125\}$ in the closing-interval model and $\{1, 2, 4, \dots, 2048\}$ in the pooled intraday model, which omits the FOMC group. Diurnal adjustment: division by the trailing same-interval mean (mean) or standard deviation (s.d.); $g$: the variance-stabilizing map; the volatility-demand series take $\operatorname{asinh}(u_{t,i} / \kappa_{t,i})$ in place of both (Section~\ref{sec:rh_predictors}). A series is signed if it has any negative value: $\mathrm{Spread}^{\mathrm{VW}}$ has a single negative value (2018-11-12 11:00 ET) and so takes $g(v) = v$ and the s.d.\ adjustment, where $\mathrm{Spread}^{\mathrm{EW}}$ takes $\log v$ and the mean. Unnormalized and unscaled: without the factors $\sqrt{N_{t,i}} / \RV_{t,i}^{3/2}$ (skewness), $N_{t,i}/3$ (quarticity) and $\pi/2$ (bipower variation).}\\
 \endlastfoot
 \multicolumn{6}{@{}l}{\textit{Realized moments (7)}} \\
-$r$ & Interval log return, $r_{t,i} = \sum_k r_{t,i,k}$ & ES futures & s.d. & $v$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: sumret
-$\mathrm{RAV}$ & Realized absolute variation, $\sum_k |r_{t,i,k}|$ & ES futures & mean & $v$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: sumabsret
-$\mathrm{RSK}$ & Realized skewness, unnormalized, $\sum_k r_{t,i,k}^3$ & ES futures & s.d. & $v^{1/3}$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: sumret3
-$\mathrm{RQ}$ & Realized quarticity, unscaled, $\sum_k r_{t,i,k}^4$ & ES futures & mean & $\sign(v)\,|v|^{1/4}$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: sumret4
-$\mathrm{RS}^{+}$ & Positive realized semivariance, $\sum_k r_{t,i,k}^2\,\mathbf{1}\{r_{t,i,k} > 0\}$ & ES futures & mean & $\sqrt{v}$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: sumpret2
-$\mathrm{BV}$ & Bipower variation, $\mathrm{BV}_{t,i} = \sum_{k \ge 2} |r_{t,i,k}|\,|r_{t,i,k-1}|$ & ES futures & mean & $\sqrt{v}$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: sumbipow
-$\mathrm{AC}$ & First-order realized autocovariance, $\mathrm{AC}_{t,i} = \sum_{k \ge 2} r_{t,i,k}\, r_{t,i,k-1}$ & ES futures & s.d. & $\sign(v)\,|v|^{1/2}$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: sumautocov
+$r$ & Interval log return, $r_{t,i} = \sum_k r_{t,i,k}$ & E-mini S\&P 500 futures & s.d. & $v$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: sumret
+$\mathrm{RAV}$ & Realized absolute variation, $\sum_k |r_{t,i,k}|$ & E-mini S\&P 500 futures & mean & $v$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: sumabsret
+$\mathrm{RSK}$ & Realized skewness, unnormalized, $\sum_k r_{t,i,k}^3$ & E-mini S\&P 500 futures & s.d. & $v^{1/3}$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: sumret3
+$\mathrm{RQ}$ & Realized quarticity, unscaled, $\sum_k r_{t,i,k}^4$ & E-mini S\&P 500 futures & mean & $\sign(v)\,|v|^{1/4}$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: sumret4
+$\mathrm{RS}^{+}$ & Positive realized semivariance, $\sum_k r_{t,i,k}^2\,\mathbf{1}\{r_{t,i,k} > 0\}$ & E-mini S\&P 500 futures & mean & $\sqrt{v}$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: sumpret2
+$\mathrm{BV}$ & Bipower variation, $\mathrm{BV}_{t,i} = \sum_{k \ge 2} |r_{t,i,k}|\,|r_{t,i,k-1}|$ & E-mini S\&P 500 futures & mean & $\sqrt{v}$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: sumbipow
+$\mathrm{AC}$ & First-order realized autocovariance, $\mathrm{AC}_{t,i} = \sum_{k \ge 2} r_{t,i,k}\, r_{t,i,k-1}$ & E-mini S\&P 500 futures & s.d. & $\sign(v)\,|v|^{1/2}$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: sumautocov
 \addlinespace
 \multicolumn{6}{@{}l}{\textit{Liquidity (14)}} \\
-$\mathrm{Volume}$ & ES contract volume & ES futures & mean & $\log v$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: sumvolume
-$N$ & Number of one-minute returns, $N_{t,i} \le 30$; mode 30 on 72\% of intervals & ES futures & mean & $\log v$ & $u^{(k)}$, $\bar a^{(k)}$, $\bar\chi^{(k)}$ \\  % data field: numobs
+$\mathrm{Volume}$ & E-mini S\&P 500 futures contract volume & E-mini S\&P 500 futures & mean & $\log v$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: sumvolume
+$N$ & Number of one-minute returns, $N_{t,i} \le 30$; mode 30 on 72\% of intervals & E-mini S\&P 500 futures & mean & $\log v$ & $u^{(k)}$, $\bar a^{(k)}$, $\bar\chi^{(k)}$ \\  % data field: numobs
 $\mathrm{TO}^{\mathrm{EW}}$ & Equal-weighted turnover & Constituents & mean & $\sqrt{v}$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: turnover_ewstock
 $\mathrm{TO}^{\mathrm{EW}}_{\mathrm{buy}}$ & Equal-weighted buyer-initiated turnover & Constituents & mean & $\sqrt{v}$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: buyturnover_ewstock
 $\mathrm{TO}^{\mathrm{EW}}_{\mathrm{sell}}$ & Equal-weighted seller-initiated turnover & Constituents & mean & $\sqrt{v}$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: sellturnover_ewstock

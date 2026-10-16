@@ -158,6 +158,64 @@ def is_diurnal_excluded(col_name: str) -> bool:
     return any(stem in name for stem in DIURNAL_EXCLUDED_STEMS)
 
 
+# 2026-10-15 (user): a series' sign is a property of what it measures, read from its name
+# (the data layer's registry, src/data/loading.py), not from its sample.  The data rule it
+# replaces -- "signed if any print is negative", over the FULL sample -- let one bad print
+# (spread_vwstock, -0.000318 on 2018-11-12) switch a whole series to the signed chain, and it
+# used data after every row it transformed (a look-ahead: a 2018 print set the treatment of every bar back to 1998).
+# On every registered series the name rule agrees with the data rule once the data layer has
+# nulled invalid prints (audited: results/data_fix_2026-10-15/), so it changes no output today;
+# it removes the look-ahead and the fragility.  Unregistered names (the options block,
+# experiment columns) keep the data rule.  Off reproduces the pre-2026-10-15 chain.
+SIGN_BY_NAME: bool = True
+
+
+def series_is_signed(col_name: str, series: pd.Series) -> bool:
+    """Whether ``robust_transform`` treats ``col_name`` as signed (s.d. diurnal + identity)."""
+    if SIGN_BY_NAME:
+        from src.data.loading import (
+            NON_NEGATIVE_SERIES,
+            SIGNED_SERIES,
+            STRICTLY_POSITIVE_SERIES,
+        )
+
+        if col_name in SIGNED_SERIES:
+            return True
+        if (
+            col_name == "RV"
+            or col_name in STRICTLY_POSITIVE_SERIES
+            or col_name in NON_NEGATIVE_SERIES
+        ):
+            return False
+    return bool((series.dropna() < 0).any())
+
+
+# 2026-10-15 (user: "fix all 8"; results/data_audit_2026-10-15/).  Each flag off reproduces the
+# pre-2026-10-15 chain for its part bit for bit.
+#
+# FOMC_FLAGS_IDENTITY: the 0/1 statement flags pass through as they are.  The default chain
+# logged them (rule 6: log(clip(x, 1e-12)) maps 0 -> -27.63, 1 -> 0) and the rolling 1/99
+# winsoriser then clipped every statement bar of fomc_release back to -27.63, so its six
+# ladders were constant; fomc_day's ladder became 27.6x its indicator.
+FOMC_FLAGS_IDENTITY: bool = True
+FOMC_FLAG_SERIES: frozenset[str] = frozenset({"fomc_release", "fomc_day"})
+# CAUSAL_SD_FLOOR: the signed branch's s.d. floor is DIURNAL_STD_FLOOR_FRAC x the median of the
+# per-slot s.d. over the rows UP TO the current one (each s.d. is itself built from earlier
+# in-slot rows), not over the full sample (2026-10-15 audit: the causal floor sits 8-50 %
+# above the full-sample one and moves the divisor on 0-13,000 test-window rows per series).
+# Before the first positive s.d. there is no floor and the value is undefined (NaN, which the
+# signed identity rule and the executor's neutral fill handle).
+CAUSAL_SD_FLOOR: bool = True
+# CAUSAL_ASINH_ROUTING: a signed series without a name stabilizer is routed to the asinh
+# stabilizer at a row when its s.d. divisor was pinned at the floor on at least
+# DIURNAL_PINNED_MAX of the rows BEFORE it since its first print (at least ASINH_ROUTE_MIN_ROWS
+# of them), instead of on the full sample (where the years before a late feed's first print
+# counted as pinned); and the asinh scale's warm-up rows stay undefined (-> 0) instead of
+# taking the full-sample median scale.
+CAUSAL_ASINH_ROUTING: bool = True
+ASINH_ROUTE_MIN_ROWS: int = 250
+
+
 # ---------------------------------------------------------------------------
 # Diurnal adjustment
 # ---------------------------------------------------------------------------
@@ -237,7 +295,32 @@ def diurnal_adjust(
     min_periods: int = DIURNAL_MIN_PERIODS,
     slot_band: float = DIURNAL_SLOT_BAND_FRAC,
     soft: bool | None = None,
+    baseline_exclude: np.ndarray | None = None,
 ) -> tuple[pd.Series, pd.Series]:
+    """:func:`diurnal_adjust_with_floor` without the floor: ``(adjusted, baseline)``."""
+    adjusted, baseline, _ = diurnal_adjust_with_floor(
+        series,
+        time_of_day_series,
+        has_negatives,
+        window=window,
+        min_periods=min_periods,
+        slot_band=slot_band,
+        soft=soft,
+        baseline_exclude=baseline_exclude,
+    )
+    return adjusted, baseline
+
+
+def diurnal_adjust_with_floor(
+    series: pd.Series,
+    time_of_day_series: pd.Series,
+    has_negatives: bool,
+    window: int = DIURNAL_WINDOW,
+    min_periods: int = DIURNAL_MIN_PERIODS,
+    slot_band: float = DIURNAL_SLOT_BAND_FRAC,
+    soft: bool | None = None,
+    baseline_exclude: np.ndarray | None = None,
+) -> tuple[pd.Series, pd.Series, pd.Series | float | None]:
     """Remove intraday seasonality via rolling per-slot baseline.
 
     Causality (audit-relevant):
@@ -252,11 +335,19 @@ def diurnal_adjust(
     max|z| 68-82, all of which are a within-slot baseline collapse (see
     ``DIURNAL_SLOT_BAND_FRAC``). Pass ``0`` to reproduce the pre-fix chain bit-for-bit.
 
+    ``baseline_exclude`` (unsigned branch only; 2026-10-15, the target's B): rows that do not
+    enter any slot's trailing mean.  The trailing window is then the last ``window`` REGULAR
+    in-slot observations, and an excluded row takes the baseline of the next regular row of its
+    slot (built from rows before it, so still causal).  None (default) = the original rule.
+
     Returns
     -------
-    (adjusted, baseline) where adjusted = series / baseline.
+    (adjusted, baseline, floor) where adjusted = series / baseline and floor is the signed
+    branch's s.d. floor (a scalar, or under CAUSAL_SD_FLOOR the per-row causal floor; None on
+    the unsigned branch).
     """
     df = pd.DataFrame({"val": series, "slot": time_of_day_series})
+    floor_out: pd.Series | float | None = None
 
     if has_negatives:
         baseline = df.groupby("slot")["val"].transform(
@@ -270,24 +361,46 @@ def diurnal_adjust(
         # at a fraction of its own typical (median) level instead — the diurnal
         # analogue of the rolling-scaler IQR floor. Only bites a degenerate std;
         # healthy signed features (e.g. sumret) never go below the floor.
-        typical = baseline.replace(0, np.nan).abs().median()
-        floor = (
-            DIURNAL_STD_FLOOR_FRAC * typical
-            if (pd.notna(typical) and typical > 0)
-            else 1.0
-        )
+        floor: pd.Series | float
+        if CAUSAL_SD_FLOOR:
+            # 2026-10-15 (user): parked -- the full-sample median below; see CAUSAL_SD_FLOOR
+            floor = (
+                DIURNAL_STD_FLOOR_FRAC
+                * baseline.replace(0, np.nan).abs().expanding(min_periods=1).median()
+            )
+        else:
+            typical = baseline.replace(0, np.nan).abs().median()
+            floor = (
+                DIURNAL_STD_FLOOR_FRAC * typical
+                if (pd.notna(typical) and typical > 0)
+                else 1.0
+            )
         if soft is None:
             soft = SOFT_GUARDS
         baseline = _band_to_slot_level(baseline, df["slot"], slot_band, soft=soft)
         baseline = (
-            _soft_floor(baseline, floor).fillna(floor)
+            _soft_floor(baseline, floor).fillna(floor)  # type: ignore[arg-type]
             if soft
             else baseline.clip(lower=floor).fillna(floor)
         )
+        floor_out = floor
     else:
-        baseline = df.groupby("slot")["val"].transform(
-            lambda g: g.rolling(window, min_periods=min_periods).mean().shift(1)
-        )
+        if (
+            baseline_exclude is not None
+            and np.asarray(baseline_exclude, dtype=bool).any()
+        ):
+            ex = pd.Series(np.asarray(baseline_exclude, dtype=bool), index=series.index)
+            baseline = pd.Series(np.nan, index=series.index)
+            for _, g in df.groupby("slot")["val"]:
+                pr = ex.loc[g.index].to_numpy()
+                b = g[~pr].rolling(window, min_periods=min_periods).mean().shift(1)
+                full = b.reindex(g.index)
+                full[pr] = full.bfill()[pr]
+                baseline.loc[g.index] = full.to_numpy()
+        else:
+            baseline = df.groupby("slot")["val"].transform(
+                lambda g: g.rolling(window, min_periods=min_periods).mean().shift(1)
+            )
         baseline = _band_to_slot_level(
             baseline, df["slot"], slot_band, soft=SOFT_GUARDS if soft is None else soft
         )
@@ -297,7 +410,7 @@ def diurnal_adjust(
         baseline = baseline.replace(0, 1.0).fillna(1.0)
 
     adjusted = series / baseline
-    return adjusted, baseline
+    return adjusted, baseline, floor_out
 
 
 def asinh_stabilize(
@@ -339,8 +452,11 @@ def asinh_stabilize_pair(
     ).mean()
     s = s.shift(1).ffill()
     s = np.maximum(s, 0.01 * s.expanding(min_periods=50).median()).replace(0.0, np.nan)
-    med = s.median()
-    s = s.fillna(med if pd.notna(med) and med > 0 else 1.0)
+    if not CAUSAL_ASINH_ROUTING:
+        # 2026-10-15 (user): parked -- the warm-up rows took the FULL-SAMPLE median scale; with
+        # CAUSAL_ASINH_ROUTING they stay undefined (z NaN -> 0, the signed rule's NaN policy).
+        med = s.median()
+        s = s.fillna(med if pd.notna(med) and med > 0 else 1.0)
     z = pd.Series(np.arcsinh(x / s), index=series.index)
     return z, s.astype(np.float64)
 
@@ -589,8 +705,13 @@ def robust_transform(
     slot_band: float | None = None,
     winsor_by_slot: bool | None = None,
     soft_guards: bool | None = None,
+    baseline_exclude: np.ndarray | None = None,
 ) -> tuple[pd.Series, pd.Series]:
     """Chain diurnal_adjust -> apply_semantic_transform -> rolling_winsorize.
+
+    ``baseline_exclude`` (2026-10-15): rows left out of the unsigned per-slot trailing mean (see
+    :func:`diurnal_adjust`); the executor passes the NYSE early closes' post-13:00 bars for the
+    target's B under ``executor.B_REGULAR_BARS_ONLY``.
 
     ``diurnal_mode``: ``"divide"`` (default) uses :func:`diurnal_adjust`;
     ``"rank"`` uses :func:`diurnal_rank` for FEATURES (division-free per-slot
@@ -623,13 +744,18 @@ def robust_transform(
         )
     if col_name in SKIP_VARS:
         return df[col_name].copy(), pd.Series(1.0, index=df.index)
+    if FOMC_FLAGS_IDENTITY and col_name in FOMC_FLAG_SERIES:
+        # 2026-10-15 (user): 0/1 flags pass through (no log, no winsorising); see FOMC_FLAGS_IDENTITY
+        return df[col_name].astype(np.float64).copy(), pd.Series(1.0, index=df.index)
     if slot_band is None:
         slot_band = 0.0 if is_target else DIURNAL_SLOT_BAND_FRAC
     if winsor_by_slot is None:
         winsor_by_slot = WINSOR_BY_SLOT_DEFAULT
 
     series = df[col_name].copy()
-    has_negatives = bool((series.dropna() < 0).any())
+    # 2026-10-15 (user): parked -- the full-sample data rule; see ``SIGN_BY_NAME``.
+    # has_negatives = bool((series.dropna() < 0).any())
+    has_negatives = series_is_signed(col_name, series)
 
     baseline = pd.Series(1.0, index=df.index)
     stabilized = False
@@ -638,8 +764,13 @@ def robust_transform(
             return diurnal_rank(
                 series, df[time_col]
             )  # final feature; skip semantic + winsor
-        adjusted, baseline = diurnal_adjust(
-            series, df[time_col], has_negatives, slot_band=slot_band, soft=soft_guards
+        adjusted, baseline, floor = diurnal_adjust_with_floor(
+            series,
+            df[time_col],
+            has_negatives,
+            slot_band=slot_band,
+            soft=soft_guards,
+            baseline_exclude=baseline_exclude,
         )
         # A signed feature divides by its per-slot rolling std. For a sparse / ffilled /
         # zero-inflated column that std is degenerate most of the time, so the floor pins the
@@ -649,12 +780,36 @@ def robust_transform(
         # ~11x), while every other signed feature except sumret3 -- which rule 3 already
         # stabilises with cbrt -- pins on <30%, and sumret on 0.1%. Above the threshold, swap
         # the degenerate divide for the asinh stabiliser; below it, behaviour is unchanged.
-        if (
+        route_candidate = (
             signed_stabilizer
             and has_negatives
             and not has_name_stabilizer(
                 col_name
             )  # only rule 5 (identity) is overridable
+        )
+        if route_candidate and CAUSAL_ASINH_ROUTING:
+            # 2026-10-15 (user): the routing share over the rows BEFORE each row (see
+            # CAUSAL_ASINH_ROUTING); the full-sample rule is parked in the branch below
+            if isinstance(floor, pd.Series):
+                pinned = (
+                    np.isclose(baseline, floor, rtol=1e-9) & floor.notna().to_numpy()
+                )
+            else:
+                pinned = np.isclose(baseline, baseline.expanding().min(), rtol=1e-9)
+            # the share over the rows since the series' first print (rows before it carry no
+            # divisor at all; the full-sample rule counted them as pinned)
+            started = df[col_name].notna().to_numpy().cumsum() > 0
+            num = pd.Series((pinned & started).astype(np.float64)).cumsum().shift(1)
+            den = pd.Series(started.astype(np.float64)).cumsum().shift(1)
+            share = (num / den).where(den >= ASINH_ROUTE_MIN_ROWS)
+            route = (share >= DIURNAL_PINNED_MAX).to_numpy()
+            if route.any():
+                series = adjusted.where(~route, asinh_stabilize(series))
+                baseline = baseline.where(~route, 1.0)
+            else:
+                series = adjusted
+        elif (
+            route_candidate
             and float(np.isclose(baseline, baseline.min(), rtol=1e-9).mean())
             >= DIURNAL_PINNED_MAX
         ):

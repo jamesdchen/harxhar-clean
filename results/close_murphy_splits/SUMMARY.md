@@ -6,16 +6,16 @@ Written by `experiments/close_murphy_splits_headline.py` (`main`, 2026-10-06: no
 
 | group | n | QLIKE | QLIKE range | ES(c=1) | EL | same side as RV % | same side as R % | Sharpe mid | Sharpe crossed |
 |---|---|---|---|---|---|---|---|---|---|
-| paper | 9 | 0.1068 | 0.1054 to 0.1232 | 0.0921 | 0.3705 | 70.2 | 57.3 | 1.28 | 0.80 |
-| pooled linear | 6 | 0.1053 | 0.1016 to 0.1067 | 0.0922 | 0.3784 | 71.2 | 56.6 | 1.06 | 0.57 |
-| per-bar linear | 7 | 0.0946 | 0.0914 to 0.0958 | 0.0976 | 0.3673 | 68.8 | 56.8 | 1.37 | 0.89 |
-| per-bar trees | 90 | 0.1002 | 0.0935 to 0.1069 | 0.0977 | 0.3819 | 69.6 | 55.7 | 0.96 | 0.48 |
-| model set | 112 | 0.1003 | 0.0914 to 0.1232 | 0.0971 | 0.3778 | 69.6 | 56.0 | 1.08 | 0.59 |
+| paper | 9 | 0.1092 | 0.1078 to 0.1270 | 0.0944 | 0.3705 | 70.1 | 57.3 | 1.28 | 0.80 |
+| pooled linear | 6 | 0.1081 | 0.1040 to 0.1098 | 0.0941 | 0.3784 | 71.1 | 56.6 | 1.06 | 0.57 |
+| per-bar linear | 7 | 0.0967 | 0.0931 to 0.0975 | 0.0995 | 0.3673 | 68.7 | 56.8 | 1.37 | 0.89 |
+| per-bar trees | 90 | 0.1026 | 0.0957 to 0.1100 | 0.0995 | 0.3819 | 69.5 | 55.7 | 0.96 | 0.48 |
+| model set | 112 | 0.1028 | 0.0931 to 0.1270 | 0.0991 | 0.3778 | 69.5 | 56.0 | 1.08 | 0.59 |
 
 - Lowest QLIKE: per-bar lasso [all_features], pre-tuned; lowest score at the threshold: LightGBM.
 - Murphy grid (33 thresholds, 0.25 to 4): thresholds led by group — paper 14, per-bar trees 9, per-bar linear 7, pooled linear 3; at c = 1 the leader is LightGBM (paper).
-- Oracles: told RV, the payoff's side on 62.8 % of days (Sharpe 4.52 / 4.06); told the payoff's sign, 17.28 crossed.
-- Spearman of minus the loss with the Sharpe ratio across the set (point): QLIKE vs crossed +0.18; QLIKE vs mid +0.18; ES at the threshold vs crossed +0.50; ES at the threshold vs mid +0.50; EL (affine in the mid P&L) vs crossed +1.00; EL (affine in the mid P&L) vs mid +1.00.
+- Oracles: told RV, the payoff's side on 62.9 % of days (Sharpe 4.53 / 4.07); told the payoff's sign, 17.28 crossed.
+- Spearman of minus the loss with the Sharpe ratio across the set (point): QLIKE vs crossed +0.20; QLIKE vs mid +0.20; ES at the threshold vs crossed +0.54; ES at the threshold vs mid +0.55; EL (affine in the mid P&L) vs crossed +1.00; EL (affine in the mid P&L) vs mid +1.00.
 
 ## Sample splits across the set (midpoint)
 
@@ -33,15 +33,15 @@ Written by `experiments/close_murphy_splits_headline.py` (`main`, 2026-10-06: no
 
 ## Gates
 - slice = the deck's iv_var: 0 ≤ 1e-09 on n = 866 — PASS
-- target shared by every forecast: 0 ≤ 1e-09 on n = 112 — PASS
+- realized variance (rv_unclipped) shared by every forecast: 0 ≤ 1e-09 on n = 112 — PASS
 - q = the master table's, every forecast and day: 0 ≤ 0 on n = 96992 — PASS
 - ret_mid = the master table's: 0 ≤ 1e-10 on n = 96992 — PASS
 - ret_crossed = the master table's: 0 ≤ 1e-10 on n = 96992 — PASS
 - Sharpe_mid = master_table.csv, every forecast: 2.22e-16 ≤ 1e-09 on n = 112 — PASS
 - Sharpe_crossed = master_table.csv, every forecast: 3.33e-15 ≤ 1e-09 on n = 112 — PASS
-- QLIKE (plain) = master_table.csv qlike_raw, every forecast: 1.11e-15 ≤ 1e-09 on n = 112 — PASS
+- QLIKE (plain) = master_table.csv qlike_raw, every forecast: 8.88e-16 ≤ 1e-09 on n = 112 — PASS
 - mean(qR) = mean|R| - 2 mean(EL), every forecast: 2.08e-16 ≤ 1e-12 on n = 112 — PASS
-- QLIKE = integral ES_c c^-2 dc, day by day, every forecast: 3.75e-08 ≤ 1e-06 on n = 96992 — PASS
+- QLIKE = integral ES_c c^-2 dc, day by day, every forecast: 5.7e-08 ≤ 1e-06 on n = 96992 — PASS
 - always short collects +1 on pin days: 0 ≤ 1e-09 on n = 193 — PASS
-- scores_by_forecast.csv = the committed copy (HEAD = f452978), 2 rows that read no forecast: 5.55e-17 ≤ 1e-09 on n = 26 — PASS
-- splits.csv = the committed copy (HEAD = f452978), 7 rows that read no forecast: 6.94e-17 ≤ 1e-09 on n = 56 — PASS
+- scores_by_forecast.csv = the committed copy (HEAD = 34385fd), 1 rows that read no forecast: 0 ≤ 1e-09 on n = 11 — PASS
+- splits.csv = the committed copy (HEAD = 34385fd), 7 rows that read no forecast: 6.94e-17 ≤ 1e-09 on n = 56 — PASS

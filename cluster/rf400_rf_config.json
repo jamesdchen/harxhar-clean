@@ -1,0 +1,182 @@
+{
+ "family": "rf",
+ "name": "rf_opt_00",
+ "sha": "88eebb5fa9e8",
+ "params": {
+  "n_estimators": 485,
+  "max_depth": 20,
+  "min_samples_leaf": 12,
+  "max_features": 0.9013236540796851,
+  "max_samples": 0.41297156429787285,
+  "bootstrap": true
+ },
+ "dev_screen_mse": 0.10845556430376364,
+ "trial": 255,
+ "selection_rule": "top dev-span entry of the frozen menu (the rule behind lgbm_opt_00)",
+ "trials": {
+  "complete_considered": 400,
+  "budget_rule": "400 = the nominal per-family budget (8 workers x 50, jobs/slurm/tree_menu.sbatch) = LightGBM's realized count (398 on Hoffman2): the completed trials numbered 0..399 (all 400 complete). Search = the original 8 workers (12777812) + top-up workers on the same journal (12790010, 12790252; 12792938 / 12794692 capped at 400, epyc-7513|epyc-7542); trials >= 400 ignored",
+  "nominal_budget": 400,
+  "journal_states": {
+   "COMPLETE": 429,
+   "RUNNING": 30,
+   "PRUNED": 30
+  },
+  "complete_at_freeze": 429
+ },
+ "all_complete_top_entry": {
+  "name": "rf_opt_00",
+  "family": "rf",
+  "params": {
+   "n_estimators": 485,
+   "max_depth": 20,
+   "min_samples_leaf": 12,
+   "max_features": 0.9013236540796851,
+   "max_samples": 0.41297156429787285,
+   "bootstrap": true
+  },
+  "sha": "88eebb5fa9e8",
+  "dev_screen_mse": 0.10845556430376364,
+  "trial": 255
+ },
+ "xgb_rule_entry": {
+  "name": "rf_opt_06",
+  "family": "rf",
+  "params": {
+   "n_estimators": 453,
+   "max_depth": 18,
+   "min_samples_leaf": 14,
+   "max_features": 0.9256477935268099,
+   "max_samples": 0.38104075968796103,
+   "bootstrap": true
+  },
+  "sha": "77ad11cc1735",
+  "dev_screen_mse": 0.10856183488086905,
+  "trial": 227
+ },
+ "xgb_h2_budget_top_entry": {
+  "name": "rf_opt_00",
+  "family": "rf",
+  "params": {
+   "n_estimators": 404,
+   "max_depth": 19,
+   "min_samples_leaf": 24,
+   "max_features": 0.8963212154380834,
+   "max_samples": 0.7801590862285572,
+   "bootstrap": true
+  },
+  "sha": "353654b57034",
+  "dev_screen_mse": 0.10864383429659116,
+  "trial": 56
+ },
+ "xgb_h2_budget": 87,
+ "compare_dev_screen_mse": {
+  "lgbm_opt_00": 0.10744949046943114,
+  "xgb_opt_00": 0.10789407028049709,
+  "xgb_opt_06": 0.10807554130151135
+ },
+ "per_bar_note": "params are tuned on the 24,000-bar pooled window; specs/causal_tune_trees.py scales LightGBM's min_child_samples and XGBoost's min_child_weight by TRAIN_WIN / 24000 for its per-bar window; the forest's analogue is min_samples_leaf (fractions and depth are scale-free or absolute). NOT applied here.",
+ "min_samples_leaf_scaled_to_2000_rows": 1,
+ "provenance": {
+  "script": "experiments/tree_menu_dev_rf.py",
+  "procedure": "experiments/tree_menu_dev.py (objective, window, refit, dev span, seed, sampler, journal, Sobol, freeze rule imported)",
+  "study": "tree_menu_dev_rf",
+  "journal_sha256": "6a69503cddd36572856fff737983fd059b667a37334d300b45d9adc2fee061be",
+  "box": [
+   [
+    "n_estimators",
+    50,
+    500,
+    false,
+    true
+   ],
+   [
+    "max_depth",
+    2,
+    32,
+    true,
+    true
+   ],
+   [
+    "min_samples_leaf",
+    1,
+    1000,
+    true,
+    true
+   ],
+   [
+    "max_features",
+    0.02,
+    1.0,
+    true,
+    false
+   ],
+   [
+    "max_samples",
+    0.05,
+    1.0,
+    true,
+    false
+   ]
+  ],
+  "fixed": {
+   "bootstrap": true
+  },
+  "window": 24000,
+  "screen_refit": 250,
+  "dev_end_date": "2003-01-01",
+  "dev_end_row": 36285,
+  "dev_matrices_sha256": {
+   "X": "515015690af53d1703c113b23af44a24b21f785cdea7f613d60d4318ac37a712",
+   "y": "c827c77f86ec32f243ad0fb2f5c68f4430541789d85f2a54e784535536896ade",
+   "names": "f73f3c9b85ec4908b4e882567cdc65c6a51c67d40a384ee8e18744d5da767725"
+  },
+  "dev_source_cache": "C:\\Users\\james\\CC Allowed\\harxhar-clean\\results\\prep_cache_all_features_b2.npz",
+  "random_state": 42,
+  "cpu_models": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "fit_core_hours": 5670.130947879514,
+  "allocated_cpu_hours": 6223.860277777778,
+  "versions_freeze": {
+   "python": "3.12.0",
+   "numpy": "2.2.6",
+   "sklearn": "1.9.0",
+   "lightgbm": "4.6.0",
+   "xgboost": "3.1.0",
+   "optuna": "4.8.0",
+   "scipy": "1.15.3"
+  },
+  "gate": {
+   "tag": "canary2",
+   "host": "a03-11.hpc.usc.edu",
+   "cpu": "AMD EPYC 7513 32-Core Processor",
+   "procs": 25,
+   "versions": {
+    "python": "3.11.15",
+    "numpy": "2.3.5",
+    "sklearn": "1.9.0",
+    "lightgbm": "4.6.0",
+    "xgboost": "3.2.0",
+    "optuna": "4.9.0",
+    "scipy": "1.17.1"
+   },
+   "dev_end_row": 36285,
+   "entries": {
+    "lgbm_opt_00": {
+     "family": "lgbm",
+     "sha": "abab811bd4b6",
+     "stored": 0.10744949046943114,
+     "rerun": 0.10744949046943114,
+     "abs_diff": 0.0,
+     "rel_diff": 0.0,
+     "fit_sec_sum": 1187.2397386366501,
+     "pass": true,
+     "required": true,
+     "wall_sec": 51.8865921497345
+    }
+   },
+   "pass": true
+  }
+ }
+}

@@ -1,0 +1,8 @@
+gate,value,ok
+determinism: 2026-10-06 ridge one-penalty causal walk recomputed here,0.0,True
+"scorer on the old f arm == master table subpt_ridge_all_features (QLIKE, Sharpe mid, crossed)",9.71445146547012e-17,True
+"scorer on the old f arm == master table subpt_lasso_all_features (QLIKE, Sharpe mid, crossed)",8.326672684688674e-17,True
+"scorer on the old f arm == master table subpt_enet_all_features (QLIKE, Sharpe mid, crossed)",1.3877787807814457e-17,True
+"scorer on the old f arm == master table subpt_ridge_all_features (QLIKE, Sharpe mid, crossed)",9.71445146547012e-17,True
+"scorer on the old f arm == master table subpt_lasso_all_features (QLIKE, Sharpe mid, crossed)",8.326672684688674e-17,True
+"scorer on the old f arm == master table subpt_enet_all_features (QLIKE, Sharpe mid, crossed)",1.3877787807814457e-17,True

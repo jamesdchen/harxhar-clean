@@ -21,8 +21,6 @@ Lasso & $1.37$ & $1.88$ & $0.50^{\phantom{***}}$ & $0.51^{\phantom{***}}$ \\
  &  &  & $(1.47)^{\phantom{***}}$ & $(1.48)^{\phantom{***}}$ \\[2pt]
 Ridge & $1.37$ & $1.42$ & $0.05^{\phantom{***}}$ & $0.04^{\phantom{***}}$ \\
  &  &  & $(0.09)^{\phantom{***}}$ & $(0.10)^{\phantom{***}}$ \\[2pt]
-MinGRU\tnote{a} & $1.04$ & $1.53$ & $0.49^{\phantom{***}}$ & $0.49^{\phantom{***}}$ \\
- &  &  & $(0.95)^{\phantom{***}}$ & $(0.95)^{\phantom{***}}$ \\[2pt]
 \addlinespace[4pt]
 \multicolumn{5}{@{}l}{\textit{Panel B: Pooled intraday models}} \\
 \addlinespace[2pt]
@@ -58,7 +56,6 @@ $\SR$. Panel C gives medians across the closing-interval tree pairs (every hyper
 set) and across all pairs of the \rheModelSetN{} forecasts of the model set, with the number of pairs whose
 differential is significantly positive at the 5\% level in brackets (none is significantly negative at
 that level). $^{*}$, $^{**}$ and $^{***}$ denote significance at the 10\%, 5\% and 1\% levels.
-\item[a] MinGRU network (ridge-initialized, trained and selected on QLIKE); not in the model set.
 \end{tablenotes}
 \end{threeparttable}
 \end{table}

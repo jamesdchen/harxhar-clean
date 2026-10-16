@@ -34,6 +34,8 @@ Outputs (results/model_diagnostics_1530/):
   trees_shap_share.png, trees_shap_rolling.png, trees_shap.json, trees_shap.log
 
 Run:  python experiments/model_diagnostics_1530_trees.py
+      python experiments/model_diagnostics_1530_trees.py figures   (redraw the figures
+      from the saved outputs only)
 """
 
 from __future__ import annotations
@@ -160,6 +162,98 @@ def series_of(names: list[str]) -> tuple[np.ndarray, dict[str, str]]:
     stem = {g: md.var_stem(g, names) for g in sorted(set(grp))}
     stem["calendar"] = "calendar (DOW_*, is_*, hour, days_to_opex)"
     return grp, stem
+
+
+# ---- the figures (drawn by main(); redrawn from its saved outputs by figures()).
+# Series are presented through md.disp (no adj_ prefix).
+def _fig_share(plt, out, shares_all, stems_all, Jb, buckets):
+    """Share of mean |SHAP| by series, one bar group per model, one panel per design."""
+    fig, axes = plt.subplots(
+        len(buckets), 1, figsize=(11, 3.3 * len(buckets) + 0.4), squeeze=False
+    )
+    for ax, bucket in zip(axes[:, 0], buckets):
+        T = shares_all[bucket]
+        keys = [k for k in ORDER if k in set(T["model"])]
+        W = T[T["sample"] == "all rows"].pivot(
+            index="series", columns="model", values="share"
+        )[keys]
+        order = list(W.mean(axis=1).sort_values(ascending=False).index)
+        show = order[:N_FIG]
+        rest = order[N_FIG:]
+        Wp = W.loc[show]
+        if rest:
+            Wp = pd.concat(
+                [Wp, W.loc[rest].sum().to_frame(f"other {len(rest)} series").T]
+            )
+        stem = stems_all[bucket]
+        labels = [
+            "calendar" if s == "calendar" else md.disp(stem.get(s, s)) for s in Wp.index
+        ]
+        x = np.arange(len(Wp))
+        wbar = 0.8 / len(keys)
+        for i, k in enumerate(keys):
+            ax.bar(
+                x + (i - (len(keys) - 1) / 2) * wbar,
+                100 * Wp[k].to_numpy(),
+                width=wbar * 0.9,
+                color=COLOR[k],
+                label=LABEL[k],
+                edgecolor="white",
+                linewidth=0.4,
+            )
+        ax.set_xticks(x)
+        ax.set_xticklabels(labels, rotation=35, ha="right", fontsize=7)
+        ax.set_ylabel("share of mean |SHAP| (%)", fontsize=8)
+        ax.tick_params(axis="y", labelsize=7)
+        ax.grid(axis="y", color="0.9", lw=0.6)
+        ax.set_axisbelow(True)
+        for sp_ in ("top", "right"):
+            ax.spines[sp_].set_visible(False)
+        n_cols = Jb[bucket]["n_columns"]
+        ax.set_title(
+            f"{bucket} design ({n_cols} columns, {Jb[bucket]['n_series']} series), "
+            f"16:00 bar, all {Jb[bucket]['n']:,} forecasts",
+            fontsize=8,
+        )
+        ax.legend(fontsize=7, ncol=len(keys), frameon=False, loc="upper right")
+    fig.tight_layout()
+    fig.savefig(out / "trees_shap_share.png", dpi=150)
+    plt.close(fig)
+
+
+def _fig_rolling(plt, out, RL, T, stem, deck) -> list[str]:
+    """Rolling shares of the four largest series, every model; returns those series."""
+    keys = [k for k in ORDER if k in set(T["model"])]
+    W = T[T["sample"] == "all rows"].pivot(
+        index="series", columns="model", values="share"
+    )
+    top4 = list(W.mean(axis=1).sort_values(ascending=False).index[:4])
+    d0, d1 = deck.min(), deck.max()
+    fig, axes = plt.subplots(2, 2, figsize=(11, 5.0), sharex=True)
+    for ax, g in zip(axes.ravel(), top4):
+        ax.axvspan(d0, d1, color="0.94", zorder=0, lw=0)
+        for k in keys:
+            s = RL[RL["model"] == k][g]
+            ax.plot(
+                s.index,
+                100 * s.to_numpy(),
+                color=COLOR[k],
+                ls=DASH[k],
+                lw=1.1,
+                label=LABEL[k],
+            )
+        ax.set_title(md.disp(stem[g]), fontsize=8)
+        ax.set_ylabel(f"share, trailing {ROLL} sessions (%)", fontsize=7)
+        ax.tick_params(labelsize=7)
+        ax.grid(axis="y", color="0.9", lw=0.6)
+        for sp_ in ("top", "right"):
+            ax.spines[sp_].set_visible(False)
+    h, lab = axes[0, 0].get_legend_handles_labels()
+    fig.legend(h, lab, loc="lower center", ncol=len(keys), fontsize=7, frameon=False)
+    fig.tight_layout(rect=(0, 0.05, 1, 1))
+    fig.savefig(out / "trees_shap_rolling.png", dpi=150)
+    plt.close(fig)
+    return top4
 
 
 def main() -> None:  # noqa: C901 - one linear report
@@ -493,91 +587,12 @@ def main() -> None:  # noqa: C901 - one linear report
 
     # ---- figure 1: share by series, one bar group per model
     buckets = [b for b in BUCKETS if b in shares_all]
-    fig, axes = plt.subplots(
-        len(buckets), 1, figsize=(11, 3.3 * len(buckets) + 0.4), squeeze=False
-    )
-    for ax, bucket in zip(axes[:, 0], buckets):
-        T = shares_all[bucket]
-        keys = [k for k in ORDER if k in set(T["model"])]
-        W = T[T["sample"] == "all rows"].pivot(
-            index="series", columns="model", values="share"
-        )[keys]
-        order = list(W.mean(axis=1).sort_values(ascending=False).index)
-        show = order[:N_FIG]
-        rest = order[N_FIG:]
-        Wp = W.loc[show]
-        if rest:
-            Wp = pd.concat(
-                [Wp, W.loc[rest].sum().to_frame(f"other {len(rest)} series").T]
-            )
-        stem = stems_all[bucket]
-        labels = ["calendar" if s == "calendar" else stem.get(s, s) for s in Wp.index]
-        x = np.arange(len(Wp))
-        wbar = 0.8 / len(keys)
-        for i, k in enumerate(keys):
-            ax.bar(
-                x + (i - (len(keys) - 1) / 2) * wbar,
-                100 * Wp[k].to_numpy(),
-                width=wbar * 0.9,
-                color=COLOR[k],
-                label=LABEL[k],
-                edgecolor="white",
-                linewidth=0.4,
-            )
-        ax.set_xticks(x)
-        ax.set_xticklabels(labels, rotation=35, ha="right", fontsize=7)
-        ax.set_ylabel("share of mean |SHAP| (%)", fontsize=8)
-        ax.tick_params(axis="y", labelsize=7)
-        ax.grid(axis="y", color="0.9", lw=0.6)
-        ax.set_axisbelow(True)
-        for sp_ in ("top", "right"):
-            ax.spines[sp_].set_visible(False)
-        n_cols = J["buckets"][bucket]["n_columns"]
-        ax.set_title(
-            f"{bucket} design ({n_cols} columns, {J['buckets'][bucket]['n_series']} series), "
-            f"16:00 bar, all {J['buckets'][bucket]['n']:,} forecasts",
-            fontsize=8,
-        )
-        ax.legend(fontsize=7, ncol=len(keys), frameon=False, loc="upper right")
-    fig.tight_layout()
-    fig.savefig(OUT / "trees_shap_share.png", dpi=150)
-    plt.close(fig)
+    _fig_share(plt, OUT, shares_all, stems_all, J["buckets"], buckets)
 
     # ---- figure 2: rolling shares of the four largest live_feasible series, every model
     bucket = "live_feasible"
-    RL = rolling_all[bucket]
-    T = shares_all[bucket]
-    keys = [k for k in ORDER if k in set(T["model"])]
-    W = T[T["sample"] == "all rows"].pivot(
-        index="series", columns="model", values="share"
-    )
-    top4 = list(W.mean(axis=1).sort_values(ascending=False).index[:4])
     stem = stems_all[bucket]
-    d0, d1 = deck.min(), deck.max()
-    fig, axes = plt.subplots(2, 2, figsize=(11, 5.0), sharex=True)
-    for ax, g in zip(axes.ravel(), top4):
-        ax.axvspan(d0, d1, color="0.94", zorder=0, lw=0)
-        for k in keys:
-            s = RL[RL["model"] == k][g]
-            ax.plot(
-                s.index,
-                100 * s.to_numpy(),
-                color=COLOR[k],
-                ls=DASH[k],
-                lw=1.1,
-                label=LABEL[k],
-            )
-        ax.set_title(stem[g], fontsize=8)
-        ax.set_ylabel(f"share, trailing {ROLL} sessions (%)", fontsize=7)
-        ax.tick_params(labelsize=7)
-        ax.grid(axis="y", color="0.9", lw=0.6)
-        for sp_ in ("top", "right"):
-            ax.spines[sp_].set_visible(False)
-    h, lab = axes[0, 0].get_legend_handles_labels()
-    fig.legend(h, lab, loc="lower center", ncol=len(keys), fontsize=7, frameon=False)
-    fig.tight_layout(rect=(0, 0.05, 1, 1))
-    fig.savefig(OUT / "trees_shap_rolling.png", dpi=150)
-    plt.close(fig)
+    top4 = _fig_rolling(plt, OUT, rolling_all[bucket], shares_all[bucket], stem, deck)
     J["rolling_top4"] = [stem[g] for g in top4]
     J["roll"] = ROLL
 
@@ -587,5 +602,36 @@ def main() -> None:  # noqa: C901 - one linear report
     (OUT / "trees_shap.log").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
+def figures(out: Path = OUT) -> None:
+    """Redraw main()'s two figures from its saved outputs (trees_shap.json, the
+    trees_shap_share_<bucket>.csv and trees_shap_rolling63_live_feasible.csv tables) for
+    every design the saved run holds.  No SHAP value is recomputed and no table is written."""
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    J = json.loads((OUT / "trees_shap.json").read_text(encoding="utf-8"))
+    buckets = list(J["buckets"])
+    shares_all = {b: pd.read_csv(OUT / f"trees_shap_share_{b}.csv") for b in buckets}
+    stems_all = {b: dict(zip(T["series"], T["columns"])) for b, T in shares_all.items()}
+    for b in buckets:
+        assert set(J["buckets"][b]["order"]) == set(stems_all[b].values()), b
+    _fig_share(plt, out, shares_all, stems_all, J["buckets"], buckets)
+    bucket = "live_feasible"
+    RL = pd.read_csv(
+        OUT / f"trees_shap_rolling{ROLL}_{bucket}.csv",
+        index_col="stamp",
+        parse_dates=True,
+    )
+    stem = stems_all[bucket]
+    top4 = _fig_rolling(plt, out, RL, shares_all[bucket], stem, deck_days())
+    assert [stem[g] for g in top4] == J["rolling_top4"], J["rolling_top4"]
+    print(f"redrew 2 figures in {out}")
+
+
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) > 1 and sys.argv[1] == "figures":
+        figures()  # redraw the figures from the saved outputs only
+    else:
+        main()

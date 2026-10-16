@@ -13,6 +13,9 @@
 \section{Appendix structure}
 \label{sec:rh_appendix}
 \begin{itemize}
+% 2026-10-15 (user): pointer to the new section that follows this roadmap.
+\item \textbf{Implementation details} (Appendix~\ref{app:rh_impl}): samples and windows, the training schemes in
+  practice, the tuned hyperparameters and the tuning procedures.
 \item \textbf{A. Data and predictors:}
   \begin{itemize}
   \item sources and spans;
@@ -31,8 +34,9 @@
     learning rate $\eta$;
   \item re-selection frequency, on the estimation sample $\mathcal W^{\mathrm{est}}_t$, gap $\mathcal W^{\mathrm{gap}}_t$
     and validation sample $\mathcal W^{\mathrm{val}}_t$; re-estimation frequency;
-  \item network: the hyperparameter grid $\Theta$ (look-back length $\ell$, hidden width, learning rate, weight decay
-    $\nu$, $\nu_{\mathrm{enc}}$, $\nu_{\mathrm{lin}}$) and the selection on $\mathcal W^{\mathrm{val}}_t$.
+  % 2026-10-15 (user): parked -- NN content parked for now
+%   \item network: the hyperparameter grid $\Theta$ (look-back length $\ell$, hidden width, learning rate, weight decay
+%     $\nu$, $\nu_{\mathrm{enc}}$, $\nu_{\mathrm{lin}}$) and the selection on $\mathcal W^{\mathrm{val}}_t$.
   \end{itemize}
 \item \textbf{C. Robustness, statistical:}
   \begin{itemize}
@@ -62,11 +66,188 @@
   \item compute time;
   \item the generator script behind every reported number.
   \end{itemize}
-\item \textbf{F. Network implementation:}
+% 2026-10-15 (user): parked -- NN content parked for now
+% \item \textbf{F. Network implementation:}
+%   \begin{itemize}
+%   \item native PufferLib 5.0 MinGRU trainer: logistic function $\Lambda(a) = 1/(1 + e^{-a})$ in the update gate
+%     $\bm z_\tau$ and the highway gate $\bm\psi_\tau$; look-back $\ell$; weight decay $\nu$;
+%   \item float64 reference checks; byte-identity replication checks;
+%   \item scripts for the rolling-window out-of-sample exercise.
+%   \end{itemize}
+\end{itemize}
+
+% 2026-10-15 (user): "after moving implementation details to the experiments section, move it to the appendix
+% and then link to it in the experiment section with a summary left in the experiment section". Moved here from
+% 06_results.tex (Experimental setup); every label kept. Placed after the roadmap above (which lists the appendix),
+% so the roadmap still opens the appendix. Tables: tab:rh_dm_tuning, tab:rh_dm_hyper, tab:rh_dm_hyper_search
+% (10_appendix_floats.tex, first).
+\section{Implementation details}
+\label{app:rh_impl}
+\subsection{Samples and windows}
+\label{sec:rh_exp_samples}
+\begin{itemize}
+\item \textbf{Estimation and evaluation samples:} Table~\ref{tab:rh_dm_samples}.
+\item \textbf{Burn-in:} the first \rhdmBurnIn{} intervals, the longest HAR horizon, are dropped
+  (Section~\ref{sec:rh_data}).
+\item \textbf{Diurnal adjustment} $s^2_{t,i}$ (Section~\ref{sec:rh_methods_setup}): $n_{\mathrm{d}} = 20$ trading days,
+  at least $\underline n_{\mathrm{d}} = 5$ of them; intervals with fewer are not scored.
+  % src/features/transforms/target.py:24-25, 286-298 (per slot rolling(20, min_periods=5).mean().shift(1); no
+  % per-slot band on the target). Moved from Problem formulation (2026-10-15, user).
+\item \textbf{Winsorization} of the target: $n_{\mathrm{w}} = 240$ intervals, all intervals of the day pooled; the
+  bounds are the empirical 1st and 99th percentiles, $\underline Q_{t,i} = Q_{0.01}(\mathcal Y_{t,i})$ and
+  $\overline Q_{t,i} = Q_{0.99}(\mathcal Y_{t,i})$.
+  % target.py:96-97, 450-516 (1/99, window 240, shift(1), min_periods = 240 for the target). Moved from Problem
+  % formulation (2026-10-15, user).
+\item \textbf{Hyperparameter-selection splits:} $n_{\mathrm{gap}} = \cmPtEmbargo$ and
+  $n_{\mathrm{val}} = \rhdmValTail$ observations.
+  % src/models/reclasso_har.py:255-265 (forward_window_split); specs/causal_tune_linear.py:157-162. Moved from
+  % Problem formulation (2026-10-15, user).
+\end{itemize}
+
+\subsection{Training schemes in practice}
+\label{sec:rh_exp_schemes}
+% Windows by model class: generated/rehaul_dm_tuning.tex and the code -- closing-interval W = 2,000 trading days
+% (\cmPtFitWin); pooled linear 2,000 trading days x 48 = 96,000 intervals (experiments/pool_linear_pretune.py:65-66,
+% TW_DAYS, PERIODS_PER_DAY; asserted by make_rehaul_data_methods.py); pooled trees 24,000 intervals
+% (specs/causal_tune_trees.py:165, POOLED_WINDOW_ROWS).
+\begin{itemize}
+\item \textbf{Closing-interval scheme:} $W = \cmPtFitWin$ trading days for every model class; re-estimated every
+  trading day, except the tree specifications re-estimated every 10 trading days (fixed hyperparameters or random
+  search).
+\item \textbf{Pooled intraday scheme:} $M = \rhdmNIntervals$ intervals a day; the full predictor set has
+  \rhdmNColsPooled{} predictors (Section~\ref{sec:rh_predictors}).
   \begin{itemize}
-  \item native PufferLib 5.0 MinGRU trainer: logistic function $\Lambda(a) = 1/(1 + e^{-a})$ in the update gate
-    $\bm z_\tau$ and the highway gate $\bm\psi_\tau$; look-back $\ell$; weight decay $\nu$;
-  \item float64 reference checks; byte-identity replication checks;
-  \item scripts for the rolling-window out-of-sample exercise.
+  \item Linear models: $W = \rhdmPooledLinWindow$ intervals (\cmPtFitWin{} trading days), re-estimated every interval.
+    % 2026-10-15 (finish): FLAG resolved -- typed 96{,}000 -> \rhdmPooledLinWindow (make_rehaul_data_methods.py, same value).
+  \item Trees: $W = \rhdmPooledWindow$ intervals; one fixed hyperparameter configuration per tree method, never
+    re-selected, re-estimated every interval.
+    % 2026-10-15 (user): from the parked Models bullet "Pooled intraday trees" (via Training schemes). Checked
+    % against specs/causal_tune_trees.py (docstring: the pooled LightGBM and XGBoost are arms tree_expert_00 and
+    % tree_expert_16 of the frozen 20-arm bank).
   \end{itemize}
+% 2026-10-15 (user): parked -- "park all tables that I haven't mentioned in this chat"
+% \item Windows, re-estimation and re-selection frequencies of every model class: Table~\ref{tab:rh_dm_tuning}.
+\end{itemize}
+
+% 2026-10-15 (user): moved here from 05_methods.tex (the Methods subsection "Tuned hyperparameters", label
+% sec:rh_methods_hyper kept so every \ref resolves), via 06_results.tex. Its tables (generated/rehaul_dm_hyper.tex:
+% tab:rh_dm_hyper, tab:rh_dm_hyper_search) are in 10_appendix_floats.tex.
+\subsection{Tuned hyperparameters}
+\label{sec:rh_methods_hyper}
+\begin{itemize}
+\item \textbf{Linear penalties,} chosen by hyperparameter selection on a pre-sample
+  (Section~\ref{sec:rh_methods_tuning}), one grid value per decade
+  (Table~\ref{tab:rh_dm_hyper}):
+  \[
+    \lambda^{\mathrm{ridge}} \in \{10^{-2}, \dots, 10^{3}\}, \qquad
+    \lambda^{\mathrm{lasso}}, \lambda^{\mathrm{enet}} \in \{10^{-6}, \dots, 10^{-2}\}.
+  \]
+  % specs/causal_tune_linear.py:164-172 (ESTIMATOR_GRIDS).
+  \begin{itemize}
+  \item full predictor set: ridge $10^{3}$, lasso and elastic net $10^{-2}$ (top edge);
+  \item HAR benchmark: the lower edge of each grid.
+  \end{itemize}
+% 2026-10-15 (user): parked -- "park all tables that I haven't mentioned in this chat". Was: \item \textbf{Trees,} fixed hyperparameters from a search on a 1998--2002 pre-sample (Table~\ref{tab:rh_dm_hyper};
+\item \textbf{Trees,} fixed hyperparameters from a search on a 1998--2002 pre-sample (Table~\ref{tab:rh_dm_hyper}):
+  % 2026-10-15 (user): parked -- "park all tables that I haven't mentioned in this chat"
+  % search spaces of the re-tuned specifications in Table~\ref{tab:rh_dm_hyper_search}):
+  \begin{itemize}
+  \item LightGBM and XGBoost: the best trial of an Optuna search \citep{Akiba2019};
+  \item random forest: trial \rhdmRfTrial{} of \cmTreeProvRfTrials{} ($B = \cmTreeProvRfTrees$ trees, maximum depth
+    \cmTreeProvRfDepth, share of predictors tried at each split \cmTreeProvRfFeatures, bootstrap sample share
+    \cmTreeProvRfSamples);
+  \item leaf minimums are rescaled to the \cmPtFitWin-observation window:
+    $n_{\min} \leftarrow n_{\min} \cdot \cmPtFitWin / \rhdmPooledWindow$, the pooled intraday trees' window
+    (Section~\ref{sec:rh_exp_schemes}).
+  % 2026-10-15 (finish): typed 255 and 24{,}000 -> \rhdmRfTrial, \rhdmPooledWindow (same values).
+  % 2026-10-15 (consolidation): typed 400, 485, 20, 0.90, 0.41, 2,000 -> \cmTreeProv..., \cmPtFitWin (same values).
+  \end{itemize}
+  % specs/causal_tune_trees.py:160-177 (_leaf_scale = TRAIN_WIN / POOLED_WINDOW_ROWS; LightGBM rounds, min 1).
+% 2026-10-15 (user): parked -- NN content parked for now
+% \item \textbf{Network grid} $\Theta$, with $\bm\vartheta \in \Theta$ a hyperparameter configuration
+%   (Table~\ref{tab:rh_dm_hyper_search}, Panel B):
+%   \begin{itemize}
+%   \item closing-interval model: $(\ell, H, \eta_0) \in \{5,20\} \times \{16,64\} \times \{0.003,0.01,0.03\}$;
+%   \item crossed with $\nu_{\mathrm{enc}}$, $\nu_{\mathrm{lin}}$ and $\eta_{\mathrm{lin}}$;
+%   \item pooled intraday model: $(\ell, H, \eta_0) \in \{20,48\} \times \{64,256\} \times \{0.001,0.003\}$.
+%   \end{itemize}
+\end{itemize}
+
+% 2026-10-15 (user): moved here from 05_methods.tex ("Tuning procedures", label sec:rh_methods_tuning kept), as
+% implementation; "Panel A" dropped from the tab:rh_dm_hyper_search pointer (the table now has one panel).
+\subsection{Tuning procedures}
+\label{sec:rh_methods_tuning}
+% 2026-10-15 (consolidation): Table pointers to tab:rh_dm_tuning / tab:rh_dm_hyper_search added (data-methods
+% generator item 1).
+\begin{itemize}
+% 2026-10-15 (user): parked -- "park all tables that I haven't mentioned in this chat"
+% \item \textbf{Windows, re-estimation and re-selection frequencies and criteria} of every model class:
+  % 2026-10-15 (user): parked -- "park all tables that I haven't mentioned in this chat"
+  % Table~\ref{tab:rh_dm_tuning}.
+\item \textbf{Linear:}
+  \begin{itemize}
+  \item hyperparameter selection on a pre-sample of \cmPtFolds{} folds of \cmPtFoldLen{} trading days
+    (\cmPtValFirst{} to \cmPtValLast), on validation MSE:
+    \[
+      \hat\lambda = \argmin_{\lambda} \frac14 \sum_{v=1}^{4} \mathrm{MSE}^{\mathrm{val}}_v(\lambda),
+    \]
+    with $\mathrm{MSE}^{\mathrm{val}}_v(\lambda)$ the mean squared error of $\tilde y$ on the validation sample of
+    fold $v$;
+    % 2026-10-15 (finish): parked -- fold index j -> v (j is the predictor and lag index). Was:
+    % \hat\lambda = \argmin_{\lambda} \frac14 \sum_{j=1}^{4} \mathrm{MSE}^{\mathrm{val}}_j(\lambda), with
+    % $\mathrm{MSE}^{\mathrm{val}}_j(\lambda)$ the mean squared error of $\tilde y$ on the validation sample of fold $j$;
+  \item a light re-tune at each re-tuning date (every \cmPtBlock{} trading days): the grid neighbors
+    $\mathcal C \subseteq \{\lambda^{-}, \lambda^{+}\}$ (one decade below and above, where on the grid) challenge the
+    incumbent $\lambda$;
+  % 2026-10-15 (notation pass): parked -- "Newey--West t" replaced by the statistic the code computes, the
+  % HLN-corrected Diebold--Mariano statistic (see the code pointer below). Old display:
+  % t\bigl(\{e_i^2(\alpha') - e_i^2(\alpha_k)\}_i\bigr) < -z_{0.05/m}, \qquad m = |\mathcal C|, \qquad z_a = \Phi^{-1}(1 - a);
+  \item the best challenger $\lambda'$ (lowest validation MSE) replaces it only if the Diebold--Mariano
+    statistic $\DM$ of Section~\ref{sec:rh_methods_tests}, on the paired squared errors, is significantly negative:
+    \[
+      \DM\bigl(\{e_{t'}^2(\lambda') - e_{t'}^2(\lambda)\}_{t'}\bigr) < -z_{0.05/|\mathcal C|}, \qquad
+      z_{0.05/|\mathcal C|} = \Phi^{-1}\bigl(1 - 0.05/|\mathcal C|\bigr);
+    \]
+  \item $e_{t'}(\lambda) = \tilde y_{t'} - \hat y_{t'}(\lambda)$, $t'$ over \rhdmRetuneFolds{} \rhdmValTail-day
+    validation folds; $\Phi$: the standard normal distribution function.
+  % 2026-10-15 (finish, phase 2): typed "two 125-day" -> \rhdmRetuneFolds{} \rhdmValTail (same values).
+  \end{itemize}
+  % experiments/close_linear_pretune.py:572-597 (light_retune): t is dm_test's HLN-corrected statistic on the
+  % paired squared errors; z = inv_cdf(1 - 0.05 / len(cands)).
+  % Code vs paper: sections/methods_close_option.tex:369-370 states -z_{0.05/2}; the code divides by the number of
+  % challengers (|C| = 1 at a grid edge) (outline flag 7).
+\item \textbf{Trees,} in increasing order of tuning effort:
+  \begin{itemize}
+  \item fixed hyperparameters, re-estimated every 10 trading days or daily;
+  \item random search every 250 trading days;
+  \item Optuna \citep{Akiba2019}: \rhappOptTrials{} trials, re-tuned every 1, 5, 25 or 250 trading days, best of the
+    % 2026-10-15 (user): parked -- "park all tables that I haven't mentioned in this chat". Was: first 10, 25 or \rhappOptTrials{} trials (search spaces in Table~\ref{tab:rh_dm_hyper_search}).
+    first 10, 25 or \rhappOptTrials{} trials.
+  \end{itemize}
+% 2026-10-15 (user): parked -- NN content parked for now
+% \item \textbf{Network:}
+%   \begin{itemize}
+%   \item seed average over $S$ seeds, $\hat y^{(j)}_t$ the forecast of seed $j$:
+%     \[
+%       \hat y_t = \frac1S \sum_{j=1}^{S} \hat y_t^{(j)};
+%     \]
+%   \item the hyperparameters are re-selected at the start of each of \rhappNblocks{} blocks of 250 forecast origins,
+%     on the validation sample:
+%     \[
+%       \hat{\bm\vartheta}_t = \argmin_{\bm\vartheta \in \Theta} \frac{1}{|\mathcal W^{\mathrm{val}}_t|}
+%         \sum_{t' \in \mathcal W^{\mathrm{val}}_t} \mathcal L^{\mathrm{val}}\bigl(\tilde y_{t'}, \hat y_{t'}(\bm\vartheta)\bigr),
+%       \qquad \mathcal L^{\mathrm{val}}(y, \hat y) \in \bigl\{(y - \hat y)^2,\ \QLIKE(y^2, \hat y^{\,2})\bigr\};
+%     \]
+%   \item each seed's early-stopping epoch $e^\ast_j = \argmin_e \bar{\mathcal L}^{\mathrm{val}}_{j,e}$ is kept and the
+%     network is re-estimated from scratch at every origin; $\bar{\mathcal L}^{\mathrm{val}}_{j,e}$: seed $j$'s mean
+%     training loss on $\mathcal W^{\mathrm{val}}_t$ after epoch $e$;
+%   \item the forecast is the mean of $S = 5$ seeds (\rhrNNPooledSeeds{} in the pooled intraday model).
+%   \end{itemize}
+%   % experiments/puffer_forecast/phase2_select.py:94-135 (choose: seed mean first, then the loss; QLIKE plain on
+%   % r = y^2 / f^2, winsorised y); forecast_train.cu:383-430 (early stopping, patience 20).
+% 2026-10-15 (user): parked -- "out-of-sample period" (every forecast is out of sample). Was: "... the out-of-sample
+% period is never used for a choice."
+\item \textbf{Every selection uses only data available at the forecast origin;} no forecast is scored on a day that
+  entered the selection of its own hyperparameters, and the evaluation span $\mathcal T_{\mathrm{oos}}$ starts after
+  the pre-sample.
 \end{itemize}

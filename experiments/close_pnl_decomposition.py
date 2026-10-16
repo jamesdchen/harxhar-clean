@@ -19,12 +19,21 @@ asl.crossed_premium_return), the notebook's §13 definitions.
 
 SCORER. The primary set is the notebook scorer (the rv_iv notebook's
 recalibration on all 13 session bars), because the per-day tables come from
-it and they carry all four forecasts. The research scorer (16:00-bar
-recalibration, score_linear_subsection_causal.causal_forecasts +
-score_linear_subsection.trade_1530) is run as a separate set for the two
-per-bar ridges (the paper's forecasts have no research-scorer rows yet) and
-written to results/close_pnl_decomp/research_scorer/ -- never mixed with the
-primary set in one table.
+it and they carry all four forecasts. The second set is run for the two
+per-bar ridges and written to results/close_pnl_decomp/research_scorer/ (the
+folder name is kept: writeup/make_table_close_main.py reads it) -- never mixed
+with the primary set in one table.
+2026-10-06: recalibration removed, user decision. The second set trades the
+PLAIN back-transform of the 16:00 forecast, f^2 * B (f the adjusted-scale
+forecast pred_adj, B = true_raw / true_adj^2 the diurnal baseline), i.e. the
+15:30 sign(s) rule is q = sign(f^2 B - iv_var).  It used to trade the research
+scorer's 16:00-bar recalibration (f^2 + s) B (score_linear_subsection_causal.
+causal_forecasts); that line is parked in research_positions.  The primary
+(notebook-scorer) set is unchanged by this edit.
+2026-10-06: no intervals (the repo bootstrap is disabled, commit b761b28): the
+_lo / _hi columns of the CSVs are no longer written (boot_cells parks the
+bootstrap), the regime figure has no error bars, and SUMMARY.md reports point
+estimates only.
 
 Blocks (one CSV each, plus supporting CSVs):
   1 tails        tail_concentration.csv, tail_days.csv
@@ -183,9 +192,14 @@ def load_frame() -> tuple[pd.DataFrame, dict[str, pd.Series]]:
 
 
 def research_positions(px: pd.DataFrame) -> dict[str, pd.Series]:
-    """sign(s) under the research scorer (16:00-bar recalibration), per-bar ridges."""
+    """sign(s) on the PLAIN 16:00 forecast f^2 * B (no recalibration), per-bar ridges.
+
+    2026-10-06: recalibration removed, user decision (was: the research scorer's
+    16:00-bar recalibration (f^2 + s) * B)."""
     import score_linear_subsection as base
-    import score_linear_subsection_causal as slc
+
+    # 2026-10-06: recalibration removed, user decision
+    # import score_linear_subsection_causal as slc
 
     out: dict[str, pd.Series] = {}
     for lab, bucket in RESEARCH_ARMS_SPEC.items():
@@ -193,10 +207,13 @@ def research_positions(px: pd.DataFrame) -> dict[str, pd.Series]:
         r = pd.read_csv(path, parse_dates=["date"]).set_index("date").sort_index()
         r = r[(r["true_adj"] > 0) & (r["true_raw"] > 0)].copy()
         r["baseline"] = r["true_raw"] / r["true_adj"] ** 2
-        r["e2"] = (r["true_adj"] - r["pred_adj"]) ** 2
-        r["hhmm"] = r.index.strftime("%H:%M")
-        r["day"] = r.index.normalize()
-        f = slc.causal_forecasts(r)["pred_clock"]
+        # 2026-10-06: recalibration removed, user decision -- the research scorer's
+        # (f^2 + s) * B with the causal 250-session smear s is parked:
+        # r["e2"] = (r["true_adj"] - r["pred_adj"]) ** 2
+        # r["hhmm"] = r.index.strftime("%H:%M")
+        # r["day"] = r.index.normalize()
+        # f = slc.causal_forecasts(r)["pred_clock"]
+        f = r["pred_adj"] ** 2 * r["baseline"]  # the plain back-transform f^2 * B
         ref = base.trade_1530(
             f
         )  # the scorer's own Sharpe, to check the rebuild against
@@ -213,9 +230,13 @@ def research_positions(px: pd.DataFrame) -> dict[str, pd.Series]:
         mine = q * px["R"]
         sh = float(mine.mean() / mine.std(ddof=1) * ANN)
         assert abs(sh - ref["Sharpe_mid"]) < 1e-9, (lab, sh, ref["Sharpe_mid"])
+        if lab == HEADLINE:
+            # 2026-10-06: the plain headline's Sharpe mid on the 866 days, as the GUI's
+            # independent recomputation reports it (two decimals)
+            assert f"{sh:.2f}" == "1.79", (lab, sh)
         ratio = f / px["iv_var"]
         print(
-            f"research scorer {lab}: Sharpe mid {sh:.4f} (= trade_1530's), buys {int((q > 0).sum())}, "
+            f"plain 16:00 forecast {lab}: Sharpe mid {sh:.4f} (= trade_1530's), buys {int((q > 0).sum())}, "
             f"forecast / implied variance max {float(ratio.max()):.3f}, min {float(ratio.min()):.3f}"
         )
         out[lab] = q
@@ -495,14 +516,17 @@ BOOT_KEYS = (
 def boot_cells(
     job: tuple[str, str, str, np.ndarray, np.ndarray, dict[str, np.ndarray], int],
 ) -> list[dict]:
-    """Worker: point estimates + block-bootstrap intervals for every cell of one series."""
+    """Worker: point estimates for every cell of one series.
+
+    2026-10-06: no intervals (the bootstrap is disabled, commit b761b28: every draw is the
+    original sample) -- the block-bootstrap _lo / _hi columns are parked and not written."""
     series, fill, family, x, q, masks, b = job
-    idx = boot_idx(len(x), b)
-    xb = x[idx]
+    # idx = boot_idx(len(x), b)
+    # xb = x[idx]
     rows = []
     for name, m in masks.items():
         pt = _cell_stats(x, m)
-        bs = _cell_stats(xb, m[idx])
+        # bs = _cell_stats(xb, m[idx])
         row = {
             "series": series,
             "fill": fill,
@@ -525,8 +549,9 @@ def boot_cells(
             "mean_in_minus_out",
         ):
             row[k] = float(pt[k])
-            if k in BOOT_KEYS:
-                row[f"{k}_lo"], row[f"{k}_hi"] = _ci(bs[k])
+            # 2026-10-06: no intervals (bootstrap disabled, commit b761b28)
+            # if k in BOOT_KEYS:
+            #     row[f"{k}_lo"], row[f"{k}_hi"] = _ci(bs[k])
         rows.append(row)
     return rows
 
@@ -986,15 +1011,16 @@ def figures(
             r = reg[(reg["series"] == s)].set_index("cell").loc[cells]
             xpos = np.arange(len(cells)) + (j - (nser - 1) / 2) * wbar
             ax.bar(xpos, r["mean"], width=wbar * 0.9, color=COLOURS[s], label=s)
-            ax.errorbar(
-                xpos,
-                r["mean"],
-                yerr=[r["mean"] - r["mean_lo"], r["mean_hi"] - r["mean"]],
-                fmt="none",
-                ecolor="#52514e",
-                elinewidth=0.9,
-                capsize=2,
-            )
+            # 2026-10-06: no intervals (bootstrap disabled, commit b761b28) -- error bars parked
+            # ax.errorbar(
+            #     xpos,
+            #     r["mean"],
+            #     yerr=[r["mean"] - r["mean_lo"], r["mean_hi"] - r["mean"]],
+            #     fmt="none",
+            #     ecolor="#52514e",
+            #     elinewidth=0.9,
+            #     capsize=2,
+            # )
         ns = reg[(reg["series"] == HEADLINE)].set_index("cell").loc[cells, "n"]
         ax.set_xticks(np.arange(len(cells)))
         ax.set_xticklabels(
@@ -1147,7 +1173,9 @@ def _f(v: float, nd: int = 2, sign: bool = False) -> str:
 
 
 def _fci(r: pd.Series, k: str, nd: int = 2, sign: bool = False) -> str:
-    return f"{_f(r[k], nd, sign)} [{_f(r[k + '_lo'], nd, sign)}, {_f(r[k + '_hi'], nd, sign)}]"
+    # 2026-10-06: no intervals (bootstrap disabled, commit b761b28) -- point estimate only
+    # return f"{_f(r[k], nd, sign)} [{_f(r[k + '_lo'], nd, sign)}, {_f(r[k + '_hi'], nd, sign)}]"
+    return _f(r[k], nd, sign)
 
 
 def _short(s: str) -> str:
@@ -1247,13 +1275,18 @@ def write_summary(
     )
     w(
         "- **Scorer.** The rv_iv notebook's (recalibration on all 13 session bars), because the per-day tables come "
-        "from it. The research scorer (recalibration on the 16:00 bar alone) is run separately for the two per-bar "
-        "ridges in `research_scorer/` and summarized in §7; the two are never mixed in one table."
+        "from it. The two per-bar ridges are run separately on their plain 16:00 forecast f²·B (no recalibration; "
+        "2026-10-06, user decision) in `research_scorer/` and summarized in §7; the two are never mixed in one table."
     )
+    # 2026-10-06: no intervals (bootstrap disabled, commit b761b28); the bullet below is parked
+    # w(
+    #     f"- **Intervals.** 95 % circular block bootstrap, {BOOT_BLOCK}-session blocks, {b:,} draws, one seed, the "
+    #     "same resampled days for every series (so differences are paired). A cell statistic (month-ends, a VIX "
+    #     "tercile, …) is recomputed on the resampled days that fall in the cell. Shares of a total are point values."
+    # )
     w(
-        f"- **Intervals.** 95 % circular block bootstrap, {BOOT_BLOCK}-session blocks, {b:,} draws, one seed, the "
-        "same resampled days for every series (so differences are paired). A cell statistic (month-ends, a VIX "
-        "tercile, …) is recomputed on the resampled days that fall in the cell. Shares of a total are point values."
+        "- **No intervals.** Every number is a point estimate (the repository's bootstrap is disabled, commit "
+        "b761b28; the CSVs carry no `_lo` / `_hi` columns)."
     )
     w("")
     w(
@@ -1439,19 +1472,21 @@ def write_summary(
         f"against a long history, so the 2020–2024 frame is unbalanced across them "
         f"({', '.join(str(int(reg_row(H, c)['n'])) for c in v_cells)} days by VIX tercile)."
     )
-    excl = []
-    for s in MAIN:
-        for c in v_cells + r_cells:
-            rr = reg_row(s, c)
-            if rr["mean_lo"] > 0:
-                excl.append(
-                    f"{_short(s)} in {c.replace('S&P 21-day realized vol', 'realized-vol')}"
-                )
-    w(
-        "- Cells whose P&L-per-day interval excludes zero (midpoint): "
-        + "; ".join(excl)
-        + "."
-    )
+    # 2026-10-06: no intervals (bootstrap disabled, commit b761b28); the interval-based
+    # bullet below is parked
+    # excl = []
+    # for s in MAIN:
+    #     for c in v_cells + r_cells:
+    #         rr = reg_row(s, c)
+    #         if rr["mean_lo"] > 0:
+    #             excl.append(
+    #                 f"{_short(s)} in {c.replace('S&P 21-day realized vol', 'realized-vol')}"
+    #             )
+    # w(
+    #     "- Cells whose P&L-per-day interval excludes zero (midpoint): "
+    #     + "; ".join(excl)
+    #     + "."
+    # )
     vh, vhs = reg_row(H, "VIX tercile: high"), reg_row(SHORT, "VIX tercile: high")
     dvh = _pick(da, sign_s_series=H, fill="mid", cell="VIX tercile: high")
     w(
@@ -1674,14 +1709,16 @@ def write_summary(
             )
     w("")
 
-    # 7. research scorer
+    # 7. the plain 16:00 forecast (2026-10-06: recalibration removed, user decision; this
+    # section used to be "the same decomposition under the research scorer")
     if rt is not None:
-        w("## 7. The same decomposition under the research scorer")
+        w("## 7. The same decomposition on the plain 16:00 forecast (no recalibration)")
         w("")
         w(
-            "The research scorer recalibrates the forecast on the 16:00 bar alone (the scorer of the per-bar QLIKE "
-            "tables and the closing-strategy master table). Only the two per-bar ridges have research-scorer rows; "
-            "full tables in `research_scorer/`."
+            "The 15:30 sign(s) rule reads the per-bar ridge's 16:00 forecast as its plain back-transform f²·B "
+            "(f the adjusted-scale forecast, B the diurnal baseline), never recalibrated: q = sign(f²·B − implied "
+            "variance). Only the two per-bar ridges have rows here; full tables in `research_scorer/` (folder name "
+            "kept for its readers)."
         )
         w("")
         w(
@@ -1726,10 +1763,11 @@ def write_summary(
         )
         + " the implied variance — no extreme values enter."
     )
-    w(
-        "- Intervals on the best- and worst-day cells are conditional on the days the sample picked; read them as "
-        "'how much rides on these particular days', not as a test."
-    )
+    # 2026-10-06: no intervals (bootstrap disabled, commit b761b28); bullet parked
+    # w(
+    #     "- Intervals on the best- and worst-day cells are conditional on the days the sample picked; read them as "
+    #     "'how much rides on these particular days', not as a test."
+    # )
     w(
         "- Premium units weight every day alike. The dollar and index-point versions are in the notebook's §13."
     )
@@ -1772,7 +1810,8 @@ def write_summary(
         ("fig_cum_pnl_tails.png, fig_regime_bars.png, fig_drawdown.png", "figures"),
         (
             "research_scorer/",
-            "the same CSVs under the research scorer (two per-bar ridges)",
+            "the same CSVs on the plain 16:00 forecast f²·B, no recalibration (two per-bar ridges; "
+            "folder name kept)",
         ),
     ):
         w(f"- `{nm}` — {d}")
@@ -1837,7 +1876,7 @@ def main() -> None:
         for lab in RESEARCH_ARMS_SPEC:
             agree[lab] = float((rpos[lab] == pos[lab]).mean())
             print(
-                f"research vs notebook scorer, {lab}: same position on {100 * agree[lab]:.1f} % of days"
+                f"plain 16:00 forecast vs notebook scorer, {lab}: same position on {100 * agree[lab]:.1f} % of days"
             )
         rtabs = run_set(
             px,

@@ -11,18 +11,24 @@
 % 2026-10-15 (consolidation): window row s -> t' (s is the periodicity factor); calendar dummies \bm d_{t,i} ->
 % \bm D_{t,i} (d_t is the DM loss differential); typed counts -> macros where one exists (47 -> \rhfiNExog, 628 ->
 % \cmPNewAll, 22 -> \cmPNewBase, 369 -> \cmKeptAll); "session-open/close dummies" -> opening/closing-interval dummies.
+% 2026-10-15 (finish, user): "intraday periodicity adjustment" -> "diurnal adjustment" (term rename only); Table 3
+% (tab:rh_dm_design) parked, so its two \ref's are dropped (old lines parked in place).
 
 % 2026-10-15 (notation pass): parked -- section title; "features" only for ML methods, "predictors" in prose
 % \section{Features}
 \section{Predictors}
 \label{sec:rh_predictors}
 \begin{itemize}
-\item \textbf{Eight groups of exogenous predictors, \rhfiNExog{} series:} realized moments (7), liquidity (14),
-  equal-weighted market (6), value-weighted market (6), sentiment (3), implied volatility (3), volatility demand (4),
-  FOMC (4); listed in Appendix Table~\ref{tab:rh_dm_dictionary}.
+\item \textbf{Eight groups of exogenous predictors, \rhfiNExog{} series:} realized moments (\bkSizeMom), liquidity
+  (\bkSizeLiq), equal-weighted market (\bkSizeMew), value-weighted market (\bkSizeMvw), sentiment (\bkSizeSent),
+  % 2026-10-15 (user): parked -- "park all tables that I haven't mentioned in this chat". Was: implied volatility (\bkSizeIv), volatility demand (\bkSizeVd), FOMC (\bkSizeFomc); listed in Appendix
+  implied volatility (\bkSizeIv), volatility demand (\bkSizeVd), FOMC (\bkSizeFomc).
+  % 2026-10-15 (user): parked -- "park all tables that I haven't mentioned in this chat"
+  % Table~\ref{tab:rh_dm_dictionary}.
   \[
-    \rhfiNExog = 7 + 14 + 6 + 6 + 3 + 3 + 4 + 4 .
+    \rhfiNExog = \bkSizeMom + \bkSizeLiq + \bkSizeMew + \bkSizeMvw + \bkSizeSent + \bkSizeIv + \bkSizeVd + \bkSizeFomc .
   \]
+  % 2026-10-15 (finish, phase 2): typed group sizes 7, 14, 6, 6, 3, 3, 4, 4 -> \bkSize... (same values).
   \begin{itemize}
   \item FOMC:
     \[
@@ -44,7 +50,7 @@
       \mathcal{K} =
       \begin{cases}
         \{1, 5, 25, 125, 625, 3125\} & \text{closing-interval model},\\
-        \{2^0, 2^1, \dots, 2^{11}\} \ \text{(base 2, 12 horizons)} & \text{pooled intraday model}.
+        \{2^0, 2^1, \dots, 2^{11}\} \ \text{(base 2, \rhdmNHorizonsPooled{} horizons)} & \text{pooled intraday model}.
       \end{cases}
     \]
   \item $k$ counts intervals of the full intraday grid, overnight included; the closing-interval model uses the
@@ -75,13 +81,15 @@
   \begin{itemize}
   \item At the closing interval, four of the 16 dummies (hour, overnight, opening and closing interval) are constant,
     and the quadruple-witching closing-auction dummy equals the quadruple-witching dummy, so the column screen below
-    drops these five at every estimation of the closing-interval model (Table~\ref{tab:rh_dm_design}).
+    drops these five at every estimation of the closing-interval model.
+    % 2026-10-15 (user): parked -- Table 3 (tab:rh_dm_design) is parked. Was:
+    % drops these five at every estimation of the closing-interval model (Table~\ref{tab:rh_dm_design}).
   \end{itemize}
   % 2026-10-15 (consolidation): added to match tab:rh_dm_design (four constant dummies) and tab:rh_fi_linear (five
   % never in a fit; addenda A.3).
 \item \textbf{Transformations, in order:}
   \begin{enumerate}
-  \item intraday periodicity adjustment, dividing by a factor estimated on the same intraday interval
+  \item diurnal adjustment, dividing by a factor estimated on the same intraday interval
     ($\mathcal{D}_{t,i}$ as for $s^2_{t,i}$) and bounded relative to its own trailing median:
     \[
       \tilde u_{t,i} = \frac{u_{t,i}}{b^{(u)}_{t,i}}, \qquad
@@ -143,7 +151,8 @@
       \end{cases}
     \]
     % executor.py:602-608.
-  \item activity indicators, for the 7 series whose full-sample mode accounts for at least 20\% of intervals:
+  \item activity indicators, for the \rhdmNActive{} series whose full-sample mode accounts for at least 20\% of
+    intervals:
     \[
       \chi_{t,i} = \mathbf{1}\{u_{t,i} \ne \operatorname{mode}(u)\};
     \]
@@ -192,20 +201,29 @@
     columns.
   \end{itemize}
   % window_mask.py:27-46 (float64 bytes).
-\item \textbf{Predictor sets} (Table~\ref{tab:rh_dm_design})\textbf{:} the HAR benchmark has \cmPNewBase{} columns;
+% 2026-10-15 (user): parked -- Table 3 (tab:rh_dm_design) is parked. Was:
+% \item \textbf{Predictor sets} (Table~\ref{tab:rh_dm_design})\textbf{:} the HAR benchmark has \cmPNewBase{} columns;
+\item \textbf{Predictor sets:} the HAR benchmark has \cmPNewBase{} columns;
   the full predictor set has \cmPNewAll.
   \[
-    \cmPNewAll = \underbrace{\cmPNewBase}_{\bar y^{(k)},\ \bm D} + \underbrace{\rhfiNExog \times 6}_{\bar u^{(k)}}
-      + \underbrace{\rhfiNExog \times 6}_{\bar a^{(k)}} + \underbrace{7 \times 6}_{\bar\chi^{(k)}}, \qquad
-    \cmPNewBase = 6 + 16 .
+    \cmPNewAll = \underbrace{\cmPNewBase}_{\bar y^{(k)},\ \bm D}
+      + \underbrace{\rhfiNExog \times \rhdmNHorizonsClose}_{\bar u^{(k)}}
+      + \underbrace{\rhfiNExog \times \rhdmNHorizonsClose}_{\bar a^{(k)}}
+      + \underbrace{\rhdmNActive \times \rhdmNHorizonsClose}_{\bar\chi^{(k)}}, \qquad
+    \cmPNewBase = \rhdmNHorizonsClose + \rhdmNCalendar .
   \]
   \begin{itemize}
-  \item The pooled intraday model's full predictor set has 1,144 columns: 43 series, 12 horizons, and 24
-    interactions of the HAR components with the opening- and closing-interval dummies.
+  \item The pooled intraday model's full predictor set has \rhdmNColsPooled{} columns: \rhdmNSeriesPooled{} series,
+    \rhdmNHorizonsPooled{} horizons, and \rhdmNEdgePooled{} interactions of the HAR components with the opening- and
+    closing-interval dummies.
     \[
-      1{,}144 = \underbrace{12 + 16}_{\bar y^{(k)},\ \bm D} + \underbrace{24}_{\bar y^{(k)} \times \text{open, close}}
-        + 43 \times 12 + 43 \times 12 + 5 \times 12 .
+      \rhdmNColsPooled = \underbrace{\rhdmNHorizonsPooled + \rhdmNCalendar}_{\bar y^{(k)},\ \bm D}
+        + \underbrace{\rhdmNEdgePooled}_{\bar y^{(k)} \times \text{open, close}}
+        + \rhdmNSeriesPooled \times \rhdmNHorizonsPooled + \rhdmNSeriesPooled \times \rhdmNHorizonsPooled
+        + \rhdmNActivePooled \times \rhdmNHorizonsPooled .
     \]
+    % 2026-10-15 (finish, phase 2): typed 6, 16, 7, 1,144, 43, 12, 24, 5 -> \rhdmNHorizonsClose, \rhdmNCalendar,
+    % \rhdmNActive, \rhdmNColsPooled, \rhdmNSeriesPooled, \rhdmNHorizonsPooled, \rhdmNEdgePooled, \rhdmNActivePooled.
     % Pooled panel of record is pre-FOMC (43 series; 5 zero-inflated: numobs + 4 voldemand). Current code
     % builds 1,264 = 52 + 47*12*2 + 7*12 (outline flag 10). Session-edge columns: executor.py:454-459.
   \end{itemize}

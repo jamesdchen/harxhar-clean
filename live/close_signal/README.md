@@ -18,7 +18,7 @@ Heaviside part 1{s > 0} plus the month-end long.
 15:30:30   fetch the five feeds at once, measure delays, build today's rows
            forecast = specs/causal_tune_linear.py (13 bars, ridge, tw 2000,
            free_vix_only) in FULL on the extended panel, one shared pass
-           + the causal MZ map                                     -> rv_hat
+           16:00 row's plain back-transform yhat^2 * B             -> rv_hat
            P* = Black-76 straddle price at sqrt(rv_hat)                -> the card
 ~15:31     Calendar event at 15:30 with a popup; state committed back
 ```
@@ -29,8 +29,8 @@ the signed moments (a median over every row), the median fills of unobserved
 cells -- so appending it changes 28 of the 232 transformed columns over the
 whole history (adj_sumret3 on 29,837 rows, the HAR means of adj_sumret to the
 last row) and with them every arm's past forecasts: on 2026-09-23 all 27,940
-prior-session rows moved, by up to 6.3e-6 relative, and the MZ map is fitted
-on those rows.  A 15:15 forecast is a different number.  What moves ahead of
+prior-session rows moved, by up to 6.3e-6 relative (the parked MZ map was
+fitted on those rows).  A 15:15 forecast is a different number.  What moves ahead of
 the stamp is everything around the arithmetic: the interpreter and imports,
 the spawned workers, the numba kernels, the code copy, the vendor files.
 
@@ -177,12 +177,14 @@ regression never has to be re-validated against the true data.**  Concretely:
   ET stamp in UTC at microsecond resolution, `yhat` = pred_adj, `baseline` =
   true_raw / true_adj^2, `rv_raw` = the PANEL's realized variance at the stamp,
   never the arm's winsorized `true_raw`), and today's 16:00 row goes through
-  the deck's own loader `asl.load_yhat_1530_mz_cached` -- the causal
-  second-order MZ map fitted on the session's regular-hours rows -- to
-  `rv_hat`.  Why every bar when only the close is traded: the recalibration is
-  fitted on the whole session.  Measured 2026-09-23: on the 16:00 rows alone
-  the map is 4-5 % off the deck's rv_hat and disagrees with sign(s) on 89 of
-  866 days; on the 13-bar table it reproduces the deck exactly.
+  the deck's own loader `asl.load_yhat_1530_mz_cached(..., recal=False)` to its
+  plain back-transform `rv_hat = yhat^2 * baseline`.  **2026-10-06:
+  recalibration removed from the live card, user decision** -- the causal
+  second-order MZ map fitted on the session's regular-hours rows is parked and
+  callable as `forecast.recalibrate(..., recal=True)`.  Under the map every bar
+  was needed (measured 2026-09-23: on the 16:00 rows alone the map was 4-5 %
+  off the deck's rv_hat); the plain back-transform reads only the 16:00 row,
+  and the 13 arms stay for the gate below.
 * **The gate that proves it** -- `python -m live.close_signal.run --gate-deck`
   (`forecast.assert_reproduces_deck`): the 13 arms with the research bucket
   (`live_feasible`) on the vendor files alone must equal the research table
@@ -198,6 +200,13 @@ regression never has to be re-validated against the true data.**  Concretely:
   ridge solves (CARC's BLAS vs the local one, same rows, bit-identical inputs);
   the gate's tolerances sit one decade above the measured numbers (yhat 1e-6,
   rv_hat 1e-7) and the deterministic columns and the signs must be exact.
+  **Result on 2026-10-06** (plain back-transform on both sides, the deck re-run
+  plain the same day; 13 arms, three at a time, 6.5 minutes): 20,044 of 20,044
+  rows matched; baseline and rv_raw exactly equal; yhat max relative deviation
+  6.4e-7; rv_hat on 866/866 deck days, max relative deviation 8.1e-13; signs
+  866/866.  The parked map (`recal=True`) against the recalibrated deck
+  snapshot `results/atm_straddle_0dte_1530/recal_2026-09-24/` still gives
+  866/866 at 8.8e-9.
   `--reuse-arms` re-checks the assembly and the loader without re-running the
   arms.
 * **History once, then daily appends.**  The vendor panel ends 2024-04-30 (its
@@ -236,8 +245,8 @@ regression never has to be re-validated against the true data.**  Concretely:
    runs the 13 arms with the true 16:00 target and with the placeholder and
    requires identical `pred_adj` and baseline on every row of the assembled
    table up to and including that session -- the claim the daily design rests
-   on (the features are shift(1), the diurnal baseline is shift(1), the MZ map
-   uses prior sessions).
+   on (the features are shift(1), the diurnal baseline is shift(1); the parked
+   MZ map used prior sessions).
 4b. **Deck reproduction**: `python -m live.close_signal.run --gate-deck` (above);
    run it after any change to the spec, the panel files or this package's
    assembly.
@@ -277,7 +286,7 @@ day means the workflow did not run -- check the Actions log.
 
 `feeds.py` Yahoo adapters + delays; `features.py` the 30-minute moments and
 prints, `assert_parity`; `ingest.py` Databento / Yahoo-hourly Cboe gap / FirstRate (cross-check); `state.py` the
-committed parquets; `forecast.py` the spec arm on the extended panel + MZ;
+committed parquets; `forecast.py` the spec arm on the extended panel + the plain back-transform;
 `arms_shared.py` the 13 arms in one shared pass (+ the warm server);
 `fastpath_check.py` its gate against the path of record;
 `signal.py` P\*, sizing, the card; `calendar_push.py`, `auth_once.py`;

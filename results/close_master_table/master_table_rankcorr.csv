@@ -1,11 +1,11 @@
 set,n_forecasts,qlike,sharpe,spearman
-all table-A forecasts,295,plain,mid,-0.2757588789065787
-all table-A forecasts,295,plain,crossed,-0.2761641440818196
-"per-bar forecasts (linear, VIX-only, trees, tuned, LSTM, bucket studies)",265,plain,mid,-0.26896207069990585
-"per-bar forecasts (linear, VIX-only, trees, tuned, LSTM, bucket studies)",265,plain,crossed,-0.2675569713305562
-per-bar linear + VIX-only family,43,plain,mid,0.48867411658109333
-per-bar linear + VIX-only family,43,plain,crossed,0.4885231048021746
-"per-bar nonlinear (every tree rung, LSTM)",198,plain,mid,-0.3428239490020476
-"per-bar nonlinear (every tree rung, LSTM)",198,plain,crossed,-0.3400628739760949
-48-bar forecasts (paper + pooled twins),30,plain,mid,-0.39265850945494996
-48-bar forecasts (paper + pooled twins),30,plain,crossed,-0.40600667408231367
+all table-A forecasts,295,plain,mid,-0.28698710817354883
+all table-A forecasts,295,plain,crossed,-0.287409200968523
+"per-bar forecasts (linear, VIX-only, trees, tuned, LSTM, bucket studies)",265,plain,mid,-0.2814048414346329
+"per-bar forecasts (linear, VIX-only, trees, tuned, LSTM, bucket studies)",265,plain,crossed,-0.27995460348985673
+per-bar linear + VIX-only family,43,plain,mid,0.45273331319842947
+per-bar linear + VIX-only family,43,plain,crossed,0.4525823014195107
+"per-bar nonlinear (every tree rung, LSTM)",198,plain,mid,-0.35612534291206843
+"per-bar nonlinear (every tree rung, LSTM)",198,plain,crossed,-0.35326996465174665
+48-bar forecasts (paper + pooled twins),30,plain,mid,-0.4211345939933259
+48-bar forecasts (paper + pooled twins),30,plain,crossed,-0.4367074527252503

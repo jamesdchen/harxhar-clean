@@ -1,14 +1,14 @@
 gate,value,bound,n,ok
 slice = the deck's iv_var,0.0,1e-09,866,True
-target shared by every forecast,0.0,1e-09,112,True
+realized variance (rv_unclipped) shared by every forecast,0.0,1e-09,112,True
 "q = the master table's, every forecast and day",0.0,0.0,96992,True
 ret_mid = the master table's,0.0,1e-10,96992,True
 ret_crossed = the master table's,0.0,1e-10,96992,True
 "Sharpe_mid = master_table.csv, every forecast",2.220446049250313e-16,1e-09,112,True
 "Sharpe_crossed = master_table.csv, every forecast",3.3306690738754696e-15,1e-09,112,True
-"QLIKE (plain) = master_table.csv qlike_raw, every forecast",1.1102230246251565e-15,1e-09,112,True
+"QLIKE (plain) = master_table.csv qlike_raw, every forecast",8.881784197001252e-16,1e-09,112,True
 "mean(qR) = mean|R| - 2 mean(EL), every forecast",2.0816681711721685e-16,1e-12,112,True
-"QLIKE = integral ES_c c^-2 dc, day by day, every forecast",3.7451714618441656e-08,1e-06,96992,True
+"QLIKE = integral ES_c c^-2 dc, day by day, every forecast",5.698117888641718e-08,1e-06,96992,True
 always short collects +1 on pin days,0.0,1e-09,193,True
-"scores_by_forecast.csv = the committed copy (HEAD = f452978), 2 rows that read no forecast",5.551115123125783e-17,1e-09,26,True
-"splits.csv = the committed copy (HEAD = f452978), 7 rows that read no forecast",6.938893903907228e-17,1e-09,56,True
+"scores_by_forecast.csv = the committed copy (HEAD = 34385fd), 1 rows that read no forecast",0.0,1e-09,11,True
+"splits.csv = the committed copy (HEAD = 34385fd), 7 rows that read no forecast",6.938893903907228e-17,1e-09,56,True

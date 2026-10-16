@@ -1,6 +1,7 @@
 """Model diagnostics for the 15:30 sign(s) trade: the per-bar ridge's weights.
 
-Two stages (``python experiments/model_diagnostics_1530.py capture|analyze``):
+Two stages (``python experiments/model_diagnostics_1530.py capture|analyze``; ``figures``
+redraws analyze's figures from its saved outputs, nothing recomputed):
 
 capture  Re-runs the deck's per-bar arm (bar ending 16:00, ridge, live_feasible
          bucket, 2000-session rolling window, HAR lags on the whole panel) through
@@ -328,6 +329,15 @@ def var_stem(g: str, names: list[str]) -> str:
     return stems.pop()
 
 
+def disp(name: str) -> str:
+    """A design name as presented: the leading adj_ dropped (adj_vix_ma_* -> vix_ma_*).
+
+    Every exogenous input is divided by its time-of-day baseline and har_ma_* are trailing
+    means of the adjusted target, so no presented name carries a prefix.  Display only:
+    data files, keys and code keep the design's own names."""
+    return name[4:] if name.startswith("adj_") else name
+
+
 def _corr_cols(F: np.ndarray, T: np.ndarray) -> np.ndarray:
     """Pearson correlation of every column of F with every column of T; (..., k, m)."""
     Fc = F - F.mean(axis=-2, keepdims=True)
@@ -370,6 +380,120 @@ def _diff_boot(c, win, idxs, rng, B, asl):
         ).sum(1)
     lo, hi = np.nanpercentile(dd, [2.5, 97.5])
     return diff, lo, hi
+
+
+# ---- the figures (drawn by analyze(); redrawn from its saved outputs by figures())
+def _fig_weights(plt, out, names, Zs, groups, gcols, dates_all, deck_lo, deck_hi):
+    """Small multiples: one panel per source series, one line per lag."""
+    panel_groups = [g for g in groups]
+    ncol = 4
+    nrow = int(np.ceil(len(panel_groups) / ncol))
+    fig, axes = plt.subplots(nrow, ncol, figsize=(11, 1.9 * nrow + 0.6), sharex=True)
+    axes = np.atleast_1d(axes).ravel()
+    lag_cols: dict[int | None, str] = dict(
+        zip(LAGS, ["#1b9e77", "#d95f02", "#7570b3", "#e7298a", "#66a61e", "#a6761d"])
+    )
+    for a_i, g in enumerate(panel_groups):
+        ax = axes[a_i]
+        for j in gcols[g]:
+            _, kind, lag = parse_feature(names[j])
+            if g == "calendar":
+                ax.plot(dates_all, Zs[:, j], lw=0.7)
+            elif kind == "level":
+                ax.plot(dates_all, Zs[:, j], lw=0.9, color=lag_cols.get(lag, "k"))
+            else:
+                ax.plot(
+                    dates_all, Zs[:, j], lw=0.6, color=lag_cols.get(lag, "k"), ls=":"
+                )
+        ax.axvspan(deck_lo, deck_hi, color="0.9", zorder=0)
+        ax.axhline(0, color="0.5", lw=0.5)
+        ax.set_title(disp(var_stem(g, list(names))), fontsize=8)
+        ax.tick_params(labelsize=6)
+    for ax in axes[len(panel_groups) :]:
+        ax.axis("off")
+    h = [plt.Line2D([], [], color=c, lw=1.2) for c in lag_cols.values()]
+    fig.legend(
+        h,
+        [f"*_ma_{k}" for k in lag_cols],
+        loc="lower center",
+        ncol=6,
+        fontsize=7,
+        frameon=False,
+    )
+    fig.tight_layout(rect=(0, 0.04, 1, 1))
+    fig.savefig(out / "weights_small_multiples.png", dpi=150)
+    plt.close(fig)
+
+
+def _fig_corr(plt, out, GC, splits, fg_names, vname):
+    """Series contribution vs the day's return per premium, three splits."""
+    fig, axes = plt.subplots(1, 3, figsize=(11, 0.3 * len(fg_names) + 1.3), sharey=True)
+    y = np.arange(len(fg_names))
+    for a_i, sname in enumerate(splits):
+        ax = axes[a_i]
+        for tn, off, col, mk in (
+            ("pnl_mid", -0.15, "#1f77b4", "o"),
+            ("pnl_crossed", 0.15, "#d62728", "s"),
+        ):
+            sub = (
+                GC[(GC.split == sname) & (GC.target == tn)]
+                .set_index("series")
+                .loc[fg_names]
+            )
+            ax.errorbar(
+                sub["corr"],
+                y + off,
+                xerr=[sub["corr"] - sub["lo"], sub["hi"] - sub["corr"]],
+                fmt=mk,
+                ms=3,
+                lw=0.8,
+                color=col,
+                label="mid" if tn == "pnl_mid" else "crossed",
+            )
+        ax.axvline(0, color="0.5", lw=0.6)
+        nn = int(GC[(GC.split == sname)]["n"].iloc[0])
+        ax.set_title(f"{sname.replace('_', '-')} days (n={nn})", fontsize=9)
+        ax.set_yticks(y)
+        ax.set_yticklabels(
+            vname + ["ybar (window-mean target)", "yhat (forecast)"], fontsize=7
+        )
+        ax.tick_params(axis="x", labelsize=7)
+    axes[0].invert_yaxis()
+    axes[0].legend(fontsize=7, loc="lower left")
+    fig.tight_layout()
+    fig.savefig(out / "corr_contribution_vs_pnl.png", dpi=150)
+    plt.close(fig)
+
+
+def _fig_quintile(plt, out, Q, top, gname, vname):
+    """Mean mid return per premium by contribution quintile, the largest series."""
+    fig, axes = plt.subplots(1, len(top), figsize=(11, 2.5), sharey=True)
+    for a_i, k in enumerate(top):
+        ax = axes[a_i]
+        sub = Q[Q.series == gname[k]]
+        ax.bar(
+            sub["quintile"] - 0.2,
+            sub["pnl_mid"],
+            width=0.4,
+            color="#1f77b4",
+            label="all days",
+        )
+        ax.bar(
+            sub["quintile"] + 0.2,
+            sub["pnl_mid_other"],
+            width=0.4,
+            color="#9ecae1",
+            label="excl. month-ends",
+        )
+        ax.axhline(0, color="0.4", lw=0.6)
+        ax.set_title(vname[k], fontsize=8)
+        ax.set_xlabel("contribution quintile (1 = pushes s down most)", fontsize=6)
+        ax.tick_params(labelsize=7)
+    axes[0].set_ylabel("mean P&L per premium (mid)", fontsize=7)
+    axes[0].legend(fontsize=6)
+    fig.tight_layout()
+    fig.savefig(out / "pnl_by_contribution_quintile.png", dpi=150)
+    plt.close(fig)
 
 
 def analyze() -> None:  # noqa: C901 - one linear report
@@ -517,8 +641,8 @@ def analyze() -> None:  # noqa: C901 - one linear report
     G = np.column_stack([Cd[:, gcols[g]].sum(1) for g in groups])
     gname = [BASE_WORDS.get(g, g) for g in groups]
     vname = [
-        var_stem(g, list(names)) for g in groups
-    ]  # figure labels: the design's column names
+        disp(var_stem(g, list(names))) for g in groups
+    ]  # figure labels: the design's column names, as presented
     lvl_d = level[ii]
     say(
         f"sd on deck days (forecast units): forecast {pred[ii].std(ddof=1):.3f}, level {lvl_d.std(ddof=1):.3f}; "
@@ -530,46 +654,17 @@ def analyze() -> None:  # noqa: C901 - one linear report
     Gdf.to_csv(OUT / "group_contributions_deck_days.csv")
 
     # ---- small multiples: one panel per source series, one line per lag
-    panel_groups = [g for g in groups]
-    ncol = 4
-    nrow = int(np.ceil(len(panel_groups) / ncol))
-    fig, axes = plt.subplots(nrow, ncol, figsize=(11, 1.9 * nrow + 0.6), sharex=True)
-    axes = np.atleast_1d(axes).ravel()
-    lag_cols: dict[int | None, str] = dict(
-        zip(LAGS, ["#1b9e77", "#d95f02", "#7570b3", "#e7298a", "#66a61e", "#a6761d"])
+    _fig_weights(
+        plt,
+        OUT,
+        names,
+        Zs,
+        groups,
+        gcols,
+        stamp_et.normalize(),
+        d.index.min(),
+        d.index.max(),
     )
-    dates_all = stamp_et.normalize()
-    deck_lo, deck_hi = d.index.min(), d.index.max()
-    for a_i, g in enumerate(panel_groups):
-        ax = axes[a_i]
-        for j in gcols[g]:
-            _, kind, lag = parse_feature(names[j])
-            if g == "calendar":
-                ax.plot(dates_all, Zs[:, j], lw=0.7)
-            elif kind == "level":
-                ax.plot(dates_all, Zs[:, j], lw=0.9, color=lag_cols.get(lag, "k"))
-            else:
-                ax.plot(
-                    dates_all, Zs[:, j], lw=0.6, color=lag_cols.get(lag, "k"), ls=":"
-                )
-        ax.axvspan(deck_lo, deck_hi, color="0.9", zorder=0)
-        ax.axhline(0, color="0.5", lw=0.5)
-        ax.set_title(var_stem(g, list(names)), fontsize=8)
-        ax.tick_params(labelsize=6)
-    for ax in axes[len(panel_groups) :]:
-        ax.axis("off")
-    h = [plt.Line2D([], [], color=c, lw=1.2) for c in lag_cols.values()]
-    fig.legend(
-        h,
-        [f"*_ma_{k}" for k in lag_cols],
-        loc="lower center",
-        ncol=6,
-        fontsize=7,
-        frameon=False,
-    )
-    fig.tight_layout(rect=(0, 0.04, 1, 1))
-    fig.savefig(OUT / "weights_small_multiples.png", dpi=150)
-    plt.close(fig)
 
     # ---- (b) weights and contributions vs money, three splits, block bootstrap
     rng = np.random.default_rng(20260924)
@@ -779,70 +874,8 @@ def analyze() -> None:  # noqa: C901 - one linear report
     )
 
     # ---- figures for (b) and (c)
-    fig, axes = plt.subplots(1, 3, figsize=(11, 0.3 * len(fg_names) + 1.3), sharey=True)
-    y = np.arange(len(fg_names))
-    for a_i, sname in enumerate(splits):
-        ax = axes[a_i]
-        for tn, off, col, mk in (
-            ("pnl_mid", -0.15, "#1f77b4", "o"),
-            ("pnl_crossed", 0.15, "#d62728", "s"),
-        ):
-            sub = (
-                GC[(GC.split == sname) & (GC.target == tn)]
-                .set_index("series")
-                .loc[fg_names]
-            )
-            ax.errorbar(
-                sub["corr"],
-                y + off,
-                xerr=[sub["corr"] - sub["lo"], sub["hi"] - sub["corr"]],
-                fmt=mk,
-                ms=3,
-                lw=0.8,
-                color=col,
-                label="mid" if tn == "pnl_mid" else "crossed",
-            )
-        ax.axvline(0, color="0.5", lw=0.6)
-        nn = int(GC[(GC.split == sname)]["n"].iloc[0])
-        ax.set_title(f"{sname.replace('_', '-')} days (n={nn})", fontsize=9)
-        ax.set_yticks(y)
-        ax.set_yticklabels(
-            vname + ["ybar (window-mean target)", "yhat (forecast)"], fontsize=7
-        )
-        ax.tick_params(axis="x", labelsize=7)
-    axes[0].invert_yaxis()
-    axes[0].legend(fontsize=7, loc="lower left")
-    fig.tight_layout()
-    fig.savefig(OUT / "corr_contribution_vs_pnl.png", dpi=150)
-    plt.close(fig)
-
-    fig, axes = plt.subplots(1, len(top), figsize=(11, 2.5), sharey=True)
-    for a_i, k in enumerate(top):
-        ax = axes[a_i]
-        sub = Q[Q.series == gname[k]]
-        ax.bar(
-            sub["quintile"] - 0.2,
-            sub["pnl_mid"],
-            width=0.4,
-            color="#1f77b4",
-            label="all days",
-        )
-        ax.bar(
-            sub["quintile"] + 0.2,
-            sub["pnl_mid_other"],
-            width=0.4,
-            color="#9ecae1",
-            label="excl. month-ends",
-        )
-        ax.axhline(0, color="0.4", lw=0.6)
-        ax.set_title(vname[k], fontsize=8)
-        ax.set_xlabel("contribution quintile (1 = pushes s down most)", fontsize=6)
-        ax.tick_params(labelsize=7)
-    axes[0].set_ylabel("mean P&L per premium (mid)", fontsize=7)
-    axes[0].legend(fontsize=6)
-    fig.tight_layout()
-    fig.savefig(OUT / "pnl_by_contribution_quintile.png", dpi=150)
-    plt.close(fig)
+    _fig_corr(plt, OUT, GC, list(splits), fg_names, vname)
+    _fig_quintile(plt, OUT, Q, top, gname, vname)
 
     (OUT / "summary.txt").write_text("\n".join(lines) + "\n", encoding="utf-8")
     pd.set_option("display.width", 250)
@@ -859,6 +892,61 @@ def analyze() -> None:  # noqa: C901 - one linear report
     print(DD.round(3).to_string())
 
 
+def figures(out: Path = OUT) -> None:
+    """Redraw analyze()'s three figures from its saved outputs: the capture npz, the deck
+    days, corr_group_contribution_vs_pnl.csv and pnl_by_contribution_quintile.csv.  No
+    bootstrap is drawn and no CSV is written; only the PNGs change."""
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    z = np.load(OUT / "capture_bar1600.npz", allow_pickle=True)
+    names = [str(v) for v in z["names"]]
+    th, X, mu, sd = z["th"], z["x"], z["mu"], z["sd"]
+    stamp_et = pd.DatetimeIndex(pd.to_datetime(np.asarray(z["date"]).astype(str)))
+    C = th[:, :-1] * (X - mu)
+    Zs = th[:, :-1] * sd
+    d = pd.read_parquet(
+        REPO / "results" / "atm_straddle_0dte_1530" / "daily_sub_live_ridge.parquet"
+    )
+    d.index = pd.DatetimeIndex(d.index).as_unit("ns")
+    day = pd.Series(np.arange(len(stamp_et)), index=stamp_et.normalize().as_unit("ns"))
+    assert d.index.difference(day.index).empty
+    ii = day.reindex(d.index).to_numpy(int)
+    Cd = C[ii]
+    active = np.flatnonzero(
+        (sd[ii] > 0).any(axis=0) & (np.abs(th[ii, :-1]) > 0).any(axis=0)
+    )
+    gset = sorted({parse_feature(names[j])[0] for j in active})
+    gcols = {g: [j for j in active if parse_feature(names[j])[0] == g] for g in gset}
+    groups = sorted(gset, key=lambda g: -Cd[:, gcols[g]].sum(1).std(ddof=1))
+    gname = [BASE_WORDS.get(g, g) for g in groups]
+    saved = list(
+        pd.read_csv(OUT / "group_contributions_deck_days.csv", nrows=0).columns
+    )
+    assert saved[1:-2] == gname, ("series order differs from the saved run", saved)
+    vname = [disp(var_stem(g, list(names))) for g in groups]
+    GC = pd.read_csv(OUT / "corr_group_contribution_vs_pnl.csv")
+    Q = pd.read_csv(OUT / "pnl_by_contribution_quintile.csv")
+    fg_names = gname + ["level (window-mean target)", "forecast (sum)"]
+    top = list(range(min(5, len(groups))))
+    _fig_weights(
+        plt,
+        out,
+        names,
+        Zs,
+        groups,
+        gcols,
+        stamp_et.normalize(),
+        d.index.min(),
+        d.index.max(),
+    )
+    _fig_corr(plt, out, GC, ["all", "month_end", "other"], fg_names, vname)
+    _fig_quintile(plt, out, Q, top, gname, vname)
+    print(f"redrew 3 figures in {out}")
+
+
 if __name__ == "__main__":
     stage = sys.argv[1] if len(sys.argv) > 1 else "analyze"
     if stage == "capture":
@@ -870,5 +958,7 @@ if __name__ == "__main__":
             float(sys.argv[3]) if len(sys.argv) > 3 else None,
             os.environ.get("MD_BUCKET", BUCKET),
         )
+    elif stage == "figures":  # redraw the figures from the saved outputs only
+        figures()
     else:
         analyze()

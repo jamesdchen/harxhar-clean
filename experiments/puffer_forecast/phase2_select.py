@@ -18,14 +18,26 @@ import math
 import re
 import sys
 
-# _wd<x> (2026-10-14, the weight-decay study): wd is part of the configuration when the tune grid carries it
+# _wd<x> (2026-10-14, the weight-decay study) / _we<x> (2026-10-15, the encoder-input decay wd_enc): part of the
+# configuration when the tune grid carries it; _wl<x> (2026-10-15, native_g8: the linear shortcut's wd_lin) likewise
 ID_RE = re.compile(
-    r"^tune_(baseline|all_features)_L(\d+)_H(\d+)_lr([0-9.]+)(?:_wd([0-9.e+-]+))?_s(\d+)$"
+    r"^tune_(baseline|all_features)_L(\d+)_H(\d+)_lr([0-9.]+)(?:_wd([0-9.e+-]+))?(?:_we([0-9.e+-]+))?"
+    r"(?:_wl([0-9.e+-]+))?(?:_ll([0-9.e+-]+))?_s(\d+)$"
+)
+CFG_RE = re.compile(
+    r"^L(\d+)_H(\d+)_lr([0-9.]+)(?:_wd([0-9.e+-]+))?(?:_we([0-9.e+-]+))?(?:_wl([0-9.e+-]+))?"
+    r"(?:_ll([0-9.e+-]+))?$"
 )
 
 
-def cfg_name(L, H, lr, wd):
-    return "L%s_H%s_lr%s" % (L, H, lr) + ("" if wd is None else "_wd%s" % wd)
+def cfg_name(L, H, lr, wd, we=None, wl=None, ll=None):
+    return (
+        "L%s_H%s_lr%s" % (L, H, lr)
+        + ("" if wd is None else "_wd%s" % wd)
+        + ("" if we is None else "_we%s" % we)
+        + ("" if wl is None else "_wl%s" % wl)
+        + ("" if ll is None else "_ll%s" % ll)
+    )
 
 
 def kv(**kwargs):
@@ -56,8 +68,8 @@ def tune_configs(path):
         for row in csv.DictReader(handle):
             match = ID_RE.match(row["id"])
             if match is not None:
-                design, L, H, lr, wd, _ = match.groups()
-                out.setdefault(design, set()).add(cfg_name(L, H, lr, wd))
+                design, L, H, lr, wd, we, wl, ll, _ = match.groups()
+                out.setdefault(design, set()).add(cfg_name(L, H, lr, wd, we, wl, ll))
     return out
 
 
@@ -71,16 +83,19 @@ def val_forecasts(path):
             match = ID_RE.match(row["id"])
             if match is None:
                 continue
-            design, L, H, lr, wd, seed = match.groups()
-            cfg = cfg_name(L, H, lr, wd)
+            design, L, H, lr, wd, we, wl, ll, seed = match.groups()
+            cfg = cfg_name(L, H, lr, wd, we, wl, ll)
             acc.setdefault(design, {}).setdefault(cfg, {}).setdefault(
                 int(row["row"]), {}
             )[int(seed)] = float(row["f"])
     return acc
 
 
-def choose(design, forecasts, y, seeds):
-    """Lowest seed-averaged validation MSE; configs in sorted order (ties: the first), non-finite skipped."""
+def choose(design, forecasts, y, seeds, criterion="mse"):
+    """Lowest seed-averaged validation MSE (criterion "mse") or plain QLIKE (criterion "qlike", 2026-10-15: the paper's
+    evaluation loss, r = y^2 / f^2 -- the plain variance forecast f^2 B against the realised y^2 B -- and
+    r - log r - 1, the mean over the validation rows); configs in sorted order (ties: the first), non-finite (or,
+    for QLIKE, a forecast <= 0) skipped."""
     best = None
     for cfg in sorted(forecasts):
         rows = forecasts[cfg]
@@ -95,13 +110,23 @@ def choose(design, forecasts, y, seeds):
                     % (design, cfg, row_index, len(by_seed), len(seeds))
                 )
             f = sum(by_seed.values()) / float(len(seeds))
-            err = f - float(y[row_index])
-            sse += err * err
+            if criterion == "qlike":
+                yv = float(y[row_index])
+                if not (f > 0.0) or not math.isfinite(f):
+                    sse = float("nan")
+                    n += 1
+                    continue
+                r = (yv * yv) / (f * f)
+                sse += r - math.log(r) - 1.0
+            else:
+                err = f - float(y[row_index])
+                sse += err * err
             n += 1
         mse = sse / float(n)
         if not math.isfinite(mse):
             print(
-                "design %s cfg %s: non-finite validation MSE, skipped" % (design, cfg)
+                "design %s cfg %s: non-finite validation %s, skipped"
+                % (design, cfg, criterion.upper())
             )
             continue
         if best is None or mse < best[0]:
@@ -121,6 +146,8 @@ def main():
     parser.add_argument("--selection", required=True)
     # save_params=1 on the block's first origin's refits (every seed and design): weights at the best epoch
     parser.add_argument("--save-first-origin", action="store_true")
+    # (2026-10-15) the selection loss: mse (default) or qlike (the paper's evaluation loss, plain convention)
+    parser.add_argument("--criterion", choices=("mse", "qlike"), default="mse")
     args = parser.parse_args()
 
     manifest = json.loads(open(args.blocks).read())
@@ -133,6 +160,9 @@ def main():
     seeds = [int(s) for s in manifest["seeds"]]
     common = dict(manifest["common"])
     common["fc_n"] = 1
+    refit_loss = common.pop(
+        "loss", "mse"
+    )  # (2026-10-15) a walk trained on another loss sets common["loss"]
     epochs = best_epochs(args.tune_out + "/jobs_out.csv")
     forecasts = val_forecasts(args.tune_out + "/preds.csv")
     ran = tune_configs(args.tune_out + "/jobs_out.csv")
@@ -152,9 +182,8 @@ def main():
                     sorted(ran.get(design, set())),
                 )
             )
-        mse, cfg, n_val = choose(design, forecasts[design], y, seeds)
-        match = re.match(r"L(\d+)_H(\d+)_lr([0-9.]+)(?:_wd([0-9.e+-]+))?$", cfg)
-        L, H, lr, wd = match.groups()
+        mse, cfg, n_val = choose(design, forecasts[design], y, seeds, args.criterion)
+        L, H, lr, wd, we, wl, ll = CFG_RE.match(cfg).groups()
         per_seed = {}
         for seed in seeds:
             tid = "tune_%s_%s_s%s" % (design, cfg, seed)
@@ -178,15 +207,38 @@ def main():
                     wd is not None
                 ):  # the selected configuration's wd (over a common one)
                     base["wd"] = wd
+                if (
+                    we is not None
+                ):  # the selected configuration's wd_enc (over a common one)
+                    base["wd_enc"] = we
+                if (
+                    wl is not None
+                ):  # the selected configuration's wd_lin (over a common one)
+                    base["wd_lin"] = wl
+                if (
+                    ll is not None
+                ):  # the selected configuration's lr_lin (over a common one)
+                    base["lr_lin"] = ll
+                if (
+                    "lin_init_refit" in manifest
+                ):  # variant (b): the shortcut's ridge init of this refit's window
+                    wl_s = (
+                        wl if wl is not None else "%g" % float(common.get("wd_lin", 0))
+                    )
+                    base["lin_init"] = manifest["lin_init_refit"].format(
+                        design=design, origin=origin, L=L, wl=wl_s
+                    )
                 if args.save_first_origin and origin == block["origins"][0]:
                     base["save_params"] = 1
-                lines.append(kv(id=rid, mode="refit", loss="mse", **base))
+                lines.append(kv(id=rid, mode="refit", loss=refit_loss, **base))
         selection[design] = {
             "cfg": cfg,
             "val_mse": mse,
             "n_val": n_val,
             "best_epoch": per_seed,
         }
+        if args.criterion != "mse":  # (val_mse then holds the criterion's value)
+            selection[design]["criterion"] = args.criterion
         print(
             "block %s %s %s val_mse %.6f n_val %s" % (args.k, design, cfg, mse, n_val)
         )

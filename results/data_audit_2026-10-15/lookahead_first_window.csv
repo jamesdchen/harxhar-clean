@@ -1,0 +1,2 @@
+rows_scaled_by_first_window,first_window,first_forecast,test_rows_scaled_by_first_window,forecasts_whose_training_window_holds_such_rows,latest_data_used_by_first_window_stats
+2000,2010-07-12 .. 2018-06-22,2018-06-25,0,1469,2018-06-22

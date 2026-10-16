@@ -1,0 +1,15 @@
+moments_vix lstm_intraday 2000 bar1600 0 2000 2069 2000 all
+moments_vix lstm_intraday 2000 bar1600 1 2069 2138 2000 all
+moments_vix lstm_intraday 2000 bar1600 2 2138 2207 2000 all
+moments_vix lstm_intraday 2000 bar1600 3 2207 2250 2000 all
+moments_vix lstm_intraday 2000 bar1600 4 2250 2402 2000 all
+moments_vix lstm_intraday 2000 bar1600 5 2402 2500 2000 all
+moments_vix lstm_intraday 2000 bar1600 6 2500 2600 2000 all
+moments_vix lstm_intraday 2000 bar1600 7 2600 2700 2000 all
+moments_vix lstm_intraday 2000 bar1600 8 2700 2750 2000 all
+moments_vix lstm_intraday 2000 bar1600 9 2750 2934 2000 all
+moments_vix lstm_intraday 2000 bar1600 10 2934 3000 2000 all
+moments_vix lstm_intraday 2000 bar1600 11 3000 3140 2000 all
+moments_vix lstm_intraday 2000 bar1600 12 3140 3250 2000 all
+moments_vix lstm_intraday 2000 bar1600 13 3250 3437 2000 all
+moments_vix lstm_intraday 2000 bar1600 14 3437 3469 2000 all

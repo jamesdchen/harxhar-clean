@@ -1,0 +1,2 @@
+forecasts,spearman_qlike,master_spearman_table_A,trade_days_target_clipped,trade_days_clipped_down,trade_days_clipped_up,median_clip_ratio_when_clipped,top20_same_set,max_abs_rank_shift_top20,dm_sign_flips,dm_significance_flips,mean_qlike_clipped,mean_qlike_unclipped
+304,0.998789924121451,0.998789924121451,5,5,0,0.7269185461080993,18,8.0,7,2,0.10119523005085998,0.10362164270795746

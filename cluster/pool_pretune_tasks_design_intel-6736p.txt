@@ -1,0 +1,1 @@
+design design all_features ridge 1.0 causal 0 -1 0 results/pool_pretune/design/intel-6736p/all_features

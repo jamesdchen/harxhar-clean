@@ -22,16 +22,23 @@ module key (e.g. ``FLAGS["src/backtest/tune_tree.py`` (cmd_evaluate) passes via 
 from __future__ import annotations
 
 import concurrent.futures as cf
+import math
 import os
 import re
 from collections.abc import Callable
+from typing import Literal
 
 import numpy as np
 import pandas as pd
+from numba import njit
 
 from src.diagnostics import check_and_report
 from src.evaluation.metrics import apply_duan_smearing, save_chunk_reduce
-from src.data.loading import apply_overnight_fills, load_raw_data
+from src.data.loading import (
+    NYSE_EARLY_CLOSE_DATES,
+    apply_overnight_fills,
+    load_raw_data,
+)
 from src.features.transforms.scaling import (
     masked_rolling_scale_col,
     rolling_robust_scale,
@@ -74,6 +81,170 @@ ZERO_INFLATED_FRAC: float = 0.2
 # ``None`` restores the unlimited fill.
 FFILL_LIMIT: int | None = 26
 
+# -- 2026-10-15 (user: "fix all 8"; results/data_audit_2026-10-15/, experiments/data_audit_2026_10_15.py)
+# Each flag off reproduces the pre-2026-10-15 executor for its part, bit for bit.
+#
+# APPLY_FFILL_LIMIT: FFILL_LIMIT above was defined but never passed (load_and_transform's
+# default was None, and run_executor / run_geometry_local.prepare_full call it without one),
+# so a stopped feed was forward-filled for months.  The values the models see were already
+# replaced by the neutral fill on unobserved rows; what the unlimited fill still reached was
+# every transform statistic computed on the filled column (diurnal baselines, winsor bounds,
+# s.d. floors, routing and mode tests) and the _active flags.
+APPLY_FFILL_LIMIT: bool = True
+# ACTIVE_FROM_OBSERVED: the hurdle (_active) flag is read from OBSERVED prints only; an
+# unobserved row takes the flag's own modal value over the observed rows (before it, under
+# CAUSAL_MODE_INFLATION).  It used to be read off the forward-filled column, so a stopped or
+# sparse feed carried its last print's activity: FOMC was "active" on all 123 trade days of its
+# dead tail, and the mode-inflated class of voldemand existed only because of the fill
+# (14-16 % zeros among its prints, 59-60 % after the fill).
+ACTIVE_FROM_OBSERVED: bool = True
+# CAUSAL_MODE_INFLATION: whether a series is mode-inflated, and its mode, are decided at each
+# row from the observed prints of the series strictly BEFORE that row (at least
+# MODE_MIN_PRINTS of them), not from the full sample.  A series gets an _active column when it
+# is mode-inflated at some row; the flag is 0 on rows where it is not (yet / any more).  On the
+# 2026-10-15 data: numobs and the FOMC flags always; StockTwits sentiment 2010-07 .. 2016-12,
+# sentcount 2010-07 .. 2013-06, attention for a week of 2009-07; voldemand never.  Off: the
+# class is read from the full sample (the record's column set), the flag from observed prints.
+CAUSAL_MODE_INFLATION: bool = True
+MODE_MIN_PRINTS: int = 250
+# CAUSAL_NEUTRAL_FILL: an unobserved row takes the median of the observed adjusted values
+# strictly before it, not the full-sample median; rows before the first print of a series
+# take its first observed value (constant over that stretch, so no window that holds only
+# such rows can learn anything from it, and every window that holds a live row already holds
+# that value).
+CAUSAL_NEUTRAL_FILL: bool = True
+# CAUSAL_GUARD_MODE: the point-mass test of _build_scale_guards on a design column (it removes
+# the modal value from the reference-IQR estimate) is made at each grid point from the rows
+# before it, not from the whole column (the 16:00 vvix ladders: a point mass in the first
+# window -- the pre-2012 fill -- but not over the full sample).
+CAUSAL_GUARD_MODE: bool = True
+# B_REGULAR_BARS_ONLY: the target's diurnal baseline B is the trailing mean of the last 20
+# REGULAR in-slot bars: the NYSE early closes' post-13:00 bars (13:30 .. 17:00) do not enter
+# it (they depressed B for the next 20 sessions: 94 of the 866 trade days).  Those bars stay
+# rows of the pooled panel; only B excludes them.
+B_REGULAR_BARS_ONLY: bool = True
+# DROP_EARLY_CLOSE_SESSIONS: a per-bar (time-of-day segment) design drops the NYSE early-close
+# sessions: their 15:30 / 16:00 rows are post-close futures bars (22 training rows of the
+# 16:00 design, 2010-2024).  The pooled path (segment None) keeps every bar.
+DROP_EARLY_CLOSE_SESSIONS: bool = True
+# ERODE_IN_BARS: the ref_iqr mask erosion counts an MA window in BARS.  In a per-bar design a
+# design row is a session, so the window w (bars) is ceil(w x rows-a-session /
+# BARS_PER_SESSION) rows; it used to be w rows, i.e. w sessions (adj_*_ma_3125 needed 3,125
+# consecutive available sessions and fell back to the 1.0 warm-up floor on 978 of the 1,087
+# test sessions for the turnover ladders).  The pooled path is unchanged (a row is a bar).
+ERODE_IN_BARS: bool = True
+BARS_PER_SESSION: int = 46
+# BURNIN_IN_BAR_SPACE: a global-lag per-bar segment drops the 3,125-bar HAR burn-in on the
+# full bar grid BEFORE slicing to its clock(s), not 3,125 ROWS of the slice (3,125 sessions:
+# the 16:00 design started 2010-07-12 instead of 1998-06-04).
+BURNIN_IN_BAR_SPACE: bool = True
+
+
+def early_close_post_bars(t: pd.Series) -> np.ndarray:
+    """Bars ending 13:30 .. 17:00 ET on an NYSE early-close day (src.data.loading calendar)."""
+    tt = pd.to_datetime(t)
+    mins = tt.dt.hour * 60 + tt.dt.minute
+    ec = tt.dt.normalize().isin(pd.to_datetime(list(NYSE_EARLY_CLOSE_DATES)))
+    return (ec & (mins > 13 * 60) & (mins <= 17 * 60)).to_numpy()
+
+
+def causal_neutral_fill(adj: pd.Series) -> pd.Series:
+    """The neutral value of each unobserved row (``adj`` NaN there): the median of the observed
+    values strictly before the row; the first observed value before the series starts."""
+    em = adj.expanding(min_periods=1).median().shift(1)
+    first = adj.first_valid_index()
+    return em.fillna(float(adj.loc[first]) if first is not None else 0.0)
+
+
+@njit(cache=True)
+def _causal_activity_kernel(
+    codes: np.ndarray, observed: np.ndarray, min_prints: int, frac: float
+) -> tuple[np.ndarray, bool]:
+    """Hurdle flag with the class and mode decided from the observed prints before each row.
+
+    ``codes``: value codes in ascending value order (-1 where unobserved).  A row is in the
+    inflated regime when at least ``min_prints`` prints precede it and the modal value holds at
+    least ``frac`` of them (ties: the smallest value, as :func:`modal_value`).  Observed rows:
+    1 when inflated and off the mode; unobserved rows: the modal value of the flag over the
+    observed rows before it when inflated, else 0."""
+    n = codes.shape[0]
+    k = 1
+    for i in range(n):
+        if codes[i] + 1 > k:
+            k = codes[i] + 1
+    counts = np.zeros(k, np.int64)
+    best = 0
+    best_code = -1
+    seen = 0
+    act_sum = 0.0
+    act_n = 0
+    act = np.zeros(n)
+    ever = False
+    for i in range(n):
+        inflated = seen >= min_prints and best >= frac * seen
+        if inflated:
+            ever = True
+        if observed[i]:
+            c = codes[i]
+            a = 1.0 if (inflated and c != best_code) else 0.0
+            act[i] = a
+            act_sum += a
+            act_n += 1
+            counts[c] += 1
+            if counts[c] > best or (counts[c] == best and c < best_code):
+                best = counts[c]
+                best_code = c
+            seen += 1
+        elif inflated and act_n > 0:
+            act[i] = 1.0 if act_sum / act_n > 0.5 else 0.0
+    return act, ever
+
+
+def causal_activity(vals: np.ndarray, observed: np.ndarray) -> tuple[np.ndarray, bool]:
+    """(flag, ever inflated) of :func:`_causal_activity_kernel` for one raw column."""
+    obs = np.asarray(observed, dtype=bool)
+    codes = np.full(len(vals), -1, dtype=np.int64)
+    if obs.any():
+        c, _ = pd.factorize(np.asarray(vals, dtype=np.float64)[obs], sort=True)
+        codes[obs] = c
+    act, ever = _causal_activity_kernel(codes, obs, MODE_MIN_PRINTS, ZERO_INFLATED_FRAC)
+    return act, bool(ever)
+
+
+class _PastMode:
+    """Exact running mode of the finite values of a column over the rows processed so far,
+    kept for the candidates that can be the mode with a share >= ZERO_INFLATED_FRAC: a value
+    with that share overall has it in at least one processed chunk, where it becomes a
+    candidate with its exact count so far."""
+
+    def __init__(self, x: np.ndarray) -> None:
+        self.x = x
+        self.n = 0
+        self.hi = 0
+        self.cand: dict[float, int] = {}
+
+    def update(self, hi: int) -> None:
+        chunk = self.x[self.hi : hi]
+        chunk = chunk[~np.isnan(chunk)]
+        if chunk.size:
+            u, c = np.unique(chunk, return_counts=True)
+            d = dict(zip(u.tolist(), c.tolist()))
+            for v in list(self.cand):
+                self.cand[v] += d.get(v, 0)
+            for v in u[c >= ZERO_INFLATED_FRAC * chunk.size].tolist():
+                if v not in self.cand:
+                    self.cand[v] = int(np.count_nonzero(self.x[:hi] == v))
+        self.n += int(chunk.size)
+        self.hi = hi
+
+    def inflated_mode(self) -> float | None:
+        if self.n < MODE_MIN_PRINTS or not self.cand:
+            return None
+        best = max(self.cand.values())
+        if best < ZERO_INFLATED_FRAC * self.n:
+            return None
+        return min(v for v, c in self.cand.items() if c == best)
+
 
 def modal_value(vals: np.ndarray) -> float:
     """The single most common exact value of ``vals`` (NaNs dropped), or NaN if empty."""
@@ -94,7 +265,11 @@ def mode_inflated(vals: np.ndarray) -> tuple[bool, float]:
 
 
 def _expanding_real_iqr(
-    x: np.ndarray, mask: np.ndarray, grid_step: int = 480, warmup_floor: float = 1.0
+    x: np.ndarray,
+    mask: np.ndarray,
+    grid_step: int = 480,
+    warmup_floor: float = 1.0,
+    exclude_mode: bool = False,
 ) -> np.ndarray:
     """Causal expanding IQR of ``x`` over its *available* (``mask``) values.
 
@@ -112,13 +287,23 @@ def _expanding_real_iqr(
     0.0. An unmeasurable scale must not become an unbounded divisor: 1.0 leaves an adjusted feature
     (a log or a ratio, O(1) by construction) at its natural scale until its own dispersion is
     estimable, and the availability indicator already tells the model the feature is not live.
+
+    ``exclude_mode`` (2026-10-15, CAUSAL_GUARD_MODE): at each grid point, when the column's
+    rows before it are mode-inflated (:class:`_PastMode`), the real values equal to that mode
+    are left out of the estimate -- the causal form of the whole-column test the caller made.
     """
     n = len(x)
     ref = np.full(n, float(warmup_floor), dtype=np.float64)
     real_idx = np.flatnonzero(mask)
     last = float(warmup_floor)
+    tracker = _PastMode(np.asarray(x, dtype=np.float64)) if exclude_mode else None
     for t in range(0, n, grid_step):
         past = real_idx[real_idx < t]
+        if tracker is not None:
+            tracker.update(t)
+            mode = tracker.inflated_mode()
+            if mode is not None:
+                past = past[x[past] != mode]
         if past.size >= 8:
             q25, q75 = np.percentile(x[past], (25.0, 75.0))
             iq = float(q75 - q25)
@@ -135,6 +320,7 @@ def _build_scale_guards(
     zero_inflated_active: bool = True,
     erode_ma_window: bool = True,
     warmup_floor: float = 1.0,
+    ma_rows_per_session: float | None = None,
 ) -> tuple[np.ndarray | None, np.ndarray | None]:
     """Scale guards for the impute-and-indicate feature pathology.
 
@@ -152,6 +338,10 @@ def _build_scale_guards(
       values too, so neither a regime-degenerate window nor a point mass can
       collapse the scale and blow up the forecast.
     * everything else (HAR, calendar) → untouched.
+
+    ``ma_rows_per_session`` (2026-10-15, ERODE_IN_BARS): set for a per-bar design, where a row
+    is a session -- the erosion window of ``adj_<col>_ma_<w>`` (w bars) is then
+    ceil(w x ma_rows_per_session / BARS_PER_SESSION) rows.  None: w rows (a row is a bar).
     """
     n, n_features = X.shape
     ref_iqr = np.zeros((n, n_features), dtype=np.float64)
@@ -176,6 +366,8 @@ def _build_scale_guards(
             # vix3m coverage) and ``adj_vvix_ma_3125`` (|z| 30, 2012-06-19, three months into vvix
             # coverage) failures: only the long windows fail, and only near the seam.
             w = int(m.group(2))
+            if ma_rows_per_session is not None:
+                w = max(1, math.ceil(w * ma_rows_per_session / BARS_PER_SESSION))
             if erode_ma_window and w > 1:
                 full = (
                     pd.Series(mask.astype(np.float64))
@@ -184,7 +376,9 @@ def _build_scale_guards(
                     .to_numpy()
                 )
                 eroded = np.nan_to_num(full) > 0.5
-                if eroded.sum() >= 8:  # keep the raw mask if erosion leaves nothing to fit
+                if (
+                    eroded.sum() >= 8
+                ):  # keep the raw mask if erosion leaves nothing to fit
                     mask = eroded
             xj = X[:, j]
             # Zero-inflated magnitude (e.g. voldemand): also estimate the scale
@@ -192,6 +386,16 @@ def _build_scale_guards(
             # dispersion and collapses the IQR otherwise. The indicator half of
             # the hurdle encoding is the ``<col>_active`` columns added in
             # ``load_and_transform``.
+            if CAUSAL_GUARD_MODE:
+                ref_iqr[:, j] = _expanding_real_iqr(
+                    xj,
+                    mask,
+                    warmup_floor=warmup_floor,
+                    exclude_mode=zero_inflated_active,
+                )
+                touched = True
+                continue
+            # 2026-10-15 (user): parked -- the whole-column test; see CAUSAL_GUARD_MODE
             inflated, mode = mode_inflated(xj)
             if zero_inflated_active and inflated:
                 mask = mask & (xj != mode)
@@ -202,10 +406,12 @@ def _build_scale_guards(
     return ref_iqr, fixed
 
 
-
 def apply_masked_scaling(
-    X: np.ndarray, X_raw: np.ndarray, df: pd.DataFrame,
-    feature_names: list[str], train_win: int
+    X: np.ndarray,
+    X_raw: np.ndarray,
+    df: pd.DataFrame,
+    feature_names: list[str],
+    train_win: int,
 ) -> np.ndarray:
     """Rescale every imputed exogenous column using OBSERVED rows only.
 
@@ -270,9 +476,11 @@ def apply_masked_scaling(
         batch = n_proc * 4
         with cf.ProcessPoolExecutor(max_workers=n_proc) as pool:
             for s in range(0, len(jobs), batch):
-                chunk = jobs[s:s + batch]
-                futs = {pool.submit(masked_rolling_scale_col, X_raw[:, j], mk,
-                                    train_win): j for j, mk in chunk}
+                chunk = jobs[s : s + batch]
+                futs = {
+                    pool.submit(masked_rolling_scale_col, X_raw[:, j], mk, train_win): j
+                    for j, mk in chunk
+                }
                 for fut in cf.as_completed(futs):
                     out[:, futs[fut]] = fut.result()
                     touched += 1
@@ -283,8 +491,7 @@ def apply_masked_scaling(
             touched += 1
         note = ""
     if touched:
-        print(f"[scale] masked rescaling applied to {touched} exogenous "
-              f"columns{note}")
+        print(f"[scale] masked rescaling applied to {touched} exogenous columns{note}")
     return out
 
 
@@ -301,8 +508,12 @@ def _backtest_and_save(
     output_file: str,
     prescale: bool = False,
     diurnal_mode: str = "divide",
+    burn_in: int | None = None,
 ) -> None:
     """Run a prepared DataFrame through the walk-forward backtest and save.
+
+    ``burn_in`` (2026-10-15): rows dropped first; None = the HAR burn-in (3,125).  run_executor
+    passes 0 for a global-lag segment under BURNIN_IN_BAR_SPACE (dropped on the bar grid).
 
     Parameters
     ----------
@@ -345,7 +556,7 @@ def _backtest_and_save(
         ``X_chunk`` and passes it through to its
         :class:`~src.backtest.multi_stage.MultiStageBacktest`.
     """
-    max_lag = resolve_har_lags()[-1]
+    max_lag = resolve_har_lags()[-1] if burn_in is None else int(burn_in)
     df = df.iloc[max_lag:].reset_index(drop=True)
 
     X = df[feature_names].values.astype(np.float64)
@@ -360,8 +571,19 @@ def _backtest_and_save(
     # rolling_robust_scale). The slice below then cuts the pre-scaled array.
     ref_iqr = None
     if prescale:
+        rows_per_session = None
+        if ERODE_IN_BARS:
+            tt = pd.to_datetime(df["t"])
+            if (
+                tt.dt.time.nunique() < BARS_PER_SESSION // 2
+            ):  # a time-of-day slice: a row is not a bar
+                rows_per_session = len(df) / max(1, tt.dt.normalize().nunique())
         ref_iqr, fixed_cols = _build_scale_guards(
-            X, df, feature_names, zero_inflated_active=(diurnal_mode != "rank")
+            X,
+            df,
+            feature_names,
+            zero_inflated_active=(diurnal_mode != "rank"),
+            ma_rows_per_session=rows_per_session,
         )
         X = rolling_robust_scale(
             X, train_win_periods, ref_iqr=ref_iqr, fixed_cols=fixed_cols
@@ -429,7 +651,9 @@ def _backtest_and_save(
     print(f"Saved {len(results)} rows -> {output_file}")
 
 
-def _build_har_and_calendar(df, exog_cols, add_calendar, har_lags=None, session_edge=True):
+def _build_har_and_calendar(
+    df, exog_cols, add_calendar, har_lags=None, session_edge=True
+):
     df, har_names = generate_har_features(
         df, target_col="adj_RV", exog_cols=exog_cols, lags=har_lags
     )
@@ -452,7 +676,9 @@ def _build_har_and_calendar(df, exog_cols, add_calendar, har_lags=None, session_
         # they vary across bars. Every per-bar result produced before 2026-09-29 was fitted
         # WITH these 12 columns.
         if session_edge:
-            for h in [c for c in har_names if c.startswith("har_ma_")]:  # the 6 target-HAR cols
+            for h in [
+                c for c in har_names if c.startswith("har_ma_")
+            ]:  # the 6 target-HAR cols
                 for gate, suffix in (("is_open", "open"), ("is_close", "close")):
                     name = f"{h}_x_{suffix}"  # matches resid_amortized: har_ma_{w}_x_{open,close}
                     df[name] = df[h] * df[gate]
@@ -473,7 +699,7 @@ def load_and_transform(
     impute_indicate: bool = False,
     diurnal_mode: str = "divide",
     use_semantic: bool = True,
-    ffill_limit: int | None = None,
+    ffill_limit: int | None | Literal["auto"] = "auto",
     legacy_avail: bool = False,
     neutralise_unobserved: bool = True,
 ) -> tuple[pd.DataFrame, list[str]]:
@@ -508,7 +734,13 @@ def load_and_transform(
         1.0 in their overnight window before ffill. This substring-matches
         moment columns (``sumret3_*`` etc.) and fills them with 1.0, which is
         a latent bug for non-ratio columns — set False for clean ffill-only.
+    ffill_limit : int | None | "auto"
+        Bars a forward fill may carry a value; None = unlimited.  "auto" (default, 2026-10-15):
+        FFILL_LIMIT under APPLY_FFILL_LIMIT, else None (the pre-2026-10-15 default).
     """
+    if ffill_limit == "auto":
+        # 2026-10-15 (user): parked -- the default was None (unlimited); see APPLY_FFILL_LIMIT
+        ffill_limit = FFILL_LIMIT if APPLY_FFILL_LIMIT else None
     df = load_raw_data(data_path, allow_missing=True)
     if exog_cols:
         if overnight_fill:
@@ -539,8 +771,9 @@ def load_and_transform(
         # branch below replaces it with the neutral median.
         df[exog_cols] = df[exog_cols].ffill(limit=ffill_limit)
         for col in exog_cols:
-            df[f"{col}__obs"] = obs_cols[col] if not legacy_avail \
-                else df[col].notna().to_numpy()
+            df[f"{col}__obs"] = (
+                obs_cols[col] if not legacy_avail else df[col].notna().to_numpy()
+            )
         if dropna_with_exog and not impute_indicate:
             df = df.dropna(subset=["RV"] + exog_cols).reset_index(drop=True)
         else:
@@ -552,6 +785,11 @@ def load_and_transform(
         transform_kwargs["use_diurnal"] = True
     if target_winsor_window is not None:
         transform_kwargs["winsor_window"] = target_winsor_window
+    if B_REGULAR_BARS_ONLY and target_use_diurnal:
+        # 2026-10-15 (user): B over regular bars only; see B_REGULAR_BARS_ONLY
+        excl = early_close_post_bars(df["t"])
+        if excl.any():
+            transform_kwargs["baseline_exclude"] = excl
     adj_rv, baseline = robust_transform(df, "RV", **transform_kwargs)
     df["adj_RV"] = adj_rv
     df["baseline"] = baseline
@@ -559,7 +797,13 @@ def load_and_transform(
     adj_exog_cols: list[str] = []
     for col in exog_cols:
         adj_col = f"adj_{col}"
-        adj_series, _ = robust_transform(df, col, use_transform=use_semantic, use_diurnal=True, diurnal_mode=diurnal_mode)
+        adj_series, _ = robust_transform(
+            df,
+            col,
+            use_transform=use_semantic,
+            use_diurnal=True,
+            diurnal_mode=diurnal_mode,
+        )
         df[adj_col] = adj_series
         adj_exog_cols.append(adj_col)
 
@@ -602,7 +846,11 @@ def load_and_transform(
             obs = df[f"{col}__obs"].to_numpy().astype(bool)
             if neutralise_unobserved:
                 adj = adj.where(pd.Series(obs, index=adj.index), np.nan)
-            df[f"adj_{col}"] = adj.fillna(adj.median())
+            if CAUSAL_NEUTRAL_FILL:
+                df[f"adj_{col}"] = adj.fillna(causal_neutral_fill(adj))
+            else:
+                # 2026-10-15 (user): parked -- the full-sample median; see CAUSAL_NEUTRAL_FILL
+                df[f"adj_{col}"] = adj.fillna(adj.median())
             avail = f"{col}_avail"
             df[avail] = obs.astype("float64")
             adj_exog_cols.append(avail)
@@ -617,6 +865,31 @@ def load_and_transform(
     # not sit at zero — see ``ZERO_INFLATED_FRAC`` for ``numobs``.
     for col in exog_cols:
         vals = df[col].to_numpy(dtype=np.float64)
+        obs_col = f"{col}__obs"
+        if ACTIVE_FROM_OBSERVED and obs_col in df.columns:
+            # 2026-10-15 (user): the flag from observed prints; see ACTIVE_FROM_OBSERVED and
+            # CAUSAL_MODE_INFLATION (the forward-filled rule is parked below)
+            obs = df[obs_col].to_numpy(bool)
+            if CAUSAL_MODE_INFLATION:
+                act, ever = causal_activity(vals, obs)
+                if ever:
+                    df[f"{col}_active"] = act
+                    adj_exog_cols.append(f"{col}_active")
+                continue
+            inflated, mode = mode_inflated(vals)
+            if inflated:
+                infl_o, mode_o = mode_inflated(vals[obs])
+                if (
+                    not infl_o
+                ):  # not a hurdle series on its own prints: a constant column
+                    act = np.zeros(len(vals))
+                else:
+                    a_o = (vals[obs] != mode_o).astype(float)
+                    act = np.full(len(vals), float(np.round(a_o.mean())))
+                    act[obs] = a_o
+                df[f"{col}_active"] = act
+                adj_exog_cols.append(f"{col}_active")
+            continue
         inflated, mode = mode_inflated(vals)
         if inflated:
             active = f"{col}_active"
@@ -644,7 +917,9 @@ def _iter_TOD_segment(
     for each time-of-day segment we need to backtest. ``seg_name`` is None when
     no segmentation is requested."""
     if segment is None:
-        df, feature_names = _build_har_and_calendar(df, exog_cols, add_calendar, har_lags)
+        df, feature_names = _build_har_and_calendar(
+            df, exog_cols, add_calendar, har_lags
+        )
         yield None, df, feature_names, train_window * PERIODS_PER_DAY, output_file
         return
 
@@ -655,9 +930,18 @@ def _iter_TOD_segment(
         df, feature_names = _build_har_and_calendar(
             df, exog_cols, add_calendar, har_lags, session_edge=False
         )
+        if BURNIN_IN_BAR_SPACE:
+            # 2026-10-15 (user): the HAR burn-in on the bar grid, before the slice (run_executor
+            # then passes burn_in=0); it used to be 3,125 rows of the slice
+            df = df.iloc[resolve_har_lags()[-1] :].reset_index(drop=True)
 
+    early = pd.to_datetime(list(NYSE_EARLY_CLOSE_DATES))
     for seg_name in segments:
         seg_df = slice_to_segment(df, seg_name)
+        if DROP_EARLY_CLOSE_SESSIONS:
+            # 2026-10-15 (user): no early-close session in a per-bar design; see DROP_EARLY_CLOSE_SESSIONS
+            keep = ~pd.to_datetime(seg_df["t"]).dt.normalize().isin(early)
+            seg_df = seg_df.loc[keep.to_numpy()].reset_index(drop=True)
         if seg_df.empty:
             print(f"No data for segment '{seg_name}'. Skipping.")
             continue
@@ -772,4 +1056,7 @@ def run_executor(
             out_file,
             prescale,
             diurnal_mode,
+            burn_in=0
+            if (seg_name is not None and lag_scope == "global" and BURNIN_IN_BAR_SPACE)
+            else None,
         )

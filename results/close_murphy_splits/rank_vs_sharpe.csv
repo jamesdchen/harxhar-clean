@@ -1,7 +1,7 @@
-set,n_forecasts,loss,spearman_minus_loss_vs_crossed_sharpe,lo,hi
-comparison set,11,QLIKE,0.4909090909090909,-0.10000000000000002,0.8090909090909091
-comparison set,11,ES at the threshold,0.5636363636363637,-0.22749999999999998,0.8272727272727273
-comparison set,11,EL (affine in the mid P&L),1.0,0.990909090909091,1.0
-all table-A forecasts,220,QLIKE,0.5610149721350366,0.07015784139731979,0.6494900908921859
-all table-A forecasts,220,ES at the threshold,0.6341310583051114,0.20276384373080586,0.7478179382845651
-all table-A forecasts,220,EL (affine in the mid P&L),0.9998050297808557,0.999683314263865,0.9999493133773013
+set,n_forecasts,loss,spearman_minus_loss_vs_crossed_sharpe
+comparison set,11,QLIKE,0.4727272727272727
+comparison set,11,ES at the threshold,0.8363636363636365
+comparison set,11,EL (affine in the mid P&L),1.0
+all table-A forecasts,220,QLIKE,0.2629641108287361
+all table-A forecasts,220,ES at the threshold,0.6955906301595262
+all table-A forecasts,220,EL (affine in the mid P&L),0.9998399666409336

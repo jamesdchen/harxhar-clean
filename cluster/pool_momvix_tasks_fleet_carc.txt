@@ -1,0 +1,3 @@
+moments_vix ridge 2000 20 10250
+moments_vix reclasso 2000 20 10250
+moments_vix reclasticnet 2000 20 10250

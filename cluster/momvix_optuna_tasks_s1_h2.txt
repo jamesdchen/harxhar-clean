@@ -1,0 +1,8 @@
+moments_vix lgbm 2000 bar1600 4 3100 3284 2000
+moments_vix lgbm 2000 bar1600 5 3284 -1 2000
+moments_vix xgb 2000 bar1600 6 3100 3223 2000
+moments_vix xgb 2000 bar1600 7 3223 3346 2000
+moments_vix xgb 2000 bar1600 8 3346 -1 2000
+moments_vix rf 2000 bar1600 6 3100 3223 2000
+moments_vix rf 2000 bar1600 7 3223 3346 2000
+moments_vix rf 2000 bar1600 8 3346 -1 2000

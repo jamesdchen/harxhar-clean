@@ -38,6 +38,13 @@ TABLE LEGIBILITY (2026-10-15)
   rehaul_econ_numbers.tex when \\rheNdays is not yet defined.  The sizing and by-year figures are parked by the floats
   file (guide section 7); their code here is unchanged.
 
+NN PARKED (2026-10-15, user: "park all of the NN stuff for now")
+  The closing-interval MinGRU leaves every table and figure: its E1 row and note b, its E2 row and note a, its E4 rows,
+  its line in the cumulative-return figure (and the parked by-year and sizing figures) and its mentions in the figure
+  captions.  It is still loaded and gated (the outline's Sharpe ratios), and its \\rhe... macros (rheNNSh, rheNNShX,
+  rheNNBaseSh, rheNNBaseShX, rheGainNN, rheGainExNN) stay defined with unchanged values but unused by the floats.
+  Parked code is marked "2026-10-15 (user): parked -- NN content parked for now".
+
 Run:  python writeup/make_rehaul_economics.py [--preview DIR]
 """
 
@@ -650,7 +657,8 @@ def tree_specs(fam, model_set) -> int:
 def table_e1(series, fam, model_set, trees) -> tuple[str, dict]:
     st = {
         k: trade_stats(series, k)
-        for k in [SHORT, OLS, *PERBAR_ALL, *trees.values(), NN_ALL, *POOLED_ALL]
+        # for k in [SHORT, OLS, *PERBAR_ALL, *trees.values(), NN_ALL, *POOLED_ALL]  # 2026-10-15 (user): parked -- NN content parked for now
+        for k in [SHORT, OLS, *PERBAR_ALL, *trees.values(), *POOLED_ALL]
     }
 
     def row(label: str, key: str) -> str:
@@ -681,7 +689,9 @@ def table_e1(series, fam, model_set, trees) -> tuple[str, dict]:
         body += row(EST_NAME[k.split("_")[1]], k)
     for e, name in TREE_EST:
         body += row(f"{name}\\tnote{{a}}", trees[e])
-    body += row(r"MinGRU\tnote{b}", NN_ALL)
+    # 2026-10-15 (user): parked -- NN content parked for now (the MinGRU row and its note b:
+    # "\item[b] MinGRU network (ridge-initialized, trained and selected on QLIKE; Section~\ref{sec:rh_methods_models}).")
+    # body += row(r"MinGRU\tnote{b}", NN_ALL)
     body += panel_head("Panel B: Pooled intraday models", 7)
     for k in POOLED_ALL:
         body += row(EST_NAME[k.split("_")[1]], k)
@@ -719,7 +729,6 @@ benchmark (\rheShortSh); in parentheses, the HAC $t$-statistic of the mean retur
 {STAR_NOTE}
 \item[a] The specification with the highest $\SR$ at mid-quotes among the estimator's \rheTreeSpecs{{}} on the full
 predictor set, so selected ex post on the out-of-sample period. {tree_note[0].upper() + tree_note[1:]}.
-\item[b] MinGRU network (ridge-initialized, trained and selected on QLIKE; Section~\ref{{sec:rh_methods_models}}).
 \end{{tablenotes}}
 \end{{threeparttable}}
 \end{{table}}
@@ -840,6 +849,7 @@ def table_e2(series, fam, model_set) -> tuple[str, dict]:
     ]
     pairs = [(b, a) for b, a in pairs if a in series]
     ps = {b: pair_stats(series, b, a) for b, a in pairs}
+    # 2026-10-15 (user): NN content parked for now -- the MinGRU pair is off the table (console summary only)
     nn = pair_stats(series, NN_BASE, NN_ALL)
 
     def row(label: str, s: dict) -> str:
@@ -876,7 +886,9 @@ def table_e2(series, fam, model_set) -> tuple[str, dict]:
     body = panel_head("Panel A: Closing-interval models", 5, first=True)
     for e in ("enet", "lasso", "ridge"):
         body += row(EST_NAME[e], ps[f"subpt_{e}_baseline"])
-    body += row(r"MinGRU\tnote{a}", nn)
+    # 2026-10-15 (user): parked -- NN content parked for now (the MinGRU row and its note a:
+    # "\item[a] MinGRU network (ridge-initialized, trained and selected on QLIKE); not in the model set.")
+    # body += row(r"MinGRU\tnote{a}", nn)
     body += panel_head("Panel B: Pooled intraday models", 5)
     for e in ("enet", "lasso", "ridge"):
         body += row(EST_NAME[e], ps[f"poolpt_{e}_baseline"])
@@ -936,7 +948,6 @@ $\SR$. Panel C gives medians across the closing-interval tree pairs (every hyper
 set) and across all pairs of the \rheModelSetN{{}} forecasts of the model set, with the number of pairs whose
 differential is significantly positive at the 5\% level in brackets (none is significantly negative at
 that level). {STAR_NOTE}
-\item[a] MinGRU network (ridge-initialized, trained and selected on QLIKE); not in the model set.
 \end{{tablenotes}}
 \end{{threeparttable}}
 \end{{table}}
@@ -1201,7 +1212,8 @@ RULES = (
 
 def table_e4(series, model_set, trees) -> tuple[str, dict]:
     sz = {k: sizing_stats(series, k) for k in model_set}
-    for k in [OLS, *PERBAR_ALL, *trees.values(), NN_ALL, *POOLED_ALL]:
+    # for k in [OLS, *PERBAR_ALL, *trees.values(), NN_ALL, *POOLED_ALL]:  # 2026-10-15 (user): parked -- NN content parked for now
+    for k in [OLS, *PERBAR_ALL, *trees.values(), *POOLED_ALL]:
         sz.setdefault(k, sizing_stats(series, k))
     short_mid = sharpe(series[SHORT]["mid"].to_numpy()[WARMUP:])
     short_x = sharpe(series[SHORT]["x"].to_numpy()[WARMUP:])
@@ -1242,7 +1254,7 @@ def table_e4(series, model_set, trees) -> tuple[str, dict]:
             out += row(EST_NAME[k.split("_")[1]], k)
         for e, name in TREE_EST:
             out += row(name, trees[e])
-        out += row("MinGRU", NN_ALL)
+        # out += row("MinGRU", NN_ALL)  # 2026-10-15 (user): parked -- NN content parked for now
         out += sub_head("Pooled intraday models", 5)
         for k in POOLED_ALL:
             out += row(EST_NAME[k.split("_")[1]], k)
@@ -1276,6 +1288,8 @@ def table_e4(series, model_set, trees) -> tuple[str, dict]:
         n_days=n_days,
         sz=sz,
     )
+    # 2026-10-15 (user): parked -- NN content parked for now: the note's "(the MinGRU is not in it)" after "forecasts of
+    # the model set"
     tex = (
         float_head(
             "Table E4",
@@ -1303,7 +1317,7 @@ holds $q_t \equiv -1$ under every rule. The first \rheSzWarmup{{}} trading days 
 scale of $|\hat\sigma^2_{{t'}} - \mathrm{{IV}}^2_{{t'}}|$, so every rule is evaluated on the remaining \rheSzDays{{}} of
 the \rheNdays{{}} trading days; at quoted bid/ask prices the bid--ask spread is paid on $|q_t|$ straddles. Every model except the OLS uses the full predictor set; the trees are
 the specifications of Table~\ref{{tab:rh_econ_control}}. The last two rows of each panel give the median across the
-\rheModelSetN{{}} forecasts of the model set (the MinGRU is not in it) and the number of them whose $\SR$ is above that of
+\rheModelSetN{{}} forecasts of the model set and the number of them whose $\SR$ is above that of
 their own sign strategy. Point estimates; no test is reported.
 \end{{tablenotes}}
 \end{{threeparttable}}
@@ -1428,7 +1442,10 @@ def fig_cumpnl(series, key4: dict) -> dict:
     labels = [lab for _, (_, lab) in key4.items()] + [SHORT_LABEL]
     # 2026-10-15 (table legibility): one row of five no longer fits the longer model-class labels; three columns,
     # read row by row (matplotlib fills legends by column, so interleave)
-    order_ = [0, 3, 1, 4, 2]
+    # order_ = [0, 3, 1, 4, 2]  # 2026-10-15 (user): parked -- NN content parked for now (five entries with the MinGRU)
+    # three models and the short straddle (five entries with the MinGRU); row 1 the models, row 2 the short straddle
+    assert len(handles) == 4, len(handles)
+    order_ = [0, 3, 1, 2]
     fig.legend(
         [handles[i] for i in order_],
         [labels[i] for i in order_],
@@ -1503,17 +1520,18 @@ def fig_sizing(
                     alpha=0.9,
                     zorder=3,
                 )
-            v = sz[NN_ALL][r][field]
-            ax.scatter(
-                [v],
-                [y0],
-                s=30,
-                color=FAM_COLOR["nn"],
-                marker=FAM_MARKER["nn"],
-                edgecolors="white",
-                linewidths=0.6,
-                zorder=6,
-            )
+            # 2026-10-15 (user): parked -- NN content parked for now
+            # v = sz[NN_ALL][r][field]
+            # ax.scatter(
+            #     [v],
+            #     [y0],
+            #     s=30,
+            #     color=FAM_COLOR["nn"],
+            #     marker=FAM_MARKER["nn"],
+            #     edgecolors="white",
+            #     linewidths=0.6,
+            #     zorder=6,
+            # )
             ax.plot(
                 [med[r], med[r]],
                 [y0 - 0.34, y0 + 0.34],
@@ -1554,16 +1572,17 @@ def fig_sizing(
         )
         for f in ("linear", "tree", "pooled")
     ] + [
-        Line2D(
-            [],
-            [],
-            ls="none",
-            marker=FAM_MARKER["nn"],
-            ms=5.5,
-            mfc=FAM_COLOR["nn"],
-            mec="white",
-            mew=0.6,
-        ),
+        # 2026-10-15 (user): parked -- NN content parked for now
+        # Line2D(
+        #     [],
+        #     [],
+        #     ls="none",
+        #     marker=FAM_MARKER["nn"],
+        #     ms=5.5,
+        #     mfc=FAM_COLOR["nn"],
+        #     mec="white",
+        #     mew=0.6,
+        # ),
         Line2D([], [], color="#111111", lw=1.8),
         Line2D([], [], color=FAM_COLOR["short"], lw=0.9, ls="--"),
     ]
@@ -1571,12 +1590,14 @@ def fig_sizing(
         FAM_LABEL["linear"],
         FAM_LABEL["tree"],
         FAM_LABEL["pooled"],
-        "Per-bar MinGRU (not in the set)",
+        # "Per-bar MinGRU (not in the set)",  # 2026-10-15 (user): parked -- NN content parked for now
         "Model-set median",
         SHORT_LABEL,
     ]
     # three columns, read row by row: matplotlib fills legends by column, so interleave
-    order_ = [0, 3, 1, 4, 2, 5]
+    # order_ = [0, 3, 1, 4, 2, 5]  # 2026-10-15 (user): parked -- NN content parked for now (six entries)
+    # row 1: the three classes; row 2: the median and the short straddle
+    order_ = [0, 3, 1, 4, 2]
     fig.legend(
         [handles[i] for i in order_],
         [labels[i] for i in order_],
@@ -1663,12 +1684,16 @@ def fig_byyear(series, model_set, key4: dict) -> dict:
         "Model set: median",
     ]
     # four columns, read row by row (matplotlib fills by column): row 1 the forecasts, row 2 the references
-    order_ = [0, 4, 1, 5, 2, 6, 3]
+    # order_ = [0, 4, 1, 5, 2, 6, 3]  # 2026-10-15 (user): parked -- NN content parked for now (four forecasts, ncol=4)
+    # three forecasts and three references (seven entries with the MinGRU); three columns: row 1 the forecasts, row 2
+    # the references
+    assert len(handles) == 6, len(handles)
+    order_ = [0, 3, 1, 4, 2, 5]
     fig.legend(
         [handles[i] for i in order_],
         [labels[i] for i in order_],
         loc="outside upper center",
-        ncol=4,
+        ncol=3,
         frameon=False,
         handlelength=2.2,
         columnspacing=1.4,
@@ -1696,9 +1721,12 @@ def main() -> None:
         r2(st["subpt_enet_all_features"]["sh_mid"]),
         r2(st["subpt_enet_all_features"]["sh_x"]),
     ) == (1.92, 1.43)
-    assert (r2(st[NN_ALL]["sh_mid"]), r2(st[NN_ALL]["sh_x"])) == (1.53, 1.05), st[
-        NN_ALL
-    ]
+    # 2026-10-15 (user): NN content parked for now -- the MinGRU is off E1 (st), so its stats are computed here, for
+    # the gate and its \rheNN... macros (kept defined, unused by the floats)
+    # assert (r2(st[NN_ALL]["sh_mid"]), r2(st[NN_ALL]["sh_x"])) == (1.53, 1.05), st[NN_ALL]
+    assert NN_ALL not in st
+    nn_st = trade_stats(series, NN_ALL)
+    assert (r2(nn_st["sh_mid"]), r2(nn_st["sh_x"])) == (1.53, 1.05), nn_st
     nb = trade_stats(series, NN_BASE)
     assert (r2(nb["sh_mid"]), r2(nb["sh_x"])) == (1.04, 0.57), nb
     meds = tuple(r2(e4i["med_mid"][r]) for r, _ in RULES)
@@ -1726,12 +1754,19 @@ def main() -> None:
     key4 = {
         "linear": ("subpt_enet_all_features", "Closing-interval elastic net"),
         "tree": (trees["lgbm"], "Closing-interval LightGBM"),
-        "nn": (NN_ALL, "Closing-interval MinGRU"),
+        # "nn": (NN_ALL, "Closing-interval MinGRU"),  # 2026-10-15 (user): parked -- NN content parked for now
         "pooled": ("poolpt_enet_all_features", "Pooled intraday elastic net"),
     }
     if sharpe(series[trees["xgb"]]["mid"]) > sharpe(series[trees["lgbm"]]["mid"]):
         raise ValueError("the best tree is not the LightGBM: relabel key4['tree']")
     cum = fig_cumpnl(series, key4)
+    # 2026-10-15 (user): NN content parked for now -- the MinGRU is off the figure; its gain over the short straddle
+    # (\rheGainNN, \rheGainExNN: kept defined, unused) as fig_cumpnl computes it
+    nn_edge = series[NN_ALL]["mid"] - series[SHORT]["mid"]
+    cum[NN_ALL] = {
+        "edge": float(nn_edge.sum()),
+        "edge_ex10": float(nn_edge.sum() - nn_edge.nlargest(TOP_DAYS).sum()),
+    }
     fig_sizing(
         series,
         fam,
@@ -1758,7 +1793,8 @@ def main() -> None:
     # def tot(f):
     #     return num(cum[key4[f][0]]["edge"], 1, plus=True)
 
-    fam_order = ("linear", "tree", "nn", "pooled")
+    # fam_order = ("linear", "tree", "nn", "pooled")  # 2026-10-15 (user): parked -- NN content parked for now
+    fam_order = ("linear", "tree", "pooled")
     min_r = min(cum[key4[f][0]]["minR_top10"] for f in fam_order)
     # 2026-10-15 (table legibility): parked -- code terms (closing trade, sign(s), at mid, per-bar, family) and typed
     # numbers; the caption below uses the guide's terms and the \rhe... macros
@@ -1785,6 +1821,11 @@ def main() -> None:
     # \end{{figure}}
     # """
     # )
+    # 2026-10-15 (user): parked -- NN content parked for now; the caption's MinGRU clauses were
+    # "one model of each class on the full predictor set: the closing-interval elastic net, LightGBM (the specification of
+    # Table~\ref{tab:rh_econ_control}) and MinGRU, and the pooled intraday elastic net." and "the gain is \rheGainEnet,
+    # \rheGainLgbm, \rheGainNN{} and \rheGainPoolEnet{} premia, in the order above, and without each model's
+    # \rheTopDays{} best days it is \rheGainExEnet, \rheGainExLgbm, \rheGainExNN{} and \rheGainExPoolEnet."
     fig1 = (
         HEADER
         + NUMBERS_GUARD
@@ -1793,13 +1834,13 @@ def main() -> None:
 \includegraphics[width=\linewidth]{figures/rehaul_econ_cumpnl.pdf}
 \caption{Cumulative returns of the sign strategy. The top panel plots the cumulative return at mid-quotes,
 $\sum_{t' \le t} r_{t'}$, in units of the straddle premium, for the short-straddle benchmark ($q_t \equiv -1$) and for
-one model of each class on the full predictor set: the closing-interval elastic net, LightGBM (the specification of
-Table~\ref{tab:rh_econ_control}) and MinGRU, and the pooled intraday elastic net. The bottom panel plots the
+one model of each class on the full predictor set: the closing-interval elastic net and LightGBM (the specification
+of Table~\ref{tab:rh_econ_control}), and the pooled intraday elastic net. The bottom panel plots the
 cumulative gain over the short-straddle benchmark,
 $\sum_{t' \le t} \bigl(r_{t'} + R_{t'}\bigr)$; the markers are each model's \rheTopDays{} days of largest gain, all
 of them days with $q_t = +1$ and $R_t \ge \rheTopRMin$. Over the \rheNdays{} trading days of the out-of-sample period
-the gain is \rheGainEnet, \rheGainLgbm, \rheGainNN{} and \rheGainPoolEnet{} premia, in the order above, and without
-each model's \rheTopDays{} best days it is \rheGainExEnet, \rheGainExLgbm, \rheGainExNN{} and \rheGainExPoolEnet.
+the gain is \rheGainEnet, \rheGainLgbm{} and \rheGainPoolEnet{} premia, in the order above, and without
+each model's \rheTopDays{} best days it is \rheGainExEnet, \rheGainExLgbm{} and \rheGainExPoolEnet.
 Without their \rheTopDays{} best days, \rheTailNeg{} of the \rheModelSetN{} forecasts of the model set have a negative
 gain.}
 \label{fig:rh_econ_cumpnl}
@@ -1807,6 +1848,8 @@ gain.}
 """
     )
     mm = e4i["med_mid"]
+    # 2026-10-15 (user): parked -- NN content parked for now; the caption's sentence "The closing-interval MinGRU on
+    # the full predictor set (triangle) is drawn but not in the median."
     fig2 = (
         HEADER
         + rf"""\begin{{figure}}[tbp]
@@ -1815,9 +1858,8 @@ gain.}
 \caption{{Sharpe ratio by sizing rule over the {e4i["n"]} forecasts of the model set, mid (left) and crossed (right),
 on days {WARMUP + 1}--{WARMUP + e4i["n_days"]}. One marker per forecast, coloured by family and jittered vertically;
 the bar and its label mark the model-set median (mid: {", ".join(f"{mm[r]:.2f}" for r, _ in RULES)} for
-the sign strategy, robust clip, full long / scaled short and rank of the absolute gap). The closing-interval MinGRU on
-the full predictor set (triangle) is
-drawn but not in the median. Dashed: the short-straddle benchmark ({num(e4i["short_mid"])} mid, {num(e4i["short_x"])} crossed). The
+the sign strategy, robust clip, full long / scaled short and rank of the absolute gap).
+Dashed: the short-straddle benchmark ({num(e4i["short_mid"])} mid, {num(e4i["short_x"])} crossed). The
 robust clip is above the sign strategy for {e4i["beat_mid"]["clip"]} of the {e4i["n"]} forecasts at mid (median gain
 {num(e4i["med_gain"]["clip"], plus=True)}). Rules and scoring as in Table~\ref{{tab:rh_econ_sizing}}.}}
 \label{{fig:rh_econ_sizing}}
@@ -1879,8 +1921,14 @@ and median of the 112 forecasts of the model set (median {", ".join(num(v) for v
         m2(st["subpt_enet_all_features"]["t_dsh"]),
         "... HAC t vs always short",
     )
-    nums += mac("rheNNSh", m2(st[NN_ALL]["sh_mid"]), "MinGRU all features, Sharpe mid")
-    nums += mac("rheNNShX", m2(st[NN_ALL]["sh_x"]), "... crossed")
+    # 2026-10-15 (user): NN content parked for now -- the \rheNN... macros stay defined (unused by the floats), from
+    # nn_st (the MinGRU is off E1): same values as st[NN_ALL] before
+    # nums += mac("rheNNSh", m2(st[NN_ALL]["sh_mid"]), "MinGRU all features, Sharpe mid")
+    # nums += mac("rheNNShX", m2(st[NN_ALL]["sh_x"]), "... crossed")
+    nums += mac(
+        "rheNNSh", m2(nn_st["sh_mid"]), "MinGRU all features, Sharpe mid (parked)"
+    )
+    nums += mac("rheNNShX", m2(nn_st["sh_x"]), "... crossed")
     nums += mac("rheNNBaseSh", m2(nb["sh_mid"]), "MinGRU HAR + calendar, Sharpe mid")
     nums += mac("rheNNBaseShX", m2(nb["sh_x"]), "... crossed")
     nums += mac(
@@ -2003,19 +2051,27 @@ and median of the 112 forecasts of the model set (median {", ".join(num(v) for v
     nums += mac(
         "rheTopRMin",
         f"{min_r:.2f}",
-        "smallest straddle return R_t among the 4 models' top days",
+        # "smallest straddle return R_t among the 4 models' top days",  # 2026-10-15 (user): parked -- NN content parked for now
+        "smallest straddle return R_t among the 3 models' top days (MinGRU parked)",
     )
+    # 2026-10-15 (user): NN content parked for now -- \rheGainNN / \rheGainExNN stay defined (unused), from cum[NN_ALL]
+    keys4 = {f: key for f, (key, _) in key4.items()} | {"nn": NN_ALL}
+    names4 = {f: lab for f, (_, lab) in key4.items()} | {
+        "nn": "Closing-interval MinGRU (parked)"
+    }
     for f, nm in (
         ("linear", "Enet"),
         ("tree", "Lgbm"),
         ("nn", "NN"),
         ("pooled", "PoolEnet"),
     ):
-        c = cum[key4[f][0]]
+        # c = cum[key4[f][0]]  # 2026-10-15 (user): parked -- NN content parked for now
+        c = cum[keys4[f]]
         nums += mac(
             f"rheGain{nm}",
             mdp(c["edge"], 1, plus=True),
-            f"{key4[f][1]}: cumulative gain over always short, premia",
+            # f"{key4[f][1]}: cumulative gain over always short, premia",  # 2026-10-15: parked (NN)
+            f"{names4[f]}: cumulative gain over always short, premia",
         )
         nums += mac(
             f"rheGainEx{nm}",

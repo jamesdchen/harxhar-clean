@@ -55,23 +55,29 @@ prebuilt "$SRC" forecast_train
 BIN=$RUN/forecast_train
 nvidia-smi --query-gpu=memory.used --format=csv,noheader,nounits -l 10 > gpu_mem.log 2>/dev/null &
 MEMPID=$!
-run_split() {  # run_split JOBS OUTDIR: each design's jobs in its own pool, outputs merged into OUTDIR
-  local jobs=$1 out=$2 d c
+run_split() {  # run_split JOBS OUTDIR: each design's jobs, and within it each wd value's, in its own pool
+  # (one process per group: the pool keeps freed shape buffers for re-use, so a process running many shapes -- the
+  # wd grid makes wd part of the shape -- fragments device memory; 13137036 ran out of it), outputs merged
+  local jobs=$1 out=$2 d c w g
   mkdir -p "$out"
+  g=0
   for d in baseline all_features; do
     c=$CB; [ $d = all_features ] && c=$CA
-    grep "data=data/pooled_walk_${d} " "$jobs" > "$out.$d.txt" || true
-    [ -s "$out.$d.txt" ] || continue
-    "$BIN" run --jobs "$out.$d.txt" --out "${out}_$d" --concurrent "$c" --chunk 5 --pool > "${out}_$d.log" 2>&1
+    for w in $(grep "data=data/pooled_walk_${d} " "$jobs" | grep -o ' wd=[^ ]*' | sort -u | cut -d= -f2); do
+      grep "data=data/pooled_walk_${d} " "$jobs" | grep " wd=${w} " > "$out.g$g.txt" || true
+      [ -s "$out.g$g.txt" ] || continue
+      "$BIN" run --jobs "$out.g$g.txt" --out "${out}_g$g" --concurrent "$c" --chunk 5 --pool > "${out}_g$g.log" 2>&1
+      g=$((g + 1))
+    done
   done
   for f in jobs_out.csv preds.csv epochs.csv steps.csv; do
-    head -1 "${out}_baseline/$f" > "$out/$f"
-    for d in baseline all_features; do tail -n +2 "${out}_$d/$f" >> "$out/$f"; done
+    head -1 "${out}_g0/$f" > "$out/$f"
+    for ((i = 0; i < g; i++)); do tail -n +2 "${out}_g$i/$f" >> "$out/$f"; done
   done
-  for d in baseline all_features; do
-    [ -d "${out}_$d/params" ] && mkdir -p "$out/params" && mv "${out}_$d"/params/* "$out/params/"
-    cp "${out}_$d/pool_summary.csv" "$out/pool_summary_$d.csv"
-    rm -rf "${out}_$d"
+  for ((i = 0; i < g; i++)); do
+    if [ -d "${out}_g$i/params" ]; then mkdir -p "$out/params"; mv "${out}_g$i"/params/* "$out/params/"; fi
+    cp "${out}_g$i/pool_summary.csv" "$out/pool_summary_g$i.csv"
+    rm -rf "${out}_g$i"
   done
   gzip -f "$out/steps.csv"
 }

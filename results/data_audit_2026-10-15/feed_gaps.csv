@@ -1,0 +1,825 @@
+source,gap_start,gap_end,bars,in_test_window,family
+ewstock_stats,2004-01-18 19:00,2004-01-20 07:30,60,False,stock files
+ewstock_stats,2004-02-15 19:00,2004-02-17 07:30,60,False,stock files
+ewstock_stats,2004-07-04 18:30,2004-07-06 07:30,62,False,stock files
+ewstock_stats,2004-11-24 20:30,2004-11-26 08:00,59,False,stock files
+ewstock_stats,2005-01-16 18:30,2005-01-18 07:30,62,False,stock files
+ewstock_stats,2005-02-20 18:30,2005-02-22 08:00,62,False,stock files
+ewstock_stats,2005-05-29 18:30,2005-05-31 06:30,60,False,stock files
+ewstock_stats,2005-07-03 18:30,2005-07-05 07:00,61,False,stock files
+ewstock_stats,2005-09-04 18:30,2005-09-06 06:30,60,False,stock files
+ewstock_stats,2005-11-23 20:30,2005-11-25 07:00,57,False,stock files
+ewstock_stats,2006-02-19 18:30,2006-02-21 04:00,55,False,stock files
+ewstock_stats,2006-05-28 18:30,2006-05-30 04:00,55,False,stock files
+ewstock_stats,2006-07-03 17:00,2006-07-05 04:00,57,False,stock files
+ewstock_stats,2006-09-03 18:30,2006-09-05 04:00,55,False,stock files
+ewstock_stats,2006-11-22 20:30,2006-11-24 04:00,51,False,stock files
+ewstock_stats,2007-01-14 18:30,2007-01-16 04:00,55,False,stock files
+ewstock_stats,2007-02-18 18:30,2007-02-20 04:00,55,False,stock files
+ewstock_stats,2007-05-27 18:30,2007-05-29 04:00,55,False,stock files
+ewstock_stats,2007-07-03 17:30,2007-07-05 04:00,56,False,stock files
+ewstock_stats,2007-09-02 18:30,2007-09-04 04:00,55,False,stock files
+ewstock_stats,2007-11-21 20:30,2007-11-23 04:30,52,False,stock files
+ewstock_stats,2008-01-20 18:30,2008-01-22 04:00,55,False,stock files
+ewstock_stats,2008-02-17 18:30,2008-02-19 04:00,55,False,stock files
+ewstock_stats,2008-05-25 18:30,2008-05-27 06:30,60,False,stock files
+ewstock_stats,2008-07-03 17:30,2008-07-07 04:30,57,False,stock files
+ewstock_stats,2008-08-31 18:30,2008-09-02 04:00,55,False,stock files
+ewstock_stats,2008-11-26 20:30,2008-11-28 04:00,51,False,stock files
+ewstock_stats,2009-01-18 18:30,2009-01-20 04:00,55,False,stock files
+ewstock_stats,2009-02-15 18:30,2009-02-17 04:00,55,False,stock files
+ewstock_stats,2009-05-24 18:30,2009-05-26 04:00,55,False,stock files
+ewstock_stats,2009-07-02 20:30,2009-07-06 04:00,51,False,stock files
+ewstock_stats,2009-09-06 18:30,2009-09-08 04:00,55,False,stock files
+ewstock_stats,2009-11-25 20:30,2009-11-27 04:00,51,False,stock files
+ewstock_stats,2010-01-17 18:30,2010-01-19 04:00,55,False,stock files
+ewstock_stats,2010-02-14 18:30,2010-02-16 04:00,55,False,stock files
+ewstock_stats,2010-05-30 18:30,2010-06-01 04:00,55,False,stock files
+ewstock_stats,2010-07-04 18:30,2010-07-06 04:00,55,False,stock files
+ewstock_stats,2010-09-05 18:30,2010-09-07 04:00,55,False,stock files
+ewstock_stats,2010-09-27 21:00,2010-09-29 04:00,63,False,stock files
+ewstock_stats,2010-11-18 20:30,2010-11-22 03:30,67,False,stock files
+ewstock_stats,2010-11-24 20:30,2010-11-26 03:30,50,False,stock files
+ewstock_stats,2011-01-16 18:30,2011-01-18 03:30,54,False,stock files
+ewstock_stats,2011-02-20 18:30,2011-02-22 03:30,54,False,stock files
+ewstock_stats,2011-05-29 18:30,2011-05-31 04:00,55,False,stock files
+ewstock_stats,2011-07-03 18:30,2011-07-05 03:30,54,False,stock files
+ewstock_stats,2011-09-04 18:30,2011-09-06 03:30,54,False,stock files
+ewstock_stats,2011-11-23 20:30,2011-11-25 03:30,50,False,stock files
+ewstock_stats,2012-01-15 18:30,2012-01-17 03:30,54,False,stock files
+ewstock_stats,2012-02-19 18:30,2012-02-21 03:30,54,False,stock files
+ewstock_stats,2012-05-27 18:30,2012-05-29 04:00,55,False,stock files
+ewstock_stats,2012-07-03 17:30,2012-07-05 03:30,55,False,stock files
+ewstock_stats,2012-09-02 18:30,2012-09-04 04:00,55,False,stock files
+ewstock_stats,2012-11-21 20:30,2012-11-23 03:30,50,False,stock files
+ewstock_stats,2013-01-20 18:30,2013-01-22 03:30,54,False,stock files
+ewstock_stats,2013-02-17 18:30,2013-02-19 03:30,54,False,stock files
+ewstock_stats,2013-05-26 18:30,2013-05-28 03:30,54,False,stock files
+ewstock_stats,2013-07-03 18:30,2013-07-05 03:30,54,False,stock files
+ewstock_stats,2013-09-01 18:30,2013-09-03 03:30,54,False,stock files
+ewstock_stats,2013-11-27 20:30,2013-11-29 03:30,50,False,stock files
+ewstock_stats,2014-01-19 18:30,2014-01-21 03:30,54,False,stock files
+ewstock_stats,2014-02-16 18:30,2014-02-18 03:30,54,False,stock files
+ewstock_stats,2014-05-25 18:30,2014-05-27 03:30,57,False,stock files
+ewstock_stats,2014-07-03 18:30,2014-07-07 03:30,57,False,stock files
+ewstock_stats,2014-08-31 18:30,2014-09-02 03:30,57,False,stock files
+ewstock_stats,2014-11-26 20:30,2014-11-28 03:30,53,False,stock files
+ewstock_stats,2015-01-18 18:30,2015-01-20 04:00,58,False,stock files
+ewstock_stats,2015-02-15 18:30,2015-02-17 04:00,58,False,stock files
+ewstock_stats,2015-05-24 18:30,2015-05-26 04:00,58,False,stock files
+ewstock_stats,2015-07-02 20:30,2015-07-06 04:00,54,False,stock files
+ewstock_stats,2015-09-06 18:30,2015-09-08 04:00,58,False,stock files
+ewstock_stats,2015-11-25 20:30,2015-11-27 04:00,54,False,stock files
+ewstock_stats,2016-01-17 18:30,2016-01-19 04:00,58,False,stock files
+ewstock_stats,2016-02-14 18:30,2016-02-16 04:00,58,False,stock files
+ewstock_stats,2016-05-29 18:30,2016-05-31 04:00,58,False,stock files
+ewstock_stats,2016-07-03 18:30,2016-07-05 04:00,58,False,stock files
+ewstock_stats,2016-09-04 18:30,2016-09-06 04:00,58,False,stock files
+ewstock_stats,2016-11-23 20:30,2016-11-25 04:00,54,False,stock files
+ewstock_stats,2017-01-15 18:30,2017-01-17 04:00,58,False,stock files
+ewstock_stats,2017-02-19 18:30,2017-02-21 04:00,58,False,stock files
+ewstock_stats,2017-05-28 18:30,2017-05-30 04:00,58,False,stock files
+ewstock_stats,2017-07-03 18:30,2017-07-05 04:00,58,False,stock files
+ewstock_stats,2017-09-03 18:30,2017-09-05 04:00,58,False,stock files
+ewstock_stats,2017-11-22 20:30,2017-11-24 04:00,54,False,stock files
+ewstock_stats,2018-01-14 18:30,2018-01-16 04:00,58,False,stock files
+ewstock_stats,2018-02-18 18:30,2018-02-20 04:00,58,False,stock files
+ewstock_stats,2018-05-27 18:30,2018-05-29 04:00,58,False,stock files
+ewstock_stats,2018-07-03 18:30,2018-07-05 04:00,58,False,stock files
+ewstock_stats,2018-09-02 18:30,2018-09-04 04:00,59,False,stock files
+ewstock_stats,2018-11-21 20:30,2018-11-23 04:00,54,False,stock files
+ewstock_stats,2019-01-20 18:30,2019-01-22 04:00,58,False,stock files
+ewstock_stats,2019-02-17 18:30,2019-02-19 04:00,58,False,stock files
+ewstock_stats,2019-05-26 18:30,2019-05-28 04:00,58,False,stock files
+ewstock_stats,2019-07-03 18:30,2019-07-05 04:00,58,False,stock files
+ewstock_stats,2019-09-01 18:30,2019-09-03 04:00,58,False,stock files
+ewstock_stats,2019-11-27 20:30,2019-11-29 04:00,54,False,stock files
+ewstock_stats,2020-01-19 18:30,2020-01-21 04:00,58,True,stock files
+ewstock_stats,2020-02-16 18:30,2020-02-18 04:00,58,True,stock files
+ewstock_stats,2020-05-24 18:30,2020-05-26 04:00,58,True,stock files
+ewstock_stats,2020-07-02 20:30,2020-07-06 04:00,54,True,stock files
+ewstock_stats,2020-09-06 18:30,2020-09-08 04:00,58,True,stock files
+ewstock_stats,2020-11-25 20:30,2020-11-27 04:00,54,True,stock files
+ewstock_stats,2021-01-17 18:30,2021-01-19 04:00,58,True,stock files
+ewstock_stats,2021-02-14 18:30,2021-02-16 04:00,58,True,stock files
+ewstock_stats,2021-05-30 18:30,2021-06-01 04:00,58,True,stock files
+ewstock_stats,2021-07-04 18:30,2021-07-06 04:00,58,True,stock files
+ewstock_stats,2021-09-05 18:30,2021-09-07 04:00,58,True,stock files
+ewstock_stats,2021-11-24 20:30,2021-11-26 04:00,54,True,stock files
+ewstock_stats,2022-01-16 18:30,2022-01-18 04:00,58,True,stock files
+ewstock_stats,2022-02-20 18:30,2022-02-22 04:00,58,True,stock files
+ewstock_stats,2022-05-29 18:30,2022-05-31 04:00,58,True,stock files
+ewstock_stats,2022-06-19 18:30,2022-06-21 04:00,58,True,stock files
+ewstock_stats,2022-07-03 18:30,2022-07-05 04:00,58,True,stock files
+ewstock_stats,2022-09-04 18:30,2022-09-06 04:00,58,True,stock files
+ewstock_stats,2022-11-23 20:30,2022-11-25 04:00,54,True,stock files
+ewstock_stats,2023-01-15 18:30,2023-01-17 04:00,58,True,stock files
+ewstock_stats,2023-02-19 18:30,2023-02-21 04:00,58,True,stock files
+ewstock_stats,2023-05-28 18:30,2023-05-30 04:00,58,True,stock files
+ewstock_stats,2023-06-18 18:30,2023-06-20 04:00,58,True,stock files
+ewstock_stats,2023-07-03 18:30,2023-07-05 04:00,58,True,stock files
+ewstock_stats,2023-09-03 18:30,2023-09-05 04:00,58,True,stock files
+ewstock_stats,2023-11-22 20:30,2023-11-24 04:00,54,True,stock files
+ewstock_stats,2024-01-14 18:30,2024-01-16 04:00,58,True,stock files
+ewstock_stats,2024-02-18 18:30,2024-02-20 04:00,58,True,stock files
+ewstock_stats,2004-01-18 19:00,2004-01-20 08:30,62,False,stock files
+ewstock_stats,2004-02-15 19:00,2004-02-17 08:30,62,False,stock files
+ewstock_stats,2004-07-04 18:30,2004-07-06 08:00,63,False,stock files
+ewstock_stats,2004-11-24 20:30,2004-11-26 08:30,60,False,stock files
+ewstock_stats,2005-01-16 18:30,2005-01-18 08:00,63,False,stock files
+ewstock_stats,2005-02-20 18:30,2005-02-22 08:30,63,False,stock files
+ewstock_stats,2005-05-29 18:30,2005-05-31 07:00,61,False,stock files
+ewstock_stats,2005-07-03 18:30,2005-07-05 07:30,62,False,stock files
+ewstock_stats,2005-09-04 18:30,2005-09-06 07:00,61,False,stock files
+ewstock_stats,2005-11-23 20:30,2005-11-25 07:30,58,False,stock files
+ewstock_stats,2006-02-19 18:30,2006-02-21 04:30,56,False,stock files
+ewstock_stats,2006-05-28 18:30,2006-05-30 06:00,59,False,stock files
+ewstock_stats,2006-07-03 17:00,2006-07-05 06:30,62,False,stock files
+ewstock_stats,2006-09-03 18:30,2006-09-05 05:00,57,False,stock files
+ewstock_stats,2006-11-22 20:30,2006-11-24 04:30,52,False,stock files
+ewstock_stats,2007-01-14 18:30,2007-01-16 05:00,57,False,stock files
+ewstock_stats,2007-02-18 18:30,2007-02-20 07:00,61,False,stock files
+ewstock_stats,2007-05-27 18:30,2007-05-29 07:00,61,False,stock files
+ewstock_stats,2007-07-03 17:30,2007-07-05 04:30,57,False,stock files
+ewstock_stats,2007-09-02 18:30,2007-09-04 04:30,56,False,stock files
+ewstock_stats,2007-11-21 20:30,2007-11-23 06:00,55,False,stock files
+ewstock_stats,2008-01-20 18:30,2008-01-22 04:30,56,False,stock files
+ewstock_stats,2008-02-17 18:30,2008-02-19 05:30,58,False,stock files
+ewstock_stats,2008-05-25 18:30,2008-05-27 07:30,62,False,stock files
+ewstock_stats,2008-07-03 17:30,2008-07-07 05:30,59,False,stock files
+ewstock_stats,2008-08-31 18:30,2008-09-02 04:30,56,False,stock files
+ewstock_stats,2008-11-26 20:30,2008-11-28 05:30,54,False,stock files
+ewstock_stats,2009-01-18 18:30,2009-01-20 05:00,57,False,stock files
+ewstock_stats,2009-02-15 18:30,2009-02-17 04:30,56,False,stock files
+ewstock_stats,2009-05-24 18:30,2009-05-26 04:30,56,False,stock files
+ewstock_stats,2009-07-02 20:30,2009-07-06 04:30,52,False,stock files
+ewstock_stats,2009-09-06 18:30,2009-09-08 04:30,56,False,stock files
+ewstock_stats,2009-11-25 20:30,2009-11-27 04:30,52,False,stock files
+ewstock_stats,2010-01-17 18:30,2010-01-19 04:30,56,False,stock files
+ewstock_stats,2010-02-14 18:30,2010-02-16 04:30,56,False,stock files
+ewstock_stats,2010-05-30 18:30,2010-06-01 04:30,56,False,stock files
+ewstock_stats,2010-07-04 18:30,2010-07-06 04:30,56,False,stock files
+ewstock_stats,2010-09-05 18:30,2010-09-07 04:30,56,False,stock files
+ewstock_stats,2010-09-27 21:00,2010-09-29 04:30,64,False,stock files
+ewstock_stats,2010-11-18 20:30,2010-11-22 04:30,69,False,stock files
+ewstock_stats,2010-11-24 20:30,2010-11-26 04:00,51,False,stock files
+ewstock_stats,2011-01-16 18:30,2011-01-18 04:00,55,False,stock files
+ewstock_stats,2011-02-20 18:30,2011-02-22 04:00,55,False,stock files
+ewstock_stats,2011-05-29 18:30,2011-05-31 04:30,56,False,stock files
+ewstock_stats,2011-07-03 18:30,2011-07-05 05:00,57,False,stock files
+ewstock_stats,2011-09-04 18:30,2011-09-06 04:00,55,False,stock files
+ewstock_stats,2011-11-23 20:30,2011-11-25 04:00,51,False,stock files
+ewstock_stats,2012-01-15 18:30,2012-01-17 04:00,55,False,stock files
+ewstock_stats,2012-02-19 18:30,2012-02-21 04:00,55,False,stock files
+ewstock_stats,2012-05-27 18:30,2012-05-29 04:30,56,False,stock files
+ewstock_stats,2012-07-03 17:30,2012-07-05 04:00,56,False,stock files
+ewstock_stats,2012-09-02 18:30,2012-09-04 04:30,56,False,stock files
+ewstock_stats,2012-11-21 20:30,2012-11-23 04:30,52,False,stock files
+ewstock_stats,2013-01-20 18:30,2013-01-22 04:00,55,False,stock files
+ewstock_stats,2013-02-17 18:30,2013-02-19 04:30,56,False,stock files
+ewstock_stats,2013-05-26 18:30,2013-05-28 04:00,55,False,stock files
+ewstock_stats,2013-07-03 18:30,2013-07-05 04:00,55,False,stock files
+ewstock_stats,2013-09-01 18:30,2013-09-03 04:00,55,False,stock files
+ewstock_stats,2013-11-27 20:30,2013-11-29 04:00,51,False,stock files
+ewstock_stats,2014-01-19 18:30,2014-01-21 04:00,55,False,stock files
+ewstock_stats,2014-02-16 18:30,2014-02-18 04:00,55,False,stock files
+ewstock_stats,2014-05-25 18:30,2014-05-27 04:00,58,False,stock files
+ewstock_stats,2014-07-03 18:30,2014-07-07 04:00,58,False,stock files
+ewstock_stats,2014-08-31 18:30,2014-09-02 04:00,58,False,stock files
+ewstock_stats,2014-11-26 20:30,2014-11-28 04:00,54,False,stock files
+spy_and_sentiment,2009-03-23 15:30,2009-04-06 16:30,491,False,stocktwits_attention
+spy_and_sentiment,2009-04-07 17:00,2009-04-13 14:00,143,False,stocktwits_attention
+spy_and_sentiment,2009-04-13 15:00,2009-04-14 22:30,64,False,stocktwits_attention
+spy_and_sentiment,2009-04-14 23:30,2009-04-16 19:30,89,False,stocktwits_attention
+spy_and_sentiment,2009-05-06 20:30,2009-05-08 08:30,73,False,stocktwits_attention
+spy_and_sentiment,2009-05-08 09:30,2009-05-11 10:00,54,False,stocktwits_attention
+spy_and_sentiment,2009-05-11 12:30,2009-05-14 12:00,144,False,stocktwits_attention
+spy_and_sentiment,2009-05-15 11:00,2009-06-22 11:00,1260,False,stocktwits_attention
+spy_and_sentiment,2009-06-22 12:00,2009-06-29 14:30,250,False,stocktwits_attention
+spy_and_sentiment,2009-06-29 15:30,2009-07-08 14:00,321,False,stocktwits_attention
+spy_and_sentiment,2009-07-08 15:00,2009-07-15 14:30,244,False,stocktwits_attention
+spy_and_sentiment,2010-06-09 12:00,2010-06-10 12:00,49,False,stocktwits_sentiment
+spy_and_sentiment,2010-06-09 12:00,2010-06-10 12:00,49,False,stocktwits_sentcount
+vix_and_voldemand,2006-05-26 16:30,2006-05-30 09:30,72,False,vix
+vix_and_voldemand,2006-07-03 13:30,2006-07-05 09:30,72,False,vix
+vix_and_voldemand,2006-09-01 16:30,2006-09-05 09:30,74,False,vix
+vix_and_voldemand,2006-11-22 16:30,2006-11-24 09:30,70,False,vix
+vix_and_voldemand,2007-01-12 16:30,2007-01-16 09:30,74,False,vix
+vix_and_voldemand,2007-02-16 16:30,2007-02-20 09:30,73,False,vix
+vix_and_voldemand,2007-05-25 16:30,2007-05-29 09:30,72,False,vix
+vix_and_voldemand,2007-07-03 13:30,2007-07-05 09:30,74,False,vix
+vix_and_voldemand,2007-08-31 16:30,2007-09-04 09:30,73,False,vix
+vix_and_voldemand,2007-11-21 16:30,2007-11-23 09:30,70,False,vix
+vix_and_voldemand,2008-01-18 16:30,2008-01-22 09:30,74,False,vix
+vix_and_voldemand,2008-02-15 16:30,2008-02-19 09:30,73,False,vix
+vix_and_voldemand,2008-05-23 16:30,2008-05-27 09:30,74,False,vix
+vix_and_voldemand,2008-07-03 17:00,2008-07-07 09:30,68,False,vix
+vix_and_voldemand,2008-08-29 16:30,2008-09-02 09:30,74,False,vix
+vix_and_voldemand,2008-11-26 16:30,2008-11-28 09:30,70,False,vix
+vix_and_voldemand,2009-01-16 16:30,2009-01-20 09:30,74,False,vix
+vix_and_voldemand,2009-02-13 16:30,2009-02-17 09:30,74,False,vix
+vix_and_voldemand,2009-05-22 16:30,2009-05-26 09:30,74,False,vix
+vix_and_voldemand,2009-07-02 16:30,2009-07-06 09:30,70,False,vix
+vix_and_voldemand,2009-09-04 16:30,2009-09-08 09:30,74,False,vix
+vix_and_voldemand,2009-11-25 16:30,2009-11-27 09:30,70,False,vix
+vix_and_voldemand,2010-01-15 16:30,2010-01-19 09:30,74,False,vix
+vix_and_voldemand,2010-02-12 16:30,2010-02-16 09:30,74,False,vix
+vix_and_voldemand,2010-05-28 16:30,2010-06-01 09:30,74,False,vix
+vix_and_voldemand,2010-07-02 16:30,2010-07-06 09:30,74,False,vix
+vix_and_voldemand,2010-09-03 16:30,2010-09-07 09:30,74,False,vix
+vix_and_voldemand,2010-11-24 16:30,2010-11-26 09:30,70,False,vix
+vix_and_voldemand,2011-01-14 16:30,2011-01-18 09:30,74,False,vix
+vix_and_voldemand,2011-02-18 16:30,2011-02-22 09:30,74,False,vix
+vix_and_voldemand,2011-05-27 16:30,2011-05-31 09:30,74,False,vix
+vix_and_voldemand,2011-07-01 16:30,2011-07-05 09:30,74,False,vix
+vix_and_voldemand,2011-09-02 16:30,2011-09-06 09:30,74,False,vix
+vix_and_voldemand,2011-09-09 16:30,2011-09-13 09:30,87,False,vix
+vix_and_voldemand,2011-11-23 16:30,2011-11-25 09:30,70,False,vix
+vix_and_voldemand,2012-01-13 17:00,2012-01-17 09:30,73,False,vix
+vix_and_voldemand,2012-02-17 17:00,2012-02-21 09:30,73,False,vix
+vix_and_voldemand,2012-05-25 17:00,2012-05-29 09:30,73,False,vix
+vix_and_voldemand,2012-07-03 14:00,2012-07-05 09:30,74,False,vix
+vix_and_voldemand,2012-08-31 17:00,2012-09-04 09:30,73,False,vix
+vix_and_voldemand,2012-11-21 17:00,2012-11-23 09:30,69,False,vix
+vix_and_voldemand,2013-01-18 17:00,2013-01-22 09:30,73,False,vix
+vix_and_voldemand,2013-02-15 17:00,2013-02-19 09:30,73,False,vix
+vix_and_voldemand,2013-05-24 17:00,2013-05-28 09:30,73,False,vix
+vix_and_voldemand,2013-07-03 14:00,2013-07-05 09:30,73,False,vix
+vix_and_voldemand,2013-08-30 17:00,2013-09-03 09:30,73,False,vix
+vix_and_voldemand,2013-11-27 17:00,2013-11-29 09:30,69,False,vix
+vix_and_voldemand,2014-01-17 17:00,2014-01-21 09:30,73,False,vix
+vix_and_voldemand,2014-02-14 17:00,2014-02-18 09:30,73,False,vix
+vix_and_voldemand,2014-05-23 17:00,2014-05-27 09:30,76,False,vix
+vix_and_voldemand,2014-07-03 14:00,2014-07-07 09:30,76,False,vix
+vix_and_voldemand,2014-08-29 17:00,2014-09-02 09:30,76,False,vix
+vix_and_voldemand,2014-11-26 17:00,2014-11-28 09:30,72,False,vix
+vix_and_voldemand,2015-01-16 17:00,2015-01-20 09:30,76,False,vix
+vix_and_voldemand,2015-02-13 17:00,2015-02-17 09:30,76,False,vix
+vix_and_voldemand,2015-04-02 17:00,2015-04-06 09:30,65,False,vix
+vix_and_voldemand,2015-05-22 17:00,2015-05-26 09:30,76,False,vix
+vix_and_voldemand,2015-07-02 17:00,2015-07-06 09:30,72,False,vix
+vix_and_voldemand,2015-09-04 17:00,2015-09-08 09:30,76,False,vix
+vix_and_voldemand,2015-11-25 17:00,2015-11-27 09:30,72,False,vix
+vix_and_voldemand,2016-01-15 17:00,2016-01-19 09:30,76,False,vix
+vix_and_voldemand,2016-02-12 17:00,2016-02-16 09:30,76,False,vix
+vix_and_voldemand,2016-05-27 17:00,2016-05-31 03:00,63,False,vix
+vix_and_voldemand,2016-07-01 17:00,2016-07-05 03:00,63,False,vix
+vix_and_voldemand,2016-09-02 17:00,2016-09-06 03:00,63,False,vix
+vix_and_voldemand,2016-11-23 17:00,2016-11-25 03:00,59,False,vix
+vix_and_voldemand,2017-01-13 17:00,2017-01-17 03:00,63,False,vix
+vix_and_voldemand,2017-02-17 17:00,2017-02-21 03:00,63,False,vix
+vix_and_voldemand,2017-05-26 17:00,2017-05-30 03:00,63,False,vix
+vix_and_voldemand,2017-07-03 16:30,2017-07-05 03:00,58,False,vix
+vix_and_voldemand,2017-09-01 17:00,2017-09-05 03:00,63,False,vix
+vix_and_voldemand,2017-11-22 17:00,2017-11-24 03:00,59,False,vix
+vix_and_voldemand,2018-01-12 17:00,2018-01-16 03:00,63,False,vix
+vix_and_voldemand,2018-02-16 17:00,2018-02-20 03:00,63,False,vix
+vix_and_voldemand,2018-05-25 17:00,2018-05-29 03:00,63,False,vix
+vix_and_voldemand,2018-07-03 14:00,2018-07-05 03:00,63,False,vix
+vix_and_voldemand,2018-08-31 17:00,2018-09-04 03:00,64,False,vix
+vix_and_voldemand,2018-11-21 17:00,2018-11-23 03:00,59,False,vix
+vix_and_voldemand,2018-12-04 17:00,2018-12-06 03:00,52,False,vix
+vix_and_voldemand,2019-01-18 17:00,2019-01-22 03:00,63,False,vix
+vix_and_voldemand,2019-02-15 17:00,2019-02-19 03:00,63,False,vix
+vix_and_voldemand,2019-05-24 17:00,2019-05-28 03:30,64,False,vix
+vix_and_voldemand,2019-07-03 14:00,2019-07-05 03:30,64,False,vix
+vix_and_voldemand,2019-08-30 17:00,2019-09-03 03:30,64,False,vix
+vix_and_voldemand,2019-11-27 17:00,2019-11-29 03:30,60,False,vix
+vix_and_voldemand,2020-01-17 17:00,2020-01-21 03:30,64,True,vix
+vix_and_voldemand,2020-02-14 17:00,2020-02-18 03:30,64,True,vix
+vix_and_voldemand,2020-05-22 17:00,2020-05-26 03:30,64,True,vix
+vix_and_voldemand,2020-07-02 17:00,2020-07-06 03:30,60,True,vix
+vix_and_voldemand,2020-09-04 17:00,2020-09-08 03:30,64,True,vix
+vix_and_voldemand,2020-11-25 17:00,2020-11-27 03:30,60,True,vix
+vix_and_voldemand,2021-01-15 17:00,2021-01-19 03:30,64,True,vix
+vix_and_voldemand,2021-02-12 17:00,2021-02-16 03:30,64,True,vix
+vix_and_voldemand,2021-04-01 17:00,2021-04-05 03:30,53,True,vix
+vix_and_voldemand,2021-05-28 17:00,2021-06-01 03:30,64,True,vix
+vix_and_voldemand,2021-07-02 17:00,2021-07-06 03:30,64,True,vix
+vix_and_voldemand,2021-09-03 17:00,2021-09-07 03:30,64,True,vix
+vix_and_voldemand,2021-11-24 17:00,2021-11-26 04:00,61,True,vix
+vix_and_voldemand,2022-01-14 17:00,2022-01-18 03:30,64,True,vix
+vix_and_voldemand,2022-02-18 17:00,2022-02-22 03:30,64,True,vix
+vix_and_voldemand,2022-05-27 17:30,2022-05-31 03:30,63,True,vix
+vix_and_voldemand,2022-06-17 17:30,2022-06-21 03:30,63,True,vix
+vix_and_voldemand,2022-07-01 17:30,2022-07-05 03:30,63,True,vix
+vix_and_voldemand,2022-09-02 17:30,2022-09-06 03:30,63,True,vix
+vix_and_voldemand,2022-11-23 17:30,2022-11-25 03:30,59,True,vix
+vix_and_voldemand,2023-01-13 17:30,2023-01-17 03:30,63,True,vix
+vix_and_voldemand,2023-02-17 17:30,2023-02-21 03:30,63,True,vix
+vix_and_voldemand,2023-04-06 17:30,2023-04-10 03:30,52,True,vix
+vix_and_voldemand,2023-05-26 17:30,2023-05-30 03:30,63,True,vix
+vix_and_voldemand,2023-06-16 17:30,2023-06-20 03:30,63,True,vix
+vix_and_voldemand,2023-07-03 14:00,2023-07-05 03:30,64,True,vix
+vix_and_voldemand,2023-09-01 17:30,2023-09-05 03:30,63,True,vix
+vix_and_voldemand,2023-11-22 17:30,2023-11-24 03:30,59,True,vix
+vix_and_voldemand,2024-01-12 17:30,2024-01-16 03:30,63,True,vix
+vix_and_voldemand,2012-05-25 16:30,2012-05-29 09:30,74,False,vvix
+vix_and_voldemand,2012-07-03 13:30,2012-07-05 09:30,75,False,vvix
+vix_and_voldemand,2012-08-31 16:30,2012-09-04 09:30,74,False,vvix
+vix_and_voldemand,2012-11-21 16:30,2012-11-23 09:30,70,False,vvix
+vix_and_voldemand,2013-01-18 16:30,2013-01-22 09:30,74,False,vvix
+vix_and_voldemand,2013-02-15 16:30,2013-02-19 09:30,74,False,vvix
+vix_and_voldemand,2013-05-10 16:30,2013-05-15 09:30,135,False,vvix
+vix_and_voldemand,2013-05-24 16:30,2013-05-28 09:30,74,False,vvix
+vix_and_voldemand,2013-07-03 13:30,2013-07-05 09:30,74,False,vvix
+vix_and_voldemand,2013-08-30 16:30,2013-09-03 09:30,74,False,vvix
+vix_and_voldemand,2013-11-05 16:30,2013-11-07 14:00,92,False,vvix
+vix_and_voldemand,2013-11-08 16:30,2013-11-13 09:30,135,False,vvix
+vix_and_voldemand,2013-11-27 16:30,2013-12-02 09:30,116,False,vvix
+vix_and_voldemand,2013-12-06 16:30,2013-12-11 09:30,135,False,vvix
+vix_and_voldemand,2013-12-23 16:30,2013-12-26 09:30,60,False,vvix
+vix_and_voldemand,2014-01-06 16:30,2014-01-10 15:00,190,False,vvix
+vix_and_voldemand,2014-01-17 16:30,2014-01-21 09:30,74,False,vvix
+vix_and_voldemand,2014-02-14 16:30,2014-02-18 09:30,74,False,vvix
+vix_and_voldemand,2014-05-09 16:30,2014-05-14 09:30,135,False,vvix
+vix_and_voldemand,2014-05-23 16:30,2014-05-27 09:30,77,False,vvix
+vix_and_voldemand,2014-07-03 13:30,2014-07-07 09:30,77,False,vvix
+vix_and_voldemand,2014-08-29 16:30,2014-09-02 09:30,77,False,vvix
+vix_and_voldemand,2014-11-26 16:30,2014-11-28 09:30,73,False,vvix
+vix_and_voldemand,2015-01-16 16:30,2015-01-20 09:30,77,False,vvix
+vix_and_voldemand,2015-02-13 16:30,2015-02-17 09:30,77,False,vvix
+vix_and_voldemand,2015-04-02 16:30,2015-04-06 09:30,66,False,vvix
+vix_and_voldemand,2015-05-22 16:30,2015-05-26 09:30,77,False,vvix
+vix_and_voldemand,2015-07-02 16:30,2015-07-06 09:30,73,False,vvix
+vix_and_voldemand,2015-09-04 16:30,2015-09-08 09:30,77,False,vvix
+vix_and_voldemand,2015-11-25 16:30,2015-11-27 09:30,73,False,vvix
+vix_and_voldemand,2016-01-15 16:30,2016-01-19 09:30,77,False,vvix
+vix_and_voldemand,2016-02-12 16:30,2016-02-16 09:30,77,False,vvix
+vix_and_voldemand,2016-05-27 16:30,2016-05-31 09:30,77,False,vvix
+vix_and_voldemand,2016-07-01 16:30,2016-07-05 09:30,77,False,vvix
+vix_and_voldemand,2016-09-02 16:30,2016-09-06 09:30,77,False,vvix
+vix_and_voldemand,2016-11-23 16:30,2016-11-25 09:30,73,False,vvix
+vix_and_voldemand,2017-01-13 16:30,2017-01-17 09:30,77,False,vvix
+vix_and_voldemand,2017-02-17 16:30,2017-02-21 09:30,77,False,vvix
+vix_and_voldemand,2017-05-26 16:30,2017-05-30 09:30,77,False,vvix
+vix_and_voldemand,2017-07-03 13:30,2017-07-05 09:30,72,False,vvix
+vix_and_voldemand,2017-09-01 16:30,2017-09-05 09:30,77,False,vvix
+vix_and_voldemand,2017-11-22 16:30,2017-11-24 09:30,73,False,vvix
+vix_and_voldemand,2018-01-12 16:30,2018-01-16 09:30,77,False,vvix
+vix_and_voldemand,2018-02-16 16:30,2018-02-20 09:30,77,False,vvix
+vix_and_voldemand,2018-05-25 16:30,2018-05-29 09:30,77,False,vvix
+vix_and_voldemand,2018-07-03 13:30,2018-07-05 09:30,77,False,vvix
+vix_and_voldemand,2018-08-31 16:30,2018-09-04 09:30,78,False,vvix
+vix_and_voldemand,2018-11-21 16:30,2018-11-23 09:30,73,False,vvix
+vix_and_voldemand,2018-12-04 16:30,2018-12-06 09:30,66,False,vvix
+vix_and_voldemand,2019-01-18 16:30,2019-01-22 09:30,77,False,vvix
+vix_and_voldemand,2019-02-15 16:30,2019-02-19 09:30,77,False,vvix
+vix_and_voldemand,2019-05-24 16:30,2019-05-28 09:30,77,False,vvix
+vix_and_voldemand,2019-07-03 13:30,2019-07-05 09:30,77,False,vvix
+vix_and_voldemand,2019-08-30 16:30,2019-09-03 09:30,77,False,vvix
+vix_and_voldemand,2019-11-27 16:30,2019-11-29 09:30,73,False,vvix
+vix_and_voldemand,2020-01-17 16:30,2020-01-21 09:30,77,True,vvix
+vix_and_voldemand,2020-02-14 16:30,2020-02-18 09:30,77,True,vvix
+vix_and_voldemand,2020-05-22 16:30,2020-05-26 09:30,77,True,vvix
+vix_and_voldemand,2020-07-02 16:30,2020-07-06 09:30,73,True,vvix
+vix_and_voldemand,2020-09-04 16:30,2020-09-08 09:30,77,True,vvix
+vix_and_voldemand,2020-11-25 16:30,2020-11-27 09:30,73,True,vvix
+vix_and_voldemand,2021-01-15 16:30,2021-01-19 09:30,77,True,vvix
+vix_and_voldemand,2021-02-12 16:30,2021-02-16 09:30,77,True,vvix
+vix_and_voldemand,2021-04-01 16:30,2021-04-05 09:30,66,True,vvix
+vix_and_voldemand,2021-05-28 16:30,2021-06-01 09:30,77,True,vvix
+vix_and_voldemand,2021-07-02 16:30,2021-07-06 09:30,77,True,vvix
+vix_and_voldemand,2021-09-03 16:30,2021-09-07 09:30,77,True,vvix
+vix_and_voldemand,2021-11-24 16:30,2021-11-26 09:30,73,True,vvix
+vix_and_voldemand,2022-01-14 16:30,2022-01-18 09:30,77,True,vvix
+vix_and_voldemand,2022-02-18 16:30,2022-02-22 09:30,77,True,vvix
+vix_and_voldemand,2022-05-27 16:30,2022-05-31 09:30,77,True,vvix
+vix_and_voldemand,2022-06-17 16:30,2022-06-21 09:30,77,True,vvix
+vix_and_voldemand,2022-07-01 16:30,2022-07-05 09:30,77,True,vvix
+vix_and_voldemand,2022-09-02 16:30,2022-09-06 09:30,77,True,vvix
+vix_and_voldemand,2022-11-23 16:30,2022-11-25 09:30,73,True,vvix
+vix_and_voldemand,2023-01-13 16:30,2023-01-17 09:30,77,True,vvix
+vix_and_voldemand,2023-02-17 16:30,2023-02-21 09:30,77,True,vvix
+vix_and_voldemand,2023-04-06 16:30,2023-04-10 09:30,66,True,vvix
+vix_and_voldemand,2023-05-26 16:30,2023-05-30 09:30,77,True,vvix
+vix_and_voldemand,2023-06-16 16:30,2023-06-20 09:30,77,True,vvix
+vix_and_voldemand,2023-07-03 13:30,2023-07-05 09:30,77,True,vvix
+vix_and_voldemand,2023-09-01 16:30,2023-09-05 09:30,77,True,vvix
+vix_and_voldemand,2023-11-22 16:30,2023-11-24 09:30,73,True,vvix
+vix_and_voldemand,2024-01-12 16:30,2024-01-16 09:30,77,True,vvix
+vix_and_voldemand,2009-09-04 16:30,2009-09-08 09:30,74,False,vix3m
+vix_and_voldemand,2009-11-25 16:30,2009-11-27 09:30,70,False,vix3m
+vix_and_voldemand,2010-01-15 16:30,2010-01-19 09:30,74,False,vix3m
+vix_and_voldemand,2010-02-12 16:30,2010-02-16 09:30,74,False,vix3m
+vix_and_voldemand,2010-05-28 16:30,2010-06-01 09:30,74,False,vix3m
+vix_and_voldemand,2010-07-02 16:30,2010-07-06 09:30,74,False,vix3m
+vix_and_voldemand,2010-09-03 16:30,2010-09-07 09:30,74,False,vix3m
+vix_and_voldemand,2010-11-24 16:30,2010-11-26 09:30,70,False,vix3m
+vix_and_voldemand,2011-01-14 16:30,2011-01-18 09:30,74,False,vix3m
+vix_and_voldemand,2011-02-18 16:30,2011-02-22 09:30,74,False,vix3m
+vix_and_voldemand,2011-05-27 16:30,2011-05-31 09:30,74,False,vix3m
+vix_and_voldemand,2011-07-01 16:30,2011-07-05 09:30,74,False,vix3m
+vix_and_voldemand,2011-09-02 16:30,2011-09-06 09:30,74,False,vix3m
+vix_and_voldemand,2011-09-09 16:30,2011-09-13 09:30,87,False,vix3m
+vix_and_voldemand,2011-11-23 16:30,2011-11-25 09:30,70,False,vix3m
+vix_and_voldemand,2012-01-13 16:30,2012-01-17 09:30,74,False,vix3m
+vix_and_voldemand,2012-02-17 16:30,2012-02-21 09:30,74,False,vix3m
+vix_and_voldemand,2012-05-25 17:00,2012-05-29 09:30,73,False,vix3m
+vix_and_voldemand,2012-07-03 14:00,2012-07-05 09:30,74,False,vix3m
+vix_and_voldemand,2012-08-31 17:00,2012-09-04 09:30,73,False,vix3m
+vix_and_voldemand,2012-11-21 17:00,2012-11-23 09:30,69,False,vix3m
+vix_and_voldemand,2013-01-18 17:00,2013-01-22 09:30,73,False,vix3m
+vix_and_voldemand,2013-02-15 17:00,2013-02-19 09:30,73,False,vix3m
+vix_and_voldemand,2013-05-24 17:00,2013-05-28 09:30,73,False,vix3m
+vix_and_voldemand,2013-07-03 14:00,2013-07-05 09:30,73,False,vix3m
+vix_and_voldemand,2013-08-30 17:00,2013-09-03 09:30,73,False,vix3m
+vix_and_voldemand,2013-11-27 17:00,2013-11-29 09:30,69,False,vix3m
+vix_and_voldemand,2014-01-17 17:00,2014-01-21 09:30,73,False,vix3m
+vix_and_voldemand,2014-02-14 17:00,2014-02-18 09:30,73,False,vix3m
+vix_and_voldemand,2014-05-23 17:00,2014-05-27 09:30,76,False,vix3m
+vix_and_voldemand,2014-07-03 14:00,2014-07-07 09:30,76,False,vix3m
+vix_and_voldemand,2014-08-29 17:00,2014-09-02 09:30,76,False,vix3m
+vix_and_voldemand,2014-11-26 17:00,2014-11-28 09:30,72,False,vix3m
+vix_and_voldemand,2015-01-16 17:00,2015-01-20 09:30,76,False,vix3m
+vix_and_voldemand,2015-02-13 17:00,2015-02-17 09:30,76,False,vix3m
+vix_and_voldemand,2015-04-02 17:00,2015-04-06 09:30,65,False,vix3m
+vix_and_voldemand,2015-05-22 17:00,2015-05-26 09:30,76,False,vix3m
+vix_and_voldemand,2015-07-02 17:00,2015-07-06 09:30,72,False,vix3m
+vix_and_voldemand,2015-09-04 17:00,2015-09-08 09:30,76,False,vix3m
+vix_and_voldemand,2015-11-25 17:00,2015-11-27 09:30,72,False,vix3m
+vix_and_voldemand,2016-01-15 17:00,2016-01-19 09:30,76,False,vix3m
+vix_and_voldemand,2016-02-12 17:00,2016-02-16 09:30,76,False,vix3m
+vix_and_voldemand,2016-05-27 17:00,2016-05-31 09:30,76,False,vix3m
+vix_and_voldemand,2016-07-01 17:00,2016-07-05 09:30,76,False,vix3m
+vix_and_voldemand,2016-09-02 17:00,2016-09-06 09:30,76,False,vix3m
+vix_and_voldemand,2016-11-23 17:00,2016-11-25 09:30,72,False,vix3m
+vix_and_voldemand,2017-01-13 17:00,2017-01-17 09:30,76,False,vix3m
+vix_and_voldemand,2017-02-17 17:00,2017-02-21 09:30,76,False,vix3m
+vix_and_voldemand,2017-05-26 17:00,2017-05-30 09:30,76,False,vix3m
+vix_and_voldemand,2017-07-03 16:30,2017-07-05 09:30,71,False,vix3m
+vix_and_voldemand,2017-09-01 17:00,2017-09-05 09:30,76,False,vix3m
+vix_and_voldemand,2017-10-19 17:00,2017-10-25 09:30,182,False,vix3m
+vix_and_voldemand,2017-11-22 17:00,2017-11-24 09:30,72,False,vix3m
+vix_and_voldemand,2018-01-12 17:00,2018-01-16 09:30,76,False,vix3m
+vix_and_voldemand,2018-02-16 17:00,2018-02-20 09:30,76,False,vix3m
+vix_and_voldemand,2018-05-25 17:00,2018-05-29 09:30,76,False,vix3m
+vix_and_voldemand,2018-07-03 14:00,2018-07-05 09:30,76,False,vix3m
+vix_and_voldemand,2018-08-31 17:00,2018-09-04 09:30,77,False,vix3m
+vix_and_voldemand,2018-11-21 17:00,2018-11-23 09:30,72,False,vix3m
+vix_and_voldemand,2018-12-04 17:00,2018-12-06 09:30,65,False,vix3m
+vix_and_voldemand,2019-01-18 17:00,2019-01-22 09:30,76,False,vix3m
+vix_and_voldemand,2019-02-15 17:00,2019-02-19 09:30,76,False,vix3m
+vix_and_voldemand,2019-05-24 17:00,2019-05-28 09:30,76,False,vix3m
+vix_and_voldemand,2019-07-03 14:00,2019-07-05 09:30,76,False,vix3m
+vix_and_voldemand,2019-08-30 17:00,2019-09-03 09:30,76,False,vix3m
+vix_and_voldemand,2019-11-27 17:00,2019-11-29 09:30,72,False,vix3m
+vix_and_voldemand,2020-01-17 17:00,2020-01-21 09:30,76,True,vix3m
+vix_and_voldemand,2020-02-14 17:00,2020-02-18 09:30,76,True,vix3m
+vix_and_voldemand,2020-05-22 17:00,2020-05-26 09:30,76,True,vix3m
+vix_and_voldemand,2020-07-02 17:00,2020-07-06 09:30,72,True,vix3m
+vix_and_voldemand,2020-09-04 17:00,2020-09-08 09:30,76,True,vix3m
+vix_and_voldemand,2020-11-25 17:00,2020-11-27 09:30,72,True,vix3m
+vix_and_voldemand,2021-01-15 17:00,2021-01-19 09:30,76,True,vix3m
+vix_and_voldemand,2021-02-12 17:00,2021-02-16 09:30,76,True,vix3m
+vix_and_voldemand,2021-04-01 17:00,2021-04-05 09:30,65,True,vix3m
+vix_and_voldemand,2021-05-28 17:00,2021-06-01 09:30,76,True,vix3m
+vix_and_voldemand,2021-07-02 17:00,2021-07-06 09:30,76,True,vix3m
+vix_and_voldemand,2021-09-03 17:00,2021-09-07 09:30,76,True,vix3m
+vix_and_voldemand,2021-11-24 17:00,2021-11-26 09:30,72,True,vix3m
+vix_and_voldemand,2022-01-14 17:00,2022-01-18 09:30,76,True,vix3m
+vix_and_voldemand,2022-02-18 17:00,2022-02-22 09:30,76,True,vix3m
+vix_and_voldemand,2022-05-27 17:00,2022-05-31 09:30,76,True,vix3m
+vix_and_voldemand,2022-06-17 17:00,2022-06-21 09:30,76,True,vix3m
+vix_and_voldemand,2022-07-01 17:00,2022-07-05 09:30,76,True,vix3m
+vix_and_voldemand,2022-09-02 17:00,2022-09-06 09:30,76,True,vix3m
+vix_and_voldemand,2022-11-23 17:00,2022-11-25 09:30,72,True,vix3m
+vix_and_voldemand,2023-01-13 17:00,2023-01-17 09:30,76,True,vix3m
+vix_and_voldemand,2023-02-17 17:00,2023-02-21 09:30,76,True,vix3m
+vix_and_voldemand,2023-04-06 17:00,2023-04-10 09:30,65,True,vix3m
+vix_and_voldemand,2023-05-26 17:00,2023-05-30 09:30,76,True,vix3m
+vix_and_voldemand,2023-06-16 17:00,2023-06-20 09:30,76,True,vix3m
+vix_and_voldemand,2023-07-03 14:00,2023-07-05 09:30,76,True,vix3m
+vix_and_voldemand,2023-09-01 17:00,2023-09-05 09:30,76,True,vix3m
+vix_and_voldemand,2023-11-22 17:00,2023-11-24 09:30,72,True,vix3m
+vix_and_voldemand,2024-01-12 17:00,2024-01-16 09:30,76,True,vix3m
+vix_and_voldemand,2011-01-14 19:30,2011-01-18 09:30,68,False,voldemand
+vix_and_voldemand,2011-02-18 19:30,2011-02-22 09:30,68,False,voldemand
+vix_and_voldemand,2011-05-27 19:30,2011-05-31 09:30,68,False,voldemand
+vix_and_voldemand,2011-07-01 19:30,2011-07-05 09:30,68,False,voldemand
+vix_and_voldemand,2011-09-02 19:30,2011-09-06 09:30,68,False,voldemand
+vix_and_voldemand,2011-11-23 19:30,2011-11-25 09:30,64,False,voldemand
+vix_and_voldemand,2012-01-13 19:30,2012-01-17 09:30,68,False,voldemand
+vix_and_voldemand,2012-02-17 19:30,2012-02-21 09:30,68,False,voldemand
+vix_and_voldemand,2012-02-28 19:30,2012-03-01 09:30,77,False,voldemand
+vix_and_voldemand,2012-05-25 19:30,2012-05-29 09:30,68,False,voldemand
+vix_and_voldemand,2012-07-03 19:30,2012-07-05 09:30,64,False,voldemand
+vix_and_voldemand,2012-08-31 19:30,2012-09-04 09:30,68,False,voldemand
+vix_and_voldemand,2012-11-21 19:30,2012-11-23 09:30,64,False,voldemand
+vix_and_voldemand,2013-01-18 19:30,2013-01-22 09:30,68,False,voldemand
+vix_and_voldemand,2013-02-15 19:30,2013-02-19 09:30,68,False,voldemand
+vix_and_voldemand,2013-05-24 19:30,2013-05-28 09:30,68,False,voldemand
+vix_and_voldemand,2013-07-03 19:30,2013-07-05 09:30,64,False,voldemand
+vix_and_voldemand,2013-08-30 19:30,2013-09-03 09:30,68,False,voldemand
+vix_and_voldemand,2013-11-27 19:30,2013-11-29 09:30,64,False,voldemand
+vix_and_voldemand,2014-01-17 19:30,2014-01-21 09:30,68,False,voldemand
+vix_and_voldemand,2014-02-14 19:30,2014-02-18 09:30,68,False,voldemand
+vix_and_voldemand,2014-05-23 19:30,2014-05-27 09:30,71,False,voldemand
+vix_and_voldemand,2014-07-03 19:30,2014-07-07 09:30,67,False,voldemand
+vix_and_voldemand,2014-08-29 19:30,2014-09-02 09:30,71,False,voldemand
+vix_and_voldemand,2014-11-26 19:30,2014-11-28 09:30,67,False,voldemand
+vix_and_voldemand,2015-01-16 19:30,2015-01-20 09:30,71,False,voldemand
+vix_and_voldemand,2015-02-13 19:30,2015-02-17 09:30,71,False,voldemand
+vix_and_voldemand,2015-04-02 19:30,2015-04-06 09:30,60,False,voldemand
+vix_and_voldemand,2015-05-22 19:30,2015-05-26 09:30,71,False,voldemand
+vix_and_voldemand,2015-07-02 19:30,2015-07-06 09:30,67,False,voldemand
+vix_and_voldemand,2015-09-04 19:30,2015-09-08 09:30,71,False,voldemand
+vix_and_voldemand,2015-11-25 19:30,2015-11-27 09:30,67,False,voldemand
+vix_and_voldemand,2016-01-15 19:30,2016-01-19 09:30,71,False,voldemand
+vix_and_voldemand,2016-02-12 19:30,2016-02-16 09:30,71,False,voldemand
+vix_and_voldemand,2016-02-26 19:30,2016-03-01 09:30,81,False,voldemand
+vix_and_voldemand,2016-05-27 19:30,2016-05-31 09:30,71,False,voldemand
+vix_and_voldemand,2016-07-01 19:30,2016-07-05 09:30,71,False,voldemand
+vix_and_voldemand,2016-09-02 19:30,2016-09-06 09:30,71,False,voldemand
+vix_and_voldemand,2016-11-23 19:30,2016-11-25 09:30,67,False,voldemand
+vix_and_voldemand,2017-01-13 19:30,2017-01-17 09:30,71,False,voldemand
+vix_and_voldemand,2017-02-17 19:30,2017-02-21 09:30,71,False,voldemand
+vix_and_voldemand,2017-05-26 19:30,2017-05-30 09:30,71,False,voldemand
+vix_and_voldemand,2017-07-03 19:30,2017-07-05 09:30,67,False,voldemand
+vix_and_voldemand,2017-09-01 19:30,2017-09-05 09:30,71,False,voldemand
+vix_and_voldemand,2017-11-22 19:30,2017-11-24 09:30,67,False,voldemand
+vix_and_voldemand,2018-01-12 19:30,2018-01-16 09:30,71,False,voldemand
+vix_and_voldemand,2018-02-16 19:30,2018-02-20 09:30,71,False,voldemand
+vix_and_voldemand,2018-05-25 19:30,2018-05-29 09:30,71,False,voldemand
+vix_and_voldemand,2018-07-03 19:30,2018-07-05 09:30,67,False,voldemand
+vix_and_voldemand,2018-08-31 19:30,2018-09-04 09:30,72,False,voldemand
+vix_and_voldemand,2018-11-21 19:30,2018-11-23 09:30,67,False,voldemand
+vix_and_voldemand,2018-12-04 19:30,2018-12-06 09:30,60,False,voldemand
+vix_and_voldemand,2019-01-18 19:30,2019-01-22 09:30,71,False,voldemand
+vix_and_voldemand,2019-02-15 19:30,2019-02-19 09:30,71,False,voldemand
+vix_and_voldemand,2019-05-24 19:30,2019-05-28 09:30,71,False,voldemand
+vix_and_voldemand,2019-07-03 19:30,2019-07-05 09:30,67,False,voldemand
+vix_and_voldemand,2019-08-30 19:30,2019-09-03 09:30,71,False,voldemand
+vix_and_voldemand,2019-11-27 19:30,2019-11-29 09:30,67,False,voldemand
+vix_and_voldemand,2020-01-17 19:30,2020-01-21 09:30,71,True,voldemand
+vix_and_voldemand,2020-02-14 19:30,2020-02-18 09:30,71,True,voldemand
+vix_and_voldemand,2020-05-22 19:30,2020-05-26 09:30,71,True,voldemand
+vix_and_voldemand,2020-07-02 19:30,2020-07-06 09:30,67,True,voldemand
+vix_and_voldemand,2020-09-04 19:30,2020-09-08 09:30,71,True,voldemand
+vix_and_voldemand,2020-11-25 19:30,2020-11-27 09:30,67,True,voldemand
+vix_and_voldemand,2021-01-15 19:30,2021-01-19 09:30,71,True,voldemand
+vix_and_voldemand,2021-02-12 19:30,2021-02-16 09:30,71,True,voldemand
+vix_and_voldemand,2021-04-01 19:30,2021-04-05 09:30,60,True,voldemand
+vix_and_voldemand,2021-05-28 19:30,2021-06-01 09:30,71,True,voldemand
+vix_and_voldemand,2021-07-02 19:30,2021-07-06 09:30,71,True,voldemand
+vix_and_voldemand,2021-09-03 19:30,2021-09-07 09:30,71,True,voldemand
+vix_and_voldemand,2021-11-24 19:30,2021-11-26 09:30,67,True,voldemand
+vix_and_voldemand,2022-01-14 19:30,2022-01-18 09:30,71,True,voldemand
+vix_and_voldemand,2022-02-18 19:30,2022-02-22 09:30,71,True,voldemand
+vix_and_voldemand,2022-05-27 19:30,2022-05-31 09:30,71,True,voldemand
+vix_and_voldemand,2022-06-17 19:30,2022-06-21 09:30,71,True,voldemand
+vix_and_voldemand,2022-07-01 19:30,2022-07-05 09:30,71,True,voldemand
+vix_and_voldemand,2022-09-02 19:30,2022-09-06 09:30,71,True,voldemand
+vix_and_voldemand,2022-11-23 19:30,2022-11-25 09:30,67,True,voldemand
+vix_and_voldemand,2023-01-13 19:30,2023-01-17 09:30,71,True,voldemand
+vix_and_voldemand,2023-02-17 19:30,2023-02-21 09:30,71,True,voldemand
+vix_and_voldemand,2023-04-06 19:30,2023-04-10 09:30,60,True,voldemand
+vix_and_voldemand,2023-05-26 19:30,2023-05-30 09:30,71,True,voldemand
+vix_and_voldemand,2023-06-16 19:30,2023-06-20 09:30,71,True,voldemand
+vix_and_voldemand,2023-07-03 14:00,2023-07-05 09:30,76,True,voldemand
+derived,2004-01-18 19:00,2004-01-20 07:30,60,False,ofi_ewstock
+derived,2004-02-15 19:00,2004-02-17 07:30,60,False,ofi_ewstock
+derived,2004-07-04 18:30,2004-07-06 07:30,62,False,ofi_ewstock
+derived,2004-11-24 20:30,2004-11-26 08:00,59,False,ofi_ewstock
+derived,2005-01-16 18:30,2005-01-18 07:30,62,False,ofi_ewstock
+derived,2005-02-20 18:30,2005-02-22 08:00,62,False,ofi_ewstock
+derived,2005-05-29 18:30,2005-05-31 06:30,60,False,ofi_ewstock
+derived,2005-07-03 18:30,2005-07-05 07:00,61,False,ofi_ewstock
+derived,2005-09-04 18:30,2005-09-06 06:30,60,False,ofi_ewstock
+derived,2005-11-23 20:30,2005-11-25 07:00,57,False,ofi_ewstock
+derived,2006-02-19 18:30,2006-02-21 04:00,55,False,ofi_ewstock
+derived,2006-05-28 18:30,2006-05-30 04:00,55,False,ofi_ewstock
+derived,2006-07-03 17:00,2006-07-05 04:00,57,False,ofi_ewstock
+derived,2006-09-03 18:30,2006-09-05 04:00,55,False,ofi_ewstock
+derived,2006-11-22 20:30,2006-11-24 04:00,51,False,ofi_ewstock
+derived,2007-01-14 18:30,2007-01-16 04:00,55,False,ofi_ewstock
+derived,2007-02-18 18:30,2007-02-20 04:00,55,False,ofi_ewstock
+derived,2007-05-27 18:30,2007-05-29 04:00,55,False,ofi_ewstock
+derived,2007-07-03 17:30,2007-07-05 04:00,56,False,ofi_ewstock
+derived,2007-09-02 18:30,2007-09-04 04:00,55,False,ofi_ewstock
+derived,2007-11-21 20:30,2007-11-23 04:30,52,False,ofi_ewstock
+derived,2008-01-20 18:30,2008-01-22 04:00,55,False,ofi_ewstock
+derived,2008-02-17 18:30,2008-02-19 04:00,55,False,ofi_ewstock
+derived,2008-05-25 18:30,2008-05-27 06:30,60,False,ofi_ewstock
+derived,2008-07-03 17:30,2008-07-07 04:30,57,False,ofi_ewstock
+derived,2008-08-31 18:30,2008-09-02 04:00,55,False,ofi_ewstock
+derived,2008-11-26 20:30,2008-11-28 04:00,51,False,ofi_ewstock
+derived,2009-01-18 18:30,2009-01-20 04:00,55,False,ofi_ewstock
+derived,2009-02-15 18:30,2009-02-17 04:00,55,False,ofi_ewstock
+derived,2009-05-24 18:30,2009-05-26 04:00,55,False,ofi_ewstock
+derived,2009-07-02 20:30,2009-07-06 04:00,51,False,ofi_ewstock
+derived,2009-09-06 18:30,2009-09-08 04:00,55,False,ofi_ewstock
+derived,2009-11-25 20:30,2009-11-27 04:00,51,False,ofi_ewstock
+derived,2010-01-17 18:30,2010-01-19 04:00,55,False,ofi_ewstock
+derived,2010-02-14 18:30,2010-02-16 04:00,55,False,ofi_ewstock
+derived,2010-05-30 18:30,2010-06-01 04:00,55,False,ofi_ewstock
+derived,2010-07-04 18:30,2010-07-06 04:00,55,False,ofi_ewstock
+derived,2010-09-05 18:30,2010-09-07 04:00,55,False,ofi_ewstock
+derived,2010-09-27 21:00,2010-09-29 04:00,63,False,ofi_ewstock
+derived,2010-11-18 20:30,2010-11-22 03:30,67,False,ofi_ewstock
+derived,2010-11-24 20:30,2010-11-26 03:30,50,False,ofi_ewstock
+derived,2011-01-16 18:30,2011-01-18 03:30,54,False,ofi_ewstock
+derived,2011-02-20 18:30,2011-02-22 03:30,54,False,ofi_ewstock
+derived,2011-05-29 18:30,2011-05-31 04:00,55,False,ofi_ewstock
+derived,2011-07-03 18:30,2011-07-05 03:30,54,False,ofi_ewstock
+derived,2011-09-04 18:30,2011-09-06 03:30,54,False,ofi_ewstock
+derived,2011-11-23 20:30,2011-11-25 03:30,50,False,ofi_ewstock
+derived,2012-01-15 18:30,2012-01-17 03:30,54,False,ofi_ewstock
+derived,2012-02-19 18:30,2012-02-21 03:30,54,False,ofi_ewstock
+derived,2012-05-27 18:30,2012-05-29 04:00,55,False,ofi_ewstock
+derived,2012-07-03 17:30,2012-07-05 03:30,55,False,ofi_ewstock
+derived,2012-09-02 18:30,2012-09-04 04:00,55,False,ofi_ewstock
+derived,2012-11-21 20:30,2012-11-23 03:30,50,False,ofi_ewstock
+derived,2013-01-20 18:30,2013-01-22 03:30,54,False,ofi_ewstock
+derived,2013-02-17 18:30,2013-02-19 03:30,54,False,ofi_ewstock
+derived,2013-05-26 18:30,2013-05-28 03:30,54,False,ofi_ewstock
+derived,2013-07-03 18:30,2013-07-05 03:30,54,False,ofi_ewstock
+derived,2013-09-01 18:30,2013-09-03 03:30,54,False,ofi_ewstock
+derived,2013-11-27 20:30,2013-11-29 03:30,50,False,ofi_ewstock
+derived,2014-01-19 18:30,2014-01-21 03:30,54,False,ofi_ewstock
+derived,2014-02-16 18:30,2014-02-18 03:30,54,False,ofi_ewstock
+derived,2014-05-25 18:30,2014-05-27 03:30,57,False,ofi_ewstock
+derived,2014-07-03 18:30,2014-07-07 03:30,57,False,ofi_ewstock
+derived,2014-08-31 18:30,2014-09-02 03:30,57,False,ofi_ewstock
+derived,2014-11-26 20:30,2014-11-28 03:30,53,False,ofi_ewstock
+derived,2015-01-18 18:30,2015-01-20 04:00,58,False,ofi_ewstock
+derived,2015-02-15 18:30,2015-02-17 04:00,58,False,ofi_ewstock
+derived,2015-05-24 18:30,2015-05-26 04:00,58,False,ofi_ewstock
+derived,2015-07-02 20:30,2015-07-06 04:00,54,False,ofi_ewstock
+derived,2015-09-06 18:30,2015-09-08 04:00,58,False,ofi_ewstock
+derived,2015-11-25 20:30,2015-11-27 04:00,54,False,ofi_ewstock
+derived,2016-01-17 18:30,2016-01-19 04:00,58,False,ofi_ewstock
+derived,2016-02-14 18:30,2016-02-16 04:00,58,False,ofi_ewstock
+derived,2016-05-29 18:30,2016-05-31 04:00,58,False,ofi_ewstock
+derived,2016-07-03 18:30,2016-07-05 04:00,58,False,ofi_ewstock
+derived,2016-09-04 18:30,2016-09-06 04:00,58,False,ofi_ewstock
+derived,2016-11-23 20:30,2016-11-25 04:00,54,False,ofi_ewstock
+derived,2017-01-15 18:30,2017-01-17 04:00,58,False,ofi_ewstock
+derived,2017-02-19 18:30,2017-02-21 04:00,58,False,ofi_ewstock
+derived,2017-05-28 18:30,2017-05-30 04:00,58,False,ofi_ewstock
+derived,2017-07-03 18:30,2017-07-05 04:00,58,False,ofi_ewstock
+derived,2017-09-03 18:30,2017-09-05 04:00,58,False,ofi_ewstock
+derived,2017-11-22 20:30,2017-11-24 04:00,54,False,ofi_ewstock
+derived,2018-01-14 18:30,2018-01-16 04:00,58,False,ofi_ewstock
+derived,2018-02-18 18:30,2018-02-20 04:00,58,False,ofi_ewstock
+derived,2018-05-27 18:30,2018-05-29 04:00,58,False,ofi_ewstock
+derived,2018-07-03 18:30,2018-07-05 04:00,58,False,ofi_ewstock
+derived,2018-09-02 18:30,2018-09-04 04:00,59,False,ofi_ewstock
+derived,2018-11-21 20:30,2018-11-23 04:00,54,False,ofi_ewstock
+derived,2019-01-20 18:30,2019-01-22 04:00,58,False,ofi_ewstock
+derived,2019-02-17 18:30,2019-02-19 04:00,58,False,ofi_ewstock
+derived,2019-05-26 18:30,2019-05-28 04:00,58,False,ofi_ewstock
+derived,2019-07-03 18:30,2019-07-05 04:00,58,False,ofi_ewstock
+derived,2019-09-01 18:30,2019-09-03 04:00,58,False,ofi_ewstock
+derived,2019-11-27 20:30,2019-11-29 04:00,54,False,ofi_ewstock
+derived,2020-01-19 18:30,2020-01-21 04:00,58,True,ofi_ewstock
+derived,2020-02-16 18:30,2020-02-18 04:00,58,True,ofi_ewstock
+derived,2020-05-24 18:30,2020-05-26 04:00,58,True,ofi_ewstock
+derived,2020-07-02 20:30,2020-07-06 04:00,54,True,ofi_ewstock
+derived,2020-09-06 18:30,2020-09-08 04:00,58,True,ofi_ewstock
+derived,2020-11-25 20:30,2020-11-27 04:00,54,True,ofi_ewstock
+derived,2021-01-17 18:30,2021-01-19 04:00,58,True,ofi_ewstock
+derived,2021-02-14 18:30,2021-02-16 04:00,58,True,ofi_ewstock
+derived,2021-05-30 18:30,2021-06-01 04:00,58,True,ofi_ewstock
+derived,2021-07-04 18:30,2021-07-06 04:00,58,True,ofi_ewstock
+derived,2021-09-05 18:30,2021-09-07 04:00,58,True,ofi_ewstock
+derived,2021-11-24 20:30,2021-11-26 04:00,54,True,ofi_ewstock
+derived,2022-01-16 18:30,2022-01-18 04:00,58,True,ofi_ewstock
+derived,2022-02-20 18:30,2022-02-22 04:00,58,True,ofi_ewstock
+derived,2022-05-29 18:30,2022-05-31 04:00,58,True,ofi_ewstock
+derived,2022-06-19 18:30,2022-06-21 04:00,58,True,ofi_ewstock
+derived,2022-07-03 18:30,2022-07-05 04:00,58,True,ofi_ewstock
+derived,2022-09-04 18:30,2022-09-06 04:00,58,True,ofi_ewstock
+derived,2022-11-23 20:30,2022-11-25 04:00,54,True,ofi_ewstock
+derived,2023-01-15 18:30,2023-01-17 04:00,58,True,ofi_ewstock
+derived,2023-02-19 18:30,2023-02-21 04:00,58,True,ofi_ewstock
+derived,2023-05-28 18:30,2023-05-30 04:00,58,True,ofi_ewstock
+derived,2023-06-18 18:30,2023-06-20 04:00,58,True,ofi_ewstock
+derived,2023-07-03 18:30,2023-07-05 04:00,58,True,ofi_ewstock
+derived,2023-09-03 18:30,2023-09-05 04:00,58,True,ofi_ewstock
+derived,2023-11-22 20:30,2023-11-24 04:00,54,True,ofi_ewstock
+derived,2024-01-14 18:30,2024-01-16 04:00,58,True,ofi_ewstock
+derived,2024-02-18 18:30,2024-02-20 04:00,58,True,ofi_ewstock
+derived,2004-01-18 19:00,2004-01-20 07:30,60,False,ofi_vwstock
+derived,2004-02-15 19:00,2004-02-17 07:30,60,False,ofi_vwstock
+derived,2004-07-04 18:30,2004-07-06 07:30,62,False,ofi_vwstock
+derived,2004-11-24 20:30,2004-11-26 08:00,59,False,ofi_vwstock
+derived,2005-01-16 18:30,2005-01-18 07:30,62,False,ofi_vwstock
+derived,2005-02-20 18:30,2005-02-22 08:00,62,False,ofi_vwstock
+derived,2005-05-29 18:30,2005-05-31 06:30,60,False,ofi_vwstock
+derived,2005-07-03 18:30,2005-07-05 07:00,61,False,ofi_vwstock
+derived,2005-09-04 18:30,2005-09-06 06:30,60,False,ofi_vwstock
+derived,2005-11-23 20:30,2005-11-25 07:00,57,False,ofi_vwstock
+derived,2006-02-19 18:30,2006-02-21 04:00,55,False,ofi_vwstock
+derived,2006-05-28 18:30,2006-05-30 04:00,55,False,ofi_vwstock
+derived,2006-07-03 17:00,2006-07-05 04:00,57,False,ofi_vwstock
+derived,2006-09-03 18:30,2006-09-05 04:00,55,False,ofi_vwstock
+derived,2006-11-22 20:30,2006-11-24 04:00,51,False,ofi_vwstock
+derived,2007-01-14 18:30,2007-01-16 04:00,55,False,ofi_vwstock
+derived,2007-02-18 18:30,2007-02-20 04:00,55,False,ofi_vwstock
+derived,2007-05-27 18:30,2007-05-29 04:00,55,False,ofi_vwstock
+derived,2007-07-03 17:30,2007-07-05 04:00,56,False,ofi_vwstock
+derived,2007-09-02 18:30,2007-09-04 04:00,55,False,ofi_vwstock
+derived,2007-11-21 20:30,2007-11-23 04:30,52,False,ofi_vwstock
+derived,2008-01-20 18:30,2008-01-22 04:00,55,False,ofi_vwstock
+derived,2008-02-17 18:30,2008-02-19 04:00,55,False,ofi_vwstock
+derived,2008-05-25 18:30,2008-05-27 06:30,60,False,ofi_vwstock
+derived,2008-07-03 17:30,2008-07-07 04:30,57,False,ofi_vwstock
+derived,2008-08-31 18:30,2008-09-02 04:00,55,False,ofi_vwstock
+derived,2008-11-26 20:30,2008-11-28 04:00,51,False,ofi_vwstock
+derived,2009-01-18 18:30,2009-01-20 04:00,55,False,ofi_vwstock
+derived,2009-02-15 18:30,2009-02-17 04:00,55,False,ofi_vwstock
+derived,2009-05-24 18:30,2009-05-26 04:00,55,False,ofi_vwstock
+derived,2009-07-02 20:30,2009-07-06 04:00,51,False,ofi_vwstock
+derived,2009-09-06 18:30,2009-09-08 04:00,55,False,ofi_vwstock
+derived,2009-11-25 20:30,2009-11-27 04:00,51,False,ofi_vwstock
+derived,2010-01-17 18:30,2010-01-19 04:00,55,False,ofi_vwstock
+derived,2010-02-14 18:30,2010-02-16 04:00,55,False,ofi_vwstock
+derived,2010-05-30 18:30,2010-06-01 04:00,55,False,ofi_vwstock
+derived,2010-07-04 18:30,2010-07-06 04:00,55,False,ofi_vwstock
+derived,2010-09-05 18:30,2010-09-07 04:00,55,False,ofi_vwstock
+derived,2010-09-27 21:00,2010-09-29 04:00,63,False,ofi_vwstock
+derived,2010-11-18 20:30,2010-11-22 03:30,67,False,ofi_vwstock
+derived,2010-11-24 20:30,2010-11-26 03:30,50,False,ofi_vwstock
+derived,2011-01-16 18:30,2011-01-18 03:30,54,False,ofi_vwstock
+derived,2011-02-20 18:30,2011-02-22 03:30,54,False,ofi_vwstock
+derived,2011-05-29 18:30,2011-05-31 04:00,55,False,ofi_vwstock
+derived,2011-07-03 18:30,2011-07-05 03:30,54,False,ofi_vwstock
+derived,2011-09-04 18:30,2011-09-06 03:30,54,False,ofi_vwstock
+derived,2011-11-23 20:30,2011-11-25 03:30,50,False,ofi_vwstock
+derived,2012-01-15 18:30,2012-01-17 03:30,54,False,ofi_vwstock
+derived,2012-02-19 18:30,2012-02-21 03:30,54,False,ofi_vwstock
+derived,2012-05-27 18:30,2012-05-29 04:00,55,False,ofi_vwstock
+derived,2012-07-03 17:30,2012-07-05 03:30,55,False,ofi_vwstock
+derived,2012-09-02 18:30,2012-09-04 04:00,55,False,ofi_vwstock
+derived,2012-11-21 20:30,2012-11-23 03:30,50,False,ofi_vwstock
+derived,2013-01-20 18:30,2013-01-22 03:30,54,False,ofi_vwstock
+derived,2013-02-17 18:30,2013-02-19 03:30,54,False,ofi_vwstock
+derived,2013-05-26 18:30,2013-05-28 03:30,54,False,ofi_vwstock
+derived,2013-07-03 18:30,2013-07-05 03:30,54,False,ofi_vwstock
+derived,2013-09-01 18:30,2013-09-03 03:30,54,False,ofi_vwstock
+derived,2013-11-27 20:30,2013-11-29 03:30,50,False,ofi_vwstock
+derived,2014-01-19 18:30,2014-01-21 03:30,54,False,ofi_vwstock
+derived,2014-02-16 18:30,2014-02-18 03:30,54,False,ofi_vwstock
+derived,2014-05-25 18:30,2014-05-27 03:30,57,False,ofi_vwstock
+derived,2014-07-03 18:30,2014-07-07 03:30,57,False,ofi_vwstock
+derived,2014-08-31 18:30,2014-09-02 03:30,57,False,ofi_vwstock
+derived,2014-11-26 20:30,2014-11-28 03:30,53,False,ofi_vwstock
+derived,2015-01-18 18:30,2015-01-20 04:00,58,False,ofi_vwstock
+derived,2015-02-15 18:30,2015-02-17 04:00,58,False,ofi_vwstock
+derived,2015-05-24 18:30,2015-05-26 04:00,58,False,ofi_vwstock
+derived,2015-07-02 20:30,2015-07-06 04:00,54,False,ofi_vwstock
+derived,2015-09-06 18:30,2015-09-08 04:00,58,False,ofi_vwstock
+derived,2015-11-25 20:30,2015-11-27 04:00,54,False,ofi_vwstock
+derived,2016-01-17 18:30,2016-01-19 04:00,58,False,ofi_vwstock
+derived,2016-02-14 18:30,2016-02-16 04:00,58,False,ofi_vwstock
+derived,2016-05-29 18:30,2016-05-31 04:00,58,False,ofi_vwstock
+derived,2016-07-03 18:30,2016-07-05 04:00,58,False,ofi_vwstock
+derived,2016-09-04 18:30,2016-09-06 04:00,58,False,ofi_vwstock
+derived,2016-11-23 20:30,2016-11-25 04:00,54,False,ofi_vwstock
+derived,2017-01-15 18:30,2017-01-17 04:00,58,False,ofi_vwstock
+derived,2017-02-19 18:30,2017-02-21 04:00,58,False,ofi_vwstock
+derived,2017-05-28 18:30,2017-05-30 04:00,58,False,ofi_vwstock
+derived,2017-07-03 18:30,2017-07-05 04:00,58,False,ofi_vwstock
+derived,2017-09-03 18:30,2017-09-05 04:00,58,False,ofi_vwstock
+derived,2017-11-22 20:30,2017-11-24 04:00,54,False,ofi_vwstock
+derived,2018-01-14 18:30,2018-01-16 04:00,58,False,ofi_vwstock
+derived,2018-02-18 18:30,2018-02-20 04:00,58,False,ofi_vwstock
+derived,2018-05-27 18:30,2018-05-29 04:00,58,False,ofi_vwstock
+derived,2018-07-03 18:30,2018-07-05 04:00,58,False,ofi_vwstock
+derived,2018-09-02 18:30,2018-09-04 04:00,59,False,ofi_vwstock
+derived,2018-11-21 20:30,2018-11-23 04:00,54,False,ofi_vwstock
+derived,2019-01-20 18:30,2019-01-22 04:00,58,False,ofi_vwstock
+derived,2019-02-17 18:30,2019-02-19 04:00,58,False,ofi_vwstock
+derived,2019-05-26 18:30,2019-05-28 04:00,58,False,ofi_vwstock
+derived,2019-07-03 18:30,2019-07-05 04:00,58,False,ofi_vwstock
+derived,2019-09-01 18:30,2019-09-03 04:00,58,False,ofi_vwstock
+derived,2019-11-27 20:30,2019-11-29 04:00,54,False,ofi_vwstock
+derived,2020-01-19 18:30,2020-01-21 04:00,58,True,ofi_vwstock
+derived,2020-02-16 18:30,2020-02-18 04:00,58,True,ofi_vwstock
+derived,2020-05-24 18:30,2020-05-26 04:00,58,True,ofi_vwstock
+derived,2020-07-02 20:30,2020-07-06 04:00,54,True,ofi_vwstock
+derived,2020-09-06 18:30,2020-09-08 04:00,58,True,ofi_vwstock
+derived,2020-11-25 20:30,2020-11-27 04:00,54,True,ofi_vwstock
+derived,2021-01-17 18:30,2021-01-19 04:00,58,True,ofi_vwstock
+derived,2021-02-14 18:30,2021-02-16 04:00,58,True,ofi_vwstock
+derived,2021-05-30 18:30,2021-06-01 04:00,58,True,ofi_vwstock
+derived,2021-07-04 18:30,2021-07-06 04:00,58,True,ofi_vwstock
+derived,2021-09-05 18:30,2021-09-07 04:00,58,True,ofi_vwstock
+derived,2021-11-24 20:30,2021-11-26 04:00,54,True,ofi_vwstock
+derived,2022-01-16 18:30,2022-01-18 04:00,58,True,ofi_vwstock
+derived,2022-02-20 18:30,2022-02-22 04:00,58,True,ofi_vwstock
+derived,2022-05-29 18:30,2022-05-31 04:00,58,True,ofi_vwstock
+derived,2022-06-19 18:30,2022-06-21 04:00,58,True,ofi_vwstock
+derived,2022-07-03 18:30,2022-07-05 04:00,58,True,ofi_vwstock
+derived,2022-09-04 18:30,2022-09-06 04:00,58,True,ofi_vwstock
+derived,2022-11-23 20:30,2022-11-25 04:00,54,True,ofi_vwstock
+derived,2023-01-15 18:30,2023-01-17 04:00,58,True,ofi_vwstock
+derived,2023-02-19 18:30,2023-02-21 04:00,58,True,ofi_vwstock
+derived,2023-05-28 18:30,2023-05-30 04:00,58,True,ofi_vwstock
+derived,2023-06-18 18:30,2023-06-20 04:00,58,True,ofi_vwstock
+derived,2023-07-03 18:30,2023-07-05 04:00,58,True,ofi_vwstock
+derived,2023-09-03 18:30,2023-09-05 04:00,58,True,ofi_vwstock
+derived,2023-11-22 20:30,2023-11-24 04:00,54,True,ofi_vwstock
+derived,2024-01-14 18:30,2024-01-16 04:00,58,True,ofi_vwstock
+derived,2024-02-18 18:30,2024-02-20 04:00,58,True,ofi_vwstock

@@ -149,7 +149,13 @@ def yhat_paths(repo: Path) -> dict[str, Path]:
         "blk2": root / "yhat_blk2_fomc1.parquet",
         "blk2_inc": root / "yhat_blk2.parquet",
         "lgbm": root / "yhat_tree00.parquet",
-        "xgb": root / "yhat_tree16.parquet",
+        # 2026-10-07 parked: "xgb": root / "yhat_tree16.parquet" (bank arm 16 = xgb_opt_06, the 7th-ranked
+        # entry of the 1998-2002 dev-span search, hand-picked after post-2002 scoring: not certifiable free of
+        # look-ahead).  User decision 2026-10-07 (MASTER_TABLE_REVIEW item 76): XGBoost takes the TOP dev-span
+        # entry, as LightGBM and the random forest do -- bank arm 10 = xgb_opt_00 (sha 88bec9f385c7),
+        # dumped by experiments/dump_unif_yhat.py (results/atm_straddle_0dte_1530/TREE10_DONE).
+        # "xgb": root / "yhat_tree16.parquet",
+        "xgb": root / "yhat_tree10.parquet",
         "lasso_t": root / "yhat_b2lasso_tuned.parquet",
         "lasso_f": root / "yhat_b2lasso_fomc1.parquet",
         "enet": root / "yhat_b3enet_tuned.parquet",
@@ -486,6 +492,48 @@ def _mz_day_coefs(
     return a_d, b_d, s2_d
 
 
+# 2026-10-06: recalibration removed, user decision.
+# Every forecast is now used as its PLAIN back-transform, rv_hat = yhat^2 * B (the
+# forecast of sqrt(RV / B) squared, times the time-of-day baseline B), with nothing
+# estimated on top: no Mincer-Zarnowitz level map, no residual-variance (smearing)
+# term, no weighting, and the regular-session fit mask no longer enters any forecast
+# (_panel_frame still returns it as the in_fit flag).  RECALIBRATE is the switch the
+# loaders read when their ``recal`` argument is None.  The session-bar map below
+# (_mz_day_coefs / second_order_raw / second_order_mz: the weighted 250-session
+# Mincer-Zarnowitz line on the regular-session rows, (m^2 + s2) B) is PARKED, not
+# deleted: pass recal=True to any loader for an old-vs-new comparison.
+# One exception: load_yhat_1530_mz_cached keeps the map by default, because the
+# live card calls it (live/close_signal/forecast.py, recalibrate()); changing the
+# live signal is not a paper decision.
+RECALIBRATE = False
+
+
+def _use_recal(recal: bool | None) -> bool:
+    """The loaders' switch: ``recal`` if given, else the module default RECALIBRATE."""
+    return RECALIBRATE if recal is None else bool(recal)
+
+
+def plain_back_transform(yhat, baseline, day_codes=None, need_days=None) -> np.ndarray:
+    """rv_hat = yhat^2 * B on every row with a finite forecast and B > 0, else NaN.
+
+    With ``day_codes`` and ``need_days`` (the loaders' day restriction) rows of
+    other days are NaN too, so a loader returns exactly the requested days, as
+    the map's loaders do.  No warm-up: the map's first 63 sessions without
+    coefficients get a forecast here.
+    """
+    yhat = np.asarray(yhat, float)
+    b = np.asarray(baseline, float)
+    ok = np.isfinite(yhat) & np.isfinite(b) & (b > 0)
+    if day_codes is not None:
+        dc = np.asarray(day_codes)
+        ok &= dc >= 0
+        if need_days is not None:
+            ok &= np.isin(dc, np.fromiter(need_days, dtype=np.int64))
+    out = np.full(len(yhat), np.nan)
+    out[ok] = yhat[ok] ** 2 * b[ok]
+    return out
+
+
 def second_order_raw(
     yhat,
     rv_raw,
@@ -497,7 +545,11 @@ def second_order_raw(
     fit_mask=None,
     method="mean",
 ):
-    """Causal second-moment back-transform (flat 250-day window by default)."""
+    """Causal second-moment back-transform (flat 250-day window by default).
+
+    2026-10-06: recalibration removed, user decision.  Parked: no loader calls
+    this unless asked with recal=True (old-vs-new comparisons, the live card).
+    """
     a_d, b_d, s2_d = _mz_day_coefs(
         yhat,
         rv_raw,
@@ -551,6 +603,20 @@ def second_order_mz(
     s2_row[te] = s2_d[day_codes[te]]
     rv[te] = (m[te] ** 2 + s2_row[te]) * baseline[te]
     return rv, m, s2_row
+
+
+def plain_mz(yhat, baseline, day_codes=None, need_days=None):
+    """The plain back-transform in second_order_mz's shape: (rv_hat, m, s2).
+
+    m = yhat and s2 = 0 on every row plain_back_transform keeps, so
+    (m^2 + s2) B = yhat^2 B and code written for the map's pieces reads the
+    plain forecast unchanged.
+    """
+    rv = plain_back_transform(yhat, baseline, day_codes, need_days)
+    ok = np.isfinite(rv)
+    m = np.where(ok, np.asarray(yhat, float), np.nan)
+    s2 = np.where(ok, 0.0, np.nan)
+    return rv, m, s2
 
 
 FIT_MASK_MINUTES = (
@@ -700,6 +766,10 @@ def _panel_frame(path: Path) -> tuple[pd.DataFrame, np.ndarray]:
     The gate suite prints the count. The frame carries the boolean columns
     early_close and session_date; early-close dates are also excluded from
     every loader's output.
+
+    2026-10-06 (recalibration removed, user decision): under the plain
+    back-transform the mask enters no forecast; it is returned as the in_fit
+    flag, and fits the parked map only under recal=True.
     """
     df = pd.read_parquet(path).sort_values("t").reset_index(drop=True)
     t = pd.to_datetime(df["t"])
@@ -803,11 +873,15 @@ def _evict_stale_tables(
             old.unlink()
 
 
-def load_yhat_1530(path: Path, need_dates=None, method: str = "mean") -> pd.DataFrame:
+def load_yhat_1530(
+    path: Path, need_dates=None, method: str = "mean", recal: bool | None = None
+) -> pd.DataFrame:
     # Bar-end-labelled stamps: the 15:30 book's fresh forecast — issued at
     # 15:30 for the 15:30->close bar it trades — lives on the STAMP-16:00
     # row, whose rv_raw is that bar's own realized variance. (The stamp-
     # 15:30 row is the forecast of 15:00->15:30, one bar stale.)
+    # rv_hat is the plain yhat^2 * B unless recal (default RECALIBRATE) asks
+    # for the parked session-bar map (2026-10-06: recalibration removed).
     df, rth = _panel_frame(path)
     is_row = (df["et"].dt.hour == 16) & (df["et"].dt.minute == 0) & ~df["early_close"]
     yhat = df["yhat"].to_numpy(float)
@@ -815,16 +889,19 @@ def load_yhat_1530(path: Path, need_dates=None, method: str = "mean") -> pd.Data
     rv_raw = df["rv_raw"].to_numpy(float)
     day_codes, uniq = pd.factorize(df["date"], sort=True)
     need_days = _need_days(need_dates, uniq)
-    df["rv_hat"] = second_order_raw(
-        yhat,
-        rv_raw,
-        base,
-        day_codes,
-        len(uniq),
-        need_days=need_days,
-        fit_mask=rth,
-        method=method,
-    )
+    if _use_recal(recal):
+        df["rv_hat"] = second_order_raw(
+            yhat,
+            rv_raw,
+            base,
+            day_codes,
+            len(uniq),
+            need_days=need_days,
+            fit_mask=rth,
+            method=method,
+        )
+    else:
+        df["rv_hat"] = plain_back_transform(yhat, base, day_codes, need_days)
     out = (
         df.loc[is_row, ["date", "yhat", "baseline", "rv_raw", "rv_hat"]]
         .dropna(subset=["rv_hat"])
@@ -835,8 +912,44 @@ def load_yhat_1530(path: Path, need_dates=None, method: str = "mean") -> pd.Data
 
 
 def load_yhat_1530_mz_cached(
-    tag: str, path: Path, need_dates, cache: Path, method: str = "mean"
+    tag: str,
+    path: Path,
+    need_dates,
+    cache: Path,
+    method: str = "mean",
+    recal: bool | None = True,
 ) -> pd.DataFrame:
+    """The 15:30 rows with rv_hat and its pieces m, s2 (cached).
+
+    2026-10-06: recalibration removed from the paper (user decision), but this
+    loader KEEPS the session-bar map by default (recal=True): the live card
+    calls it (live/close_signal/forecast.py recalibrate(), and through it the
+    card studies 80-90), and the live signal is not a paper decision.
+    recal=False (or None with RECALIBRATE False) gives the plain yhat^2 * B
+    with m = yhat and s2 = 0, uncached.
+    """
+    if not _use_recal(recal):
+        df, _ = _panel_frame(path)
+        is_row = (
+            (df["et"].dt.hour == 16) & (df["et"].dt.minute == 0) & ~df["early_close"]
+        )
+        day_codes, uniq = pd.factorize(df["date"], sort=True)
+        rv, m, s2 = plain_mz(
+            df["yhat"].to_numpy(float),
+            df["baseline"].to_numpy(float),
+            day_codes,
+            _need_days(need_dates, uniq),
+        )
+        df["rv_hat"], df["m"], df["s2"] = rv, m, s2
+        df["yhat_vol"] = df["yhat"] * np.sqrt(np.maximum(df["baseline"], 0.0))
+        df["m_vol"] = df["m"] * np.sqrt(np.maximum(df["baseline"], 0.0))
+        cols = ["date", "yhat", "baseline", "rv_raw", "rv_hat", "m", "s2"]
+        return (
+            df.loc[is_row, cols + ["yhat_vol", "m_vol"]]
+            .dropna(subset=["rv_hat"])
+            .drop_duplicates("date")
+            .set_index("date")
+        )
     cp = _cache_path(cache, "yhat1530mz", tag, path, need_dates, method, "mz")
     if cp.exists():
         return pd.read_parquet(cp)
@@ -890,12 +1003,24 @@ def load_yhat_1530_mz_cached(
 
 
 def load_yhat_1530_cached(
-    tag: str, path: Path, need_dates, cache: Path, method: str = "mean"
+    tag: str,
+    path: Path,
+    need_dates,
+    cache: Path,
+    method: str = "mean",
+    recal: bool | None = None,
 ) -> pd.DataFrame:
+    # 2026-10-06: the plain yhat^2 * B by default, uncached (a read and a square);
+    # recal=True gives the parked map through the cache, as before.
+    if not _use_recal(recal):
+        out = load_yhat_1530(path, need_dates, method=method, recal=False)
+        if out.empty:
+            raise ValueError(f"{path}: the 15:30 loader produced no rows")
+        return out
     cp = _cache_path(cache, "yhat1530", tag, path, need_dates, method, "vec")
     if cp.exists():
         return pd.read_parquet(cp)
-    out = load_yhat_1530(path, need_dates, method=method)
+    out = load_yhat_1530(path, need_dates, method=method, recal=True)
     if out.empty:
         raise ValueError(f"{path}: the 15:30 loader produced no rows; not caching")
     out.to_parquet(cp)
@@ -920,8 +1045,14 @@ def _cache_path(
     return cache / f"{stem}_{tag}_{method}_{h.hexdigest()[:16]}.parquet"
 
 
-def load_yhat_panel(path: Path, method: str = "mean") -> pd.DataFrame:
-    """Every 30-min stamp. Same second-order map as the 15:30 loader."""
+def load_yhat_panel(
+    path: Path, method: str = "mean", recal: bool | None = None
+) -> pd.DataFrame:
+    """Every 30-min stamp, with the 15:30 loader's back-transform.
+
+    2026-10-06: rv_hat is the plain yhat^2 * B (recalibration removed, user
+    decision); recal=True gives the parked session-bar map.
+    """
     df, rth = _panel_frame(path)
     yhat = df["yhat"].to_numpy(float)
     base = df["baseline"].to_numpy(float)
@@ -930,44 +1061,55 @@ def load_yhat_panel(path: Path, method: str = "mean") -> pd.DataFrame:
     # Bar-end-labelled stamps: the scored trade bars 10:00-15:30 live on
     # stamps 10:30-16:00, so the session fit mask covers those stamps.
     df["in_fit"] = rth & np.isfinite(yhat) & np.isfinite(rv_raw) & (base > 0)
-    df["rv_hat"] = second_order_raw(
-        yhat,
-        rv_raw,
-        base,
-        day_codes,
-        len(uniq),
-        need_days=None,
-        fit_mask=rth,
-        method=method,
-    )
+    if _use_recal(recal):
+        df["rv_hat"] = second_order_raw(
+            yhat,
+            rv_raw,
+            base,
+            day_codes,
+            len(uniq),
+            need_days=None,
+            fit_mask=rth,
+            method=method,
+        )
+    else:
+        df["rv_hat"] = plain_back_transform(yhat, base, day_codes)
     # Early-close dates carry a post-close 16:00 bar: no forecast is issued.
     df.loc[df["early_close"], "rv_hat"] = np.nan
     return df
 
 
-def load_yhat_panel_mz(path: Path, method: str = "mean") -> pd.DataFrame:
+def load_yhat_panel_mz(
+    path: Path, method: str = "mean", recal: bool | None = None
+) -> pd.DataFrame:
     """Every 30-min stamp with rv_hat and its pieces m and s2 (the 15:30 loader's fit).
 
     Adds mins (minutes from ET midnight), in_fit and early_close; rv_hat,
     m and s2 are NaN on early-close dates. The deck's look-ahead cliff and
     the experimental notebook read the panel through this so that the
     k = 0 row reproduces the traded forecast exactly.
+
+    2026-10-06 (recalibration removed, user decision): plain by default,
+    rv_hat = yhat^2 * B with m = yhat and s2 = 0; recal=True gives the map.
     """
     df, rth = _panel_frame(path)
     yhat = df["yhat"].to_numpy(float)
     base = df["baseline"].to_numpy(float)
     rv_raw = df["rv_raw"].to_numpy(float)
     day_codes, uniq = pd.factorize(df["date"], sort=True)
-    rv, m, s2 = second_order_mz(
-        yhat,
-        rv_raw,
-        base,
-        day_codes,
-        len(uniq),
-        need_days=None,
-        fit_mask=rth,
-        method=method,
-    )
+    if _use_recal(recal):
+        rv, m, s2 = second_order_mz(
+            yhat,
+            rv_raw,
+            base,
+            day_codes,
+            len(uniq),
+            need_days=None,
+            fit_mask=rth,
+            method=method,
+        )
+    else:
+        rv, m, s2 = plain_mz(yhat, base, day_codes)
     df["rv_hat"], df["m"], df["s2"] = rv, m, s2
     df["mins"] = (df["et"].dt.hour * 60 + df["et"].dt.minute).to_numpy()
     df["in_fit"] = rth & np.isfinite(yhat) & np.isfinite(rv_raw) & (base > 0)

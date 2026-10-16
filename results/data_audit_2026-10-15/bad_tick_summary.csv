@@ -1,0 +1,16 @@
+series,"likely data error (isolated, siblings flat)",market event (AP hack),market event (COVID),market event (ETF crash open),market event (TARP vote),market event (Treasury flash rally),market event (US downgrade),market event (Volmageddon),market move (siblings move),unclear
+RV,37,0,0,1,0,0,1,0,8,51
+effspread_ewstock,0,0,0,0,0,0,0,0,67,2
+effspread_vwstock,2,0,0,0,0,0,0,0,94,19
+spread_ewstock,0,0,0,0,0,0,0,0,18,0
+spread_vwstock,2,0,0,0,0,0,0,0,71,78
+stocktwits_attention,0,0,0,0,0,0,0,0,0,17
+sumabsret,28,0,0,0,0,0,0,0,7,27
+sumabsret_vwstock,27,1,0,0,0,0,0,0,4,12
+sumret2_ewstock,3,1,2,1,0,1,0,0,106,9
+sumret2_vwstock,0,1,2,1,0,1,0,0,106,7
+sumret4_ewstock,2,1,3,1,0,0,0,0,158,6
+sumret4_vwstock,0,1,0,2,1,0,1,0,172,8
+sumvolume,112,0,3,0,0,0,0,0,41,34
+turnover_ewstock,2,0,0,0,0,0,0,1,107,3
+turnover_vwstock,0,0,0,0,0,0,0,1,87,2

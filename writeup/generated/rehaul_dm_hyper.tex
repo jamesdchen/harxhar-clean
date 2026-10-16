@@ -51,64 +51,7 @@ Random forest & Number of trees, $N$ & [50, 500] & \multicolumn{2}{c}{485} \\
 \end{tabular}
 \begin{tablenotes}[flushleft]
 \footnotesize
-\item \textit{Notes:} Panel A: $\lambda$ is on the scale of the objectives in Section~\ref{sec:rh_methods_models}, one grid value per decade (grid size in parentheses), selected by mean validation MSE over the 4 folds of the pre-sample (Table~\ref{tab:rh_dm_samples}). At each of the 4 re-selection points a grid neighbor may replace it (Section~\ref{sec:rh_methods_tuning}); this happened 4 times in 24 re-selections (ridge 1 and 0, lasso 1 and 0, elastic net 2 and 0, for the HAR benchmark and the full predictor set). Panel B: the best trial of an Optuna search on the pooled intraday pre-sample (24{,}000-interval window; random forest: trial 255 of 400), ranked by MSE and then held fixed for both predictor sets; (log): searched on a logarithmic scale. $n_{\min}$ was selected on 24{,}000 intervals and is rescaled to the 2{,}000-day window (rescaled value in parentheses). Implementations: LightGBM \citep{Ke2017} with bagging at every round, XGBoost \citep{Chen2016} with histogram-based split finding and the scikit-learn random forest with bootstrap samples; random seeds are fixed.
-\end{tablenotes}
-\end{threeparttable}
-\end{table}
-
-
-\begin{table}[tbp]
-\centering
-\small
-\setlength{\tabcolsep}{4pt}
-\begin{threeparttable}
-\caption{Hyperparameter search in the rolling-window exercise.}\label{tab:rh_dm_hyper_search}
-\begin{tabular}{@{}l>{\raggedright\arraybackslash}p{0.360\textwidth}lr@{}}
-\toprule
-Model & Hyperparameter & Search space & Selected (count) \\
-\midrule
-\multicolumn{4}{@{}l}{\textit{Panel A: Tree ensembles, closing-interval models (50 Optuna trials per re-selection)}} \\
-LightGBM & Leaves per tree, $J$ & [2, 128] (log) & -- \\
- & Minimum leaf size, $n_{\min}$ & [1, 256] (log) & -- \\
- & Share of predictors per tree & [0.05, 1] & -- \\
- & Share of observations per tree & [0.3, 1] & -- \\
- & $L_2$ penalty on leaf weights, $\lambda_2^{\mathrm{tree}}$ & $[0.001, 10^{4}]$ (log) & -- \\
- & Learning rate, $\eta$ & [0.005, 0.1] (log) & -- \\
-\addlinespace
-XGBoost & Maximum depth & [1, 8] & -- \\
- & Minimum leaf size, $n_{\min}$ & [0.1, 256] (log) & -- \\
- & Share of observations per tree & [0.15, 1] & -- \\
- & Share of predictors per tree & [0.05, 1] & -- \\
- & $L_2$ penalty on leaf weights, $\lambda_2^{\mathrm{tree}}$ & $[10^{-5}, 10^{4}]$ (log) & -- \\
- & Learning rate, $\eta$ & [0.005, 0.1] (log) & -- \\
-\addlinespace
-Random forest & Share of predictors per split & [0.02, 1] & -- \\
- & Minimum leaf size, $n_{\min}$ & [1, 256] (log) & -- \\
- & Maximum depth & $\{3, \allowbreak 5, \allowbreak 10, \allowbreak 20, \allowbreak 40, \allowbreak \text{unrestricted}\}$ & -- \\
-\addlinespace
-Random search & The same hyperparameters & 32 candidates & -- \\
-\addlinespace
-\multicolumn{4}{@{}l}{\textit{Panel B: MinGRU network (ridge-initialized, trained and selected on QLIKE)}} \\
-\multicolumn{4}{@{}l}{Closing-interval model (216 configurations)} \\
- & Look-back length, $\ell$ & $\{5, \allowbreak 20\}$ & 20 (8/10) \\
- & Hidden width, $H$ & $\{16, \allowbreak 64\}$ & 64 (7/10) \\
- & Learning rate, $\eta_0$ & $\{0.003, \allowbreak 0.01, \allowbreak 0.03\}$ & 0.03 (9/10) \\
- & Encoder weight decay, $\nu_{\mathrm{enc}}$ & $\{0, \allowbreak 3, \allowbreak 15\}$ & 0 (4/10) \\
- & Shortcut weight decay, $\nu_{\mathrm{lin}}$ & $\{0.02, \allowbreak 0.2, \allowbreak 2\}$ & 2 (5/10) \\
- & Shortcut learning rate, $\eta_{\mathrm{lin}}$ & $\{0.0003, \allowbreak 0.001\}$ & 0.0003 (5/10) \\
-\addlinespace
-\multicolumn{4}{@{}l}{Pooled intraday model (144 configurations)} \\
- & Look-back length, $\ell$ & $\{20, \allowbreak 48\}$ & 20 (7/10) \\
- & Hidden width, $H$ & $\{64, \allowbreak 256\}$ & 256 (6/10) \\
- & Learning rate, $\eta_0$ & $\{0.001, \allowbreak 0.003\}$ & 0.003 (10/10) \\
- & Encoder weight decay, $\nu_{\mathrm{enc}}$ & $\{0, \allowbreak 3, \allowbreak 15\}$ & 3 (5/10) \\
- & Shortcut weight decay, $\nu_{\mathrm{lin}}$ & $\{0.03, \allowbreak 0.3, \allowbreak 3\}$ & 3 (6/10) \\
- & Shortcut learning rate, $\eta_{\mathrm{lin}}$ & $\{0, \allowbreak 10^{-5}\}$ & $10^{-5}$ (7/10) \\
-\bottomrule
-\end{tabular}
-\begin{tablenotes}[flushleft]
-\footnotesize
-\item \textit{Notes:} Panel A: at each re-selection, 50 trials of Optuna's TPE sampler start from the fixed hyperparameters of Table~\ref{tab:rh_dm_hyper} and are ranked by validation MSE (in one specification, QLIKE); hyperparameters not listed stay fixed, and $B$ is set by early stopping with patience $\lceil 1/\eta \rceil$ and capped at $\lceil 4 B^{\mathrm{fix}} \eta^{\mathrm{fix}} / \eta \rceil$; (log): log-uniform. Random search: the fixed configuration and 31 candidates drawn once from product grids of 700 (LightGBM), 2{,}800 (XGBoost) and 112 (random forest) configurations. Panel B: the network of Section~\ref{sec:rh_methods_models}; fixed: 1 MinGRU layer, batch size 128, at most $E_{\max} = 200$ epochs (pooled intraday model: 100) with patience 20 (10), Muon momentum 0.95, gradient-norm clip 1.0, cosine learning-rate schedule. Selected: the modal choice over the 5 blocks and 2 predictor sets, with its count.
+\item \textit{Notes:} Panel A: $\lambda$ is on the scale of the objectives in Section~\ref{sec:rh_methods_models}, one grid value per decade (grid size in parentheses), selected by mean validation MSE over the 4 folds of the pre-sample (Table~\ref{tab:rh_dm_samples}). At each of the 4 re-selection points a grid neighbor may replace it (Section~\ref{sec:rh_methods_tuning}); this happened 4 times in 24 re-selections (ridge 1 and 0, lasso 1 and 0, elastic net 2 and 0, for the HAR benchmark and the full predictor set). Panel B: the best trial of an Optuna search on the pooled intraday pre-sample (\rhdmPooledWindow-interval window; random forest: trial \rhdmRfTrial{} of \cmTreeProvRfTrials), ranked by MSE and then held fixed for both predictor sets; (log): searched on a logarithmic scale. $n_{\min}$ was selected on \rhdmPooledWindow{} intervals and is rescaled to the \cmPtFitWin-day window (rescaled value in parentheses). Implementations: LightGBM \citep{Ke2017} with bagging at every round, XGBoost \citep{Chen2016} with histogram-based split finding and the scikit-learn random forest with bootstrap samples; random seeds are fixed.
 \end{tablenotes}
 \end{threeparttable}
 \end{table}

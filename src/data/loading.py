@@ -180,11 +180,314 @@ def add_derived_features(df: pd.DataFrame) -> list[str]:
     return added
 
 
+# ── Domain validity of raw prints (2026-10-15, user) ──────────────────
+# "it shouldn't count as signed though, it's clearly a data problem."  A
+# quantity that cannot be negative (or zero) by construction is checked at
+# load, and a print that breaks the rule is bad data, not a value: it is set
+# to NaN here, before anything is derived from it, so the executor's
+# impute-and-indicate path (``<col>__obs`` / ``<col>_avail`` + the neutral
+# median fill) treats it as the unobserved bar it is -- the stack's own
+# treatment of missing data, no new machinery.
+#
+# What triggered it: spread_vwstock (the value-weighted quoted spread) printed
+# -0.000318 on 2018-11-12 11:00 ET, its only negative print in 211,639.  The
+# transform chain then decided a series' sign from its data, so that one print
+# gave the whole series the signed treatment (same-slot s.d. divisor +
+# identity) instead of the unsigned one (same-slot mean divisor + log).  The
+# audit of every series (results/data_fix_2026-10-15/SUMMARY.md) found the
+# same class twice more: sumvolume is 0 on 21,852 bars (1998-01 .. 2003-06,
+# almost all 01:30-09:30 ET) that carry 1-30 one-minute returns -- volume not recorded,
+# coded 0 -- which the log rule turned into log(1e-12) = -27.6; and both
+# effective spreads are exactly 0 on the same 171 bars (43 inside the panel
+# grid; mostly pre-open, 1995-2012) whose quoted spread is 0.4-0.8 % wide and whose
+# flow is mostly unclassifiable as buys or sells -- trades stamped at the
+# midpoint for want of a prevailing quote, i.e. not measured.
+#
+# STRICTLY_POSITIVE_SERIES: a print <= 0 is invalid.  NON_NEGATIVE_SERIES: a
+# print < 0 is invalid, 0 is a real value (no price change in the bar; no
+# buyer- or seller-initiated trade; a zero message count).  The target ``RV``
+# (sumret2) is never nulled here: its print record is the grid's existence
+# criterion (``drop_dead_session``); it has no negative print (audited).
+# SIGNED_SERIES: negative by construction.  The three sets together are the
+# name-based sign registry src/features/transforms/target.py reads.
+STRICTLY_POSITIVE_SERIES: frozenset[str] = frozenset(
+    {
+        # quoted spread: ask > bid in a normal market; a cross-sectional
+        # average <= 0 needs crossed quotes in the weight
+        "spread_ewstock",
+        "spread_vwstock",
+        # effective spread 2|p - m| / m: 0 across a whole cross-section only
+        # when no prevailing quote was available (see above)
+        "effspread_ewstock",
+        "effspread_vwstock",
+        # total turnover: a stock-panel bar exists only with trades
+        "turnover_ewstock",
+        "turnover_vwstock",
+        # ES contract volume and the bar's one-minute return count: every
+        # panel bar carries >= 1 one-minute return, so the contract traded
+        "sumvolume",
+        "numobs",
+        # implied-vol indices and everything built from them
+        "vix",
+        "vvix",
+        "vix3m",
+        "impl30_perbar_rv",
+        "vvix_over_vix",
+        "ivslice_over_vix",
+        "vix_volofvol_5d",
+        "vix_volofvol_22d",
+        "mfiv0_annvol",
+        "mfiv0_perbar_rv",
+        "mfiv0_vvix",
+        "ivslice_annvol",
+        "ivslice_perbar_rv",
+        "ivslice_vvix",
+    }
+)
+NON_NEGATIVE_SERIES: frozenset[str] = frozenset(
+    {
+        "sumabsret",
+        "sumret4",
+        "sumpret2",
+        "sumbipow",
+        *(
+            f"{stat}_{w}"
+            for w in ("ewstock", "vwstock")
+            for stat in ("sumret2", "sumret4", "sumabsret", "sumbipow", "sumpret2")
+        ),
+        # one side of the flow can be empty in a thin bar (1,779 / 2,135 zeros)
+        "buyturnover_ewstock",
+        "sellturnover_ewstock",
+        "buyturnover_vwstock",
+        "sellturnover_vwstock",
+        # message counts (no zero in the file: a bar without messages is NaN)
+        "stocktwits_attention",
+        "stocktwits_sentcount",
+        # derived in this module, non-negative by construction
+        "fomc_release",
+        "fomc_day",
+        "fomc_until_inv",
+        "fomc_since_inv",
+    }
+)
+SIGNED_SERIES: frozenset[str] = frozenset(
+    {
+        "sumret",
+        "sumret3",
+        "sumautocov",
+        "sumret3_ewstock",
+        "sumret3_vwstock",
+        "stocktwits_sentiment",  # net score in [-1, 1]
+        "voldemand_spx_open_and_close",
+        "voldemand_spx_open_only",
+        "voldemand_all_open_and_close",
+        "voldemand_all_open_only",
+        "ofi_ewstock",  # (buy - sell) / (buy + sell) in [-1, 1]
+        "ofi_vwstock",
+        # implied-vol representations (outside ALL_FEATURES): slopes, changes,
+        # log implied-over-realized
+        "vix_slope_3m",
+        "vix_chg_1bar",
+        "vix_chg_1d",
+        "vix_chg_5d",
+        "vix_vrp_1d",
+        "vix_vrp_5d",
+        "vix_vrp_22d",
+    }
+)
+# Off reproduces the pre-2026-10-15 panel bit for bit (the impact study's control).
+NULL_INVALID_PRINTS: bool = True
+
+
+def null_invalid_prints(df: pd.DataFrame, verbose: bool = True) -> dict[str, int]:
+    """Set prints that break their series' domain to NaN, in place; return {column: count}.
+
+    ``STRICTLY_POSITIVE_SERIES``: ``<= 0`` is invalid; ``NON_NEGATIVE_SERIES``: ``< 0`` is.
+    ``RV`` is exempt (see the block comment above).  One log line with the counts.
+    """
+    counts: dict[str, int] = {}
+    for col in df.columns:
+        if col == "RV":
+            continue
+        if col in STRICTLY_POSITIVE_SERIES:
+            bad = (df[col] <= 0).to_numpy()
+        elif col in NON_NEGATIVE_SERIES:
+            bad = (df[col] < 0).to_numpy()
+        else:
+            continue
+        n = int(bad.sum())
+        if n:
+            df.loc[bad, col] = np.nan
+            counts[col] = n
+    if verbose:
+        body = ", ".join(f"{c} {n}" for c, n in counts.items()) or "none"
+        print(
+            f"load_raw_data: nulled {sum(counts.values())} invalid print(s) (domain rule): {body}"
+        )
+    return counts
+
+
+# ── Frozen feeds (2026-10-15, user: "fix all 8") ──────────────────────
+# results/data_audit_2026-10-15/ (experiments/data_audit_2026_10_15.py, switches fcal / vix).
+#
+# The NYSE 13:00 ET early-close calendar 2001-2025, the same 55 dates as
+# notebooks/atm_straddle_lib.EARLY_CLOSE_DATES (the calendar authority, with its derivation
+# and checks); copied so src does not import notebooks.  Read by the executor's B and
+# per-bar session rules (B_REGULAR_BARS_ONLY, DROP_EARLY_CLOSE_SESSIONS).
+NYSE_EARLY_CLOSE_DATES: tuple[str, ...] = (
+    "2001-07-03",
+    "2001-11-23",
+    "2001-12-24",
+    "2002-07-03",
+    "2002-11-29",
+    "2002-12-24",
+    "2003-07-03",
+    "2003-11-28",
+    "2003-12-24",
+    "2004-11-26",
+    "2005-11-25",
+    "2006-07-03",
+    "2006-11-24",
+    "2007-07-03",
+    "2007-11-23",
+    "2007-12-24",
+    "2008-07-03",
+    "2008-11-28",
+    "2008-12-24",
+    "2009-11-27",
+    "2009-12-24",
+    "2010-11-26",
+    "2011-11-25",
+    "2012-07-03",
+    "2012-11-23",
+    "2012-12-24",
+    "2013-07-03",
+    "2013-11-29",
+    "2013-12-24",
+    "2014-07-03",
+    "2014-11-28",
+    "2014-12-24",
+    "2015-11-27",
+    "2015-12-24",
+    "2016-11-25",
+    "2017-07-03",
+    "2017-11-24",
+    "2018-07-03",
+    "2018-11-23",
+    "2018-12-24",
+    "2019-07-03",
+    "2019-11-29",
+    "2019-12-24",
+    "2020-11-27",
+    "2020-12-24",
+    "2021-11-26",
+    "2022-11-25",
+    "2023-07-03",
+    "2023-11-24",
+    "2024-07-03",
+    "2024-11-29",
+    "2024-12-24",
+    "2025-07-03",
+    "2025-11-28",
+    "2025-12-24",
+)
+
+# data/releases.parquet is a stale pull: every release calendar in it stops between 2023-10
+# and 2024-01, and the FOMC one at the 2023-11-01 statement, so the "dead tail" the executor
+# imputed over 2023-11-01 .. 2024-04-30 (123 of the 866 trade days) was three missing
+# scheduled statements, not a stopped feed.  With the fix they are added here (the file is
+# not edited) and the first statement after the panel is the next event of the last rows'
+# fomc_until_inv, so no FOMC row of the historical panel is unobserved.  A frame that
+# already holds these stamps, or ends after FOMC_NEXT_STATEMENT, is unaffected.
+FOMC_CALENDAR_FIX: bool = True
+FOMC_MISSING_STATEMENTS: tuple[str, ...] = (
+    "2023-12-13 14:30",
+    "2024-01-31 14:30",
+    "2024-03-20 14:30",
+)
+FOMC_NEXT_STATEMENT: str = "2024-05-01 14:30"
+
+# VIX / VIX3M / VVIX stop at 2024-02-12 in data/vix_and_voldemand.parquet, 54 of the 866
+# trade days short of the panel end; their imputed tail put the VIX availability ladders
+# outside their training range on all 54 days.  The Yahoo hourly snapshot
+# (data/free_feed/*_1h_yahoo.parquet) equals the panel's own bar-end prints on 88-100 % of the
+# 2023-12 .. 2024-02 overlap (results/data_audit_2026-10-15/vix_yahoo_overlap.csv).  After a
+# series' last print and up to VIX_SPLICE_END only (the historical panel), the hourly close
+# is written at its bar end and carried 30 minutes to the next bar, in the panel's own print
+# slots.  The live service never reaches it: it needs <data_path>/free_feed/ and a frame whose
+# last print falls before VIX_SPLICE_END.
+SPLICE_VIX_FREE_FEED: bool = True
+VIX_SPLICE_END: str = "2024-04-30 23:30"
+VIX_SPLICE_SLOTS: dict[str, tuple[str, str]] = {
+    "vix": ("04:00", "17:00"),
+    "vix3m": ("10:00", "16:30"),
+    "vvix": ("10:00", "16:00"),
+}
+
+
+def _free_feed_bar_ends(path: str) -> pd.Series:
+    """A Yahoo hourly file's close keyed by the naive-ET bar END (open stamp + 1 h)."""
+    y = pd.read_parquet(path)
+    end = pd.to_datetime(y["t"]).dt.tz_convert("America/New_York").dt.tz_localize(
+        None
+    ) + pd.Timedelta("1h")
+    return pd.Series(
+        y["close"].to_numpy(float), index=pd.DatetimeIndex(end)
+    ).sort_index()
+
+
+def splice_vix_free_feed(
+    df: pd.DataFrame, free_dir: str, verbose: bool = True
+) -> dict[str, int]:
+    """Fill vix / vix3m / vvix after their last print from the free hourly snapshot, in place."""
+    out: dict[str, int] = {}
+    t = pd.DatetimeIndex(df["t"])
+    end = pd.Timestamp(VIX_SPLICE_END)
+    for col, (lo, hi) in VIX_SPLICE_SLOTS.items():
+        f = os.path.join(free_dir, f"{col}_1h_yahoo.parquet")
+        if col not in df.columns or not os.path.isfile(f) or not df[col].notna().any():
+            continue
+        last = t[df[col].notna().to_numpy()].max()
+        if last >= end:
+            continue
+        ys = _free_feed_bar_ends(f)
+        ys = ys[(ys.index > last) & (ys.index <= end)]
+        carry = pd.Series(ys.to_numpy(), index=ys.index + pd.Timedelta("30min"))
+        both = pd.concat([ys, carry[~carry.index.isin(ys.index)]]).sort_index()
+        hhmm = both.index.strftime("%H:%M")
+        both = both[(hhmm >= lo) & (hhmm <= hi)]
+        m = (t > last) & t.isin(both.index)
+        df.loc[m, col] = both.reindex(t[m]).to_numpy()
+        out[col] = int(m.sum())
+    if verbose and out:
+        print(
+            f"load_raw_data: spliced the free hourly feed after the last print: {out}"
+        )
+    return out
+
+
+def _calendar_open_bars_between(t0: pd.Timestamp, t1: pd.Timestamp) -> int:
+    """30-minute bars in (t0, t1] that the weekend cut keeps (the calendar-open grid)."""
+    g = pd.date_range(t0, t1, freq=FREQ)[1:]
+    dow, tod = g.dayofweek, g.time
+    closed = (
+        ((dow == 4) & (tod > pd.Timestamp(f"1900-01-01 {FRIDAY_CLOSE}").time()))
+        | (dow == 5)
+        | ((dow == 6) & (tod < pd.Timestamp(f"1900-01-01 {SUNDAY_OPEN}").time()))
+    )
+    return int((~closed).sum())
+
+
 def add_fomc_features(df: pd.DataFrame) -> list[str]:
     """Scheduled-FOMC dummies + inverse bar-distance; NaN after last live print."""
     if FOMC_RAW_COL not in df.columns or "t" not in df.columns:
         return []
     t = pd.to_datetime(df["t"])
+    if FOMC_CALENDAR_FIX:
+        for s in FOMC_MISSING_STATEMENTS:
+            m = (t == pd.Timestamp(s)).to_numpy()
+            if m.any():
+                df.loc[m, FOMC_RAW_COL] = 1.0
     raw = pd.to_numeric(df[FOMC_RAW_COL], errors="coerce").to_numpy(dtype=np.float64)
     raw = np.nan_to_num(raw, nan=0.0)
     day = t.dt.normalize()
@@ -209,6 +512,25 @@ def add_fomc_features(df: pd.DataFrame) -> list[str]:
         prev = np.searchsorted(event_pos, i, side="right") - 1
         ok2 = prev >= 0
         since[ok2] = 1.0 / (1.0 + (i[ok2] - event_pos[prev[ok2]]).astype(np.float64))
+    nxt_t = pd.Timestamp(FOMC_NEXT_STATEMENT)
+    if (
+        FOMC_CALENDAR_FIX
+        and event_pos.size
+        and t.iloc[int(event_pos[-1])] < nxt_t
+        and t.iloc[-1] < nxt_t
+    ):
+        # the next statement lies beyond the frame: its calendar-open grid position is the
+        # distance of the rows after the last statement (no dead tail)
+        last = int(event_pos[-1])
+        pos_next = n - 1 + _calendar_open_bars_between(t.iloc[-1], nxt_t)
+        i = np.arange(n)
+        after = i > last
+        until[after] = 1.0 / (1.0 + (pos_next - i[after]).astype(float))
+        df["fomc_release"] = release
+        df["fomc_day"] = is_day
+        df["fomc_until_inv"] = until
+        df["fomc_since_inv"] = since
+        return list(FOMC_FEATURES)
     df["fomc_release"] = release
     df["fomc_day"] = is_day
     df["fomc_until_inv"] = until
@@ -387,6 +709,26 @@ SUBGROUPS["live_vix_only"] = [
     f for f in SUBGROUPS["live_feasible"] if f not in ("vvix", "vix3m")
 ]
 SUBGROUPS["live_vix_rvol"] = SUBGROUPS["live_vix_only"] + VIX_RVOL_FEATURES
+# 2026-10-06, user request: the return moments and the VIX level alone, compared
+# with baseline (HAR + calendar) and all_features.  8 columns: the 7 ES return
+# moments (no sumvolume) + vix; no VVIX / VIX3M, no FOMC.  Outside ALL_FEATURES
+# like the blocks above.
+SUBGROUPS["moments_vix"] = [*SUBGROUPS["moments"], "vix"]
+# 2026-10-06, user request: moments_vix plus ES volume (sumvolume, the liquidity column that ranks highest
+# in the all_features importance and helps every linear model when added).  9 columns: the 7 ES return
+# moments + sumvolume + vix.  Named so that "moments_vix" is not a substring of it.
+SUBGROUPS["moments_vol_vix"] = [*SUBGROUPS["moments"], "sumvolume", "vix"]
+# 2026-10-06, user request: the lean set -- moments_vol_vix without the moments that duplicate the absolute
+# return (bipower variation, upside squared returns; |corr| >= 0.82 at every lag in the all_features cluster
+# study) and the weak cubic return.  6 columns, in ALL_FEATURES order.
+SUBGROUPS["lean_vol_vix"] = [
+    "sumret",
+    "sumabsret",
+    "sumret4",
+    "sumautocov",
+    "sumvolume",
+    "vix",
+]
 
 
 def get_bucket(name: str) -> list[str]:
@@ -534,6 +876,13 @@ def load_raw_data(
     closed_mask = mask_friday_after_close | mask_saturday | mask_sunday_before_open
     df = df[~closed_mask].reset_index(drop=True)
 
+    # ── 6a. Domain validity (2026-10-15, user) ────────────────────────
+    # Invalid prints -> NaN before anything is derived from them (the OFI legs, the
+    # sign of a series downstream); see ``STRICTLY_POSITIVE_SERIES``.  Counted on the
+    # calendar-open grid, i.e. before the dead-session drop below.
+    if NULL_INVALID_PRINTS:
+        null_invalid_prints(df)
+
     # ── 6b. Derived exog (order-flow imbalance) ───────────────────────
     # Built here, on the *unfilled* buy/sell legs, deliberately: ``apply_overnight_fills`` later
     # writes 1.0 into matching columns in the overnight window, and buy = sell = 1.0 would make the
@@ -562,5 +911,13 @@ def load_raw_data(
 
     # ── 9. Add time_of_day column ─────────────────────────────────────
     df["time_of_day"] = df["t"].dt.time
+
+    # ── 10. Frozen VIX family (2026-10-15, user): the free hourly feed after the last print
+    # (historical panel only; see SPLICE_VIX_FREE_FEED) ───────────────────
+    if SPLICE_VIX_FREE_FEED:
+        base = data_path if os.path.isdir(data_path) else os.path.dirname(data_path)
+        free_dir = os.path.join(base, "free_feed")
+        if os.path.isdir(free_dir):
+            splice_vix_free_feed(df, free_dir)
 
     return df

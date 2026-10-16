@@ -8,7 +8,9 @@ row near the index) and the PRECOMPUTE at 15:15 (the warm arm server and a
 canary pass on the 15:00 panel) -> sleep to the decision stamp -> fetch the
 feeds at once and measure their delays -> build today's panel rows (the input
 mode decides how the 15:30 stamp is filled) -> append state -> forecast (the
-13 spec arms in one shared pass on the extended panel + the causal MZ map) ->
+13 spec arms in one shared pass on the extended panel; the 16:00 row's plain
+back-transform yhat^2 * B -- 2026-10-06: recalibration removed from the live
+card, user decision; the causal MZ map is parked in forecast.recalibrate) ->
 break-even price, sizing, card -> Calendar event -> journal.  A ``FeedError``
 or a forecast failure posts a "NO SIGNAL" event and exits non-zero, so a
 silent miss is impossible; the prep and the precompute can only fail quietly
@@ -16,8 +18,8 @@ silent miss is impossible; the prep and the precompute can only fail quietly
 
 Why nothing of the forecast itself is computed before 15:30: the 15:30 row
 moves full-sample statistics of the spec's transform (the diurnal std floor
-of the signed moments, the median fills), so every arm's history -- and the
-MZ map fitted on it -- changes with it (``fastpath_check.py`` measures it).
+of the signed moments, the median fills), so every arm's history changes with
+it (``fastpath_check.py`` measures it).
 What can be done early is everything around the arithmetic: the interpreter,
 the imports, the worker processes, the numba kernels, the code copy, the
 vendor files, and a canary that exercises the whole path.

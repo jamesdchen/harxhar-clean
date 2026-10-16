@@ -1,0 +1,5 @@
+t1 all_features rf 0 2000 3
+t1 lean_vol_vix rf 0 2000 5
+t1 baseline rf 0 2000 5
+t10 lean_vol_vix rf 0 2000 20
+t10 baseline rf 0 2000 20

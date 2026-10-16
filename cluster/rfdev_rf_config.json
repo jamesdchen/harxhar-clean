@@ -1,0 +1,181 @@
+{
+ "family": "rf",
+ "name": "rf_opt_00",
+ "sha": "353654b57034",
+ "params": {
+  "n_estimators": 404,
+  "max_depth": 19,
+  "min_samples_leaf": 24,
+  "max_features": 0.8963212154380834,
+  "max_samples": 0.7801590862285572,
+  "bootstrap": true
+ },
+ "dev_screen_mse": 0.10864383429659116,
+ "trial": 56,
+ "selection_rule": "top dev-span entry of the frozen menu (the rule behind lgbm_opt_00)",
+ "trials": {
+  "complete_considered": 87,
+  "budget_rule": "87 = XGBoost's realized trial count in the only surviving journal of the procedure (Hoffman2 replica: 87 complete of the nominal 400 when the 6 h wall stopped it; the CARC journals are lost). The nominal-400 run (LightGBM's realized count, 398 on Hoffman2) continues as CARC job 12777812 (8 x 25 CPUs, wall 20 h); each RF trial costs ~10-20 core-hours in the region TPE now samples. Re-freeze it with --limit 400 --out results/rf_devmenu_2026-10-06/budget400 when it ends",
+  "nominal_budget": 400,
+  "journal_states": {
+   "COMPLETE": 90,
+   "RUNNING": 8
+  },
+  "complete_at_freeze": 90
+ },
+ "all_complete_top_entry": {
+  "name": "rf_opt_00",
+  "family": "rf",
+  "params": {
+   "n_estimators": 360,
+   "max_depth": 11,
+   "min_samples_leaf": 21,
+   "max_features": 0.63794814159275,
+   "max_samples": 0.39864344953592507,
+   "bootstrap": true
+  },
+  "sha": "c06a54754bd7",
+  "dev_screen_mse": 0.1086425606921756,
+  "trial": 88
+ },
+ "xgb_rule_entry": {
+  "name": "rf_opt_06",
+  "family": "rf",
+  "params": {
+   "n_estimators": 367,
+   "max_depth": 11,
+   "min_samples_leaf": 21,
+   "max_features": 0.631202456165692,
+   "max_samples": 0.4822512397568663,
+   "bootstrap": true
+  },
+  "sha": "3fced7e2164d",
+  "dev_screen_mse": 0.10872124199416598,
+  "trial": 82
+ },
+ "xgb_h2_budget_top_entry": {
+  "name": "rf_opt_00",
+  "family": "rf",
+  "params": {
+   "n_estimators": 404,
+   "max_depth": 19,
+   "min_samples_leaf": 24,
+   "max_features": 0.8963212154380834,
+   "max_samples": 0.7801590862285572,
+   "bootstrap": true
+  },
+  "sha": "353654b57034",
+  "dev_screen_mse": 0.10864383429659116,
+  "trial": 56
+ },
+ "xgb_h2_budget": 87,
+ "compare_dev_screen_mse": {
+  "lgbm_opt_00": 0.10744949046943114,
+  "xgb_opt_00": 0.10789407028049709,
+  "xgb_opt_06": 0.10807554130151135
+ },
+ "per_bar_note": "params are tuned on the 24,000-bar pooled window; specs/causal_tune_trees.py scales LightGBM's min_child_samples and XGBoost's min_child_weight by TRAIN_WIN / 24000 for its per-bar window; the forest's analogue is min_samples_leaf (fractions and depth are scale-free or absolute). NOT applied here.",
+ "min_samples_leaf_scaled_to_2000_rows": 2,
+ "provenance": {
+  "script": "experiments/tree_menu_dev_rf.py",
+  "procedure": "experiments/tree_menu_dev.py (objective, window, refit, dev span, seed, sampler, journal, Sobol, freeze rule imported)",
+  "study": "tree_menu_dev_rf",
+  "journal_sha256": "1b82329dcfb33860698095ec105598f6fe2fe0eba4b7966927040e31f18171ef",
+  "box": [
+   [
+    "n_estimators",
+    50,
+    500,
+    false,
+    true
+   ],
+   [
+    "max_depth",
+    2,
+    32,
+    true,
+    true
+   ],
+   [
+    "min_samples_leaf",
+    1,
+    1000,
+    true,
+    true
+   ],
+   [
+    "max_features",
+    0.02,
+    1.0,
+    true,
+    false
+   ],
+   [
+    "max_samples",
+    0.05,
+    1.0,
+    true,
+    false
+   ]
+  ],
+  "fixed": {
+   "bootstrap": true
+  },
+  "window": 24000,
+  "screen_refit": 250,
+  "dev_end_date": "2003-01-01",
+  "dev_end_row": 36285,
+  "dev_matrices_sha256": {
+   "X": "515015690af53d1703c113b23af44a24b21f785cdea7f613d60d4318ac37a712",
+   "y": "c827c77f86ec32f243ad0fb2f5c68f4430541789d85f2a54e784535536896ade",
+   "names": "f73f3c9b85ec4908b4e882567cdc65c6a51c67d40a384ee8e18744d5da767725"
+  },
+  "dev_source_cache": "C:\\Users\\james\\CC Allowed\\harxhar-clean\\results\\prep_cache_all_features_b2.npz",
+  "random_state": 42,
+  "cpu_models": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "fit_core_hours": 581.0312044173662,
+  "allocated_cpu_hours": 788.6936111111112,
+  "versions_freeze": {
+   "python": "3.12.0",
+   "numpy": "2.2.6",
+   "sklearn": "1.9.0",
+   "lightgbm": "4.6.0",
+   "xgboost": "3.1.0",
+   "optuna": "4.8.0",
+   "scipy": "1.15.3"
+  },
+  "gate": {
+   "tag": "canary2",
+   "host": "a03-11.hpc.usc.edu",
+   "cpu": "AMD EPYC 7513 32-Core Processor",
+   "procs": 25,
+   "versions": {
+    "python": "3.11.15",
+    "numpy": "2.3.5",
+    "sklearn": "1.9.0",
+    "lightgbm": "4.6.0",
+    "xgboost": "3.2.0",
+    "optuna": "4.9.0",
+    "scipy": "1.17.1"
+   },
+   "dev_end_row": 36285,
+   "entries": {
+    "lgbm_opt_00": {
+     "family": "lgbm",
+     "sha": "abab811bd4b6",
+     "stored": 0.10744949046943114,
+     "rerun": 0.10744949046943114,
+     "abs_diff": 0.0,
+     "rel_diff": 0.0,
+     "fit_sec_sum": 1187.2397386366501,
+     "pass": true,
+     "required": true,
+     "wall_sec": 51.8865921497345
+    }
+   },
+   "pass": true
+  }
+ }
+}

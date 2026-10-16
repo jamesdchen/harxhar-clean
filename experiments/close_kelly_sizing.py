@@ -760,7 +760,10 @@ def notebook_gates(rules: pd.DataFrame, res: list[dict]) -> list[str]:
     n_chk = 0
     for tag in TAGS:
         mine = prim[(prim["tag"] == tag)]
-        for vrule, myrule in (("sign(s)", U_SS), ("(a) proportional s/rms", U_C)):
+        # 2026-10-06 (user decision): section 10 no longer writes the proportional rule (the robust
+        # clip replaced it), so only sign(s) is gated against vrp_sized_rules.csv; was:
+        # for vrule, myrule in (("sign(s)", U_SS), ("(a) proportional s/rms", U_C)):
+        for vrule, myrule in (("sign(s)", U_SS),):
             ref = vs[(vs["tag"] == tag) & (vs["rule"] == vrule)].iloc[0]
             for fill, col in (("mid", "mid"), ("crossed", "crossed")):
                 m = mine[(mine["rule"] == myrule) & (mine["fill"] == fill)].iloc[0]
@@ -786,9 +789,9 @@ def notebook_gates(rules: pd.DataFrame, res: list[dict]) -> list[str]:
                         )
                 n_chk += 1
     msgs.append(
-        f"gate: on the {int(vs['days'].iloc[0])}-day block, sign(s) and the proportional rule reproduce §10's "
-        f"vrp_sized_rules.csv ({n_chk} forecast x rule x fill rows: Sharpe ratios, and the proportional rule's "
-        f"difference and paired interval, to {GATE_TOL:g}) -- same days, same fills, same bootstrap draws"
+        f"gate: on the {int(vs['days'].iloc[0])}-day block, sign(s) reproduces §10's "
+        f"vrp_sized_rules.csv ({n_chk} forecast x fill rows: Sharpe ratios, to {GATE_TOL:g}) -- same days, "
+        "same fills (2026-10-06: the proportional rule is parked in §10)"
     )
     return msgs
 

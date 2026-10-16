@@ -15,7 +15,8 @@ for the card; later rows and placeholders dropped) and runs
 and requires, with nothing tolerated:
 
 * the 13 results CSVs equal frame for frame (``DataFrame.equals``: bit-identical);
-* rv_hat, yhat, baseline and the MZ pieces equal (relative deviation 0);
+* rv_hat, yhat, baseline and the loader's pieces m, s2 equal (relative deviation 0;
+  since 2026-10-06 the plain back-transform, m = yhat and s2 = 0);
 * the card equal: P*, the strikes, the counts and the decision of
   ``signal.build_instruction`` (every field of the record), at the session's
   15:29 ^GSPC close when Yahoo still serves it (else a fixed nominal spot --
