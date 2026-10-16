@@ -144,34 +144,39 @@
   The risk-free return over the half-hour holding period is negligible and is not subtracted.
 % Code: master_table_close.py:1186-1187; sqrt(252) = ANN (atm_straddle_lib.py:109). The trade runs about 200 days
 % a year, so a calendar-time Sharpe would be about 0.89 times this.
-\item \textbf{Mean return and its HAC $t$-statistic:} $t = \bar r \big/ \sqrt{\hat\Omega_r/T_{\mathrm{opt}}}$, with
-  $\hat\Omega_r$ the Newey--West long-run variance of Section~\ref{sec:rh_methods_tests} applied to $r_t$ and lag
-  truncation $q_{\mathrm{NW}} = \lfloor 1.5\,T_{\mathrm{opt}}^{1/3}\rfloor = \fqsHACLag$.
+% 2026-10-16 (formula pass): parked -- the t-statistic repeated Statistical tests, with |O| written as T_opt and
+% the lag formula written out again. Was:
+% t = bar r / sqrt(Omega_r / T_opt), q_NW = floor(1.5 T_opt^{1/3}) = \fqsHACLag.
+\item \textbf{Mean return and its HAC $t$-statistic:} the statistic of Section~\ref{sec:rh_methods_tests} on
+  $r_t$, with $|\mathcal O| = T_{\mathrm{opt}}$ and $q_{\mathrm{NW}} = \fqsHACLag$.
 % Code: newey_west_t (atm_straddle_lib.py:1234-1261) divides gamma_j by n, not n - j as dm_test does; no HLN factor.
 \item \textbf{Hit rate} $\frac{1}{T_{\mathrm{opt}}}\sum_{t \in \mathcal T_{\mathrm{opt}}} \mathbf{1}\{r_t > 0\}$;
   number of long positions $\#\{t : q_t > 0\}$.
 \item \textbf{Gain over the short-straddle benchmark} (or over any benchmark strategy $B$), with the daily return
   differential $\Delta_t = r^{A}_t - r^{B}_t$:
   \[
-  \Delta\SR = \SR\bigl(r^{A}\bigr) - \SR\bigl(r^{B}\bigr),
-  \qquad
-  t_{\mathrm{HAC}} = \frac{\bar\Delta}{\sqrt{\hat\Omega_\Delta/T_{\mathrm{opt}}}} ,
+  \Delta\SR = \SR\bigl(r^{A}\bigr) - \SR\bigl(r^{B}\bigr).
   \]
-  the HAC $t$-statistic on the daily return differential (Newey--West, $q_{\mathrm{NW}} = \fqsHACLag$). It tests the mean return
-  differential, not the equality of the two Sharpe ratios \citep{LedoitWolf2008}.
+  % 2026-10-16 (formula pass): parked -- t_HAC = bar Delta / sqrt(Omega_Delta / T_opt) repeated the HAC
+  % t-statistic of Statistical tests. The lag q_NW = \fqsHACLag is that section's lag on T_opt.
+  The HAC $t$-statistic of Section~\ref{sec:rh_methods_tests} on $\Delta_t$ tests the mean return differential, not
+  the equality of the two Sharpe ratios \citep{LedoitWolf2008}.
 % Code: master_table_close.py:1306-1312. The HAC t is on mid returns only, and it tests the mean difference, not
 % the Sharpe difference.
 % 2026-10-15 (consolidation): parked -- ES_t -> ES_{\theta,t}, so that the daily score, its mean \overline{ES}_\theta
 % and the appendix's Murphy diagram share one notation. Old display:
 % \mathrm{ES}_t = |\varrho_t - 1| \mathbf{1}\{\min(\hat\varrho_t, \varrho_t) \le 1 < \max(\hat\varrho_t, \varrho_t)\}.
-\item \textbf{Elementary score} of the Murphy diagram \citep{Ehm2016} at threshold $\theta$ on the scaled values,
-  evaluated at the implied variance $\mathrm{IV}_t^2$, that is, at $\theta = 1$:
+% 2026-10-16 (formula pass): parked -- the score was the general elementary score in rho_t, hat rho_t and theta,
+% and the score actually used was that expression at theta = 1 after substituting the two ratios. Was:
+% ES_{theta,t} = |rho_t - theta| * 1{min(hat rho, rho) <= theta < max(hat rho, rho)},
+% hat rho_t = hat sigma^2_t / IV_t^2, rho_t = RV_t / IV_t^2, mean overline{ES}_theta.
+\item \textbf{Elementary score} of the Murphy diagram \citep{Ehm2016} at the implied variance, the threshold used
+  below:
   \[
-  \mathrm{ES}_{\theta,t} = \bigl|\varrho_t - \theta\bigr|\;\mathbf{1}\bigl\{\min(\hat\varrho_t, \varrho_t) \le \theta < \max(\hat\varrho_t, \varrho_t)\bigr\},
-  \qquad
-  \hat\varrho_t = \frac{\hat\sigma^2_t}{\mathrm{IV}_t^2},\quad \varrho_t = \frac{\RV_t}{\mathrm{IV}_t^2},
+  \mathrm{ES}_{1,t} = \Bigl|\frac{\RV_t}{\mathrm{IV}_t^2} - 1\Bigr|\;
+    \mathbf{1}\bigl\{\min(\hat\sigma^2_t, \RV_t) \le \mathrm{IV}_t^2 < \max(\hat\sigma^2_t, \RV_t)\bigr\},
   \]
-  with mean $\overline{\mathrm{ES}}_\theta$ over $\mathcal T_{\mathrm{opt}}$.
+  with mean $\overline{\mathrm{ES}}_1$ over $\mathcal T_{\mathrm{opt}}$.
 % Code: experiments/close_murphy_splits_headline.py:227-230, called as elementary(plain / iv_var, target / iv_var, 1.0).
 % 2026-10-15 (notation pass): "target" in that call is the winsorized RV; under user decision #10 the realization
 % varrho_t uses the actual RV_t. The scaled values are varrho (was kappa): kappa_{t,i} is the asinh scale

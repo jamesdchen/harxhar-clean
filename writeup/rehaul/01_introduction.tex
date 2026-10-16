@@ -29,9 +29,9 @@
   % 2026-10-15 (consolidation): parked -- the upper limit 30 contradicts Data and Methods (N_{t,i} <= 30 varies).
   % \item $\RV_t = \sum_{k=1}^{30} r_{t,c,k}^2$: the sum of squared one-minute log returns $r_{t,c,k}$ of E-mini
   %   futures over the closing interval $i = c$ \citep{AndersenBollerslevDieboldLabys2003}.
-  \item $\RV_t = \sum_{k=1}^{N_{t,c}} r_{t,c,k}^2$: the sum of the squared one-minute log returns $r_{t,c,k}$ of
-    E-mini futures over the closing interval $i = c$, with $N_{t,c} \le 30$ the number of one-minute returns
-    \citep{AndersenBollerslevDieboldLabys2003}.
+  % 2026-10-16 (formula pass): parked -- the sum repeats Data. Was:
+  % RV_t = sum_{k=1}^{N_{t,c}} r_{t,c,k}^2, N_{t,c} <= 30 (Andersen, Bollerslev, Diebold and Labys 2003).
+  \item $\RV_t$: the realized variance of the closing interval (Section~\ref{sec:rh_data}).
   % 2026-10-15 (notation pass): parked -- a straddle's payoff is |S_T - K|, set by the closing half hour's move,
   % not by its realized variance.
   % \item A 0DTE SPXW straddle opened at 15:30 settles on exactly that variance.
@@ -42,20 +42,15 @@
   \item A zero-days-to-expiration (0DTE) SPX Weeklys (SPXW) at-the-money straddle position, approximately
     delta-neutral at entry, entered at 15:30 and held unhedged to expiration, settles at the 16:00 close: its payoff
     is set by the index move over exactly this half hour (Section~\ref{sec:rh_econ_strategy}).
-  \item Forecast and position:
-    \[
-      \hat\sigma^2_t = \hat y_t^{\,2}\, s^2_{t,c}, \qquad
-      q_t = \sign\bigl(\hat\sigma^2_t - \mathrm{IV}_t^2\bigr) .
-    \]
-    % 2026-10-15 (notation pass): parked -- s_t clashes with the periodicity factor s^2_{t,c}; the rule is written
-    % on its argument (07_economics.tex defines the signal its sizing rules need).
-    % \hat\sigma^2_t = \hat y_t^{2} B_t, \qquad q_t = \sign(s_t), \qquad s_t = \hat\sigma^2_t - (IV^{30}_t)^2 .
-  \item $y_t = \sqrt{\RV_t / s^2_{t,c}}$: diurnally adjusted realized volatility. $s^2_{t,c}$: the diurnal
-    adjustment, the mean of $\RV$ in the closing interval over the previous 20 trading days
-    \citep{AndersenBollerslev1997}. $\mathrm{IV}_t^2$: the option-implied variance of the closing half hour, from
-    the 15:30 at-the-money SPXW implied volatilities.
-  \item $q_t = +1$ buys the straddle, $q_t = -1$ sells it ($q_t = -1$ on ties); the strategy's daily return is
-    $q_t R_t$, with $R_t$ the straddle's simple return from 15:30 to settlement.
+  % 2026-10-16 (formula pass): parked -- the display defined hat sigma^2_t, then q_t from hat sigma^2_t, then
+  % the next bullet defined y_t and s^2_{t,c}, so the position took two further substitutions. The forecast and
+  % the adjustment are defined once in Methods; the sign rule is defined once in Economic value. Was:
+  % hat sigma^2_t = hat y_t^2 s^2_{t,c}, q_t = sign(hat sigma^2_t - IV_t^2);
+  % y_t = sqrt(RV_t / s^2_{t,c}); s^2_{t,c} the mean of RV over the previous 20 trading days.
+  \item The variance forecast, the diurnal adjustment and the target are defined in
+    Section~\ref{sec:rh_methods_setup}. The position is the sign strategy of
+    Section~\ref{sec:rh_econ_strategy}: $q_t = +1$ buys the straddle, $q_t = -1$ sells it ($q_t = -1$ on ties),
+    and the daily return is $q_t R_t$, with $R_t$ the straddle's simple return from 15:30 to settlement.
   \item Sample: $T_{\mathrm{oos}} = \cmNdays$ out-of-sample trading days with an SPXW expiration, \rheSampleStart{}
     to \rheSampleEnd, early closes excluded.
   \end{itemize}
@@ -86,13 +81,13 @@
   \item Model class $m$: linear (OLS, ridge, lasso, elastic net), tree ensemble (random forest, LightGBM, XGBoost)
     or neural network (MinGRU), crossed with $(\mathcal X, \mathcal I)$.
   \end{itemize}
-\item \textbf{Evaluation loss} \citep{Patton2011}:
-  \[
-    \overline{\QLIKE} = \frac{1}{T_{\mathrm{oos}}} \sum_{t \in \mathcal T_{\mathrm{oos}}} L_t, \qquad
-    L_t = \QLIKE(\RV_t, \hat\sigma^2_t), \qquad
-    \QLIKE(\RV, \hat\sigma^2) = \frac{\RV}{\hat\sigma^2} - \log\frac{\RV}{\hat\sigma^2} - 1 ,
-  \]
-  with $\mathcal T_{\mathrm{oos}}$ the set of out-of-sample trading days.
+% 2026-10-16 (formula pass): parked -- the display defined the average, then L_t, then the QLIKE function, and
+% the function is defined once in Related work, the scored loss once in Methods, and the average once in
+% Forecast evaluation. Was:
+% overline{QLIKE} = (1/T_oos) sum L_t, L_t = QLIKE(RV_t, hat sigma^2_t),
+% QLIKE(RV, hat sigma^2) = RV/hat sigma^2 - log(RV/hat sigma^2) - 1.
+\item \textbf{Evaluation loss} \citep{Patton2011}: average QLIKE over the evaluation span
+  $\mathcal T_{\mathrm{oos}}$ (Sections~\ref{sec:rh_methods_setup} and~\ref{sec:rh_results_eval}).
   \begin{itemize}
   \item Economic evaluation: the annualized Sharpe ratio $\SR$ of $q_t R_t$ at mid-quotes.
   \end{itemize}

@@ -84,6 +84,8 @@
       \phi_{t,j} = \sum_{l=1}^{p} \phi_{t,jl}, \qquad
       \phi_{t,A} = \sum_{j \in A} \phi_{t,j}.
     \]
+    For $j \ne l$, $\phi_{t,jl} = \tfrac12\bigl(\phi_{t,l} \mid j \text{ present} - \phi_{t,l} \mid j \text{ absent}\bigr)$,
+    and $\phi_{t,jj} = \phi_{t,j} - \sum_{l \ne j} \phi_{t,jl}$.
   \item Path-dependent TreeSHAP \citep{lundberg2020local}: the training observations per node (node covers) stand in
     for the background sample.
   \item Number triples below: LightGBM, XGBoost, random forest.
@@ -215,8 +217,9 @@
   % \Phi_{t,AB} = \sum_{j \in A} \sum_{l \in B} (\phi_{t,jl} + \phi_{t,lj}), \bar I_{AB} = |O|^{-1} \sum_t |\Phi_{t,AB}|.
   for two predictors, $|\phi_{t,jl} + \phi_{t,lj}|$, $j \ne l$.
   \begin{itemize}
-  \item $\phi_{t,jl} = \tfrac12\bigl(\phi_{t,l} \mid j \text{ present} - \phi_{t,l} \mid j \text{ absent}\bigr)$,
-    $j \ne l$; $\phi_{t,jj} = \phi_{t,j} - \sum_{l \ne j} \phi_{t,jl}$.
+  % 2026-10-16 (formula pass): parked -- phi_{t,jl} and phi_{t,jj} are defined with the SHAP decomposition above.
+  % Was: phi_{t,jl} = 1/2 (phi_{t,l} | j present - phi_{t,l} | j absent), j != l;
+  % phi_{t,jj} = phi_{t,j} - sum_{l != j} phi_{t,jl}.
   \item Top pair: LightGBM \rhfiLgbmInterTopA{} $\times$ \rhfiLgbmInterTopB{} (\rhfiLgbmInterTopVal);
     XGBoost \rhfiXgbInterTopA{} $\times$ \rhfiXgbInterTopB{} (\rhfiXgbInterTopVal); random forest
     \rhfiRfInterTopA{} $\times$ \rhfiRfInterTopB{} (\rhfiRfInterTopVal); $\times 10^{-3}$, in units of $y_t$.

@@ -64,12 +64,11 @@
 \item \textbf{Notation:} $t = 1, \dots, T$ indexes trading days and $i = 1, \dots, M$ the 30-minute intraday
   intervals of day $t$, overnight included; $i = c$ is the closing interval, the closing half hour (15:30--16:00 ET).
   \begin{itemize}
-  \item $\RV_{t,i} = \sum_{k=1}^{N_{t,i}} r_{t,i,k}^2$: realized variance of interval $(t,i)$, with $r_{t,i,k}$
-    its $k$th one-minute log return, $N_{t,i} \le 30$ \citep{AndersenBollerslevDieboldLabys2003}.
-  % 2026-10-15 (user): parked -- scheme-neutral wording (the target is the closing interval under both schemes).
-  % Was: \item Only the closing interval is modeled in the closing-interval model, so $\RV_t \equiv \RV_{t,c}$.
-  \item The forecast target is the closing interval: $\RV_t \equiv \RV_{t,c}$.
-  \item $(t, i-j)$: the $j$th retained interval before $(t,i)$, possibly on an earlier trading day.
+  % 2026-10-16 (formula pass): parked -- RV_{t,i} = sum_k r_{t,i,k}^2 and the lag (t, i-j) are defined once
+  % in Data (sec:rh_data). Was: the sum, with r_{t,i,k} the kth one-minute log return and N_{t,i} <= 30
+  % (Andersen, Bollerslev, Diebold and Labys 2003); and "(t, i-j): the jth retained interval before (t,i)".
+  \item Realized variance $\RV_{t,i}$ and the lag $(t, i-j)$: Section~\ref{sec:rh_data}. The forecast target is
+    the closing interval, $\RV_t \equiv \RV_{t,c}$.
   \item $\mathcal F_t$: all data through 15:30 ET on day $t$; $\E_t[\cdot] \equiv \E[\,\cdot \mid \mathcal F_t]$ and
     $\Var_t(\cdot) \equiv \Var(\,\cdot \mid \mathcal F_t)$.
   \end{itemize}
@@ -85,8 +84,8 @@
     |\mathcal D_{t,i}| \ge \underline n_{\mathrm{d}} .
   \end{gather*}
   \begin{itemize}
-  \item Intervals with $|\mathcal D_{t,i}| < \underline n_{\mathrm{d}}$: not scored. Values of $n_{\mathrm{d}}$ and
-    $\underline n_{\mathrm{d}}$: Appendix~\ref{sec:rh_exp_samples}.
+  \item Intervals with $|\mathcal D_{t,i}| < \underline n_{\mathrm{d}}$: $s^2_{t,i} = 1$, and the interval is not
+    scored. Values of $n_{\mathrm{d}}$ and $\underline n_{\mathrm{d}}$: Appendix~\ref{sec:rh_exp_samples}.
   \end{itemize}
   % src/features/transforms/target.py:24-25, 286-298 (per slot rolling(20, min_periods=5).mean().shift(1); no
   % per-slot band on the target).
@@ -135,19 +134,23 @@
   \item Jensen bias, downward, not corrected and disclosed:
     $\E_t[y_t^2] - (\E_t[y_t])^2 = \Var_t(y_t) \ge 0$.
   \end{itemize}
-\item \textbf{Scoring loss:} QLIKE, robust to noise in the realized-variance proxy \citep{Patton2011}, evaluated
-  at the actual (unwinsorized) realized variance:
+% 2026-10-16 (formula pass): parked -- the display was the generic QLIKE and then
+% L_t = QLIKE(RV_t, hat sigma^2_t) = QLIKE(y_t^2, hat y_t^2), so the scored loss sat two substitutions past the
+% display (hat sigma^2_t = hat y_t^2 s^2_{t,c} and RV_t = y_t^2 s^2_{t,c}). The function itself is defined once,
+% in Related work. The display below is the loss after that cancellation.
+\item \textbf{Scoring loss:} QLIKE, robust to noise in the realized-variance proxy \citep{Patton2011}
+  (Section~\ref{sec:rh_related}), evaluated at the actual (unwinsorized) realized variance. After the diurnal
+  adjustment cancels it is
   \[
-    \QLIKE(\RV, \hat\sigma^2) = \frac{\RV}{\hat\sigma^2} - \log\frac{\RV}{\hat\sigma^2} - 1, \qquad
-    L_t = \QLIKE\bigl(\RV_t,\, \hat\sigma^2_t\bigr) = \QLIKE\bigl(y_t^2,\, \hat y_t^{\,2}\bigr).
+    L_t = \frac{y_t^2}{\hat y_t^{\,2}} - \log\frac{y_t^2}{\hat y_t^{\,2}} - 1
+      = \QLIKE\bigl(\RV_t,\, \hat\sigma^2_t\bigr).
   \]
   % 2026-10-15 (notation pass): parked -- the scorer was switched to the actual RV (user decision 2026-10-15,
   % data audit #10); the old display scored the winsorized target:
   % L_t = \QLIKE\bigl(y_t^2 B_t,\, \hat\sigma^2_t\bigr) = \QLIKE\bigl(y_t^2,\, \hat y_t^{\,2}\bigr), y_t = winsorized.
   \begin{itemize}
-  \item $s^2_{t,c}$ cancels, since $\RV_t = y_t^2\, s^2_{t,c}$ with the unwinsorized $y_t$: the loss is
-    scale-invariant.
-  \item Scores use $\RV_t$, not the winsorized $\tilde y_t^{\,2} s^2_{t,c}$; the models still fit $\tilde y$.
+  \item The equality is $s^2_{t,c}$ cancelling, with the unwinsorized $y_t$. Scores use $\RV_t$, not the
+    winsorized $\tilde y_t^{\,2} s^2_{t,c}$; the models still fit $\tilde y$.
   \end{itemize}
   % 2026-10-15 (notation pass): parked -- the scorer was switched to the actual RV (user decision 2026-10-15, data
   % audit #10). Old comment:
@@ -213,14 +216,15 @@
 \label{sec:rh_methods_models}
 \begin{itemize}
 \item \textbf{HAR and the HAR benchmark, by OLS} \citep{Corsi2009}:
+  % 2026-10-16 (formula pass): parked -- the average and the horizon set are defined once in Predictors.
+  % Was: bar y^{(k)}_t = (1/k) sum_{j=1}^{k} tilde y_{t,c-j}, K = {1, 5, 25, 125, 625, 3125}, in this display.
   \[
-    \hat y_t = \beta_0 + \sum_{k \in \mathcal K} \beta^{(k)}\, \bar y^{(k)}_t + \bm\delta^{\top} \bm D_t, \qquad
-    \bar y^{(k)}_t = \frac1k \sum_{j=1}^{k} \tilde y_{t,c-j}, \qquad
-    \mathcal K = \{1, 5, 25, 125, 625, 3125\}.
+    \hat y_t = \beta_0 + \sum_{k \in \mathcal K} \beta^{(k)}\, \bar y^{(k)}_t + \bm\delta^{\top} \bm D_t .
   \]
   \begin{itemize}
-  \item $\bar y^{(k)}_t$: the HAR component at horizon $k$, the mean over the $k$ half-hour intervals before the
-    closing interval, overnight included.
+  \item $\bar y^{(k)}_t$ and $\mathcal K$: Section~\ref{sec:rh_predictors}. $\bar y^{(k)}_t$ is the HAR component
+    at horizon $k$, the mean of the winsorized target over the $k$ half-hour intervals before the closing
+    interval, overnight included.
   \item $\bm D_t$: calendar dummies, coefficients $\bm\delta$; HAR alone sets $\bm\delta = \bm 0$. The HAR benchmark
     ($\mathcal X = \mathrm{HAR}$) is the HAR components and the calendar dummies.
   \item $\bm x_t \in \mathbb R^p$: the full predictor set ($\mathcal X = \mathrm{Full}$), the HAR benchmark's
@@ -281,21 +285,29 @@
 %   windows as the linear models.
 \item \textbf{Tree ensembles:} gradient boosting (LightGBM, XGBoost) and random forest.
   \begin{itemize}
+  % 2026-10-16 (formula pass): parked -- the step was written as F_b, then an argmin in the derivatives
+  % g_{t'} and h_{t'}, then g and h defined, then the leaf weight in G_j and H_j, then G and H defined. For this
+  % loss h = 1, so the objective and the leaf weight below are those substitutions already made.
   \item \textbf{Gradient boosting} \citep{Friedman2001}, in LightGBM \citep{Ke2017} and XGBoost \citep{Chen2016}:
-    loss $\tfrac12 (\tilde y - F)^2$, rounds $b = 1, \dots, B$, learning rate $\eta$:
+    squared-error loss $\tfrac12 (\tilde y - F)^2$, rounds $b = 1, \dots, B$, learning rate $\eta$. The tree
+    $f_b$ has $J$ leaves and leaf weights $\bm w$; leaf $j$ holds the observations $\mathcal R_j$, and
+    $n_j = |\mathcal R_j|$. At $\lambda_1^{\mathrm{tree}} = 0$ the fitted function and the leaf weight are
     \begin{align*}
       F_b &= F_{b-1} + \eta f_b, \\
-      f_b &= \argmin_{f} \sum_{t' \in \mathcal W_t} \Bigl[g_{t'} f(\bm x_{t'}) + \tfrac12 h_{t'} f(\bm x_{t'})^2\Bigr] \\
-        &\qquad + \gamma^{\mathrm{tree}} J + \lambda_1^{\mathrm{tree}} \lVert \bm w \rVert_1 + \tfrac12 \lambda_2^{\mathrm{tree}} \lVert \bm w \rVert_2^2 .
+      w_j^\ast &= -\frac{\sum_{t' \in \mathcal R_j}\bigl(F_{b-1}(\bm x_{t'}) - \tilde y_{t'}\bigr)}
+        {n_j + \lambda_2^{\mathrm{tree}}} .
     \end{align*}
-  \item $g_{t'} = F_{b-1}(\bm x_{t'}) - \tilde y_{t'}$ and $h_{t'} = 1$: first and second derivatives of the loss
-    at $F_{b-1}$; $f$: a tree with $J$ leaves and leaf weights $\bm w$; $\gamma^{\mathrm{tree}}$: penalty per leaf;
-    $\lambda_1^{\mathrm{tree}}, \lambda_2^{\mathrm{tree}}$: L1 and L2 penalties on $\bm w$.
-  \item Leaf weight at $\lambda_1^{\mathrm{tree}} = 0$: $w_j^\ast = -G_j / (H_j + \lambda_2^{\mathrm{tree}})$, with
-    $G_j = \sum_{t' \in \mathcal R_j} g_{t'}$ and $H_j = \sum_{t' \in \mathcal R_j} h_{t'} = n_j$ over the $n_j$
-    observations $\mathcal R_j$ in leaf $j$.
-  \item Leaf minimum $n_{\min}$: $n_j \ge n_{\min}$ (LightGBM's minimum leaf size); $H_j \ge n_{\min}$ (XGBoost's
-    minimum child weight, an observation count since $h_{t'} = 1$).
+    The tree minimizes
+    \[
+      \sum_{t' \in \mathcal W_t} \Bigl[\bigl(F_{b-1}(\bm x_{t'}) - \tilde y_{t'}\bigr) f_b(\bm x_{t'})
+        + \tfrac12 f_b(\bm x_{t'})^2\Bigr]
+      + \gamma^{\mathrm{tree}} J + \lambda_1^{\mathrm{tree}} \lVert \bm w \rVert_1
+      + \tfrac12 \lambda_2^{\mathrm{tree}} \lVert \bm w \rVert_2^2 .
+    \]
+  \item $\gamma^{\mathrm{tree}}$: penalty per leaf; $\lambda_1^{\mathrm{tree}}, \lambda_2^{\mathrm{tree}}$: L1 and
+    L2 penalties on $\bm w$.
+  \item Leaf minimum $n_{\min}$: $n_j \ge n_{\min}$. That count is LightGBM's minimum leaf size and, under this
+    loss, XGBoost's minimum child weight.
   % 2026-10-15 (consolidation): parked -- N is the minute count N_{t,i} and \mathcal T the out-of-sample day set.
   % \item \textbf{Random forest} (Breiman 2001): average of $N$ trees $\mathcal T_b$, each grown on a bootstrap
   %   sample, \hat y_t = \frac1N \sum_{b=1}^{N} \mathcal T_b(\bm x_t);
@@ -513,10 +525,12 @@
 % "Diebold--Mariano test", "Long-run variance" and "Lag truncation" duplicated Statistical tests (next subsection)
 % and are merged into it. The original subsection is parked, verbatim, in 06_results.tex.
 \begin{itemize}
-\item \textbf{Forecast and realization.} The variance forecast is the back-transformed fit,
-  $\hat\sigma^2_t = \hat y_t^{\,2}\, s^2_{t,c}$ (Section~\ref{sec:rh_methods_setup}), with no bias correction. The
-  realization is the actual realized variance of the closing interval, $\RV_t \equiv \RV_{t,c}$; it is not
-  winsorized (the winsorized $\tilde y_{t,c}$ enters estimation only).
+% 2026-10-16 (formula pass): parked -- the back-transform was repeated from Problem formulation. Was:
+% "The variance forecast is the back-transformed fit, hat sigma^2_t = hat y_t^2 s^2_{t,c} (Section setup)".
+\item \textbf{Forecast and realization.} The variance forecast is the back-transform of
+  Section~\ref{sec:rh_methods_setup}, with no bias correction. The realization is the actual realized variance of
+  the closing interval, $\RV_t \equiv \RV_{t,c}$; it is not winsorized (the winsorized $\tilde y_{t,c}$ enters
+  estimation only).
   % 2026-10-15 (user): parked -- "Out of sample period doesn't make sense for forecasts because we're performing
   % rolling backtests ..."; T_oos keeps its symbol, redefined as the forecast origins of the rolling exercise. Was:
   % "The out-of-sample period is the set $\mathcal T_{\mathrm{oos}}$ of trading days on which the forecasts are
@@ -546,12 +560,15 @@
   % 2026-10-15 (user): its average QLIKE (\rhrOlsQ) and its sign strategy's \SR (\fqsOlsSh) are results; parked in
   % 06_results.tex (they are in Model classes, Table tab:rh_rank and Table tab:rh_econ_control). The sign strategy is
   % defined in Economic value (sec:rh_econ_strategy).
+% 2026-10-16 (formula pass): parked -- Delta% was 100 * bar d / bar L^B, with d_t = L^A_t - L^B_t and bar d the
+% mean of d_t, so the reported percentage was two substitutions past the display. d_t is defined once, in
+% Statistical tests. Was that differential form.
 \item \textbf{Relative loss.} For forecast $A$ against forecast $B$ (the benchmark forecast unless stated otherwise),
-  the loss differential is $d_t = L^{A}_t - L^{B}_t$, and the percentage change in average QLIKE is
+  the percentage change in average QLIKE is
   \[
-  \Delta\% = 100\,\frac{\bar d}{\bar L^{B}}, \qquad \bar d = \frac{1}{T_{\mathrm{oos}}}\sum_{t \in \mathcal T_{\mathrm{oos}}} d_t .
+  \Delta\% = 100\Bigl(\frac{\bar L^{A}}{\bar L^{B}} - 1\Bigr).
   \]
-  Its significance is tested with the Diebold--Mariano statistic of Section~\ref{sec:rh_methods_tests}.
+  Its significance is the Diebold--Mariano statistic of Section~\ref{sec:rh_methods_tests}.
 % Code: master_table_close.py:233 sets REFERENCE = "blk2" for qlike_pct_vs_ref and dm_vs_ref; only the GUI's DM
 % (master_table_gui/rows.py:1585-1605) is against the per-bar OLS. The % and DM vs the OLS need porting.
 \item \textbf{Squared-error and absolute-error loss,} in variance units:

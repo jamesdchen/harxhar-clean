@@ -250,12 +250,13 @@ Full implementation details are in Appendix~\ref{app:rh_impl}.
 \item \textbf{Paired comparison} within each model class: the same pooled intraday model $m$
   ($\mathcal I = \{1, \dots, M\}$) on the two predictor sets, $d_t = L^{\text{Full}}_t - L^{\text{HAR}}_t$, with
   % 2026-10-15 (user): parked -- "park all tables that I haven't mentioned in this chat". Was: $f_{m,\mathcal X,\mathcal I}$ (Table~\ref{tab:rh_axis1}):
-  $L^{\mathcal X}_t$ the loss of the forecast $f_{m,\mathcal X,\{1,\dots,M\}}$:
-  \[
-  \Delta\% = 100\Bigl(\frac{\bar L^{\text{Full}}}{\bar L^{\text{HAR}}} - 1\Bigr) = 100\,\frac{\bar d}{\bar L^{\text{HAR}}},
-  % \qquad \DM \text{ on } d_t,\ q_{\mathrm{NW}} = \fqsDMLag .  % 2026-10-15: parked -- the lag on T_oos (same value)
-  \qquad \DM \text{ on } d_t,\ t \in \mathcal T_{\mathrm{oos}},\ q_{\mathrm{NW}} = \rhoosDMLag .
-  \]
+  $L^{\mathcal X}_t$ the loss of the forecast $f_{m,\mathcal X,\{1,\dots,M\}}$. $\Delta\%$ is the relative loss of
+  Section~\ref{sec:rh_results_eval}; $\DM$ is on $d_t$ over $\mathcal T_{\mathrm{oos}}$, with
+  $q_{\mathrm{NW}} = \rhoosDMLag$.
+  % 2026-10-16 (formula pass): parked -- the display repeated that relative loss and also wrote it a second way,
+  % 100 * bar d / bar L^{HAR}. Was:
+  % Delta% = 100 (bar L^{Full} / bar L^{HAR} - 1) = 100 * bar d / bar L^{HAR},
+  % DM on d_t, t in T_oos, q_NW = \rhoosDMLag.
 % Code: writeup/make_fig_qlike_sharpe.py:287-320 (dq_pct; dm_test(all, base) at the automatic lag).
 % 2026-10-15 (consolidation): parked -- pre-switch numbers (winsorized target). Was: "12--14\% ($\DM$ about $-4.5$)";
 % "83--91\%"; MinGRU "by 3.8\%"; "the network ties the elastic net and ridge".

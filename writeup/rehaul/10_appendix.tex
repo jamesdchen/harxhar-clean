@@ -90,7 +90,7 @@
 \item \textbf{Burn-in:} the first \rhdmBurnIn{} intervals, the longest HAR horizon, are dropped
   (Section~\ref{sec:rh_data}).
 \item \textbf{Diurnal adjustment} $s^2_{t,i}$ (Section~\ref{sec:rh_methods_setup}): $n_{\mathrm{d}} = 20$ trading days,
-  at least $\underline n_{\mathrm{d}} = 5$ of them; intervals with fewer are not scored.
+  at least $\underline n_{\mathrm{d}} = 5$ of them; intervals with fewer have $s^2_{t,i} = 1$ and are not scored.
   % src/features/transforms/target.py:24-25, 286-298 (per slot rolling(20, min_periods=5).mean().shift(1); no
   % per-slot band on the target). Moved from Problem formulation (2026-10-15, user).
 \item \textbf{Winsorization} of the target: $n_{\mathrm{w}} = 240$ intervals, all intervals of the day pooled; the

@@ -68,11 +68,13 @@
     $\RV^{\mathrm{VW}}$, $\mathrm{Spread}^{\mathrm{VW}}$; $\mathrm{FOMC}$. Indicator averages: $\bar a^{(k)}_t(u)$,
     $\bar\chi^{(k)}_t(u)$.
   \end{itemize}
-\item \textbf{HAR benchmark:} the HAR components of the target (6 columns) and 16 calendar dummies $\bm D_{t,i}$
+\item \textbf{HAR benchmark:} the HAR components of the target, $\bar y^{(k)}_{t,i}$, the same average as
+  $\bar u^{(k)}_{t,i}$ applied to the winsorized target (6 columns), and 16 calendar dummies $\bm D_{t,i}$
   (day of the week, monthly option expiration, quarterly ``quadruple witching'' expiration, month end, quarter end
   and others).
+  % 2026-10-16 (formula pass): parked -- bar y^{(k)}_{t,i} = (1/k) sum_{j=1}^{k} tilde y_{t,i-j} repeated the
+  % average already displayed for bar u^{(k)}_{t,i}.
   \[
-    \bar y^{(k)}_{t,i} = \frac{1}{k} \sum_{j=1}^{k} \tilde y_{t,i-j}, \qquad
     16 = \underbrace{5}_{\text{day of week}} + \underbrace{4}_{\text{time of day}}
       + \underbrace{7}_{\text{expiration, month, quarter}} .
   \]
@@ -137,11 +139,12 @@
     % target.py:387-442 (map), 303-345 (asinh), 644-663 (routing). asinh replaces both the diurnal division and
     % g: it acts on raw u. The routing share is full-sample. fomc_release in {0,1} maps to {log 1e-12, 0}; after
     % the 1/99 clip adj_fomc_release is constant (outline flag 13).
-  \item winsorization at the rolling 1st and 99th percentiles, as for the target:
-    \[
-      \tilde u_{t,i} \leftarrow \clip\bigl(\tilde u_{t,i},\ Q_{0.01}(\mathcal{U}_{t,i}),\ Q_{0.99}(\mathcal{U}_{t,i})\bigr),
-      \qquad \mathcal{U}_{t,i} = \{\tilde u_{t,i-j} : j = 1, \dots, 240\};
-    \]
+  % 2026-10-16 (formula pass): parked -- the clip repeated the target's winsorization (Methods), with the
+  % window 240 and the 1st/99th percentiles typed a second time. Was:
+  % tilde u <- clip(tilde u, Q_{0.01}(U_{t,i}), Q_{0.99}(U_{t,i})),
+  % U_{t,i} = {tilde u_{t,i-j} : j = 1, ..., 240}.
+  \item winsorization at the same rolling quantiles as the target (Section~\ref{sec:rh_methods_setup}), on the
+    series' own preceding intervals;
   \item imputation of missing values by the full-sample median, kept alongside the availability indicator:
     \[
       \tilde u_{t,i} \leftarrow
@@ -162,7 +165,8 @@
   \item trailing averages $\bar u^{(k)}_{t,i}$, $\bar a^{(k)}_{t,i}$, $\bar\chi^{(k)}_{t,i}$, $\bar y^{(k)}_{t,i}$;
   \item robust standardization on the rolling estimation window (median and interquartile range, with floors),
     for the averages of series values only; written for the closing-interval model, whose rows $t'$ are trading
-    days ($i = c$ suppressed), with $\mathcal{W}_t = \{t - W, \dots, t - 1\}$:
+    days ($i = c$ suppressed), on the estimation window $\mathcal{W}_t$ of Section~\ref{sec:rh_methods_setup}:
+    % 2026-10-16 (formula pass): parked -- "with W_t = {t - W, ..., t - 1}" repeated the window defined in Methods.
     \[
       z^{(k)}_{t} = \frac{\bar u^{(k)}_{t} - \operatorname{med}_{t' \in \mathcal{W}_t} \bar u^{(k)}_{t'}}
         {\max\bigl\{\mathrm{IQR}^{(k)}_{t},\ 0.01 \max_{t' \le t} \mathrm{IQR}^{(k)}_{t'},\

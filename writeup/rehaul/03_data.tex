@@ -92,27 +92,21 @@
     % CODE: FFILL_LIMIT = 26 is defined (executor.py:75) but never passed: ffill_limit=None (executor.py:476,
     % 540, 736-745). The old text ("neutral fill where there is no history") was wrong: the median replaces
     % every unobserved row (executor.py:602-605; outline flag 6).
-  \item Diurnal adjustment \citep{AndersenBollerslev1997}. $\mathcal{D}_{t,i}$: the last 20 trading days
-    $t' < t$ on which interval $i$ is retained.
-    \[
-      s^2_{t,i} = \frac{1}{|\mathcal{D}_{t,i}|} \sum_{t' \in \mathcal{D}_{t,i}} \RV_{t',i},
-        \qquad |\mathcal{D}_{t,i}| \ge 5 .
-    \]
-  \item $|\mathcal{D}_{t,i}| < 5$: $s^2_{t,i} = 1$, and the interval is excluded from evaluation.
+  % 2026-10-16 (formula pass): parked -- the same adjustment and target are defined once in Methods
+  % (sec:rh_methods_setup). The windows 20 and 5, the 240-interval winsorization window and the 1st/99th
+  % percentiles are in the appendix (sec:rh_exp_samples). The fallback s^2_{t,i} = 1 is in that Methods bullet.
+  % Was:
+  % \item Diurnal adjustment (Andersen and Bollerslev 1997). D_{t,i}: the last 20 trading days t' < t on which
+  %   interval i is retained. s^2_{t,i} = 1/|D| sum_{t' in D} RV_{t',i}, |D| >= 5.
+  % \item |D| < 5: s^2_{t,i} = 1, and the interval is excluded from evaluation.
+  % \item Target: y_{t,i} = sqrt(RV_{t,i} / s^2_{t,i}),
+  %   tilde y_{t,i} = clip(y_{t,i}, Q_{0.01}(Y_{t,i}), Q_{0.99}(Y_{t,i})),
+  %   Y_{t,i} = {y_{t,i-j} : j = 1, ..., 240}.
+  % \item Winsorization window: the 240 preceding intervals of all times of day, excluding the current interval.
+  \item The diurnal adjustment $s^2_{t,i}$ and the winsorized target $\tilde y_{t,i}$ are defined in
+    Section~\ref{sec:rh_methods_setup}. Window lengths and quantile levels: Appendix~\ref{sec:rh_exp_samples}.
     % target.py:288-297 (rolling(20, min_periods=5).mean().shift(1) within slot). The target's s^2_{t,i} has no
     % slot band: slot_band = 0 for the target (target.py:626-627); the [0.5, 2] band is exogenous-only.
-  \item Target, the diurnally adjusted realized volatility, and its winsorized version:
-    \[
-      y_{t,i} = \sqrt{\RV_{t,i} / s^2_{t,i}}, \qquad
-      \tilde y_{t,i} = \clip\bigl(y_{t,i},\ Q_{0.01}(\mathcal{Y}_{t,i}),\ Q_{0.99}(\mathcal{Y}_{t,i})\bigr),
-    \]
-    \[
-      \mathcal{Y}_{t,i} = \{ y_{t,i-j} : j = 1, \dots, 240 \},
-    \]
-    with $Q_{0.01}(\cdot)$ and $Q_{0.99}(\cdot)$ the empirical 1st and 99th percentiles.
-    % 2026-10-15 (consolidation): parked -- the generic level p clashes with the number of predictors p.
-    % Q_p(\cdot):\ \text{empirical } p\text{-quantile}.
-  \item Winsorization window: the 240 preceding intervals of all times of day, excluding the current interval.
     % target.py:96-97 and 486-507: 1/99, rolling(240, min_periods=240).quantile(p).shift(1). Docstrings at
     % target.py:458 and 604 still say 5/95 (outline flag 14).
     % CODE: the executor scores true_raw = tilde_y_{t,c}^2 s^2_{t,c} (metrics.py:50), i.e. the winsorised RV, not
