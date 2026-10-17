@@ -63,7 +63,7 @@ TABLE LEGIBILITY (2026-10-15)
   (the conventions of make_rehaul_economics.py): short captions; Notes of about five sentences below, referring to
   Methods; stars for the 10/5/1 % levels (two-sided normal p) on the estimate, with its test statistic in parentheses
   in its own column, one row per forecast (under the estimate, T1 was taller than a page); no p columns; Panel A
-  closing-interval models, Panel B pooled intraday models (T2: Panel A HAR benchmark, Panel B full predictor set);
+  closing-interval models, Panel B intraday models (T2: Panel A HAR benchmark, Panel B full predictor set);
   model names in words; r columns whose unused star slots are phantoms, so decimals align.
   Every number a note cites is a \\rhr... macro of rehaul_results_numbers.tex, which is macro-only and loaded once by
   the paper's preamble; the table files \\input nothing.  The numbers file also carries per-model macros against the
@@ -659,7 +659,7 @@ def tree_spec(rest: str) -> str:
 
 def describe_key(key: str) -> dict[str, str]:
     """model (in words), spec ("--" if none), family, fit (per-bar / pooled: internal), panel (A closing-interval,
-    B pooled intraday, C the earlier draft's pooled intraday linear models) and inputs (HAR / Full) of a key."""
+    B intraday, C the earlier draft's intraday linear models) and inputs (HAR / Full) of a key."""
     if key.startswith(("mingru_rinitq_", "mingru_pooled_rinitq_")):
         pooled = "_pooled_" in key
         return dict(
@@ -1085,10 +1085,10 @@ NOTE_TREES = (
     "Closing-interval trees use fixed hyperparameters and are re-estimated daily"
 )
 ITEM_EARLIER_FULL = (
-    "\\item[a] Full predictor set: the earlier draft's pooled intraday specification."
+    "\\item[a] Full predictor set: the earlier draft's intraday specification."
 )
 ITEM_PRELIM = (
-    "\\item[$\\dagger$] Preliminary: the closing-interval forecasts of the pooled intraday random forest on the full "
+    "\\item[$\\dagger$] Preliminary: the closing-interval forecasts of the intraday random forest on the full "
     "predictor set, from an exercise still in progress."
 )
 ITEM_PRELIM_SHORT = "\\item[$\\dagger$] Preliminary (see Table~\\ref{tab:rh_axis1})."
@@ -1104,7 +1104,7 @@ def table_t1(rows: list[dict]) -> str:
     body = ""
     for fit, title in (
         ("per-bar", "Panel A: Closing-interval models"),
-        ("pooled", "Panel B: Pooled intraday models"),
+        ("pooled", "Panel B: Intraday models"),
     ):
         body += panel_head(title, 7, first=fit == "per-bar")
         for r in [r for r in rows if r["fit"] == fit]:
@@ -1144,7 +1144,7 @@ def table_t1(rows: list[dict]) -> str:
     return "\n".join(
         [
             HEAD,
-            "% tab:rh_axis1 (T1). The pooled intraday LightGBM and XGBoost on the full predictor set are the master",
+            "% tab:rh_axis1 (T1). The intraday LightGBM and XGBoost on the full predictor set are the master",
             "% table's lgbm and xgb rows, the earlier draft's pooled trees; their HAR-benchmark twins come from",
             "% results/pooled_trees_2026-10-07.",
             "\\begin{table}[htbp]",
@@ -1175,7 +1175,7 @@ def table_t1(rows: list[dict]) -> str:
 
 
 def table_t2(rows: list[dict]) -> str:
-    """T2: the pooled intraday model against the closing-interval model of the same class; Panel A on the HAR
+    """T2: the intraday model against the closing-interval model of the same class; Panel A on the HAR
     benchmark, Panel B on the full predictor set; one row per model class: the % change in QLIKE (stars) and its DM,
     the change in the sign strategy's Sharpe ratio (stars) and its HAC t."""
     body = ""
@@ -1203,7 +1203,7 @@ def table_t2(rows: list[dict]) -> str:
         "\\item \\textit{Notes:} Sample, loss and tests as in Table~\\ref{tab:rh_axis1}. Each row compares the pooled "
         "intraday model with the closing-interval model of the same class on the predictor set of the panel: "
         "$\\Delta = 100(\\bar L^{\\mathrm{pool}}/\\bar L^{\\mathrm{close}} - 1)$, positive when the closing-interval "
-        "model is more accurate, and $\\Delta\\SR$ is the pooled intraday minus the closing-interval Sharpe ratio. "
+        "model is more accurate, and $\\Delta\\SR$ is the intraday minus the closing-interval Sharpe ratio. "
         + STAR_NOTE
         + " "
         + NOTE_TREES
@@ -1213,18 +1213,18 @@ def table_t2(rows: list[dict]) -> str:
         # 2026-10-15 (finish): parked -- the pooled trees' schedule moved to Appendix B.2 (sec:rh_exp_schemes). Was:
         # + "; the pooled intraday trees are re-estimated at every interval, on a rolling window of past intervals "
         # "(Section~\\ref{sec:rh_methods_setup})."
-        + "; the pooled intraday trees are re-estimated at every interval, on a rolling window of past intervals "
+        + "; the intraday trees are re-estimated at every interval, on a rolling window of past intervals "
         "(Section~\\ref{sec:rh_exp_schemes})."
     )
     return "\n".join(
         [
             HEAD,
-            "% tab:rh_axis2 (T2): pooled intraday minus closing-interval, same model class and predictor set.",
+            "% tab:rh_axis2 (T2): intraday minus closing-interval, same model class and predictor set.",
             "\\begin{table}[htbp]",
             "\\centering",
             "\\small",
             "\\begin{threeparttable}",
-            "\\caption{Forecast accuracy: closing-interval versus pooled intraday models}",
+            "\\caption{Forecast accuracy: closing-interval versus intraday models}",
             "\\label{tab:rh_axis2}",
             "\\begin{tabular}{@{}lrrrr@{}}",
             "\\toprule",
@@ -1237,7 +1237,7 @@ def table_t2(rows: list[dict]) -> str:
             "\\begin{tablenotes}[flushleft]",
             "\\footnotesize",
             notes,
-            "\\item[a] The earlier draft's pooled intraday specification.",
+            "\\item[a] The earlier draft's intraday specification.",
             ITEM_PRELIM_SHORT,
             "\\end{tablenotes}",
             "\\end{threeparttable}",
@@ -1269,7 +1269,7 @@ def table_t3(rank: pd.DataFrame, keys: list[str]) -> str:
     body = ""
     for fit, title in (
         ("per-bar", "Panel A: Closing-interval models"),
-        ("pooled", "Panel B: Pooled intraday models"),
+        ("pooled", "Panel B: Intraday models"),
     ):
         body += panel_head(title, 6, first=fit == "per-bar")
         for k, r in sub[sub["fit"] == fit].sort_values("qlike").iterrows():
@@ -1292,7 +1292,7 @@ def table_t3(rank: pd.DataFrame, keys: list[str]) -> str:
         [
             HEAD,
             "% tab:rh_rank (T3): Rank is the global rank of tab:rh_rank_full; the closing-interval rows rank above the",
-            "% pooled intraday rows, so the panels keep the sort order.",
+            "% intraday rows, so the panels keep the sort order.",
             "\\begin{table}[htbp]",
             "\\centering",
             "\\small",
@@ -1310,7 +1310,7 @@ def table_t3(rank: pd.DataFrame, keys: list[str]) -> str:
             "\\begin{tablenotes}[flushleft]",
             "\\footnotesize",
             notes,
-            "\\item[a] The earlier draft's pooled intraday specification.",
+            "\\item[a] The earlier draft's intraday specification.",
             ITEM_PRELIM_SHORT,
             "\\end{tablenotes}",
             "\\end{threeparttable}",
@@ -1321,8 +1321,8 @@ def table_t3(rank: pd.DataFrame, keys: list[str]) -> str:
 
 
 def table_t3_full(rank: pd.DataFrame) -> str:
-    """T3 (full): every forecast, a longtable for the appendix; Panel A closing-interval, B pooled intraday, C the
-    earlier draft's pooled intraday linear models, each sorted by QLIKE; Rank is the global rank."""
+    """T3 (full): every forecast, a longtable for the appendix; Panel A closing-interval, B intraday, C the
+    earlier draft's intraday linear models, each sorted by QLIKE; Rank is the global rank."""
     head = [
         " & & & & & \\multicolumn{2}{c}{vs.\\ HAR benchmark} \\\\",
         "\\cmidrule(l){6-7}",
@@ -1333,14 +1333,14 @@ def table_t3_full(rank: pd.DataFrame) -> str:
         "$\\DM$ compare each forecast with the HAR benchmark, as in Table~\\ref{tab:rh_rank}. Specification of the "
         "closing-interval trees (Panel A): fixed hyperparameters, random search or Optuna, selecting on MSE or QLIKE, "
         "then the re-estimation frequency or, for Optuna, the re-tuning frequency and the number of trials searched; "
-        "d: trading days (Section~\\ref{sec:rh_methods_tuning}). Panel C holds the earlier draft's pooled intraday "
+        "d: trading days (Section~\\ref{sec:rh_methods_tuning}). Panel C holds the earlier draft's intraday "
         "linear models, with a block, fixed or re-tuned penalty; ``no FOMC'' marks the earlier draft's predictor set, "
         # 2026-10-15 (user): parked -- NN content parked for now
         # "which lacks the FOMC predictors. The pooled intraday trees are re-estimated at every interval and the pooled "
         # "intraday MinGRU monthly (Section~\\ref{sec:rh_methods_setup}). $^{\\ddagger}$Not in the model set counted in "
         # 2026-10-15 (finish): parked -- the pooled trees' schedule moved to Appendix B.2 (sec:rh_exp_schemes). Was:
         # "(Section~\\ref{sec:rh_methods_setup}). $^{\\ddagger}$Not in the model set counted in "
-        "which lacks the FOMC predictors. The pooled intraday trees are re-estimated at every interval "
+        "which lacks the FOMC predictors. The intraday trees are re-estimated at every interval "
         "(Section~\\ref{sec:rh_exp_schemes}). $^{\\ddagger}$Not in the model set counted in "
         "the text; $^{\\dagger}$preliminary (see Table~\\ref{tab:rh_axis1})."
     )
@@ -1370,8 +1370,8 @@ def table_t3_full(rank: pd.DataFrame) -> str:
     ]
     for panel, title in (
         ("A", "Panel A: Closing-interval models"),
-        ("B", "Panel B: Pooled intraday models"),
-        ("C", "Panel C: Pooled intraday models, earlier draft's specification"),
+        ("B", "Panel B: Intraday models"),
+        ("C", "Panel C: Intraday models, earlier draft's specification"),
     ):
         out.append(panel_head(title, 7, first=panel == "A").rstrip("\n"))
         for k, r in rank[rank["panel"] == panel].sort_values("qlike").iterrows():
@@ -2355,7 +2355,7 @@ def main() -> None:
     assert not gate_866 or t3_split  # 2026-10-15: the 866-day ordering of record
     if not t3_split:
         print(
-            "T3 (parked): on this span a pooled intraday headline row ranks above a closing-interval one"
+            "T3 (parked): on this span an intraday headline row ranks above a closing-interval one"
         )
     assert (
         set(rank["panel"]) == {"A", "B", "C"}
@@ -2952,7 +2952,7 @@ def main() -> None:
     m_pool = {
         "PoolN": (
             str(len(pool_keys)),
-            "pooled intraday forecasts (T1 Panel B: 6 classes x HAR, Full)",
+            "intraday forecasts (T1 Panel B: 6 classes x HAR, Full)",
         ),
         "AfPoolPairs": (str(len(t1p)), "pooled Full vs HAR pairs (one per class)"),
         "AfPoolLower": (
@@ -3105,11 +3105,11 @@ def main() -> None:
         # "% Per-model families (<M> = Ridge, Lasso, Enet, Lgbm, Xgb, Rf, Nn; <S> = Close | Pool, the closing-interval or",
         "% Per-model families (<M> = Ridge, Lasso, Enet, Lgbm, Xgb, Rf; Nn, the MinGRU, is parked from every table and",
         "% figure (2026-10-15) but its macros stay defined; <S> = Close | Pool, the closing-interval or",
-        "% pooled intraday model; <X> = Har | Full, the predictor set):",
+        "% intraday model; <X> = Har | Full, the predictor set):",
         "%   \\rhrQ<M><S><X>                             mean QLIKE;",
         "%   \\rhrVsBm<M><S><X>{Pct,Dm,Pval,Stars}       against the HAR benchmark, the closing-interval OLS on HAR (T3);",
         "%   \\rhrAf<M><S>{Pct,Dm,Pval,Stars}            full predictor set against HAR, same model (T1);",
-        "%   \\rhrPoolVsClose<M><X>{Pct,Dm,Pval,Stars}   pooled intraday against closing-interval, same class (T2);",
+        "%   \\rhrPoolVsClose<M><X>{Pct,Dm,Pval,Stars}   intraday against closing-interval, same class (T2);",
         # 2026-10-15 (user, restructure): the trade families (option-data subsample)
         "%   \\rhrSh<M><S><X>, \\rhrShX<M><S><X>           sign-strategy Sharpe ratio at mid-quotes, at bid/ask;",
         "%   \\rhrVsShort<M><S><X>T                       HAC t of its daily return differential over the short straddle;",

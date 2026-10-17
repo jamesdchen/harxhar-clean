@@ -2138,7 +2138,7 @@ def write_sources(S: dict) -> None:
 
 
 def write_samples(P: dict) -> None:
-    """D2 (tab:rh_dm_samples): panels pooled intraday / closing interval / out-of-sample."""
+    """D2 (tab:rh_dm_samples): panels intraday / closing interval / out-of-sample."""
     g0, g1, ng = P["grid"]
     p0, p1, np_ = P["pooled"]
     f0, f1, nf = P["pooled_fc"]
@@ -2199,7 +2199,7 @@ def write_samples(P: dict) -> None:
             ]
         ),
         r"\addlinespace",
-        panel_row("Panel B: Pooled intraday models (30-minute intervals)", 5),
+        panel_row("Panel B: Intraday models (30-minute intervals)", 5),
         cells(
             [
                 rf"Estimation sample, after the {n_(P['burn'])}-interval burn-in",
@@ -2437,14 +2437,14 @@ def write_design(D: dict) -> None:
         r"the same averages of its availability (missing-data) and activity indicators (Section~\ref{sec:rh_predictors} "
         r"and Table~\ref{tab:rh_dm_dictionary}).",
         rf"Horizons: $k \in \{{{', '.join(str(r) for r in resolve_har_lags())}\}}$ in the closing-interval model and "
-        rf"$k \in \{{1, 2, 4, \dots, {2 ** (kq - 1)}\}}$ in the pooled intraday model; activity indicators exist "
+        rf"$k \in \{{1, 2, 4, \dots, {2 ** (kq - 1)}\}}$ in the intraday model; activity indicators exist "
         rf"for the {len(D['act'])} series whose mode accounts for at least {100 * EX.ZERO_INFLATED_FRAC:.0f}\% of "
         r"intervals.",
         rf"In the closing-interval model, the {words.get(2 * k, str(2 * k))} interactions of the HAR components "
         r"with the opening- and closing-interval dummies are zero or copies of $\bar y^{(k)}$ and are omitted, and "
         rf"{words.get(len(cc), str(len(cc)))} of the {len(A['calendar'])} calendar dummies (hour, overnight, open, "
         r"close) are constant and are dropped at every estimation.",
-        rf"The pooled intraday panel predates the FOMC group ({len(pr)} series) and has no FOMC predictors; with "
+        rf"The intraday panel predates the FOMC group ({len(pr)} series) and has no FOMC predictors; with "
         rf"them it would have {n_(with_fomc)} columns.",
         "At every estimation, predictors constant within the rolling window or exact copies of another are dropped.",
     ]
@@ -2523,7 +2523,7 @@ def write_dictionary(rows: list[dict], D: dict) -> None:
         r"observed; series with an activity indicator also enter as $\bar\chi^{(k)}(u)$, the share off their mode "
         r"(the mode and its share of intervals are in the description).",
         rf"$\mathcal K = \{{{', '.join(str(r) for r in resolve_har_lags())}\}}$ in the closing-interval model and "
-        rf"$\{{1, 2, 4, \dots, {2 ** (kq - 1)}\}}$ in the pooled intraday model, which omits the FOMC group.",
+        rf"$\{{1, 2, 4, \dots, {2 ** (kq - 1)}\}}$ in the intraday model, which omits the FOMC group.",
         r"Diurnal adjustment: division by the trailing same-interval mean (mean) or standard deviation (s.d.); "
         r"$g$: the variance-stabilizing map; the volatility-demand series take $\operatorname{asinh}(u_{t,i} / "
         r"\kappa_{t,i})$ in place of both (Section~\ref{sec:rh_predictors}).",
@@ -2823,7 +2823,7 @@ def write_hyper(P: dict, TS: dict, LP: dict, NN: dict) -> None:
         # r"searched on a logarithmic scale.",
         # rf"$n_{{\min}}$ was selected on {n_(T['POOLED_WINDOW_ROWS'])} intervals and is rescaled to the "
         # rf"{n_(OUTLINE['perbar_window'])}-day window (rescaled value in parentheses).",
-        r"Panel B: the best trial of an Optuna search on the pooled intraday pre-sample "
+        r"Panel B: the best trial of an Optuna search on the intraday pre-sample "
         r"(\rhdmPooledWindow-interval window; random forest: trial \rhdmRfTrial{} of "
         r"\cmTreeProvRfTrials), ranked by MSE and then held fixed for both predictor sets; (log): "
         r"searched on a logarithmic scale.",
@@ -2971,7 +2971,7 @@ def write_hyper(P: dict, TS: dict, LP: dict, NN: dict) -> None:
     # body_b.append(r"\addlinespace")
     # body_b += nn_rows(f"Pooled intraday model ({pr['n']} configurations)", pr, q_keys)
     nn_panel = nn_rows(f"Closing-interval model ({q['n']} configurations)", q, q_keys)
-    nn_panel += nn_rows(f"Pooled intraday model ({pr['n']} configurations)", pr, q_keys)
+    nn_panel += nn_rows(f"Intraday model ({pr['n']} configurations)", pr, q_keys)
     check(
         len(nn_panel) == 2 + 2 * len(q_keys),
         "the parked network panel still builds (two models x six hyperparameters)",
@@ -3171,7 +3171,7 @@ def write_tuning(P: dict, TS: dict, NN: dict) -> None:
         #       f"{q['common']['val_tail']} / {q['common']['embargo']}", "QLIKE of the seed mean",
         #       str(len(q["seeds"]))]),
         r"\addlinespace",
-        panel_row("Panel B: Pooled intraday models (30-minute intervals)", 6),
+        panel_row("Panel B: Intraday models (30-minute intervals)", 6),
         nrow(
             [
                 "Ridge, Lasso, Elastic net",
@@ -3385,7 +3385,7 @@ def write_numbers(P: dict, D: dict, TS: dict, LP: dict) -> None:
     vals = {
         "rhdmNIntervals": (
             str(ppd),
-            "intraday intervals a day, M (half hours; the pooled intraday model)",
+            "intraday intervals a day, M (half hours; the intraday model)",
         ),
         "rhdmGridRows": (
             n_(P["grid"][2]),
@@ -3394,7 +3394,7 @@ def write_numbers(P: dict, D: dict, TS: dict, LP: dict) -> None:
         "rhdmBurnIn": (n_(P["burn"]), "burn-in intervals, the longest HAR horizon"),
         "rhdmPooledRows": (
             n_(P["pooled"][2]),
-            "pooled intraday sample, intervals after the burn-in",
+            "intraday sample, intervals after the burn-in",
         ),
         "rhdmPooledWindow": (
             n_(P["pooled_window"]),
@@ -3432,7 +3432,7 @@ def write_numbers(P: dict, D: dict, TS: dict, LP: dict) -> None:
         ),
         "rhdmNColsPooled": (
             n_(D["n_pooled"]),
-            "columns of the pooled intraday model's full predictor set",
+            "columns of the intraday model's full predictor set",
         ),
         "rhdmNSeriesPooled": (
             str(D["n_series_pooled"]),
@@ -3440,7 +3440,7 @@ def write_numbers(P: dict, D: dict, TS: dict, LP: dict) -> None:
         ),
         "rhdmNHorizonsPooled": (
             str(D["kq"]),
-            "HAR horizons, pooled intraday model (base 2)",
+            "HAR horizons, intraday model (base 2)",
         ),
         "rhdmNHorizonsClose": (
             str(D["k"]),

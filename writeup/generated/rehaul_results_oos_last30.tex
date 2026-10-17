@@ -10,7 +10,7 @@
 \toprule
  & \multicolumn{3}{c}{Last 30 minutes} \\
 \cmidrule(l){2-4}
-Model and predictor set & MSE & QLIKE & $R^2_{\mathrm{OOS}}$ (\%) \\
+Model and predictor set & MSE ($10^{-\rhoosMseExp}$) & QLIKE & $R^2_{\mathrm{OOS}}$ (\%) \\
 \midrule
 \multicolumn{4}{@{}l}{\textit{Panel A: Linear models}} \\
 \addlinespace[3pt]
@@ -46,7 +46,7 @@ Random forest \\
 \end{tabular*}
 \begin{tablenotes}[flushleft]
 \footnotesize
-\item \textit{Notes:} Rolling forecasts from \rhoosSpanStart{} to \rhoosSpanEnd{}, every forecast made with a model estimated on its trailing window only, so every forecast is out of sample; each is scored against the actual realized variance of the closing half hour, $\RV_t$, on the $T_{\mathrm{oos}} = \rhoosDays$ trading days on which every forecast of both training schemes exists, early closes dropped (Section~\ref{sec:rh_results_eval}). The span starts with the pooled intraday linear forecasts, on the first trading day after the pre-sample on which the penalties were selected (\cmPtValFirst{} to \cmPtValLast). MSE is the mean squared error $T_{\mathrm{oos}}^{-1}\sum_t (\RV_t - \hat\sigma^2_t)^2$, multiplied by $10^{\rhoosMseExp}$, and QLIKE the mean QLIKE loss. $R^2_{\mathrm{OOS}} = 1 - \sum_t (\RV_t - \hat\sigma^2_t)^2 / \sum_t (\RV_t - \overline{\RV}_{t-1})^2$, in percent, where the benchmark $\overline{\RV}_{t-1}$ is the historical mean of the closing-half-hour realized variance over all trading days from \rhoosBenchStart{} to day $t-1$ \citep{CampbellThompson2008}. All features is the full predictor set of Section~\ref{sec:rh_predictors}. Each model is estimated on the last 30 minutes of each trading day only (one observation per day); the OLS on the HAR benchmark is the benchmark forecast. Trees use fixed hyperparameters and are re-estimated daily (Section~\ref{sec:rh_exp_schemes}). The pooled intraday models on the same days are in Table~\ref{tab:rh_oos}.
+\item \textit{Notes:} Rolling forecasts from \rhoosSpanStart{} to \rhoosSpanEnd{}, every forecast made with a model estimated on its trailing window only, so every forecast is out of sample; each is scored against the actual realized variance of the closing half hour, $\RV_t$, on the $T_{\mathrm{oos}} = \rhoosDays$ trading days on which every forecast of both training schemes exists, early closes dropped (Section~\ref{sec:rh_results_eval}). The span starts with the intraday linear forecasts, on the first trading day after the pre-sample on which the penalties were selected (\cmPtValFirst{} to \cmPtValLast). The MSE entries are in units of $10^{-\rhoosMseExp}$: the printed number times $10^{-\rhoosMseExp}$ is the mean squared error $T_{\mathrm{oos}}^{-1}\sum_t (\RV_t - \hat\sigma^2_t)^2$. QLIKE is the mean QLIKE loss. $R^2_{\mathrm{OOS}} = 1 - \sum_t (\RV_t - \hat\sigma^2_t)^2 / \sum_t (\RV_t - \overline{\RV}_{t-1})^2$, in percent, where the benchmark $\overline{\RV}_{t-1}$ is the historical mean of the closing-half-hour realized variance over all trading days from \rhoosBenchStart{} to day $t-1$ \citep{CampbellThompson2008}. All features is the full predictor set of Section~\ref{sec:rh_predictors}. Each model is estimated on the last 30 minutes of each trading day only (one observation per day); the OLS on the HAR benchmark is the benchmark forecast. Trees use fixed hyperparameters and are re-estimated daily (Section~\ref{sec:rh_exp_schemes}). The intraday models on the same days are in Table~\ref{tab:rh_oos}.
 \end{tablenotes}
 \end{threeparttable}
 \end{table}

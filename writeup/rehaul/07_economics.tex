@@ -50,6 +50,7 @@
   over strikes with live quotes. If $K_C = K_P = S_t$ the package is an at-the-money straddle; otherwise it is a
   strangle on the two strikes adjacent to $S_t$. We call both the straddle: a position that is approximately
   delta-neutral at entry, entered at 15:30 ET and held, not hedged, to expiration.
+\editc{blue}{E18}{Decision: name the two prices and the day filter, both of which change $R_t$. $S_t$ is ``the index'' at 15:30 and $S^{\mathrm{close}}_t$ is ``the official close.'' The variance forecast is ES futures realized variance over 15:30--16:00, so the strike can be on the cash index while $\RV_t$ is on the futures. ``Live quotes'' is undefined. A comment under this item drops a day when $\max(K_C-S_t,S_t-K_P)>10$ or fewer than 10 contracts are quoted; that filter is not in the live text. The implied-volatility bullet sets $\mathrm{IV}_t=(\mathrm{IV}^C_t+\mathrm{IV}^P_t)/(2\sqrt{2})$ and says the quote is per hour. The code also censors vendor solver nodes and discards the 16:00 stamp. An annualized Black--Scholes quote would not be divided by $\sqrt{2}$.}
 % Code: notebooks/atm_straddle_lib.py:1591-1661. A day is dropped if max(K_C - S, S - K_P) > 10 or fewer than 10
 % contracts are live at the stamp.
 \item \textbf{Entry prices:} at the mid-quote, $P_t$, and at the quoted bid and ask of the package, $P^{b}_t$ and
@@ -116,6 +117,7 @@
   scale $\mathrm{MAD}_t$, so every sizing rule, the sign strategy included, is evaluated on the remaining \rheSzDays{} trading
   % 2026-10-15 (user): parked -- "park all tables that I haven't mentioned in this chat". Was: days, $t > \rheSzWarmup$ (Table~\ref{tab:rh_econ_sizing}).
   days, $t > \rheSzWarmup$.
+\editc{red}{E17}{Decision: one sample in both bullets. This item puts every rule, ``the sign strategy included,'' on the $\rheSzDays$ days with $t>\rheSzWarmup$. The Sharpe bullet writes $\SR=\sqrt{252}\,\bar r/\mathrm{sd}(r)$ with the sum in $\mathrm{sd}(r)^2$ running over $t\in\mathcal T_{\mathrm{opt}}$, $T_{\mathrm{opt}}=\cmNdays$, and mentions the $\rheSzDays$ days only as the sample ``for the sizing rules.'' If the printed sign-strategy Sharpe uses all $\cmNdays$ days, delete ``the sign strategy included'' here. If it uses the $\rheSzDays$ days, the sum in the Sharpe bullet has to run over those days.}
 \item \textbf{Execution:} at the mid-quote, $r_t = q_t R_t$. At quoted bid/ask prices a purchase pays the ask and a
   sale receives the bid; the spread is paid at entry only, since settlement is in cash:
   \[
@@ -141,13 +143,15 @@
   \qquad
   \mathrm{sd}(r)^2 = \frac{1}{T_{\mathrm{opt}}-1}\sum_{t \in \mathcal T_{\mathrm{opt}}}\bigl(r_t - \bar r\bigr)^2 .
   \]
+  The other \rhoosNonOptDays{} days of $\mathcal T_{\mathrm{oos}}$ enter forecast accuracy only.
   The risk-free return over the half-hour holding period is negligible and is not subtracted.
 % Code: master_table_close.py:1186-1187; sqrt(252) = ANN (atm_straddle_lib.py:109). The trade runs about 200 days
 % a year, so a calendar-time Sharpe would be about 0.89 times this.
 % 2026-10-16 (formula pass): parked -- the t-statistic repeated Statistical tests, with |O| written as T_opt and
 % the lag formula written out again. Was:
 % t = bar r / sqrt(Omega_r / T_opt), q_NW = floor(1.5 T_opt^{1/3}) = \fqsHACLag.
-\item \textbf{Mean return and its HAC $t$-statistic:} the statistic of Section~\ref{sec:rh_methods_tests} on
+\item \textbf{Mean return and its HAC $t$-statistic:} the statistic of Appendix~\ref{sec:rh_methods_tests} on
+  % 2026-10-16 (user): parked -- "Section" ; the tests moved to the appendix.
   $r_t$, with $|\mathcal O| = T_{\mathrm{opt}}$ and $q_{\mathrm{NW}} = \fqsHACLag$.
 % Code: newey_west_t (atm_straddle_lib.py:1234-1261) divides gamma_j by n, not n - j as dm_test does; no HLN factor.
 \item \textbf{Hit rate} $\frac{1}{T_{\mathrm{opt}}}\sum_{t \in \mathcal T_{\mathrm{opt}}} \mathbf{1}\{r_t > 0\}$;
@@ -159,7 +163,8 @@
   \]
   % 2026-10-16 (formula pass): parked -- t_HAC = bar Delta / sqrt(Omega_Delta / T_opt) repeated the HAC
   % t-statistic of Statistical tests. The lag q_NW = \fqsHACLag is that section's lag on T_opt.
-  The HAC $t$-statistic of Section~\ref{sec:rh_methods_tests} on $\Delta_t$ tests the mean return differential, not
+  The HAC $t$-statistic of Appendix~\ref{sec:rh_methods_tests} on $\Delta_t$ tests the mean return differential, not
+  % 2026-10-16 (user): parked -- "Section" ; the tests moved to the appendix.
   the equality of the two Sharpe ratios \citep{LedoitWolf2008}.
 % Code: master_table_close.py:1306-1312. The HAC t is on mid returns only, and it tests the mean difference, not
 % the Sharpe difference.
@@ -251,8 +256,8 @@
 %     negative for \rheTailNeg{} of the \cmMasterN{} forecasts;
 %   \item days on which the package expires worthless ($R_t = -1$, settlement pins) supply most of the return.
 %   \end{itemize}
-\item \textbf{Sign strategies of the pooled intraday models versus the short-straddle benchmark} (point estimates):
-  $\Delta\SR > 0$ for all \rhrPoolN{} pooled intraday forecasts.
+\item \textbf{Sign strategies of the intraday models versus the short-straddle benchmark} (point estimates):
+  $\Delta\SR > 0$ for all \rhrPoolN{} intraday forecasts.
   \begin{itemize}
   \item \rhrPoolShortSig{} of the gains are significant at the 5\% level (HAC $t$-statistic on the daily return
     differential), all three on the full predictor set: LightGBM ($t = \rhrVsShortLgbmPoolFullT$), XGBoost
@@ -274,7 +279,7 @@
   \item the gain is economically large but not significant at the 5\% level in any class (HAC $t$-statistic on the
     daily return differential).
   \end{itemize}
-\item \textbf{Position sizing,} median $\SR$ at mid-quotes across the \rhrPoolN{} pooled intraday forecasts: sign
+\item \textbf{Position sizing,} median $\SR$ at mid-quotes across the \rhrPoolN{} intraday forecasts: sign
   strategy \rhrPoolSzSignMed, robust clip \rhrPoolSzClipMed, rank \rhrPoolSzRankMed.
   \begin{itemize}
   \item $\SR^{\mathrm{clip}} > \SR^{\mathrm{sign}}$ for \rhrPoolSzClipBeats{} of the \rhrPoolN{} forecasts (point
@@ -283,7 +288,7 @@
 \item \textbf{The value is concentrated in a few days}:
   \begin{itemize}
   \item without its \rheTopDays{} best days, the mean return differential over the short-straddle benchmark,
-    $\bar\Delta$, is negative for all \rhrPoolN{} pooled intraday forecasts;
+    $\bar\Delta$, is negative for all \rhrPoolN{} intraday forecasts;
   \item days on which the package expires worthless ($R_t = -1$, settlement pins) supply most of the return.
   \end{itemize}
 % 2026-10-15 (user): "on T_opt" added -- both the loss and the Sharpe ratio are on the option-data subsample here (the
@@ -362,7 +367,7 @@
     % 2026-10-15 (user): Table 1 split; was "accuracy in Table~\ref{tab:rh_oos}, columns ``Last 30 minutes''."
   \end{itemize}
 \item \textbf{Training on the last 30 minutes lowers average QLIKE further,} in every model class and on both
-  predictor sets: the pooled intraday model's average QLIKE exceeds that of the closing-interval model of the same
+  predictor sets: the intraday model's average QLIKE exceeds that of the closing-interval model of the same
   class, $\Delta\% = 100\bigl(\bar L^{\mathrm{pool}}/\bar L^{\mathrm{close}} - 1\bigr) > 0$, with
   $\bar L^{\mathrm{pool}}$ and $\bar L^{\mathrm{close}}$ the average losses of $f_{m,\mathcal X,\{1,\dots,M\}}$ and
   $f_{m,\mathcal X,\{c\}}$:
@@ -380,7 +385,7 @@
   \rhrAfLassoClosePval).
   \begin{itemize}
   \item Across the \rhrAfPairs{} predictor-set pairs of the model set (\fqsPairsTree{} tree and
-    \fqsPairsPerBarLinear{} linear specifications trained on the last 30 minutes, \fqsPairsPooled{} pooled intraday),
+    \fqsPairsPerBarLinear{} linear specifications trained on the last 30 minutes, \fqsPairsPooled{} intraday),
     it lowers average QLIKE in \rhrAfLower, \rhrAfLowerSig{} of them significantly.
   \end{itemize}
 \item \textbf{The most accurate forecasts of the paper} are closing-interval models on the full predictor set:
@@ -410,7 +415,7 @@
   \item The highest Sharpe ratio of the model set: the elastic net on the full predictor set, $\SR = \rheEnetSh$ at
     mid-quotes and \rheEnetShX{} at quoted bid/ask prices, its gain over the short-straddle benchmark significant at
     the 5\% level (HAC $t = \rheEnetT$); the lasso on the full predictor set: \rheLassoSh{} and \rheLassoShX. Both
-    exceed every pooled intraday forecast ($\SR \le \rhrPoolShFullMax$ at mid-quotes).
+    exceed every intraday forecast ($\SR \le \rhrPoolShFullMax$ at mid-quotes).
   \item LightGBM, the best of its specifications by $\SR$ on $\mathcal T_{\mathrm{opt}}$ (an ex post selection):
     \cmNlBestSh.
   \item Full predictor set minus HAR benchmark: $\Delta\SR = \rheAfEnetDSh$ (elastic net) and \rheAfLassoDSh{}
@@ -419,7 +424,7 @@
   \item Against the short-straddle benchmark, $\Delta\SR > 0$ for \cmMasterVsShortAbove{} of the
     \cmMasterVsShortN{} forecasts of the model set; \rheSigVsShort{} of the gains are significant at the 5\% level,
     all of them with the full predictor set.
-  \item None of the differences in $\SR$ between the pooled intraday and the closing-interval model of the same
+  \item None of the differences in $\SR$ between the intraday and the closing-interval model of the same
     class is significant at the 5\% level (HAC $t$-statistic on the daily return differential,
     $q_{\mathrm{NW}} = \fqsHACLag$).
   \end{itemize}

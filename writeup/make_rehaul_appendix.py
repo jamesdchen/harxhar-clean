@@ -966,8 +966,8 @@ LADDER_PANEL = dict(  # -> the guide's; the change a panel's rows share is in it
     zip(
         _LP,
         (
-            r"Earlier draft's model: block-penalized $\to$ single-penalty ridge, pooled intraday",
-            r"Ridge: pooled intraday $\to$ closing-interval",
+            r"Earlier draft's model: block-penalized $\to$ single-penalty ridge, intraday",
+            r"Ridge: intraday $\to$ closing-interval",
             r"Closing-interval ridge: predictor set",
             r"Full predictor set: ridge $\to$ other model (trees re-estimated every 10 days)",
             r"Dropping the \rhappNsessionEdge{} duplicated HAR interactions",
@@ -1739,7 +1739,7 @@ def mingru_dev() -> None:
     panels = [
         ("Closing-interval models", [vrow(lab, v) for lab, v in CHAIN]),
         (
-            "Pooled intraday models, evaluated at the closing interval",
+            "Intraday models, evaluated at the closing interval",
             [
                 vrow(r"(7) Weight decay $\nu$, selected per block", POOLED_B),
                 vrow(
@@ -1833,7 +1833,7 @@ def mingru_all() -> None:
             ],
         ),
         (
-            "Pooled intraday models, evaluated at the closing interval",
+            "Intraday models, evaluated at the closing interval",
             [
                 (rf"{nu} = {w}$", variant(v_po(f"MinGRU pooled wd{w}")))
                 for w in ("0", "0.01", "0.03", "0.1", "0.3", "1")

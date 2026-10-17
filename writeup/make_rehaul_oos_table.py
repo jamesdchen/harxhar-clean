@@ -6,7 +6,7 @@ qlike, and OOS R2 as subcolumns. it needs to be grouped by model with each data 
 table to be a full page"
 
 LAYOUT
-  Columns: Model / predictor set | Last 30 minutes (closing-interval models): MSE, QLIKE, R2_OOS | Pooled intraday
+  Columns: Model / predictor set | Last 30 minutes (closing-interval models): MSE, QLIKE, R2_OOS | Intraday
   models: MSE, QLIKE, R2_OOS.  Rows: Panel A linear models (OLS, Ridge, Lasso, Elastic net), Panel B tree ensembles
   (LightGBM, XGBoost, Random forest); under each model one row per predictor set, nested HAR benchmark (baseline)
   < parsimonious set (lean_vol_vix) < retail-feed set (live_feasible) < full predictor set (all_features); the OLS has
@@ -25,7 +25,7 @@ SPECIFICATIONS OF RECORD (= tab:rh_axis1 / tab:rh_axis2, writeup/make_rehaul_res
   Missing (no forecast of the specification of record exists): every live_feasible linear and pooled forecast (the
   pre-tuned linear arms were stacked for baseline / lean_vol_vix / all_features only, stack_pretune_yhat.BUCKETS; no
   pooled walk ran on live_feasible) and the OLS on every set but the HAR benchmark.  They print as "--".
-  The block-penalized ridge (blk2, blk2_inc) is left out: it exists only as the earlier draft's pooled intraday
+  The block-penalized ridge (blk2, blk2_inc) is left out: it exists only as the earlier draft's intraday
   forecast on its full predictor set, with no closing-interval twin and no other predictor set (T1 and T2 leave it out
   too; it enters only the ranking, tab:rh_rank).
 
@@ -129,7 +129,7 @@ PRELIM = {
 
 
 def model_rows() -> list[tuple[str, str, dict[str, str | None], dict[str, str | None]]]:
-    """(model, panel, closing-interval key per set, pooled intraday key per set); None = no forecast."""
+    """(model, panel, closing-interval key per set, intraday key per set); None = no forecast."""
     rows: list[tuple[str, str, dict[str, str | None], dict[str, str | None]]] = [
         ("OLS", LIN, {"baseline": OLS}, {"baseline": "a0"})
     ]
@@ -340,8 +340,8 @@ SIDE_SPEC = {  # 2026-10-15 (user): Table 1 split -- pooled intraday in Experime
     "pool": dict(
         out="rehaul_results_oos.tex",
         label="tab:rh_oos",
-        caption="Forecast accuracy of the pooled intraday models",
-        head="Pooled intraday",
+        caption="Forecast accuracy of the intraday models",
+        head="Intraday",
     ),
     "close": dict(
         out="rehaul_results_oos_last30.tex",
@@ -389,10 +389,13 @@ def table_side(rows: list[dict], side: str) -> str:
         "against the actual realized variance of the closing half hour, $\\RV_t$, on the $T_{\\mathrm{oos}} = "
         "\\rhoosDays$ trading days on which every forecast of both training schemes exists, early closes dropped "
         "(Section~\\ref{sec:rh_results_eval}). "
-        "The span starts with the pooled intraday linear forecasts, on the first trading day after the pre-sample on "
+        "The span starts with the intraday linear forecasts, on the first trading day after the pre-sample on "
         "which the penalties were selected (\\cmPtValFirst{} to \\cmPtValLast). "
-        "MSE is the mean squared error $T_{\\mathrm{oos}}^{-1}\\sum_t (\\RV_t - \\hat\\sigma^2_t)^2$, multiplied by "
-        "$10^{\\rhoosMseExp}$, and QLIKE the mean QLIKE loss. "
+        # 2026-10-16 (user): the column states the units. Was: "MSE is the mean squared error ..., multiplied by
+        # $10^{\\rhoosMseExp}$, and QLIKE the mean QLIKE loss."
+        "The MSE entries are in units of $10^{-\\rhoosMseExp}$: the printed number times $10^{-\\rhoosMseExp}$ is "
+        "the mean squared error $T_{\\mathrm{oos}}^{-1}\\sum_t (\\RV_t - \\hat\\sigma^2_t)^2$. "
+        "QLIKE is the mean QLIKE loss. "
         "$R^2_{\\mathrm{OOS}} = 1 - \\sum_t (\\RV_t - \\hat\\sigma^2_t)^2 / \\sum_t (\\RV_t - \\overline{\\RV}_{t-1})^2$, "
         "in percent, where the benchmark $\\overline{\\RV}_{t-1}$ is the historical mean of the closing-half-hour "
         "realized variance over all trading days from \\rhoosBenchStart{} to day $t-1$ \\citep{CampbellThompson2008}. "
@@ -404,15 +407,15 @@ def table_side(rows: list[dict], side: str) -> str:
             "Table~\\ref{tab:rh_oos_last30} (Section~\\ref{sec:rh_econ_last30})."
         )
         marks = [
-            "\\item[a] The earlier draft's pooled intraday specification.",
-            "\\item[$\\dagger$] Preliminary: the closing-interval forecasts of the pooled intraday random forest on "
+            "\\item[a] The earlier draft's intraday specification.",
+            "\\item[$\\dagger$] Preliminary: the closing-interval forecasts of the intraday random forest on "
             "all features, from an exercise still in progress.",
         ]
     else:
         notes = common + (
             "Each model is estimated on the last 30 minutes of each trading day only (one observation per day); the "
             "OLS on the HAR benchmark is the benchmark forecast. Trees use fixed hyperparameters and are re-estimated "
-            "daily (Section~\\ref{sec:rh_exp_schemes}). The pooled intraday models on the same days are in "
+            "daily (Section~\\ref{sec:rh_exp_schemes}). The intraday models on the same days are in "
             "Table~\\ref{tab:rh_oos}."
         )
         marks = []
@@ -432,7 +435,7 @@ def table_side(rows: list[dict], side: str) -> str:
             "\\toprule",
             f" & \\multicolumn{{3}}{{c}}{{{spec['head']}}} \\\\",
             "\\cmidrule(l){2-4}",
-            "Model and predictor set & MSE & QLIKE & $R^2_{\\mathrm{OOS}}$ (\\%) \\\\",
+            "Model and predictor set & MSE ($10^{-\\rhoosMseExp}$) & QLIKE & $R^2_{\\mathrm{OOS}}$ (\\%) \\\\",
             "\\midrule",
             *body,
             "\\bottomrule",
@@ -493,7 +496,7 @@ def table(rows: list[dict]) -> str:
         "against the actual realized variance of the closing half hour, $\\RV_t$, on the $T_{\\mathrm{oos}} = "
         "\\rhoosDays$ trading days on which every forecast in the table exists, early closes dropped "
         "(Section~\\ref{sec:rh_results_eval}). "
-        "The span starts with the pooled intraday linear forecasts, on the first trading day after the pre-sample on "
+        "The span starts with the intraday linear forecasts, on the first trading day after the pre-sample on "
         "which the closing-interval penalties were selected (\\cmPtValFirst{} to \\cmPtValLast); the straddle "
         "economics use its option-data subsample of \\rhrDays{} days (Section~\\ref{sec:rh_econ}). "
         "MSE is the mean squared error $T_{\\mathrm{oos}}^{-1}\\sum_t (\\RV_t - \\hat\\sigma^2_t)^2$, multiplied by "
@@ -520,7 +523,7 @@ def table(rows: list[dict]) -> str:
         [
             HEAD,
             "% tab:rh_oos: out-of-sample MSE, QLIKE and Campbell-Thompson R2_OOS of every model x predictor set, closing-",
-            "% interval (last 30 minutes) and pooled intraday.  Keys per cell: the generator's model_rows(); the",
+            "% interval (last 30 minutes) and intraday.  Keys per cell: the generator's model_rows(); the",
             "% MSE scale and the R2 benchmark's start are \\rhoos... macros of rehaul_oos_numbers.tex.",
             "\\begin{table}[p]",
             "\\centering",
@@ -530,7 +533,7 @@ def table(rows: list[dict]) -> str:
             "\\label{tab:rh_oos}",
             "\\begin{tabular*}{\\linewidth}{@{\\extracolsep{\\fill}}lrrrrrr@{}}",
             "\\toprule",
-            " & \\multicolumn{3}{c}{Last 30 minutes} & \\multicolumn{3}{c}{Pooled intraday} \\\\",
+            " & \\multicolumn{3}{c}{Last 30 minutes} & \\multicolumn{3}{c}{Intraday} \\\\",
             "\\cmidrule(lr){2-4}\\cmidrule(l){5-7}",
             "Model and predictor set & MSE & QLIKE & $R^2_{\\mathrm{OOS}}$ (\\%) & MSE & QLIKE & "
             "$R^2_{\\mathrm{OOS}}$ (\\%) \\\\",
@@ -541,8 +544,8 @@ def table(rows: list[dict]) -> str:
             "\\begin{tablenotes}[flushleft]",
             "\\footnotesize",
             notes,
-            "\\item[a] The earlier draft's pooled intraday specification.",
-            "\\item[$\\dagger$] Preliminary: the closing-interval forecasts of the pooled intraday random forest on "
+            "\\item[a] The earlier draft's intraday specification.",
+            "\\item[$\\dagger$] Preliminary: the closing-interval forecasts of the intraday random forest on "
             "all features, from an exercise still in progress.",
             "\\end{tablenotes}",
             "\\end{threeparttable}",

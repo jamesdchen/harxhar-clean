@@ -57,21 +57,25 @@
 \item \textbf{Evaluation span} $\mathcal T_{\mathrm{oos}}$ (Section~\ref{sec:rh_results_eval}): the rolling forecasts
   from \rhoosSpanStart{} to \rhoosSpanEnd, $T_{\mathrm{oos}} = |\mathcal T_{\mathrm{oos}}| = \rhoosDays$ trading
   days, every trading day on which all forecasts exist (\rhoosEarlyCloses{} early-close days dropped). It starts
-  with the pooled intraday linear forecasts, after the pre-sample on which the linear models' penalties are selected
+  with the intraday linear forecasts, after the pre-sample on which the linear models' penalties are selected
   (\cmPtValFirst{} to \cmPtValLast).
-\item \textbf{Option-data subsample} $\mathcal T_{\mathrm{opt}} \subset \mathcal T_{\mathrm{oos}}$: the
-  $T_{\mathrm{opt}} = \rhrDays$ days with a same-day SPXW expiration (Section~\ref{sec:rh_data}), on which the straddle
-  economics of Section~\ref{sec:rh_econ} are evaluated; the other \rhoosNonOptDays{} days enter forecast accuracy only.
+% 2026-10-16 (user): parked -- option-data subsample removed from Experimental setup. The set is defined in Data
+% (sec:rh_data); the other \rhoosNonOptDays{} days enter forecast accuracy only, now in Economic value
+% (sec:rh_econ_measures). Was:
+% \item \textbf{Option-data subsample} $\mathcal T_{\mathrm{opt}} \subset \mathcal T_{\mathrm{oos}}$: the
+%   $T_{\mathrm{opt}} = \rhrDays$ days with a same-day SPXW expiration (Section~\ref{sec:rh_data}), on which the straddle
+%   economics of Section~\ref{sec:rh_econ} are evaluated; the other \rhoosNonOptDays{} days enter forecast accuracy only.
 % 2026-10-15 (user): parked -- last-30-min scheme moved to the end of the economics section (sec:rh_econ_last30);
 % the pooled intraday scheme is the training scheme of this section, and the last-30-minutes scheme keeps one line
 % (the benchmark forecast, below). Was:
 % \item \textbf{Closing-interval scheme:} the last 30 minutes of each trading day; $W = \cmPtFitWin$ trading days.
 % \item \textbf{Pooled intraday scheme:} all $M = \rhdmNIntervals$ intervals of each day; $W = \rhdmPooledWindow$
 %   intervals for the trees and $\rhdmPooledLinWindow$ for the linear models.
-\item \textbf{Training scheme:} pooled intraday, all $M = \rhdmNIntervals$ intervals of each day;
+\item \textbf{Training scheme:} intraday, all $M = \rhdmNIntervals$ intervals of each day;
   $W = \rhdmPooledWindow$ intervals for the trees and $\rhdmPooledLinWindow$ for the linear models. On the full
   predictor set, the pooled LightGBM and XGBoost are the earlier draft's specification and the pooled random forest
   is preliminary (Table~\ref{tab:rh_oos}).
+  \editc{orange}{E15}{Decision: attach each accuracy row to the configuration that produced it. Section~\ref{sec:rh_exp_schemes} says the intraday trees use one configuration, never re-selected, re-estimated every interval, on $W=\rhdmPooledWindow$. Table~\ref{tab:rh_dm_hyper} prints that configuration (LightGBM $J$, $\eta$, $B$, $n_{\min}$; XGBoost depth, $\eta$, $B$; the random-forest trial). This bullet says the full-predictor-set LightGBM and XGBoost rows of Table~\ref{tab:rh_oos} are an earlier draft and the random forest is preliminary. Note (a) of that table also marks the intraday OLS on the HAR benchmark. The earlier draft's $J$, $\eta$, $B$, and $n_{\min}$ are not in Table~\ref{tab:rh_dm_hyper}, so those QLIKE cells are not the losses of the printed configuration.}
   % 2026-10-15 (finish): FLAG resolved -- typed 96{,}000 -> \rhdmPooledLinWindow (make_rehaul_data_methods.py, same value).
   % 2026-10-15 (user, restructure): the flags of Table tab:rh_oos (note a, dagger) restated, as these forecasts now
   % carry the main results (make_rehaul_results.py: EARLIER_POOLED_FULL, INTERIM).
@@ -82,10 +86,15 @@
 % 2026-10-15 (user): parked -- the lags without their samples. Was: "Diebold--Mariano tests with the
 % Harvey--Leybourne--Newbold correction ($q_{\mathrm{NW}} = \fqsDMLag$) and HAC $t$-statistics ($q_{\mathrm{NW}} =
 % \fqsHACLag$), each with ..."
+% 2026-10-16 (user): parked -- the straddle HAC clause. The lag on $\mathcal T_{\mathrm{opt}}$ is in Economic value
+% (sec:rh_econ_measures). Was: "... and HAC $t$-statistics of straddle returns ($q_{\mathrm{NW}} = \fqsHACLag$ on
+% $\mathcal T_{\mathrm{opt}}$), each with a Newey--West long-run variance ..."
 \item \textbf{Loss and tests:} QLIKE against the actual realized variance (Section~\ref{sec:rh_results_eval});
   Diebold--Mariano tests with the Harvey--Leybourne--Newbold correction ($q_{\mathrm{NW}} = \rhoosDMLag$ on
-  $\mathcal T_{\mathrm{oos}}$) and HAC $t$-statistics of straddle returns ($q_{\mathrm{NW}} = \fqsHACLag$ on
-  $\mathcal T_{\mathrm{opt}}$), each with a Newey--West long-run variance (Section~\ref{sec:rh_methods_tests}).
+  $\mathcal T_{\mathrm{oos}}$), with a Newey--West long-run
+  variance.\footnote{These results have a more rigorous statistical analysis in Appendix~\ref{sec:rh_methods_tests}.}
+  % 2026-10-16 (user): the parenthetical section pointer became the footnote above. Was:
+  % "(Section~\ref{sec:rh_methods_tests})."
   % 2026-10-15 (user): the lag values moved here from Methods (Forecast evaluation and Statistical tests, numbers
   % removed there); pointer to Forecast evaluation added. Was: "QLIKE against the actual realized variance;
   % Diebold--Mariano tests with the Harvey--Leybourne--Newbold correction and HAC $t$-statistics
@@ -107,7 +116,7 @@ Full implementation details are in Appendix~\ref{app:rh_impl}.
 % minutes) and the pooled intraday estimation samples, over the same \rhoosDays{} trading days of the evaluation span
 % $\mathcal T_{\mathrm{oos}}$."
 \item \textbf{Overview:} Table~\ref{tab:rh_oos} reports the out-of-sample MSE, average QLIKE and $R^2_{\mathrm{OOS}}$
-  of every pooled intraday model, on the HAR benchmark and on all features, over the
+  of every intraday model, on the HAR benchmark and on all features, over the
   \rhoosDays{} trading days of the evaluation span $\mathcal T_{\mathrm{oos}}$. The same statistics for the models
   trained on the last 30 minutes, whose OLS on the HAR benchmark is the benchmark forecast, are in
   Table~\ref{tab:rh_oos_last30} (Section~\ref{sec:rh_econ_last30}).
@@ -247,7 +256,7 @@ Full implementation details are in Appendix~\ref{app:rh_impl}.
 % 2026-10-15 (user): parked -- last-30-min scheme moved to the end of the economics section; the comparison is now
 % within the pooled intraday scheme. Was: "... the same model $m$ and estimation sample $\mathcal I$ on the two
 % predictor sets, ... the loss of the forecast $f_{m,\mathcal X,\mathcal I}$:"
-\item \textbf{Paired comparison} within each model class: the same pooled intraday model $m$
+\item \textbf{Paired comparison} within each model class: the same intraday model $m$
   ($\mathcal I = \{1, \dots, M\}$) on the two predictor sets, $d_t = L^{\text{Full}}_t - L^{\text{HAR}}_t$, with
   % 2026-10-15 (user): parked -- "park all tables that I haven't mentioned in this chat". Was: $f_{m,\mathcal X,\mathcal I}$ (Table~\ref{tab:rh_axis1}):
   $L^{\mathcal X}_t$ the loss of the forecast $f_{m,\mathcal X,\{1,\dots,M\}}$. $\Delta\%$ is the relative loss of
@@ -292,6 +301,7 @@ Full implementation details are in Appendix~\ref{app:rh_impl}.
   predictor set raises the annualized Sharpe ratio of the sign strategy at mid-quotes in all \rhrAfPoolPairs{}
   classes, by \rhrAfPoolDShMin{} to \rhrAfPoolDShMax, none significantly (HAC $t$-statistic on the
   daily return differential, Newey--West, $q_{\mathrm{NW}} = \fqsHACLag$; Section~\ref{sec:rh_econ_results}).
+\editc{orange}{E16}{Decision: move ``none significantly'' onto the mean return, or cite a Sharpe test. The bullet says the full predictor set raises the sign-strategy Sharpe in all \rhrAfPoolPairs{} classes, by \rhrAfPoolDShMin{} to \rhrAfPoolDShMax, ``none significantly,'' and the parenthetical is a HAC $t$ on the daily return differential with $q_{\mathrm{NW}}=\fqsHACLag$. Section~\ref{sec:rh_econ_measures} says that $t$ tests the mean of $\Delta_t=r^A_t-r^B_t$, and that it does not test $\SR(r^A)-\SR(r^B)$. The sentence as written reports a Sharpe comparison and a mean-return test.}
 % 2026-10-15 (user): parked -- last-30-min scheme moved to the end of the economics section; the model-set MSE count
 % and the closing-interval squared-error bullets are in sec:rh_econ_last30; the pooled counts replace them here. Was:
 % \item \textbf{Squared-error loss disagrees:} the full predictor set raises the MSE in \rhrAfMseHigher{} of the
@@ -412,7 +422,7 @@ Full implementation details are in Appendix~\ref{app:rh_impl}.
 % "Pooled intraday"): the ranking among them and their comparison with the benchmark forecast; every claim asserted in
 % make_rehaul_results.py (the pooled-only \rhrPoolQ..., \rhrVsBmPool... macros).
 \begin{itemize}
-\item \textbf{The linear models are the most accurate pooled intraday forecasts on each predictor set}
+\item \textbf{The linear models are the most accurate intraday forecasts on each predictor set}
   (Table~\ref{tab:rh_oos}):
   \begin{itemize}
   \item full predictor set: average QLIKE \rhrPoolQLinFullMin--\rhrPoolQLinFullMax{} for the linear models (elastic
@@ -421,7 +431,7 @@ Full implementation details are in Appendix~\ref{app:rh_impl}.
   \item HAR benchmark: \rhrPoolQLinHarMin--\rhrPoolQLinHarMax{} for the linear models and
     \rhrPoolQTreeHarMin--\rhrPoolQTreeHarMax{} for the trees, the least accurate pooled forecasts.
   \end{itemize}
-\item \textbf{Every pooled intraday forecast has a higher average QLIKE than the benchmark forecast}
+\item \textbf{Every intraday forecast has a higher average QLIKE than the benchmark forecast}
   ($\overline{\QLIKE} = \rhrOlsQ$; $\Delta\%$ and $\DM$ against it):
   \begin{itemize}
   \item full predictor set: linear models $+\rhrVsBmPoolLinFullPctMin$ to $+\rhrVsBmPoolLinFullPctMax\%$, none

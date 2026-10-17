@@ -50,7 +50,7 @@
       \mathcal{K} =
       \begin{cases}
         \{1, 5, 25, 125, 625, 3125\} & \text{closing-interval model},\\
-        \{2^0, 2^1, \dots, 2^{11}\} \ \text{(base 2, \rhdmNHorizonsPooled{} horizons)} & \text{pooled intraday model}.
+        \{2^0, 2^1, \dots, 2^{11}\} \ \text{(base 2, \rhdmNHorizonsPooled{} horizons)} & \text{intraday model}.
       \end{cases}
     \]
   \item $k$ counts intervals of the full intraday grid, overnight included; the closing-interval model uses the
@@ -61,6 +61,7 @@
     % 198-209). sections/data_prep.tex eq:dp_har writes base 2 for the per-bar ladder: wrong, it is base 5.
   \item The same averages of the availability indicator, $\bar a^{(k)}_{t,i}$.
   \item Averages of an activity indicator, $\bar\chi^{(k)}_{t,i}$, for 7 zero-inflated series.
+  \editc{red}{E6}{Decision: one rule and one count. This bullet builds $\bar\chi^{(k)}_{t,i}$ for a typed 7 ``zero-inflated'' series. The transformation list builds $\chi_{t,i}=\mathbf{1}\{u_{t,i}\ne\operatorname{mode}(u)\}$ for the $\rhdmNActive$ series whose full-sample mode is at least 20\% of intervals. A mass at zero and a mode share of 20\% are different sets. The intraday column count uses $\rhdmNActivePooled$, a third count.}
   \item Names in tables and figures: the bar and the interval index are dropped ($i = c$ in the closing-interval
     model), so $u^{(k)}_t$ is series $u$ averaged over $k$ intervals; e.g.\ $\mathrm{VIX}^{(25)}_t$ is the
     transformed VIX averaged over the 25 intervals ending at 15:30 on day $t$. Series symbols: $\mathrm{VIX}$,
@@ -84,6 +85,7 @@
   \item At the closing interval, four of the 16 dummies (hour, overnight, opening and closing interval) are constant,
     and the quadruple-witching closing-auction dummy equals the quadruple-witching dummy, so the column screen below
     drops these five at every estimation of the closing-interval model.
+    \editc{blue}{E9}{Decision: name the $\rhdmNCalendar$ dummies and write the interaction. The count splits them into 5 day-of-week, 4 time-of-day, and 7 expiration, month, and quarter. Prose names day of week, monthly expiration, quadruple witching, month end, and quarter end. This item names the five dropped at the close: hour, overnight, opening interval, closing interval, and the quadruple-witching closing-auction dummy. The other members of the 7 are still ``and others.'' The $\rhdmNEdgePooled$ columns are ``HAR components times the opening- and closing-interval dummies,'' with no product and no clock time for the opening dummy.}
     % 2026-10-15 (user): parked -- Table 3 (tab:rh_dm_design) is parked. Was:
     % drops these five at every estimation of the closing-interval model (Table~\ref{tab:rh_dm_design}).
   \end{itemize}
@@ -145,15 +147,26 @@
   % U_{t,i} = {tilde u_{t,i-j} : j = 1, ..., 240}.
   \item winsorization at the same rolling quantiles as the target (Section~\ref{sec:rh_methods_setup}), on the
     series' own preceding intervals;
-  \item imputation of missing values by the full-sample median, kept alongside the availability indicator:
+  \item imputation of a missing value by the median of the series' observed values on earlier intervals,
+    kept alongside the availability indicator:
     \[
       \tilde u_{t,i} \leftarrow
       \begin{cases}
         \tilde u_{t,i}, & a_{t,i} = 1,\\
-        \operatorname{med}\{\tilde u_{t',i'} : a_{t',i'} = 1\}, & a_{t,i} = 0;
+        \operatorname{med}\mathcal{A}_{t,i}, & a_{t,i} = 0,\ \mathcal{A}_{t,i} \ne \emptyset,\\
+        \tilde u_{(1)}, & a_{t,i} = 0,\ \mathcal{A}_{t,i} = \emptyset,
       \end{cases}
     \]
-    % executor.py:602-608.
+    \begin{itemize}
+    \item $\mathcal{A}_{t,i} = \{\tilde u_{t',i'} : (t',i') \prec (t,i),\ a_{t',i'} = 1\}$, where
+      $(t',i') \prec (t,i)$ means $(t',i')$ is a retained interval earlier than $(t,i)$.
+    \item $\tilde u_{(1)}$: the adjusted value on the series' first observed interval.
+    \end{itemize}
+    % 2026-10-16 (user): causal neutral fill. executor.py causal_neutral_fill, CAUSAL_NEUTRAL_FILL:
+    % expanding median of observed adjusted values strictly before the row; the first observed value
+    % before the series starts. Parked -- the full-sample median:
+    % med{tilde u_{t',i'} : a_{t',i'} = 1}, with no restriction to earlier intervals.
+    % The parked branch is adj.fillna(adj.median()); the old comment cited executor.py:602-608.
   \item activity indicators, for the \rhdmNActive{} series whose full-sample mode accounts for at least 20\% of
     intervals:
     \[
@@ -184,8 +197,9 @@
     \item $\bar a^{(k)}$, $\bar\chi^{(k)}$: not standardized. HAR components, calendar dummies:
       $\mathrm{IQR}^{\ast(k)}_{t} = 0$.
     \item $t < W$: the first window's statistics.
-    \item Pooled intraday model only (rows are intervals $(t', i')$): median and IQR over rows with
+    \item Intraday model only (rows are intervals $(t', i')$): median and IQR over rows with
       $a_{t',i'} = 1$; fewer than 512 such rows give $z^{(k)} = 0$.
+    \editc{blue}{E8}{Decision: write the intraday denominator, or state that the display carries over. The display standardizes closing-interval rows $t'\in\mathcal W_t$ with denominator $\max\{\mathrm{IQR}^{(k)}_t,\ 0.01\max_{t'\le t}\mathrm{IQR}^{(k)}_{t'},\ \mathrm{IQR}^{*(k)}_t\}$, and sets $\mathrm{IQR}^{*(k)}_t=0$ on HAR components and calendar dummies. The intraday scheme, which is the one scored in the accuracy table, has one extra sentence: median and IQR over rows with $a_{t',i'}=1$, and $z^{(k)}=0$ when fewer than 512 such rows exist. That sentence does not say whether the 0.01 floor and the $\mathrm{IQR}^{*}=0$ exceptions apply to those rows.}
     \end{itemize}
     % scaling.py:215-290 (IQR < 1e-12 -> 1); executor.py:96-202 (IQR^{*(k)}_t: expanding, 480-row grid, mode of
     % the ladder column); scaling.py:310-392 + executor.py:206-288 (masked scaling, pooled only; outline flag 7).
@@ -217,7 +231,7 @@
     \cmPNewBase = \rhdmNHorizonsClose + \rhdmNCalendar .
   \]
   \begin{itemize}
-  \item The pooled intraday model's full predictor set has \rhdmNColsPooled{} columns: \rhdmNSeriesPooled{} series,
+  \item The intraday model's full predictor set has \rhdmNColsPooled{} columns: \rhdmNSeriesPooled{} series,
     \rhdmNHorizonsPooled{} horizons, and \rhdmNEdgePooled{} interactions of the HAR components with the opening- and
     closing-interval dummies.
     \[
@@ -226,6 +240,7 @@
         + \rhdmNSeriesPooled \times \rhdmNHorizonsPooled + \rhdmNSeriesPooled \times \rhdmNHorizonsPooled
         + \rhdmNActivePooled \times \rhdmNHorizonsPooled .
     \]
+    \editc{blue}{E5}{Decision: list the series in the intraday matrix. The groups sum to $\rhfiNExog$ series and the names are not listed; the dictionary table is commented out of the floats. The intraday column count uses $\rhdmNSeriesPooled$ of them. The $\rhfiNExog-\rhdmNSeriesPooled$ series left out of that panel are not named, so the $\rhdmNColsPooled$ columns cannot be rebuilt.}
     % 2026-10-15 (finish, phase 2): typed 6, 16, 7, 1,144, 43, 12, 24, 5 -> \rhdmNHorizonsClose, \rhdmNCalendar,
     % \rhdmNActive, \rhdmNColsPooled, \rhdmNSeriesPooled, \rhdmNHorizonsPooled, \rhdmNEdgePooled, \rhdmNActivePooled.
     % Pooled panel of record is pre-FOMC (43 series; 5 zero-inflated: numobs + 4 voldemand). Current code
@@ -235,9 +250,13 @@
   closing-interval predictor is known at the 15:30 ET forecast origin: the trailing averages, $s^2_{t,i}$, the
   winsorization bounds, $\rho_{t,i}$, the standardization statistics and $\mathcal{J}_t$.
   \begin{itemize}
-  \item Full-sample elements, disclosed: the imputation median, the mode, $\bar\sigma^{(u)}$ and the assignment of
+  \item Full-sample elements, disclosed: the mode, $\bar\sigma^{(u)}$ and the assignment of
     series to the inverse hyperbolic sine.
+  \item An unobserved interval before the series' first print takes that first observed value
+    (step 4).
   \item The first window's standardization statistics use warm-up rows only.
+  % 2026-10-16 (user): the imputation median left this list. It is the expanding median of earlier
+  % observed values. Parked -- "the imputation median" as a full-sample element.
   \end{itemize}
   % The previous text said all full-sample elements touch warm-up rows only. False: the neutral median fills
   % every a_{t,i} = 0 row, including the 2023-24 dead tails inside the test period. Also full-sample: the FOMC

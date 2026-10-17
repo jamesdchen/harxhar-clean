@@ -122,7 +122,7 @@ FAM_LABEL = {
     "linear": "Closing-interval linear",
     "tree": "Closing-interval trees",
     "nn": "Closing-interval MinGRU",
-    "pooled": "Pooled intraday",
+    "pooled": "Intraday",
     "short": "Short straddle",  # 2026-10-15 (consolidation): was "Always short" (guide section 6b)
 }
 TOP_DAYS = (
@@ -692,7 +692,7 @@ def table_e1(series, fam, model_set, trees) -> tuple[str, dict]:
     # 2026-10-15 (user): parked -- NN content parked for now (the MinGRU row and its note b:
     # "\item[b] MinGRU network (ridge-initialized, trained and selected on QLIKE; Section~\ref{sec:rh_methods_models}).")
     # body += row(r"MinGRU\tnote{b}", NN_ALL)
-    body += panel_head("Panel B: Pooled intraday models", 7)
+    body += panel_head("Panel B: Intraday models", 7)
     for k in POOLED_ALL:
         body += row(EST_NAME[k.split("_")[1]], k)
 
@@ -889,7 +889,7 @@ def table_e2(series, fam, model_set) -> tuple[str, dict]:
     # 2026-10-15 (user): parked -- NN content parked for now (the MinGRU row and its note a:
     # "\item[a] MinGRU network (ridge-initialized, trained and selected on QLIKE); not in the model set.")
     # body += row(r"MinGRU\tnote{a}", nn)
-    body += panel_head("Panel B: Pooled intraday models", 5)
+    body += panel_head("Panel B: Intraday models", 5)
     for e in ("enet", "lasso", "ridge"):
         body += row(EST_NAME[e], ps[f"poolpt_{e}_baseline"])
     body += panel_head("Panel C: Medians across pairs", 5)
@@ -1050,16 +1050,16 @@ def table_e3(series) -> tuple[str, list]:
             )
     assert len({r["dm_lag"] for r in rows_}) == 1, rows_  # one lag in the notes
     tex = (
-        float_head("Table E3", "closing-interval against pooled intraday linear models")
+        float_head("Table E3", "closing-interval against intraday linear models")
         + rf"""\begin{{table}}[tbp]
 \centering
 \small
 \begin{{threeparttable}}
-\caption{{Closing-interval versus pooled intraday models}}
+\caption{{Closing-interval versus intraday models}}
 \label{{tab:rh_econ_pooled}}
 \begin{{tabular}}{{@{{}}lrrrrr@{{}}}}
 \toprule
- & \multicolumn{{2}}{{c}}{{$\SR$ at mid-quotes}} & \multicolumn{{3}}{{c}}{{Pooled intraday minus closing-interval}} \\
+ & \multicolumn{{2}}{{c}}{{$\SR$ at mid-quotes}} & \multicolumn{{3}}{{c}}{{Intraday minus closing-interval}} \\
 \cmidrule(lr){{2-3}}\cmidrule(l){{4-6}}
  & Pooled & Closing & $\Delta\SR$, & $\Delta\SR$, & \\
  & intraday & interval & mid-quotes & bid--ask & $\Delta\QLIKE$ (\%) \\
@@ -1068,12 +1068,12 @@ def table_e3(series) -> tuple[str, list]:
 \end{{tabular}}
 \begin{{tablenotes}}[flushleft]
 \footnotesize
-\item \textit{{Notes:}} Each row compares the closing-interval model with the pooled intraday model of the same
+\item \textit{{Notes:}} Each row compares the closing-interval model with the intraday model of the same
 estimator and predictor set, both with hyperparameters selected on a pre-sample, over the out-of-sample period
-($T_{{\mathrm{{oos}}}} = \rheNdays$ trading days); the pooled intraday model is evaluated on the closing interval. $\SR$
-is the annualized Sharpe ratio of the sign strategy; $\Delta\SR$ is the pooled intraday minus the closing-interval
+($T_{{\mathrm{{oos}}}} = \rheNdays$ trading days); the intraday model is evaluated on the closing interval. $\SR$
+is the annualized Sharpe ratio of the sign strategy; $\Delta\SR$ is the intraday minus the closing-interval
 $\SR$, at mid-quotes and at quoted bid/ask prices, with the {HAC_NOTE} in parentheses. $\Delta\QLIKE$ is the
-pooled intraday model's mean QLIKE relative to the closing-interval model's, in percent, with the Diebold--Mariano
+intraday model's mean QLIKE relative to the closing-interval model's, in percent, with the Diebold--Mariano
 statistic (Harvey--Leybourne--Newbold correction, Newey--West $q_{{\mathrm{{NW}}}} = \rheDMLag$) in parentheses; positive values favor
 the closing-interval model, as in Table~\ref{{tab:rh_axis2}}. {STAR_NOTE}
 \end{{tablenotes}}
@@ -1255,7 +1255,7 @@ def table_e4(series, model_set, trees) -> tuple[str, dict]:
         for e, name in TREE_EST:
             out += row(name, trees[e])
         # out += row("MinGRU", NN_ALL)  # 2026-10-15 (user): parked -- NN content parked for now
-        out += sub_head("Pooled intraday models", 5)
+        out += sub_head("Intraday models", 5)
         for k in POOLED_ALL:
             out += row(EST_NAME[k.split("_")[1]], k)
         out += "\\addlinespace[2pt]\n"
@@ -1755,7 +1755,7 @@ def main() -> None:
         "linear": ("subpt_enet_all_features", "Closing-interval elastic net"),
         "tree": (trees["lgbm"], "Closing-interval LightGBM"),
         # "nn": (NN_ALL, "Closing-interval MinGRU"),  # 2026-10-15 (user): parked -- NN content parked for now
-        "pooled": ("poolpt_enet_all_features", "Pooled intraday elastic net"),
+        "pooled": ("poolpt_enet_all_features", "Intraday elastic net"),
     }
     if sharpe(series[trees["xgb"]]["mid"]) > sharpe(series[trees["lgbm"]]["mid"]):
         raise ValueError("the best tree is not the LightGBM: relabel key4['tree']")
@@ -1835,7 +1835,7 @@ def main() -> None:
 \caption{Cumulative returns of the sign strategy. The top panel plots the cumulative return at mid-quotes,
 $\sum_{t' \le t} r_{t'}$, in units of the straddle premium, for the short-straddle benchmark ($q_t \equiv -1$) and for
 one model of each class on the full predictor set: the closing-interval elastic net and LightGBM (the specification
-of Table~\ref{tab:rh_econ_control}), and the pooled intraday elastic net. The bottom panel plots the
+of Table~\ref{tab:rh_econ_control}), and the intraday elastic net. The bottom panel plots the
 cumulative gain over the short-straddle benchmark,
 $\sum_{t' \le t} \bigl(r_{t'} + R_{t'}\bigr)$; the markers are each model's \rheTopDays{} days of largest gain, all
 of them days with $q_t = +1$ and $R_t \ge \rheTopRMin$. Over the \rheNdays{} trading days of the out-of-sample period

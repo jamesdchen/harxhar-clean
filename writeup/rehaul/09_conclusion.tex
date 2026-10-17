@@ -16,59 +16,90 @@
 \section{Conclusion}
 \label{sec:rh_conclusion}
 \begin{itemize}
-\item \textbf{Exogenous predictors add to the HAR benchmark, consistently but modestly.}
+\item \textbf{Exogenous features lower the QLIKE of the intraday forecast.} Against the HAR benchmark, the
+  full predictor set lowers average QLIKE in all \rhrAfPoolPairs{} intraday classes,
+  \rhrAfPoolLowerSig{} of the reductions significant at the 5\% level
+  (Section~\ref{sec:rh_results}). The tree ensembles have the largest reductions. Among the linear
+  models, the elastic net's reduction is significant.
+\item \textbf{Squared error does not confirm the QLIKE reductions.} The full set raises the MSE in
+  \rhrAfPoolMseHigher{} of the \rhrAfPoolPairs{} classes. No squared-error difference is significant.
+\item \textbf{The intraday forecasts remain less accurate than the daily HAR benchmark.} Every intraday
+  forecast has a higher average QLIKE than the benchmark forecast, the daily OLS on the HAR benchmark.
+  The full predictor set narrows that gap in every class. The linear models' gap is not significant at
+  the 5\% level; the trees' gap is (Section~\ref{sec:rh_results_classes}).
+\item \textbf{Training on the closing interval is a refinement.} Estimating each model on the last 30
+  minutes lowers average QLIKE further, and the full predictor set still lowers QLIKE in every class
+  (Section~\ref{sec:rh_econ_last30}).
+\item \textbf{The straddle reads the same forecast.} On the option-data subsample, the full predictor set
+  raises the sign strategy's Sharpe ratio in every intraday class. Average QLIKE and that Sharpe ratio
+  are weakly related (Section~\ref{sec:rh_econ_results}).
+\item \textbf{Limits.}
   \begin{itemize}
-  \item $\overline{\QLIKE}$ falls in most pairs and $\SR$ rises in nearly all.
-  \item Few gains are individually statistically significant over $T_{\mathrm{oos}} = \cmNdays$ trading days.
+  \item The accuracy comparison uses $T_{\mathrm{oos}} = \rhoosDays$ trading days, \rhoosSpanStart{} to
+    \rhoosSpanEnd.
+  \item One index, and one scored interval, the closing half hour.
+  \item The straddle is held to expiration with no delta hedge, and trading at the quoted bid and ask
+    lowers the Sharpe ratio (Section~\ref{sec:rh_econ}).
   \end{itemize}
-\item \textbf{The closing-interval model is more accurate than the pooled intraday model,} significantly so on the
-  HAR benchmark.
-  \begin{itemize}
-  \item The difference in the straddle strategy's $\SR$ is not statistically significant.
-  \end{itemize}
-\item \textbf{A lower QLIKE does not imply a higher Sharpe ratio.} The strategy uses $\hat\sigma^2_t$ only through
-  the side of implied variance on which it falls:
-  \[
-    q_t = \sign\bigl(\hat\sigma^2_t - \mathrm{IV}_t^2\bigr).
-  \]
-\item \textbf{The straddle strategy measures economic value; it is not a claim of implementable profits.}
-  \begin{itemize}
-  \item Every forecast earns a higher $\SR$ than the unconditional short-straddle benchmark ($q_t \equiv -1$).
-  \item Its profits are concentrated in a small number of large-move days.
-  \item At quoted bid/ask prices, rather than mid-quotes, the $\SR$ is materially lower.
-  \end{itemize}
-\item \textbf{A recurrent network (MinGRU) matches the linear models} once regularized like them:
-  \begin{itemize}
-  \item initialized at the ridge solution;
-  \item exogenous predictors shrunk more heavily than the HAR benchmark block, through weight decay in proportion to
-    the linear penalty weights $\omega_j$;
-  % 2026-10-15 (consolidation): parked -- row index s (the periodicity factor's letter) and the estimation sample
-  % W^est_t (the forecast is estimated on the full window W_t; Methods, FLAG (1)). Was:
-  % $\min_{\bm\theta} \sum_{s \in \mathcal W^{\mathrm{est}}_t} \QLIKE(\tilde y_s^{\,2}, \hat y_s^{\,2}(\bm\theta))$, with
-  % $\tilde y_s$ the winsorized target and $s$ the trading days of the estimation sample.
-  \item trained and selected on QLIKE, the evaluation loss,
-    $\min_{\bm\theta} \sum_{t' \in \mathcal W_t} \QLIKE\bigl(\tilde y_{t'}^{\,2},\, \hat y_{t'}^{\,2}(\bm\theta)\bigr)$
-    (up to the floor and clamp of Section~\ref{sec:rh_methods_models}), with $\tilde y_{t'}$ the winsorized target
-    and $t'$ the trading days of the estimation window; QLIKE is scale-free, so this is the same loss on the variance
-    scale.
-  \end{itemize}
-  % 2026-10-15 (notation pass): parked -- the network trains on the winsorized target (fit only, guide section 2),
-  % while the paper now scores against the actual RV; the formula above states the training loss as fitted.
-  % \item trained on the scored loss, $\min \sum_t \QLIKE(RV_t, \hat y_t^2 B_t)$.
-\item \textbf{Limitations:}
-  \begin{itemize}
-  \item $T_{\mathrm{oos}} = \cmNdays$ trading days;
-  \item one index and one intraday interval;
-  \item no delta hedging and no price-impact model;
-  \item tree-ensemble forecasts depend on the CPU instruction set and are not bit-for-bit reproducible across
-    machines.
-  \end{itemize}
-\item \textbf{Future work:}
-  \begin{itemize}
-  \item evaluate the expirations after April 2024 out of sample;
-  \item density forecasts of closing-interval variance;
-  \item a second market;
-  \item forecast origins, and so straddle entries, earlier in the trading day;
-  \item transaction costs calibrated to executed prices.
-  \end{itemize}
+\item \textbf{Left open.} Expirations after the evaluation span, a second market, and forecast origins
+  earlier in the day.
 \end{itemize}
+% 2026-10-16 (user): the conclusion now follows the intraday exogenous-feature results.
+% The MinGRU bullet and the closing-interval-versus-intraday headline are parked with the old list.
+% \begin{itemize}
+% \item \textbf{Exogenous predictors add to the HAR benchmark, consistently but modestly.}
+%   \begin{itemize}
+%   \item $\overline{\QLIKE}$ falls in most pairs and $\SR$ rises in nearly all.
+%   \item Few gains are individually statistically significant over $T_{\mathrm{oos}} = \cmNdays$ trading days.
+%   \end{itemize}
+% \item \textbf{The closing-interval model is more accurate than the intraday model,} significantly so on the
+%   HAR benchmark.
+%   \begin{itemize}
+%   \item The difference in the straddle strategy's $\SR$ is not statistically significant.
+%   \end{itemize}
+% \item \textbf{A lower QLIKE does not imply a higher Sharpe ratio.} The strategy uses $\hat\sigma^2_t$ only through
+%   the side of implied variance on which it falls:
+%   \[
+%     q_t = \sign\bigl(\hat\sigma^2_t - \mathrm{IV}_t^2\bigr).
+%   \]
+% \item \textbf{The straddle strategy measures economic value; it is not a claim of implementable profits.}
+%   \begin{itemize}
+%   \item Every forecast earns a higher $\SR$ than the unconditional short-straddle benchmark ($q_t \equiv -1$).
+%   \item Its profits are concentrated in a small number of large-move days.
+%   \item At quoted bid/ask prices, rather than mid-quotes, the $\SR$ is materially lower.
+%   \end{itemize}
+% \item \textbf{A recurrent network (MinGRU) matches the linear models} once regularized like them:
+%   \begin{itemize}
+%   \item initialized at the ridge solution;
+%   \item exogenous predictors shrunk more heavily than the HAR benchmark block, through weight decay in proportion to
+%     the linear penalty weights $\omega_j$;
+%   % 2026-10-15 (consolidation): parked -- row index s (the periodicity factor's letter) and the estimation sample
+%   % W^est_t (the forecast is estimated on the full window W_t; Methods, FLAG (1)). Was:
+%   % $\min_{\bm\theta} \sum_{s \in \mathcal W^{\mathrm{est}}_t} \QLIKE(\tilde y_s^{\,2}, \hat y_s^{\,2}(\bm\theta))$, with
+%   % $\tilde y_s$ the winsorized target and $s$ the trading days of the estimation sample.
+%   \item trained and selected on QLIKE, the evaluation loss,
+%     $\min_{\bm\theta} \sum_{t' \in \mathcal W_t} \QLIKE\bigl(\tilde y_{t'}^{\,2},\, \hat y_{t'}^{\,2}(\bm\theta)\bigr)$
+%     (up to the floor and clamp of Section~\ref{sec:rh_methods_models}), with $\tilde y_{t'}$ the winsorized target
+%     and $t'$ the trading days of the estimation window; QLIKE is scale-free, so this is the same loss on the variance
+%     scale.
+%   \end{itemize}
+%   % 2026-10-15 (notation pass): parked -- the network trains on the winsorized target (fit only, guide section 2),
+%   % while the paper now scores against the actual RV; the formula above states the training loss as fitted.
+%   % \item trained on the scored loss, $\min \sum_t \QLIKE(RV_t, \hat y_t^2 B_t)$.
+% \item \textbf{Limitations:}
+%   \begin{itemize}
+%   \item $T_{\mathrm{oos}} = \cmNdays$ trading days;
+%   \item one index and one intraday interval;
+%   \item no delta hedging and no price-impact model;
+%   \item tree-ensemble forecasts depend on the CPU instruction set and are not bit-for-bit reproducible across
+%     machines.
+%   \end{itemize}
+% \item \textbf{Future work:}
+%   \begin{itemize}
+%   \item evaluate the expirations after April 2024 out of sample;
+%   \item density forecasts of closing-interval variance;
+%   \item a second market;
+%   \item forecast origins, and so straddle entries, earlier in the trading day;
+%   \item transaction costs calibrated to executed prices.
+%   \end{itemize}
+% \end{itemize}

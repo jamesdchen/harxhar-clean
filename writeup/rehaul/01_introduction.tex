@@ -22,131 +22,182 @@
 \section{Introduction}
 \label{sec:rh_intro}
 \begin{itemize}
-\item \textbf{Question.} At the forecast origin, 15:30 ET on trading day $t$, we forecast the realized variance of the
-  S\&P 500 over the closing half hour (15:30--16:00 ET), $\E_t[\RV_t]$, where $\E_t[\cdot] \equiv \E[\,\cdot \mid
-  \mathcal F_t]$ and the information set $\mathcal F_t$ holds all data through 15:30 on day $t$.
+\item \textbf{Question.} Do exogenous features improve an intraday forecast of the realized variance of the
+  S\&P 500 over the closing half hour?
   \begin{itemize}
-  % 2026-10-15 (consolidation): parked -- the upper limit 30 contradicts Data and Methods (N_{t,i} <= 30 varies).
-  % \item $\RV_t = \sum_{k=1}^{30} r_{t,c,k}^2$: the sum of squared one-minute log returns $r_{t,c,k}$ of E-mini
-  %   futures over the closing interval $i = c$ \citep{AndersenBollerslevDieboldLabys2003}.
-  % 2026-10-16 (formula pass): parked -- the sum repeats Data. Was:
-  % RV_t = sum_{k=1}^{N_{t,c}} r_{t,c,k}^2, N_{t,c} <= 30 (Andersen, Bollerslev, Diebold and Labys 2003).
-  \item $\RV_t$: the realized variance of the closing interval (Section~\ref{sec:rh_data}).
-  % 2026-10-15 (notation pass): parked -- a straddle's payoff is |S_T - K|, set by the closing half hour's move,
-  % not by its realized variance.
-  % \item A 0DTE SPXW straddle opened at 15:30 settles on exactly that variance.
-  % 2026-10-15 (consolidation): parked -- "delta-neutral" holds only approximately and only at entry (07_economics).
-  % \item A zero-days-to-expiration (0DTE) SPX Weeklys (SPXW) straddle position, delta-neutral and at the money,
-  %   entered at 15:30 and held to expiration, settles at the 16:00 close: its payoff is set by the index move over
-  %   exactly this half hour.
-  \item A zero-days-to-expiration (0DTE) SPX Weeklys (SPXW) at-the-money straddle position, approximately
-    delta-neutral at entry, entered at 15:30 and held unhedged to expiration, settles at the 16:00 close: its payoff
-    is set by the index move over exactly this half hour (Section~\ref{sec:rh_econ_strategy}).
-  % 2026-10-16 (formula pass): parked -- the display defined hat sigma^2_t, then q_t from hat sigma^2_t, then
-  % the next bullet defined y_t and s^2_{t,c}, so the position took two further substitutions. The forecast and
-  % the adjustment are defined once in Methods; the sign rule is defined once in Economic value. Was:
-  % hat sigma^2_t = hat y_t^2 s^2_{t,c}, q_t = sign(hat sigma^2_t - IV_t^2);
-  % y_t = sqrt(RV_t / s^2_{t,c}); s^2_{t,c} the mean of RV over the previous 20 trading days.
-  \item The variance forecast, the diurnal adjustment and the target are defined in
-    Section~\ref{sec:rh_methods_setup}. The position is the sign strategy of
-    Section~\ref{sec:rh_econ_strategy}: $q_t = +1$ buys the straddle, $q_t = -1$ sells it ($q_t = -1$ on ties),
-    and the daily return is $q_t R_t$, with $R_t$ the straddle's simple return from 15:30 to settlement.
-  \item Sample: $T_{\mathrm{oos}} = \cmNdays$ out-of-sample trading days with an SPXW expiration, \rheSampleStart{}
-    to \rheSampleEnd, early closes excluded.
+  \item At 15:30 ET on day $t$ the forecast is of $\RV_t$, the realized variance from 15:30 to 16:00
+    (Section~\ref{sec:rh_data}).
+  \item The models are estimated on every 30-minute interval, $M = \rhdmNIntervals$, and the forecast that is
+    scored is the one issued at 15:30.
+  \item The comparison is the full predictor set against the HAR benchmark. The exogenous series are the
+    difference between the two (Section~\ref{sec:rh_predictors}).
   \end{itemize}
-\item \textbf{Why it matters.}
-  \begin{itemize}
-  \item Implied variance exceeds the forecast, $\hat\sigma^2_t < \mathrm{IV}_t^2$, on
-    \cmSellPaperMin--\cmSellPaperMax\% of trading days, depending on the model, in line with a positive variance
-    risk premium; a forecast adds value mainly by identifying the days on which to buy.
-  \item 0DTE options account for a large share of S\&P 500 index option volume
-    \citep{BandiFusariReno2023, BeckmeyerBrangerGayda2023}.
-    % 2026-10-15 (bib pass): parked -- the typed citation, now \citep keys in references.bib. Was:
-    % cite: Bandi, Fusari and Reno (2023); Beckmeyer, Branger and Gayda (2023) -- not yet in references.bib.
-  \item The payoff depends on a single, pre-specified window, so the forecast target and the holding period
-    coincide.
-  \end{itemize}
-\item \textbf{Two specification choices, one forecast function:}
+\item \textbf{Why the HAR benchmark is the baseline.} A HAR regression forecasts variance from its own lags
+  \citep{Corsi2009}. It does not use the other series observed by 15:30: realized moments, liquidity, the
+  cross-section of returns, sentiment, implied volatility, volatility demand, and scheduled announcements.
+\item \textbf{Design.} One forecast function,
   \[
-    \hat y_t = f_{m,\mathcal X,\mathcal I}(\bm x_t), \qquad \bm x_t \in \mathbb{R}^p .
+    \hat y_t = f_{m,\mathcal X,\mathcal I}(\bm x_t),
   \]
+  with model class $m$ and predictor set $\mathcal X \in \{\mathrm{HAR}, \mathrm{Full}\}$.
   \begin{itemize}
-  \item Predictor set $\mathcal X \in \{\text{HAR}, \text{Full}\}$: the HAR benchmark, $p = \cmPNewBase$ (HAR
-    components and calendar dummies), vs the full predictor set, $p = \cmPNewAll$ (adding \rhfiNExog{} exogenous
-    series in \rhfiNBuckets{} groups).
-  \item Estimation sample $\mathcal I \in \bigl\{\{c\}, \{1, \dots, M\}\bigr\}$: the closing-interval model (the
-    closing half hour only, one observation per trading day) vs the pooled intraday model (every 30-minute
-    interval, $M = 48$).
-    % 2026-10-15 (consolidation): M = 48 is typed; no macro yet (generator: \rhdmNIntervals in make_rehaul_data_methods.py).
-  \item Model class $m$: linear (OLS, ridge, lasso, elastic net), tree ensemble (random forest, LightGBM, XGBoost)
-    or neural network (MinGRU), crossed with $(\mathcal X, \mathcal I)$.
+  \item The results in Section~\ref{sec:rh_results} use the intraday scheme,
+    $\mathcal I = \{1, \dots, M\}$.
+  \item The benchmark forecast is the daily OLS on the HAR benchmark, estimated on the closing interval only
+    (Sections~\ref{sec:rh_methods_models} and~\ref{sec:rh_results_eval}).
+  \item The loss is average QLIKE on the evaluation span $\mathcal T_{\mathrm{oos}}$,
+    \rhoosSpanStart{} to \rhoosSpanEnd, $T_{\mathrm{oos}} = \rhoosDays$
+    (Section~\ref{sec:rh_results_eval}).
   \end{itemize}
-% 2026-10-16 (formula pass): parked -- the display defined the average, then L_t, then the QLIKE function, and
-% the function is defined once in Related work, the scored loss once in Methods, and the average once in
-% Forecast evaluation. Was:
-% overline{QLIKE} = (1/T_oos) sum L_t, L_t = QLIKE(RV_t, hat sigma^2_t),
-% QLIKE(RV, hat sigma^2) = RV/hat sigma^2 - log(RV/hat sigma^2) - 1.
-\item \textbf{Evaluation loss} \citep{Patton2011}: average QLIKE over the evaluation span
-  $\mathcal T_{\mathrm{oos}}$ (Sections~\ref{sec:rh_methods_setup} and~\ref{sec:rh_results_eval}).
+\item \textbf{Findings.}
   \begin{itemize}
-  \item Economic evaluation: the annualized Sharpe ratio $\SR$ of $q_t R_t$ at mid-quotes.
+  \item The full predictor set lowers average QLIKE in every intraday model class
+    (\rhrAfPoolPairs{} classes, \rhrAfPoolLowerSig{} of the reductions significant at the 5\% level;
+    Section~\ref{sec:rh_results}). The tree ensembles have the largest reductions. Among the linear models
+    the elastic net's reduction is significant.
+  \item Squared error does not confirm the reductions: the full set raises the MSE in
+    \rhrAfPoolMseHigher{} of the \rhrAfPoolPairs{} classes, and no MSE difference is significant.
+  \item Every intraday forecast has a higher average QLIKE than the benchmark forecast. For the linear
+    models the difference is not significant at the 5\% level; for the trees it is. The full predictor set
+    narrows that gap in every model class (Section~\ref{sec:rh_results_classes}).
   \end{itemize}
-\item \textbf{Contributions.}
-  % 2026-10-15 (notation pass): parked -- recast as question, data, method, findings and economic value; each old
-  % item is kept in substance below (indicators -> Data; back-transform, causal tuning test, MinGRU -> Method).
-  % \item Value, availability and activity ladders: 47 exogenous series in one $x_t$.
-  % \item Plain back-transform $\hat y_t^2 B_t$: no smearing, no recalibration.
-  % \item Causal walk-forward test of tuning: refits, re-tuning, search budgets.
-  % \item Native GPU MinGRU, regularised like the linear stack.
-  \begin{itemize}
-  \item \emph{Question.} We forecast the variance of the closing half hour, the risk a 0DTE SPX straddle opened at
-    15:30 carries to settlement.
-  \item \emph{Data.} One predictor vector $\bm x_t$ holds, for each of \rhfiNExog{} exogenous series, HAR
-    components of its value, of its missing-data indicator and, for zero-inflated series, of an activity
-    indicator; $T_{\mathrm{oos}} = \cmNdays$ out-of-sample trading days.
-  \item \emph{Method.} A rolling-window out-of-sample exercise, re-estimated daily, in which every hyperparameter is
-    selected on data before the forecast origin. We measure what re-estimation frequency, hyperparameter
-    re-selection and search budgets add out of sample. Forecasts are retransformed as $\hat y_t^{\,2} s^2_{t,c}$,
-    with no recalibration. The model classes include a MinGRU recurrent network \citep{Feng2024},
-    regularized like the linear models.
-    % 2026-10-15 (user): parked -- no smearing mentions. Was: "... as $\hat y_t^{\,2} s^2_{t,c}$, with no smearing or
-    % recalibration."
-    % 2026-10-15 (bib pass): parked -- the typed citation, now a \citep key in references.bib. Was:
-    % MinGRU: Feng et al. (2024) -- not yet in references.bib.
-  \item \emph{Findings.} The full predictor set lowers $\overline{\QLIKE}$ relative to the HAR benchmark in
-    \fqsQLower{} of \fqsPairs{} pairs, \fqsQLowerSig{} of them significantly at the 5\% level. The closing-interval
-    model is more accurate than the pooled intraday model; for ridge on the HAR benchmark, $\overline{\QLIKE}$
-    changes by \cmLdPerBarBaseQ\% ($\DM = \cmLdPerBarBaseDM$).
-  \item \emph{Economic value.} \cmMasterVsShortAbove{} of the \cmMasterVsShortN{} forecasts earn a higher $\SR$
-    than the unconditional short-straddle benchmark ($q_t \equiv -1$), \cmMasterVsShortAboveSig{} of them
-    significantly at the 5\% level. Accuracy and economic value are only weakly related across forecasts.
-  \end{itemize}
-\item \textbf{Predictor set: full predictor set vs HAR benchmark} (each pair differs only in $\mathcal X$).
-  \begin{itemize}
-  \item $\Delta\overline{\QLIKE} = \overline{\QLIKE}_{\text{Full}} - \overline{\QLIKE}_{\text{HAR}} < 0$ in
-    \fqsQLower{} of \fqsPairs{} pairs; median relative change \fqsMedDQPct\%.
-  \item \fqsQLowerSig{} of these reductions are significant at the 5\% level (Diebold--Mariano statistic with the
-    Harvey--Leybourne--Newbold correction); \fqsQHigherSig{} of the \fqsQHigher{} increases are.
-  \item $\Delta\SR > 0$ in \fqsShHigher{} of \fqsPairs{} pairs; median \fqsMedDSh; \fqsShHigherSig{} significant at
-    the 5\% level (HAC $t$-statistic on the daily return differential).
-  \item All \cmMasterVsShortAboveSig{} forecasts that significantly beat the short-straddle benchmark
-    ($q_t \equiv -1$) use the full predictor set.
-  \end{itemize}
-\item \textbf{Estimation sample: closing-interval vs pooled intraday model.}
-  \begin{itemize}
-  \item The closing-interval model has the lower $\overline{\QLIKE}$ wherever both are estimated.
-  \item The difference is significant at the 5\% level on the HAR benchmark in every model class; for ridge,
-    $\overline{\QLIKE}$ changes by \cmLdPerBarBaseQ\% ($\DM = \cmLdPerBarBaseDM$).
-  \item The difference in $\SR$ is not statistically significant.
-  \end{itemize}
-\item \textbf{Statistical accuracy and economic value are weakly related.}
-  \begin{itemize}
-  \item Spearman rank correlation of $\overline{\QLIKE}$ and $\SR$ across the \cmMasterN{} forecasts:
-    \cmMasterRankCorr{} (negative: a lower loss goes with a higher $\SR$).
-  \item Of the \cmLdN{} single specification changes, \cmLdResolved{} moves $\SR$ significantly.
-  \end{itemize}
-\item \textbf{Roadmap:} data (Section~\ref{sec:rh_data}), predictors (Section~\ref{sec:rh_predictors}), methods
-  (Section~\ref{sec:rh_methods}), statistical results, first for the predictor set and then for the estimation
-  sample (Section~\ref{sec:rh_results}), the economic value of the straddle strategy (Section~\ref{sec:rh_econ}),
-  variable importance (Section~\ref{sec:rh_fi}) and the conclusion (Section~\ref{sec:rh_conclusion}).
+\item \textbf{Economic application.} On days with a same-day SPX expiration, the sign of the variance
+  forecast minus implied variance is a position in a zero-days-to-expiration straddle
+  (Section~\ref{sec:rh_econ}). The full predictor set raises that strategy's Sharpe ratio in every
+  intraday class (Section~\ref{sec:rh_econ_results}).
+\item \textbf{Roadmap.} Related work (Section~\ref{sec:rh_related}), the data
+  (Section~\ref{sec:rh_data}), the predictors (Section~\ref{sec:rh_predictors}), the methods
+  (Section~\ref{sec:rh_methods}), the experiments (Section~\ref{sec:rh_results}), the economic value
+  (Section~\ref{sec:rh_econ}) and the conclusion (Section~\ref{sec:rh_conclusion}).
 \end{itemize}
+% 2026-10-16 (user): the introduction is about exogenous features in the intraday forecast,
+% not the 24-hour panel and not the straddle as the question. Parked verbatim below.
+% \begin{itemize}
+% \item \textbf{Question.} At the forecast origin, 15:30 ET on trading day $t$, we forecast the realized variance of the
+%   S\&P 500 over the closing half hour (15:30--16:00 ET), $\E_t[\RV_t]$, where $\E_t[\cdot] \equiv \E[\,\cdot \mid
+%   \mathcal F_t]$ and the information set $\mathcal F_t$ holds all data through 15:30 on day $t$.
+%   \begin{itemize}
+%   % 2026-10-15 (consolidation): parked -- the upper limit 30 contradicts Data and Methods (N_{t,i} <= 30 varies).
+%   % \item $\RV_t = \sum_{k=1}^{30} r_{t,c,k}^2$: the sum of squared one-minute log returns $r_{t,c,k}$ of E-mini
+%   %   futures over the closing interval $i = c$ \citep{AndersenBollerslevDieboldLabys2003}.
+%   % 2026-10-16 (formula pass): parked -- the sum repeats Data. Was:
+%   % RV_t = sum_{k=1}^{N_{t,c}} r_{t,c,k}^2, N_{t,c} <= 30 (Andersen, Bollerslev, Diebold and Labys 2003).
+%   \item $\RV_t$: the realized variance of the closing interval (Section~\ref{sec:rh_data}).
+%   % 2026-10-15 (notation pass): parked -- a straddle's payoff is |S_T - K|, set by the closing half hour's move,
+%   % not by its realized variance.
+%   % \item A 0DTE SPXW straddle opened at 15:30 settles on exactly that variance.
+%   % 2026-10-15 (consolidation): parked -- "delta-neutral" holds only approximately and only at entry (07_economics).
+%   % \item A zero-days-to-expiration (0DTE) SPX Weeklys (SPXW) straddle position, delta-neutral and at the money,
+%   %   entered at 15:30 and held to expiration, settles at the 16:00 close: its payoff is set by the index move over
+%   %   exactly this half hour.
+%   \item A zero-days-to-expiration (0DTE) SPX Weeklys (SPXW) at-the-money straddle position, approximately
+%     delta-neutral at entry, entered at 15:30 and held unhedged to expiration, settles at the 16:00 close: its payoff
+%     is set by the index move over exactly this half hour (Section~\ref{sec:rh_econ_strategy}).
+%   % 2026-10-16 (formula pass): parked -- the display defined hat sigma^2_t, then q_t from hat sigma^2_t, then
+%   % the next bullet defined y_t and s^2_{t,c}, so the position took two further substitutions. The forecast and
+%   % the adjustment are defined once in Methods; the sign rule is defined once in Economic value. Was:
+%   % hat sigma^2_t = hat y_t^2 s^2_{t,c}, q_t = sign(hat sigma^2_t - IV_t^2);
+%   % y_t = sqrt(RV_t / s^2_{t,c}); s^2_{t,c} the mean of RV over the previous 20 trading days.
+%   \item The variance forecast, the diurnal adjustment and the target are defined in
+%     Section~\ref{sec:rh_methods_setup}. The position is the sign strategy of
+%     Section~\ref{sec:rh_econ_strategy}: $q_t = +1$ buys the straddle, $q_t = -1$ sells it ($q_t = -1$ on ties),
+%     and the daily return is $q_t R_t$, with $R_t$ the straddle's simple return from 15:30 to settlement.
+%   \item Sample: $T_{\mathrm{oos}} = \cmNdays$ out-of-sample trading days with an SPXW expiration, \rheSampleStart{}
+%     to \rheSampleEnd, early closes excluded.
+%   \end{itemize}
+% \item \textbf{Why it matters.}
+%   \begin{itemize}
+%   \item Implied variance exceeds the forecast, $\hat\sigma^2_t < \mathrm{IV}_t^2$, on
+%     \cmSellPaperMin--\cmSellPaperMax\% of trading days, depending on the model, in line with a positive variance
+%     risk premium; a forecast adds value mainly by identifying the days on which to buy.
+%   \item 0DTE options account for a large share of S\&P 500 index option volume
+%     \citep{BandiFusariReno2023, BeckmeyerBrangerGayda2023}.
+%     % 2026-10-15 (bib pass): parked -- the typed citation, now \citep keys in references.bib. Was:
+%     % cite: Bandi, Fusari and Reno (2023); Beckmeyer, Branger and Gayda (2023) -- not yet in references.bib.
+%   \item The payoff depends on a single, pre-specified window, so the forecast target and the holding period
+%     coincide.
+%   \end{itemize}
+% \item \textbf{Two specification choices, one forecast function:}
+%   \[
+%     \hat y_t = f_{m,\mathcal X,\mathcal I}(\bm x_t), \qquad \bm x_t \in \mathbb{R}^p .
+%   \]
+%   \begin{itemize}
+%   \item Predictor set $\mathcal X \in \{\text{HAR}, \text{Full}\}$: the HAR benchmark, $p = \cmPNewBase$ (HAR
+%     components and calendar dummies), vs the full predictor set, $p = \cmPNewAll$ (adding \rhfiNExog{} exogenous
+%     series in \rhfiNBuckets{} groups).
+%   \item Estimation sample $\mathcal I \in \bigl\{\{c\}, \{1, \dots, M\}\bigr\}$: the closing-interval model (the
+%     closing half hour only, one observation per trading day) vs the intraday model (every 30-minute
+%     interval, $M = 48$).
+%     % 2026-10-15 (consolidation): M = 48 is typed; no macro yet (generator: \rhdmNIntervals in make_rehaul_data_methods.py).
+%   \item Model class $m$: linear (OLS, ridge, lasso, elastic net), tree ensemble (random forest, LightGBM, XGBoost)
+%     or neural network (MinGRU), crossed with $(\mathcal X, \mathcal I)$.
+%   \end{itemize}
+% % 2026-10-16 (formula pass): parked -- the display defined the average, then L_t, then the QLIKE function, and
+% % the function is defined once in Related work, the scored loss once in Methods, and the average once in
+% % Forecast evaluation. Was:
+% % overline{QLIKE} = (1/T_oos) sum L_t, L_t = QLIKE(RV_t, hat sigma^2_t),
+% % QLIKE(RV, hat sigma^2) = RV/hat sigma^2 - log(RV/hat sigma^2) - 1.
+% \item \textbf{Evaluation loss} \citep{Patton2011}: average QLIKE over the evaluation span
+%   $\mathcal T_{\mathrm{oos}}$ (Sections~\ref{sec:rh_methods_setup} and~\ref{sec:rh_results_eval}).
+%   \begin{itemize}
+%   \item Economic evaluation: the annualized Sharpe ratio $\SR$ of $q_t R_t$ at mid-quotes.
+%   \end{itemize}
+% \item \textbf{Contributions.}
+%   % 2026-10-15 (notation pass): parked -- recast as question, data, method, findings and economic value; each old
+%   % item is kept in substance below (indicators -> Data; back-transform, causal tuning test, MinGRU -> Method).
+%   % \item Value, availability and activity ladders: 47 exogenous series in one $x_t$.
+%   % \item Plain back-transform $\hat y_t^2 B_t$: no smearing, no recalibration.
+%   % \item Causal walk-forward test of tuning: refits, re-tuning, search budgets.
+%   % \item Native GPU MinGRU, regularised like the linear stack.
+%   \begin{itemize}
+%   \item \emph{Question.} We forecast the variance of the closing half hour, the risk a 0DTE SPX straddle opened at
+%     15:30 carries to settlement.
+%   \item \emph{Data.} One predictor vector $\bm x_t$ holds, for each of \rhfiNExog{} exogenous series, HAR
+%     components of its value, of its missing-data indicator and, for zero-inflated series, of an activity
+%     indicator; $T_{\mathrm{oos}} = \cmNdays$ out-of-sample trading days.
+%   \item \emph{Method.} A rolling-window out-of-sample exercise, re-estimated daily, in which every hyperparameter is
+%     selected on data before the forecast origin. We measure what re-estimation frequency, hyperparameter
+%     re-selection and search budgets add out of sample. Forecasts are retransformed as $\hat y_t^{\,2} s^2_{t,c}$,
+%     with no recalibration. The model classes include a MinGRU recurrent network \citep{Feng2024},
+%     regularized like the linear models.
+%     % 2026-10-15 (user): parked -- no smearing mentions. Was: "... as $\hat y_t^{\,2} s^2_{t,c}$, with no smearing or
+%     % recalibration."
+%     % 2026-10-15 (bib pass): parked -- the typed citation, now a \citep key in references.bib. Was:
+%     % MinGRU: Feng et al. (2024) -- not yet in references.bib.
+%   \item \emph{Findings.} The full predictor set lowers $\overline{\QLIKE}$ relative to the HAR benchmark in
+%     \fqsQLower{} of \fqsPairs{} pairs, \fqsQLowerSig{} of them significantly at the 5\% level. The closing-interval
+%     model is more accurate than the intraday model; for ridge on the HAR benchmark, $\overline{\QLIKE}$
+%     changes by \cmLdPerBarBaseQ\% ($\DM = \cmLdPerBarBaseDM$).
+%   \item \emph{Economic value.} \cmMasterVsShortAbove{} of the \cmMasterVsShortN{} forecasts earn a higher $\SR$
+%     than the unconditional short-straddle benchmark ($q_t \equiv -1$), \cmMasterVsShortAboveSig{} of them
+%     significantly at the 5\% level. Accuracy and economic value are only weakly related across forecasts.
+%   \end{itemize}
+% \item \textbf{Predictor set: full predictor set vs HAR benchmark} (each pair differs only in $\mathcal X$).
+%   \begin{itemize}
+%   \item $\Delta\overline{\QLIKE} = \overline{\QLIKE}_{\text{Full}} - \overline{\QLIKE}_{\text{HAR}} < 0$ in
+%     \fqsQLower{} of \fqsPairs{} pairs; median relative change \fqsMedDQPct\%.
+%   \item \fqsQLowerSig{} of these reductions are significant at the 5\% level (Diebold--Mariano statistic with the
+%     Harvey--Leybourne--Newbold correction); \fqsQHigherSig{} of the \fqsQHigher{} increases are.
+%   \item $\Delta\SR > 0$ in \fqsShHigher{} of \fqsPairs{} pairs; median \fqsMedDSh; \fqsShHigherSig{} significant at
+%     the 5\% level (HAC $t$-statistic on the daily return differential).
+%   \item All \cmMasterVsShortAboveSig{} forecasts that significantly beat the short-straddle benchmark
+%     ($q_t \equiv -1$) use the full predictor set.
+%   \end{itemize}
+% \item \textbf{Estimation sample: closing-interval vs intraday model.}
+%   \begin{itemize}
+%   \item The closing-interval model has the lower $\overline{\QLIKE}$ wherever both are estimated.
+%   \item The difference is significant at the 5\% level on the HAR benchmark in every model class; for ridge,
+%     $\overline{\QLIKE}$ changes by \cmLdPerBarBaseQ\% ($\DM = \cmLdPerBarBaseDM$).
+%   \item The difference in $\SR$ is not statistically significant.
+%   \end{itemize}
+% \item \textbf{Statistical accuracy and economic value are weakly related.}
+%   \begin{itemize}
+%   \item Spearman rank correlation of $\overline{\QLIKE}$ and $\SR$ across the \cmMasterN{} forecasts:
+%     \cmMasterRankCorr{} (negative: a lower loss goes with a higher $\SR$).
+%   \item Of the \cmLdN{} single specification changes, \cmLdResolved{} moves $\SR$ significantly.
+%   \end{itemize}
+% \item \textbf{Roadmap:} data (Section~\ref{sec:rh_data}), predictors (Section~\ref{sec:rh_predictors}), methods
+%   (Section~\ref{sec:rh_methods}), statistical results, first for the predictor set and then for the estimation
+%   sample (Section~\ref{sec:rh_results}), the economic value of the straddle strategy (Section~\ref{sec:rh_econ}),
+%   variable importance (Section~\ref{sec:rh_fi}) and the conclusion (Section~\ref{sec:rh_conclusion}).
+% \end{itemize}

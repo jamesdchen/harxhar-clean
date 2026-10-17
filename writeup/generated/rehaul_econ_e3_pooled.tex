@@ -5,11 +5,11 @@
 \centering
 \small
 \begin{threeparttable}
-\caption{Closing-interval versus pooled intraday models}
+\caption{Closing-interval versus intraday models}
 \label{tab:rh_econ_pooled}
 \begin{tabular}{@{}lrrrrr@{}}
 \toprule
- & \multicolumn{2}{c}{$\SR$ at mid-quotes} & \multicolumn{3}{c}{Pooled intraday minus closing-interval} \\
+ & \multicolumn{2}{c}{$\SR$ at mid-quotes} & \multicolumn{3}{c}{Intraday minus closing-interval} \\
 \cmidrule(lr){2-3}\cmidrule(l){4-6}
  & Pooled & Closing & $\Delta\SR$, & $\Delta\SR$, & \\
  & intraday & interval & mid-quotes & bid--ask & $\Delta\QLIKE$ (\%) \\
@@ -35,12 +35,12 @@ Ridge & $0.91$ & $1.37$ & $-0.46^{\phantom{***}}$ & $-0.46^{\phantom{***}}$ & $1
 \end{tabular}
 \begin{tablenotes}[flushleft]
 \footnotesize
-\item \textit{Notes:} Each row compares the closing-interval model with the pooled intraday model of the same
+\item \textit{Notes:} Each row compares the closing-interval model with the intraday model of the same
 estimator and predictor set, both with hyperparameters selected on a pre-sample, over the out-of-sample period
-($T_{\mathrm{oos}} = \rheNdays$ trading days); the pooled intraday model is evaluated on the closing interval. $\SR$
-is the annualized Sharpe ratio of the sign strategy; $\Delta\SR$ is the pooled intraday minus the closing-interval
+($T_{\mathrm{oos}} = \rheNdays$ trading days); the intraday model is evaluated on the closing interval. $\SR$
+is the annualized Sharpe ratio of the sign strategy; $\Delta\SR$ is the intraday minus the closing-interval
 $\SR$, at mid-quotes and at quoted bid/ask prices, with the HAC $t$-statistic on the daily return differential (Newey--West, $q_{\mathrm{NW}} = \rheHACLag$; Section~\ref{sec:rh_methods_tests}) in parentheses. $\Delta\QLIKE$ is the
-pooled intraday model's mean QLIKE relative to the closing-interval model's, in percent, with the Diebold--Mariano
+intraday model's mean QLIKE relative to the closing-interval model's, in percent, with the Diebold--Mariano
 statistic (Harvey--Leybourne--Newbold correction, Newey--West $q_{\mathrm{NW}} = \rheDMLag$) in parentheses; positive values favor
 the closing-interval model, as in Table~\ref{tab:rh_axis2}. $^{*}$, $^{**}$ and $^{***}$ denote significance at the 10\%, 5\% and 1\% levels.
 \end{tablenotes}

@@ -66,6 +66,7 @@
   \item \textbf{SPXW option quotes on expiration days} (S\&P 500 Weeklys), every 30 minutes: bid, ask, midquote,
     underlying level, implied volatility and delta. \rhdmSpxwExpirations{} expirations, 2020--2025.
   \item \todo{name the vendor of each file}.
+  \editc{blue}{E2}{Decision: name the vendor, the price field, the roll, and the bin edges. The return $r_{t,i,k}$ is ``the one-minute log return,'' with no statement of last trade, bid--ask mid, or settlement, and no roll (front month, volume switch, or a calendar). The only clock edge in the subsection is $i=c$, 15:30--16:00 ET. $M=\rhdmNIntervals$ and the weekend cut (Friday 20:00 through Sunday 18:30) are stated. The edges of the other bins, including the overnight session, are not.}
   \end{itemize}
 \item \textbf{Intraday grid and cleaning.}
   \begin{itemize}
@@ -87,8 +88,12 @@
       a_{t,i} = \mathbf{1}\{u \text{ observed in interval } (t,i)\} \in \{0, 1\}.
     \]
   \item Then $u_{t,i}$ is forward-filled (last observation carried forward), without a limit on staleness. Every
-    interval with $a_{t,i} = 0$ is later imputed with the full-sample median (Section~\ref{sec:rh_predictors},
-    step 4).
+    interval with $a_{t,i} = 0$ is later replaced by the imputation fill of Section~\ref{sec:rh_predictors},
+    step 4.
+  % 2026-10-16 (user): the stored value on $a_{t,i}=0$ is the expanding median of earlier observed
+  % adjusted values. Parked -- "imputed with the full-sample median", and E3, which recorded that
+  % the median uses later observations:
+  % \editc{red}{E3}{Decision: say which value is stored. This bullet forward-fills $u_{t,i}$ with no staleness limit, then says every $a_{t,i}=0$ cell is replaced by the full-sample median (Predictors, step 4). After step 4 the carried-forward number is not the regressor. The median is computed on the whole sample, so a missing cell inside $\mathcal T_{\mathrm{oos}}$ uses later observations. Predictors lists that median as a disclosed exception to the no-look-ahead rule.}
     % CODE: FFILL_LIMIT = 26 is defined (executor.py:75) but never passed: ffill_limit=None (executor.py:476,
     % 540, 736-745). The old text ("neutral fill where there is no history") was wrong: the median replaces
     % every unobserved row (executor.py:602-605; outline flag 6).
@@ -119,7 +124,7 @@
   % (tab:rh_dm_tuning, experiments/pool_linear_pretune.py:65-66: 2,000 days x 48 = 96,000); typed counts -> macros.
   % Was: "Pooled intraday sample: 300,317 half-hour intervals from June 1998, with a rolling estimation window of
   % $W = 24{,}000$ intervals: 300{,}317 = 303{,}442 ... - 3{,}125 ..."; "3,469 trading days"; "\rhfiNOos = 3{,}469 - ...".
-  \item Pooled intraday sample: \rhdmPooledRows{} half-hour intervals from June 1998, with rolling estimation windows
+  \item Intraday sample: \rhdmPooledRows{} half-hour intervals from June 1998, with rolling estimation windows
     of $W = \rhdmPooledWindow$ intervals (trees) and $W = \rhdmPooledLinWindow$ intervals (linear models;
     Appendix~\ref{sec:rh_exp_schemes}):
     % 2026-10-15 (finish): FLAG resolved -- typed 96{,}000 -> \rhdmPooledLinWindow (make_rehaul_data_methods.py, same value).
@@ -149,7 +154,7 @@
   %   \]
   \item Evaluation span $\mathcal T_{\mathrm{oos}}$: \rhoosSpanStart{} to \rhoosSpanEnd, the
     $T_{\mathrm{oos}} = \rhoosDays$ trading days on which every rolling forecast exists, less \rhoosEarlyCloses{}
-    early-close days. It starts with the pooled intraday linear forecasts, after the pre-sample above
+    early-close days. It starts with the intraday linear forecasts, after the pre-sample above
     (Section~\ref{sec:rh_results_eval}).
   \item Option-data subsample $\mathcal T_{\mathrm{opt}} \subset \mathcal T_{\mathrm{oos}}$, on which the straddle
     strategy is evaluated (Section~\ref{sec:rh_econ}):

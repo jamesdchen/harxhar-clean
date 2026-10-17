@@ -31,26 +31,35 @@
 % same averages of $y$ over $k$ intraday intervals."
 \item \textbf{Realized variance and the HAR model:}
   $\E_t[\RV^{(d)}_{t+1}] = \beta_0 + \beta_d\, \RV^{(d)}_t + \beta_w\, \RV^{(w)}_t + \beta_m\, \RV^{(m)}_t$, with
-  $\E_t$ the expectation given the information at the forecast origin on day $t$ (here 15:30 ET) and
+  $\E_t$ the expectation given the information at the forecast origin on day $t$ and
   $\RV^{(d)}_t$, $\RV^{(w)}_t$ and
-  $\RV^{(m)}_t$ the average daily realized variance over the last 1, 5 and 22 trading days. Our HAR components
-  $\bar y^{(k)}_t$ take the same averages over $k$ intraday intervals of $y$, the square root of realized variance
-  divided by its diurnal adjustment (Section~\ref{sec:rh_data}).\newline
+  $\RV^{(m)}_t$ the average daily realized variance over the last 1, 5 and 22 trading days.
+  The components are daily realized variance at the daily, weekly, and monthly horizons. An intraday interval
+  as the object of the forecast is outside this regression.\newline
   \citet{Corsi2009}, \citet{AndersenBollerslevDieboldLabys2003}, \citet{BarndorffNielsenShephard2004},
   \citet{AndersenBollerslevDiebold2007}, \citet{CorsiMittnikPigorschPigorsch2008},
   \citet{BollerslevPattonQuaedvlieg2016}, \citet{BekiermanManner2018}, \citet{BennedsenLundePakkanen2022},
   \citet{HansenHuangShek2012}, \citet{AndersenBollerslevChristoffersenDiebold2006}.
+  % 2026-10-16 (user, E1): parked -- Related work does not describe our estimators. The components, the square-root
+  % target, and the 15:30 origin belong in Methods. Was: "... on day $t$ (here 15:30 ET) and ... Our HAR components
+  % $\bar y^{(k)}_t$ take the same averages over $k$ intraday intervals of $y$, the square root of realized variance
+  % divided by its diurnal adjustment (Section~\ref{sec:rh_data})."
+  % \editc{red}{E1}{Related work says the HAR components average $y$... Predictors and Methods average $\tilde y$.}
   \begin{itemize}
-  \item Panel HAR, estimated jointly across assets, the cross-asset counterpart of our pooled intraday model,
-    which pools the intraday intervals of one index: \citet{BollerslevHoodHussLebedev2018}.
+  \item Panel HAR estimates one regression jointly across assets: \citet{BollerslevHoodHussLebedev2018}.
+    Its sample is a cross-section of names.
+    % 2026-10-16 (user, E1): parked -- this named our estimator. Was: "the cross-asset counterpart of our intraday
+    % model, which pools the intraday intervals of one index."
     % Key says "Lebedev"; the bib's author field (correctly) says Pedersen -- \citet prints the author field.
   \item \citet{BarndorffNielsenShephard2002} (realized variance).
   % 2026-10-15 (bib pass): parked -- the [to add] placeholder, now a \citet key in references.bib. Was:
   % \item \todo{to add: Barndorff-Nielsen--Shephard 2002 (realized variance)}.
   \end{itemize}
-\item \textbf{Diurnal pattern:} volatility follows a U-shaped intraday pattern; the standard adjustment
-  divides by a diurnal adjustment, here $y_{t,i} = \sqrt{\RV_{t,i}/s^2_{t,i}}$, with $\RV_{t,i}$ the realized
-  variance of intraday interval $i$ on day $t$ and $s^2_{t,i}$ its diurnal adjustment.\newline
+\item \textbf{Diurnal pattern:} volatility follows a U-shaped intraday pattern. The standard adjustment
+  divides intraday variance by a factor estimated from the same clock time on earlier days.\newline
+  % 2026-10-16 (user, E1): parked -- the display was our target, not the literature's. Was:
+  % "divides by a diurnal adjustment, here $y_{t,i} = \sqrt{\RV_{t,i}/s^2_{t,i}}$, with $\RV_{t,i}$ the realized
+  % variance of intraday interval $i$ on day $t$ and $s^2_{t,i}$ its diurnal adjustment."
   \citet{AndersenBollerslev1997} (intraday periodicity), \citet{EngleGallo2006} (intraday measures as indicators of
   daily volatility), \citet{HizmeriBevilacqua2025} (morning volatility uncertainty).
   % 2026-10-15 (notation pass): EngleGallo2006 is a multiple-indicators model of daily volatility, not a periodicity
@@ -88,20 +97,23 @@
   % \item \todo{to add: Breiman 2001; Friedman 2001 (gradient boosting); Bucci 2020; Rahimikia--Poon 2020;
   %   Zhang--Zhang--Cucuringu--Qian 2024; MinGRU (Feng et al.\ 2024); PufferLib}.
   \end{itemize}
-\item \textbf{Forecast evaluation:} QLIKE is robust to noise in the volatility proxy: with a conditionally unbiased
-  proxy it ranks forecasts as the true conditional variance would, and
-  $\argmin_{v > 0} \E_t[\QLIKE(\RV_t, v)] = \E_t[\RV_t]$, with
-  $\QLIKE(\RV, v) = \RV/v - \log(\RV/v) - 1$.\newline
-  \citet{Patton2011} (robust loss functions), \citet{DieboldMariano1995} with the small-sample correction of
-  \citet{HarveyLeybourneNewbold1997}, \citet{HansenLundeNason2011} (model confidence set), \citet{Ehm2016}
-  (Murphy diagrams, elementary scores), \citet{MincerZarnowitz1969} (forecast-efficiency regressions).
-  \begin{itemize}
-  \item \citet{Hansen2005} (superior predictive ability), \citet{White2000} (reality check), \citet{RomanoWolf2005}
-    (StepM), \citet{NeweyWest1987} (HAC variance).
-  % 2026-10-15 (bib pass): parked -- the [to add] placeholder, now \citet keys in references.bib. Was:
-  % \item \todo{to add: Hansen 2005 (superior predictive ability); White 2000 (reality check); Romano--Wolf 2005
-  %   (StepM); Newey--West 1987 (HAC variance)}.
-  \end{itemize}
+% 2026-10-16 (user): parked -- forecast evaluation is standard. Cite Patton, Diebold--Mariano,
+% Harvey--Leybourne--Newbold, Newey--West, Ehm, and the model-confidence set where those methods are used
+% (Forecast evaluation, Statistical tests, Economic value). Mincer--Zarnowitz and White's reality check are not used.
+% \item \textbf{Forecast evaluation:} QLIKE is robust to noise in the volatility proxy: with a conditionally unbiased
+%   proxy it ranks forecasts as the true conditional variance would, and
+%   $\argmin_{v > 0} \E_t[\QLIKE(\RV_t, v)] = \E_t[\RV_t]$, with
+%   $\QLIKE(\RV, v) = \RV/v - \log(\RV/v) - 1$.\newline
+%   \citet{Patton2011} (robust loss functions), \citet{DieboldMariano1995} with the small-sample correction of
+%   \citet{HarveyLeybourneNewbold1997}, \citet{HansenLundeNason2011} (model confidence set), \citet{Ehm2016}
+%   (Murphy diagrams, elementary scores), \citet{MincerZarnowitz1969} (forecast-efficiency regressions).
+%   \begin{itemize}
+%   \item \citet{Hansen2005} (superior predictive ability), \citet{White2000} (reality check), \citet{RomanoWolf2005}
+%     (StepM), \citet{NeweyWest1987} (HAC variance).
+%   % 2026-10-15 (bib pass): parked -- the [to add] placeholder, now \citet keys in references.bib. Was:
+%   % \item \todo{to add: Hansen 2005 (superior predictive ability); White 2000 (reality check); Romano--Wolf 2005
+%   %   (StepM); Newey--West 1987 (HAC variance)}.
+%   \end{itemize}
 \item \textbf{Shrinkage with many weak signals:}
   \[
     \hat{\bm\beta} = \argmin_{\bm\beta} \lVert \bm y - \bm X\bm\beta \rVert_2^2
@@ -121,11 +133,13 @@
   % \item \todo{to add: Zou 2006 (adaptive lasso, penalty weights); Friedman--Hastie--Tibshirani 2010 (elastic-net
   %   parametrization)}.
   \end{itemize}
-\item \textbf{Variable importance:} Shapley additive explanations (SHAP) decompose each forecast additively,
-  $\hat y_t = \phi_0 + \sum_{j=1}^{p} \phi_{t,j}$, with $\phi_{t,j}$ the contribution of predictor $j$ of $p$ and
-  $\phi_0$ the average forecast.\newline
-  \citet{lundberg2017unified} (SHAP), \citet{lundberg2018consistent} (TreeSHAP), \citet{aas2021explaining}
-  (dependent features).
+% 2026-10-16 (user): parked -- SHAP is standard. The decomposition and the Lundberg cites stay in Variable
+% importance, where the values are computed. Aas et al. (dependent features) is not used.
+% \item \textbf{Variable importance:} Shapley additive explanations (SHAP) decompose each forecast additively,
+%   $\hat y_t = \phi_0 + \sum_{j=1}^{p} \phi_{t,j}$, with $\phi_{t,j}$ the contribution of predictor $j$ of $p$ and
+%   $\phi_0$ the average forecast.\newline
+%   \citet{lundberg2017unified} (SHAP), \citet{lundberg2018consistent} (TreeSHAP), \citet{aas2021explaining}
+%   (dependent features).
 % 2026-10-15 (user): parked -- no smearing mentions
 % \item \textbf{Retransformation} (one sentence): a smearing estimate would correct $\hat y_t^{\,2} s^2_{t,c}$ for
 %   retransformation bias; we do not.\newline
