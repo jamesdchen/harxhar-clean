@@ -35,11 +35,12 @@
 \item \textbf{Why the HAR benchmark is the baseline.} A HAR regression forecasts variance from its own lags
   \citep{Corsi2009}. It does not use the other series observed by 15:30: realized moments, liquidity, the
   cross-section of returns, sentiment, implied volatility, volatility demand, and scheduled announcements.
-\item \textbf{Design.} One forecast function,
+\item \textbf{Design.} One forecast function, for each intraday interval $(t,i)$,
   \[
-    \hat y_t = f_{m,\mathcal X,\mathcal I}(\bm x_t),
+    \hat y_{t,i} = f_{m,\mathcal X,\mathcal I}(\bm x_{t,i}),
   \]
   with model class $m$ and predictor set $\mathcal X \in \{\mathrm{HAR}, \mathrm{Full}\}$.
+  % 2026-10-16 (user, E12): parked -- $\hat y_t = f_{m,\mathcal X,\mathcal I}(\bm x_t)$.
   \begin{itemize}
   \item The results in Section~\ref{sec:rh_results} use the intraday scheme,
     $\mathcal I = \{1, \dots, M\}$.
