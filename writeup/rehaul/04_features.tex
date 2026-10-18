@@ -49,8 +49,9 @@
   \end{itemize}
 \item \textbf{Predictors constructed from each series.}
   \begin{itemize}
+  % 2026-10-17 (user, list-25 #6): parked -- unit of k stated (30-minute grid intervals, both models; har.py:48 rolls over the rows of the full bar series, lag_scope "global", segmentation.py:39-43). Was: "over horizons of $k$ intervals, lagged by one interval"
   \item Following \citet{Corsi2009}, we construct HAR-type trailing averages of each transformed series $\tilde u$
-    over horizons of $k$ intervals, lagged by one interval:
+    over horizons of $k$ 30-minute grid intervals, lagged by one interval:
     \[
       \bar u^{(k)}_{t,i} = \frac{1}{k} \sum_{j=1}^{k} \tilde u_{t,i-j}, \qquad k \in \mathcal{K},
     \]
@@ -69,8 +70,9 @@
     \[
       \mathcal{K} = \{2^0, 2^1, \dots, 2^{11}\} \quad \text{(base 2, \rhdmNHorizonsPooled{} horizons)}.
     \]
-  \item Here, $k$ counts retained intervals across the full intraday grid $\mathcal{G}$ (including overnight
-    sessions). The horizon set of the closing-interval specification is given in
+  % 2026-10-17 (user, list-25 #6): parked -- unit of k stated (30-minute grid intervals, both models; har.py:48 rolls over the rows of the full bar series, lag_scope "global", segmentation.py:39-43). Was: "Here, $k$ counts retained intervals across the full intraday grid"
+  \item Here, $k$ counts retained 30-minute intervals of the full intraday grid $\mathcal{G}$ (including overnight
+    sessions), in the intraday and the closing-interval model alike. The horizon set of the closing-interval specification is given in
     Appendix~\ref{app:rh_closing_predictors}.
 
     % har.py:18-48: rolling(k, min_periods=1).mean().shift(1). Per bar: production base-5 ladder, lag_scope
@@ -93,8 +95,9 @@ Note (2026-10-17, user): the count of 7 comes from the closing-interval panel an
   \item For notational simplicity in our tables and figures, we suppress the overbar and the interval index $i$
     % 2026-10-17 (user): parked -- closing-interval material (example horizon 25 is on the closing ladder; the intraday ladder is base 2). Was: "($i = c$ in the closing-interval specification) ... $\mathrm{VIX}^{(25)}_t$ ... over the 25"
     ($i = c$ for the scored forecast), writing $u^{(k)}_t$ for series $u$ averaged over $k$
+    % 2026-10-17 (user, list-25 #6): parked -- unit of k stated (30-minute grid intervals, both models; har.py:48 rolls over the rows of the full bar series, lag_scope "global", segmentation.py:39-43). Was: "averaged over the 16 intervals ending at 15:30"
     intervals; for instance, $\mathrm{VIX}^{(16)}_t$ denotes the transformed VIX series averaged over the 16
-    intervals ending at 15:30 on day $t$. We denote the implied volatility series by $\mathrm{VIX}$,
+    30-minute intervals ending at 15:30 on day $t$. We denote the implied volatility series by $\mathrm{VIX}$,
     $\mathrm{VIX3M}$, and $\mathrm{VVIX}$, label equal- and value-weighted constituent aggregates with the
     superscripts EW and VW (e.g., $\mathrm{OFI}^{\mathrm{EW}}$, $\RV^{\mathrm{VW}}$, and
     $\mathrm{Spread}^{\mathrm{VW}}$), and denote the announcement predictors by $\mathrm{FOMC}$, while writing
@@ -103,7 +106,8 @@ Note (2026-10-17, user): the count of 7 comes from the closing-interval panel an
   \end{itemize}
 \item \textbf{HAR benchmark.} The HAR benchmark predictor set consists of the HAR components of the target,
   $\bar y^{(k)}_{t,i}$—constructed via the same trailing-average operator as $\bar u^{(k)}_{t,i}$ applied to the
-  winsorized target (6 columns)—together with the calendar vector $\bm D_{t,i}$, which comprises five
+  % 2026-10-17 (user, item 7): parked -- the intraday model has \rhdmNHorizonsPooled{} HAR columns (base-2 ladder, specs/causal_tune_linear.py:197-209). Was: "winsorized target (6 columns)"
+  winsorized target (\rhdmNHorizonsPooled{} columns in the intraday model)—together with the calendar vector $\bm D_{t,i}$, which comprises five
   day-of-the-week dummy variables, the hour of the interval-end timestamp, and the overnight session indicator.
   % 2026-10-16 (formula pass): parked -- bar y^{(k)}_{t,i} = (1/k) sum_{j=1}^{k} tilde y_{t,i-j} repeated the
   % average already displayed for bar u^{(k)}_{t,i}.

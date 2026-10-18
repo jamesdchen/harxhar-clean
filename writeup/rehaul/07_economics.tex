@@ -279,13 +279,24 @@ This item says the full predictor set raises the Sharpe ratio of the sign strate
 % correlations (all forecasts of the model set, both training schemes) is now stated. Was: "Spearman rank
 % correlations across forecasts, on $\mathcal T_{\mathrm{opt}}$, between ..."
 % 2026-10-17 (user, E17): parked -- 866-day rank correlations \cmMasterRankCorr and \hmurRhoESLossMid replaced by post-warmup \rheRankCorrQ and \rheRankCorrES.
-\item \textbf{Statistical accuracy versus economic value.} Across all \cmMasterN{} forecasts in the full model set (spanning both training schemes) evaluated on $\mathcal T_{\mathrm{opt}}$, the Spearman rank correlations between average statistical loss and the post-warmup Sharpe ratio (where a negative correlation indicates that lower loss corresponds to higher $\SR$) are
+% 2026-10-17 (user, E25): parked -- the rank correlations are restricted to the \rhrPoolN{} pooled intraday forecasts (decision E25); \rheRankCorrQ -> \rheRankCorrQPool, \rheRankCorrES -> \rheRankCorrESPool (make_rehaul_economics.py, pooled_rank_series). Was:
+% \item \textbf{Statistical accuracy versus economic value.} Across all \cmMasterN{} forecasts in the full model set (spanning both training schemes) evaluated on $\mathcal T_{\mathrm{opt}}$, the Spearman rank correlations between average statistical loss and the post-warmup Sharpe ratio (where a negative correlation indicates that lower loss corresponds to higher $\SR$) are
+  % \[
+  % \rho_S\bigl(\overline{\QLIKE}, \SR\bigr) = \rheRankCorrQ,
+  % \qquad
+  % \rho_S\bigl(\overline{\mathrm{ES}}_1, \SR\bigr) = \rheRankCorrES .
+  % \]
+  % Global QLIKE accuracy thus provides only a weak guide to straddle profitability, whereas local accuracy at the implied-variance threshold ($\overline{\mathrm{ES}}_1$) aligns much more closely with economic performance.
+\item \textbf{Statistical accuracy versus economic value.} Across the \rhrPoolN{} pooled intraday forecasts evaluated on $\mathcal T_{\mathrm{opt}}$, the Spearman rank correlations between average statistical loss and the post-warmup Sharpe ratio (where a negative correlation indicates that lower loss corresponds to higher $\SR$) are
   \[
-  \rho_S\bigl(\overline{\QLIKE}, \SR\bigr) = \rheRankCorrQ,
+  \rho_S\bigl(\overline{\QLIKE}, \SR\bigr) = \rheRankCorrQPool,
   \qquad
-  \rho_S\bigl(\overline{\mathrm{ES}}_1, \SR\bigr) = \rheRankCorrES .
+  \rho_S\bigl(\overline{\mathrm{ES}}_1, \SR\bigr) = \rheRankCorrESPool .
   \]
-  Global QLIKE accuracy thus provides only a weak guide to straddle profitability, whereas local accuracy at the implied-variance threshold ($\overline{\mathrm{ES}}_1$) aligns much more closely with economic performance.
+  Among the pooled intraday forecasts, both global QLIKE accuracy and local accuracy at the implied-variance threshold ($\overline{\mathrm{ES}}_1$) are thus negatively rank-correlated with straddle profitability: lower loss goes with a higher $\SR$.
+  % 2026-10-17 (user, E25): parked -- applied. Was:
+  % \editc{orange}{E25}{Decision: restrict the Spearman accuracy-vs-value correlations to the \rhrPoolN{} pooled intraday forecasts, dropping the closing-interval forecasts.\\Problem: the correlations ran over all \cmMasterN{} forecasts of the model set, spanning both training schemes, so closing-interval forecasts were blended into a model-set statistic in the intraday economics section.\\
+  % The correlations are now computed on the six pooled linear forecasts and the six pooled trees of Tables T1 and E1 (generated/rehaul_econ_numbers.tex: \rheRankCorrQPool, \rheRankCorrESPool). The model-set values \rheRankCorrQ{} and \rheRankCorrES{} are kept as macros.}
   % 2026-10-15 (finish, phase 2): typed -0.55 -> \hmurRhoESLossMid (includes the sign; close_murphy_splits_numbers.tex).
   % 2026-10-15 (consolidation): FLAG -- -0.55 typed (actual RV; was -0.50 on the winsorized target). Its macro is
   % -\hmurRhoESMid (+0.55, the correlation of -ES with Sharpe), in generated/appendix_close_murphy_splits.tex, which
@@ -309,6 +320,8 @@ This item says the full predictor set raises the Sharpe ratio of the sign strate
   \item \emph{Interval-shift test:} when we replace $\hat y_{t,c}$ in the sign rule by the forecast $\hat y_{t,c+j}$ from $j$ half-hour intervals away ($j < 0$ earlier on day $t$; $j > 0$ on day $t+1$), $q_t = \sign\bigl(\hat y_{t,c+j}^{\,2}\, s^2_{t,c} - \mathrm{IV}_t^2\bigr)$, the median Sharpe ratio across models varies between \shiftSwingMedLo{} and \shiftSwingMedHi{} across $j$ (a half-range of $\pm\shiftSwingHalf$). Because this variation lies well within the $\pm\shiftNoiseBand$ 95\% sampling band of an annualized Sharpe ratio under i.i.d.\ returns, differences of this magnitude are consistent with sampling variation;
   % 2026-10-15 (finish, phase 2): parked -- typed "about +-1" -> the shift-test macros (close_shift_test_numbers.tex).
   % Was: "$\SR$ swings by about $\pm 1$ across $j$, so differences of this size are sampling noise;"
+  \editc{orange}{E26}{Decision: to decide: restate on the pooled intraday forecasts only, or move to the closing-interval appendix.\\Problem: the bullet reports a median Sharpe ratio across models without naming them, and the forecasts it shifts are not the pooled intraday forecasts of the tables.\\
+The shift-test macros come from experiments/close\_shift\_test\_headline.py through generated/close\_shift\_test\_numbers.tex. Per results/close\_shift\_test/SUMMARY.md and shift\_test\_modelset.csv, the shifted forecasts are the ``paper'' family of the model set (a0, blk2, blk2\_inc, lgbm, xgb, lasso\_t, lasso\_f, enet, b2lasso): the earlier draft's pooled 48-bar intraday forecasts. The current pooled linear rows (poolpt\_*) and the per-bar rows are not shifted, because their tables hold only the 16:00 row (shift\_test\_not\_shifted.csv). For $j > 0$ the shifted forecast is the one of day $t+1$, which is not in $\mathcal F_t$ at the 15:30 forecast origin, so those offsets are a placebo, and the bullet does not say so.}
   \item \emph{Subsample stability:} we verify performance across subsamples split around May 2022 (when CBOE expanded SPXW expirations to all five weekdays);
   % 2026-10-15 (user): parked -- V_oos -> V_{T_opt} (the option-data subsample). Was: $V_{\mathrm{oos}}$
   % 2026-10-15 (user): parked -- last-30-min scheme moved to the end of the economics section; scope stated (the
@@ -316,6 +329,8 @@ This item says the full predictor set raises the Sharpe ratio of the sign strate
   \item \emph{Compounded wealth:} across all \cmMasterN{} forecasts in the model set, compounding at $f = \rhappCompF\%$ of wealth per day yields a median terminal portfolio value $V_{T_{\mathrm{opt}}}$ of \cmpWMedMid{} at mid-quotes and \cmpWMedX{} at quoted bid/ask prices, with maximum drawdowns reaching up to \cmpDDMaxMid\% and \cmpDDMaxX\%, respectively.
   % 2026-10-15 (finish, phase 2): typed 4.4, 1.8, 64, 78 -> \cmpWMedMid, \cmpWMedX, \cmpDDMaxMid, \cmpDDMaxX.
   % 2026-10-15 (finish): W_oos -> V_oos (see the Compounding bullet); numbers unchanged (phase 2 swaps in macros).
+  \editc{orange}{E27}{Decision: restrict the aggregation to intraday forecasts only (the \rhrPoolN{} pooled intraday forecasts of note E25), dropping the closing-interval forecasts.\\Problem: compounded wealth is computed across all \cmMasterN{} forecasts of the model set, closing-interval forecasts included, and the generator cannot yet compute it on the intraday forecasts of note E25.\\
+The macros come from experiments/close\_compounding\_headline.py, which reads per-day returns from the master table (results/close\_master\_table/master\_table\_daily.parquet) for the forecasts of paper\_model\_set.csv. That set holds the per-bar trees and per-bar linear forecasts of the closing-interval scheme, the six pooled linear rows (poolpt\_*), and the earlier draft's pooled 48-bar forecasts (the ``paper'' family). Of the six pooled trees, only the full-set LightGBM and XGBoost are in it, as the ``paper'' rows lgbm and xgb. The three HAR-benchmark pooled trees and the interim full-set random forest (results/pooled\_trees\_2026-10-07) are not in the master table, so a group or prefix filter cannot select the \rhrPoolN{} forecasts. Missing: their per-day straddle returns in the compounding input, or a loader for those tables in the compounding script. The pooled-linear group alone is already in results/close\_compounding/SUMMARY.md, with no macro.}
   \end{itemize}
 % Code: experiments/close_shift_test_headline.py:1-60; the shifted row is placed as yhat_k^2 B_16:00.
 \end{itemize}

@@ -112,6 +112,8 @@
     as the total number of posts within the half hour; a sentiment score that equals $1$ when all tagged posts
     are bullish and $-1$ when all tagged posts are bearish; and the sentiment count, defined as the number of
     posts carrying either a bullish or bearish tag.
+  \editc{orange}{E30}{Decision: open, for the professor.\\Problem: the text gives only the $\pm 1$ endpoints of the sentiment score.\\
+Question for the professor: what is the formula of the score between the endpoints, and what value does it take on intervals with no tagged posts? The repository receives the score precomputed (data/spy\_and\_sentiment.parquet, column stocktwits\_sentiment, first observed in June 2010); src/data/loading.py:280 reads it as a net score in $[-1, 1]$, and no script in src/ or experiments/ computes it.}
   \item \textbf{Implied volatility} (\bkSizeIv{} series). We include three Cboe volatility indices: the 30-day
     S\&P 500 implied volatility index (VIX, available from 2006), the three-month implied volatility index
     (VIX3M, from 2009), and the implied volatility of the VIX (VVIX, from 2012), all extending through February
@@ -129,6 +131,8 @@
     $1/(1+n^{-}_{t,i})$, where $n^{+}_{t,i}$ and $n^{-}_{t,i}$ denote the number of intervals until the next
     scheduled announcement and since the most recent scheduled announcement, respectively. Because the meeting
     schedule is announced in advance, these variables are known prior to the start of the interval.
+  \editc{orange}{E28}{Decision: to decide: disclose the staleness in the text, or add a staleness cap.\\Problem: VIX, VIX3M and VVIX end in February 2024, volatility demand in August 2023 and the FOMC series in November 2023, and they are forward-filled with no staleness cap until \rhoosSpanEnd, the end of the evaluation span.\\
+Checked on the data: the last observed VIX, VIX3M and VVIX bar is on 12 February 2024 and the last volatility-demand bar on 31 August 2023 (data/vix\_and\_voldemand.parquet); the last scheduled FOMC print is on 1 November 2023 (data/releases.parquet, column ``fomc release''; the loader leaves the tail missing, src/data/loading.py:120--124). The forward fill feeds the trailing baseline statistics, and every interval with $a_{t,i} = 0$ is then stored as the causal median (data cleaning, below), so over the tail the availability averages $\bar a^{(k)}$ fall to zero. The text discloses none of this.}
   % 2026-10-17 (user): parked -- SPXW option quotes are not a data-section source group.
   % \item \textbf{SPXW option quotes on expiration days} (S\&P 500 Weeklys), every 30 minutes: bid, ask, midquote,
   %   underlying level, implied volatility and delta. \rhdmSpxwExpirations{} expirations, 2020--2025.

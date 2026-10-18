@@ -401,7 +401,7 @@ def add_pooled_trees(series, fam) -> dict:
 
 
 def pooled_rank_series(series) -> dict:
-    """2026-10-17 (user, E26): the \\rhrPoolN pooled intraday forecasts for the accuracy-vs-value rank correlations
+    """2026-10-17 (user, E25): the \\rhrPoolN pooled intraday forecasts for the accuracy-vs-value rank correlations
     (\\rheRankCorrQPool, \\rheRankCorrESPool): the six pooled linear rows of the model set, the three full-set pooled
     trees of add_pooled_trees, and the three HAR-benchmark pooled trees (results/pooled_trees_2026-10-07, as
     make_rehaul_results.py loads them), the last traded exactly like add_pooled_trees (sign of plain - iv_var on the
@@ -2253,7 +2253,7 @@ and median of the 112 forecasts of the model set (median {", ".join(num(v) for v
         "rheRankCorrES",
         m2(rho_es),
         "Spearman rank correlation of mean ES_1 with post-warmup Sharpe mid across the model set",
-    )    # 2026-10-17 (user, E26): the same correlations on the pooled intraday forecasts only (new macros; the two above
+    )    # 2026-10-17 (user, E25): the same correlations on the pooled intraday forecasts only (new macros; the two above
     # are unchanged).
     pser = pooled_rank_series(series)
     sh_p = pd.Series({k: sharpe(v["mid"]) for k, v in pser.items()})
@@ -2261,7 +2261,7 @@ and median of the 112 forecasts of the model set (median {", ".join(num(v) for v
     es_p = pd.Series({k: float(v["es1"].mean()) for k, v in pser.items()})
     for k in ("pooltree_lgbm_all_features", "pooltree_xgb_all_features", "pooltree_rf_all_features"):
         assert round(sh_p[k] + 0.0, 2) == POOLTREE_SR[k.split("_")[1]], (k, sh_p[k])
-    print("E26 pooled Sharpe mid:", {k: round(float(v), 2) for k, v in sh_p.items()})
+    print("E25 pooled Sharpe mid:", {k: round(float(v), 2) for k, v in sh_p.items()})
     nums += mac(
         "rheRankCorrQPool",
         m2(float(ql_p.rank().corr(sh_p.rank()))),

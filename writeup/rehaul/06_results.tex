@@ -88,8 +88,11 @@ The rule for the comparison is one configuration per model, chosen once on the p
   % 2026-10-15 (user, restructure): the flags of Table tab:rh_oos (note a, dagger) restated, as these forecasts now
   % carry the main results (make_rehaul_results.py: EARLIER_POOLED_FULL, INTERIM).
 % 2026-10-17 (user): parked -- closing-interval material (relabeled: closing-interval HAR benchmark); the window moved to Appendix app:rh_closing_bench. Was: "Our baseline benchmark is the daily HAR regression estimated on a rolling window of $W = \cmPtFitWin$ trading days;"
-\item \textbf{Benchmark forecast.} Our baseline benchmark is the closing-interval HAR benchmark, the daily HAR
-  regression estimated on closing-interval observations (Appendix~\ref{app:rh_closing_bench});
+% 2026-10-17 (user, item 11): parked -- a HAR-type model, not Corsi's daily HAR (src/features/extractors/har.py:18-21). Was: "the closing-interval HAR benchmark, the daily HAR regression estimated on closing-interval observations"
+\item \textbf{Benchmark forecast.} Our baseline benchmark is the closing-interval HAR benchmark, a HAR-type model in the
+  spirit of \citet{Corsi2009} on the target's trailing averages over $k \in \{1, 5, 25, 125, 625, 3125\}$ 30-minute
+  grid intervals and the \rhdmNCalendar{} calendar columns, estimated by OLS on closing-interval observations
+  (Appendix~\ref{app:rh_closing_bench});
   % 2026-10-17 (user): parked -- closing-interval material moved to the appendix; Section -> Appendix. Was: "window of $W = \cmPtFitWin$ trading days; Section~\ref{sec:rh_econ_last30} examines all model classes trained"
   Appendix~\ref{sec:rh_econ_last30} examines all model classes trained
   analogously on the closing 30-minute interval alone.
@@ -465,7 +468,8 @@ We refer the reader to Appendix~\ref{app:rh_impl} for comprehensive implementati
     tree ensembles.
   \item Under the HAR benchmark, the linear specifications achieve average QLIKE losses of
     \rhrPoolQLinHarMin--\rhrPoolQLinHarMax, outperforming the tree ensembles at
-    \rhrPoolQTreeHarMin--\rhrPoolQTreeHarMax{} (which represent the least accurate pooled specifications overall).
+    % 2026-10-17 (user, item 13): parked -- no ranking claims. Was: "(which represent the least accurate pooled specifications overall)"
+    \rhrPoolQTreeHarMin--\rhrPoolQTreeHarMax.
   \end{itemize}
 % 2026-10-17 (user): parked -- closing-interval material (relabeled: closing-interval HAR benchmark). Was: "Comparison against the closing-interval benchmark forecast. ... than the daily closing-interval benchmark forecast"
 \item \textbf{Comparison against the closing-interval HAR benchmark.} Every pooled intraday specification
