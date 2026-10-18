@@ -19,6 +19,7 @@
 % superscript (k) keeps one unit in the paper (k intraday intervals, the HAR horizon); X -> \bm X.
 \section{Related work}
 \label{sec:rh_related}
+% 2026-10-17 (user): prose rewritten in the style of Zhang, Zhang, Cucuringu, and Qian (2024).
 \begin{itemize}
 % 2026-10-15 (consolidation): parked -- (k) in trading days here vs intraday intervals everywhere else.
 % \item \textbf{Realized variance and the HAR model:}
@@ -29,70 +30,81 @@
 % E_t and the daily target and reads standalone. Was: "$\E_t[\RV_{t+1}] = \beta_0 + ...$, with $\RV^{(d)}_t$, ... the
 % average daily realized variance over the last 1, 5 and 22 trading days. Our HAR components $\bar y^{(k)}_t$ take the
 % same averages of $y$ over $k$ intraday intervals."
-\item \textbf{Realized variance and the HAR model:}
-  $\E_t[\RV^{(d)}_{t+1}] = \beta_0 + \beta_d\, \RV^{(d)}_t + \beta_w\, \RV^{(w)}_t + \beta_m\, \RV^{(m)}_t$, with
-  $\E_t$ the expectation given the information at the forecast origin on day $t$ and
-  $\RV^{(d)}_t$, $\RV^{(w)}_t$ and
-  $\RV^{(m)}_t$ the average daily realized variance over the last 1, 5 and 22 trading days.
-  The components are daily realized variance at the daily, weekly, and monthly horizons. An intraday interval
-  as the object of the forecast is outside this regression.\newline
-  \citet{Corsi2009}, \citet{AndersenBollerslevDieboldLabys2003}, \citet{BarndorffNielsenShephard2004},
+\item \textbf{Realized variance and the HAR model.} Following \citet{Corsi2009}, the heterogeneous
+  autoregressive (HAR) model specifies the conditional expectation of next-day realized variance as a linear
+  function of past realized variances aggregated over daily, weekly, and monthly horizons:
+  $\E_t[\RV^{(d)}_{t+1}] = \beta_0 + \beta_d\, \RV^{(d)}_t + \beta_w\, \RV^{(w)}_t + \beta_m\, \RV^{(m)}_t$,
+  where $\E_t$ denotes the conditional expectation given information available at the forecast origin on day $t$,
+  and $\RV^{(d)}_t$, $\RV^{(w)}_t$, and $\RV^{(m)}_t$ denote the average daily realized variance over the
+  preceding 1, 5, and 22 trading days, respectively. Because all three components represent daily realized
+  variances aggregated at the daily, weekly, and monthly horizons, forecasting the realized variance of a
+  specific intraday interval lies outside this standard daily specification.\newline
+  See \citet{Corsi2009}, \citet{AndersenBollerslevDieboldLabys2003}, \citet{BarndorffNielsenShephard2004},
   \citet{AndersenBollerslevDiebold2007}, \citet{CorsiMittnikPigorschPigorsch2008},
   \citet{BollerslevPattonQuaedvlieg2016}, \citet{BekiermanManner2018}, \citet{BennedsenLundePakkanen2022},
-  \citet{HansenHuangShek2012}, \citet{AndersenBollerslevChristoffersenDiebold2006}.
+  \citet{HansenHuangShek2012}, and \citet{AndersenBollerslevChristoffersenDiebold2006}.
   % 2026-10-16 (user, E1): parked -- Related work does not describe our estimators. The components, the square-root
   % target, and the 15:30 origin belong in Methods. Was: "... on day $t$ (here 15:30 ET) and ... Our HAR components
   % $\bar y^{(k)}_t$ take the same averages over $k$ intraday intervals of $y$, the square root of realized variance
   % divided by its diurnal adjustment (Section~\ref{sec:rh_data})."
   % \editc{red}{E1}{Related work says the HAR components average $y$... Predictors and Methods average $\tilde y$.}
   \begin{itemize}
-  \item Panel HAR estimates one regression jointly across assets: \citet{BollerslevHoodHussLebedev2018}.
-    Its sample is a cross-section of names.
+  \item In a multivariate setting, the panel HAR framework of \citet{BollerslevHoodHussLebedev2018} estimates a
+    single pooled regression jointly across a cross-section of assets.
     % 2026-10-16 (user, E1): parked -- this named our estimator. Was: "the cross-asset counterpart of our intraday
     % model, which pools the intraday intervals of one index."
     % Key says "Lebedev"; the bib's author field (correctly) says Pedersen -- \citet prints the author field.
-  \item \citet{BarndorffNielsenShephard2002} (realized variance).
+  \item For the theoretical foundations of realized variance, see \citet{BarndorffNielsenShephard2002}.
   % 2026-10-15 (bib pass): parked -- the [to add] placeholder, now a \citet key in references.bib. Was:
   % \item \todo{to add: Barndorff-Nielsen--Shephard 2002 (realized variance)}.
   \end{itemize}
-\item \textbf{Diurnal pattern:} volatility follows a U-shaped intraday pattern. The standard adjustment
-  divides intraday variance by a factor estimated from the same clock time on earlier days.\newline
+\item \textbf{Diurnal pattern.} It is well documented that intraday return volatility exhibits a pronounced
+  U-shaped pattern across the trading session. To account for this periodicity, standard practice scales intraday
+  realized variance by a diurnal factor estimated from the corresponding clock-time interval on prior trading
+  days.\newline
   % 2026-10-16 (user, E1): parked -- the display was our target, not the literature's. Was:
   % "divides by a diurnal adjustment, here $y_{t,i} = \sqrt{\RV_{t,i}/s^2_{t,i}}$, with $\RV_{t,i}$ the realized
   % variance of intraday interval $i$ on day $t$ and $s^2_{t,i}$ its diurnal adjustment."
-  \citet{AndersenBollerslev1997} (intraday periodicity), \citet{EngleGallo2006} (intraday measures as indicators of
-  daily volatility), \citet{HizmeriBevilacqua2025} (morning volatility uncertainty).
+  See \citet{AndersenBollerslev1997} on intraday periodicity, \citet{EngleGallo2006} on intraday range and
+  volatility measures as indicators of daily volatility, and \citet{HizmeriBevilacqua2025} on morning
+  volatility uncertainty.
   % 2026-10-15 (notation pass): EngleGallo2006 is a multiple-indicators model of daily volatility, not a periodicity
   % paper; its claim is narrowed to what it shows.
   \begin{itemize}
-  \item \citet{TaylorXu1997} (diurnal adjustment), \citet{EngleSokalska2012} (intraday volatility).
+  \item See also \citet{TaylorXu1997} on diurnal volatility adjustments and \citet{EngleSokalska2012} on
+    multiplicative decompositions of intraday volatility.
   % 2026-10-15 (bib pass): parked -- the [to add] placeholder, now \citet keys in references.bib. Was:
   % \item \todo{to add: Taylor--Xu 1997 (periodicity factor); Engle--Sokalska 2012 (intraday volatility)}.
   \end{itemize}
-\item \textbf{0DTE options and the variance risk premium:} the variance risk premium, implied minus expected
-  realized variance, $\E^{\mathbb{Q}}_t[\RV_t] - \E^{\mathbb{P}}_t[\RV_t]$ under the risk-neutral ($\mathbb Q$)
-  and physical ($\mathbb P$) measures, with $\RV_t$ the realized variance to expiration, is positive on
-  average.\newline
-  \citet{HizmeriBevilacqua2025}; option pricing and implied volatility \citet{BlackScholes1973},
-  \citet{Merton1973}.
+\item \textbf{0DTE options and the variance risk premium.} The variance risk premium, defined as the difference
+  between option-implied variance and expected realized variance,
+  $\E^{\mathbb{Q}}_t[\RV_t] - \E^{\mathbb{P}}_t[\RV_t]$, under the risk-neutral ($\mathbb Q$) and physical
+  ($\mathbb P$) measures (where $\RV_t$ denotes the realized variance through expiration), is empirically
+  positive on average.\newline
+  See \citet{HizmeriBevilacqua2025}, as well as the foundational option-pricing frameworks of
+  \citet{BlackScholes1973} and \citet{Merton1973}.
   \begin{itemize}
-  \item 0DTE options: \citet{BandiFusariReno2023}, \citet{BeckmeyerBrangerGayda2023}, \citet{BrogaardHanWon2023},
-    \citet{DimErakerVilkov2024}, \citet{Vilkov2026}, \citet{AlmeidaFreireHizmeri2025}; the variance risk premium:
-    \citet{CarrWu2009}, \citet{BollerslevTauchenZhou2009}.
+  \item On zero-days-to-expiration (0DTE) options, see \citet{BandiFusariReno2023},
+    \citet{BeckmeyerBrangerGayda2023}, \citet{BrogaardHanWon2023}, \citet{DimErakerVilkov2024},
+    \citet{Vilkov2026}, and \citet{AlmeidaFreireHizmeri2025}; on the variance risk premium more broadly, see
+    \citet{CarrWu2009} and \citet{BollerslevTauchenZhou2009}.
   % 2026-10-15 (bib pass): parked -- the [to add] placeholder, now \citet keys in references.bib. Was:
   % \item \todo{to add: Bandi--Fusari--Ren\`o 2023; Beckmeyer--Branger--Gayda 2023; Brogaard--Han--Won 2023;
   %   Dim--Eraker--Vilkov 2024; Vilkov, 0DTE trading rules; Almeida--Freire--Hizmeri 2025; Carr--Wu 2009;
   %   Bollerslev--Tauchen--Zhou 2009}.
   \end{itemize}
-\item \textbf{Machine learning for volatility and returns:} a nonlinear function $f(\bm x_t)$ of a vector
-  $\bm x_t$ of many predictors.\newline
-  \citet{gu2020empirical} (returns), \citet{christensen2023machine} (realized volatility); gradient-boosted trees
-  \citet{Ke2017} (LightGBM), \citet{Chen2016} (XGBoost); hyperparameter optimization \citet{Akiba2019} (Optuna).
+\item \textbf{Machine learning for volatility and returns.} A growing literature models conditional return and
+  volatility dynamics via flexible nonlinear mappings $f(\bm x_t)$ of a high-dimensional predictor vector
+  $\bm x_t$.\newline
+  See \citet{gu2020empirical} for return prediction and \citet{christensen2023machine} for realized volatility
+  forecasting; for gradient-boosted decision trees, see \citet{Ke2017} (LightGBM) and \citet{Chen2016}
+  (XGBoost); for Bayesian hyperparameter optimization, see \citet{Akiba2019} (Optuna).
   \begin{itemize}
   % 2026-10-15 (user): parked -- NN content parked for now. Was: "...; realized volatility: \citet{Bucci2020},
   % \citet{RahimikiaPoon2020}, \citet{ZhangZhangCucuringuQian2024}; MinGRU \citet{Feng2024}; PufferLib \citet{Suarez2024}."
-  \item \citet{Breiman2001} (random forests), \citet{Friedman2001} (gradient boosting); realized volatility:
-    \citet{Bucci2020}, \citet{RahimikiaPoon2020}, \citet{ZhangZhangCucuringuQian2024}.
+  \item For ensemble methods, see \citet{Breiman2001} on random forests and \citet{Friedman2001} on gradient
+    boosting; for machine-learning applications to realized volatility and intraday commonality, see
+    \citet{Bucci2020}, \citet{RahimikiaPoon2020}, and \citet{ZhangZhangCucuringuQian2024}.
   % 2026-10-15 (bib pass): parked -- the [to add] placeholder, now \citet keys in references.bib. Was:
   % \item \todo{to add: Breiman 2001; Friedman 2001 (gradient boosting); Bucci 2020; Rahimikia--Poon 2020;
   %   Zhang--Zhang--Cucuringu--Qian 2024; MinGRU (Feng et al.\ 2024); PufferLib}.
@@ -114,21 +126,25 @@
 %   % \item \todo{to add: Hansen 2005 (superior predictive ability); White 2000 (reality check); Romano--Wolf 2005
 %   %   (StepM); Newey--West 1987 (HAC variance)}.
 %   \end{itemize}
-\item \textbf{Shrinkage with many weak signals:}
+\item \textbf{Shrinkage with many weak signals.} In high-dimensional linear regressions, penalized estimators
+  regularize the coefficient vector via
   \[
     \hat{\bm\beta} = \argmin_{\bm\beta} \lVert \bm y - \bm X\bm\beta \rVert_2^2
       + \lambda\bigl(\alpha \lVert\bm\beta\rVert_1 + \tfrac{1-\alpha}{2} \lVert\bm\beta\rVert_2^2\bigr)
   \]
-  for a response vector $\bm y$, a predictor matrix $\bm X$ and a penalty strength $\lambda$ (ridge $\alpha = 0$,
-  lasso $\alpha = 1$); multi-penalty ridge gives each block of predictors its own penalty,
-  $\lambda \sum_j \omega_j \beta_j^2$ with the penalty weight $\omega_j$ constant within a block.\newline
-  \citet{GiannoneLenzaPrimiceri2021} (the illusion of sparsity), \citet{ShenXiu2025} (weak signals),
-  \citet{KozakNagelSantosh2020} (shrinking the cross-section), \citet{HoerlKennard1970} (ridge),
-  \citet{Tibshirani1996} (lasso), \citet{ZouHastie2005} (elastic net), \citet{vandeWiel2021multipenalty}
-  (multi-penalty ridge), \citet{vanWieringen2023ridge}.
+  for a response vector $\bm y$, a predictor matrix $\bm X$, and an overall penalty strength $\lambda$, nesting
+  ridge regression ($\alpha = 0$) and the lasso ($\alpha = 1$) as special cases; multi-penalty ridge extensions
+  assign distinct regularization weights across feature blocks via $\lambda \sum_j \omega_j \beta_j^2$, where the
+  penalty weight $\omega_j$ is held constant within each block.\newline
+  See \citet{GiannoneLenzaPrimiceri2021} on dense versus sparse representations, \citet{ShenXiu2025} on
+  learning from many weak signals, \citet{KozakNagelSantosh2020} on shrinking the cross-section of returns,
+  \citet{HoerlKennard1970} on ridge regression, \citet{Tibshirani1996} on the lasso, \citet{ZouHastie2005} on the
+  elastic net, and \citet{vandeWiel2021multipenalty} and \citet{vanWieringen2023ridge} on multi-penalty ridge
+  estimation.
   \begin{itemize}
-  \item \citet{Zou2006} (adaptive lasso, penalty weights), \citet{FriedmanHastieTibshirani2010} (elastic-net
-    parametrization).
+  \item See also \citet{Zou2006} on the adaptive lasso and feature-specific penalty weights, and
+    \citet{FriedmanHastieTibshirani2010} on coordinate-descent estimation under the elastic-net
+    parametrization.
   % 2026-10-15 (bib pass): parked -- the [to add] placeholder, now \citet keys in references.bib. Was:
   % \item \todo{to add: Zou 2006 (adaptive lasso, penalty weights); Friedman--Hastie--Tibshirani 2010 (elastic-net
   %   parametrization)}.
@@ -145,3 +161,4 @@
 %   retransformation bias; we do not.\newline
 %   \citet{Duan1983}, \citet{ManningMullahy2001}.
 \end{itemize}
+

@@ -18,17 +18,18 @@
   practice, the tuned hyperparameters and the tuning procedures.
 \item \textbf{Statistical tests} (Appendix~\ref{sec:rh_methods_tests}): the Diebold--Mariano statistic, the
   Newey--West variance and the HAC $t$-statistic.
-\item \textbf{A. Data and predictors:}
+\item \textbf{A. Data and predictors} (Appendix~\ref{app:rh_data}):
   \begin{itemize}
   \item sources and spans;
-  \item predictor dictionary: \rhfiNExog{} exogenous series $\to$ \rhfiP{} predictors in the full predictor set;
+  \item predictor dictionary: \rhfiNExog{} exogenous series $\to$ \rhfiP{} predictors in the full predictor set
+    (Appendix Table~\ref{tab:rh_dm_dictionary});
   \item missing and stale data;
   \item removal of duplicate predictors; the window filter (constant and duplicate predictors dropped in each
     estimation window $\mathcal W_t$);
   \item SPXW option chain; implied-volatility inversion;
   \item FOMC calendar.
   \end{itemize}
-\item \textbf{B. Hyperparameter selection by model:}
+\item \textbf{B. Hyperparameter selection by model} (Appendix~\ref{app:rh_hyper}):
   \begin{itemize}
   \item linear models: penalty strength $\lambda$, elastic-net mixing $\alpha$; block-penalized ridge, penalty weights
     $\omega_j$;
@@ -40,7 +41,7 @@
 %   \item network: the hyperparameter grid $\Theta$ (look-back length $\ell$, hidden width, learning rate, weight decay
 %     $\nu$, $\nu_{\mathrm{enc}}$, $\nu_{\mathrm{lin}}$) and the selection on $\mathcal W^{\mathrm{val}}_t$.
   \end{itemize}
-\item \textbf{C. Robustness, statistical:}
+\item \textbf{C. Robustness, statistical} (Appendix~\ref{app:rh_robust_stat}):
   \begin{itemize}
   \item full model table, tree ensembles included;
   \item Diebold--Mariano and HAC conventions ($\DM$ with the Harvey--Leybourne--Newbold correction; Newey--West lag
@@ -50,7 +51,7 @@
   \item closing-interval vs intraday models;
   \item remaining variance through the trading day.
   \end{itemize}
-\item \textbf{D. Robustness, trading:}
+\item \textbf{D. Robustness, trading} (Appendix~\ref{app:rh_robust_trade}):
   \begin{itemize}
   \item date-shift test;
   \item Murphy diagrams (elementary scores); subsample splits;
@@ -59,7 +60,7 @@
   \item position sizing;
   \item strategy variations; other forecast origins; month-ends.
   \end{itemize}
-\item \textbf{E. Reproducibility:}
+\item \textbf{E. Reproducibility} (Appendix~\ref{app:rh_repro}):
   \begin{itemize}
   \item software lock files;
   \item hashes of the design matrices;
@@ -67,7 +68,9 @@
   \item CPU classes;
   \item compute time;
   \item the generator script behind every reported number.
-  \editc{blue}{E25}{Decision: write these sections, or delete the items. After this list the only appendix section is Implementation details. A names the series dictionary ($\rhfiNExog$ series to $\rhfiP$ predictors), the missing-data rule, the duplicate drop, the SPXW chain, the implied-volatility inversion, and the FOMC calendar. B names $\lambda$, $\alpha$, $\omega_j$, the tree search, and the re-selection cadence. C names the model confidence set, regime and break tests, and the closing-interval versus intraday comparison. D names the date-shift test, Murphy diagrams, the P\&L decomposition, compounding, and the other forecast origins. E names the lock files, the design-matrix hashes, the CPU class, and the generator behind each number. None of those sections exists. The dictionary is the missing list in E5, and the quote filter is the missing rule in E18.}
+  % 2026-10-17 (user, E25): parked -- blocks A--E are the five sections below.
+  % \editc{blue}{E25}{Decision: write these sections, or delete the items.\\Problem: appendix blocks A through E are listed, and the only appendix section in the PDF is Implementation details.\\
+  % The list above is a table of contents for five appendix blocks. The only appendix section that follows it in the PDF is Implementation details, so a reader who looks up one of these items finds the heading and, except for the series list, nothing under it. Block A still has to supply the missing-data rule, the duplicate-column drop, the SPXW chain, the implied-volatility inversion, and the FOMC calendar. Block B would have to supply the penalty parameters $\lambda$, $\alpha$, and $\omega_j$, the tree search, and the calendar on which $\lambda$ is re-selected. Block C would have to supply the model confidence set, the regime and break tests, and the comparison of closing-interval with intraday models. Block D would have to supply the date-shift test, the Murphy diagrams, the profit-and-loss decomposition, compounding, and the forecasts made at origins other than 15:30. Block E would have to supply the software lock files, the hashes of the design matrices, the CPU class, and the generator script behind each reported number. The series list named in A is Appendix Table~\ref{tab:rh_dm_dictionary}. Block A still does not write the missing-data rule, the duplicate-column drop, the SPXW chain, the implied-volatility inversion, or the FOMC calendar as sections. The quote filter that would sit with the SPXW chain is the missing rule in note E18.}
   \end{itemize}
 % 2026-10-15 (user): parked -- NN content parked for now
 % \item \textbf{F. Network implementation:}
@@ -90,7 +93,8 @@
 \label{sec:rh_exp_samples}
 \begin{itemize}
 \item \textbf{Estimation and evaluation samples:} Table~\ref{tab:rh_dm_samples}.
-\editc{orange}{E20}{Decision: two window cells. Panel B of Table~\ref{tab:rh_dm_samples} prints $W=\rhdmPooledWindow$ on the single intraday estimation row. Section~\ref{sec:rh_exp_schemes} and the table note assign that window to the trees and $W=\rhdmPooledLinWindow$ to the linear models. The rolling-forecast row under it has an observation count equal to the estimation-sample count minus $\rhdmPooledWindow$, so its start date is the first tree origin. A linear fit needs $\rhdmPooledLinWindow$ prior intervals and starts later. The QLIKE rows for ridge, lasso, and elastic net were not estimated on the printed $W$.}
+\editc{orange}{E20}{Decision: two window cells.\\Problem: Panel B prints one intraday window, $W=\rhdmPooledWindow$, and the ridge, lasso, and elastic-net QLIKE rows were fit on $W=\rhdmPooledLinWindow$.\\
+Panel B of Table~\ref{tab:rh_dm_samples} prints the intraday estimation sample as one row, and the window on that row is $W=\rhdmPooledWindow$. Section~\ref{sec:rh_exp_schemes} and the note under the table give that window to the trees. Ridge, lasso, and elastic net are estimated on the longer window $W=\rhdmPooledLinWindow$. The rolling-forecast row directly underneath is computed by subtracting $\rhdmPooledWindow$ from the estimation-sample length, so the start date on that row is the first date at which a tree window is full. A linear window is full only after $\rhdmPooledLinWindow$ intervals, and that origin is later. The QLIKE rows for ridge, lasso, and elastic net were computed from fits on the longer window. The cell they would be read against shows the shorter one.\\Linked note (2026-10-17, user): E24 below, on the number in parentheses in Table~\ref{tab:rh_dm_hyper}, is the same underlying window confusion, a printed number read against the wrong estimation window ($\rhdmPooledWindow$ intervals, $\rhdmPooledLinWindow$ intervals or $\cmPtFitWin$ days).}
 \item \textbf{Burn-in:} the first \rhdmBurnIn{} intervals, the longest HAR horizon, are dropped
   (Section~\ref{sec:rh_data}).
 \item \textbf{Diurnal adjustment} $s^2_{t,i}$ (Section~\ref{sec:rh_methods_setup}): $n_{\mathrm{d}} = 20$ trading days,
@@ -102,11 +106,13 @@
   $\overline Q_{t,i} = Q_{0.99}(\mathcal Y_{t,i})$.
   % target.py:96-97, 450-516 (1/99, window 240, shift(1), min_periods = 240 for the target). Moved from Problem
   % formulation (2026-10-15, user).
-\item \textbf{Hyperparameter-selection splits:} $n_{\mathrm{gap}} = \cmPtEmbargo$ and
-  $n_{\mathrm{val}} = \rhdmValTail$ observations.
+% 2026-10-17 (user, E21): parked -- "observations" -> 30-minute intervals (the main model is the intraday model). Was: "$n_{\mathrm{gap}} = \cmPtEmbargo$ and $n_{\mathrm{val}} = \rhdmValTail$ observations."
+\item \textbf{Hyperparameter-selection splits:} $n_{\mathrm{gap}} = \cmPtEmbargo$ 30-minute intervals and
+  $n_{\mathrm{val}} = \rhdmValTail$ 30-minute intervals.
   % src/models/reclasso_har.py:255-265 (forward_window_split); specs/causal_tune_linear.py:157-162. Moved from
   % Problem formulation (2026-10-15, user).
-\editc{red}{E21}{Decision: label each length with its unit and which step uses it. This item sets $n_{\mathrm{gap}}=\cmPtEmbargo$ and $n_{\mathrm{val}}=\rhdmValTail$ observations. The linear tuning item uses a pre-sample of $\cmPtFolds$ folds of $\cmPtFoldLen$ trading days, from \cmPtValFirst{} to \cmPtValLast, and the light re-tune uses $\rhdmRetuneFolds$ folds of $\rhdmValTail$ days. Table~\ref{tab:rh_dm_samples} prints that pre-sample as $\cmPtFolds$ folds of $\cmPtFoldLen$ days after a $\cmPtEmbargo$-day gap. Under the intraday scheme one observation is one 30-minute interval, so $\rhdmValTail$ observations are not $\rhdmValTail$ trading days.}
+\editc{red}{E21}{Decision: label each length with its unit and which step uses it.\\Problem: $n_{\mathrm{gap}}=\cmPtEmbargo$ and $n_{\mathrm{val}}=\rhdmValTail$ are called observations, which on the intraday grid are 30-minute intervals, and the tuning text and Table~\ref{tab:rh_dm_samples} use the same symbols as numbers of trading days.\\
+This item sets the embargo $n_{\mathrm{gap}}$ equal to $\cmPtEmbargo$ and the validation length $n_{\mathrm{val}}$ equal to $\rhdmValTail$, and it calls both of them observations. On the intraday grid an observation is one 30-minute interval, so an observation count is $\rhdmNIntervals$ times a count of trading days. The linear tuning item, a different step, describes its pre-sample in trading days: \cmPtFolds{} folds of \cmPtFoldLen{} days, running from \cmPtValFirst{} to \cmPtValLast. The light re-tune then says it uses \rhdmRetuneFolds{} folds of $\rhdmValTail$ days, which puts the same symbol $\rhdmValTail$ on a count of days. Table~\ref{tab:rh_dm_samples} prints that pre-sample as \cmPtFolds{} folds of \cmPtFoldLen{} days after a gap of $\cmPtEmbargo$ days. Read as observations, $\rhdmValTail$ is a number of half hours. Read as in the re-tune and the table, it is a number of trading days.\\Decision (2026-10-17, user): the main model is the intraday model, so both lengths are 30-minute intervals: $n_{\mathrm{gap}}=\cmPtEmbargo$ 30-minute intervals and $n_{\mathrm{val}}=\rhdmValTail$ 30-minute intervals, with no trading-day reference for either. Table~\ref{tab:rh_dm_samples} and its note, which are generated (\texttt{writeup/make\_rehaul\_data\_methods.py}, near line~2283, ``-day gap'), still print a $\cmPtEmbargo$-day gap.}
 \end{itemize}
 
 \subsection{Training schemes in practice}
@@ -141,6 +147,28 @@
 % \item Windows, re-estimation and re-selection frequencies of every model class: Table~\ref{tab:rh_dm_tuning}.
 \end{itemize}
 
+% 2026-10-17 (user, E8): the closing-interval standardization left Predictors. The intraday denominator stays there.
+\subsection{Closing-interval standardization}
+\label{sec:rh_close_scale}
+The closing-interval model of Section~\ref{sec:rh_econ_last30} standardizes the averages of series values on its
+own window $\mathcal{W}_t$ (Section~\ref{sec:rh_exp_schemes}). Rows $t'$ are trading days ($i = c$ suppressed):
+\[
+  z^{(k)}_{t} = \frac{\bar u^{(k)}_{t} - \operatorname{med}_{t' \in \mathcal{W}_t} \bar u^{(k)}_{t'}}
+    {\max\bigl\{\mathrm{IQR}^{(k)}_{t},\ 0.01 \max_{t' \le t} \mathrm{IQR}^{(k)}_{t'},\
+      \mathrm{IQR}^{\ast(k)}_{t}\bigr\}},
+  \qquad \mathrm{IQR}^{(k)}_{t} = \mathrm{IQR}\bigl\{\bar u^{(k)}_{t'} : t' \in \mathcal{W}_t\bigr\}.
+\]
+\begin{itemize}
+\item $\mathrm{IQR}^{\ast(k)}_{t}$: IQR of $\bar u^{(k)}_{t'}$, $t' < t$, over rows whose $k$-interval averaging
+  window is fully observed.
+\item Column whose mode accounts for at least 20\% of rows: $\mathrm{IQR}^{\ast(k)}_{t}$ also excludes rows at
+  the mode.
+\item $\mathrm{IQR}^{\ast(k)}_{t} = 1$ until 8 such rows exist.
+\item $\bar a^{(k)}$, $\bar\chi^{(k)}$: not standardized. HAR components, calendar dummies:
+  $\mathrm{IQR}^{\ast(k)}_{t} = 0$.
+\item $t < W$: the first window's statistics.
+\end{itemize}
+
 % 2026-10-15 (user): moved here from 05_methods.tex (the Methods subsection "Tuned hyperparameters", label
 % sec:rh_methods_hyper kept so every \ref resolves), via 06_results.tex. Its tables (generated/rehaul_dm_hyper.tex:
 % tab:rh_dm_hyper, tab:rh_dm_hyper_search) are in 10_appendix_floats.tex.
@@ -154,11 +182,17 @@
     \lambda^{\mathrm{ridge}} \in \{10^{-2}, \dots, 10^{3}\}, \qquad
     \lambda^{\mathrm{lasso}}, \lambda^{\mathrm{enet}} \in \{10^{-6}, \dots, 10^{-2}\}.
   \]
+  For lasso and elastic net these are the scikit-learn parameters
+  (Section~\ref{sec:rh_methods_models}).
   % specs/causal_tune_linear.py:164-172 (ESTIMATOR_GRIDS).
   \begin{itemize}
   \item full predictor set: ridge $10^{3}$, lasso and elastic net $10^{-2}$ (top edge);
   \item HAR benchmark: the lower edge of each grid.
-  \editc{orange}{E23}{Decision: either the penalty stayed at the lower edge, or the four replacements need dates and values. This item says the HAR-benchmark $\lambda$ is the lower edge at the selection: ridge $10^{-2}$, lasso and elastic net $10^{-6}$. The full-predictor-set picks are the top edge: ridge $10^{3}$, lasso and elastic net $10^{-2}$. The note to Table~\ref{tab:rh_dm_hyper} says a grid neighbor replaced the incumbent at 4 of 24 re-selections, with counts (ridge, lasso, elastic net) of (1, 1, 2) on the HAR benchmark and (0, 0, 0) on the full set. The full-set $\lambda$ in the table is therefore the value at every origin. The HAR-benchmark $\lambda$ in the table is the pre-sample pick only. The four dates and the neighbor that replaced it are not stated.}
+  % 2026-10-17 (user, E23): parked -- decision replaced: one pre-sample pick held fixed, no adaptive re-tuning during evaluation; body reframed as a robustness simplification. Was:
+  % \editc{orange}{E23}{Decision: either the penalty stayed at the lower edge, or the four replacements need dates and values.\\Problem: the HAR-benchmark $\lambda$ in the table is the pre-sample value. The penalty was replaced on 4 of 24 re-selections, and the four dates and the four new values are missing.\\
+  % This item says the penalty chosen for the HAR benchmark is the bottom of its grid, ridge at $10^{-2}$ and lasso and elastic net at $10^{-6}$, and the penalty chosen for the full predictor set is the top of its grid, ridge at $10^{3}$ and lasso and elastic net at $10^{-2}$. The note under Table~\ref{tab:rh_dm_hyper} describes a second step. At each re-selection a neighboring grid point may replace the incumbent, and that replacement happened 4 times out of 24: once for ridge, once for lasso, and twice for elastic net on the HAR benchmark, and on no occasion for any of the three on the full set. Because the full set never moved, the full-set column of the table is the penalty in force at every forecast origin. Because the HAR benchmark moved four times, the HAR-benchmark column is only the value chosen on the pre-sample. The date of each of the four replacements, and the neighbor that took over, are not stated, so the penalty behind a HAR-benchmark forecast on a given day cannot be read off the table.}
+  \editc{orange}{E23}{Decision: one pre-sample pick per estimator and predictor set, held fixed for the whole evaluation; no causal adaptive re-tuning during evaluation.\\Problem: the current results still include the margin re-tune: \cmPtFiredTotal{} of \cmPtFiredOf{} re-selections replaced the HAR-benchmark penalty, so the closing linear forecasts must be re-run with re-tuning switched off for the text to match. The robustness claim below also needs a sensitivity check to back it.\\
+Each estimator and predictor set gets one penalty, chosen once by hyperparameter selection on the fixed pre-sample window and held constant at every forecast origin. Pre-tuning on a fixed window and holding the penalty constant is a simplification, and it is justified by robustness: the forecasts are not very sensitive to the penalty, so a penalty re-selected during the evaluation would change them little. The text does not claim that the exact value matters. The item above reports the pre-sample pick so that the forecasts can be reproduced, and the decision rests on that insensitivity, which a sensitivity check of the forecasts at neighboring grid values would have to confirm.}
   \end{itemize}
 % 2026-10-15 (user): parked -- "park all tables that I haven't mentioned in this chat". Was: \item \textbf{Trees,} fixed hyperparameters from a search on a 1998--2002 pre-sample (Table~\ref{tab:rh_dm_hyper};
 \item \textbf{Trees,} fixed hyperparameters from a search on a 1998--2002 pre-sample (Table~\ref{tab:rh_dm_hyper}):
@@ -169,12 +203,17 @@
   \item random forest: trial \rhdmRfTrial{} of \cmTreeProvRfTrials{} ($B = \cmTreeProvRfTrees$ trees, maximum depth
     \cmTreeProvRfDepth, share of predictors tried at each split \cmTreeProvRfFeatures, bootstrap sample share
     \cmTreeProvRfSamples);
-  \item leaf minimums are rescaled to the \cmPtFitWin-observation window:
-    $n_{\min} \leftarrow n_{\min} \cdot \cmPtFitWin / \rhdmPooledWindow$, the intraday trees' window
-    (Section~\ref{sec:rh_exp_schemes}).
+  % 2026-10-17 (user, E24): parked -- the rescaled n_min relabeled as the closing-interval trees' minimum leaf size, not the intraday trees' window. Was: "\item leaf minimums are rescaled to the \cmPtFitWin-observation window: $n_{\min} \leftarrow n_{\min} \cdot \cmPtFitWin / \rhdmPooledWindow$, the intraday trees' window (Section~\ref{sec:rh_exp_schemes})."
+  \item minimum leaf size $n_{\min}$ (observations per leaf): the number outside the parentheses in
+    Table~\ref{tab:rh_dm_hyper} is the minimum leaf size used by the intraday trees on their
+    $\rhdmPooledWindow$-interval window (Section~\ref{sec:rh_exp_schemes}); the number in parentheses is that
+    minimum leaf size rescaled to the $\cmPtFitWin$-day window of the closing-interval trees,
+    $n_{\min} \leftarrow n_{\min} \cdot \cmPtFitWin / \rhdmPooledWindow$, and it is used by the closing-interval
+    trees only.
   % 2026-10-15 (finish): typed 255 and 24{,}000 -> \rhdmRfTrial, \rhdmPooledWindow (same values).
   % 2026-10-15 (consolidation): typed 400, 485, 20, 0.90, 0.41, 2,000 -> \cmTreeProv..., \cmPtFitWin (same values).
-  \editc{orange}{E24}{Decision: the parenthetical is the closing-interval leaf size. This item sets $n_{\min}\leftarrow n_{\min}\cdot\cmPtFitWin/\rhdmPooledWindow$ and calls the product the intraday trees' window. The note to Table~\ref{tab:rh_dm_hyper} says $n_{\min}$ was selected on $\rhdmPooledWindow$ intervals and the number in parentheses is that value rescaled to the $\cmPtFitWin$-day window. Section~\ref{sec:rh_exp_schemes} fits the intraday trees on $\rhdmPooledWindow$ intervals, so those fits use the number outside the parentheses. The closing-interval trees, re-estimated every 10 days on $\cmPtFitWin$ days, are the fits that use the parenthetical.}
+  \editc{orange}{E24}{Decision: the parenthetical is the closing-interval leaf size.\\Problem: this sentence calls the rescaled $n_{\min}$ the intraday trees' window. The intraday fits use the unscaled $n_{\min}$, selected on $\rhdmPooledWindow$ intervals. The number in parentheses is the closing-interval leaf size.\\
+The leaf minimum $n_{\min}$ was selected on a window of $\rhdmPooledWindow$ intervals. This item rescales it by the ratio of window lengths, $n_{\min}\leftarrow n_{\min}\cdot\cmPtFitWin/\rhdmPooledWindow$, and the sentence calls that product the window of the intraday trees. The note under Table~\ref{tab:rh_dm_hyper} assigns the two numbers the other way around. The figure outside the parentheses is the minimum selected on the $\rhdmPooledWindow$-interval window, and the figure inside the parentheses is that minimum rescaled to a window of $\cmPtFitWin$ days. Section~\ref{sec:rh_exp_schemes} fits the intraday trees on $\rhdmPooledWindow$ intervals, so those fits use the outside number, the one that was actually selected. The closing-interval trees are re-estimated every 10 days on a window of $\cmPtFitWin$ days, and those are the fits that use the parenthetical.\\Linked note (2026-10-17, user): E20 above, on the two window cells in Table~\ref{tab:rh_dm_samples}, is the same underlying window confusion, a printed number read against the wrong estimation window ($\rhdmPooledWindow$ intervals, $\rhdmPooledLinWindow$ intervals or $\cmPtFitWin$ days).\\Relabeled (2026-10-17, user): the leaf-minimum item above now calls the number in parentheses the closing-interval trees' minimum leaf size.}
   \end{itemize}
   % specs/causal_tune_trees.py:160-177 (_leaf_scale = TRAIN_WIN / POOLED_WINDOW_ROWS; LightGBM rounds, min 1).
 % 2026-10-15 (user): parked -- NN content parked for now
@@ -223,7 +262,8 @@
       \DM\bigl(\{e_{t'}^2(\lambda') - e_{t'}^2(\lambda)\}_{t'}\bigr) < -z_{0.05/|\mathcal C|}, \qquad
       z_{0.05/|\mathcal C|} = \Phi^{-1}\bigl(1 - 0.05/|\mathcal C|\bigr);
     \]
-  \item $e_{t'}(\lambda) = \tilde y_{t'} - \hat y_{t'}(\lambda)$, $t'$ over \rhdmRetuneFolds{} \rhdmValTail-day
+  % 2026-10-17 (user, E21): parked -- validation folds in 30-minute intervals, not days. Was: "\rhdmRetuneFolds{} \rhdmValTail-day validation folds"
+  \item $e_{t'}(\lambda) = \tilde y_{t'} - \hat y_{t'}(\lambda)$, $t'$ over \rhdmRetuneFolds{} \rhdmValTail-interval (30-minute)
     validation folds; $\Phi$: the standard normal distribution function.
   % 2026-10-15 (finish, phase 2): typed "two 125-day" -> \rhdmRetuneFolds{} \rhdmValTail (same values).
   \end{itemize}
@@ -238,7 +278,8 @@
   \item Optuna \citep{Akiba2019}: \rhappOptTrials{} trials, re-tuned every 1, 5, 25 or 250 trading days, best of the
     % 2026-10-15 (user): parked -- "park all tables that I haven't mentioned in this chat". Was: first 10, 25 or \rhappOptTrials{} trials (search spaces in Table~\ref{tab:rh_dm_hyper_search}).
     first 10, 25 or \rhappOptTrials{} trials.
-  \editc{red}{E22}{Decision: say which rung is in Table~\ref{tab:rh_oos}, and park the others. Three procedures are live. Section~\ref{sec:rh_exp_schemes}: one configuration per tree method, never re-selected, re-estimated every interval, $W=\rhdmPooledWindow$. This list: fixed hyperparameters re-estimated every 10 trading days or daily; random search every 250 trading days; Optuna, \rhappOptTrials{} trials, re-tuned every 1, 5, 25, or 250 trading days. Section~\ref{sec:rh_exp_setup}: the full-predictor-set LightGBM and XGBoost rows are an earlier draft and the random forest is preliminary. A QLIKE cell cannot be tied to a rung until one of the three is marked as the source of that cell.}
+  \editc{red}{E22}{Decision: say which rung is in Table~\ref{tab:rh_oos}, and park the others.\\Problem: the schemes section, the three-rung list in this subsection, and the draft or preliminary flag on the full-set tree rows each claim a tree cell in Table~\ref{tab:rh_oos}, and no cell is tied to one of them.\\
+A tree cell in Table~\ref{tab:rh_oos} is the loss of one fitting procedure, and three procedures are written down as if each of them were that procedure. Section~\ref{sec:rh_exp_schemes} gives each tree method a single configuration, chosen once and never re-selected, and re-estimates it every interval on a window of $W=\rhdmPooledWindow$. The list in this subsection gives three grades of tuning instead: fixed hyperparameters re-estimated every 10 trading days or every day, a fresh random search every 250 trading days, and an Optuna search of \rhappOptTrials{} trials re-tuned every 1, 5, 25, or 250 trading days. Section~\ref{sec:rh_exp_setup} adds that the full-set LightGBM and XGBoost rows are an earlier draft and the random forest is preliminary, so those rows need not be any of the procedures just listed. Until one procedure is marked as the source of a given QLIKE cell, the cell has no window, no refit cadence, and no search attached to it.}
   \end{itemize}
 % 2026-10-15 (user): parked -- NN content parked for now
 % \item \textbf{Network:}
@@ -267,3 +308,173 @@
   entered the selection of its own hyperparameters, and the evaluation span $\mathcal T_{\mathrm{oos}}$ starts after
   the pre-sample.
 \end{itemize}
+
+% 2026-10-17 (user, E25): blocks A--E. Formulas that already have a home are cited, not displayed again.
+\section{Data and predictors}
+\label{app:rh_data}
+\begin{itemize}
+\item \textbf{Sources and spans.} Eight groups, in Section~\ref{sec:rh_data}. Closing-interval models use all
+  \rhfiNExog{} exogenous series. Intraday models use the \rhdmNSeriesPooled{} series in every group except FOMC.
+\item \textbf{Predictor dictionary.} Appendix Table~\ref{tab:rh_dm_dictionary} defines each series. Trailing
+  averages, activity indicators, and calendar columns are added in Section~\ref{sec:rh_predictors}.
+\item \textbf{Missing and stale values.} For an exogenous series $u$, the availability indicator
+  $a_{t,i} = \mathbf{1}\{u \text{ observed at } (t,i)\}$ is recorded before any filling
+  (Section~\ref{sec:rh_data}). The series is then forward-filled with no staleness limit. On every interval with
+  $a_{t,i} = 0$ the stored regressor is the imputation of Section~\ref{sec:rh_predictors}, step 4: the median of
+  the series' observed adjusted values on earlier retained intervals, or the adjusted value on its first observed
+  interval when no earlier observation exists.
+\item \textbf{Duplicate and constant predictors.} At each estimation the window screen of
+  Section~\ref{sec:rh_predictors} drops a column that is constant on $\mathcal W_{t,i}$ or an exact bitwise copy
+  of an earlier kept column. The first copy is kept. On the closing-interval model with the full predictor set
+  the screen keeps a median of \cmKeptAll{} of the \cmPNewAll{} columns.
+\item \textbf{SPXW chain.} Quotes on S\&P 500 Weeklys that expire the same day, every 30 minutes: bid, ask,
+  mid-quote, underlying level, implied volatility, and delta. The file covers \rhdmSpxwExpirations{} expirations,
+  2020--2025. The straddle in Section~\ref{sec:rh_econ_strategy} uses the 15:30 quotes. A day is dropped when the
+  wider of the two strikes is more than 10 index points from $S_t$, or when fewer than 10 contracts are quoted
+  % 2026-10-17 (user, E18): parked -- the two prices are now named. Was: Which price is $S_t$, and which price is the official close, is the open question in note E18.
+  at that stamp. $S_t$ is the 15:30 underlying print on the chain, and the official close is the S\&P~500 close.
+\item \textbf{Implied-volatility inversion.} The vendor quote on each leg is a volatility per hour, from a
+  geometric bisection. A solve that does not converge returns a bracket node of that bisection; those nodes are
+  set to missing before the two legs are averaged, and a missing leg makes the package's implied variance
+  missing. The 16:00 stamp is not used. The conversion from the hourly quote to the closing half hour is the
+  display in Section~\ref{sec:rh_econ_strategy}.
+\item \textbf{FOMC calendar.} The four scheduled-announcement series of Section~\ref{sec:rh_data}, on
+  closing-interval models only. The schedule is known before the interval.
+\end{itemize}
+
+\section{Hyperparameter selection by model}
+\label{app:rh_hyper}
+\begin{itemize}
+\item \textbf{Penalty parameters.} Ridge, lasso, and elastic net minimize the raw sum of squares plus the
+  penalty in Section~\ref{sec:rh_methods_models}. $\lambda$ is the coefficient on that penalty for ridge. For
+  lasso and elastic net the printed grid is the scikit-learn parameter, and the coefficient in the sum is $2n$
+  times the printed value. Lasso is $\alpha = 1$. Elastic net is $\alpha = 0.5$. The block weights $\omega_j$
+  are $\rhfiBackbonePf$ on the HAR benchmark, $1$ on an additional predictor, and $0$ on the intercept. The
+  HAR benchmark fitted alone uses $\omega_j = 1$ on every predictor.
+\item \textbf{Where $\lambda$ is chosen.} One grid value per decade, Table~\ref{tab:rh_dm_hyper}. The pre-sample
+  is \cmPtFolds{} folds of \cmPtFoldLen{} trading days, \cmPtValFirst{} to \cmPtValLast, and the criterion is
+  validation MSE (Section~\ref{sec:rh_methods_tuning}). A light re-tune every \cmPtBlock{} trading days lets the
+  neighboring grid points challenge the incumbent. The best challenger replaces it only when the
+  Diebold--Mariano statistic on the paired squared errors is significantly negative. The full predictor set
+  stays at the top of its grid. The HAR-benchmark column of the table is the pre-sample value; the four
+  replacements are note E23.
+\item \textbf{Trees.} LightGBM and XGBoost take the best trial of an Optuna search on a 1998--2002 pre-sample.
+  The random forest takes trial \rhdmRfTrial{} of \cmTreeProvRfTrials. The selected configuration and the leaf
+  minimum are in Section~\ref{sec:rh_methods_hyper}. Which of the three tuning rungs in
+  Section~\ref{sec:rh_methods_tuning} produced a tree cell of Table~\ref{tab:rh_oos} is note E22.
+\item \textbf{What may enter a choice.} A selection uses only data available at the forecast origin. The
+  evaluation span starts after the pre-sample.
+\end{itemize}
+
+\section{Robustness of the statistical results}
+\label{app:rh_robust_stat}
+\begin{itemize}
+\item \textbf{Reported comparisons.} Forecast accuracy on $\mathcal T_{\mathrm{oos}}$ is Table~\ref{tab:rh_oos}.
+  The Diebold--Mariano statistic, with the Harvey--Leybourne--Newbold correction, and the Newey--West variance
+  and HAC $t$-statistic are Appendix~\ref{sec:rh_methods_tests}.
+\item \textbf{Model confidence set, superior predictive ability, and StepM.} These three procedures are named in
+  that appendix for the comparison of predictor sets. No table reports an MCS membership, an SPA $p$-value, or
+  a StepM rejection (note E14).
+\item \textbf{Regime and break tests.} Regime tests and break tests have no reported output.
+\item \textbf{Closing-interval against intraday.} Both schemes forecast the same closing half hour. The
+  comparison of their average QLIKE is in Section~\ref{sec:rh_results}. A forecast of the variance remaining
+  from an earlier origin to the close is not reported.
+\end{itemize}
+
+\section{Robustness of the trade}
+\label{app:rh_robust_trade}
+\begin{itemize}
+\item \textbf{Date-shift test.} The sign strategy is re-scored with the forecast of the interval $j$ half hours
+  away from the closing interval, placed on the closing interval's diurnal adjustment:
+  \[
+    q_t = \sign\bigl(\hat y_{t,c+j}^{\,2}\, s^2_{t,c} - \mathrm{IV}_t^2\bigr).
+  \]
+  $j < 0$ reads an earlier interval of day $t$. $j > 0$ reads day $t+1$. Across $j$, the median annualized
+  Sharpe ratio runs from \shiftSwingMedLo{} to \shiftSwingMedHi{} (a swing of $\pm\shiftSwingHalf$), inside the
+  $\pm\shiftNoiseBand$ 95\% sampling band of an annualized Sharpe ratio under i.i.d.\ returns.
+\item \textbf{Murphy diagram.} The elementary score at the implied variance is $\mathrm{ES}_{1,t}$ in
+  Section~\ref{sec:rh_econ_measures}. Its rank correlation with the Sharpe ratio, across the \cmMasterN{}
+  forecasts of the model set, is in Section~\ref{sec:rh_econ_results}. The subsample split is around May 2022.
+\item \textbf{Profit and loss.} The reported return is $R_t$ in Section~\ref{sec:rh_econ_strategy}. A
+  decomposition of that return into separate variance and direction components is not reported.
+\item \textbf{Compounding.} Wealth starts at $1$ and the premium each day is the fraction $f = \rhappCompF\%$ in
+  Section~\ref{sec:rh_econ_measures}. Across the \cmMasterN{} forecasts, the median terminal value is
+  \cmpWMedMid{} at mid-quotes and \cmpWMedX{} at quoted bid and ask prices, and the maximum drawdowns reach
+  \cmpDDMaxMid\% and \cmpDDMaxX\%.
+\item \textbf{Position sizing.} The sign strategy and the three sized rules are in
+  Section~\ref{sec:rh_econ_strategy}. All four are scored on the \rheSzDays{} days after the warmup of
+  \rheSzWarmup{} days.
+\item \textbf{Other origins.} The date-shift test is the check at origins other than 15:30. A separate
+  month-end strategy is not reported.
+\end{itemize}
+
+% 2026-10-17 (user): parked -- closing-interval material: moved here verbatim from 07_economics.tex (the subsection
+% "A final refinement: training on the last 30 minutes", parked there in \iffalse ... \fi), with its labels and Table
+% tab:rh_oos_last30 (input parked in 07_economics_floats.tex); only the heading is new.
+\section{Closing-interval models}
+\label{app:rh_closing}
+\subsection{Training on the last 30 minutes}
+\label{sec:rh_econ_last30}
+\label{sec:rh_results_pooled}
+\begin{itemize}
+\item \textbf{Closing-interval estimation scheme ($\mathcal I = \{c\}$).} As a final refinement, we restrict estimation of each model class in Section~\ref{sec:rh_methods_models} exclusively to observations from the closing half hour $i = c$ (15:30--16:00 ET), matching the estimation domain of the daily HAR benchmark.
+  \begin{itemize}
+  \item Under this scheme, each trading day contributes a single observation, so a period corresponds to one trading day and the rolling window $\mathcal W_t = \{t - W, \dots, t - 1\}$ spans $W = \cmPtFitWin$ trading days (Appendix~\ref{sec:rh_exp_schemes}). Rolling standardization of the exogenous series averages on $\mathcal W_t$ follows Appendix~\ref{sec:rh_close_scale}.
+  \item We hold the predictor sets, evaluation sample $\mathcal T_{\mathrm{oos}}$, and straddle trading rules unchanged; statistical accuracy is reported in Table~\ref{tab:rh_oos_last30} over the same forecast origins as Table~\ref{tab:rh_oos}.
+    % 2026-10-15 (user): Table 1 split; was "accuracy in Table~\ref{tab:rh_oos}, columns ``Last 30 minutes''."
+  \end{itemize}
+\item \textbf{Improvements in QLIKE accuracy.} Training solely on the closing interval reduces mean QLIKE relative to pooled intraday training in every model class and under both predictor sets. Specifically, the percentage excess loss of the pooled intraday forecast $f_{m,\mathcal X,\{1,\dots,M\}}$ relative to the closing-interval forecast $f_{m,\mathcal X,\{c\}}$, $\Delta\% = 100\bigl(\bar L^{\mathrm{pool}}/\bar L^{\mathrm{close}} - 1\bigr)$, is strictly positive throughout:
+  \begin{itemize}
+  \item for penalized linear models, pooling increases mean QLIKE by $+\rhrLinBasePoolPctMin\%$ to $+\rhrLinBasePoolPctMax\%$ on the HAR benchmark ($\DM$ from \rhrLinBasePoolDmMin{} to \rhrLinBasePoolDmMax, all significant at the 5\% level) and by $+\rhrLinAllPoolPctMin\%$ to $+\rhrLinAllPoolPctMax\%$ on the full predictor set (significant for the lasso);
+  \item for tree ensembles, pooling increases mean QLIKE by $+\rhrTreeBasePoolPctMin\%$ to $+\rhrTreeBasePoolPctMax\%$ on the HAR benchmark and by $+\rhrTreeAllPoolPctMin\%$ to $+\rhrTreeAllPoolPctMax\%$ on the full predictor set, with every difference significant at the 5\% level.
+  \end{itemize}
+\item \textbf{Preservation of the exogenous-predictor gains.} Within the closing-interval scheme, expanding from the HAR benchmark to the full predictor set lowers mean QLIKE in all \rhrAfClosePairs{} model classes, with relative reductions $\Delta\%$ between \rhrAfClosePctMin\% and \rhrAfClosePctMax\%, although none of the single-class reductions is individually significant at the 5\% level (for lasso, $\Delta\% = \rhrAfLassoClosePct\%$, $\DM = \rhrAfLassoCloseDm$, \rhrAfLassoClosePval).
+  \begin{itemize}
+  \item Across all \rhrAfPairs{} matched predictor-set pairs in the full model set (\fqsPairsTree{} tree and \fqsPairsPerBarLinear{} linear specifications trained on the closing interval, plus \fqsPairsPooled{} pooled intraday specifications), adding the exogenous predictors reduces mean QLIKE in \rhrAfLower{} pairs, \rhrAfLowerSig{} of which are significant at the 5\% level.
+  \end{itemize}
+\item \textbf{Most accurate specifications overall.} The lowest mean QLIKE values in the paper are achieved by closing-interval models estimated on the full predictor set: lasso (\rhrLassoAllQ), elastic net (\rhrEnetAllQ), ridge (\rhrRidgeAllQ), and XGBoost (\rhrXgbAllQ), whereas the daily HAR benchmark ($\overline{\QLIKE} = \rhrOlsQ$) ranks \rhrOlsRank{} out of \rhrRankN{} specifications.
+  \begin{itemize}
+  \item Relative to the daily HAR benchmark, the closing-interval lasso on the full predictor set lowers mean QLIKE by \rhrVsBmLassoCloseFullPct\% ($\DM = \rhrVsBmLassoCloseFullDm$, \rhrVsBmLassoCloseFullPval); none of the four leading specifications beats the benchmark significantly at the 5\% level.
+  \item Across the \rhrNSet{} non-benchmark forecasts in the full model set, \rhrNLower{} achieve a lower mean QLIKE than the daily HAR benchmark (\rhrNLowerSig{} significantly), while \rhrNWorseSig{} perform significantly worse.
+  \item Comparing tree ensembles directly against the closing-interval ridge regression on the same predictor set, the tree specification incurs a higher mean QLIKE in \rhrTrVsRidgeQAbove{} of \rhrTrVsRidgeN{} pairs (\rhrTrVsRidgeQAboveSig{} significantly).
+  \end{itemize}
+\item \textbf{Sensitivity of squared-error loss to extreme days.} In contrast to QLIKE, evaluated under MSE the full predictor set increases squared-error loss in \rhrAfMseHigher{} of the \rhrAfPairs{} matched pairs across the model set (\rhrAfMseHigherSig{} significantly).
+  \begin{itemize}
+  \item A single date outside the option-data subsample, \rhoosBigDay{}, accounts for \rhoosBigDaySEMin--\rhoosBigDaySEMax\% of the total cumulative squared error of the closing-interval tree models over $\mathcal T_{\mathrm{oos}}$, compared with at most \rhoosBigDayQLMax\% of their total QLIKE loss.
+  \item Similarly, five trading days in March 2020 account for \rhrSETopFiveMin--\rhrSETopFiveMax\% of the cumulative squared error of the daily HAR benchmark and of the closing-interval lasso and XGBoost on the full predictor set; when February--April 2020 are excluded, the closing-interval lasso achieves a lower MSE than the benchmark forecast.
+  \end{itemize}
+\item \textbf{Economic value under the closing-interval scheme} (sign strategy evaluated on the \rheSzDays{} post-warmup days of $\mathcal T_{\mathrm{opt}}$):
+  \begin{itemize}
+  % 2026-10-17 (user, E17): parked -- on the 614 post-warmup days, closing-interval elastic net (1.93) exceeds every intraday forecast (<= 1.91), while closing-interval lasso (1.76) is exceeded among intraday forecasts only by the intraday elastic net (1.91). Was: "Both exceed every intraday forecast (\SR \le \rhrPoolShFullMax at mid-quotes)."
+  \item The highest Sharpe ratio in the entire model set is achieved by the closing-interval elastic net on the full predictor set, with $\SR = \rheEnetSh$ at mid-quotes and \rheEnetShX{} at quoted bid/ask prices, representing a statistically significant mean return gain over the short-straddle benchmark (HAC $t = \rheEnetT$) and exceeding every pooled intraday forecast ($\SR \le \rhrPoolShFullMax$ at mid-quotes). The closing-interval lasso on the full predictor set attains $\SR = \rheLassoSh$ at mid-quotes and \rheLassoShX{} at quoted bid/ask prices.
+  % 2026-10-17 (user, E17): parked -- 866-day \cmNlBestSh replaced by post-warmup \rheLgbmBestSh.
+  % 2026-10-17 (user): parked -- the straddle table's tree rows are now the pooled intraday trees, so the closing-interval LightGBM quoted here is the fixed daily rung, not an ex-post pick. Was: "For closing-interval LightGBM, the best specification selected ex post by $\SR$ on the post-warmup option sample attains $\SR = \rheLgbmBestSh$ at mid-quotes."
+  \item Closing-interval LightGBM on the full predictor set, with fixed hyperparameters re-estimated every trading day (the specification of the closing-interval tree rows of the main results table), attains $\SR = \rheLgbmCloseFixedSh$ at mid-quotes; the tree rows of the straddle table are the pooled intraday trees.
+  \item Replacing the HAR benchmark with the full predictor set changes the closing-interval sign-strategy Sharpe ratio by $\Delta\SR = \rheAfEnetDSh$ for the elastic net and \rheAfLassoDSh{} for the lasso (neither statistically significant at the 5\% level); across all \rhePairs{} matched predictor-set pairs in the model set, $\Delta\SR > 0$ in \rhePairsUp{} pairs (median \rhePairsMed), with \rhePairsSig{} significant at the 5\% level.
+  % 2026-10-17 (user, E17): parked -- 866-day \cmMasterVsShortAbove replaced by post-warmup \rheVsShortAbove.
+  \item Relative to the unconditional short-straddle benchmark, $\Delta\SR > 0$ for \rheVsShortAbove{} of the \cmMasterVsShortN{} forecasts in the model set, and all \rheSigVsShort{} gains that are statistically significant at the 5\% level use the full predictor set.
+  \item Finally, none of the return differentials between a pooled intraday model and the corresponding closing-interval model of the same class is statistically significant at the 5\% level (HAC $t$-statistic on the daily return differential with $q_{\mathrm{NW}} = \fqsHACLag$).
+  \end{itemize}
+\end{itemize}
+\input{generated/rehaul_results_oos_last30}
+
+\section{Reproducibility}
+\label{app:rh_repro}
+\begin{itemize}
+\item \textbf{Generator of each reported number.}
+  \begin{itemize}
+  \item \texttt{writeup/make\_rehaul\_data\_methods.py}: samples, windows, hyperparameter tables, and the
+    predictor dictionary.
+  \item \texttt{writeup/make\_rehaul\_oos\_table.py}: Table~\ref{tab:rh_oos} and the last-30-minutes split.
+  \item \texttt{writeup/make\_rehaul\_results.py}: the accuracy macros in Section~\ref{sec:rh_results}.
+  \item \texttt{writeup/make\_rehaul\_economics.py}: the straddle macros in Section~\ref{sec:rh_econ}.
+  \item \texttt{writeup/make\_rehaul\_fi.py}: the importance macros in Section~\ref{sec:rh_fi}.
+  \item \texttt{writeup/make\_rehaul\_appendix.py}: the appendix-table macros.
+  \end{itemize}
+\item \textbf{Software list.} \texttt{requirements.txt} at the repository root names the packages and a version
+  range for each. It is not a pinned lock file, and the draft does not record a second lock file.
+\item \textbf{Design matrices, CPU class, and compute time.} The generators read the forecasts and tables
+  already on disk. The draft does not record a hash of the design matrix behind Table~\ref{tab:rh_oos}, the
+  CPU class of those fits, or their compute time.
+\end{itemize}
+

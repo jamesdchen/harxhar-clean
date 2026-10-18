@@ -96,6 +96,25 @@ POOLED_ALL = (
     "poolpt_ridge_all_features",
 )
 TREE_EST = (("lgbm", "LightGBM"), ("xgb", "XGBoost"), ("rf", "Random forest"))
+# 2026-10-17 (user): the tree rows of Table E1 / E4 and the figures' LightGBM are the POOLED INTRADAY trees (30-minute
+# grid), no longer closing-interval trees.  Forecast tables as in make_rehaul_results.py (load_all) and
+# experiments/sharpe_tests_pooled.py (load_pooled_trees): the full-set LightGBM / XGBoost are the earlier draft's pooled
+# trees (results/spxw_pnl/yhat_tree00, yhat_tree10 = the master table's "lgbm" / "xgb" rows); the full-set forest is the
+# INTERIM table of its 16:00 forecasts (the every-interval walk is still running).  Optuna-selected hyperparameters,
+# re-estimated at every interval on a rolling window of 24,000 intervals (Appendix sec:rh_exp_schemes).
+POOLTREE_DIR = ROOT / "results" / "pooled_trees_2026-10-07"
+POOLTREE_ALL = {
+    "lgbm": ROOT / "results" / "spxw_pnl" / "yhat_tree00.parquet",
+    "xgb": ROOT / "results" / "spxw_pnl" / "yhat_tree10.parquet",
+    "rf": POOLTREE_DIR / "yhat_pooltree_rf_all_features_INTERIM1600.parquet",
+}
+POOLTREE_LEVELS = {"lgbm": "score_lgbm", "xgb": "score_xgb", "rf": "score_rf_interim1600"}
+POOLTREE_MT = {"lgbm": "lgbm", "xgb": "xgb"}  # master-table keys of the same forecasts (gate)
+POOLTREE_SR = {"lgbm": 1.36, "xgb": 1.08, "rf": 0.97}  # printed SR (mid, days 253-866) = \rhrSh<Est>PoolFull
+TREE_MARK = {"lgbm": "a,b", "xgb": "a,b", "rf": "a,$\\dagger$"}
+INTERIM_TREES = {"rf"}  # full-set pooled forest: interim 16:00 table
+PANEL_POOL = "Pooled intraday models (30-minute grid)"
+PANEL_CLOSE = "Closing-interval models (15:30--16:00 ET half hour)"
 EST_NAME = {"enet": "Elastic net", "lasso": "Lasso", "ridge": "Ridge"}
 
 # ----------------------------------------------------------------------------- palette (one hue per family)
@@ -159,9 +178,26 @@ FIG_W = 6.5  # \linewidth of paper_rehaul.tex (letter, 1in margins), so the PDF 
 
 
 # ============================================================================= data
-def sharpe(x) -> float:
+# 2026-10-17 (user, E17): parked -- the Sharpe ratio ran over all 866 option days. Every printed ratio is now on the
+# days t > WARMUP (253-866, 614 days), the sample of the sizing rules, so the sign strategy and the sizing rules share
+# one sample (07_economics.tex, Performance measures). HAC t, mean, hit rate stay on all 866 days. Was:
+# def sharpe(x) -> float:
+#     x = np.asarray(x, float)
+#     return float(x.mean() / x.std(ddof=1) * ANN)
+N_OPT = 866
+
+
+def sharpe_days(x) -> float:
+    """sqrt(252) mean / sd(ddof 1) on exactly the days given (master-table gate, sizing, by-year)."""
     x = np.asarray(x, float)
     return float(x.mean() / x.std(ddof=1) * ANN)
+
+
+def sharpe(x) -> float:
+    """The paper's Sharpe ratio: a full option-sample series (866 days) scored on its days t > WARMUP."""
+    x = np.asarray(x, float)
+    assert len(x) == N_OPT, len(x)
+    return sharpe_days(x[WARMUP:])
 
 
 def nw_t(x) -> float:
@@ -222,6 +258,11 @@ def load():
             g["ask"].to_numpy(),
         )
         assert np.allclose(cx, g["ret_crossed"], rtol=0, atol=1e-10), key
+        f_s = (g["plain"] / g["iv_var"]).to_numpy(float)
+        y_s = (g["rv_unclipped"] / g["iv_var"]).to_numpy(float)
+        es1 = np.abs(y_s - 1.0) * (
+            (np.minimum(f_s, y_s) <= 1.0) & (1.0 < np.maximum(f_s, y_s))
+        )
         series[key] = pd.DataFrame(
             {
                 "q": g["q"],
@@ -229,6 +270,7 @@ def load():
                 "x": g["ret_crossed"],
                 "s": g["plain"] - g["iv_var"],
                 "qlike": g["qlike_raw"],
+                "es1": es1,
                 "R": g["R"],
                 "ex": g["ex"],
                 "bid": g["bid"],
@@ -280,6 +322,122 @@ def load():
     return mt, model_set, series, fam
 
 
+def plain_16(path: Path) -> pd.Series:
+    """16:00 ET rows of a yhat table: f^2 x B (make_rehaul_results.py plain_16; writeup/master_table_gui/rows.py)."""
+    y = pd.read_parquet(path, columns=["t", "yhat", "baseline"])
+    t = pd.to_datetime(y["t"], utc=True).dt.tz_convert("America/New_York")
+    at16 = ((t.dt.hour == 16) & (t.dt.minute == 0)).to_numpy()
+    v = y["yhat"].to_numpy(float)[at16] ** 2 * y["baseline"].to_numpy(float)[at16]
+    day = pd.DatetimeIndex(t[at16].dt.tz_localize(None)).normalize()
+    out = pd.Series(v, index=day)
+    assert not out.index.duplicated().any(), path
+    return out
+
+
+def add_pooled_trees(series, fam) -> dict:
+    """2026-10-17 (user): the pooled intraday trees on the full predictor set, traded like every other row (sign of
+    plain - iv_var on the OLS row's days, the quote book's straddle).  Gates: the 866-day mid Sharpe equals
+    experiments/pooled_trees_score.py's levels.csv (as experiments/sharpe_tests_pooled.py checks), the LightGBM and
+    XGBoost returns equal the master table's "lgbm" / "xgb" rows, and the printed Sharpe ratios equal \\rhrSh...PoolFull."""
+    daily = pd.read_parquet(
+        RES / "master_table_daily.parquet",
+        columns=["key", "day", "iv_var", "rv_unclipped", "ret_mid", "ret_crossed"],
+    )
+    daily["day"] = pd.to_datetime(daily["day"]).dt.normalize()
+    b = series[OLS]
+    days = b.index
+    ref = daily[daily["key"] == OLS].set_index("day").sort_index()
+    ref.index = ref.index.astype(days.dtype)
+    ref = ref.reindex(days)
+    iv, rv = ref["iv_var"].to_numpy(float), ref["rv_unclipped"].to_numpy(float)
+    assert np.isfinite(iv).all() and np.isfinite(rv).all()
+    out = {}
+    for est, path in POOLTREE_ALL.items():
+        pl = plain_16(path)
+        pl.index = pl.index.astype(days.dtype)
+        p = pl.reindex(days).to_numpy(float)
+        assert np.isfinite(p).all() and (p > 0).all(), (est, int((~np.isfinite(p)).sum()))
+        q = np.where(p > iv, 1.0, -1.0)
+        mid = q * b["R"].to_numpy(float)
+        x = gui._crossed_return(q, b["ex"].to_numpy(), b["bid"].to_numpy(), b["ask"].to_numpy())
+        ratio = rv / p
+        f_s, y_s = p / iv, rv / iv
+        es1 = np.abs(y_s - 1.0) * ((np.minimum(f_s, y_s) <= 1.0) & (1.0 < np.maximum(f_s, y_s)))
+        key = f"pooltree_{est}_all_features"
+        series[key] = pd.DataFrame(
+            {
+                "q": q,
+                "mid": mid,
+                "x": x,
+                "s": p - iv,
+                "qlike": ratio - np.log(ratio) - 1.0,
+                "es1": es1,
+                "R": b["R"].to_numpy(float),
+                "ex": b["ex"].to_numpy(float),
+                "bid": b["bid"].to_numpy(float),
+                "ask": b["ask"].to_numpy(float),
+            },
+            index=days,
+        )
+        fam[key] = "pooled"
+        lv = pd.read_csv(POOLTREE_DIR / POOLTREE_LEVELS[est] / "levels.csv")
+        want = float(
+            lv[(lv["bucket"] == "all_features") & (lv["rung"] == "pooled") & lv["forecast"].str.startswith("pooled")][
+                "sharpe_mid"
+            ].iloc[0]
+        )
+        got = sharpe_days(mid)
+        assert abs(got - want) < 1e-8, (key, got, want)
+        if est in POOLTREE_MT:
+            m = daily[daily["key"] == POOLTREE_MT[est]].set_index("day").sort_index()
+            m.index = m.index.astype(days.dtype)
+            m = m.reindex(days)
+            assert np.allclose(m["ret_mid"].to_numpy(float), mid, rtol=0, atol=1e-10), key
+            assert np.allclose(m["ret_crossed"].to_numpy(float), x, rtol=0, atol=1e-10), key
+        assert round(sharpe(mid) + 0.0, 2) == POOLTREE_SR[est], (key, sharpe(mid))
+        print(f"pooled tree {key}: 866-day SR {got:.4f} = {POOLTREE_LEVELS[est]}/levels.csv; printed SR {sharpe(mid):.2f}")
+        out[est] = key
+    return out
+
+
+def pooled_rank_series(series) -> dict:
+    """2026-10-17 (user, E26): the \\rhrPoolN pooled intraday forecasts for the accuracy-vs-value rank correlations
+    (\\rheRankCorrQPool, \\rheRankCorrESPool): the six pooled linear rows of the model set, the three full-set pooled
+    trees of add_pooled_trees, and the three HAR-benchmark pooled trees (results/pooled_trees_2026-10-07, as
+    make_rehaul_results.py loads them), the last traded exactly like add_pooled_trees (sign of plain - iv_var on the
+    OLS row's days).  The HAR-benchmark trees are kept out of `series`, so no table or other macro sees them."""
+    daily = pd.read_parquet(
+        RES / "master_table_daily.parquet", columns=["key", "day", "iv_var", "rv_unclipped"]
+    )
+    daily["day"] = pd.to_datetime(daily["day"]).dt.normalize()
+    b = series[OLS]
+    days = b.index
+    ref = daily[daily["key"] == OLS].set_index("day").sort_index()
+    ref.index = ref.index.astype(days.dtype)
+    ref = ref.reindex(days)
+    iv, rv = ref["iv_var"].to_numpy(float), ref["rv_unclipped"].to_numpy(float)
+    out = {f"poolpt_{e}_{s}": series[f"poolpt_{e}_{s}"] for e in ("enet", "lasso", "ridge") for s in ("baseline", "all_features")}
+    out.update({f"pooltree_{e}_all_features": series[f"pooltree_{e}_all_features"] for e in ("lgbm", "xgb", "rf")})
+    for est in ("lgbm", "xgb", "rf"):
+        pl = plain_16(POOLTREE_DIR / f"yhat_pooltree_{est}_baseline.parquet")
+        pl.index = pl.index.astype(days.dtype)
+        p = pl.reindex(days).to_numpy(float)
+        assert np.isfinite(p).all() and (p > 0).all(), (est, int((~np.isfinite(p)).sum()))
+        q = np.where(p > iv, 1.0, -1.0)
+        ratio = rv / p
+        f_s, y_s = p / iv, rv / iv
+        out[f"pooltree_{est}_baseline"] = pd.DataFrame(
+            {
+                "mid": q * b["R"].to_numpy(float),
+                "qlike": ratio - np.log(ratio) - 1.0,
+                "es1": np.abs(y_s - 1.0) * ((np.minimum(f_s, y_s) <= 1.0) & (1.0 < np.maximum(f_s, y_s))),
+            },
+            index=days,
+        )
+    assert len(out) == 12, len(out)
+    return out
+
+
 # ============================================================================= statistics
 def trade_stats(series, key) -> dict:
     g, sh = series[key], series[SHORT]
@@ -300,21 +458,27 @@ def trade_stats(series, key) -> dict:
 
 
 def gate_against_master(mt, series, keys):
-    """Every recomputed E1 statistic must equal the master table's stored value."""
+    """Every recomputed E1 statistic must equal the master table's stored value.
+
+    2026-10-17 (user, E17): the master table stores the Sharpe ratios on all 866 days, so the gate recomputes those
+    with sharpe_days on the full series; the printed ratios (trade_stats) are on days t > WARMUP.
+    """
     for key in keys:
         if key not in mt.index:
             continue
         st, row = trade_stats(series, key), mt.loc[key]
+        g, sh = series[key], series[SHORT]
+        sh_mid_all = sharpe_days(g["mid"])
         pairs = [
-            (st["sh_mid"], row["Sharpe_mid"]),
-            (st["sh_x"], row["Sharpe_crossed"]),
+            (sh_mid_all, row["Sharpe_mid"]),
+            (sharpe_days(g["x"]), row["Sharpe_crossed"]),
             (st["mean"], row["mean_mid"]),
             (st["hit"], row["hit_rate_mid"]),
             (100 * st["buys"], row["pct_buy"]),
         ]
         if key != SHORT:
             pairs += [
-                (st["dsh"], row["dSharpe_mid_vs_short"]),
+                (sh_mid_all - sharpe_days(sh["mid"]), row["dSharpe_mid_vs_short"]),
                 (st["t_dsh"], row["t_hac_mid_vs_short"]),
             ]
         for got, want in pairs:
@@ -654,6 +818,12 @@ def tree_specs(fam, model_set) -> int:
     return n_trees["lgbm"]
 
 
+# 2026-10-17 (user): parked -- note a of the closing-interval fixed daily rung (E1 tree rows, replaced by the pooled
+# intraday trees). Was: "\item[a] Fixed hyperparameters from the pre-sample search, re-estimated every trading day,
+# the specification of the closing-interval tree rows of the main results table; no ex-post selection."
+# 2026-10-17 (user, E22/E15): parked -- ex-post note a of Table E1. Was: "\item[a] The specification with the highest
+# $\SR$ at mid-quotes among the estimator's \rheTreeSpecs{{}} on the full predictor set, so selected ex post on the
+# out-of-sample period. {tree_note[0].upper() + tree_note[1:]}."
 def table_e1(series, fam, model_set, trees) -> tuple[str, dict]:
     st = {
         k: trade_stats(series, k)
@@ -682,24 +852,36 @@ def table_e1(series, fam, model_set, trees) -> tuple[str, dict]:
     tree_specs(
         fam, model_set
     )  # asserts the estimators have equally many specifications
+    # 2026-10-17 (user): parked -- Panel A closing-interval (OLS, linear, closing trees), Panel B intraday (linear).
+    # Now Panel A = the pooled intraday models, trees included; Panel B = the closing-interval models. Was:
+    # body = row(SHORT_LABEL, SHORT)
+    # body += panel_head("Panel A: Closing-interval models", 7)
+    # body += row("OLS, HAR benchmark", OLS)
+    # for k in PERBAR_ALL:
+    #     body += row(EST_NAME[k.split("_")[1]], k)
+    # for e, name in TREE_EST:
+    #     body += row(f"{name}\\tnote{{a}}", trees[e])
+    # body += panel_head("Panel B: Intraday models", 7)
+    # for k in POOLED_ALL:
+    #     body += row(EST_NAME[k.split("_")[1]], k)
     body = row(SHORT_LABEL, SHORT)
-    body += panel_head("Panel A: Closing-interval models", 7)
-    body += row("OLS, HAR benchmark", OLS)
-    for k in PERBAR_ALL:
+    body += panel_head(f"Panel A: {PANEL_POOL}", 7)
+    for k in reversed(POOLED_ALL):  # ridge, lasso, elastic net
         body += row(EST_NAME[k.split("_")[1]], k)
     for e, name in TREE_EST:
-        body += row(f"{name}\\tnote{{a}}", trees[e])
+        body += row(f"{name}\\tnote{{{TREE_MARK[e]}}}", trees[e])
+    body += panel_head(f"Panel B: {PANEL_CLOSE}", 7)
+    body += row("OLS, HAR benchmark", OLS)
+    for k in reversed(PERBAR_ALL):
+        body += row(EST_NAME[k.split("_")[1]], k)
     # 2026-10-15 (user): parked -- NN content parked for now (the MinGRU row and its note b:
     # "\item[b] MinGRU network (ridge-initialized, trained and selected on QLIKE; Section~\ref{sec:rh_methods_models}).")
     # body += row(r"MinGRU\tnote{b}", NN_ALL)
-    body += panel_head("Panel B: Intraday models", 7)
-    for k in POOLED_ALL:
-        body += row(EST_NAME[k.split("_")[1]], k)
-
-    tree_note = "; ".join(
-        f"{name if e != 'rf' else name.lower()}: {tree_spec(trees[e])}"
-        for e, name in TREE_EST
-    )
+    # 2026-10-17 (user): parked -- tree_spec() describes closing-interval keys only; the pooled trees' note is fixed text.
+    # tree_note = "; ".join(
+    #     f"{name if e != 'rf' else name.lower()}: {tree_spec(trees[e])}"
+    #     for e, name in TREE_EST
+    # )
     tex = (
         float_head("Table E1", "the sign strategy and the short-straddle benchmark")
         + rf"""\begin{{table}}[tbp]
@@ -727,8 +909,15 @@ Sharpe ratio at mid-quotes and at quoted bid/ask prices; hit rate and long days 
 $r_t > 0$ at mid-quotes and with $q_t = +1$. $\Delta\SR$ is $\SR$ at mid-quotes minus that of the short-straddle
 benchmark (\rheShortSh); in parentheses, the HAC $t$-statistic of the mean return and, under $\Delta\SR$, the {HAC_NOTE}.
 {STAR_NOTE}
-\item[a] The specification with the highest $\SR$ at mid-quotes among the estimator's \rheTreeSpecs{{}} on the full
-predictor set, so selected ex post on the out-of-sample period. {tree_note[0].upper() + tree_note[1:]}.
+Panel A: models estimated on every 30-minute interval of the day (the pooled intraday scheme); Panel B: models
+estimated on the closing interval only (one observation a day). Every model row trades the forecast of the 15:30--16:00 ET
+variance made at 15:30.
+\item[a] Pooled intraday tree ensembles: hyperparameters from an Optuna search, one configuration per method, not
+re-tuned; re-estimated at every 30-minute interval on a rolling window of $W = \rhdmPooledWindow$ intervals
+(Appendix~\ref{{sec:rh_exp_schemes}}). No ex-post selection.
+\item[b] Full predictor set of the earlier draft's intraday specification, which lacks the FOMC predictors.
+\item[$\dagger$] Interim: only the 16:00 forecasts of the full-set random forest's every-interval walk have been
+computed; the rest of the walk is still running.
 \end{{tablenotes}}
 \end{{threeparttable}}
 \end{{table}}
@@ -1210,13 +1399,16 @@ RULES = (
 #     return tex, info
 
 
+# 2026-10-17 (user): parked -- E4 note "the trees are the specifications of Table~\ref{tab:rh_econ_control}" (closing-interval
+# trees); the tree rows are now the pooled intraday trees.
 def table_e4(series, model_set, trees) -> tuple[str, dict]:
     sz = {k: sizing_stats(series, k) for k in model_set}
     # for k in [OLS, *PERBAR_ALL, *trees.values(), NN_ALL, *POOLED_ALL]:  # 2026-10-15 (user): parked -- NN content parked for now
     for k in [OLS, *PERBAR_ALL, *trees.values(), *POOLED_ALL]:
         sz.setdefault(k, sizing_stats(series, k))
-    short_mid = sharpe(series[SHORT]["mid"].to_numpy()[WARMUP:])
-    short_x = sharpe(series[SHORT]["x"].to_numpy()[WARMUP:])
+    # 2026-10-17 (user, E17): sharpe() already slices [WARMUP:]; use sharpe_days() here on the explicit slice
+    short_mid = sharpe_days(series[SHORT]["mid"].to_numpy()[WARMUP:])
+    short_x = sharpe_days(series[SHORT]["x"].to_numpy()[WARMUP:])
     n_days = len(series[SHORT]) - WARMUP
 
     ms = {r: [sz[k][r] for k in model_set] for r, _ in RULES}
@@ -1248,15 +1440,26 @@ def table_e4(series, model_set, trees) -> tuple[str, dict]:
             rf"{SHORT_LABEL} & \multicolumn{{4}}{{c}}{{{cell(short_v, starred=False)} under every rule}} \\"
             + "\n"
         )
-        out += sub_head("Closing-interval models", 5)
-        out += row("OLS, HAR benchmark", OLS)
-        for k in PERBAR_ALL:
+        # 2026-10-17 (user): parked -- closing trees under "Closing-interval models"; the tree rows are now the pooled
+        # intraday trees, listed with the intraday models (first, as in Table E1). Was:
+        # out += sub_head("Closing-interval models", 5)
+        # out += row("OLS, HAR benchmark", OLS)
+        # for k in PERBAR_ALL:
+        #     out += row(EST_NAME[k.split("_")[1]], k)
+        # for e, name in TREE_EST:
+        #     out += row(name, trees[e])
+        # out += sub_head("Intraday models", 5)
+        # for k in POOLED_ALL:
+        #     out += row(EST_NAME[k.split("_")[1]], k)
+        # out += row("MinGRU", NN_ALL)  # 2026-10-15 (user): parked -- NN content parked for now
+        out += sub_head(PANEL_POOL, 5)
+        for k in reversed(POOLED_ALL):
             out += row(EST_NAME[k.split("_")[1]], k)
         for e, name in TREE_EST:
-            out += row(name, trees[e])
-        # out += row("MinGRU", NN_ALL)  # 2026-10-15 (user): parked -- NN content parked for now
-        out += sub_head("Intraday models", 5)
-        for k in POOLED_ALL:
+            out += row(name + ("$^\\dagger$" if e in INTERIM_TREES else ""), trees[e])
+        out += sub_head(PANEL_CLOSE, 5)
+        out += row("OLS, HAR benchmark", OLS)
+        for k in reversed(PERBAR_ALL):
             out += row(EST_NAME[k.split("_")[1]], k)
         out += "\\addlinespace[2pt]\n"
         out += (
@@ -1316,7 +1519,7 @@ earlier days $t' < t$ only; the sign rule is the sign strategy, and the short-st
 holds $q_t \equiv -1$ under every rule. The first \rheSzWarmup{{}} trading days of the out-of-sample period only estimate the
 scale of $|\hat\sigma^2_{{t'}} - \mathrm{{IV}}^2_{{t'}}|$, so every rule is evaluated on the remaining \rheSzDays{{}} of
 the \rheNdays{{}} trading days; at quoted bid/ask prices the bid--ask spread is paid on $|q_t|$ straddles. Every model except the OLS uses the full predictor set; the trees are
-the specifications of Table~\ref{{tab:rh_econ_control}}. The last two rows of each panel give the median across the
+the pooled intraday trees of Table~\ref{{tab:rh_econ_control}} ($^\dagger$interim: only the forest's 16:00 forecasts; see that table). The last two rows of each panel give the median across the
 \rheModelSetN{{}} forecasts of the model set and the number of them whose $\SR$ is above that of
 their own sign strategy. Point estimates; no test is reported.
 \end{{tablenotes}}
@@ -1619,7 +1822,7 @@ def fig_byyear(series, model_set, key4: dict) -> dict:
     yr = days.year
 
     def by_year(x: pd.Series) -> list[float]:
-        return [sharpe(x[yr == y]) for y in years]
+        return [sharpe_days(x[yr == y]) for y in years]
 
     set_by = np.array([by_year(series[k]["mid"]) for k in model_set])
     q25, q50, q75 = np.percentile(set_by, [25, 50, 75], axis=0)
@@ -1708,40 +1911,54 @@ def main() -> None:
     mt, model_set, series, fam = load()
     gate_against_master(mt, series, [SHORT, *model_set])
 
-    trees = {est: best_tree(series, fam, model_set, est) for est, _ in TREE_EST}
+    # 2026-10-17 (user, E22/E15): parked -- ex-post best-Sharpe tree selection (one rule: the tree rows use the
+    # fixed-hyperparameter, daily re-estimation rung of the main results table, make_rehaul_results.py FAMILY_ROWS).
+    # Was: trees = {est: best_tree(series, fam, model_set, est) for est, _ in TREE_EST}
+    # 2026-10-17 (user): parked -- closing-interval fixed daily rung in the tree rows; the rows are now the pooled
+    # intraday trees (add_pooled_trees). Was:
+    # trees = {est: f"subtree_daily_all_features_{est}" for est, _ in TREE_EST}
+    # assert all(k in model_set and k in series for k in trees.values()), trees
+    trees = add_pooled_trees(series, fam)
+    close_fixed = {est: f"subtree_daily_all_features_{est}" for est, _ in TREE_EST}  # for \\rheLgbmCloseFixedSh
+    assert all(k in model_set and k in series for k in close_fixed.values()), close_fixed
     e1, st = table_e1(series, fam, model_set, trees)
     e2, e2i = table_e2(series, fam, model_set)
     e3, e3r = table_e3(series)
     e4, e4i = table_e4(series, model_set, trees)
 
     # ---- the asserts the outline fixes (rounded as printed)
+    # 2026-10-17 (user, E17): Sharpe ratios recomputed on the 614 post-warmup days (t > WARMUP = 252).
+    # Pre-E17 (866-day) values parked: SHORT (0.20, -0.27); enet (1.92, 1.43); NN_ALL (1.53, 1.05);
+    # NN_BASE (1.04, 0.57); e2i (51, 50, 4, 0.54).
     r2 = lambda x: round(x + 0.0, 2)  # noqa: E731
-    assert (r2(st[SHORT]["sh_mid"]), r2(st[SHORT]["sh_x"])) == (0.20, -0.27), st[SHORT]
+    assert (r2(st[SHORT]["sh_mid"]), r2(st[SHORT]["sh_x"])) == (0.34, -0.03), st[SHORT]
     assert (
         r2(st["subpt_enet_all_features"]["sh_mid"]),
         r2(st["subpt_enet_all_features"]["sh_x"]),
-    ) == (1.92, 1.43)
+    ) == (1.93, 1.56)
     # 2026-10-15 (user): NN content parked for now -- the MinGRU is off E1 (st), so its stats are computed here, for
     # the gate and its \rheNN... macros (kept defined, unused by the floats)
     # assert (r2(st[NN_ALL]["sh_mid"]), r2(st[NN_ALL]["sh_x"])) == (1.53, 1.05), st[NN_ALL]
     assert NN_ALL not in st
     nn_st = trade_stats(series, NN_ALL)
-    assert (r2(nn_st["sh_mid"]), r2(nn_st["sh_x"])) == (1.53, 1.05), nn_st
+    assert (r2(nn_st["sh_mid"]), r2(nn_st["sh_x"])) == (1.59, 1.22), nn_st
     nb = trade_stats(series, NN_BASE)
-    assert (r2(nb["sh_mid"]), r2(nb["sh_x"])) == (1.04, 0.57), nb
+    assert (r2(nb["sh_mid"]), r2(nb["sh_x"])) == (1.07, 0.71), nb
     meds = tuple(r2(e4i["med_mid"][r]) for r, _ in RULES)
     assert meds == (0.92, 1.34, 1.12, 1.34), meds
     # outline cross-checks
     assert (
         e2i["n"] == 51
-        and e2i["up"] == 50
+        and e2i["up"] == 47
         and e2i["sig"] == 4
-        and r2(e2i["med"]) == 0.54
+        and r2(e2i["med"]) == 0.62
     ), e2i
     assert e4i["beat_mid"]["clip"] == 98, e4i["beat_mid"]
     assert r2(e4i["short_mid"]) == 0.34, e4i["short_mid"]
     sig_vs_short = sum(trade_stats(series, k)["t_dsh"] > SIG for k in model_set)
     assert sig_vs_short == 20, sig_vs_short
+    above_vs_short = sum(trade_stats(series, k)["dsh"] > 0 for k in model_set)
+    assert above_vs_short == 94, above_vs_short
 
     # one forecast per family for the figures
     # 2026-10-15 (table legibility): parked -- code terms (per-bar); the guide's model classes below
@@ -1753,7 +1970,8 @@ def main() -> None:
     # }
     key4 = {
         "linear": ("subpt_enet_all_features", "Closing-interval elastic net"),
-        "tree": (trees["lgbm"], "Closing-interval LightGBM"),
+        # "tree": (trees["lgbm"], "Closing-interval LightGBM"),  # 2026-10-17 (user): parked -- now the pooled tree
+        "tree": (trees["lgbm"], "Intraday LightGBM"),
         # "nn": (NN_ALL, "Closing-interval MinGRU"),  # 2026-10-15 (user): parked -- NN content parked for now
         "pooled": ("poolpt_enet_all_features", "Intraday elastic net"),
     }
@@ -1821,6 +2039,8 @@ def main() -> None:
     # \end{{figure}}
     # """
     # )
+    # 2026-10-17 (user): parked -- caption "the closing-interval elastic net and LightGBM (the specification of
+    # Table~\ref{tab:rh_econ_control}), and the intraday elastic net": the LightGBM is now the pooled intraday tree.
     # 2026-10-15 (user): parked -- NN content parked for now; the caption's MinGRU clauses were
     # "one model of each class on the full predictor set: the closing-interval elastic net, LightGBM (the specification of
     # Table~\ref{tab:rh_econ_control}) and MinGRU, and the pooled intraday elastic net." and "the gain is \rheGainEnet,
@@ -1834,8 +2054,8 @@ def main() -> None:
 \includegraphics[width=\linewidth]{figures/rehaul_econ_cumpnl.pdf}
 \caption{Cumulative returns of the sign strategy. The top panel plots the cumulative return at mid-quotes,
 $\sum_{t' \le t} r_{t'}$, in units of the straddle premium, for the short-straddle benchmark ($q_t \equiv -1$) and for
-one model of each class on the full predictor set: the closing-interval elastic net and LightGBM (the specification
-of Table~\ref{tab:rh_econ_control}), and the intraday elastic net. The bottom panel plots the
+one model of each class on the full predictor set: the closing-interval elastic net, the intraday LightGBM (the
+specification of Table~\ref{tab:rh_econ_control}), and the intraday elastic net. The bottom panel plots the
 cumulative gain over the short-straddle benchmark,
 $\sum_{t' \le t} \bigl(r_{t'} + R_{t'}\bigr)$; the markers are each model's \rheTopDays{} days of largest gain, all
 of them days with $q_t = +1$ and $R_t \ge \rheTopRMin$. Over the \rheNdays{} trading days of the out-of-sample period
@@ -2000,6 +2220,57 @@ and median of the 112 forecasts of the model set (median {", ".join(num(v) for v
     )
     nums += mac(
         "rheNYears", str(len(short_years)), "calendar years in the out-of-sample period"
+    )
+    # 2026-10-17 (user, E17): post-warmup counterparts for best LightGBM SR, vs-short count, and rank correlations
+    sh_ms = pd.Series({k: sharpe(series[k]["mid"]) for k in model_set})
+    ql_ms = pd.Series({k: float(series[k]["qlike"].mean()) for k in model_set})
+    es_ms = pd.Series({k: float(series[k]["es1"].mean()) for k in model_set})
+    rho_q = float(ql_ms.rank().corr(sh_ms.rank()))
+    rho_es = float(es_ms.rank().corr(sh_ms.rank()))
+    nums += mac(
+        "rheLgbmBestSh",
+        # 2026-10-17 (user, E22/E15): trees["lgbm"] is now the fixed daily rung; this macro keeps its meaning (the
+        # ex-post best LightGBM, quoted as such in 07_economics.tex). Was: m2(st[trees["lgbm"]]["sh_mid"]),
+        m2(trade_stats(series, best_tree(series, fam, model_set, "lgbm"))["sh_mid"]),
+        "best closing-interval LightGBM specification by post-warmup Sharpe mid on all features (ex post; unused by the text since 2026-10-17)",
+    )
+    nums += mac(
+        "rheLgbmCloseFixedSh",
+        m2(trade_stats(series, close_fixed["lgbm"])["sh_mid"]),
+        "closing-interval LightGBM, fixed hyperparameters re-estimated daily, all features: post-warmup Sharpe mid (2026-10-17)",
+    )
+    nums += mac(
+        "rheVsShortAbove",
+        str(above_vs_short),
+        "model-set forecasts with post-warmup Sharpe mid above always short",
+    )
+    nums += mac(
+        "rheRankCorrQ",
+        m2(rho_q),
+        "Spearman rank correlation of mean QLIKE with post-warmup Sharpe mid across the model set",
+    )
+    nums += mac(
+        "rheRankCorrES",
+        m2(rho_es),
+        "Spearman rank correlation of mean ES_1 with post-warmup Sharpe mid across the model set",
+    )    # 2026-10-17 (user, E26): the same correlations on the pooled intraday forecasts only (new macros; the two above
+    # are unchanged).
+    pser = pooled_rank_series(series)
+    sh_p = pd.Series({k: sharpe(v["mid"]) for k, v in pser.items()})
+    ql_p = pd.Series({k: float(v["qlike"].mean()) for k, v in pser.items()})
+    es_p = pd.Series({k: float(v["es1"].mean()) for k, v in pser.items()})
+    for k in ("pooltree_lgbm_all_features", "pooltree_xgb_all_features", "pooltree_rf_all_features"):
+        assert round(sh_p[k] + 0.0, 2) == POOLTREE_SR[k.split("_")[1]], (k, sh_p[k])
+    print("E26 pooled Sharpe mid:", {k: round(float(v), 2) for k, v in sh_p.items()})
+    nums += mac(
+        "rheRankCorrQPool",
+        m2(float(ql_p.rank().corr(sh_p.rank()))),
+        "Spearman rank correlation of mean QLIKE with post-warmup Sharpe mid across the 12 pooled intraday forecasts",
+    )
+    nums += mac(
+        "rheRankCorrESPool",
+        m2(float(es_p.rank().corr(sh_p.rank()))),
+        "Spearman rank correlation of mean ES_1 with post-warmup Sharpe mid across the 12 pooled intraday forecasts",
     )
 
     # 2026-10-15 (table legibility): the numbers the table notes and the figure caption used to type, as macros

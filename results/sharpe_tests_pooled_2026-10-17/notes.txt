@@ -1,0 +1,7 @@
+E1 ex-post tree picks: {'lgbm': 'subtree_optuna_tp25_all_features_lgbm', 'xgb': 'subtree_xgb_all_features', 'rf': 'subtree_optuna_tp1_k10_all_features_rf'}
+pooltree_lgbm_baseline: gate ok (866-day Sharpe 0.9166 = score_lgbm/levels.csv)
+pooltree_lgbm_all_features: gate ok (866-day Sharpe 1.4268 = score_lgbm/levels.csv)
+pooltree_xgb_baseline: gate ok (866-day Sharpe 0.9597 = score_xgb/levels.csv)
+pooltree_xgb_all_features: gate ok (866-day Sharpe 1.2644 = score_xgb/levels.csv)
+pooltree_rf_baseline: gate ok (866-day Sharpe 1.0124 = score_rf/levels.csv)
+pooltree_rf_all_features: gate ok (866-day Sharpe 1.3079 = score_rf_interim1600/levels.csv)

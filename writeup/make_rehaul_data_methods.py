@@ -763,8 +763,10 @@ def column_tex(c: str) -> str:
 
 # What each series measures, in words (the Data section's symbols; the addenda's "words" column).  A constituent
 # series (suffix _ewstock / _vwstock) is the stem's words prefixed with its weighting.
+# 2026-10-17 (user, E5): descriptions from data_explainer_v11. Constituent moments are 5-minute;
+# the E-mini moments stay one-minute. "all index options" -> all traded options. SPX includes the top ETFs.
 DESC = {
-    "sumret": r"Interval log return, $r_{t,i} = \sum_k r_{t,i,k}$",
+    "sumret": r"Sum of one-minute changes in the log price of the front-month contract, $r_{t,i} = \sum_k r_{t,i,k}$",
     "sumabsret": r"Realized absolute variation, $\sum_k |r_{t,i,k}|$",
     "sumret3": r"Realized skewness, unnormalized, $\sum_k r_{t,i,k}^3$",
     "sumret4": r"Realized quarticity, unscaled, $\sum_k r_{t,i,k}^4$",
@@ -772,25 +774,26 @@ DESC = {
     "sumbipow": r"Bipower variation, $\mathrm{BV}_{t,i} = \sum_{k \ge 2} |r_{t,i,k}|\,|r_{t,i,k-1}|$",
     "sumautocov": r"First-order realized autocovariance, $\mathrm{AC}_{t,i} = \sum_{k \ge 2} r_{t,i,k}\, r_{t,i,k-1}$",
     # 2026-10-15 (notation, final consolidation): "ES" in words is "E-mini S&P 500 futures"
-    "sumvolume": "E-mini S\\&P 500 futures contract volume",
-    "numobs": r"Number of one-minute returns, $N_{t,i} \le 30$",
-    "turnover": "turnover",
-    "buyturnover": "buyer-initiated turnover",
-    "sellturnover": "seller-initiated turnover",
-    "effspread": "effective spread",
-    "spread": "quoted spread",
+    # 2026-10-17: parked -- "E-mini S&P 500 futures contract volume"
+    "sumvolume": "Number of front-month contracts traded in the half hour",
+    "numobs": r"Number of non-missing one-minute intervals in the half hour, $N_{t,i} \le 30$",
+    "turnover": "turnover, shares traded in the half hour divided by the previous day's shares outstanding",
+    "buyturnover": "buyer-initiated turnover, the same ratio using estimated buy orders",
+    "sellturnover": "seller-initiated turnover, the same ratio using estimated sell orders",
+    "effspread": "effective spread, the mean percent difference between the trade price and the preceding midquote",
+    "spread": "quoted spread, the mean percent difference between the bid and the ask",
     "ofi": r"order-flow imbalance, $(\mathrm{Buy} - \mathrm{Sell}) / (\mathrm{Buy} + \mathrm{Sell})$ of turnover",
-    "sumret2": "realized variance",
-    "stocktwits_attention": "Message volume (attention)",
-    "stocktwits_sentiment": "Net sentiment score",
-    "stocktwits_sentcount": "Number of sentiment-tagged messages",
+    "sumret2": "realized variance of 5-minute log returns",
+    "stocktwits_attention": "Number of StockTwits posts in the half hour",
+    "stocktwits_sentiment": r"Score of tagged posts, $1$ if all are bullish and $-1$ if all are bearish",
+    "stocktwits_sentcount": "Number of posts in the half hour that carry a bullish or bearish tag",
     "vix": "VIX index (30-day S\\&P 500 implied volatility)",
     "vvix": "VVIX index (implied volatility of VIX)",
     "vix3m": "VIX3M index (3-month S\\&P 500 implied volatility)",
-    "voldemand_spx_open_and_close": "Net volatility demand, SPX options, opening and closing trades",
-    "voldemand_spx_open_only": "Net volatility demand, SPX options, opening trades",
-    "voldemand_all_open_and_close": "Net volatility demand, all index options, opening and closing trades",
-    "voldemand_all_open_only": "Net volatility demand, all index options, opening trades",
+    "voldemand_spx_open_and_close": "Net vega bought by non-market-makers, S\\&P 500 index and top S\\&P 500 ETF options, trades that open or close a position",
+    "voldemand_spx_open_only": "Net vega bought by non-market-makers, S\\&P 500 index and top S\\&P 500 ETF options, trades that open a position",
+    "voldemand_all_open_and_close": "Net vega bought by non-market-makers, all traded options, trades that open or close a position",
+    "voldemand_all_open_only": "Net vega bought by non-market-makers, all traded options, trades that open a position",
     "fomc_release": "FOMC announcement-interval dummy (14:30 ET)",
     "fomc_day": "FOMC announcement-day dummy",
     "fomc_until_inv": r"$1/(1 + n^{+}_{t,i})$, $n^{+}_{t,i}$ intervals to the next announcement",
@@ -798,11 +801,11 @@ DESC = {
 }
 # the constituent versions of the ES moments: words only (the formula is the ES row's)
 DESC_XS = {
-    "sumret3": "realized skewness (unnormalized)",
-    "sumret4": "realized quarticity (unscaled)",
-    "sumabsret": "realized absolute variation",
-    "sumbipow": "bipower variation",
-    "sumpret2": "positive realized semivariance",
+    "sumret3": "realized skewness of 5-minute log returns, unnormalized",
+    "sumret4": "realized quarticity of 5-minute log returns, unscaled",
+    "sumabsret": "realized absolute variation of 5-minute log returns",
+    "sumbipow": "bipower variation of 5-minute log returns",
+    "sumpret2": "positive realized semivariance of 5-minute log returns",
 }
 # the source of each data file, in words (Table tab:rh_dm_sources)
 SOURCE_WORDS = {
@@ -2523,7 +2526,8 @@ def write_dictionary(rows: list[dict], D: dict) -> None:
         r"observed; series with an activity indicator also enter as $\bar\chi^{(k)}(u)$, the share off their mode "
         r"(the mode and its share of intervals are in the description).",
         rf"$\mathcal K = \{{{', '.join(str(r) for r in resolve_har_lags())}\}}$ in the closing-interval model and "
-        rf"$\{{1, 2, 4, \dots, {2 ** (kq - 1)}\}}$ in the intraday model, which omits the FOMC group.",
+        rf"$\{{1, 2, 4, \dots, {2 ** (kq - 1)}\}}$ in the intraday model, which is every group here except "
+        r"FOMC (Section~\ref{sec:rh_data}).",
         r"Diurnal adjustment: division by the trailing same-interval mean (mean) or standard deviation (s.d.); "
         r"$g$: the variance-stabilizing map; the volatility-demand series take $\operatorname{asinh}(u_{t,i} / "
         r"\kappa_{t,i})$ in place of both (Section~\ref{sec:rh_predictors}).",
@@ -2573,7 +2577,15 @@ def write_dictionary(rows: list[dict], D: dict) -> None:
                 out.append(r"\addlinespace")
             cur = r["bucket"]
             nb = sum(1 for x in rows if x["bucket"] == cur)
-            extra = "; closing-interval model only" if cur == "fomc" else ""
+            # 2026-10-17 (user, E5): group clause from data_explainer_v11. Parked -- fomc-only extra.
+            # extra = "; closing-interval model only" if cur == "fomc" else ""
+            extra = {
+                "moments": "; front-month E-mini, one-minute log-price changes",
+                "market_ew": "; simple averages of S\\&P 500 constituents",
+                "market_vw": "; previous day's market capitalization",
+                "vol_demand": "; net vega bought by non-market-makers",
+                "fomc": "; closing-interval model only, scheduled calendar",
+            }.get(cur, "")
             out.append(panel_row(f"{BUCKET_LABEL[cur]} ({nb}{extra})", ncol))
         desc = desc_of(r["series"])
         if r["active"]:
@@ -2809,7 +2821,7 @@ def write_hyper(P: dict, TS: dict, LP: dict, NN: dict) -> None:
         for e, lab in (("ridge", "ridge"), ("lasso", "lasso"), ("enet", "elastic net"))
     )
     notes_a = [
-        r"Panel A: $\lambda$ is on the scale of the objectives in Section~\ref{sec:rh_methods_models}, one grid value "
+        r"Panel A: Section~\ref{sec:rh_methods_models} states the scale of $\lambda$. One grid value "
         r"per decade (grid size in parentheses), selected by mean validation MSE over the "
         rf"{P['clp']['PRE_FOLDS']} folds of the pre-sample (Table~\ref{{tab:rh_dm_samples}}).",
         rf"At each of the {L[('ridge', 'baseline')][1].split(' of ')[1]} re-selection points a grid neighbor may "

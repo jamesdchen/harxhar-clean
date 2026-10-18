@@ -82,30 +82,36 @@
 % \title{Forecasting the Variance of the Closing Half Hour for 0DTE SPX Options\\\large Bullet-point draft of the full paper}
 \title{Exogenous Features in Intraday Forecasts of Closing-Half-Hour Variance\\\large Bullet-point draft of the full
 paper}
-\author{James Chen \and Austin Pollok \and Chris Jones \and Mihai Cucuringu}
+% 2026-10-17 (user): parked -- Chris Jones, and the previous order.
+% \author{James Chen \and Austin Pollok \and Chris Jones \and Mihai Cucuringu}
+\author{James Chen \and Mihai Cucuringu \and Christopher S. Jones \and Austin Pollok}
 \date{Working draft, 15 October 2026 --- not for citation}
 
 \begin{document}
 \maketitle
 
-% 2026-10-16 (user): there was no abstract. This one states the intraday exogenous-feature comparison.
+% 2026-10-17 (user): prose rewritten in the style of Zhang, Zhang, Cucuringu, and Qian (2024).
 \begin{abstract}
-Do exogenous features improve an intraday forecast of the realized variance of the S\&P 500 over the closing
-half hour, 15:30--16:00 ET? The forecast is issued at 15:30. Models are estimated on every half-hour interval
-and scored on that closing interval, from \rhoosSpanStart{} to \rhoosSpanEnd{}
-($T_{\mathrm{oos}} = \rhoosDays$). The benchmark predictor set is a HAR regression. The full set adds the
-exogenous series. On QLIKE the full set lowers average loss in every intraday model class,
-\rhrAfPoolLowerSig{} of the \rhrAfPoolPairs{} reductions significant at the 5\% level. Squared error does not
-confirm the reductions. Every intraday forecast remains less accurate, on QLIKE, than a daily HAR regression
-fit on the closing interval alone, and the exogenous features narrow that gap. On days with a same-day SPX
-expiration, a sign strategy in a straddle has a higher Sharpe ratio with the full set in every intraday class.
+We investigate whether exogenous predictors improve intraday forecasts of the realized variance of the S\&P 500
+over the closing half-hour interval (15:30--16:00 ET). Specifically, we estimate each model across all half-hour
+intervals and evaluate the forecast issued at 15:30 for the closing half hour over the out-of-sample period from
+\rhoosSpanStart{} to \rhoosSpanEnd{} ($T_{\mathrm{oos}} = \rhoosDays$ trading days). We compare a benchmark
+heterogeneous autoregressive (HAR) predictor set against an augmented predictor set that incorporates exogenous
+series. Under the QLIKE loss, the full predictor set yields lower average out-of-sample loss than the HAR
+benchmark across all \rhrAfPoolPairs{} intraday model classes, with \rhrAfPoolLowerSig{} of the
+\rhrAfPoolPairs{} reductions statistically significant at the 5\% level, whereas mean squared error does not
+confirm these gains. Furthermore, although every intraday specification remains less accurate under QLIKE than a
+daily HAR regression estimated solely on the closing interval, incorporating the exogenous predictors narrows
+this gap across all model classes. In an economic application to zero-days-to-expiration (0DTE) S\&P 500
+straddles on expiration days, a sign-based trading strategy achieves a higher Sharpe ratio under the full
+predictor set than under the HAR benchmark across every intraday model class.
 \end{abstract}
 
-\editc{black}{Notes}{Colored notes are draft comments, not paper text.
-\textbf{\textcolor{red!75!black}{Red}}: two live statements disagree.
-\textbf{\textcolor{orange!75!black}{Orange}}: the statement does not match the computation behind a printed number.
-\textbf{\textcolor{blue!75!black}{Blue}}: a reader cannot recover the input or the rule.
-Each note is numbered and opens with the decision, then the two statements.}
+\editc{black}{Notes}{Colored notes are draft comments, not paper text.\\
+\textbf{\textcolor{red!75!black}{Red}}: two live statements disagree.\\
+\textbf{\textcolor{orange!75!black}{Orange}}: a sentence does not match the computation behind a printed number.\\
+\textbf{\textcolor{blue!75!black}{Blue}}: a reader cannot recover the input or the rule.\\
+The first line is the decision. The second line is the problem. The rest is the exposition.}
 
 % 2026-10-16 (user): introduction restored. It states the exogenous-feature question.
 \input{rehaul/01_introduction}

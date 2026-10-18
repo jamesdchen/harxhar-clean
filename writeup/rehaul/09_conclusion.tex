@@ -16,33 +16,20 @@
 \section{Conclusion}
 \label{sec:rh_conclusion}
 \begin{itemize}
-\item \textbf{Exogenous features lower the QLIKE of the intraday forecast.} Against the HAR benchmark, the
-  full predictor set lowers average QLIKE in all \rhrAfPoolPairs{} intraday classes,
-  \rhrAfPoolLowerSig{} of the reductions significant at the 5\% level
-  (Section~\ref{sec:rh_results}). The tree ensembles have the largest reductions. Among the linear
-  models, the elastic net's reduction is significant.
-\item \textbf{Squared error does not confirm the QLIKE reductions.} The full set raises the MSE in
-  \rhrAfPoolMseHigher{} of the \rhrAfPoolPairs{} classes. No squared-error difference is significant.
-\item \textbf{The intraday forecasts remain less accurate than the daily HAR benchmark.} Every intraday
-  forecast has a higher average QLIKE than the benchmark forecast, the daily OLS on the HAR benchmark.
-  The full predictor set narrows that gap in every class. The linear models' gap is not significant at
-  the 5\% level; the trees' gap is (Section~\ref{sec:rh_results_classes}).
-\item \textbf{Training on the closing interval is a refinement.} Estimating each model on the last 30
-  minutes lowers average QLIKE further, and the full predictor set still lowers QLIKE in every class
-  (Section~\ref{sec:rh_econ_last30}).
-\item \textbf{The straddle reads the same forecast.} On the option-data subsample, the full predictor set
-  raises the sign strategy's Sharpe ratio in every intraday class. Average QLIKE and that Sharpe ratio
-  are weakly related (Section~\ref{sec:rh_econ_results}).
-\item \textbf{Limits.}
+\item \textbf{Exogenous predictors reduce QLIKE loss in pooled intraday models.} Relative to the HAR benchmark, augmenting the model with the full exogenous predictor set lowers mean QLIKE across all \rhrAfPoolPairs{} pooled intraday model classes, with \rhrAfPoolLowerSig{} of these reductions statistically significant at the 5\% level (Section~\ref{sec:rh_results}). The largest relative reductions occur in the tree ensembles, while among the penalized linear specifications the elastic net achieves a statistically significant reduction.
+\item \textbf{Divergence between QLIKE and squared-error loss.} Evaluated under mean squared error, expanding to the full predictor set increases MSE in \rhrAfPoolMseHigher{} of the \rhrAfPoolPairs{} intraday classes, although none of the MSE differences is statistically significant.
+\item \textbf{Comparison with the daily HAR benchmark.} Every pooled intraday specification incurs a higher mean QLIKE than the daily OLS HAR benchmark estimated solely on closing-interval data. Incorporating the full exogenous predictor set narrows this loss gap in every model class, leaving the gap statistically insignificant at the 5\% level for all three penalized linear models while remaining significant for the tree ensembles (Section~\ref{sec:rh_results_classes}).
+% 2026-10-17 (user): parked -- closing-interval material (moved to Appendix sec:rh_econ_last30). Was:
+% \item \textbf{Closing-interval estimation as a structural refinement.} Restricting estimation of each model class to the closing half hour lowers mean QLIKE further across all specifications, and within this closing-interval scheme the full exogenous predictor set continues to reduce mean QLIKE in every model class (Section~\ref{sec:rh_econ_last30}).
+\item \textbf{Models trained on the closing half hour.} Results for each model class estimated on the closing interval alone are reported in Appendix~\ref{sec:rh_econ_last30}.
+\item \textbf{Economic value in 0DTE straddles.} When the variance forecasts are used to trade same-day-expiring SPXW straddles over the closing half hour on the option-data subsample, adding the exogenous predictors increases the sign strategy's post-warmup Sharpe ratio in every intraday model class. Across the full model set, global statistical accuracy ($\overline{\QLIKE}$) exhibits only a weak rank correlation with straddle Sharpe ratios, whereas local accuracy at the implied-variance threshold ($\overline{\mathrm{ES}}_1$) aligns much more closely with economic gains (Section~\ref{sec:rh_econ_results}).
+\item \textbf{Scope and limitations.}
   \begin{itemize}
-  \item The accuracy comparison uses $T_{\mathrm{oos}} = \rhoosDays$ trading days, \rhoosSpanStart{} to
-    \rhoosSpanEnd.
-  \item One index, and one scored interval, the closing half hour.
-  \item The straddle is held to expiration with no delta hedge, and trading at the quoted bid and ask
-    lowers the Sharpe ratio (Section~\ref{sec:rh_econ}).
+  \item Our out-of-sample evaluation spans $T_{\mathrm{oos}} = \rhoosDays$ trading days from \rhoosSpanStart{} to \rhoosSpanEnd.
+  \item The empirical analysis focuses on a single equity index (the S\&P~500) and a single target horizon (the 15:30--16:00 ET closing half hour).
+  \item In our economic evaluation, the straddle is held unhedged to cash settlement, and executing at quoted bid and ask prices rather than mid-quotes materially reduces the strategy's Sharpe ratio (Section~\ref{sec:rh_econ}).
   \end{itemize}
-\item \textbf{Left open.} Expirations after the evaluation span, a second market, and forecast origins
-  earlier in the day.
+\item \textbf{Directions for future work.} Natural extensions include out-of-sample evaluation on post-\rhoosSpanEnd{} option expirations, cross-market validation on additional index option chains, and intraday variance forecasting at earlier decision origins prior to 15:30 ET.
 \end{itemize}
 % 2026-10-16 (user): the conclusion now follows the intraday exogenous-feature results.
 % The MinGRU bullet and the closing-interval-versus-intraday headline are parked with the old list.
@@ -103,3 +90,4 @@
 %   \item transaction costs calibrated to executed prices.
 %   \end{itemize}
 % \end{itemize}
+

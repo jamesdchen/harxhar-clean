@@ -21,55 +21,72 @@
 
 \section{Introduction}
 \label{sec:rh_intro}
+% 2026-10-17 (user): prose rewritten in the style of Zhang, Zhang, Cucuringu, and Qian (2024).
 \begin{itemize}
-\item \textbf{Question.} Do exogenous features improve an intraday forecast of the realized variance of the
-  S\&P 500 over the closing half hour?
+\item \textbf{Research question.} We investigate whether incorporating exogenous predictors improves intraday
+  forecasts of the realized variance of the S\&P 500 over the closing half-hour interval.
   \begin{itemize}
-  \item At 15:30 ET on day $t$ the forecast is of $\RV_t$, the realized variance from 15:30 to 16:00
-    (Section~\ref{sec:rh_data}).
-  \item The models are estimated on every 30-minute interval, $M = \rhdmNIntervals$, and the forecast that is
-    scored is the one issued at 15:30.
-  \item The comparison is the full predictor set against the HAR benchmark. The exogenous series are the
-    difference between the two (Section~\ref{sec:rh_predictors}).
+  \item Specifically, at the 15:30 ET forecast origin on trading day $t$, we seek to predict $\RV_t$, which
+    denotes the realized variance over the 15:30--16:00 closing interval (see Section~\ref{sec:rh_data}).
+  \item Each intraday model is estimated across all $M = \rhdmNIntervals$ half-hour intervals of the trading
+    day, and we evaluate its out-of-sample predictions on the forecast issued at 15:30 for the closing half hour.
+  \item To isolate the contribution of the additional covariates, we compare the full predictor set against the
+    HAR benchmark; the exogenous series constitute the exact difference between the two sets (see
+    Section~\ref{sec:rh_predictors}).
   \end{itemize}
-\item \textbf{Why the HAR benchmark is the baseline.} A HAR regression forecasts variance from its own lags
-  \citep{Corsi2009}. It does not use the other series observed by 15:30: realized moments, liquidity, the
-  cross-section of returns, sentiment, implied volatility, volatility demand, and scheduled announcements.
-\item \textbf{Design.} One forecast function, for each intraday interval $(t,i)$,
+\item \textbf{Motivation for the HAR baseline.} Following \citet{Corsi2009}, the standard HAR regression models
+  realized volatility solely as a linear function of its own past lags. Consequently, it omits a rich set of
+  exogenous variables available by 15:30, including higher-order realized moments, liquidity measures, the
+  cross-section of constituent returns, news and social-media sentiment, option-implied volatility, volatility
+  demand indicators, and scheduled macroeconomic and earnings announcements.
+\item \textbf{Empirical design.} For each intraday interval $(t,i)$, we consider a single forecast mapping of
+  the form
   \[
     \hat y_{t,i} = f_{m,\mathcal X,\mathcal I}(\bm x_{t,i}),
   \]
-  with model class $m$ and predictor set $\mathcal X \in \{\mathrm{HAR}, \mathrm{Full}\}$.
+  indexed by the model class $m$ and the predictor set $\mathcal X \in \{\mathrm{HAR}, \mathrm{Full}\}$.
   % 2026-10-16 (user, E12): parked -- $\hat y_t = f_{m,\mathcal X,\mathcal I}(\bm x_t)$.
   \begin{itemize}
-  \item The results in Section~\ref{sec:rh_results} use the intraday scheme,
-    $\mathcal I = \{1, \dots, M\}$.
-  \item The benchmark forecast is the daily OLS on the HAR benchmark, estimated on the closing interval only
-    (Sections~\ref{sec:rh_methods_models} and~\ref{sec:rh_results_eval}).
-  \item The loss is average QLIKE on the evaluation span $\mathcal T_{\mathrm{oos}}$,
-    \rhoosSpanStart{} to \rhoosSpanEnd, $T_{\mathrm{oos}} = \rhoosDays$
-    (Section~\ref{sec:rh_results_eval}).
+  \item The primary empirical results reported in Section~\ref{sec:rh_results} focus on the pooled intraday
+    estimation scheme, $\mathcal I = \{1, \dots, M\}$.
+  \item As our primary benchmark forecast, we employ the daily ordinary least squares (OLS) regression on the
+    % 2026-10-17 (user): parked -- closing-interval material (relabeled: closing-interval HAR benchmark). Was: "estimated exclusively on the closing interval (see"
+    HAR benchmark predictor set, estimated exclusively on the closing interval (the closing-interval HAR benchmark; see
+    Sections~\ref{sec:rh_methods_models} and~\ref{sec:rh_results_eval}).
+  \item We evaluate predictive accuracy via the average QLIKE loss over the out-of-sample evaluation span
+    $\mathcal T_{\mathrm{oos}}$ from \rhoosSpanStart{} to \rhoosSpanEnd{} ($T_{\mathrm{oos}} = \rhoosDays$
+    trading days; see Section~\ref{sec:rh_results_eval}).
   \end{itemize}
-\item \textbf{Findings.}
+\item \textbf{Main findings.}
   \begin{itemize}
-  \item The full predictor set lowers average QLIKE in every intraday model class
-    (\rhrAfPoolPairs{} classes, \rhrAfPoolLowerSig{} of the reductions significant at the 5\% level;
-    Section~\ref{sec:rh_results}). The tree ensembles have the largest reductions. Among the linear models
-    the elastic net's reduction is significant.
-  \item Squared error does not confirm the reductions: the full set raises the MSE in
-    \rhrAfPoolMseHigher{} of the \rhrAfPoolPairs{} classes, and no MSE difference is significant.
-  \item Every intraday forecast has a higher average QLIKE than the benchmark forecast. For the linear
-    models the difference is not significant at the 5\% level; for the trees it is. The full predictor set
-    narrows that gap in every model class (Section~\ref{sec:rh_results_classes}).
+  \item Incorporating the full predictor set reduces the average out-of-sample QLIKE loss relative to the HAR
+    benchmark across every intraday model class (\rhrAfPoolPairs{} classes in total, with \rhrAfPoolLowerSig{}
+    of these reductions statistically significant at the 5\% level; see Section~\ref{sec:rh_results}). The
+    tree-based ensembles exhibit the largest relative improvements, while among the linear specifications, the
+    elastic net achieves a statistically significant reduction.
+  \item In contrast, evaluation under mean squared error (MSE) does not corroborate these gains: the full
+    predictor set increases the average MSE in \rhrAfPoolMseHigher{} of the \rhrAfPoolPairs{} model classes,
+    and none of the MSE differences is statistically significant.
+  % 2026-10-17 (user): parked -- closing-interval material (relabeled: closing-interval HAR benchmark). Was: "than the closing-interval benchmark forecast."
+  \item Every pooled intraday forecast incurs a higher average QLIKE loss than the closing-interval HAR
+    benchmark. While this performance gap is statistically insignificant at the 5\% level for the linear models,
+    it is significant for the tree ensembles. Notably, augmenting the intraday models with the full predictor
+    set narrows this gap across all model classes (see Section~\ref{sec:rh_results_classes}).
   \end{itemize}
-\item \textbf{Economic application.} On days with a same-day SPX expiration, the sign of the variance
-  forecast minus implied variance is a position in a zero-days-to-expiration straddle
-  (Section~\ref{sec:rh_econ}). The full predictor set raises that strategy's Sharpe ratio in every
-  intraday class (Section~\ref{sec:rh_econ_results}).
-\item \textbf{Roadmap.} Related work (Section~\ref{sec:rh_related}), the data
-  (Section~\ref{sec:rh_data}), the predictors (Section~\ref{sec:rh_predictors}), the methods
-  (Section~\ref{sec:rh_methods}), the experiments (Section~\ref{sec:rh_results}), the economic value
-  (Section~\ref{sec:rh_econ}) and the conclusion (Section~\ref{sec:rh_conclusion}).
+\item \textbf{Economic application.} To assess the economic value of the forecasts on trading days with a
+  same-day SPX expiration, we construct a trading strategy that takes a long or short position in a
+  zero-days-to-expiration (0DTE) at-the-money straddle based on the sign of the difference between the variance
+  forecast and option-implied variance (see Section~\ref{sec:rh_econ}). Using the full predictor set increases
+  the annualized Sharpe ratio of this strategy relative to the HAR benchmark in every intraday model class (see
+  Section~\ref{sec:rh_econ_results}).
+\item \textbf{Paper organization.} The remainder of the paper is organized as follows.
+  Section~\ref{sec:rh_related} reviews the related literature. Section~\ref{sec:rh_data} describes the data and
+  target construction, and Section~\ref{sec:rh_predictors} details the benchmark and exogenous predictors.
+  Section~\ref{sec:rh_methods} presents the forecasting models and rolling estimation protocol.
+  % 2026-10-17 (user): parked -- closing-interval material (the variable-importance analysis covers the closing-interval models and is parked). Was: "reports the out-of-sample forecasting results and variable-importance analysis."
+  Section~\ref{sec:rh_results} reports the out-of-sample forecasting results.
+  Section~\ref{sec:rh_econ} evaluates the economic value of the forecasts in the 0DTE straddle strategy, and
+  Section~\ref{sec:rh_conclusion} concludes.
 \end{itemize}
 % 2026-10-16 (user): the introduction is about exogenous features in the intraday forecast,
 % not the 24-hour panel and not the straddle as the question. Parked verbatim below.
@@ -202,3 +219,4 @@
 %   sample (Section~\ref{sec:rh_results}), the economic value of the straddle strategy (Section~\ref{sec:rh_econ}),
 %   variable importance (Section~\ref{sec:rh_fi}) and the conclusion (Section~\ref{sec:rh_conclusion}).
 % \end{itemize}
+

@@ -1,15 +1,9 @@
-\begin{thebibliography}{70}
+\begin{thebibliography}{66}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
   \providecommand{\doi}[1]{doi: #1}\else
   \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
-
-\bibitem[Aas et~al.(2021)Aas, Jullum, and L{\o}land]{aas2021explaining}
-Kjersti Aas, Martin Jullum, and Anders L{\o}land.
-\newblock Explaining individual predictions when features are dependent: More
-  accurate approximations to shapley values.
-\newblock \emph{Artificial Intelligence}, 298:\penalty0 103502, 2021.
 
 \bibitem[Akiba et~al.(2019)Akiba, Sano, Yanase, Ohta, and Koyama]{Akiba2019}
 Takuya Akiba, Shotaro Sano, Toshihiko Yanase, Takeru Ohta, and Masanori Koyama.
@@ -351,11 +345,6 @@ Scott~M. Lundberg and Su-In Lee.
 \newblock In \emph{Advances in Neural Information Processing Systems},
   volume~30, 2017.
 
-\bibitem[Lundberg et~al.(2018)Lundberg, Erion, and Lee]{lundberg2018consistent}
-Scott~M. Lundberg, Gabriel~G. Erion, and Su-In Lee.
-\newblock Consistent individualized feature attribution for tree ensembles.
-\newblock \emph{arXiv preprint arXiv:1802.03888}, 2018.
-
 \bibitem[Lundberg et~al.(2020)Lundberg, Erion, Chen, DeGrave, Prutkin, Nair,
   Katz, Himmelfarb, Bansal, and Lee]{lundberg2020local}
 Scott~M. Lundberg, Gabriel Erion, Hugh Chen, Alex DeGrave, Jordan~M. Prutkin,
@@ -370,12 +359,6 @@ Robert~C. Merton.
 \newblock Theory of rational option pricing.
 \newblock \emph{Bell Journal of Economics and Management Science}, 4\penalty0
   (1):\penalty0 141--183, 1973.
-
-\bibitem[Mincer and Zarnowitz(1969)]{MincerZarnowitz1969}
-Jacob~A. Mincer and Victor Zarnowitz.
-\newblock The evaluation of economic forecasts.
-\newblock In \emph{Economic Forecasts and Expectations: Analysis of Forecasting
-  Behavior and Performance}, pages 3--46. NBER, 1969.
 
 \bibitem[Newey and West(1987)]{NeweyWest1987}
 Whitney~K. Newey and Kenneth~D. West.
@@ -449,12 +432,6 @@ Grigory Vilkov.
 \newblock \url{https://ssrn.com/abstract=4641356}, 2026.
 \newblock Working paper, SSRN 4641356; first posted 2023 as ``{0DTE} Trading
   Rules''.
-
-\bibitem[White(2000)]{White2000}
-Halbert White.
-\newblock A reality check for data snooping.
-\newblock \emph{Econometrica}, 68\penalty0 (5):\penalty0 1097--1126, 2000.
-\newblock \doi{10.1111/1468-0262.00152}.
 
 \bibitem[Zhang et~al.(2024)Zhang, Zhang, Cucuringu, and
   Qian]{ZhangZhangCucuringuQian2024}

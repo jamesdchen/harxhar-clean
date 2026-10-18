@@ -18,78 +18,149 @@
 
 \section{Data}
 \label{sec:rh_data}
+% 2026-10-17 (user): prose rewritten in the style of Zhang, Zhang, Cucuringu, and Qian (2024).
 \begin{itemize}
 % 2026-10-15 (user): parked -- "park all tables that I haven't mentioned in this chat". Was: \item \textbf{Sources} (Table~\ref{tab:rh_dm_sources}).
-\item \textbf{Sources}.
+\item \textbf{Data sources.}
+  We group the exogenous covariates into eight distinct categories.
+  % 2026-10-17 (user): parked -- closing-interval material (moved to Appendix app:rh_closing_sample). Was: "Specifically, the closing-interval specifications incorporate all \rhfiNExog{} exogenous series, whereas the pooled intraday specifications employ the"
+  Specifically, the pooled intraday specifications employ
+  the \rhdmNSeriesPooled{} series across all categories except the FOMC group. A complete list and definition of
+  each individual series is provided in Appendix Table~\ref{tab:rh_dm_dictionary}.
+  % 2026-10-17 (user, E5/E2): bucket wording from data_explainer_v11 (front month, one-minute log-price
+  % change, constituent 5-minute moments, turnover, spreads, StockTwits, volatility demand). The vendor,
+  % the price print, and the bin list stay open in note E2.
   \begin{itemize}
-  \item \textbf{E-mini S\&P 500 futures (ES),} nearly 24 hours a day, 1998--2024, sampled on a 30-minute grid.
-    Trading day $t = 1, \dots, T$; intraday interval $i = 1, \dots, M$, the half-hour intervals of the day; the
-    closing interval $i = c$ is the closing half hour (15:30--16:00 ET).
-  \item $r_{t,i,k}$: the $k$-th one-minute log return in interval $i$ of day $t$, $k = 1, \dots, N_{t,i}$, with
-    $N_{t,i} \le 30$. Realized variance \citep{AndersenBollerslevDieboldLabys2003}:
+  % 2026-10-17 (user, E5): parked -- the source list before the bucket exposition. Was:
+  % \item \textbf{E-mini S\&P 500 futures (ES),} nearly 24 hours a day, 1998--2024, sampled on a 30-minute grid.
+  %   Trading day $t = 1, \dots, T$; intraday interval $i = 1, \dots, M$, the half-hour intervals of the day; the
+  %   closing interval $i = c$ is the closing half hour (15:30--16:00 ET).
+  % \item $r_{t,i,k}$: the $k$-th one-minute log return in interval $i$ of day $t$, $k = 1, \dots, N_{t,i}$, with
+  %   $N_{t,i} \le 30$.
+  \item \textbf{Realized moments} (\bkSizeMom{} series). We obtain intraday data on the front-month E-mini
+    S\&P 500 futures contract (defined as the most actively traded contract), which trades nearly 24 hours a day
+    from 1998 through 2024, aggregated onto a 30-minute grid. Here, $t = 1, \dots, T$ indexes trading days and
+    $i = 1, \dots, M$ indexes the half-hour intervals within day $t$, each ending on a half-hour timestamp; in
+    particular, $i = c$ denotes the 15:30--16:00 ET closing interval. Each realized moment for interval $(t,i)$
+    is computed by summing the corresponding one-minute quantity across all non-missing minutes within that half
+    hour.
+  \item Let $r_{t,i,k}$ denote the one-minute log-price change of the front-month contract for the $k$-th
+    non-missing minute in interval $i$ of day $t$, where $k = 1, \dots, N_{t,i}$ and $N_{t,i} \le 30$.
+    Following \citet{AndersenBollerslevDieboldLabys2003}, we define the realized variance over interval $(t,i)$
+    as
     \[
       \RV_{t,i} = \sum_{k=1}^{N_{t,i}} r_{t,i,k}^2 .
     \]
-  \item Other realized measures, same interval:
+  \item We construct the \bkSizeMom{} exogenous realized-moment series as analogous one-minute sums over interval
+    $(t,i)$ (note that $\RV_{t,i}$ above serves as our forecast target and is not counted among the exogenous
+    series):
     \[
       \sum_k r_{t,i,k}, \quad \sum_k |r_{t,i,k}|, \quad \sum_k r_{t,i,k}^3, \quad \sum_k r_{t,i,k}^4, \quad
       \mathrm{RS}^{+}_{t,i} = \sum_k r_{t,i,k}^2\,\mathbf{1}\{r_{t,i,k} > 0\},
     \]
     \[
       \mathrm{BV}_{t,i} = \sum_{k \ge 2} |r_{t,i,k}|\,|r_{t,i,k-1}|, \qquad
-      \mathrm{AC}_{t,i} = \sum_{k \ge 2} r_{t,i,k}\, r_{t,i,k-1},
+      \mathrm{AC}_{t,i} = \sum_{k \ge 2} r_{t,i,k}\, r_{t,i,k-1}.
     \]
-    plus trading volume and the observation count $N_{t,i}$. The third and fourth sums are the realized skewness and
-    kurtosis of \citet{AmayaChristoffersenJacobsVasquez2015} without their normalizations (division by
-    $\RV^{3/2}_{t,i}/\sqrt{N_{t,i}}$ and by $\RV^{2}_{t,i}/N_{t,i}$). $\mathrm{RS}^{+}_{t,i}$ is the positive realized semivariance
-    \citep{BarndorffNielsenKinnebrockShephard2010}; $\mathrm{BV}_{t,i}$ is the bipower variation of
-    \citet{BarndorffNielsenShephard2004} without its $\pi/2$ scaling; $\mathrm{AC}_{t,i}$ is the first-order
-    realized autocovariance.
+    Specifically, the third and fourth sums correspond to the unnormalized realized skewness and realized
+    quarticity of \citet{AmayaChristoffersenJacobsVasquez2015} (that is, prior to dividing by
+    $\RV^{3/2}_{t,i}/\sqrt{N_{t,i}}$ and $\RV^{2}_{t,i}/N_{t,i}$, respectively). Furthermore,
+    $\mathrm{RS}^{+}_{t,i}$ denotes the positive realized semivariance of
+    \citet{BarndorffNielsenKinnebrockShephard2010}, $\mathrm{BV}_{t,i}$ denotes the unscaled bipower variation
+    of \citet{BarndorffNielsenShephard2004} (without the $\pi/2$ normalization factor), and $\mathrm{AC}_{t,i}$
+    denotes the first-order realized autocovariance.
     % Sums read off the column names: the builder of data/core_stats.parquet is not in the repo
     % (live/close_signal/features.py:1-25). sumpret2 = positive semivariance is an assumed reading; bipower is
     % unnormalised (no pi/2). numobs is described three ways (outline flag 12; loading.py:349 calls it a tick count).
-  \item \textbf{Cross-section of index constituents,} equal- and value-weighted (EW, VW), 1993--2024: six return
-    moments, turnover, order-flow imbalance (signed turnover) and bid-ask spreads. Order-flow imbalance, for each
-    weighting ($\mathrm{OFI}^{\mathrm{EW}}$, $\mathrm{OFI}^{\mathrm{VW}}$):
+  % 2026-10-17 (user, E5): parked -- the one-line constituent list. The liquidity and market bullets replace it.
+  % Was: Cross-section of index constituents, equal- and value-weighted (EW, VW), 1993--2024: six return
+  % moments, turnover, order-flow imbalance (signed turnover) and bid-ask spreads.
+  \item \textbf{Liquidity} (\bkSizeLiq{} series). From the front-month futures contract, we include total contract
+    volume traded during the half hour as well as the number of observed one-minute intervals $N_{t,i}$. In
+    addition, using intraday data on S\&P 500 constituents from 1993 to 2024, we construct both equal-weighted
+    and value-weighted cross-sectional aggregates of share turnover, buyer-initiated turnover, seller-initiated
+    turnover, the effective spread, the quoted spread, and order-flow imbalance. Here, constituent turnover is
+    defined as the number of shares traded during the half hour divided by prior-day shares outstanding, while
+    buyer- and seller-initiated turnover aggregate trades according to their estimated trade direction. The
+    effective spread measures the average percentage deviation between the transaction price and the prevailing
+    mid-quote, and the quoted spread measures the average percentage bid--ask spread. Equal-weighted aggregates
+    take simple cross-sectional averages across constituents, whereas value-weighted aggregates weight each
+    constituent by its prior-day market capitalization. For each weighting scheme ($\mathrm{OFI}^{\mathrm{EW}}$
+    and $\mathrm{OFI}^{\mathrm{VW}}$), we define order-flow imbalance as
     \[
       \mathrm{OFI}_{t,i} = \frac{\mathrm{Buy}_{t,i} - \mathrm{Sell}_{t,i}}{\mathrm{Buy}_{t,i} + \mathrm{Sell}_{t,i}}
         \in [-1, 1],
       \qquad \text{missing if } \mathrm{Buy}_{t,i} + \mathrm{Sell}_{t,i} = 0 ,
     \]
-    with $\mathrm{Buy}_{t,i}$ and $\mathrm{Sell}_{t,i}$ the buy and sell turnover in interval $i$ of day $t$.
+    where $\mathrm{Buy}_{t,i}$ and $\mathrm{Sell}_{t,i}$ denote the aggregate buyer- and seller-initiated
+    turnover in interval $i$ of day $t$, respectively.
     % loading.py:161-180, built on the unfilled legs.
-  \item \textbf{StockTwits} attention and sentiment measures, from 2009 and 2010.
-  \item \textbf{Cboe} volatility indices: VIX (from 2006), VIX3M (from 2009) and VVIX (from 2012), all to
-    February 2024.
-  \item Cboe option-volume series (the volatility-demand group), 2011 to August 2023.
-  \item \textbf{FOMC} announcement times, 1993 to November 2023.
-  \item \textbf{SPXW option quotes on expiration days} (S\&P 500 Weeklys), every 30 minutes: bid, ask, midquote,
-    underlying level, implied volatility and delta. \rhdmSpxwExpirations{} expirations, 2020--2025.
+  % 2026-10-17 (user, E5): parked -- one line per remaining group. The bullets below replace them.
+  % Was: StockTwits attention and sentiment measures, from 2009 and 2010.
+  % Was: Cboe volatility indices: VIX (from 2006), VIX3M (from 2009) and VVIX (from 2012), all to February 2024.
+  % Was: Cboe option-volume series (the volatility-demand group), 2011 to August 2023.
+  % Was: FOMC announcement times, 1993 to November 2023.
+  \item \textbf{Equal-weighted market} (\bkSizeMew{} series) and \textbf{value-weighted market} (\bkSizeMvw{}
+    series). For each weighting scheme described above, we compute six cross-sectional constituent return
+    moments: realized variance, realized skewness, realized quarticity, absolute variation, bipower variation,
+    and positive semivariance. In contrast to the futures moments, which are constructed from one-minute
+    log-price changes, these constituent moments are computed from 5-minute log returns. Moreover, the
+    constituent moment groups omit signed returns and realized autocovariance, whereas the exogenous futures
+    moment group omits realized variance (which serves as the target variable).
+  \item \textbf{Sentiment} (\bkSizeSent{} series). Using StockTwits message streams beginning in 2009 for total
+    posts and 2010 for user-tagged posts, we construct three half-hourly indicators: investor attention, defined
+    as the total number of posts within the half hour; a sentiment score that equals $1$ when all tagged posts
+    are bullish and $-1$ when all tagged posts are bearish; and the sentiment count, defined as the number of
+    posts carrying either a bullish or bearish tag.
+  \item \textbf{Implied volatility} (\bkSizeIv{} series). We include three Cboe volatility indices: the 30-day
+    S\&P 500 implied volatility index (VIX, available from 2006), the three-month implied volatility index
+    (VIX3M, from 2009), and the implied volatility of the VIX (VVIX, from 2012), all extending through February
+    2024.
+  \item \textbf{Volatility demand} (\bkSizeVd{} series). Using Cboe option-volume records from 2011 through
+    August 2023, we measure net vega purchased by non-market-maker participants across four series formed by
+    crossing two option universes—options on the S\&P 500 index and top S\&P 500 exchange-traded funds versus
+    all exchange-traded options—with two transaction subsets, namely all opening and closing customer trades
+    versus opening customer trades only.
+  % 2026-10-17 (user): parked -- closing-interval material. Was: "(\bkSizeFomc{} series, included in closing-interval specifications only)"
+  \item \textbf{FOMC} (\bkSizeFomc{} series, not in the pooled intraday model; used by the closing-interval specifications of Appendix~\ref{app:rh_closing}). Based on
+    scheduled Federal Open Market Committee announcement timestamps from 1993 through November 2023, we define
+    four series: an indicator for whether an announcement occurs during interval $(t,i)$, an indicator for
+    whether an announcement occurs on day $t$, and two proximity measures $1/(1+n^{+}_{t,i})$ and
+    $1/(1+n^{-}_{t,i})$, where $n^{+}_{t,i}$ and $n^{-}_{t,i}$ denote the number of intervals until the next
+    scheduled announcement and since the most recent scheduled announcement, respectively. Because the meeting
+    schedule is announced in advance, these variables are known prior to the start of the interval.
+  % 2026-10-17 (user): parked -- SPXW option quotes are not a data-section source group.
+  % \item \textbf{SPXW option quotes on expiration days} (S\&P 500 Weeklys), every 30 minutes: bid, ask, midquote,
+  %   underlying level, implied volatility and delta. \rhdmSpxwExpirations{} expirations, 2020--2025.
   \item \todo{name the vendor of each file}.
-  \editc{blue}{E2}{Decision: name the vendor, the price field, the roll, and the bin edges. The return $r_{t,i,k}$ is ``the one-minute log return,'' with no statement of last trade, bid--ask mid, or settlement, and no roll (front month, volume switch, or a calendar). The only clock edge in the subsection is $i=c$, 15:30--16:00 ET. $M=\rhdmNIntervals$ and the weekend cut (Friday 20:00 through Sunday 18:30) are stated. The edges of the other bins, including the overnight session, are not.}
+  \editc{blue}{E2}{Decision: name the vendor, the price field, the roll, and the bin edges.\\Problem: the vendor, the price inside the one-minute log change, the day whose volume picks the front month, and the clock edges of every bin except 15:30--16:00 and the weekend break are missing, so the panel cannot be rebuilt.\\
+The futures moments are now sums of one-minute changes in the log price of the front-month contract, the most active. The text does not say whether that price is a last trade, a midpoint, or a settlement, and it does not name the vendor of the file. It does not say which day's volume makes a contract the most active. The closing bin is 15:30--16:00 ET, and the grid drops Friday 20:00 through Sunday 18:30. Each other bin is a half hour ending on a half-hour stamp. Those stamps are not listed, so the $M=\rhdmNIntervals$ bins cannot be rebuilt from the text.}
   \end{itemize}
-\item \textbf{Intraday grid and cleaning.}
+\item \textbf{Intraday grid and data cleaning.}
   \begin{itemize}
-  \item Grid: 30-minute intervals from the first observed realized variance. Interval $i$ of day $t$ is retained if
-    and only if its realized variance is observed and it lies outside the weekend break:
+  \item We construct the panel on a 30-minute grid starting from the first observed realized variance. An
+    interval $i$ on day $t$ is retained in the interval grid $\mathcal{G}$ if and only if its realized variance
+    is observed and it falls outside the weekend trading break:
     \[
-      (t,i) \in \mathcal{G} \iff \RV_{t,i} \text{ observed and } (t,i) \notin (\text{Fri } 20{:}00,\ \text{Sun } 18{:}30) ,
+      (t,i) \in \mathcal{G} \iff \RV_{t,i} \text{ observed and } (t,i) \notin (\text{Fri } 20{:}00,\ \text{Sun } 18{:}30) .
     \]
-    with $\mathcal G$ the interval grid, the set of retained intervals.
     % 2026-10-15 (consolidation): parked -- \mathcal I now indexes the estimation sample (Methods, f_{m,X,I}).
     % (t,i) \in \mathcal{I} \iff \RV_{t,i} \text{ observed and } (t,i) \notin (\text{Fri } 20{:}00,\ \text{Sun } 18{:}30) .
     % loading.py:525-565: Friday bars after 20:00, Saturday, Sunday before 18:30 dropped; then RV-print rule.
-  \item Lags run backward through the retained intervals in calendar order, across days and overnight:
-    $(t, i - j)$ denotes the $j$-th retained interval before $(t, i)$, possibly on an earlier trading day.
-  \item Exchange holidays and early-close days remain in the futures sample; the option-trading sample excludes
-    early-close days.
-  \item Exogenous series $u$: availability (missing-data) indicator, recorded before any filling,
+  \item Lag operators step backward sequentially through the retained intervals in $\mathcal{G}$ in chronological
+    order, spanning overnight sessions and trading-day boundaries; thus, $(t, i - j)$ refers to the $j$-th
+    retained interval preceding $(t, i)$, which may lie on an earlier trading day.
+  \item Exchange holidays and early-close sessions are retained in the futures panel, whereas early-close days
+    are excluded from the option-trading evaluation sample.
+  \item For each exogenous series $u$, we first record a binary availability (non-missingness) indicator prior to
+    any imputation:
     \[
       a_{t,i} = \mathbf{1}\{u \text{ observed in interval } (t,i)\} \in \{0, 1\}.
     \]
-  \item Then $u_{t,i}$ is forward-filled (last observation carried forward), without a limit on staleness. Every
-    interval with $a_{t,i} = 0$ is later replaced by the imputation fill of Section~\ref{sec:rh_predictors},
-    step 4.
+  \item Subsequently, $u_{t,i}$ is forward-filled (carrying the last observed value forward without a staleness
+    cap) for the purpose of computing trailing baseline statistics, after which every interval with
+    $a_{t,i} = 0$ is replaced by the causal median imputation described in step 4 of
+    Section~\ref{sec:rh_predictors}.
   % 2026-10-16 (user): the stored value on $a_{t,i}=0$ is the expanding median of earlier observed
   % adjusted values. Parked -- "imputed with the full-sample median", and E3, which recorded that
   % the median uses later observations:
@@ -108,8 +179,9 @@
   %   tilde y_{t,i} = clip(y_{t,i}, Q_{0.01}(Y_{t,i}), Q_{0.99}(Y_{t,i})),
   %   Y_{t,i} = {y_{t,i-j} : j = 1, ..., 240}.
   % \item Winsorization window: the 240 preceding intervals of all times of day, excluding the current interval.
-  \item The diurnal adjustment $s^2_{t,i}$ and the winsorized target $\tilde y_{t,i}$ are defined in
-    Section~\ref{sec:rh_methods_setup}. Window lengths and quantile levels: Appendix~\ref{sec:rh_exp_samples}.
+  \item The diurnal adjustment factor $s^2_{t,i}$ and the winsorized target $\tilde y_{t,i}$ are formally defined
+    in Section~\ref{sec:rh_methods_setup}, with the corresponding rolling window lengths and quantile thresholds
+    reported in Appendix~\ref{sec:rh_exp_samples}.
     % target.py:288-297 (rolling(20, min_periods=5).mean().shift(1) within slot). The target's s^2_{t,i} has no
     % slot band: slot_band = 0 for the target (target.py:626-627); the [0.5, 2] band is exogenous-only.
     % target.py:96-97 and 486-507: 1/99, rolling(240, min_periods=240).quantile(p).shift(1). Docstrings at
@@ -117,32 +189,35 @@
     % CODE: the executor scores true_raw = tilde_y_{t,c}^2 s^2_{t,c} (metrics.py:50), i.e. the winsorised RV, not
     % RV_{t,c}.
   \end{itemize}
-\item \textbf{Samples} (Appendix Table~\ref{tab:rh_dm_samples}).
+\item \textbf{Estimation and evaluation samples} (see Appendix Table~\ref{tab:rh_dm_samples}).
   % 2026-10-15 (user): the samples table moved to the appendix (Implementation details); the pointer says so.
   \begin{itemize}
   % 2026-10-15 (finish, phase 2): parked -- one pooled window W = 24,000 was wrong for the linear models
   % (tab:rh_dm_tuning, experiments/pool_linear_pretune.py:65-66: 2,000 days x 48 = 96,000); typed counts -> macros.
   % Was: "Pooled intraday sample: 300,317 half-hour intervals from June 1998, with a rolling estimation window of
   % $W = 24{,}000$ intervals: 300{,}317 = 303{,}442 ... - 3{,}125 ..."; "3,469 trading days"; "\rhfiNOos = 3{,}469 - ...".
-  \item Intraday sample: \rhdmPooledRows{} half-hour intervals from June 1998, with rolling estimation windows
-    of $W = \rhdmPooledWindow$ intervals (trees) and $W = \rhdmPooledLinWindow$ intervals (linear models;
-    Appendix~\ref{sec:rh_exp_schemes}):
+  \item The pooled intraday sample comprises \rhdmPooledRows{} half-hour intervals beginning in June 1998, using
+    rolling estimation windows of length $W = \rhdmPooledWindow$ intervals for the tree ensembles and
+    $W = \rhdmPooledLinWindow$ intervals for the linear models (see Appendix~\ref{sec:rh_exp_schemes}):
     % 2026-10-15 (finish): FLAG resolved -- typed 96{,}000 -> \rhdmPooledLinWindow (make_rehaul_data_methods.py, same value).
     \[
       \rhdmPooledRows = \rhdmGridRows \text{ intervals on the grid} - \rhdmBurnIn \text{ burn-in intervals}.
     \]
-  \item Closing-interval sample ($i = c$): \rhdmCloseDays{} trading days, July 2010 to April 2024, with a rolling
-    estimation window of $W = \cmPtFitWin$ trading days.
-  \item \rhfiNOos{} rolling-window forecasts from June 2018:
-    \[
-      \rhfiNOos = \rhdmCloseDays - \cmPtFitWin .
-    \]
-    % The 3,125-row burn-in is dropped after slicing to one row per session (executor.py:348-349), so it
-    % removes 1998-2010 sessions (outline flag 9).
-    % 2026-10-15 (consolidation): 2,000 -> \cmPtFitWin and 1,469 -> \rhfiNOos (the variable-importance section's
-    % out-of-sample days, the same 2018-2024 forecasts); 3,469 has no macro yet.
-  \item Hyperparameter selection for the linear models on a pre-sample: closing-interval observations from
-    \cmPtPreStart; validation samples from \cmPtValFirst{} to \cmPtValLast.
+  % 2026-10-17 (user): parked -- closing-interval material: the closing-interval sample, its start date, its rolling forecasts and the linear pre-sample moved to Appendix app:rh_closing_sample. Was:
+  % \item The closing-interval sample ($i = c$) consists of \rhdmCloseDays{} trading days from July 2010 through
+    % April 2024, estimated on a rolling window of $W = \cmPtFitWin$ trading days.
+  % \item This rolling procedure yields \rhfiNOos{} out-of-sample closing-interval forecasts starting in June 2018:
+    % \[
+      % \rhfiNOos = \rhdmCloseDays - \cmPtFitWin .
+    % \]
+    % % The 3,125-row burn-in is dropped after slicing to one row per session (executor.py:348-349), so it
+    % % removes 1998-2010 sessions (outline flag 9).
+    % % 2026-10-15 (consolidation): 2,000 -> \cmPtFitWin and 1,469 -> \rhfiNOos (the variable-importance section's
+    % % out-of-sample days, the same 2018-2024 forecasts); 3,469 has no macro yet.
+  % \item Hyperparameter selection for the linear specifications is conducted on an initial pre-sample using
+    % closing-interval observations starting on \cmPtPreStart, with validation windows spanning \cmPtValFirst{} to
+    % \cmPtValLast.
+  \item The closing-interval sample ($i = c$, one observation per trading day) used by the closing-interval HAR benchmark, its rolling forecasts and the pre-sample on which the linear penalties are selected are described in Appendix~\ref{app:rh_closing_sample}.
   % 2026-10-15 (user): parked -- "Out of sample period doesn't make sense for forecasts because we're performing
   % rolling backtests. The forecasting results need to be calculated to reflect such (that the out of sample forecasts
   % are done on a rolling basis after the burn in training window)". Accuracy is now evaluated over every rolling
@@ -152,12 +227,13 @@
   %     T_{\mathrm{oos}} = \cmNdays \text{ trading days} = \rhdmExpirationsOos \text{ SPXW expirations}
   %       - \rhdmEarlyCloses \text{ early-close days}.
   %   \]
-  \item Evaluation span $\mathcal T_{\mathrm{oos}}$: \rhoosSpanStart{} to \rhoosSpanEnd, the
-    $T_{\mathrm{oos}} = \rhoosDays$ trading days on which every rolling forecast exists, less \rhoosEarlyCloses{}
-    early-close days. It starts with the intraday linear forecasts, after the pre-sample above
-    (Section~\ref{sec:rh_results_eval}).
-  \item Option-data subsample $\mathcal T_{\mathrm{opt}} \subset \mathcal T_{\mathrm{oos}}$, on which the straddle
-    strategy is evaluated (Section~\ref{sec:rh_econ}):
+  \item The primary out-of-sample evaluation span $\mathcal T_{\mathrm{oos}}$ covers \rhoosSpanStart{} to
+    \rhoosSpanEnd{} ($T_{\mathrm{oos}} = \rhoosDays$ trading days on which all rolling forecasts are available,
+    after excluding \rhoosEarlyCloses{} early-close sessions). This span begins immediately following the linear
+    % 2026-10-17 (user): parked -- closing-interval material (the pre-sample moved to Appendix app:rh_closing_sample). Was: "pre-sample period described above (see"
+    models' pre-sample period (Appendix~\ref{app:rh_closing_sample}; see Section~\ref{sec:rh_results_eval}).
+  \item The option-trading subsample $\mathcal T_{\mathrm{opt}} \subset \mathcal T_{\mathrm{oos}}$, on which we
+    evaluate the 0DTE straddle strategy in Section~\ref{sec:rh_econ}, consists of
     \[
       T_{\mathrm{opt}} = \cmNdays \text{ trading days} = \rhdmExpirationsOos \text{ SPXW expirations}
         - \rhdmEarlyCloses \text{ early-close days}.
@@ -168,6 +244,8 @@
   % 2026-10-15 (finish, phase 2): parked -- wrong count: 419 later expirations, 413 of them full trading days. Was:
   % \item The 413 later expirations are held out.
   %   % 1,291 - 872 = 419 later expirations; 413 presumably excludes their 6 early closes. Check.
-  \item The \rhdmHeldOutExpirations{} later expirations (\rhdmHeldOut{} full trading days) are held out.
+  \item Finally, the \rhdmHeldOutExpirations{} subsequent SPXW expiration dates (\rhdmHeldOut{} full trading
+    days) are held out from the present analysis.
   \end{itemize}
 \end{itemize}
+

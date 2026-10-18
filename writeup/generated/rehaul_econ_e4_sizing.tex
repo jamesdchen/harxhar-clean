@@ -15,18 +15,18 @@
 \multicolumn{5}{@{}l}{\textit{Panel A: $\SR$ at mid-quotes}} \\
 \addlinespace[2pt]
 Short straddle & \multicolumn{4}{c}{$0.34$ under every rule} \\
-\multicolumn{5}{@{}l}{Closing-interval models} \\
-\quad OLS, HAR benchmark & $1.64$ & $1.55$ & $1.69$ & $1.67$ \\
-\quad Elastic net & $1.93$ & $1.82$ & $1.84$ & $1.90$ \\
-\quad Lasso & $1.76$ & $1.75$ & $1.74$ & $1.85$ \\
-\quad Ridge & $1.51$ & $1.70$ & $1.56$ & $1.75$ \\
-\quad LightGBM & $1.57$ & $1.78$ & $1.64$ & $1.66$ \\
-\quad XGBoost & $1.34$ & $1.63$ & $1.58$ & $1.67$ \\
-\quad Random forest & $1.20$ & $1.28$ & $1.28$ & $1.26$ \\
-\multicolumn{5}{@{}l}{Intraday models} \\
-\quad Elastic net & $1.91$ & $1.75$ & $1.72$ & $1.69$ \\
-\quad Lasso & $1.56$ & $1.69$ & $1.65$ & $1.59$ \\
+\multicolumn{5}{@{}l}{Pooled intraday models (30-minute grid)} \\
 \quad Ridge & $1.73$ & $1.79$ & $1.68$ & $1.73$ \\
+\quad Lasso & $1.56$ & $1.69$ & $1.65$ & $1.59$ \\
+\quad Elastic net & $1.91$ & $1.75$ & $1.72$ & $1.69$ \\
+\quad LightGBM & $1.36$ & $1.85$ & $1.62$ & $1.86$ \\
+\quad XGBoost & $1.08$ & $1.82$ & $1.69$ & $1.84$ \\
+\quad Random forest$^\dagger$ & $0.97$ & $1.59$ & $1.41$ & $1.64$ \\
+\multicolumn{5}{@{}l}{Closing-interval models (15:30--16:00 ET half hour)} \\
+\quad OLS, HAR benchmark & $1.64$ & $1.55$ & $1.69$ & $1.67$ \\
+\quad Ridge & $1.51$ & $1.70$ & $1.56$ & $1.75$ \\
+\quad Lasso & $1.76$ & $1.75$ & $1.74$ & $1.85$ \\
+\quad Elastic net & $1.93$ & $1.82$ & $1.84$ & $1.90$ \\
 \addlinespace[2pt]
 Model set, median & $0.92$ & $1.34$ & $1.12$ & $1.34$ \\
 Model set, number above sign & -- & 98 & 100 & 98 \\
@@ -34,18 +34,18 @@ Model set, number above sign & -- & 98 & 100 & 98 \\
 \multicolumn{5}{@{}l}{\textit{Panel B: $\SR$ at quoted bid/ask prices}} \\
 \addlinespace[2pt]
 Short straddle & \multicolumn{4}{c}{$-0.03$ under every rule} \\
-\multicolumn{5}{@{}l}{Closing-interval models} \\
-\quad OLS, HAR benchmark & $1.27$ & $1.20$ & $1.38$ & $1.31$ \\
-\quad Elastic net & $1.56$ & $1.46$ & $1.52$ & $1.54$ \\
-\quad Lasso & $1.40$ & $1.39$ & $1.42$ & $1.49$ \\
-\quad Ridge & $1.14$ & $1.35$ & $1.24$ & $1.39$ \\
-\quad LightGBM & $1.20$ & $1.44$ & $1.32$ & $1.31$ \\
-\quad XGBoost & $0.96$ & $1.27$ & $1.21$ & $1.30$ \\
-\quad Random forest & $0.84$ & $0.93$ & $0.95$ & $0.90$ \\
-\multicolumn{5}{@{}l}{Intraday models} \\
-\quad Elastic net & $1.54$ & $1.38$ & $1.40$ & $1.32$ \\
-\quad Lasso & $1.19$ & $1.33$ & $1.32$ & $1.22$ \\
+\multicolumn{5}{@{}l}{Pooled intraday models (30-minute grid)} \\
 \quad Ridge & $1.36$ & $1.43$ & $1.35$ & $1.35$ \\
+\quad Lasso & $1.19$ & $1.33$ & $1.32$ & $1.22$ \\
+\quad Elastic net & $1.54$ & $1.38$ & $1.40$ & $1.32$ \\
+\quad LightGBM & $0.98$ & $1.48$ & $1.30$ & $1.49$ \\
+\quad XGBoost & $0.69$ & $1.45$ & $1.31$ & $1.47$ \\
+\quad Random forest$^\dagger$ & $0.59$ & $1.22$ & $1.04$ & $1.27$ \\
+\multicolumn{5}{@{}l}{Closing-interval models (15:30--16:00 ET half hour)} \\
+\quad OLS, HAR benchmark & $1.27$ & $1.20$ & $1.38$ & $1.31$ \\
+\quad Ridge & $1.14$ & $1.35$ & $1.24$ & $1.39$ \\
+\quad Lasso & $1.40$ & $1.39$ & $1.42$ & $1.49$ \\
+\quad Elastic net & $1.56$ & $1.46$ & $1.52$ & $1.54$ \\
 \addlinespace[2pt]
 Model set, median & $0.56$ & $0.99$ & $0.79$ & $0.98$ \\
 Model set, number above sign & -- & 98 & 106 & 100 \\
@@ -59,7 +59,7 @@ earlier days $t' < t$ only; the sign rule is the sign strategy, and the short-st
 holds $q_t \equiv -1$ under every rule. The first \rheSzWarmup{} trading days of the out-of-sample period only estimate the
 scale of $|\hat\sigma^2_{t'} - \mathrm{IV}^2_{t'}|$, so every rule is evaluated on the remaining \rheSzDays{} of
 the \rheNdays{} trading days; at quoted bid/ask prices the bid--ask spread is paid on $|q_t|$ straddles. Every model except the OLS uses the full predictor set; the trees are
-the specifications of Table~\ref{tab:rh_econ_control}. The last two rows of each panel give the median across the
+the pooled intraday trees of Table~\ref{tab:rh_econ_control} ($^\dagger$interim: only the forest's 16:00 forecasts; see that table). The last two rows of each panel give the median across the
 \rheModelSetN{} forecasts of the model set and the number of them whose $\SR$ is above that of
 their own sign strategy. Point estimates; no test is reported.
 \end{tablenotes}

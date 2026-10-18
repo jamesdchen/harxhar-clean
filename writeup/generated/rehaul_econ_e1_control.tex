@@ -13,34 +13,34 @@
 \cmidrule(lr){3-4}
  & return (\%) & Mid-quotes & Bid--ask & rate (\%) & days (\%) & $\Delta\SR$ \\
 \midrule
-Short straddle & $1.4^{\phantom{***}}$ & $0.20$ & $-0.27$ & $61.8$ & $0.0$ & --$^{\phantom{***}}$ \\
+Short straddle & $1.4^{\phantom{***}}$ & $0.34$ & $-0.03$ & $61.8$ & $0.0$ & --$^{\phantom{***}}$ \\
  & $(0.43)^{\phantom{***}}$ &  &  &  &  &  \\[2pt]
 \addlinespace[4pt]
-\multicolumn{7}{@{}l}{\textit{Panel A: Closing-interval models}} \\
+\multicolumn{7}{@{}l}{\textit{Panel A: Pooled intraday models (30-minute grid)}} \\
 \addlinespace[2pt]
-OLS, HAR benchmark & $9.7^{***}$ & $1.37$ & $0.89$ & $56.7$ & $27.9$ & $1.17^{*\phantom{**}}$ \\
- & $(2.83)^{\phantom{***}}$ &  &  &  &  & $(1.85)^{\phantom{***}}$ \\[2pt]
-Elastic net & $13.5^{***}$ & $1.92$ & $1.43$ & $57.7$ & $28.3$ & $1.72^{**\phantom{*}}$ \\
- & $(3.66)^{\phantom{***}}$ &  &  &  &  & $(2.56)^{\phantom{***}}$ \\[2pt]
-Lasso & $13.2^{***}$ & $1.88$ & $1.40$ & $57.6$ & $29.6$ & $1.67^{**\phantom{*}}$ \\
- & $(3.81)^{\phantom{***}}$ &  &  &  &  & $(2.54)^{\phantom{***}}$ \\[2pt]
-Ridge & $10.0^{***}$ & $1.42$ & $0.93$ & $57.5$ & $27.1$ & $1.21^{**\phantom{*}}$ \\
- & $(2.86)^{\phantom{***}}$ &  &  &  &  & $(1.98)^{\phantom{***}}$ \\[2pt]
-LightGBM\tnote{a} & $12.8^{***}$ & $1.81$ & $1.33$ & $56.9$ & $30.5$ & $1.61^{**\phantom{*}}$ \\
- & $(3.73)^{\phantom{***}}$ &  &  &  &  & $(2.33)^{\phantom{***}}$ \\[2pt]
-XGBoost\tnote{a} & $12.5^{***}$ & $1.77$ & $1.27$ & $58.7$ & $27.8$ & $1.56^{**\phantom{*}}$ \\
- & $(3.82)^{\phantom{***}}$ &  &  &  &  & $(2.56)^{\phantom{***}}$ \\[2pt]
-Random forest\tnote{a} & $11.2^{***}$ & $1.58$ & $1.11$ & $56.8$ & $30.4$ & $1.38^{**\phantom{*}}$ \\
- & $(3.38)^{\phantom{***}}$ &  &  &  &  & $(2.07)^{\phantom{***}}$ \\[2pt]
-\addlinespace[4pt]
-\multicolumn{7}{@{}l}{\textit{Panel B: Intraday models}} \\
-\addlinespace[2pt]
-Elastic net & $10.6^{***}$ & $1.50$ & $1.01$ & $57.3$ & $27.4$ & $1.29^{*\phantom{**}}$ \\
- & $(2.81)^{\phantom{***}}$ &  &  &  &  & $(1.90)^{\phantom{***}}$ \\[2pt]
-Lasso & $8.5^{**\phantom{*}}$ & $1.20$ & $0.71$ & $58.0$ & $23.7$ & $1.00^{*\phantom{**}}$ \\
- & $(2.45)^{\phantom{***}}$ &  &  &  &  & $(1.66)^{\phantom{***}}$ \\[2pt]
-Ridge & $10.2^{***}$ & $1.44$ & $0.96$ & $57.5$ & $27.1$ & $1.24^{*\phantom{**}}$ \\
+Ridge & $10.2^{***}$ & $1.73$ & $1.36$ & $57.5$ & $27.1$ & $1.39^{*\phantom{**}}$ \\
  & $(2.78)^{\phantom{***}}$ &  &  &  &  & $(1.93)^{\phantom{***}}$ \\[2pt]
+Lasso & $8.5^{**\phantom{*}}$ & $1.56$ & $1.19$ & $58.0$ & $23.7$ & $1.22^{*\phantom{**}}$ \\
+ & $(2.45)^{\phantom{***}}$ &  &  &  &  & $(1.66)^{\phantom{***}}$ \\[2pt]
+Elastic net & $10.6^{***}$ & $1.91$ & $1.54$ & $57.3$ & $27.4$ & $1.57^{*\phantom{**}}$ \\
+ & $(2.81)^{\phantom{***}}$ &  &  &  &  & $(1.90)^{\phantom{***}}$ \\[2pt]
+LightGBM\tnote{a,b} & $10.1^{***}$ & $1.36$ & $0.98$ & $58.9$ & $19.1$ & $1.02^{**\phantom{*}}$ \\
+ & $(2.75)^{\phantom{***}}$ &  &  &  &  & $(2.05)^{\phantom{***}}$ \\[2pt]
+XGBoost\tnote{a,b} & $9.0^{**\phantom{*}}$ & $1.08$ & $0.69$ & $60.2$ & $18.7$ & $0.74^{**\phantom{*}}$ \\
+ & $(2.50)^{\phantom{***}}$ &  &  &  &  & $(1.99)^{\phantom{***}}$ \\[2pt]
+Random forest\tnote{a,$\dagger$} & $9.3^{***}$ & $0.97$ & $0.59$ & $59.4$ & $20.9$ & $0.63^{**\phantom{*}}$ \\
+ & $(2.78)^{\phantom{***}}$ &  &  &  &  & $(2.13)^{\phantom{***}}$ \\[2pt]
+\addlinespace[4pt]
+\multicolumn{7}{@{}l}{\textit{Panel B: Closing-interval models (15:30--16:00 ET half hour)}} \\
+\addlinespace[2pt]
+OLS, HAR benchmark & $9.7^{***}$ & $1.64$ & $1.27$ & $56.7$ & $27.9$ & $1.30^{*\phantom{**}}$ \\
+ & $(2.83)^{\phantom{***}}$ &  &  &  &  & $(1.85)^{\phantom{***}}$ \\[2pt]
+Ridge & $10.0^{***}$ & $1.51$ & $1.14$ & $57.5$ & $27.1$ & $1.17^{**\phantom{*}}$ \\
+ & $(2.86)^{\phantom{***}}$ &  &  &  &  & $(1.98)^{\phantom{***}}$ \\[2pt]
+Lasso & $13.2^{***}$ & $1.76$ & $1.40$ & $57.6$ & $29.6$ & $1.42^{**\phantom{*}}$ \\
+ & $(3.81)^{\phantom{***}}$ &  &  &  &  & $(2.54)^{\phantom{***}}$ \\[2pt]
+Elastic net & $13.5^{***}$ & $1.93$ & $1.56$ & $57.7$ & $28.3$ & $1.59^{**\phantom{*}}$ \\
+ & $(3.66)^{\phantom{***}}$ &  &  &  &  & $(2.56)^{\phantom{***}}$ \\[2pt]
 \bottomrule
 \end{tabular}
 \begin{tablenotes}[flushleft]
@@ -54,8 +54,15 @@ Sharpe ratio at mid-quotes and at quoted bid/ask prices; hit rate and long days 
 $r_t > 0$ at mid-quotes and with $q_t = +1$. $\Delta\SR$ is $\SR$ at mid-quotes minus that of the short-straddle
 benchmark (\rheShortSh); in parentheses, the HAC $t$-statistic of the mean return and, under $\Delta\SR$, the HAC $t$-statistic on the daily return differential (Newey--West, $q_{\mathrm{NW}} = \rheHACLag$; Section~\ref{sec:rh_methods_tests}).
 $^{*}$, $^{**}$ and $^{***}$ denote significance at the 10\%, 5\% and 1\% levels.
-\item[a] The specification with the highest $\SR$ at mid-quotes among the estimator's \rheTreeSpecs{} on the full
-predictor set, so selected ex post on the out-of-sample period. LightGBM: random search, re-estimated every 10 trading days, selected on squared-error loss; XGBoost: random search, re-estimated daily, selected on squared-error loss; random forest: Optuna search (10 trials), re-tuned every 25 trading days, selected on squared-error loss.
+Panel A: models estimated on every 30-minute interval of the day (the pooled intraday scheme); Panel B: models
+estimated on the closing interval only (one observation a day). Every model row trades the forecast of the 15:30--16:00 ET
+variance made at 15:30.
+\item[a] Pooled intraday tree ensembles: hyperparameters from an Optuna search, one configuration per method, not
+re-tuned; re-estimated at every 30-minute interval on a rolling window of $W = \rhdmPooledWindow$ intervals
+(Appendix~\ref{sec:rh_exp_schemes}). No ex-post selection.
+\item[b] Full predictor set of the earlier draft's intraday specification, which lacks the FOMC predictors.
+\item[$\dagger$] Interim: only the 16:00 forecasts of the full-set random forest's every-interval walk have been
+computed; the rest of the walk is still running.
 \end{tablenotes}
 \end{threeparttable}
 \end{table}

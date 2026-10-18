@@ -167,6 +167,7 @@ CRASH = (
     pd.Timestamp("2020-04-30"),
 )  # the outline's exclusion window
 TOP_DAYS = 10  # the tail check: days of largest gain over the short straddle dropped (= make_rehaul_economics.TOP_DAYS)
+WARMUP = 252  # 2026-10-17 (user, E17): the first 252 option-data days build the sizing scale; Sharpe ratios are scored on days t > WARMUP
 
 # --------------------------------------------------------------------------- data
 
@@ -418,8 +419,16 @@ def n_acc() -> int:
 # --------------------------------------------------------------------------- statistics
 
 
-def sharpe(x: pd.Series) -> float:
+def sharpe_all(x: pd.Series) -> float:
     return float(x.mean() / x.std(ddof=1) * ANN)
+
+
+def sharpe(x: pd.Series) -> float:
+    # 2026-10-17 (user, E17): every printed Sharpe ratio is computed on the 614 post-warmup option days (t > WARMUP).
+    # return float(x.mean() / x.std(ddof=1) * ANN)
+    assert len(x) == NDAYS, len(x)
+    s = x.iloc[WARMUP:]
+    return float(s.mean() / s.std(ddof=1) * ANN)
 
 
 def level(f: pd.DataFrame) -> dict:
@@ -1959,10 +1968,13 @@ def main() -> None:
     near(lv["mingru_rinitq_baseline"]["qlike"], 0.1006, 5e-5)  # was 0.0985
     near(lv["blk2"]["qlike"], 0.1092, 5e-5)  # was 0.1068
     near(lv["a0"]["qlike"], 0.1270, 5e-5)  # was 0.1232
-    near_t(lv[OLS]["sharpe"], 1.37, 5e-3)
+    # 2026-10-17 (user, E17): master_table.csv stores 866-day Sharpe ratios (checked with sharpe_all); lv["sharpe"] is
+    # on the 614 post-warmup days (t > WARMUP = 252).
+    near_t(sharpe_all(by[OLS]["ret_mid"]), 1.37, 5e-3)
+    near_t(lv[OLS]["sharpe"], 1.64, 5e-3)
     for k in s["key"]:  # every model-set row reproduces master_table.csv
         near(lv[k]["qlike"], float(m.loc[k, "qlike_raw"]), 1e-12)
-        near_t(lv[k]["sharpe"], float(m.loc[k, "Sharpe_mid"]), 1e-9)
+        near_t(sharpe_all(by[k]["ret_mid"]), float(m.loc[k, "Sharpe_mid"]), 1e-9)
 
     # ---- T1: all vs HAR + cal. within each family ----
     # 2026-10-15 (user): NN content parked for now -- the MinGRU (NN_ROW) is still paired, for the gates and its macros
@@ -2038,13 +2050,15 @@ def main() -> None:
                 r["dm"], dmv, 0.02
             )  # same-estimator base; the outline paired the per-bar linear rows with the OLS
     near(T1[("per-bar", NN_NAME)]["p"], 0.32, 0.005)  # was 0.34 (trimmed target)
+    # 2026-10-17 (user, E17): dsh on the 614 post-warmup days (was Ridge 0.05, Lasso 0.50, Elastic net 0.55,
+    # LightGBM 0.54, XGBoost 0.16, Random forest 0.18 on all 866 days)
     expect_dsh = {
-        "Ridge": (0.05, 0.09),
-        "Lasso": (0.50, 1.47),
-        "Elastic net": (0.55, 1.34),
-        "LightGBM": (0.54, 1.11),
-        "XGBoost": (0.16, 0.30),
-        "Random forest": (0.18, 0.34),
+        "Ridge": (-0.13, 0.09),
+        "Lasso": (0.13, 1.47),
+        "Elastic net": (0.29, 1.34),
+        "LightGBM": (0.78, 1.11),
+        "XGBoost": (0.35, 0.30),
+        "Random forest": (0.36, 0.34),
     }
     for nme, (dsh, t) in expect_dsh.items():
         near_t(T1[("per-bar", nme)]["dsh"], dsh, 0.005 + 1e-9)
@@ -2070,8 +2084,9 @@ def main() -> None:
     if gate_866:  # 2026-10-15: the 866-day values of record
         assert (n_af, n_lower, n_lower_sig) == (51, 38, 3), (n_af, n_lower, n_lower_sig)
         assert (n_mse_up, n_mse_up_sig) == (51, 0), (n_mse_up, n_mse_up_sig)
+    # 2026-10-17 (user, E17): 47 of 51 pairs have dsh > 0 on the 614 post-warmup days (was 50 of 51 on all 866 days)
     assert (
-        int((af["dsh"] > 0).sum()) == 50
+        int((af["dsh"] > 0).sum()) == 47
         and int(((af["dsh"] > 0) & (af["p_t"] < SIG)).sum()) == 4
     )
 
@@ -2209,16 +2224,19 @@ def main() -> None:
     pa, pb0 = "mingru_pooled_rinitq_all_features", "mingru_pooled_rinitq_baseline"
     near(lv[pa]["qlike"], 0.1141, 5e-5)  # was 0.1121 (trimmed target)
     near(lv[pb0]["qlike"], 0.1177, 5e-5)  # was 0.1151
-    near_t(lv[pa]["sharpe"], 0.34, 5e-3)
-    near_t(lv[pa]["sharpe_x"], -0.13, 5e-3)
-    near_t(lv[pb0]["sharpe"], 0.78, 5e-3)
-    near_t(lv[pb0]["sharpe_x"], 0.31, 5e-3)
+    # 2026-10-17 (user, E17): at1600_scores.csv stores 866-day Sharpe ratios (checked with sharpe_all)
+    near_t(sharpe_all(by[pa]["ret_mid"]), 0.34, 5e-3)
+    near_t(sharpe_all(by[pa]["ret_crossed"]), -0.13, 5e-3)
+    near_t(sharpe_all(by[pb0]["ret_mid"]), 0.78, 5e-3)
+    near_t(sharpe_all(by[pb0]["ret_crossed"]), 0.31, 5e-3)
     sc = pd.read_csv(NN_POOLED / "at1600_scores.csv")
     sc = sc[sc["model"] == "pooled ridge-init QLIKE (MinGRU)"].set_index("design")
     for b, k in (("all_features", pa), ("baseline", pb0)):
         near(lv[k]["qlike"], float(sc.loc[b, "qlike"]), 1e-9)
-        near_t(lv[k]["sharpe"], float(sc.loc[b, "sharpe_mid"]), 1e-6)
-        near_t(lv[k]["sharpe_x"], float(sc.loc[b, "sharpe_crossed"]), 1e-6)
+        near_t(sharpe_all(by[k]["ret_mid"]), float(sc.loc[b, "sharpe_mid"]), 1e-6)
+        near_t(
+            sharpe_all(by[k]["ret_crossed"]), float(sc.loc[b, "sharpe_crossed"]), 1e-6
+        )
     near(T1[("pooled", NN_NAME)]["pct"], -3.0, 0.05)  # was -2.7 (trimmed target)
     near(T1[("pooled", NN_NAME)]["p"], 0.47, 0.005)  # was 0.52
     near(T2[NN_NAME]["all_features"]["pct"], 18.1, 0.05)  # was 18.2
@@ -2485,12 +2503,12 @@ def main() -> None:
     t1p = {n: T1[("pooled", n)] for n in lin_n + tree_n}
     t1c = {n: T1[("per-bar", n)] for n in lin_n + tree_n}
 
-    # the short-straddle benchmark (q_t = -1) and each forecast's sign strategy against it (866 days)
+    # the short-straddle benchmark (q_t = -1) and each forecast's sign strategy against it (866 days; Sharpe on t > WARMUP, E17)
     ref_ix = by[OLS].index
     assert np.allclose(np.abs(by[OLS]["q"]), 1.0)
     r_book = by[OLS]["ret_mid"] * by[OLS]["q"]  # the straddle return R_t (q = +-1)
     short_mid = -r_book
-    near_t(sharpe(short_mid), 0.20, 5e-3)  # = \rheShortSh
+    near_t(sharpe(short_mid), 0.34, 5e-3)  # = \rheShortSh (was 0.20 on all 866 days)
 
     def vs_short(k: str) -> dict:
         f = by[k]
@@ -2508,14 +2526,15 @@ def main() -> None:
     vs_ms = {
         k: vs_short(k) for k in s["key"]
     }  # gate: the model set reproduces its macros of record
-    assert sum(v["dsh"] > 0 for v in vs_ms.values()) == 112  # \cmMasterVsShortAbove
+    # 2026-10-17 (user, E17): 94 of 112 model-set forecasts have dsh > 0 on the 614 post-warmup days (was 112 on 866 days)
+    assert sum(v["dsh"] > 0 for v in vs_ms.values()) == 94  # \rheVsShortAbove
     assert (
         sum(v["t"] > Z95 for v in vs_ms.values()) == 20
     )  # \cmMasterVsShortAboveSig = \rheSigVsShort
     assert sum(v["tail"] < 0 for v in vs_ms.values()) == 102  # \rheTailNeg
     en = "subpt_enet_all_features"  # \rheEnetSh, \rheEnetShX, \rheEnetT
-    near_t(lv[en]["sharpe"], 1.92, 5e-3)
-    near_t(lv[en]["sharpe_x"], 1.43, 5e-3)
+    near_t(lv[en]["sharpe"], 1.93, 5e-3)  # was 1.92 on 866 days
+    near_t(lv[en]["sharpe_x"], 1.56, 5e-3)  # was 1.43 on 866 days
     near_t(vs_ms[en]["t"], 2.56, 5e-3)
     vs_sh = {
         k: vs_short(k)
@@ -2622,27 +2641,28 @@ def main() -> None:
         assert all(r["pct"] < 0 for r in t1c.values()) and not any(
             r["p"] < SIG for r in t1c.values()
         )
-    # 6.3 (trade statistics, 866 days in every mode): every pooled sign strategy above the short straddle, the
-    # significant gains are the three trees on the full predictor set; the three highest pooled Sharpe ratios are the
-    # elastic net, ridge and LightGBM on the full predictor set; the full set raises every pooled Sharpe ratio, never
+    # 6.3 (trade statistics, 614 post-warmup days for Sharpe, E17; 866 days for HAC t and tail): every pooled sign
+    # strategy above the short straddle, the significant gains are the three trees on the full predictor set; on the
+    # post-warmup days the three highest pooled Sharpe ratios are the linear models on the full predictor set (elastic
+    # net, ridge, lasso), and LightGBM is the highest pooled tree; the full set raises every pooled Sharpe ratio, never
     # significantly; without its 10 best days every pooled forecast's gain over the short straddle is negative
     assert all(vs_sh[k]["dsh"] > 0 for k in pool_keys)
     assert pool_sig_short == {pool_of[n][1] for n in tree_n}, pool_sig_short
-    assert sorted(pool_keys, key=lambda k: -lv[k]["sharpe"])[:3] == [
+    assert sorted(pool_keys, key=lambda k: -lv[k]["sharpe"])[:4] == [
         "poolpt_enet_all_features",
         "poolpt_ridge_all_features",
+        "poolpt_lasso_all_features",
         "pooltree_lgbm_all_features",
     ]
     assert min(sh_full) > max(sh_har)
     assert all(x > 0 for x in dsh_pool) and not any(t1p[n]["p_t"] < SIG for n in t1p)
     assert all(vs_sh[k]["tail"] < 0 for k in pool_keys)
     assert sum(sz_pool[k]["clip"]["d_vs_sign"] > 0 for k in pool_keys) == 11
-    # final subsection: the closing-interval elastic net and lasso on the full predictor set earn a higher Sharpe ratio
-    # than every pooled intraday forecast
-    assert min(
-        lv[k]["sharpe"] for k in ("subpt_enet_all_features", "subpt_lasso_all_features")
-    ) > max(lv[k]["sharpe"] for k in pool_keys)
-    # ... and the elastic net's is the highest of the model set (= \cmMasterShMax)
+    # final subsection: the closing-interval elastic net on the full predictor set earns a higher Sharpe ratio than
+    # every pooled intraday forecast, and is the highest of the model set (= \cmMasterShMax on 866 days; 1.93 on 614)
+    assert lv["subpt_enet_all_features"]["sharpe"] > max(
+        lv[k]["sharpe"] for k in pool_keys
+    )
     assert max(s["key"], key=lambda k: lv[k]["sharpe"]) == "subpt_enet_all_features"
 
     # ---- macros for the captions ----

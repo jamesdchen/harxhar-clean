@@ -35,8 +35,17 @@
 % 2026-10-15 (user): parked -- "the feature importance needs to move to the end of the experiments section ... as a
 % subsection"; included after 06_results in paper_rehaul.tex, so it is the last subsection of Experiments and results.
 % \section{Variable importance}
+% 2026-10-17 (user): parked -- closing-interval material: this subsection reports variable importance for the
+% closing-interval models only, so its body is parked in \iffalse ... \fi below. Note E19 (the pooled intraday
+% proposal, not about the parked text only) is kept visible here, moved verbatim out of the Notation bullet.
 \subsection{Variable importance}
 \label{sec:rh_fi}
+Variable importance is not yet computed for the pooled intraday model; the closing-interval analysis is parked (note E19).
+    % 2026-10-17 (user, E19): parked -- replaced by the pooled intraday feature-importance proposal (weekly vs monthly refit). Was:
+    % \editc{red}{E19}{Decision: one cadence, and label the sample on every rank.\\Problem: the model bullet refits every trading day, the notation refits every \rhfiRefitEvery{} trading days, and a rank on \rhfiFirst{}--\rhfiLast{} comes from the closing-interval fits rather than from Table~\ref{tab:rh_oos}.\\
+    % The model bullet says lasso and ridge are re-estimated every trading day, and that $\lambda$ stays at the pre-sample values $\rhfiLassoAlpha$ and $\rhfiRidgeAlpha$. The notation bullet then counts $K=\rhfiNRefits$ re-estimations, spaced \rhfiRefitEvery{} trading days apart, each one fit on the \rhfiWindow{} days before its first forecast day $t_k$ and then held for the block of days up to the next re-estimation. A fit every day and a fit every \rhfiRefitEvery{} days produce different coefficients on the days in between. The days those fits are asked to forecast run from \rhfiFirst{} to \rhfiLast, $|\mathcal O|=\rhfiNOos$ days in total. Table~\ref{tab:rh_oos} is another sample: the intraday scheme on $T_{\mathrm{oos}}=\rhoosDays$ days, from \rhoosSpanStart{} to \rhoosSpanEnd. A rank in this section is a summary of the closing-interval fits on \rhfiFirst{}--\rhfiLast. It is not a row of that table.}
+    \editc{red}{E19}{Decision to consider (not final): compute feature importance for the pooled intraday model, comparing a weekly and a monthly refit cadence, with monthly as the default if the check passes.\\Problem: the pooled intraday model has no feature-importance analysis; every rank in this section comes from the closing-interval models.\\ Feature importance should also be computed for the pooled intraday model, which currently has none. Two refit cadences are candidates to compare: weekly and monthly. At each cadence, re-estimate the pooled model and rank the predictor groups on each refit's held-out block. The comparison checks whether the ranking needs a finer granularity than monthly. If the weekly and monthly rankings are stable against each other, monthly is enough and becomes the default, because it costs less compute; if they differ, keep weekly. Both cadences are proposals to consider, not yet a decision.}
+\iffalse
 \begin{itemize}
 % 2026-10-15 (user): parked -- last-30-min scheme moved to the end of the economics section; one clause says which
 % scheme these models use. Was: "\item \textbf{Models:} the closing-interval models of record on the full predictor
@@ -70,7 +79,6 @@
     % this subsection's out-of-sample period $\mathcal O = \bigcup_k \mathcal O_k$:"
     The blocks make up this section's forecast days $\mathcal O = \bigcup_k \mathcal O_k$:
     $|\mathcal O| = \rhfiNOos$ trading days, \rhfiFirst{} to \rhfiLast.
-    \editc{red}{E19}{Decision: one cadence, and label the sample on every rank. The model bullet says the lasso and ridge are re-estimated every trading day, with $\lambda=\rhfiLassoAlpha$ and $\rhfiRidgeAlpha$ never replaced. This notation says $K=\rhfiNRefits$ re-estimations, one every \rhfiRefitEvery{} trading days, each fit on the \rhfiWindow{} days before $t_k$. The forecast days are $|\mathcal O|=\rhfiNOos$, from \rhfiFirst{} to \rhfiLast. The accuracy table is the intraday scheme on $\mathcal T_{\mathrm{oos}}$, $T_{\mathrm{oos}}=\rhoosDays$, from \rhoosSpanStart{} to \rhoosSpanEnd. A SHAP rank in this section is a closing-interval fit on \rhfiFirst{}--\rhfiLast, not a row of Table~\ref{tab:rh_oos}.}
   \item Predictors $\bm x_t \in \mathbb{R}^p$; forecast $\hat y_t = \hat f_k(\bm x_t)$, $t \in \mathcal O_k$, on the
     scale of the target $y_t$, the diurnally adjusted realized volatility of the closing half hour.
   \item Predictor group $A \subseteq \{1, \dots, p\}$: all predictors built from one series (its averages at every
@@ -312,6 +320,7 @@
   \item Linear coefficient paths and probes: \rhfiWallLinMin{} minutes; $H^2$: \rhfiWallHMin{} minutes.
   \end{itemize}
 \end{itemize}
+\fi
 
 % ---------------------------------------------------------------------------------------------------------------------
 % 2026-10-15 parked (the measures pass above replaces them; the old study's floats remain in
@@ -375,3 +384,4 @@
 %   \end{itemize}
 % \item \todo{Results to come: primary measure, inclusion bar, pooled models.}
 % \end{itemize}
+
