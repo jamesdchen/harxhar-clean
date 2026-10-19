@@ -352,7 +352,10 @@ SIDE_SPEC = {  # 2026-10-15 (user): Table 1 split -- pooled intraday in Experime
 }
 
 
-def table_side(rows: list[dict], side: str) -> str:
+# 2026-10-19 (user): parked -- "the rows [should] only be the models (with the ols benchmark its own row). The HAR
+# benchmark vs all features variable buckets should replace the 'intraday vs closing' meta columns"; replaced by
+# table_side below (one row a model, the predictor sets as column groups). Kept for reference, no longer written.
+def table_side_set_rows(rows: list[dict], side: str) -> str:
     """One scheme's columns of the former two-scheme table (user, 2026-10-15: 'split it')."""
     spec = SIDE_SPEC[side]
     body: list[str] = []
@@ -436,6 +439,136 @@ def table_side(rows: list[dict], side: str) -> str:
             f" & \\multicolumn{{3}}{{c}}{{{spec['head']}}} \\\\",
             "\\cmidrule(l){2-4}",
             "Model and predictor set & MSE ($10^{-\\rhoosMseExp}$) & QLIKE & $R^2_{\\mathrm{OOS}}$ (\\%) \\\\",
+            "\\midrule",
+            *body,
+            "\\bottomrule",
+            "\\end{tabular*}",
+            "\\begin{tablenotes}[flushleft]",
+            "\\footnotesize",
+            notes,
+            *marks,
+            "\\end{tablenotes}",
+            "\\end{threeparttable}",
+            "\\end{table}",
+            "",
+        ]
+    )
+
+
+SET_PHRASE = {"baseline": "the HAR benchmark", "all_features": "all features"}  # predictor set, in note prose
+NOTE_NAME = {"Random forest": "random forest", "Elastic net": "elastic net"}  # model, inside a sentence
+
+
+def _and(names: list[str]) -> str:
+    return names[0] if len(names) == 1 else ", ".join(names[:-1]) + " and " + names[-1]
+
+
+def table_side(rows: list[dict], side: str) -> str:
+    """One scheme's table, a row per model and the predictor sets as column groups (user, 2026-10-19).
+
+    The OLS (HAR benchmark only) is its own row above the panels; a predictor set without a forecast prints "--".
+    Notes a and dagger mark a model's row and name the cells they apply to.
+    """
+    spec = SIDE_SPEC[side]
+    ncol = 1 + 3 * len(SETS)
+    body: list[str] = []
+    marked: dict[str, list[tuple[str, str]]] = {"a": [], "dagger": []}  # note -> (model, set code) cells
+    panel = None
+    for r in rows:
+        mark = ""
+        for b, _ in r["sets"]:
+            c = r[side][b]
+            if side == "pool" and c is not None and c["key"] in EARLIER:
+                marked["a"].append((r["model"], b))
+                mark += "" if "\\tnote{a}" in mark else "\\tnote{a}"
+            if side == "pool" and c is not None and c["key"] in PRELIM:
+                marked["dagger"].append((r["model"], b))
+                mark += "\\tnote{$\\dagger$}"
+        name = r["model"]
+        if name == "OLS":
+            if side == "close":
+                name = "OLS (benchmark forecast)"
+        elif r["panel"] != panel:
+            body.append("\\addlinespace[6pt]")
+            body.append(
+                f"\\multicolumn{{{ncol}}}{{@{{}}l}}{{\\textit{{{r['panel']}}}}} \\\\"
+            )
+            body.append("\\addlinespace[3pt]")
+            panel = r["panel"]
+        line = [f"{name}{mark}"]
+        for b, _ in SETS:
+            line += cells(r[side][b]["m"] if r[side].get(b) else None)
+        body.append(" & ".join(line) + " \\\\")
+    common = (
+        "\\item \\textit{Notes:} Rolling forecasts from \\rhoosSpanStart{} to \\rhoosSpanEnd{}, every forecast made "
+        "with a model estimated on its trailing window only, so every forecast is out of sample; each is scored "
+        "against the actual realized variance of the closing half hour, $\\RV_t$, on the $T_{\\mathrm{oos}} = "
+        "\\rhoosDays$ trading days on which every forecast of both training schemes exists, early closes dropped "
+        "(Section~\\ref{sec:rh_results_eval}). "
+        "The span starts with the intraday linear forecasts, on the first trading day after the pre-sample on "
+        "which the penalties were selected (\\cmPtValFirst{} to \\cmPtValLast). "
+        "The MSE entries are in units of $10^{-\\rhoosMseExp}$: the printed number times $10^{-\\rhoosMseExp}$ is "
+        "the mean squared error $T_{\\mathrm{oos}}^{-1}\\sum_t (\\RV_t - \\hat\\sigma^2_t)^2$. "
+        "QLIKE is the mean QLIKE loss. "
+        "$R^2_{\\mathrm{OOS}} = 1 - \\sum_t (\\RV_t - \\hat\\sigma^2_t)^2 / \\sum_t (\\RV_t - \\overline{\\RV}_{t-1})^2$, "
+        "in percent, where the benchmark $\\overline{\\RV}_{t-1}$ is the historical mean of the closing-half-hour "
+        "realized variance over all trading days from \\rhoosBenchStart{} to day $t-1$ \\citep{CampbellThompson2008}. "
+        "All features is the full predictor set of Section~\\ref{sec:rh_predictors}; the OLS is estimated on the HAR "
+        "benchmark only (--: no forecast). "
+    )
+    if side == "pool":
+        notes = common + (
+            "The same days for the models trained on the last 30 minutes are in "
+            "Table~\\ref{tab:rh_oos_last30} (Section~\\ref{sec:rh_econ_last30})."
+        )
+        marks = []
+        for key, text in (
+            ("a", "\\item[a] The earlier draft's intraday specification: {}."),
+            (
+                "dagger",
+                "\\item[$\\dagger$] Preliminary: the closing-interval forecasts of the intraday {}, from an "
+                "exercise still in progress.",
+            ),
+        ):
+            who = [
+                f"{_and([NOTE_NAME.get(m, m) for m, x in marked[key] if x == b])} on {SET_PHRASE[b]}"
+                for b, _ in SETS
+                if any(x == b for _, x in marked[key])
+            ]
+            if who:
+                marks.append(text.format("; ".join(who)))
+    else:
+        notes = common + (
+            "Each model is estimated on the last 30 minutes of each trading day only (one observation per day); the "
+            "OLS on the HAR benchmark is the benchmark forecast. Trees use fixed hyperparameters and are re-estimated "
+            "daily (Section~\\ref{sec:rh_exp_schemes}). The intraday models on the same days are in "
+            "Table~\\ref{tab:rh_oos}."
+        )
+        marks = []
+    groups = " & ".join(f"\\multicolumn{{3}}{{c}}{{{lab}}}" for _, lab in SETS)
+    rules = "".join(
+        f"\\cmidrule({'lr' if i < len(SETS) - 1 else 'l'}){{{2 + 3 * i}-{4 + 3 * i}}}"
+        for i in range(len(SETS))
+    )
+    heads = " & ".join(
+        ["MSE ($10^{-\\rhoosMseExp}$)", "QLIKE", "$R^2_{\\mathrm{OOS}}$ (\\%)"] * len(SETS)
+    )
+    return "\n".join(
+        [
+            HEAD,
+            f"% {spec['label']}: MSE, QLIKE and Campbell-Thompson R2_OOS, a row per model and the predictor sets as "
+            f"column groups, {spec['head']} scheme only (user 2026-10-19).",
+            "\\begin{table}[htbp]",
+            "\\centering",
+            "\\small",
+            "\\begin{threeparttable}",
+            f"\\caption{{{spec['caption']}}}",
+            f"\\label{{{spec['label']}}}",
+            f"\\begin{{tabular*}}{{\\linewidth}}{{@{{\\extracolsep{{\\fill}}}}l{'r' * (ncol - 1)}@{{}}}}",
+            "\\toprule",
+            f" & {groups} \\\\",
+            rules,
+            f"Model & {heads} \\\\",
             "\\midrule",
             *body,
             "\\bottomrule",

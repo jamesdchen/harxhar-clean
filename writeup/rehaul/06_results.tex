@@ -348,17 +348,18 @@ We refer the reader to Appendix~\ref{app:rh_impl} for comprehensive implementati
 %   \item Excluding February--April 2020, the lasso on the full predictor set has a lower MSE than the benchmark
 %     forecast.
 %   \end{itemize}
-\item \textbf{Divergence between QLIKE and squared-error loss.} In contrast to QLIKE, evaluation under mean
-  squared error does not confirm these reductions: incorporating the full predictor set increases the MSE in
-  \rhrAfPoolMseHigher{} of the \rhrAfPoolPairs{} model classes and lowers it in the remaining classes, with none
-  of the differences statistically significant under a Diebold--Mariano test on squared errors.
-  \begin{itemize}
-  \item This divergence reflects the extreme sensitivity of squared-error loss to a handful of volatility spikes:
-    for each pooled specification on the full predictor set, the five largest daily squared errors all occur in
-    March 2020 and account for \rhrPoolSETopFiveMin--\rhrPoolSETopFiveMax\% of the cumulative squared error
-    $\sum_{t \in \mathcal T_{\mathrm{oos}}} (\RV_t - \hat\sigma^2_t)^2$, whereas those same five days represent
-    only \rhrPoolQLTopFiveMin--\rhrPoolQLTopFiveMax\% of cumulative QLIKE loss.
-  \end{itemize}
+% 2026-10-19 (user): parked -- "comment out the bullet on the divergence btwn qlike and squared-error loss". Was:
+% \item \textbf{Divergence between QLIKE and squared-error loss.} In contrast to QLIKE, evaluation under mean
+%   squared error does not confirm these reductions: incorporating the full predictor set increases the MSE in
+%   \rhrAfPoolMseHigher{} of the \rhrAfPoolPairs{} model classes and lowers it in the remaining classes, with none
+%   of the differences statistically significant under a Diebold--Mariano test on squared errors.
+%   \begin{itemize}
+%   \item This divergence reflects the extreme sensitivity of squared-error loss to a handful of volatility spikes:
+%     for each pooled specification on the full predictor set, the five largest daily squared errors all occur in
+%     March 2020 and account for \rhrPoolSETopFiveMin--\rhrPoolSETopFiveMax\% of the cumulative squared error
+%     $\sum_{t \in \mathcal T_{\mathrm{oos}}} (\RV_t - \hat\sigma^2_t)^2$, whereas those same five days represent
+%     only \rhrPoolQLTopFiveMin--\rhrPoolQLTopFiveMax\% of cumulative QLIKE loss.
+%   \end{itemize}
 % 2026-10-15 (user): parked -- NN content parked for now
 % \item \textbf{MinGRU network} (ridge-initialized linear shortcut, trained and selected on QLIKE): the full predictor set
 %   changes its average QLIKE by \rhrAfNnClosePct\% ($\DM = \rhrAfNnCloseDm$, \rhrAfNnClosePval), a reduction that is
