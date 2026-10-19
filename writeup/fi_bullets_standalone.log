@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Debian) (preloaded format=pdflatex 2026.10.19)  19 OCT 2026 20:56
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Debian) (preloaded format=pdflatex 2026.10.19)  19 OCT 2026 21:29
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -352,7 +352,7 @@ Package uniquecounter Info: New unique counter `rerunfilecheck' on input line 2
 )
 \Hy@SectionHShift=\skip56
 )
-Package xr Info: IMPORTING LABELS FROM paper_rehaul.aux on input line 19.
+Package xr Info: IMPORTING LABELS FROM paper_rehaul.aux on input line 32.
 
 (./generated/close_main_numbers.tex) (./generated/fig_qlike_sharpe_numbers.tex)
 (./generated/rehaul_results_numbers.tex) (./generated/rehaul_econ_numbers.tex)
@@ -361,7 +361,7 @@ Package xr Info: IMPORTING LABELS FROM paper_rehaul.aux on input line 19.
 (./generated/close_murphy_splits_numbers.tex)
 (./generated/close_compounding_numbers.tex)
 (./generated/close_shift_test_numbers.tex) (./generated/rehaul_oos_numbers.tex)
-LaTeX Font Info:    Trying to load font information for T1+lmr on input line 39
+LaTeX Font Info:    Trying to load font information for T1+lmr on input line 52
 .
 (/usr/share/texmf/tex/latex/lm/t1lmr.fd
 File: t1lmr.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
@@ -374,24 +374,24 @@ File: l3backend-pdftex.def 2024-01-04 L3 backend support: PDF output (pdfTeX)
 (./fi_bullets_standalone.aux)
 \openout1 = `fi_bullets_standalone.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 39.
-LaTeX Font Info:    ... okay on input line 39.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 39.
-LaTeX Font Info:    ... okay on input line 39.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 39.
-LaTeX Font Info:    ... okay on input line 39.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 39.
-LaTeX Font Info:    ... okay on input line 39.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 39.
-LaTeX Font Info:    ... okay on input line 39.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 39.
-LaTeX Font Info:    ... okay on input line 39.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 39.
-LaTeX Font Info:    ... okay on input line 39.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 39.
-LaTeX Font Info:    ... okay on input line 39.
-LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 39.
-LaTeX Font Info:    ... okay on input line 39.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 52.
+LaTeX Font Info:    ... okay on input line 52.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 52.
+LaTeX Font Info:    ... okay on input line 52.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 52.
+LaTeX Font Info:    ... okay on input line 52.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 52.
+LaTeX Font Info:    ... okay on input line 52.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 52.
+LaTeX Font Info:    ... okay on input line 52.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 52.
+LaTeX Font Info:    ... okay on input line 52.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 52.
+LaTeX Font Info:    ... okay on input line 52.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 52.
+LaTeX Font Info:    ... okay on input line 52.
+LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 52.
+LaTeX Font Info:    ... okay on input line 52.
 
 *geometry* driver: auto-detecting
 *geometry* detected driver: pdftex
@@ -441,61 +441,61 @@ LaTeX Font Info:    ... okay on input line 39.
 \makeMPintoPDFobject=\count297
 \everyMPtoPDFconversion=\toks26
 )
-Package hyperref Info: Link coloring OFF on input line 39.
+Package hyperref Info: Link coloring OFF on input line 52.
  (./fi_bullets_standalone.out) (./fi_bullets_standalone.out)
 \@outlinefile=\write3
 \openout3 = `fi_bullets_standalone.out'.
 
-LaTeX Font Info:    Trying to load font information for OT1+lmr on input line 4
-1.
+LaTeX Font Info:    Trying to load font information for OT1+lmr on input line 5
+4.
 
 (/usr/share/texmf/tex/latex/lm/ot1lmr.fd
 File: ot1lmr.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
-LaTeX Font Info:    Trying to load font information for OML+lmm on input line 4
-1.
+LaTeX Font Info:    Trying to load font information for OML+lmm on input line 5
+4.
 
 (/usr/share/texmf/tex/latex/lm/omllmm.fd
 File: omllmm.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
 LaTeX Font Info:    Trying to load font information for OMS+lmsy on input line 
-41.
+54.
 
 (/usr/share/texmf/tex/latex/lm/omslmsy.fd
 File: omslmsy.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
 LaTeX Font Info:    Trying to load font information for OMX+lmex on input line 
-41.
+54.
 
 (/usr/share/texmf/tex/latex/lm/omxlmex.fd
 File: omxlmex.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <12> on input line 41.
+(Font)              <12> on input line 54.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <8> on input line 41.
+(Font)              <8> on input line 54.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <6> on input line 41.
-LaTeX Font Info:    Trying to load font information for U+msa on input line 41.
+(Font)              <6> on input line 54.
+LaTeX Font Info:    Trying to load font information for U+msa on input line 54.
 
 
 (/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
-LaTeX Font Info:    Trying to load font information for U+msb on input line 41.
+LaTeX Font Info:    Trying to load font information for U+msb on input line 54.
 
 
 (/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )
-LaTeX Font Info:    Trying to load font information for TS1+lmr on input line 4
-6.
+LaTeX Font Info:    Trying to load font information for TS1+lmr on input line 5
+9.
 
 (/usr/share/texmf/tex/latex/lm/ts1lmr.fd
 File: ts1lmr.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <10.95> on input line 46.
+(Font)              <10.95> on input line 59.
  [1
 
 {/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}{/usr/share/texmf/fonts/enc/
@@ -503,7 +503,13 @@ dvips/lm/lm-ec.enc}{/usr/share/texmf/fonts/enc/dvips/lm/lm-ts1.enc}{/usr/share/
 texmf/fonts/enc/dvips/lm/lm-mathit.enc}{/usr/share/texmf/fonts/enc/dvips/lm/lm-
 rm.enc}{/usr/share/texmf/fonts/enc/dvips/lm/lm-mathsy.enc}{/usr/share/texmf/fon
 ts/enc/dvips/lm/lm-mathex.enc}]
-[2] [3] [4] (./fi_bullets_standalone.bbl) [5] (./fi_bullets_standalone.aux)
+LaTeX Font Info:    Trying to load font information for T1+lmtt on input line 1
+25.
+
+(/usr/share/texmf/tex/latex/lm/t1lmtt.fd
+File: t1lmtt.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
+) [2] [3] [4]
+(./fi_bullets_standalone.bbl) [5] (./fi_bullets_standalone.aux)
  ***********
 LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-01-22>
@@ -512,11 +518,11 @@ Package rerunfilecheck Info: File `fi_bullets_standalone.out' has not changed.
 (rerunfilecheck)             Checksum: D41D8CD98F00B204E9800998ECF8427E;0.
  ) 
 Here is how much of TeX's memory you used:
- 12907 strings out of 476182
- 197846 string characters out of 5795594
+ 12962 strings out of 476182
+ 198621 string characters out of 5795594
  1944975 words of memory out of 5000000
- 34692 multiletter control sequences out of 15000+600000
- 618422 words of font info for 81 fonts, out of 8000000 for 9000
+ 34742 multiletter control sequences out of 15000+600000
+ 619383 words of font info for 84 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
  75i,6n,79p,500b,693s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/share/texmf/fonts/type1/public/lm/lmbx10.pfb></usr/share/texmf/fonts/ty
@@ -528,12 +534,13 @@ lm/lmr10.pfb></usr/share/texmf/fonts/type1/public/lm/lmr12.pfb></usr/share/texm
 f/fonts/type1/public/lm/lmr17.pfb></usr/share/texmf/fonts/type1/public/lm/lmr8.
 pfb></usr/share/texmf/fonts/type1/public/lm/lmri10.pfb></usr/share/texmf/fonts/
 type1/public/lm/lmsy10.pfb></usr/share/texmf/fonts/type1/public/lm/lmsy6.pfb></
-usr/share/texmf/fonts/type1/public/lm/lmsy8.pfb></usr/share/texlive/texmf-dist/
-fonts/type1/public/amsfonts/symbols/msbm10.pfb>
-Output written on fi_bullets_standalone.pdf (5 pages, 254069 bytes).
+usr/share/texmf/fonts/type1/public/lm/lmsy8.pfb></usr/share/texmf/fonts/type1/p
+ublic/lm/lmtt10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/
+symbols/msbm10.pfb>
+Output written on fi_bullets_standalone.pdf (5 pages, 276033 bytes).
 PDF statistics:
- 149 PDF objects out of 1000 (max. 8388607)
- 105 compressed objects within 2 object streams
+ 154 PDF objects out of 1000 (max. 8388607)
+ 108 compressed objects within 2 object streams
  12 named destinations out of 1000 (max. 500000)
  1 words of extra memory for PDF output out of 10000 (max. 10000000)
 
