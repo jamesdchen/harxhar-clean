@@ -475,7 +475,8 @@ It covers only the closing-interval linear arms (ridge, lasso and elastic net on
   \[
     \mathcal{K} = \{1, 5, 25, 125, 625, 3125\},
   \]
-  against the base-2 set of the intraday model. Here, $k$ counts retained intervals across the full intraday grid $\mathcal{G}$ (including overnight sessions), while the closing-interval specification restricts estimation to the rows $i = c$.
+  % 2026-10-19 (user): parked -- base 5 across the paper. Was: "against the base-2 set of the intraday model. Here,"
+  the same set as the intraday model. Here, $k$ counts retained intervals across the full intraday grid $\mathcal{G}$ (including overnight sessions), while the closing-interval specification restricts estimation to the rows $i = c$.
 \item In the closing-interval panel, the $k$-interval trailing averages of the activity indicator, $\bar\chi^{(k)}_{t,i}$, are computed for 7 mode-inflated series (note E6).
 \item Under the closing-interval specification with the full predictor set, the window filter retains a median of \cmKeptAll{} out of \cmPNewAll{} candidate columns across rolling windows.
 \item \textbf{Predictor set dimensions.} In the closing-interval specification, the HAR benchmark contains
