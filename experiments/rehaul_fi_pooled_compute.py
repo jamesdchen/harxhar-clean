@@ -349,9 +349,10 @@ def linear(a) -> None:
 
 
 def gate(a) -> None:
-    """The batch fit of linear() at the frozen penalties == the pooled runner's walk forecast at a cold seed
-    (a re-seed row S = W + 250 m; experiments/pool_linear_pretune.py walk --start S --halo W --sched const:alpha,
-    run with the sample's design flags; --walks lasso=DIR,ridge=DIR names its outputs).  Appends gates.csv."""
+    """The batch fit of linear() at the frozen penalties == the pooled runner's walk forecast at its cold seeds
+    (rows S = --row + 250 m, the runner's re-seed rows).  The walk forecasts come from the rerun's committed
+    forecasts.parquet (--forecasts; rows matched by date label, predictor set all_features) or from runner walk
+    output directories (--walks lasso=DIR,ridge=DIR; their first row is --row).  Writes gates.csv."""
     import pool_linear_pretune as PLP
 
     dz, out = Path(a.design), Path(a.out)
@@ -365,32 +366,47 @@ def gate(a) -> None:
     bb = np.array([gr["bmap"][g] == "backbone" for g in gr["gcol"]])
     X = np.load(dz / "X.npy", mmap_mode="r")
     y = np.load(dz / "y.npy")
-    W, S0 = a.tw_days * SAMPLES[a.sample], a.row
-    p = len(names)
-    Xw = np.hstack([X[S0 - W : S0][:, cidx], np.ones((W, 1))])
+    W, p = a.tw_days * SAMPLES[a.sample], len(names)
     ns = PLP.spec_section("reclasso", "all_features", 0, -1, 0)
-    probe = ns["RollingTunedLinear"]()
     os.chdir(REPO)
+    probe = ns["RollingTunedLinear"]()
     probe._locked = np.r_[np.zeros(p, bool), True]
-    probe._recompute_mask(Xw)
-    Xw[:, probe._maskout] = 0.0
     pf = np.ones(p + 1)
     pf[:-1][bb] = pen["r"]
-    xs = np.r_[X[S0][cidx], 1.0]
-    xs[probe._maskout] = 0.0
+    walk: dict = {m: {} for m in MODELS}  # model -> {row: walk forecast}
+    if a.forecasts:
+        lab = row_labels(dz, len(y))
+        row_of = {d: i for i, d in enumerate(lab) if d}
+        fc = pd.read_parquet(a.forecasts)
+        for m in MODELS:
+            f = fc[(fc["model"] == m) & (fc["predictor_set"] == "all_features")]
+            assert np.allclose(f["alpha"], pen[m]), (m, f["alpha"].unique(), pen[m])
+            walk[m] = {row_of[str(d)]: float(v) for d, v in zip(f["date"].astype(str), f["pred_adj"])}
+    else:
+        for kv in a.walks.split(","):
+            m, d = kv.split("=")
+            f = next(Path(d).glob("causal_tune_linear/*/*/results*.csv"))
+            walk[m] = {a.row: float(pd.read_csv(f)["pred_adj"].iloc[0])}
+    seeds = [r for r in range(a.row, len(y), 250) if all(r in walk[m] for m in MODELS)]
     rows = []
-    for kv in a.walks.split(","):
-        m, d = kv.split("=")
-        f = next(Path(d).glob("causal_tune_linear/*/*/results*.csv"))
-        walk_pred = float(pd.read_csv(f)["pred_adj"].iloc[0])
-        th = solve(ns, Xw, y[S0 - W : S0], m, pen[m], pf)
-        gap = abs(float(xs @ th) - walk_pred)
-        rows.append(dict(gate=f"{m}: batch fit == runner walk forecast at cold-seed row {S0} (abs)", value=gap,
-                         ok=gap <= 1e-9 * max(1.0, abs(walk_pred))))
-        say(rows[-1])
+    for S0 in seeds:
+        Xw = np.hstack([X[S0 - W : S0][:, cidx], np.ones((W, 1))])
+        probe._recompute_mask(Xw)
+        Xw[:, probe._maskout] = 0.0
+        xs = np.r_[X[S0][cidx], 1.0]
+        xs[probe._maskout] = 0.0
+        for m in MODELS:
+            th = solve(ns, Xw, y[S0 - W : S0], m, pen[m], pf)
+            gap = abs(float(xs @ th) - walk[m][S0])
+            rows.append(dict(model=m, row=S0, walk=walk[m][S0], gap=gap, tol=a.tol,
+                             ok=gap <= a.tol * max(1.0, abs(walk[m][S0]))))
+    g = pd.DataFrame(rows)
     out.mkdir(parents=True, exist_ok=True)
-    pd.DataFrame(rows).to_csv(out / "gates.csv", index=False)
-    assert all(r["ok"] for r in rows)
+    g.to_csv(out / ("gates_forecasts.csv" if a.forecasts else "gates_runner.csv"), index=False)
+    for m in MODELS:
+        gm = g[g.model == m]
+        say(f"gate {m}: batch fit == runner walk forecast at {len(gm)} cold-seed rows, max abs gap {gm.gap.max():.1e}")
+    assert len(g) and g["ok"].all(), g[~g["ok"]]
 
 
 # ============================================================================ reduce
@@ -533,6 +549,8 @@ def main() -> None:
     ap.add_argument("stage", choices=("design", "linear", "gate", "reduce"))
     ap.add_argument("--row", type=int, default=0, help="gate: the cold-seed row of the runner walks")
     ap.add_argument("--walks", default="", help="gate: lasso=DIR,ridge=DIR")
+    ap.add_argument("--forecasts", default="", help="gate: a rerun's forecasts.parquet")
+    ap.add_argument("--tol", type=float, default=1e-9, help="gate: relative tolerance")
     ap.add_argument("--out", required=True)
     ap.add_argument("--design", default="")
     ap.add_argument("--bucket", default="all_features")
