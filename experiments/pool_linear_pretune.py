@@ -41,6 +41,21 @@ Modes  (python experiments/pool_linear_pretune.py <mode> ...; root = the deploym
            block (identifiability mask from that block); validation residuals of every row stored (fold.npz).
   dates    --out D: the row dates of the pooled design (baseline bucket; every bucket shares the index
            space: impute_indicate), dates.csv.
+
+2026-10-19 (the pooled linear rerun on the 13 regular-hours bars, note E15; results/pooled_linear_rerun_2026-10-19_13/)
+options, every one defaulting to the behaviour above:
+  --sample rth13      rows = the 13 bars with end stamps 10:00 .. 16:00 (segment rth13, lag scope global: the HAR
+                      components and every trailing average on the full 48-interval grid, then the rows restricted);
+                      PERIODS_PER_DAY = 13, so the 2,000-day window is 26,000 rows and the pre-tune folds, embargo
+                      and halo are counted in 13-bar sessions
+  --har-base 2        the spec's HAR_BASE (ladder 1, 2, 4, ..., 2048)
+  --drop-fomc         the FOMC series out of the bucket (not in the pooled model, the paper's text)
+  --ex-flag NAME=0|1  a module flag of src/backtest/executor.py set for this run (repeatable)
+  --sched const:A     one penalty A over the whole walk (the frozen rule): no re-choice, the identifiability
+                      mask and the cold seed still at every 250th solve
+  --est ols           min-norm least squares on the centred window (the a0 estimator, src/unification.py
+                      _walk_ols: eigh pseudo-inverse at numpy's rcond 1e-15), rank-one sums, exact rebuild of
+                      the sums every 250 solves
 """
 
 from __future__ import annotations
@@ -97,6 +112,65 @@ BACKBONE = frozenset(
     ]
 )
 _EXOG = re.compile(r"_ma_\d+$")
+# 2026-10-19: the run's configuration (configure(), from the command line); the defaults are the 6 Oct runner
+SAMPLE = "48"
+SEGMENT_OF = {"48": "none", "rth13": "rth13"}
+PPD_OF = {"48": 48, "rth13": 13}
+HAR_BASE = ""
+DROP_FOMC = False
+EX_FLAGS: dict = {}
+CALENDAR_ALL = frozenset(
+    [f"DOW_{d}" for d in range(5)]
+    + ["hour", "is_overnight", "is_open", "is_close"]
+    + [
+        "is_opex",
+        "is_opex_week",
+        "is_quad_witch",
+        "is_rebalance_close",
+        "is_month_end",
+        "is_quarter_end",
+        "days_to_opex",
+    ]
+)
+
+
+def configure(a) -> None:
+    """Set the sample, the ladder, the bucket filter and the executor flags of this run."""
+    global SAMPLE, PERIODS_PER_DAY, W, HAR_BASE, DROP_FOMC, EX_FLAGS
+    SAMPLE, HAR_BASE, DROP_FOMC = a.sample, a.har_base, bool(a.drop_fomc)
+    PERIODS_PER_DAY = PPD_OF[SAMPLE]
+    W = TW_DAYS * PERIODS_PER_DAY
+    EX_FLAGS = {}
+    for kv in a.ex_flag:
+        k, v = kv.split("=")
+        assert v in ("0", "1"), kv
+        EX_FLAGS[k] = v == "1"
+
+
+def default_config() -> bool:
+    return SAMPLE == "48" and not HAR_BASE and not DROP_FOMC and not EX_FLAGS
+
+
+def config_dict() -> dict:
+    return dict(
+        sample=SAMPLE,
+        periods_per_day=PERIODS_PER_DAY,
+        window=W,
+        har_base=HAR_BASE,
+        drop_fomc=DROP_FOMC,
+        ex_flags=EX_FLAGS,
+    )
+
+
+def seg_csv(path: str) -> str:
+    """The table run_executor writes for output_file ``path``: a segment appends _<segment>."""
+    seg = SEGMENT_OF[SAMPLE]
+    if seg == "none":
+        return path
+    stem, ext = os.path.splitext(path)
+    return f"{stem}_{seg}{ext}"
+
+
 RTH = {f"{h:02d}:{m:02d}" for h in range(10, 17) for m in (0, 30)} - {
     "16:30"
 }  # 13 bars, 10:00 .. 16:00
@@ -112,7 +186,12 @@ def backbone_mask(names: list[str]) -> np.ndarray:
         [not (_EXOG.search(n) and not n.startswith("har_ma_")) for n in names]
     )
     got = {n for n, b in zip(names, bb) if b}
-    assert got == BACKBONE, sorted(got ^ BACKBONE)
+    if default_config():
+        assert got == BACKBONE, sorted(got ^ BACKBONE)
+    else:  # 2026-10-19: the target's HAR ladder and whatever calendar columns the flags leave
+        assert all(n.startswith("har_ma_") or n in CALENDAR_ALL for n in got), sorted(
+            got - CALENDAR_ALL
+        )
     return bb
 
 
@@ -120,9 +199,11 @@ def backbone_mask(names: list[str]) -> np.ndarray:
 def spec_section(est: str, bucket: str, start: int, end: int, halo: int) -> dict:
     """Execute specs/causal_tune_linear.py from its estimator section's first import to just before the
     arm loop (constants, RollingTunedLinear, fit_predict_lin_tuned), with the pooled arm's environment."""
+    if HAR_BASE:  # 2026-10-19 (--har-base)
+        os.environ["HPC_KW_HAR_BASE"] = HAR_BASE
     os.environ.update(
         {
-            "HPC_KW_SEGMENT": "none",
+            "HPC_KW_SEGMENT": SEGMENT_OF[SAMPLE],
             "HPC_KW_LAG_SCOPE": "global",
             "HPC_KW_ESTIMATOR": est,
             "HPC_KW_EXOG_BUCKET": bucket,
@@ -143,10 +224,24 @@ def spec_section(est: str, bucket: str, start: int, end: int, halo: int) -> dict
     ns: dict = {"__name__": "causal_tune_linear_section", "os": os}
     exec(compile(src[a:b], str(ROOT / "specs" / "causal_tune_linear.py"), "exec"), ns)
     assert (
-        ns["SEGMENT"] is None
+        ns["SEGMENT"] == (None if SAMPLE == "48" else SEGMENT_OF[SAMPLE])
         and ns["LAG_SCOPE"] == "global"
         and ns["TRAIN_WIN"] == TW_DAYS
     )
+    if HAR_BASE:
+        assert ns["HAR_LAGS"] == ns["resolve_har_lags"](base=int(HAR_BASE)), ns[
+            "HAR_LAGS"
+        ]
+    import src.backtest.executor as EX
+
+    for k, v in EX_FLAGS.items():  # 2026-10-19 (--ex-flag)
+        assert isinstance(getattr(EX, k), bool), k
+        setattr(EX, k, v)
+    if DROP_FOMC:  # 2026-10-19 (--drop-fomc)
+        from src.data.loading import FOMC_FEATURES
+
+        gb = ns["get_bucket"]
+        ns["get_bucket"] = lambda b: [c for c in gb(b) if c not in FOMC_FEATURES]
     assert (ns["TUNE_PER"], ns["VAL_TAIL"], ns["EMBARGO"], ns["REFIT_FREQUENCY"]) == (
         250,
         125,
@@ -440,6 +535,75 @@ def make_class(ns: dict, r: float, sched: dict | None, g0: int, rec: list):
     return PFTuned
 
 
+class _ConstSched(dict):
+    """2026-10-19 (--sched const:A): the schedule that maps every block to one penalty."""
+
+    def __init__(self, alpha: float) -> None:
+        super().__init__()
+        self.alpha = float(alpha)
+
+    def __missing__(self, blk):
+        return self.alpha
+
+
+def parse_sched(spec: str):
+    if spec == "causal":
+        return None
+    if spec.startswith("const:"):
+        return _ConstSched(float(spec.split(":", 1)[1]))
+    return {int(k): float(v) for k, v in json.loads(Path(spec).read_text()).items()}
+
+
+PINV_RCOND = 1e-15  # numpy.linalg.pinv's default (src/unification.py PINV_RCOND)
+
+
+def make_ols_class(tune_per: int):
+    """2026-10-19: the pooled OLS of the HAR benchmark set (replaces a0_ols_har, src/unification.py): min-norm
+    least squares on the centred trailing window, coefficients = eigh pseudo-inverse of the centred Gram
+    (eigenvalues below PINV_RCOND x the largest treated as zero) times the centred cross-product, the
+    intercept free (from the means); the window sums roll rank-one every bar and are rebuilt exactly every
+    ``tune_per`` solves (MultiStageBacktest's reinit_every)."""
+
+    class RollingMinNormOLS:
+        reinit_every = tune_per
+        rank_trace: list = []
+
+        def init_window(self, X_win, y_win):
+            X = np.asarray(X_win, dtype=np.float64)
+            y = np.asarray(y_win, dtype=np.float64)
+            self._n = len(y)
+            self._S = X.T @ X
+            self._c = X.T @ y
+            self._sx = X.sum(axis=0)
+            self._sy = float(y.sum())
+            return self
+
+        def roll(self, x_in, y_in, x_out, y_out):
+            u = np.asarray(x_in, dtype=np.float64)
+            v = np.asarray(x_out, dtype=np.float64)
+            self._S += np.outer(u, u) - np.outer(v, v)
+            self._c += u * float(y_in) - v * float(y_out)
+            self._sx += u - v
+            self._sy += float(y_in) - float(y_out)
+
+        def solve(self):
+            n = self._n
+            m, ybar = self._sx / n, self._sy / n
+            G = self._S - n * np.outer(m, m)
+            c = self._c - n * m * ybar
+            lam, V = np.linalg.eigh(0.5 * (G + G.T))
+            keep = lam > PINV_RCOND * max(float(lam.max()), 0.0)
+            Vk = V[:, keep]
+            self._b = Vk @ ((Vk.T @ c) / lam[keep])
+            self._b0 = ybar - float(m @ self._b)
+            RollingMinNormOLS.rank_trace.append(int(keep.sum()))
+
+        def predict_one(self, x):
+            return float(np.asarray(x, dtype=np.float64) @ self._b + self._b0)
+
+    return RollingMinNormOLS
+
+
 def design(a) -> None:
     """Design cache: the spec's run_executor on the whole series with a no-op walk, keeping what its
     _backtest_and_save hands the walk and the smearing step (the prescaled X, y, the column names, the OOS
@@ -481,7 +645,8 @@ def design(a) -> None:
         )
     finally:
         EX.apply_duan_smearing = orig
-    d = pd.read_csv(out / "dummy" / "results.csv", usecols=["date"], dtype=str)
+    dummy = Path(seg_csv(str(out / "dummy" / "results.csv")))
+    d = pd.read_csv(dummy, usecols=["date"], dtype=str)
     # the matrix as the pipeline holds it: pandas' .values of a float block is column-major, and the walk's
     # BLAS calls on F-ordered operands sum in another order than on a C-ordered copy (last-bit differences
     # that the lasso / elastic net warm path can amplify), so the layout is kept (np.save records it)
@@ -504,11 +669,22 @@ def design(a) -> None:
                 f_order=bool(X.flags.f_contiguous),
                 host=platform.node(),
                 numpy=np.__version__,
+                **({} if default_config() else {"config": config_dict()}),
             )
         )
     )
-    (out / "dummy" / "results.csv").unlink()
+    dummy.unlink()
     say(f"design done: {a.bucket} X {X.shape}")
+
+
+def check_meta(meta: dict, bucket: str) -> None:
+    """The design cache was built for this bucket and this run's configuration."""
+    assert meta["bucket"] == bucket, (meta["bucket"], bucket)
+    want = None if default_config() else config_dict()
+    got = meta.get("config")
+    if got is not None:
+        got = dict(got, window=int(got["window"]))
+    assert got == want, (got, want)
 
 
 def cached_backtest(a, fit_predict, out_csv: Path) -> None:
@@ -517,7 +693,7 @@ def cached_backtest(a, fit_predict, out_csv: Path) -> None:
 
     dz = Path(a.design)
     meta = json.loads((dz / "design.json").read_text())
-    assert meta["bucket"] == a.bucket, (meta["bucket"], a.bucket)
+    check_meta(meta, a.bucket)
     # the whole matrix in memory, in the pipeline's layout, and the chunk a VIEW of it, as _backtest_and_save
     # slices it (a C-ordered copy is not bit-identical to the spec's path)
     X = np.load(dz / "X.npy")
@@ -557,15 +733,16 @@ def walk(a) -> None:
         f"chunk start {a.start} - halo {a.halo} is not a re-choice boundary"
     )
     assert a.halo in (0, W), a.halo
-    sched = None
-    if a.sched != "causal":
-        sched = {
-            int(k): float(v) for k, v in json.loads(Path(a.sched).read_text()).items()
-        }
+    sched = parse_sched(a.sched)
     rec: list = []
-    Cls = make_class(ns, a.r, sched, g0, rec)
     Base = ns["RollingTunedLinear"]
-    Base.grid = ns["ESTIMATOR_GRIDS"][a.est]
+    if a.est == "ols":  # 2026-10-19: min-norm OLS, no penalty
+        assert sched is None and a.r == 1.0, (a.sched, a.r)
+        Cls = make_ols_class(ns["TUNE_PER"])
+        Base.grid = []
+    else:
+        Cls = make_class(ns, a.r, sched, g0, rec)
+        Base.grid = ns["ESTIMATOR_GRIDS"][a.est]
     names_seen: list = []
 
     def fit_predict(X_chunk, y_chunk, train_win_periods, hyperparams):
@@ -587,12 +764,14 @@ def walk(a) -> None:
     if a.design:
         cached_backtest(a, fit_predict, out_csv)
     else:
+        out_csv_req = out_csv
+        out_csv = Path(seg_csv(str(out_csv)))  # the table run_executor writes
         run_spec_executor(
             ns,
             a.est,
             a.bucket,
             fit_predict,
-            str(out_csv),
+            str(out_csv_req),
             a.start,
             a.end,
             a.halo,
@@ -606,10 +785,10 @@ def walk(a) -> None:
     keep = [lines[0]] + [ln for ln in lines[1:] if ln and ln[11:16].decode() in RTH]
     (out / "results_rth.csv").write_bytes(nl.join(keep) + nl)
     G = len(Base.grid)
-    blocks = np.array([x["block"] for x in rec])
+    blocks = np.array([x["block"] for x in rec], dtype=np.int64)
     resid = (
         np.stack([x["resid"] for x in rec])
-        if sched is None
+        if sched is None and rec
         else np.zeros((len(rec), G, 0))
     )
     np.savez_compressed(
@@ -624,6 +803,7 @@ def walk(a) -> None:
         reseed=np.array(Base.reseed_trace, dtype=np.int64) + g0,
         names=np.array(names_seen[0]),
         backbone=backbone_mask(names_seen[0]),
+        ols_rank=np.array(getattr(Cls, "rank_trace", []), dtype=np.int64),
     )
     import numpy as _np
 
@@ -640,7 +820,7 @@ def walk(a) -> None:
         rows=int(len(res)),
         first=str(res["date"].iloc[0]),
         last=str(res["date"].iloc[-1]),
-        blocks=[int(blocks.min()), int(blocks.max())],
+        blocks=[int(blocks.min()), int(blocks.max())] if len(blocks) else [],
         n_tunes=len(rec),
         n_cols=len(names_seen[0]),
         n_backbone=int(backbone_mask(names_seen[0]).sum()),
@@ -651,6 +831,7 @@ def walk(a) -> None:
         host=platform.node(),
         numpy=_np.__version__,
         python=platform.python_version(),
+        **({} if default_config() else {"config": config_dict()}),
     )
     (out / "run.json").write_text(json.dumps(info, indent=1))
     say(f"walk done: {json.dumps(info)}")
@@ -729,7 +910,7 @@ def pretune(a) -> None:
     if a.design:  # the same rows of the design cache
         dz = Path(a.design)
         meta = json.loads((dz / "design.json").read_text())
-        assert meta["bucket"] == a.bucket, (meta["bucket"], a.bucket)
+        check_meta(meta, a.bucket)
         sl = slice(a.start - a.halo, a.start + 1)
         fit_predict(
             np.load(dz / "X.npy")[sl],  # a view, as in the pipeline
@@ -743,7 +924,7 @@ def pretune(a) -> None:
             a.est,
             a.bucket,
             fit_predict,
-            str(out / "dummy" / "results.csv"),
+            str(out / "dummy" / "results.csv"),  # (written as seg_csv of it)
             a.start,
             a.start + 1,
             a.halo,
@@ -776,6 +957,7 @@ def pretune(a) -> None:
         wall_sec=time.time() - t_wall,
         host=platform.node(),
         numpy=_np.__version__,
+        **({} if default_config() else {"config": config_dict()}),
     )
     (out / "run.json").write_text(json.dumps(info, indent=1))
     say(f"pretune done: {json.dumps(info)}")
@@ -800,7 +982,7 @@ def dates(a) -> None:
         0,
         a.data,
     )
-    d = pd.read_csv(out / "dates_raw" / "results.csv", usecols=["date"])
+    d = pd.read_csv(seg_csv(str(out / "dates_raw" / "results.csv")), usecols=["date"])
     d.insert(0, "row", np.arange(W, W + len(d)))
     d.to_csv(out / "dates.csv", index=False)
     say(f"dates: {len(d)} OOS rows, {d['date'].iloc[0]} .. {d['date'].iloc[-1]}")
@@ -811,7 +993,7 @@ def main() -> None:
     ap.add_argument("mode", choices=("walk", "pretune", "dates", "design"))
     ap.add_argument("--bucket", default="baseline")
     ap.add_argument(
-        "--est", default="ridge", choices=("ridge", "reclasso", "reclasticnet")
+        "--est", default="ridge", choices=("ridge", "reclasso", "reclasticnet", "ols")
     )
     ap.add_argument("--r", type=float, default=1.0)
     ap.add_argument("--sched", default="causal")
@@ -823,12 +1005,18 @@ def main() -> None:
     ap.add_argument(
         "--design", default="", help="a design cache directory (mode design's output)"
     )
+    # 2026-10-19 (the 13-bar rerun); every default is the 6 Oct runner
+    ap.add_argument("--sample", default="48", choices=tuple(SEGMENT_OF))
+    ap.add_argument("--har-base", default="")
+    ap.add_argument("--drop-fomc", action="store_true")
+    ap.add_argument("--ex-flag", action="append", default=[])
     a = ap.parse_args()
+    configure(a)
     a.data = (
         str(Path(a.data).resolve()) if a.data != "data" else "data"
     )  # "data": the root's, after chdir
     a.out = str(Path(a.out).resolve())
-    if a.sched != "causal":
+    if a.sched != "causal" and not a.sched.startswith("const:"):
         a.sched = str(Path(a.sched).resolve())
     if a.design:
         a.design = str(Path(a.design).resolve())
