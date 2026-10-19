@@ -7,7 +7,7 @@ Nothing under `writeup/` was touched.
 ## Author corrections applied during the run
 
 The author's main session relayed two corrections at 22:45 UTC. Neither had reached this session
-before then.
+before then. The two original correction messages were queued at 21:15 and 21:19 UTC but were only delivered to this session at 22:59 UTC, after the rerun was done.
 
 1. **HAR ladder base 5** ("we need base 5 across the entire paper"): k in {1, 5, 25, 125, 625, 3125}
    intervals of the 48-interval grid, for every model including the OLS. The brief had base 2
