@@ -2,11 +2,15 @@
 
 Author decisions (2026-10-19; notes E6, E9, E15, E26, E28, N18, S4a-S4c): one pooled model over the 13 bars with
 end stamps 10:00 .. 16:00 ET; the HAR components and every trailing average on the full 48-interval grid (lag scope
-global), then the rows restricted; base-2 HAR ladder 1 .. 2048 intervals; window 2,000 trading days = 26,000 rows;
-every data-fix flag of src/backtest/executor.py at its default (on); no FOMC series; no trailing averages of the
-activity indicators (DROP_ACTIVITY_MA); calendar = DOW_0 .. DOW_4 and hour (CALENDAR_THROUGH_OVERNIGHT +
+global), then the rows restricted; window 2,000 trading days = 26,000 rows; every data-fix flag of
+src/backtest/executor.py and src/data/loading.py at its default (on); no trailing averages of the activity indicators
+(DROP_ACTIVITY_MA); calendar = DOW_0 .. DOW_4 and hour (CALENDAR_THROUGH_OVERNIGHT +
 DROP_OVERNIGHT_INDICATOR); one penalty a model, picked once on the pre-sample and frozen over the evaluation span.
 The sibling run on all 48 intervals is branch insurance-selling-2026-09-19-pooled-linear-48.
+2026-10-19 22:45 UTC (author, two corrections relayed by the main session): the HAR ladder is base 5, k in {1, 5, 25,
+125, 625, 3125} intervals of the 48-interval grid ("we need base 5 across the entire paper"), for every model including
+the OLS; the FOMC series stay in the full predictor set (src/data/loading.py FOMC_FEATURES, FOMC_CALENDAR_FIX on).
+The first run (base 2, FOMC out) is parked in results/pooled_linear_rerun_2026-10-19_13/base2_superseded/.
 
 Runner: experiments/pool_linear_pretune.py (the spec's estimator section, specs/causal_tune_linear.py) with CFG
 below; this script only orchestrates it and scores its tables.
@@ -46,6 +50,8 @@ import numpy as np
 import pandas as pd
 
 REPO = Path(__file__).resolve().parents[1]
+if str(REPO) not in sys.path:
+    sys.path.insert(0, str(REPO))
 OUT = REPO / "results" / "pooled_linear_rerun_2026-10-19_13"
 WORK = OUT / "_work"
 RUNNER = REPO / "experiments" / "pool_linear_pretune.py"
@@ -53,8 +59,8 @@ CFG = [
     "--sample",
     "rth13",
     "--har-base",
-    "2",
-    "--drop-fomc",
+    "5",
+    # 2026-10-19 (author, correction): parked -- base 2 and no FOMC. Was: "--har-base", "2", "--drop-fomc",
     "--ex-flag",
     "DROP_ACTIVITY_MA=1",
     "--ex-flag",
@@ -79,6 +85,38 @@ W = TW_DAYS * PPD  # 26,000 rows
 PRE_FOLDS, PRE_FOLD_SESS, PRE_EMBARGO_SESS = 4, 250, 25
 PRE_HALO = PRE_FOLDS * PRE_FOLD_SESS * PPD + PRE_EMBARGO_SESS * PPD + W  # 39,325
 FIRST_DAY = "2020-01-03"
+HAR_LADDER = [1, 5, 25, 125, 625, 3125]  # base 5 (author, 2026-10-19 correction)
+
+
+def check_design(s: str) -> list[str]:
+    """The design's columns: the target's HAR components exactly at HAR_LADDER, calendar DOW_0 .. DOW_4 and hour,
+    and on the full predictor set every FOMC series present (value and availability averages, no activity
+    averages)."""
+    from src.data.loading import ALL_FEATURES, FOMC_FEATURES
+
+    names = json.loads((design_dir(s) / "design.json").read_text())["names"]
+    har = [n for n in names if n.startswith("har_ma_")]
+    assert har == [f"har_ma_{k}" for k in HAR_LADDER], har
+    cal = [n for n in names if not re.search(r"_ma_\d+$", n)]
+    assert cal == [f"DOW_{d}" for d in range(5)] + ["hour"], cal
+    assert not any("_active_ma_" in n for n in names)
+    if s == "all_features":
+        assert set(FOMC_FEATURES) <= set(ALL_FEATURES)
+        for f in FOMC_FEATURES:
+            for k in HAR_LADDER:
+                assert f"adj_{f}_ma_{k}" in names and f"{f}_avail_ma_{k}" in names, (
+                    f,
+                    k,
+                )
+        exog = {n for n in names if n.startswith("adj_")}
+        assert exog == {f"adj_{f}_ma_{k}" for f in ALL_FEATURES for k in HAR_LADDER}, (
+            sorted(exog)[:5]
+        )
+    else:
+        assert len(names) == len(HAR_LADDER) + 6, names
+    return names
+
+
 PRINTED = REPO / "results" / "rolling_eval_2026-10-15" / "metrics.csv"
 
 
@@ -149,6 +187,8 @@ def st_design(a) -> None:
         ],
         a.jobs,
     )
+    for s in SETS:
+        check_design(s)
     d0 = oos_dates("baseline")
     for s in SETS[1:]:
         assert oos_dates(s).equals(d0), (
@@ -161,6 +201,8 @@ def pre_dir(s: str, m: str) -> Path:
 
 
 def st_pretune(a) -> None:
+    for s in SETS:
+        check_design(s)
     S = first_row()
     jobs = []
     for s in SETS:
@@ -224,7 +266,7 @@ def st_select(a) -> None:
         "48-interval grid",
         window_rows=W,
         window_days=TW_DAYS,
-        har_ladder=[2**i for i in range(12)],
+        har_ladder=HAR_LADDER,
         folds=[
             dict(
                 fit=[S - PRE_HALO + f * 3250, S - PRE_HALO + f * 3250 + W],
@@ -294,6 +336,8 @@ def walk_jobs(
 
 
 def st_walk(a) -> None:
+    for s in SETS:
+        check_design(s)
     chunks = {}
     for spec in a.chunks:  # set/model=K
         sm, k = spec.split("=")
@@ -430,6 +474,27 @@ def st_score(a) -> None:
                     predictor_set=s,
                     against="ols_rerun_13",
                     **RE.dm_pair(rv, p, ols),
+                )
+            )
+        # against the closing-interval OLS (the master table's DM benchmark), when its arm file is in the repo
+        if RE.OLS_ARM.exists():
+            q = RE.scored(RE.OLS)["plain"].reindex(days)
+            ok = np.isfinite(q.to_numpy())
+            dms.append(
+                dict(
+                    model=m,
+                    predictor_set=s,
+                    against=RE.OLS,
+                    **RE.dm_pair(rv[ok], p[ok], q[ok]),
+                )
+            )
+        else:
+            dms.append(
+                dict(
+                    model=m,
+                    predictor_set=s,
+                    against=RE.OLS,
+                    note=f"{RE.OLS_ARM.relative_to(REPO)} not in the repo",
                 )
             )
         # against the printed row, when its forecast file is in the repo
