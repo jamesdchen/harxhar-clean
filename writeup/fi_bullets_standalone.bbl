@@ -1,0 +1,45 @@
+\begin{thebibliography}{5}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Friedman and Popescu(2008)]{FriedmanPopescu2008}
+Jerome~H. Friedman and Bogdan~E. Popescu.
+\newblock Predictive learning via rule ensembles.
+\newblock \emph{Annals of Applied Statistics}, 2\penalty0 (3):\penalty0
+  916--954, 2008.
+\newblock \doi{10.1214/07-AOAS148}.
+
+\bibitem[Kendall and Babington~Smith(1939)]{KendallBabingtonSmith1939}
+M.~G. Kendall and B.~Babington~Smith.
+\newblock The problem of $m$ rankings.
+\newblock \emph{Annals of Mathematical Statistics}, 10\penalty0 (3):\penalty0
+  275--287, 1939.
+\newblock \doi{10.1214/aoms/1177732186}.
+
+\bibitem[Lundberg and Lee(2017)]{lundberg2017unified}
+Scott~M. Lundberg and Su-In Lee.
+\newblock A unified approach to interpreting model predictions.
+\newblock In \emph{Advances in Neural Information Processing Systems},
+  volume~30, 2017.
+
+\bibitem[Lundberg et~al.(2020)Lundberg, Erion, Chen, DeGrave, Prutkin, Nair,
+  Katz, Himmelfarb, Bansal, and Lee]{lundberg2020local}
+Scott~M. Lundberg, Gabriel Erion, Hugh Chen, Alex DeGrave, Jordan~M. Prutkin,
+  Bala Nair, Ronit Katz, Jonathan Himmelfarb, Nisha Bansal, and Su-In Lee.
+\newblock From local explanations to global understanding with explainable {AI}
+  for trees.
+\newblock \emph{Nature Machine Intelligence}, 2\penalty0 (1):\penalty0 56--67,
+  2020.
+
+\bibitem[Strobl et~al.(2007)Strobl, Boulesteix, Zeileis, and
+  Hothorn]{StroblBoulesteixZeileisHothorn2007}
+Carolin Strobl, Anne-Laure Boulesteix, Achim Zeileis, and Torsten Hothorn.
+\newblock Bias in random forest variable importance measures: Illustrations,
+  sources and a solution.
+\newblock \emph{BMC Bioinformatics}, 8:\penalty0 25, 2007.
+\newblock \doi{10.1186/1471-2105-8-25}.
+
+\end{thebibliography}
