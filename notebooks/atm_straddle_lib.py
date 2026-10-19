@@ -1231,6 +1231,50 @@ def rule_row(r: pd.Series, size: pd.Series) -> pd.Series:
     )
 
 
+# 2026-10-18 (user, new-notes 15): Sharpe ratio annualized year by year. The fixed factor
+# sqrt(PERIODS_PER_YEAR) = sqrt(252) above stays for the existing callers (rule_row, information_ratio,
+# the generators), which still compute: Sharpe_ann = mean / std * sqrt(PERIODS_PER_YEAR).
+def sharpe_ann_by_year(r, dates=None, combine: str = "weighted") -> dict:
+    """Sharpe ratio annualized calendar year by calendar year.
+
+    For each calendar year y, N_y is the number of returns actually present in that year
+    (for the 0DTE frame: the Monday/Wednesday/Friday expirations before June 2022, every
+    session after), and SR_y = mean_y / sd_y * sqrt(N_y), sd with ddof=1. Years with fewer
+    than two returns or a zero sd are skipped. The years are combined by
+      weighted: sum_y N_y SR_y / sum_y N_y   (the default), or
+      simple:   the plain mean of SR_y.
+    dates: the date of each return; defaults to the index of r (a DatetimeIndex).
+    Returns {"sharpe": the chosen combination, "weighted", "simple", "combine",
+    "by_year": {y: (N_y, SR_y)}}.
+    """
+    if combine not in ("weighted", "simple"):
+        raise ValueError(f"combine must be 'weighted' or 'simple', got {combine!r}")
+    s = pd.Series(np.asarray(r, dtype=float), index=pd.DatetimeIndex(r.index if dates is None else dates))
+    s = s[np.isfinite(s.to_numpy())]
+    by_year: dict[int, tuple[int, float]] = {}
+    for y, x in s.groupby(s.index.year):
+        n = int(len(x))
+        if n < 2:
+            continue
+        sd = float(x.std(ddof=1))
+        if not sd > 0:
+            continue
+        by_year[int(y)] = (n, float(x.mean()) / sd * float(np.sqrt(n)))
+    if not by_year:
+        w = smp = float("nan")
+    else:
+        ns = np.array([v[0] for v in by_year.values()], dtype=float)
+        srs = np.array([v[1] for v in by_year.values()], dtype=float)
+        w = float((ns * srs).sum() / ns.sum())
+        smp = float(srs.mean())
+    return {
+        "sharpe": w if combine == "weighted" else smp,
+        "weighted": w,
+        "simple": smp,
+        "combine": combine,
+        "by_year": by_year,
+    }
+
 def newey_west_lag(n: int) -> int:
     """Bartlett-kernel truncation lag floor(1.5 n^(1/3)) used throughout."""
     # + 1e-9 guards the exact-cube case (1000 ** (1/3) evaluates to 9.999...).

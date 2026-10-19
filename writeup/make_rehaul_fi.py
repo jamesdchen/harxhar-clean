@@ -315,8 +315,11 @@ def gates(T: dict) -> None:
             f"{n}: batch solution at the probe anchors = walk ({S[n]['batch_gap_max']:.1e})",
         )
     check(
-        S["lgbm"]["refits_bitwise"] == 147,
-        "LightGBM: 147 of 147 local refits = stored refits bit for bit",
+        # 2026-10-18 (user, new-notes 22): 147 -> S["n_refits"] (FI sample from 3 Jan 2020). Was:
+        #     S["lgbm"]["refits_bitwise"] == 147,
+        #     "LightGBM: 147 of 147 local refits = stored refits bit for bit",
+        S["lgbm"]["refits_bitwise"] == S["n_refits"],
+        f"LightGBM: {S['n_refits']} of {S['n_refits']} local refits = stored refits bit for bit",
     )
     check(
         S["lgbm"]["main_local_vs_stored_max"] < 1e-6,
@@ -346,8 +349,11 @@ def gates(T: dict) -> None:
     )
     for m in MODELS:
         check(
-            len(T[m]) == 49 and len(T[m + "_rank"]) == 147,
-            f"{m}: 49 units x 147 refits",
+            # 2026-10-18 (user, new-notes 22): 147 -> S["n_refits"]. Was:
+            #     len(T[m]) == 49 and len(T[m + "_rank"]) == 147,
+            #     f"{m}: 49 units x 147 refits",
+            len(T[m]) == 49 and len(T[m + "_rank"]) == S["n_refits"],
+            f"{m}: 49 units x {S['n_refits']} refits",
         )
     # 2026-10-15 (table legibility): every predictor and group has a readable name
     cols = set(T["lasso_col"]["column"]) | set(T["ridge_col"]["column"])

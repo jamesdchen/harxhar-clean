@@ -83,7 +83,9 @@ $S_t$ is now the 15:30 underlying print on the option chain and $S^{\mathrm{clos
 %   \[
 %   s_t = \hat\sigma^2_t - \bigl(IV^{30}_t\bigr)^2 = \hat y_t^2 B_t - \bigl(IV^{30}_t\bigr)^2 .
 %   \]
-\item \textbf{Trading strategies.} A strategy chooses a daily straddle position $q_t$ ($q_t > 0$ long, $q_t < 0$ short) and earns the daily return $r_t = q_t R_t$. Because the variance forecast enters solely through $q_t$, comparing performance across rules isolates the economic value of the forecast \citep{FlemingKirbyOstdiek2001}. We consider five rules:
+\item \textbf{Trading strategies.} A strategy chooses a daily straddle position $q_t$ ($q_t > 0$ long, $q_t < 0$ short) and earns the daily return $r_t = q_t R_t$. Because the variance forecast enters solely through $q_t$, comparing performance across rules isolates the economic value of the forecast \citep{FlemingKirbyOstdiek2001}.
+% 2026-10-18 (user, second-list N11): parked -- "five rules" -> four; the full long, scaled short rule is parked below (never reported for the pooled forecasts). Was: "We consider five rules:"
+We consider four rules:
   \begin{itemize}
   \item \emph{Unconditional short-straddle benchmark:} a static short-variance position setting $q_t \equiv -1$;
   \item \emph{Sign strategy:} $q_t = \sign\bigl(\hat\sigma^2_t - \mathrm{IV}_t^2\bigr)$, with ties mapped to $q_t = -1$;
@@ -93,7 +95,8 @@ $S_t$ is now the 15:30 underlying print on the option chain and $S^{\mathrm{clos
   % $m_t = \operatorname{median}_{t'<t}|\hat\sigma^2_{t'} - \mathrm{IV}_{t'}^2|$; full long, scaled short:
   % $q_t = \max((\hat\sigma^2_t - \mathrm{IV}_t^2)/m_t, -1)$.
   \item \emph{Robust clip:} $q_t = \clip\bigl((\hat\sigma^2_t - \mathrm{IV}_t^2)/\mathrm{MAD}_t, -1, 1\bigr)$, where $\mathrm{MAD}_t = \operatorname{median}_{t'<t}\bigl|\hat\sigma^2_{t'} - \mathrm{IV}_{t'}^2\bigr|$ is the expanding median absolute variance gap over earlier days $t' < t$ in $\mathcal T_{\mathrm{opt}}$;
-  \item \emph{Full long, scaled short:} $q_t = 1$ if $\hat\sigma^2_t > \mathrm{IV}_t^2$, and $q_t = \max\bigl((\hat\sigma^2_t - \mathrm{IV}_t^2)/\mathrm{MAD}_t, -1\bigr)$ otherwise;
+  % 2026-10-18 (user, second-list N11): parked -- the full long, scaled short rule: no result for the pooled intraday forecasts is reported (the model-set macro \rheSzLfssMed stays in the generator, unused). Was:
+  % \item \emph{Full long, scaled short:} $q_t = 1$ if $\hat\sigma^2_t > \mathrm{IV}_t^2$, and $q_t = \max\bigl((\hat\sigma^2_t - \mathrm{IV}_t^2)/\mathrm{MAD}_t, -1\bigr)$ otherwise;
   \item \emph{Percentile rank:} the sign of the gap scaled by the empirical percentile rank of its magnitude across the $t - 1$ preceding days $t' < t$ in $\mathcal T_{\mathrm{opt}}$:
     \[
     q_t = \sign\bigl(\hat\sigma^2_t - \mathrm{IV}_t^2\bigr)\cdot\frac{1}{t-1}\sum_{t'<t}
@@ -125,14 +128,28 @@ $S_t$ is now the 15:30 underlying print on the option chain and $S^{\mathrm{clos
 \label{sec:rh_econ_measures}
 \begin{itemize}
 \item \textbf{Annualized Sharpe ratio.} We compute the annualized Sharpe ratio from daily strategy returns, both at mid-quotes and at quoted bid/ask prices, over the \rheSzDays{} post-warmup days of $\mathcal T_{\mathrm{opt}}$ ($t > \rheSzWarmup$):
+% 2026-10-18 (user, new-notes 15): parked -- the fixed factor sqrt(252); the Sharpe ratio is annualized year by year
+% (generators switched to atm_straddle_lib.sharpe_ann_by_year and re-run 2026-10-18). Was:
+%   \[
+%   \SR = \sqrt{252}\;\frac{\bar r}{\mathrm{sd}(r)},
+%   \qquad
+%   \mathrm{sd}(r)^2 = \frac{1}{\rheSzDays - 1}
+%     \sum_{\substack{t \in \mathcal T_{\mathrm{opt}} \\ t > \rheSzWarmup}}
+%     \bigl(r_t - \bar r\bigr)^2,
+%   \]
+%   where $\bar r$ denotes the sample mean of $r_t$ over those \rheSzDays{} days.
   \[
-  \SR = \sqrt{252}\;\frac{\bar r}{\mathrm{sd}(r)},
+  \SR = \sum_{y} w_y\,\SR_y,
   \qquad
-  \mathrm{sd}(r)^2 = \frac{1}{\rheSzDays - 1}
-    \sum_{\substack{t \in \mathcal T_{\mathrm{opt}} \\ t > \rheSzWarmup}}
-    \bigl(r_t - \bar r\bigr)^2,
+  \SR_y = \sqrt{N_y}\;\frac{\bar r_y}{\mathrm{sd}_y(r)},
+  \qquad
+  w_y = \frac{N_y}{\sum_{y'} N_{y'}},
   \]
-  where $\bar r$ denotes the sample mean of $r_t$ over those \rheSzDays{} days.
+  where $y$ runs over the calendar years of those \rheSzDays{} days, $N_y$ is the number of them that fall in year $y$ (option days, i.e.\ days with a same-day SPXW expiration), and $\bar r_y$ and $\mathrm{sd}_y(r)$ are the sample mean and standard deviation (divisor $N_y - 1$) of $r_t$ over those $N_y$ days.
+% 2026-10-18 (user, new-notes 15): parked -- resolved by this run: make_rehaul_economics.py and make_rehaul_results.py
+% now annualize with sharpe_ann_by_year (N_y-weighted) and were re-run on 2026-10-18; the display above is the new method. Was:
+%   \editc{orange}{N15}{Decision (2026-10-18, user, new-notes 15): annualize the Sharpe ratio year by year. For each calendar year $y$, $\SR_y = \sqrt{N_y}\,\bar r_y/\mathrm{sd}_y(r)$, with $N_y$ the number of return days present in year $y$ (Monday, Wednesday and Friday expirations before June 2022); the years are combined by the $N_y$-weighted average of the $\SR_y$ (default) or by their simple average.\\Problem: the helper exists in the shared library (notebooks/atm\_straddle\_lib.py, \texttt{sharpe\_ann\_by\_year}), but the generators of every printed Sharpe ratio (make\_rehaul\_economics.py, make\_rehaul\_results.py) still use the fixed factor $\sqrt{252}$ of the display above. The display and every printed $\SR$ keep the old convention until those generators are switched to the helper and re-run.}
+  \editc{orange}{N15b}{Decision: to decide (rerun needed).\\Problem: the interval-shift numbers (\texttt{shiftSwingMed*}, \texttt{shiftNoiseBand} $= 1.96\sqrt{252/n}$; Section~\ref{sec:rh_econ_results} and the appendix shift-test paragraph) come from experiments/close\_shift\_test\_headline.py, which still annualizes with the fixed $\sqrt{252}$ on all option days. They were not regenerated: that script rewrites results/close\_shift\_test/ and its figures. The compounding growth rate $G$ below keeps its factor 252: it annualizes a mean log growth rate, not a Sharpe ratio.}
   The \rhoosNonOptDays{} days of $\mathcal T_{\mathrm{oos}}$ without a same-day SPXW expiration enter the statistical accuracy evaluation only.
   Because the position is held for 30 minutes intraday, the risk-free return over the holding period is negligible and omitted.
 % 2026-10-17 (user, E17): parked -- the sum ran over every option day. Was:
@@ -246,6 +263,8 @@ $S_t$ is now the 15:30 underlying print on the option chain and $S^{\mathrm{clos
 %   \item days on which the package expires worthless ($R_t = -1$, settlement pins) supply most of the return.
 %   \end{itemize}
 \item \textbf{Sign strategies of the intraday models versus the short-straddle benchmark.} In point estimates, all \rhrPoolN{} pooled intraday forecasts achieve a positive Sharpe ratio gain ($\Delta\SR > 0$) over the unconditional short straddle.
+% 2026-10-18 (user, second-list N1): parked -- the abstract (paper_rehaul.tex, "higher Sharpe ratio ... across every intraday model class") joins this note's list; handled with the others, not reworded on its own. Was: "\editc{orange}{N15c}{Decision: to decide (text no longer matches the per-year Sharpe ratios of 2026-10-18).\\Problem: with the per-year annualization, \rhrPoolShortAbove{} (not all) of the \rhrPoolN{} pooled forecasts have $\Delta\SR > 0$ over the short straddle (this item); the full predictor set raises the pooled Sharpe ratio in \rhrAfPoolShHigher{} of the \rhrAfPoolPairs{} classes, not all ($\Delta\SR$ from \rhrAfPoolDShMin{} for the random forest; the item below and 01\_introduction, 09\_conclusion ``every intraday model class''); and the strongest pooled Sharpe ratios are elastic net, lasso, ridge, XGBoost, then LightGBM, so the list ``elastic net, ridge, LightGBM'' below no longer names the top three. The pooled XGBoost (\rhrShXgbPoolFull) is now above the pooled LightGBM (\rhrShLgbmPoolFull), while the generator's cumulative-P\&L and by-year figures (not in the paper) still show the LightGBM as the tree.}"
+\editc{orange}{N15c}{Decision: to decide (text no longer matches the per-year Sharpe ratios of 2026-10-18).\\Problem: with the per-year annualization, \rhrPoolShortAbove{} (not all) of the \rhrPoolN{} pooled forecasts have $\Delta\SR > 0$ over the short straddle (this item); the full predictor set raises the pooled Sharpe ratio in \rhrAfPoolShHigher{} of the \rhrAfPoolPairs{} classes, not all ($\Delta\SR$ from \rhrAfPoolDShMin{} for the random forest; the item below, 01\_introduction, 09\_conclusion ``every intraday model class'', and the abstract, paper\_rehaul.tex, ``across every intraday model class''); and the strongest pooled Sharpe ratios are elastic net, lasso, ridge, XGBoost, then LightGBM, so the list ``elastic net, ridge, LightGBM'' below no longer names the top three. The pooled XGBoost (\rhrShXgbPoolFull) is now above the pooled LightGBM (\rhrShLgbmPoolFull), while the generator's cumulative-P\&L and by-year figures (not in the paper) still show the LightGBM as the tree.}
   \begin{itemize}
   \item In \rhrPoolShortSig{} of the \rhrPoolN{} specifications, the mean return gain over the short-straddle benchmark is statistically significant at the 5\% level according to the HAC $t$-statistic, and all three use the full predictor set: LightGBM ($t = \rhrVsShortLgbmPoolFullT$), XGBoost ($t = \rhrVsShortXgbPoolFullT$), and random forest ($t = \rhrVsShortRfPoolFullT$).
   \end{itemize}
@@ -270,8 +289,10 @@ This item says the full predictor set raises the Sharpe ratio of the sign strate
   \end{itemize}
 \item \textbf{Concentration of economic gains.} As is typical of short-dated option strategies, cumulative performance is concentrated in a small subset of trading days:
   \begin{itemize}
-  \item removing each forecast's \rheTopDays{} best days renders the mean return differential $\bar\Delta$ over the short-straddle benchmark negative for all \rhrPoolN{} intraday forecasts;
-  \item trading days on which the straddle expires nearly worthless ($R_t = -1$, corresponding to settlement pinning near the strike) account for the bulk of positive returns.
+  % 2026-10-18 (user, second-list N10): parked -- typed "all" -> \rhrPoolTailNeg (make_rehaul_results.py). Was: "\item removing each forecast's \rheTopDays{} best days renders the mean return differential $\bar\Delta$ over the short-straddle benchmark negative for all \rhrPoolN{} intraday forecasts;"
+  \item removing each forecast's \rheTopDays{} best days renders the mean return differential $\bar\Delta$ over the short-straddle benchmark negative for \rhrPoolTailNeg{} of the \rhrPoolN{} intraday forecasts;
+  % 2026-10-18 (user, second-list N10): parked -- no generator output backed "the bulk"; the share is now computed (make_rehaul_economics.py, \rhePoolWorthless*: positive mid return on days with R_t = -1 exactly, over all positive mid return, 614 post-warmup days, 12 pooled forecasts) and the sentence states it. Was: "\item trading days on which the straddle expires nearly worthless ($R_t = -1$, corresponding to settlement pinning near the strike) account for the bulk of positive returns."
+  \item trading days on which the straddle expires worthless ($R_t = -1$, corresponding to settlement pinning near the strike; \rheWorthlessDays{} of the \rheSzDays{} post-warmup days) account for \rhePoolWorthlessShareMed\% of the positive returns of the median pooled intraday forecast (\rhePoolWorthlessShareMin--\rhePoolWorthlessShareMax\% across the \rhrPoolN{} forecasts).
   \end{itemize}
 % 2026-10-15 (user): "on T_opt" added -- both the loss and the Sharpe ratio are on the option-data subsample here (the
 % accuracy statistics of Section rh_results are on the evaluation span T_oos).
@@ -293,7 +314,8 @@ This item says the full predictor set raises the Sharpe ratio of the sign strate
   \qquad
   \rho_S\bigl(\overline{\mathrm{ES}}_1, \SR\bigr) = \rheRankCorrESPool .
   \]
-  Among the pooled intraday forecasts, both global QLIKE accuracy and local accuracy at the implied-variance threshold ($\overline{\mathrm{ES}}_1$) are thus negatively rank-correlated with straddle profitability: lower loss goes with a higher $\SR$.
+  % 2026-10-18 (user, second-list N5): parked -- the correlation is between loss and SR, not accuracy and SR; "thus" softened and the "lower loss goes with a higher SR" clause removed (user). Was: "Among the pooled intraday forecasts, both global QLIKE accuracy and local accuracy at the implied-variance threshold ($\overline{\mathrm{ES}}_1$) are thus negatively rank-correlated with straddle profitability: lower loss goes with a higher $\SR$."
+  Among the pooled intraday forecasts, average QLIKE loss and $\overline{\mathrm{ES}}_1$, the loss at the implied-variance threshold, are both negatively rank-correlated with the Sharpe ratio, at \rheRankCorrQPool{} and a weak \rheRankCorrESPool{} for $\overline{\mathrm{ES}}_1$.
   % 2026-10-17 (user, E25): parked -- applied. Was:
   % \editc{orange}{E25}{Decision: restrict the Spearman accuracy-vs-value correlations to the \rhrPoolN{} pooled intraday forecasts, dropping the closing-interval forecasts.\\Problem: the correlations ran over all \cmMasterN{} forecasts of the model set, spanning both training schemes, so closing-interval forecasts were blended into a model-set statistic in the intraday economics section.\\
   % The correlations are now computed on the six pooled linear forecasts and the six pooled trees of Tables T1 and E1 (generated/rehaul_econ_numbers.tex: \rheRankCorrQPool, \rheRankCorrESPool). The model-set values \rheRankCorrQ{} and \rheRankCorrES{} are kept as macros.}
@@ -367,12 +389,12 @@ Appendix~\ref{sec:rh_econ_last30} reports each model class trained on the closin
   \begin{itemize}
   \item Across all \rhrAfPairs{} matched predictor-set pairs in the full model set (\fqsPairsTree{} tree and \fqsPairsPerBarLinear{} linear specifications trained on the closing interval, plus \fqsPairsPooled{} pooled intraday specifications), adding the exogenous predictors reduces mean QLIKE in \rhrAfLower{} pairs, \rhrAfLowerSig{} of which are significant at the 5\% level.
   \end{itemize}
-\item \textbf{Most accurate specifications overall.} The lowest mean QLIKE values in the paper are achieved by closing-interval models estimated on the full predictor set: lasso (\rhrLassoAllQ), elastic net (\rhrEnetAllQ), ridge (\rhrRidgeAllQ), and XGBoost (\rhrXgbAllQ), whereas the daily HAR benchmark ($\overline{\QLIKE} = \rhrOlsQ$) ranks \rhrOlsRank{} out of \rhrRankN{} specifications.
-  \begin{itemize}
-  \item Relative to the daily HAR benchmark, the closing-interval lasso on the full predictor set lowers mean QLIKE by \rhrVsBmLassoCloseFullPct\% ($\DM = \rhrVsBmLassoCloseFullDm$, \rhrVsBmLassoCloseFullPval); none of the four leading specifications beats the benchmark significantly at the 5\% level.
+% 2026-10-18 (user, new-notes 20): parked -- closing-interval material removed; passage focuses on pooled intraday. Was: "\item \textbf{Most accurate specifications overall.} The lowest mean QLIKE values in the paper are achieved by closing-interval models estimated on the full predictor set: lasso (\rhrLassoAllQ), elastic net (\rhrEnetAllQ), ridge (\rhrRidgeAllQ), and XGBoost (\rhrXgbAllQ), whereas the daily HAR benchmark ($\overline{\QLIKE} = \rhrOlsQ$) ranks \rhrOlsRank{} out of \rhrRankN{} specifications."
+% 2026-10-18 (user, new-notes 20): parked -- nesting closed with the parked parent bullet; the two remaining sub-bullets now stand as top-level items. Was: "  \begin{itemize}"
+  % 2026-10-18 (user, new-notes 20): parked -- closing-interval material removed; passage focuses on pooled intraday (incl. the "four leading specifications" clause). Was: "  \item Relative to the daily HAR benchmark, the closing-interval lasso on the full predictor set lowers mean QLIKE by \rhrVsBmLassoCloseFullPct\% ($\DM = \rhrVsBmLassoCloseFullDm$, \rhrVsBmLassoCloseFullPval); none of the four leading specifications beats the benchmark significantly at the 5\% level."
   \item Across the \rhrNSet{} non-benchmark forecasts in the full model set, \rhrNLower{} achieve a lower mean QLIKE than the daily HAR benchmark (\rhrNLowerSig{} significantly), while \rhrNWorseSig{} perform significantly worse.
   \item Comparing tree ensembles directly against the closing-interval ridge regression on the same predictor set, the tree specification incurs a higher mean QLIKE in \rhrTrVsRidgeQAbove{} of \rhrTrVsRidgeN{} pairs (\rhrTrVsRidgeQAboveSig{} significantly).
-  \end{itemize}
+% 2026-10-18 (user, new-notes 20): parked -- nesting closed with the parked parent bullet. Was: "  \end{itemize}"
 \item \textbf{Sensitivity of squared-error loss to extreme days.} In contrast to QLIKE, evaluated under MSE the full predictor set increases squared-error loss in \rhrAfMseHigher{} of the \rhrAfPairs{} matched pairs across the model set (\rhrAfMseHigherSig{} significantly).
   \begin{itemize}
   \item A single date outside the option-data subsample, \rhoosBigDay{}, accounts for \rhoosBigDaySEMin--\rhoosBigDaySEMax\% of the total cumulative squared error of the closing-interval tree models over $\mathcal T_{\mathrm{oos}}$, compared with at most \rhoosBigDayQLMax\% of their total QLIKE loss.
@@ -381,7 +403,8 @@ Appendix~\ref{sec:rh_econ_last30} reports each model class trained on the closin
 \item \textbf{Economic value under the closing-interval scheme} (sign strategy evaluated on the \rheSzDays{} post-warmup days of $\mathcal T_{\mathrm{opt}}$):
   \begin{itemize}
   % 2026-10-17 (user, E17): parked -- on the 614 post-warmup days, closing-interval elastic net (1.93) exceeds every intraday forecast (<= 1.91), while closing-interval lasso (1.76) is exceeded among intraday forecasts only by the intraday elastic net (1.91). Was: "Both exceed every intraday forecast (\SR \le \rhrPoolShFullMax at mid-quotes)."
-  \item The highest Sharpe ratio in the entire model set is achieved by the closing-interval elastic net on the full predictor set, with $\SR = \rheEnetSh$ at mid-quotes and \rheEnetShX{} at quoted bid/ask prices, representing a statistically significant mean return gain over the short-straddle benchmark (HAC $t = \rheEnetT$) and exceeding every pooled intraday forecast ($\SR \le \rhrPoolShFullMax$ at mid-quotes). The closing-interval lasso on the full predictor set attains $\SR = \rheLassoSh$ at mid-quotes and \rheLassoShX{} at quoted bid/ask prices.
+  % 2026-10-18 (user, second-list N3): parked -- ranking claim picked after the fact ("The highest Sharpe ratio in the entire model set ... exceeding every pooled intraday forecast"); the facts are kept. Was: "\item The highest Sharpe ratio in the entire model set is achieved by the closing-interval elastic net on the full predictor set, with $\SR = \rheEnetSh$ at mid-quotes and \rheEnetShX{} at quoted bid/ask prices, representing a statistically significant mean return gain over the short-straddle benchmark (HAC $t = \rheEnetT$) and exceeding every pooled intraday forecast ($\SR \le \rhrPoolShFullMax$ at mid-quotes). The closing-interval lasso on the full predictor set attains $\SR = \rheLassoSh$ at mid-quotes and \rheLassoShX{} at quoted bid/ask prices."
+  \item The closing-interval elastic net on the full predictor set attains $\SR = \rheEnetSh$ at mid-quotes and \rheEnetShX{} at quoted bid/ask prices, a statistically significant mean return gain over the short-straddle benchmark (HAC $t = \rheEnetT$). The closing-interval lasso on the full predictor set attains $\SR = \rheLassoSh$ at mid-quotes and \rheLassoShX{} at quoted bid/ask prices.
   % 2026-10-17 (user, E17): parked -- 866-day \cmNlBestSh replaced by post-warmup \rheLgbmBestSh.
   \item For closing-interval LightGBM, the best specification selected ex post by $\SR$ on the post-warmup option sample attains $\SR = \rheLgbmBestSh$ at mid-quotes.
   \item Replacing the HAR benchmark with the full predictor set changes the closing-interval sign-strategy Sharpe ratio by $\Delta\SR = \rheAfEnetDSh$ for the elastic net and \rheAfLassoDSh{} for the lasso (neither statistically significant at the 5\% level); across all \rhePairs{} matched predictor-set pairs in the model set, $\Delta\SR > 0$ in \rhePairsUp{} pairs (median \rhePairsMed), with \rhePairsSig{} significant at the 5\% level.

@@ -92,7 +92,13 @@ BUCKET_ORDER = (
     "vol_demand",
     "fomc",
 )
-H_REFITS = tuple(range(0, 147, 10))  # 15 refits for the H statistic
+# 2026-10-18 (user, new-notes 22): the feature-importance out-of-sample sample starts on 3 January 2020, the first
+# session after the lambda validation folds (6 Jan 2016 .. 2 Jan 2020), so no FI day overlaps them. reduce() keeps the
+# refits whose tail reaches this date (refit 38 on, anchored 2019-12-31), drops refit 38's tail rows before it, and reads
+# the linear coefficients at max(anchor, start). The linear / trees / hstat stages still compute all 147 refits.
+# Was: no start restriction -- every forecast row from the design's first OOS row, 2018-06-25 (147 refits, 1,469 sessions).
+FI_OOS_START = "2020-01-03"
+H_REFITS = tuple(range(0, 147, 10))  # 15 refits for the H statistic (reduce() uses those inside the FI sample)
 H_ROWS = 100  # evaluation = background points per refit: the 100 sessions from the refit's anchor on
 H_TOP_SERIES, H_TOP_COLS = 10, 5
 HDIR = "hstat_v2"  # v2 (2026-10-15) also stores sum PD_B^2 of the partner (hstat/ = v1, H^2 sums only)
@@ -592,10 +598,23 @@ def reduce() -> None:  # noqa: C901 -- one reducer
     D = data()
     units, bmap, G = D["units"], D["bmap"], D["G"]
     names = list(D["names"])
-    U, p, K = len(units), len(names), 147
+    # 2026-10-18 (user, new-notes 22): restricted to the FI sample from FI_OOS_START. Was:
+    #     U, p, K = len(units), len(names), 147
+    #     FT = D["FT"]
+    #     anchors = np.array([10 * k for k in range(K)])
+    #     dates = pd.to_datetime(pd.Series(D["date_oos"]).str[:10]).to_numpy()
+    U, p, K_ALL = len(units), len(names), 147
     FT = D["FT"]
-    anchors = np.array([10 * k for k in range(K)])
-    dates = pd.to_datetime(pd.Series(D["date_oos"]).str[:10]).to_numpy()
+    dates_all = pd.to_datetime(pd.Series(D["date_oos"]).str[:10]).to_numpy()
+    i0 = int((dates_all < np.datetime64(FI_OOS_START)).sum())  # first OOS row on/after FI_OOS_START
+    KS = np.arange(i0 // 10, K_ALL)  # refits (on-disk index) whose tail reaches FI_OOS_START
+    K = len(KS)
+    anchors = 10 * KS  # refit anchors (OOS row index)
+    r0 = np.maximum(0, i0 - anchors)  # tail rows dropped at the head of each refit (> 0 only for the first)
+    lanch = anchors + r0  # first scored row of each refit; the linear coefficients are read here
+    rdates = dates_all[lanch]
+    dates = dates_all[i0:]
+    HK = tuple(k for k in H_REFITS if k >= KS[0])  # H-statistic refits inside the FI sample
     S: dict = dict(
         n_refits=K,
         n_oos=int(len(dates)),
@@ -614,6 +633,7 @@ def reduce() -> None:  # noqa: C901 -- one reducer
         first=str(pd.Timestamp(dates[0]).date()),
         last=str(pd.Timestamp(dates[-1]).date()),
     )
+    S["fi_oos_start"], S["first_refit"] = FI_OOS_START, int(KS[0])  # 2026-10-18 (user, new-notes 22)
     gates = pd.read_csv(WORK / "gates_linear.csv").to_dict("records")
     ncol = G.sum(axis=0).astype(int)
     base_cols = dict(unit=units, bucket=[bmap[s] for s in units], n_columns=ncol)
@@ -622,7 +642,8 @@ def reduce() -> None:  # noqa: C901 -- one reducer
     Z = np.load(OUT / "linear.npz")
     lin_rank = {}
     for name in LINEAR:
-        th = Z[f"{name}_theta"][anchors, :-1]  # (K, p), intercept dropped
+        # 2026-10-18 (user, new-notes 22): was th = Z[f"{name}_theta"][anchors, :-1]
+        th = Z[f"{name}_theta"][lanch, :-1]  # (K, p), intercept dropped
         absb = np.abs(th)
         ser_abs = absb @ G  # (K, U): sum_{j in A} |beta_j|
         nz = absb > NZ_TOL
@@ -630,7 +651,8 @@ def reduce() -> None:  # noqa: C901 -- one reducer
         df_s = df_s.merge(pd.DataFrame(base_cols), on="unit")
         df_s["sum_abs"] = df_s["unit"].map(dict(zip(units, ser_abs.sum(axis=0))))
         df_s["sum_abs_share"] = df_s["sum_abs"] / ser_abs.sum()
-        sd = Z["win_sd"]
+        # 2026-10-18 (user, new-notes 22): was sd = Z["win_sd"]
+        sd = Z["win_sd"][KS]
         df_s["sum_abs_sd"] = df_s["unit"].map(
             dict(zip(units, ((absb * sd) @ G).sum(axis=0)))
         )
@@ -656,10 +678,12 @@ def reduce() -> None:  # noqa: C901 -- one reducer
         )
         dcol.to_csv(OUT / f"{name}_columns.csv", index=False)
         pd.DataFrame(ser_abs, columns=units).assign(
-            date=dates[anchors], k=np.arange(K)
+            # 2026-10-18 (user, new-notes 22): was date=dates[anchors], k=np.arange(K)
+            date=rdates, k=KS
         ).to_csv(OUT / f"{name}_series_by_refit.csv", index=False)
         pd.DataFrame((nz.astype(float) @ G), columns=units).assign(
-            date=dates[anchors], k=np.arange(K)
+            # 2026-10-18 (user, new-notes 22): was date=dates[anchors], k=np.arange(K)
+            date=rdates, k=KS
         ).to_csv(OUT / f"{name}_active_by_refit.csv", index=False)
         tot = absb.sum(axis=1)
         S[f"{name}"] = dict(
@@ -710,7 +734,9 @@ def reduce() -> None:  # noqa: C901 -- one reducer
                 spearmanr(df_s["mean_rank"], -df_s["sum_abs"])[0]
             ),
         )
-        pb = Z[f"{name}_probe_beta"]
+        # 2026-10-18 (user, new-notes 22): probe refits inside the FI sample. Was: pb = Z[f"{name}_probe_beta"]
+        pmask = np.isin(Z["probe_k"], KS)
+        pb = Z[f"{name}_probe_beta"][pmask]
         S[name]["probe_nonzero"] = [
             int((np.abs(pb[:, q]) > NZ_TOL).sum()) for q in range(3)
         ]
@@ -720,7 +746,8 @@ def reduce() -> None:  # noqa: C901 -- one reducer
         ]
         # columns whose |beta| beats the continuous probe's at the same probe refit, in most probe refits
         thp = np.abs(
-            Z[f"{name}_probe_theta"][:, :p]
+            # 2026-10-18 (user, new-notes 22): was Z[f"{name}_probe_theta"][:, :p]
+            Z[f"{name}_probe_theta"][pmask][:, :p]
         )  # the probe fit's own real-column coefficients
         beat = (thp > np.abs(pb[:, [0]])).mean(axis=0) >= 0.5
         S[name]["cols_beat_probe"] = int(beat.sum())
@@ -750,9 +777,11 @@ def reduce() -> None:  # noqa: C901 -- one reducer
         S[name]["top_columns"] = dcol.sort_values(
             ["refits_nonzero", "sum_abs"], ascending=False
         )["column"][:5].tolist()
-        S[name]["batch_gap_max"] = float(Z[f"{name}_batch_gap"].max())
+        # 2026-10-18 (user, new-notes 22): was S[name]["batch_gap_max"] = float(Z[f"{name}_batch_gap"].max())
+        S[name]["batch_gap_max"] = float(Z[f"{name}_batch_gap"][pmask].max())
     # scales of the robust-prescaled inputs (exogenous columns that are not constant in the window)
-    sd, iqr = Z["win_sd"], Z["win_iqr"]
+    # 2026-10-18 (user, new-notes 22): was sd, iqr = Z["win_sd"], Z["win_iqr"]
+    sd, iqr = Z["win_sd"][KS], Z["win_iqr"][KS]
     import re
 
     kind = np.array(
@@ -788,10 +817,11 @@ def reduce() -> None:  # noqa: C901 -- one reducer
         )
     ).to_csv(OUT / "column_scales.csv", index=False)
     # the old (re-tuned, one-penalty) lasso: the same count measure
-    oth = np.abs(Z["old_lasso_theta"][anchors, :-1]) > NZ_TOL
+    # 2026-10-18 (user, new-notes 22): [anchors, :-1] -> [lanch, :-1] in the two theta reads below
+    oth = np.abs(Z["old_lasso_theta"][lanch, :-1]) > NZ_TOL
     old_any = ((oth.astype(float) @ G) > 0).mean(axis=0)
     new_any = (
-        (np.abs(Z["lasso_theta"][anchors, :-1]) > NZ_TOL).astype(float) @ G > 0
+        (np.abs(Z["lasso_theta"][lanch, :-1]) > NZ_TOL).astype(float) @ G > 0
     ).mean(axis=0)
     S["old_lasso"] = dict(
         spearman_any_share=float(spearmanr(old_any, new_any)[0]),
@@ -813,14 +843,20 @@ def reduce() -> None:  # noqa: C901 -- one reducer
         )
         probe_rank_col, probe_cols_beat = [], []
         probe_pair_floor_ser, probe_pair_floor_col = [], []
-        for k in range(K):
-            z = np.load(WORK / "trees" / f"{mdl}_{k:03d}.npz")
-            st = z["main_stored"].astype(np.float64)
+        for k in range(K):  # k indexes the FI refits; the refit on disk is KS[k]
+            # 2026-10-18 (user, new-notes 22): FI-sample refits, rows from FI_OOS_START. Was:
+            #     z = np.load(WORK / "trees" / f"{mdl}_{k:03d}.npz")
+            #     st = z["main_stored"].astype(np.float64)
+            #     I_loc[k] = np.abs(z["main"].astype(np.float64) @ G).mean(axis=0)
+            #     gaps["pred"].append(float(np.abs(z["pred"] - z["pred_stored"]).max()))
+            z = np.load(WORK / "trees" / f"{mdl}_{KS[k]:03d}.npz")
+            h0 = int(r0[k])
+            st = z["main_stored"][h0:].astype(np.float64)
             I_st[k] = np.abs(st @ G).mean(axis=0)
-            I_loc[k] = np.abs(z["main"].astype(np.float64) @ G).mean(axis=0)
+            I_loc[k] = np.abs(z["main"][h0:].astype(np.float64) @ G).mean(axis=0)
             I_col[k] = np.abs(st).mean(axis=0)
             glob_rows_st.append(st @ G)
-            gaps["pred"].append(float(np.abs(z["pred"] - z["pred_stored"]).max()))
+            gaps["pred"].append(float(np.abs(z["pred"][h0:] - z["pred_stored"][h0:]).max()))
             gaps["add"].append(float(z["additivity"]))
             gaps["rowsum"].append(float(z["rowsum"]))
             gaps["forest"].append(float(z["forest_pred_gap"]))
@@ -852,7 +888,8 @@ def reduce() -> None:  # noqa: C901 -- one reducer
         df_s["W"] = kendall_w(R)
         df_s.to_csv(OUT / f"{mdl}_series.csv", index=False)
         pd.DataFrame(R, columns=units).assign(
-            date=dates[anchors], k=np.arange(K)
+            # 2026-10-18 (user, new-notes 22): was date=dates[anchors], k=np.arange(K)
+            date=rdates, k=KS
         ).to_csv(OUT / f"{mdl}_series_rank_by_refit.csv", index=False)
         dfc, Rc = rank_table(I_col, names)
         dfc["series"] = dfc["unit"].map(dict(zip(names, D["series"])))
@@ -919,19 +956,28 @@ def reduce() -> None:  # noqa: C901 -- one reducer
         within = np.zeros((K, U))
         fit_s, shap_s = 0.0, 0.0
         floor_pairs = []
-        for k in range(K):
-            z = np.load(WORK / "trees" / f"{mdl}_{k:03d}.npz")
-            kk = int(z["kk"])
-            Sk = z["inter_ser"]  # (kk, U, U)
-            pk = z["pure_ser"]  # (kk, U)
+        for k in range(K):  # k indexes the FI refits; the refit on disk is KS[k]
+            # 2026-10-18 (user, new-notes 22): FI-sample refits, rows from FI_OOS_START. Was:
+            #     z = np.load(WORK / "trees" / f"{mdl}_{k:03d}.npz")
+            #     kk = int(z["kk"])
+            #     Sk = z["inter_ser"]  # (kk, U, U)
+            #     pk = z["pure_ser"]  # (kk, U)
+            #     main_loc += np.abs(z["main"].astype(np.float64) @ G).sum(axis=0)
+            z = np.load(WORK / "trees" / f"{mdl}_{KS[k]:03d}.npz")
+            h0 = int(r0[k])
+            kk = int(z["kk"]) - h0
+            Sk = z["inter_ser"][h0:]  # (kk, U, U)
+            pk = z["pure_ser"][h0:]  # (kk, U)
             tot = 2 * Sk  # pair totals for A != B
             Ssum += np.abs(tot).sum(axis=0)
             dg = (
                 np.einsum("taa->ta", Sk) - pk
             )  # within-series off-diagonal interactions
             Psum += np.abs(dg).sum(axis=0)
+            # 2026-10-18 (user, new-notes 22): inter_col_absmean is stored as a mean over the refit's full tail, so for the first
+            # FI refit (tail trimmed to FI_OOS_START) it still includes the dropped rows (column-pair table only)
             Csum += z["inter_col_absmean"].astype(np.float64) * kk
-            main_loc += np.abs(z["main"].astype(np.float64) @ G).sum(axis=0)
+            main_loc += np.abs(z["main"][h0:].astype(np.float64) @ G).sum(axis=0)
             n += kk
             I_pair[k] = np.abs(tot).mean(axis=0)[iu]
             within[k] = np.abs(dg).mean(axis=0)
@@ -988,7 +1034,8 @@ def reduce() -> None:  # noqa: C901 -- one reducer
             within_top_value=float(np.diag(Sg).max()),
         )
         # H statistic
-        if tp is not None and (WORK / HDIR / f"{mdl}_{H_REFITS[0]:03d}.npz").is_file():
+        # 2026-10-18 (user, new-notes 22): H_REFITS -> HK (the H refits inside the FI sample) here and in the loop below
+        if tp is not None and (WORK / HDIR / f"{mdl}_{HK[0]:03d}.npz").is_file():
             num_s = np.zeros(H_TOP_SERIES)
             den_s = np.zeros(H_TOP_SERIES)
             va_s = np.zeros(H_TOP_SERIES)
@@ -998,7 +1045,7 @@ def reduce() -> None:  # noqa: C901 -- one reducer
             num_c = np.zeros(H_TOP_COLS)
             den_c = np.zeros(H_TOP_COLS)
             per_s = []
-            for k in H_REFITS:
+            for k in HK:
                 h = np.load(WORK / HDIR / f"{mdl}_{k:03d}.npz")
                 num_s += h["s_num"]
                 den_s += h["s_den"]
@@ -1038,8 +1085,9 @@ def reduce() -> None:  # noqa: C901 -- one reducer
             walls[mm.group(1)] = int(mm.group(2))  # the last run of each stage
     S["wall_sec"] = walls
     S["workers"] = WORKERS
+    # 2026-10-18 (user, new-notes 22): was refits=list(H_REFITS)
     S["H"] = dict(
-        refits=list(H_REFITS), rows=H_ROWS, top_series=H_TOP_SERIES, top_cols=H_TOP_COLS
+        refits=list(HK), rows=H_ROWS, top_series=H_TOP_SERIES, top_cols=H_TOP_COLS
     )
     # agreement across measures / models (series mean ranks)
     mr = {m: tree_tabs[m].set_index("unit")["mean_rank"] for m in MODELS}

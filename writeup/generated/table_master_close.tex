@@ -61,7 +61,7 @@ pooled ridge [\texttt{lean\_vol\_vix}], pre-tuned & 0.1066 & 0.1040 & $-$2.4 & $
 pooled lasso [\texttt{all\_features}], pre-tuned & 0.1069 & 0.1044 & $-$2.1 & $-$0.71 & 1.059 & 1 \\
 pooled elastic net [\texttt{all\_features}] & 0.1019 & 0.0995 & $-$6.7 & $-$2.41 & 1.016 & 1 \\
 pooled ridge [\texttt{baseline}] & 0.1092 & 0.1060 & $-$0.0 & $-$0.00 & 1.136 & 0 \\
-pooled lasso [\texttt{all\_features}] & 0.1049 & 0.1025 & $-$3.9 & $-$1.50 & 1.028 & 1 \\
+pooled lasso [\texttt{all\_features}] & 0.1049 & 0.1025 & $-$3.9 & $-$1.51 & 1.028 & 1 \\
 pooled elastic net [\texttt{baseline}] & 0.1087 & 0.1056 & $-$0.5 & $-$0.11 & 1.143 & 0 \\
 pooled ridge [\texttt{baseline}], pre-tuned & 0.1098 & 0.1067 & +0.6 & +0.14 & 1.135 & 0 \\
 pooled elastic net [\texttt{baseline}], pre-tuned & 0.1096 & 0.1065 & +0.4 & +0.09 & 1.156 & 0 \\
@@ -77,7 +77,7 @@ per-bar lasso [\texttt{free\_vix\_only}] & 0.0959 & 0.0940 & $-$12.2 & $-$3.48 &
 per-bar lasso [\texttt{free\_feasible\_vol}] & 0.0949 & 0.0930 & $-$13.1 & $-$3.85 & 0.949 & 4 \\
 per-bar elastic net [\texttt{free\_vix\_only}] & 0.0972 & 0.0950 & $-$10.9 & $-$3.45 & 0.951 & 3 \\
 per-bar elastic net [\texttt{live\_vix\_rvol}] & 0.0965 & 0.0942 & $-$11.6 & $-$3.65 & 0.953 & 3 \\
-per-bar elastic net [\texttt{free\_feasible\_vol}] & 0.0973 & 0.0950 & $-$10.9 & $-$3.61 & 0.946 & 3 \\
+per-bar elastic net [\texttt{free\_feasible\_vol}] & 0.0973 & 0.0950 & $-$10.9 & $-$3.60 & 0.946 & 3 \\
 per-bar lasso [\texttt{live\_vix\_only}] & 0.0956 & 0.0937 & $-$12.4 & $-$3.55 & 0.947 & 4 \\
 per-bar lasso [\texttt{live\_vix\_rvol}] & 0.0988 & 0.0961 & $-$9.5 & $-$3.18 & 0.948 & 4 \\
 per-bar elastic net [\texttt{live\_vix\_only}] & 0.0975 & 0.0952 & $-$10.7 & $-$3.33 & 0.951 & 3 \\
@@ -109,7 +109,7 @@ per-bar random forest (dev-tuned), daily refit [\texttt{lean\_vol\_vix}] & 0.094
 per-bar LightGBM, daily refit [\texttt{all\_features}] & 0.0961 & 0.0939 & $-$12.0 & $-$3.11 & 0.851 & 2 \\
 per-bar LightGBM, daily refit [\texttt{lean\_vol\_vix}] & 0.0939 & 0.0918 & $-$14.0 & $-$3.49 & 0.869 & 1 \\
 per-bar XGBoost, daily refit [\texttt{all\_features}] & 0.0957 & 0.0935 & $-$12.3 & $-$3.06 & 0.827 & 1 \\
-per-bar random forest (dev-tuned), daily refit [\texttt{baseline}] & 0.1004 & 0.0979 & $-$8.1 & $-$1.45 & 1.016 & 2 \\
+per-bar random forest (dev-tuned), daily refit [\texttt{baseline}] & 0.1004 & 0.0979 & $-$8.1 & $-$1.46 & 1.016 & 2 \\
 per-bar XGBoost, daily refit [\texttt{baseline}] & 0.1001 & 0.0976 & $-$8.4 & $-$1.58 & 1.021 & 0 \\
 per-bar random forest (dev-tuned), daily refit [\texttt{all\_features}] & 0.0980 & 0.0954 & $-$10.3 & $-$2.68 & 0.880 & 3 \\
 per-bar random forest, daily refit [\texttt{all\_features}] & 0.0991 & 0.0966 & $-$9.2 & $-$2.59 & 0.827 & 1 \\
@@ -171,7 +171,7 @@ Optuna per-bar XGBoost, TUNE\_PER 5, best of 50 [\texttt{lean\_vol\_vix}] & 0.09
 Optuna per-bar LightGBM, TUNE\_PER 5, best of 50 [\texttt{all\_features}] & 0.1014 & 0.0994 & $-$7.1 & $-$1.90 & 0.892 & 0 \\
 Optuna per-bar random forest, TUNE\_PER 5, best of 50 [\texttt{all\_features}] & 0.1012 & 0.0985 & $-$7.3 & $-$2.04 & 0.863 & 1 \\
 Optuna per-bar XGBoost, TUNE\_PER 5, best of 50 [\texttt{baseline}] & 0.1023 & 0.0999 & $-$6.3 & $-$1.16 & 0.993 & 0 \\
-Optuna per-bar LightGBM, TUNE\_PER 5, best of 50 [\texttt{baseline}] & 0.1044 & 0.1016 & $-$4.4 & $-$0.83 & 1.025 & 0 \\
+Optuna per-bar LightGBM, TUNE\_PER 5, best of 50 [\texttt{baseline}] & 0.1044 & 0.1016 & $-$4.4 & $-$0.84 & 1.025 & 0 \\
 Optuna per-bar random forest, TUNE\_PER 5, best of 50 [\texttt{baseline}] & 0.1015 & 0.0990 & $-$7.1 & $-$1.44 & 1.036 & 0 \\
 \multicolumn{7}{l}{\quad\emph{per-bar tree (Optuna, TUNE\_PER=25, best-of-50)}} \\
 Optuna per-bar LightGBM, TUNE\_PER 25, best of 50 [\texttt{all\_features}] & 0.1064 & 0.1042 & $-$2.5 & $-$0.60 & 0.793 & 1 \\
@@ -263,7 +263,7 @@ per-bar lasso [\texttt{ivrep\_target\_scale}] & 0.0950 & 0.0932 & $-$13.0 & $-$3
 per-bar ridge [\texttt{ivrep\_innovations}] & 0.1133 & 0.1113 & +3.7 & +0.27 & 1.007 & 4 \\
 per-bar lasso [\texttt{ivrep\_all}] & 0.0996 & 0.0970 & $-$8.8 & $-$2.24 & 0.918 & 3 \\
 per-bar elastic net [\texttt{ivrep\_all}] & 0.0953 & 0.0932 & $-$12.7 & $-$3.07 & 0.926 & 3 \\
-per-bar elastic net [\texttt{ivrep\_innovations}] & 0.0965 & 0.0944 & $-$11.6 & $-$2.80 & 1.009 & 3 \\
+per-bar elastic net [\texttt{ivrep\_innovations}] & 0.0965 & 0.0944 & $-$11.6 & $-$2.79 & 1.009 & 3 \\
 per-bar elastic net [\texttt{ivrep\_target\_scale}] & 0.0965 & 0.0946 & $-$11.6 & $-$2.94 & 0.875 & 4 \\
 \midrule
 \multicolumn{7}{l}{\textbf{Table B: scored on the forecast's own days, paired with the reference on them (550 trade days from 2022-01-03)}} \\

@@ -85,14 +85,15 @@ paper}
 % 2026-10-17 (user): parked -- Chris Jones, and the previous order.
 % \author{James Chen \and Austin Pollok \and Chris Jones \and Mihai Cucuringu}
 \author{James Chen \and Mihai Cucuringu \and Christopher S. Jones \and Austin Pollok}
-\date{Working draft, 15 October 2026 --- not for citation}
+% 2026-10-18 (user, second-list 19): parked -- draft date updated to 18 October 2026 (fixed date, not \today). Was: "Working draft, 15 October 2026"
+\date{Working draft, 18 October 2026 --- not for citation}
 
 \begin{document}
 \maketitle
 
 % 2026-10-17 (user): prose rewritten in the style of Zhang, Zhang, Cucuringu, and Qian (2024).
 \begin{abstract}
-% 2026-10-17 (user, list-25 #1): parked -- the target is built from front-month E-mini futures (03_data, Realized moments). Was: "forecasts of the realized variance of the S\&P 500"
+% 2026-10-17 (user, new-notes 1): parked -- the target is built from front-month E-mini futures (03_data, Realized moments). Was: "forecasts of the realized variance of the S\&P 500"
 We investigate whether exogenous predictors improve intraday forecasts of a futures-based (E-mini) proxy for the realized variance of the S\&P 500
 over the closing half-hour interval (15:30--16:00 ET). Specifically, we estimate each model across all half-hour
 intervals and evaluate the forecast issued at 15:30 for the closing half hour over the out-of-sample period from
@@ -102,7 +103,8 @@ series. Under the QLIKE loss, the full predictor set yields lower average out-of
 benchmark across all \rhrAfPoolPairs{} intraday model classes, with \rhrAfPoolLowerSig{} of the
 \rhrAfPoolPairs{} reductions statistically significant at the 5\% level, whereas mean squared error does not
 confirm these gains. Furthermore, although every intraday specification remains less accurate under QLIKE than a
-daily HAR regression estimated solely on the closing interval, incorporating the exogenous predictors narrows
+% 2026-10-18 (user, new-notes 11): parked -- a HAR-type model with its horizons, not a daily HAR regression; still the closing-interval OLS the comparison uses (make_rehaul_results.py:1276). Was: "daily HAR regression estimated solely on the closing interval, incorporating the exogenous predictors narrows"
+HAR-type model in the spirit of \citet{Corsi2009}, estimated by OLS on the closing-interval observations of the target's trailing averages over $k \in \{1, 5, 25, 125, 625, 3125\}$ samples plus calendar columns, incorporating the exogenous predictors narrows
 this gap across all model classes. In an economic application to zero-days-to-expiration (0DTE) S\&P 500
 straddles on expiration days, a sign-based trading strategy achieves a higher Sharpe ratio under the full
 predictor set than under the HAR benchmark across every intraday model class.

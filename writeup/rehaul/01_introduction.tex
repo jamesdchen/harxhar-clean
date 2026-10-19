@@ -24,7 +24,7 @@
 % 2026-10-17 (user): prose rewritten in the style of Zhang, Zhang, Cucuringu, and Qian (2024).
 \begin{itemize}
 \item \textbf{Research question.} We investigate whether incorporating exogenous predictors improves intraday
-  % 2026-10-17 (user, list-25 #1): parked -- the target is built from front-month E-mini futures (03_data, Realized moments). Was: "forecasts of the realized variance of the S\&P 500"
+  % 2026-10-17 (user, new-notes 1): parked -- the target is built from front-month E-mini futures (03_data, Realized moments). Was: "forecasts of the realized variance of the S\&P 500"
   forecasts of a futures-based (E-mini) proxy for the realized variance of the S\&P 500 over the closing half-hour interval.
   \begin{itemize}
   \item Specifically, at the 15:30 ET forecast origin on trading day $t$, we seek to predict $\RV_t$, which
@@ -50,7 +50,8 @@
   \begin{itemize}
   \item The primary empirical results reported in Section~\ref{sec:rh_results} focus on the pooled intraday
     estimation scheme, $\mathcal I = \{1, \dots, M\}$.
-  \item As our primary benchmark forecast, we employ the daily ordinary least squares (OLS) regression on the
+  % 2026-10-18 (user, new-notes 10): parked -- closing cadence only in the closing section. Was: "\item As our primary benchmark forecast, we employ the daily ordinary least squares (OLS) regression on the"
+  \item As our primary benchmark forecast, we employ the ordinary least squares (OLS) regression on the
     % 2026-10-17 (user): parked -- closing-interval material (relabeled: closing-interval HAR benchmark). Was: "estimated exclusively on the closing interval (see"
     HAR benchmark predictor set, estimated exclusively on the closing interval (the closing-interval HAR benchmark; see
     Sections~\ref{sec:rh_methods_models} and~\ref{sec:rh_results_eval}).
@@ -75,11 +76,13 @@
     set narrows this gap across all model classes (see Section~\ref{sec:rh_results_classes}).
   \end{itemize}
 \item \textbf{Economic application.} To assess the economic value of the forecasts on trading days with a
-  same-day SPX expiration, we construct a trading strategy that takes a long or short position in a
+  % 2026-10-18 (user, second-list 20): parked -- SPXW is the weekly PM-settled series the strategy trades; SPX is the monthly. Was: "same-day SPX expiration"
+  same-day SPXW expiration, we construct a trading strategy that takes a long or short position in a
   zero-days-to-expiration (0DTE) at-the-money straddle based on the sign of the difference between the variance
   forecast and option-implied variance (see Section~\ref{sec:rh_econ}). Using the full predictor set increases
   the annualized Sharpe ratio of this strategy relative to the HAR benchmark in every intraday model class (see
   Section~\ref{sec:rh_econ_results}).
+\editc{orange}{N15c}{Problem: ``every intraday model class'' no longer holds under the per-year Sharpe ratio (pooled random forest $\Delta\SR = \rhrAfRfPoolDSh$); see note N15c in Section~\ref{sec:rh_econ}.}
 \item \textbf{Paper organization.} The remainder of the paper is organized as follows.
   Section~\ref{sec:rh_related} reviews the related literature. Section~\ref{sec:rh_data} describes the data and
   target construction, and Section~\ref{sec:rh_predictors} details the benchmark and exogenous predictors.

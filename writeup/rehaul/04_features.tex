@@ -20,7 +20,8 @@
 \label{sec:rh_predictors}
 % 2026-10-17 (user): prose rewritten in the style of Zhang, Zhang, Cucuringu, and Qian (2024).
 \begin{itemize}
-\item \textbf{Eight groups of exogenous predictors (\rhfiNExog{} series in total).} As listed in
+% 2026-10-18 (user, second-list N7): parked -- series count from a non-FI macro (\bkNSeries, make_buckets_tex.py, the sum of the \bkSize* group sizes; same 47), so an FI rerun cannot change it. Was: "\item \textbf{Eight groups of exogenous predictors (\rhfiNExog{} series in total).} As listed in"
+\item \textbf{Eight groups of exogenous predictors (\bkNSeries{} series in total).} As listed in
   % 2026-10-17 (user): parked -- undefined ref (the buckets table is parked). Was: "As summarized in Table~\ref{tab:rh_buckets},"
   Appendix Table~\ref{tab:rh_dm_dictionary}, the exogenous series span eight economic categories: realized moments (\bkSizeMom),
   liquidity (\bkSizeLiq), equal-weighted market moments (\bkSizeMew), value-weighted market moments (\bkSizeMvw),
@@ -33,7 +34,8 @@
   % Table~\ref{tab:rh_dm_dictionary}.
   % 2026-10-17 (user, E5): the dictionary is live in the appendix. The pointer above replaces this comment.
   \[
-    \rhfiNExog = \bkSizeMom + \bkSizeLiq + \bkSizeMew + \bkSizeMvw + \bkSizeSent + \bkSizeIv + \bkSizeVd + \bkSizeFomc .
+    % 2026-10-18 (user, second-list N7): parked -- \rhfiNExog -> \bkNSeries (non-FI). Was: "\rhfiNExog = \bkSizeMom + \bkSizeLiq + \bkSizeMew + \bkSizeMvw + \bkSizeSent + \bkSizeIv + \bkSizeVd + \bkSizeFomc ."
+    \bkNSeries = \bkSizeMom + \bkSizeLiq + \bkSizeMew + \bkSizeMvw + \bkSizeSent + \bkSizeIv + \bkSizeVd + \bkSizeFomc .
   \]
   % 2026-10-15 (finish, phase 2): typed group sizes 7, 14, 6, 6, 3, 3, 4, 4 -> \bkSize... (same values).
   \begin{itemize}
@@ -49,9 +51,10 @@
   \end{itemize}
 \item \textbf{Predictors constructed from each series.}
   \begin{itemize}
-  % 2026-10-17 (user, list-25 #6): parked -- unit of k stated (30-minute grid intervals, both models; har.py:48 rolls over the rows of the full bar series, lag_scope "global", segmentation.py:39-43). Was: "over horizons of $k$ intervals, lagged by one interval"
+  % 2026-10-17 (user, new-notes 6): parked -- unit of k stated (30-minute grid intervals, both models; har.py:48 rolls over the rows of the full bar series, lag_scope "global", segmentation.py:39-43). Was: "over horizons of $k$ intervals, lagged by one interval"
   \item Following \citet{Corsi2009}, we construct HAR-type trailing averages of each transformed series $\tilde u$
-    over horizons of $k$ 30-minute grid intervals, lagged by one interval:
+    % 2026-10-18 (user, new-notes 6): parked -- k in samples. Was: "over horizons of $k$ 30-minute grid intervals, lagged by one interval:"
+    over horizons of $k$ samples (one sample is one 30-minute grid interval), lagged by one sample:
     \[
       \bar u^{(k)}_{t,i} = \frac{1}{k} \sum_{j=1}^{k} \tilde u_{t,i-j}, \qquad k \in \mathcal{K},
     \]
@@ -70,8 +73,9 @@
     \[
       \mathcal{K} = \{2^0, 2^1, \dots, 2^{11}\} \quad \text{(base 2, \rhdmNHorizonsPooled{} horizons)}.
     \]
-  % 2026-10-17 (user, list-25 #6): parked -- unit of k stated (30-minute grid intervals, both models; har.py:48 rolls over the rows of the full bar series, lag_scope "global", segmentation.py:39-43). Was: "Here, $k$ counts retained intervals across the full intraday grid"
-  \item Here, $k$ counts retained 30-minute intervals of the full intraday grid $\mathcal{G}$ (including overnight
+  % 2026-10-17 (user, new-notes 6): parked -- unit of k stated (30-minute grid intervals, both models; har.py:48 rolls over the rows of the full bar series, lag_scope "global", segmentation.py:39-43). Was: "Here, $k$ counts retained intervals across the full intraday grid"
+  % 2026-10-18 (user, new-notes 6): parked -- k in samples. Was: "\item Here, $k$ counts retained 30-minute intervals of the full intraday grid $\mathcal{G}$ (including overnight"
+  \item Here, $k$ counts samples, the retained intervals of the full intraday grid $\mathcal{G}$ (including overnight
     sessions), in the intraday and the closing-interval model alike. The horizon set of the closing-interval specification is given in
     Appendix~\ref{app:rh_closing_predictors}.
 
@@ -95,9 +99,11 @@ Note (2026-10-17, user): the count of 7 comes from the closing-interval panel an
   \item For notational simplicity in our tables and figures, we suppress the overbar and the interval index $i$
     % 2026-10-17 (user): parked -- closing-interval material (example horizon 25 is on the closing ladder; the intraday ladder is base 2). Was: "($i = c$ in the closing-interval specification) ... $\mathrm{VIX}^{(25)}_t$ ... over the 25"
     ($i = c$ for the scored forecast), writing $u^{(k)}_t$ for series $u$ averaged over $k$
-    % 2026-10-17 (user, list-25 #6): parked -- unit of k stated (30-minute grid intervals, both models; har.py:48 rolls over the rows of the full bar series, lag_scope "global", segmentation.py:39-43). Was: "averaged over the 16 intervals ending at 15:30"
-    intervals; for instance, $\mathrm{VIX}^{(16)}_t$ denotes the transformed VIX series averaged over the 16
-    30-minute intervals ending at 15:30 on day $t$. We denote the implied volatility series by $\mathrm{VIX}$,
+    % 2026-10-17 (user, new-notes 6): parked -- unit of k stated (30-minute grid intervals, both models; har.py:48 rolls over the rows of the full bar series, lag_scope "global", segmentation.py:39-43). Was: "averaged over the 16 intervals ending at 15:30"
+    % 2026-10-18 (user, new-notes 6): parked -- k in samples. Was: "intervals; for instance, $\mathrm{VIX}^{(16)}_t$ denotes the transformed VIX series averaged over the 16"
+    samples; for instance, $\mathrm{VIX}^{(16)}_t$ denotes the transformed VIX series averaged over the 16
+    % 2026-10-18 (user, new-notes 6): parked -- k in samples. Was: "30-minute intervals ending at 15:30 on day $t$. We denote the implied volatility series by $\mathrm{VIX}$,"
+    samples ending at 15:30 on day $t$. We denote the implied volatility series by $\mathrm{VIX}$,
     $\mathrm{VIX3M}$, and $\mathrm{VVIX}$, label equal- and value-weighted constituent aggregates with the
     superscripts EW and VW (e.g., $\mathrm{OFI}^{\mathrm{EW}}$, $\RV^{\mathrm{VW}}$, and
     $\mathrm{Spread}^{\mathrm{VW}}$), and denote the announcement predictors by $\mathrm{FOMC}$, while writing
@@ -106,7 +112,7 @@ Note (2026-10-17, user): the count of 7 comes from the closing-interval panel an
   \end{itemize}
 \item \textbf{HAR benchmark.} The HAR benchmark predictor set consists of the HAR components of the target,
   $\bar y^{(k)}_{t,i}$—constructed via the same trailing-average operator as $\bar u^{(k)}_{t,i}$ applied to the
-  % 2026-10-17 (user, item 7): parked -- the intraday model has \rhdmNHorizonsPooled{} HAR columns (base-2 ladder, specs/causal_tune_linear.py:197-209). Was: "winsorized target (6 columns)"
+  % 2026-10-17 (user, new-notes 7): parked -- the intraday model has \rhdmNHorizonsPooled{} HAR columns (base-2 ladder, specs/causal_tune_linear.py:197-209). Was: "winsorized target (6 columns)"
   winsorized target (\rhdmNHorizonsPooled{} columns in the intraday model)—together with the calendar vector $\bm D_{t,i}$, which comprises five
   day-of-the-week dummy variables, the hour of the interval-end timestamp, and the overnight session indicator.
   % 2026-10-16 (formula pass): parked -- bar y^{(k)}_{t,i} = (1/k) sum_{j=1}^{k} tilde y_{t,i-j} repeated the
@@ -185,8 +191,12 @@ The sentence above keeps three calendar pieces: the five weekday dummies, the ho
         \tilde u_{t,i} = \operatorname{asinh}(u_{t,i} / \kappa_{t,i}), \qquad
         \kappa_{t,i} = \max\bigl\{ e_{t,i-1},\ 0.01 \operatorname{med}_{j \ge 1} e_{t,i-j} \bigr\},
       \]
+    % 2026-10-18 (user, second-list 18): parked -- half-life is counted in nonzero intervals (zero rows are blanked and
+    % skipped, ignore_na=True), not days. Was: "where $e_{t,i}$ denotes an exponentially weighted moving average of
+    % $|u|$ computed over nonzero intervals ($u \ne 0$) with a 250-day half-life."
+    % 12,000 = ASINH_SCALE_HALFLIFE_DAYS (250) x PERIODS_PER_DAY (48); src/features/transforms/target.py:95,451.
     \item where $e_{t,i}$ denotes an exponentially weighted moving average of $|u|$ computed over nonzero
-      intervals ($u \ne 0$) with a 250-day half-life.
+      intervals ($u \ne 0$) with a half-life of 12{,}000 such intervals (nominally 250 days of 48 intervals).
     \end{itemize}
     % target.py:387-442 (map), 303-345 (asinh), 644-663 (routing). asinh replaces both the diurnal division and
     % g: it acts on raw u. The routing share is full-sample. fomc_release in {0,1} maps to {log 1e-12, 0}; after
@@ -226,6 +236,8 @@ The sentence above keeps three calendar pieces: the five weekday dummies, the ho
     % CODE BUG (outline flag 1): u_{t,i} here is the FORWARD-FILLED raw value (executor.py:618-627 runs after the
     % ffill at :540), so chi_{t,i} = 1 on dead tails: fomc_release / fomc_day after 2023-11-01, voldemand after
     % 2023-08-31. Intended: chi_{t,i} = a_{t,i} * 1{u_{t,i} != mode}.
+    % 2026-10-18 (user, second-list N4): the causal rule is the specification; this item and Table 5's chi-bar column marked rerun-needed.
+    \editc{orange}{S4a}{Decision: the causal rule in src/backtest/executor.py (CAUSAL\_MODE\_INFLATION, ACTIVE\_FROM\_OBSERVED; commit b29774a, 15 October 2026) is the specification. Rerun needed under that rule.\\Problem: this item describes the old rule, a full-sample mode covering at least 20\% of intervals with the indicator read after the forward fill. Under the causal rule the mode is decided from earlier prints only and the flags come from observed prints, so the volatility-demand series are never mode-inflated and the StockTwits sentiment and message-count series are mode-inflated in some years. The printed forecasts (pooled linear models of 6 October, pooled trees of 7 October 2026) predate the rule and use the old one; so does the $\bar\chi$ column of Appendix Table~\ref{tab:rh_dm_dictionary}, whose generator is not re-run (E5). Rewrite this item and regenerate the table after the rerun.}
   \item \emph{HAR aggregation:} we form the trailing averages $\bar u^{(k)}_{t,i}$, $\bar a^{(k)}_{t,i}$,
     $\bar\chi^{(k)}_{t,i}$, and $\bar y^{(k)}_{t,i}$ across horizons $k \in \mathcal{K}$.
   \item \emph{Robust standardization:} under the pooled intraday scheme, we standardize the trailing averages of
@@ -234,7 +246,8 @@ The sentence above keeps three calendar pieces: the five weekday dummies, the ho
     $a_{t',i'} = 1$ inside the rolling window $\mathcal{W}_{t,i}$ (see Appendix~\ref{sec:rh_exp_schemes}),
     re-evaluated every 480 intervals and held constant until the next grid point. Let $M^{(k)}_{t,i}$ denote the
     maximum such interquartile range observed across all grid points up to $(t,i)$. We apply a $0.01$ relative
-    floor in the denominator (note that $\mathrm{IQR}^{*(k)}$ does not enter this pooled denominator):
+    % 2026-10-18 (user, new-notes 8): parked -- forward reference to the IQR* definition added. Was: "floor in the denominator (note that $\mathrm{IQR}^{*(k)}$ does not enter this pooled denominator):"
+    floor in the denominator (note that $\mathrm{IQR}^{*(k)}$, defined in Appendix~\ref{sec:rh_close_scale}, does not enter this pooled denominator):
     % 2026-10-17 (user, E8): parked -- the bullet led with the closing-interval model. That display is now
     % Appendix~\ref{sec:rh_close_scale}. Was: written for the closing-interval model, whose rows t' are trading
     % days (i = c suppressed), on the estimation window W_t of Section sec:rh_methods_setup,
@@ -268,7 +281,8 @@ The sentence above keeps three calendar pieces: the five weekday dummies, the ho
       \item The indicator averages $\bar a^{(k)}$ and $\bar\chi^{(k)}$ are left unstandardized.
       \item The target HAR components and calendar variables do not use the availability-restricted denominator
         above; instead, their median and interquartile range are computed across all rows of
-        $\mathcal{W}_{t,i}$ with $\mathrm{IQR}^{*(k)} = 0$, subject to the same $0.01$ floor relative to the
+        % 2026-10-18 (user, new-notes 8): parked -- forward reference to the IQR* definition added. Was: "$\mathcal{W}_{t,i}$ with $\mathrm{IQR}^{*(k)} = 0$, subject to the same $0.01$ floor relative to the"
+        $\mathcal{W}_{t,i}$ with $\mathrm{IQR}^{*(k)} = 0$ ($\mathrm{IQR}^{*(k)}$ is defined in Appendix~\ref{sec:rh_close_scale}), subject to the same $0.01$ floor relative to the
         running maximum interquartile range of that column.
       \end{itemize}
     % 2026-10-17 (user, E8): parked -- the one-sentence intraday rule, and the note. The denominator is the
@@ -345,6 +359,8 @@ The sentence above keeps three calendar pieces: the five weekday dummies, the ho
   \item We disclose three full-sample quantities used in preprocessing: the full-sample mode used to define
     $\chi_{t,i}$, the within-interval standard-deviation floor $\bar\sigma^{(u)}$, and the rule assigning series
     to the inverse hyperbolic sine transformation.
+    % 2026-10-18 (user, second-list N4): rerun-needed flag (old-rule disclosure).
+    \editc{orange}{S4b}{Decision: rerun needed under the causal rule (note S4a).\\Problem: the full-sample mode is the old rule, used by the printed forecasts of 6--7 October 2026. Under the causal rule in src/backtest/executor.py the mode is decided from earlier prints only, so it is no longer a full-sample quantity; drop it from this list after the rerun.}
   \item As noted in Section~\ref{sec:rh_data}, the FOMC proximity variables rely solely on the pre-announced
     meeting schedule, which is publicly known ahead of each interval.
   \item Any missing interval prior to a series' initial observation is filled with that first observed print

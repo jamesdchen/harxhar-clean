@@ -499,7 +499,10 @@ _PRETUNE: dict[str, pd.Series] = {}
 
 def pretune_series(est: str, bucket: str) -> str:
     """The f-arm export series (backbone 1/100; on baseline every column is backbone)."""
-    arm = "f_retune_margin" if bucket == "baseline" else "f_retune_margin_bb"
+    # 2026-10-18 (user, new-notes 24): the frozen arms (one pre-sample pick per estimator and predictor set, no re-tune; per E23):
+    # c_frozen on the HAR set (baseline), d_frozen_bb on the full / lean sets (standard grid, not the _w arms). Was:
+    #     arm = "f_retune_margin" if bucket == "baseline" else "f_retune_margin_bb"
+    arm = "c_frozen" if bucket == "baseline" else "d_frozen_bb"
     return f"linear_pretune/{est}_{bucket}_{arm}"
 
 
@@ -514,7 +517,8 @@ def pretune_export(sid: str) -> pd.Series:
             ]
         )
         for s, g in ex.groupby("series_id"):
-            if "_f_retune_margin" in str(s):
+            # 2026-10-18 (user, new-notes 24): the frozen arms are cached too (pretune_series). Was: if "_f_retune_margin" in str(s):
+            if "_f_retune_margin" in str(s) or str(s).endswith(("_c_frozen", "_d_frozen_bb")):
                 idx = pd.DatetimeIndex(pd.to_datetime(g["date"]).to_numpy()).as_unit(
                     "ns"
                 )

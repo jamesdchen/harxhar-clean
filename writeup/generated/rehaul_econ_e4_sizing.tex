@@ -14,41 +14,41 @@
 \midrule
 \multicolumn{5}{@{}l}{\textit{Panel A: $\SR$ at mid-quotes}} \\
 \addlinespace[2pt]
-Short straddle & \multicolumn{4}{c}{$0.34$ under every rule} \\
+Short straddle & \multicolumn{4}{c}{$0.77$ under every rule} \\
 \multicolumn{5}{@{}l}{Pooled intraday models (30-minute grid)} \\
-\quad Ridge & $1.73$ & $1.79$ & $1.68$ & $1.73$ \\
-\quad Lasso & $1.56$ & $1.69$ & $1.65$ & $1.59$ \\
-\quad Elastic net & $1.91$ & $1.75$ & $1.72$ & $1.69$ \\
-\quad LightGBM & $1.36$ & $1.85$ & $1.62$ & $1.86$ \\
-\quad XGBoost & $1.08$ & $1.82$ & $1.69$ & $1.84$ \\
-\quad Random forest$^\dagger$ & $0.97$ & $1.59$ & $1.41$ & $1.64$ \\
+\quad Ridge & $1.44$ & $1.59$ & $1.40$ & $1.55$ \\
+\quad Lasso & $1.46$ & $1.58$ & $1.56$ & $1.48$ \\
+\quad Elastic net & $1.56$ & $1.56$ & $1.43$ & $1.51$ \\
+\quad LightGBM & $1.21$ & $1.67$ & $1.40$ & $1.70$ \\
+\quad XGBoost & $1.26$ & $1.70$ & $1.53$ & $1.73$ \\
+\quad Random forest$^\dagger$ & $1.00$ & $1.47$ & $1.18$ & $1.52$ \\
 \multicolumn{5}{@{}l}{Closing-interval models (15:30--16:00 ET half hour)} \\
-\quad OLS, HAR benchmark & $1.64$ & $1.55$ & $1.69$ & $1.67$ \\
-\quad Ridge & $1.51$ & $1.70$ & $1.56$ & $1.75$ \\
-\quad Lasso & $1.76$ & $1.75$ & $1.74$ & $1.85$ \\
-\quad Elastic net & $1.93$ & $1.82$ & $1.84$ & $1.90$ \\
+\quad OLS, HAR benchmark & $1.56$ & $1.45$ & $1.55$ & $1.52$ \\
+\quad Ridge & $1.28$ & $1.49$ & $1.35$ & $1.48$ \\
+\quad Lasso & $1.68$ & $1.58$ & $1.62$ & $1.62$ \\
+\quad Elastic net & $1.76$ & $1.61$ & $1.66$ & $1.65$ \\
 \addlinespace[2pt]
-Model set, median & $0.92$ & $1.34$ & $1.12$ & $1.34$ \\
-Model set, number above sign & -- & 98 & 100 & 98 \\
+Model set, median & $0.93$ & $1.30$ & $1.01$ & $1.27$ \\
+Model set, number above sign & -- & 101 & 83 & 96 \\
 \addlinespace[4pt]
 \multicolumn{5}{@{}l}{\textit{Panel B: $\SR$ at quoted bid/ask prices}} \\
 \addlinespace[2pt]
-Short straddle & \multicolumn{4}{c}{$-0.03$ under every rule} \\
+Short straddle & \multicolumn{4}{c}{$0.42$ under every rule} \\
 \multicolumn{5}{@{}l}{Pooled intraday models (30-minute grid)} \\
-\quad Ridge & $1.36$ & $1.43$ & $1.35$ & $1.35$ \\
-\quad Lasso & $1.19$ & $1.33$ & $1.32$ & $1.22$ \\
-\quad Elastic net & $1.54$ & $1.38$ & $1.40$ & $1.32$ \\
-\quad LightGBM & $0.98$ & $1.48$ & $1.30$ & $1.49$ \\
-\quad XGBoost & $0.69$ & $1.45$ & $1.31$ & $1.47$ \\
-\quad Random forest$^\dagger$ & $0.59$ & $1.22$ & $1.04$ & $1.27$ \\
+\quad Ridge & $1.10$ & $1.29$ & $1.10$ & $1.25$ \\
+\quad Lasso & $1.12$ & $1.28$ & $1.26$ & $1.17$ \\
+\quad Elastic net & $1.23$ & $1.26$ & $1.13$ & $1.21$ \\
+\quad LightGBM & $0.87$ & $1.36$ & $1.10$ & $1.39$ \\
+\quad XGBoost & $0.92$ & $1.39$ & $1.21$ & $1.42$ \\
+\quad Random forest$^\dagger$ & $0.66$ & $1.16$ & $0.87$ & $1.21$ \\
 \multicolumn{5}{@{}l}{Closing-interval models (15:30--16:00 ET half hour)} \\
-\quad OLS, HAR benchmark & $1.27$ & $1.20$ & $1.38$ & $1.31$ \\
-\quad Ridge & $1.14$ & $1.35$ & $1.24$ & $1.39$ \\
-\quad Lasso & $1.40$ & $1.39$ & $1.42$ & $1.49$ \\
-\quad Elastic net & $1.56$ & $1.46$ & $1.52$ & $1.54$ \\
+\quad OLS, HAR benchmark & $1.22$ & $1.15$ & $1.25$ & $1.22$ \\
+\quad Ridge & $0.94$ & $1.19$ & $1.05$ & $1.18$ \\
+\quad Lasso & $1.34$ & $1.28$ & $1.32$ & $1.32$ \\
+\quad Elastic net & $1.42$ & $1.32$ & $1.37$ & $1.35$ \\
 \addlinespace[2pt]
-Model set, median & $0.56$ & $0.99$ & $0.79$ & $0.98$ \\
-Model set, number above sign & -- & 98 & 106 & 100 \\
+Model set, median & $0.60$ & $1.01$ & $0.71$ & $0.97$ \\
+Model set, number above sign & -- & 105 & 97 & 98 \\
 \bottomrule
 \end{tabular}
 \begin{tablenotes}[flushleft]

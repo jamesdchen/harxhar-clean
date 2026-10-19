@@ -2278,8 +2278,14 @@ def write_samples(P: dict) -> None:
         # rf"tree pre-sample is re-estimated every {P['tm']['SCREEN_REFIT']} intervals.",
         # rf"Each validation sample follows a {clp['EMBARGO']}-day gap and a {n_(clp['TW'])}-day estimation sample "
         # r"(Section~\ref{sec:rh_methods_tuning}).",
+        # 2026-10-18 (user, second-list 17): parked -- the 250 is the screening stride of the one-off tree search, not
+        # a re-estimation of a pre-sample (hand edit mirrored in generated/rehaul_dm_samples.tex). Was:
+        # rf"tree pre-sample is re-estimated every {P['tm']['SCREEN_REFIT']} intervals.",
         r"The pooled linear models use $W = \rhdmPooledLinWindow$ intervals (\cmPtFitWin{} trading days); the "
-        rf"tree pre-sample is re-estimated every {P['tm']['SCREEN_REFIT']} intervals.",
+        rf"tree hyperparameters are chosen once, by an Optuna search on the {P['dev'][0].year}--{P['dev'][1].year} "
+        rf"development sample that fits each candidate on the previous {n_(P['tm']['WINDOW'])} intervals and scores "
+        rf"it on the next {P['tm']['SCREEN_REFIT']}, stepping forward {P['tm']['SCREEN_REFIT']} intervals at a time; "
+        r"the reported forecasts refit every interval.",
         rf"Each validation sample follows a {clp['EMBARGO']}-day gap and a \cmPtFitWin-day estimation sample "
         r"(Section~\ref{sec:rh_exp_samples}).",
         # "Full trading days: expiration days that are not early-close days.",  # 2026-10-15: + the evaluation span

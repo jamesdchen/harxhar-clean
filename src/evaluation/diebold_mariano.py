@@ -64,7 +64,8 @@ def dm_test(loss_a, loss_b, h: int = 1, hac_lag: int | None = None) -> dict:
         hac_lag = max(h - 1, _nw_lag(T))
     lrv = float(np.mean(dc * dc))  # gamma_0
     for k in range(1, hac_lag + 1):
-        gk = float(np.mean(dc[k:] * dc[:-k]))
+        # 2026-10-18 (user, E13): divisor 1/T, was np.mean (1/(T-k)).
+        gk = float(np.dot(dc[k:], dc[:-k]) / T)
         lrv += 2.0 * (1.0 - k / (hac_lag + 1.0)) * gk  # Bartlett-weighted
     if lrv <= 1e-300:  # identical (or constant-offset) series
         dm_hln = 0.0 if abs(dbar) < 1e-300 else math.copysign(math.inf, dbar)

@@ -1,6 +1,6 @@
 # Master table for the closing strategy (A4) — summary
 
-Written by `experiments/master_table_close.py --arm-root linear_subsection_dedup` on 2026-10-15 14:09; every number below is read from
+Written by `experiments/master_table_close.py --arm-root linear_subsection_dedup` on 2026-10-18 17:26; every number below is read from
 `master_table.csv` (and `before_after.csv`, `recal_vs_plain.csv`) of the same run. Full table: `writeup/master_table_close.pdf`; tex: `writeup/generated/table_master_close.tex`. Every forecast is the plain back-transform f²·B; every number is a point estimate.
 
 ## Provenance: design, window mask, CPU class
@@ -43,7 +43,7 @@ Written by `experiments/master_table_close.py --arm-root linear_subsection_dedup
 
 ## (a) Recommended headline forecast
 
-**per-bar ridge [live_feasible]** (`sub_ridge_live_feasible`), scored with the plain forecast. On the 866 days: QLIKE 0.1206 (+10.4 % vs the reference, DM +0.59, p 0.559); sign(s) Sharpe 1.79 mid / 1.31 crossed, mean +0.126 per unit premium (crossed +0.093), hit rate 57.0 %, buys on 269 days (31.1 %). Sharpe difference vs the reference: mid +0.51, crossed +0.51 (HAC t +1.12, p 0.262 on the daily mid-return difference); vs always short: mid +1.59, crossed +1.58 (HAC t +2.26, p 0.024).
+**per-bar ridge [live_feasible]** (`sub_ridge_live_feasible`), scored with the plain forecast. On the 866 days: QLIKE 0.1206 (+10.4 % vs the reference, DM +0.59, p 0.558); sign(s) Sharpe 1.79 mid / 1.31 crossed, mean +0.126 per unit premium (crossed +0.093), hit rate 57.0 %, buys on 269 days (31.1 %). Sharpe difference vs the reference: mid +0.51, crossed +0.51 (HAC t +1.12, p 0.262 on the daily mid-return difference); vs always short: mid +1.59, crossed +1.58 (HAC t +2.26, p 0.024).
 
 - **Does any forecast now beat the headline?** Of the 294 other table-A forecasts (check rows and exact duplicates left out), 30 have a higher Sharpe point estimate at the mid fill (31 crossed); with the HAC t of the daily mid-return difference significant at 5 %: 2 (per-bar ridge [live_vix_only] (+0.73, HAC t +2.46, p 0.014); per-bar ridge [free_vix_only] (+0.70, HAC t +2.45, p 0.014)). 282 have a lower QLIKE point estimate; with DM p < 0.05: 0.
   Highest Sharpe differences over the headline (mid, point estimates): per-bar ridge [live_vix_only] +0.73 (t +2.46, p 0.014); per-bar ridge [free_vix_only] +0.70 (t +2.45, p 0.014); Optuna per-bar XGBoost, TUNE_PER 25, best of 50, QLIKE-selected [live_feasible] +0.40 (t +1.05, p 0.292); per-bar ridge [lean_vol_vix] +0.31 (t +0.83, p 0.407); per-bar ridge [free_feasible] +0.28 (t +1.14, p 0.253).
@@ -59,11 +59,11 @@ Why this one:
   | per-bar lasso [live_feasible] | 0.0950 | -21.2 | -1.30 | 1.87 / 1.39 | +0.08 | +0.08 | +0.19 | 90.2 % |
   | per-bar elastic net [live_feasible] | 0.0973 | -19.3 | -1.25 | 1.56 / 1.08 | -0.23 | -0.22 | -0.55 | 91.7 % |
   | per-bar ridge [all_features] | 0.1184 | -1.8 | -0.26 | 1.71 / 1.22 | -0.08 | -0.08 | -0.18 | 87.4 % |
-  | per-bar ridge [baseline] | 0.0968 | -19.7 | -1.15 | 1.36 / 0.88 | -0.43 | -0.43 | -0.77 | 83.9 % |
+  | per-bar ridge [baseline] | 0.0968 | -19.7 | -1.16 | 1.36 / 0.88 | -0.43 | -0.43 | -0.77 | 83.9 % |
   | per-bar lasso [free_vix_only] | 0.0959 | -20.5 | -1.25 | 1.91 / 1.43 | +0.12 | +0.12 | +0.29 | 89.8 % |
   | per-bar ridge [free_vix_only] | 0.1216 | +0.8 | +0.26 | 2.49 / 2.02 | +0.70 | +0.71 | +2.45 | 96.5 % |
   | per-bar LightGBM [live_feasible] | 0.0959 | -20.5 | -1.27 | 1.54 / 1.05 | -0.25 | -0.25 | -0.60 | 86.3 % |
-  | per-bar XGBoost [live_feasible] | 0.0966 | -19.9 | -1.22 | 1.78 / 1.29 | -0.01 | -0.01 | -0.03 | 87.5 % |
+  | per-bar XGBoost [live_feasible] | 0.0966 | -19.9 | -1.23 | 1.78 / 1.29 | -0.01 | -0.01 | -0.03 | 87.5 % |
   | per-bar XGBoost [lean_vol_vix] | 0.0943 | -21.8 | -1.37 | 1.78 / 1.30 | -0.01 | -0.01 | -0.02 | 87.5 % |
   | per-bar XGBoost, daily refit [lean_vol_vix] | 0.0932 | -22.7 | -1.40 | 1.76 / 1.28 | -0.03 | -0.03 | -0.07 | 87.2 % |
   | tuned per-bar XGBoost [live_feasible], MSE-selected | 0.1025 | -15.0 | -1.00 | 1.96 / 1.48 | +0.17 | +0.17 | +0.36 | 85.3 % |

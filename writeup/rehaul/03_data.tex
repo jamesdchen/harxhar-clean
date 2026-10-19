@@ -62,9 +62,10 @@
       \mathrm{BV}_{t,i} = \sum_{k \ge 2} |r_{t,i,k}|\,|r_{t,i,k-1}|, \qquad
       \mathrm{AC}_{t,i} = \sum_{k \ge 2} r_{t,i,k}\, r_{t,i,k-1}.
     \]
-    Specifically, the third and fourth sums correspond to the unnormalized realized skewness and realized
-    quarticity of \citet{AmayaChristoffersenJacobsVasquez2015} (that is, prior to dividing by
-    $\RV^{3/2}_{t,i}/\sqrt{N_{t,i}}$ and $\RV^{2}_{t,i}/N_{t,i}$, respectively). Furthermore,
+    % 2026-10-18 (user, second-list 14): parked -- quarticity normalization matched to the Table 5 note and RQ row (unscaled, without N/3); "prior to dividing by RV^2/N" dropped. Was: "Specifically, the third and fourth sums correspond to the unnormalized realized skewness and realized quarticity of \citet{AmayaChristoffersenJacobsVasquez2015} (that is, prior to dividing by $\RV^{3/2}_{t,i}/\sqrt{N_{t,i}}$ and $\RV^{2}_{t,i}/N_{t,i}$, respectively). Furthermore,"
+    Specifically, the third sum corresponds to the unnormalized realized skewness of
+    \citet{AmayaChristoffersenJacobsVasquez2015} (that is, prior to dividing by $\RV^{3/2}_{t,i}/\sqrt{N_{t,i}}$), and
+    the fourth sum is the unscaled realized quarticity (without the factor $N_{t,i}/3$). Furthermore,
     $\mathrm{RS}^{+}_{t,i}$ denotes the positive realized semivariance of
     \citet{BarndorffNielsenKinnebrockShephard2010}, $\mathrm{BV}_{t,i}$ denotes the unscaled bipower variation
     of \citet{BarndorffNielsenShephard2004} (without the $\pi/2$ normalization factor), and $\mathrm{AC}_{t,i}$
@@ -205,7 +206,8 @@ The futures moments are now sums of one-minute changes in the log price of the f
     $W = \rhdmPooledLinWindow$ intervals for the linear models (see Appendix~\ref{sec:rh_exp_schemes}):
     % 2026-10-15 (finish): FLAG resolved -- typed 96{,}000 -> \rhdmPooledLinWindow (make_rehaul_data_methods.py, same value).
     \[
-      \rhdmPooledRows = \rhdmGridRows \text{ intervals on the grid} - \rhdmBurnIn \text{ burn-in intervals}.
+      % 2026-10-18 (user, new-notes 6): parked -- k in samples. Was: "\rhdmPooledRows = \rhdmGridRows \text{ intervals on the grid} - \rhdmBurnIn \text{ burn-in intervals}."
+      \rhdmPooledRows = \rhdmGridRows \text{ intervals on the grid} - \rhdmBurnIn \text{ burn-in samples}.
     \]
   % 2026-10-17 (user): parked -- closing-interval material: the closing-interval sample, its start date, its rolling forecasts and the linear pre-sample moved to Appendix app:rh_closing_sample. Was:
   % \item The closing-interval sample ($i = c$) consists of \rhdmCloseDays{} trading days from July 2010 through

@@ -127,7 +127,7 @@
 % \editc{red}{E10}{Decision: say $\hat y_t$ forecasts $\tilde y_t$.\\Problem: the fit minimizes squared error in the clipped target $\tilde y$, and the back-transform sentence calls $\hat y_t$ a forecast of the unclipped $y_t$. QLIKE is then scored on the unwinsorized $\RV_{t,c}$.\\
 % $y_t$, defined as $y_{t,c}$, is the square root of realized variance on the closing interval before any clipping. $\tilde y_t$ is that square root after the rolling 1st and 99th percentiles have pulled the tails in, and the estimation objective chooses $\hat y$ by minimizing squared error in $\tilde y$, not in $y$. The back-transform undoes the diurnal adjustment by squaring the fitted value, $\hat\sigma^2_t=\hat y_t^2 s^2_{t,c}$, and it sets $\hat y_t$ equal to the closing-interval fit $\hat y_{t,c}$. The sentence under the display then calls $\hat y_t$ a forecast of $y_t$. The loss that is scored, QLIKE, is computed from the unwinsorized $\RV_{t,c}$. The number that comes out of the regression is a fitted value for the clipped series. The sentence describes the square of that fitted value as a forecast of the unclipped series.}
   \begin{itemize}
-% 2026-10-17 (user, item 12): parked -- the calibration diagnostics are not reported (note E33). Was: "that we leave uncorrected and report explicitly in our calibration diagnostics."
+% 2026-10-17 (user, new-notes 12): parked -- the calibration diagnostics are not reported (note E33). Was: "that we leave uncorrected and report explicitly in our calibration diagnostics."
   \item Because $\E_t[y_t^2] - (\E_t[y_t])^2 = \Var_t(y_t) \ge 0$, squaring the level forecast introduces a downward Jensen inequality bias that we leave uncorrected (note E33).
   \end{itemize}
 % 2026-10-16 (user): parked -- Scoring loss removed. The cancelled display and the cancellation
@@ -570,8 +570,9 @@
 % regression on the HAR benchmark, the HAR components and the calendar dummies \citep{Corsi2009}
 % (Section~\ref{sec:rh_methods_models})."
 % 2026-10-17 (user): parked -- closing-interval material (estimation details moved to Appendix app:rh_closing_bench). Was: "\item \textbf{Benchmark forecast.} Our baseline is the daily HAR regression of \citet{Corsi2009}, estimated by OLS on the HAR components and calendar dummies (Section~\ref{sec:rh_methods_models}) using closing-interval observations only (one observation per trading day, re-estimated daily)."
-% 2026-10-17 (user, item 11): parked -- a HAR-type model, not Corsi's daily HAR: horizons of the base-5 ladder in 30-minute grid intervals (src/features/extractors/har.py:18-21) plus the calendar columns. Was: "Our baseline is the closing-interval HAR benchmark: the daily HAR regression of \citet{Corsi2009}, estimated by OLS on the HAR components and calendar dummies (Section~\ref{sec:rh_methods_models}) using closing-interval observations only (Appendix~\ref{app:rh_closing_bench})."
-\item \textbf{Benchmark forecast.} Our baseline is the closing-interval HAR benchmark: a HAR-type model in the spirit of \citet{Corsi2009}, estimated by OLS on the trailing averages $\bar y^{(k)}$ of the target over $k \in \{1, 5, 25, 125, 625, 3125\}$ 30-minute grid intervals and the \rhdmNCalendar{} calendar columns $\bm D$ (Section~\ref{sec:rh_methods_models}), using closing-interval observations only (Appendix~\ref{app:rh_closing_bench}).
+% 2026-10-17 (user, new-notes 11): parked -- a HAR-type model, not Corsi's daily HAR: horizons of the base-5 ladder in 30-minute grid intervals (src/features/extractors/har.py:18-21) plus the calendar columns. Was: "Our baseline is the closing-interval HAR benchmark: the daily HAR regression of \citet{Corsi2009}, estimated by OLS on the HAR components and calendar dummies (Section~\ref{sec:rh_methods_models}) using closing-interval observations only (Appendix~\ref{app:rh_closing_bench})."
+% 2026-10-18 (user, new-notes 6): parked -- k in samples. Was: "\item \textbf{Benchmark forecast.} Our baseline is the closing-interval HAR benchmark: a HAR-type model in the spirit of \citet{Corsi2009}, estimated by OLS on the trailing averages $\bar y^{(k)}$ of the target over $k \in \{1, 5, 25, 125, 625, 3125\}$ 30-minute grid intervals and the \rhdmNCalendar{} calendar columns $\bm D$ (Section~\ref{sec:rh_methods_models}), using closing-interval observations only (Appendix~\ref{app:rh_closing_bench})."
+\item \textbf{Benchmark forecast.} Our baseline is the closing-interval HAR benchmark: a HAR-type model in the spirit of \citet{Corsi2009}, estimated by OLS on the trailing averages $\bar y^{(k)}$ of the target over $k \in \{1, 5, 25, 125, 625, 3125\}$ samples and the \rhdmNCalendar{} calendar columns $\bm D$ (Section~\ref{sec:rh_methods_models}), using closing-interval observations only (Appendix~\ref{app:rh_closing_bench}).
   % 2026-10-15 (user): its average QLIKE (\rhrOlsQ) and its sign strategy's \SR (\fqsOlsSh) are results; parked in
   % 06_results.tex (they are in Model classes, Table tab:rh_rank and Table tab:rh_econ_control). The sign strategy is
   % defined in Economic value (sec:rh_econ_strategy).
@@ -587,7 +588,7 @@
   % 2026-10-16 (user): parked -- "Section" ; the tests moved to the appendix.
 % Code: master_table_close.py:233 sets REFERENCE = "blk2" for qlike_pct_vs_ref and dm_vs_ref; only the GUI's DM
 % (master_table_gui/rows.py:1585-1605) is against the per-bar OLS. The % and DM vs the OLS need porting.
-% 2026-10-17 (user, item 12): parked -- MAE is not computed for the forecasts of tab:rh_oos (note E33). Was:
+% 2026-10-17 (user, new-notes 12): parked -- MAE is not computed for the forecasts of tab:rh_oos (note E33). Was:
 % \item \textbf{Squared-error and absolute-error losses.} In variance units, we also compute the mean squared error and mean absolute error over $\mathcal T_{\mathrm{oos}}$:
 %   \[
 %   \mathrm{MSE} = \frac{1}{T_{\mathrm{oos}}}\sum_{t \in \mathcal T_{\mathrm{oos}}}\bigl(\RV_t - \hat\sigma^2_t\bigr)^2,
@@ -613,7 +614,7 @@
   % OLS on the HAR benchmark, guide 6b).
 % Code: master_table_gui/rows.py:1549-1563. ybar is the mean over all N scored days: look-ahead. A causal
 % benchmark would use the expanding mean of RV_{t'}, t' < t.
-% 2026-10-17 (user, item 12): parked -- calibration diagnostics are not computed (note E33). Was:
+% 2026-10-17 (user, new-notes 12): parked -- calibration diagnostics are not computed (note E33). Was:
 % \item \textbf{Calibration.} We assess unconditional calibration via the ratio of mean realized variance to mean forecast variance, $\overline{\RV}/\overline{\hat\sigma^2}$, and the empirical under-prediction frequency, $\frac{1}{T_{\mathrm{oos}}}\sum_{t \in \mathcal T_{\mathrm{oos}}} \mathbf{1}\{\RV_t > \hat\sigma^2_t\}$.
 \editc{orange}{E33}{Decision: to decide: compute MAE and the calibration diagnostics (the ratio $\overline{\RV}/\overline{\hat\sigma^2}$ and the under-prediction frequency) for the forecasts of Table~\ref{tab:rh_oos}, in make\_rehaul\_oos\_table.py, or drop them.\\Problem: MAE and calibration diagnostics promised here are not yet computed/reported.\\
 No generator of the paper (writeup/make\_rehaul\_*.py) computes MAE, the ratio or the under-prediction frequency. The calibration files under results/atm\_straddle\_0dte\_1530/ (recal\_grid/, recal\_2026-09-24/) come from the earlier recalibration studies, not from the current forecasts, and generated/campaign\_numbers.tex holds one MAE of an earlier campaign, which this paper does not load.}\end{itemize}

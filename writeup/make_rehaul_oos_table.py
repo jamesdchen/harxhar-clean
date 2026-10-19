@@ -511,7 +511,8 @@ def table(rows: list[dict]) -> str:
         # "volume, the number of one-minute returns, the VIX, VVIX and VIX3M, and the FOMC calendar; "
         # "Section~\\ref{sec:rh_predictors}). "
         "All features is the full predictor set of Section~\\ref{sec:rh_predictors}. "
-        "Closing-interval trees use fixed hyperparameters and are re-estimated daily "
+        # 2026-10-18 (user, new-notes 10): parked -- the trees refit every session (experiments/close_studies_export.py:75, refit_every=1). Was: "... are re-estimated daily "
+        "Closing-interval trees use fixed hyperparameters and are re-estimated every session "
         # 2026-10-15: "-- marks a forecast not estimated" parked -- no such cell after the parsimonious and
         # retail-feed rows were parked.
         "(Section~\\ref{sec:rh_exp_schemes})."

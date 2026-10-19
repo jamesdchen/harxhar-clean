@@ -10,12 +10,14 @@
 % intraday exogenous-feature comparison, not the 24-hour panel.
 % \item \textbf{The current title, abstract, introduction and conclusion describe the old 24-hour panel} and need
 %   replacing.
-\item \textbf{The results text anchors on the pooled block ridge;} re-base it on the per-bar OLS. Against that OLS, 7
-  of 111 forecasts have lower QLIKE, none significantly.
+% 2026-10-18 (user, second-list N8): parked -- the re-base is done (results anchor on the closing-interval OLS); counts now from macros, re-scoped per new-notes 26 (closing-interval tests out of the headline significance count). Was: "\item \textbf{The results text anchors on the pooled block ridge;} re-base it on the per-bar OLS. Against that OLS, 7   of 111 forecasts have lower QLIKE, none significantly."
+\item \textbf{Accuracy against the benchmark:} \rhrNLowerPool{} of the \rhrPoolN{} pooled intraday forecasts have lower QLIKE than the daily HAR benchmark, \rhrNLowerSigPool{} significantly (Diebold--Mariano, 5\% level); closing-interval tests are left out of this count (Appendix~\ref{app:rh_closing}).
 \item \textbf{Data issue to fix before final numbers:}
   \begin{itemize}
   \item the activity flags are computed after the forward fill, so the FOMC flags read 1 on all 122 trade days after
     November 2023;
+  % 2026-10-18 (user, second-list N4): rerun-needed flag.
+  \editc{orange}{S4c}{Decision: rerun needed under the causal rule (note S4a).\\Problem: this item describes the old behaviour of the printed forecasts of 6--7 October 2026 (full-sample mode, flags read after the fill). Commit b29774a (15 October 2026) sets CAUSAL\_MODE\_INFLATION and ACTIVE\_FROM\_OBSERVED in src/backtest/executor.py, so after the rerun the flags come from observed prints. The code comment counts 123 FOMC days, not 122.}
   \item VIX, volume-demand and FOMC feeds end early and are carried forward without limit into 2024.
   \end{itemize}
 \item \textbf{Missing outputs:} paired-comparison tables (axis 1, axis 2), DM against the OLS in the master table,

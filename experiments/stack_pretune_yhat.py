@@ -56,7 +56,10 @@ TOL_A = {
 
 def f_series(est: str, bucket: str) -> str:
     """The export series of arm (f): backbone 1/100 except on baseline (all backbone)."""
-    arm = "f_retune_margin" if bucket == "baseline" else "f_retune_margin_bb"
+    # 2026-10-18 (user, new-notes 24): the frozen arms (one pre-sample pick per estimator and predictor set, no re-tune; per E23):
+    # c_frozen on the HAR set (baseline), d_frozen_bb on the full / lean sets (standard grid, not the _w arms). Was:
+    #     arm = "f_retune_margin" if bucket == "baseline" else "f_retune_margin_bb"
+    arm = "c_frozen" if bucket == "baseline" else "d_frozen_bb"
     return f"linear_pretune/{est}_{bucket}_{arm}"
 
 

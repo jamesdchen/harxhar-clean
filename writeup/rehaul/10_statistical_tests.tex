@@ -37,6 +37,7 @@
 % 2026-10-15 (consolidation): parked -- lag truncation q -> q_NW (q_t is the position), autocovariance lag k -> j (k
 % is the HAR horizon), typed q = 6 / q = 14 -> \fqsDMLag / \fqsHACLag, plain-text citations -> \citep. The 1/|O|
 % divisor of hat gamma_j is unchanged (FLAG (4) below awaits the user). Old bullets:
+% 2026-10-18 (user, E13): FLAG (4) resolved -- dm_test now divides gamma_j by |O| (src/evaluation/diebold_mariano.py:67-68), matching this display.
 % \item \textbf{Newey--West variance} (Newey and West 1987), Bartlett weights, lag truncation $q$:
 %   \hat\Omega = \hat\gamma_0 + 2 \sum_{k=1}^{q} (1 - k/(q + 1)) \hat\gamma_k, \qquad
 %   \hat\gamma_k = \frac{1}{|\mathcal O|} \sum_{t=k+1}^{|\mathcal O|} (d_t - \bar d)(d_{t-k} - \bar d).
@@ -52,8 +53,10 @@
     \qquad
     \hat\gamma_j = \frac{1}{|\mathcal O|} \sum_{t=j+1}^{|\mathcal O|} (d_t - \bar d)(d_{t-j} - \bar d).
   \]
-\editc{orange}{E13}{Decision: change this display, or recompute the printed $\DM$.\\Problem: this display divides $\hat\gamma_j$ by $|\mathcal O|$, and every printed $\DM$ was computed by \texttt{dm\_test}, which divides by $|\mathcal O|-j$.\\
-The autocovariance $\hat\gamma_j$ in the display is the average of the products $(d_t-\bar d)(d_{t-j}-\bar d)$, and the divisor written in front of the sum is $|\mathcal O|$, the number of days in the comparison. There are only $|\mathcal O|-j$ such products, because the first $j$ days have no lag-$j$ partner. The function that produced the printed Diebold--Mariano statistics is \texttt{dm\_test}, and it takes those products with \texttt{np.mean}, which divides by the length of the array it is given, $|\mathcal O|-j$. The HAC $t$ on returns comes from \texttt{newey\_west\_t}, and that function divides by $|\mathcal O|$, so it matches this display. The accuracy-section $\DM$ numbers match \texttt{dm\_test}. On $\mathcal T_{\mathrm{oos}}$ the lag runs from 1 through $\rhoosDMLag$, and at each of those lags the two divisors differ.}
+% 2026-10-18 (user, E13): parked -- resolved; dm_test now divides gamma_j by |O|, matching the display; DM statistics regenerated on 2026-10-18 for the accuracy tables and macros (make_rehaul_results.py, make_rehaul_economics.py); the appendix study tables still need regenerating (note below). Was:
+% \editc{orange}{E13}{Decision: change this display, or recompute the printed $\DM$.\\Problem: this display divides $\hat\gamma_j$ by $|\mathcal O|$, and every printed $\DM$ was computed by \texttt{dm\_test}, which divides by $|\mathcal O|-j$.\\
+% The autocovariance $\hat\gamma_j$ in the display is the average of the products $(d_t-\bar d)(d_{t-j}-\bar d)$, and the divisor written in front of the sum is $|\mathcal O|$, the number of days in the comparison. There are only $|\mathcal O|-j$ such products, because the first $j$ days have no lag-$j$ partner. The function that produced the printed Diebold--Mariano statistics is \texttt{dm\_test}, and it takes those products with \texttt{np.mean}, which divides by the length of the array it is given, $|\mathcal O|-j$. The HAC $t$ on returns comes from \texttt{newey\_west\_t}, and that function divides by $|\mathcal O|$, so it matches this display. The accuracy-section $\DM$ numbers match \texttt{dm\_test}. On $\mathcal T_{\mathrm{oos}}$ the lag runs from 1 through $\rhoosDMLag$, and at each of those lags the two divisors differ.}
+\editc{orange}{E13}{Decision: regenerate the remaining $\DM$ statistics.\\Problem: \texttt{dm\_test} now divides $\hat\gamma_j$ by $|\mathcal O|$, as displayed. The accuracy tables and macros were regenerated on 2026-10-18, but the $\DM$ statistics and significance stars in the appendix tuning and study tables are read from stored study outputs computed with the old divisor $|\mathcal O|-j$, so they predate the change and must be regenerated.}
   \begin{itemize}
   \item For the Diebold--Mariano test, we set the bandwidth according to the plug-in rule $q_{\mathrm{NW}} = \lfloor 4 (|\mathcal O|/100)^{2/9} \rfloor$ (its numerical value on $\mathcal T_{\mathrm{oos}}$ is reported in Section~\ref{sec:rh_exp_setup}).
   % 2026-10-15 (user): parked -- moved to Methods with Forecast evaluation, numbers removed (the lag value now lives in
@@ -71,6 +74,7 @@ The autocovariance $\hat\gamma_j$ in the display is the average of the products 
   % 2026-10-15 (user): the 06_results.tex display (Forecast evaluation, "Long-run variance", T_oos - j divisor and
   % explicit Bartlett weights w_j) moved to Methods and was merged into this bullet; it is parked in 06_results.tex.
   % This display (1/|O|) is now the paper's only one; FLAG (4) still decides the divisor.
+  % 2026-10-18 (user, E13): FLAG (4) resolved -- dm_test now divides gamma_j by |O| (src/evaluation/diebold_mariano.py:67-68), matching this display.
 % 2026-10-15 (consolidation): FLAG (7) resolved -- newey_west_t is also applied to a single strategy's mean return
 % (Economic value, Table rh_econ_control), so the bullet is worded for any daily return series.
 \item \textbf{HAC $t$-statistic for mean daily returns.} For any daily return series $r_t$---either the return of an individual trading strategy or the return differential $\Delta_t$ between two strategies---we compute the unadjusted Newey--West $t$-statistic

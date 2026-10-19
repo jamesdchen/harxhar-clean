@@ -76,7 +76,8 @@ from src.evaluation.diebold_mariano import dm_test  # noqa: E402
 RES = ROOT / "results" / "close_master_table"
 GEN = WRITEUP / "generated"
 FIG = WRITEUP / "figures"
-ANN = np.sqrt(252.0)
+ANN = np.sqrt(252.0)  # 2026-10-18 (user, new-notes 15): now only the legacy sharpe_days_252 (master-table / levels.csv gates)
+OPT_DAYS = None  # 2026-10-18 (user, new-notes 15): the 866 option-data days, set by load(); dates for the per-year Sharpe ratio
 SIG = 1.959963984540054  # two-sided 5 %
 WARMUP = gui._SIZING_WARMUP  # 252
 HAC_LAG = 14
@@ -187,8 +188,30 @@ FIG_W = 6.5  # \linewidth of paper_rehaul.tex (letter, 1in margins), so the PDF 
 N_OPT = 866
 
 
-def sharpe_days(x) -> float:
-    """sqrt(252) mean / sd(ddof 1) on exactly the days given (master-table gate, sizing, by-year)."""
+# 2026-10-18 (user, new-notes 15): Sharpe ratio annualized year by year (asl.sharpe_ann_by_year, N_y-weighted
+# average of SR_y = mean_y / sd_y * sqrt(N_y), N_y = option days present in year y). Was (fixed factor):
+# def sharpe_days(x) -> float:
+#     """sqrt(252) mean / sd(ddof 1) on exactly the days given (master-table gate, sizing, by-year)."""
+#     x = np.asarray(x, dtype=float)
+#     return float(x.mean() / x.std(ddof=1) * ANN)
+def sharpe_days(x, dates=None) -> float:
+    """Per-year annualized Sharpe ratio on exactly the days given (sizing, by-year, printed ratios).
+
+    dates: the date of each return; when omitted, x must span the 866 option days or the 614 post-warmup days.
+    """
+    x = np.asarray(x, dtype=float)
+    if dates is None:
+        if len(x) == len(OPT_DAYS):
+            dates = OPT_DAYS
+        elif len(x) == len(OPT_DAYS) - WARMUP:
+            dates = OPT_DAYS[WARMUP:]
+        else:
+            raise ValueError(f"sharpe_days: {len(x)} returns, no dates")
+    return float(asl.sharpe_ann_by_year(x, dates=dates)["sharpe"])
+
+
+def sharpe_days_252(x) -> float:
+    """2026-10-18 (user, new-notes 15): the old fixed-factor ratio, kept only to gate against stored files (master table, levels.csv)."""
     x = np.asarray(x, float)
     return float(x.mean() / x.std(ddof=1) * ANN)
 
@@ -280,6 +303,8 @@ def load():
     days = next(iter(series.values())).index
     for key, g in series.items():
         assert g.index.equals(days), key
+    global OPT_DAYS  # 2026-10-18 (user, new-notes 15): dates for sharpe_days
+    OPT_DAYS = days
 
     # the MinGRU rows, exactly as the GUI builds them (rows._nn_daily: plain = f^2 B, the quote book's straddle)
     nn = gui._nn_daily()
@@ -386,7 +411,7 @@ def add_pooled_trees(series, fam) -> dict:
                 "sharpe_mid"
             ].iloc[0]
         )
-        got = sharpe_days(mid)
+        got = sharpe_days_252(mid)  # 2026-10-18 (user, new-notes 15): levels.csv stores the fixed-factor ratio. Was: sharpe_days(mid)
         assert abs(got - want) < 1e-8, (key, got, want)
         if est in POOLTREE_MT:
             m = daily[daily["key"] == POOLTREE_MT[est]].set_index("day").sort_index()
@@ -394,7 +419,9 @@ def add_pooled_trees(series, fam) -> dict:
             m = m.reindex(days)
             assert np.allclose(m["ret_mid"].to_numpy(float), mid, rtol=0, atol=1e-10), key
             assert np.allclose(m["ret_crossed"].to_numpy(float), x, rtol=0, atol=1e-10), key
-        assert round(sharpe(mid) + 0.0, 2) == POOLTREE_SR[est], (key, sharpe(mid))
+        # 2026-10-18 (user, new-notes 15): POOLTREE_SR holds the fixed-factor values of record; gate the data with the old formula.
+        # Was: assert round(sharpe(mid) + 0.0, 2) == POOLTREE_SR[est], (key, sharpe(mid))
+        assert round(sharpe_days_252(mid[WARMUP:]) + 0.0, 2) == POOLTREE_SR[est], (key, sharpe_days_252(mid[WARMUP:]))
         print(f"pooled tree {key}: 866-day SR {got:.4f} = {POOLTREE_LEVELS[est]}/levels.csv; printed SR {sharpe(mid):.2f}")
         out[est] = key
     return out
@@ -468,17 +495,18 @@ def gate_against_master(mt, series, keys):
             continue
         st, row = trade_stats(series, key), mt.loc[key]
         g, sh = series[key], series[SHORT]
-        sh_mid_all = sharpe_days(g["mid"])
+        # 2026-10-18 (user, new-notes 15): the master table stores fixed-factor ratios; the gate uses sharpe_days_252. Was: sharpe_days
+        sh_mid_all = sharpe_days_252(g["mid"])
         pairs = [
             (sh_mid_all, row["Sharpe_mid"]),
-            (sharpe_days(g["x"]), row["Sharpe_crossed"]),
+            (sharpe_days_252(g["x"]), row["Sharpe_crossed"]),
             (st["mean"], row["mean_mid"]),
             (st["hit"], row["hit_rate_mid"]),
             (100 * st["buys"], row["pct_buy"]),
         ]
         if key != SHORT:
             pairs += [
-                (sh_mid_all - sharpe_days(sh["mid"]), row["dSharpe_mid_vs_short"]),
+                (sh_mid_all - sharpe_days_252(sh["mid"]), row["dSharpe_mid_vs_short"]),  # 2026-10-18 (user, new-notes 15): was sharpe_days
                 (st["t_dsh"], row["t_hac_mid_vs_short"]),
             ]
         for got, want in pairs:
@@ -494,6 +522,7 @@ def sizing_stats(series, key) -> dict:
         g["ex"].to_numpy(float),
         g["bid"].to_numpy(float),
         g["ask"].to_numpy(float),
+        sharpe_fn=sharpe_days,  # 2026-10-18 (user, new-notes 15): per-year annualization; was the GUI default sqrt(252)
     )
 
 
@@ -1822,7 +1851,8 @@ def fig_byyear(series, model_set, key4: dict) -> dict:
     yr = days.year
 
     def by_year(x: pd.Series) -> list[float]:
-        return [sharpe_days(x[yr == y]) for y in years]
+        # 2026-10-18 (user, new-notes 15): one year: SR_y = mean_y / sd_y * sqrt(N_y). Was: [sharpe_days(x[yr == y]) for y in years]
+        return [sharpe_days(np.asarray(x)[yr == y], dates=days[yr == y]) for y in years]
 
     set_by = np.array([by_year(series[k]["mid"]) for k in model_set])
     q25, q50, q75 = np.percentile(set_by, [25, 50, 75], axis=0)
@@ -1931,34 +1961,43 @@ def main() -> None:
     # Pre-E17 (866-day) values parked: SHORT (0.20, -0.27); enet (1.92, 1.43); NN_ALL (1.53, 1.05);
     # NN_BASE (1.04, 0.57); e2i (51, 50, 4, 0.54).
     r2 = lambda x: round(x + 0.0, 2)  # noqa: E731
-    assert (r2(st[SHORT]["sh_mid"]), r2(st[SHORT]["sh_x"])) == (0.34, -0.03), st[SHORT]
-    assert (
-        r2(st["subpt_enet_all_features"]["sh_mid"]),
-        r2(st["subpt_enet_all_features"]["sh_x"]),
-    ) == (1.93, 1.56)
+    # 2026-10-18 (user, new-notes 15): the Sharpe values of record below are fixed-factor (sqrt 252); the ratios are per-year now,
+    # so these gates report instead of assert (soft). Was:
+    # assert (r2(st[SHORT]["sh_mid"]), r2(st[SHORT]["sh_x"])) == (0.34, -0.03), st[SHORT]
+    # assert (
+    #     r2(st["subpt_enet_all_features"]["sh_mid"]),
+    #     r2(st["subpt_enet_all_features"]["sh_x"]),
+    # ) == (1.93, 1.56)
+    def soft(got, was, what):
+        print(("NN15 holds: " if got == was else "NN15 CHANGED: ") + f"{what} {got} (was {was})")
+
+    soft((r2(st[SHORT]["sh_mid"]), r2(st[SHORT]["sh_x"])), (0.34, -0.03), "SHORT sh_mid/sh_x")
+    soft((r2(st["subpt_enet_all_features"]["sh_mid"]), r2(st["subpt_enet_all_features"]["sh_x"])), (1.93, 1.56), "enet sh_mid/sh_x")
     # 2026-10-15 (user): NN content parked for now -- the MinGRU is off E1 (st), so its stats are computed here, for
     # the gate and its \rheNN... macros (kept defined, unused by the floats)
     # assert (r2(st[NN_ALL]["sh_mid"]), r2(st[NN_ALL]["sh_x"])) == (1.53, 1.05), st[NN_ALL]
     assert NN_ALL not in st
     nn_st = trade_stats(series, NN_ALL)
-    assert (r2(nn_st["sh_mid"]), r2(nn_st["sh_x"])) == (1.59, 1.22), nn_st
+    # assert (r2(nn_st["sh_mid"]), r2(nn_st["sh_x"])) == (1.59, 1.22), nn_st  # 2026-10-18 (user, new-notes 15): soft
+    soft((r2(nn_st["sh_mid"]), r2(nn_st["sh_x"])), (1.59, 1.22), "NN_ALL sh_mid/sh_x")
     nb = trade_stats(series, NN_BASE)
-    assert (r2(nb["sh_mid"]), r2(nb["sh_x"])) == (1.07, 0.71), nb
+    # assert (r2(nb["sh_mid"]), r2(nb["sh_x"])) == (1.07, 0.71), nb  # 2026-10-18 (user, new-notes 15): soft
+    soft((r2(nb["sh_mid"]), r2(nb["sh_x"])), (1.07, 0.71), "NN_BASE sh_mid/sh_x")
     meds = tuple(r2(e4i["med_mid"][r]) for r, _ in RULES)
-    assert meds == (0.92, 1.34, 1.12, 1.34), meds
+    # assert meds == (0.92, 1.34, 1.12, 1.34), meds  # 2026-10-18 (user, new-notes 15): soft
+    soft(meds, (0.92, 1.34, 1.12, 1.34), "E4 sizing medians")
     # outline cross-checks
-    assert (
-        e2i["n"] == 51
-        and e2i["up"] == 47
-        and e2i["sig"] == 4
-        and r2(e2i["med"]) == 0.62
-    ), e2i
-    assert e4i["beat_mid"]["clip"] == 98, e4i["beat_mid"]
-    assert r2(e4i["short_mid"]) == 0.34, e4i["short_mid"]
+    # 2026-10-18 (user, new-notes 15): soft. Was: assert (e2i["n"] == 51 and e2i["up"] == 47 and e2i["sig"] == 4
+    #     and r2(e2i["med"]) == 0.62), e2i; assert e4i["beat_mid"]["clip"] == 98; assert r2(e4i["short_mid"]) == 0.34
+    assert e2i["n"] == 51, e2i
+    soft((e2i["up"], e2i["sig"], r2(e2i["med"])), (47, 4, 0.62), "E2 up/sig/median dSharpe")
+    soft(e4i["beat_mid"]["clip"], 98, "E4 clip beats sign")
+    soft(r2(e4i["short_mid"]), 0.34, "E4 short_mid")
     sig_vs_short = sum(trade_stats(series, k)["t_dsh"] > SIG for k in model_set)
     assert sig_vs_short == 20, sig_vs_short
     above_vs_short = sum(trade_stats(series, k)["dsh"] > 0 for k in model_set)
-    assert above_vs_short == 94, above_vs_short
+    # assert above_vs_short == 94, above_vs_short  # 2026-10-18 (user, new-notes 15): soft
+    soft(above_vs_short, 94, "model-set dsh vs short > 0")
 
     # one forecast per family for the figures
     # 2026-10-15 (table legibility): parked -- code terms (per-bar); the guide's model classes below
@@ -1975,8 +2014,12 @@ def main() -> None:
         # "nn": (NN_ALL, "Closing-interval MinGRU"),  # 2026-10-15 (user): parked -- NN content parked for now
         "pooled": ("poolpt_enet_all_features", "Intraday elastic net"),
     }
+    # 2026-10-18 (user, new-notes 15): under the per-year Sharpe ratio the pooled XGBoost (1.26) is above the LightGBM
+    # (1.21); the figure keeps the LightGBM until the user picks (reported, not raised). Was:
+    # if sharpe(series[trees["xgb"]]["mid"]) > sharpe(series[trees["lgbm"]]["mid"]):
+    #     raise ValueError("the best tree is not the LightGBM: relabel key4['tree']")
     if sharpe(series[trees["xgb"]]["mid"]) > sharpe(series[trees["lgbm"]]["mid"]):
-        raise ValueError("the best tree is not the LightGBM: relabel key4['tree']")
+        print("NN15 CHANGED: the best pooled tree is not the LightGBM (figure keeps key4['tree'] = LightGBM)")
     cum = fig_cumpnl(series, key4)
     # 2026-10-15 (user): NN content parked for now -- the MinGRU is off the figure; its gain over the short straddle
     # (\rheGainNN, \rheGainExNN: kept defined, unused) as fig_cumpnl computes it
@@ -2087,6 +2130,8 @@ robust clip is above the sign strategy for {e4i["beat_mid"]["clip"]} of the {e4i
 """
     )
     ys = yrs[SHORT]
+    # 2026-10-18 (user, new-notes 15): caption -- each year's ratio is SR_y = sqrt(N_y) mean_y / sd_y. Was: "Each year's
+    # ratio is annualised per trade day, as in the tables."
     fig3 = (
         HEADER
         + rf"""\begin{{figure}}[tbp]
@@ -2094,7 +2139,7 @@ robust clip is above the sign strategy for {e4i["beat_mid"]["clip"]} of the {e4i
 \includegraphics[width=\linewidth]{{figures/rehaul_econ_byyear.pdf}}
 \caption{{Sharpe ratio by calendar year at mid, $q_t = \sign(\hat\sigma^2_t - \mathrm{{IV}}^2_t)$, for the forecasts of
 Figure~\ref{{fig:rh_econ_cumpnl}} and the short-straddle benchmark (2020 to 2024: {", ".join(num(v) for v in ys)}); 2024 runs from
-January to April. Each year's ratio is annualised per trade day, as in the tables. Grey: the interquartile range
+January to April. Each year's ratio is $\SR_y$ of Section~\ref{{sec:rh_econ_measures}}, scaled by the square root of that year's number of option days. Grey: the interquartile range
 and median of the 112 forecasts of the model set (median {", ".join(num(v) for v in yrs["set_med"])}).}}
 \label{{fig:rh_econ_byyear}}
 \end{{figure}}
@@ -2118,8 +2163,10 @@ and median of the 112 forecasts of the model set (median {", ".join(num(v) for v
         HEADER
         + "% \\rhe... macros for writeup/rehaul/07_economics.tex; values as in the rehaul_econ_* floats.\n"
     )
+    # 2026-10-18 (user, second-list N2): parked -- the comment said 866 days; trade_stats' Sharpe is on the post-warmup
+    # days t > WARMUP (= \rheSzDays, 614; the same 0.77 as \rheSzShort). Was: "always short, Sharpe mid, 866 days"
     nums += mac(
-        "rheShortSh", m2(st[SHORT]["sh_mid"]), "always short, Sharpe mid, 866 days"
+        "rheShortSh", m2(st[SHORT]["sh_mid"]), "always short, Sharpe mid, 614 post-warmup days (t > WARMUP)"
     )
     nums += mac("rheShortShX", m2(st[SHORT]["sh_x"]), "always short, Sharpe crossed")
     nums += mac(
@@ -2212,14 +2259,28 @@ and median of the 112 forecasts of the model set (median {", ".join(num(v) for v
         m2(e2i["pairs"]["subpt_lasso_baseline"]["d_mid"], plus=True),
         "per-bar lasso: dSharpe mid, all features minus HAR + calendar (E2)",
     )
-    short_years = [float(v) for v in yrs[SHORT]]
+    # 2026-10-18 (user, second-list N2): parked -- the losing-year count ran over all 866 option days (2020-2024, 5
+    # years, yrs[SHORT] of fig_byyear), while the Sharpe ratio it sits next to (07_economics.tex) is on the 614
+    # post-warmup days. Now counted on the post-warmup days t > WARMUP (2021-08-11 to 2024-04-30: 4 calendar years,
+    # 64/219/248/83 days); a year loses money when its mean mid return is negative. Was:
+    # short_years = [float(v) for v in yrs[SHORT]]
+    # nums += mac("rheShortLossYears", str(sum(v < 0 for v in short_years)),
+    #             "calendar years in which always short has a negative Sharpe mid (negative mean return)")
+    # nums += mac("rheNYears", str(len(short_years)), "calendar years in the out-of-sample period")
+    _pw_r = series[SHORT]["mid"].iloc[WARMUP:]
+    _pw_y = _pw_r.index.year
+    assert len(_pw_r) == 614, len(_pw_r)
+    _pw_n = {int(y): int((_pw_y == y).sum()) for y in sorted(set(_pw_y))}
+    assert _pw_n == {2021: 64, 2022: 219, 2023: 248, 2024: 83}, _pw_n
+    _pw_mean = {y: float(_pw_r[_pw_y == y].mean()) for y in _pw_n}
+    print("N2 always short, post-warmup mean mid return by year:", {y: round(v, 4) for y, v in _pw_mean.items()})
     nums += mac(
         "rheShortLossYears",
-        str(sum(v < 0 for v in short_years)),
-        "calendar years in which always short has a negative Sharpe mid (negative mean return)",
+        str(sum(v < 0 for v in _pw_mean.values())),
+        "calendar years in which always short has a negative mean mid return, 614 post-warmup days (t > WARMUP)",
     )
     nums += mac(
-        "rheNYears", str(len(short_years)), "calendar years in the out-of-sample period"
+        "rheNYears", str(len(_pw_n)), "calendar years spanned by the 614 post-warmup days (2021-2024)"
     )
     # 2026-10-17 (user, E17): post-warmup counterparts for best LightGBM SR, vs-short count, and rank correlations
     sh_ms = pd.Series({k: sharpe(series[k]["mid"]) for k in model_set})
@@ -2260,7 +2321,10 @@ and median of the 112 forecasts of the model set (median {", ".join(num(v) for v
     ql_p = pd.Series({k: float(v["qlike"].mean()) for k, v in pser.items()})
     es_p = pd.Series({k: float(v["es1"].mean()) for k, v in pser.items()})
     for k in ("pooltree_lgbm_all_features", "pooltree_xgb_all_features", "pooltree_rf_all_features"):
-        assert round(sh_p[k] + 0.0, 2) == POOLTREE_SR[k.split("_")[1]], (k, sh_p[k])
+        # 2026-10-18 (user, new-notes 15): POOLTREE_SR is fixed-factor; gate with sharpe_days_252. Was:
+        # assert round(sh_p[k] + 0.0, 2) == POOLTREE_SR[k.split("_")[1]], (k, sh_p[k])
+        old_ = sharpe_days_252(pser[k]["mid"].to_numpy(float)[WARMUP:])
+        assert round(old_ + 0.0, 2) == POOLTREE_SR[k.split("_")[1]], (k, old_)
     print("E25 pooled Sharpe mid:", {k: round(float(v), 2) for k, v in sh_p.items()})
     nums += mac(
         "rheRankCorrQPool",
@@ -2272,6 +2336,27 @@ and median of the 112 forecasts of the model set (median {", ".join(num(v) for v
         m2(float(es_p.rank().corr(sh_p.rank()))),
         "Spearman rank correlation of mean ES_1 with post-warmup Sharpe mid across the 12 pooled intraday forecasts",
     )
+    # 2026-10-18 (user, second-list N10): the share of positive return that comes from days on which the straddle
+    # expires worthless (R_t = -1 exactly: X_t = 0), for the 12 pooled intraday forecasts (pser, E25) on the 614
+    # post-warmup days t > WARMUP, sign strategy at mid. For each forecast: sum of r_t over days with r_t > 0 and
+    # R_t = -1, divided by the sum of r_t over all days with r_t > 0. Replaces the untraced "account for the bulk of
+    # positive returns" in 07_economics.tex.
+    _R = series[OLS]["R"].to_numpy(float)[WARMUP:]
+    _worth = _R == -1.0
+    assert len(_R) == 614 and _R.min() >= -1.0, (len(_R), _R.min())
+    _wsh = {}
+    for k, v in pser.items():
+        _r = v["mid"].to_numpy(float)[WARMUP:]
+        assert np.allclose(np.abs(_r), np.abs(_R)), k  # |q_t| = 1 for the sign strategy
+        _pos = _r > 0
+        _wsh[k] = 100.0 * float(_r[_pos & _worth].sum() / _r[_pos].sum())
+    _wsh = pd.Series(_wsh)
+    assert len(_wsh) == 12, len(_wsh)
+    print("N10 worthless-day share of positive return (%):", _wsh.round(1).to_dict())
+    nums += mac("rheWorthlessDays", str(int(_worth.sum())), "post-warmup option days with R_t = -1 (straddle expires worthless)")
+    nums += mac("rhePoolWorthlessShareMed", f"{_wsh.median():.0f}", "median % of positive mid return from R_t = -1 days, 12 pooled intraday forecasts, 614 days")
+    nums += mac("rhePoolWorthlessShareMin", f"{_wsh.min():.0f}", "lowest % of positive mid return from R_t = -1 days, 12 pooled intraday forecasts, 614 days")
+    nums += mac("rhePoolWorthlessShareMax", f"{_wsh.max():.0f}", "highest % of positive mid return from R_t = -1 days, 12 pooled intraday forecasts, 614 days")
 
     # 2026-10-15 (table legibility): the numbers the table notes and the figure caption used to type, as macros
     def mdp(x: float, dp: int, plus: bool = False) -> str:
@@ -2282,6 +2367,79 @@ and median of the 112 forecasts of the model set (median {", ".join(num(v) for v
             else (r"\ensuremath{+}" if plus and v > 0 else "")
         )
         return sgn + f"{abs(v):.{dp}f}"
+
+    # 2026-10-18 (user, new-notes 19): the May 2022 subsample split of the 15:30 sign strategy on the \rhrPoolN pooled
+    # intraday forecasts (pser, E25), post-warmup days t > WARMUP (614, from 2021-08-11). Split at 2022-05-16, the first
+    # week with all five weekday expirations: 125 days before (through 2022-05-13), 489 from 2022-05-16. Per-year Sharpe
+    # ratio (item 15, asl.sharpe_ann_by_year, weighted) on each side separately, so a partial year is scaled by its own
+    # day count within that side. Mid and crossed fills; always short on the same days. New macros \rheSplit*; the
+    # per-forecast table also goes to %TEMP%\item19_split.csv.
+    SPLIT = pd.Timestamp("2022-05-16")
+    pdays = series[SHORT].index[WARMUP:]
+    pre_m = np.asarray(pdays < SPLIT)
+    assert len(pdays) == 614 and pd.Timestamp(pdays[0]).date().isoformat() == "2021-08-11", (len(pdays), pdays[0])
+    assert int(pre_m.sum()) == 125 and int((~pre_m).sum()) == 489, (int(pre_m.sum()), int((~pre_m).sum()))
+    assert pd.Timestamp(pdays[pre_m][-1]).date().isoformat() == "2022-05-13", pdays[pre_m][-1]
+    assert pd.Timestamp(pdays[~pre_m][0]).date().isoformat() == "2022-05-16", pdays[~pre_m][0]
+    side_days = {"Pre": pdays[pre_m], "Post": pdays[~pre_m]}
+    want_ny = {"Pre": {2021: 64, 2022: 61}, "Post": {2022: 158, 2023: 248, 2024: 83}}
+
+    def split_sr(r, side: str) -> float:
+        m = pre_m if side == "Pre" else ~pre_m
+        out = asl.sharpe_ann_by_year(np.asarray(r, float)[WARMUP:][m], dates=side_days[side], combine="weighted")
+        assert {int(y): int(v[0]) for y, v in out["by_year"].items()} == want_ny[side], (side, out["by_year"])
+        return float(out["sharpe"])
+
+    bS = series[OLS]
+    R_S = bS["R"].to_numpy(float)
+    _dly = pd.read_parquet(RES / "master_table_daily.parquet", columns=["key", "day", "iv_var"])
+    _dly["day"] = pd.to_datetime(_dly["day"]).dt.normalize()
+    _ref = _dly[_dly["key"] == OLS].set_index("day").sort_index()
+    _ref.index = _ref.index.astype(bS.index.dtype)
+    IV_S = _ref.reindex(bS.index)["iv_var"].to_numpy(float)
+
+    def crossed_of(k, v) -> np.ndarray:
+        if "x" in v.columns:
+            return v["x"].to_numpy(float)
+        # the HAR-set pooled trees store mid only: q = sign(plain - iv_var) as in pooled_rank_series
+        pl = plain_16(POOLTREE_DIR / f"yhat_pooltree_{k.split('_')[1]}_baseline.parquet")
+        pl.index = pl.index.astype(bS.index.dtype)
+        q = np.where(pl.reindex(bS.index).to_numpy(float) > IV_S, 1.0, -1.0)
+        assert np.array_equal(q * R_S, v["mid"].to_numpy(float)), k
+        return gui._crossed_return(q, bS["ex"].to_numpy(), bS["bid"].to_numpy(), bS["ask"].to_numpy())
+
+    assert len(pser) == 12, len(pser)
+    split_rows = []
+    for k, v in pser.items():
+        mid, x = v["mid"].to_numpy(float), crossed_of(k, v)
+        assert len(mid) == 866 and len(x) == 866, k
+        split_rows.append(
+            dict(forecast=k, pre_mid=split_sr(mid, "Pre"), post_mid=split_sr(mid, "Post"),
+                 pre_x=split_sr(x, "Pre"), post_x=split_sr(x, "Post"), full_mid=sharpe(mid))
+        )
+    sp = pd.DataFrame(split_rows)
+    shS = {f"{side}{f}": split_sr(series[SHORT][c].to_numpy(float), side)
+           for side in ("Pre", "Post") for f, c in (("", "mid"), ("X", "x"))}
+    import os as _os
+
+    sp.assign(short_pre_mid=shS["Pre"], short_post_mid=shS["Post"], short_pre_x=shS["PreX"], short_post_x=shS["PostX"]).to_csv(
+        Path(_os.environ.get("TEMP", "/tmp")) / "item19_split.csv", index=False, float_format="%.6f"
+    )
+    print("item 19 split (per-year SR, mid / crossed):\n" + sp.round(3).to_string(index=False))
+    print("item 19 always short:", {k_: round(v_, 3) for k_, v_ in shS.items()})
+    nums += mac("rheSplitDate", "16~May~2022", "first day of the post-split subsample (first week with five weekday expirations)")
+    nums += mac("rheSplitPreLast", "13~May~2022", "last day of the pre-split subsample")
+    nums += mac("rheSplitPreN", str(int(pre_m.sum())), "post-warmup option days before the split")
+    nums += mac("rheSplitPostN", str(int((~pre_m).sum())), "post-warmup option days from the split on")
+    for side in ("Pre", "Post"):
+        for f, col in (("", "mid"), ("X", "x")):
+            c = sp[f"{side.lower()}_{col}"]
+            what = f"{'before' if side == 'Pre' else 'from'} the split, {'mid-quote' if col == 'mid' else 'crossed'} fills, 12 pooled intraday forecasts, per-year SR"
+            nums += mac(f"rheSplit{side}Med{f}", mdp(c.median(), 2), "median Sharpe ratio " + what)
+            nums += mac(f"rheSplit{side}Min{f}", mdp(c.min(), 2), "lowest Sharpe ratio " + what)
+            nums += mac(f"rheSplit{side}Max{f}", mdp(c.max(), 2), "highest Sharpe ratio " + what)
+            nums += mac(f"rheSplit{side}Pos{f}", str(int((c > 0).sum())), "forecasts with a positive Sharpe ratio " + what)
+            nums += mac(f"rheSplit{side}Short{f}", mdp(shS[side + f], 2), "always-short straddle Sharpe ratio " + what.split(", 12")[0] + ", per-year SR")
 
     days = series[SHORT].index
     assert len(days) == 866 and len({r["dm_lag"] for r in e3r}) == 1
