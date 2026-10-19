@@ -675,7 +675,8 @@ def cached_backtest(a, fit_predict, out_csv: Path) -> None:
     assert meta.get("rerun", False) == RERUN, (meta.get("rerun"), RERUN)
     # the whole matrix in memory, in the pipeline's layout, and the chunk a VIEW of it, as _backtest_and_save
     # slices it (a C-ordered copy is not bit-identical to the spec's path)
-    X = np.load(dz / "X.npy")
+    # --rerun: memory-mapped (the same bytes and layout; the concurrent walks share one page-cache copy)
+    X = np.load(dz / "X.npy", mmap_mode="r" if RERUN else None)
     assert bool(X.flags.f_contiguous) == meta["f_order"], X.flags
     y = np.load(dz / "y.npy")
     b_oos = np.load(dz / "b_oos.npy")
@@ -893,7 +894,9 @@ def pretune(a) -> None:
         assert meta.get("rerun", False) == RERUN, (meta.get("rerun"), RERUN)
         sl = slice(a.start - a.halo, a.start + 1)
         fit_predict(
-            np.load(dz / "X.npy")[sl],  # a view, as in the pipeline
+            np.load(dz / "X.npy", mmap_mode="r" if RERUN else None)[
+                sl
+            ],  # a view, as in the pipeline (--rerun: memory-mapped)
             np.load(dz / "y.npy")[sl],
             W,
             dict(meta["hp"], _feature_names=list(meta["names"])),
