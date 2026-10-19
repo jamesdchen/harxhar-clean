@@ -210,7 +210,7 @@ def st_select(a) -> None:
                         },
                         mse_mean=float(crit[j]),
                         picked=j == k,
-                        edge=k in (0, len(grid) - 1),
+                        picked_at_grid_end=k in (0, len(grid) - 1),
                     )
                 )
     frozen["ols"] = {"baseline": None}
