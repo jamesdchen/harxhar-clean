@@ -1,0 +1,7 @@
+rerun48 walk baseline ols 1.0 results/pooled_linear_rerun_2026-10-19_48/sched/ols_baseline.json 246000 -1 96000 results/pooled_linear_rerun_2026-10-19_48/_work/design_baseline
+rerun48 walk baseline ridge 1.0 results/pooled_linear_rerun_2026-10-19_48/sched/ridge_baseline.json 246000 -1 96000 results/pooled_linear_rerun_2026-10-19_48/_work/design_baseline
+rerun48 walk all_features ridge 0.01 results/pooled_linear_rerun_2026-10-19_48/sched/ridge_all_features.json 246000 -1 96000 results/pooled_linear_rerun_2026-10-19_48/_work/design_all_features
+rerun48 walk baseline reclasso 1.0 results/pooled_linear_rerun_2026-10-19_48/sched/reclasso_baseline.json 246000 -1 96000 results/pooled_linear_rerun_2026-10-19_48/_work/design_baseline
+rerun48 walk all_features reclasso 0.01 results/pooled_linear_rerun_2026-10-19_48/sched/reclasso_all_features.json 246000 -1 96000 results/pooled_linear_rerun_2026-10-19_48/_work/design_all_features
+rerun48 walk baseline reclasticnet 1.0 results/pooled_linear_rerun_2026-10-19_48/sched/reclasticnet_baseline.json 246000 -1 96000 results/pooled_linear_rerun_2026-10-19_48/_work/design_baseline
+rerun48 walk all_features reclasticnet 0.01 results/pooled_linear_rerun_2026-10-19_48/sched/reclasticnet_all_features.json 246000 -1 96000 results/pooled_linear_rerun_2026-10-19_48/_work/design_all_features
