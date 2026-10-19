@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Debian) (preloaded format=pdflatex 2026.10.19)  19 OCT 2026 21:55
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Debian) (preloaded format=pdflatex 2026.10.19)  19 OCT 2026 22:59
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -624,9 +624,9 @@ LaTeX Font Info:    External font `lmex10' loaded for size
 LaTeX Font Info:    External font `lmex10' loaded for size
 (Font)              <5> on input line 117.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <10.95> on input line 134.
+(Font)              <10.95> on input line 137.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <9> on input line 139.
+(Font)              <9> on input line 142.
 
 (./rehaul/01_introduction.tex
 LaTeX Font Info:    Trying to load font information for TS1+lmr on input line 2
@@ -643,7 +643,7 @@ athsy.enc}] [2{/usr/share/texmf/fonts/enc/dvips/lm/lm-ts1.enc}])
 (./rehaul/02_related_work.tex [3]) (./rehaul/03_data.tex [4{/usr/share/texmf/fo
 nts/enc/dvips/lm/lm-mathex.enc}]
 LaTeX Font Info:    Trying to load font information for T1+lmtt on input line 6
-7.
+8.
  (/usr/share/texmf/tex/latex/lm/t1lmtt.fd
 File: t1lmtt.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
@@ -659,9 +659,9 @@ File: t1lmtt.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 
 ] [27] [28] [29])
 (./rehaul/10_appendix.tex [30] [31] [32] [33] [34] [35] [36] [37] [38] [39]
-(./generated/rehaul_results_oos_last30.tex) [40] [41])
+(./generated/rehaul_results_oos_last30.tex) [40])
 (./rehaul/10_appendix_floats.tex (./generated/rehaul_dm_samples.tex)
-(./generated/rehaul_dm_hyper.tex) [42] [43]
+(./generated/rehaul_dm_hyper.tex) [41] [42] [43]
 (./generated/rehaul_dm_dictionary.tex [44
 
 
@@ -684,7 +684,7 @@ Here is how much of TeX's memory you used:
  37318 multiletter control sequences out of 15000+600000
  680575 words of font info for 129 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 75i,17n,79p,1648b,817s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 75i,17n,79p,1714b,817s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/share/texmf/fonts/type1/public/lm/lmbx10.pfb></usr/share/texmf/fonts/ty
 pe1/public/lm/lmbx12.pfb></usr/share/texmf/fonts/type1/public/lm/lmbx9.pfb></us
 r/share/texmf/fonts/type1/public/lm/lmex10.pfb></usr/share/texmf/fonts/type1/pu
@@ -703,10 +703,10 @@ ts/type1/public/lm/lmsy6.pfb></usr/share/texmf/fonts/type1/public/lm/lmsy7.pfb>
 /public/lm/lmsy9.pfb></usr/share/texmf/fonts/type1/public/lm/lmtt10.pfb></usr/s
 hare/texmf/fonts/type1/public/lm/lmtt9.pfb></usr/share/texlive/texmf-dist/fonts
 /type1/public/amsfonts/symbols/msbm10.pfb>
-Output written on paper_rehaul.pdf (50 pages, 705477 bytes).
+Output written on paper_rehaul.pdf (50 pages, 704784 bytes).
 PDF statistics:
- 1068 PDF objects out of 1200 (max. 8388607)
- 945 compressed objects within 10 object streams
+ 1070 PDF objects out of 1200 (max. 8388607)
+ 947 compressed objects within 10 object streams
  168 named destinations out of 1000 (max. 500000)
  305 words of extra memory for PDF output out of 10000 (max. 10000000)
 

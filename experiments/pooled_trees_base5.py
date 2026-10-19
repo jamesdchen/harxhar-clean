@@ -9,7 +9,10 @@ were fitted on the base-2 panel (src/unification.py HAR_BASE = 2: prep_cache_all
             their current defaults: CAUSAL_MODE_INFLATION, CAUSAL_NEUTRAL_FILL, CAUSAL_GUARD_MODE, the 2026-10-15 data
             fixes = panel v2), HAR ladder base 5 = the production ladder {1, 5, 25, 125, 625, 3125} (k in samples of
             the full 48-interval grid, overnight included);
-  * series  every all_features series except the FOMC group (bucket ``all_features_nofomc``, registered here only);
+  * series  every all_features series, the FOMC group included (author decision 2026-10-19; data fix 3c,
+            FOMC_CALENDAR_FIX, on).  2026-10-19 (user): parked -- "every all_features series except the FOMC group
+            (bucket ``all_features_nofomc``, registered here only)": the exclusion was an artifact of the base-2
+            panel predating the FOMC columns;
   * E6      the trailing averages of the activity indicators (``<series>_active_ma_<k>``) are dropped;
   * E9      the calendar stops at the overnight indicator: DOW_0 .. DOW_4, hour, is_overnight are kept; is_open,
             is_close, the expiry / month / quarter columns and the HAR x open / close products are dropped.  On the
@@ -62,7 +65,8 @@ for _p in (ROOT, ROOT / "experiments"):
         sys.path.insert(0, str(_p))
 
 DATE = "2026-10-19"
-BUCKET = "all_features_nofomc"
+# 2026-10-19 (user): parked -- BUCKET = "all_features_nofomc" (FOMC now in the pooled model)
+BUCKET = "all_features"
 WINDOW = 24_000
 SPAN = ("2020-01-03", "2024-04-30")
 SETS = ("baseline", "lean_vol_vix", "all_features")
@@ -106,7 +110,9 @@ def full_panel():
     _load_panel's row discipline: loader rows after the RV dropna, from row BURNIN_ROWS on)."""
     from src.data import loading as LD
 
-    LD.SUBGROUPS[BUCKET] = [f for f in LD.SUBGROUPS["all_features"] if f not in LD.FOMC_FEATURES]
+    # 2026-10-19 (user): parked -- the FOMC-free bucket. Was:
+    # LD.SUBGROUPS[BUCKET] = [f for f in LD.SUBGROUPS["all_features"] if f not in LD.FOMC_FEATURES]
+    assert LD.FOMC_CALENDAR_FIX, "data fix 3c (FOMC_CALENDAR_FIX) must be on"
     import run_geometry_local as R
     from src.features.extractors.har import resolve_har_lags
 

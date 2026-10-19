@@ -24,8 +24,9 @@
 \item \textbf{Data sources.}
   We group the exogenous covariates into eight distinct categories.
   % 2026-10-17 (user): parked -- closing-interval material (moved to Appendix app:rh_closing_sample). Was: "Specifically, the closing-interval specifications incorporate all \rhfiNExog{} exogenous series, whereas the pooled intraday specifications employ the"
+  % 2026-10-19 (user): parked -- the pooled model includes the FOMC series (author decision). Was: "Specifically, the pooled intraday specifications employ the \rhdmNSeriesPooled{} series across all categories except the FOMC group."
   Specifically, the pooled intraday specifications employ
-  the \rhdmNSeriesPooled{} series across all categories except the FOMC group. A complete list and definition of
+  the \rhdmNSeriesPooled{} series across all categories, the FOMC group included. A complete list and definition of
   each individual series is provided in Appendix Table~\ref{tab:rh_dm_dictionary}.
   % 2026-10-17 (user, E5/E2): bucket wording from data_explainer_v11 (front month, one-minute log-price
   % change, constituent 5-minute moments, turnover, spreads, StockTwits, volatility demand). The vendor,
@@ -144,7 +145,8 @@ Question for the professor: what is the formula of the score between the endpoin
     all exchange-traded options—with two transaction subsets, namely all opening and closing customer trades
     versus opening customer trades only.
   % 2026-10-17 (user): parked -- closing-interval material. Was: "(\bkSizeFomc{} series, included in closing-interval specifications only)"
-  \item \textbf{FOMC} (\bkSizeFomc{} series, not in the pooled intraday model; used by the closing-interval specifications of Appendix~\ref{app:rh_closing}). Based on
+  % 2026-10-19 (user): parked -- the pooled model includes the FOMC series (author decision). Was: "(\bkSizeFomc{} series, not in the pooled intraday model; used by the closing-interval specifications of Appendix~\ref{app:rh_closing})"
+  \item \textbf{FOMC} (\bkSizeFomc{} series; used by the pooled intraday model and by the closing-interval specifications of Appendix~\ref{app:rh_closing}). Based on
     scheduled Federal Open Market Committee announcement timestamps from 1993 through November 2023, we define
     four series: an indicator for whether an announcement occurs during interval $(t,i)$, an indicator for
     whether an announcement occurs on day $t$, and two proximity measures $1/(1+n^{+}_{t,i})$ and

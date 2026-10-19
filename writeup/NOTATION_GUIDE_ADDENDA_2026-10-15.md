@@ -38,8 +38,9 @@ Column names come in five patterns. `S` is the series symbol from table A.2, `k`
   subscript takes $t$ inside it: $\mathrm{TO}^{\mathrm{EW},(5)}_{\mathrm{buy},t}$,
   $\mathrm{VD}^{\mathrm{SPX},(125)}_{\mathrm{O},t}$. The A.1 and A.2 examples omit $_t$ for brevity;
   `column_tex(c)` (A.4) adds it, and `column_tex(c, t=False)` leaves it off.
-- **Horizons:** $k \in \{1, 5, 25, 125, 625, 3125\}$ intervals in the closing-interval design; $k \in \{1, 2, 4, \dots,
-  2048\}$ intervals in the pooled panel. One trading day has 48 intervals.
+- **Horizons:** $k \in \{1, 5, 25, 125, 625, 3125\}$ intervals in the closing-interval design and in the pooled panel.
+  One trading day has 48 intervals. (2026-10-19 (user): parked -- base 5 across the paper. Was: "$k \in \{1, 2, 4,
+  \dots, 2048\}$ intervals in the pooled panel.")
 - **Agrees with the finished Predictors and Data sections** (04_features.tex header and lines 52-57; 03_data.tex
   header and lines 16-41): indicator averages $\bar a^{(k)}_t(u)$, $\bar\chi^{(k)}_t(u)$; $\mathrm{BV}$,
   $\mathrm{AC}$, $\mathrm{OFI}^{\mathrm{EW/VW}}$, EW/VW superscripts; one-minute count $N_{t,i}$.
@@ -60,9 +61,15 @@ Column names come in five patterns. `S` is the series symbol from table A.2, `k`
 > The figures (matplotlib) keep the symbols either way. Section A.1's rule "never typeset a code name" is suspended
 > while the switch is on.
 
-Every series below is in the 16:00 design (628 columns). The pooled panel (1,144 columns) has the 43 series without
-the four FOMC ones. The activity column (`_active`) exists for the seven series marked "yes" in the design, and for
-the five non-FOMC ones among them in the pooled panel.
+Every series below is in the 16:00 design (628 columns) and in the base-5 pooled panel (634 columns, FOMC included;
+`results/pooled_trees_base5_2026-10-19_48/panel_full.json`). The activity column (`_active`) exists for the seven
+series marked "yes" in the design; in the pooled panel, built under the causal mode rule (note S4a), it exists for
+`numobs`, the three StockTwits series, `fomc_release` and `fomc_day`.
+
+> 2026-10-19 (user): parked -- base 5 across the paper, and the pooled model includes the FOMC series (author
+> decision). Was: "The pooled panel (1,144 columns) has the 43 series without the four FOMC ones. The activity column
+> (`_active`) exists for the seven series marked "yes" in the design, and for the five non-FOMC ones among them in
+> the pooled panel." The FOMC group row of the table below was "*FOMC calendar (4; 16:00 design only)*".
 
 | Code name | Symbol (LaTeX) | Words (first use) | Source of the convention | Activity col. |
 |---|---|---|---|---|
@@ -116,7 +123,7 @@ the five non-FOMC ones among them in the pooled panel.
 | `voldemand_spx_open_only` | `\mathrm{VD}^{\mathrm{SPX}}_{\mathrm{O}}` | net volatility demand in SPX options, opening trades only | Ni, Pan and Poteshman (2008) | **yes** |
 | `voldemand_all_open_and_close` | `\mathrm{VD}^{\mathrm{All}}_{\mathrm{OC}}` | net volatility demand in all index options, opening and closing trades | Ni, Pan and Poteshman (2008) | **yes** |
 | `voldemand_all_open_only` | `\mathrm{VD}^{\mathrm{All}}_{\mathrm{O}}` | net volatility demand in all index options, opening trades only | Ni, Pan and Poteshman (2008) | **yes** |
-| *FOMC calendar (4; 16:00 design only)* | | | | |
+| *FOMC calendar (4)* | | | | |
 | `fomc_release` | `\mathrm{FOMC}^{\mathrm{rel}}` | FOMC statement-interval dummy (14:30 ET) | core guide section 5 | **yes** |
 | `fomc_day` | `\mathrm{FOMC}^{\mathrm{day}}` | FOMC statement-day dummy | | **yes** |
 | `fomc_until_inv` | `\mathrm{FOMC}^{\mathrm{next}}` | $1/(1 + n^{+}_{t,i})$, $n^{+}_{t,i}$ the intervals to the next statement | | no |

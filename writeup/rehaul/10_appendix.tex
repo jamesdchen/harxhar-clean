@@ -342,7 +342,8 @@ A tree cell in Table~\ref{tab:rh_oos} is the loss of one fitting procedure, and 
 \begin{itemize}
 \item \textbf{Sources and spans.} Eight groups, in Section~\ref{sec:rh_data}. Closing-interval models use all
   % 2026-10-18 (user, second-list N7): parked -- series count from a non-FI macro (\bkNSeries, make_buckets_tex.py; same 47). Was: "\rhfiNExog{} exogenous series. Intraday models use the \rhdmNSeriesPooled{} series in every group except FOMC."
-  \bkNSeries{} exogenous series. Intraday models use the \rhdmNSeriesPooled{} series in every group except FOMC.
+  % 2026-10-19 (user): parked -- the pooled model includes the FOMC series (author decision). Was: "Intraday models use the \rhdmNSeriesPooled{} series in every group except FOMC."
+  \bkNSeries{} exogenous series. Intraday models use the \rhdmNSeriesPooled{} series in every group, FOMC included.
 \item \textbf{Predictor dictionary.} Appendix Table~\ref{tab:rh_dm_dictionary} defines each series. Trailing
   averages, activity indicators, and calendar columns are added in Section~\ref{sec:rh_predictors}.
 \item \textbf{Missing and stale values.} For an exogenous series $u$, the availability indicator
@@ -456,7 +457,8 @@ It covers only the closing-interval linear arms (ridge, lasso and elastic net on
 \label{app:rh_closing_sample}
 \begin{itemize}
 % 2026-10-18 (user, second-list N7): parked -- series count from a non-FI macro (\bkNSeries, make_buckets_tex.py; same 47). Was: "\item The closing-interval specifications incorporate all \rhfiNExog{} exogenous series, the FOMC group (\bkSizeFomc{} series) included; the pooled intraday specifications use the \rhdmNSeriesPooled{} series outside the FOMC group (Section~\ref{sec:rh_data})."
-\item The closing-interval specifications incorporate all \bkNSeries{} exogenous series, the FOMC group (\bkSizeFomc{} series) included; the pooled intraday specifications use the \rhdmNSeriesPooled{} series outside the FOMC group (Section~\ref{sec:rh_data}).
+% 2026-10-19 (user): parked -- the pooled model includes the FOMC series (author decision). Was: "; the pooled intraday specifications use the \rhdmNSeriesPooled{} series outside the FOMC group (Section~\ref{sec:rh_data})."
+\item The closing-interval specifications incorporate all \bkNSeries{} exogenous series, the FOMC group (\bkSizeFomc{} series) included; so do the pooled intraday specifications, with \rhdmNSeriesPooled{} series (Section~\ref{sec:rh_data}).
   \item The closing-interval sample ($i = c$) consists of \rhdmCloseDays{} trading days from July 2010 through
     April 2024, estimated on a rolling window of $W = \cmPtFitWin$ trading days.
   \item This rolling procedure yields \rhfiNOos{} out-of-sample closing-interval forecasts starting in June 2018:
