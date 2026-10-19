@@ -1,6 +1,7 @@
 """Tiny end-to-end case of experiments/rehaul_fi_pooled_compute.py (linear + reduce) and writeup/make_rehaul_fi_pooled.py
-on a synthetic design: 14 predictors of the pooled design's name forms, 48 intervals a day, a 60-day window, both
-samples, five months.  Seconds; run before every push.
+on a synthetic design: 21 predictors of the pooled design's name forms (base-5 HAR ladder, the four FOMC series), 48
+intervals a day, a 60-day window, both samples, five months; and a base-2 penalty file without FOMC must be refused.
+Seconds; run before every push.
 
     python experiments/rehaul_fi_pooled_tiny.py [DIR]
 """
@@ -18,7 +19,8 @@ import pandas as pd
 
 REPO = Path(__file__).resolve().parents[1]
 NAMES = [
-    "har_ma_1", "har_ma_2", "har_ma_4", "DOW_0", "DOW_1", "hour", "is_overnight",
+    "har_ma_1", "har_ma_5", "har_ma_25", "har_ma_125", "har_ma_625", "har_ma_3125", "DOW_0", "DOW_1", "hour",
+    "is_overnight", "adj_fomc_release_ma_1", "adj_fomc_day_ma_5", "adj_fomc_until_inv_ma_1", "adj_fomc_since_inv_ma_1",
     "adj_vix_ma_1", "adj_vix_ma_4", "vix_avail_ma_4",
     "adj_sumret_ma_1", "sumret_active_ma_4", "adj_vvix_ma_1", "adj_vvix_ma_2",
 ]
@@ -41,6 +43,12 @@ def main() -> None:
     pd.DataFrame({"date": dates}).to_csv(dz / "dates_all.csv", index=False)
     (dz / "design.json").write_text(json.dumps(dict(names=NAMES, shape=[n, p], env={})))
     pen = root / "frozen_penalties.json"
+    bad = root / "bad_penalties.json"  # base-2 ladder, no FOMC: must be refused
+    bad.write_text(json.dumps(dict(ridge=dict(alpha=1e3), lasso=dict(alpha=1e-2), r=0.01,
+                                   columns=["har_ma_1", "har_ma_2", "adj_vix_ma_1"])))
+    r = subprocess.run([sys.executable, str(REPO / "experiments" / "rehaul_fi_pooled_compute.py"), "linear", "--out",
+                        str(root / "bad"), "--design", str(dz), "--penalties", str(bad)], capture_output=True, text=True)
+    assert r.returncode != 0 and "base-5" in r.stderr, r.stderr[-500:]
     pen.write_text(json.dumps(dict(ridge=dict(alpha=1e3), lasso=dict(alpha=1e-2), r=0.01, columns=NAMES[:-1])))
     py = [sys.executable, str(REPO / "experiments" / "rehaul_fi_pooled_compute.py")]
     for s in ("48", "13"):
@@ -51,6 +59,8 @@ def main() -> None:
         subprocess.run(py + ["reduce", *common], check=True)
         S = json.loads((o / "summary.json").read_text())
         assert S["n_refits"] == 5 and S["p"] == p - 1, S
+        assert {"fomc_release", "fomc_day", "fomc_until_inv", "fomc_since_inv"} <= set(
+            pd.read_csv(o / "lasso_series.csv")["unit"]), "FOMC series must be predictor groups"
         assert S["lasso"]["probe_n"] == 2, S["lasso"]
         assert "adj_vvix_ma_1" in pd.read_csv(o / "lasso_columns.csv")["column"].tolist()
         assert S["lasso"]["series_ever"] >= 2

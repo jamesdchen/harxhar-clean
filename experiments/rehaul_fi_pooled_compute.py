@@ -175,6 +175,21 @@ def rel(path: Path) -> str:
         return str(path)
 
 
+HAR_BASE5 = {f"har_ma_{k}" for k in (1, 5, 25, 125, 625, 3125)}
+
+
+def check_landed(pen: dict) -> None:
+    """Author's rule (2026-10-19, 22:45 UTC): a frozen_penalties.json counts as landed only if its all-features
+    column list has HAR components exactly har_ma_{1,5,25,125,625,3125} (base 5) and contains the FOMC series."""
+    from src.data.loading import FOMC_FEATURES
+
+    cols = pen["columns"] or []
+    har = {c for c in cols if _HAR.fullmatch(c) and "_x_" not in c}
+    assert har == HAR_BASE5, f"{pen['file']}: HAR columns {sorted(har)} are not the base-5 ladder"
+    fomc = [s for s in FOMC_FEATURES if not any(_EXOG.fullmatch(c) and _EXOG.fullmatch(c).group(1) == s for c in cols)]
+    assert not fomc, f"{pen['file']}: FOMC series missing from the column list: {fomc}"
+
+
 def row_labels(dz: Path, n: int) -> pd.Series:
     """The date label of every design row: dates_all.csv (this script's design stage), else the runner cache's
     dates_oos.csv, which labels the rows from W on (the earlier rows get "")."""
@@ -222,6 +237,8 @@ def linear(a) -> None:
     meta = json.loads((dz / "design.json").read_text())
     names_all = list(meta["names"])
     pen = load_penalties(Path(a.penalties))
+    if not a.no_check:
+        check_landed(pen)
     if pen["columns"] is not None:
         miss = sorted(set(pen["columns"]) - set(names_all))
         assert not miss, f"penalty-file columns missing from the design: {miss[:10]}"
@@ -339,6 +356,8 @@ def gate(a) -> None:
 
     dz, out = Path(a.design), Path(a.out)
     pen = load_penalties(Path(a.penalties))
+    if not a.no_check:
+        check_landed(pen)
     names_all = list(json.loads((dz / "design.json").read_text())["names"])
     cidx = np.array([names_all.index(c) for c in pen["columns"]]) if pen["columns"] else np.arange(len(names_all))
     names = [names_all[j] for j in cidx]
@@ -522,6 +541,7 @@ def main() -> None:
     ap.add_argument("--penalties", default="")
     ap.add_argument("--start", default=SPAN[0])
     ap.add_argument("--end", default=SPAN[1])
+    ap.add_argument("--no-check", action="store_true", help="skip check_landed (tests only)")
     ap.add_argument("--tw-days", type=int, default=TW_DAYS, help="window in trading days (tests only)")
     a = ap.parse_args()
     a.out = str(Path(a.out).resolve())
