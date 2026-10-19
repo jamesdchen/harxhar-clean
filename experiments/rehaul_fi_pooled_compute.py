@@ -112,6 +112,7 @@ def group_of(name: str, series: set[str]) -> str:
     m = _EXOG.fullmatch(name)
     if m and m.group(1) in series:
         return m.group(1)
+    assert re.fullmatch(r"DOW_\d|hour|is_\w+|days_to_opex", name), f"no predictor group for {name}"
     return "calendar"
 
 
@@ -151,27 +152,36 @@ def groups(names: list[str]) -> dict:
 
 # ============================================================================ penalties
 def load_penalties(path: Path) -> dict:
-    """{lasso: alpha, ridge: alpha, r: backbone weight, columns: [...] or None} from a frozen_penalties.json.
-    Accepted shapes: {"ridge": 1e3 | {"alpha": 1e3, ...}, "lasso": ..., "r" | "r_backbone" | "backbone_pf": .01,
-    "columns" | "names": [...]}; anything else fails loudly (the reruns' format is not fixed yet)."""
+    """{lasso, ridge: alpha; r: the penalty weight on the HAR benchmark block; columns; n_bb} of the all-features
+    design from a pooled rerun's frozen_penalties.json ({model: {predictor set: alpha}, designs: {predictor set:
+    {columns, n_har_benchmark_block, penalty_factor_on_har_benchmark_block}}}); the tiny case's flat form
+    {ridge: {alpha}, lasso: {alpha}, r, columns} is accepted too."""
     z = json.loads(path.read_text())
-    src = z.get("all_features", z)
+    if "designs" in z:
+        d = z["designs"]["all_features"]
+        return dict(
+            lasso=float(z["lasso"]["all_features"]), ridge=float(z["ridge"]["all_features"]),
+            r=float(d["penalty_factor_on_har_benchmark_block"]), columns=list(d["columns"]),
+            n_bb=int(d["n_har_benchmark_block"]), file=rel(path), info=z.get("info", {}),
+        )
+    return dict(lasso=float(z["lasso"]["alpha"]), ridge=float(z["ridge"]["alpha"]), r=float(z["r"]),
+                columns=z.get("columns"), n_bb=None, file=rel(path), info={})
 
-    def alpha(m):
-        for key in (m, {"lasso": "reclasso"}.get(m, m)):
-            v = src.get(key)
-            if isinstance(v, dict):
-                v = v.get("alpha", v.get("lambda"))
-            if v is not None:
-                return float(v)
-        raise KeyError(f"{path}: no {m} alpha in {list(src)}")
 
-    r = next((src[k] for k in ("r", "r_backbone", "backbone_pf", "pf_backbone") if k in src), None)
-    if r is None:
-        r = next((z[k] for k in ("r", "r_backbone", "backbone_pf", "pf_backbone") if k in z), None)
-    assert r is not None, f"{path}: no backbone penalty weight"
-    cols = src.get("columns", src.get("names", z.get("columns", z.get("names"))))
-    return dict(lasso=alpha("lasso"), ridge=alpha("ridge"), r=float(r), columns=cols, file=str(path))
+def rel(path: Path) -> str:
+    try:
+        return str(Path(path).resolve().relative_to(REPO))
+    except ValueError:
+        return str(path)
+
+
+def row_labels(dz: Path, n: int) -> pd.Series:
+    """The date label of every design row: dates_all.csv (this script's design stage), else the runner cache's
+    dates_oos.csv, which labels the rows from W on (the earlier rows get "")."""
+    if (dz / "dates_all.csv").is_file():
+        return pd.read_csv(dz / "dates_all.csv", dtype=str)["date"]
+    oos = pd.read_csv(dz / "dates_oos.csv", dtype=str)["date"].to_numpy()
+    return pd.Series(np.r_[np.full(n - len(oos), ""), oos])
 
 
 # ============================================================================ linear
@@ -221,14 +231,19 @@ def linear(a) -> None:
     names = [names_all[j] for j in cidx]
     gr = groups(names)
     bb = np.array([gr["bmap"][g] == "backbone" for g in gr["gcol"]])
+    assert pen["n_bb"] in (None, int(bb.sum())), (pen["n_bb"], int(bb.sum()))
     X = np.load(dz / "X.npy", mmap_mode="r")
     y = np.load(dz / "y.npy")
-    dates = pd.read_csv(dz / "dates_all.csv", dtype=str)["date"]
+    dates = row_labels(dz, len(y))
     per = SAMPLES[a.sample]
-    rows = np.arange(len(y)) if per == 48 else np.flatnonzero(dates.str[11:16].isin(RTH).to_numpy())
+    lab = dates[dates != ""]
+    if per == 48 or lab.str[11:16].isin(RTH).all():  # all rows, or a design of the 13 bars only
+        rows = np.arange(len(y))
+    else:
+        rows = np.flatnonzero(dates.str[11:16].isin(RTH).to_numpy())
     W = a.tw_days * per
     A, B, adates = anchors(dates, rows, a.start, a.end)
-    assert A[0] >= W, (A[0], W)
+    assert A[0] >= W and (dates.iloc[rows[A[0] - W :]] != "").all(), (A[0], W)
     K = len(A)
     p = len(names)
     say(f"sample {a.sample}: {len(rows)} rows, W {W}, p {p}, {len(gr['units'])} groups, K {K} "
@@ -305,7 +320,7 @@ def linear(a) -> None:
     )
     info = dict(
         sample=a.sample, window=W, p=p, K=K, start=a.start, end=a.end, anchors=adates, names=names,
-        penalties=pen | dict(columns=None), design=str(dz), design_env=meta.get("env", {}),
+        penalties=pen | dict(columns=None, info=None), pen_info=pen["info"], design=str(dz), design_env=meta.get("env", {}),
         design_shape=meta["shape"], probe_levels=int(FT.PROBE_LEVELS), probe_every=int(FT.PROBE_EVERY),
         sec_fit={m: dict(mean=float(np.mean(sec[m])), total=float(np.sum(sec[m]))) for m in MODELS},
         sec_probe=dict(mean=float(np.mean(sec_probe)), total=float(np.sum(sec_probe))),
@@ -314,6 +329,49 @@ def linear(a) -> None:
     )
     (out / "run.json").write_text(json.dumps(info, indent=1))
     say(f"linear done: {info['wall_sec']:.0f}s")
+
+
+def gate(a) -> None:
+    """The batch fit of linear() at the frozen penalties == the pooled runner's walk forecast at a cold seed
+    (a re-seed row S = W + 250 m; experiments/pool_linear_pretune.py walk --start S --halo W --sched const:alpha,
+    run with the sample's design flags; --walks lasso=DIR,ridge=DIR names its outputs).  Appends gates.csv."""
+    import pool_linear_pretune as PLP
+
+    dz, out = Path(a.design), Path(a.out)
+    pen = load_penalties(Path(a.penalties))
+    names_all = list(json.loads((dz / "design.json").read_text())["names"])
+    cidx = np.array([names_all.index(c) for c in pen["columns"]]) if pen["columns"] else np.arange(len(names_all))
+    names = [names_all[j] for j in cidx]
+    gr = groups(names)
+    bb = np.array([gr["bmap"][g] == "backbone" for g in gr["gcol"]])
+    X = np.load(dz / "X.npy", mmap_mode="r")
+    y = np.load(dz / "y.npy")
+    W, S0 = a.tw_days * SAMPLES[a.sample], a.row
+    p = len(names)
+    Xw = np.hstack([X[S0 - W : S0][:, cidx], np.ones((W, 1))])
+    ns = PLP.spec_section("reclasso", "all_features", 0, -1, 0)
+    probe = ns["RollingTunedLinear"]()
+    os.chdir(REPO)
+    probe._locked = np.r_[np.zeros(p, bool), True]
+    probe._recompute_mask(Xw)
+    Xw[:, probe._maskout] = 0.0
+    pf = np.ones(p + 1)
+    pf[:-1][bb] = pen["r"]
+    xs = np.r_[X[S0][cidx], 1.0]
+    xs[probe._maskout] = 0.0
+    rows = []
+    for kv in a.walks.split(","):
+        m, d = kv.split("=")
+        f = next(Path(d).glob("causal_tune_linear/*/*/results*.csv"))
+        walk_pred = float(pd.read_csv(f)["pred_adj"].iloc[0])
+        th = solve(ns, Xw, y[S0 - W : S0], m, pen[m], pf)
+        gap = abs(float(xs @ th) - walk_pred)
+        rows.append(dict(gate=f"{m}: batch fit == runner walk forecast at cold-seed row {S0} (abs)", value=gap,
+                         ok=gap <= 1e-9 * max(1.0, abs(walk_pred))))
+        say(rows[-1])
+    out.mkdir(parents=True, exist_ok=True)
+    pd.DataFrame(rows).to_csv(out / "gates.csv", index=False)
+    assert all(r["ok"] for r in rows)
 
 
 # ============================================================================ reduce
@@ -453,7 +511,9 @@ def reduce(a) -> None:  # noqa: C901 -- one reducer
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("stage", choices=("design", "linear", "reduce"))
+    ap.add_argument("stage", choices=("design", "linear", "gate", "reduce"))
+    ap.add_argument("--row", type=int, default=0, help="gate: the cold-seed row of the runner walks")
+    ap.add_argument("--walks", default="", help="gate: lasso=DIR,ridge=DIR")
     ap.add_argument("--out", required=True)
     ap.add_argument("--design", default="")
     ap.add_argument("--bucket", default="all_features")
@@ -470,7 +530,7 @@ def main() -> None:
     if a.penalties:
         a.penalties = str(Path(a.penalties).resolve())
     os.chdir(REPO)
-    {"design": design, "linear": linear, "reduce": reduce}[a.stage](a)
+    {"design": design, "linear": linear, "gate": gate, "reduce": reduce}[a.stage](a)
 
 
 if __name__ == "__main__":
