@@ -118,8 +118,11 @@ intervals and evaluate the forecast issued at 15:30 for the closing half hour ov
 heterogeneous autoregressive (HAR) predictor set against an augmented predictor set that incorporates exogenous
 series. Under the QLIKE loss, the full predictor set yields lower average out-of-sample loss than the HAR
 benchmark across all \rhrAfPoolPairs{} intraday model classes, with \rhrAfPoolLowerSig{} of the
-\rhrAfPoolPairs{} reductions statistically significant at the 5\% level, whereas mean squared error does not
-confirm these gains. Furthermore, although every intraday specification remains less accurate under QLIKE than a
+% 2026-10-19 (user): parked -- the MSE clause, with the QLIKE/squared-error divergence bullet of 06_results.tex. Was:
+% "\rhrAfPoolPairs{} reductions statistically significant at the 5\% level, whereas mean squared error does not
+% confirm these gains. Furthermore, ..."
+\rhrAfPoolPairs{} reductions statistically significant at the 5\% level. Furthermore, although every intraday
+specification remains less accurate under QLIKE than a
 % 2026-10-18 (user, new-notes 11): parked -- a HAR-type model with its horizons, not a daily HAR regression; still the closing-interval OLS the comparison uses (make_rehaul_results.py:1276). Was: "daily HAR regression estimated solely on the closing interval, incorporating the exogenous predictors narrows"
 HAR-type model in the spirit of \citet{Corsi2009}, estimated by OLS on the closing-interval observations of the target's trailing averages over $k \in \{1, 5, 25, 125, 625, 3125\}$ samples plus calendar columns, incorporating the exogenous predictors narrows
 this gap across all model classes. In an economic application to zero-days-to-expiration (0DTE) S\&P 500
