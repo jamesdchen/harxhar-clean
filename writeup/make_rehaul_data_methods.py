@@ -750,12 +750,23 @@ def _sup(base: str, extra: str) -> str:
     return base + "^{" + extra + "}"
 
 
-def series_tex(s: str) -> str:
-    """Math name (no $) of a bare series code name, e.g. 'sumret2_ewstock' -> RV^{EW}."""
+def series_sym(s: str) -> str:
+    """Math symbol (no $) of a bare series code name, e.g. 'sumret2_ewstock' -> RV^{EW}."""
     if s in SERIES_TEX:
         return SERIES_TEX[s]
     stem, _, grp = s.rpartition("_")
     return _sup(SERIES_TEX[stem], GROUP_TEX[grp])
+
+
+# 2026-10-19 (user): the draft names each series by its raw parquet name for now. \ser{raw}{symbol} and
+# \serx{raw}{raw sup/sub}{symbol} switch on \ifrawseries (paper_rehaul.tex preamble; \rawseriesfalse restores the
+# symbols). The fallbacks keep a standalone \input of a generated file working.
+SER_PROVIDE = "\\providecommand{\\ser}[2]{#2}\\providecommand{\\serx}[3]{#3}\n"
+
+
+def series_tex(s: str) -> str:
+    """The series' name in the draft (no $, math mode): \\ser{raw name}{symbol}."""
+    return rf"\ser{{{s}}}{{{series_sym(s)}}}"
 
 
 def column_tex(c: str) -> str:
@@ -767,7 +778,9 @@ def column_tex(c: str) -> str:
     if m := re.fullmatch(r"har_ma_(\d+)_x_(open|close)", c):
         return rf"$\bar y^{{({m.group(1)})}}\cdot\mathrm{{{m.group(2).title()}}}$"
     if m := re.fullmatch(r"adj_(.+)_ma_(\d+)", c):
-        return f"${_sup(series_tex(m.group(1)), '(' + m.group(2) + ')')}$"
+        # 2026-10-19: the horizon stacks into the symbol's own superscript, so the raw form carries its own ^{(k)}
+        sym = _sup(series_sym(m.group(1)), "(" + m.group(2) + ")")
+        return rf"$\serx{{{m.group(1)}}}{{^{{({m.group(2)})}}}}{{{sym}}}$"
     if m := re.fullmatch(r"(.+)_(avail|active)_ma_(\d+)", c):
         f = r"\bar a" if m.group(2) == "avail" else r"\bar\chi"
         return f"${f}^{{({m.group(3)})}}({series_tex(m.group(1))})$"
@@ -779,17 +792,19 @@ def column_tex(c: str) -> str:
 # 2026-10-17 (user, E5): descriptions from data_explainer_v11. Constituent moments are 5-minute;
 # the E-mini moments stay one-minute. "all index options" -> all traded options. SPX includes the top ETFs.
 DESC = {
-    "sumret": r"Sum of one-minute changes in the log price of the front-month contract, $r_{t,i} = \sum_k r_{t,i,k}$",
+    # 2026-10-19 (user): the defined series prints through \ser / \serx (raw names for now). Was: "$r_{t,i} = ...$",
+    # "$\mathrm{BV}_{t,i} = ...$", "$\mathrm{AC}_{t,i} = ...$", "$N_{t,i} \le 30$"
+    "sumret": r"Sum of one-minute changes in the log price of the front-month contract, $\serx{sumret}{_{t,i}}{r_{t,i}} = \sum_k r_{t,i,k}$",
     "sumabsret": r"Realized absolute variation, $\sum_k |r_{t,i,k}|$",
     "sumret3": r"Realized skewness, unnormalized, $\sum_k r_{t,i,k}^3$",
     "sumret4": r"Realized quarticity, unscaled, $\sum_k r_{t,i,k}^4$",
     "sumpret2": r"Positive realized semivariance, $\sum_k r_{t,i,k}^2\,\mathbf{1}\{r_{t,i,k} > 0\}$",
-    "sumbipow": r"Bipower variation, $\mathrm{BV}_{t,i} = \sum_{k \ge 2} |r_{t,i,k}|\,|r_{t,i,k-1}|$",
-    "sumautocov": r"First-order realized autocovariance, $\mathrm{AC}_{t,i} = \sum_{k \ge 2} r_{t,i,k}\, r_{t,i,k-1}$",
+    "sumbipow": r"Bipower variation, $\ser{sumbipow}{\mathrm{BV}}_{t,i} = \sum_{k \ge 2} |r_{t,i,k}|\,|r_{t,i,k-1}|$",
+    "sumautocov": r"First-order realized autocovariance, $\ser{sumautocov}{\mathrm{AC}}_{t,i} = \sum_{k \ge 2} r_{t,i,k}\, r_{t,i,k-1}$",
     # 2026-10-15 (notation, final consolidation): "ES" in words is "E-mini S&P 500 futures"
     # 2026-10-17: parked -- "E-mini S&P 500 futures contract volume"
     "sumvolume": "Number of front-month contracts traded in the half hour",
-    "numobs": r"Number of non-missing one-minute intervals in the half hour, $N_{t,i} \le 30$",
+    "numobs": r"Number of non-missing one-minute intervals in the half hour, $\ser{numobs}{N}_{t,i} \le 30$",
     "turnover": "turnover, shares traded in the half hour divided by the previous day's shares outstanding",
     "buyturnover": "buyer-initiated turnover, the same ratio using estimated buy orders",
     "sellturnover": "seller-initiated turnover, the same ratio using estimated sell orders",
@@ -2522,7 +2537,9 @@ def write_dictionary(rows: list[dict], D: dict) -> None:
     ncol = 6
     # all p{} columns summing to the (landscape) line width: a p{\linewidth} notes row over natural-width l columns
     # came out 88pt too wide
-    spec = pcols([110, 440, 120, 100, 110, 120])
+    # 2026-10-19 (user): parked -- Variable 110 -> 120, Description 440 -> 430: the raw names (\\ser, raw for now) need
+    # the width ("sellturnover_" ran 0.6pt over). Was: spec = pcols([110, 440, 120, 100, 110, 120])
+    spec = pcols([120, 430, 120, 100, 110, 120])
     head = cells(
         [
             "Variable",
@@ -2579,7 +2596,7 @@ def write_dictionary(rows: list[dict], D: dict) -> None:
         r"$N_{t,i}/3$ (quarticity) and $\pi/2$ (bipower variation).",
     ]
     out = [
-        HEAD,
+        HEAD + SER_PROVIDE,
         r"\begin{landscape}",
         r"\begingroup",
         r"\small",
@@ -2631,7 +2648,9 @@ def write_dictionary(rows: list[dict], D: dict) -> None:
         out.append(
             cells(
                 [
-                    f"${series_tex(r['series'])}$",
+                    # 2026-10-19 (user): raw names for now; \ser in text mode, so a long raw name breaks at its
+                    # underscores. Was: f"${series_tex(r['series'])}$"
+                    rf"\ser{{{r['series']}}}{{${series_sym(r['series'])}$}}",
                     desc,
                     source(r),
                     ADJ_WORDS[r["diurnal"]],

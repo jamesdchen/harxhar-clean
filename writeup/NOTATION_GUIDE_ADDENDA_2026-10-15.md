@@ -50,6 +50,16 @@ Column names come in five patterns. `S` is the series symbol from table A.2, `k`
 
 ### A.2 Series symbols: all 47 exogenous series
 
+> **2026-10-19 (user): the draft prints raw names for now.** `paper_rehaul.tex` (and `fi_bullets_standalone.tex`) set
+> `\rawseriestrue` in the preamble, so every series below prints as its code name in typewriter type (the first
+> column: the parquet column of `data/*.parquet`, or for `ofi_*` and `fomc_*`, the column the loader builds), not
+> as its symbol. The names go through `\ser{code name}{symbol}`, or `\serx{code name}{raw superscript/subscript}{symbol}`
+> when the horizon stacks into the symbol's superscript (`make_rehaul_data_methods.py` and `make_rehaul_fi.py`,
+> `series_tex` / `column_tex`; `03_data.tex` and `04_features.tex` by hand). **To switch back,** change
+> `\rawseriestrue` to `\rawseriesfalse` in both preambles and rebuild: the symbols of this table return unchanged.
+> The figures (matplotlib) keep the symbols either way. Section A.1's rule "never typeset a code name" is suspended
+> while the switch is on.
+
 Every series below is in the 16:00 design (628 columns). The pooled panel (1,144 columns) has the 43 series without
 the four FOMC ones. The activity column (`_active`) exists for the seven series marked "yes" in the design, and for
 the five non-FOMC ones among them in the pooled panel.

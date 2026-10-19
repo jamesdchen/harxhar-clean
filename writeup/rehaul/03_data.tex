@@ -54,6 +54,18 @@
   \item We construct the \bkSizeMom{} exogenous realized-moment series as analogous one-minute sums over interval
     $(t,i)$ (note that $\RV_{t,i}$ above serves as our forecast target and is not counted among the exogenous
     series):
+    % 2026-10-19 (user): raw parquet names for now (\ifrawseries, paper_rehaul.tex preamble): each sum is named by its
+    % column of data/core_stats.parquet. The \else branch is the display of the symbols, unchanged.
+    \ifrawseries
+    \begin{gather*}
+      \sername{sumret}_{t,i} = \sum_k r_{t,i,k}, \quad \sername{sumabsret}_{t,i} = \sum_k |r_{t,i,k}|, \quad
+      \sername{sumret3}_{t,i} = \sum_k r_{t,i,k}^3,\\
+      \sername{sumret4}_{t,i} = \sum_k r_{t,i,k}^4, \quad
+      \sername{sumpret2}_{t,i} = \sum_k r_{t,i,k}^2\,\mathbf{1}\{r_{t,i,k} > 0\},\\
+      \sername{sumbipow}_{t,i} = \sum_{k \ge 2} |r_{t,i,k}|\,|r_{t,i,k-1}|, \quad
+      \sername{sumautocov}_{t,i} = \sum_{k \ge 2} r_{t,i,k}\, r_{t,i,k-1}.
+    \end{gather*}
+    \else
     \[
       \sum_k r_{t,i,k}, \quad \sum_k |r_{t,i,k}|, \quad \sum_k r_{t,i,k}^3, \quad \sum_k r_{t,i,k}^4, \quad
       \mathrm{RS}^{+}_{t,i} = \sum_k r_{t,i,k}^2\,\mathbf{1}\{r_{t,i,k} > 0\},
@@ -62,13 +74,16 @@
       \mathrm{BV}_{t,i} = \sum_{k \ge 2} |r_{t,i,k}|\,|r_{t,i,k-1}|, \qquad
       \mathrm{AC}_{t,i} = \sum_{k \ge 2} r_{t,i,k}\, r_{t,i,k-1}.
     \]
+    \fi
     % 2026-10-18 (user, second-list 14): parked -- quarticity normalization matched to the Table 5 note and RQ row (unscaled, without N/3); "prior to dividing by RV^2/N" dropped. Was: "Specifically, the third and fourth sums correspond to the unnormalized realized skewness and realized quarticity of \citet{AmayaChristoffersenJacobsVasquez2015} (that is, prior to dividing by $\RV^{3/2}_{t,i}/\sqrt{N_{t,i}}$ and $\RV^{2}_{t,i}/N_{t,i}$, respectively). Furthermore,"
     Specifically, the third sum corresponds to the unnormalized realized skewness of
     \citet{AmayaChristoffersenJacobsVasquez2015} (that is, prior to dividing by $\RV^{3/2}_{t,i}/\sqrt{N_{t,i}}$), and
     the fourth sum is the unscaled realized quarticity (without the factor $N_{t,i}/3$). Furthermore,
-    $\mathrm{RS}^{+}_{t,i}$ denotes the positive realized semivariance of
-    \citet{BarndorffNielsenKinnebrockShephard2010}, $\mathrm{BV}_{t,i}$ denotes the unscaled bipower variation
-    of \citet{BarndorffNielsenShephard2004} (without the $\pi/2$ normalization factor), and $\mathrm{AC}_{t,i}$
+    % 2026-10-19 (user): series names through \ser (raw names for now). Was: "$\mathrm{RS}^{+}_{t,i}$",
+    % "$\mathrm{BV}_{t,i}$", "$\mathrm{AC}_{t,i}$"
+    $\ser{sumpret2}{\mathrm{RS}^{+}}_{t,i}$ denotes the positive realized semivariance of
+    \citet{BarndorffNielsenKinnebrockShephard2010}, $\ser{sumbipow}{\mathrm{BV}}_{t,i}$ denotes the unscaled bipower variation
+    of \citet{BarndorffNielsenShephard2004} (without the $\pi/2$ normalization factor), and $\ser{sumautocov}{\mathrm{AC}}_{t,i}$
     denotes the first-order realized autocovariance.
     % Sums read off the column names: the builder of data/core_stats.parquet is not in the repo
     % (live/close_signal/features.py:1-25). sumpret2 = positive semivariance is an assumed reading; bipower is
@@ -77,7 +92,9 @@
   % Was: Cross-section of index constituents, equal- and value-weighted (EW, VW), 1993--2024: six return
   % moments, turnover, order-flow imbalance (signed turnover) and bid-ask spreads.
   \item \textbf{Liquidity} (\bkSizeLiq{} series). From the front-month futures contract, we include total contract
-    volume traded during the half hour as well as the number of observed one-minute intervals $N_{t,i}$. In
+    % 2026-10-19 (user): raw names for now; $N_{t,i}$ stays the count in the formulas above, the series is named after it.
+    volume traded during the half hour as well as the number of observed one-minute intervals
+    $N_{t,i}$\ifrawseries{} (\sername{numobs})\fi. In
     addition, using intraday data on S\&P 500 constituents from 1993 to 2024, we construct both equal-weighted
     and value-weighted cross-sectional aggregates of share turnover, buyer-initiated turnover, seller-initiated
     turnover, the effective spread, the quoted spread, and order-flow imbalance. Here, constituent turnover is
@@ -86,8 +103,10 @@
     effective spread measures the average percentage deviation between the transaction price and the prevailing
     mid-quote, and the quoted spread measures the average percentage bid--ask spread. Equal-weighted aggregates
     take simple cross-sectional averages across constituents, whereas value-weighted aggregates weight each
-    constituent by its prior-day market capitalization. For each weighting scheme ($\mathrm{OFI}^{\mathrm{EW}}$
-    and $\mathrm{OFI}^{\mathrm{VW}}$), we define order-flow imbalance as
+    % 2026-10-19 (user): series names through \ser (raw names for now). Was: "($\mathrm{OFI}^{\mathrm{EW}}$ and
+    % $\mathrm{OFI}^{\mathrm{VW}}$)". The generic $\mathrm{OFI}_{t,i}$ of the display stays: it defines both.
+    constituent by its prior-day market capitalization. For each weighting scheme ($\ser{ofi_ewstock}{\mathrm{OFI}^{\mathrm{EW}}}$
+    and $\ser{ofi_vwstock}{\mathrm{OFI}^{\mathrm{VW}}}$), we define order-flow imbalance as
     \[
       \mathrm{OFI}_{t,i} = \frac{\mathrm{Buy}_{t,i} - \mathrm{Sell}_{t,i}}{\mathrm{Buy}_{t,i} + \mathrm{Sell}_{t,i}}
         \in [-1, 1],

@@ -54,6 +54,23 @@
   \endgroup
   \par\smallskip
 }
+% 2026-10-19 (user): the draft names each exogenous series by its raw parquet column name for now (the "% data field"
+% names of generated/rehaul_dm_dictionary.tex). \rawseriesfalse restores the symbols of the 15 October notation pass
+% (writeup/NOTATION_GUIDE_ADDENDA_2026-10-15.md, A.2). \ser{raw}{symbol}: the series' name; \serx{raw}{raw
+% superscript/subscript}{symbol}: for a symbol whose own superscript takes the horizon, e.g.
+% \serx{sumret2_ewstock}{^{(25)}}{\mathrm{RV}^{\mathrm{EW},(25)}}. In text mode the raw name may break after an
+% underscore (table cells); in math mode it is one box.
+\newif\ifrawseries
+\rawseriestrue
+\makeatletter
+\begingroup\catcode`\_=12
+\gdef\ser@split#1_#2\@nil{#1\if\relax\detokenize{#2}\relax\else\textunderscore\allowbreak\ser@split#2\@nil\fi}
+\endgroup
+\def\ser@text#1{{\normalfont\ttfamily\expandafter\ser@split\detokenize{#1_}\@nil}}
+\DeclareRobustCommand{\sername}[1]{\ifmmode\text{\ser@text{#1}}\else\ser@text{#1}\fi}
+\makeatother
+\newcommand{\ser}[2]{\ifrawseries\sername{#1}\else #2\fi}
+\newcommand{\serx}[3]{\ifrawseries\sername{#1}#2\else #3\fi}
 % 2026-10-15 (consolidation): every macro-only number file is loaded once, here. Each file holds definitions only (no
 % tables, checked), and no macro name is defined in two of them. The in-body \input lines of these files in the section
 % files are parked, so nothing is defined twice. Generators: make_table_close_main.py (close_main_numbers),

@@ -110,12 +110,24 @@ Note (2026-10-17, user): the count of 7 comes from the closing-interval panel an
     % 2026-10-17 (user, new-notes 6): parked -- unit of k stated (30-minute grid intervals, both models; har.py:48 rolls over the rows of the full bar series, lag_scope "global", segmentation.py:39-43). Was: "averaged over the 16 intervals ending at 15:30"
     % 2026-10-18 (user, new-notes 6): parked -- k in samples. Was: "intervals; for instance, $\mathrm{VIX}^{(16)}_t$ denotes the transformed VIX series averaged over the 16"
     % 2026-10-19 (user): parked -- base 5 across the paper (16 is not a base-5 horizon; 25 is). Was: "samples; for instance, $\mathrm{VIX}^{(16)}_t$ denotes the transformed VIX series averaged over the 16"
-    samples; for instance, $\mathrm{VIX}^{(25)}_t$ denotes the transformed VIX series averaged over the 25
+    % 2026-10-19 (user): series names through \ser (raw names for now). Was: "$\mathrm{VIX}^{(16)}_t$"
+    samples; for instance, $\ser{vix}{\mathrm{VIX}}^{(25)}_t$ denotes the transformed VIX series averaged over the 25
     % 2026-10-18 (user, new-notes 6): parked -- k in samples. Was: "30-minute intervals ending at 15:30 on day $t$. We denote the implied volatility series by $\mathrm{VIX}$,"
+    % 2026-10-19 (user): raw parquet names for now. The \else branch is the sentence of the symbols, unchanged; the
+    % superscript convention does not carry over to the raw names, which end in _ewstock / _vwstock instead.
+    \ifrawseries
+    samples ending at 15:30 on day $t$. We refer to each exogenous series by its column name in the data
+    (Table~\ref{tab:rh_dm_dictionary}): the implied volatility series are \sername{vix}, \sername{vix3m}, and
+    \sername{vvix}; the suffixes \sername{_ewstock} and \sername{_vwstock} mark the equal- and value-weighted
+    constituent aggregates (e.g., \sername{ofi_ewstock}, \sername{sumret2_vwstock}, and
+    \sername{spread_vwstock}); and the announcement predictors are \sername{fomc_release}, \sername{fomc_day},
+    \sername{fomc_until_inv}, and \sername{fomc_since_inv}, while writing
+    \else
     samples ending at 15:30 on day $t$. We denote the implied volatility series by $\mathrm{VIX}$,
     $\mathrm{VIX3M}$, and $\mathrm{VVIX}$, label equal- and value-weighted constituent aggregates with the
     superscripts EW and VW (e.g., $\mathrm{OFI}^{\mathrm{EW}}$, $\RV^{\mathrm{VW}}$, and
     $\mathrm{Spread}^{\mathrm{VW}}$), and denote the announcement predictors by $\mathrm{FOMC}$, while writing
+    \fi
     $\bar a^{(k)}_t(u)$ and $\bar\chi^{(k)}_t(u)$ for the trailing averages of the availability and activity
     indicators.
   \end{itemize}

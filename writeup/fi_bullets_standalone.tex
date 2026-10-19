@@ -10,6 +10,19 @@
 \DeclareMathOperator{\QLIKE}{QLIKE}
 \DeclareMathOperator{\sign}{sign}
 \newcommand{\RV}{\mathrm{RV}}
+% 2026-10-19 (user): series names switch as in paper_rehaul.tex (raw parquet names for now; \rawseriesfalse restores
+% the symbols).
+\newif\ifrawseries
+\rawseriestrue
+\makeatletter
+\begingroup\catcode`\_=12
+\gdef\ser@split#1_#2\@nil{#1\if\relax\detokenize{#2}\relax\else\textunderscore\allowbreak\ser@split#2\@nil\fi}
+\endgroup
+\def\ser@text#1{{\normalfont\ttfamily\expandafter\ser@split\detokenize{#1_}\@nil}}
+\DeclareRobustCommand{\sername}[1]{\ifmmode\text{\ser@text{#1}}\else\ser@text{#1}\fi}
+\makeatother
+\newcommand{\ser}[2]{\ifrawseries\sername{#1}\else #2\fi}
+\newcommand{\serx}[3]{\ifrawseries\sername{#1}#2\else #3\fi}
 \usepackage{enumitem}
 \usepackage[round]{natbib}
 \usepackage{xcolor}
