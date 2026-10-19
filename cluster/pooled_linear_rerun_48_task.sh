@@ -11,7 +11,7 @@
 # Output: results/pooled_linear_rerun_2026-10-19_48/_work/walk/<bucket>/<estimator>/ (+ DONE, SECONDS, host.txt):
 # the layout experiments/pooled_linear_rerun_2026_10_19.py score reads.
 #
-# Submit (from the repo root, after copying the _work/design_* caches and _work/sched/ there):
+# Submit (from the repo root, after copying the _work/design_* caches there; sched/ is tracked):
 #   qsub -t 1-7 -v TASKFILE=cluster/pooled_linear_rerun_48_tasks.txt cluster/pooled_linear_rerun_48_task.sh
 #$ -cwd
 #$ -j y

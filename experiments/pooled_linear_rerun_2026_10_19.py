@@ -23,7 +23,7 @@ Author's decisions (2026-10-19; writeup/rehaul notes E6, E9, E15, E28, S4a-c, N1
   export    forecasts of EVERY interval (N18, E26), forecasts/<model>_<set>.parquet.
 
 Stages (python experiments/pooled_linear_rerun_2026_10_19.py <stage>):
-  pick    _work/pre/<set>/<est>/fold.npz -> frozen_penalties.json, prescreen.csv, _work/sched/<est>_<set>.json
+  pick    _work/pre/<set>/<est>/fold.npz -> frozen_penalties.json, prescreen.csv, sched/<est>_<set>.json
   tasks   cluster/pooled_linear_rerun_48_tasks.txt (the walks; cluster/pool_pretune_task.sh line format)
   score   _work/walk/<set>/<est>/causal_tune_linear/<est>/<set>/results.csv -> forecasts/, scores.csv, dm.csv
 """
@@ -84,7 +84,7 @@ def pick() -> None:
         sys.argv[2].split(",") if len(sys.argv) > 2 else SETS
     )  # a subset: sched files only
     rows, frozen, designs = [], {}, {}
-    (WORK / "sched").mkdir(parents=True, exist_ok=True)
+    (OUT / "sched").mkdir(parents=True, exist_ok=True)
     for b in sets:
         meta = json.loads((WORK / f"design_{b}" / "design.json").read_text())
         assert meta["rerun"], b
@@ -105,7 +105,7 @@ def pick() -> None:
             i = argmin_first(mse.mean(axis=0))
             alpha = float(grid[i])
             frozen.setdefault(SHORT[est], {})[b] = alpha
-            (WORK / "sched" / f"{est}_{b}.json").write_text(repr(alpha) + "\n")
+            (OUT / "sched" / f"{est}_{b}.json").write_text(repr(alpha) + "\n")
             for g in range(len(grid)):
                 rows.append(
                     dict(
@@ -118,7 +118,7 @@ def pick() -> None:
                     )
                 )
     frozen["ols"] = {"baseline": 0.0}
-    (WORK / "sched" / "ols_baseline.json").write_text("0.0\n")
+    (OUT / "sched" / "ols_baseline.json").write_text("0.0\n")
     if tuple(sets) != SETS:
         print(json.dumps(frozen, indent=1))
         return
@@ -154,7 +154,7 @@ def tasks() -> None:
     for est, b in models():
         lines.append(
             f"rerun48 walk {b} {est} {R_BB[b] if est != 'ols' else '1.0'} "
-            f"results/pooled_linear_rerun_2026-10-19_48/_work/sched/{est}_{b}.json "
+            f"results/pooled_linear_rerun_2026-10-19_48/sched/{est}_{b}.json "
             f"{WALK_START} -1 {W} results/pooled_linear_rerun_2026-10-19_48/_work/design_{b}"
         )
     p = REPO / "cluster" / "pooled_linear_rerun_48_tasks.txt"
