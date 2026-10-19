@@ -101,3 +101,6 @@ results/puffer_forecast_2026-10-12/**/*.i32
 results/puffer_forecast_2026-10-12/_work/data/
 results/puffer_forecast_2026-10-12/_work/colab/
 results/puffer_forecast_2026-10-12/review_build/*/
+
+# 2026-10-19 pooled linear rerun (48 intervals): design caches, walk outputs
+results/pooled_linear_rerun_2026-10-19_48/_work/
