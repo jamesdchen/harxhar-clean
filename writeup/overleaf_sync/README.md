@@ -18,6 +18,10 @@ The full specification is `SPEC.md`.
 
 ## Push the current paper to Overleaf
 
+The new repository's README and `.gitignore` are in `overleaf_repo/`. That folder holds `gitignore`, which is the
+`.gitignore` to copy in. Copy both into an empty clone before the first flatten.
+
+
 ```sh
 git clone https://github.com/jamesdchen/harxhar-paper-overleaf ../harxhar-paper-overleaf   # once
 python writeup/overleaf_sync/flatten.py --out ../harxhar-paper-overleaf --check
