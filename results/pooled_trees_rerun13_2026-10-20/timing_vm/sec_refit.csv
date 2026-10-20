@@ -1,0 +1,7 @@
+est,set,n_columns,window_rows,threads,k,sec_refit,host,cpu
+lgbm,baseline,12,26000,4,3,0.5190513134002686,vm,Intel(R) Xeon(R) Processor @ 2.10GHz
+xgb,baseline,12,26000,4,3,0.4589415391286214,vm,Intel(R) Xeon(R) Processor @ 2.10GHz
+rf,baseline,12,26000,4,3,5.744645436604817,vm,Intel(R) Xeon(R) Processor @ 2.10GHz
+lgbm,all_features,576,26000,4,3,5.916852951049805,vm,Intel(R) Xeon(R) Processor @ 2.10GHz
+xgb,all_features,576,26000,4,3,8.248900890350342,vm,Intel(R) Xeon(R) Processor @ 2.10GHz
+rf,all_features,576,26000,4,3,306.4989972114563,vm,Intel(R) Xeon(R) Processor @ 2.10GHz
