@@ -42,17 +42,20 @@ WRITES   writeup/generated/rehaul_results_oos.tex           Table 1 (tab:rh_oos)
          writeup/generated/rehaul_oos_rerun_numbers.tex     \\rhor... macros (counts, tests), loaded by the preamble
          results/oos_rerun_2026-10-20/metrics.csv, dm.csv   every number of the table and the extra tests
 
-SPAN     2026-10-20 (user, not yet adopted): "--span 2012" builds Table 1 from the 2012 rerun,
-         results/pooled_linear_rerun_2026-10-20_13_2012_w2000 (same design and 2,000-day window, penalties chosen once
-         on the four validation folds 2008-2011 and frozen), on the 3,075 trading days 3 January 2012 .. 30 April 2024,
-         13-bar sample only (there is no 48-interval rerun from 2012, so no Panel A macros). The 16:00 check runs on the
-         1,082 days 2020-01-03 .. 2024-04-30 that the run's own scores.csv scores. It also writes \\rhorSubOne... and
-         \\rhorSubTwo... macros for the subperiods 2012-01-03 .. 2019-12-31 and 2020-01-03 .. 2024-04-30 (QLIKE of every
-         row and set, the QLIKE test of all features vs the HAR benchmark). CSVs go to
-         results/oos_span_check_2026-10-20/table1_2012/. The default (--span 2020) output is unchanged.
+SPAN     2026-10-20 (user): "switch the main window to 1,000 days, not 2,000. Table 1 should cover 2012-2024 as a
+         single panel, with no 2012-2019 / 2020-2024 split table." The default (--span 2012) builds Table 1 from
+         results/pooled_linear_rerun_2026-10-20_13_2012_w1000 (same design, a 1,000-trading-day window, penalties chosen
+         once on the four validation folds 2008-2011 and frozen) on the 3,075 trading days 3 January 2012 .. 30 April
+         2024, 13-bar sample only (there is no 48-interval rerun from 2012, so no Panel A macros). The 16:00 check runs
+         on the 1,082 days 2020-01-03 .. 2024-04-30 that the run's own scores.csv scores. CSVs go to
+         results/oos_span_check_2026-10-20/table1_2012_w1000/. "--span 2020" writes the earlier table (the 2,000-day
+         reruns from 2020 above, both panels, CSVs in results/oos_rerun_2026-10-20/).
+         2026-10-20 (user): parked -- the 2,000-day 2012 table with subperiod macros. Was: "--span 2012" read
+         results/pooled_linear_rerun_2026-10-20_13_2012_w2000 and also wrote \\rhorSubOne... / \\rhorSubTwo...
+         macros (2012-2019, 2020-2024); "--span 2020" was the default.
 
-Run:  python writeup/make_rehaul_oos_rerun.py
-      python writeup/make_rehaul_oos_rerun.py --span 2012 --out-dir <dir>    (preview; --out-dir defaults to generated/)
+Run:  python writeup/make_rehaul_oos_rerun.py                 (2012-2024, 1,000-day window)
+      python writeup/make_rehaul_oos_rerun.py --span 2020     (the earlier 2020-2024 table; --out-dir writes elsewhere)
 """
 
 from __future__ import annotations
@@ -90,21 +93,23 @@ PANELS = [
     ("48", "Panel A: Trained and scored on all 48 half-hour intervals"),
     ("13", "Panel B: Trained and scored on the 13 regular-hours bars (10:00--16:00)"),
 ]
-R13_2012 = REPO / "results" / "pooled_linear_rerun_2026-10-20_13_2012_w2000"
+# 2026-10-20 (user): parked -- the 2,000-day 2012 run. Was: R13_2012 = ... / "pooled_linear_rerun_2026-10-20_13_2012_w2000"
+R13_2012 = REPO / "results" / "pooled_linear_rerun_2026-10-20_13_2012_w1000"
 # span -> 13-bar run, panels, first and last evaluation day, day count, the days of the run's own 16:00 scores.csv
-# (first, last, count), the CSV directory, and the subperiods of the \rhorSub... macros (tag, first, last)
+# (first, last, count), the CSV directory, the rolling window in trading days, and the subperiods of the
+# \rhorSub... macros (tag, first, last, days; none at present)
 SPANS = {
     "2020": dict(
         r13=R13, panels=["48", "13"], first=FIRST_DAY, last=LAST_DAY, n_days=SPAN_DAYS,
-        check=(FIRST_DAY, LAST_DAY, SPAN_DAYS), res=OUT_RES, subs=[],
+        check=(FIRST_DAY, LAST_DAY, SPAN_DAYS), res=OUT_RES, window=2000, subs=[],
     ),
     "2012": dict(
         r13=R13_2012, panels=["13"], first=pd.Timestamp("2012-01-03"), last=LAST_DAY, n_days=3075,
-        check=(FIRST_DAY, LAST_DAY, SPAN_DAYS), res=REPO / "results" / "oos_span_check_2026-10-20" / "table1_2012",
-        subs=[
-            ("One", pd.Timestamp("2012-01-03"), pd.Timestamp("2019-12-31"), 1992),
-            ("Two", FIRST_DAY, LAST_DAY, SPAN_DAYS),
-        ],
+        check=(FIRST_DAY, LAST_DAY, SPAN_DAYS),
+        res=REPO / "results" / "oos_span_check_2026-10-20" / "table1_2012_w1000", window=1000,
+        # 2026-10-20 (user): parked -- "no 2012-2019 / 2020-2024 split table". Was: subs=[("One", 2012-01-03,
+        # 2019-12-31, 1992 days), ("Two", 2020-01-03, 2024-04-30, 1082 days)]
+        subs=[],
     ),
 }
 
@@ -234,7 +239,8 @@ def thousands(n: int) -> str:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--span", choices=sorted(SPANS), default="2020", help="evaluation span of Table 1 (default 2020)")
+    # 2026-10-20 (user): parked -- the 2020 default. Was: default="2020"
+    ap.add_argument("--span", choices=sorted(SPANS), default="2012", help="evaluation span of Table 1 (default 2012)")
     ap.add_argument("--out-dir", type=Path, default=GEN, help="directory of the two .tex files (default generated/)")
     args = ap.parse_args()
     cfg = SPANS[args.span]
@@ -361,11 +367,12 @@ def main() -> None:
     if span12:
         top = [
             "% tab:rh_oos, 2012 span (--span 2012): the pooled linear rerun from 2012 on the 13 regular-hours bars (base 5,",
-            "% FOMC in, 2,000-day window, penalties chosen on the folds 2008-2011 and frozen), every bar scored on the",
+            f"% FOMC in, {cfg['window']:,}-day window, penalties chosen on the folds 2008-2011 and frozen), every bar "
+            "scored on the",
             f"% {len(days):,} days 2012-01-03 .. 2024-04-30; Diebold-Mariano on daily average QLIKE.",
         ]
         caption = ("Forecast accuracy of the intraday models, \\rhorSpanStart{} to \\rhorSpanEnd{} "
-                   "(2{,}000-day window, penalties frozen from 2008--2011)")
+                   f"({thousands(cfg['window'])}-day window, penalties frozen from 2008--2011)")
         pen = ("penalties chosen once on four validation folds covering 2008--2011, before the first forecast, "
                "and then frozen")
         span_txt = ("Every bar is scored on the $T_{\\mathrm{oos}} = \\rhorDays$ trading days from \\rhorSpanStart{} to "
@@ -394,7 +401,7 @@ def main() -> None:
             "\\footnotesize",
             "\\item \\textit{Notes:} Pooled intraday linear models, one design for every row: the HAR components at "
             "horizons $k \\in \\{1, 5, 25, 125, 625, 3125\\}$, the full predictor set with the FOMC series, "
-            f"{pen}, a rolling window of 2{{,}}000 trading days, "
+            f"{pen}, a rolling window of {thousands(cfg['window'])} trading days, "
             "re-estimated every interval (Section~\\ref{sec:rh_methods}), trained and scored on the 13 regular-hours "
             f"half-hour bars ending 10:00 to 16:00~ET. {span_txt}, \\rhorNIntB{{}} bars "
             "(bars with a non-positive realized variance dropped); each forecast $\\hat\\sigma^2_{t,i} = \\hat y^{2}_{t,i}\\, s^2_{t,i}$ is "
@@ -435,7 +442,8 @@ def main() -> None:
         lines = [
             HEAD,
             "% \\rhor... macros of Table 1 (tab:rh_oos), --span 2012: the pooled linear rerun from 2012 on the 13 bars",
-            "% (2,000-day window, penalties chosen once on the folds 2008-2011 and frozen), scored on every bar.",
+            f"% ({cfg['window']:,}-day window, penalties chosen once on the folds 2008-2011 and frozen), scored on "
+            "every bar.",
             mac("rhorNIntB", thousands(len(panels["13"][0])), "scored intervals, 13 regular-hours bars"),
             mac("rhorDays", thousands(len(days)), "trading days of the span"),
             mac("rhorSpanStart", f"{cfg['first'].day} {cfg['first']:%B %Y}", "first day of the span"),
@@ -443,6 +451,8 @@ def main() -> None:
             mac("rhorEarlyCloses", str(int(((EARLY >= days[0]) & (EARLY <= days[-1])).sum())),
                 "NYSE early-close days inside the span, dropped (the rule of rhoosEarlyCloses)"),
             mac("rhorPenYears", "2008--2011", "years of the four validation folds on which the penalties are chosen"),
+            mac("rhorWindowDays", thousands(cfg["window"]), "rolling window, trading days"),
+            mac("rhorWindowBars", thousands(13 * cfg["window"]), "rolling window, 13-bar observations"),
             mac("rhorHacLag", ", ".join(str(x) for x in lag), "Newey-West lag of the daily tests"),
         ]
     for pid, tag in (("48", "A"), ("13", "B")):
