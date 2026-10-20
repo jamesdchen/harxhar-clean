@@ -201,17 +201,22 @@ def row_labels(dz: Path, n: int) -> pd.Series:
 
 # ============================================================================ linear
 def anchors(dates: pd.Series, rows: np.ndarray, start: str, end: str) -> tuple[np.ndarray, np.ndarray, list]:
-    """Re-estimation k: the first sample row of the first trading day of each calendar month in [start, end];
-    its block O_k: the sample rows from there to the next re-estimation (or to the end of the span)."""
-    d = pd.to_datetime(dates.iloc[rows].str[:10]).to_numpy()
-    inspan = (d >= np.datetime64(start)) & (d <= np.datetime64(end))
-    idx = np.flatnonzero(inspan)
-    days = pd.DatetimeIndex(d[idx])
-    month = days.year * 12 + days.month
-    first = np.r_[True, month[1:] != month[:-1]]
-    a = idx[first]  # positions in `rows`
-    b = np.r_[a[1:], idx[-1] + 1]
-    return a, b, [str(pd.Timestamp(x).date()) for x in d[a]]
+    """Re-estimation k: the first sample row of the first trading day of each calendar month in [start, end] (a
+    trading day: a date with regular-hours bars; its first row: the first row labelled with that date, as the pooled
+    reruns' "first interval of 2020-01-03"); its block O_k: the sample rows from there to the next re-estimation (or
+    to the end of the span). On the 48 intervals the Sunday-evening rows before a month's first Monday stay in the
+    previous month's block."""
+    lab = dates.iloc[rows]
+    d = pd.to_datetime(lab.str[:10]).to_numpy()
+    tdays = np.unique(d[lab.str[11:16].isin(RTH).to_numpy()])
+    tdays = tdays[(tdays >= np.datetime64(start)) & (tdays <= np.datetime64(end))]
+    ti = pd.DatetimeIndex(tdays)
+    firsts = tdays[np.r_[True, (ti.year * 12 + ti.month)[1:] != (ti.year * 12 + ti.month)[:-1]]]
+    a = np.searchsorted(d, firsts)  # rows are in time order: the first row of each first trading day
+    assert np.array_equal(d[a], firsts)
+    last = int(np.flatnonzero(d <= np.datetime64(end))[-1])
+    b = np.r_[a[1:], last + 1]
+    return a, b, [str(pd.Timestamp(x).date()) for x in firsts]
 
 
 def solve(ns: dict, X: np.ndarray, y: np.ndarray, model: str, alpha: float, pf: np.ndarray) -> np.ndarray:
