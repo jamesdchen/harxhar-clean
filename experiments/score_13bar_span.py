@@ -179,7 +179,7 @@ def main() -> None:
                             p=float(r["p"]),
                             mean_diff=float(r["mean_diff"]),
                             T=int(r["T"]),
-                            hac_lag=int(r["hac_lag"]),
+                            hac_lag=int(r.get("hac_lag", -1)),  # 2026-10-20 (user): -1 = fewer than 8 days, no test. Was: int(r["hac_lag"])
                         )
                     )
         for cmp in a.compare:
@@ -202,7 +202,7 @@ def main() -> None:
                             p=float(r["p"]),
                             mean_diff=float(r["mean_diff"]),
                             T=int(r["T"]),
-                            hac_lag=int(r["hac_lag"]),
+                            hac_lag=int(r.get("hac_lag", -1)),  # 2026-10-20 (user): -1 = fewer than 8 days, no test. Was: int(r["hac_lag"])
                         )
                     )
     out = REPO / a.out

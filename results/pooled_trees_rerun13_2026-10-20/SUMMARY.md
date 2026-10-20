@@ -11,7 +11,8 @@ Branch `insurance-selling-2026-09-19-trees-rerun13`, from `insurance-selling-202
   rebuilt).
   - The linear runner's `check_design` runs on each cache: the HAR columns are exactly `har_ma_{1,5,25,125,625,3125}`,
     the calendar is DOW_0..DOW_4 and hour, and every FOMC series is present. It also asserts 12 and 576 columns.
-  - Window: W = window_days x 13 rows, read from the cache's `design.json` and asserted against `--window-days`. The
+  - Window: W = window_days x 13 rows, read from the cache's `design.json`. `--window-days` defaults to it and, when
+    given, is asserted against it (2026-10-20, after the author's update; before, the default was 2000). The
     forecast of design row r is fitted on rows [r - W, r): the rows the linear walk uses at r.
   - Models: the frozen configs `cluster/pooltree_lgbm_config.json` (lgbm_opt_00, sha abab811bd4b6),
     `cluster/xgbtop_xgb_config.json` (xgb_opt_00, 88bec9f385c7) and `cluster/pooltree_rf400_config.json`
@@ -34,12 +35,17 @@ Branch `insurance-selling-2026-09-19-trees-rerun13`, from `insurance-selling-202
       the span is present exactly once and that all values are finite.
     - `time` reports seconds a refit and the projected CPU-hours and wall hours.
     - `tasks` writes the task file. It chooses n for each arm so that a task's projected wall time is near
-      `--target-hours`, and puts the 2020-01-03..2024-04-30 lines first, then 2012-01-03..2019-12-31.
+      `--target-hours`.
+      - The brief's order was the 2020-01-03..2024-04-30 lines first, then 2012-01-03..2019-12-31.
+      - After the author's update, the default span is 2012-01-03..2024-04-30 and the arms are ordered cheapest
+        first.
+    - `compare` and `colsha` locate differences between two builds of a design matrix (section 1b).
 - `cluster/slurm/pooltree_rerun13.sbatch`: `MODE` = walk (array, the default), design, time or merge. The header holds
   the submission commands.
 - `experiments/score_13bar_span.py` scores every (model, predictor_set) pair a forecasts.parquet holds. The linear pairs
   come first in Table 1's order, then the others. The "all features vs HAR benchmark" tests run for every model with both
-  sets. The "vs OLS" tests run when the run holds the OLS. `--compare` covers the pairs both runs hold.
+  sets. The "vs OLS" tests run when the run holds the OLS. `--compare` covers the pairs both runs hold. A test with
+  fewer than 8 days now gets `hac_lag = -1` instead of stopping the script.
 - `.gitignore`: `results/pooled_trees_rerun13_2026-10-20/_work/` (the design caches).
 
 ## Environment
@@ -146,7 +152,64 @@ cheapest first) gives 40 tasks, 33 of them rf on all features.
 **CPU contention.** With two 4-thread LightGBM processes on these 4 cores, a 3-refit baseline walk took 220 s instead
 of 1.5 s. Each array task needs its own `--cpus-per-task`.
 
-CHECKS_PLACEHOLDER
+## 2. Walks of 3 trading days (2020-01-03 .. 2020-01-07, 2,000-day cache, 4 threads)
+
+`test_3day/run_checks.py --bar-parts-skip rf/all_features` -> `test_3day/pieces/`, `test_3day/checks.json`. Each arm
+was walked with `--refit day` and `--refit bar` as `--part 1/1`, and again as `--part 1/2` + `2/2`. The 3 days have 39
+rows; part 1/2 is 2020-01-03 and 2020-01-06, part 2/2 is 2020-01-07.
+
+| arm | day first rows = bar rows | parts 1/2 + 2/2 = 1/1, day | parts, bar | max \|day − bar\| on the other 36 rows |
+|---|---|---|---|---|
+| lgbm, HAR benchmark | yes | yes | yes | 0.045 |
+| xgb, HAR benchmark | yes | yes | yes | 0.032 |
+| rf, HAR benchmark | yes | yes | yes | 0.064 |
+| lgbm, all features | yes | yes | yes | 0.062 |
+| xgb, all features | yes | yes | yes | 0.049 |
+| rf, all features | yes | yes | not run | 0.056 |
+
+**How "equal" is checked.** Equal means every column of the piece is bit for bit the same (`DataFrame.equals`): model,
+predictor_set, date, pred_adj, true_adj, B, plain, rv_actual and fit_row. The last column is the max \|day − bar\| of
+pred_adj on the rows that are not the first of their day; it shows that the two cadences differ there, as they should.
+
+**What the structure checks show.**
+- Under `--refit day`, every row of a day carries the fit_row of the day's first row.
+- Under `--refit bar`, fit_row runs r − W, one apart.
+
+**Coverage gaps.**
+- The bar walk of rf on all features was run as `--part 1/1` only. It takes 39 refits at about 300 s here (3.3 h); its
+  part split is checked under `--refit day`.
+- The `wall_sec` in the test pieces' meta is not a timing. Several pieces ran while design builds or the time probe
+  shared the 4 cores, and the full-set LightGBM bar walks ran up to 15 times slower than alone. Section 4 holds the timings.
+
+**Other checks.**
+- **Threads.** xgb on the HAR benchmark, `--refit day`, gives the same piece with 2 threads (through the sbatch file,
+  with a mock Slurm environment) as with 4 threads.
+- **Resume.** The lgbm HAR-benchmark bar piece was cut back to its first 10 rows, as after a time limit, and walked
+  again. The walk ran the 29 missing refits only, and the piece equals the uninterrupted one bit for bit.
+- **Against the linear run's rows.** On the 39 rows, B and rv_actual equal those of the committed linear
+  forecasts.parquet. true_adj differs by at most 1 ulp (relative 2.2e-16), the CSV round trip of section 1.
+
+## 3. Merge and schema
+
+`merge --refit day|bar --n 1` -> `test_3day/forecasts_day.parquet`, `forecasts_bar.parquet`. Each holds 234 rows (6
+arms × 39). The checks are as follows:
+- every span row of every arm is present exactly once, and all values are finite;
+- plain = pred_adj² × B;
+- the column names and Arrow types are model, predictor_set (string), date (timestamp[ns]), and pred_adj, true_adj, B,
+  plain, rv_actual (double). They equal those columns of `results/pooled_linear_rerun_2026-10-19_13/forecasts.parquet`,
+  in the same order.
+
+`--n 1` picks the 1/1 split, because the 1/2 + 2/2 pieces of the same span are also complete. Without `--n`, merge
+refuses when two splits are complete.
+
+**The extended scorer.**
+- Command: `experiments/score_13bar_span.py --run linear=results/pooled_linear_rerun_2026-10-19_13 --run
+  trees=<forecasts_bar> --span 2020-01-03:2020-01-07`, output in `test_3day/score_3day_bar/`.
+- It scores the 7 linear and 6 tree pairs on one common set of 39 bars.
+- With 3 days the Diebold–Mariano tests are empty: `dm_test` needs 8 days. The scorer now writes `hac_lag = -1` for
+  them, where it used to stop with a KeyError on any span shorter than 8 days. On the linear forecasts its output is
+  still byte-identical to the earlier version (metrics.csv, dm.csv and stdout, on two calls).
+- A 3-day span tests only the plumbing. Its numbers say nothing about the models.
 
 ## 4. Timing (this container, 4 threads, k = 3 refits at the first rows of 2020-01-03)
 
@@ -181,7 +244,12 @@ follows:
 ```
 python experiments/pooled_linear_rerun_2026_10_19_13.py design --jobs 2 --out results/pooled_trees_rerun13_2026-10-20
 python results/pooled_trees_rerun13_2026-10-20/test_3day/run_checks.py --bar-parts-skip rf/all_features
-python experiments/pooled_trees_rerun_13.py time --k 3 --threads 4
+python experiments/pooled_trees_rerun_13.py time --k 3 --threads 4 --window-days 2000
+python experiments/pooled_linear_rerun_2026_10_19_13.py design --jobs 2 --window-days 1000 --out results/pooled_trees_rerun13_2026-10-20/w1000
+python experiments/pooled_trees_rerun_13.py time --design results/pooled_trees_rerun13_2026-10-20/w1000 --out results/pooled_trees_rerun13_2026-10-20/w1000 --window-days 1000 --k 3 --threads 4 --span 2012-01-03:2024-04-30 --span 2020-01-03:2024-04-30
 ```
+
+(`time` writes `<OUT>/timing/`; this container's tables were moved to `timing_vm/` and `timing_vm_w1000/`, so that
+the CARC probe writes a clean `timing/sec_refit.csv`.)
 
 The commands for CARC are in the header of `cluster/slurm/pooltree_rerun13.sbatch`.

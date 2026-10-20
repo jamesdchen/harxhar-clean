@@ -1,0 +1,28 @@
+{
+ "refit": "bar",
+ "span": [
+  "2020-01-03",
+  "2020-01-07"
+ ],
+ "window_days": 2000,
+ "pieces": {
+  "lgbm/baseline": [
+   "lgbm_baseline_bar_2020-01-03_2020-01-07_1of1.parquet"
+  ],
+  "lgbm/all_features": [
+   "lgbm_all_features_bar_2020-01-03_2020-01-07_1of1.parquet"
+  ],
+  "xgb/baseline": [
+   "xgb_baseline_bar_2020-01-03_2020-01-07_1of1.parquet"
+  ],
+  "xgb/all_features": [
+   "xgb_all_features_bar_2020-01-03_2020-01-07_1of1.parquet"
+  ],
+  "rf/baseline": [
+   "rf_baseline_bar_2020-01-03_2020-01-07_1of1.parquet"
+  ],
+  "rf/all_features": [
+   "rf_all_features_bar_2020-01-03_2020-01-07_1of1.parquet"
+  ]
+ }
+}
