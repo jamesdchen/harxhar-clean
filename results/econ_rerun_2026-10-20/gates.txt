@@ -1,0 +1,9 @@
+always short sh_mid: 0.766613 rounds to the printed 0.77
+always short sh_x: 0.420637 rounds to the printed 0.42
+always short t_mean: 0.434290 rounds to the printed 0.43
+always short hit: 61.778291 rounds to the printed 61.8
+always short Sharpe_mid = master_table.csv (0.20377913)
+always short Sharpe_crossed = master_table.csv (-0.27494570)
+always short mean_mid = master_table.csv (0.01447504)
+always short hit_rate_mid = master_table.csv (0.61778291)
+always short fixed-factor SR on 614 days = sharpe_tests_pooled.csv (0.340306)

@@ -182,7 +182,8 @@ def pairs(series, days, calib: bool) -> tuple[pd.DataFrame, pd.DataFrame]:
     for comp, a, b in pair_list():
         ga, gb = series[a], series[b]
         same = float((ga["q"].to_numpy() == gb["q"].to_numpy()).mean())
-        r = {"comparison": comp, "a": a, "b": b, "same_position_pct": 100 * same}
+        r = {"comparison": comp, "a": a, "b": b, "same_position_pct": 100 * same,
+             "n_days_differ": int((ga["q"].to_numpy() != gb["q"].to_numpy()).sum())}
         for side, col in (("mid", "mid"), ("x", "x")):
             ra, rb = ga[col].to_numpy(float), gb[col].to_numpy(float)
             r[f"dsh_{side}"] = sharpe(ra, days) - sharpe(rb, days)
@@ -200,13 +201,20 @@ def pairs(series, days, calib: bool) -> tuple[pd.DataFrame, pd.DataFrame]:
                 continue
             L = st.nw_lag(len(ri))
             dd, se = st.lw_hac(ri, rn, L)
-            p5 = st.lw_boot_p(ri, rn, st.B_PRIMARY, st.M_BOOT, rng, dd, se)
-            p10 = st.lw_boot_p(ri, rn, st.B_SENS, st.M_BOOT, rng, dd, se)
+            with np.errstate(divide="ignore", invalid="ignore"):  # a draw with a zero SE counts as d* >= d
+                p5 = st.lw_boot_p(ri, rn, st.B_PRIMARY, st.M_BOOT, rng, dd, se)
+                p10 = st.lw_boot_p(ri, rn, st.B_SENS, st.M_BOOT, rng, dd, se)
             b_cal, p_cal = np.nan, np.nan
             if calib and sample == "614":
-                b_cal, cov = st.lw_calibrate(ri, rn, L, rng)
-                p_cal = {5: p5, 10: p10}.get(b_cal) or st.lw_boot_p(ri, rn, b_cal, st.M_BOOT, rng, dd, se)
-                cal.append({"a": a, "b": b, "b_cal": b_cal, **{f"cover_b{bb}": v for bb, v in cov.items()}})
+                try:
+                    with np.errstate(divide="ignore", invalid="ignore"):
+                        b_cal, cov = st.lw_calibrate(ri, rn, L, rng)
+                    p_cal = {5: p5, 10: p10}.get(b_cal) or st.lw_boot_p(ri, rn, b_cal, st.M_BOOT, rng, dd, se)
+                    cal.append({"a": a, "b": b, "b_cal": b_cal, **{f"cover_b{bb}": v for bb, v in cov.items()}})
+                except ValueError:
+                    # a pseudo-sequence on which the two series coincide has a zero HAC variance (pairs that differ
+                    # on a handful of days): the calibration is undefined, b_cal and its p stay NaN
+                    cal.append({"a": a, "b": b, "b_cal": np.nan, "note": "undefined: a pseudo-sequence with identical returns"})
             r.update({f"lw_dsr_ann_{sample}": dd * st.ANN, f"lw_z_{sample}": dd / se, f"lw_p_hac_{sample}": st.p2(dd / se),
                       f"lw_p_boot_{sample}": p5, f"lw_p_boot_b10_{sample}": p10, f"lw_b_cal_{sample}": b_cal,
                       f"lw_p_boot_bcal_{sample}": p_cal, f"lw_lag_{sample}": L})
