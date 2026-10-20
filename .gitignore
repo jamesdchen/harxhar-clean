@@ -101,3 +101,7 @@ results/puffer_forecast_2026-10-12/**/*.i32
 results/puffer_forecast_2026-10-12/_work/data/
 results/puffer_forecast_2026-10-12/_work/colab/
 results/puffer_forecast_2026-10-12/review_build/*/
+
+# Overleaf sync script with the Overleaf git token (2026-10-20, user): never commit it; the tracked copy without
+# the token is writeup/overleaf_sync/overleaf_git.example.sh
+writeup/overleaf_sync/overleaf_git.sh

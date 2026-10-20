@@ -243,3 +243,9 @@ Known limits:
 
 Tests: `test_unflatten.py` has 35 fixture tests. `test_roundtrip.py` runs the real flatten on a temporary copy of
 `writeup/` and covers the 14 cases of section 6 plus a compile step.
+
+Output names (2026-10-20, user): `flatten.py --name NAME` writes the flat file under that name, which is also
+`flat_file` in the map. `--bib-suffix S` writes each `.bib` of a live `\bibliography` as `<name>S.bib`, and writes the
+`\bibliography` argument with those names. The written argument is a `drop` segment and the renamed list a
+`synthetic` one, so an Overleaf edit of it is a structural conflict. The Overleaf project's own `main.tex` and
+`references.bib` stay untouched (`main2.tex`, `references2.bib`).

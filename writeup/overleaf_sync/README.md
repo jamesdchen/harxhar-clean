@@ -35,6 +35,28 @@ git add writeup/overleaf_sync/map.json && git commit -m "Overleaf sync: map of t
   New Project, then Import from GitHub.
 * Commit `map.json` with every flatten that is pushed: `unflatten.py` needs the exact text Overleaf started from.
 
+## Through the Overleaf project's git URL (current route, 2026-10-20)
+
+The paper's Overleaf project, `https://git.overleaf.com/68d4843e51cfc223ab18adc2`, already holds an earlier draft
+(`main.tex`, `references.bib`, `sections/` and more). That draft stays as it is. The flat paper is added next to it as
+`main2.tex`, with its bibliography as `references2.bib` (`flatten.py --name main2.tex --bib-suffix 2`). In Overleaf,
+set `main2.tex` as the main document to compile it.
+
+`overleaf_git.sh` does the round trip in one command each way:
+
+```sh
+bash writeup/overleaf_sync/overleaf_git.sh push --first --check   # the first time; later: push [--check]
+bash writeup/overleaf_sync/overleaf_git.sh pull --dry-run          # read REPORT.md, then:
+bash writeup/overleaf_sync/overleaf_git.sh pull
+```
+
+* `push` refuses while Overleaf's `main2.tex` has edits that have not been pulled back. It commits only `main2.tex`
+  and `references2.bib` to the project, then commits `map.json` here.
+* `overleaf_git.sh` holds the Overleaf git token on a comment line, so it is in `.gitignore` and never committed:
+  this repository is public. The tracked copy without the token is `overleaf_git.example.sh`. Copy it to
+  `overleaf_git.sh` and fill in the `# OVERLEAF_GIT_TOKEN=` line, or set `OVERLEAF_GIT_TOKEN` in the environment
+  instead.
+
 ## Bring Overleaf edits back
 
 ```sh
