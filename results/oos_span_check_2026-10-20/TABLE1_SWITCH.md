@@ -22,9 +22,15 @@ Table 1 should cover 2012-2024 as a single panel, with no 2012-2019 / 2020-2024 
     are no longer written because there is no 48-interval rerun from 2012, and no `.tex` file used them.
   - CSVs are in `table1_2012_w1000/`. `table1_2012_w2000/` holds the parked 2,000-day version, and
     `results/oos_rerun_2026-10-20/` holds the 2020 table.
-- **Note E36** (`writeup/rehaul/06_results.tex:153-154`) now describes the new table: the span, the 1,000-day window,
-  and penalties chosen once on the folds 2008-2011 and frozen. The old text is parked on line 153.
-- No subperiod split and no subperiod macros. The 2,000-day preview with subperiods has been removed.
+- **Note E36** (`writeup/rehaul/06_results.tex:160-161`) now describes the new table: the span, the 1,000-day window,
+  and penalties chosen once on the folds 2008-2011 and frozen. The old text is parked on line 160.
+- No subperiod table. One sentence on the 2012-2019 / 2020-2024 split (author, 2026-10-20) closes the overview
+  bullet, `writeup/rehaul/06_results.tex:149-155`. Its numbers are the `\rhorSubA...` (2012-2019) and
+  `\rhorSubB...` (2020-2024) macros: the days, the HAR benchmark's QLIKE and R2_OOS, and the lowest and highest
+  QLIKE and R2_OOS of ridge, lasso and elastic net on all features. The rows are in
+  `table1_2012_w1000/subperiods.csv` and equal `rerun_2012/metrics.csv` (w1000). On 2020-2024 the four HAR rows
+  do not agree to four decimals (lasso 0.19515 prints 0.1952, the others 0.1951), so `\rhorSubBQlikeHar` prints
+  0.1951--0.1952. The 2,000-day preview with subperiods has been removed.
 
 | Model | HAR: MSE (1e-10) | QLIKE | R2_OOS % | All features: MSE (1e-10) | QLIKE | R2_OOS % | DM (p) |
 |---|---|---|---|---|---|---|---|
@@ -37,7 +43,15 @@ Table 1 should cover 2012-2024 as a single panel, with no 2012-2019 / 2020-2024 
 w1000, span 2012-01-03:2024-04-30. All seven rows match: the same 39,975 bars and 3,075 days; QLIKE and R2_OOS
 identical; MSE within 7e-16 (x 1e-10 units); DM and p identical, lag 8.
 
-## 2. Prose not edited: sentences that quote Table 1 or describe its span or window
+## 2. Prose: sentences that quote Table 1 or describe its span or window
+
+**Applied 2026-10-20 (approved by the author)**: every diff in 2.1-2.8 below, each replaced passage parked in a dated
+comment next to its replacement. The line numbers below are those before applying. Two differences from the diffs
+as written: "13 regular-hours bars" and "four validation folds" are the generated macros `\rhorNBars` and
+`\rhorPenFolds`, so the new prose types no numbers. The methods window, `writeup/rehaul/10_appendix.tex`
+(experimental schemes, "Linear models: ..."), also takes `\rhorWindowBars` / `\rhorWindowDays`. The split sentence
+takes its years from `\rhorSubBStartYear`, `\rhorSubALabel` and `\rhorSubBLabel`. Note E36 was updated to
+match. Not applied: the items of 2.9, which the switch does not change.
 
 These are proposals for the author to review. Line numbers are on this branch's head. Each diff keeps the
 `\rhoos...` span (2020-2024) where the sentence also covers Table 2 or the straddle sample, which stay on that span.
@@ -160,10 +174,10 @@ Line 38 (`post-\rhoosSpanEnd{}`) has the same end date on both spans and needs n
 ### 2.9 Checked: nothing in Table 1's change touches these
 
 - `writeup/rehaul/05_methods.tex:549` defines $\mathcal T_{\mathrm{oos}}$ with no dates or counts.
-- `writeup/rehaul/06_results.tex:155-158` ($R^2_{\mathrm{OOS}}$ bullet): the benchmark history starts at
+- `writeup/rehaul/06_results.tex:162-165` ($R^2_{\mathrm{OOS}}$ bullet): the benchmark history starts at
   `\rhoosBenchStart` (5 January 1998) on both spans. Its "closing-half-hour" wording is the stale description that
   E36 already names.
-- `writeup/rehaul/06_results.tex:314-323` and `:469-475` cite Table~\ref{tab:rh_oos} for `\rhrAf...Pool...` and
+- `writeup/rehaul/06_results.tex:321-330` and `:476-482` cite Table~\ref{tab:rh_oos} for `\rhrAf...Pool...` and
   `\rhrQ...PoolFull` values from `make_rehaul_results.py` (earlier runs, E34, E36). Those values do not come from
   Table 1's generator.
 - `writeup/paper_rehaul.tex:142` (E34) refers to the tree and OLS rows of the earlier table.

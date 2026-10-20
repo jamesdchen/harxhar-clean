@@ -61,6 +61,7 @@ Run:  python writeup/make_rehaul_oos_rerun.py                 (2012-2024, 1,000-
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from pathlib import Path
 
@@ -97,7 +98,7 @@ PANELS = [
 R13_2012 = REPO / "results" / "pooled_linear_rerun_2026-10-20_13_2012_w1000"
 # span -> 13-bar run, panels, first and last evaluation day, day count, the days of the run's own 16:00 scores.csv
 # (first, last, count), the CSV directory, the rolling window in trading days, and the subperiods of the
-# \rhorSub... macros (tag, first, last, days; none at present)
+# \rhorSub... macros (tag, first, last, days)
 SPANS = {
     "2020": dict(
         r13=R13, panels=["48", "13"], first=FIRST_DAY, last=LAST_DAY, n_days=SPAN_DAYS,
@@ -109,7 +110,12 @@ SPANS = {
         res=REPO / "results" / "oos_span_check_2026-10-20" / "table1_2012_w1000", window=1000,
         # 2026-10-20 (user): parked -- "no 2012-2019 / 2020-2024 split table". Was: subs=[("One", 2012-01-03,
         # 2019-12-31, 1992 days), ("Two", 2020-01-03, 2024-04-30, 1082 days)]
-        subs=[],
+        # 2026-10-20 (user): "add the one-sentence 2012-2019 / 2020-2024 split in the text (no table)" -- the split is
+        # back as macros for that sentence only. Was: subs=[]
+        subs=[
+            ("A", pd.Timestamp("2012-01-03"), pd.Timestamp("2019-12-31"), 1992),
+            ("B", FIRST_DAY, LAST_DAY, SPAN_DAYS),
+        ],
     ),
 }
 
@@ -306,18 +312,20 @@ def main() -> None:
             n_sd = pd.DatetimeIndex(sidx.normalize()).nunique()
             assert n_sd == s_days, (tag, n_sd)
             sl = idx.isin(sidx)
+            den_s = float(((y[sl] - bench.to_numpy()[sl]) ** 2).sum())  # R2_OOS of the subperiod, same benchmark
             for k in fc:
                 sub_rows.append(dict(
                     subperiod=f"{s_first.date()}:{s_last.date()}", tag=tag, model=k[0], set=k[1], against="",
-                    n_intervals=len(sidx), n_days=n_sd, qlike=float(L[k][0][sl].mean()), dm=np.nan, p=np.nan,
-                    hac_lag=np.nan,
+                    n_intervals=len(sidx), n_days=n_sd, qlike=float(L[k][0][sl].mean()),
+                    mse=float(L[k][1][sl].mean()), r2_oos_pct=float(100.0 * (1.0 - L[k][1][sl].sum() / den_s)),
+                    dm=np.nan, p=np.nan, hac_lag=np.nan,
                 ))
             for m, _ in MODELS[1:]:
                 r = dm_test(daily(L[(m, "all_features")][0][sl], sidx), daily(L[(m, "baseline")][0][sl], sidx))
                 sub_rows.append(dict(
                     subperiod=f"{s_first.date()}:{s_last.date()}", tag=tag, model=m, set="all_features",
-                    against=f"{m}_baseline", n_intervals=len(sidx), n_days=n_sd, qlike=np.nan,
-                    dm=float(r["dm"]), p=float(r["p"]), hac_lag=int(r["hac_lag"]),
+                    against=f"{m}_baseline", n_intervals=len(sidx), n_days=n_sd, qlike=np.nan, mse=np.nan,
+                    r2_oos_pct=np.nan, dm=float(r["dm"]), p=float(r["p"]), hac_lag=int(r["hac_lag"]),
                 ))
         panels[pid] = (idx, days)
     met = pd.DataFrame(met_rows)
@@ -451,6 +459,9 @@ def main() -> None:
             mac("rhorEarlyCloses", str(int(((EARLY >= days[0]) & (EARLY <= days[-1])).sum())),
                 "NYSE early-close days inside the span, dropped (the rule of rhoosEarlyCloses)"),
             mac("rhorPenYears", "2008--2011", "years of the four validation folds on which the penalties are chosen"),
+            mac("rhorNBars", str(len(set(panels["13"][0].strftime("%H:%M")))), "bars of the day in the sample"),
+            mac("rhorPenFolds", str(len(json.loads((r13 / "frozen_penalties.json").read_text())["info"]["folds"])),
+                "validation folds on which the penalties are chosen"),
             mac("rhorWindowDays", thousands(cfg["window"]), "rolling window, trading days"),
             mac("rhorWindowBars", thousands(13 * cfg["window"]), "rolling window, 13-bar observations"),
             mac("rhorHacLag", ", ".join(str(x) for x in lag), "Newey-West lag of the daily tests"),
@@ -464,25 +475,33 @@ def main() -> None:
             cap = {"ridge": "Ridge", "lasso": "Lasso", "enet": "Enet"}[m]
             lines.append(mac(f"rhorDm{cap}{tag}", fmt(r.dm, 2), f"DM, QLIKE, all features vs HAR benchmark, {m}, panel {tag}"))
             lines.append(mac(f"rhorP{cap}{tag}", fmt_p(r.p), "its p-value"))
-    caps = {"ols": "Ols", "ridge": "Ridge", "lasso": "Lasso", "enet": "Enet"}
-    for tag, s_first, s_last, _ in cfg["subs"]:  # subperiod macros: \rhorSubOne... (2012-2019), \rhorSubTwo... (2020-2024)
-        g = subs[subs.tag == tag]
-        lines.append(f"% subperiod {tag}: {s_first.date()} .. {s_last.date()}, the bars of the table cut by date")
-        lines.append(mac(f"rhorSub{tag}Start", f"{s_first.day} {s_first:%B %Y}", "first day of the subperiod"))
-        lines.append(mac(f"rhorSub{tag}End", f"{s_last.day} {s_last:%B %Y}", "last day of the subperiod"))
+    # 2026-10-20 (user): parked -- the macros of every row, set and test of each subperiod. Was: \rhorSub{One,Two}
+    # {Start,End,Days,NInt}, ...Qlike{Ols,Ridge,Lasso,Enet}{Har,Af}, ...Dm/P{Ridge,Lasso,Enet}. Now: what the one
+    # sentence on the split quotes (06_results.tex), with A = 2012-2019 and B = 2020-2024.
+    for tag, s_first, s_last, _ in cfg["subs"]:
+        g = subs[(subs.tag == tag) & (subs.against == "")].set_index(["model", "set"])
+        har = g.xs("baseline", level="set")
+
+        def one_or_range(vals: list[str]) -> str:  # one HAR value if the four HAR rows agree to the printed digits
+            lo, hi = vals[int(np.argmin([float(v.replace("$-$", "-")) for v in vals]))], \
+                vals[int(np.argmax([float(v.replace("$-$", "-")) for v in vals]))]
+            return lo if lo == hi else f"{lo}--{hi}"
+
+        # the OLS and the penalized HAR rows were to agree to the printed digits; on 2020-2024 the lasso's QLIKE
+        # (0.19515) prints 0.1952 against 0.1951, so the macro prints the range when they differ
+        q_har = one_or_range([f"{v:.4f}" for v in har.qlike])
+        r_har = one_or_range([fmt(v, 1) for v in har.r2_oos_pct])
+        af = g.xs("all_features", level="set")
+        lines.append(f"% subperiod {tag}: {s_first.date()} .. {s_last.date()}, the bars of Table 1 cut by date")
+        lines.append(mac(f"rhorSub{tag}Label", f"{s_first.year}--{s_last.year}", "years of the subperiod"))
+        lines.append(mac(f"rhorSub{tag}StartYear", str(s_first.year), "first year of the subperiod"))
         lines.append(mac(f"rhorSub{tag}Days", thousands(int(g.n_days.iloc[0])), "trading days of the subperiod"))
-        lines.append(mac(f"rhorSub{tag}NInt", thousands(int(g.n_intervals.iloc[0])), "scored bars of the subperiod"))
-        for m, _ in MODELS:
-            for st, sname in (("baseline", "Har"), ("all_features", "Af")):
-                r = g[(g.model == m) & (g.set == st) & (g.against == "")]
-                if r.empty:
-                    continue
-                lines.append(mac(f"rhorSub{tag}Qlike{caps[m]}{sname}", f"{r.qlike.iloc[0]:.4f}", f"QLIKE, {m}, {st}"))
-        for m, _ in MODELS[1:]:
-            r = g[(g.model == m) & (g.against != "")].iloc[0]
-            lines.append(mac(f"rhorSub{tag}Dm{caps[m]}", fmt(r.dm, 2),
-                             f"DM, QLIKE, all features vs HAR benchmark, {m} (Newey-West lag {int(r.hac_lag)})"))
-            lines.append(mac(f"rhorSub{tag}P{caps[m]}", fmt_p(r.p), "its p-value"))
+        lines.append(mac(f"rhorSub{tag}QlikeHar", q_har, "QLIKE, HAR benchmark (OLS, ridge, lasso, elastic net; a range if they differ)"))
+        lines.append(mac(f"rhorSub{tag}RoosHar", r_har, "R2_OOS (%), HAR benchmark (the four rows; a range if they differ)"))
+        lines.append(mac(f"rhorSub{tag}QlikeAfMin", f"{af.qlike.min():.4f}", "QLIKE, all features, lowest of ridge, lasso, elastic net"))
+        lines.append(mac(f"rhorSub{tag}QlikeAfMax", f"{af.qlike.max():.4f}", "QLIKE, all features, highest of the three"))
+        lines.append(mac(f"rhorSub{tag}RoosAfMin", fmt(af.r2_oos_pct.min(), 1), "R2_OOS (%), all features, lowest of the three"))
+        lines.append(mac(f"rhorSub{tag}RoosAfMax", fmt(af.r2_oos_pct.max(), 1), "R2_OOS (%), all features, highest of the three"))
     out_numbers.write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
 
     print(met.to_string(index=False))

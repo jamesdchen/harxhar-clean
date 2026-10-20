@@ -224,7 +224,10 @@ The futures moments are now sums of one-minute changes in the log price of the f
   % $W = 24{,}000$ intervals: 300{,}317 = 303{,}442 ... - 3{,}125 ..."; "3,469 trading days"; "\rhfiNOos = 3{,}469 - ...".
   \item The pooled intraday sample comprises \rhdmPooledRows{} half-hour intervals beginning in June 1998, using
     rolling estimation windows of length $W = \rhdmPooledWindow$ intervals for the tree ensembles and
-    $W = \rhdmPooledLinWindow$ intervals for the linear models (see Appendix~\ref{sec:rh_exp_schemes}):
+    % 2026-10-20 (user): parked -- Table 1's linear models use a window of the regular-hours bars (TABLE1_SWITCH.md, approved). Was: "$W = \rhdmPooledLinWindow$ intervals for the linear models (see Appendix~\ref{sec:rh_exp_schemes}):"
+    $W = \rhdmPooledLinWindow$ intervals for the linear models (see Appendix~\ref{sec:rh_exp_schemes}); the
+    linear models of Table~\ref{tab:rh_oos} are trained on the \rhorNBars{} regular-hours bars with
+    $W = \rhorWindowBars$ bars (\rhorWindowDays{} trading days):
     % 2026-10-15 (finish): FLAG resolved -- typed 96{,}000 -> \rhdmPooledLinWindow (make_rehaul_data_methods.py, same value).
     \[
       % 2026-10-18 (user, new-notes 6): parked -- k in samples. Was: "\rhdmPooledRows = \rhdmGridRows \text{ intervals on the grid} - \rhdmBurnIn \text{ burn-in intervals}."
@@ -259,6 +262,10 @@ The futures moments are now sums of one-minute changes in the log price of the f
     after excluding \rhoosEarlyCloses{} early-close sessions). This span begins immediately following the linear
     % 2026-10-17 (user): parked -- closing-interval material (the pre-sample moved to Appendix app:rh_closing_sample). Was: "pre-sample period described above (see"
     models' pre-sample period (Appendix~\ref{app:rh_closing_sample}; see Section~\ref{sec:rh_results_eval}).
+  % 2026-10-20 (user): added -- Table 1 scored from 2012 (TABLE1_SWITCH.md, approved).
+  \item Table~\ref{tab:rh_oos} is scored on a longer span, \rhorSpanStart{} to \rhorSpanEnd{} (\rhorDays{}
+    trading days, after excluding \rhorEarlyCloses{} early-close sessions); its penalties are chosen once on
+    \rhorPenFolds{} validation folds covering \rhorPenYears{} and then frozen.
   \item The option-trading subsample $\mathcal T_{\mathrm{opt}} \subset \mathcal T_{\mathrm{oos}}$, on which we
     evaluate the 0DTE straddle strategy in Section~\ref{sec:rh_econ}, consists of
     \[

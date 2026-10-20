@@ -160,7 +160,8 @@ This item sets the embargo $n_{\mathrm{gap}}$ equal to $\cmPtEmbargo$ and the va
   \begin{itemize}
   \item Only the forecasts of the closing interval $i = c$, made at the 15:30 ET forecast origin, are scored and
     traded.
-  \item Linear models: $W = \rhdmPooledLinWindow$ intervals (\cmPtFitWin{} trading days), re-estimated every interval.
+  % 2026-10-20 (user): parked -- the window from the Table 1 generator, not rehaul_dm_samples / make_rehaul_data_methods.py. Was: "\item Linear models: $W = \rhdmPooledLinWindow$ intervals (\cmPtFitWin{} trading days), re-estimated every interval."
+  \item Linear models: $W = \rhorWindowBars$ bars (\rhorWindowDays{} trading days of the \rhorNBars{} regular-hours bars), re-estimated every interval.
     % 2026-10-15 (finish): FLAG resolved -- typed 96{,}000 -> \rhdmPooledLinWindow (make_rehaul_data_methods.py, same value).
   \item Trees: $W = \rhdmPooledWindow$ intervals; one fixed hyperparameter configuration per tree method, never
     re-selected, re-estimated every interval.
@@ -401,7 +402,8 @@ It covers only the closing-interval linear arms (ridge, lasso and elastic net on
 \section{Robustness of the statistical results}
 \label{app:rh_robust_stat}
 \begin{itemize}
-\item \textbf{Reported comparisons.} Forecast accuracy on $\mathcal T_{\mathrm{oos}}$ is Table~\ref{tab:rh_oos}.
+% 2026-10-20 (user): parked -- Table 1 scored from 2012 (TABLE1_SWITCH.md, approved). Was: "\item \textbf{Reported comparisons.} Forecast accuracy on $\mathcal T_{\mathrm{oos}}$ is Table~\ref{tab:rh_oos}."
+\item \textbf{Reported comparisons.} Forecast accuracy of the pooled linear models is Table~\ref{tab:rh_oos}, from \rhorSpanStart{} to \rhorSpanEnd.
   The Diebold--Mariano statistic, with the Harvey--Leybourne--Newbold correction, and the Newey--West variance
   and HAC $t$-statistic are Appendix~\ref{sec:rh_methods_tests}.
 \item \textbf{Model confidence set, superior predictive ability, and StepM.} These three procedures are named in
@@ -588,7 +590,9 @@ own window $\mathcal{W}_t$ (Section~\ref{sec:rh_exp_schemes}). Rows $t'$ are tra
   \begin{itemize}
   \item \texttt{writeup/make\_rehaul\_data\_methods.py}: samples, windows, hyperparameter tables, and the
     predictor dictionary.
-  \item \texttt{writeup/make\_rehaul\_oos\_table.py}: Table~\ref{tab:rh_oos} and the last-30-minutes split.
+  % 2026-10-20 (user): parked -- Table 1 has its own generator (TABLE1_SWITCH.md, approved). Was: "\item \texttt{writeup/make\_rehaul\_oos\_table.py}: Table~\ref{tab:rh_oos} and the last-30-minutes split."
+  \item \texttt{writeup/make\_rehaul\_oos\_rerun.py}: Table~\ref{tab:rh_oos}.
+  \item \texttt{writeup/make\_rehaul\_oos\_table.py}: Table~\ref{tab:rh_oos_last30}.
   \item \texttt{writeup/make\_rehaul\_results.py}: the accuracy macros in Section~\ref{sec:rh_results}.
   \item \texttt{writeup/make\_rehaul\_economics.py}: the straddle macros in Section~\ref{sec:rh_econ}.
   % 2026-10-18 (user, second-list N12): parked -- Section 6.5 has no importance numbers; after note 7 this generator feeds only the HAR-block penalty weight (\rhfiBackbonePf, Appendix D) and the closing-interval forecast count (\rhfiNOos, Appendix G); the series and predictor counts come from make_buckets_tex.py, make_table_close_main.py and make_rehaul_data_methods.py. Was: "\item \texttt{writeup/make\_rehaul\_fi.py}: the importance macros in Section~\ref{sec:rh_fi}."
