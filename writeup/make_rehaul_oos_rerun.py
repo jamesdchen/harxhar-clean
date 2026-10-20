@@ -160,8 +160,9 @@ def slot_benchmark(rv: pd.Series, idx: pd.DatetimeIndex) -> pd.Series:
                 means.append(csum / p if p > 0 else np.nan)
             out.update(dict(zip(want, means)))
     s = pd.Series(out).reindex(idx)
+    h_slot, h_day = h.index.strftime("%H:%M"), h.index.normalize()
     for t in idx[:: max(1, len(idx) // 200)]:  # brute-force spot check
-        prior = h[(h.index.strftime("%H:%M") == t.strftime("%H:%M")) & (h.index.normalize() < t.normalize())]
+        prior = h[(h_slot == t.strftime("%H:%M")) & (h_day < t.normalize())]
         assert np.isclose(s[t], prior.mean(), rtol=1e-10, atol=0), t
     assert s.notna().all()
     del b
@@ -186,6 +187,11 @@ def fmt(x: float, dp: int) -> str:
     if v == 0:
         v = 0.0
     return f"{'$-$' if v < 0 else ''}{abs(v):.{dp}f}"
+
+
+def fmt_p(p: float) -> str:
+    """A p-value to three decimals, with values below 0.001 written as <0.001 (text or math mode)."""
+    return "\\ensuremath{<}0.001" if p < 0.001 else f"{p:.3f}"
 
 
 def thousands(n: int) -> str:
@@ -267,7 +273,7 @@ def main() -> None:
         if r.empty:
             return "--"
         r = r.iloc[0]
-        return f"{fmt(r.dm, 2)} ({r.p:.3f})"
+        return f"{fmt(r.dm, 2)} ({fmt_p(r.p)})"
 
     body = []
     for n, (pid, title) in enumerate(PANELS):
@@ -348,7 +354,7 @@ def main() -> None:
                     & (dms.loss == "qlike")].iloc[0]
             cap = {"ridge": "Ridge", "lasso": "Lasso", "enet": "Enet"}[m]
             lines.append(mac(f"rhorDm{cap}{tag}", fmt(r.dm, 2), f"DM, QLIKE, all features vs HAR benchmark, {m}, panel {tag}"))
-            lines.append(mac(f"rhorP{cap}{tag}", f"{r.p:.3f}", "its p-value"))
+            lines.append(mac(f"rhorP{cap}{tag}", fmt_p(r.p), "its p-value"))
     OUT_NUMBERS.write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
 
     print(met.to_string(index=False))
