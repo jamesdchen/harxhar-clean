@@ -14,8 +14,8 @@ CARC: AMD EPYC 7513 (AVX2), job 13254885, files on branch insurance-selling-2026
   puts the largest entry difference in this column at 4.4e-3 (17,329 rows), against a standard deviation of 0.51.
 
 So the trees fitted on CARC's design and the linear rows of Table 1 (cloud design) see the same predictors except
-for last-bit differences and this one column. The linear 2012 / 1,000-day rerun on CARC's design (pending the
-author's approval) measures the effect on Table 1 directly.
+for last-bit differences and this one column. The linear 2012 / 1,000-day rerun on CARC's design; it ran on
+CARC as job 13262220 (below).
 
 ## Linear check on CARC's design (job 13262220, branch insurance-selling-2026-09-19-trees-results 25f1a66)
 
