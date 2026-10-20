@@ -49,7 +49,10 @@
 set -eo pipefail
 mkdir -p logs
 PY="${HARXHAR_PY:?HARXHAR_PY must be the path to the venv python}"
-source "$(dirname "$PY")/activate"
+# 2026-10-20 (user): parked -- a venv only; the CARC env is a conda env without bin/activate, and every call below
+# runs "$PY" itself. Was: source "$(dirname "$PY")/activate"
+if [ -f "$(dirname "$PY")/activate" ]; then source "$(dirname "$PY")/activate"; fi
+export PATH="$(dirname "$PY"):$PATH"
 set -u
 NT="${SLURM_CPUS_PER_TASK:-8}"
 export PYTHONNOUSERSITE=1  # the CARC user site shadows numpy and pandas
