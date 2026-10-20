@@ -146,6 +146,13 @@ We refer the reader to Appendix~\ref{app:rh_impl} for comprehensive implementati
   half-hour interval—including the OLS regression on the HAR benchmark predictor set, our closing-interval HAR benchmark
   % 2026-10-17 (user): parked -- closing-interval material moved to the appendix; Section -> Appendix. Was: "forecast—are presented in Table~\ref{tab:rh_oos_last30} (see Section~\ref{sec:rh_econ_last30})."
   forecast—are presented in Table~\ref{tab:rh_oos_last30} (see Appendix~\ref{sec:rh_econ_last30}).
+  % 2026-10-20 (user): added -- "add the one-sentence 2012-2019 / 2020-2024 split in the text (no table)"; numbers from make_rehaul_oos_rerun.py (\rhorSub...).
+  Split at the start of 2020, the full predictor set has the lower QLIKE in both parts (2012--2019:
+  \rhorSubAQlikeAfMin--\rhorSubAQlikeAfMax{} against \rhorSubAQlikeHar{} for the HAR benchmark; 2020--2024:
+  \rhorSubBQlikeAfMin--\rhorSubBQlikeAfMax{} against \rhorSubBQlikeHar), and a higher $R^2_{\mathrm{OOS}}$ on
+  2012--2019 (\rhorSubARoosAfMin--\rhorSubARoosAfMax\% against \rhorSubARoosHar\%) but a lower one on 2020--2024
+  (\rhorSubBRoosAfMin--\rhorSubBRoosAfMax\% against \rhorSubBRoosHar\%), so its lower $R^2_{\mathrm{OOS}}$ over the
+  whole span comes from 2020--2024.
   % 2026-10-15 (user): Table 1 split ("Split it"); was "(columns ``Pooled intraday'') ... The columns ``Last 30
   % minutes'' are discussed in Section~\ref{sec:rh_econ_last30}; their OLS row is the benchmark forecast."
   % 2026-10-20 (user): "we need to straighten this out so it's like for like"; "evaluate on all 48 periods".
