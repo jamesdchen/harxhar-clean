@@ -29,7 +29,16 @@ Modes
           forecasts.parquet that Table 1 reads (model, predictor_set, date, pred_adj, true_adj, B, plain, rv_actual)
   time    --est E.. --set S.. --k K: seconds a refit of each arm, projected CPU-hours and wall hours of each --span
           under each cadence; appends <OUT>/timing/sec_refit.csv
-  tasks   --sec-table CSV --target-hours H -> a task file, one line "<est> <set> <refit> <first> <last> <i>/<n>"
+  tasks   --sec-table CSV --target-hours H -> a task file, one line "<est> <set> <refit> <first> <last> <i>/<n>",
+          the arms in order of projected cost, cheapest first
+  compare A.npy B.npy [--names design.json]: max absolute difference and share of exactly equal entries of two
+          design matrices, and the columns that differ
+  colsha  --set S: sha256 of each column of the cache's X.npy -> <OUT>/colsha_<set>_w<days>d.csv (two builds can be
+          compared column by column without moving the 390 MB file)
+
+2026-10-20 (author, relayed by the main session): the trees run on CARC with the 1,000-day window over
+2012-01-03 .. 2024-04-30, so --window-days defaults to 1000, --first-day to 2012-01-03, and the task file covers that
+span, arm by arm, cheapest first.
 
 Run:  python experiments/pooled_trees_rerun_13.py walk --design results/pooled_trees_rerun13_2026-10-20 \
           --est lgbm --set all_features --refit day --first-day 2020-01-03 --last-day 2020-01-07 --threads 4
@@ -69,7 +78,9 @@ CONFIGS = {
 }
 COLS = ["model", "predictor_set", "date", "pred_adj", "true_adj", "B", "plain", "rv_actual"]
 PIECE_COLS = COLS + ["fit_row"]
-SPANS = ("2020-01-03:2024-04-30", "2012-01-03:2019-12-31")
+# 2026-10-20 (author): parked -- the 2020 span first, then 2012-2019. Was:
+# SPANS = ("2020-01-03:2024-04-30", "2012-01-03:2019-12-31")
+SPANS = ("2012-01-03:2024-04-30",)
 DEFAULT_OUT = ROOT / "results" / "pooled_trees_rerun13_2026-10-20"
 DEFAULT_DESIGN = DEFAULT_OUT  # the linear runner's design stage run with --out DEFAULT_OUT (its _work/ is gitignored)
 
@@ -379,23 +390,31 @@ def cmd_tasks(a) -> int:
     root = Path(a.design).resolve()
     sec = pd.concat([pd.read_csv(p) for p in a.sec_table], ignore_index=True)
     sec = sec[sec["window_rows"] == a.window_days * PPD]
-    lines, info = [], []
-    for sp in a.spans:
-        first, last = sp.split(":")
-        for refit in a.refit_list:
-            for est in a.est or list(CONFIGS):
-                for s in a.set or list(SETS):
-                    t = sec[(sec["est"] == est) & (sec["set"] == s)]
-                    assert len(t), f"no seconds a refit for {est} {s} at W {a.window_days * PPD}"
-                    t = t.iloc[-1]
-                    d = oos_dates(root, s)
+    # 2026-10-20 (author): parked -- span by span (the 2020 span first). Now arm by arm, cheapest first
+    # (projected hours over every span and cadence of the call). Was: for sp in a.spans: for refit ...: for est ...
+    arms = []
+    for est in a.est or list(CONFIGS):
+        for s in a.set or list(SETS):
+            t = sec[(sec["est"] == est) & (sec["set"] == s)]
+            assert len(t), f"no seconds a refit for {est} {s} at W {a.window_days * PPD}"
+            t = t.iloc[-1]
+            d = oos_dates(root, s)
+            lines, info, total = [], [], 0.0
+            for sp in a.spans:
+                first, last = sp.split(":")
+                for refit in a.refit_list:
                     rows, last_ = span_rows(d, first, last)
                     n_ref = refits_of(d, rows, refit)
                     n_days = int(d.normalize()[rows].nunique())
                     n = max(1, min(n_days, math.ceil(t["sec_refit"] * n_ref / 3600 / a.target_hours)))
+                    total += t["sec_refit"] * n_ref
                     lines += [f"{est} {s} {refit} {first} {last_} {i}/{n}" for i in range(1, n + 1)]
                     info.append(f"# {est} {s} {refit} {first}..{last_}: {n_ref} refits x {t['sec_refit']:.2f} s "
                                 f"({int(t['threads'])} threads) -> {n} tasks of ~{t['sec_refit'] * n_ref / n / 3600:.2f} h")
+            arms.append((total, lines, info))
+    arms.sort(key=lambda x: x[0])
+    lines = [ln for _, ls, _ in arms for ln in ls]
+    info = [ln for _, _, inf in arms for ln in inf]
     Path(a.taskfile).parent.mkdir(parents=True, exist_ok=True)
     Path(a.taskfile).write_text("\n".join(lines) + "\n")
     print("\n".join(info))
@@ -403,16 +422,57 @@ def cmd_tasks(a) -> int:
     return 0
 
 
+def cmd_compare(a) -> int:
+    """Two design matrices (e.g. this container's X.npy against a CARC build): shape, layout, max absolute
+    difference, share of exactly equal entries (NaN = NaN), and the columns that differ."""
+    A, B = (np.load(p, mmap_mode="r") for p in a.files)
+    print(f"shapes {A.shape} {B.shape}; f_order {A.flags.f_contiguous} {B.flags.f_contiguous}")
+    assert A.shape == B.shape, "shapes differ"
+    names = json.loads(Path(a.names).read_text())["names"] if a.names else [str(j) for j in range(A.shape[1])]
+    n_eq, mx, cols = 0, 0.0, []
+    for j in range(A.shape[1]):
+        x, y = np.asarray(A[:, j]), np.asarray(B[:, j])
+        eq = (x == y) | (np.isnan(x) & np.isnan(y))
+        n_eq += int(eq.sum())
+        if not eq.all():
+            both = np.isfinite(x) & np.isfinite(y)
+            dj = float(np.max(np.abs(x[both] - y[both]))) if both.any() else float("nan")
+            nan_mismatch = int((np.isnan(x) != np.isnan(y)).sum())
+            mx = max(mx, dj) if np.isfinite(dj) else mx
+            cols.append((names[j], int((~eq).sum()), dj, nan_mismatch, int(np.flatnonzero(~eq)[0])))
+    print(f"exactly equal entries: {n_eq} of {A.size} ({100 * n_eq / A.size:.6f} %); max |A - B| = {mx:.3e}; "
+          f"{len(cols)} of {A.shape[1]} columns differ")
+    for c in cols[: a.show]:
+        print(f"  {c[0]}: {c[1]} entries differ, max |diff| {c[2]:.3e}, NaN mismatches {c[3]}, first row {c[4]}")
+    return 0 if not cols else 1
+
+
+def cmd_colsha(a) -> int:
+    root, out = Path(a.design).resolve(), Path(a.out).resolve()
+    s = a.set[0] if a.set else "all_features"
+    dz = design_dir(root, s)
+    X = np.load(dz / "X.npy", mmap_mode="r")
+    names = json.loads((dz / "design.json").read_text())["names"]
+    rows = [dict(column=j, name=names[j], sha256=hashlib.sha256(np.ascontiguousarray(X[:, j]).tobytes()).hexdigest())
+            for j in range(X.shape[1])]
+    out.mkdir(parents=True, exist_ok=True)
+    p = out / f"colsha_{s}_w{(X.shape[0] - len(oos_dates(root, s))) // PPD}d.csv"
+    pd.DataFrame(rows).to_csv(p, index=False)
+    say(f"{len(rows)} column hashes -> {p}")
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("mode", choices=("walk", "merge", "time", "tasks"))
+    ap.add_argument("mode", choices=("walk", "merge", "time", "tasks", "compare", "colsha"))
     ap.add_argument("--design", default=str(DEFAULT_DESIGN), help="the linear runner's --out directory")
     ap.add_argument("--out", default=str(DEFAULT_OUT))
-    ap.add_argument("--window-days", type=int, default=2000)
+    # 2026-10-20 (author): parked -- default=2000 (the window of Table 1's linear run); the CARC trees use 1,000 days
+    ap.add_argument("--window-days", type=int, default=1000)
     ap.add_argument("--est", action="append", choices=sorted(CONFIGS))
     ap.add_argument("--set", action="append", choices=SETS)
     ap.add_argument("--refit", choices=("bar", "day"), default="day")
-    ap.add_argument("--first-day", default="2020-01-03")
+    ap.add_argument("--first-day", default="2012-01-03")  # 2026-10-20 (author): parked -- default="2020-01-03"
     ap.add_argument("--last-day", default=None, help="default: the last design row")
     ap.add_argument("--part", default="1/1")
     ap.add_argument("--threads", type=int, default=int(os.environ.get("SLURM_CPUS_PER_TASK", "4")))
@@ -428,6 +488,10 @@ def main() -> int:
     ap.add_argument("--target-hours", type=float, default=3.0)
     ap.add_argument("--refits", default="day", help="tasks: bar, day or bar,day")
     ap.add_argument("--taskfile", default="cluster/pooltree_rerun13_tasks.txt")
+    # compare
+    ap.add_argument("files", nargs="*", help="compare: two X.npy files")
+    ap.add_argument("--names", default="", help="compare: a design.json for the column names")
+    ap.add_argument("--show", type=int, default=20)
     a = ap.parse_args()
     if a.mode == "walk":
         assert a.est and a.set and len(a.est) == len(a.set) == 1, "walk: one --est and one --set"
@@ -436,7 +500,10 @@ def main() -> int:
         a.spans = ["2020-01-03:2024-04-30", "2012-01-03:2024-04-30"]
     a.spans = a.spans or list(SPANS)
     a.refit_list = a.refits.split(",")
-    return {"walk": cmd_walk, "merge": cmd_merge, "time": cmd_time, "tasks": cmd_tasks}[a.mode](a)
+    if a.mode == "compare":
+        assert len(a.files) == 2, "compare: two X.npy files"
+    return {"walk": cmd_walk, "merge": cmd_merge, "time": cmd_time, "tasks": cmd_tasks, "compare": cmd_compare,
+            "colsha": cmd_colsha}[a.mode](a)
 
 
 if __name__ == "__main__":
