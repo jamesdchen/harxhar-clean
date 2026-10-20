@@ -158,8 +158,10 @@ This item sets the embargo $n_{\mathrm{gap}}$ equal to $\cmPtEmbargo$ and the va
   an intraday interval and $\mathcal W_{t,i} = \{(t, i-W), \dots, (t, i-1)\}$ holds the $W$ intervals before
   $(t,i)$. The full predictor set has \rhdmNColsPooled{} predictors (Section~\ref{sec:rh_predictors}).
   \begin{itemize}
-  \item Only the forecasts of the closing interval $i = c$, made at the 15:30 ET forecast origin, are scored and
-    traded.
+  % 2026-10-20 (user): parked -- holds for the closing-interval models and the straddle, not for Table 1. Was: "\item Only the forecasts of the closing interval $i = c$, made at the 15:30 ET forecast origin, are scored and traded."
+  \item For the closing-interval models and the straddle strategy, only the forecasts of the closing interval
+    $i = c$, made at the 15:30 ET forecast origin, are scored and traded; the pooled linear models of
+    Table~\ref{tab:rh_oos} are scored on every one of the \rhorNBars{} regular-hours bars.
   % 2026-10-20 (user): parked -- the window from the Table 1 generator, not rehaul_dm_samples / make_rehaul_data_methods.py. Was: "\item Linear models: $W = \rhdmPooledLinWindow$ intervals (\cmPtFitWin{} trading days), re-estimated every interval."
   \item Linear models: $W = \rhorWindowBars$ bars (\rhorWindowDays{} trading days of the \rhorNBars{} regular-hours bars), re-estimated every interval.
     % 2026-10-15 (finish): FLAG resolved -- typed 96{,}000 -> \rhdmPooledLinWindow (make_rehaul_data_methods.py, same value).
