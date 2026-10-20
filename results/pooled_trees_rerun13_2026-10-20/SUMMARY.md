@@ -78,6 +78,74 @@ prints these.
 So the cache built here is the design of the committed run. The trees' true_adj is the cache's y itself, without the
 CSV round trip. Scoring uses rv_actual and plain, not true_adj.
 
+## 1b. The 1,000-day design caches and the CARC builds (author update, 2026-10-20)
+
+The author's update was relayed by the main session: the trees run on CARC with the 1,000-day window over
+2012-01-03..2024-04-30. Built here with `design --jobs 2 --window-days 1000 --out
+results/pooled_trees_rerun13_2026-10-20/w1000` (22 s and 239 s). Both caches have 84,747 rows: W = 13,000 plus 71,747
+OOS rows.
+
+The sha256 values here and on CARC, as the main session reported them. CARC's machine is an AMD EPYC 7513 (AVX2, no
+AVX-512) with numpy 1.26.4 from `cluster/requirements-rerun13.lock.txt` and Python 3.12.15.
+
+| window | set | file | here | CARC | equal |
+|---|---|---|---|---|---|
+| 1,000 | baseline | X.npy | `7b6ebcf84f1418238ba8b5edfa079d100db62d922620f5927a9c24987962f0f8` | `7b6ebcf8…` | yes |
+| 1,000 | both | y.npy | `62285d583262c6fb11f99bbc7108397948f64faab6e4793eccf8ef741a10f588` | `62285d58…` | yes |
+| 1,000 | both | b_oos.npy | `554ba4929f62b1b56773db35b89125705a467f7965b371e3c5364b0989aa9c48` | `554ba492…` | yes |
+| 1,000 | both | dates_oos.csv | `ae99b11349ca86537d95a6db5d080c07db9e7b11996c86b271c75f989a3d72e5` | `ae99b113…` | yes |
+| 1,000 | all_features | X.npy | `3f235146a4cb370310702e54b693f193ef80d5f96db5643633feabbde09fe6e2` | `9485e67e…` | **no** |
+| 2,000 | baseline | X.npy | `5a1b8492…` (section 1) | `5a1b8492…` | yes |
+| 2,000 | both | b_oos.npy, dates_oos.csv | `8b04b2cc…`, `7487d91e…` | `8b04b2cc…`, `7487d91e…` | yes |
+| 2,000 | all_features | X.npy | `9cdf78c8…` | `f79455fb…` | **no** |
+
+(design.json differs on every build because it records the host.)
+
+**The full-set X depends on the CPU.**
+- A second 1,000-day build here gives `3f235146…` again, so each build is reproducible on its own machine.
+- This container's CPU has AVX-512, and numpy 1.26 picks its SIMD loops by CPU. A build with numpy's AVX-512 loops
+  turned off (`NPY_DISABLE_CPU_FEATURES`, `OPENBLAS_CORETYPE=Haswell` or `Zen`) gives a third hash, `efe2d6bd…`.
+  Adding `NUMBA_CPU_NAME=znver3` gives the same `efe2d6bd…`.
+- So CARC's file could not be reproduced exactly here.
+
+This build against the AVX-512-off build:
+- 86.6 % of the entries are exactly equal, and 126 of 576 columns differ.
+- In 125 of those columns the largest difference is below 2e-12 (the last bits of the trailing averages).
+- One column, `adj_voldemand_spx_open_only_ma_5`, differs in 17,329 rows by up to 4.4e-3 (its standard deviation is
+  0.51).
+
+The baseline set, y, B and the dates are identical everywhere.
+
+**Tools for the comparison** (the X.npy files are not in git):
+- `colsha` writes the sha256 of each column. `colsha/` holds this container's: `colsha_all_features_w1000d.csv`,
+  `colsha_all_features_w1000d_numpy_avx512_off.csv` and `colsha_all_features_w2000d.csv`.
+- `compare A.npy B.npy --names design.json` gives the max |diff|, the share of exactly equal entries and the differing
+  columns.
+- `x_colstats_vm_w1000.csv` holds the sum, sum of squares, min and max of each column of the 1,000-day full-set X here.
+  CARC writes the same file as `x_colstats_carc.csv`.
+
+The author has not yet decided between keeping CARC's build for the trees and fitting them on a cloud-built X.
+
+## 4b. Timing on the 1,000-day design (this container, 4 threads, k = 3)
+
+`timing_vm_w1000/`. The table gives CPU-hours on 2012-01-03..2024-04-30 (40,466 rows, 3,151 days).
+
+| arm | s a refit | bar | day |
+|---|---|---|---|
+| lgbm, HAR benchmark | 0.35 | 15.6 | 1.2 |
+| xgb, HAR benchmark | 0.34 | 15.3 | 1.2 |
+| rf, HAR benchmark | 2.73 | 122.6 | 9.5 |
+| lgbm, all features | 3.75 | 168.7 | 13.1 |
+| xgb, all features | 4.60 | 207.0 | 16.1 |
+| rf, all features | 111.28 | 5,003 | 390 |
+| all six | | 5,533 | 431 |
+
+**Task file.** With this table, `tasks --refits day` (the defaults after the update: span 2012-01-03..2024-04-30, arms
+cheapest first) gives 40 tasks, 33 of them rf on all features.
+
+**CPU contention.** With two 4-thread LightGBM processes on these 4 cores, a 3-refit baseline walk took 220 s instead
+of 1.5 s. Each array task needs its own `--cpus-per-task`.
+
 CHECKS_PLACEHOLDER
 
 ## 4. Timing (this container, 4 threads, k = 3 refits at the first rows of 2020-01-03)
