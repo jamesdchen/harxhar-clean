@@ -44,12 +44,17 @@ Modes  (python experiments/pool_linear_pretune.py <mode> ...; root = the deploym
 
 --rerun (2026-10-19, user: the pooled linear rerun, results/pooled_linear_rerun_2026-10-19_48/; default off,
 every path above unchanged) switches every mode to the rerun design:
-  * HAR ladder base 2, k = 1, 2, 4, ..., 2048 (HPC_KW_HAR_BASE=2; the printed run never set it: base 5);
+  * HAR ladder base 5, k = 1, 5, 25, 125, 625, 3125 (HPC_KW_HAR_BASE=5, asserted; author 2026-10-20: "base 5
+    and FOMC included", base 5 for every model, the OLS included);
+    [2026-10-20 (user): parked -- was "HAR ladder base 2, k = 1, 2, 4, ..., 2048 (HPC_KW_HAR_BASE=2; the printed
+    run never set it: base 5)"]
   * src/backtest/executor.py DROP_ACTIVITY_MA (E6) and CALENDAR_THROUGH_OVERNIGHT (E9) on: no *_active_ma_*
     columns, calendar DOW_0 .. DOW_4, hour, is_overnight, no HAR x open/close products;
-  * all_features without the FOMC series (the paper's text: not in the pooled model; src/data/loading.py:136
-    appends them to ALL_FEATURES);
-  * the backbone (penalty factor r) is the HAR benchmark set: har_ma_1 .. har_ma_2048 + the 7 calendar columns;
+  * all_features WITH the four FOMC series (author 2026-10-20; src/data/loading.py FOMC_FEATURES, FOMC_CALENDAR_FIX
+    on; E6 still drops their activity averages; asserted);
+    [2026-10-20 (user): parked -- was "all_features without the FOMC series (the paper's text: not in the pooled
+    model; src/data/loading.py:136 appends them to ALL_FEATURES)"]
+  * the backbone (penalty factor r) is the HAR benchmark set: har_ma_1 .. har_ma_3125 + the 7 calendar columns;
   * --est ols: the spec's ridge path at alpha 0 (the pooled OLS on the HAR benchmark set, a0's successor);
   * --sched may hold one number: that penalty at every re-choice (the frozen walk, no margin re-tune).
   design --part K/N builds the design of the K-th of N contiguous parts of the bucket's raw columns (memory: the
@@ -113,9 +118,9 @@ BACKBONE = frozenset(
     ]
 )
 # 2026-10-19 (user): the rerun's backbone, the HAR benchmark set of the rerun design (--rerun)
-HAR_LADDER_RERUN = [
-    2**j for j in range(12)
-]  # 1 .. 2048 (resolve_har_lags(base=2), cap 3125)
+# 2026-10-20 (user): base 5.  Parked -- was base 2:
+# HAR_LADDER_RERUN = [2**j for j in range(12)]  # 1 .. 2048 (resolve_har_lags(base=2), cap 3125)
+HAR_LADDER_RERUN = [5**j for j in range(6)]  # 1 .. 3125 (resolve_har_lags(base=5))
 BACKBONE_RERUN = frozenset(
     [f"har_ma_{k}" for k in HAR_LADDER_RERUN]
     + [f"DOW_{d}" for d in range(5)]
@@ -161,7 +166,8 @@ def spec_section(est: str, bucket: str, start: int, end: int, halo: int) -> dict
         }
     )
     if RERUN:
-        os.environ["HPC_KW_HAR_BASE"] = "2"
+        # 2026-10-20 (user): base 5; parked -- was os.environ["HPC_KW_HAR_BASE"] = "2"
+        os.environ["HPC_KW_HAR_BASE"] = "5"
     os.chdir(ROOT)
     if str(ROOT) not in sys.path:
         sys.path.insert(0, str(ROOT))
@@ -176,22 +182,28 @@ def spec_section(est: str, bucket: str, start: int, end: int, halo: int) -> dict
     ns["ESTIMATOR_GRIDS"]["ols"] = [("ridge", 0.0, 0.0)]
     if RERUN:
         import src.backtest.executor as EX
-        from src.data.loading import FOMC_FEATURES
+        import src.data.loading as LD
 
         EX.DROP_ACTIVITY_MA = True
         EX.CALENDAR_THROUGH_OVERNIGHT = True
-        assert ns["HAR_LAGS"] == HAR_LADDER_RERUN, ns["HAR_LAGS"]
-        gb = ns["get_bucket"]
-
-        def get_bucket_rerun(name: str) -> list[str]:
-            cols = gb(name)
-            return (
-                [c for c in cols if c not in FOMC_FEATURES]
-                if name == "all_features"
-                else cols
-            )
-
-        ns["get_bucket"] = get_bucket_rerun
+        assert ns["HAR_LAGS"] == HAR_LADDER_RERUN == [1, 5, 25, 125, 625, 3125], ns[
+            "HAR_LAGS"
+        ]
+        # 2026-10-20 (user): the FOMC series stay in all_features, with the calendar fix
+        assert set(LD.FOMC_FEATURES) <= set(ns["get_bucket"]("all_features")), "FOMC"
+        assert LD.FOMC_CALENDAR_FIX, "FOMC_CALENDAR_FIX off"
+        # 2026-10-20 (user): parked -- the FOMC series left all_features:
+        # gb = ns["get_bucket"]
+        #
+        # def get_bucket_rerun(name: str) -> list[str]:
+        #     cols = gb(name)
+        #     return (
+        #         [c for c in cols if c not in LD.FOMC_FEATURES]
+        #         if name == "all_features"
+        #         else cols
+        #     )
+        #
+        # ns["get_bucket"] = get_bucket_rerun
     if PART is not None:
         gb_p = ns["get_bucket"]
 

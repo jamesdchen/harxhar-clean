@@ -10,9 +10,10 @@ Author's decisions (2026-10-19; writeup/rehaul notes E6, E9, E15, E28, S4a-c, N1
             1,200-interval embargo; criterion the fold mean of the validation MSE on the adjusted scale,
             first argmin, as experiments/pool_linear_pretune_report.py); the walk then seeds that value at
             every 250th solve (--sched holding one number); no margin re-tune;
-  design    pool_linear_pretune.py --rerun: HAR ladder base 2 (k = 1 .. 2048), DROP_ACTIVITY_MA (E6) and
-            CALENDAR_THROUGH_OVERNIGHT (E9) on, every 2026-10-15 data-fix flag at its default (on), FOMC series
-            out of all_features; penalty factor r on the HAR benchmark block (1/100 on all_features, 1 on the
+  design    pool_linear_pretune.py --rerun: HAR ladder base 5 (k = 1 .. 3125), DROP_ACTIVITY_MA (E6) and
+            CALENDAR_THROUGH_OVERNIGHT (E9) on, every 2026-10-15 data-fix flag at its default (on), the FOMC
+            series in all_features (author 2026-10-20: "base 5 and FOMC included"; parked -- was base 2,
+            k = 1 .. 2048, FOMC series out of all_features); penalty factor r on the HAR benchmark block (1/100 on all_features, 1 on the
             HAR benchmark set, where every column is in the block), as the printed arms;
   models    ridge, lasso, elastic net (l1_ratio 0.5) on the HAR benchmark set (baseline) and on all features;
             the OLS on the HAR benchmark set (the spec's ridge path at alpha 0), a0's successor;
@@ -134,12 +135,13 @@ def pick() -> None:
         ),
         designs=designs,
         window_intervals=W,
-        har_ladder=[2**j for j in range(12)],
+        har_ladder=[5**j for j in range(6)],
         flags=dict(
             DROP_ACTIVITY_MA=True,
             CALENDAR_THROUGH_OVERNIGHT=True,
             data_fix_flags="src/backtest/executor.py defaults (all on)",
-            fomc_in_all_features=False,
+            fomc_in_all_features=True,
+            FOMC_CALENDAR_FIX=True,
         ),
     )
     (OUT / "frozen_penalties.json").write_text(json.dumps(js, indent=1) + "\n")
