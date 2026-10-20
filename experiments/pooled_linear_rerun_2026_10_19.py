@@ -92,6 +92,7 @@ def pick() -> None:
         designs[b] = dict(
             n_columns=len(meta["names"]),
             columns=meta["names"],
+            fomc_columns=[c for c in meta["names"] if "fomc" in c],
             rows=meta["shape"][0],
             backbone_penalty_factor=float(R_BB[b]),
         )
