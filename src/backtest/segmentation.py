@@ -57,11 +57,22 @@ BLOCK_SEGMENTS: dict[str, tuple[int, int]] = {
 SEGMENT_DEFINITIONS.update(BAR_SEGMENTS)
 SEGMENT_DEFINITIONS.update(BLOCK_SEGMENTS)
 SEGMENT_CHOICES.extend([*BAR_SEGMENTS, *BLOCK_SEGMENTS])
+# 2026-10-19 (note E15): the 13 regular-hours bars as one sample, end stamps 10:00 .. 16:00 (``rth``
+# above also holds the 09:30 stamp, the overnight interval ending at the open).  Kept out of
+# SEGMENT_DEFINITIONS so that segment "all" runs exactly the segments it ran before.
+SAMPLE_SEGMENTS: dict[str, tuple[int, int]] = {
+    "rth13": (_hhmm(10, 0), _hhmm(16, 0)),
+}
+SEGMENT_CHOICES.extend(SAMPLE_SEGMENTS)
 
 
 def slice_to_segment(df: pd.DataFrame, segment: str) -> pd.DataFrame:
     """Filter rows to a time-of-day segment. Handles midnight wrap-around."""
-    start, end = SEGMENT_DEFINITIONS[segment]
+    start, end = (
+        SAMPLE_SEGMENTS[segment]
+        if segment in SAMPLE_SEGMENTS
+        else SEGMENT_DEFINITIONS[segment]
+    )
     minutes = df["t"].dt.hour * 60 + df["t"].dt.minute
     if start <= end:  # start == end is a one-bar segment, not a wrap-around
         mask = (minutes >= start) & (minutes <= end)
