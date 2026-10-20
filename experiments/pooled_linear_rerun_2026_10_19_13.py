@@ -31,6 +31,11 @@ Stages  (python experiments/pooled_linear_rerun_2026_10_19_13.py <stage> [--jobs
             half hour on the common span of tab:rh_oos, QLIKE / MSE / R2_OOS on actual RV as
             experiments/rolling_eval_2026_10_15.py), dm.csv (against the new OLS; against the printed rows when their
             forecast files are present), scores_all_bars.csv
+
+2026-10-20 (user): --window-days N (default 2000) and --first-day D (default 2020-01-03) for the window check and the
+2012 rerun; every count above scales with them (pre-tune: the 1,000 sessions before D, each fold fit on the N-day
+window before its embargo). The score stage still scores the common span of tab:rh_oos; forecasts.parquet holds every
+bar from the walk start to the end of the data.
 """
 
 from __future__ import annotations
@@ -167,7 +172,12 @@ def oos_dates(s: str = "baseline") -> pd.Series:
 def first_row() -> int:
     """Design row of the first bar of the first evaluation day (the pre-tune's start row)."""
     d = oos_dates()
-    return W + int(np.flatnonzero(d >= FIRST_DAY)[0])
+    S = W + int(np.flatnonzero(d >= FIRST_DAY)[0])
+    assert S >= PRE_HALO, (
+        S,
+        PRE_HALO,
+    )  # 2026-10-20: the pre-tune folds fit inside the design
+    return S
 
 
 def walk_start() -> int:
@@ -541,6 +551,7 @@ def st_score(a) -> None:
 
 
 def main() -> None:
+    global OUT, WORK, TW_DAYS, W, PRE_HALO, FIRST_DAY
     ap = argparse.ArgumentParser()
     ap.add_argument("stage", choices=("design", "pretune", "select", "walk", "score"))
     ap.add_argument("--jobs", type=int, default=4)
@@ -559,11 +570,20 @@ def main() -> None:
     )
     # 2026-10-20 (user): another output directory, e.g. a scratch reproduction; default the committed one
     ap.add_argument("--out", default="")
+    # 2026-10-20 (user): the window in trading days and the first evaluation day; the defaults are the committed run.
+    # The pre-tune folds tile the 1,000 sessions before --first-day, each fit on the window before its embargo.
+    ap.add_argument("--window-days", type=int, default=TW_DAYS)
+    ap.add_argument("--first-day", default=FIRST_DAY)
     a = ap.parse_args()
     if a.out:
-        global OUT, WORK
         OUT = Path(a.out).resolve()
         WORK = OUT / "_work"
+    if a.window_days != TW_DAYS:
+        TW_DAYS = a.window_days
+        W = TW_DAYS * PPD
+        PRE_HALO = PRE_FOLDS * PRE_FOLD_SESS * PPD + PRE_EMBARGO_SESS * PPD + W
+        CFG.extend(["--window-days", str(TW_DAYS)])
+    FIRST_DAY = a.first_day
     OUT.mkdir(parents=True, exist_ok=True)
     {
         "design": st_design,

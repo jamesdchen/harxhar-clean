@@ -183,8 +183,9 @@ CALENDAR_ALL = frozenset(
 
 def configure(a) -> None:
     """Set the sample, the ladder, the bucket filter and the executor flags of this run."""
-    global SAMPLE, PERIODS_PER_DAY, W, HAR_BASE, DROP_FOMC, EX_FLAGS
+    global SAMPLE, PERIODS_PER_DAY, W, HAR_BASE, DROP_FOMC, EX_FLAGS, TW_DAYS
     SAMPLE, HAR_BASE, DROP_FOMC = a.sample, a.har_base, bool(a.drop_fomc)
+    TW_DAYS = a.window_days  # 2026-10-20 (user): --window-days, default 2000
     PERIODS_PER_DAY = PPD_OF[SAMPLE]
     W = TW_DAYS * PERIODS_PER_DAY
     EX_FLAGS = {}
@@ -195,7 +196,15 @@ def configure(a) -> None:
 
 
 def default_config() -> bool:
-    return SAMPLE == "48" and not HAR_BASE and not DROP_FOMC and not EX_FLAGS
+    # 2026-10-20 (user): parked -- before --window-days. Was:
+    #     return SAMPLE == "48" and not HAR_BASE and not DROP_FOMC and not EX_FLAGS
+    return (
+        SAMPLE == "48"
+        and not HAR_BASE
+        and not DROP_FOMC
+        and not EX_FLAGS
+        and TW_DAYS == 2000
+    )
 
 
 def config_dict() -> dict:
@@ -1249,6 +1258,8 @@ def main() -> None:
     ap.add_argument("--ex-flag", action="append", default=[])
     # 2026-10-20 (user): which OLS --est ols runs (module docstring)
     ap.add_argument("--ols", default="auto", choices=("auto", "ridge0", "minnorm"))
+    # 2026-10-20 (user): the rolling window in trading days (the design cache records window = days x bars a day)
+    ap.add_argument("--window-days", type=int, default=TW_DAYS)
     a = ap.parse_args()
     global RERUN, PART
     RERUN = a.rerun
