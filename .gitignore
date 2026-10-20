@@ -107,3 +107,5 @@ results/puffer_forecast_2026-10-12/review_build/*/
 writeup/overleaf_sync/overleaf_git.sh
 # base-5 pooled prep cache (1.4 GB, rebuilt by experiments/pooled_trees_base5.py design)
 results/pooled_trees_base5_cache/
+# 2026-10-19 pooled linear rerun (48 intervals): design caches, walk outputs
+results/pooled_linear_rerun_2026-10-19_48/_work/

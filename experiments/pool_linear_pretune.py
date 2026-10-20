@@ -41,6 +41,27 @@ Modes  (python experiments/pool_linear_pretune.py <mode> ...; root = the deploym
            block (identifiability mask from that block); validation residuals of every row stored (fold.npz).
   dates    --out D: the row dates of the pooled design (baseline bucket; every bucket shares the index
            space: impute_indicate), dates.csv.
+
+--rerun (2026-10-19, user: the pooled linear rerun, results/pooled_linear_rerun_2026-10-19_48/; default off,
+every path above unchanged) switches every mode to the rerun design:
+  * HAR ladder base 5, k = 1, 5, 25, 125, 625, 3125 (HPC_KW_HAR_BASE=5, asserted; author 2026-10-20: "base 5
+    and FOMC included", base 5 for every model, the OLS included);
+    [2026-10-20 (user): parked -- was "HAR ladder base 2, k = 1, 2, 4, ..., 2048 (HPC_KW_HAR_BASE=2; the printed
+    run never set it: base 5)"]
+  * src/backtest/executor.py DROP_ACTIVITY_MA (E6) and CALENDAR_THROUGH_OVERNIGHT (E9) on: no *_active_ma_*
+    columns, calendar DOW_0 .. DOW_4, hour, is_overnight, no HAR x open/close products;
+  * all_features WITH the four FOMC series (author 2026-10-20; src/data/loading.py FOMC_FEATURES, FOMC_CALENDAR_FIX
+    on; E6 still drops their activity averages; asserted);
+    [2026-10-20 (user): parked -- was "all_features without the FOMC series (the paper's text: not in the pooled
+    model; src/data/loading.py:136 appends them to ALL_FEATURES)"]
+  * the backbone (penalty factor r) is the HAR benchmark set: har_ma_1 .. har_ma_3125 + the 7 calendar columns;
+  * --est ols: the spec's ridge path at alpha 0 (the pooled OLS on the HAR benchmark set, a0's successor);
+  * --sched may hold one number: that penalty at every re-choice (the frozen walk, no margin re-tune).
+  design --part K/N builds the design of the K-th of N contiguous parts of the bucket's raw columns (memory: the
+  48-interval all_features design, ~1,050 columns, does not fit 15 GB in one pass); merge --parts D1,D2,.. --out D
+  stacks the parts' columns in the one-pass design's order (target HAR, every value ladder, every availability
+  ladder, calendar).  Every step of the data prep and of the scaling acts column by column, so the merged matrix is
+  the one-pass matrix (gated bit for bit on a small bucket, results/pooled_linear_rerun_2026-10-19_48/SUMMARY.md).
 """
 
 from __future__ import annotations
@@ -96,6 +117,17 @@ BACKBONE = frozenset(
         "days_to_opex",
     ]
 )
+# 2026-10-19 (user): the rerun's backbone, the HAR benchmark set of the rerun design (--rerun)
+# 2026-10-20 (user): base 5.  Parked -- was base 2:
+# HAR_LADDER_RERUN = [2**j for j in range(12)]  # 1 .. 2048 (resolve_har_lags(base=2), cap 3125)
+HAR_LADDER_RERUN = [5**j for j in range(6)]  # 1 .. 3125 (resolve_har_lags(base=5))
+BACKBONE_RERUN = frozenset(
+    [f"har_ma_{k}" for k in HAR_LADDER_RERUN]
+    + [f"DOW_{d}" for d in range(5)]
+    + ["hour", "is_overnight"]
+)
+RERUN = False  # set by main from --rerun
+PART: tuple[int, int] | None = None  # design --part K/N (1-based)
 _EXOG = re.compile(r"_ma_\d+$")
 RTH = {f"{h:02d}:{m:02d}" for h in range(10, 17) for m in (0, 30)} - {
     "16:30"
@@ -112,7 +144,8 @@ def backbone_mask(names: list[str]) -> np.ndarray:
         [not (_EXOG.search(n) and not n.startswith("har_ma_")) for n in names]
     )
     got = {n for n, b in zip(names, bb) if b}
-    assert got == BACKBONE, sorted(got ^ BACKBONE)
+    want = BACKBONE_RERUN if RERUN else BACKBONE
+    assert got == want, sorted(got ^ want)
     return bb
 
 
@@ -132,6 +165,9 @@ def spec_section(est: str, bucket: str, start: int, end: int, halo: int) -> dict
             "HPC_KW_HALO": str(halo),
         }
     )
+    if RERUN:
+        # 2026-10-20 (user): base 5; parked -- was os.environ["HPC_KW_HAR_BASE"] = "2"
+        os.environ["HPC_KW_HAR_BASE"] = "5"
     os.chdir(ROOT)
     if str(ROOT) not in sys.path:
         sys.path.insert(0, str(ROOT))
@@ -142,6 +178,41 @@ def spec_section(est: str, bucket: str, start: int, end: int, halo: int) -> dict
     b = src.index("arm_results: dict = {}")
     ns: dict = {"__name__": "causal_tune_linear_section", "os": os}
     exec(compile(src[a:b], str(ROOT / "specs" / "causal_tune_linear.py"), "exec"), ns)
+    # the pooled OLS (--est ols): the spec's ridge path at alpha 0 (G = X'X, intercept free)
+    ns["ESTIMATOR_GRIDS"]["ols"] = [("ridge", 0.0, 0.0)]
+    if RERUN:
+        import src.backtest.executor as EX
+        import src.data.loading as LD
+
+        EX.DROP_ACTIVITY_MA = True
+        EX.CALENDAR_THROUGH_OVERNIGHT = True
+        assert ns["HAR_LAGS"] == HAR_LADDER_RERUN == [1, 5, 25, 125, 625, 3125], ns[
+            "HAR_LAGS"
+        ]
+        # 2026-10-20 (user): the FOMC series stay in all_features, with the calendar fix
+        assert set(LD.FOMC_FEATURES) <= set(ns["get_bucket"]("all_features")), "FOMC"
+        assert LD.FOMC_CALENDAR_FIX, "FOMC_CALENDAR_FIX off"
+        # 2026-10-20 (user): parked -- the FOMC series left all_features:
+        # gb = ns["get_bucket"]
+        #
+        # def get_bucket_rerun(name: str) -> list[str]:
+        #     cols = gb(name)
+        #     return (
+        #         [c for c in cols if c not in LD.FOMC_FEATURES]
+        #         if name == "all_features"
+        #         else cols
+        #     )
+        #
+        # ns["get_bucket"] = get_bucket_rerun
+    if PART is not None:
+        gb_p = ns["get_bucket"]
+
+        def get_bucket_part(name: str) -> list[str]:
+            cols = gb_p(name)
+            k, n = PART
+            return [c for i, c in enumerate(cols) if i * n // len(cols) == k - 1]
+
+        ns["get_bucket"] = get_bucket_part
     assert (
         ns["SEGMENT"] is None
         and ns["LAG_SCOPE"] == "global"
@@ -343,6 +414,17 @@ def batch_theta_pf(ns: dict, Xa, yr, locked, a, l1, pf) -> np.ndarray:
 
 
 # ============================================================================ the walk
+class ConstSched(dict):
+    """A schedule with one penalty for every block (--sched holding one number)."""
+
+    def __init__(self, alpha: float):
+        super().__init__()
+        self.alpha = alpha
+
+    def __missing__(self, key):
+        return self.alpha
+
+
 def make_class(ns: dict, r: float, sched: dict | None, g0: int, rec: list):
     """The spec's RollingTunedLinear with penalty factors, the residual record, and an optional schedule."""
     Base = ns["RollingTunedLinear"]
@@ -498,6 +580,9 @@ def design(a) -> None:
         json.dumps(
             dict(
                 bucket=a.bucket,
+                rerun=RERUN,
+                part=list(PART) if PART else None,
+                raw_cols=ns["get_bucket"](a.bucket),
                 names=cap["names"],
                 hp=cap["hp"],
                 shape=list(X.shape),
@@ -511,6 +596,87 @@ def design(a) -> None:
     say(f"design done: {a.bucket} X {X.shape}")
 
 
+def merge(a) -> None:
+    """Stack the column parts of design --part K/N into the one-pass design (see the module docstring)."""
+    parts = [Path(d).resolve() for d in a.parts.split(",")]
+    metas = [json.loads((d / "design.json").read_text()) for d in parts]
+    assert [m["part"] for m in metas] == [
+        [k + 1, len(parts)] for k in range(len(parts))
+    ], [m["part"] for m in metas]
+    assert len({m["bucket"] for m in metas}) == 1 and all(
+        m["rerun"] == RERUN for m in metas
+    )
+    ref = parts[0]
+    y, b = np.load(ref / "y.npy"), np.load(ref / "b_oos.npy")
+    d0 = (ref / "dates_oos.csv").read_bytes()
+    for d in parts[1:]:  # rows and target are the parts' common columns
+        assert np.array_equal(np.load(d / "y.npy"), y) and np.array_equal(
+            np.load(d / "b_oos.npy"), b
+        )
+        assert (d / "dates_oos.csv").read_bytes() == d0
+    raw = [c for m in metas for c in m["raw_cols"]]
+    common = [
+        n for n in metas[0]["names"] if not _EXOG.search(n) or n.startswith("har_ma_")
+    ]
+    har = [n for n in common if n.startswith("har_ma_")]
+    cal = [n for n in common if not n.startswith("har_ma_")]
+    for m in metas:
+        assert [
+            n for n in m["names"] if not _EXOG.search(n) or n.startswith("har_ma_")
+        ] == common
+    lad = [int(n.rsplit("_", 1)[1]) for n in har]
+    exog = {n for m in metas for n in m["names"] if n not in common}
+    # load_and_transform's order: every adj_<col>, then every <col>_avail, then every <col>_active
+    order = har
+    for suf in ("adj_{}", "{}_avail", "{}_active"):
+        order += [
+            f"{suf.format(c)}_ma_{k}"
+            for c in raw
+            for k in lad
+            if f"{suf.format(c)}_ma_{k}" in exog
+        ]
+    order += cal
+    assert sorted(order) == sorted(set(order)) and set(order) == exog | set(common), (
+        "column order"
+    )
+    src = {}
+    for d, m in zip(parts, metas):
+        for j, n in enumerate(m["names"]):
+            src.setdefault(n, (d, j))
+    X = np.empty(
+        (len(y), len(order)),
+        dtype=np.float64,
+        order="F" if metas[0]["f_order"] else "C",
+    )
+    for d in parts:
+        Xp = np.load(d / "X.npy", mmap_mode="r")
+        for j, n in enumerate(order):
+            if src[n][0] == d:
+                X[:, j] = Xp[:, src[n][1]]
+        del Xp
+    for d, m in zip(parts[1:], metas[1:]):  # the common columns agree across parts
+        Xp = np.load(d / "X.npy", mmap_mode="r")
+        for n in common:
+            assert np.array_equal(Xp[:, m["names"].index(n)], X[:, order.index(n)]), n
+        del Xp
+    out = Path(a.out).resolve()
+    out.mkdir(parents=True, exist_ok=True)
+    np.save(out / "X.npy", X)
+    np.save(out / "y.npy", y)
+    np.save(out / "b_oos.npy", b)
+    (out / "dates_oos.csv").write_bytes(d0)
+    meta = dict(
+        metas[0],
+        part=None,
+        raw_cols=raw,
+        names=order,
+        shape=list(X.shape),
+        merged_from=[str(d) for d in parts],
+    )
+    (out / "design.json").write_text(json.dumps(meta))
+    say(f"merge done: {meta['bucket']} X {X.shape} from {len(parts)} parts")
+
+
 def cached_backtest(a, fit_predict, out_csv: Path) -> None:
     """_backtest_and_save's slice, walk and table on the design cache (the same arrays it would build)."""
     import src.backtest.executor as EX
@@ -518,9 +684,11 @@ def cached_backtest(a, fit_predict, out_csv: Path) -> None:
     dz = Path(a.design)
     meta = json.loads((dz / "design.json").read_text())
     assert meta["bucket"] == a.bucket, (meta["bucket"], a.bucket)
+    assert meta.get("rerun", False) == RERUN, (meta.get("rerun"), RERUN)
     # the whole matrix in memory, in the pipeline's layout, and the chunk a VIEW of it, as _backtest_and_save
     # slices it (a C-ordered copy is not bit-identical to the spec's path)
-    X = np.load(dz / "X.npy")
+    # --rerun: memory-mapped (the same bytes and layout; the concurrent walks share one page-cache copy)
+    X = np.load(dz / "X.npy", mmap_mode="r" if RERUN else None)
     assert bool(X.flags.f_contiguous) == meta["f_order"], X.flags
     y = np.load(dz / "y.npy")
     b_oos = np.load(dz / "b_oos.npy")
@@ -559,9 +727,13 @@ def walk(a) -> None:
     assert a.halo in (0, W), a.halo
     sched = None
     if a.sched != "causal":
-        sched = {
-            int(k): float(v) for k, v in json.loads(Path(a.sched).read_text()).items()
-        }
+        js = json.loads(Path(a.sched).read_text())
+        if isinstance(
+            js, (int, float)
+        ):  # one penalty at every re-choice (the frozen walk)
+            sched = ConstSched(float(js))
+        else:
+            sched = {int(k): float(v) for k, v in js.items()}
     rec: list = []
     Cls = make_class(ns, a.r, sched, g0, rec)
     Base = ns["RollingTunedLinear"]
@@ -629,6 +801,7 @@ def walk(a) -> None:
 
     info = dict(
         mode="walk",
+        rerun=RERUN,
         bucket=a.bucket,
         est=a.est,
         r=a.r,
@@ -730,9 +903,12 @@ def pretune(a) -> None:
         dz = Path(a.design)
         meta = json.loads((dz / "design.json").read_text())
         assert meta["bucket"] == a.bucket, (meta["bucket"], a.bucket)
+        assert meta.get("rerun", False) == RERUN, (meta.get("rerun"), RERUN)
         sl = slice(a.start - a.halo, a.start + 1)
         fit_predict(
-            np.load(dz / "X.npy")[sl],  # a view, as in the pipeline
+            np.load(dz / "X.npy", mmap_mode="r" if RERUN else None)[
+                sl
+            ],  # a view, as in the pipeline (--rerun: memory-mapped)
             np.load(dz / "y.npy")[sl],
             W,
             dict(meta["hp"], _feature_names=list(meta["names"])),
@@ -765,6 +941,7 @@ def pretune(a) -> None:
 
     info = dict(
         mode="pretune",
+        rerun=RERUN,
         bucket=a.bucket,
         est=a.est,
         r=a.r,
@@ -808,10 +985,10 @@ def dates(a) -> None:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("mode", choices=("walk", "pretune", "dates", "design"))
+    ap.add_argument("mode", choices=("walk", "pretune", "dates", "design", "merge"))
     ap.add_argument("--bucket", default="baseline")
     ap.add_argument(
-        "--est", default="ridge", choices=("ridge", "reclasso", "reclasticnet")
+        "--est", default="ridge", choices=("ridge", "reclasso", "reclasticnet", "ols")
     )
     ap.add_argument("--r", type=float, default=1.0)
     ap.add_argument("--sched", default="causal")
@@ -823,7 +1000,24 @@ def main() -> None:
     ap.add_argument(
         "--design", default="", help="a design cache directory (mode design's output)"
     )
+    ap.add_argument(
+        "--rerun",
+        action="store_true",
+        help="the 2026-10-19 rerun design (module docstring); default: the printed run's",
+    )
+    ap.add_argument(
+        "--part", default="", help="design: K/N, the K-th of N column parts"
+    )
+    ap.add_argument(
+        "--parts",
+        default="",
+        help="merge: the part design directories, K = 1 .. N in order",
+    )
     a = ap.parse_args()
+    global RERUN, PART
+    RERUN = a.rerun
+    if a.part:
+        PART = tuple(int(v) for v in a.part.split("/"))
     a.data = (
         str(Path(a.data).resolve()) if a.data != "data" else "data"
     )  # "data": the root's, after chdir
@@ -832,7 +1026,13 @@ def main() -> None:
         a.sched = str(Path(a.sched).resolve())
     if a.design:
         a.design = str(Path(a.design).resolve())
-    {"walk": walk, "pretune": pretune, "dates": dates, "design": design}[a.mode](a)
+    {
+        "walk": walk,
+        "pretune": pretune,
+        "dates": dates,
+        "design": design,
+        "merge": merge,
+    }[a.mode](a)
 
 
 if __name__ == "__main__":
