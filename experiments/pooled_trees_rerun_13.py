@@ -37,8 +37,8 @@ Modes
           compared column by column without moving the 390 MB file)
 
 2026-10-20 (author, relayed by the main session): the trees run on CARC with the 1,000-day window over
-2012-01-03 .. 2024-04-30, so --window-days defaults to 1000, --first-day to 2012-01-03, and the task file covers that
-span, arm by arm, cheapest first.
+2012-01-03 .. 2024-04-30, so --first-day defaults to 2012-01-03 and the task file covers that span, arm by arm,
+cheapest first. --window-days defaults to the window of the design cache (asserted against it when given).
 
 Run:  python experiments/pooled_trees_rerun_13.py walk --design results/pooled_trees_rerun13_2026-10-20 \
           --est lgbm --set all_features --refit day --first-day 2020-01-03 --last-day 2020-01-07 --threads 4
@@ -467,8 +467,9 @@ def main() -> int:
     ap.add_argument("mode", choices=("walk", "merge", "time", "tasks", "compare", "colsha"))
     ap.add_argument("--design", default=str(DEFAULT_DESIGN), help="the linear runner's --out directory")
     ap.add_argument("--out", default=str(DEFAULT_OUT))
-    # 2026-10-20 (author): parked -- default=2000 (the window of Table 1's linear run); the CARC trees use 1,000 days
-    ap.add_argument("--window-days", type=int, default=1000)
+    # 2026-10-20 (author): parked -- default=2000 (the window of Table 1's linear run); the CARC trees use 1,000 days.
+    # Default now: the window of the design cache (design.json); when given, it is asserted against the cache.
+    ap.add_argument("--window-days", type=int, default=None)
     ap.add_argument("--est", action="append", choices=sorted(CONFIGS))
     ap.add_argument("--set", action="append", choices=SETS)
     ap.add_argument("--refit", choices=("bar", "day"), default="day")
@@ -502,6 +503,9 @@ def main() -> int:
     a.refit_list = a.refits.split(",")
     if a.mode == "compare":
         assert len(a.files) == 2, "compare: two X.npy files"
+    elif a.mode != "colsha" and a.window_days is None:
+        meta = json.loads((design_dir(Path(a.design).resolve(), "baseline") / "design.json").read_text())
+        a.window_days = int(meta["config"]["window"]) // PPD
     return {"walk": cmd_walk, "merge": cmd_merge, "time": cmd_time, "tasks": cmd_tasks, "compare": cmd_compare,
             "colsha": cmd_colsha}[a.mode](a)
 
