@@ -1,0 +1,115 @@
+{
+ "lgbm/baseline": {
+  "day_first_rows_equal_bar": true,
+  "parts_1of1_eq_1of2_2of2": {
+   "day": true,
+   "bar": true
+  },
+  "max_abs_day_minus_bar_other_rows": 0.044650335404830654
+ },
+ "xgb/baseline": {
+  "day_first_rows_equal_bar": true,
+  "parts_1of1_eq_1of2_2of2": {
+   "day": true,
+   "bar": true
+  },
+  "max_abs_day_minus_bar_other_rows": 0.0324862003326416
+ },
+ "rf/baseline": {
+  "day_first_rows_equal_bar": true,
+  "parts_1of1_eq_1of2_2of2": {
+   "day": true,
+   "bar": true
+  },
+  "max_abs_day_minus_bar_other_rows": 0.06446962194126105
+ },
+ "lgbm/all_features": {
+  "day_first_rows_equal_bar": true,
+  "parts_1of1_eq_1of2_2of2": {
+   "day": true,
+   "bar": true
+  },
+  "max_abs_day_minus_bar_other_rows": 0.06222025687884725
+ },
+ "xgb/all_features": {
+  "day_first_rows_equal_bar": true,
+  "parts_1of1_eq_1of2_2of2": {
+   "day": true,
+   "bar": true
+  },
+  "max_abs_day_minus_bar_other_rows": 0.04924046993255615
+ },
+ "rf/all_features": {
+  "day_first_rows_equal_bar": true,
+  "parts_1of1_eq_1of2_2of2": {
+   "day": true
+  },
+  "max_abs_day_minus_bar_other_rows": 0.05613516272340391
+ },
+ "resume_lgbm_baseline_bar": {
+  "equal": true,
+  "refits_after_resume": 29
+ },
+ "merge_day": {
+  "rows": 234,
+  "arms": 6,
+  "schema_matches_linear": true,
+  "types": {
+   "model": "string",
+   "predictor_set": "string",
+   "date": "timestamp[ns]",
+   "pred_adj": "double",
+   "true_adj": "double",
+   "B": "double",
+   "plain": "double",
+   "rv_actual": "double"
+  }
+ },
+ "merge_bar": {
+  "rows": 234,
+  "arms": 6,
+  "schema_matches_linear": true,
+  "types": {
+   "model": "string",
+   "predictor_set": "string",
+   "date": "timestamp[ns]",
+   "pred_adj": "double",
+   "true_adj": "double",
+   "B": "double",
+   "plain": "double",
+   "rv_actual": "double"
+  }
+ },
+ "against_linear_rows": {
+  "lgbm/all_features": {
+   "B_equal": true,
+   "rv_equal": true,
+   "true_adj_max_rel_diff": 2.220446049250313e-16
+  },
+  "lgbm/baseline": {
+   "B_equal": true,
+   "rv_equal": true,
+   "true_adj_max_rel_diff": 2.220446049250313e-16
+  },
+  "rf/all_features": {
+   "B_equal": true,
+   "rv_equal": true,
+   "true_adj_max_rel_diff": 2.220446049250313e-16
+  },
+  "rf/baseline": {
+   "B_equal": true,
+   "rv_equal": true,
+   "true_adj_max_rel_diff": 2.220446049250313e-16
+  },
+  "xgb/all_features": {
+   "B_equal": true,
+   "rv_equal": true,
+   "true_adj_max_rel_diff": 2.220446049250313e-16
+  },
+  "xgb/baseline": {
+   "B_equal": true,
+   "rv_equal": true,
+   "true_adj_max_rel_diff": 2.220446049250313e-16
+  }
+ }
+}

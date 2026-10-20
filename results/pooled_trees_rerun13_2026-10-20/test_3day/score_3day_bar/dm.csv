@@ -1,0 +1,25 @@
+span,run,model,set,against,comparison,loss,dm,p,mean_diff,T,hac_lag
+2020-01-03:2020-01-07,linear,ridge,all_features,linear:ridge_baseline,all features vs HAR benchmark,qlike,,,,3,-1
+2020-01-03:2020-01-07,linear,ridge,all_features,linear:ridge_baseline,all features vs HAR benchmark,mse,,,,3,-1
+2020-01-03:2020-01-07,linear,lasso,all_features,linear:lasso_baseline,all features vs HAR benchmark,qlike,,,,3,-1
+2020-01-03:2020-01-07,linear,lasso,all_features,linear:lasso_baseline,all features vs HAR benchmark,mse,,,,3,-1
+2020-01-03:2020-01-07,linear,enet,all_features,linear:enet_baseline,all features vs HAR benchmark,qlike,,,,3,-1
+2020-01-03:2020-01-07,linear,enet,all_features,linear:enet_baseline,all features vs HAR benchmark,mse,,,,3,-1
+2020-01-03:2020-01-07,linear,ridge,baseline,linear:ols_baseline,vs OLS,qlike,,,,3,-1
+2020-01-03:2020-01-07,linear,ridge,baseline,linear:ols_baseline,vs OLS,mse,,,,3,-1
+2020-01-03:2020-01-07,linear,ridge,all_features,linear:ols_baseline,vs OLS,qlike,,,,3,-1
+2020-01-03:2020-01-07,linear,ridge,all_features,linear:ols_baseline,vs OLS,mse,,,,3,-1
+2020-01-03:2020-01-07,linear,lasso,baseline,linear:ols_baseline,vs OLS,qlike,,,,3,-1
+2020-01-03:2020-01-07,linear,lasso,baseline,linear:ols_baseline,vs OLS,mse,,,,3,-1
+2020-01-03:2020-01-07,linear,lasso,all_features,linear:ols_baseline,vs OLS,qlike,,,,3,-1
+2020-01-03:2020-01-07,linear,lasso,all_features,linear:ols_baseline,vs OLS,mse,,,,3,-1
+2020-01-03:2020-01-07,linear,enet,baseline,linear:ols_baseline,vs OLS,qlike,,,,3,-1
+2020-01-03:2020-01-07,linear,enet,baseline,linear:ols_baseline,vs OLS,mse,,,,3,-1
+2020-01-03:2020-01-07,linear,enet,all_features,linear:ols_baseline,vs OLS,qlike,,,,3,-1
+2020-01-03:2020-01-07,linear,enet,all_features,linear:ols_baseline,vs OLS,mse,,,,3,-1
+2020-01-03:2020-01-07,trees,lgbm,all_features,trees:lgbm_baseline,all features vs HAR benchmark,qlike,,,,3,-1
+2020-01-03:2020-01-07,trees,lgbm,all_features,trees:lgbm_baseline,all features vs HAR benchmark,mse,,,,3,-1
+2020-01-03:2020-01-07,trees,xgb,all_features,trees:xgb_baseline,all features vs HAR benchmark,qlike,,,,3,-1
+2020-01-03:2020-01-07,trees,xgb,all_features,trees:xgb_baseline,all features vs HAR benchmark,mse,,,,3,-1
+2020-01-03:2020-01-07,trees,rf,all_features,trees:rf_baseline,all features vs HAR benchmark,qlike,,,,3,-1
+2020-01-03:2020-01-07,trees,rf,all_features,trees:rf_baseline,all features vs HAR benchmark,mse,,,,3,-1

@@ -12,6 +12,12 @@ Usage
 
 Every run of a call is scored on one common set of bars: on an evaluation day of the span (a positive 16:00
 print, early closes dropped), a positive RV, and a finite positive forecast of every model of every run.
+
+2026-10-20 (user): a run is scored on every (model, predictor_set) pair its forecasts.parquet holds (e.g. the pooled
+trees of experiments/pooled_trees_rerun_13.py), not only the linear models. The linear pairs come first in Table 1's
+order, then the others in the order the file holds them. The tests "all features vs HAR benchmark" run for every model
+with both sets, "vs OLS" when the run holds the OLS, and --compare A:B on the pairs both runs hold. On the linear
+forecasts the output is byte-identical to the earlier version.
 """
 
 from __future__ import annotations
@@ -35,18 +41,26 @@ KEYS = [(m, s) for m in MODELS for s in SETS if m != "ols" or s == "baseline"]
 
 
 def load(path: Path) -> dict[tuple[str, str], pd.DataFrame]:
+    """Every (model, predictor_set) pair of the file: Table 1's linear pairs in KEYS order, then the others in the
+    order the file holds them."""
     g = pd.read_parquet(
         path / "forecasts.parquet",
         columns=["model", "predictor_set", "date", "plain", "rv_actual"],
     )
+    held = list(dict.fromkeys(zip(g["model"], g["predictor_set"])))
+    order = [k for k in KEYS if k in held] + [k for k in held if k not in KEYS]
     out = {}
-    for (m, s), f in g.groupby(["model", "predictor_set"]):
+    for (m, s), f in sorted(
+        g.groupby(["model", "predictor_set"]), key=lambda kv: order.index(kv[0])
+    ):
         f = f.set_index(pd.to_datetime(f["date"])).rename(columns={"rv_actual": "rv"})[
             ["plain", "rv"]
         ]
         assert not f.index.duplicated().any(), (path, m, s)
         out[(m, s)] = f
-    assert set(out) == set(KEYS), (path, sorted(out))
+    # 2026-10-20 (user): parked -- the linear models only. Was:
+    # assert set(out) == set(KEYS), (path, sorted(out))
+    assert out, path
     return out
 
 
@@ -114,7 +128,7 @@ def main() -> None:
         on16 = idx[(idx.hour == 16) & (idx.minute == 0)]
         L = {}
         for name, fc in runs.items():
-            for k in KEYS:
+            for k in fc:  # 2026-10-20 (user): parked -- for k in KEYS:
                 q, se = T1.loss(fc[k], idx, rv)
                 q16, _ = T1.loss(fc[k], on16, rv)
                 L[(name, k)] = (q, se)
@@ -132,19 +146,22 @@ def main() -> None:
                         qlike_1600=float(q16.mean()),
                     )
                 )
+            # 2026-10-20 (user): parked -- for m in MODELS if m != "ols" / for k in KEYS if k[0] != "ols". Now every
+            # model of the run with both sets, and the OLS tests when the run holds the OLS
+            models = list(dict.fromkeys(m for m, _ in fc))
             pairs = [
                 (
                     (name, (m, "all_features")),
                     (name, (m, "baseline")),
                     "all features vs HAR benchmark",
                 )
-                for m in MODELS
-                if m != "ols"
+                for m in models
+                if m != "ols" and (m, "all_features") in fc and (m, "baseline") in fc
             ]
             pairs += [
                 ((name, k), (name, ("ols", "baseline")), "vs OLS")
-                for k in KEYS
-                if k[0] != "ols"
+                for k in fc
+                if k[0] != "ols" and ("ols", "baseline") in fc
             ]
             for A, B, what in pairs:
                 for li, ln in ((0, "qlike"), (1, "mse")):
@@ -162,12 +179,12 @@ def main() -> None:
                             p=float(r["p"]),
                             mean_diff=float(r["mean_diff"]),
                             T=int(r["T"]),
-                            hac_lag=int(r["hac_lag"]),
+                            hac_lag=int(r.get("hac_lag", -1)),  # 2026-10-20 (user): -1 = fewer than 8 days, no test. Was: int(r["hac_lag"])
                         )
                     )
         for cmp in a.compare:
             ra, rb = cmp.split(":")
-            for k in KEYS:
+            for k in [k for k in runs[ra] if k in runs[rb]]:  # 2026-10-20 (user): parked -- for k in KEYS:
                 for li, ln in ((0, "qlike"), (1, "mse")):
                     r = dm_test(
                         T1.daily(L[(ra, k)][li], idx), T1.daily(L[(rb, k)][li], idx)
@@ -185,7 +202,7 @@ def main() -> None:
                             p=float(r["p"]),
                             mean_diff=float(r["mean_diff"]),
                             T=int(r["T"]),
-                            hac_lag=int(r["hac_lag"]),
+                            hac_lag=int(r.get("hac_lag", -1)),  # 2026-10-20 (user): -1 = fewer than 8 days, no test. Was: int(r["hac_lag"])
                         )
                     )
     out = REPO / a.out
