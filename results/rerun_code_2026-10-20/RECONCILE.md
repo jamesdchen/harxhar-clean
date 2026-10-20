@@ -115,7 +115,38 @@ they write into the committed directory.
 
 ### 48 intervals: all features
 
-Running at the time of this commit (design in 2 column parts + merge, then the ridge, lasso and elastic net walks); the result is added in a later commit.
+Steps and timings:
+
+| Step | Time |
+|---|---|
+| design, 2 column parts in parallel | 24 min (301 + 289 columns) |
+| merge | 5 s (577 columns, 300,317 rows) |
+| walks, in parallel | ridge 16 min, elastic net 37 min, lasso 44 min |
+
+About 69 min wall in all.
+
+```
+P="python experiments/pool_linear_pretune.py"   # same environment variables as above
+$P design --rerun --bucket all_features --part K/2 --out $W/design_af_pK          # K = 1, 2, in parallel
+$P merge  --rerun --parts $W/design_af_p1,$W/design_af_p2 --out $W/design_all_features
+$P walk   --rerun --bucket all_features --est <ridge|reclasso|reclasticnet> --r 0.01 \
+    --sched $SC/<est>_all_features.json --start 246000 --end -1 --halo 96000 --design $W/design_all_features \
+    --out $W/walk/all_features/<est>
+```
+
+Compared with the committed `forecasts/<model>_all_features.parquet`:
+
+| Model | Rows | Span | `pred_adj`, `plain`, `true_adj`, `pred_raw` |
+|---|---|---|---|
+| ridge | 54,317 | 2019-12-30 18:00 .. 2024-04-30 23:30 | exact |
+| lasso | 54,317 | same | exact |
+| elastic net | 54,317 | same | exact |
+
+Every solve passed the KKT certificate, with no failures in `run.json`. All 7 committed 48-interval forecast files are
+therefore reproduced exactly by the merged code.
+
+Comparison scripts used, kept outside the repo: for the 48-interval forecasts, `results.csv` to the committed parquet
+on the same dates; for the 13-bar rerun, the scratch `forecasts.parquet` against the committed one, model by model.
 
 ## Checks
 
