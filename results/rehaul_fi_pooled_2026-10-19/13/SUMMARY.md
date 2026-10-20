@@ -122,3 +122,4 @@ S_A, S^sd_A, ...), `*_columns.csv` (predictors: K_j, sum |beta|, sum |beta| sd),
 - The penalty picks are those committed at f30ad70; if the 13-bar rerun revises them, this run must be repeated
   (about 3 minutes).
 - The previous 13-bar results (base 2, no FOMC; commit 2dbb065) were withdrawn in 74a7805.
+- The comparison with the 48-interval sample is in ../48/SUMMARY.md ("The two samples compared").

@@ -5,7 +5,8 @@ Reads results/rehaul_fi_pooled_2026-10-19/{48,13}/summary.json (experiments/reha
 
   writeup/generated/rehaul_fi_pooled_numbers.tex   \\rhfpAll... (all 48 intervals) and \\rhfpRth... (13 regular-hours
                                                     bars), the counterparts of the \\rhfi... macros of the bullets in
-                                                    writeup/rehaul/08_feature_importance.tex
+                                                    writeup/rehaul/08_feature_importance.tex; \\rhfpCmp... the two
+                                                    samples' rankings compared (compare.json)
 
 Run:  python writeup/make_rehaul_fi_pooled.py [--res DIR]
 """
@@ -115,6 +116,19 @@ def main() -> None:
             assert re.fullmatch(r"[A-Za-z]+", n) and n not in seen, n
             seen.add(n)
             lines.append(f"\\providecommand{{\\{n}}}{{}}\\renewcommand{{\\{n}}}{{{v}}}" + (f"  % {c}" if c else "") + "\n")
+    fc = Path(a.res) / "compare.json"
+    if fc.is_file():  # the two samples' rankings compared (rehaul_fi_pooled_compute.py compare)
+        J = json.loads(fc.read_text())
+        for mdl in ("lasso", "ridge"):
+            for tag, sub in (("", "all"), ("NoCal", "no_calendar")):
+                M = mdl.capitalize()
+                n = f"rhfpCmp{M}SpMeanRank{tag}"
+                lines.append(f"\\providecommand{{\\{n}}}{{}}\\renewcommand{{\\{n}}}{{{f(J[mdl][sub]['mean_rank'])}}}"
+                             f"  % Spearman, mean rank, 48 vs 13 ({sub})\n")
+                n = f"rhfpCmp{M}TopTen{tag}"
+                lines.append(f"\\providecommand{{\\{n}}}{{}}\\renewcommand{{\\{n}}}{{{J[mdl][sub]['top10_overlap_mean_rank']}}}"
+                             f"  % top-10 groups in common, 48 vs 13 ({sub})\n")
+                seen.update({f"rhfpCmp{M}SpMeanRank{tag}", f"rhfpCmp{M}TopTen{tag}"})
     Path(a.out).write_text("".join(lines), encoding="utf-8")
     print(f"wrote {rel(Path(a.out))} ({len(seen)} macros)")
 

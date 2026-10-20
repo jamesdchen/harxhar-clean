@@ -1,0 +1,34 @@
+{
+ "lasso": {
+  "all": {
+   "mean_rank": 0.5208827671846624,
+   "sum_abs_share": 0.5657354270940784,
+   "sum_abs_sd_share": 0.5535399939674,
+   "refits_any_nonzero": 0.38548642202540717,
+   "top10_overlap_mean_rank": 4
+  },
+  "no_calendar": {
+   "mean_rank": 0.49637651821587203,
+   "sum_abs_share": 0.5425725393227955,
+   "sum_abs_sd_share": 0.5370898153136306,
+   "refits_any_nonzero": 0.37608051134839665,
+   "top10_overlap_mean_rank": 4
+  }
+ },
+ "ridge": {
+  "all": {
+   "mean_rank": 0.7783361822987324,
+   "sum_abs_share": 0.7777551020408163,
+   "sum_abs_sd_share": 0.7872448979591835,
+   "refits_any_nonzero": null,
+   "top10_overlap_mean_rank": 8
+  },
+  "no_calendar": {
+   "mean_rank": 0.7689092737654033,
+   "sum_abs_share": 0.7681285280069474,
+   "sum_abs_sd_share": 0.8119843682153711,
+   "refits_any_nonzero": null,
+   "top10_overlap_mean_rank": 7
+  }
+ }
+}

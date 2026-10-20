@@ -157,12 +157,15 @@ def load_penalties(path: Path) -> dict:
     {columns, n_har_benchmark_block, penalty_factor_on_har_benchmark_block}}}); the tiny case's flat form
     {ridge: {alpha}, lasso: {alpha}, r, columns} is accepted too."""
     z = json.loads(path.read_text())
-    if "designs" in z:
+    if "designs" in z:  # the 13-bar file: {model: {set: alpha}}; the 48-interval file nests them under "penalties"
         d = z["designs"]["all_features"]
+        pz = z.get("penalties", z)
+        r = d.get("penalty_factor_on_har_benchmark_block", d.get("backbone_penalty_factor"))
+        nbb = d.get("n_har_benchmark_block")
         return dict(
-            lasso=float(z["lasso"]["all_features"]), ridge=float(z["ridge"]["all_features"]),
-            r=float(d["penalty_factor_on_har_benchmark_block"]), columns=list(d["columns"]),
-            n_bb=int(d["n_har_benchmark_block"]), file=rel(path), info=z.get("info", {}),
+            lasso=float(pz["lasso"]["all_features"]), ridge=float(pz["ridge"]["all_features"]),
+            r=float(r), columns=list(d["columns"]), n_bb=None if nbb is None else int(nbb), file=rel(path),
+            info=z.get("info", {k: z[k] for k in ("note", "window_intervals", "har_ladder", "flags") if k in z}),
         )
     return dict(lasso=float(z["lasso"]["alpha"]), ridge=float(z["ridge"]["alpha"]), r=float(z["r"]),
                 columns=z.get("columns"), n_bb=None, file=rel(path), info={})
@@ -549,9 +552,41 @@ def reduce(a) -> None:  # noqa: C901 -- one reducer
     say(f"reduce done: {out}")
 
 
+def compare(a) -> None:
+    """The two samples' group rankings side by side (--out: the parent of 48/ and 13/) -> compare.csv,
+    compare.json: Spearman rank correlations of the mean rank, S_A, S^sd_A and K_A, top-10 overlaps; each also
+    without the calendar dummies (on the 48 intervals the weekday dummies are contrasts against the Sunday-evening
+    intervals, see 48/SUMMARY.md)."""
+    from scipy.stats import spearmanr
+
+    out = Path(a.out)
+    rows, J = [], {}
+    for m in MODELS:
+        A = pd.read_csv(out / "48" / f"{m}_series.csv")
+        B = pd.read_csv(out / "13" / f"{m}_series.csv")
+        j = A.merge(B, on="unit", suffixes=("_48", "_13"))
+        assert len(j) == len(A) == len(B), (len(j), len(A), len(B))
+        J[m] = {}
+        for tag, jj in (("all", j), ("no_calendar", j[j.unit != "calendar"])):
+            r = {}
+            for col in ("mean_rank", "sum_abs_share", "sum_abs_sd_share", "refits_any_nonzero"):
+                x, y = jj[f"{col}_48"], jj[f"{col}_13"]
+                r[col] = float(spearmanr(x, y)[0]) if x.nunique() > 1 and y.nunique() > 1 else None
+            top = lambda c: set(jj.sort_values(c)["unit"][:10])  # noqa: E731
+            r["top10_overlap_mean_rank"] = len(top("mean_rank_48") & top("mean_rank_13"))
+            J[m][tag] = r
+        j = j.assign(model=m, rank_shift=j["mean_rank_48"] - j["mean_rank_13"])
+        rows.append(j[["model", "unit", "bucket_48", "mean_rank_48", "mean_rank_13", "rank_shift", "sum_abs_share_48",
+                       "sum_abs_share_13", "sum_abs_sd_share_48", "sum_abs_sd_share_13", "refits_any_nonzero_48",
+                       "refits_any_nonzero_13"]])
+    pd.concat(rows).to_csv(out / "compare.csv", index=False)
+    (out / "compare.json").write_text(json.dumps(J, indent=1))
+    say(f"compare: {json.dumps(J)}")
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("stage", choices=("design", "linear", "gate", "reduce"))
+    ap.add_argument("stage", choices=("design", "linear", "gate", "reduce", "compare"))
     ap.add_argument("--row", type=int, default=0, help="gate: the cold-seed row of the runner walks")
     ap.add_argument("--walks", default="", help="gate: lasso=DIR,ridge=DIR")
     ap.add_argument("--forecasts", default="", help="gate: a rerun's forecasts.parquet")
@@ -573,7 +608,7 @@ def main() -> None:
     if a.penalties:
         a.penalties = str(Path(a.penalties).resolve())
     os.chdir(REPO)
-    {"design": design, "linear": linear, "gate": gate, "reduce": reduce}[a.stage](a)
+    {"design": design, "linear": linear, "gate": gate, "reduce": reduce, "compare": compare}[a.stage](a)
 
 
 if __name__ == "__main__":

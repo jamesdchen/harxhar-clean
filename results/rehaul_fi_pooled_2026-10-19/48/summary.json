@@ -1,0 +1,333 @@
+{
+ "sample": "48",
+ "window": 96000,
+ "n_refits": 52,
+ "p": 577,
+ "n_units": 49,
+ "n_exog": 47,
+ "n_buckets": 8,
+ "first": "2020-01-03",
+ "span": [
+  "2020-01-03",
+  "2024-04-30"
+ ],
+ "n_block_rows": 54205,
+ "r_bb": 0.01,
+ "probe_levels": 20,
+ "n_probe_cols": 580,
+ "penalties_file": "results/rehaul_fi_pooled_2026-10-19/48/frozen_penalties_48.json",
+ "wall_sec": 1004.8543548583984,
+ "sec_fit": {
+  "lasso": {
+   "mean": 8.114390189831074,
+   "total": 421.9482898712158
+  },
+  "ridge": {
+   "mean": 0.43364474406609166,
+   "total": 22.549526691436768
+  }
+ },
+ "sec_probe": {
+  "mean": 6.344610889752706,
+  "total": 114.2029960155487
+ },
+ "masked_median": 228.0,
+ "lasso": {
+  "alpha": 0.001,
+  "W": 0.8691135181858576,
+  "total_nonzero_median": 88.0,
+  "total_nonzero_min": 76,
+  "total_nonzero_max": 94,
+  "exog_nonzero_median": 75.0,
+  "series_ever": 46,
+  "series_always": 22,
+  "exog_series_ever": 44,
+  "exog_series_majority": 35,
+  "exog_series_always": 20,
+  "exog_always_list": [
+   "sumret",
+   "sumabsret",
+   "sumret3",
+   "sumret4",
+   "sumpret2",
+   "sumautocov",
+   "sumvolume",
+   "numobs",
+   "effspread_ewstock",
+   "spread_ewstock",
+   "sumret2_ewstock",
+   "sumret3_ewstock",
+   "sumabsret_vwstock",
+   "stocktwits_attention",
+   "stocktwits_sentiment",
+   "stocktwits_sentcount",
+   "vvix",
+   "voldemand_spx_open_and_close",
+   "voldemand_spx_open_only",
+   "voldemand_all_open_only"
+  ],
+  "cols_ever": 159,
+  "cols_majority": 85,
+  "cols_always": 38,
+  "har_block_always": true,
+  "backbone_share_median": 0.6921228817555404,
+  "har_share": 0.21501281432187427,
+  "calendar_share": 0.4738657523224647,
+  "top_share": [
+   [
+    "calendar",
+    0.4738657523224647
+   ],
+   [
+    "har_ma",
+    0.21501281432187427
+   ],
+   [
+    "sumret",
+    0.05055637953429917
+   ],
+   [
+    "sumabsret",
+    0.03794889435063075
+   ],
+   [
+    "sumvolume",
+    0.032148263074882555
+   ]
+  ],
+  "top_share_sd": [
+   [
+    "har_ma",
+    0.35923892603768853
+   ],
+   [
+    "calendar",
+    0.2441653966713176
+   ],
+   [
+    "sumabsret",
+    0.06871467750655919
+   ],
+   [
+    "sumret",
+    0.06338688274020049
+   ],
+   [
+    "sumvolume",
+    0.03553751084406668
+   ]
+  ],
+  "top_mean_rank": [
+   "calendar",
+   "har_ma",
+   "sumret",
+   "sumabsret",
+   "sumvolume"
+  ],
+  "spearman_abs_vs_abs_sd": 0.9791794243723208,
+  "spearman_meanrank_vs_sum": 0.9875484792814858,
+  "all_groups_selected": 22,
+  "block_mse_median": 0.08056791985853112,
+  "probe_n": 18,
+  "probe_nonzero": [
+   2,
+   0,
+   0
+  ],
+  "probe_abs_median": [
+   0.0,
+   0.0,
+   0.0
+  ],
+  "cols_beat_probe": 85,
+  "series_beat_probe": 34,
+  "probe_rate": 0.1111111111111111,
+  "cols_above_probe_rate": 128,
+  "series_above_probe_rate": 40,
+  "top_columns": [
+   "DOW_4",
+   "DOW_0",
+   "har_ma_1",
+   "DOW_2",
+   "DOW_1"
+  ]
+ },
+ "ridge": {
+  "alpha": 1000.0,
+  "W": 0.9043518294891921,
+  "total_nonzero_median": 349.0,
+  "total_nonzero_min": 343,
+  "total_nonzero_max": 361,
+  "exog_nonzero_median": 336.0,
+  "series_ever": 49,
+  "series_always": 49,
+  "exog_series_ever": 47,
+  "exog_series_majority": 47,
+  "exog_series_always": 47,
+  "exog_always_list": [
+   "sumret",
+   "sumabsret",
+   "sumret3",
+   "sumret4",
+   "sumpret2",
+   "sumbipow",
+   "sumautocov",
+   "sumvolume",
+   "numobs",
+   "turnover_ewstock",
+   "buyturnover_ewstock",
+   "sellturnover_ewstock",
+   "effspread_ewstock",
+   "spread_ewstock",
+   "turnover_vwstock",
+   "buyturnover_vwstock",
+   "sellturnover_vwstock",
+   "effspread_vwstock",
+   "spread_vwstock",
+   "ofi_ewstock",
+   "ofi_vwstock",
+   "sumret2_ewstock",
+   "sumret3_ewstock",
+   "sumret4_ewstock",
+   "sumabsret_ewstock",
+   "sumbipow_ewstock",
+   "sumpret2_ewstock",
+   "sumret2_vwstock",
+   "sumret3_vwstock",
+   "sumret4_vwstock",
+   "sumabsret_vwstock",
+   "sumbipow_vwstock",
+   "sumpret2_vwstock",
+   "stocktwits_attention",
+   "stocktwits_sentiment",
+   "stocktwits_sentcount",
+   "vix",
+   "vvix",
+   "vix3m",
+   "voldemand_spx_open_and_close",
+   "voldemand_spx_open_only",
+   "voldemand_all_open_and_close",
+   "voldemand_all_open_only",
+   "fomc_release",
+   "fomc_day",
+   "fomc_until_inv",
+   "fomc_since_inv"
+  ],
+  "cols_ever": 361,
+  "cols_majority": 349,
+  "cols_always": 343,
+  "har_block_always": true,
+  "backbone_share_median": 0.31689643660544187,
+  "har_share": 0.09267273744947381,
+  "calendar_share": 0.22635989051681638,
+  "top_share": [
+   [
+    "calendar",
+    0.22635989051681638
+   ],
+   [
+    "har_ma",
+    0.09267273744947381
+   ],
+   [
+    "sumabsret",
+    0.052470957915225984
+   ],
+   [
+    "vvix",
+    0.03521007503338938
+   ],
+   [
+    "sumvolume",
+    0.03134634394652689
+   ]
+  ],
+  "top_share_sd": [
+   [
+    "har_ma",
+    0.14460157609575772
+   ],
+   [
+    "calendar",
+    0.109806926460675
+   ],
+   [
+    "sumabsret",
+    0.09899932694285984
+   ],
+   [
+    "sumpret2",
+    0.05240395152203485
+   ],
+   [
+    "sumret4",
+    0.03271535931473585
+   ]
+  ],
+  "top_mean_rank": [
+   "calendar",
+   "har_ma",
+   "sumabsret",
+   "vvix",
+   "sumvolume"
+  ],
+  "spearman_abs_vs_abs_sd": 0.6401020408163265,
+  "spearman_meanrank_vs_sum": 0.9982397513388855,
+  "all_groups_selected": 49,
+  "block_mse_median": 0.08095146124152791,
+  "probe_n": 18,
+  "probe_nonzero": [
+   18,
+   18,
+   18
+  ],
+  "probe_abs_median": [
+   0.0010150532850501381,
+   0.0010349470917754339,
+   0.0011028049303125169
+  ],
+  "cols_beat_probe": 312,
+  "series_beat_probe": 47,
+  "probe_rate": 1.0,
+  "cols_above_probe_rate": 0,
+  "series_above_probe_rate": 0,
+  "top_columns": [
+   "DOW_4",
+   "DOW_0",
+   "DOW_2",
+   "DOW_1",
+   "har_ma_1"
+  ]
+ },
+ "spearman_lasso_ridge_meanrank": 0.6054343684018436,
+ "scale": {
+  "value": {
+   "n_cols": 282,
+   "sd_median": 0.8776892477625853,
+   "sd_p05": 0.1705872210923279,
+   "sd_p95": 1.9545532827690977,
+   "iqr_median": 0.789286874552235
+  },
+  "flag": {
+   "n_cols": 282,
+   "sd_median": 0.06992967290844171,
+   "sd_p05": 0.0041968336071851195,
+   "sd_p95": 0.4792854326318445,
+   "iqr_median": 0.08799999999999997
+  },
+  "har": {
+   "n_cols": 6,
+   "sd_median": 1.2454243627949149,
+   "sd_p05": 1.0744210627016393,
+   "sd_p95": 1.4296378457172054,
+   "iqr_median": 1.1993770740458536
+  },
+  "calendar": {
+   "n_cols": 7,
+   "sd_median": 0.39878395352075435,
+   "sd_p05": 0.3713027212786873,
+   "sd_p95": 0.5786506335911719,
+   "iqr_median": 0.0
+  }
+ }
+}
