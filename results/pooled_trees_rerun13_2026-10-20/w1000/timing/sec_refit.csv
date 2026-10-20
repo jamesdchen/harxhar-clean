@@ -1,0 +1,7 @@
+est,set,n_columns,window_rows,threads,k,sec_refit,host,cpu
+lgbm,baseline,12,13000,8,3,0.7497209707895914,a02-02.hpc.usc.edu,AMD EPYC 7513 32-Core Processor
+xgb,baseline,12,13000,8,3,0.2831230163574219,a02-02.hpc.usc.edu,AMD EPYC 7513 32-Core Processor
+rf,baseline,12,13000,8,3,1.2903810342152913,a02-02.hpc.usc.edu,AMD EPYC 7513 32-Core Processor
+lgbm,all_features,576,13000,8,3,1.6847368081410725,a02-02.hpc.usc.edu,AMD EPYC 7513 32-Core Processor
+xgb,all_features,576,13000,8,3,2.935552994410197,a02-02.hpc.usc.edu,AMD EPYC 7513 32-Core Processor
+rf,all_features,576,13000,8,3,50.53392060597738,a02-02.hpc.usc.edu,AMD EPYC 7513 32-Core Processor
