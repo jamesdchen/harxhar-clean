@@ -198,3 +198,48 @@ Steps:
 * After the applied tests, the paper still compiles.
 
 Run all tests on temporary copies of `writeup/`, never on the real section files.
+
+## 7. Clarifications from the implementation (2026-10-20)
+
+The scripts follow sections 1-6 with these additions. Each one fills a case the text above did not cover.
+
+`flatten.py`:
+* When a dropped end of line is followed by an indented line, the call also swallows that indentation, as TeX does.
+  The call's `src` range includes it.
+* `{}` is also appended after a consumed `{}` that is followed by a blank, if the expansion ends in a control word.
+  If the expansion is empty, the text before it is what gets checked.
+* When only blanks follow `\input{X}` on its line, the end marker has no newline of its own: the calling line's
+  newline (`src`) ends it. A blank line there would be read by TeX as a paragraph break.
+* Number-macro calls inside a generated float are `gen` segments with `macro` set and `src` covering the call. Any
+  edit there is a generated conflict.
+* Synthetic segments have `src: null`.
+* Definitions follow TeX: `\providecommand` keeps an existing name, and a repeated `\newcommand` keeps the first.
+* `--keep-builds` keeps the temporary build directories of `--check`.
+* Exit codes: 0 for OK, 1 for a failed check, 2 when the source cannot be flattened. Flatten refuses (exit 2):
+  * a number macro right after `\def`, `\let`, `\ifdefined` or `\newcommand`;
+  * a live `\include`, `\InputIfFileExists` or `\endinput`;
+  * an `\input` without braces;
+  * anything other than definitions in a number file.
+
+`unflatten.py`:
+* An insertion strictly inside a segment belongs to that segment.
+* Digits typed against a macro's value (`1{,}082` -> `1{,}0825`) are a number conflict, not an insertion next to the
+  macro.
+* The digit warning covers any applied edit that adds a number. It ignores comments and `\label`, `\ref` and `\cite`
+  arguments, and names any existing macro with the same value.
+* Each parked old line keeps its own indent before `% `.
+* Exit codes: 0 for no conflicts, 2 for conflicts, and 1 for an error, such as a map that fails the section 4
+  checks. The map is validated before anything is planned.
+* `--map` and `--report` default to `<root>/overleaf_sync/`, and `--root` defaults to `writeup/`.
+* A byte-order mark, CRLF line endings or a dropped final newline in `main.tex` are not counted as edits.
+* All files are planned in memory before any is written, so `--strict` can hold back every edit.
+
+Known limits:
+* One hunk is one block of changed lines, so a number edit next to a prose edit in the same block blocks both.
+* Deleting a line that contains a macro value is a number conflict.
+* Text-valued macros (for example `\rhfiRfTopOne` = "HAR components") count as numbers.
+* Re-linking can bind a macro to an identical literal typed earlier in the same hunk.
+* The lexer ignores catcode changes and verbatim environments.
+
+Tests: `test_unflatten.py` has 35 fixture tests. `test_roundtrip.py` runs the real flatten on a temporary copy of
+`writeup/` and covers the 14 cases of section 6 plus a compile step.
