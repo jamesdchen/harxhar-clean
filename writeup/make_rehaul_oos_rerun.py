@@ -34,6 +34,9 @@ TESTS    Diebold-Mariano on the daily average loss of each trading day (the inte
          predictor set against the HAR benchmark of the same model (negative: the full set has the lower loss).
          Tests against the OLS and the MSE tests are written to the CSV only.
 CHECK    the 16:00 rows reproduce each rerun's own closing-interval QLIKE (its scores.csv) to 1e-10.
+TABLE    2026-10-20 (user): "don't change the table so much. there shouldn't be 2 panels on it. just keep the 13 session
+         panel on it" -- Table 1 prints the 13-bar sample only, in the earlier layout (a row a model, the OLS first,
+         the predictor sets as column groups) with a DM column; both samples stay in metrics.csv and dm.csv.
 
 WRITES   writeup/generated/rehaul_results_oos.tex           Table 1 (tab:rh_oos)
          writeup/generated/rehaul_oos_rerun_numbers.tex     \\rhor... macros (counts, tests), loaded by the preamble
@@ -275,26 +278,25 @@ def main() -> None:
         r = r.iloc[0]
         return f"{fmt(r.dm, 2)} ({fmt_p(r.p)})"
 
+    # 2026-10-20 (user): parked -- one panel a sample ("there shouldn't be 2 panels on it"). Was: a "Panel A ... 48"
+    # and a "Panel B ... 13" block, each with its OLS, ridge, lasso and elastic net rows.
     body = []
-    for n, (pid, title) in enumerate(PANELS):
-        if n:
-            body.append("\\addlinespace[6pt]")
-        body.append(f"\\multicolumn{{8}}{{@{{}}l}}{{\\textit{{{title}}}}} \\\\")
-        body.append("\\addlinespace[3pt]")
-        for m, name in MODELS:
-            line = [name] + cell(pid, m, "baseline") + cell(pid, m, "all_features") + [test(pid, m)]
-            body.append(" & ".join(line) + " \\\\")
+    for m, name in MODELS:
+        line = [name] + cell("13", m, "baseline") + cell("13", m, "all_features") + [test("13", m)]
+        body.append(" & ".join(line) + " \\\\")
+        if m == "ols":
+            body.append("\\addlinespace[3pt]")
     lag = sorted(set(dms["hac_lag"]))
     table = "\n".join(
         [
             HEAD,
-            "% tab:rh_oos: the pooled linear reruns (base 5, FOMC in, frozen penalties), every interval of each sample",
-            "% scored on the 1,082 days of the span; Diebold-Mariano on daily average QLIKE (user 2026-10-20).",
+            "% tab:rh_oos: the pooled linear rerun on the 13 regular-hours bars (base 5, FOMC in, frozen penalties),",
+            "% every bar scored on the 1,082 days of the span; Diebold-Mariano on daily average QLIKE (user 2026-10-20).",
             "\\begin{table}[htbp]",
             "\\centering",
             "\\small",
             "\\begin{threeparttable}",
-            "\\caption{Forecast accuracy of the pooled intraday linear models}",
+            "\\caption{Forecast accuracy of the intraday models}",
             "\\label{tab:rh_oos}",
             "\\begin{tabular*}{\\linewidth}{@{\\extracolsep{\\fill}}lrrrrrrr@{}}",
             "\\toprule",
@@ -311,12 +313,10 @@ def main() -> None:
             "\\item \\textit{Notes:} Pooled intraday linear models, one design for every row: the HAR components at "
             "horizons $k \\in \\{1, 5, 25, 125, 625, 3125\\}$, the full predictor set with the FOMC series, "
             "penalties chosen once on the pre-sample and then held fixed, a rolling window of 2{,}000 trading days, "
-            "re-estimated every interval (Section~\\ref{sec:rh_methods}). Panel~A is trained and scored on all 48 "
-            "half-hour intervals of the day, Panel~B on the 13 regular-hours bars ending 10:00 to 16:00~ET. Every "
-            "interval of the panel's sample is scored on the $T_{\\mathrm{oos}} = \\rhoosDays$ trading days from "
-            "\\rhoosSpanStart{} to \\rhoosSpanEnd{} (early closes dropped), "
-            "\\rhorNIntA{} intervals in Panel~A and \\rhorNIntB{} in Panel~B (intervals with a non-positive "
-            "realized variance dropped); each forecast $\\hat\\sigma^2_{t,i} = \\hat y^{2}_{t,i}\\, s^2_{t,i}$ is "
+            "re-estimated every interval (Section~\\ref{sec:rh_methods}), trained and scored on the 13 regular-hours "
+            "half-hour bars ending 10:00 to 16:00~ET. Every bar is scored on the $T_{\\mathrm{oos}} = \\rhoosDays$ "
+            "trading days from \\rhoosSpanStart{} to \\rhoosSpanEnd{} (early closes dropped), \\rhorNIntB{} bars "
+            "(bars with a non-positive realized variance dropped); each forecast $\\hat\\sigma^2_{t,i} = \\hat y^{2}_{t,i}\\, s^2_{t,i}$ is "
             "scored against the actual realized variance $\\RV_{t,i}$ of its interval. MSE (in units of "
             "$10^{-\\rhoosMseExp}$) and QLIKE are averages over the scored intervals. "
             "$R^2_{\\mathrm{OOS}} = 1 - \\sum (\\RV_{t,i} - \\hat\\sigma^2_{t,i})^2 / \\sum (\\RV_{t,i} - "
