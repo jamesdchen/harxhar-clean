@@ -56,8 +56,11 @@
     HAR benchmark predictor set, estimated exclusively on the closing interval (the closing-interval HAR benchmark; see
     Sections~\ref{sec:rh_methods_models} and~\ref{sec:rh_results_eval}).
   \item We evaluate predictive accuracy via the average QLIKE loss over the out-of-sample evaluation span
+  % 2026-10-20 (user): parked -- Table 1 scored from 2012 (TABLE1_SWITCH.md, approved). Was: "$\mathcal T_{\mathrm{oos}}$ from \rhoosSpanStart{} to \rhoosSpanEnd{} ($T_{\mathrm{oos}} = \rhoosDays$ trading days; see Section~\ref{sec:rh_results_eval})."
     $\mathcal T_{\mathrm{oos}}$ from \rhoosSpanStart{} to \rhoosSpanEnd{} ($T_{\mathrm{oos}} = \rhoosDays$
-    trading days; see Section~\ref{sec:rh_results_eval}).
+    trading days; see Section~\ref{sec:rh_results_eval}); the accuracy of the pooled linear models in
+    Table~\ref{tab:rh_oos} is scored on every regular-hours bar from \rhorSpanStart{} to \rhorSpanEnd{}
+    (\rhorDays{} trading days, a rolling window of \rhorWindowDays{} trading days).
   \end{itemize}
 \item \textbf{Main findings.}
   \begin{itemize}

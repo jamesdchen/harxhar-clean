@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Debian) (preloaded format=pdflatex 2026.10.20)  20 OCT 2026 09:33
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Debian) (preloaded format=pdflatex 2026.10.20)  20 OCT 2026 09:36
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -620,15 +620,15 @@ LaTeX Font Info:    Trying to load font information for U+msb on input line 112
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <10> on input line 119.
+(Font)              <10> on input line 120.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <7> on input line 119.
+(Font)              <7> on input line 120.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <5> on input line 119.
+(Font)              <5> on input line 120.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <10.95> on input line 139.
+(Font)              <10.95> on input line 141.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <9> on input line 144.
+(Font)              <9> on input line 146.
 
 (./rehaul/01_introduction.tex
 LaTeX Font Info:    Trying to load font information for TS1+lmr on input line 2
@@ -685,13 +685,13 @@ Package rerunfilecheck Info: File `paper_rehaul.out' has not changed.
 (rerunfilecheck)             Checksum: 0073728DBC65C6830DCB11591D7C72E0;6236.
  ) 
 Here is how much of TeX's memory you used:
- 15880 strings out of 476106
- 254441 string characters out of 5793932
+ 15886 strings out of 476106
+ 254522 string characters out of 5793932
  2006975 words of memory out of 5000000
- 37361 multiletter control sequences out of 15000+600000
+ 37367 multiletter control sequences out of 15000+600000
  680575 words of font info for 129 fonts, out of 8000000 for 9000
  59 hyphenation exceptions out of 8191
- 75i,17n,79p,1797b,817s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 75i,17n,79p,2018b,817s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/share/texmf/fonts/type1/public/lm/lmbx10.pfb></usr/share/texmf/fonts/ty
 pe1/public/lm/lmbx12.pfb></usr/share/texmf/fonts/type1/public/lm/lmbx9.pfb></us
 r/share/texmf/fonts/type1/public/lm/lmex10.pfb></usr/share/texmf/fonts/type1/pu
@@ -710,10 +710,10 @@ ts/type1/public/lm/lmsy6.pfb></usr/share/texmf/fonts/type1/public/lm/lmsy7.pfb>
 /public/lm/lmsy9.pfb></usr/share/texmf/fonts/type1/public/lm/lmtt10.pfb></usr/s
 hare/texmf/fonts/type1/public/lm/lmtt9.pfb></usr/share/texlive/texmf-dist/fonts
 /type1/public/amsfonts/symbols/msbm10.pfb>
-Output written on paper_rehaul.pdf (50 pages, 705514 bytes).
+Output written on paper_rehaul.pdf (50 pages, 706371 bytes).
 PDF statistics:
- 1067 PDF objects out of 1200 (max. 8388607)
- 945 compressed objects within 10 object streams
+ 1078 PDF objects out of 1200 (max. 8388607)
+ 956 compressed objects within 10 object streams
  168 named destinations out of 1000 (max. 500000)
  305 words of extra memory for PDF output out of 10000 (max. 10000000)
 

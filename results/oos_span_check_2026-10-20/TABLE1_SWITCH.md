@@ -43,7 +43,15 @@ Table 1 should cover 2012-2024 as a single panel, with no 2012-2019 / 2020-2024 
 w1000, span 2012-01-03:2024-04-30. All seven rows match: the same 39,975 bars and 3,075 days; QLIKE and R2_OOS
 identical; MSE within 7e-16 (x 1e-10 units); DM and p identical, lag 8.
 
-## 2. Prose not edited: sentences that quote Table 1 or describe its span or window
+## 2. Prose: sentences that quote Table 1 or describe its span or window
+
+**Applied 2026-10-20 (approved by the author)**: every diff in 2.1-2.8 below, each replaced passage parked in a dated
+comment next to its replacement. The line numbers below are those before applying. Two differences from the diffs
+as written: "13 regular-hours bars" and "four validation folds" are the generated macros `\rhorNBars` and
+`\rhorPenFolds`, so the new prose types no numbers. The methods window, `writeup/rehaul/10_appendix.tex`
+(experimental schemes, "Linear models: ..."), also takes `\rhorWindowBars` / `\rhorWindowDays`. The split sentence
+takes its years from `\rhorSubBStartYear`, `\rhorSubALabel` and `\rhorSubBLabel`. Note E36 was updated to
+match. Not applied: the items of 2.9, which the switch does not change.
 
 These are proposals for the author to review. Line numbers are on this branch's head. Each diff keeps the
 `\rhoos...` span (2020-2024) where the sentence also covers Table 2 or the straddle sample, which stay on that span.

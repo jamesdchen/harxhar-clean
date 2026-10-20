@@ -31,7 +31,8 @@
 \editc{orange}{N15c}{Problem: ``every intraday model class'' no longer holds under the per-year Sharpe ratio (pooled random forest $\Delta\SR = \rhrAfRfPoolDSh$); see note N15c in Section~\ref{sec:rh_econ}.}
 \item \textbf{Scope and limitations.}
   \begin{itemize}
-  \item Our out-of-sample evaluation spans $T_{\mathrm{oos}} = \rhoosDays$ trading days from \rhoosSpanStart{} to \rhoosSpanEnd.
+  % 2026-10-20 (user): parked -- Table 1 scored from 2012 (TABLE1_SWITCH.md, approved). Was: "\item Our out-of-sample evaluation spans $T_{\mathrm{oos}} = \rhoosDays$ trading days from \rhoosSpanStart{} to \rhoosSpanEnd."
+  \item Our out-of-sample evaluation spans $T_{\mathrm{oos}} = \rhoosDays$ trading days from \rhoosSpanStart{} to \rhoosSpanEnd; the forecast accuracy of the pooled linear models (Table~\ref{tab:rh_oos}) is scored on \rhorDays{} trading days from \rhorSpanStart{} to \rhorSpanEnd.
   \item The empirical analysis focuses on a single equity index (the S\&P~500) and a single target horizon (the 15:30--16:00 ET closing half hour).
   \item In our economic evaluation, the straddle is held unhedged to cash settlement, and executing at quoted bid and ask prices rather than mid-quotes materially reduces the strategy's Sharpe ratio (Section~\ref{sec:rh_econ}).
   \end{itemize}

@@ -61,6 +61,7 @@ Run:  python writeup/make_rehaul_oos_rerun.py                 (2012-2024, 1,000-
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from pathlib import Path
 
@@ -458,6 +459,9 @@ def main() -> None:
             mac("rhorEarlyCloses", str(int(((EARLY >= days[0]) & (EARLY <= days[-1])).sum())),
                 "NYSE early-close days inside the span, dropped (the rule of rhoosEarlyCloses)"),
             mac("rhorPenYears", "2008--2011", "years of the four validation folds on which the penalties are chosen"),
+            mac("rhorNBars", str(len(set(panels["13"][0].strftime("%H:%M")))), "bars of the day in the sample"),
+            mac("rhorPenFolds", str(len(json.loads((r13 / "frozen_penalties.json").read_text())["info"]["folds"])),
+                "validation folds on which the penalties are chosen"),
             mac("rhorWindowDays", thousands(cfg["window"]), "rolling window, trading days"),
             mac("rhorWindowBars", thousands(13 * cfg["window"]), "rolling window, 13-bar observations"),
             mac("rhorHacLag", ", ".join(str(x) for x in lag), "Newey-West lag of the daily tests"),
@@ -489,6 +493,8 @@ def main() -> None:
         r_har = one_or_range([fmt(v, 1) for v in har.r2_oos_pct])
         af = g.xs("all_features", level="set")
         lines.append(f"% subperiod {tag}: {s_first.date()} .. {s_last.date()}, the bars of Table 1 cut by date")
+        lines.append(mac(f"rhorSub{tag}Label", f"{s_first.year}--{s_last.year}", "years of the subperiod"))
+        lines.append(mac(f"rhorSub{tag}StartYear", str(s_first.year), "first year of the subperiod"))
         lines.append(mac(f"rhorSub{tag}Days", thousands(int(g.n_days.iloc[0])), "trading days of the subperiod"))
         lines.append(mac(f"rhorSub{tag}QlikeHar", q_har, "QLIKE, HAR benchmark (OLS, ridge, lasso, elastic net; a range if they differ)"))
         lines.append(mac(f"rhorSub{tag}RoosHar", r_har, "R2_OOS (%), HAR benchmark (the four rows; a range if they differ)"))

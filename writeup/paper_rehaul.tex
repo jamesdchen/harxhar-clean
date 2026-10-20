@@ -116,7 +116,9 @@ paper}
 We investigate whether exogenous predictors improve intraday forecasts of a futures-based (E-mini) proxy for the realized variance of the S\&P 500
 over the closing half-hour interval (15:30--16:00 ET). Specifically, we estimate each model across all half-hour
 intervals and evaluate the forecast issued at 15:30 for the closing half hour over the out-of-sample period from
-\rhoosSpanStart{} to \rhoosSpanEnd{} ($T_{\mathrm{oos}} = \rhoosDays$ trading days). We compare a benchmark
+% 2026-10-20 (user): parked -- Table 1 scored from 2012 (TABLE1_SWITCH.md, approved). Was: "\rhoosSpanStart{} to \rhoosSpanEnd{} ($T_{\mathrm{oos}} = \rhoosDays$ trading days). We compare a benchmark"
+\rhoosSpanStart{} to \rhoosSpanEnd{} ($T_{\mathrm{oos}} = \rhoosDays$ trading days), and the forecasts of every
+regular-hours bar from \rhorSpanStart{} to \rhorSpanEnd{} (\rhorDays{} trading days). We compare a benchmark
 heterogeneous autoregressive (HAR) predictor set against an augmented predictor set that incorporates exogenous
 series. Under the QLIKE loss, the full predictor set yields lower average out-of-sample loss than the HAR
 benchmark across all \rhrAfPoolPairs{} intraday model classes, with \rhrAfPoolLowerSig{} of the
