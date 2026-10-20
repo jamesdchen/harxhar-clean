@@ -836,7 +836,11 @@ def main() -> None:
 
     GEN.mkdir(exist_ok=True)
     # OUT_TABLE.write_text(table(rows), encoding="utf-8", newline="\n")  # 2026-10-15 (user): parked -- split
-    for side, spec in SIDE_SPEC.items():
+    # 2026-10-20 (user): parked -- "we need to straighten this out so it's like for like": Table 1 (tab:rh_oos,
+    # rehaul_results_oos.tex) is now written by writeup/make_rehaul_oos_rerun.py from the pooled linear reruns, scored on
+    # every interval; this generator writes only Table 2 (tab:rh_oos_last30). Was: every side of SIDE_SPEC.
+    # for side, spec in SIDE_SPEC.items():
+    for side, spec in [("close", SIDE_SPEC["close"])]:
         (GEN / spec["out"]).write_text(
             table_side(rows, side), encoding="utf-8", newline="\n"
         )
