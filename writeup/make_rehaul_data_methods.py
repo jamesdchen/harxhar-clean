@@ -4,7 +4,9 @@ Writes six float files into writeup/generated/, each \\input by writeup/rehaul/0
 
   rehaul_dm_sources.tex     D1  data sources and spans                    tab:rh_dm_sources
   rehaul_dm_samples.tex     D2  samples (grid, pooled, per bar, pre-tune, test)   tab:rh_dm_samples
-  rehaul_dm_design.tex      F1  design composition (22 / 628 / 1,144 columns)    tab:rh_dm_design
+  rehaul_dm_design.tex      F1  design composition (22 / 628 / 634 columns)      tab:rh_dm_design
+                                (2026-10-19, base 5 across the paper and FOMC in the pooled model: the pooled
+                                count was 1,144 at base 2 without FOMC)
   rehaul_dm_dictionary.tex  F2  feature dictionary, 47 series (longtable)        tab:rh_dm_dictionary
   rehaul_dm_hyper.tex       M1  hyperparameters per model                        tab:rh_dm_hyper
   rehaul_dm_tuning.tex      M2  tuning protocol per model family                 tab:rh_dm_tuning
@@ -20,6 +22,9 @@ Inputs that are gitignored / local (the script stops with the path if one is mis
   results/linear_pretune_2026-10-06/_work/design/design_bar1600_{all_features,baseline}.npz   (the design cache;
       cross-checked against the committed export results/close_studies_2026-10-03/forecasts/design_bar1600_all_features.parquet)
   ../harxhar-clean/results/prep_cache_all_features_b2.npz     the pooled panel (names and y only are read)
+      -- 2026-10-19 (user): parked -- base 5 across the paper; the pooled panel is now the base-5 one, read from
+      results/pooled_trees_base5_2026-10-19_48/panel_full.json (committed: names and row count of the base-5 pooled
+      panel before the E6 / E9 cut; experiments/pooled_trees_base5.py design --sample 48)
   results/puffer_forecast_2026-10-12/_work/{walk_softplus,walk_softplus_rinit_q,pwalk_wdgrid}/   MinGRU job files
 
     python writeup/make_rehaul_data_methods.py
@@ -65,7 +70,15 @@ DESIGN_EXPORT = (
     / "forecasts"
     / "design_bar1600_all_features.parquet"
 )
-POOLED_CACHE = CLEAN / "results" / "prep_cache_all_features_b2.npz"
+# 2026-10-19 (user): parked -- base 5 across the paper. Was the base-2 panel of the earlier pooled fits:
+# POOLED_CACHE = CLEAN / "results" / "prep_cache_all_features_b2.npz"
+POOLED_PANEL = REPO / "results" / "pooled_trees_base5_2026-10-19_48" / "panel_full.json"
+
+
+def pooled_panel() -> tuple[list[str], int]:
+    """(names, rows) of the base-5 pooled panel (experiments/pooled_trees_base5.py, before the E6 / E9 cut)."""
+    d = json.loads(need(POOLED_PANEL).read_text(encoding="utf-8"))
+    return [str(c) for c in d["names"]], int(d["n_rows"])
 PF = REPO / "experiments" / "puffer_forecast"
 PFR = RES / "puffer_forecast_2026-10-12"
 PFW = PFR / "_work"
@@ -95,7 +108,9 @@ OUTLINE: dict[str, Any] = dict(
     n_series=47,
     p_base=22,
     p_all=628,
-    p_pooled=1_144,
+    # 2026-10-19 (user): parked -- base 5 across the paper. Was: p_pooled=1_144 (base 2, 12 horizons, pre-FOMC panel)
+    # 2026-10-19 (user): parked -- the pooled model includes the FOMC series (author decision). Was: p_pooled=574 (base 5 without FOMC)
+    p_pooled=634,
     n_active=7,
     mingru_origins=1_088,
 )
@@ -426,9 +441,9 @@ def panel() -> dict:
     P["burn"] = burn
     P["pooled"] = (t.iloc[burn], t.iloc[-1], len(df) - burn)
     check(len(df) - burn == OUTLINE["pooled_rows"], f"pooled panel {len(df) - burn}")
-    z = np.load(need(POOLED_CACHE), allow_pickle=True)
+    # 2026-10-19 (user): parked -- base 5 across the paper. Was: z = np.load(need(POOLED_CACHE), allow_pickle=True); len(z["y"])
     check(
-        len(z["y"]) == len(df) - burn,
+        pooled_panel()[1] == len(df) - burn,
         "the pooled panel cache has one row per pooled-panel bar",
     )
     W = OUTLINE["pooled_window"]
@@ -886,8 +901,10 @@ def classify(names: list[str], bmap: dict[str, str]) -> dict:
 def design_tables(P: dict, bmap: dict[str, str]) -> dict:
     A = classify(P["names_all"], bmap)
     B = classify(P["names_base"], bmap)
-    Z = np.load(need(POOLED_CACHE), allow_pickle=True)
-    pooled_names = [str(s) for s in Z["names"]]
+    # 2026-10-19 (user): parked -- base 5 across the paper. Was:
+    # Z = np.load(need(POOLED_CACHE), allow_pickle=True)
+    # pooled_names = [str(s) for s in Z["names"]]
+    pooled_names = pooled_panel()[0]
     Q = classify(pooled_names, bmap)
     k = len(resolve_har_lags())
     check(
@@ -921,18 +938,25 @@ def design_tables(P: dict, bmap: dict[str, str]) -> dict:
     )
     kq = len(Q["har"])
     check(
-        kq == 12 and len(Q["edge"]) == 2 * kq and len(Q["calendar"]) == 16,
-        "pooled: 12 HAR rungs, 24 edge, 16 calendar",
+        # 2026-10-19 (user): parked -- base 5 across the paper. Was: kq == 12 ... "pooled: 12 HAR rungs, 24 edge, 16 calendar"
+        kq == 6 and len(Q["edge"]) == 2 * kq and len(Q["calendar"]) == 16,
+        "pooled: 6 HAR rungs, 12 edge, 16 calendar",
     )
-    check(Q["rungs"] == {2**i for i in range(12)}, "pooled ladder = base 2, 1 .. 2048")
+    # 2026-10-19 (user): parked -- base 5 across the paper. Was:
+    # check(Q["rungs"] == {2**i for i in range(12)}, "pooled ladder = base 2, 1 .. 2048")
+    check(Q["rungs"] == set(resolve_har_lags()), "pooled ladder = base 5, 1 .. 3125 (the per-bar ladder)")
     check(A["rungs"] == set(resolve_har_lags()), "per-bar ladder = base 5, 1 .. 3125")
+    # 2026-10-19 (user): parked -- the base-5 panel leaves FOMC out by choice. Was: "pooled panel of record is pre-FOMC",
+    # 2026-10-19 (user): parked -- the pooled model includes the FOMC series (author decision). Was: check(not Q["series"]["value"] & set(LD.FOMC_FEATURES), "pooled panel has no FOMC series")
+    check(Q["series"]["value"] == set(LD.ALL_FEATURES), "pooled panel has every series, FOMC included")
     check(
-        not Q["series"]["value"] & set(LD.FOMC_FEATURES),
-        "pooled panel of record is pre-FOMC",
-    )
-    check(
-        len(pooled_names) == OUTLINE["p_pooled"] == 52 + 43 * 12 * 2 + 5 * 12,
-        "1,144 = 52 + 43x12x2 + 5x12",
+        # 2026-10-19 (user): parked -- base 5 across the paper. Was: == 52 + 43 * 12 * 2 + 5 * 12, "1,144 = 52 + 43x12x2 + 5x12"
+        # (the 5 activity series were the old full-sample mode rule's; the base-5 panel is built under the causal
+        # rule, CAUSAL_MODE_INFLATION, which flags numobs and the three StockTwits series: note S4a)
+        # 2026-10-19 (user): parked -- the pooled model includes the FOMC series (author decision). Was: == 34 + 43 * 6 * 2 + 4 * 6, "574 = 34 + 43x6x2 + 4x6"
+        # (with FOMC the causal rule also flags fomc_day and fomc_release: 6 activity series)
+        len(pooled_names) == OUTLINE["p_pooled"] == 34 + 47 * 6 * 2 + 6 * 6,
+        "634 = 34 + 47x6x2 + 6x6",
     )
     check(A["calendar"] == Q["calendar"], "same calendar columns per bar and pooled")
     # 2026-10-15 (table legibility): every column of both designs has a math name (the addenda's lookup)
@@ -2448,28 +2472,31 @@ def write_design(D: dict) -> None:
         r"\bottomrule",
     ]
     pr = sorted(set(LD.ALL_FEATURES) - Q["series"]["value"])
-    check(
-        set(pr) == set(LD.FOMC_FEATURES),
-        "the pooled panel lacks exactly the FOMC series",
-    )
-    backbone_q = len(Q["har"]) + len(Q["edge"]) + len(Q["calendar"])
-    with_fomc = backbone_q + 2 * kq * sum(nser.values()) + kq * len(D["act"])
+    # 2026-10-19 (user): parked -- the pooled model includes the FOMC series (author decision). Was: check(set(pr) == set(LD.FOMC_FEATURES), "the pooled panel lacks exactly the FOMC series")
+    check(not pr, "the pooled panel lacks no series")
+    # backbone_q = len(Q["har"]) + len(Q["edge"]) + len(Q["calendar"])
+    # with_fomc = backbone_q + 2 * kq * sum(nser.values()) + kq * len(D["act"])
     words = {12: "twelve", 6: "six", 4: "four", 16: "16"}
     cc = D["cal_const"]
     notes = [
         r"$u^{(k)}$: series $u$ averaged over the previous $k$ intervals; $\bar a^{(k)}(u)$ and $\bar\chi^{(k)}(u)$: "
         r"the same averages of its availability (missing-data) and activity indicators (Section~\ref{sec:rh_predictors} "
         r"and Table~\ref{tab:rh_dm_dictionary}).",
-        rf"Horizons: $k \in \{{{', '.join(str(r) for r in resolve_har_lags())}\}}$ in the closing-interval model and "
-        rf"$k \in \{{1, 2, 4, \dots, {2 ** (kq - 1)}\}}$ in the intraday model; activity indicators exist "
+        # 2026-10-19 (user): parked -- base 5 across the paper. Was:
+        # rf"Horizons: $k \in \{{{', '.join(str(r) for r in resolve_har_lags())}\}}$ in the closing-interval model and "
+        # rf"$k \in \{{1, 2, 4, \dots, {2 ** (kq - 1)}\}}$ in the intraday model; activity indicators exist "
+        rf"Horizons: $k \in \{{{', '.join(str(r) for r in sorted(Q['rungs']))}\}}$ in both models; activity indicators exist "
         rf"for the {len(D['act'])} series whose mode accounts for at least {100 * EX.ZERO_INFLATED_FRAC:.0f}\% of "
         r"intervals.",
         rf"In the closing-interval model, the {words.get(2 * k, str(2 * k))} interactions of the HAR components "
         r"with the opening- and closing-interval dummies are zero or copies of $\bar y^{(k)}$ and are omitted, and "
         rf"{words.get(len(cc), str(len(cc)))} of the {len(A['calendar'])} calendar dummies (hour, overnight, open, "
         r"close) are constant and are dropped at every estimation.",
-        rf"The intraday panel predates the FOMC group ({len(pr)} series) and has no FOMC predictors; with "
-        rf"them it would have {n_(with_fomc)} columns.",
+        # 2026-10-19 (user): parked -- the base-5 pooled panel leaves the FOMC group out by choice (it no longer
+        # predates it). Was: rf"The intraday panel predates the FOMC group ({len(pr)} series) and has no FOMC predictors; with "
+        # 2026-10-19 (user): parked -- the pooled model includes the FOMC series (author decision). Was: the sentence below (the intraday panel now has the FOMC group)
+        # rf"The intraday panel leaves out the FOMC group ({len(pr)} series) and has no FOMC predictors; with "
+        # rf"them it would have {n_(with_fomc)} columns.",
         "At every estimation, predictors constant within the rolling window or exact copies of another are dropped.",
     ]
     spec = "@{}lrrrrrr@{}"
@@ -2548,9 +2575,14 @@ def write_dictionary(rows: list[dict], D: dict) -> None:
         r"over the previous $k$ intervals, and as $\bar a^{(k)}(u)$, the share of those intervals on which it was "
         r"observed; series with an activity indicator also enter as $\bar\chi^{(k)}(u)$, the share off their mode "
         r"(the mode and its share of intervals are in the description).",
+        # 2026-10-19 (user): parked -- base 5 across the paper. Was:
+        # rf"$\mathcal K = \{{{', '.join(str(r) for r in resolve_har_lags())}\}}$ in the closing-interval model and "
+        # rf"$\{{1, 2, 4, \dots, {2 ** (kq - 1)}\}}$ in the intraday model, which is every group here except "
+        # r"FOMC (Section~\ref{sec:rh_data}).",
         rf"$\mathcal K = \{{{', '.join(str(r) for r in resolve_har_lags())}\}}$ in the closing-interval model and "
-        rf"$\{{1, 2, 4, \dots, {2 ** (kq - 1)}\}}$ in the intraday model, which is every group here except "
-        r"FOMC (Section~\ref{sec:rh_data}).",
+        # 2026-10-19 (user): parked -- the pooled model includes the FOMC series. Was:
+        # r"in the intraday model, which is every group here except FOMC (Section~\ref{sec:rh_data}).",
+        r"in the intraday model; both models use every group here (Section~\ref{sec:rh_data}).",
         r"Diurnal adjustment: division by the trailing same-interval mean (mean) or standard deviation (s.d.); "
         r"$g$: the variance-stabilizing map; the volatility-demand series take $\operatorname{asinh}(u_{t,i} / "
         r"\kappa_{t,i})$ in place of both (Section~\ref{sec:rh_predictors}).",
@@ -2607,7 +2639,8 @@ def write_dictionary(rows: list[dict], D: dict) -> None:
                 "market_ew": "; simple averages of S\\&P 500 constituents",
                 "market_vw": "; previous day's market capitalization",
                 "vol_demand": "; net vega bought by non-market-makers",
-                "fomc": "; closing-interval model only, scheduled calendar",
+                # 2026-10-19 (user): parked -- the pooled model includes the FOMC series (author decision). Was: "; closing-interval model only, scheduled calendar"
+                "fomc": "; scheduled calendar",
             }.get(cur, "")
             out.append(panel_row(f"{BUCKET_LABEL[cur]} ({nb}{extra})", ncol))
         desc = desc_of(r["series"])
@@ -3319,14 +3352,17 @@ TYPED = {
     "rhdmHeldOut": "413",
     "rhdmHeldOutExpirations": "419",
     "rhdmSpxwExpirations": "1{,}291",
-    "rhdmNColsPooled": "1{,}144",
-    "rhdmNSeriesPooled": "43",
-    "rhdmNHorizonsPooled": "12",
+    # 2026-10-19 (user): parked -- base 5 across the paper. Was: rhdmNColsPooled 1{,}144, rhdmNHorizonsPooled 12,
+    # rhdmNEdgePooled 24, rhdmNActivePooled 5 (the base-2 panel of the earlier pooled fits)
+    # 2026-10-19 (user): parked -- the pooled model includes the FOMC series (author decision). Was: rhdmNColsPooled 574, rhdmNSeriesPooled 43, rhdmNActivePooled 4 (base 5 without FOMC)
+    "rhdmNColsPooled": "634",
+    "rhdmNSeriesPooled": "47",
+    "rhdmNHorizonsPooled": "6",
     "rhdmNHorizonsClose": "6",
     "rhdmNCalendar": "16",
-    "rhdmNEdgePooled": "24",
+    "rhdmNEdgePooled": "12",
     "rhdmNActive": "7",
-    "rhdmNActivePooled": "5",
+    "rhdmNActivePooled": "6",
     "rhdmValTail": "125",
     "rhdmRetuneFolds": "two",
     "rhdmRfTrial": "255",
@@ -3473,11 +3509,13 @@ def write_numbers(P: dict, D: dict, TS: dict, LP: dict) -> None:
         ),
         "rhdmNSeriesPooled": (
             str(D["n_series_pooled"]),
-            "exogenous series in the pooled panel (pre-FOMC)",
+            # 2026-10-19 (user): parked -- the pooled model includes the FOMC series (author decision). Was: "exogenous series in the pooled panel (pre-FOMC)",
+            "exogenous series in the pooled panel (FOMC included)",
         ),
         "rhdmNHorizonsPooled": (
             str(D["kq"]),
-            "HAR horizons, intraday model (base 2)",
+            # 2026-10-19 (user): parked -- base 5 across the paper. Was: "HAR horizons, intraday model (base 2)",
+            "HAR horizons, intraday model (base 5)",
         ),
         "rhdmNHorizonsClose": (
             str(D["k"]),
@@ -3516,7 +3554,9 @@ def write_numbers(P: dict, D: dict, TS: dict, LP: dict) -> None:
         + D["n_edge_pooled"]
         + 2 * D["n_series_pooled"] * D["kq"]
         + D["n_active_pooled"] * D["kq"],
-        "1,144 = 12 + 16 + 24 + 43 x 12 + 43 x 12 + 5 x 12 (the Predictors section's display)",
+        # 2026-10-19 (user): parked -- base 5. Was: "1,144 = 12 + 16 + 24 + 43 x 12 + 43 x 12 + 5 x 12 (the Predictors section's display)",
+        # 2026-10-19 (user): parked -- the pooled model includes the FOMC series (author decision). Was: "574 = 6 + 16 + 12 + 43 x 6 + 43 x 6 + 4 x 6 (the Predictors section's display)",
+        "634 = 6 + 16 + 12 + 47 x 6 + 47 x 6 + 6 x 6 (the Predictors section's display)",
     )
     check(set(vals) == set(TYPED), "every \\rhdm macro has its typed value")
     for k, (v, _) in vals.items():

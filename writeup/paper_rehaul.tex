@@ -136,6 +136,11 @@ predictor set than under the HAR benchmark across every intraday model class.
 \textbf{\textcolor{blue!75!black}{Blue}}: a reader cannot recover the input or the rule.\\
 The first line is the decision. The second line is the problem. The rest is the exposition.}
 
+% 2026-10-19 (user): base 5 across the paper -- the fitted numbers that still come from base-2 designs.
+\editc{orange}{E34}{Decision: base 5 across the paper (user, 2026-10-19).\\Problem: the pooled trees (LightGBM, XGBoost and the random forest, on every predictor set) and the intraday OLS on the HAR benchmark (note a of Table~\ref{tab:rh_oos}) were fitted on the base-2 panel, horizons $\{1, 2, 4, \dots, 2048\}$. Every number built from them still comes from that design: the counts of intraday model classes in this abstract and in the introduction (\rhrAfPoolPairs{} classes, \rhrAfPoolLowerSig{} significant), the pooled tree and intraday OLS rows of Table~\ref{tab:rh_oos}, and the pooled comparisons of Sections~\ref{sec:rh_results} and~\ref{sec:rh_econ} and of the appendix.\\
+The pooled ridge, lasso and elastic net printed here were already fitted at base 5 (experiments/pool\_linear\_pretune.py uses the production horizon set). % 2026-10-19 (user): parked -- "don't do the trees". Was: "The trees are refitted at base 5 on the new pooled design ... (note E15)."
+The pooled trees are not refitted (user, 2026-10-19: not in this pass); the base-5 design for a refit exists (experiments/pooled\_trees\_base5.py, design stage; results/pooled\_trees\_base5\_2026-10-19\_48 and \_13 hold its column lists). The intraday OLS is replaced by the pooled OLS of the linear reruns. The generators of these numbers (make\_rehaul\_results.py, make\_rehaul\_oos\_table.py, make\_rehaul\_economics.py) still read results/pooled\_trees\_2026-10-07; switch them after the refits.}
+
 % 2026-10-16 (user): introduction restored. It states the exogenous-feature question.
 \input{rehaul/01_introduction}
 \input{rehaul/02_related_work}

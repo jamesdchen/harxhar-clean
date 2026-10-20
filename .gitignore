@@ -105,3 +105,5 @@ results/puffer_forecast_2026-10-12/review_build/*/
 # Overleaf sync script with the Overleaf git token (2026-10-20, user): never commit it; the tracked copy without
 # the token is writeup/overleaf_sync/overleaf_git.example.sh
 writeup/overleaf_sync/overleaf_git.sh
+# base-5 pooled prep cache (1.4 GB, rebuilt by experiments/pooled_trees_base5.py design)
+results/pooled_trees_base5_cache/
