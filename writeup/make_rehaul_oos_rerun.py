@@ -42,11 +42,25 @@ WRITES   writeup/generated/rehaul_results_oos.tex           Table 1 (tab:rh_oos)
          writeup/generated/rehaul_oos_rerun_numbers.tex     \\rhor... macros (counts, tests), loaded by the preamble
          results/oos_rerun_2026-10-20/metrics.csv, dm.csv   every number of the table and the extra tests
 
-Run:  python writeup/make_rehaul_oos_rerun.py
+SPAN     2026-10-20 (user): "switch the main window to 1,000 days, not 2,000. Table 1 should cover 2012-2024 as a
+         single panel, with no 2012-2019 / 2020-2024 split table." The default (--span 2012) builds Table 1 from
+         results/pooled_linear_rerun_2026-10-20_13_2012_w1000 (same design, a 1,000-trading-day window, penalties chosen
+         once on the four validation folds 2008-2011 and frozen) on the 3,075 trading days 3 January 2012 .. 30 April
+         2024, 13-bar sample only (there is no 48-interval rerun from 2012, so no Panel A macros). The 16:00 check runs
+         on the 1,082 days 2020-01-03 .. 2024-04-30 that the run's own scores.csv scores. CSVs go to
+         results/oos_span_check_2026-10-20/table1_2012_w1000/. "--span 2020" writes the earlier table (the 2,000-day
+         reruns from 2020 above, both panels, CSVs in results/oos_rerun_2026-10-20/).
+         2026-10-20 (user): parked -- the 2,000-day 2012 table with subperiod macros. Was: "--span 2012" read
+         results/pooled_linear_rerun_2026-10-20_13_2012_w2000 and also wrote \\rhorSubOne... / \\rhorSubTwo...
+         macros (2012-2019, 2020-2024); "--span 2020" was the default.
+
+Run:  python writeup/make_rehaul_oos_rerun.py                 (2012-2024, 1,000-day window)
+      python writeup/make_rehaul_oos_rerun.py --span 2020     (the earlier 2020-2024 table; --out-dir writes elsewhere)
 """
 
 from __future__ import annotations
 
+import argparse
 import sys
 from pathlib import Path
 
@@ -79,6 +93,25 @@ PANELS = [
     ("48", "Panel A: Trained and scored on all 48 half-hour intervals"),
     ("13", "Panel B: Trained and scored on the 13 regular-hours bars (10:00--16:00)"),
 ]
+# 2026-10-20 (user): parked -- the 2,000-day 2012 run. Was: R13_2012 = ... / "pooled_linear_rerun_2026-10-20_13_2012_w2000"
+R13_2012 = REPO / "results" / "pooled_linear_rerun_2026-10-20_13_2012_w1000"
+# span -> 13-bar run, panels, first and last evaluation day, day count, the days of the run's own 16:00 scores.csv
+# (first, last, count), the CSV directory, the rolling window in trading days, and the subperiods of the
+# \rhorSub... macros (tag, first, last, days; none at present)
+SPANS = {
+    "2020": dict(
+        r13=R13, panels=["48", "13"], first=FIRST_DAY, last=LAST_DAY, n_days=SPAN_DAYS,
+        check=(FIRST_DAY, LAST_DAY, SPAN_DAYS), res=OUT_RES, window=2000, subs=[],
+    ),
+    "2012": dict(
+        r13=R13_2012, panels=["13"], first=pd.Timestamp("2012-01-03"), last=LAST_DAY, n_days=3075,
+        check=(FIRST_DAY, LAST_DAY, SPAN_DAYS),
+        res=REPO / "results" / "oos_span_check_2026-10-20" / "table1_2012_w1000", window=1000,
+        # 2026-10-20 (user): parked -- "no 2012-2019 / 2020-2024 split table". Was: subs=[("One", 2012-01-03,
+        # 2019-12-31, 1992 days), ("Two", 2020-01-03, 2024-04-30, 1082 days)]
+        subs=[],
+    ),
+}
 
 
 # --------------------------------------------------------------------------- data
@@ -92,18 +125,18 @@ def core() -> pd.DataFrame:
     return c.set_index("endbartime")["sumret2"].sort_index()
 
 
-def evaluation_days(rv: pd.Series) -> pd.DatetimeIndex:
+def evaluation_days(rv: pd.Series, first=FIRST_DAY, last=LAST_DAY, n=SPAN_DAYS) -> pd.DatetimeIndex:
     """The 1,082 trading days of the span: a positive closing-half-hour print, early closes dropped."""
     s = rv[(rv.index.hour == 16) & (rv.index.minute == 0)]
     d = pd.DatetimeIndex(s.index.normalize())
     keep = (s.to_numpy() > 0) & np.isfinite(s.to_numpy()) & ~d.isin(EARLY)
     days = d[keep]
-    days = days[(days >= FIRST_DAY) & (days <= LAST_DAY)]
-    assert len(days) == SPAN_DAYS and days[0] == FIRST_DAY and days[-1] == LAST_DAY, (len(days), days[0], days[-1])
+    days = days[(days >= first) & (days <= last)]
+    assert len(days) == n and days[0] == first and days[-1] == last, (len(days), days[0], days[-1])
     return days
 
 
-def forecasts(panel: str) -> dict[tuple[str, str], pd.DataFrame]:
+def forecasts(panel: str, r13: Path = R13) -> dict[tuple[str, str], pd.DataFrame]:
     """(model, set) -> frame indexed by interval end with plain (forecast) and rv (truth)."""
     out = {}
     if panel == "48":
@@ -115,7 +148,7 @@ def forecasts(panel: str) -> dict[tuple[str, str], pd.DataFrame]:
                 f = pd.read_parquet(p, columns=["date", "plain", "rv"])
                 out[(m, s)] = f.set_index(pd.to_datetime(f["date"]))[["plain", "rv"]]
     else:
-        g = pd.read_parquet(R13 / "forecasts.parquet", columns=["model", "predictor_set", "date", "plain", "rv_actual"])
+        g = pd.read_parquet(r13 / "forecasts.parquet", columns=["model", "predictor_set", "date", "plain", "rv_actual"])
         for (m, s), f in g.groupby(["model", "predictor_set"]):
             out[(m, s)] = f.set_index(pd.to_datetime(f["date"])).rename(columns={"rv_actual": "rv"})[["plain", "rv"]]
     assert set(out) == {(m, s) for m, _ in MODELS for s, _ in SETS if m != "ols" or s == "baseline"}, sorted(out)
@@ -205,11 +238,22 @@ def thousands(n: int) -> str:
 
 
 def main() -> None:
+    ap = argparse.ArgumentParser()
+    # 2026-10-20 (user): parked -- the 2020 default. Was: default="2020"
+    ap.add_argument("--span", choices=sorted(SPANS), default="2012", help="evaluation span of Table 1 (default 2012)")
+    ap.add_argument("--out-dir", type=Path, default=GEN, help="directory of the two .tex files (default generated/)")
+    args = ap.parse_args()
+    cfg = SPANS[args.span]
+    out_table, out_numbers, out_res = args.out_dir / OUT_TABLE.name, args.out_dir / OUT_NUMBERS.name, cfg["res"]
+    r13 = cfg["r13"]
     rv = core()
-    days = evaluation_days(rv)
-    met_rows, dm_rows, panels = [], [], {}
+    days = evaluation_days(rv, cfg["first"], cfg["last"], cfg["n_days"])
+    ck_first, ck_last, ck_days = cfg["check"]
+    met_rows, dm_rows, panels, sub_rows = [], [], {}, []
     for pid, _ in PANELS:
-        fc = forecasts(pid)
+        if pid not in cfg["panels"]:
+            continue
+        fc = forecasts(pid, r13)
         idx = scored_set(fc, rv, days)
         bench = slot_benchmark(rv, idx)
         y = rv.reindex(idx).to_numpy(float)
@@ -219,12 +263,14 @@ def main() -> None:
             q, se = loss(f, idx, rv)
             L[k] = (q, se)
             # check: the 16:00 rows reproduce the rerun's own closing-interval QLIKE
+            # (on the days that scores.csv scores: the whole span by default, 2020-01-03 .. 2024-04-30 under --span 2012)
             on16 = idx[(idx.hour == 16) & (idx.minute == 0)]
+            on16 = on16[(on16.normalize() >= ck_first) & (on16.normalize() <= ck_last)]
             q16, _ = loss(f, on16, rv)
-            sc = pd.read_csv((R48 if pid == "48" else R13) / "scores.csv")
+            sc = pd.read_csv((R48 if pid == "48" else r13) / "scores.csv")
             setcol = "set" if "set" in sc.columns else "predictor_set"
             ref = sc[(sc["model"] == k[0]) & (sc[setcol] == k[1])]["qlike"].iloc[0]
-            assert len(on16) == SPAN_DAYS and np.isclose(q16.mean(), ref, rtol=1e-10, atol=0), (pid, k, q16.mean(), ref)
+            assert len(on16) == ck_days and np.isclose(q16.mean(), ref, rtol=1e-10, atol=0), (pid, k, q16.mean(), ref)
             met_rows.append(
                 dict(
                     panel=pid,
@@ -255,12 +301,34 @@ def main() -> None:
                             T=int(r["T"]), hac_lag=int(r["hac_lag"]),
                         )
                     )
+        for tag, s_first, s_last, s_days in cfg["subs"]:  # subperiods: the same scored bars, cut by date
+            sidx = idx[(idx.normalize() >= s_first) & (idx.normalize() <= s_last)]
+            n_sd = pd.DatetimeIndex(sidx.normalize()).nunique()
+            assert n_sd == s_days, (tag, n_sd)
+            sl = idx.isin(sidx)
+            for k in fc:
+                sub_rows.append(dict(
+                    subperiod=f"{s_first.date()}:{s_last.date()}", tag=tag, model=k[0], set=k[1], against="",
+                    n_intervals=len(sidx), n_days=n_sd, qlike=float(L[k][0][sl].mean()), dm=np.nan, p=np.nan,
+                    hac_lag=np.nan,
+                ))
+            for m, _ in MODELS[1:]:
+                r = dm_test(daily(L[(m, "all_features")][0][sl], sidx), daily(L[(m, "baseline")][0][sl], sidx))
+                sub_rows.append(dict(
+                    subperiod=f"{s_first.date()}:{s_last.date()}", tag=tag, model=m, set="all_features",
+                    against=f"{m}_baseline", n_intervals=len(sidx), n_days=n_sd, qlike=np.nan,
+                    dm=float(r["dm"]), p=float(r["p"]), hac_lag=int(r["hac_lag"]),
+                ))
         panels[pid] = (idx, days)
     met = pd.DataFrame(met_rows)
     dms = pd.DataFrame(dm_rows)
-    OUT_RES.mkdir(parents=True, exist_ok=True)
-    met.to_csv(OUT_RES / "metrics.csv", index=False)
-    dms.to_csv(OUT_RES / "dm.csv", index=False)
+    subs = pd.DataFrame(sub_rows)
+    out_res.mkdir(parents=True, exist_ok=True)
+    met.to_csv(out_res / "metrics.csv", index=False)
+    dms.to_csv(out_res / "dm.csv", index=False)
+    if len(subs):
+        subs.to_csv(out_res / "subperiods.csv", index=False)
+    span12 = args.span == "2012"
 
     # ------------------------------------------------------------------ the table
     def cell(pid, m, s):
@@ -287,16 +355,37 @@ def main() -> None:
         if m == "ols":
             body.append("\\addlinespace[3pt]")
     lag = sorted(set(dms["hac_lag"]))
+    # span-dependent text; the defaults are the 2020 table as committed
+    top = [
+        "% tab:rh_oos: the pooled linear rerun on the 13 regular-hours bars (base 5, FOMC in, frozen penalties),",
+        "% every bar scored on the 1,082 days of the span; Diebold-Mariano on daily average QLIKE (user 2026-10-20).",
+    ]
+    caption = "Forecast accuracy of the intraday models"
+    pen = "penalties chosen once on the pre-sample and then held fixed"
+    span_txt = ("Every bar is scored on the $T_{\\mathrm{oos}} = \\rhoosDays$ trading days from \\rhoosSpanStart{} to "
+                "\\rhoosSpanEnd{} (early closes dropped)")
+    if span12:
+        top = [
+            "% tab:rh_oos, 2012 span (--span 2012): the pooled linear rerun from 2012 on the 13 regular-hours bars (base 5,",
+            f"% FOMC in, {cfg['window']:,}-day window, penalties chosen on the folds 2008-2011 and frozen), every bar "
+            "scored on the",
+            f"% {len(days):,} days 2012-01-03 .. 2024-04-30; Diebold-Mariano on daily average QLIKE.",
+        ]
+        caption = ("Forecast accuracy of the intraday models, \\rhorSpanStart{} to \\rhorSpanEnd{} "
+                   f"({thousands(cfg['window'])}-day window, penalties frozen from 2008--2011)")
+        pen = ("penalties chosen once on four validation folds covering 2008--2011, before the first forecast, "
+               "and then frozen")
+        span_txt = ("Every bar is scored on the $T_{\\mathrm{oos}} = \\rhorDays$ trading days from \\rhorSpanStart{} to "
+                    "\\rhorSpanEnd{} (early closes dropped)")
     table = "\n".join(
         [
             HEAD,
-            "% tab:rh_oos: the pooled linear rerun on the 13 regular-hours bars (base 5, FOMC in, frozen penalties),",
-            "% every bar scored on the 1,082 days of the span; Diebold-Mariano on daily average QLIKE (user 2026-10-20).",
+            *top,
             "\\begin{table}[htbp]",
             "\\centering",
             "\\small",
             "\\begin{threeparttable}",
-            "\\caption{Forecast accuracy of the intraday models}",
+            f"\\caption{{{caption}}}",
             "\\label{tab:rh_oos}",
             "\\begin{tabular*}{\\linewidth}{@{\\extracolsep{\\fill}}lrrrrrrr@{}}",
             "\\toprule",
@@ -312,10 +401,9 @@ def main() -> None:
             "\\footnotesize",
             "\\item \\textit{Notes:} Pooled intraday linear models, one design for every row: the HAR components at "
             "horizons $k \\in \\{1, 5, 25, 125, 625, 3125\\}$, the full predictor set with the FOMC series, "
-            "penalties chosen once on the pre-sample and then held fixed, a rolling window of 2{,}000 trading days, "
+            f"{pen}, a rolling window of {thousands(cfg['window'])} trading days, "
             "re-estimated every interval (Section~\\ref{sec:rh_methods}), trained and scored on the 13 regular-hours "
-            "half-hour bars ending 10:00 to 16:00~ET. Every bar is scored on the $T_{\\mathrm{oos}} = \\rhoosDays$ "
-            "trading days from \\rhoosSpanStart{} to \\rhoosSpanEnd{} (early closes dropped), \\rhorNIntB{} bars "
+            f"half-hour bars ending 10:00 to 16:00~ET. {span_txt}, \\rhorNIntB{{}} bars "
             "(bars with a non-positive realized variance dropped); each forecast $\\hat\\sigma^2_{t,i} = \\hat y^{2}_{t,i}\\, s^2_{t,i}$ is "
             "scored against the actual realized variance $\\RV_{t,i}$ of its interval. MSE (in units of "
             "$10^{-\\rhoosMseExp}$) and QLIKE are averages over the scored intervals. "
@@ -334,32 +422,74 @@ def main() -> None:
             "",
         ]
     )
-    OUT_TABLE.write_text(table, encoding="utf-8", newline="\n")
+    out_table.parent.mkdir(parents=True, exist_ok=True)
+    out_table.write_text(table, encoding="utf-8", newline="\n")
 
     # ------------------------------------------------------------------ macros for the prose
     def mac(name: str, value: str, comment: str) -> str:
         return f"\\providecommand{{\\{name}}}{{}}\\renewcommand{{\\{name}}}{{{value}}}  % {comment}"
 
-    lines = [
-        HEAD,
-        "% \\rhor... macros of Table 1 (tab:rh_oos): the pooled linear reruns scored on every interval.",
-        mac("rhorNIntA", thousands(len(panels["48"][0])), "scored intervals, Panel A (48 intervals)"),
-        mac("rhorNIntB", thousands(len(panels["13"][0])), "scored intervals, Panel B (13 regular-hours bars)"),
-        mac("rhorDays", thousands(len(days)), "trading days of the span"),
-        mac("rhorHacLag", ", ".join(str(x) for x in lag), "Newey-West lag of the daily tests"),
-    ]
+    if not span12:
+        lines = [
+            HEAD,
+            "% \\rhor... macros of Table 1 (tab:rh_oos): the pooled linear reruns scored on every interval.",
+            mac("rhorNIntA", thousands(len(panels["48"][0])), "scored intervals, Panel A (48 intervals)"),
+            mac("rhorNIntB", thousands(len(panels["13"][0])), "scored intervals, Panel B (13 regular-hours bars)"),
+            mac("rhorDays", thousands(len(days)), "trading days of the span"),
+            mac("rhorHacLag", ", ".join(str(x) for x in lag), "Newey-West lag of the daily tests"),
+        ]
+    else:  # --span 2012: no 48-interval rerun from 2012, so no Panel A macros
+        lines = [
+            HEAD,
+            "% \\rhor... macros of Table 1 (tab:rh_oos), --span 2012: the pooled linear rerun from 2012 on the 13 bars",
+            f"% ({cfg['window']:,}-day window, penalties chosen once on the folds 2008-2011 and frozen), scored on "
+            "every bar.",
+            mac("rhorNIntB", thousands(len(panels["13"][0])), "scored intervals, 13 regular-hours bars"),
+            mac("rhorDays", thousands(len(days)), "trading days of the span"),
+            mac("rhorSpanStart", f"{cfg['first'].day} {cfg['first']:%B %Y}", "first day of the span"),
+            mac("rhorSpanEnd", f"{cfg['last'].day} {cfg['last']:%B %Y}", "last day of the span"),
+            mac("rhorEarlyCloses", str(int(((EARLY >= days[0]) & (EARLY <= days[-1])).sum())),
+                "NYSE early-close days inside the span, dropped (the rule of rhoosEarlyCloses)"),
+            mac("rhorPenYears", "2008--2011", "years of the four validation folds on which the penalties are chosen"),
+            mac("rhorWindowDays", thousands(cfg["window"]), "rolling window, trading days"),
+            mac("rhorWindowBars", thousands(13 * cfg["window"]), "rolling window, 13-bar observations"),
+            mac("rhorHacLag", ", ".join(str(x) for x in lag), "Newey-West lag of the daily tests"),
+        ]
     for pid, tag in (("48", "A"), ("13", "B")):
+        if pid not in cfg["panels"]:
+            continue
         for m, _ in MODELS[1:]:
             r = dms[(dms.panel == pid) & (dms.model == m) & (dms.comparison == "all features vs HAR benchmark")
                     & (dms.loss == "qlike")].iloc[0]
             cap = {"ridge": "Ridge", "lasso": "Lasso", "enet": "Enet"}[m]
             lines.append(mac(f"rhorDm{cap}{tag}", fmt(r.dm, 2), f"DM, QLIKE, all features vs HAR benchmark, {m}, panel {tag}"))
             lines.append(mac(f"rhorP{cap}{tag}", fmt_p(r.p), "its p-value"))
-    OUT_NUMBERS.write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
+    caps = {"ols": "Ols", "ridge": "Ridge", "lasso": "Lasso", "enet": "Enet"}
+    for tag, s_first, s_last, _ in cfg["subs"]:  # subperiod macros: \rhorSubOne... (2012-2019), \rhorSubTwo... (2020-2024)
+        g = subs[subs.tag == tag]
+        lines.append(f"% subperiod {tag}: {s_first.date()} .. {s_last.date()}, the bars of the table cut by date")
+        lines.append(mac(f"rhorSub{tag}Start", f"{s_first.day} {s_first:%B %Y}", "first day of the subperiod"))
+        lines.append(mac(f"rhorSub{tag}End", f"{s_last.day} {s_last:%B %Y}", "last day of the subperiod"))
+        lines.append(mac(f"rhorSub{tag}Days", thousands(int(g.n_days.iloc[0])), "trading days of the subperiod"))
+        lines.append(mac(f"rhorSub{tag}NInt", thousands(int(g.n_intervals.iloc[0])), "scored bars of the subperiod"))
+        for m, _ in MODELS:
+            for st, sname in (("baseline", "Har"), ("all_features", "Af")):
+                r = g[(g.model == m) & (g.set == st) & (g.against == "")]
+                if r.empty:
+                    continue
+                lines.append(mac(f"rhorSub{tag}Qlike{caps[m]}{sname}", f"{r.qlike.iloc[0]:.4f}", f"QLIKE, {m}, {st}"))
+        for m, _ in MODELS[1:]:
+            r = g[(g.model == m) & (g.against != "")].iloc[0]
+            lines.append(mac(f"rhorSub{tag}Dm{caps[m]}", fmt(r.dm, 2),
+                             f"DM, QLIKE, all features vs HAR benchmark, {m} (Newey-West lag {int(r.hac_lag)})"))
+            lines.append(mac(f"rhorSub{tag}P{caps[m]}", fmt_p(r.p), "its p-value"))
+    out_numbers.write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
 
     print(met.to_string(index=False))
     print(dms[dms.loss == "qlike"].to_string(index=False))
-    print(f"wrote {OUT_TABLE.relative_to(REPO)}, {OUT_NUMBERS.relative_to(REPO)}, {OUT_RES.relative_to(REPO)}/")
+    if len(subs):
+        print(subs.to_string(index=False))
+    print(f"wrote {out_table}, {out_numbers}, {out_res.relative_to(REPO)}/")
 
 
 if __name__ == "__main__":
