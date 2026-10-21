@@ -471,7 +471,7 @@ def level(f: pd.DataFrame) -> dict:
     }
 
 
-def pair(a: pd.DataFrame, b: pd.DataFrame) -> dict:
+def pair(a: pd.DataFrame, b: pd.DataFrame, lw: bool = False) -> dict:
     """a minus b on the common days: QLIKE % change, DM, p; squared-error % change and DM; Sharpe change, HAC t.
     2026-10-15: the accuracy statistics on acc_of() (the common rolling span), the trade statistics on the 866 days."""
     # j = a[["qlike_raw", "ret_mid", "rv_unclipped", "plain"]].join(  # 2026-10-15 (user): parked -- one frame for
@@ -513,8 +513,9 @@ def pair(a: pd.DataFrame, b: pd.DataFrame) -> dict:
         "t": float(t),
         # 2026-10-21 (user, decision #2): fixed-b p of the LLSW t. Was: float(math.erfc(abs(t) / math.sqrt(2.0)))
         "p_t": float(tt["p"]),
-        # Ledoit-Wolf p of the Sharpe-ratio difference (614 days): stars on dsh, counts of Sharpe claims
-        "p_lw": lw_p(jt["ret_mid"], jt["ret_mid_b"]),
+        # Ledoit-Wolf p of the Sharpe-ratio difference (614 days): stars on dsh, counts of Sharpe claims; only where a
+        # Sharpe claim or star uses it (lw=True: T1, T2, the 51 all-vs-HAR pairs), NaN elsewhere
+        "p_lw": lw_p(jt["ret_mid"], jt["ret_mid_b"]) if lw else float("nan"),
     }
 
 
@@ -2143,7 +2144,7 @@ def main() -> None:
                 "name": name,
                 "family": fam,
                 "fit": "per-bar",
-                **pair(by[pb[1]], by[pb[0]]),
+                **pair(by[pb[1]], by[pb[0]], lw=True),
             }
         )
         if pool is None:
@@ -2155,7 +2156,7 @@ def main() -> None:
                     "family": fam,
                     "fit": "pooled",
                     "mark": "$^\\dagger$" if pool[1] in INTERIM else "",
-                    **pair(by[pool[1]], by[pool[0]]),
+                    **pair(by[pool[1]], by[pool[0]], lw=True),
                 }
             )
     t1 = [r for r in t1 if r["fit"] == "per-bar"] + [
@@ -2225,7 +2226,7 @@ def main() -> None:
     # all 51 input-set pairs of the model set (the fig_qlike_sharpe counts)
     allf = [k for k in s.loc[s["input_set"] == "all_features", "key"]]
     af = pd.DataFrame(
-        [pair(by[k], by[k.replace("all_features", "baseline")]) for k in allf],
+        [pair(by[k], by[k.replace("all_features", "baseline")], lw=True) for k in allf],
         index=allf,
     )
     n_af, n_lower, n_lower_sig = (
@@ -2322,7 +2323,7 @@ def main() -> None:
             "mark": "$^\\dagger$" if pool[1] in INTERIM else "",
         }
         for i, b in enumerate(("baseline", "all_features")):
-            r[b] = pair(by[pool[i]], by[pb[i]])
+            r[b] = pair(by[pool[i]], by[pb[i]], lw=True)
         t2.append(r)
     T2 = {r["name"]: r for r in t2}
     # 2026-10-15 (user): parked -- NN content parked for now; T2 rows per panel: 7 -> 6
