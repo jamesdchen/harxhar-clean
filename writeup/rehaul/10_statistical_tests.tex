@@ -77,14 +77,18 @@
   % 2026-10-18 (user, E13): FLAG (4) resolved -- dm_test now divides gamma_j by |O| (src/evaluation/diebold_mariano.py:67-68), matching this display.
 % 2026-10-15 (consolidation): FLAG (7) resolved -- newey_west_t is also applied to a single strategy's mean return
 % (Economic value, Table rh_econ_control), so the bullet is worded for any daily return series.
-\item \textbf{HAC $t$-statistic for mean daily returns.} For any daily return series $r_t$---either the return of an individual trading strategy or the return differential $\Delta_t$ between two strategies---we compute the unadjusted Newey--West $t$-statistic
-  \[
-    t = \frac{\bar r}{\sqrt{\hat\Omega_r / |\mathcal O|}},
-  \]
-  where $\hat\Omega_r$ is the Newey--West variance estimator above evaluated on $r_t$ in place of $d_t$, using lag truncation
+% 2026-10-21 (user, decision #2): parked -- the Newey--West t of a mean return at lag floor(1.5 |O|^(1/3)), with
+% normal critical values; no published source uses the constant 1.5, so the paper no longer presents it as a rule.
+% Replaced by the LLSW (2018) test with fixed-b critical values (means) and the Ledoit--Wolf (2008) test (Sharpe
+% ratios), writeup/hac_inference.py. Was:
+% \item \textbf{HAC $t$-statistic for mean daily returns.} For any daily return series $r_t$---either the return of an individual trading strategy or the return differential $\Delta_t$ between two strategies---we compute the unadjusted Newey--West $t$-statistic
+%   \[
+%     t = \frac{\bar r}{\sqrt{\hat\Omega_r / |\mathcal O|}},
+%   \]
+%   where $\hat\Omega_r$ is the Newey--West variance estimator above evaluated on $r_t$ in place of $d_t$, using lag truncation
   % $q_{\mathrm{NW}} = \lfloor 1.5\, |\mathcal O|^{1/3} \rfloor$ (its value on $\mathcal T_{\mathrm{oos}}$:  % 2026-10-15:
   % Experimental setup, Section~\ref{sec:rh_exp_setup}).  % parked -- the returns are on the option-data subsample
-  $q_{\mathrm{NW}} = \lfloor 1.5\, |\mathcal O|^{1/3} \rfloor$ (its numerical value on $\mathcal T_{\mathrm{opt}}$ is given in Section~\ref{sec:rh_econ_measures}).
+%   $q_{\mathrm{NW}} = \lfloor 1.5\, |\mathcal O|^{1/3} \rfloor$ (its numerical value on $\mathcal T_{\mathrm{opt}}$ is given in Section~\ref{sec:rh_econ_measures}).
   % 2026-10-15 (user): parked -- lag value removed from Methods, as for the DM lag (Forecast evaluation moved here,
   % numbers removed); it now lives in Experimental setup. Was: "... $q_{\mathrm{NW}} = \lfloor 1.5\, |\mathcal O|^{1/3}
   % \rfloor$, which gives $q_{\mathrm{NW}} = \fqsHACLag$ on $\mathcal T_{\mathrm{oos}}$."
@@ -97,9 +101,37 @@
   %   $q_{\mathrm{NW}} = \lfloor 1.5\, |\mathcal O|^{1/3} \rfloor$, which gives $q_{\mathrm{NW}} = \fqsHACLag$ on
   %   $\mathcal T_{\mathrm{oos}}$.
   % notebooks/atm_straddle_lib.py:1240-1261 (newey_west_t).
+\item \textbf{Test of a mean daily return.} For any daily return series $r_t$---either the return of an individual trading strategy or the return differential $\Delta_t$ between two strategies---observed on the $T = \rheSzDays$ post-warmup days $\mathcal T_{\mathrm{opt}}^{+}$ (Section~\ref{sec:rh_econ_measures}), we test whether its mean is zero with the procedure that \citet{LazarusLewisStockWatson2018} recommend for the Newey--West estimator:
+  \[
+    t = \frac{\bar r}{\sqrt{\hat\Omega_r / T}},
+    \qquad
+    \hat\Omega_r = \sum_{|j| < S} \Bigl(1 - \frac{|j|}{S}\Bigr) \hat\gamma_j,
+    \qquad
+    \hat\gamma_j = \frac{1}{T} \sum_{t=|j|+1}^{T} (r_t - \bar r)(r_{t-|j|} - \bar r),
+  \]
+  with the Bartlett kernel, bandwidth $S = \lceil 1.3\, T^{1/2} \rceil = \rheHACS$, and fixed-$b$ critical values for $b = S/T$ \citep{KieferVogelsang2005}.
+  \begin{itemize}
+  \item The autocovariances divide by $T$, with no small-sample factor; at lag truncation $S - 1$ the estimator equals the Newey--West variance of the previous item.
+  \item This bandwidth is larger than that of conventional rules such as $0.75\, T^{1/3}$, which \citet{LazarusLewisStockWatson2018} obtain from the formula of \citet{Andrews1991} for a first-order autoregression with coefficient $0.25$. Combined with fixed-$b$ critical values, it reduces the size distortion of the test when the returns are serially correlated \citep{LazarusLewisStockWatson2018}.
+  \item Under the null hypothesis and fixed $b$, the limiting distribution of $t$ is a functional of Brownian motion that depends only on the kernel and on $b$ \citep{KieferVogelsang2005}. We obtain its quantiles by simulation, computing the same statistic on 1{,}000{,}000 independent series of 1{,}000 i.i.d.\ standard normal draws with bandwidth $1{,}000\,b$. This gives the two-sided 5\% critical value \rheHACCV{} and the $p$-values reported in the text, in place of the standard normal value 1.96.
+  \end{itemize}
+\item \textbf{Test of equal Sharpe ratios.} A test of $\bar\Delta = 0$ concerns the mean return differential, not the difference between two Sharpe ratios, which divides each strategy's mean return by its own standard deviation. For every statement about a Sharpe ratio difference we therefore use the studentized circular block bootstrap test of \citet{LedoitWolf2008}.
+  \begin{itemize}
+  \item With $u = \bigl(\mu_A, \mu_B, \mathrm E[(r^A_t)^2], \mathrm E[(r^B_t)^2]\bigr)$, the difference of the Sharpe ratios of the daily returns, $\mu_A/\sigma_A - \mu_B/\sigma_B$, is a smooth function $f(u)$; its standard error follows from the delta method and the long-run covariance matrix $\Psi$ of $\bigl(r^A_t, r^B_t, (r^A_t)^2, (r^B_t)^2\bigr)$.
+  \item The test statistic is $d = |f(\hat u)| / \mathrm{se}(\hat u)$. Each of \rheLWBoot{} bootstrap samples joins blocks of \rheLWBlock{} consecutive days, drawn with replacement from the $T$ post-warmup days arranged on a circle, and gives $d^{*} = |f(\hat u^{*}) - f(\hat u)| / \mathrm{se}(\hat u^{*})$, with $\Psi$ estimated in that sample by the block-based estimator of \citet{LedoitWolf2008}. The $p$-value is $\bigl(\#\{d^{*} \ge d\} + 1\bigr)/(\rheLWBoot + 1)$.
+  \item In the original sample, $\Psi$ is estimated with the Bartlett kernel at bandwidth equal to the block length, whose expectation is approximately that of the block-based estimator; \citet{LedoitWolf2008} use a prewhitened quadratic-spectral kernel at this step. The block length is fixed at \rheLWBlock{} days rather than calibrated; the next item reports the number of rejections at block lengths \rheLWBlockLo{} and \rheLWBlockHi{}. The random seed is fixed.
+  \item The test concerns the Sharpe ratios of daily returns over the $T$ post-warmup days, without the year-by-year annualization of Section~\ref{sec:rh_econ_measures}.
+  \end{itemize}
+\item \textbf{Robustness to the long-run variance estimator.} Table~\ref{tab:rh_app_hac_robust} lists every comparison of strategy returns whose statistical significance Section~\ref{sec:rh_econ} or Appendix~\ref{sec:rh_econ_last30} states. For each comparison it reports the $t$-statistic of the mean return differential with the Newey--West variance at lag truncation $q_{\mathrm{NW}} = \lfloor 4 (T/100)^{2/9} \rfloor = \rhrRobLagNW$ \citep{NeweyWest1994} and at $q_{\mathrm{NW}} = \lfloor 1.5\, T^{1/3} \rfloor = \rhrRobLagOld$, the lag truncation of an earlier version of this paper, both with standard normal $p$-values; the fixed-$b$ test above; and the $p$-value of the \citet{LedoitWolf2008} test. Statements in the text about mean returns use the fixed-$b$ test, and statements about Sharpe ratios use the \citet{LedoitWolf2008} test.
+  \begin{itemize}
+  \item Of the \rhrRobN{} tests of a mean, \rhrRobFbSig{} are statistically significant at the 5\% level under the fixed-$b$ test, \rhrRobNWFiveSig{} at lag truncation \rhrRobLagNW{} and \rhrRobNWTwelveSig{} at lag truncation \rhrRobLagOld{} with standard normal critical values.
+  \item Of the \rhrRobNPairs{} tests of equal Sharpe ratios, \rhrRobLWSig{} reject at the 5\% level with block length \rheLWBlock{}, \rhrRobLWSigLo{} with block length \rheLWBlockLo{} and \rhrRobLWSigHi{} with block length \rheLWBlockHi{}.
+  \end{itemize}
+\input{generated/rehaul_app_hac_robust}
 \item \textbf{Multiple-comparison procedures.} For joint comparisons across predictor sets and model families, one may also consider the model confidence set of \citet{HansenLundeNason2011}, the superior predictive ability test of \citet{Hansen2005}, and the StepM procedure of \citet{RomanoWolf2005}.
 \editc{blue}{E14}{Decision: drop the sentence, or report the set.\\Problem: the model confidence set, the superior predictive ability test, and StepM are named, and the paper reports none of their outputs.\\
 This bullet names three procedures and says they are for the comparison of predictor sets: the model confidence set, which returns the set of models not beaten at a stated confidence level; the superior predictive ability test, which returns a $p$-value against a benchmark; and StepM, which steps through the models and rejects some of them. No table in the paper states an MCS membership, an SPA $p$-value, or a StepM rejection. The next bullet says the main tables are point estimates and contain no bootstrap intervals, which is the kind of output those three procedures produce. The comparisons that are printed are Diebold--Mariano statistics on QLIKE and on squared error.}
-\item \textbf{Reporting convention.} All main tables report point estimates accompanied by pairwise Diebold--Mariano or HAC $t$-statistics, without bootstrap confidence intervals.
+% 2026-10-21 (user, decision #2): parked -- "Diebold--Mariano or HAC $t$-statistics". Was: "\item \textbf{Reporting convention.} All main tables report point estimates accompanied by pairwise Diebold--Mariano or HAC $t$-statistics, without bootstrap confidence intervals."
+\item \textbf{Reporting convention.} All main tables report point estimates accompanied by pairwise Diebold--Mariano statistics, $t$-statistics of mean returns with fixed-$b$ critical values, or \citet{LedoitWolf2008} bootstrap $p$-values for Sharpe ratio differences, without bootstrap confidence intervals.
 \end{itemize}
 
