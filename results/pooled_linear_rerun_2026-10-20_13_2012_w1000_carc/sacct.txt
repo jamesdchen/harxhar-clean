@@ -1,0 +1,2 @@
+﻿JobID|JobName|State|ExitCode|Elapsed|Start|End|NodeList|AllocCPUS|ReqMem
+13262220|lin13_2012_w1000_carc|COMPLETED|0:0|00:03:13|2026-10-20T12:26:55|2026-10-20T12:30:08|a02-16|4|16G
