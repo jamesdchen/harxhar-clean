@@ -24,6 +24,11 @@ PAIR STATISTICS (all features minus HAR + calendar, the same 866 trade days).
   Sharpe   difference of the sign(s) mid Sharpe ratios; Newey-West HAC t of the daily
            mid-return difference (atm_straddle_lib.newey_west_t, lag floor(1.5 n^(1/3)) = 14,
            as the master table), two-sided normal p (master_table_close.hac_p).
+           2026-10-21 (user, decision #2): parked -- the 866-day lag-14 t. Now writeup/hac_inference.py on
+           the 614 post-warmup days (t > WARMUP = 252): t_hac is the LLSW (2018) t of the mean daily
+           mid-return difference (bandwidth 33) with its fixed-b p (t_p); the Sharpe-change markers and
+           counts (\\fqsShHigherSig, \\fqsShLowerSig) use the Ledoit-Wolf (2008) p (lw_p). The plotted
+           Sharpe change is still the master table's (866 days).
   ES(1)    the elementary score at the trade's threshold: c = 1 on the implied-variance-scaled
            forecast and realized variance (close_murphy_splits_headline.elementary(f / iv, y / iv, 1);
            y the ACTUAL realized variance rv_unclipped since 2026-10-15, data audit #10; QLIKE too),
@@ -84,12 +89,13 @@ from matplotlib.lines import Line2D  # noqa: E402
 from matplotlib.patches import Patch, Rectangle  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
-for _p in (ROOT, ROOT / "notebooks", ROOT / "experiments"):
+for _p in (ROOT, ROOT / "notebooks", ROOT / "experiments", ROOT / "writeup"):
     if str(_p) not in sys.path:
         sys.path.insert(0, str(_p))
 
-import atm_straddle_lib as asl  # noqa: E402
+import atm_straddle_lib as asl  # noqa: E402, F401  (2026-10-21: no longer used for the t; kept for the parked line)
 import close_murphy_splits_headline as cms  # noqa: E402
+import hac_inference as hi  # noqa: E402  (2026-10-21, decision #2)
 import master_table_close as mtc  # noqa: E402
 from src.evaluation.diebold_mariano import dm_test  # noqa: E402
 
@@ -110,6 +116,7 @@ SIG = 0.05  # two-sided level of the DM / HAC t counts (statistics, not interval
 DM_LAG = None  # dm_test's automatic bandwidth, the master table's DM (6 on 866 days)
 DM_LAG_CHECK = 14  # sensitivity: the HAC t's lag
 GATE_REL = 1e-9
+WARMUP = 252  # 2026-10-21 (user, decision #2): tests on the days t > WARMUP (= master_table_gui.rows._SIZING_WARMUP)
 
 # the GUI's CHART_EST (index.html), estimator -> colour; the order is the legend's
 EST_NAME = {
@@ -296,7 +303,13 @@ def load() -> tuple[pd.DataFrame, pd.Series, dict[str, pd.DataFrame]]:
         dm14 = dm_test(
             fa["qlike_raw"].to_numpy(), fb["qlike_raw"].to_numpy(), hac_lag=DM_LAG_CHECK
         )
-        t, lag = asl.newey_west_t(fa["ret_mid"].to_numpy() - fb["ret_mid"].to_numpy())
+        # 2026-10-21 (user, decision #2): parked -- 866 days, lag 14. Was:
+        # t, lag = asl.newey_west_t(fa["ret_mid"].to_numpy() - fb["ret_mid"].to_numpy())
+        ra, rb = fa["ret_mid"].to_numpy(float), fb["ret_mid"].to_numpy(float)
+        assert len(ra) == len(rb) == N_DAYS
+        fbt = hi.llsw_test(ra[WARMUP:] - rb[WARMUP:])
+        assert fbt["T"] == N_DAYS - WARMUP == 614 and fbt["S"] == 33, fbt
+        t = fbt["t"]
         rows.append(
             {
                 "key_base": b,
@@ -313,8 +326,9 @@ def load() -> tuple[pd.DataFrame, pd.Series, dict[str, pd.DataFrame]]:
                 "dm_lag": int(dm["hac_lag"]),
                 "dm_p14": float(dm14["p"]),
                 "t_hac": float(t),
-                "t_p": mtc.hac_p(t),
-                "hac_lag": int(lag),
+                "t_p": float(fbt["p"]),  # 2026-10-21 (user, decision #2): fixed-b p. Was: mtc.hac_p(t)
+                "hac_s": int(fbt["S"]),  # was "hac_lag": int(lag)
+                "lw_p": hi.lw_sharpe_test(ra[WARMUP:], rb[WARMUP:])["p"],
                 "es_base": es1(fb),
                 "es_all": es1(fa),
             }
@@ -349,7 +363,8 @@ def numbers(p: pd.DataFrame, ols: pd.Series) -> list[tuple[str, str, str]]:
         "a tie: decide how to count it"
     )
     ql, qs, qs14 = p["dq"] < 0, p["dm_p"] < SIG, p["dm_p14"] < SIG
-    sh, ss = p["dsh"] > 0, p["t_p"] < SIG
+    # 2026-10-21 (user, decision #2): Sharpe-change significance from the Ledoit-Wolf p. Was: p["t_p"] < SIG
+    sh, ss = p["dsh"] > 0, p["lw_p"] < SIG
     lin = (~p["pooled"]) & p["key_base"].str.startswith("subpt_")
     tree = p["key_base"].str.startswith("subtree")
     assert int(lin.sum() + p["pooled"].sum() + tree.sum()) == len(p), (
@@ -363,7 +378,7 @@ def numbers(p: pd.DataFrame, ols: pd.Series) -> list[tuple[str, str, str]]:
     )
     r_es = float(np.corrcoef(p["des"], p["t_hac"])[0, 1])
     r_q = float(np.corrcoef(p["dq"], p["t_hac"])[0, 1])
-    dm_lags, hac_lags = sorted(set(p["dm_lag"])), sorted(set(p["hac_lag"]))
+    dm_lags, hac_lags = sorted(set(p["dm_lag"])), sorted(set(p["hac_s"]))  # 2026-10-21: hac_s (was hac_lag)
     assert len(dm_lags) == 1 and len(hac_lags) == 1, (dm_lags, hac_lags)
     out = [
         ("fqsPairs", str(len(p)), "models on both input sets (pairs drawn)"),
@@ -402,13 +417,13 @@ def numbers(p: pd.DataFrame, ols: pd.Series) -> list[tuple[str, str, str]]:
         (
             "fqsShHigherSig",
             str(int((sh & ss).sum())),
-            "... and HAC t significant at 5 %",
+            "... and Ledoit-Wolf p < 0.05 (614 post-warmup days)",
         ),
         ("fqsShLower", str(int((~sh).sum())), "Sharpe (mid) lower with all features"),
         (
             "fqsShLowerSig",
             str(int((~sh & ss).sum())),
-            "... and HAC t significant at 5 %",
+            "... and Ledoit-Wolf p < 0.05 (614 post-warmup days)",
         ),
         (
             "fqsQLowerShHigher",
@@ -450,10 +465,12 @@ def numbers(p: pd.DataFrame, ols: pd.Series) -> list[tuple[str, str, str]]:
             str(dm_lags[0]),
             "Newey-West lag of the DM statistic (the master table's)",
         ),
+        # 2026-10-21 (user, decision #2): parked -- \\fqsHACLag (14, 866 days). Was:
+        # ("fqsHACLag", str(hac_lags[0]), "Newey-West lag of the HAC t (the master table's)"),
         (
-            "fqsHACLag",
+            "fqsHACS",
             str(hac_lags[0]),
-            "Newey-West lag of the HAC t (the master table's)",
+            "bandwidth S of the t of the mean P&L change (LLSW 2018, 614 post-warmup days)",
         ),
         ("fqsSigPct", f"{100 * SIG:.0f}", "two-sided level of the counts, %"),
     ]
@@ -498,8 +515,9 @@ def write_tex(nums: list[tuple[str, str, str]], p: pd.DataFrame) -> None:
         "% features, every model of results/close_master_table/paper_model_set.csv on both input sets",
         "% (per-bar linear = the pre-tuned subpt_* rows; LSTMs excluded); numbers from master_table.csv",
         "% and master_table_daily.parquet.  Changes are all features minus HAR + calendar, on the same days.",
-        "% DM: dm_test on the daily QLIKE difference; HAC t: newey_west_t on the daily mid-return",
-        "% difference; ES(c = 1): close_murphy_splits_headline.elementary on f / iv, y / iv.  Point estimates.",
+        "% DM: dm_test on the daily QLIKE difference; t: hac_inference.llsw_test on the daily mid-return",
+        "% difference (614 post-warmup days, bandwidth 33, fixed-b p); Sharpe changes: Ledoit-Wolf p;",
+        "% ES(c = 1): close_murphy_splits_headline.elementary on f / iv, y / iv.  Point estimates.",
         f"% pooled pairs: family {fams}",
     ]
     for name, val, comment in nums:
@@ -840,7 +858,7 @@ def figure_change(p: pd.DataFrame) -> None:
     ax.set_ylabel("Change in Sharpe, mid (higher is better)")
 
     dm_sig = p["dm_p"] < SIG
-    t_sig = p["t_p"] < SIG
+    t_sig = p["lw_p"] < SIG  # 2026-10-21 (user, decision #2): Ledoit-Wolf. Was: p["t_p"] < SIG
     for pooled, marker, size in ((False, "o", MS_CIRCLE), (True, "s", MS_SQUARE)):
         sub = p[p["pooled"] == pooled]
         if len(sub):
@@ -897,8 +915,9 @@ def figure_change(p: pd.DataFrame) -> None:
         what = []
         if r.dm_p < SIG:
             what.append(f"DM {_signed(r.dm, 2)}")
-        if r.t_p < SIG:
-            what.append(f"HAC t {_signed(r.t_hac, 2)}")
+        # 2026-10-21 (user, decision #2): Ledoit-Wolf. Was: if r.t_p < SIG: what.append(f"HAC t {_signed(r.t_hac, 2)}")
+        if r.lw_p < SIG:
+            what.append(f"Ledoit-Wolf p {r.lw_p:.3f}")
         key_lines.append(
             f"{i}  {describe(r.key_base, r.est, r.pooled)} ({', '.join(what)})"
         )
@@ -959,7 +978,7 @@ def figure_change(p: pd.DataFrame) -> None:
         ),
         (
             Line2D([], [], marker="^", ls="", ms=4.5, mfc=INK, mec=INK),
-            f"Sharpe change HAC-\nsignificant at {100 * SIG:.0f} %",
+            f"Sharpe change significant\nat {100 * SIG:.0f} % (Ledoit-Wolf)",  # 2026-10-21: was "HAC-significant"
         ),
         (
             Patch(facecolor=INK, alpha=0.06, edgecolor="none"),
