@@ -54,8 +54,25 @@ SPAN     2026-10-20 (user): "switch the main window to 1,000 days, not 2,000. Ta
          results/pooled_linear_rerun_2026-10-20_13_2012_w2000 and also wrote \\rhorSubOne... / \\rhorSubTwo...
          macros (2012-2019, 2020-2024); "--span 2020" was the default.
 
+TREES    2026-10-20 (user): the pooled LightGBM, XGBoost and random forest of experiments/pooled_trees_rerun_13.py
+         (same design and 1,000-day window, refit at every bar, hyperparameters chosen once on the 1998-2002
+         pre-sample and frozen: cluster/pooltree_lgbm_config.json, xgbtop_xgb_config.json, pooltree_rf400_config.json)
+         join Table 1 with --trees PATH (a forecasts.parquet, or the directory holding it), --span 2012 only. Off by
+         default: without it every file this script writes is unchanged. With it:
+           - three rows after the elastic net (LightGBM, XGBoost, Random forest), both predictor sets and the DM column;
+           - the scored bars are those of the 7 linear and the 6 tree series together; the script stops, with the
+             count and the first bars, if the trees drop any bar the linear rows score, so the linear rows (and every
+             \\rhor... macro of the linear models) keep their numbers;
+           - \\rhorTree... macros of the tree rows; the subperiod macros stay the linear models' only;
+           - the notes describe the trees in place of "Tree ensembles are left out ...";
+           - the CSVs go to <the span's CSV directory>/with_trees/ unless --res-dir says otherwise.
+         The 16:00 check against a scores.csv runs on the linear rows only (the tree run has no scores.csv).
+         Test without the real forecasts: experiments/test_table1_trees_standin.py.
+
 Run:  python writeup/make_rehaul_oos_rerun.py                 (2012-2024, 1,000-day window)
       python writeup/make_rehaul_oos_rerun.py --span 2020     (the earlier 2020-2024 table; --out-dir writes elsewhere)
+      python writeup/make_rehaul_oos_rerun.py --trees results/pooled_trees_rerun13_2026-10-20/w1000
+                                                              (Table 1 with the pooled tree rows)
 """
 
 from __future__ import annotations
@@ -90,6 +107,8 @@ EARLY = pd.DatetimeIndex(pd.to_datetime(list(asl.EARLY_CLOSE_DATES)))
 
 MODELS = [("ols", "OLS"), ("ridge", "Ridge"), ("lasso", "Lasso"), ("enet", "Elastic net")]
 SETS = [("baseline", "HAR benchmark"), ("all_features", "All features")]
+# the pooled trees of --trees (model code, row label, macro tag)
+TREES = [("lgbm", "LightGBM", "Lgbm"), ("xgb", "XGBoost", "Xgb"), ("rf", "Random forest", "Rf")]
 PANELS = [
     ("48", "Panel A: Trained and scored on all 48 half-hour intervals"),
     ("13", "Panel B: Trained and scored on the 13 regular-hours bars (10:00--16:00)"),
@@ -158,6 +177,20 @@ def forecasts(panel: str, r13: Path = R13) -> dict[tuple[str, str], pd.DataFrame
         for (m, s), f in g.groupby(["model", "predictor_set"]):
             out[(m, s)] = f.set_index(pd.to_datetime(f["date"])).rename(columns={"rv_actual": "rv"})[["plain", "rv"]]
     assert set(out) == {(m, s) for m, _ in MODELS for s, _ in SETS if m != "ols" or s == "baseline"}, sorted(out)
+    for k, f in out.items():
+        assert not f.index.duplicated().any(), k
+    return out
+
+
+def tree_forecasts(path: Path) -> dict[tuple[str, str], pd.DataFrame]:
+    """--trees: (model, set) -> frame indexed by bar end with plain and rv, the 6 tree series."""
+    if path.is_dir():
+        path = path / "forecasts.parquet"
+    g = pd.read_parquet(path, columns=["model", "predictor_set", "date", "plain", "rv_actual"])
+    out = {}
+    for (m, s), f in g.groupby(["model", "predictor_set"]):
+        out[(m, s)] = f.set_index(pd.to_datetime(f["date"])).rename(columns={"rv_actual": "rv"})[["plain", "rv"]]
+    assert set(out) == {(m, s) for m, _, _ in TREES for s, _ in SETS}, sorted(out)
     for k, f in out.items():
         assert not f.index.duplicated().any(), k
     return out
@@ -248,9 +281,19 @@ def main() -> None:
     # 2026-10-20 (user): parked -- the 2020 default. Was: default="2020"
     ap.add_argument("--span", choices=sorted(SPANS), default="2012", help="evaluation span of Table 1 (default 2012)")
     ap.add_argument("--out-dir", type=Path, default=GEN, help="directory of the two .tex files (default generated/)")
+    ap.add_argument("--trees", type=Path, default=None,
+                    help="pooled tree forecasts.parquet (or its directory): adds the tree rows (default: off)")
+    ap.add_argument("--res-dir", type=Path, default=None,
+                    help="directory of the CSVs (default: the span's; <it>/with_trees/ under --trees)")
     args = ap.parse_args()
     cfg = SPANS[args.span]
+    assert args.trees is None or args.span == "2012", "--trees: the tree rerun is on the 2012 span (1,000-day window)"
     out_table, out_numbers, out_res = args.out_dir / OUT_TABLE.name, args.out_dir / OUT_NUMBERS.name, cfg["res"]
+    if args.res_dir is not None:
+        out_res = args.res_dir
+    elif args.trees is not None:
+        out_res = cfg["res"] / "with_trees"
+    tf = tree_forecasts(args.trees) if args.trees is not None else {}
     r13 = cfg["r13"]
     rv = core()
     days = evaluation_days(rv, cfg["first"], cfg["last"], cfg["n_days"])
@@ -261,6 +304,14 @@ def main() -> None:
             continue
         fc = forecasts(pid, r13)
         idx = scored_set(fc, rv, days)
+        if tf and pid == "13":  # one set of bars for the 7 linear and the 6 tree series
+            idx_all = scored_set({**fc, **tf}, rv, days)
+            if not idx_all.equals(idx):
+                drop = idx.difference(idx_all)
+                raise SystemExit(
+                    f"--trees: the tree forecasts drop {len(drop):,} of the {len(idx):,} bars the linear rows score "
+                    f"(first: {', '.join(str(t) for t in drop[:5])}); the linear rows would change"
+                )
         bench = slot_benchmark(rv, idx)
         y = rv.reindex(idx).to_numpy(float)
         den = float(((y - bench.to_numpy()) ** 2).sum())
@@ -290,7 +341,21 @@ def main() -> None:
                     qlike_1600=float(q16.mean()),
                 )
             )
-        for m, _ in MODELS:  # tests on the daily average loss
+        if pid == "13":  # the tree rows, on the same bars (no scores.csv to check against)
+            for k, f in tf.items():
+                q, se = loss(f, idx, rv)
+                L[k] = (q, se)
+                on16 = idx[(idx.hour == 16) & (idx.minute == 0)]
+                on16 = on16[(on16.normalize() >= ck_first) & (on16.normalize() <= ck_last)]
+                q16, _ = loss(f, on16, rv)
+                met_rows.append(
+                    dict(
+                        panel=pid, model=k[0], set=k[1], n_intervals=len(idx), n_days=len(days),
+                        mse=float(se.mean()), qlike=float(q.mean()),
+                        r2_oos_pct=float(100.0 * (1.0 - se.sum() / den)), qlike_1600=float(q16.mean()),
+                    )
+                )
+        for m, _ in MODELS + [(m, n) for m, n, _ in TREES if pid == "13" and tf]:  # tests on the daily average loss
             pairs = []
             if m != "ols":
                 pairs.append(((m, "all_features"), (m, "baseline"), "all features vs HAR benchmark"))
@@ -362,6 +427,11 @@ def main() -> None:
         body.append(" & ".join(line) + " \\\\")
         if m == "ols":
             body.append("\\addlinespace[3pt]")
+    if tf:
+        body.append("\\addlinespace[3pt]")
+        for m, name, _ in TREES:
+            line = [name] + cell("13", m, "baseline") + cell("13", m, "all_features") + [test("13", m)]
+            body.append(" & ".join(line) + " \\\\")
     lag = sorted(set(dms["hac_lag"]))
     # span-dependent text; the defaults are the 2020 table as committed
     top = [
@@ -385,6 +455,16 @@ def main() -> None:
                "and then frozen")
         span_txt = ("Every bar is scored on the $T_{\\mathrm{oos}} = \\rhorDays$ trading days from \\rhorSpanStart{} to "
                     "\\rhorSpanEnd{} (early closes dropped)")
+    models_txt = "Pooled intraday linear models"
+    trees_txt = "Tree ensembles are left out until they are re-estimated on this design."
+    if tf:
+        top.append("% With the pooled trees (--trees): LightGBM, XGBoost and random forest on the same design and window.")
+        models_txt = "Pooled intraday linear models and tree ensembles"
+        # 2026-10-20 (user): parked -- under --trees. Was: "Tree ensembles are left out until they are re-estimated
+        # on this design."
+        trees_txt = (f"LightGBM, XGBoost and the random forest use the same design and the same "
+                     f"{thousands(cfg['window'])}-trading-day window, are refit at every bar, and keep hyperparameters "
+                     "chosen once on the 1998--2002 pre-sample and then frozen.")
     table = "\n".join(
         [
             HEAD,
@@ -392,6 +472,8 @@ def main() -> None:
             "\\begin{table}[htbp]",
             "\\centering",
             "\\small",
+            # --trees: the "Random forest" label widens the first column (18pt over \linewidth at 6pt)
+            *(["\\setlength{\\tabcolsep}{4.5pt}"] if tf else []),
             "\\begin{threeparttable}",
             f"\\caption{{{caption}}}",
             "\\label{tab:rh_oos}",
@@ -407,7 +489,7 @@ def main() -> None:
             "\\end{tabular*}",
             "\\begin{tablenotes}[flushleft]",
             "\\footnotesize",
-            "\\item \\textit{Notes:} Pooled intraday linear models, one design for every row: the HAR components at "
+            f"\\item \\textit{{Notes:}} {models_txt}, one design for every row: the HAR components at "
             "horizons $k \\in \\{1, 5, 25, 125, 625, 3125\\}$, the full predictor set with the FOMC series, "
             f"{pen}, a rolling window of {thousands(cfg['window'])} trading days, "
             "re-estimated every interval (Section~\\ref{sec:rh_methods}), trained and scored on the 13 regular-hours "
@@ -421,9 +503,8 @@ def main() -> None:
             "\\rhoosBenchStart{} \\citep{CampbellThompson2008}. DM: the Diebold--Mariano statistic, with the "
             "correction of \\citet{HarveyLeybourneNewbold1997}, for the daily average QLIKE of the full predictor "
             "set minus that of the HAR benchmark of the same model (negative: the full set has the lower loss), "
-            f"Newey--West lag {', '.join(str(x) for x in lag)}, $p$-value in parentheses. Tree ensembles are left "
-            "out until they are re-estimated on this design. Models trained on the last 30 minutes are in "
-            "Table~\\ref{tab:rh_oos_last30}.",
+            f"Newey--West lag {', '.join(str(x) for x in lag)}, $p$-value in parentheses. {trees_txt} "
+            "Models trained on the last 30 minutes are in Table~\\ref{tab:rh_oos_last30}.",
             "\\end{tablenotes}",
             "\\end{threeparttable}",
             "\\end{table}",
@@ -502,13 +583,25 @@ def main() -> None:
         lines.append(mac(f"rhorSub{tag}QlikeAfMax", f"{af.qlike.max():.4f}", "QLIKE, all features, highest of the three"))
         lines.append(mac(f"rhorSub{tag}RoosAfMin", fmt(af.r2_oos_pct.min(), 1), "R2_OOS (%), all features, lowest of the three"))
         lines.append(mac(f"rhorSub{tag}RoosAfMax", fmt(af.r2_oos_pct.max(), 1), "R2_OOS (%), all features, highest of the three"))
+    if tf:  # the tree rows of Table 1
+        lines.append("% \\rhorTree... macros: the pooled trees of Table 1 (--trees), on the bars of the linear rows")
+        for m, _, tag in TREES:
+            r = met[(met.panel == "13") & (met.model == m)].set_index("set")
+            d = dms[(dms.panel == "13") & (dms.model == m) & (dms.comparison == "all features vs HAR benchmark")
+                    & (dms.loss == "qlike")].iloc[0]
+            lines.append(mac(f"rhorTreeQlikeHar{tag}", f"{r.loc['baseline', 'qlike']:.4f}", f"QLIKE, HAR benchmark, {m}"))
+            lines.append(mac(f"rhorTreeQlikeAf{tag}", f"{r.loc['all_features', 'qlike']:.4f}", f"QLIKE, all features, {m}"))
+            lines.append(mac(f"rhorTreeRoosHar{tag}", fmt(r.loc["baseline", "r2_oos_pct"], 1), f"R2_OOS (%), HAR benchmark, {m}"))
+            lines.append(mac(f"rhorTreeRoosAf{tag}", fmt(r.loc["all_features", "r2_oos_pct"], 1), f"R2_OOS (%), all features, {m}"))
+            lines.append(mac(f"rhorTreeDm{tag}", fmt(d.dm, 2), f"DM, QLIKE, all features vs HAR benchmark, {m}"))
+            lines.append(mac(f"rhorTreeP{tag}", fmt_p(d.p), "its p-value"))
     out_numbers.write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
 
     print(met.to_string(index=False))
     print(dms[dms.loss == "qlike"].to_string(index=False))
     if len(subs):
         print(subs.to_string(index=False))
-    print(f"wrote {out_table}, {out_numbers}, {out_res.relative_to(REPO)}/")
+    print(f"wrote {out_table}, {out_numbers}, {out_res.relative_to(REPO) if out_res.is_relative_to(REPO) else out_res}/")
 
 
 if __name__ == "__main__":
