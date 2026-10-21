@@ -7,11 +7,13 @@
 \providecommand{\rheEnetSh}{}\renewcommand{\rheEnetSh}{1.76}  % per-bar enet all features, Sharpe mid
 \providecommand{\rheEnetShX}{}\renewcommand{\rheEnetShX}{1.42}  % ... crossed
 \providecommand{\rheEnetT}{}\renewcommand{\rheEnetT}{2.00}  % ... HAC t vs always short
+\providecommand{\rheEnetP}{}\renewcommand{\rheEnetP}{0.046}  % ... two-sided normal p of that HAC t
 \providecommand{\rheNNSh}{}\renewcommand{\rheNNSh}{1.26}  % MinGRU all features, Sharpe mid (parked)
 \providecommand{\rheNNShX}{}\renewcommand{\rheNNShX}{0.93}  % ... crossed
 \providecommand{\rheNNBaseSh}{}\renewcommand{\rheNNBaseSh}{1.06}  % MinGRU HAR + calendar, Sharpe mid
 \providecommand{\rheNNBaseShX}{}\renewcommand{\rheNNBaseShX}{0.73}  % ... crossed
 \providecommand{\rheSigVsShort}{}\renewcommand{\rheSigVsShort}{3}  % model-set forecasts with HAC t > 1.96 vs always short
+\providecommand{\rheSigVsShortFull}{}\renewcommand{\rheSigVsShortFull}{2}  % ... of which on the full predictor set (all_features)
 \providecommand{\rhePairs}{}\renewcommand{\rhePairs}{51}  % HAR + cal. -> all features pairs in the model set
 \providecommand{\rhePairsUp}{}\renewcommand{\rhePairsUp}{49}  % ... Sharpe mid higher with all features
 \providecommand{\rhePairsSig}{}\renewcommand{\rhePairsSig}{7}  % ... HAC t > 1.96
@@ -28,6 +30,7 @@
 \providecommand{\rheLassoShX}{}\renewcommand{\rheLassoShX}{1.34}  % ... crossed
 \providecommand{\rheAfEnetDSh}{}\renewcommand{\rheAfEnetDSh}{\ensuremath{+}0.19}  % per-bar enet: dSharpe mid, all features minus HAR + calendar (E2)
 \providecommand{\rheAfLassoDSh}{}\renewcommand{\rheAfLassoDSh}{\ensuremath{+}0.12}  % per-bar lasso: dSharpe mid, all features minus HAR + calendar (E2)
+\providecommand{\rheAfEnetLassoSig}{}\renewcommand{\rheAfEnetLassoSig}{0}  % ... of those two, HAC t of the mid-return differential with |t| > 1.96
 \providecommand{\rheShortLossYears}{}\renewcommand{\rheShortLossYears}{2}  % calendar years in which always short has a negative mean mid return, 614 post-warmup days (t > WARMUP)
 \providecommand{\rheNYears}{}\renewcommand{\rheNYears}{4}  % calendar years spanned by the 614 post-warmup days (2021-2024)
 \providecommand{\rheLgbmBestSh}{}\renewcommand{\rheLgbmBestSh}{1.52}  % best closing-interval LightGBM specification by post-warmup Sharpe mid on all features (ex post; unused by the text since 2026-10-17)
