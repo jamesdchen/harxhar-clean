@@ -80,7 +80,10 @@ ANN = np.sqrt(252.0)  # 2026-10-18 (user, new-notes 15): now only the legacy sha
 OPT_DAYS = None  # 2026-10-18 (user, new-notes 15): the 866 option-data days, set by load(); dates for the per-year Sharpe ratio
 SIG = 1.959963984540054  # two-sided 5 %
 WARMUP = gui._SIZING_WARMUP  # 252
-HAC_LAG = 14
+# 2026-10-20 (user, third-list 2): HAC t, mean, hit rate and long days on the 614 post-warmup days (the Sharpe sample);
+# lag floor(1.5 * 614^(1/3)) = 12. Was: HAC_LAG = 14 (866 days); kept as HAC_LAG_ALL for the master-table gate.
+HAC_LAG = 12
+HAC_LAG_ALL = 14
 
 # ----------------------------------------------------------------------------- forecasts of record
 SHORT = "always_short"
@@ -224,9 +227,20 @@ def sharpe(x) -> float:
 
 
 def nw_t(x) -> float:
-    t, lag = asl.newey_west_t(np.asarray(x, float))
-    if len(x) == 866:
+    """HAC t on the post-warmup days t > WARMUP (third-list 2). A full 866-day series is sliced to its 614 days."""
+    x = np.asarray(x, float)
+    if len(x) == N_OPT:
+        x = x[WARMUP:]
+    t, lag = asl.newey_west_t(x)
+    if len(x) == N_OPT - WARMUP:
         assert lag == HAC_LAG, lag
+    return float(t)
+
+
+def nw_t_all(x) -> float:
+    """The 866-day HAC t of the master table (gate only). Was nw_t before third-list 2."""
+    t, lag = asl.newey_west_t(np.asarray(x, float))
+    assert len(x) != N_OPT or lag == HAC_LAG_ALL, lag
     return float(t)
 
 
@@ -469,18 +483,25 @@ def pooled_rank_series(series) -> dict:
 def trade_stats(series, key) -> dict:
     g, sh = series[key], series[SHORT]
     mid, x = g["mid"].to_numpy(float), g["x"].to_numpy(float)
+    # 2026-10-20 (user, third-list 2): mean, hit, buys on the post-warmup days (were all 866 days; the
+    # 866-day values stay as *_all for the master-table gate).
+    q = g["q"].to_numpy(float)
     out = {
-        "mean": float(mid.mean()),
+        "mean": float(mid[WARMUP:].mean()),
         "t_mean": nw_t(mid),
         "sh_mid": sharpe(mid),
         "sh_x": sharpe(x),
-        "hit": float((mid > 0).mean()),
-        "buys": float((g["q"] > 0).mean()),
+        "hit": float((mid[WARMUP:] > 0).mean()),
+        "buys": float((q[WARMUP:] > 0).mean()),
+        "mean_all": float(mid.mean()),
+        "hit_all": float((mid > 0).mean()),
+        "buys_all": float((q > 0).mean()),
     }
     if key != SHORT:
         d = mid - sh["mid"].to_numpy(float)
         out["dsh"] = out["sh_mid"] - sharpe(sh["mid"])
         out["t_dsh"] = nw_t(d)
+        out["t_dsh_all"] = nw_t_all(d)
     return out
 
 
@@ -500,14 +521,14 @@ def gate_against_master(mt, series, keys):
         pairs = [
             (sh_mid_all, row["Sharpe_mid"]),
             (sharpe_days_252(g["x"]), row["Sharpe_crossed"]),
-            (st["mean"], row["mean_mid"]),
-            (st["hit"], row["hit_rate_mid"]),
-            (100 * st["buys"], row["pct_buy"]),
+            (st["mean_all"], row["mean_mid"]),  # third-list 2: was st["mean"] (now post-warmup)
+            (st["hit_all"], row["hit_rate_mid"]),  # was st["hit"]
+            (100 * st["buys_all"], row["pct_buy"]),  # was st["buys"]
         ]
         if key != SHORT:
             pairs += [
                 (sh_mid_all - sharpe_days_252(sh["mid"]), row["dSharpe_mid_vs_short"]),  # 2026-10-18 (user, new-notes 15): was sharpe_days
-                (st["t_dsh"], row["t_hac_mid_vs_short"]),
+                (st["t_dsh_all"], row["t_hac_mid_vs_short"]),  # third-list 2: was st["t_dsh"]
             ]
         for got, want in pairs:
             assert abs(got - float(want)) < 1e-8, (key, got, want)
@@ -1994,7 +2015,9 @@ def main() -> None:
     soft(e4i["beat_mid"]["clip"], 98, "E4 clip beats sign")
     soft(r2(e4i["short_mid"]), 0.34, "E4 short_mid")
     sig_vs_short = sum(trade_stats(series, k)["t_dsh"] > SIG for k in model_set)
-    assert sig_vs_short == 20, sig_vs_short
+    # 2026-10-20 (user, third-list 2): parked -- 20 on the 866-day HAC t (lag 14); now on the 614 post-warmup days. Was:
+    # assert sig_vs_short == 20, sig_vs_short
+    print(f"third-list 2: model-set forecasts with HAC t vs short > 1.96: {sig_vs_short} (was 20)")
     above_vs_short = sum(trade_stats(series, k)["dsh"] > 0 for k in model_set)
     # assert above_vs_short == 94, above_vs_short  # 2026-10-18 (user, new-notes 15): soft
     soft(above_vs_short, 94, "model-set dsh vs short > 0")
@@ -2285,7 +2308,8 @@ and median of the 112 forecasts of the model set (median {", ".join(num(v) for v
     # 2026-10-17 (user, E17): post-warmup counterparts for best LightGBM SR, vs-short count, and rank correlations
     sh_ms = pd.Series({k: sharpe(series[k]["mid"]) for k in model_set})
     ql_ms = pd.Series({k: float(series[k]["qlike"].mean()) for k in model_set})
-    es_ms = pd.Series({k: float(series[k]["es1"].mean()) for k in model_set})
+    # 2026-10-20 (user, third-list 2): mean ES_1 on the post-warmup days. Was: float(series[k]["es1"].mean())
+    es_ms = pd.Series({k: float(series[k]["es1"].iloc[WARMUP:].mean()) for k in model_set})
     rho_q = float(ql_ms.rank().corr(sh_ms.rank()))
     rho_es = float(es_ms.rank().corr(sh_ms.rank()))
     nums += mac(
@@ -2319,7 +2343,9 @@ and median of the 112 forecasts of the model set (median {", ".join(num(v) for v
     pser = pooled_rank_series(series)
     sh_p = pd.Series({k: sharpe(v["mid"]) for k, v in pser.items()})
     ql_p = pd.Series({k: float(v["qlike"].mean()) for k, v in pser.items()})
-    es_p = pd.Series({k: float(v["es1"].mean()) for k, v in pser.items()})
+    # 2026-10-20 (user, third-list 2): post-warmup ES_1. Was: float(v["es1"].mean())
+    assert all(len(v) == N_OPT for v in pser.values())
+    es_p = pd.Series({k: float(v["es1"].iloc[WARMUP:].mean()) for k, v in pser.items()})
     for k in ("pooltree_lgbm_all_features", "pooltree_xgb_all_features", "pooltree_rf_all_features"):
         # 2026-10-18 (user, new-notes 15): POOLTREE_SR is fixed-factor; gate with sharpe_days_252. Was:
         # assert round(sh_p[k] + 0.0, 2) == POOLTREE_SR[k.split("_")[1]], (k, sh_p[k])

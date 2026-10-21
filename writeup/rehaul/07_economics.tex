@@ -165,10 +165,12 @@ We consider four rules:
 % 2026-10-16 (formula pass): parked -- the t-statistic repeated Statistical tests, with |O| written as T_opt and
 % the lag formula written out again. Was:
 % t = bar r / sqrt(Omega_r / T_opt), q_NW = floor(1.5 T_opt^{1/3}) = \fqsHACLag.
-\item \textbf{Mean return and HAC $t$-statistic.} We test the statistical significance of mean daily returns using the Newey--West HAC $t$-statistic of Appendix~\ref{sec:rh_methods_tests} applied to $r_t$ over $|\mathcal O| = T_{\mathrm{opt}}$ days with lag truncation $q_{\mathrm{NW}} = \fqsHACLag$.
+% 2026-10-20 (user, third-list 2): parked -- on the T_opt days with \fqsHACLag (= 14, the 866-day lag); now the post-warmup days, lag \rheHACLag (= 12). Was: "applied to $r_t$ over $|\mathcal O| = T_{\mathrm{opt}}$ days with lag truncation $q_{\mathrm{NW}} = \fqsHACLag$."
+\item \textbf{Mean return and HAC $t$-statistic.} We test the statistical significance of mean daily returns using the Newey--West HAC $t$-statistic of Appendix~\ref{sec:rh_methods_tests} applied to $r_t$ over the \rheSzDays{} post-warmup days $\mathcal T_{\mathrm{opt}}^{+} = \{t \in \mathcal T_{\mathrm{opt}} : t > \rheSzWarmup\}$, the sample of the Sharpe ratio, with lag truncation $q_{\mathrm{NW}} = \lfloor 1.5\,(\rheSzDays)^{1/3}\rfloor = \rheHACLag$.
   % 2026-10-16 (user): parked -- "Section" ; the tests moved to the appendix.
 % Code: newey_west_t (atm_straddle_lib.py:1234-1261) divides gamma_j by n, not n - j as dm_test does; no HLN factor.
-\item \textbf{Hit rate and position counts.} We also record the empirical hit rate $\frac{1}{T_{\mathrm{opt}}}\sum_{t \in \mathcal T_{\mathrm{opt}}} \mathbf{1}\{r_t > 0\}$ and the number of long-straddle days $\#\{t : q_t > 0\}$.
+\item \textbf{Hit rate and position counts.} We also record the empirical hit rate $\frac{1}{\rheSzDays}\sum_{t \in \mathcal T_{\mathrm{opt}}^{+}} \mathbf{1}\{r_t > 0\}$ and the number of long-straddle days $\#\{t \in \mathcal T_{\mathrm{opt}}^{+} : q_t > 0\}$.
+% 2026-10-20 (user, third-list 2): parked -- on T_opt. Was: "We also record the empirical hit rate $\frac{1}{T_{\mathrm{opt}}}\sum_{t \in \mathcal T_{\mathrm{opt}}} \mathbf{1}\{r_t > 0\}$ and the number of long-straddle days $\#\{t : q_t > 0\}$."
 \item \textbf{Gain over the short-straddle benchmark.} For any strategy $A$ compared against a benchmark strategy $B$ (the unconditional short straddle unless noted otherwise), we define the daily return differential $\Delta_t = r^{A}_t - r^{B}_t$ and the Sharpe ratio gain
   \[
   \Delta\SR = \SR\bigl(r^{A}\bigr) - \SR\bigl(r^{B}\bigr).
@@ -191,7 +193,8 @@ We consider four rules:
   \mathrm{ES}_{1,t} = \Bigl|\frac{\RV_t}{\mathrm{IV}_t^2} - 1\Bigr|\;
     \mathbf{1}\bigl\{\min(\hat\sigma^2_t, \RV_t) \le \mathrm{IV}_t^2 < \max(\hat\sigma^2_t, \RV_t)\bigr\},
   \]
-  and denote its sample mean over $\mathcal T_{\mathrm{opt}}$ by $\overline{\mathrm{ES}}_1$.
+  and denote its sample mean over the post-warmup days $\mathcal T_{\mathrm{opt}}^{+}$ by $\overline{\mathrm{ES}}_1$.
+  % 2026-10-20 (user, third-list 2): parked -- Was: "and denote its sample mean over $\mathcal T_{\mathrm{opt}}$ by $\overline{\mathrm{ES}}_1$."
 % Code: experiments/close_murphy_splits_headline.py:227-230, called as elementary(plain / iv_var, target / iv_var, 1.0).
 % 2026-10-15 (notation pass): "target" in that call is the winsorized RV; under user decision #10 the realization
 % varrho_t uses the actual RV_t. The scaled values are varrho (was kappa): kappa_{t,i} is the asinh scale
@@ -202,9 +205,13 @@ We consider four rules:
 % $\max_t(1 - W_t/\max_{t'\le t}W_{t'})$, with $W_t$ the wealth after day $t$."
 \item \textbf{Compounding.} When evaluating compounded wealth trajectories from initial capital $V_0 = 1$, we allocate a fixed fraction $f = \rhappCompF\%$ of current wealth to the straddle premium each day, yielding terminal portfolio value and annualized log growth rate
   \[
-  V_{T_{\mathrm{opt}}} = \prod_{t \in \mathcal T_{\mathrm{opt}}}\bigl(1 + f\,r_t\bigr),
+% 2026-10-20 (user, third-list 2): parked -- V_{T_opt} and G over T_opt; now over the post-warmup days. Was:
+%   V_{T_{\mathrm{opt}}} = \prod_{t \in \mathcal T_{\mathrm{opt}}}\bigl(1 + f\,r_t\bigr),
+%   \qquad
+%   G = \frac{252}{T_{\mathrm{opt}}}\sum_{t \in \mathcal T_{\mathrm{opt}}}\log\bigl(1 + f\,r_t\bigr).
+  V = \prod_{t \in \mathcal T_{\mathrm{opt}}^{+}}\bigl(1 + f\,r_t\bigr),
   \qquad
-  G = \frac{252}{T_{\mathrm{opt}}}\sum_{t \in \mathcal T_{\mathrm{opt}}}\log\bigl(1 + f\,r_t\bigr).
+  G = \frac{252}{\rheSzDays}\sum_{t \in \mathcal T_{\mathrm{opt}}^{+}}\log\bigl(1 + f\,r_t\bigr).
   \]
 \item Under bid/ask execution, $r^{\mathrm{ba}}_t$ replaces $r_t = q_t R_t$ in the compounding recursion. We define maximum drawdown as $\max_t\bigl(1 - V_t/\max_{t'\le t}V_{t'}\bigr)$, where $V_t$ is the cumulative portfolio value at the end of day $t$.
 % Code: experiments/close_compounding_headline.py:140-153 (wealth_stats); methods_close_option.tex:657-680.
@@ -217,7 +224,9 @@ We consider four rules:
 \item \textbf{Unconditional short-straddle benchmark.} Selling the closing straddle unconditionally ($q_t \equiv -1$; labeled ``Short straddle'' in the tables)
   % 2026-10-15 (user): parked -- "park all tables that I haven't mentioned in this chat". Was: $\SR = \rheShortSh$ at mid-quotes and $\rheShortShX$ at quoted bid/ask prices (Table~\ref{tab:rh_econ_control}).
   yields $\SR = \rheShortSh$ at mid-quotes and $\rheShortShX$ at quoted bid/ask prices.
-  Its mean daily return is statistically indistinguishable from zero (HAC $t = \rheShortT$), and the strategy loses money in \rheShortLossYears{} of the \rheNYears{} calendar years: passively selling the closing 0DTE straddle earns no statistically
+  It has a positive return on \rheShortHit\% of the post-warmup days, and its mean daily return is statistically indistinguishable from zero (HAC $t = \rheShortT$),
+  % 2026-10-20 (user, third-list 2): parked -- hit rate added (reported, 614 days). Was: "Its mean daily return is statistically indistinguishable from zero (HAC $t = \rheShortT$),"
+  and the strategy loses money in \rheShortLossYears{} of the \rheNYears{} calendar years: passively selling the closing 0DTE straddle earns no statistically
   % 2026-10-15 (user): parked -- "in the out-of-sample period" -> the option-data subsample
   detectable variance risk premium in our option-data subsample.
 % 2026-10-15 (user): parked -- last-30-min scheme moved to the end of the economics section. This subsection now
@@ -265,6 +274,7 @@ We consider four rules:
 \item \textbf{Sign strategies of the intraday models versus the short-straddle benchmark.} In point estimates, all \rhrPoolN{} pooled intraday forecasts achieve a positive Sharpe ratio gain ($\Delta\SR > 0$) over the unconditional short straddle.
 % 2026-10-18 (user, second-list N1): parked -- the abstract (paper_rehaul.tex, "higher Sharpe ratio ... across every intraday model class") joins this note's list; handled with the others, not reworded on its own. Was: "\editc{orange}{N15c}{Decision: to decide (text no longer matches the per-year Sharpe ratios of 2026-10-18).\\Problem: with the per-year annualization, \rhrPoolShortAbove{} (not all) of the \rhrPoolN{} pooled forecasts have $\Delta\SR > 0$ over the short straddle (this item); the full predictor set raises the pooled Sharpe ratio in \rhrAfPoolShHigher{} of the \rhrAfPoolPairs{} classes, not all ($\Delta\SR$ from \rhrAfPoolDShMin{} for the random forest; the item below and 01\_introduction, 09\_conclusion ``every intraday model class''); and the strongest pooled Sharpe ratios are elastic net, lasso, ridge, XGBoost, then LightGBM, so the list ``elastic net, ridge, LightGBM'' below no longer names the top three. The pooled XGBoost (\rhrShXgbPoolFull) is now above the pooled LightGBM (\rhrShLgbmPoolFull), while the generator's cumulative-P\&L and by-year figures (not in the paper) still show the LightGBM as the tree.}"
 \editc{orange}{N15c}{Decision: to decide (text no longer matches the per-year Sharpe ratios of 2026-10-18).\\Problem: with the per-year annualization, \rhrPoolShortAbove{} (not all) of the \rhrPoolN{} pooled forecasts have $\Delta\SR > 0$ over the short straddle (this item); the full predictor set raises the pooled Sharpe ratio in \rhrAfPoolShHigher{} of the \rhrAfPoolPairs{} classes, not all ($\Delta\SR$ from \rhrAfPoolDShMin{} for the random forest; the item below, 01\_introduction, 09\_conclusion ``every intraday model class'', and the abstract, paper\_rehaul.tex, ``across every intraday model class''); and the strongest pooled Sharpe ratios are elastic net, lasso, ridge, XGBoost, then LightGBM, so the list ``elastic net, ridge, LightGBM'' below no longer names the top three. The pooled XGBoost (\rhrShXgbPoolFull) is now above the pooled LightGBM (\rhrShLgbmPoolFull), while the generator's cumulative-P\&L and by-year figures (not in the paper) still show the LightGBM as the tree.}
+\editc{orange}{T2}{Decision: to decide (2026-10-20, third-list 2).\\Problem: with the HAC $t$ on the \rheSzDays{} post-warmup days (lag \rhrHACLag), \rhrPoolShortSig{} of the \rhrPoolN{} pooled gains over the short straddle are significant at 5\%, so the item below (``all three use the full predictor set'') no longer holds as written; the same applies to the \rheSigVsShort{} model-set count at the end of this section and in Appendix F.}
   \begin{itemize}
   \item In \rhrPoolShortSig{} of the \rhrPoolN{} specifications, the mean return gain over the short-straddle benchmark is statistically significant at the 5\% level according to the HAC $t$-statistic, and all three use the full predictor set: LightGBM ($t = \rhrVsShortLgbmPoolFullT$), XGBoost ($t = \rhrVsShortXgbPoolFullT$), and random forest ($t = \rhrVsShortRfPoolFullT$).
   \end{itemize}

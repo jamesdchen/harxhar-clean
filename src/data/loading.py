@@ -134,6 +134,15 @@ UNSCHEDULED_FOMC_DAYS: frozenset[pd.Timestamp] = frozenset(
     {pd.Timestamp(d).normalize() for d in ("2020-03-03",)}
 )
 ALL_FEATURES.extend(FOMC_FEATURES)
+# 2026-10-20 (user, third-list 5): EXCLUDE_FOMC_RELEASE drops the FOMC statement-bar dummy
+# (fomc_release) from ALL_FEATURES and the 'fomc' group, so the design, the series counts and
+# Table 5 can be built without it.  Under the pre-2026-10-15 chain (FOMC_FLAGS_IDENTITY off) its
+# value ladders were constant after the 1/99 clip; under the current chain it is a live 0/1 flag.
+# Default False = current behaviour (the CARC rerun13 design and every printed result keep it);
+# turning it on changes the design and needs a rerun.  The column is still derived in load.
+EXCLUDE_FOMC_RELEASE: bool = False
+if EXCLUDE_FOMC_RELEASE:
+    ALL_FEATURES.remove("fomc_release")
 
 # Options block (real options data; panel-v4 activation). Date-keyed options
 # features (GEX family + chain aggregates) enter the panel through
@@ -571,7 +580,7 @@ SUBGROUPS: dict[str, list[str]] = {
     "sentiment": [f for f in ALL_FEATURES if "stocktwits" in f],
     "implied_vol": [f for f in ALL_FEATURES if "vix" in f],
     "vol_demand": [f for f in ALL_FEATURES if "voldemand" in f],
-    "fomc": list(FOMC_FEATURES),
+    "fomc": [f for f in FOMC_FEATURES if not (EXCLUDE_FOMC_RELEASE and f == "fomc_release")],
     "options": list(OPTIONS_FEATURES),
     "all_features": ALL_FEATURES,
 }

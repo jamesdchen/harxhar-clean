@@ -160,7 +160,9 @@ ANN = 252.0**0.5
 SIG = 0.05
 LEVELS = (0.10, 0.05, 0.01)  # the star levels (2026-10-15, table legibility)
 DM_LAG = 6  # dm_test's automatic Newey-West lag on 866 days and on the 1,082-day rolling span (asserted in pair)
-HAC_LAG = 14  # newey_west_t's lag floor(1.5 n^(1/3)) on 866 days (asserted in pair)
+# 2026-10-20 (user, third-list 2): HAC t on the 614 post-warmup days (the Sharpe sample), lag floor(1.5*614^(1/3)) = 12.
+# Was: HAC_LAG = 14 (866 days).
+HAC_LAG = 12  # was 14; newey_west_t's lag floor(1.5 n^(1/3)) on 866 days (asserted in pair)
 Z95 = 1.959963984540054
 CRASH = (
     pd.Timestamp("2020-02-24"),
@@ -485,7 +487,8 @@ def pair(a: pd.DataFrame, b: pd.DataFrame) -> dict:
     se_b = (j["rv_unclipped"] - j["plain_b"]) ** 2
     dms = dm_test(se_a.to_numpy(), se_b.to_numpy())
     # t, lag = asl.newey_west_t(j["ret_mid"] - j["ret_mid_b"])  # 2026-10-15: trades on jt (parked: one frame)
-    t, lag = asl.newey_west_t(jt["ret_mid"] - jt["ret_mid_b"])
+    # 2026-10-20 (user, third-list 2): on days t > WARMUP. Was: asl.newey_west_t(jt["ret_mid"] - jt["ret_mid_b"])
+    t, lag = asl.newey_west_t((jt["ret_mid"] - jt["ret_mid_b"]).iloc[WARMUP:])
     assert lag == HAC_LAG
     pct = 100.0 * (j["qlike_raw"].mean() / j["qlike_raw_b"].mean() - 1.0)
     return {
@@ -1979,8 +1982,12 @@ def main() -> None:
         if gate_866:
             assert abs(x - v) <= tol, (x, v)
 
-    def near_t(x, v, tol):  # trade statistics: the 866 option-data days in every mode
-        assert abs(x - v) <= tol, (x, v)
+    # 2026-10-20 (user, third-list 2): parked -- near_t asserted the 866-day values of record; the HAC t now runs on
+    # the 614 post-warmup days (lag 12), so a changed value is reported, not asserted. Was:
+    #     assert abs(x - v) <= tol, (x, v)
+    def near_t(x, v, tol):  # trade statistics
+        if abs(x - v) > tol:
+            print(f"THIRD2 CHANGED: {x:.4f} (was {v})")
 
     near(lv[OLS]["qlike"], 0.0967, 5e-5)  # was 0.0946
     near(lv["subpt_enet_all_features"]["qlike"], 0.0958, 5e-5)  # was 0.0942
@@ -2572,7 +2579,8 @@ def main() -> None:
         f = by[k]
         assert f.index.equals(ref_ix), k
         d = f["ret_mid"] - short_mid
-        t_, lag_ = asl.newey_west_t(d)
+        # 2026-10-20 (user, third-list 2): on days t > WARMUP. Was: asl.newey_west_t(d)
+        t_, lag_ = asl.newey_west_t(d.iloc[WARMUP:])
         assert lag_ == HAC_LAG
         return {
             "dsh": sharpe(f["ret_mid"]) - sharpe(short_mid),
@@ -2588,9 +2596,11 @@ def main() -> None:
     # assert sum(v["dsh"] > 0 for v in vs_ms.values()) == 94  # \rheVsShortAbove
     # 2026-10-18 (user, new-notes 15): soft check (count under the per-year ratio)
     soft(sum(v["dsh"] > 0 for v in vs_ms.values()) == 94, f"vs-short dsh>0 count {sum(v['dsh'] > 0 for v in vs_ms.values())} (was 94, \\rheVsShortAbove)")
-    assert (
-        sum(v["t"] > Z95 for v in vs_ms.values()) == 20
-    )  # \cmMasterVsShortAboveSig = \rheSigVsShort
+    # 2026-10-20 (user, third-list 2): parked -- 20 on the 866-day HAC t; reported now (post-warmup, lag 12). Was:
+    # assert (
+    #     sum(v["t"] > Z95 for v in vs_ms.values()) == 20
+    # )  # \cmMasterVsShortAboveSig = \rheSigVsShort
+    print(f"THIRD2 CHANGED: vs-short HAC t > 1.96 count {sum(v['t'] > Z95 for v in vs_ms.values())} (was 20)")
     assert sum(v["tail"] < 0 for v in vs_ms.values()) == 102  # \rheTailNeg
     en = "subpt_enet_all_features"  # \rheEnetSh, \rheEnetShX, \rheEnetT
     # near_t(lv[en]["sharpe"], 1.93, 5e-3)  # was 1.92 on 866 days
@@ -2718,7 +2728,8 @@ def main() -> None:
     # 2026-10-18 (user, new-notes 15): the Sharpe-ordering claims are soft checks now (reported if the per-year ratio changes them).
     # Was: assert all(vs_sh[k]["dsh"] > 0 for k in pool_keys)
     soft(all(vs_sh[k]["dsh"] > 0 for k in pool_keys), "every pooled forecast dsh vs short > 0")
-    assert pool_sig_short == {pool_of[n][1] for n in tree_n}, pool_sig_short
+    # 2026-10-20 (user, third-list 2): HAC t now post-warmup (lag 12); soft check. Was: assert pool_sig_short == {pool_of[n][1] for n in tree_n}, pool_sig_short
+    soft(pool_sig_short == {pool_of[n][1] for n in tree_n}, "THIRD2 " + 'pool_sig_short == {pool_of[n][1] for n in tree_n}')
     # Was: assert sorted(pool_keys, key=lambda k: -lv[k]["sharpe"])[:4] == ["poolpt_enet_all_features",
     #     "poolpt_ridge_all_features", "poolpt_lasso_all_features", "pooltree_lgbm_all_features"]
     top4_ = sorted(pool_keys, key=lambda k: -lv[k]["sharpe"])[:4]
@@ -2728,7 +2739,8 @@ def main() -> None:
     soft(min(sh_full) > max(sh_har), "full set raises every pooled Sharpe (min full > max HAR)")
     # Was: assert all(x > 0 for x in dsh_pool) and not any(t1p[n]["p_t"] < SIG for n in t1p)
     soft(all(x > 0 for x in dsh_pool), "every pooled full-vs-HAR dsh > 0")
-    assert not any(t1p[n]["p_t"] < SIG for n in t1p)
+    # 2026-10-20 (user, third-list 2): HAC t now post-warmup (lag 12); soft check. Was: assert not any(t1p[n]["p_t"] < SIG for n in t1p)
+    soft(not any(t1p[n]["p_t"] < SIG for n in t1p), "THIRD2 " + 'not any(t1p[n]["p_t"] < SIG for n in t1p)')
     assert all(vs_sh[k]["tail"] < 0 for k in pool_keys)
     # Was: assert sum(sz_pool[k]["clip"]["d_vs_sign"] > 0 for k in pool_keys) == 11
     soft(sum(sz_pool[k]["clip"]["d_vs_sign"] > 0 for k in pool_keys) == 11, f"pooled clip beats sign {sum(sz_pool[k]['clip']['d_vs_sign'] > 0 for k in pool_keys)} (was 11)")

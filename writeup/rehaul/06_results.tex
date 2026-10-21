@@ -1,4 +1,4 @@
-% 06_results.tex -- the rehauled paper's section, as bullets to expand into prose (2026-10-15).
+﻿% 06_results.tex -- the rehauled paper's section, as bullets to expand into prose (2026-10-15).
 % Sources and pointers behind every number: writeup/PAPER_REHAUL_OUTLINE_2026-10-15.md, section 6.
 % House rules: every number in the final prose comes from a generated macro (writeup/generated/*.tex), never
 % typed; park (comment out with a dated note) rather than delete.
@@ -99,10 +99,11 @@ The rule for the comparison is one configuration per model, chosen once on the p
   Appendix~\ref{sec:rh_econ_last30} examines all model classes trained
   analogously on the closing 30-minute interval alone.
 % 2026-10-17 (user): parked -- closing-interval material (the daily refit is in Appendix app:rh_closing_bench). Was: "Models are re-estimated at each period (see"
-\item \textbf{Rolling re-estimation and causal tuning.} The pooled intraday models are re-estimated at every
+% 2026-10-20 (user, third-list 1): parked -- tuning wording matched to the pick-once-and-freeze decision (E23; Appendices B.2 and D). Was: "\item \textbf{Rolling re-estimation and causal tuning.} The pooled intraday models are re-estimated at every 30-minute interval (see Appendix~\ref{sec:rh_exp_schemes}), with hyperparameters either held fixed or selected causally on an initial pre-sample or trailing validation windows prior to the forecast origin."
+\item \textbf{Rolling re-estimation with frozen hyperparameters.} The pooled intraday models are re-estimated at every
   30-minute interval (see
-  Appendix~\ref{sec:rh_exp_schemes}), with hyperparameters either held fixed or selected causally on an initial
-  pre-sample or trailing validation windows prior to the forecast origin.
+  Appendix~\ref{sec:rh_exp_schemes}). Their hyperparameters are chosen once, on the fixed pre-sample, and then held
+  fixed for the whole evaluation span, with no re-tuning (Appendix~\ref{app:rh_hyper}).
 % 2026-10-15 (user): parked -- the lags without their samples. Was: "Diebold--Mariano tests with the
 % Harvey--Leybourne--Newbold correction ($q_{\mathrm{NW}} = \fqsDMLag$) and HAC $t$-statistics ($q_{\mathrm{NW}} =
 % \fqsHACLag$), each with ..."
