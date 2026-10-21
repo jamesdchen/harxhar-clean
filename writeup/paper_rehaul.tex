@@ -114,24 +114,32 @@ paper}
 \begin{abstract}
 % 2026-10-17 (user, new-notes 1): parked -- the target is built from front-month E-mini futures (03_data, Realized moments). Was: "forecasts of the realized variance of the S\&P 500"
 We investigate whether exogenous predictors improve intraday forecasts of a futures-based (E-mini) proxy for the realized variance of the S\&P 500
-over the closing half-hour interval (15:30--16:00 ET). Specifically, we estimate each model across all half-hour
-intervals and evaluate the forecast issued at 15:30 for the closing half hour over the out-of-sample period from
+over the closing half-hour interval (15:30--16:00 ET).
 % 2026-10-20 (user): parked -- Table 1 scored from 2012 (TABLE1_SWITCH.md, approved). Was: "\rhoosSpanStart{} to \rhoosSpanEnd{} ($T_{\mathrm{oos}} = \rhoosDays$ trading days). We compare a benchmark"
-\rhoosSpanStart{} to \rhoosSpanEnd{} ($T_{\mathrm{oos}} = \rhoosDays$ trading days), and the forecasts of every
-regular-hours bar from \rhorSpanStart{} to \rhorSpanEnd{} (\rhorDays{} trading days). We compare a benchmark
+% 2026-10-21 (user): parked -- Table 1 is the pooled models on the 13 regular-hours bars, every bar scored, with the trees (E36). Was: "Specifically, we estimate each model across all half-hour intervals and evaluate the forecast issued at 15:30 for the closing half hour over the out-of-sample period from \rhoosSpanStart{} to \rhoosSpanEnd{} ($T_{\mathrm{oos}} = \rhoosDays$ trading days), and the forecasts of every regular-hours bar from \rhorSpanStart{} to \rhorSpanEnd{} (\rhorDays{} trading days). We compare a benchmark"
+Specifically, we estimate pooled intraday models on the \rhorNBars{} regular-hours half-hour bars of each trading
+day with a rolling window of \rhorWindowDays{} trading days and score the forecast of every bar from
+\rhorSpanStart{} to \rhorSpanEnd{} (\rhorDays{} trading days); the forecasts issued at 15:30 for the closing half
+hour, which the economic application uses, cover \rhoosSpanStart{} to \rhoosSpanEnd{} ($T_{\mathrm{oos}} =
+\rhoosDays$ trading days). We compare a benchmark
 heterogeneous autoregressive (HAR) predictor set against an augmented predictor set that incorporates exogenous
-series. Under the QLIKE loss, the full predictor set yields lower average out-of-sample loss than the HAR
-benchmark across all \rhrAfPoolPairs{} intraday model classes, with \rhrAfPoolLowerSig{} of the
+series.
+% 2026-10-21 (user): parked -- the counts of the earlier runs (\rhrAfPool...); Table 1's counts over its 6 model classes (E36). Was: "Under the QLIKE loss, the full predictor set yields lower average out-of-sample loss than the HAR benchmark across all \rhrAfPoolPairs{} intraday model classes, with \rhrAfPoolLowerSig{} of the \rhrAfPoolPairs{} reductions statistically significant at the 5\% level."
 % 2026-10-19 (user): parked -- the MSE clause, with the QLIKE/squared-error divergence bullet of 06_results.tex. Was:
 % "\rhrAfPoolPairs{} reductions statistically significant at the 5\% level, whereas mean squared error does not
 % confirm these gains. Furthermore, ..."
-\rhrAfPoolPairs{} reductions statistically significant at the 5\% level. Furthermore, although every intraday
+Under the QLIKE loss, the full predictor set yields lower average out-of-sample loss than the HAR benchmark in
+\rhorAfQlikeLower{} of the \rhorAfClasses{} pooled intraday model classes (ridge, lasso, elastic net, LightGBM,
+XGBoost and random forest), by \rhorAfQlikeRedMin{} to \rhorAfQlikeRedMax\%, with \rhorAfQlikeLowerSig{} of these
+reductions statistically significant at the 5\% level. Furthermore, although every intraday
 specification remains less accurate under QLIKE than a
 % 2026-10-18 (user, new-notes 11): parked -- a HAR-type model with its horizons, not a daily HAR regression; still the closing-interval OLS the comparison uses (make_rehaul_results.py:1276). Was: "daily HAR regression estimated solely on the closing interval, incorporating the exogenous predictors narrows"
 HAR-type model in the spirit of \citet{Corsi2009}, estimated by OLS on the closing-interval observations of the target's trailing averages over $k \in \{1, 5, 25, 125, 625, 3125\}$ samples plus calendar columns, incorporating the exogenous predictors narrows
 this gap across all model classes. In an economic application to zero-days-to-expiration (0DTE) S\&P 500
 straddles on expiration days, a sign-based trading strategy achieves a higher Sharpe ratio under the full
-predictor set than under the HAR benchmark across every intraday model class.
+% 2026-10-21 (user): parked -- note N15c: not every class. Was: "predictor set than under the HAR benchmark across every intraday model class."
+predictor set than under the HAR benchmark in \rhrAfPoolShHigher{} of the \rhrAfPoolPairs{} intraday model
+classes.
 \end{abstract}
 
 \editc{black}{Notes}{Colored notes are draft comments, not paper text.\\

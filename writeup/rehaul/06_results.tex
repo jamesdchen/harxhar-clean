@@ -62,10 +62,12 @@
   pooled intraday linear forecasts immediately following the pre-sample validation period (\cmPtValFirst{} to
   \cmPtValLast) used to select the linear regularization penalties.
   % 2026-10-20 (user): added -- Table 1 scored from 2012 (TABLE1_SWITCH.md, approved).
-  The pooled linear models of Table~\ref{tab:rh_oos} are scored on a longer span, from \rhorSpanStart{} to
-  \rhorSpanEnd{} (\rhorDays{} trading days, after excluding \rhorEarlyCloses{} early-close sessions), with a
-  rolling window of \rhorWindowDays{} trading days and penalties chosen once on \rhorPenFolds{} validation folds
-  covering \rhorPenYears{}, before the first forecast, and then frozen.
+  % 2026-10-21 (user): parked -- Table 1 holds the trees too (E36). Was: "The pooled linear models of Table~\ref{tab:rh_oos} are scored on a longer span, from \rhorSpanStart{} to \rhorSpanEnd{} (\rhorDays{} trading days, after excluding \rhorEarlyCloses{} early-close sessions), with a rolling window of \rhorWindowDays{} trading days and penalties chosen once on \rhorPenFolds{} validation folds covering \rhorPenYears{}, before the first forecast, and then frozen."
+  The pooled linear models and tree ensembles of Table~\ref{tab:rh_oos} are scored on a longer span, from
+  \rhorSpanStart{} to \rhorSpanEnd{} (\rhorDays{} trading days, after excluding \rhorEarlyCloses{} early-close
+  sessions), with a rolling window of \rhorWindowDays{} trading days; the linear penalties are chosen once on
+  \rhorPenFolds{} validation folds covering \rhorPenYears{}, before the first forecast, and then frozen, and the
+  tree hyperparameters are chosen once on the pre-sample and then frozen.
 % 2026-10-16 (user): parked -- option-data subsample removed from Experimental setup. The set is defined in Data
 % (sec:rh_data); the other \rhoosNonOptDays{} days enter forecast accuracy only, now in Economic value
 % (sec:rh_econ_measures). Was:
@@ -82,10 +84,10 @@
   $M = \rhdmNIntervals$ half-hour intervals of each trading day using a rolling window of
   $W = \rhdmPooledWindow$ intervals for the tree ensembles and $W = \rhdmPooledLinWindow$ intervals for the
   % 2026-10-20 (user): parked -- Table 1's linear models (TABLE1_SWITCH.md, approved). Was: "linear specifications. On the full predictor set, the pooled LightGBM and XGBoost forecasts reflect an earlier"
-  linear specifications. The linear models of Table~\ref{tab:rh_oos} are fit on the \rhorNBars{} regular-hours
-  bars with a rolling window of \rhorWindowBars{} bars (\rhorWindowDays{} trading days). On the full predictor
-  set, the pooled LightGBM and XGBoost forecasts reflect an earlier
-  specification and the pooled random forest forecast is preliminary (see Table~\ref{tab:rh_oos}).
+  linear specifications.
+  % 2026-10-21 (user): parked -- Table 1's trees are refit on its design (E36). Was: "The linear models of Table~\ref{tab:rh_oos} are fit on the \rhorNBars{} regular-hours bars with a rolling window of \rhorWindowBars{} bars (\rhorWindowDays{} trading days). On the full predictor set, the pooled LightGBM and XGBoost forecasts reflect an earlier specification and the pooled random forest forecast is preliminary (see Table~\ref{tab:rh_oos})."
+  The linear models and tree ensembles of Table~\ref{tab:rh_oos} are fit on the \rhorNBars{} regular-hours bars
+  with a rolling window of \rhorWindowBars{} bars (\rhorWindowDays{} trading days) and re-estimated at every bar.
   % 2026-10-16 (user): parked -- attach each accuracy row to the configuration that produced it.
   % The hyperparameter rule is now one frozen pre-sample pick. The sample and the window stay open;
   % the comparison is in the author notes. Was:
@@ -156,9 +158,15 @@ We refer the reader to Appendix~\ref{app:rh_impl} for comprehensive implementati
   half-hour interval—including the OLS regression on the HAR benchmark predictor set, our closing-interval HAR benchmark
   % 2026-10-17 (user): parked -- closing-interval material moved to the appendix; Section -> Appendix. Was: "forecast—are presented in Table~\ref{tab:rh_oos_last30} (see Section~\ref{sec:rh_econ_last30})."
   forecast—are presented in Table~\ref{tab:rh_oos_last30} (see Appendix~\ref{sec:rh_econ_last30}).
+  % 2026-10-21 (user): added -- Table 1's counts over its 6 model classes (E36).
+  Of the \rhorAfClasses{} model classes with both predictor sets, \rhorAfQlikeLower{} have a lower QLIKE on the
+  full predictor set than on their HAR benchmark, and \rhorAfMseHigher{} have a higher MSE (a lower
+  $R^2_{\mathrm{OOS}}$ in \rhorAfRoosLower{}).
   % 2026-10-20 (user): added -- "add the one-sentence 2012-2019 / 2020-2024 split in the text (no table)"; numbers from make_rehaul_oos_rerun.py (\rhorSub...).
   % 2026-10-20 (user): parked -- the years of the split as macros (no typed numbers). Was: the same sentence with the years typed ("Split at the start of 2020", "2012--2019", "2020--2024").
-  Split at the start of \rhorSubBStartYear, the full predictor set has the lower QLIKE in both parts
+  % 2026-10-21 (user): parked -- the split covers the linear models only (E36). Was: "Split at the start of \rhorSubBStartYear, the full predictor set has the lower QLIKE in both parts"
+  Split at the start of \rhorSubBStartYear, the full predictor set of ridge, the lasso and the elastic net has
+  the lower QLIKE in both parts
   (\rhorSubALabel: \rhorSubAQlikeAfMin--\rhorSubAQlikeAfMax{} against \rhorSubAQlikeHar{} for the HAR benchmark;
   \rhorSubBLabel: \rhorSubBQlikeAfMin--\rhorSubBQlikeAfMax{} against \rhorSubBQlikeHar), and a higher
   $R^2_{\mathrm{OOS}}$ on \rhorSubALabel{} (\rhorSubARoosAfMin--\rhorSubARoosAfMax\% against \rhorSubARoosHar\%)
@@ -171,11 +179,12 @@ We refer the reader to Appendix~\ref{app:rh_impl} for comprehensive implementati
   % 2026-10-20 (user): parked -- "switch the main window to 1,000 days, not 2,000. Table 1 should cover 2012-2024 as a single panel". Was: "Decision (user, 2026-10-20): Table~\ref{tab:rh_oos} is like for like. It holds the pooled linear rerun trained and scored on the 13 regular-hours bars (base-5 HAR horizons, FOMC series in, penalties chosen once on the pre-sample, a 2{,}000-day window), with every bar scored. Its tests are Diebold--Mariano on the daily average QLIKE. The 48-interval rerun is not in the table; its numbers are in results/oos\_rerun\_2026-10-20/."
   % 2026-10-20 (user): parked -- the prose now names both spans (TABLE1_SWITCH.md applied). Was: "\editc{orange}{E36}{Decision (user, 2026-10-20): Table~\ref{tab:rh_oos} is like for like. It holds the pooled linear rerun trained and scored on the 13 regular-hours bars (base-5 HAR horizons, FOMC series in, a rolling window of \rhorWindowDays{} trading days, penalties chosen once on four validation folds covering \rhorPenYears{} and then frozen), with every bar scored from \rhorSpanStart{} to \rhorSpanEnd{} (\rhorDays{} trading days, one panel). Its tests are Diebold--Mariano on the daily average QLIKE. The 2{,}000-day reruns (from 2020 and from 2012) and the 48-interval rerun are not in the table; their numbers are in results/oos\_rerun\_2026-10-20/ and results/oos\_span\_check\_2026-10-20/. The rest of this section, the abstract, the introduction and the conclusion still describe the span from \rhoosSpanStart{}; results/oos\_span\_check\_2026-10-20/TABLE1\_SWITCH.md proposes the changes. Tree ensembles are held off until they are refit on the cluster.\\Problem: this bullet and the $R^2_{\mathrm{OOS}}$ bullet below still describe the earlier table, and so do the abstract, the introduction and the conclusion. They speak of the 15:30 forecast of the closing half hour, six model classes with trees, a closing-half-hour $R^2$ benchmark, and the \texttt{\textbackslash rhrAfPool...} counts that writeup/make\_rehaul\_results.py computed from the earlier runs.\\New tests, QLIKE, all features against the HAR benchmark of the same model, $p$-values in parentheses: ridge \rhorDmRidgeB{} (\rhorPRidgeB), lasso \rhorDmLassoB{} (\rhorPLassoB), elastic net \rhorDmEnetB{} (\rhorPEnetB). The like-for-like values of the prose numbers are being computed (branch insurance-selling-2026-09-19-prose-numbers).}"
   % 2026-10-20 (user): parked -- the R2_OOS bullet and the appendix scoring line are fixed. Was: "\editc{orange}{E36}{Decision (user, 2026-10-20): Table~\ref{tab:rh_oos} is like for like. It holds the pooled linear rerun trained and scored on the \rhorNBars{} regular-hours bars (the HAR horizons of Section~\ref{sec:rh_predictors}, FOMC series in, a rolling window of \rhorWindowDays{} trading days, penalties chosen once on \rhorPenFolds{} validation folds covering \rhorPenYears{} and then frozen), with every bar scored from \rhorSpanStart{} to \rhorSpanEnd{} (\rhorDays{} trading days, one panel). Its tests are Diebold--Mariano on the daily average QLIKE. The reruns with the longer window and the rerun on every interval of the day are not in the table; their numbers are in results/oos\_rerun\_2026-10-20/ and results/oos\_span\_check\_2026-10-20/. The abstract, the introduction, Data, this section, the conclusion and the appendix now give both spans: Table~\ref{tab:rh_oos} from \rhorSpanStart, the closing-interval models, Table~\ref{tab:rh_oos_last30} and the straddle sample from \rhoosSpanStart. Tree ensembles are held off until they are refit on the cluster.\\Problem: the $R^2_{\mathrm{OOS}}$ bullet below, the abstract, the introduction and the conclusion still carry the earlier table's framing: the 15:30 forecast of the closing half hour, six model classes with trees, a closing-half-hour $R^2$ benchmark, and the \texttt{\textbackslash rhrAfPool...} counts that writeup/make\_rehaul\_results.py computed from the earlier runs. The Table~\ref{tab:rh_dm_samples} note (writeup/make\_rehaul\_data\_methods.py) still gives the linear window as $W = \rhdmPooledLinWindow$ intervals.\\New tests, QLIKE, all features against the HAR benchmark of the same model, $p$-values in parentheses: ridge \rhorDmRidgeB{} (\rhorPRidgeB), lasso \rhorDmLassoB{} (\rhorPLassoB), elastic net \rhorDmEnetB{} (\rhorPEnetB). The like-for-like values of the prose numbers are being computed (branch insurance-selling-2026-09-19-prose-numbers).}"
-  \editc{orange}{E36}{Decision (user, 2026-10-20): Table~\ref{tab:rh_oos} is like for like. It holds the pooled linear rerun trained and scored on the \rhorNBars{} regular-hours bars (the HAR horizons of Section~\ref{sec:rh_predictors}, FOMC series in, a rolling window of \rhorWindowDays{} trading days, penalties chosen once on \rhorPenFolds{} validation folds covering \rhorPenYears{} and then frozen), with every bar scored from \rhorSpanStart{} to \rhorSpanEnd{} (\rhorDays{} trading days, one panel). Its tests are Diebold--Mariano on the daily average QLIKE. The reruns with the longer window and the rerun on every interval of the day are not in the table; their numbers are in results/oos\_rerun\_2026-10-20/ and results/oos\_span\_check\_2026-10-20/. The abstract, the introduction, Data, this section, the conclusion and the appendix now give both spans: Table~\ref{tab:rh_oos} from \rhorSpanStart, the closing-interval models, Table~\ref{tab:rh_oos_last30} and the straddle sample from \rhoosSpanStart. Tree ensembles are held off until they are refit on the cluster.\\Problem: the abstract, the introduction and the conclusion still carry the earlier table's framing: the 15:30 forecast of the closing half hour, six model classes with trees, and the \texttt{\textbackslash rhrAfPool...} counts that writeup/make\_rehaul\_results.py computed from the earlier runs. The Table~\ref{tab:rh_dm_samples} note (writeup/make\_rehaul\_data\_methods.py) still gives the linear window as $W = \rhdmPooledLinWindow$ intervals.\\New tests, QLIKE, all features against the HAR benchmark of the same model, $p$-values in parentheses: ridge \rhorDmRidgeB{} (\rhorPRidgeB), lasso \rhorDmLassoB{} (\rhorPLassoB), elastic net \rhorDmEnetB{} (\rhorPEnetB). The like-for-like values of the prose numbers are being computed (branch insurance-selling-2026-09-19-prose-numbers).}
+  % 2026-10-21 (user): parked -- note E36 done: Table 1 has the pooled tree rows (make_rehaul_oos_rerun.py, --trees on by default); the abstract, the introduction, this section and the conclusion describe the pooled models on the 13 regular-hours bars, every bar scored, with the \rhorAf... counts over the 6 model classes; the Sharpe sentences give \rhrAfPoolShHigher{} of \rhrAfPoolPairs{} (N15c). Was: "\editc{orange}{E36}{Decision (user, 2026-10-20): Table~\ref{tab:rh_oos} is like for like. It holds the pooled linear rerun trained and scored on the \rhorNBars{} regular-hours bars (the HAR horizons of Section~\ref{sec:rh_predictors}, FOMC series in, a rolling window of \rhorWindowDays{} trading days, penalties chosen once on \rhorPenFolds{} validation folds covering \rhorPenYears{} and then frozen), with every bar scored from \rhorSpanStart{} to \rhorSpanEnd{} (\rhorDays{} trading days, one panel). Its tests are Diebold--Mariano on the daily average QLIKE. The reruns with the longer window and the rerun on every interval of the day are not in the table; their numbers are in results/oos\_rerun\_2026-10-20/ and results/oos\_span\_check\_2026-10-20/. The abstract, the introduction, Data, this section, the conclusion and the appendix now give both spans: Table~\ref{tab:rh_oos} from \rhorSpanStart, the closing-interval models, Table~\ref{tab:rh_oos_last30} and the straddle sample from \rhoosSpanStart. Tree ensembles are held off until they are refit on the cluster.\\Problem: the abstract, the introduction and the conclusion still carry the earlier table's framing: the 15:30 forecast of the closing half hour, six model classes with trees, and the \texttt{\textbackslash rhrAfPool...} counts that writeup/make\_rehaul\_results.py computed from the earlier runs. The Table~\ref{tab:rh_dm_samples} note (writeup/make\_rehaul\_data\_methods.py) still gives the linear window as $W = \rhdmPooledLinWindow$ intervals.\\New tests, QLIKE, all features against the HAR benchmark of the same model, $p$-values in parentheses: ridge \rhorDmRidgeB{} (\rhorPRidgeB), lasso \rhorDmLassoB{} (\rhorPLassoB), elastic net \rhorDmEnetB{} (\rhorPEnetB). The like-for-like values of the prose numbers are being computed (branch insurance-selling-2026-09-19-prose-numbers).}"
 % 2026-10-20 (user): parked -- the benchmark of Table 1 is the mean of the same bar, not of the closing half hour. Was: "\item \textbf{Computation of $R^2_{\mathrm{OOS}}$.} Following \citet{CampbellThompson2008}, the reference forecast in $R^2_{\mathrm{OOS}}$ is the expanding historical mean of closing-half-hour realized variance computed from \rhoosBenchStart{} through day $t - 1$, which relies solely on information available prior to the forecast origin."
 \item \textbf{Computation of $R^2_{\mathrm{OOS}}$.} Following \citet{CampbellThompson2008}, the reference
   forecast in $R^2_{\mathrm{OOS}}$ is an expanding historical mean of realized variance computed from
-  \rhoosBenchStart{} through day $t - 1$. For the pooled linear models of Table~\ref{tab:rh_oos} it is the mean
+  % 2026-10-21 (user): parked -- Table 1 holds the trees too (E36). Was: "For the pooled linear models of Table~\ref{tab:rh_oos} it is the mean"
+  \rhoosBenchStart{} through day $t - 1$. For the pooled intraday models of Table~\ref{tab:rh_oos} it is the mean
   realized variance of the same half-hour bar over every earlier trading day; for the closing-interval models of
   Table~\ref{tab:rh_oos_last30} it is the mean realized variance of the closing half hour. Both rely solely on
   information available prior to the forecast origin.
@@ -316,8 +325,9 @@ We refer the reader to Appendix~\ref{app:rh_impl} for comprehensive implementati
   % 2026-10-15 (user): parked -- "park all tables that I haven't mentioned in this chat". Was: $f_{m,\mathcal X,\mathcal I}$ (Table~\ref{tab:rh_axis1}):
   $L^{\mathcal X}_t$ denotes the QLIKE loss of the forecast $f_{m,\mathcal X,\{1,\dots,M\}}$. We report the
   percentage change in average loss $\Delta\%$ defined in Section~\ref{sec:rh_results_eval}, along with the
-  Diebold--Mariano statistic $\DM$ computed on $d_t$ over $\mathcal T_{\mathrm{oos}}$ using lag truncation
-  $q_{\mathrm{NW}} = \rhoosDMLag$.
+  % 2026-10-21 (user): parked -- Table 1's tests run on its span and lag (E36). Was: "Diebold--Mariano statistic $\DM$ computed on $d_t$ over $\mathcal T_{\mathrm{oos}}$ using lag truncation $q_{\mathrm{NW}} = \rhoosDMLag$."
+  Diebold--Mariano statistic $\DM$ computed on $d_t$ over the \rhorDays{} trading days of
+  Table~\ref{tab:rh_oos} using lag truncation $q_{\mathrm{NW}} = \rhorHacLag$.
   % 2026-10-16 (formula pass): parked -- the display repeated that relative loss and also wrote it a second way,
   % 100 * bar d / bar L^{HAR}. Was:
   % Delta% = 100 (bar L^{Full} / bar L^{HAR} - 1) = 100 * bar d / bar L^{HAR},
@@ -334,20 +344,29 @@ We refer the reader to Appendix~\ref{app:rh_impl} for comprehensive implementati
 % largest for the pooled intraday trees, ... ($\DM = \rhrAfLgbmPoolDm$, $\rhrAfXgbPoolDm$, $\rhrAfRfPoolDm$); these
 % and the pooled intraday elastic net ($\Delta\% = \rhrAfEnetPoolPct$, $\DM = \rhrAfEnetPoolDm$) are the only
 % reductions significant at the 5\% level."
+% 2026-10-21 (user): parked -- the counts and percentages of the earlier runs (\rhrAf...Pool) and the comparison between classes; Table 1's counts and tests (E36). Was:
+% \item \textbf{Consistent QLIKE reductions across all model classes.} Augmenting the HAR benchmark with the full
+%   predictor set reduces the average out-of-sample QLIKE loss across every intraday model class ($\Delta\% < 0$ in
+%   all \rhrAfPoolPairs{} classes), with \rhrAfPoolLowerSig{} of these reductions statistically significant at the
+%   5\% level (see Table~\ref{tab:rh_oos}):
+%   \begin{itemize}
+%   \item Regarding the tree ensembles, we observe the largest relative improvements: $\Delta\% = \rhrAfLgbmPoolPct$
+%     for LightGBM ($\DM = \rhrAfLgbmPoolDm$), $\rhrAfXgbPoolPct$ for XGBoost ($\DM = \rhrAfXgbPoolDm$), and
+%     $\rhrAfRfPoolPct$ for the random forest ($\DM = \rhrAfRfPoolDm$), each of which is statistically significant
+%     at the 5\% level.
+%   \item Regarding the penalized linear models, the elastic net achieves a statistically significant reduction of
+%     $\Delta\% = \rhrAfEnetPoolPct$ ($\DM = \rhrAfEnetPoolDm$), while ridge regression and the lasso yield
+%     reductions of $\rhrAfRidgePoolPct$ ($\DM = \rhrAfRidgePoolDm$, \rhrAfRidgePoolPval) and
+%     $\rhrAfLassoPoolPct$ ($\DM = \rhrAfLassoPoolDm$, \rhrAfLassoPoolPval), respectively.
+%   \end{itemize}
 \item \textbf{Consistent QLIKE reductions across all model classes.} Augmenting the HAR benchmark with the full
-  predictor set reduces the average out-of-sample QLIKE loss across every intraday model class ($\Delta\% < 0$ in
-  all \rhrAfPoolPairs{} classes), with \rhrAfPoolLowerSig{} of these reductions statistically significant at the
-  5\% level (see Table~\ref{tab:rh_oos}):
-  \begin{itemize}
-  \item Regarding the tree ensembles, we observe the largest relative improvements: $\Delta\% = \rhrAfLgbmPoolPct$
-    for LightGBM ($\DM = \rhrAfLgbmPoolDm$), $\rhrAfXgbPoolPct$ for XGBoost ($\DM = \rhrAfXgbPoolDm$), and
-    $\rhrAfRfPoolPct$ for the random forest ($\DM = \rhrAfRfPoolDm$), each of which is statistically significant
-    at the 5\% level.
-  \item Regarding the penalized linear models, the elastic net achieves a statistically significant reduction of
-    $\Delta\% = \rhrAfEnetPoolPct$ ($\DM = \rhrAfEnetPoolDm$), while ridge regression and the lasso yield
-    reductions of $\rhrAfRidgePoolPct$ ($\DM = \rhrAfRidgePoolDm$, \rhrAfRidgePoolPval) and
-    $\rhrAfLassoPoolPct$ ($\DM = \rhrAfLassoPoolDm$, \rhrAfLassoPoolPval), respectively.
-  \end{itemize}
+  predictor set reduces the average out-of-sample QLIKE loss in \rhorAfQlikeLower{} of the \rhorAfClasses{}
+  pooled intraday model classes of Table~\ref{tab:rh_oos}, with $\Delta\%$ from \rhorAfQlikeChgMin{} to
+  \rhorAfQlikeChgMax\%, and \rhorAfQlikeLowerSig{} of these reductions are statistically significant at the 5\%
+  level. The $\DM$ statistics, with $p$-values in parentheses, are \rhorDmRidgeB{} (\rhorPRidgeB) for ridge,
+  \rhorDmLassoB{} (\rhorPLassoB) for the lasso, \rhorDmEnetB{} (\rhorPEnetB) for the elastic net,
+  \rhorTreeDmLgbm{} (\rhorTreePLgbm) for LightGBM, \rhorTreeDmXgb{} (\rhorTreePXgb) for XGBoost and
+  \rhorTreeDmRf{} (\rhorTreePRf) for the random forest.
   % 2026-10-15 (consolidation): the \rhrAf...Pool macros (tab:rh_axis1, actual RV) replace the typed 13--15 %, -4.6.
 % 2026-10-15 (user): the Sharpe counts are on the option-data subsample (the straddle needs the option quotes).
 % 2026-10-15 (user): parked -- last-30-min scheme moved to the end of the economics section; the model set's 51 pairs
@@ -489,20 +508,21 @@ We refer the reader to Appendix~\ref{app:rh_impl} for comprehensive implementati
 % make_rehaul_results.py (the pooled-only \rhrPoolQ..., \rhrVsBmPool... macros).
 \begin{itemize}
 % 2026-10-18 (user, second-list 16): parked -- ranking heading; the paper is about exogenous features adding predictability of realized variance, not superiority of accuracy (bullet body is new-notes item 13). Was: "\textbf{Superior accuracy of linear specifications within each predictor set.}"
-\item \textbf{Exogenous features and the predictability of realized variance, by model class.} Comparing across model
-  classes in Table~\ref{tab:rh_oos}, the penalized linear models consistently achieve lower average QLIKE loss
-  than the tree ensembles on both predictor sets:
-  \begin{itemize}
-  \item Under the full predictor set, the linear models attain average QLIKE losses between \rhrPoolQLinFullMin{}
-    and \rhrPoolQLinFullMax{}—specifically, \rhrQEnetPoolFull{} for the elastic net, \rhrQRidgePoolFull{} for
-    ridge, and \rhrQLassoPoolFull{} for the lasso, representing the three most accurate specifications among all
-    \rhrPoolN{} pooled intraday forecasts—compared with \rhrPoolQTreeFullMin--\rhrPoolQTreeFullMax{} for the
-    tree ensembles.
-  \item Under the HAR benchmark, the linear specifications achieve average QLIKE losses of
-    \rhrPoolQLinHarMin--\rhrPoolQLinHarMax, outperforming the tree ensembles at
-    % 2026-10-17 (user, new-notes 13): parked -- no ranking claims. Was: "(which represent the least accurate pooled specifications overall)"
-    \rhrPoolQTreeHarMin--\rhrPoolQTreeHarMax.
-  \end{itemize}
+% 2026-10-21 (user): parked -- the comparison of QLIKE across model classes in Table 1 (no ranking of classes; its \rhrPool... values come from the earlier runs, and Table 1 now has the refit trees, E36). Was:
+% \item \textbf{Exogenous features and the predictability of realized variance, by model class.} Comparing across model
+%   classes in Table~\ref{tab:rh_oos}, the penalized linear models consistently achieve lower average QLIKE loss
+%   than the tree ensembles on both predictor sets:
+%   \begin{itemize}
+%   \item Under the full predictor set, the linear models attain average QLIKE losses between \rhrPoolQLinFullMin{}
+%     and \rhrPoolQLinFullMax{}—specifically, \rhrQEnetPoolFull{} for the elastic net, \rhrQRidgePoolFull{} for
+%     ridge, and \rhrQLassoPoolFull{} for the lasso, representing the three most accurate specifications among all
+%     \rhrPoolN{} pooled intraday forecasts—compared with \rhrPoolQTreeFullMin--\rhrPoolQTreeFullMax{} for the
+%     tree ensembles.
+%   \item Under the HAR benchmark, the linear specifications achieve average QLIKE losses of
+%     \rhrPoolQLinHarMin--\rhrPoolQLinHarMax, outperforming the tree ensembles at
+%     % 2026-10-17 (user, new-notes 13): parked -- no ranking claims. Was: "(which represent the least accurate pooled specifications overall)"
+%     \rhrPoolQTreeHarMin--\rhrPoolQTreeHarMax.
+%   \end{itemize}
 % 2026-10-17 (user): parked -- closing-interval material (relabeled: closing-interval HAR benchmark). Was: "Comparison against the closing-interval benchmark forecast. ... than the daily closing-interval benchmark forecast"
 \item \textbf{Comparison against the closing-interval HAR benchmark.} Every pooled intraday specification
   incurs a higher average QLIKE loss than the closing-interval HAR benchmark

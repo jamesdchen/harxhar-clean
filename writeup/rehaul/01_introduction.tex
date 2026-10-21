@@ -29,8 +29,10 @@
   \begin{itemize}
   \item Specifically, at the 15:30 ET forecast origin on trading day $t$, we seek to predict $\RV_t$, which
     denotes the realized variance over the 15:30--16:00 closing interval (see Section~\ref{sec:rh_data}).
-  \item Each intraday model is estimated across all $M = \rhdmNIntervals$ half-hour intervals of the trading
-    day, and we evaluate its out-of-sample predictions on the forecast issued at 15:30 for the closing half hour.
+  % 2026-10-21 (user): parked -- Table 1 scores every regular-hours bar (E36). Was: "\item Each intraday model is estimated across all $M = \rhdmNIntervals$ half-hour intervals of the trading day, and we evaluate its out-of-sample predictions on the forecast issued at 15:30 for the closing half hour."
+  \item Each pooled intraday model is estimated on the \rhorNBars{} regular-hours half-hour bars of the trading
+    day, and we score its out-of-sample forecast of every bar (Table~\ref{tab:rh_oos}); the forecast issued at
+    15:30 for the closing half hour is the one the economic application uses.
   \item To isolate the contribution of the additional covariates, we compare the full predictor set against the
     HAR benchmark; the exogenous series constitute the exact difference between the two sets (see
     Section~\ref{sec:rh_predictors}).
@@ -58,17 +60,19 @@
   \item We evaluate predictive accuracy via the average QLIKE loss over the out-of-sample evaluation span
   % 2026-10-20 (user): parked -- Table 1 scored from 2012 (TABLE1_SWITCH.md, approved). Was: "$\mathcal T_{\mathrm{oos}}$ from \rhoosSpanStart{} to \rhoosSpanEnd{} ($T_{\mathrm{oos}} = \rhoosDays$ trading days; see Section~\ref{sec:rh_results_eval})."
     $\mathcal T_{\mathrm{oos}}$ from \rhoosSpanStart{} to \rhoosSpanEnd{} ($T_{\mathrm{oos}} = \rhoosDays$
-    trading days; see Section~\ref{sec:rh_results_eval}); the accuracy of the pooled linear models in
+    % 2026-10-21 (user): parked -- Table 1 holds the trees too (E36). Was: "the accuracy of the pooled linear models in"
+    trading days; see Section~\ref{sec:rh_results_eval}); the accuracy of the pooled intraday models in
     Table~\ref{tab:rh_oos} is scored on every regular-hours bar from \rhorSpanStart{} to \rhorSpanEnd{}
     (\rhorDays{} trading days, a rolling window of \rhorWindowDays{} trading days).
   \end{itemize}
 \item \textbf{Main findings.}
   \begin{itemize}
+  % 2026-10-21 (user): parked -- the counts of the earlier runs (\rhrAfPool...) and the comparison between classes; Table 1's counts (E36). Was: "\item Incorporating the full predictor set reduces the average out-of-sample QLIKE loss relative to the HAR benchmark across every intraday model class (\rhrAfPoolPairs{} classes in total, with \rhrAfPoolLowerSig{} of these reductions statistically significant at the 5\% level; see Section~\ref{sec:rh_results}). The tree-based ensembles exhibit the largest relative improvements, while among the linear specifications, the elastic net achieves a statistically significant reduction."
   \item Incorporating the full predictor set reduces the average out-of-sample QLIKE loss relative to the HAR
-    benchmark across every intraday model class (\rhrAfPoolPairs{} classes in total, with \rhrAfPoolLowerSig{}
-    of these reductions statistically significant at the 5\% level; see Section~\ref{sec:rh_results}). The
-    tree-based ensembles exhibit the largest relative improvements, while among the linear specifications, the
-    elastic net achieves a statistically significant reduction.
+    benchmark in \rhorAfQlikeLower{} of the \rhorAfClasses{} pooled intraday model classes of
+    Table~\ref{tab:rh_oos} (ridge, lasso, elastic net, LightGBM, XGBoost and random forest), by
+    \rhorAfQlikeRedMin{} to \rhorAfQlikeRedMax\%, with \rhorAfQlikeLowerSig{} of these reductions statistically
+    significant at the 5\% level (see Section~\ref{sec:rh_results}).
   % 2026-10-19 (user): parked -- the MSE finding, with the QLIKE/squared-error divergence bullet of 06_results.tex
   % and the abstract's MSE clause. Was:
   % \item In contrast, evaluation under mean squared error (MSE) does not corroborate these gains: the full
@@ -85,9 +89,10 @@
   same-day SPXW expiration, we construct a trading strategy that takes a long or short position in a
   zero-days-to-expiration (0DTE) at-the-money straddle based on the sign of the difference between the variance
   forecast and option-implied variance (see Section~\ref{sec:rh_econ}). Using the full predictor set increases
-  the annualized Sharpe ratio of this strategy relative to the HAR benchmark in every intraday model class (see
-  Section~\ref{sec:rh_econ_results}).
-\editc{orange}{N15c}{Problem: ``every intraday model class'' no longer holds under the per-year Sharpe ratio (pooled random forest $\Delta\SR = \rhrAfRfPoolDSh$); see note N15c in Section~\ref{sec:rh_econ}.}
+  % 2026-10-21 (user): parked -- note N15c: not every class. Was: "the annualized Sharpe ratio of this strategy relative to the HAR benchmark in every intraday model class (see Section~\ref{sec:rh_econ_results})."
+  the annualized Sharpe ratio of this strategy relative to the HAR benchmark in \rhrAfPoolShHigher{} of the
+  \rhrAfPoolPairs{} intraday model classes (see Section~\ref{sec:rh_econ_results}).
+% 2026-10-21 (user): parked -- the sentence above now gives the count. Was: "\editc{orange}{N15c}{Problem: ``every intraday model class'' no longer holds under the per-year Sharpe ratio (pooled random forest $\Delta\SR = \rhrAfRfPoolDSh$); see note N15c in Section~\ref{sec:rh_econ}.}"
 \item \textbf{Paper organization.} The remainder of the paper is organized as follows.
   Section~\ref{sec:rh_related} reviews the related literature. Section~\ref{sec:rh_data} describes the data and
   target construction, and Section~\ref{sec:rh_predictors} details the benchmark and exogenous predictors.
