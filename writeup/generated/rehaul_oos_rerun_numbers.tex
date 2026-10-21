@@ -38,3 +38,33 @@
 \providecommand{\rhorSubBQlikeAfMax}{}\renewcommand{\rhorSubBQlikeAfMax}{0.1874}  % QLIKE, all features, highest of the three
 \providecommand{\rhorSubBRoosAfMin}{}\renewcommand{\rhorSubBRoosAfMin}{38.1}  % R2_OOS (%), all features, lowest of the three
 \providecommand{\rhorSubBRoosAfMax}{}\renewcommand{\rhorSubBRoosAfMax}{45.7}  % R2_OOS (%), all features, highest of the three
+% \rhorTree... macros: the pooled trees of Table 1 (--trees), on the bars of the linear rows
+\providecommand{\rhorTreeQlikeHarLgbm}{}\renewcommand{\rhorTreeQlikeHarLgbm}{0.1881}  % QLIKE, HAR benchmark, lgbm
+\providecommand{\rhorTreeQlikeAfLgbm}{}\renewcommand{\rhorTreeQlikeAfLgbm}{0.1698}  % QLIKE, all features, lgbm
+\providecommand{\rhorTreeRoosHarLgbm}{}\renewcommand{\rhorTreeRoosHarLgbm}{62.9}  % R2_OOS (%), HAR benchmark, lgbm
+\providecommand{\rhorTreeRoosAfLgbm}{}\renewcommand{\rhorTreeRoosAfLgbm}{55.7}  % R2_OOS (%), all features, lgbm
+\providecommand{\rhorTreeDmLgbm}{}\renewcommand{\rhorTreeDmLgbm}{$-$11.67}  % DM, QLIKE, all features vs HAR benchmark, lgbm
+\providecommand{\rhorTreePLgbm}{}\renewcommand{\rhorTreePLgbm}{\ensuremath{<}0.001}  % its p-value
+\providecommand{\rhorTreeQlikeHarXgb}{}\renewcommand{\rhorTreeQlikeHarXgb}{0.1876}  % QLIKE, HAR benchmark, xgb
+\providecommand{\rhorTreeQlikeAfXgb}{}\renewcommand{\rhorTreeQlikeAfXgb}{0.1653}  % QLIKE, all features, xgb
+\providecommand{\rhorTreeRoosHarXgb}{}\renewcommand{\rhorTreeRoosHarXgb}{63.4}  % R2_OOS (%), HAR benchmark, xgb
+\providecommand{\rhorTreeRoosAfXgb}{}\renewcommand{\rhorTreeRoosAfXgb}{60.2}  % R2_OOS (%), all features, xgb
+\providecommand{\rhorTreeDmXgb}{}\renewcommand{\rhorTreeDmXgb}{$-$10.78}  % DM, QLIKE, all features vs HAR benchmark, xgb
+\providecommand{\rhorTreePXgb}{}\renewcommand{\rhorTreePXgb}{\ensuremath{<}0.001}  % its p-value
+\providecommand{\rhorTreeQlikeHarRf}{}\renewcommand{\rhorTreeQlikeHarRf}{0.1893}  % QLIKE, HAR benchmark, rf
+\providecommand{\rhorTreeQlikeAfRf}{}\renewcommand{\rhorTreeQlikeAfRf}{0.1765}  % QLIKE, all features, rf
+\providecommand{\rhorTreeRoosHarRf}{}\renewcommand{\rhorTreeRoosHarRf}{63.5}  % R2_OOS (%), HAR benchmark, rf
+\providecommand{\rhorTreeRoosAfRf}{}\renewcommand{\rhorTreeRoosAfRf}{58.5}  % R2_OOS (%), all features, rf
+\providecommand{\rhorTreeDmRf}{}\renewcommand{\rhorTreeDmRf}{$-$11.86}  % DM, QLIKE, all features vs HAR benchmark, rf
+\providecommand{\rhorTreePRf}{}\renewcommand{\rhorTreePRf}{\ensuremath{<}0.001}  % its p-value
+% \rhorAf... macros: the 6 model classes with both predictor sets (ridge, lasso, elastic net,
+% LightGBM, XGBoost, random forest), all features vs the HAR benchmark of the same class
+\providecommand{\rhorAfClasses}{}\renewcommand{\rhorAfClasses}{6}  % model classes with both predictor sets
+\providecommand{\rhorAfQlikeLower}{}\renewcommand{\rhorAfQlikeLower}{6}  % of them, lower QLIKE on all features
+\providecommand{\rhorAfQlikeLowerSig}{}\renewcommand{\rhorAfQlikeLowerSig}{6}  % of those, DM (daily average QLIKE) negative with p < 0.05
+\providecommand{\rhorAfQlikeChgMin}{}\renewcommand{\rhorAfQlikeChgMin}{$-$11.9}  % relative QLIKE change (%), all features vs HAR benchmark, lowest
+\providecommand{\rhorAfQlikeChgMax}{}\renewcommand{\rhorAfQlikeChgMax}{$-$4.9}  % relative QLIKE change (%), highest
+\providecommand{\rhorAfQlikeRedMin}{}\renewcommand{\rhorAfQlikeRedMin}{4.9}  % relative QLIKE reduction (%), smallest (minus ChgMax)
+\providecommand{\rhorAfQlikeRedMax}{}\renewcommand{\rhorAfQlikeRedMax}{11.9}  % relative QLIKE reduction (%), largest (minus ChgMin)
+\providecommand{\rhorAfMseHigher}{}\renewcommand{\rhorAfMseHigher}{6}  % classes with a higher MSE on all features
+\providecommand{\rhorAfRoosLower}{}\renewcommand{\rhorAfRoosLower}{6}  % classes with a lower R2_OOS on all features

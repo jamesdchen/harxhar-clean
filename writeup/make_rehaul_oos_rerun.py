@@ -68,8 +68,17 @@ TREES    2026-10-20 (user): the pooled LightGBM, XGBoost and random forest of ex
            - the CSVs go to <the span's CSV directory>/with_trees/ unless --res-dir says otherwise.
          The 16:00 check against a scores.csv runs on the linear rows only (the tree run has no scores.csv).
          Test without the real forecasts: experiments/test_table1_trees_standin.py.
+         2026-10-21 (user): the tree rows are on by default: --trees defaults to
+         results/pooled_trees_rerun13_2026-10-20/w1000 (the CARC run, 6 arms x 40,466 bars), so a plain run writes
+         Table 1 with them; "--trees none" writes the linear table. With the trees, the macros also count over the 6
+         model classes with both predictor sets (ridge, lasso, elastic net, LightGBM, XGBoost, random forest):
+         \\rhorAf... (classes, lower QLIKE on all features, of those significant at 5%, the range of the relative QLIKE
+         change, higher MSE / lower R2_OOS on all features).
+         2026-10-21 (user): parked -- off by default. Was: default=None ("Off by default: without it every file this
+         script writes is unchanged").
 
-Run:  python writeup/make_rehaul_oos_rerun.py                 (2012-2024, 1,000-day window)
+Run:  python writeup/make_rehaul_oos_rerun.py                 (2012-2024, 1,000-day window, with the tree rows)
+      python writeup/make_rehaul_oos_rerun.py --trees none    (the linear rows only)
       python writeup/make_rehaul_oos_rerun.py --span 2020     (the earlier 2020-2024 table; --out-dir writes elsewhere)
       python writeup/make_rehaul_oos_rerun.py --trees results/pooled_trees_rerun13_2026-10-20/w1000
                                                               (Table 1 with the pooled tree rows)
@@ -109,6 +118,7 @@ MODELS = [("ols", "OLS"), ("ridge", "Ridge"), ("lasso", "Lasso"), ("enet", "Elas
 SETS = [("baseline", "HAR benchmark"), ("all_features", "All features")]
 # the pooled trees of --trees (model code, row label, macro tag)
 TREES = [("lgbm", "LightGBM", "Lgbm"), ("xgb", "XGBoost", "Xgb"), ("rf", "Random forest", "Rf")]
+TREES_DEFAULT = REPO / "results" / "pooled_trees_rerun13_2026-10-20" / "w1000"  # the CARC run (2026-10-21: default)
 PANELS = [
     ("48", "Panel A: Trained and scored on all 48 half-hour intervals"),
     ("13", "Panel B: Trained and scored on the 13 regular-hours bars (10:00--16:00)"),
@@ -281,12 +291,19 @@ def main() -> None:
     # 2026-10-20 (user): parked -- the 2020 default. Was: default="2020"
     ap.add_argument("--span", choices=sorted(SPANS), default="2012", help="evaluation span of Table 1 (default 2012)")
     ap.add_argument("--out-dir", type=Path, default=GEN, help="directory of the two .tex files (default generated/)")
-    ap.add_argument("--trees", type=Path, default=None,
-                    help="pooled tree forecasts.parquet (or its directory): adds the tree rows (default: off)")
+    # 2026-10-21 (user): parked -- off by default. Was: ap.add_argument("--trees", type=Path, default=None, help=
+    # "pooled tree forecasts.parquet (or its directory): adds the tree rows (default: off)")
+    ap.add_argument("--trees", type=str, default=str(TREES_DEFAULT.relative_to(REPO)),
+                    help="pooled tree forecasts.parquet (or its directory): adds the tree rows "
+                         f"(default: {TREES_DEFAULT.relative_to(REPO)}; 'none': the linear rows only)")
     ap.add_argument("--res-dir", type=Path, default=None,
                     help="directory of the CSVs (default: the span's; <it>/with_trees/ under --trees)")
     args = ap.parse_args()
     cfg = SPANS[args.span]
+    if args.trees.lower() == "none" or args.span != "2012":  # the tree rerun is on the 2012 span only
+        args.trees = None
+    else:
+        args.trees = Path(args.trees) if Path(args.trees).exists() else REPO / args.trees  # the default: from REPO
     assert args.trees is None or args.span == "2012", "--trees: the tree rerun is on the 2012 span (1,000-day window)"
     out_table, out_numbers, out_res = args.out_dir / OUT_TABLE.name, args.out_dir / OUT_NUMBERS.name, cfg["res"]
     if args.res_dir is not None:
@@ -595,6 +612,32 @@ def main() -> None:
             lines.append(mac(f"rhorTreeRoosAf{tag}", fmt(r.loc["all_features", "r2_oos_pct"], 1), f"R2_OOS (%), all features, {m}"))
             lines.append(mac(f"rhorTreeDm{tag}", fmt(d.dm, 2), f"DM, QLIKE, all features vs HAR benchmark, {m}"))
             lines.append(mac(f"rhorTreeP{tag}", fmt_p(d.p), "its p-value"))
+        # 2026-10-21 (user): counts over the 6 model classes with both predictor sets, for the text on Table 1
+        cls = [m for m, _ in MODELS[1:]] + [m for m, _, _ in TREES]
+        mt = met[met.panel == "13"].set_index(["model", "set"])
+        dq = dms[(dms.panel == "13") & (dms.comparison == "all features vs HAR benchmark") & (dms.loss == "qlike")]
+        dq = dq.set_index("model")
+        q_af = np.array([mt.loc[(m, "all_features"), "qlike"] for m in cls])
+        q_hb = np.array([mt.loc[(m, "baseline"), "qlike"] for m in cls])
+        mse_af = np.array([mt.loc[(m, "all_features"), "mse"] for m in cls])
+        mse_hb = np.array([mt.loc[(m, "baseline"), "mse"] for m in cls])
+        r2_af = np.array([mt.loc[(m, "all_features"), "r2_oos_pct"] for m in cls])
+        r2_hb = np.array([mt.loc[(m, "baseline"), "r2_oos_pct"] for m in cls])
+        lower = q_af < q_hb
+        sig = lower & np.array([(dq.loc[m, "p"] < 0.05) and (dq.loc[m, "dm"] < 0) for m in cls])
+        chg = 100.0 * (q_af / q_hb - 1.0)  # relative QLIKE change, all features vs HAR benchmark, percent
+        lines.append("% \\rhorAf... macros: the 6 model classes with both predictor sets (ridge, lasso, elastic net,")
+        lines.append("% LightGBM, XGBoost, random forest), all features vs the HAR benchmark of the same class")
+        lines.append(mac("rhorAfClasses", str(len(cls)), "model classes with both predictor sets"))
+        lines.append(mac("rhorAfQlikeLower", str(int(lower.sum())), "of them, lower QLIKE on all features"))
+        lines.append(mac("rhorAfQlikeLowerSig", str(int(sig.sum())),
+                         "of those, DM (daily average QLIKE) negative with p < 0.05"))
+        lines.append(mac("rhorAfQlikeChgMin", fmt(chg.min(), 1), "relative QLIKE change (%), all features vs HAR benchmark, lowest"))
+        lines.append(mac("rhorAfQlikeChgMax", fmt(chg.max(), 1), "relative QLIKE change (%), highest"))
+        lines.append(mac("rhorAfQlikeRedMin", fmt(-chg.max(), 1), "relative QLIKE reduction (%), smallest (minus ChgMax)"))
+        lines.append(mac("rhorAfQlikeRedMax", fmt(-chg.min(), 1), "relative QLIKE reduction (%), largest (minus ChgMin)"))
+        lines.append(mac("rhorAfMseHigher", str(int((mse_af > mse_hb).sum())), "classes with a higher MSE on all features"))
+        lines.append(mac("rhorAfRoosLower", str(int((r2_af < r2_hb).sum())), "classes with a lower R2_OOS on all features"))
     out_numbers.write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
 
     print(met.to_string(index=False))

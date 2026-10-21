@@ -96,7 +96,11 @@ def main() -> None:
         old = (GEN / name).read_text().splitlines()
         changed = [x for x in old if x not in new]
         # the notes line (the tree sentence, "and tree ensembles") is the only committed line that may change
-        assert all(x.startswith("\\item \\textit{Notes:}") for x in changed), changed
+        # 2026-10-21 (user): the committed files carry the real tree rows (--trees on by default), so the tree rows
+        # and the \rhorTree... / \rhorAf... macros, which the stand-in does not reproduce, may change too. Was: the
+        # notes line only.
+        tree_line = ("LightGBM &", "XGBoost &", "Random forest &", "\\providecommand{\\rhorTree", "\\providecommand{\\rhorAf")
+        assert all(x.startswith("\\item \\textit{Notes:}") or x.startswith(tree_line) for x in changed), changed
         added = [x for x in new if x not in old]
         print(f"ok  {name}: {len(old) - len(changed)} of {len(old)} committed lines unchanged, {len(added)} added")
     tab = (out / "generated" / "rehaul_results_oos.tex").read_text()
