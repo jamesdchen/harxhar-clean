@@ -24,8 +24,9 @@
 \item \textbf{Data sources.}
   We group the exogenous covariates into eight distinct categories.
   % 2026-10-17 (user): parked -- closing-interval material (moved to Appendix app:rh_closing_sample). Was: "Specifically, the closing-interval specifications incorporate all \rhfiNExog{} exogenous series, whereas the pooled intraday specifications employ the"
+  % 2026-10-19 (user): parked -- the pooled model includes the FOMC series (author decision). Was: "Specifically, the pooled intraday specifications employ the \rhdmNSeriesPooled{} series across all categories except the FOMC group."
   Specifically, the pooled intraday specifications employ
-  the \rhdmNSeriesPooled{} series across all categories except the FOMC group. A complete list and definition of
+  the \rhdmNSeriesPooled{} series across all categories, the FOMC group included. A complete list and definition of
   each individual series is provided in Appendix Table~\ref{tab:rh_dm_dictionary}.
   % 2026-10-17 (user, E5/E2): bucket wording from data_explainer_v11 (front month, one-minute log-price
   % change, constituent 5-minute moments, turnover, spreads, StockTwits, volatility demand). The vendor,
@@ -54,6 +55,18 @@
   \item We construct the \bkSizeMom{} exogenous realized-moment series as analogous one-minute sums over interval
     $(t,i)$ (note that $\RV_{t,i}$ above serves as our forecast target and is not counted among the exogenous
     series):
+    % 2026-10-19 (user): raw parquet names for now (\ifrawseries, paper_rehaul.tex preamble): each sum is named by its
+    % column of data/core_stats.parquet. The \else branch is the display of the symbols, unchanged.
+    \ifrawseries
+    \begin{gather*}
+      \sername{sumret}_{t,i} = \sum_k r_{t,i,k}, \quad \sername{sumabsret}_{t,i} = \sum_k |r_{t,i,k}|, \quad
+      \sername{sumret3}_{t,i} = \sum_k r_{t,i,k}^3,\\
+      \sername{sumret4}_{t,i} = \sum_k r_{t,i,k}^4, \quad
+      \sername{sumpret2}_{t,i} = \sum_k r_{t,i,k}^2\,\mathbf{1}\{r_{t,i,k} > 0\},\\
+      \sername{sumbipow}_{t,i} = \sum_{k \ge 2} |r_{t,i,k}|\,|r_{t,i,k-1}|, \quad
+      \sername{sumautocov}_{t,i} = \sum_{k \ge 2} r_{t,i,k}\, r_{t,i,k-1}.
+    \end{gather*}
+    \else
     \[
       \sum_k r_{t,i,k}, \quad \sum_k |r_{t,i,k}|, \quad \sum_k r_{t,i,k}^3, \quad \sum_k r_{t,i,k}^4, \quad
       \mathrm{RS}^{+}_{t,i} = \sum_k r_{t,i,k}^2\,\mathbf{1}\{r_{t,i,k} > 0\},
@@ -62,13 +75,16 @@
       \mathrm{BV}_{t,i} = \sum_{k \ge 2} |r_{t,i,k}|\,|r_{t,i,k-1}|, \qquad
       \mathrm{AC}_{t,i} = \sum_{k \ge 2} r_{t,i,k}\, r_{t,i,k-1}.
     \]
+    \fi
     % 2026-10-18 (user, second-list 14): parked -- quarticity normalization matched to the Table 5 note and RQ row (unscaled, without N/3); "prior to dividing by RV^2/N" dropped. Was: "Specifically, the third and fourth sums correspond to the unnormalized realized skewness and realized quarticity of \citet{AmayaChristoffersenJacobsVasquez2015} (that is, prior to dividing by $\RV^{3/2}_{t,i}/\sqrt{N_{t,i}}$ and $\RV^{2}_{t,i}/N_{t,i}$, respectively). Furthermore,"
     Specifically, the third sum corresponds to the unnormalized realized skewness of
     \citet{AmayaChristoffersenJacobsVasquez2015} (that is, prior to dividing by $\RV^{3/2}_{t,i}/\sqrt{N_{t,i}}$), and
     the fourth sum is the unscaled realized quarticity (without the factor $N_{t,i}/3$). Furthermore,
-    $\mathrm{RS}^{+}_{t,i}$ denotes the positive realized semivariance of
-    \citet{BarndorffNielsenKinnebrockShephard2010}, $\mathrm{BV}_{t,i}$ denotes the unscaled bipower variation
-    of \citet{BarndorffNielsenShephard2004} (without the $\pi/2$ normalization factor), and $\mathrm{AC}_{t,i}$
+    % 2026-10-19 (user): series names through \ser (raw names for now). Was: "$\mathrm{RS}^{+}_{t,i}$",
+    % "$\mathrm{BV}_{t,i}$", "$\mathrm{AC}_{t,i}$"
+    $\ser{sumpret2}{\mathrm{RS}^{+}}_{t,i}$ denotes the positive realized semivariance of
+    \citet{BarndorffNielsenKinnebrockShephard2010}, $\ser{sumbipow}{\mathrm{BV}}_{t,i}$ denotes the unscaled bipower variation
+    of \citet{BarndorffNielsenShephard2004} (without the $\pi/2$ normalization factor), and $\ser{sumautocov}{\mathrm{AC}}_{t,i}$
     denotes the first-order realized autocovariance.
     % Sums read off the column names: the builder of data/core_stats.parquet is not in the repo
     % (live/close_signal/features.py:1-25). sumpret2 = positive semivariance is an assumed reading; bipower is
@@ -77,7 +93,9 @@
   % Was: Cross-section of index constituents, equal- and value-weighted (EW, VW), 1993--2024: six return
   % moments, turnover, order-flow imbalance (signed turnover) and bid-ask spreads.
   \item \textbf{Liquidity} (\bkSizeLiq{} series). From the front-month futures contract, we include total contract
-    volume traded during the half hour as well as the number of observed one-minute intervals $N_{t,i}$. In
+    % 2026-10-19 (user): raw names for now; $N_{t,i}$ stays the count in the formulas above, the series is named after it.
+    volume traded during the half hour as well as the number of observed one-minute intervals
+    $N_{t,i}$\ifrawseries{} (\sername{numobs})\fi. In
     addition, using intraday data on S\&P 500 constituents from 1993 to 2024, we construct both equal-weighted
     and value-weighted cross-sectional aggregates of share turnover, buyer-initiated turnover, seller-initiated
     turnover, the effective spread, the quoted spread, and order-flow imbalance. Here, constituent turnover is
@@ -86,8 +104,10 @@
     effective spread measures the average percentage deviation between the transaction price and the prevailing
     mid-quote, and the quoted spread measures the average percentage bid--ask spread. Equal-weighted aggregates
     take simple cross-sectional averages across constituents, whereas value-weighted aggregates weight each
-    constituent by its prior-day market capitalization. For each weighting scheme ($\mathrm{OFI}^{\mathrm{EW}}$
-    and $\mathrm{OFI}^{\mathrm{VW}}$), we define order-flow imbalance as
+    % 2026-10-19 (user): series names through \ser (raw names for now). Was: "($\mathrm{OFI}^{\mathrm{EW}}$ and
+    % $\mathrm{OFI}^{\mathrm{VW}}$)". The generic $\mathrm{OFI}_{t,i}$ of the display stays: it defines both.
+    constituent by its prior-day market capitalization. For each weighting scheme ($\ser{ofi_ewstock}{\mathrm{OFI}^{\mathrm{EW}}}$
+    and $\ser{ofi_vwstock}{\mathrm{OFI}^{\mathrm{VW}}}$), we define order-flow imbalance as
     \[
       \mathrm{OFI}_{t,i} = \frac{\mathrm{Buy}_{t,i} - \mathrm{Sell}_{t,i}}{\mathrm{Buy}_{t,i} + \mathrm{Sell}_{t,i}}
         \in [-1, 1],
@@ -125,7 +145,8 @@ Question for the professor: what is the formula of the score between the endpoin
     all exchange-traded options—with two transaction subsets, namely all opening and closing customer trades
     versus opening customer trades only.
   % 2026-10-17 (user): parked -- closing-interval material. Was: "(\bkSizeFomc{} series, included in closing-interval specifications only)"
-  \item \textbf{FOMC} (\bkSizeFomc{} series, not in the pooled intraday model; used by the closing-interval specifications of Appendix~\ref{app:rh_closing}). Based on
+  % 2026-10-19 (user): parked -- the pooled model includes the FOMC series (author decision). Was: "(\bkSizeFomc{} series, not in the pooled intraday model; used by the closing-interval specifications of Appendix~\ref{app:rh_closing})"
+  \item \textbf{FOMC} (\bkSizeFomc{} series; used by the pooled intraday model and by the closing-interval specifications of Appendix~\ref{app:rh_closing}). Based on
     scheduled Federal Open Market Committee announcement timestamps from 1993 through November 2023, we define
     four series: an indicator for whether an announcement occurs during interval $(t,i)$, an indicator for
     whether an announcement occurs on day $t$, and two proximity measures $1/(1+n^{+}_{t,i})$ and
@@ -203,7 +224,10 @@ The futures moments are now sums of one-minute changes in the log price of the f
   % $W = 24{,}000$ intervals: 300{,}317 = 303{,}442 ... - 3{,}125 ..."; "3,469 trading days"; "\rhfiNOos = 3{,}469 - ...".
   \item The pooled intraday sample comprises \rhdmPooledRows{} half-hour intervals beginning in June 1998, using
     rolling estimation windows of length $W = \rhdmPooledWindow$ intervals for the tree ensembles and
-    $W = \rhdmPooledLinWindow$ intervals for the linear models (see Appendix~\ref{sec:rh_exp_schemes}):
+    % 2026-10-20 (user): parked -- Table 1's linear models use a window of the regular-hours bars (TABLE1_SWITCH.md, approved). Was: "$W = \rhdmPooledLinWindow$ intervals for the linear models (see Appendix~\ref{sec:rh_exp_schemes}):"
+    $W = \rhdmPooledLinWindow$ intervals for the linear models (see Appendix~\ref{sec:rh_exp_schemes}); the
+    linear models of Table~\ref{tab:rh_oos} are trained on the \rhorNBars{} regular-hours bars with
+    $W = \rhorWindowBars$ bars (\rhorWindowDays{} trading days):
     % 2026-10-15 (finish): FLAG resolved -- typed 96{,}000 -> \rhdmPooledLinWindow (make_rehaul_data_methods.py, same value).
     \[
       % 2026-10-18 (user, new-notes 6): parked -- k in samples. Was: "\rhdmPooledRows = \rhdmGridRows \text{ intervals on the grid} - \rhdmBurnIn \text{ burn-in intervals}."
@@ -238,6 +262,10 @@ The futures moments are now sums of one-minute changes in the log price of the f
     after excluding \rhoosEarlyCloses{} early-close sessions). This span begins immediately following the linear
     % 2026-10-17 (user): parked -- closing-interval material (the pre-sample moved to Appendix app:rh_closing_sample). Was: "pre-sample period described above (see"
     models' pre-sample period (Appendix~\ref{app:rh_closing_sample}; see Section~\ref{sec:rh_results_eval}).
+  % 2026-10-20 (user): added -- Table 1 scored from 2012 (TABLE1_SWITCH.md, approved).
+  \item Table~\ref{tab:rh_oos} is scored on a longer span, \rhorSpanStart{} to \rhorSpanEnd{} (\rhorDays{}
+    trading days, after excluding \rhorEarlyCloses{} early-close sessions); its penalties are chosen once on
+    \rhorPenFolds{} validation folds covering \rhorPenYears{} and then frozen.
   \item The option-trading subsample $\mathcal T_{\mathrm{opt}} \subset \mathcal T_{\mathrm{oos}}$, on which we
     evaluate the 0DTE straddle strategy in Section~\ref{sec:rh_econ}, consists of
     \[

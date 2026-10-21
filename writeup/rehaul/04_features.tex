@@ -69,20 +69,28 @@
     % \]
     % \item Here, $k$ counts retained intervals across the full intraday grid $\mathcal{G}$ (including overnight
     %   sessions), while the closing-interval specification restricts estimation to the rows $i = c$.
-    where the horizon set of the intraday model is
+    % 2026-10-19 (user): parked -- base 5 across the paper. Was:
+    % where the horizon set of the intraday model is
+    % \[
+    %   \mathcal{K} = \{2^0, 2^1, \dots, 2^{11}\} \quad \text{(base 2, \rhdmNHorizonsPooled{} horizons)}.
+    % \]
+    where the horizon set is
     \[
-      \mathcal{K} = \{2^0, 2^1, \dots, 2^{11}\} \quad \text{(base 2, \rhdmNHorizonsPooled{} horizons)}.
+      \mathcal{K} = \{1, 5, 25, 125, 625, 3125\} \quad \text{(base 5, \rhdmNHorizonsPooled{} horizons)}.
     \]
   % 2026-10-17 (user, new-notes 6): parked -- unit of k stated (30-minute grid intervals, both models; har.py:48 rolls over the rows of the full bar series, lag_scope "global", segmentation.py:39-43). Was: "Here, $k$ counts retained intervals across the full intraday grid"
   % 2026-10-18 (user, new-notes 6): parked -- k in samples. Was: "\item Here, $k$ counts retained 30-minute intervals of the full intraday grid $\mathcal{G}$ (including overnight"
   \item Here, $k$ counts samples, the retained intervals of the full intraday grid $\mathcal{G}$ (including overnight
-    sessions), in the intraday and the closing-interval model alike. The horizon set of the closing-interval specification is given in
-    Appendix~\ref{app:rh_closing_predictors}.
+    % 2026-10-19 (user): parked -- base 5 across the paper; both models share the horizon set. Was: "... The horizon set of the closing-interval specification is given in Appendix~\ref{app:rh_closing_predictors}."
+    sessions), in the intraday and the closing-interval model alike. The closing-interval specification uses the same horizon set
+    (Appendix~\ref{app:rh_closing_predictors}).
 
     % har.py:18-48: rolling(k, min_periods=1).mean().shift(1). Per bar: production base-5 ladder, lag_scope
     % "global" (experiments/capture_design_close.py:116-117; segmentation.py:39-43), so k is in BARS, not
     % sessions (the previous bullet said sessions). Pooled: HAR_BASE=2 gives 1..2048 (specs/causal_tune_linear.py:
     % 198-209). sections/data_prep.tex eq:dp_har writes base 2 for the per-bar ladder: wrong, it is base 5.
+    % 2026-10-19 (user): base 5 across the paper -- the pooled models are refitted at base 5 (HAR_BASE unset, the
+    % production ladder); the base-2 pooled fits of record (a0, the pooled trees of 7 October) are replaced.
   \item In addition, we compute the corresponding $k$-interval trailing averages of the availability indicator,
     denoted $\bar a^{(k)}_{t,i}$.
   % 2026-10-17 (user, E6): parked -- "zero-inflated" -> "mode-inflated". Was: "... $\bar\chi^{(k)}_{t,i}$, for 7 zero-inflated series."
@@ -101,18 +109,32 @@ Note (2026-10-17, user): the count of 7 comes from the closing-interval panel an
     ($i = c$ for the scored forecast), writing $u^{(k)}_t$ for series $u$ averaged over $k$
     % 2026-10-17 (user, new-notes 6): parked -- unit of k stated (30-minute grid intervals, both models; har.py:48 rolls over the rows of the full bar series, lag_scope "global", segmentation.py:39-43). Was: "averaged over the 16 intervals ending at 15:30"
     % 2026-10-18 (user, new-notes 6): parked -- k in samples. Was: "intervals; for instance, $\mathrm{VIX}^{(16)}_t$ denotes the transformed VIX series averaged over the 16"
-    samples; for instance, $\mathrm{VIX}^{(16)}_t$ denotes the transformed VIX series averaged over the 16
+    % 2026-10-19 (user): parked -- base 5 across the paper (16 is not a base-5 horizon; 25 is). Was: "samples; for instance, $\mathrm{VIX}^{(16)}_t$ denotes the transformed VIX series averaged over the 16"
+    % 2026-10-19 (user): series names through \ser (raw names for now). Was: "$\mathrm{VIX}^{(16)}_t$"
+    samples; for instance, $\ser{vix}{\mathrm{VIX}}^{(25)}_t$ denotes the transformed VIX series averaged over the 25
     % 2026-10-18 (user, new-notes 6): parked -- k in samples. Was: "30-minute intervals ending at 15:30 on day $t$. We denote the implied volatility series by $\mathrm{VIX}$,"
+    % 2026-10-19 (user): raw parquet names for now. The \else branch is the sentence of the symbols, unchanged; the
+    % superscript convention does not carry over to the raw names, which end in _ewstock / _vwstock instead.
+    \ifrawseries
+    samples ending at 15:30 on day $t$. We refer to each exogenous series by its column name in the data
+    (Table~\ref{tab:rh_dm_dictionary}): the implied volatility series are \sername{vix}, \sername{vix3m}, and
+    \sername{vvix}; the suffixes \sername{_ewstock} and \sername{_vwstock} mark the equal- and value-weighted
+    constituent aggregates (e.g., \sername{ofi_ewstock}, \sername{sumret2_vwstock}, and
+    \sername{spread_vwstock}); and the announcement predictors are \sername{fomc_release}, \sername{fomc_day},
+    \sername{fomc_until_inv}, and \sername{fomc_since_inv}, while writing
+    \else
     samples ending at 15:30 on day $t$. We denote the implied volatility series by $\mathrm{VIX}$,
     $\mathrm{VIX3M}$, and $\mathrm{VVIX}$, label equal- and value-weighted constituent aggregates with the
     superscripts EW and VW (e.g., $\mathrm{OFI}^{\mathrm{EW}}$, $\RV^{\mathrm{VW}}$, and
     $\mathrm{Spread}^{\mathrm{VW}}$), and denote the announcement predictors by $\mathrm{FOMC}$, while writing
+    \fi
     $\bar a^{(k)}_t(u)$ and $\bar\chi^{(k)}_t(u)$ for the trailing averages of the availability and activity
     indicators.
   \end{itemize}
 \item \textbf{HAR benchmark.} The HAR benchmark predictor set consists of the HAR components of the target,
   $\bar y^{(k)}_{t,i}$—constructed via the same trailing-average operator as $\bar u^{(k)}_{t,i}$ applied to the
   % 2026-10-17 (user, new-notes 7): parked -- the intraday model has \rhdmNHorizonsPooled{} HAR columns (base-2 ladder, specs/causal_tune_linear.py:197-209). Was: "winsorized target (6 columns)"
+  % 2026-10-19 (user): base 5 across the paper -- \rhdmNHorizonsPooled{} is now the base-5 count (the ladder of the closing-interval model).
   winsorized target (\rhdmNHorizonsPooled{} columns in the intraday model)—together with the calendar vector $\bm D_{t,i}$, which comprises five
   day-of-the-week dummy variables, the hour of the interval-end timestamp, and the overnight session indicator.
   % 2026-10-16 (formula pass): parked -- bar y^{(k)}_{t,i} = (1/k) sum_{j=1}^{k} tilde y_{t,i-j} repeated the
@@ -337,9 +359,16 @@ The sentence above keeps three calendar pieces: the five weekday dummies, the ho
         + \rhdmNSeriesPooled \times \rhdmNHorizonsPooled + \rhdmNSeriesPooled \times \rhdmNHorizonsPooled
         + \rhdmNActivePooled \times \rhdmNHorizonsPooled .
     \]
+    % 2026-10-19 (user): parked -- the pooled model includes the FOMC series (author decision). Was: "Here, the $\rhdmNSeriesPooled$ intraday exogenous series encompass every category in Section~\ref{sec:rh_data} except the FOMC group (which accounts for the remaining $\bkSizeFomc$ series)."
     Here, the $\rhdmNSeriesPooled$ intraday exogenous series encompass every category in
-    Section~\ref{sec:rh_data} except the FOMC group (which accounts for the remaining $\bkSizeFomc$ series).
+    Section~\ref{sec:rh_data}, the FOMC group ($\bkSizeFomc$ series) included.
     Appendix Table~\ref{tab:rh_dm_dictionary} lists each individual series.
+    % 2026-10-19 (user): base 5 across the paper -- the column counts above are recomputed on the base-5 pooled panel.
+    % 2026-10-19 (user): parked -- the pooled model includes the FOMC series (author decision); E35 recounted on the panel with FOMC. Was:
+    %     \editc{orange}{E35}{Decision: base 5 across the paper (user, 2026-10-19).\\Problem: $\rhdmNColsPooled$ and the formula above now count the base-5 pooled panel built on 19 October 2026, before the cuts of notes E6 and E9; no printed forecast was fitted on that panel.\\
+    % The earlier pooled trees and the intraday OLS were fitted on the base-2 panel, 1,144 columns from 12 horizons (note E34). The base-5 panel (experiments/pooled\_trees\_base5.py, design stage: the repo's own preparation with the data fixes of 15 October 2026 and the causal mode rule) has $\rhdmNHorizonsPooled$ horizons and $\rhdmNEdgePooled$ interaction columns. Under the causal rule $\rhdmNActivePooled$ series carry an activity indicator, the number of observations and the three StockTwits series, where the old full-sample rule gave 5, the number of observations and the four volatility-demand series (note S4a). The design of the base-5 tree refits also drops the activity averages (E6) and the calendar after the overnight indicator together with the interaction columns (E9): 529 columns on all $\rhdmNIntervals$ intervals and 528 on the 13 regular-hours bars, where the overnight indicator is dropped too. Those two counts have no macro yet.}
+    \editc{orange}{E35}{Decision: base 5 across the paper, and the pooled model includes the FOMC series (user, 2026-10-19).\\Problem: $\rhdmNColsPooled$ and the formula above now count the base-5 pooled panel with the FOMC series, built on 19 October 2026, before the cuts of notes E6 and E9; no printed forecast was fitted on that panel.\\
+The earlier pooled trees and the intraday OLS were fitted on the base-2 panel without the FOMC series, 1,144 columns from 12 horizons and 43 series (note E34). The base-5 panel (experiments/pooled\_trees\_base5.py, design stage: the repo's own preparation with the data fixes of 15 October 2026, the FOMC calendar fix and the causal mode rule) has $\rhdmNHorizonsPooled$ horizons, $\rhdmNSeriesPooled$ series and $\rhdmNEdgePooled$ interaction columns. Under the causal rule $\rhdmNActivePooled$ series carry an activity indicator, the number of observations, the three StockTwits series and the FOMC statement-interval and statement-day dummies, where the old full-sample rule gave 5 on the panel without FOMC, the number of observations and the four volatility-demand series (note S4a). With the activity averages dropped (E6) and the calendar cut after the overnight indicator together with the interaction columns (E9), the design has 577 columns on all $\rhdmNIntervals$ intervals and 576 on the 13 regular-hours bars, where the overnight indicator is dropped too. Those two counts have no macro yet.}
     % 2026-10-17 (user, E5): parked -- the series are listed in the appendix table, and the FOMC group is the
     % set left out of the intraday matrix. Was:
     % \editc{blue}{E5}{Decision: list the series in the intraday matrix.\\Problem: the $\rhdmNColsPooled$ intraday columns are built from $\rhdmNSeriesPooled$ of the $\rhfiNExog$ series, and neither the series that are in nor the series that are left out are named.\\

@@ -15,14 +15,14 @@
 \newcommand{\rhdmHeldOut}{413}  % later SPXW expirations held out: full trading days
 \newcommand{\rhdmHeldOutExpirations}{419}  % later SPXW expirations held out: all, early closes included
 \newcommand{\rhdmSpxwExpirations}{1{,}291}  % SPXW expirations in the option file
-\newcommand{\rhdmNColsPooled}{1{,}144}  % columns of the pooled intraday model's full predictor set
-\newcommand{\rhdmNSeriesPooled}{43}  % exogenous series in the pooled panel (pre-FOMC)
-\newcommand{\rhdmNHorizonsPooled}{12}  % HAR horizons, pooled intraday model (base 2)
+\newcommand{\rhdmNColsPooled}{634}  % columns of the pooled intraday model's full predictor set
+\newcommand{\rhdmNSeriesPooled}{47}  % exogenous series in the pooled panel (FOMC included)
+\newcommand{\rhdmNHorizonsPooled}{6}  % HAR horizons, intraday model (base 5)
 \newcommand{\rhdmNHorizonsClose}{6}  % HAR horizons, closing-interval model (base 5)
 \newcommand{\rhdmNCalendar}{16}  % calendar-dummy columns (both models)
-\newcommand{\rhdmNEdgePooled}{24}  % HAR x opening/closing-interval dummy columns (pooled)
+\newcommand{\rhdmNEdgePooled}{12}  % HAR x opening/closing-interval dummy columns (pooled)
 \newcommand{\rhdmNActive}{7}  % series with an activity indicator, closing-interval model
-\newcommand{\rhdmNActivePooled}{5}  % series with an activity indicator, pooled panel
+\newcommand{\rhdmNActivePooled}{6}  % series with an activity indicator, pooled panel
 \newcommand{\rhdmValTail}{125}  % validation sample n_val, observations (the gap is \cmPtEmbargo)
 \newcommand{\rhdmRetuneFolds}{two}  % validation folds of the linear light re-tune
 \newcommand{\rhdmRfTrial}{255}  % the random forest's fixed configuration: Optuna trial number

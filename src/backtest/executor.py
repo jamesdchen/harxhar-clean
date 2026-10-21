@@ -139,6 +139,34 @@ BARS_PER_SESSION: int = 46
 # the 16:00 design started 2010-07-12 instead of 1998-06-04).
 BURNIN_IN_BAR_SPACE: bool = True
 
+# -- 2026-10-19 (user: pooled linear rerun; writeup/rehaul/04_features.tex notes E6, E9)
+# Column flags of the rerun design.  Both default False: every existing path keeps its columns,
+# bit for bit; the pooled rerun (experiments/pool_linear_pretune.py --rerun) sets both True.
+#
+# DROP_ACTIVITY_MA (E6, 04_features.tex:95): the trailing averages of the activity indicators,
+# the chi-bar blocks (*_active_ma_*), leave the design.  The _active flags are still built by
+# load_and_transform (the scale guards' mode tests read them); only their HAR averages are not
+# generated.
+DROP_ACTIVITY_MA: bool = False
+# CALENDAR_THROUGH_OVERNIGHT (E9, 04_features.tex:126; 99_author_notes.tex:31): the calendar
+# stops at the overnight indicator -- DOW_0 .. DOW_4, hour, is_overnight.  Out of the design:
+# is_open, is_close, the expiry / month-end / quarter-end columns of add_expiry_features, and the
+# HAR x open/close products har_ma_*_x_open / _x_close.  (is_open / is_close stay in the frame
+# as columns; add_expiry_features is still called, its columns are not passed on.)
+CALENDAR_THROUGH_OVERNIGHT: bool = False
+# DROP_OVERNIGHT_INDICATOR (2026-10-19, the 13-bar rerun; 99_author_notes.tex:31, E9 + E15): is_overnight
+# leaves the design too.  The note keeps it only if the overnight intervals stay in the training
+# sample; on the 13 regular-hours bars (end stamps 10:00 .. 16:00) it is 1 on the 16:00 bar only.  A
+# flag, not a rule read off the sample: the 13-bar run sets it, every other path keeps the column.
+DROP_OVERNIGHT_INDICATOR: bool = False
+# LEAN_GLOBAL_LAGS (2026-10-19, the 13-bar rerun): a global-lag segment computes each trailing average
+# on the full bar grid exactly as generate_har_features does (the same pandas rolling mean and shift
+# on the same full column) but keeps only the rows of the segment, column by column.  Same values,
+# bit for bit; the full-grid frame of every trailing average is never held (the all-features
+# design on the base-2 ladder, 1,080 columns x 303,442 intervals, passed 12.5 GB and was killed on
+# a 15 GB machine).  Off: the full-grid frame, as before.
+LEAN_GLOBAL_LAGS: bool = False
+
 
 def early_close_post_bars(t: pd.Series) -> np.ndarray:
     """Bars ending 13:30 .. 17:00 ET on an NYSE early-close day (src.data.loading calendar)."""
@@ -651,13 +679,56 @@ def _backtest_and_save(
     print(f"Saved {len(results)} rows -> {output_file}")
 
 
+class _DeferredHar:
+    """LEAN_GLOBAL_LAGS: stands in for generate_har_features -- the names and the (column, lag) list in
+    its order, no values; :meth:`attach` adds the values on the rows of a slice."""
+
+    def __init__(self) -> None:
+        self.spec: list[tuple[str, int, str]] = []
+
+    def __call__(self, df, target_col="adj_RV", exog_cols=None, lags=None):
+        lags = resolve_har_lags() if lags is None else list(lags)
+        self.spec = [
+            (col, lag, f"har_ma_{lag}" if col == target_col else f"{col}_ma_{lag}")
+            for col in [target_col] + (exog_cols or [])
+            for lag in lags
+        ]
+        return df, [name for _, _, name in self.spec]
+
+    def attach(self, full: pd.DataFrame, seg_df: pd.DataFrame) -> pd.DataFrame:
+        """``seg_df`` (a slice of ``full`` carrying its row positions in ``_row``) with every trailing
+        average of the spec, computed on ``full`` (generate_har_features' operations) at those rows."""
+        rows = seg_df["_row"].to_numpy()
+        vals = np.empty((len(rows), len(self.spec)), dtype=np.float64, order="F")
+        for j, (col, lag, _) in enumerate(self.spec):
+            vals[:, j] = (
+                full[col]
+                .rolling(window=lag, min_periods=1)
+                .mean()
+                .shift(1)
+                .to_numpy()[rows]
+            )
+        har = pd.DataFrame(
+            vals, index=seg_df.index, columns=[n for _, _, n in self.spec]
+        )
+        return pd.concat([seg_df.drop(columns="_row"), har], axis=1)
+
+
 def _build_har_and_calendar(
-    df, exog_cols, add_calendar, har_lags=None, session_edge=True
+    df, exog_cols, add_calendar, har_lags=None, session_edge=True, har_builder=None
 ):
-    df, har_names = generate_har_features(
+    if DROP_ACTIVITY_MA:
+        # 2026-10-19 (user, E6): no trailing averages of the activity indicators
+        exog_cols = [c for c in exog_cols if not c.endswith("_active")]
+    df, har_names = (generate_har_features if har_builder is None else har_builder)(
         df, target_col="adj_RV", exog_cols=exog_cols, lags=har_lags
     )
-    if add_calendar:
+    if add_calendar and CALENDAR_THROUGH_OVERNIGHT:
+        # 2026-10-19 (user, E9): the calendar stops at the overnight indicator
+        cal = add_calendar_features(df)
+        add_expiry_features(df)  # columns built (unchanged frame), not passed on
+        feature_names = har_names + cal[: cal.index("is_overnight") + 1]
+    elif add_calendar:
         # add_expiry_features after add_calendar_features: it reads ``is_close`` to build the
         # quad-witch closing-auction gate, which is where the index-rebalance flow actually prints.
         feature_names = har_names + add_calendar_features(df)
@@ -685,6 +756,9 @@ def _build_har_and_calendar(
                     feature_names.append(name)
     else:
         feature_names = har_names
+    if DROP_OVERNIGHT_INDICATOR:
+        # 2026-10-19 (user, E9 + E15): no overnight indicator on a sample without overnight intervals
+        feature_names = [n for n in feature_names if n != "is_overnight"]
     return df, feature_names
 
 
@@ -926,9 +1000,21 @@ def _iter_TOD_segment(
     segments = list(SEGMENT_DEFINITIONS) if segment == "all" else [segment]
     base, ext = os.path.splitext(output_file)
 
+    deferred = None
     if lag_scope == "global":
+        if LEAN_GLOBAL_LAGS:
+            # 2026-10-19: the trailing averages on the full grid, kept on the segment's rows only
+            deferred = _DeferredHar()
+            df = df.copy()
+            df["_row"] = np.arange(len(df))
+        full = df if deferred is not None else None
         df, feature_names = _build_har_and_calendar(
-            df, exog_cols, add_calendar, har_lags, session_edge=False
+            df,
+            exog_cols,
+            add_calendar,
+            har_lags,
+            session_edge=False,
+            har_builder=deferred,
         )
         if BURNIN_IN_BAR_SPACE:
             # 2026-10-15 (user): the HAR burn-in on the bar grid, before the slice (run_executor
@@ -942,6 +1028,8 @@ def _iter_TOD_segment(
             # 2026-10-15 (user): no early-close session in a per-bar design; see DROP_EARLY_CLOSE_SESSIONS
             keep = ~pd.to_datetime(seg_df["t"]).dt.normalize().isin(early)
             seg_df = seg_df.loc[keep.to_numpy()].reset_index(drop=True)
+        if deferred is not None:
+            seg_df = deferred.attach(full, seg_df)
         if seg_df.empty:
             print(f"No data for segment '{seg_name}'. Skipping.")
             continue

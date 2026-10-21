@@ -54,6 +54,23 @@
   \endgroup
   \par\smallskip
 }
+% 2026-10-19 (user): the draft names each exogenous series by its raw parquet column name for now (the "% data field"
+% names of generated/rehaul_dm_dictionary.tex). \rawseriesfalse restores the symbols of the 15 October notation pass
+% (writeup/NOTATION_GUIDE_ADDENDA_2026-10-15.md, A.2). \ser{raw}{symbol}: the series' name; \serx{raw}{raw
+% superscript/subscript}{symbol}: for a symbol whose own superscript takes the horizon, e.g.
+% \serx{sumret2_ewstock}{^{(25)}}{\mathrm{RV}^{\mathrm{EW},(25)}}. In text mode the raw name may break after an
+% underscore (table cells); in math mode it is one box.
+\newif\ifrawseries
+\rawseriestrue
+\makeatletter
+\begingroup\catcode`\_=12
+\gdef\ser@split#1_#2\@nil{#1\if\relax\detokenize{#2}\relax\else\textunderscore\allowbreak\ser@split#2\@nil\fi}
+\endgroup
+\def\ser@text#1{{\normalfont\ttfamily\expandafter\ser@split\detokenize{#1_}\@nil}}
+\DeclareRobustCommand{\sername}[1]{\ifmmode\text{\ser@text{#1}}\else\ser@text{#1}\fi}
+\makeatother
+\newcommand{\ser}[2]{\ifrawseries\sername{#1}\else #2\fi}
+\newcommand{\serx}[3]{\ifrawseries\sername{#1}#2\else #3\fi}
 % 2026-10-15 (consolidation): every macro-only number file is loaded once, here. Each file holds definitions only (no
 % tables, checked), and no macro name is defined in two of them. The in-body \input lines of these files in the section
 % files are parked, so nothing is defined twice. Generators: make_table_close_main.py (close_main_numbers),
@@ -75,6 +92,8 @@
 \input{generated/close_compounding_numbers}
 \input{generated/close_shift_test_numbers}
 \input{generated/rehaul_oos_numbers}
+% 2026-10-20 (user): Table 1 from the pooled linear reruns, like for like (writeup/make_rehaul_oos_rerun.py).
+\input{generated/rehaul_oos_rerun_numbers}
 
 % 2026-10-15 (consolidation): parked -- "closing bar" is code jargon (guide section 1: the closing half hour).
 % \title{Forecasting Closing-Bar Variance for 0DTE SPX Options\\\large Bullet-point draft of the full paper}
@@ -97,12 +116,17 @@ paper}
 We investigate whether exogenous predictors improve intraday forecasts of a futures-based (E-mini) proxy for the realized variance of the S\&P 500
 over the closing half-hour interval (15:30--16:00 ET). Specifically, we estimate each model across all half-hour
 intervals and evaluate the forecast issued at 15:30 for the closing half hour over the out-of-sample period from
-\rhoosSpanStart{} to \rhoosSpanEnd{} ($T_{\mathrm{oos}} = \rhoosDays$ trading days). We compare a benchmark
+% 2026-10-20 (user): parked -- Table 1 scored from 2012 (TABLE1_SWITCH.md, approved). Was: "\rhoosSpanStart{} to \rhoosSpanEnd{} ($T_{\mathrm{oos}} = \rhoosDays$ trading days). We compare a benchmark"
+\rhoosSpanStart{} to \rhoosSpanEnd{} ($T_{\mathrm{oos}} = \rhoosDays$ trading days), and the forecasts of every
+regular-hours bar from \rhorSpanStart{} to \rhorSpanEnd{} (\rhorDays{} trading days). We compare a benchmark
 heterogeneous autoregressive (HAR) predictor set against an augmented predictor set that incorporates exogenous
 series. Under the QLIKE loss, the full predictor set yields lower average out-of-sample loss than the HAR
 benchmark across all \rhrAfPoolPairs{} intraday model classes, with \rhrAfPoolLowerSig{} of the
-\rhrAfPoolPairs{} reductions statistically significant at the 5\% level, whereas mean squared error does not
-confirm these gains. Furthermore, although every intraday specification remains less accurate under QLIKE than a
+% 2026-10-19 (user): parked -- the MSE clause, with the QLIKE/squared-error divergence bullet of 06_results.tex. Was:
+% "\rhrAfPoolPairs{} reductions statistically significant at the 5\% level, whereas mean squared error does not
+% confirm these gains. Furthermore, ..."
+\rhrAfPoolPairs{} reductions statistically significant at the 5\% level. Furthermore, although every intraday
+specification remains less accurate under QLIKE than a
 % 2026-10-18 (user, new-notes 11): parked -- a HAR-type model with its horizons, not a daily HAR regression; still the closing-interval OLS the comparison uses (make_rehaul_results.py:1276). Was: "daily HAR regression estimated solely on the closing interval, incorporating the exogenous predictors narrows"
 HAR-type model in the spirit of \citet{Corsi2009}, estimated by OLS on the closing-interval observations of the target's trailing averages over $k \in \{1, 5, 25, 125, 625, 3125\}$ samples plus calendar columns, incorporating the exogenous predictors narrows
 this gap across all model classes. In an economic application to zero-days-to-expiration (0DTE) S\&P 500
@@ -115,6 +139,11 @@ predictor set than under the HAR benchmark across every intraday model class.
 \textbf{\textcolor{orange!75!black}{Orange}}: a sentence does not match the computation behind a printed number.\\
 \textbf{\textcolor{blue!75!black}{Blue}}: a reader cannot recover the input or the rule.\\
 The first line is the decision. The second line is the problem. The rest is the exposition.}
+
+% 2026-10-19 (user): base 5 across the paper -- the fitted numbers that still come from base-2 designs.
+\editc{orange}{E34}{Decision: base 5 across the paper (user, 2026-10-19).\\Problem: the pooled trees (LightGBM, XGBoost and the random forest, on every predictor set) and the intraday OLS on the HAR benchmark (note a of Table~\ref{tab:rh_oos}) were fitted on the base-2 panel, horizons $\{1, 2, 4, \dots, 2048\}$. Every number built from them still comes from that design: the counts of intraday model classes in this abstract and in the introduction (\rhrAfPoolPairs{} classes, \rhrAfPoolLowerSig{} significant), the pooled tree and intraday OLS rows of Table~\ref{tab:rh_oos}, and the pooled comparisons of Sections~\ref{sec:rh_results} and~\ref{sec:rh_econ} and of the appendix.\\
+The pooled ridge, lasso and elastic net printed here were already fitted at base 5 (experiments/pool\_linear\_pretune.py uses the production horizon set). % 2026-10-19 (user): parked -- "don't do the trees". Was: "The trees are refitted at base 5 on the new pooled design ... (note E15)."
+The pooled trees are not refitted (user, 2026-10-19: not in this pass); the base-5 design for a refit exists (experiments/pooled\_trees\_base5.py, design stage; results/pooled\_trees\_base5\_2026-10-19\_48 and \_13 hold its column lists). The intraday OLS is replaced by the pooled OLS of the linear reruns. The generators of these numbers (make\_rehaul\_results.py, make\_rehaul\_oos\_table.py, make\_rehaul\_economics.py) still read results/pooled\_trees\_2026-10-07; switch them after the refits.}
 
 % 2026-10-16 (user): introduction restored. It states the exogenous-feature question.
 \input{rehaul/01_introduction}

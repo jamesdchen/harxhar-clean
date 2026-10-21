@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 23.9) (preloaded format=pdflatex 2025.7.14)  20 OCT 2026 16:48
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 23.9) (preloaded format=pdflatex 2025.7.14)  20 OCT 2026 17:59
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -480,8 +480,9 @@ Package uniquecounter Info: New unique counter `rerunfilecheck' on input line 2
 (generated/buckets_numbers.tex) (generated/close_murphy_splits_numbers.tex)
 (generated/close_compounding_numbers.tex)
 (generated/close_shift_test_numbers.tex) (generated/rehaul_oos_numbers.tex)
-LaTeX Font Info:    Trying to load font information for T1+lmr on input line 91
-.
+(generated/rehaul_oos_rerun_numbers.tex)
+LaTeX Font Info:    Trying to load font information for T1+lmr on input line 11
+0.
 
 (C:\Users\james\AppData\Local\Programs\MiKTeX\tex/latex/lm\t1lmr.fd
 File: t1lmr.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
@@ -494,24 +495,24 @@ File: l3backend-pdftex.def 2023-04-19 L3 backend support: PDF output (pdfTeX)
 ) (paper_rehaul.aux)
 \openout1 = `paper_rehaul.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 91.
-LaTeX Font Info:    ... okay on input line 91.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 91.
-LaTeX Font Info:    ... okay on input line 91.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 91.
-LaTeX Font Info:    ... okay on input line 91.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 91.
-LaTeX Font Info:    ... okay on input line 91.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 91.
-LaTeX Font Info:    ... okay on input line 91.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 91.
-LaTeX Font Info:    ... okay on input line 91.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 91.
-LaTeX Font Info:    ... okay on input line 91.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 91.
-LaTeX Font Info:    ... okay on input line 91.
-LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 91.
-LaTeX Font Info:    ... okay on input line 91.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 110.
+LaTeX Font Info:    ... okay on input line 110.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 110.
+LaTeX Font Info:    ... okay on input line 110.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 110.
+LaTeX Font Info:    ... okay on input line 110.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 110.
+LaTeX Font Info:    ... okay on input line 110.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 110.
+LaTeX Font Info:    ... okay on input line 110.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 110.
+LaTeX Font Info:    ... okay on input line 110.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 110.
+LaTeX Font Info:    ... okay on input line 110.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 110.
+LaTeX Font Info:    ... okay on input line 110.
+LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 110.
+LaTeX Font Info:    ... okay on input line 110.
 
 *geometry* driver: auto-detecting
 *geometry* detected driver: pdftex
@@ -582,62 +583,64 @@ Package: ltcaption 2021/01/08 v1.4c longtable captions (AR)
 )
 Package caption Info: threeparttable package is loaded.
 Package caption Info: End \AtBeginDocument code.
-Package hyperref Info: Link coloring OFF on input line 91.
+Package hyperref Info: Link coloring OFF on input line 110.
 
 (paper_rehaul.out) (paper_rehaul.out)
 \@outlinefile=\write3
 \openout3 = `paper_rehaul.out'.
 
-LaTeX Font Info:    Trying to load font information for OT1+lmr on input line 9
-3.
+LaTeX Font Info:    Trying to load font information for OT1+lmr on input line 1
+12.
 
 (C:\Users\james\AppData\Local\Programs\MiKTeX\tex/latex/lm\ot1lmr.fd
 File: ot1lmr.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
-LaTeX Font Info:    Trying to load font information for OML+lmm on input line 9
-3.
+LaTeX Font Info:    Trying to load font information for OML+lmm on input line 1
+12.
 
 (C:\Users\james\AppData\Local\Programs\MiKTeX\tex/latex/lm\omllmm.fd
 File: omllmm.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
 LaTeX Font Info:    Trying to load font information for OMS+lmsy on input line 
-93.
+112.
 
 (C:\Users\james\AppData\Local\Programs\MiKTeX\tex/latex/lm\omslmsy.fd
 File: omslmsy.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
 LaTeX Font Info:    Trying to load font information for OMX+lmex on input line 
-93.
+112.
 
 (C:\Users\james\AppData\Local\Programs\MiKTeX\tex/latex/lm\omxlmex.fd
 File: omxlmex.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <12> on input line 93.
+(Font)              <12> on input line 112.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <8> on input line 93.
+(Font)              <8> on input line 112.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <6> on input line 93.
-LaTeX Font Info:    Trying to load font information for U+msa on input line 93.
-
+(Font)              <6> on input line 112.
+LaTeX Font Info:    Trying to load font information for U+msa on input line 112
+.
 
 (C:\Users\james\AppData\Local\Programs\MiKTeX\tex/latex/amsfonts\umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
-LaTeX Font Info:    Trying to load font information for U+msb on input line 93.
-
+LaTeX Font Info:    Trying to load font information for U+msb on input line 112
+.
 
 (C:\Users\james\AppData\Local\Programs\MiKTeX\tex/latex/amsfonts\umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <10> on input line 100.
+(Font)              <10> on input line 120.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <7> on input line 100.
+(Font)              <7> on input line 120.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <5> on input line 100.
+(Font)              <5> on input line 120.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <10.95> on input line 117.
+(Font)              <10.95> on input line 141.
+LaTeX Font Info:    External font `lmex10' loaded for size
+(Font)              <9> on input line 146.
 
 (rehaul/01_introduction.tex
 LaTeX Font Info:    Trying to load font information for TS1+lmr on input line 2
@@ -651,40 +654,42 @@ File: ts1lmr.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 s/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-ec.enc}{C:/Users/james/Ap
 pData/Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-mathit.enc}{C:/Users/james/Ap
 pData/Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-rm.enc}{C:/Users/james/AppDat
-a/Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-mathsy.enc}{C:/Users/james/AppDat
-a/Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-ts1.enc}]
-LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <9> on input line 85.
-) (rehaul/02_related_work.tex
-[2] [3]) (rehaul/03_data.tex [4{C:/Users/james/AppData/Local/Programs/MiKTeX/fo
-nts/enc/dvips/lm/lm-mathex.enc}] [5] [6]) (rehaul/03_data_floats.tex)
-(rehaul/04_features.tex [7] [8] [9] [10]) (rehaul/04_features_floats.tex)
-(rehaul/05_methods.tex [11] [12] [13]
-LaTeX Font Info:    Trying to load font information for T1+lmtt on input line 2
-64.
+a/Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-mathsy.enc}] [2{C:/Users/james/Ap
+pData/Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-ts1.enc}])
+(rehaul/02_related_work.tex [3]) (rehaul/03_data.tex [4{C:/Users/james/AppData/
+Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-mathex.enc}]
+LaTeX Font Info:    Trying to load font information for T1+lmtt on input line 6
+8.
 
 (C:\Users\james\AppData\Local\Programs\MiKTeX\tex/latex/lm\t1lmtt.fd
 File: t1lmtt.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
-) [14]
-[15]) (rehaul/05_methods_floats.tex) (rehaul/06_results.tex [16] [17] [18])
-(rehaul/06_results_floats.tex (generated/rehaul_results_oos.tex))
-(rehaul/08_feature_importance.tex) (rehaul/08_feature_importance_floats.tex)
-(rehaul/08b_fi_measures_floats.tex) (rehaul/07_economics.tex [19] [20] [21]
-[22] [23] [24]) (rehaul/07_economics_floats.tex) [25] (rehaul/09_conclusion.tex
-) (paper_rehaul.bbl [26
+) [5]
+[6] [7]) (rehaul/03_data_floats.tex) (rehaul/04_features.tex [8] [9] [10]
+[11]) (rehaul/04_features_floats.tex) (rehaul/05_methods.tex [12] [13] [14]
+[15] [16]) (rehaul/05_methods_floats.tex) (rehaul/06_results.tex [17] [18])
+(rehaul/06_results_floats.tex (generated/rehaul_results_oos.tex
+Overfull \hbox (0.96022pt too wide) in alignment at lines 11--23
+[] [] [] [] [] [] [] [] 
+ []
+
+)) (rehaul/08_feature_importance.tex [19])
+(rehaul/08_feature_importance_floats.tex) (rehaul/08b_fi_measures_floats.tex)
+(rehaul/07_economics.tex [20] [21] [22] [23] [24])
+(rehaul/07_economics_floats.tex) [25] (rehaul/09_conclusion.tex)
+(paper_rehaul.bbl [26
 
 ] [27] [28] [29]) (rehaul/10_appendix.tex [30] [31]
 [32] [33] [34] [35] [36] [37] [38] [39]
-(generated/rehaul_results_oos_last30.tex) [40] [41])
-(rehaul/10_appendix_floats.tex (generated/rehaul_dm_samples.tex)
-(generated/rehaul_dm_hyper.tex) [42] [43] (generated/rehaul_dm_dictionary.tex
-[44
+(generated/rehaul_results_oos_last30.tex) [40]) (rehaul/10_appendix_floats.tex
+(generated/rehaul_dm_samples.tex) (generated/rehaul_dm_hyper.tex) [41] [42]
+[43] (generated/rehaul_dm_dictionary.tex [44
 
 
-] [45] [46] [47])) (rehaul/10_statistical_tests.tex [48
+] [45] [46] [47]))
+(rehaul/10_statistical_tests.tex [48
 
-])
-(rehaul/99_author_notes.tex [49]) [50] (paper_rehaul.aux)
+]) (rehaul/99_author_notes.tex [49])
+[50] (paper_rehaul.aux)
  ***********
 LaTeX2e <2023-06-01> patch level 1
 L3 programming layer <2023-08-29>
@@ -693,13 +698,13 @@ Package rerunfilecheck Info: File `paper_rehaul.out' has not changed.
 (rerunfilecheck)             Checksum: 0073728DBC65C6830DCB11591D7C72E0;6236.
  ) 
 Here is how much of TeX's memory you used:
- 15862 strings out of 475248
- 259060 string characters out of 5757813
- 2002801 words of memory out of 5000000
- 36854 multiletter control sequences out of 15000+600000
- 675991 words of font info for 123 fonts, out of 8000000 for 9000
+ 15922 strings out of 475248
+ 260099 string characters out of 5757813
+ 2001801 words of memory out of 5000000
+ 36909 multiletter control sequences out of 15000+600000
+ 680575 words of font info for 129 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 75i,17n,79p,1650b,888s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 75i,17n,79p,2089b,812s stack positions out of 10000i,1000n,20000p,200000b,200000s
 <C:/Users/james/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmbx10.pf
 b><C:/Users/james/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmbx12.pf
 b><C:/Users/james/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmbx9.pfb
@@ -727,9 +732,9 @@ ppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmsy9.pfb><C:/Users/james/Ap
 pData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmtt10.pfb><C:/Users/james/Ap
 pData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmtt9.pfb><C:/Users/james/App
 Data/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/symbols/msbm10.pfb>
-Output written on paper_rehaul.pdf (50 pages, 843251 bytes).
+Output written on paper_rehaul.pdf (50 pages, 846513 bytes).
 PDF statistics:
- 1052 PDF objects out of 1200 (max. 8388607)
+ 1071 PDF objects out of 1200 (max. 8388607)
  168 named destinations out of 1000 (max. 500000)
  305 words of extra memory for PDF output out of 10000 (max. 10000000)
 

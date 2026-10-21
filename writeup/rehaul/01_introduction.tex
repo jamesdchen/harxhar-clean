@@ -56,8 +56,11 @@
     HAR benchmark predictor set, estimated exclusively on the closing interval (the closing-interval HAR benchmark; see
     Sections~\ref{sec:rh_methods_models} and~\ref{sec:rh_results_eval}).
   \item We evaluate predictive accuracy via the average QLIKE loss over the out-of-sample evaluation span
+  % 2026-10-20 (user): parked -- Table 1 scored from 2012 (TABLE1_SWITCH.md, approved). Was: "$\mathcal T_{\mathrm{oos}}$ from \rhoosSpanStart{} to \rhoosSpanEnd{} ($T_{\mathrm{oos}} = \rhoosDays$ trading days; see Section~\ref{sec:rh_results_eval})."
     $\mathcal T_{\mathrm{oos}}$ from \rhoosSpanStart{} to \rhoosSpanEnd{} ($T_{\mathrm{oos}} = \rhoosDays$
-    trading days; see Section~\ref{sec:rh_results_eval}).
+    trading days; see Section~\ref{sec:rh_results_eval}); the accuracy of the pooled linear models in
+    Table~\ref{tab:rh_oos} is scored on every regular-hours bar from \rhorSpanStart{} to \rhorSpanEnd{}
+    (\rhorDays{} trading days, a rolling window of \rhorWindowDays{} trading days).
   \end{itemize}
 \item \textbf{Main findings.}
   \begin{itemize}
@@ -66,9 +69,11 @@
     of these reductions statistically significant at the 5\% level; see Section~\ref{sec:rh_results}). The
     tree-based ensembles exhibit the largest relative improvements, while among the linear specifications, the
     elastic net achieves a statistically significant reduction.
-  \item In contrast, evaluation under mean squared error (MSE) does not corroborate these gains: the full
-    predictor set increases the average MSE in \rhrAfPoolMseHigher{} of the \rhrAfPoolPairs{} model classes,
-    and none of the MSE differences is statistically significant.
+  % 2026-10-19 (user): parked -- the MSE finding, with the QLIKE/squared-error divergence bullet of 06_results.tex
+  % and the abstract's MSE clause. Was:
+  % \item In contrast, evaluation under mean squared error (MSE) does not corroborate these gains: the full
+  %   predictor set increases the average MSE in \rhrAfPoolMseHigher{} of the \rhrAfPoolPairs{} model classes,
+  %   and none of the MSE differences is statistically significant.
   % 2026-10-17 (user): parked -- closing-interval material (relabeled: closing-interval HAR benchmark). Was: "than the closing-interval benchmark forecast."
   \item Every pooled intraday forecast incurs a higher average QLIKE loss than the closing-interval HAR
     benchmark. While this performance gap is statistically insignificant at the 5\% level for the linear models,

@@ -101,3 +101,19 @@ results/puffer_forecast_2026-10-12/**/*.i32
 results/puffer_forecast_2026-10-12/_work/data/
 results/puffer_forecast_2026-10-12/_work/colab/
 results/puffer_forecast_2026-10-12/review_build/*/
+
+# Overleaf sync script with the Overleaf git token (2026-10-20, user): never commit it; the tracked copy without
+# the token is writeup/overleaf_sync/overleaf_git.example.sh
+writeup/overleaf_sync/overleaf_git.sh
+# base-5 pooled prep cache (1.4 GB, rebuilt by experiments/pooled_trees_base5.py design)
+results/pooled_trees_base5_cache/
+# 2026-10-19 pooled linear rerun (48 intervals): design caches, walk outputs
+results/pooled_linear_rerun_2026-10-19_48/_work/
+# pooled linear 13-bar rerun (2026-10-19): design caches, walk intermediates (regenerable)
+results/pooled_linear_rerun_2026-10-19_13/_work/
+# pooled linear 13-bar rerun, 1,000-day window check (2026-10-20): design caches, walk intermediates (regenerable)
+results/pooled_linear_rerun_2026-10-20_13_w1000/_work/
+results/pooled_linear_rerun_2026-10-20_13_2012_w1000/_work/
+results/pooled_linear_rerun_2026-10-20_13_2012_w2000/_work/
+results/pooled_trees_rerun13_2026-10-20/_work/
+results/pooled_trees_rerun13_2026-10-20/*/_work/

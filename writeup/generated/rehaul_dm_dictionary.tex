@@ -4,13 +4,14 @@
 % transforms, and sources are unchanged.
 \providecommand{\rdmL}{\raggedright\let\\\tabularnewline}
 \providecommand{\rdmR}{\raggedleft\let\\\tabularnewline}
+\providecommand{\ser}[2]{#2}\providecommand{\serx}[3]{#3}
 
 \begin{landscape}
 \begingroup
 \small
 \setlength{\tabcolsep}{3.5pt}
 \setlength{\LTcapwidth}{\linewidth}
-\begin{longtable}{@{}>{\raggedright\arraybackslash}p{\dimexpr(\linewidth-10\tabcolsep)*110/1000\relax}>{\raggedright\arraybackslash}p{\dimexpr(\linewidth-10\tabcolsep)*440/1000\relax}>{\raggedright\arraybackslash}p{\dimexpr(\linewidth-10\tabcolsep)*120/1000\relax}>{\raggedright\arraybackslash}p{\dimexpr(\linewidth-10\tabcolsep)*100/1000\relax}>{\raggedright\arraybackslash}p{\dimexpr(\linewidth-10\tabcolsep)*110/1000\relax}>{\raggedright\arraybackslash}p{\dimexpr(\linewidth-10\tabcolsep)*120/1000\relax}@{}}
+\begin{longtable}{@{}>{\raggedright\arraybackslash}p{\dimexpr(\linewidth-10\tabcolsep)*120/1000\relax}>{\raggedright\arraybackslash}p{\dimexpr(\linewidth-10\tabcolsep)*430/1000\relax}>{\raggedright\arraybackslash}p{\dimexpr(\linewidth-10\tabcolsep)*120/1000\relax}>{\raggedright\arraybackslash}p{\dimexpr(\linewidth-10\tabcolsep)*100/1000\relax}>{\raggedright\arraybackslash}p{\dimexpr(\linewidth-10\tabcolsep)*110/1000\relax}>{\raggedright\arraybackslash}p{\dimexpr(\linewidth-10\tabcolsep)*120/1000\relax}@{}}
 \caption{Predictor definitions.}\label{tab:rh_dm_dictionary}\\
 \toprule
 Variable & Description & Source & \makecell[lb]{Diurnal \\ adjustment} & \makecell[lb]{Transform \\ $g(v)$} & \makecell[lb]{Predictors, \\ $k \in \mathcal K$} \\
@@ -25,70 +26,70 @@ Variable & Description & Source & \makecell[lb]{Diurnal \\ adjustment} & \makece
 \multicolumn{6}{r@{}}{\textit{continued on the next page}}\\
 \endfoot
 \bottomrule
-\multicolumn{6}{@{}p{\linewidth}@{}}{\footnotesize\raggedright\rule{0pt}{2.5ex}\textit{Notes:} Each series $u$ enters as $u^{(k)}$, its adjusted, transformed and winsorized value averaged over the previous $k$ intervals, and as $\bar a^{(k)}(u)$, the share of those intervals on which it was observed; series with an activity indicator also enter as $\bar\chi^{(k)}(u)$, the share off their mode (the mode and its share of intervals are in the description). $\mathcal K = \{1, 5, 25, 125, 625, 3125\}$ in the closing-interval model and $\{1, 2, 4, \dots, 2048\}$ in the intraday model, which is every group here except FOMC (Section~\ref{sec:rh_data}). Diurnal adjustment: division by the trailing same-interval mean (mean) or standard deviation (s.d.); $g$: the variance-stabilizing map; the volatility-demand series take $\operatorname{asinh}(u_{t,i} / \kappa_{t,i})$ in place of both (Section~\ref{sec:rh_predictors}). A series is signed if it has any negative value: $\mathrm{Spread}^{\mathrm{VW}}$ has a single negative value (2018-11-12 11:00 ET) and so takes $g(v) = v$ and the s.d.\ adjustment, where $\mathrm{Spread}^{\mathrm{EW}}$ takes $\log v$ and the mean. Unnormalized and unscaled: without the factors $\sqrt{N_{t,i}} / \RV_{t,i}^{3/2}$ (skewness), $N_{t,i}/3$ (quarticity) and $\pi/2$ (bipower variation).}\\
+\multicolumn{6}{@{}p{\linewidth}@{}}{\footnotesize\raggedright\rule{0pt}{2.5ex}\textit{Notes:} Each series $u$ enters as $u^{(k)}$, its adjusted, transformed and winsorized value averaged over the previous $k$ intervals, and as $\bar a^{(k)}(u)$, the share of those intervals on which it was observed; series with an activity indicator also enter as $\bar\chi^{(k)}(u)$, the share off their mode (the mode and its share of intervals are in the description). $\mathcal K = \{1, 5, 25, 125, 625, 3125\}$ in the closing-interval model and in the intraday model; both models use every group here (Section~\ref{sec:rh_data}). Diurnal adjustment: division by the trailing same-interval mean (mean) or standard deviation (s.d.); $g$: the variance-stabilizing map; the volatility-demand series take $\operatorname{asinh}(u_{t,i} / \kappa_{t,i})$ in place of both (Section~\ref{sec:rh_predictors}). A series is signed if it has any negative value: $\ser{spread_vwstock}{\mathrm{Spread}^{\mathrm{VW}}}$ has a single negative value (2018-11-12 11:00 ET) and so takes $g(v) = v$ and the s.d.\ adjustment, where $\ser{spread_ewstock}{\mathrm{Spread}^{\mathrm{EW}}}$ takes $\log v$ and the mean. Unnormalized and unscaled: without the factors $\sqrt{N_{t,i}} / \RV_{t,i}^{3/2}$ (skewness), $N_{t,i}/3$ (quarticity) and $\pi/2$ (bipower variation).}\\
 \endlastfoot
 \multicolumn{6}{@{}l}{\textit{Realized moments (7; front-month E-mini, one-minute log-price changes)}} \\
-$r$ & Sum of one-minute changes in the log price of the front-month contract, $r_{t,i} = \sum_k r_{t,i,k}$ & E-mini S\&P 500 futures & s.d. & $v$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: sumret
-$\mathrm{RAV}$ & Realized absolute variation, $\sum_k |r_{t,i,k}|$ & E-mini S\&P 500 futures & mean & $v$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: sumabsret
-$\mathrm{RSK}$ & Realized skewness, unnormalized, $\sum_k r_{t,i,k}^3$ & E-mini S\&P 500 futures & s.d. & $v^{1/3}$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: sumret3
-$\mathrm{RQ}$ & Realized quarticity, unscaled, $\sum_k r_{t,i,k}^4$ & E-mini S\&P 500 futures & mean & $\sign(v)\,|v|^{1/4}$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: sumret4
-$\mathrm{RS}^{+}$ & Positive realized semivariance, $\sum_k r_{t,i,k}^2\,\mathbf{1}\{r_{t,i,k} > 0\}$ & E-mini S\&P 500 futures & mean & $\sqrt{v}$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: sumpret2
-$\mathrm{BV}$ & Bipower variation, $\mathrm{BV}_{t,i} = \sum_{k \ge 2} |r_{t,i,k}|\,|r_{t,i,k-1}|$ & E-mini S\&P 500 futures & mean & $\sqrt{v}$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: sumbipow
-$\mathrm{AC}$ & First-order realized autocovariance, $\mathrm{AC}_{t,i} = \sum_{k \ge 2} r_{t,i,k}\, r_{t,i,k-1}$ & E-mini S\&P 500 futures & s.d. & $\sign(v)\,|v|^{1/2}$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: sumautocov
+\ser{sumret}{$r$} & Sum of one-minute changes in the log price of the front-month contract, $\serx{sumret}{_{t,i}}{r_{t,i}} = \sum_k r_{t,i,k}$ & E-mini S\&P 500 futures & s.d. & $v$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: sumret
+\ser{sumabsret}{$\mathrm{RAV}$} & Realized absolute variation, $\sum_k |r_{t,i,k}|$ & E-mini S\&P 500 futures & mean & $v$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: sumabsret
+\ser{sumret3}{$\mathrm{RSK}$} & Realized skewness, unnormalized, $\sum_k r_{t,i,k}^3$ & E-mini S\&P 500 futures & s.d. & $v^{1/3}$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: sumret3
+\ser{sumret4}{$\mathrm{RQ}$} & Realized quarticity, unscaled, $\sum_k r_{t,i,k}^4$ & E-mini S\&P 500 futures & mean & $\sign(v)\,|v|^{1/4}$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: sumret4
+\ser{sumpret2}{$\mathrm{RS}^{+}$} & Positive realized semivariance, $\sum_k r_{t,i,k}^2\,\mathbf{1}\{r_{t,i,k} > 0\}$ & E-mini S\&P 500 futures & mean & $\sqrt{v}$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: sumpret2
+\ser{sumbipow}{$\mathrm{BV}$} & Bipower variation, $\ser{sumbipow}{\mathrm{BV}}_{t,i} = \sum_{k \ge 2} |r_{t,i,k}|\,|r_{t,i,k-1}|$ & E-mini S\&P 500 futures & mean & $\sqrt{v}$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: sumbipow
+\ser{sumautocov}{$\mathrm{AC}$} & First-order realized autocovariance, $\ser{sumautocov}{\mathrm{AC}}_{t,i} = \sum_{k \ge 2} r_{t,i,k}\, r_{t,i,k-1}$ & E-mini S\&P 500 futures & s.d. & $\sign(v)\,|v|^{1/2}$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: sumautocov
 \addlinespace
 \multicolumn{6}{@{}l}{\textit{Liquidity (14)}} \\
-$\mathrm{Volume}$ & Number of front-month contracts traded in the half hour & E-mini S\&P 500 futures & mean & $\log v$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: sumvolume
-$N$ & Number of non-missing one-minute intervals in the half hour, $N_{t,i} \le 30$; mode 30 on 72\% of intervals & E-mini S\&P 500 futures & mean & $\log v$ & $u^{(k)}$, $\bar a^{(k)}$, $\bar\chi^{(k)}$ \\  % data field: numobs
-$\mathrm{TO}^{\mathrm{EW}}$ & Equal-weighted turnover, shares traded in the half hour divided by the previous day's shares outstanding & Constituents & mean & $\sqrt{v}$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: turnover_ewstock
-$\mathrm{TO}^{\mathrm{EW}}_{\mathrm{buy}}$ & Equal-weighted buyer-initiated turnover, the same ratio using estimated buy orders & Constituents & mean & $\sqrt{v}$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: buyturnover_ewstock
-$\mathrm{TO}^{\mathrm{EW}}_{\mathrm{sell}}$ & Equal-weighted seller-initiated turnover, the same ratio using estimated sell orders & Constituents & mean & $\sqrt{v}$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: sellturnover_ewstock
-$\mathrm{EffSpread}^{\mathrm{EW}}$ & Equal-weighted effective spread, the mean percent difference between the trade price and the preceding midquote & Constituents & mean & $\sqrt{v}$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: effspread_ewstock
-$\mathrm{Spread}^{\mathrm{EW}}$ & Equal-weighted quoted spread, the mean percent difference between the bid and the ask & Constituents & mean & $\log v$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: spread_ewstock
-$\mathrm{TO}^{\mathrm{VW}}$ & Value-weighted turnover, shares traded in the half hour divided by the previous day's shares outstanding & Constituents & mean & $\sqrt{v}$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: turnover_vwstock
-$\mathrm{TO}^{\mathrm{VW}}_{\mathrm{buy}}$ & Value-weighted buyer-initiated turnover, the same ratio using estimated buy orders & Constituents & mean & $\sqrt{v}$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: buyturnover_vwstock
-$\mathrm{TO}^{\mathrm{VW}}_{\mathrm{sell}}$ & Value-weighted seller-initiated turnover, the same ratio using estimated sell orders & Constituents & mean & $\sqrt{v}$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: sellturnover_vwstock
-$\mathrm{EffSpread}^{\mathrm{VW}}$ & Value-weighted effective spread, the mean percent difference between the trade price and the preceding midquote & Constituents & mean & $\sqrt{v}$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: effspread_vwstock
-$\mathrm{Spread}^{\mathrm{VW}}$ & Value-weighted quoted spread, the mean percent difference between the bid and the ask & Constituents & s.d. & $v$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: spread_vwstock
-$\mathrm{OFI}^{\mathrm{EW}}$ & Equal-weighted order-flow imbalance, $(\mathrm{Buy} - \mathrm{Sell}) / (\mathrm{Buy} + \mathrm{Sell})$ of turnover & Constituents & s.d. & $v$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: ofi_ewstock
-$\mathrm{OFI}^{\mathrm{VW}}$ & Value-weighted order-flow imbalance, $(\mathrm{Buy} - \mathrm{Sell}) / (\mathrm{Buy} + \mathrm{Sell})$ of turnover & Constituents & s.d. & $v$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: ofi_vwstock
+\ser{sumvolume}{$\mathrm{Volume}$} & Number of front-month contracts traded in the half hour & E-mini S\&P 500 futures & mean & $\log v$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: sumvolume
+\ser{numobs}{$N$} & Number of non-missing one-minute intervals in the half hour, $\ser{numobs}{N}_{t,i} \le 30$; mode 30 on 72\% of intervals & E-mini S\&P 500 futures & mean & $\log v$ & $u^{(k)}$, $\bar a^{(k)}$, $\bar\chi^{(k)}$ \\  % data field: numobs
+\ser{turnover_ewstock}{$\mathrm{TO}^{\mathrm{EW}}$} & Equal-weighted turnover, shares traded in the half hour divided by the previous day's shares outstanding & Constituents & mean & $\sqrt{v}$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: turnover_ewstock
+\ser{buyturnover_ewstock}{$\mathrm{TO}^{\mathrm{EW}}_{\mathrm{buy}}$} & Equal-weighted buyer-initiated turnover, the same ratio using estimated buy orders & Constituents & mean & $\sqrt{v}$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: buyturnover_ewstock
+\ser{sellturnover_ewstock}{$\mathrm{TO}^{\mathrm{EW}}_{\mathrm{sell}}$} & Equal-weighted seller-initiated turnover, the same ratio using estimated sell orders & Constituents & mean & $\sqrt{v}$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: sellturnover_ewstock
+\ser{effspread_ewstock}{$\mathrm{EffSpread}^{\mathrm{EW}}$} & Equal-weighted effective spread, the mean percent difference between the trade price and the preceding midquote & Constituents & mean & $\sqrt{v}$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: effspread_ewstock
+\ser{spread_ewstock}{$\mathrm{Spread}^{\mathrm{EW}}$} & Equal-weighted quoted spread, the mean percent difference between the bid and the ask & Constituents & mean & $\log v$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: spread_ewstock
+\ser{turnover_vwstock}{$\mathrm{TO}^{\mathrm{VW}}$} & Value-weighted turnover, shares traded in the half hour divided by the previous day's shares outstanding & Constituents & mean & $\sqrt{v}$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: turnover_vwstock
+\ser{buyturnover_vwstock}{$\mathrm{TO}^{\mathrm{VW}}_{\mathrm{buy}}$} & Value-weighted buyer-initiated turnover, the same ratio using estimated buy orders & Constituents & mean & $\sqrt{v}$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: buyturnover_vwstock
+\ser{sellturnover_vwstock}{$\mathrm{TO}^{\mathrm{VW}}_{\mathrm{sell}}$} & Value-weighted seller-initiated turnover, the same ratio using estimated sell orders & Constituents & mean & $\sqrt{v}$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: sellturnover_vwstock
+\ser{effspread_vwstock}{$\mathrm{EffSpread}^{\mathrm{VW}}$} & Value-weighted effective spread, the mean percent difference between the trade price and the preceding midquote & Constituents & mean & $\sqrt{v}$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: effspread_vwstock
+\ser{spread_vwstock}{$\mathrm{Spread}^{\mathrm{VW}}$} & Value-weighted quoted spread, the mean percent difference between the bid and the ask & Constituents & s.d. & $v$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: spread_vwstock
+\ser{ofi_ewstock}{$\mathrm{OFI}^{\mathrm{EW}}$} & Equal-weighted order-flow imbalance, $(\mathrm{Buy} - \mathrm{Sell}) / (\mathrm{Buy} + \mathrm{Sell})$ of turnover & Constituents & s.d. & $v$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: ofi_ewstock
+\ser{ofi_vwstock}{$\mathrm{OFI}^{\mathrm{VW}}$} & Value-weighted order-flow imbalance, $(\mathrm{Buy} - \mathrm{Sell}) / (\mathrm{Buy} + \mathrm{Sell})$ of turnover & Constituents & s.d. & $v$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: ofi_vwstock
 \addlinespace
 \multicolumn{6}{@{}l}{\textit{Equal-weighted market (6; simple averages of S\&P 500 constituents)}} \\
-$\mathrm{RV}^{\mathrm{EW}}$ & Equal-weighted realized variance of 5-minute log returns & Constituents & mean & $\sqrt{v}$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: sumret2_ewstock
-$\mathrm{RSK}^{\mathrm{EW}}$ & Equal-weighted realized skewness of 5-minute log returns, unnormalized & Constituents & s.d. & $v^{1/3}$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: sumret3_ewstock
-$\mathrm{RQ}^{\mathrm{EW}}$ & Equal-weighted realized quarticity of 5-minute log returns, unscaled & Constituents & mean & $\sign(v)\,|v|^{1/4}$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: sumret4_ewstock
-$\mathrm{RAV}^{\mathrm{EW}}$ & Equal-weighted realized absolute variation of 5-minute log returns & Constituents & mean & $v$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: sumabsret_ewstock
-$\mathrm{BV}^{\mathrm{EW}}$ & Equal-weighted bipower variation of 5-minute log returns & Constituents & mean & $\sqrt{v}$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: sumbipow_ewstock
-$\mathrm{RS}^{+,\mathrm{EW}}$ & Equal-weighted positive realized semivariance of 5-minute log returns & Constituents & mean & $\sqrt{v}$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: sumpret2_ewstock
+\ser{sumret2_ewstock}{$\mathrm{RV}^{\mathrm{EW}}$} & Equal-weighted realized variance of 5-minute log returns & Constituents & mean & $\sqrt{v}$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: sumret2_ewstock
+\ser{sumret3_ewstock}{$\mathrm{RSK}^{\mathrm{EW}}$} & Equal-weighted realized skewness of 5-minute log returns, unnormalized & Constituents & s.d. & $v^{1/3}$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: sumret3_ewstock
+\ser{sumret4_ewstock}{$\mathrm{RQ}^{\mathrm{EW}}$} & Equal-weighted realized quarticity of 5-minute log returns, unscaled & Constituents & mean & $\sign(v)\,|v|^{1/4}$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: sumret4_ewstock
+\ser{sumabsret_ewstock}{$\mathrm{RAV}^{\mathrm{EW}}$} & Equal-weighted realized absolute variation of 5-minute log returns & Constituents & mean & $v$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: sumabsret_ewstock
+\ser{sumbipow_ewstock}{$\mathrm{BV}^{\mathrm{EW}}$} & Equal-weighted bipower variation of 5-minute log returns & Constituents & mean & $\sqrt{v}$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: sumbipow_ewstock
+\ser{sumpret2_ewstock}{$\mathrm{RS}^{+,\mathrm{EW}}$} & Equal-weighted positive realized semivariance of 5-minute log returns & Constituents & mean & $\sqrt{v}$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: sumpret2_ewstock
 \addlinespace
 \multicolumn{6}{@{}l}{\textit{Value-weighted market (6; previous day's market capitalization)}} \\
-$\mathrm{RV}^{\mathrm{VW}}$ & Value-weighted realized variance of 5-minute log returns & Constituents & mean & $\sqrt{v}$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: sumret2_vwstock
-$\mathrm{RSK}^{\mathrm{VW}}$ & Value-weighted realized skewness of 5-minute log returns, unnormalized & Constituents & s.d. & $v^{1/3}$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: sumret3_vwstock
-$\mathrm{RQ}^{\mathrm{VW}}$ & Value-weighted realized quarticity of 5-minute log returns, unscaled & Constituents & mean & $\sign(v)\,|v|^{1/4}$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: sumret4_vwstock
-$\mathrm{RAV}^{\mathrm{VW}}$ & Value-weighted realized absolute variation of 5-minute log returns & Constituents & mean & $v$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: sumabsret_vwstock
-$\mathrm{BV}^{\mathrm{VW}}$ & Value-weighted bipower variation of 5-minute log returns & Constituents & mean & $\sqrt{v}$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: sumbipow_vwstock
-$\mathrm{RS}^{+,\mathrm{VW}}$ & Value-weighted positive realized semivariance of 5-minute log returns & Constituents & mean & $\sqrt{v}$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: sumpret2_vwstock
+\ser{sumret2_vwstock}{$\mathrm{RV}^{\mathrm{VW}}$} & Value-weighted realized variance of 5-minute log returns & Constituents & mean & $\sqrt{v}$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: sumret2_vwstock
+\ser{sumret3_vwstock}{$\mathrm{RSK}^{\mathrm{VW}}$} & Value-weighted realized skewness of 5-minute log returns, unnormalized & Constituents & s.d. & $v^{1/3}$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: sumret3_vwstock
+\ser{sumret4_vwstock}{$\mathrm{RQ}^{\mathrm{VW}}$} & Value-weighted realized quarticity of 5-minute log returns, unscaled & Constituents & mean & $\sign(v)\,|v|^{1/4}$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: sumret4_vwstock
+\ser{sumabsret_vwstock}{$\mathrm{RAV}^{\mathrm{VW}}$} & Value-weighted realized absolute variation of 5-minute log returns & Constituents & mean & $v$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: sumabsret_vwstock
+\ser{sumbipow_vwstock}{$\mathrm{BV}^{\mathrm{VW}}$} & Value-weighted bipower variation of 5-minute log returns & Constituents & mean & $\sqrt{v}$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: sumbipow_vwstock
+\ser{sumpret2_vwstock}{$\mathrm{RS}^{+,\mathrm{VW}}$} & Value-weighted positive realized semivariance of 5-minute log returns & Constituents & mean & $\sqrt{v}$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: sumpret2_vwstock
 \addlinespace
 \multicolumn{6}{@{}l}{\textit{Sentiment (3)}} \\
-$\mathrm{Attn}$ & Number of StockTwits posts in the half hour & StockTwits & mean & $\log v$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: stocktwits_attention
-$\mathrm{Sent}$ & Score of tagged posts, $1$ if all are bullish and $-1$ if all are bearish & StockTwits & none & $v$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: stocktwits_sentiment
-$\mathrm{NSent}$ & Number of posts in the half hour that carry a bullish or bearish tag & StockTwits & mean & $\log v$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: stocktwits_sentcount
+\ser{stocktwits_attention}{$\mathrm{Attn}$} & Number of StockTwits posts in the half hour & StockTwits & mean & $\log v$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: stocktwits_attention
+\ser{stocktwits_sentiment}{$\mathrm{Sent}$} & Score of tagged posts, $1$ if all are bullish and $-1$ if all are bearish & StockTwits & none & $v$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: stocktwits_sentiment
+\ser{stocktwits_sentcount}{$\mathrm{NSent}$} & Number of posts in the half hour that carry a bullish or bearish tag & StockTwits & mean & $\log v$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: stocktwits_sentcount
 \addlinespace
 \multicolumn{6}{@{}l}{\textit{Implied volatility (3)}} \\
-$\mathrm{VIX}$ & VIX index (30-day S\&P 500 implied volatility) & Cboe & none & $\log v$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: vix
-$\mathrm{VVIX}$ & VVIX index (implied volatility of VIX) & Cboe & none & $\log v$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: vvix
-$\mathrm{VIX3M}$ & VIX3M index (3-month S\&P 500 implied volatility) & Cboe & none & $\log v$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: vix3m
+\ser{vix}{$\mathrm{VIX}$} & VIX index (30-day S\&P 500 implied volatility) & Cboe & none & $\log v$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: vix
+\ser{vvix}{$\mathrm{VVIX}$} & VVIX index (implied volatility of VIX) & Cboe & none & $\log v$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: vvix
+\ser{vix3m}{$\mathrm{VIX3M}$} & VIX3M index (3-month S\&P 500 implied volatility) & Cboe & none & $\log v$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: vix3m
 \addlinespace
 \multicolumn{6}{@{}l}{\textit{Volatility demand (4; net vega bought by non-market-makers)}} \\
-$\mathrm{VD}^{\mathrm{SPX}}_{\mathrm{OC}}$ & Net vega bought by non-market-makers, S\&P 500 index and top S\&P 500 ETF options, trades that open or close a position; mode 0 on 59\% of intervals & Cboe & none & $\operatorname{asinh}(u/\kappa)$ & $u^{(k)}$, $\bar a^{(k)}$, $\bar\chi^{(k)}$ \\  % data field: voldemand_spx_open_and_close
-$\mathrm{VD}^{\mathrm{SPX}}_{\mathrm{O}}$ & Net vega bought by non-market-makers, S\&P 500 index and top S\&P 500 ETF options, trades that open a position; mode 0 on 60\% of intervals & Cboe & none & $\operatorname{asinh}(u/\kappa)$ & $u^{(k)}$, $\bar a^{(k)}$, $\bar\chi^{(k)}$ \\  % data field: voldemand_spx_open_only
-$\mathrm{VD}^{\mathrm{All}}_{\mathrm{OC}}$ & Net vega bought by non-market-makers, all traded options, trades that open or close a position; mode 0 on 59\% of intervals & Cboe & none & $\operatorname{asinh}(u/\kappa)$ & $u^{(k)}$, $\bar a^{(k)}$, $\bar\chi^{(k)}$ \\  % data field: voldemand_all_open_and_close
-$\mathrm{VD}^{\mathrm{All}}_{\mathrm{O}}$ & Net vega bought by non-market-makers, all traded options, trades that open a position; mode 0 on 60\% of intervals & Cboe & none & $\operatorname{asinh}(u/\kappa)$ & $u^{(k)}$, $\bar a^{(k)}$, $\bar\chi^{(k)}$ \\  % data field: voldemand_all_open_only
+\ser{voldemand_spx_open_and_close}{$\mathrm{VD}^{\mathrm{SPX}}_{\mathrm{OC}}$} & Net vega bought by non-market-makers, S\&P 500 index and top S\&P 500 ETF options, trades that open or close a position; mode 0 on 59\% of intervals & Cboe & none & $\operatorname{asinh}(u/\kappa)$ & $u^{(k)}$, $\bar a^{(k)}$, $\bar\chi^{(k)}$ \\  % data field: voldemand_spx_open_and_close
+\ser{voldemand_spx_open_only}{$\mathrm{VD}^{\mathrm{SPX}}_{\mathrm{O}}$} & Net vega bought by non-market-makers, S\&P 500 index and top S\&P 500 ETF options, trades that open a position; mode 0 on 60\% of intervals & Cboe & none & $\operatorname{asinh}(u/\kappa)$ & $u^{(k)}$, $\bar a^{(k)}$, $\bar\chi^{(k)}$ \\  % data field: voldemand_spx_open_only
+\ser{voldemand_all_open_and_close}{$\mathrm{VD}^{\mathrm{All}}_{\mathrm{OC}}$} & Net vega bought by non-market-makers, all traded options, trades that open or close a position; mode 0 on 59\% of intervals & Cboe & none & $\operatorname{asinh}(u/\kappa)$ & $u^{(k)}$, $\bar a^{(k)}$, $\bar\chi^{(k)}$ \\  % data field: voldemand_all_open_and_close
+\ser{voldemand_all_open_only}{$\mathrm{VD}^{\mathrm{All}}_{\mathrm{O}}$} & Net vega bought by non-market-makers, all traded options, trades that open a position; mode 0 on 60\% of intervals & Cboe & none & $\operatorname{asinh}(u/\kappa)$ & $u^{(k)}$, $\bar a^{(k)}$, $\bar\chi^{(k)}$ \\  % data field: voldemand_all_open_only
 \addlinespace
-\multicolumn{6}{@{}l}{\textit{FOMC (4; closing-interval model only, scheduled calendar)}} \\
-$\mathrm{FOMC}^{\mathrm{rel}}$ & FOMC announcement-interval dummy (14:30 ET); mode 0 on 98\% of intervals & FOMC calendar & none & $\log v$ & $u^{(k)}$, $\bar a^{(k)}$, $\bar\chi^{(k)}$ \\  % data field: fomc_release
-$\mathrm{FOMC}^{\mathrm{day}}$ & FOMC announcement-day dummy; mode 0 on 95\% of intervals & FOMC calendar & none & $\log v$ & $u^{(k)}$, $\bar a^{(k)}$, $\bar\chi^{(k)}$ \\  % data field: fomc_day
-$\mathrm{FOMC}^{\mathrm{next}}$ & $1/(1 + n^{+}_{t,i})$, $n^{+}_{t,i}$ intervals to the next announcement & FOMC calendar & none & $\log v$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: fomc_until_inv
-$\mathrm{FOMC}^{\mathrm{last}}$ & $1/(1 + n^{-}_{t,i})$, $n^{-}_{t,i}$ intervals since the last announcement & FOMC calendar & none & $\log v$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: fomc_since_inv
+\multicolumn{6}{@{}l}{\textit{FOMC (4; scheduled calendar)}} \\
+\ser{fomc_release}{$\mathrm{FOMC}^{\mathrm{rel}}$} & FOMC announcement-interval dummy (14:30 ET); mode 0 on 98\% of intervals & FOMC calendar & none & $\log v$ & $u^{(k)}$, $\bar a^{(k)}$, $\bar\chi^{(k)}$ \\  % data field: fomc_release
+\ser{fomc_day}{$\mathrm{FOMC}^{\mathrm{day}}$} & FOMC announcement-day dummy; mode 0 on 95\% of intervals & FOMC calendar & none & $\log v$ & $u^{(k)}$, $\bar a^{(k)}$, $\bar\chi^{(k)}$ \\  % data field: fomc_day
+\ser{fomc_until_inv}{$\mathrm{FOMC}^{\mathrm{next}}$} & $1/(1 + n^{+}_{t,i})$, $n^{+}_{t,i}$ intervals to the next announcement & FOMC calendar & none & $\log v$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: fomc_until_inv
+\ser{fomc_since_inv}{$\mathrm{FOMC}^{\mathrm{last}}$} & $1/(1 + n^{-}_{t,i})$, $n^{-}_{t,i}$ intervals since the last announcement & FOMC calendar & none & $\log v$ & $u^{(k)}$, $\bar a^{(k)}$ \\  % data field: fomc_since_inv
 \end{longtable}
 \endgroup
 \end{landscape}

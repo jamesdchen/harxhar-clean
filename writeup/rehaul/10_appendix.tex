@@ -159,9 +159,12 @@ This item sets the embargo $n_{\mathrm{gap}}$ equal to $\cmPtEmbargo$ and the va
   an intraday interval and $\mathcal W_{t,i} = \{(t, i-W), \dots, (t, i-1)\}$ holds the $W$ intervals before
   $(t,i)$. The full predictor set has \rhdmNColsPooled{} predictors (Section~\ref{sec:rh_predictors}).
   \begin{itemize}
-  \item Only the forecasts of the closing interval $i = c$, made at the 15:30 ET forecast origin, are scored and
-    traded.
-  \item Linear models: $W = \rhdmPooledLinWindow$ intervals (\cmPtFitWin{} trading days), re-estimated every interval.
+  % 2026-10-20 (user): parked -- holds for the closing-interval models and the straddle, not for Table 1. Was: "\item Only the forecasts of the closing interval $i = c$, made at the 15:30 ET forecast origin, are scored and traded."
+  \item For the closing-interval models and the straddle strategy, only the forecasts of the closing interval
+    $i = c$, made at the 15:30 ET forecast origin, are scored and traded; the pooled linear models of
+    Table~\ref{tab:rh_oos} are scored on every one of the \rhorNBars{} regular-hours bars.
+  % 2026-10-20 (user): parked -- the window from the Table 1 generator, not rehaul_dm_samples / make_rehaul_data_methods.py. Was: "\item Linear models: $W = \rhdmPooledLinWindow$ intervals (\cmPtFitWin{} trading days), re-estimated every interval."
+  \item Linear models: $W = \rhorWindowBars$ bars (\rhorWindowDays{} trading days of the \rhorNBars{} regular-hours bars), re-estimated every interval.
     % 2026-10-15 (finish): FLAG resolved -- typed 96{,}000 -> \rhdmPooledLinWindow (make_rehaul_data_methods.py, same value).
   \item Trees: $W = \rhdmPooledWindow$ intervals; one fixed hyperparameter configuration per tree method, never
     re-selected, re-estimated every interval.
@@ -343,7 +346,8 @@ A tree cell in Table~\ref{tab:rh_oos} is the loss of one fitting procedure, and 
 \begin{itemize}
 \item \textbf{Sources and spans.} Eight groups, in Section~\ref{sec:rh_data}. Closing-interval models use all
   % 2026-10-18 (user, second-list N7): parked -- series count from a non-FI macro (\bkNSeries, make_buckets_tex.py; same 47). Was: "\rhfiNExog{} exogenous series. Intraday models use the \rhdmNSeriesPooled{} series in every group except FOMC."
-  \bkNSeries{} exogenous series. Intraday models use the \rhdmNSeriesPooled{} series in every group except FOMC.
+  % 2026-10-19 (user): parked -- the pooled model includes the FOMC series (author decision). Was: "Intraday models use the \rhdmNSeriesPooled{} series in every group except FOMC."
+  \bkNSeries{} exogenous series. Intraday models use the \rhdmNSeriesPooled{} series in every group, FOMC included.
 \item \textbf{Predictor dictionary.} Appendix Table~\ref{tab:rh_dm_dictionary} defines each series. Trailing
   averages, activity indicators, and calendar columns are added in Section~\ref{sec:rh_predictors}.
 \item \textbf{Missing and stale values.} For an exogenous series $u$, the availability indicator
@@ -401,7 +405,8 @@ It covers only the closing-interval linear arms (ridge, lasso and elastic net on
 \section{Robustness of the statistical results}
 \label{app:rh_robust_stat}
 \begin{itemize}
-\item \textbf{Reported comparisons.} Forecast accuracy on $\mathcal T_{\mathrm{oos}}$ is Table~\ref{tab:rh_oos}.
+% 2026-10-20 (user): parked -- Table 1 scored from 2012 (TABLE1_SWITCH.md, approved). Was: "\item \textbf{Reported comparisons.} Forecast accuracy on $\mathcal T_{\mathrm{oos}}$ is Table~\ref{tab:rh_oos}."
+\item \textbf{Reported comparisons.} Forecast accuracy of the pooled linear models is Table~\ref{tab:rh_oos}, from \rhorSpanStart{} to \rhorSpanEnd.
   The Diebold--Mariano statistic, with the Harvey--Leybourne--Newbold correction, and the Newey--West variance
   and HAC $t$-statistic are Appendix~\ref{sec:rh_methods_tests}.
 \item \textbf{Model confidence set, superior predictive ability, and StepM.} These three procedures are named in
@@ -457,7 +462,8 @@ It covers only the closing-interval linear arms (ridge, lasso and elastic net on
 \label{app:rh_closing_sample}
 \begin{itemize}
 % 2026-10-18 (user, second-list N7): parked -- series count from a non-FI macro (\bkNSeries, make_buckets_tex.py; same 47). Was: "\item The closing-interval specifications incorporate all \rhfiNExog{} exogenous series, the FOMC group (\bkSizeFomc{} series) included; the pooled intraday specifications use the \rhdmNSeriesPooled{} series outside the FOMC group (Section~\ref{sec:rh_data})."
-\item The closing-interval specifications incorporate all \bkNSeries{} exogenous series, the FOMC group (\bkSizeFomc{} series) included; the pooled intraday specifications use the \rhdmNSeriesPooled{} series outside the FOMC group (Section~\ref{sec:rh_data}).
+% 2026-10-19 (user): parked -- the pooled model includes the FOMC series (author decision). Was: "; the pooled intraday specifications use the \rhdmNSeriesPooled{} series outside the FOMC group (Section~\ref{sec:rh_data})."
+\item The closing-interval specifications incorporate all \bkNSeries{} exogenous series, the FOMC group (\bkSizeFomc{} series) included; so do the pooled intraday specifications, with \rhdmNSeriesPooled{} series (Section~\ref{sec:rh_data}).
   \item The closing-interval sample ($i = c$) consists of \rhdmCloseDays{} trading days from July 2010 through
     April 2024, estimated on a rolling window of $W = \cmPtFitWin$ trading days.
   \item This rolling procedure yields \rhfiNOos{} out-of-sample closing-interval forecasts starting in June 2018:
@@ -476,7 +482,8 @@ It covers only the closing-interval linear arms (ridge, lasso and elastic net on
   \[
     \mathcal{K} = \{1, 5, 25, 125, 625, 3125\},
   \]
-  against the base-2 set of the intraday model. Here, $k$ counts retained intervals across the full intraday grid $\mathcal{G}$ (including overnight sessions), while the closing-interval specification restricts estimation to the rows $i = c$.
+  % 2026-10-19 (user): parked -- base 5 across the paper. Was: "against the base-2 set of the intraday model. Here,"
+  the same set as the intraday model. Here, $k$ counts retained intervals across the full intraday grid $\mathcal{G}$ (including overnight sessions), while the closing-interval specification restricts estimation to the rows $i = c$.
 \item In the closing-interval panel, the $k$-interval trailing averages of the activity indicator, $\bar\chi^{(k)}_{t,i}$, are computed for 7 mode-inflated series (note E6).
 \item Under the closing-interval specification with the full predictor set, the window filter retains a median of \cmKeptAll{} out of \cmPNewAll{} candidate columns across rolling windows.
 \item \textbf{Predictor set dimensions.} In the closing-interval specification, the HAR benchmark contains
@@ -586,7 +593,9 @@ own window $\mathcal{W}_t$ (Section~\ref{sec:rh_exp_schemes}). Rows $t'$ are tra
   \begin{itemize}
   \item \texttt{writeup/make\_rehaul\_data\_methods.py}: samples, windows, hyperparameter tables, and the
     predictor dictionary.
-  \item \texttt{writeup/make\_rehaul\_oos\_table.py}: Table~\ref{tab:rh_oos} and the last-30-minutes split.
+  % 2026-10-20 (user): parked -- Table 1 has its own generator (TABLE1_SWITCH.md, approved). Was: "\item \texttt{writeup/make\_rehaul\_oos\_table.py}: Table~\ref{tab:rh_oos} and the last-30-minutes split."
+  \item \texttt{writeup/make\_rehaul\_oos\_rerun.py}: Table~\ref{tab:rh_oos}.
+  \item \texttt{writeup/make\_rehaul\_oos\_table.py}: Table~\ref{tab:rh_oos_last30}.
   \item \texttt{writeup/make\_rehaul\_results.py}: the accuracy macros in Section~\ref{sec:rh_results}.
   \item \texttt{writeup/make\_rehaul\_economics.py}: the straddle macros in Section~\ref{sec:rh_econ}.
   % 2026-10-18 (user, second-list N12): parked -- Section 6.5 has no importance numbers; after note 7 this generator feeds only the HAR-block penalty weight (\rhfiBackbonePf, Appendix D) and the closing-interval forecast count (\rhfiNOos, Appendix G); the series and predictor counts come from make_buckets_tex.py, make_table_close_main.py and make_rehaul_data_methods.py. Was: "\item \texttt{writeup/make\_rehaul\_fi.py}: the importance macros in Section~\ref{sec:rh_fi}."

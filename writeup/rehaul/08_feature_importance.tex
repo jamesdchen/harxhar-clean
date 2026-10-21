@@ -102,6 +102,16 @@ Variable importance is not yet computed for the pooled intraday model; the closi
     for the background sample.
   \item Number triples below: LightGBM, XGBoost, random forest.
   \end{itemize}
+% 2026-10-19 (user): "a table in the feature importance section that is standard in the literature and showcases the
+% quantities from the notes" -- the generator's overview table (writeup/make_rehaul_fi.py, parked from
+% 08b_fi_measures_floats.tex on 2026-10-15), placed inside this parked block: the standalone
+% (writeup/make_fi_bullets_standalone.py) prints it, the paper does not (note E19).
+\item \textbf{Summary table:} Table~\ref{tab:rh_fi_summary} ranks the predictor groups model by model, as in the
+  variable-importance rankings of \citet{gu2020empirical}, each model by its own aggregate measure below: the lasso's
+  selection count $K_A$, the ridge's coefficient shares $S_A$ and $S^{\mathrm{sd}}_A$, and the trees' mean SHAP rank
+  $\bar r_A$. Under each column: Kendall's $W$ of the rankings across re-estimations, and the number of exogenous
+  series with a predictor that beats the random probe.
+\input{generated/rehaul_fi_summary}
 \item \textbf{Lasso, aggregate:} the selection count of a group and of a predictor, the number of the $K$
   % 2026-10-15 (user): parked -- "park all tables that I haven't mentioned in this chat". Was: re-estimations with a nonzero coefficient (Tables~\ref{tab:rh_fi_summary} and~\ref{tab:rh_fi_linear}),
   re-estimations with a nonzero coefficient,
