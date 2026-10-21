@@ -51,6 +51,7 @@ Run:  python writeup/make_rehaul_economics.py [--preview DIR]
 from __future__ import annotations
 
 import math
+import re
 import sys
 from pathlib import Path
 
@@ -702,6 +703,17 @@ SHORT_LABEL = "Short straddle"
 def p_two(t: float) -> float:
     """Two-sided normal p-value of a t or DM statistic (as dm_test and the paper's HAC t use)."""
     return math.erfc(abs(t) / math.sqrt(2.0)) if np.isfinite(t) else float("nan")
+
+
+def p_digits(p: float) -> str:
+    """2026-10-21 (user): the bare digits of a two-sided p for "$p = ...$" in prose (\\rheEnetP); 2 decimals from
+    0.10, else 3, 4 when a cut would blur (make_rehaul_results.mpval's rule). Below 0.001 the digits would read 0.000,
+    so that case stops the run: the sentence then needs "$p < 0.001$" instead."""
+    assert np.isfinite(p) and 0.001 <= p <= 1.0, f"p = {p}: print p < 0.001 in the sentence instead"
+    s = f"{p:.2f}" if p >= 0.10 else f"{p:.3f}"
+    if s in ("0.10", "0.100", "0.050", "0.010"):  # keep the 10 / 5 / 1 % cuts visible
+        s = f"{p:.4f}"
+    return s
 
 
 def n_stars(t: float) -> int:
@@ -2018,6 +2030,13 @@ def main() -> None:
     # 2026-10-20 (user, third-list 2): parked -- 20 on the 866-day HAC t (lag 14); now on the 614 post-warmup days. Was:
     # assert sig_vs_short == 20, sig_vs_short
     print(f"third-list 2: model-set forecasts with HAC t vs short > 1.96: {sig_vs_short} (was 20)")
+    # 2026-10-21 (user): of those, the forecasts on the full predictor set (\rheSigVsShortFull; Section 7 and Appendix F
+    # print both counts, no longer "all ... use the full predictor set")
+    sig_vs_short_full = sum(
+        trade_stats(series, k)["t_dsh"] > SIG and re.search(r"_all_features(?=_|$)", k) is not None for k in model_set
+    )
+    assert sig_vs_short_full <= sig_vs_short, (sig_vs_short_full, sig_vs_short)
+    print(f"model-set forecasts with HAC t vs short > 1.96 on the full predictor set: {sig_vs_short_full} of {sig_vs_short}")
     above_vs_short = sum(trade_stats(series, k)["dsh"] > 0 for k in model_set)
     # assert above_vs_short == 94, above_vs_short  # 2026-10-18 (user, new-notes 15): soft
     soft(above_vs_short, 94, "model-set dsh vs short > 0")
@@ -2211,6 +2230,12 @@ and median of the 112 forecasts of the model set (median {", ".join(num(v) for v
         m2(st["subpt_enet_all_features"]["t_dsh"]),
         "... HAC t vs always short",
     )
+    # 2026-10-21 (user): its two-sided normal p (master_table_close.hac_p = p_two), printed beside \rheEnetT
+    nums += mac(
+        "rheEnetP",
+        p_digits(p_two(st["subpt_enet_all_features"]["t_dsh"])),
+        "... two-sided normal p of that HAC t",
+    )
     # 2026-10-15 (user): NN content parked for now -- the \rheNN... macros stay defined (unused by the floats), from
     # nn_st (the MinGRU is off E1): same values as st[NN_ALL] before
     # nums += mac("rheNNSh", m2(st[NN_ALL]["sh_mid"]), "MinGRU all features, Sharpe mid")
@@ -2225,6 +2250,11 @@ and median of the 112 forecasts of the model set (median {", ".join(num(v) for v
         "rheSigVsShort",
         str(sig_vs_short),
         "model-set forecasts with HAC t > 1.96 vs always short",
+    )
+    nums += mac(
+        "rheSigVsShortFull",
+        str(sig_vs_short_full),
+        "... of which on the full predictor set (all_features)",
     )
     nums += mac(
         "rhePairs", str(e2i["n"]), "HAR + cal. -> all features pairs in the model set"
@@ -2281,6 +2311,18 @@ and median of the 112 forecasts of the model set (median {", ".join(num(v) for v
         "rheAfLassoDSh",
         m2(e2i["pairs"]["subpt_lasso_baseline"]["d_mid"], plus=True),
         "per-bar lasso: dSharpe mid, all features minus HAR + calendar (E2)",
+    )
+    # 2026-10-21 (user): the count behind "(neither statistically significant at the 5% level)" (07_economics.tex,
+    # 10_appendix.tex): the closing-interval elastic net and lasso, HAC t of the daily mid-return differential, all
+    # features minus HAR + calendar; asserted 0 so the run stops if the sentence is wrong
+    af_enet_lasso_sig = sum(
+        sig(e2i["pairs"][k]["t_mid"]) for k in ("subpt_enet_baseline", "subpt_lasso_baseline")
+    )
+    assert af_enet_lasso_sig == 0, f"\\rheAfEnetLassoSig = {af_enet_lasso_sig}: reword 'neither statistically significant'"
+    nums += mac(
+        "rheAfEnetLassoSig",
+        str(af_enet_lasso_sig),
+        "... of those two, HAC t of the mid-return differential with |t| > 1.96",
     )
     # 2026-10-18 (user, second-list N2): parked -- the losing-year count ran over all 866 option days (2020-2024, 5
     # years, yrs[SHORT] of fig_byyear), while the Sharpe ratio it sits next to (07_economics.tex) is on the 614

@@ -2741,6 +2741,18 @@ def main() -> None:
     soft(all(x > 0 for x in dsh_pool), "every pooled full-vs-HAR dsh > 0")
     # 2026-10-20 (user, third-list 2): HAC t now post-warmup (lag 12); soft check. Was: assert not any(t1p[n]["p_t"] < SIG for n in t1p)
     soft(not any(t1p[n]["p_t"] < SIG for n in t1p), "THIRD2 " + 'not any(t1p[n]["p_t"] < SIG for n in t1p)')
+    # 2026-10-21 (user): the text says "not statistically significant at the 5% level in any of the \rhrAfPoolPairs
+    # classes" (07_economics.tex) and "none of the return differentials between a pooled intraday model and the
+    # corresponding closing-interval model ... is statistically significant" (07_economics.tex, 10_appendix.tex): their
+    # counts are printed (\rhrAfPoolDiffSig, \rhrPoolVsCloseRetSig) and asserted, so the run stops if a sentence is wrong.
+    af_pool_diff_sig = sum(t1p[n]["p_t"] < SIG for n in t1p)
+    t2_rows = [r for r in T2.values() if r["family"] != NN and not r.get("pending")]
+    assert len(t2_rows) == 6, len(t2_rows)
+    pool_vs_close_ret_sig = sum(r[b]["p_t"] < SIG for r in t2_rows for b in ("baseline", "all_features"))
+    print(f"pooled Full vs HAR, HAC p < 0.05: {af_pool_diff_sig} of {len(t1p)}; pooled vs closing-interval: "
+          f"{pool_vs_close_ret_sig} of {2 * len(t2_rows)}")
+    assert af_pool_diff_sig == 0, f"\\rhrAfPoolDiffSig = {af_pool_diff_sig}: reword 07_economics 'not ... in any'"
+    assert pool_vs_close_ret_sig == 0, f"\\rhrPoolVsCloseRetSig = {pool_vs_close_ret_sig}: reword 'none of the return differentials'"
     assert all(vs_sh[k]["tail"] < 0 for k in pool_keys)
     # Was: assert sum(sz_pool[k]["clip"]["d_vs_sign"] > 0 for k in pool_keys) == 11
     soft(sum(sz_pool[k]["clip"]["d_vs_sign"] > 0 for k in pool_keys) == 11, f"pooled clip beats sign {sum(sz_pool[k]['clip']['d_vs_sign'] > 0 for k in pool_keys)} (was 11)")
@@ -3164,6 +3176,22 @@ def main() -> None:
         "PoolShortSig": (
             str(len(pool_sig_short)),
             "... with HAC t > 1.96 (the three trees on Full)",
+        ),
+        # 2026-10-21 (user): the range of those HAC t's (Section 7.2 prints it instead of three named trees)
+        "VsShortPoolTMin": (
+            mnum(min(vs_sh[k]["t"] for k in pool_keys), 2),
+            "pooled forecasts: HAC t of the daily mid-return differential over the short straddle, min",
+        ),
+        "VsShortPoolTMax": (mnum(max(vs_sh[k]["t"] for k in pool_keys), 2), "... max"),
+        # 2026-10-21 (user): the counts behind "not ... significant in any" (07_economics, full vs HAR) and
+        # "none of the return differentials ... pooled ... closing-interval" (07_economics, Appendix F); asserted 0 above
+        "AfPoolDiffSig": (
+            str(af_pool_diff_sig),
+            "pooled Full vs HAR pairs whose HAC t of the daily mid-return differential has p < 0.05 (two-sided)",
+        ),
+        "PoolVsCloseRetSig": (
+            str(pool_vs_close_ret_sig),
+            "pooled vs closing-interval, same class and predictor set: HAC t of the return differential, p < 0.05",
         ),
         "PoolShHarMin": (
             mnum(min(sh_har), 2),

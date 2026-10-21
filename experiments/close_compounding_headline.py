@@ -10,6 +10,11 @@ peryear_growth_modelset.csv, gates.csv, wealth_modelset.png, SUMMARY.md,
 writeup/generated/appendix_close_compounding.tex.  The headline run is kept as
 main_headline_parked() (not called); its description follows.
 
+2026-10-21 (user): main() and write_numbers() compound on the 614 post-warmup days t > WARMUP
+(= gui._SIZING_WARMUP = 252) of the 866 option-data days, the sample of the Sharpe ratios since
+note E17; f = 0.03 and the definitions of V and G are unchanged.  The always-short committed-copy
+gate is re-baselined (an 866-day recomputation is gated; the old values are parked in main()).
+
 2026-10-06: recalibration removed, user decision.  The positions are the master table's
 on the PLAIN forecast f^2 * B (q = sign(plain - iv_var), gated here against the per-day
 frame's ``plain`` column), never the research scorer's (f^2 + s) * B.  The committed-
@@ -68,13 +73,16 @@ import numpy as np
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
-for _p in (ROOT, ROOT / "notebooks", ROOT / "experiments"):
+# 2026-10-21 (user): writeup/ added for master_table_gui (the sizing warmup, as make_rehaul_economics.py). Was:
+# for _p in (ROOT, ROOT / "notebooks", ROOT / "experiments"):
+for _p in (ROOT, ROOT / "notebooks", ROOT / "experiments", ROOT / "writeup"):
     if str(_p) not in sys.path:
         sys.path.insert(0, str(_p))
 
 import atm_straddle_lib as asl  # noqa: E402
 import master_table_close as mtc  # noqa: E402
 import score_linear_subsection as base  # noqa: E402
+from master_table_gui import rows as gui  # noqa: E402
 
 OUT = ROOT / "results" / "close_compounding"
 TEX = ROOT / "writeup" / "generated" / "appendix_close_compounding.tex"
@@ -83,7 +91,15 @@ TEX = ROOT / "writeup" / "generated" / "appendix_close_compounding.tex"
 # stored CSVs; no re-computation beyond a light consistency check).
 NUMBERS_TEX = ROOT / "writeup" / "generated" / "close_compounding_numbers.tex"
 # the values 07_economics.tex typed on 2026-10-15; write_numbers() stops if a stored value differs
-NUMBERS_TYPED = {
+# 2026-10-21 (user): parked -- the 866-day values; the compounding now runs on the 614 post-warmup days, so these
+# change by design and are reported, not asserted (the text prints the macros, nothing is typed). Was:
+# NUMBERS_TYPED = {
+#     "cmpWMedMid": "4.4",
+#     "cmpWMedX": "1.8",
+#     "cmpDDMaxMid": "64",
+#     "cmpDDMaxX": "78",
+# }
+NUMBERS_TYPED_866 = {
     "cmpWMedMid": "4.4",
     "cmpWMedX": "1.8",
     "cmpDDMaxMid": "64",
@@ -103,6 +119,20 @@ COMMITTED_TOL = 1e-9  # |new - old| <= COMMITTED_TOL * max(1, |old|), cell by ce
 # 2026-10-06: recalibration removed, user decision -- the forecast column the positions read
 FCOL = "plain"
 PLAIN_HEADLINE_SHARPE_MID = "1.79"  # the GUI's independent recomputation, 866 days
+# 2026-10-21 (user): main() compounds on the post-warmup days t > WARMUP of the 866 option-data days (614 days), the
+# sample of the Sharpe ratios since note E17 (make_rehaul_economics.WARMUP = gui._SIZING_WARMUP). f and the
+# definitions of V and G are unchanged; only the days change. main_headline_parked() is untouched (866 days).
+WARMUP = gui._SIZING_WARMUP
+assert WARMUP == 252, WARMUP
+N_OPT = 866
+N_POST = N_OPT - WARMUP  # 614
+
+
+def post_warmup(r) -> np.ndarray:
+    """The days t > WARMUP of a full 866-day series (0-based rows WARMUP.., as make_rehaul_economics.nw_t)."""
+    r = np.asarray(r, float)
+    assert len(r) == N_OPT, len(r)
+    return r[WARMUP:]
 
 
 def rank_set(mt: pd.DataFrame) -> set[str]:
@@ -761,11 +791,16 @@ def write_numbers() -> None:
     )
     D = pd.read_parquet(DAILY, columns=["key", "day", "ret_mid", "ret_crossed"])
     D = D[D["key"].isin(keys)].sort_values(["key", "day"])
+    # 2026-10-21 (user): on the post-warmup days (post_warmup asserts 866 rows per forecast). Was:
+    # (k, fill): float(np.prod(1.0 + F_FIXED * x[f"ret_{fill}"].to_numpy(float)))
     term = {
-        (k, fill): float(np.prod(1.0 + F_FIXED * x[f"ret_{fill}"].to_numpy(float)))
+        (k, fill): float(np.prod(1.0 + F_FIXED * post_warmup(x[f"ret_{fill}"])))
         for k, x in D.groupby("key")
         for fill in ("mid", "crossed")
     }
+    assert set(stored["n"].unique()) == {N_POST}, (
+        "fixedfrac_modelset.csv is not on the post-warmup days: re-run main()"
+    )
     worst = max(
         abs(term[(str(r_["key"]), r_["fill"])] / float(r_["terminal"]) - 1)
         for _, r_ in stored.iterrows()
@@ -787,10 +822,13 @@ def write_numbers() -> None:
         "cmpDDMaxMid": f"{sm.loc['mid', 'maxDD_max_pct']:.0f}",
         "cmpDDMaxX": f"{sm.loc['crossed', 'maxDD_max_pct']:.0f}",
     }
-    assert macros == NUMBERS_TYPED, (
-        f"{macros} != the values the text typed {NUMBERS_TYPED}: update writeup/rehaul/07_economics.tex and "
-        "NUMBERS_TYPED together"
-    )
+    # 2026-10-21 (user): parked -- re-baselined by design (614 post-warmup days); reported against the 866-day values. Was:
+    # assert macros == NUMBERS_TYPED, (
+    #     f"{macros} != the values the text typed {NUMBERS_TYPED}: update writeup/rehaul/07_economics.tex and "
+    #     "NUMBERS_TYPED together"
+    # )
+    for k_, v_ in macros.items():
+        print(f"{k_}: {v_} on {N_POST} post-warmup days (was {NUMBERS_TYPED_866[k_]} on {N_OPT} days)")
     what = {
         "cmpWMedMid": "median terminal wealth W_oos across the model set, mid-quotes",
         "cmpWMedX": "the same at quoted bid/ask prices",
@@ -802,7 +840,8 @@ def write_numbers() -> None:
         "% results/close_compounding/fixedfrac_modelset*.csv -- do not edit. Macro definitions only (no tables);",
         "% loaded once by the preamble of writeup/paper_rehaul.tex (same names and values as the table-mixed",
         "% appendix_close_compounding.tex, which the rehauled paper does not load).",
-        f"% Fixed fraction f = {F_FIXED:.2f} of wealth per day, sign strategy, {len(keys)} forecasts of the model set.",
+        f"% Fixed fraction f = {F_FIXED:.2f} of wealth per day, sign strategy, {len(keys)} forecasts of the model set,",
+        f"% on the {N_POST} post-warmup days t > {WARMUP} of the {N_OPT} option-data days (2026-10-21; was all {N_OPT}).",
     ]
     L += [rf"\newcommand{{\{k}}}{{{v}}}  % {what[k]}" for k, v in macros.items()]
     NUMBERS_TEX.parent.mkdir(parents=True, exist_ok=True)
@@ -852,6 +891,10 @@ def main() -> None:
     days = deck.index
     assert len(days) == 866
     frames = {k: D[D["key"] == k].set_index("day").reindex(days) for k in keys}
+    # 2026-10-21 (user): the gates below read all 866 days (they check the inputs against master_table.csv); the
+    # compounding, the growth by calendar year and the figure read the post-warmup days days_c (t > WARMUP).
+    days_c = days[WARMUP:]
+    assert len(days_c) == N_POST, len(days_c)
     grp = {k: group_of(str(mt.loc[k, "family"])) for k in keys}
     R = deck["R"].to_numpy(float)
     ex = deck["exit"].to_numpy(float)
@@ -920,10 +963,14 @@ def main() -> None:
                     "group": grp[k],
                     "inputs": bucket_of(k),
                     "fill": fill,
-                    **wealth_stats(F_FIXED, frames[k][f"ret_{fill}"].to_numpy(float)),
+                    # 2026-10-21 (user): post-warmup days. Was: frames[k][f"ret_{fill}"].to_numpy(float)
+                    **wealth_stats(F_FIXED, post_warmup(frames[k][f"ret_{fill}"])),
                 }
             )
-    short = {"mid": -R, "crossed": 1.0 - ex / bid}
+    # 2026-10-21 (user): always short on the same post-warmup days; short_all keeps the 866 days for the committed-copy
+    # gate below. Was: short = {"mid": -R, "crossed": 1.0 - ex / bid}
+    short_all = {"mid": -R, "crossed": 1.0 - ex / bid}
+    short = {fill: post_warmup(r) for fill, r in short_all.items()}
     for fill, r in short.items():
         rows.append(
             {
@@ -999,16 +1046,18 @@ def main() -> None:
     summ.to_csv(OUT / "fixedfrac_modelset_summary.csv", index=False)
 
     # ---- per calendar year (annualized from the days traded that year), every forecast
-    yr = days.year
+    # 2026-10-21 (user): post-warmup days. Was: yr = days.year
+    yr = days_c.year
     py_rows = []
     for k in keys + ["always short"]:
         for fill in ("mid", "crossed"):
             r = (
                 short[fill]
                 if k == "always short"
-                else frames[k][f"ret_{fill}"].to_numpy(float)
+                else post_warmup(frames[k][f"ret_{fill}"])  # 2026-10-21 (user): was frames[k][f"ret_{fill}"].to_numpy(float)
             )
-            gy = PPY * pd.Series(np.log1p(F_FIXED * r), index=days).groupby(yr).mean()
+            # 2026-10-21 (user): index days_c. Was: index=days
+            gy = PPY * pd.Series(np.log1p(F_FIXED * r), index=days_c).groupby(yr).mean()
             for y_, v in gy.items():
                 py_rows.append(
                     {
@@ -1024,16 +1073,40 @@ def main() -> None:
     py.to_csv(OUT / "peryear_growth_modelset.csv", index=False)
 
     # ---- always short reads no forecast: it still equals its committed rows
+    # 2026-10-21 (user): re-baselined by design. The rows above are now on the 614 post-warmup days, while the committed
+    # copies (fixedfrac_headline.csv, peryear_growth.csv, written by main_headline_parked on 866 days) hold the 866-day
+    # rows, so the gate now compares an 866-day recomputation of always short (same code, short_all) with them: it
+    # still checks that the inputs (R, exit, bid) are unchanged. The 614-day rows are new values. The committed 866-day
+    # values, parked for the record (fixedfrac_headline.csv, always short; fill,f,g_ann,terminal,maxDD_frac,
+    # worst_day_factor,ruin_bound_f,n):
+    #   mid,0.03,-0.043388862655741274,0.8614776462100451,-0.549049175188413,0.6905185447614142,0.09693634139361391,866
+    #   crossed,0.03,-0.319196728957169,0.3338972084954259,-0.7421912924288099,0.6713542606401216,0.09128370280543625,866
+    # peryear_growth.csv, always short (year,days,g_ann):
+    #   mid: 2020,158,-0.37584384367505397; 2021,158,-0.531644041202034; 2022,219,0.6884888398024436;
+    #        2023,248,0.32643401840770403; 2024,83,-1.5171850810980625
+    #   crossed: 2020,158,-0.8545557260008123; 2021,158,-0.8911414221101417; 2022,219,0.5044993185749798;
+    #        2023,248,0.1318314202954625; 2024,83,-1.732334468392462
+    # Was: newframe = fa[fa["key"] == "always short"] and py[py["key"] == "always short"] (both then on 866 days).
+    fa_short_all = pd.DataFrame(
+        [{"fill": fill, **wealth_stats(F_FIXED, r)} for fill, r in short_all.items()]
+    )
+    py_short_all = pd.DataFrame(
+        [
+            {"fill": fill, "year": int(y_), "days": int((days.year == y_).sum()), "g_ann": float(v)}
+            for fill, r in short_all.items()
+            for y_, v in (PPY * pd.Series(np.log1p(F_FIXED * r), index=days).groupby(days.year).mean()).items()
+        ]
+    )
     for fname, idx, newframe in (
         (
             "fixedfrac_headline.csv",
             ["series", "fill"],
-            fa[fa["key"] == "always short"].assign(series="always short"),
+            fa_short_all.assign(series="always short"),
         ),
         (
             "peryear_growth.csv",
             ["series", "fill", "year"],
-            py[py["key"] == "always short"].assign(series="always short"),
+            py_short_all.assign(series="always short"),
         ),
     ):
         old, sha = committed_csv(OUT / fname)
@@ -1041,7 +1114,7 @@ def main() -> None:
         new = newframe.set_index(idx)
         old = old[[c for c in old.columns if c in new.columns]]
         gate(
-            f"{fname} = the committed copy ({PREV_REV} = {sha}), always short's rows (no forecast)",
+            f"{fname} = the committed copy ({PREV_REV} = {sha}), always short's rows (no forecast), 866-day recomputation",
             committed_diff(new, old),
             COMMITTED_TOL,
             int(old.size),
@@ -1060,10 +1133,11 @@ def main() -> None:
     fig, axes = plt.subplots(1, 2, figsize=(11, 4.2), sharey=True)
     for ax, fill in zip(axes, ("mid", "crossed")):
         for k in keys:
-            w = np.cumprod(1.0 + F_FIXED * frames[k][f"ret_{fill}"].to_numpy(float))
-            ax.plot(days, w, lw=0.6, alpha=0.45, color=GROUP_COLOURS[grp[k]])
+            # 2026-10-21 (user): post-warmup days. Was: frames[k][f"ret_{fill}"].to_numpy(float) on days
+            w = np.cumprod(1.0 + F_FIXED * post_warmup(frames[k][f"ret_{fill}"]))
+            ax.plot(days_c, w, lw=0.6, alpha=0.45, color=GROUP_COLOURS[grp[k]])
         ax.plot(
-            days, np.cumprod(1.0 + F_FIXED * short[fill]), lw=1.4, color="0.4", ls="--"
+            days_c, np.cumprod(1.0 + F_FIXED * short[fill]), lw=1.4, color="0.4", ls="--"
         )
         ax.set_yscale("log")
         ax.yaxis.set_major_locator(FixedLocator([0.25, 0.5, 1, 2, 5, 10, 20, 50, 100]))
@@ -1099,7 +1173,9 @@ def main() -> None:
         r"\begingroup\scriptsize\setlength{\tabcolsep}{3pt}",
         r"\begin{longtable}{llrrrrrrr}",
         rf"\caption{{Compounding at a fixed $f={F_FIXED:.2f}$ of wealth per day across the paper's model set ({len(keys)} "
-        r"forecasts, each its plain forecast $\hat y^2B$, no recalibration), 866 days, by group: how many end above one "
+        # 2026-10-21 (user): parked -- "866 days"; now the post-warmup days. Was:
+        # r"forecasts, each its plain forecast $\hat y^2B$, no recalibration), 866 days, by group: how many end above one "
+        rf"forecasts, each its plain forecast $\hat y^2B$, no recalibration), the {N_POST} post-warmup days, by group: how many end above one "
         r"unit of wealth, the median terminal wealth $W_T=\prod_t(1+f\,q_tR_t)$ and its range, the median annualized "
         r"log-growth $g$, the median and the largest fall of wealth from its running peak, and the smallest ruin bound "
         r"$1/|\min_t R'_t|$ (the sample's worst day). Always short on the same days.}\label{tab:app_compounding_headline}\\",
@@ -1210,7 +1286,8 @@ def main() -> None:
         "`fixedfrac_modelset.csv`, `fixedfrac_modelset_summary.csv`, `peryear_growth_modelset.csv` and `gates.csv`. Definition: "
         "the notebook's section 15 (f = 0.03 of wealth as straddle premium every day, W_T = Π(1 + f q_t R_t), g = 252·mean "
         "log(1 + f R'), the drawdown as a fraction of the running peak, the ruin bound 1/|min R'|). Input: the master table's "
-        f"per-day returns. Model set: {len(keys)} forecasts ({set_src}).",
+        f"daily returns, on the {N_POST} post-warmup days t > {WARMUP} of the {N_OPT} option-data days (2026-10-21; was all "
+        f"{N_OPT}). Model set: {len(keys)} forecasts ({set_src}).",
         "",
         "| group | fill | above 1 | median W_T | range | median g | median DD | largest DD | smallest ruin bound |",
         "|---|---|---|---|---|---|---|---|---|",
