@@ -1,0 +1,48 @@
+{
+ "est": "rf",
+ "predictor_set": "all_features",
+ "refit": "bar",
+ "span": [
+  "2012-01-03",
+  "2024-04-30"
+ ],
+ "part": "78/190",
+ "block": [
+  "2017-02-17 10:00:00",
+  "2017-03-13 16:00:00"
+ ],
+ "rows": 215,
+ "refits": 215,
+ "wall_sec": 10781.4,
+ "config": "rf400_rf_opt_00",
+ "sha": "88eebb5fa9e8",
+ "params": {
+  "n_estimators": 485,
+  "max_depth": 20,
+  "min_samples_leaf": 12,
+  "max_features": 0.9013236540796851,
+  "max_samples": 0.41297156429787285,
+  "bootstrap": true
+ },
+ "config_file": "cluster/pooltree_rf400_config.json",
+ "config_file_sha256": "ba5c99b02b9359e070813a7ed8a421cb96205176a7dc91aa55c6b0288f164567",
+ "window_rows": 13000,
+ "window_days": 1000,
+ "n_columns": 576,
+ "threads": 8,
+ "host": "a04-07.hpc.usc.edu",
+ "cpu": "AMD EPYC 7513 32-Core Processor",
+ "versions": {
+  "python": "3.12.15",
+  "numpy": "1.26.4",
+  "pandas": "2.3.3",
+  "scipy": "1.17.1",
+  "sklearn": "1.9.1",
+  "lightgbm": "4.6.0",
+  "xgboost": "3.2.0",
+  "pyarrow": "19.0.1"
+ },
+ "design": "/scratch1/jc_905/harxhar-trees13/results/pooled_linear_rerun_2026-10-19_13_w1000/_work/design_all_features",
+ "slurm_job": "13265651",
+ "slurm_task": "106"
+}
