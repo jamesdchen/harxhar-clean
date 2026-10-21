@@ -2684,6 +2684,8 @@ def main() -> None:
     vb_har = [vb_pool[k]["pct"] for k in pool_har]
     sh_full = [lv[k]["sharpe"] for k in pool_full]
     sh_har = [lv[k]["sharpe"] for k in pool_har]
+    shx_full = [lv[k]["sharpe_x"] for k in pool_full]  # 2026-10-21 (user, N15c): \rhrPoolShX{Har,Full}{Min,Max}
+    shx_har = [lv[k]["sharpe_x"] for k in pool_har]
     dsh_pool = [t1p[n]["dsh"] for n in lin_n + tree_n]
     if (
         SPAN == "rolling"
@@ -3209,6 +3211,18 @@ def main() -> None:
             "Sharpe mid of the pooled forecasts on Full: min",
         ),
         "PoolShFullMax": (mnum(max(sh_full), 2), "... max"),
+        # 2026-10-21 (user, N15c): the same ranges at quoted bid/ask prices (07_economics.tex, Section 7.3, prints the
+        # range of pooled Sharpe ratios on each predictor set at mid-quotes and at bid/ask instead of a named top list)
+        "PoolShXHarMin": (
+            mnum(min(shx_har), 2),
+            "Sharpe at quoted bid/ask prices of the pooled forecasts on HAR: min",
+        ),
+        "PoolShXHarMax": (mnum(max(shx_har), 2), "... max"),
+        "PoolShXFullMin": (
+            mnum(min(shx_full), 2),
+            "Sharpe at quoted bid/ask prices of the pooled forecasts on Full: min",
+        ),
+        "PoolShXFullMax": (mnum(max(shx_full), 2), "... max"),
         "PoolSzSignMed": (
             f"{med_sz('sign'):.2f}",
             "sizing sign: median Sharpe mid over the pooled forecasts, 614 days",
