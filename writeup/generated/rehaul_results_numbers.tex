@@ -2,7 +2,7 @@
 % once by the preamble of paper_rehaul.tex. Every QLIKE, squared error and DM is against the actual realized
 % variance of the closing half hour on the common rolling span (\rhoosDays trading days, \rhoosSpanStart to \rhoosSpanEnd); every Sharpe ratio and HAC t on the \rhrDays days of the option-data subsample.
 % DM: dm_test, HLN-corrected, Newey-West lag \rhrDMLag;
-% HAC t: newey_west_t, lag \rhrHACLag; p two-sided normal; stars at the 10 / 5 / 1 % levels.
+% t of a mean: hac_inference.llsw_test (bandwidth 33, fixed-b p, 614 days); Sharpe differences: Ledoit-Wolf p; stars at the 10 / 5 / 1 % levels.
 % Per-model families (<M> = Ridge, Lasso, Enet, Lgbm, Xgb, Rf; Nn, the MinGRU, is parked from every table and
 % figure (2026-10-15) but its macros stay defined; <S> = Close | Pool, the closing-interval or
 % intraday model; <X> = Har | Full, the predictor set):
@@ -79,7 +79,16 @@
 \providecommand{\rhrTrVsRidgeQBelowSig}{0}  % ... lower and DM p < 0.05
 \providecommand{\rhrLassoMseExCrashPct}{\ensuremath{-}4.4}  % lasso (full) vs the HAR benchmark: MSE % change outside 24 Feb - 30 Apr 2020
 \providecommand{\rhrDMLag}{6}  % Newey-West lag q_NW of every DM statistic (dm_test's automatic lag)
-\providecommand{\rhrHACLag}{12}  % Newey-West lag q_NW of every HAC t (floor(1.5 T^(1/3)))
+\providecommand{\rhrRobLagNW}{5}  % robustness table: Newey-West (1994) lag floor(4 (T/100)^(2/9)), T = 614
+\providecommand{\rhrRobLagOld}{12}  % robustness table: the previous lag floor(1.5 T^(1/3)), T = 614
+\providecommand{\rhrRobN}{34}  % robustness table: RobN
+\providecommand{\rhrRobNPairs}{33}  % robustness table: RobNPairs
+\providecommand{\rhrRobNWFiveSig}{1}  % robustness table: RobNWFiveSig
+\providecommand{\rhrRobNWTwelveSig}{2}  % robustness table: RobNWTwelveSig
+\providecommand{\rhrRobFbSig}{0}  % robustness table: RobFbSig
+\providecommand{\rhrRobLWSig}{2}  % robustness table: RobLWSig
+\providecommand{\rhrRobLWSigLo}{3}  % robustness table: RobLWSigLo
+\providecommand{\rhrRobLWSigHi}{2}  % robustness table: RobLWSigHi
 \providecommand{\rhrQRidgeCloseHar}{0.1033}  % mean QLIKE, subpt_ridge_baseline
 \providecommand{\rhrQRidgeCloseFull}{0.1031}  % mean QLIKE, subpt_ridge_all_features
 \providecommand{\rhrQRidgePoolHar}{0.1143}  % mean QLIKE, poolpt_ridge_baseline
@@ -334,116 +343,116 @@
 \providecommand{\rhrPoolVsCloseNnFullStars}{\ensuremath{^{***}}}  % ... its stars (10 / 5 / 1 %)
 \providecommand{\rhrShRidgeCloseHar}{1.56}  % sign-strategy Sharpe ratio, mid-quotes, subpt_ridge_baseline
 \providecommand{\rhrShXRidgeCloseHar}{1.22}  % ... at quoted bid/ask prices
-\providecommand{\rhrVsShortRidgeCloseHarT}{1.78}  % ... HAC t of the daily mid-return differential over the short straddle
+\providecommand{\rhrVsShortRidgeCloseHarT}{1.75}  % ... HAC t of the daily mid-return differential over the short straddle
 \providecommand{\rhrShRidgeCloseFull}{1.28}  % sign-strategy Sharpe ratio, mid-quotes, subpt_ridge_all_features
 \providecommand{\rhrShXRidgeCloseFull}{0.94}  % ... at quoted bid/ask prices
-\providecommand{\rhrVsShortRidgeCloseFullT}{1.57}  % ... HAC t of the daily mid-return differential over the short straddle
+\providecommand{\rhrVsShortRidgeCloseFullT}{1.52}  % ... HAC t of the daily mid-return differential over the short straddle
 \providecommand{\rhrShRidgePoolHar}{0.75}  % sign-strategy Sharpe ratio, mid-quotes, poolpt_ridge_baseline
 \providecommand{\rhrShXRidgePoolHar}{0.41}  % ... at quoted bid/ask prices
-\providecommand{\rhrVsShortRidgePoolHarT}{0.69}  % ... HAC t of the daily mid-return differential over the short straddle
+\providecommand{\rhrVsShortRidgePoolHarT}{0.68}  % ... HAC t of the daily mid-return differential over the short straddle
 \providecommand{\rhrShRidgePoolFull}{1.44}  % sign-strategy Sharpe ratio, mid-quotes, poolpt_ridge_all_features
 \providecommand{\rhrShXRidgePoolFull}{1.10}  % ... at quoted bid/ask prices
-\providecommand{\rhrVsShortRidgePoolFullT}{1.68}  % ... HAC t of the daily mid-return differential over the short straddle
+\providecommand{\rhrVsShortRidgePoolFullT}{1.67}  % ... HAC t of the daily mid-return differential over the short straddle
 \providecommand{\rhrAfRidgeCloseDSh}{\ensuremath{-}0.29}  % T1, per-bar Ridge: Sharpe mid, Full minus HAR
-\providecommand{\rhrAfRidgeCloseDShT}{\ensuremath{-}0.26}  % ... HAC t of the daily mid-return differential
+\providecommand{\rhrAfRidgeCloseDShT}{\ensuremath{-}0.27}  % ... HAC t of the daily mid-return differential
 \providecommand{\rhrAfRidgePoolDSh}{\ensuremath{+}0.69}  % T1, pooled Ridge: Sharpe mid, Full minus HAR
-\providecommand{\rhrAfRidgePoolDShT}{1.95}  % ... HAC t of the daily mid-return differential
+\providecommand{\rhrAfRidgePoolDShT}{1.99}  % ... HAC t of the daily mid-return differential
 \providecommand{\rhrShLassoCloseHar}{1.56}  % sign-strategy Sharpe ratio, mid-quotes, subpt_lasso_baseline
 \providecommand{\rhrShXLassoCloseHar}{1.22}  % ... at quoted bid/ask prices
-\providecommand{\rhrVsShortLassoCloseHarT}{1.78}  % ... HAC t of the daily mid-return differential over the short straddle
+\providecommand{\rhrVsShortLassoCloseHarT}{1.75}  % ... HAC t of the daily mid-return differential over the short straddle
 \providecommand{\rhrShLassoCloseFull}{1.68}  % sign-strategy Sharpe ratio, mid-quotes, subpt_lasso_all_features
 \providecommand{\rhrShXLassoCloseFull}{1.34}  % ... at quoted bid/ask prices
-\providecommand{\rhrVsShortLassoCloseFullT}{1.84}  % ... HAC t of the daily mid-return differential over the short straddle
+\providecommand{\rhrVsShortLassoCloseFullT}{1.79}  % ... HAC t of the daily mid-return differential over the short straddle
 \providecommand{\rhrShLassoPoolHar}{0.74}  % sign-strategy Sharpe ratio, mid-quotes, poolpt_lasso_baseline
 \providecommand{\rhrShXLassoPoolHar}{0.40}  % ... at quoted bid/ask prices
 \providecommand{\rhrVsShortLassoPoolHarT}{0.60}  % ... HAC t of the daily mid-return differential over the short straddle
 \providecommand{\rhrShLassoPoolFull}{1.46}  % sign-strategy Sharpe ratio, mid-quotes, poolpt_lasso_all_features
 \providecommand{\rhrShXLassoPoolFull}{1.12}  % ... at quoted bid/ask prices
-\providecommand{\rhrVsShortLassoPoolFullT}{1.69}  % ... HAC t of the daily mid-return differential over the short straddle
+\providecommand{\rhrVsShortLassoPoolFullT}{1.63}  % ... HAC t of the daily mid-return differential over the short straddle
 \providecommand{\rhrAfLassoCloseDSh}{\ensuremath{+}0.12}  % T1, per-bar Lasso: Sharpe mid, Full minus HAR
-\providecommand{\rhrAfLassoCloseDShT}{0.34}  % ... HAC t of the daily mid-return differential
+\providecommand{\rhrAfLassoCloseDShT}{0.35}  % ... HAC t of the daily mid-return differential
 \providecommand{\rhrAfLassoPoolDSh}{\ensuremath{+}0.72}  % T1, pooled Lasso: Sharpe mid, Full minus HAR
-\providecommand{\rhrAfLassoPoolDShT}{1.88}  % ... HAC t of the daily mid-return differential
+\providecommand{\rhrAfLassoPoolDShT}{1.79}  % ... HAC t of the daily mid-return differential
 \providecommand{\rhrShEnetCloseHar}{1.56}  % sign-strategy Sharpe ratio, mid-quotes, subpt_enet_baseline
 \providecommand{\rhrShXEnetCloseHar}{1.22}  % ... at quoted bid/ask prices
-\providecommand{\rhrVsShortEnetCloseHarT}{1.78}  % ... HAC t of the daily mid-return differential over the short straddle
+\providecommand{\rhrVsShortEnetCloseHarT}{1.75}  % ... HAC t of the daily mid-return differential over the short straddle
 \providecommand{\rhrShEnetCloseFull}{1.76}  % sign-strategy Sharpe ratio, mid-quotes, subpt_enet_all_features
 \providecommand{\rhrShXEnetCloseFull}{1.42}  % ... at quoted bid/ask prices
-\providecommand{\rhrVsShortEnetCloseFullT}{2.00}  % ... HAC t of the daily mid-return differential over the short straddle
+\providecommand{\rhrVsShortEnetCloseFullT}{1.92}  % ... HAC t of the daily mid-return differential over the short straddle
 \providecommand{\rhrShEnetPoolHar}{0.74}  % sign-strategy Sharpe ratio, mid-quotes, poolpt_enet_baseline
 \providecommand{\rhrShXEnetPoolHar}{0.41}  % ... at quoted bid/ask prices
 \providecommand{\rhrVsShortEnetPoolHarT}{0.67}  % ... HAC t of the daily mid-return differential over the short straddle
 \providecommand{\rhrShEnetPoolFull}{1.56}  % sign-strategy Sharpe ratio, mid-quotes, poolpt_enet_all_features
 \providecommand{\rhrShXEnetPoolFull}{1.23}  % ... at quoted bid/ask prices
-\providecommand{\rhrVsShortEnetPoolFullT}{1.83}  % ... HAC t of the daily mid-return differential over the short straddle
+\providecommand{\rhrVsShortEnetPoolFullT}{1.71}  % ... HAC t of the daily mid-return differential over the short straddle
 \providecommand{\rhrAfEnetCloseDSh}{\ensuremath{+}0.19}  % T1, per-bar Elastic net: Sharpe mid, Full minus HAR
-\providecommand{\rhrAfEnetCloseDShT}{0.78}  % ... HAC t of the daily mid-return differential
+\providecommand{\rhrAfEnetCloseDShT}{0.74}  % ... HAC t of the daily mid-return differential
 \providecommand{\rhrAfEnetPoolDSh}{\ensuremath{+}0.82}  % T1, pooled Elastic net: Sharpe mid, Full minus HAR
-\providecommand{\rhrAfEnetPoolDShT}{2.12}  % ... HAC t of the daily mid-return differential
+\providecommand{\rhrAfEnetPoolDShT}{1.99}  % ... HAC t of the daily mid-return differential
 \providecommand{\rhrShLgbmCloseHar}{0.81}  % sign-strategy Sharpe ratio, mid-quotes, subtree_daily_baseline_lgbm
 \providecommand{\rhrShXLgbmCloseHar}{0.48}  % ... at quoted bid/ask prices
 \providecommand{\rhrVsShortLgbmCloseHarT}{0.34}  % ... HAC t of the daily mid-return differential over the short straddle
 \providecommand{\rhrShLgbmCloseFull}{1.38}  % sign-strategy Sharpe ratio, mid-quotes, subtree_daily_all_features_lgbm
 \providecommand{\rhrShXLgbmCloseFull}{1.05}  % ... at quoted bid/ask prices
-\providecommand{\rhrVsShortLgbmCloseFullT}{1.54}  % ... HAC t of the daily mid-return differential over the short straddle
+\providecommand{\rhrVsShortLgbmCloseFullT}{1.49}  % ... HAC t of the daily mid-return differential over the short straddle
 \providecommand{\rhrShLgbmPoolHar}{1.13}  % sign-strategy Sharpe ratio, mid-quotes, pooltree_lgbm_baseline
 \providecommand{\rhrShXLgbmPoolHar}{0.79}  % ... at quoted bid/ask prices
-\providecommand{\rhrVsShortLgbmPoolHarT}{0.73}  % ... HAC t of the daily mid-return differential over the short straddle
+\providecommand{\rhrVsShortLgbmPoolHarT}{0.72}  % ... HAC t of the daily mid-return differential over the short straddle
 \providecommand{\rhrShLgbmPoolFull}{1.21}  % sign-strategy Sharpe ratio, mid-quotes, pooltree_lgbm_all_features
 \providecommand{\rhrShXLgbmPoolFull}{0.87}  % ... at quoted bid/ask prices
-\providecommand{\rhrVsShortLgbmPoolFullT}{1.57}  % ... HAC t of the daily mid-return differential over the short straddle
+\providecommand{\rhrVsShortLgbmPoolFullT}{1.45}  % ... HAC t of the daily mid-return differential over the short straddle
 \providecommand{\rhrAfLgbmCloseDSh}{\ensuremath{+}0.57}  % T1, per-bar LightGBM: Sharpe mid, Full minus HAR
-\providecommand{\rhrAfLgbmCloseDShT}{1.48}  % ... HAC t of the daily mid-return differential
+\providecommand{\rhrAfLgbmCloseDShT}{1.41}  % ... HAC t of the daily mid-return differential
 \providecommand{\rhrAfLgbmPoolDSh}{\ensuremath{+}0.08}  % T1, pooled LightGBM: Sharpe mid, Full minus HAR
-\providecommand{\rhrAfLgbmPoolDShT}{1.07}  % ... HAC t of the daily mid-return differential
+\providecommand{\rhrAfLgbmPoolDShT}{0.99}  % ... HAC t of the daily mid-return differential
 \providecommand{\rhrShXgbCloseHar}{0.78}  % sign-strategy Sharpe ratio, mid-quotes, subtree_daily_baseline_xgb
 \providecommand{\rhrShXXgbCloseHar}{0.44}  % ... at quoted bid/ask prices
 \providecommand{\rhrVsShortXgbCloseHarT}{0.68}  % ... HAC t of the daily mid-return differential over the short straddle
 \providecommand{\rhrShXgbCloseFull}{1.26}  % sign-strategy Sharpe ratio, mid-quotes, subtree_daily_all_features_xgb
 \providecommand{\rhrShXXgbCloseFull}{0.92}  % ... at quoted bid/ask prices
-\providecommand{\rhrVsShortXgbCloseFullT}{1.28}  % ... HAC t of the daily mid-return differential over the short straddle
+\providecommand{\rhrVsShortXgbCloseFullT}{1.21}  % ... HAC t of the daily mid-return differential over the short straddle
 \providecommand{\rhrShXgbPoolHar}{1.22}  % sign-strategy Sharpe ratio, mid-quotes, pooltree_xgb_baseline
 \providecommand{\rhrShXXgbPoolHar}{0.87}  % ... at quoted bid/ask prices
-\providecommand{\rhrVsShortXgbPoolHarT}{0.91}  % ... HAC t of the daily mid-return differential over the short straddle
+\providecommand{\rhrVsShortXgbPoolHarT}{0.93}  % ... HAC t of the daily mid-return differential over the short straddle
 \providecommand{\rhrShXgbPoolFull}{1.26}  % sign-strategy Sharpe ratio, mid-quotes, pooltree_xgb_all_features
 \providecommand{\rhrShXXgbPoolFull}{0.92}  % ... at quoted bid/ask prices
-\providecommand{\rhrVsShortXgbPoolFullT}{1.46}  % ... HAC t of the daily mid-return differential over the short straddle
+\providecommand{\rhrVsShortXgbPoolFullT}{1.45}  % ... HAC t of the daily mid-return differential over the short straddle
 \providecommand{\rhrAfXgbCloseDSh}{\ensuremath{+}0.48}  % T1, per-bar XGBoost: Sharpe mid, Full minus HAR
 \providecommand{\rhrAfXgbCloseDShT}{0.53}  % ... HAC t of the daily mid-return differential
 \providecommand{\rhrAfXgbPoolDSh}{\ensuremath{+}0.05}  % T1, pooled XGBoost: Sharpe mid, Full minus HAR
-\providecommand{\rhrAfXgbPoolDShT}{0.82}  % ... HAC t of the daily mid-return differential
+\providecommand{\rhrAfXgbPoolDShT}{0.79}  % ... HAC t of the daily mid-return differential
 \providecommand{\rhrShRfCloseHar}{0.74}  % sign-strategy Sharpe ratio, mid-quotes, subtree_daily_baseline_rf
 \providecommand{\rhrShXRfCloseHar}{0.41}  % ... at quoted bid/ask prices
-\providecommand{\rhrVsShortRfCloseHarT}{0.24}  % ... HAC t of the daily mid-return differential over the short straddle
+\providecommand{\rhrVsShortRfCloseHarT}{0.26}  % ... HAC t of the daily mid-return differential over the short straddle
 \providecommand{\rhrShRfCloseFull}{0.78}  % sign-strategy Sharpe ratio, mid-quotes, subtree_daily_all_features_rf
 \providecommand{\rhrShXRfCloseFull}{0.45}  % ... at quoted bid/ask prices
-\providecommand{\rhrVsShortRfCloseFullT}{0.72}  % ... HAC t of the daily mid-return differential over the short straddle
+\providecommand{\rhrVsShortRfCloseFullT}{0.70}  % ... HAC t of the daily mid-return differential over the short straddle
 \providecommand{\rhrShRfPoolHar}{1.19}  % sign-strategy Sharpe ratio, mid-quotes, pooltree_rf_baseline
 \providecommand{\rhrShXRfPoolHar}{0.84}  % ... at quoted bid/ask prices
-\providecommand{\rhrVsShortRfPoolHarT}{0.94}  % ... HAC t of the daily mid-return differential over the short straddle
+\providecommand{\rhrVsShortRfPoolHarT}{1.03}  % ... HAC t of the daily mid-return differential over the short straddle
 \providecommand{\rhrShRfPoolFull}{1.00}  % sign-strategy Sharpe ratio, mid-quotes, pooltree_rf_all_features
 \providecommand{\rhrShXRfPoolFull}{0.66}  % ... at quoted bid/ask prices
-\providecommand{\rhrVsShortRfPoolFullT}{1.21}  % ... HAC t of the daily mid-return differential over the short straddle
+\providecommand{\rhrVsShortRfPoolFullT}{1.27}  % ... HAC t of the daily mid-return differential over the short straddle
 \providecommand{\rhrAfRfCloseDSh}{\ensuremath{+}0.04}  % T1, per-bar Random forest: Sharpe mid, Full minus HAR
-\providecommand{\rhrAfRfCloseDShT}{0.58}  % ... HAC t of the daily mid-return differential
+\providecommand{\rhrAfRfCloseDShT}{0.56}  % ... HAC t of the daily mid-return differential
 \providecommand{\rhrAfRfPoolDSh}{\ensuremath{-}0.19}  % T1, pooled Random forest: Sharpe mid, Full minus HAR
-\providecommand{\rhrAfRfPoolDShT}{0.35}  % ... HAC t of the daily mid-return differential
+\providecommand{\rhrAfRfPoolDShT}{0.31}  % ... HAC t of the daily mid-return differential
 \providecommand{\rhrShNnCloseHar}{1.06}  % sign-strategy Sharpe ratio, mid-quotes, mingru_rinitq_baseline
 \providecommand{\rhrShXNnCloseHar}{0.73}  % ... at quoted bid/ask prices
-\providecommand{\rhrVsShortNnCloseHarT}{1.04}  % ... HAC t of the daily mid-return differential over the short straddle
+\providecommand{\rhrVsShortNnCloseHarT}{1.08}  % ... HAC t of the daily mid-return differential over the short straddle
 \providecommand{\rhrShNnCloseFull}{1.26}  % sign-strategy Sharpe ratio, mid-quotes, mingru_rinitq_all_features
 \providecommand{\rhrShXNnCloseFull}{0.93}  % ... at quoted bid/ask prices
-\providecommand{\rhrVsShortNnCloseFullT}{1.49}  % ... HAC t of the daily mid-return differential over the short straddle
+\providecommand{\rhrVsShortNnCloseFullT}{1.41}  % ... HAC t of the daily mid-return differential over the short straddle
 \providecommand{\rhrShNnPoolHar}{0.75}  % sign-strategy Sharpe ratio, mid-quotes, mingru_pooled_rinitq_baseline
 \providecommand{\rhrShXNnPoolHar}{0.42}  % ... at quoted bid/ask prices
-\providecommand{\rhrVsShortNnPoolHarT}{0.63}  % ... HAC t of the daily mid-return differential over the short straddle
+\providecommand{\rhrVsShortNnPoolHarT}{0.60}  % ... HAC t of the daily mid-return differential over the short straddle
 \providecommand{\rhrShNnPoolFull}{0.16}  % sign-strategy Sharpe ratio, mid-quotes, mingru_pooled_rinitq_all_features
 \providecommand{\rhrShXNnPoolFull}{\ensuremath{-}0.16}  % ... at quoted bid/ask prices
 \providecommand{\rhrVsShortNnPoolFullT}{\ensuremath{-}0.07}  % ... HAC t of the daily mid-return differential over the short straddle
 \providecommand{\rhrAfNnCloseDSh}{\ensuremath{+}0.19}  % T1, per-bar MinGRU: Sharpe mid, Full minus HAR
-\providecommand{\rhrAfNnCloseDShT}{0.91}  % ... HAC t of the daily mid-return differential
+\providecommand{\rhrAfNnCloseDShT}{1.04}  % ... HAC t of the daily mid-return differential
 \providecommand{\rhrAfNnPoolDSh}{\ensuremath{-}0.59}  % T1, pooled MinGRU: Sharpe mid, Full minus HAR
-\providecommand{\rhrAfNnPoolDShT}{\ensuremath{-}1.03}  % ... HAC t of the daily mid-return differential
+\providecommand{\rhrAfNnPoolDShT}{\ensuremath{-}1.06}  % ... HAC t of the daily mid-return differential
 \providecommand{\rhrPoolN}{12}  % intraday forecasts (T1 Panel B: 6 classes x HAR, Full)
 \providecommand{\rhrAfPoolPairs}{6}  % pooled Full vs HAR pairs (one per class)
 \providecommand{\rhrAfPoolLower}{6}  % ... QLIKE lower with Full
@@ -451,7 +460,7 @@
 \providecommand{\rhrAfPoolMseHigher}{3}  % ... MSE higher with Full
 \providecommand{\rhrAfPoolMseHigherSig}{0}  % ... and DM (squared error) p < 0.05
 \providecommand{\rhrAfPoolShHigher}{5}  % ... Sharpe mid higher with Full
-\providecommand{\rhrAfPoolShHigherSig}{1}  % ... and HAC t p < 0.05
+\providecommand{\rhrAfPoolShHigherSig}{1}  % ... and Ledoit-Wolf p < 0.05 (equal Sharpe ratios)
 \providecommand{\rhrAfPoolDShMin}{\ensuremath{-}0.19}  % ... Sharpe mid change, Full minus HAR: min
 \providecommand{\rhrAfPoolDShMax}{\ensuremath{+}0.82}  % ... max
 \providecommand{\rhrAfPoolDShMed}{\ensuremath{+}0.38}  % ... median
@@ -479,15 +488,19 @@
 \providecommand{\rhrVsBmPoolHarPctMin}{10.0}  % pooled models on HAR vs the benchmark forecast: min
 \providecommand{\rhrVsBmPoolHarPctMax}{26.0}  % ... max
 \providecommand{\rhrPoolShortAbove}{9}  % pooled forecasts whose sign strategy has a higher Sharpe mid than the short straddle
-\providecommand{\rhrPoolShortSig}{0}  % ... with HAC t > 1.96 (the three trees on Full)
-\providecommand{\rhrVsShortPoolTMin}{0.60}  % pooled forecasts: HAC t of the daily mid-return differential over the short straddle, min
-\providecommand{\rhrVsShortPoolTMax}{1.83}  % ... max
-\providecommand{\rhrAfPoolDiffSig}{1}  % pooled Full vs HAR pairs whose HAC t of the daily mid-return differential has p < 0.05 (two-sided)
-\providecommand{\rhrPoolVsCloseRetSig}{0}  % pooled vs closing-interval, same class and predictor set: HAC t of the return differential, p < 0.05
+\providecommand{\rhrPoolShortSig}{0}  % ... with a mean gain significant at 5 % (t > 0, fixed-b p < 0.05)
+\providecommand{\rhrVsShortPoolTMin}{0.60}  % pooled forecasts: t (LLSW bandwidth) of the daily mid-return differential over the short straddle, min
+\providecommand{\rhrVsShortPoolTMax}{1.71}  % ... max
+\providecommand{\rhrAfPoolDiffSig}{0}  % pooled Full vs HAR pairs whose t of the daily mid-return differential has fixed-b p < 0.05 (two-sided)
+\providecommand{\rhrPoolVsCloseRetSig}{0}  % pooled vs closing-interval, same class and predictor set: t of the return differential, fixed-b p < 0.05
 \providecommand{\rhrPoolShHarMin}{0.74}  % Sharpe mid of the pooled forecasts on HAR: min
 \providecommand{\rhrPoolShHarMax}{1.22}  % ... max
 \providecommand{\rhrPoolShFullMin}{1.00}  % Sharpe mid of the pooled forecasts on Full: min
 \providecommand{\rhrPoolShFullMax}{1.56}  % ... max
+\providecommand{\rhrPoolShXHarMin}{0.40}  % Sharpe at quoted bid/ask prices of the pooled forecasts on HAR: min
+\providecommand{\rhrPoolShXHarMax}{0.87}  % ... max
+\providecommand{\rhrPoolShXFullMin}{0.66}  % Sharpe at quoted bid/ask prices of the pooled forecasts on Full: min
+\providecommand{\rhrPoolShXFullMax}{1.23}  % ... max
 \providecommand{\rhrPoolSzSignMed}{1.20}  % sizing sign: median Sharpe mid over the pooled forecasts, 614 days
 \providecommand{\rhrPoolSzClipMed}{1.34}  % sizing robust clip: median
 \providecommand{\rhrPoolSzRankMed}{1.40}  % sizing rank of |gap|: median

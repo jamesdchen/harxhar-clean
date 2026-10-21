@@ -14,33 +14,33 @@
  & return (\%) & Mid-quotes & Bid--ask & rate (\%) & days (\%) & $\Delta\SR$ \\
 \midrule
 Short straddle & $2.4^{\phantom{***}}$ & $0.77$ & $0.42$ & $62.2$ & $0.0$ & --$^{\phantom{***}}$ \\
- & $(0.62)^{\phantom{***}}$ &  &  &  &  &  \\[2pt]
+ & $(0.67)^{\phantom{***}}$ &  &  &  &  &  \\[2pt]
 \addlinespace[4pt]
 \multicolumn{7}{@{}l}{\textit{Panel A: Pooled intraday models (30-minute grid)}} \\
 \addlinespace[2pt]
-Ridge & $12.3^{***}$ & $1.44$ & $1.10$ & $58.0$ & $29.0$ & $0.67^{*\phantom{**}}$ \\
- & $(2.84)^{\phantom{***}}$ &  &  &  &  & $(1.68)^{\phantom{***}}$ \\[2pt]
-Lasso & $11.1^{***}$ & $1.46$ & $1.12$ & $59.1$ & $23.6$ & $0.69^{*\phantom{**}}$ \\
- & $(2.86)^{\phantom{***}}$ &  &  &  &  & $(1.69)^{\phantom{***}}$ \\[2pt]
+Ridge & $12.3^{**\phantom{*}}$ & $1.44$ & $1.10$ & $58.0$ & $29.0$ & $0.67^{*\phantom{**}}$ \\
+ & $(2.80)^{\phantom{***}}$ &  &  &  &  & $[0.086]^{\phantom{***}}$ \\[2pt]
+Lasso & $11.1^{**\phantom{*}}$ & $1.46$ & $1.12$ & $59.1$ & $23.6$ & $0.69^{*\phantom{**}}$ \\
+ & $(2.77)^{\phantom{***}}$ &  &  &  &  & $[0.083]^{\phantom{***}}$ \\[2pt]
 Elastic net & $13.6^{***}$ & $1.56$ & $1.23$ & $57.8$ & $29.5$ & $0.80^{*\phantom{**}}$ \\
- & $(3.13)^{\phantom{***}}$ &  &  &  &  & $(1.83)^{\phantom{***}}$ \\[2pt]
+ & $(2.90)^{\phantom{***}}$ &  &  &  &  & $[0.060]^{\phantom{***}}$ \\[2pt]
 LightGBM\tnote{a,b} & $9.7^{**\phantom{*}}$ & $1.21$ & $0.87$ & $59.3$ & $19.2$ & $0.45^{\phantom{***}}$ \\
- & $(2.24)^{\phantom{***}}$ &  &  &  &  & $(1.57)^{\phantom{***}}$ \\[2pt]
+ & $(2.38)^{\phantom{***}}$ &  &  &  &  & $[0.112]^{\phantom{***}}$ \\[2pt]
 XGBoost\tnote{a,b} & $7.7^{*\phantom{**}}$ & $1.26$ & $0.92$ & $60.7$ & $19.4$ & $0.50^{\phantom{***}}$ \\
- & $(1.85)^{\phantom{***}}$ &  &  &  &  & $(1.46)^{\phantom{***}}$ \\[2pt]
+ & $(2.08)^{\phantom{***}}$ &  &  &  &  & $[0.157]^{\phantom{***}}$ \\[2pt]
 Random forest\tnote{a,$\dagger$} & $6.9^{*\phantom{**}}$ & $1.00$ & $0.66$ & $59.1$ & $21.7$ & $0.23^{\phantom{***}}$ \\
- & $(1.72)^{\phantom{***}}$ &  &  &  &  & $(1.21)^{\phantom{***}}$ \\[2pt]
+ & $(1.91)^{\phantom{***}}$ &  &  &  &  & $[0.240]^{\phantom{***}}$ \\[2pt]
 \addlinespace[4pt]
 \multicolumn{7}{@{}l}{\textit{Panel B: Closing-interval models (15:30--16:00 ET half hour)}} \\
 \addlinespace[2pt]
 OLS, HAR benchmark & $11.6^{***}$ & $1.56$ & $1.22$ & $58.0$ & $30.0$ & $0.80^{*\phantom{**}}$ \\
- & $(2.87)^{\phantom{***}}$ &  &  &  &  & $(1.78)^{\phantom{***}}$ \\[2pt]
+ & $(3.42)^{\phantom{***}}$ &  &  &  &  & $[0.070]^{\phantom{***}}$ \\[2pt]
 Ridge & $10.7^{***}$ & $1.28$ & $0.94$ & $57.8$ & $29.2$ & $0.51^{\phantom{***}}$ \\
- & $(2.73)^{\phantom{***}}$ &  &  &  &  & $(1.57)^{\phantom{***}}$ \\[2pt]
+ & $(2.89)^{\phantom{***}}$ &  &  &  &  & $[0.110]^{\phantom{***}}$ \\[2pt]
 Lasso & $12.5^{***}$ & $1.68$ & $1.34$ & $58.0$ & $30.9$ & $0.92^{*\phantom{**}}$ \\
- & $(3.01)^{\phantom{***}}$ &  &  &  &  & $(1.84)^{\phantom{***}}$ \\[2pt]
+ & $(3.27)^{\phantom{***}}$ &  &  &  &  & $[0.058]^{\phantom{***}}$ \\[2pt]
 Elastic net & $13.7^{***}$ & $1.76$ & $1.42$ & $57.5$ & $29.8$ & $0.99^{**\phantom{*}}$ \\
- & $(3.27)^{\phantom{***}}$ &  &  &  &  & $(2.00)^{\phantom{***}}$ \\[2pt]
+ & $(3.41)^{\phantom{***}}$ &  &  &  &  & $[0.035]^{\phantom{***}}$ \\[2pt]
 \bottomrule
 \end{tabular}
 \begin{tablenotes}[flushleft]
@@ -52,7 +52,7 @@ $q_t \equiv -1$; every model except the
 OLS uses the full predictor set. Mean return is at mid-quotes, in percent of the premium; $\SR$ is the annualized
 Sharpe ratio at mid-quotes and at quoted bid/ask prices; hit rate and long days are the shares of days with
 $r_t > 0$ at mid-quotes and with $q_t = +1$. $\Delta\SR$ is $\SR$ at mid-quotes minus that of the short-straddle
-benchmark (\rheShortSh); in parentheses, the HAC $t$-statistic of the mean return and, under $\Delta\SR$, the HAC $t$-statistic on the daily return differential (Newey--West, $q_{\mathrm{NW}} = \rheHACLag$; Section~\ref{sec:rh_methods_tests}).
+benchmark (\rheShortSh); in parentheses, the $t$-statistic of the mean return (Newey--West with bandwidth $S = \rheHACS$ and fixed-$b$ critical values, \citealp{LazarusLewisStockWatson2018}; Section~\ref{sec:rh_methods_tests}); under $\Delta\SR$, the $p$-value of the \citet{LedoitWolf2008} bootstrap test of equal Sharpe ratios on the \rheSzDays{} post-warmup days, in brackets (Section~\ref{sec:rh_methods_tests}).
 $^{*}$, $^{**}$ and $^{***}$ denote significance at the 10\%, 5\% and 1\% levels.
 Panel A: models estimated on every 30-minute interval of the day (the pooled intraday scheme); Panel B: models
 estimated on the closing interval only (one observation a day). Every model row trades the forecast of the 15:30--16:00 ET
