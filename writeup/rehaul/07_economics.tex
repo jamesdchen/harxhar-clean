@@ -289,8 +289,8 @@ We consider four rules:
 \item \textbf{Full predictor set versus the HAR benchmark.} Expanding the information set from the HAR benchmark to the full predictor set increases the mid-quote Sharpe ratio in all \rhrAfPoolPairs{} intraday model classes, shifting the range across classes from \rhrPoolShHarMin--\rhrPoolShHarMax{} to \rhrPoolShFullMin--\rhrPoolShFullMax.
   \begin{itemize}
   \item The resulting gain $\Delta\SR$ spans \rhrAfPoolDShMin{} to \rhrAfPoolDShMax{} across classes, with a median of \rhrAfPoolDShMed{} (elastic net \rhrAfEnetPoolDSh, ridge \rhrAfRidgePoolDSh, lasso \rhrAfLassoPoolDSh).
-  \item Although economically sizable, the return differential is not statistically significant at the 5\% level in any of the \rhrAfPoolPairs{} classes (HAC $t$-statistic on the daily return differential).
-  % 2026-10-21 (user): "not ... in any" is backed by \rhrAfPoolDiffSig (= 0, asserted in make_rehaul_results.py).
+% 2026-10-21 (user): parked -- "not ... in any" no longer holds on James's PC run (1 of 6 significant); the count is printed. Was: "\item Although economically sizable, the return differential is not statistically significant at the 5\% level in any of the \rhrAfPoolPairs{} classes (HAC $t$-statistic on the daily return differential)."
+  \item The mean daily return differential is statistically significant at the 5\% level in \rhrAfPoolDiffSig{} of the \rhrAfPoolPairs{} classes (HAC $t$-statistic on the daily return differential, $q_{\mathrm{NW}} = \rhrHACLag$).
   \end{itemize}
 % 2026-10-17 (user, E16): note moved here from the "Economic value of the reductions" bullet of sec:rh_results_predictors
 % (that bullet is parked); this is the item that reports the Sharpe gains and their test.
