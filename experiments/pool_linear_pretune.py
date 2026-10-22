@@ -105,6 +105,22 @@ cold seed on the current window (_seed) and goes on warm from it (PFTuned.roll /
 off: the walk before the flag, bit for bit.  Recorded with the flag on: trace.npz kkt_* (every lasso / elastic-net solve
 and every KKT-triggered reseed) and run.json kkt_*.  A chunk that starts at a re-choice boundary still reproduces the
 whole walk (a reseed depends only on the state since the block's cold seed).  Ridge and the OLS are not touched.
+
+2026-10-22 (James: "yes, adopt standardization and hold the pretune"): STANDARDIZE_PENALTY (on by default; this module
+only, so no closing-interval path sees it).  Ridge, lasso and elastic net are fit as if every predictor column were
+scaled to unit variance in its training window (glmnet standardize=TRUE), as per-column penalty weights: with s_j the
+column's np.std (ddof 0) over the fit's rows, ridge a sum pf_j s_j^2 b_j^2, lasso / elastic net
+a sum pf_j [l1 s_j |b_j| + (1 - l1)/2 s_j^2 b_j^2] (mu_j = n a l1 pf_j s_j, lam2_j = n a (1 - l1) pf_j s_j^2), i.e.
+the existing penalty on gamma_j = s_j b_j of z_j = x_j / s_j; intercept free, nothing centred; a non-locked column with
+s_j < 1e-12 masked for the fit.  Ridge: weights from every bar's own window (X'X, X'y and the window's column moments
+kept rank-one since the seed, one solve a bar).  Lasso / elastic net: weights recomputed at every cold seed (tune
+boundary, mask-addition and KKT reseeds) and held between seeds.  Pretune: weights from each fold's fit block.  The OLS
+(alpha 0) is never weighted.  --standardize-penalty 0 turns it off: the runner before the flag, bit for bit.
+--grid-alphas replaces the spec's penalty grid (the orchestrator's grid extensions).  Recorded with the flag on:
+trace.npz std_* (the s.d. at every seed; ridge: the within-block drift), run.json std_*; --std-check-blockends
+(diagnostic) also refits the lasso / elastic net at each block's last solve with the current window's weights and
+records the forecast difference.  Rule: results/standardize_penalty_2026-10-22/RULE_std.txt (written 2026-10-22 16:06
+PDT, before any run).
 """
 
 from __future__ import annotations
@@ -183,6 +199,14 @@ EX_FLAGS: dict = {}
 # all_features (and the fomc bucket) at its place before fomc_day, as before src/data/loading.py
 # EXCLUDE_FOMC_RELEASE went on, so a run can be compared with the published 576-column runs; default off
 KEEP_FOMC_RELEASE = False
+# 2026-10-22 (James: "yes, adopt standardization and hold the pretune"; module docstring): the penalty of the pooled
+# ridge / lasso / elastic net on the window-standardized coefficients s_j b_j; read at call time; False = the runner
+# before the flag, bit for bit
+STANDARDIZE_PENALTY: bool = True
+# STD_MIN: a non-locked column whose window s.d. is below it is masked for the fit; STD_CHECK_BLOCKENDS: walk
+# --std-check-blockends (the diagnostic of the held lasso / elastic-net weights)
+STD_MIN = 1e-12
+STD_CHECK_BLOCKENDS = False
 CALENDAR_ALL = frozenset(
     [f"DOW_{d}" for d in range(5)]
     + ["hour", "is_overnight", "is_open", "is_close"]
@@ -585,6 +609,103 @@ def batch_theta_pf(ns: dict, Xa, yr, locked, a, l1, pf) -> np.ndarray:
     return th
 
 
+# ============================================================================ STANDARDIZE_PENALTY (2026-10-22)
+def std_weights(Xa: np.ndarray, locked: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """(s, out) of the fit's rows Xa (masked columns already 0): s_j = np.std(Xa[:, j]) (ddof 0); out = the non-locked
+    columns with s_j < STD_MIN (masked for the fit, every masked column among them); s_j := 1 on out and on the locked
+    intercept (a weight never used: the column is 0, resp. unpenalized)."""
+    s = np.std(Xa, axis=0)
+    out = ~locked & (s < STD_MIN)
+    return np.where(out | locked, 1.0, s), out
+
+
+def ridge_keep(
+    G0: np.ndarray, c0: np.ndarray, D: np.ndarray, keep: np.ndarray
+) -> np.ndarray:
+    """(G0 + diag(D)) b = c0 on the kept columns, b = 0 on the others (G0 = X'X, c0 = X'y, D = a pf s^2, 0 locked)."""
+    b = np.zeros(len(c0))
+    if keep.all():
+        G = G0.copy()
+        G[np.diag_indices_from(G)] += D
+        b[:] = np.linalg.solve(G, c0)
+    else:
+        k = np.flatnonzero(keep)
+        G = G0[np.ix_(k, k)]
+        G[np.diag_indices_from(G)] += D[k]
+        b[k] = np.linalg.solve(G, c0[k])
+    return b
+
+
+def enet_coef_w(g, c, n, alpha, l1, w1, w2) -> np.ndarray:
+    """The batch elastic net  min 0.5 b'g b - c'b + sum_j (mu w1_j |b_j| + 0.5 lam2 w2_j b_j^2),  mu = n alpha l1,
+    lam2 = n alpha (1 - l1) (STANDARDIZE_PENALTY: w1 = pf s, w2 = pf s^2): the lasso in th = w1 b (Gram g / w1 w1',
+    L2 term lam2 w2 / w1^2 on its diagonal), then certified on the unscaled problem's KKT conditions and repaired
+    as enet_coef_pf (support changes, else coordinate descent + the exact KKT solve)."""
+    import src.models.reclasso_har as RH
+
+    lam2 = n * alpha * (1.0 - l1)
+    mu = n * alpha * l1
+    d = 1.0 / w1
+    gr = g * np.outer(d, d)
+    gr[np.diag_indices_from(gr)] += lam2 * w2 * d * d
+    th, _, _ = RH.lasso_homotopy(gr, c * d, mu)
+    b = th * d
+    muv, l2v = mu * w1, lam2 * w2
+    tol = 1e-9 * max(float(np.abs(c).max()), 1.0)
+    if _kkt_ok(g, c, muv, l2v, b, tol):
+        REPAIR["kkt_ok"] += 1
+        return b
+    bt = _active_repair(g, c, muv, l2v, b, tol)
+    if bt is not None:
+        REPAIR["active_repair"] += 1
+        return bt
+    bt = _cd_polish(g, c, muv, l2v, b, tol)
+    if bt is not None:
+        REPAIR["cd_polish"] += 1
+        return bt
+    REPAIR["fail"] += 1
+    return b
+
+
+def batch_theta_w(Xa, yr, locked, a, l1, w1, w2) -> np.ndarray:
+    """The spec's _batch_theta (FWL on the locked block, the batch elastic net on the rest) with the L1 weights w1 and
+    the L2 weights w2 of STANDARDIZE_PENALTY (enet_coef_w)."""
+    exog = ~locked
+    Hh, Ee = Xa[:, locked], Xa[:, exog]
+    Hp = np.linalg.pinv(Hh)
+    bHy, bHE = Hp @ yr, Hp @ Ee
+    Eres, yres = Ee - Hh @ bHE, yr - Hh @ bHy
+    bE = enet_coef_w(Eres.T @ Eres, Eres.T @ yres, len(yr), a, l1, w1[exog], w2[exog])
+    th = np.zeros(Xa.shape[1])
+    th[locked] = bHy - bHE @ bE
+    th[exog] = bE
+    return th
+
+
+def fit_std(
+    Xa, yr, locked, kind, a, l1, pf
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """One standardized batch fit on the rows (Xa, yr) (masked columns 0): (theta, s, out) with s, out of std_weights;
+    the out columns zeroed for the fit (theta_j = 0).  Ridge: (X'X + diag(a pf s^2)) theta = X'y on the kept columns;
+    lasso / enet: batch_theta_w with w1 = pf s, w2 = pf s^2."""
+    s, out = std_weights(Xa, locked)
+    if out.any():
+        Xa = Xa.copy()
+        Xa[:, out] = 0.0
+    if kind == "ridge":
+        D = np.where(locked, 0.0, a * (pf * s * s))
+        return ridge_keep(Xa.T @ Xa, Xa.T @ yr, D, ~out), s, out
+    return batch_theta_w(Xa, yr, locked, a, l1, pf * s, pf * s * s), s, out
+
+
+def _trailing_const(Xw: np.ndarray) -> np.ndarray:
+    """Rows since each column of the chronological window Xw last changed value, capped at its length (the spec's
+    _init_runs, columns only)."""
+    n = Xw.shape[0]
+    bad = ~(Xw == Xw[-1])[::-1]
+    return np.where(bad.any(axis=0), bad.argmax(axis=0), n).astype(np.int64)
+
+
 # ============================================================================ the walk
 class ConstSched(dict):
     """A schedule with one penalty for every block (--sched holding one number)."""
@@ -612,6 +733,18 @@ def make_class(ns: dict, r: float, sched: dict | None, g0: int, rec: list):
         kkt_rows: list = []
         kkt_reseeds: list = []
         kkt_sec: list = [0.0, 0.0]
+        # 2026-10-22 (STANDARDIZE_PENALTY, read at every call): every cold seed's (solve, s with NaN on the masked /
+        # left-out / locked columns, columns newly masked by s < STD_MIN); ridge: [seed solve, max_j |s_j / s_j(seed)
+        # - 1| over the block's bars, max columns left out beyond the mask]; --std-check-blockends: (solve, forecast
+        # with the held weights, forecast with the current window's weights, max |s_now / s_held - 1|)
+        std_seeds: list = []
+        std_ridge: list = []
+        std_blockend: list = []
+        std_blockend_sec: list = [0.0]
+
+        def _std_on(self) -> bool:
+            """STANDARDIZE_PENALTY applies (a penalized fit: the OLS at alpha 0 is never weighted)."""
+            return STANDARDIZE_PENALTY and self.alpha_ > 0.0
 
         def init_window(self, X_win, y_win):
             pf = np.ones(np.asarray(X_win).shape[1] + 1)
@@ -622,20 +755,120 @@ def make_class(ns: dict, r: float, sched: dict | None, g0: int, rec: list):
 
         def roll(self, x_in, y_in, x_out, y_out):
             """The spec's roll; 2026-10-22: notes whether it was a warm update (the two enet_online calls), not
-            ridge and not the between-tune mask-addition reseed (a cold seed)."""
+            ridge and not the between-tune mask-addition reseed (a cold seed).  STANDARDIZE_PENALTY, ridge: the
+            rank-one update of X'X, X'y and the window's column moments (_roll_std_ridge) in place of
+            Sherman-Morrison."""
+            if self.kind_ == "ridge" and self._std_on():
+                self._roll_std_ridge(x_in, y_in, x_out, y_out)
+                self._warm = False
+                return
             n0 = len(Base.reseed_trace)
             super().roll(x_in, y_in, x_out, y_out)
             self._warm = self.kind_ != "ridge" and len(Base.reseed_trace) == n0
+
+        def _roll_std_ridge(self, x_in, y_in, x_out, y_out):
+            """The spec's ridge roll (the RAW ring, the masked update rows) with STANDARDIZE_PENALTY's state: X'X and
+            X'y rank-one, the column sums and sums of squares about the seed-time means, and the run length of every
+            column's newest value (exact constancy in the window)."""
+            ua = np.append(np.asarray(x_in, dtype=np.float64), 1.0)
+            ur = np.append(np.asarray(x_out, dtype=np.float64), 1.0)
+            prev = self._X[self._ptr - 1].copy()  # newest row in the ring (RAW)
+            self._X[self._ptr] = ua
+            self._y[self._ptr] = float(y_in)
+            self._ptr = (self._ptr + 1) % len(self._y)
+            n = len(self._y)
+            self._sd_run = np.where(ua == prev, np.minimum(self._sd_run + 1, n), 1)
+            if self._maskout.any():  # masked columns stay zero in the update rows
+                ua = ua.copy()
+                ur = ur.copy()
+                ua[self._maskout] = 0.0
+                ur[self._maskout] = 0.0
+            self._G += np.outer(ua, ua)
+            self._G -= np.outer(ur, ur)
+            self._c += ua * float(y_in)
+            self._c -= ur * float(y_out)
+            di, do = ua - self._sd_m0, ur - self._sd_m0
+            self._sd_s1 += di - do
+            self._sd_s2 += di * di - do * do
+
+        def _std_ridge_solve(self):
+            """STANDARDIZE_PENALTY, ridge: s of the current window (the moments; 0 on a column constant over the
+            window), the columns with s < STD_MIN left out of this solve, (X'X + diag(a pf s^2)) b = X'y."""
+            n = len(self._y)
+            var = self._sd_s2 / n - (self._sd_s1 / n) ** 2
+            s = np.sqrt(np.maximum(var, 0.0))
+            s[self._sd_run >= n] = 0.0
+            out = ~self._locked & (s < STD_MIN)
+            s = np.where(out | self._locked, 1.0, s)
+            D = np.where(self._locked, 0.0, self.alpha_ * (self._pf * s * s))
+            self._th = ridge_keep(self._G, self._c, D, ~out)
+            rec_r = PFTuned.std_ridge[-1]
+            ok = ~out & ~self._locked & np.isfinite(self._sd_seed)
+            if ok.any():
+                rec_r[1] = max(
+                    rec_r[1], float(np.abs(s[ok] / self._sd_seed[ok] - 1.0).max())
+                )
+            rec_r[2] = max(rec_r[2], int((out & ~self._maskout).sum()))
+
+        def predict_one(self, x):
+            """The spec's predict_one; --std-check-blockends: also the forecast with the block-end refit."""
+            p = super().predict_one(x)
+            alt = getattr(self, "_std_alt", None)
+            if alt is not None:
+                th_alt, s_rel = alt
+                q = float(np.append(np.asarray(x, dtype=np.float64), 1.0) @ th_alt)
+                PFTuned.std_blockend.append((g0 + self._n_solve - 1, p, q, s_rel))
+                self._std_alt = None
+            return p
+
+        def _std_blockend(self):
+            """--std-check-blockends: at a block's last solve, the batch fit of the current window with the current
+            window's weights (the held-weight approximation's forecast effect); the walk's state is not touched."""
+            t0 = time.perf_counter()
+            Xa, yr = self._masked_window()
+            rep = dict(REPAIR)
+            th, s, out = fit_std(
+                Xa, yr, self._locked, self.kind_, self.alpha_, self.l1_, self._pf
+            )
+            REPAIR.update(rep)
+            ok = ~out & ~self._locked & np.isfinite(self._sd_seed)
+            s_rel = (
+                float(np.abs(s[ok] / self._sd_seed[ok] - 1.0).max())
+                if ok.any()
+                else 0.0
+            )
+            self._std_alt = (th, s_rel)
+            PFTuned.std_blockend_sec[0] += time.perf_counter() - t0
 
         def solve(self):
             """The spec's solve; 2026-10-22, WALK_KKT_RESEED on: after a warm update (not at a tune solve, whose
             cold seed replaces it), the KKT conditions of the current window's problem on the warm state (Gr, c,
             mu_vec; reclasso_har.walk_kkt, the batch certification's tolerance); if they fail, the cold seed on the
-            current window at the penalty and mask in force (_seed), and the walk goes on warm from it."""
+            current window at the penalty and mask in force (_seed), and the walk goes on warm from it.
+            STANDARDIZE_PENALTY, ridge: the tune solve's cold seed, else one solve on this bar's window
+            (_std_ridge_solve)."""
             tune = self._n_solve > 0 and self._n_solve % TUNE_PER == 0
             warm = self._warm and not tune
             self._warm = False
+            if self.kind_ == "ridge" and self._std_on():
+                if tune:
+                    self._tune()  # its cold seed solves
+                else:
+                    self._std_ridge_solve()
+                self._n_solve += 1
+                return
             super().solve()
+            self._kkt_after(warm)
+            if (
+                STD_CHECK_BLOCKENDS
+                and self.kind_ != "ridge"
+                and self._std_on()
+                and self._n_solve % TUNE_PER == 0
+            ):
+                self._std_blockend()  # the next solve is a tune: this one is the block's last
+
+        def _kkt_after(self, warm: bool) -> None:
+            """WALK_KKT_RESEED (2026-10-22; solve's docstring), after the spec's solve."""
             if self.kind_ == "ridge" or not RH.WALK_KKT_RESEED:
                 return
             # this solve's global index = the OOS row it forecasts
@@ -645,7 +878,10 @@ def make_class(ns: dict, r: float, sched: dict | None, g0: int, rec: list):
             PFTuned.kkt_sec[0] += time.perf_counter() - t0
             if warm and not ok:
                 t1 = time.perf_counter()
+                # (STANDARDIZE_PENALTY's seed record: this solve, already counted in _n_solve)
+                self._seed_off = 1
                 self._seed()
+                self._seed_off = 0
                 ok2, v2, sc2 = RH.walk_kkt(self._Gr, self._c, self._mu_vec, self._th)
                 PFTuned.kkt_sec[1] += time.perf_counter() - t1
                 PFTuned.kkt_reseeds.append((s, v / sc, v2 / sc2, ok2))
@@ -653,7 +889,10 @@ def make_class(ns: dict, r: float, sched: dict | None, g0: int, rec: list):
             PFTuned.kkt_rows.append((s, v / sc, ok))
 
         def _seed(self):
-            """The spec's _seed with alpha * pf_j in place of alpha."""
+            """The spec's _seed with alpha * pf_j in place of alpha.  STANDARDIZE_PENALTY: _seed_std."""
+            if self._std_on():
+                self._seed_std()
+                return
             Xa, yr = self._masked_window()
             tw = len(yr)
             kind, a, l1 = self.kind_, self.alpha_, self.l1_
@@ -680,6 +919,53 @@ def make_class(ns: dict, r: float, sched: dict | None, g0: int, rec: list):
                 ]
                 self._th = th
 
+        def _seed_std(self):
+            """STANDARDIZE_PENALTY's cold seed on the current (masked) window: s = np.std of the window (std_weights).
+            Ridge: X'X, X'y, the column moments about the window means and the constancy run lengths, then the
+            bar's solve (_std_ridge_solve).  Lasso / elastic net: a column with s < STD_MIN joins the mask until the
+            next tune; mu_j = n a l1 pf_j s_j, the L2 term n a (1 - l1) pf_j s_j^2 on Gr's diagonal, both held
+            until the next seed; the batch solution (batch_theta_w, KKT-certified) and its active set."""
+            Xa, yr = self._masked_window()
+            tw = len(yr)
+            kind, a, l1 = self.kind_, self.alpha_, self.l1_
+            pf = self._pf
+            s, out = std_weights(Xa, self._locked)
+            new = out & ~self._maskout
+            nan_s = np.where(out | self._locked, np.nan, s)
+            # the solve (OOS row) whose forecast first uses this seed
+            at = g0 + self._n_solve - getattr(self, "_seed_off", 0)
+            PFTuned.std_seeds.append((at, nan_s, int(new.sum())))
+            self._sd_seed = nan_s
+            if kind == "ridge":
+                self._G = Xa.T @ Xa
+                self._c = Xa.T @ yr
+                self._sd_m0 = Xa.mean(axis=0)
+                dX = Xa - self._sd_m0
+                self._sd_s1 = dX.sum(axis=0)
+                self._sd_s2 = (dX * dX).sum(axis=0)
+                del dX
+                self._sd_run = _trailing_const(Xa)
+                PFTuned.std_ridge.append([g0 + self._n_solve, 0.0, 0])
+                self._std_ridge_solve()
+                return
+            if new.any():  # masked for the fit, and (weights held) until the next tune
+                self._maskout = self._maskout | new
+                Xa[:, new] = 0.0
+            w1, w2 = pf * s, pf * s * s
+            mu, lam2 = tw * a * l1, tw * a * (1.0 - l1)
+            self._mu_vec = np.where(self._locked, 0.0, mu * w1)
+            Gr = Xa.T @ Xa
+            ei = np.where(~self._locked)[0]
+            Gr[ei, ei] += lam2 * w2[ei]
+            self._Gr = Gr
+            self._c = Xa.T @ yr
+            th = batch_theta_w(Xa, yr, self._locked, a, l1, w1, w2)
+            self._A = list(np.where((np.abs(th) > 1e-9) | self._locked)[0])
+            self._s = [
+                0.0 if self._locked[j] else float(np.sign(th[j])) for j in self._A
+            ]
+            self._th = th
+
         def _tune(self):
             """The spec's _tune (mask, forward split, grid argmin of the tail MSE, cold seed) with
             penalty factors and the tail residuals of every grid alpha recorded; with a schedule, the
@@ -699,7 +985,10 @@ def make_class(ns: dict, r: float, sched: dict | None, g0: int, rec: list):
                 res = []
                 pf = self._pf
                 for kind, a, l1 in Base.grid:
-                    if kind == "ridge":
+                    if STANDARDIZE_PENALTY and a > 0.0:
+                        # 2026-10-22: the weights from the fit block's s
+                        th = fit_std(Xf, yf, self._locked, kind, a, l1, pf)[0]
+                    elif kind == "ridge":
                         D = np.where(self._locked, 0.0, a * pf)
                         G = Xf.T @ Xf
                         G[np.diag_indices_from(G)] += D
@@ -1028,6 +1317,72 @@ def cached_backtest(a, fit_predict, out_csv: Path) -> None:
     res.to_csv(out_csv, index=False)
 
 
+def grid_of(ns: dict, a) -> list:
+    """The estimator's penalty grid: the spec's, or (--grid-alphas, 2026-10-22: the orchestrator's grid extensions)
+    the given penalties with the spec's kind and l1_ratio."""
+    grid = ns["ESTIMATOR_GRIDS"][a.est]
+    if not a.grid_alphas:
+        return grid
+    kind, _, l1 = grid[0]
+    return [(kind, float(v), l1) for v in a.grid_alphas.split(",")]
+
+
+def std_record(Cls, penalized: bool) -> tuple[dict, dict]:
+    """STANDARDIZE_PENALTY's walk record: trace.npz arrays (flag on only) and run.json fields (the flag always; False
+    for the OLS, which it never touches)."""
+    info: dict = dict(standardize_penalty=bool(STANDARDIZE_PENALTY and penalized))
+    seeds = getattr(Cls, "std_seeds", [])
+    if not (STANDARDIZE_PENALTY and seeds):
+        return {}, info
+    S = np.array([x[1] for x in seeds])
+    with np.errstate(invalid="ignore"):
+        ratio = S[1:] / S[:-1]  # NaN where a column is masked / left out at either seed
+    ok = np.isfinite(ratio)
+    rel = np.where(ok, np.abs(ratio - 1.0), 0.0)  # the L1 weight pf s
+    rel2 = np.where(ok, np.abs(ratio * ratio - 1.0), 0.0)  # the L2 weight pf s^2
+    per = rel.max(axis=1) if len(rel) else np.zeros(0)
+    sd = S[np.isfinite(S)]
+    npz = dict(
+        std_seed_solve=np.array([x[0] for x in seeds], dtype=np.int64),
+        std_seed_s=S,
+        std_seed_new_masked=np.array([x[2] for x in seeds], dtype=np.int64),
+    )
+    info |= dict(
+        std_seeds=len(seeds),
+        std_seed_new_masked=int(sum(x[2] for x in seeds)),
+        std_s_quantiles_5_50_95=[float(v) for v in np.quantile(sd, [0.05, 0.5, 0.95])]
+        if sd.size
+        else [],
+        std_max_rel_change_consecutive_seeds=float(per.max()) if len(per) else 0.0,
+        std_median_of_per_seed_max_rel_change=float(np.median(per))
+        if len(per)
+        else 0.0,
+        std_max_rel_change_l2_weight=float(rel2.max()) if len(rel2) else 0.0,
+    )
+    rr = getattr(Cls, "std_ridge", [])
+    if rr:
+        npz |= dict(std_ridge=np.array(rr, dtype=np.float64))
+        info |= dict(
+            std_ridge_blocks=len(rr),
+            std_ridge_max_within_block_rel_drift=float(max(x[1] for x in rr)),
+            std_ridge_max_cols_left_out_beyond_mask=int(max(x[2] for x in rr)),
+        )
+    be = getattr(Cls, "std_blockend", [])
+    if be:
+        B = np.array(be, dtype=np.float64)
+        d = np.abs(B[:, 2] - B[:, 1])
+        npz |= dict(std_blockend=B)
+        info |= dict(
+            std_blockend_checks=len(be),
+            std_blockend_max_abs_dpred=float(d.max()),
+            std_blockend_max_rel_dpred=float((d / np.abs(B[:, 1])).max()),
+            std_blockend_median_rel_dpred=float(np.median(d / np.abs(B[:, 1]))),
+            std_blockend_max_rel_s_drift=float(B[:, 3].max()),
+            std_blockend_sec=float(Cls.std_blockend_sec[0]),
+        )
+    return npz, info
+
+
 def walk(a) -> None:
     t_wall = time.time()
     ns = spec_section(a.est, a.bucket, a.start, a.end, a.halo)
@@ -1036,6 +1391,8 @@ def walk(a) -> None:
     # 2026-10-22 (--walk-kkt-reseed 0|1); empty: the module's default (on)
     if a.walk_kkt_reseed:
         RH.WALK_KKT_RESEED = a.walk_kkt_reseed == "1"
+    global STD_CHECK_BLOCKENDS
+    STD_CHECK_BLOCKENDS = bool(a.std_check_blockends)  # 2026-10-22 (diagnostic)
     g0 = max(0, a.start - a.halo)
     assert g0 % ns["TUNE_PER"] == 0, (
         f"chunk start {a.start} - halo {a.halo} is not a re-choice boundary"
@@ -1061,7 +1418,7 @@ def walk(a) -> None:
         Base.grid = []
     else:  # (--est ols with --ols ridge0: the spec's ridge path at alpha 0, the 48-interval rerun)
         Cls = make_class(ns, a.r, sched, g0, rec)
-        Base.grid = ns["ESTIMATOR_GRIDS"][a.est]
+        Base.grid = grid_of(ns, a)
     names_seen: list = []
 
     def fit_predict(X_chunk, y_chunk, train_win_periods, hyperparams):
@@ -1072,6 +1429,9 @@ def walk(a) -> None:
         Base.trace, Base.mask_trace, Base.reseed_trace = [], [], []
         if hasattr(Cls, "kkt_rows"):  # 2026-10-22 (WALK_KKT_RESEED)
             Cls.kkt_rows, Cls.kkt_reseeds, Cls.kkt_sec = [], [], [0.0, 0.0]
+        if hasattr(Cls, "std_seeds"):  # 2026-10-22 (STANDARDIZE_PENALTY)
+            Cls.std_seeds, Cls.std_ridge, Cls.std_blockend = [], [], []
+            Cls.std_blockend_sec = [0.0]
         bt = ns["MultiStageBacktest"](
             residualizer=ns["IdentityResidualizer"](),
             regressor_factory=Cls,
@@ -1142,9 +1502,12 @@ def walk(a) -> None:
             f"{kkt_info['kkt_not_ok_after_check']} not KKT-clean after the check; "
             f"check {Cls.kkt_sec[0]:.1f} s, reseeds {Cls.kkt_sec[1]:.1f} s"
         )
+    # 2026-10-22 (STANDARDIZE_PENALTY): the s.d. at every cold seed, written only with the flag on
+    std_npz, std_info = std_record(Cls, a.est != "ols")
     np.savez_compressed(
         out / "trace.npz",
         **kkt_npz,
+        **std_npz,
         block=blocks,
         solve=np.array([x["solve"] for x in rec]),
         alpha=np.array([x["alpha"] for x in rec]),
@@ -1180,6 +1543,7 @@ def walk(a) -> None:
         reseeds=len(Base.reseed_trace),
         repair=dict(REPAIR),
         **kkt_info,
+        **std_info,
         cpu_sec=cpu,
         wall_sec=time.time() - t_wall,
         host=platform.node(),
@@ -1197,7 +1561,8 @@ def pretune(a) -> None:
     ns = spec_section(a.est, a.bucket, a.start, a.start + 1, a.halo)
     fold_n, emb = PRE_FOLD_SESS * PERIODS_PER_DAY, PRE_EMBARGO_SESS * PERIODS_PER_DAY
     assert a.halo == PRE_FOLDS * fold_n + emb + W, a.halo
-    grid = ns["ESTIMATOR_GRIDS"][a.est]
+    # 2026-10-22: --grid-alphas (the orchestrator's grid extensions)
+    grid = grid_of(ns, a)
     Base = ns["RollingTunedLinear"]
     out = Path(a.out).resolve()
     out.mkdir(parents=True, exist_ok=True)
@@ -1233,7 +1598,21 @@ def pretune(a) -> None:
             yf, yv = y[f0:f1], y[v0:v1]
             t0 = time.process_time()
             res = []
-            if a.est == "ridge":
+            std_fold: dict = {}
+            if STANDARDIZE_PENALTY:
+                # 2026-10-22: the weights from this fold's fit block (fit_std: s of Xf, the s < STD_MIN columns out)
+                for kind, al, l1 in grid:
+                    th, s_f, out_f = fit_std(Xf, yf, locked, kind, al, l1, pf)
+                    res.append(Xv @ th - yv)
+                sd = s_f[~out_f & ~locked]
+                std_fold = dict(
+                    std_left_out_beyond_mask=int((out_f & ~mk).sum()),
+                    std_s_quantiles_5_50_95=[
+                        float(v) for v in np.quantile(sd, [0.05, 0.5, 0.95])
+                    ],
+                    std_s_min_max=[float(sd.min()), float(sd.max())],
+                )
+            elif a.est == "ridge":
                 G0 = Xf.T @ Xf
                 cf = Xf.T @ yf
                 for _, al, _ in grid:
@@ -1251,6 +1630,7 @@ def pretune(a) -> None:
                     val=[v0, v1],
                     masked=int(mk.sum()),
                     cpu=time.process_time() - t0,
+                    **std_fold,
                 )
             )
             say(
@@ -1311,6 +1691,8 @@ def pretune(a) -> None:
         r=a.r,
         start=a.start,
         halo=a.halo,
+        grid=[g[1] for g in grid],
+        standardize_penalty=bool(STANDARDIZE_PENALTY),  # 2026-10-22
         folds=store["info"],
         repair=dict(REPAIR),
         cpu_sec=time.process_time() - t_cpu,
@@ -1394,8 +1776,18 @@ def main() -> None:
     # the walk before the flag bit for bit; 1 = on); empty = the module's default (on).  The walk's numerics only: not
     # part of the design cache's config
     ap.add_argument("--walk-kkt-reseed", default="", choices=("", "0", "1"))
+    # 2026-10-22 (James: "yes, adopt standardization and hold the pretune"): STANDARDIZE_PENALTY for the pretune and
+    # the walk (0 = off, the runner before the flag bit for bit; 1 = on); empty = the module's default (on).  The fits'
+    # numerics only: not part of the design cache's config
+    ap.add_argument("--standardize-penalty", default="", choices=("", "0", "1"))
+    # 2026-10-22: the penalty grid (comma-separated alphas, the spec's kind and l1_ratio); empty = the spec's grid
+    ap.add_argument("--grid-alphas", default="")
+    # 2026-10-22: walk diagnostic of the held lasso / elastic-net weights (module docstring); default off
+    ap.add_argument("--std-check-blockends", action="store_true")
     a = ap.parse_args()
-    global RERUN, PART
+    global RERUN, PART, STANDARDIZE_PENALTY
+    if a.standardize_penalty:
+        STANDARDIZE_PENALTY = a.standardize_penalty == "1"
     RERUN = a.rerun
     configure(a)
     if RERUN:  # --rerun fixes the ladder (base 5) and keeps the FOMC series
