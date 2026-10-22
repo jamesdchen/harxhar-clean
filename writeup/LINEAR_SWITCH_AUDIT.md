@@ -130,12 +130,34 @@ R5 .1205/.1194, .1203/.1229, .1205/.1236.
 5. **Cosmetic:** 31 walk rows (2011-12-28 14:00 to 12-30 16:00) precede the evaluation span; they are outside the
    option days and the accuracy span.
 
-## 6. 1,500-day window (running)
+## 6. Window sensitivity: 1,000 / 1,500 / 2,000 days
 
-At your request: the same configuration as R5, with only `--window-days 1500`, built with the code that produced R5
-(fomc_release included), gated on reproducing R5's HAR-benchmark forecasts. Output
-`results/pooled_linear_rerun_2026-10-22_13_2012_w1500/`. Results will be added here as a three-window table
-(1,000 / 1,500 / 2,000 days).
+At your request: the same configuration as R5 with only `--window-days 1500`, built with R5's code (eb78186,
+fomc_release included). Gates: the 576 columns match; OLS, lasso and elastic net reproduce R5's HAR-benchmark forecasts
+to ≤ 2e-14, ridge (badly conditioned at α = 1e-2) to 1.2e-9 (a BLAS-kernel effect, 7.6e-10 between two kernels on the
+same machine). Output and full details: `results/pooled_linear_rerun_2026-10-22_13_2012_w1500/SUMMARY.md`.
+
+| Model | Window | Penalty HAR / full | QLIKE Δ% full vs HAR (DM p) | SR HAR / full | ΔSR per-year (LW p) | ΔSR pooled 614d |
+|---|---|---|---|---|---|---|
+| Elastic net | 1,000 | 1e-6 / 1e-2 | −0.9 (0.76) | 1.30 / 1.13 | −0.17 (0.75) | +0.11 |
+| Elastic net | 1,500 | 1e-4 / 1e-3 | +5.6 (0.19) | 1.22 / 1.63 | +0.41 (0.16) | +0.63 |
+| Elastic net | 2,000 | 1e-4 / 1e-3 | +6.5 (0.12) | 1.07 / 1.30 | +0.23 (0.27) | +0.49 |
+| Lasso | 1,000 | 1e-4 / 1e-3 | +2.2 (0.56) | 1.28 / 1.02 | −0.26 (1.00) | −0.00 |
+| Lasso | 1,500 | 1e-4 / 1e-3 | +4.5 (0.23) | 1.22 / 1.55 | +0.33 (0.19) | +0.54 |
+| Lasso | 2,000 | 1e-4 / 1e-3 | +5.3 (0.16) | 1.07 / 1.23 | +0.16 (0.34) | +0.42 |
+| Ridge | 1,000 | 1e-2 / 1e3 | +2.6 (0.54) | 1.30 / 1.09 | −0.22 (0.96) | −0.02 |
+| Ridge | 1,500 | 1e-2 / 1e3 | +4.5 (0.27) | 1.22 / 1.61 | +0.39 (0.19) | +0.57 |
+| Ridge | 2,000 | 1e-2 / 1e3 | +6.8 (0.14) | 1.07 / 1.49 | +0.42 (0.15) | +0.65 |
+
+- **Sharpe:** at 1,500 and 2,000 days the full set raises the linear Sharpe ratio in all three classes, under both the
+  per-year and the pooled statistic; at 1,000 days it does not. No difference is significant at any window.
+- **Closing-bar QLIKE:** the full set is *worse* at the 16:00 bar at 1,500 and 2,000 days (+4.5% to +6.8%), as at
+  1,000 days except for the elastic net. On every bar of the day it is better at all three windows.
+- **Pre-sample criterion (the rule that already picks the penalties):** the mean validation MSE on the 4 pre-2012 folds
+  at the picked penalty is lowest at 2,000 days for all six arms (e.g. full-set ridge 0.062188 / 0.061987 / 0.061749,
+  HAR 0.066485 / 0.066204 / 0.065995 at 1,000 / 1,500 / 2,000 days). Choosing the window by that rule, rather than by
+  the Sharpe ratio, would pick 2,000 days among the three. The late-start scaling fix (in progress) changes exactly
+  these pre-sample folds, so this comparison should be redone after it.
 
 ## Bottom line
 
