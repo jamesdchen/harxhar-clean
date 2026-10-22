@@ -4,10 +4,12 @@ Writes six float files into writeup/generated/, each \\input by writeup/rehaul/0
 
   rehaul_dm_sources.tex     D1  data sources and spans                    tab:rh_dm_sources
   rehaul_dm_samples.tex     D2  samples (grid, pooled, per bar, pre-tune, test)   tab:rh_dm_samples
-  rehaul_dm_design.tex      F1  design composition (22 / 628 / 634 columns)      tab:rh_dm_design
+  rehaul_dm_design.tex      F1  design composition (22 / 610 / 616 columns)      tab:rh_dm_design
                                 (2026-10-19, base 5 across the paper and FOMC in the pooled model: the pooled
                                 count was 1,144 at base 2 without FOMC)
-  rehaul_dm_dictionary.tex  F2  feature dictionary, 47 series (longtable)        tab:rh_dm_dictionary
+                                (2026-10-22, third-list 5: the FOMC statement-bar dummy dropped; was 22 / 628 / 634)
+  rehaul_dm_dictionary.tex  F2  feature dictionary, 46 series (longtable)        tab:rh_dm_dictionary
+                                (2026-10-22, third-list 5: was 47 series, fomc_release included)
   rehaul_dm_hyper.tex       M1  hyperparameters per model                        tab:rh_dm_hyper
   rehaul_dm_tuning.tex      M2  tuning protocol per model family                 tab:rh_dm_tuning
 
@@ -85,10 +87,38 @@ POOLED_PANEL = REPO / "results" / "pooled_trees_base5_2026-10-19_48" / "panel_fu
 POOLED_DESIGN_13 = REPO / "results" / "pooled_trees_base5_2026-10-19_13" / "design.json"
 
 
+# 2026-10-22 (user, third-list 5): the FOMC statement-bar dummy (fomc_release) is dropped from the predictors
+# (src/data/loading.py EXCLUDE_FOMC_RELEASE).  The design caches read here (the 2026-10-06 16:00 design, the 2026-10-19
+# base-5 pooled panel) were built with it.  Every exogenous column belongs to one series (its average u^(k), its
+# availability average a^(k) and, if it has one, its activity average chi^(k); no interaction involves a series), so
+# the design without the dummy is the cached one less that series' columns, which drop_excluded() removes.
+EXCLUDED_SERIES: list[str] = [s for s in LD.FOMC_FEATURES if s not in LD.ALL_FEATURES]
+DROP_RELEASE = LD.EXCLUDE_FOMC_RELEASE
+assert EXCLUDED_SERIES == (["fomc_release"] if DROP_RELEASE else []), EXCLUDED_SERIES
+
+
+def column_series(c: str) -> str | None:
+    """The exogenous series a design column is built from (None for the HAR, interaction and calendar columns)."""
+    if m := re.fullmatch(r"adj_(.+)_ma_\d+", c):
+        return m.group(1)
+    if m := re.fullmatch(r"(.+)_(?:avail|active)_ma_\d+", c):
+        return m.group(1)
+    return None
+
+
+def drop_excluded(names: list[str]) -> list[str]:
+    """A cached design's columns less those of the series src/data/loading.py no longer includes."""
+    return [c for c in names if column_series(c) not in EXCLUDED_SERIES]
+
+
 def pooled_panel() -> tuple[list[str], int]:
     """(names, rows) of the base-5 pooled panel (experiments/pooled_trees_base5.py, before the E6 / E9 cut)."""
     d = json.loads(need(POOLED_PANEL).read_text(encoding="utf-8"))
-    return [str(c) for c in d["names"]], int(d["n_rows"])
+    # 2026-10-22 (user, third-list 5): less the dropped series' columns (drop_excluded). Was:
+    # return [str(c) for c in d["names"]], int(d["n_rows"])
+    return drop_excluded([str(c) for c in d["names"]]), int(d["n_rows"])
+
+
 PF = REPO / "experiments" / "puffer_forecast"
 PFR = RES / "puffer_forecast_2026-10-12"
 PFW = PFR / "_work"
@@ -115,13 +145,17 @@ OUTLINE: dict[str, Any] = dict(
     sessions_1600_test=1_087,
     expirations=1_291,
     fomc_events=246,
-    n_series=47,
+    # 2026-10-22 (user, third-list 5): parked -- the FOMC statement-bar dummy is dropped (DROP_RELEASE): one series,
+    # its 6 + 6 averages and its activity ladder (6) leave both designs. Was: n_series=47, p_all=628, p_pooled=634,
+    # n_active=7, n_active_pooled=6 (the last one was typed only in rhdmNActivePooled)
+    n_series=46 if DROP_RELEASE else 47,
     p_base=22,
-    p_all=628,
+    p_all=610 if DROP_RELEASE else 628,
     # 2026-10-19 (user): parked -- base 5 across the paper. Was: p_pooled=1_144 (base 2, 12 horizons, pre-FOMC panel)
     # 2026-10-19 (user): parked -- the pooled model includes the FOMC series (author decision). Was: p_pooled=574 (base 5 without FOMC)
-    p_pooled=634,
-    n_active=7,
+    p_pooled=616 if DROP_RELEASE else 634,
+    n_active=6 if DROP_RELEASE else 7,
+    n_active_pooled=5 if DROP_RELEASE else 6,
     mingru_origins=1_088,
 )
 
@@ -545,8 +579,20 @@ def panel() -> dict:
     za = np.load(dz / "design_bar1600_all_features.npz", allow_pickle=False)
     zb = np.load(dz / "design_bar1600_baseline.npz", allow_pickle=False)
     P["design_dir"] = dz
-    P["names_all"] = [str(v) for v in za["names"]]
-    P["names_base"] = [str(v) for v in zb["names"]]
+    # 2026-10-22 (user, third-list 5): the cache's own columns index Xa and match the export; the design is the
+    # cache less the dropped series' columns (drop_excluded). Was:
+    # P["names_all"] = [str(v) for v in za["names"]]
+    # P["names_base"] = [str(v) for v in zb["names"]]
+    cached_all = [str(v) for v in za["names"]]
+    P["names_all"] = drop_excluded(cached_all)
+    P["names_base"] = drop_excluded([str(v) for v in zb["names"]])
+    gone = [c for c in cached_all if c not in P["names_all"]]
+    check(
+        len(gone) == 18 * len(EXCLUDED_SERIES)
+        and {column_series(c) for c in gone} == set(EXCLUDED_SERIES),
+        f"the 16:00 design less {EXCLUDED_SERIES or 'no series'}: {len(gone)} columns "
+        "(6 averages, 6 availability, 6 activity each)",
+    )
     dd = pd.to_datetime(za["date"])
     Wd = int(za["W"])
     check(
@@ -565,11 +611,12 @@ def panel() -> dict:
     # screen at every closing-interval fit; NOTATION_GUIDE_ADDENDA A.3)
     Xa = za["X"]
     cal_cols = [c for c in P["names_all"] if c in CAL_TEX]
+    # 2026-10-22 (user, third-list 5): Xa's columns are the cache's (cached_all). Was: P["names_all"].index(c)
     P["cal_const"] = [
         c
         for c in cal_cols
-        if np.nanmax(Xa[:, P["names_all"].index(c)])
-        == np.nanmin(Xa[:, P["names_all"].index(c)])
+        if np.nanmax(Xa[:, cached_all.index(c)])
+        == np.nanmin(Xa[:, cached_all.index(c)])
     ]
     check(
         P["cal_const"] == ["hour", "is_overnight", "is_open", "is_close"],
@@ -583,7 +630,8 @@ def panel() -> dict:
         if c not in ("row", "date", "forecast_row", "y", "baseline", "true_raw")
     ]
     check(
-        ex_names == P["names_all"],
+        # 2026-10-22 (user, third-list 5): the cache's own columns. Was: ex_names == P["names_all"],
+        ex_names == cached_all,
         "design cache names = the committed export's columns",
     )
     P["fc"] = (dd[Wd], dd[-1], len(dd) - Wd)
@@ -668,7 +716,8 @@ def series_bucket() -> dict[str, str]:
             m[s] = b
     check(
         set(m) == set(LD.ALL_FEATURES) and len(m) == OUTLINE["n_series"],
-        "8 buckets partition the 47 series",
+        # 2026-10-22 (user, third-list 5): the count from OUTLINE. Was: "8 buckets partition the 47 series",
+        f"8 buckets partition the {OUTLINE['n_series']} series",
     )
     return m
 
@@ -938,13 +987,17 @@ def design_tables(P: dict, bmap: dict[str, str]) -> dict:
             f"{b}: value and avail ladders x {k}",
         )
     act = sorted(A["series"]["active"], key=list(bmap).index)
+    # 2026-10-22 (user, third-list 5): parked -- the counts from OUTLINE (46 series and 6 activity series without the
+    # FOMC statement-bar dummy). Was: "7 activity ladders"; len(P["names_all"]) == OUTLINE["p_all"] == 22 + 47 * 6 * 2
+    # + 7 * 6, "628 = 22 + 47x6 + 47x6 + 7x6"
+    ns, na = OUTLINE["n_series"], OUTLINE["n_active"]
     check(
-        len(act) == OUTLINE["n_active"] and sum(A["active"].values()) == k * len(act),
-        "7 activity ladders",
+        len(act) == na and sum(A["active"].values()) == k * len(act),
+        f"{na} activity ladders",
     )
     check(
-        len(P["names_all"]) == OUTLINE["p_all"] == 22 + 47 * 6 * 2 + 7 * 6,
-        "628 = 22 + 47x6 + 47x6 + 7x6",
+        len(P["names_all"]) == OUTLINE["p_all"] == 22 + ns * 6 * 2 + na * 6,
+        f"{OUTLINE['p_all']} = 22 + {ns}x6 + {ns}x6 + {na}x6",
     )
     kq = len(Q["har"])
     check(
@@ -965,8 +1018,13 @@ def design_tables(P: dict, bmap: dict[str, str]) -> dict:
         # rule, CAUSAL_MODE_INFLATION, which flags numobs and the three StockTwits series: note S4a)
         # 2026-10-19 (user): parked -- the pooled model includes the FOMC series (author decision). Was: == 34 + 43 * 6 * 2 + 4 * 6, "574 = 34 + 43x6x2 + 4x6"
         # (with FOMC the causal rule also flags fomc_day and fomc_release: 6 activity series)
-        len(pooled_names) == OUTLINE["p_pooled"] == 34 + 47 * 6 * 2 + 6 * 6,
-        "634 = 34 + 47x6x2 + 6x6",
+        # 2026-10-22 (user, third-list 5): parked -- without fomc_release, 46 series and 5 activity series. Was:
+        # len(pooled_names) == OUTLINE["p_pooled"] == 34 + 47 * 6 * 2 + 6 * 6, "634 = 34 + 47x6x2 + 6x6",
+        len(pooled_names)
+        == OUTLINE["p_pooled"]
+        == 34 + ns * 6 * 2 + OUTLINE["n_active_pooled"] * 6
+        and len(Q["series"]["active"]) == OUTLINE["n_active_pooled"],
+        f"{OUTLINE['p_pooled']} = 34 + {ns}x6x2 + {OUTLINE['n_active_pooled']}x6",
     )
     check(A["calendar"] == Q["calendar"], "same calendar columns per bar and pooled")
     # 2026-10-15 (table legibility): every column of both designs has a math name (the addenda's lookup)
@@ -1151,7 +1209,8 @@ def dictionary(P: dict, bmap: dict[str, str], D: dict) -> list[dict]:
             )
         )
     R = pd.DataFrame(rows)
-    check(int(R["active"].sum()) == OUTLINE["n_active"], "7 activity flags")
+    # 2026-10-22 (user, third-list 5): the count from OUTLINE. Was: "7 activity flags"
+    check(int(R["active"].sum()) == OUTLINE["n_active"], f"{OUTLINE['n_active']} activity flags")
     check(
         set(R.loc[R["transform"] == "asinh", "series"])
         == set(LD.SUBGROUPS["vol_demand"]),
@@ -1495,6 +1554,47 @@ def linear_picks(P: dict) -> dict:
         "4 retunes fired",
     )
     return dict(L=L, grids=grids, G=G, M=M)
+
+
+# 2026-10-22 (coordinator, appendix agent): the closing-interval linear forecasts the paper prints
+# (results/spxw_pnl/yhat_subpt_<est>_<set>.parquet, experiments/stack_pretune_yhat.py f_series) are the frozen arms of
+# results/linear_pretune_2026-10-06/forecasts.parquet since 2026-10-18 (new-notes 24, E23): c_frozen on the HAR
+# benchmark, d_frozen_bb on the full predictor set.  Checked bit for bit, so the hyperparameter note can say the
+# pre-sample pick is held fixed.
+FROZEN_ARM = {"baseline": "c_frozen", "all_features": "d_frozen_bb"}
+
+
+def frozen_arms_printed() -> None:
+    ex = pd.read_parquet(
+        need(RES / "linear_pretune_2026-10-06" / "forecasts.parquet"),
+        columns=["series_id", "date", "pred_adj"],
+    )
+    for est in ("ridge", "lasso", "enet"):
+        for b, arm in FROZEN_ARM.items():
+            st = pd.read_parquet(
+                need(RES / "spxw_pnl" / f"yhat_subpt_{est}_{b}.parquet"),
+                columns=["t", "yhat"],
+            )
+            et = (
+                pd.to_datetime(st["t"])
+                .dt.tz_convert("America/New_York")
+                .dt.tz_localize(None)
+            )
+            ys = pd.Series(
+                st["yhat"].to_numpy(),
+                index=pd.DatetimeIndex(et.to_numpy()).as_unit("ns"),
+            ).sort_index()
+            fa = ex[ex["series_id"] == f"linear_pretune/{est}_{b}_{arm}"]
+            fs = pd.Series(
+                fa["pred_adj"].to_numpy(),
+                index=pd.DatetimeIndex(pd.to_datetime(fa["date"])).as_unit("ns"),
+            ).sort_index()
+            check(
+                len(fs) == len(ys) > 0
+                and ys.index.equals(fs.index)
+                and np.array_equal(ys.to_numpy(), fs.to_numpy()),
+                f"yhat_subpt_{est}_{b} = the {arm} arm bit for bit (penalty held fixed, no re-tune)",
+            )
 
 
 def mingru() -> dict:
@@ -2975,25 +3075,32 @@ def write_hyper(P: dict, TS: dict, LP: dict, NN: dict) -> None:
         for nm, d in fixed.items()
         for k, v in d.items()
     }
-    fired_n = {
-        e: (
-            int(L[(e, "baseline")][1].split(" of ")[0]),
-            int(L[(e, "all_features")][1].split(" of ")[0]),
-        )
-        for e in ("ridge", "lasso", "enet")
-    }
-    fired_of = sum(int(v[1].split(" of ")[1]) for v in L.values())
-    fired = ", ".join(
-        f"{lab} {fired_n[e][0]} and {fired_n[e][1]}"
-        for e, lab in (("ridge", "ridge"), ("lasso", "lasso"), ("enet", "elastic net"))
-    )
+    # 2026-10-22 (coordinator, appendix agent): parked -- the re-selection count. Since the 2026-10-18 swap (commit
+    # 80e7476, new-notes 24, note E23) the closing-interval linear forecasts are the frozen arms (c_frozen on the HAR
+    # benchmark, d_frozen_bb on the full predictor set): one pre-sample pick, no re-tune (frozen_arms_printed()). Was:
+    # fired_n = {
+    #     e: (
+    #         int(L[(e, "baseline")][1].split(" of ")[0]),
+    #         int(L[(e, "all_features")][1].split(" of ")[0]),
+    #     )
+    #     for e in ("ridge", "lasso", "enet")
+    # }
+    # fired_of = sum(int(v[1].split(" of ")[1]) for v in L.values())
+    # fired = ", ".join(
+    #     f"{lab} {fired_n[e][0]} and {fired_n[e][1]}"
+    #     for e, lab in (("ridge", "ridge"), ("lasso", "lasso"), ("enet", "elastic net"))
+    # )
+    frozen_arms_printed()
     notes_a = [
+        # 2026-10-22 (coordinator, appendix agent): parked -- the grid-neighbor re-selection sentence (the printed
+        # closing-interval linear forecasts hold the pre-sample pick fixed). Was, after the first sentence:
+        # rf"At each of the {L[('ridge', 'baseline')][1].split(' of ')[1]} re-selection points a grid neighbor may "
+        # rf"replace it (Section~\ref{{sec:rh_methods_tuning}}); this happened {sum(map(sum, fired_n.values()))} times "
+        # rf"in {fired_of} re-selections ({fired}, for the HAR benchmark and the full predictor set).",
         r"Panel A: Section~\ref{sec:rh_methods_models} states the scale of $\lambda$. One grid value "
         r"per decade (grid size in parentheses), selected by mean validation MSE over the "
         rf"{P['clp']['PRE_FOLDS']} folds of the pre-sample (Table~\ref{{tab:rh_dm_samples}}).",
-        rf"At each of the {L[('ridge', 'baseline')][1].split(' of ')[1]} re-selection points a grid neighbor may "
-        rf"replace it (Section~\ref{{sec:rh_methods_tuning}}); this happened {sum(map(sum, fired_n.values()))} times "
-        rf"in {fired_of} re-selections ({fired}, for the HAR benchmark and the full predictor set).",
+        r"The selected penalty is then held fixed at every forecast origin, with no re-tuning.",
         # 2026-10-15 (finish): parked -- the computed "trial 255 of 400", 24{,}000 and 2{,}000 -> \rhdmRfTrial of
         # \cmTreeProvRfTrials, \rhdmPooledWindow and \cmPtFitWin (same values, checked below). Was:
         # r"Panel B: the best trial of an Optuna search on the pooled intraday pre-sample "
@@ -3514,17 +3621,27 @@ TYPED = {
     # 2026-10-19 (user): parked -- base 5 across the paper. Was: rhdmNColsPooled 1{,}144, rhdmNHorizonsPooled 12,
     # rhdmNEdgePooled 24, rhdmNActivePooled 5 (the base-2 panel of the earlier pooled fits)
     # 2026-10-19 (user): parked -- the pooled model includes the FOMC series (author decision). Was: rhdmNColsPooled 574, rhdmNSeriesPooled 43, rhdmNActivePooled 4 (base 5 without FOMC)
-    "rhdmNColsPooled": "634",
-    "rhdmNSeriesPooled": "47",
+    # 2026-10-22 (user, third-list 5): parked -- the FOMC statement-bar dummy is dropped (DROP_RELEASE). Was:
+    # rhdmNColsPooled 634, rhdmNSeriesPooled 47, rhdmNActive 7, rhdmNActivePooled 6
+    "rhdmNColsPooled": "616" if DROP_RELEASE else "634",
+    "rhdmNSeriesPooled": "46" if DROP_RELEASE else "47",
     "rhdmNHorizonsPooled": "6",
     "rhdmNHorizonsClose": "6",
     "rhdmNCalendar": "16",
     "rhdmNEdgePooled": "12",
-    "rhdmNActive": "7",
-    "rhdmNActivePooled": "6",
+    "rhdmNActive": "6" if DROP_RELEASE else "7",
+    "rhdmNActivePooled": "5" if DROP_RELEASE else "6",
     "rhdmValTail": "125",
     "rhdmRetuneFolds": "two",
     "rhdmRfTrial": "255",
+    # 2026-10-22 (coordinator): the pooled linear 13-bar rerun's frozen penalties (Table 1; pooled_linear_13.py RUN /
+    # frozen_penalties.json), one per estimator and predictor set, as \cmPtPen* writes the closing-interval ones
+    "rhdmPlPenRidgeBase": r"\ensuremath{10^{-2}}",
+    "rhdmPlPenRidgeAll": r"\ensuremath{10^{3}}",
+    "rhdmPlPenLassoBase": r"\ensuremath{10^{-4}}",
+    "rhdmPlPenLassoAll": r"\ensuremath{10^{-3}}",
+    "rhdmPlPenEnetBase": r"\ensuremath{10^{-6}}",
+    "rhdmPlPenEnetAll": r"\ensuremath{10^{-2}}",
 }
 WORDS = {1: "one", 2: "two", 3: "three", 4: "four", 5: "five"}
 # 2026-10-15 (finish): the pooled linear models' window, 2,000 trading days x 48 intervals = 96,000, had no macro
@@ -3717,6 +3834,24 @@ def write_numbers(P: dict, D: dict, TS: dict, LP: dict) -> None:
             "the random forest's fixed configuration: Optuna trial number",
         ),
     }
+    # 2026-10-22 (coordinator): the pooled linear 13-bar rerun's frozen penalties (pooled_linear_13.py checks every
+    # forecast row's alpha against the same file)
+    fp = json.loads(
+        need(pl13.RUN / "frozen_penalties.json").read_text(encoding="utf-8")
+    )
+    for est, tag in (("ridge", "Ridge"), ("lasso", "Lasso"), ("enet", "Enet")):
+        for b, bt in (("baseline", "Base"), ("all_features", "All")):
+            a = float(fp[est][b])
+            e10 = round(math.log10(a))
+            check(
+                abs(math.log10(a) - e10) < 1e-9,
+                f"pooled linear 13-bar {est} {b} penalty {a:g} = 10^{e10}",
+            )
+            vals[f"rhdmPlPen{tag}{bt}"] = (
+                rf"\ensuremath{{10^{{{e10}}}}}",
+                f"pooled linear 13-bar rerun, {est} on the {b.replace('_', ' ')} set: frozen penalty (pre-sample "
+                "pick by validation MSE, held fixed)",
+            )
     check(
         D["n_pooled"]
         == D["kq"]
@@ -3726,7 +3861,10 @@ def write_numbers(P: dict, D: dict, TS: dict, LP: dict) -> None:
         + D["n_active_pooled"] * D["kq"],
         # 2026-10-19 (user): parked -- base 5. Was: "1,144 = 12 + 16 + 24 + 43 x 12 + 43 x 12 + 5 x 12 (the Predictors section's display)",
         # 2026-10-19 (user): parked -- the pooled model includes the FOMC series (author decision). Was: "574 = 6 + 16 + 12 + 43 x 6 + 43 x 6 + 4 x 6 (the Predictors section's display)",
-        "634 = 6 + 16 + 12 + 47 x 6 + 47 x 6 + 6 x 6 (the Predictors section's display)",
+        # 2026-10-22 (user, third-list 5): parked -- the counts computed. Was:
+        # "634 = 6 + 16 + 12 + 47 x 6 + 47 x 6 + 6 x 6 (the Predictors section's display)",
+        f"{D['n_pooled']} = {D['kq']} + {len(D['cal'])} + {D['n_edge_pooled']} + {D['n_series_pooled']} x {D['kq']} "
+        f"+ {D['n_series_pooled']} x {D['kq']} + {D['n_active_pooled']} x {D['kq']} (the Predictors section's display)",
     )
     check(set(vals) == set(TYPED), "every \\rhdm macro has its typed value")
     for k, (v, _) in vals.items():
