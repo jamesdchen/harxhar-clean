@@ -179,9 +179,10 @@ LEAN_GLOBAL_LAGS: bool = False
 # the neutral 0 until the scaler's window holds W LIVE rows -- rows whose k-bar trailing average holds no bar before
 # the series' first print day (k counted on the frame the averages are computed on) -- and the scaler's own output,
 # unchanged, from then on.  The availability averages (unscaled) are untouched.  Causal: liveness of a row depends
-# on the prints before its averaging window, the zeroing at t on the rows of [t-W, t).  Pre-registered before any
-# rerun: results/pooled_linear_rerun_2026-10-22_13_2012_w1000_latestart/RULE.md (2026-10-22 09:12 PDT, addendum
-# 09:18).  Off: the pre-2026-10-22 design bit for bit.
+# on the prints before its averaging window, the zeroing at t on the rows of [t-W, t).  Minimum = the full window:
+# the only state in which the scaler's statistic is one of data alone, by the same estimator as every other series.
+# Rule written down 2026-10-22 09:12 PDT (addendum 09:18: "start" = the first-print day) before any rerun or score.
+# Off: the pre-2026-10-22 design bit for bit.
 LATE_START_WARMUP: bool = True
 
 
