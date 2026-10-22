@@ -185,6 +185,19 @@ LEAN_GLOBAL_LAGS: bool = False
 # Off: the pre-2026-10-22 design bit for bit.
 LATE_START_WARMUP: bool = True
 
+# -- 2026-10-22 (user: "add the flag"; writeup note E28, stale feeds)
+# UNOBSERVED_NEUTRAL: after a feed stops (volatility demand after 2023-08-31) its trailing averages hold the constant
+# neutral fill, which the rolling scaler keeps re-scaling as its window [t-W, t) moves, so the scaled value drifts
+# (adj_voldemand_all_open_only_ma_1 about -0.28 -> -0.16 from 2023-09 to 2024-04) while the availability average is 0.
+# With the flag on, a scaled value column adj_<c>_ma_<k> is set to the neutral value 0 on every row whose k-bar
+# averaging window holds no observed bar of series c (its <c>_avail_ma_<k> is 0); otherwise unchanged.  Availability
+# averages are untouched.  Applied after the scaling and the LATE_START_WARMUP step.  Causal: <c>_avail_ma_<k> at row
+# t is the mean of the availability flags <c>__obs (recorded before any fill) of the same k bars before t that
+# adj_<c>_ma_<k> averages, so whether it is 0 is known at t; the scaler's statistics are computed as before (the step
+# overwrites its output only), so no other row moves.  Rule written down 2026-10-22 13:52 PDT before any rerun or
+# score.  Off: the design before this flag, bit for bit.
+UNOBSERVED_NEUTRAL: bool = True
+
 
 def early_close_post_bars(t: pd.Series) -> np.ndarray:
     """Bars ending 13:30 .. 17:00 ET on an NYSE early-close day (src.data.loading calendar)."""
@@ -250,6 +263,37 @@ def late_start_warmup(
     if cols:
         print(
             f"[scale] late-start warm-up: {cols} columns, {vals} values set to 0 (window {train_win} rows)"
+        )
+    return X
+
+
+def unobserved_neutral(
+    X: np.ndarray, df: pd.DataFrame, feature_names: list[str]
+) -> np.ndarray:
+    """UNOBSERVED_NEUTRAL: set the scaled value of ``adj_<c>_ma_<k>`` to 0 on every row whose k-bar averaging window
+    holds no observed bar of series c, i.e. whose ``<c>_avail_ma_<k>`` (the trailing mean of the 0/1 flag over the
+    same k bars) is 0 -- tested as below half a bar (< 0.5 / k), which a single observed bar can never be, so float
+    residue of the rolling sum cannot keep a row live.  ``df`` is the frame the rows of ``X`` were taken from (row i
+    of X = row i of df); its availability averages are read, not changed."""
+    n = len(X)
+    cols, vals, was0 = 0, 0, 0
+    for j, name in enumerate(feature_names):
+        m = re.match(r"adj_(.+)_ma_(\d+)$", name)
+        if m is None:
+            continue
+        av = f"{m.group(1)}_avail_ma_{m.group(2)}"
+        if av not in df.columns:
+            continue
+        none = df[av].to_numpy(dtype=np.float64)[:n] < 0.5 / int(m.group(2))
+        if not none.any():
+            continue
+        was0 += int(np.count_nonzero(X[none, j] == 0.0))
+        X[none, j] = 0.0
+        cols += 1
+        vals += int(none.sum())
+    if cols:
+        print(
+            f"[scale] unobserved-neutral: {cols} columns, {vals} values set to 0 ({was0} were 0 already)"
         )
     return X
 
@@ -697,6 +741,9 @@ def _backtest_and_save(
         if LATE_START_WARMUP:
             # 2026-10-22 (user): late-start series neutral until the window holds W live rows
             X = late_start_warmup(X, df, feature_names, train_win_periods)
+        if UNOBSERVED_NEUTRAL:
+            # 2026-10-22 (user, E28): a value average whose window holds no observed bar is the neutral 0
+            X = unobserved_neutral(X, df, feature_names)
 
     # Feature-health invariants, on every build. Ten defects of the same class (a transform whose
     # divisor degenerates, a fill constant that manufactures a predictor out of missingness) have
