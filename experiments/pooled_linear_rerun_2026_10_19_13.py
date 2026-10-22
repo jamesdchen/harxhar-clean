@@ -36,6 +36,12 @@ Stages  (python experiments/pooled_linear_rerun_2026_10_19_13.py <stage> [--jobs
 2012 rerun; every count above scales with them (pre-tune: the 1,000 sessions before D, each fold fit on the N-day
 window before its embargo). The score stage still scores the common span of tab:rh_oos; forecasts.parquet holds every
 bar from the walk start to the end of the data.
+
+2026-10-22 (user: "Fix the late start series problems."): --ex-flag NAME=0|1 adds executor flags to CFG (e.g.
+LATE_START_WARMUP, on by default in src/backtest/executor.py), and --keep-fomc-release keeps the FOMC statement-bar
+dummy in the full set although src/data/loading.py EXCLUDE_FOMC_RELEASE is on; check_design asserts the FOMC series
+of that set (it asserted all four, which fails at EXCLUDE_FOMC_RELEASE = True).  Without either option every stage
+is as before.
 """
 
 from __future__ import annotations
@@ -93,11 +99,29 @@ FIRST_DAY = "2020-01-03"
 HAR_LADDER = [1, 5, 25, 125, 625, 3125]  # base 5 (author, 2026-10-19 correction)
 
 
+KEEP_FOMC_RELEASE = False  # 2026-10-22: set by main from --keep-fomc-release
+
+
+def design_features() -> tuple[list[str], list[str]]:
+    """2026-10-22 (user): (the full set's raw series, its FOMC series) as src/data/loading.py builds them under
+    EXCLUDE_FOMC_RELEASE, with fomc_release put back before fomc_day under --keep-fomc-release (as
+    pool_linear_pretune.py --keep-fomc-release)."""
+    from src.data import loading as LD
+
+    feats = list(LD.ALL_FEATURES)
+    if KEEP_FOMC_RELEASE and "fomc_release" not in feats:
+        feats.insert(feats.index("fomc_day"), "fomc_release")
+    return feats, [f for f in LD.FOMC_FEATURES if f in feats]
+
+
 def check_design(s: str) -> list[str]:
     """The design's columns: the target's HAR components exactly at HAR_LADDER, calendar DOW_0 .. DOW_4 and hour,
     and on the full predictor set every FOMC series present (value and availability averages, no activity
     averages)."""
-    from src.data.loading import ALL_FEATURES, FOMC_FEATURES
+    # 2026-10-22 (user): parked -- every FOMC series asserted, before src/data/loading.py EXCLUDE_FOMC_RELEASE went
+    # on (it fails at HEAD). The series are now design_features(): the flag's, or fomc_release kept. Was:
+    # from src.data.loading import ALL_FEATURES, FOMC_FEATURES
+    ALL_FEATURES, FOMC_FEATURES = design_features()
 
     names = json.loads((design_dir(s) / "design.json").read_text())["names"]
     har = [n for n in names if n.startswith("har_ma_")]
@@ -551,7 +575,7 @@ def st_score(a) -> None:
 
 
 def main() -> None:
-    global OUT, WORK, TW_DAYS, W, PRE_HALO, FIRST_DAY
+    global OUT, WORK, TW_DAYS, W, PRE_HALO, FIRST_DAY, KEEP_FOMC_RELEASE
     ap = argparse.ArgumentParser()
     ap.add_argument("stage", choices=("design", "pretune", "select", "walk", "score"))
     ap.add_argument("--jobs", type=int, default=4)
@@ -574,6 +598,11 @@ def main() -> None:
     # The pre-tune folds tile the 1,000 sessions before --first-day, each fit on the window before its embargo.
     ap.add_argument("--window-days", type=int, default=TW_DAYS)
     ap.add_argument("--first-day", default=FIRST_DAY)
+    # 2026-10-22 (user, the late-start rerun): more executor flags for every stage (NAME=0|1, repeatable, after CFG's
+    # own, e.g. LATE_START_WARMUP=1), and fomc_release kept in the full set although src/data/loading.py
+    # EXCLUDE_FOMC_RELEASE is on (pool_linear_pretune.py --keep-fomc-release); the defaults add nothing to CFG
+    ap.add_argument("--ex-flag", action="append", default=[])
+    ap.add_argument("--keep-fomc-release", action="store_true")
     a = ap.parse_args()
     if a.out:
         OUT = Path(a.out).resolve()
@@ -583,6 +612,11 @@ def main() -> None:
         W = TW_DAYS * PPD
         PRE_HALO = PRE_FOLDS * PRE_FOLD_SESS * PPD + PRE_EMBARGO_SESS * PPD + W
         CFG.extend(["--window-days", str(TW_DAYS)])
+    for kv in a.ex_flag:  # 2026-10-22
+        CFG.extend(["--ex-flag", kv])
+    if a.keep_fomc_release:  # 2026-10-22
+        KEEP_FOMC_RELEASE = True
+        CFG.append("--keep-fomc-release")
     FIRST_DAY = a.first_day
     OUT.mkdir(parents=True, exist_ok=True)
     {

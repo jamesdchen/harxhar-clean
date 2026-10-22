@@ -167,6 +167,23 @@ DROP_OVERNIGHT_INDICATOR: bool = False
 # a 15 GB machine).  Off: the full-grid frame, as before.
 LEAN_GLOBAL_LAGS: bool = False
 
+# -- 2026-10-22 (user: "Fix the late start series problems."; writeup/LINEAR_SWITCH_AUDIT.md finding 2)
+# LATE_START_WARMUP: a series that starts after the data (VIX 2006, StockTwits 2009-10, VIX3M 2009, volatility
+# demand 2011, VVIX 2012) holds its first printed value on every bar before its start (CAUSAL_NEUTRAL_FILL), so for
+# up to W rows after the start the scaler's window [t-W, t) is mostly that constant: the IQR is exactly 0 while the
+# constant holds > 75% of the window, the relative floor is 0 (the column has never had a non-degenerate window) and
+# the 1.0 fallback sets the scale; once the live share passes 25% the scale drops to a tiny IQR or to ref_iqr (the
+# IQR of a half-fill average over a short history) while the median is still the stale constant -- adj_vix3m_ma_3125
+# at -14.5 in 2010-10, adj_voldemand_all_open_only_ma_3125 at 110 in 2012-01, the fold-2 blow-up of the 13-bar
+# pre-tune.  With the flag on, a value column adj_<c>_ma_<k> of a series that starts after the frame's first day is
+# the neutral 0 until the scaler's window holds W LIVE rows -- rows whose k-bar trailing average holds no bar before
+# the series' first print day (k counted on the frame the averages are computed on) -- and the scaler's own output,
+# unchanged, from then on.  The availability averages (unscaled) are untouched.  Causal: liveness of a row depends
+# on the prints before its averaging window, the zeroing at t on the rows of [t-W, t).  Pre-registered before any
+# rerun: results/pooled_linear_rerun_2026-10-22_13_2012_w1000_latestart/RULE.md (2026-10-22 09:12 PDT, addendum
+# 09:18).  Off: the pre-2026-10-22 design bit for bit.
+LATE_START_WARMUP: bool = True
+
 
 def early_close_post_bars(t: pd.Series) -> np.ndarray:
     """Bars ending 13:30 .. 17:00 ET on an NYSE early-close day (src.data.loading calendar)."""
@@ -174,6 +191,66 @@ def early_close_post_bars(t: pd.Series) -> np.ndarray:
     mins = tt.dt.hour * 60 + tt.dt.minute
     ec = tt.dt.normalize().isin(pd.to_datetime(list(NYSE_EARLY_CLOSE_DATES)))
     return (ec & (mins > 13 * 60) & (mins <= 17 * 60)).to_numpy()
+
+
+def _series_age_columns(df: pd.DataFrame, exog_cols: list[str]) -> pd.DataFrame:
+    """LATE_START_WARMUP: ``<c>__age`` for every value column ``adj_<c>`` of ``exog_cols`` whose series starts after
+    the frame's first day: the frame row's position minus the position of the first row of the calendar day (bar
+    end) of the series' first print (``<c>__obs``), so the trailing average ``adj_<c>_ma_<k>`` of a row holds no
+    pre-start bar iff its age >= k.  A series never observed gets an age below every k.  Series observed on the
+    frame's first day get no column (always live).  Computed on the frame the trailing averages are computed on;
+    the columns are added to ``df`` in place (no frame copy) and returned with it."""
+    day = pd.to_datetime(df["t"]).dt.normalize().to_numpy()
+    pos = np.arange(len(df), dtype=np.int64)
+    ages = {}
+    for name in exog_cols:
+        if not name.startswith("adj_"):
+            continue
+        c = name[4:]
+        oc = f"{c}__obs"
+        if oc not in df.columns or f"{c}__age" in df.columns:
+            continue
+        obs = df[oc].to_numpy().astype(bool)
+        if obs.any():
+            d0 = day[int(np.argmax(obs))]
+            if d0 == day[0]:
+                continue  # observed on the frame's first day: live on every row
+            start = int(np.argmax(day == d0))
+        else:
+            start = len(df) + 1
+        ages[f"{c}__age"] = pos - start
+    for k, v in ages.items():  # in place: a few int columns, no copy of the frame
+        df[k] = v
+    return df
+
+
+def late_start_warmup(
+    X: np.ndarray, df: pd.DataFrame, feature_names: list[str], train_win: int
+) -> np.ndarray:
+    """LATE_START_WARMUP: set the scaled value of ``adj_<c>_ma_<k>`` to 0 on every row whose scaler window
+    [t - train_win, t) holds a row that is not live (age < k; see :func:`_series_age_columns`); rows [0, train_win),
+    scaled with the first window, keep their value only when that window is all live.  ``df`` is the frame the
+    rows of ``X`` were taken from (row i of X = row i of df).  Liveness is monotone in time, so the zeroed rows are
+    the first L + train_win, L the first live row."""
+    n = len(X)
+    cols, vals = 0, 0
+    for j, name in enumerate(feature_names):
+        m = re.match(r"adj_(.+)_ma_(\d+)$", name)
+        if m is None or f"{m.group(1)}__age" not in df.columns:
+            continue
+        live = df[f"{m.group(1)}__age"].to_numpy()[:n] >= int(m.group(2))
+        L = int(np.argmax(live)) if live.any() else n
+        if L == 0:
+            continue
+        hi = min(n, L + train_win)
+        X[:hi, j] = 0.0
+        cols += 1
+        vals += hi
+    if cols:
+        print(
+            f"[scale] late-start warm-up: {cols} columns, {vals} values set to 0 (window {train_win} rows)"
+        )
+    return X
 
 
 def causal_neutral_fill(adj: pd.Series) -> pd.Series:
@@ -616,6 +693,9 @@ def _backtest_and_save(
         X = rolling_robust_scale(
             X, train_win_periods, ref_iqr=ref_iqr, fixed_cols=fixed_cols
         )
+        if LATE_START_WARMUP:
+            # 2026-10-22 (user): late-start series neutral until the window holds W live rows
+            X = late_start_warmup(X, df, feature_names, train_win_periods)
 
     # Feature-health invariants, on every build. Ten defects of the same class (a transform whose
     # divisor degenerates, a fill constant that manufactures a predictor out of missingness) have
@@ -720,6 +800,9 @@ def _build_har_and_calendar(
     if DROP_ACTIVITY_MA:
         # 2026-10-19 (user, E6): no trailing averages of the activity indicators
         exog_cols = [c for c in exog_cols if not c.endswith("_active")]
+    if LATE_START_WARMUP:
+        # 2026-10-22 (user): the series' ages on the frame the trailing averages are computed on
+        df = _series_age_columns(df, exog_cols)
     df, har_names = (generate_har_features if har_builder is None else har_builder)(
         df, target_col="adj_RV", exog_cols=exog_cols, lags=har_lags
     )
