@@ -23,6 +23,8 @@
 \newcommand{\rhdmNEdgePooled}{12}  % HAR x opening/closing-interval dummy columns (pooled)
 \newcommand{\rhdmNActive}{6}  % series with an activity indicator, closing-interval model
 \newcommand{\rhdmNActivePooled}{5}  % series with an activity indicator, pooled panel
+\newcommand{\rhdmModeShare}{20}  % activity indicator: the mode's minimum share, percent (executor.py ZERO_INFLATED_FRAC; both rules)
+\newcommand{\rhdmModeMinPrints}{250}  % activity indicator, causal rule: earlier observed prints needed (executor.py MODE_MIN_PRINTS)
 \newcommand{\rhdmValTail}{125}  % validation sample n_val, observations (the gap is \cmPtEmbargo)
 \newcommand{\rhdmRetuneFolds}{two}  % validation folds of the linear light re-tune
 \newcommand{\rhdmRfTrial}{255}  % the random forest's fixed configuration: Optuna trial number

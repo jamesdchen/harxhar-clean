@@ -10,6 +10,8 @@ Writes six float files into writeup/generated/, each \\input by writeup/rehaul/0
                                 (2026-10-22, third-list 5: the FOMC statement-bar dummy dropped; was 22 / 628 / 634)
   rehaul_dm_dictionary.tex  F2  feature dictionary, 46 series (longtable)        tab:rh_dm_dictionary
                                 (2026-10-22, third-list 5: was 47 series, fomc_release included)
+                                (2026-10-22, S4a: chi-bar marked closing-interval only, full-sample rule as
+                                printed; the causal rule's series in the notes)
   rehaul_dm_hyper.tex       M1  hyperparameters per model                        tab:rh_dm_hyper
   rehaul_dm_tuning.tex      M2  tuning protocol per model family                 tab:rh_dm_tuning
 
@@ -2779,11 +2781,58 @@ def write_dictionary(rows: list[dict], D: dict) -> None:
         "its EW twin takes log and the mean",
     )
     kq = D["kq"]
+    # 2026-10-22 (user, S4a): the activity indicator by model class (04_features.tex, notes S4a / S4b). The chi-bar
+    # marks and the "full-sample mode ... on ...% of intervals" descriptions are the full-sample rule's
+    # (EX.mode_inflated on the forward-filled series, dictionary()): the rule of the closing-interval forecasts
+    # printed (their design caches of 2026-10-06, built before commit b29774a), which are not rerun (James,
+    # 2026-10-22).  The pooled intraday models of Table 1 carry no chi-bar (E6, DROP_ACTIVITY_MA): checked on the
+    # 13-bar designs (the earlier pooled designs still in the model set, note E34 (i), do; not this table's subject).  The causal rule's series (CAUSAL_MODE_INFLATION, the specification) are the
+    # base-5 pooled panel's _active ladders (POOLED_PANEL, built under that rule, before the E6 cut).
+    import src.backtest.executor as EX
+
+    fp = json.loads(
+        need(pl13.RUN / "frozen_penalties.json").read_text(encoding="utf-8")
+    )
+    d13 = json.loads(need(POOLED_DESIGN_13).read_text(encoding="utf-8"))
+    check(
+        not any(
+            "_active_ma_" in c
+            for c in [
+                str(c) for s in fp["designs"] for c in fp["designs"][s]["columns"]
+            ]
+            + [str(c) for c in d13["names"]]
+        ),
+        "the pooled 13-bar designs (linear rerun of Table 1, base-5 trees) have no chi-bar column (E6)",
+    )
+    causal = sorted(D["Q"]["series"]["active"], key=LD.ALL_FEATURES.index)
+    check(
+        "numobs" in causal
+        and not set(causal) & set(LD.SUBGROUPS["vol_demand"])
+        and len(causal) == OUTLINE["n_active_pooled"],
+        "causal rule: numobs mode-inflated, no volatility-demand series (executor.py CAUSAL_MODE_INFLATION)",
+    )
+
+    def ser_list(ss: list[str]) -> str:
+        t = [rf"\ser{{{s}}}{{${series_sym(s)}$}}" for s in ss]
+        return t[0] if len(t) == 1 else ", ".join(t[:-1]) + " and " + t[-1]
+
     notes = [
+        # 2026-10-22 (user, S4a): parked -- one chi-bar rule for both model classes. Was:
+        # r"\textit{Notes:} Each series $u$ enters as $u^{(k)}$, its adjusted, transformed and winsorized value averaged "
+        # r"over the previous $k$ intervals, and as $\bar a^{(k)}(u)$, the share of those intervals on which it was "
+        # r"observed; series with an activity indicator also enter as $\bar\chi^{(k)}(u)$, the share off their mode "
+        # r"(the mode and its share of intervals are in the description).",
         r"\textit{Notes:} Each series $u$ enters as $u^{(k)}$, its adjusted, transformed and winsorized value averaged "
         r"over the previous $k$ intervals, and as $\bar a^{(k)}(u)$, the share of those intervals on which it was "
-        r"observed; series with an activity indicator also enter as $\bar\chi^{(k)}(u)$, the share off their mode "
-        r"(the mode and its share of intervals are in the description).",
+        r"observed.",
+        r"\textsuperscript{\dag}Closing-interval models only: $\bar\chi^{(k)}(u)$, the share of those intervals off "
+        rf"the series' mode, for the {len(D['act'])} series whose full-sample mode accounts for at least "
+        rf"{100 * EX.ZERO_INFLATED_FRAC:.0f}\% of intervals (mode and share in the description), the rule of the "
+        r"closing-interval forecasts reported, which predate the causal rule of Section~\ref{sec:rh_predictors}. "
+        r"The pooled intraday models of Table~\ref{tab:rh_oos} carry no $\bar\chi^{(k)}$. "
+        rf"Under the causal rule, the specification, {len(causal)} series are mode-inflated at some interval: "
+        + ser_list(causal)
+        + ".",
         # 2026-10-19 (user): parked -- base 5 across the paper. Was:
         # rf"$\mathcal K = \{{{', '.join(str(r) for r in resolve_har_lags())}\}}$ in the closing-interval model and "
         # rf"$\{{1, 2, 4, \dots, {2 ** (kq - 1)}\}}$ in the intraday model, which is every group here except "
@@ -2854,9 +2903,13 @@ def write_dictionary(rows: list[dict], D: dict) -> None:
             out.append(panel_row(f"{BUCKET_LABEL[cur]} ({nb}{extra})", ncol))
         desc = desc_of(r["series"])
         if r["active"]:
-            desc += rf"; mode {r['mode']:g} on {100 * r['share']:.0f}\% of intervals"
+            # 2026-10-22 (user, S4a): the rule named (the full-sample rule of the closing-interval forecasts). Was:
+            # desc += rf"; mode {r['mode']:g} on {100 * r['share']:.0f}\% of intervals"
+            desc += rf"; full-sample mode {r['mode']:g} on {100 * r['share']:.0f}\% of intervals"
+        # 2026-10-22 (user, S4a): chi-bar marked closing-interval only (dagger, table note). Was:
+        # pred = r"$u^{(k)}$, $\bar a^{(k)}$" + (r", $\bar\chi^{(k)}$" if r["active"] else "")
         pred = r"$u^{(k)}$, $\bar a^{(k)}$" + (
-            r", $\bar\chi^{(k)}$" if r["active"] else ""
+            r", $\bar\chi^{(k)}$\textsuperscript{\dag}" if r["active"] else ""
         )
         out.append(
             cells(
@@ -3631,6 +3684,9 @@ TYPED = {
     "rhdmNEdgePooled": "12",
     "rhdmNActive": "6" if DROP_RELEASE else "7",
     "rhdmNActivePooled": "5" if DROP_RELEASE else "6",
+    # 2026-10-22 (user, S4a): the activity-indicator rule's constants (typed 20\% in 04_features.tex before)
+    "rhdmModeShare": "20",
+    "rhdmModeMinPrints": "250",
     "rhdmValTail": "125",
     "rhdmRetuneFolds": "two",
     "rhdmRfTrial": "255",
@@ -3738,6 +3794,17 @@ def write_numbers(P: dict, D: dict, TS: dict, LP: dict) -> None:
         all(bk[BK_SIZE[b]] == str(D["nser"][b]) for b in BUCKET_LABEL),
         r"\bkSize* (buckets_numbers.tex) = the series per group, from src/data/loading.py SUBGROUPS",
     )
+    # 2026-10-22 (user, S4a): the activity-indicator constants (\rhdmModeShare, \rhdmModeMinPrints)
+    import src.backtest.executor as EX
+
+    share_pct = 100 * EX.ZERO_INFLATED_FRAC
+    check(
+        abs(share_pct - round(share_pct)) < 1e-9
+        and EX.CAUSAL_MODE_INFLATION
+        and EX.ACTIVE_FROM_OBSERVED,
+        "the mode share is a whole percent; the executor's causal rule is on (CAUSAL_MODE_INFLATION, "
+        "ACTIVE_FROM_OBSERVED)",
+    )
     vals = {
         "rhdmNIntervals": (
             str(ppd),
@@ -3820,6 +3887,15 @@ def write_numbers(P: dict, D: dict, TS: dict, LP: dict) -> None:
         "rhdmNActivePooled": (
             str(D["n_active_pooled"]),
             "series with an activity indicator, pooled panel",
+        ),
+        # 2026-10-22 (user, S4a): the two constants of the activity-indicator rule (04_features.tex), from the executor
+        "rhdmModeShare": (
+            f"{share_pct:.0f}",
+            "activity indicator: the mode's minimum share, percent (executor.py ZERO_INFLATED_FRAC; both rules)",
+        ),
+        "rhdmModeMinPrints": (
+            str(EX.MODE_MIN_PRINTS),
+            "activity indicator, causal rule: earlier observed prints needed (executor.py MODE_MIN_PRINTS)",
         ),
         "rhdmValTail": (
             str(clp["VAL_TAIL"]),
