@@ -122,6 +122,7 @@ import atm_straddle_lib as asl  # noqa: E402
 import hac_inference as hi  # noqa: E402  (2026-10-21, decision #2: every test of strategy returns)
 import rolling_eval_2026_10_15 as rolling  # noqa: E402  (2026-10-15: the common rolling span of every accuracy number)
 import pooled_trees_13 as pt13  # noqa: E402  (2026-10-22, E34: the base-5 pooled trees, writeup/pooled_trees_13.py)
+import pooled_linear_13 as pl13  # noqa: E402  (2026-10-22, E34: the pooled linear rows on the trees' design)
 
 # 2026-10-15 (user, restructure): the GUI's sizing scorer, as make_rehaul_economics.py calls it (pooled sizing medians)
 from master_table_gui import rows as gui  # noqa: E402
@@ -141,6 +142,10 @@ MT = REPO / "results" / "close_master_table"
 # the pooled trees are now read through pooled_trees_13.py (pt13, PT13_KEY). Was:
 # POOLTREE = REPO / "results" / "pooled_trees_2026-10-07"
 PT13_KEY = {f"pooltree_{e}_{b}": (e, b) for e in pt13.EST for b in pt13.SETS}  # key -> (estimator, predictor set)
+# 2026-10-22 (user, E34: one design for the 12 pooled forecasts): the pooled linear models of the 13-bar rerun on the
+# trees' design (pooled_linear_13.py), rows of their own; they are the pooled linear rows of T1 / T2 and of every
+# 12-forecast pooled statistic, in place of the master table's 48-interval poolpt_* (which stay in the model set)
+PL13_KEY = {f"poolpt13_{e}_{b}": (e, b) for e in pl13.EST for b in pl13.SETS}
 NN_FC = (
     REPO
     / "results"
@@ -389,6 +394,17 @@ def load_all() -> tuple[pd.DataFrame, pd.DataFrame, dict[str, pd.DataFrame]]:
             np.max(np.abs(g["rv"].reindex(ref.index) / ref["rv_unclipped"] - 1.0))
         )
         assert rel <= 1e-12, (k, rel)
+    # 2026-10-22 (user, E34: one design for the 12 pooled forecasts): the six pooled linear models of the 13-bar rerun
+    # on the trees' design at the 16:00 bar, frames of their own (the master table's poolpt_* stay in the model set);
+    # gate as for the trees
+    for k, (est, b) in PL13_KEY.items():
+        assert k not in by, k
+        g = pl13.at16(est, b)
+        by[k] = frame(g["plain"], ref, quotes)
+        rel = float(
+            np.max(np.abs(g["rv"].reindex(ref.index) / ref["rv_unclipped"] - 1.0))
+        )
+        assert rel <= 1e-12, (k, rel)
     if SPAN == "rolling":
         build_acc(s, by)
     return m, s, by
@@ -423,8 +439,11 @@ def build_acc(s: pd.DataFrame, by: dict[str, pd.DataFrame]) -> None:
     # }
     keys |= set(PT13_KEY)
     pt_plain: dict[str, pd.Series] = {}
-    for k, (est, b) in PT13_KEY.items():
-        g = pt13.at16(est, b)
+    # for k, (est, b) in PT13_KEY.items():  # 2026-10-22 (user, E34): + the pooled linear models on the trees' design
+    #     g = pt13.at16(est, b)
+    for k, g in [(k, pt13.at16(*v)) for k, v in PT13_KEY.items()] + [
+        (k, pl13.at16(*v)) for k, v in PL13_KEY.items()
+    ]:
         miss = days[~days.isin(g.index)]
         assert len(miss) == 0, (k, len(miss), miss[:5])
         rel = float(np.max(np.abs(g["rv"].reindex(days) / rv - 1.0)))
@@ -702,24 +721,27 @@ EST_NAME = {
 }
 NN_NAME = "MinGRU"
 # T1 / T2 / F1 / F2 rows, family order linear -> trees -> NN; (name, family, per-bar keys, pooled keys) per input set
+# 2026-10-22 (user, E34: one design for the 12 pooled forecasts): parked -- the pooled linear keys were the master
+# table's 48-interval rows ("poolpt_ridge_baseline", "poolpt_ridge_all_features", and the same for lasso and enet);
+# now the 13-bar rerun on the trees' design (PL13_KEY)
 FAMILY_ROWS = [
     (
         "Ridge",
         LIN,
         ("subpt_ridge_baseline", "subpt_ridge_all_features"),
-        ("poolpt_ridge_baseline", "poolpt_ridge_all_features"),
+        ("poolpt13_ridge_baseline", "poolpt13_ridge_all_features"),
     ),
     (
         "Lasso",
         LIN,
         ("subpt_lasso_baseline", "subpt_lasso_all_features"),
-        ("poolpt_lasso_baseline", "poolpt_lasso_all_features"),
+        ("poolpt13_lasso_baseline", "poolpt13_lasso_all_features"),
     ),
     (
         "Elastic net",
         LIN,
         ("subpt_enet_baseline", "subpt_enet_all_features"),
-        ("poolpt_enet_baseline", "poolpt_enet_all_features"),
+        ("poolpt13_enet_baseline", "poolpt13_enet_all_features"),
     ),
     (
         "LightGBM",
@@ -917,11 +939,14 @@ def describe_key(key: str) -> dict[str, str]:
             model="OLS", spec="--", family=LIN, fit="per-bar", panel="A", inputs="HAR"
         )
     b = "baseline" if "_baseline" in key else "all_features"
-    for pre, fit in (("subpt_", "per-bar"), ("poolpt_", "pooled")):
+    # 2026-10-22 (user, E34): + poolpt13_ (the pooled linear models on the trees' design). Was:
+    # for pre, fit in (("subpt_", "per-bar"), ("poolpt_", "pooled")):
+    for pre, fit in (("subpt_", "per-bar"), ("poolpt13_", "pooled"), ("poolpt_", "pooled")):
         if key.startswith(pre):
             return dict(
                 model=EST_NAME[key[len(pre) :].split("_")[0]],
-                spec="--",
+                # spec="--",  # 2026-10-22 (user, E34): the master table's pooled linear rows are the 48-interval runs
+                spec=r"All \rhdmNIntervals{} intervals" if pre == "poolpt_" else "--",
                 family=LIN,
                 fit=fit,
                 panel="A" if fit == "per-bar" else "B",
@@ -1574,8 +1599,12 @@ def table_t3_full(rank: pd.DataFrame) -> str:
         # "intraday MinGRU monthly (Section~\\ref{sec:rh_methods_setup}). $^{\\ddagger}$Not in the model set counted in "
         # 2026-10-15 (finish): parked -- the pooled trees' schedule moved to Appendix B.2 (sec:rh_exp_schemes). Was:
         # "(Section~\\ref{sec:rh_methods_setup}). $^{\\ddagger}$Not in the model set counted in "
-        "which lacks the FOMC predictors. The intraday trees are re-estimated at every interval "
-        "(Section~\\ref{sec:rh_exp_schemes}). $^{\\ddagger}$Not in the model set counted in "
+        # 2026-10-22 (user, E34): parked -- "which lacks the FOMC predictors. The intraday trees are re-estimated at
+        # every interval (Section~\\ref{sec:rh_exp_schemes})."; the intraday linear models now come in two designs
+        "which lacks the FOMC predictors. The intraday models of Panel B are re-estimated at every interval on the "
+        "\\rhePoolNBars{} regular-hours intervals with a rolling window of \\rhePoolWindowDays{} trading days "
+        "(Section~\\ref{sec:rh_exp_schemes}), except the linear models marked ``All \\rhdmNIntervals{} intervals'', "
+        "the runs on every interval of the day in the model set. $^{\\ddagger}$Not in the model set counted in "
         # 2026-10-22 (user, E34): parked -- no forecast is preliminary. Was:
         # "the text; $^{\\dagger}$preliminary (see Table~\\ref{tab:rh_axis1})."
         "the text."
@@ -2473,8 +2502,12 @@ def main() -> None:
     #     )
     # 2026-10-22 (user, E34): gate on the base-5 trees: the QLIKE scored here is the one recomputed from pt13's plain
     # and its own bar RV on the accuracy days, and the T2 % change is the pooled over the closing-interval QLIKE
-    for k, (est, b) in PT13_KEY.items():
-        g = pt13.at16(est, b).reindex(acc_of(by[k]).index)
+    # for k, (est, b) in PT13_KEY.items():  # 2026-10-22 (user, E34): + the pooled linear models on the trees' design
+    #     g = pt13.at16(est, b).reindex(acc_of(by[k]).index)
+    for k, at16_ in [(k, pt13.at16(*v)) for k, v in PT13_KEY.items()] + [
+        (k, pl13.at16(*v)) for k, v in PL13_KEY.items()
+    ]:
+        g = at16_.reindex(acc_of(by[k]).index)
         r_ = (g["rv"] / g["plain"]).to_numpy(float)
         q_ = float(np.mean(r_ - np.log(r_) - 1.0))
         assert abs(q_ / lv[k]["qlike"] - 1.0) < 1e-12, (k, q_, lv[k]["qlike"])
@@ -2575,8 +2608,12 @@ def main() -> None:
         # master table's lgbm / xgb rows (which stay in the model set as they are)
         "pooltree_lgbm_all_features",
         "pooltree_xgb_all_features",
+        # 2026-10-22 (user, E34: one design for the 12 pooled forecasts): the pooled linear models on the trees'
+        # design (the master table's 48-interval poolpt_* stay in the model set, Panel B, "All ... intervals")
+        *PL13_KEY,
     ]
-    assert set(extra) == set(PT13_KEY) and not set(extra) & set(s["key"]), extra
+    # assert set(extra) == set(PT13_KEY) and not set(extra) & set(s["key"]), extra  # 2026-10-22 (user, E34): + PL13_KEY
+    assert set(extra) == set(PT13_KEY) | set(PL13_KEY) and not set(extra) & set(s["key"]), extra
     keys = list(s["key"]) + extra
     rows = []
     for k in keys:
@@ -2607,7 +2644,8 @@ def main() -> None:
     # 120 -> 116; the per-bar OLS ranks 9 -> 8 (the per-bar MinGRU on the full predictor set was 5th, above it)
     assert not rank.index.str.startswith("mingru_").any()
     # assert len(rank) == 116, len(rank)  # was 120  -- 2026-10-22 (user, E34): parked -- 116 -> 118 (two tree rows)
-    assert len(rank) == 118, len(rank)  # was 116 (the full-set pooled LightGBM / XGBoost were the lgbm / xgb rows)
+    # assert len(rank) == 118, len(rank)  # was 116 (the full-set pooled LightGBM / XGBoost were the lgbm / xgb rows)
+    assert len(rank) == 124, len(rank)  # 2026-10-22 (user, E34): was 118; + the six pooled linear models (PL13_KEY)
     assert not gate_866 or int(rank.loc[OLS, "rank"]) == 8, rank.loc[
         OLS, "rank"
     ]  # was 9
@@ -2801,16 +2839,57 @@ def main() -> None:
         # }, (
         #     sig_t1
         # )  # 6.3: the pooled trees and the pooled elastic net are the significant reductions
-        assert sig_t1 - {("pooled", n) for n in tree_names34} == {("pooled", "Elastic net")}, sig_t1
-        assert all(r["pct"] < 0 for r in t1), (
-            "6.3: Full lowers QLIKE in every model class"
+        # 2026-10-22 (user, E34: one design for the 12 pooled forecasts): parked -- the three asserts below fail with
+        # the pooled linear rows on the trees' design; the closing-interval part stays asserted, the pooled part is
+        # reported (claim34). Was:
+        # assert sig_t1 - {("pooled", n) for n in tree_names34} == {("pooled", "Elastic net")}, sig_t1
+        # assert all(r["pct"] < 0 for r in t1), (
+        #     "6.3: Full lowers QLIKE in every model class"
+        # )
+        # assert {
+        #     r["name"] for r in t2 if r["family"] == LIN and r["all_features"]["p"] < SIG
+        # } == {"Lasso"}
+        assert not {x for x in sig_t1 if x[0] == "per-bar"}, sig_t1
+        claim34(
+            {n for f_, n in sig_t1 if f_ == "pooled" and n not in tree_names34}
+            == {"Elastic net"},
+            "\\rhrAfPoolLowerSig (linear part)",
+            str(sorted(sig_t1)),
+            "the pooled elastic net is the one linear class whose full-set QLIKE reduction is significant",
+        )
+        assert all(r["pct"] < 0 for r in t1 if r["fit"] == "per-bar"), (
+            "6.3: Full lowers QLIKE (closing interval)"
+        )
+        claim34(
+            all(r["pct"] < 0 for r in t1),
+            "\\rhrAf<Est>PoolPct",
+            ", ".join(
+                f"{r['name']} {r['pct']:+.1f}" for r in t1 if r["fit"] == "pooled"
+            ),
+            "6.3: the full predictor set lowers QLIKE in every pooled class (abstract, 01_introduction, 06_results, "
+            "09_conclusion)",
         )
         assert all(r[b]["pct"] > 0 for r in t2 for b in ("baseline", "all_features")), (
             "6.4: pooled > closing"
         )
-        assert {
-            r["name"] for r in t2 if r["family"] == LIN and r["all_features"]["p"] < SIG
-        } == {"Lasso"}
+        claim34(
+            {
+                r["name"]
+                for r in t2
+                if r["family"] == LIN and r["all_features"]["p"] < SIG
+            }
+            == {"Lasso"},
+            "T2 linear, full set, p < 0.05",
+            str(
+                sorted(
+                    r["name"]
+                    for r in t2
+                    if r["family"] == LIN and r["all_features"]["p"] < SIG
+                )
+            ),
+            "6.4: on the full predictor set only the pooled lasso is significantly less accurate than its "
+            "closing-interval counterpart",
+        )
         # 2026-10-22 (user, E34): parked -- the two asserts below fail with the base-5 trees; the linear part stays
         # asserted, the trees' part is printed as counts, \rhrTreePoolVsCloseHarSig and \rhrTreePoolVsCloseFullSig
         # (macro section, asserted there). Was:
@@ -3007,7 +3086,7 @@ def main() -> None:
     ):  # the prose's claims (06_results.tex, 07_economics.tex), asserted
         # 5.3: the full predictor set lowers QLIKE in every pooled class; significant for the trees and the enet; the
         # trees' reductions are the largest; the squared error is mixed, never significant
-        assert all(r["pct"] < 0 for r in t1p.values())
+        # assert all(r["pct"] < 0 for r in t1p.values())  # 2026-10-22 (user, E34: one design for the 12 pooled forecasts): parked -- reported (claim34) above
         # 2026-10-22 (user, E34): parked -- the two asserts below fail with the base-5 trees; the linear half of the
         # first still holds and stays asserted, its trees' half is printed as a count, \rhrAfPoolTreeLowerSig (macro
         # section, asserted there), and the second is reported (claim34). Was:
@@ -3017,7 +3096,7 @@ def main() -> None:
         # assert min(abs(t1p[n]["pct"]) for n in tree_n) > max(
         #     abs(t1p[n]["pct"]) for n in lin_n
         # )
-        assert {n for n in lin_n if t1p[n]["p"] < SIG} == {"Elastic net"}
+        # assert {n for n in lin_n if t1p[n]["p"] < SIG} == {"Elastic net"}  # 2026-10-22 (user, E34: one design for the 12 pooled forecasts): parked -- reported (claim34) above
         claim34(
             min(abs(t1p[n]["pct"]) for n in tree_n)
             > max(abs(t1p[n]["pct"]) for n in lin_n),
@@ -3031,9 +3110,17 @@ def main() -> None:
         # 5.5: the three most accurate pooled forecasts are the linear models on the full predictor set; linear below
         # trees on each predictor set; every pooled forecast above the benchmark forecast, on the full predictor set
         # significantly for the trees only, on the HAR benchmark all at 1 %; the full set narrows the gap in each class
-        assert set(sorted(pool_keys, key=lambda k: qv[k])[:3]) == {
-            pool_of[n][1] for n in lin_n
-        }
+        # 2026-10-22 (user, E34: one design for the 12 pooled forecasts): parked -- reported (claim34). Was:
+        # assert set(sorted(pool_keys, key=lambda k: qv[k])[:3]) == {
+        #     pool_of[n][1] for n in lin_n
+        # }
+        claim34(
+            set(sorted(pool_keys, key=lambda k: qv[k])[:3])
+            == {pool_of[n][1] for n in lin_n},
+            "pooled QLIKE order",
+            str(sorted(pool_keys, key=lambda k: qv[k])[:3]),
+            "5.5: the three most accurate pooled forecasts are the linear models on the full predictor set",
+        )
         # 2026-10-22 (user, E34): parked -- the three asserts below (the second is kept) fail with the base-5 trees;
         # the parts that still hold (the full predictor set; the linear models) stay asserted; the linear-vs-tree QLIKE
         # on HAR is reported (claim34); the trees' significance is printed as counts, \rhrVsBmPoolTreeFullSig,
@@ -3046,7 +3133,13 @@ def main() -> None:
         #     tree_n
         # )
         # assert all(vb_pool[k]["p"] < 0.01 for k in pool_har)
-        assert max(qs(lin_n, 1)) < min(qs(tree_n, 1))
+        # assert max(qs(lin_n, 1)) < min(qs(tree_n, 1))  # 2026-10-22 (user, E34: one design for the 12 pooled forecasts): parked -- reported (claim34)
+        claim34(
+            max(qs(lin_n, 1)) < min(qs(tree_n, 1)),
+            "\\rhrPoolQLinFullMax vs \\rhrPoolQTreeFullMin",
+            f"{q4(max(qs(lin_n, 1)))} vs {q4(min(qs(tree_n, 1)))}",
+            "5.5: on the full predictor set every pooled linear model is more accurate than every pooled tree",
+        )
         claim34(
             max(qs(lin_n, 0)) < min(qs(tree_n, 0)),
             "\\rhrPoolQLinHarMax vs \\rhrPoolQTreeHarMin",
@@ -3059,11 +3152,32 @@ def main() -> None:
             "\\rhrPoolQTreeHarMin--\\rhrPoolQTreeHarMax)",
         )
         assert all(vb_pool[k]["pct"] > 0 for k in pool_keys)
-        assert not any(vb_pool[pool_of[n][1]]["p"] < SIG for n in lin_n)
+        # 2026-10-22 (user, E34: one design for the 12 pooled forecasts): parked -- the first and third asserts below are
+        # reported (claim34); the second still holds. Was:
+        # assert not any(vb_pool[pool_of[n][1]]["p"] < SIG for n in lin_n)
+        # assert all(
+        #     vb_pool[pool_of[n][1]]["pct"] < vb_pool[pool_of[n][0]]["pct"]
+        #     for n in lin_n + tree_n
+        # )
+        claim34(
+            not any(vb_pool[pool_of[n][1]]["p"] < SIG for n in lin_n),
+            "\\rhrVsBm<Est>PoolFullPval (linear)",
+            ", ".join(f"{n} p {vb_pool[pool_of[n][1]]['p']:.4f}" for n in lin_n),
+            "5.5 / 01_introduction: under the full predictor set the gap to the benchmark is insignificant for the "
+            "linear models",
+        )
         assert all(vb_pool[pool_of[n][0]]["p"] < 0.01 for n in lin_n)
-        assert all(
-            vb_pool[pool_of[n][1]]["pct"] < vb_pool[pool_of[n][0]]["pct"]
-            for n in lin_n + tree_n
+        claim34(
+            all(
+                vb_pool[pool_of[n][1]]["pct"] < vb_pool[pool_of[n][0]]["pct"]
+                for n in lin_n + tree_n
+            ),
+            "\\rhrVsBm<Est>Pool{Har,Full}Pct",
+            ", ".join(
+                f"{n} {vb_pool[pool_of[n][0]]['pct']:+.1f} -> {vb_pool[pool_of[n][1]]['pct']:+.1f}"
+                for n in lin_n + tree_n
+            ),
+            "5.5 / abstract / 01_introduction: the full predictor set narrows the gap to the benchmark in every class",
         )
         # final subsection: the full predictor set lowers QLIKE in every closing-interval class, none at 5 %
         assert all(r["pct"] < 0 for r in t1c.values()) and not any(
@@ -3116,7 +3230,15 @@ def main() -> None:
     # 2026-10-21 (user): parked -- the sentence now prints the count (James's PC run: 1 of 6), so only its range is
     # checked. Was: assert af_pool_diff_sig == 0, f"\\rhrAfPoolDiffSig = {af_pool_diff_sig}: reword 07_economics 'not ... in any'"
     assert 0 <= af_pool_diff_sig <= len(t1p), (af_pool_diff_sig, len(t1p))  # \rhrAfPoolDiffSig of \rhrAfPoolPairs = len(t1p)
-    assert pool_vs_close_ret_sig == 0, f"\\rhrPoolVsCloseRetSig = {pool_vs_close_ret_sig}: reword 'none of the return differentials'"
+    # assert pool_vs_close_ret_sig == 0, f"\\rhrPoolVsCloseRetSig = {pool_vs_close_ret_sig}: reword 'none of the return differentials'"
+    # 2026-10-22 (user, E34: one design for the 12 pooled forecasts): parked -- reported (claim34)
+    claim34(
+        pool_vs_close_ret_sig == 0,
+        "\\rhrPoolVsCloseRetSig",
+        str(pool_vs_close_ret_sig),
+        "07_economics / 10_appendix: 'none of the return differentials between a pooled intraday model and the "
+        "corresponding closing-interval model ... is statistically significant'",
+    )
     # 2026-10-21 (user, decision #2): the appendix robustness table (one row per comparison whose significance the text
     # states) and the counts its paragraph prints
     set_name = ("HAR", "full")
@@ -3167,7 +3289,13 @@ def main() -> None:
                                                               for b in (hi.LW_BLOCK, *hi.LW_BLOCK_ALT)))
     (GEN / "rehaul_app_hac_robust.tex").write_text(table_hac_robust(rob), encoding="utf-8", newline="\n")
     print("wrote generated/rehaul_app_hac_robust.tex")
-    assert all(vs_sh[k]["tail"] < 0 for k in pool_keys)
+    # assert all(vs_sh[k]["tail"] < 0 for k in pool_keys)  # 2026-10-22 (user, E34: one design for the 12 pooled forecasts): parked -- reported (the text prints \\rhrPoolTailNeg)
+    claim34(
+        all(vs_sh[k]["tail"] < 0 for k in pool_keys),
+        "\\rhrPoolTailNeg",
+        str(sum(vs_sh[k]["tail"] < 0 for k in pool_keys)),
+        "every pooled forecast's gain over the short straddle is negative without its 10 best days",
+    )
     # Was: assert sum(sz_pool[k]["clip"]["d_vs_sign"] > 0 for k in pool_keys) == 11
     soft(sum(sz_pool[k]["clip"]["d_vs_sign"] > 0 for k in pool_keys) == 11, f"pooled clip beats sign {sum(sz_pool[k]['clip']['d_vs_sign'] > 0 for k in pool_keys)} (was 11)")
     # final subsection: the closing-interval elastic net on the full predictor set earns a higher Sharpe ratio than
@@ -3264,8 +3392,10 @@ def main() -> None:
     }
     # 2026-10-15 (data audit #10): macros for the numbers the section prose (01_introduction, 06_results) typed by hand,
     # so the text can quote the actual-RV values; every one is computed above
+    # 2026-10-22 (user, E34): parked -- the master table's 48-interval pooled ridge. Was:
+    # rb = pair(by["subpt_ridge_baseline"], by["poolpt_ridge_baseline"])
     rb = pair(
-        by["subpt_ridge_baseline"], by["poolpt_ridge_baseline"]
+        by["subpt_ridge_baseline"], by["poolpt13_ridge_baseline"]
     )  # per-bar minus pooled, HAR + cal.
     lin_t2 = [T2[n]["baseline"] for n in ("Ridge", "Lasso", "Elastic net")]
     lin_t2a = [T2[n]["all_features"] for n in ("Ridge", "Lasso", "Elastic net")]
@@ -3510,6 +3640,12 @@ def main() -> None:
             str(sum(t1p[n]["pct"] < 0 and t1p[n]["p"] < SIG for n in tree_n)),
             "pooled trees (of 3) whose Full-vs-HAR QLIKE reduction (T1, rhrAf<M>PoolPval) has DM p < 0.05",
         ),
+        # 2026-10-22 (user, E34: one design for the 12 pooled forecasts): the count that replaces "the elastic net
+        # achieves a statistically significant reduction" (01_introduction, 06_results, 09_conclusion)
+        "AfPoolLinLowerSig": (
+            str(sum(t1p[n]["pct"] < 0 and t1p[n]["p"] < SIG for n in lin_n)),
+            "pooled linear models (of 3) whose Full-vs-HAR QLIKE reduction (T1, rhrAf<M>PoolPval) has DM p < 0.05",
+        ),
         "AfPoolMseHigher": (
             str(sum(r["mse_pct"] > 0 for r in t1p.values())),
             "... MSE higher with Full",
@@ -3626,6 +3762,31 @@ def main() -> None:
             str(sum(T2[n]["all_features"]["p"] < SIG for n in tree_n)),
             "... on Full",
         ),
+        # 2026-10-22 (user, E34: one design for the 12 pooled forecasts): the counts that replace "only the pooled lasso",
+        # "insignificant ... for the linear models" and "narrows this gap across all model classes"
+        "LinPoolVsCloseFullSig": (
+            str(sum(T2[n]["all_features"]["p"] < SIG for n in lin_n)),
+            "linear classes (of 3) whose pooled-minus-closing-interval QLIKE difference on Full (T2) has DM p < 0.05",
+        ),
+        "VsBmPoolLinFullSig": (
+            str(
+                sum(
+                    vb_pool[pool_of[n][1]]["pct"] > 0
+                    and vb_pool[pool_of[n][1]]["p"] < SIG
+                    for n in lin_n
+                )
+            ),
+            "pooled linear models (of 3) on Full: excess QLIKE over the benchmark forecast, p < 0.05 (rhrVsBm<M>PoolFullPval)",
+        ),
+        "VsBmPoolNarrow": (
+            str(
+                sum(
+                    vb_pool[pool_of[n][1]]["pct"] < vb_pool[pool_of[n][0]]["pct"]
+                    for n in lin_n + tree_n
+                )
+            ),
+            "pooled classes (of 6) whose excess QLIKE over the benchmark forecast is smaller on Full than on HAR",
+        ),
         "PoolShortAbove": (
             str(sum(vs_sh[k]["dsh"] > 0 for k in pool_keys)),
             "pooled forecasts whose sign strategy has a higher Sharpe mid than the short straddle",
@@ -3700,6 +3861,11 @@ def main() -> None:
             -1,
             SIG,
         ),
+        "AfPoolLinLowerSig": (
+            [(f"Af{tok[n]}PoolPval", t1p[n]) for n in lin_n],
+            -1,
+            SIG,
+        ),
         "TreePoolVsCloseHarSig": (
             [(f"PoolVsClose{tok[n]}HarPval", T2[n]["baseline"]) for n in tree_n],
             0,
@@ -3708,6 +3874,16 @@ def main() -> None:
         "TreePoolVsCloseFullSig": (
             [(f"PoolVsClose{tok[n]}FullPval", T2[n]["all_features"]) for n in tree_n],
             0,
+            SIG,
+        ),
+        "LinPoolVsCloseFullSig": (
+            [(f"PoolVsClose{tok[n]}FullPval", T2[n]["all_features"]) for n in lin_n],
+            0,
+            SIG,
+        ),
+        "VsBmPoolLinFullSig": (
+            [(f"VsBm{tok[n]}PoolFullPval", vb_pool[pool_of[n][1]]) for n in lin_n],
+            1,
             SIG,
         ),
         "VsBmPoolTreeFullSig": (
