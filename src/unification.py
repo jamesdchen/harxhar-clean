@@ -126,6 +126,7 @@ for _p in (_ROOT, os.path.join(_ROOT, "experiments")):
 from src.data.loading import FEATURE_SET_TAG, SUBGROUPS  # noqa: E402
 from src.features.extractors.har import resolve_har_lags  # noqa: E402
 from src.features.transforms.target import PERIODS_PER_DAY  # noqa: E402
+from src.models import reclasso_har as _rh  # noqa: E402  (2026-10-22: WALK_KKT_RESEED, read at every solve)
 from src.models.reclasso_har import enet_coef, enet_online, forward_window_split  # noqa: E402
 from src.models.rolling_least_squares import RollingLeastSquares  # noqa: E402
 
@@ -4093,10 +4094,19 @@ def _batch_theta(Xa, yr, locked, a, l1):
 class RollingTunedLinear:
     """Rolling linear model, ONE estimator kind: periodic causal alpha re-selection
     with WARM rank-1 per-bar updates between tunings. See the spec source cited
-    above for the full derivation notes (identifiability mask included)."""
+    above for the full derivation notes (identifiability mask included).
+
+    2026-10-22 (James: "add the KKT check flag"; src/models/reclasso_har.py
+    WALK_KKT_RESEED, on by default): after every warm lasso / elastic-net update
+    (roll), the next non-tune solve checks the KKT conditions of the current
+    window's problem on the warm state (reclasso_har.walk_kkt) and, if they fail,
+    takes the cold seed on the current window (_seed) and goes on warm from it;
+    the solve indices of those reseeds are in ``kkt_reseeds``. Off: bit for bit
+    the walk before the flag."""
 
     def __init__(self, grid: list[tuple[str, float, float]]) -> None:
         self.grid = list(grid)
+        self.kkt_reseeds: list[int] = []  # 2026-10-22 (WALK_KKT_RESEED)
         # selection trajectory: (solve index at retune, alpha, l1_ratio,
         # n_active) — persisted by the caller as meta.tuned_penalty. n_active
         # is the number of NON-INTERCEPT coefficients left nonzero at the
@@ -4113,6 +4123,7 @@ class RollingTunedLinear:
         self._locked = np.zeros(self._X.shape[1], dtype=bool)
         self._locked[-1] = True  # intercept: unpenalized, never exits the active set
         self._maskout = np.zeros(self._X.shape[1], dtype=bool)
+        self._warm = False  # 2026-10-22: the state came from a warm update
         self._tune()
         return self
 
@@ -4218,6 +4229,7 @@ class RollingTunedLinear:
                 self._s,
                 self._locked,
             )
+            self._warm = True  # 2026-10-22 (WALK_KKT_RESEED)
 
     def _tune(self):
         Xraw, _ = self._window()
@@ -4260,10 +4272,18 @@ class RollingTunedLinear:
         )
 
     def solve(self):
+        warm, self._warm = self._warm, False  # 2026-10-22 (WALK_KKT_RESEED)
         if self._n_solve > 0 and self._n_solve % TUNE_PER == 0:
             self._tune()
         elif self.kind_ == "ridge":
             self._th = self._K @ self._c
+        elif warm and _rh.WALK_KKT_RESEED:
+            # 2026-10-22: the KKT conditions of the current window's problem after the
+            # warm update; where they fail, the cold seed on the current window
+            ok, _, _ = _rh.walk_kkt(self._Gr, self._c, self._mu_vec, self._th)
+            if not ok:
+                self._seed()
+                self.kkt_reseeds.append(int(self._n_solve))
         self._n_solve += 1
 
     def predict_one(self, x):
@@ -4295,6 +4315,10 @@ def _walk_tuned(
         {"row": int(lo + s), "alpha": a, "l1_ratio": l1, "n_active": k}
         for s, a, l1, k in solver.trace
     ]
+    if _rh.WALK_KKT_RESEED:  # 2026-10-22: KKT-triggered reseeds in each retune's block
+        ends = [s for s, _, _, _ in solver.trace[1:]] + [hi - lo]
+        for e, (s0, _, _, _), s1 in zip(traj, solver.trace, ends):
+            e["n_kkt_reseed"] = sum(s0 <= r < s1 for r in solver.kkt_reseeds)
     return out, traj
 
 
@@ -6949,6 +6973,16 @@ def compute(args: argparse.Namespace) -> None:
                         ),
                         "frac_intercept_only": float(
                             np.mean([e.get("n_active", -1) == 0 for e in tuned_penalty])
+                        ),
+                        # 2026-10-22 (WALK_KKT_RESEED on): KKT-triggered cold reseeds
+                        **(
+                            {
+                                "n_kkt_reseed": int(
+                                    sum(e["n_kkt_reseed"] for e in tuned_penalty)
+                                )
+                            }
+                            if all("n_kkt_reseed" in e for e in tuned_penalty)
+                            else {}
                         ),
                     }
                     if tuned_penalty
