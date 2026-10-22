@@ -1,0 +1,4 @@
+5cca0f669956d04053367d204f3a4e1e81b22113d207fb1c88f309c15390f352 */c/Users/james/AppData/Local/Temp/claude/C--Users-james-CC-Allowed-harxhar-0dte-professor/bd4224e0-12aa-4614-b6a6-3fe50535ade1/scratchpad/unobs/d_off/_work/design_all_features/X.npy
+5cca0f669956d04053367d204f3a4e1e81b22113d207fb1c88f309c15390f352 */c/Users/james/AppData/Local/Temp/ls_wt/results/pooled_linear_rerun_2026-10-22_13_2012_w1000_latestart_nofomcrel/_work/design_all_features/X.npy
+7b6ebcf84f1418238ba8b5edfa079d100db62d922620f5927a9c24987962f0f8 */c/Users/james/AppData/Local/Temp/claude/C--Users-james-CC-Allowed-harxhar-0dte-professor/bd4224e0-12aa-4614-b6a6-3fe50535ade1/scratchpad/unobs/d_off/_work/design_baseline/X.npy
+7b6ebcf84f1418238ba8b5edfa079d100db62d922620f5927a9c24987962f0f8 */c/Users/james/AppData/Local/Temp/ls_wt/results/pooled_linear_rerun_2026-10-22_13_2012_w1000_latestart_nofomcrel/_work/design_baseline/X.npy

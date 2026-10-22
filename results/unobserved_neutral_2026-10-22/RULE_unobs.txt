@@ -1,0 +1,38 @@
+RULE_unobs.txt -- written 2026-10-22T13:52:46-07:00 (local), BEFORE any code change, design rebuild, rerun or score.
+Note E28 (stale feeds). Approved by James ("add the flag").
+
+PRIMARY RULE (flag UNOBSERVED_NEUTRAL, default True; False = the current design bit for bit):
+
+  UNOBSERVED_NEUTRAL: a scaled value column adj_<c>_ma_<k> is set to the neutral
+  value 0 on every row whose k-bar averaging window holds no observed bar of
+  series c (its <c>_avail_ma_<k> is 0); otherwise unchanged. Availability
+  averages are untouched.
+
+Placement: applied in src/backtest/executor.py after the robust scaling and after the
+LATE_START_WARMUP step.
+
+Why it is causal: <c>_avail_ma_<k> at row t is the trailing mean over the k bars of the
+48-interval grid ending at t of the availability flag <c>__obs, which is recorded before
+any fill from the raw feed at those bars only. Whether it is 0 at t is therefore a
+function of data at or before t only, the same information set the existing
+adj_<c>_ma_<k> value already uses. Setting a value to the constant 0 adds no
+information from after t; and the rule does not feed back into the scaler (the
+scaler statistics on [t-W, t) are computed exactly as before, from the unmasked
+series), so no later row's value depends on the change either.
+
+Optional secondary variant (OFF by default; only if routine gaps dominate the changes;
+clearly labelled, NOT the primary rule): mask only rows where, in addition, series c has
+been unobserved for more than FFILL_LIMIT (26) bars running at t (i.e. the fill cap
+has expired and the stopped-feed neutral fill is what the average holds).
+
+Verification plan (fixed before running):
+ (a) flag off: rebuild the 13-bar 2012 w1000 design (runner
+     experiments/pooled_linear_rerun_2026_10_19_13.py, design stage, runner_cfg of
+     results/pooled_linear_rerun_2026-10-22_13_2012_w1000_latestart_nofomcrel) and compare
+     byte-for-byte to that run's _work design cache in ls_wt.
+ (b) flag on: per series and per k, rows changed, split into (i) stopped-feed tails
+     (unobserved > FFILL_LIMIT bars running), (ii) routine gaps, (iii) pre-start rows already
+     zeroed by LATE_START_WARMUP; max |old-new| per class; and on the 866 option days'
+     16:00 rows.
+ (c) future-perturbation causality check (0 columns move before the cutoff).
+No model walks are rerun.
