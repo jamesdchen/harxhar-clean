@@ -92,6 +92,11 @@ the two added the same thing differently, both stay selectable:
                       rerun)
   --rerun fixes the ladder at base 5 and keeps the FOMC series, so with it --har-base may only be 5 and --drop-fomc
   is refused; --ex-flag is applied after --rerun's own flags.
+
+2026-10-22 (user: "Fix the late start series problems."): --keep-fomc-release puts the FOMC statement-bar dummy
+back into all_features at its old place (src/data/loading.py EXCLUDE_FOMC_RELEASE is on since 2026-10-22), so a
+rerun can be set against the published 576-column runs; recorded in the design cache's config only when set.  The
+executor's late-start guard is a module flag like the others (--ex-flag LATE_START_WARMUP=0|1; on by default).
 """
 
 from __future__ import annotations
@@ -166,6 +171,10 @@ PPD_OF = {"48": 48, "rth13": 13}
 HAR_BASE = ""
 DROP_FOMC = False
 EX_FLAGS: dict = {}
+# 2026-10-22 (user, the late-start rerun): --keep-fomc-release puts the FOMC statement-bar dummy back into
+# all_features (and the fomc bucket) at its place before fomc_day, as before src/data/loading.py
+# EXCLUDE_FOMC_RELEASE went on, so a run can be compared with the published 576-column runs; default off
+KEEP_FOMC_RELEASE = False
 CALENDAR_ALL = frozenset(
     [f"DOW_{d}" for d in range(5)]
     + ["hour", "is_overnight", "is_open", "is_close"]
@@ -184,7 +193,9 @@ CALENDAR_ALL = frozenset(
 def configure(a) -> None:
     """Set the sample, the ladder, the bucket filter and the executor flags of this run."""
     global SAMPLE, PERIODS_PER_DAY, W, HAR_BASE, DROP_FOMC, EX_FLAGS, TW_DAYS
+    global KEEP_FOMC_RELEASE
     SAMPLE, HAR_BASE, DROP_FOMC = a.sample, a.har_base, bool(a.drop_fomc)
+    KEEP_FOMC_RELEASE = bool(a.keep_fomc_release)  # 2026-10-22 (--keep-fomc-release)
     TW_DAYS = a.window_days  # 2026-10-20 (user): --window-days, default 2000
     PERIODS_PER_DAY = PPD_OF[SAMPLE]
     W = TW_DAYS * PERIODS_PER_DAY
@@ -198,16 +209,21 @@ def configure(a) -> None:
 def default_config() -> bool:
     # 2026-10-20 (user): parked -- before --window-days. Was:
     #     return SAMPLE == "48" and not HAR_BASE and not DROP_FOMC and not EX_FLAGS
+    # 2026-10-22 (user): parked -- before --keep-fomc-release (the condition below adds it). Was the same
+    # expression without "and not KEEP_FOMC_RELEASE".
     return (
         SAMPLE == "48"
         and not HAR_BASE
         and not DROP_FOMC
         and not EX_FLAGS
         and TW_DAYS == 2000
+        and not KEEP_FOMC_RELEASE
     )
 
 
 def config_dict() -> dict:
+    # 2026-10-22 (user): keep_fomc_release is recorded only when set, so the design caches built before the option
+    # still pass check_meta
     return dict(
         sample=SAMPLE,
         periods_per_day=PERIODS_PER_DAY,
@@ -215,6 +231,7 @@ def config_dict() -> dict:
         har_base=HAR_BASE,
         drop_fomc=DROP_FOMC,
         ex_flags=EX_FLAGS,
+        **({"keep_fomc_release": True} if KEEP_FOMC_RELEASE else {}),
     )
 
 
@@ -290,6 +307,22 @@ def spec_section(est: str, bucket: str, start: int, end: int, halo: int) -> dict
     exec(compile(src[a:b], str(ROOT / "specs" / "causal_tune_linear.py"), "exec"), ns)
     # the pooled OLS (--est ols): the spec's ridge path at alpha 0 (G = X'X, intercept free)
     ns["ESTIMATOR_GRIDS"]["ols"] = [("ridge", 0.0, 0.0)]
+    if KEEP_FOMC_RELEASE:  # 2026-10-22 (--keep-fomc-release): fomc_release back at its place before fomc_day
+        import src.data.loading as LD
+
+        gb_k = ns["get_bucket"]
+
+        def get_bucket_keep(name: str) -> list[str]:
+            cols = list(gb_k(name))
+            if (
+                LD.EXCLUDE_FOMC_RELEASE
+                and name in ("all_features", "fomc")
+                and "fomc_release" not in cols
+            ):
+                cols.insert(cols.index("fomc_day"), "fomc_release")
+            return cols
+
+        ns["get_bucket"] = get_bucket_keep
     if RERUN:
         import src.backtest.executor as EX
         import src.data.loading as LD
@@ -300,7 +333,14 @@ def spec_section(est: str, bucket: str, start: int, end: int, halo: int) -> dict
             "HAR_LAGS"
         ]
         # 2026-10-20 (user): the FOMC series stay in all_features, with the calendar fix
-        assert set(LD.FOMC_FEATURES) <= set(ns["get_bucket"]("all_features")), "FOMC"
+        # 2026-10-22 (user): parked -- every FOMC series, before EXCLUDE_FOMC_RELEASE went on. Was:
+        # assert set(LD.FOMC_FEATURES) <= set(ns["get_bucket"]("all_features")), "FOMC"
+        fomc_in = [
+            f
+            for f in LD.FOMC_FEATURES
+            if f != "fomc_release" or KEEP_FOMC_RELEASE or not LD.EXCLUDE_FOMC_RELEASE
+        ]
+        assert set(fomc_in) <= set(ns["get_bucket"]("all_features")), "FOMC"
         assert LD.FOMC_CALENDAR_FIX, "FOMC_CALENDAR_FIX off"
         # 2026-10-20 (user): parked -- the FOMC series left all_features:
         # gb = ns["get_bucket"]
@@ -1260,6 +1300,9 @@ def main() -> None:
     ap.add_argument("--ols", default="auto", choices=("auto", "ridge0", "minnorm"))
     # 2026-10-20 (user): the rolling window in trading days (the design cache records window = days x bars a day)
     ap.add_argument("--window-days", type=int, default=TW_DAYS)
+    # 2026-10-22 (user): fomc_release back in all_features although EXCLUDE_FOMC_RELEASE is on (the late-start rerun
+    # against the published 576-column run); default off
+    ap.add_argument("--keep-fomc-release", action="store_true")
     a = ap.parse_args()
     global RERUN, PART
     RERUN = a.rerun
