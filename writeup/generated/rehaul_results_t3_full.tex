@@ -22,7 +22,7 @@ Rank & Model & Specification & Predictors & QLIKE & $\Delta$ (\%) & $\DM$ \\
 \multicolumn{7}{r@{}}{\textit{Continued on next page}} \\
 \endfoot
 \bottomrule
-\multicolumn{7}{@{}p{\linewidth}@{}}{\footnotesize\raggedright \textit{Notes:} Sample, loss, tests and significance markers as in Table~\ref{tab:rh_axis1}; $\Delta$ and $\DM$ compare each forecast with the HAR benchmark, as in Table~\ref{tab:rh_rank}. Specification of the closing-interval trees (Panel A): fixed hyperparameters, random search or Optuna, selecting on MSE or QLIKE, then the re-estimation frequency or, for Optuna, the re-tuning frequency and the number of trials searched; d: trading days (Section~\ref{sec:rh_methods_tuning}). Panel C holds the earlier draft's intraday linear models, with a block, fixed or re-tuned penalty; ``no FOMC'' marks the earlier draft's predictor set, which lacks the FOMC predictors. The intraday trees are re-estimated at every interval (Section~\ref{sec:rh_exp_schemes}). $^{\ddagger}$Not in the model set counted in the text.} \tabularnewline
+\multicolumn{7}{@{}p{\linewidth}@{}}{\footnotesize\raggedright \textit{Notes:} Sample, loss, tests and significance markers as in Table~\ref{tab:rh_axis1}; $\Delta$ and $\DM$ compare each forecast with the HAR benchmark, as in Table~\ref{tab:rh_rank}. Specification of the closing-interval trees (Panel A): fixed hyperparameters, random search or Optuna, selecting on MSE or QLIKE, then the re-estimation frequency or, for Optuna, the re-tuning frequency and the number of trials searched; d: trading days (Section~\ref{sec:rh_methods_tuning}). Panel C holds the earlier draft's intraday linear models, with a block, fixed or re-tuned penalty; ``no FOMC'' marks the earlier draft's predictor set, which lacks the FOMC predictors. The intraday models of Panel B are re-estimated at every interval on the \rhePoolNBars{} regular-hours intervals with a rolling window of \rhePoolWindowDays{} trading days (Section~\ref{sec:rh_exp_schemes}), except the linear models marked ``All \rhdmNIntervals{} intervals'', the runs on every interval of the day in the model set. $^{\ddagger}$Not in the model set counted in the text.} \tabularnewline
 \endlastfoot
 \multicolumn{7}{@{}l}{\textit{Panel A: Closing-interval models}} \\
 \addlinespace[2pt]
@@ -126,20 +126,26 @@ Rank & Model & Specification & Predictors & QLIKE & $\Delta$ (\%) & $\DM$ \\
 \addlinespace[4pt]
 \multicolumn{7}{@{}l}{\textit{Panel B: Intraday models}} \\
 \addlinespace[2pt]
-37 & Elastic net & -- & Full & 0.1078 & $4.4^{\phantom{***}}$ & $(1.17)$ \\
-44 & Ridge & -- & Full & 0.1086 & $5.1^{\phantom{***}}$ & $(1.36)$ \\
-65 & Lasso & -- & Full & 0.1101 & $6.7^{\phantom{***}}$ & $(1.62)$ \\
+37 & Elastic net & All \rhdmNIntervals{} intervals & Full & 0.1078 & $4.4^{\phantom{***}}$ & $(1.17)$ \\
+44 & Ridge & All \rhdmNIntervals{} intervals & Full & 0.1086 & $5.1^{\phantom{***}}$ & $(1.36)$ \\
+65 & Lasso & All \rhdmNIntervals{} intervals & Full & 0.1101 & $6.7^{\phantom{***}}$ & $(1.62)$ \\
 77 & XGBoost$^{\ddagger}$ & -- & Full & 0.1114 & $7.9^{*\phantom{**}}$ & $(1.75)$ \\
 85 & LightGBM$^{\ddagger}$ & -- & Full & 0.1125 & $9.0^{*\phantom{**}}$ & $(1.77)$ \\
 87 & XGBoost & Earlier draft, no FOMC & Full & 0.1126 & $9.0^{**\phantom{*}}$ & $(2.18)$ \\
 91 & LightGBM & Earlier draft, no FOMC & Full & 0.1128 & $9.2^{**\phantom{*}}$ & $(2.16)$ \\
 93 & XGBoost$^{\ddagger}$ & -- & HAR & 0.1133 & $9.7^{**\phantom{*}}$ & $(2.23)$ \\
-96 & Lasso & -- & HAR & 0.1135 & $10.0^{***}$ & $(3.09)$ \\
+96 & Lasso & All \rhdmNIntervals{} intervals & HAR & 0.1135 & $10.0^{***}$ & $(3.09)$ \\
 100 & Random forest$^{\ddagger}$ & -- & Full & 0.1140 & $10.4^{**\phantom{*}}$ & $(2.18)$ \\
-102 & Elastic net & -- & HAR & 0.1142 & $10.6^{***}$ & $(3.21)$ \\
-104 & Ridge & -- & HAR & 0.1143 & $10.7^{***}$ & $(3.15)$ \\
+102 & Elastic net & All \rhdmNIntervals{} intervals & HAR & 0.1142 & $10.6^{***}$ & $(3.21)$ \\
+104 & Ridge & All \rhdmNIntervals{} intervals & HAR & 0.1143 & $10.7^{***}$ & $(3.15)$ \\
 105 & LightGBM$^{\ddagger}$ & -- & HAR & 0.1144 & $10.8^{**\phantom{*}}$ & $(2.38)$ \\
 117 & Random forest$^{\ddagger}$ & -- & HAR & 0.1190 & $15.3^{***}$ & $(2.72)$ \\
+118 & Elastic net$^{\ddagger}$ & -- & Full & 0.1194 & $15.6^{***}$ & $(2.90)$ \\
+119 & Lasso$^{\ddagger}$ & -- & HAR & 0.1203 & $16.5^{***}$ & $(2.97)$ \\
+120 & Elastic net$^{\ddagger}$ & -- & HAR & 0.1205 & $16.7^{***}$ & $(2.99)$ \\
+121 & Ridge$^{\ddagger}$ & -- & HAR & 0.1205 & $16.7^{***}$ & $(2.99)$ \\
+122 & Lasso$^{\ddagger}$ & -- & Full & 0.1229 & $19.0^{***}$ & $(3.18)$ \\
+123 & Ridge$^{\ddagger}$ & -- & Full & 0.1236 & $19.7^{***}$ & $(3.28)$ \\
 \addlinespace[4pt]
 \multicolumn{7}{@{}l}{\textit{Panel C: Intraday models, earlier draft's specification}} \\
 \addlinespace[2pt]
@@ -149,6 +155,6 @@ Rank & Model & Specification & Predictors & QLIKE & $\Delta$ (\%) & $\DM$ \\
 103 & Lasso & Fixed penalty & Full & 0.1143 & $10.7^{**\phantom{*}}$ & $(2.37)$ \\
 110 & Lasso & Re-tuned penalty, no FOMC & Full & 0.1158 & $12.1^{***}$ & $(2.64)$ \\
 114 & Elastic net & Re-tuned penalty, no FOMC & Full & 0.1174 & $13.6^{***}$ & $(2.95)$ \\
-118 & OLS & -- & HAR & 0.1291 & $25.0^{***}$ & $(4.56)$ \\
+124 & OLS & -- & HAR & 0.1291 & $25.0^{***}$ & $(4.56)$ \\
 \end{longtable}
 }

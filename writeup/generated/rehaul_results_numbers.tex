@@ -25,14 +25,14 @@
 \providecommand{\rhrAfMseHigher}{49}  % ... variance-space MSE higher with all features
 \providecommand{\rhrAfMseHigherSig}{0}  % ... and DM (squared error) p < 0.05
 \providecommand{\rhrNModelSet}{112}  % forecasts in the master table's model set
-\providecommand{\rhrRankN}{118}  % forecasts ranked in the full table
+\providecommand{\rhrRankN}{124}  % forecasts ranked in the full table
 \providecommand{\rhrNSet}{111}  % model-set forecasts other than the OLS
 \providecommand{\rhrNLower}{7}  % ... with lower QLIKE than the OLS
 \providecommand{\rhrNLowerSig}{2}  % ... and DM p < 0.05
 \providecommand{\rhrNWorseSig}{56}  % ... significantly worse than the OLS (DM p < 0.05)
 \providecommand{\rhrNLowerPool}{0}  % pooled intraday forecasts (rhrPoolN) with lower QLIKE than the OLS (item 26 headline)
 \providecommand{\rhrNLowerSigPool}{0}  % ... and DM p < 0.05 (item 26 headline; closing-interval tests excluded)
-\providecommand{\rhrNWorseSigPool}{7}  % pooled intraday forecasts significantly worse than the OLS (DM p < 0.05)
+\providecommand{\rhrNWorseSigPool}{10}  % pooled intraday forecasts significantly worse than the OLS (DM p < 0.05)
 \providecommand{\rhrLinBaseMaxPct}{0.00}  % largest |% change| of the per-bar ridge / lasso / enet on HAR + cal. vs the OLS
 \providecommand{\rhrSETopFiveOls}{77}  % % of the OLS's total squared error on its 5 largest days
 \providecommand{\rhrSETopFiveMin}{73}  % min over the F5 forecasts (OLS, lasso, XGBoost; MinGRU parked): % of squared error on the 5 largest days
@@ -57,14 +57,14 @@
 \providecommand{\rhrNnAfP}{0.57}  % ... its DM p
 \providecommand{\rhrAfMedPct}{\ensuremath{-}0.9}  % median QLIKE % change over the AfPairs pairs
 \providecommand{\rhrAfRevSig}{0}  % pairs with QLIKE significantly higher with all features (DM p < 0.05)
-\providecommand{\rhrPerBarRidgeBasePct}{\ensuremath{-}9.7}  % per-bar minus pooled ridge, HAR + cal.: QLIKE % change (of the pooled)
-\providecommand{\rhrPerBarRidgeBaseDm}{\ensuremath{-}3.15}  % ... its DM
-\providecommand{\rhrLinBasePoolPctMin}{10.0}  % T2 linear, HAR + cal.: min pooled-minus-per-bar %
-\providecommand{\rhrLinBasePoolPctMax}{10.7}  % ... max
-\providecommand{\rhrLinBasePoolDmMin}{3.09}  % ... min DM
-\providecommand{\rhrLinBasePoolDmMax}{3.21}  % ... max DM
-\providecommand{\rhrLinAllPoolPctMin}{5.3}  % T2 linear, all features: min %
-\providecommand{\rhrLinAllPoolPctMax}{11.1}  % ... max
+\providecommand{\rhrPerBarRidgeBasePct}{\ensuremath{-}14.3}  % per-bar minus pooled ridge, HAR + cal.: QLIKE % change (of the pooled)
+\providecommand{\rhrPerBarRidgeBaseDm}{\ensuremath{-}2.99}  % ... its DM
+\providecommand{\rhrLinBasePoolPctMin}{16.5}  % T2 linear, HAR + cal.: min pooled-minus-per-bar %
+\providecommand{\rhrLinBasePoolPctMax}{16.7}  % ... max
+\providecommand{\rhrLinBasePoolDmMin}{2.97}  % ... min DM
+\providecommand{\rhrLinBasePoolDmMax}{2.99}  % ... max DM
+\providecommand{\rhrLinAllPoolPctMin}{17.7}  % T2 linear, all features: min %
+\providecommand{\rhrLinAllPoolPctMax}{24.0}  % ... max
 \providecommand{\rhrTreeBasePoolPctMin}{4.6}  % T2 trees, HAR + cal.: min %
 \providecommand{\rhrTreeBasePoolPctMax}{11.4}  % ... max
 \providecommand{\rhrTreeAllPoolPctMin}{7.3}  % T2 trees, all features: min %
@@ -83,24 +83,24 @@
 \providecommand{\rhrRobLagOld}{12}  % robustness table: the previous lag floor(1.5 T^(1/3)), T = 614
 \providecommand{\rhrRobN}{34}  % robustness table: RobN
 \providecommand{\rhrRobNPairs}{33}  % robustness table: RobNPairs
-\providecommand{\rhrRobNWFiveSig}{1}  % robustness table: RobNWFiveSig
-\providecommand{\rhrRobNWTwelveSig}{2}  % robustness table: RobNWTwelveSig
+\providecommand{\rhrRobNWFiveSig}{0}  % robustness table: RobNWFiveSig
+\providecommand{\rhrRobNWTwelveSig}{1}  % robustness table: RobNWTwelveSig
 \providecommand{\rhrRobFbSig}{0}  % robustness table: RobFbSig
-\providecommand{\rhrRobLWSig}{2}  % robustness table: RobLWSig
-\providecommand{\rhrRobLWSigLo}{3}  % robustness table: RobLWSigLo
-\providecommand{\rhrRobLWSigHi}{2}  % robustness table: RobLWSigHi
+\providecommand{\rhrRobLWSig}{1}  % robustness table: RobLWSig
+\providecommand{\rhrRobLWSigLo}{1}  % robustness table: RobLWSigLo
+\providecommand{\rhrRobLWSigHi}{1}  % robustness table: RobLWSigHi
 \providecommand{\rhrQRidgeCloseHar}{0.1033}  % mean QLIKE, subpt_ridge_baseline
 \providecommand{\rhrQRidgeCloseFull}{0.1031}  % mean QLIKE, subpt_ridge_all_features
-\providecommand{\rhrQRidgePoolHar}{0.1143}  % mean QLIKE, poolpt_ridge_baseline
-\providecommand{\rhrQRidgePoolFull}{0.1086}  % mean QLIKE, poolpt_ridge_all_features
+\providecommand{\rhrQRidgePoolHar}{0.1205}  % mean QLIKE, poolpt13_ridge_baseline
+\providecommand{\rhrQRidgePoolFull}{0.1236}  % mean QLIKE, poolpt13_ridge_all_features
 \providecommand{\rhrQLassoCloseHar}{0.1033}  % mean QLIKE, subpt_lasso_baseline
 \providecommand{\rhrQLassoCloseFull}{0.0992}  % mean QLIKE, subpt_lasso_all_features
-\providecommand{\rhrQLassoPoolHar}{0.1135}  % mean QLIKE, poolpt_lasso_baseline
-\providecommand{\rhrQLassoPoolFull}{0.1101}  % mean QLIKE, poolpt_lasso_all_features
+\providecommand{\rhrQLassoPoolHar}{0.1203}  % mean QLIKE, poolpt13_lasso_baseline
+\providecommand{\rhrQLassoPoolFull}{0.1229}  % mean QLIKE, poolpt13_lasso_all_features
 \providecommand{\rhrQEnetCloseHar}{0.1033}  % mean QLIKE, subpt_enet_baseline
 \providecommand{\rhrQEnetCloseFull}{0.1014}  % mean QLIKE, subpt_enet_all_features
-\providecommand{\rhrQEnetPoolHar}{0.1142}  % mean QLIKE, poolpt_enet_baseline
-\providecommand{\rhrQEnetPoolFull}{0.1078}  % mean QLIKE, poolpt_enet_all_features
+\providecommand{\rhrQEnetPoolHar}{0.1205}  % mean QLIKE, poolpt13_enet_baseline
+\providecommand{\rhrQEnetPoolFull}{0.1194}  % mean QLIKE, poolpt13_enet_all_features
 \providecommand{\rhrQLgbmCloseHar}{0.1094}  % mean QLIKE, subtree_daily_baseline_lgbm
 \providecommand{\rhrQLgbmCloseFull}{0.1049}  % mean QLIKE, subtree_daily_all_features_lgbm
 \providecommand{\rhrQLgbmPoolHar}{0.1144}  % mean QLIKE, pooltree_lgbm_baseline
@@ -125,14 +125,14 @@
 \providecommand{\rhrVsBmRidgeCloseFullDm}{\ensuremath{-}0.04}  % ... its DM
 \providecommand{\rhrVsBmRidgeCloseFullPval}{\ensuremath{p = 0.97}}  % ... its two-sided p (the whole statement)
 \providecommand{\rhrVsBmRidgeCloseFullStars}{}  % ... its stars (10 / 5 / 1 %)
-\providecommand{\rhrVsBmRidgePoolHarPct}{10.7}  % poolpt_ridge_baseline vs the HAR benchmark (closing-interval OLS): QLIKE % change
-\providecommand{\rhrVsBmRidgePoolHarDm}{3.15}  % ... its DM
-\providecommand{\rhrVsBmRidgePoolHarPval}{\ensuremath{p = 0.002}}  % ... its two-sided p (the whole statement)
+\providecommand{\rhrVsBmRidgePoolHarPct}{16.7}  % poolpt13_ridge_baseline vs the HAR benchmark (closing-interval OLS): QLIKE % change
+\providecommand{\rhrVsBmRidgePoolHarDm}{2.99}  % ... its DM
+\providecommand{\rhrVsBmRidgePoolHarPval}{\ensuremath{p = 0.003}}  % ... its two-sided p (the whole statement)
 \providecommand{\rhrVsBmRidgePoolHarStars}{\ensuremath{^{***}}}  % ... its stars (10 / 5 / 1 %)
-\providecommand{\rhrVsBmRidgePoolFullPct}{5.1}  % poolpt_ridge_all_features vs the HAR benchmark (closing-interval OLS): QLIKE % change
-\providecommand{\rhrVsBmRidgePoolFullDm}{1.36}  % ... its DM
-\providecommand{\rhrVsBmRidgePoolFullPval}{\ensuremath{p = 0.17}}  % ... its two-sided p (the whole statement)
-\providecommand{\rhrVsBmRidgePoolFullStars}{}  % ... its stars (10 / 5 / 1 %)
+\providecommand{\rhrVsBmRidgePoolFullPct}{19.7}  % poolpt13_ridge_all_features vs the HAR benchmark (closing-interval OLS): QLIKE % change
+\providecommand{\rhrVsBmRidgePoolFullDm}{3.28}  % ... its DM
+\providecommand{\rhrVsBmRidgePoolFullPval}{\ensuremath{p = 0.001}}  % ... its two-sided p (the whole statement)
+\providecommand{\rhrVsBmRidgePoolFullStars}{\ensuremath{^{***}}}  % ... its stars (10 / 5 / 1 %)
 \providecommand{\rhrVsBmLassoCloseHarPct}{0.0}  % subpt_lasso_baseline vs the HAR benchmark (closing-interval OLS): QLIKE % change
 \providecommand{\rhrVsBmLassoCloseHarDm}{\ensuremath{-}2.60}  % ... its DM
 \providecommand{\rhrVsBmLassoCloseHarPval}{\ensuremath{p = 0.009}}  % ... its two-sided p (the whole statement)
@@ -141,14 +141,14 @@
 \providecommand{\rhrVsBmLassoCloseFullDm}{\ensuremath{-}1.91}  % ... its DM
 \providecommand{\rhrVsBmLassoCloseFullPval}{\ensuremath{p = 0.056}}  % ... its two-sided p (the whole statement)
 \providecommand{\rhrVsBmLassoCloseFullStars}{\ensuremath{^{*}}}  % ... its stars (10 / 5 / 1 %)
-\providecommand{\rhrVsBmLassoPoolHarPct}{10.0}  % poolpt_lasso_baseline vs the HAR benchmark (closing-interval OLS): QLIKE % change
-\providecommand{\rhrVsBmLassoPoolHarDm}{3.09}  % ... its DM
-\providecommand{\rhrVsBmLassoPoolHarPval}{\ensuremath{p = 0.002}}  % ... its two-sided p (the whole statement)
+\providecommand{\rhrVsBmLassoPoolHarPct}{16.5}  % poolpt13_lasso_baseline vs the HAR benchmark (closing-interval OLS): QLIKE % change
+\providecommand{\rhrVsBmLassoPoolHarDm}{2.97}  % ... its DM
+\providecommand{\rhrVsBmLassoPoolHarPval}{\ensuremath{p = 0.003}}  % ... its two-sided p (the whole statement)
 \providecommand{\rhrVsBmLassoPoolHarStars}{\ensuremath{^{***}}}  % ... its stars (10 / 5 / 1 %)
-\providecommand{\rhrVsBmLassoPoolFullPct}{6.7}  % poolpt_lasso_all_features vs the HAR benchmark (closing-interval OLS): QLIKE % change
-\providecommand{\rhrVsBmLassoPoolFullDm}{1.62}  % ... its DM
-\providecommand{\rhrVsBmLassoPoolFullPval}{\ensuremath{p = 0.11}}  % ... its two-sided p (the whole statement)
-\providecommand{\rhrVsBmLassoPoolFullStars}{}  % ... its stars (10 / 5 / 1 %)
+\providecommand{\rhrVsBmLassoPoolFullPct}{19.0}  % poolpt13_lasso_all_features vs the HAR benchmark (closing-interval OLS): QLIKE % change
+\providecommand{\rhrVsBmLassoPoolFullDm}{3.18}  % ... its DM
+\providecommand{\rhrVsBmLassoPoolFullPval}{\ensuremath{p = 0.001}}  % ... its two-sided p (the whole statement)
+\providecommand{\rhrVsBmLassoPoolFullStars}{\ensuremath{^{***}}}  % ... its stars (10 / 5 / 1 %)
 \providecommand{\rhrVsBmEnetCloseHarPct}{0.0}  % subpt_enet_baseline vs the HAR benchmark (closing-interval OLS): QLIKE % change
 \providecommand{\rhrVsBmEnetCloseHarDm}{\ensuremath{-}2.46}  % ... its DM
 \providecommand{\rhrVsBmEnetCloseHarPval}{\ensuremath{p = 0.014}}  % ... its two-sided p (the whole statement)
@@ -157,14 +157,14 @@
 \providecommand{\rhrVsBmEnetCloseFullDm}{\ensuremath{-}0.55}  % ... its DM
 \providecommand{\rhrVsBmEnetCloseFullPval}{\ensuremath{p = 0.58}}  % ... its two-sided p (the whole statement)
 \providecommand{\rhrVsBmEnetCloseFullStars}{}  % ... its stars (10 / 5 / 1 %)
-\providecommand{\rhrVsBmEnetPoolHarPct}{10.6}  % poolpt_enet_baseline vs the HAR benchmark (closing-interval OLS): QLIKE % change
-\providecommand{\rhrVsBmEnetPoolHarDm}{3.21}  % ... its DM
-\providecommand{\rhrVsBmEnetPoolHarPval}{\ensuremath{p = 0.001}}  % ... its two-sided p (the whole statement)
+\providecommand{\rhrVsBmEnetPoolHarPct}{16.7}  % poolpt13_enet_baseline vs the HAR benchmark (closing-interval OLS): QLIKE % change
+\providecommand{\rhrVsBmEnetPoolHarDm}{2.99}  % ... its DM
+\providecommand{\rhrVsBmEnetPoolHarPval}{\ensuremath{p = 0.003}}  % ... its two-sided p (the whole statement)
 \providecommand{\rhrVsBmEnetPoolHarStars}{\ensuremath{^{***}}}  % ... its stars (10 / 5 / 1 %)
-\providecommand{\rhrVsBmEnetPoolFullPct}{4.4}  % poolpt_enet_all_features vs the HAR benchmark (closing-interval OLS): QLIKE % change
-\providecommand{\rhrVsBmEnetPoolFullDm}{1.17}  % ... its DM
-\providecommand{\rhrVsBmEnetPoolFullPval}{\ensuremath{p = 0.24}}  % ... its two-sided p (the whole statement)
-\providecommand{\rhrVsBmEnetPoolFullStars}{}  % ... its stars (10 / 5 / 1 %)
+\providecommand{\rhrVsBmEnetPoolFullPct}{15.6}  % poolpt13_enet_all_features vs the HAR benchmark (closing-interval OLS): QLIKE % change
+\providecommand{\rhrVsBmEnetPoolFullDm}{2.90}  % ... its DM
+\providecommand{\rhrVsBmEnetPoolFullPval}{\ensuremath{p = 0.004}}  % ... its two-sided p (the whole statement)
+\providecommand{\rhrVsBmEnetPoolFullStars}{\ensuremath{^{***}}}  % ... its stars (10 / 5 / 1 %)
 \providecommand{\rhrVsBmLgbmCloseHarPct}{5.9}  % subtree_daily_baseline_lgbm vs the HAR benchmark (closing-interval OLS): QLIKE % change
 \providecommand{\rhrVsBmLgbmCloseHarDm}{2.70}  % ... its DM
 \providecommand{\rhrVsBmLgbmCloseHarPval}{\ensuremath{p = 0.007}}  % ... its two-sided p (the whole statement)
@@ -233,26 +233,26 @@
 \providecommand{\rhrAfRidgeCloseDm}{\ensuremath{-}0.04}  % ... its DM
 \providecommand{\rhrAfRidgeClosePval}{\ensuremath{p = 0.97}}  % ... its two-sided p (the whole statement)
 \providecommand{\rhrAfRidgeCloseStars}{}  % ... its stars (10 / 5 / 1 %)
-\providecommand{\rhrAfRidgePoolPct}{\ensuremath{-}5.0}  % T1, pooled Ridge: Full vs HAR: QLIKE % change
-\providecommand{\rhrAfRidgePoolDm}{\ensuremath{-}1.77}  % ... its DM
-\providecommand{\rhrAfRidgePoolPval}{\ensuremath{p = 0.077}}  % ... its two-sided p (the whole statement)
-\providecommand{\rhrAfRidgePoolStars}{\ensuremath{^{*}}}  % ... its stars (10 / 5 / 1 %)
+\providecommand{\rhrAfRidgePoolPct}{2.6}  % T1, pooled Ridge: Full vs HAR: QLIKE % change
+\providecommand{\rhrAfRidgePoolDm}{0.61}  % ... its DM
+\providecommand{\rhrAfRidgePoolPval}{\ensuremath{p = 0.54}}  % ... its two-sided p (the whole statement)
+\providecommand{\rhrAfRidgePoolStars}{}  % ... its stars (10 / 5 / 1 %)
 \providecommand{\rhrAfLassoClosePct}{\ensuremath{-}4.0}  % T1, per-bar Lasso: Full vs HAR: QLIKE % change
 \providecommand{\rhrAfLassoCloseDm}{\ensuremath{-}1.91}  % ... its DM
 \providecommand{\rhrAfLassoClosePval}{\ensuremath{p = 0.056}}  % ... its two-sided p (the whole statement)
 \providecommand{\rhrAfLassoCloseStars}{\ensuremath{^{*}}}  % ... its stars (10 / 5 / 1 %)
-\providecommand{\rhrAfLassoPoolPct}{\ensuremath{-}3.0}  % T1, pooled Lasso: Full vs HAR: QLIKE % change
-\providecommand{\rhrAfLassoPoolDm}{\ensuremath{-}1.13}  % ... its DM
-\providecommand{\rhrAfLassoPoolPval}{\ensuremath{p = 0.26}}  % ... its two-sided p (the whole statement)
+\providecommand{\rhrAfLassoPoolPct}{2.2}  % T1, pooled Lasso: Full vs HAR: QLIKE % change
+\providecommand{\rhrAfLassoPoolDm}{0.58}  % ... its DM
+\providecommand{\rhrAfLassoPoolPval}{\ensuremath{p = 0.56}}  % ... its two-sided p (the whole statement)
 \providecommand{\rhrAfLassoPoolStars}{}  % ... its stars (10 / 5 / 1 %)
 \providecommand{\rhrAfEnetClosePct}{\ensuremath{-}1.8}  % T1, per-bar Elastic net: Full vs HAR: QLIKE % change
 \providecommand{\rhrAfEnetCloseDm}{\ensuremath{-}0.55}  % ... its DM
 \providecommand{\rhrAfEnetClosePval}{\ensuremath{p = 0.58}}  % ... its two-sided p (the whole statement)
 \providecommand{\rhrAfEnetCloseStars}{}  % ... its stars (10 / 5 / 1 %)
-\providecommand{\rhrAfEnetPoolPct}{\ensuremath{-}5.6}  % T1, pooled Elastic net: Full vs HAR: QLIKE % change
-\providecommand{\rhrAfEnetPoolDm}{\ensuremath{-}2.10}  % ... its DM
-\providecommand{\rhrAfEnetPoolPval}{\ensuremath{p = 0.036}}  % ... its two-sided p (the whole statement)
-\providecommand{\rhrAfEnetPoolStars}{\ensuremath{^{**}}}  % ... its stars (10 / 5 / 1 %)
+\providecommand{\rhrAfEnetPoolPct}{\ensuremath{-}0.9}  % T1, pooled Elastic net: Full vs HAR: QLIKE % change
+\providecommand{\rhrAfEnetPoolDm}{\ensuremath{-}0.31}  % ... its DM
+\providecommand{\rhrAfEnetPoolPval}{\ensuremath{p = 0.76}}  % ... its two-sided p (the whole statement)
+\providecommand{\rhrAfEnetPoolStars}{}  % ... its stars (10 / 5 / 1 %)
 \providecommand{\rhrAfLgbmClosePct}{\ensuremath{-}4.1}  % T1, per-bar LightGBM: Full vs HAR: QLIKE % change
 \providecommand{\rhrAfLgbmCloseDm}{\ensuremath{-}1.48}  % ... its DM
 \providecommand{\rhrAfLgbmClosePval}{\ensuremath{p = 0.14}}  % ... its two-sided p (the whole statement)
@@ -285,30 +285,30 @@
 \providecommand{\rhrAfNnPoolDm}{\ensuremath{-}1.50}  % ... its DM
 \providecommand{\rhrAfNnPoolPval}{\ensuremath{p = 0.13}}  % ... its two-sided p (the whole statement)
 \providecommand{\rhrAfNnPoolStars}{}  % ... its stars (10 / 5 / 1 %)
-\providecommand{\rhrPoolVsCloseRidgeHarPct}{10.7}  % T2, Ridge on Har: pooled vs per-bar: QLIKE % change
-\providecommand{\rhrPoolVsCloseRidgeHarDm}{3.15}  % ... its DM
-\providecommand{\rhrPoolVsCloseRidgeHarPval}{\ensuremath{p = 0.002}}  % ... its two-sided p (the whole statement)
+\providecommand{\rhrPoolVsCloseRidgeHarPct}{16.7}  % T2, Ridge on Har: pooled vs per-bar: QLIKE % change
+\providecommand{\rhrPoolVsCloseRidgeHarDm}{2.99}  % ... its DM
+\providecommand{\rhrPoolVsCloseRidgeHarPval}{\ensuremath{p = 0.003}}  % ... its two-sided p (the whole statement)
 \providecommand{\rhrPoolVsCloseRidgeHarStars}{\ensuremath{^{***}}}  % ... its stars (10 / 5 / 1 %)
-\providecommand{\rhrPoolVsCloseRidgeFullPct}{5.3}  % T2, Ridge on Full: pooled vs per-bar: QLIKE % change
-\providecommand{\rhrPoolVsCloseRidgeFullDm}{1.36}  % ... its DM
-\providecommand{\rhrPoolVsCloseRidgeFullPval}{\ensuremath{p = 0.17}}  % ... its two-sided p (the whole statement)
-\providecommand{\rhrPoolVsCloseRidgeFullStars}{}  % ... its stars (10 / 5 / 1 %)
-\providecommand{\rhrPoolVsCloseLassoHarPct}{10.0}  % T2, Lasso on Har: pooled vs per-bar: QLIKE % change
-\providecommand{\rhrPoolVsCloseLassoHarDm}{3.09}  % ... its DM
-\providecommand{\rhrPoolVsCloseLassoHarPval}{\ensuremath{p = 0.002}}  % ... its two-sided p (the whole statement)
+\providecommand{\rhrPoolVsCloseRidgeFullPct}{19.9}  % T2, Ridge on Full: pooled vs per-bar: QLIKE % change
+\providecommand{\rhrPoolVsCloseRidgeFullDm}{3.81}  % ... its DM
+\providecommand{\rhrPoolVsCloseRidgeFullPval}{\ensuremath{p < 0.001}}  % ... its two-sided p (the whole statement)
+\providecommand{\rhrPoolVsCloseRidgeFullStars}{\ensuremath{^{***}}}  % ... its stars (10 / 5 / 1 %)
+\providecommand{\rhrPoolVsCloseLassoHarPct}{16.5}  % T2, Lasso on Har: pooled vs per-bar: QLIKE % change
+\providecommand{\rhrPoolVsCloseLassoHarDm}{2.97}  % ... its DM
+\providecommand{\rhrPoolVsCloseLassoHarPval}{\ensuremath{p = 0.003}}  % ... its two-sided p (the whole statement)
 \providecommand{\rhrPoolVsCloseLassoHarStars}{\ensuremath{^{***}}}  % ... its stars (10 / 5 / 1 %)
-\providecommand{\rhrPoolVsCloseLassoFullPct}{11.1}  % T2, Lasso on Full: pooled vs per-bar: QLIKE % change
-\providecommand{\rhrPoolVsCloseLassoFullDm}{2.92}  % ... its DM
-\providecommand{\rhrPoolVsCloseLassoFullPval}{\ensuremath{p = 0.003}}  % ... its two-sided p (the whole statement)
+\providecommand{\rhrPoolVsCloseLassoFullPct}{24.0}  % T2, Lasso on Full: pooled vs per-bar: QLIKE % change
+\providecommand{\rhrPoolVsCloseLassoFullDm}{4.21}  % ... its DM
+\providecommand{\rhrPoolVsCloseLassoFullPval}{\ensuremath{p < 0.001}}  % ... its two-sided p (the whole statement)
 \providecommand{\rhrPoolVsCloseLassoFullStars}{\ensuremath{^{***}}}  % ... its stars (10 / 5 / 1 %)
-\providecommand{\rhrPoolVsCloseEnetHarPct}{10.6}  % T2, Elastic net on Har: pooled vs per-bar: QLIKE % change
-\providecommand{\rhrPoolVsCloseEnetHarDm}{3.21}  % ... its DM
-\providecommand{\rhrPoolVsCloseEnetHarPval}{\ensuremath{p = 0.001}}  % ... its two-sided p (the whole statement)
+\providecommand{\rhrPoolVsCloseEnetHarPct}{16.7}  % T2, Elastic net on Har: pooled vs per-bar: QLIKE % change
+\providecommand{\rhrPoolVsCloseEnetHarDm}{2.99}  % ... its DM
+\providecommand{\rhrPoolVsCloseEnetHarPval}{\ensuremath{p = 0.003}}  % ... its two-sided p (the whole statement)
 \providecommand{\rhrPoolVsCloseEnetHarStars}{\ensuremath{^{***}}}  % ... its stars (10 / 5 / 1 %)
-\providecommand{\rhrPoolVsCloseEnetFullPct}{6.3}  % T2, Elastic net on Full: pooled vs per-bar: QLIKE % change
-\providecommand{\rhrPoolVsCloseEnetFullDm}{1.85}  % ... its DM
-\providecommand{\rhrPoolVsCloseEnetFullPval}{\ensuremath{p = 0.064}}  % ... its two-sided p (the whole statement)
-\providecommand{\rhrPoolVsCloseEnetFullStars}{\ensuremath{^{*}}}  % ... its stars (10 / 5 / 1 %)
+\providecommand{\rhrPoolVsCloseEnetFullPct}{17.7}  % T2, Elastic net on Full: pooled vs per-bar: QLIKE % change
+\providecommand{\rhrPoolVsCloseEnetFullDm}{3.44}  % ... its DM
+\providecommand{\rhrPoolVsCloseEnetFullPval}{\ensuremath{p < 0.001}}  % ... its two-sided p (the whole statement)
+\providecommand{\rhrPoolVsCloseEnetFullStars}{\ensuremath{^{***}}}  % ... its stars (10 / 5 / 1 %)
 \providecommand{\rhrPoolVsCloseLgbmHarPct}{4.6}  % T2, LightGBM on Har: pooled vs per-bar: QLIKE % change
 \providecommand{\rhrPoolVsCloseLgbmHarDm}{1.04}  % ... its DM
 \providecommand{\rhrPoolVsCloseLgbmHarPval}{\ensuremath{p = 0.30}}  % ... its two-sided p (the whole statement)
@@ -347,48 +347,48 @@
 \providecommand{\rhrShRidgeCloseFull}{1.28}  % sign-strategy Sharpe ratio, mid-quotes, subpt_ridge_all_features
 \providecommand{\rhrShXRidgeCloseFull}{0.94}  % ... at quoted bid/ask prices
 \providecommand{\rhrVsShortRidgeCloseFullT}{1.52}  % ... HAC t of the daily mid-return differential over the short straddle
-\providecommand{\rhrShRidgePoolHar}{0.75}  % sign-strategy Sharpe ratio, mid-quotes, poolpt_ridge_baseline
-\providecommand{\rhrShXRidgePoolHar}{0.41}  % ... at quoted bid/ask prices
-\providecommand{\rhrVsShortRidgePoolHarT}{0.68}  % ... HAC t of the daily mid-return differential over the short straddle
-\providecommand{\rhrShRidgePoolFull}{1.44}  % sign-strategy Sharpe ratio, mid-quotes, poolpt_ridge_all_features
-\providecommand{\rhrShXRidgePoolFull}{1.10}  % ... at quoted bid/ask prices
-\providecommand{\rhrVsShortRidgePoolFullT}{1.67}  % ... HAC t of the daily mid-return differential over the short straddle
+\providecommand{\rhrShRidgePoolHar}{1.30}  % sign-strategy Sharpe ratio, mid-quotes, poolpt13_ridge_baseline
+\providecommand{\rhrShXRidgePoolHar}{0.96}  % ... at quoted bid/ask prices
+\providecommand{\rhrVsShortRidgePoolHarT}{1.35}  % ... HAC t of the daily mid-return differential over the short straddle
+\providecommand{\rhrShRidgePoolFull}{1.09}  % sign-strategy Sharpe ratio, mid-quotes, poolpt13_ridge_all_features
+\providecommand{\rhrShXRidgePoolFull}{0.75}  % ... at quoted bid/ask prices
+\providecommand{\rhrVsShortRidgePoolFullT}{1.34}  % ... HAC t of the daily mid-return differential over the short straddle
 \providecommand{\rhrAfRidgeCloseDSh}{\ensuremath{-}0.29}  % T1, per-bar Ridge: Sharpe mid, Full minus HAR
 \providecommand{\rhrAfRidgeCloseDShT}{\ensuremath{-}0.27}  % ... HAC t of the daily mid-return differential
-\providecommand{\rhrAfRidgePoolDSh}{\ensuremath{+}0.69}  % T1, pooled Ridge: Sharpe mid, Full minus HAR
-\providecommand{\rhrAfRidgePoolDShT}{1.99}  % ... HAC t of the daily mid-return differential
+\providecommand{\rhrAfRidgePoolDSh}{\ensuremath{-}0.22}  % T1, pooled Ridge: Sharpe mid, Full minus HAR
+\providecommand{\rhrAfRidgePoolDShT}{\ensuremath{-}0.05}  % ... HAC t of the daily mid-return differential
 \providecommand{\rhrShLassoCloseHar}{1.56}  % sign-strategy Sharpe ratio, mid-quotes, subpt_lasso_baseline
 \providecommand{\rhrShXLassoCloseHar}{1.22}  % ... at quoted bid/ask prices
 \providecommand{\rhrVsShortLassoCloseHarT}{1.75}  % ... HAC t of the daily mid-return differential over the short straddle
 \providecommand{\rhrShLassoCloseFull}{1.68}  % sign-strategy Sharpe ratio, mid-quotes, subpt_lasso_all_features
 \providecommand{\rhrShXLassoCloseFull}{1.34}  % ... at quoted bid/ask prices
 \providecommand{\rhrVsShortLassoCloseFullT}{1.79}  % ... HAC t of the daily mid-return differential over the short straddle
-\providecommand{\rhrShLassoPoolHar}{0.74}  % sign-strategy Sharpe ratio, mid-quotes, poolpt_lasso_baseline
-\providecommand{\rhrShXLassoPoolHar}{0.40}  % ... at quoted bid/ask prices
-\providecommand{\rhrVsShortLassoPoolHarT}{0.60}  % ... HAC t of the daily mid-return differential over the short straddle
-\providecommand{\rhrShLassoPoolFull}{1.46}  % sign-strategy Sharpe ratio, mid-quotes, poolpt_lasso_all_features
-\providecommand{\rhrShXLassoPoolFull}{1.12}  % ... at quoted bid/ask prices
-\providecommand{\rhrVsShortLassoPoolFullT}{1.63}  % ... HAC t of the daily mid-return differential over the short straddle
+\providecommand{\rhrShLassoPoolHar}{1.28}  % sign-strategy Sharpe ratio, mid-quotes, poolpt13_lasso_baseline
+\providecommand{\rhrShXLassoPoolHar}{0.93}  % ... at quoted bid/ask prices
+\providecommand{\rhrVsShortLassoPoolHarT}{1.33}  % ... HAC t of the daily mid-return differential over the short straddle
+\providecommand{\rhrShLassoPoolFull}{1.02}  % sign-strategy Sharpe ratio, mid-quotes, poolpt13_lasso_all_features
+\providecommand{\rhrShXLassoPoolFull}{0.68}  % ... at quoted bid/ask prices
+\providecommand{\rhrVsShortLassoPoolFullT}{1.28}  % ... HAC t of the daily mid-return differential over the short straddle
 \providecommand{\rhrAfLassoCloseDSh}{\ensuremath{+}0.12}  % T1, per-bar Lasso: Sharpe mid, Full minus HAR
 \providecommand{\rhrAfLassoCloseDShT}{0.35}  % ... HAC t of the daily mid-return differential
-\providecommand{\rhrAfLassoPoolDSh}{\ensuremath{+}0.72}  % T1, pooled Lasso: Sharpe mid, Full minus HAR
-\providecommand{\rhrAfLassoPoolDShT}{1.79}  % ... HAC t of the daily mid-return differential
+\providecommand{\rhrAfLassoPoolDSh}{\ensuremath{-}0.26}  % T1, pooled Lasso: Sharpe mid, Full minus HAR
+\providecommand{\rhrAfLassoPoolDShT}{\ensuremath{-}0.01}  % ... HAC t of the daily mid-return differential
 \providecommand{\rhrShEnetCloseHar}{1.56}  % sign-strategy Sharpe ratio, mid-quotes, subpt_enet_baseline
 \providecommand{\rhrShXEnetCloseHar}{1.22}  % ... at quoted bid/ask prices
 \providecommand{\rhrVsShortEnetCloseHarT}{1.75}  % ... HAC t of the daily mid-return differential over the short straddle
 \providecommand{\rhrShEnetCloseFull}{1.76}  % sign-strategy Sharpe ratio, mid-quotes, subpt_enet_all_features
 \providecommand{\rhrShXEnetCloseFull}{1.42}  % ... at quoted bid/ask prices
 \providecommand{\rhrVsShortEnetCloseFullT}{1.92}  % ... HAC t of the daily mid-return differential over the short straddle
-\providecommand{\rhrShEnetPoolHar}{0.74}  % sign-strategy Sharpe ratio, mid-quotes, poolpt_enet_baseline
-\providecommand{\rhrShXEnetPoolHar}{0.41}  % ... at quoted bid/ask prices
-\providecommand{\rhrVsShortEnetPoolHarT}{0.67}  % ... HAC t of the daily mid-return differential over the short straddle
-\providecommand{\rhrShEnetPoolFull}{1.56}  % sign-strategy Sharpe ratio, mid-quotes, poolpt_enet_all_features
-\providecommand{\rhrShXEnetPoolFull}{1.23}  % ... at quoted bid/ask prices
-\providecommand{\rhrVsShortEnetPoolFullT}{1.71}  % ... HAC t of the daily mid-return differential over the short straddle
+\providecommand{\rhrShEnetPoolHar}{1.30}  % sign-strategy Sharpe ratio, mid-quotes, poolpt13_enet_baseline
+\providecommand{\rhrShXEnetPoolHar}{0.96}  % ... at quoted bid/ask prices
+\providecommand{\rhrVsShortEnetPoolHarT}{1.35}  % ... HAC t of the daily mid-return differential over the short straddle
+\providecommand{\rhrShEnetPoolFull}{1.13}  % sign-strategy Sharpe ratio, mid-quotes, poolpt13_enet_all_features
+\providecommand{\rhrShXEnetPoolFull}{0.79}  % ... at quoted bid/ask prices
+\providecommand{\rhrVsShortEnetPoolFullT}{1.44}  % ... HAC t of the daily mid-return differential over the short straddle
 \providecommand{\rhrAfEnetCloseDSh}{\ensuremath{+}0.19}  % T1, per-bar Elastic net: Sharpe mid, Full minus HAR
 \providecommand{\rhrAfEnetCloseDShT}{0.74}  % ... HAC t of the daily mid-return differential
-\providecommand{\rhrAfEnetPoolDSh}{\ensuremath{+}0.82}  % T1, pooled Elastic net: Sharpe mid, Full minus HAR
-\providecommand{\rhrAfEnetPoolDShT}{1.99}  % ... HAC t of the daily mid-return differential
+\providecommand{\rhrAfEnetPoolDSh}{\ensuremath{-}0.17}  % T1, pooled Elastic net: Sharpe mid, Full minus HAR
+\providecommand{\rhrAfEnetPoolDShT}{0.33}  % ... HAC t of the daily mid-return differential
 \providecommand{\rhrShLgbmCloseHar}{0.81}  % sign-strategy Sharpe ratio, mid-quotes, subtree_daily_baseline_lgbm
 \providecommand{\rhrShXLgbmCloseHar}{0.48}  % ... at quoted bid/ask prices
 \providecommand{\rhrVsShortLgbmCloseHarT}{0.34}  % ... HAC t of the daily mid-return differential over the short straddle
@@ -455,60 +455,64 @@
 \providecommand{\rhrAfNnPoolDShT}{\ensuremath{-}1.06}  % ... HAC t of the daily mid-return differential
 \providecommand{\rhrPoolN}{12}  % intraday forecasts (T1 Panel B: 6 classes x HAR, Full)
 \providecommand{\rhrAfPoolPairs}{6}  % pooled Full vs HAR pairs (one per class)
-\providecommand{\rhrAfPoolLower}{6}  % ... QLIKE lower with Full
-\providecommand{\rhrAfPoolLowerSig}{1}  % ... and DM p < 0.05
+\providecommand{\rhrAfPoolLower}{4}  % ... QLIKE lower with Full
+\providecommand{\rhrAfPoolLowerSig}{0}  % ... and DM p < 0.05
 \providecommand{\rhrAfPoolTreeLowerSig}{0}  % pooled trees (of 3) whose Full-vs-HAR QLIKE reduction (T1, rhrAf<M>PoolPval) has DM p < 0.05
-\providecommand{\rhrAfPoolMseHigher}{4}  % ... MSE higher with Full
+\providecommand{\rhrAfPoolLinLowerSig}{0}  % pooled linear models (of 3) whose Full-vs-HAR QLIKE reduction (T1, rhrAf<M>PoolPval) has DM p < 0.05
+\providecommand{\rhrAfPoolMseHigher}{6}  % ... MSE higher with Full
 \providecommand{\rhrAfPoolMseHigherSig}{0}  % ... and DM (squared error) p < 0.05
-\providecommand{\rhrAfPoolShHigher}{5}  % ... Sharpe mid higher with Full
-\providecommand{\rhrAfPoolShHigherSig}{1}  % ... and Ledoit-Wolf p < 0.05 (equal Sharpe ratios)
-\providecommand{\rhrAfPoolDShMin}{\ensuremath{-}0.18}  % ... Sharpe mid change, Full minus HAR: min
-\providecommand{\rhrAfPoolDShMax}{\ensuremath{+}0.82}  % ... max
-\providecommand{\rhrAfPoolDShMed}{\ensuremath{+}0.50}  % ... median
+\providecommand{\rhrAfPoolShHigher}{2}  % ... Sharpe mid higher with Full
+\providecommand{\rhrAfPoolShHigherSig}{0}  % ... and Ledoit-Wolf p < 0.05 (equal Sharpe ratios)
+\providecommand{\rhrAfPoolDShMin}{\ensuremath{-}0.26}  % ... Sharpe mid change, Full minus HAR: min
+\providecommand{\rhrAfPoolDShMax}{\ensuremath{+}0.31}  % ... max
+\providecommand{\rhrAfPoolDShMed}{\ensuremath{-}0.18}  % ... median
 \providecommand{\rhrAfClosePairs}{6}  % closing-interval Full vs HAR pairs (one per class)
 \providecommand{\rhrAfCloseLower}{6}  % ... QLIKE lower with Full
 \providecommand{\rhrAfCloseLowerSig}{0}  % ... and DM p < 0.05
 \providecommand{\rhrAfClosePctMin}{\ensuremath{-}4.1}  % ... QLIKE % change: min
 \providecommand{\rhrAfClosePctMax}{\ensuremath{-}0.1}  % ... max
 \providecommand{\rhrPoolSETopFiveMin}{74}  % pooled forecasts on Full: % of total squared error on their 5 largest days (all in March 2020), min
-\providecommand{\rhrPoolSETopFiveMax}{83}  % ... max
+\providecommand{\rhrPoolSETopFiveMax}{84}  % ... max
 \providecommand{\rhrPoolQLTopFiveMin}{1}  % ... % of total QLIKE on those days, min
-\providecommand{\rhrPoolQLTopFiveMax}{4}  % ... max
-\providecommand{\rhrPoolQLinFullMin}{0.1078}  % mean QLIKE, pooled linear models on Full: min
-\providecommand{\rhrPoolQLinFullMax}{0.1101}  % ... max
+\providecommand{\rhrPoolQLTopFiveMax}{5}  % ... max
+\providecommand{\rhrPoolQLinFullMin}{0.1194}  % mean QLIKE, pooled linear models on Full: min
+\providecommand{\rhrPoolQLinFullMax}{0.1236}  % ... max
 \providecommand{\rhrPoolQTreeFullMin}{0.1114}  % mean QLIKE, pooled trees on Full: min
 \providecommand{\rhrPoolQTreeFullMax}{0.1140}  % ... max
-\providecommand{\rhrPoolQLinHarMin}{0.1135}  % mean QLIKE, pooled linear models on HAR: min
-\providecommand{\rhrPoolQLinHarMax}{0.1143}  % ... max
+\providecommand{\rhrPoolQLinHarMin}{0.1203}  % mean QLIKE, pooled linear models on HAR: min
+\providecommand{\rhrPoolQLinHarMax}{0.1205}  % ... max
 \providecommand{\rhrPoolQTreeHarMin}{0.1133}  % mean QLIKE, pooled trees on HAR: min
 \providecommand{\rhrPoolQTreeHarMax}{0.1190}  % ... max
-\providecommand{\rhrVsBmPoolLinFullPctMin}{4.4}  % pooled linear on Full vs the benchmark forecast: QLIKE % change, min (all > 0)
-\providecommand{\rhrVsBmPoolLinFullPctMax}{6.7}  % ... max
+\providecommand{\rhrVsBmPoolLinFullPctMin}{15.6}  % pooled linear on Full vs the benchmark forecast: QLIKE % change, min (all > 0)
+\providecommand{\rhrVsBmPoolLinFullPctMax}{19.7}  % ... max
 \providecommand{\rhrVsBmPoolTreeFullPctMin}{7.9}  % pooled trees on Full vs the benchmark forecast: min
 \providecommand{\rhrVsBmPoolTreeFullPctMax}{10.4}  % ... max
 \providecommand{\rhrVsBmPoolHarPctMin}{9.7}  % pooled models on HAR vs the benchmark forecast: min
-\providecommand{\rhrVsBmPoolHarPctMax}{15.3}  % ... max
+\providecommand{\rhrVsBmPoolHarPctMax}{16.7}  % ... max
 \providecommand{\rhrVsBmPoolTreeFullSig}{1}  % pooled trees (of 3) on Full: excess QLIKE over the benchmark forecast, p < 0.05 (rhrVsBm<M>PoolFullPval)
 \providecommand{\rhrVsBmPoolHarSig}{6}  % pooled models (of 6) on HAR: excess QLIKE over the benchmark forecast, p < 0.05 (rhrVsBm<M>PoolHarPval)
 \providecommand{\rhrVsBmPoolHarSigOne}{4}  % ... and p < 0.01
 \providecommand{\rhrTreePoolVsCloseHarSig}{1}  % tree classes (of 3) whose pooled-minus-closing-interval QLIKE difference on HAR (T2) has DM p < 0.05
 \providecommand{\rhrTreePoolVsCloseFullSig}{2}  % ... on Full
-\providecommand{\rhrPoolShortAbove}{9}  % pooled forecasts whose sign strategy has a higher Sharpe mid than the short straddle
+\providecommand{\rhrLinPoolVsCloseFullSig}{3}  % linear classes (of 3) whose pooled-minus-closing-interval QLIKE difference on Full (T2) has DM p < 0.05
+\providecommand{\rhrVsBmPoolLinFullSig}{3}  % pooled linear models (of 3) on Full: excess QLIKE over the benchmark forecast, p < 0.05 (rhrVsBm<M>PoolFullPval)
+\providecommand{\rhrVsBmPoolNarrow}{4}  % pooled classes (of 6) whose excess QLIKE over the benchmark forecast is smaller on Full than on HAR
+\providecommand{\rhrPoolShortAbove}{12}  % pooled forecasts whose sign strategy has a higher Sharpe mid than the short straddle
 \providecommand{\rhrPoolShortSig}{0}  % ... with a mean gain significant at 5 % (t > 0, fixed-b p < 0.05)
-\providecommand{\rhrVsShortPoolTMin}{0.60}  % pooled forecasts: t (LLSW bandwidth) of the daily mid-return differential over the short straddle, min
-\providecommand{\rhrVsShortPoolTMax}{1.71}  % ... max
+\providecommand{\rhrVsShortPoolTMin}{0.79}  % pooled forecasts: t (LLSW bandwidth) of the daily mid-return differential over the short straddle, min
+\providecommand{\rhrVsShortPoolTMax}{1.70}  % ... max
 \providecommand{\rhrAfPoolDiffSig}{0}  % pooled Full vs HAR pairs whose t of the daily mid-return differential has fixed-b p < 0.05 (two-sided)
 \providecommand{\rhrPoolVsCloseRetSig}{0}  % pooled vs closing-interval, same class and predictor set: t of the return differential, fixed-b p < 0.05
-\providecommand{\rhrPoolShHarMin}{0.74}  % Sharpe mid of the pooled forecasts on HAR: min
-\providecommand{\rhrPoolShHarMax}{1.21}  % ... max
-\providecommand{\rhrPoolShFullMin}{1.03}  % Sharpe mid of the pooled forecasts on Full: min
-\providecommand{\rhrPoolShFullMax}{1.56}  % ... max
-\providecommand{\rhrPoolShXHarMin}{0.40}  % Sharpe at quoted bid/ask prices of the pooled forecasts on HAR: min
-\providecommand{\rhrPoolShXHarMax}{0.86}  % ... max
-\providecommand{\rhrPoolShXFullMin}{0.69}  % Sharpe at quoted bid/ask prices of the pooled forecasts on Full: min
-\providecommand{\rhrPoolShXFullMax}{1.23}  % ... max
-\providecommand{\rhrPoolSzSignMed}{1.05}  % sizing sign: median Sharpe mid over the pooled forecasts, 614 days
-\providecommand{\rhrPoolSzClipMed}{1.44}  % sizing robust clip: median
-\providecommand{\rhrPoolSzRankMed}{1.41}  % sizing rank of |gap|: median
-\providecommand{\rhrPoolSzClipBeats}{12}  % pooled forecasts with clip Sharpe mid above sign
+\providecommand{\rhrPoolShHarMin}{0.96}  % Sharpe mid of the pooled forecasts on HAR: min
+\providecommand{\rhrPoolShHarMax}{1.30}  % ... max
+\providecommand{\rhrPoolShFullMin}{1.02}  % Sharpe mid of the pooled forecasts on Full: min
+\providecommand{\rhrPoolShFullMax}{1.34}  % ... max
+\providecommand{\rhrPoolShXHarMin}{0.63}  % Sharpe at quoted bid/ask prices of the pooled forecasts on HAR: min
+\providecommand{\rhrPoolShXHarMax}{0.96}  % ... max
+\providecommand{\rhrPoolShXFullMin}{0.68}  % Sharpe at quoted bid/ask prices of the pooled forecasts on Full: min
+\providecommand{\rhrPoolShXFullMax}{1.00}  % ... max
+\providecommand{\rhrPoolSzSignMed}{1.11}  % sizing sign: median Sharpe mid over the pooled forecasts, 614 days
+\providecommand{\rhrPoolSzClipMed}{1.40}  % sizing robust clip: median
+\providecommand{\rhrPoolSzRankMed}{1.39}  % sizing rank of |gap|: median
+\providecommand{\rhrPoolSzClipBeats}{9}  % pooled forecasts with clip Sharpe mid above sign
 \providecommand{\rhrPoolTailNeg}{12}  % pooled forecasts whose gain over the short straddle is < 0 without their 10 best days

@@ -28,20 +28,20 @@ Rank & Model & Predictors & QLIKE & $\Delta$ (\%) & $\DM$ \\
 \addlinespace[4pt]
 \multicolumn{6}{@{}l}{\textit{Panel B: Intraday models}} \\
 \addlinespace[2pt]
-37 & Elastic net & Full & 0.1078 & $4.4^{\phantom{***}}$ & $(1.17)$ \\
-44 & Ridge & Full & 0.1086 & $5.1^{\phantom{***}}$ & $(1.36)$ \\
-65 & Lasso & Full & 0.1101 & $6.7^{\phantom{***}}$ & $(1.62)$ \\
 77 & XGBoost & Full & 0.1114 & $7.9^{*\phantom{**}}$ & $(1.75)$ \\
 85 & LightGBM & Full & 0.1125 & $9.0^{*\phantom{**}}$ & $(1.77)$ \\
 93 & XGBoost & HAR & 0.1133 & $9.7^{**\phantom{*}}$ & $(2.23)$ \\
-96 & Lasso & HAR & 0.1135 & $10.0^{***}$ & $(3.09)$ \\
 100 & Random forest & Full & 0.1140 & $10.4^{**\phantom{*}}$ & $(2.18)$ \\
 101 & Ridge (block penalty)\tnote{a} & Full & 0.1140 & $10.4^{**\phantom{*}}$ & $(2.27)$ \\
-102 & Elastic net & HAR & 0.1142 & $10.6^{***}$ & $(3.21)$ \\
-104 & Ridge & HAR & 0.1143 & $10.7^{***}$ & $(3.15)$ \\
 105 & LightGBM & HAR & 0.1144 & $10.8^{**\phantom{*}}$ & $(2.38)$ \\
 117 & Random forest & HAR & 0.1190 & $15.3^{***}$ & $(2.72)$ \\
-118 & OLS\tnote{a} & HAR & 0.1291 & $25.0^{***}$ & $(4.56)$ \\
+118 & Elastic net & Full & 0.1194 & $15.6^{***}$ & $(2.90)$ \\
+119 & Lasso & HAR & 0.1203 & $16.5^{***}$ & $(2.97)$ \\
+120 & Elastic net & HAR & 0.1205 & $16.7^{***}$ & $(2.99)$ \\
+121 & Ridge & HAR & 0.1205 & $16.7^{***}$ & $(2.99)$ \\
+122 & Lasso & Full & 0.1229 & $19.0^{***}$ & $(3.18)$ \\
+123 & Ridge & Full & 0.1236 & $19.7^{***}$ & $(3.28)$ \\
+124 & OLS\tnote{a} & HAR & 0.1291 & $25.0^{***}$ & $(4.56)$ \\
 \bottomrule
 \end{tabular}
 \begin{tablenotes}[flushleft]

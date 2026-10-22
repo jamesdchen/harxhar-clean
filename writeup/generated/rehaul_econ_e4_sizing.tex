@@ -15,10 +15,10 @@
 \multicolumn{5}{@{}l}{\textit{Panel A: $\SR$ at mid-quotes}} \\
 \addlinespace[2pt]
 Short straddle & \multicolumn{4}{c}{$0.77$ under every rule} \\
-\multicolumn{5}{@{}l}{Pooled intraday models (30-minute grid)} \\
-\quad Ridge & $1.44$ & $1.59$ & $1.40$ & $1.55$ \\
-\quad Lasso & $1.46$ & $1.58$ & $1.56$ & $1.48$ \\
-\quad Elastic net & $1.56$ & $1.56$ & $1.43$ & $1.51$ \\
+\multicolumn{5}{@{}l}{Pooled intraday models (\rhePoolNBars{} regular-hours intervals)} \\
+\quad Ridge & $1.09$ & $1.52$ & $1.31$ & $1.51$ \\
+\quad Lasso & $1.02$ & $1.51$ & $1.27$ & $1.51$ \\
+\quad Elastic net & $1.13$ & $1.46$ & $1.36$ & $1.44$ \\
 \quad LightGBM & $1.07$ & $1.77$ & $1.39$ & $1.72$ \\
 \quad XGBoost & $1.34$ & $1.72$ & $1.57$ & $1.72$ \\
 \quad Random forest & $1.03$ & $1.55$ & $1.33$ & $1.57$ \\
@@ -34,10 +34,10 @@ Model set, number above sign & -- & 101 & 83 & 96 \\
 \multicolumn{5}{@{}l}{\textit{Panel B: $\SR$ at quoted bid/ask prices}} \\
 \addlinespace[2pt]
 Short straddle & \multicolumn{4}{c}{$0.42$ under every rule} \\
-\multicolumn{5}{@{}l}{Pooled intraday models (30-minute grid)} \\
-\quad Ridge & $1.10$ & $1.29$ & $1.10$ & $1.25$ \\
-\quad Lasso & $1.12$ & $1.28$ & $1.26$ & $1.17$ \\
-\quad Elastic net & $1.23$ & $1.26$ & $1.13$ & $1.21$ \\
+\multicolumn{5}{@{}l}{Pooled intraday models (\rhePoolNBars{} regular-hours intervals)} \\
+\quad Ridge & $0.75$ & $1.20$ & $1.00$ & $1.19$ \\
+\quad Lasso & $0.68$ & $1.19$ & $0.97$ & $1.20$ \\
+\quad Elastic net & $0.79$ & $1.15$ & $1.06$ & $1.12$ \\
 \quad LightGBM & $0.74$ & $1.46$ & $1.09$ & $1.42$ \\
 \quad XGBoost & $1.00$ & $1.41$ & $1.27$ & $1.40$ \\
 \quad Random forest & $0.69$ & $1.25$ & $1.02$ & $1.27$ \\
@@ -58,8 +58,8 @@ Model set, number above sign & -- & 105 & 97 & 98 \\
 earlier days $t' < t$ only; the sign rule is the sign strategy, and the short-straddle benchmark (Short straddle)
 holds $q_t \equiv -1$ under every rule. The first \rheSzWarmup{} trading days of the out-of-sample period only estimate the
 scale of $|\hat\sigma^2_{t'} - \mathrm{IV}^2_{t'}|$, so every rule is evaluated on the remaining \rheSzDays{} of
-the \rheNdays{} trading days; at quoted bid/ask prices the bid--ask spread is paid on $|q_t|$ straddles. Every model except the OLS uses the full predictor set; the trees are
-the pooled intraday trees of Table~\ref{tab:rh_econ_control} (note a there). The last two rows of each panel give the median across the
+the \rheNdays{} trading days; at quoted bid/ask prices the bid--ask spread is paid on $|q_t|$ straddles. Every model except the OLS uses the full predictor set; the pooled
+intraday models are those of Table~\ref{tab:rh_econ_control} (note a there). The last two rows of each panel give the median across the
 \rheModelSetN{} forecasts of the model set and the number of them whose $\SR$ is above that of
 their own sign strategy. Point estimates; no test is reported.
 \end{tablenotes}
