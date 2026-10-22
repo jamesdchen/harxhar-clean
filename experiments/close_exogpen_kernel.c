@@ -29,6 +29,10 @@
  * intercept as its last column (all ones).
  * Build: gcc -O3 -march=native -fPIC -shared -o close_exogpen_kernel.so close_exogpen_kernel.c
  *        -l:liblapack.so.3 -l:libblas.so.3 -lm   (no -ffast-math)
+ * 2026-10-22 (James: "add the KKT check flag"; src/models/reclasso_har.py WALK_KKT_RESEED): with kkt_reseed != 0,
+ * after every warm lasso / elastic-net session (the two enet_online calls) the KKT conditions of the window's problem
+ * on the warm state (walk_kkt_ok: Gr, c, mu_vec; tol 1e-9 max(max|c|, 1)); where they fail, the cold seed on the
+ * current window and the walk goes on warm from it (n_kkt_reseed per block).  kkt_reseed = 0: as before, bit for bit.
  */
 #include <float.h>
 #include <math.h>
@@ -61,6 +65,7 @@ extern void dgemm_(const char *ta, const char *tb, const int *m, const int *n, c
 #define SEED_NZ 1e-9
 #define MAX_EVENTS 100000
 #define MAX_ITER 100000
+#define KKT_TOL_REL 1e-9 /* reclasso_har.KKT_TOL_REL (WALK_KKT_RESEED) */
 
 static int g_err = 0; /* first error code seen (0 = none) */
 static long g_singular = 0; /* solves that fell back to least squares */
@@ -300,6 +305,27 @@ static int kkt_ok(int m, const double *G, const double *c, const double *mu, con
         r -= lam2[j] * b[j];
         if (b[j] != 0.0) {
             double sg = (b[j] > 0) - (b[j] < 0);
+            if (fabs(r - mu[j] * sg) > tol) return 0;
+        } else if (fabs(r) > mu[j] + tol) {
+            return 0;
+        }
+    }
+    return 1;
+}
+
+/* 2026-10-22 (WALK_KKT_RESEED): reclasso_har.walk_kkt -- the KKT conditions of th for
+ * 1/2 b'Gr b - c'b + sum mu_j |b_j| (the L2 term on Gr's diagonal) at tol = KKT_TOL_REL max(max_j |c_j|, 1) */
+static int walk_kkt_ok(int m, const double *Gr, const double *c, const double *mu, const double *th) {
+    double sc = 1.0;
+    for (int j = 0; j < m; j++)
+        if (fabs(c[j]) > sc) sc = fabs(c[j]);
+    double tol = KKT_TOL_REL * sc;
+    for (int j = 0; j < m; j++) {
+        const double *Gj = Gr + (size_t)j * m;
+        double r = c[j];
+        for (int k = 0; k < m; k++) r -= Gj[k] * th[k];
+        if (th[j] != 0.0) {
+            double sg = (th[j] > 0) - (th[j] < 0);
             if (fabs(r - mu[j] * sg) > tol) return 0;
         } else if (fabs(r) > mu[j] + tol) {
             return 0;
@@ -746,7 +772,8 @@ int exogpen_run(
     const int *group, int n_groups, const double *mpr_start, int mpr_passes,
     int check_every,
     double *pred, double *theta, int *events, double *val_mse, int *choice,
-    double *pen_g, double *mpr_mse, int *n_reseed, long *n_singular, double *exact_pred) {
+    double *pen_g, double *mpr_mse, int *n_reseed, long *n_singular, double *exact_pred,
+    int kkt_reseed, int *n_kkt_reseed) { /* 2026-10-22: the last two (WALK_KKT_RESEED) */
     (void)N;
     Model md;
     md.m = m; md.n = W; md.est = est; md.l1 = est == 1 ? 1.0 : 0.5;
@@ -780,6 +807,7 @@ int exogpen_run(
     for (int blk = 0; blk < n_blocks; blk++) {
         int i0 = bstart[blk], i1 = bstart[blk + 1];
         n_reseed[blk] = 0;
+        n_kkt_reseed[blk] = 0;
         /* ---- _tune on the window [i0, i0 + W) */
         int s_best = 0, a_best = 0;
         double best = INFINITY;
@@ -924,6 +952,12 @@ int exogpen_run(
                         nev += enet_online(m, md.Gr, md.c, md.mu_vec, md.ur, yout, -1.0, md.th,
                                            md.A, md.s, &md.nA, md.locked, md.inA, md.M, md.tp,
                                            md.r, md.dvec, md.inact);
+                        /* 2026-10-22 (WALK_KKT_RESEED): the warm state off the window's optimum ->
+                         * the cold seed on the current window, warm from it */
+                        if (kkt_reseed && !walk_kkt_ok(m, md.Gr, md.c, md.mu_vec, md.th)) {
+                            n_kkt_reseed[blk]++;
+                            seed(&md, X, y, j);
+                        }
                     }
                 }
             }

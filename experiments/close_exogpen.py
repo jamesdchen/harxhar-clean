@@ -93,6 +93,11 @@ for _p in (REPO, REPO / "experiments", REPO / "notebooks"):
     if str(_p) not in sys.path:
         sys.path.insert(0, str(_p))
 
+# 2026-10-22 (James: "add the KKT check flag"): WALK_KKT_RESEED (on by default) is passed to the C port at every call
+# (kkt_reseed: after every warm lasso / elastic-net session the KKT conditions of the window's problem, a cold reseed
+# where they fail; n_kkt_reseed per block in the run files); off = the kernel as before, bit for bit
+import src.models.reclasso_har as RH  # noqa: E402
+
 OUT = REPO / "results" / "close_studies_2026-10-03" / "exog_penalty"
 WORK = OUT / "_work"
 DESIGN = REPO / "results" / "close_design" / "_work"
@@ -373,6 +378,7 @@ def kernel():
         i4, ci, f8, ci,  # group, n_groups, mpr_start, mpr_passes
         ci,  # check_every
         f8, f8, i4, f8, i4, f8, f8, i4, i8, f8,  # outputs
+        ci, i4,  # 2026-10-22: kkt_reseed (WALK_KKT_RESEED), n_kkt_reseed (output, per block)
     ]
     _LIB = lib
     return lib
@@ -393,6 +399,7 @@ def c_run(S: Setup, est: str, mode: str, grid: list[float], mpr_start=None,
         pen_g=np.full((nb, len(GROUPS)), np.nan), mpr_mse=np.full(nb, np.nan),
         n_reseed=np.zeros(nb, np.int32), n_singular=np.zeros(4, np.int64),  # LU fallbacks, descent repairs, uncertified, support repairs
         exact_pred=np.full(n_out, np.nan),
+        n_kkt_reseed=np.zeros(nb, np.int32),  # 2026-10-22 (WALK_KKT_RESEED)
     )
     est_i = {"ridge": 0, "reclasso": 1, "reclasticnet": 2}[est]
     ms = np.ascontiguousarray(
@@ -407,6 +414,7 @@ def c_run(S: Setup, est: str, mode: str, grid: list[float], mpr_start=None,
         ms, MPR_PASSES, check_every, out["pred"], out["theta"], out["events"],
         out["val_mse"], out["choice"], out["pen_g"], out["mpr_mse"], out["n_reseed"],
         out["n_singular"], out["exact_pred"],
+        1 if RH.WALK_KKT_RESEED else 0, out["n_kkt_reseed"],  # 2026-10-22 (the flag read at call time)
     )
     out["cpu_sec"] = time.process_time() - t0
     if rc != 0:
@@ -457,6 +465,9 @@ def check() -> None:
     """Gate (1): the C port's single-penalty arms == gate_spec_*.npz (the spec's class on
     the cached design) and the stored tables.  Gate (2): on a short slice, the C
     backbone-locked arm == the spec's class with the same locked set."""
+    # 2026-10-22: a port gate -- the spec's class (specs/causal_tune_linear.py) has no KKT reseed, so the C port runs
+    # here with WALK_KKT_RESEED off (the kernel as before); the arms of record (run) use the flag's setting
+    RH.WALK_KKT_RESEED = False
     grids = spec_grids()
     S = Setup()
     idx = pd.DatetimeIndex(pd.to_datetime(S.d["date"][S.W :]))
@@ -556,6 +567,7 @@ def run(ests: list[str], supplement: bool = False) -> None:
             pen_g=res["pen_g"], mpr_mse=res["mpr_mse"], events=res["events"],
             n_reseed=res["n_reseed"], n_singular=res["n_singular"], cpu_sec=res["cpu_sec"],
             exact_pred=res["exact_pred"],
+            n_kkt_reseed=res["n_kkt_reseed"], walk_kkt_reseed=RH.WALK_KKT_RESEED,  # 2026-10-22
             locked=np.array([lk[b, ch[b]] for b in range(nb)]),
             maskout=np.array([mk[b, ch[b]] for b in range(nb)]),
         )

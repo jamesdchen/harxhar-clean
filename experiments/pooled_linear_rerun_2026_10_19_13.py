@@ -42,6 +42,10 @@ LATE_START_WARMUP, on by default in src/backtest/executor.py), and --keep-fomc-r
 dummy in the full set although src/data/loading.py EXCLUDE_FOMC_RELEASE is on; check_design asserts the FOMC series
 of that set (it asserted all four, which fails at EXCLUDE_FOMC_RELEASE = True).  Without either option every stage
 is as before.
+
+2026-10-22 (James: "add the KKT check flag"): --walk-kkt-reseed 0|1 passes the runner's option of that name to the walks
+(src/models/reclasso_har.py WALK_KKT_RESEED, on by default: after every warm lasso / elastic-net update the KKT
+conditions of the window's problem, a cold reseed where they fail); without it the walks run at the module's default.
 """
 
 from __future__ import annotations
@@ -100,6 +104,7 @@ HAR_LADDER = [1, 5, 25, 125, 625, 3125]  # base 5 (author, 2026-10-19 correction
 
 
 KEEP_FOMC_RELEASE = False  # 2026-10-22: set by main from --keep-fomc-release
+WALK_KKT = ""  # 2026-10-22: set by main from --walk-kkt-reseed ("" = the runner's default)
 
 
 def design_features() -> tuple[list[str], list[str]]:
@@ -365,6 +370,8 @@ def walk_jobs(
                 str(W),
             ]
             args += ["--out", str(o), "--design", str(design_dir(s))]
+            if WALK_KKT:  # 2026-10-22 (--walk-kkt-reseed)
+                args += ["--walk-kkt-reseed", WALK_KKT]
             jobs.append((args, o / "run.log", (s, m, c)))
     return jobs
 
@@ -575,7 +582,7 @@ def st_score(a) -> None:
 
 
 def main() -> None:
-    global OUT, WORK, TW_DAYS, W, PRE_HALO, FIRST_DAY, KEEP_FOMC_RELEASE
+    global OUT, WORK, TW_DAYS, W, PRE_HALO, FIRST_DAY, KEEP_FOMC_RELEASE, WALK_KKT
     ap = argparse.ArgumentParser()
     ap.add_argument("stage", choices=("design", "pretune", "select", "walk", "score"))
     ap.add_argument("--jobs", type=int, default=4)
@@ -603,7 +610,10 @@ def main() -> None:
     # EXCLUDE_FOMC_RELEASE is on (pool_linear_pretune.py --keep-fomc-release); the defaults add nothing to CFG
     ap.add_argument("--ex-flag", action="append", default=[])
     ap.add_argument("--keep-fomc-release", action="store_true")
+    # 2026-10-22 (James: "add the KKT check flag"): the walks' WALK_KKT_RESEED (pool_linear_pretune.py --walk-kkt-reseed)
+    ap.add_argument("--walk-kkt-reseed", default="", choices=("", "0", "1"))
     a = ap.parse_args()
+    WALK_KKT = a.walk_kkt_reseed  # 2026-10-22
     if a.out:
         OUT = Path(a.out).resolve()
         WORK = OUT / "_work"

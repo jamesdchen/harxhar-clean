@@ -97,6 +97,14 @@ the two added the same thing differently, both stay selectable:
 back into all_features at its old place (src/data/loading.py EXCLUDE_FOMC_RELEASE is on since 2026-10-22), so a
 rerun can be set against the published 576-column runs; recorded in the design cache's config only when set.  The
 executor's late-start guard is a module flag like the others (--ex-flag LATE_START_WARMUP=0|1; on by default).
+
+2026-10-22 (James: "add the KKT check flag"): src/models/reclasso_har.py WALK_KKT_RESEED (on by default).  After every
+warm update of the lasso / elastic net the walk checks the KKT conditions of the current window's problem
+(reclasso_har.walk_kkt on the warm Gr, c, mu_vec; the batch certification's tolerance) and, where they fail, takes the
+cold seed on the current window (_seed) and goes on warm from it (PFTuned.roll / solve).  --walk-kkt-reseed 0 turns it
+off: the walk before the flag, bit for bit.  Recorded with the flag on: trace.npz kkt_* (every lasso / elastic-net solve
+and every KKT-triggered reseed) and run.json kkt_*.  A chunk that starts at a re-choice boundary still reproduces the
+whole walk (a reseed depends only on the state since the block's cold seed).  Ridge and the OLS are not touched.
 """
 
 from __future__ import annotations
@@ -594,15 +602,55 @@ def make_class(ns: dict, r: float, sched: dict | None, g0: int, rec: list):
     Base = ns["RollingTunedLinear"]
     fws = ns["forward_window_split"]
     VAL_TAIL, EMBARGO, TUNE_PER = ns["VAL_TAIL"], ns["EMBARGO"], ns["TUNE_PER"]
+    import src.models.reclasso_har as RH
 
     class PFTuned(Base):
         bb = None  # bool over the feature columns, set by fit_predict from the column names
+        # 2026-10-22 (src/models/reclasso_har.py WALK_KKT_RESEED, read at every solve): with the flag on, every
+        # lasso / elastic-net solve records (solve, violation / max(max|c|, 1), ok); every KKT-triggered reseed
+        # (solve, relative violation before, after, ok after); seconds in the check and in the reseeds
+        kkt_rows: list = []
+        kkt_reseeds: list = []
+        kkt_sec: list = [0.0, 0.0]
 
         def init_window(self, X_win, y_win):
             pf = np.ones(np.asarray(X_win).shape[1] + 1)
             pf[:-1][self.bb] = r
             self._pf = pf
+            self._warm = False  # 2026-10-22: the state came from a warm update (WALK_KKT_RESEED)
             return super().init_window(X_win, y_win)
+
+        def roll(self, x_in, y_in, x_out, y_out):
+            """The spec's roll; 2026-10-22: notes whether it was a warm update (the two enet_online calls), not
+            ridge and not the between-tune mask-addition reseed (a cold seed)."""
+            n0 = len(Base.reseed_trace)
+            super().roll(x_in, y_in, x_out, y_out)
+            self._warm = self.kind_ != "ridge" and len(Base.reseed_trace) == n0
+
+        def solve(self):
+            """The spec's solve; 2026-10-22, WALK_KKT_RESEED on: after a warm update (not at a tune solve, whose
+            cold seed replaces it), the KKT conditions of the current window's problem on the warm state (Gr, c,
+            mu_vec; reclasso_har.walk_kkt, the batch certification's tolerance); if they fail, the cold seed on the
+            current window at the penalty and mask in force (_seed), and the walk goes on warm from it."""
+            tune = self._n_solve > 0 and self._n_solve % TUNE_PER == 0
+            warm = self._warm and not tune
+            self._warm = False
+            super().solve()
+            if self.kind_ == "ridge" or not RH.WALK_KKT_RESEED:
+                return
+            # this solve's global index = the OOS row it forecasts
+            s = g0 + self._n_solve - 1
+            t0 = time.perf_counter()
+            ok, v, sc = RH.walk_kkt(self._Gr, self._c, self._mu_vec, self._th)
+            PFTuned.kkt_sec[0] += time.perf_counter() - t0
+            if warm and not ok:
+                t1 = time.perf_counter()
+                self._seed()
+                ok2, v2, sc2 = RH.walk_kkt(self._Gr, self._c, self._mu_vec, self._th)
+                PFTuned.kkt_sec[1] += time.perf_counter() - t1
+                PFTuned.kkt_reseeds.append((s, v / sc, v2 / sc2, ok2))
+                ok, v, sc = ok2, v2, sc2
+            PFTuned.kkt_rows.append((s, v / sc, ok))
 
         def _seed(self):
             """The spec's _seed with alpha * pf_j in place of alpha."""
@@ -983,6 +1031,11 @@ def cached_backtest(a, fit_predict, out_csv: Path) -> None:
 def walk(a) -> None:
     t_wall = time.time()
     ns = spec_section(a.est, a.bucket, a.start, a.end, a.halo)
+    import src.models.reclasso_har as RH
+
+    # 2026-10-22 (--walk-kkt-reseed 0|1); empty: the module's default (on)
+    if a.walk_kkt_reseed:
+        RH.WALK_KKT_RESEED = a.walk_kkt_reseed == "1"
     g0 = max(0, a.start - a.halo)
     assert g0 % ns["TUNE_PER"] == 0, (
         f"chunk start {a.start} - halo {a.halo} is not a re-choice boundary"
@@ -1017,6 +1070,8 @@ def walk(a) -> None:
         names_seen.append(names)
         Cls.bb = backbone_mask(names)
         Base.trace, Base.mask_trace, Base.reseed_trace = [], [], []
+        if hasattr(Cls, "kkt_rows"):  # 2026-10-22 (WALK_KKT_RESEED)
+            Cls.kkt_rows, Cls.kkt_reseeds, Cls.kkt_sec = [], [], [0.0, 0.0]
         bt = ns["MultiStageBacktest"](
             residualizer=ns["IdentityResidualizer"](),
             regressor_factory=Cls,
@@ -1057,8 +1112,39 @@ def walk(a) -> None:
         if sched is None and rec
         else np.zeros((len(rec), G, 0))
     )
+    # 2026-10-22 (WALK_KKT_RESEED): the KKT record of the lasso / elastic-net solves, written only with the flag on
+    kk = getattr(Cls, "kkt_rows", [])
+    ks = getattr(Cls, "kkt_reseeds", [])
+    kkt_npz: dict = {}
+    kkt_info: dict = dict(walk_kkt_reseed=bool(RH.WALK_KKT_RESEED))
+    if RH.WALK_KKT_RESEED and kk:
+        kkt_npz = dict(
+            kkt_solve=np.array([x[0] for x in kk], dtype=np.int64),
+            kkt_rel=np.array([x[1] for x in kk]),
+            kkt_ok=np.array([x[2] for x in kk], dtype=bool),
+            kkt_reseed_solve=np.array([x[0] for x in ks], dtype=np.int64),
+            kkt_reseed_rel_before=np.array([x[1] for x in ks]),
+            kkt_reseed_rel_after=np.array([x[2] for x in ks]),
+            kkt_reseed_ok_after=np.array([x[3] for x in ks], dtype=bool),
+        )
+        kkt_info |= dict(
+            kkt_checks=len(kk),
+            kkt_reseeds=len(ks),
+            kkt_reseed_solves=[int(x[0]) for x in ks],
+            kkt_not_ok_after_check=int(sum(not x[2] for x in kk)),
+            kkt_max_rel_after_check=float(max(x[1] for x in kk)),
+            kkt_max_rel_before_reseed=float(max((x[1] for x in ks), default=0.0)),
+            kkt_check_sec=float(Cls.kkt_sec[0]),
+            kkt_reseed_sec=float(Cls.kkt_sec[1]),
+        )
+        say(
+            f"WALK_KKT_RESEED: {len(ks)} KKT-triggered reseeds in {len(kk)} solves; "
+            f"{kkt_info['kkt_not_ok_after_check']} not KKT-clean after the check; "
+            f"check {Cls.kkt_sec[0]:.1f} s, reseeds {Cls.kkt_sec[1]:.1f} s"
+        )
     np.savez_compressed(
         out / "trace.npz",
+        **kkt_npz,
         block=blocks,
         solve=np.array([x["solve"] for x in rec]),
         alpha=np.array([x["alpha"] for x in rec]),
@@ -1093,6 +1179,7 @@ def walk(a) -> None:
         n_backbone=int(backbone_mask(names_seen[0]).sum()),
         reseeds=len(Base.reseed_trace),
         repair=dict(REPAIR),
+        **kkt_info,
         cpu_sec=cpu,
         wall_sec=time.time() - t_wall,
         host=platform.node(),
@@ -1303,6 +1390,10 @@ def main() -> None:
     # 2026-10-22 (user): fomc_release back in all_features although EXCLUDE_FOMC_RELEASE is on (the late-start rerun
     # against the published 576-column run); default off
     ap.add_argument("--keep-fomc-release", action="store_true")
+    # 2026-10-22 (James: "add the KKT check flag"): src/models/reclasso_har.py WALK_KKT_RESEED for the walk (0 = off,
+    # the walk before the flag bit for bit; 1 = on); empty = the module's default (on).  The walk's numerics only: not
+    # part of the design cache's config
+    ap.add_argument("--walk-kkt-reseed", default="", choices=("", "0", "1"))
     a = ap.parse_args()
     global RERUN, PART
     RERUN = a.rerun

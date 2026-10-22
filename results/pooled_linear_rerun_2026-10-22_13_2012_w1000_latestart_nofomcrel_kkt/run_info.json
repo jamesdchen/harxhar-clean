@@ -1,0 +1,649 @@
+{
+ "run": "pooled 13-bar 2012 w1000 late-start run B (fomc_release dropped, 564 columns) with WALK_KKT_RESEED on",
+ "created": "2026-10-22",
+ "rule_file": "RULE_kkt.txt (written 2026-10-22 14:15 PDT, before any rerun or score)",
+ "rule": "WALK_KKT_RESEED: after every warm online update of the lasso / elastic net, check the KKT conditions of the current window's problem (r = c - G theta with the penalty factors and L2 term; active r_j = mu_j s_j; inactive |r_j| <= mu_j) at the tolerance of the batch certification (1e-9 max(max|c|, 1)); if they fail, replace the warm solution by the cold seed on the current window and continue warm from it.",
+ "code": {
+  "branch": "insurance-selling-2026-09-19-e34-kkt",
+  "commit": "9df281c",
+  "flag": "src/models/reclasso_har.py WALK_KKT_RESEED = True (walk_kkt); experiments/pool_linear_pretune.py PFTuned.roll / solve; --walk-kkt-reseed 0|1 (runner and orchestrator)"
+ },
+ "base_run": {
+  "dir": "results/pooled_linear_rerun_2026-10-22_13_2012_w1000_latestart_nofomcrel",
+  "commit": "a707349",
+  "forecasts_md5": "8287f6e8ea06bfc6ec1e6ed77d78952a",
+  "design_cache": "ls_wt worktree results/<base run>/_work/design_{baseline,all_features} (read-only junctions)",
+  "design_json_md5": {
+   "baseline": "068a956bcb0f3ca7cc83690e11f087f4",
+   "all_features": "ae2a070daa95f35ad7f5ecb770ff6cce"
+  },
+  "frozen_penalties": "copied unchanged (frozen_penalties.json)"
+ },
+ "commands": [
+  "experiments/pooled_linear_rerun_2026_10_19_13.py walk --window-days 1000 --first-day 2012-01-03 --ex-flag LATE_START_WARMUP=1 --walk-kkt-reseed 1 --out <this dir> --only <arm> [--chunks all_features/lasso=4 --chunks all_features/enet=4 --chunks all_features/ridge=2]",
+  "experiments/pooled_linear_rerun_2026_10_19_13.py score --window-days 1000 --first-day 2012-01-03 --ex-flag LATE_START_WARMUP=1 --out <this dir>"
+ ],
+ "environment": {
+  "host": "DESKTOP-CGOV4RD",
+  "python": "3.12.3 (uv venv w1500_venv)",
+  "numpy": "1.26.4",
+  "openblas": "numpy wheel OpenBLAS 0.3.23.dev, default core detection (OPENBLAS_CORETYPE unset: Haswell differs from the base run in the last bits), single-threaded"
+ },
+ "arms_walked_with_flag_on": "all seven (lasso, enet, ridge on both sets; OLS on the HAR benchmark); ridge, OLS and the HAR-benchmark lasso / enet are byte-identical to the base run (no reseed fired there; ridge and OLS are never checked)",
+ "verification": {
+  "a_flag_off_reproduces_base_run": {
+   "baseline/lasso": {
+    "chunks": 1,
+    "rows": 40497,
+    "csv_bytes_identical": true,
+    "pred_adj_identical": true
+   },
+   "baseline/enet": {
+    "chunks": 1,
+    "rows": 40497,
+    "csv_bytes_identical": true,
+    "pred_adj_identical": true
+   },
+   "baseline/ridge": {
+    "chunks": 1,
+    "rows": 40497,
+    "csv_bytes_identical": true,
+    "pred_adj_identical": true
+   },
+   "baseline/ols": {
+    "chunks": 1,
+    "rows": 40497,
+    "csv_bytes_identical": true,
+    "pred_adj_identical": true
+   },
+   "all_features/lasso": {
+    "chunks": 4,
+    "rows": 40497,
+    "csv_bytes_identical": true,
+    "pred_adj_identical": true
+   }
+  },
+  "b_flag_on": {
+   "baseline/lasso": {
+    "rows": 40497,
+    "rows_changed": 0,
+    "share_changed": 0.0,
+    "rows_rel_gt_1e10": 0,
+    "max_rel_dpred_adj": 0.0,
+    "max_abs_dpred_adj": 0.0,
+    "kkt_checks": 40497,
+    "kkt_all_ok": true,
+    "kkt_max_rel_after_check": 4.888956535467666e-15,
+    "kkt_reseeds": 0,
+    "kkt_reseed_rel_before_max": 0.0,
+    "kkt_reseed_rel_before_min": 0.0,
+    "kkt_reseed_rel_after_max": 0.0,
+    "kkt_reseed_days": 0,
+    "kkt_reseeds_per_year": {},
+    "kkt_check_sec": 2.3399968100711703,
+    "kkt_reseed_sec": 0.0,
+    "wall_sec": 19.821982622146606,
+    "cpu_sec": 18.65625,
+    "published_wall_sec": 66.00897741317749,
+    "published_cpu_sec": 55.609375,
+    "changed_rows_in_reseeded_blocks": true,
+    "kkt_reseed_dates": []
+   },
+   "baseline/enet": {
+    "rows": 40497,
+    "rows_changed": 0,
+    "share_changed": 0.0,
+    "rows_rel_gt_1e10": 0,
+    "max_rel_dpred_adj": 0.0,
+    "max_abs_dpred_adj": 0.0,
+    "kkt_checks": 40497,
+    "kkt_all_ok": true,
+    "kkt_max_rel_after_check": 5.091941825460687e-15,
+    "kkt_reseeds": 0,
+    "kkt_reseed_rel_before_max": 0.0,
+    "kkt_reseed_rel_before_min": 0.0,
+    "kkt_reseed_rel_after_max": 0.0,
+    "kkt_reseed_days": 0,
+    "kkt_reseeds_per_year": {},
+    "kkt_check_sec": 2.4528552093543112,
+    "kkt_reseed_sec": 0.0,
+    "wall_sec": 18.52766489982605,
+    "cpu_sec": 17.3125,
+    "published_wall_sec": 55.42703604698181,
+    "published_cpu_sec": 47.140625,
+    "changed_rows_in_reseeded_blocks": true,
+    "kkt_reseed_dates": []
+   },
+   "baseline/ridge": {
+    "rows": 40497,
+    "rows_changed": 0,
+    "share_changed": 0.0,
+    "rows_rel_gt_1e10": 0,
+    "max_rel_dpred_adj": 0.0,
+    "max_abs_dpred_adj": 0.0
+   },
+   "baseline/ols": {
+    "rows": 40497,
+    "rows_changed": 0,
+    "share_changed": 0.0,
+    "rows_rel_gt_1e10": 0,
+    "max_rel_dpred_adj": 0.0,
+    "max_abs_dpred_adj": 0.0
+   },
+   "all_features/lasso": {
+    "rows": 40497,
+    "rows_changed": 7799,
+    "share_changed": 0.19258216658024052,
+    "rows_rel_gt_1e10": 7495,
+    "max_rel_dpred_adj": 0.00839800922733229,
+    "max_abs_dpred_adj": 0.007207112719028519,
+    "max_rel_at": "2016-01-18 12:30:00",
+    "first_changed": "2012-08-17 15:00:00",
+    "last_changed": "2024-04-03 16:00:00",
+    "days_changed": 663,
+    "kkt_checks": 40497,
+    "kkt_all_ok": true,
+    "kkt_max_rel_after_check": 7.956489553793885e-15,
+    "kkt_reseeds": 99,
+    "kkt_reseed_rel_before_max": 0.0021190618045784496,
+    "kkt_reseed_rel_before_min": 1.4877723000463443e-09,
+    "kkt_reseed_rel_after_max": 7.242783889642919e-15,
+    "kkt_reseed_days": 84,
+    "kkt_reseeds_per_year": {
+     "2012": 3,
+     "2013": 1,
+     "2014": 2,
+     "2015": 3,
+     "2016": 5,
+     "2017": 21,
+     "2018": 10,
+     "2019": 6,
+     "2020": 11,
+     "2021": 15,
+     "2022": 8,
+     "2023": 12,
+     "2024": 2
+    },
+    "kkt_check_sec": 34.592922817217186,
+    "kkt_reseed_sec": 412.2426380001707,
+    "wall_sec": 3307.4165160655975,
+    "cpu_sec": 2900.453125,
+    "published_wall_sec": 3239.0510182380676,
+    "published_cpu_sec": 2852.5625,
+    "changed_rows_in_reseeded_blocks": true,
+    "changed_rows_after_first_reseed_of_block": true,
+    "kkt_reseed_dates": [
+     "2012-08-17 15:00:00",
+     "2012-10-18 11:00:00",
+     "2012-12-07 14:00:00",
+     "2013-05-15 15:30:00",
+     "2014-05-08 10:30:00",
+     "2014-05-08 14:30:00",
+     "2015-05-15 14:30:00",
+     "2015-06-10 12:00:00",
+     "2015-12-31 12:00:00",
+     "2016-02-16 15:30:00",
+     "2016-08-08 14:30:00",
+     "2016-09-21 10:00:00",
+     "2016-11-23 11:00:00",
+     "2016-12-19 14:00:00",
+     "2017-03-27 11:00:00",
+     "2017-05-02 13:30:00",
+     "2017-05-02 14:00:00",
+     "2017-05-09 13:30:00",
+     "2017-05-09 14:30:00",
+     "2017-05-09 16:00:00",
+     "2017-05-22 12:00:00",
+     "2017-05-23 11:30:00",
+     "2017-05-23 12:00:00",
+     "2017-05-23 14:30:00",
+     "2017-06-06 12:00:00",
+     "2017-06-20 15:00:00",
+     "2017-07-04 10:30:00",
+     "2017-07-10 13:00:00",
+     "2017-07-13 12:30:00",
+     "2017-09-06 11:00:00",
+     "2017-09-06 14:30:00",
+     "2017-09-07 11:00:00",
+     "2017-09-07 11:30:00",
+     "2017-09-07 13:00:00",
+     "2017-09-07 13:30:00",
+     "2018-01-29 10:30:00",
+     "2018-02-02 13:00:00",
+     "2018-02-05 12:30:00",
+     "2018-02-20 16:00:00",
+     "2018-05-18 14:00:00",
+     "2018-06-14 16:00:00",
+     "2018-07-02 12:30:00",
+     "2018-07-25 15:00:00",
+     "2018-09-11 16:00:00",
+     "2018-11-12 13:30:00",
+     "2019-01-08 14:30:00",
+     "2019-02-22 10:00:00",
+     "2019-03-28 12:30:00",
+     "2019-06-25 15:00:00",
+     "2019-08-19 12:30:00",
+     "2019-11-06 10:30:00",
+     "2020-01-20 11:30:00",
+     "2020-05-04 13:00:00",
+     "2020-05-11 10:30:00",
+     "2020-05-11 11:30:00",
+     "2020-05-29 16:00:00",
+     "2020-07-13 10:00:00",
+     "2020-08-18 14:00:00",
+     "2020-10-20 13:00:00",
+     "2020-11-05 15:00:00",
+     "2020-12-11 14:00:00",
+     "2020-12-14 12:30:00",
+     "2021-01-20 15:00:00",
+     "2021-03-09 13:30:00",
+     "2021-03-22 12:30:00",
+     "2021-03-23 12:00:00",
+     "2021-03-26 13:00:00",
+     "2021-06-24 10:30:00",
+     "2021-09-02 10:00:00",
+     "2021-10-08 13:00:00",
+     "2021-10-08 16:00:00",
+     "2021-10-29 16:00:00",
+     "2021-11-05 13:00:00",
+     "2021-11-05 14:30:00",
+     "2021-11-24 15:30:00",
+     "2021-12-17 15:30:00",
+     "2021-12-23 10:30:00",
+     "2022-01-12 12:30:00",
+     "2022-02-01 15:00:00",
+     "2022-03-15 10:00:00",
+     "2022-08-08 15:30:00",
+     "2022-08-26 10:00:00",
+     "2022-12-16 10:00:00",
+     "2022-12-16 11:30:00",
+     "2022-12-23 16:00:00",
+     "2023-01-10 13:00:00",
+     "2023-01-24 13:00:00",
+     "2023-02-14 10:00:00",
+     "2023-02-15 10:30:00",
+     "2023-04-11 15:00:00",
+     "2023-04-21 11:00:00",
+     "2023-06-16 14:00:00",
+     "2023-06-16 15:00:00",
+     "2023-06-21 10:00:00",
+     "2023-08-02 13:00:00",
+     "2023-08-04 11:00:00",
+     "2023-12-29 13:30:00",
+     "2024-03-15 13:30:00",
+     "2024-03-22 10:30:00"
+    ]
+   },
+   "all_features/enet": {
+    "rows": 40497,
+    "rows_changed": 904,
+    "share_changed": 0.022322641183297527,
+    "rows_rel_gt_1e10": 904,
+    "max_rel_dpred_adj": 0.0019140185531847076,
+    "max_abs_dpred_adj": 0.0013752056779777755,
+    "max_rel_at": "2020-05-20 12:30:00",
+    "first_changed": "2020-05-01 16:00:00",
+    "last_changed": "2023-11-14 12:30:00",
+    "days_changed": 76,
+    "kkt_checks": 40497,
+    "kkt_all_ok": true,
+    "kkt_max_rel_after_check": 4.725986410505827e-15,
+    "kkt_reseeds": 9,
+    "kkt_reseed_rel_before_max": 0.009870019611266937,
+    "kkt_reseed_rel_before_min": 1.940943796771824e-08,
+    "kkt_reseed_rel_after_max": 3.8859397395799626e-15,
+    "kkt_reseed_days": 9,
+    "kkt_reseeds_per_year": {
+     "2020": 1,
+     "2021": 4,
+     "2022": 2,
+     "2023": 2
+    },
+    "kkt_check_sec": 32.8229545840295,
+    "kkt_reseed_sec": 28.103771999944,
+    "wall_sec": 1582.1633892059326,
+    "cpu_sec": 1299.640625,
+    "published_wall_sec": 1894.795298576355,
+    "published_cpu_sec": 1631.328125,
+    "changed_rows_in_reseeded_blocks": true,
+    "changed_rows_after_first_reseed_of_block": true,
+    "kkt_reseed_dates": [
+     "2020-05-01 16:00:00",
+     "2021-03-15 12:30:00",
+     "2021-07-19 13:30:00",
+     "2021-11-09 14:30:00",
+     "2021-11-10 15:30:00",
+     "2022-03-29 11:00:00",
+     "2022-07-28 10:00:00",
+     "2023-01-13 10:00:00",
+     "2023-10-30 11:00:00"
+    ]
+   },
+   "all_features/ridge": {
+    "rows": 40497,
+    "rows_changed": 0,
+    "share_changed": 0.0,
+    "rows_rel_gt_1e10": 0,
+    "max_rel_dpred_adj": 0.0,
+    "max_abs_dpred_adj": 0.0
+   }
+  },
+  "fi_origins": {
+   "lasso": {
+    "origins": 151,
+    "published_kkt_violating_origins": 31,
+    "published_rel_vs_batch_max": 0.00538474633846389,
+    "published_rel_vs_batch_n_gt_1e10": 31,
+    "new_rel_vs_batch_max": 1.4945368039758327e-13,
+    "new_rel_vs_batch_n_gt_1e10": 0,
+    "new_rel_vs_batch_max_at_violating": 1.2096215248979297e-13,
+    "new_walk_state_kkt_rel_max_at_origins": 3.6304280490256255e-15,
+    "new_walk_state_kkt_rel_max_at_violating": 1.1012719259811746e-15
+   },
+   "enet": {
+    "origins": 151,
+    "published_kkt_violating_origins": 4,
+    "published_rel_vs_batch_max": 8.545765770407345e-05,
+    "published_rel_vs_batch_n_gt_1e10": 4,
+    "new_rel_vs_batch_max": 5.5375792193520196e-14,
+    "new_rel_vs_batch_n_gt_1e10": 0,
+    "new_rel_vs_batch_max_at_violating": 3.3600735202517726e-14,
+    "new_walk_state_kkt_rel_max_at_origins": 2.2313602225506946e-15,
+    "new_walk_state_kkt_rel_max_at_violating": 4.760534774766997e-16
+   }
+  },
+  "fi_origins_exact_kkt_replay": {
+   "n": 35,
+   "all_replays_equal_walk": false,
+   "kkt_exact_rel_new_max": 1.1998861714822101e-14,
+   "kkt_exact_rel_published_min": 1.4979827925908896e-07,
+   "theta_vs_batch_max_abs_new": 1.5492453240423254e-12,
+   "wall_sec": 517.1534523963928
+  },
+  "c_port_unit_check": [
+   {
+    "model": "lasso",
+    "block": 195,
+    "first": "2017-05-03 15:00:00",
+    "python_kkt_reseeds_in_block": 7,
+    "c_kkt_reseeds_flag_on": 9,
+    "c_kkt_reseeds_flag_off": 0,
+    "c_mask_reseeds": [
+     2,
+     2
+    ],
+    "c_off_vs_published_max_rel": 1.756706941785445e-05,
+    "c_on_vs_flag_on_walk_max_rel": 4.986041961944402e-13,
+    "c_on_vs_published_max_rel": 2.7502913857321534e-06,
+    "python_on_vs_published_max_rel": 2.750291253949926e-06,
+    "c_off_on_rows_differ": 143
+   },
+   {
+    "model": "enet",
+    "block": 254,
+    "first": "2021-10-27 15:00:00",
+    "python_kkt_reseeds_in_block": 2,
+    "c_kkt_reseeds_flag_on": 2,
+    "c_kkt_reseeds_flag_off": 0,
+    "c_mask_reseeds": [
+     0,
+     0
+    ],
+    "c_off_vs_published_max_rel": 8.684711667954833e-14,
+    "c_on_vs_flag_on_walk_max_rel": 1.1144120114564418e-13,
+    "c_on_vs_published_max_rel": 0.0008258784770003649,
+    "python_on_vs_published_max_rel": 0.0008258784770775175,
+    "c_off_on_rows_differ": 134
+   },
+   {
+    "model": "lasso",
+    "block": 199,
+    "first": "2017-08-22 14:00:00",
+    "python_kkt_reseeds_in_block": 6,
+    "c_kkt_reseeds_flag_on": 3,
+    "c_kkt_reseeds_flag_off": 0,
+    "c_mask_reseeds": [
+     0,
+     0
+    ],
+    "c_off_vs_published_max_rel": 2.590890248508449e-05,
+    "c_on_vs_flag_on_walk_max_rel": 1.8524718633542987e-13,
+    "c_on_vs_published_max_rel": 2.5908902526720375e-05,
+    "python_on_vs_published_max_rel": 2.5908902349898513e-05,
+    "c_off_on_rows_differ": 125
+   }
+  ]
+ },
+ "scores_16h_old_to_new": [
+  {
+   "model": "ridge",
+   "predictor_set": "baseline",
+   "n_days": 1082,
+   "qlike_old": 0.1204536121457858,
+   "qlike_new": 0.1204536121457858,
+   "mse_e10_old": 3.925171547224549,
+   "mse_e10_new": 3.925171547224549,
+   "r2_oos_pct_old": 79.40437113351184,
+   "r2_oos_pct_new": 79.40437113351184
+  },
+  {
+   "model": "lasso",
+   "predictor_set": "baseline",
+   "n_days": 1082,
+   "qlike_old": 0.1202986414135688,
+   "qlike_new": 0.1202986414135688,
+   "mse_e10_old": 3.922275548857923,
+   "mse_e10_new": 3.922275548857923,
+   "r2_oos_pct_old": 79.41956662416476,
+   "r2_oos_pct_new": 79.41956662416476
+  },
+  {
+   "model": "enet",
+   "predictor_set": "baseline",
+   "n_days": 1082,
+   "qlike_old": 0.1204528594402406,
+   "qlike_new": 0.1204528594402406,
+   "mse_e10_old": 3.925156973987176,
+   "mse_e10_new": 3.925156973987176,
+   "r2_oos_pct_old": 79.40444760023048,
+   "r2_oos_pct_new": 79.40444760023048
+  },
+  {
+   "model": "ridge",
+   "predictor_set": "all_features",
+   "n_days": 1082,
+   "qlike_old": 0.1235617367592245,
+   "qlike_new": 0.1235617367592245,
+   "mse_e10_old": 6.254075630905269,
+   "mse_e10_new": 6.254075630905269,
+   "r2_oos_pct_old": 67.18446084524619,
+   "r2_oos_pct_new": 67.18446084524619
+  },
+  {
+   "model": "lasso",
+   "predictor_set": "all_features",
+   "n_days": 1082,
+   "qlike_old": 0.1227880189632174,
+   "qlike_new": 0.1227540357483192,
+   "mse_e10_old": 6.799264558424589,
+   "mse_e10_new": 6.799263161314384,
+   "r2_oos_pct_old": 64.32381929666313,
+   "r2_oos_pct_new": 64.32382662739069
+  },
+  {
+   "model": "enet",
+   "predictor_set": "all_features",
+   "n_days": 1082,
+   "qlike_old": 0.1194030716092557,
+   "qlike_new": 0.1194019517350294,
+   "mse_e10_old": 6.484985099437666,
+   "mse_e10_new": 6.484986722291582,
+   "r2_oos_pct_old": 65.97286393580309,
+   "r2_oos_pct_new": 65.97285542058367
+  },
+  {
+   "model": "ols",
+   "predictor_set": "baseline",
+   "n_days": 1082,
+   "qlike_old": 0.120453658896158,
+   "qlike_new": 0.120453658896158,
+   "mse_e10_old": 3.925171144412431,
+   "mse_e10_new": 3.925171144412431,
+   "r2_oos_pct_old": 79.40437324709306,
+   "r2_oos_pct_new": 79.40437324709306
+  }
+ ],
+ "economics_old_to_new": "economics_kkt_vs_B.csv (window B_latestart_nofomcrel = the base run, kkt = this run; scored with the main worktree's writeup/make_rehaul_economics.add_pooled_linear, 2026-10-22 15:0x: sr_* = D6, sr_d1_* = D1, the definition of the base run's economics_vs_published.csv); no 16:00 trade sign flips on the 866 option days (lasso 232, enet 48 of them have a changed forecast)",
+ "timing": {
+  "base_run_B/lasso": {
+   "chunks": 4,
+   "cpu": [
+    670,
+    704,
+    750,
+    729
+   ],
+   "cpu_sum": 2853,
+   "wall_sum": 3239,
+   "kkt_check_sec": 0.0,
+   "kkt_reseed_sec": 0.0,
+   "kkt_reseeds": [
+    null,
+    null,
+    null,
+    null
+   ]
+  },
+  "base_run_B/enet": {
+   "chunks": 4,
+   "cpu": [
+    397,
+    417,
+    415,
+    402
+   ],
+   "cpu_sum": 1631,
+   "wall_sum": 1895,
+   "kkt_check_sec": 0.0,
+   "kkt_reseed_sec": 0.0,
+   "kkt_reseeds": [
+    null,
+    null,
+    null,
+    null
+   ]
+  },
+  "base_run_B/ridge": {
+   "chunks": 2,
+   "cpu": [
+    519,
+    515
+   ],
+   "cpu_sum": 1034,
+   "wall_sum": 1132,
+   "kkt_check_sec": 0.0,
+   "kkt_reseed_sec": 0.0,
+   "kkt_reseeds": [
+    null,
+    null
+   ]
+  },
+  "off/lasso": {
+   "chunks": 4,
+   "cpu": [
+    652,
+    675,
+    697,
+    675
+   ],
+   "cpu_sum": 2698,
+   "wall_sum": 2986,
+   "kkt_check_sec": 0.0,
+   "kkt_reseed_sec": 0.0,
+   "kkt_reseeds": [
+    null,
+    null,
+    null,
+    null
+   ]
+  },
+  "on/lasso": {
+   "chunks": 4,
+   "cpu": [
+    620,
+    763,
+    763,
+    755
+   ],
+   "cpu_sum": 2900,
+   "wall_sum": 3307,
+   "kkt_check_sec": 34.6,
+   "kkt_reseed_sec": 412.2,
+   "kkt_reseeds": [
+    6,
+    33,
+    28,
+    32
+   ]
+  },
+  "on/enet": {
+   "chunks": 4,
+   "cpu": [
+    310,
+    327,
+    332,
+    331
+   ],
+   "cpu_sum": 1300,
+   "wall_sum": 1582,
+   "kkt_check_sec": 32.8,
+   "kkt_reseed_sec": 28.1,
+   "kkt_reseeds": [
+    0,
+    0,
+    2,
+    7
+   ]
+  },
+  "on/ridge": {
+   "chunks": 2,
+   "cpu": [
+    377,
+    376
+   ],
+   "cpu_sum": 752,
+   "wall_sum": 812,
+   "kkt_check_sec": 0.0,
+   "kkt_reseed_sec": 0.0,
+   "kkt_reseeds": [
+    null,
+    null
+   ]
+  },
+  "final/enet_c3": {
+   "cpu": 283,
+   "wall": 299,
+   "kkt_reseeds": 7,
+   "kkt_check_sec": 6.132405297830701,
+   "kkt_reseed_sec": 17.031156800338067
+  },
+  "final/lasso_c2": {
+   "cpu": 377,
+   "wall": 394,
+   "kkt_reseeds": 28,
+   "kkt_check_sec": 4.131305101560429,
+   "kkt_reseed_sec": 42.41719030030072
+  }
+ },
+ "files": [
+  "RULE_kkt.txt",
+  "compare_kkt.json",
+  "dm.csv",
+  "economics_kkt_vs_B.csv",
+  "forecasts.parquet",
+  "frozen_penalties.json",
+  "kkt_replay_fi_origins.json",
+  "scores.csv",
+  "scores_all_bars.csv"
+ ]
+}

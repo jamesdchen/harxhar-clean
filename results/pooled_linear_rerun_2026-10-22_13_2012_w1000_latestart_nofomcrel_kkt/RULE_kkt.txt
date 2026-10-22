@@ -1,0 +1,31 @@
+RULE_kkt.txt -- written 2026-10-22 14:15 PDT (21:15 UTC), BEFORE any rerun or score of the KKT-reseed walks.
+Approved by the repo owner (James: "add the KKT check flag").  Branch insurance-selling-2026-09-19-e34-kkt from e34 905be7c.
+
+WALK_KKT_RESEED: after every warm online update of the lasso / elastic net, check the KKT conditions of the current
+window's problem (residual r = c - G.theta with the penalty factors and L2 term; active j: r_j = mu_j s_j; inactive:
+|r_j| <= mu_j) at the tolerance the batch certification `_kkt_ok` uses; if they fail, replace the warm solution by the
+cold seed (the existing KKT-certified batch solve on the current window) and continue warm from it.
+
+Gate: module flag WALK_KKT_RESEED (default True; off = the current walk bit for bit).  The number of KKT-triggered
+reseeds is recorded in the walk's trace / log.
+
+Implementation reading (fixed now, before any run):
+  * "every warm online update" = every roll() of the regressor that went through the two enet_online rank-1 calls
+    (add the entering row, remove the leaving row), i.e. the window has moved one row; the check is made at the next
+    solve(), before that solve's forecast (MultiStageBacktest order: roll, solve, predict_one).  Not checked: the
+    tune-boundary solves (they ARE the cold seed: mask recomputed, batch solve) and the rolls that took the spec's
+    between-tune mask-addition reseed (also a cold seed) -- their KKT residual is recorded, not acted on.
+  * "the current window's problem" = the warm state's own sufficient statistics, (Gr, c, mu_vec) of the regressor:
+    Gr = Xa'Xa + lam2 pf_j on the diagonal of the non-locked columns (the L2 term), c = Xa'y, mu_vec = n alpha l1 pf_j
+    (0 on the locked intercept), masked columns zero -- the matrices the homotopy itself maintains rank-one (they equal
+    the exact window statistics up to the rank-one round-off that the cold seed every 250 solves re-anchors).
+    r = c - Gr theta; active (theta_j != 0): |r_j - mu_j sign(theta_j)| <= tol; inactive: |r_j| <= mu_j + tol.
+  * tol = 1e-9 * max(max_j |c_j|, 1)  -- the formula of _kkt_ok's caller enet_coef_pf (experiments/pool_linear_pretune.py),
+    applied to this problem's c.
+  * the cold seed = the regressor's own _seed() on the current window at the penalty and mask in force (FWL on the
+    locked block + the batch elastic net, KKT-certified / repaired when pf != 1); the mask is not recomputed (un-masking
+    stays a tune-boundary event, as the spec's between-tune additions).  The walk then continues warm from it; the
+    250-solve tune schedule is unchanged.
+  * ridge / OLS: closed form, never checked (asserted unchanged).
+  * recorded per walk: number and solve indices of KKT-triggered reseeds, the violation before and after each, the
+    post-check violation at every lasso / enet solve, the seconds spent in the check and in the reseeds.
