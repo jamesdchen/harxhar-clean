@@ -186,6 +186,13 @@ penalty:
 - These eight runs have now been looked at on the evaluation sample. Picking the window from this table would be a
   specification search; a window rule must be fixed on pre-sample grounds (and after the late-start fix) and adopted
   whatever it gives.
+- **Caveat (2026-10-22, later): the 1,500 / 2,000 / 2,500-day runs above are on the old design, without the late-start
+  fix, and at long windows the late-start artefact reaches the trade days.** The scaler window of a late-start series
+  holds pre-start fill until about W trading days after its start: for VVIX (first print 2012-03-26) that is about 2016
+  at 1,000 days but about 2018, 2020 and 2022 at 1,500, 2,000 and 2,500 days, so on part of 2020–21 the long-window runs
+  trade on degenerate VVIX values. Their numbers may partly reflect the artefact. A five-window sweep on the fixed design
+  (late-start fix on, FOMC release dummy dropped, 564 columns; 1,000 / 1,500 / 2,000 / 2,500 / 3,000 days) is running
+  and replaces this table when done.
 
 ## 7. The late-start fix (finding 2), done
 
