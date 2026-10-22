@@ -1235,6 +1235,7 @@ def variant(fn, designs=DESIGNS) -> dict:
 
 
 N_DAYS = int(one(S_REC, design="all_features", model="enet")["n_days"])
+COMP_WARMUP = 252  # 2026-10-21 (user): close_compounding_headline.WARMUP (gui._SIZING_WARMUP); compounding on N_DAYS - 252 days
 
 # the development chain (A2), in order: label, variant
 # 2026-10-15 (table legibility): parked -- code labels (walk of record, fix 1, g8, (b), B), British spelling; relabelled below, same variants
@@ -2013,7 +2014,12 @@ def caption_numbers() -> None:
     f = ff["f"].unique()
     assert len(f) == 1
     macro("rhappCompF", f"{100 * f[0]:.0f}")
-    assert set(ff["n"].unique()) == {N_DAYS}
+    # 2026-10-21 (user): parked -- the compounding ran on all N_DAYS option-data days; it now runs on the post-warmup
+    # days t > 252 (experiments/close_compounding_headline.py, WARMUP = gui._SIZING_WARMUP), the sample of the Sharpe
+    # ratios (\rheSzDays). Was: assert set(ff["n"].unique()) == {N_DAYS}
+    comp_days = int(ff["n"].unique()[0])
+    assert set(ff["n"].unique()) == {comp_days} and comp_days == N_DAYS - COMP_WARMUP, (ff["n"].unique(), N_DAYS)
+    macro("rhappCompDays", comp_days)
 
     # Section 8: the feature-importance figures
     a = pd.read_parquet(

@@ -1,4 +1,4 @@
-\begin{thebibliography}{61}
+\begin{thebibliography}{65}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -53,6 +53,13 @@ Torben~G. Andersen, Tim Bollerslev, and Francis~X. Diebold.
   modeling, and forecasting of return volatility.
 \newblock \emph{The Review of Economics and Statistics}, 89\penalty0
   (4):\penalty0 701--720, 2007.
+
+\bibitem[Andrews(1991)]{Andrews1991}
+Donald W.~K. Andrews.
+\newblock Heteroskedasticity and autocorrelation consistent covariance matrix
+  estimation.
+\newblock \emph{Econometrica}, 59\penalty0 (3):\penalty0 817--858, 1991.
+\newblock \doi{10.2307/2938229}.
 
 \bibitem[Bandi et~al.(2023)Bandi, Fusari, and Ren{\`o}]{BandiFusariReno2023}
 Federico~M. Bandi, Nicola Fusari, and Roberto Ren{\`o}.
@@ -312,11 +319,27 @@ Guolin Ke, Qi~Meng, Thomas Finley, Taifeng Wang, Wei Chen, Weidong Ma, Qiwei
 \newblock In \emph{Advances in Neural Information Processing Systems},
   volume~30, 2017.
 
+\bibitem[Kiefer and Vogelsang(2005)]{KieferVogelsang2005}
+Nicholas~M. Kiefer and Timothy~J. Vogelsang.
+\newblock A new asymptotic theory for heteroskedasticity-autocorrelation robust
+  tests.
+\newblock \emph{Econometric Theory}, 21\penalty0 (6):\penalty0 1130--1164,
+  2005.
+\newblock \doi{10.1017/S0266466605050565}.
+
 \bibitem[Kozak et~al.(2020)Kozak, Nagel, and Santosh]{KozakNagelSantosh2020}
 Serhiy Kozak, Stefan Nagel, and Shrihari Santosh.
 \newblock Shrinking the cross-section.
 \newblock \emph{Journal of Financial Economics}, 135\penalty0 (2):\penalty0
   271--292, 2020.
+
+\bibitem[Lazarus et~al.(2018)Lazarus, Lewis, Stock, and
+  Watson]{LazarusLewisStockWatson2018}
+Eben Lazarus, Daniel~J. Lewis, James~H. Stock, and Mark~W. Watson.
+\newblock {HAR} inference: Recommendations for practice.
+\newblock \emph{Journal of Business \& Economic Statistics}, 36\penalty0
+  (4):\penalty0 541--559, 2018.
+\newblock \doi{10.1080/07350015.2018.1506926}.
 
 \bibitem[Ledoit and Wolf(2008)]{LedoitWolf2008}
 Oliver Ledoit and Michael Wolf.
@@ -337,6 +360,13 @@ Whitney~K. Newey and Kenneth~D. West.
   autocorrelation consistent covariance matrix.
 \newblock \emph{Econometrica}, 55\penalty0 (3):\penalty0 703--708, 1987.
 \newblock \doi{10.2307/1913610}.
+
+\bibitem[Newey and West(1994)]{NeweyWest1994}
+Whitney~K. Newey and Kenneth~D. West.
+\newblock Automatic lag selection in covariance matrix estimation.
+\newblock \emph{Review of Economic Studies}, 61\penalty0 (4):\penalty0
+  631--653, 1994.
+\newblock \doi{10.2307/2297912}.
 
 \bibitem[Patton(2011)]{Patton2011}
 Andrew~J. Patton.

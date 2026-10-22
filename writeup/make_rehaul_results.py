@@ -86,7 +86,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import math
 import re
 import sys
 from pathlib import Path
@@ -101,6 +100,7 @@ sys.path.insert(0, str(REPO / "notebooks"))
 sys.path.insert(0, str(REPO / "experiments"))
 from src.evaluation.diebold_mariano import dm_test  # noqa: E402
 import atm_straddle_lib as asl  # noqa: E402
+import hac_inference as hi  # noqa: E402  (2026-10-21, decision #2: every test of strategy returns)
 import rolling_eval_2026_10_15 as rolling  # noqa: E402  (2026-10-15: the common rolling span of every accuracy number)
 
 # 2026-10-15 (user, restructure): the GUI's sizing scorer, as make_rehaul_economics.py calls it (pooled sizing medians)
@@ -162,7 +162,11 @@ LEVELS = (0.10, 0.05, 0.01)  # the star levels (2026-10-15, table legibility)
 DM_LAG = 6  # dm_test's automatic Newey-West lag on 866 days and on the 1,082-day rolling span (asserted in pair)
 # 2026-10-20 (user, third-list 2): HAC t on the 614 post-warmup days (the Sharpe sample), lag floor(1.5*614^(1/3)) = 12.
 # Was: HAC_LAG = 14 (866 days).
-HAC_LAG = 12  # was 14; newey_west_t's lag floor(1.5 n^(1/3)) on 866 days (asserted in pair)
+# 2026-10-21 (user, decision #2): parked -- the lag rule floor(1.5 T^(1/3)); every test of strategy returns is now
+# writeup/hac_inference.py: means by the LLSW (2018) t with bandwidth HAC_S = ceil(1.3 T^(1/2)) = 33 and fixed-b
+# p-values, Sharpe-ratio differences by the Ledoit-Wolf (2008) bootstrap. Was:
+# HAC_LAG = 12  # was 14; newey_west_t's lag floor(1.5 n^(1/3)) on 866 days (asserted in pair)
+N_PW = 614  # post-warmup days t > WARMUP, the sample of every test of strategy returns (asserted in pw)
 Z95 = 1.959963984540054
 CRASH = (
     pd.Timestamp("2020-02-24"),
@@ -467,7 +471,7 @@ def level(f: pd.DataFrame) -> dict:
     }
 
 
-def pair(a: pd.DataFrame, b: pd.DataFrame) -> dict:
+def pair(a: pd.DataFrame, b: pd.DataFrame, lw: bool = False) -> dict:
     """a minus b on the common days: QLIKE % change, DM, p; squared-error % change and DM; Sharpe change, HAC t.
     2026-10-15: the accuracy statistics on acc_of() (the common rolling span), the trade statistics on the 866 days."""
     # j = a[["qlike_raw", "ret_mid", "rv_unclipped", "plain"]].join(  # 2026-10-15 (user): parked -- one frame for
@@ -488,8 +492,11 @@ def pair(a: pd.DataFrame, b: pd.DataFrame) -> dict:
     dms = dm_test(se_a.to_numpy(), se_b.to_numpy())
     # t, lag = asl.newey_west_t(j["ret_mid"] - j["ret_mid_b"])  # 2026-10-15: trades on jt (parked: one frame)
     # 2026-10-20 (user, third-list 2): on days t > WARMUP. Was: asl.newey_west_t(jt["ret_mid"] - jt["ret_mid_b"])
-    t, lag = asl.newey_west_t((jt["ret_mid"] - jt["ret_mid_b"]).iloc[WARMUP:])
-    assert lag == HAC_LAG
+    # 2026-10-21 (user, decision #2): parked -- the lag-12 t. Was:
+    # t, lag = asl.newey_west_t((jt["ret_mid"] - jt["ret_mid_b"]).iloc[WARMUP:])
+    # assert lag == HAC_LAG
+    tt = hac_t(jt["ret_mid"] - jt["ret_mid_b"])
+    t = tt["t"]
     pct = 100.0 * (j["qlike_raw"].mean() / j["qlike_raw_b"].mean() - 1.0)
     return {
         "qa": float(j["qlike_raw"].mean()),
@@ -504,8 +511,125 @@ def pair(a: pd.DataFrame, b: pd.DataFrame) -> dict:
         # "dsh": sharpe(j["ret_mid"]) - sharpe(j["ret_mid_b"]),  # 2026-10-15: trades on jt
         "dsh": sharpe(jt["ret_mid"]) - sharpe(jt["ret_mid_b"]),
         "t": float(t),
-        "p_t": float(math.erfc(abs(t) / math.sqrt(2.0))),
+        # 2026-10-21 (user, decision #2): fixed-b p of the LLSW t. Was: float(math.erfc(abs(t) / math.sqrt(2.0)))
+        "p_t": float(tt["p"]),
+        # Ledoit-Wolf p of the Sharpe-ratio difference (614 days): stars on dsh, counts of Sharpe claims; only where a
+        # Sharpe claim or star uses it (lw=True: T1, T2, the 51 all-vs-HAR pairs), NaN elsewhere
+        "p_lw": lw_p(jt["ret_mid"], jt["ret_mid_b"]) if lw else float("nan"),
     }
+
+
+def pw(x: pd.Series) -> np.ndarray:
+    """2026-10-21 (user, decision #2): an 866-day series sliced to its 614 post-warmup days t > WARMUP."""
+    assert len(x) == NDAYS, len(x)
+    v = x.iloc[WARMUP:].to_numpy(float)
+    assert len(v) == N_PW, len(v)
+    return v
+
+
+def hac_t(d: pd.Series) -> dict:
+    """2026-10-21 (user, decision #2): the paper's test of a mean on the 614 post-warmup days (hac_inference.llsw_test:
+    bandwidth 33, fixed-b p). d is the 866-day series."""
+    r = hi.llsw_test(pw(d))
+    assert r["S"] == 33 and r["T"] == N_PW, r
+    return r
+
+
+LW_CACHE: dict[tuple, float] = {}
+
+
+def lw_p(a: pd.Series, b: pd.Series, block: int = hi.LW_BLOCK) -> float:
+    """2026-10-21 (user, decision #2): Ledoit-Wolf (2008) p of equal Sharpe ratios of a and b (866-day series) on the
+    614 post-warmup days; cached on the bytes of the two series."""
+    va, vb = pw(a), pw(b)
+    k = (va.tobytes(), vb.tobytes(), block)
+    if k not in LW_CACHE:
+        LW_CACHE[k] = hi.lw_sharpe_test(va, vb, block=block)["p"]
+    return LW_CACHE[k]
+
+
+# 2026-10-21 (user, decision #2): appendix robustness table of the strategy-return tests (generated/rehaul_app_hac_robust.tex)
+def hac_robust_rows(specs: list[tuple]) -> list[dict]:
+    """specs: (panel, label, a, b, dsh) with a, b the 866-day mid-return series (b None: the mean of a against zero)
+    and dsh the paper's Sharpe ratio change (None without b). Every test on the 614 post-warmup days."""
+    L5, L12 = hi.nw94_lag(N_PW), hi.old_lag(N_PW)
+    assert (L5, L12) == (5, 12), (L5, L12)
+    rows = []
+    for panel, label, a, b, dsh in specs:
+        d = a if b is None else a - b
+        v = pw(d)
+        t5, t12 = hi.nw_t_lag(v, L5), hi.nw_t_lag(v, L12)
+        fb = hac_t(d)
+        row = {
+            "panel": panel,
+            "label": label,
+            "mean": 100.0 * float(v.mean()),
+            "dsh": dsh,
+            "t5": t5,
+            "p5": hi.normal_p(t5),
+            "t12": t12,
+            "p12": hi.normal_p(t12),
+            "t": fb["t"],
+            "p": fb["p"],
+        }
+        if b is not None:
+            for blk in (hi.LW_BLOCK, *hi.LW_BLOCK_ALT):
+                row[f"lw{blk}"] = lw_p(a, b, block=blk)
+        rows.append(row)
+    return rows
+
+
+def table_hac_robust(rows: list[dict]) -> str:
+    def pcell(p: float | None) -> str:
+        if p is None or not np.isfinite(p):
+            return "--"
+        return "$<0.001$" if p < 0.001 else f"${p:.3f}$"
+
+    def tcell(t: float) -> str:
+        return f"${_fmt(t, 2)}$"
+
+    body = ""
+    panel = None
+    for r in rows:
+        if r["panel"] != panel:
+            panel = r["panel"]
+            body += panel_head(panel, 10, first=r is rows[0])
+        dsh = "--" if r["dsh"] is None else f"${_fmt(r['dsh'], 2)}$"
+        body += (
+            f"{r['label']} & ${_fmt(r['mean'], 2)}$ & {dsh} & {tcell(r['t5'])} & {pcell(r['p5'])} & "
+            f"{tcell(r['t12'])} & {pcell(r['p12'])} & {tcell(r['t'])} & {pcell(r['p'])} & "
+            f"{pcell(r.get(f'lw{hi.LW_BLOCK}'))} \\\\\n"
+        )
+    return (
+        "% generated by writeup/make_rehaul_results.py (2026-10-21, decision #2): the tests of strategy returns behind\n"
+        "% the significance statements of Section 7 and Appendix F, on the 614 post-warmup days, under four procedures.\n"
+        "% Do not edit by hand.\n"
+        "\\begin{table}[tbp]\n\\centering\n\\scriptsize\n\\setlength{\\tabcolsep}{3.5pt}\n"
+        "\\begin{threeparttable}\n"
+        "\\caption{Tests of strategy returns under alternative long-run variance estimators}\n"
+        "\\label{tab:rh_app_hac_robust}\n"
+        "\\begin{tabular}{@{}lrrrrrrrrr@{}}\n\\toprule\n"
+        " & & & \\multicolumn{2}{c}{NW, $q_{\\mathrm{NW}} = \\rhrRobLagNW$} & "
+        "\\multicolumn{2}{c}{NW, $q_{\\mathrm{NW}} = \\rhrRobLagOld$} & "
+        "\\multicolumn{2}{c}{NW, $S = \\rheHACS$, fixed-$b$} & LW \\\\\n"
+        "\\cmidrule(lr){4-5}\\cmidrule(lr){6-7}\\cmidrule(lr){8-9}\\cmidrule(l){10-10}\n"
+        " & $\\bar\\Delta$ (\\%) & $\\Delta\\SR$ & $t$ & $p$ & $t$ & $p$ & $t$ & $p$ & $p$ \\\\\n\\midrule\n"
+        + body
+        + "\\bottomrule\n\\end{tabular}\n\\begin{tablenotes}[flushleft]\n\\footnotesize\n"
+        "\\item \\textit{Notes:} Each row is a comparison whose statistical significance the text states, on the "
+        "\\rheSzDays{} post-warmup days of $\\mathcal T_{\\mathrm{opt}}$. $\\bar\\Delta$ is the mean daily return "
+        "differential at mid-quotes in percent of the straddle premium (the mean return itself in the last panel), and "
+        "$\\Delta\\SR$ the difference of the annualized Sharpe ratios of Section~\\ref{sec:rh_econ_measures}. The "
+        "$t$-statistics test $\\bar\\Delta = 0$ with the Newey--West long-run variance: at lag truncation "
+        "$q_{\\mathrm{NW}} = \\lfloor 4(T/100)^{2/9}\\rfloor = \\rhrRobLagNW$ \\citep{NeweyWest1994} and at "
+        "$q_{\\mathrm{NW}} = \\lfloor 1.5\\,T^{1/3}\\rfloor = \\rhrRobLagOld$, both with standard normal $p$-values, and "
+        "at bandwidth $S = \\lceil 1.3\\,T^{1/2}\\rceil = \\rheHACS$ with fixed-$b$ $p$-values "
+        "\\citep{LazarusLewisStockWatson2018,KieferVogelsang2005}, $T = \\rheSzDays$. LW is the $p$-value of the "
+        "\\citet{LedoitWolf2008} test of equal Sharpe ratios (circular block bootstrap, block length \\rheLWBlock{}, "
+        "\\rheLWBoot{} resamples). The text uses the fixed-$b$ test for statements about mean returns and the LW test "
+        "for statements about Sharpe ratios. All $p$-values are two-sided.\n"
+        "\\end{tablenotes}\n\\end{threeparttable}\n\\end{table}\n"
+    )
 
 
 # --------------------------------------------------------------------------- model definitions
@@ -1152,7 +1276,7 @@ def table_t1(rows: list[dict]) -> str:
                 q4(r["qa"]),
                 cell(r["pct"], 1, n_stars(r["p"])),
                 stat_col(r["dm"]),
-                cell(r["dsh"], 2, n_stars(r["p_t"])),
+                cell(r["dsh"], 2, n_stars(r["p_lw"])),  # 2026-10-21 (user, decision #2): was n_stars(r["p_t"])
                 stat_col(r["t"]),
             ]
             body += f"{name} & " + " & ".join(cells) + " \\\\\n"
@@ -1162,8 +1286,12 @@ def table_t1(rows: list[dict]) -> str:
         + " $\\Delta = 100(\\bar L^{\\mathrm{Full}}/\\bar L^{\\mathrm{HAR}} - 1)$, negative when the full predictor "
         "set is more accurate, and $\\DM$ is the Diebold--Mariano statistic of the daily loss differential "
         "(Harvey--Leybourne--Newbold correction; Newey--West lag $q_{\\mathrm{NW}} = \\rhrDMLag$). $\\Delta\\SR$ is the "
-        "change in the annualized Sharpe ratio of the sign strategy at mid-quotes and $t$ the HAC $t$-statistic of the "
-        "daily return differential ($q_{\\mathrm{NW}} = \\rhrHACLag$; Section~\\ref{sec:rh_methods_tests}). "
+        # 2026-10-21 (user, decision #2): parked -- "$t$ the HAC $t$-statistic of the daily return differential
+        # ($q_{\\mathrm{NW}} = \\rhrHACLag$; ...)"; stars on the Sharpe change now from the Ledoit-Wolf test
+        "change in the annualized Sharpe ratio of the sign strategy at mid-quotes, with stars from the "
+        "\\citet{LedoitWolf2008} bootstrap test of equal Sharpe ratios, and $t$ the $t$-statistic of the mean daily "
+        "return differential (Newey--West with bandwidth $S = \\rheHACS$, fixed-$b$ critical values; "
+        "Section~\\ref{sec:rh_methods_tests}). "
         + STAR_NOTE
         + " "
         + NOTE_TREES
@@ -1228,7 +1356,7 @@ def table_t2(rows: list[dict]) -> str:
             cells = [
                 cell(x["pct"], 1, n_stars(x["p"])),
                 stat_col(x["dm"]),
-                cell(x["dsh"], 2, n_stars(x["p_t"])),
+                cell(x["dsh"], 2, n_stars(x["p_lw"])),  # 2026-10-21 (user, decision #2): was n_stars(x["p_t"])
                 stat_col(x["t"]),
             ]
             body += f"{name} & " + " & ".join(cells) + " \\\\\n"
@@ -2016,7 +2144,7 @@ def main() -> None:
                 "name": name,
                 "family": fam,
                 "fit": "per-bar",
-                **pair(by[pb[1]], by[pb[0]]),
+                **pair(by[pb[1]], by[pb[0]], lw=True),
             }
         )
         if pool is None:
@@ -2028,7 +2156,7 @@ def main() -> None:
                     "family": fam,
                     "fit": "pooled",
                     "mark": "$^\\dagger$" if pool[1] in INTERIM else "",
-                    **pair(by[pool[1]], by[pool[0]]),
+                    **pair(by[pool[1]], by[pool[0]], lw=True),
                 }
             )
     t1 = [r for r in t1 if r["fit"] == "per-bar"] + [
@@ -2098,7 +2226,7 @@ def main() -> None:
     # all 51 input-set pairs of the model set (the fig_qlike_sharpe counts)
     allf = [k for k in s.loc[s["input_set"] == "all_features", "key"]]
     af = pd.DataFrame(
-        [pair(by[k], by[k.replace("all_features", "baseline")]) for k in allf],
+        [pair(by[k], by[k.replace("all_features", "baseline")], lw=True) for k in allf],
         index=allf,
     )
     n_af, n_lower, n_lower_sig = (
@@ -2122,7 +2250,8 @@ def main() -> None:
     # )
     # 2026-10-18 (user, new-notes 15): soft check (dsh is per-year now; p_t is the unitless HAC t, unchanged)
     soft(int((af["dsh"] > 0).sum()) == 47, f"all-vs-HAR pairs dsh>0: {int((af['dsh'] > 0).sum())} of 51 (was 47)")
-    soft(int(((af["dsh"] > 0) & (af["p_t"] < SIG)).sum()) == 4, f"all-vs-HAR pairs dsh>0 & p_t<0.05: {int(((af['dsh'] > 0) & (af['p_t'] < SIG)).sum())} (was 4)")
+    # 2026-10-21 (user, decision #2): Sharpe claim, Ledoit-Wolf p (was p_t, the HAC t of the mean differential)
+    soft(int(((af["dsh"] > 0) & (af["p_lw"] < SIG)).sum()) == 4, f"all-vs-HAR pairs dsh>0 & Ledoit-Wolf p<0.05: {int(((af['dsh'] > 0) & (af['p_lw'] < SIG)).sum())} (was 4 on the HAC t)")
 
     # ---- 2026-10-15: the trees against the closing-interval ridge on the same predictor set (Model classes, 6.5) ----
     # The 48 tree forecasts of the model set the campaign compared with the ridge (writeup/make_table_close_main.py
@@ -2194,7 +2323,7 @@ def main() -> None:
             "mark": "$^\\dagger$" if pool[1] in INTERIM else "",
         }
         for i, b in enumerate(("baseline", "all_features")):
-            r[b] = pair(by[pool[i]], by[pb[i]])
+            r[b] = pair(by[pool[i]], by[pb[i]], lw=True)
         t2.append(r)
     T2 = {r["name"]: r for r in t2}
     # 2026-10-15 (user): parked -- NN content parked for now; T2 rows per panel: 7 -> 6
@@ -2250,9 +2379,10 @@ def main() -> None:
         if not r.get("pending") and r["family"] != NN
         for b in ("baseline", "all_features")
     ]
-    assert max(t2_t) < 1 and max(abs(x) for x in t2_t) < Z95, (
-        t2_t
-    )  # outline: every linear / tree HAC t below 1, none significant
+    # 2026-10-21 (user, decision #2): parked -- "every HAC t below 1, none significant" asserted on the lag-12 t with 1.96.
+    # "None significant" is asserted below (\rhrPoolVsCloseRetSig == 0, fixed-b p); "below 1" is no longer in the text,
+    # so it is reported. Was: assert max(t2_t) < 1 and max(abs(x) for x in t2_t) < Z95, (t2_t)
+    soft(max(t2_t) < 1, f"T2 pooled vs closing-interval: every t below 1 (max {max(t2_t):.2f})")
 
     # ---- the pooled ridge-init MinGRU (coordinator, 2026-10-15; pooled_rinit_study/at1600_*.csv) ----
     pa, pb0 = "mingru_pooled_rinitq_all_features", "mingru_pooled_rinitq_baseline"
@@ -2580,12 +2710,15 @@ def main() -> None:
         assert f.index.equals(ref_ix), k
         d = f["ret_mid"] - short_mid
         # 2026-10-20 (user, third-list 2): on days t > WARMUP. Was: asl.newey_west_t(d)
-        t_, lag_ = asl.newey_west_t(d.iloc[WARMUP:])
-        assert lag_ == HAC_LAG
+        # 2026-10-21 (user, decision #2): parked -- the lag-12 t and its normal p. Was:
+        # t_, lag_ = asl.newey_west_t(d.iloc[WARMUP:]); assert lag_ == HAC_LAG
+        # "p": float(math.erfc(abs(t_) / math.sqrt(2.0))),
+        tt_ = hac_t(d)
+        t_ = tt_["t"]
         return {
             "dsh": sharpe(f["ret_mid"]) - sharpe(short_mid),
             "t": float(t_),
-            "p": float(math.erfc(abs(t_) / math.sqrt(2.0))),
+            "p": float(tt_["p"]),
             "tail": float(d.sum() - d.nlargest(TOP_DAYS).sum()),
         }
 
@@ -2600,7 +2733,8 @@ def main() -> None:
     # assert (
     #     sum(v["t"] > Z95 for v in vs_ms.values()) == 20
     # )  # \cmMasterVsShortAboveSig = \rheSigVsShort
-    print(f"THIRD2 CHANGED: vs-short HAC t > 1.96 count {sum(v['t'] > Z95 for v in vs_ms.values())} (was 20)")
+    # 2026-10-21 (user, decision #2): t > 0 and fixed-b p < 0.05. Was: sum(v['t'] > Z95 for v in vs_ms.values())
+    print(f"decision #2: vs-short significant mean gains {sum(v['t'] > 0 and v['p'] < SIG for v in vs_ms.values())} (was 20)")
     assert sum(v["tail"] < 0 for v in vs_ms.values()) == 102  # \rheTailNeg
     en = "subpt_enet_all_features"  # \rheEnetSh, \rheEnetShX, \rheEnetT
     # near_t(lv[en]["sharpe"], 1.93, 5e-3)  # was 1.92 on 866 days
@@ -2615,7 +2749,8 @@ def main() -> None:
         for _, _, pb, pool in FAMILY_ROWS + [NN_ROW]
         for k in (*pb, *pool)
     }
-    pool_sig_short = {k for k in pool_keys if vs_sh[k]["t"] > Z95}
+    # 2026-10-21 (user, decision #2): t > 0 and fixed-b p < 0.05. Was: {k for k in pool_keys if vs_sh[k]["t"] > Z95}
+    pool_sig_short = {k for k in pool_keys if vs_sh[k]["t"] > 0 and vs_sh[k]["p"] < SIG}
 
     # sizing: the GUI's scorer on the gap plain - iv_var, scored after the 252-day warm-up (= make_rehaul_economics.py)
     qbook = pd.read_parquet(
@@ -2684,6 +2819,8 @@ def main() -> None:
     vb_har = [vb_pool[k]["pct"] for k in pool_har]
     sh_full = [lv[k]["sharpe"] for k in pool_full]
     sh_har = [lv[k]["sharpe"] for k in pool_har]
+    shx_full = [lv[k]["sharpe_x"] for k in pool_full]  # 2026-10-21 (user, N15c): \rhrPoolShX{Har,Full}{Min,Max}
+    shx_har = [lv[k]["sharpe_x"] for k in pool_har]
     dsh_pool = [t1p[n]["dsh"] for n in lin_n + tree_n]
     if (
         SPAN == "rolling"
@@ -2741,6 +2878,73 @@ def main() -> None:
     soft(all(x > 0 for x in dsh_pool), "every pooled full-vs-HAR dsh > 0")
     # 2026-10-20 (user, third-list 2): HAC t now post-warmup (lag 12); soft check. Was: assert not any(t1p[n]["p_t"] < SIG for n in t1p)
     soft(not any(t1p[n]["p_t"] < SIG for n in t1p), "THIRD2 " + 'not any(t1p[n]["p_t"] < SIG for n in t1p)')
+    # 2026-10-21 (user): 07_economics.tex prints "significant at the 5% level in \rhrAfPoolDiffSig of the \rhrAfPoolPairs
+    # classes" (full predictor set vs HAR, pooled), and "none of the return differentials between a pooled intraday model
+    # and the corresponding closing-interval model ... is statistically significant" (07_economics.tex, 10_appendix.tex)
+    # is asserted through \rhrPoolVsCloseRetSig == 0, so the run stops if that sentence is wrong.
+    # Parked first line of this comment (the full-vs-HAR sentence said "not ... in any"); was: "the text says "not
+    # statistically significant at the 5% level in any of the \rhrAfPoolPairs classes" (07_economics.tex) and ..."
+    af_pool_diff_sig = sum(t1p[n]["p_t"] < SIG for n in t1p)
+    t2_rows = [r for r in T2.values() if r["family"] != NN and not r.get("pending")]
+    assert len(t2_rows) == 6, len(t2_rows)
+    pool_vs_close_ret_sig = sum(r[b]["p_t"] < SIG for r in t2_rows for b in ("baseline", "all_features"))
+    # 2026-10-21 (user, decision #2): "HAC p" -> "fixed-b p" in the printed line
+    print(f"pooled Full vs HAR, fixed-b p < 0.05: {af_pool_diff_sig} of {len(t1p)}; pooled vs closing-interval: "
+          f"{pool_vs_close_ret_sig} of {2 * len(t2_rows)}")
+    # 2026-10-21 (user): parked -- the sentence now prints the count (James's PC run: 1 of 6), so only its range is
+    # checked. Was: assert af_pool_diff_sig == 0, f"\\rhrAfPoolDiffSig = {af_pool_diff_sig}: reword 07_economics 'not ... in any'"
+    assert 0 <= af_pool_diff_sig <= len(t1p), (af_pool_diff_sig, len(t1p))  # \rhrAfPoolDiffSig of \rhrAfPoolPairs = len(t1p)
+    assert pool_vs_close_ret_sig == 0, f"\\rhrPoolVsCloseRetSig = {pool_vs_close_ret_sig}: reword 'none of the return differentials'"
+    # 2026-10-21 (user, decision #2): the appendix robustness table (one row per comparison whose significance the text
+    # states) and the counts its paragraph prints
+    set_name = ("HAR", "full")
+    rob_specs: list[tuple] = []
+    for n in lin_n + tree_n:
+        for i in (0, 1):
+            k_ = pool_of[n][i]
+            rob_specs.append(("Panel A: Pooled intraday model minus short-straddle benchmark", f"{n}, {set_name[i]}",
+                              by[k_]["ret_mid"], short_mid, vs_sh[k_]["dsh"]))
+    for n in lin_n + tree_n:
+        rob_specs.append(("Panel B: Pooled intraday model, full predictor set minus HAR benchmark", n,
+                          by[pool_of[n][1]]["ret_mid"], by[pool_of[n][0]]["ret_mid"], t1p[n]["dsh"]))
+    for r in t2_rows:
+        for i, b_ in enumerate(("baseline", "all_features")):
+            rob_specs.append(("Panel C: Pooled intraday minus closing-interval model", f"{r['name']}, {set_name[i]}",
+                              by[r["pooled"][i]]["ret_mid"], by[r["perbar"][i]]["ret_mid"], r[b_]["dsh"]))
+    pb_of = {n: pb for n, _, pb, _ in FAMILY_ROWS}
+    for n in ("Elastic net", "Lasso"):
+        rob_specs.append(("Panel D: Closing-interval model, full predictor set minus HAR benchmark", n,
+                          by[pb_of[n][1]]["ret_mid"], by[pb_of[n][0]]["ret_mid"], T1[("per-bar", n)]["dsh"]))
+    assert pb_of["Elastic net"][1] == "subpt_enet_all_features"
+    rob_specs.append(("Panel E: Closing-interval model minus short-straddle benchmark", "Elastic net, full",
+                      by["subpt_enet_all_features"]["ret_mid"], short_mid, vs_sh["subpt_enet_all_features"]["dsh"]))
+    rob_specs.append(("Panel F: Short-straddle benchmark, mean return", "Short straddle", short_mid, None, None))
+    rob = hac_robust_rows(rob_specs)
+    assert len(rob) == 12 + 6 + 12 + 2 + 1 + 1, len(rob)
+    # the table's fixed-b column is the test behind the text's counts
+    for r_, (_, _, a_, b_, _) in zip(rob, rob_specs):
+        assert b_ is None or abs(r_["t"] - hac_t(a_ - b_)["t"]) < 1e-12
+    assert sum(r_["p"] < SIG for r_ in rob[:12] if r_["t"] > 0) == len(pool_sig_short)
+    assert sum(r_["p"] < SIG for r_ in rob[12:18]) == af_pool_diff_sig
+    assert sum(r_["p"] < SIG for r_ in rob[18:30]) == pool_vs_close_ret_sig
+    rob_pairs = [r_ for r_ in rob if r_["dsh"] is not None]
+    rob_counts = {
+        "RobN": len(rob),
+        "RobNPairs": len(rob_pairs),
+        "RobNWFiveSig": sum(r_["p5"] < SIG for r_ in rob),
+        "RobNWTwelveSig": sum(r_["p12"] < SIG for r_ in rob),
+        "RobFbSig": sum(r_["p"] < SIG for r_ in rob),
+        "RobLWSig": sum(r_[f"lw{hi.LW_BLOCK}"] < SIG for r_ in rob_pairs),
+        "RobLWSigLo": sum(r_[f"lw{hi.LW_BLOCK_ALT[0]}"] < SIG for r_ in rob_pairs),
+        "RobLWSigHi": sum(r_[f"lw{hi.LW_BLOCK_ALT[1]}"] < SIG for r_ in rob_pairs),
+    }
+    print("decision #2 robustness table:", rob_counts)
+    for r_ in rob:
+        print(f"  {r_['panel'][:8]} {r_['label']:<22} mean {r_['mean']:+.3f}% t5 {r_['t5']:+.2f} t12 {r_['t12']:+.2f} "
+              f"t {r_['t']:+.2f} p_fb {r_['p']:.4f} LW " + " ".join(f"{r_.get(f'lw{b}', float('nan')):.4f}"
+                                                              for b in (hi.LW_BLOCK, *hi.LW_BLOCK_ALT)))
+    (GEN / "rehaul_app_hac_robust.tex").write_text(table_hac_robust(rob), encoding="utf-8", newline="\n")
+    print("wrote generated/rehaul_app_hac_robust.tex")
     assert all(vs_sh[k]["tail"] < 0 for k in pool_keys)
     # Was: assert sum(sz_pool[k]["clip"]["d_vs_sign"] > 0 for k in pool_keys) == 11
     soft(sum(sz_pool[k]["clip"]["d_vs_sign"] > 0 for k in pool_keys) == 11, f"pooled clip beats sign {sum(sz_pool[k]['clip']['d_vs_sign'] > 0 for k in pool_keys)} (was 11)")
@@ -2959,10 +3163,11 @@ def main() -> None:
                 str(DM_LAG),
                 "Newey-West lag q_NW of every DM statistic (dm_test's automatic lag)",
             ),
-            "HACLag": (
-                str(HAC_LAG),
-                "Newey-West lag q_NW of every HAC t (floor(1.5 T^(1/3)))",
-            ),
+            # 2026-10-21 (user, decision #2): parked -- \\rhrHACLag (12). Was:
+            # "HACLag": (str(HAC_LAG), "Newey-West lag q_NW of every HAC t (floor(1.5 T^(1/3)))"),
+            "RobLagNW": (str(hi.nw94_lag(N_PW)), "robustness table: Newey-West (1994) lag floor(4 (T/100)^(2/9)), T = 614"),
+            "RobLagOld": (str(hi.old_lag(N_PW)), "robustness table: the previous lag floor(1.5 T^(1/3)), T = 614"),
+            **{k_: (str(v_), f"robustness table: {k_}") for k_, v_ in rob_counts.items()},
         }
     )
     tok = {
@@ -3085,9 +3290,10 @@ def main() -> None:
             str(sum(x > 0 for x in dsh_pool)),
             "... Sharpe mid higher with Full",
         ),
+        # 2026-10-21 (user, decision #2): Sharpe claim, Ledoit-Wolf p (was r["p_t"], the HAC t of the mean differential)
         "AfPoolShHigherSig": (
-            str(sum(r["dsh"] > 0 and r["p_t"] < SIG for r in t1p.values())),
-            "... and HAC t p < 0.05",
+            str(sum(r["dsh"] > 0 and r["p_lw"] < SIG for r in t1p.values())),
+            "... and Ledoit-Wolf p < 0.05 (equal Sharpe ratios)",
         ),
         "AfPoolDShMin": (
             pm(min(dsh_pool), 2),
@@ -3163,7 +3369,25 @@ def main() -> None:
         ),
         "PoolShortSig": (
             str(len(pool_sig_short)),
-            "... with HAC t > 1.96 (the three trees on Full)",
+            "... with a mean gain significant at 5 % (t > 0, fixed-b p < 0.05)",
+        ),
+        # 2026-10-21 (user): the range of those HAC t's (Section 7.2 prints it instead of three named trees)
+        "VsShortPoolTMin": (
+            mnum(min(vs_sh[k]["t"] for k in pool_keys), 2),
+            "pooled forecasts: t (LLSW bandwidth) of the daily mid-return differential over the short straddle, min",
+        ),
+        "VsShortPoolTMax": (mnum(max(vs_sh[k]["t"] for k in pool_keys), 2), "... max"),
+        # 2026-10-21 (user): the counts behind "not ... significant in any" (07_economics, full vs HAR) and
+        # "none of the return differentials ... pooled ... closing-interval" (07_economics, Appendix F); the first printed by the
+        # sentence (range-checked above), the second asserted 0 above. 2026-10-21 (user): parked -- "asserted 0 above"
+        # for both.
+        "AfPoolDiffSig": (
+            str(af_pool_diff_sig),
+            "pooled Full vs HAR pairs whose t of the daily mid-return differential has fixed-b p < 0.05 (two-sided)",
+        ),
+        "PoolVsCloseRetSig": (
+            str(pool_vs_close_ret_sig),
+            "pooled vs closing-interval, same class and predictor set: t of the return differential, fixed-b p < 0.05",
         ),
         "PoolShHarMin": (
             mnum(min(sh_har), 2),
@@ -3175,6 +3399,18 @@ def main() -> None:
             "Sharpe mid of the pooled forecasts on Full: min",
         ),
         "PoolShFullMax": (mnum(max(sh_full), 2), "... max"),
+        # 2026-10-21 (user, N15c): the same ranges at quoted bid/ask prices (07_economics.tex, Section 7.3, prints the
+        # range of pooled Sharpe ratios on each predictor set at mid-quotes and at bid/ask instead of a named top list)
+        "PoolShXHarMin": (
+            mnum(min(shx_har), 2),
+            "Sharpe at quoted bid/ask prices of the pooled forecasts on HAR: min",
+        ),
+        "PoolShXHarMax": (mnum(max(shx_har), 2), "... max"),
+        "PoolShXFullMin": (
+            mnum(min(shx_full), 2),
+            "Sharpe at quoted bid/ask prices of the pooled forecasts on Full: min",
+        ),
+        "PoolShXFullMax": (mnum(max(shx_full), 2), "... max"),
         "PoolSzSignMed": (
             f"{med_sz('sign'):.2f}",
             "sizing sign: median Sharpe mid over the pooled forecasts, 614 days",
@@ -3210,7 +3446,9 @@ def main() -> None:
             else "% variance of the closing half hour. mt866 CHECK RUN: every number on the 866 option-data days."
         ),
         "% DM: dm_test, HLN-corrected, Newey-West lag \\rhrDMLag;",
-        "% HAC t: newey_west_t, lag \\rhrHACLag; p two-sided normal; stars at the 10 / 5 / 1 % levels.",
+        # 2026-10-21 (user, decision #2): was "% HAC t: newey_west_t, lag \\rhrHACLag; p two-sided normal; stars at the 10 / 5 / 1 % levels."
+        "% t of a mean: hac_inference.llsw_test (bandwidth 33, fixed-b p, 614 days); Sharpe differences: Ledoit-Wolf p; "
+        "stars at the 10 / 5 / 1 % levels.",
         # 2026-10-15 (user): parked -- NN content parked for now
         # "% Per-model families (<M> = Ridge, Lasso, Enet, Lgbm, Xgb, Rf, Nn; <S> = Close | Pool, the closing-interval or",
         "% Per-model families (<M> = Ridge, Lasso, Enet, Lgbm, Xgb, Rf; Nn, the MinGRU, is parked from every table and",

@@ -16,20 +16,20 @@
 \multicolumn{5}{@{}l}{\textit{Panel A: Closing-interval models}} \\
 \addlinespace[2pt]
 Elastic net & $1.56$ & $1.76$ & $0.19^{\phantom{***}}$ & $0.20^{\phantom{***}}$ \\
- &  &  & $(0.78)^{\phantom{***}}$ & $(0.78)^{\phantom{***}}$ \\[2pt]
+ &  &  & $[0.450]^{\phantom{***}}$ & $[0.448]^{\phantom{***}}$ \\[2pt]
 Lasso & $1.56$ & $1.68$ & $0.12^{\phantom{***}}$ & $0.12^{\phantom{***}}$ \\
- &  &  & $(0.34)^{\phantom{***}}$ & $(0.34)^{\phantom{***}}$ \\[2pt]
+ &  &  & $[0.737]^{\phantom{***}}$ & $[0.731]^{\phantom{***}}$ \\[2pt]
 Ridge & $1.56$ & $1.28$ & $-0.29^{\phantom{***}}$ & $-0.28^{\phantom{***}}$ \\
- &  &  & $(-0.26)^{\phantom{***}}$ & $(-0.26)^{\phantom{***}}$ \\[2pt]
+ &  &  & $[0.803]^{\phantom{***}}$ & $[0.803]^{\phantom{***}}$ \\[2pt]
 \addlinespace[4pt]
 \multicolumn{5}{@{}l}{\textit{Panel B: Intraday models}} \\
 \addlinespace[2pt]
 Elastic net & $0.74$ & $1.56$ & $0.82^{**\phantom{*}}$ & $0.82^{**\phantom{*}}$ \\
- &  &  & $(2.12)^{\phantom{***}}$ & $(2.12)^{\phantom{***}}$ \\[2pt]
+ &  &  & $[0.037]^{\phantom{***}}$ & $[0.036]^{\phantom{***}}$ \\[2pt]
 Lasso & $0.74$ & $1.46$ & $0.72^{*\phantom{**}}$ & $0.71^{*\phantom{**}}$ \\
- &  &  & $(1.88)^{\phantom{***}}$ & $(1.88)^{\phantom{***}}$ \\[2pt]
+ &  &  & $[0.071]^{\phantom{***}}$ & $[0.071]^{\phantom{***}}$ \\[2pt]
 Ridge & $0.75$ & $1.44$ & $0.69^{*\phantom{**}}$ & $0.68^{*\phantom{**}}$ \\
- &  &  & $(1.95)^{\phantom{***}}$ & $(1.94)^{\phantom{***}}$ \\[2pt]
+ &  &  & $[0.062]^{\phantom{***}}$ & $[0.061]^{\phantom{***}}$ \\[2pt]
 \addlinespace[4pt]
 \multicolumn{5}{@{}l}{\textit{Panel C: Medians across pairs}} \\
 \addlinespace[2pt]
@@ -38,11 +38,11 @@ LightGBM (\rheTreePairsEach) & $0.81$ & $1.39$ & $0.60^{\phantom{***}}$ & $0.59^
 XGBoost (\rheTreePairsEach) & $0.78$ & $1.18$ & $0.37^{\phantom{***}}$ & $0.37^{\phantom{***}}$ \\
  &  &  & $[2/15]^{\phantom{***}}$ & $[2/15]^{\phantom{***}}$ \\[2pt]
 Random forest (\rheTreePairsEach) & $0.54$ & $0.78$ & $0.27^{\phantom{***}}$ & $0.26^{\phantom{***}}$ \\
- &  &  & $[1/15]^{\phantom{***}}$ & $[1/15]^{\phantom{***}}$ \\[2pt]
+ &  &  & $[0/15]^{\phantom{***}}$ & $[0/15]^{\phantom{***}}$ \\[2pt]
 All trees (\rheTreePairs) & $0.75$ & $1.18$ & $0.43^{\phantom{***}}$ & $0.42^{\phantom{***}}$ \\
- &  &  & $[6/45]^{\phantom{***}}$ & $[6/45]^{\phantom{***}}$ \\[2pt]
+ &  &  & $[5/45]^{\phantom{***}}$ & $[5/45]^{\phantom{***}}$ \\[2pt]
 Model set (\rhePairs) & $0.75$ & $1.23$ & $0.43^{\phantom{***}}$ & $0.42^{\phantom{***}}$ \\
- &  &  & $[7/51]^{\phantom{***}}$ & $[7/51]^{\phantom{***}}$ \\[2pt]
+ &  &  & $[6/51]^{\phantom{***}}$ & $[6/51]^{\phantom{***}}$ \\[2pt]
 \bottomrule
 \end{tabular}
 \begin{tablenotes}[flushleft]
@@ -50,12 +50,11 @@ Model set (\rhePairs) & $0.75$ & $1.23$ & $0.43^{\phantom{***}}$ & $0.42^{\phant
 \item \textit{Notes:} Each pair is one model estimated on the HAR benchmark and on the full predictor set, with
 everything else unchanged, over the out-of-sample period ($T_{\mathrm{oos}} = \rheNdays$ trading days). $\SR$ is the
 annualized Sharpe ratio of the sign strategy; $\Delta\SR$ is the full-set minus the HAR-benchmark $\SR$, at
-mid-quotes and at quoted bid/ask prices, with the HAC $t$-statistic on the daily return differential (Newey--West, $q_{\mathrm{NW}} = \rheHACLag$; Section~\ref{sec:rh_methods_tests}) in parentheses. On the HAR benchmark the three
+mid-quotes and at quoted bid/ask prices, with the $p$-value of the \citet{LedoitWolf2008} bootstrap test of equal Sharpe ratios on the \rheSzDays{} post-warmup days, in brackets (Section~\ref{sec:rh_methods_tests}). On the HAR benchmark the three
 closing-interval linear models hold the same position as the closing-interval OLS on every day, so they share its
 $\SR$. Panel C gives medians across the closing-interval tree pairs (every hyperparameter specification in the model
 set) and across all pairs of the \rheModelSetN{} forecasts of the model set, with the number of pairs whose
-differential is significantly positive at the 5\% level in brackets (none is significantly negative at
-that level). $^{*}$, $^{**}$ and $^{***}$ denote significance at the 10\%, 5\% and 1\% levels.
+Sharpe ratio difference is significantly positive at the 5\% level in brackets (none is significantly negative at that level). $^{*}$, $^{**}$ and $^{***}$ denote significance at the 10\%, 5\% and 1\% levels.
 \end{tablenotes}
 \end{threeparttable}
 \end{table}

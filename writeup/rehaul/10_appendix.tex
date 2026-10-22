@@ -48,8 +48,9 @@
   \begin{itemize}
   % 2026-10-18 (user, second-list 13): parked -- future-work item marked (not reported); see note S13. Was: "\item full model table, tree ensembles included;"
   \item full model table, tree ensembles included (not reported);
-  \item Diebold--Mariano and HAC conventions ($\DM$ with the Harvey--Leybourne--Newbold correction; Newey--West lag
-    truncation $q_{\mathrm{NW}}$);
+% 2026-10-21 (user, decision #2): parked -- "Newey--West lag truncation" for both tests. Was: "\item Diebold--Mariano and HAC conventions ($\DM$ with the Harvey--Leybourne--Newbold correction; Newey--West lag truncation $q_{\mathrm{NW}}$);"
+  \item Diebold--Mariano and HAC conventions ($\DM$ with the Harvey--Leybourne--Newbold correction and Newey--West lag
+    truncation $q_{\mathrm{NW}}$; fixed-$b$ tests of mean returns; the Ledoit--Wolf test of equal Sharpe ratios);
   \item model confidence set, superior predictive ability, StepM;
   % 2026-10-18 (user, second-list 13): parked -- future-work item marked (not reported); see note S13. Was: "\item regime and break tests;"
   \item regime and break tests (not reported);
@@ -89,8 +90,10 @@
   % The list above is a table of contents for five appendix blocks. The only appendix section that follows it in the PDF is Implementation details, so a reader who looks up one of these items finds the heading and, except for the series list, nothing under it. Block A still has to supply the missing-data rule, the duplicate-column drop, the SPXW chain, the implied-volatility inversion, and the FOMC calendar. Block B would have to supply the penalty parameters $\lambda$, $\alpha$, and $\omega_j$, the tree search, and the calendar on which $\lambda$ is re-selected. Block C would have to supply the model confidence set, the regime and break tests, and the comparison of closing-interval with intraday models. Block D would have to supply the date-shift test, the Murphy diagrams, the profit-and-loss decomposition, compounding, and the forecasts made at origins other than 15:30. Block E would have to supply the software lock files, the hashes of the design matrices, the CPU class, and the generator script behind each reported number. The series list named in A is Appendix Table~\ref{tab:rh_dm_dictionary}. Block A still does not write the missing-data rule, the duplicate-column drop, the SPXW chain, the implied-volatility inversion, or the FOMC calendar as sections. The quote filter that would sit with the SPXW chain is the missing rule in note E18.}
   \end{itemize}
 % 2026-10-18 (user, new-notes 25): moved here from the head of the list (section order).
+% 2026-10-21 (user, decision #2): parked -- "the Newey--West variance and the HAC $t$-statistic". Was: "\item \textbf{Statistical tests} (Appendix~\ref{sec:rh_methods_tests}): the Diebold--Mariano statistic, the Newey--West variance and the HAC $t$-statistic."
 \item \textbf{Statistical tests} (Appendix~\ref{sec:rh_methods_tests}): the Diebold--Mariano statistic, the
-  Newey--West variance and the HAC $t$-statistic.
+  Newey--West variance, the fixed-$b$ test of a mean return, the Ledoit--Wolf test of equal Sharpe ratios, and the
+  robustness of the strategy-return tests to the long-run variance estimator.
 % 2026-10-15 (user): parked -- NN content parked for now
 % \item \textbf{F. Network implementation:}
 %   \begin{itemize}
@@ -407,8 +410,9 @@ It covers only the closing-interval linear arms (ridge, lasso and elastic net on
 \begin{itemize}
 % 2026-10-20 (user): parked -- Table 1 scored from 2012 (TABLE1_SWITCH.md, approved). Was: "\item \textbf{Reported comparisons.} Forecast accuracy on $\mathcal T_{\mathrm{oos}}$ is Table~\ref{tab:rh_oos}."
 \item \textbf{Reported comparisons.} Forecast accuracy of the pooled linear models is Table~\ref{tab:rh_oos}, from \rhorSpanStart{} to \rhorSpanEnd.
-  The Diebold--Mariano statistic, with the Harvey--Leybourne--Newbold correction, and the Newey--West variance
-  and HAC $t$-statistic are Appendix~\ref{sec:rh_methods_tests}.
+% 2026-10-21 (user, decision #2): parked -- "and HAC $t$-statistic". Was: "The Diebold--Mariano statistic, with the Harvey--Leybourne--Newbold correction, and the Newey--West variance and HAC $t$-statistic are Appendix~\ref{sec:rh_methods_tests}."
+  The Diebold--Mariano statistic, with the Harvey--Leybourne--Newbold correction, the Newey--West variance and the
+  tests of strategy returns are Appendix~\ref{sec:rh_methods_tests}.
 \item \textbf{Model confidence set, superior predictive ability, and StepM.} These three procedures are named in
   that appendix for the comparison of predictor sets. No table reports an MCS membership, an SPA $p$-value, or
   a StepM rejection (note E14).
@@ -437,7 +441,8 @@ It covers only the closing-interval linear arms (ridge, lasso and elastic net on
 \item \textbf{Profit and loss.} The reported return is $R_t$ in Section~\ref{sec:rh_econ_strategy}. A
   decomposition of that return into separate variance and direction components is not reported.
 \item \textbf{Compounding.} Wealth starts at $1$ and the premium each day is the fraction $f = \rhappCompF\%$ in
-  Section~\ref{sec:rh_econ_measures}. Across the \cmMasterN{} forecasts, the median terminal value is
+% 2026-10-21 (user): parked -- compounding over all option-data days; now the post-warmup days. Was: "Section~\ref{sec:rh_econ_measures}. Across the \cmMasterN{} forecasts, the median terminal value is"
+  Section~\ref{sec:rh_econ_measures}. Across the \cmMasterN{} forecasts, on the \rhappCompDays{} post-warmup days, the median terminal value is
   \cmpWMedMid{} at mid-quotes and \cmpWMedX{} at quoted bid and ask prices, and the maximum drawdowns reach
   \cmpDDMaxMid\% and \cmpDDMaxX\%.
 % 2026-10-18 (user, second-list N11): parked -- the full long, scaled short rule is parked in Section 7.1; two sized rules remain (robust clip, percentile rank). Was: "\item \textbf{Position sizing.} The sign strategy and the three sized rules are in   Section~\ref{sec:rh_econ_strategy}. All four are scored on the \rheSzDays{} days after the warmup of"
@@ -574,14 +579,22 @@ own window $\mathcal{W}_t$ (Section~\ref{sec:rh_exp_schemes}). Rows $t'$ are tra
   \begin{itemize}
   % 2026-10-17 (user, E17): parked -- on the 614 post-warmup days, closing-interval elastic net (1.93) exceeds every intraday forecast (<= 1.91), while closing-interval lasso (1.76) is exceeded among intraday forecasts only by the intraday elastic net (1.91). Was: "Both exceed every intraday forecast (\SR \le \rhrPoolShFullMax at mid-quotes)."
   % 2026-10-18 (user, second-list N3): parked -- ranking claim picked after the fact from the model set ("The highest Sharpe ratio in the entire model set ... exceeding every pooled intraday forecast"); the facts (SR mid and bid/ask, HAC t against the short straddle) are kept. Was: "\item The highest Sharpe ratio in the entire model set is achieved by the closing-interval elastic net on the full predictor set, with $\SR = \rheEnetSh$ at mid-quotes and \rheEnetShX{} at quoted bid/ask prices, representing a statistically significant mean return gain over the short-straddle benchmark (HAC $t = \rheEnetT$) and exceeding every pooled intraday forecast ($\SR \le \rhrPoolShFullMax$ at mid-quotes). The closing-interval lasso on the full predictor set attains $\SR = \rheLassoSh$ at mid-quotes and \rheLassoShX{} at quoted bid/ask prices."
-  \item The closing-interval elastic net on the full predictor set attains $\SR = \rheEnetSh$ at mid-quotes and \rheEnetShX{} at quoted bid/ask prices, a statistically significant mean return gain over the short-straddle benchmark (HAC $t = \rheEnetT$). The closing-interval lasso on the full predictor set attains $\SR = \rheLassoSh$ at mid-quotes and \rheLassoShX{} at quoted bid/ask prices.
+% 2026-10-21 (user): parked -- the significance stated without its p-value (the HAC t is on the post-warmup days); t and p printed. Was: "\item The closing-interval elastic net on the full predictor set attains $\SR = \rheEnetSh$ at mid-quotes and \rheEnetShX{} at quoted bid/ask prices, a statistically significant mean return gain over the short-straddle benchmark (HAC $t = \rheEnetT$). The closing-interval lasso on the full predictor set attains $\SR = \rheLassoSh$ at mid-quotes and \rheLassoShX{} at quoted bid/ask prices."
+% 2026-10-21 (user, decision #2): parked -- HAC t with normal p. Was: "\item The closing-interval elastic net on the full predictor set attains $\SR = \rheEnetSh$ at mid-quotes and \rheEnetShX{} at quoted bid/ask prices; its mean return gain over the short-straddle benchmark has HAC $t = \rheEnetT$ ($p = \rheEnetP$). The closing-interval lasso on the full predictor set attains $\SR = \rheLassoSh$ at mid-quotes and \rheLassoShX{} at quoted bid/ask prices."
+  \item The closing-interval elastic net on the full predictor set attains $\SR = \rheEnetSh$ at mid-quotes and \rheEnetShX{} at quoted bid/ask prices; its mean return gain over the short-straddle benchmark has $t = \rheEnetT$ (fixed-$b$ $p = \rheEnetP$). The closing-interval lasso on the full predictor set attains $\SR = \rheLassoSh$ at mid-quotes and \rheLassoShX{} at quoted bid/ask prices.
   % 2026-10-17 (user, E17): parked -- 866-day \cmNlBestSh replaced by post-warmup \rheLgbmBestSh.
   % 2026-10-17 (user): parked -- the straddle table's tree rows are now the pooled intraday trees, so the closing-interval LightGBM quoted here is the fixed daily rung, not an ex-post pick. Was: "For closing-interval LightGBM, the best specification selected ex post by $\SR$ on the post-warmup option sample attains $\SR = \rheLgbmBestSh$ at mid-quotes."
   \item Closing-interval LightGBM on the full predictor set, with fixed hyperparameters re-estimated every trading day (the specification of the closing-interval tree rows of the main results table), attains $\SR = \rheLgbmCloseFixedSh$ at mid-quotes; the tree rows of the straddle table are the pooled intraday trees.
-  \item Replacing the HAR benchmark with the full predictor set changes the closing-interval sign-strategy Sharpe ratio by $\Delta\SR = \rheAfEnetDSh$ for the elastic net and \rheAfLassoDSh{} for the lasso (neither statistically significant at the 5\% level); across all \rhePairs{} matched predictor-set pairs in the model set, $\Delta\SR > 0$ in \rhePairsUp{} pairs (median \rhePairsMed), with \rhePairsSig{} significant at the 5\% level.
+% 2026-10-21 (user, decision #2): parked -- the tests behind both clauses were the HAC t of the mean differential; now the Ledoit--Wolf test (Sharpe claims). Was: "\item Replacing the HAR benchmark with the full predictor set changes the closing-interval sign-strategy Sharpe ratio by $\Delta\SR = \rheAfEnetDSh$ for the elastic net and \rheAfLassoDSh{} for the lasso (neither statistically significant at the 5\% level); across all \rhePairs{} matched predictor-set pairs in the model set, $\Delta\SR > 0$ in \rhePairsUp{} pairs (median \rhePairsMed), with \rhePairsSig{} significant at the 5\% level."
+  \item Replacing the HAR benchmark with the full predictor set changes the closing-interval sign-strategy Sharpe ratio by $\Delta\SR = \rheAfEnetDSh$ for the elastic net and \rheAfLassoDSh{} for the lasso (neither statistically significant at the 5\% level by the test of equal Sharpe ratios of \citealp{LedoitWolf2008}); across all \rhePairs{} matched predictor-set pairs in the model set, $\Delta\SR > 0$ in \rhePairsUp{} pairs (median \rhePairsMed), and the same test finds a statistically significant gain at the 5\% level in \rhePairsSig{} pairs and a statistically significant loss in \rhePairsSigNeg{}.
+  % 2026-10-21 (user): "neither statistically significant" is backed by \rheAfEnetLassoSig (= 0, asserted in make_rehaul_economics.py).
   % 2026-10-17 (user, E17): parked -- 866-day \cmMasterVsShortAbove replaced by post-warmup \rheVsShortAbove.
-  \item Relative to the unconditional short-straddle benchmark, $\Delta\SR > 0$ for \rheVsShortAbove{} of the \cmMasterVsShortN{} forecasts in the model set, and all \rheSigVsShort{} gains that are statistically significant at the 5\% level use the full predictor set.
-  \item Finally, none of the return differentials between a pooled intraday model and the corresponding closing-interval model of the same class is statistically significant at the 5\% level (HAC $t$-statistic on the daily return differential with $q_{\mathrm{NW}} = \fqsHACLag$).
+% 2026-10-21 (user): parked -- "all ... use the full predictor set" no longer holds on the post-warmup HAC t (note T2); both counts printed. Was: "\item Relative to the unconditional short-straddle benchmark, $\Delta\SR > 0$ for \rheVsShortAbove{} of the \cmMasterVsShortN{} forecasts in the model set, and all \rheSigVsShort{} gains that are statistically significant at the 5\% level use the full predictor set."
+% 2026-10-21 (user, decision #2): parked -- the test was not named. Was: "\item Relative to the unconditional short-straddle benchmark, $\Delta\SR > 0$ for \rheVsShortAbove{} of the \cmMasterVsShortN{} forecasts in the model set; the mean return gain is statistically significant at the 5\% level for \rheSigVsShort{} of them, \rheSigVsShortFull{} of which use the full predictor set."
+  \item Relative to the unconditional short-straddle benchmark, $\Delta\SR > 0$ for \rheVsShortAbove{} of the \cmMasterVsShortN{} forecasts in the model set; the mean return gain is statistically significant at the 5\% level (fixed-$b$ test) for \rheSigVsShort{} of them, \rheSigVsShortFull{} of which use the full predictor set.
+% 2026-10-21 (user, decision #2): parked -- HAC t at q_NW = \fqsHACLag (14, 866 days), while the test ran on 614 days at lag 12. Was: "\item Finally, none of the return differentials between a pooled intraday model and the corresponding closing-interval model of the same class is statistically significant at the 5\% level (HAC $t$-statistic on the daily return differential with $q_{\mathrm{NW}} = \fqsHACLag$)."
+  \item Finally, none of the mean return differentials between a pooled intraday model and the corresponding closing-interval model of the same class is statistically significant at the 5\% level (fixed-$b$ test of the mean daily return differential, bandwidth $S = \rheHACS$, on the \rheSzDays{} post-warmup days).
+  % 2026-10-21 (user): "none" is backed by \rhrPoolVsCloseRetSig (= 0, asserted in make_rehaul_results.py); wording and lag macro left as they were (author, 2026-10-21).
   \end{itemize}
 \end{itemize}
 \input{generated/rehaul_results_oos_last30}
@@ -603,7 +616,9 @@ own window $\mathcal{W}_t$ (Section~\ref{sec:rh_exp_schemes}). Rows $t'$ are tra
   \item \texttt{writeup/make\_rehaul\_appendix.py}: the appendix-table macros.
   % 2026-10-18 (user, second-list N12): the six generators of live macro files missing from this list, added.
   \item \texttt{writeup/make\_table\_close\_main.py}: the closing-interval master-table macros, including the closing-interval predictor counts.
-  \item \texttt{writeup/make\_fig\_qlike\_sharpe.py}: the matched predictor-set pair counts and the Newey--West lag of the HAC $t$-statistics.
+% 2026-10-21 (user, decision #2): parked -- the lag macro is gone. Was: "\item \texttt{writeup/make\_fig\_qlike\_sharpe.py}: the matched predictor-set pair counts and the Newey--West lag of the HAC $t$-statistics."
+  \item \texttt{writeup/make\_fig\_qlike\_sharpe.py}: the matched predictor-set pair counts.
+  \item \texttt{writeup/hac\_inference.py}: the fixed-$b$ test of a mean return and the Ledoit--Wolf test of equal Sharpe ratios, used by the three generators above; \texttt{writeup/make\_rehaul\_results.py} writes Table~\ref{tab:rh_app_hac_robust}.
   \item \texttt{writeup/make\_buckets\_tex.py}: the group sizes and the exogenous series count.
   \item \texttt{experiments/close\_murphy\_splits\_headline.py}: the Murphy-diagram macros.
   \item \texttt{experiments/close\_compounding\_headline.py}: the compounding macros in Appendix~\ref{app:rh_robust_trade}.

@@ -3,8 +3,9 @@
 % features, every model of results/close_master_table/paper_model_set.csv on both input sets
 % (per-bar linear = the pre-tuned subpt_* rows; LSTMs excluded); numbers from master_table.csv
 % and master_table_daily.parquet.  Changes are all features minus HAR + calendar, on the same days.
-% DM: dm_test on the daily QLIKE difference; HAC t: newey_west_t on the daily mid-return
-% difference; ES(c = 1): close_murphy_splits_headline.elementary on f / iv, y / iv.  Point estimates.
+% DM: dm_test on the daily QLIKE difference; t: hac_inference.llsw_test on the daily mid-return
+% difference (614 post-warmup days, bandwidth 33, fixed-b p); Sharpe changes: Ledoit-Wolf p;
+% ES(c = 1): close_murphy_splits_headline.elementary on f / iv, y / iv.  Point estimates.
 % pooled pairs: family pooled twin
 \newcommand{\fqsPairs}{51}  % models on both input sets (pairs drawn)
 \newcommand{\fqsPairsPerBarLinear}{3}  % of which per-bar linear (pre-tuned)
@@ -19,22 +20,22 @@
 \newcommand{\fqsQLowerSigLagFourteen}{2}  % sensitivity: QLIKE lower, DM at lag 14 significant
 \newcommand{\fqsQHigherSigLagFourteen}{0}  % sensitivity: QLIKE higher, DM at lag 14 significant
 \newcommand{\fqsShHigher}{50}  % Sharpe (mid) higher with all features
-\newcommand{\fqsShHigherSig}{4}  % ... and HAC t significant at 5 %
+\newcommand{\fqsShHigherSig}{6}  % ... and Ledoit-Wolf p < 0.05 (614 post-warmup days)
 \newcommand{\fqsShLower}{1}  % Sharpe (mid) lower with all features
-\newcommand{\fqsShLowerSig}{0}  % ... and HAC t significant at 5 %
+\newcommand{\fqsShLowerSig}{0}  % ... and Ledoit-Wolf p < 0.05 (614 post-warmup days)
 \newcommand{\fqsQLowerShHigher}{37}  % both: QLIKE lower and Sharpe higher
 \newcommand{\fqsMedDQ}{\ensuremath{-}0.0018}  % median QLIKE change (all features minus HAR + cal.)
 \newcommand{\fqsMedDQPct}{\ensuremath{-}1.7}  % median QLIKE change, % of the HAR + cal. QLIKE
 \newcommand{\fqsMedDSh}{\ensuremath{+}0.54}  % median Sharpe (mid) change
 \newcommand{\fqsESLower}{35}  % elementary score at the threshold (c = 1) lower with all features
-\newcommand{\fqsCorrES}{\ensuremath{-}0.26}  % Pearson corr. across pairs: ES(c = 1) change vs HAC t of the P&L change
-\newcommand{\fqsCorrQ}{0.00}  % Pearson corr. across pairs: QLIKE change vs HAC t of the P&L change
+\newcommand{\fqsCorrES}{0.05}  % Pearson corr. across pairs: ES(c = 1) change vs HAC t of the P&L change
+\newcommand{\fqsCorrQ}{0.07}  % Pearson corr. across pairs: QLIKE change vs HAC t of the P&L change
 \newcommand{\fqsInShade}{2}  % all-features points in the shaded quadrant
 \newcommand{\fqsInShadeBase}{0}  % HAR + cal. points in the shaded quadrant
 \newcommand{\fqsOlsQ}{0.0967}  % QLIKE of the HAR + cal. OLS
 \newcommand{\fqsOlsSh}{1.37}  % Sharpe (mid) of the HAR + cal. OLS
 \newcommand{\fqsDMLag}{6}  % Newey-West lag of the DM statistic (the master table's)
-\newcommand{\fqsHACLag}{14}  % Newey-West lag of the HAC t (the master table's)
+\newcommand{\fqsHACS}{33}  % bandwidth S of the t of the mean P&L change (LLSW 2018, 614 post-warmup days)
 \newcommand{\fqsSigPct}{5}  % two-sided level of the counts, %
 \newcommand{\fqsQuadBetterBoth}{37}  % change figure: lower QLIKE, higher Sharpe
 \newcommand{\fqsQuadShOnly}{13}  % change figure: higher QLIKE, higher Sharpe
