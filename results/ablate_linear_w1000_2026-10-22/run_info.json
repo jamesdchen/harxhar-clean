@@ -1,0 +1,4891 @@
+{
+ "study": "leave-bucket-out (stage 1) and leave-series-out (stage 2) ablations, pooled 13-bar linear models, w1000, 2012 (preview); RULE_ablate.txt",
+ "cluster": "Hoffman2 (UCLA, UGE 8.6.4), /u/scratch/j/jamesdc1/ablate",
+ "code": "git archive of a707349 (branch insurance-selling-2026-09-19-e34-latestart), unchanged; driver jobs/abl.py",
+ "environment": "the window sweep's Debian bookworm container + venv (/u/scratch/j/jamesdc1/wsweep/deb.sif, venv; numpy 1.26.4, OpenBLAS 0.3.23.dev), OPENBLAS_CORETYPE=Prescott, numpy AVX512 dispatch off (NPY_DISABLE_CPU_FEATURES), 1 BLAS thread; nodes with AVX2 (no Sandy / Ivy Bridge)",
+ "base": "results/pooled_linear_rerun_2026-10-22_13_2012_w1000_latestart_nofomcrel (564 columns)",
+ "gate": [
+  "penalty ridge: Hoffman2 1000.0, published 1000.0, equal",
+  "penalty lasso: Hoffman2 0.001, published 0.001, equal",
+  "penalty enet: Hoffman2 0.01, published 0.01, equal",
+  "designs record equal (names, rows, factor): True",
+  "info equal (rule, folds, grids, runner_cfg): True",
+  "pretune_mse.csv mse_fold0: bit for bit",
+  "pretune_mse.csv mse_fold1: bit for bit",
+  "pretune_mse.csv mse_fold2: bit for bit",
+  "pretune_mse.csv mse_fold3: bit for bit",
+  "pretune_mse.csv mse_mean: bit for bit",
+  "pretune fold.npz ridge: resid bit for bit; grid, folds, masks, names, backbone equal: True",
+  "pretune fold.npz lasso: resid bit for bit; grid, folds, masks, names, backbone equal: True",
+  "pretune fold.npz enet: resid bit for bit; grid, folds, masks, names, backbone equal: True",
+  "forecasts ridge (40,497 bars): pred_adj bit for bit; plain bit for bit; true_adj bit for bit; B bit for bit",
+  "forecasts lasso (40,497 bars): pred_adj bit for bit; plain bit for bit; true_adj bit for bit; B bit for bit",
+  "forecasts enet (40,497 bars): pred_adj bit for bit; plain bit for bit; true_adj bit for bit; B bit for bit",
+  "GATE PASS: penalties equal True, max relative forecast difference 0.00e+00"
+ ],
+ "forecasts_on_cluster": "/u/scratch/j/jamesdc1/ablate/runs/<ablation>/forecasts.parquet (+ _work/walk, _work/pretune)",
+ "ablations": {
+  "full": {
+   "stage": 0,
+   "bucket": null,
+   "series": [],
+   "n_columns": 564,
+   "n_dropped": 0,
+   "penalties": {
+    "ridge": 1000.0,
+    "lasso": 0.001,
+    "enet": 0.01
+   },
+   "runner_cpu_hours": 0.35987411017999993,
+   "repairs": {
+    "ridge": [
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ],
+    "lasso": [
+     {
+      "kkt_ok": 13,
+      "active_repair": 36,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 13,
+      "active_repair": 39,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 9,
+      "active_repair": 42,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 6,
+      "active_repair": 44,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 8,
+      "active_repair": 12,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ],
+    "enet": [
+     {
+      "kkt_ok": 20,
+      "active_repair": 21,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 25,
+      "active_repair": 16,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 6,
+      "active_repair": 34,
+      "cd_polish": 1,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 13,
+      "active_repair": 26,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 6,
+      "active_repair": 14,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ]
+   },
+   "lasso_between_tune_reseeds": 40,
+   "mask": {
+    "windows_with_unmasked": 0,
+    "windows": 166,
+    "max_unmasked": 0,
+    "unmasked_columns": {}
+   },
+   "uge": [
+    {
+     "stage": "slice",
+     "jobid": 15246325,
+     "tasks": 1,
+     "cpu_sec": 3.083,
+     "wall_sec": 13.242,
+     "hosts": [
+      "n1849"
+     ]
+    },
+    {
+     "stage": "pretune",
+     "jobid": 15246326,
+     "tasks": 1,
+     "cpu_sec": 64.026,
+     "wall_sec": 41.791,
+     "hosts": [
+      "n7440"
+     ]
+    },
+    {
+     "stage": "walk",
+     "jobid": 15246327,
+     "tasks": 10,
+     "cpu_sec": 1269.1420000000003,
+     "wall_sec": 1354.7380000000003,
+     "hosts": [
+      "n1849",
+      "n6407",
+      "n6440",
+      "n6441",
+      "n6442",
+      "n6665",
+      "n6679",
+      "n7439",
+      "n7441",
+      "n7639"
+     ]
+    },
+    {
+     "stage": "collect",
+     "jobid": 15246328,
+     "tasks": 1,
+     "cpu_sec": 2.308,
+     "wall_sec": 7.831,
+     "hosts": [
+      "n6441"
+     ]
+    }
+   ],
+   "hosts": [
+    "slice.undefined | n1849 | Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz | JOB_ID 15246325 | 2026-10-22 14:54:02 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX",
+    "pretune.undefined | n7440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246326 | 2026-10-22 14:55:23 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.2 | n1849 | Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz | JOB_ID 15246327 | 2026-10-22 14:57:39 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX",
+    "walk1.1 | n6665 | Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz | JOB_ID 15246327 | 2026-10-22 14:57:39 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX",
+    "walk1.3 | n6441 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246327 | 2026-10-22 14:57:40 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.7 | n7639 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246327 | 2026-10-22 14:57:40 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.4 | n6679 | Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz | JOB_ID 15246327 | 2026-10-22 14:57:40 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX",
+    "walk1.9 | n6440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246327 | 2026-10-22 14:57:41 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.10 | n6407 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246327 | 2026-10-22 14:57:41 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.5 | n6442 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246327 | 2026-10-22 14:57:42 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.8 | n7439 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246327 | 2026-10-22 14:57:42 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.6 | n7441 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246327 | 2026-10-22 14:57:42 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "collect.undefined | n6441 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246328 | 2026-10-22 15:02:08 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX"
+   ]
+  },
+  "B_moments": {
+   "stage": 1,
+   "bucket": "moments",
+   "series": [
+    "sumret",
+    "sumabsret",
+    "sumret3",
+    "sumret4",
+    "sumpret2",
+    "sumbipow",
+    "sumautocov"
+   ],
+   "n_columns": 480,
+   "n_dropped": 84,
+   "penalties": {
+    "ridge": 1000.0,
+    "lasso": 0.001,
+    "enet": 0.001
+   },
+   "runner_cpu_hours": 0.30273275268861116,
+   "repairs": {
+    "ridge": [
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ],
+    "lasso": [
+     {
+      "kkt_ok": 14,
+      "active_repair": 35,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 16,
+      "active_repair": 36,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 9,
+      "active_repair": 42,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 1,
+      "active_repair": 48,
+      "cd_polish": 1,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 12,
+      "active_repair": 8,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ],
+    "enet": [
+     {
+      "kkt_ok": 10,
+      "active_repair": 31,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 5,
+      "active_repair": 36,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 7,
+      "active_repair": 34,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 5,
+      "active_repair": 32,
+      "cd_polish": 2,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 5,
+      "active_repair": 15,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ]
+   },
+   "lasso_between_tune_reseeds": 40,
+   "mask": {
+    "windows_with_unmasked": 0,
+    "windows": 166,
+    "max_unmasked": 0,
+    "unmasked_columns": {}
+   },
+   "uge": [
+    {
+     "stage": "slice",
+     "jobid": 15246579,
+     "tasks": 1,
+     "cpu_sec": 2.46,
+     "wall_sec": 5.338,
+     "hosts": [
+      "n1849"
+     ]
+    },
+    {
+     "stage": "pretune",
+     "jobid": 15246580,
+     "tasks": 1,
+     "cpu_sec": 31.615,
+     "wall_sec": 28.758,
+     "hosts": [
+      "n1171"
+     ]
+    },
+    {
+     "stage": "walk",
+     "jobid": 15246581,
+     "tasks": 10,
+     "cpu_sec": 1100.5669999999998,
+     "wall_sec": 1292.14,
+     "hosts": [
+      "n1153",
+      "n1849",
+      "n6405",
+      "n6406",
+      "n6407",
+      "n6440",
+      "n6443",
+      "n7403",
+      "n7638",
+      "n7639"
+     ]
+    },
+    {
+     "stage": "collect",
+     "jobid": 15246582,
+     "tasks": 1,
+     "cpu_sec": 1.721,
+     "wall_sec": 3.345,
+     "hosts": [
+      "n1849"
+     ]
+    }
+   ],
+   "hosts": [
+    "slice.undefined | n1849 | Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz | JOB_ID 15246579 | 2026-10-22 15:07:50 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX",
+    "pretune.undefined | n1171 | Intel(R) Xeon(R) 6736P | JOB_ID 15246580 | 2026-10-22 15:09:21 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL",
+    "walk1.1 | n1849 | Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz | JOB_ID 15246581 | 2026-10-22 15:10:56 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX",
+    "walk1.5 | n7639 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246581 | 2026-10-22 15:10:56 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.4 | n6406 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246581 | 2026-10-22 15:10:56 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.6 | n7403 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246581 | 2026-10-22 15:10:57 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.7 | n7638 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246581 | 2026-10-22 15:10:57 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.9 | n6407 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246581 | 2026-10-22 15:10:57 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.3 | n6443 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246581 | 2026-10-22 15:10:57 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.2 | n6440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246581 | 2026-10-22 15:10:57 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.8 | n6405 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246581 | 2026-10-22 15:10:59 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.10 | n1153 | Intel(R) Xeon(R) 6736P | JOB_ID 15246581 | 2026-10-22 15:11:10 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL",
+    "collect.undefined | n1849 | Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz | JOB_ID 15246582 | 2026-10-22 15:15:16 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX"
+   ]
+  },
+  "B_liquidity": {
+   "stage": 1,
+   "bucket": "liquidity",
+   "series": [
+    "sumvolume",
+    "numobs",
+    "turnover_ewstock",
+    "buyturnover_ewstock",
+    "sellturnover_ewstock",
+    "effspread_ewstock",
+    "spread_ewstock",
+    "turnover_vwstock",
+    "buyturnover_vwstock",
+    "sellturnover_vwstock",
+    "effspread_vwstock",
+    "spread_vwstock",
+    "ofi_ewstock",
+    "ofi_vwstock"
+   ],
+   "n_columns": 396,
+   "n_dropped": 168,
+   "penalties": {
+    "ridge": 1000.0,
+    "lasso": 0.001,
+    "enet": 0.001
+   },
+   "runner_cpu_hours": 0.19345660200694445,
+   "repairs": {
+    "ridge": [
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ],
+    "lasso": [
+     {
+      "kkt_ok": 16,
+      "active_repair": 29,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 9,
+      "active_repair": 36,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 6,
+      "active_repair": 45,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 7,
+      "active_repair": 37,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 7,
+      "active_repair": 13,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ],
+    "enet": [
+     {
+      "kkt_ok": 6,
+      "active_repair": 35,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 6,
+      "active_repair": 35,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 2,
+      "active_repair": 39,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 5,
+      "active_repair": 34,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 5,
+      "active_repair": 15,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ]
+   },
+   "lasso_between_tune_reseeds": 23,
+   "mask": {
+    "windows_with_unmasked": 0,
+    "windows": 166,
+    "max_unmasked": 0,
+    "unmasked_columns": {}
+   },
+   "uge": [
+    {
+     "stage": "slice",
+     "jobid": 15246583,
+     "tasks": 1,
+     "cpu_sec": 2.848,
+     "wall_sec": 10.294,
+     "hosts": [
+      "n7439"
+     ]
+    },
+    {
+     "stage": "pretune",
+     "jobid": 15246584,
+     "tasks": 1,
+     "cpu_sec": 31.31,
+     "wall_sec": 59.865,
+     "hosts": [
+      "n7678"
+     ]
+    },
+    {
+     "stage": "walk",
+     "jobid": 15246585,
+     "tasks": 10,
+     "cpu_sec": 697.0930000000001,
+     "wall_sec": 827.679,
+     "hosts": [
+      "n1152",
+      "n1153",
+      "n1849",
+      "n6405",
+      "n6640",
+      "n6678",
+      "n7678"
+     ]
+    },
+    {
+     "stage": "collect",
+     "jobid": 15246586,
+     "tasks": 1,
+     "cpu_sec": 1.579,
+     "wall_sec": 3.309,
+     "hosts": [
+      "n1849"
+     ]
+    }
+   ],
+   "hosts": [
+    "slice.undefined | n7439 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246583 | 2026-10-22 15:08:33 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "pretune.undefined | n7678 | Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz | JOB_ID 15246584 | 2026-10-22 15:10:13 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX",
+    "walk1.1 | n1849 | Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz | JOB_ID 15246585 | 2026-10-22 15:12:25 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX",
+    "walk1.2 | n7678 | Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz | JOB_ID 15246585 | 2026-10-22 15:12:25 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX",
+    "walk1.4 | n7678 | Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz | JOB_ID 15246585 | 2026-10-22 15:12:25 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX",
+    "walk1.3 | n6405 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246585 | 2026-10-22 15:12:26 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.5 | n6678 | Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz | JOB_ID 15246585 | 2026-10-22 15:12:26 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX",
+    "walk1.7 | n6678 | Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz | JOB_ID 15246585 | 2026-10-22 15:12:26 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX",
+    "walk1.6 | n6640 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246585 | 2026-10-22 15:12:28 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.8 | n1152 | Intel(R) Xeon(R) 6736P | JOB_ID 15246585 | 2026-10-22 15:12:28 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL",
+    "walk1.9 | n1849 | Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz | JOB_ID 15246585 | 2026-10-22 15:13:07 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX",
+    "walk1.10 | n1153 | Intel(R) Xeon(R) 6736P | JOB_ID 15246585 | 2026-10-22 15:13:15 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL",
+    "collect.undefined | n1849 | Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz | JOB_ID 15246586 | 2026-10-22 15:16:01 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX"
+   ]
+  },
+  "B_market_ew": {
+   "stage": 1,
+   "bucket": "market_ew",
+   "series": [
+    "sumret2_ewstock",
+    "sumret3_ewstock",
+    "sumret4_ewstock",
+    "sumabsret_ewstock",
+    "sumbipow_ewstock",
+    "sumpret2_ewstock"
+   ],
+   "n_columns": 492,
+   "n_dropped": 72,
+   "penalties": {
+    "ridge": 1000.0,
+    "lasso": 0.001,
+    "enet": 0.01
+   },
+   "runner_cpu_hours": 0.2680786880472222,
+   "repairs": {
+    "ridge": [
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ],
+    "lasso": [
+     {
+      "kkt_ok": 14,
+      "active_repair": 35,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 15,
+      "active_repair": 37,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 8,
+      "active_repair": 43,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 6,
+      "active_repair": 44,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 7,
+      "active_repair": 13,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ],
+    "enet": [
+     {
+      "kkt_ok": 20,
+      "active_repair": 21,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 27,
+      "active_repair": 14,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 12,
+      "active_repair": 27,
+      "cd_polish": 2,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 10,
+      "active_repair": 29,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 5,
+      "active_repair": 15,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ]
+   },
+   "lasso_between_tune_reseeds": 40,
+   "mask": {
+    "windows_with_unmasked": 166,
+    "windows": 166,
+    "max_unmasked": 11,
+    "unmasked_columns": {
+     "turnover_ewstock_avail_ma_1": 166,
+     "turnover_ewstock_avail_ma_5": 4,
+     "turnover_ewstock_avail_ma_25": 166,
+     "turnover_ewstock_avail_ma_125": 166,
+     "turnover_ewstock_avail_ma_625": 166,
+     "turnover_ewstock_avail_ma_3125": 166,
+     "sumret3_vwstock_avail_ma_5": 69,
+     "sumret3_vwstock_avail_ma_25": 96,
+     "sumret3_vwstock_avail_ma_125": 96,
+     "sumret3_vwstock_avail_ma_625": 96,
+     "sumret3_vwstock_avail_ma_3125": 99
+    }
+   },
+   "uge": [
+    {
+     "stage": "slice",
+     "jobid": 15246587,
+     "tasks": 1,
+     "cpu_sec": 4.129,
+     "wall_sec": 25.144,
+     "hosts": [
+      "n6440"
+     ]
+    },
+    {
+     "stage": "pretune",
+     "jobid": 15246588,
+     "tasks": 1,
+     "cpu_sec": 45.991,
+     "wall_sec": 64.565,
+     "hosts": [
+      "n7678"
+     ]
+    },
+    {
+     "stage": "walk",
+     "jobid": 15246589,
+     "tasks": 10,
+     "cpu_sec": 954.5239999999999,
+     "wall_sec": 1085.9940000000001,
+     "hosts": [
+      "n1153",
+      "n1171",
+      "n6405",
+      "n6407",
+      "n6440",
+      "n6443",
+      "n6638",
+      "n7440",
+      "n7638"
+     ]
+    },
+    {
+     "stage": "collect",
+     "jobid": 15246590,
+     "tasks": 1,
+     "cpu_sec": 1.652,
+     "wall_sec": 3.414,
+     "hosts": [
+      "n1849"
+     ]
+    }
+   ],
+   "hosts": [
+    "slice.undefined | n6440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246587 | 2026-10-22 15:08:38 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "pretune.undefined | n7678 | Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz | JOB_ID 15246588 | 2026-10-22 15:10:13 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX",
+    "walk1.4 | n7440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246589 | 2026-10-22 15:13:08 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.5 | n7440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246589 | 2026-10-22 15:13:08 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.2 | n6638 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246589 | 2026-10-22 15:13:08 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.3 | n1171 | Intel(R) Xeon(R) 6736P | JOB_ID 15246589 | 2026-10-22 15:13:08 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL",
+    "walk1.1 | n1153 | Intel(R) Xeon(R) 6736P | JOB_ID 15246589 | 2026-10-22 15:13:15 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL",
+    "walk1.8 | n7638 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246589 | 2026-10-22 15:13:52 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.10 | n6407 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246589 | 2026-10-22 15:13:52 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.9 | n6405 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246589 | 2026-10-22 15:13:52 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.6 | n6440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246589 | 2026-10-22 15:13:52 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.7 | n6443 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246589 | 2026-10-22 15:13:52 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "collect.undefined | n1849 | Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz | JOB_ID 15246590 | 2026-10-22 15:16:48 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX"
+   ]
+  },
+  "B_market_vw": {
+   "stage": 1,
+   "bucket": "market_vw",
+   "series": [
+    "sumret2_vwstock",
+    "sumret3_vwstock",
+    "sumret4_vwstock",
+    "sumabsret_vwstock",
+    "sumbipow_vwstock",
+    "sumpret2_vwstock"
+   ],
+   "n_columns": 492,
+   "n_dropped": 72,
+   "penalties": {
+    "ridge": 1000.0,
+    "lasso": 0.001,
+    "enet": 0.01
+   },
+   "runner_cpu_hours": 0.2838141291205556,
+   "repairs": {
+    "ridge": [
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ],
+    "lasso": [
+     {
+      "kkt_ok": 11,
+      "active_repair": 38,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 11,
+      "active_repair": 41,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 6,
+      "active_repair": 45,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 10,
+      "active_repair": 40,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 8,
+      "active_repair": 12,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ],
+    "enet": [
+     {
+      "kkt_ok": 16,
+      "active_repair": 25,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 27,
+      "active_repair": 14,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 13,
+      "active_repair": 27,
+      "cd_polish": 1,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 10,
+      "active_repair": 29,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 4,
+      "active_repair": 16,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ]
+   },
+   "lasso_between_tune_reseeds": 40,
+   "mask": {
+    "windows_with_unmasked": 0,
+    "windows": 166,
+    "max_unmasked": 0,
+    "unmasked_columns": {}
+   },
+   "uge": [
+    {
+     "stage": "slice",
+     "jobid": 15246591,
+     "tasks": 1,
+     "cpu_sec": 3.817,
+     "wall_sec": 16.433,
+     "hosts": [
+      "n6406"
+     ]
+    },
+    {
+     "stage": "pretune",
+     "jobid": 15246592,
+     "tasks": 1,
+     "cpu_sec": 45.009,
+     "wall_sec": 36.141,
+     "hosts": [
+      "n7678"
+     ]
+    },
+    {
+     "stage": "walk",
+     "jobid": 15246593,
+     "tasks": 10,
+     "cpu_sec": 1008.678,
+     "wall_sec": 1044.06,
+     "hosts": [
+      "n1849",
+      "n6406",
+      "n6407",
+      "n6678",
+      "n7403",
+      "n7440",
+      "n7638",
+      "n7639",
+      "n7678"
+     ]
+    },
+    {
+     "stage": "collect",
+     "jobid": 15246594,
+     "tasks": 1,
+     "cpu_sec": 4.041,
+     "wall_sec": 8.524,
+     "hosts": [
+      "n1154"
+     ]
+    }
+   ],
+   "hosts": [
+    "slice.undefined | n6406 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246591 | 2026-10-22 15:08:35 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "pretune.undefined | n7678 | Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz | JOB_ID 15246592 | 2026-10-22 15:10:55 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX",
+    "walk1.1 | n6678 | Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz | JOB_ID 15246593 | 2026-10-22 15:13:52 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX",
+    "walk1.2 | n7678 | Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz | JOB_ID 15246593 | 2026-10-22 15:13:52 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX",
+    "walk1.3 | n1849 | Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz | JOB_ID 15246593 | 2026-10-22 15:14:34 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX",
+    "walk1.5 | n7639 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246593 | 2026-10-22 15:14:34 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.4 | n6406 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246593 | 2026-10-22 15:14:34 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.6 | n7403 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246593 | 2026-10-22 15:14:34 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.9 | n6407 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246593 | 2026-10-22 15:14:34 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.10 | n7440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246593 | 2026-10-22 15:14:35 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.7 | n7638 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246593 | 2026-10-22 15:14:35 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.8 | n7638 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246593 | 2026-10-22 15:14:35 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "collect.undefined | n1154 | Intel(R) Xeon(R) 6736P | JOB_ID 15246594 | 2026-10-22 15:18:24 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL"
+   ]
+  },
+  "B_implied_vol": {
+   "stage": 1,
+   "bucket": "implied_vol",
+   "series": [
+    "vix",
+    "vvix",
+    "vix3m"
+   ],
+   "n_columns": 528,
+   "n_dropped": 36,
+   "penalties": {
+    "ridge": 1000.0,
+    "lasso": 0.001,
+    "enet": 0.01
+   },
+   "runner_cpu_hours": 0.33223798566194446,
+   "repairs": {
+    "ridge": [
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ],
+    "lasso": [
+     {
+      "kkt_ok": 12,
+      "active_repair": 35,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 13,
+      "active_repair": 38,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 9,
+      "active_repair": 41,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 7,
+      "active_repair": 40,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 7,
+      "active_repair": 13,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ],
+    "enet": [
+     {
+      "kkt_ok": 20,
+      "active_repair": 21,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 25,
+      "active_repair": 16,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 7,
+      "active_repair": 33,
+      "cd_polish": 1,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 13,
+      "active_repair": 26,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 5,
+      "active_repair": 15,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ]
+   },
+   "lasso_between_tune_reseeds": 33,
+   "mask": {
+    "windows_with_unmasked": 47,
+    "windows": 166,
+    "max_unmasked": 3,
+    "unmasked_columns": {
+     "voldemand_spx_open_and_close_avail_ma_1": 47,
+     "voldemand_spx_open_and_close_avail_ma_5": 47,
+     "voldemand_spx_open_and_close_avail_ma_25": 8
+    }
+   },
+   "uge": [
+    {
+     "stage": "slice",
+     "jobid": 15246596,
+     "tasks": 1,
+     "cpu_sec": 3.128,
+     "wall_sec": 6.351,
+     "hosts": [
+      "n7639"
+     ]
+    },
+    {
+     "stage": "pretune",
+     "jobid": 15246597,
+     "tasks": 1,
+     "cpu_sec": 56.071,
+     "wall_sec": 33.257,
+     "hosts": [
+      "n7440"
+     ]
+    },
+    {
+     "stage": "walk",
+     "jobid": 15246598,
+     "tasks": 10,
+     "cpu_sec": 1173.0569999999998,
+     "wall_sec": 1269.0030000000002,
+     "hosts": [
+      "n1152",
+      "n6405",
+      "n6637",
+      "n6640",
+      "n6678",
+      "n7440",
+      "n7638"
+     ]
+    },
+    {
+     "stage": "collect",
+     "jobid": 15246599,
+     "tasks": 1,
+     "cpu_sec": 2.203,
+     "wall_sec": 4.156,
+     "hosts": [
+      "n6440"
+     ]
+    }
+   ],
+   "hosts": [
+    "slice.undefined | n7639 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246596 | 2026-10-22 15:08:33 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "pretune.undefined | n7440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246597 | 2026-10-22 15:12:25 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.1 | n7440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246598 | 2026-10-22 15:14:35 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.2 | n6678 | Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz | JOB_ID 15246598 | 2026-10-22 15:14:35 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX",
+    "walk1.3 | n1152 | Intel(R) Xeon(R) 6736P | JOB_ID 15246598 | 2026-10-22 15:14:36 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL",
+    "walk1.4 | n6405 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246598 | 2026-10-22 15:15:17 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.9 | n6640 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246598 | 2026-10-22 15:15:17 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.6 | n6637 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246598 | 2026-10-22 15:15:17 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.5 | n6637 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246598 | 2026-10-22 15:15:17 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.7 | n7638 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246598 | 2026-10-22 15:15:17 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.8 | n7638 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246598 | 2026-10-22 15:15:17 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.10 | n7440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246598 | 2026-10-22 15:15:18 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "collect.undefined | n6440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246599 | 2026-10-22 15:19:49 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX"
+   ]
+  },
+  "B_fomc": {
+   "stage": 1,
+   "bucket": "fomc",
+   "series": [
+    "fomc_day",
+    "fomc_until_inv",
+    "fomc_since_inv"
+   ],
+   "n_columns": 528,
+   "n_dropped": 36,
+   "penalties": {
+    "ridge": 1000.0,
+    "lasso": 0.001,
+    "enet": 0.01
+   },
+   "runner_cpu_hours": 0.29373718901555557,
+   "repairs": {
+    "ridge": [
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ],
+    "lasso": [
+     {
+      "kkt_ok": 17,
+      "active_repair": 32,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 15,
+      "active_repair": 37,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 7,
+      "active_repair": 44,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 5,
+      "active_repair": 45,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 7,
+      "active_repair": 13,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ],
+    "enet": [
+     {
+      "kkt_ok": 20,
+      "active_repair": 21,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 27,
+      "active_repair": 14,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 6,
+      "active_repair": 34,
+      "cd_polish": 1,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 14,
+      "active_repair": 24,
+      "cd_polish": 1,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 4,
+      "active_repair": 16,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ]
+   },
+   "lasso_between_tune_reseeds": 40,
+   "mask": {
+    "windows_with_unmasked": 0,
+    "windows": 166,
+    "max_unmasked": 0,
+    "unmasked_columns": {}
+   },
+   "uge": [
+    {
+     "stage": "slice",
+     "jobid": 15246600,
+     "tasks": 1,
+     "cpu_sec": 3.804,
+     "wall_sec": 18.685,
+     "hosts": [
+      "n6443"
+     ]
+    },
+    {
+     "stage": "pretune",
+     "jobid": 15246601,
+     "tasks": 1,
+     "cpu_sec": 56.055,
+     "wall_sec": 32.591,
+     "hosts": [
+      "n7440"
+     ]
+    },
+    {
+     "stage": "walk",
+     "jobid": 15246602,
+     "tasks": 10,
+     "cpu_sec": 1032.723,
+     "wall_sec": 1143.7079999999999,
+     "hosts": [
+      "n1144",
+      "n1153",
+      "n6443",
+      "n6638",
+      "n6678",
+      "n7440"
+     ]
+    },
+    {
+     "stage": "collect",
+     "jobid": 15246603,
+     "tasks": 1,
+     "cpu_sec": 7.039,
+     "wall_sec": 9.482,
+     "hosts": [
+      "n1154"
+     ]
+    }
+   ],
+   "hosts": [
+    "slice.undefined | n6443 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246600 | 2026-10-22 15:08:37 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "pretune.undefined | n7440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246601 | 2026-10-22 15:13:51 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.1 | n6638 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246602 | 2026-10-22 15:15:17 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.3 | n6678 | Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz | JOB_ID 15246602 | 2026-10-22 15:15:18 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX",
+    "walk1.5 | n6678 | Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz | JOB_ID 15246602 | 2026-10-22 15:15:18 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX",
+    "walk1.2 | n7440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246602 | 2026-10-22 15:15:18 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.6 | n6678 | Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz | JOB_ID 15246602 | 2026-10-22 15:15:18 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX",
+    "walk1.7 | n6678 | Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz | JOB_ID 15246602 | 2026-10-22 15:15:18 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX",
+    "walk1.8 | n6678 | Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz | JOB_ID 15246602 | 2026-10-22 15:15:18 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX",
+    "walk1.4 | n1153 | Intel(R) Xeon(R) 6736P | JOB_ID 15246602 | 2026-10-22 15:15:26 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL",
+    "walk1.9 | n6443 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246602 | 2026-10-22 15:16:02 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.10 | n1144 | Intel(R) Xeon(R) 6736P | JOB_ID 15246602 | 2026-10-22 15:16:02 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL",
+    "collect.undefined | n1154 | Intel(R) Xeon(R) 6736P | JOB_ID 15246603 | 2026-10-22 15:19:50 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL"
+   ]
+  },
+  "B_sentiment": {
+   "stage": 1,
+   "bucket": "sentiment",
+   "series": [
+    "stocktwits_attention",
+    "stocktwits_sentiment",
+    "stocktwits_sentcount"
+   ],
+   "n_columns": 528,
+   "n_dropped": 36,
+   "penalties": {
+    "ridge": 1000.0,
+    "lasso": 0.001,
+    "enet": 0.01
+   },
+   "runner_cpu_hours": 0.26139351873333333,
+   "repairs": {
+    "ridge": [
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ],
+    "lasso": [
+     {
+      "kkt_ok": 13,
+      "active_repair": 34,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 12,
+      "active_repair": 38,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 7,
+      "active_repair": 39,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 6,
+      "active_repair": 42,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 9,
+      "active_repair": 11,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ],
+    "enet": [
+     {
+      "kkt_ok": 20,
+      "active_repair": 21,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 25,
+      "active_repair": 16,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 8,
+      "active_repair": 33,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 12,
+      "active_repair": 27,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 6,
+      "active_repair": 14,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ]
+   },
+   "lasso_between_tune_reseeds": 29,
+   "mask": {
+    "windows_with_unmasked": 0,
+    "windows": 166,
+    "max_unmasked": 0,
+    "unmasked_columns": {}
+   },
+   "uge": [
+    {
+     "stage": "slice",
+     "jobid": 15246604,
+     "tasks": 1,
+     "cpu_sec": 3.674,
+     "wall_sec": 13.951,
+     "hosts": [
+      "n7403"
+     ]
+    },
+    {
+     "stage": "pretune",
+     "jobid": 15246605,
+     "tasks": 1,
+     "cpu_sec": 58.004,
+     "wall_sec": 30.935,
+     "hosts": [
+      "n6638"
+     ]
+    },
+    {
+     "stage": "walk",
+     "jobid": 15246606,
+     "tasks": 10,
+     "cpu_sec": 915.487,
+     "wall_sec": 1142.5420000000001,
+     "hosts": [
+      "n1152",
+      "n1153",
+      "n1171",
+      "n6638",
+      "n6678",
+      "n7678"
+     ]
+    },
+    {
+     "stage": "collect",
+     "jobid": 15246607,
+     "tasks": 1,
+     "cpu_sec": 2.362,
+     "wall_sec": 4.288,
+     "hosts": [
+      "n6406"
+     ]
+    }
+   ],
+   "hosts": [
+    "slice.undefined | n7403 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246604 | 2026-10-22 15:08:34 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "pretune.undefined | n6638 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246605 | 2026-10-22 15:14:33 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.1 | n7678 | Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz | JOB_ID 15246606 | 2026-10-22 15:16:01 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX",
+    "walk1.2 | n6638 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246606 | 2026-10-22 15:16:01 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.3 | n6638 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246606 | 2026-10-22 15:16:01 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.7 | n6678 | Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz | JOB_ID 15246606 | 2026-10-22 15:16:02 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX",
+    "walk1.4 | n1171 | Intel(R) Xeon(R) 6736P | JOB_ID 15246606 | 2026-10-22 15:16:03 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL",
+    "walk1.8 | n1152 | Intel(R) Xeon(R) 6736P | JOB_ID 15246606 | 2026-10-22 15:16:05 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL",
+    "walk1.6 | n1152 | Intel(R) Xeon(R) 6736P | JOB_ID 15246606 | 2026-10-22 15:16:05 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL",
+    "walk1.5 | n1152 | Intel(R) Xeon(R) 6736P | JOB_ID 15246606 | 2026-10-22 15:16:05 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL",
+    "walk1.10 | n1153 | Intel(R) Xeon(R) 6736P | JOB_ID 15246606 | 2026-10-22 15:16:10 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL",
+    "walk1.9 | n1153 | Intel(R) Xeon(R) 6736P | JOB_ID 15246606 | 2026-10-22 15:16:10 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL",
+    "collect.undefined | n6406 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246607 | 2026-10-22 15:19:49 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX"
+   ]
+  },
+  "B_vol_demand": {
+   "stage": 1,
+   "bucket": "vol_demand",
+   "series": [
+    "voldemand_spx_open_and_close",
+    "voldemand_spx_open_only",
+    "voldemand_all_open_and_close",
+    "voldemand_all_open_only"
+   ],
+   "n_columns": 516,
+   "n_dropped": 48,
+   "penalties": {
+    "ridge": 1000.0,
+    "lasso": 0.001,
+    "enet": 0.01
+   },
+   "runner_cpu_hours": 0.32814960565749995,
+   "repairs": {
+    "ridge": [
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ],
+    "lasso": [
+     {
+      "kkt_ok": 14,
+      "active_repair": 35,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 11,
+      "active_repair": 41,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 4,
+      "active_repair": 46,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 6,
+      "active_repair": 43,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 8,
+      "active_repair": 12,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ],
+    "enet": [
+     {
+      "kkt_ok": 20,
+      "active_repair": 21,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 25,
+      "active_repair": 16,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 6,
+      "active_repair": 34,
+      "cd_polish": 1,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 12,
+      "active_repair": 27,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 6,
+      "active_repair": 14,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ]
+   },
+   "lasso_between_tune_reseeds": 38,
+   "mask": {
+    "windows_with_unmasked": 0,
+    "windows": 166,
+    "max_unmasked": 0,
+    "unmasked_columns": {}
+   },
+   "uge": [
+    {
+     "stage": "slice",
+     "jobid": 15246608,
+     "tasks": 1,
+     "cpu_sec": 4.224,
+     "wall_sec": 15.873,
+     "hosts": [
+      "n7638"
+     ]
+    },
+    {
+     "stage": "pretune",
+     "jobid": 15246609,
+     "tasks": 1,
+     "cpu_sec": 33.129,
+     "wall_sec": 27.352,
+     "hosts": [
+      "n1152"
+     ]
+    },
+    {
+     "stage": "walk",
+     "jobid": 15246610,
+     "tasks": 10,
+     "cpu_sec": 1181.8029999999999,
+     "wall_sec": 1269.1780000000003,
+     "hosts": [
+      "n6405",
+      "n6407",
+      "n6440",
+      "n7440",
+      "n7638",
+      "n7678"
+     ]
+    },
+    {
+     "stage": "collect",
+     "jobid": 15246611,
+     "tasks": 1,
+     "cpu_sec": 2.096,
+     "wall_sec": 7.059,
+     "hosts": [
+      "n6443"
+     ]
+    }
+   ],
+   "hosts": [
+    "slice.undefined | n7638 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246608 | 2026-10-22 15:08:35 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "pretune.undefined | n1152 | Intel(R) Xeon(R) 6736P | JOB_ID 15246609 | 2026-10-22 15:14:36 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL",
+    "walk1.5 | n7678 | Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz | JOB_ID 15246610 | 2026-10-22 15:16:49 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX",
+    "walk1.2 | n6405 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246610 | 2026-10-22 15:16:49 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.4 | n6407 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246610 | 2026-10-22 15:16:49 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.3 | n7638 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246610 | 2026-10-22 15:16:49 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.6 | n7638 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246610 | 2026-10-22 15:16:49 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.7 | n7678 | Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz | JOB_ID 15246610 | 2026-10-22 15:16:49 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX",
+    "walk1.8 | n7638 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246610 | 2026-10-22 15:16:49 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.1 | n6440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246610 | 2026-10-22 15:16:49 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.9 | n7678 | Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz | JOB_ID 15246610 | 2026-10-22 15:16:49 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX",
+    "walk1.10 | n7440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246610 | 2026-10-22 15:16:50 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "collect.undefined | n6443 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246611 | 2026-10-22 15:20:35 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX"
+   ]
+  },
+  "S_sumret": {
+   "stage": 2,
+   "bucket": "moments",
+   "series": [
+    "sumret"
+   ],
+   "n_columns": 552,
+   "n_dropped": 12,
+   "penalties": {
+    "ridge": 1000.0,
+    "lasso": 0.001,
+    "enet": 0.01
+   },
+   "runner_cpu_hours": 0.3076512976019445,
+   "repairs": {
+    "ridge": [
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ],
+    "lasso": [
+     {
+      "kkt_ok": 16,
+      "active_repair": 33,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 12,
+      "active_repair": 40,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 9,
+      "active_repair": 41,
+      "cd_polish": 1,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 2,
+      "active_repair": 48,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 7,
+      "active_repair": 13,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ],
+    "enet": [
+     {
+      "kkt_ok": 20,
+      "active_repair": 21,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 23,
+      "active_repair": 18,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 12,
+      "active_repair": 29,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 11,
+      "active_repair": 28,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 5,
+      "active_repair": 15,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ]
+   },
+   "lasso_between_tune_reseeds": 40,
+   "mask": {
+    "windows_with_unmasked": 0,
+    "windows": 166,
+    "max_unmasked": 0,
+    "unmasked_columns": {}
+   },
+   "uge": [
+    {
+     "stage": "slice",
+     "jobid": 15246660,
+     "tasks": 1,
+     "cpu_sec": 2.984,
+     "wall_sec": 7.045,
+     "hosts": [
+      "n6440"
+     ]
+    },
+    {
+     "stage": "pretune",
+     "jobid": 15246661,
+     "tasks": 1,
+     "cpu_sec": 42.679,
+     "wall_sec": 30.498,
+     "hosts": [
+      "n1171"
+     ]
+    },
+    {
+     "stage": "walk",
+     "jobid": 15246662,
+     "tasks": 10,
+     "cpu_sec": 1103.259,
+     "wall_sec": 1172.478,
+     "hosts": [
+      "n1152",
+      "n1171",
+      "n6406",
+      "n6440",
+      "n6443",
+      "n6678",
+      "n7403",
+      "n7439",
+      "n7678"
+     ]
+    },
+    {
+     "stage": "collect",
+     "jobid": 15246663,
+     "tasks": 1,
+     "cpu_sec": 1.924,
+     "wall_sec": 3.186,
+     "hosts": [
+      "n7439"
+     ]
+    }
+   ],
+   "hosts": [
+    "slice.undefined | n6440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246660 | 2026-10-22 15:25:40 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "pretune.undefined | n1171 | Intel(R) Xeon(R) 6736P | JOB_ID 15246661 | 2026-10-22 15:33:08 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL",
+    "walk1.1 | n6440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246662 | 2026-10-22 15:34:36 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.7 | n7678 | Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz | JOB_ID 15246662 | 2026-10-22 15:34:36 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX",
+    "walk1.4 | n7439 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246662 | 2026-10-22 15:34:36 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.5 | n6678 | Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz | JOB_ID 15246662 | 2026-10-22 15:34:36 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX",
+    "walk1.3 | n6406 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246662 | 2026-10-22 15:34:36 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.2 | n6443 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246662 | 2026-10-22 15:34:36 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.6 | n7403 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246662 | 2026-10-22 15:34:36 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.8 | n1171 | Intel(R) Xeon(R) 6736P | JOB_ID 15246662 | 2026-10-22 15:34:37 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL",
+    "walk1.9 | n1171 | Intel(R) Xeon(R) 6736P | JOB_ID 15246662 | 2026-10-22 15:34:37 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL",
+    "walk1.10 | n1152 | Intel(R) Xeon(R) 6736P | JOB_ID 15246662 | 2026-10-22 15:34:37 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL",
+    "collect.undefined | n7439 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246663 | 2026-10-22 15:38:52 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX"
+   ]
+  },
+  "S_sumabsret": {
+   "stage": 2,
+   "bucket": "moments",
+   "series": [
+    "sumabsret"
+   ],
+   "n_columns": 552,
+   "n_dropped": 12,
+   "penalties": {
+    "ridge": 1000.0,
+    "lasso": 0.001,
+    "enet": 0.01
+   },
+   "runner_cpu_hours": 0.29963331928611114,
+   "repairs": {
+    "ridge": [
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ],
+    "lasso": [
+     {
+      "kkt_ok": 14,
+      "active_repair": 35,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 11,
+      "active_repair": 41,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 9,
+      "active_repair": 41,
+      "cd_polish": 1,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 6,
+      "active_repair": 44,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 9,
+      "active_repair": 11,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ],
+    "enet": [
+     {
+      "kkt_ok": 20,
+      "active_repair": 21,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 25,
+      "active_repair": 16,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 6,
+      "active_repair": 34,
+      "cd_polish": 1,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 13,
+      "active_repair": 26,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 5,
+      "active_repair": 15,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ]
+   },
+   "lasso_between_tune_reseeds": 40,
+   "mask": {
+    "windows_with_unmasked": 0,
+    "windows": 166,
+    "max_unmasked": 0,
+    "unmasked_columns": {}
+   },
+   "uge": [
+    {
+     "stage": "slice",
+     "jobid": 15246664,
+     "tasks": 1,
+     "cpu_sec": 3.659,
+     "wall_sec": 8.902,
+     "hosts": [
+      "n6443"
+     ]
+    },
+    {
+     "stage": "pretune",
+     "jobid": 15246665,
+     "tasks": 1,
+     "cpu_sec": 66.397,
+     "wall_sec": 44.838,
+     "hosts": [
+      "n6640"
+     ]
+    },
+    {
+     "stage": "walk",
+     "jobid": 15246666,
+     "tasks": 10,
+     "cpu_sec": 1052.655,
+     "wall_sec": 1247.993,
+     "hosts": [
+      "n1152",
+      "n1153",
+      "n6678",
+      "n7404",
+      "n7440"
+     ]
+    },
+    {
+     "stage": "collect",
+     "jobid": 15246667,
+     "tasks": 1,
+     "cpu_sec": 2.004,
+     "wall_sec": 3.625,
+     "hosts": [
+      "n6440"
+     ]
+    }
+   ],
+   "hosts": [
+    "slice.undefined | n6443 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246664 | 2026-10-22 15:25:40 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "pretune.undefined | n6640 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246665 | 2026-10-22 15:33:07 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.1 | n6678 | Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz | JOB_ID 15246666 | 2026-10-22 15:35:25 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX",
+    "walk1.3 | n1152 | Intel(R) Xeon(R) 6736P | JOB_ID 15246666 | 2026-10-22 15:35:25 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL",
+    "walk1.5 | n1152 | Intel(R) Xeon(R) 6736P | JOB_ID 15246666 | 2026-10-22 15:35:25 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL",
+    "walk1.2 | n7404 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246666 | 2026-10-22 15:35:26 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.4 | n7404 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246666 | 2026-10-22 15:35:26 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.8 | n7440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246666 | 2026-10-22 15:35:26 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.9 | n7440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246666 | 2026-10-22 15:35:26 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.6 | n1153 | Intel(R) Xeon(R) 6736P | JOB_ID 15246666 | 2026-10-22 15:35:43 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL",
+    "walk1.7 | n1153 | Intel(R) Xeon(R) 6736P | JOB_ID 15246666 | 2026-10-22 15:35:43 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL",
+    "walk1.10 | n1153 | Intel(R) Xeon(R) 6736P | JOB_ID 15246666 | 2026-10-22 15:36:29 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL",
+    "collect.undefined | n6440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246667 | 2026-10-22 15:39:41 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX"
+   ]
+  },
+  "S_sumret3": {
+   "stage": 2,
+   "bucket": "moments",
+   "series": [
+    "sumret3"
+   ],
+   "n_columns": 552,
+   "n_dropped": 12,
+   "penalties": {
+    "ridge": 1000.0,
+    "lasso": 0.001,
+    "enet": 0.01
+   },
+   "runner_cpu_hours": 0.33008087842527783,
+   "repairs": {
+    "ridge": [
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ],
+    "lasso": [
+     {
+      "kkt_ok": 10,
+      "active_repair": 39,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 11,
+      "active_repair": 41,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 6,
+      "active_repair": 45,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 4,
+      "active_repair": 46,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 7,
+      "active_repair": 13,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ],
+    "enet": [
+     {
+      "kkt_ok": 20,
+      "active_repair": 21,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 26,
+      "active_repair": 15,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 6,
+      "active_repair": 34,
+      "cd_polish": 1,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 12,
+      "active_repair": 27,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 5,
+      "active_repair": 15,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ]
+   },
+   "lasso_between_tune_reseeds": 40,
+   "mask": {
+    "windows_with_unmasked": 0,
+    "windows": 166,
+    "max_unmasked": 0,
+    "unmasked_columns": {}
+   },
+   "uge": [
+    {
+     "stage": "slice",
+     "jobid": 15246668,
+     "tasks": 1,
+     "cpu_sec": 3.502,
+     "wall_sec": 7.38,
+     "hosts": [
+      "n7403"
+     ]
+    },
+    {
+     "stage": "pretune",
+     "jobid": 15246669,
+     "tasks": 1,
+     "cpu_sec": 40.559,
+     "wall_sec": 28.006,
+     "hosts": [
+      "n1171"
+     ]
+    },
+    {
+     "stage": "walk",
+     "jobid": 15246670,
+     "tasks": 10,
+     "cpu_sec": 1183.484,
+     "wall_sec": 1274.047,
+     "hosts": [
+      "n1171",
+      "n6406",
+      "n6440",
+      "n6443",
+      "n6637",
+      "n6640",
+      "n7440",
+      "n7678"
+     ]
+    },
+    {
+     "stage": "collect",
+     "jobid": 15246671,
+     "tasks": 1,
+     "cpu_sec": 2.761,
+     "wall_sec": 4.834,
+     "hosts": [
+      "n1171"
+     ]
+    }
+   ],
+   "hosts": [
+    "slice.undefined | n7403 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246668 | 2026-10-22 15:25:40 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "pretune.undefined | n1171 | Intel(R) Xeon(R) 6736P | JOB_ID 15246669 | 2026-10-22 15:34:36 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL",
+    "walk1.3 | n7678 | Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz | JOB_ID 15246670 | 2026-10-22 15:37:17 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX",
+    "walk1.5 | n6640 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246670 | 2026-10-22 15:37:17 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.1 | n6440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246670 | 2026-10-22 15:37:17 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.2 | n6443 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246670 | 2026-10-22 15:37:17 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.4 | n1171 | Intel(R) Xeon(R) 6736P | JOB_ID 15246670 | 2026-10-22 15:37:18 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL",
+    "walk1.6 | n6637 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246670 | 2026-10-22 15:38:05 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.7 | n6637 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246670 | 2026-10-22 15:38:05 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.9 | n7440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246670 | 2026-10-22 15:38:06 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.8 | n7440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246670 | 2026-10-22 15:38:06 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.10 | n6406 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246670 | 2026-10-22 15:38:53 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "collect.undefined | n1171 | Intel(R) Xeon(R) 6736P | JOB_ID 15246671 | 2026-10-22 15:42:23 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL"
+   ]
+  },
+  "S_sumret4": {
+   "stage": 2,
+   "bucket": "moments",
+   "series": [
+    "sumret4"
+   ],
+   "n_columns": 552,
+   "n_dropped": 12,
+   "penalties": {
+    "ridge": 1000.0,
+    "lasso": 0.001,
+    "enet": 0.01
+   },
+   "runner_cpu_hours": 0.35087161412388884,
+   "repairs": {
+    "ridge": [
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ],
+    "lasso": [
+     {
+      "kkt_ok": 15,
+      "active_repair": 34,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 15,
+      "active_repair": 37,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 8,
+      "active_repair": 43,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 4,
+      "active_repair": 46,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 7,
+      "active_repair": 13,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ],
+    "enet": [
+     {
+      "kkt_ok": 20,
+      "active_repair": 21,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 27,
+      "active_repair": 14,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 15,
+      "active_repair": 25,
+      "cd_polish": 1,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 13,
+      "active_repair": 26,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 4,
+      "active_repair": 16,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ]
+   },
+   "lasso_between_tune_reseeds": 40,
+   "mask": {
+    "windows_with_unmasked": 0,
+    "windows": 166,
+    "max_unmasked": 0,
+    "unmasked_columns": {}
+   },
+   "uge": [
+    {
+     "stage": "slice",
+     "jobid": 15246672,
+     "tasks": 1,
+     "cpu_sec": 3.869,
+     "wall_sec": 12.563,
+     "hosts": [
+      "n6406"
+     ]
+    },
+    {
+     "stage": "pretune",
+     "jobid": 15246673,
+     "tasks": 1,
+     "cpu_sec": 41.033,
+     "wall_sec": 38.293,
+     "hosts": [
+      "n1153"
+     ]
+    },
+    {
+     "stage": "walk",
+     "jobid": 15246674,
+     "tasks": 10,
+     "cpu_sec": 1265.228,
+     "wall_sec": 1382.613,
+     "hosts": [
+      "n1078",
+      "n1153",
+      "n1154",
+      "n6440",
+      "n6443",
+      "n7403",
+      "n7404",
+      "n7439"
+     ]
+    },
+    {
+     "stage": "collect",
+     "jobid": 15246675,
+     "tasks": 1,
+     "cpu_sec": 2.11,
+     "wall_sec": 3.631,
+     "hosts": [
+      "n6444"
+     ]
+    }
+   ],
+   "hosts": [
+    "slice.undefined | n6406 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246672 | 2026-10-22 15:25:40 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "pretune.undefined | n1153 | Intel(R) Xeon(R) 6736P | JOB_ID 15246673 | 2026-10-22 15:34:44 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL",
+    "walk1.2 | n7404 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246674 | 2026-10-22 15:38:53 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.1 | n7403 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246674 | 2026-10-22 15:38:53 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.4 | n7439 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246674 | 2026-10-22 15:39:41 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.5 | n7404 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246674 | 2026-10-22 15:39:41 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.3 | n6443 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246674 | 2026-10-22 15:39:41 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.6 | n1153 | Intel(R) Xeon(R) 6736P | JOB_ID 15246674 | 2026-10-22 15:39:44 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL",
+    "walk1.8 | n7439 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246674 | 2026-10-22 15:40:31 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.9 | n1078 | Intel(R) Xeon(R) Gold 6342 CPU @ 2.80GHz | JOB_ID 15246674 | 2026-10-22 15:40:32 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL",
+    "walk1.7 | n1154 | Intel(R) Xeon(R) 6736P | JOB_ID 15246674 | 2026-10-22 15:40:32 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL",
+    "walk1.10 | n6440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246674 | 2026-10-22 15:41:30 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "collect.undefined | n6444 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246675 | 2026-10-22 15:45:13 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX"
+   ]
+  },
+  "S_sumpret2": {
+   "stage": 2,
+   "bucket": "moments",
+   "series": [
+    "sumpret2"
+   ],
+   "n_columns": 552,
+   "n_dropped": 12,
+   "penalties": {
+    "ridge": 1000.0,
+    "lasso": 0.001,
+    "enet": 0.001
+   },
+   "runner_cpu_hours": 0.4116426378,
+   "repairs": {
+    "ridge": [
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ],
+    "lasso": [
+     {
+      "kkt_ok": 14,
+      "active_repair": 35,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 12,
+      "active_repair": 40,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 9,
+      "active_repair": 42,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 6,
+      "active_repair": 44,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 9,
+      "active_repair": 11,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ],
+    "enet": [
+     {
+      "kkt_ok": 7,
+      "active_repair": 34,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 7,
+      "active_repair": 34,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 2,
+      "active_repair": 39,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 4,
+      "active_repair": 35,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 5,
+      "active_repair": 15,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ]
+   },
+   "lasso_between_tune_reseeds": 40,
+   "mask": {
+    "windows_with_unmasked": 0,
+    "windows": 166,
+    "max_unmasked": 0,
+    "unmasked_columns": {}
+   },
+   "uge": [
+    {
+     "stage": "slice",
+     "jobid": 15246676,
+     "tasks": 1,
+     "cpu_sec": 3.268,
+     "wall_sec": 32.743,
+     "hosts": [
+      "n7678"
+     ]
+    },
+    {
+     "stage": "pretune",
+     "jobid": 15246677,
+     "tasks": 1,
+     "cpu_sec": 65.969,
+     "wall_sec": 57.47,
+     "hosts": [
+      "n6640"
+     ]
+    },
+    {
+     "stage": "walk",
+     "jobid": 15246678,
+     "tasks": 10,
+     "cpu_sec": 1449.7630000000001,
+     "wall_sec": 1510.6060000000002,
+     "hosts": [
+      "n6406",
+      "n6443",
+      "n6637",
+      "n6640",
+      "n7403",
+      "n7404",
+      "n7440"
+     ]
+    },
+    {
+     "stage": "collect",
+     "jobid": 15246679,
+     "tasks": 1,
+     "cpu_sec": 2.299,
+     "wall_sec": 9.769,
+     "hosts": [
+      "n6443"
+     ]
+    }
+   ],
+   "hosts": [
+    "slice.undefined | n7678 | Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz | JOB_ID 15246676 | 2026-10-22 15:26:23 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX",
+    "pretune.undefined | n6640 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246677 | 2026-10-22 15:35:25 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.3 | n6637 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246678 | 2026-10-22 15:41:30 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.2 | n7403 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246678 | 2026-10-22 15:41:30 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.6 | n7440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246678 | 2026-10-22 15:41:30 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.5 | n7440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246678 | 2026-10-22 15:41:30 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.1 | n6406 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246678 | 2026-10-22 15:41:30 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.4 | n6640 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246678 | 2026-10-22 15:41:31 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.7 | n6637 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246678 | 2026-10-22 15:42:23 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.8 | n7404 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246678 | 2026-10-22 15:42:23 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.9 | n7440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246678 | 2026-10-22 15:42:23 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.10 | n6443 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246678 | 2026-10-22 15:43:23 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "collect.undefined | n6443 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246679 | 2026-10-22 15:47:03 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX"
+   ]
+  },
+  "S_sumbipow": {
+   "stage": 2,
+   "bucket": "moments",
+   "series": [
+    "sumbipow"
+   ],
+   "n_columns": 552,
+   "n_dropped": 12,
+   "penalties": {
+    "ridge": 1000.0,
+    "lasso": 0.001,
+    "enet": 0.01
+   },
+   "runner_cpu_hours": 0.3348139295669445,
+   "repairs": {
+    "ridge": [
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ],
+    "lasso": [
+     {
+      "kkt_ok": 13,
+      "active_repair": 36,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 12,
+      "active_repair": 40,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 9,
+      "active_repair": 42,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 6,
+      "active_repair": 44,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 11,
+      "active_repair": 9,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ],
+    "enet": [
+     {
+      "kkt_ok": 20,
+      "active_repair": 21,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 25,
+      "active_repair": 16,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 6,
+      "active_repair": 34,
+      "cd_polish": 1,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 13,
+      "active_repair": 26,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 5,
+      "active_repair": 15,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ]
+   },
+   "lasso_between_tune_reseeds": 40,
+   "mask": {
+    "windows_with_unmasked": 0,
+    "windows": 166,
+    "max_unmasked": 0,
+    "unmasked_columns": {}
+   },
+   "uge": [
+    {
+     "stage": "slice",
+     "jobid": 15246680,
+     "tasks": 1,
+     "cpu_sec": 3.082,
+     "wall_sec": 7.334,
+     "hosts": [
+      "n6440"
+     ]
+    },
+    {
+     "stage": "pretune",
+     "jobid": 15246681,
+     "tasks": 1,
+     "cpu_sec": 63.932,
+     "wall_sec": 55.826,
+     "hosts": [
+      "n6640"
+     ]
+    },
+    {
+     "stage": "walk",
+     "jobid": 15246682,
+     "tasks": 10,
+     "cpu_sec": 1179.624,
+     "wall_sec": 1316.1889999999999,
+     "hosts": [
+      "n1078",
+      "n1153",
+      "n6406",
+      "n6440",
+      "n6444",
+      "n7403",
+      "n7404",
+      "n7439",
+      "n7440",
+      "n7678"
+     ]
+    },
+    {
+     "stage": "collect",
+     "jobid": 15246683,
+     "tasks": 1,
+     "cpu_sec": 2.102,
+     "wall_sec": 3.454,
+     "hosts": [
+      "n7439"
+     ]
+    }
+   ],
+   "hosts": [
+    "slice.undefined | n6440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246680 | 2026-10-22 15:27:11 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "pretune.undefined | n6640 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246681 | 2026-10-22 15:35:25 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.2 | n7678 | Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz | JOB_ID 15246682 | 2026-10-22 15:43:23 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX",
+    "walk1.1 | n1078 | Intel(R) Xeon(R) Gold 6342 CPU @ 2.80GHz | JOB_ID 15246682 | 2026-10-22 15:43:23 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL",
+    "walk1.3 | n7440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246682 | 2026-10-22 15:43:23 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.4 | n7439 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246682 | 2026-10-22 15:44:17 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.5 | n6440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246682 | 2026-10-22 15:44:17 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.6 | n6406 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246682 | 2026-10-22 15:44:17 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.7 | n7403 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246682 | 2026-10-22 15:44:18 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.9 | n7404 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246682 | 2026-10-22 15:44:18 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.8 | n6444 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246682 | 2026-10-22 15:44:21 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.10 | n1153 | Intel(R) Xeon(R) 6736P | JOB_ID 15246682 | 2026-10-22 15:44:28 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL",
+    "collect.undefined | n7439 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246683 | 2026-10-22 15:48:00 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX"
+   ]
+  },
+  "S_sumautocov": {
+   "stage": 2,
+   "bucket": "moments",
+   "series": [
+    "sumautocov"
+   ],
+   "n_columns": 552,
+   "n_dropped": 12,
+   "penalties": {
+    "ridge": 1000.0,
+    "lasso": 0.001,
+    "enet": 0.01
+   },
+   "runner_cpu_hours": 0.32226964618416665,
+   "repairs": {
+    "ridge": [
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ],
+    "lasso": [
+     {
+      "kkt_ok": 18,
+      "active_repair": 31,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 16,
+      "active_repair": 36,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 10,
+      "active_repair": 41,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 7,
+      "active_repair": 43,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 10,
+      "active_repair": 10,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ],
+    "enet": [
+     {
+      "kkt_ok": 20,
+      "active_repair": 21,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 25,
+      "active_repair": 16,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 12,
+      "active_repair": 28,
+      "cd_polish": 1,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 9,
+      "active_repair": 30,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 5,
+      "active_repair": 15,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ]
+   },
+   "lasso_between_tune_reseeds": 40,
+   "mask": {
+    "windows_with_unmasked": 0,
+    "windows": 166,
+    "max_unmasked": 0,
+    "unmasked_columns": {}
+   },
+   "uge": [
+    {
+     "stage": "slice",
+     "jobid": 15246684,
+     "tasks": 1,
+     "cpu_sec": 3.414,
+     "wall_sec": 8.487,
+     "hosts": [
+      "n6443"
+     ]
+    },
+    {
+     "stage": "pretune",
+     "jobid": 15246685,
+     "tasks": 1,
+     "cpu_sec": 63.048,
+     "wall_sec": 38.361,
+     "hosts": [
+      "n6408"
+     ]
+    },
+    {
+     "stage": "walk",
+     "jobid": 15246686,
+     "tasks": 10,
+     "cpu_sec": 1138.366,
+     "wall_sec": 1408.095,
+     "hosts": [
+      "n1152",
+      "n1153",
+      "n6444",
+      "n6665",
+      "n7440",
+      "n7441"
+     ]
+    },
+    {
+     "stage": "collect",
+     "jobid": 15246687,
+     "tasks": 1,
+     "cpu_sec": 2.318,
+     "wall_sec": 5.623,
+     "hosts": [
+      "n6443"
+     ]
+    }
+   ],
+   "hosts": [
+    "slice.undefined | n6443 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246684 | 2026-10-22 15:27:11 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "pretune.undefined | n6408 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246685 | 2026-10-22 15:38:06 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.1 | n6444 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246686 | 2026-10-22 15:45:13 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.2 | n1152 | Intel(R) Xeon(R) 6736P | JOB_ID 15246686 | 2026-10-22 15:45:14 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL",
+    "walk1.5 | n7440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246686 | 2026-10-22 15:45:14 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.6 | n7440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246686 | 2026-10-22 15:45:14 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.3 | n1153 | Intel(R) Xeon(R) 6736P | JOB_ID 15246686 | 2026-10-22 15:45:27 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL",
+    "walk1.4 | n1153 | Intel(R) Xeon(R) 6736P | JOB_ID 15246686 | 2026-10-22 15:45:27 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL",
+    "walk1.10 | n6665 | Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz | JOB_ID 15246686 | 2026-10-22 15:46:13 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX",
+    "walk1.9 | n6665 | Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz | JOB_ID 15246686 | 2026-10-22 15:46:13 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX",
+    "walk1.8 | n7441 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246686 | 2026-10-22 15:46:15 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.7 | n7441 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246686 | 2026-10-22 15:46:15 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "collect.undefined | n6443 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246687 | 2026-10-22 15:50:36 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX"
+   ]
+  },
+  "S_sumret2_vwstock": {
+   "stage": 2,
+   "bucket": "market_vw",
+   "series": [
+    "sumret2_vwstock"
+   ],
+   "n_columns": 552,
+   "n_dropped": 12,
+   "penalties": {
+    "ridge": 1000.0,
+    "lasso": 0.001,
+    "enet": 0.01
+   },
+   "runner_cpu_hours": 0.3737873103341667,
+   "repairs": {
+    "ridge": [
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ],
+    "lasso": [
+     {
+      "kkt_ok": 14,
+      "active_repair": 35,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 12,
+      "active_repair": 40,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 9,
+      "active_repair": 42,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 6,
+      "active_repair": 44,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 9,
+      "active_repair": 11,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ],
+    "enet": [
+     {
+      "kkt_ok": 20,
+      "active_repair": 21,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 25,
+      "active_repair": 16,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 6,
+      "active_repair": 34,
+      "cd_polish": 1,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 13,
+      "active_repair": 26,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 5,
+      "active_repair": 15,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ]
+   },
+   "lasso_between_tune_reseeds": 40,
+   "mask": {
+    "windows_with_unmasked": 0,
+    "windows": 166,
+    "max_unmasked": 0,
+    "unmasked_columns": {}
+   },
+   "uge": [
+    {
+     "stage": "slice",
+     "jobid": 15246688,
+     "tasks": 1,
+     "cpu_sec": 3.698,
+     "wall_sec": 7.586,
+     "hosts": [
+      "n7403"
+     ]
+    },
+    {
+     "stage": "pretune",
+     "jobid": 15246689,
+     "tasks": 1,
+     "cpu_sec": 62.009,
+     "wall_sec": 38.47,
+     "hosts": [
+      "n7440"
+     ]
+    },
+    {
+     "stage": "walk",
+     "jobid": 15246690,
+     "tasks": 10,
+     "cpu_sec": 1317.8890000000001,
+     "wall_sec": 1435.738,
+     "hosts": [
+      "n6444",
+      "n6637",
+      "n6640",
+      "n6679",
+      "n7404",
+      "n7440",
+      "n7678"
+     ]
+    },
+    {
+     "stage": "collect",
+     "jobid": 15246691,
+     "tasks": 1,
+     "cpu_sec": 2.034,
+     "wall_sec": 4.115,
+     "hosts": [
+      "n6406"
+     ]
+    }
+   ],
+   "hosts": [
+    "slice.undefined | n7403 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246688 | 2026-10-22 15:27:11 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "pretune.undefined | n7440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246689 | 2026-10-22 15:43:22 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.2 | n6444 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246690 | 2026-10-22 15:46:14 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.3 | n6637 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246690 | 2026-10-22 15:46:14 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.1 | n6637 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246690 | 2026-10-22 15:46:14 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.4 | n7404 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246690 | 2026-10-22 15:46:14 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.6 | n7678 | Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz | JOB_ID 15246690 | 2026-10-22 15:46:14 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX",
+    "walk1.7 | n7440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246690 | 2026-10-22 15:46:15 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.8 | n7440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246690 | 2026-10-22 15:46:15 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.5 | n6640 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246690 | 2026-10-22 15:46:15 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.10 | n6679 | Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz | JOB_ID 15246690 | 2026-10-22 15:47:03 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX",
+    "walk1.9 | n6679 | Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz | JOB_ID 15246690 | 2026-10-22 15:47:03 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX",
+    "collect.undefined | n6406 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246691 | 2026-10-22 15:50:35 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX"
+   ]
+  },
+  "S_sumret3_vwstock": {
+   "stage": 2,
+   "bucket": "market_vw",
+   "series": [
+    "sumret3_vwstock"
+   ],
+   "n_columns": 552,
+   "n_dropped": 12,
+   "penalties": {
+    "ridge": 1000.0,
+    "lasso": 0.001,
+    "enet": 0.01
+   },
+   "runner_cpu_hours": 0.35164714392583335,
+   "repairs": {
+    "ridge": [
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ],
+    "lasso": [
+     {
+      "kkt_ok": 14,
+      "active_repair": 35,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 12,
+      "active_repair": 40,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 10,
+      "active_repair": 41,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 6,
+      "active_repair": 44,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 9,
+      "active_repair": 11,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ],
+    "enet": [
+     {
+      "kkt_ok": 20,
+      "active_repair": 21,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 25,
+      "active_repair": 16,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 6,
+      "active_repair": 34,
+      "cd_polish": 1,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 12,
+      "active_repair": 27,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 5,
+      "active_repair": 15,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ]
+   },
+   "lasso_between_tune_reseeds": 40,
+   "mask": {
+    "windows_with_unmasked": 0,
+    "windows": 166,
+    "max_unmasked": 0,
+    "unmasked_columns": {}
+   },
+   "uge": [
+    {
+     "stage": "slice",
+     "jobid": 15246692,
+     "tasks": 1,
+     "cpu_sec": 3.887,
+     "wall_sec": 12.614,
+     "hosts": [
+      "n6406"
+     ]
+    },
+    {
+     "stage": "pretune",
+     "jobid": 15246693,
+     "tasks": 1,
+     "cpu_sec": 55.2,
+     "wall_sec": 32.854,
+     "hosts": [
+      "n7440"
+     ]
+    },
+    {
+     "stage": "walk",
+     "jobid": 15246694,
+     "tasks": 10,
+     "cpu_sec": 1249.635,
+     "wall_sec": 1322.082,
+     "hosts": [
+      "n1154",
+      "n1171",
+      "n6405",
+      "n6408",
+      "n6444",
+      "n7403",
+      "n7404",
+      "n7440"
+     ]
+    },
+    {
+     "stage": "collect",
+     "jobid": 15246695,
+     "tasks": 1,
+     "cpu_sec": 1.947,
+     "wall_sec": 3.838,
+     "hosts": [
+      "n6406"
+     ]
+    }
+   ],
+   "hosts": [
+    "slice.undefined | n6406 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246692 | 2026-10-22 15:27:11 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "pretune.undefined | n7440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246693 | 2026-10-22 15:45:13 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.5 | n6444 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246694 | 2026-10-22 15:47:02 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.1 | n7403 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246694 | 2026-10-22 15:47:03 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.2 | n7403 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246694 | 2026-10-22 15:47:03 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.3 | n1171 | Intel(R) Xeon(R) 6736P | JOB_ID 15246694 | 2026-10-22 15:47:03 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL",
+    "walk1.7 | n7404 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246694 | 2026-10-22 15:47:03 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.9 | n7440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246694 | 2026-10-22 15:47:03 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.8 | n6405 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246694 | 2026-10-22 15:47:03 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.6 | n6408 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246694 | 2026-10-22 15:47:04 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.4 | n6408 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246694 | 2026-10-22 15:47:04 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.10 | n1154 | Intel(R) Xeon(R) 6736P | JOB_ID 15246694 | 2026-10-22 15:48:01 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL",
+    "collect.undefined | n6406 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246695 | 2026-10-22 15:51:28 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX"
+   ]
+  },
+  "S_sumret4_vwstock": {
+   "stage": 2,
+   "bucket": "market_vw",
+   "series": [
+    "sumret4_vwstock"
+   ],
+   "n_columns": 552,
+   "n_dropped": 12,
+   "penalties": {
+    "ridge": 1000.0,
+    "lasso": 0.001,
+    "enet": 0.01
+   },
+   "runner_cpu_hours": 0.34555037311527775,
+   "repairs": {
+    "ridge": [
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ],
+    "lasso": [
+     {
+      "kkt_ok": 13,
+      "active_repair": 36,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 13,
+      "active_repair": 39,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 11,
+      "active_repair": 40,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 7,
+      "active_repair": 43,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 8,
+      "active_repair": 12,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ],
+    "enet": [
+     {
+      "kkt_ok": 20,
+      "active_repair": 21,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 26,
+      "active_repair": 15,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 8,
+      "active_repair": 32,
+      "cd_polish": 1,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 13,
+      "active_repair": 26,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 4,
+      "active_repair": 16,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ]
+   },
+   "lasso_between_tune_reseeds": 40,
+   "mask": {
+    "windows_with_unmasked": 0,
+    "windows": 166,
+    "max_unmasked": 0,
+    "unmasked_columns": {}
+   },
+   "uge": [
+    {
+     "stage": "slice",
+     "jobid": 15246696,
+     "tasks": 1,
+     "cpu_sec": 4.955,
+     "wall_sec": 16.629,
+     "hosts": [
+      "n1152"
+     ]
+    },
+    {
+     "stage": "pretune",
+     "jobid": 15246697,
+     "tasks": 1,
+     "cpu_sec": 55.064,
+     "wall_sec": 33.263,
+     "hosts": [
+      "n6440"
+     ]
+    },
+    {
+     "stage": "walk",
+     "jobid": 15246698,
+     "tasks": 10,
+     "cpu_sec": 1228.412,
+     "wall_sec": 1379.193,
+     "hosts": [
+      "n1152",
+      "n1153",
+      "n6406",
+      "n6440",
+      "n6443",
+      "n6444",
+      "n6637"
+     ]
+    },
+    {
+     "stage": "collect",
+     "jobid": 15246699,
+     "tasks": 1,
+     "cpu_sec": 2.375,
+     "wall_sec": 4.038,
+     "hosts": [
+      "n6406"
+     ]
+    }
+   ],
+   "hosts": [
+    "slice.undefined | n1152 | Intel(R) Xeon(R) 6736P | JOB_ID 15246696 | 2026-10-22 15:27:12 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL",
+    "pretune.undefined | n6440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246697 | 2026-10-22 15:46:14 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.2 | n6406 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246698 | 2026-10-22 15:48:00 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.3 | n6444 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246698 | 2026-10-22 15:48:00 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.5 | n6637 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246698 | 2026-10-22 15:48:00 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.1 | n6443 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246698 | 2026-10-22 15:48:01 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.8 | n6637 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246698 | 2026-10-22 15:48:01 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.6 | n6440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246698 | 2026-10-22 15:48:01 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.4 | n6440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246698 | 2026-10-22 15:48:01 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.9 | n6440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246698 | 2026-10-22 15:48:01 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.7 | n1152 | Intel(R) Xeon(R) 6736P | JOB_ID 15246698 | 2026-10-22 15:48:02 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL",
+    "walk1.10 | n1153 | Intel(R) Xeon(R) 6736P | JOB_ID 15246698 | 2026-10-22 15:48:11 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL",
+    "collect.undefined | n6406 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246699 | 2026-10-22 15:52:19 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX"
+   ]
+  },
+  "S_sumabsret_vwstock": {
+   "stage": 2,
+   "bucket": "market_vw",
+   "series": [
+    "sumabsret_vwstock"
+   ],
+   "n_columns": 552,
+   "n_dropped": 12,
+   "penalties": {
+    "ridge": 1000.0,
+    "lasso": 0.001,
+    "enet": 0.01
+   },
+   "runner_cpu_hours": 0.37414287681027775,
+   "repairs": {
+    "ridge": [
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ],
+    "lasso": [
+     {
+      "kkt_ok": 10,
+      "active_repair": 39,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 17,
+      "active_repair": 35,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 6,
+      "active_repair": 45,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 7,
+      "active_repair": 43,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 10,
+      "active_repair": 10,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ],
+    "enet": [
+     {
+      "kkt_ok": 16,
+      "active_repair": 25,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 26,
+      "active_repair": 15,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 10,
+      "active_repair": 30,
+      "cd_polish": 1,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 11,
+      "active_repair": 28,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 6,
+      "active_repair": 14,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ]
+   },
+   "lasso_between_tune_reseeds": 40,
+   "mask": {
+    "windows_with_unmasked": 0,
+    "windows": 166,
+    "max_unmasked": 0,
+    "unmasked_columns": {}
+   },
+   "uge": [
+    {
+     "stage": "slice",
+     "jobid": 15246700,
+     "tasks": 1,
+     "cpu_sec": 2.905,
+     "wall_sec": 6.946,
+     "hosts": [
+      "n7439"
+     ]
+    },
+    {
+     "stage": "pretune",
+     "jobid": 15246701,
+     "tasks": 1,
+     "cpu_sec": 64.952,
+     "wall_sec": 48.478,
+     "hosts": [
+      "n6408"
+     ]
+    },
+    {
+     "stage": "walk",
+     "jobid": 15246702,
+     "tasks": 10,
+     "cpu_sec": 1317.127,
+     "wall_sec": 1407.0790000000002,
+     "hosts": [
+      "n6408",
+      "n6444",
+      "n7439",
+      "n7440",
+      "n7644"
+     ]
+    },
+    {
+     "stage": "collect",
+     "jobid": 15246703,
+     "tasks": 1,
+     "cpu_sec": 2.209,
+     "wall_sec": 5.938,
+     "hosts": [
+      "n6441"
+     ]
+    }
+   ],
+   "hosts": [
+    "slice.undefined | n7439 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246700 | 2026-10-22 15:27:57 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "pretune.undefined | n6408 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246701 | 2026-10-22 15:46:15 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.1 | n7644 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246702 | 2026-10-22 15:48:02 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.2 | n7439 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246702 | 2026-10-22 15:48:54 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.5 | n6444 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246702 | 2026-10-22 15:48:54 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.7 | n7440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246702 | 2026-10-22 15:48:55 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.6 | n7440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246702 | 2026-10-22 15:48:55 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.8 | n7440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246702 | 2026-10-22 15:48:55 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.4 | n6408 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246702 | 2026-10-22 15:48:55 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.3 | n6408 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246702 | 2026-10-22 15:48:55 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.10 | n7440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246702 | 2026-10-22 15:48:55 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "collect.undefined | n6441 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246703 | 2026-10-22 15:53:10 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX"
+   ]
+  },
+  "S_sumbipow_vwstock": {
+   "stage": 2,
+   "bucket": "market_vw",
+   "series": [
+    "sumbipow_vwstock"
+   ],
+   "n_columns": 552,
+   "n_dropped": 12,
+   "penalties": {
+    "ridge": 1000.0,
+    "lasso": 0.001,
+    "enet": 0.01
+   },
+   "runner_cpu_hours": 0.35291989051555556,
+   "repairs": {
+    "ridge": [
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ],
+    "lasso": [
+     {
+      "kkt_ok": 15,
+      "active_repair": 34,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 11,
+      "active_repair": 41,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 9,
+      "active_repair": 42,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 6,
+      "active_repair": 44,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 8,
+      "active_repair": 12,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ],
+    "enet": [
+     {
+      "kkt_ok": 20,
+      "active_repair": 21,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 25,
+      "active_repair": 16,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 6,
+      "active_repair": 34,
+      "cd_polish": 1,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 13,
+      "active_repair": 26,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 5,
+      "active_repair": 15,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ]
+   },
+   "lasso_between_tune_reseeds": 40,
+   "mask": {
+    "windows_with_unmasked": 0,
+    "windows": 166,
+    "max_unmasked": 0,
+    "unmasked_columns": {}
+   },
+   "uge": [
+    {
+     "stage": "slice",
+     "jobid": 15246704,
+     "tasks": 1,
+     "cpu_sec": 3.117,
+     "wall_sec": 7.475,
+     "hosts": [
+      "n6440"
+     ]
+    },
+    {
+     "stage": "pretune",
+     "jobid": 15246705,
+     "tasks": 1,
+     "cpu_sec": 64.937,
+     "wall_sec": 40.295,
+     "hosts": [
+      "n7440"
+     ]
+    },
+    {
+     "stage": "walk",
+     "jobid": 15246706,
+     "tasks": 10,
+     "cpu_sec": 1245.254,
+     "wall_sec": 1350.268,
+     "hosts": [
+      "n1153",
+      "n1171",
+      "n6405",
+      "n6407",
+      "n6637",
+      "n7404",
+      "n7440",
+      "n7644"
+     ]
+    },
+    {
+     "stage": "collect",
+     "jobid": 15246707,
+     "tasks": 1,
+     "cpu_sec": 1.491,
+     "wall_sec": 3.476,
+     "hosts": [
+      "n1849"
+     ]
+    }
+   ],
+   "hosts": [
+    "slice.undefined | n6440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246704 | 2026-10-22 15:28:41 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "pretune.undefined | n7440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246705 | 2026-10-22 15:46:13 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.2 | n6405 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246706 | 2026-10-22 15:49:43 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.3 | n6407 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246706 | 2026-10-22 15:49:43 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.1 | n1171 | Intel(R) Xeon(R) 6736P | JOB_ID 15246706 | 2026-10-22 15:49:43 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL",
+    "walk1.6 | n6407 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246706 | 2026-10-22 15:49:43 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.7 | n7404 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246706 | 2026-10-22 15:49:43 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.8 | n7644 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246706 | 2026-10-22 15:49:44 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.5 | n6637 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246706 | 2026-10-22 15:49:44 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.10 | n7644 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246706 | 2026-10-22 15:49:44 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.9 | n7440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246706 | 2026-10-22 15:49:44 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.4 | n1153 | Intel(R) Xeon(R) 6736P | JOB_ID 15246706 | 2026-10-22 15:49:54 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL",
+    "collect.undefined | n1849 | Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz | JOB_ID 15246707 | 2026-10-22 15:54:45 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX"
+   ]
+  },
+  "S_sumpret2_vwstock": {
+   "stage": 2,
+   "bucket": "market_vw",
+   "series": [
+    "sumpret2_vwstock"
+   ],
+   "n_columns": 552,
+   "n_dropped": 12,
+   "penalties": {
+    "ridge": 1000.0,
+    "lasso": 0.001,
+    "enet": 0.01
+   },
+   "runner_cpu_hours": 0.36752259550444444,
+   "repairs": {
+    "ridge": [
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ],
+    "lasso": [
+     {
+      "kkt_ok": 16,
+      "active_repair": 33,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 17,
+      "active_repair": 35,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 9,
+      "active_repair": 42,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 6,
+      "active_repair": 44,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 9,
+      "active_repair": 11,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ],
+    "enet": [
+     {
+      "kkt_ok": 20,
+      "active_repair": 21,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 25,
+      "active_repair": 16,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 10,
+      "active_repair": 30,
+      "cd_polish": 1,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 11,
+      "active_repair": 28,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 4,
+      "active_repair": 16,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ]
+   },
+   "lasso_between_tune_reseeds": 40,
+   "mask": {
+    "windows_with_unmasked": 0,
+    "windows": 166,
+    "max_unmasked": 0,
+    "unmasked_columns": {}
+   },
+   "uge": [
+    {
+     "stage": "slice",
+     "jobid": 15246708,
+     "tasks": 1,
+     "cpu_sec": 3.882,
+     "wall_sec": 12.308,
+     "hosts": [
+      "n6443"
+     ]
+    },
+    {
+     "stage": "pretune",
+     "jobid": 15246709,
+     "tasks": 1,
+     "cpu_sec": 65.946,
+     "wall_sec": 40.06,
+     "hosts": [
+      "n7440"
+     ]
+    },
+    {
+     "stage": "walk",
+     "jobid": 15246710,
+     "tasks": 10,
+     "cpu_sec": 1291.2749999999999,
+     "wall_sec": 1353.2330000000002,
+     "hosts": [
+      "n1152",
+      "n6440",
+      "n7440",
+      "n7644",
+      "n7678"
+     ]
+    },
+    {
+     "stage": "collect",
+     "jobid": 15246711,
+     "tasks": 1,
+     "cpu_sec": 2.736,
+     "wall_sec": 8.303,
+     "hosts": [
+      "n7368"
+     ]
+    }
+   ],
+   "hosts": [
+    "slice.undefined | n6443 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246708 | 2026-10-22 15:28:41 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "pretune.undefined | n7440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246709 | 2026-10-22 15:46:13 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.1 | n7440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246710 | 2026-10-22 15:49:44 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.3 | n7440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246710 | 2026-10-22 15:49:44 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.2 | n7644 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246710 | 2026-10-22 15:49:44 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.5 | n7440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246710 | 2026-10-22 15:49:44 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.4 | n7644 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246710 | 2026-10-22 15:49:44 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.6 | n7440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246710 | 2026-10-22 15:49:44 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.7 | n7440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246710 | 2026-10-22 15:49:45 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.9 | n7678 | Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz | JOB_ID 15246710 | 2026-10-22 15:50:35 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX",
+    "walk1.8 | n6440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246710 | 2026-10-22 15:50:35 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.10 | n1152 | Intel(R) Xeon(R) 6736P | JOB_ID 15246710 | 2026-10-22 15:50:36 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL",
+    "collect.undefined | n7368 | Intel(R) Xeon(R) CPU E5-2650 v4 @ 2.20GHz | JOB_ID 15246711 | 2026-10-22 15:53:57 | NPY_DISABLE_CPU_FEATURES="
+   ]
+  },
+  "S_fomc_day": {
+   "stage": 2,
+   "bucket": "fomc",
+   "series": [
+    "fomc_day"
+   ],
+   "n_columns": 552,
+   "n_dropped": 12,
+   "penalties": {
+    "ridge": 1000.0,
+    "lasso": 0.001,
+    "enet": 0.01
+   },
+   "runner_cpu_hours": 0.3674127359527778,
+   "repairs": {
+    "ridge": [
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ],
+    "lasso": [
+     {
+      "kkt_ok": 11,
+      "active_repair": 38,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 12,
+      "active_repair": 40,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 9,
+      "active_repair": 42,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 6,
+      "active_repair": 44,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 9,
+      "active_repair": 11,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ],
+    "enet": [
+     {
+      "kkt_ok": 20,
+      "active_repair": 21,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 25,
+      "active_repair": 16,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 6,
+      "active_repair": 34,
+      "cd_polish": 1,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 13,
+      "active_repair": 26,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 5,
+      "active_repair": 15,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ]
+   },
+   "lasso_between_tune_reseeds": 40,
+   "mask": {
+    "windows_with_unmasked": 0,
+    "windows": 166,
+    "max_unmasked": 0,
+    "unmasked_columns": {}
+   },
+   "uge": [
+    {
+     "stage": "slice",
+     "jobid": 15246712,
+     "tasks": 1,
+     "cpu_sec": 3.948,
+     "wall_sec": 14.107,
+     "hosts": [
+      "n6406"
+     ]
+    },
+    {
+     "stage": "pretune",
+     "jobid": 15246713,
+     "tasks": 1,
+     "cpu_sec": 66.53,
+     "wall_sec": 47.833,
+     "hosts": [
+      "n6408"
+     ]
+    },
+    {
+     "stage": "walk",
+     "jobid": 15246714,
+     "tasks": 10,
+     "cpu_sec": 1291.7350000000001,
+     "wall_sec": 1365.754,
+     "hosts": [
+      "n1152",
+      "n1153",
+      "n6408",
+      "n6637",
+      "n6640",
+      "n6665",
+      "n7404",
+      "n7439",
+      "n7644"
+     ]
+    },
+    {
+     "stage": "collect",
+     "jobid": 15246715,
+     "tasks": 1,
+     "cpu_sec": 1.976,
+     "wall_sec": 3.281,
+     "hosts": [
+      "n6665"
+     ]
+    }
+   ],
+   "hosts": [
+    "slice.undefined | n6406 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246712 | 2026-10-22 15:28:41 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "pretune.undefined | n6408 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246713 | 2026-10-22 15:47:03 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.2 | n1152 | Intel(R) Xeon(R) 6736P | JOB_ID 15246714 | 2026-10-22 15:50:36 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL",
+    "walk1.3 | n6637 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246714 | 2026-10-22 15:50:36 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.4 | n7404 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246714 | 2026-10-22 15:50:36 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.1 | n1153 | Intel(R) Xeon(R) 6736P | JOB_ID 15246714 | 2026-10-22 15:50:36 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL",
+    "walk1.6 | n7644 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246714 | 2026-10-22 15:50:36 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.5 | n6640 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246714 | 2026-10-22 15:50:37 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.7 | n7439 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246714 | 2026-10-22 15:51:28 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.8 | n6665 | Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz | JOB_ID 15246714 | 2026-10-22 15:51:28 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX",
+    "walk1.10 | n6408 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246714 | 2026-10-22 15:51:29 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.9 | n6408 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246714 | 2026-10-22 15:51:29 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "collect.undefined | n6665 | Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz | JOB_ID 15246715 | 2026-10-22 15:54:45 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX"
+   ]
+  },
+  "S_fomc_until_inv": {
+   "stage": 2,
+   "bucket": "fomc",
+   "series": [
+    "fomc_until_inv"
+   ],
+   "n_columns": 552,
+   "n_dropped": 12,
+   "penalties": {
+    "ridge": 1000.0,
+    "lasso": 0.001,
+    "enet": 0.01
+   },
+   "runner_cpu_hours": 0.3317446873352778,
+   "repairs": {
+    "ridge": [
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ],
+    "lasso": [
+     {
+      "kkt_ok": 16,
+      "active_repair": 33,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 15,
+      "active_repair": 37,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 9,
+      "active_repair": 42,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 5,
+      "active_repair": 45,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 8,
+      "active_repair": 12,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ],
+    "enet": [
+     {
+      "kkt_ok": 20,
+      "active_repair": 21,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 27,
+      "active_repair": 14,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 6,
+      "active_repair": 34,
+      "cd_polish": 1,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 14,
+      "active_repair": 25,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 5,
+      "active_repair": 15,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ]
+   },
+   "lasso_between_tune_reseeds": 40,
+   "mask": {
+    "windows_with_unmasked": 0,
+    "windows": 166,
+    "max_unmasked": 0,
+    "unmasked_columns": {}
+   },
+   "uge": [
+    {
+     "stage": "slice",
+     "jobid": 15246716,
+     "tasks": 1,
+     "cpu_sec": 3.034,
+     "wall_sec": 6.26,
+     "hosts": [
+      "n6678"
+     ]
+    },
+    {
+     "stage": "pretune",
+     "jobid": 15246717,
+     "tasks": 1,
+     "cpu_sec": 60.923,
+     "wall_sec": 34.789,
+     "hosts": [
+      "n7440"
+     ]
+    },
+    {
+     "stage": "walk",
+     "jobid": 15246718,
+     "tasks": 10,
+     "cpu_sec": 1169.535,
+     "wall_sec": 1538.322,
+     "hosts": [
+      "n1078",
+      "n1152",
+      "n6440",
+      "n6444",
+      "n6637",
+      "n7404"
+     ]
+    },
+    {
+     "stage": "collect",
+     "jobid": 15246719,
+     "tasks": 1,
+     "cpu_sec": 2.256,
+     "wall_sec": 5.252,
+     "hosts": [
+      "n6441"
+     ]
+    }
+   ],
+   "hosts": [
+    "slice.undefined | n6678 | Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz | JOB_ID 15246716 | 2026-10-22 15:28:40 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX",
+    "pretune.undefined | n7440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246717 | 2026-10-22 15:47:02 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.2 | n6637 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246718 | 2026-10-22 15:51:29 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.3 | n1152 | Intel(R) Xeon(R) 6736P | JOB_ID 15246718 | 2026-10-22 15:51:29 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL",
+    "walk1.4 | n1152 | Intel(R) Xeon(R) 6736P | JOB_ID 15246718 | 2026-10-22 15:51:29 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL",
+    "walk1.1 | n6444 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246718 | 2026-10-22 15:51:31 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.6 | n6440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246718 | 2026-10-22 15:52:19 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.5 | n6440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246718 | 2026-10-22 15:52:19 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.9 | n6637 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246718 | 2026-10-22 15:52:20 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.8 | n1078 | Intel(R) Xeon(R) Gold 6342 CPU @ 2.80GHz | JOB_ID 15246718 | 2026-10-22 15:52:20 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL",
+    "walk1.10 | n7404 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246718 | 2026-10-22 15:52:20 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.7 | n6444 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246718 | 2026-10-22 15:52:31 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "collect.undefined | n6441 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246719 | 2026-10-22 15:57:08 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX"
+   ]
+  },
+  "S_fomc_since_inv": {
+   "stage": 2,
+   "bucket": "fomc",
+   "series": [
+    "fomc_since_inv"
+   ],
+   "n_columns": 552,
+   "n_dropped": 12,
+   "penalties": {
+    "ridge": 1000.0,
+    "lasso": 0.001,
+    "enet": 0.01
+   },
+   "runner_cpu_hours": 0.36411083913722225,
+   "repairs": {
+    "ridge": [
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ],
+    "lasso": [
+     {
+      "kkt_ok": 13,
+      "active_repair": 36,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 11,
+      "active_repair": 41,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 9,
+      "active_repair": 42,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 7,
+      "active_repair": 43,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 8,
+      "active_repair": 12,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ],
+    "enet": [
+     {
+      "kkt_ok": 20,
+      "active_repair": 21,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 25,
+      "active_repair": 16,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 6,
+      "active_repair": 34,
+      "cd_polish": 1,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 13,
+      "active_repair": 26,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 4,
+      "active_repair": 16,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ]
+   },
+   "lasso_between_tune_reseeds": 40,
+   "mask": {
+    "windows_with_unmasked": 0,
+    "windows": 166,
+    "max_unmasked": 0,
+    "unmasked_columns": {}
+   },
+   "uge": [
+    {
+     "stage": "slice",
+     "jobid": 15246720,
+     "tasks": 1,
+     "cpu_sec": 3.302,
+     "wall_sec": 10.655,
+     "hosts": [
+      "n7403"
+     ]
+    },
+    {
+     "stage": "pretune",
+     "jobid": 15246721,
+     "tasks": 1,
+     "cpu_sec": 67.174,
+     "wall_sec": 39.74,
+     "hosts": [
+      "n6408"
+     ]
+    },
+    {
+     "stage": "walk",
+     "jobid": 15246722,
+     "tasks": 10,
+     "cpu_sec": 1280.177,
+     "wall_sec": 1348.746,
+     "hosts": [
+      "n1153",
+      "n6406",
+      "n6408",
+      "n7440",
+      "n7644"
+     ]
+    },
+    {
+     "stage": "collect",
+     "jobid": 15246723,
+     "tasks": 1,
+     "cpu_sec": 3.515,
+     "wall_sec": 62.761,
+     "hosts": [
+      "n7442"
+     ]
+    }
+   ],
+   "hosts": [
+    "slice.undefined | n7403 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246720 | 2026-10-22 15:28:41 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "pretune.undefined | n6408 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246721 | 2026-10-22 15:48:00 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.2 | n7644 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246722 | 2026-10-22 15:52:20 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.3 | n7644 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246722 | 2026-10-22 15:52:20 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.4 | n7644 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246722 | 2026-10-22 15:52:20 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.5 | n7440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246722 | 2026-10-22 15:52:21 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.6 | n7440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246722 | 2026-10-22 15:52:21 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.7 | n7440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246722 | 2026-10-22 15:52:21 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.1 | n1153 | Intel(R) Xeon(R) 6736P | JOB_ID 15246722 | 2026-10-22 15:52:21 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL",
+    "walk1.8 | n6406 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246722 | 2026-10-22 15:53:09 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.9 | n6408 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246722 | 2026-10-22 15:53:10 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.10 | n6408 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246722 | 2026-10-22 15:53:10 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "collect.undefined | n7442 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246723 | 2026-10-22 15:56:45 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX"
+   ]
+  },
+  "S_stocktwits_attention": {
+   "stage": 2,
+   "bucket": "sentiment",
+   "series": [
+    "stocktwits_attention"
+   ],
+   "n_columns": 552,
+   "n_dropped": 12,
+   "penalties": {
+    "ridge": 1000.0,
+    "lasso": 0.001,
+    "enet": 0.01
+   },
+   "runner_cpu_hours": 0.33505070531111103,
+   "repairs": {
+    "ridge": [
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ],
+    "lasso": [
+     {
+      "kkt_ok": 14,
+      "active_repair": 33,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 13,
+      "active_repair": 37,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 6,
+      "active_repair": 45,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 4,
+      "active_repair": 45,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 9,
+      "active_repair": 11,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ],
+    "enet": [
+     {
+      "kkt_ok": 20,
+      "active_repair": 21,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 25,
+      "active_repair": 16,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 6,
+      "active_repair": 34,
+      "cd_polish": 1,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 12,
+      "active_repair": 27,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 6,
+      "active_repair": 14,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ]
+   },
+   "lasso_between_tune_reseeds": 35,
+   "mask": {
+    "windows_with_unmasked": 77,
+    "windows": 166,
+    "max_unmasked": 4,
+    "unmasked_columns": {
+     "stocktwits_sentiment_avail_ma_1": 49,
+     "stocktwits_sentiment_avail_ma_5": 49,
+     "stocktwits_sentiment_avail_ma_25": 28,
+     "stocktwits_sentiment_avail_ma_125": 28,
+     "stocktwits_sentiment_avail_ma_625": 28,
+     "stocktwits_sentiment_avail_ma_3125": 28
+    }
+   },
+   "uge": [
+    {
+     "stage": "slice",
+     "jobid": 15246724,
+     "tasks": 1,
+     "cpu_sec": 3.972,
+     "wall_sec": 17.841,
+     "hosts": [
+      "n1153"
+     ]
+    },
+    {
+     "stage": "pretune",
+     "jobid": 15246725,
+     "tasks": 1,
+     "cpu_sec": 61.709,
+     "wall_sec": 39.01,
+     "hosts": [
+      "n7440"
+     ]
+    },
+    {
+     "stage": "walk",
+     "jobid": 15246726,
+     "tasks": 11,
+     "cpu_sec": 1185.336,
+     "wall_sec": 1247.595,
+     "hosts": [
+      "n1152",
+      "n6408",
+      "n6440",
+      "n6441",
+      "n6444",
+      "n6665",
+      "n7405",
+      "n7440"
+     ]
+    },
+    {
+     "stage": "collect",
+     "jobid": 15246727,
+     "tasks": 1,
+     "cpu_sec": 2.866,
+     "wall_sec": 4.611,
+     "hosts": [
+      "n7405"
+     ]
+    }
+   ],
+   "hosts": [
+    "slice.undefined | n1153 | Intel(R) Xeon(R) 6736P | JOB_ID 15246724 | 2026-10-22 15:28:42 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL",
+    "pretune.undefined | n7440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246725 | 2026-10-22 15:48:01 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.2 | n6440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246726 | 2026-10-22 15:53:10 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.1 | n6408 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246726 | 2026-10-22 15:53:10 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.4 | n6408 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246726 | 2026-10-22 15:53:10 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.7 | n7440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246726 | 2026-10-22 15:53:10 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.8 | n7440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246726 | 2026-10-22 15:53:10 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.6 | n1152 | Intel(R) Xeon(R) 6736P | JOB_ID 15246726 | 2026-10-22 15:53:10 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL",
+    "walk1.5 | n1152 | Intel(R) Xeon(R) 6736P | JOB_ID 15246726 | 2026-10-22 15:53:10 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL",
+    "walk1.10 | n6665 | Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz | JOB_ID 15246726 | 2026-10-22 15:53:55 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX",
+    "walk1.9 | n6441 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246726 | 2026-10-22 15:53:57 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.3 | n7405 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246726 | 2026-10-22 15:57:09 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "collect.undefined | n7405 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246727 | 2026-10-22 16:01:52 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX"
+   ]
+  },
+  "S_stocktwits_sentiment": {
+   "stage": 2,
+   "bucket": "sentiment",
+   "series": [
+    "stocktwits_sentiment"
+   ],
+   "n_columns": 552,
+   "n_dropped": 12,
+   "penalties": {
+    "ridge": 1000.0,
+    "lasso": 0.001,
+    "enet": 0.01
+   },
+   "runner_cpu_hours": 0.32361881715138896,
+   "repairs": {
+    "ridge": [
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ],
+    "lasso": [
+     {
+      "kkt_ok": 13,
+      "active_repair": 36,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 13,
+      "active_repair": 39,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 7,
+      "active_repair": 44,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 6,
+      "active_repair": 44,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 8,
+      "active_repair": 12,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ],
+    "enet": [
+     {
+      "kkt_ok": 20,
+      "active_repair": 21,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 25,
+      "active_repair": 16,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 8,
+      "active_repair": 32,
+      "cd_polish": 1,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 11,
+      "active_repair": 28,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 6,
+      "active_repair": 14,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ]
+   },
+   "lasso_between_tune_reseeds": 40,
+   "mask": {
+    "windows_with_unmasked": 125,
+    "windows": 166,
+    "max_unmasked": 6,
+    "unmasked_columns": {
+     "stocktwits_sentcount_avail_ma_1": 72,
+     "stocktwits_sentcount_avail_ma_5": 72,
+     "stocktwits_sentcount_avail_ma_25": 122,
+     "stocktwits_sentcount_avail_ma_125": 122,
+     "stocktwits_sentcount_avail_ma_625": 122,
+     "stocktwits_sentcount_avail_ma_3125": 125
+    }
+   },
+   "uge": [
+    {
+     "stage": "slice",
+     "jobid": 15246728,
+     "tasks": 1,
+     "cpu_sec": 3.404,
+     "wall_sec": 7.446,
+     "hosts": [
+      "n7439"
+     ]
+    },
+    {
+     "stage": "pretune",
+     "jobid": 15246729,
+     "tasks": 1,
+     "cpu_sec": 62.564,
+     "wall_sec": 38.076,
+     "hosts": [
+      "n7440"
+     ]
+    },
+    {
+     "stage": "walk",
+     "jobid": 15246730,
+     "tasks": 10,
+     "cpu_sec": 1150.7350000000001,
+     "wall_sec": 1207.5249999999999,
+     "hosts": [
+      "n1152",
+      "n6407",
+      "n7440",
+      "n7644",
+      "n7678"
+     ]
+    },
+    {
+     "stage": "collect",
+     "jobid": 15246731,
+     "tasks": 1,
+     "cpu_sec": 3.816,
+     "wall_sec": 5.575,
+     "hosts": [
+      "n1154"
+     ]
+    }
+   ],
+   "hosts": [
+    "slice.undefined | n7439 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246728 | 2026-10-22 15:29:22 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "pretune.undefined | n7440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246729 | 2026-10-22 15:48:01 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.1 | n7678 | Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz | JOB_ID 15246730 | 2026-10-22 15:53:55 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX",
+    "walk1.2 | n6407 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246730 | 2026-10-22 15:53:56 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.3 | n1152 | Intel(R) Xeon(R) 6736P | JOB_ID 15246730 | 2026-10-22 15:53:56 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL",
+    "walk1.4 | n1152 | Intel(R) Xeon(R) 6736P | JOB_ID 15246730 | 2026-10-22 15:53:56 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL",
+    "walk1.5 | n6407 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246730 | 2026-10-22 15:53:56 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.6 | n1152 | Intel(R) Xeon(R) 6736P | JOB_ID 15246730 | 2026-10-22 15:53:56 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL",
+    "walk1.8 | n7644 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246730 | 2026-10-22 15:53:56 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.7 | n1152 | Intel(R) Xeon(R) 6736P | JOB_ID 15246730 | 2026-10-22 15:53:56 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL",
+    "walk1.9 | n7440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246730 | 2026-10-22 15:53:56 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.10 | n7440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246730 | 2026-10-22 15:53:56 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "collect.undefined | n1154 | Intel(R) Xeon(R) 6736P | JOB_ID 15246731 | 2026-10-22 15:58:42 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL"
+   ]
+  },
+  "S_stocktwits_sentcount": {
+   "stage": 2,
+   "bucket": "sentiment",
+   "series": [
+    "stocktwits_sentcount"
+   ],
+   "n_columns": 552,
+   "n_dropped": 12,
+   "penalties": {
+    "ridge": 1000.0,
+    "lasso": 0.001,
+    "enet": 0.01
+   },
+   "runner_cpu_hours": 0.35140826988444446,
+   "repairs": {
+    "ridge": [
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 0,
+      "active_repair": 0,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ],
+    "lasso": [
+     {
+      "kkt_ok": 13,
+      "active_repair": 36,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 12,
+      "active_repair": 40,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 9,
+      "active_repair": 42,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 7,
+      "active_repair": 43,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 8,
+      "active_repair": 12,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ],
+    "enet": [
+     {
+      "kkt_ok": 20,
+      "active_repair": 21,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 25,
+      "active_repair": 16,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 6,
+      "active_repair": 34,
+      "cd_polish": 1,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 13,
+      "active_repair": 26,
+      "cd_polish": 0,
+      "fail": 0
+     },
+     {
+      "kkt_ok": 6,
+      "active_repair": 14,
+      "cd_polish": 0,
+      "fail": 0
+     }
+    ]
+   },
+   "lasso_between_tune_reseeds": 40,
+   "mask": {
+    "windows_with_unmasked": 0,
+    "windows": 166,
+    "max_unmasked": 0,
+    "unmasked_columns": {}
+   },
+   "uge": [
+    {
+     "stage": "slice",
+     "jobid": 15246732,
+     "tasks": 1,
+     "cpu_sec": 3.773,
+     "wall_sec": 16.26,
+     "hosts": [
+      "n1171"
+     ]
+    },
+    {
+     "stage": "pretune",
+     "jobid": 15246734,
+     "tasks": 1,
+     "cpu_sec": 65.745,
+     "wall_sec": 45.257,
+     "hosts": [
+      "n6408"
+     ]
+    },
+    {
+     "stage": "walk",
+     "jobid": 15246735,
+     "tasks": 10,
+     "cpu_sec": 1239.581,
+     "wall_sec": 1329.442,
+     "hosts": [
+      "n1078",
+      "n1152",
+      "n6637",
+      "n6665",
+      "n7404",
+      "n7440",
+      "n7678"
+     ]
+    },
+    {
+     "stage": "collect",
+     "jobid": 15246737,
+     "tasks": 1,
+     "cpu_sec": 4.697,
+     "wall_sec": 6.106,
+     "hosts": [
+      "n1154"
+     ]
+    }
+   ],
+   "hosts": [
+    "slice.undefined | n1171 | Intel(R) Xeon(R) 6736P | JOB_ID 15246732 | 2026-10-22 15:29:22 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL",
+    "pretune.undefined | n6408 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246734 | 2026-10-22 15:49:45 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.1 | n7440 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246735 | 2026-10-22 15:53:56 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.2 | n6665 | Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz | JOB_ID 15246735 | 2026-10-22 15:54:45 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX",
+    "walk1.4 | n7678 | Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz | JOB_ID 15246735 | 2026-10-22 15:54:46 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX",
+    "walk1.3 | n6637 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246735 | 2026-10-22 15:54:46 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.7 | n7678 | Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz | JOB_ID 15246735 | 2026-10-22 15:54:46 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX",
+    "walk1.6 | n6637 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246735 | 2026-10-22 15:54:46 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.5 | n1078 | Intel(R) Xeon(R) Gold 6342 CPU @ 2.80GHz | JOB_ID 15246735 | 2026-10-22 15:54:46 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL",
+    "walk1.9 | n7404 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | JOB_ID 15246735 | 2026-10-22 15:54:47 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX",
+    "walk1.8 | n1152 | Intel(R) Xeon(R) 6736P | JOB_ID 15246735 | 2026-10-22 15:54:49 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL",
+    "walk1.10 | n1152 | Intel(R) Xeon(R) 6736P | JOB_ID 15246735 | 2026-10-22 15:54:49 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL",
+    "collect.undefined | n1154 | Intel(R) Xeon(R) 6736P | JOB_ID 15246737 | 2026-10-22 15:59:29 | NPY_DISABLE_CPU_FEATURES=AVX512F AVX512CD AVX512_SKX AVX512_CLX AVX512_CNL AVX512_ICL"
+   ]
+  }
+ },
+ "uge_cpu_hours_total": 9.555828611111112,
+ "uge_wall_hours_total": 10.472618888888888
+}

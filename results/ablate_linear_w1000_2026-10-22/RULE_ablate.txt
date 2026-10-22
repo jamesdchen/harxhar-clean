@@ -1,0 +1,75 @@
+RULE_ablate.txt -- leave-bucket-out and leave-series-out ablations of the pooled 13-bar linear models (preview)
+Written 2026-10-22 14:40 PDT (21:40 UTC), before any ablation job was submitted and before any ablation was scored.
+
+Request (repo owner, James): "we still need to run the ablations of leave buckets out analysis and then leave features
+from that bucket out analysis"; "Use Hoffman for linear". PREVIEW at the current 1,000-day window on the current fixed
+design; to be repeated on the final design / window.
+
+BASE
+  results/pooled_linear_rerun_2026-10-22_13_2012_w1000_latestart_nofomcrel (commit a707349, branch
+  insurance-selling-2026-09-19-e34-latestart): pooled ridge, lasso, elastic net on the 13 regular-hours bars
+  (10:00-16:00 ET), base-5 HAR horizons, full predictor set of 564 columns (LATE_START_WARMUP on, fomc_release out),
+  rolling window 1,000 trading days = 13,000 rows, refit every bar, first evaluation day 2012-01-03; penalties frozen
+  from 4 pre-2012 folds (ridge 1000, lasso 0.001, elastic net 0.01). runner_cfg of its frozen_penalties.json plus
+  --window-days 1000 --first-day 2012-01-03 --ex-flag LATE_START_WARMUP=1. Code: git archive of a707349, unchanged.
+
+BUCKETS AND SERIES
+  Series -> bucket = results/rehaul_fi_pooled13_2026-10-22/fi_groups.csv 'category'; column -> series =
+  fi_predictors.csv 'group'. A series c owns its 12 columns adj_<c>_ma_<k> and <c>_avail_ma_<k>, k = 1, 5, 25, 125,
+  625, 3125. The HAR block (har_ma_*) and the calendar (DOW_0..DOW_4, hour) are never removed.
+    moments (7): sumret sumabsret sumret3 sumret4 sumpret2 sumbipow sumautocov                      84 columns
+    liquidity (14): sumvolume numobs turnover/buyturnover/sellturnover/effspread/spread_ewstock and _vwstock,
+                    ofi_ewstock ofi_vwstock                                                          168 columns
+    market_ew (6): sumret2 sumret3 sumret4 sumabsret sumbipow sumpret2 _ewstock                       72 columns
+    market_vw (6): the same six _vwstock                                                              72 columns
+    implied_vol (3): vix vvix vix3m                                                                   36 columns
+    fomc (3): fomc_day fomc_until_inv fomc_since_inv                                                  36 columns
+    sentiment (3): stocktwits_attention stocktwits_sentiment stocktwits_sentcount                     36 columns
+    vol_demand (4): voldemand_spx_open_and_close voldemand_spx_open_only voldemand_all_open_and_close
+                    voldemand_all_open_only                                                           48 columns
+
+METHOD (each ablation; stage 1 removes one bucket, stage 2 one series)
+  1. Design: the base's cached full-set design (X.npy, 84,747 x 564, Fortran order) with the ablation's columns
+     removed; y, b_oos, dates unchanged; the remaining columns copied bit for bit, order and layout kept. No design
+     rebuild. Justification (code of a707349): every data-prep step acts column by column (robust_transform and the
+     ffill per column; rows dropped only where RV is missing under impute_indicate; _build_scale_guards per column;
+     rolling_robust_scale's kernel loops over columns independently; late_start_warmup per column), so a design
+     built without the ablated series would hold these columns exactly. Checked per ablation: kept columns bit-equal
+     to the base columns; penalty factors (r = 0.01 on the HAR block + calendar, 1 elsewhere: backbone_mask on the
+     names) equal to the base's on the kept columns; the identifiability-mask code is unchanged (a column constant in
+     the window, or a byte-duplicate of an earlier kept column, is zeroed). Expected and reported, not a failure: a
+     column that duplicated a removed column is no longer masked (it is now the first copy); counted per ablation at
+     the pre-tune folds and at every re-choice boundary of the walk.
+  2. Penalty: re-selected for each model on the 4 pre-2012 folds exactly as the base (pretune: start row 44,281,
+     halo 26,325; each fold fit on the 13,000 rows before a 325-row embargo, validation 3,250 rows; grids ridge 1e-2 ..
+     1e3, lasso 1e-6 .. 1e-2, elastic net 1e-6 .. 1e-2 at l1_ratio 0.5, one value a decade; select = lowest mean
+     validation MSE, adjusted scale, all 13 bars, 4 folds). No grid extension; a pick at a grid end is reported.
+  3. Walk: ridge, lasso, elastic net with --sched const:<re-picked penalty>, exactly the base walk (start row 44,250,
+     halo 13,000, chunks ridge 2 / lasso 4 / elastic net 4 at 250-solve boundaries, the base CFG); plain = pred_adj^2 x B.
+  4. Score against the BASE FULL SET of the same model (the published forecasts.parquet of the base run):
+     a. every-bar QLIKE (mean of r - ln r - 1, r = RV / plain, RV = core_stats sumret2) on the scored bars of Table 1's
+        rule (writeup/make_rehaul_oos_rerun.py --span 2012: the 3,075 trading days 2012-01-03 .. 2024-04-30 with a
+        positive closing print, early closes out; bars with positive RV and a finite positive forecast of every base
+        arm), the ablation required finite positive on the same bars; also its 2020-01-03 .. 2024-04-30 cut
+        (1,082 days). dQLIKE % = 100 (Q_ablation / Q_base - 1). DM: src.evaluation.diebold_mariano.dm_test on the
+        daily average loss (ablation minus base), two-sided p, as Table 1.
+     b. closing-interval QLIKE: the 16:00 rows (15:30 forecast of the closing half hour) on the 1,082 days
+        2020-01-03 .. 2024-04-30, dQLIKE % and dm_test on the 1,082 daily losses.
+     c. D6 Sharpe ratio of the sign strategy, construction exactly as writeup/make_rehaul_economics.py
+        add_pooled_linear: on the 866 option days of the OLS row, q = +1 if plain(16:00) > iv_var else -1, return
+        q x R at mid (and the crossed bid-ask return in the CSV); hac_inference.d6_sharpe on the 614 post-warmup days;
+        dSR = SR_ablation - SR_base with hac_inference.d6_diff_test p (paired circular block bootstrap, the module's
+        block, resamples and seed).
+     d. For scale: the base full set against the base HAR benchmark of the same model, the same metrics.
+
+STAGE-2 RULE (fixed here, before stage 1 is run or scored)
+  A bucket enters stage 2 if and only if, for at least one of ridge, lasso, elastic net, removing it RAISES the
+  every-bar QLIKE 2012-2024 (dQLIKE > 0) with DM p < 0.05 (two-sided, dm_test on the daily average loss, item 4a).
+  Stage 2 then removes each series of every such bucket alone (leave one series out from the full set), for all three
+  models, with the method above. If no bucket meets the rule, stage 2 is not run.
+
+GATE (before any ablation job)
+  The "full" ablation (no column removed, through the same slice code) runs pretune -> select -> walk on Hoffman2: the
+  three penalties must equal frozen_penalties.json and the forecasts (pred_adj, plain) the published forecasts.parquet
+  to <= 1e-12 relative (bit-for-bit expected); any difference is reported with its size. The HAR-benchmark ridge
+  (ill-conditioned) is not part of the full set and is not rerun.
