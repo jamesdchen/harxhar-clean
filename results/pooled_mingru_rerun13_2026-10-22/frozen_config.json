@@ -1,0 +1,126 @@
+{
+ "frozen": {
+  "baseline": {
+   "cfg": "L20_H64_lr0.003_we15_wl0.3_ll1e-05",
+   "L": 20,
+   "H": 64,
+   "lr": "0.003",
+   "wd_enc": "15",
+   "wd_lin": "0.3",
+   "lr_lin": "1e-05",
+   "qlike_mean": 0.1176592259810692,
+   "qlike_folds": [
+    0.11826214338331241,
+    0.10750123409539827,
+    0.12262391250550532,
+    0.12224961394006083
+   ],
+   "epochs": {
+    "20261012": {
+     "by_fold": [
+      2,
+      25,
+      4,
+      11
+     ],
+     "median": 7.5,
+     "epochs": 8
+    },
+    "20261013": {
+     "by_fold": [
+      9,
+      20,
+      13,
+      10
+     ],
+     "median": 11.5,
+     "epochs": 12
+    },
+    "20261014": {
+     "by_fold": [
+      7,
+      19,
+      8,
+      10
+     ],
+     "median": 9.0,
+     "epochs": 9
+    }
+   },
+   "n_finite_configs": 144,
+   "n_configs": 144
+  },
+  "all_features": {
+   "cfg": "L20_H64_lr0.003_we3_wl3_ll1e-05",
+   "L": 20,
+   "H": 64,
+   "lr": "0.003",
+   "wd_enc": "3",
+   "wd_lin": "3",
+   "lr_lin": "1e-05",
+   "qlike_mean": 0.10832227889229197,
+   "qlike_folds": [
+    0.10986922037195172,
+    0.10450968951612098,
+    0.11052488783401111,
+    0.10838531784708406
+   ],
+   "epochs": {
+    "20261012": {
+     "by_fold": [
+      12,
+      29,
+      20,
+      12
+     ],
+     "median": 16.0,
+     "epochs": 16
+    },
+    "20261013": {
+     "by_fold": [
+      3,
+      12,
+      10,
+      10
+     ],
+     "median": 10.0,
+     "epochs": 10
+    },
+    "20261014": {
+     "by_fold": [
+      7,
+      16,
+      7,
+      11
+     ],
+     "median": 9.0,
+     "epochs": 9
+    }
+   },
+   "n_finite_configs": 144,
+   "n_configs": 144
+  }
+ },
+ "rule": "Per predictor set, one configuration of the 144 (H x L x lr x wd_enc x wd_lin x lr_lin), frozen over the walk: the lowest mean over the 4 pre-2012 folds of the fold's validation QLIKE (r = y^2 / f^2, r - log r - 1, over the fold's validation rows with y > 0) of the forecast averaged over the 3 seeds; a configuration with a non-finite fold value is skipped; configurations in sorted name order, ties: the first.  Refit epochs of seed s: the median over the 4 folds of seed s's best epoch in the frozen configuration, rounded half up.  Fixed 2026-10-22 before any job ran; nothing from 2012-01-03 on enters.",
+ "seeds": [
+  20261012,
+  20261013,
+  20261014
+ ],
+ "common": {
+  "layers": 1,
+  "batch": 128,
+  "max_epochs": 100,
+  "patience": 10,
+  "momentum": 0.95,
+  "max_grad_norm": 1.0,
+  "anneal": 1,
+  "min_lr_ratio": 0.0,
+  "mask": 1,
+  "xstd": 0,
+  "link": "softplus",
+  "loss": "qlike",
+  "lin": 1,
+  "dec_zero": 1
+ }
+}

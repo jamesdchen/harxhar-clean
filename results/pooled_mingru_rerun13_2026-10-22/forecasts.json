@@ -1,0 +1,38 @@
+{
+ "window_days": 1000,
+ "refit": "monthly (21 sessions)",
+ "span": [
+  "2011-12-28 14:00:00",
+  "2024-04-30 16:00:00"
+ ],
+ "sets": {
+  "baseline": {
+   "cfg": "L20_H64_lr0.003_we15_wl0.3_ll1e-05",
+   "refit_jobs": 453,
+   "rows": 40497,
+   "gpu_hours_t_train": 0.2434975,
+   "runs": [
+    "walk_baseline_p0_13303665",
+    "walk_baseline_p1_13303666",
+    "walk_baseline_p2_13303667",
+    "walk_baseline_p3_13303668",
+    "walk_baseline_p4_13303669",
+    "walk_baseline_p5_13303670"
+   ]
+  },
+  "all_features": {
+   "cfg": "L20_H64_lr0.003_we3_wl3_ll1e-05",
+   "refit_jobs": 453,
+   "rows": 40497,
+   "gpu_hours_t_train": 0.22611811111111113,
+   "runs": [
+    "walk_all_features_p0_13303659",
+    "walk_all_features_p1_13303660",
+    "walk_all_features_p2_13303661",
+    "walk_all_features_p3_13303662",
+    "walk_all_features_p4_13303663",
+    "walk_all_features_p5_13303664"
+   ]
+  }
+ }
+}

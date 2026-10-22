@@ -1,0 +1,36 @@
+UNOBSERVED_NEUTRAL (note E28, stale feeds), 2026-10-22.  Rule: RULE_unobs.txt (written 13:52 PDT, before any build).
+Code: src/backtest/executor.py, flag UNOBSERVED_NEUTRAL (default True), function unobserved_neutral, applied in
+_backtest_and_save after rolling_robust_scale and late_start_warmup (prescale path only: linear designs and every
+consumer of the linear design caches).  No model walk was rerun.
+
+Design checked: 13 bars, from 2012, 1,000-day window, LATE_START_WARMUP on, FOMC release dropped (564 columns), i.e. the
+runner_cfg of results/pooled_linear_rerun_2026-10-22_13_2012_w1000_latestart_nofomcrel (design stage of
+experiments/pooled_linear_rerun_2026_10_19_13.py, --jobs 1, Python 3.12.3 / numpy 1.26.4).
+
+(a) flag off (--ex-flag UNOBSERVED_NEUTRAL=0): X.npy, y.npy, b_oos.npy, dates_oos.csv of both sets byte-identical to the
+    reference run's _work caches (a_sha256.txt); design.json differs only in config.ex_flags (the added flag).
+
+(b) flag on: 134 of 276 value columns have a rule-hit row; 2,492,143 values hit, 2,340,481 of them already 0 (pre-start
+    rows zeroed by LATE_START_WARMUP), 151,662 values changed in 114 columns (all set to 0).  Availability averages
+    unchanged; non-value columns unchanged.  The design's <c>_avail_ma_<k> == 0 and the "< 0.5/k" test agree on every row.
+    Classes (classify.py): changed values / of which >= 2012 / on the 866 option days' 16:00 rows / max |old-new|
+      iii  pre-start (already 0)                       0 /      0 /     0 / 0
+      i    stopped feed (terminal: volatility demand,
+           4 series, from 2023-09-01)             44,980 / 44,980 / 3,419 / 0.86
+      i    temporary (>= 1 full session missed;
+           mostly exchange holidays of the grid)   1,049 /  1,022 /     0 / 0.82
+      ii   routine, run <= 26 bars                 2,431 /     61 /     0 / 0.54
+      ii   routine, run 27-66 bars (overnight,
+           pre-open, late first print, k <= 25)  103,202 / 86,752 /    12 / 0.83
+    866 option days, 16:00 rows: 3,431 values in 24 columns (volatility demand, all 6 k), on 165 days, all from
+    2023-09-01; max |d| 0.86.  adj_voldemand_all_open_only_ma_1 there: -0.2825 (2023-09-01) .. -0.1493 (2024-04-30)
+    under the flag off, 0 under the flag on.  Fit windows of the option-day forecasts (rows >= 57,497): 113,944 values
+    in 112 columns change.  2008-2011 pre-tune rows: 16,602 values in 75 columns.
+    Routine gaps dominate the count (105,633 of 151,662).  The narrower variant "unobserved for more than FFILL_LIMIT
+    bars running" would still change 149,231 values (overnight runs are 27-66 bars), so it does not separate them; a
+    variant "at least one full regular session unobserved" would change 46,029.  Neither variant is implemented.
+
+(c) future perturbation (perturb_build.py / perturb_compare.py, audit_B's reduced bucket, 204 columns, T* 2016-06-15
+    15:30): values after T* perturbed / 30% of late-series prints deleted / five feeds stopped at T*: 0 of 204 columns
+    move on rows dated <= T* + 30 min, y and B unchanged, every row after T* moves (control); in 'stop' the rule fires
+    after T* (772,045 zeros vs 37,832).

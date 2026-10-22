@@ -29,10 +29,9 @@
   \begin{itemize}
   \item Specifically, at the 15:30 ET forecast origin on trading day $t$, we seek to predict $\RV_t$, which
     denotes the realized variance over the 15:30--16:00 closing interval (see Section~\ref{sec:rh_data}).
-  % 2026-10-21 (user): parked -- Table 1 scores every regular-hours bar (E36). Was: "\item Each intraday model is estimated across all $M = \rhdmNIntervals$ half-hour intervals of the trading day, and we evaluate its out-of-sample predictions on the forecast issued at 15:30 for the closing half hour."
-  \item Each pooled intraday model is estimated on the \rhorNBars{} regular-hours half-hour bars of the trading
-    day, and we score its out-of-sample forecast of every bar (Table~\ref{tab:rh_oos}); the forecast issued at
-    15:30 for the closing half hour is the one the economic application uses.
+  % 2026-10-22 (user): parked -- the pooled models are estimated on the 13 regular-hours bars (E34). Was: "Each intraday model is estimated across all $M = \rhdmNIntervals$ half-hour intervals of the trading day, and we evaluate its out-of-sample predictions on the forecast issued at 15:30 for the closing half hour."
+  \item Each pooled intraday model is estimated on the \rhePoolNBars{} regular-hours half-hour bars of the trading
+    day, and we evaluate its out-of-sample predictions on the forecast issued at 15:30 for the closing half hour.
   \item To isolate the contribution of the additional covariates, we compare the full predictor set against the
     HAR benchmark; the exogenous series constitute the exact difference between the two sets (see
     Section~\ref{sec:rh_predictors}).
@@ -60,19 +59,20 @@
   \item We evaluate predictive accuracy via the average QLIKE loss over the out-of-sample evaluation span
   % 2026-10-20 (user): parked -- Table 1 scored from 2012 (TABLE1_SWITCH.md, approved). Was: "$\mathcal T_{\mathrm{oos}}$ from \rhoosSpanStart{} to \rhoosSpanEnd{} ($T_{\mathrm{oos}} = \rhoosDays$ trading days; see Section~\ref{sec:rh_results_eval})."
     $\mathcal T_{\mathrm{oos}}$ from \rhoosSpanStart{} to \rhoosSpanEnd{} ($T_{\mathrm{oos}} = \rhoosDays$
-    % 2026-10-21 (user): parked -- Table 1 holds the trees too (E36). Was: "the accuracy of the pooled linear models in"
-    trading days; see Section~\ref{sec:rh_results_eval}); the accuracy of the pooled intraday models in
-    Table~\ref{tab:rh_oos} is scored on every regular-hours bar from \rhorSpanStart{} to \rhorSpanEnd{}
+    % 2026-10-22 (user, E36): parked -- "the accuracy of the pooled linear models in Table~\ref{tab:rh_oos}"; Table 1 now holds the tree ensembles too.
+    trading days; see Section~\ref{sec:rh_results_eval}); the accuracy of the pooled linear models and tree
+    ensembles in Table~\ref{tab:rh_oos} is scored on every regular-hours bar from \rhorSpanStart{} to \rhorSpanEnd{}
     (\rhorDays{} trading days, a rolling window of \rhorWindowDays{} trading days).
   \end{itemize}
 \item \textbf{Main findings.}
   \begin{itemize}
-  % 2026-10-21 (user): parked -- the counts of the earlier runs (\rhrAfPool...) and the comparison between classes; Table 1's counts (E36). Was: "\item Incorporating the full predictor set reduces the average out-of-sample QLIKE loss relative to the HAR benchmark across every intraday model class (\rhrAfPoolPairs{} classes in total, with \rhrAfPoolLowerSig{} of these reductions statistically significant at the 5\% level; see Section~\ref{sec:rh_results}). The tree-based ensembles exhibit the largest relative improvements, while among the linear specifications, the elastic net achieves a statistically significant reduction."
+  % 2026-10-22 (user, E34: one design for the 12 pooled forecasts): parked -- "across every intraday model class" and "the elastic net achieves a statistically significant reduction" no longer hold with the pooled linear models on the trees' design (make_rehaul_results.py, E34 CLAIM); counts printed. Was: "\item Incorporating the full predictor set reduces the average out-of-sample QLIKE loss relative to the HAR benchmark across every intraday model class (\rhrAfPoolPairs{} classes in total, with \rhrAfPoolLowerSig{} of these reductions statistically significant at the 5\% level; see Section~\ref{sec:rh_results}). Among the linear specifications, the elastic net achieves a statistically significant reduction; among the tree ensembles, the reduction is statistically significant at the 5\% level in \rhrAfPoolTreeLowerSig{} of the three classes."
   \item Incorporating the full predictor set reduces the average out-of-sample QLIKE loss relative to the HAR
-    benchmark in \rhorAfQlikeLower{} of the \rhorAfClasses{} pooled intraday model classes of
-    Table~\ref{tab:rh_oos} (ridge, lasso, elastic net, LightGBM, XGBoost and random forest), by
-    \rhorAfQlikeRedMin{} to \rhorAfQlikeRedMax\%, with \rhorAfQlikeLowerSig{} of these reductions statistically
-    significant at the 5\% level (see Section~\ref{sec:rh_results}).
+    benchmark in \rhrAfPoolLower{} of the \rhrAfPoolPairs{} intraday model classes, with \rhrAfPoolLowerSig{}
+    of these reductions statistically significant at the 5\% level (see Section~\ref{sec:rh_results}).
+    % 2026-10-22 (user, E34): parked -- with the base-5 pooled trees their reductions are no longer the largest or significant (make_rehaul_results.py, E34 CLAIM); no ranking. Was: "The tree-based ensembles exhibit the largest relative improvements, while among the linear specifications, the elastic net achieves a statistically significant reduction."
+    The reduction is statistically significant at the 5\% level in \rhrAfPoolLinLowerSig{} of the three linear
+    classes and in \rhrAfPoolTreeLowerSig{} of the three tree classes.
   % 2026-10-19 (user): parked -- the MSE finding, with the QLIKE/squared-error divergence bullet of 06_results.tex
   % and the abstract's MSE clause. Was:
   % \item In contrast, evaluation under mean squared error (MSE) does not corroborate these gains: the full
@@ -80,19 +80,23 @@
   %   and none of the MSE differences is statistically significant.
   % 2026-10-17 (user): parked -- closing-interval material (relabeled: closing-interval HAR benchmark). Was: "than the closing-interval benchmark forecast."
   \item Every pooled intraday forecast incurs a higher average QLIKE loss than the closing-interval HAR
-    benchmark. While this performance gap is statistically insignificant at the 5\% level for the linear models,
-    it is significant for the tree ensembles. Notably, augmenting the intraday models with the full predictor
-    set narrows this gap across all model classes (see Section~\ref{sec:rh_results_classes}).
+    % 2026-10-22 (user, E34): parked -- with the base-5 pooled trees the gap on the full predictor set is significant for \rhrVsBmPoolTreeFullSig{} of the three tree ensembles, not all (make_rehaul_results.py, E34 CLAIM). Was: "benchmark. While this performance gap is statistically insignificant at the 5\% level for the linear models, it is significant for the tree ensembles. Notably, augmenting the intraday models with the full predictor"
+    % 2026-10-22 (user, E34: one design for the 12 pooled forecasts): parked -- "insignificant ... for the linear models" and "narrows this gap across all model classes" no longer hold (make_rehaul_results.py, E34 CLAIM); counts printed. Was: "benchmark. Under the full predictor set, this performance gap is statistically insignificant at the 5\% level for the linear models and significant for \rhrVsBmPoolTreeFullSig{} of the three tree ensembles. Notably, augmenting the intraday models with the full predictor set narrows this gap across all model classes (see Section~\ref{sec:rh_results_classes})."
+    benchmark. Under the full predictor set, this performance gap is statistically significant at the 5\% level
+    for \rhrVsBmPoolLinFullSig{} of the three linear models and for \rhrVsBmPoolTreeFullSig{} of the three tree
+    ensembles. Augmenting the intraday models with the full predictor set narrows this gap in
+    \rhrVsBmPoolNarrow{} of the \rhrAfPoolPairs{} model classes (see Section~\ref{sec:rh_results_classes}).
   \end{itemize}
 \item \textbf{Economic application.} To assess the economic value of the forecasts on trading days with a
   % 2026-10-18 (user, second-list 20): parked -- SPXW is the weekly PM-settled series the strategy trades; SPX is the monthly. Was: "same-day SPX expiration"
   same-day SPXW expiration, we construct a trading strategy that takes a long or short position in a
   zero-days-to-expiration (0DTE) at-the-money straddle based on the sign of the difference between the variance
   forecast and option-implied variance (see Section~\ref{sec:rh_econ}). Using the full predictor set increases
-  % 2026-10-21 (user): parked -- note N15c: not every class. Was: "the annualized Sharpe ratio of this strategy relative to the HAR benchmark in every intraday model class (see Section~\ref{sec:rh_econ_results})."
-  the annualized Sharpe ratio of this strategy relative to the HAR benchmark in \rhrAfPoolShHigher{} of the
-  \rhrAfPoolPairs{} intraday model classes (see Section~\ref{sec:rh_econ_results}).
-% 2026-10-21 (user): parked -- the sentence above now gives the count. Was: "\editc{orange}{N15c}{Problem: ``every intraday model class'' no longer holds under the per-year Sharpe ratio (pooled random forest $\Delta\SR = \rhrAfRfPoolDSh$); see note N15c in Section~\ref{sec:rh_econ}.}"
+  the annualized Sharpe ratio of this strategy relative to the HAR benchmark in every intraday model class (see
+  Section~\ref{sec:rh_econ_results}).
+% 2026-10-22 (user, E34: one design for the 12 pooled forecasts): parked -- the note named one class. Was: "\editc{orange}{N15c}{Problem: ``every intraday model class'' no longer holds under the per-year Sharpe ratio (pooled random forest $\Delta\SR = \rhrAfRfPoolDSh$); see note N15c in Section~\ref{sec:rh_econ}.}"
+% 2026-10-22 (user, D6): parked -- the note under the per-year ratio D1; under the Sharpe ratio of note D6 the sentence holds in point estimates. Was: "\editc{orange}{N15c}{Problem: ``every intraday model class'' does not hold: the full predictor set raises the pooled Sharpe ratio in \rhrAfPoolShHigher{} of the \rhrAfPoolPairs{} classes ($\Delta\SR$ from \rhrAfPoolDShMin{} to \rhrAfPoolDShMax); see note N15c in Section~\ref{sec:rh_econ}.}"
+\editc{orange}{N15c}{Problem: under the Sharpe ratio of note D6, the full predictor set raises the pooled Sharpe ratio in \rhrAfPoolShHigher{} of the \rhrAfPoolPairs{} classes ($\Delta\SR$ from \rhrAfPoolDShMin{} to \rhrAfPoolDShMax), so ``every intraday model class'' holds in point estimates; \rhrAfPoolShHigherSig{} of these gains are statistically significant at the 5\% level (bootstrap test), and under the previous ratio the count was \rheDefDOnePos{} of \rheDefN{}. See notes N15c and D6 in Section~\ref{sec:rh_econ}.}
 \item \textbf{Paper organization.} The remainder of the paper is organized as follows.
   Section~\ref{sec:rh_related} reviews the related literature. Section~\ref{sec:rh_data} describes the data and
   target construction, and Section~\ref{sec:rh_predictors} details the benchmark and exogenous predictors.

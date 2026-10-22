@@ -30,6 +30,39 @@ import numpy as np
 
 _EPS = 1e-10
 
+# -- 2026-10-22 (James: "add the KKT check flag"; results/rehaul_fi_pooled13_2026-10-22/README.md)
+# WALK_KKT_RESEED: the rolling walks slide the lasso / elastic net warm, two enet_online rank-1 updates a bar, and
+# re-anchor on the cold, KKT-certified batch solve only every 250 solves; in between, the homotopy's path can end off
+# the optimum (the pooled 13-bar 2012 w1000 walk: KKT violations up to 2.1e-3 (lasso) and 1.0e-2 (elastic net) of
+# max |X'y| at 31 and 4 of 151 monthly origins, forecasts up to 5.4e-3 relative off the exact solution).  With the flag
+# on, a walk checks the KKT conditions of the current window's problem after every warm update (walk_kkt below, on the
+# warm state's own Gr, c, mu_vec: the L2 term and the penalty factors are in them) at the batch certification's
+# tolerance, and where they fail replaces the warm solution by the cold seed on the current window and continues warm
+# from it.  Read at call time by specs/causal_tune_linear.py's subclasses in experiments/pool_linear_pretune.py, by
+# src/unification.py RollingTunedLinear and by experiments/close_exogpen.py (its C port).  Rule written down
+# 2026-10-22 14:15 PDT before any rerun or score.  Off: every walk as before, bit for bit.
+WALK_KKT_RESEED: bool = True
+KKT_TOL_REL = 1e-9  # tol = KKT_TOL_REL * max(max_j |c_j|, 1), as the batch certification (enet_coef_pf)
+
+
+def walk_kkt(
+    Gr: np.ndarray, c: np.ndarray, mu_vec: np.ndarray, theta: np.ndarray
+) -> tuple[bool, float, float]:
+    """KKT check of theta for  min_b 0.5 b' Gr b - c' b + sum_j mu_j |b_j|  (the L2 term on Gr's diagonal), in the
+    form of the batch certification (pool_linear_pretune._kkt_ok): r = c - Gr theta; active (theta_j != 0)
+    |r_j - mu_j sign(theta_j)| <= tol, inactive |r_j| <= mu_j + tol, tol = KKT_TOL_REL * scale.
+    Returns (ok, largest violation, scale = max(max_j |c_j|, 1))."""
+    scale = max(float(np.abs(c).max()), 1.0)
+    tol = KKT_TOL_REL * scale
+    r = c - Gr @ theta
+    on = theta != 0.0
+    d_on = np.abs(r[on] - mu_vec[on] * np.sign(theta[on]))
+    a_off = np.abs(r[~on])
+    ok = not (np.any(d_on > tol) or np.any(a_off > mu_vec[~on] + tol))
+    v_off = (a_off - mu_vec[~on]).max(initial=0.0)
+    viol = max(float(d_on.max(initial=0.0)), float(v_off))
+    return ok, viol, scale
+
 
 def _solve(g_aa: np.ndarray, rhs: np.ndarray) -> np.ndarray:
     """Solve g_aa x = rhs for SPD g_aa; lstsq fallback if numerically singular."""

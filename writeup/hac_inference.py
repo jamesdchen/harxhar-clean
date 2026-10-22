@@ -32,6 +32,25 @@ SHARPE RATIOS (difference of two Sharpe ratios)
 NORMAL-THEORY COLUMNS (appendix robustness table only): nw_t_lag(x, L) with the weights 1 - k/(L+1), at
   L = floor(4 (T/100)^(2/9)) (Newey and West 1994, the rule the paper's DM tests use) and L = floor(1.5 T^(1/3)) (the
   paper's previous rule), two-sided normal p.
+
+THE PAPER'S SHARPE RATIO (2026-10-22, user, D6: "switch to d6")
+  d6_sharpe: for each calendar year y of the sample, SR_y = mean_y / sd_y (ddof 1) * sqrt(A_y), with A_y the year's
+  expirations per calendar year, A_y = N_y / c_y: N_y the returns in year y and c_y the fraction of calendar year y the
+  sample covers (from the later of 1 January and the sample's first day to the earlier of 31 December and its last
+  day, inclusive, over 365 or 366 days). The ratio is the simple (equal-weight) mean of the SR_y: each year counts once
+  (Mon/Wed/Fri expirations until May 2022, daily after; a possible decline of the strategy), each annualized at its
+  own trading frequency. On the 614 post-warmup days (2021-08-11 .. 2024-04-30): N_y = 64 / 219 / 248 / 83,
+  c_y = 0.392 / 1 / 1 / 0.331, A_y = 163.4 / 219 / 248 / 251.1. It replaces atm_straddle_lib.sharpe_ann_by_year
+  (combine="weighted": SR_y = mean_y / sd_y * sqrt(N_y), N_y-weighted; new-notes 15, 2026-10-18) in the paper
+  generators; that function stays, for the robustness rows ("D1").
+  d6_diff_test: the difference of two D6 ratios on the same days, tested by a paired circular block bootstrap (block
+  LW_BLOCK, LW_BOOT resamples, seed D6_SEED): each resample joins blocks of consecutive days drawn with replacement
+  from the days arranged on a circle, the same days for both series; every drawn day keeps its own calendar year, and
+  A_y stays at the sample's values. Two-sided p = the share of resamples with |Delta* - Delta| >= |Delta|. Not
+  studentized (the Ledoit-Wolf test above tests the ratio of the pooled daily returns, not D6; it is kept, as a
+  robustness column). Unit-checked in writeup/tests/test_hac_inference.py against a verbatim copy of stat / boot_p of
+  the scratch script sharpe_equalyears.py (2026-10-22), whose six pooled-class values (sharpe_equalyears.csv, 1,999
+  resamples) d6_sharpe / d6_diff_test reproduce exactly.
 """
 
 from __future__ import annotations
@@ -49,6 +68,7 @@ LW_BLOCK = 10  # block length of the Ledoit-Wolf bootstrap (fixed; sensitivity a
 LW_BLOCK_ALT = (5, 20)
 LW_BOOT = 4999  # resamples
 LW_SEED = 20080901  # fixed seed of the bootstrap
+D6_SEED = 20261022  # 2026-10-22 (user, D6): fixed seed of the bootstrap of a D6 Sharpe-ratio difference
 ALPHA = 0.05
 
 
@@ -229,3 +249,146 @@ def lw_sharpe_test(ra, rb, block: int = LW_BLOCK, n_boot: int = LW_BOOT, seed: i
         done += m
     return {"delta": float(delta), "se": se, "d": d, "p": (exceed + 1) / (n_boot + 1), "block": block,
             "n_boot": n_boot, "T": T}
+
+
+# ----------------------------------------------------------------------------- 2026-10-22 (user, D6): the Sharpe ratio
+def d6_years(dates, span=None) -> dict:
+    """Calendar years of a sample and their annualization: {"years": the year of each date (int array), "N": {y: N_y},
+    "coverage": {y: c_y}, "A": {y: A_y = N_y / c_y}}. c_y is the fraction of calendar year y between the later of
+    1 January and the sample's first day and the earlier of 31 December and its last day (inclusive; 365 or 366 days).
+    span = (first, last) fixes the sample's first and last day (default: those of dates)."""
+    import pandas as pd
+
+    d = pd.DatetimeIndex(dates)
+    assert len(d) and not d.hasnans, "d6_years: no dates"
+    first, last = (
+        (d.min(), d.max())
+        if span is None
+        else (pd.Timestamp(span[0]), pd.Timestamp(span[1]))
+    )
+    assert first <= d.min() and d.max() <= last, (first, last, d.min(), d.max())
+    yrs = np.asarray(d.year, dtype=int)
+    N, cov, A = {}, {}, {}
+    for y in sorted(set(yrs.tolist())):
+        lo = max(pd.Timestamp(year=y, month=1, day=1), first.normalize())
+        hi_ = min(pd.Timestamp(year=y, month=12, day=31), last.normalize())
+        n_days = pd.Timestamp(year=y, month=12, day=31).dayofyear  # 365 or 366
+        N[y] = int((yrs == y).sum())
+        cov[y] = ((hi_ - lo).days + 1) / n_days
+        A[y] = N[y] / cov[y]
+    return {"years": yrs, "N": N, "coverage": cov, "A": A}
+
+
+def _d6_stat(x: np.ndarray, yc: np.ndarray, sqrt_a: np.ndarray) -> np.ndarray:
+    """D6 on the rows of x (m, T), whose days fall in the years yc (m, T; codes 0..K-1, annualization sqrt_a[k]): the
+    mean over years of mean_k / sd_k (ddof 1) * sqrt_a[k], skipping a year with fewer than 2 days or a zero sd."""
+    srs = np.full((x.shape[0], len(sqrt_a)), np.nan)
+    for k, sa in enumerate(sqrt_a):
+        m_ = yc == k
+        n = m_.sum(axis=1)
+        mu = np.where(m_, x, 0.0).sum(axis=1) / np.maximum(n, 1)
+        ss = np.where(m_, (x - mu[:, None]) ** 2, 0.0).sum(axis=1)
+        sd = np.sqrt(ss / np.maximum(n - 1, 1))
+        ok = (n >= 2) & (sd > 0)
+        srs[ok, k] = mu[ok] / sd[ok] * sa
+    out = np.full(x.shape[0], np.nan)
+    has = np.isfinite(srs).any(axis=1)
+    out[has] = np.nanmean(srs[has], axis=1)
+    return out
+
+
+def d6_sharpe(r, dates=None, span=None) -> dict:
+    """The paper's Sharpe ratio (D6, module docstring): the simple mean over calendar years of
+    SR_y = mean_y / sd_y * sqrt(A_y), A_y = N_y / c_y (d6_years). r: returns (a Series indexed by date, or an array with
+    dates); non-finite returns are dropped first. Returns {"sharpe", "by_year": {y: (N_y, A_y, SR_y)}, "coverage"}."""
+    import pandas as pd
+
+    idx = pd.DatetimeIndex(r.index if dates is None else dates)
+    v = np.asarray(r, dtype=float).ravel()
+    assert len(v) == len(idx), (len(v), len(idx))
+    keep = np.isfinite(v)
+    v, idx = v[keep], idx[keep]
+    yy = d6_years(idx, span=span)
+    by_year: dict[int, tuple[int, float, float]] = {}
+    for y, a_y in yy["A"].items():
+        x = v[yy["years"] == y]
+        if len(x) < 2:
+            continue
+        sd = float(x.std(ddof=1))
+        if not sd > 0:
+            continue
+        by_year[int(y)] = (
+            int(len(x)),
+            float(a_y),
+            float(x.mean()) / sd * math.sqrt(a_y),
+        )
+    sr = float(np.mean([v_[2] for v_ in by_year.values()])) if by_year else float("nan")
+    return {"sharpe": sr, "by_year": by_year, "coverage": yy["coverage"]}
+
+
+@lru_cache(maxsize=4)
+def _boot_index(
+    T: int, block: int, n_boot: int, seed: int, chunk: int = 500
+) -> np.ndarray:
+    """(n_boot, T) day indices of the circular block resamples (rng.integers draws in chunks: the same stream as one
+    draw of nb block starts per resample)."""
+    rng = np.random.default_rng(seed)
+    nb = int(math.ceil(T / block))
+    out = np.empty((n_boot, T), dtype=np.int32)
+    done = 0
+    while done < n_boot:
+        m = min(chunk, n_boot - done)
+        st = rng.integers(0, T, size=(m, nb))
+        out[done : done + m] = (
+            (st[:, :, None] + np.arange(block)[None, None, :]) % T
+        ).reshape(m, nb * block)[:, :T]
+        done += m
+    out.setflags(write=False)
+    return out
+
+
+def d6_diff_test(
+    ra,
+    rb,
+    dates,
+    block: int = LW_BLOCK,
+    n_boot: int = LW_BOOT,
+    seed: int = D6_SEED,
+    span=None,
+    chunk: int = 1000,
+) -> dict:
+    """Paired circular block bootstrap of the difference of two D6 Sharpe ratios (a minus b) observed on the same days
+    (module docstring): each drawn day keeps its calendar year, A_y fixed at the sample's values; two-sided
+    p = share of |Delta* - Delta| >= |Delta|. Returns {delta, sr_a, sr_b, p, block, n_boot, T, seed}."""
+    a, b_ = _clean(ra), _clean(rb)
+    assert len(a) == len(b_), (len(a), len(b_))
+    T = len(a)
+    yy = d6_years(dates, span=span)
+    assert len(yy["years"]) == T, (len(yy["years"]), T)
+    ys = sorted(yy["A"])
+    code = np.searchsorted(np.array(ys), yy["years"])
+    sqrt_a = np.sqrt(np.array([yy["A"][y] for y in ys], dtype=float))
+    one = np.arange(T)[None, :]
+    sr_a = float(_d6_stat(a[one], code[one], sqrt_a)[0])
+    sr_b = float(_d6_stat(b_[one], code[one], sqrt_a)[0])
+    assert math.isclose(
+        sr_a, d6_sharpe(a, dates, span=span)["sharpe"], rel_tol=1e-10, abs_tol=1e-12
+    ), sr_a
+    delta = sr_a - sr_b
+    idx = _boot_index(T, block, n_boot, seed)
+    exceed = 0
+    for s0 in range(0, n_boot, chunk):
+        ix = idx[s0 : s0 + chunk]
+        yc = code[ix]
+        dstar = _d6_stat(a[ix], yc, sqrt_a) - _d6_stat(b_[ix], yc, sqrt_a)
+        exceed += int(np.sum(np.abs(dstar - delta) >= abs(delta)))
+    return {
+        "delta": float(delta),
+        "sr_a": sr_a,
+        "sr_b": sr_b,
+        "p": exceed / n_boot,
+        "block": block,
+        "n_boot": n_boot,
+        "T": T,
+        "seed": seed,
+    }

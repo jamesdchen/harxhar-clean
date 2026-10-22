@@ -20,13 +20,14 @@ Trees, random search & 2{,}000 & 10 & 250 & 125 / 25 & MSE \\
 Trees, Optuna & 2{,}000 & 1 & 1, 5, 25, 250 & 125 / 25 & MSE (one specification: QLIKE) \\
 \addlinespace
 \multicolumn{6}{@{}l}{\textit{Panel B: Intraday models (30-minute intervals)}} \\
-Ridge, Lasso, Elastic net & 96{,}000 & 1 & once (pre-sample); then 250 & 4 $\times$ 12{,}000 / 1{,}200; then 125 / 25 & as in Panel A \\
-Trees, fixed hyperparameters (one configuration per method) & 24{,}000 & 1 & -- & -- & -- \\
+Ridge, Lasso, Elastic net, all \rhdmNIntervals{} intervals (model set) & 96{,}000 & 1 & once (pre-sample); then 250 & 4 $\times$ 12{,}000 / 1{,}200; then 125 / 25 & as in Panel A \\
+Ridge, Lasso, Elastic net, regular-hours bars & 13{,}000 & 1 & once (pre-sample) & 4 $\times$ 3{,}250 / 325 & MSE \\
+Trees, fixed hyperparameters (one configuration per method), regular-hours bars & 13{,}000 & 1 & -- & -- & -- \\
 \bottomrule
 \end{tabular}
 \begin{tablenotes}[flushleft]
 \footnotesize
-\item \textit{Notes:} Every split is forward: the estimation sample, a gap and the validation sample at the end of the rolling window $\mathcal W_t$ (Section~\ref{sec:rh_methods_tuning}), so the out-of-sample period is never used for a choice. Re-estimated and re-selected every: the spacing of successive estimations and hyperparameter selections, in the units of the panel; $\mathcal C$: the grid neighbors that challenge the selected penalty. Criteria are computed on the scale of $\tilde y_{t,i}$ unless QLIKE is named; all random seeds are fixed. Optuna starts a new search at each re-selection; the pooled trees use one fixed configuration per method (for LightGBM and XGBoost, single arms of a 20-configuration development bank), re-estimated at every interval (part of them only every 10th).
+\item \textit{Notes:} Every split is forward: the estimation sample, a gap and the validation sample at the end of the rolling window $\mathcal W_t$ (Section~\ref{sec:rh_methods_tuning}), so the out-of-sample period is never used for a choice. Re-estimated and re-selected every: the spacing of successive estimations and hyperparameter selections, in the units of the panel; $\mathcal C$: the grid neighbors that challenge the selected penalty. Criteria are computed on the scale of $\tilde y_{t,i}$ unless QLIKE is named; all random seeds are fixed. Optuna starts a new search at each re-selection; the pooled trees use one fixed configuration per method (for LightGBM and XGBoost, single arms of a 20-configuration development bank), re-estimated at every bar of the 13 regular-hours bars of each day ($W$: 1{,}000 trading days).
 \end{tablenotes}
 \end{threeparttable}
 \end{table}

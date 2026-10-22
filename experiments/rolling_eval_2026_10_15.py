@@ -13,8 +13,12 @@ forecast after the model's initial estimation window to the end of the data, and
 
 SOURCES (the files experiments/master_table_close.py reads for each key, arm root linear_subsection_dedup, the paper
 run's PERBAR_SWITCH / PAPER_SWITCHED active; gate: its discover() resolves the same path for every master key)
-  closing-interval linear  results/spxw_pnl/yhat_subpt_<est>_<set>.parquet (arm f of
-                           results/linear_pretune_2026-10-06, experiments/stack_pretune_yhat.py); the OLS on the HAR
+  closing-interval linear  results/spxw_pnl/yhat_subpt_<est>_<set>.parquet (results/linear_pretune_2026-10-06,
+                           experiments/stack_pretune_yhat.py; 2026-10-18, user, new-notes 24 per E23: the frozen arms,
+                           c_frozen on the HAR benchmark and d_frozen_bb on all features, one pre-sample penalty and no
+                           re-tune -- was arm f, the margin re-tune, which replaced the HAR-benchmark penalty from
+                           2020-06-23 (ridge, elastic net) and 2023-06-16 (lasso) and never on all features, so only
+                           the three subpt_*_baseline forecasts moved; outputs re-written 2026-10-22); the OLS on the HAR
                            benchmark is the per-bar incumbent arm file
                            results/linear_subsection_dedup/baseline/bar1600/reclasso/tw2000/causal_tune_linear/
                            incumbent_ols/results_bar1600.csv (B = true_raw / true_adj^2, compare_mfiv_harlag._prep);
@@ -50,7 +54,9 @@ METRICS   MSE = mean (RV_t - sigma2_t)^2; QLIKE = mean r - log r - 1, r = RV_t /
           Thompson 2008) = 1 - sum (RV_t - sigma2_t)^2 / sum (RV_t - RVbar_{t-1})^2, RVbar_{t-1} = the mean of every
           closing-half-hour RV print strictly before day t from 1998-01-05 (expanding, causal; brute-force checked on
           every scored day; = make_rehaul_oos_table.ct_benchmark); DM = src.evaluation.diebold_mariano.dm_test as is
-          (HLN, Bartlett Newey-West at its automatic lag) on the daily loss differential key minus sub_ols_baseline,
+          (HLN, Bartlett Newey-West at its automatic lag; autocovariances divided by T since 2026-10-18, E13, so the
+          DM columns of the 2026-10-22 re-run differ from the 10-15 run's for every key) on the daily loss
+          differential key minus sub_ols_baseline,
           QLIKE and squared error, on the days BOTH have (dm < 0: the key has the lower loss).
 CHECK     on the 866 master days every key's QLIKE equals master_table.csv qlike_raw (rtol 1e-12) and its daily QLIKE
           the daily frame's qlike_raw.
@@ -132,6 +138,9 @@ HP_NOTE = {
     "ols": "none (OLS)",
     "pretune": "penalty pre-tuned on 4 x 250-session validation folds tiling the 1,000 16:00 sessions before 2020-01-03 "
     "(experiments/close_linear_pretune.py pre_folds; pooled: pool_linear_pretune.py), light retune from 2020-06-23",
+    # 2026-10-22: the closing-interval linear tables are the frozen arms since 2026-10-18 (new-notes 24, SOURCES)
+    "frozen": "penalty pre-tuned on 4 x 250-session validation folds tiling the 1,000 16:00 sessions before "
+    "2020-01-03 (experiments/close_linear_pretune.py pre_folds), frozen: no re-tune (arms c_frozen / d_frozen_bb)",
     "dev": "configuration chosen on the dev span before 2003-01-01 (experiments/tree_menu_dev.py; rf: the 400-trial "
     "dev-span search, trial 255)",
 }
@@ -145,11 +154,16 @@ class Key:
     scheme: str  # close (last 30 minutes) | pool (pooled intraday)
     path: Path
     kind: str  # table | arm
-    hp: str  # ols | pretune | dev
+    hp: str  # ols | pretune | frozen | dev
 
     @property
     def hp_clean_from(self) -> pd.Timestamp | None:
-        return {"ols": None, "pretune": PRETUNE_END, "dev": DEV_END}[self.hp]
+        return {
+            "ols": None,
+            "pretune": PRETUNE_END,
+            "frozen": PRETUNE_END,
+            "dev": DEV_END,
+        }[self.hp]
 
 
 def table_keys() -> list[Key]:
@@ -168,7 +182,7 @@ def table_keys() -> list[Key]:
                     "close",
                     SPXW / f"yhat_subpt_{est}_{b}.parquet",
                     "table",
-                    "pretune",
+                    "frozen",  # 2026-10-22: was "pretune" (arm f, light re-tune) before the 10-18 swap
                 )
             )
             k.append(

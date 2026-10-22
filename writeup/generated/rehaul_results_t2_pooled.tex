@@ -14,28 +14,26 @@ Model & $\Delta$ (\%) & $\DM$ & $\Delta\SR$ & $t$ \\
 \midrule
 \multicolumn{5}{@{}l}{\textit{Panel A: HAR benchmark}} \\
 \addlinespace[2pt]
-Ridge & $10.7^{***}$ & $(3.15)$ & $-0.82^{*\phantom{**}}$ & $(-1.52)$ \\
-Lasso & $10.0^{***}$ & $(3.09)$ & $-0.82^{*\phantom{**}}$ & $(-1.60)$ \\
-Elastic net & $10.6^{***}$ & $(3.21)$ & $-0.82^{*\phantom{**}}$ & $(-1.55)$ \\
-LightGBM & $18.5^{***}$ & $(3.71)$ & $0.32^{\phantom{***}}$ & $(0.32)$ \\
-XGBoost & $18.9^{***}$ & $(4.10)$ & $0.44^{\phantom{***}}$ & $(-0.10)$ \\
-Random forest & $21.7^{***}$ & $(4.40)$ & $0.45^{\phantom{***}}$ & $(0.84)$ \\
+Ridge & $16.7^{***}$ & $(2.99)$ & $-0.40^{\phantom{***}}$ & $(-0.82)$ \\
+Lasso & $16.5^{***}$ & $(2.97)$ & $-0.42^{\phantom{***}}$ & $(-0.86)$ \\
+Elastic net & $16.7^{***}$ & $(2.99)$ & $-0.40^{\phantom{***}}$ & $(-0.82)$ \\
+LightGBM & $4.6^{\phantom{***}}$ & $(1.04)$ & $0.32^{\phantom{***}}$ & $(0.51)$ \\
+XGBoost & $5.3^{\phantom{***}}$ & $(1.26)$ & $-0.16^{\phantom{***}}$ & $(0.24)$ \\
+Random forest & $11.4^{**\phantom{*}}$ & $(2.08)$ & $0.66^{\phantom{***}}$ & $(1.10)$ \\
 \addlinespace[4pt]
 \multicolumn{5}{@{}l}{\textit{Panel B: Full predictor set}} \\
 \addlinespace[2pt]
-Ridge & $5.3^{\phantom{***}}$ & $(1.36)$ & $0.16^{\phantom{***}}$ & $(0.51)$ \\
-Lasso & $11.1^{***}$ & $(2.92)$ & $-0.22^{\phantom{***}}$ & $(-0.45)$ \\
-Elastic net & $6.3^{*\phantom{**}}$ & $(1.85)$ & $-0.20^{\phantom{***}}$ & $(-0.03)$ \\
-LightGBM\tnote{a} & $7.5^{**\phantom{*}}$ & $(1.99)$ & $-0.17^{\phantom{***}}$ & $(0.05)$ \\
-XGBoost\tnote{a} & $9.1^{**\phantom{*}}$ & $(2.38)$ & $0.01^{\phantom{***}}$ & $(-0.14)$ \\
-Random forest\tnote{$\dagger$} & $8.1^{**\phantom{*}}$ & $(2.27)$ & $0.21^{\phantom{***}}$ & $(0.21)$ \\
+Ridge & $19.9^{***}$ & $(3.81)$ & $-0.16^{\phantom{***}}$ & $(-0.50)$ \\
+Lasso & $24.0^{***}$ & $(4.21)$ & $-0.02^{\phantom{***}}$ & $(-0.85)$ \\
+Elastic net & $17.7^{***}$ & $(3.44)$ & $-0.21^{\phantom{***}}$ & $(-1.15)$ \\
+LightGBM & $7.3^{*\phantom{**}}$ & $(1.67)$ & $0.31^{\phantom{***}}$ & $(0.09)$ \\
+XGBoost & $8.0^{**\phantom{*}}$ & $(1.97)$ & $0.47^{\phantom{***}}$ & $(0.52)$ \\
+Random forest & $7.6^{**\phantom{*}}$ & $(2.09)$ & $0.30^{\phantom{***}}$ & $(0.60)$ \\
 \bottomrule
 \end{tabular}
 \begin{tablenotes}[flushleft]
 \footnotesize
 \item \textit{Notes:} Sample, loss and tests as in Table~\ref{tab:rh_axis1}. Each row compares the pooled intraday model with the closing-interval model of the same class on the predictor set of the panel: $\Delta = 100(\bar L^{\mathrm{pool}}/\bar L^{\mathrm{close}} - 1)$, positive when the closing-interval model is more accurate, and $\Delta\SR$ is the intraday minus the closing-interval Sharpe ratio. $^{*}$, $^{**}$ and $^{***}$ denote significance at the 10\%, 5\% and 1\% levels. Closing-interval trees use fixed hyperparameters and are re-estimated daily; the intraday trees are re-estimated at every interval, on a rolling window of past intervals (Section~\ref{sec:rh_exp_schemes}).
-\item[a] The earlier draft's intraday specification.
-\item[$\dagger$] Preliminary (see Table~\ref{tab:rh_axis1}).
 \end{tablenotes}
 \end{threeparttable}
 \end{table}

@@ -16,21 +16,21 @@
 \midrule
 \multicolumn{6}{@{}l}{\textit{Panel A: Full predictor set}} \\
 \addlinespace[2pt]
-Elastic net & $1.56$ & $1.76$ & $-0.20^{\phantom{***}}$ & $-0.19^{\phantom{***}}$ & $8.5^{**\phantom{*}}$ \\
- &  &  & $[0.979]^{\phantom{***}}$ & $[0.979]^{\phantom{***}}$ & $(2.03)^{\phantom{***}}$ \\[2pt]
-Lasso & $1.46$ & $1.68$ & $-0.22^{\phantom{***}}$ & $-0.23^{\phantom{***}}$ & $14.9^{***}$ \\
- &  &  & $[0.666]^{\phantom{***}}$ & $[0.658]^{\phantom{***}}$ & $(3.09)^{\phantom{***}}$ \\[2pt]
-Ridge & $1.44$ & $1.28$ & $0.16^{\phantom{***}}$ & $0.16^{\phantom{***}}$ & $7.2^{\phantom{***}}$ \\
- &  &  & $[0.648]^{\phantom{***}}$ & $[0.646]^{\phantom{***}}$ & $(1.61)^{\phantom{***}}$ \\[2pt]
+Elastic net & $1.47$ & $1.68$ & $-0.21^{\phantom{***}}$ & $-0.22^{\phantom{***}}$ & $23.2^{***}$ \\
+ &  &  & $[0.536]^{\phantom{***}}$ & $[0.527]^{\phantom{***}}$ & $(3.44)^{\phantom{***}}$ \\[2pt]
+Lasso & $1.42$ & $1.44$ & $-0.02^{\phantom{***}}$ & $-0.02^{\phantom{***}}$ & $30.9^{***}$ \\
+ &  &  & $[0.964]^{\phantom{***}}$ & $[0.959]^{\phantom{***}}$ & $(4.24)^{\phantom{***}}$ \\[2pt]
+Ridge & $1.32$ & $1.47$ & $-0.16^{\phantom{***}}$ & $-0.16^{\phantom{***}}$ & $25.4^{***}$ \\
+ &  &  & $[0.698]^{\phantom{***}}$ & $[0.680]^{\phantom{***}}$ & $(3.96)^{\phantom{***}}$ \\[2pt]
 \addlinespace[4pt]
 \multicolumn{6}{@{}l}{\textit{Panel B: HAR benchmark}} \\
 \addlinespace[2pt]
-Elastic net & $0.74$ & $1.56$ & $-0.82^{*\phantom{**}}$ & $-0.81^{*\phantom{**}}$ & $13.3^{***}$ \\
- &  &  & $[0.088]^{\phantom{***}}$ & $[0.088]^{\phantom{***}}$ & $(3.44)^{\phantom{***}}$ \\[2pt]
-Lasso & $0.74$ & $1.56$ & $-0.82^{*\phantom{**}}$ & $-0.82^{*\phantom{**}}$ & $13.0^{***}$ \\
- &  &  & $[0.083]^{\phantom{***}}$ & $[0.083]^{\phantom{***}}$ & $(3.39)^{\phantom{***}}$ \\[2pt]
-Ridge & $0.75$ & $1.56$ & $-0.82^{*\phantom{**}}$ & $-0.81^{*\phantom{**}}$ & $13.6^{***}$ \\
- &  &  & $[0.092]^{\phantom{***}}$ & $[0.091]^{\phantom{***}}$ & $(3.37)^{\phantom{***}}$ \\[2pt]
+Elastic net & $1.07$ & $1.47$ & $-0.40^{\phantom{***}}$ & $-0.41^{\phantom{***}}$ & $23.0^{***}$ \\
+ &  &  & $[0.370]^{\phantom{***}}$ & $[0.357]^{\phantom{***}}$ & $(3.18)^{\phantom{***}}$ \\[2pt]
+Lasso & $1.05$ & $1.47$ & $-0.42^{\phantom{***}}$ & $-0.43^{\phantom{***}}$ & $22.8^{***}$ \\
+ &  &  & $[0.350]^{\phantom{***}}$ & $[0.338]^{\phantom{***}}$ & $(3.16)^{\phantom{***}}$ \\[2pt]
+Ridge & $1.07$ & $1.47$ & $-0.40^{\phantom{***}}$ & $-0.41^{\phantom{***}}$ & $23.0^{***}$ \\
+ &  &  & $[0.370]^{\phantom{***}}$ & $[0.357]^{\phantom{***}}$ & $(3.18)^{\phantom{***}}$ \\[2pt]
 \bottomrule
 \end{tabular}
 \begin{tablenotes}[flushleft]
@@ -39,7 +39,7 @@ Ridge & $0.75$ & $1.56$ & $-0.82^{*\phantom{**}}$ & $-0.81^{*\phantom{**}}$ & $1
 estimator and predictor set, both with hyperparameters selected on a pre-sample, over the out-of-sample period
 ($T_{\mathrm{oos}} = \rheNdays$ trading days); the intraday model is evaluated on the closing interval. $\SR$
 is the annualized Sharpe ratio of the sign strategy; $\Delta\SR$ is the intraday minus the closing-interval
-$\SR$, at mid-quotes and at quoted bid/ask prices, with the $p$-value of the \citet{LedoitWolf2008} bootstrap test of equal Sharpe ratios on the \rheSzDays{} post-warmup days, in brackets (Section~\ref{sec:rh_methods_tests}). $\Delta\QLIKE$ is the
+$\SR$, at mid-quotes and at quoted bid/ask prices, with the $p$-value of the paired block-bootstrap test of equal Sharpe ratios on the \rheSzDays{} post-warmup days, in brackets (Section~\ref{sec:rh_methods_tests}). $\Delta\QLIKE$ is the
 intraday model's mean QLIKE relative to the closing-interval model's, in percent, with the Diebold--Mariano
 statistic (Harvey--Leybourne--Newbold correction, Newey--West $q_{\mathrm{NW}} = \rheDMLag$) in parentheses; positive values favor
 the closing-interval model, as in Table~\ref{tab:rh_axis2}. $^{*}$, $^{**}$ and $^{***}$ denote significance at the 10\%, 5\% and 1\% levels.

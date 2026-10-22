@@ -88,7 +88,7 @@ master days inside the key's scored days,subpt_ridge_baseline,0,True
 "plain = master_table_daily plain (866 days, rel)",subpt_ridge_baseline,0.0,True
 truth = master_table_daily rv_unclipped (866 days),subpt_ridge_baseline,0,True
 daily QLIKE = master_table_daily qlike_raw,subpt_ridge_baseline,0.0,True
-QLIKE = master_table.csv qlike_raw (866 days),subpt_ridge_baseline,6.938893903907228e-17,True
+QLIKE = master_table.csv qlike_raw (866 days),subpt_ridge_baseline,1.3877787807814457e-17,True
 master days inside the key's scored days,poolpt_ridge_baseline,0,True
 "plain = master_table_daily plain (866 days, rel)",poolpt_ridge_baseline,0.0,True
 truth = master_table_daily rv_unclipped (866 days),poolpt_ridge_baseline,0,True
@@ -108,7 +108,7 @@ master days inside the key's scored days,subpt_lasso_baseline,0,True
 "plain = master_table_daily plain (866 days, rel)",subpt_lasso_baseline,0.0,True
 truth = master_table_daily rv_unclipped (866 days),subpt_lasso_baseline,0,True
 daily QLIKE = master_table_daily qlike_raw,subpt_lasso_baseline,0.0,True
-QLIKE = master_table.csv qlike_raw (866 days),subpt_lasso_baseline,5.551115123125783e-17,True
+QLIKE = master_table.csv qlike_raw (866 days),subpt_lasso_baseline,0.0,True
 master days inside the key's scored days,poolpt_lasso_baseline,0,True
 "plain = master_table_daily plain (866 days, rel)",poolpt_lasso_baseline,0.0,True
 truth = master_table_daily rv_unclipped (866 days),poolpt_lasso_baseline,0,True
@@ -128,7 +128,7 @@ master days inside the key's scored days,subpt_enet_baseline,0,True
 "plain = master_table_daily plain (866 days, rel)",subpt_enet_baseline,0.0,True
 truth = master_table_daily rv_unclipped (866 days),subpt_enet_baseline,0,True
 daily QLIKE = master_table_daily qlike_raw,subpt_enet_baseline,0.0,True
-QLIKE = master_table.csv qlike_raw (866 days),subpt_enet_baseline,1.3877787807814457e-17,True
+QLIKE = master_table.csv qlike_raw (866 days),subpt_enet_baseline,0.0,True
 master days inside the key's scored days,poolpt_enet_baseline,0,True
 "plain = master_table_daily plain (866 days, rel)",poolpt_enet_baseline,0.0,True
 truth = master_table_daily rv_unclipped (866 days),poolpt_enet_baseline,0,True
@@ -223,15 +223,15 @@ scored() = this run's frame,pooltree_rf_all_features,1460,True
 every scored day is a history day,all,0,True
 mt866 QLIKE = master_table.csv qlike_raw,sub_ols_baseline,0.09667759540315979,True
 mt866 QLIKE = master_table.csv qlike_raw,a0,0.12700794056922057,True
-mt866 QLIKE = master_table.csv qlike_raw,subpt_ridge_baseline,0.09667596150566386,True
+mt866 QLIKE = master_table.csv qlike_raw,subpt_ridge_baseline,0.09667727182123631,True
 mt866 QLIKE = master_table.csv qlike_raw,poolpt_ridge_baseline,0.10982435416399043,True
 mt866 QLIKE = master_table.csv qlike_raw,subpt_ridge_all_features,0.09749556350316356,True
 mt866 QLIKE = master_table.csv qlike_raw,poolpt_ridge_all_features,0.1045380579956247,True
-mt866 QLIKE = master_table.csv qlike_raw,subpt_lasso_baseline,0.09667232900570505,True
+mt866 QLIKE = master_table.csv qlike_raw,subpt_lasso_baseline,0.0966760668534919,True
 mt866 QLIKE = master_table.csv qlike_raw,poolpt_lasso_baseline,0.10924101667182348,True
 mt866 QLIKE = master_table.csv qlike_raw,subpt_lasso_all_features,0.0931103005765187,True
 mt866 QLIKE = master_table.csv qlike_raw,poolpt_lasso_all_features,0.1069477850938374,True
-mt866 QLIKE = master_table.csv qlike_raw,subpt_enet_baseline,0.09665334259014662,True
+mt866 QLIKE = master_table.csv qlike_raw,subpt_enet_baseline,0.096676799105794,True
 mt866 QLIKE = master_table.csv qlike_raw,poolpt_enet_baseline,0.1095812846600979,True
 mt866 QLIKE = master_table.csv qlike_raw,subpt_enet_all_features,0.095830608730956,True
 mt866 QLIKE = master_table.csv qlike_raw,poolpt_enet_all_features,0.10396851022147337,True

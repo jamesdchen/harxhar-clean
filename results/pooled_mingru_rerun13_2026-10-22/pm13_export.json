@@ -1,0 +1,41 @@
+{
+ "info": {
+  "baseline": {
+   "design": "/scratch1/jc_905/harxhar-trees13/results/pooled_linear_rerun_2026-10-19_13_w1000/_work/design_baseline",
+   "n": 84747,
+   "p": 12,
+   "har_block": 12,
+   "sha256": {
+    "X.npy": "7b6ebcf84f1418238ba8b5edfa079d100db62d922620f5927a9c24987962f0f8",
+    "y.npy": "62285d583262c6fb11f99bbc7108397948f64faab6e4793eccf8ef741a10f588",
+    "b_oos.npy": "554ba4929f62b1b56773db35b89125705a467f7965b371e3c5364b0989aa9c48",
+    "dates_oos.csv": "ae99b11349ca86537d95a6db5d080c07db9e7b11996c86b271c75f989a3d72e5"
+   },
+   "exported_sha256": {
+    "X.f32": "6a5a0f49a0655479704752dcd4fbcf587ee4dd8ab31b7b172a646400df43c12b",
+    "X.f64": "e7c2b0703371287e192741a7fbfc98cb00626526103b601ca8ba062670ea6c84",
+    "y.f32": "17419cfb974644bc02c43b0d8fd852c8ea37cbe74245c109e54930a79785f259",
+    "enc_pf.f64": "a898eb08df6ff5ce5f530588de8c8951b0e24a9bc5ac26f87b62c788322bf40d"
+   }
+  },
+  "all_features": {
+   "design": "/scratch1/jc_905/harxhar-trees13/results/pooled_linear_rerun_2026-10-19_13_w1000/_work/design_all_features",
+   "n": 84747,
+   "p": 576,
+   "har_block": 12,
+   "sha256": {
+    "X.npy": "9485e67ec8ef36d0e68a2f07eee03969e60fb115d1be0bc65e8a792473195d85",
+    "y.npy": "62285d583262c6fb11f99bbc7108397948f64faab6e4793eccf8ef741a10f588",
+    "b_oos.npy": "554ba4929f62b1b56773db35b89125705a467f7965b371e3c5364b0989aa9c48",
+    "dates_oos.csv": "ae99b11349ca86537d95a6db5d080c07db9e7b11996c86b271c75f989a3d72e5"
+   },
+   "exported_sha256": {
+    "X.f32": "87e56e14099a66b2515e98a8141c34682731eba72ed0278aebc57cfa9b3ce7e6",
+    "X.f64": "ef3e28436e5aae9e0456551e92fea2dfb3de1d8997b146fb5953dea688313f0e",
+    "y.f32": "17419cfb974644bc02c43b0d8fd852c8ea37cbe74245c109e54930a79785f259",
+    "enc_pf.f64": "4e6d6ca3307bccc4ef7ad291817409330fc351006231d25d8296aa34bf9b8662"
+   }
+  }
+ },
+ "host": "a03-03.hpc.usc.edu"
+}

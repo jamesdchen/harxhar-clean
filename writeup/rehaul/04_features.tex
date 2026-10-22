@@ -39,9 +39,9 @@
   \]
   % 2026-10-15 (finish, phase 2): typed group sizes 7, 14, 6, 6, 3, 3, 4, 4 -> \bkSize... (same values).
   \begin{itemize}
-  \item Specifically, the four FOMC series are defined as
+  % 2026-10-22 (user, third-list 5): parked -- the announcement-interval dummy is dropped (src/data/loading.py EXCLUDE_FOMC_RELEASE). Was: "Specifically, the four FOMC series are defined as \[ \mathbf{1}\{\text{announcement in } (t,i)\}, \quad \mathbf{1}\{\text{announcement on day } t\}, \quad 1/(1 + n^{+}_{t,i}), \quad 1/(1 + n^{-}_{t,i}), \]"
+  \item Specifically, the \bkSizeFomc{} FOMC series are defined as
     \[
-      \mathbf{1}\{\text{announcement in } (t,i)\}, \quad
       \mathbf{1}\{\text{announcement on day } t\}, \quad 1/(1 + n^{+}_{t,i}), \quad 1/(1 + n^{-}_{t,i}),
     \]
   \item where $n^{\pm}_{t,i}$ denotes the number of intervals until the next ($+$) and since the last ($-$)
@@ -95,15 +95,24 @@
     denoted $\bar a^{(k)}_{t,i}$.
   % 2026-10-17 (user, E6): parked -- "zero-inflated" -> "mode-inflated". Was: "... $\bar\chi^{(k)}_{t,i}$, for 7 zero-inflated series."
   % 2026-10-17 (user): parked -- closing-interval material (the count of 7 is the closing-interval panel's, note E6; moved to Appendix app:rh_closing_predictors). Was: "for 7 mode-inflated series."
-  \item We also compute $k$-interval trailing averages of an activity indicator, $\bar\chi^{(k)}_{t,i}$, for
-    \rhdmNActivePooled{} mode-inflated series in the intraday model.
+  % 2026-10-22 (user, E6 / S4a follow-up): parked -- the intraday model has no activity averages (the pooled designs
+  % drop them: src/backtest/executor.py DROP_ACTIVITY_MA; note S4a). Was: "\item We also compute $k$-interval trailing
+  % averages of an activity indicator, $\bar\chi^{(k)}_{t,i}$, for \rhdmNActivePooled{} mode-inflated series in the
+  % intraday model."
+  \item The intraday model does not use trailing averages of the activity indicator $\chi_{t,i}$ (step 5 of the
+    transformations below). The closing-interval model does: $\bar\chi^{(k)}_{t,i}$, for its mode-inflated series
+    (Appendix~\ref{app:rh_closing_predictors}).
+  % 2026-10-22 (user, E6 / S4a follow-up): parked -- the E6 note below (resolved: one rule, the causal one of
+  % step 5, and no activity averages in the intraday design; the closing-interval model keeps its full-sample rule,
+  % not rerun, disclosed in step 5 and Table tab:rh_dm_dictionary). Was the \editc{red}{E6} that follows, now
+  % commented out line by line.
   % 2026-10-17 (user, E6): parked -- "zero-inflated" -> "mode-inflated"; closing-panel chi-bar wording (the count of 7, \rhdmNActive, the "three counts" sentences) removed; the pile-of-zeros sentence rewritten as a mode at 30; decision line narrowed to the intraday count. Was:
   % \editc{red}{E6}{Decision: one rule and one count.\\Problem: the bullet uses 7 zero-inflated series, the transformation uses the $\rhdmNActive$ series that pass a 20\% mode rule, and the intraday column count uses $\rhdmNActivePooled$. Those are three different sets.\\
   % This bullet says the activity average $\bar\chi^{(k)}_{t,i}$ is built for 7 series, and it calls those series zero-inflated. That word means the raw series has a pile of exact zeros. The transformation further down does not look for zeros. It sets the indicator $\chi_{t,i}$ to 1 when the value differs from the series' full-sample mode, and it keeps a series only when that mode covers at least 20\% of intervals. A mode can sit at a number other than zero, so the 20\% rule and a mass at zero select different series. The number of series that pass the 20\% rule is $\rhdmNActive$. The intraday column formula then multiplies by a third count, $\rhdmNActivePooled$. The activity block of the design is the product of one of these counts with the horizons, and the three counts are not the same count.}
-  \editc{red}{E6}{Decision: one rule and one count, the intraday count $\rhdmNActivePooled$.\\Problem: the bullet calls the series mode-inflated, the transformation keeps the series that pass a 20\% mode rule, and the intraday column count uses $\rhdmNActivePooled$.\\
-This bullet calls these series mode-inflated. That word means the raw series has a mode at 30, and 30 is the number of observations: the count of one-minute intervals in a half-hour bar. The transformation further down does not look for zeros. It sets the indicator $\chi_{t,i}$ to 1 when the value differs from the series' full-sample mode, and it keeps a series only when that mode covers at least 20\% of intervals. A mode can sit at a number other than zero, so the 20\% rule and a mass at zero select different series. The intraday column formula multiplies by $\rhdmNActivePooled$.\\
-Additional decision (2026-10-17, user): remove the trailing averages of the activity indicators, the $\bar\chi^{(k)}_{t,i}$ blocks, from the model.\\
-Note (2026-10-17, user): the count of 7 comes from the closing-interval panel and belongs in the economic application, the section on the last-30-minute closing trade; it may move to the appendix, with a reference back from that section.}
+  % \editc{red}{E6}{Decision: one rule and one count, the intraday count $\rhdmNActivePooled$.\\Problem: the bullet calls the series mode-inflated, the transformation keeps the series that pass a 20\% mode rule, and the intraday column count uses $\rhdmNActivePooled$.\\
+  % This bullet calls these series mode-inflated. That word means the raw series has a mode at 30, and 30 is the number of observations: the count of one-minute intervals in a half-hour bar. The transformation further down does not look for zeros. It sets the indicator $\chi_{t,i}$ to 1 when the value differs from the series' full-sample mode, and it keeps a series only when that mode covers at least 20\% of intervals. A mode can sit at a number other than zero, so the 20\% rule and a mass at zero select different series. The intraday column formula multiplies by $\rhdmNActivePooled$.\\
+  % Additional decision (2026-10-17, user): remove the trailing averages of the activity indicators, the $\bar\chi^{(k)}_{t,i}$ blocks, from the model.\\
+  % Note (2026-10-17, user): the count of 7 comes from the closing-interval panel and belongs in the economic application, the section on the last-30-minute closing trade; it may move to the appendix, with a reference back from that section.}
   \item For notational simplicity in our tables and figures, we suppress the overbar and the interval index $i$
     % 2026-10-17 (user): parked -- closing-interval material (example horizon 25 is on the closing ladder; the intraday ladder is base 2). Was: "($i = c$ in the closing-interval specification) ... $\mathrm{VIX}^{(25)}_t$ ... over the 25"
     ($i = c$ for the scored forecast), writing $u^{(k)}_t$ for series $u$ averaged over $k$
@@ -120,7 +129,8 @@ Note (2026-10-17, user): the count of 7 comes from the closing-interval panel an
     (Table~\ref{tab:rh_dm_dictionary}): the implied volatility series are \sername{vix}, \sername{vix3m}, and
     \sername{vvix}; the suffixes \sername{_ewstock} and \sername{_vwstock} mark the equal- and value-weighted
     constituent aggregates (e.g., \sername{ofi_ewstock}, \sername{sumret2_vwstock}, and
-    \sername{spread_vwstock}); and the announcement predictors are \sername{fomc_release}, \sername{fomc_day},
+    % 2026-10-22 (user, third-list 5): parked -- fomc_release dropped. Was: "the announcement predictors are \sername{fomc_release}, \sername{fomc_day}, \sername{fomc_until_inv}, and \sername{fomc_since_inv}, while writing"
+    \sername{spread_vwstock}); and the announcement predictors are \sername{fomc_day},
     \sername{fomc_until_inv}, and \sername{fomc_since_inv}, while writing
     \else
     samples ending at 15:30 on day $t$. We denote the implied volatility series by $\mathrm{VIX}$,
@@ -176,18 +186,35 @@ The sentence above keeps three calendar pieces: the five weekday dummies, the ho
         \clip\bigl(\operatorname{mean}_{t' \in \mathcal{D}_{t,i}} u_{t',i},\ 0.5\,\rho_{t,i},\ 2\rho_{t,i}\bigr),
           & u \ge 0,\\[2pt]
         \max\bigl\{\clip\bigl(\operatorname{sd}_{t' \in \mathcal{D}_{t,i}} u_{t',i},\ 0.5\,\rho_{t,i},\
-          2\rho_{t,i}\bigr),\ 0.1\,\bar\sigma^{(u)}\bigr\}, & u \text{ signed},
+          2\rho_{t,i}\bigr),\ 0.1\,\bar\sigma^{(u)}_{t,i}\bigr\}, & u \text{ signed},
       \end{cases}
     \]
+    % 2026-10-22 (user, S4a follow-up): parked -- the full-sample floor in the display. Was: "0.1\,\bar\sigma^{(u)}"
     \begin{itemize}
     \item where $\rho_{t,i}$ denotes the median of the 250 most recent unbounded diurnal factors for interval $i$
       (requiring at least 20 observations),
-    \item $\bar\sigma^{(u)}$ denotes the full-sample median of the within-interval standard deviation on the
-      same intraday interval,
+    % 2026-10-22 (user, S4a follow-up): parked -- the full-sample floor (src/features/transforms/target.py
+    % CAUSAL_SD_FLOOR is on since commit b29774a, 15 October 2026, and the pooled designs use it; the full-sample floor
+    % is now the closing-interval disclosure below; the floor pools the intraday intervals, it is not per interval).
+    % Was: "\item $\bar\sigma^{(u)}$ denotes the full-sample median of the within-interval standard deviation on the
+    % same intraday interval,"
+    \item $\bar\sigma^{(u)}_{t,i}$ denotes the median of the nonzero trailing standard deviations
+      $\operatorname{sd}_{t'' \in \mathcal{D}_{t',i'}} u_{t'',i'}$ over all intervals $(t',i')$ up to $(t,i)$, every
+      intraday interval pooled (before the first such standard deviation the adjusted value is undefined and is
+      imputed as in step 4),
+    \item a series is signed when the quantity it measures can be negative, not when its sample has a negative
+      value (Table~\ref{tab:rh_dm_dictionary}),
     \item $b^{(u)}_{t,i}$ is set to $1$ whenever the factor of a nonnegative series is zero or undefined, and
     \item no diurnal adjustment is applied to the implied volatility indices (VIX, VIX3M, and VVIX), the
       StockTwits sentiment series, or the FOMC series.
+    \item The closing-interval forecasts predate this floor and this sign rule: they take $\bar\sigma^{(u)}$ as the
+      full-sample median of the same standard deviations, and call a series signed when any value in its full
+      sample is negative, which signs the value-weighted quoted spread through a single invalid print
+      (Table~\ref{tab:rh_dm_dictionary}).
     \end{itemize}
+    % target.py diurnal_adjust_with_floor (CAUSAL_SD_FLOOR: DIURNAL_STD_FLOOR_FRAC x the expanding median of the
+    % nonzero per-slot rolling s.d., all slots pooled) and series_is_signed (SIGN_BY_NAME: src/data/loading.py's
+    % SIGNED_SERIES / NON_NEGATIVE_SERIES registry); the invalid print is nulled by loading.py NULL_INVALID_PRINTS.
     % target.py:186-300. The band acts on exogenous series only (target: slot_band = 0). rho_{t,i} has no extra
     % shift: each baseline in it is already lagged (target.py:201-204). Baselines are estimated on the
     % forward-filled u (ffill executor.py:540 precedes robust_transform :562).
@@ -206,9 +233,16 @@ The sentence above keeps three calendar pieces: the five weekday dummies, the ho
       \end{cases}
     \]
     \begin{itemize}
-    \item For signed series without a specific power-root rule whose standard-deviation divisor hits its floor on
-      at least 50\% of intervals (namely, the volatility-demand series), we instead apply an inverse hyperbolic
-      sine transformation directly to the raw series:
+    % 2026-10-22 (user, S4a follow-up): parked -- the full-sample routing (src/features/transforms/target.py
+    % CAUSAL_ASINH_ROUTING is on since commit b29774a and the pooled designs use it; the full-sample rule is now the
+    % closing-interval disclosure below). Was: "\item For signed series without a specific power-root rule whose
+    % standard-deviation divisor hits its floor on at least 50\% of intervals (namely, the volatility-demand series),
+    % we instead apply an inverse hyperbolic sine transformation directly to the raw series:"
+    \item A signed series without a specific power-root rule is routed at interval $(t,i)$ to an inverse hyperbolic
+      sine transformation of the raw series when its standard-deviation divisor sat at its floor on at least
+      \rhdmAsinhPinnedShare\% of its intervals since its first print and before $(t,i)$, at least
+      \rhdmAsinhMinRows{} of them. This routes the volatility-demand series, on almost all of their intervals
+      (Table~\ref{tab:rh_dm_dictionary}), and no other series:
       \[
         \tilde u_{t,i} = \operatorname{asinh}(u_{t,i} / \kappa_{t,i}), \qquad
         \kappa_{t,i} = \max\bigl\{ e_{t,i-1},\ 0.01 \operatorname{med}_{j \ge 1} e_{t,i-j} \bigr\},
@@ -219,10 +253,20 @@ The sentence above keeps three calendar pieces: the five weekday dummies, the ho
     % 12,000 = ASINH_SCALE_HALFLIFE_DAYS (250) x PERIODS_PER_DAY (48); src/features/transforms/target.py:95,451.
     \item where $e_{t,i}$ denotes an exponentially weighted moving average of $|u|$ computed over nonzero
       intervals ($u \ne 0$) with a half-life of 12{,}000 such intervals (nominally 250 days of 48 intervals).
+    \item The FOMC statement-day dummy passes through unchanged, with no transformation and no winsorization
+      (step 3).
+    \item The closing-interval forecasts predate these rules: they route a series by the share over its full
+      sample, the intervals before its first print included, which routes the same volatility-demand series on
+      every interval; they fill $\kappa_{t,i}$ with its full-sample median where it is not yet defined; and they
+      take the logarithm of the FOMC statement-day dummy and winsorize it.
     \end{itemize}
     % target.py:387-442 (map), 303-345 (asinh), 644-663 (routing). asinh replaces both the diurnal division and
     % g: it acts on raw u. The routing share is full-sample. fomc_release in {0,1} maps to {log 1e-12, 0}; after
     % the 1/99 clip adj_fomc_release is constant (outline flag 13).
+    % 2026-10-22 (user, S4a follow-up): the comment above is the pre-2026-10-15 chain (the closing-interval
+    % forecasts). The fixed chain (target.py robust_transform): CAUSAL_ASINH_ROUTING routes row by row on the share
+    % before the row since the first print (ASINH_ROUTE_MIN_ROWS), the scale's warm-up rows stay undefined;
+    % FOMC_FLAGS_IDENTITY passes fomc_day (and the dropped fomc_release) through with no log and no winsorizing.
   % 2026-10-16 (formula pass): parked -- the clip repeated the target's winsorization (Methods), with the
   % window 240 and the 1st/99th percentiles typed a second time. Was:
   % tilde u <- clip(tilde u, Q_{0.01}(U_{t,i}), Q_{0.99}(U_{t,i})),
@@ -250,18 +294,62 @@ The sentence above keeps three calendar pieces: the five weekday dummies, the ho
     % before the series starts. Parked -- the full-sample median:
     % med{tilde u_{t',i'} : a_{t',i'} = 1}, with no restriction to earlier intervals.
     % The parked branch is adj.fillna(adj.median()); the old comment cited executor.py:602-608.
-  \item \emph{Activity indicators:} for the \rhdmNActive{} series whose full-sample mode accounts for at least
-    20\% of all intervals, we define a binary activity indicator
+  % 2026-10-22 (user, S4a): parked -- the full-sample rule as the definition; it is the rule of the printed
+  % closing-interval forecasts only (not rerun, James 2026-10-22), disclosed at the end of the item. Was:
+  % \item \emph{Activity indicators:} for the \rhdmNActive{} series whose full-sample mode accounts for at least
+  %   20\% of all intervals, we define a binary activity indicator
+  %   \[
+  %     \chi_{t,i} = \mathbf{1}\{u_{t,i} \ne \operatorname{mode}(u)\}.
+  %   \]
+  % src/backtest/executor.py causal_activity / _causal_activity_kernel (CAUSAL_MODE_INFLATION, ACTIVE_FROM_OBSERVED,
+  % MODE_MIN_PRINTS, ZERO_INFLATED_FRAC; commit b29774a): the class and the mode m_{t,i} from the observed prints
+  % strictly before the row (ties: the smaller value); an unobserved row takes 1 when more than half of the earlier
+  % observed flags are 1. Series: the _active ladders of results/pooled_trees_base5_2026-10-19_48/panel_full.json
+  % (numobs, the three StockTwits series, fomc_day; fomc_release before third-list 5).
+  \item \emph{Activity indicators:} a series is mode-inflated at interval $(t,i)$ when it has at least
+    \rhdmModeMinPrints{} observed prints strictly before $(t,i)$ and their most frequent value, $m_{t,i}$, accounts
+    for at least \rhdmModeShare\% of them. For each series that is mode-inflated at some interval, we define a
+    binary activity indicator from its observed prints: on every interval at which the series is mode-inflated,
     \[
-      \chi_{t,i} = \mathbf{1}\{u_{t,i} \ne \operatorname{mode}(u)\}.
+      \chi_{t,i} =
+      \begin{cases}
+        \mathbf{1}\{u_{t,i} \ne m_{t,i}\}, & a_{t,i} = 1,\\
+        \chi^{\circ}_{t,i}, & a_{t,i} = 0,
+      \end{cases}
     \]
+    where $\chi^{\circ}_{t,i}$ is the more frequent value of $\chi$ on the series' earlier observed intervals (0 on a
+    tie), and $\chi_{t,i} = 0$ on the other intervals.
+    \begin{itemize}
+    \item The mode-inflated class and the mode are decided from earlier prints only, and the indicator is read from
+      observed prints, not from the forward-filled series. Under this rule, our specification, \rhdmNActivePooled{}
+      series are mode-inflated at some interval: the number of observations, the \bkSizeSent{} StockTwits series
+      (on part of the sample) and the FOMC statement-day dummy; the volatility-demand series never are.
+    \item The pooled intraday models of Table~\ref{tab:rh_oos} carry no activity averages $\bar\chi^{(k)}$; the
+      indicator enters the closing-interval models (Appendix~\ref{app:rh_closing_predictors}).
+    \item The closing-interval forecasts we report predate this rule and use a full-sample one: a series is
+      mode-inflated when its full-sample mode accounts for at least \rhdmModeShare\% of all intervals, and
+      $\chi_{t,i} = \mathbf{1}\{u_{t,i} \ne \operatorname{mode}(u)\}$ is read on the forward-filled series. Under that
+      rule the \rhdmNActive{} series marked in Table~\ref{tab:rh_dm_dictionary} carry the indicator (the number of
+      observations, the \bkSizeVd{} volatility-demand series and the FOMC statement-day dummy) and, in the fitted
+      forecasts, so does the FOMC statement-interval dummy, since dropped from the predictors.
+    \end{itemize}
     % CODE BUG (outline flag 1): u_{t,i} here is the FORWARD-FILLED raw value (executor.py:618-627 runs after the
     % ffill at :540), so chi_{t,i} = 1 on dead tails: fomc_release / fomc_day after 2023-11-01, voldemand after
     % 2023-08-31. Intended: chi_{t,i} = a_{t,i} * 1{u_{t,i} != mode}.
+    % 2026-10-22 (user, S4a): the bug above is the full-sample rule's, so it stays in the printed closing-interval
+    % forecasts (not rerun); ACTIVE_FROM_OBSERVED (b29774a) removes it from every design built since 15 October 2026.
     % 2026-10-18 (user, second-list N4): the causal rule is the specification; this item and Table 5's chi-bar column marked rerun-needed.
-    \editc{orange}{S4a}{Decision: the causal rule in src/backtest/executor.py (CAUSAL\_MODE\_INFLATION, ACTIVE\_FROM\_OBSERVED; commit b29774a, 15 October 2026) is the specification. Rerun needed under that rule.\\Problem: this item describes the old rule, a full-sample mode covering at least 20\% of intervals with the indicator read after the forward fill. Under the causal rule the mode is decided from earlier prints only and the flags come from observed prints, so the volatility-demand series are never mode-inflated and the StockTwits sentiment and message-count series are mode-inflated in some years. The printed forecasts (pooled linear models of 6 October, pooled trees of 7 October 2026) predate the rule and use the old one; so does the $\bar\chi$ column of Appendix Table~\ref{tab:rh_dm_dictionary}, whose generator is not re-run (E5). Rewrite this item and regenerate the table after the rerun.}
+    % 2026-10-22 (user, S4a): parked -- the note before the decision not to rerun the closing-interval models. Was:
+    % \editc{orange}{S4a}{Decision: the causal rule in src/backtest/executor.py (CAUSAL\_MODE\_INFLATION, ACTIVE\_FROM\_OBSERVED; commit b29774a, 15 October 2026) is the specification. Rerun needed under that rule.\\Problem: this item describes the old rule, a full-sample mode covering at least 20\% of intervals with the indicator read after the forward fill. Under the causal rule the mode is decided from earlier prints only and the flags come from observed prints, so the volatility-demand series are never mode-inflated and the StockTwits sentiment and message-count series are mode-inflated in some years. The printed forecasts (pooled linear models of 6 October, pooled trees of 7 October 2026) predate the rule and use the old one; so does the $\bar\chi$ column of Appendix Table~\ref{tab:rh_dm_dictionary}, whose generator is not re-run (E5). Rewrite this item and regenerate the table after the rerun.}
+    % 2026-10-22 (user, S4a follow-up): parked -- the S4a note, resolved (the E6 bullet and the E35 formula no longer
+    % give the intraday model activity averages; the evidence in its third paragraph stands). Was:
+    % \editc{red}{S4a}{Decision: the causal rule in src/backtest/executor.py (CAUSAL\_MODE\_INFLATION, ACTIVE\_FROM\_OBSERVED; commit b29774a, 15 October 2026) is the specification. The closing-interval models are not rerun (James, 22 October 2026): their full-sample rule is disclosed in this item and in Table~\ref{tab:rh_dm_dictionary}, whose $\bar\chi^{(k)}$ marks are that rule's and closing-interval only.\\Problem: the trailing-average bullet above (note E6) still says the intraday model has $\bar\chi^{(k)}$ for $\rhdmNActivePooled$ series, and the column formula of the pooled design counts them (note E35); the pooled forecasts of Table~\ref{tab:rh_oos} have none.\\
+    % The pooled intraday designs of Table~\ref{tab:rh_oos} (the 13-bar linear rerun, the base-5 trees, the MinGRU) were built under the causal rule with DROP\_ACTIVITY\_MA on: the all-features design in results/pooled\_linear\_rerun\_2026-10-20\_13\_2012\_w1000/frozen\_penalties.json holds no *\_active\_ma\_* column, the pooled trees are fitted on the same design caches, and the MinGRU's columns are byte-identical to them (results/pooled\_mingru\_rerun13\_2026-10-22/STATUS.md). The closing-interval design cache of 6 October 2026 (results/linear\_pretune\_2026-10-06) holds activity ladders for the \rhdmNActive{} series of the table and the FOMC statement-interval dummy: the full-sample rule. make\_rehaul\_data\_methods.py checks both. The earlier pooled designs still in the model set (note E34 (i)) do carry $\bar\chi^{(k)}$, under the full-sample rule: the base-2 panel (../harxhar-clean/results/prep\_cache\_all\_features\_b2.npz) holds activity ladders for the number of observations and the volatility-demand series.}
+  % 2026-10-22 (user, S4a follow-up): parked -- chi-bar without its model. Was: "... $\bar a^{(k)}_{t,i}$,
+  % $\bar\chi^{(k)}_{t,i}$, and $\bar y^{(k)}_{t,i}$ across horizons $k \in \mathcal{K}$."
   \item \emph{HAR aggregation:} we form the trailing averages $\bar u^{(k)}_{t,i}$, $\bar a^{(k)}_{t,i}$,
-    $\bar\chi^{(k)}_{t,i}$, and $\bar y^{(k)}_{t,i}$ across horizons $k \in \mathcal{K}$.
+    $\bar\chi^{(k)}_{t,i}$ (closing-interval model only), and $\bar y^{(k)}_{t,i}$ across horizons
+    $k \in \mathcal{K}$.
   \item \emph{Robust standardization:} under the pooled intraday scheme, we standardize the trailing averages of
     series values over the rolling estimation window using the median and interquartile range (with lower
     floors). Specifically, the median and interquartile range are computed exclusively over intervals with
@@ -300,13 +388,24 @@ The sentence above keeps three calendar pieces: the five weekday dummies, the ho
       \item On the initial estimation window, both statistics are computed using that window's own rows; an
         interquartile range below $10^{-12}$ is replaced by $1$ on the initial window and, at subsequent grid
         points, retains the previous scale factor.
-      \item The indicator averages $\bar a^{(k)}$ and $\bar\chi^{(k)}$ are left unstandardized.
+      % 2026-10-22 (user, S4a follow-up): parked -- the intraday design has no chi-bar (E6). Was: "\item The indicator
+      % averages $\bar a^{(k)}$ and $\bar\chi^{(k)}$ are left unstandardized."
+      \item The availability averages $\bar a^{(k)}$ are left unstandardized.
       \item The target HAR components and calendar variables do not use the availability-restricted denominator
         above; instead, their median and interquartile range are computed across all rows of
         % 2026-10-18 (user, new-notes 8): parked -- forward reference to the IQR* definition added. Was: "$\mathcal{W}_{t,i}$ with $\mathrm{IQR}^{*(k)} = 0$, subject to the same $0.01$ floor relative to the"
         $\mathcal{W}_{t,i}$ with $\mathrm{IQR}^{*(k)} = 0$ ($\mathrm{IQR}^{*(k)}$ is defined in Appendix~\ref{sec:rh_close_scale}), subject to the same $0.01$ floor relative to the
         running maximum interquartile range of that column.
+      % 2026-10-22 (user, S4a follow-up): the late-start and no-observation rules (src/backtest/executor.py
+      % LATE_START_WARMUP, merged 21570f0; UNOBSERVED_NEUTRAL, merged 5403acd), applied after the scaling, in this
+      % order, to the value columns adj_<c>_ma_<k> only (late_start_warmup, unobserved_neutral).
+      \item For a series whose first print comes after the first day of the sample, $z^{(k)}_{t,i} = 0$ until every
+        interval of the window $\mathcal{W}_{t,i}$ is live, an interval being live when its $k$-interval average
+        holds no interval before the day of the series' first print.
+      \item $z^{(k)}_{t,i} = 0$ whenever the $k$-interval average holds no observed interval, $\bar a^{(k)}_{t,i} =
+        0$, so that the averages of a feed that has stopped are exactly neutral.
       \end{itemize}
+      \editc{orange}{S4d}{Decision: the late-start and no-observation rules of this step are the specification (src/backtest/executor.py LATE\_START\_WARMUP, merged 21570f0, and UNOBSERVED\_NEUTRAL, merged 5403acd; both 22 October 2026; note E28). A rerun of the pooled intraday models under them is approved and waits for the window choice.\\Problem: the printed pooled forecasts of Table~\ref{tab:rh_oos} predate both rules (their designs were built on 20 October 2026). There a series that starts late takes the scaler's output from its first window on, and the value averages of a feed that has stopped (volatility demand after 31 August 2023) hold the rescaled neutral fill instead of 0.}
     % 2026-10-17 (user, E8): parked -- the one-sentence intraday rule, and the note. The denominator is the
     % display above. Was: median and IQR over rows with a_{t',i'}=1; fewer than 512 such rows give z^{(k)}=0.
     % \editc{blue}{E8}{Decision: write the intraday denominator, or state that the display carries over. The display standardizes closing-interval rows $t'\in\mathcal W_t$ with denominator $\max\{\mathrm{IQR}^{(k)}_t,\ 0.01\max_{t'\le t}\mathrm{IQR}^{(k)}_{t'},\ \mathrm{IQR}^{*(k)}_t\}$, and sets $\mathrm{IQR}^{*(k)}_t=0$ on HAR components and calendar dummies. The intraday scheme, which is the one scored in the accuracy table, has one extra sentence: median and IQR over rows with $a_{t',i'}=1$, and $z^{(k)}=0$ when fewer than 512 such rows exist. That sentence does not say whether the 0.01 floor and the $\mathrm{IQR}^{*}=0$ exceptions apply to those rows.}
@@ -353,11 +452,15 @@ The sentence above keeps three calendar pieces: the five weekday dummies, the ho
     closing-interval dummy variables. Note that these column counts still reflect the
     % 2026-10-17 (user): parked -- closing-interval material. Was: "Note that these column counts, as well as $\cmPNewBase$, still reflect the"
     calendar columns and interaction terms discussed in note E9 above:
+    % 2026-10-22 (user, E6 / S4a follow-up): parked -- the activity-average term (the pooled designs drop it:
+    % DROP_ACTIVITY_MA); \rhdmNColsPooled now counts the panel less those columns (make_rehaul_data_methods.py). Was:
+    % "+ \rhdmNSeriesPooled \times \rhdmNHorizonsPooled + \rhdmNSeriesPooled \times \rhdmNHorizonsPooled
+    %  + \rhdmNActivePooled \times \rhdmNHorizonsPooled ."
     \[
       \rhdmNColsPooled = \underbrace{\rhdmNHorizonsPooled + \rhdmNCalendar}_{\bar y^{(k)},\ \bm D}
         + \underbrace{\rhdmNEdgePooled}_{\bar y^{(k)} \times \text{open, close}}
-        + \rhdmNSeriesPooled \times \rhdmNHorizonsPooled + \rhdmNSeriesPooled \times \rhdmNHorizonsPooled
-        + \rhdmNActivePooled \times \rhdmNHorizonsPooled .
+        + \underbrace{\rhdmNSeriesPooled \times \rhdmNHorizonsPooled}_{\bar u^{(k)}}
+        + \underbrace{\rhdmNSeriesPooled \times \rhdmNHorizonsPooled}_{\bar a^{(k)}} .
     \]
     % 2026-10-19 (user): parked -- the pooled model includes the FOMC series (author decision). Was: "Here, the $\rhdmNSeriesPooled$ intraday exogenous series encompass every category in Section~\ref{sec:rh_data} except the FOMC group (which accounts for the remaining $\bkSizeFomc$ series)."
     Here, the $\rhdmNSeriesPooled$ intraday exogenous series encompass every category in
@@ -367,8 +470,12 @@ The sentence above keeps three calendar pieces: the five weekday dummies, the ho
     % 2026-10-19 (user): parked -- the pooled model includes the FOMC series (author decision); E35 recounted on the panel with FOMC. Was:
     %     \editc{orange}{E35}{Decision: base 5 across the paper (user, 2026-10-19).\\Problem: $\rhdmNColsPooled$ and the formula above now count the base-5 pooled panel built on 19 October 2026, before the cuts of notes E6 and E9; no printed forecast was fitted on that panel.\\
     % The earlier pooled trees and the intraday OLS were fitted on the base-2 panel, 1,144 columns from 12 horizons (note E34). The base-5 panel (experiments/pooled\_trees\_base5.py, design stage: the repo's own preparation with the data fixes of 15 October 2026 and the causal mode rule) has $\rhdmNHorizonsPooled$ horizons and $\rhdmNEdgePooled$ interaction columns. Under the causal rule $\rhdmNActivePooled$ series carry an activity indicator, the number of observations and the three StockTwits series, where the old full-sample rule gave 5, the number of observations and the four volatility-demand series (note S4a). The design of the base-5 tree refits also drops the activity averages (E6) and the calendar after the overnight indicator together with the interaction columns (E9): 529 columns on all $\rhdmNIntervals$ intervals and 528 on the 13 regular-hours bars, where the overnight indicator is dropped too. Those two counts have no macro yet.}
-    \editc{orange}{E35}{Decision: base 5 across the paper, and the pooled model includes the FOMC series (user, 2026-10-19).\\Problem: $\rhdmNColsPooled$ and the formula above now count the base-5 pooled panel with the FOMC series, built on 19 October 2026, before the cuts of notes E6 and E9; no printed forecast was fitted on that panel.\\
-The earlier pooled trees and the intraday OLS were fitted on the base-2 panel without the FOMC series, 1,144 columns from 12 horizons and 43 series (note E34). The base-5 panel (experiments/pooled\_trees\_base5.py, design stage: the repo's own preparation with the data fixes of 15 October 2026, the FOMC calendar fix and the causal mode rule) has $\rhdmNHorizonsPooled$ horizons, $\rhdmNSeriesPooled$ series and $\rhdmNEdgePooled$ interaction columns. Under the causal rule $\rhdmNActivePooled$ series carry an activity indicator, the number of observations, the three StockTwits series and the FOMC statement-interval and statement-day dummies, where the old full-sample rule gave 5 on the panel without FOMC, the number of observations and the four volatility-demand series (note S4a). With the activity averages dropped (E6) and the calendar cut after the overnight indicator together with the interaction columns (E9), the design has 577 columns on all $\rhdmNIntervals$ intervals and 576 on the 13 regular-hours bars, where the overnight indicator is dropped too. Those two counts have no macro yet.}
+    % 2026-10-22 (user, E6 / S4a follow-up): parked -- the first two lines of the note below. Was: "Problem: $\rhdmNColsPooled$ and the formula above now count the base-5 pooled panel with the FOMC series, built on 19 October 2026, before the cuts of notes E6 and E9; no printed forecast was fitted on that panel."
+    \editc{orange}{E35}{Decision: base 5 across the paper, and the pooled model includes the FOMC series (user, 2026-10-19).\\Problem: $\rhdmNColsPooled$ and the formula above now count the base-5 pooled panel with the FOMC series, built on 19 October 2026, less its activity averages (note E6) and before the cut of note E9; no printed forecast was fitted on that design.\\
+% 2026-10-22 (user, E34): parked -- the pooled trees are refit on the 576-column regular-hours design. Was: "The earlier pooled trees and the intraday OLS were fitted on the base-2 panel without the FOMC series, 1,144 columns from 12 horizons and 43 series (note E34). The base-5 panel"
+The pooled trees printed before 22 October 2026 and the intraday OLS were fitted on the base-2 panel without the FOMC series, 1,144 columns from 12 horizons and 43 series; the pooled trees are now refit on the 576-column design on the 13 regular-hours bars described at the end of this note, the design of the pooled linear models of Table~\ref{tab:rh_oos} (note E34). The base-5 panel (experiments/pooled\_trees\_base5.py, design stage: the repo's own preparation with the data fixes of 15 October 2026, the FOMC calendar fix and the causal mode rule) has $\rhdmNHorizonsPooled$ horizons, $\rhdmNSeriesPooled$ series and $\rhdmNEdgePooled$ interaction columns. Under the causal rule $\rhdmNActivePooled$ series carry an activity indicator, the number of observations, the three StockTwits series and the FOMC statement-day dummy, where the old full-sample rule gave 5 on the panel without FOMC, the number of observations and the four volatility-demand series (note S4a). With the activity averages dropped (E6) and the calendar cut after the overnight indicator together with the interaction columns (E9), the design has 577 columns on all $\rhdmNIntervals$ intervals and 576 on the 13 regular-hours bars, where the overnight indicator is dropped too. Those two counts have no macro yet.\\
+% 2026-10-22 (user, third-list 5): parked -- the FOMC statement-interval dummy is dropped. Was, in the sentence above: "the three StockTwits series and the FOMC statement-interval and statement-day dummies,"
+Since 22 October 2026 (third-list item 5) the FOMC statement-interval dummy is out of the predictor set (src/data/loading.py, EXCLUDE\_FOMC\_RELEASE): $\rhdmNSeriesPooled$, $\rhdmNColsPooled$, $\rhdmNActivePooled$, the FOMC group, Table~\ref{tab:rh_dm_dictionary} and the design table (generated/rehaul\_dm\_design.tex, not in the paper) count the panel without its columns. The 577- and 576-column designs above, and so every printed pooled forecast, still contain its averages and availability averages; on the 13-bar design the dummy is a live 0/1 column (one on the statement bar of each scheduled meeting). A rerun on the design without it is needed before the counts and the printed forecasts agree.}
     % 2026-10-17 (user, E5): parked -- the series are listed in the appendix table, and the FOMC group is the
     % set left out of the intraday matrix. Was:
     % \editc{blue}{E5}{Decision: list the series in the intraday matrix.\\Problem: the $\rhdmNColsPooled$ intraday columns are built from $\rhdmNSeriesPooled$ of the $\rhfiNExog$ series, and neither the series that are in nor the series that are left out are named.\\
@@ -385,15 +492,36 @@ The earlier pooled trees and the intraday OLS were fitted on the base-2 panel wi
   factor $s^2_{t,i}$, the winsorization quantiles, the median baseline $\rho_{t,i}$, the standardization moments,
   and the active column set $\mathcal{J}_t$.
   \begin{itemize}
-  \item We disclose three full-sample quantities used in preprocessing: the full-sample mode used to define
-    $\chi_{t,i}$, the within-interval standard-deviation floor $\bar\sigma^{(u)}$, and the rule assigning series
-    to the inverse hyperbolic sine transformation.
+  % 2026-10-22 (user, S4b): parked -- the list scoped to the closing-interval forecasts (their full-sample mode is
+  % disclosed, not rerun: note S4a). Was: "\item We disclose three full-sample quantities used in preprocessing: the
+  % full-sample mode used to define $\chi_{t,i}$, the within-interval standard-deviation floor $\bar\sigma^{(u)}$, and
+  % the rule assigning series to the inverse hyperbolic sine transformation."
+  % 2026-10-22 (user, S4a follow-up): parked -- the closing-interval list alone (the pooled forecasts' causal versions
+  % now stated first; the sign rule added to the closing-interval list). Was: "\item We disclose the full-sample
+  % quantities used in preprocessing the closing-interval forecasts: the full-sample mode that defines $\chi_{t,i}$
+  % under the rule those forecasts were built with (step 5), the within-interval standard-deviation floor
+  % $\bar\sigma^{(u)}$, and the rule assigning series to the inverse hyperbolic sine transformation."
+  \item In the pooled intraday forecasts, the standard-deviation floor $\bar\sigma^{(u)}_{t,i}$ and the inverse
+    hyperbolic sine routing are computed from earlier intervals, and the sign of each series is read from what it
+    measures, not from the full sample (steps 1 and 2); the activity indicator does not enter them (step 5).
+  \item We disclose the full-sample quantities used in preprocessing the closing-interval forecasts, which predate
+    those rules: the mode that defines $\chi_{t,i}$ under the rule those forecasts were built with (step 5), the
+    standard-deviation floor $\bar\sigma^{(u)}$ and the sign of each series (step 1), and the rule assigning series
+    to the inverse hyperbolic sine transformation (step 2).
     % 2026-10-18 (user, second-list N4): rerun-needed flag (old-rule disclosure).
-    \editc{orange}{S4b}{Decision: rerun needed under the causal rule (note S4a).\\Problem: the full-sample mode is the old rule, used by the printed forecasts of 6--7 October 2026. Under the causal rule in src/backtest/executor.py the mode is decided from earlier prints only, so it is no longer a full-sample quantity; drop it from this list after the rerun.}
+    % 2026-10-22 (user, S4b): parked -- the note before the decision not to rerun the closing-interval models. Was:
+    % \editc{orange}{S4b}{Decision: rerun needed under the causal rule (note S4a).\\Problem: the full-sample mode is the old rule, used by the printed forecasts of 6--7 October 2026. Under the causal rule in src/backtest/executor.py the mode is decided from earlier prints only, so it is no longer a full-sample quantity; drop it from this list after the rerun.}
+    % 2026-10-22 (user, S4a follow-up): parked -- the S4b note, resolved (steps 1 and 2 and Table tab:rh_dm_dictionary
+    % now state the causal floor and routing of the pooled forecasts, with the closing-interval forecasts' full-sample
+    % versions as a disclosure; make_rehaul_data_methods.py documents the fixed chain). Was:
+    % \editc{orange}{S4b}{Decision: no rerun of the closing-interval models (James, 22 October 2026; note S4a): the full-sample mode stays in this list as a disclosure for the closing-interval forecasts, and the list is scoped to them.\\Problem: the list does not say which full-sample quantities the pooled intraday forecasts of Table~\ref{tab:rh_oos} use. Their designs were built after commit b29774a with the causal mode (CAUSAL\_MODE\_INFLATION, CAUSAL\_GUARD\_MODE in src/backtest/executor.py) and with CAUSAL\_SD\_FLOOR and CAUSAL\_ASINH\_ROUTING on (src/features/transforms/target.py), which compute the standard-deviation floor and the inverse hyperbolic sine routing from earlier rows; the diurnal-adjustment and variance-stabilizing items above still state the full-sample versions, and make\_rehaul\_data\_methods.py documents the pre-fix chain (DOCUMENT\_PRE\_FIX\_CHAIN). Outside note S4a; not checked further here.}
   \item As noted in Section~\ref{sec:rh_data}, the FOMC proximity variables rely solely on the pre-announced
     meeting schedule, which is publicly known ahead of each interval.
+  % 2026-10-22 (user, S4a follow-up): the late-start rule of step 7 added (LATE_START_WARMUP; the printed pooled
+  % forecasts predate it, note S4d). Was: "... filled with that first observed print (step 4)."
   \item Any missing interval prior to a series' initial observation is filled with that first observed print
-    (step 4).
+    (step 4); under the late-start rule of step 7 the standardized averages that hold such intervals are set to
+    0.
   \item Finally, standardization statistics on the first estimation window are computed exclusively from
     burn-in observations.
   % 2026-10-16 (user): the imputation median left this list. It is the expanding median of earlier

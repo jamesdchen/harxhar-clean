@@ -3,11 +3,11 @@
 % constants of the Introduction and the Data, Predictors and Methods sections, each computed from the data,
 % the specs and the result files (asserted against the values the text typed on 2026-10-15). The group sizes
 % are \bkSize<Group> (buckets_numbers.tex), the gap \cmPtEmbargo (close_main_numbers.tex).
-\newcommand{\rhdmNIntervals}{48}  % intraday intervals a day, M (half hours; the pooled intraday model)
+\newcommand{\rhdmNIntervals}{48}  % intraday intervals a day, M (half hours; the intraday model)
 \newcommand{\rhdmGridRows}{303{,}442}  % intervals on the intraday grid (observed RV, weekend break out)
 \newcommand{\rhdmBurnIn}{3{,}125}  % burn-in intervals, the longest HAR horizon
-\newcommand{\rhdmPooledRows}{300{,}317}  % pooled intraday sample, intervals after the burn-in
-\newcommand{\rhdmPooledWindow}{24{,}000}  % pooled rolling estimation window W, intervals
+\newcommand{\rhdmPooledRows}{300{,}317}  % intraday sample, intervals after the burn-in
+\newcommand{\rhdmPooledWindow}{24{,}000}  % window of the tree hyperparameter search and of the n_min rescaling, intervals (the base-2 trees' estimation window; the base-5 trees: pooled_trees_13.meta())
 \newcommand{\rhdmPooledLinWindow}{96{,}000}  % pooled linear models' rolling estimation window W, intervals (2,000 trading days x 48)
 \newcommand{\rhdmCloseDays}{3{,}469}  % closing-interval sample, trading days after the burn-in
 \newcommand{\rhdmExpirationsOos}{872}  % SPXW expirations to the end of the evaluation span (2024-04-30)
@@ -15,14 +15,24 @@
 \newcommand{\rhdmHeldOut}{413}  % later SPXW expirations held out: full trading days
 \newcommand{\rhdmHeldOutExpirations}{419}  % later SPXW expirations held out: all, early closes included
 \newcommand{\rhdmSpxwExpirations}{1{,}291}  % SPXW expirations in the option file
-\newcommand{\rhdmNColsPooled}{634}  % columns of the pooled intraday model's full predictor set
-\newcommand{\rhdmNSeriesPooled}{47}  % exogenous series in the pooled panel (FOMC included)
+\newcommand{\rhdmNColsPooled}{586}  % columns of the intraday model's full predictor set (the base-5 pooled panel less its activity averages, E6; before the E9 cut)
+\newcommand{\rhdmNSeriesPooled}{46}  % exogenous series in the pooled panel (FOMC included)
 \newcommand{\rhdmNHorizonsPooled}{6}  % HAR horizons, intraday model (base 5)
 \newcommand{\rhdmNHorizonsClose}{6}  % HAR horizons, closing-interval model (base 5)
 \newcommand{\rhdmNCalendar}{16}  % calendar-dummy columns (both models)
 \newcommand{\rhdmNEdgePooled}{12}  % HAR x opening/closing-interval dummy columns (pooled)
-\newcommand{\rhdmNActive}{7}  % series with an activity indicator, closing-interval model
-\newcommand{\rhdmNActivePooled}{6}  % series with an activity indicator, pooled panel
+\newcommand{\rhdmNActive}{6}  % series with an activity indicator, closing-interval model
+\newcommand{\rhdmNActivePooled}{5}  % series mode-inflated at some interval under the causal rule, pooled panel (no activity averages in the intraday design, E6)
+\newcommand{\rhdmModeShare}{20}  % activity indicator: the mode's minimum share, percent (executor.py ZERO_INFLATED_FRAC; both rules)
+\newcommand{\rhdmModeMinPrints}{250}  % activity indicator, causal rule: earlier observed prints needed (executor.py MODE_MIN_PRINTS)
+\newcommand{\rhdmAsinhPinnedShare}{50}  % asinh routing: minimum share of earlier intervals with the s.d. divisor at its floor, percent (target.py DIURNAL_PINNED_MAX; both chains)
+\newcommand{\rhdmAsinhMinRows}{250}  % asinh routing, causal rule: earlier intervals since the first print needed (target.py ASINH_ROUTE_MIN_ROWS)
 \newcommand{\rhdmValTail}{125}  % validation sample n_val, observations (the gap is \cmPtEmbargo)
 \newcommand{\rhdmRetuneFolds}{two}  % validation folds of the linear light re-tune
 \newcommand{\rhdmRfTrial}{255}  % the random forest's fixed configuration: Optuna trial number
+\newcommand{\rhdmPlPenRidgeBase}{\ensuremath{10^{-2}}}  % pooled linear 13-bar rerun, ridge on the baseline set: frozen penalty (pre-sample pick by validation MSE, held fixed)
+\newcommand{\rhdmPlPenRidgeAll}{\ensuremath{10^{3}}}  % pooled linear 13-bar rerun, ridge on the all features set: frozen penalty (pre-sample pick by validation MSE, held fixed)
+\newcommand{\rhdmPlPenLassoBase}{\ensuremath{10^{-4}}}  % pooled linear 13-bar rerun, lasso on the baseline set: frozen penalty (pre-sample pick by validation MSE, held fixed)
+\newcommand{\rhdmPlPenLassoAll}{\ensuremath{10^{-3}}}  % pooled linear 13-bar rerun, lasso on the all features set: frozen penalty (pre-sample pick by validation MSE, held fixed)
+\newcommand{\rhdmPlPenEnetBase}{\ensuremath{10^{-6}}}  % pooled linear 13-bar rerun, enet on the baseline set: frozen penalty (pre-sample pick by validation MSE, held fixed)
+\newcommand{\rhdmPlPenEnetAll}{\ensuremath{10^{-2}}}  % pooled linear 13-bar rerun, enet on the all features set: frozen penalty (pre-sample pick by validation MSE, held fixed)

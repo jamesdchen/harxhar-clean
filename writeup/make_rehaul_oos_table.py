@@ -18,10 +18,21 @@ SPECIFICATIONS OF RECORD (= tab:rh_axis1 / tab:rh_axis2, writeup/make_rehaul_res
   pooled linear            poolpt_<est>_<set> (their pooled twins, as T2), a0 for the OLS (the earlier draft's pooled
                            OLS on HAR + calendar, as tab:rh_rank: note a);
   closing-interval trees   subtree_daily_<set>_<est> (fixed hyperparameters, re-estimated daily, as T1);
-  pooled trees             results/pooled_trees_2026-10-07/yhat_pooltree_<est>_<set>.parquet, 16:00 rows, plain =
-                           yhat^2 x baseline (make_rehaul_results.plain_16), on baseline and lean_vol_vix; on the full
-                           set the master table's lgbm / xgb rows (the earlier draft's pooled trees: note a) and the
-                           forest's INTERIM1600 table (preliminary: dagger).
+  pooled trees             pooltree_<est>_<set> on both sets (2026-10-22, user, note E34: "base 5 across the paper"): the
+                           16:00 rows of the base-5 13-bar rerun through writeup/pooled_trees_13.py (pt13.at16;
+                           results/pooled_trees_rerun13_2026-10-20/w1000): LightGBM, XGBoost and the random forest on
+                           the HAR benchmark and all features, fitted on the design of Table 1's pooled linear 13-bar
+                           rerun (the 13 regular-hours bars, a rolling window of 1,000 trading days = 13,000 bars, refit
+                           at every bar), 3 January 2012 .. 30 April 2024, plain = pred_adj^2 x B.  The rerun has no
+                           parsimonious-set (lean_vol_vix) trees; every arm is complete (no note a, no dagger).  The
+                           pooled cells enter only the intraday side (Table 1, now written by make_rehaul_oos_rerun.py),
+                           so no pooled-tree number reaches a file written here: only the cell counts \\rhoosNCells /
+                           \\rhoosNMissing and the span (the trees cover it, asserted).
+                           -- 2026-10-22 (user, E34): parked -- the base-2 trees: results/pooled_trees_2026-10-07/
+                           yhat_pooltree_<est>_<set>.parquet, 16:00 rows, plain = yhat^2 x baseline
+                           (make_rehaul_results.plain_16), on baseline and lean_vol_vix; on the full set the master
+                           table's lgbm / xgb rows (the earlier draft's pooled trees: note a) and the forest's
+                           INTERIM1600 table (preliminary: dagger).
   Missing (no forecast of the specification of record exists): every live_feasible linear and pooled forecast (the
   pre-tuned linear arms were stacked for baseline / lean_vol_vix / all_features only, stack_pretune_yhat.BUCKETS; no
   pooled walk ran on live_feasible) and the OLS on every set but the HAR benchmark.  They print as "--".
@@ -37,7 +48,9 @@ SCORING (every number against the ACTUAL realized variance of the closing half h
          sample forecasts are done on a rolling basis after the burn in training window)"): every forecast is made by a
          model re-estimated on its trailing window, so every forecast on disk is out of sample; each cell is scored on
          the days on which EVERY forecast of the table exists -- experiments/rolling_eval_2026_10_15.py common_span():
-         2020-01-03 .. 2024-04-30, 1,082 trading days, NYSE early closes dropped, no gap (asserted).  The start is set
+         2020-01-03 .. 2024-04-30, 1,082 trading days, NYSE early closes dropped, no gap (asserted; 2026-10-22, E34:
+         the same intersection taken here over every key but the pooled trees, since common_span() also reads the
+         base-2 trees, and each base-5 pooled tree asserted to have a forecast on every day of it).  The start is set
          by the pooled pre-tuned linear forecasts (their walk starts on 2020-01-03) and is also the first day after
          the pre-sample on which the linear penalties were selected (validation folds to 2020-01-02).  The 866 days
          of the master table (\\rhrDays) are the option-data subsample of the straddle economics only; on them every
@@ -76,12 +89,14 @@ REPO = ROOT.parent
 sys.path.insert(0, str(REPO / "notebooks"))
 sys.path.insert(0, str(REPO / "experiments"))
 import atm_straddle_lib as asl  # noqa: E402
+import pooled_trees_13 as pt13  # noqa: E402  (2026-10-22, E34: the base-5 pooled trees at the 16:00 bar)
 import rolling_eval_2026_10_15 as rolling  # noqa: E402  (2026-10-15: the common rolling span)
 from src.evaluation.diebold_mariano import _nw_lag  # noqa: E402
 
 GEN = ROOT / "generated"
 MT = REPO / "results" / "close_master_table"
-POOLTREE = REPO / "results" / "pooled_trees_2026-10-07"
+# 2026-10-22 (user, E34): parked -- the base-2 pooled trees; the pooled trees are read through pt13. Was:
+# POOLTREE = REPO / "results" / "pooled_trees_2026-10-07"
 CORE = REPO / "data" / "core_stats.parquet"
 OUT_TABLE = GEN / "rehaul_results_oos.tex"
 OUT_NUMBERS = GEN / "rehaul_oos_numbers.tex"
@@ -118,14 +133,12 @@ EST_NAME = {
     "xgb": "XGBoost",
     "rf": "Random forest",
 }
-EARLIER = {
-    "a0",
-    "lgbm",
-    "xgb",
-}  # the earlier draft's pooled intraday specifications (note a)
-PRELIM = {
-    "pooltree_rf_all_features"
-}  # preliminary (dagger): 16:00 rows of a walk still running
+# 2026-10-22 (user, E34): parked -- lgbm / xgb (the earlier draft's full-set pooled trees) and the forest's INTERIM1600
+# table: the full-set pooled trees are now the base-5 rerun's (pt13), every arm complete. Was:
+# EARLIER = {"a0", "lgbm", "xgb"}  # the earlier draft's pooled intraday specifications (note a)
+# PRELIM = {"pooltree_rf_all_features"}  # preliminary (dagger): 16:00 rows of a walk still running
+EARLIER = {"a0"}  # the earlier draft's pooled intraday specifications (note a)
+PRELIM: set[str] = set()  # preliminary (dagger): 16:00 rows of a walk still running
 
 
 def model_rows() -> list[tuple[str, str, dict[str, str | None], dict[str, str | None]]]:
@@ -140,13 +153,22 @@ def model_rows() -> list[tuple[str, str, dict[str, str | None], dict[str, str | 
         rows.append((EST_NAME[est], LIN, close, pool))
     for est in ("lgbm", "xgb", "rf"):
         close = {b: f"subtree_daily_{b}_{est}" for b, _ in SETS}
+        # 2026-10-22 (user, E34): parked -- the base-2 keys: the parsimonious-set trees (the base-5 rerun has no
+        # parsimonious-set trees: "--"), on all features the master table's lgbm / xgb rows and the forest's
+        # INTERIM1600 table. Was:
+        # pool = {
+        #     "baseline": f"pooltree_{est}_baseline",
+        #     "lean_vol_vix": f"pooltree_{est}_lean_vol_vix",
+        #     "live_feasible": None,
+        #     "all_features": est
+        #     if est in ("lgbm", "xgb")
+        #     else f"pooltree_{est}_all_features",
+        # }
         pool = {
             "baseline": f"pooltree_{est}_baseline",
-            "lean_vol_vix": f"pooltree_{est}_lean_vol_vix",
+            "lean_vol_vix": None,
             "live_feasible": None,
-            "all_features": est
-            if est in ("lgbm", "xgb")
-            else f"pooltree_{est}_all_features",
+            "all_features": f"pooltree_{est}_all_features",
         }
         rows.append((EST_NAME[est], TREE, close, pool))
     return rows
@@ -162,15 +184,27 @@ def _day(values) -> pd.DatetimeIndex:
     return pd.DatetimeIndex(t.dt.normalize().to_numpy())
 
 
-def plain_16(path: Path) -> pd.Series:
-    """16:00 ET rows of a pooled yhat table: f^2 x B (= make_rehaul_results.plain_16, rows.py plain_16)."""
-    y = pd.read_parquet(path, columns=["t", "yhat", "baseline"])
-    t = pd.to_datetime(y["t"], utc=True).dt.tz_convert("America/New_York")
-    at16 = ((t.dt.hour == 16) & (t.dt.minute == 0)).to_numpy()
-    v = y["yhat"].to_numpy(float)[at16] ** 2 * y["baseline"].to_numpy(float)[at16]
-    s = pd.Series(v, index=_day(t[at16].dt.tz_localize(None)))
-    assert not s.index.duplicated().any(), path
-    return s
+# 2026-10-22 (user, E34): parked -- the 16:00 rule on the base-2 pooled yhat tables (the pooltree keys' gate against
+# rolling_eval's frames); the pooled trees are read through pt13 (pooltree_scored below). Was:
+# def plain_16(path: Path) -> pd.Series:
+#     """16:00 ET rows of a pooled yhat table: f^2 x B (= make_rehaul_results.plain_16, rows.py plain_16)."""
+#     y = pd.read_parquet(path, columns=["t", "yhat", "baseline"])
+#     t = pd.to_datetime(y["t"], utc=True).dt.tz_convert("America/New_York")
+#     at16 = ((t.dt.hour == 16) & (t.dt.minute == 0)).to_numpy()
+#     v = y["yhat"].to_numpy(float)[at16] ** 2 * y["baseline"].to_numpy(float)[at16]
+#     s = pd.Series(v, index=_day(t[at16].dt.tz_localize(None)))
+#     assert not s.index.duplicated().any(), path
+#     return s
+def pooltree_scored(key: str) -> pd.DataFrame:
+    """plain and the actual RV of a pooled-tree key pooltree_<est>_<set> on its scored days, as rolling.scored
+    (2026-10-22, E34): the 16:00 rows of the base-5 13-bar rerun (pt13.at16), early closes and days without a positive
+    truth print dropped; rv = rolling.history(), rv13 = the rerun's own rv of the bar (gated equal in load_cells)."""
+    g = pt13.at16(key.split("_")[1], key.split("_", 2)[2])
+    hist = rolling.history()
+    g = g[~g.index.isin(rolling.EARLY) & g.index.isin(hist.index)]
+    return pd.DataFrame(
+        {"plain": g["plain"], "rv": hist.reindex(g.index), "rv13": g["rv"]}
+    )
 
 
 def rv_history() -> pd.Series:
@@ -196,8 +230,10 @@ def load_cells() -> tuple[
     2026-10-15 (user: accuracy over every rolling forecast): the frames come from experiments/rolling_eval_2026_10_15.py
     (scored(): the table's 16:00 rows, plain = yhat^2 B, the actual RV, early closes dropped), on its common_span().
     The 866-day load of record is parked below this function; on those days every master key still reproduces the
-    master table's plain, truth, daily QLIKE and qlike_raw (asserted here), and every pooltree key make_rehaul_results'
-    plain_16 rule."""
+    master table's plain, truth, daily QLIKE and qlike_raw (asserted here).
+    2026-10-22 (user, E34): the pooled-tree keys pooltree_<est>_<set> are the base-5 13-bar rerun (pooltree_scored,
+    pt13), gated on its own data: a forecast on every day of the span, the rerun's 16:00 rv = the scoring truth.
+    -- parked: every pooltree key reproduced make_rehaul_results' plain_16 rule on the base-2 tables."""
     m = pd.read_csv(MT / "master_table.csv").set_index("key")
     d = pd.read_parquet(
         MT / "master_table_daily.parquet",
@@ -213,9 +249,21 @@ def load_cells() -> tuple[
         for k in (close.get(b), pool.get(b))
         if k is not None
     }
-    assert keys == {k.key for k in rolling.table_keys()}, sorted(
-        keys ^ {k.key for k in rolling.table_keys()}
+    # 2026-10-22 (user, E34): parked -- rolling_eval's table_keys() still lists its base-2 pooled trees (lgbm, xgb,
+    # pooltree_*); the pooled trees are the base-5 rerun's (pt13), keyed pooltree_<est>_<set> on both sets. Was:
+    # assert keys == {k.key for k in rolling.table_keys()}, sorted(
+    #     keys ^ {k.key for k in rolling.table_keys()}
+    # )
+    pool_tree = {f"pooltree_{e}_{b}" for e in pt13.EST for b, _ in SETS}
+    assert pool_tree <= keys and set(pt13.SETS) == {b for b, _ in SETS}, sorted(
+        pool_tree - keys
     )
+    rk = {
+        k.key
+        for k in rolling.table_keys()
+        if not (k.scheme == "pool" and k.hp == "dev")  # its pooled trees
+    }
+    assert keys - pool_tree == rk, sorted((keys - pool_tree) ^ rk)
     master_keys = {k for k in keys if not k.startswith("pooltree_")}
     missing = master_keys - set(m.index)
     assert not missing, f"keys not in master_table.csv: {sorted(missing)}"
@@ -232,16 +280,38 @@ def load_cells() -> tuple[
         mt_days[0],
         mt_days[-1],
     )
-    days = rolling.common_span()
+    # days = rolling.common_span()  # 2026-10-22 (user, E34): parked -- it also reads rolling_eval's base-2 pooled
+    # trees; the same intersection (rolling.common_span's rule) over every other key, the base-5 pooled trees asserted
+    # below to have a forecast on every day of it, so they would not bind it
+    scored = {
+        k: pooltree_scored(k) if k in pool_tree else rolling.scored(k)
+        for k in sorted(keys)
+    }
+    span_keys = sorted(keys - pool_tree)
+    days = scored[span_keys[0]].index
+    for k in span_keys[1:]:
+        days = days.intersection(scored[k].index)
+    days = pd.DatetimeIndex(days.sort_values()).as_unit("ns")
     assert len(days) == SPAN_DAYS and days[0] == FIRST_DAY and days[-1] == LAST_DAY, (
         len(days),
         days[0],
         days[-1],
     )
     assert mt_days.isin(days).all(), "an option-data day outside the rolling span"
+    # 2026-10-22 (user, E34): the base-5 trees: a rolling 1,000-day (13,000-bar) window refit at every bar, their
+    # first forecast before the span and their last on its last day
+    m13 = pt13.meta()
+    m13_design = (m13["refit"], m13["window_days"], m13["window_bars"])
+    assert m13_design == ("bar", 1000, 13000), m13
+    assert m13["span"][0] < days[0] and m13["span"][1] == days[-1], (
+        m13["span"],
+        days[0],
+        days[-1],
+    )
     out: dict[str, pd.DataFrame] = {}
     for k in sorted(keys):
-        f = rolling.scored(k)
+        # f = rolling.scored(k)  # 2026-10-22 (user, E34): loaded above (the pooled trees through pooltree_scored)
+        f = scored[k]
         assert days.isin(f.index).all(), (
             f"{k}: a forecast is missing on a day of the span"
         )
@@ -264,17 +334,24 @@ def load_cells() -> tuple[
             assert np.isclose(
                 np.mean(r - np.log(r) - 1.0), m.loc[k, "qlike_raw"], rtol=1e-12, atol=0
             ), f"{k}: QLIKE"
-        else:  # pooltree_*: the GUI's / make_rehaul_results' plain_16 rule on the table's own 16:00 rows
-            est, b = k.split("_")[1], k.split("_", 2)[2]
-            fn = (
-                "yhat_pooltree_rf_all_features_INTERIM1600.parquet"
-                if k == "pooltree_rf_all_features"
-                else f"yhat_pooltree_{est}_{b}.parquet"
-            )
-            p = plain_16(POOLTREE / fn).reindex(days)
-            assert np.allclose(f["plain"].reindex(days), p, rtol=1e-12, atol=0), (
-                f"{k}: plain_16"
-            )
+        # 2026-10-22 (user, E34): parked -- the pooltree keys' gate against the base-2 tables (rolling_eval's frames =
+        # the plain_16 rule on results/pooled_trees_2026-10-07). Was:
+        # else:  # pooltree_*: the GUI's / make_rehaul_results' plain_16 rule on the table's own 16:00 rows
+        #     est, b = k.split("_")[1], k.split("_", 2)[2]
+        #     fn = (
+        #         "yhat_pooltree_rf_all_features_INTERIM1600.parquet"
+        #         if k == "pooltree_rf_all_features"
+        #         else f"yhat_pooltree_{est}_{b}.parquet"
+        #     )
+        #     p = plain_16(POOLTREE / fn).reindex(days)
+        #     assert np.allclose(f["plain"].reindex(days), p, rtol=1e-12, atol=0), (
+        #         f"{k}: plain_16"
+        #     )
+        else:  # pooltree_* (pt13): the rerun's own 16:00 rv is the scoring truth on every day of the span
+            g = f.reindex(days)
+            rel = float(np.max(np.abs(g["rv13"] / g["rv"] - 1.0)))
+            assert rel <= 1e-12, (f"{k}: rv of the rerun != rolling.history()", rel)
+            assert (g["plain"] > 0).all(), f"{k}: plain"
         out[k] = f.reindex(days)[["plain", "rv"]]
     return out, m, days, mt_days
 
@@ -829,10 +906,22 @@ def main() -> None:
     # 2026-10-15: every cell equals the rolling evaluation's common-span metrics (results/rolling_eval_2026-10-15)
     rm = pd.read_csv(REPO / "results" / "rolling_eval_2026-10-15" / "metrics.csv")
     rm = rm[rm["span"] == "common"].set_index("key")
+    # 2026-10-22 (user, E34): parked for the pooled trees -- metrics.csv holds the base-2 trees' scores; the pooltree
+    # cells are gated instead on a recomputation from pt13 (its own 16:00 plain and rv, rolling_eval's metrics()).
+    # Was (every key):
+    # for _, _, _, k, x in gui:
+    #     assert int(rm.loc[k, "n"]) == len(days), k
+    #     for a, b in (("mse", "mse"), ("qlike", "qlike"), ("r2", "r2_oos_pct")):
+    #         assert np.isclose(x[a], rm.loc[k, b], rtol=1e-10, atol=0), (k, a)
     for _, _, _, k, x in gui:
-        assert int(rm.loc[k, "n"]) == len(days), k
+        if k.startswith("pooltree_"):
+            g = pt13.at16(k.split("_")[1], k.split("_", 2)[2]).reindex(days)
+            ref = rolling.metrics(g["rv"], g["plain"], bench)
+        else:
+            assert int(rm.loc[k, "n"]) == len(days), k
+            ref = {b: float(rm.loc[k, b]) for b in ("mse", "qlike", "r2_oos_pct")}
         for a, b in (("mse", "mse"), ("qlike", "qlike"), ("r2", "r2_oos_pct")):
-            assert np.isclose(x[a], rm.loc[k, b], rtol=1e-10, atol=0), (k, a)
+            assert np.isclose(x[a], ref[b], rtol=1e-10, atol=0), (k, a)
 
     GEN.mkdir(exist_ok=True)
     # OUT_TABLE.write_text(table(rows), encoding="utf-8", newline="\n")  # 2026-10-15 (user): parked -- split
@@ -873,7 +962,11 @@ def main() -> None:
             f"{name:14s} {b:14s} {side:6s} {k:38s} {x['mse'] * 10**MSE_EXP:8.3f} {x['qlike']:8.4f} "
             f"{x['r2']:8.2f} {x['r2_gui']:8.2f}"
         )
-    print(f"wrote {OUT_TABLE.relative_to(REPO)} and {OUT_NUMBERS.relative_to(REPO)}")
+    # 2026-10-22: the file written is Table 2 (SIDE_SPEC close), not OUT_TABLE (Table 1, make_rehaul_oos_rerun.py).
+    # Was: print(f"wrote {OUT_TABLE.relative_to(REPO)} and {OUT_NUMBERS.relative_to(REPO)}")
+    print(
+        f"wrote {(GEN / SIDE_SPEC['close']['out']).relative_to(REPO)} and {OUT_NUMBERS.relative_to(REPO)}"
+    )
 
 
 if __name__ == "__main__":

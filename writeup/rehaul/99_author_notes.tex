@@ -6,6 +6,30 @@
 
 \section{Notes to the authors (not part of the paper)}
 \begin{itemize}
+% 2026-10-22 (user): what still needs to be rerun before the numbers are final.
+\item \textbf{Rerun pending (22 October 2026): the pooled numbers in this draft are preliminary.} Approved, and
+  waiting for the window choice:
+  \begin{itemize}
+  \item \textbf{Pooled intraday models} (Table~\ref{tab:rh_oos}, Sections~\ref{sec:rh_results}
+    and~\ref{sec:rh_econ}): ridge, lasso, elastic net and OLS, LightGBM, XGBoost and the random forest, rerun under
+    the final design: late-start zeroing (LATE\_START\_WARMUP), the neutral value for windows with no observation
+    (UNOBSERVED\_NEUTRAL), KKT-checked lasso and elastic-net walks (WALK\_KKT\_RESEED), the FOMC statement-interval
+    dummy dropped (EXCLUDE\_FOMC\_RELEASE), and the rolling window chosen on the pre-2012 folds (window sweep
+    running). The printed forecasts use a 1,000-day window without these changes (notes S4d, E28).
+  \item \textbf{Variable importance} (Section~\ref{sec:rh_fi}): the pooled linear results on the current design
+    (results/rehaul\_fi\_pooled13\_2026-10-22, preliminary) go in after the rerun; the scope of the tree analysis
+    (SHAP by variable and state, interaction-free refits, SHAP interactions) is to be decided.
+  \item \textbf{Ablations:} leave one bucket out, then one variable out within the buckets that matter. Linear
+    preview running; the final run is on the final design; trees to be decided.
+  \item \textbf{MinGRU network:} parked; rerun on the final design before it enters (tuning grid, seeds and refit
+    cadence to be decided).
+  \item \textbf{Closing-interval models:} not rerun (James, 22 October 2026); their full-sample rules are disclosed
+    (notes S4a, S4c, S4d). The data fixes they predate (invalid-print nulling, FOMC calendar, VIX splice, fill cap)
+    still need a disclosure in Section~\ref{sec:rh_data} (E28).
+  \item \textbf{Predictor count:} $\rhdmNColsPooled$ still counts the calendar and interaction columns cut by note E9
+    and the FOMC statement dummy; the printed design has 576 columns and the rerun's will have 564. Take the count
+    from the design at the rerun.
+  \end{itemize}
 % 2026-10-16 (user): parked -- the title, abstract, introduction and conclusion now state the
 % intraday exogenous-feature comparison, not the 24-hour panel.
 % \item \textbf{The current title, abstract, introduction and conclusion describe the old 24-hour panel} and need
@@ -17,7 +41,9 @@
   \item the activity flags are computed after the forward fill, so the FOMC flags read 1 on all 122 trade days after
     November 2023;
   % 2026-10-18 (user, second-list N4): rerun-needed flag.
-  \editc{orange}{S4c}{Decision: rerun needed under the causal rule (note S4a).\\Problem: this item describes the old behaviour of the printed forecasts of 6--7 October 2026 (full-sample mode, flags read after the fill). Commit b29774a (15 October 2026) sets CAUSAL\_MODE\_INFLATION and ACTIVE\_FROM\_OBSERVED in src/backtest/executor.py, so after the rerun the flags come from observed prints. The code comment counts 123 FOMC days, not 122.}
+  % 2026-10-22 (user, S4c): parked -- the note before the decision not to rerun the closing-interval models. Was:
+  % \editc{orange}{S4c}{Decision: rerun needed under the causal rule (note S4a).\\Problem: this item describes the old behaviour of the printed forecasts of 6--7 October 2026 (full-sample mode, flags read after the fill). Commit b29774a (15 October 2026) sets CAUSAL\_MODE\_INFLATION and ACTIVE\_FROM\_OBSERVED in src/backtest/executor.py, so after the rerun the flags come from observed prints. The code comment counts 123 FOMC days, not 122.}
+  \editc{orange}{S4c}{Decision: no rerun of the closing-interval models (James, 22 October 2026; note S4a): the flags read after the fill stay in the printed closing-interval forecasts, disclosed in Section~\ref{sec:rh_predictors} (activity indicators) and Table~\ref{tab:rh_dm_dictionary}.\\Problem: this item is not marked as true of the closing-interval forecasts only, and it is no longer a fix to make before final numbers. The pooled intraday forecasts of Table~\ref{tab:rh_oos} were built after commit b29774a (CAUSAL\_MODE\_INFLATION and ACTIVE\_FROM\_OBSERVED in src/backtest/executor.py: flags from observed prints) and carry no activity averages (note E6). The code comment counts 123 FOMC days, not 122.}
   \item VIX, volume-demand and FOMC feeds end early and are carried forward without limit into 2024.
   \end{itemize}
 \item \textbf{Missing outputs:} paired-comparison tables (axis 1, axis 2), DM against the OLS in the master table,

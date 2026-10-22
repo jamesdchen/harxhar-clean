@@ -140,7 +140,12 @@ ALL_FEATURES.extend(FOMC_FEATURES)
 # value ladders were constant after the 1/99 clip; under the current chain it is a live 0/1 flag.
 # Default False = current behaviour (the CARC rerun13 design and every printed result keep it);
 # turning it on changes the design and needs a rerun.  The column is still derived in load.
-EXCLUDE_FOMC_RELEASE: bool = False
+# 2026-10-22 (user, third-list 5): parked -- the dummy is dropped (decided 2026-10-20): 46 series,
+# FOMC group of 3.  The forecasts printed before this switch (the 576-column 13-bar pooled design,
+# the 628-column closing-interval design) were fitted WITH fomc_release; the MinGRU rerun on the
+# clusters keeps it too (do not sync this flag to a cluster checkout before a rerun is decided).
+# Was: EXCLUDE_FOMC_RELEASE: bool = False
+EXCLUDE_FOMC_RELEASE: bool = True
 if EXCLUDE_FOMC_RELEASE:
     ALL_FEATURES.remove("fomc_release")
 
