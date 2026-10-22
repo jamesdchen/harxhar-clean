@@ -616,7 +616,8 @@
 % benchmark would use the expanding mean of RV_{t'}, t' < t.
 % 2026-10-17 (user, new-notes 12): parked -- calibration diagnostics are not computed (note E33). Was:
 % \item \textbf{Calibration.} We assess unconditional calibration via the ratio of mean realized variance to mean forecast variance, $\overline{\RV}/\overline{\hat\sigma^2}$, and the empirical under-prediction frequency, $\frac{1}{T_{\mathrm{oos}}}\sum_{t \in \mathcal T_{\mathrm{oos}}} \mathbf{1}\{\RV_t > \hat\sigma^2_t\}$.
-\editc{orange}{E33}{Decision: to decide: compute MAE and the calibration diagnostics (the ratio $\overline{\RV}/\overline{\hat\sigma^2}$ and the under-prediction frequency) for the forecasts of Table~\ref{tab:rh_oos}, in make\_rehaul\_oos\_table.py, or drop them.\\Problem: MAE and calibration diagnostics promised here are not yet computed/reported.\\
+% 2026-10-22 (user, E36): parked -- in note E33, "in make\_rehaul\_oos\_table.py": Table 1's generator is make\_rehaul\_oos\_rerun.py since 2026-10-20.
+\editc{orange}{E33}{Decision: to decide: compute MAE and the calibration diagnostics (the ratio $\overline{\RV}/\overline{\hat\sigma^2}$ and the under-prediction frequency) for the forecasts of Table~\ref{tab:rh_oos}, in make\_rehaul\_oos\_rerun.py, or drop them.\\Problem: MAE and calibration diagnostics promised here are not yet computed/reported.\\
 No generator of the paper (writeup/make\_rehaul\_*.py) computes MAE, the ratio or the under-prediction frequency. The calibration files under results/atm\_straddle\_0dte\_1530/ (recal\_grid/, recal\_2026-09-24/) come from the earlier recalibration studies, not from the current forecasts, and generated/campaign\_numbers.tex holds one MAE of an earlier campaign, which this paper does not load.}\end{itemize}
 
 % 2026-10-16 (user): Statistical tests moved to the appendix (10_statistical_tests.tex).

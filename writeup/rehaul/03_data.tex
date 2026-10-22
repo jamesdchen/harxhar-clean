@@ -223,9 +223,11 @@ The futures moments are now sums of one-minute changes in the log price of the f
   % Was: "Pooled intraday sample: 300,317 half-hour intervals from June 1998, with a rolling estimation window of
   % $W = 24{,}000$ intervals: 300{,}317 = 303{,}442 ... - 3{,}125 ..."; "3,469 trading days"; "\rhfiNOos = 3{,}469 - ...".
   % 2026-10-22 (user, E34): parked -- the tree ensembles are the base-5 refit on the regular-hours bars (writeup/pooled_trees_13.py). Was: "\item The pooled intraday sample comprises \rhdmPooledRows{} half-hour intervals beginning in June 1998, using rolling estimation windows of length $W = \rhdmPooledWindow$ intervals for the tree ensembles and $W = \rhdmPooledLinWindow$ intervals for the linear models (see Appendix~\ref{sec:rh_exp_schemes}); the linear models of Table~\ref{tab:rh_oos} are trained on the \rhorNBars{} regular-hours bars with $W = \rhorWindowBars$ bars (\rhorWindowDays{} trading days):"
+  % 2026-10-22 (user, E34: one design for the 12 pooled forecasts): parked -- the pooled linear models of Sections 6 and 7 are the forecasts of Table 1 on the regular-hours bars; the 96,000-interval window is the model set's runs. Was: "... using rolling estimation windows of length $W = \rhdmPooledLinWindow$ intervals for the linear models (see Appendix~\ref{sec:rh_exp_schemes}); the linear models of Table~\ref{tab:rh_oos} and the tree ensembles are trained on the \rhorNBars{} regular-hours bars with $W = \rhorWindowBars$ bars (\rhorWindowDays{} trading days):"
   \item The pooled intraday sample comprises \rhdmPooledRows{} half-hour intervals beginning in June 1998, using
-    rolling estimation windows of length $W = \rhdmPooledLinWindow$ intervals for the linear models (see
-    Appendix~\ref{sec:rh_exp_schemes}); the linear models of Table~\ref{tab:rh_oos} and the tree ensembles are
+    rolling estimation windows of length $W = \rhdmPooledLinWindow$ intervals for the pooled linear models of the
+    model set (see Appendix~\ref{sec:rh_exp_schemes}); the pooled linear models of Table~\ref{tab:rh_oos} and
+    Sections~\ref{sec:rh_results}--\ref{sec:rh_econ} and the tree ensembles are
     trained on the \rhorNBars{} regular-hours bars with $W = \rhorWindowBars$ bars (\rhorWindowDays{} trading
     days):
     % 2026-10-15 (finish): FLAG resolved -- typed 96{,}000 -> \rhdmPooledLinWindow (make_rehaul_data_methods.py, same value).
@@ -264,8 +266,10 @@ The futures moments are now sums of one-minute changes in the log price of the f
     models' pre-sample period (Appendix~\ref{app:rh_closing_sample}; see Section~\ref{sec:rh_results_eval}).
   % 2026-10-20 (user): added -- Table 1 scored from 2012 (TABLE1_SWITCH.md, approved).
   \item Table~\ref{tab:rh_oos} is scored on a longer span, \rhorSpanStart{} to \rhorSpanEnd{} (\rhorDays{}
-    trading days, after excluding \rhorEarlyCloses{} early-close sessions); its penalties are chosen once on
-    \rhorPenFolds{} validation folds covering \rhorPenYears{} and then frozen.
+    % 2026-10-22 (user, E36): parked -- Table 1 now holds the tree ensembles too. Was: "its penalties are chosen once on \rhorPenFolds{} validation folds covering \rhorPenYears{} and then frozen."
+    trading days, after excluding \rhorEarlyCloses{} early-close sessions); its linear penalties are chosen once on
+    \rhorPenFolds{} validation folds covering \rhorPenYears{} and then frozen, and its tree ensembles keep one
+    configuration per method from an Optuna search on the pre-sample.
   \item The option-trading subsample $\mathcal T_{\mathrm{opt}} \subset \mathcal T_{\mathrm{oos}}$, on which we
     evaluate the 0DTE straddle strategy in Section~\ref{sec:rh_econ}, consists of
     \[
