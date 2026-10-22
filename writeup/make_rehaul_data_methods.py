@@ -12,6 +12,9 @@ Writes six float files into writeup/generated/, each \\input by writeup/rehaul/0
                                 (2026-10-22, third-list 5: was 47 series, fomc_release included)
                                 (2026-10-22, S4a: chi-bar marked closing-interval only, full-sample rule as
                                 printed; the causal rule's series in the notes)
+                                (2026-10-22, S4a follow-up: the columns document the fixed chain of the
+                                printed pooled forecasts; the closing-interval forecasts' pre-fix chain is
+                                the note's disclosure -- DOCUMENT_PRE_FIX_CHAIN off)
   rehaul_dm_hyper.tex       M1  hyperparameters per model                        tab:rh_dm_hyper
   rehaul_dm_tuning.tex      M2  tuning protocol per model family                 tab:rh_dm_tuning
 
@@ -43,6 +46,8 @@ import re
 import sys
 import warnings
 from collections import Counter
+from collections.abc import Iterator
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
 
@@ -1048,6 +1053,9 @@ def design_tables(P: dict, bmap: dict[str, str]) -> dict:
         cal_const=P["cal_const"],
         # 2026-10-15 (number macros): the pooled panel's composition, for rehaul_dm_numbers.tex
         n_pooled=len(pooled_names),
+        # 2026-10-22 (user, S4a follow-up; E6): the intraday model's columns, the panel less its activity averages
+        # (the pooled designs drop them: DROP_ACTIVITY_MA); still before the E9 cut
+        n_cols_pooled=len(pooled_names) - sum(Q["active"].values()),
         n_series_pooled=len(Q["series"]["value"]),
         n_active_pooled=len(Q["series"]["active"]),
         n_edge_pooled=len(Q["edge"]),
@@ -1129,18 +1137,90 @@ def semantic_label(col: str, has_neg: bool) -> str:
     return hits[0]
 
 
+@contextmanager
+def pre_fix_chain() -> Iterator[None]:
+    """2026-10-22 (user, S4a follow-up): the pre-2026-10-15 chain for the duration (every PRE_FIX_FLAGS flag off,
+    restored on exit): the chain of the closing-interval forecasts, which are not rerun."""
+    saved = [
+        (m, n, getattr(m, n))
+        for m, names in PRE_FIX_FLAGS
+        for n in names
+        if hasattr(m, n)
+    ]
+    try:
+        for m, n, _ in saved:
+            setattr(m, n, False)
+        yield
+    finally:
+        for m, n, v in saved:
+            setattr(m, n, v)
+
+
+def causal_route(df: pd.DataFrame, s: str) -> tuple[np.ndarray, np.ndarray]:
+    """2026-10-22 (user, S4a follow-up): (routed, started) of target.robust_transform's causal asinh gate
+    (CAUSAL_ASINH_ROUTING) for series s of the forward-filled frame df: a row is routed when the s.d. divisor sat at
+    its causal floor (CAUSAL_SD_FLOOR) on at least DIURNAL_PINNED_MAX of the rows since the series' first print and
+    before the row, at least ASINH_ROUTE_MIN_ROWS of them.  Checked against robust_transform's own baseline (1.0 on
+    every routed row)."""
+    x = df[s]
+    _, base, floor = TG.diurnal_adjust_with_floor(
+        x, df["time_of_day"], True, slot_band=TG.DIURNAL_SLOT_BAND_FRAC
+    )
+    check(
+        isinstance(floor, pd.Series),
+        f"{s}: the s.d. floor is the causal per-row floor (CAUSAL_SD_FLOOR)",
+    )
+    assert isinstance(floor, pd.Series)
+    pinned = np.asarray(np.isclose(base, floor, rtol=1e-9)) & floor.notna().to_numpy()
+    started = x.notna().to_numpy().cumsum() > 0
+    num = pd.Series((pinned & started).astype(np.float64)).cumsum().shift(1)
+    den = pd.Series(started.astype(np.float64)).cumsum().shift(1)
+    share = (num / den).where(den >= TG.ASINH_ROUTE_MIN_ROWS)
+    routed = (share >= TG.DIURNAL_PINNED_MAX).to_numpy()
+    _, rb = TG.robust_transform(df, s)
+    check(
+        bool(((rb.to_numpy() == 1.0) | ~routed).all()),
+        f"{s}: the causal asinh routing agrees with robust_transform",
+    )
+    return routed, started
+
+
 def dictionary(P: dict, bmap: dict[str, str], D: dict) -> list[dict]:
-    """F2: per series, the transform chain robust_transform applies (run on the data the executor hands it)."""
+    """F2: per series, the transform chain robust_transform applies (run on the data the executor hands it).
+
+    2026-10-22 (user, S4a follow-up): two chains.  The table's columns (sign, diurnal adjustment, transform, asinh
+    routing) are the chain of the printed pooled intraday forecasts, the fixed chain of commit b29774a: P["df"] is
+    loaded with the data fixes on (DOCUMENT_PRE_FIX_CHAIN off), the forward fill is capped at FFILL_LIMIT, the sign
+    is read from the series' name, the FOMC flags pass through, the s.d. floor and the asinh routing are causal.
+    The closing-interval forecasts, not rerun, used the pre-2026-10-15 chain (PRE_FIX_FLAGS off, the unlimited
+    forward fill): it gives the chi-bar marks and full-sample modes (closing-interval models only) and the *_pre
+    fields of the table note's disclosure."""
     import src.backtest.executor as EX
 
     check(
         not LD.RATIO_FILL_COLS,
         "the overnight 1.0 fill is a no-op (RATIO_FILL_COLS empty)",
     )
+    flags = [
+        bool(getattr(m, n))
+        for m, names in PRE_FIX_FLAGS
+        for n in names
+        if hasattr(m, n)
+    ]
+    check(
+        not DOCUMENT_PRE_FIX_CHAIN
+        and len(flags) == sum(len(names) for _, names in PRE_FIX_FLAGS)
+        and all(flags)
+        and EX.APPLY_FFILL_LIMIT
+        and EX.FFILL_LIMIT is not None,
+        "the table's columns are the fixed chain: every PRE_FIX_FLAGS flag on, the forward fill capped",
+    )
     df = P["df"].copy()
-    df[LD.ALL_FEATURES] = df[
-        LD.ALL_FEATURES
-    ].ffill()  # load_and_transform: ffill(limit=None), the run's setting
+    # 2026-10-22 (user, S4a follow-up): parked -- the unlimited fill of the pre-2026-10-15 chain (now df0 below). Was:
+    # df[LD.ALL_FEATURES] = df[LD.ALL_FEATURES].ffill()  # load_and_transform: ffill(limit=None), the run's setting
+    df[LD.ALL_FEATURES] = df[LD.ALL_FEATURES].ffill(
+        limit=EX.FFILL_LIMIT
+    )  # load_and_transform under APPLY_FFILL_LIMIT
     files: dict[str, str] = {}
     for f in (
         "core_stats",
@@ -1151,35 +1231,77 @@ def dictionary(P: dict, bmap: dict[str, str], D: dict) -> list[dict]:
     ):
         for c in pd.read_parquet(DATA / f"{f}.parquet").columns:
             files.setdefault(c, f)
+    # 2026-10-22 (user, S4a follow-up): the pre-2026-10-15 chain of the closing-interval forecasts -- the loop below
+    # was the whole function while the table documented that chain (DOCUMENT_PRE_FIX_CHAIN); it now fills pre[s]
+    pre: dict[str, dict] = {}
+    with pre_fix_chain():
+        raw0 = LD.load_raw_data(str(DATA), allow_missing=True)
+        df0 = raw0.copy()
+        df0[LD.ALL_FEATURES] = df0[
+            LD.ALL_FEATURES
+        ].ffill()  # load_and_transform: ffill(limit=None), the closing-interval forecasts' setting
+        for s in LD.ALL_FEATURES:
+            x = df0[s]
+            neg = bool((x.dropna() < 0).any())
+            excl = TG.is_diurnal_excluded(s)
+            diurnal = "none" if excl else ("s.d." if neg else "mean")
+            transform = semantic_label(s, neg)
+            if not excl and neg and not TG.has_name_stabilizer(s):
+                # the asinh gate: robust_transform swaps in asinh when the s.d. divisor is pinned on >= half the rows
+                _, base = TG.diurnal_adjust(
+                    x, df0["time_of_day"], True, slot_band=TG.DIURNAL_SLOT_BAND_FRAC
+                )
+                pinned = float(np.isclose(base, base.min(), rtol=1e-9).mean())
+                _, rb = TG.robust_transform(df0, s)
+                routed = bool((rb == 1.0).all())
+                check(
+                    routed == (pinned >= TG.DIURNAL_PINNED_MAX),
+                    f"{s}: asinh routing agrees with the pinned share (pre-2026-10-15 chain)",
+                )
+                if routed:
+                    transform, diurnal = "asinh", "none"
+            inflated, mode = EX.mode_inflated(x.to_numpy(dtype=np.float64))
+            share = (
+                float(np.mean(x.dropna().to_numpy() == mode))
+                if inflated
+                else float("nan")
+            )
+            check(
+                inflated == (s in D["act"]),
+                f"{s}: activity flag = an _active ladder in the design",
+            )
+            raw = raw0[s]
+            nn = int((raw < 0).sum())
+            fneg = (
+                pd.Timestamp(raw0.loc[raw < 0, "t"].iloc[0]).strftime("%Y-%m-%d %H:%M")
+                if nn
+                else ""
+            )
+            pre[s] = dict(
+                transform=transform,
+                diurnal=diurnal,
+                neg=neg,
+                active=inflated,
+                mode=mode,
+                share=share,
+                n_neg=nn,
+                first_neg=fneg,
+            )
+    # 2026-10-22 (user, S4a follow-up): the fixed chain of the printed pooled intraday forecasts (the table's columns)
     rows = []
     for s in LD.ALL_FEATURES:
         x = df[s]
-        neg = bool((x.dropna() < 0).any())
+        neg = TG.series_is_signed(s, x)
         excl = TG.is_diurnal_excluded(s)
-        diurnal = "none" if excl else ("s.d." if neg else "mean")
-        transform = semantic_label(s, neg)
-        if not excl and neg and not TG.has_name_stabilizer(s):
-            # the asinh gate: robust_transform swaps in asinh when the s.d. divisor is pinned on >= half the rows
-            _, base = TG.diurnal_adjust(
-                x, df["time_of_day"], True, slot_band=TG.DIURNAL_SLOT_BAND_FRAC
-            )
-            pinned = float(np.isclose(base, base.min(), rtol=1e-9).mean())
-            _, rb = TG.robust_transform(df, s)
-            routed = bool((rb == 1.0).all())
-            check(
-                routed == (pinned >= TG.DIURNAL_PINNED_MAX),
-                f"{s}: asinh routing agrees with the pinned share",
-            )
-            if routed:
+        flag = TG.FOMC_FLAGS_IDENTITY and s in TG.FOMC_FLAG_SERIES
+        diurnal = "none" if (excl or flag) else ("s.d." if neg else "mean")
+        transform = "flag" if flag else semantic_label(s, neg)
+        routed_share = float("nan")
+        if not excl and not flag and neg and not TG.has_name_stabilizer(s):
+            route_rows, started = causal_route(df, s)
+            if route_rows.any():
                 transform, diurnal = "asinh", "none"
-        inflated, mode = EX.mode_inflated(x.to_numpy(dtype=np.float64))
-        share = (
-            float(np.mean(x.dropna().to_numpy() == mode)) if inflated else float("nan")
-        )
-        check(
-            inflated == (s in D["act"]),
-            f"{s}: activity flag = an _active ladder in the design",
-        )
+                routed_share = float(route_rows[started].mean())
         if s in files:
             src = files[s]
         elif s in LD.OFI_PAIRS:
@@ -1187,13 +1309,7 @@ def dictionary(P: dict, bmap: dict[str, str], D: dict) -> list[dict]:
         else:
             check(s in LD.FOMC_FEATURES, f"{s} source")
             src = "releases (derived)"
-        raw = P["df"][s]
-        nn = int((raw < 0).sum())
-        fneg = (
-            pd.Timestamp(P["df"].loc[raw < 0, "t"].iloc[0]).strftime("%Y-%m-%d %H:%M")
-            if nn
-            else ""
-        )
+        p0 = pre[s]
         rows.append(
             dict(
                 series=s,
@@ -1202,21 +1318,40 @@ def dictionary(P: dict, bmap: dict[str, str], D: dict) -> list[dict]:
                 source=src,
                 transform=transform,
                 diurnal=diurnal,
-                active=inflated,
-                mode=mode,
-                share=share,
                 neg=neg,
-                n_neg=nn,
-                first_neg=fneg,
+                routed_share=routed_share,
+                # the closing-interval forecasts' chain: chi-bar, the full-sample mode, the disclosure
+                active=p0["active"],
+                mode=p0["mode"],
+                share=p0["share"],
+                transform_pre=p0["transform"],
+                diurnal_pre=p0["diurnal"],
+                neg_pre=p0["neg"],
+                n_neg=p0["n_neg"],
+                first_neg=p0["first_neg"],
             )
         )
     R = pd.DataFrame(rows)
     # 2026-10-22 (user, third-list 5): the count from OUTLINE. Was: "7 activity flags"
     check(int(R["active"].sum()) == OUTLINE["n_active"], f"{OUTLINE['n_active']} activity flags")
+    # 2026-10-22 (user, S4a follow-up): in both chains. Was: set(R.loc[R["transform"] == "asinh", "series"]) ==
+    # set(LD.SUBGROUPS["vol_demand"]), "asinh = the voldemand family"
     check(
         set(R.loc[R["transform"] == "asinh", "series"])
-        == set(LD.SUBGROUPS["vol_demand"]),
-        "asinh = the voldemand family",
+        == set(LD.SUBGROUPS["vol_demand"])
+        == set(R.loc[R["transform_pre"] == "asinh", "series"]),
+        "asinh = the voldemand family, in both chains",
+    )
+    check(
+        set(
+            R.loc[
+                (R["transform"] != R["transform_pre"])
+                | (R["diurnal"] != R["diurnal_pre"]),
+                "series",
+            ]
+        )
+        == {"spread_vwstock", "fomc_day"},
+        "the chains differ on two rows: the VW quoted spread (sign) and the FOMC day flag (pass-through)",
     )
     return rows
 
@@ -2107,6 +2242,8 @@ TRANSFORM_G = {  # the variance-stabilizing map g of the Predictors section
     "identity": r"$v$",
     "log": r"$\log v$",
     "asinh": r"$\operatorname{asinh}(u/\kappa)$",
+    # 2026-10-22 (user, S4a follow-up): the FOMC flags pass through (target.py FOMC_FLAGS_IDENTITY)
+    "flag": r"$v$, not winsorized",
 }
 ADJ_WORDS = {"mean": "mean", "s.d.": "s.d.", "none": "none"}
 
@@ -2763,22 +2900,37 @@ def write_dictionary(rows: list[dict], D: dict) -> None:
             stack("Predictors,", r"$k \in \mathcal K$", align="l"),
         ]
     )
-    signed_spread = [
-        r
-        for r in rows
-        if r["transform"] == "identity" and r["neg"] and "spread" in r["series"]
-    ]
+    # 2026-10-22 (user, S4a follow-up): parked -- the signed VW spread of the pre-2026-10-15 chain as the table's row
+    # (it is now the disclosure of the closing-interval forecasts' chain, below). Was:
+    # signed_spread = [r for r in rows if r["transform"] == "identity" and r["neg"] and "spread" in r["series"]]
+    # check(len(signed_spread) == 1 and signed_spread[0]["series"] == "spread_vwstock", "the one spread series
+    #       signed by a stray negative print is the VW quoted spread")
+    # sp = signed_spread[0]
+    # twin = next(r for r in rows if r["series"] == sp["series"].replace("vwstock", "ewstock"))
+    # check(twin["transform"] == "log" and twin["diurnal"] == "mean", "its EW twin takes log and the mean")
+    sp = next(r for r in rows if r["series"] == "spread_vwstock")
+    twin = next(r for r in rows if r["series"] == "spread_ewstock")
     check(
-        len(signed_spread) == 1 and signed_spread[0]["series"] == "spread_vwstock",
-        "the one spread series signed by a stray negative print is the VW quoted spread",
+        sp["neg_pre"]
+        and sp["n_neg"] >= 1
+        and sp["transform_pre"] == "identity"
+        and sp["diurnal_pre"] == "s.d."
+        and not sp["neg"]
+        and (sp["transform"], sp["diurnal"])
+        == (twin["transform"], twin["diurnal"])
+        == ("log", "mean"),
+        "VW quoted spread: signed by its negative print(s) in the closing-interval forecasts' chain; log and the "
+        "mean, as its EW twin, in the fixed chain",
     )
-    sp = signed_spread[0]
-    twin = next(
-        r for r in rows if r["series"] == sp["series"].replace("vwstock", "ewstock")
-    )
+    fd = next(r for r in rows if r["series"] == "fomc_day")
     check(
-        twin["transform"] == "log" and twin["diurnal"] == "mean",
-        "its EW twin takes log and the mean",
+        fd["transform"] == "flag" and fd["transform_pre"] == "log",
+        "FOMC day flag: passed through in the fixed chain, log v in the closing-interval forecasts' chain",
+    )
+    vd_share = [r["routed_share"] for r in rows if r["transform"] == "asinh"]
+    check(
+        len(vd_share) == len(LD.SUBGROUPS["vol_demand"]) and min(vd_share) > 0.5,
+        "the volatility-demand series are routed to asinh on most of their intervals (causal routing)",
     )
     kq = D["kq"]
     # 2026-10-22 (user, S4a): the activity indicator by model class (04_features.tex, notes S4a / S4b). The chi-bar
@@ -2786,8 +2938,9 @@ def write_dictionary(rows: list[dict], D: dict) -> None:
     # (EX.mode_inflated on the forward-filled series, dictionary()): the rule of the closing-interval forecasts
     # printed (their design caches of 2026-10-06, built before commit b29774a), which are not rerun (James,
     # 2026-10-22).  The pooled intraday models of Table 1 carry no chi-bar (E6, DROP_ACTIVITY_MA): checked on the
-    # 13-bar designs (the earlier pooled designs still in the model set, note E34 (i), do; not this table's subject).  The causal rule's series (CAUSAL_MODE_INFLATION, the specification) are the
-    # base-5 pooled panel's _active ladders (POOLED_PANEL, built under that rule, before the E6 cut).
+    # 13-bar designs (the earlier pooled designs still in the model set, note E34 (i), do; not this table's
+    # subject).  The causal rule's series (CAUSAL_MODE_INFLATION, the specification) are the base-5 pooled panel's
+    # _active ladders (POOLED_PANEL, built under that rule, before the E6 cut).
     import src.backtest.executor as EX
 
     fp = json.loads(
@@ -2841,18 +2994,34 @@ def write_dictionary(rows: list[dict], D: dict) -> None:
         # 2026-10-19 (user): parked -- the pooled model includes the FOMC series. Was:
         # r"in the intraday model, which is every group here except FOMC (Section~\ref{sec:rh_data}).",
         r"in the intraday model; both models use every group here (Section~\ref{sec:rh_data}).",
+        # 2026-10-22 (user, S4a follow-up): parked -- the pre-2026-10-15 chain as the table's (full-sample routing, the
+        # sign read off the data). Was:
+        # r"Diurnal adjustment: division by the trailing same-interval mean (mean) or standard deviation (s.d.); "
+        # r"$g$: the variance-stabilizing map; the volatility-demand series take $\operatorname{asinh}(u_{t,i} / "
+        # r"\kappa_{t,i})$ in place of both (Section~\ref{sec:rh_predictors}).",
+        # rf"A series is signed if it has any negative value: ${series_tex(sp['series'])}$ has "
+        # + ("a single negative value" if sp["n_neg"] == 1 else f"{sp['n_neg']} negative values")
+        # + (" (" if sp["n_neg"] == 1 else " (first ")
+        # + rf"{sp['first_neg']} ET) and so takes $g(v) = v$ and the s.d.\ adjustment, where "
+        # rf"${series_tex(twin['series'])}$ takes $\log v$ and the mean.",
         r"Diurnal adjustment: division by the trailing same-interval mean (mean) or standard deviation (s.d.); "
         r"$g$: the variance-stabilizing map; the volatility-demand series take $\operatorname{asinh}(u_{t,i} / "
-        r"\kappa_{t,i})$ in place of both (Section~\ref{sec:rh_predictors}).",
-        rf"A series is signed if it has any negative value: ${series_tex(sp['series'])}$ has "
+        r"\kappa_{t,i})$ in place of both where the routing rule of Section~\ref{sec:rh_predictors} applies, on "
+        rf"{100 * min(vd_share):.1f}\% or more of their intervals after the first print.",
+        r"A series is signed when the quantity it measures can be negative, not when its sample has a negative value.",
+        r"The columns give the chain of the pooled intraday forecasts of Table~\ref{tab:rh_oos}, in which the "
+        r"standard-deviation floor and the inverse hyperbolic sine routing use earlier intervals only. The "
+        r"closing-interval forecasts predate that chain: they take both over the full sample, call a series signed "
+        r"when any value in its full sample is negative, and log and winsorize the FOMC day dummy. In this table "
+        rf"that changes two rows: ${series_tex(sp['series'])}$, signed by "
         + (
-            "a single negative value"
+            "a single negative print"
             if sp["n_neg"] == 1
-            else f"{sp['n_neg']} negative values"
+            else f"{sp['n_neg']} negative prints"
         )
-        + (" (" if sp["n_neg"] == 1 else " (first ")
-        + rf"{sp['first_neg']} ET) and so takes $g(v) = v$ and the s.d.\ adjustment, where "
-        rf"${series_tex(twin['series'])}$ takes $\log v$ and the mean.",
+        + (" (" if sp["n_neg"] == 1 else " (the first on ")
+        + rf"{sp['first_neg']} ET) and so given $g(v) = v$ and the s.d.\ adjustment, and "
+        + rf"${series_tex(fd['series'])}$, given {TRANSFORM_G[fd['transform_pre']]}.",
         r"Unnormalized and unscaled: without the factors $\sqrt{N_{t,i}} / \RV_{t,i}^{3/2}$ (skewness), "
         r"$N_{t,i}/3$ (quarticity) and $\pi/2$ (bipower variation).",
     ]
@@ -3676,7 +3845,9 @@ TYPED = {
     # 2026-10-19 (user): parked -- the pooled model includes the FOMC series (author decision). Was: rhdmNColsPooled 574, rhdmNSeriesPooled 43, rhdmNActivePooled 4 (base 5 without FOMC)
     # 2026-10-22 (user, third-list 5): parked -- the FOMC statement-bar dummy is dropped (DROP_RELEASE). Was:
     # rhdmNColsPooled 634, rhdmNSeriesPooled 47, rhdmNActive 7, rhdmNActivePooled 6
-    "rhdmNColsPooled": "616" if DROP_RELEASE else "634",
+    # 2026-10-22 (user, S4a follow-up; E6): parked -- the panel count with the activity averages. Was:
+    # "rhdmNColsPooled": "616" if DROP_RELEASE else "634",
+    "rhdmNColsPooled": "586" if DROP_RELEASE else "598",
     "rhdmNSeriesPooled": "46" if DROP_RELEASE else "47",
     "rhdmNHorizonsPooled": "6",
     "rhdmNHorizonsClose": "6",
@@ -3687,6 +3858,9 @@ TYPED = {
     # 2026-10-22 (user, S4a): the activity-indicator rule's constants (typed 20\% in 04_features.tex before)
     "rhdmModeShare": "20",
     "rhdmModeMinPrints": "250",
+    # 2026-10-22 (user, S4a follow-up): the causal asinh routing's constants (typed 50\% in 04_features.tex before)
+    "rhdmAsinhPinnedShare": "50",
+    "rhdmAsinhMinRows": "250",
     "rhdmValTail": "125",
     "rhdmRetuneFolds": "two",
     "rhdmRfTrial": "255",
@@ -3805,6 +3979,14 @@ def write_numbers(P: dict, D: dict, TS: dict, LP: dict) -> None:
         "the mode share is a whole percent; the executor's causal rule is on (CAUSAL_MODE_INFLATION, "
         "ACTIVE_FROM_OBSERVED)",
     )
+    # 2026-10-22 (user, S4a follow-up): the causal asinh routing constants (\rhdmAsinhPinnedShare, \rhdmAsinhMinRows)
+    pinned_pct = 100 * TG.DIURNAL_PINNED_MAX
+    check(
+        abs(pinned_pct - round(pinned_pct)) < 1e-9
+        and TG.CAUSAL_ASINH_ROUTING
+        and TG.CAUSAL_SD_FLOOR,
+        "the pinned share is a whole percent; the causal s.d. floor and asinh routing are on (target.py)",
+    )
     vals = {
         "rhdmNIntervals": (
             str(ppd),
@@ -3857,9 +4039,12 @@ def write_numbers(P: dict, D: dict, TS: dict, LP: dict) -> None:
             n_(len(SRC["exp"])),
             "SPXW expirations in the option file",
         ),
+        # 2026-10-22 (user, S4a follow-up; E6): parked -- the panel count with the activity averages. Was:
+        # "rhdmNColsPooled": (n_(D["n_pooled"]), "columns of the intraday model's full predictor set"),
         "rhdmNColsPooled": (
-            n_(D["n_pooled"]),
-            "columns of the intraday model's full predictor set",
+            n_(D["n_cols_pooled"]),
+            "columns of the intraday model's full predictor set (the base-5 pooled panel less its activity "
+            "averages, E6; before the E9 cut)",
         ),
         "rhdmNSeriesPooled": (
             str(D["n_series_pooled"]),
@@ -3886,7 +4071,10 @@ def write_numbers(P: dict, D: dict, TS: dict, LP: dict) -> None:
         ),
         "rhdmNActivePooled": (
             str(D["n_active_pooled"]),
-            "series with an activity indicator, pooled panel",
+            # 2026-10-22 (user, S4a follow-up): parked -- the description. Was: "series with an activity indicator,
+            # pooled panel"
+            "series mode-inflated at some interval under the causal rule, pooled panel (no activity averages in "
+            "the intraday design, E6)",
         ),
         # 2026-10-22 (user, S4a): the two constants of the activity-indicator rule (04_features.tex), from the executor
         "rhdmModeShare": (
@@ -3896,6 +4084,18 @@ def write_numbers(P: dict, D: dict, TS: dict, LP: dict) -> None:
         "rhdmModeMinPrints": (
             str(EX.MODE_MIN_PRINTS),
             "activity indicator, causal rule: earlier observed prints needed (executor.py MODE_MIN_PRINTS)",
+        ),
+        # 2026-10-22 (user, S4a follow-up): the two constants of the causal asinh routing (04_features.tex), from
+        # src/features/transforms/target.py
+        "rhdmAsinhPinnedShare": (
+            f"{pinned_pct:.0f}",
+            "asinh routing: minimum share of earlier intervals with the s.d. divisor at its floor, percent "
+            "(target.py DIURNAL_PINNED_MAX; both chains)",
+        ),
+        "rhdmAsinhMinRows": (
+            str(TG.ASINH_ROUTE_MIN_ROWS),
+            "asinh routing, causal rule: earlier intervals since the first print needed (target.py "
+            "ASINH_ROUTE_MIN_ROWS)",
         ),
         "rhdmValTail": (
             str(clp["VAL_TAIL"]),
@@ -3928,6 +4128,18 @@ def write_numbers(P: dict, D: dict, TS: dict, LP: dict) -> None:
                 f"pooled linear 13-bar rerun, {est} on the {b.replace('_', ' ')} set: frozen penalty (pre-sample "
                 "pick by validation MSE, held fixed)",
             )
+    # 2026-10-22 (user, S4a follow-up; E6): the display has no activity-average term; the panel count keeps it
+    check(
+        D["n_cols_pooled"]
+        == D["kq"]
+        + len(D["cal"])
+        + D["n_edge_pooled"]
+        + 2 * D["n_series_pooled"] * D["kq"]
+        and D["n_pooled"] == D["n_cols_pooled"] + D["n_active_pooled"] * D["kq"],
+        f"{D['n_cols_pooled']} = {D['kq']} + {len(D['cal'])} + {D['n_edge_pooled']} + {D['n_series_pooled']} x "
+        f"{D['kq']} + {D['n_series_pooled']} x {D['kq']} (the Predictors section's display, no activity averages: "
+        f"E6); the panel's {D['n_pooled']} add {D['n_active_pooled']} x {D['kq']}",
+    )
     check(
         D["n_pooled"]
         == D["kq"]
@@ -3972,7 +4184,13 @@ SRC: dict = {}
 # that chain: the flags below are switched off for this run only (src/ is not edited).  Set DOCUMENT_PRE_FIX_CHAIN =
 # False once the results are re-run on the fixed chain, and re-baseline the checks that move (the asinh routing, the
 # signed VW spread, the FOMC flags' transform).
-DOCUMENT_PRE_FIX_CHAIN = True
+# 2026-10-22 (user, S4a follow-up: "fix those stale 04_features items too"): parked -- DOCUMENT_PRE_FIX_CHAIN = True.
+# The printed pooled intraday forecasts (Table 1; designs of 2026-10-20) were built on the fixed chain, so the tables
+# now document it; the closing-interval forecasts, not rerun, keep the pre-fix chain, which dictionary() computes
+# under pre_fix_chain() for the dictionary's chi-bar marks and its disclosure note.  Only the dictionary depends on
+# the chain: with the flag off, sources, samples, design, hyper, hyper_search, tuning and the numbers file come out
+# byte-identical (checked 2026-10-22 on a scratch run).
+DOCUMENT_PRE_FIX_CHAIN = False
 PRE_FIX_FLAGS = (
     (LD, ("NULL_INVALID_PRINTS", "FOMC_CALENDAR_FIX", "SPLICE_VIX_FREE_FEED")),
     (

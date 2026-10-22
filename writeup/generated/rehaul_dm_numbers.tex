@@ -15,16 +15,18 @@
 \newcommand{\rhdmHeldOut}{413}  % later SPXW expirations held out: full trading days
 \newcommand{\rhdmHeldOutExpirations}{419}  % later SPXW expirations held out: all, early closes included
 \newcommand{\rhdmSpxwExpirations}{1{,}291}  % SPXW expirations in the option file
-\newcommand{\rhdmNColsPooled}{616}  % columns of the intraday model's full predictor set
+\newcommand{\rhdmNColsPooled}{586}  % columns of the intraday model's full predictor set (the base-5 pooled panel less its activity averages, E6; before the E9 cut)
 \newcommand{\rhdmNSeriesPooled}{46}  % exogenous series in the pooled panel (FOMC included)
 \newcommand{\rhdmNHorizonsPooled}{6}  % HAR horizons, intraday model (base 5)
 \newcommand{\rhdmNHorizonsClose}{6}  % HAR horizons, closing-interval model (base 5)
 \newcommand{\rhdmNCalendar}{16}  % calendar-dummy columns (both models)
 \newcommand{\rhdmNEdgePooled}{12}  % HAR x opening/closing-interval dummy columns (pooled)
 \newcommand{\rhdmNActive}{6}  % series with an activity indicator, closing-interval model
-\newcommand{\rhdmNActivePooled}{5}  % series with an activity indicator, pooled panel
+\newcommand{\rhdmNActivePooled}{5}  % series mode-inflated at some interval under the causal rule, pooled panel (no activity averages in the intraday design, E6)
 \newcommand{\rhdmModeShare}{20}  % activity indicator: the mode's minimum share, percent (executor.py ZERO_INFLATED_FRAC; both rules)
 \newcommand{\rhdmModeMinPrints}{250}  % activity indicator, causal rule: earlier observed prints needed (executor.py MODE_MIN_PRINTS)
+\newcommand{\rhdmAsinhPinnedShare}{50}  % asinh routing: minimum share of earlier intervals with the s.d. divisor at its floor, percent (target.py DIURNAL_PINNED_MAX; both chains)
+\newcommand{\rhdmAsinhMinRows}{250}  % asinh routing, causal rule: earlier intervals since the first print needed (target.py ASINH_ROUTE_MIN_ROWS)
 \newcommand{\rhdmValTail}{125}  % validation sample n_val, observations (the gap is \cmPtEmbargo)
 \newcommand{\rhdmRetuneFolds}{two}  % validation folds of the linear light re-tune
 \newcommand{\rhdmRfTrial}{255}  % the random forest's fixed configuration: Optuna trial number
