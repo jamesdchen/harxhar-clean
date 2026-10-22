@@ -3,11 +3,11 @@
 % constants of the Introduction and the Data, Predictors and Methods sections, each computed from the data,
 % the specs and the result files (asserted against the values the text typed on 2026-10-15). The group sizes
 % are \bkSize<Group> (buckets_numbers.tex), the gap \cmPtEmbargo (close_main_numbers.tex).
-\newcommand{\rhdmNIntervals}{48}  % intraday intervals a day, M (half hours; the pooled intraday model)
+\newcommand{\rhdmNIntervals}{48}  % intraday intervals a day, M (half hours; the intraday model)
 \newcommand{\rhdmGridRows}{303{,}442}  % intervals on the intraday grid (observed RV, weekend break out)
 \newcommand{\rhdmBurnIn}{3{,}125}  % burn-in intervals, the longest HAR horizon
-\newcommand{\rhdmPooledRows}{300{,}317}  % pooled intraday sample, intervals after the burn-in
-\newcommand{\rhdmPooledWindow}{24{,}000}  % pooled rolling estimation window W, intervals
+\newcommand{\rhdmPooledRows}{300{,}317}  % intraday sample, intervals after the burn-in
+\newcommand{\rhdmPooledWindow}{24{,}000}  % window of the tree hyperparameter search and of the n_min rescaling, intervals (the base-2 trees' estimation window; the base-5 trees: pooled_trees_13.meta())
 \newcommand{\rhdmPooledLinWindow}{96{,}000}  % pooled linear models' rolling estimation window W, intervals (2,000 trading days x 48)
 \newcommand{\rhdmCloseDays}{3{,}469}  % closing-interval sample, trading days after the burn-in
 \newcommand{\rhdmExpirationsOos}{872}  % SPXW expirations to the end of the evaluation span (2024-04-30)
@@ -15,7 +15,7 @@
 \newcommand{\rhdmHeldOut}{413}  % later SPXW expirations held out: full trading days
 \newcommand{\rhdmHeldOutExpirations}{419}  % later SPXW expirations held out: all, early closes included
 \newcommand{\rhdmSpxwExpirations}{1{,}291}  % SPXW expirations in the option file
-\newcommand{\rhdmNColsPooled}{634}  % columns of the pooled intraday model's full predictor set
+\newcommand{\rhdmNColsPooled}{634}  % columns of the intraday model's full predictor set
 \newcommand{\rhdmNSeriesPooled}{47}  % exogenous series in the pooled panel (FOMC included)
 \newcommand{\rhdmNHorizonsPooled}{6}  % HAR horizons, intraday model (base 5)
 \newcommand{\rhdmNHorizonsClose}{6}  % HAR horizons, closing-interval model (base 5)

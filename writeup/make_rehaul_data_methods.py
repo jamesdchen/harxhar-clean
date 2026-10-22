@@ -53,6 +53,13 @@ from src.data import loading as LD  # noqa: E402
 from src.features.extractors.har import resolve_har_lags  # noqa: E402
 from src.features.transforms import target as TG  # noqa: E402
 
+# 2026-10-22 (user, E34): the pooled trees are the base-5 refit on the 13 regular-hours bars; their window, cadence and
+# span for tab:rh_dm_samples come from writeup/pooled_trees_13.py (meta(); the loader of every pooled-tree number).
+if str(REPO / "writeup") not in sys.path:
+    sys.path.insert(0, str(REPO / "writeup"))
+import pooled_linear_13 as pl13  # noqa: E402  (the pooled linear 13-bar rerun of Table 1 and Sections 6-7)
+import pooled_trees_13 as pt13  # noqa: E402
+
 GEN = REPO / "writeup" / "generated"
 DATA = REPO / "data"
 RES = REPO / "results"
@@ -73,6 +80,9 @@ DESIGN_EXPORT = (
 # 2026-10-19 (user): parked -- base 5 across the paper. Was the base-2 panel of the earlier pooled fits:
 # POOLED_CACHE = CLEAN / "results" / "prep_cache_all_features_b2.npz"
 POOLED_PANEL = REPO / "results" / "pooled_trees_base5_2026-10-19_48" / "panel_full.json"
+# 2026-10-22 (user, E34): the 13-bar design of the base-5 pooled trees (experiments/pooled_trees_base5.py design
+# --sample 13; committed): its row count and first row check the regular-hours rows of tab:rh_dm_samples.
+POOLED_DESIGN_13 = REPO / "results" / "pooled_trees_base5_2026-10-19_13" / "design.json"
 
 
 def pooled_panel() -> tuple[list[str], int]:
@@ -2183,15 +2193,77 @@ def write_samples(P: dict) -> None:
     """D2 (tab:rh_dm_samples): panels intraday / closing interval / out-of-sample."""
     g0, g1, ng = P["grid"]
     p0, p1, np_ = P["pooled"]
-    f0, f1, nf = P["pooled_fc"]
+    # 2026-10-22 (user, E34): parked -- the base-2 trees' forecasts and window (all 48 intervals, W = 24,000), now the
+    # regular-hours rows below. Was:
+    # f0, f1, nf = P["pooled_fc"]
+    # W = OUTLINE["pooled_window"]
     b0, b1, nb = P["perbar"]
     c0, c1, nc = P["fc"]
     r0, r1, nr, v0, nv = P["pre"]
     s0, s1, ns, s_fc = P["dev"]
     clp = P["clp"]
     days = P["days"]
-    W = OUTLINE["pooled_window"]
     lat, lat_full = P["later"]
+    # 2026-10-22 (user, E34): the pooled trees are the base-5 refit on the 13 regular-hours bars (pooled_trees_13.py):
+    # window, cadence and span from pt13.meta(); the sample and forecast bars from the grid, checked against the 13-bar
+    # design and against every arm of the trees' forecast file.
+    tw = pt13.meta()
+    check(
+        tw["refit"] == "bar"
+        and tw["window_bars"] == tw["window_days"] * tw["bars_day"],
+        "pooled trees: re-estimated every bar on window_days x bars_day bars (pooled_trees_13.meta)",
+    )
+    tg = P["df"]["t"]
+    hm = tg.dt.strftime("%H:%M")
+    rth = sorted(c for c in set(hm) if "10:00" <= c <= "16:00")
+    check(
+        len(rth) == tw["bars_day"] == pt13.N_BARS_DAY
+        and (rth[0], rth[-1]) == ("10:00", "16:00"),
+        "13 regular-hours bars a day, bar ends 10:00 .. 16:00 ET",
+    )
+    burn = P["burn"]
+    t13 = tg.iloc[burn:][hm.iloc[burn:].isin(rth)].reset_index(drop=True)
+    d13 = json.loads(need(POOLED_DESIGN_13).read_text(encoding="utf-8"))
+    check(
+        len(t13) == int(d13["n_rows"])
+        and t13.iloc[0] == pd.Timestamp(d13["first_row_t"]),
+        "regular-hours bars after the burn-in = the rows of the 13-bar design (pooled_trees_base5_2026-10-19_13)",
+    )
+    if str(REPO / "experiments") not in sys.path:
+        sys.path.insert(0, str(REPO / "experiments"))
+    import rolling_eval_2026_10_15 as rolling
+
+    ts0, ts1 = tw["span"]
+    day13 = t13.dt.normalize()
+    ec13 = int(((rolling.EARLY >= ts0) & (rolling.EARLY <= ts1)).sum())
+    fc13 = t13[(day13 >= ts0) & (day13 <= ts1) & ~day13.isin(rolling.EARLY)]
+    fa = pd.read_parquet(pt13.FC, columns=["model", "predictor_set", "date"])
+    check(
+        all(
+            len(g) == len(fc13) == pt13.N_BARS_ARM
+            and set(pd.to_datetime(g["date"])) == set(fc13)
+            for _, g in fa.groupby(["model", "predictor_set"])
+        ),
+        "every pooled-tree arm forecasts the regular-hours bars of its span, early-close days out",
+    )
+    # 2026-10-22 (user, E34): the pooled linear models of Table 1 and Sections 6-7 (poolpt13_*, pooled_linear_13.py)
+    # are on the trees' design: same bars a day, window and span, and from the first evaluation day the same bars (the
+    # linear walk starts earlier, at pl13.WALK_START, the 250-solve boundary before it)
+    lw = pl13.meta()
+    check(
+        all(lw[k] == tw[k] for k in ("bars_day", "window_days", "window_bars", "span")),
+        "pooled linear 13-bar rerun (pooled_linear_13.meta) = the trees' bars a day, window and span",
+    )
+    la = pd.read_parquet(pl13.FC, columns=["model", "predictor_set", "date"])
+    check(
+        {(m, s) for m, s in zip(la["model"], la["predictor_set"])} == pl13.ARMS
+        and all(
+            pd.to_datetime(g["date"]).min() == pl13.WALK_START
+            and set(d for d in pd.to_datetime(g["date"]) if d >= ts0) == set(fc13)
+            for _, g in la.groupby(["model", "predictor_set"])
+        ),
+        "every pooled linear arm forecasts the trees' bars from the first evaluation day (walk from pl13.WALK_START)",
+    )
     ppd = TG.PERIODS_PER_DAY
     later = SRC["exp"].index[SRC["exp"].index > pd.Timestamp(clp["LAST_TRADE_DAY"])]
     spec = "@{}" + P_(0.50) + "llrr@{}"
@@ -2248,10 +2320,37 @@ def write_samples(P: dict) -> None:
                 D_(p0),
                 D_(p1),
                 n_(np_),
-                n_(W),
+                # 2026-10-22 (user, E34): parked -- the base-2 trees' window on all 48 intervals. Was: n_(W),
+                # now the window of the pooled linear models on all 48 intervals (the model set's poolpt_*)
+                n_(pooled_lin_window(clp)),
             ]
         ),
-        cells(["Rolling-window forecasts", D_(f0), D_(f1), n_(nf), NA]),
+        # 2026-10-22 (user, E34): parked -- the base-2 trees' forecasts (all 48 intervals after W = 24,000), replaced by
+        # the base-5 trees' regular-hours sample and forecasts (pooled_trees_13.py). Was:
+        # cells(["Rolling-window forecasts", D_(f0), D_(f1), n_(nf), NA]),
+        cells(
+            [
+                # 2026-10-22 (user, E34): the label names the pooled linear models of the 13-bar rerun too. Was:
+                # rf"\quad Regular-hours bars, bar ends {rth[0]}--{rth[-1]} ET (trees)",
+                rf"\quad Regular-hours bars, bar ends {rth[0]}--{rth[-1]} ET: the trees and the pooled linear models of "
+                r"Table~\ref{tab:rh_oos} and Sections~\ref{sec:rh_results}--\ref{sec:rh_econ}",
+                D_(t13.iloc[0]),
+                D_(t13.iloc[-1]),
+                n_(len(t13)),
+                n_(tw["window_bars"]),
+            ]
+        ),
+        cells(
+            [
+                # 2026-10-22 (user, E34): parked -- trees only. Was:
+                # rf"\quad Rolling-window forecasts (trees), less early-close days ({ec13})",
+                rf"\quad Rolling-window forecasts from the first evaluation day, less early-close days ({ec13})",
+                D_(fc13.iloc[0]),
+                D_(fc13.iloc[-1]),
+                n_(len(fc13)),
+                NA,
+            ]
+        ),
         cells(
             [
                 rf"Tree hyperparameter pre-sample (before {s1.year + 1})",
@@ -2320,11 +2419,21 @@ def write_samples(P: dict) -> None:
         # 2026-10-18 (user, second-list 17): parked -- the 250 is the screening stride of the one-off tree search, not
         # a re-estimation of a pre-sample (hand edit mirrored in generated/rehaul_dm_samples.tex). Was:
         # rf"tree pre-sample is re-estimated every {P['tm']['SCREEN_REFIT']} intervals.",
-        r"The pooled linear models use $W = \rhdmPooledLinWindow$ intervals (\cmPtFitWin{} trading days); the "
-        rf"tree hyperparameters are chosen once, by an Optuna search on the {P['dev'][0].year}--{P['dev'][1].year} "
+        # 2026-10-22 (user, E34): parked -- one window for every pooled linear model, and the base-2 trees' refit
+        # clause; the windows are now stated by design (regular-hours bars: the trees and poolpt13_*; all intervals:
+        # the model set's poolpt_*). Was:
+        # r"The pooled linear models use $W = \rhdmPooledLinWindow$ intervals (\cmPtFitWin{} trading days); the "
+        # rf"tree hyperparameters are chosen once, by an Optuna search on the {P['dev'][0].year}--{P['dev'][1].year} "
+        # ... (as below) ... rf"it on the next {P['tm']['SCREEN_REFIT']}, stepping forward {P['tm']['SCREEN_REFIT']} "
+        # "intervals at a time; " r"the reported forecasts refit every interval.",
+        r"The trees and the pooled linear models of Table~\ref{tab:rh_oos} and "
+        r"Sections~\ref{sec:rh_results}--\ref{sec:rh_econ} are re-estimated at every bar on the previous "
+        rf"{n_(tw['window_bars'])} regular-hours bars ({n_(tw['window_days'])} trading days of {tw['bars_day']} "
+        r"bars); the pooled linear models on all \rhdmNIntervals{} intervals (in the model set) use "
+        r"$W = \rhdmPooledLinWindow$ intervals (\cmPtFitWin{} trading days).",
+        rf"The tree hyperparameters are chosen once, by an Optuna search on the {P['dev'][0].year}--{P['dev'][1].year} "
         rf"development sample that fits each candidate on the previous {n_(P['tm']['WINDOW'])} intervals and scores "
-        rf"it on the next {P['tm']['SCREEN_REFIT']}, stepping forward {P['tm']['SCREEN_REFIT']} intervals at a time; "
-        r"the reported forecasts refit every interval.",
+        rf"it on the next {P['tm']['SCREEN_REFIT']}, stepping forward {P['tm']['SCREEN_REFIT']} intervals at a time.",
         rf"Each validation sample follows a {clp['EMBARGO']}-day gap and a \cmPtFitWin-day estimation sample "
         r"(Section~\ref{sec:rh_exp_samples}).",
         # "Full trading days: expiration days that are not early-close days.",  # 2026-10-15: + the evaluation span
@@ -3148,7 +3257,14 @@ def write_tuning(P: dict, TS: dict, NN: dict) -> None:
         "the pooled bank's TREE_REFIT_EVERY (specs/causal_tune_trees.py docstring)",
     )
     assert mb is not None
-    bank_every = int(mb.group(1))
+    # 2026-10-22 (user, E34): parked -- the base-2 bank's refit stride, no longer printed (the base-5 trees refit at
+    # every bar; pooled_trees_13.meta()). Was: bank_every = int(mb.group(1))
+    tw = pt13.meta()
+    check(
+        tw["refit"] == "bar"
+        and tw["window_bars"] == tw["window_days"] * tw["bars_day"],
+        "pooled trees: re-estimated every bar on window_days x bars_day bars (tuning table)",
+    )
     check(
         lin["VAL_TAIL"] == clp["VAL_TAIL"] == 125
         and lin["EMBARGO"] == clp["EMBARGO"] == 25,
@@ -3160,6 +3276,30 @@ def write_tuning(P: dict, TS: dict, NN: dict) -> None:
         "MinGRU per-bar 125 / 25",
     )
     check(pl["TW_DAYS"] == clp["TW"], "pooled linear window = 2,000 sessions")
+    # 2026-10-22 (user, E34): the pooled linear 13-bar rerun of Table 1 and Sections 6-7 (pooled_linear_13.py): window
+    # and pre-sample folds from its frozen_penalties.json (fit / validation row ranges, half-open, on its design)
+    lw = pl13.meta()
+    li = json.loads(
+        need(pl13.RUN / "frozen_penalties.json").read_text(encoding="utf-8")
+    )["info"]
+    fit_len = {f["fit"][1] - f["fit"][0] for f in li["folds"]}
+    val_len = {f["val"][1] - f["val"][0] for f in li["folds"]}
+    gap_len = {f["val"][0] - f["fit"][1] for f in li["folds"]}
+    check(
+        fit_len == {lw["window_bars"]}
+        and len(val_len) == 1
+        and len(gap_len) == 1
+        and all(
+            a["val"][1] == b["val"][0] for a, b in zip(li["folds"], li["folds"][1:])
+        ),
+        "pooled linear 13-bar pre-sample: folds fit on the window, equal validation spans and gaps, contiguous",
+    )
+    check(
+        "MSE" in li["rule"] and "frozen" in li["rule"],
+        "pooled linear 13-bar penalties: one pick by validation MSE, frozen over the evaluation span",
+    )
+    (val13,) = val_len
+    (gap13,) = gap_len
     W = n_(clp["TW"])
     ppd = pl["PERIODS_PER_DAY"]
     x = r"$\times$"
@@ -3244,13 +3384,27 @@ def write_tuning(P: dict, TS: dict, NN: dict) -> None:
         panel_row("Panel B: Intraday models (30-minute intervals)", 6),
         nrow(
             [
-                "Ridge, Lasso, Elastic net",
+                # 2026-10-22 (user, E34): parked -- one pooled linear row; now the model set's runs on all intervals,
+                # the 13-bar rerun in the row below. Was: "Ridge, Lasso, Elastic net",
+                r"Ridge, Lasso, Elastic net, all \rhdmNIntervals{} intervals (model set)",
                 n_(pl["TW_DAYS"] * ppd),
                 "1",
                 rf"once (pre-sample); then {lin['TUNE_PER']}",
                 rf"{pl['PRE_FOLDS']} {x} {n_(pl['PRE_FOLD_SESS'] * ppd)} / {n_(pl['PRE_EMBARGO_SESS'] * ppd)}; then "
                 rf"{lin['VAL_TAIL']} / {lin['EMBARGO']}",
                 "as in Panel A",
+                NA,
+            ]
+        ),
+        # 2026-10-22 (user, E34): the pooled linear 13-bar rerun (Table 1, Sections 6-7), penalties frozen
+        nrow(
+            [
+                "Ridge, Lasso, Elastic net, regular-hours bars",
+                n_(lw["window_bars"]),
+                "1",
+                "once (pre-sample)",
+                rf"{len(li['folds'])} {x} {n_(val13)} / {n_(gap13)}",
+                "MSE",
                 NA,
             ]
         ),
@@ -3262,10 +3416,13 @@ def write_tuning(P: dict, TS: dict, NN: dict) -> None:
         # cells([rf"Trees, fixed hyperparameters ({nexp} configurations)", n_(OUTLINE["pooled_window"]), "1",
         #        f"{su['TREE_TUNE_EVERY']}", f"{su['TREE_TAIL']} / {su['TREE_EMBARGO']}",
         #        "QLIKE: best configuration, or exponential weights", "1"]),
+        # 2026-10-22 (user, E34): parked -- the base-2 trees' row (all 48 intervals, W = 24,000). Was:
+        # nrow([r"Trees, fixed hyperparameters (one configuration per method)", n_(OUTLINE["pooled_window"]), "1",
+        #       NA, NA, NA, "1"]),
         nrow(
             [
-                r"Trees, fixed hyperparameters (one configuration per method)",
-                n_(OUTLINE["pooled_window"]),
+                r"Trees, fixed hyperparameters (one configuration per method), regular-hours bars",
+                n_(tw["window_bars"]),
                 "1",
                 NA,
                 NA,
@@ -3306,7 +3463,9 @@ def write_tuning(P: dict, TS: dict, NN: dict) -> None:
         r"Criteria are computed on the scale of $\tilde y_{t,i}$ unless QLIKE is named; all random seeds are fixed.",
         r"Optuna starts a new search at each re-selection; the pooled trees use one fixed configuration per method (for "
         rf"LightGBM and XGBoost, single arms of a {nexp}-configuration development bank), re-estimated at every "
-        rf"interval (part of them only every {bank_every}th).",
+        # 2026-10-22 (user, E34): parked -- the base-2 trees' cadence. Was:
+        # rf"interval (part of them only every {bank_every}th).",
+        rf"bar of the {tw['bars_day']} regular-hours bars of each day ($W$: {n_(tw['window_days'])} trading days).",
     ]
     write(
         "rehaul_dm_tuning.tex",
@@ -3433,6 +3592,13 @@ def write_numbers(P: dict, D: dict, TS: dict, LP: dict) -> None:
         P["pooled_window"] == TS["T"]["POOLED_WINDOW_ROWS"],
         "the pooled window (src/unification.py) = the trees' leaf-rescaling denominator (specs/causal_tune_trees.py)",
     )
+    # 2026-10-22 (user, E34): \rhdmPooledWindow is no longer the trees' estimation window (pooled_trees_13.meta()); what
+    # it still measures in the text is the window of the tree search (10_appendix.tex, the n_min item)
+    check(
+        P["pooled_window"] == P["tm"]["WINDOW"]
+        and P["pooled_window"] != pt13.meta()["window_bars"],
+        r"\rhdmPooledWindow = the tree search's window (experiments/tree_menu_dev.py), not the base-5 trees' window",
+    )
     check(
         clp["VAL_TAIL"] == LP["G"]["VAL_TAIL"] and clp["EMBARGO"] == LP["G"]["EMBARGO"],
         "validation sample and gap: close_linear_pretune.py = specs/causal_tune_linear.py",
@@ -3471,7 +3637,11 @@ def write_numbers(P: dict, D: dict, TS: dict, LP: dict) -> None:
         ),
         "rhdmPooledWindow": (
             n_(P["pooled_window"]),
-            "pooled rolling estimation window W, intervals",
+            # 2026-10-22 (user, E34): parked -- the base-5 trees are estimated on pooled_trees_13.meta()'s window
+            # (13,000 regular-hours bars); 24,000 stays the window of the tree search and of the n_min rescaling.
+            # Was: "pooled rolling estimation window W, intervals",
+            "window of the tree hyperparameter search and of the n_min rescaling, intervals (the base-2 trees' "
+            "estimation window; the base-5 trees: pooled_trees_13.meta())",
         ),
         "rhdmPooledLinWindow": (
             n_(pooled_lin_window(clp)),
