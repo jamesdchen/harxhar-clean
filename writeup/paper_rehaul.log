@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 23.9) (preloaded format=pdflatex 2025.7.14)  22 OCT 2026 14:57
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 23.9) (preloaded format=pdflatex 2025.7.14)  22 OCT 2026 15:26
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -632,15 +632,15 @@ LaTeX Font Info:    Trying to load font information for U+msb on input line 112
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <10> on input line 120.
+(Font)              <10> on input line 123.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <7> on input line 120.
+(Font)              <7> on input line 123.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <5> on input line 120.
+(Font)              <5> on input line 123.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <10.95> on input line 143.
+(Font)              <10.95> on input line 146.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <9> on input line 155.
+(Font)              <9> on input line 158.
 
 [1
 
@@ -709,8 +709,19 @@ Overfull \hbox (77.3145pt too wide) in paragraph at lines 701--702
 ] [51] [52] [53]))
 (rehaul/10_statistical_tests.tex [54
 
-] [55] (generated/rehaul_app_hac_robust.tex)) (rehaul/99_author_notes.tex [56] 
-[57]) [58] (paper_rehaul.aux)
+] [55] (generated/rehaul_app_hac_robust.tex)) (rehaul/99_author_notes.tex
+Underfull \hbox (badness 1107) in paragraph at lines 13--19
+\T1/lmr/m/n/10.95 no ob-ser-va-tion (UN-OB-SERVED_NEUTRAL), KKT-checked lasso a
+nd elastic-net
+ []
+
+
+Underfull \hbox (badness 1728) in paragraph at lines 13--19
+\T1/lmr/m/n/10.95 walks (WALK_KKT_RESEED), the FOMC statement-interval dummy dr
+opped
+ []
+
+[56] [57] [58]) [59] (paper_rehaul.aux)
  ***********
 LaTeX2e <2023-06-01> patch level 1
 L3 programming layer <2023-08-29>
@@ -719,8 +730,8 @@ Package rerunfilecheck Info: File `paper_rehaul.out' has not changed.
 (rerunfilecheck)             Checksum: 0073728DBC65C6830DCB11591D7C72E0;6236.
  ) 
 Here is how much of TeX's memory you used:
- 16131 strings out of 475248
- 263709 string characters out of 5757813
+ 16132 strings out of 475248
+ 263716 string characters out of 5757813
  2001801 words of memory out of 5000000
  37093 multiletter control sequences out of 15000+600000
  685578 words of font info for 132 fonts, out of 8000000 for 9000
@@ -754,9 +765,9 @@ pData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmsy9.pfb><C:/Users/james/App
 Data/Local/Programs/MiKTeX/fonts/type1/public/lm/lmtt10.pfb><C:/Users/james/App
 Data/Local/Programs/MiKTeX/fonts/type1/public/lm/lmtt9.pfb><C:/Users/james/AppD
 ata/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/symbols/msbm10.pfb>
-Output written on paper_rehaul.pdf (58 pages, 935146 bytes).
+Output written on paper_rehaul.pdf (59 pages, 939946 bytes).
 PDF statistics:
- 1248 PDF objects out of 1440 (max. 8388607)
- 184 named destinations out of 1000 (max. 500000)
+ 1261 PDF objects out of 1440 (max. 8388607)
+ 185 named destinations out of 1000 (max. 500000)
  305 words of extra memory for PDF output out of 10000 (max. 10000000)
 

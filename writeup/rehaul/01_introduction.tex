@@ -29,7 +29,8 @@
   \begin{itemize}
   \item Specifically, at the 15:30 ET forecast origin on trading day $t$, we seek to predict $\RV_t$, which
     denotes the realized variance over the 15:30--16:00 closing interval (see Section~\ref{sec:rh_data}).
-  \item Each intraday model is estimated across all $M = \rhdmNIntervals$ half-hour intervals of the trading
+  % 2026-10-22 (user): parked -- the pooled models are estimated on the 13 regular-hours bars (E34). Was: "Each intraday model is estimated across all $M = \rhdmNIntervals$ half-hour intervals of the trading day, and we evaluate its out-of-sample predictions on the forecast issued at 15:30 for the closing half hour."
+  \item Each pooled intraday model is estimated on the \rhePoolNBars{} regular-hours half-hour bars of the trading
     day, and we evaluate its out-of-sample predictions on the forecast issued at 15:30 for the closing half hour.
   \item To isolate the contribution of the additional covariates, we compare the full predictor set against the
     HAR benchmark; the exogenous series constitute the exact difference between the two sets (see
