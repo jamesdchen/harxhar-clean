@@ -31,24 +31,23 @@ Rank & Model & Predictors & QLIKE & $\Delta$ (\%) & $\DM$ \\
 37 & Elastic net & Full & 0.1078 & $4.4^{\phantom{***}}$ & $(1.17)$ \\
 44 & Ridge & Full & 0.1086 & $5.1^{\phantom{***}}$ & $(1.36)$ \\
 65 & Lasso & Full & 0.1101 & $6.7^{\phantom{***}}$ & $(1.62)$ \\
-85 & XGBoost\tnote{a} & Full & 0.1126 & $9.0^{**\phantom{*}}$ & $(2.18)$ \\
-89 & LightGBM\tnote{a} & Full & 0.1128 & $9.2^{**\phantom{*}}$ & $(2.16)$ \\
-93 & Lasso & HAR & 0.1135 & $10.0^{***}$ & $(3.09)$ \\
-97 & Ridge (block penalty)\tnote{a} & Full & 0.1140 & $10.4^{**\phantom{*}}$ & $(2.27)$ \\
-98 & Elastic net & HAR & 0.1142 & $10.6^{***}$ & $(3.21)$ \\
-100 & Ridge & HAR & 0.1143 & $10.7^{***}$ & $(3.15)$ \\
-101 & Random forest\tnote{$\dagger$} & Full & 0.1146 & $11.0^{**\phantom{*}}$ & $(2.51)$ \\
-113 & XGBoost & HAR & 0.1279 & $23.9^{***}$ & $(4.89)$ \\
-114 & OLS\tnote{a} & HAR & 0.1291 & $25.0^{***}$ & $(4.56)$ \\
-115 & LightGBM & HAR & 0.1296 & $25.5^{***}$ & $(4.80)$ \\
-116 & Random forest & HAR & 0.1301 & $26.0^{***}$ & $(5.15)$ \\
+77 & XGBoost & Full & 0.1114 & $7.9^{*\phantom{**}}$ & $(1.75)$ \\
+85 & LightGBM & Full & 0.1125 & $9.0^{*\phantom{**}}$ & $(1.77)$ \\
+93 & XGBoost & HAR & 0.1133 & $9.7^{**\phantom{*}}$ & $(2.23)$ \\
+96 & Lasso & HAR & 0.1135 & $10.0^{***}$ & $(3.09)$ \\
+100 & Random forest & Full & 0.1140 & $10.4^{**\phantom{*}}$ & $(2.18)$ \\
+101 & Ridge (block penalty)\tnote{a} & Full & 0.1140 & $10.4^{**\phantom{*}}$ & $(2.27)$ \\
+102 & Elastic net & HAR & 0.1142 & $10.6^{***}$ & $(3.21)$ \\
+104 & Ridge & HAR & 0.1143 & $10.7^{***}$ & $(3.15)$ \\
+105 & LightGBM & HAR & 0.1144 & $10.8^{**\phantom{*}}$ & $(2.38)$ \\
+117 & Random forest & HAR & 0.1190 & $15.3^{***}$ & $(2.72)$ \\
+118 & OLS\tnote{a} & HAR & 0.1291 & $25.0^{***}$ & $(4.56)$ \\
 \bottomrule
 \end{tabular}
 \begin{tablenotes}[flushleft]
 \footnotesize
 \item \textit{Notes:} Sample, loss and tests as in Table~\ref{tab:rh_axis1}. $\Delta = 100(\bar L/\bar L^{\mathrm{OLS}} - 1)$ compares each forecast with the HAR benchmark, the closing-interval OLS on the HAR predictor set, with $\DM$ in parentheses; negative values favor the forecast. Rank is the position among the \rhrRankN{} forecasts of Table~\ref{tab:rh_rank_full}; the closing-interval ridge, lasso and elastic net on the HAR predictor set are within \rhrLinBaseMaxPct\% of the benchmark and are omitted. Closing-interval trees use fixed hyperparameters and are re-estimated daily. $^{*}$, $^{**}$ and $^{***}$ denote significance at the 10\%, 5\% and 1\% levels.
 \item[a] The earlier draft's intraday specification.
-\item[$\dagger$] Preliminary (see Table~\ref{tab:rh_axis1}).
 \end{tablenotes}
 \end{threeparttable}
 \end{table}

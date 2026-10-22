@@ -24,12 +24,12 @@ Lasso & $11.1^{**\phantom{*}}$ & $1.46$ & $1.12$ & $59.1$ & $23.6$ & $0.69^{*\ph
  & $(2.77)^{\phantom{***}}$ &  &  &  &  & $[0.083]^{\phantom{***}}$ \\[2pt]
 Elastic net & $13.6^{***}$ & $1.56$ & $1.23$ & $57.8$ & $29.5$ & $0.80^{*\phantom{**}}$ \\
  & $(2.90)^{\phantom{***}}$ &  &  &  &  & $[0.060]^{\phantom{***}}$ \\[2pt]
-LightGBM\tnote{a,b} & $9.7^{**\phantom{*}}$ & $1.21$ & $0.87$ & $59.3$ & $19.2$ & $0.45^{\phantom{***}}$ \\
- & $(2.38)^{\phantom{***}}$ &  &  &  &  & $[0.112]^{\phantom{***}}$ \\[2pt]
-XGBoost\tnote{a,b} & $7.7^{*\phantom{**}}$ & $1.26$ & $0.92$ & $60.7$ & $19.4$ & $0.50^{\phantom{***}}$ \\
- & $(2.08)^{\phantom{***}}$ &  &  &  &  & $[0.157]^{\phantom{***}}$ \\[2pt]
-Random forest\tnote{a,$\dagger$} & $6.9^{*\phantom{**}}$ & $1.00$ & $0.66$ & $59.1$ & $21.7$ & $0.23^{\phantom{***}}$ \\
- & $(1.91)^{\phantom{***}}$ &  &  &  &  & $[0.240]^{\phantom{***}}$ \\[2pt]
+LightGBM\tnote{a} & $9.9^{**\phantom{*}}$ & $1.07$ & $0.74$ & $58.6$ & $21.8$ & $0.31^{\phantom{***}}$ \\
+ & $(2.26)^{\phantom{***}}$ &  &  &  &  & $[0.149]^{\phantom{***}}$ \\[2pt]
+XGBoost\tnote{a} & $11.2^{**\phantom{*}}$ & $1.34$ & $1.00$ & $59.4$ & $21.0$ & $0.57^{*\phantom{**}}$ \\
+ & $(2.79)^{\phantom{***}}$ &  &  &  &  & $[0.066]^{\phantom{***}}$ \\[2pt]
+Random forest\tnote{a} & $8.4^{*\phantom{**}}$ & $1.03$ & $0.69$ & $59.0$ & $21.5$ & $0.26^{\phantom{***}}$ \\
+ & $(2.03)^{\phantom{***}}$ &  &  &  &  & $[0.209]^{\phantom{***}}$ \\[2pt]
 \addlinespace[4pt]
 \multicolumn{7}{@{}l}{\textit{Panel B: Closing-interval models (15:30--16:00 ET half hour)}} \\
 \addlinespace[2pt]
@@ -54,15 +54,14 @@ Sharpe ratio at mid-quotes and at quoted bid/ask prices; hit rate and long days 
 $r_t > 0$ at mid-quotes and with $q_t = +1$. $\Delta\SR$ is $\SR$ at mid-quotes minus that of the short-straddle
 benchmark (\rheShortSh); in parentheses, the $t$-statistic of the mean return (Newey--West with bandwidth $S = \rheHACS$ and fixed-$b$ critical values, \citealp{LazarusLewisStockWatson2018}; Section~\ref{sec:rh_methods_tests}); under $\Delta\SR$, the $p$-value of the \citet{LedoitWolf2008} bootstrap test of equal Sharpe ratios on the \rheSzDays{} post-warmup days, in brackets (Section~\ref{sec:rh_methods_tests}).
 $^{*}$, $^{**}$ and $^{***}$ denote significance at the 10\%, 5\% and 1\% levels.
-Panel A: models estimated on every 30-minute interval of the day (the pooled intraday scheme); Panel B: models
+Panel A: models estimated on the 30-minute intervals of the day (the pooled intraday scheme; the tree ensembles on
+the \rheTreeNBars{} regular-hours intervals, note a); Panel B: models
 estimated on the closing interval only (one observation a day). Every model row trades the forecast of the 15:30--16:00 ET
 variance made at 15:30.
-\item[a] Pooled intraday tree ensembles: hyperparameters from an Optuna search, one configuration per method, not
-re-tuned; re-estimated at every 30-minute interval on a rolling window of $W = \rhdmPooledWindow$ intervals
-(Appendix~\ref{sec:rh_exp_schemes}). No ex-post selection.
-\item[b] Full predictor set of the earlier draft's intraday specification, which lacks the FOMC predictors.
-\item[$\dagger$] Interim: only the 16:00 forecasts of the full-set random forest's every-interval walk have been
-computed; the rest of the walk is still running.
+\item[a] Pooled intraday tree ensembles, fitted on the design of the pooled linear models of Table~\ref{tab:rh_oos}:
+the \rheTreeNBars{} regular-hours 30-minute intervals of each day, re-estimated at every interval on a rolling window
+of \rheTreeWindowDays{} trading days ($W = \rheTreeWindowBars$ intervals); hyperparameters from an Optuna search, one
+configuration per method, not re-tuned (Appendix~\ref{sec:rh_exp_schemes}). No ex-post selection.
 \end{tablenotes}
 \end{threeparttable}
 \end{table}
