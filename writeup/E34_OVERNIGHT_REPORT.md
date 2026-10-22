@@ -378,3 +378,113 @@ content stays parked until you decide.
    576 columns (no macro yet).
 6. Note E22's question (which procedure produced a Table 1 tree cell) can now be answered: the frozen configuration,
    refit at every bar.
+
+---
+
+# Third batch, 2026-10-22: FOMC release dummy, re-tuning text, stale outputs, Overleaf
+
+Branch `insurance-selling-2026-09-19-e34` (not merged). Commits 0250f44, 0dd6d02, 939dd98, plus the build and this
+section. `make_rehaul_data_methods.py` was run in full (now allowed); `overleaf_git.sh` was not run.
+
+## (1) The FOMC release dummy is dropped (third-list 5), and a rerun is needed
+
+- `src/data/loading.py`: `EXCLUDE_FOMC_RELEASE = True` (old value parked; the comment says not to sync this file to
+  the clusters while the MinGRU rerun runs on the old design).
+- `make_rehaul_data_methods.py` was run in full; it removes the dummy's columns from the design caches it counts.
+  With the flag forced off, a baseline run reproduced HEAD byte for byte (except a 3-line hand-added header comment in
+  the dictionary file). Every rewritten file was diffed:
+
+| File | Change |
+|---|---|
+| `rehaul_dm_numbers.tex` | `\rhdmNColsPooled` 634 → **616**, `\rhdmNSeriesPooled` 47 → **46**, `\rhdmNActive` 7 → **6**, `\rhdmNActivePooled` 6 → **5**; new `\rhdmPlPen{Ridge,Lasso,Enet}{Base,All}` (the pooled linear frozen penalties, from `frozen_penalties.json`) |
+| `buckets_numbers.tex` (`make_buckets_tex.py`) | `\bkNSeries` 47 → **46**, `\bkSizeFomc` 4 → **3** |
+| `rehaul_dm_dictionary.tex` (Table 5) | the fomc_release row removed; "FOMC (3; …)" |
+| `rehaul_dm_design.tex` (not in the paper) | FOMC row 4/24/24/12/60/60 → 3/18/18/6/42/42; full set 628/634 → 610/616 |
+| `rehaul_dm_hyper.tex` | Panel A note: "held fixed at every forecast origin, with no re-tuning" (the "4 in 24" re-selection sentence parked); the generator now asserts that the six `yhat_subpt_*` tables equal the frozen arms |
+| `sources`, `samples`, `hyper_search`, `tuning` | unchanged |
+
+- **Is the dummy live? Yes, in every design the printed forecasts were fitted on.**
+  - 13-bar pooled design (Table 1's linear models and trees, and the MinGRU rerun): `adj_fomc_release_ma_1` is 0/1
+    with 206 ones (129 statement bars in the 2012–2024 walk). Dropping it gives 564 columns instead of 576.
+  - Closing-interval design (628 columns): the value ladders are constant 0, but the activity ladders are live
+    (nonzero on 105 statement days, 41 of them in forecast rows). Dropping it gives 610 columns.
+  - The HAR-benchmark designs have no FOMC columns.
+- **Rerun needed for consistency (not launched; your decision):**
+
+| Forecasts | Approximate cost |
+|---|---|
+| Pooled linear, full-set arms | 12 min |
+| Pooled trees, full-set arms (CARC) | 5,430 CPU-h (RF 4,995, XGBoost 278, LightGBM 159) |
+| MinGRU rerun13 | one more rerun |
+| Closing-interval linear and trees, plus `\cmPNewAll` / `\cmKeptAll` | to be scoped |
+
+  Runner checks to change first: `pooled_linear_rerun_2026_10_19_13.py:109-110` and `pool_linear_pretune.py:303`
+  assert that every FOMC series is in the full set; `pooled_trees_rerun_13.py` hard-codes `N_COLS = 576`.
+- **Text:** `03_data` (the FOMC item: `\bkSizeFomc` series); `04_features` (the release dummy out of the list; note E35
+  says the counts and Table 5 leave it out while the printed forecasts still contain it); `10_appendix`: the predictor
+  count display now states the fitted design, 628 = 22 + 47·6 + 47·6 + 7·6 (with `\rhfiNExog` and
+  `(\rhdmNActive + 1)`), and the series counts say "as fitted" where they describe the fitted closing-interval models.
+- **Loose ends:** `make_appendix_running_tex.py:1414` asserts 16 live series (now 15), so it fails if run;
+  `\rhoosNSeriesLive` 16 → 15 (no sentence uses it); the tuning table's Panel A (not in the paper) still prints the
+  re-tune cadence.
+
+## (2) The re-tuning text in the appendix (done)
+
+- Schemes as implemented, each with evidence:
+  - closing-interval linear: frozen pre-sample picks since 10-18 (commit 80e7476); all nine `yhat_subpt_*` equal
+    the frozen arms bit for bit; under the earlier margin re-tune only the three HAR-benchmark forecasts differed
+    (ridge and elastic net from 2020-06-23, lasso from 2023-06-16; max relative change 0.08–0.59%);
+  - pooled linear (Table 1, Sections 6–7): frozen on `\rhorPenFolds` folds covering `\rhorPenYears`;
+  - pooled trees: one Optuna configuration per method, frozen, refit every bar;
+  - closing-interval trees: fixed, random search or Optuna re-tuned every 1/5/25/250 days, as written.
+- `10_appendix.tex`: the "Tuned hyperparameters" picks scoped to the closing-interval models (typed penalties replaced
+  by `\cmPtPen…` macros, same values); a pooled-linear item; the light re-tune block parked and replaced by "held
+  fixed, no re-tuning"; a "Pooled trees" item; "Where λ is chosen" names both pre-samples; **E29 marked resolved**;
+  **N24 and E23** say the frozen rerun is done (E23's sensitivity check is still open).
+- **Stale macro (old lines 444–446):** the compounding item is **not stale** (recomputed: median terminal value 2.37 /
+  1.45, drawdowns 59.4% / 67.7% = `\cmpWMedMid` 2.4, `\cmpWMedX` 1.4, `\cmpDDMaxMid` 59, `\cmpDDMaxX` 68); the Murphy
+  item is not stale. The **date-shift test is stale**: `\shiftSwing…` / `\shiftNoiseBand` use a fixed √252 on 865 days
+  over the earlier draft's 9 forecasts, while the paper's ratio is per-year on 614 days (open note N15b). The
+  generator was not changed (a method change, your call); the appendix and Section 7 sentences now state that sample
+  and annualization.
+- **Finding:** the model set's six 48-interval `poolpt_*` rows are still the old study's margin re-tune arm (11–35
+  switches each); they feed only model-set aggregates (compounding, the closing-interval economics).
+
+## (3) Stale outputs (done)
+
+- `experiments/rolling_eval_2026_10_15.py` re-run in place (about 20 s); the gate in `make_rehaul_oos_table.py`
+  passes again. What moved: the three closing-interval HAR-benchmark linear rows (the 10-18 swap) and every DM column
+  (the 1/T autocovariance of E13, 10-18; old and new formulas reproduce the 10-15 and 10-22 values to 2e-15).
+- `tab:rh_oos_last30` (Table 2): **one cell**, elastic net, HAR benchmark, QLIKE 0.1032 → **0.1033**.
+- `tab:rh_oos` (Table 1, `make_rehaul_oos_rerun.py`) has no closing-interval cell and was not rewritten; the results
+  and economics generators already read the post-swap forecasts (`\rhrQEnetCloseHar` 0.1033), so Table 2 was the one
+  inconsistent output.
+- No cited `\rhoos…` or `\rhr…` value changed.
+
+## (4) Overleaf (stopped as instructed; nothing pushed)
+
+- The flatten of the paper branch at **e5b580b** was built and checked (README/SPEC procedure, `flatten.py --name
+  main2.tex --bib-suffix 2 --check`): 853 macro calls expanded, 27 files inlined, no figures at this tip; `main2.pdf`
+  52 pages = `paper_rehaul.pdf`, identical extracted text, 0 undefined. Files:
+  `C:\Users\james\AppData\Local\Temp\claude\C--Users-james-CC-Allowed-harxhar-0dte-professor\bd4224e0-12aa-4614-b6a6-3fe50535ade1\scratchpad\overleaf\flat_main2\`.
+- **Not pushed:** the GitHub flat repo `jamesdchen/harxhar-paper-overleaf` does not exist (not created), and the
+  documented route is the Overleaf project's own git remote, which needs `overleaf_git.sh` / the token. `map.json` was
+  not committed to the paper branch (it would break the next `overleaf_git.sh push`).
+- **To sync Overleaf yourself:** check out `insurance-selling-2026-09-19`; copy `overleaf_git.example.sh` to
+  `overleaf_git.sh` with the token (or set `OVERLEAF_GIT_TOKEN`); run `bash writeup/overleaf_sync/overleaf_git.sh push
+  --check` (`pull` first if co-authors edited `main2.tex`); push the `map.json` commit it makes. Or approve creating
+  the GitHub flat repo.
+- `test_roundtrip.py` fails on a scripted edit whose target sentence was moved into a comment on 10-21; the test needs
+  new text (flatten itself is fine). Under Windows Python, 7 tests of `test_unflatten.py` fail on path separators.
+- Leftover: `C:\Users\james\AppData\Local\Temp\flatten_check_q0_4cqjf` (its removal was denied).
+
+## Build
+
+`pdflatex`, `bibtex`, `pdflatex` ×2: **55 pages**, 0 errors, 0 undefined references, citations or control sequences,
+0 BibTeX warnings.
+
+## Still running
+
+- The audit of the linear switch (`writeup/LINEAR_SWITCH_AUDIT.md`, to follow; nothing rerun or changed in the paper
+  because of it).
+- The pooled MinGRU rerun (`writeup/MINGRU_RERUN_REPORT.md` when done).

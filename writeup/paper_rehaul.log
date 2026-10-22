@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 23.9) (preloaded format=pdflatex 2025.7.14)  22 OCT 2026 07:34
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 23.9) (preloaded format=pdflatex 2025.7.14)  22 OCT 2026 08:17
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -675,47 +675,47 @@ File: t1lmtt.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 ) (paper_rehaul.bbl [27
 
 ] [28] [29] [30]) (rehaul/10_appendix.tex [31] [32]
-[33] [34] [35] [36] [37] [38] [39] [40] [41]
-(generated/rehaul_results_oos_last30.tex) [42]
-Overfull \hbox (28.60205pt too wide) in paragraph at lines 638--640
+[33] [34] [35] [36] [37] [38] [39] [40] [41] [42]
+(generated/rehaul_results_oos_last30.tex) [43]
+Overfull \hbox (28.60205pt too wide) in paragraph at lines 677--679
 \T1/lmr/m/n/10.95 of equal Sharpe ra-tios, used by the three gen-er-a-tors abov
 e; \T1/lmtt/m/n/10.95 writeup/make_rehaul_results.py
  []
 
 
-Overfull \hbox (86.47064pt too wide) in paragraph at lines 640--642
+Overfull \hbox (86.47064pt too wide) in paragraph at lines 679--681
 \T1/lmr/m/n/10.95 (results/pooled_trees_rerun13_2026-10-20/w1000, fit-ted by \T
 1/lmtt/m/n/10.95 experiments/pooled_trees_rerun_13.py\T1/lmr/m/n/10.95 ),
  []
 
 
-Underfull \hbox (badness 1783) in paragraph at lines 640--642
+Underfull \hbox (badness 1783) in paragraph at lines 679--681
 \T1/lmr/m/n/10.95 read by \T1/lmtt/m/n/10.95 writeup/make_rehaul_results.py\T1/
 lmr/m/n/10.95 , \T1/lmtt/m/n/10.95 writeup/make_rehaul_economics.py
  []
 
 
-Underfull \hbox (badness 1571) in paragraph at lines 642--643
+Underfull \hbox (badness 1571) in paragraph at lines 681--682
 []\T1/lmtt/m/n/10.95 writeup/pooled_linear_13.py\T1/lmr/m/n/10.95 : the 16:00 f
 ore-casts of the pooled lin-ear mod-
  []
 
 
-Overfull \hbox (77.3145pt too wide) in paragraph at lines 642--643
+Overfull \hbox (77.3145pt too wide) in paragraph at lines 681--682
 \T1/lmtt/m/n/10.95 experiments/pooled_linear_rerun_2026_10_19_13.py\T1/lmr/m/n/
 10.95 ), read by \T1/lmtt/m/n/10.95 writeup/make_rehaul_results.py
  []
 
 ) (rehaul/10_appendix_floats.tex (generated/rehaul_dm_samples.tex)
-(generated/rehaul_dm_hyper.tex) [43] [44] [45]
-(generated/rehaul_dm_dictionary.tex [46
+(generated/rehaul_dm_hyper.tex) [44] [45] [46]
+(generated/rehaul_dm_dictionary.tex [47
 
 
-] [47] [48] [49]))
-(rehaul/10_statistical_tests.tex [50
+] [48] [49] [50]))
+(rehaul/10_statistical_tests.tex [51
 
 ] (generated/rehaul_app_hac_robust.tex)
-[51] [52]) (rehaul/99_author_notes.tex [53]) [54] (paper_rehaul.aux)
+[52] [53]) (rehaul/99_author_notes.tex [54]) [55] (paper_rehaul.aux)
  ***********
 LaTeX2e <2023-06-01> patch level 1
 L3 programming layer <2023-08-29>
@@ -724,13 +724,13 @@ Package rerunfilecheck Info: File `paper_rehaul.out' has not changed.
 (rerunfilecheck)             Checksum: 0073728DBC65C6830DCB11591D7C72E0;6236.
  ) 
 Here is how much of TeX's memory you used:
- 16014 strings out of 475248
- 261830 string characters out of 5757813
- 2001801 words of memory out of 5000000
- 36987 multiletter control sequences out of 15000+600000
+ 16021 strings out of 475248
+ 261940 string characters out of 5757813
+ 1999801 words of memory out of 5000000
+ 36993 multiletter control sequences out of 15000+600000
  684839 words of font info for 130 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 75i,17n,79p,2660b,888s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 75i,17n,79p,2683b,888s stack positions out of 10000i,1000n,20000p,200000b,200000s
 <C:/Users/james/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmbx10.pf
 b><C:/Users/james/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmbx12.pf
 b><C:/Users/james/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmbx9.pfb
@@ -759,9 +759,9 @@ pData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmsy9.pfb><C:/Users/james/App
 Data/Local/Programs/MiKTeX/fonts/type1/public/lm/lmtt10.pfb><C:/Users/james/App
 Data/Local/Programs/MiKTeX/fonts/type1/public/lm/lmtt9.pfb><C:/Users/james/AppD
 ata/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/symbols/msbm10.pfb>
-Output written on paper_rehaul.pdf (54 pages, 901410 bytes).
+Output written on paper_rehaul.pdf (55 pages, 906709 bytes).
 PDF statistics:
- 1173 PDF objects out of 1200 (max. 8388607)
- 178 named destinations out of 1000 (max. 500000)
+ 1198 PDF objects out of 1200 (max. 8388607)
+ 179 named destinations out of 1000 (max. 500000)
  305 words of extra memory for PDF output out of 10000 (max. 10000000)
 
