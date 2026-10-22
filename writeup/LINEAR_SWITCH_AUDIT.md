@@ -187,6 +187,19 @@ penalty:
   specification search; a window rule must be fixed on pre-sample grounds (and after the late-start fix) and adopted
   whatever it gives.
 
+## 7. The late-start fix (finding 2), done
+
+`LATE_START_WARMUP = True` in `src/backtest/executor.py` (merged into e34 at 21570f0; off reproduces the old design bit
+for bit): a late-start series' scaled averages are the neutral 0 until the scaler's window holds W live rows. The rule
+was written down before any rerun or score. Checks: causal (perturbation test 0 of 204 columns), the fold-2 blow-up is
+gone (24.9–37.8 → 0.065), max |scaled| on the evaluation span 110 → 4.2. At 1,000 days no option-day 16:00 row changes
+and only warm-up forecasts move; the full-set elastic net's penalty is re-picked (1e-2 → 1e-3, a near tie), which takes
+its ΔSR from −0.17 to −0.26. Ridge and lasso are unchanged. With the FOMC release dummy also dropped (564 columns):
+elastic net and ridge as published, lasso −0.26 → −0.24. Runs:
+`results/pooled_linear_rerun_2026-10-22_13_2012_w1000_latestart{,_nofomcrel}/`. The window comparison of section 6
+should be redone with the fix on (it changes the pre-2012 folds), as should the trees, the MinGRU and the
+closing-interval models before the paper uses the fixed design.
+
 ## Bottom line
 
 - **Bugs fixed:** none needed in the new pipeline. The old pipeline's look-ahead was already fixed on 10-15.
