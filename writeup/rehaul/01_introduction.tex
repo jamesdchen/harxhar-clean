@@ -66,9 +66,11 @@
   \begin{itemize}
   \item Incorporating the full predictor set reduces the average out-of-sample QLIKE loss relative to the HAR
     benchmark across every intraday model class (\rhrAfPoolPairs{} classes in total, with \rhrAfPoolLowerSig{}
-    of these reductions statistically significant at the 5\% level; see Section~\ref{sec:rh_results}). The
-    tree-based ensembles exhibit the largest relative improvements, while among the linear specifications, the
-    elastic net achieves a statistically significant reduction.
+    of these reductions statistically significant at the 5\% level; see Section~\ref{sec:rh_results}).
+    % 2026-10-22 (user, E34): parked -- with the base-5 pooled trees their reductions are no longer the largest or significant (make_rehaul_results.py, E34 CLAIM); no ranking. Was: "The tree-based ensembles exhibit the largest relative improvements, while among the linear specifications, the elastic net achieves a statistically significant reduction."
+    Among the linear specifications, the elastic net achieves a statistically significant reduction; among the
+    tree ensembles, the reduction is statistically significant at the 5\% level in \rhrAfPoolTreeLowerSig{} of
+    the three classes.
   % 2026-10-19 (user): parked -- the MSE finding, with the QLIKE/squared-error divergence bullet of 06_results.tex
   % and the abstract's MSE clause. Was:
   % \item In contrast, evaluation under mean squared error (MSE) does not corroborate these gains: the full
@@ -76,8 +78,10 @@
   %   and none of the MSE differences is statistically significant.
   % 2026-10-17 (user): parked -- closing-interval material (relabeled: closing-interval HAR benchmark). Was: "than the closing-interval benchmark forecast."
   \item Every pooled intraday forecast incurs a higher average QLIKE loss than the closing-interval HAR
-    benchmark. While this performance gap is statistically insignificant at the 5\% level for the linear models,
-    it is significant for the tree ensembles. Notably, augmenting the intraday models with the full predictor
+    % 2026-10-22 (user, E34): parked -- with the base-5 pooled trees the gap on the full predictor set is significant for \rhrVsBmPoolTreeFullSig{} of the three tree ensembles, not all (make_rehaul_results.py, E34 CLAIM). Was: "benchmark. While this performance gap is statistically insignificant at the 5\% level for the linear models, it is significant for the tree ensembles. Notably, augmenting the intraday models with the full predictor"
+    benchmark. Under the full predictor set, this performance gap is statistically insignificant at the 5\% level
+    for the linear models and significant for \rhrVsBmPoolTreeFullSig{} of the three tree ensembles. Notably,
+    augmenting the intraday models with the full predictor
     set narrows this gap across all model classes (see Section~\ref{sec:rh_results_classes}).
   \end{itemize}
 \item \textbf{Economic application.} To assess the economic value of the forecasts on trading days with a
