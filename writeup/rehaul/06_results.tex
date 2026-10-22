@@ -55,12 +55,28 @@
 % \item \textbf{Out-of-sample period} $\mathcal T_{\mathrm{oos}}$: \rheSampleStart{} to \rheSampleEnd,
 %   $T_{\mathrm{oos}} = |\mathcal T_{\mathrm{oos}}| = \cmNdays$ trading days
 %   (Section~\ref{sec:rh_data}).
+% 2026-10-22 (user): moved here from the data section (03_data.tex, "Estimation and evaluation samples"): the pooled
+% intraday sample and the closing-interval sample; the evaluation span below was already here.
+\item \textbf{Estimation samples} (see Appendix Table~\ref{tab:rh_dm_samples}). The pooled intraday sample comprises
+  \rhdmPooledRows{} half-hour intervals beginning in June 1998,
+  \[
+    \rhdmPooledRows = \rhdmGridRows \text{ intervals on the grid} - \rhdmBurnIn \text{ burn-in samples};
+  \]
+  the pooled linear models and tree ensembles of Table~\ref{tab:rh_oos} and of this section and
+  Section~\ref{sec:rh_econ} are trained on its \rhorNBars{} regular-hours bars with rolling windows of
+  $W = \rhorWindowBars$ bars (\rhorWindowDays{} trading days; training scheme below), and the pooled linear runs of the
+  model set on all its intervals with $W = \rhdmPooledLinWindow$ intervals (Appendix~\ref{sec:rh_exp_schemes}).
+  % 2026-10-22 (user): the closing-interval sample is not presented in the experiments section; it is described with
+  % the closing-interval models in the final subsection of Section 7 (sec:rh_econ_last30) and in
+  % Appendix app:rh_closing_sample.
+% 2026-10-22 (user): parked -- the closing-interval pre-sample (\cmPt... macros) is not presented in the experiments
+% section (see the final subsection of Section 7). Was: "This evaluation span begins with the pooled intraday linear
+% forecasts immediately following the pre-sample validation period (\cmPtValFirst{} to \cmPtValLast) used to select the
+% linear regularization penalties."
 \item \textbf{Evaluation span $\mathcal T_{\mathrm{oos}}$} (see Section~\ref{sec:rh_results_eval}). We evaluate
   the rolling out-of-sample forecasts over the period from \rhoosSpanStart{} to \rhoosSpanEnd, which comprises
   $T_{\mathrm{oos}} = |\mathcal T_{\mathrm{oos}}| = \rhoosDays$ trading days on which all competing forecasts are
-  available (after excluding \rhoosEarlyCloses{} early-close sessions). This evaluation span begins with the
-  pooled intraday linear forecasts immediately following the pre-sample validation period (\cmPtValFirst{} to
-  \cmPtValLast) used to select the linear regularization penalties.
+  available (after excluding \rhoosEarlyCloses{} early-close sessions).
   % 2026-10-20 (user): added -- Table 1 scored from 2012 (TABLE1_SWITCH.md, approved).
   % 2026-10-22 (user, E36): parked -- Table 1 now holds the pooled tree ensembles too. Was: "The pooled linear models of Table~\ref{tab:rh_oos} are scored on a longer span, from \rhorSpanStart{} to \rhorSpanEnd{} (\rhorDays{} trading days, after excluding \rhorEarlyCloses{} early-close sessions), with a rolling window of \rhorWindowDays{} trading days and penalties chosen once on \rhorPenFolds{} validation folds covering \rhorPenYears{}, before the first forecast, and then frozen."
   The pooled linear models and tree ensembles of Table~\ref{tab:rh_oos} are scored on a longer span, from

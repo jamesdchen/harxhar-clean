@@ -217,75 +217,77 @@ The futures moments are now sums of one-minute changes in the log price of the f
     % CODE: the executor scores true_raw = tilde_y_{t,c}^2 s^2_{t,c} (metrics.py:50), i.e. the winsorised RV, not
     % RV_{t,c}.
   \end{itemize}
-\item \textbf{Estimation and evaluation samples} (see Appendix Table~\ref{tab:rh_dm_samples}).
-  % 2026-10-15 (user): the samples table moved to the appendix (Implementation details); the pointer says so.
-  \begin{itemize}
-  % 2026-10-15 (finish, phase 2): parked -- one pooled window W = 24,000 was wrong for the linear models
-  % (tab:rh_dm_tuning, experiments/pool_linear_pretune.py:65-66: 2,000 days x 48 = 96,000); typed counts -> macros.
-  % Was: "Pooled intraday sample: 300,317 half-hour intervals from June 1998, with a rolling estimation window of
-  % $W = 24{,}000$ intervals: 300{,}317 = 303{,}442 ... - 3{,}125 ..."; "3,469 trading days"; "\rhfiNOos = 3{,}469 - ...".
-  % 2026-10-22 (user, E34): parked -- the tree ensembles are the base-5 refit on the regular-hours bars (writeup/pooled_trees_13.py). Was: "\item The pooled intraday sample comprises \rhdmPooledRows{} half-hour intervals beginning in June 1998, using rolling estimation windows of length $W = \rhdmPooledWindow$ intervals for the tree ensembles and $W = \rhdmPooledLinWindow$ intervals for the linear models (see Appendix~\ref{sec:rh_exp_schemes}); the linear models of Table~\ref{tab:rh_oos} are trained on the \rhorNBars{} regular-hours bars with $W = \rhorWindowBars$ bars (\rhorWindowDays{} trading days):"
-  % 2026-10-22 (user, E34: one design for the 12 pooled forecasts): parked -- the pooled linear models of Sections 6 and 7 are the forecasts of Table 1 on the regular-hours bars; the 96,000-interval window is the model set's runs. Was: "... using rolling estimation windows of length $W = \rhdmPooledLinWindow$ intervals for the linear models (see Appendix~\ref{sec:rh_exp_schemes}); the linear models of Table~\ref{tab:rh_oos} and the tree ensembles are trained on the \rhorNBars{} regular-hours bars with $W = \rhorWindowBars$ bars (\rhorWindowDays{} trading days):"
-  \item The pooled intraday sample comprises \rhdmPooledRows{} half-hour intervals beginning in June 1998, using
-    rolling estimation windows of length $W = \rhdmPooledLinWindow$ intervals for the pooled linear models of the
-    model set (see Appendix~\ref{sec:rh_exp_schemes}); the pooled linear models of Table~\ref{tab:rh_oos} and
-    Sections~\ref{sec:rh_results}--\ref{sec:rh_econ} and the tree ensembles are
-    trained on the \rhorNBars{} regular-hours bars with $W = \rhorWindowBars$ bars (\rhorWindowDays{} trading
-    days):
-    % 2026-10-15 (finish): FLAG resolved -- typed 96{,}000 -> \rhdmPooledLinWindow (make_rehaul_data_methods.py, same value).
-    \[
-      % 2026-10-18 (user, new-notes 6): parked -- k in samples. Was: "\rhdmPooledRows = \rhdmGridRows \text{ intervals on the grid} - \rhdmBurnIn \text{ burn-in intervals}."
-      \rhdmPooledRows = \rhdmGridRows \text{ intervals on the grid} - \rhdmBurnIn \text{ burn-in samples}.
-    \]
-  % 2026-10-17 (user): parked -- closing-interval material: the closing-interval sample, its start date, its rolling forecasts and the linear pre-sample moved to Appendix app:rh_closing_sample. Was:
-  % \item The closing-interval sample ($i = c$) consists of \rhdmCloseDays{} trading days from July 2010 through
-    % April 2024, estimated on a rolling window of $W = \cmPtFitWin$ trading days.
-  % \item This rolling procedure yields \rhfiNOos{} out-of-sample closing-interval forecasts starting in June 2018:
-    % \[
-      % \rhfiNOos = \rhdmCloseDays - \cmPtFitWin .
-    % \]
-    % % The 3,125-row burn-in is dropped after slicing to one row per session (executor.py:348-349), so it
-    % % removes 1998-2010 sessions (outline flag 9).
-    % % 2026-10-15 (consolidation): 2,000 -> \cmPtFitWin and 1,469 -> \rhfiNOos (the variable-importance section's
-    % % out-of-sample days, the same 2018-2024 forecasts); 3,469 has no macro yet.
-  % \item Hyperparameter selection for the linear specifications is conducted on an initial pre-sample using
-    % closing-interval observations starting on \cmPtPreStart, with validation windows spanning \cmPtValFirst{} to
-    % \cmPtValLast.
-  \item The closing-interval sample ($i = c$, one observation per trading day) used by the closing-interval HAR benchmark, its rolling forecasts and the pre-sample on which the linear penalties are selected are described in Appendix~\ref{app:rh_closing_sample}.
-  % 2026-10-15 (user): parked -- "Out of sample period doesn't make sense for forecasts because we're performing
-  % rolling backtests. The forecasting results need to be calculated to reflect such (that the out of sample forecasts
-  % are done on a rolling basis after the burn in training window)". Accuracy is now evaluated over every rolling
-  % forecast (the evaluation span); the 866 expiration days are the option-data subsample of the economics. Was:
-  % \item Out-of-sample period: \rheSampleStart{} to \rheSampleEnd.
-  %   \[
-  %     T_{\mathrm{oos}} = \cmNdays \text{ trading days} = \rhdmExpirationsOos \text{ SPXW expirations}
-  %       - \rhdmEarlyCloses \text{ early-close days}.
-  %   \]
-  \item The primary out-of-sample evaluation span $\mathcal T_{\mathrm{oos}}$ covers \rhoosSpanStart{} to
-    \rhoosSpanEnd{} ($T_{\mathrm{oos}} = \rhoosDays$ trading days on which all rolling forecasts are available,
-    after excluding \rhoosEarlyCloses{} early-close sessions). This span begins immediately following the linear
-    % 2026-10-17 (user): parked -- closing-interval material (the pre-sample moved to Appendix app:rh_closing_sample). Was: "pre-sample period described above (see"
-    models' pre-sample period (Appendix~\ref{app:rh_closing_sample}; see Section~\ref{sec:rh_results_eval}).
-  % 2026-10-20 (user): added -- Table 1 scored from 2012 (TABLE1_SWITCH.md, approved).
-  \item Table~\ref{tab:rh_oos} is scored on a longer span, \rhorSpanStart{} to \rhorSpanEnd{} (\rhorDays{}
-    % 2026-10-22 (user, E36): parked -- Table 1 now holds the tree ensembles too. Was: "its penalties are chosen once on \rhorPenFolds{} validation folds covering \rhorPenYears{} and then frozen."
-    trading days, after excluding \rhorEarlyCloses{} early-close sessions); its linear penalties are chosen once on
-    \rhorPenFolds{} validation folds covering \rhorPenYears{} and then frozen, and its tree ensembles keep one
-    configuration per method from an Optuna search on the pre-sample.
-  \item The option-trading subsample $\mathcal T_{\mathrm{opt}} \subset \mathcal T_{\mathrm{oos}}$, on which we
-    evaluate the 0DTE straddle strategy in Section~\ref{sec:rh_econ}, consists of
-    \[
-      T_{\mathrm{opt}} = \cmNdays \text{ trading days} = \rhdmExpirationsOos \text{ SPXW expirations}
-        - \rhdmEarlyCloses \text{ early-close days}.
-    \]
-    % 2026-10-15 (consolidation): parked -- typed 866 and month-level dates; now \cmNdays, \rheSampleStart/End,
-    % \cmPtPreStart, \cmPtValFirst/Last. Was: "back to 2004; validation samples in 2016--2019"; "January 2020 to
-    % April 2024"; T_oos = 866.
-  % 2026-10-15 (finish, phase 2): parked -- wrong count: 419 later expirations, 413 of them full trading days. Was:
-  % \item The 413 later expirations are held out.
-  %   % 1,291 - 872 = 419 later expirations; 413 presumably excludes their 6 early closes. Check.
-  \item Finally, the \rhdmHeldOutExpirations{} subsequent SPXW expiration dates (\rhdmHeldOut{} full trading
-    days) are held out from the present analysis.
-  \end{itemize}
+% 2026-10-22 (user): parked -- the "Estimation and evaluation samples" item, split and moved: the estimation samples and the evaluation span to Section 6 (06_results.tex, Experimental setup, sec:rh_exp_setup), the option-trading subsample and the held-out expirations to Section 7 (07_economics.tex, The straddle strategy). Was:
+% \item \textbf{Estimation and evaluation samples} (see Appendix Table~\ref{tab:rh_dm_samples}).
+%   % 2026-10-15 (user): the samples table moved to the appendix (Implementation details); the pointer says so.
+%   \begin{itemize}
+%   % 2026-10-15 (finish, phase 2): parked -- one pooled window W = 24,000 was wrong for the linear models
+%   % (tab:rh_dm_tuning, experiments/pool_linear_pretune.py:65-66: 2,000 days x 48 = 96,000); typed counts -> macros.
+%   % Was: "Pooled intraday sample: 300,317 half-hour intervals from June 1998, with a rolling estimation window of
+%   % $W = 24{,}000$ intervals: 300{,}317 = 303{,}442 ... - 3{,}125 ..."; "3,469 trading days"; "\rhfiNOos = 3{,}469 - ...".
+%   % 2026-10-22 (user, E34): parked -- the tree ensembles are the base-5 refit on the regular-hours bars (writeup/pooled_trees_13.py). Was: "\item The pooled intraday sample comprises \rhdmPooledRows{} half-hour intervals beginning in June 1998, using rolling estimation windows of length $W = \rhdmPooledWindow$ intervals for the tree ensembles and $W = \rhdmPooledLinWindow$ intervals for the linear models (see Appendix~\ref{sec:rh_exp_schemes}); the linear models of Table~\ref{tab:rh_oos} are trained on the \rhorNBars{} regular-hours bars with $W = \rhorWindowBars$ bars (\rhorWindowDays{} trading days):"
+%   % 2026-10-22 (user, E34: one design for the 12 pooled forecasts): parked -- the pooled linear models of Sections 6 and 7 are the forecasts of Table 1 on the regular-hours bars; the 96,000-interval window is the model set's runs. Was: "... using rolling estimation windows of length $W = \rhdmPooledLinWindow$ intervals for the linear models (see Appendix~\ref{sec:rh_exp_schemes}); the linear models of Table~\ref{tab:rh_oos} and the tree ensembles are trained on the \rhorNBars{} regular-hours bars with $W = \rhorWindowBars$ bars (\rhorWindowDays{} trading days):"
+%   \item The pooled intraday sample comprises \rhdmPooledRows{} half-hour intervals beginning in June 1998, using
+%     rolling estimation windows of length $W = \rhdmPooledLinWindow$ intervals for the pooled linear models of the
+%     model set (see Appendix~\ref{sec:rh_exp_schemes}); the pooled linear models of Table~\ref{tab:rh_oos} and
+%     Sections~\ref{sec:rh_results}--\ref{sec:rh_econ} and the tree ensembles are
+%     trained on the \rhorNBars{} regular-hours bars with $W = \rhorWindowBars$ bars (\rhorWindowDays{} trading
+%     days):
+%     % 2026-10-15 (finish): FLAG resolved -- typed 96{,}000 -> \rhdmPooledLinWindow (make_rehaul_data_methods.py, same value).
+%     \[
+%       % 2026-10-18 (user, new-notes 6): parked -- k in samples. Was: "\rhdmPooledRows = \rhdmGridRows \text{ intervals on the grid} - \rhdmBurnIn \text{ burn-in intervals}."
+%       \rhdmPooledRows = \rhdmGridRows \text{ intervals on the grid} - \rhdmBurnIn \text{ burn-in samples}.
+%     \]
+%   % 2026-10-17 (user): parked -- closing-interval material: the closing-interval sample, its start date, its rolling forecasts and the linear pre-sample moved to Appendix app:rh_closing_sample. Was:
+%   % \item The closing-interval sample ($i = c$) consists of \rhdmCloseDays{} trading days from July 2010 through
+%     % April 2024, estimated on a rolling window of $W = \cmPtFitWin$ trading days.
+%   % \item This rolling procedure yields \rhfiNOos{} out-of-sample closing-interval forecasts starting in June 2018:
+%     % \[
+%       % \rhfiNOos = \rhdmCloseDays - \cmPtFitWin .
+%     % \]
+%     % % The 3,125-row burn-in is dropped after slicing to one row per session (executor.py:348-349), so it
+%     % % removes 1998-2010 sessions (outline flag 9).
+%     % % 2026-10-15 (consolidation): 2,000 -> \cmPtFitWin and 1,469 -> \rhfiNOos (the variable-importance section's
+%     % % out-of-sample days, the same 2018-2024 forecasts); 3,469 has no macro yet.
+%   % \item Hyperparameter selection for the linear specifications is conducted on an initial pre-sample using
+%     % closing-interval observations starting on \cmPtPreStart, with validation windows spanning \cmPtValFirst{} to
+%     % \cmPtValLast.
+%   \item The closing-interval sample ($i = c$, one observation per trading day) used by the closing-interval HAR benchmark, its rolling forecasts and the pre-sample on which the linear penalties are selected are described in Appendix~\ref{app:rh_closing_sample}.
+%   % 2026-10-15 (user): parked -- "Out of sample period doesn't make sense for forecasts because we're performing
+%   % rolling backtests. The forecasting results need to be calculated to reflect such (that the out of sample forecasts
+%   % are done on a rolling basis after the burn in training window)". Accuracy is now evaluated over every rolling
+%   % forecast (the evaluation span); the 866 expiration days are the option-data subsample of the economics. Was:
+%   % \item Out-of-sample period: \rheSampleStart{} to \rheSampleEnd.
+%   %   \[
+%   %     T_{\mathrm{oos}} = \cmNdays \text{ trading days} = \rhdmExpirationsOos \text{ SPXW expirations}
+%   %       - \rhdmEarlyCloses \text{ early-close days}.
+%   %   \]
+%   \item The primary out-of-sample evaluation span $\mathcal T_{\mathrm{oos}}$ covers \rhoosSpanStart{} to
+%     \rhoosSpanEnd{} ($T_{\mathrm{oos}} = \rhoosDays$ trading days on which all rolling forecasts are available,
+%     after excluding \rhoosEarlyCloses{} early-close sessions). This span begins immediately following the linear
+%     % 2026-10-17 (user): parked -- closing-interval material (the pre-sample moved to Appendix app:rh_closing_sample). Was: "pre-sample period described above (see"
+%     models' pre-sample period (Appendix~\ref{app:rh_closing_sample}; see Section~\ref{sec:rh_results_eval}).
+%   % 2026-10-20 (user): added -- Table 1 scored from 2012 (TABLE1_SWITCH.md, approved).
+%   \item Table~\ref{tab:rh_oos} is scored on a longer span, \rhorSpanStart{} to \rhorSpanEnd{} (\rhorDays{}
+%     % 2026-10-22 (user, E36): parked -- Table 1 now holds the tree ensembles too. Was: "its penalties are chosen once on \rhorPenFolds{} validation folds covering \rhorPenYears{} and then frozen."
+%     trading days, after excluding \rhorEarlyCloses{} early-close sessions); its linear penalties are chosen once on
+%     \rhorPenFolds{} validation folds covering \rhorPenYears{} and then frozen, and its tree ensembles keep one
+%     configuration per method from an Optuna search on the pre-sample.
+%   \item The option-trading subsample $\mathcal T_{\mathrm{opt}} \subset \mathcal T_{\mathrm{oos}}$, on which we
+%     evaluate the 0DTE straddle strategy in Section~\ref{sec:rh_econ}, consists of
+%     \[
+%       T_{\mathrm{opt}} = \cmNdays \text{ trading days} = \rhdmExpirationsOos \text{ SPXW expirations}
+%         - \rhdmEarlyCloses \text{ early-close days}.
+%     \]
+%     % 2026-10-15 (consolidation): parked -- typed 866 and month-level dates; now \cmNdays, \rheSampleStart/End,
+%     % \cmPtPreStart, \cmPtValFirst/Last. Was: "back to 2004; validation samples in 2016--2019"; "January 2020 to
+%     % April 2024"; T_oos = 866.
+%   % 2026-10-15 (finish, phase 2): parked -- wrong count: 419 later expirations, 413 of them full trading days. Was:
+%   % \item The 413 later expirations are held out.
+%   %   % 1,291 - 872 = 419 later expirations; 413 presumably excludes their 6 early closes. Check.
+%   \item Finally, the \rhdmHeldOutExpirations{} subsequent SPXW expiration dates (\rhdmHeldOut{} full trading
+%     days) are held out from the present analysis.
+%   \end{itemize}
+\item \textbf{Estimation and evaluation samples.} Appendix Table~\ref{tab:rh_dm_samples} lists the samples. The estimation samples and the evaluation span of the forecasts are set out with the experiments (Section~\ref{sec:rh_exp_setup}), the option-trading sample with the application (Section~\ref{sec:rh_econ_strategy}), and the closing-interval sample with the closing-interval models (Section~\ref{sec:rh_econ_last30}).
 \end{itemize}
 
