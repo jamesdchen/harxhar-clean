@@ -31,9 +31,19 @@ SCORING (one convention for every number written here)
 
 SOURCES
   results/close_master_table/master_table.csv, master_table_daily.parquet, paper_model_set.csv  (the model set);
-  results/pooled_trees_2026-10-07/yhat_pooltree_<est>_baseline.parquet, ..._rf_all_features_INTERIM1600.parquet
-      (pooled trees not in the master table: 16:00 rows, plain = yhat^2 x baseline, as the GUI's plain_16);
-      the pooled LightGBM / XGBoost on all features are the master table's ``lgbm`` / ``xgb`` rows;
+  # results/pooled_trees_2026-10-07/yhat_pooltree_<est>_baseline.parquet, ..._rf_all_features_INTERIM1600.parquet
+  #     (pooled trees not in the master table: 16:00 rows, plain = yhat^2 x baseline, as the GUI's plain_16);
+  #     the pooled LightGBM / XGBoost on all features are the master table's ``lgbm`` / ``xgb`` rows;
+  #     -- 2026-10-22 (user, E34): parked -- the base-2 pooled trees; replaced by the next entry
+  results/pooled_trees_rerun13_2026-10-20/w1000/forecasts.parquet, read by writeup/pooled_trees_13.py (2026-10-22,
+      note E34: base 5 across the paper): the six pooled trees (LightGBM, XGBoost, random forest on the HAR benchmark
+      and on the full predictor set) at the 16:00 bar, plain = pred_adj^2 x B, fitted on the design of Table 1's
+      pooled linear 13-bar rerun (the 13 regular-hours bars, base-5 HAR horizons, FOMC series in; a rolling window of
+      1,000 trading days = 13,000 bars, refit at every bar), for the trades on the 866 days and for the accuracy
+      frames on the common rolling span (gated: the bar's realized variance is the scoring truth on both).  None of
+      them is a master-table row: the master table's ``lgbm`` / ``xgb`` (the earlier draft's pooled trees, no FOMC)
+      stay in the model set as they are, no longer aliased to the pooled trees on the full set; the forest's walk is
+      complete, so no forecast is interim (no dagger);
   results/puffer_forecast_2026-10-12/qlike_study/score_rinitq/forecasts.csv  (the per-bar ridge-init MinGRU,
       QLIKE-tuned, 5-seed mean), scored exactly as writeup/master_table_gui/rows.py _nn_daily: row -> date by the
       feature study's inputs.json, B from the close-study targets.parquet, plain = f^2 B, target / IV variance
@@ -79,6 +89,15 @@ NN PARKED (2026-10-15, user: "park all of the NN stuff for now")
   values but unused by the floats, so prose that still cites them compiles.  Parked code is marked
   "2026-10-15 (user): parked -- NN content parked for now".
 
+E34 (2026-10-22, user: "base 5 across the paper")
+  Every pooled-tree input is the 13-bar rerun's (pooled_trees_13.py; SOURCES), for the trades and for the accuracy
+  frames.  The full-set pooled LightGBM / XGBoost no longer alias the master table's lgbm / xgb (which stay in the model
+  set, unchanged), so T1 / T2 drop note a and the ranking carries 118 forecasts; no forecast is interim (no dagger).
+  The gates against the base-2 trees' stored scores are parked, replaced by gates on pt13 (QLIKE recomputed from its
+  plain and RV; its RV is the scoring truth); the base-2 trees' values of record print "E34 CHANGED"; the prose claims
+  the new trees no longer bear out print "E34 CLAIM" (macro, value, sentence) instead of stopping the run, and the
+  claims that still hold stay asserted.  Parked code is marked "2026-10-22 (user, E34)".
+
 Run:  python writeup/make_rehaul_results.py [--span rolling | mt866]
 """
 
@@ -102,6 +121,7 @@ from src.evaluation.diebold_mariano import dm_test  # noqa: E402
 import atm_straddle_lib as asl  # noqa: E402
 import hac_inference as hi  # noqa: E402  (2026-10-21, decision #2: every test of strategy returns)
 import rolling_eval_2026_10_15 as rolling  # noqa: E402  (2026-10-15: the common rolling span of every accuracy number)
+import pooled_trees_13 as pt13  # noqa: E402  (2026-10-22, E34: the base-5 pooled trees, writeup/pooled_trees_13.py)
 
 # 2026-10-15 (user, restructure): the GUI's sizing scorer, as make_rehaul_economics.py calls it (pooled sizing medians)
 from master_table_gui import rows as gui  # noqa: E402
@@ -117,7 +137,10 @@ from matplotlib.transforms import blended_transform_factory  # noqa: E402
 GEN = ROOT / "generated"
 FIG = ROOT / "figures"
 MT = REPO / "results" / "close_master_table"
-POOLTREE = REPO / "results" / "pooled_trees_2026-10-07"
+# 2026-10-22 (user, E34): parked -- the base-2 pooled trees (and their stored scores, score_*/levels.csv, pairs.csv);
+# the pooled trees are now read through pooled_trees_13.py (pt13, PT13_KEY). Was:
+# POOLTREE = REPO / "results" / "pooled_trees_2026-10-07"
+PT13_KEY = {f"pooltree_{e}_{b}": (e, b) for e in pt13.EST for b in pt13.SETS}  # key -> (estimator, predictor set)
 NN_FC = (
     REPO
     / "results"
@@ -246,7 +269,8 @@ def crossed(q: np.ndarray, j: pd.DataFrame) -> np.ndarray:
 
 
 def plain_16(path: Path) -> pd.Series:
-    """16:00 ET rows of a yhat table: f^2 x B (writeup/master_table_gui/rows.py plain_16)."""
+    """16:00 ET rows of a yhat table: f^2 x B (writeup/master_table_gui/rows.py plain_16).  2026-10-22 (E34): no longer
+    called (the base-5 pooled trees come from pt13.plain_16, the same 16:00 rule); kept as the rule of record."""
     y = pd.read_parquet(path, columns=["t", "yhat", "baseline"])
     t = pd.to_datetime(y["t"], utc=True).dt.tz_convert("America/New_York")
     at16 = ((t.dt.hour == 16) & (t.dt.minute == 0)).to_numpy()
@@ -343,33 +367,48 @@ def load_all() -> tuple[pd.DataFrame, pd.DataFrame, dict[str, pd.DataFrame]]:
             )
     by.update(nn_frames(ref, quotes))
     by.update(nn_pooled_frames(ref, quotes))
-    for est in ("lgbm", "xgb", "rf"):
-        by[f"pooltree_{est}_baseline"] = frame(
-            plain_16(POOLTREE / f"yhat_pooltree_{est}_baseline.parquet"), ref, quotes
+    # 2026-10-22 (user, E34): parked -- the base-2 pooled trees, and the full-set pooled LightGBM / XGBoost aliased to
+    # the master table's lgbm / xgb rows (the earlier draft's trees). Was:
+    # for est in ("lgbm", "xgb", "rf"):
+    #     by[f"pooltree_{est}_baseline"] = frame(
+    #         plain_16(POOLTREE / f"yhat_pooltree_{est}_baseline.parquet"), ref, quotes
+    #     )
+    # by["pooltree_rf_all_features"] = frame(
+    #     plain_16(POOLTREE / "yhat_pooltree_rf_all_features_INTERIM1600.parquet"),
+    #     ref,
+    #     quotes,
+    # )
+    # by["pooltree_lgbm_all_features"] = by["lgbm"]
+    # by["pooltree_xgb_all_features"] = by["xgb"]
+    # 2026-10-22 (user, E34): the six pooled trees of the 13-bar rerun (base 5) at the 16:00 bar, each a frame of its
+    # own; gate: the bar's realized variance is the master table's actual RV on the 866 days
+    for k, (est, b) in PT13_KEY.items():
+        g = pt13.at16(est, b)
+        by[k] = frame(g["plain"], ref, quotes)
+        rel = float(
+            np.max(np.abs(g["rv"].reindex(ref.index) / ref["rv_unclipped"] - 1.0))
         )
-    by["pooltree_rf_all_features"] = frame(
-        plain_16(POOLTREE / "yhat_pooltree_rf_all_features_INTERIM1600.parquet"),
-        ref,
-        quotes,
-    )
-    by["pooltree_lgbm_all_features"] = by["lgbm"]
-    by["pooltree_xgb_all_features"] = by["xgb"]
+        assert rel <= 1e-12, (k, rel)
     if SPAN == "rolling":
         build_acc(s, by)
     return m, s, by
 
 
-ACC_ALIAS = {
-    "pooltree_lgbm_all_features": "lgbm",
-    "pooltree_xgb_all_features": "xgb",
-}  # the master table's keys
+# 2026-10-22 (user, E34): parked -- the full-set pooled LightGBM / XGBoost are frames of their own (base-5 trees), no
+# longer the master table's rows. Was:
+# ACC_ALIAS = {
+#     "pooltree_lgbm_all_features": "lgbm",
+#     "pooltree_xgb_all_features": "xgb",
+# }  # the master table's keys
 
 
 def build_acc(s: pd.DataFrame, by: dict[str, pd.DataFrame]) -> None:
     """2026-10-15 (user: accuracy over every rolling forecast): the accuracy frame (plain, actual RV, daily QLIKE) of
     every forecast this script scores, on the common rolling span rolling.common_span(), keyed by id() of its trade
-    frame (aliased keys share one frame).  Gate: on the 866 option-data days it carries the trade frame's forecast
-    and truth."""
+    frame (aliased keys share one frame; 2026-10-22, E34: no key is aliased any more).  Gate: on the 866 option-data
+    days it carries the trade frame's forecast and truth.  2026-10-22 (E34): the pooled trees' plain is pt13's 16:00
+    forecast on the span (not rolling.scored, which reads the base-2 tables); gates: it exists on every day of the
+    span, and the bar's realized variance pt13 carries is rolling.history() there."""
     days = rolling.common_span()
     rv = rolling.history().reindex(days)
     assert np.isfinite(rv.to_numpy()).all() and (rv > 0).all()
@@ -378,18 +417,36 @@ def build_acc(s: pd.DataFrame, by: dict[str, pd.DataFrame]) -> None:
         | set(NN_PLAIN)
         | {k for _, _, pb, pool in FAMILY_ROWS + [NN_ROW] for k in (*pb, *(pool or ()))}
     )
-    keys |= {f"pooltree_{e}_baseline" for e in ("lgbm", "xgb", "rf")} | {
-        "pooltree_rf_all_features"
-    }
+    # 2026-10-22 (user, E34): parked -- the four base-2 pooled trees outside the master table. Was:
+    # keys |= {f"pooltree_{e}_baseline" for e in ("lgbm", "xgb", "rf")} | {
+    #     "pooltree_rf_all_features"
+    # }
+    keys |= set(PT13_KEY)
+    pt_plain: dict[str, pd.Series] = {}
+    for k, (est, b) in PT13_KEY.items():
+        g = pt13.at16(est, b)
+        miss = days[~days.isin(g.index)]
+        assert len(miss) == 0, (k, len(miss), miss[:5])
+        rel = float(np.max(np.abs(g["rv"].reindex(days) / rv - 1.0)))
+        assert rel <= 1e-12, (k, rel)
+        pt_plain[k] = g["plain"]
     for k in sorted(keys):
-        f = by[ACC_ALIAS.get(k, k)]
+        # f = by[ACC_ALIAS.get(k, k)]  # 2026-10-22 (user, E34): parked -- no aliased key
+        f = by[k]
         if id(f) in ACC:
             continue
-        plain = (
-            NN_PLAIN[k]
-            if k in NN_PLAIN
-            else rolling.scored(ACC_ALIAS.get(k, k))["plain"]
-        )
+        # 2026-10-22 (user, E34): parked -- rolling.scored read the base-2 pooled trees. Was:
+        # plain = (
+        #     NN_PLAIN[k]
+        #     if k in NN_PLAIN
+        #     else rolling.scored(ACC_ALIAS.get(k, k))["plain"]
+        # )
+        if k in NN_PLAIN:
+            plain = NN_PLAIN[k]
+        elif k in pt_plain:
+            plain = pt_plain[k]
+        else:
+            plain = rolling.scored(k)["plain"]
         p = plain.reindex(days)
         assert np.isfinite(p.to_numpy()).all() and (p > 0).all(), (
             k,
@@ -698,9 +755,13 @@ NN_ROW = (
     ("mingru_rinitq_baseline", "mingru_rinitq_all_features"),
     ("mingru_pooled_rinitq_baseline", "mingru_pooled_rinitq_all_features"),
 )
-INTERIM = {
-    "pooltree_rf_all_features"
-}  # the pooled forest on all features: 16:00 rows of a walk still running
+# 2026-10-22 (user, E34): parked -- the interim forest: the base-5 forest's walk is complete, so no forecast carries the
+# dagger and no note prints the preliminary item (main() asserts INTERIM is empty; the dagger code paths are inert).
+# Was:
+# INTERIM = {
+#     "pooltree_rf_all_features"
+# }  # the pooled forest on all features: 16:00 rows of a walk still running
+INTERIM: set[str] = set()
 
 
 # 2026-10-15 (table legibility): parked -- code labels (per-bar, HAR + cal., rand. search (SE), refit 10, earlier panel); replaced by describe_key below
@@ -1249,9 +1310,14 @@ ITEM_PRELIM = (
     "predictor set, from an exercise still in progress."
 )
 ITEM_PRELIM_SHORT = "\\item[$\\dagger$] Preliminary (see Table~\\ref{tab:rh_axis1})."
+# 2026-10-22 (user, E34): ITEM_EARLIER_FULL, ITEM_PRELIM and ITEM_PRELIM_SHORT are no longer printed (no T1 / T2 row is
+# the earlier draft's, no forecast is preliminary); kept defined for the parked calls below.
 # T1 / T2 rows whose pooled intraday forecast on the full predictor set is the earlier draft's (the master table's
 # lgbm / xgb rows; main() asserts the aliasing)
-EARLIER_POOLED_FULL = ("LightGBM", "XGBoost")
+# 2026-10-22 (user, E34): parked -- the intraday LightGBM / XGBoost on the full predictor set are the base-5 trees, not
+# the master table's lgbm / xgb rows, so no T1 / T2 row carries tnote a (main() asserts no aliasing). Was:
+# EARLIER_POOLED_FULL = ("LightGBM", "XGBoost")
+EARLIER_POOLED_FULL: tuple[str, ...] = ()
 
 
 def table_t1(rows: list[dict]) -> str:
@@ -1305,9 +1371,13 @@ def table_t1(rows: list[dict]) -> str:
     return "\n".join(
         [
             HEAD,
-            "% tab:rh_axis1 (T1). The intraday LightGBM and XGBoost on the full predictor set are the master",
-            "% table's lgbm and xgb rows, the earlier draft's pooled trees; their HAR-benchmark twins come from",
-            "% results/pooled_trees_2026-10-07.",
+            # 2026-10-22 (user, E34): parked -- the base-2 trees and the lgbm / xgb aliasing. Was:
+            # "% tab:rh_axis1 (T1). The intraday LightGBM and XGBoost on the full predictor set are the master",
+            # "% table's lgbm and xgb rows, the earlier draft's pooled trees; their HAR-benchmark twins come from",
+            # "% results/pooled_trees_2026-10-07.",
+            "% tab:rh_axis1 (T1). The intraday trees (LightGBM, XGBoost, random forest; HAR and full predictor set)",
+            "% are the pooled trees of the 13-bar rerun, base 5 (results/pooled_trees_rerun13_2026-10-20/w1000,",
+            "% writeup/pooled_trees_13.py).",
             "\\begin{table}[htbp]",
             "\\centering",
             "\\small",
@@ -1325,8 +1395,9 @@ def table_t1(rows: list[dict]) -> str:
             "\\begin{tablenotes}[flushleft]",
             "\\footnotesize",
             notes,
-            ITEM_EARLIER_FULL,
-            ITEM_PRELIM,
+            # 2026-10-22 (user, E34): parked -- no T1 row is the earlier draft's or preliminary. Was:
+            # ITEM_EARLIER_FULL,
+            # ITEM_PRELIM,
             "\\end{tablenotes}",
             "\\end{threeparttable}",
             "\\end{table}",
@@ -1398,8 +1469,9 @@ def table_t2(rows: list[dict]) -> str:
             "\\begin{tablenotes}[flushleft]",
             "\\footnotesize",
             notes,
-            "\\item[a] The earlier draft's intraday specification.",
-            ITEM_PRELIM_SHORT,
+            # 2026-10-22 (user, E34): parked -- no T2 row is the earlier draft's or preliminary. Was:
+            # "\\item[a] The earlier draft's intraday specification.",
+            # ITEM_PRELIM_SHORT,
             "\\end{tablenotes}",
             "\\end{threeparttable}",
             "\\end{table}",
@@ -1410,7 +1482,8 @@ def table_t2(rows: list[dict]) -> str:
 
 def rank_name(k: str, r: pd.Series, tnotes: bool) -> str:
     """Model name of a ranking row, with its markers: a = the earlier draft's specification (T3 only; T3 full has a
-    Specification column and Panel C), dagger = preliminary, double dagger = outside the model set (T3 full only)."""
+    Specification column and Panel C), dagger = preliminary (none since 2026-10-22, E34), double dagger = outside the
+    model set (T3 full only)."""
     name = r["model"]
     if tnotes:
         if r["panel"] == "C" and r["spec"] != "--":
@@ -1472,7 +1545,7 @@ def table_t3(rank: pd.DataFrame, keys: list[str]) -> str:
             "\\footnotesize",
             notes,
             "\\item[a] The earlier draft's intraday specification.",
-            ITEM_PRELIM_SHORT,
+            # ITEM_PRELIM_SHORT,  # 2026-10-22 (user, E34): parked -- no forecast is preliminary
             "\\end{tablenotes}",
             "\\end{threeparttable}",
             "\\end{table}",
@@ -1503,7 +1576,9 @@ def table_t3_full(rank: pd.DataFrame) -> str:
         # "(Section~\\ref{sec:rh_methods_setup}). $^{\\ddagger}$Not in the model set counted in "
         "which lacks the FOMC predictors. The intraday trees are re-estimated at every interval "
         "(Section~\\ref{sec:rh_exp_schemes}). $^{\\ddagger}$Not in the model set counted in "
-        "the text; $^{\\dagger}$preliminary (see Table~\\ref{tab:rh_axis1})."
+        # 2026-10-22 (user, E34): parked -- no forecast is preliminary. Was:
+        # "the text; $^{\\dagger}$preliminary (see Table~\\ref{tab:rh_axis1})."
+        "the text."
     )
     out = [
         HEAD,
@@ -2097,7 +2172,11 @@ def main() -> None:
         GEN = FIG = REPO / "results" / "rolling_eval_2026-10-15" / "mt866_check"
     m, s, by = load_all()
     # lv = {k: level(f) for k, f in by.items()}  # 2026-10-15: parked -- rolling frames exist for the forecasts used
-    lv = {k: level(f) for k, f in by.items() if SPAN == "mt866" or id(f) in ACC}
+    # 2026-10-22 (user, E34): parked -- under --span mt866 this scored every master key, and sharpe() (len == NDAYS,
+    # E17) stopped the run on the 21 *_tw500 keys of 550 days (outside the model set and every table; the failure
+    # predates E34); mt866 now scores the 866-day frames. Was:
+    # lv = {k: level(f) for k, f in by.items() if SPAN == "mt866" or id(f) in ACC}
+    lv = {k: level(f) for k, f in by.items() if (len(f) == NDAYS if SPAN == "mt866" else id(f) in ACC)}
     gate_866 = (
         SPAN == "mt866"
     )  # the values of record below are the 866-day accuracy numbers
@@ -2116,6 +2195,21 @@ def main() -> None:
     def near_t(x, v, tol):  # trade statistics
         if abs(x - v) > tol:
             print(f"THIRD2 CHANGED: {x:.4f} (was {v})")
+
+    # 2026-10-22 (user, E34): a value of record of the base-2 pooled trees (866 days), reported, not asserted
+    def near34(x, v, tol, what):
+        if gate_866 and abs(x - v) > tol:
+            print(f"E34 CHANGED: {what} {x:.4f} (was {v})")
+
+    # 2026-10-22 (user, E34): a claim of the prose (asserted until the base-5 trees) that the new trees no longer bear
+    # out: reported with its macro, value and sentence, for the prose to be updated; the claims that still hold stay
+    # asserted
+    def claim34(cond: bool, macro: str, value: str, claim: str) -> None:
+        if not cond:
+            print(f"E34 CLAIM: {macro} = {value}: {claim}")
+
+    tree_names34 = tuple(n for n, fam, *_ in FAMILY_ROWS if fam == TREE)
+    assert not INTERIM, "E34: the notes no longer print the preliminary (dagger) item"
 
     near(lv[OLS]["qlike"], 0.0967, 5e-5)  # was 0.0946
     near(lv["subpt_enet_all_features"]["qlike"], 0.0958, 5e-5)  # was 0.0942
@@ -2199,6 +2293,18 @@ def main() -> None:
     }
     for kk, (qb, qa, pct, dmv) in expect_t1.items():
         r = T1[kk]
+        if kk[0] == "pooled" and kk[1] in tree_names34:
+            # 2026-10-22 (user, E34): parked -- the base-2 pooled trees' values of record, asserted by the near() calls
+            # below; reported for the base-5 trees
+            near34(r["qa"], qa, 5e-4, f"T1 pooled {kk[1]}: QLIKE Full")
+            near34(
+                r["pct"],
+                pct,
+                0.05 + 1e-9,
+                f"T1 pooled {kk[1]}: QLIKE % change Full vs HAR",
+            )
+            near34(r["dm"], dmv, 0.02, f"T1 pooled {kk[1]}: DM Full vs HAR")
+            continue
         if qb is not None:
             near(r["qb"], qb, 5e-5)
         near(r["qa"], qa, 5e-5 if qa < 0.1 or kk[0] == "per-bar" else 5e-4)
@@ -2340,39 +2446,64 @@ def main() -> None:
         near(T2[nme]["all_features"]["pct"], pa_, 0.05 + 1e-9)
         near(T2[nme]["all_features"]["dm"], dma, 0.005 + 1e-9)
         assert not gate_866 or 3.35 <= T2[nme]["baseline"]["dm"] <= 3.55
-    for est, nme, sc in (
-        ("lgbm", "LightGBM", "score_lgbm"),
-        ("xgb", "XGBoost", "score_xgb"),
-        ("rf", "Random forest", "score_rf_interim1600"),
-    ):
-        pp = pd.read_csv(POOLTREE / sc / "pairs.csv")
-        pp = pp[pp["vs"] == "per-bar T1"].set_index("bucket")
-        for b in ("baseline", "all_features"):
-            near(T2[nme][b]["pct"], float(pp.loc[b, "qlike_pct"]), 1e-6)
-            near(T2[nme][b]["dm"], float(pp.loc[b, "dm"]), 1e-6)
-            near_t(T2[nme][b]["t"], float(pp.loc[b, "hac_t_mid"]), 1e-6)
-        lvp = pd.read_csv(POOLTREE / sc / "levels.csv")
-        lvp = lvp[lvp["forecast"].str.startswith("pooled")].set_index("bucket")
-        near(
-            lv[f"pooltree_{est}_baseline"]["qlike"],
-            float(lvp.loc["baseline", "qlike"]),
-            1e-12,
-        )
-        near(
-            lv[f"pooltree_{est}_all_features"]["qlike"],
-            float(lvp.loc["all_features", "qlike"]),
-            1e-12,
-        )
+    # 2026-10-22 (user, E34): parked -- the gates against the base-2 trees' stored scores (POOLTREE/score_*/pairs.csv,
+    # levels.csv). Was:
+    # for est, nme, sc in (
+    #     ("lgbm", "LightGBM", "score_lgbm"),
+    #     ("xgb", "XGBoost", "score_xgb"),
+    #     ("rf", "Random forest", "score_rf_interim1600"),
+    # ):
+    #     pp = pd.read_csv(POOLTREE / sc / "pairs.csv")
+    #     pp = pp[pp["vs"] == "per-bar T1"].set_index("bucket")
+    #     for b in ("baseline", "all_features"):
+    #         near(T2[nme][b]["pct"], float(pp.loc[b, "qlike_pct"]), 1e-6)
+    #         near(T2[nme][b]["dm"], float(pp.loc[b, "dm"]), 1e-6)
+    #         near_t(T2[nme][b]["t"], float(pp.loc[b, "hac_t_mid"]), 1e-6)
+    #     lvp = pd.read_csv(POOLTREE / sc / "levels.csv")
+    #     lvp = lvp[lvp["forecast"].str.startswith("pooled")].set_index("bucket")
+    #     near(
+    #         lv[f"pooltree_{est}_baseline"]["qlike"],
+    #         float(lvp.loc["baseline", "qlike"]),
+    #         1e-12,
+    #     )
+    #     near(
+    #         lv[f"pooltree_{est}_all_features"]["qlike"],
+    #         float(lvp.loc["all_features", "qlike"]),
+    #         1e-12,
+    #     )
+    # 2026-10-22 (user, E34): gate on the base-5 trees: the QLIKE scored here is the one recomputed from pt13's plain
+    # and its own bar RV on the accuracy days, and the T2 % change is the pooled over the closing-interval QLIKE
+    for k, (est, b) in PT13_KEY.items():
+        g = pt13.at16(est, b).reindex(acc_of(by[k]).index)
+        r_ = (g["rv"] / g["plain"]).to_numpy(float)
+        q_ = float(np.mean(r_ - np.log(r_) - 1.0))
+        assert abs(q_ / lv[k]["qlike"] - 1.0) < 1e-12, (k, q_, lv[k]["qlike"])
+    for nme, _, pb, pool in FAMILY_ROWS:
+        for i, b in enumerate(("baseline", "all_features")):
+            want = 100.0 * (lv[pool[i]]["qlike"] / lv[pb[i]]["qlike"] - 1.0)
+            assert abs(T2[nme][b]["pct"] - want) < 1e-9, (nme, b, T2[nme][b]["pct"], want)
     for nme in ("LightGBM", "XGBoost", "Random forest"):
         # trimmed target (parked 2026-10-15): HAR + cal. 24.0-27.5 % / DM 4.3-4.8; all features 11.0-14.0 % / DM 2.7-3.0
-        assert not gate_866 or (
-            25.0 <= T2[nme]["baseline"]["pct"] <= 28.0
-            and 4.2 <= T2[nme]["baseline"]["dm"] <= 4.6
-        )
-        assert not gate_866 or (
-            11.0 <= T2[nme]["all_features"]["pct"] <= 14.2
-            and 2.7 <= T2[nme]["all_features"]["dm"] <= 3.1
-        )
+        # 2026-10-22 (user, E34): parked -- the base-2 trees' 866-day ranges, asserted; reported for the base-5 trees.
+        # Was:
+        # assert not gate_866 or (
+        #     25.0 <= T2[nme]["baseline"]["pct"] <= 28.0
+        #     and 4.2 <= T2[nme]["baseline"]["dm"] <= 4.6
+        # )
+        # assert not gate_866 or (
+        #     11.0 <= T2[nme]["all_features"]["pct"] <= 14.2
+        #     and 2.7 <= T2[nme]["all_features"]["dm"] <= 3.1
+        # )
+        for b, lo_, hi_, dlo_, dhi_ in (
+            ("baseline", 25.0, 28.0, 4.2, 4.6),
+            ("all_features", 11.0, 14.2, 2.7, 3.1),
+        ):
+            x_ = T2[nme][b]
+            if gate_866 and not (lo_ <= x_["pct"] <= hi_ and dlo_ <= x_["dm"] <= dhi_):
+                print(
+                    f"E34 CHANGED: T2 {nme} {b}: % {x_['pct']:.2f} / DM {x_['dm']:.2f} "
+                    f"(was {lo_}-{hi_} % / DM {dlo_}-{dhi_})"
+                )
     t2_t = [
         r[b]["t"]
         for r in t2
@@ -2440,7 +2571,12 @@ def main() -> None:
         "pooltree_xgb_baseline",
         "pooltree_rf_baseline",
         "pooltree_rf_all_features",
+        # 2026-10-22 (user, E34): the full-set pooled LightGBM / XGBoost (base 5) are rows of their own, no longer the
+        # master table's lgbm / xgb rows (which stay in the model set as they are)
+        "pooltree_lgbm_all_features",
+        "pooltree_xgb_all_features",
     ]
+    assert set(extra) == set(PT13_KEY) and not set(extra) & set(s["key"]), extra
     keys = list(s["key"]) + extra
     rows = []
     for k in keys:
@@ -2470,7 +2606,8 @@ def main() -> None:
     # 2026-10-15 (user): NN content parked for now -- the four MinGRU forecasts leave the ranking: forecasts ranked
     # 120 -> 116; the per-bar OLS ranks 9 -> 8 (the per-bar MinGRU on the full predictor set was 5th, above it)
     assert not rank.index.str.startswith("mingru_").any()
-    assert len(rank) == 116, len(rank)  # was 120
+    # assert len(rank) == 116, len(rank)  # was 120  -- 2026-10-22 (user, E34): parked -- 116 -> 118 (two tree rows)
+    assert len(rank) == 118, len(rank)  # was 116 (the full-set pooled LightGBM / XGBoost were the lgbm / xgb rows)
     assert not gate_866 or int(rank.loc[OLS, "rank"]) == 8, rank.loc[
         OLS, "rank"
     ]  # was 9
@@ -2500,8 +2637,11 @@ def main() -> None:
     # each against the OLS with the same pair() DM as above. The model-set counts (n_set, n_lower3, n_lower3_sig,
     # n_worse_sig; \rhrNSet etc.) stay defined, unchanged; after the item-24 swap their 2 significant are the
     # HAR-set closing lasso and elastic net, which this count leaves out.
-    _alias26 = {"pooltree_lgbm_all_features": "lgbm", "pooltree_xgb_all_features": "xgb"}
-    _pk26 = [k if k in rank.index else _alias26.get(k, k) for *_, pool in FAMILY_ROWS for k in pool]
+    # 2026-10-22 (user, E34): parked -- the full-set pooled LightGBM / XGBoost are the base-5 trees, rows of their own
+    # (the master table's "lgbm" / "xgb" stay in the model set, outside this count). Was:
+    # _alias26 = {"pooltree_lgbm_all_features": "lgbm", "pooltree_xgb_all_features": "xgb"}
+    # _pk26 = [k if k in rank.index else _alias26.get(k, k) for *_, pool in FAMILY_ROWS for k in pool]
+    _pk26 = [k for *_, pool in FAMILY_ROWS for k in pool]
     assert len(_pk26) == 12 and all(k in rank.index for k in _pk26), _pk26
     _pr26 = rank.loc[_pk26]
     assert (_pr26["panel"] == "B").all(), _pr26["panel"].to_dict()
@@ -2534,27 +2674,46 @@ def main() -> None:
     head = [OLS, "a0", "blk2"]
     for _, _, pb, pool in FAMILY_ROWS:
         head += list(pb) + (list(pool) if pool else [])
-    alias = {
-        "pooltree_lgbm_all_features": "lgbm",
-        "pooltree_xgb_all_features": "xgb",
-    }  # the master table's keys
+    # 2026-10-22 (user, E34): parked -- the T3 headline rows of the full-set pooled LightGBM / XGBoost are the base-5
+    # trees, not the master table's lgbm / xgb rows. Was:
+    # alias = {
+    #     "pooltree_lgbm_all_features": "lgbm",
+    #     "pooltree_xgb_all_features": "xgb",
+    # }  # the master table's keys
+    # head = [
+    #     alias.get(k, k)
+    #     for k in head
+    #     if k
+    #     not in ("subpt_ridge_baseline", "subpt_lasso_baseline", "subpt_enet_baseline")
+    # ]
     head = [
-        alias.get(k, k)
+        k
         for k in head
         if k
         not in ("subpt_ridge_baseline", "subpt_lasso_baseline", "subpt_enet_baseline")
     ]
     assert len(set(head)) == len(head)
     # 2026-10-15 (table legibility): the markers and panels the new tables print
-    for (
-        k_pool,
-        k_master,
-    ) in alias.items():  # tnote a of T1 / T2: the earlier draft's pooled trees
-        assert by[k_pool] is by[k_master], k_pool
-        assert describe_key(k_master)["spec"].startswith("Earlier draft"), k_master
-    assert {n for n, *_, pool in FAMILY_ROWS if pool and pool[1] in alias} == set(
-        EARLIER_POOLED_FULL
+    # 2026-10-22 (user, E34): parked -- the aliasing behind tnote a of T1 / T2. Was:
+    # for (
+    #     k_pool,
+    #     k_master,
+    # ) in alias.items():  # tnote a of T1 / T2: the earlier draft's pooled trees
+    #     assert by[k_pool] is by[k_master], k_pool
+    #     assert describe_key(k_master)["spec"].startswith("Earlier draft"), k_master
+    # assert {n for n, *_, pool in FAMILY_ROWS if pool and pool[1] in alias} == set(
+    #     EARLIER_POOLED_FULL
+    # )
+    # 2026-10-22 (user, E34): no pooled tree is a master-table frame; the master table's lgbm / xgb are the earlier
+    # draft's trees (T3 full, Panel B, "Earlier draft, no FOMC") and no T1 / T2 row carries tnote a
+    assert not any(by[k] is by[m_] for k in PT13_KEY for m_ in s["key"]), (
+        "E34: a pooled tree aliases a master row"
     )
+    assert all(
+        describe_key(m_)["spec"].startswith("Earlier draft") for m_ in EARLIER_TREES
+    ), EARLIER_TREES
+    assert all(m_ in set(s["key"]) for m_ in EARLIER_TREES) and not EARLIER_POOLED_FULL
+    assert not set(head) & set(EARLIER_TREES), head
     sub3 = rank.loc[
         head
     ]  # T3: the closing-interval rows rank above the pooled intraday rows (panels keep the order)
@@ -2631,14 +2790,18 @@ def main() -> None:
     # ---- 2026-10-15: the claims the prose of 06_results.tex makes on the rolling span (asserted, so it can't drift) ----
     if SPAN == "rolling":
         sig_t1 = {(r["fit"], r["name"]) for r in t1 if r["p"] < SIG}
-        assert sig_t1 == {
-            ("pooled", "LightGBM"),
-            ("pooled", "XGBoost"),
-            ("pooled", "Random forest"),
-            ("pooled", "Elastic net"),
-        }, (
-            sig_t1
-        )  # 6.3: the pooled trees and the pooled elastic net are the significant reductions
+        # 2026-10-22 (user, E34): parked -- fails with the base-5 trees (only the pooled elastic net is significant);
+        # the prose now prints the trees' part as a count, \rhrAfPoolTreeLowerSig (macro section, asserted there), and
+        # the rest stays asserted. Was:
+        # assert sig_t1 == {
+        #     ("pooled", "LightGBM"),
+        #     ("pooled", "XGBoost"),
+        #     ("pooled", "Random forest"),
+        #     ("pooled", "Elastic net"),
+        # }, (
+        #     sig_t1
+        # )  # 6.3: the pooled trees and the pooled elastic net are the significant reductions
+        assert sig_t1 - {("pooled", n) for n in tree_names34} == {("pooled", "Elastic net")}, sig_t1
         assert all(r["pct"] < 0 for r in t1), (
             "6.3: Full lowers QLIKE in every model class"
         )
@@ -2648,11 +2811,17 @@ def main() -> None:
         assert {
             r["name"] for r in t2 if r["family"] == LIN and r["all_features"]["p"] < SIG
         } == {"Lasso"}
-        assert all(r["baseline"]["p"] < SIG for r in t2), (
-            "6.4: every HAR-benchmark difference significant"
-        )
-        assert all(r["all_features"]["p"] < SIG for r in t2 if r["family"] == TREE), (
-            "6.4: trees, full set"
+        # 2026-10-22 (user, E34): parked -- the two asserts below fail with the base-5 trees; the linear part stays
+        # asserted, the trees' part is printed as counts, \rhrTreePoolVsCloseHarSig and \rhrTreePoolVsCloseFullSig
+        # (macro section, asserted there). Was:
+        # assert all(r["baseline"]["p"] < SIG for r in t2), (
+        #     "6.4: every HAR-benchmark difference significant"
+        # )
+        # assert all(r["all_features"]["p"] < SIG for r in t2 if r["family"] == TREE), (
+        #     "6.4: trees, full set"
+        # )
+        assert all(r["baseline"]["p"] < SIG for r in t2 if r["family"] == LIN), (
+            "6.4: every HAR-benchmark difference significant (linear)"
         )
         top4 = set(rank.index[:4])
         assert top4 == {
@@ -2669,11 +2838,22 @@ def main() -> None:
         assert lasso_mse_ex_pct < 0, (
             "6.3: outside Feb-Apr 2020 the lasso (full) has the lower MSE"
         )
-        assert (
-            list(rank.index[-3:]).count("pooltree_lgbm_baseline")
-            + list(rank.index[-3:]).count("pooltree_rf_baseline")
-            == 2
-        ), "6.5: the pooled trees on HAR are among the least accurate"
+        # 2026-10-22 (user, E34): parked -- a rank of record of the base-2 trees (the prose's "least accurate pooled
+        # specifications" was parked on 2026-10-17, new-notes 13); reported. Was:
+        # assert (
+        #     list(rank.index[-3:]).count("pooltree_lgbm_baseline")
+        #     + list(rank.index[-3:]).count("pooltree_rf_baseline")
+        #     == 2
+        # ), "6.5: the pooled trees on HAR are among the least accurate"
+        last3 = list(rank.index[-3:])
+        if (
+            last3.count("pooltree_lgbm_baseline") + last3.count("pooltree_rf_baseline")
+            != 2
+        ):
+            print(
+                f"E34 CHANGED: the three least accurate forecasts {last3} (was two of them the pooled LightGBM and "
+                "random forest on HAR)"
+            )
 
     # ---- 2026-10-15 (user, restructure): "I need the last 30 min scheme to be moved to the end of the economic
     # application section as a final cherry on top instead of competing with the exogenous feature signal story".
@@ -2828,11 +3008,24 @@ def main() -> None:
         # 5.3: the full predictor set lowers QLIKE in every pooled class; significant for the trees and the enet; the
         # trees' reductions are the largest; the squared error is mixed, never significant
         assert all(r["pct"] < 0 for r in t1p.values())
-        assert {n for n, r in t1p.items() if r["p"] < SIG} == set(tree_n) | {
-            "Elastic net"
-        }
-        assert min(abs(t1p[n]["pct"]) for n in tree_n) > max(
-            abs(t1p[n]["pct"]) for n in lin_n
+        # 2026-10-22 (user, E34): parked -- the two asserts below fail with the base-5 trees; the linear half of the
+        # first still holds and stays asserted, its trees' half is printed as a count, \rhrAfPoolTreeLowerSig (macro
+        # section, asserted there), and the second is reported (claim34). Was:
+        # assert {n for n, r in t1p.items() if r["p"] < SIG} == set(tree_n) | {
+        #     "Elastic net"
+        # }
+        # assert min(abs(t1p[n]["pct"]) for n in tree_n) > max(
+        #     abs(t1p[n]["pct"]) for n in lin_n
+        # )
+        assert {n for n in lin_n if t1p[n]["p"] < SIG} == {"Elastic net"}
+        claim34(
+            min(abs(t1p[n]["pct"]) for n in tree_n)
+            > max(abs(t1p[n]["pct"]) for n in lin_n),
+            "\\rhrAf{Lgbm,Xgb,Rf}PoolPct vs \\rhrAf{Ridge,Lasso,Enet}PoolPct",
+            ", ".join(f"{n} {t1p[n]['pct']:+.1f}" for n in tree_n + lin_n),
+            "06_results.tex:343 'Regarding the tree ensembles, we observe the largest relative improvements', "
+            "01_introduction.tex:70 'The tree-based ensembles exhibit the largest relative improvements', "
+            "09_conclusion.tex:19 'The largest relative reductions occur in the tree ensembles'",
         )
         assert not any(r["p_mse"] < SIG for r in t1p.values())
         # 5.5: the three most accurate pooled forecasts are the linear models on the full predictor set; linear below
@@ -2841,14 +3034,33 @@ def main() -> None:
         assert set(sorted(pool_keys, key=lambda k: qv[k])[:3]) == {
             pool_of[n][1] for n in lin_n
         }
-        assert max(qs(lin_n, 1)) < min(qs(tree_n, 1)) and max(qs(lin_n, 0)) < min(
-            qs(tree_n, 0)
+        # 2026-10-22 (user, E34): parked -- the three asserts below (the second is kept) fail with the base-5 trees;
+        # the parts that still hold (the full predictor set; the linear models) stay asserted; the linear-vs-tree QLIKE
+        # on HAR is reported (claim34); the trees' significance is printed as counts, \rhrVsBmPoolTreeFullSig,
+        # \rhrVsBmPoolHarSig and \rhrVsBmPoolHarSigOne (macro section, asserted there). Was:
+        # assert max(qs(lin_n, 1)) < min(qs(tree_n, 1)) and max(qs(lin_n, 0)) < min(
+        #     qs(tree_n, 0)
+        # )
+        # assert all(vb_pool[k]["pct"] > 0 for k in pool_keys)
+        # assert {n for n in lin_n + tree_n if vb_pool[pool_of[n][1]]["p"] < SIG} == set(
+        #     tree_n
+        # )
+        # assert all(vb_pool[k]["p"] < 0.01 for k in pool_har)
+        assert max(qs(lin_n, 1)) < min(qs(tree_n, 1))
+        claim34(
+            max(qs(lin_n, 0)) < min(qs(tree_n, 0)),
+            "\\rhrPoolQLinHarMax vs \\rhrPoolQTreeHarMin",
+            f"{q4(max(qs(lin_n, 0)))} vs {q4(min(qs(tree_n, 0)))} ("
+            + ", ".join(f"{n} {q4(qv[pool_of[n][0]])}" for n in tree_n)
+            + ")",
+            "06_results.tex:494 'the penalized linear models consistently achieve lower average QLIKE loss than the "
+            "tree ensembles on both predictor sets' and 06_results.tex:502-505 (HAR: linear "
+            "\\rhrPoolQLinHarMin--\\rhrPoolQLinHarMax 'outperforming the tree ensembles at' "
+            "\\rhrPoolQTreeHarMin--\\rhrPoolQTreeHarMax)",
         )
         assert all(vb_pool[k]["pct"] > 0 for k in pool_keys)
-        assert {n for n in lin_n + tree_n if vb_pool[pool_of[n][1]]["p"] < SIG} == set(
-            tree_n
-        )
-        assert all(vb_pool[k]["p"] < 0.01 for k in pool_har)
+        assert not any(vb_pool[pool_of[n][1]]["p"] < SIG for n in lin_n)
+        assert all(vb_pool[pool_of[n][0]]["p"] < 0.01 for n in lin_n)
         assert all(
             vb_pool[pool_of[n][1]]["pct"] < vb_pool[pool_of[n][0]]["pct"]
             for n in lin_n + tree_n
@@ -2870,8 +3082,18 @@ def main() -> None:
     # Was: assert sorted(pool_keys, key=lambda k: -lv[k]["sharpe"])[:4] == ["poolpt_enet_all_features",
     #     "poolpt_ridge_all_features", "poolpt_lasso_all_features", "pooltree_lgbm_all_features"]
     top4_ = sorted(pool_keys, key=lambda k: -lv[k]["sharpe"])[:4]
-    soft(top4_ == ["poolpt_enet_all_features", "poolpt_ridge_all_features", "poolpt_lasso_all_features",
-                   "pooltree_lgbm_all_features"], f"pooled top-4 by Sharpe {top4_}")
+    # 2026-10-22 (user, E34): parked -- the order of record names the base-2 LightGBM (no longer in the text, which
+    # prints ranges, N15c); reported. Was:
+    # soft(top4_ == ["poolpt_enet_all_features", "poolpt_ridge_all_features", "poolpt_lasso_all_features",
+    #                "pooltree_lgbm_all_features"], f"pooled top-4 by Sharpe {top4_}")
+    top4_was = [
+        "poolpt_enet_all_features",
+        "poolpt_ridge_all_features",
+        "poolpt_lasso_all_features",
+        "pooltree_lgbm_all_features",
+    ]
+    if top4_ != top4_was:
+        print(f"E34 CHANGED: pooled top-4 by Sharpe {top4_} (was {top4_was})")
     # Was: assert min(sh_full) > max(sh_har)
     soft(min(sh_full) > max(sh_har), "full set raises every pooled Sharpe (min full > max HAR)")
     # Was: assert all(x > 0 for x in dsh_pool) and not any(t1p[n]["p_t"] < SIG for n in t1p)
@@ -3201,10 +3423,15 @@ def main() -> None:
             for i, b in enumerate(("baseline", "all_features")):
                 k = ks[i]
                 vb = pair(by[k], by[OLS])
+                # 2026-10-22 (user, E34): parked -- alias.get(k, k) for k (no aliased key). Was:
+                # if name == NN_NAME:
+                #     assert alias.get(k, k) not in rank.index, k
+                # else:
+                #     rk = rank.loc[alias.get(k, k)]  # = the T3 rows
                 if name == NN_NAME:
-                    assert alias.get(k, k) not in rank.index, k
+                    assert k not in rank.index, k
                 else:
-                    rk = rank.loc[alias.get(k, k)]  # = the T3 rows
+                    rk = rank.loc[k]  # = the T3 rows
                     assert (
                         abs(vb["pct"] - rk["pct"]) < 1e-12
                         and abs(vb["dm"] - rk["dm"]) < 1e-12
@@ -3277,6 +3504,11 @@ def main() -> None:
         "AfPoolLowerSig": (
             str(sum(r["pct"] < 0 and r["p"] < SIG for r in t1p.values())),
             "... and DM p < 0.05",
+        ),
+        # 2026-10-22 (user, E34): the count that replaces "each of which is statistically significant" (06_results)
+        "AfPoolTreeLowerSig": (
+            str(sum(t1p[n]["pct"] < 0 and t1p[n]["p"] < SIG for n in tree_n)),
+            "pooled trees (of 3) whose Full-vs-HAR QLIKE reduction (T1, rhrAf<M>PoolPval) has DM p < 0.05",
         ),
         "AfPoolMseHigher": (
             str(sum(r["mse_pct"] > 0 for r in t1p.values())),
@@ -3363,6 +3595,37 @@ def main() -> None:
             "pooled models on HAR vs the benchmark forecast: min",
         ),
         "VsBmPoolHarPctMax": (f"{max(vb_har):.1f}", "... max"),
+        # 2026-10-22 (user, E34): the counts that replace "each / every ... significant" about the pooled trees
+        # (06_results 5.5, 07_economics last-30, Appendix), on the DM p the matching ...Pval macros print (asserted
+        # below)
+        "VsBmPoolTreeFullSig": (
+            str(
+                sum(
+                    vb_pool[pool_of[n][1]]["pct"] > 0
+                    and vb_pool[pool_of[n][1]]["p"] < SIG
+                    for n in tree_n
+                )
+            ),
+            "pooled trees (of 3) on Full: excess QLIKE over the benchmark forecast, p < 0.05 (rhrVsBm<M>PoolFullPval)",
+        ),
+        "VsBmPoolHarSig": (
+            str(sum(vb_pool[k]["pct"] > 0 and vb_pool[k]["p"] < SIG for k in pool_har)),
+            "pooled models (of 6) on HAR: excess QLIKE over the benchmark forecast, p < 0.05 (rhrVsBm<M>PoolHarPval)",
+        ),
+        "VsBmPoolHarSigOne": (
+            str(
+                sum(vb_pool[k]["pct"] > 0 and vb_pool[k]["p"] < 0.01 for k in pool_har)
+            ),
+            "... and p < 0.01",
+        ),
+        "TreePoolVsCloseHarSig": (
+            str(sum(T2[n]["baseline"]["p"] < SIG for n in tree_n)),
+            "tree classes (of 3) whose pooled-minus-closing-interval QLIKE difference on HAR (T2) has DM p < 0.05",
+        ),
+        "TreePoolVsCloseFullSig": (
+            str(sum(T2[n]["all_features"]["p"] < SIG for n in tree_n)),
+            "... on Full",
+        ),
         "PoolShortAbove": (
             str(sum(vs_sh[k]["dsh"] > 0 for k in pool_keys)),
             "pooled forecasts whose sign strategy has a higher Sharpe mid than the short straddle",
@@ -3429,6 +3692,65 @@ def main() -> None:
     for fam_ in (m_q, m_bm, m_af, m_pc, m_sh, m_pool):
         assert not set(fam_) & set(nums), set(fam_) & set(nums)
         nums.update(fam_)
+    # 2026-10-22 (user, E34): consistency of the count macros above (not values of record): each printed count is the
+    # count recomputed from its rows' p-values, and each row's p is the one its ...Pval macro prints
+    e34_counts = {  # count macro: ([(Pval macro, row)], sign of the % change counted (0: any), cut)
+        "AfPoolTreeLowerSig": (
+            [(f"Af{tok[n]}PoolPval", t1p[n]) for n in tree_n],
+            -1,
+            SIG,
+        ),
+        "TreePoolVsCloseHarSig": (
+            [(f"PoolVsClose{tok[n]}HarPval", T2[n]["baseline"]) for n in tree_n],
+            0,
+            SIG,
+        ),
+        "TreePoolVsCloseFullSig": (
+            [(f"PoolVsClose{tok[n]}FullPval", T2[n]["all_features"]) for n in tree_n],
+            0,
+            SIG,
+        ),
+        "VsBmPoolTreeFullSig": (
+            [(f"VsBm{tok[n]}PoolFullPval", vb_pool[pool_of[n][1]]) for n in tree_n],
+            1,
+            SIG,
+        ),
+        "VsBmPoolHarSig": (
+            [
+                (f"VsBm{tok[n]}PoolHarPval", vb_pool[pool_of[n][0]])
+                for n in lin_n + tree_n
+            ],
+            1,
+            SIG,
+        ),
+        "VsBmPoolHarSigOne": (
+            [
+                (f"VsBm{tok[n]}PoolHarPval", vb_pool[pool_of[n][0]])
+                for n in lin_n + tree_n
+            ],
+            1,
+            0.01,
+        ),
+    }
+    for mac, (rows_, sgn, cut) in e34_counts.items():
+        assert all(nums[pv][0] == mpval(x["p"]) for pv, x in rows_), mac
+        n_ = sum((sgn == 0 or sgn * x["pct"] > 0) and x["p"] < cut for _, x in rows_)
+        assert int(nums[mac][0]) == n_, (mac, nums[mac][0], n_)
+        print(f"E34 count: \\rhr{mac} = {nums[mac][0]} of {len(rows_)} (p < {cut})")
+    for n in tree_n:  # one line per pooled tree, for cross-checking the counts against the printed p's
+        print(
+            f"E34 pooled {n}: "
+            + " | ".join(
+                f"\\rhr{pv} {nums[pv][0]}"
+                for pv in (
+                    f"Af{tok[n]}PoolPval",
+                    f"VsBm{tok[n]}PoolHarPval",
+                    f"VsBm{tok[n]}PoolFullPval",
+                    f"PoolVsClose{tok[n]}HarPval",
+                    f"PoolVsClose{tok[n]}FullPval",
+                )
+            )
+        )
     # 2026-10-15 (table legibility): parked -- the header now lists the macro families (NOTATION_GUIDE 6b)
     # lines = [
     #     "% AUTO-GENERATED by writeup/make_rehaul_results.py -- do not edit.",
