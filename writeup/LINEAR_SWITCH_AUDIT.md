@@ -159,6 +159,34 @@ same machine). Output and full details: `results/pooled_linear_rerun_2026-10-22_
   the Sharpe ratio, would pick 2,000 days among the three. The late-start scaling fix (in progress) changes exactly
   these pre-sample folds, so this comparison should be redone after it.
 
+**2,500 days** (`results/pooled_linear_rerun_2026-10-22_13_2012_w2500/SUMMARY.md`): fold 0 cannot be fit (its window
+would start before June 1998), so the penalties were picked on folds 1–3 (a `--first-fold` patch, checked to leave
+folds 1–3 bit-identical). Gates pass.
+
+| Model | Window | QLIKE Δ% full vs HAR (DM p) | SR HAR / full | ΔSR per-year (LW p) | ΔSR pooled 614d |
+|---|---|---|---|---|---|
+| Elastic net | 2,500 | +2.2 (0.58) | 0.96 / 1.58 | +0.62 (0.071) | +0.87 |
+| Lasso | 2,500 | +0.7 (0.84) | 0.96 / 1.71 | +0.76 (**0.029**) | +1.09 |
+| Ridge | 2,500 | +4.4 (0.34) | 0.96 / 1.62 | +0.67 (0.060) | +0.91 |
+
+Pre-sample criterion on folds 1–3 (the folds every window can fit; same validation rows and target), at each run's
+penalty:
+
+| Arm | 1,000 | 1,500 | 2,000 | 2,500 |
+|---|---|---|---|---|
+| HAR benchmark (ridge) | 0.0632788 | 0.0633798 | 0.0630804 | 0.0625324 |
+| Full-set ridge | 0.0591473 | 0.0591369 | 0.0589113 | 0.0586088 |
+| Full-set lasso | 0.0589738 | 0.0587882 | 0.0587339 | 0.0582868 |
+| Full-set elastic net | 0.0594098 | 0.0586423 | 0.0584241 | 0.0580873 |
+
+- The criterion keeps falling through 2,500 days (no elbow); the steps are a few tenths of a percent. The longest
+  windows the pre-sample can tune: all 4 folds 2,381 days; folds 1–3 2,631; folds 2–3 2,881; fold 3 only 3,131.
+- As the window lengthens, the HAR-benchmark Sharpe falls (1.30 → 0.96) and the full-set Sharpe rises, so ΔSR grows;
+  at 2,500 days the lasso's gain is significant at 5% (LW p 0.029), the others at 10%.
+- These eight runs have now been looked at on the evaluation sample. Picking the window from this table would be a
+  specification search; a window rule must be fixed on pre-sample grounds (and after the late-start fix) and adopted
+  whatever it gives.
+
 ## Bottom line
 
 - **Bugs fixed:** none needed in the new pipeline. The old pipeline's look-ahead was already fixed on 10-15.

@@ -1,0 +1,147 @@
+diff --git a/experiments/pool_linear_pretune.py b/experiments/pool_linear_pretune.py
+index 5e11f93..baa503a 100644
+--- a/experiments/pool_linear_pretune.py
++++ b/experiments/pool_linear_pretune.py
+@@ -1069,7 +1069,13 @@ def pretune(a) -> None:
+     t_wall = time.time()
+     ns = spec_section(a.est, a.bucket, a.start, a.start + 1, a.halo)
+     fold_n, emb = PRE_FOLD_SESS * PERIODS_PER_DAY, PRE_EMBARGO_SESS * PERIODS_PER_DAY
+-    assert a.halo == PRE_FOLDS * fold_n + emb + W, a.halo
++    # 2026-10-22 (user, window check at 2,500 days): --first-fold F fits only folds F .. PRE_FOLDS-1 (fold f's
++    # validation rows stay start - (PRE_FOLDS - f) * fold_n .. start - (PRE_FOLDS - 1 - f) * fold_n, as with F = 0);
++    # the halo covers those folds only.  F = 0 (default) is the code above unchanged.  Was:
++    # assert a.halo == PRE_FOLDS * fold_n + emb + W, a.halo
++    F = a.first_fold
++    assert 0 <= F < PRE_FOLDS, F
++    assert a.halo == (PRE_FOLDS - F) * fold_n + emb + W, a.halo
+     grid = ns["ESTIMATOR_GRIDS"][a.est]
+     Base = ns["RollingTunedLinear"]
+     out = Path(a.out).resolve()
+@@ -1088,7 +1094,7 @@ def pretune(a) -> None:
+         pf = np.ones(Xall.shape[1])
+         pf[:-1][bb] = a.r
+         e_all, info = [], []
+-        for f in range(PRE_FOLDS):
++        for f in range(F, PRE_FOLDS):  # 2026-10-22 (--first-fold); was: range(PRE_FOLDS)
+             v1 = n - (PRE_FOLDS - 1 - f) * fold_n
+             v0 = v1 - fold_n
+             f0, f1 = v0 - emb - W, v0 - emb
+@@ -1260,6 +1266,9 @@ def main() -> None:
+     ap.add_argument("--ols", default="auto", choices=("auto", "ridge0", "minnorm"))
+     # 2026-10-20 (user): the rolling window in trading days (the design cache records window = days x bars a day)
+     ap.add_argument("--window-days", type=int, default=TW_DAYS)
++    # 2026-10-22 (user, window check at 2,500 days): pretune: the first pre-sample fold fitted (folds before it have
++    # a fit window that starts before the design's first row); default 0, every fold
++    ap.add_argument("--first-fold", type=int, default=0)
+     a = ap.parse_args()
+     global RERUN, PART
+     RERUN = a.rerun
+diff --git a/experiments/pooled_linear_rerun_2026_10_19_13.py b/experiments/pooled_linear_rerun_2026_10_19_13.py
+index 745c901..43e2921 100644
+--- a/experiments/pooled_linear_rerun_2026_10_19_13.py
++++ b/experiments/pooled_linear_rerun_2026_10_19_13.py
+@@ -90,6 +90,7 @@ W = TW_DAYS * PPD  # 26,000 rows
+ PRE_FOLDS, PRE_FOLD_SESS, PRE_EMBARGO_SESS = 4, 250, 25
+ PRE_HALO = PRE_FOLDS * PRE_FOLD_SESS * PPD + PRE_EMBARGO_SESS * PPD + W  # 39,325
+ FIRST_DAY = "2020-01-03"
++FIRST_FOLD = 0  # 2026-10-22 (--first-fold): the first pre-sample fold fitted
+ HAR_LADDER = [1, 5, 25, 125, 625, 3125]  # base 5 (author, 2026-10-19 correction)
+ 
+ 
+@@ -221,6 +222,8 @@ def st_pretune(a) -> None:
+             args = ["pretune", "--bucket", s, "--est", e, "--r", str(R_BB[s])]
+             args += ["--start", str(S), "--halo", str(PRE_HALO), "--out", str(o)]
+             args += ["--design", str(design_dir(s))]
++            if FIRST_FOLD:  # 2026-10-22 (--first-fold)
++                args += ["--first-fold", str(FIRST_FOLD)]
+             jobs.append((args, o / "run.log"))
+     say(f"pretune: start row {S}, halo {PRE_HALO}, {len(jobs)} jobs")
+     pool(jobs, a.jobs)
+@@ -256,8 +259,8 @@ def st_select(a) -> None:
+                         model=m,
+                         predictor_set=s,
+                         alpha=float(al),
+-                        **{
+-                            f"mse_fold{f}": float(mse_f[f, j])
++                        **{  # 2026-10-22 (--first-fold): labelled by the fold's index; was f"mse_fold{f}"
++                            f"mse_fold{f + FIRST_FOLD}": float(mse_f[f, j])
+                             for f in range(len(mse_f))
+                         },
+                         mse_mean=float(crit[j]),
+@@ -271,24 +274,39 @@ def st_select(a) -> None:
+     d = oos_dates()
+     info = dict(
+         rule="one penalty a model, the lowest mean validation MSE (adjusted scale, all 13 bars) over 4 pre-sample "
+-        "folds; frozen over the evaluation span",
++        "folds; frozen over the evaluation span"
++        if not FIRST_FOLD  # 2026-10-22 (--first-fold)
++        else f"one penalty a model, the lowest mean validation MSE (adjusted scale, all 13 bars) over pre-sample "
++        f"folds {FIRST_FOLD} .. {PRE_FOLDS - 1} of {PRE_FOLDS}; frozen over the evaluation span",
+         sample="13 regular-hours bars, end stamps 10:00-16:00 ET; HAR components and trailing averages on the full "
+         "48-interval grid",
+         window_rows=W,
+         window_days=TW_DAYS,
+         har_ladder=HAR_LADDER,
++        # 2026-10-22 (--first-fold F): folds F .. 3, offsets from the shorter halo (f - F); F = 0 as before
+         folds=[
+             dict(
+-                fit=[S - PRE_HALO + f * 3250, S - PRE_HALO + f * 3250 + W],
++                fit=[S - PRE_HALO + (f - FIRST_FOLD) * 3250, S - PRE_HALO + (f - FIRST_FOLD) * 3250 + W],
+                 val=[
+-                    S - PRE_HALO + W + 325 + f * 3250,
+-                    S - PRE_HALO + W + 325 + (f + 1) * 3250,
++                    S - PRE_HALO + W + 325 + (f - FIRST_FOLD) * 3250,
++                    S - PRE_HALO + W + 325 + (f - FIRST_FOLD + 1) * 3250,
+                 ],
+-                val_first=str(d[S - PRE_HALO + W + 325 + f * 3250 - W]),
+-                val_last=str(d[S - PRE_HALO + W + 325 + (f + 1) * 3250 - 1 - W]),
++                val_first=str(d[S - PRE_HALO + W + 325 + (f - FIRST_FOLD) * 3250 - W]),
++                val_last=str(d[S - PRE_HALO + W + 325 + (f - FIRST_FOLD + 1) * 3250 - 1 - W]),
++                **({"fold": f} if FIRST_FOLD else {}),
+             )
+-            for f in range(PRE_FOLDS)
++            for f in range(FIRST_FOLD, PRE_FOLDS)
+         ],
++        **(
++            {
++                "first_fold": FIRST_FOLD,
++                "first_fold_note": f"folds 0 .. {FIRST_FOLD - 1} not fitted: their {W}-row fit window starts "
++                "before the design's first row; the penalty is the lowest mean validation MSE over the "
++                f"folds {FIRST_FOLD} .. {PRE_FOLDS - 1}",
++            }
++            if FIRST_FOLD
++            else {}
++        ),
+         grids=dict(
+             ridge="1e-2 .. 1e3", lasso="1e-6 .. 1e-2", enet="1e-6 .. 1e-2, l1_ratio 0.5"
+         ),
+@@ -551,7 +569,7 @@ def st_score(a) -> None:
+ 
+ 
+ def main() -> None:
+-    global OUT, WORK, TW_DAYS, W, PRE_HALO, FIRST_DAY
++    global OUT, WORK, TW_DAYS, W, PRE_HALO, FIRST_DAY, FIRST_FOLD
+     ap = argparse.ArgumentParser()
+     ap.add_argument("stage", choices=("design", "pretune", "select", "walk", "score"))
+     ap.add_argument("--jobs", type=int, default=4)
+@@ -574,6 +592,9 @@ def main() -> None:
+     # The pre-tune folds tile the 1,000 sessions before --first-day, each fit on the window before its embargo.
+     ap.add_argument("--window-days", type=int, default=TW_DAYS)
+     ap.add_argument("--first-day", default=FIRST_DAY)
++    # 2026-10-22 (user, window check at 2,500 days): the pre-tune fits folds F .. 3 only (at 2,500 days fold 0's fit
++    # window starts before the design's first row); pass it on every stage from pretune on (first_row's check)
++    ap.add_argument("--first-fold", type=int, default=0)
+     a = ap.parse_args()
+     if a.out:
+         OUT = Path(a.out).resolve()
+@@ -583,6 +604,10 @@ def main() -> None:
+         W = TW_DAYS * PPD
+         PRE_HALO = PRE_FOLDS * PRE_FOLD_SESS * PPD + PRE_EMBARGO_SESS * PPD + W
+         CFG.extend(["--window-days", str(TW_DAYS)])
++    if a.first_fold:  # 2026-10-22 (--first-fold): the halo of folds F .. 3
++        assert 0 < a.first_fold < PRE_FOLDS, a.first_fold
++        FIRST_FOLD = a.first_fold
++        PRE_HALO = (PRE_FOLDS - FIRST_FOLD) * PRE_FOLD_SESS * PPD + PRE_EMBARGO_SESS * PPD + W
+     FIRST_DAY = a.first_day
+     OUT.mkdir(parents=True, exist_ok=True)
+     {
