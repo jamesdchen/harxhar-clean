@@ -148,8 +148,9 @@ Question for the professor: what is the formula of the score between the endpoin
   % 2026-10-19 (user): parked -- the pooled model includes the FOMC series (author decision). Was: "(\bkSizeFomc{} series, not in the pooled intraday model; used by the closing-interval specifications of Appendix~\ref{app:rh_closing})"
   \item \textbf{FOMC} (\bkSizeFomc{} series; used by the pooled intraday model and by the closing-interval specifications of Appendix~\ref{app:rh_closing}). Based on
     scheduled Federal Open Market Committee announcement timestamps from 1993 through November 2023, we define
-    four series: an indicator for whether an announcement occurs during interval $(t,i)$, an indicator for
-    whether an announcement occurs on day $t$, and two proximity measures $1/(1+n^{+}_{t,i})$ and
+    % 2026-10-22 (user, third-list 5): parked -- the announcement-interval dummy is dropped (src/data/loading.py EXCLUDE_FOMC_RELEASE). Was: "four series: an indicator for whether an announcement occurs during interval $(t,i)$, an indicator for whether an announcement occurs on day $t$, and two proximity measures"
+    \bkSizeFomc{} series: an indicator for whether an announcement occurs on day $t$ and two proximity
+    measures $1/(1+n^{+}_{t,i})$ and
     $1/(1+n^{-}_{t,i})$, where $n^{+}_{t,i}$ and $n^{-}_{t,i}$ denote the number of intervals until the next
     scheduled announcement and since the most recent scheduled announcement, respectively. Because the meeting
     schedule is announced in advance, these variables are known prior to the start of the interval.
