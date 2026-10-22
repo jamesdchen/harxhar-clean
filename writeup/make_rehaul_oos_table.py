@@ -962,7 +962,11 @@ def main() -> None:
             f"{name:14s} {b:14s} {side:6s} {k:38s} {x['mse'] * 10**MSE_EXP:8.3f} {x['qlike']:8.4f} "
             f"{x['r2']:8.2f} {x['r2_gui']:8.2f}"
         )
-    print(f"wrote {OUT_TABLE.relative_to(REPO)} and {OUT_NUMBERS.relative_to(REPO)}")
+    # 2026-10-22: the file written is Table 2 (SIDE_SPEC close), not OUT_TABLE (Table 1, make_rehaul_oos_rerun.py).
+    # Was: print(f"wrote {OUT_TABLE.relative_to(REPO)} and {OUT_NUMBERS.relative_to(REPO)}")
+    print(
+        f"wrote {(GEN / SIDE_SPEC['close']['out']).relative_to(REPO)} and {OUT_NUMBERS.relative_to(REPO)}"
+    )
 
 
 if __name__ == "__main__":
