@@ -98,6 +98,15 @@ E34 (2026-10-22, user: "base 5 across the paper")
   the new trees no longer bear out print "E34 CLAIM" (macro, value, sentence) instead of stopping the run, and the
   claims that still hold stay asserted.  Parked code is marked "2026-10-22 (user, E34)".
 
+D6 (2026-10-22, user: "switch to d6")
+  Every printed Sharpe ratio (sharpe(), the sizing scorer's sharpe_fn, every \\rhr...Sh... and \\rhrAf...DSh macro and
+  the counts built on them) is hac_inference.d6_sharpe on the 614 post-warmup days: the simple mean over calendar
+  years of SR_y = mean_y / sd_y x sqrt(A_y), A_y = N_y over the fraction of year y the days cover. It replaces the
+  N_y-weighted per-year ratio of new-notes 15 (asl.sharpe_ann_by_year). Every significance printed on a Sharpe-ratio
+  difference (stars, counts) is p_bt, the paired circular block bootstrap of the D6 difference
+  (hac_inference.d6_diff_test); the Ledoit-Wolf p (p_lw) stays, as a robustness column (rehaul_app_hac_robust.tex) and
+  count (\\rhrAfPoolShHigherSigLW). The fixed-factor sharpe_all / sharpe_252 stay for the values-of-record gates.
+
 Run:  python writeup/make_rehaul_results.py [--span rolling | mt866]
 """
 
@@ -118,7 +127,7 @@ sys.path.insert(0, str(REPO))
 sys.path.insert(0, str(REPO / "notebooks"))
 sys.path.insert(0, str(REPO / "experiments"))
 from src.evaluation.diebold_mariano import dm_test  # noqa: E402
-import atm_straddle_lib as asl  # noqa: E402
+import atm_straddle_lib as asl  # noqa: E402, F401  (2026-10-22, D6: no longer called; kept for the parked lines)
 import hac_inference as hi  # noqa: E402  (2026-10-21, decision #2: every test of strategy returns)
 import rolling_eval_2026_10_15 as rolling  # noqa: E402  (2026-10-15: the common rolling span of every accuracy number)
 import pooled_trees_13 as pt13  # noqa: E402  (2026-10-22, E34: the base-5 pooled trees, writeup/pooled_trees_13.py)
@@ -511,10 +520,13 @@ def sharpe(x: pd.Series) -> float:
     # 2026-10-18 (user, new-notes 15): annualized year by year (asl.sharpe_ann_by_year: N_y-weighted average of
     # SR_y = mean_y / sd_y * sqrt(N_y), N_y = option days present in year y; x is indexed by day).
     # Was: return float(s.mean() / s.std(ddof=1) * ANN)
+    # 2026-10-22 (user, D6): parked -- the N_y-weighted per-year ratio. Now hac_inference.d6_sharpe:
+    # the simple mean over calendar years of SR_y = mean_y / sd_y * sqrt(A_y), A_y = N_y over the fraction of year y
+    # the 614 post-warmup days cover. Was: return float(asl.sharpe_ann_by_year(s)["sharpe"])
     assert len(x) == NDAYS, len(x)
     s = x.iloc[WARMUP:]
     assert isinstance(s.index, pd.DatetimeIndex), type(s.index)
-    return float(asl.sharpe_ann_by_year(s)["sharpe"])
+    return float(hi.d6_sharpe(s)["sharpe"])
 
 
 NN15_SOFT: list[str] = []  # 2026-10-18 (user, new-notes 15): Sharpe-derived gates that no longer hold under the per-year ratio
@@ -591,7 +603,10 @@ def pair(a: pd.DataFrame, b: pd.DataFrame, lw: bool = False) -> dict:
         "p_t": float(tt["p"]),
         # Ledoit-Wolf p of the Sharpe-ratio difference (614 days): stars on dsh, counts of Sharpe claims; only where a
         # Sharpe claim or star uses it (lw=True: T1, T2, the 51 all-vs-HAR pairs), NaN elsewhere
+        # 2026-10-22 (user, D6): the stars and counts on dsh now use p_bt, the bootstrap of the D6 difference; p_lw
+        # stays (robustness)
         "p_lw": lw_p(jt["ret_mid"], jt["ret_mid_b"]) if lw else float("nan"),
+        "p_bt": boot_p(jt["ret_mid"], jt["ret_mid_b"]) if lw else float("nan"),
     }
 
 
@@ -624,6 +639,24 @@ def lw_p(a: pd.Series, b: pd.Series, block: int = hi.LW_BLOCK) -> float:
     return LW_CACHE[k]
 
 
+BOOT_CACHE: dict[tuple, float] = {}
+
+
+def boot_p(a: pd.Series, b: pd.Series) -> float:
+    """2026-10-22 (user, D6): p of the paired circular block bootstrap of the D6 Sharpe-ratio difference, a minus b
+    (866-day series indexed by day), on the 614 post-warmup days (hac_inference.d6_diff_test: block hi.LW_BLOCK,
+    hi.LW_BOOT resamples, seed hi.D6_SEED); cached on the bytes of the two series. The significance of every
+    printed Sharpe-ratio difference (stars, counts)."""
+    assert a.index.equals(b.index), "boot_p: the two series are not on the same days"
+    va, vb = pw(a), pw(b)
+    k = (va.tobytes(), vb.tobytes())
+    if k not in BOOT_CACHE:
+        r = hi.d6_diff_test(va, vb, a.index[WARMUP:])
+        assert abs(r["delta"] - (sharpe(a) - sharpe(b))) < 1e-10, r["delta"]
+        BOOT_CACHE[k] = r["p"]
+    return BOOT_CACHE[k]
+
+
 # 2026-10-21 (user, decision #2): appendix robustness table of the strategy-return tests (generated/rehaul_app_hac_robust.tex)
 def hac_robust_rows(specs: list[tuple]) -> list[dict]:
     """specs: (panel, label, a, b, dsh) with a, b the 866-day mid-return series (b None: the mean of a against zero)
@@ -651,6 +684,7 @@ def hac_robust_rows(specs: list[tuple]) -> list[dict]:
         if b is not None:
             for blk in (hi.LW_BLOCK, *hi.LW_BLOCK_ALT):
                 row[f"lw{blk}"] = lw_p(a, b, block=blk)
+            row["bt"] = boot_p(a, b)  # 2026-10-22 (user, D6): the test behind the text's Sharpe-ratio statements
         rows.append(row)
     return rows
 
@@ -664,32 +698,36 @@ def table_hac_robust(rows: list[dict]) -> str:
     def tcell(t: float) -> str:
         return f"${_fmt(t, 2)}$"
 
+    # 2026-10-22 (user, D6): + the column of the bootstrap of the D6 Sharpe-ratio difference ("Boot."), before LW (kept
+    # as robustness); 10 -> 11 columns. Was: panel_head(panel, 10, ...), the row's last cell the LW p, and the header
+    # "\\begin{tabular}{@{}lrrrrrrrrr@{}}" ... "& LW \\\\" ... "\\cmidrule(l){10-10}" ... "& $t$ & $p$ & $p$ \\\\"
     body = ""
     panel = None
     for r in rows:
         if r["panel"] != panel:
             panel = r["panel"]
-            body += panel_head(panel, 10, first=r is rows[0])
+            body += panel_head(panel, 11, first=r is rows[0])
         dsh = "--" if r["dsh"] is None else f"${_fmt(r['dsh'], 2)}$"
         body += (
             f"{r['label']} & ${_fmt(r['mean'], 2)}$ & {dsh} & {tcell(r['t5'])} & {pcell(r['p5'])} & "
             f"{tcell(r['t12'])} & {pcell(r['p12'])} & {tcell(r['t'])} & {pcell(r['p'])} & "
-            f"{pcell(r.get(f'lw{hi.LW_BLOCK}'))} \\\\\n"
+            f"{pcell(r.get('bt'))} & {pcell(r.get(f'lw{hi.LW_BLOCK}'))} \\\\\n"
         )
     return (
         "% generated by writeup/make_rehaul_results.py (2026-10-21, decision #2): the tests of strategy returns behind\n"
         "% the significance statements of Section 7 and Appendix F, on the 614 post-warmup days, under four procedures.\n"
+        "% 2026-10-22 (user, D6): + the bootstrap of the D6 Sharpe-ratio difference (the test of the text's Sharpe claims).\n"
         "% Do not edit by hand.\n"
         "\\begin{table}[tbp]\n\\centering\n\\scriptsize\n\\setlength{\\tabcolsep}{3.5pt}\n"
         "\\begin{threeparttable}\n"
         "\\caption{Tests of strategy returns under alternative long-run variance estimators}\n"
         "\\label{tab:rh_app_hac_robust}\n"
-        "\\begin{tabular}{@{}lrrrrrrrrr@{}}\n\\toprule\n"
+        "\\begin{tabular}{@{}lrrrrrrrrrr@{}}\n\\toprule\n"
         " & & & \\multicolumn{2}{c}{NW, $q_{\\mathrm{NW}} = \\rhrRobLagNW$} & "
         "\\multicolumn{2}{c}{NW, $q_{\\mathrm{NW}} = \\rhrRobLagOld$} & "
-        "\\multicolumn{2}{c}{NW, $S = \\rheHACS$, fixed-$b$} & LW \\\\\n"
-        "\\cmidrule(lr){4-5}\\cmidrule(lr){6-7}\\cmidrule(lr){8-9}\\cmidrule(l){10-10}\n"
-        " & $\\bar\\Delta$ (\\%) & $\\Delta\\SR$ & $t$ & $p$ & $t$ & $p$ & $t$ & $p$ & $p$ \\\\\n\\midrule\n"
+        "\\multicolumn{2}{c}{NW, $S = \\rheHACS$, fixed-$b$} & Boot. & LW \\\\\n"
+        "\\cmidrule(lr){4-5}\\cmidrule(lr){6-7}\\cmidrule(lr){8-9}\\cmidrule(lr){10-10}\\cmidrule(l){11-11}\n"
+        " & $\\bar\\Delta$ (\\%) & $\\Delta\\SR$ & $t$ & $p$ & $t$ & $p$ & $t$ & $p$ & $p$ & $p$ \\\\\n\\midrule\n"
         + body
         + "\\bottomrule\n\\end{tabular}\n\\begin{tablenotes}[flushleft]\n\\footnotesize\n"
         "\\item \\textit{Notes:} Each row is a comparison whose statistical significance the text states, on the "
@@ -700,10 +738,15 @@ def table_hac_robust(rows: list[dict]) -> str:
         "$q_{\\mathrm{NW}} = \\lfloor 4(T/100)^{2/9}\\rfloor = \\rhrRobLagNW$ \\citep{NeweyWest1994} and at "
         "$q_{\\mathrm{NW}} = \\lfloor 1.5\\,T^{1/3}\\rfloor = \\rhrRobLagOld$, both with standard normal $p$-values, and "
         "at bandwidth $S = \\lceil 1.3\\,T^{1/2}\\rceil = \\rheHACS$ with fixed-$b$ $p$-values "
-        "\\citep{LazarusLewisStockWatson2018,KieferVogelsang2005}, $T = \\rheSzDays$. LW is the $p$-value of the "
-        "\\citet{LedoitWolf2008} test of equal Sharpe ratios (circular block bootstrap, block length \\rheLWBlock{}, "
-        "\\rheLWBoot{} resamples). The text uses the fixed-$b$ test for statements about mean returns and the LW test "
-        "for statements about Sharpe ratios. All $p$-values are two-sided.\n"
+        # 2026-10-22 (user, D6): parked -- "LW is the $p$-value of the \\citet{LedoitWolf2008} test of equal Sharpe
+        # ratios (circular block bootstrap, block length \\rheLWBlock{}, \\rheLWBoot{} resamples). The text uses the
+        # fixed-$b$ test for statements about mean returns and the LW test for statements about Sharpe ratios."
+        "\\citep{LazarusLewisStockWatson2018,KieferVogelsang2005}, $T = \\rheSzDays$. Boot.\\ is the $p$-value of the "
+        "paired block-bootstrap test of equal Sharpe ratios $\\SR$ (Section~\\ref{sec:rh_econ_measures}; block "
+        "length \\rheBootBlock{}, \\rheBootN{} resamples), and LW that of the \\citet{LedoitWolf2008} test of equal "
+        "Sharpe ratios of the daily returns pooled over the $T$ days (block length \\rheLWBlock{}, \\rheLWBoot{} "
+        "resamples). The text uses the fixed-$b$ test for statements about mean returns and the bootstrap test for "
+        "statements about Sharpe ratios. All $p$-values are two-sided.\n"
         "\\end{tablenotes}\n\\end{threeparttable}\n\\end{table}\n"
     )
 
@@ -1367,7 +1410,8 @@ def table_t1(rows: list[dict]) -> str:
                 q4(r["qa"]),
                 cell(r["pct"], 1, n_stars(r["p"])),
                 stat_col(r["dm"]),
-                cell(r["dsh"], 2, n_stars(r["p_lw"])),  # 2026-10-21 (user, decision #2): was n_stars(r["p_t"])
+                # 2026-10-21 (user, decision #2): was n_stars(r["p_t"]); 2026-10-22 (user, D6): was n_stars(r["p_lw"])
+                cell(r["dsh"], 2, n_stars(r["p_bt"])),
                 stat_col(r["t"]),
             ]
             body += f"{name} & " + " & ".join(cells) + " \\\\\n"
@@ -1379,8 +1423,10 @@ def table_t1(rows: list[dict]) -> str:
         "(Harvey--Leybourne--Newbold correction; Newey--West lag $q_{\\mathrm{NW}} = \\rhrDMLag$). $\\Delta\\SR$ is the "
         # 2026-10-21 (user, decision #2): parked -- "$t$ the HAC $t$-statistic of the daily return differential
         # ($q_{\\mathrm{NW}} = \\rhrHACLag$; ...)"; stars on the Sharpe change now from the Ledoit-Wolf test
+        # 2026-10-22 (user, D6): parked -- "with stars from the \\citet{LedoitWolf2008} bootstrap test of equal Sharpe
+        # ratios"; now the paired block-bootstrap test of equal Sharpe ratios (the D6 difference)
         "change in the annualized Sharpe ratio of the sign strategy at mid-quotes, with stars from the "
-        "\\citet{LedoitWolf2008} bootstrap test of equal Sharpe ratios, and $t$ the $t$-statistic of the mean daily "
+        "paired block-bootstrap test of equal Sharpe ratios, and $t$ the $t$-statistic of the mean daily "
         "return differential (Newey--West with bandwidth $S = \\rheHACS$, fixed-$b$ critical values; "
         "Section~\\ref{sec:rh_methods_tests}). "
         + STAR_NOTE
@@ -1452,7 +1498,8 @@ def table_t2(rows: list[dict]) -> str:
             cells = [
                 cell(x["pct"], 1, n_stars(x["p"])),
                 stat_col(x["dm"]),
-                cell(x["dsh"], 2, n_stars(x["p_lw"])),  # 2026-10-21 (user, decision #2): was n_stars(x["p_t"])
+                # 2026-10-21 (user, decision #2): was n_stars(x["p_t"]); 2026-10-22 (user, D6): was n_stars(x["p_lw"])
+                cell(x["dsh"], 2, n_stars(x["p_bt"])),
                 stat_col(x["t"]),
             ]
             body += f"{name} & " + " & ".join(cells) + " \\\\\n"
@@ -2387,6 +2434,11 @@ def main() -> None:
     soft(int((af["dsh"] > 0).sum()) == 47, f"all-vs-HAR pairs dsh>0: {int((af['dsh'] > 0).sum())} of 51 (was 47)")
     # 2026-10-21 (user, decision #2): Sharpe claim, Ledoit-Wolf p (was p_t, the HAC t of the mean differential)
     soft(int(((af["dsh"] > 0) & (af["p_lw"] < SIG)).sum()) == 4, f"all-vs-HAR pairs dsh>0 & Ledoit-Wolf p<0.05: {int(((af['dsh'] > 0) & (af['p_lw'] < SIG)).sum())} (was 4 on the HAC t)")
+    # 2026-10-22 (user, D6): the same count on the D6 bootstrap (the paper's Sharpe test)
+    print(
+        f"D6: all-vs-HAR pairs dsh>0 & D6 bootstrap p<0.05: {int(((af['dsh'] > 0) & (af['p_bt'] < SIG)).sum())}, "
+        f"dsh<0 & p<0.05: {int(((af['dsh'] < 0) & (af['p_bt'] < SIG)).sum())}"
+    )
 
     # ---- 2026-10-15: the trees against the closing-interval ridge on the same predictor set (Model classes, 6.5) ----
     # The 48 tree forecasts of the model set the campaign compared with the ridge (writeup/make_table_close_main.py
@@ -3030,7 +3082,9 @@ def main() -> None:
             (qbook["bid_c"] + qbook["bid_p"]).to_numpy(float),
             (qbook["ask_c"] + qbook["ask_p"]).to_numpy(float),
             # 2026-10-18 (user, new-notes 15): per-year annualization on the 614 post-warmup days; was the GUI default sqrt(252)
-            sharpe_fn=lambda r: float(asl.sharpe_ann_by_year(r, dates=ref_ix[WARMUP:])["sharpe"]),
+            # 2026-10-22 (user, D6): parked -- the N_y-weighted per-year ratio. Was:
+            # sharpe_fn=lambda r: float(asl.sharpe_ann_by_year(r, dates=ref_ix[WARMUP:])["sharpe"]),
+            sharpe_fn=lambda r: float(hi.d6_sharpe(r, dates=ref_ix[WARMUP:])["sharpe"]),
         )
 
     sz_ms = {
@@ -3281,12 +3335,19 @@ def main() -> None:
         "RobLWSig": sum(r_[f"lw{hi.LW_BLOCK}"] < SIG for r_ in rob_pairs),
         "RobLWSigLo": sum(r_[f"lw{hi.LW_BLOCK_ALT[0]}"] < SIG for r_ in rob_pairs),
         "RobLWSigHi": sum(r_[f"lw{hi.LW_BLOCK_ALT[1]}"] < SIG for r_ in rob_pairs),
+        # 2026-10-22 (user, D6): the bootstrap of the D6 Sharpe-ratio difference (the text's Sharpe test)
+        "RobBootSig": sum(r_["bt"] < SIG for r_ in rob_pairs),
     }
     print("decision #2 robustness table:", rob_counts)
     for r_ in rob:
-        print(f"  {r_['panel'][:8]} {r_['label']:<22} mean {r_['mean']:+.3f}% t5 {r_['t5']:+.2f} t12 {r_['t12']:+.2f} "
-              f"t {r_['t']:+.2f} p_fb {r_['p']:.4f} LW " + " ".join(f"{r_.get(f'lw{b}', float('nan')):.4f}"
-                                                              for b in (hi.LW_BLOCK, *hi.LW_BLOCK_ALT)))
+        print(
+            f"  {r_['panel'][:8]} {r_['label']:<22} mean {r_['mean']:+.3f}% t5 {r_['t5']:+.2f} t12 {r_['t12']:+.2f} "
+            f"t {r_['t']:+.2f} p_fb {r_['p']:.4f} boot {r_.get('bt', float('nan')):.4f} LW "
+            + " ".join(
+                f"{r_.get(f'lw{b}', float('nan')):.4f}"
+                for b in (hi.LW_BLOCK, *hi.LW_BLOCK_ALT)
+            )
+        )
     (GEN / "rehaul_app_hac_robust.tex").write_text(table_hac_robust(rob), encoding="utf-8", newline="\n")
     print("wrote generated/rehaul_app_hac_robust.tex")
     # assert all(vs_sh[k]["tail"] < 0 for k in pool_keys)  # 2026-10-22 (user, E34: one design for the 12 pooled forecasts): parked -- reported (the text prints \\rhrPoolTailNeg)
@@ -3659,9 +3720,19 @@ def main() -> None:
             "... Sharpe mid higher with Full",
         ),
         # 2026-10-21 (user, decision #2): Sharpe claim, Ledoit-Wolf p (was r["p_t"], the HAC t of the mean differential)
+        # 2026-10-22 (user, D6): the D6 bootstrap p. Was: r["p_lw"] < SIG, "... and Ledoit-Wolf p < 0.05 (equal
+        # Sharpe ratios)"; the Ledoit-Wolf count stays as AfPoolShHigherSigLW (robustness)
         "AfPoolShHigherSig": (
+            str(sum(r["dsh"] > 0 and r["p_bt"] < SIG for r in t1p.values())),
+            "... and D6 bootstrap p < 0.05 (equal Sharpe ratios)",
+        ),
+        "AfPoolShHigherSigLW": (
             str(sum(r["dsh"] > 0 and r["p_lw"] < SIG for r in t1p.values())),
-            "... and Ledoit-Wolf p < 0.05 (equal Sharpe ratios)",
+            "... and Ledoit-Wolf p < 0.05 (robustness; it tests the pooled-day ratio)",
+        ),
+        "AfPoolShSigNeg": (
+            str(sum(r["dsh"] < 0 and r["p_bt"] < SIG for r in t1p.values())),
+            "pooled Full vs HAR pairs whose Sharpe mid is lower with Full and D6 bootstrap p < 0.05",
         ),
         "AfPoolDShMin": (
             pm(min(dsh_pool), 2),
@@ -3945,8 +4016,9 @@ def main() -> None:
         ),
         "% DM: dm_test, HLN-corrected, Newey-West lag \\rhrDMLag;",
         # 2026-10-21 (user, decision #2): was "% HAC t: newey_west_t, lag \\rhrHACLag; p two-sided normal; stars at the 10 / 5 / 1 % levels."
-        "% t of a mean: hac_inference.llsw_test (bandwidth 33, fixed-b p, 614 days); Sharpe differences: Ledoit-Wolf p; "
-        "stars at the 10 / 5 / 1 % levels.",
+        # 2026-10-22 (user, D6): was "...; Sharpe differences: Ledoit-Wolf p; stars at the 10 / 5 / 1 % levels."
+        "% t of a mean: hac_inference.llsw_test (bandwidth 33, fixed-b p, 614 days); Sharpe ratios: D6 "
+        "(hac_inference.d6_sharpe), their differences: D6 bootstrap p (d6_diff_test); stars at the 10 / 5 / 1 % levels.",
         # 2026-10-15 (user): parked -- NN content parked for now
         # "% Per-model families (<M> = Ridge, Lasso, Enet, Lgbm, Xgb, Rf, Nn; <S> = Close | Pool, the closing-interval or",
         "% Per-model families (<M> = Ridge, Lasso, Enet, Lgbm, Xgb, Rf; Nn, the MinGRU, is parked from every table and",

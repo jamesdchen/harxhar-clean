@@ -48,6 +48,10 @@ F .. 3 only, for windows whose fold-0 fit window starts before the design's firs
 days, folds 1-3 up to 2,631, folds 2-3 up to 2,881, fold 3 up to 3,131). Fold f's fit and validation rows are the same
 global rows as with F = 0; the pre-tune halo is (4 - F) x 3,250 + 325 + W; select labels the columns mse_fold<F..3> and
 records info.first_fold. F = 0 is every stage as before.
+
+2026-10-22 (James: "add the KKT check flag"): --walk-kkt-reseed 0|1 passes the runner's option of that name to the walks
+(src/models/reclasso_har.py WALK_KKT_RESEED, on by default: after every warm lasso / elastic-net update the KKT
+conditions of the window's problem, a cold reseed where they fail); without it the walks run at the module's default.
 """
 
 from __future__ import annotations
@@ -107,6 +111,7 @@ HAR_LADDER = [1, 5, 25, 125, 625, 3125]  # base 5 (author, 2026-10-19 correction
 
 
 KEEP_FOMC_RELEASE = False  # 2026-10-22: set by main from --keep-fomc-release
+WALK_KKT = ""  # 2026-10-22: set by main from --walk-kkt-reseed ("" = the runner's default)
 
 
 def design_features() -> tuple[list[str], list[str]]:
@@ -395,6 +400,8 @@ def walk_jobs(
                 str(W),
             ]
             args += ["--out", str(o), "--design", str(design_dir(s))]
+            if WALK_KKT:  # 2026-10-22 (--walk-kkt-reseed)
+                args += ["--walk-kkt-reseed", WALK_KKT]
             jobs.append((args, o / "run.log", (s, m, c)))
     return jobs
 
@@ -605,7 +612,7 @@ def st_score(a) -> None:
 
 
 def main() -> None:
-    global OUT, WORK, TW_DAYS, W, PRE_HALO, FIRST_DAY, KEEP_FOMC_RELEASE, FIRST_FOLD
+    global OUT, WORK, TW_DAYS, W, PRE_HALO, FIRST_DAY, KEEP_FOMC_RELEASE, FIRST_FOLD, WALK_KKT
     ap = argparse.ArgumentParser()
     ap.add_argument("stage", choices=("design", "pretune", "select", "walk", "score"))
     ap.add_argument("--jobs", type=int, default=4)
@@ -637,7 +644,10 @@ def main() -> None:
     # days fold 0's fit window starts before the design's first row); pass it on every stage from pretune on
     # (first_row's check); default 0, every fold
     ap.add_argument("--first-fold", type=int, default=0)
+    # 2026-10-22 (James: "add the KKT check flag"): the walks' WALK_KKT_RESEED (pool_linear_pretune.py --walk-kkt-reseed)
+    ap.add_argument("--walk-kkt-reseed", default="", choices=("", "0", "1"))
     a = ap.parse_args()
+    WALK_KKT = a.walk_kkt_reseed  # 2026-10-22
     if a.out:
         OUT = Path(a.out).resolve()
         WORK = OUT / "_work"

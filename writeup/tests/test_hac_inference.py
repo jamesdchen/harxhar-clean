@@ -119,6 +119,120 @@ def test_lw_detects_large_gap_and_seed_fixed():
     assert h.lw_sharpe_test(a, b, n_boot=999)["p"] == r["p"]  # fixed seed
 
 
+# ----------------------------------------------------------------------------- 2026-10-22 (user, D6)
+def _d6_calendar():
+    """A calendar like the paper's post-warmup days: 2021-08-11 .. 2024-04-30, Mon/Wed/Fri until 13 May 2022, every
+    weekday after."""
+    import pandas as pd
+
+    d = pd.bdate_range("2021-08-11", "2024-04-30")
+    return d[(d >= pd.Timestamp("2022-05-16")) | d.dayofweek.isin([0, 2, 4])]
+
+
+def _ref_stat(x, yrs, A):
+    """The coordinator's scratch script sharpe_equalyears.py, stat(kind="D6s"), verbatim but for A passed in."""
+    srs = []
+    for y in sorted(set(yrs.tolist())):
+        v = x[yrs == y]
+        if len(v) < 2 or not v.std(ddof=1) > 0:
+            continue
+        srs.append(v.mean() / v.std(ddof=1) * np.sqrt(A[y]))
+    return float(np.mean(srs))
+
+
+def _ref_boot_p(a, b, years, A, block=10, n=1999, seed=20261022):
+    """sharpe_equalyears.py boot_p(kind="D6s"), verbatim but for years / A passed in."""
+    rng = np.random.default_rng(seed)
+    T = len(a)
+    d0 = _ref_stat(a, years, A) - _ref_stat(b, years, A)
+    nb = int(np.ceil(T / block))
+    out = np.empty(n)
+    for i in range(n):
+        st = rng.integers(0, T, nb)
+        idx = ((st[:, None] + np.arange(block)[None, :]) % T).ravel()[:T]
+        out[i] = _ref_stat(a[idx], years[idx], A) - _ref_stat(b[idx], years[idx], A)
+    return float(np.mean(np.abs(out - d0) >= abs(d0)))
+
+
+def test_d6_years_coverage():
+    d = _d6_calendar()
+    yy = h.d6_years(d)
+    assert sorted(yy["A"]) == [2021, 2022, 2023, 2024]
+    assert math.isclose(yy["coverage"][2021], 143 / 365) and math.isclose(
+        yy["coverage"][2024], 121 / 366
+    )
+    assert yy["coverage"][2022] == 1.0 == yy["coverage"][2023]
+    for y in yy["A"]:
+        assert math.isclose(yy["A"][y], yy["N"][y] / yy["coverage"][y])
+    # span widens the sample: a year inside it is fully covered
+    import pandas as pd
+
+    yy2 = h.d6_years(
+        d[d.year == 2022], span=(pd.Timestamp("2021-08-11"), pd.Timestamp("2024-04-30"))
+    )
+    assert yy2["coverage"] == {2022: 1.0}
+
+
+def test_d6_sharpe_matches_scratch_and_definition():
+    d = _d6_calendar()
+    rng = np.random.default_rng(10)
+    x = 0.05 + rng.standard_normal(len(d))
+    yy = h.d6_years(d)
+    r = h.d6_sharpe(x, d)
+    assert math.isclose(r["sharpe"], _ref_stat(x, yy["years"], yy["A"]), rel_tol=1e-12)
+    # each year: mean / sd * sqrt(A_y); the years combined with equal weights
+    srs = [
+        x[yy["years"] == y].mean()
+        / x[yy["years"] == y].std(ddof=1)
+        * math.sqrt(yy["A"][y])
+        for y in yy["A"]
+    ]
+    assert math.isclose(r["sharpe"], float(np.mean(srs)), rel_tol=1e-12)
+    # a sample spanning the whole calendar year: A_y = N_y, so the year's term is the per-year ratio of new-notes 15
+    # (the sample's own first and last days, 2 Jan and 29 Dec, cover 362/365 of it)
+    import pandas as pd
+
+    full = pd.bdate_range("2023-01-01", "2023-12-31")
+    z = 0.1 + rng.standard_normal(len(full))
+    whole = (pd.Timestamp("2023-01-01"), pd.Timestamp("2023-12-31"))
+    d1 = asl.sharpe_ann_by_year(z, dates=full)["sharpe"]
+    assert math.isclose(h.d6_sharpe(z, full, span=whole)["sharpe"], d1, rel_tol=1e-12)
+    assert math.isclose(
+        h.d6_sharpe(z, full)["sharpe"], d1 * math.sqrt(365 / 362), rel_tol=1e-12
+    )
+
+
+def test_d6_diff_test_matches_scratch_boot_p():
+    d = _d6_calendar()
+    rng = np.random.default_rng(11)
+    z = rng.standard_normal((len(d), 2))
+    a = 0.08 + z[:, 0]
+    b = 0.02 + 0.8 * z[:, 0] + 0.6 * z[:, 1]
+    yy = h.d6_years(d)
+    r = h.d6_diff_test(a, b, d, n_boot=199, seed=20261022)
+    assert math.isclose(
+        r["delta"],
+        _ref_stat(a, yy["years"], yy["A"]) - _ref_stat(b, yy["years"], yy["A"]),
+        rel_tol=1e-12,
+    )
+    assert r["p"] == _ref_boot_p(a, b, yy["years"], yy["A"], n=199)
+    # antisymmetry and scale invariance; a fixed seed
+    r2 = h.d6_diff_test(b, a, d, n_boot=199, seed=20261022)
+    assert math.isclose(r2["delta"], -r["delta"]) and r2["p"] == r["p"]
+    r3 = h.d6_diff_test(3 * a, 0.5 * b, d, n_boot=199, seed=20261022)
+    assert math.isclose(r3["delta"], r["delta"], rel_tol=1e-10) and r3["p"] == r["p"]
+    assert h.d6_diff_test(a, b, d, n_boot=199, seed=20261022)["p"] == r["p"]
+
+
+def test_d6_diff_test_detects_large_gap():
+    d = _d6_calendar()
+    rng = np.random.default_rng(12)
+    z = rng.standard_normal((len(d), 2))
+    a = 0.3 + z[:, 0]
+    b = 0.0 + 0.9 * z[:, 0] + 0.4359 * z[:, 1]
+    assert h.d6_diff_test(a, b, d, n_boot=999)["p"] < 0.01
+
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
         if name.startswith("test_") and callable(fn):

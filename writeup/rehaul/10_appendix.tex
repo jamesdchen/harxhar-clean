@@ -50,8 +50,10 @@
   % 2026-10-18 (user, second-list 13): parked -- future-work item marked (not reported); see note S13. Was: "\item full model table, tree ensembles included;"
   \item full model table, tree ensembles included (not reported);
 % 2026-10-21 (user, decision #2): parked -- "Newey--West lag truncation" for both tests. Was: "\item Diebold--Mariano and HAC conventions ($\DM$ with the Harvey--Leybourne--Newbold correction; Newey--West lag truncation $q_{\mathrm{NW}}$);"
+% 2026-10-22 (user, D6): parked -- "the Ledoit--Wolf test of equal Sharpe ratios" as the Sharpe test; now the bootstrap test, Ledoit--Wolf as robustness. Was: "...; fixed-$b$ tests of mean returns; the Ledoit--Wolf test of equal Sharpe ratios);"
   \item Diebold--Mariano and HAC conventions ($\DM$ with the Harvey--Leybourne--Newbold correction and Newey--West lag
-    truncation $q_{\mathrm{NW}}$; fixed-$b$ tests of mean returns; the Ledoit--Wolf test of equal Sharpe ratios);
+    truncation $q_{\mathrm{NW}}$; fixed-$b$ tests of mean returns; the block-bootstrap test of equal Sharpe ratios and the
+    Ledoit--Wolf test of the pooled ratios);
   \item model confidence set, superior predictive ability, StepM;
   % 2026-10-18 (user, second-list 13): parked -- future-work item marked (not reported); see note S13. Was: "\item regime and break tests;"
   \item regime and break tests (not reported);
@@ -92,9 +94,11 @@
   \end{itemize}
 % 2026-10-18 (user, new-notes 25): moved here from the head of the list (section order).
 % 2026-10-21 (user, decision #2): parked -- "the Newey--West variance and the HAC $t$-statistic". Was: "\item \textbf{Statistical tests} (Appendix~\ref{sec:rh_methods_tests}): the Diebold--Mariano statistic, the Newey--West variance and the HAC $t$-statistic."
+% 2026-10-22 (user, D6): parked -- "the Ledoit--Wolf test of equal Sharpe ratios"; now the bootstrap test, Ledoit--Wolf as robustness. Was: "..., the fixed-$b$ test of a mean return, the Ledoit--Wolf test of equal Sharpe ratios, and the robustness of the strategy-return tests to the long-run variance estimator."
 \item \textbf{Statistical tests} (Appendix~\ref{sec:rh_methods_tests}): the Diebold--Mariano statistic, the
-  Newey--West variance, the fixed-$b$ test of a mean return, the Ledoit--Wolf test of equal Sharpe ratios, and the
-  robustness of the strategy-return tests to the long-run variance estimator.
+  Newey--West variance, the fixed-$b$ test of a mean return, the block-bootstrap test of equal Sharpe ratios, the
+  Ledoit--Wolf test of the pooled ratios, and the robustness of the strategy-return tests to the long-run variance
+  estimator.
 % 2026-10-15 (user): parked -- NN content parked for now
 % \item \textbf{F. Network implementation:}
 %   \begin{itemize}
@@ -469,6 +473,20 @@ A tree cell in Table~\ref{tab:rh_oos} is the loss of one fitting procedure,and t
 \section{Robustness of the trade}
 \label{app:rh_robust_trade}
 \begin{itemize}
+% 2026-10-22 (user, D6): added -- the main Sharpe ratio comparison under the previous and the pooled definitions, and before / from the May 2022 change of the expiration schedule (note D6).
+\item \textbf{Definition of the Sharpe ratio.} Table~\ref{tab:rh_econ_sharpe_defs} repeats the comparison of the full
+  predictor set with the HAR benchmark for the \rheDefN{} pooled intraday model classes under the Sharpe ratio $\SR$ of
+  Section~\ref{sec:rh_econ_measures} and under two other definitions (note D6). Under $\SR$ the change is positive in
+  \rheDefDSixPos{} of the \rheDefN{} classes (from \rheDefDSixMin{} to \rheDefDSixMax), and the bootstrap test finds
+  it statistically significant at the 5\% level in \rheDefBootSig. With each year scaled by $\sqrt{N_y}$ and the years
+  weighted by $N_y$, the change is positive in \rheDefDOnePos{} classes (from \rheDefDOneMin{} to \rheDefDOneMax). For
+  the ratio of the pooled daily returns scaled by $\sqrt{252}$, it is positive in \rheDefDTwoPos{} classes (from
+  \rheDefDTwoMin{} to \rheDefDTwoMax), and the \citet{LedoitWolf2008} test finds it statistically significant at the
+  5\% level in \rheDefLWSig. Computing $\SR$ separately on the \rheSplitPreN{} post-warmup days before
+  \rheSplitDate{} and on the \rheSplitPostN{} days from that date, the change is positive in \rheDefPrePos{} and
+  \rheDefPostPos{} classes, respectively (from \rheDefPreMin{} to \rheDefPreMax{} and from \rheDefPostMin{} to
+  \rheDefPostMax).
+\input{generated/rehaul_econ_sharpe_defs}
 \item \textbf{Date-shift test.} The sign strategy is re-scored with the forecast of the interval $j$ half hours
   away from the closing interval, placed on the closing interval's diurnal adjustment:
   \[
@@ -642,7 +660,8 @@ own window $\mathcal{W}_t$ (Section~\ref{sec:rh_exp_schemes}). Rows $t'$ are tra
   % 2026-10-17 (user): parked -- the straddle table's tree rows are now the pooled intraday trees, so the closing-interval LightGBM quoted here is the fixed daily rung, not an ex-post pick. Was: "For closing-interval LightGBM, the best specification selected ex post by $\SR$ on the post-warmup option sample attains $\SR = \rheLgbmBestSh$ at mid-quotes."
   \item Closing-interval LightGBM on the full predictor set, with fixed hyperparameters re-estimated every trading day (the specification of the closing-interval tree rows of the main results table), attains $\SR = \rheLgbmCloseFixedSh$ at mid-quotes; the tree rows of the straddle table are the pooled intraday trees.
 % 2026-10-21 (user, decision #2): parked -- the tests behind both clauses were the HAC t of the mean differential; now the Ledoit--Wolf test (Sharpe claims). Was: "\item Replacing the HAR benchmark with the full predictor set changes the closing-interval sign-strategy Sharpe ratio by $\Delta\SR = \rheAfEnetDSh$ for the elastic net and \rheAfLassoDSh{} for the lasso (neither statistically significant at the 5\% level); across all \rhePairs{} matched predictor-set pairs in the model set, $\Delta\SR > 0$ in \rhePairsUp{} pairs (median \rhePairsMed), with \rhePairsSig{} significant at the 5\% level."
-  \item Replacing the HAR benchmark with the full predictor set changes the closing-interval sign-strategy Sharpe ratio by $\Delta\SR = \rheAfEnetDSh$ for the elastic net and \rheAfLassoDSh{} for the lasso (neither statistically significant at the 5\% level by the test of equal Sharpe ratios of \citealp{LedoitWolf2008}); across all \rhePairs{} matched predictor-set pairs in the model set, $\Delta\SR > 0$ in \rhePairsUp{} pairs (median \rhePairsMed), and the same test finds a statistically significant gain at the 5\% level in \rhePairsSig{} pairs and a statistically significant loss in \rhePairsSigNeg{}.
+% 2026-10-22 (user, D6): parked -- "by the test of equal Sharpe ratios of \citealp{LedoitWolf2008}"; the counts and the clause now use the bootstrap test (note D6).
+  \item Replacing the HAR benchmark with the full predictor set changes the closing-interval sign-strategy Sharpe ratio by $\Delta\SR = \rheAfEnetDSh$ for the elastic net and \rheAfLassoDSh{} for the lasso (neither statistically significant at the 5\% level by the block-bootstrap test of equal Sharpe ratios); across all \rhePairs{} matched predictor-set pairs in the model set, $\Delta\SR > 0$ in \rhePairsUp{} pairs (median \rhePairsMed), and the same test finds a statistically significant gain at the 5\% level in \rhePairsSig{} pairs and a statistically significant loss in \rhePairsSigNeg{}.
   % 2026-10-21 (user): "neither statistically significant" is backed by \rheAfEnetLassoSig (= 0, asserted in make_rehaul_economics.py).
   % 2026-10-17 (user, E17): parked -- 866-day \cmMasterVsShortAbove replaced by post-warmup \rheVsShortAbove.
 % 2026-10-21 (user): parked -- "all ... use the full predictor set" no longer holds on the post-warmup HAC t (note T2); both counts printed. Was: "\item Relative to the unconditional short-straddle benchmark, $\Delta\SR > 0$ for \rheVsShortAbove{} of the \cmMasterVsShortN{} forecasts in the model set, and all \rheSigVsShort{} gains that are statistically significant at the 5\% level use the full predictor set."
@@ -674,7 +693,8 @@ own window $\mathcal{W}_t$ (Section~\ref{sec:rh_exp_schemes}). Rows $t'$ are tra
   \item \texttt{writeup/make\_table\_close\_main.py}: the closing-interval master-table macros, including the closing-interval predictor counts.
 % 2026-10-21 (user, decision #2): parked -- the lag macro is gone. Was: "\item \texttt{writeup/make\_fig\_qlike\_sharpe.py}: the matched predictor-set pair counts and the Newey--West lag of the HAC $t$-statistics."
   \item \texttt{writeup/make\_fig\_qlike\_sharpe.py}: the matched predictor-set pair counts.
-  \item \texttt{writeup/hac\_inference.py}: the fixed-$b$ test of a mean return and the Ledoit--Wolf test of equal Sharpe ratios, used by the three generators above; \texttt{writeup/make\_rehaul\_results.py} writes Table~\ref{tab:rh_app_hac_robust}.
+% 2026-10-22 (user, D6): parked -- "the fixed-$b$ test of a mean return and the Ledoit--Wolf test of equal Sharpe ratios, used by the three generators above; \texttt{writeup/make\_rehaul\_results.py} writes Table~\ref{tab:rh_app_hac_robust}."
+  \item \texttt{writeup/hac\_inference.py}: the fixed-$b$ test of a mean return, the Sharpe ratio of Section~\ref{sec:rh_econ_measures} and the block-bootstrap test of its differences, and the Ledoit--Wolf test of equal Sharpe ratios, used by the three generators above; \texttt{writeup/make\_rehaul\_results.py} writes Table~\ref{tab:rh_app_hac_robust} and \texttt{writeup/make\_rehaul\_economics.py} Table~\ref{tab:rh_econ_sharpe_defs}.
   % 2026-10-22 (user, E34): added -- the shared loader of the base-5 pooled trees.
   \item \texttt{writeup/pooled\_trees\_13.py}: the 16:00 forecasts of the pooled tree ensembles (results/pooled\_trees\_rerun13\_2026-10-20/w1000, fitted by \texttt{experiments/pooled\_trees\_rerun\_13.py}), read by \texttt{writeup/make\_rehaul\_results.py}, \texttt{writeup/make\_rehaul\_economics.py} and \texttt{writeup/make\_rehaul\_oos\_table.py}.
   % 2026-10-22 (user, E34: one design for the 12 pooled forecasts): added -- the shared loader of the pooled linear models on the trees' design.
