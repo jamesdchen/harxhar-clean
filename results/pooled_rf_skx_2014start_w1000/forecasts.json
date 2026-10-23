@@ -1,0 +1,49 @@
+{
+ "refit": "bar",
+ "span": [
+  "2014-01-02",
+  "2024-04-30"
+ ],
+ "window_days": 1000,
+ "pieces": {
+  "rf_skx/baseline": [
+   "rf_skx_baseline_bar_2014-01-02_2024-04-30_1of1.parquet"
+  ],
+  "rf_skx/all_features": [
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_10of25.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_11of25.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_12of25.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_13of25.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_14of25.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_15of25.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_16of25.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_17of25.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_18of25.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_19of25.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_1of25.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_20of25.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_21of25.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_22of25.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_23of25.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_24of25.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_25of25.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_2of25.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_3of25.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_4of25.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_5of25.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_6of25.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_7of25.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_8of25.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_9of25.parquet"
+  ]
+ },
+ "cpu_models": {
+  "rf_skx/baseline": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "rf_skx/all_features": [
+   "AMD EPYC 7513 32-Core Processor",
+   "AMD EPYC 7542 32-Core Processor"
+  ]
+ }
+}
