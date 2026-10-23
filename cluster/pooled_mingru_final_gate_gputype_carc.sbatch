@@ -40,6 +40,7 @@ cd "$LOCAL"
 for k in tune refit tune2; do
   case $k in tune|tune2) J=gate_tune_prev.txt; SUB=tune ;; refit) J=gate_walk_prev.txt; SUB=refit ;; esac
   RUN=$ROOT/runs/gate_${T}_${k}_$SLURM_JOB_ID
+  mkdir -p "$LOCAL/$k"  # 2026-10-23: the trainer does not create a nested --out (the first V100 / A40 gates segfaulted on it)
   T0=$(date +%s%N)
   "$LOCAL/ft" run --jobs "$ROOT/inputs/$J" --out "$LOCAL/$k/$SUB" --concurrent 6 --chunk 5 --pool > "$LOCAL/$k.log" 2>&1
   MS=$(( ($(date +%s%N) - T0) / 1000000 ))

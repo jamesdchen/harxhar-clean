@@ -137,3 +137,13 @@ errors); binary copied from `/home1/jc_905/pm13/bin` (md5 44ab6fff).
   of a salvaged copy dropped); checked on CARC (13345844): reproduces the round-0 tables (|dQLIKE| <= 1.2e-16, equal
   epochs, same picks); new stage `remainder` writes the not-yet-complete lines of timed-out files. GPU sbatch:
   `--signal=B:USR1@240` + a handler copying the partial outputs to salvage/ before a time limit.
+- 2026-10-23 12:50-13:10 PDT: read-only tuning-noise analysis (coordinator; experiments/
+  pooled_mingru_final_tune_analysis.py, 13348038, CPU; outputs analysis_w3000/): HAR (2,973 configurations complete
+  incl. round-1 runs and salvaged H 1,024 jobs) leader L8_H1024_lr0.003_we15_wl0.03_ll0.001 (0.122417); ranks 2-21
+  within 0.00008-0.00037 of it, block-bootstrap SE of the differences 0.00018-0.00055 (29 configurations within
+  1 SE, 284 within 2 SE); seed SE of the mean 0.00023; the ridge shortcut alone 0.1302 (net -6 %). Full set: pick
+  L20_H64 0.113381, 8 within 1 SE, 44 within 2 SE. The HAR edge drift is selection among statistically equivalent
+  configurations.
+- GPU-type gates resubmitted (13346565-68) after finding the first V100 / A40 segfaults were the gate script's nested
+  --out path (diagnosis v2 13331862: the gate's own jobs run cleanly on a V100). Heavy-shape packing (13335886): no
+  gain at H 256 (memory-bound, ~860 deferrals), OOM at CONC 24 for full H 256 L 48: CONC 24 only for H <= 64, L <= 20.
