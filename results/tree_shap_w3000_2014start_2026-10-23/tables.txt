@@ -1,0 +1,267 @@
+tree SHAP, W = 3,000, 2014 start: 126 origins, 33970 forecast rows, models ['lgbm', 'xgb', 'rf_skx']
+
+== GATE
+LightGBM       walk rows 126/126; bit-equal 126/126; max |diff| 0 (rel 0); fit rows equal True; additivity pass 126/126 (max 8.4e-15); interaction rows sum to SHAP: max 1.7e-15
+               repeat refits at k [62, 125]: predictions equal [True, True], SHAP equal [True, True]
+               cpus: ['Intel64 Family 6 Model 186 Stepping 3, GenuineIntel', 'laptop (pre-guard run)']
+XGBoost        walk rows 126/126; bit-equal 126/126; max |diff| 0 (rel 0); fit rows equal True; additivity pass 126/126 (max 2.9e-06); interaction rows sum to SHAP: max 3.6e-07
+               repeat refits at k [0, 62, 125]: predictions equal [True, True, True], SHAP equal [True, True, True]
+               cpus: ['AMD EPYC 7513 32-Core Processor']
+Random forest  walk rows  31/126; bit-equal 31/31; max |diff| 0 (rel 0); fit rows equal True; additivity pass 126/126 (max 4.8e-14); oneDAL vs estimators_ mean rel max 2.5e-15
+               repeat refits at k [0, 62, 125]: predictions equal [True, True, True], SHAP equal [True, True, True]
+               cpus: ['AMD EPYC 7513 32-Core Processor']
+
+== M1 importance shares (share of total mean|SHAP| over the 48 variables; % ; 95% block-bootstrap CI)
+bucket                                      LightGBM                 XGBoost           Random forest
+HAR terms                          51.6 [49.5, 53.6]       51.9 [50.0, 53.7]       57.6 [55.4, 59.6]
+Calendar                              0.9 [0.8, 1.2]          0.9 [0.8, 1.2]          0.3 [0.2, 0.4]
+Realized moments (E-mini)          22.3 [21.3, 23.4]       23.6 [22.6, 24.6]       20.8 [19.8, 21.7]
+Liquidity                             8.8 [8.3, 9.5]          8.0 [7.4, 8.6]         9.4 [8.8, 10.0]
+Stock-market moments (EW)             5.6 [5.0, 6.1]          5.1 [4.7, 5.6]          3.8 [3.5, 4.2]
+Stock-market moments (VW)             5.1 [4.5, 5.8]          5.3 [4.7, 6.0]          4.5 [4.0, 5.0]
+StockTwits                            0.8 [0.6, 0.9]          0.7 [0.6, 0.8]          0.6 [0.5, 0.7]
+Implied volatility                    2.3 [2.0, 2.6]          2.0 [1.7, 2.3]          1.4 [1.3, 1.6]
+Volatility demand                     0.3 [0.2, 0.4]          0.2 [0.1, 0.3]          0.2 [0.2, 0.4]
+FOMC calendar                         2.3 [2.1, 2.6]          2.2 [2.0, 2.5]          1.3 [1.2, 1.5]
+STANDARD                           78.2 [76.6, 79.6]       79.4 [77.8, 80.7]       81.4 [79.7, 82.8]
+  of the exogenous total           54.1 [52.3, 55.7]       56.3 [54.4, 58.2]       55.7 [53.5, 57.8]
+NON-STANDARD                       21.8 [20.4, 23.4]       20.6 [19.3, 22.2]       18.6 [17.2, 20.3]
+  of the exogenous total           45.9 [44.3, 47.7]       43.7 [41.8, 45.6]       44.3 [42.2, 46.5]
+NON-STANDARD incl. sumvolume       23.8 [22.6, 25.2]       22.3 [21.2, 23.7]       20.4 [19.0, 22.0]
+  of the exogenous total           50.1 [48.7, 51.7]       47.3 [45.8, 49.0]       48.5 [46.8, 50.4]
+
+Top 15 variables by share (%), NON-STANDARD marked *; [K_used of 126 origins]
+LightGBM: har_ma 51.6 [126]; sumabsret 9.6 [126]; sumret 7.6 [126]; sumabsret_ewstock* 3.9 [126]; sumabsret_vwstock* 3.5 [126]; sumautocov 2.6 [126]; fomc_until_inv* 2.0 [126]; ofi_vwstock* 1.8 [126]; sumvolume 1.8 [126]; vix 1.3 [126]; effspread_vwstock* 1.3 [126]; sumret3 1.1 [126]; calendar 0.9 [126]; sumret3_vwstock* 0.9 [126]; sellturnover_vwstock* 0.7 [126]
+XGBoost: har_ma 51.9 [126]; sumabsret 11.7 [126]; sumret 7.5 [126]; sumabsret_vwstock* 3.9 [126]; sumabsret_ewstock* 3.8 [126]; sumautocov 2.3 [126]; fomc_until_inv* 2.0 [126]; ofi_vwstock* 1.7 [126]; sumvolume 1.6 [126]; vix 1.2 [126]; effspread_vwstock* 1.2 [126]; sumret3 1.0 [126]; calendar 0.9 [126]; sumret3_vwstock* 0.9 [126]; sellturnover_vwstock* 0.7 [126]
+Random forest: har_ma 57.6 [126]; sumabsret 12.3 [126]; sumret 4.6 [126]; sumabsret_vwstock* 2.4 [126]; sumabsret_ewstock* 1.9 [126]; ofi_vwstock* 1.4 [126]; sumautocov 1.4 [126]; sumvolume 1.3 [126]; effspread_vwstock* 1.3 [126]; sumret3 1.2 [126]; sumret3_vwstock* 1.1 [126]; fomc_until_inv* 1.1 [126]; vix 0.9 [126]; sumret3_ewstock* 0.8 [126]; effspread_ewstock* 0.7 [126]
+NON-STANDARD variables by share (%):
+LightGBM: sumabsret_ewstock 3.93; sumabsret_vwstock 3.48; fomc_until_inv 2.01; ofi_vwstock 1.80; effspread_vwstock 1.26; sumret3_vwstock 0.90; sellturnover_vwstock 0.72; sumret3_ewstock 0.71; effspread_ewstock 0.68; vix3m 0.67; spread_vwstock 0.52; stocktwits_sentiment 0.45; spread_ewstock 0.42; sumret2_ewstock 0.39; sellturnover_ewstock 0.38; vvix 0.29; sumpret2_vwstock 0.27; ofi_ewstock 0.24; buyturnover_vwstock 0.22; sumpret2_ewstock 0.22; turnover_vwstock 0.21; stocktwits_sentcount 0.19; fomc_since_inv 0.18; turnover_ewstock 0.18; buyturnover_ewstock 0.18; sumret2_vwstock 0.16; voldemand_spx_open_and_close 0.16; sumret4_vwstock 0.16; sumret4_ewstock 0.16; sumbipow_ewstock 0.15; stocktwits_attention 0.14; sumbipow_vwstock 0.13; fomc_day 0.12; voldemand_spx_open_only 0.06; voldemand_all_open_and_close 0.02; voldemand_all_open_only 0.02
+XGBoost: sumabsret_vwstock 3.91; sumabsret_ewstock 3.83; fomc_until_inv 2.01; ofi_vwstock 1.69; effspread_vwstock 1.25; sumret3_vwstock 0.86; sellturnover_vwstock 0.72; sumret3_ewstock 0.63; effspread_ewstock 0.57; vix3m 0.55; spread_vwstock 0.50; stocktwits_sentiment 0.43; sellturnover_ewstock 0.36; spread_ewstock 0.30; sumret2_ewstock 0.29; ofi_ewstock 0.24; vvix 0.21; stocktwits_sentcount 0.19; sumpret2_vwstock 0.17; turnover_vwstock 0.17; buyturnover_vwstock 0.17; sumpret2_ewstock 0.16; turnover_ewstock 0.15; sumret2_vwstock 0.15; sumret4_ewstock 0.13; voldemand_spx_open_and_close 0.13; buyturnover_ewstock 0.13; fomc_day 0.13; sumret4_vwstock 0.12; sumbipow_ewstock 0.11; stocktwits_attention 0.10; fomc_since_inv 0.10; sumbipow_vwstock 0.10; voldemand_spx_open_only 0.05; voldemand_all_open_and_close 0.02; voldemand_all_open_only 0.01
+Random forest: sumabsret_vwstock 2.36; sumabsret_ewstock 1.92; ofi_vwstock 1.40; effspread_vwstock 1.27; sumret3_vwstock 1.06; fomc_until_inv 1.05; sumret3_ewstock 0.83; effspread_ewstock 0.70; sellturnover_vwstock 0.69; spread_vwstock 0.63; ofi_ewstock 0.63; spread_ewstock 0.56; sellturnover_ewstock 0.55; sumpret2_vwstock 0.34; sumpret2_ewstock 0.33; sumbipow_ewstock 0.31; buyturnover_vwstock 0.30; buyturnover_ewstock 0.29; turnover_ewstock 0.29; turnover_vwstock 0.28; vix3m 0.27; sumbipow_vwstock 0.27; sumret2_ewstock 0.26; sumret2_vwstock 0.26; vvix 0.26; stocktwits_sentcount 0.25; stocktwits_sentiment 0.25; sumret4_vwstock 0.20; fomc_since_inv 0.19; sumret4_ewstock 0.19; stocktwits_attention 0.10; fomc_day 0.10; voldemand_all_open_and_close 0.06; voldemand_all_open_only 0.06; voldemand_spx_open_and_close 0.06; voldemand_spx_open_only 0.06
+
+NON-STANDARD share by year (%)
+                 2014   2015   2016   2017   2018   2019   2020   2021   2022   2023   2024
+LightGBM         24.4   25.6   22.8   24.4   20.0   19.1   19.5   18.4   21.2   24.2   24.8
+XGBoost          23.6   24.2   21.7   23.0   19.0   18.0   18.2   17.5   20.1   22.6   23.1
+Random forest    20.8   22.9   20.5   22.2   17.0   16.3   15.5   15.2   18.2   20.1   20.9
+HAR terms share by year (%)
+LightGBM         49.6   47.9   49.2   44.9   52.5   55.7   53.7   57.2   52.1   50.4   49.6
+XGBoost          50.3   48.1   49.7   45.8   53.2   56.1   53.2   56.8   52.4   50.2   51.1
+Random forest    57.5   54.7   55.0   50.5   59.5   62.3   61.0   61.5   57.1   53.7   55.5
+
+== M2 rank agreement with the linear models (W = 3,000 walks, same 126 origins)
+LightGBM       vs ridge : Spearman +0.59, top-10 overlap 6/10
+LightGBM       vs lasso : Spearman +0.50, top-10 overlap 5/10
+LightGBM       vs enet  : Spearman +0.69, top-10 overlap 7/10
+XGBoost        vs ridge : Spearman +0.59, top-10 overlap 6/10
+XGBoost        vs lasso : Spearman +0.47, top-10 overlap 5/10
+XGBoost        vs enet  : Spearman +0.70, top-10 overlap 7/10
+Random forest  vs ridge : Spearman +0.55, top-10 overlap 4/10
+Random forest  vs lasso : Spearman +0.43, top-10 overlap 3/10
+Random forest  vs enet  : Spearman +0.64, top-10 overlap 5/10
+secondary (48 groups / tree column-level / tree vs tree):
+  lgbm    vs ridge   48 groups                          Spearman +0.63, top-10 overlap 7/10
+  lgbm    vs ridge   46 exogenous, tree column-level    Spearman +0.61, top-10 overlap 6/10
+  lgbm    vs lasso   48 groups                          Spearman +0.53, top-10 overlap 6/10
+  lgbm    vs lasso   46 exogenous, tree column-level    Spearman +0.50, top-10 overlap 5/10
+  lgbm    vs enet    48 groups                          Spearman +0.71, top-10 overlap 7/10
+  lgbm    vs enet    46 exogenous, tree column-level    Spearman +0.68, top-10 overlap 7/10
+  xgb     vs ridge   48 groups                          Spearman +0.62, top-10 overlap 7/10
+  xgb     vs ridge   46 exogenous, tree column-level    Spearman +0.58, top-10 overlap 6/10
+  xgb     vs lasso   48 groups                          Spearman +0.50, top-10 overlap 6/10
+  xgb     vs lasso   46 exogenous, tree column-level    Spearman +0.47, top-10 overlap 5/10
+  xgb     vs enet    48 groups                          Spearman +0.72, top-10 overlap 7/10
+  xgb     vs enet    46 exogenous, tree column-level    Spearman +0.67, top-10 overlap 7/10
+  rf_skx  vs ridge   48 groups                          Spearman +0.56, top-10 overlap 5/10
+  rf_skx  vs ridge   46 exogenous, tree column-level    Spearman +0.54, top-10 overlap 4/10
+  rf_skx  vs lasso   48 groups                          Spearman +0.46, top-10 overlap 4/10
+  rf_skx  vs lasso   46 exogenous, tree column-level    Spearman +0.43, top-10 overlap 3/10
+  rf_skx  vs enet    48 groups                          Spearman +0.63, top-10 overlap 5/10
+  rf_skx  vs enet    46 exogenous, tree column-level    Spearman +0.61, top-10 overlap 5/10
+  lgbm    vs xgb     46 exogenous (tree vs tree)        Spearman +0.99, top-10 overlap 10/10
+  lgbm    vs rf_skx  46 exogenous (tree vs tree)        Spearman +0.90, top-10 overlap 8/10
+  xgb     vs rf_skx  46 exogenous (tree vs tree)        Spearman +0.89, top-10 overlap 8/10
+ridge top 10 (46 exogenous): sumret fomc_until_inv sumabsret fomc_day vix sumret4 sumabsret_vwstock sumret2_ewstock sumautocov spread_vwstock
+LightGBM top 10: sumabsret sumret sumabsret_ewstock sumabsret_vwstock sumautocov fomc_until_inv ofi_vwstock sumvolume vix effspread_vwstock
+XGBoost top 10: sumabsret sumret sumabsret_vwstock sumabsret_ewstock sumautocov fomc_until_inv ofi_vwstock sumvolume vix effspread_vwstock
+Random forest top 10: sumabsret sumret sumabsret_vwstock sumabsret_ewstock ofi_vwstock sumautocov sumvolume effspread_vwstock sumret3 sumret3_vwstock
+
+D = NON-STANDARD share, tree minus linear (pooled over origins; paired block bootstrap)
+LightGBM       vs ridge of exogenous total                            tree 45.9 linear 67.3  D -21.4 [-23.4, -19.6] -> LESS
+LightGBM       vs ridge of all 48 (backbone in denominator)           tree 21.8 linear 53.7  D -31.9 [-33.3, -30.5] -> LESS
+LightGBM       vs ridge of exogenous, sumvolume/numobs NON-STANDARD   tree 50.1 linear 70.8  D -20.7 [-23.2, -18.6] -> LESS
+LightGBM       vs lasso of exogenous total                            tree 45.9 linear 73.9  D -28.0 [-30.4, -25.9] -> LESS
+LightGBM       vs enet  of exogenous total                            tree 45.9 linear 56.0  D -10.1 [-11.7, -8.6] -> LESS
+XGBoost        vs ridge of exogenous total                            tree 43.7 linear 67.3  D -23.6 [-25.5, -21.7] -> LESS
+XGBoost        vs ridge of all 48 (backbone in denominator)           tree 20.6 linear 53.7  D -33.1 [-34.5, -31.7] -> LESS
+XGBoost        vs ridge of exogenous, sumvolume/numobs NON-STANDARD   tree 47.3 linear 70.8  D -23.5 [-25.8, -21.5] -> LESS
+XGBoost        vs lasso of exogenous total                            tree 43.7 linear 73.9  D -30.2 [-32.4, -28.2] -> LESS
+XGBoost        vs enet  of exogenous total                            tree 43.7 linear 56.0  D -12.3 [-13.8, -10.8] -> LESS
+Random forest  vs ridge of exogenous total                            tree 44.3 linear 67.3  D -23.0 [-24.8, -21.4] -> LESS
+Random forest  vs ridge of all 48 (backbone in denominator)           tree 18.6 linear 53.7  D -35.1 [-36.4, -33.7] -> LESS
+Random forest  vs ridge of exogenous, sumvolume/numobs NON-STANDARD   tree 48.5 linear 70.8  D -22.3 [-23.9, -20.8] -> LESS
+Random forest  vs lasso of exogenous total                            tree 44.3 linear 73.9  D -29.6 [-31.6, -27.8] -> LESS
+Random forest  vs enet  of exogenous total                            tree 44.3 linear 56.0  D -11.8 [-13.4, -10.0] -> LESS
+
+== M3 response shape of the NON-STANDARD variables (mean SHAP by bin of the dominant value column)
+LightGBM:
+  effspread_ewstock               0.68% >= 0.5%    x=adj_effspread_ewstock_ma_1         bins 10 -> MONOTONE up + ASYMMETRIC (top-tail)  (range 0.68% of mean forecast; R/I 2.77; rho +1.00)
+  sellturnover_vwstock            0.72% >= 0.5%    x=adj_sellturnover_vwstock_ma_1      bins 10 -> IRREGULAR + ASYMMETRIC (top-tail)  (range 1.22% of mean forecast; R/I 4.73; rho +0.25)
+  effspread_vwstock               1.26% >= 0.5%    x=adj_effspread_vwstock_ma_1         bins 10 -> MONOTONE up + ASYMMETRIC (top-tail)  (range 1.65% of mean forecast; R/I 3.64; rho +1.00)
+  spread_vwstock                  0.52% >= 0.5%    x=adj_spread_vwstock_ma_1            bins 10 -> MONOTONE up + ASYMMETRIC (top-tail)  (range 0.61% of mean forecast; R/I 3.26; rho +1.00)
+  ofi_vwstock                     1.80% >= 0.5%    x=adj_ofi_vwstock_ma_1               bins 10 -> MONOTONE down  (range 1.91% of mean forecast; R/I 2.93; rho -1.00)
+  sumret3_ewstock                 0.71% >= 0.5%    x=adj_sumret3_ewstock_ma_1           bins 10 -> IRREGULAR + ASYMMETRIC (bottom-tail)  (range 0.57% of mean forecast; R/I 2.20; rho -0.83)
+  sumabsret_ewstock               3.93% >= 0.5%    x=adj_sumabsret_ewstock_ma_1         bins 10 -> MONOTONE up + ASYMMETRIC (top-tail)  (range 5.16% of mean forecast; R/I 3.63; rho +0.99)
+  sumret3_vwstock                 0.90% >= 0.5%    x=adj_sumret3_vwstock_ma_1           bins 10 -> MONOTONE down + ASYMMETRIC (bottom-tail)  (range 0.93% of mean forecast; R/I 2.86; rho -1.00)
+  sumabsret_vwstock               3.48% >= 0.5%    x=adj_sumabsret_vwstock_ma_1         bins 10 -> MONOTONE up + ASYMMETRIC (top-tail)  (range 5.38% of mean forecast; R/I 4.28; rho +1.00)
+  vix3m                           0.67% >= 0.5%    x=adj_vix3m_ma_1                     bins  3 -> STEP up  (range 0.14% of mean forecast; R/I 0.59; rho +0.50)
+  fomc_until_inv                  2.01% >= 0.5%    x=adj_fomc_until_inv_ma_25           bins 10 -> IRREGULAR + ASYMMETRIC (top-tail)  (range 3.23% of mean forecast; R/I 4.45; rho -0.07)
+XGBoost:
+  effspread_ewstock               0.57% >= 0.5%    x=adj_effspread_ewstock_ma_1         bins 10 -> MONOTONE up  (range 0.49% of mean forecast; R/I 2.45; rho +1.00)
+  sellturnover_vwstock            0.72% >= 0.5%    x=adj_sellturnover_vwstock_ma_1      bins 10 -> IRREGULAR + ASYMMETRIC (top-tail)  (range 1.12% of mean forecast; R/I 4.47; rho +0.12)
+  effspread_vwstock               1.25% >= 0.5%    x=adj_effspread_vwstock_ma_1         bins 10 -> MONOTONE up + ASYMMETRIC (top-tail)  (range 1.55% of mean forecast; R/I 3.58; rho +1.00)
+  ofi_vwstock                     1.69% >= 0.5%    x=adj_ofi_vwstock_ma_1               bins 10 -> MONOTONE down  (range 1.72% of mean forecast; R/I 2.94; rho -1.00)
+  sumret3_ewstock                 0.63% >= 0.5%    x=adj_sumret3_ewstock_ma_1           bins 10 -> IRREGULAR + ASYMMETRIC (bottom-tail)  (range 0.49% of mean forecast; R/I 2.24; rho -0.79)
+  sumabsret_ewstock               3.83% >= 0.5%    x=adj_sumabsret_ewstock_ma_1         bins 10 -> MONOTONE up + ASYMMETRIC (top-tail)  (range 4.76% of mean forecast; R/I 3.58; rho +1.00)
+  sumret3_vwstock                 0.86% >= 0.5%    x=adj_sumret3_vwstock_ma_1           bins 10 -> MONOTONE down + ASYMMETRIC (bottom-tail)  (range 0.86% of mean forecast; R/I 2.89; rho -1.00)
+  sumabsret_vwstock               3.91% >= 0.5%    x=adj_sumabsret_vwstock_ma_1         bins 10 -> MONOTONE up + ASYMMETRIC (top-tail)  (range 5.82% of mean forecast; R/I 4.28; rho +1.00)
+  vix3m                           0.55% >= 0.5%    x=adj_vix3m_ma_1                     bins  3 -> FLAT  (range 0.08% of mean forecast; R/I 0.42; rho +0.50)
+  fomc_until_inv                  2.01% >= 0.5%    x=adj_fomc_until_inv_ma_25           bins 10 -> IRREGULAR + ASYMMETRIC (top-tail)  (range 3.16% of mean forecast; R/I 4.53; rho -0.35)
+Random forest:
+  sellturnover_ewstock            0.55% >= 0.5%    x=adj_sellturnover_ewstock_ma_1      bins 10 -> IRREGULAR + ASYMMETRIC (top-tail)  (range 0.75% of mean forecast; R/I 3.82; rho +0.78)
+  effspread_ewstock               0.70% >= 0.5%    x=adj_effspread_ewstock_ma_1         bins 10 -> MONOTONE up + ASYMMETRIC (top-tail)  (range 0.72% of mean forecast; R/I 2.93; rho +0.92)
+  spread_ewstock                  0.56% >= 0.5%    x=adj_spread_ewstock_ma_1            bins 10 -> MONOTONE up + ASYMMETRIC (top-tail)  (range 0.60% of mean forecast; R/I 3.06; rho +0.95)
+  sellturnover_vwstock            0.69% >= 0.5%    x=adj_sellturnover_vwstock_ma_1      bins 10 -> IRREGULAR + ASYMMETRIC (top-tail)  (range 1.02% of mean forecast; R/I 4.18; rho +0.73)
+  effspread_vwstock               1.27% >= 0.5%    x=adj_effspread_vwstock_ma_1         bins 10 -> MONOTONE up + ASYMMETRIC (top-tail)  (range 1.60% of mean forecast; R/I 3.55; rho +1.00)
+  spread_vwstock                  0.63% >= 0.5%    x=adj_spread_vwstock_ma_1            bins 10 -> MONOTONE up + ASYMMETRIC (top-tail)  (range 0.72% of mean forecast; R/I 3.24; rho +0.99)
+  ofi_ewstock                     0.63% >= 0.5%    x=adj_ofi_ewstock_ma_1               bins 10 -> MONOTONE down + ASYMMETRIC (bottom-tail)  (range 0.61% of mean forecast; R/I 2.74; rho -0.94)
+  ofi_vwstock                     1.40% >= 0.5%    x=adj_ofi_vwstock_ma_1               bins 10 -> MONOTONE down + ASYMMETRIC (bottom-tail)  (range 1.56% of mean forecast; R/I 3.14; rho -1.00)
+  sumret3_ewstock                 0.83% >= 0.5%    x=adj_sumret3_ewstock_ma_1           bins 10 -> MONOTONE down + ASYMMETRIC (bottom-tail)  (range 0.79% of mean forecast; R/I 2.69; rho -0.96)
+  sumabsret_ewstock               1.92% >= 0.5%    x=adj_sumabsret_ewstock_ma_1         bins 10 -> MONOTONE up + ASYMMETRIC (top-tail)  (range 2.36% of mean forecast; R/I 3.47; rho +1.00)
+  sumret3_vwstock                 1.06% >= 0.5%    x=adj_sumret3_vwstock_ma_1           bins 10 -> MONOTONE down + ASYMMETRIC (bottom-tail)  (range 1.09% of mean forecast; R/I 2.89; rho -1.00)
+  sumabsret_vwstock               2.36% >= 0.5%    x=adj_sumabsret_vwstock_ma_1         bins 10 -> MONOTONE up + ASYMMETRIC (top-tail)  (range 3.25% of mean forecast; R/I 3.89; rho +1.00)
+  fomc_until_inv                  1.05% >= 0.5%    x=adj_fomc_until_inv_ma_25           bins 10 -> IRREGULAR + ASYMMETRIC (top-tail)  (range 1.67% of mean forecast; R/I 4.49; rho -0.37)
+
+== M4 conditional importance (NON-STANDARD share of the total / of the exogenous total, %)
+VIX terciles at the origin (prior close): cut points [13.96, 19.02], origins per tercile [42, 42, 42]; FOMC statement days among forecast rows: 78 days, 1014 rows
+LightGBM:
+  VIX low    rows  11332  NS 23.5 [21.7, 25.5]  NS of exog 47.0  FOMC bucket 2.49  HAR 48.6  top NS: sumabsret_ewstock:4.32 sumabsret_vwstock:3.77 fomc_until_inv:2.20 effspread_vwstock:1.83 ofi_vwstock:1.57
+  VIX mid    rows  11304  NS 21.4 [19.5, 23.5]  NS of exog 45.8  FOMC bucket 2.27  HAR 52.3  top NS: sumabsret_ewstock:3.84 sumabsret_vwstock:3.22 fomc_until_inv:1.98 ofi_vwstock:1.73 effspread_vwstock:1.42
+  VIX high   rows  11334  NS 20.7 [19.5, 22.0]  NS of exog 45.1  FOMC bucket 2.22  HAR 53.5  top NS: sumabsret_ewstock:3.71 sumabsret_vwstock:3.49 ofi_vwstock:2.06 fomc_until_inv:1.89 vix3m:0.82
+  10:00      rows   2643  NS 24.0 [22.7, 25.5]  NS of exog 48.7  FOMC bucket 1.36  HAR 49.1  top NS: sumabsret_ewstock:4.37 sumabsret_vwstock:4.18 ofi_vwstock:2.00 sumret3_ewstock:1.23 effspread_vwstock:1.22
+  10:30      rows   2643  NS 21.5 [20.0, 23.3]  NS of exog 45.3  FOMC bucket 1.50  HAR 50.8  top NS: sumabsret_ewstock:3.71 sumabsret_vwstock:3.06 ofi_vwstock:2.22 effspread_vwstock:1.31 fomc_until_inv:1.19
+  11:00      rows   2643  NS 21.4 [20.0, 22.9]  NS of exog 44.7  FOMC bucket 1.49  HAR 51.3  top NS: sumabsret_ewstock:3.82 sumabsret_vwstock:3.18 ofi_vwstock:2.07 effspread_vwstock:1.33 fomc_until_inv:1.18
+  11:30      rows   2643  NS 21.1 [19.6, 22.8]  NS of exog 44.6  FOMC bucket 1.48  HAR 51.8  top NS: sumabsret_ewstock:3.96 sumabsret_vwstock:3.33 ofi_vwstock:2.01 effspread_vwstock:1.35 fomc_until_inv:1.17
+  12:00      rows   2641  NS 20.7 [19.2, 22.5]  NS of exog 44.0  FOMC bucket 1.46  HAR 52.4  top NS: sumabsret_ewstock:4.00 sumabsret_vwstock:3.41 ofi_vwstock:1.93 effspread_vwstock:1.36 fomc_until_inv:1.15
+  12:30      rows   2641  NS 20.4 [19.0, 22.1]  NS of exog 43.6  FOMC bucket 1.39  HAR 52.7  top NS: sumabsret_ewstock:3.99 sumabsret_vwstock:3.38 ofi_vwstock:1.89 effspread_vwstock:1.31 fomc_until_inv:1.10
+  13:00      rows   2641  NS 20.2 [18.9, 21.7]  NS of exog 43.6  FOMC bucket 1.39  HAR 52.9  top NS: sumabsret_ewstock:3.93 sumabsret_vwstock:3.48 ofi_vwstock:1.82 effspread_vwstock:1.29 fomc_until_inv:1.10
+  13:30      rows   2580  NS 20.4 [19.1, 22.0]  NS of exog 43.8  FOMC bucket 1.64  HAR 52.8  top NS: sumabsret_ewstock:3.92 sumabsret_vwstock:3.53 ofi_vwstock:1.73 fomc_until_inv:1.34 effspread_vwstock:1.28
+  14:00      rows   2579  NS 21.4 [20.0, 22.9]  NS of exog 45.8  FOMC bucket 2.72  HAR 52.2  top NS: sumabsret_ewstock:3.93 sumabsret_vwstock:3.57 fomc_until_inv:2.43 ofi_vwstock:1.66 effspread_vwstock:1.23
+  14:30      rows   2579  NS 25.2 [23.6, 27.0]  NS of exog 50.5  FOMC bucket 5.49  HAR 48.7  top NS: fomc_until_inv:5.13 sumabsret_ewstock:3.58 sumabsret_vwstock:3.21 vix3m:1.75 ofi_vwstock:1.49
+  15:00      rows   2579  NS 24.3 [22.6, 26.4]  NS of exog 49.9  FOMC bucket 5.43  HAR 50.5  top NS: fomc_until_inv:5.12 sumabsret_ewstock:3.98 sumabsret_vwstock:3.59 ofi_vwstock:1.52 effspread_vwstock:1.15
+  15:30      rows   2579  NS 21.5 [20.2, 23.0]  NS of exog 46.2  FOMC bucket 2.60  HAR 52.7  top NS: sumabsret_ewstock:4.01 sumabsret_vwstock:3.68 fomc_until_inv:2.30 ofi_vwstock:1.59 effspread_vwstock:1.19
+  16:00      rows   2579  NS 20.5 [19.1, 22.0]  NS of exog 44.6  FOMC bucket 1.56  HAR 53.4  top NS: sumabsret_ewstock:3.96 sumabsret_vwstock:3.64 ofi_vwstock:1.60 fomc_until_inv:1.25 effspread_vwstock:1.21
+  FOMC day   rows   1014  NS 41.7 [40.3, 43.4]  NS of exog 69.8  FOMC bucket 26.14  HAR 39.7  top NS: fomc_until_inv:25.10 sumabsret_ewstock:3.69 sumabsret_vwstock:3.18 ofi_vwstock:1.17 effspread_vwstock:1.07
+  other day  rows  32956  NS 20.9 [19.6, 22.6]  NS of exog 44.6  FOMC bucket 1.32  HAR 52.1  top NS: sumabsret_ewstock:3.94 sumabsret_vwstock:3.50 ofi_vwstock:1.83 effspread_vwstock:1.26 fomc_until_inv:1.05
+  VIX high - low         of total                 -2.89 [-5.07, -0.74] lower
+  VIX high - low         of exogenous             -1.89 [-4.10, +0.22] no clear difference
+  VIX high - low         bucket fomc of total     -0.28 [-0.74, +0.20] no clear difference
+  VIX high - low         bucket implied_vol of total -0.06 [-0.64, +0.42] no clear difference
+  VIX high - low         bucket har_ma of total   +4.87 [+1.55, +8.10] higher
+  VIX high - low         bucket calendar of total -0.55 [-0.81, -0.29] lower
+  FOMC day - other day   of total                 +20.78 [+18.97, +22.53] higher
+  FOMC day - other day   of exogenous             +25.18 [+22.88, +27.45] higher
+  FOMC day - other day   bucket fomc of total     +24.82 [+23.30, +26.43] higher
+  FOMC day - other day   bucket implied_vol of total -1.08 [-1.39, -0.83] lower
+  FOMC day - other day   bucket har_ma of total   -12.38 [-14.12, -10.55] lower
+  FOMC day - other day   bucket calendar of total -0.46 [-0.59, -0.35] lower
+  16:00 - 10:00          of total                 -3.51 [-4.42, -2.65] lower
+  16:00 - 10:00          of exogenous             -4.11 [-5.41, -2.65] lower
+  16:00 - 10:00          bucket fomc of total     +0.20 [+0.05, +0.37] higher
+  16:00 - 10:00          bucket implied_vol of total -0.72 [-1.13, -0.29] lower
+  16:00 - 10:00          bucket har_ma of total   +4.30 [+3.34, +5.49] higher
+  16:00 - 10:00          bucket calendar of total -0.98 [-1.32, -0.69] lower
+XGBoost:
+  VIX low    rows  11332  NS 22.3 [20.5, 24.2]  NS of exog 45.2  FOMC bucket 2.39  HAR 49.5  top NS: sumabsret_ewstock:4.27 sumabsret_vwstock:4.25 fomc_until_inv:2.20 effspread_vwstock:1.87 ofi_vwstock:1.41
+  VIX mid    rows  11304  NS 20.3 [18.5, 22.4]  NS of exog 43.7  FOMC bucket 2.20  HAR 52.6  top NS: sumabsret_ewstock:3.74 sumabsret_vwstock:3.64 fomc_until_inv:1.98 ofi_vwstock:1.61 effspread_vwstock:1.39
+  VIX high   rows  11334  NS 19.5 [18.5, 20.8]  NS of exog 42.3  FOMC bucket 2.15  HAR 53.2  top NS: sumabsret_vwstock:3.88 sumabsret_ewstock:3.54 ofi_vwstock:1.99 fomc_until_inv:1.88 sellturnover_vwstock:0.80
+  10:00      rows   2643  NS 22.7 [21.4, 24.1]  NS of exog 46.4  FOMC bucket 1.32  HAR 49.3  top NS: sumabsret_vwstock:4.65 sumabsret_ewstock:4.27 ofi_vwstock:1.83 effspread_vwstock:1.20 fomc_until_inv:1.12
+  10:30      rows   2643  NS 20.3 [18.8, 22.0]  NS of exog 43.2  FOMC bucket 1.43  HAR 51.1  top NS: sumabsret_ewstock:3.63 sumabsret_vwstock:3.43 ofi_vwstock:2.05 effspread_vwstock:1.30 fomc_until_inv:1.21
+  11:00      rows   2643  NS 20.1 [18.8, 21.7]  NS of exog 42.7  FOMC bucket 1.41  HAR 51.8  top NS: sumabsret_ewstock:3.69 sumabsret_vwstock:3.59 ofi_vwstock:1.95 effspread_vwstock:1.32 fomc_until_inv:1.20
+  11:30      rows   2643  NS 19.9 [18.4, 21.6]  NS of exog 42.5  FOMC bucket 1.39  HAR 52.2  top NS: sumabsret_ewstock:3.81 sumabsret_vwstock:3.75 ofi_vwstock:1.89 effspread_vwstock:1.33 fomc_until_inv:1.19
+  12:00      rows   2641  NS 19.5 [18.1, 21.2]  NS of exog 41.8  FOMC bucket 1.36  HAR 52.8  top NS: sumabsret_ewstock:3.88 sumabsret_vwstock:3.83 ofi_vwstock:1.81 effspread_vwstock:1.34 fomc_until_inv:1.16
+  12:30      rows   2641  NS 19.3 [17.9, 21.0]  NS of exog 41.5  FOMC bucket 1.33  HAR 53.0  top NS: sumabsret_ewstock:3.87 sumabsret_vwstock:3.79 ofi_vwstock:1.78 effspread_vwstock:1.29 fomc_until_inv:1.13
+  13:00      rows   2641  NS 19.2 [18.0, 20.7]  NS of exog 41.6  FOMC bucket 1.35  HAR 53.2  top NS: sumabsret_vwstock:3.89 sumabsret_ewstock:3.81 ofi_vwstock:1.71 effspread_vwstock:1.27 fomc_until_inv:1.16
+  13:30      rows   2580  NS 19.5 [18.2, 21.0]  NS of exog 41.9  FOMC bucket 1.57  HAR 52.9  top NS: sumabsret_vwstock:3.95 sumabsret_ewstock:3.80 ofi_vwstock:1.62 fomc_until_inv:1.37 effspread_vwstock:1.27
+  14:00      rows   2579  NS 20.6 [19.3, 22.1]  NS of exog 44.0  FOMC bucket 2.76  HAR 52.2  top NS: sumabsret_vwstock:4.02 sumabsret_ewstock:3.82 fomc_until_inv:2.53 ofi_vwstock:1.55 effspread_vwstock:1.22
+  14:30      rows   2579  NS 22.8 [21.3, 24.6]  NS of exog 46.8  FOMC bucket 4.85  HAR 50.2  top NS: fomc_until_inv:4.47 sumabsret_vwstock:3.73 sumabsret_ewstock:3.66 ofi_vwstock:1.45 effspread_vwstock:1.17
+  15:00      rows   2579  NS 23.3 [21.7, 25.2]  NS of exog 47.9  FOMC bucket 5.22  HAR 50.4  top NS: fomc_until_inv:4.98 sumabsret_vwstock:4.06 sumabsret_ewstock:3.88 ofi_vwstock:1.44 effspread_vwstock:1.15
+  15:30      rows   2579  NS 20.6 [19.3, 22.2]  NS of exog 44.1  FOMC bucket 2.74  HAR 52.4  top NS: sumabsret_vwstock:4.03 sumabsret_ewstock:3.83 fomc_until_inv:2.51 ofi_vwstock:1.51 effspread_vwstock:1.18
+  16:00      rows   2579  NS 19.6 [18.3, 21.1]  NS of exog 42.3  FOMC bucket 1.72  HAR 53.2  top NS: sumabsret_vwstock:4.04 sumabsret_ewstock:3.78 ofi_vwstock:1.51 fomc_until_inv:1.48 effspread_vwstock:1.20
+  FOMC day   rows   1014  NS 40.1 [38.6, 41.8]  NS of exog 67.2  FOMC bucket 24.09  HAR 39.7  top NS: fomc_until_inv:22.89 sumabsret_vwstock:3.66 sumabsret_ewstock:3.65 ofi_vwstock:1.12 effspread_vwstock:1.12
+  other day  rows  32956  NS 19.8 [18.5, 21.4]  NS of exog 42.4  FOMC bucket 1.33  HAR 52.4  top NS: sumabsret_vwstock:3.92 sumabsret_ewstock:3.83 ofi_vwstock:1.71 effspread_vwstock:1.25 fomc_until_inv:1.15
+  VIX high - low         of total                 -2.77 [-4.84, -0.70] lower
+  VIX high - low         of exogenous             -2.88 [-5.42, -0.41] lower
+  VIX high - low         bucket fomc of total     -0.24 [-0.76, +0.27] no clear difference
+  VIX high - low         bucket implied_vol of total -0.03 [-0.59, +0.46] no clear difference
+  VIX high - low         bucket har_ma of total   +3.75 [+0.35, +7.00] higher
+  VIX high - low         bucket calendar of total -0.56 [-0.82, -0.30] lower
+  FOMC day - other day   of total                 +20.31 [+18.34, +22.09] higher
+  FOMC day - other day   of exogenous             +24.72 [+22.10, +27.17] higher
+  FOMC day - other day   bucket fomc of total     +22.76 [+20.78, +24.57] higher
+  FOMC day - other day   bucket implied_vol of total -0.66 [-0.97, -0.40] lower
+  FOMC day - other day   bucket har_ma of total   -12.75 [-14.32, -10.93] lower
+  FOMC day - other day   bucket calendar of total -0.32 [-0.48, -0.18] lower
+  16:00 - 10:00          of total                 -3.11 [-4.00, -2.31] lower
+  16:00 - 10:00          of exogenous             -4.11 [-5.29, -2.82] lower
+  16:00 - 10:00          bucket fomc of total     +0.40 [+0.25, +0.57] higher
+  16:00 - 10:00          bucket implied_vol of total -0.59 [-0.94, -0.23] lower
+  16:00 - 10:00          bucket har_ma of total   +3.90 [+2.82, +5.18] higher
+  16:00 - 10:00          bucket calendar of total -1.31 [-1.69, -0.98] lower
+Random forest:
+  VIX low    rows  11332  NS 20.5 [18.7, 22.2]  NS of exog 46.1  FOMC bucket 1.48  HAR 55.1  top NS: sumabsret_vwstock:2.56 sumabsret_ewstock:2.08 effspread_vwstock:1.80 sumret3_vwstock:1.23 ofi_vwstock:1.20
+  VIX mid    rows  11304  NS 18.5 [16.6, 20.7]  NS of exog 44.4  FOMC bucket 1.34  HAR 58.0  top NS: sumabsret_vwstock:2.24 sumabsret_ewstock:1.85 effspread_vwstock:1.39 ofi_vwstock:1.35 sumret3_vwstock:1.09
+  VIX high   rows  11334  NS 17.2 [16.0, 18.5]  NS of exog 42.4  FOMC bucket 1.23  HAR 59.4  top NS: sumabsret_vwstock:2.31 sumabsret_ewstock:1.84 ofi_vwstock:1.62 fomc_until_inv:0.94 sumret3_vwstock:0.90
+  10:00      rows   2643  NS 20.2 [18.6, 22.0]  NS of exog 45.8  FOMC bucket 0.95  HAR 55.4  top NS: sumabsret_vwstock:3.07 sumabsret_ewstock:2.46 ofi_vwstock:1.39 effspread_vwstock:1.21 sumret3_vwstock:1.07
+  10:30      rows   2643  NS 18.6 [16.9, 20.5]  NS of exog 43.4  FOMC bucket 1.01  HAR 56.6  top NS: sumabsret_vwstock:2.28 sumabsret_ewstock:1.88 ofi_vwstock:1.54 effspread_vwstock:1.33 sumret3_vwstock:1.20
+  11:00      rows   2643  NS 18.1 [16.7, 19.9]  NS of exog 42.8  FOMC bucket 0.99  HAR 57.4  top NS: sumabsret_vwstock:2.27 sumabsret_ewstock:1.84 ofi_vwstock:1.49 effspread_vwstock:1.34 sumret3_vwstock:1.17
+  11:30      rows   2643  NS 18.2 [16.7, 19.9]  NS of exog 43.2  FOMC bucket 0.98  HAR 57.7  top NS: sumabsret_vwstock:2.29 sumabsret_ewstock:1.88 ofi_vwstock:1.50 effspread_vwstock:1.33 sumret3_vwstock:1.14
+  12:00      rows   2641  NS 18.3 [16.8, 19.9]  NS of exog 43.5  FOMC bucket 0.95  HAR 57.7  top NS: sumabsret_vwstock:2.26 sumabsret_ewstock:1.88 ofi_vwstock:1.47 effspread_vwstock:1.34 sumret3_vwstock:1.14
+  12:30      rows   2641  NS 18.3 [16.9, 19.9]  NS of exog 43.4  FOMC bucket 0.96  HAR 57.7  top NS: sumabsret_vwstock:2.23 sumabsret_ewstock:1.84 ofi_vwstock:1.48 effspread_vwstock:1.30 sumret3_vwstock:1.13
+  13:00      rows   2641  NS 18.1 [16.8, 19.6]  NS of exog 43.5  FOMC bucket 1.01  HAR 58.2  top NS: sumabsret_vwstock:2.25 sumabsret_ewstock:1.80 ofi_vwstock:1.45 effspread_vwstock:1.27 sumret3_vwstock:1.02
+  13:30      rows   2580  NS 18.4 [17.0, 20.0]  NS of exog 43.9  FOMC bucket 1.13  HAR 57.9  top NS: sumabsret_vwstock:2.28 sumabsret_ewstock:1.84 ofi_vwstock:1.39 effspread_vwstock:1.28 sumret3_vwstock:1.07
+  14:00      rows   2579  NS 18.7 [17.3, 20.2]  NS of exog 44.6  FOMC bucket 1.54  HAR 57.9  top NS: sumabsret_vwstock:2.30 sumabsret_ewstock:1.88 ofi_vwstock:1.34 fomc_until_inv:1.25 effspread_vwstock:1.24
+  14:30      rows   2579  NS 19.7 [18.1, 21.5]  NS of exog 46.2  FOMC bucket 2.86  HAR 57.0  top NS: fomc_until_inv:2.56 sumabsret_vwstock:2.24 sumabsret_ewstock:1.86 ofi_vwstock:1.31 effspread_vwstock:1.23
+  15:00      rows   2579  NS 19.5 [17.9, 21.2]  NS of exog 46.2  FOMC bucket 2.44  HAR 57.7  top NS: sumabsret_vwstock:2.44 fomc_until_inv:2.14 sumabsret_ewstock:1.97 ofi_vwstock:1.29 effspread_vwstock:1.20
+  15:30      rows   2579  NS 18.3 [16.8, 19.9]  NS of exog 44.6  FOMC bucket 1.37  HAR 58.9  top NS: sumabsret_vwstock:2.39 sumabsret_ewstock:1.92 ofi_vwstock:1.32 effspread_vwstock:1.23 fomc_until_inv:1.07
+  16:00      rows   2579  NS 17.9 [16.5, 19.3]  NS of exog 43.8  FOMC bucket 1.12  HAR 59.0  top NS: sumabsret_vwstock:2.41 sumabsret_ewstock:1.91 ofi_vwstock:1.31 effspread_vwstock:1.24 sumret3_vwstock:0.97
+  FOMC day   rows   1014  NS 28.1 [26.1, 30.3]  NS of exog 58.1  FOMC bucket 12.09  HAR 51.5  top NS: fomc_until_inv:11.45 sumabsret_vwstock:2.52 sumabsret_ewstock:2.04 effspread_vwstock:1.24 ofi_vwstock:1.06
+  other day  rows  32956  NS 18.3 [16.8, 19.9]  NS of exog 43.7  FOMC bucket 0.96  HAR 57.9  top NS: sumabsret_vwstock:2.36 sumabsret_ewstock:1.91 ofi_vwstock:1.42 effspread_vwstock:1.27 sumret3_vwstock:1.07
+  VIX high - low         of total                 -3.32 [-5.10, -1.39] lower
+  VIX high - low         of exogenous             -3.65 [-6.26, -1.18] lower
+  VIX high - low         bucket fomc of total     -0.25 [-0.46, +0.00] no clear difference
+  VIX high - low         bucket implied_vol of total -0.11 [-0.38, +0.09] no clear difference
+  VIX high - low         bucket har_ma of total   +4.24 [+1.01, +7.34] higher
+  VIX high - low         bucket calendar of total -0.23 [-0.34, -0.10] lower
+  FOMC day - other day   of total                 +9.79 [+7.69, +11.96] higher
+  FOMC day - other day   of exogenous             +14.47 [+11.57, +17.66] higher
+  FOMC day - other day   bucket fomc of total     +11.13 [+9.79, +12.61] higher
+  FOMC day - other day   bucket implied_vol of total -0.26 [-0.42, -0.11] lower
+  FOMC day - other day   bucket har_ma of total   -6.36 [-8.52, -3.90] lower
+  FOMC day - other day   bucket calendar of total -0.07 [-0.11, -0.03] lower
+  16:00 - 10:00          of total                 -2.31 [-3.17, -1.59] lower
+  16:00 - 10:00          of exogenous             -2.08 [-2.89, -1.32] lower
+  16:00 - 10:00          bucket fomc of total     +0.16 [+0.10, +0.23] higher
+  16:00 - 10:00          bucket implied_vol of total -0.22 [-0.38, -0.07] lower
+  16:00 - 10:00          bucket har_ma of total   +3.65 [+2.34, +5.17] higher
+  16:00 - 10:00          bucket calendar of total -0.45 [-0.62, -0.31] lower
+
+== M5 interactions (LightGBM, XGBoost; 8 rows a neighbourhood, 1,008 rows)
+LightGBM       interaction share: variable level 33.1%, column level 45.4%; share of a variable's attribution through interactions: NON-STANDARD 49.7%, STANDARD 26.8%
+XGBoost        interaction share: variable level 31.0%, column level 42.6%; share of a variable's attribution through interactions: NON-STANDARD 45.7%, STANDARD 26.0%
+  lgbm largest bucket cells: har_ma x har_ma 48.0; moments x moments 14.1; har_ma x moments 7.6; liquidity x liquidity 4.8; market_ew x market_ew 3.9; market_vw x market_vw 3.4; har_ma x market_vw 1.7; har_ma x liquidity 1.7
+  lgbm top 10 pairs with a NON-STANDARD variable: har_ma x sumabsret_vwstock 1.26; har_ma x sumabsret_ewstock 0.86; har_ma x sellturnover_vwstock 0.31; har_ma x effspread_vwstock 0.30; har_ma x stocktwits_sentiment 0.28; sumret x sumabsret_ewstock 0.26; har_ma x fomc_until_inv 0.25; sumabsret x sumabsret_vwstock 0.25; har_ma x ofi_vwstock 0.23; sumret x sumabsret_vwstock 0.20
+  lgbm NON-STANDARD interaction fraction (largest 8 by main effect): sumabsret_ewstock 34.4; sumabsret_vwstock 37.7; ofi_vwstock 40.2; fomc_until_inv 32.1; effspread_vwstock 40.7; sumret3_vwstock 50.5; effspread_ewstock 52.6; sellturnover_vwstock 55.8
+  xgb largest bucket cells: har_ma x har_ma 47.2; moments x moments 15.5; har_ma x moments 8.1; liquidity x liquidity 4.3; market_vw x market_vw 3.9; market_ew x market_ew 3.7; har_ma x market_vw 1.7; har_ma x liquidity 1.6
+  xgb top 10 pairs with a NON-STANDARD variable: har_ma x sumabsret_vwstock 1.23; har_ma x sumabsret_ewstock 0.83; har_ma x fomc_until_inv 0.40; har_ma x sellturnover_vwstock 0.36; har_ma x effspread_vwstock 0.31; har_ma x stocktwits_sentiment 0.31; har_ma x ofi_vwstock 0.30; sumabsret x sumabsret_vwstock 0.29; sumret x sumabsret_ewstock 0.22; har_ma x sumret3_vwstock 0.22
+  xgb NON-STANDARD interaction fraction (largest 8 by main effect): sumabsret_vwstock 34.8; sumabsret_ewstock 32.9; fomc_until_inv 33.4; ofi_vwstock 38.5; effspread_vwstock 37.8; sumret3_vwstock 47.2; sellturnover_vwstock 53.2; effspread_ewstock 47.9

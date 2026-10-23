@@ -50,6 +50,24 @@ def used_columns(est: str, m, M: int) -> np.ndarray:
     return u
 
 
+def tree_mean_f64(m, X: np.ndarray) -> np.ndarray:
+    """Mean over m.estimators_ of each tree's leaf value, rows routed on float64 values (x <= threshold)."""
+    out = np.zeros(len(X))
+    r = np.arange(len(X))
+    for e in m.estimators_:
+        t = e.tree_
+        node = np.zeros(len(X), dtype=np.int64)
+        while True:
+            inner = t.children_left[node] != -1
+            if not inner.any():
+                break
+            ni = node[inner]
+            left = X[r[inner], t.feature[ni]] <= t.threshold[ni]
+            node[inner] = np.where(left, t.children_left[ni], t.children_right[ni])
+        out += t.value[node, 0, 0]
+    return out / len(m.estimators_)
+
+
 def shap_values(est: str, m, Xn: np.ndarray, threads: int, procs: int = 1):
     """phi (n x M, float64), phi_0 (n,), and for the forest the mean of the estimators_ predictions (what shap
     explains)."""
@@ -69,9 +87,15 @@ def shap_values(est: str, m, Xn: np.ndarray, threads: int, procs: int = 1):
 
     ex = shap.TreeExplainer(m)  # tree_path_dependent (no background data)
     assert ex.feature_perturbation == "tree_path_dependent", ex.feature_perturbation
-    tree_mean = np.mean(
-        [t.predict(Xn) for t in m.estimators_], axis=0
-    )  # also converts estimators_ before a fork
+    # 2026-10-23 (gate G2(b) on the first CARC run, array 13324817, cancelled): shap's scikit-learn path casts X to
+    # float32 (as scikit-learn trees predict), but the oneDAL forest routes a row on its float64 value (x <= threshold,
+    # float64 thresholds); design values within float32 rounding of a threshold went the other way (additivity errors
+    # up to 1.5e-2).  shap evaluated in float64 reproduces the oneDAL prediction (toy forest: 2e-14).
+    assert ex.model.thresholds.dtype == np.float64, ex.model.thresholds.dtype
+    ex.model.input_dtype = np.float64
+    tree_mean = tree_mean_f64(
+        m, Xn
+    )  # what shap explains; also converts estimators_ before a fork
     if procs > 1 and platform.system() == "Linux":
         _EX, _XN = ex, Xn
         chunks = [c for c in np.array_split(np.arange(len(Xn)), 2 * procs) if len(c)]

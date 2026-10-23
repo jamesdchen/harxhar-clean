@@ -67,9 +67,10 @@ plt.rcParams.update(
     }
 )
 EN = C.EST_NAME
+MODELS = "LightGBM / XGBoost / random forest"
 PAGES: list[str] = []
 F_SHARE = (
-    r"$s_A=\frac{1}{n}\sum_i\,|\sum_{j\in A}\phi_{ij}|\;/\;\sum_{B}\frac{1}{n}\sum_i\,|\sum_{j\in B}\phi_{ij}|$"
+    r"$s_A=\Sigma_i\,|\Sigma_{j\in A}\,\phi_{ij}|\;/\;\Sigma_B\,\Sigma_i\,|\Sigma_{j\in B}\,\phi_{ij}|$"
     "    (i = forecast row, n = 33,970; j = column; A, B = the 48 variables; $\\phi$ = TreeSHAP value under the "
     "row's origin refit)"
 )
@@ -103,48 +104,56 @@ def frame(fig, title: str, subtitle: str | None) -> None:
 def measure_box(
     fig, top: float, words: str, formula: str, left=0.04, right=0.96, fs=13.5
 ) -> float:
+    """The boxed "Measure:" line; the font shrinks (to 10.5 at least) until the text fits the box."""
     r = fig.canvas.get_renderer()
     inv = fig.transFigure.inverted()
-    lab = fig.text(
-        left + 0.012,
-        top - 0.014,
-        "Measure:",
-        fontsize=fs,
-        fontweight="bold",
-        color=INK,
-        ha="left",
-        va="top",
-        zorder=2,
-    )
-    bb = lab.get_window_extent(r).transformed(inv)
-    tw = fig.text(
-        bb.x1 + 0.007,
-        top - 0.014,
-        words,
-        fontsize=fs,
-        color=INK,
-        ha="left",
-        va="top",
-        zorder=2,
-        linespacing=1.35,
-    )
-    bw = tw.get_window_extent(r).transformed(inv)
-    bottom = bw.y0 - 0.014
-    if formula:
-        tf = fig.text(
-            bb.x1 + 0.007,
-            bw.y0 - 0.012,
-            formula,
-            fontsize=fs * 0.95,
-            color=INK2,
+    while True:
+        lab = fig.text(
+            left + 0.012,
+            top - 0.014,
+            "Measure:",
+            fontsize=fs,
+            fontweight="bold",
+            color=INK,
             ha="left",
             va="top",
             zorder=2,
         )
-        bf = tf.get_window_extent(r).transformed(inv)
-        assert bf.x1 < right - 0.004, ("measure box overflow", bf.x1)
-        bottom = bf.y0 - 0.014
-    assert bw.x1 < right - 0.004, ("measure box overflow", bw.x1, words[:40])
+        bb = lab.get_window_extent(r).transformed(inv)
+        tw = fig.text(
+            bb.x1 + 0.007,
+            top - 0.014,
+            words,
+            fontsize=fs,
+            color=INK,
+            ha="left",
+            va="top",
+            zorder=2,
+            linespacing=1.35,
+        )
+        bw = tw.get_window_extent(r).transformed(inv)
+        bottom, x1 = bw.y0 - 0.014, bw.x1
+        tf = None
+        if formula:
+            tf = fig.text(
+                bb.x1 + 0.007,
+                bw.y0 - 0.012,
+                formula,
+                fontsize=fs * 0.95,
+                color=INK2,
+                ha="left",
+                va="top",
+                zorder=2,
+            )
+            bf = tf.get_window_extent(r).transformed(inv)
+            bottom, x1 = bf.y0 - 0.014, max(x1, bf.x1)
+        if x1 < right - 0.006 or fs <= 10.5:
+            break
+        for t in (lab, tw, tf):
+            if t is not None:
+                t.remove()
+        fs -= 0.5
+    assert x1 < right - 0.004, ("measure box overflow", x1, words[:40])
     fig.add_artist(
         FancyBboxPatch(
             (left, bottom),
@@ -208,14 +217,13 @@ nsx = cls[cls["cls"] == "NON-STANDARD"].set_index("est")
 frame(
     fig,
     "M1  Where the trees put their attribution",
-    "Non-standard variables: "
-    + ", ".join(f"{EN[e]} {p(nsx.at[e, 'share'])}%" for e in ests)
-    + " of the total; HAR terms: "
-    + ", ".join(
-        f"{EN[e]} {p(bk.set_index(['est', 'bucket']).at[(e, 'har_ma'), 'share'])}%"
-        for e in ests
+    f"{MODELS}: the 36 NON-STANDARD variables hold "
+    + " / ".join(f"{p(nsx.at[e, 'share'])}" for e in ests)
+    + "% of the total; the HAR terms "
+    + " / ".join(
+        f"{p(bk.set_index(['est', 'bucket']).at[(e, 'har_ma'), 'share'])}" for e in ests
     )
-    + ".",
+    + "%.",
 )
 yb = measure_box(
     fig,
@@ -316,29 +324,42 @@ save(fig, "p1_m1_buckets.png")
 # ============================================================================ P2 M1 top variables
 fig = plt.figure(figsize=(16, 9), dpi=150)
 frame(fig, "M1  The variables the trees use most", None)
+top15 = {
+    e: m1[m1["est"] == e].sort_values("share", ascending=False).head(15) for e in ests
+}
+all_used = all((t["K_used"] == 126).all() for t in top15.values())
 yb = measure_box(
     fig,
     0.885,
-    "share of total mean |SHAP| per variable (all its columns summed per row), the 15 largest "
-    "of each model; orange = NON-STANDARD.\nIn brackets: refits (of 126) whose trees split on the variable.",
+    "share of total mean |SHAP| per variable (all its columns summed per row), the 15 largest of each model; "
+    "blue = STANDARD,\norange = NON-STANDARD.  "
+    + (
+        "Every refit's trees split on each of these variables (126 of 126)."
+        if all_used
+        else "In brackets: refits (of 126) whose trees split on the variable, where fewer than 126."
+    )
+    + "  HAR-terms bar cut at the axis end.",
     "",
 )
 for i, e in enumerate(ests):
-    ax = fig.add_axes((0.13 + 0.315 * i, 0.08, 0.17, yb - 0.14))
-    t = m1[m1["est"] == e].sort_values("share", ascending=False).head(15).iloc[::-1]
+    ax = fig.add_axes((0.165 + 0.305 * i, 0.11, 0.13, yb - 0.17))
+    t = top15[e].iloc[::-1]
     colr = [NS_C if c == "NON-STANDARD" else ST_C for c in t["cls"]]
-    ax.barh(np.arange(len(t)), 100 * t["share"], color=colr, height=0.7)
+    xmax = 100 * t.loc[t["variable"] != "har_ma", "share"].max() * 1.35
+    ax.barh(
+        np.arange(len(t)), np.minimum(100 * t["share"], xmax), color=colr, height=0.7
+    )
     ax.set_yticks(np.arange(len(t)))
     ax.set_yticklabels(
-        [f"{v} [{u}]" for v, u in zip(t["variable"], t["K_used"])],
+        [v if u == 126 else f"{v} [{u}]" for v, u in zip(t["variable"], t["K_used"])],
         fontsize=10.5,
         family="DejaVu Sans Mono",
     )
     for yi, v in enumerate(100 * t["share"]):
-        ax.text(v, yi, f" {v:.1f}", va="center", fontsize=10, color=INK)
+        ax.text(min(v, xmax), yi, f" {v:.1f}", va="center", fontsize=10, color=INK)
     ax.set_xlabel("% of total mean |SHAP|", fontsize=11)
     ax.set_title(EN[e], fontsize=15, color=INK, loc="left", fontweight="bold")
-    ax.set_xlim(0, 100 * t["share"].max() * 1.25)
+    ax.set_xlim(0, xmax)
     ax.grid(axis="x", color=GRID, lw=0.8)
     ax.set_axisbelow(True)
 save(fig, "p2_m1_top_variables.png")
@@ -389,12 +410,11 @@ r46 = m2[(m2["scope"] == "46 exogenous") & (m2["linear"] == "ridge")].set_index(
 frame(
     fig,
     "M2  Trees against the linear ridge",
-    "Spearman over the 46 exogenous variables: "
-    + ", ".join(
-        f"{EN[e]} {r46.at[e, 'spearman']:+.2f} (top-10 overlap {r46.at[e, 'top10_overlap']}/10)"
-        for e in ests
-    ).replace("-", MINUS)
-    + ".",
+    f"{MODELS} vs ridge, 46 exogenous variables: Spearman "
+    + " / ".join(f"{r46.at[e, 'spearman']:+.2f}" for e in ests).replace("-", MINUS)
+    + "; top-10 overlap "
+    + " / ".join(f"{r46.at[e, 'top10_overlap']}" for e in ests)
+    + " of 10.",
 )
 yb = measure_box(
     fig,
@@ -419,15 +439,20 @@ for i, e in enumerate(ests):
     ax.set_yscale("log")
     ax.set_xlim(max(lo, x[x > 0].min() * 0.6) if (x > 0).any() else lo, hi)
     ax.set_ylim(max(lo, yv.min() * 0.6), hi)
-    for v in set(x.sort_values().index[-4:]) | set(yv.sort_values().index[-3:]):
+    labs = sorted(
+        set(x.sort_values().index[-4:]) | set(yv.sort_values().index[-3:]),
+        key=lambda v: -yv[v],
+    )
+    for n_, v in enumerate(labs):
         ax.annotate(
             v,
             (max(x[v], 1e-3), yv[v]),
             fontsize=8.5,
             color=INK2,
-            xytext=(3, 2),
+            xytext=(4, 9 - 9 * (n_ % 3)),
             textcoords="offset points",
             family="DejaVu Sans Mono",
+            arrowprops=dict(arrowstyle="-", color=RULE, lw=0.6),
         )
     ax.set_xlabel(f"{EN[e]}: % of exogenous mean|SHAP|", fontsize=12)
     if i == 0:
@@ -615,7 +640,14 @@ for ax, ttl in zip(
     ax.grid(axis="y", color=GRID, lw=0.8)
     ax.set_axisbelow(True)
 axs[0].set_ylabel("NON-STANDARD share (% of total)")
-axs[0].legend(frameon=False, fontsize=11, loc="upper left")
+axs[1].legend(
+    [plt.Line2D([], [], color=EC[e], lw=2.2) for e in ests],
+    [EN[e] for e in ests],
+    frameon=False,
+    fontsize=11,
+    loc="upper left",
+)
+axs[0].set_ylim(0, 1.15 * axs[0].get_ylim()[1])
 y = 0.205
 for i, e in enumerate(ests):
     c = con[(con["est"] == e) & (con["scope"] == "of total")].set_index("contrast")
@@ -638,17 +670,18 @@ s5 = m5s.set_index("est")
 frame(
     fig,
     "M5  Interactions",
-    "Share of attribution through interactions: "
-    + "; ".join(
-        f"{EN[e]} {p(s5.at[e, 'inter_share_variable'])}% (NON-STANDARD variables {p(s5.at[e, 'inter_frac_nonstandard'])}%,"
-        f" STANDARD {p(s5.at[e, 'inter_frac_standard'])}%)"
-        for e in e5
-    )
-    + ".",
+    " / ".join(EN[e] for e in e5)
+    + ": interactions carry "
+    + " / ".join(p(s5.at[e, "inter_share_variable"]) for e in e5)
+    + "% of all attribution (variable level);\nthrough interactions: of a NON-STANDARD variable's attribution "
+    + " / ".join(p(s5.at[e, "inter_frac_nonstandard"]) for e in e5)
+    + "%, of a STANDARD one's "
+    + " / ".join(p(s5.at[e, "inter_frac_standard"]) for e in e5)
+    + "%.",
 )
 yb = measure_box(
     fig,
-    0.845,
+    0.80,
     "SHAP interaction values $\\Phi_{ijl}$ on 1,008 fixed rows (8 a neighbourhood), summed to "
     "variables: $G_{iAB}=\\Sigma_{j\\in A}\\Sigma_{l\\in B}\\Phi_{ijl}$.  Cell (P, Q) of the bucket map: "
     "mean |2$\\Sigma_{A\\in P,B\\in Q}G_{iAB}$|\n(P ≠ Q) or mean |$\\Sigma_{A,B\\in P}G_{iAB}$| "
@@ -668,7 +701,7 @@ short = {
     "fomc": "FOMC",
 }
 for i, e in enumerate(e5):
-    ax = fig.add_axes((0.07 + 0.30 * i, 0.08, 0.22, yb - 0.17))
+    ax = fig.add_axes((0.065 + 0.31 * i, 0.10, 0.27, yb - 0.16))
     t = m5b[m5b["est"] == e]
     nb = len(C.BUCKETS)
     Mx = np.full((nb, nb), np.nan)
@@ -702,7 +735,7 @@ for i, e in enumerate(e5):
     ax.set_yticklabels([short[b] for b in C.BUCKETS], fontsize=9)
     ax.set_title(EN[e], fontsize=14, loc="left", color=INK, fontweight="bold")
     ax.spines[:].set_visible(False)
-x0 = 0.07 + 0.30 * len(e5)
+x0 = 0.085 + 0.31 * len(e5)
 fig.text(
     x0,
     yb - 0.02,

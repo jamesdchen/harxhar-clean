@@ -9,7 +9,7 @@
 #SBATCH --time=03:00:00
 #SBATCH --constraint=epyc-7513|epyc-7542
 #SBATCH --output=/home1/jc_905/tree_shap/logs/%x.%A_%a.out
-# Tree SHAP (RULE_shap.txt) on CARC: line $SLURM_ARRAY_TASK_ID of $HB/res/code/tasks.txt = "<est> <part> <procs>"
+# Tree SHAP (RULE_shap.txt) on CARC: line $SLURM_ARRAY_TASK_ID of $TASKFILE (default $HB/res/code/tasks.txt) = "<est> <part> <procs>"
 # commands separated by ";".  Everything on /home1 (python: the tree agent's /home1 venv_skx, read only; shap and its
 # missing dependencies in $HB/pylib; the design: /home1/jc_905/trees_final/designs/w3000, read only, md5-checked here).
 # Fit threads 8 and the thread environment of the walk (cluster/slurm/pooltree_rerun13.sbatch).
@@ -26,7 +26,8 @@ CPU=$(grep -m1 'model name' /proc/cpuinfo | cut -d: -f2 | sed 's/^ *//')
 echo "tshap task ${SLURM_ARRAY_TASK_ID} on $(hostname) [$CPU] $(date)"
 case "$CPU" in *"EPYC 7513"*|*"EPYC 7542"*) ;; *) echo "not an EPYC 7513/7542 node: $CPU"; exit 4 ;; esac
 (cd $D/_work/design_all_features && md5sum -c --quiet MD5SUMS) && echo "design md5 ok"
-LINE=$(sed -n "${SLURM_ARRAY_TASK_ID}p" $HB/res/code/tasks.txt)
+TF=${TASKFILE:-$HB/res/code/tasks.txt}
+LINE=$(sed -n "${SLURM_ARRAY_TASK_ID}p" "$TF")
 [ -n "$LINE" ] || { echo "no line ${SLURM_ARRAY_TASK_ID}"; exit 1; }
 cd $HB/res/code
 IFS=';' read -ra CMDS <<< "$LINE"

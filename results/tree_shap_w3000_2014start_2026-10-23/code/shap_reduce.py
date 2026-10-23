@@ -188,16 +188,18 @@ def main() -> int:
             f"equal {fr}; additivity pass {int(g['add_pass'].sum())}/{len(g)} (max {g['add_err_max'].max():.2g})"
             + (
                 f"; interaction rows sum to SHAP: max {g['inter_sum_err_max'].max():.2g}"
-                if "inter_sum_err_max" in g
+                if g.get("inter_sum_err_max", pd.Series(dtype=float)).notna().any()
                 else ""
             )
             + (
                 f"; oneDAL vs estimators_ mean rel max {g['onedal_vs_trees_rel_max'].max():.2g}"
-                if "onedal_vs_trees_rel_max" in g
+                if g.get("onedal_vs_trees_rel_max", pd.Series(dtype=float))
+                .notna()
+                .any()
                 else ""
             )
         )
-        if "repeat_pred_equal" in g:
+        if g.get("repeat_pred_equal", pd.Series(dtype=float)).notna().any():
             rp = g.dropna(subset=["repeat_pred_equal"])
             out(
                 f"{'':14s} repeat refits at k {rp['k'].tolist()}: predictions equal {rp['repeat_pred_equal'].tolist()}, "
