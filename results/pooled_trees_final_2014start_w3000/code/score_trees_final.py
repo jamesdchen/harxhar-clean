@@ -60,13 +60,19 @@ CK = (
     pd.Timestamp("2024-04-30"),
     1082,
 )  # the linear runs' scores.csv days
-TREES = ("lgbm", "xgb", "rf")
+TREES = (
+    "lgbm",
+    "xgb",
+    "rf",
+    "rf_skx",
+)  # rf_skx: the forest on oneDAL (RULE_rf_skx.txt)
 LIN = ("ols", "ridge", "lasso", "enet")
 SETS = ("baseline", "all_features")
 NAME = {
     "lgbm": "LightGBM",
     "xgb": "XGBoost",
     "rf": "Random forest",
+    "rf_skx": "Random forest (oneDAL)",
     "ols": "OLS",
     "ridge": "Ridge",
     "lasso": "Lasso",

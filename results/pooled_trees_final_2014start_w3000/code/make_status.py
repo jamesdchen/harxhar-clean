@@ -169,5 +169,7 @@ L += [
         "design/ (md5, design_check.json), scores/, code/."
     ),
 ]
+if (run / "NOTES.md").is_file():  # run-specific notes (gate, cancelled arrays, ...)
+    L += ["", (run / "NOTES.md").read_text(encoding="utf-8").strip()]
 (run / "STATUS.md").write_text("\n".join(L) + "\n", encoding="utf-8")
 print("\n".join(L))
