@@ -1,0 +1,104 @@
+{
+ "engine": "C",
+ "set": "all_features",
+ "window_days": 1000,
+ "n_columns": 564,
+ "fit_rows": [
+  34202,
+  47202
+ ],
+ "val_rows": [
+  47527,
+  50777
+ ],
+ "val_first": "2013-01-02 15:30:00",
+ "val_last": "2013-12-31 16:00:00",
+ "host": "d11-37.hpc.usc.edu",
+ "cpu": "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz",
+ "versions": {
+  "python": "3.12.15",
+  "numpy": "1.26.4",
+  "pandas": "2.3.3",
+  "scipy": "1.17.1",
+  "sklearn": "1.9.1",
+  "lightgbm": "4.6.0",
+  "xgboost": "3.2.0",
+  "pyarrow": "19.0.1"
+ },
+ "x_columns_check": 564,
+ "slurm_job": "13322589",
+ "slurm_task": "8",
+ "runs": [
+  {
+   "run": "T",
+   "threads": 8,
+   "fit_sec": 43.906,
+   "fit_cpu_sec": 342.241,
+   "predict_val_sec": 0.076,
+   "predict_one_row_sec": 0.0017,
+   "refit_sec": 43.908,
+   "mse_adj": 0.05363392573605167,
+   "qlike": 0.19039765822018048,
+   "n_qlike": 3250,
+   "pred_md5": "94900255077cb1fc22349d8d80a0d867",
+   "trees": 485,
+   "mean_leaves": 531.3793814432989
+  },
+  {
+   "run": "T2",
+   "threads": 8,
+   "fit_sec": 46.102,
+   "fit_cpu_sec": 360.805,
+   "predict_val_sec": 0.074,
+   "predict_one_row_sec": 0.0016,
+   "refit_sec": 46.103,
+   "mse_adj": 0.05363392573605167,
+   "qlike": 0.19039765822018048,
+   "n_qlike": 3250,
+   "pred_md5": "94900255077cb1fc22349d8d80a0d867",
+   "trees": 485,
+   "mean_leaves": 531.3793814432989
+  },
+  {
+   "run": "1",
+   "threads": 1,
+   "fit_sec": 225.471,
+   "fit_cpu_sec": 224.673,
+   "predict_val_sec": 0.536,
+   "predict_one_row_sec": 0.0016,
+   "refit_sec": 225.472,
+   "mse_adj": 0.05363392573605167,
+   "qlike": 0.19039765822018048,
+   "n_qlike": 3250,
+   "pred_md5": "94900255077cb1fc22349d8d80a0d867",
+   "trees": 485,
+   "mean_leaves": 531.3793814432989
+  }
+ ],
+ "config": {
+  "config": "lgbm rf mapped from rf400_rf_opt_00",
+  "params": {
+   "boosting_type": "rf",
+   "n_estimators": 485,
+   "feature_fraction_bynode": 0.9013236540796851,
+   "bagging_fraction": 0.632,
+   "bagging_freq": 1,
+   "min_child_samples": 12,
+   "max_depth": 20,
+   "num_leaves": 4095,
+   "deterministic": true,
+   "force_col_wise": true,
+   "histogram_pool_size": 4096.0,
+   "random_state": 42,
+   "num_threads": 1,
+   "verbosity": -1
+  },
+  "engine": "lightgbm",
+  "lightgbm": "4.6.0"
+ },
+ "same_twice": true,
+ "max_abs_diff_twice": 0.0,
+ "same_1_vs_T": true,
+ "max_abs_diff_1_vs_T": 0.0,
+ "sklearnex_log": []
+}
