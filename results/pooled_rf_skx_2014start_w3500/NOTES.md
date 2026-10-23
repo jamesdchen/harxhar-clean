@@ -9,5 +9,9 @@
   gate (b)).
 - Merge (job 13335328) with code_c989ee0 (the one-CPU checks read by CPU family).  No piece was resumed or
   resubmitted.
-- Scores: not yet (the scorer's pinned modules, writeup/ and experiments/ at 654c476, differ from the main worktree's
-  since 10:00; see the commit that adds scores/).
+- Scores (scores/; cross_window_dm.csv, 3,500 vs 3,000 days, also in results/pooled_rf_skx_2014start_w3000/scores/):
+  code/score_trees_final.py of results/pooled_trees_final_2014start_w3000 on the w3000 and w3500 forest runs with the
+  linear w3000 / w3500 runs of results/window_sweep_2014start_2026-10-22, run on a separate worktree at 654c476 (from
+  10:00 the main worktree's writeup modules differ from 654c476's); its untracked inputs (data/spxw_chain.parquet,
+  results/close_master_table, results/spxw_pnl, the MinGRU forecasts the economics module loads, ...; all last
+  modified by 2026-10-18) copied from the main worktree.  The run reproduces the w3000 scores of e9b01fa byte for byte.
