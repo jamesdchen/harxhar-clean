@@ -44,7 +44,7 @@ for arg in sys.argv[3:]:
         if int(p["k"]):
             day = pd.DatetimeIndex(a["date"]).normalize()
             u = day.unique()
-            sel = (day.isin(u[: int(p["k"])]) | day.isin(u[-int(p["k"]) :])).to_numpy()
+            sel = np.asarray(day.isin(u[: int(p["k"])]) | day.isin(u[-int(p["k"]) :]))
         else:
             sel = np.ones(len(a), bool)
         same_shape = a.shape == b.shape and list(a.columns) == list(b.columns)
