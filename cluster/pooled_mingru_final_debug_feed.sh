@@ -9,7 +9,7 @@
 set -uo pipefail
 Q=${1:-/home1/jc_905/pmf/debug_queue.txt}
 MOVED=/home1/jc_905/pmf/debug_moved.txt
-MAXJ=${MAXJ:-5}
+MAXJ=${MAXJ:-4}  # one debug slot (QOS: 5 a user) left for the walk probe
 G=/home1/jc_905/pmf/pooled_mingru_final_gpu_carc.sbatch
 touch "$MOVED"
 n=$(squeue -u jc_905 -p debug -h | wc -l)

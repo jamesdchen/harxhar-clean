@@ -4,7 +4,7 @@
 # identical to the walk's) runs with the trainer at the walk's concurrency C (6 full set, 12 HAR) and at 2C and 4C;
 # outputs to <root>/runs/probe_<set>_c<conc>_<job>/refit (+ refit.log with the pool phase's wall time), then
 # experiments/pooled_mingru_final_probe.py summarises seconds per refit and checks that the forecasts are identical
-# across concurrencies.  ROOTS (default "/home1/jc_905/pmf /home1/jc_905/pmf35").
+# across concurrencies.  ROOTS (default "/home1/jc_905/pmf /home1/jc_905/pmf35"), PSETS (default "baseline all_features").
 #SBATCH --account=pollok_1603
 #SBATCH --partition=gpu
 #SBATCH --gres=gpu:1
@@ -40,7 +40,7 @@ cp /home1/jc_905/pmf/bin/forecast_train "$FT"
 [ "$(md5sum < "$FT" | cut -c1-32)" = 44ab6fff270e15547335c6b36b3ceead ] || { echo "binary md5"; exit 1; }
 RUNS=""
 for R in $ROOTS; do
-  for s in baseline all_features; do
+  for s in ${PSETS:-baseline all_features}; do
     if [ $s = all_features ]; then C=6; else C=12; fi
     W=$LOCAL/$(basename "$R")_$s
     mkdir -p "$W/data/pmf_lin_init/$s"

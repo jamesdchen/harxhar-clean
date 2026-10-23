@@ -99,3 +99,13 @@ errors); binary copied from `/home1/jc_905/pm13/bin` (md5 44ab6fff).
 - 2026-10-23 07:45 PDT: select re-run (13328140) to write out/frozen_partial.json (the full set, so its walk can
   start while the HAR set extends; select now skips a set open in another round); full-set bar-walk ridge inits
   13328147 (8-task array) -> walk jobs 13328148.
+- 2026-10-23 08:05-08:20 PDT: owner: "I want max tuning" -> RULE_gru.txt ADDENDUM 3 (08:09; the per-window compute
+  cap removed, ladder caps unchanged; written before any L 115 / H 1,024 job ran). The held W 3,000 HAR round-1
+  files released: 52 submitted at once before the gpu partition's per-user submit limit (QOS gpu: 100 submitted,
+  36 running; it rejected tune_baseline_r1.65) stopped the loop; the other 340 go through
+  cluster/pooled_mingru_final_gpu_feed.sh (keeps <= 96 of ours in the gpu partition), the debug-eligible ones
+  (H <= 256 or L <= 20; the H 1,024 x L >= 48 files wait for a measured cost) also through the debug feeder.
+- GPU-type gates: A40 (13324300, a03-15) FAILED in 8 s: the trainer binary segfaults on the A40 (sm_86) at once.
+  V100 / A100 / L40S gates still pending.
+- 2026-10-23 08:09 PDT: walk jobs for the W 3,000 full set written (13328148: 169,850 refits, 34 blocks; inits for
+  all 33,970 bar origins, 13328147); timing probe 13328546 (debug P100: 24 origins x 5 seeds at CONC 6 / 12 / 24).
