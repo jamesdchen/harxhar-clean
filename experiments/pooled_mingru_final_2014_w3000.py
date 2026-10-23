@@ -595,77 +595,121 @@ def round_half_up(x: float) -> int:
     return int(math.floor(x + 0.5))
 
 
-def tune_table(data: Path, runs: Path, s: str) -> pd.DataFrame:
-    """Per configuration of every tune run of set s: the 5-seed-mean validation QLIKE and each seed's best epoch."""
+def collect_jobs(data: Path, runs: Path, s: str) -> tuple[dict, dict, np.ndarray]:
+    """The completed tune jobs of set s by id (see tune_table): validation forecasts, records, the target y."""
     y = np.fromfile(data / f"pmf_{s}" / "y.f32", "<f4").astype(np.float64)
-    recs: list[dict] = []
-    seen: set[str] = set()
-    for d in sorted(runs.glob(f"tune_{s}_r*_*")):
-        if not (d / "tune" / "jobs_out.csv").is_file():
+    v0, v1 = FOLD["val"]
+    f_by_id: dict[str, np.ndarray] = {}
+    rec_by_id: dict[str, dict] = {}
+    dirs = [(d, False) for d in sorted(runs.glob(f"tune_{s}_r*_*"))]
+    dirs += [(d, True) for d in sorted((runs.parent / "salvage").glob(f"tune_{s}_r*"))]
+    for d, salv in dirs:
+        if (
+            not (d / "tune" / "jobs_out.csv").is_file()
+            or not (d / "tune" / "preds.csv").is_file()
+        ):
             continue
-        jo = pd.read_csv(d / "tune" / "jobs_out.csv")
-        m = jo["id"].str.extract(TUNE_RE)
-        assert m.notna().all().all(), jo["id"][m.isna().any(axis=1)].head()
-        assert not (set(jo["id"]) & seen), d
-        seen |= set(jo["id"])
-        jo["cfg"], jo["seed"] = m[1], m[2].astype(int)
+        jo = pd.read_csv(d / "tune" / "jobs_out.csv", on_bad_lines="skip")
+        if salv and len(jo):
+            jo = jo.iloc[:-1]  # a salvaged copy's last jobs_out line may be cut: that job is rerun
+        jo = jo[jo["id"].astype(str).str.match(TUNE_RE)]
+        jo = jo[~jo["id"].isin(rec_by_id.keys())]
+        if jo.empty:
+            continue
         pr = pd.read_csv(
             d / "tune" / "preds.csv",
             usecols=["id", "kind", "row", "f"],
-            dtype={"id": "category"},
+            on_bad_lines="skip",
         )
-        pr = pr[pr["kind"] == "val"]
-        cats = (
-            pd.Series(pr["id"].cat.categories.astype(str))
-            .str.extract(TUNE_RE)[1]
-            .to_numpy()
+        if salv and len(pr):
+            jo = jo[jo["id"] != pr["id"].iloc[-1]]
+        pr = pr[(pr["kind"] == "val") & pr["id"].isin(set(jo["id"]))]
+        for jid, gg in pr.groupby("id", sort=False):
+            gg = gg.sort_values("row")
+            rows = gg["row"].to_numpy()
+            if len(rows) == VAL and rows[0] == v0 and rows[-1] == v1 - 1:
+                f_by_id[str(jid)] = gg["f"].to_numpy(float)
+        for r in jo.itertuples(index=False):
+            jid = str(r.id)
+            if r.status == "ok" and jid not in f_by_id:
+                continue  # an ok job without its full validation block (cut copy): not counted
+            m = TUNE_RE.match(jid)
+            assert m is not None, jid
+            rec_by_id[jid] = dict(
+                cfg=m.group(2),
+                seed=int(m.group(3)),
+                status=str(r.status),
+                best_epoch=int(r.best_epoch),
+                run=d.name,
+            )
+    return f_by_id, rec_by_id, y
+
+
+def tune_table(data: Path, runs: Path, s: str) -> pd.DataFrame:
+    """Per configuration of set s: the 5-seed-mean validation QLIKE and each seed's best epoch, from every tune run
+    of the set and every salvaged partial run (<root>/salvage/tune_<set>_r*: the completed jobs of a run that hit its
+    time limit, copied from its node).  Jobs are taken by id, the first complete copy in the order: runs, then
+    salvage; a job counts when it is in its run's jobs_out and has its 3,250 validation rows (in a salvaged copy the
+    job that owns the last line of preds.csv is dropped: that line may have been cut while the trainer wrote it).  A
+    configuration enters once all 5 seeds are present."""
+    f_by_id, rec_by_id, y = collect_jobs(data, runs, s)
+    v0, v1 = FOLD["val"]
+    by_cfg: dict[str, dict[int, dict]] = {}
+    for jid, rr in rec_by_id.items():
+        by_cfg.setdefault(rr["cfg"], {})[rr["seed"]] = dict(rr, id=jid)
+    recs: list[dict] = []
+    n_val = int((y[v0:v1] > 0).sum())
+    for cfg, seeds in by_cfg.items():
+        if sorted(seeds) != list(SEEDS):
+            continue  # incomplete configuration
+        ok_seeds = [sd for sd in SEEDS if seeds[sd]["status"] == "ok"]
+        ql = float("nan")
+        if len(ok_seeds) == len(SEEDS):
+            F = np.vstack([f_by_id[seeds[sd]["id"]] for sd in SEEDS])
+            fm = F.mean(axis=0)
+            yv = y[v0:v1]
+            ok = yv > 0
+            if np.isfinite(fm).all() and (F.min(axis=0) > 0).all():
+                q = (yv[ok] / fm[ok]) ** 2
+                ql = float(np.mean(q - np.log(q) - 1.0))
+        recs.append(
+            dict(
+                predictor_set=s,
+                cfg=cfg,
+                val_qlike=ql,
+                n_val=n_val,
+                n_seeds_ok=len(ok_seeds),
+                run=";".join(sorted({seeds[sd]["run"] for sd in SEEDS})),
+                **{f"best_epoch_s{sd}": int(seeds[sd]["best_epoch"]) for sd in SEEDS},
+                **{f"status_s{sd}": seeds[sd]["status"] for sd in SEEDS},
+            )
         )
-        pr = pr.assign(cfg=cats[pr["id"].cat.codes.to_numpy()])
-        agg = pr.groupby(["cfg", "row"])["f"].agg(["mean", "count", "min"])
-        have = set(agg.index.get_level_values(0))
-        for cfg, gg in jo.groupby("cfg"):
-            ok_seeds = sorted(gg.loc[gg["status"] == "ok", "seed"])
-            c = (
-                agg.loc[cfg]
-                if cfg in have
-                else pd.DataFrame(columns=["mean", "count", "min"])
-            )
-            full = (
-                ok_seeds == list(SEEDS)
-                and len(c) == VAL
-                and bool((c["count"] == len(SEEDS)).all())
-                and int(c.index.min()) == FOLD["val"][0]
-                and int(c.index.max()) == FOLD["val"][1] - 1
-            )
-            ql = float("nan")
-            if full:
-                fm = c["mean"].to_numpy(float)
-                yv = y[c.index.to_numpy()]
-                ok = yv > 0
-                if np.isfinite(fm).all() and (c["min"].to_numpy(float) > 0).all():
-                    q = (yv[ok] / fm[ok]) ** 2
-                    ql = float(np.mean(q - np.log(q) - 1.0))
-            ep = gg.set_index("seed")["best_epoch"]
-            recs.append(
-                dict(
-                    predictor_set=s,
-                    cfg=cfg,
-                    val_qlike=ql,
-                    n_val=int((y[FOLD["val"][0] : FOLD["val"][1]] > 0).sum()),
-                    n_seeds_ok=len(ok_seeds),
-                    run=d.name,
-                    **{f"best_epoch_s{sd}": int(ep.get(sd, -1)) for sd in SEEDS},
-                    **{
-                        f"status_s{sd}": str(
-                            gg.set_index("seed")["status"].get(sd, "missing")
-                        )
-                        for sd in SEEDS
-                    },
-                )
-            )
     t = pd.DataFrame(recs)
     assert not t["cfg"].duplicated().any()
     return t.sort_values("cfg").reset_index(drop=True)
+
+
+def st_remainder(a: argparse.Namespace) -> None:
+    """For tune files that hit their time limit: IN/<file stem>.rem.txt with the lines whose job is not complete in
+    any run or salvaged copy (tune_table's rules); the completed jobs are kept, nothing is rerun twice."""
+    data, inp, runs = Path(a.data), Path(a.inputs), Path(a.runs)
+    done: dict[str, set[str]] = {}
+    lst = []
+    for name in a.files.split(","):
+        s = "all_features" if "_all_features_" in name else "baseline"
+        if s not in done:
+            done[s] = set(collect_jobs(data, runs, s)[1])
+        lines = (inp / name).read_text().splitlines()
+        left = [ln for ln in lines if ln.split()[0].removeprefix("id=") not in done[s]]
+        out = name.removesuffix(".txt") + ".rem.txt"
+        if left:
+            (inp / out).write_text("\n".join(left) + "\n")
+            lst.append(out)
+        say(
+            f"remainder {name}: {len(lines) - len(left)} of {len(lines)} jobs complete, "
+            f"{len(left)} left -> {out if left else '-'}"
+        )
+    (inp / "remainder_files.txt").write_text("\n".join(lst) + "\n")
 
 
 def st_select(a: argparse.Namespace) -> None:
@@ -1177,6 +1221,7 @@ def main() -> int:
             "canary",
             "check-run",
             "merge",
+            "remainder",
         ),
     )
     ap.add_argument("--design", default="")
@@ -1199,6 +1244,11 @@ def main() -> int:
         help="walk-inits / walk-jobs: the sets",
     )
     ap.add_argument("--data-rows", default="")
+    ap.add_argument(
+        "--files",
+        default="",
+        help="remainder: comma-separated tune files under --inputs",
+    )
     a = ap.parse_args()
     {
         "export": st_export,
@@ -1211,6 +1261,7 @@ def main() -> int:
         "canary": st_canary,
         "check-run": st_check_run,
         "merge": st_merge,
+        "remainder": st_remainder,
     }[a.stage](a)
     return 0
 

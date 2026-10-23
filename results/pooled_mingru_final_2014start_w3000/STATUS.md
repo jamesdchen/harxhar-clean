@@ -120,3 +120,20 @@ errors); binary copied from `/home1/jc_905/pm13/bin` (md5 44ab6fff).
   + 5 min; 86 pending jobs lowered by scontrol (none cancelled); the submit feeder reads the same map. V100 gate
   (13324299, d13-08) FAILED like the A40: the binary segfaults at start. A100 / L40S gates pending (limits 20 min).
   Tune concurrency test 13329097 (debug): round-0 shards rerun at higher CONC, compared with the stored runs.
+- 2026-10-23 09:00-11:50 PDT: tune packing tests (cluster/pooled_mingru_final_conc_test_carc.sbatch, debug P100,
+  round-0 shard r0.0 H 16 L 8, forecasts compared with the stored run): full CONC 12 450 s / 24 340 s vs 707 s at 6;
+  HAR CONC 24 237 s / 32 241 s vs 351 s at 12; all text-identical; HAR CONC 48 out of GPU memory. Approved (coord.):
+  CONC 24 for unsubmitted files of shapes that pass; heavy shapes tested next (13335886). V100 / A40 segfault
+  narrowed (read-only, binary unchanged): a single refit job runs cleanly on both (gdb, compute-sanitizer 0 errors;
+  13329189, 13329190); the gate's 6 tune jobs at CONC 6 with CUDA_DEVICE_MAX_CONNECTIONS 32 / 8 under gdb pending
+  (13331862, 13331863).
+- 2026-10-23 11:06-11:30 PDT: H 1,024 round-1 files ran out of time: r1.43 / r1.44 (H 1,024 L 8, 80 jobs) TIMEOUT
+  at the 1:17 limit set from the cost model (H 1,024 = 10 x H 256). Node-local progress (ssh to the job's node,
+  read-only): GPU memory admits only 7 H 1,024 models a P100, ~95-145 P100-s a job at L 8, ~200 at L 20 (model 33 /
+  58). Revised W 3,000 HAR round-1 cost of the H 1,024 groups ~650 P100-hours (model 186). The 336 unsubmitted
+  H 1,024 files are held (gpu_queue_h1024_held.txt) pending the owner; the 24 running H 1,024 jobs are salvaged:
+  their completed jobs copied from the nodes to /home1/jc_905/pmf/salvage/ (a remote loop in each job's last 4
+  minutes). Runner: collect_jobs / tune_table now credit jobs by id across runs and salvaged copies (the last line
+  of a salvaged copy dropped); checked on CARC (13345844): reproduces the round-0 tables (|dQLIKE| <= 1.2e-16, equal
+  epochs, same picks); new stage `remainder` writes the not-yet-complete lines of timed-out files. GPU sbatch:
+  `--signal=B:USR1@240` + a handler copying the partial outputs to salvage/ before a time limit.

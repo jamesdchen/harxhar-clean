@@ -19,6 +19,7 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=48G
 #SBATCH --time=6:00:00
+#SBATCH --signal=B:USR1@240
 #SBATCH --job-name=pmf
 #SBATCH --output=/home1/jc_905/pmf/logs/%x_%j.out
 set -euo pipefail
@@ -73,7 +74,20 @@ cp "$ROOT/bin/forecast_train" "$LOCAL/ft"
 cp "$ROOT/inputs/$JOBS" "$LOCAL/jobs.txt"
 T0=$(date +%s)
 cd "$LOCAL"
-"$LOCAL/ft" run --jobs "$LOCAL/jobs.txt" --out "$LOCAL/$SUB" --concurrent "$CONC" --chunk 5 --pool > "$LOCAL/$SUB.log" 2>&1
+# 2026-10-23: 4 min before the time limit Slurm sends USR1: the completed jobs' outputs so far are copied to
+# $ROOT/salvage/<tag>_<job>/ (the select credits them by id; experiments/pooled_mingru_final_2014_w3000.py remainder
+# writes the rest), then the trainer is stopped
+salvage() {
+  S=$ROOT/salvage/${TAG}_$SLURM_JOB_ID; mkdir -p "$S/$SUB"
+  for f in jobs_out.csv preds.csv epochs.csv; do [ -f "$LOCAL/$SUB/$f" ] && cp "$LOCAL/$SUB/$f" "$S/$SUB/"; done
+  cp "$LOCAL/$SUB.log" "$S/" 2>/dev/null
+  echo "time limit near: partial outputs salvaged to $S"
+  kill "$FTPID" 2>/dev/null; exit 3
+}
+trap salvage USR1
+"$LOCAL/ft" run --jobs "$LOCAL/jobs.txt" --out "$LOCAL/$SUB" --concurrent "$CONC" --chunk 5 --pool > "$LOCAL/$SUB.log" 2>&1 &
+FTPID=$!
+wait "$FTPID"
 [ -f "$LOCAL/$SUB/steps.csv" ] && gzip -f "$LOCAL/$SUB/steps.csv"
 (cd "$LOCAL" && find "$SUB" -type f -exec md5sum {} + | sort -k2 > "$SUB.md5")
 cd "$RUN"

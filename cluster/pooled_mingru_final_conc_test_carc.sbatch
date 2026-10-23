@@ -29,13 +29,15 @@ for s in baseline all_features; do
   find "$R/data/pmf_lin_init/$s" -maxdepth 1 -type f -exec cp -t "$LOCAL/data/pmf_lin_init/$s/" {} +
 done
 O=$R/conctest; mkdir -p "$O"; cd "$LOCAL"
-for spec in baseline:24 baseline:48 all_features:12 all_features:24; do
-  s=${spec%%:*}; c=${spec##*:}; f=tune_${s}_r0.0.txt
-  ref=$(ls -d $R/runs/tune_${s}_r0_0_* | head -1)
+for spec in ${SPECS:-baseline:24 baseline:48 all_features:12 all_features:24}; do
+  IFS=: read -r s c k <<< "$spec"; k=${k:-r0.0}; case $k in r*) ;; *) k=r0.$k ;; esac; f=tune_${s}_$k.txt  # spec set:conc[:file key r<round>.<index>, default r0.0]
+  ref=$(ls -d $R/runs/tune_${s}_${k/./_}_* | head -1)
   T0=$(date +%s%N)
-  "$LOCAL/ft" run --jobs "$R/inputs/$f" --out "$LOCAL/${s}_c$c" --concurrent "$c" --chunk 5 --pool > "$LOCAL/${s}_c$c.log" 2>&1
+  rc=0; "$LOCAL/ft" run --jobs "$R/inputs/$f" --out "$LOCAL/${s}_c$c" --concurrent "$c" --chunk 5 --pool > "$LOCAL/${s}_c$c.log" 2>&1 || rc=$?
+  if [ $rc != 0 ]; then mkdir -p "$O/fail_${s}_c${c}_$SLURM_JOB_ID"; cp "$LOCAL/${s}_c$c.log" "$O/fail_${s}_c${c}_$SLURM_JOB_ID/"; echo "$s conc $c: trainer exit $rc ($(tail -2 "$LOCAL/${s}_c$c.log" | tr '
+' ' '))"; rm -rf "$LOCAL/${s}_c$c"; continue; fi
   MS=$(( ($(date +%s%N) - T0) / 1000000 ))
-  D=$O/${s}_c${c}_$SLURM_JOB_ID; mkdir -p "$D"; cp "$LOCAL/${s}_c$c/jobs_out.csv" "$LOCAL/${s}_c$c.log" "$D/"
+  D=$O/${s}_${k}_c${c}_$SLURM_JOB_ID; mkdir -p "$D"; cp "$LOCAL/${s}_c$c/jobs_out.csv" "$LOCAL/${s}_c$c.log" "$D/"
   if cmp -s <(sort "$LOCAL/${s}_c$c/preds.csv") <(sort "$ref/tune/preds.csv"); then same=IDENTICAL; else same=DIFFERENT; fi
   echo "$s conc $c wall ${MS} ms | $(grep -h "pool phase" "$LOCAL/${s}_c$c.log" | sed -E 's/.*(pool phase.*)/\1/') | vs stored ($(grep -h "pool phase" $ref/tune.log | sed -E 's/.*in ([0-9.]+) s.*/\1 s/')): $same"
   rm -rf "$LOCAL/${s}_c$c"
