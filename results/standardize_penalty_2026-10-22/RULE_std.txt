@@ -139,3 +139,57 @@ report it; no centering without the coordinator's decision.
     augmented system.  The batch fits (pretune folds, the causal re-choice grid, the block-end refit, the cold seed)
     already residualize every column on the intercept (FWL: the window-centred columns) for the lasso / enet; ridge
     pretune / grid fits: solved on the fold's fit-block-centred columns.
+
+[SUPERSEDED 2026-10-22 (owner: a data-relative rule replaces it before any code was committed or run; the
+uncommitted code is saved as superseded_addendum3.patch, not used)]
+ADDENDUM 3 (SUPERSEDED, distinct-evidence) -- written 2026-10-22T18:45-07:00, before any code change or run of this rule.  Owner: "make the mask more robust to
+catch columns like those 2" (vix3m_avail_ma_3125, vvix_avail_ma_3125: near-copies of other variables' availability
+flags whose long averages escape the exact-duplicate mask).  Under STANDARDIZE_PENALTY only (flag off bit-identical).
+DISTINCT-EVIDENCE RULE: variable v's columns of a kind (value adj_<v>_ma_<k>, or availability <v>_avail_ma_<k>) enter a
+standardized fit only if v's k = 1 column of that kind differs, on at least STD_MIN_EVIDENCE = 250 rows of the fit's
+window (exact inequality, masked design), from the k = 1 column of every variable u of the same kind that comes
+earlier in design order (the order of the k = 1 columns) and is kept; otherwise all of v's columns of that kind are
+masked like the identifiability mask.  "Kept" = passes the evidence rule (>= 250 off-mode rows of its own k = 1
+column) and this rule against every earlier kept variable (greedy in design order: of a group of near-copies the first
+is kept).  It complements the evidence rule and the exact-duplicate mask (both unchanged).  HAR and calendar exempt.
+Evaluation points as the evidence rule: ridge per bar (exact pairwise differing-row counts of the k = 1 columns,
+updated with the entering and leaving rows, and the greedy rule re-run on them every bar); lasso / elastic net at every
+cold seed (from scratch) plus a between-seed tracker: when a pair of currently live (kept) variables' differing-row
+count drops below 250 the later one is masked and the walk reseeds cold; pretune on each fold's fit block.  Recorded:
+the variables the rule masks at every seed (and in every pretune fold).
+Checks (trimmed, once): (a) flag off bit-identical (pretune fold arrays + frozen_penalties.json + one chunk per full-set
+arm); (b) one origin per arm, the explicit fit with the mask recomputed independently; (c) causality; (d) pretune /
+select and the three walk chunks.  No out-of-sample score.
+
+ADDENDUM 3 (the rule in force) -- written 2026-10-22T19:25-07:00, before any code change or run of it.  Owner: "do it" (option
+(a): scaled coordinates + the binomial availability rule, as tested in Step 1'; the condition-number comparison with
+the flag-off lasso is retired as an acceptance criterion and reported as information only).  Under STANDARDIZE_PENALTY
+only (flag off bit-identical).
+(1) SCALED COORDINATES -- the same estimator.  The lasso / elastic net solve in z_j = (x_j - m_j) / s_j (m, s = the
+    seed window's column mean and s.d., masked design; masked columns 0; intercept column 1), with the uniform penalty
+    (penalty factors pf only, no s weights) and the intercept free; m and s are fixed at every cold seed and held
+    between seeds (entering / leaving rows transformed with the held m, s: rank-one updates), the warm homotopy and the
+    KKT check run in z, coefficients back-transformed beta_j = gamma_j / s_j, beta_0 = gamma_0 - m' beta, the forecast
+    z(x)' gamma (identical in exact arithmetic).  This is the weighted + centred problem of addenda 0-2 written in the
+    coordinates the solver works in (verified on 27 origins to <= 8.3e-13, Step 1'), so it is the same estimator.
+    Ridge: exact per-bar scaling -- every bar's solve is (Z_t'Z_t + diag(a pf)) gamma = Z_t'y with z = (x - m0) / s_t,
+    m0 the seed-time means (exact by the free intercept), s_t the bar's own window s.d. (the per-bar weights of
+    addendum 0), i.e. the centred Gram divided by s_t s_t', then beta = gamma / s_t.
+(2) BINOMIAL AVAILABILITY RULE -- a data-cleaning rule: an availability average over k intervals is a proportion with
+    sampling resolution se = sqrt(p (1 - p) / k), p = its window mean, and variation within the column's own sampling
+    resolution carries no detectable information.  For the availability averages <v>_avail_ma_<k> with k > 1 that the
+    existing masks leave live (identifiability; the evidence rule on the k = 1 column -- both run first): (i)
+    near-constant: masked if its window s.d. <= se; (ii) near-duplicate: in design order, masked if, against an earlier
+    KEPT availability average of the same k, the window s.d. of the difference <= sqrt(2) se_pair, se_pair =
+    sqrt(pbar (1 - pbar) / k), pbar = (p_i + p_j) / 2.  k = 1 flags, value averages, HAR and calendar exempt.  Masked
+    like the identifiability mask.  Window moments: exact at every cold seed (and in every batch fit), between seeds
+    the column sums and cross-products of the k > 1 availability averages about the seed-time means updated with the
+    entering and leaving rows.  Evaluation points as the evidence rule: ridge per bar; lasso / elastic net at every
+    cold seed (columns masked by this rule alone re-evaluated there) plus a between-seed tracker that masks and
+    cold-reseeds when a live column falls to s.d. <= se or a live pair becomes a near-duplicate; pretune on each fold's
+    fit block.
+Acceptance (once, trimmed): (a) flag off bit-identical (pretune fold arrays + frozen_penalties.json + one walk chunk per
+full-set arm); (b) one origin per arm: the walk's fit = an explicit standardized fit with the masks recomputed
+independently, <= 1e-8; (c) causality; (d) every solve KKT-certified, cold reseeds and runtime per chunk vs flag off,
+pretune / select (penalties, grid extensions, pre-2012 MSE vs flag off), the columns the availability rule masks;
+condition numbers (solver coordinates) as information.  No out-of-sample score.

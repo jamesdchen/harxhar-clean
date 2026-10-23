@@ -62,7 +62,7 @@ same_as_last_flatten() {  # 0 if Overleaf's main2.tex equals the flat text recor
     [[ -f "$MAP" && -f "$DIR/$FLAT" ]] || return 1
     python3 - "$MAP" "$DIR/$FLAT" <<'EOF'
 import json, sys
-flat = json.load(open(sys.argv[1], encoding="utf-8"))["flat_text"]
+flat = json.load(open(sys.argv[1], encoding="utf-8"))["flat_text"].replace("\r\n", "\n")  # 2026-10-23: normalize both sides (Windows checkouts flatten with CRLF)
 cur = open(sys.argv[2], encoding="utf-8", newline="").read().lstrip("﻿").replace("\r\n", "\n")
 sys.exit(0 if cur.rstrip("\n") == flat.rstrip("\n") else 1)
 EOF

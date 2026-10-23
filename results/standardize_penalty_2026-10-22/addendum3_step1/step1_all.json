@@ -1,0 +1,3797 @@
+[
+ {
+  "origin": "2012-01",
+  "row": 44281,
+  "date": "2012-01-03",
+  "masked_existing": 301,
+  "new_rule_masked": [
+   {
+    "col": "vix_avail_ma_125",
+    "kind": "near-constant",
+    "sd": 0.03762450381705106,
+    "se": 0.038788034528801876,
+    "p": 0.2511304615384616
+   },
+   {
+    "col": "vix_avail_ma_625",
+    "kind": "near-constant",
+    "sd": 0.00822996767248678,
+    "se": 0.017514406590031305,
+    "p": 0.2585906461538462
+   },
+   {
+    "col": "vix_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.0031207745996184462,
+    "se": 0.007856543906565957,
+    "p": 0.26102616615384616
+   }
+  ],
+  "n_new_rule": 3,
+  "value_columns_masked_by_rule": 0,
+  "avail_k_gt1_live_without": 25,
+  "avail_k_gt1_live_with": 22,
+  "lasso": {
+   "n_active_without": 82,
+   "n_active_with": 78,
+   "n_active_flag_off": 75,
+   "cond_without": {
+    "uncentred": 6048327.236753009,
+    "centred": 5563476.415014443
+   },
+   "cond_with": {
+    "uncentred": 9473.064601855549,
+    "centred": 9105.2607593535
+   },
+   "cond_flag_off": {
+    "uncentred": 2816.629611831166,
+    "centred": 2694.484956236257
+   },
+   "forecast_without": 0.7800106138034274,
+   "forecast_with": 0.7952669881875271,
+   "forecast_rel_change": 0.019559188188103885,
+   "active_avail_k_gt1_sd_le_se_without": [
+    "vix_avail_ma_625",
+    "vix_avail_ma_3125"
+   ],
+   "P1_all_removed": true,
+   "vix3m_3125_active_without": false,
+   "vvix_3125_active_without": false,
+   "vix3m_3125_active_with": false,
+   "vvix_3125_active_with": false,
+   "P2_cond_with_le_flag_off_centred": false,
+   "P2_cond_with_le_flag_off_uncentred": false
+  },
+  "enet": {
+   "n_active_without": 35,
+   "n_active_with": 34,
+   "n_active_flag_off": 34,
+   "cond_without": {
+    "uncentred": 1271532.9805839604,
+    "centred": 1163302.1879686064
+   },
+   "cond_with": {
+    "uncentred": 561.9457872919652,
+    "centred": 549.2104790394211
+   },
+   "cond_flag_off": {
+    "uncentred": 477.4571541190569,
+    "centred": 463.08179616759884
+   },
+   "forecast_without": 0.7887339559837385,
+   "forecast_with": 0.7906482856784393,
+   "forecast_rel_change": 0.0024270917717915544,
+   "active_avail_k_gt1_sd_le_se_without": [
+    "vix_avail_ma_3125"
+   ],
+   "P1_all_removed": true,
+   "vix3m_3125_active_without": false,
+   "vvix_3125_active_without": false,
+   "vix3m_3125_active_with": false,
+   "vvix_3125_active_with": false,
+   "P2_cond_with_le_flag_off_centred": false,
+   "P2_cond_with_le_flag_off_uncentred": false
+  },
+  "vix3m_vvix_3125_rule": [],
+  "sec": 19.035799026489258
+ },
+ {
+  "origin": "2012-07",
+  "row": 45918,
+  "date": "2012-07-02",
+  "masked_existing": 295,
+  "new_rule_masked": [
+   {
+    "col": "vix_avail_ma_125",
+    "kind": "near-constant",
+    "sd": 0.03799828136879678,
+    "se": 0.03890522814011402,
+    "p": 0.25342769230769235
+   },
+   {
+    "col": "vix_avail_ma_625",
+    "kind": "near-constant",
+    "sd": 0.010904767996153829,
+    "se": 0.01757308911445837,
+    "p": 0.2612708923076923
+   },
+   {
+    "col": "vix_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.007517339199978682,
+    "se": 0.007879949220921306,
+    "p": 0.26344662153846155
+   }
+  ],
+  "n_new_rule": 3,
+  "value_columns_masked_by_rule": 0,
+  "avail_k_gt1_live_without": 30,
+  "avail_k_gt1_live_with": 27,
+  "lasso": {
+   "n_active_without": 83,
+   "n_active_with": 84,
+   "n_active_flag_off": 74,
+   "cond_without": {
+    "uncentred": 2642035.901764669,
+    "centred": 2481972.423771648
+   },
+   "cond_with": {
+    "uncentred": 33154.026467518575,
+    "centred": 31851.80478895516
+   },
+   "cond_flag_off": {
+    "uncentred": 2781.0094499985926,
+    "centred": 2646.567085464954
+   },
+   "forecast_without": 0.7503340741086768,
+   "forecast_with": 0.7687606832179479,
+   "forecast_rel_change": 0.024557873279525626,
+   "active_avail_k_gt1_sd_le_se_without": [
+    "vix_avail_ma_125",
+    "vix_avail_ma_625",
+    "vix_avail_ma_3125"
+   ],
+   "P1_all_removed": true,
+   "vix3m_3125_active_without": false,
+   "vvix_3125_active_without": false,
+   "vix3m_3125_active_with": true,
+   "vvix_3125_active_with": false,
+   "P2_cond_with_le_flag_off_centred": false,
+   "P2_cond_with_le_flag_off_uncentred": false
+  },
+  "enet": {
+   "n_active_without": 38,
+   "n_active_with": 38,
+   "n_active_flag_off": 32,
+   "cond_without": {
+    "uncentred": 569.2389583834362,
+    "centred": 556.2762953958335
+   },
+   "cond_with": {
+    "uncentred": 569.2389583834378,
+    "centred": 556.2762953958338
+   },
+   "cond_flag_off": {
+    "uncentred": 365.07474654830844,
+    "centred": 356.1907967698122
+   },
+   "forecast_without": 0.7693427452076519,
+   "forecast_with": 0.7693427452076517,
+   "forecast_rel_change": 2.8861597293037404e-16,
+   "active_avail_k_gt1_sd_le_se_without": [],
+   "P1_all_removed": true,
+   "vix3m_3125_active_without": false,
+   "vvix_3125_active_without": false,
+   "vix3m_3125_active_with": false,
+   "vvix_3125_active_with": false,
+   "P2_cond_with_le_flag_off_centred": false,
+   "P2_cond_with_le_flag_off_uncentred": false
+  },
+  "vix3m_vvix_3125_rule": [],
+  "sec": 18.66280174255371
+ },
+ {
+  "origin": "2013-01",
+  "row": 47516,
+  "date": "2013-01-02",
+  "masked_existing": 295,
+  "new_rule_masked": [
+   {
+    "col": "vix_avail_ma_125",
+    "kind": "near-constant",
+    "sd": 0.03869420009931002,
+    "se": 0.03898513830109134,
+    "p": 0.2550104615384616
+   },
+   {
+    "col": "vix_avail_ma_625",
+    "kind": "near-constant",
+    "sd": 0.011985476591314452,
+    "se": 0.01761758236531317,
+    "p": 0.26332935384615386
+   },
+   {
+    "col": "vix3m_avail_ma_25",
+    "kind": "near-duplicate",
+    "partner": "vix_avail_ma_25",
+    "sd": 0.16285232940581296,
+    "se": 0.08040421449933105,
+    "sd_diff": 0.10252304940437344,
+    "threshold": 0.11724000569307068,
+    "p": 0.20271384615384616,
+    "p_partner": 0.23805538461538464
+   }
+  ],
+  "n_new_rule": 3,
+  "value_columns_masked_by_rule": 0,
+  "avail_k_gt1_live_without": 30,
+  "avail_k_gt1_live_with": 27,
+  "lasso": {
+   "n_active_without": 99,
+   "n_active_with": 99,
+   "n_active_flag_off": 82,
+   "cond_without": {
+    "uncentred": 1772841.0987750154,
+    "centred": 1716976.7626117656
+   },
+   "cond_with": {
+    "uncentred": 1235502.3558176248,
+    "centred": 1149236.8206737656
+   },
+   "cond_flag_off": {
+    "uncentred": 3356.093773694476,
+    "centred": 3104.7683263102294
+   },
+   "forecast_without": 1.208060256424613,
+   "forecast_with": 1.2027316571011646,
+   "forecast_rel_change": 0.004410872135814648,
+   "active_avail_k_gt1_sd_le_se_without": [
+    "vix_avail_ma_125",
+    "vix_avail_ma_625"
+   ],
+   "P1_all_removed": true,
+   "vix3m_3125_active_without": false,
+   "vvix_3125_active_without": false,
+   "vix3m_3125_active_with": true,
+   "vvix_3125_active_with": false,
+   "P2_cond_with_le_flag_off_centred": false,
+   "P2_cond_with_le_flag_off_uncentred": false
+  },
+  "enet": {
+   "n_active_without": 32,
+   "n_active_with": 32,
+   "n_active_flag_off": 27,
+   "cond_without": {
+    "uncentred": 376.1667819077421,
+    "centred": 366.40188720105476
+   },
+   "cond_with": {
+    "uncentred": 376.1667819077421,
+    "centred": 366.4018872010559
+   },
+   "cond_flag_off": {
+    "uncentred": 232.2620530314239,
+    "centred": 231.36683353932546
+   },
+   "forecast_without": 1.2532983521228163,
+   "forecast_with": 1.2532983521228158,
+   "forecast_rel_change": 3.543363869408043e-16,
+   "active_avail_k_gt1_sd_le_se_without": [],
+   "P1_all_removed": true,
+   "vix3m_3125_active_without": false,
+   "vvix_3125_active_without": false,
+   "vix3m_3125_active_with": false,
+   "vvix_3125_active_with": false,
+   "P2_cond_with_le_flag_off_centred": false,
+   "P2_cond_with_le_flag_off_uncentred": false
+  },
+  "vix3m_vvix_3125_rule": [],
+  "sec": 18.893268823623657
+ },
+ {
+  "origin": "2013-07",
+  "row": 49140,
+  "date": "2013-07-01",
+  "masked_existing": 295,
+  "new_rule_masked": [
+   {
+    "col": "vix_avail_ma_125",
+    "kind": "near-constant",
+    "sd": 0.03874678715445836,
+    "se": 0.03909609705243898,
+    "p": 0.25723076923076926
+   },
+   {
+    "col": "vix_avail_ma_625",
+    "kind": "near-constant",
+    "sd": 0.0129796043096114,
+    "se": 0.017672096947968372,
+    "p": 0.2658833230769231
+   },
+   {
+    "col": "vix3m_avail_ma_5",
+    "kind": "near-duplicate",
+    "partner": "vix_avail_ma_5",
+    "sd": 0.3617938214380799,
+    "se": 0.1951737687293044,
+    "sd_diff": 0.12639842613805566,
+    "threshold": 0.2727998323326282,
+    "p": 0.744,
+    "p_partner": 0.7617692307692308
+   },
+   {
+    "col": "vix3m_avail_ma_25",
+    "kind": "near-duplicate",
+    "partner": "vix_avail_ma_25",
+    "sd": 0.15323395968257167,
+    "se": 0.0844928035752158,
+    "sd_diff": 0.04256987561714471,
+    "threshold": 0.11998964204291053,
+    "p": 0.23256000000000004,
+    "p_partner": 0.23817230769230774
+   }
+  ],
+  "n_new_rule": 4,
+  "value_columns_masked_by_rule": 0,
+  "avail_k_gt1_live_without": 25,
+  "avail_k_gt1_live_with": 21,
+  "lasso": {
+   "n_active_without": 94,
+   "n_active_with": 96,
+   "n_active_flag_off": 76,
+   "cond_without": {
+    "uncentred": 1626569.274603711,
+    "centred": 1586429.144601616
+   },
+   "cond_with": {
+    "uncentred": 921915.7957500921,
+    "centred": 858736.9817308432
+   },
+   "cond_flag_off": {
+    "uncentred": 4555.269831080163,
+    "centred": 4533.946921706676
+   },
+   "forecast_without": 0.8614266402707162,
+   "forecast_with": 0.8596855426069359,
+   "forecast_rel_change": 0.0020211792651701863,
+   "active_avail_k_gt1_sd_le_se_without": [
+    "vix_avail_ma_125",
+    "vix_avail_ma_625"
+   ],
+   "P1_all_removed": true,
+   "vix3m_3125_active_without": true,
+   "vvix_3125_active_without": false,
+   "vix3m_3125_active_with": true,
+   "vvix_3125_active_with": false,
+   "P2_cond_with_le_flag_off_centred": false,
+   "P2_cond_with_le_flag_off_uncentred": false
+  },
+  "enet": {
+   "n_active_without": 34,
+   "n_active_with": 34,
+   "n_active_flag_off": 26,
+   "cond_without": {
+    "uncentred": 554.8498394074084,
+    "centred": 552.5321963164747
+   },
+   "cond_with": {
+    "uncentred": 554.8498394074081,
+    "centred": 552.5321963164747
+   },
+   "cond_flag_off": {
+    "uncentred": 247.0887643421298,
+    "centred": 245.43099670085033
+   },
+   "forecast_without": 0.89320420756838,
+   "forecast_with": 0.8932042075683799,
+   "forecast_rel_change": 1.2429666309427483e-16,
+   "active_avail_k_gt1_sd_le_se_without": [],
+   "P1_all_removed": true,
+   "vix3m_3125_active_without": false,
+   "vvix_3125_active_without": false,
+   "vix3m_3125_active_with": false,
+   "vvix_3125_active_with": false,
+   "P2_cond_with_le_flag_off_centred": false,
+   "P2_cond_with_le_flag_off_uncentred": false
+  },
+  "vix3m_vvix_3125_rule": [],
+  "sec": 20.9701566696167
+ },
+ {
+  "origin": "2014-01",
+  "row": 50777,
+  "date": "2014-01-02",
+  "masked_existing": 295,
+  "new_rule_masked": [
+   {
+    "col": "vix_avail_ma_625",
+    "kind": "near-constant",
+    "sd": 0.013178581166503856,
+    "se": 0.017722926473053728,
+    "p": 0.26829723076923073
+   }
+  ],
+  "n_new_rule": 1,
+  "value_columns_masked_by_rule": 0,
+  "avail_k_gt1_live_without": 20,
+  "avail_k_gt1_live_with": 19,
+  "lasso": {
+   "n_active_without": 86,
+   "n_active_with": 88,
+   "n_active_flag_off": 71,
+   "cond_without": {
+    "uncentred": 273992.86008806864,
+    "centred": 256011.79084295678
+   },
+   "cond_with": {
+    "uncentred": 1017088.5415106528,
+    "centred": 930292.2651801776
+   },
+   "cond_flag_off": {
+    "uncentred": 4725.256229902084,
+    "centred": 4725.05980115845
+   },
+   "forecast_without": 0.879069604194667,
+   "forecast_with": 0.8760152678401106,
+   "forecast_rel_change": 0.0034745102549125872,
+   "active_avail_k_gt1_sd_le_se_without": [
+    "vix_avail_ma_625"
+   ],
+   "P1_all_removed": true,
+   "vix3m_3125_active_without": false,
+   "vvix_3125_active_without": false,
+   "vix3m_3125_active_with": false,
+   "vvix_3125_active_with": false,
+   "P2_cond_with_le_flag_off_centred": false,
+   "P2_cond_with_le_flag_off_uncentred": false
+  },
+  "enet": {
+   "n_active_without": 30,
+   "n_active_with": 30,
+   "n_active_flag_off": 26,
+   "cond_without": {
+    "uncentred": 381.92920760822057,
+    "centred": 381.65227287547117
+   },
+   "cond_with": {
+    "uncentred": 381.92920760822017,
+    "centred": 381.65227287546963
+   },
+   "cond_flag_off": {
+    "uncentred": 288.68382181489517,
+    "centred": 285.9759956335328
+   },
+   "forecast_without": 0.9337069438235298,
+   "forecast_with": 0.93370694382353,
+   "forecast_rel_change": 2.3780973933401277e-16,
+   "active_avail_k_gt1_sd_le_se_without": [],
+   "P1_all_removed": true,
+   "vix3m_3125_active_without": false,
+   "vvix_3125_active_without": false,
+   "vix3m_3125_active_with": false,
+   "vvix_3125_active_with": false,
+   "P2_cond_with_le_flag_off_centred": false,
+   "P2_cond_with_le_flag_off_uncentred": false
+  },
+  "vix3m_vvix_3125_rule": [],
+  "sec": 20.53196096420288
+ },
+ {
+  "origin": "2014-07",
+  "row": 52404,
+  "date": "2014-07-01",
+  "masked_existing": 285,
+  "new_rule_masked": [
+   {
+    "col": "vix_avail_ma_125",
+    "kind": "near-constant",
+    "sd": 0.039028491809485505,
+    "se": 0.03929856303693559,
+    "p": 0.26135200000000003
+   },
+   {
+    "col": "vix_avail_ma_625",
+    "kind": "near-constant",
+    "sd": 0.013153008855186535,
+    "se": 0.017773500154851213,
+    "p": 0.2707312
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_5",
+    "kind": "near-duplicate",
+    "partner": "vix_avail_ma_5",
+    "sd": 0.40972494742739146,
+    "se": 0.21043430997954693,
+    "sd_diff": 0.2828546949611027,
+    "threshold": 0.2853859008471983,
+    "p": 0.6690769230769231,
+    "p_partner": 0.761676923076923
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_25",
+    "kind": "near-duplicate",
+    "partner": "vix_avail_ma_25",
+    "sd": 0.1628243639649537,
+    "se": 0.08151942204648473,
+    "sd_diff": 0.09696132461453855,
+    "threshold": 0.11799415834221445,
+    "p": 0.2104061538461539,
+    "p_partner": 0.23835076923076923
+   }
+  ],
+  "n_new_rule": 4,
+  "value_columns_masked_by_rule": 0,
+  "avail_k_gt1_live_without": 20,
+  "avail_k_gt1_live_with": 16,
+  "lasso": {
+   "n_active_without": 98,
+   "n_active_with": 98,
+   "n_active_flag_off": 69,
+   "cond_without": {
+    "uncentred": 1367260.9875438537,
+    "centred": 1331778.6132505278
+   },
+   "cond_with": {
+    "uncentred": 755197.6354924033,
+    "centred": 697730.5470182447
+   },
+   "cond_flag_off": {
+    "uncentred": 3036.680223364884,
+    "centred": 3025.1431456420405
+   },
+   "forecast_without": 0.8336348203511152,
+   "forecast_with": 0.8337653237824599,
+   "forecast_rel_change": 0.00015654748117373507,
+   "active_avail_k_gt1_sd_le_se_without": [
+    "vix_avail_ma_625"
+   ],
+   "P1_all_removed": true,
+   "vix3m_3125_active_without": false,
+   "vvix_3125_active_without": false,
+   "vix3m_3125_active_with": false,
+   "vvix_3125_active_with": false,
+   "P2_cond_with_le_flag_off_centred": false,
+   "P2_cond_with_le_flag_off_uncentred": false
+  },
+  "enet": {
+   "n_active_without": 37,
+   "n_active_with": 37,
+   "n_active_flag_off": 27,
+   "cond_without": {
+    "uncentred": 490.9928470747044,
+    "centred": 438.10935049109446
+   },
+   "cond_with": {
+    "uncentred": 490.9928470747067,
+    "centred": 438.10935049109327
+   },
+   "cond_flag_off": {
+    "uncentred": 265.96140318455923,
+    "centred": 257.37202356364384
+   },
+   "forecast_without": 0.7369555530249818,
+   "forecast_with": 0.7369555530249831,
+   "forecast_rel_change": 1.657149229793881e-15,
+   "active_avail_k_gt1_sd_le_se_without": [],
+   "P1_all_removed": true,
+   "vix3m_3125_active_without": false,
+   "vvix_3125_active_without": false,
+   "vix3m_3125_active_with": false,
+   "vvix_3125_active_with": false,
+   "P2_cond_with_le_flag_off_centred": false,
+   "P2_cond_with_le_flag_off_uncentred": false
+  },
+  "vix3m_vvix_3125_rule": [],
+  "sec": 21.110076904296875
+ },
+ {
+  "origin": "2015-01",
+  "row": 54050,
+  "date": "2015-01-02",
+  "masked_existing": 283,
+  "new_rule_masked": [
+   {
+    "col": "vix_avail_ma_625",
+    "kind": "near-constant",
+    "sd": 0.012484474385895106,
+    "se": 0.017820339694142918,
+    "p": 0.27301501538461537
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_5",
+    "kind": "near-duplicate",
+    "partner": "vix_avail_ma_5",
+    "sd": 0.3469702659361274,
+    "se": 0.19043305913583997,
+    "sd_diff": 0.04938623289946298,
+    "threshold": 0.26950737399754626,
+    "p": 0.7620615384615385,
+    "p_partner": 0.7610615384615385
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_25",
+    "kind": "near-duplicate",
+    "partner": "vix_avail_ma_25",
+    "sd": 0.15210253172190466,
+    "se": 0.08534683883165337,
+    "sd_diff": 0.02140149505367661,
+    "threshold": 0.12059113557185237,
+    "p": 0.23942769230769234,
+    "p_partner": 0.23818461538461538
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_125",
+    "kind": "near-constant",
+    "sd": 0.039491929258922205,
+    "se": 0.04156229689511095,
+    "p": 0.31541415384615384
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_625",
+    "kind": "near-constant",
+    "sd": 0.014435382644553433,
+    "se": 0.018911948445645047,
+    "p": 0.3373304615384616
+   }
+  ],
+  "n_new_rule": 5,
+  "value_columns_masked_by_rule": 0,
+  "avail_k_gt1_live_without": 20,
+  "avail_k_gt1_live_with": 15,
+  "lasso": {
+   "n_active_without": 97,
+   "n_active_with": 96,
+   "n_active_flag_off": 69,
+   "cond_without": {
+    "uncentred": 2286283.560739513,
+    "centred": 2179545.0851014373
+   },
+   "cond_with": {
+    "uncentred": 1529280.5657390254,
+    "centred": 1407626.0751160344
+   },
+   "cond_flag_off": {
+    "uncentred": 3313.5256939196374,
+    "centred": 3284.503636686753
+   },
+   "forecast_without": 0.8686233981171876,
+   "forecast_with": 0.8657167351464854,
+   "forecast_rel_change": 0.003346286753272615,
+   "active_avail_k_gt1_sd_le_se_without": [
+    "vix_avail_ma_625"
+   ],
+   "P1_all_removed": true,
+   "vix3m_3125_active_without": false,
+   "vvix_3125_active_without": false,
+   "vix3m_3125_active_with": false,
+   "vvix_3125_active_with": false,
+   "P2_cond_with_le_flag_off_centred": false,
+   "P2_cond_with_le_flag_off_uncentred": false
+  },
+  "enet": {
+   "n_active_without": 45,
+   "n_active_with": 45,
+   "n_active_flag_off": 35,
+   "cond_without": {
+    "uncentred": 5453.802804531826,
+    "centred": 4794.025804723929
+   },
+   "cond_with": {
+    "uncentred": 5448.137637317752,
+    "centred": 4791.803373073062
+   },
+   "cond_flag_off": {
+    "uncentred": 356.88613027505835,
+    "centred": 317.0695657506135
+   },
+   "forecast_without": 0.8077633987723423,
+   "forecast_with": 0.8074333563426931,
+   "forecast_rel_change": 0.00040858799761265017,
+   "active_avail_k_gt1_sd_le_se_without": [],
+   "P1_all_removed": true,
+   "vix3m_3125_active_without": false,
+   "vvix_3125_active_without": false,
+   "vix3m_3125_active_with": false,
+   "vvix_3125_active_with": false,
+   "P2_cond_with_le_flag_off_centred": false,
+   "P2_cond_with_le_flag_off_uncentred": false
+  },
+  "vix3m_vvix_3125_rule": [],
+  "sec": 21.82506537437439
+ },
+ {
+  "origin": "2015-07",
+  "row": 55683,
+  "date": "2015-07-01",
+  "masked_existing": 259,
+  "new_rule_masked": [
+   {
+    "col": "vix_avail_ma_125",
+    "kind": "near-constant",
+    "sd": 0.038682366370526876,
+    "se": 0.03948007755494142,
+    "p": 0.2651267692307692
+   },
+   {
+    "col": "vix_avail_ma_625",
+    "kind": "near-constant",
+    "sd": 0.01060103701864913,
+    "se": 0.017869943624606765,
+    "p": 0.27546560000000003
+   },
+   {
+    "col": "vvix_avail_ma_25",
+    "kind": "near-duplicate",
+    "partner": "vix_avail_ma_25",
+    "sd": 0.16471607097630098,
+    "se": 0.07866324706263955,
+    "sd_diff": 0.11559502779994911,
+    "threshold": 0.11616095820997845,
+    "p": 0.1912892307692308,
+    "p_partner": 0.23833230769230773
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_5",
+    "kind": "near-duplicate",
+    "partner": "vix_avail_ma_5",
+    "sd": 0.34726655348823565,
+    "se": 0.1905345827374519,
+    "sd_diff": 0.04162036085703514,
+    "threshold": 0.2695014013422635,
+    "p": 0.7616923076923077,
+    "p_partner": 0.7614615384615384
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_25",
+    "kind": "near-duplicate",
+    "partner": "vix_avail_ma_25",
+    "sd": 0.1521709205322137,
+    "se": 0.08533556311090718,
+    "sd_diff": 0.019456697239141625,
+    "threshold": 0.12059593362471462,
+    "p": 0.23933538461538467,
+    "p_partner": 0.23833230769230773
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_125",
+    "kind": "near-constant",
+    "sd": 0.03948550192054242,
+    "se": 0.0415630402323612,
+    "p": 0.31543507692307693
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_625",
+    "kind": "near-constant",
+    "sd": 0.008461933036058931,
+    "se": 0.01892160690329912,
+    "p": 0.3380339692307692
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.003439414116635796,
+    "se": 0.008485133482314989,
+    "p": 0.341861316923077
+   }
+  ],
+  "n_new_rule": 8,
+  "value_columns_masked_by_rule": 0,
+  "avail_k_gt1_live_without": 20,
+  "avail_k_gt1_live_with": 12,
+  "lasso": {
+   "n_active_without": 114,
+   "n_active_with": 114,
+   "n_active_flag_off": 79,
+   "cond_without": {
+    "uncentred": 3330996.417868055,
+    "centred": 2910181.9667664007
+   },
+   "cond_with": {
+    "uncentred": 3330996.417868055,
+    "centred": 2910181.9667664007
+   },
+   "cond_flag_off": {
+    "uncentred": 8510.541555321697,
+    "centred": 8182.3085123327555
+   },
+   "forecast_without": 1.1174236296484221,
+   "forecast_with": 1.117423629648421,
+   "forecast_rel_change": 9.935560651912014e-16,
+   "active_avail_k_gt1_sd_le_se_without": [],
+   "P1_all_removed": true,
+   "vix3m_3125_active_without": false,
+   "vvix_3125_active_without": false,
+   "vix3m_3125_active_with": false,
+   "vvix_3125_active_with": false,
+   "P2_cond_with_le_flag_off_centred": false,
+   "P2_cond_with_le_flag_off_uncentred": false
+  },
+  "enet": {
+   "n_active_without": 36,
+   "n_active_with": 34,
+   "n_active_flag_off": 31,
+   "cond_without": {
+    "uncentred": 666957.5152423166,
+    "centred": 560904.599870481
+   },
+   "cond_with": {
+    "uncentred": 301.5022351103809,
+    "centred": 282.3620627661882
+   },
+   "cond_flag_off": {
+    "uncentred": 840.5509232881626,
+    "centred": 698.8442145189347
+   },
+   "forecast_without": 1.0885458541769164,
+   "forecast_with": 1.0881627717867148,
+   "forecast_rel_change": 0.00035192122475284507,
+   "active_avail_k_gt1_sd_le_se_without": [
+    "voldemand_spx_open_and_close_avail_ma_3125"
+   ],
+   "P1_all_removed": true,
+   "vix3m_3125_active_without": false,
+   "vvix_3125_active_without": false,
+   "vix3m_3125_active_with": false,
+   "vvix_3125_active_with": false,
+   "P2_cond_with_le_flag_off_centred": true,
+   "P2_cond_with_le_flag_off_uncentred": true
+  },
+  "vix3m_vvix_3125_rule": [],
+  "sec": 21.976288557052612
+ },
+ {
+  "origin": "2016-01",
+  "row": 57342,
+  "date": "2016-01-04",
+  "masked_existing": 265,
+  "new_rule_masked": [
+   {
+    "col": "vix_avail_ma_125",
+    "kind": "near-constant",
+    "sd": 0.03815981053132971,
+    "se": 0.03954110418144044,
+    "p": 0.2664135384615385
+   },
+   {
+    "col": "vix_avail_ma_625",
+    "kind": "near-constant",
+    "sd": 0.007261401945000971,
+    "se": 0.017915340661633028,
+    "p": 0.27773809230769236
+   },
+   {
+    "col": "vix_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.003328232847475579,
+    "se": 0.008040486923494173,
+    "p": 0.28097824000000005
+   },
+   {
+    "col": "vvix_avail_ma_5",
+    "kind": "near-duplicate",
+    "partner": "vix_avail_ma_5",
+    "sd": 0.3861675973647166,
+    "se": 0.20300171929198768,
+    "sd_diff": 0.21152506307218608,
+    "threshold": 0.2788718350402174,
+    "p": 0.7096461538461538,
+    "p_partner": 0.7618461538461538
+   },
+   {
+    "col": "vvix_avail_ma_25",
+    "kind": "near-duplicate",
+    "partner": "vix_avail_ma_25",
+    "sd": 0.157250608141739,
+    "se": 0.08305516978106148,
+    "sd_diff": 0.07164337128109417,
+    "threshold": 0.11900455211143231,
+    "p": 0.22152923076923078,
+    "p_partner": 0.2381969230769231
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_5",
+    "kind": "near-duplicate",
+    "partner": "vix_avail_ma_5",
+    "sd": 0.3479333405516862,
+    "se": 0.19074545757579345,
+    "sd_diff": 0.027608419948830936,
+    "threshold": 0.26957602477982845,
+    "p": 0.7609230769230769,
+    "p_partner": 0.7618461538461538
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_25",
+    "kind": "near-duplicate",
+    "partner": "vix_avail_ma_25",
+    "sd": 0.15196534952291363,
+    "se": 0.08524742408782489,
+    "sd_diff": 0.015761988280550553,
+    "threshold": 0.12052175227881079,
+    "p": 0.23861538461538462,
+    "p_partner": 0.2381969230769231
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_125",
+    "kind": "near-constant",
+    "sd": 0.03938772675690897,
+    "se": 0.04153501039807261,
+    "p": 0.314648
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_625",
+    "kind": "near-constant",
+    "sd": 0.008226303068031262,
+    "se": 0.018919098787474962,
+    "p": 0.3378509538461538
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.003395470652793024,
+    "se": 0.008484935568294528,
+    "p": 0.34182813538461543
+   }
+  ],
+  "n_new_rule": 10,
+  "value_columns_masked_by_rule": 0,
+  "avail_k_gt1_live_without": 15,
+  "avail_k_gt1_live_with": 5,
+  "lasso": {
+   "n_active_without": 118,
+   "n_active_with": 114,
+   "n_active_flag_off": 82,
+   "cond_without": {
+    "uncentred": 24954399.824351568,
+    "centred": 22808024.676800206
+   },
+   "cond_with": {
+    "uncentred": 81288.24036723218,
+    "centred": 71468.54359270053
+   },
+   "cond_flag_off": {
+    "uncentred": 11059.179844810506,
+    "centred": 10573.711274742958
+   },
+   "forecast_without": 1.1631092686495959,
+   "forecast_with": 1.1625435872097623,
+   "forecast_rel_change": 0.0004863527916774074,
+   "active_avail_k_gt1_sd_le_se_without": [
+    "vix_avail_ma_625",
+    "vix_avail_ma_3125",
+    "voldemand_spx_open_and_close_avail_ma_3125"
+   ],
+   "P1_all_removed": true,
+   "vix3m_3125_active_without": false,
+   "vvix_3125_active_without": true,
+   "vix3m_3125_active_with": false,
+   "vvix_3125_active_with": true,
+   "P2_cond_with_le_flag_off_centred": false,
+   "P2_cond_with_le_flag_off_uncentred": false
+  },
+  "enet": {
+   "n_active_without": 40,
+   "n_active_with": 40,
+   "n_active_flag_off": 32,
+   "cond_without": {
+    "uncentred": 511.8595283647676,
+    "centred": 465.96988252002717
+   },
+   "cond_with": {
+    "uncentred": 511.85952836476736,
+    "centred": 465.9698825200268
+   },
+   "cond_flag_off": {
+    "uncentred": 436.01151830890507,
+    "centred": 352.18970110178094
+   },
+   "forecast_without": 1.1908429216501106,
+   "forecast_with": 1.1908429216501095,
+   "forecast_rel_change": 9.323001417237784e-16,
+   "active_avail_k_gt1_sd_le_se_without": [],
+   "P1_all_removed": true,
+   "vix3m_3125_active_without": false,
+   "vvix_3125_active_without": false,
+   "vix3m_3125_active_with": false,
+   "vvix_3125_active_with": false,
+   "P2_cond_with_le_flag_off_centred": false,
+   "P2_cond_with_le_flag_off_uncentred": false
+  },
+  "vix3m_vvix_3125_rule": [],
+  "sec": 22.371591091156006
+ },
+ {
+  "origin": "2016-07",
+  "row": 58988,
+  "date": "2016-07-01",
+  "masked_existing": 253,
+  "new_rule_masked": [
+   {
+    "col": "vvix_avail_ma_5",
+    "kind": "near-duplicate",
+    "partner": "vix_avail_ma_5",
+    "sd": 0.35709285617188435,
+    "se": 0.19372061575995003,
+    "sd_diff": 0.13745438490275266,
+    "threshold": 0.2693908199434838,
+    "p": 0.7497230769230769,
+    "p_partner": 0.774
+   },
+   {
+    "col": "vvix_avail_ma_25",
+    "kind": "near-duplicate",
+    "partner": "vix_avail_ma_25",
+    "sd": 0.15232555528505193,
+    "se": 0.08468023422640643,
+    "sd_diff": 0.12151257800333985,
+    "threshold": 0.12249031052107877,
+    "p": 0.23404615384615388,
+    "p_partner": 0.2661476923076923
+   },
+   {
+    "col": "vvix_avail_ma_625",
+    "kind": "near-constant",
+    "sd": 0.015122722913142735,
+    "se": 0.017406294148772736,
+    "p": 0.253752
+   },
+   {
+    "col": "vix3m_avail_ma_5",
+    "kind": "near-duplicate",
+    "partner": "vix_avail_ma_5",
+    "sd": 0.3473824350956993,
+    "se": 0.19057682604980844,
+    "sd_diff": 0.09477959483788236,
+    "threshold": 0.26705777581134343,
+    "p": 0.7615384615384615,
+    "p_partner": 0.774
+   },
+   {
+    "col": "vix3m_avail_ma_25",
+    "kind": "near-duplicate",
+    "partner": "vix_avail_ma_25",
+    "sd": 0.1507763143076956,
+    "se": 0.08518015407053037,
+    "sd_diff": 0.11752920317946515,
+    "threshold": 0.12281674276318594,
+    "p": 0.2380676923076923,
+    "p_partner": 0.2661476923076923
+   },
+   {
+    "col": "vix3m_avail_ma_125",
+    "kind": "near-constant",
+    "sd": 0.037914849069676265,
+    "se": 0.0395503765936729,
+    "p": 0.2666098461538462
+   },
+   {
+    "col": "vix3m_avail_ma_625",
+    "kind": "near-constant",
+    "sd": 0.007164088957320559,
+    "se": 0.017910522087438818,
+    "p": 0.2774955076923077
+   },
+   {
+    "col": "vix3m_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.0034233217245567935,
+    "se": 0.008038963609581121,
+    "p": 0.2808035692307692
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_5",
+    "kind": "near-duplicate",
+    "partner": "vix_avail_ma_5",
+    "sd": 0.34816387354267053,
+    "se": 0.19082956862172862,
+    "sd_diff": 0.0986021832037424,
+    "threshold": 0.26724265949367904,
+    "p": 0.7606153846153846,
+    "p_partner": 0.774
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_25",
+    "kind": "near-duplicate",
+    "partner": "vix_avail_ma_25",
+    "sd": 0.15198760260871794,
+    "se": 0.08523156886267494,
+    "sd_diff": 0.1186804730128601,
+    "threshold": 0.12285050863742233,
+    "p": 0.23848615384615385,
+    "p_partner": 0.2661476923076923
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_125",
+    "kind": "near-constant",
+    "sd": 0.03942523244058407,
+    "se": 0.04153854638683984,
+    "p": 0.3147470769230769
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_625",
+    "kind": "near-constant",
+    "sd": 0.00815271667625667,
+    "se": 0.018916139635249674,
+    "p": 0.33763532307692307
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.0036029929005193563,
+    "se": 0.008483260410649793,
+    "p": 0.34154759384615385
+   }
+  ],
+  "n_new_rule": 13,
+  "value_columns_masked_by_rule": 0,
+  "avail_k_gt1_live_without": 20,
+  "avail_k_gt1_live_with": 7,
+  "lasso": {
+   "n_active_without": 119,
+   "n_active_with": 117,
+   "n_active_flag_off": 86,
+   "cond_without": {
+    "uncentred": 8242352.346080317,
+    "centred": 7165881.280202346
+   },
+   "cond_with": {
+    "uncentred": 759107.0075549362,
+    "centred": 711105.258079978
+   },
+   "cond_flag_off": {
+    "uncentred": 16502.599010196373,
+    "centred": 15832.69407342597
+   },
+   "forecast_without": 0.5660008347869444,
+   "forecast_with": 0.5553690278746495,
+   "forecast_rel_change": 0.018784083448034103,
+   "active_avail_k_gt1_sd_le_se_without": [
+    "vix3m_avail_ma_3125"
+   ],
+   "P1_all_removed": true,
+   "vix3m_3125_active_without": true,
+   "vvix_3125_active_without": false,
+   "vix3m_3125_active_with": false,
+   "vvix_3125_active_with": false,
+   "P2_cond_with_le_flag_off_centred": false,
+   "P2_cond_with_le_flag_off_uncentred": false
+  },
+  "enet": {
+   "n_active_without": 41,
+   "n_active_with": 41,
+   "n_active_flag_off": 34,
+   "cond_without": {
+    "uncentred": 621.9590898638248,
+    "centred": 473.16488514741064
+   },
+   "cond_with": {
+    "uncentred": 621.959089863827,
+    "centred": 473.1648851474111
+   },
+   "cond_flag_off": {
+    "uncentred": 655.0999647946818,
+    "centred": 534.5333291183109
+   },
+   "forecast_without": 0.5524705928513998,
+   "forecast_with": 0.5524705928513978,
+   "forecast_rel_change": 3.617208716958442e-15,
+   "active_avail_k_gt1_sd_le_se_without": [],
+   "P1_all_removed": true,
+   "vix3m_3125_active_without": false,
+   "vvix_3125_active_without": false,
+   "vix3m_3125_active_with": false,
+   "vvix_3125_active_with": false,
+   "P2_cond_with_le_flag_off_centred": true,
+   "P2_cond_with_le_flag_off_uncentred": true
+  },
+  "vix3m_vvix_3125_rule": [
+   {
+    "col": "vix3m_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.0034233217245567935,
+    "se": 0.008038963609581121,
+    "p": 0.2808035692307692
+   }
+  ],
+  "sec": 23.16195297241211
+ },
+ {
+  "origin": "diag_2016",
+  "row": 59250,
+  "date": "2016-07-29",
+  "masked_existing": 253,
+  "new_rule_masked": [
+   {
+    "col": "vvix_avail_ma_5",
+    "kind": "near-duplicate",
+    "partner": "vix_avail_ma_5",
+    "sd": 0.35743676032710464,
+    "se": 0.19383154816770345,
+    "sd_diff": 0.14843492467713024,
+    "threshold": 0.26865742044866386,
+    "p": 0.7492923076923078,
+    "p_partner": 0.7781846153846155
+   },
+   {
+    "col": "vvix_avail_ma_625",
+    "kind": "near-constant",
+    "sd": 0.015102622542745317,
+    "se": 0.017405973759973475,
+    "p": 0.25373784615384615
+   },
+   {
+    "col": "vix3m_avail_ma_5",
+    "kind": "near-duplicate",
+    "partner": "vix_avail_ma_5",
+    "sd": 0.34775057918779056,
+    "se": 0.1906949254792856,
+    "sd_diff": 0.11059591141313398,
+    "threshold": 0.2663012968169523,
+    "p": 0.7611076923076924,
+    "p_partner": 0.7781846153846155
+   },
+   {
+    "col": "vix3m_avail_ma_25",
+    "kind": "near-duplicate",
+    "partner": "vvix_avail_ma_25",
+    "sd": 0.15082351421524656,
+    "se": 0.0851600867456847,
+    "sd_diff": 0.034322625380610844,
+    "threshold": 0.12008261805959819,
+    "p": 0.2379046153846154,
+    "p_partner": 0.23388307692307697
+   },
+   {
+    "col": "vix3m_avail_ma_125",
+    "kind": "near-constant",
+    "sd": 0.03821017045563289,
+    "se": 0.039538311785610444,
+    "p": 0.26635446153846154
+   },
+   {
+    "col": "vix3m_avail_ma_625",
+    "kind": "near-constant",
+    "sd": 0.007131471828899736,
+    "se": 0.01791021138125761,
+    "p": 0.27747987692307696
+   },
+   {
+    "col": "vix3m_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.003282406016685983,
+    "se": 0.008039987976180767,
+    "p": 0.28092100923076924
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_5",
+    "kind": "near-duplicate",
+    "partner": "vix_avail_ma_5",
+    "sd": 0.34853005133903525,
+    "se": 0.1909470952474322,
+    "sd_diff": 0.11385145517802506,
+    "threshold": 0.2664880056139388,
+    "p": 0.7601846153846155,
+    "p_partner": 0.7781846153846155
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_25",
+    "kind": "near-duplicate",
+    "partner": "vvix_avail_ma_25",
+    "sd": 0.15203487532013657,
+    "se": 0.0852115456799122,
+    "sd_diff": 0.038843000755506875,
+    "threshold": 0.1201194119168197,
+    "p": 0.23832307692307694,
+    "p_partner": 0.23388307692307697
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_125",
+    "kind": "near-constant",
+    "sd": 0.0397958671696821,
+    "se": 0.041528239789841846,
+    "p": 0.3144584615384615
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_625",
+    "kind": "near-constant",
+    "sd": 0.008214539973866371,
+    "se": 0.018914935801125788,
+    "p": 0.3375476923076923
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.003598743268347893,
+    "se": 0.008483341179593078,
+    "p": 0.34156110769230774
+   }
+  ],
+  "n_new_rule": 12,
+  "value_columns_masked_by_rule": 0,
+  "avail_k_gt1_live_without": 20,
+  "avail_k_gt1_live_with": 8,
+  "lasso": {
+   "n_active_without": 115,
+   "n_active_with": 111,
+   "n_active_flag_off": 84,
+   "cond_without": {
+    "uncentred": 8355630.40346342,
+    "centred": 7290840.354765454
+   },
+   "cond_with": {
+    "uncentred": 122313.45463355091,
+    "centred": 114693.79363555915
+   },
+   "cond_flag_off": {
+    "uncentred": 16416.917718715362,
+    "centred": 15752.56364355193
+   },
+   "forecast_without": 0.8222466666647825,
+   "forecast_with": 0.8224763630931944,
+   "forecast_rel_change": 0.00027935221597621474,
+   "active_avail_k_gt1_sd_le_se_without": [
+    "vix3m_avail_ma_3125"
+   ],
+   "P1_all_removed": true,
+   "vix3m_3125_active_without": true,
+   "vvix_3125_active_without": false,
+   "vix3m_3125_active_with": false,
+   "vvix_3125_active_with": false,
+   "P2_cond_with_le_flag_off_centred": false,
+   "P2_cond_with_le_flag_off_uncentred": false
+  },
+  "enet": {
+   "n_active_without": 41,
+   "n_active_with": 40,
+   "n_active_flag_off": 34,
+   "cond_without": {
+    "uncentred": 1272.979930534747,
+    "centred": 1204.3234475384295
+   },
+   "cond_with": {
+    "uncentred": 602.3302512528684,
+    "centred": 457.9779081714402
+   },
+   "cond_flag_off": {
+    "uncentred": 650.1204858261192,
+    "centred": 530.3868980362558
+   },
+   "forecast_without": 0.792431578051644,
+   "forecast_with": 0.7928629930671864,
+   "forecast_rel_change": 0.0005444192628001642,
+   "active_avail_k_gt1_sd_le_se_without": [],
+   "P1_all_removed": true,
+   "vix3m_3125_active_without": false,
+   "vvix_3125_active_without": false,
+   "vix3m_3125_active_with": false,
+   "vvix_3125_active_with": false,
+   "P2_cond_with_le_flag_off_centred": true,
+   "P2_cond_with_le_flag_off_uncentred": true
+  },
+  "vix3m_vvix_3125_rule": [
+   {
+    "col": "vix3m_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.003282406016685983,
+    "se": 0.008039987976180767,
+    "p": 0.28092100923076924
+   }
+  ],
+  "sec": 23.095916509628296
+ },
+ {
+  "origin": "2017-01",
+  "row": 60647,
+  "date": "2017-01-03",
+  "masked_existing": 253,
+  "new_rule_masked": [
+   {
+    "col": "vvix_avail_ma_5",
+    "kind": "near-duplicate",
+    "partner": "vix_avail_ma_5",
+    "sd": 0.3576620437155625,
+    "se": 0.1938987756414833,
+    "sd_diff": 0.19481359988005165,
+    "threshold": 0.26382302796162477,
+    "p": 0.7490307692307692,
+    "p_partner": 0.8023076923076923
+   },
+   {
+    "col": "vvix_avail_ma_625",
+    "kind": "near-constant",
+    "sd": 0.015003760613437066,
+    "se": 0.017402551048582907,
+    "p": 0.2535867076923077
+   },
+   {
+    "col": "vix3m_avail_ma_5",
+    "kind": "near-duplicate",
+    "partner": "vix_avail_ma_5",
+    "sd": 0.34804866013602925,
+    "se": 0.1907875301396942,
+    "sd_diff": 0.16951724005114116,
+    "threshold": 0.26133204524095877,
+    "p": 0.7607692307692308,
+    "p_partner": 0.8023076923076923
+   },
+   {
+    "col": "vix3m_avail_ma_25",
+    "kind": "near-duplicate",
+    "partner": "vvix_avail_ma_25",
+    "sd": 0.15087580421732588,
+    "se": 0.08511724416947436,
+    "sd_diff": 0.03427950149120035,
+    "threshold": 0.12002952045176912,
+    "p": 0.23755692307692308,
+    "p_partner": 0.23362769230769234
+   },
+   {
+    "col": "vix3m_avail_ma_125",
+    "kind": "near-constant",
+    "sd": 0.03818209318639661,
+    "se": 0.03952748271672202,
+    "p": 0.2661255384615385
+   },
+   {
+    "col": "vix3m_avail_ma_625",
+    "kind": "near-constant",
+    "sd": 0.006967347519366412,
+    "se": 0.017906615486380954,
+    "p": 0.2772990769230769
+   },
+   {
+    "col": "vix3m_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.0032304684581226694,
+    "se": 0.008040446584501813,
+    "p": 0.2809736123076923
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_5",
+    "kind": "near-duplicate",
+    "partner": "vix_avail_ma_5",
+    "sd": 0.3488265705638849,
+    "se": 0.19103925059074167,
+    "sd_diff": 0.17152735390046298,
+    "threshold": 0.26153069671731427,
+    "p": 0.7598461538461538,
+    "p_partner": 0.8023076923076923
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_25",
+    "kind": "near-duplicate",
+    "partner": "vvix_avail_ma_25",
+    "sd": 0.15142540776229177,
+    "se": 0.08512331513764998,
+    "sd_diff": 0.03738925593230758,
+    "threshold": 0.12003385810234923,
+    "p": 0.23760615384615386,
+    "p_partner": 0.23362769230769234
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_125",
+    "kind": "near-constant",
+    "sd": 0.039494304465417546,
+    "se": 0.041509181998927884,
+    "p": 0.31392615384615385
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_625",
+    "kind": "near-constant",
+    "sd": 0.007868011034367139,
+    "se": 0.01890999791240856,
+    "p": 0.33718880000000007
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.0035190037304270866,
+    "se": 0.008482744132475727,
+    "p": 0.34146124307692305
+   }
+  ],
+  "n_new_rule": 12,
+  "value_columns_masked_by_rule": 0,
+  "avail_k_gt1_live_without": 20,
+  "avail_k_gt1_live_with": 8,
+  "lasso": {
+   "n_active_without": 120,
+   "n_active_with": 114,
+   "n_active_flag_off": 97,
+   "cond_without": {
+    "uncentred": 9655399.62784456,
+    "centred": 8555052.663290108
+   },
+   "cond_with": {
+    "uncentred": 106102.5796350535,
+    "centred": 98970.12291382169
+   },
+   "cond_flag_off": {
+    "uncentred": 17830.349389581163,
+    "centred": 16925.231602980028
+   },
+   "forecast_without": 0.9799545107318595,
+   "forecast_with": 0.9607455445842032,
+   "forecast_rel_change": 0.019601895738313793,
+   "active_avail_k_gt1_sd_le_se_without": [
+    "vix3m_avail_ma_125",
+    "vix3m_avail_ma_3125",
+    "voldemand_spx_open_and_close_avail_ma_625"
+   ],
+   "P1_all_removed": true,
+   "vix3m_3125_active_without": true,
+   "vvix_3125_active_without": false,
+   "vix3m_3125_active_with": false,
+   "vvix_3125_active_with": false,
+   "P2_cond_with_le_flag_off_centred": false,
+   "P2_cond_with_le_flag_off_uncentred": false
+  },
+  "enet": {
+   "n_active_without": 44,
+   "n_active_with": 44,
+   "n_active_flag_off": 32,
+   "cond_without": {
+    "uncentred": 780.6057947670539,
+    "centred": 568.5505926299492
+   },
+   "cond_with": {
+    "uncentred": 715.7651479926118,
+    "centred": 569.6462087097733
+   },
+   "cond_flag_off": {
+    "uncentred": 811.2152409888178,
+    "centred": 771.732546290012
+   },
+   "forecast_without": 0.9187114579632472,
+   "forecast_with": 0.9111305098185999,
+   "forecast_rel_change": 0.008251718294070242,
+   "active_avail_k_gt1_sd_le_se_without": [],
+   "P1_all_removed": true,
+   "vix3m_3125_active_without": false,
+   "vvix_3125_active_without": false,
+   "vix3m_3125_active_with": false,
+   "vvix_3125_active_with": false,
+   "P2_cond_with_le_flag_off_centred": true,
+   "P2_cond_with_le_flag_off_uncentred": true
+  },
+  "vix3m_vvix_3125_rule": [
+   {
+    "col": "vix3m_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.0032304684581226694,
+    "se": 0.008040446584501813,
+    "p": 0.2809736123076923
+   }
+  ],
+  "sec": 23.457599878311157
+ },
+ {
+  "origin": "2017-07",
+  "row": 62293,
+  "date": "2017-07-04",
+  "masked_existing": 253,
+  "new_rule_masked": [
+   {
+    "col": "vvix_avail_ma_5",
+    "kind": "near-duplicate",
+    "partner": "vix_avail_ma_5",
+    "sd": 0.3563373164249333,
+    "se": 0.193442167068093,
+    "sd_diff": 0.23215111177469053,
+    "threshold": 0.2572155247599079,
+    "p": 0.7508,
+    "p_partner": 0.8309230769230769
+   },
+   {
+    "col": "vvix_avail_ma_625",
+    "kind": "near-constant",
+    "sd": 0.01445488919477199,
+    "se": 0.01741539416578591,
+    "p": 0.25415446153846155
+   },
+   {
+    "col": "vix3m_avail_ma_5",
+    "kind": "near-duplicate",
+    "partner": "vix_avail_ma_5",
+    "sd": 0.3483097903579105,
+    "se": 0.19085057508908462,
+    "sd_diff": 0.21601247772419166,
+    "threshold": 0.25498495024622736,
+    "p": 0.7605384615384615,
+    "p_partner": 0.8309230769230769
+   },
+   {
+    "col": "vix3m_avail_ma_25",
+    "kind": "near-duplicate",
+    "partner": "vvix_avail_ma_25",
+    "sd": 0.15092602581608996,
+    "se": 0.08511155120902862,
+    "sd_diff": 0.031584577915973126,
+    "threshold": 0.12008153527514338,
+    "p": 0.23751076923076925,
+    "p_partner": 0.23426461538461538
+   },
+   {
+    "col": "vix3m_avail_ma_125",
+    "kind": "near-constant",
+    "sd": 0.03795249292714004,
+    "se": 0.03953743897664592,
+    "p": 0.266336
+   },
+   {
+    "col": "vix3m_avail_ma_625",
+    "kind": "near-constant",
+    "sd": 0.0069239087024428134,
+    "se": 0.01790517267821223,
+    "p": 0.27722658461538463
+   },
+   {
+    "col": "vix3m_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.003268024154344986,
+    "se": 0.008039699264182083,
+    "p": 0.2808879015384615
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_5",
+    "kind": "near-duplicate",
+    "partner": "vix_avail_ma_5",
+    "sd": 0.34897204072403937,
+    "se": 0.19106017206396636,
+    "sd_diff": 0.21739412848692974,
+    "threshold": 0.25516320221245387,
+    "p": 0.7597692307692308,
+    "p_partner": 0.8309230769230769
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_25",
+    "kind": "near-duplicate",
+    "partner": "vvix_avail_ma_25",
+    "sd": 0.15147211667557006,
+    "se": 0.08512635003230483,
+    "sd_diff": 0.034931027763175186,
+    "threshold": 0.12009209093104072,
+    "p": 0.23763076923076926,
+    "p_partner": 0.23426461538461538
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_125",
+    "kind": "near-constant",
+    "sd": 0.03950908169136147,
+    "se": 0.041515357929097337,
+    "p": 0.3140984615384616
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_625",
+    "kind": "near-constant",
+    "sd": 0.00791617986789262,
+    "se": 0.018908708943205097,
+    "p": 0.33709526153846153
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.003584555828327965,
+    "se": 0.00848159625206645,
+    "p": 0.34126944000000003
+   }
+  ],
+  "n_new_rule": 12,
+  "value_columns_masked_by_rule": 0,
+  "avail_k_gt1_live_without": 20,
+  "avail_k_gt1_live_with": 8,
+  "lasso": {
+   "n_active_without": 113,
+   "n_active_with": 106,
+   "n_active_flag_off": 92,
+   "cond_without": {
+    "uncentred": 6411955.81758227,
+    "centred": 5509297.748982823
+   },
+   "cond_with": {
+    "uncentred": 115880.56621506315,
+    "centred": 108463.84652768006
+   },
+   "cond_flag_off": {
+    "uncentred": 18369.188612201113,
+    "centred": 17346.11824249121
+   },
+   "forecast_without": 0.7457374382497659,
+   "forecast_with": 0.7671401014691419,
+   "forecast_rel_change": 0.02869999831255317,
+   "active_avail_k_gt1_sd_le_se_without": [
+    "vix3m_avail_ma_125",
+    "vix3m_avail_ma_625",
+    "voldemand_spx_open_and_close_avail_ma_3125"
+   ],
+   "P1_all_removed": true,
+   "vix3m_3125_active_without": false,
+   "vvix_3125_active_without": false,
+   "vix3m_3125_active_with": false,
+   "vvix_3125_active_with": false,
+   "P2_cond_with_le_flag_off_centred": false,
+   "P2_cond_with_le_flag_off_uncentred": false
+  },
+  "enet": {
+   "n_active_without": 45,
+   "n_active_with": 43,
+   "n_active_flag_off": 31,
+   "cond_without": {
+    "uncentred": 9929.046429511991,
+    "centred": 9607.68127534725
+   },
+   "cond_with": {
+    "uncentred": 683.87939316345,
+    "centred": 590.8677163124399
+   },
+   "cond_flag_off": {
+    "uncentred": 419.35427562435854,
+    "centred": 343.26654164527815
+   },
+   "forecast_without": 0.7935170688762515,
+   "forecast_with": 0.79463958648254,
+   "forecast_rel_change": 0.0014146105362019747,
+   "active_avail_k_gt1_sd_le_se_without": [],
+   "P1_all_removed": true,
+   "vix3m_3125_active_without": false,
+   "vvix_3125_active_without": false,
+   "vix3m_3125_active_with": false,
+   "vvix_3125_active_with": false,
+   "P2_cond_with_le_flag_off_centred": false,
+   "P2_cond_with_le_flag_off_uncentred": false
+  },
+  "vix3m_vvix_3125_rule": [
+   {
+    "col": "vix3m_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.003268024154344986,
+    "se": 0.008039699264182083,
+    "p": 0.2808879015384615
+   }
+  ],
+  "sec": 24.172627449035645
+ },
+ {
+  "origin": "2018-01",
+  "row": 63926,
+  "date": "2018-01-02",
+  "masked_existing": 253,
+  "new_rule_masked": [
+   {
+    "col": "vvix_avail_ma_125",
+    "kind": "near-constant",
+    "sd": 0.03853851730381348,
+    "se": 0.03871090688767537,
+    "p": 0.24963384615384618
+   },
+   {
+    "col": "vvix_avail_ma_625",
+    "kind": "near-constant",
+    "sd": 0.009973047087961541,
+    "se": 0.01746251952006166,
+    "p": 0.2562526769230769
+   },
+   {
+    "col": "vix3m_avail_ma_5",
+    "kind": "near-duplicate",
+    "partner": "vvix_avail_ma_5",
+    "sd": 0.3509411774915728,
+    "se": 0.19168388362771543,
+    "sd_diff": 0.059479995145302486,
+    "threshold": 0.27093568310338567,
+    "p": 0.7574615384615384,
+    "p_partner": 0.7582307692307693
+   },
+   {
+    "col": "vix3m_avail_ma_25",
+    "kind": "near-duplicate",
+    "partner": "vvix_avail_ma_25",
+    "sd": 0.1514268476113625,
+    "se": 0.08496839543315625,
+    "sd_diff": 0.019998559948156264,
+    "threshold": 0.12018451355779687,
+    "p": 0.2363538461538462,
+    "p_partner": 0.23659384615384618
+   },
+   {
+    "col": "vix3m_avail_ma_625",
+    "kind": "near-constant",
+    "sd": 0.009770713898320852,
+    "se": 0.017880338074281316,
+    "p": 0.2759833846153846
+   },
+   {
+    "col": "vix3m_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.004108794015074261,
+    "se": 0.008033092913455147,
+    "p": 0.28013201230769236
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_5",
+    "kind": "near-duplicate",
+    "partner": "vvix_avail_ma_5",
+    "sd": 0.34963134430865456,
+    "se": 0.19126892063270498,
+    "sd_diff": 0.04607043745288939,
+    "threshold": 0.2706422604400404,
+    "p": 0.759,
+    "p_partner": 0.7582307692307693
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_25",
+    "kind": "near-duplicate",
+    "partner": "vvix_avail_ma_25",
+    "sd": 0.15118587551822762,
+    "se": 0.0850301810025443,
+    "sd_diff": 0.015529454815411431,
+    "threshold": 0.12022820360469436,
+    "p": 0.23685230769230772,
+    "p_partner": 0.23659384615384618
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_125",
+    "kind": "near-constant",
+    "sd": 0.03972081550376356,
+    "se": 0.041487469614484004,
+    "p": 0.3133218461538461
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_625",
+    "kind": "near-constant",
+    "sd": 0.007608946342253305,
+    "se": 0.018900399034217277,
+    "p": 0.3364936615384615
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.0035570905917434556,
+    "se": 0.008480001808774281,
+    "p": 0.34100344615384615
+   }
+  ],
+  "n_new_rule": 11,
+  "value_columns_masked_by_rule": 0,
+  "avail_k_gt1_live_without": 20,
+  "avail_k_gt1_live_with": 9,
+  "lasso": {
+   "n_active_without": 113,
+   "n_active_with": 112,
+   "n_active_flag_off": 96,
+   "cond_without": {
+    "uncentred": 6867724.635950397,
+    "centred": 6100268.030182411
+   },
+   "cond_with": {
+    "uncentred": 1180103.7276549216,
+    "centred": 1029066.2568904865
+   },
+   "cond_flag_off": {
+    "uncentred": 13937.732486791003,
+    "centred": 12912.776686760417
+   },
+   "forecast_without": 0.8880588490318934,
+   "forecast_with": 0.8933967415097778,
+   "forecast_rel_change": 0.006010741837326939,
+   "active_avail_k_gt1_sd_le_se_without": [
+    "vix3m_avail_ma_625",
+    "vix3m_avail_ma_3125"
+   ],
+   "P1_all_removed": true,
+   "vix3m_3125_active_without": true,
+   "vvix_3125_active_without": true,
+   "vix3m_3125_active_with": false,
+   "vvix_3125_active_with": true,
+   "P2_cond_with_le_flag_off_centred": false,
+   "P2_cond_with_le_flag_off_uncentred": false
+  },
+  "enet": {
+   "n_active_without": 39,
+   "n_active_with": 38,
+   "n_active_flag_off": 33,
+   "cond_without": {
+    "uncentred": 106668.85068820987,
+    "centred": 95593.05719572784
+   },
+   "cond_with": {
+    "uncentred": 427.9768889695806,
+    "centred": 311.70321075805373
+   },
+   "cond_flag_off": {
+    "uncentred": 387.7328989274401,
+    "centred": 316.76631420896456
+   },
+   "forecast_without": 0.8923211082682673,
+   "forecast_with": 0.8919712187817948,
+   "forecast_rel_change": 0.0003921116324946673,
+   "active_avail_k_gt1_sd_le_se_without": [
+    "vix3m_avail_ma_625"
+   ],
+   "P1_all_removed": true,
+   "vix3m_3125_active_without": false,
+   "vvix_3125_active_without": false,
+   "vix3m_3125_active_with": false,
+   "vvix_3125_active_with": false,
+   "P2_cond_with_le_flag_off_centred": true,
+   "P2_cond_with_le_flag_off_uncentred": false
+  },
+  "vix3m_vvix_3125_rule": [
+   {
+    "col": "vix3m_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.004108794015074261,
+    "se": 0.008033092913455147,
+    "p": 0.28013201230769236
+   }
+  ],
+  "sec": 23.41301703453064
+ },
+ {
+  "origin": "2018-07",
+  "row": 65572,
+  "date": "2018-07-02",
+  "masked_existing": 253,
+  "new_rule_masked": [
+   {
+    "col": "vvix_avail_ma_125",
+    "kind": "near-constant",
+    "sd": 0.03724705034983728,
+    "se": 0.038750625903645225,
+    "p": 0.25040307692307695
+   },
+   {
+    "col": "vvix_avail_ma_625",
+    "kind": "near-constant",
+    "sd": 0.006732466532790779,
+    "se": 0.017485528171615774,
+    "p": 0.25728578461538465
+   },
+   {
+    "col": "vvix_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.0033973972328163117,
+    "se": 0.007852653006711903,
+    "p": 0.2606268553846154
+   },
+   {
+    "col": "vix3m_avail_ma_5",
+    "kind": "near-duplicate",
+    "partner": "vvix_avail_ma_5",
+    "sd": 0.3508847313214928,
+    "se": 0.1916632154736022,
+    "sd_diff": 0.0460190338804493,
+    "threshold": 0.27061285257047824,
+    "p": 0.7575384615384615,
+    "p_partner": 0.7598461538461538
+   },
+   {
+    "col": "vix3m_avail_ma_25",
+    "kind": "near-duplicate",
+    "partner": "vvix_avail_ma_25",
+    "sd": 0.15141299296252558,
+    "se": 0.08497030481639875,
+    "sd_diff": 0.015475193052107624,
+    "threshold": 0.12022928164757171,
+    "p": 0.23636923076923078,
+    "p_partner": 0.2370892307692308
+   },
+   {
+    "col": "vix3m_avail_ma_625",
+    "kind": "near-constant",
+    "sd": 0.009758499963494125,
+    "se": 0.017880903014402264,
+    "p": 0.27601156923076925
+   },
+   {
+    "col": "vix3m_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.004444976727436898,
+    "se": 0.008030763189055594,
+    "p": 0.27986621538461537
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_5",
+    "kind": "near-duplicate",
+    "partner": "vvix_avail_ma_5",
+    "sd": 0.34957434810362015,
+    "se": 0.19124808387484257,
+    "sd_diff": 0.0265913631037594,
+    "threshold": 0.2703181163438157,
+    "p": 0.7590769230769231,
+    "p_partner": 0.7598461538461538
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_25",
+    "kind": "near-duplicate",
+    "partner": "vvix_avail_ma_25",
+    "sd": 0.15117194805680695,
+    "se": 0.08503208539099126,
+    "sd_diff": 0.009010088231578447,
+    "threshold": 0.12027291309528525,
+    "p": 0.23686769230769233,
+    "p_partner": 0.2370892307692308
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_125",
+    "kind": "near-constant",
+    "sd": 0.03962247419639246,
+    "se": 0.04149386800293987,
+    "p": 0.3134996923076923
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_625",
+    "kind": "near-constant",
+    "sd": 0.007670944285330136,
+    "se": 0.018899969688737507,
+    "p": 0.33646264615384613
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.0035965304099097924,
+    "se": 0.008478815636860267,
+    "p": 0.3408058830769231
+   }
+  ],
+  "n_new_rule": 12,
+  "value_columns_masked_by_rule": 0,
+  "avail_k_gt1_live_without": 20,
+  "avail_k_gt1_live_with": 8,
+  "lasso": {
+   "n_active_without": 112,
+   "n_active_with": 110,
+   "n_active_flag_off": 92,
+   "cond_without": {
+    "uncentred": 4593188.60523189,
+    "centred": 3665684.7765666447
+   },
+   "cond_with": {
+    "uncentred": 86258.14676011847,
+    "centred": 76949.79345836294
+   },
+   "cond_flag_off": {
+    "uncentred": 8956.592213476575,
+    "centred": 8129.2585209353065
+   },
+   "forecast_without": 1.1396253885362182,
+   "forecast_with": 1.1404334526638567,
+   "forecast_rel_change": 0.0007090611842864991,
+   "active_avail_k_gt1_sd_le_se_without": [
+    "vix3m_avail_ma_625",
+    "voldemand_spx_open_and_close_avail_ma_3125"
+   ],
+   "P1_all_removed": true,
+   "vix3m_3125_active_without": false,
+   "vvix_3125_active_without": false,
+   "vix3m_3125_active_with": false,
+   "vvix_3125_active_with": false,
+   "P2_cond_with_le_flag_off_centred": false,
+   "P2_cond_with_le_flag_off_uncentred": false
+  },
+  "enet": {
+   "n_active_without": 39,
+   "n_active_with": 38,
+   "n_active_flag_off": 30,
+   "cond_without": {
+    "uncentred": 650303.2619250128,
+    "centred": 578785.2137306331
+   },
+   "cond_with": {
+    "uncentred": 1150.4757263585689,
+    "centred": 1086.2757143483905
+   },
+   "cond_flag_off": {
+    "uncentred": 411.96648234513685,
+    "centred": 328.69275002849093
+   },
+   "forecast_without": 1.0629882595511262,
+   "forecast_with": 1.0623345474692634,
+   "forecast_rel_change": 0.0006149758249812367,
+   "active_avail_k_gt1_sd_le_se_without": [
+    "vix3m_avail_ma_3125"
+   ],
+   "P1_all_removed": true,
+   "vix3m_3125_active_without": true,
+   "vvix_3125_active_without": false,
+   "vix3m_3125_active_with": false,
+   "vvix_3125_active_with": false,
+   "P2_cond_with_le_flag_off_centred": false,
+   "P2_cond_with_le_flag_off_uncentred": false
+  },
+  "vix3m_vvix_3125_rule": [
+   {
+    "col": "vvix_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.0033973972328163117,
+    "se": 0.007852653006711903,
+    "p": 0.2606268553846154
+   },
+   {
+    "col": "vix3m_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.004444976727436898,
+    "se": 0.008030763189055594,
+    "p": 0.27986621538461537
+   }
+  ],
+  "sec": 23.160061836242676
+ },
+ {
+  "origin": "2019-01",
+  "row": 67193,
+  "date": "2019-01-02",
+  "masked_existing": 253,
+  "new_rule_masked": [
+   {
+    "col": "vvix_avail_ma_125",
+    "kind": "near-constant",
+    "sd": 0.0376476596649582,
+    "se": 0.03872913431368595,
+    "p": 0.24998646153846157
+   },
+   {
+    "col": "vvix_avail_ma_625",
+    "kind": "near-constant",
+    "sd": 0.007017212613661168,
+    "se": 0.01747934317677165,
+    "p": 0.2570075076923077
+   },
+   {
+    "col": "vvix_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.0031614533697641193,
+    "se": 0.007852800670131499,
+    "p": 0.26064199384615383
+   },
+   {
+    "col": "vix3m_avail_ma_5",
+    "kind": "near-duplicate",
+    "partner": "vvix_avail_ma_5",
+    "sd": 0.35133557518493985,
+    "se": 0.19182832561661933,
+    "sd_diff": 0.046019033880449305,
+    "threshold": 0.27084778143831856,
+    "p": 0.7569230769230769,
+    "p_partner": 0.7592307692307693
+   },
+   {
+    "col": "vix3m_avail_ma_25",
+    "kind": "near-duplicate",
+    "partner": "vvix_avail_ma_25",
+    "sd": 0.1514874727493993,
+    "se": 0.08494432397753249,
+    "sd_diff": 0.015475193052107622,
+    "threshold": 0.12019260862465712,
+    "p": 0.23615999999999998,
+    "p_partner": 0.23688000000000003
+   },
+   {
+    "col": "vix3m_avail_ma_625",
+    "kind": "near-constant",
+    "sd": 0.009955927548596337,
+    "se": 0.017875014887958812,
+    "p": 0.27571803076923074
+   },
+   {
+    "col": "vix3m_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.004441437656020533,
+    "se": 0.008029718665038163,
+    "p": 0.27974717538461535
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_5",
+    "kind": "near-duplicate",
+    "partner": "vvix_avail_ma_5",
+    "sd": 0.3500295845484659,
+    "se": 0.19141454131601113,
+    "sd_diff": 0.026591363103759397,
+    "threshold": 0.2705540009972525,
+    "p": 0.7584615384615384,
+    "p_partner": 0.7592307692307693
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_25",
+    "kind": "near-duplicate",
+    "partner": "vvix_avail_ma_25",
+    "sd": 0.15124723610169666,
+    "se": 0.08500617251016777,
+    "sd_diff": 0.009010088231578447,
+    "threshold": 0.12023628807649626,
+    "p": 0.23665846153846157,
+    "p_partner": 0.23688000000000003
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_125",
+    "kind": "near-constant",
+    "sd": 0.04003046875071995,
+    "se": 0.04147520657393156,
+    "p": 0.3129815384615385
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_625",
+    "kind": "near-constant",
+    "sd": 0.008077517843361443,
+    "se": 0.018894038140286482,
+    "p": 0.3360348307692307
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.00358456185080395,
+    "se": 0.008477674475161881,
+    "p": 0.34061607384615383
+   }
+  ],
+  "n_new_rule": 12,
+  "value_columns_masked_by_rule": 0,
+  "avail_k_gt1_live_without": 20,
+  "avail_k_gt1_live_with": 8,
+  "lasso": {
+   "n_active_without": 111,
+   "n_active_with": 101,
+   "n_active_flag_off": 94,
+   "cond_without": {
+    "uncentred": 10929186.102897521,
+    "centred": 9847796.758579008
+   },
+   "cond_with": {
+    "uncentred": 60735.31602750022,
+    "centred": 52963.22999767644
+   },
+   "cond_flag_off": {
+    "uncentred": 7911.329306499258,
+    "centred": 7367.364864983162
+   },
+   "forecast_without": 1.147191955220162,
+   "forecast_with": 1.1290840204989814,
+   "forecast_rel_change": 0.015784572615578873,
+   "active_avail_k_gt1_sd_le_se_without": [
+    "vix3m_avail_ma_625",
+    "vix3m_avail_ma_3125",
+    "voldemand_spx_open_and_close_avail_ma_3125"
+   ],
+   "P1_all_removed": true,
+   "vix3m_3125_active_without": true,
+   "vvix_3125_active_without": false,
+   "vix3m_3125_active_with": false,
+   "vvix_3125_active_with": false,
+   "P2_cond_with_le_flag_off_centred": false,
+   "P2_cond_with_le_flag_off_uncentred": false
+  },
+  "enet": {
+   "n_active_without": 38,
+   "n_active_with": 36,
+   "n_active_flag_off": 26,
+   "cond_without": {
+    "uncentred": 1659599.3934605734,
+    "centred": 1562448.0098304295
+   },
+   "cond_with": {
+    "uncentred": 524.5625376842358,
+    "centred": 373.85574872922444
+   },
+   "cond_flag_off": {
+    "uncentred": 277.98763966457267,
+    "centred": 230.59746559288948
+   },
+   "forecast_without": 1.1334856416242278,
+   "forecast_with": 1.1290872333576778,
+   "forecast_rel_change": 0.0038804269811899225,
+   "active_avail_k_gt1_sd_le_se_without": [
+    "vix3m_avail_ma_3125",
+    "voldemand_spx_open_and_close_avail_ma_3125"
+   ],
+   "P1_all_removed": true,
+   "vix3m_3125_active_without": true,
+   "vvix_3125_active_without": false,
+   "vix3m_3125_active_with": false,
+   "vvix_3125_active_with": false,
+   "P2_cond_with_le_flag_off_centred": false,
+   "P2_cond_with_le_flag_off_uncentred": false
+  },
+  "vix3m_vvix_3125_rule": [
+   {
+    "col": "vvix_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.0031614533697641193,
+    "se": 0.007852800670131499,
+    "p": 0.26064199384615383
+   },
+   {
+    "col": "vix3m_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.004441437656020533,
+    "se": 0.008029718665038163,
+    "p": 0.27974717538461535
+   }
+  ],
+  "sec": 23.285656929016113
+ },
+ {
+  "origin": "2019-07",
+  "row": 68826,
+  "date": "2019-07-01",
+  "masked_existing": 253,
+  "new_rule_masked": [
+   {
+    "col": "vvix_avail_ma_125",
+    "kind": "near-constant",
+    "sd": 0.037364858470502874,
+    "se": 0.03874777157606928,
+    "p": 0.2503476923076923
+   },
+   {
+    "col": "vvix_avail_ma_625",
+    "kind": "near-constant",
+    "sd": 0.007023187994740524,
+    "se": 0.017479956345676603,
+    "p": 0.2570350769230769
+   },
+   {
+    "col": "vvix_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.003292187035051465,
+    "se": 0.007854351004430223,
+    "p": 0.2608010092307692
+   },
+   {
+    "col": "vix3m_avail_ma_5",
+    "kind": "near-duplicate",
+    "partner": "vvix_avail_ma_5",
+    "sd": 0.3509411774915728,
+    "se": 0.19168388362771543,
+    "sd_diff": 0.04601903388044929,
+    "threshold": 0.27064226044004047,
+    "p": 0.7574615384615384,
+    "p_partner": 0.7597692307692308
+   },
+   {
+    "col": "vix3m_avail_ma_25",
+    "kind": "near-duplicate",
+    "partner": "vvix_avail_ma_25",
+    "sd": 0.1514268476113625,
+    "se": 0.08496839543315625,
+    "sd_diff": 0.01547519305210762,
+    "threshold": 0.12022658647500542,
+    "p": 0.2363538461538462,
+    "p_partner": 0.23707384615384616
+   },
+   {
+    "col": "vix3m_avail_ma_625",
+    "kind": "near-constant",
+    "sd": 0.009960133080358995,
+    "se": 0.01787582523205863,
+    "p": 0.2757584
+   },
+   {
+    "col": "vix3m_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.004572998352740062,
+    "se": 0.008031276770436701,
+    "p": 0.2799247753846154
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_5",
+    "kind": "near-duplicate",
+    "partner": "vvix_avail_ma_5",
+    "sd": 0.34963134430865456,
+    "se": 0.19126892063270498,
+    "sd_diff": 0.026591363103759393,
+    "threshold": 0.27034764382311544,
+    "p": 0.759,
+    "p_partner": 0.7597692307692308
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_25",
+    "kind": "near-duplicate",
+    "partner": "vvix_avail_ma_25",
+    "sd": 0.15118146206134506,
+    "se": 0.08503056189255316,
+    "sd_diff": 0.009016990668180775,
+    "threshold": 0.1202704906251693,
+    "p": 0.23685538461538463,
+    "p_partner": 0.23707384615384616
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_125",
+    "kind": "near-constant",
+    "sd": 0.039707937173268176,
+    "se": 0.041489617960450566,
+    "p": 0.3133815384615385
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_625",
+    "kind": "near-constant",
+    "sd": 0.008066994841646295,
+    "se": 0.01889522891305984,
+    "p": 0.33612061538461535
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.0038827590053740146,
+    "se": 0.00847833470133726,
+    "p": 0.34072585846153847
+   }
+  ],
+  "n_new_rule": 12,
+  "value_columns_masked_by_rule": 0,
+  "avail_k_gt1_live_without": 20,
+  "avail_k_gt1_live_with": 8,
+  "lasso": {
+   "n_active_without": 118,
+   "n_active_with": 114,
+   "n_active_flag_off": 94,
+   "cond_without": {
+    "uncentred": 3539335.703881025,
+    "centred": 3177618.7378494064
+   },
+   "cond_with": {
+    "uncentred": 57265.79075554874,
+    "centred": 53247.88213734073
+   },
+   "cond_flag_off": {
+    "uncentred": 4331.624751556587,
+    "centred": 4238.554950267153
+   },
+   "forecast_without": 0.8105352450474312,
+   "forecast_with": 0.8103365702589456,
+   "forecast_rel_change": 0.00024511554519020246,
+   "active_avail_k_gt1_sd_le_se_without": [
+    "vix3m_avail_ma_625",
+    "voldemand_spx_open_and_close_avail_ma_625",
+    "voldemand_spx_open_and_close_avail_ma_3125"
+   ],
+   "P1_all_removed": true,
+   "vix3m_3125_active_without": false,
+   "vvix_3125_active_without": false,
+   "vix3m_3125_active_with": false,
+   "vvix_3125_active_with": false,
+   "P2_cond_with_le_flag_off_centred": false,
+   "P2_cond_with_le_flag_off_uncentred": false
+  },
+  "enet": {
+   "n_active_without": 40,
+   "n_active_with": 39,
+   "n_active_flag_off": 28,
+   "cond_without": {
+    "uncentred": 7798.272428101946,
+    "centred": 7476.954571305694
+   },
+   "cond_with": {
+    "uncentred": 7553.893113108022,
+    "centred": 7252.110073354549
+   },
+   "cond_flag_off": {
+    "uncentred": 275.26623154666544,
+    "centred": 231.09753870049641
+   },
+   "forecast_without": 0.8054288848604062,
+   "forecast_with": 0.8049047144235508,
+   "forecast_rel_change": 0.0006507966708273976,
+   "active_avail_k_gt1_sd_le_se_without": [],
+   "P1_all_removed": true,
+   "vix3m_3125_active_without": false,
+   "vvix_3125_active_without": false,
+   "vix3m_3125_active_with": false,
+   "vvix_3125_active_with": false,
+   "P2_cond_with_le_flag_off_centred": false,
+   "P2_cond_with_le_flag_off_uncentred": false
+  },
+  "vix3m_vvix_3125_rule": [
+   {
+    "col": "vvix_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.003292187035051465,
+    "se": 0.007854351004430223,
+    "p": 0.2608010092307692
+   },
+   {
+    "col": "vix3m_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.004572998352740062,
+    "se": 0.008031276770436701,
+    "p": 0.2799247753846154
+   }
+  ],
+  "sec": 23.68643355369568
+ },
+ {
+  "origin": "2020-01",
+  "row": 70472,
+  "date": "2020-01-02",
+  "masked_existing": 259,
+  "new_rule_masked": [
+   {
+    "col": "vvix_avail_ma_125",
+    "kind": "near-constant",
+    "sd": 0.03777378706780387,
+    "se": 0.038731708201720755,
+    "p": 0.2500363076923077
+   },
+   {
+    "col": "vvix_avail_ma_625",
+    "kind": "near-constant",
+    "sd": 0.007158183886298195,
+    "se": 0.017475418382543566,
+    "p": 0.25683113846153843
+   },
+   {
+    "col": "vvix_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.0033396049569957434,
+    "se": 0.00785322318468114,
+    "p": 0.2606853169230769
+   },
+   {
+    "col": "vix3m_avail_ma_5",
+    "kind": "near-duplicate",
+    "partner": "vvix_avail_ma_5",
+    "sd": 0.35133557518493985,
+    "se": 0.19182832561661933,
+    "sd_diff": 0.0460190338804493,
+    "threshold": 0.27084778143831856,
+    "p": 0.7569230769230769,
+    "p_partner": 0.7592307692307693
+   },
+   {
+    "col": "vix3m_avail_ma_25",
+    "kind": "near-duplicate",
+    "partner": "vvix_avail_ma_25",
+    "sd": 0.1514874727493993,
+    "se": 0.08494432397753249,
+    "sd_diff": 0.01547519305210762,
+    "threshold": 0.12019260862465712,
+    "p": 0.23615999999999998,
+    "p_partner": 0.23688000000000003
+   },
+   {
+    "col": "vix3m_avail_ma_625",
+    "kind": "near-constant",
+    "sd": 0.010039992214052006,
+    "se": 0.01787144275216769,
+    "p": 0.27554018461538465
+   },
+   {
+    "col": "vix3m_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.0045881847838275605,
+    "se": 0.008030237774773718,
+    "p": 0.2798063261538461
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_5",
+    "kind": "near-duplicate",
+    "partner": "vvix_avail_ma_5",
+    "sd": 0.3500295845484659,
+    "se": 0.19141454131601113,
+    "sd_diff": 0.026591363103759393,
+    "threshold": 0.2705540009972525,
+    "p": 0.7584615384615384,
+    "p_partner": 0.7592307692307693
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_25",
+    "kind": "near-duplicate",
+    "partner": "vvix_avail_ma_25",
+    "sd": 0.15126194901990975,
+    "se": 0.08500426602646614,
+    "sd_diff": 0.008948013431969035,
+    "threshold": 0.12023494080070533,
+    "p": 0.23664307692307696,
+    "p_partner": 0.23688000000000003
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_125",
+    "kind": "near-constant",
+    "sd": 0.04001385038315117,
+    "se": 0.041478424529774384,
+    "p": 0.31307076923076926
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_625",
+    "kind": "near-constant",
+    "sd": 0.00801292189634487,
+    "se": 0.018892131793494985,
+    "p": 0.33589759999999996
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.003881531182773137,
+    "se": 0.008478004947607531,
+    "p": 0.3406710153846154
+   }
+  ],
+  "n_new_rule": 12,
+  "value_columns_masked_by_rule": 0,
+  "avail_k_gt1_live_without": 15,
+  "avail_k_gt1_live_with": 3,
+  "lasso": {
+   "n_active_without": 113,
+   "n_active_with": 108,
+   "n_active_flag_off": 91,
+   "cond_without": {
+    "uncentred": 2911862.5431367992,
+    "centred": 2421162.1690498106
+   },
+   "cond_with": {
+    "uncentred": 45456.80864141471,
+    "centred": 42593.816934696835
+   },
+   "cond_flag_off": {
+    "uncentred": 3828.7982353160014,
+    "centred": 3614.5096607753803
+   },
+   "forecast_without": 0.8391075848092906,
+   "forecast_with": 0.8323086847198568,
+   "forecast_rel_change": 0.008102536805192954,
+   "active_avail_k_gt1_sd_le_se_without": [
+    "vix3m_avail_ma_625",
+    "voldemand_spx_open_and_close_avail_ma_3125"
+   ],
+   "P1_all_removed": true,
+   "vix3m_3125_active_without": false,
+   "vvix_3125_active_without": false,
+   "vix3m_3125_active_with": false,
+   "vvix_3125_active_with": false,
+   "P2_cond_with_le_flag_off_centred": false,
+   "P2_cond_with_le_flag_off_uncentred": false
+  },
+  "enet": {
+   "n_active_without": 43,
+   "n_active_with": 42,
+   "n_active_flag_off": 27,
+   "cond_without": {
+    "uncentred": 918750.3502908366,
+    "centred": 810862.0222722264
+   },
+   "cond_with": {
+    "uncentred": 1281.612891240248,
+    "centred": 1177.1180097934387
+   },
+   "cond_flag_off": {
+    "uncentred": 227.07322794067082,
+    "centred": 191.9238658458839
+   },
+   "forecast_without": 0.8001641978801225,
+   "forecast_with": 0.8009999945557205,
+   "forecast_rel_change": 0.0010445314571837193,
+   "active_avail_k_gt1_sd_le_se_without": [
+    "voldemand_spx_open_and_close_avail_ma_3125"
+   ],
+   "P1_all_removed": true,
+   "vix3m_3125_active_without": false,
+   "vvix_3125_active_without": false,
+   "vix3m_3125_active_with": false,
+   "vvix_3125_active_with": false,
+   "P2_cond_with_le_flag_off_centred": false,
+   "P2_cond_with_le_flag_off_uncentred": false
+  },
+  "vix3m_vvix_3125_rule": [
+   {
+    "col": "vvix_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.0033396049569957434,
+    "se": 0.00785322318468114,
+    "p": 0.2606853169230769
+   },
+   {
+    "col": "vix3m_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.0045881847838275605,
+    "se": 0.008030237774773718,
+    "p": 0.2798063261538461
+   }
+  ],
+  "sec": 23.50012993812561
+ },
+ {
+  "origin": "2020-07",
+  "row": 72118,
+  "date": "2020-07-01",
+  "masked_existing": 265,
+  "new_rule_masked": [
+   {
+    "col": "vvix_avail_ma_125",
+    "kind": "near-constant",
+    "sd": 0.037514221177208845,
+    "se": 0.038744440460948104,
+    "p": 0.25028307692307694
+   },
+   {
+    "col": "vvix_avail_ma_625",
+    "kind": "near-constant",
+    "sd": 0.007179313067368625,
+    "se": 0.0174755252476654,
+    "p": 0.25683593846153846
+   },
+   {
+    "col": "vvix_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.0033849209931957826,
+    "se": 0.007852763215191402,
+    "p": 0.2606381538461538
+   },
+   {
+    "col": "vix3m_avail_ma_5",
+    "kind": "near-duplicate",
+    "partner": "vvix_avail_ma_5",
+    "sd": 0.3509411774915728,
+    "se": 0.19168388362771543,
+    "sd_diff": 0.0460190338804493,
+    "threshold": 0.27064226044004047,
+    "p": 0.7574615384615384,
+    "p_partner": 0.7597692307692308
+   },
+   {
+    "col": "vix3m_avail_ma_25",
+    "kind": "near-duplicate",
+    "partner": "vvix_avail_ma_25",
+    "sd": 0.1514268476113625,
+    "se": 0.08496839543315625,
+    "sd_diff": 0.015475193052107622,
+    "threshold": 0.12022658647500542,
+    "p": 0.2363538461538462,
+    "p_partner": 0.2370738461538462
+   },
+   {
+    "col": "vix3m_avail_ma_625",
+    "kind": "near-constant",
+    "sd": 0.01005468076549896,
+    "se": 0.017871541682536168,
+    "p": 0.2755451076923077
+   },
+   {
+    "col": "vix3m_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.004617377275129814,
+    "se": 0.008029785642721382,
+    "p": 0.2797548061538462
+   }
+  ],
+  "n_new_rule": 7,
+  "value_columns_masked_by_rule": 0,
+  "avail_k_gt1_live_without": 10,
+  "avail_k_gt1_live_with": 3,
+  "lasso": {
+   "n_active_without": 104,
+   "n_active_with": 98,
+   "n_active_flag_off": 94,
+   "cond_without": {
+    "uncentred": 761865.3893134356,
+    "centred": 651901.5973637074
+   },
+   "cond_with": {
+    "uncentred": 115803.31963754908,
+    "centred": 99870.47222683947
+   },
+   "cond_flag_off": {
+    "uncentred": 8037.227598156222,
+    "centred": 7295.639211574192
+   },
+   "forecast_without": 1.1300375760883559,
+   "forecast_with": 1.126411894933446,
+   "forecast_rel_change": 0.003208460702218554,
+   "active_avail_k_gt1_sd_le_se_without": [
+    "vix3m_avail_ma_625"
+   ],
+   "P1_all_removed": true,
+   "vix3m_3125_active_without": false,
+   "vvix_3125_active_without": false,
+   "vix3m_3125_active_with": false,
+   "vvix_3125_active_with": false,
+   "P2_cond_with_le_flag_off_centred": false,
+   "P2_cond_with_le_flag_off_uncentred": false
+  },
+  "enet": {
+   "n_active_without": 36,
+   "n_active_with": 35,
+   "n_active_flag_off": 36,
+   "cond_without": {
+    "uncentred": 197901.8777401972,
+    "centred": 168901.0941333957
+   },
+   "cond_with": {
+    "uncentred": 956.258761564921,
+    "centred": 797.7448889480728
+   },
+   "cond_flag_off": {
+    "uncentred": 1309.5118565284517,
+    "centred": 1195.3206124588746
+   },
+   "forecast_without": 1.0726728164627644,
+   "forecast_with": 1.0728510213793945,
+   "forecast_rel_change": 0.00016613166092692376,
+   "active_avail_k_gt1_sd_le_se_without": [
+    "vix3m_avail_ma_625"
+   ],
+   "P1_all_removed": true,
+   "vix3m_3125_active_without": false,
+   "vvix_3125_active_without": false,
+   "vix3m_3125_active_with": false,
+   "vvix_3125_active_with": false,
+   "P2_cond_with_le_flag_off_centred": true,
+   "P2_cond_with_le_flag_off_uncentred": true
+  },
+  "vix3m_vvix_3125_rule": [
+   {
+    "col": "vvix_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.0033849209931957826,
+    "se": 0.007852763215191402,
+    "p": 0.2606381538461538
+   },
+   {
+    "col": "vix3m_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.004617377275129814,
+    "se": 0.008029785642721382,
+    "p": 0.2797548061538462
+   }
+  ],
+  "sec": 24.73548126220703
+ },
+ {
+  "origin": "2021-01",
+  "row": 73777,
+  "date": "2021-01-04",
+  "masked_existing": 265,
+  "new_rule_masked": [
+   {
+    "col": "vvix_avail_ma_125",
+    "kind": "near-constant",
+    "sd": 0.03773223078797073,
+    "se": 0.03873110451163411,
+    "p": 0.2500246153846154
+   },
+   {
+    "col": "vvix_avail_ma_625",
+    "kind": "near-constant",
+    "sd": 0.007154200663771932,
+    "se": 0.01747393294532098,
+    "p": 0.2567644307692308
+   },
+   {
+    "col": "vvix_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.0033928010150780724,
+    "se": 0.007852786984762994,
+    "p": 0.26064059076923074
+   },
+   {
+    "col": "vix3m_avail_ma_5",
+    "kind": "near-duplicate",
+    "partner": "vvix_avail_ma_5",
+    "sd": 0.3509411774915728,
+    "se": 0.19168388362771543,
+    "sd_diff": 0.0460190338804493,
+    "threshold": 0.27064226044004047,
+    "p": 0.7574615384615384,
+    "p_partner": 0.7597692307692308
+   },
+   {
+    "col": "vix3m_avail_ma_25",
+    "kind": "near-duplicate",
+    "partner": "vvix_avail_ma_25",
+    "sd": 0.1514268476113625,
+    "se": 0.08496839543315625,
+    "sd_diff": 0.015475193052107622,
+    "threshold": 0.12022658647500542,
+    "p": 0.2363538461538462,
+    "p_partner": 0.23707384615384616
+   },
+   {
+    "col": "vix3m_avail_ma_625",
+    "kind": "near-constant",
+    "sd": 0.010029389136961022,
+    "se": 0.01787003269911859,
+    "p": 0.27547003076923077
+   },
+   {
+    "col": "vix3m_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.004623628408664123,
+    "se": 0.008029798605811381,
+    "p": 0.2797562830769231
+   }
+  ],
+  "n_new_rule": 7,
+  "value_columns_masked_by_rule": 0,
+  "avail_k_gt1_live_without": 10,
+  "avail_k_gt1_live_with": 3,
+  "lasso": {
+   "n_active_without": 103,
+   "n_active_with": 102,
+   "n_active_flag_off": 94,
+   "cond_without": {
+    "uncentred": 9223033.029483728,
+    "centred": 7725512.495182196
+   },
+   "cond_with": {
+    "uncentred": 190514.83183021893,
+    "centred": 160189.29934758734
+   },
+   "cond_flag_off": {
+    "uncentred": 11820.875509445113,
+    "centred": 10477.693024817747
+   },
+   "forecast_without": 0.9320073881983529,
+   "forecast_with": 0.9303049415629492,
+   "forecast_rel_change": 0.00182664499977272,
+   "active_avail_k_gt1_sd_le_se_without": [
+    "vvix_avail_ma_3125",
+    "vix3m_avail_ma_625"
+   ],
+   "P1_all_removed": true,
+   "vix3m_3125_active_without": false,
+   "vvix_3125_active_without": true,
+   "vix3m_3125_active_with": false,
+   "vvix_3125_active_with": false,
+   "P2_cond_with_le_flag_off_centred": false,
+   "P2_cond_with_le_flag_off_uncentred": false
+  },
+  "enet": {
+   "n_active_without": 37,
+   "n_active_with": 36,
+   "n_active_flag_off": 36,
+   "cond_without": {
+    "uncentred": 1064.6047859658522,
+    "centred": 885.559671946475
+   },
+   "cond_with": {
+    "uncentred": 1072.633974440959,
+    "centred": 883.2592392840686
+   },
+   "cond_flag_off": {
+    "uncentred": 980.4314627719505,
+    "centred": 679.1158795718575
+   },
+   "forecast_without": 0.9556902442987594,
+   "forecast_with": 0.9564057966681758,
+   "forecast_rel_change": 0.0007487283392136003,
+   "active_avail_k_gt1_sd_le_se_without": [],
+   "P1_all_removed": true,
+   "vix3m_3125_active_without": false,
+   "vvix_3125_active_without": false,
+   "vix3m_3125_active_with": false,
+   "vvix_3125_active_with": false,
+   "P2_cond_with_le_flag_off_centred": false,
+   "P2_cond_with_le_flag_off_uncentred": false
+  },
+  "vix3m_vvix_3125_rule": [
+   {
+    "col": "vvix_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.0033928010150780724,
+    "se": 0.007852786984762994,
+    "p": 0.26064059076923074
+   },
+   {
+    "col": "vix3m_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.004623628408664123,
+    "se": 0.008029798605811381,
+    "p": 0.2797562830769231
+   }
+  ],
+  "sec": 23.92444658279419
+ },
+ {
+  "origin": "diag_2020",
+  "row": 74250,
+  "date": "2021-02-24",
+  "masked_existing": 265,
+  "new_rule_masked": [
+   {
+    "col": "vvix_avail_ma_125",
+    "kind": "near-constant",
+    "sd": 0.03783053485834742,
+    "se": 0.03872662331924357,
+    "p": 0.24993784615384615
+   },
+   {
+    "col": "vvix_avail_ma_625",
+    "kind": "near-constant",
+    "sd": 0.007130487802329624,
+    "se": 0.017474059036365487,
+    "p": 0.2567700923076923
+   },
+   {
+    "col": "vvix_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.003464096600022349,
+    "se": 0.007852315856526257,
+    "p": 0.2605922953846154
+   },
+   {
+    "col": "vix3m_avail_ma_5",
+    "kind": "near-duplicate",
+    "partner": "vvix_avail_ma_5",
+    "sd": 0.35133557518493985,
+    "se": 0.19182832561661933,
+    "sd_diff": 0.04601903388044929,
+    "threshold": 0.27084778143831856,
+    "p": 0.7569230769230769,
+    "p_partner": 0.7592307692307693
+   },
+   {
+    "col": "vix3m_avail_ma_25",
+    "kind": "near-duplicate",
+    "partner": "vvix_avail_ma_25",
+    "sd": 0.15148747274939933,
+    "se": 0.08494432397753249,
+    "sd_diff": 0.015475193052107617,
+    "threshold": 0.12019260862465712,
+    "p": 0.23616000000000004,
+    "p_partner": 0.23688000000000003
+   },
+   {
+    "col": "vix3m_avail_ma_625",
+    "kind": "near-constant",
+    "sd": 0.01001011543944454,
+    "se": 0.017870299909443877,
+    "p": 0.2754833230769231
+   },
+   {
+    "col": "vix3m_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.004669392680908377,
+    "se": 0.008029403399147888,
+    "p": 0.2797112615384615
+   }
+  ],
+  "n_new_rule": 7,
+  "value_columns_masked_by_rule": 0,
+  "avail_k_gt1_live_without": 10,
+  "avail_k_gt1_live_with": 3,
+  "lasso": {
+   "n_active_without": 108,
+   "n_active_with": 105,
+   "n_active_flag_off": 101,
+   "cond_without": {
+    "uncentred": 10464340.11984786,
+    "centred": 8666813.253842697
+   },
+   "cond_with": {
+    "uncentred": 136937.18185041138,
+    "centred": 113986.43023946538
+   },
+   "cond_flag_off": {
+    "uncentred": 40160.77652003318,
+    "centred": 34312.65588098356
+   },
+   "forecast_without": 0.990104523945218,
+   "forecast_with": 0.9912727574149895,
+   "forecast_rel_change": 0.0011799092333368748,
+   "active_avail_k_gt1_sd_le_se_without": [
+    "vvix_avail_ma_3125",
+    "vix3m_avail_ma_625"
+   ],
+   "P1_all_removed": true,
+   "vix3m_3125_active_without": false,
+   "vvix_3125_active_without": true,
+   "vix3m_3125_active_with": false,
+   "vvix_3125_active_with": false,
+   "P2_cond_with_le_flag_off_centred": false,
+   "P2_cond_with_le_flag_off_uncentred": false
+  },
+  "enet": {
+   "n_active_without": 36,
+   "n_active_with": 36,
+   "n_active_flag_off": 34,
+   "cond_without": {
+    "uncentred": 8639.942439895589,
+    "centred": 7630.472124308622
+   },
+   "cond_with": {
+    "uncentred": 929.1188357723929,
+    "centred": 756.1451342827861
+   },
+   "cond_flag_off": {
+    "uncentred": 911.4911318740365,
+    "centred": 604.7530963581374
+   },
+   "forecast_without": 1.0289261576715885,
+   "forecast_with": 1.029162992289521,
+   "forecast_rel_change": 0.000230176496307949,
+   "active_avail_k_gt1_sd_le_se_without": [],
+   "P1_all_removed": true,
+   "vix3m_3125_active_without": false,
+   "vvix_3125_active_without": false,
+   "vix3m_3125_active_with": false,
+   "vvix_3125_active_with": false,
+   "P2_cond_with_le_flag_off_centred": false,
+   "P2_cond_with_le_flag_off_uncentred": false
+  },
+  "vix3m_vvix_3125_rule": [
+   {
+    "col": "vvix_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.003464096600022349,
+    "se": 0.007852315856526257,
+    "p": 0.2605922953846154
+   },
+   {
+    "col": "vix3m_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.004669392680908377,
+    "se": 0.008029403399147888,
+    "p": 0.2797112615384615
+   }
+  ],
+  "sec": 23.358177185058594
+ },
+ {
+  "origin": "2021-07",
+  "row": 75410,
+  "date": "2021-07-01",
+  "masked_existing": 265,
+  "new_rule_masked": [
+   {
+    "col": "vvix_avail_ma_125",
+    "kind": "near-constant",
+    "sd": 0.03753609959277939,
+    "se": 0.038735266030954334,
+    "p": 0.2501052307692308
+   },
+   {
+    "col": "vvix_avail_ma_625",
+    "kind": "near-constant",
+    "sd": 0.00709794148179972,
+    "se": 0.01747484016691999,
+    "p": 0.25680516923076924
+   },
+   {
+    "col": "vvix_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.0034314538923367662,
+    "se": 0.007849702484230475,
+    "p": 0.2603246276923077
+   },
+   {
+    "col": "vix3m_avail_ma_5",
+    "kind": "near-duplicate",
+    "partner": "vvix_avail_ma_5",
+    "sd": 0.3509411774915728,
+    "se": 0.19168388362771543,
+    "sd_diff": 0.04601903388044929,
+    "threshold": 0.27064226044004047,
+    "p": 0.7574615384615384,
+    "p_partner": 0.7597692307692308
+   },
+   {
+    "col": "vix3m_avail_ma_25",
+    "kind": "near-duplicate",
+    "partner": "vvix_avail_ma_25",
+    "sd": 0.1514268476113625,
+    "se": 0.08496839543315625,
+    "sd_diff": 0.01547519305210762,
+    "threshold": 0.12022658647500542,
+    "p": 0.2363538461538462,
+    "p_partner": 0.23707384615384616
+   },
+   {
+    "col": "vix3m_avail_ma_625",
+    "kind": "near-constant",
+    "sd": 0.00998934512965139,
+    "se": 0.01787089363922689,
+    "p": 0.27551286153846155
+   },
+   {
+    "col": "vix3m_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.0045879001680362965,
+    "se": 0.008026903001512887,
+    "p": 0.2794266830769231
+   }
+  ],
+  "n_new_rule": 7,
+  "value_columns_masked_by_rule": 0,
+  "avail_k_gt1_live_without": 10,
+  "avail_k_gt1_live_with": 3,
+  "lasso": {
+   "n_active_without": 106,
+   "n_active_with": 104,
+   "n_active_flag_off": 94,
+   "cond_without": {
+    "uncentred": 765446.1083342651,
+    "centred": 621296.3930634988
+   },
+   "cond_with": {
+    "uncentred": 142043.63696249455,
+    "centred": 117889.67875924597
+   },
+   "cond_flag_off": {
+    "uncentred": 76374.21356132619,
+    "centred": 67257.5790875715
+   },
+   "forecast_without": 0.8807871798008051,
+   "forecast_with": 0.8849330206269617,
+   "forecast_rel_change": 0.0047069722643943894,
+   "active_avail_k_gt1_sd_le_se_without": [
+    "vix3m_avail_ma_625"
+   ],
+   "P1_all_removed": true,
+   "vix3m_3125_active_without": false,
+   "vvix_3125_active_without": false,
+   "vix3m_3125_active_with": false,
+   "vvix_3125_active_with": false,
+   "P2_cond_with_le_flag_off_centred": false,
+   "P2_cond_with_le_flag_off_uncentred": false
+  },
+  "enet": {
+   "n_active_without": 41,
+   "n_active_with": 40,
+   "n_active_flag_off": 32,
+   "cond_without": {
+    "uncentred": 7673.058618836464,
+    "centred": 6763.000143327049
+   },
+   "cond_with": {
+    "uncentred": 854.4233978823147,
+    "centred": 682.1329122496725
+   },
+   "cond_flag_off": {
+    "uncentred": 762.2866693359492,
+    "centred": 552.9501003638208
+   },
+   "forecast_without": 0.8567154260481754,
+   "forecast_with": 0.8569284467155012,
+   "forecast_rel_change": 0.00024864810513378066,
+   "active_avail_k_gt1_sd_le_se_without": [],
+   "P1_all_removed": true,
+   "vix3m_3125_active_without": false,
+   "vvix_3125_active_without": false,
+   "vix3m_3125_active_with": false,
+   "vvix_3125_active_with": false,
+   "P2_cond_with_le_flag_off_centred": false,
+   "P2_cond_with_le_flag_off_uncentred": false
+  },
+  "vix3m_vvix_3125_rule": [
+   {
+    "col": "vvix_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.0034314538923367662,
+    "se": 0.007849702484230475,
+    "p": 0.2603246276923077
+   },
+   {
+    "col": "vix3m_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.0045879001680362965,
+    "se": 0.008026903001512887,
+    "p": 0.2794266830769231
+   }
+  ],
+  "sec": 24.1902174949646
+ },
+ {
+  "origin": "2022-01",
+  "row": 77082,
+  "date": "2022-01-03",
+  "masked_existing": 271,
+  "new_rule_masked": [
+   {
+    "col": "vvix_avail_ma_125",
+    "kind": "near-constant",
+    "sd": 0.03753609959277939,
+    "se": 0.038735266030954334,
+    "p": 0.2501052307692308
+   },
+   {
+    "col": "vvix_avail_ma_625",
+    "kind": "near-constant",
+    "sd": 0.007092127817241778,
+    "se": 0.017473894569022545,
+    "p": 0.2567627076923077
+   },
+   {
+    "col": "vvix_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.0033966813991173892,
+    "se": 0.007850656080826487,
+    "p": 0.26042225230769234
+   }
+  ],
+  "n_new_rule": 3,
+  "value_columns_masked_by_rule": 0,
+  "avail_k_gt1_live_without": 5,
+  "avail_k_gt1_live_with": 2,
+  "lasso": {
+   "n_active_without": 106,
+   "n_active_with": 106,
+   "n_active_flag_off": 97,
+   "cond_without": {
+    "uncentred": 2147302.727613526,
+    "centred": 1787990.9685192765
+   },
+   "cond_with": {
+    "uncentred": 76439.7866885393,
+    "centred": 67310.37064416018
+   },
+   "cond_flag_off": {
+    "uncentred": 16138.885807397442,
+    "centred": 14145.602115016907
+   },
+   "forecast_without": 0.973545394691548,
+   "forecast_with": 0.9760052228459519,
+   "forecast_rel_change": 0.002526670217759376,
+   "active_avail_k_gt1_sd_le_se_without": [
+    "vvix_avail_ma_625"
+   ],
+   "P1_all_removed": true,
+   "vix3m_3125_active_without": false,
+   "vvix_3125_active_without": false,
+   "vix3m_3125_active_with": false,
+   "vvix_3125_active_with": false,
+   "P2_cond_with_le_flag_off_centred": false,
+   "P2_cond_with_le_flag_off_uncentred": false
+  },
+  "enet": {
+   "n_active_without": 40,
+   "n_active_with": 40,
+   "n_active_flag_off": 34,
+   "cond_without": {
+    "uncentred": 1142.0372840656228,
+    "centred": 1040.6621810641504
+   },
+   "cond_with": {
+    "uncentred": 1142.037284065622,
+    "centred": 1040.662181064151
+   },
+   "cond_flag_off": {
+    "uncentred": 792.3750557868519,
+    "centred": 566.2488240857306
+   },
+   "forecast_without": 0.9508460152487634,
+   "forecast_with": 0.9508460152487611,
+   "forecast_rel_change": 2.4519936081373412e-15,
+   "active_avail_k_gt1_sd_le_se_without": [],
+   "P1_all_removed": true,
+   "vix3m_3125_active_without": false,
+   "vvix_3125_active_without": false,
+   "vix3m_3125_active_with": false,
+   "vvix_3125_active_with": false,
+   "P2_cond_with_le_flag_off_centred": false,
+   "P2_cond_with_le_flag_off_uncentred": false
+  },
+  "vix3m_vvix_3125_rule": [
+   {
+    "col": "vvix_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.0033966813991173892,
+    "se": 0.007850656080826487,
+    "p": 0.26042225230769234
+   }
+  ],
+  "sec": 24.896196126937866
+ },
+ {
+  "origin": "2022-07",
+  "row": 78722,
+  "date": "2022-07-01",
+  "masked_existing": 271,
+  "new_rule_masked": [
+   {
+    "col": "vvix_avail_ma_125",
+    "kind": "near-constant",
+    "sd": 0.03765002759737156,
+    "se": 0.03872566960648733,
+    "p": 0.24991938461538463
+   },
+   {
+    "col": "vvix_avail_ma_625",
+    "kind": "near-constant",
+    "sd": 0.006989195089294115,
+    "se": 0.017475100510978295,
+    "p": 0.25681686153846156
+   },
+   {
+    "col": "vvix_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.0033641693899954346,
+    "se": 0.007850615937030478,
+    "p": 0.26041814153846155
+   }
+  ],
+  "n_new_rule": 3,
+  "value_columns_masked_by_rule": 0,
+  "avail_k_gt1_live_without": 5,
+  "avail_k_gt1_live_with": 2,
+  "lasso": {
+   "n_active_without": 100,
+   "n_active_with": 100,
+   "n_active_flag_off": 99,
+   "cond_without": {
+    "uncentred": 6761496.662557257,
+    "centred": 5699506.608813718
+   },
+   "cond_with": {
+    "uncentred": 11853.038037478507,
+    "centred": 8922.324514542093
+   },
+   "cond_flag_off": {
+    "uncentred": 11311.611557237298,
+    "centred": 9226.93894522213
+   },
+   "forecast_without": 0.9657432320935081,
+   "forecast_with": 0.9649018545925893,
+   "forecast_rel_change": 0.0008712227773990469,
+   "active_avail_k_gt1_sd_le_se_without": [
+    "vvix_avail_ma_625",
+    "vvix_avail_ma_3125"
+   ],
+   "P1_all_removed": true,
+   "vix3m_3125_active_without": false,
+   "vvix_3125_active_without": true,
+   "vix3m_3125_active_with": false,
+   "vvix_3125_active_with": false,
+   "P2_cond_with_le_flag_off_centred": true,
+   "P2_cond_with_le_flag_off_uncentred": false
+  },
+  "enet": {
+   "n_active_without": 39,
+   "n_active_with": 39,
+   "n_active_flag_off": 35,
+   "cond_without": {
+    "uncentred": 775.344426261886,
+    "centred": 665.3934007127285
+   },
+   "cond_with": {
+    "uncentred": 775.3444262618849,
+    "centred": 665.3934007127277
+   },
+   "cond_flag_off": {
+    "uncentred": 1113.5794674320098,
+    "centred": 991.8059999581828
+   },
+   "forecast_without": 0.9404024812761949,
+   "forecast_with": 0.9404024812761931,
+   "forecast_rel_change": 1.8889325313025593e-15,
+   "active_avail_k_gt1_sd_le_se_without": [],
+   "P1_all_removed": true,
+   "vix3m_3125_active_without": false,
+   "vvix_3125_active_without": false,
+   "vix3m_3125_active_with": false,
+   "vvix_3125_active_with": false,
+   "P2_cond_with_le_flag_off_centred": true,
+   "P2_cond_with_le_flag_off_uncentred": true
+  },
+  "vix3m_vvix_3125_rule": [
+   {
+    "col": "vvix_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.0033641693899954346,
+    "se": 0.007850615937030478,
+    "p": 0.26041814153846155
+   }
+  ],
+  "sec": 22.499587774276733
+ },
+ {
+  "origin": "2023-01",
+  "row": 80381,
+  "date": "2023-01-03",
+  "masked_existing": 271,
+  "new_rule_masked": [
+   {
+    "col": "vvix_avail_ma_125",
+    "kind": "near-constant",
+    "sd": 0.037740682406978,
+    "se": 0.03873069143883044,
+    "p": 0.2500166153846154
+   },
+   {
+    "col": "vvix_avail_ma_625",
+    "kind": "near-constant",
+    "sd": 0.006861522004533555,
+    "se": 0.017476360892429585,
+    "p": 0.25687347692307694
+   },
+   {
+    "col": "vvix_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.003438561815230282,
+    "se": 0.007850718818741071,
+    "p": 0.2604286769230769
+   }
+  ],
+  "n_new_rule": 3,
+  "value_columns_masked_by_rule": 0,
+  "avail_k_gt1_live_without": 5,
+  "avail_k_gt1_live_with": 2,
+  "lasso": {
+   "n_active_without": 94,
+   "n_active_with": 92,
+   "n_active_flag_off": 99,
+   "cond_without": {
+    "uncentred": 5345636.062032023,
+    "centred": 4678713.947508489
+   },
+   "cond_with": {
+    "uncentred": 22175.82934032032,
+    "centred": 20174.66571929351
+   },
+   "cond_flag_off": {
+    "uncentred": 16785.97728552308,
+    "centred": 14919.714146802851
+   },
+   "forecast_without": 1.0277476537708263,
+   "forecast_with": 1.0282352933989831,
+   "forecast_rel_change": 0.00047447408550885923,
+   "active_avail_k_gt1_sd_le_se_without": [
+    "vvix_avail_ma_625",
+    "vvix_avail_ma_3125"
+   ],
+   "P1_all_removed": true,
+   "vix3m_3125_active_without": false,
+   "vvix_3125_active_without": true,
+   "vix3m_3125_active_with": false,
+   "vvix_3125_active_with": false,
+   "P2_cond_with_le_flag_off_centred": false,
+   "P2_cond_with_le_flag_off_uncentred": false
+  },
+  "enet": {
+   "n_active_without": 37,
+   "n_active_with": 37,
+   "n_active_flag_off": 38,
+   "cond_without": {
+    "uncentred": 685.4796335114961,
+    "centred": 590.2919015242028
+   },
+   "cond_with": {
+    "uncentred": 685.4796335114954,
+    "centred": 590.2919015242029
+   },
+   "cond_flag_off": {
+    "uncentred": 2520.2734585345092,
+    "centred": 2284.6919250680858
+   },
+   "forecast_without": 1.0100769285974716,
+   "forecast_with": 1.010076928597473,
+   "forecast_rel_change": 1.318976398560147e-15,
+   "active_avail_k_gt1_sd_le_se_without": [],
+   "P1_all_removed": true,
+   "vix3m_3125_active_without": false,
+   "vvix_3125_active_without": false,
+   "vix3m_3125_active_with": false,
+   "vvix_3125_active_with": false,
+   "P2_cond_with_le_flag_off_centred": true,
+   "P2_cond_with_le_flag_off_uncentred": true
+  },
+  "vix3m_vvix_3125_rule": [
+   {
+    "col": "vvix_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.003438561815230282,
+    "se": 0.007850718818741071,
+    "p": 0.2604286769230769
+   }
+  ],
+  "sec": 22.52001953125
+ },
+ {
+  "origin": "2023-07",
+  "row": 82021,
+  "date": "2023-07-04",
+  "masked_existing": 271,
+  "new_rule_masked": [
+   {
+    "col": "vvix_avail_ma_125",
+    "kind": "near-constant",
+    "sd": 0.037791243873611685,
+    "se": 0.038721472154751496,
+    "p": 0.24983815384615385
+   },
+   {
+    "col": "vvix_avail_ma_625",
+    "kind": "near-constant",
+    "sd": 0.006746669278511391,
+    "se": 0.017476706060292314,
+    "p": 0.2568889846153846
+   },
+   {
+    "col": "vvix_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.003205688798423957,
+    "se": 0.007849949707967763,
+    "p": 0.2603499323076923
+   }
+  ],
+  "n_new_rule": 3,
+  "value_columns_masked_by_rule": 0,
+  "avail_k_gt1_live_without": 5,
+  "avail_k_gt1_live_with": 2,
+  "lasso": {
+   "n_active_without": 95,
+   "n_active_with": 93,
+   "n_active_flag_off": 96,
+   "cond_without": {
+    "uncentred": 1746243.7934520594,
+    "centred": 1452297.0744838829
+   },
+   "cond_with": {
+    "uncentred": 91001.15261161464,
+    "centred": 80615.87851486873
+   },
+   "cond_flag_off": {
+    "uncentred": 7205.368522995833,
+    "centred": 6090.1345935203935
+   },
+   "forecast_without": 0.5526236445338594,
+   "forecast_with": 0.5519777472311254,
+   "forecast_rel_change": 0.0011687833286229154,
+   "active_avail_k_gt1_sd_le_se_without": [
+    "vvix_avail_ma_625"
+   ],
+   "P1_all_removed": true,
+   "vix3m_3125_active_without": false,
+   "vvix_3125_active_without": false,
+   "vix3m_3125_active_with": false,
+   "vvix_3125_active_with": false,
+   "P2_cond_with_le_flag_off_centred": false,
+   "P2_cond_with_le_flag_off_uncentred": false
+  },
+  "enet": {
+   "n_active_without": 36,
+   "n_active_with": 36,
+   "n_active_flag_off": 33,
+   "cond_without": {
+    "uncentred": 742.9689318434082,
+    "centred": 630.2937648439747
+   },
+   "cond_with": {
+    "uncentred": 742.9689318434071,
+    "centred": 630.2937648439738
+   },
+   "cond_flag_off": {
+    "uncentred": 653.3245763349349,
+    "centred": 502.7853891872218
+   },
+   "forecast_without": 0.47992411862209894,
+   "forecast_with": 0.4799241186220977,
+   "forecast_rel_change": 2.5446633742725133e-15,
+   "active_avail_k_gt1_sd_le_se_without": [],
+   "P1_all_removed": true,
+   "vix3m_3125_active_without": false,
+   "vvix_3125_active_without": false,
+   "vix3m_3125_active_with": false,
+   "vvix_3125_active_with": false,
+   "P2_cond_with_le_flag_off_centred": false,
+   "P2_cond_with_le_flag_off_uncentred": false
+  },
+  "vix3m_vvix_3125_rule": [
+   {
+    "col": "vvix_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.003205688798423957,
+    "se": 0.007849949707967763,
+    "p": 0.2603499323076923
+   }
+  ],
+  "sec": 22.751748085021973
+ },
+ {
+  "origin": "2024-01",
+  "row": 83654,
+  "date": "2024-01-02",
+  "masked_existing": 265,
+  "new_rule_masked": [
+   {
+    "col": "vvix_avail_ma_125",
+    "kind": "near-constant",
+    "sd": 0.03796862622633051,
+    "se": 0.03871981811390602,
+    "p": 0.24980615384615387
+   },
+   {
+    "col": "vvix_avail_ma_625",
+    "kind": "near-constant",
+    "sd": 0.006949589411906491,
+    "se": 0.01747443728643088,
+    "p": 0.2567870769230769
+   },
+   {
+    "col": "vvix_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.0034745861281784605,
+    "se": 0.007847401053742072,
+    "p": 0.26008923076923074
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_5",
+    "kind": "near-duplicate",
+    "partner": "vvix_avail_ma_5",
+    "sd": 0.39494731129382926,
+    "se": 0.2057251311478469,
+    "sd_diff": 0.23249101274225023,
+    "threshold": 0.28161054562690657,
+    "p": 0.695923076923077,
+    "p_partner": 0.759
+   },
+   {
+    "col": "voldemand_spx_open_and_close_avail_ma_25",
+    "kind": "near-duplicate",
+    "partner": "vvix_avail_ma_25",
+    "sd": 0.1588629531068288,
+    "se": 0.08246164035584978,
+    "sd_diff": 0.07856651704129437,
+    "threshold": 0.11847958135041843,
+    "p": 0.21715384615384614,
+    "p_partner": 0.23683384615384617
+   }
+  ],
+  "n_new_rule": 5,
+  "value_columns_masked_by_rule": 0,
+  "avail_k_gt1_live_without": 10,
+  "avail_k_gt1_live_with": 5,
+  "lasso": {
+   "n_active_without": 102,
+   "n_active_with": 102,
+   "n_active_flag_off": 92,
+   "cond_without": {
+    "uncentred": 26155.066279396597,
+    "centred": 23268.81678055064
+   },
+   "cond_with": {
+    "uncentred": 26155.066279396597,
+    "centred": 23268.81678055064
+   },
+   "cond_flag_off": {
+    "uncentred": 9325.52370971042,
+    "centred": 8220.32883111035
+   },
+   "forecast_without": 1.511869017411956,
+   "forecast_with": 1.5118690174119545,
+   "forecast_rel_change": 1.0280733427131924e-15,
+   "active_avail_k_gt1_sd_le_se_without": [],
+   "P1_all_removed": true,
+   "vix3m_3125_active_without": false,
+   "vvix_3125_active_without": false,
+   "vix3m_3125_active_with": false,
+   "vvix_3125_active_with": false,
+   "P2_cond_with_le_flag_off_centred": false,
+   "P2_cond_with_le_flag_off_uncentred": false
+  },
+  "enet": {
+   "n_active_without": 34,
+   "n_active_with": 35,
+   "n_active_flag_off": 31,
+   "cond_without": {
+    "uncentred": 501.61299707611107,
+    "centred": 444.1885112967821
+   },
+   "cond_with": {
+    "uncentred": 508.1886573153246,
+    "centred": 444.29509588153536
+   },
+   "cond_flag_off": {
+    "uncentred": 520.3720396185046,
+    "centred": 408.8312225734496
+   },
+   "forecast_without": 1.5181540307993422,
+   "forecast_with": 1.5195895532650268,
+   "forecast_rel_change": 0.0009455710267611871,
+   "active_avail_k_gt1_sd_le_se_without": [],
+   "P1_all_removed": true,
+   "vix3m_3125_active_without": false,
+   "vvix_3125_active_without": false,
+   "vix3m_3125_active_with": false,
+   "vvix_3125_active_with": false,
+   "P2_cond_with_le_flag_off_centred": false,
+   "P2_cond_with_le_flag_off_uncentred": true
+  },
+  "vix3m_vvix_3125_rule": [
+   {
+    "col": "vvix_avail_ma_3125",
+    "kind": "near-constant",
+    "sd": 0.0034745861281784605,
+    "se": 0.007847401053742072,
+    "p": 0.26008923076923074
+   }
+  ],
+  "sec": 23.45759129524231
+ }
+]
