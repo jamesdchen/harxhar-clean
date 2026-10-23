@@ -1,0 +1,21 @@
+# Pooled trees, final design, W = 3,500 days: scores 2014-01-02 .. 2024-04-30
+2,579 evaluation days; every bar: 33,527 bars (the linear rows' scored set, asserted); 16:00: 2,579 days.  QLIKE, MSE x 1e10, R2_OOS in %.  DM: all features vs HAR benchmark of the same model on the daily average loss (negative = full lower), p in parentheses.
+
+| model | set | QLIKE every bar | MSE every bar | R2_OOS | QLIKE 16:00 | DM full vs HAR, every bar | DM 16:00 |
+|---|---|---|---|---|---|---|---|
+| Random forest (oneDAL) | HAR | 0.18977 | 1.201 | 62.67 | 0.12642 |  |  |
+| Random forest (oneDAL) | full | 0.16854 | 1.318 | 59.05 | 0.12414 | -9.40 (0.000) | -1.15 (0.251) |
+| OLS (linear run) | HAR | 0.18967 | 1.116 | 65.33 | 0.12723 |  |  |
+| Ridge (linear run) | HAR | 0.18967 | 1.116 | 65.33 | 0.12723 |  |  |
+| Ridge (linear run) | full | 0.17767 | 2.217 | 31.11 | 0.12333 | -7.06 (0.000) | -1.55 (0.120) |
+| Lasso (linear run) | HAR | 0.18967 | 1.116 | 65.33 | 0.12723 |  |  |
+| Lasso (linear run) | full | 0.17520 | 2.355 | 26.81 | 0.12525 | -6.39 (0.000) | -0.69 (0.488) |
+| Elastic net (linear run) | HAR | 0.18967 | 1.116 | 65.33 | 0.12723 |  |  |
+| Elastic net (linear run) | full | 0.17698 | 2.367 | 26.45 | 0.12229 | -8.45 (0.000) | -2.15 (0.032) |
+
+## Sign strategy, 614 post-warmup option days (2021-08-11 .. 2024-04-30), trees
+D6 Sharpe ratio (paper), ΔD6 = full − HAR with the D6 bootstrap p; D1 with the Ledoit–Wolf p; SR614 = the pooled 614-day ratio; LLSW t (p) of the daily return difference (mid).
+
+| model | D6 HAR | D6 full | ΔD6 mid (p) | D6 b/a HAR | D6 b/a full | ΔD6 b/a (p) | D1 HAR / full | ΔD1 (LW p) | SR614 HAR / full | LLSW t (p) | long share HAR / full |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| Random forest (oneDAL) | 0.74 | 1.92 | +1.18 (0.036) | 0.39 | 1.57 | +1.18 (0.033) | 0.86 / 1.55 | +0.69 (0.010) | 0.85 / 1.93 | 2.38 (0.028) | 0.279 / 0.226 |
