@@ -16,6 +16,16 @@ RULE
   plain = pred_adj^2 x B, the forecast of the bar's variance (asserted against the stored column); rv_actual is the
   bar's realized variance.  The 16:00 row is the forecast of the 15:30--16:00 ET variance made at 15:30, the forecast
   the closing trade uses (the 16:00 rule of make_rehaul_results.plain_16).  The dates are naive ET bar ends.
+
+FINAL RUN (2026-10-23; writeup/final_run.py, REHAUL_FINAL_RUN=1)
+  LightGBM and XGBoost from final_run.TREES_RUN (results/pooled_trees_final_2014start_w3000/forecasts.parquet, model
+  keys lgbm / xgb), the random forest from final_run.RF_RUN (results/pooled_rf_skx_2014start_w3000/forecasts.parquet,
+  the frozen forest on Intel's oneDAL engine, model key final_run.RF_KEY = rf_skx, read as "rf"), both merged by
+  experiments/pooled_trees_rerun_13.py merge (the columns above; forecasts.json: refit, span, window_days): the frozen
+  configurations, refit at every bar on a rolling window of 3,000 trading days (39,000 bars), 2 January 2014 ..
+  30 April 2024, 33,970 bars an arm (the linear walk's rows from the first evaluation day).  The two runs must agree on
+  refit, window and first day; a null last day in forecasts.json (merge without --last-day) reads as 30 April 2024,
+  which the rows must reach.
 """
 
 from __future__ import annotations
@@ -23,6 +33,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import final_run as fr  # 2026-10-23: the switch to the final pooled rerun (REHAUL_FINAL_RUN)
 import numpy as np
 import pandas as pd
 
@@ -33,19 +44,54 @@ EST = ("lgbm", "xgb", "rf")
 SETS = ("baseline", "all_features")
 N_BARS_ARM = 40_466  # bars of each arm (STATUS.md: 6 arms x 40,466 = 242,796 rows)
 N_BARS_DAY = 13  # 10:00 .. 16:00 ET bar ends
+# 2026-10-23: the final pooled rerun (writeup/final_run.py); the printed run's constants above.  The random forest is
+# a run of its own (RF_RUN, model key RF_KEY), read as "rf"; RF_RUN is None for the printed run (one file).
+RF_RUN: Path | None = None
+RF_KEY = "rf"
+if fr.FINAL:
+    RUN = fr.TREES_RUN
+    FC = RUN / "forecasts.parquet"
+    RF_RUN, RF_KEY = fr.RF_RUN, fr.RF_KEY
+    N_BARS_ARM = fr.N_BARS
 _CACHE: dict[str, pd.DataFrame] = {}
+
+
+def _span(m: dict) -> tuple[pd.Timestamp, pd.Timestamp]:
+    """(first, last) day of a forecasts.json; under the final design a null last day (merge without --last-day) is
+    the design's last day, which _frame() asserts the rows reach."""
+    last = m["span"][1]
+    if last is None and fr.FINAL:
+        last = fr.LAST_DAY
+    return pd.Timestamp(m["span"][0]), pd.Timestamp(last)
 
 
 def meta() -> dict:
     """The run's window, cadence and span (forecasts.json), and the bars a full day has."""
     m = json.loads((RUN / "forecasts.json").read_text())
-    return {
+    if fr.FINAL:
+        fr.guard_standin(m, RUN)
+    # 2026-10-23 (final run): the span through _span (a null last day); the forest's run must match. Was:
+    # "span": (pd.Timestamp(m["span"][0]), pd.Timestamp(m["span"][1])),
+    out = {
         "refit": m["refit"],
         "window_days": int(m["window_days"]),
         "bars_day": N_BARS_DAY,
         "window_bars": int(m["window_days"]) * N_BARS_DAY,
-        "span": (pd.Timestamp(m["span"][0]), pd.Timestamp(m["span"][1])),
+        "span": _span(m),
     }
+    if RF_RUN is not None:
+        r = json.loads((RF_RUN / "forecasts.json").read_text())
+        fr.guard_standin(r, RF_RUN)
+        assert (r["refit"], int(r["window_days"]), _span(r)) == (
+            out["refit"],
+            out["window_days"],
+            out["span"],
+        ), ("the forest's run is on another design", RF_RUN, r, out)
+        assert out["window_days"] == fr.WINDOW_DAYS and out["span"] == (
+            fr.FIRST_DAY,
+            fr.LAST_DAY,
+        ), ("the final tree run is not on the final design", RUN, out)
+    return out
 
 
 def _frame() -> pd.DataFrame:
@@ -62,6 +108,20 @@ def _frame() -> pd.DataFrame:
                 "rv_actual",
             ],
         )
+        # 2026-10-23 (final run): LightGBM / XGBoost here, the forest from its own run
+        if RF_RUN is not None:
+            got = set(f["model"])
+            assert got == {"lgbm", "xgb"}, (
+                f"{FC}: models {sorted(got)}; the final tree run holds lgbm and xgb (the forest is {RF_RUN})"
+            )
+            r = pd.read_parquet(RF_RUN / "forecasts.parquet", columns=list(f.columns))
+            assert set(r["model"]) == {RF_KEY}, (
+                RF_RUN,
+                sorted(set(r["model"])),
+                RF_KEY,
+            )
+            r["model"] = "rf"
+            f = pd.concat([f, r], ignore_index=True)
         n = f.groupby(["model", "predictor_set"]).size()
         assert set(n.index) == {(e, s) for e in EST for s in SETS}, sorted(n.index)
         assert (n == N_BARS_ARM).all(), n.to_dict()

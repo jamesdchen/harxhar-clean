@@ -1,0 +1,168 @@
+"""The switch between the printed pooled runs and the FINAL pooled rerun (2026-10-23).
+
+One module, read by the three pooled loaders (pooled_linear_13.py, pooled_trees_13.py, pooled_mingru_13.py) and by
+the generators that print a pooled number or the pooled design (make_rehaul_oos_rerun.py, make_rehaul_economics.py,
+make_rehaul_results.py, make_rehaul_oos_table.py, make_rehaul_data_methods.py).  With the switch off (the default)
+every one of them reads the printed runs and writes what it wrote before, byte for byte.
+
+SWITCH   REHAUL_FINAL_RUN=1 (environment): the final design of the pooled 13-bar intraday models (decided 2026-10-23,
+         writeup/rehaul/99_author_notes.tex "Window and sample"): first evaluation day 2 January 2014 (Table 1's
+         every-bar span 2014-01-02 .. 2024-04-30; the option-trading sample of Section 7 is unchanged), penalties and
+         configurations tuned on the last pre-sample fold (fold 3, validation year 2013), a rolling window of
+         REHAUL_FINAL_WINDOW trading days (3,000 = 39,000 bars, the main window; 3,500 the robustness window), refit at
+         every bar, the final specification (LATE_START_WARMUP, UNOBSERVED_NEUTRAL, EXCLUDE_FOMC_RELEASE,
+         WALK_KKT_RESEED, STANDARDIZE_PENALTY with the availability screen).
+
+INPUTS   (each overridable by its environment variable, e.g. to point a loader at a stand-in)
+  REHAUL_LINEAR_RUN   results/window_sweep_2014start_2026-10-22/w<W>         ridge, lasso, elastic net, OLS
+  REHAUL_TREES_RUN    results/pooled_trees_final_2014start_w<W>              LightGBM, XGBoost (model keys lgbm, xgb)
+  REHAUL_RF_RUN       results/pooled_rf_skx_2014start_w<W>                   the random forest on oneDAL
+  REHAUL_RF_KEY       rf_skx                                                 its model key in that forecasts.parquet
+  REHAUL_MINGRU_RUN   results/pooled_mingru_final_2014start_w<W>             the pooled MinGRU (not printed: NN parked)
+
+OUTPUTS  REHAUL_GEN_DIR (default writeup/generated), REHAUL_FIG_DIR (default writeup/figures), REHAUL_RES_DIR (the CSV
+         files a generator writes under results/; default: each generator's own directory, switched to a new
+         directory under the final design so no printed run's CSV is overwritten).
+
+STAND-INS  writeup/tests/final_run_standins.py builds labelled stand-ins (the printed runs cut to the final bars);
+         guard_standin() refuses them unless REHAUL_ALLOW_STANDIN=1 and GEN / FIG are outside writeup/.
+
+REGENERATE (once the final runs land; from the repository root, Git Bash; PowerShell: $env:REHAUL_FINAL_RUN = "1")
+  export REHAUL_FINAL_RUN=1
+  python writeup/final_run.py                      # every input "ok"
+  python writeup/tests/check_final_loaders.py      # the loaders' gates and the cross-run bar / RV checks
+  python writeup/make_rehaul_economics.py          # Section 7 (\\rhe..., E1-E4, figures)
+  python writeup/make_rehaul_results.py            # Section 6 (\\rhr..., T1-T3, figures)
+  python writeup/make_rehaul_oos_table.py          # Table 2 and \\rhoos... (reads rehaul_results_numbers.tex)
+  python writeup/make_rehaul_oos_rerun.py          # Table 1 (--span 2014) and \\rhor...
+  python writeup/make_rehaul_data_methods.py       # samples / tuning tables and \\rhdm...
+  cd writeup && pdflatex paper_rehaul && bibtex paper_rehaul && pdflatex paper_rehaul && pdflatex paper_rehaul
+"""
+
+from __future__ import annotations
+
+import os
+from pathlib import Path
+
+import pandas as pd
+
+REPO = Path(__file__).resolve().parents[1]
+WRITEUP = REPO / "writeup"
+RESULTS = REPO / "results"
+
+
+def _on(name: str) -> bool:
+    return os.environ.get(name, "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _path(name: str, default: Path) -> Path:
+    v = os.environ.get(name, "").strip()
+    return Path(v).resolve() if v else default
+
+
+FINAL: bool = _on("REHAUL_FINAL_RUN")
+
+# ---------------------------------------------------------------------------------------------- the final design
+WINDOW_DAYS = int(os.environ.get("REHAUL_FINAL_WINDOW", "3000"))
+assert WINDOW_DAYS in (3000, 3500), (
+    f"REHAUL_FINAL_WINDOW={WINDOW_DAYS}: the final design's windows are 3000 (main) and 3500 (robustness)"
+)
+BARS_DAY = 13  # 10:00 .. 16:00 ET bar ends
+WINDOW_BARS = WINDOW_DAYS * BARS_DAY  # 39,000 at W = 3,000
+FIRST_DAY = pd.Timestamp(
+    "2014-01-02"
+)  # first evaluation day (--first-day of every final walk)
+LAST_DAY = pd.Timestamp("2024-04-30")
+# the linear walk starts at the 250-solve boundary at or before the first 2014-01-02 row (as the printed run's
+# 2011-12-28 14:00 before 2012-01-03): 1 + 13 + 13 bars of 27, 30 and 31 December 2013
+LINEAR_WALK_START = pd.Timestamp("2013-12-27 16:00")
+N_LINEAR_ROWS = 33_997  # rows of each linear arm (results/window_sweep_2014start_2026-10-22/w3000, w3500)
+N_BARS = 33_970  # bars of each tree / forest / MinGRU arm, 2014-01-02 10:00 .. 2024-04-30 16:00 (RULE_rf_skx.txt)
+TUNE_FOLDS = (
+    3,
+)  # the pre-sample folds the penalties and configurations are chosen on (--first-fold 3)
+VAL_YEAR = 2013  # fold 3's validation year (2013-01-02 15:30 .. 2013-12-31 16:00)
+# Table 1's subperiods (\rhorSubA... / \rhorSubB...): the first evaluation day to the end of 2019, and 2020-2024
+SUB_A = (FIRST_DAY, pd.Timestamp("2019-12-31"))
+SUB_B = (pd.Timestamp("2020-01-03"), LAST_DAY)
+
+# ---------------------------------------------------------------------------------------------- inputs
+LINEAR_RUN = _path(
+    "REHAUL_LINEAR_RUN",
+    RESULTS / "window_sweep_2014start_2026-10-22" / f"w{WINDOW_DAYS}",
+)
+TREES_RUN = _path(
+    "REHAUL_TREES_RUN", RESULTS / f"pooled_trees_final_2014start_w{WINDOW_DAYS}"
+)
+RF_RUN = _path("REHAUL_RF_RUN", RESULTS / f"pooled_rf_skx_2014start_w{WINDOW_DAYS}")
+RF_KEY = os.environ.get("REHAUL_RF_KEY", "rf_skx").strip() or "rf_skx"
+MINGRU_RUN = _path(
+    "REHAUL_MINGRU_RUN", RESULTS / f"pooled_mingru_final_2014start_w{WINDOW_DAYS}"
+)
+
+# ---------------------------------------------------------------------------------------------- outputs
+GEN = _path("REHAUL_GEN_DIR", WRITEUP / "generated")
+FIG = _path("REHAUL_FIG_DIR", WRITEUP / "figures")
+_RES_OUT = os.environ.get("REHAUL_RES_DIR", "").strip()
+
+
+def res_dir(default: Path, final: Path | None = None) -> Path:
+    """Where a generator writes its CSV files: REHAUL_RES_DIR/<name> when set, else `final` under the final design
+    (a new directory, so no CSV of a printed run is overwritten) and `default` otherwise."""
+    d = final if (FINAL and final is not None) else default
+    return Path(_RES_OUT).resolve() / d.name if _RES_OUT else d
+
+
+def rel(p: Path) -> str:
+    """p relative to the repository when it is inside it (log lines), else the absolute path."""
+    try:
+        return str(Path(p).resolve().relative_to(REPO))
+    except ValueError:
+        return str(p)
+
+
+def guard_standin(meta: dict, run: Path) -> None:
+    """A stand-in run (forecasts.json "standin", written by writeup/tests/final_run_standins.py) is read only with
+    REHAUL_ALLOW_STANDIN=1 and never into writeup/generated/, so no stand-in number can reach the paper's files."""
+    if not meta.get("standin"):
+        return
+    if not _on("REHAUL_ALLOW_STANDIN"):
+        raise SystemExit(
+            f"{run} is a STAND-IN ({meta['standin']}); set REHAUL_ALLOW_STANDIN=1 for a test run"
+        )
+    if (
+        GEN.resolve() == (WRITEUP / "generated").resolve()
+        or FIG.resolve() == (WRITEUP / "figures").resolve()
+    ):
+        raise SystemExit(
+            f"{run} is a STAND-IN: set REHAUL_GEN_DIR and REHAUL_FIG_DIR to a scratch directory (not writeup/)"
+        )
+    if str(run) not in _WARNED:
+        _WARNED.add(str(run))
+        print(f"WARNING: reading the STAND-IN {run} ({meta['standin']})")
+
+
+_WARNED: set[str] = set()
+
+
+def tag() -> str:
+    """One log line: which inputs the loaders read."""
+    if not FINAL:
+        return "pooled runs: PRINTED (REHAUL_FINAL_RUN off)"
+    return (
+        f"pooled runs: FINAL design, W = {WINDOW_DAYS:,} days, first day {FIRST_DAY.date()}; linear "
+        f"{rel(LINEAR_RUN)}, trees {rel(TREES_RUN)}, forest {rel(RF_RUN)} [{RF_KEY}], MinGRU {rel(MINGRU_RUN)}"
+    )
+
+
+if __name__ == "__main__":
+    print(tag())
+    print(f"GEN {GEN}\nFIG {FIG}\nRES {_RES_OUT or '(generators own directories)'}")
+    for name, p in (
+        ("linear", LINEAR_RUN),
+        ("trees", TREES_RUN),
+        ("forest", RF_RUN),
+        ("MinGRU", MINGRU_RUN),
+    ):
+        fc = p / "forecasts.parquet"
+        print(f"  {name:7s} {'ok     ' if fc.is_file() else 'MISSING'} {fc}")

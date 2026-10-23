@@ -22,6 +22,14 @@ RULE
 CHECK
   On the run's own scoring days (scores.csv: first .. last, n_days), the mean QLIKE of the 16:00 rows reproduces
   scores.csv to 1e-10 (as writeup/make_rehaul_oos_rerun.py checks), and every arm's penalty is the frozen one.
+
+FINAL RUN (2026-10-23; writeup/final_run.py, REHAUL_FINAL_RUN=1)
+  RUN = final_run.LINEAR_RUN, results/window_sweep_2014start_2026-10-22/w3000 (w3500 under REHAUL_FINAL_WINDOW=3500):
+  the final specification (LATE_START_WARMUP, UNOBSERVED_NEUTRAL, EXCLUDE_FOMC_RELEASE, WALK_KKT_RESEED,
+  STANDARDIZE_PENALTY with the availability screen), penalties frozen from pre-sample fold 3 (validation 2013), a
+  rolling window of 3,000 trading days (39,000 bars), refit at every bar, first evaluation day 2 January 2014; 33,997
+  rows a model from 2013-12-27 16:00 (the 250-solve boundary before 2 January 2014) to 30 April 2024.  The gates are
+  the same, with those constants; the run's run_info.json must name the first day and the window.
 """
 
 from __future__ import annotations
@@ -29,6 +37,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import final_run as fr  # 2026-10-23: the switch to the final pooled rerun (REHAUL_FINAL_RUN)
 import numpy as np
 import pandas as pd
 
@@ -45,6 +54,12 @@ LAST_DAY = pd.Timestamp("2024-04-30")
 WALK_START = pd.Timestamp(
     "2011-12-28 14:00"
 )  # the 250-solve boundary at or before the first 2012-01-03 row
+if fr.FINAL:  # 2026-10-23: the final pooled rerun (writeup/final_run.py); the printed run's constants above
+    RUN = fr.LINEAR_RUN
+    FC = RUN / "forecasts.parquet"
+    N_BARS_ARM = fr.N_LINEAR_ROWS
+    FIRST_DAY, LAST_DAY = fr.FIRST_DAY, fr.LAST_DAY
+    WALK_START = fr.LINEAR_WALK_START
 _CACHE: dict[str, pd.DataFrame] = {}
 
 
@@ -52,6 +67,17 @@ def meta() -> dict:
     """The run's window and span (frozen_penalties.json, SUMMARY.md), and the bars a full day has."""
     info = json.loads((RUN / "frozen_penalties.json").read_text())["info"]
     assert int(info["window_rows"]) == int(info["window_days"]) * N_BARS_DAY, info
+    if fr.FINAL:  # 2026-10-23: the final design's window, first day and tuning fold, from the run's own records
+        ri = json.loads((RUN / "run_info.json").read_text())
+        fr.guard_standin(ri, RUN)
+        assert (
+            int(info["window_days"]) == int(ri["window_days"]) == fr.WINDOW_DAYS
+            and pd.Timestamp(ri["first_day"]) == fr.FIRST_DAY
+            and tuple(int(f["fold"]) for f in info["folds"]) == fr.TUNE_FOLDS
+            and {pd.Timestamp(f["val_first"]).year for f in info["folds"]}
+            == {pd.Timestamp(f["val_last"]).year for f in info["folds"]}
+            == {fr.VAL_YEAR}
+        ), (RUN, info["window_days"], ri["first_day"], info["folds"])
     return {
         "window_days": int(info["window_days"]),
         "bars_day": N_BARS_DAY,

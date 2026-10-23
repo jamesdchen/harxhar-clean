@@ -68,8 +68,10 @@ if str(REPO / "writeup") not in sys.path:
     sys.path.insert(0, str(REPO / "writeup"))
 import pooled_linear_13 as pl13  # noqa: E402  (the pooled linear 13-bar rerun of Table 1 and Sections 6-7)
 import pooled_trees_13 as pt13  # noqa: E402
+import final_run as fr  # noqa: E402  (2026-10-23: the switch to the final pooled rerun, REHAUL_FINAL_RUN)
 
-GEN = REPO / "writeup" / "generated"
+# 2026-10-23: final_run.GEN (REHAUL_GEN_DIR; default writeup/generated). Was: GEN = REPO / "writeup" / "generated"
+GEN = fr.GEN
 DATA = REPO / "data"
 RES = REPO / "results"
 CLEAN = REPO.parent / "harxhar-clean"
@@ -129,7 +131,9 @@ def pooled_panel() -> tuple[list[str], int]:
 PF = REPO / "experiments" / "puffer_forecast"
 PFR = RES / "puffer_forecast_2026-10-12"
 PFW = PFR / "_work"
-MACROS = REPO / "writeup" / "generated" / "close_main_numbers.tex"
+# 2026-10-23: read from GEN (the same file unless REHAUL_GEN_DIR points a test run at a copy of generated/). Was:
+# MACROS = REPO / "writeup" / "generated" / "close_main_numbers.tex"
+MACROS = GEN / "close_main_numbers.tex"
 CHECKS: list[str] = []
 
 # the values the outline quotes (PAPER_REHAUL_OUTLINE_2026-10-15.md); each is asserted against the computation
@@ -337,7 +341,7 @@ def stack(*lines: str, align: str = "c") -> str:
 def write(name: str, text: str) -> None:
     p = GEN / name
     p.write_bytes(text.encode("utf-8"))
-    print(f"wrote {p.relative_to(REPO)}")
+    print(f"wrote {fr.rel(p)}")  # 2026-10-23: a test run writes outside the repository. Was: p.relative_to(REPO)
 
 
 # ============================================================================ source constants (ast; no execution)
@@ -2476,7 +2480,9 @@ def write_samples(P: dict) -> None:
     day13 = t13.dt.normalize()
     ec13 = int(((rolling.EARLY >= ts0) & (rolling.EARLY <= ts1)).sum())
     fc13 = t13[(day13 >= ts0) & (day13 <= ts1) & ~day13.isin(rolling.EARLY)]
-    fa = pd.read_parquet(pt13.FC, columns=["model", "predictor_set", "date"])
+    # 2026-10-23: through the loader's checked frame (the final forest is a run of its own, pt13.RF_RUN). Was:
+    # fa = pd.read_parquet(pt13.FC, columns=["model", "predictor_set", "date"])
+    fa = pt13._frame()[["model", "predictor_set", "date"]]
     check(
         all(
             len(g) == len(fc13) == pt13.N_BARS_ARM
@@ -2504,6 +2510,14 @@ def write_samples(P: dict) -> None:
         "every pooled linear arm forecasts the trees' bars from the first evaluation day (walk from pl13.WALK_START)",
     )
     ppd = TG.PERIODS_PER_DAY
+    # 2026-10-23 (final design): the folds of the pooled linear penalties (final_run.TUNE_FOLDS, validation 2013)
+    pen_folds = json.loads(need(pl13.RUN / "frozen_penalties.json").read_text(encoding="utf-8"))["info"]["folds"]
+    if fr.FINAL:
+        check(
+            tuple(int(f["fold"]) for f in pen_folds) == fr.TUNE_FOLDS
+            and {pd.Timestamp(f["val_first"]).year for f in pen_folds} == {fr.VAL_YEAR},
+            "final pooled linear penalties: pre-sample fold 3, validation 2013 (final_run.py)",
+        )
     later = SRC["exp"].index[SRC["exp"].index > pd.Timestamp(clp["LAST_TRADE_DAY"])]
     spec = "@{}" + P_(0.50) + "llrr@{}"
     body = [
@@ -2589,6 +2603,24 @@ def write_samples(P: dict) -> None:
                 n_(len(fc13)),
                 NA,
             ]
+        ),
+        # 2026-10-23 (final design, final_run.py): the pre-sample fold the pooled linear penalties are chosen on
+        # (fold 3, validation 2013), from the run's frozen_penalties.json; the printed table has no such row
+        *(
+            [
+                cells(
+                    [
+                        rf"\quad Penalty selection (pooled linear models): validation sample of pre-sample fold "
+                        rf"{', '.join(str(f['fold']) for f in pen_folds)}",
+                        D_(pd.Timestamp(pen_folds[0]["val_first"])),
+                        D_(pd.Timestamp(pen_folds[-1]["val_last"])),
+                        n_(sum(f["val"][1] - f["val"][0] for f in pen_folds)),
+                        n_(lw["window_bars"]),
+                    ]
+                )
+            ]
+            if fr.FINAL
+            else []
         ),
         cells(
             [
@@ -3873,6 +3905,15 @@ TYPED = {
     "rhdmPlPenEnetBase": r"\ensuremath{10^{-6}}",
     "rhdmPlPenEnetAll": r"\ensuremath{10^{-2}}",
 }
+if fr.FINAL:  # 2026-10-23: the final rerun's frozen penalties (window_sweep_2014start_2026-10-22/w3000 = w3500)
+    TYPED |= {
+        "rhdmPlPenRidgeBase": r"\ensuremath{10^{-3}}",
+        "rhdmPlPenRidgeAll": r"\ensuremath{10^{3}}",
+        "rhdmPlPenLassoBase": r"\ensuremath{10^{-8}}",
+        "rhdmPlPenLassoAll": r"\ensuremath{10^{-4}}",
+        "rhdmPlPenEnetBase": r"\ensuremath{10^{-7}}",
+        "rhdmPlPenEnetAll": r"\ensuremath{10^{-3}}",
+    }
 WORDS = {1: "one", 2: "two", 3: "three", 4: "four", 5: "five"}
 # 2026-10-15 (finish): the pooled linear models' window, 2,000 trading days x 48 intervals = 96,000, had no macro
 # (typed with a FLAG in 03_data.tex, 06_results.tex and 10_appendix.tex); \rhdmPooledLinWindow reads it from the code.
