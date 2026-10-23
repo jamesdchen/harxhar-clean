@@ -5,10 +5,15 @@ days (REFIT_EVERY = 10, specs/causal_tune_trees.py) are to refit every session, 
 hyperparameter rule unchanged.  The 16:00 campaign of 2026-09-29/30 (writeup/CAMPAIGN_16H_2026-09-29.md, the
 masked ladder of results/trees_mask_1600/) ran every ten-day rung a second time at REFIT_EVERY = 1:
 
-  rung   refit       table (results/spxw_pnl/yhat_<key>.parquet)   every-session twin
+  rung   refit       table yhat_<key>.parquet                       every-session twin
   T10    10          subtree_<model>_<bucket>                       T1   subtree_daily_<bucket>_<model>
   RS10   10          subtree_tuned_<bucket>_<model>                 RS1  subtree_tuned_daily_<bucket>_<model>
   RS10q  10          subtree_tunedq_<bucket>_<model>                RS1q subtree_tunedq_daily_<bucket>_<model>
+
+The tables are in results/spxw_pnl/ for LightGBM (and for the replaced xgb / rf / rfdev runs); the paper reads
+its XGBoost and random-forest keys from the top-entry reruns (experiments/master_table_close.py PERBAR_SWITCH,
+2026-10-13): results/trees_xgbtop_1600/ (token xgbtop) and results/trees_rf400_1600/ (token rf400), the same
+ladder.  Most of these tables are untracked: point --data-root at the checkout that holds them.
 
 This script checks, without refitting the walks, that each twin is the ten-day rung with only the refit cadence
 changed:
@@ -17,12 +22,13 @@ changed:
           ten-day refit rows (forecast row % 10 == 0, where both fit on the same window [t - W, t)), and the count
           of the other rows that differ (the ten-day rung forecasts them with a model up to 9 sessions old).
   picks   the random-search rungs' tuning traces (tune_trace_bar1600.csv under
-          results/linear_subsection_trees_tuned_mask/{rs10,rs1}/): every column but tune_sec equal, so the
-          hyperparameters in force at every row are the same at both cadences.
+          results/linear_subsection_trees_tuned_mask[_xgbtop|_rf400]/{rs10,rs1}/): every column but tune_sec
+          equal, so the hyperparameters in force at every row are the same at both cadences.
   refit   fresh fits of the shipped configuration (the dicts of specs/causal_tune_trees.py, read by ast; the
           spec's leaf-minimum scaling; one thread; the per-window mask src.models.window_mask.window_keep) on the
           printed 16:00 all_features design (results/close_studies_2026-10-03/forecasts/
-          design_bar1600_all_features.parquet, the de-duplicated design the trees were fitted on), at a few
+          design_bar1600_all_features.parquet, the de-duplicated design the trees were fitted on) against the
+          shipped-configuration tables of results/spxw_pnl/ (for xgb / rf: the pre-switch tables), at a few
           forecast rows: the cadence-1 fit (window ending at the row) against the printed T1 forecast and the
           cadence-10 fit (window ending at the row's ten-day anchor) against the printed T10 forecast, bit for bit.
           XGBoost grows a different model under MSVC's standard library (Windows) than under libstdc++ (Linux,
@@ -99,37 +105,74 @@ def spec_constants(names: tuple[str, ...]) -> dict:
     return out
 
 
+# where each estimator token's tables live; the paper reads the XGBoost and random-forest keys of SWITCH_SETS from
+# the top-entry tables (experiments/master_table_close.py PERBAR_SWITCH, user 2026-10-13: xgb -> xgbtop, rf -> rf400)
+TABLE_DIR = {
+    "lgbm": Path("results") / "spxw_pnl",
+    "xgb": Path("results") / "spxw_pnl",
+    "rf": Path("results") / "spxw_pnl",
+    "rfdev": Path("results") / "spxw_pnl",
+    "xgbtop": Path("results") / "trees_xgbtop_1600",
+    "rf400": Path("results") / "trees_rf400_1600",
+}
+PAPER_TOKEN = {
+    "xgbtop": "xgb",
+    "rf400": "rf",
+}  # switched token -> the key's estimator token
+SWITCH_SETS = ("baseline", "all_features", "lean_vol_vix")
+# random-search run roots (rs10 / rs1 below each) and the model directory inside them
+TUNED_ROOTS = {
+    "lgbm": (TUNED_ROOT, "lgbm"),
+    "xgb": (TUNED_ROOT, "xgb"),
+    "rf": (TUNED_ROOT, "rf"),
+    "xgbtop": (Path("results") / "linear_subsection_trees_tuned_mask_xgbtop", "xgb"),
+    "rf400": (Path("results") / "linear_subsection_trees_tuned_mask_rf400", "rf"),
+}
+
+
+def read_by_master(tok: str, bucket: str) -> bool:
+    """Whether the master table (and so the paper model set) reads this token's table for its key."""
+    base = PAPER_TOKEN.get(tok, tok)
+    if base not in ("xgb", "rf"):
+        return True
+    return (tok in PAPER_TOKEN) == (bucket in SWITCH_SETS)
+
+
 def pairs() -> list[dict]:
-    """Every (ten-day key, every-session twin) of the ladder; the RF dev configuration (rfdev) has T10 / T1 only."""
+    """Every (ten-day table, every-session twin) of the ladder; the dev forest (rfdev) has T10 / T1 only."""
     out = []
     for b in BUCKETS:
-        for m in (*MODELS, "rfdev"):
-            out.append(
-                dict(
-                    rung="T10",
-                    model=m,
-                    bucket=b,
-                    k10=f"subtree_{m}_{b}",
-                    k1=f"subtree_daily_{b}_{m}",
-                )
-            )
-            if m == "rfdev":
-                continue
-            for q in ("", "q"):
+        for tok in TABLE_DIR:
+            base = PAPER_TOKEN.get(tok, tok)
+            rungs = [("T10", f"subtree_{tok}_{b}", f"subtree_daily_{b}_{tok}")]
+            if tok != "rfdev":
+                for q in ("", "q"):
+                    rungs.append(
+                        (
+                            f"RS10{q}",
+                            f"subtree_tuned{q}_{b}_{tok}",
+                            f"subtree_tuned{q}_daily_{b}_{tok}",
+                        )
+                    )
+            for rung, k10, k1 in rungs:
                 out.append(
                     dict(
-                        rung=f"RS10{q}",
-                        model=m,
+                        rung=rung,
+                        token=tok,
+                        model=base,
                         bucket=b,
-                        k10=f"subtree_tuned{q}_{b}_{m}",
-                        k1=f"subtree_tuned{q}_daily_{b}_{m}",
+                        table_dir=str(TABLE_DIR[tok]),
+                        k10=k10,
+                        k1=k1,
+                        key10=k10.replace(tok, base),
+                        key1=k1.replace(tok, base),
+                        read_by_master=read_by_master(tok, b),
                     )
                 )
     return out
 
 
 def part_twins(root: Path) -> tuple[pd.DataFrame, bool]:
-    spx = root / "results" / "spxw_pnl"
     ms = (
         set(pd.read_csv(root / MODEL_SET)["key"])
         if (root / MODEL_SET).is_file()
@@ -137,7 +180,8 @@ def part_twins(root: Path) -> tuple[pd.DataFrame, bool]:
     )
     rows, ok = [], True
     for p in pairs():
-        f10, f1 = spx / f"yhat_{p['k10']}.parquet", spx / f"yhat_{p['k1']}.parquet"
+        d0 = root / p["table_dir"]
+        f10, f1 = d0 / f"yhat_{p['k10']}.parquet", d0 / f"yhat_{p['k1']}.parquet"
         if not (f10.is_file() and f1.is_file()):
             if f10.is_file() or f1.is_file():  # one side only: a twin is missing
                 rows.append({**p, "present": False, "ok": False})
@@ -152,8 +196,12 @@ def part_twins(root: Path) -> tuple[pd.DataFrame, bool]:
         r = dict(
             **p,
             present=True,
-            in_model_set=p["k10"] in ms if ms else np.nan,
-            twin_in_model_set=p["k1"] in ms if ms else np.nan,
+            in_model_set=bool(p["read_by_master"] and p["key10"] in ms)
+            if ms
+            else np.nan,
+            twin_in_model_set=bool(p["read_by_master"] and p["key1"] in ms)
+            if ms
+            else np.nan,
             rows=len(a),
             same_stamps=same_t,
             same_baseline=bool(
@@ -182,11 +230,11 @@ def part_twins(root: Path) -> tuple[pd.DataFrame, bool]:
 
 
 def part_picks(root: Path) -> tuple[pd.DataFrame, bool]:
-    base = root / TUNED_ROOT
     rows: list[dict] = []
     ok = True
-    for b in BUCKETS:
-        for m in MODELS:
+    for tok, (rel_root, m) in TUNED_ROOTS.items():
+        base = root / rel_root
+        for b in BUCKETS:
             rel = (
                 Path(b)
                 / "bar1600"
@@ -205,8 +253,9 @@ def part_picks(root: Path) -> tuple[pd.DataFrame, bool]:
             same = len(a) == len(d) and set(diff) <= {"tune_sec"}
             rows.append(
                 dict(
-                    model=m,
+                    token=tok,
                     bucket=b,
+                    root=str(rel_root),
                     tuning_points=int(a["tune_idx"].nunique()),
                     trace_rows=len(a),
                     columns_differing=";".join(diff),
