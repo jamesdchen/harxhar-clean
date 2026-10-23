@@ -17,6 +17,11 @@ import pandas as pd
 
 run, W = Path(sys.argv[1]), int(sys.argv[2])
 RUNNER, CODE, JOBS, MERGE = sys.argv[3:7]
+NOTES = (
+    (run / "NOTES.md").read_text(encoding="utf-8").strip()
+    if (run / "NOTES.md").is_file()
+    else ""
+)
 P = pd.read_csv(run / "progress.csv")
 J = pd.read_csv(run / "jobs.csv", dtype={"jobnumber": str, "taskid": str})
 fj = json.loads((run / "forecasts.json").read_text())
@@ -143,7 +148,8 @@ for a in jobs:
         f"- {a} {g['jobname'].iloc[0]} ({len(g)} records): exit status {g['exit_status'].value_counts().to_dict()}, "
         f"{g['slot_h'].sum():.1f} slot-hours, {g['cpu_h'].sum():.1f} CPU-hours, {g['hostname'].nunique()} hosts."
     )
-L.append(f"- {MERGE} merge (on Hoffman2).")
+if MERGE not in jobs:
+    L.append(f"- {MERGE} merge (on Hoffman2).")
 L += [
     "",
     "## Merge",
@@ -171,5 +177,7 @@ L += [
         "design/ (md5, design_check.json), environment/ (pip freeze), scores/, code/."
     ),
 ]
+if NOTES:
+    L += ["", NOTES]
 (run / "STATUS.md").write_text("\n".join(L) + "\n", encoding="utf-8")
 print("\n".join(L))
