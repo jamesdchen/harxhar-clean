@@ -9,6 +9,7 @@
 #   JOBS  a file under $ROOT/inputs; SUB tune | refit; TAG run name (run dir $ROOT/runs/${TAG}_$SLURM_JOB_ID)
 #   CONC  concurrent models (the previous run: 6 on all features, 12 on the HAR benchmark)
 #   POST  optional: a python script under $ROOT/code, run after the copy-back with the run directory as argument
+#   INITSUB  optional: the ridge-init subdirectory of a bar-refit walk block (bar_b<k>), staged with the set's inits
 # GPU type pinned to the previous run's (P100, --constraint=p100); the job exits if it lands on another model.
 #SBATCH --account=pollok_1603
 #SBATCH --partition=gpu
@@ -36,13 +37,20 @@ case "$JOBS" in *all_features*) SET=all_features ;; *baseline*) SET=baseline ;; 
 LOCAL=${TMPDIR:-/tmp}/pmf_$SLURM_JOB_ID
 mkdir -p "$LOCAL/data/${PFX}_lin_init"
 trap 'rm -rf "$LOCAL"' EXIT
+# 2026-10-22 (bar refits): the set's top-level ridge inits (tune, canary) and, for a walk block, only its own
+# subdirectory INITSUB (bar_b<k>/), not the other blocks' (34 blocks of 1,000 origins a set)
 for s in $SET; do
   cp -r "$DATA/${PFX}_$s" "$LOCAL/data/"
-  cp -r "$DATA/${PFX}_lin_init/$s" "$LOCAL/data/${PFX}_lin_init/"
+  mkdir -p "$LOCAL/data/${PFX}_lin_init/$s"
+  find "$DATA/${PFX}_lin_init/$s" -maxdepth 1 -type f -exec cp -t "$LOCAL/data/${PFX}_lin_init/$s/" {} +
   for f in X.f32 X.f64 y.f32 enc_pf.f64 meta.txt; do
     [ "$(stat -c %s "$DATA/${PFX}_$s/$f")" = "$(stat -c %s "$LOCAL/data/${PFX}_$s/$f")" ] || { echo "stage $s/$f"; exit 1; }
   done
-  [ "$(ls "$DATA/${PFX}_lin_init/$s" | wc -l)" = "$(ls "$LOCAL/data/${PFX}_lin_init/$s" | wc -l)" ] || { echo "stage inits $s"; exit 1; }
+  [ "$(find "$DATA/${PFX}_lin_init/$s" -maxdepth 1 -type f | wc -l)" = "$(find "$LOCAL/data/${PFX}_lin_init/$s" -maxdepth 1 -type f | wc -l)" ] || { echo "stage inits $s"; exit 1; }
+  if [ -n "${INITSUB:-}" ]; then
+    cp -r "$DATA/${PFX}_lin_init/$s/$INITSUB" "$LOCAL/data/${PFX}_lin_init/$s/"
+    [ "$(ls "$DATA/${PFX}_lin_init/$s/$INITSUB" | wc -l)" = "$(ls "$LOCAL/data/${PFX}_lin_init/$s/$INITSUB" | wc -l)" ] || { echo "stage inits $s/$INITSUB"; exit 1; }
+  fi
 done
 mkdir -p "$RUN"; cd "$RUN"; ln -sfn "$LOCAL/data" data
 GOT=$(nvidia-smi --query-gpu=name --format=csv,noheader | head -1)

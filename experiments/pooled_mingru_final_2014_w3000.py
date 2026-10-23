@@ -22,8 +22,12 @@ Stages (python experiments/pooled_mingru_final_2014_w3000.py <stage> ...)
                                                           the pick of every open set; an extension (next round's grid)
                                                           or the frozen configuration; OUT/frozen_config.json when
                                                           both sets are frozen
-  walk-inits  --data --inputs --out --part i --parts n   the frozen (L, wd_lin) ridge init of every walk origin
-  walk-jobs   --inputs --out                             IN/walk_<set>.p<i>.txt
+  walk-inits  --data --inputs --out --part i --parts n [--block B]
+                                                          the frozen (L, wd_lin) ridge init of every bar origin of
+                                                          the blocks part, part + parts, ... (owner, ADDENDUM 2:
+                                                          a refit at every bar)
+  walk-jobs   --inputs --out [--block B]                 IN/walk_<set>.b<k>.txt (+ IN/probe_<set>.txt, a timing
+                                                          probe of block 0's first origins)
   canary      --data --inputs                            IN/canary.txt (+ its inits)
   check-run   --inputs --run DIR                         trainer kept columns = init's, forecast rows = [o, next)
   merge       --data --inputs --runs --out               OUT/forecasts.parquet, forecasts_seeds.parquet, forecasts.json
@@ -720,48 +724,84 @@ def st_select(a: argparse.Namespace) -> None:
 
 
 # ============================================================================ walk
+# 2026-10-22 (owner, RULE_gru.txt ADDENDUM 2): a refit at EVERY bar from 2014-01-02 10:00 (row 50,777) to the last row,
+# each forecasting the single bar o from the window [o - W, o), from scratch (weights_init + the window's ridge init),
+# 5 seeds.  The bar origins are cut into blocks of BLOCK origins: one GPU job file a (set, block), its ridge inits in
+# data/pmf_lin_init/<set>/bar_b<k>/ (staged alone, INITSUB=bar_b<k>).
+BLOCK = 1000
+
+
+def bar_origins() -> list[int]:
+    return list(range(FIRST_EVAL_ROW, N_ROWS))
+
+
+def bar_blocks(block: int) -> list[list[int]]:
+    o = bar_origins()
+    return [o[i : i + block] for i in range(0, len(o), block)]
+
+
 def st_walk_inits(a: argparse.Namespace) -> None:
+    """The frozen (L, wd_lin) ridge init of every bar origin of the blocks k = part, part + parts, ..."""
     data, inp, out = Path(a.data), Path(a.inputs), Path(a.out)
-    plan = json.loads((inp / "plan.json").read_text())
     fz = json.loads((out / "frozen_config.json").read_text())["frozen"]
-    origins = plan["walk"]["origins"][a.part :: a.parts]
-    idx = []
+    bl = bar_blocks(a.block)
+    ks = list(range(a.part, len(bl), a.parts))
+    recs: list[tuple] = []
     for s in SETS:
         D = TData(data, s)
         L, wl = int(fz[s]["L"]), fz[s]["wd_lin"]
-        od = data / "pmf_lin_init" / s
-        od.mkdir(parents=True, exist_ok=True)
         t0 = time.time()
-        for i, o in enumerate(origins):
-            keep = window_keep64(D.X64, o - W, o)
-            pfk = np.append(D.pf[keep], 0.0)
-            A, bb, mu, sd, n = gram(D.X32, D.y, keep, o - W + L - 1, o)
-            v = solve(A, bb, pfk, float(wl) / sd**2)
-            name = f"r{o}_L{L}_wl{wl}.f32"
-            np.asarray(v, "<f4").tofile(od / name)
-            idx.append(
-                dict(
-                    design=s,
-                    file=f"{s}/{name}",
-                    P=len(v),
-                    kind="refit",
-                    origin=o,
-                    L=L,
-                    wl=wl,
-                    mu=mu,
-                    sd=sd,
-                    n=n,
-                    n_keep=len(keep),
+        n_done = 0
+        for k in ks:
+            od = data / "pmf_lin_init" / s / f"bar_b{k}"
+            od.mkdir(parents=True, exist_ok=True)
+            for o in bl[k]:
+                keep = window_keep64(D.X64, o - W, o)
+                pfk = np.append(D.pf[keep], 0.0)
+                A, bb, mu, sd, n = gram(D.X32, D.y, keep, o - W + L - 1, o)
+                v = solve(A, bb, pfk, float(wl) / sd**2)
+                name = f"r{o}_L{L}_wl{wl}.f32"
+                np.asarray(v, "<f4").tofile(od / name)
+                recs.append(
+                    (
+                        s,
+                        f"{s}/bar_b{k}/{name}",
+                        len(v),
+                        k,
+                        o,
+                        L,
+                        wl,
+                        mu,
+                        sd,
+                        n,
+                        len(keep),
+                    )
                 )
-            )
-            if i % 100 == 0:
-                say(
-                    f"walk inits {s} part {a.part}: {i + 1} of {len(origins)} ({time.time() - t0:.0f} s)"
-                )
-    pd.DataFrame(idx).to_csv(inp / f"walk_init_index.p{a.part}.csv", index=False)
+                n_done += 1
+                if n_done % 250 == 0:
+                    say(
+                        f"walk inits {s} part {a.part}: {n_done} ({time.time() - t0:.0f} s)"
+                    )
+    cols = [
+        "design",
+        "file",
+        "P",
+        "block",
+        "origin",
+        "L",
+        "wl",
+        "mu",
+        "sd",
+        "n",
+        "n_keep",
+    ]
+    pd.DataFrame(recs, columns=cols).to_csv(
+        inp / f"walk_init_index.p{a.part}.csv", index=False
+    )
+    say(f"walk inits part {a.part}: blocks {ks}, {len(recs)} files")
 
 
-def walk_line(s: str, c: dict, o: int, nx: int, sd: int, first: bool) -> str:
+def walk_line(s: str, c: dict, o: int, sd: int, k: int, first: bool) -> str:
     base: dict[str, Any] = dict(
         id=f"fwalk_{s}_r{o}_s{sd}",
         data=f"data/pmf_{s}",
@@ -773,13 +813,13 @@ def walk_line(s: str, c: dict, o: int, nx: int, sd: int, first: bool) -> str:
         lr=c["lr"],
         seed=sd,
         epochs=c["epochs"][str(sd)]["epochs"],
-        fc_n=nx - o,
+        fc_n=1,
         wd=0,
         **COMMON,
         wd_enc=c["wd_enc"],
         wd_lin=c["wd_lin"],
         lr_lin=c["lr_lin"],
-        lin_init=f"data/pmf_lin_init/{s}/r{o}_L{c['L']}_wl{c['wd_lin']}.f32",
+        lin_init=f"data/pmf_lin_init/{s}/bar_b{k}/r{o}_L{c['L']}_wl{c['wd_lin']}.f32",
     )
     if first:
         base["save_params"] = 1
@@ -787,34 +827,49 @@ def walk_line(s: str, c: dict, o: int, nx: int, sd: int, first: bool) -> str:
 
 
 def st_walk_jobs(a: argparse.Namespace) -> None:
+    """IN/walk_<set>.b<k>.txt (every bar origin of block k x 5 seeds) and IN/probe_<set>.txt (the first
+    --probe-origins origins of block 0, the same lines: a timing probe, not merged)."""
     inp, out = Path(a.inputs), Path(a.out)
-    plan = json.loads((inp / "plan.json").read_text())
     fz = json.loads((out / "frozen_config.json").read_text())["frozen"]
-    o_all, n_all = plan["walk"]["origins"], plan["walk"]["next"]
-    parts = {"all_features": a.parts_full, "baseline": a.parts_har}
-    lst = []
+    bl = bar_blocks(a.block)
+    lst, prb = [], []
     for s in SETS:
-        lines = [
-            walk_line(s, fz[s], o, nx, sd, i == 0)
-            for i, (o, nx) in enumerate(zip(o_all, n_all))
-            for sd in SEEDS
-        ]
-        per = -(-len(lines) // parts[s])
-        for p in range(parts[s]):
-            name = f"walk_{s}.p{p}.txt"
-            (inp / name).write_bytes(
-                ("\n".join(lines[p * per : (p + 1) * per]) + "\n").encode()
-            )
+        n = 0
+        for k, os_ in enumerate(bl):
+            lines = [
+                walk_line(s, fz[s], o, sd, k, k == 0 and i == 0)
+                for i, o in enumerate(os_)
+                for sd in SEEDS
+            ]
+            name = f"walk_{s}.b{k}.txt"
+            (inp / name).write_bytes(("\n".join(lines) + "\n").encode())
             lst.append(
                 dict(
                     file=name,
                     set=s,
                     conc=CONC[s],
-                    n_jobs=len(lines[p * per : (p + 1) * per]),
+                    initsub=f"bar_b{k}",
+                    n_jobs=len(lines),
                 )
             )
-        say(f"walk jobs {s}: {len(lines)} refits in {parts[s]} files")
+            n += len(lines)
+            if k == 0:
+                pl = lines[: a.probe_origins * len(SEEDS)]
+                (inp / f"probe_{s}.txt").write_bytes(("\n".join(pl) + "\n").encode())
+                prb.append(
+                    dict(
+                        file=f"probe_{s}.txt",
+                        set=s,
+                        conc=CONC[s],
+                        initsub="bar_b0",
+                        n_jobs=len(pl),
+                    )
+                )
+        say(
+            f"walk jobs {s}: {n} refits ({len(bl)} blocks of {a.block} bar origins x {len(SEEDS)} seeds)"
+        )
     pd.DataFrame(lst).to_csv(inp / "walk_files.csv", index=False)
+    pd.DataFrame(prb).to_csv(inp / "probe_files.csv", index=False)
 
 
 # ============================================================================ canary
@@ -845,10 +900,11 @@ def st_canary(a: argparse.Namespace) -> None:
             np.asarray(v, "<f4").tofile(data / "pmf_lin_init" / s / name)
             idx.append(dict(design=s, origin=o, next=nx, n_keep=len(keep), file=name))
             cc = dict(c, epochs={str(SEEDS[0]): dict(epochs=2)})
-            ln = walk_line(s, cc, o, nx, SEEDS[0], False).replace(
+            ln = walk_line(s, cc, o, SEEDS[0], 0, False).replace(
                 f"id=fwalk_{s}", f"id=canary_walk_{s}"
             )
-            ln = ln.replace(f"r{o}_L{c['L']}_wl{c['wd_lin']}.f32", name)
+            ln = ln.replace(" fc_n=1 ", f" fc_n={nx - o} ")  # the canary: a daily block
+            ln = ln.replace(f"bar_b0/r{o}_L{c['L']}_wl{c['wd_lin']}.f32", name)
             lines.append(ln)
     (inp / "canary.txt").write_text("\n".join(lines) + "\n")
     pd.DataFrame(idx).to_csv(inp / "canary_index.csv", index=False)
@@ -864,31 +920,34 @@ def st_check_run(a: argparse.Namespace) -> None:
     jo = pd.read_csv(run / sub / "jobs_out.csv")
     pr = pd.read_csv(run / sub / "preds.csv")
     keepn: dict[tuple[str, Any], int] = {}
-    for p in sorted(inp.glob("walk_init_index.p*.csv")) + [
-        inp / "canary_index.csv",
-        inp / "init_index_tune.csv",
-    ]:
+    for p in sorted(inp.glob("walk_init_index.p*.csv")) + [inp / "canary_index.csv"]:
         if p.is_file():
-            q = pd.read_csv(p)
-            for _, r in q.iterrows():
-                if "origin" in q.columns and not pd.isna(r.get("origin", np.nan)):
-                    keepn[(r["design"], int(r["origin"]))] = int(r["n_keep"])
-                else:
-                    keepn[(r["design"], "tune")] = int(r["n_keep"])
+            q = pd.read_csv(p, usecols=["design", "origin", "n_keep"])
+            keepn.update(
+                zip(zip(q["design"], q["origin"].astype(int)), q["n_keep"].astype(int))
+            )
+    q = pd.read_csv(inp / "init_index_tune.csv", usecols=["design", "n_keep"])
+    keepn.update({(d, "tune"): int(k) for d, k in zip(q["design"], q["n_keep"])})
     bad: list[tuple] = []
     for _, j in jo.iterrows():
         s = "all_features" if "_all_features_" in j["id"] else "baseline"
         if j["status"] != "ok":
-            bad.append((j["id"], "status", j["status"]))
+            if (
+                j["mode"] == "refit"
+            ):  # a tune job may legitimately end non-finite (RULE: skipped by select)
+                bad.append((j["id"], "status", j["status"]))
             continue
         if j["mode"] == "refit":
             o = int(j["w1"])
-            if keepn.get((s, o)) is not None and int(j["n_inputs"]) != keepn[(s, o)]:
+            if int(j["n_inputs"]) != keepn.get((s, o), -1):
                 bad.append((j["id"], "n_inputs", int(j["n_inputs"]), keepn[(s, o)]))
             rows = pr.loc[
                 (pr["id"] == j["id"]) & (pr["kind"] == "fc"), "row"
             ].to_numpy()
-            if not np.array_equal(rows, np.arange(o, nxt[o])):
+            end = (
+                o + 1 if j["id"].startswith("fwalk_") else nxt[o]
+            )  # bar refits: one bar
+            if not np.array_equal(rows, np.arange(o, end)):
                 bad.append(
                     (
                         j["id"],
@@ -914,7 +973,10 @@ def st_check_run(a: argparse.Namespace) -> None:
     )
     (run / "check_run.json").write_text(json.dumps(res, indent=1))
     say(json.dumps(res))
-    if bad or not res["finite"] or not res["positive"]:
+    strict = (
+        sub == "refit"
+    )  # tune forecasts may be non-finite (skipped by select), refits may not
+    if bad or (strict and not (res["finite"] and res["positive"])):
         sys.exit(1)
 
 
@@ -943,29 +1005,26 @@ def read_runs(runs: Path, pat: str, sub: str) -> tuple[pd.DataFrame, pd.DataFram
 
 
 def st_merge(a: argparse.Namespace) -> None:
-    runs, out, inp = Path(a.runs), Path(a.out), Path(a.inputs)
+    runs, out = Path(a.runs), Path(a.out)
     rows = load_rows(Path(a.data_rows))
-    plan = json.loads((inp / "plan.json").read_text())
     cfgj = json.loads((out / "frozen_config.json").read_text())
     rv = rv_bars()
     fr, seeds_long, meta = [], [], {}
     r_all = np.arange(FIRST_EVAL_ROW, N_ROWS)
-    nxt = dict(zip(plan["walk"]["origins"], plan["walk"]["next"]))
+    origins = bar_origins()
     for s in SETS:
-        jo, pr = read_runs(runs, f"walk_{s}_p*_*", "refit")
+        jo, pr = read_runs(runs, f"walk_{s}_b*_*", "refit")
         assert (jo["status"] == "ok").all()
         assert not jo["id"].duplicated().any()
         m = jo["id"].str.extract(WALK_RE)
         assert m.notna().all().all()
-        want = {
-            f"fwalk_{s}_r{o}_s{sd}" for o in plan["walk"]["origins"] for sd in SEEDS
-        }
+        want = {f"fwalk_{s}_r{o}_s{sd}" for o in origins for sd in SEEDS}
         assert set(jo["id"]) == want, (s, len(set(jo["id"])), len(want))
         pr = pr[pr["kind"] == "fc"].copy()
         assert not pr.duplicated(["id", "row"]).any()
         mm = pr["id"].str.extract(WALK_RE)
         pr["origin"], pr["seed"] = mm[1].astype(int), mm[2].astype(int)
-        assert ((pr["row"] >= pr["origin"]) & (pr["row"] < pr["origin"].map(nxt))).all()
+        assert (pr["row"] == pr["origin"]).all()  # each bar refit forecasts its own bar
         piv = pr.pivot(index="row", columns="seed", values="f").sort_index()
         assert list(piv.columns) == list(SEEDS) and np.array_equal(
             piv.index.to_numpy(), r_all
@@ -1013,7 +1072,7 @@ def st_merge(a: argparse.Namespace) -> None:
         json.dumps(
             dict(
                 window_days=WINDOW_DAYS,
-                refit="daily (every session)",
+                refit="every bar (RULE_gru.txt ADDENDUM 2)",
                 span=[FIRST_EVAL, str(fc["date"].max())],
                 seeds=list(SEEDS),
                 sets=meta,
@@ -1054,8 +1113,8 @@ def main() -> int:
     ap.add_argument("--tune-gpu-hours", type=float, default=None)
     ap.add_argument("--part", type=int, default=0)
     ap.add_argument("--parts", type=int, default=1)
-    ap.add_argument("--parts-full", type=int, default=12)
-    ap.add_argument("--parts-har", type=int, default=6)
+    ap.add_argument("--block", type=int, default=BLOCK)
+    ap.add_argument("--probe-origins", type=int, default=12)
     ap.add_argument("--data-rows", default="")
     a = ap.parse_args()
     {

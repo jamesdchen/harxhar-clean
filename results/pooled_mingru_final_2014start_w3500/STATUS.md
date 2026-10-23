@@ -15,3 +15,11 @@ Owner, 2026-10-22 (relayed): "Test mingru 3.5k as well". Rule: `RULE_gru.txt` (t
 - 2026-10-22 22:00 PDT: canary 13320230 (tune) and 13320231 (refit), POST = check-run; round-0 tune jobs
   13320232-13320269 held afterok on the gate (13319779, 13319780) and these two canaries; every W = 3,500 GPU job
   --nice=1000 (the W = 3,000 jobs first).
+- 2026-10-22 22:45 PDT: owner (relayed): "All models need to refit every period. Don't cut corners." RULE_gru.txt
+  ADDENDUM 2 (both windows, before any walk job): a refit at every bar from 2014-01-02 10:00 (33,970 bars an arm),
+  5 seeds, from scratch (as every tuning job and every previous refit: weights_init + the window's ridge init, no
+  init_from). Runner: bar-origin blocks of 1,000 (34 GPU job files an arm), per-block ridge-init subdirectories
+  (INITSUB staging); timing probe cluster/pooled_mingru_final_probe_carc.sbatch (+ experiments/
+  pooled_mingru_final_probe.py) at concurrency C, 2C, 4C with a bit-identity check. Projection sent to the
+  coordinator (from the previous run's P100 walk logs scaled by window rows): about 175 P100-hours for the four bar
+  walks at 10 epochs (W 3,000 full ~46, HAR ~34; W 3,500 full ~54, HAR ~39), more if the tuned H or L is large.

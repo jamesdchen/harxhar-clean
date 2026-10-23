@@ -77,3 +77,13 @@ embargo and validation rows [47,527, 50,777) (2013-01-02 15:30 .. 2013-12-31 16:
 the daily walk on the trailing 45,500 rows from 2014-01-02; scored exactly as W = 3,000 (with the linear W = 3,500
 run as context). Output results/pooled_mingru_final_2014start_w3500/; CARC root /home1/jc_905/pmf35. The W = 3,000
 run keeps priority (the W = 3,500 GPU jobs carry a Slurm nice value).
+
+ADDENDUM 2 2026-10-22 22:45 PDT (2026-10-23 05:45 UTC; owner, relayed: "All models need to refit every period. Don't cut
+corners."), written before any walk job was submitted, at both windows: WALK is replaced by a refit at EVERY BAR. For
+every design row o from 2014-01-02 10:00 (row 50,777) through 2024-04-30 16:00 (row 84,746), 33,970 bars an arm: one
+refit a seed on the trailing W rows [o - W, o) (39,000 at W = 3,000; 45,500 at W = 3,500) with that window's ridge
+init (window mask and closed-form ridge of the frozen L and wd_lin on [o - W + L - 1, o), as every refit before),
+each seed for its own epochs, forecasting the single bar o (fc_n = 1); forecast = the 5-seed mean of f, plain = f^2 B.
+Every refit trains from scratch, as every tuning job (and every refit of the previous runs) did: fresh weights from
+the trainer's weights_init for (P, H, layers, seed), the linear shortcut at the window's ridge, no warm start
+(init_from unused). HAR benchmark and full set, the frozen configuration of each set and window. Tuning unchanged.

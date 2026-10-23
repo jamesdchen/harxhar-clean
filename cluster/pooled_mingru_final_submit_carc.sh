@@ -13,13 +13,15 @@ G=/home1/jc_905/pmf/pooled_mingru_final_gpu_carc.sbatch
 MODE=$1
 case $MODE in
   tune) R=$2; LIST=inputs/tune_files_r$R.csv; SUB=tune ;;
-  walk) LIST=inputs/walk_files.csv; SUB=refit ;;
-  *) echo "usage: $0 tune <round> | walk"; exit 1 ;;
+  walk) LIST=inputs/${WLIST:-walk_files.csv}; SUB=refit ;;
+  *) echo "usage: $0 tune <round> | walk     (walk: WLIST=probe_files.csv for the timing probe)"; exit 1 ;;
 esac
 tail -n +2 "$LIST" | while IFS=, read -r file set conc rest; do
   tag=${file%.txt}; tag=${tag//./_}
+  isub=""
+  [ "$SUB" = refit ] && isub=$(echo "$rest" | cut -d, -f1)  # walk_files.csv: file,set,conc,initsub,n_jobs
   id=$(sbatch --parsable --job-name=pmf${SUB:0:1} --mem=24G --time=${TLIM:-4:00:00} ${DEP:+--dependency=$DEP} \
        ${NICE:+--nice=$NICE} -o "$ROOT/logs/%x_%j.out" \
-       --export=NONE,ROOT=$ROOT,JOBS=$file,SUB=$SUB,TAG=$tag,CONC=$conc $G)
+       --export=NONE,ROOT=$ROOT,JOBS=$file,SUB=$SUB,TAG=$tag,CONC=$conc,INITSUB=$isub,POST=pooled_mingru_final_post_check.py $G)
   echo "$file $id" | tee -a inputs/submitted.txt
 done
