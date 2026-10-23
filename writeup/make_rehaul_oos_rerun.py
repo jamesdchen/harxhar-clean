@@ -67,8 +67,20 @@ SPAN     2026-10-20 (user): "switch the main window to 1,000 days, not 2,000. Ta
          results/pooled_linear_rerun_2026-10-20_13_2012_w2000 and also wrote \\rhorSubOne... / \\rhorSubTwo...
          macros (2012-2019, 2020-2024); "--span 2020" was the default.
 
+FINAL    2026-10-23 (writeup/final_run.py): with REHAUL_FINAL_RUN=1 the default span is "2014", the final pooled rerun:
+         the linear rows from final_run.LINEAR_RUN (results/window_sweep_2014start_2026-10-22/w3000), the trees through
+         pooled_trees_13 (LightGBM / XGBoost from final_run.TREES_RUN, the oneDAL forest from final_run.RF_RUN), on the
+         2,579 trading days 2 January 2014 .. 30 April 2024 (20 early closes dropped), a 3,000-day (39,000-bar) window,
+         penalties frozen from pre-sample fold 3 (validation 2013); the subperiods are 2014-2019 (1,496 days) and
+         2020-2024 (1,082).  The 16:00 check runs on 2020-01-03 .. 2024-04-30 (the run's scores.csv).  CSVs go to
+         results/oos_final_2014start/table1_w3000/ (final_run.res_dir), the .tex files to final_run.GEN.  New macros
+         (both spans, no printed number changes): \\rhorSpanStartYear, \\rhorPenFoldsWord, \\rhorPenSample (the
+         pre-sample phrase, singular for one fold), \\rhorNColsAf (columns of the full 13-bar set: 576 printed, 564
+         final), \\rhorNTreeBars (bars of each tree arm).
+
 Run:  python writeup/make_rehaul_oos_rerun.py                 (2012-2024, 1,000-day window)
       python writeup/make_rehaul_oos_rerun.py --span 2020     (the earlier 2020-2024 table; --out-dir writes elsewhere)
+      REHAUL_FINAL_RUN=1 python writeup/make_rehaul_oos_rerun.py   (2014-2024, the final rerun; --span 2014)
 """
 
 from __future__ import annotations
@@ -86,10 +98,12 @@ REPO = ROOT.parent
 sys.path.insert(0, str(REPO))
 sys.path.insert(0, str(REPO / "notebooks"))
 import atm_straddle_lib as asl  # noqa: E402
+import final_run as fr  # noqa: E402  (2026-10-23: the switch to the final pooled rerun, REHAUL_FINAL_RUN)
 import pooled_trees_13 as pt13  # noqa: E402  (2026-10-22, user, E36: the base-5 pooled trees, every bar)
 from src.evaluation.diebold_mariano import dm_test  # noqa: E402
 
-GEN = ROOT / "generated"
+# 2026-10-23: final_run.GEN (REHAUL_GEN_DIR; default writeup/generated). Was: GEN = ROOT / "generated"
+GEN = fr.GEN
 OUT_TABLE = GEN / "rehaul_results_oos.tex"
 OUT_NUMBERS = GEN / "rehaul_oos_rerun_numbers.tex"
 OUT_RES = REPO / "results" / "oos_rerun_2026-10-20"
@@ -135,7 +149,23 @@ SPANS = {
             ("B", FIRST_DAY, LAST_DAY, SPAN_DAYS),
         ],
     ),
+    # 2026-10-23 (final design, writeup/final_run.py): the final pooled rerun from 2 January 2014, linear and trees, a
+    # final_run.WINDOW_DAYS-day window, penalties frozen from pre-sample fold 3 (validation 2013); the default span
+    # when REHAUL_FINAL_RUN=1 (the loaders read the final runs only then, so the trees' gates need the switch on)
+    "2014": dict(
+        r13=fr.LINEAR_RUN, panels=["13"], first=fr.FIRST_DAY, last=fr.LAST_DAY, n_days=2579,
+        check=(FIRST_DAY, LAST_DAY, SPAN_DAYS),
+        res=REPO / "results" / "oos_final_2014start" / f"table1_w{fr.WINDOW_DAYS}",
+        window=fr.WINDOW_DAYS, trees=True,
+        subs=[
+            ("A", fr.SUB_A[0], fr.SUB_A[1], 1496),
+            ("B", FIRST_DAY, LAST_DAY, SPAN_DAYS),
+        ],
+    ),
 }
+# 2026-10-23: the CSV directory of the printed spans through final_run.res_dir (REHAUL_RES_DIR redirects a test run)
+for _c in SPANS.values():
+    _c["res"] = fr.res_dir(_c["res"])
 
 
 # --------------------------------------------------------------------------- data
@@ -294,9 +324,20 @@ def thousands(n: int) -> str:
 def main() -> None:
     ap = argparse.ArgumentParser()
     # 2026-10-20 (user): parked -- the 2020 default. Was: default="2020"
-    ap.add_argument("--span", choices=sorted(SPANS), default="2012", help="evaluation span of Table 1 (default 2012)")
+    # 2026-10-23: the default follows the switch (2014 under REHAUL_FINAL_RUN=1). Was: default="2012"
+    ap.add_argument(
+        "--span", choices=sorted(SPANS), default="2014" if fr.FINAL else "2012",
+        help="evaluation span of Table 1 (default 2012; 2014 under REHAUL_FINAL_RUN=1)",
+    )
     ap.add_argument("--out-dir", type=Path, default=GEN, help="directory of the two .tex files (default generated/)")
     args = ap.parse_args()
+    # 2026-10-23: the loaders read the final runs only under the switch, so the 2014 span needs it and the 2012 span
+    # (the printed trees) needs it off
+    assert (args.span == "2014") == fr.FINAL or args.span == "2020", (
+        f"--span {args.span} with REHAUL_FINAL_RUN {'on' if fr.FINAL else 'off'}: the 2014 span is the final rerun "
+        "(switch on), the 2012 span the printed runs (switch off)"
+    )
+    print(fr.tag())
     cfg = SPANS[args.span]
     out_table, out_numbers, out_res = args.out_dir / OUT_TABLE.name, args.out_dir / OUT_NUMBERS.name, cfg["res"]
     r13 = cfg["r13"]
@@ -410,7 +451,19 @@ def main() -> None:
     dms.to_csv(out_res / "dm.csv", index=False)
     if len(subs):
         subs.to_csv(out_res / "subperiods.csv", index=False)
-    span12 = args.span == "2012"
+    # 2026-10-23: the 2014 span (final rerun) is built like the 2012 one. Was: span12 = args.span == "2012"
+    span12 = args.span in ("2012", "2014")
+    final14 = args.span == "2014"
+    # 2026-10-23: the pre-sample of the frozen penalties, from the run's own folds (2008--2011 printed, 2013 final)
+    fp_info = json.loads((r13 / "frozen_penalties.json").read_text())["info"] if span12 else {}
+    n_folds = len(fp_info.get("folds", []))
+    pen_years = ""
+    if span12:
+        y0 = min(pd.Timestamp(f["val_first"]).year for f in fp_info["folds"])
+        y1 = max(pd.Timestamp(f["val_last"]).year for f in fp_info["folds"])
+        pen_years = f"{y0}--{y1}" if y0 != y1 else str(y0)
+        assert final14 or pen_years == "2008--2011", pen_years
+        assert not final14 or (pen_years, n_folds) == (str(fr.VAL_YEAR), len(fr.TUNE_FOLDS)), (pen_years, n_folds)
 
     # ------------------------------------------------------------------ the table
     def cell(pid, m, s):
@@ -474,13 +527,22 @@ def main() -> None:
         # pooled linear rerun from 2012 on the 13 regular-hours bars (base 5," / "% FOMC in, ...-day window, penalties
         # chosen on the folds 2008-2011 and frozen), every bar scored on the" / "% ... days 2012-01-03 .. 2024-04-30;
         # Diebold-Mariano on daily average QLIKE."
+        # 2026-10-23: the span, the run's start year and the penalty folds from cfg / the run (the 2012 text as before)
         top = [
-            "% tab:rh_oos, 2012 span (--span 2012): the pooled linear rerun from 2012 and the pooled trees on its design",
+            f"% tab:rh_oos, {cfg['first'].year} span (--span {args.span}): the pooled linear rerun from "
+            f"{cfg['first'].year} and the pooled trees on its design",
             f"% (13 regular-hours bars, base 5, FOMC in, {cfg['window']:,}-day window, refit at every bar; penalties "
             "chosen on the",
-            "% folds 2008-2011 and frozen, one Optuna configuration a tree method, frozen), every bar scored on the",
-            f"% {len(days):,} days 2012-01-03 .. 2024-04-30; Diebold-Mariano on daily average QLIKE.",
+            f"% folds {pen_years.replace('--', '-')} and frozen, one Optuna configuration a tree method, frozen), every "
+            "bar scored on the",
+            f"% {len(days):,} days {cfg['first'].date()} .. {cfg['last'].date()}; Diebold-Mariano on daily average "
+            "QLIKE.",
         ]
+        if final14:
+            top[2] = (
+                f"% fold {', '.join(str(f['fold']) for f in fp_info['folds'])} (validation {pen_years}) and frozen, "
+                "one Optuna configuration a tree method, frozen), every bar scored on the"
+            )
         # 2026-10-22 (user, E36): parked -- typed numbers, and "penalties frozen" does not cover the trees. Was:
         # caption = ("Forecast accuracy of the intraday models, \\rhorSpanStart{} to \\rhorSpanEnd{} "
         #            f"({thousands(cfg['window'])}-day window, penalties frozen from 2008--2011)")
@@ -495,6 +557,10 @@ def main() -> None:
             "forecast; the tree ensembles' configurations, one per method, by an Optuna search on the pre-sample "
             "(Appendix~\\ref{sec:rh_methods_hyper})"
         )
+        if final14:  # 2026-10-23: one fold (the plural sentence above would read "on 1 validation folds")
+            pen = pen.replace(
+                "on \\rhorPenFolds{} validation folds covering \\rhorPenYears{}", "on \\rhorPenSample{}"
+            )
         span_txt = ("Every bar is scored on the $T_{\\mathrm{oos}} = \\rhorDays$ trading days from \\rhorSpanStart{} to "
                     "\\rhorSpanEnd{} (early closes dropped)")
         # 2026-10-22 (user, E36): parked -- "Pooled intraday linear models", the 2012 design sentence with {pen} and the
@@ -574,8 +640,13 @@ def main() -> None:
         # intervals, 13 regular-hours bars"
         lines = [
             HEAD,
-            "% \\rhor... macros of Table 1 (tab:rh_oos), --span 2012: the pooled linear rerun from 2012 on the 13 bars",
-            f"% ({cfg['window']:,}-day window, penalties chosen once on the folds 2008-2011 and frozen) and the pooled "
+            f"% \\rhor... macros of Table 1 (tab:rh_oos), --span {args.span}: the pooled linear rerun from "
+            f"{cfg['first'].year} on the 13 bars",
+            f"% ({cfg['window']:,}-day window, penalties chosen once on the folds {pen_years.replace('--', '-')} and "
+            "frozen) and the pooled trees on its design"
+            if not final14
+            else f"% ({cfg['window']:,}-day window, penalties chosen once on fold "
+            f"{', '.join(str(f['fold']) for f in fp_info['folds'])} (validation {pen_years}) and frozen) and the pooled "
             "trees on its design",
             "% (one Optuna configuration a method, frozen), scored on every bar.",
             mac("rhorNIntB", thousands(len(panels["13"][0])), "scored bars, 13 regular-hours bars; the same bars for "
@@ -585,7 +656,9 @@ def main() -> None:
             mac("rhorSpanEnd", f"{cfg['last'].day} {cfg['last']:%B %Y}", "last day of the span"),
             mac("rhorEarlyCloses", str(int(((EARLY >= days[0]) & (EARLY <= days[-1])).sum())),
                 "NYSE early-close days inside the span, dropped (the rule of rhoosEarlyCloses)"),
-            mac("rhorPenYears", "2008--2011", "years of the four validation folds on which the penalties are chosen"),
+            # 2026-10-23: from the run's folds (asserted 2008--2011 for the printed run). Was: "2008--2011"
+            mac("rhorPenYears", pen_years, "years of the four validation folds on which the penalties are chosen"
+                if not final14 else "validation year of the pre-sample fold on which the penalties are chosen"),
             mac("rhorNBars", str(len(set(panels["13"][0].strftime("%H:%M")))), "bars of the day in the sample"),
             mac("rhorPenFolds", str(len(json.loads((r13 / "frozen_penalties.json").read_text())["info"]["folds"])),
                 "validation folds on which the penalties are chosen"),
@@ -593,6 +666,25 @@ def main() -> None:
             mac("rhorWindowBars", thousands(13 * cfg["window"]), "rolling window, 13-bar observations"),
             mac("rhorHacLag", ", ".join(str(x) for x in lag), "Newey-West lag of the daily tests"),
         ]
+        # 2026-10-23 (final-run switch): design macros for the prose that still types the design (both spans; no
+        # printed number changes): the first year, the folds as a word and as a phrase (singular for one fold), the
+        # columns of the full 13-bar set, and the bars of each tree arm
+        words = {1: "one", 2: "two", 3: "three", 4: "four", 5: "five"}
+        n_af = int(json.loads((r13 / "frozen_penalties.json").read_text())["designs"]["all_features"]["n_columns"])
+        assert n_af == (564 if final14 else 576), n_af
+        lines += [
+            mac("rhorSpanStartYear", str(cfg["first"].year), "first year of the span"),
+            mac("rhorPenFoldsWord", words[n_folds], "validation folds of the penalties, as a word"),
+            mac(
+                "rhorPenSample",
+                "the last pre-sample fold (validation year " + pen_years + ")" if n_folds == 1
+                else f"{n_folds} validation folds covering {pen_years}",
+                "the pre-sample the penalties are chosen on, as a phrase (after 'chosen once on')",
+            ),
+            mac("rhorNColsAf", str(n_af), "columns of the full predictor set of the 13-bar design (frozen_penalties.json)"),
+        ]
+        if cfg["trees"]:
+            lines.append(mac("rhorNTreeBars", thousands(pt13.N_BARS_ARM), "bars of each pooled tree arm (forecasts)"))
     for pid, tag in (("48", "A"), ("13", "B")):
         if pid not in cfg["panels"]:
             continue
@@ -730,7 +822,8 @@ def main() -> None:
     print(dms[dms.loss == "qlike"].to_string(index=False))
     if len(subs):
         print(subs.to_string(index=False))
-    print(f"wrote {out_table}, {out_numbers}, {out_res.relative_to(REPO)}/")
+    # 2026-10-23: fr.rel (a test run writes outside the repository). Was: {out_res.relative_to(REPO)}
+    print(f"wrote {out_table}, {out_numbers}, {fr.rel(out_res)}/")
 
 
 if __name__ == "__main__":

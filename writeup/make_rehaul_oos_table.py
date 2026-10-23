@@ -93,7 +93,11 @@ import pooled_trees_13 as pt13  # noqa: E402  (2026-10-22, E34: the base-5 poole
 import rolling_eval_2026_10_15 as rolling  # noqa: E402  (2026-10-15: the common rolling span)
 from src.evaluation.diebold_mariano import _nw_lag  # noqa: E402
 
-GEN = ROOT / "generated"
+sys.path.insert(0, str(ROOT))
+import final_run as fr  # noqa: E402  (2026-10-23: the switch to the final pooled rerun, REHAUL_FINAL_RUN)
+
+# 2026-10-23: final_run.GEN (REHAUL_GEN_DIR; default writeup/generated). Was: GEN = ROOT / "generated"
+GEN = fr.GEN
 MT = REPO / "results" / "close_master_table"
 # 2026-10-22 (user, E34): parked -- the base-2 pooled trees; the pooled trees are read through pt13. Was:
 # POOLTREE = REPO / "results" / "pooled_trees_2026-10-07"
@@ -302,7 +306,10 @@ def load_cells() -> tuple[
     # first forecast before the span and their last on its last day
     m13 = pt13.meta()
     m13_design = (m13["refit"], m13["window_days"], m13["window_bars"])
-    assert m13_design == ("bar", 1000, 13000), m13
+    # 2026-10-23: the final rerun's window under the switch (final_run.py). Was: == ("bar", 1000, 13000)
+    assert m13_design == (
+        ("bar", fr.WINDOW_DAYS, fr.WINDOW_BARS) if fr.FINAL else ("bar", 1000, 13000)
+    ), m13
     assert m13["span"][0] < days[0] and m13["span"][1] == days[-1], (
         m13["span"],
         days[0],
@@ -965,7 +972,8 @@ def main() -> None:
     # 2026-10-22: the file written is Table 2 (SIDE_SPEC close), not OUT_TABLE (Table 1, make_rehaul_oos_rerun.py).
     # Was: print(f"wrote {OUT_TABLE.relative_to(REPO)} and {OUT_NUMBERS.relative_to(REPO)}")
     print(
-        f"wrote {(GEN / SIDE_SPEC['close']['out']).relative_to(REPO)} and {OUT_NUMBERS.relative_to(REPO)}"
+        # 2026-10-23: fr.rel (a test run writes outside the repository); was .relative_to(REPO)
+        f"wrote {fr.rel(GEN / SIDE_SPEC['close']['out'])} and {fr.rel(OUT_NUMBERS)}"
     )
 
 

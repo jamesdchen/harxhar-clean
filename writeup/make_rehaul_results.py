@@ -132,6 +132,7 @@ import hac_inference as hi  # noqa: E402  (2026-10-21, decision #2: every test o
 import rolling_eval_2026_10_15 as rolling  # noqa: E402  (2026-10-15: the common rolling span of every accuracy number)
 import pooled_trees_13 as pt13  # noqa: E402  (2026-10-22, E34: the base-5 pooled trees, writeup/pooled_trees_13.py)
 import pooled_linear_13 as pl13  # noqa: E402  (2026-10-22, E34: the pooled linear rows on the trees' design)
+import final_run as fr  # noqa: E402  (2026-10-23: the switch to the final pooled rerun, REHAUL_FINAL_RUN)
 
 # 2026-10-15 (user, restructure): the GUI's sizing scorer, as make_rehaul_economics.py calls it (pooled sizing medians)
 from master_table_gui import rows as gui  # noqa: E402
@@ -144,8 +145,10 @@ import matplotlib.pyplot as plt  # noqa: E402
 from matplotlib.lines import Line2D  # noqa: E402
 from matplotlib.transforms import blended_transform_factory  # noqa: E402
 
-GEN = ROOT / "generated"
-FIG = ROOT / "figures"
+# 2026-10-23: final_run.GEN / FIG (REHAUL_GEN_DIR / REHAUL_FIG_DIR; defaults writeup/generated, writeup/figures).
+# Was: GEN = ROOT / "generated"; FIG = ROOT / "figures"
+GEN = fr.GEN
+FIG = fr.FIG
 MT = REPO / "results" / "close_master_table"
 # 2026-10-22 (user, E34): parked -- the base-2 pooled trees (and their stored scores, score_*/levels.csv, pairs.csv);
 # the pooled trees are now read through pooled_trees_13.py (pt13, PT13_KEY). Was:
@@ -1447,7 +1450,10 @@ def table_t1(rows: list[dict]) -> str:
             # "% table's lgbm and xgb rows, the earlier draft's pooled trees; their HAR-benchmark twins come from",
             # "% results/pooled_trees_2026-10-07.",
             "% tab:rh_axis1 (T1). The intraday trees (LightGBM, XGBoost, random forest; HAR and full predictor set)",
-            "% are the pooled trees of the 13-bar rerun, base 5 (results/pooled_trees_rerun13_2026-10-20/w1000,",
+            # 2026-10-23: the run the loader reads (the printed run's line as before)
+            "% are the pooled trees of the 13-bar rerun, base 5 (results/pooled_trees_rerun13_2026-10-20/w1000,"
+            if not fr.FINAL
+            else f"% are the pooled trees of the final 13-bar rerun ({fr.rel(pt13.RUN)}, {fr.rel(fr.RF_RUN)},",
             "% writeup/pooled_trees_13.py).",
             "\\begin{table}[htbp]",
             "\\centering",
@@ -4041,7 +4047,7 @@ def main() -> None:
     (GEN / "rehaul_results_numbers.tex").write_text(
         "\n".join(lines) + "\n", encoding="utf-8", newline="\n"
     )
-    print(f"wrote generated/rehaul_results_numbers.tex ({len(nums)} macros)")
+    print(f"wrote {fr.rel(GEN / 'rehaul_results_numbers.tex')} ({len(nums)} macros)")  # 2026-10-23: was generated/...
     for k, (v, c) in nums.items():
         print(f"  {k:16s} {v:28s} {c}")
 

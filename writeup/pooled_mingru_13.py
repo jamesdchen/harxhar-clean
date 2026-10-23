@@ -16,6 +16,13 @@ RULE
   plain = pred_adj^2 x B (pred_adj = the seed mean of the fit-space forecast f), asserted against the stored column;
   rv_actual is the bar's realized variance (data/core_stats.parquet sumret2).  The 16:00 row is the forecast of the
   15:30--16:00 ET variance made at 15:30 (as pooled_trees_13.at16).  The dates are naive ET bar ends.
+
+FINAL RUN (2026-10-23; writeup/final_run.py, REHAUL_FINAL_RUN=1)
+  RUN = final_run.MINGRU_RUN, results/pooled_mingru_final_2014start_w3000 (experiments/pooled_mingru_final_2014_w3000.py
+  merge; RULE_gru.txt with addendum 2): tuned on pre-sample fold 3 (validation 2013), a refit at every bar on the
+  trailing 39,000 bars (3,000 trading days), the mean of 5 seeds; 33,970 bars a set, 2014-01-02 10:00 .. 2024-04-30
+  16:00 (the trees' bars).  Gates as above plus: forecasts.json's window is final_run.WINDOW_DAYS and its span starts at
+  the first evaluation day's 10:00 bar, and the rows run from that bar to the last day's 16:00 bar.
 """
 
 from __future__ import annotations
@@ -23,6 +30,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import final_run as fr  # 2026-10-23: the switch to the final pooled rerun (REHAUL_FINAL_RUN)
 import numpy as np
 import pandas as pd
 
@@ -34,11 +42,21 @@ N_BARS_ARM = (
     40_497  # the pooled linear rerun's walk rows (2011-12-28 14:00 .. 2024-04-30 16:00)
 )
 N_BARS_DAY = 13
+if fr.FINAL:  # 2026-10-23: the final pooled rerun (writeup/final_run.py); the printed run's constants above
+    RUN = fr.MINGRU_RUN
+    FC = RUN / "forecasts.parquet"
+    N_BARS_ARM = fr.N_BARS
 _CACHE: dict[str, pd.DataFrame] = {}
 
 
 def meta() -> dict:
-    return json.loads((RUN / "forecasts.json").read_text())
+    m = json.loads((RUN / "forecasts.json").read_text())
+    if fr.FINAL:  # 2026-10-23: the final design's window and first bar
+        fr.guard_standin(m, RUN)
+        assert int(m["window_days"]) == fr.WINDOW_DAYS and pd.Timestamp(
+            m["span"][0]
+        ) == fr.FIRST_DAY + pd.Timedelta(hours=10), (RUN, m["window_days"], m["span"])
+    return m
 
 
 def _frame() -> pd.DataFrame:
@@ -66,6 +84,15 @@ def _frame() -> pd.DataFrame:
         assert clock.nunique() == N_BARS_DAY and clock.max() == "16:00", sorted(
             clock.unique()
         )
+        if fr.FINAL:  # 2026-10-23: the rows run from the span's first bar to the last day's 16:00 bar
+            m, t = meta(), pd.to_datetime(f["date"])
+            assert t.min() == pd.Timestamp(
+                m["span"][0]
+            ) and t.max() == fr.LAST_DAY + pd.Timedelta(hours=16), (
+                t.min(),
+                t.max(),
+                m["span"],
+            )
         _CACHE["f"] = f
     return _CACHE["f"]
 
