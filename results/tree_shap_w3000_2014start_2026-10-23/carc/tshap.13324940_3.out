@@ -1,0 +1,177 @@
+tshap task 3 on b01-07.hpc.usc.edu [AMD EPYC 7513 32-Core Processor] Fri Oct 23 02:56:07 PDT 2026
+design md5 ok
+[02:56:14] rf_skx: rf400_rf_opt_00 88eebb5fa9e8, fit threads 8, shap threads 16, procs 16, origins 84..125 (42) -> /home1/jc_905/tree_shap/work/rf_skx; cpu AMD EPYC 7513 32-Core Processor
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[02:56:47] rf_skx k= 84 2020-11-24 rows 267: fit 26.6s shap 6.1s | add 1.7e-14 | live 438 used 404
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[02:57:18] rf_skx k= 85 2020-12-28 rows 267: fit 26.5s shap 4.8s | add 2.3e-14 | live 438 used 405
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[02:57:50] rf_skx k= 86 2021-01-27 rows 267: fit 26.4s shap 4.9s | add 1.7e-14 | live 438 used 410
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[02:58:22] rf_skx k= 87 2021-02-25 rows 273: fit 26.7s shap 5.0s | add 3.3e-14 | live 442 used 413
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[02:58:54] rf_skx k= 88 2021-03-26 rows 273: fit 26.9s shap 5.0s | add 1.5e-14 | live 443 used 405
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[02:59:26] rf_skx k= 89 2021-04-27 rows 273: fit 27.0s shap 5.0s | add 1.3e-14 | live 443 used 414
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[02:59:58] rf_skx k= 90 2021-05-26 rows 267: fit 27.0s shap 4.9s | add 2.2e-14 | live 444 used 409
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[03:00:30] rf_skx k= 91 2021-06-24 rows 267: fit 27.0s shap 4.9s | add 2.3e-14 | live 444 used 411
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[03:01:02] rf_skx k= 92 2021-07-23 rows 273: fit 27.1s shap 4.9s | add 1.6e-14 | live 449 used 418
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[03:01:34] rf_skx k= 93 2021-08-23 rows 267: fit 27.2s shap 4.8s | add 3.4e-14 | live 449 used 410
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[03:02:06] rf_skx k= 94 2021-09-21 rows 273: fit 27.0s shap 4.9s | add 3.5e-14 | live 449 used 416
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[03:02:38] rf_skx k= 95 2021-10-20 rows 273: fit 27.2s shap 4.9s | add 1.3e-14 | live 450 used 418
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[03:03:10] rf_skx k= 96 2021-11-18 rows 267: fit 27.1s shap 4.8s | add 2.1e-14 | live 450 used 420
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[03:03:42] rf_skx k= 97 2021-12-20 rows 267: fit 27.2s shap 4.8s | add 1.7e-14 | live 450 used 426
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[03:04:14] rf_skx k= 98 2022-01-19 rows 273: fit 27.2s shap 4.9s | add 3.3e-14 | live 450 used 419
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[03:04:46] rf_skx k= 99 2022-02-17 rows 267: fit 27.0s shap 4.8s | add 2.1e-14 | live 450 used 422
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[03:05:18] rf_skx k=100 2022-03-18 rows 273: fit 27.1s shap 4.9s | add 9.1e-15 | live 450 used 416
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[03:05:51] rf_skx k=101 2022-04-19 rows 273: fit 27.2s shap 4.8s | add 3.5e-14 | live 450 used 418
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[03:06:23] rf_skx k=102 2022-05-18 rows 267: fit 27.7s shap 4.9s | add 1.2e-14 | live 460 used 434
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[03:06:56] rf_skx k=103 2022-06-16 rows 261: fit 28.0s shap 4.6s | add 1.4e-14 | live 460 used 424
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[03:07:29] rf_skx k=104 2022-07-15 rows 273: fit 27.7s shap 4.9s | add 1.1e-14 | live 460 used 427
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[03:08:02] rf_skx k=105 2022-08-15 rows 267: fit 28.0s shap 4.9s | add 1.4e-14 | live 462 used 427
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[03:08:35] rf_skx k=106 2022-09-13 rows 273: fit 27.9s shap 4.8s | add 1.3e-14 | live 462 used 438
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[03:09:08] rf_skx k=107 2022-10-12 rows 273: fit 28.1s shap 4.9s | add 3.2e-14 | live 462 used 436
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[03:09:40] rf_skx k=108 2022-11-10 rows 267: fit 27.7s shap 4.8s | add 1.6e-14 | live 462 used 432
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[03:10:15] rf_skx k=109 2022-12-12 rows 273: fit 29.1s shap 5.0s | add 2.6e-14 | live 482 used 436
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[03:10:49] rf_skx k=110 2023-01-12 rows 267: fit 30.0s shap 4.8s | add 2.2e-14 | live 482 used 440
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[03:11:24] rf_skx k=111 2023-02-10 rows 267: fit 29.8s shap 4.8s | add 1.4e-14 | live 482 used 458
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[03:12:00] rf_skx k=112 2023-03-13 rows 273: fit 30.3s shap 4.9s | add 3.6e-14 | live 486 used 458
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[03:12:35] rf_skx k=113 2023-04-12 rows 273: fit 30.5s shap 5.0s | add 1.3e-14 | live 486 used 450
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[03:13:10] rf_skx k=114 2023-05-11 rows 267: fit 30.2s shap 4.9s | add 1.2e-14 | live 486 used 457
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[03:13:46] rf_skx k=115 2023-06-09 rows 261: fit 30.5s shap 4.8s | add 2.1e-14 | live 486 used 464
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[03:14:21] rf_skx k=116 2023-07-11 rows 273: fit 30.6s shap 5.0s | add 1.5e-14 | live 486 used 461
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[03:14:57] rf_skx k=117 2023-08-09 rows 267: fit 30.7s shap 4.8s | add 1.5e-14 | live 486 used 472
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[03:15:33] rf_skx k=118 2023-09-07 rows 273: fit 30.8s shap 5.0s | add 1.8e-14 | live 486 used 467
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[03:16:09] rf_skx k=119 2023-10-06 rows 273: fit 30.8s shap 5.0s | add 1.6e-14 | live 486 used 469
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[03:16:45] rf_skx k=120 2023-11-06 rows 267: fit 30.8s shap 4.9s | add 1.3e-14 | live 486 used 464
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[03:17:20] rf_skx k=121 2023-12-06 rows 273: fit 30.7s shap 5.0s | add 2.6e-14 | live 486 used 471
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[03:17:56] rf_skx k=122 2024-01-08 rows 267: fit 30.6s shap 5.0s | add 2.4e-14 | live 486 used 475
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[03:18:32] rf_skx k=123 2024-02-06 rows 267: fit 30.7s shap 4.9s | add 1.0e-14 | live 486 used 471
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[03:19:08] rf_skx k=124 2024-03-06 rows 273: fit 31.3s shap 5.0s | add 1.5e-14 | live 491 used 469
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[03:20:20]   repeat k=125: predictions equal True, SHAP equal True
+[03:20:20] rf_skx k=125 2024-04-05 rows 234: fit 31.1s shap 4.4s | add 3.0e-14 | live 491 used 473
+[03:20:23] x_forecast_rows: (33970, 564), rows 50777..84746
+tshap task 3 done Fri Oct 23 03:20:23 PDT 2026

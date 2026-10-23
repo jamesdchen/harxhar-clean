@@ -1,0 +1,153 @@
+RULE_shap.txt -- how do the NONLINEAR models respond to the non-standard variables?  TreeSHAP feature importance
+of the final tree specification (W = 3,000 days, 2014 start, full set), measures fixed in advance.
+Written 2026-10-23 02:05 PDT, BEFORE any refit of this study, any SHAP value, and any comparison with the walks.
+Question: the professor's ("how do the nonlinear models respond to the dataset's non-standard variables in their
+feature-importance measures?"), relayed by the coordinator.
+
+Seen before writing (no SHAP quantity, no tree importance of any kind): the linear FI
+(results/rehaul_fi_pooled13_2026-10-22: README, fi_groups.csv, code), the window FI on the 2014-start design
+(results/fi_by_window_2014start_2026-10-22 on branch -fi-window: README, RULE_fiw.txt, fiw_origins.csv, the variable
+list of fiw_variables.csv and the key list of fiw_gamma.npz; its published W = 3,000 ridge top 10), the tree runner
+(experiments/pooled_trees_rerun_13.py at 3cbb85f on -trees-final), RULE_rf_skx.txt and the RF engine benchmark summary,
+the design's column names and build log.  No out-of-sample performance number is computed or used in this study.
+
+DATA AND MODELS
+- Design: the final 2014-start design at W = 3,000 days (39,000 rows), full set, 564 columns (46 raw series x 12
+  columns: value averages adj_<s>_ma_h and availability averages <s>_avail_ma_h at h = 1, 5, 25, 125, 625, 3125; plus
+  har_ma_h x 6 and DOW_0..4, hour).  Copied once from CARC /scratch1/jc_905/trees_final/designs/w3000/_work
+  (design_all_features, design_baseline); md5 of every file verified against MD5SUMS (= MD5SUMS.source = the
+  -trees-final record).  X is the runner's prescaled design (each column robust-scaled on its trailing window):
+  "value" below means this model input.
+- Models: LightGBM (lgbm_opt_00, abab811bd4b6), XGBoost (xgb_opt_00, 88bec9f385c7), random forest on oneDAL
+  (sklearnex RandomForestRegressor, rf400_rf_opt_00, 88eebb5fa9e8, default 256 bins), constructed by model_factory /
+  fit_predict of experiments/pooled_trees_rerun_13.py at commit 3cbb85f (loaded from git, not edited), seed 42,
+  8 threads to fit (the walk's), RF n_jobs = 1 to predict.
+- Origins k = 1..126: exactly those of fi_by_window_2014start (fiw_origins.csv): the first row (10:00 bar) of every
+  21st session from 2014-01-02 through 2024-04-05; design row r_k = 39,000 + oos_row_w3000_k (dates asserted).
+- Refit f_k: fitted on design rows [r_k - 39,000, r_k), the walk's every-bar refit at r_k.
+- Neighbourhood N_k = design rows [r_k, r_{k+1}) (r_127 = end of data): the 21 sessions that origin's neighbourhood
+  forecasts (the last one 2024-04-05 .. 2024-04-30, 17 sessions).  The N_k partition all 33,970 forecast rows
+  2014-01-02 10:00 .. 2024-04-30 16:00.  SHAP is computed for every row of N_k under f_k.
+- Compute: the laptop (i7-1355U, 12 logical cores), venv C:\Users\james\AppData\Local\Temp\shap_venv: python 3.12.3,
+  numpy 1.26.4, pandas 2.3.3, scipy 1.17.1, scikit-learn 1.9.1, lightgbm 4.6.0, xgboost 3.2.0, pyarrow 19.0.1,
+  scikit-learn-intelex 2026.2.0 (daal 2026.2.0), shap 0.49.1.  No CARC job is submitted.  Contingency fixed now: if
+  the RF's TreeSHAP over all rows projects beyond 8 hours on the laptop, RF SHAP uses the rows at positions
+  0, 3, 6, ... of each N_k (one in three, every bar and day type kept), stated in the README.
+
+GATE (before any SHAP number is read)
+- G1 LightGBM, XGBoost: f_k(x_{r_k}) equals the walk's pred_adj at r_k BIT FOR BIT (float64 ==) at all 126 origins.
+  The walk's rows come from the CARC W = 3,000 walk pieces (/scratch1/jc_905/trees_final/runs/w3000/pieces),
+  only the 126 origin rows, fetched in one transfer once the pieces hold them.  If the laptop's build of the same
+  library versions (Windows wheel vs the Linux wheel the walk ran) does not reproduce bit for bit, the gate is
+  reported FAILED with the maximum absolute and relative differences and the coordinator is told before any result is
+  interpreted and before any cluster use.
+- G2 random forest: bit equality with the rf_skx walk is not expected (oneDAL's results differ across CPU families;
+  the walk runs on EPYC 7513, the laptop is an Intel i7; the benchmark measured 3e-15 relative between EPYC and Xeon).
+  (a) self-consistency: 3 origins (k = 1, 63, 126) refitted twice give bit-identical forecasts and SHAP values;
+  (b) the oneDAL prediction equals the mean of the estimators_ tree predictions (the trees SHAP explains) to
+  <= 1e-12 relative at every forecast row; (c) where the rf_skx W = 3,000 walk has the origin rows when fetched,
+  the max relative difference is reported (agreement <= 1e-12 relative); otherwise (a) and (b) are the gate.
+- G3 additivity at every forecast row: |phi_0 + sum_j phi_ij - f_k(x_i)| <= 1e-9 (LightGBM, RF; double precision)
+  and <= 1e-5 x max(1, |f_k(x_i)|) (XGBoost computes in float32); interaction rows sum to the SHAP values to the same
+  tolerances.
+
+SHAP
+- TreeSHAP, feature_perturbation = "tree_path_dependent", on the adjusted (model output, pred_adj) scale; exact.
+  Why: (1) it is the TreeSHAP both boosting libraries compute natively and exactly (LightGBM pred_contrib, XGBoost
+  pred_contribs / pred_interactions); (2) SHAP interaction values (M5) exist only for it; (3) it needs no background
+  sample: the reference distribution is each refit's own training window (node covers of the W rows, of the bagged
+  rows for the bagged models), so phi_0 is that refit's training-mean forecast and nothing depends on a background
+  choice; interventional SHAP would cost a background-size factor more and make the numbers depend on the background
+  chosen.  Caveat stated in advance: with correlated predictors (adjacent HAR horizons, EW / VW pairs, value and
+  availability averages) the split of credit among substitutes follows the trees' split choices; the variable-level
+  sum removes the within-variable split, not the split between correlated variables.
+- LightGBM: booster.predict(pred_contrib=True); XGBoost: Booster.predict(DMatrix, pred_contribs=True); random forest:
+  shap.TreeExplainer(model) on the sklearnex estimator: shap reads model.estimators_ (sklearnex exposes them as
+  scikit-learn DecisionTreeRegressor objects built from the oneDAL forest; tree_.weighted_n_node_samples are the
+  covers; shap recomputes the internal node values from them).  Checked on a toy forest before writing: accepted,
+  additivity 7e-15.  If it fails on the real fits, the route used instead is documented in the README.
+- A variable's SHAP at row i: phi_iA = sum_{j in A} phi_ij (all its columns: value and availability averages; HAR
+  block; calendar).  A variable whose columns are all constant in a refit's window gets phi = 0 exactly there.
+
+VARIABLES, BUCKETS, CLASSES
+- Variables (48 groups, as the linear FI): the 46 raw series (12 columns each), har_ma (6), calendar (6).
+- Buckets = fi_groups.csv 'category' (moments, liquidity, market_ew, market_vw, sentiment, implied_vol, vol_demand,
+  fomc, backbone), with backbone shown as its two members har_ma and calendar.
+- STANDARD (12): har_ma; calendar (the benchmark's own DOW_0..4, hour); the E-mini realized moments sumret,
+  sumabsret, sumret3, sumret4, sumpret2, sumbipow, sumautocov; vix; and the E-mini's own trading activity sumvolume,
+  numobs (not named in the brief; classed STANDARD here as the same E-mini tape as the realized moments; every class
+  share is also reported with these two moved to NON-STANDARD).
+- NON-STANDARD (36): stocktwits_attention, stocktwits_sentiment, stocktwits_sentcount; voldemand_spx_open_and_close,
+  voldemand_spx_open_only, voldemand_all_open_and_close, voldemand_all_open_only; fomc_day, fomc_until_inv,
+  fomc_since_inv; constituent liquidity turnover_, buyturnover_, sellturnover_, effspread_, spread_, ofi_ x {ewstock,
+  vwstock} (12); cross-sectional stock-market moments sumret2_, sumret3_, sumret4_, sumabsret_, sumbipow_, sumpret2_ x
+  {ewstock, vwstock} (12); vvix; vix3m.
+- Exogenous = the 46 raw series (STANDARD exogenous = the 7 moments, vix, sumvolume, numobs).
+
+MEASURES (all per model: LightGBM, XGBoost, random forest)
+- M1 importance shares.  I_A = mean_i |phi_iA| over the rows considered; share s_A = I_A / sum_B I_B (48 groups);
+  exogenous share s^ex_A = I_A / sum_{B exogenous} I_B.  Bucket and class shares = sums of member shares.  Overall
+  (all 33,970 rows, equal weight) and by calendar year of the forecast row (2014 .. 2024; 2024 = January-April).
+  Secondary (column level, the analogue of the linear sum|beta| s.d.): I'_A = sum_{j in A} mean_i |phi_ij|.
+  Also per variable: the number of origins at which it has a non-constant column in the window and at which f_k
+  splits on it.
+- M2 rank agreement with the linear ridge.  Reference: the ridge s.d.-weighted share of the W = 3,000 walk of the
+  2014-start window sweep (frozen alpha 1e3) at the same 126 origins, fiw_gamma.npz walk_w3000_ridge_gamma:
+  S^sd_A = sum_k sum_{j in A} |gamma_kj| / sum_k sum_{exogenous j} |gamma_kj| (gamma = coefficient on the
+  window-standardized column = |beta| s.d.; checked against fiw_variables.csv pooled_share).  Primary: Spearman
+  correlation of the 46 exogenous variables' tree s^ex_A (pooled over all rows) with S^sd_A, and the overlap of the two
+  top-10 lists (of 10).  Secondary: the same on the 48 groups (backbone included, ridge share over all 564 columns),
+  with the tree column-level I'_A, and with the lasso and elastic net (W = 3,000 walks, same file); tree-vs-tree
+  Spearman.  The "more or less" question: D = NON-STANDARD share of the exogenous total, tree minus ridge (pooled
+  over origins); interval from the paired moving-block bootstrap over origins (below).  Trees lean MORE on the
+  non-standard variables if the 95% interval of D is above 0, LESS if below 0, else NO CLEAR DIFFERENCE.  D is also
+  reported with the backbone in the denominator and with sumvolume / numobs moved to NON-STANDARD.
+- M3 response shape, for each NON-STANDARD variable with s_A >= 0.5% (overall, M1) for that model; if fewer than 5
+  pass, the model's 5 largest NON-STANDARD variables (labelled "below 0.5%").  x = the variable's dominant column:
+  its value-average column (not availability) with the largest mean_i |phi_ij| for that model.  Bins of x over the
+  33,970 rows: deciles (equal-count, pd.qcut, duplicates dropped, so a column with ties at the edges gets fewer bins);
+  a column with <= 10 distinct values gets one bin per value.  m_b = mean of phi_iA in bin b (primary; the variable's
+  total SHAP); also the mean of the dominant column's own phi and the 10-90% band.  Shape rule on m_1..m_B
+  (B bins, R = max_b m_b - min_b m_b):
+    FLAT                  R < 0.5 I_A (the bin means move less than half the variable's mean |SHAP|: no stable
+                          main effect; the variable acts through dispersion within bins / interactions);
+    MONOTONE (up / down)  |Spearman(b, m_b)| >= 0.9;
+      THRESHOLD           a MONOTONE profile whose largest single adjacent step is >= 0.5 |m_B - m_1|;
+    U-SHAPED / INVERTED-U otherwise, if the minimum (maximum) is at an interior bin b* and both ends exceed (fall
+                          short of) it by >= 0.25 R;
+    IRREGULAR             anything else;
+    B <= 3 bins           STEP (sign and size of the steps).
+  ASYMMETRIC flag on every non-FLAT profile: arms a_lo = m_1 - m_c, a_hi = m_B - m_c (m_c = mean of the middle
+  bin(s)); ASYMMETRIC if the larger |arm| >= 2 x the smaller, labelled top-tail or bottom-tail.  The answer to
+  "monotone, threshold, U-shaped or asymmetric?" is the shape plus the flag.  SHAP in pred_adj units and as % of the
+  mean forecast over the rows.
+- M4 conditional importance: s_A, bucket and class shares (of the total and of the exogenous total) on row subsets:
+  (a) VIX tercile at the origin: the Cboe VIX daily close (data/free_feed/vix_1d_yahoo.parquet) on the last trading
+  day before the origin date; terciles over the 126 origins (42 each); every row of N_k takes k's tercile;
+  (b) bar of the day: the 13 bars (bar end 10:00 .. 16:00 ET);
+  (c) FOMC statement days (scheduled: 'fomc release' > 0 in data/releases.parquet, minus src/data/loading.py
+  UNSCHEDULED_FOMC_DAYS) vs all other days, by the forecast row's date.
+  Contrasts with bootstrap intervals: NON-STANDARD share, high minus low VIX tercile; FOMC days minus other days;
+  16:00 minus 10:00.  Also the 5 largest NON-STANDARD variables in each subset.
+- M5 interactions (LightGBM, XGBoost; not the forest).  Fixed subsample: 8 rows of each N_k drawn without
+  replacement by numpy default_rng(20261023), origin by origin in order (1,008 rows), each explained by its f_k.
+  Phi_ijl = SHAP interaction values (XGBoost: pred_interactions; LightGBM: shap.TreeExplainer.shap_interaction_values),
+  variable matrix G_iAB = sum_{j in A} sum_{l in B} Phi_ijl.
+    interaction share (variable level, primary) = sum_i sum_{A != B} |G_iAB| / sum_i sum_{A,B} |G_iAB|; column level
+    the same with Phi_ijl; per variable x_A = sum_i sum_{B != A} |G_iAB| / sum_i sum_B |G_iAB|, pooled by class;
+    bucket x bucket (10 x 10: har_ma, calendar, 8 exogenous categories): T_PQ = mean_i |2 sum_{A in P, B in Q} G_iAB|
+    for P != Q, T_PP = mean_i |sum_{A, B in P} G_iAB|, as shares of sum_{P <= Q} T_PQ;
+    top 10 variable pairs (A != B, at least one NON-STANDARD) by T_AB = mean_i |2 G_iAB|, as a share of
+    sum_{A <= B} T_AB.
+
+UNCERTAINTY
+- Moving-block bootstrap over the 126 origins (block 12 origins ~ one year, B = 2,000, seed 20261023, circular), the
+  same resampled origins for every model and for the ridge (paired); every statistic recomputed on each resample; 95%
+  percentile intervals.  This is variation over the evaluation span's neighbourhoods, not the sampling error of one
+  fit.  M5 is descriptive (no intervals).
+
+REPORTING
+- Every result is reported, including contrary ones.  The measures, thresholds and classes above are not revised
+  after seeing results; anything added later is labelled post hoc.
+- Output: results/tree_shap_w3000_2014start_2026-10-23/: tables (csv + txt), figures (PNG, parquet variable names,
+  a boxed "Measure:" line each) and one combined PDF, code/, README.md with the findings per measure.
