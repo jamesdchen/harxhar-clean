@@ -1,0 +1,10 @@
+model,bucket,tuning_points,trace_rows,columns_differing,ok
+lgbm,baseline,6,12,tune_sec,True
+xgb,baseline,6,12,tune_sec,True
+rf,baseline,6,12,tune_sec,True
+lgbm,all_features,6,12,tune_sec,True
+xgb,all_features,6,12,tune_sec,True
+rf,all_features,6,12,tune_sec,True
+lgbm,live_feasible,6,12,tune_sec,True
+xgb,live_feasible,6,12,tune_sec,True
+rf,live_feasible,6,12,tune_sec,True
