@@ -33,7 +33,8 @@ KEYS = (
 
 
 def records(text: str) -> list[dict]:
-    out, cur = [], {}
+    out: list[dict] = []
+    cur: dict[str, str] = {}
     for ln in text.splitlines():
         if ln.startswith("====="):
             if cur:
