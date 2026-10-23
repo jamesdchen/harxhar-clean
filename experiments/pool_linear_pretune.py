@@ -761,8 +761,14 @@ def fit_std(
         Xa = Xa.copy()
         Xa[:, out] = 0.0
     if kind == "ridge":
+        # (addendum 2) on the columns centred by their means on these rows; theta back in the original coordinates
+        # (intercept - m' beta); the lasso / enet batch residualizes on the intercept already (FWL)
+        m = np.where(locked, 0.0, Xa.mean(axis=0))
+        Xc = Xa - m
         D = np.where(locked, 0.0, a * (pf * s * s))
-        return ridge_keep(Xa.T @ Xa, Xa.T @ yr, D, ~out), s, out
+        th = ridge_keep(Xc.T @ Xc, Xc.T @ yr, D, ~out)
+        th[locked] -= m @ th
+        return th, s, out
     return batch_theta_w(Xa, yr, locked, a, l1, pf * s, pf * s * s), s, out
 
 
@@ -840,40 +846,91 @@ def make_class(ns: dict, r: float, sched: dict | None, g0: int, rec: list):
 
         def roll(self, x_in, y_in, x_out, y_out):
             """The spec's roll; 2026-10-22: notes whether it was a warm update (the two enet_online calls), not
-            ridge and not the between-tune mask-addition reseed (a cold seed).  STANDARDIZE_PENALTY, ridge: the
-            rank-one update of X'X, X'y and the window's column moments (_roll_std_ridge) in place of
-            Sherman-Morrison."""
+            ridge and not the between-tune mask-addition reseed (a cold seed).  STANDARDIZE_PENALTY: ridge, the
+            rank-one update of the centred X'X, X'y and the window's column moments (_roll_std_ridge) in place of
+            Sherman-Morrison; lasso / elastic net, the spec's roll on the centred state (_roll_std_enet)."""
             if self.kind_ == "ridge" and self._std_on():
                 self._roll_std_ridge(x_in, y_in, x_out, y_out)
                 self._warm = False
                 return
+            if self._std_on():
+                self._warm = self._roll_std_enet(x_in, y_in, x_out, y_out)
+                return
             n0 = len(Base.reseed_trace)
             super().roll(x_in, y_in, x_out, y_out)
             self._warm = self.kind_ != "ridge" and len(Base.reseed_trace) == n0
-            if self.kind_ != "ridge" and self._std_on() and self._warm:
-                # the evidence tracker (a mask-addition reseed has just recomputed it on the new window)
-                ua = np.append(np.asarray(x_in, dtype=np.float64), 1.0)
-                ur = np.append(np.asarray(x_out, dtype=np.float64), 1.0)
-                ua[self._maskout] = 0.0
-                ur[self._maskout] = 0.0
-                self._evid_update(ua, ur)
-                ev = group_evidence(
-                    self._ev_d, self.ev_ref
-                )  # addendum 2: the k = 1 counts
-                low = (ev < STD_MIN_EVIDENCE) & ~self._maskout & ~self._locked
-                if low.any():  # masked like the identifiability mask; cold reseed (weights and modes refreshed)
-                    self._maskout = self._maskout | low
-                    self._evid_only = self._evid_only | low
-                    PFTuned.std_evid_reseeds.append(
-                        (g0 + self._n_solve, [int(j) for j in np.flatnonzero(low)])
-                    )
+
+        def _roll_std_enet(self, x_in, y_in, x_out, y_out):
+            """STANDARDIZE_PENALTY, lasso / elastic net: the spec's roll (the RAW ring; the between-tune
+            mask-addition reseed; the masked update rows) with (addendum 1-2) the evidence tracker on the k = 1
+            counts -- a live column whose evidence drops below STD_MIN_EVIDENCE joins the mask and the walk reseeds
+            cold -- and the two enet_online updates on rows shifted by the seed-time column means (the centred
+            state, addendum 2).  Returns whether the state came from the warm update."""
+            ua = np.append(np.asarray(x_in, dtype=np.float64), 1.0)
+            ur = np.append(np.asarray(x_out, dtype=np.float64), 1.0)
+            prev = self._X[self._ptr - 1].copy()  # newest row in the ring (RAW)
+            self._X[self._ptr] = ua
+            self._y[self._ptr] = float(y_in)
+            self._ptr = (self._ptr + 1) % len(self._y)
+            if self._track:
+                gone = self._degenerate_live(ua, prev)
+                if (
+                    gone.any() and self.l1_ == 1.0
+                ):  # the spec's between-tune mask addition
+                    self._maskout = self._maskout | gone
+                    Base.reseed_trace.append(self._n_solve)
                     self._seed()
-                    self._warm = False
+                    return False
+            ua = ua.copy()
+            ur = ur.copy()
+            ua[self._maskout] = 0.0
+            ur[self._maskout] = 0.0
+            self._evid_update(ua, ur)
+            ev = group_evidence(self._ev_d, self.ev_ref)  # addendum 2: the k = 1 counts
+            low = (ev < STD_MIN_EVIDENCE) & ~self._maskout & ~self._locked
+            if low.any():  # masked like the identifiability mask; cold reseed (weights, offsets, modes refreshed)
+                self._maskout = self._maskout | low
+                self._evid_only = self._evid_only | low
+                PFTuned.std_evid_reseeds.append(
+                    (g0 + self._n_solve, [int(j) for j in np.flatnonzero(low)])
+                )
+                self._seed()
+                return False
+            uc, rc = (
+                ua - self._ctr,
+                ur - self._ctr,
+            )  # the centred rows (masked entries stay 0: offset 0)
+            self._th, self._A, self._s = RH.enet_online(
+                self._Gr,
+                self._c,
+                self._mu_vec,
+                uc,
+                float(y_in),
+                +1.0,
+                self._th,
+                self._A,
+                self._s,
+                self._locked,
+            )
+            self._th, self._A, self._s = RH.enet_online(
+                self._Gr,
+                self._c,
+                self._mu_vec,
+                rc,
+                float(y_out),
+                -1.0,
+                self._th,
+                self._A,
+                self._s,
+                self._locked,
+            )
+            return True
 
         def _roll_std_ridge(self, x_in, y_in, x_out, y_out):
             """The spec's ridge roll (the RAW ring, the masked update rows) with STANDARDIZE_PENALTY's state: X'X and
-            X'y rank-one, the column sums and sums of squares about the seed-time means, and the run length of every
-            column's newest value (exact constancy in the window)."""
+            X'y of the rows shifted by the seed-time column means (the centred state, addendum 2), rank-one, the
+            column sums and sums of squares about the same means, the run length of every column's newest value
+            (exact constancy in the window) and the evidence counts."""
             ua = np.append(np.asarray(x_in, dtype=np.float64), 1.0)
             ur = np.append(np.asarray(x_out, dtype=np.float64), 1.0)
             prev = self._X[self._ptr - 1].copy()  # newest row in the ring (RAW)
@@ -887,11 +944,11 @@ def make_class(ns: dict, r: float, sched: dict | None, g0: int, rec: list):
                 ur = ur.copy()
                 ua[self._maskout] = 0.0
                 ur[self._maskout] = 0.0
-            self._G += np.outer(ua, ua)
-            self._G -= np.outer(ur, ur)
-            self._c += ua * float(y_in)
-            self._c -= ur * float(y_out)
-            di, do = ua - self._sd_m0, ur - self._sd_m0
+            di, do = ua - self._ctr, ur - self._ctr
+            self._G += np.outer(di, di)
+            self._G -= np.outer(do, do)
+            self._c += di * float(y_in)
+            self._c -= do * float(y_out)
             self._sd_s1 += di - do
             self._sd_s2 += di * di - do * do
             self._evid_update(ua, ur)  # 2026-10-22: the evidence mask, every bar
@@ -899,7 +956,7 @@ def make_class(ns: dict, r: float, sched: dict | None, g0: int, rec: list):
         def _std_ridge_solve(self):
             """STANDARDIZE_PENALTY, ridge: s of the current window (the moments; 0 on a column constant over the
             window), the columns with s < STD_MIN or (evidence mask) fewer than STD_MIN_EVIDENCE rows off the modal
-            value left out of this solve, (X'X + diag(a pf s^2)) b = X'y."""
+            value left out of this solve, (X'X + diag(a pf s^2)) b = X'y on the centred state (theta_c)."""
             n = len(self._y)
             var = self._sd_s2 / n - (self._sd_s1 / n) ** 2
             s = np.sqrt(np.maximum(var, 0.0))
@@ -919,7 +976,11 @@ def make_class(ns: dict, r: float, sched: dict | None, g0: int, rec: list):
 
         def predict_one(self, x):
             """The spec's predict_one; --std-check-blockends: also the forecast with the block-end refit."""
-            p = super().predict_one(x)
+            if self._std_on():  # the centred state (addendum 2): (x - m)' theta_c
+                xa = np.append(np.asarray(x, dtype=np.float64), 1.0) - self._ctr
+                p = float(xa @ self._th)
+            else:
+                p = super().predict_one(x)
             alt = getattr(self, "_std_alt", None)
             if alt is not None:
                 th_alt, s_rel = alt
@@ -1041,7 +1102,9 @@ def make_class(ns: dict, r: float, sched: dict | None, g0: int, rec: list):
             that rule alone are re-evaluated, i.e. may come back, at every seed); mu_j = n a l1 pf_j s_j, the L2 term
             n a (1 - l1) pf_j s_j^2 on Gr's diagonal, both held until the next seed; the batch solution
             (batch_theta_w, KKT-certified) and its active set.  Both: the seed-time modal values and evidence counts
-            the between-seed evidence tracker starts from."""
+            the between-seed evidence tracker starts from, and (addendum 2) the centred state: every non-locked column
+            shifted by its seed-window mean m (self._ctr, 0 on masked columns and on the intercept), held until the
+            next seed; theta is in the centred coordinates (forecast (x - m)' theta)."""
             kind, a, l1 = self.kind_, self.alpha_, self.l1_
             evo = getattr(self, "_evid_only", None)
             if kind != "ridge" and evo is not None and evo.any():
@@ -1061,14 +1124,13 @@ def make_class(ns: dict, r: float, sched: dict | None, g0: int, rec: list):
             self._sd_seed = nan_s
             self._ev_v, self._ev_d = v, ev.astype(np.int64)
             if kind == "ridge":
+                self._sd_run = _trailing_const(Xa)
+                self._ctr = np.where(self._locked, 0.0, Xa.mean(axis=0))
+                Xa -= self._ctr  # the centred state (addendum 2); Xa is a fresh array
                 self._G = Xa.T @ Xa
                 self._c = Xa.T @ yr
-                self._sd_m0 = Xa.mean(axis=0)
-                dX = Xa - self._sd_m0
-                self._sd_s1 = dX.sum(axis=0)
-                self._sd_s2 = (dX * dX).sum(axis=0)
-                del dX
-                self._sd_run = _trailing_const(Xa)
+                self._sd_s1 = Xa.sum(axis=0)
+                self._sd_s2 = (Xa * Xa).sum(axis=0)
                 PFTuned.std_ridge.append([g0 + self._n_solve, 0.0, 0])
                 self._std_ridge_solve()
                 return
@@ -1076,6 +1138,8 @@ def make_class(ns: dict, r: float, sched: dict | None, g0: int, rec: list):
                 self._maskout = self._maskout | new
                 self._evid_only = new
                 Xa[:, new] = 0.0
+            self._ctr = np.where(self._locked, 0.0, Xa.mean(axis=0))
+            Xa -= self._ctr  # the centred state (addendum 2)
             w1, w2 = pf * s, pf * s * s
             mu, lam2 = tw * a * l1, tw * a * (1.0 - l1)
             self._mu_vec = np.where(self._locked, 0.0, mu * w1)
