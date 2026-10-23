@@ -1,0 +1,60 @@
+
+option days 16:00: columns never live / partly zeroed (of the series' value columns)
+window                        cols w1000 w1500 w2000 w2500 w3000 w3500 w4000
+series                                                                      
+stocktwits_attention             6   0/0   0/0   0/0   0/0   0/6   0/6   6/0
+stocktwits_sentiment             6   0/0   0/0   0/0   0/6   0/6   1/5   6/0
+stocktwits_sentcount             6   0/0   0/0   0/0   0/6   0/6   1/5   6/0
+vix                              6   0/0   0/0   0/0   0/0   0/0   0/6   0/6
+vvix                             6   0/0   0/0   0/6   0/6   1/5   6/0   6/0
+vix3m                            6   0/0   0/0   0/0   0/0   0/6   0/6   6/0
+voldemand_spx_open_and_close     6   0/0   0/0   0/0   0/6   0/6   6/0   6/0
+voldemand_spx_open_only          6   0/0   0/0   0/0   0/6   0/6   6/0   6/0
+voldemand_all_open_and_close     6   0/0   0/0   0/0   0/6   0/6   6/0   6/0
+voldemand_all_open_only          6   0/0   0/0   0/0   0/6   0/6   6/0   6/0
+fomc_since_inv                   1   0/0   0/0   0/0   0/0   0/0   0/0   0/0
+
+fold-3 val 2015 (2016 start): columns never live / partly zeroed (of the series' value columns)
+window                        cols w1000 w1500 w2000 w2500 w3000 w3500 w4000
+series                                                                      
+stocktwits_attention             6   0/0   0/6   6/0   6/0   6/0   6/0   6/0
+stocktwits_sentiment             6   0/0   6/0   6/0   6/0   6/0   6/0   6/0
+stocktwits_sentcount             6   0/0   6/0   6/0   6/0   6/0   6/0   6/0
+vix                              6   0/0   0/0   0/0   6/0   6/0   6/0   6/0
+vvix                             6   6/0   6/0   6/0   6/0   6/0   6/0   6/0
+vix3m                            6   0/0   0/6   6/0   6/0   6/0   6/0   6/0
+voldemand_spx_open_and_close     6   0/2   6/0   6/0   6/0   6/0   6/0   6/0
+voldemand_spx_open_only          6   0/2   6/0   6/0   6/0   6/0   6/0   6/0
+voldemand_all_open_and_close     6   0/2   6/0   6/0   6/0   6/0   6/0   6/0
+voldemand_all_open_only          6   0/2   6/0   6/0   6/0   6/0   6/0   6/0
+fomc_since_inv                   1   0/0   0/0   0/0   0/0   0/0   0/0   0/0
+
+fold-3 val 2013 (2014 start): columns never live / partly zeroed (of the series' value columns)
+window                        cols w1000 w1500 w2000 w2500 w3000 w3500 w4000
+series                                                                      
+stocktwits_attention             6   0/6   6/0   6/0   6/0   6/0   6/0   6/0
+stocktwits_sentiment             6   6/0   6/0   6/0   6/0   6/0   6/0   6/0
+stocktwits_sentcount             6   6/0   6/0   6/0   6/0   6/0   6/0   6/0
+vix                              6   0/0   0/0   6/0   6/0   6/0   6/0   6/0
+vvix                             6   6/0   6/0   6/0   6/0   6/0   6/0   6/0
+vix3m                            6   0/6   6/0   6/0   6/0   6/0   6/0   6/0
+voldemand_spx_open_and_close     6   6/0   6/0   6/0   6/0   6/0   6/0   6/0
+voldemand_spx_open_only          6   6/0   6/0   6/0   6/0   6/0   6/0   6/0
+voldemand_all_open_and_close     6   6/0   6/0   6/0   6/0   6/0   6/0   6/0
+voldemand_all_open_only          6   6/0   6/0   6/0   6/0   6/0   6/0   6/0
+fomc_since_inv                   1   0/0   0/0   0/0   0/0   0/0   0/0   1/0
+
+whole design: columns never live / partly zeroed (of the series' value columns)
+window                        cols w1000 w1500 w2000 w2500 w3000 w3500 w4000
+series                                                                      
+stocktwits_attention             6   0/6   0/6   0/6   0/6   0/6   0/6   6/0
+stocktwits_sentiment             6   0/6   0/6   0/6   0/6   0/6   1/5   6/0
+stocktwits_sentcount             6   0/6   0/6   0/6   0/6   0/6   1/5   6/0
+vix                              6   0/6   0/6   0/6   0/6   0/6   0/6   0/6
+vvix                             6   0/6   0/6   0/6   0/6   1/5   6/0   6/0
+vix3m                            6   0/6   0/6   0/6   0/6   0/6   0/6   6/0
+voldemand_spx_open_and_close     6   0/6   0/6   0/6   0/6   0/6   6/0   6/0
+voldemand_spx_open_only          6   0/6   0/6   0/6   0/6   0/6   6/0   6/0
+voldemand_all_open_and_close     6   0/6   0/6   0/6   0/6   0/6   6/0   6/0
+voldemand_all_open_only          6   0/6   0/6   0/6   0/6   0/6   6/0   6/0
+fomc_since_inv                   1   0/1   0/1   0/1   0/1   0/1   0/1   0/1

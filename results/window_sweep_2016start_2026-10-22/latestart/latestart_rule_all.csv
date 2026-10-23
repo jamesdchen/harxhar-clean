@@ -1,0 +1,428 @@
+window,series,k,column,first_live_row,zero_prefix_rows,live_from,option_days_zeroed,last_zeroed_option_day
+w1000,stocktwits_attention,1,adj_stocktwits_attention_ma_1,35143,48143,2013-03-12 14:00:00,0,
+w1000,stocktwits_attention,5,adj_stocktwits_attention_ma_5,35143,48143,2013-03-12 14:00:00,0,
+w1000,stocktwits_attention,25,adj_stocktwits_attention_ma_25,35148,48148,2013-03-13 10:00:00,0,
+w1000,stocktwits_attention,125,adj_stocktwits_attention_ma_125,35178,48178,2013-03-15 12:00:00,0,
+w1000,stocktwits_attention,625,adj_stocktwits_attention_ma_625,35312,48312,2013-04-01 14:00:00,0,
+w1000,stocktwits_attention,3125,adj_stocktwits_attention_ma_3125,35966,48966,2013-06-11 14:00:00,0,
+w1000,stocktwits_sentiment,1,adj_stocktwits_sentiment_ma_1,39045,52045,2014-05-21 16:00:00,0,
+w1000,stocktwits_sentiment,5,adj_stocktwits_sentiment_ma_5,39045,52045,2014-05-21 16:00:00,0,
+w1000,stocktwits_sentiment,25,adj_stocktwits_sentiment_ma_25,39050,52050,2014-05-22 12:00:00,0,
+w1000,stocktwits_sentiment,125,adj_stocktwits_sentiment_ma_125,39080,52080,2014-05-27 10:30:00,0,
+w1000,stocktwits_sentiment,625,adj_stocktwits_sentiment_ma_625,39214,52214,2014-06-10 12:30:00,0,
+w1000,stocktwits_sentiment,3125,adj_stocktwits_sentiment_ma_3125,39872,52872,2014-08-21 13:00:00,0,
+w1000,stocktwits_sentcount,1,adj_stocktwits_sentcount_ma_1,39045,52045,2014-05-21 16:00:00,0,
+w1000,stocktwits_sentcount,5,adj_stocktwits_sentcount_ma_5,39045,52045,2014-05-21 16:00:00,0,
+w1000,stocktwits_sentcount,25,adj_stocktwits_sentcount_ma_25,39050,52050,2014-05-22 12:00:00,0,
+w1000,stocktwits_sentcount,125,adj_stocktwits_sentcount_ma_125,39080,52080,2014-05-27 10:30:00,0,
+w1000,stocktwits_sentcount,625,adj_stocktwits_sentcount_ma_625,39214,52214,2014-06-10 12:30:00,0,
+w1000,stocktwits_sentcount,3125,adj_stocktwits_sentcount_ma_3125,39872,52872,2014-08-21 13:00:00,0,
+w1000,vix,1,adj_vix_ma_1,25906,38906,2010-05-14 14:00:00,0,
+w1000,vix,5,adj_vix_ma_5,25906,38906,2010-05-14 14:00:00,0,
+w1000,vix,25,adj_vix_ma_25,25911,38911,2010-05-17 10:00:00,0,
+w1000,vix,125,adj_vix_ma_125,25941,38941,2010-05-19 12:00:00,0,
+w1000,vix,625,adj_vix_ma_625,26066,39066,2010-06-02 14:00:00,0,
+w1000,vix,3125,adj_vix_ma_3125,26720,39720,2010-08-12 14:00:00,0,
+w1000,vvix,1,adj_vvix_ma_1,45030,58030,2016-03-17 15:30:00,0,
+w1000,vvix,5,adj_vvix_ma_5,45030,58030,2016-03-17 15:30:00,0,
+w1000,vvix,25,adj_vvix_ma_25,45035,58035,2016-03-18 11:30:00,0,
+w1000,vvix,125,adj_vvix_ma_125,45065,58065,2016-03-22 13:30:00,0,
+w1000,vvix,625,adj_vvix_ma_625,45199,58199,2016-04-06 15:30:00,0,
+w1000,vvix,3125,adj_vvix_ma_3125,45853,58853,2016-06-16 14:00:00,0,
+w1000,vix3m,1,adj_vix3m_ma_1,36438,49438,2013-08-02 14:00:00,0,
+w1000,vix3m,5,adj_vix3m_ma_5,36438,49438,2013-08-02 14:00:00,0,
+w1000,vix3m,25,adj_vix3m_ma_25,36443,49443,2013-08-05 10:00:00,0,
+w1000,vix3m,125,adj_vix3m_ma_125,36473,49473,2013-08-07 12:00:00,0,
+w1000,vix3m,625,adj_vix3m_ma_625,36607,49607,2013-08-21 14:00:00,0,
+w1000,vix3m,3125,adj_vix3m_ma_3125,37261,50261,2013-10-31 14:00:00,0,
+w1000,voldemand_spx_open_and_close,1,adj_voldemand_spx_open_and_close_ma_1,40994,53994,2014-12-23 14:30:00,0,
+w1000,voldemand_spx_open_and_close,5,adj_voldemand_spx_open_and_close_ma_5,40994,53994,2014-12-23 14:30:00,0,
+w1000,voldemand_spx_open_and_close,25,adj_voldemand_spx_open_and_close_ma_25,40999,53999,2014-12-26 10:30:00,0,
+w1000,voldemand_spx_open_and_close,125,adj_voldemand_spx_open_and_close_ma_125,41029,54029,2014-12-30 12:30:00,0,
+w1000,voldemand_spx_open_and_close,625,adj_voldemand_spx_open_and_close_ma_625,41154,54154,2015-01-14 10:00:00,0,
+w1000,voldemand_spx_open_and_close,3125,adj_voldemand_spx_open_and_close_ma_3125,41819,54819,2015-03-27 10:30:00,0,
+w1000,voldemand_spx_open_only,1,adj_voldemand_spx_open_only_ma_1,40994,53994,2014-12-23 14:30:00,0,
+w1000,voldemand_spx_open_only,5,adj_voldemand_spx_open_only_ma_5,40994,53994,2014-12-23 14:30:00,0,
+w1000,voldemand_spx_open_only,25,adj_voldemand_spx_open_only_ma_25,40999,53999,2014-12-26 10:30:00,0,
+w1000,voldemand_spx_open_only,125,adj_voldemand_spx_open_only_ma_125,41029,54029,2014-12-30 12:30:00,0,
+w1000,voldemand_spx_open_only,625,adj_voldemand_spx_open_only_ma_625,41154,54154,2015-01-14 10:00:00,0,
+w1000,voldemand_spx_open_only,3125,adj_voldemand_spx_open_only_ma_3125,41819,54819,2015-03-27 10:30:00,0,
+w1000,voldemand_all_open_and_close,1,adj_voldemand_all_open_and_close_ma_1,40994,53994,2014-12-23 14:30:00,0,
+w1000,voldemand_all_open_and_close,5,adj_voldemand_all_open_and_close_ma_5,40994,53994,2014-12-23 14:30:00,0,
+w1000,voldemand_all_open_and_close,25,adj_voldemand_all_open_and_close_ma_25,40999,53999,2014-12-26 10:30:00,0,
+w1000,voldemand_all_open_and_close,125,adj_voldemand_all_open_and_close_ma_125,41029,54029,2014-12-30 12:30:00,0,
+w1000,voldemand_all_open_and_close,625,adj_voldemand_all_open_and_close_ma_625,41154,54154,2015-01-14 10:00:00,0,
+w1000,voldemand_all_open_and_close,3125,adj_voldemand_all_open_and_close_ma_3125,41819,54819,2015-03-27 10:30:00,0,
+w1000,voldemand_all_open_only,1,adj_voldemand_all_open_only_ma_1,40994,53994,2014-12-23 14:30:00,0,
+w1000,voldemand_all_open_only,5,adj_voldemand_all_open_only_ma_5,40994,53994,2014-12-23 14:30:00,0,
+w1000,voldemand_all_open_only,25,adj_voldemand_all_open_only_ma_25,40999,53999,2014-12-26 10:30:00,0,
+w1000,voldemand_all_open_only,125,adj_voldemand_all_open_only_ma_125,41029,54029,2014-12-30 12:30:00,0,
+w1000,voldemand_all_open_only,625,adj_voldemand_all_open_only_ma_625,41154,54154,2015-01-14 10:00:00,0,
+w1000,voldemand_all_open_only,3125,adj_voldemand_all_open_only_ma_3125,41819,54819,2015-03-27 10:30:00,0,
+w1000,fomc_since_inv,3125,adj_fomc_since_inv_ma_3125,296,13296,2002-07-10 12:00:00,0,
+w1500,stocktwits_attention,1,adj_stocktwits_attention_ma_1,35143,54643,2015-03-09 13:30:00,0,
+w1500,stocktwits_attention,5,adj_stocktwits_attention_ma_5,35143,54643,2015-03-09 13:30:00,0,
+w1500,stocktwits_attention,25,adj_stocktwits_attention_ma_25,35148,54648,2015-03-09 16:00:00,0,
+w1500,stocktwits_attention,125,adj_stocktwits_attention_ma_125,35178,54678,2015-03-12 11:30:00,0,
+w1500,stocktwits_attention,625,adj_stocktwits_attention_ma_625,35312,54812,2015-03-26 13:30:00,0,
+w1500,stocktwits_attention,3125,adj_stocktwits_attention_ma_3125,35966,55466,2015-06-08 12:00:00,0,
+w1500,stocktwits_sentiment,1,adj_stocktwits_sentiment_ma_1,39045,58545,2016-05-13 13:00:00,0,
+w1500,stocktwits_sentiment,5,adj_stocktwits_sentiment_ma_5,39045,58545,2016-05-13 13:00:00,0,
+w1500,stocktwits_sentiment,25,adj_stocktwits_sentiment_ma_25,39050,58550,2016-05-13 15:30:00,0,
+w1500,stocktwits_sentiment,125,adj_stocktwits_sentiment_ma_125,39080,58580,2016-05-18 11:00:00,0,
+w1500,stocktwits_sentiment,625,adj_stocktwits_sentiment_ma_625,39214,58714,2016-06-01 16:00:00,0,
+w1500,stocktwits_sentiment,3125,adj_stocktwits_sentiment_ma_3125,39872,59372,2016-08-12 10:00:00,0,
+w1500,stocktwits_sentcount,1,adj_stocktwits_sentcount_ma_1,39045,58545,2016-05-13 13:00:00,0,
+w1500,stocktwits_sentcount,5,adj_stocktwits_sentcount_ma_5,39045,58545,2016-05-13 13:00:00,0,
+w1500,stocktwits_sentcount,25,adj_stocktwits_sentcount_ma_25,39050,58550,2016-05-13 15:30:00,0,
+w1500,stocktwits_sentcount,125,adj_stocktwits_sentcount_ma_125,39080,58580,2016-05-18 11:00:00,0,
+w1500,stocktwits_sentcount,625,adj_stocktwits_sentcount_ma_625,39214,58714,2016-06-01 16:00:00,0,
+w1500,stocktwits_sentcount,3125,adj_stocktwits_sentcount_ma_3125,39872,59372,2016-08-12 10:00:00,0,
+w1500,vix,1,adj_vix_ma_1,25906,45406,2012-05-04 16:00:00,0,
+w1500,vix,5,adj_vix_ma_5,25906,45406,2012-05-04 16:00:00,0,
+w1500,vix,25,adj_vix_ma_25,25911,45411,2012-05-07 12:00:00,0,
+w1500,vix,125,adj_vix_ma_125,25941,45441,2012-05-09 14:00:00,0,
+w1500,vix,625,adj_vix_ma_625,26066,45566,2012-05-23 11:30:00,0,
+w1500,vix,3125,adj_vix_ma_3125,26720,46220,2012-08-03 16:00:00,0,
+w1500,vvix,1,adj_vvix_ma_1,45030,64530,2018-03-08 12:30:00,0,
+w1500,vvix,5,adj_vvix_ma_5,45030,64530,2018-03-08 12:30:00,0,
+w1500,vvix,25,adj_vvix_ma_25,45035,64535,2018-03-08 15:00:00,0,
+w1500,vvix,125,adj_vvix_ma_125,45065,64565,2018-03-13 10:30:00,0,
+w1500,vvix,625,adj_vvix_ma_625,45199,64699,2018-03-27 12:30:00,0,
+w1500,vvix,3125,adj_vvix_ma_3125,45853,65353,2018-06-07 11:00:00,0,
+w1500,vix3m,1,adj_vix3m_ma_1,36438,55938,2015-07-29 10:30:00,0,
+w1500,vix3m,5,adj_vix3m_ma_5,36438,55938,2015-07-29 10:30:00,0,
+w1500,vix3m,25,adj_vix3m_ma_25,36443,55943,2015-07-29 13:00:00,0,
+w1500,vix3m,125,adj_vix3m_ma_125,36473,55973,2015-07-31 15:00:00,0,
+w1500,vix3m,625,adj_vix3m_ma_625,36607,56107,2015-08-17 10:30:00,0,
+w1500,vix3m,3125,adj_vix3m_ma_3125,37261,56761,2015-10-26 15:30:00,0,
+w1500,voldemand_spx_open_and_close,1,adj_voldemand_spx_open_and_close_ma_1,40994,60494,2016-12-14 11:30:00,0,
+w1500,voldemand_spx_open_and_close,5,adj_voldemand_spx_open_and_close_ma_5,40994,60494,2016-12-14 11:30:00,0,
+w1500,voldemand_spx_open_and_close,25,adj_voldemand_spx_open_and_close_ma_25,40999,60499,2016-12-14 14:00:00,0,
+w1500,voldemand_spx_open_and_close,125,adj_voldemand_spx_open_and_close_ma_125,41029,60529,2016-12-16 16:00:00,0,
+w1500,voldemand_spx_open_and_close,625,adj_voldemand_spx_open_and_close_ma_625,41154,60654,2017-01-03 13:30:00,0,
+w1500,voldemand_spx_open_and_close,3125,adj_voldemand_spx_open_and_close_ma_3125,41819,61319,2017-03-16 14:00:00,0,
+w1500,voldemand_spx_open_only,1,adj_voldemand_spx_open_only_ma_1,40994,60494,2016-12-14 11:30:00,0,
+w1500,voldemand_spx_open_only,5,adj_voldemand_spx_open_only_ma_5,40994,60494,2016-12-14 11:30:00,0,
+w1500,voldemand_spx_open_only,25,adj_voldemand_spx_open_only_ma_25,40999,60499,2016-12-14 14:00:00,0,
+w1500,voldemand_spx_open_only,125,adj_voldemand_spx_open_only_ma_125,41029,60529,2016-12-16 16:00:00,0,
+w1500,voldemand_spx_open_only,625,adj_voldemand_spx_open_only_ma_625,41154,60654,2017-01-03 13:30:00,0,
+w1500,voldemand_spx_open_only,3125,adj_voldemand_spx_open_only_ma_3125,41819,61319,2017-03-16 14:00:00,0,
+w1500,voldemand_all_open_and_close,1,adj_voldemand_all_open_and_close_ma_1,40994,60494,2016-12-14 11:30:00,0,
+w1500,voldemand_all_open_and_close,5,adj_voldemand_all_open_and_close_ma_5,40994,60494,2016-12-14 11:30:00,0,
+w1500,voldemand_all_open_and_close,25,adj_voldemand_all_open_and_close_ma_25,40999,60499,2016-12-14 14:00:00,0,
+w1500,voldemand_all_open_and_close,125,adj_voldemand_all_open_and_close_ma_125,41029,60529,2016-12-16 16:00:00,0,
+w1500,voldemand_all_open_and_close,625,adj_voldemand_all_open_and_close_ma_625,41154,60654,2017-01-03 13:30:00,0,
+w1500,voldemand_all_open_and_close,3125,adj_voldemand_all_open_and_close_ma_3125,41819,61319,2017-03-16 14:00:00,0,
+w1500,voldemand_all_open_only,1,adj_voldemand_all_open_only_ma_1,40994,60494,2016-12-14 11:30:00,0,
+w1500,voldemand_all_open_only,5,adj_voldemand_all_open_only_ma_5,40994,60494,2016-12-14 11:30:00,0,
+w1500,voldemand_all_open_only,25,adj_voldemand_all_open_only_ma_25,40999,60499,2016-12-14 14:00:00,0,
+w1500,voldemand_all_open_only,125,adj_voldemand_all_open_only_ma_125,41029,60529,2016-12-16 16:00:00,0,
+w1500,voldemand_all_open_only,625,adj_voldemand_all_open_only_ma_625,41154,60654,2017-01-03 13:30:00,0,
+w1500,voldemand_all_open_only,3125,adj_voldemand_all_open_only_ma_3125,41819,61319,2017-03-16 14:00:00,0,
+w1500,fomc_since_inv,3125,adj_fomc_since_inv_ma_3125,296,19796,2004-07-12 15:30:00,0,
+w2000,stocktwits_attention,1,adj_stocktwits_attention_ma_1,35143,61143,2017-02-27 10:30:00,0,
+w2000,stocktwits_attention,5,adj_stocktwits_attention_ma_5,35143,61143,2017-02-27 10:30:00,0,
+w2000,stocktwits_attention,25,adj_stocktwits_attention_ma_25,35148,61148,2017-02-27 13:00:00,0,
+w2000,stocktwits_attention,125,adj_stocktwits_attention_ma_125,35178,61178,2017-03-01 15:00:00,0,
+w2000,stocktwits_attention,625,adj_stocktwits_attention_ma_625,35312,61312,2017-03-16 10:30:00,0,
+w2000,stocktwits_attention,3125,adj_stocktwits_attention_ma_3125,35966,61966,2017-05-26 12:30:00,0,
+w2000,stocktwits_sentiment,1,adj_stocktwits_sentiment_ma_1,39045,65045,2018-05-04 10:00:00,0,
+w2000,stocktwits_sentiment,5,adj_stocktwits_sentiment_ma_5,39045,65045,2018-05-04 10:00:00,0,
+w2000,stocktwits_sentiment,25,adj_stocktwits_sentiment_ma_25,39050,65050,2018-05-04 12:30:00,0,
+w2000,stocktwits_sentiment,125,adj_stocktwits_sentiment_ma_125,39080,65080,2018-05-08 14:30:00,0,
+w2000,stocktwits_sentiment,625,adj_stocktwits_sentiment_ma_625,39214,65214,2018-05-23 10:00:00,0,
+w2000,stocktwits_sentiment,3125,adj_stocktwits_sentiment_ma_3125,39872,65872,2018-08-03 13:30:00,0,
+w2000,stocktwits_sentcount,1,adj_stocktwits_sentcount_ma_1,39045,65045,2018-05-04 10:00:00,0,
+w2000,stocktwits_sentcount,5,adj_stocktwits_sentcount_ma_5,39045,65045,2018-05-04 10:00:00,0,
+w2000,stocktwits_sentcount,25,adj_stocktwits_sentcount_ma_25,39050,65050,2018-05-04 12:30:00,0,
+w2000,stocktwits_sentcount,125,adj_stocktwits_sentcount_ma_125,39080,65080,2018-05-08 14:30:00,0,
+w2000,stocktwits_sentcount,625,adj_stocktwits_sentcount_ma_625,39214,65214,2018-05-23 10:00:00,0,
+w2000,stocktwits_sentcount,3125,adj_stocktwits_sentcount_ma_3125,39872,65872,2018-08-03 13:30:00,0,
+w2000,vix,1,adj_vix_ma_1,25906,51906,2014-05-07 11:30:00,0,
+w2000,vix,5,adj_vix_ma_5,25906,51906,2014-05-07 11:30:00,0,
+w2000,vix,25,adj_vix_ma_25,25911,51911,2014-05-07 14:00:00,0,
+w2000,vix,125,adj_vix_ma_125,25941,51941,2014-05-09 16:00:00,0,
+w2000,vix,625,adj_vix_ma_625,26066,52066,2014-05-23 13:30:00,0,
+w2000,vix,3125,adj_vix_ma_3125,26720,52720,2014-08-05 15:00:00,0,
+w2000,vvix,1,adj_vvix_ma_1,45030,71030,2020-03-03 15:30:00,26,2020-03-02
+w2000,vvix,5,adj_vvix_ma_5,45030,71030,2020-03-03 15:30:00,26,2020-03-02
+w2000,vvix,25,adj_vvix_ma_25,45035,71035,2020-03-04 11:30:00,26,2020-03-02
+w2000,vvix,125,adj_vvix_ma_125,45065,71065,2020-03-06 13:30:00,27,2020-03-04
+w2000,vvix,625,adj_vvix_ma_625,45199,71199,2020-03-20 15:30:00,33,2020-03-18
+w2000,vvix,3125,adj_vvix_ma_3125,45853,71853,2020-06-02 14:00:00,67,2020-06-01
+w2000,vix3m,1,adj_vix3m_ma_1,36438,62438,2017-07-19 14:00:00,0,
+w2000,vix3m,5,adj_vix3m_ma_5,36438,62438,2017-07-19 14:00:00,0,
+w2000,vix3m,25,adj_vix3m_ma_25,36443,62443,2017-07-20 10:00:00,0,
+w2000,vix3m,125,adj_vix3m_ma_125,36473,62473,2017-07-24 12:00:00,0,
+w2000,vix3m,625,adj_vix3m_ma_625,36607,62607,2017-08-07 14:00:00,0,
+w2000,vix3m,3125,adj_vix3m_ma_3125,37261,63261,2017-10-17 12:30:00,0,
+w2000,voldemand_spx_open_and_close,1,adj_voldemand_spx_open_and_close_ma_1,40994,66994,2018-12-06 14:30:00,0,
+w2000,voldemand_spx_open_and_close,5,adj_voldemand_spx_open_and_close_ma_5,40994,66994,2018-12-06 14:30:00,0,
+w2000,voldemand_spx_open_and_close,25,adj_voldemand_spx_open_and_close_ma_25,40999,66999,2018-12-07 10:30:00,0,
+w2000,voldemand_spx_open_and_close,125,adj_voldemand_spx_open_and_close_ma_125,41029,67029,2018-12-11 12:30:00,0,
+w2000,voldemand_spx_open_and_close,625,adj_voldemand_spx_open_and_close_ma_625,41154,67154,2018-12-27 10:00:00,0,
+w2000,voldemand_spx_open_and_close,3125,adj_voldemand_spx_open_and_close_ma_3125,41819,67819,2019-03-12 10:30:00,0,
+w2000,voldemand_spx_open_only,1,adj_voldemand_spx_open_only_ma_1,40994,66994,2018-12-06 14:30:00,0,
+w2000,voldemand_spx_open_only,5,adj_voldemand_spx_open_only_ma_5,40994,66994,2018-12-06 14:30:00,0,
+w2000,voldemand_spx_open_only,25,adj_voldemand_spx_open_only_ma_25,40999,66999,2018-12-07 10:30:00,0,
+w2000,voldemand_spx_open_only,125,adj_voldemand_spx_open_only_ma_125,41029,67029,2018-12-11 12:30:00,0,
+w2000,voldemand_spx_open_only,625,adj_voldemand_spx_open_only_ma_625,41154,67154,2018-12-27 10:00:00,0,
+w2000,voldemand_spx_open_only,3125,adj_voldemand_spx_open_only_ma_3125,41819,67819,2019-03-12 10:30:00,0,
+w2000,voldemand_all_open_and_close,1,adj_voldemand_all_open_and_close_ma_1,40994,66994,2018-12-06 14:30:00,0,
+w2000,voldemand_all_open_and_close,5,adj_voldemand_all_open_and_close_ma_5,40994,66994,2018-12-06 14:30:00,0,
+w2000,voldemand_all_open_and_close,25,adj_voldemand_all_open_and_close_ma_25,40999,66999,2018-12-07 10:30:00,0,
+w2000,voldemand_all_open_and_close,125,adj_voldemand_all_open_and_close_ma_125,41029,67029,2018-12-11 12:30:00,0,
+w2000,voldemand_all_open_and_close,625,adj_voldemand_all_open_and_close_ma_625,41154,67154,2018-12-27 10:00:00,0,
+w2000,voldemand_all_open_and_close,3125,adj_voldemand_all_open_and_close_ma_3125,41819,67819,2019-03-12 10:30:00,0,
+w2000,voldemand_all_open_only,1,adj_voldemand_all_open_only_ma_1,40994,66994,2018-12-06 14:30:00,0,
+w2000,voldemand_all_open_only,5,adj_voldemand_all_open_only_ma_5,40994,66994,2018-12-06 14:30:00,0,
+w2000,voldemand_all_open_only,25,adj_voldemand_all_open_only_ma_25,40999,66999,2018-12-07 10:30:00,0,
+w2000,voldemand_all_open_only,125,adj_voldemand_all_open_only_ma_125,41029,67029,2018-12-11 12:30:00,0,
+w2000,voldemand_all_open_only,625,adj_voldemand_all_open_only_ma_625,41154,67154,2018-12-27 10:00:00,0,
+w2000,voldemand_all_open_only,3125,adj_voldemand_all_open_only_ma_3125,41819,67819,2019-03-12 10:30:00,0,
+w2000,fomc_since_inv,3125,adj_fomc_since_inv_ma_3125,296,26296,2006-07-05 12:30:00,0,
+w2500,stocktwits_attention,1,adj_stocktwits_attention_ma_1,35143,67643,2019-02-20 13:30:00,0,
+w2500,stocktwits_attention,5,adj_stocktwits_attention_ma_5,35143,67643,2019-02-20 13:30:00,0,
+w2500,stocktwits_attention,25,adj_stocktwits_attention_ma_25,35148,67648,2019-02-20 16:00:00,0,
+w2500,stocktwits_attention,125,adj_stocktwits_attention_ma_125,35178,67678,2019-02-25 11:30:00,0,
+w2500,stocktwits_attention,625,adj_stocktwits_attention_ma_625,35312,67812,2019-03-11 13:30:00,0,
+w2500,stocktwits_attention,3125,adj_stocktwits_attention_ma_3125,35966,68466,2019-05-21 15:30:00,0,
+w2500,stocktwits_sentiment,1,adj_stocktwits_sentiment_ma_1,39045,71545,2020-04-29 13:00:00,51,2020-04-27
+w2500,stocktwits_sentiment,5,adj_stocktwits_sentiment_ma_5,39045,71545,2020-04-29 13:00:00,51,2020-04-27
+w2500,stocktwits_sentiment,25,adj_stocktwits_sentiment_ma_25,39050,71550,2020-04-29 15:30:00,51,2020-04-27
+w2500,stocktwits_sentiment,125,adj_stocktwits_sentiment_ma_125,39080,71580,2020-05-04 11:00:00,54,2020-05-01
+w2500,stocktwits_sentiment,625,adj_stocktwits_sentiment_ma_625,39214,71714,2020-05-18 13:00:00,60,2020-05-15
+w2500,stocktwits_sentiment,3125,adj_stocktwits_sentiment_ma_3125,39872,72372,2020-07-29 10:00:00,92,2020-07-27
+w2500,stocktwits_sentcount,1,adj_stocktwits_sentcount_ma_1,39045,71545,2020-04-29 13:00:00,51,2020-04-27
+w2500,stocktwits_sentcount,5,adj_stocktwits_sentcount_ma_5,39045,71545,2020-04-29 13:00:00,51,2020-04-27
+w2500,stocktwits_sentcount,25,adj_stocktwits_sentcount_ma_25,39050,71550,2020-04-29 15:30:00,51,2020-04-27
+w2500,stocktwits_sentcount,125,adj_stocktwits_sentcount_ma_125,39080,71580,2020-05-04 11:00:00,54,2020-05-01
+w2500,stocktwits_sentcount,625,adj_stocktwits_sentcount_ma_625,39214,71714,2020-05-18 13:00:00,60,2020-05-15
+w2500,stocktwits_sentcount,3125,adj_stocktwits_sentcount_ma_3125,39872,72372,2020-07-29 10:00:00,92,2020-07-27
+w2500,vix,1,adj_vix_ma_1,25906,58406,2016-04-28 15:00:00,0,
+w2500,vix,5,adj_vix_ma_5,25906,58406,2016-04-28 15:00:00,0,
+w2500,vix,25,adj_vix_ma_25,25911,58411,2016-04-29 11:00:00,0,
+w2500,vix,125,adj_vix_ma_125,25941,58441,2016-05-03 13:00:00,0,
+w2500,vix,625,adj_vix_ma_625,26066,58566,2016-05-17 10:30:00,0,
+w2500,vix,3125,adj_vix_ma_3125,26720,59220,2016-07-27 12:00:00,0,
+w2500,vvix,1,adj_vvix_ma_1,45030,77530,2022-02-18 16:00:00,336,2022-02-16
+w2500,vvix,5,adj_vvix_ma_5,45030,77530,2022-02-18 16:00:00,336,2022-02-16
+w2500,vvix,25,adj_vvix_ma_25,45035,77535,2022-02-21 12:00:00,337,2022-02-18
+w2500,vvix,125,adj_vvix_ma_125,45065,77565,2022-02-24 10:30:00,339,2022-02-23
+w2500,vvix,625,adj_vvix_ma_625,45199,77699,2022-03-10 12:30:00,345,2022-03-09
+w2500,vvix,3125,adj_vvix_ma_3125,45853,78353,2022-05-20 14:30:00,381,2022-05-19
+w2500,vix3m,1,adj_vix3m_ma_1,36438,68938,2019-07-15 10:30:00,0,
+w2500,vix3m,5,adj_vix3m_ma_5,36438,68938,2019-07-15 10:30:00,0,
+w2500,vix3m,25,adj_vix3m_ma_25,36443,68943,2019-07-15 13:00:00,0,
+w2500,vix3m,125,adj_vix3m_ma_125,36473,68973,2019-07-17 15:00:00,0,
+w2500,vix3m,625,adj_vix3m_ma_625,36607,69107,2019-08-01 10:30:00,0,
+w2500,vix3m,3125,adj_vix3m_ma_3125,37261,69761,2019-10-10 15:30:00,0,
+w2500,voldemand_spx_open_and_close,1,adj_voldemand_spx_open_and_close_ma_1,40994,73494,2020-11-30 11:30:00,144,2020-11-25
+w2500,voldemand_spx_open_and_close,5,adj_voldemand_spx_open_and_close_ma_5,40994,73494,2020-11-30 11:30:00,144,2020-11-25
+w2500,voldemand_spx_open_and_close,25,adj_voldemand_spx_open_and_close_ma_25,40999,73499,2020-11-30 14:00:00,144,2020-11-25
+w2500,voldemand_spx_open_and_close,125,adj_voldemand_spx_open_and_close_ma_125,41029,73529,2020-12-02 16:00:00,145,2020-11-30
+w2500,voldemand_spx_open_and_close,625,adj_voldemand_spx_open_and_close_ma_625,41154,73654,2020-12-16 13:30:00,151,2020-12-14
+w2500,voldemand_spx_open_and_close,3125,adj_voldemand_spx_open_and_close_ma_3125,41819,74319,2021-03-03 14:00:00,183,2021-03-01
+w2500,voldemand_spx_open_only,1,adj_voldemand_spx_open_only_ma_1,40994,73494,2020-11-30 11:30:00,144,2020-11-25
+w2500,voldemand_spx_open_only,5,adj_voldemand_spx_open_only_ma_5,40994,73494,2020-11-30 11:30:00,144,2020-11-25
+w2500,voldemand_spx_open_only,25,adj_voldemand_spx_open_only_ma_25,40999,73499,2020-11-30 14:00:00,144,2020-11-25
+w2500,voldemand_spx_open_only,125,adj_voldemand_spx_open_only_ma_125,41029,73529,2020-12-02 16:00:00,145,2020-11-30
+w2500,voldemand_spx_open_only,625,adj_voldemand_spx_open_only_ma_625,41154,73654,2020-12-16 13:30:00,151,2020-12-14
+w2500,voldemand_spx_open_only,3125,adj_voldemand_spx_open_only_ma_3125,41819,74319,2021-03-03 14:00:00,183,2021-03-01
+w2500,voldemand_all_open_and_close,1,adj_voldemand_all_open_and_close_ma_1,40994,73494,2020-11-30 11:30:00,144,2020-11-25
+w2500,voldemand_all_open_and_close,5,adj_voldemand_all_open_and_close_ma_5,40994,73494,2020-11-30 11:30:00,144,2020-11-25
+w2500,voldemand_all_open_and_close,25,adj_voldemand_all_open_and_close_ma_25,40999,73499,2020-11-30 14:00:00,144,2020-11-25
+w2500,voldemand_all_open_and_close,125,adj_voldemand_all_open_and_close_ma_125,41029,73529,2020-12-02 16:00:00,145,2020-11-30
+w2500,voldemand_all_open_and_close,625,adj_voldemand_all_open_and_close_ma_625,41154,73654,2020-12-16 13:30:00,151,2020-12-14
+w2500,voldemand_all_open_and_close,3125,adj_voldemand_all_open_and_close_ma_3125,41819,74319,2021-03-03 14:00:00,183,2021-03-01
+w2500,voldemand_all_open_only,1,adj_voldemand_all_open_only_ma_1,40994,73494,2020-11-30 11:30:00,144,2020-11-25
+w2500,voldemand_all_open_only,5,adj_voldemand_all_open_only_ma_5,40994,73494,2020-11-30 11:30:00,144,2020-11-25
+w2500,voldemand_all_open_only,25,adj_voldemand_all_open_only_ma_25,40999,73499,2020-11-30 14:00:00,144,2020-11-25
+w2500,voldemand_all_open_only,125,adj_voldemand_all_open_only_ma_125,41029,73529,2020-12-02 16:00:00,145,2020-11-30
+w2500,voldemand_all_open_only,625,adj_voldemand_all_open_only_ma_625,41154,73654,2020-12-16 13:30:00,151,2020-12-14
+w2500,voldemand_all_open_only,3125,adj_voldemand_all_open_only_ma_3125,41819,74319,2021-03-03 14:00:00,183,2021-03-01
+w2500,fomc_since_inv,3125,adj_fomc_since_inv_ma_3125,296,32796,2008-07-01 10:00:00,0,
+w3000,stocktwits_attention,1,adj_stocktwits_attention_ma_1,35143,74143,2021-02-11 14:00:00,175,2021-02-10
+w3000,stocktwits_attention,5,adj_stocktwits_attention_ma_5,35143,74143,2021-02-11 14:00:00,175,2021-02-10
+w3000,stocktwits_attention,25,adj_stocktwits_attention_ma_25,35148,74148,2021-02-12 10:00:00,175,2021-02-10
+w3000,stocktwits_attention,125,adj_stocktwits_attention_ma_125,35178,74178,2021-02-16 15:00:00,176,2021-02-12
+w3000,stocktwits_attention,625,adj_stocktwits_attention_ma_625,35312,74312,2021-03-03 10:30:00,183,2021-03-01
+w3000,stocktwits_attention,3125,adj_stocktwits_attention_ma_3125,35966,74966,2021-05-13 12:30:00,214,2021-05-12
+w3000,stocktwits_sentiment,1,adj_stocktwits_sentiment_ma_1,39045,78045,2022-04-19 10:00:00,363,2022-04-18
+w3000,stocktwits_sentiment,5,adj_stocktwits_sentiment_ma_5,39045,78045,2022-04-19 10:00:00,363,2022-04-18
+w3000,stocktwits_sentiment,25,adj_stocktwits_sentiment_ma_25,39050,78050,2022-04-19 12:30:00,363,2022-04-18
+w3000,stocktwits_sentiment,125,adj_stocktwits_sentiment_ma_125,39080,78080,2022-04-21 14:30:00,364,2022-04-20
+w3000,stocktwits_sentiment,625,adj_stocktwits_sentiment_ma_625,39214,78214,2022-05-06 10:00:00,372,2022-05-04
+w3000,stocktwits_sentiment,3125,adj_stocktwits_sentiment_ma_3125,39872,78872,2022-07-19 10:00:00,420,2022-07-18
+w3000,stocktwits_sentcount,1,adj_stocktwits_sentcount_ma_1,39045,78045,2022-04-19 10:00:00,363,2022-04-18
+w3000,stocktwits_sentcount,5,adj_stocktwits_sentcount_ma_5,39045,78045,2022-04-19 10:00:00,363,2022-04-18
+w3000,stocktwits_sentcount,25,adj_stocktwits_sentcount_ma_25,39050,78050,2022-04-19 12:30:00,363,2022-04-18
+w3000,stocktwits_sentcount,125,adj_stocktwits_sentcount_ma_125,39080,78080,2022-04-21 14:30:00,364,2022-04-20
+w3000,stocktwits_sentcount,625,adj_stocktwits_sentcount_ma_625,39214,78214,2022-05-06 10:00:00,372,2022-05-04
+w3000,stocktwits_sentcount,3125,adj_stocktwits_sentcount_ma_3125,39872,78872,2022-07-19 10:00:00,420,2022-07-18
+w3000,vix,1,adj_vix_ma_1,25906,64906,2018-04-19 12:00:00,0,
+w3000,vix,5,adj_vix_ma_5,25906,64906,2018-04-19 12:00:00,0,
+w3000,vix,25,adj_vix_ma_25,25911,64911,2018-04-19 14:30:00,0,
+w3000,vix,125,adj_vix_ma_125,25941,64941,2018-04-24 10:00:00,0,
+w3000,vix,625,adj_vix_ma_625,26066,65066,2018-05-07 14:00:00,0,
+w3000,vix,3125,adj_vix_ma_3125,26720,65720,2018-07-18 15:30:00,0,
+w3000,vvix,1,adj_vvix_ma_1,45030,84030,2024-02-12 12:30:00,811,2024-02-09
+w3000,vvix,5,adj_vvix_ma_5,45030,84030,2024-02-12 12:30:00,811,2024-02-09
+w3000,vvix,25,adj_vvix_ma_25,45035,84035,2024-02-12 15:00:00,811,2024-02-09
+w3000,vvix,125,adj_vvix_ma_125,45065,84065,2024-02-15 10:30:00,814,2024-02-14
+w3000,vvix,625,adj_vvix_ma_625,45199,84199,2024-02-29 15:30:00,823,2024-02-28
+w3000,vvix,3125,adj_vvix_ma_3125,45747,84747,never (past the data's end),866,2024-04-30
+w3000,vix3m,1,adj_vix3m_ma_1,36438,75438,2021-07-05 11:00:00,236,2021-07-02
+w3000,vix3m,5,adj_vix3m_ma_5,36438,75438,2021-07-05 11:00:00,236,2021-07-02
+w3000,vix3m,25,adj_vix3m_ma_25,36443,75443,2021-07-06 10:00:00,236,2021-07-02
+w3000,vix3m,125,adj_vix3m_ma_125,36473,75473,2021-07-08 12:00:00,238,2021-07-07
+w3000,vix3m,625,adj_vix3m_ma_625,36607,75607,2021-07-22 14:00:00,244,2021-07-21
+w3000,vix3m,3125,adj_vix3m_ma_3125,37261,76261,2021-10-01 12:30:00,276,2021-09-30
+w3000,voldemand_spx_open_and_close,1,adj_voldemand_spx_open_and_close_ma_1,40994,79994,2022-11-16 15:00:00,505,2022-11-15
+w3000,voldemand_spx_open_and_close,5,adj_voldemand_spx_open_and_close_ma_5,40994,79994,2022-11-16 15:00:00,505,2022-11-15
+w3000,voldemand_spx_open_and_close,25,adj_voldemand_spx_open_and_close_ma_25,40999,79999,2022-11-17 11:00:00,506,2022-11-16
+w3000,voldemand_spx_open_and_close,125,adj_voldemand_spx_open_and_close_ma_125,41029,80029,2022-11-21 13:00:00,508,2022-11-18
+w3000,voldemand_spx_open_and_close,625,adj_voldemand_spx_open_and_close_ma_625,41154,80154,2022-12-06 13:30:00,517,2022-12-05
+w3000,voldemand_spx_open_and_close,3125,adj_voldemand_spx_open_and_close_ma_3125,41819,80819,2023-02-20 11:00:00,568,2023-02-17
+w3000,voldemand_spx_open_only,1,adj_voldemand_spx_open_only_ma_1,40994,79994,2022-11-16 15:00:00,505,2022-11-15
+w3000,voldemand_spx_open_only,5,adj_voldemand_spx_open_only_ma_5,40994,79994,2022-11-16 15:00:00,505,2022-11-15
+w3000,voldemand_spx_open_only,25,adj_voldemand_spx_open_only_ma_25,40999,79999,2022-11-17 11:00:00,506,2022-11-16
+w3000,voldemand_spx_open_only,125,adj_voldemand_spx_open_only_ma_125,41029,80029,2022-11-21 13:00:00,508,2022-11-18
+w3000,voldemand_spx_open_only,625,adj_voldemand_spx_open_only_ma_625,41154,80154,2022-12-06 13:30:00,517,2022-12-05
+w3000,voldemand_spx_open_only,3125,adj_voldemand_spx_open_only_ma_3125,41819,80819,2023-02-20 11:00:00,568,2023-02-17
+w3000,voldemand_all_open_and_close,1,adj_voldemand_all_open_and_close_ma_1,40994,79994,2022-11-16 15:00:00,505,2022-11-15
+w3000,voldemand_all_open_and_close,5,adj_voldemand_all_open_and_close_ma_5,40994,79994,2022-11-16 15:00:00,505,2022-11-15
+w3000,voldemand_all_open_and_close,25,adj_voldemand_all_open_and_close_ma_25,40999,79999,2022-11-17 11:00:00,506,2022-11-16
+w3000,voldemand_all_open_and_close,125,adj_voldemand_all_open_and_close_ma_125,41029,80029,2022-11-21 13:00:00,508,2022-11-18
+w3000,voldemand_all_open_and_close,625,adj_voldemand_all_open_and_close_ma_625,41154,80154,2022-12-06 13:30:00,517,2022-12-05
+w3000,voldemand_all_open_and_close,3125,adj_voldemand_all_open_and_close_ma_3125,41819,80819,2023-02-20 11:00:00,568,2023-02-17
+w3000,voldemand_all_open_only,1,adj_voldemand_all_open_only_ma_1,40994,79994,2022-11-16 15:00:00,505,2022-11-15
+w3000,voldemand_all_open_only,5,adj_voldemand_all_open_only_ma_5,40994,79994,2022-11-16 15:00:00,505,2022-11-15
+w3000,voldemand_all_open_only,25,adj_voldemand_all_open_only_ma_25,40999,79999,2022-11-17 11:00:00,506,2022-11-16
+w3000,voldemand_all_open_only,125,adj_voldemand_all_open_only_ma_125,41029,80029,2022-11-21 13:00:00,508,2022-11-18
+w3000,voldemand_all_open_only,625,adj_voldemand_all_open_only_ma_625,41154,80154,2022-12-06 13:30:00,517,2022-12-05
+w3000,voldemand_all_open_only,3125,adj_voldemand_all_open_only_ma_3125,41819,80819,2023-02-20 11:00:00,568,2023-02-17
+w3000,fomc_since_inv,3125,adj_fomc_since_inv_ma_3125,296,39296,2010-06-28 12:00:00,0,
+w3500,stocktwits_attention,1,adj_stocktwits_attention_ma_1,35143,80643,2023-01-31 14:00:00,554,2023-01-30
+w3500,stocktwits_attention,5,adj_stocktwits_attention_ma_5,35143,80643,2023-01-31 14:00:00,554,2023-01-30
+w3500,stocktwits_attention,25,adj_stocktwits_attention_ma_25,35148,80648,2023-02-01 10:00:00,555,2023-01-31
+w3500,stocktwits_attention,125,adj_stocktwits_attention_ma_125,35178,80678,2023-02-03 12:00:00,557,2023-02-02
+w3500,stocktwits_attention,625,adj_stocktwits_attention_ma_625,35312,80812,2023-02-17 14:00:00,567,2023-02-16
+w3500,stocktwits_attention,3125,adj_stocktwits_attention_ma_3125,35966,81466,2023-05-02 12:30:00,617,2023-05-01
+w3500,stocktwits_sentiment,1,adj_stocktwits_sentiment_ma_1,39045,84545,2024-04-09 13:00:00,850,2024-04-08
+w3500,stocktwits_sentiment,5,adj_stocktwits_sentiment_ma_5,39045,84545,2024-04-09 13:00:00,850,2024-04-08
+w3500,stocktwits_sentiment,25,adj_stocktwits_sentiment_ma_25,39050,84550,2024-04-09 15:30:00,850,2024-04-08
+w3500,stocktwits_sentiment,125,adj_stocktwits_sentiment_ma_125,39080,84580,2024-04-12 11:00:00,853,2024-04-11
+w3500,stocktwits_sentiment,625,adj_stocktwits_sentiment_ma_625,39214,84714,2024-04-26 13:00:00,863,2024-04-25
+w3500,stocktwits_sentiment,3125,adj_stocktwits_sentiment_ma_3125,39247,84747,never (past the data's end),866,2024-04-30
+w3500,stocktwits_sentcount,1,adj_stocktwits_sentcount_ma_1,39045,84545,2024-04-09 13:00:00,850,2024-04-08
+w3500,stocktwits_sentcount,5,adj_stocktwits_sentcount_ma_5,39045,84545,2024-04-09 13:00:00,850,2024-04-08
+w3500,stocktwits_sentcount,25,adj_stocktwits_sentcount_ma_25,39050,84550,2024-04-09 15:30:00,850,2024-04-08
+w3500,stocktwits_sentcount,125,adj_stocktwits_sentcount_ma_125,39080,84580,2024-04-12 11:00:00,853,2024-04-11
+w3500,stocktwits_sentcount,625,adj_stocktwits_sentcount_ma_625,39214,84714,2024-04-26 13:00:00,863,2024-04-25
+w3500,stocktwits_sentcount,3125,adj_stocktwits_sentcount_ma_3125,39247,84747,never (past the data's end),866,2024-04-30
+w3500,vix,1,adj_vix_ma_1,25906,71406,2020-04-14 15:00:00,45,2020-04-13
+w3500,vix,5,adj_vix_ma_5,25906,71406,2020-04-14 15:00:00,45,2020-04-13
+w3500,vix,25,adj_vix_ma_25,25911,71411,2020-04-15 11:00:00,45,2020-04-13
+w3500,vix,125,adj_vix_ma_125,25941,71441,2020-04-17 13:00:00,46,2020-04-15
+w3500,vix,625,adj_vix_ma_625,26066,71566,2020-05-01 10:30:00,53,2020-04-30
+w3500,vix,3125,adj_vix_ma_3125,26720,72220,2020-07-13 12:00:00,85,2020-07-10
+w3500,vvix,1,adj_vvix_ma_1,39247,84747,never (past the data's end),866,2024-04-30
+w3500,vvix,5,adj_vvix_ma_5,39247,84747,never (past the data's end),866,2024-04-30
+w3500,vvix,25,adj_vvix_ma_25,39247,84747,never (past the data's end),866,2024-04-30
+w3500,vvix,125,adj_vvix_ma_125,39247,84747,never (past the data's end),866,2024-04-30
+w3500,vvix,625,adj_vvix_ma_625,39247,84747,never (past the data's end),866,2024-04-30
+w3500,vvix,3125,adj_vvix_ma_3125,39247,84747,never (past the data's end),866,2024-04-30
+w3500,vix3m,1,adj_vix3m_ma_1,36438,81938,2023-06-22 14:00:00,652,2023-06-21
+w3500,vix3m,5,adj_vix3m_ma_5,36438,81938,2023-06-22 14:00:00,652,2023-06-21
+w3500,vix3m,25,adj_vix3m_ma_25,36443,81943,2023-06-23 10:00:00,653,2023-06-22
+w3500,vix3m,125,adj_vix3m_ma_125,36473,81973,2023-06-27 12:00:00,655,2023-06-26
+w3500,vix3m,625,adj_vix3m_ma_625,36607,82107,2023-07-13 10:30:00,665,2023-07-12
+w3500,vix3m,3125,adj_vix3m_ma_3125,37261,82761,2023-09-21 15:30:00,714,2023-09-20
+w3500,voldemand_spx_open_and_close,1,adj_voldemand_spx_open_and_close_ma_1,39247,84747,never (past the data's end),866,2024-04-30
+w3500,voldemand_spx_open_and_close,5,adj_voldemand_spx_open_and_close_ma_5,39247,84747,never (past the data's end),866,2024-04-30
+w3500,voldemand_spx_open_and_close,25,adj_voldemand_spx_open_and_close_ma_25,39247,84747,never (past the data's end),866,2024-04-30
+w3500,voldemand_spx_open_and_close,125,adj_voldemand_spx_open_and_close_ma_125,39247,84747,never (past the data's end),866,2024-04-30
+w3500,voldemand_spx_open_and_close,625,adj_voldemand_spx_open_and_close_ma_625,39247,84747,never (past the data's end),866,2024-04-30
+w3500,voldemand_spx_open_and_close,3125,adj_voldemand_spx_open_and_close_ma_3125,39247,84747,never (past the data's end),866,2024-04-30
+w3500,voldemand_spx_open_only,1,adj_voldemand_spx_open_only_ma_1,39247,84747,never (past the data's end),866,2024-04-30
+w3500,voldemand_spx_open_only,5,adj_voldemand_spx_open_only_ma_5,39247,84747,never (past the data's end),866,2024-04-30
+w3500,voldemand_spx_open_only,25,adj_voldemand_spx_open_only_ma_25,39247,84747,never (past the data's end),866,2024-04-30
+w3500,voldemand_spx_open_only,125,adj_voldemand_spx_open_only_ma_125,39247,84747,never (past the data's end),866,2024-04-30
+w3500,voldemand_spx_open_only,625,adj_voldemand_spx_open_only_ma_625,39247,84747,never (past the data's end),866,2024-04-30
+w3500,voldemand_spx_open_only,3125,adj_voldemand_spx_open_only_ma_3125,39247,84747,never (past the data's end),866,2024-04-30
+w3500,voldemand_all_open_and_close,1,adj_voldemand_all_open_and_close_ma_1,39247,84747,never (past the data's end),866,2024-04-30
+w3500,voldemand_all_open_and_close,5,adj_voldemand_all_open_and_close_ma_5,39247,84747,never (past the data's end),866,2024-04-30
+w3500,voldemand_all_open_and_close,25,adj_voldemand_all_open_and_close_ma_25,39247,84747,never (past the data's end),866,2024-04-30
+w3500,voldemand_all_open_and_close,125,adj_voldemand_all_open_and_close_ma_125,39247,84747,never (past the data's end),866,2024-04-30
+w3500,voldemand_all_open_and_close,625,adj_voldemand_all_open_and_close_ma_625,39247,84747,never (past the data's end),866,2024-04-30
+w3500,voldemand_all_open_and_close,3125,adj_voldemand_all_open_and_close_ma_3125,39247,84747,never (past the data's end),866,2024-04-30
+w3500,voldemand_all_open_only,1,adj_voldemand_all_open_only_ma_1,39247,84747,never (past the data's end),866,2024-04-30
+w3500,voldemand_all_open_only,5,adj_voldemand_all_open_only_ma_5,39247,84747,never (past the data's end),866,2024-04-30
+w3500,voldemand_all_open_only,25,adj_voldemand_all_open_only_ma_25,39247,84747,never (past the data's end),866,2024-04-30
+w3500,voldemand_all_open_only,125,adj_voldemand_all_open_only_ma_125,39247,84747,never (past the data's end),866,2024-04-30
+w3500,voldemand_all_open_only,625,adj_voldemand_all_open_only_ma_625,39247,84747,never (past the data's end),866,2024-04-30
+w3500,voldemand_all_open_only,3125,adj_voldemand_all_open_only_ma_3125,39247,84747,never (past the data's end),866,2024-04-30
+w3500,fomc_since_inv,3125,adj_fomc_since_inv_ma_3125,296,45796,2012-06-18 14:00:00,0,
+w4000,stocktwits_attention,1,adj_stocktwits_attention_ma_1,32747,84747,never (past the data's end),866,2024-04-30
+w4000,stocktwits_attention,5,adj_stocktwits_attention_ma_5,32747,84747,never (past the data's end),866,2024-04-30
+w4000,stocktwits_attention,25,adj_stocktwits_attention_ma_25,32747,84747,never (past the data's end),866,2024-04-30
+w4000,stocktwits_attention,125,adj_stocktwits_attention_ma_125,32747,84747,never (past the data's end),866,2024-04-30
+w4000,stocktwits_attention,625,adj_stocktwits_attention_ma_625,32747,84747,never (past the data's end),866,2024-04-30
+w4000,stocktwits_attention,3125,adj_stocktwits_attention_ma_3125,32747,84747,never (past the data's end),866,2024-04-30
+w4000,stocktwits_sentiment,1,adj_stocktwits_sentiment_ma_1,32747,84747,never (past the data's end),866,2024-04-30
+w4000,stocktwits_sentiment,5,adj_stocktwits_sentiment_ma_5,32747,84747,never (past the data's end),866,2024-04-30
+w4000,stocktwits_sentiment,25,adj_stocktwits_sentiment_ma_25,32747,84747,never (past the data's end),866,2024-04-30
+w4000,stocktwits_sentiment,125,adj_stocktwits_sentiment_ma_125,32747,84747,never (past the data's end),866,2024-04-30
+w4000,stocktwits_sentiment,625,adj_stocktwits_sentiment_ma_625,32747,84747,never (past the data's end),866,2024-04-30
+w4000,stocktwits_sentiment,3125,adj_stocktwits_sentiment_ma_3125,32747,84747,never (past the data's end),866,2024-04-30
+w4000,stocktwits_sentcount,1,adj_stocktwits_sentcount_ma_1,32747,84747,never (past the data's end),866,2024-04-30
+w4000,stocktwits_sentcount,5,adj_stocktwits_sentcount_ma_5,32747,84747,never (past the data's end),866,2024-04-30
+w4000,stocktwits_sentcount,25,adj_stocktwits_sentcount_ma_25,32747,84747,never (past the data's end),866,2024-04-30
+w4000,stocktwits_sentcount,125,adj_stocktwits_sentcount_ma_125,32747,84747,never (past the data's end),866,2024-04-30
+w4000,stocktwits_sentcount,625,adj_stocktwits_sentcount_ma_625,32747,84747,never (past the data's end),866,2024-04-30
+w4000,stocktwits_sentcount,3125,adj_stocktwits_sentcount_ma_3125,32747,84747,never (past the data's end),866,2024-04-30
+w4000,vix,1,adj_vix_ma_1,25906,77906,2022-04-01 12:00:00,355,2022-03-31
+w4000,vix,5,adj_vix_ma_5,25906,77906,2022-04-01 12:00:00,355,2022-03-31
+w4000,vix,25,adj_vix_ma_25,25911,77911,2022-04-01 14:30:00,355,2022-03-31
+w4000,vix,125,adj_vix_ma_125,25941,77941,2022-04-06 10:00:00,357,2022-04-04
+w4000,vix,625,adj_vix_ma_625,26066,78066,2022-04-20 14:00:00,363,2022-04-18
+w4000,vix,3125,adj_vix_ma_3125,26720,78720,2022-06-30 15:30:00,408,2022-06-29
+w4000,vvix,1,adj_vvix_ma_1,32747,84747,never (past the data's end),866,2024-04-30
+w4000,vvix,5,adj_vvix_ma_5,32747,84747,never (past the data's end),866,2024-04-30
+w4000,vvix,25,adj_vvix_ma_25,32747,84747,never (past the data's end),866,2024-04-30
+w4000,vvix,125,adj_vvix_ma_125,32747,84747,never (past the data's end),866,2024-04-30
+w4000,vvix,625,adj_vvix_ma_625,32747,84747,never (past the data's end),866,2024-04-30
+w4000,vvix,3125,adj_vvix_ma_3125,32747,84747,never (past the data's end),866,2024-04-30
+w4000,vix3m,1,adj_vix3m_ma_1,32747,84747,never (past the data's end),866,2024-04-30
+w4000,vix3m,5,adj_vix3m_ma_5,32747,84747,never (past the data's end),866,2024-04-30
+w4000,vix3m,25,adj_vix3m_ma_25,32747,84747,never (past the data's end),866,2024-04-30
+w4000,vix3m,125,adj_vix3m_ma_125,32747,84747,never (past the data's end),866,2024-04-30
+w4000,vix3m,625,adj_vix3m_ma_625,32747,84747,never (past the data's end),866,2024-04-30
+w4000,vix3m,3125,adj_vix3m_ma_3125,32747,84747,never (past the data's end),866,2024-04-30
+w4000,voldemand_spx_open_and_close,1,adj_voldemand_spx_open_and_close_ma_1,32747,84747,never (past the data's end),866,2024-04-30
+w4000,voldemand_spx_open_and_close,5,adj_voldemand_spx_open_and_close_ma_5,32747,84747,never (past the data's end),866,2024-04-30
+w4000,voldemand_spx_open_and_close,25,adj_voldemand_spx_open_and_close_ma_25,32747,84747,never (past the data's end),866,2024-04-30
+w4000,voldemand_spx_open_and_close,125,adj_voldemand_spx_open_and_close_ma_125,32747,84747,never (past the data's end),866,2024-04-30
+w4000,voldemand_spx_open_and_close,625,adj_voldemand_spx_open_and_close_ma_625,32747,84747,never (past the data's end),866,2024-04-30
+w4000,voldemand_spx_open_and_close,3125,adj_voldemand_spx_open_and_close_ma_3125,32747,84747,never (past the data's end),866,2024-04-30
+w4000,voldemand_spx_open_only,1,adj_voldemand_spx_open_only_ma_1,32747,84747,never (past the data's end),866,2024-04-30
+w4000,voldemand_spx_open_only,5,adj_voldemand_spx_open_only_ma_5,32747,84747,never (past the data's end),866,2024-04-30
+w4000,voldemand_spx_open_only,25,adj_voldemand_spx_open_only_ma_25,32747,84747,never (past the data's end),866,2024-04-30
+w4000,voldemand_spx_open_only,125,adj_voldemand_spx_open_only_ma_125,32747,84747,never (past the data's end),866,2024-04-30
+w4000,voldemand_spx_open_only,625,adj_voldemand_spx_open_only_ma_625,32747,84747,never (past the data's end),866,2024-04-30
+w4000,voldemand_spx_open_only,3125,adj_voldemand_spx_open_only_ma_3125,32747,84747,never (past the data's end),866,2024-04-30
+w4000,voldemand_all_open_and_close,1,adj_voldemand_all_open_and_close_ma_1,32747,84747,never (past the data's end),866,2024-04-30
+w4000,voldemand_all_open_and_close,5,adj_voldemand_all_open_and_close_ma_5,32747,84747,never (past the data's end),866,2024-04-30
+w4000,voldemand_all_open_and_close,25,adj_voldemand_all_open_and_close_ma_25,32747,84747,never (past the data's end),866,2024-04-30
+w4000,voldemand_all_open_and_close,125,adj_voldemand_all_open_and_close_ma_125,32747,84747,never (past the data's end),866,2024-04-30
+w4000,voldemand_all_open_and_close,625,adj_voldemand_all_open_and_close_ma_625,32747,84747,never (past the data's end),866,2024-04-30
+w4000,voldemand_all_open_and_close,3125,adj_voldemand_all_open_and_close_ma_3125,32747,84747,never (past the data's end),866,2024-04-30
+w4000,voldemand_all_open_only,1,adj_voldemand_all_open_only_ma_1,32747,84747,never (past the data's end),866,2024-04-30
+w4000,voldemand_all_open_only,5,adj_voldemand_all_open_only_ma_5,32747,84747,never (past the data's end),866,2024-04-30
+w4000,voldemand_all_open_only,25,adj_voldemand_all_open_only_ma_25,32747,84747,never (past the data's end),866,2024-04-30
+w4000,voldemand_all_open_only,125,adj_voldemand_all_open_only_ma_125,32747,84747,never (past the data's end),866,2024-04-30
+w4000,voldemand_all_open_only,625,adj_voldemand_all_open_only_ma_625,32747,84747,never (past the data's end),866,2024-04-30
+w4000,voldemand_all_open_only,3125,adj_voldemand_all_open_only_ma_3125,32747,84747,never (past the data's end),866,2024-04-30
+w4000,fomc_since_inv,3125,adj_fomc_since_inv_ma_3125,296,52296,2014-06-18 14:30:00,0,
