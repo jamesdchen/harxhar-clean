@@ -18,15 +18,17 @@
 #SBATCH --job-name=pmfcpu
 #SBATCH --output=/home1/jc_905/pmf/logs/%x_%j.out
 set -euo pipefail
-ROOT=${ROOT:-/home1/jc_905/pmf}
+WD=${WD:-3000}  # window days: 3000 (ROOT /home1/jc_905/pmf) or 3500 (ROOT /home1/jc_905/pmf35; sbatch -o its logs/)
+if [ "$WD" = 3000 ]; then ROOT=${ROOT:-/home1/jc_905/pmf}; else ROOT=${ROOT:-/home1/jc_905/pmf$((WD / 100))}; fi
+export PMF_WINDOW_DAYS=$WD
 PY=${PY:-/scratch1/jc_905/envs/harxhar-r13/bin/python}
 export PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 PMF_REPO=${PMF_REPO:-/scratch1/jc_905/harxhar-trees13}
 export OMP_NUM_THREADS=4 OPENBLAS_NUM_THREADS=4 MKL_NUM_THREADS=4
-DESIGN=${DESIGN:-/scratch1/jc_905/wsweep/code/results/window_sweep_2014start_2026-10-22/w3000/_work}
-LINRUN=${LINRUN:-/scratch1/jc_905/wsweep/code/results/window_sweep_2014start_2026-10-22/w3000}
+DESIGN=${DESIGN:-/scratch1/jc_905/wsweep/code/results/window_sweep_2014start_2026-10-22/w$WD/_work}
+LINRUN=${LINRUN:-/scratch1/jc_905/wsweep/code/results/window_sweep_2014start_2026-10-22/w$WD}
 S=$ROOT/code/pooled_mingru_final_2014_w3000.py
 cd "$ROOT"
-echo "pmf $MODE on $(hostname) $(date) $("$PY" -V)"
+echo "pmf W=$WD $MODE on $(hostname) $(date) $("$PY" -V)"
 md5sum "$S"
 case "${MODE:?MODE}" in
   prep)

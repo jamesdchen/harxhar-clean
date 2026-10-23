@@ -1,5 +1,7 @@
 """The pooled ridge-initialised MinGRU, final rerun on the final design (2026-10-22): W = 3,000 trading days, first
 evaluation day 2014-01-02, tuned on the single pre-test fold 3 (validation 2013), widened grid, 5 seeds, daily refit.
+The same rule at W = 3,500 days (owner, 2026-10-22), tuned separately: PMF_WINDOW_DAYS=3500 (design .../w3500/_work,
+output results/pooled_mingru_final_2014start_w3500).
 
 Rule: results/pooled_mingru_final_2014start_w3000/RULE_gru.txt (written before any tuning job).  Everything not listed
 there is the previous run's (experiments/pooled_mingru_rerun_13.py, results/pooled_mingru_rerun13_2026-10-22): trainer
@@ -50,13 +52,16 @@ for _p in (REPO, REPO / "experiments", REPO / "notebooks", REPO / "writeup"):
     if str(_p) not in sys.path:
         sys.path.insert(0, str(_p))
 
+# 2026-10-22 (owner, "Test mingru 3.5k as well"): the same rule at W = 3,500 days, tuned separately; the window is
+# PMF_WINDOW_DAYS (3000 or 3500; default 3000), each window in its own CARC root and output directory
+PPD, WINDOW_DAYS = 13, int(os.environ.get("PMF_WINDOW_DAYS", "3000"))
+assert WINDOW_DAYS in (3000, 3500), WINDOW_DAYS
+W = PPD * WINDOW_DAYS  # 39,000 or 45,500 bars
 OUT_DEFAULT = (
     Path(__file__).resolve().parents[1]
     / "results"
-    / "pooled_mingru_final_2014start_w3000"
+    / f"pooled_mingru_final_2014start_w{WINDOW_DAYS}"
 )
-PPD, WINDOW_DAYS = 13, 3000
-W = PPD * WINDOW_DAYS  # 39,000 bars
 N_ROWS = 84_747
 N_COLS = {"baseline": 12, "all_features": 564}
 SETS = ("baseline", "all_features")
@@ -93,7 +98,9 @@ PREV_PICK = {
 COMPUTE_CAP_GPU_H = 80.0
 PF_BB, PF_EX = 0.01, 1.0
 VAL, EMB = 3250, 325
-FOLD: dict[str, Any] = dict(k=3, fit=[8202, 47202], val=[47527, 50777])
+FOLD: dict[str, Any] = dict(
+    k=3, fit=[47202 - W, 47202], val=[47527, 50777]
+)  # W = 3,000: fit [8,202, 47,202); W = 3,500: [1,702, 47,202)
 FIRST_EVAL_ROW, FIRST_EVAL = 50_777, "2014-01-02 10:00:00"
 COMMON = dict(
     layers=1,

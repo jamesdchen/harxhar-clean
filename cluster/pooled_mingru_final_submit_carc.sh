@@ -1,12 +1,15 @@
 #!/bin/bash
-# 2026-10-22 final pooled MinGRU: submit the GPU jobs of one stage from /home1/jc_905/pmf.
+# 2026-10-22 final pooled MinGRU: submit the GPU jobs of one stage from the window's CARC root.
 #   tune <round>   one GPU job per file of inputs/tune_files_r<round>.csv (written by the tune-jobs stage)
 #   walk           one GPU job per file of inputs/walk_files.csv (written by the walk-jobs stage)
-# DEP (optional): a Slurm dependency for every job (e.g. afterok:<gate>:<canary>); TLIM: the time limit.
+# ROOT: /home1/jc_905/pmf (W = 3,000, default) or /home1/jc_905/pmf35 (W = 3,500, owner 2026-10-22); the job logs go
+# to $ROOT/logs.  DEP (optional): a Slurm dependency for every job (e.g. afterok:<gate>:<canary>); TLIM: the time
+# limit; NICE (optional): --nice (the W = 3,500 jobs run after the W = 3,000 jobs of the same priority).
 # Prints "<file> <job id>" lines and appends them to inputs/submitted.txt.
 set -euo pipefail
-cd /home1/jc_905/pmf
-G=pooled_mingru_final_gpu_carc.sbatch
+ROOT=${ROOT:-/home1/jc_905/pmf}
+cd "$ROOT"
+G=/home1/jc_905/pmf/pooled_mingru_final_gpu_carc.sbatch
 MODE=$1
 case $MODE in
   tune) R=$2; LIST=inputs/tune_files_r$R.csv; SUB=tune ;;
@@ -16,6 +19,7 @@ esac
 tail -n +2 "$LIST" | while IFS=, read -r file set conc rest; do
   tag=${file%.txt}; tag=${tag//./_}
   id=$(sbatch --parsable --job-name=pmf${SUB:0:1} --mem=24G --time=${TLIM:-4:00:00} ${DEP:+--dependency=$DEP} \
-       --export=NONE,JOBS=$file,SUB=$SUB,TAG=$tag,CONC=$conc $G)
+       ${NICE:+--nice=$NICE} -o "$ROOT/logs/%x_%j.out" \
+       --export=NONE,ROOT=$ROOT,JOBS=$file,SUB=$SUB,TAG=$tag,CONC=$conc $G)
   echo "$file $id" | tee -a inputs/submitted.txt
 done

@@ -67,3 +67,13 @@ SCORE    As the previous run and the 2014-start pooled linear rows (window_sweep
 GATE     Before tuning: the previous w1000 frozen configurations on the previous design (/home1/jc_905/pm13/data)
          reproduce their stored fold-3 validation forecasts and QLIKE, and their first walk-origin seed forecasts,
          on today's environment.
+
+ADDENDUM 2026-10-22 21:57 PDT (2026-10-23 04:57 UTC; owner, relayed: "Test mingru 3.5k as well"), written before any
+W = 3,500 job: the rule above is applied unchanged at BOTH windows, W = 3,000 and W = 3,500 trading days, each tuned
+separately (its own round-0 grid, extension rounds, pick, refit epochs and 80 P100-hour tuning cap). W = 3,500: the
+2014-start window sweep's W = 3,500 design caches (.../window_sweep_2014start_2026-10-22/w3500/_work/design_<set>/,
+45,500-row window), fold 3 of the linear W = 3,500 run: fit rows [1,702, 47,202) (45,500 rows), the same 325-row
+embargo and validation rows [47,527, 50,777) (2013-01-02 15:30 .. 2013-12-31 16:00); trainer w0 = 1,702, w1 = 50,777;
+the daily walk on the trailing 45,500 rows from 2014-01-02; scored exactly as W = 3,000 (with the linear W = 3,500
+run as context). Output results/pooled_mingru_final_2014start_w3500/; CARC root /home1/jc_905/pmf35. The W = 3,000
+run keeps priority (the W = 3,500 GPU jobs carry a Slurm nice value).

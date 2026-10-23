@@ -1,0 +1,79 @@
+RULE (pooled ridge-init MinGRU, final rerun on the final design) -- written 2026-10-22 21:45 PDT (2026-10-23 04:45 UTC),
+before any tuning job of this run was submitted. The only jobs run before it: the two gate jobs (13319779, 13319780),
+which rerun the previous w1000 run's frozen configurations on the previous design (no new-design number).
+
+Request (James, relayed): final rerun of the pooled MinGRU with the grid widened, 5 seeds and a daily refit; window 3,000
+trading days; first evaluation day 2014-01-02; tuning on the single pre-test fold 3 (validation year 2013), as the
+linear models of the final design.
+
+DESIGN   The 2014-start window sweep's W = 3,000 design caches, as built on CARC (read-only):
+         /scratch1/jc_905/wsweep/code/results/window_sweep_2014start_2026-10-22/w3000/_work/design_<set>/ (code 6c264b7 =
+         e34 8898522 + --first-fold: LATE_START_WARMUP=1, UNOBSERVED_NEUTRAL and EXCLUDE_FOMC_RELEASE on; X.npy
+         prescaled, y.npy the adjusted target, b_oos.npy, dates_oos.csv; design row r >= 39,000 has date
+         dates_oos[r - 39,000]). 84,747 rows; HAR benchmark 12 columns, full set 564 columns. Nothing is rebuilt;
+         the trainer reads row-major float32/float64 copies (data row = design row). STANDARDIZE_PENALTY is a property
+         of the penalized linear solvers only and does not enter the network.
+TRAINER  Unchanged from results/pooled_mingru_rerun13_2026-10-22 (native_g9 binary md5 44ab6fff, .cu af1964d0, P100
+         only): one MinGRU layer with highway gates, softplus link, zero-initialised decoder, linear shortcut started
+         at its window's closed-form ridge (pf 0.01 on the 12 HAR-benchmark columns, 1 on exogenous columns); Muon
+         (momentum 0.95, clip 1.0), cosine lr over 100 epochs, batch 128, QLIKE loss, window mask on, xstd 0;
+         tuning early-stops on the validation QLIKE (patience 10).
+FOLD     Fold 3 of the linear W = 3,000 run (results/window_sweep_2014start_2026-10-22/w3000/frozen_penalties.json):
+         fit rows [8,202, 47,202) (39,000 rows = 3,000 days), a 325-row embargo, validation rows [47,527, 50,777)
+         (2013-01-02 15:30 .. 2013-12-31 16:00, 3,250 rows). Trainer: mode=tune, w0 = 8,202, w1 = 50,777,
+         val_tail 3,250, embargo 325 (window mask and ridge init as the previous run: mask on the tune window, ridge
+         init on the fit rows with a full look-back of L rows). Nothing dated 2014-01-02 or later enters any choice.
+SEEDS    5: 20261012, 20261013, 20261014, 20261015, 20261016 (the previous run's 3 plus two), averaged.
+GRID     Round 0: the previous grid widened by one step beyond every edge at which a previous pick sat (previous picks:
+         HAR L20 H64 lr0.003 we15 wl0.3 ll1e-5; full L20 H64 lr0.003 we3 wl3 ll1e-5); the same grid for both sets:
+           H       {16, 64, 256}            (64 at the bottom for both: + 16, the grid's x4 step)
+           L       {8, 20, 48}              (20 at the bottom for both: + 8, the grid's x2.4 step rounded)
+           lr      {0.001, 0.003, 0.01}     (0.003 at the top for both: + 0.01, the grid's half-decade step)
+           wd_enc  {0, 3, 15, 75}           (15 at the top for HAR: + 75, the grid's x5 step)
+           wd_lin  {0.03, 0.3, 3, 30}       (3 at the top for full: + 30, the grid's x10 step)
+           lr_lin  {0, 1e-5, 1e-4}          (1e-5 at the top for both: + 1e-4, x10)
+         = 1,296 configurations x 5 seeds a set.
+EXTEND   After each round, per set: the pick (SELECT) over every configuration that set has run. For every axis whose
+         picked value is the lowest or the highest value of that set's current grid on the axis, the next ladder value
+         beyond that end is added (all such axes at once; the new configurations are the full factorial of the
+         extended grid not yet run, 5 seeds); then re-pick; repeat until no pick sits at an extensible end. Natural
+         bounds are not extensible: wd_enc 0, lr_lin 0. Ladders (their ends are the caps):
+           H       4, 16, 64, 256, 1024
+           L       3, 8, 20, 48, 115
+           lr      0.0003, 0.001, 0.003, 0.01, 0.03, 0.1
+           wd_enc  0, 3, 15, 75, 375, 1875
+           wd_lin  0.003, 0.03, 0.3, 3, 30, 300, 3000
+           lr_lin  0, 1e-5, 1e-4, 1e-3, 1e-2
+         A pick at a ladder end is reported "at cap". Compute cap: no extension round is started once the tuning's
+         allocated P100-hours (sacct, failed jobs included) reach 80; the pick over the configurations run is then
+         frozen and reported as such.
+SELECT   The previous run's criterion: the lowest QLIKE (r = y^2 / f^2, r - log r - 1 over fold 3's validation rows
+         with y > 0) of the validation forecast averaged over the 5 seeds; a configuration without 5 finite positive
+         seed forecasts on every validation row is skipped; configurations in sorted name order, ties: the first.
+         One configuration a set, frozen over the whole walk. Same architecture, grid rule and criterion for the HAR
+         benchmark and the full set.
+EPOCHS   Refit epochs of seed s: seed s's best (early-stopped) epoch on fold 3 in the frozen configuration (the median
+         over the single fold), at least 1.
+WALK     Daily: one refit at the first row of every session from 2014-01-02 10:00 (design row 50,777) through the last
+         session (2024-04-30), on the trailing 39,000 rows [o - 39,000, o) with that window's ridge init (frozen L and
+         wd_lin), each seed for its own epochs, forecasting the session's bars [o, next origin); the forecast is the
+         5-seed mean of f, plain = f^2 B.
+SCORE    As the previous run and the 2014-start pooled linear rows (window_sweep_2014start code/score14.py): 2014-01-02
+         .. 2024-04-30, the days of rolling_eval_2026_10_15.history() in the span; 16:00 QLIKE and every-bar QLIKE
+         (daily average), full vs HAR, DM (dm_test, automatic lag, HLN); the sign strategy on the 866 option days
+         (make_rehaul_economics.add_pooled_linear construction) with D6 Sharpe ratio on the 614 post-warmup days and
+         hac_inference.d6_diff_test (full vs HAR, mid and bid/ask); D1 with the Ledoit-Wolf p and the pooled 614-day
+         ratio as robustness; LLSW; 16:00 MSE and every-bar R^2 as a check.
+GATE     Before tuning: the previous w1000 frozen configurations on the previous design (/home1/jc_905/pm13/data)
+         reproduce their stored fold-3 validation forecasts and QLIKE, and their first walk-origin seed forecasts,
+         on today's environment.
+
+ADDENDUM 2026-10-22 21:57 PDT (2026-10-23 04:57 UTC; owner, relayed: "Test mingru 3.5k as well"), written before any
+W = 3,500 job: the rule above is applied unchanged at BOTH windows, W = 3,000 and W = 3,500 trading days, each tuned
+separately (its own round-0 grid, extension rounds, pick, refit epochs and 80 P100-hour tuning cap). W = 3,500: the
+2014-start window sweep's W = 3,500 design caches (.../window_sweep_2014start_2026-10-22/w3500/_work/design_<set>/,
+45,500-row window), fold 3 of the linear W = 3,500 run: fit rows [1,702, 47,202) (45,500 rows), the same 325-row
+embargo and validation rows [47,527, 50,777) (2013-01-02 15:30 .. 2013-12-31 16:00); trainer w0 = 1,702, w1 = 50,777;
+the daily walk on the trailing 45,500 rows from 2014-01-02; scored exactly as W = 3,000 (with the linear W = 3,500
+run as context). Output results/pooled_mingru_final_2014start_w3500/; CARC root /home1/jc_905/pmf35. The W = 3,000
+run keeps priority (the W = 3,500 GPU jobs carry a Slurm nice value).

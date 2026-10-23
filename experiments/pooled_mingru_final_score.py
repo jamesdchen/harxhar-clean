@@ -14,7 +14,8 @@ previous MinGRU run (experiments/pooled_mingru_rerun_13_score.py), with the line
     the Ledoit-Wolf p; the pooled 614-day ratio; the LLSW t of the mean return difference.
     Gate: the linear W = 3,000 arms reproduce part2/econ.csv (1e-10).
 
-usage: python pooled_mingru_final_score.py <shadow tree> <MinGRU run dir> <linear W3000 run dir> <part2 dir> <out dir>
+usage: python pooled_mingru_final_score.py <shadow tree> <MinGRU run dir> <linear run dir> <part2 dir> <out dir> [W]
+       W: 3000 (default) or 3500 (owner 2026-10-22: the same scoring at W = 3,500, the linear W = 3,500 run as context)
 """
 
 from __future__ import annotations
@@ -47,7 +48,9 @@ OUT.mkdir(parents=True, exist_ok=True)
 SPAN = (pd.Timestamp("2014-01-02"), pd.Timestamp("2024-04-30"))
 SETS = ("baseline", "all_features")
 EST = ("enet", "lasso", "ridge")
-W = 3000
+W = (
+    int(sys.argv[6]) if len(sys.argv) > 6 else 3000
+)  # the window (days) of both the MinGRU and the linear run
 t0 = time.time()
 
 

@@ -17,7 +17,11 @@ errors); binary copied from `/home1/jc_905/pm13/bin` (md5 44ab6fff).
   2014-01-02 .. 2024-04-30 (13 bars on 2,579 sessions, 7 on 61, 8 on 1, 4 on 2); fold-3 ridge inits for every ladder
   L x wd_lin (keep 293 of 564 columns on the full set, 12 of 12 on HAR); round 0: 1,296 configurations x 5 seeds =
   6,480 tune jobs a set in 19 files a set; canary jobs.
-- 2026-10-22 21:56 PDT: canary on the new design, 13319943 (tune: one round-0 configuration a set, 1 seed) and
+- 2026-10-22 21:49 PDT: canary on the new design, 13319943 (tune: one round-0 configuration a set, 1 seed) and
   13319944 (refit at the first and the last daily origin, 2 epochs), POST = check-run. Round-0 tune jobs
   13319945-13319982 (38 files) submitted held afterok on the two gate jobs and the two canaries: no tune job can start
   before the gate and the canary pass. All P100s of the gpu partition busy at submission (1,143 pending GPU jobs).
+- 2026-10-22 21:57 PDT: owner (relayed): "Test mingru 3.5k as well". RULE_gru.txt addendum (same rule at W = 3,000 and
+  W = 3,500, tuned separately); the runner takes the window from PMF_WINDOW_DAYS (fold 3 fit = [47,202 - W, 47,202));
+  W = 3,500 in /home1/jc_905/pmf35 and results/pooled_mingru_final_2014start_w3500/ (its own STATUS.md). The W = 3,000
+  jobs keep priority (W = 3,500 GPU jobs submitted with a Slurm nice value).
