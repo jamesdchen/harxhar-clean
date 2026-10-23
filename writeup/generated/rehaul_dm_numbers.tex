@@ -30,9 +30,20 @@
 \newcommand{\rhdmValTail}{125}  % validation sample n_val, observations (the gap is \cmPtEmbargo)
 \newcommand{\rhdmRetuneFolds}{two}  % validation folds of the linear light re-tune
 \newcommand{\rhdmRfTrial}{255}  % the random forest's fixed configuration: Optuna trial number
-\newcommand{\rhdmPlPenRidgeBase}{\ensuremath{10^{-2}}}  % pooled linear 13-bar rerun, ridge on the baseline set: frozen penalty (pre-sample pick by validation MSE, held fixed)
+\newcommand{\rhdmPlPenRidgeBase}{\ensuremath{10^{-3}}}  % pooled linear 13-bar rerun, ridge on the baseline set: frozen penalty (pre-sample pick by validation MSE, held fixed)
 \newcommand{\rhdmPlPenRidgeAll}{\ensuremath{10^{3}}}  % pooled linear 13-bar rerun, ridge on the all features set: frozen penalty (pre-sample pick by validation MSE, held fixed)
-\newcommand{\rhdmPlPenLassoBase}{\ensuremath{10^{-4}}}  % pooled linear 13-bar rerun, lasso on the baseline set: frozen penalty (pre-sample pick by validation MSE, held fixed)
-\newcommand{\rhdmPlPenLassoAll}{\ensuremath{10^{-3}}}  % pooled linear 13-bar rerun, lasso on the all features set: frozen penalty (pre-sample pick by validation MSE, held fixed)
-\newcommand{\rhdmPlPenEnetBase}{\ensuremath{10^{-6}}}  % pooled linear 13-bar rerun, enet on the baseline set: frozen penalty (pre-sample pick by validation MSE, held fixed)
-\newcommand{\rhdmPlPenEnetAll}{\ensuremath{10^{-2}}}  % pooled linear 13-bar rerun, enet on the all features set: frozen penalty (pre-sample pick by validation MSE, held fixed)
+\newcommand{\rhdmPlPenLassoBase}{\ensuremath{10^{-8}}}  % pooled linear 13-bar rerun, lasso on the baseline set: frozen penalty (pre-sample pick by validation MSE, held fixed)
+\newcommand{\rhdmPlPenLassoAll}{\ensuremath{10^{-4}}}  % pooled linear 13-bar rerun, lasso on the all features set: frozen penalty (pre-sample pick by validation MSE, held fixed)
+\newcommand{\rhdmPlPenEnetBase}{\ensuremath{10^{-7}}}  % pooled linear 13-bar rerun, enet on the baseline set: frozen penalty (pre-sample pick by validation MSE, held fixed)
+\newcommand{\rhdmPlPenEnetAll}{\ensuremath{10^{-3}}}  % pooled linear 13-bar rerun, enet on the all features set: frozen penalty (pre-sample pick by validation MSE, held fixed)
+\newcommand{\rhdmBurnInDaysClose}{3{,}125}  % burn-in on the closing-interval series (one observation a day), trading days
+\newcommand{\rhdmBurnInDaysPre}{1{,}560}  % burn-in on the series of the two last-hour intervals (linear pre-sample), trading days (its 16:00 rows)
+\newcommand{\rhdmBurnInDaysGrid}{104}  % burn-in on the 30-minute grid (Panel B), trading days (the 16:00 intervals among its first rhdmBurnIn)
+\newcommand{\rhdmPlPreFolds}{4}  % pooled linear 13-bar reruns: pre-sample folds defined
+\newcommand{\rhdmPlPreFoldUsed}{3}  % ... the fold(s) the frozen penalties are chosen on (frozen_penalties.json)
+\newcommand{\rhdmPlPreFoldSess}{250}  % ... validation sample of a fold, sessions
+\newcommand{\rhdmPlPreFoldBars}{3{,}250}  % ... the same in regular-hours bars
+\newcommand{\rhdmPlPreEmbargoSess}{25}  % ... gap before the validation sample, sessions
+\newcommand{\rhdmPlPreEmbargoBars}{325}  % ... the same in regular-hours bars
+\newcommand{\rhdmPlGridExtTol}{\ensuremath{10^{-6}}}  % penalty grid rule (RULE_std.txt item 5): stop when the new end's criterion is within this relative change of the previous end's (GRID_EXT_FLAT)
+\newcommand{\rhdmPlGridExtCap}{6}  % ... or after this many decades added in one direction (GRID_EXT_CAP)

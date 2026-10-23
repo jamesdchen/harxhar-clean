@@ -145,8 +145,17 @@
   $\bar y^{(k)}_{t,i}$—constructed via the same trailing-average operator as $\bar u^{(k)}_{t,i}$ applied to the
   % 2026-10-17 (user, new-notes 7): parked -- the intraday model has \rhdmNHorizonsPooled{} HAR columns (base-2 ladder, specs/causal_tune_linear.py:197-209). Was: "winsorized target (6 columns)"
   % 2026-10-19 (user): base 5 across the paper -- \rhdmNHorizonsPooled{} is now the base-5 count (the ladder of the closing-interval model).
+  % 2026-10-23 (E9, final design): parked -- the overnight indicator leaves the calendar, since the training sample
+  % holds no overnight interval (note E15; src/backtest/executor.py DROP_OVERNIGHT_INDICATOR and
+  % CALENDAR_THROUGH_OVERNIGHT in the final runs, results/window_sweep_2014start_2026-10-22/w3000/run_info.json; the HAR
+  % benchmark of frozen_penalties.json is har_ma_1 .. har_ma_3125, DOW_0 .. DOW_4, hour). Was: "... together with the
+  % calendar vector $\bm D_{t,i}$, which comprises five day-of-the-week dummy variables, the hour of the interval-end
+  % timestamp, and the overnight session indicator."
   winsorized target (\rhdmNHorizonsPooled{} columns in the intraday model)—together with the calendar vector $\bm D_{t,i}$, which comprises five
-  day-of-the-week dummy variables, the hour of the interval-end timestamp, and the overnight session indicator.
+  day-of-the-week dummy variables and the hour of the interval-end timestamp. The pooled models are estimated on the
+  \rhorNBars{} regular-hours intervals (Section~\ref{sec:rh_exp_setup}), which hold no overnight interval, so the
+  calendar vector has no overnight session indicator. The closing-interval model, as fitted, has \rhdmNCalendar{}
+  candidate calendar columns (Appendix~\ref{app:rh_closing_predictors}).
   % 2026-10-16 (formula pass): parked -- bar y^{(k)}_{t,i} = (1/k) sum_{j=1}^{k} tilde y_{t,i-j} repeated the
   % average already displayed for bar u^{(k)}_{t,i}.
   % 2026-10-17 (user, E9): parked -- 16 columns, the 5+4+7 split, and everything after is_overnight.
@@ -155,8 +164,14 @@
   % \[ 16 = 5 day of week + 4 time of day + 7 expiration, month, quarter. \]
   % calendar.py:28-35 (DOW_0-4, hour, is_overnight, is_open, is_close); expiry.py:120-135 (opex, opex week,
   % quad witch, rebalance close, month end, quarter end, days_to_opex).
-  \editc{orange}{E9}{Decision: the calendar stops at the overnight indicator, and that indicator stays only if the overnight intervals stay in the training sample (note E15).\\Problem: the columns after the overnight indicator are out of the specification, and the printed column counts and Table~\ref{tab:rh_oos} still include them. Whether the overnight indicator itself stays depends on the sample in note E15.\\
-The sentence above keeps three calendar pieces: the five weekday dummies, the hour of the bar-end stamp, and the overnight indicator. Every column that used to sit after the overnight indicator is out of the specification. That is the opening-interval indicator, the closing-interval indicator, expiration, expiration week, quadruple witching, the quadruple-witching close, month end, quarter end, days to expiration, and the products of the HAR components with the opening and closing indicators. The overnight indicator's own place depends on which sample note E15 keeps. On all $\rhdmNIntervals$ intervals it equals 1 off the cash session and again on the 16:00 bar, so it varies across the window and a regression can estimate it. On the 13 regular-hours bars it equals 1 only on the 16:00 bar, so inside that sample it is constant on every bar but the close. The column counts in the formulas below, and the fits in Table~\ref{tab:rh_oos}, were built with the dropped columns still in the matrix.}
+  % 2026-10-23 (E9, final design): parked -- the note, resolved: the calendar stops at the overnight indicator, and the
+  % indicator leaves too, because the training sample is the 13 regular-hours bars (note E15; the HAR benchmark above).
+  % The final runs carry neither the columns after the overnight indicator nor the indicator (CALENDAR_THROUGH_OVERNIGHT,
+  % DROP_OVERNIGHT_INDICATOR; frozen_penalties.json of results/window_sweep_2014start_2026-10-22/w3000: baseline
+  % har_ma_1 .. har_ma_3125, DOW_0 .. DOW_4, hour), and Table 1 is generated from them (REHAUL_FINAL_RUN=1). The
+  % closing-interval models, not rerun, keep their \rhdmNCalendar{} calendar columns as fitted. Was:
+  % \editc{orange}{E9}{Decision: the calendar stops at the overnight indicator, and that indicator stays only if the overnight intervals stay in the training sample (note E15).\\Problem: the columns after the overnight indicator are out of the specification, and the printed column counts and Table~\ref{tab:rh_oos} still include them. Whether the overnight indicator itself stays depends on the sample in note E15.\\
+  % The sentence above keeps three calendar pieces: the five weekday dummies, the hour of the bar-end stamp, and the overnight indicator. Every column that used to sit after the overnight indicator is out of the specification. That is the opening-interval indicator, the closing-interval indicator, expiration, expiration week, quadruple witching, the quadruple-witching close, month end, quarter end, days to expiration, and the products of the HAR components with the opening and closing indicators. The overnight indicator's own place depends on which sample note E15 keeps. On all $\rhdmNIntervals$ intervals it equals 1 off the cash session and again on the 16:00 bar, so it varies across the window and a regression can estimate it. On the 13 regular-hours bars it equals 1 only on the 16:00 bar, so inside that sample it is constant on every bar but the close. The column counts in the formulas below, and the fits in Table~\ref{tab:rh_oos}, were built with the dropped columns still in the matrix.}
   % 2026-10-17 (user): parked -- the two subbullets under the HAR benchmark. The drop list stays in note E9.
   % The closing-interval screen is in Methods. Was:
   % \begin{itemize}
@@ -288,6 +303,10 @@ The sentence above keeps three calendar pieces: the five weekday dummies, the ho
     \item where $\mathcal{A}_{t,i} = \{\tilde u_{t',i'} : (t',i') \prec (t,i),\ a_{t',i'} = 1\}$, with
       $(t',i') \prec (t,i)$ indicating that $(t',i')$ is a retained interval strictly prior to $(t,i)$, and
     \item $\tilde u_{(1)}$ denotes the transformed value on the series' first observed interval.
+    % 2026-10-23 (E28 / S4c scope): the closing-interval forecasts' imputation, as fitted (CAUSAL_NEUTRAL_FILL off in
+    % their design of 6 October 2026: results/data_audit_2026-10-15/SUMMARY.md, register 5a and gate a).
+    \item The closing-interval forecasts predate this rule: on every interval with $a_{t,i} = 0$ they impute the
+      median of the series' observed transformed values over the full sample (Section~\ref{sec:rh_data}).
     \end{itemize}
     % 2026-10-16 (user): causal neutral fill. executor.py causal_neutral_fill, CAUSAL_NEUTRAL_FILL:
     % expanding median of observed adjusted values strictly before the row; the first observed value
@@ -332,6 +351,14 @@ The sentence above keeps three calendar pieces: the five weekday dummies, the ho
       rule the \rhdmNActive{} series marked in Table~\ref{tab:rh_dm_dictionary} carry the indicator (the number of
       observations, the \bkSizeVd{} volatility-demand series and the FOMC statement-day dummy) and, in the fitted
       forecasts, so does the FOMC statement-interval dummy, since dropped from the predictors.
+    % 2026-10-23 (S4c, second-list N4): the flags read after the fill, scoped to the closing-interval forecasts (their
+    % data end the FOMC series at the last statement of the release file and fill without a cap: Section 3, last item of
+    % the data cleaning); executor.py comment above ("CODE BUG"), 99_author_notes.tex item "Data issue to fix".
+    \item Read on the forward-filled series, the indicator of a series whose feed has stopped keeps the value of its
+      last print. In the closing-interval forecasts, whose FOMC series end with the statement of
+      \rhdsFomcFileLast{} and are filled without a cap (Section~\ref{sec:rh_data}), the FOMC statement-day indicator
+      therefore equals 1 on every later interval. The pooled intraday forecasts read the indicator from observed
+      prints, and in their data no FOMC value is missing (Section~\ref{sec:rh_data}).
     \end{itemize}
     % CODE BUG (outline flag 1): u_{t,i} here is the FORWARD-FILLED raw value (executor.py:618-627 runs after the
     % ffill at :540), so chi_{t,i} = 1 on dead tails: fomc_release / fomc_day after 2023-11-01, voldemand after
@@ -339,6 +366,10 @@ The sentence above keeps three calendar pieces: the five weekday dummies, the ho
     % 2026-10-22 (user, S4a): the bug above is the full-sample rule's, so it stays in the printed closing-interval
     % forecasts (not rerun); ACTIVE_FROM_OBSERVED (b29774a) removes it from every design built since 15 October 2026.
     % 2026-10-18 (user, second-list N4): the causal rule is the specification; this item and Table 5's chi-bar column marked rerun-needed.
+    % 2026-10-23 (S4c): resolved in this file -- the causal rule is stated for the pooled forecasts (the final runs are
+    % built under it, with DROP_ACTIVITY_MA), the full-sample rule and its reading after the fill are scoped to the
+    % closing-interval forecasts (not rerun), with the FOMC consequence in the last item above. The S4c box and the item
+    % "Data issue to fix before final numbers" are in 99_author_notes.tex (not edited here).
     % 2026-10-22 (user, S4a): parked -- the note before the decision not to rerun the closing-interval models. Was:
     % \editc{orange}{S4a}{Decision: the causal rule in src/backtest/executor.py (CAUSAL\_MODE\_INFLATION, ACTIVE\_FROM\_OBSERVED; commit b29774a, 15 October 2026) is the specification. Rerun needed under that rule.\\Problem: this item describes the old rule, a full-sample mode covering at least 20\% of intervals with the indicator read after the forward fill. Under the causal rule the mode is decided from earlier prints only and the flags come from observed prints, so the volatility-demand series are never mode-inflated and the StockTwits sentiment and message-count series are mode-inflated in some years. The printed forecasts (pooled linear models of 6 October, pooled trees of 7 October 2026) predate the rule and use the old one; so does the $\bar\chi$ column of Appendix Table~\ref{tab:rh_dm_dictionary}, whose generator is not re-run (E5). Rewrite this item and regenerate the table after the rerun.}
     % 2026-10-22 (user, S4a follow-up): parked -- the S4a note, resolved (the E6 bullet and the E35 formula no longer
@@ -414,7 +445,14 @@ The sentence above keeps three calendar pieces: the five weekday dummies, the ho
         therefore also standardize every column within their own estimation window
         (Section~\ref{sec:rh_methods_models}), so that the penalty treats every column alike.
       \end{itemize}
-      \editc{orange}{S4d}{Decision: the late-start and no-observation rules of this step are the specification (src/backtest/executor.py LATE\_START\_WARMUP, merged 21570f0, and UNOBSERVED\_NEUTRAL, merged 5403acd; both 22 October 2026; note E28). A rerun of the pooled intraday models under them is approved and waits for the window choice.\\Problem: the printed pooled forecasts of Table~\ref{tab:rh_oos} predate both rules (their designs were built on 20 October 2026). There a series that starts late takes the scaler's output from its first window on, and the value averages of a feed that has stopped (volatility demand after 31 August 2023) hold the rescaled neutral fill instead of 0.}
+      % 2026-10-23 (S4d, final design): parked -- the note, resolved: the pooled intraday models are rerun under both rules
+      % (results/window_sweep_2014start_2026-10-22/w3000 and w3500, run_info.json: LATE_START_WARMUP and UNOBSERVED_NEUTRAL
+      % on, the design log's "[scale] late-start warm-up" and "[scale] unobserved-neutral" lines; the final LightGBM, XGBoost
+      % and random forest read the same design, md5-checked: results/pooled_trees_final_2014start_w3000/run.json and
+      % results/pooled_rf_skx_2014start_w3000/STATUS.md), and the
+      % paper's pooled numbers are generated from those runs (writeup/final_run.py, REHAUL_FINAL_RUN=1). Still to come on this
+      % design: the random forest's 3,500-day robustness walk; the MinGRU stays parked. Was:
+      % \editc{orange}{S4d}{Decision: the late-start and no-observation rules of this step are the specification (src/backtest/executor.py LATE\_START\_WARMUP, merged 21570f0, and UNOBSERVED\_NEUTRAL, merged 5403acd; both 22 October 2026; note E28). A rerun of the pooled intraday models under them is approved and waits for the window choice.\\Problem: the printed pooled forecasts of Table~\ref{tab:rh_oos} predate both rules (their designs were built on 20 October 2026). There a series that starts late takes the scaler's output from its first window on, and the value averages of a feed that has stopped (volatility demand after 31 August 2023) hold the rescaled neutral fill instead of 0.}
     % 2026-10-17 (user, E8): parked -- the one-sentence intraday rule, and the note. The denominator is the
     % display above. Was: median and IQR over rows with a_{t',i'}=1; fewer than 512 such rows give z^{(k)}=0.
     % \editc{blue}{E8}{Decision: write the intraday denominator, or state that the display carries over. The display standardizes closing-interval rows $t'\in\mathcal W_t$ with denominator $\max\{\mathrm{IQR}^{(k)}_t,\ 0.01\max_{t'\le t}\mathrm{IQR}^{(k)}_{t'},\ \mathrm{IQR}^{*(k)}_t\}$, and sets $\mathrm{IQR}^{*(k)}_t=0$ on HAR components and calendar dummies. The intraday scheme, which is the one scored in the accuracy table, has one extra sentence: median and IQR over rows with $a_{t',i'}=1$, and $z^{(k)}=0$ when fewer than 512 such rows exist. That sentence does not say whether the 0.01 floor and the $\mathrm{IQR}^{*}=0$ exceptions apply to those rows.}
@@ -455,19 +493,26 @@ The sentence above keeps three calendar pieces: the five weekday dummies, the ho
   Appendix~\ref{app:rh_closing_predictors}.
 
   \begin{itemize}
-  \item In the pooled intraday specification, the full predictor set comprises \rhdmNColsPooled{} candidate
-    columns, constructed from \rhdmNSeriesPooled{} exogenous series, \rhdmNHorizonsPooled{} horizons, and
-    \rhdmNEdgePooled{} interaction terms between the target HAR components and the opening- and
-    closing-interval dummy variables. Note that these column counts still reflect the
+  % 2026-10-23 (E35, final design): parked -- the count of the 48-interval panel before the cut of note E9
+  % (\rhdmNColsPooled, with the calendar after the overnight indicator and the interaction columns); the bullet now
+  % counts the fitted design of the final runs, \rhorNColsAf (make_rehaul_oos_rerun.py, from frozen_penalties.json of
+  % results/window_sweep_2014start_2026-10-22/w3000: har_ma_1 .. har_ma_3125; DOW_0 .. DOW_4, hour; adj_<c>_ma_<k> and
+  % <c>_avail_ma_<k> of the 46 series at the 6 horizons -- 564 = 6 + 6 + 276 + 276, checked 2026-10-23). The
+  % calendar count is \rhorNCalendarAf (make_rehaul_oos_rerun.py; 2026-10-23, phase 2: replaces the stand-in
+  % "\underbrace{|\bm D_{t,i}|}_{\text{weekday, hour}}" of the first pass). The parks inside the old bullet follow. Was: "\item In the pooled intraday specification, the full predictor set comprises \rhdmNColsPooled{} candidate columns, constructed from \rhdmNSeriesPooled{} exogenous series, \rhdmNHorizonsPooled{} horizons, and \rhdmNEdgePooled{} interaction terms between the target HAR components and the opening- and closing-interval dummy variables. Note that these column counts still reflect the calendar columns and interaction terms discussed in note E9 above: \[ \rhdmNColsPooled = \underbrace{\rhdmNHorizonsPooled + \rhdmNCalendar}_{\bar y^{(k)},\ \bm D} + \underbrace{\rhdmNEdgePooled}_{\bar y^{(k)} \times \text{open, close}} + \underbrace{\rhdmNSeriesPooled \times \rhdmNHorizonsPooled}_{\bar u^{(k)}} + \underbrace{\rhdmNSeriesPooled \times \rhdmNHorizonsPooled}_{\bar a^{(k)}} . \]"
     % 2026-10-17 (user): parked -- closing-interval material. Was: "Note that these column counts, as well as $\cmPNewBase$, still reflect the"
-    calendar columns and interaction terms discussed in note E9 above:
     % 2026-10-22 (user, E6 / S4a follow-up): parked -- the activity-average term (the pooled designs drop it:
     % DROP_ACTIVITY_MA); \rhdmNColsPooled now counts the panel less those columns (make_rehaul_data_methods.py). Was:
     % "+ \rhdmNSeriesPooled \times \rhdmNHorizonsPooled + \rhdmNSeriesPooled \times \rhdmNHorizonsPooled
     %  + \rhdmNActivePooled \times \rhdmNHorizonsPooled ."
+  \item In the pooled intraday specification, the full predictor set comprises \rhorNColsAf{} candidate columns:
+    the \rhdmNHorizonsPooled{} HAR components of the target, the calendar vector $\bm D_{t,i}$ (the weekday dummies
+    and the hour), and the value and availability averages of \rhdmNSeriesPooled{} exogenous series at
+    \rhdmNHorizonsPooled{} horizons; at each estimation the column screens of this section and of
+    Section~\ref{sec:rh_methods_models} keep a subset of them:
     \[
-      \rhdmNColsPooled = \underbrace{\rhdmNHorizonsPooled + \rhdmNCalendar}_{\bar y^{(k)},\ \bm D}
-        + \underbrace{\rhdmNEdgePooled}_{\bar y^{(k)} \times \text{open, close}}
+      \rhorNColsAf = \underbrace{\rhdmNHorizonsPooled}_{\bar y^{(k)}}
+        + \underbrace{\rhorNCalendarAf}_{\bm D_{t,i}}
         + \underbrace{\rhdmNSeriesPooled \times \rhdmNHorizonsPooled}_{\bar u^{(k)}}
         + \underbrace{\rhdmNSeriesPooled \times \rhdmNHorizonsPooled}_{\bar a^{(k)}} .
     \]
@@ -480,11 +525,16 @@ The sentence above keeps three calendar pieces: the five weekday dummies, the ho
     %     \editc{orange}{E35}{Decision: base 5 across the paper (user, 2026-10-19).\\Problem: $\rhdmNColsPooled$ and the formula above now count the base-5 pooled panel built on 19 October 2026, before the cuts of notes E6 and E9; no printed forecast was fitted on that panel.\\
     % The earlier pooled trees and the intraday OLS were fitted on the base-2 panel, 1,144 columns from 12 horizons (note E34). The base-5 panel (experiments/pooled\_trees\_base5.py, design stage: the repo's own preparation with the data fixes of 15 October 2026 and the causal mode rule) has $\rhdmNHorizonsPooled$ horizons and $\rhdmNEdgePooled$ interaction columns. Under the causal rule $\rhdmNActivePooled$ series carry an activity indicator, the number of observations and the three StockTwits series, where the old full-sample rule gave 5, the number of observations and the four volatility-demand series (note S4a). The design of the base-5 tree refits also drops the activity averages (E6) and the calendar after the overnight indicator together with the interaction columns (E9): 529 columns on all $\rhdmNIntervals$ intervals and 528 on the 13 regular-hours bars, where the overnight indicator is dropped too. Those two counts have no macro yet.}
     % 2026-10-22 (user, E6 / S4a follow-up): parked -- the first two lines of the note below. Was: "Problem: $\rhdmNColsPooled$ and the formula above now count the base-5 pooled panel with the FOMC series, built on 19 October 2026, before the cuts of notes E6 and E9; no printed forecast was fitted on that panel."
-    \editc{orange}{E35}{Decision: base 5 across the paper, and the pooled model includes the FOMC series (user, 2026-10-19).\\Problem: $\rhdmNColsPooled$ and the formula above now count the base-5 pooled panel with the FOMC series, built on 19 October 2026, less its activity averages (note E6) and before the cut of note E9; no printed forecast was fitted on that design.\\
-% 2026-10-22 (user, E34): parked -- the pooled trees are refit on the 576-column regular-hours design. Was: "The earlier pooled trees and the intraday OLS were fitted on the base-2 panel without the FOMC series, 1,144 columns from 12 horizons and 43 series (note E34). The base-5 panel"
-The pooled trees printed before 22 October 2026 and the intraday OLS were fitted on the base-2 panel without the FOMC series, 1,144 columns from 12 horizons and 43 series; the pooled trees are now refit on the 576-column design on the 13 regular-hours bars described at the end of this note, the design of the pooled linear models of Table~\ref{tab:rh_oos} (note E34). The base-5 panel (experiments/pooled\_trees\_base5.py, design stage: the repo's own preparation with the data fixes of 15 October 2026, the FOMC calendar fix and the causal mode rule) has $\rhdmNHorizonsPooled$ horizons, $\rhdmNSeriesPooled$ series and $\rhdmNEdgePooled$ interaction columns. Under the causal rule $\rhdmNActivePooled$ series carry an activity indicator, the number of observations, the three StockTwits series and the FOMC statement-day dummy, where the old full-sample rule gave 5 on the panel without FOMC, the number of observations and the four volatility-demand series (note S4a). With the activity averages dropped (E6) and the calendar cut after the overnight indicator together with the interaction columns (E9), the design has 577 columns on all $\rhdmNIntervals$ intervals and 576 on the 13 regular-hours bars, where the overnight indicator is dropped too. Those two counts have no macro yet.\\
-% 2026-10-22 (user, third-list 5): parked -- the FOMC statement-interval dummy is dropped. Was, in the sentence above: "the three StockTwits series and the FOMC statement-interval and statement-day dummies,"
-Since 22 October 2026 (third-list item 5) the FOMC statement-interval dummy is out of the predictor set (src/data/loading.py, EXCLUDE\_FOMC\_RELEASE): $\rhdmNSeriesPooled$, $\rhdmNColsPooled$, $\rhdmNActivePooled$, the FOMC group, Table~\ref{tab:rh_dm_dictionary} and the design table (generated/rehaul\_dm\_design.tex, not in the paper) count the panel without its columns. The 577- and 576-column designs above, and so every printed pooled forecast, still contain its averages and availability averages; on the 13-bar design the dummy is a live 0/1 column (one on the statement bar of each scheduled meeting). A rerun on the design without it is needed before the counts and the printed forecasts agree.}
+    % 2026-10-23 (E35, final design): parked -- the note, resolved: the count above is the fitted design of the final
+    % runs (\rhorNColsAf; base 5, the FOMC series without the statement-interval dummy, no activity averages, the
+    % calendar cut of note E9 with the overnight indicator out), on which Table 1's linear models, LightGBM, XGBoost
+    % and the random forest are all fitted (the forest's 3,500-day robustness walk pending; the MinGRU parked).
+    % \rhdmNColsPooled (the 48-interval panel) stays the dictionary's count in make_rehaul_data_methods.py. Was:
+    % \editc{orange}{E35}{Decision: base 5 across the paper, and the pooled model includes the FOMC series (user, 2026-10-19).\\Problem: $\rhdmNColsPooled$ and the formula above now count the base-5 pooled panel with the FOMC series, built on 19 October 2026, less its activity averages (note E6) and before the cut of note E9; no printed forecast was fitted on that design.\\
+    % 2026-10-22 (user, E34): parked -- the pooled trees are refit on the 576-column regular-hours design. Was: "The earlier pooled trees and the intraday OLS were fitted on the base-2 panel without the FOMC series, 1,144 columns from 12 horizons and 43 series (note E34). The base-5 panel"
+    % The pooled trees printed before 22 October 2026 and the intraday OLS were fitted on the base-2 panel without the FOMC series, 1,144 columns from 12 horizons and 43 series; the pooled trees are now refit on the 576-column design on the 13 regular-hours bars described at the end of this note, the design of the pooled linear models of Table~\ref{tab:rh_oos} (note E34). The base-5 panel (experiments/pooled\_trees\_base5.py, design stage: the repo's own preparation with the data fixes of 15 October 2026, the FOMC calendar fix and the causal mode rule) has $\rhdmNHorizonsPooled$ horizons, $\rhdmNSeriesPooled$ series and $\rhdmNEdgePooled$ interaction columns. Under the causal rule $\rhdmNActivePooled$ series carry an activity indicator, the number of observations, the three StockTwits series and the FOMC statement-day dummy, where the old full-sample rule gave 5 on the panel without FOMC, the number of observations and the four volatility-demand series (note S4a). With the activity averages dropped (E6) and the calendar cut after the overnight indicator together with the interaction columns (E9), the design has 577 columns on all $\rhdmNIntervals$ intervals and 576 on the 13 regular-hours bars, where the overnight indicator is dropped too. Those two counts have no macro yet.\\
+    % 2026-10-22 (user, third-list 5): parked -- the FOMC statement-interval dummy is dropped. Was, in the sentence above: "the three StockTwits series and the FOMC statement-interval and statement-day dummies,"
+    % Since 22 October 2026 (third-list item 5) the FOMC statement-interval dummy is out of the predictor set (src/data/loading.py, EXCLUDE\_FOMC\_RELEASE): $\rhdmNSeriesPooled$, $\rhdmNColsPooled$, $\rhdmNActivePooled$, the FOMC group, Table~\ref{tab:rh_dm_dictionary} and the design table (generated/rehaul\_dm\_design.tex, not in the paper) count the panel without its columns. The 577- and 576-column designs above, and so every printed pooled forecast, still contain its averages and availability averages; on the 13-bar design the dummy is a live 0/1 column (one on the statement bar of each scheduled meeting). A rerun on the design without it is needed before the counts and the printed forecasts agree.}
     % 2026-10-17 (user, E5): parked -- the series are listed in the appendix table, and the FOMC group is the
     % set left out of the intraday matrix. Was:
     % \editc{blue}{E5}{Decision: list the series in the intraday matrix.\\Problem: the $\rhdmNColsPooled$ intraday columns are built from $\rhdmNSeriesPooled$ of the $\rhfiNExog$ series, and neither the series that are in nor the series that are left out are named.\\
@@ -513,11 +563,18 @@ Since 22 October 2026 (third-list item 5) the FOMC statement-interval dummy is o
   \item In the pooled intraday forecasts, the standard-deviation floor $\bar\sigma^{(u)}_{t,i}$ and the inverse
     hyperbolic sine routing are computed from earlier intervals, and the sign of each series is read from what it
     measures, not from the full sample (steps 1 and 2); the activity indicator does not enter them (step 5).
+  % 2026-10-23 (E28 / S4c scope): parked -- the list without the imputation median, which the closing-interval forecasts
+  % take over the full sample (CAUSAL_NEUTRAL_FILL off in their design of 6 October 2026; step 4). Was: "... the
+  % standard-deviation floor $\bar\sigma^{(u)}$ and the sign of each series (step 1), and the rule assigning series to
+  % the inverse hyperbolic sine transformation (step 2)."
   \item We disclose the full-sample quantities used in preprocessing the closing-interval forecasts, which predate
     those rules: the mode that defines $\chi_{t,i}$ under the rule those forecasts were built with (step 5), the
-    standard-deviation floor $\bar\sigma^{(u)}$ and the sign of each series (step 1), and the rule assigning series
-    to the inverse hyperbolic sine transformation (step 2).
+    standard-deviation floor $\bar\sigma^{(u)}$ and the sign of each series (step 1), the rule assigning series
+    to the inverse hyperbolic sine transformation (step 2), and the median that imputes unobserved intervals
+    (step 4).
     % 2026-10-18 (user, second-list N4): rerun-needed flag (old-rule disclosure).
+    % 2026-10-23 (S4c): the flag is resolved: the closing-interval forecasts are not rerun (James, 2026-10-22), so this
+    % list is their disclosure, and the pooled forecasts of the final runs use the causal versions (previous item).
     % 2026-10-22 (user, S4b): parked -- the note before the decision not to rerun the closing-interval models. Was:
     % \editc{orange}{S4b}{Decision: rerun needed under the causal rule (note S4a).\\Problem: the full-sample mode is the old rule, used by the printed forecasts of 6--7 October 2026. Under the causal rule in src/backtest/executor.py the mode is decided from earlier prints only, so it is no longer a full-sample quantity; drop it from this list after the rerun.}
     % 2026-10-22 (user, S4a follow-up): parked -- the S4b note, resolved (steps 1 and 2 and Table tab:rh_dm_dictionary

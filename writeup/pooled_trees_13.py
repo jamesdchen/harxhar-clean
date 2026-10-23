@@ -26,6 +26,9 @@ FINAL RUN (2026-10-23; writeup/final_run.py, REHAUL_FINAL_RUN=1)
   30 April 2024, 33,970 bars an arm (the linear walk's rows from the first evaluation day).  The two runs must agree on
   refit, window and first day; a null last day in forecasts.json (merge without --last-day) reads as 30 April 2024,
   which the rows must reach.
+  PENDING (2026-10-23, final_run.py PENDING): with no forecasts in RF_RUN the forest is pending (PENDING = ("rf",)):
+  EST keeps the three estimators (the tables' rows), EST_DONE holds the finished ones, _frame() holds LightGBM and
+  XGBoost only, and at16 / plain_16 of the forest raise final_run.Pending (never a printed run's rows).
 """
 
 from __future__ import annotations
@@ -53,7 +56,18 @@ if fr.FINAL:
     FC = RUN / "forecasts.parquet"
     RF_RUN, RF_KEY = fr.RF_RUN, fr.RF_KEY
     N_BARS_ARM = fr.N_BARS
+# 2026-10-23 (final_run.py PENDING): the estimators with no final forecasts yet (the forest until its run lands), and
+# the finished ones; with the switch off, or under REHAUL_REQUIRE_ALL=1, nothing is pending
+PENDING: tuple[str, ...] = fr.PENDING_TREES
+EST_DONE = tuple(e for e in EST if e not in PENDING)
+if "rf" in PENDING:
+    RF_RUN = None  # not read: no printed forest stands in for it
 _CACHE: dict[str, pd.DataFrame] = {}
+
+
+def is_pending(est: str) -> bool:
+    """True when the estimator's final run has no forecasts yet (final_run.PENDING_TREES)."""
+    return est in PENDING
 
 
 def _span(m: dict) -> tuple[pd.Timestamp, pd.Timestamp]:
@@ -79,6 +93,11 @@ def meta() -> dict:
         "window_bars": int(m["window_days"]) * N_BARS_DAY,
         "span": _span(m),
     }
+    if PENDING:  # 2026-10-23: the forest's run is pending, so only the tree run is checked against the design
+        assert out["window_days"] == fr.WINDOW_DAYS and out["span"] == (
+            fr.FIRST_DAY,
+            fr.LAST_DAY,
+        ), ("the final tree run is not on the final design", RUN, out)
     if RF_RUN is not None:
         r = json.loads((RF_RUN / "forecasts.json").read_text())
         fr.guard_standin(r, RF_RUN)
@@ -108,7 +127,12 @@ def _frame() -> pd.DataFrame:
                 "rv_actual",
             ],
         )
-        # 2026-10-23 (final run): LightGBM / XGBoost here, the forest from its own run
+        # 2026-10-23 (final run): LightGBM / XGBoost here, the forest from its own run (not read while pending)
+        if PENDING:
+            got = set(f["model"])
+            assert got == {"lgbm", "xgb"}, (
+                f"{FC}: models {sorted(got)}; the final tree run holds lgbm and xgb"
+            )
         if RF_RUN is not None:
             got = set(f["model"])
             assert got == {"lgbm", "xgb"}, (
@@ -123,7 +147,8 @@ def _frame() -> pd.DataFrame:
             r["model"] = "rf"
             f = pd.concat([f, r], ignore_index=True)
         n = f.groupby(["model", "predictor_set"]).size()
-        assert set(n.index) == {(e, s) for e in EST for s in SETS}, sorted(n.index)
+        # 2026-10-23: the finished estimators (EST_DONE = EST unless an arm is pending). Was: for e in EST
+        assert set(n.index) == {(e, s) for e in EST_DONE for s in SETS}, sorted(n.index)
         assert (n == N_BARS_ARM).all(), n.to_dict()
         v = f[["pred_adj", "B", "plain", "rv_actual"]].to_numpy(float)
         assert np.isfinite(v).all() and (f["plain"] > 0).all() and (f["B"] > 0).all()
@@ -146,7 +171,12 @@ def _frame() -> pd.DataFrame:
 
 
 def at16(est: str, pset: str) -> pd.DataFrame:
-    """The 16:00 rows of one arm, one row a trading day: plain and rv (the bar's realized variance)."""
+    """The 16:00 rows of one arm, one row a trading day: plain and rv (the bar's realized variance).  A pending arm
+    (PENDING) raises final_run.Pending."""
+    if est in PENDING:
+        raise fr.Pending(
+            f"pooled {est} {pset}: the final run has no forecasts yet ({fr.rel(fr.RF_RUN)})"
+        )
     f = _frame()
     g = f[(f["model"] == est) & (f["predictor_set"] == pset)]
     t = pd.to_datetime(g["date"])

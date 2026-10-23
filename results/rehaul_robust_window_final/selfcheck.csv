@@ -1,0 +1,399 @@
+source,W,model,set,quantity,mine,theirs,abs_diff,ok
+results/pooled_trees_final_2014start_w3000/scores/metrics.csv,3000,lgbm,all_features,n_bars,33527.0,33527.0,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/metrics.csv,3000,lgbm,all_features,n_days16,2579.0,2579.0,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/metrics.csv,3000,lgbm,all_features,qlike every bar,0.1612830208334355,0.1612830208334355,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/metrics.csv,3000,lgbm,all_features,qlike 16:00,0.12012875339048242,0.1201287533904824,1.3877787807814457e-17,True
+results/pooled_trees_final_2014start_w3000/scores/metrics.csv,3000,lgbm,baseline,n_bars,33527.0,33527.0,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/metrics.csv,3000,lgbm,baseline,n_days16,2579.0,2579.0,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/metrics.csv,3000,lgbm,baseline,qlike every bar,0.1875114176386818,0.1875114176386818,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/metrics.csv,3000,lgbm,baseline,qlike 16:00,0.1235037926652133,0.1235037926652133,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/metrics.csv,3000,xgb,all_features,n_bars,33527.0,33527.0,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/metrics.csv,3000,xgb,all_features,n_days16,2579.0,2579.0,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/metrics.csv,3000,xgb,all_features,qlike every bar,0.1627248619627908,0.1627248619627908,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/metrics.csv,3000,xgb,all_features,qlike 16:00,0.11924060175630441,0.1192406017563044,1.3877787807814457e-17,True
+results/pooled_trees_final_2014start_w3000/scores/metrics.csv,3000,xgb,baseline,n_bars,33527.0,33527.0,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/metrics.csv,3000,xgb,baseline,n_days16,2579.0,2579.0,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/metrics.csv,3000,xgb,baseline,qlike every bar,0.18877686044206105,0.188776860442061,5.551115123125783e-17,True
+results/pooled_trees_final_2014start_w3000/scores/metrics.csv,3000,xgb,baseline,qlike 16:00,0.12342201469135199,0.1234220146913519,8.326672684688674e-17,True
+results/pooled_trees_final_2014start_w3000/scores/metrics.csv,3000,enet,all_features,n_bars,33527.0,33527.0,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/metrics.csv,3000,enet,all_features,n_days16,2579.0,2579.0,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/metrics.csv,3000,enet,all_features,qlike every bar,0.17784241687331742,0.1778424168733174,2.7755575615628914e-17,True
+results/pooled_trees_final_2014start_w3000/scores/metrics.csv,3000,enet,all_features,qlike 16:00,0.12622048949697234,0.1262204894969723,5.551115123125783e-17,True
+results/pooled_trees_final_2014start_w3000/scores/metrics.csv,3000,enet,baseline,n_bars,33527.0,33527.0,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/metrics.csv,3000,enet,baseline,n_days16,2579.0,2579.0,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/metrics.csv,3000,enet,baseline,qlike every bar,0.1892691199967904,0.1892691199967904,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/metrics.csv,3000,enet,baseline,qlike 16:00,0.1268740298807714,0.1268740298807714,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/metrics.csv,3000,lasso,all_features,n_bars,33527.0,33527.0,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/metrics.csv,3000,lasso,all_features,n_days16,2579.0,2579.0,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/metrics.csv,3000,lasso,all_features,qlike every bar,0.17747045062811498,0.1774704506281149,8.326672684688674e-17,True
+results/pooled_trees_final_2014start_w3000/scores/metrics.csv,3000,lasso,all_features,qlike 16:00,0.1310411485198228,0.1310411485198228,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/metrics.csv,3000,lasso,baseline,n_bars,33527.0,33527.0,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/metrics.csv,3000,lasso,baseline,n_days16,2579.0,2579.0,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/metrics.csv,3000,lasso,baseline,qlike every bar,0.1892691092712099,0.1892691092712099,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/metrics.csv,3000,lasso,baseline,qlike 16:00,0.12687406324893025,0.1268740632489302,5.551115123125783e-17,True
+results/pooled_trees_final_2014start_w3000/scores/metrics.csv,3000,ols,baseline,n_bars,33527.0,33527.0,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/metrics.csv,3000,ols,baseline,n_days16,2579.0,2579.0,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/metrics.csv,3000,ols,baseline,qlike every bar,0.18926910695294918,0.1892691069529491,8.326672684688674e-17,True
+results/pooled_trees_final_2014start_w3000/scores/metrics.csv,3000,ols,baseline,qlike 16:00,0.1268740714399214,0.1268740714399214,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/metrics.csv,3000,ridge,all_features,n_bars,33527.0,33527.0,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/metrics.csv,3000,ridge,all_features,n_days16,2579.0,2579.0,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/metrics.csv,3000,ridge,all_features,qlike every bar,0.17911932432603708,0.179119324326037,8.326672684688674e-17,True
+results/pooled_trees_final_2014start_w3000/scores/metrics.csv,3000,ridge,all_features,qlike 16:00,0.12789173104169888,0.1278917310416988,8.326672684688674e-17,True
+results/pooled_trees_final_2014start_w3000/scores/metrics.csv,3000,ridge,baseline,n_bars,33527.0,33527.0,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/metrics.csv,3000,ridge,baseline,n_days16,2579.0,2579.0,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/metrics.csv,3000,ridge,baseline,qlike every bar,0.1892691076975534,0.1892691076975534,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/metrics.csv,3000,ridge,baseline,qlike 16:00,0.1268740711272148,0.1268740711272148,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/dm.csv,3000,lgbm,full vs HAR,DM every bar,-10.318494292584793,-10.318494292584791,1.7763568394002505e-15,True
+results/pooled_trees_final_2014start_w3000/scores/dm.csv,3000,lgbm,full vs HAR,DM p every bar,5.812754990312138e-25,5.812754990312138e-25,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/dm.csv,3000,lgbm,full vs HAR,DM 16:00,-1.805831350482083,-1.8058313504820835,4.440892098500626e-16,True
+results/pooled_trees_final_2014start_w3000/scores/dm.csv,3000,lgbm,full vs HAR,DM p 16:00,0.07094468686286869,0.0709446868628686,8.326672684688674e-17,True
+results/pooled_trees_final_2014start_w3000/scores/dm.csv,3000,xgb,full vs HAR,DM every bar,-9.939307908093658,-9.939307908093658,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/dm.csv,3000,xgb,full vs HAR,DM p every bar,2.807710182694332e-23,2.807710182694332e-23,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/dm.csv,3000,xgb,full vs HAR,DM 16:00,-2.17659484296028,-2.17659484296028,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/dm.csv,3000,xgb,full vs HAR,DM p 16:00,0.02951081029394058,0.0295108102939405,7.979727989493313e-17,True
+results/pooled_trees_final_2014start_w3000/scores/dm.csv,3000,ridge,full vs HAR,DM every bar,-5.626740028038358,-5.626740028038358,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/dm.csv,3000,ridge,full vs HAR,DM p every bar,1.8364718179577945e-08,1.8364718179577945e-08,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/dm.csv,3000,ridge,full vs HAR,DM 16:00,0.307241155316293,0.307241155316293,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/dm.csv,3000,ridge,full vs HAR,DM p 16:00,0.7586598219998005,0.7586598219998005,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/dm.csv,3000,lasso,full vs HAR,DM every bar,-4.724103724172205,-4.724103724172205,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/dm.csv,3000,lasso,full vs HAR,DM p every bar,2.3113243308524787e-06,2.3113243308524787e-06,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/dm.csv,3000,lasso,full vs HAR,DM 16:00,1.0366574014639633,1.0366574014639631,2.220446049250313e-16,True
+results/pooled_trees_final_2014start_w3000/scores/dm.csv,3000,lasso,full vs HAR,DM p 16:00,0.29989555141322327,0.2998955514132232,5.551115123125783e-17,True
+results/pooled_trees_final_2014start_w3000/scores/dm.csv,3000,enet,full vs HAR,DM every bar,-6.979288074147892,-6.979288074147892,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/dm.csv,3000,enet,full vs HAR,DM p every bar,2.9667958890781535e-12,2.9667958890781535e-12,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/dm.csv,3000,enet,full vs HAR,DM 16:00,-0.2122032801646664,-0.2122032801646664,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/dm.csv,3000,enet,full vs HAR,DM p 16:00,0.8319484478135402,0.8319484478135402,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/cross_window_dm.csv,3500 vs 3000,enet,all_features,DM every bar,-1.4652420098930605,-1.4652420098930603,2.220446049250313e-16,True
+results/pooled_trees_final_2014start_w3000/scores/cross_window_dm.csv,3500 vs 3000,enet,all_features,DM p every bar,0.14285490173201396,0.1428549017320139,5.551115123125783e-17,True
+results/pooled_trees_final_2014start_w3000/scores/cross_window_dm.csv,3500 vs 3000,enet,all_features,DM 16:00,-2.9272778043044245,-2.9272778043044245,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/cross_window_dm.csv,3500 vs 3000,enet,all_features,DM p 16:00,0.003419432967358487,0.0034194329673584,8.716985466783456e-17,True
+results/pooled_trees_final_2014start_w3000/scores/cross_window_dm.csv,3500 vs 3000,enet,baseline,DM every bar,2.481075669708488,2.481075669708488,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/cross_window_dm.csv,3500 vs 3000,enet,baseline,DM p every bar,0.013098656303452711,0.0130986563034527,1.0408340855860843e-17,True
+results/pooled_trees_final_2014start_w3000/scores/cross_window_dm.csv,3500 vs 3000,enet,baseline,DM 16:00,1.3050350013347922,1.3050350013347922,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/cross_window_dm.csv,3500 vs 3000,enet,baseline,DM p 16:00,0.1918809296730349,0.1918809296730349,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/cross_window_dm.csv,3500 vs 3000,lasso,all_features,DM every bar,-2.0357072097309232,-2.0357072097309232,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/cross_window_dm.csv,3500 vs 3000,lasso,all_features,DM p every bar,0.041779764696895545,0.0417797646968955,4.85722573273506e-17,True
+results/pooled_trees_final_2014start_w3000/scores/cross_window_dm.csv,3500 vs 3000,lasso,all_features,DM 16:00,-2.8943268373767466,-2.8943268373767466,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/cross_window_dm.csv,3500 vs 3000,lasso,all_features,DM p 16:00,0.0037997242469298893,0.0037997242469298,8.933825901280557e-17,True
+results/pooled_trees_final_2014start_w3000/scores/cross_window_dm.csv,3500 vs 3000,lasso,baseline,DM every bar,2.4810806957643603,2.4810806957643603,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/cross_window_dm.csv,3500 vs 3000,lasso,baseline,DM p every bar,0.013098471604908063,0.013098471604908,6.245004513516506e-17,True
+results/pooled_trees_final_2014start_w3000/scores/cross_window_dm.csv,3500 vs 3000,lasso,baseline,DM 16:00,1.3050337232459746,1.3050337232459748,2.220446049250313e-16,True
+results/pooled_trees_final_2014start_w3000/scores/cross_window_dm.csv,3500 vs 3000,lasso,baseline,DM p 16:00,0.1918813648585597,0.1918813648585596,8.326672684688674e-17,True
+results/pooled_trees_final_2014start_w3000/scores/cross_window_dm.csv,3500 vs 3000,lgbm,all_features,DM every bar,0.19940030268073763,0.1994003026807376,2.7755575615628914e-17,True
+results/pooled_trees_final_2014start_w3000/scores/cross_window_dm.csv,3500 vs 3000,lgbm,all_features,DM p every bar,0.8419496237320664,0.8419496237320664,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/cross_window_dm.csv,3500 vs 3000,lgbm,all_features,DM 16:00,0.5496662510595962,0.5496662510595963,1.1102230246251565e-16,True
+results/pooled_trees_final_2014start_w3000/scores/cross_window_dm.csv,3500 vs 3000,lgbm,all_features,DM p 16:00,0.5825483088801631,0.5825483088801631,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/cross_window_dm.csv,3500 vs 3000,lgbm,baseline,DM every bar,0.20069194656355663,0.2006919465635566,2.7755575615628914e-17,True
+results/pooled_trees_final_2014start_w3000/scores/cross_window_dm.csv,3500 vs 3000,lgbm,baseline,DM p every bar,0.8409394573121154,0.8409394573121154,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/cross_window_dm.csv,3500 vs 3000,lgbm,baseline,DM 16:00,-0.4495031863316806,-0.4495031863316806,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/cross_window_dm.csv,3500 vs 3000,lgbm,baseline,DM p 16:00,0.6530687100535717,0.6530687100535717,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/cross_window_dm.csv,3500 vs 3000,ols,baseline,DM every bar,2.4810819065654135,2.481081906565413,4.440892098500626e-16,True
+results/pooled_trees_final_2014start_w3000/scores/cross_window_dm.csv,3500 vs 3000,ols,baseline,DM p every bar,0.01309842711048385,0.0130984271104838,5.0306980803327406e-17,True
+results/pooled_trees_final_2014start_w3000/scores/cross_window_dm.csv,3500 vs 3000,ols,baseline,DM 16:00,1.305033359582824,1.305033359582824,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/cross_window_dm.csv,3500 vs 3000,ols,baseline,DM p 16:00,0.19188148868493726,0.1918814886849372,5.551115123125783e-17,True
+results/pooled_trees_final_2014start_w3000/scores/cross_window_dm.csv,3500 vs 3000,ridge,all_features,DM every bar,-2.26243850081325,-2.26243850081325,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/cross_window_dm.csv,3500 vs 3000,ridge,all_features,DM p every bar,0.02367032446349012,0.0236703244634901,2.0816681711721685e-17,True
+results/pooled_trees_final_2014start_w3000/scores/cross_window_dm.csv,3500 vs 3000,ridge,all_features,DM 16:00,-3.101915884861349,-3.101915884861349,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/cross_window_dm.csv,3500 vs 3000,ridge,all_features,DM p 16:00,0.0019227258350544521,0.0019227258350544,5.204170427930421e-17,True
+results/pooled_trees_final_2014start_w3000/scores/cross_window_dm.csv,3500 vs 3000,ridge,baseline,DM every bar,2.4810812403286198,2.4810812403286198,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/cross_window_dm.csv,3500 vs 3000,ridge,baseline,DM p every bar,0.013098451593285902,0.0130984515932859,1.734723475976807e-18,True
+results/pooled_trees_final_2014start_w3000/scores/cross_window_dm.csv,3500 vs 3000,ridge,baseline,DM 16:00,1.3050334563493267,1.3050334563493269,2.220446049250313e-16,True
+results/pooled_trees_final_2014start_w3000/scores/cross_window_dm.csv,3500 vs 3000,ridge,baseline,DM p 16:00,0.19188145573618362,0.1918814557361836,2.7755575615628914e-17,True
+results/pooled_trees_final_2014start_w3000/scores/cross_window_dm.csv,3500 vs 3000,xgb,all_features,DM every bar,1.867621398642083,1.867621398642083,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/cross_window_dm.csv,3500 vs 3000,xgb,all_features,DM p every bar,0.061814861578240454,0.0618148615782404,5.551115123125783e-17,True
+results/pooled_trees_final_2014start_w3000/scores/cross_window_dm.csv,3500 vs 3000,xgb,all_features,DM 16:00,-0.1451380532702338,-0.1451380532702338,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/cross_window_dm.csv,3500 vs 3000,xgb,all_features,DM p 16:00,0.8846018742012103,0.8846018742012103,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/cross_window_dm.csv,3500 vs 3000,xgb,baseline,DM every bar,1.130027292892932,1.130027292892932,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/cross_window_dm.csv,3500 vs 3000,xgb,baseline,DM p every bar,0.2584647242209659,0.2584647242209659,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/cross_window_dm.csv,3500 vs 3000,xgb,baseline,DM 16:00,-0.5536416259118959,-0.5536416259118958,1.1102230246251565e-16,True
+results/pooled_trees_final_2014start_w3000/scores/cross_window_dm.csv,3500 vs 3000,xgb,baseline,DM p 16:00,0.5798241323233457,0.5798241323233457,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/econ.csv,3000,lgbm,baseline,D6 mid,0.6096706914617405,0.6096706914617405,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/econ.csv,3000,lgbm,all_features,D6 mid,1.7486091423752614,1.7486091423752614,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/econ.csv,3000,lgbm,full - HAR,dD6 mid,1.1389384509135203,1.138938450913521,6.661338147750939e-16,True
+results/pooled_trees_final_2014start_w3000/scores/econ.csv,3000,lgbm,full - HAR,dD6 bootstrap p mid,0.05121024204840968,0.0512102420484096,8.326672684688674e-17,True
+results/pooled_trees_final_2014start_w3000/scores/econ.csv,3000,lgbm,baseline,D6 ba,0.25361002933690013,0.2536100293369001,5.551115123125783e-17,True
+results/pooled_trees_final_2014start_w3000/scores/econ.csv,3000,lgbm,all_features,D6 ba,1.3987600914333047,1.3987600914333047,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/econ.csv,3000,lgbm,full - HAR,dD6 ba,1.1451500620964046,1.1451500620964046,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/econ.csv,3000,lgbm,full - HAR,dD6 bootstrap p ba,0.04820964192838568,0.0482096419283856,7.632783294297951e-17,True
+results/pooled_trees_final_2014start_w3000/scores/econ.csv,3000,xgb,baseline,D6 mid,0.9061505961242735,0.9061505961242736,1.1102230246251565e-16,True
+results/pooled_trees_final_2014start_w3000/scores/econ.csv,3000,xgb,all_features,D6 mid,1.666446580524398,1.666446580524398,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/econ.csv,3000,xgb,full - HAR,dD6 mid,0.7602959844001244,0.7602959844001245,1.1102230246251565e-16,True
+results/pooled_trees_final_2014start_w3000/scores/econ.csv,3000,xgb,full - HAR,dD6 bootstrap p mid,0.14142828565713142,0.1414282856571314,2.7755575615628914e-17,True
+results/pooled_trees_final_2014start_w3000/scores/econ.csv,3000,xgb,baseline,D6 ba,0.5491644352460258,0.5491644352460258,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/econ.csv,3000,xgb,all_features,D6 ba,1.3138014268386784,1.3138014268386784,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/econ.csv,3000,xgb,full - HAR,dD6 ba,0.7646369915926526,0.7646369915926526,0.0,True
+results/pooled_trees_final_2014start_w3000/scores/econ.csv,3000,xgb,full - HAR,dD6 bootstrap p ba,0.13782756551310263,0.1378275655131026,2.7755575615628914e-17,True
+results/pooled_rf_skx_2014start_w3000/scores/metrics.csv,3000,rf,all_features,n_bars,33527.0,33527.0,0.0,True
+results/pooled_rf_skx_2014start_w3000/scores/metrics.csv,3000,rf,all_features,n_days16,2579.0,2579.0,0.0,True
+results/pooled_rf_skx_2014start_w3000/scores/metrics.csv,3000,rf,all_features,qlike every bar,0.168530719538795,0.168530719538795,0.0,True
+results/pooled_rf_skx_2014start_w3000/scores/metrics.csv,3000,rf,all_features,qlike 16:00,0.12480167570331042,0.1248016757033104,2.7755575615628914e-17,True
+results/pooled_rf_skx_2014start_w3000/scores/metrics.csv,3000,rf,baseline,n_bars,33527.0,33527.0,0.0,True
+results/pooled_rf_skx_2014start_w3000/scores/metrics.csv,3000,rf,baseline,n_days16,2579.0,2579.0,0.0,True
+results/pooled_rf_skx_2014start_w3000/scores/metrics.csv,3000,rf,baseline,qlike every bar,0.18950271911463343,0.1895027191146334,2.7755575615628914e-17,True
+results/pooled_rf_skx_2014start_w3000/scores/metrics.csv,3000,rf,baseline,qlike 16:00,0.12660366580730872,0.1266036658073087,2.7755575615628914e-17,True
+results/pooled_rf_skx_2014start_w3000/scores/metrics.csv,3000,enet,all_features,n_bars,33527.0,33527.0,0.0,True
+results/pooled_rf_skx_2014start_w3000/scores/metrics.csv,3000,enet,all_features,n_days16,2579.0,2579.0,0.0,True
+results/pooled_rf_skx_2014start_w3000/scores/metrics.csv,3000,enet,all_features,qlike every bar,0.17784241687331742,0.1778424168733174,2.7755575615628914e-17,True
+results/pooled_rf_skx_2014start_w3000/scores/metrics.csv,3000,enet,all_features,qlike 16:00,0.12622048949697234,0.1262204894969723,5.551115123125783e-17,True
+results/pooled_rf_skx_2014start_w3000/scores/metrics.csv,3000,enet,baseline,n_bars,33527.0,33527.0,0.0,True
+results/pooled_rf_skx_2014start_w3000/scores/metrics.csv,3000,enet,baseline,n_days16,2579.0,2579.0,0.0,True
+results/pooled_rf_skx_2014start_w3000/scores/metrics.csv,3000,enet,baseline,qlike every bar,0.1892691199967904,0.1892691199967904,0.0,True
+results/pooled_rf_skx_2014start_w3000/scores/metrics.csv,3000,enet,baseline,qlike 16:00,0.1268740298807714,0.1268740298807714,0.0,True
+results/pooled_rf_skx_2014start_w3000/scores/metrics.csv,3000,lasso,all_features,n_bars,33527.0,33527.0,0.0,True
+results/pooled_rf_skx_2014start_w3000/scores/metrics.csv,3000,lasso,all_features,n_days16,2579.0,2579.0,0.0,True
+results/pooled_rf_skx_2014start_w3000/scores/metrics.csv,3000,lasso,all_features,qlike every bar,0.17747045062811498,0.1774704506281149,8.326672684688674e-17,True
+results/pooled_rf_skx_2014start_w3000/scores/metrics.csv,3000,lasso,all_features,qlike 16:00,0.1310411485198228,0.1310411485198228,0.0,True
+results/pooled_rf_skx_2014start_w3000/scores/metrics.csv,3000,lasso,baseline,n_bars,33527.0,33527.0,0.0,True
+results/pooled_rf_skx_2014start_w3000/scores/metrics.csv,3000,lasso,baseline,n_days16,2579.0,2579.0,0.0,True
+results/pooled_rf_skx_2014start_w3000/scores/metrics.csv,3000,lasso,baseline,qlike every bar,0.1892691092712099,0.1892691092712099,0.0,True
+results/pooled_rf_skx_2014start_w3000/scores/metrics.csv,3000,lasso,baseline,qlike 16:00,0.12687406324893025,0.1268740632489302,5.551115123125783e-17,True
+results/pooled_rf_skx_2014start_w3000/scores/metrics.csv,3000,ols,baseline,n_bars,33527.0,33527.0,0.0,True
+results/pooled_rf_skx_2014start_w3000/scores/metrics.csv,3000,ols,baseline,n_days16,2579.0,2579.0,0.0,True
+results/pooled_rf_skx_2014start_w3000/scores/metrics.csv,3000,ols,baseline,qlike every bar,0.18926910695294918,0.1892691069529491,8.326672684688674e-17,True
+results/pooled_rf_skx_2014start_w3000/scores/metrics.csv,3000,ols,baseline,qlike 16:00,0.1268740714399214,0.1268740714399214,0.0,True
+results/pooled_rf_skx_2014start_w3000/scores/metrics.csv,3000,ridge,all_features,n_bars,33527.0,33527.0,0.0,True
+results/pooled_rf_skx_2014start_w3000/scores/metrics.csv,3000,ridge,all_features,n_days16,2579.0,2579.0,0.0,True
+results/pooled_rf_skx_2014start_w3000/scores/metrics.csv,3000,ridge,all_features,qlike every bar,0.17911932432603708,0.179119324326037,8.326672684688674e-17,True
+results/pooled_rf_skx_2014start_w3000/scores/metrics.csv,3000,ridge,all_features,qlike 16:00,0.12789173104169888,0.1278917310416988,8.326672684688674e-17,True
+results/pooled_rf_skx_2014start_w3000/scores/metrics.csv,3000,ridge,baseline,n_bars,33527.0,33527.0,0.0,True
+results/pooled_rf_skx_2014start_w3000/scores/metrics.csv,3000,ridge,baseline,n_days16,2579.0,2579.0,0.0,True
+results/pooled_rf_skx_2014start_w3000/scores/metrics.csv,3000,ridge,baseline,qlike every bar,0.1892691076975534,0.1892691076975534,0.0,True
+results/pooled_rf_skx_2014start_w3000/scores/metrics.csv,3000,ridge,baseline,qlike 16:00,0.1268740711272148,0.1268740711272148,0.0,True
+results/pooled_rf_skx_2014start_w3000/scores/dm.csv,3000,rf,full vs HAR,DM every bar,-9.852884114554417,-9.852884114554415,1.7763568394002505e-15,True
+results/pooled_rf_skx_2014start_w3000/scores/dm.csv,3000,rf,full vs HAR,DM p every bar,6.660474483819762e-23,6.660474483819762e-23,0.0,True
+results/pooled_rf_skx_2014start_w3000/scores/dm.csv,3000,rf,full vs HAR,DM 16:00,-0.9215864701754876,-0.9215864701754876,0.0,True
+results/pooled_rf_skx_2014start_w3000/scores/dm.csv,3000,rf,full vs HAR,DM p 16:00,0.3567443184514916,0.3567443184514916,0.0,True
+results/pooled_rf_skx_2014start_w3000/scores/dm.csv,3000,ridge,full vs HAR,DM every bar,-5.626740028038358,-5.626740028038358,0.0,True
+results/pooled_rf_skx_2014start_w3000/scores/dm.csv,3000,ridge,full vs HAR,DM p every bar,1.8364718179577945e-08,1.8364718179577945e-08,0.0,True
+results/pooled_rf_skx_2014start_w3000/scores/dm.csv,3000,ridge,full vs HAR,DM 16:00,0.307241155316293,0.307241155316293,0.0,True
+results/pooled_rf_skx_2014start_w3000/scores/dm.csv,3000,ridge,full vs HAR,DM p 16:00,0.7586598219998005,0.7586598219998005,0.0,True
+results/pooled_rf_skx_2014start_w3000/scores/dm.csv,3000,lasso,full vs HAR,DM every bar,-4.724103724172205,-4.724103724172205,0.0,True
+results/pooled_rf_skx_2014start_w3000/scores/dm.csv,3000,lasso,full vs HAR,DM p every bar,2.3113243308524787e-06,2.3113243308524787e-06,0.0,True
+results/pooled_rf_skx_2014start_w3000/scores/dm.csv,3000,lasso,full vs HAR,DM 16:00,1.0366574014639633,1.0366574014639631,2.220446049250313e-16,True
+results/pooled_rf_skx_2014start_w3000/scores/dm.csv,3000,lasso,full vs HAR,DM p 16:00,0.29989555141322327,0.2998955514132232,5.551115123125783e-17,True
+results/pooled_rf_skx_2014start_w3000/scores/dm.csv,3000,enet,full vs HAR,DM every bar,-6.979288074147892,-6.979288074147892,0.0,True
+results/pooled_rf_skx_2014start_w3000/scores/dm.csv,3000,enet,full vs HAR,DM p every bar,2.9667958890781535e-12,2.9667958890781535e-12,0.0,True
+results/pooled_rf_skx_2014start_w3000/scores/dm.csv,3000,enet,full vs HAR,DM 16:00,-0.2122032801646664,-0.2122032801646664,0.0,True
+results/pooled_rf_skx_2014start_w3000/scores/dm.csv,3000,enet,full vs HAR,DM p 16:00,0.8319484478135402,0.8319484478135402,0.0,True
+results/pooled_rf_skx_2014start_w3000/scores/econ.csv,3000,rf,baseline,D6 mid,0.009112739405233675,0.0091127394052336,7.45931094670027e-17,True
+results/pooled_rf_skx_2014start_w3000/scores/econ.csv,3000,rf,all_features,D6 mid,1.9564537560133326,1.9564537560133328,2.220446049250313e-16,True
+results/pooled_rf_skx_2014start_w3000/scores/econ.csv,3000,rf,full - HAR,dD6 mid,1.9473410166080989,1.9473410166080989,0.0,True
+results/pooled_rf_skx_2014start_w3000/scores/econ.csv,3000,rf,full - HAR,dD6 bootstrap p mid,0.0072014402880576115,0.0072014402880576,1.1275702593849246e-17,True
+results/pooled_rf_skx_2014start_w3000/scores/econ.csv,3000,rf,baseline,D6 ba,-0.3245897000152298,-0.3245897000152298,0.0,True
+results/pooled_rf_skx_2014start_w3000/scores/econ.csv,3000,rf,all_features,D6 ba,1.6016600711923668,1.6016600711923668,0.0,True
+results/pooled_rf_skx_2014start_w3000/scores/econ.csv,3000,rf,full - HAR,dD6 ba,1.9262497712075966,1.9262497712075968,2.220446049250313e-16,True
+results/pooled_rf_skx_2014start_w3000/scores/econ.csv,3000,rf,full - HAR,dD6 bootstrap p ba,0.007401480296059212,0.0074014802960592,1.214306433183765e-17,True
+results/pooled_trees_final_2014start_w3500/scores/metrics.csv,3500,lgbm,all_features,n_bars,33527.0,33527.0,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/metrics.csv,3500,lgbm,all_features,n_days16,2579.0,2579.0,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/metrics.csv,3500,lgbm,all_features,qlike every bar,0.16133928232227326,0.1613392823222732,5.551115123125783e-17,True
+results/pooled_trees_final_2014start_w3500/scores/metrics.csv,3500,lgbm,all_features,qlike 16:00,0.12037362354149063,0.1203736235414906,2.7755575615628914e-17,True
+results/pooled_trees_final_2014start_w3500/scores/metrics.csv,3500,lgbm,baseline,n_bars,33527.0,33527.0,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/metrics.csv,3500,lgbm,baseline,n_days16,2579.0,2579.0,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/metrics.csv,3500,lgbm,baseline,qlike every bar,0.1875561680734462,0.1875561680734462,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/metrics.csv,3500,lgbm,baseline,qlike 16:00,0.1233071130052998,0.1233071130052998,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/metrics.csv,3500,xgb,all_features,n_bars,33527.0,33527.0,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/metrics.csv,3500,xgb,all_features,n_days16,2579.0,2579.0,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/metrics.csv,3500,xgb,all_features,qlike every bar,0.16356193094724225,0.1635619309472422,5.551115123125783e-17,True
+results/pooled_trees_final_2014start_w3500/scores/metrics.csv,3500,xgb,all_features,qlike 16:00,0.11917686807204309,0.119176868072043,8.326672684688674e-17,True
+results/pooled_trees_final_2014start_w3500/scores/metrics.csv,3500,xgb,baseline,n_bars,33527.0,33527.0,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/metrics.csv,3500,xgb,baseline,n_days16,2579.0,2579.0,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/metrics.csv,3500,xgb,baseline,qlike every bar,0.18898771494112776,0.1889877149411277,5.551115123125783e-17,True
+results/pooled_trees_final_2014start_w3500/scores/metrics.csv,3500,xgb,baseline,qlike 16:00,0.12317951550211093,0.1231795155021109,2.7755575615628914e-17,True
+results/pooled_trees_final_2014start_w3500/scores/metrics.csv,3500,enet,all_features,n_bars,33527.0,33527.0,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/metrics.csv,3500,enet,all_features,n_days16,2579.0,2579.0,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/metrics.csv,3500,enet,all_features,qlike every bar,0.17697829795296544,0.1769782979529654,2.7755575615628914e-17,True
+results/pooled_trees_final_2014start_w3500/scores/metrics.csv,3500,enet,all_features,qlike 16:00,0.12228628592889612,0.1222862859288961,2.7755575615628914e-17,True
+results/pooled_trees_final_2014start_w3500/scores/metrics.csv,3500,enet,baseline,n_bars,33527.0,33527.0,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/metrics.csv,3500,enet,baseline,n_days16,2579.0,2579.0,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/metrics.csv,3500,enet,baseline,qlike every bar,0.18966647170929662,0.1896664717092966,2.7755575615628914e-17,True
+results/pooled_trees_final_2014start_w3500/scores/metrics.csv,3500,enet,baseline,qlike 16:00,0.12723094310117933,0.1272309431011793,2.7755575615628914e-17,True
+results/pooled_trees_final_2014start_w3500/scores/metrics.csv,3500,lasso,all_features,n_bars,33527.0,33527.0,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/metrics.csv,3500,lasso,all_features,n_days16,2579.0,2579.0,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/metrics.csv,3500,lasso,all_features,qlike every bar,0.17520474707887623,0.1752047470788762,2.7755575615628914e-17,True
+results/pooled_trees_final_2014start_w3500/scores/metrics.csv,3500,lasso,all_features,qlike 16:00,0.12525385160273428,0.1252538516027342,8.326672684688674e-17,True
+results/pooled_trees_final_2014start_w3500/scores/metrics.csv,3500,lasso,baseline,n_bars,33527.0,33527.0,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/metrics.csv,3500,lasso,baseline,n_days16,2579.0,2579.0,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/metrics.csv,3500,lasso,baseline,qlike every bar,0.1896664620237177,0.1896664620237177,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/metrics.csv,3500,lasso,baseline,qlike 16:00,0.12723097707759728,0.1272309770775972,8.326672684688674e-17,True
+results/pooled_trees_final_2014start_w3500/scores/metrics.csv,3500,ols,baseline,n_bars,33527.0,33527.0,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/metrics.csv,3500,ols,baseline,n_days16,2579.0,2579.0,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/metrics.csv,3500,ols,baseline,qlike every bar,0.18966645995794057,0.1896664599579405,8.326672684688674e-17,True
+results/pooled_trees_final_2014start_w3500/scores/metrics.csv,3500,ols,baseline,qlike 16:00,0.12723098540089275,0.1272309854008927,5.551115123125783e-17,True
+results/pooled_trees_final_2014start_w3500/scores/metrics.csv,3500,ridge,all_features,n_bars,33527.0,33527.0,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/metrics.csv,3500,ridge,all_features,n_days16,2579.0,2579.0,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/metrics.csv,3500,ridge,all_features,qlike every bar,0.1776692005412895,0.1776692005412895,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/metrics.csv,3500,ridge,all_features,qlike 16:00,0.12332933072722504,0.123329330727225,4.163336342344337e-17,True
+results/pooled_trees_final_2014start_w3500/scores/metrics.csv,3500,ridge,baseline,n_bars,33527.0,33527.0,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/metrics.csv,3500,ridge,baseline,n_days16,2579.0,2579.0,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/metrics.csv,3500,ridge,baseline,qlike every bar,0.18966646058278783,0.1896664605827878,2.7755575615628914e-17,True
+results/pooled_trees_final_2014start_w3500/scores/metrics.csv,3500,ridge,baseline,qlike 16:00,0.12723098509718603,0.127230985097186,2.7755575615628914e-17,True
+results/pooled_trees_final_2014start_w3500/scores/dm.csv,3500,lgbm,full vs HAR,DM every bar,-10.024611234566066,-10.024611234566066,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/dm.csv,3500,lgbm,full vs HAR,DM p every bar,1.1882630599809934e-23,1.1882630599809935e-23,1.4693679385278594e-39,True
+results/pooled_trees_final_2014start_w3500/scores/dm.csv,3500,lgbm,full vs HAR,DM 16:00,-1.616347028197288,-1.6163470281972878,2.220446049250313e-16,True
+results/pooled_trees_final_2014start_w3500/scores/dm.csv,3500,lgbm,full vs HAR,DM p 16:00,0.10601930433261776,0.1060193043326177,5.551115123125783e-17,True
+results/pooled_trees_final_2014start_w3500/scores/dm.csv,3500,xgb,full vs HAR,DM every bar,-9.966307171472074,-9.966307171472074,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/dm.csv,3500,xgb,full vs HAR,DM p every bar,2.1403947229401675e-23,2.1403947229401678e-23,2.938735877055719e-39,True
+results/pooled_trees_final_2014start_w3500/scores/dm.csv,3500,xgb,full vs HAR,DM 16:00,-2.188395447747876,-2.188395447747876,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/dm.csv,3500,xgb,full vs HAR,DM p 16:00,0.028640809594823905,0.0286408095948239,3.469446951953614e-18,True
+results/pooled_trees_final_2014start_w3500/scores/dm.csv,3500,ridge,full vs HAR,DM every bar,-7.061891026118002,-7.061891026118002,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/dm.csv,3500,ridge,full vs HAR,DM p every bar,1.6425178158056602e-12,1.6425178158056602e-12,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/dm.csv,3500,ridge,full vs HAR,DM 16:00,-1.554543677303805,-1.554543677303805,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/dm.csv,3500,ridge,full vs HAR,DM p 16:00,0.12005478665060179,0.1200547866506017,9.71445146547012e-17,True
+results/pooled_trees_final_2014start_w3500/scores/dm.csv,3500,lasso,full vs HAR,DM every bar,-6.389385838165919,-6.389385838165919,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/dm.csv,3500,lasso,full vs HAR,DM p every bar,1.6655332583496672e-10,1.6655332583496672e-10,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/dm.csv,3500,lasso,full vs HAR,DM 16:00,-0.6930174463627712,-0.6930174463627712,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/dm.csv,3500,lasso,full vs HAR,DM p 16:00,0.48829860293113075,0.4882986029311307,5.551115123125783e-17,True
+results/pooled_trees_final_2014start_w3500/scores/dm.csv,3500,enet,full vs HAR,DM every bar,-8.452972755753654,-8.452972755753654,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/dm.csv,3500,enet,full vs HAR,DM p every bar,2.8397795948605244e-17,2.8397795948605244e-17,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/dm.csv,3500,enet,full vs HAR,DM 16:00,-2.1479674431522175,-2.147967443152218,4.440892098500626e-16,True
+results/pooled_trees_final_2014start_w3500/scores/dm.csv,3500,enet,full vs HAR,DM p 16:00,0.03171634189317884,0.0317163418931788,4.163336342344337e-17,True
+results/pooled_trees_final_2014start_w3500/scores/cross_window_dm.csv,3500 vs 3000,enet,all_features,DM every bar,-1.4652420098930605,-1.4652420098930603,2.220446049250313e-16,True
+results/pooled_trees_final_2014start_w3500/scores/cross_window_dm.csv,3500 vs 3000,enet,all_features,DM p every bar,0.14285490173201396,0.1428549017320139,5.551115123125783e-17,True
+results/pooled_trees_final_2014start_w3500/scores/cross_window_dm.csv,3500 vs 3000,enet,all_features,DM 16:00,-2.9272778043044245,-2.9272778043044245,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/cross_window_dm.csv,3500 vs 3000,enet,all_features,DM p 16:00,0.003419432967358487,0.0034194329673584,8.716985466783456e-17,True
+results/pooled_trees_final_2014start_w3500/scores/cross_window_dm.csv,3500 vs 3000,enet,baseline,DM every bar,2.481075669708488,2.481075669708488,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/cross_window_dm.csv,3500 vs 3000,enet,baseline,DM p every bar,0.013098656303452711,0.0130986563034527,1.0408340855860843e-17,True
+results/pooled_trees_final_2014start_w3500/scores/cross_window_dm.csv,3500 vs 3000,enet,baseline,DM 16:00,1.3050350013347922,1.3050350013347922,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/cross_window_dm.csv,3500 vs 3000,enet,baseline,DM p 16:00,0.1918809296730349,0.1918809296730349,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/cross_window_dm.csv,3500 vs 3000,lasso,all_features,DM every bar,-2.0357072097309232,-2.0357072097309232,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/cross_window_dm.csv,3500 vs 3000,lasso,all_features,DM p every bar,0.041779764696895545,0.0417797646968955,4.85722573273506e-17,True
+results/pooled_trees_final_2014start_w3500/scores/cross_window_dm.csv,3500 vs 3000,lasso,all_features,DM 16:00,-2.8943268373767466,-2.8943268373767466,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/cross_window_dm.csv,3500 vs 3000,lasso,all_features,DM p 16:00,0.0037997242469298893,0.0037997242469298,8.933825901280557e-17,True
+results/pooled_trees_final_2014start_w3500/scores/cross_window_dm.csv,3500 vs 3000,lasso,baseline,DM every bar,2.4810806957643603,2.4810806957643603,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/cross_window_dm.csv,3500 vs 3000,lasso,baseline,DM p every bar,0.013098471604908063,0.013098471604908,6.245004513516506e-17,True
+results/pooled_trees_final_2014start_w3500/scores/cross_window_dm.csv,3500 vs 3000,lasso,baseline,DM 16:00,1.3050337232459746,1.3050337232459748,2.220446049250313e-16,True
+results/pooled_trees_final_2014start_w3500/scores/cross_window_dm.csv,3500 vs 3000,lasso,baseline,DM p 16:00,0.1918813648585597,0.1918813648585596,8.326672684688674e-17,True
+results/pooled_trees_final_2014start_w3500/scores/cross_window_dm.csv,3500 vs 3000,lgbm,all_features,DM every bar,0.19940030268073763,0.1994003026807376,2.7755575615628914e-17,True
+results/pooled_trees_final_2014start_w3500/scores/cross_window_dm.csv,3500 vs 3000,lgbm,all_features,DM p every bar,0.8419496237320664,0.8419496237320664,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/cross_window_dm.csv,3500 vs 3000,lgbm,all_features,DM 16:00,0.5496662510595962,0.5496662510595963,1.1102230246251565e-16,True
+results/pooled_trees_final_2014start_w3500/scores/cross_window_dm.csv,3500 vs 3000,lgbm,all_features,DM p 16:00,0.5825483088801631,0.5825483088801631,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/cross_window_dm.csv,3500 vs 3000,lgbm,baseline,DM every bar,0.20069194656355663,0.2006919465635566,2.7755575615628914e-17,True
+results/pooled_trees_final_2014start_w3500/scores/cross_window_dm.csv,3500 vs 3000,lgbm,baseline,DM p every bar,0.8409394573121154,0.8409394573121154,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/cross_window_dm.csv,3500 vs 3000,lgbm,baseline,DM 16:00,-0.4495031863316806,-0.4495031863316806,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/cross_window_dm.csv,3500 vs 3000,lgbm,baseline,DM p 16:00,0.6530687100535717,0.6530687100535717,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/cross_window_dm.csv,3500 vs 3000,ols,baseline,DM every bar,2.4810819065654135,2.481081906565413,4.440892098500626e-16,True
+results/pooled_trees_final_2014start_w3500/scores/cross_window_dm.csv,3500 vs 3000,ols,baseline,DM p every bar,0.01309842711048385,0.0130984271104838,5.0306980803327406e-17,True
+results/pooled_trees_final_2014start_w3500/scores/cross_window_dm.csv,3500 vs 3000,ols,baseline,DM 16:00,1.305033359582824,1.305033359582824,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/cross_window_dm.csv,3500 vs 3000,ols,baseline,DM p 16:00,0.19188148868493726,0.1918814886849372,5.551115123125783e-17,True
+results/pooled_trees_final_2014start_w3500/scores/cross_window_dm.csv,3500 vs 3000,ridge,all_features,DM every bar,-2.26243850081325,-2.26243850081325,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/cross_window_dm.csv,3500 vs 3000,ridge,all_features,DM p every bar,0.02367032446349012,0.0236703244634901,2.0816681711721685e-17,True
+results/pooled_trees_final_2014start_w3500/scores/cross_window_dm.csv,3500 vs 3000,ridge,all_features,DM 16:00,-3.101915884861349,-3.101915884861349,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/cross_window_dm.csv,3500 vs 3000,ridge,all_features,DM p 16:00,0.0019227258350544521,0.0019227258350544,5.204170427930421e-17,True
+results/pooled_trees_final_2014start_w3500/scores/cross_window_dm.csv,3500 vs 3000,ridge,baseline,DM every bar,2.4810812403286198,2.4810812403286198,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/cross_window_dm.csv,3500 vs 3000,ridge,baseline,DM p every bar,0.013098451593285902,0.0130984515932859,1.734723475976807e-18,True
+results/pooled_trees_final_2014start_w3500/scores/cross_window_dm.csv,3500 vs 3000,ridge,baseline,DM 16:00,1.3050334563493267,1.3050334563493269,2.220446049250313e-16,True
+results/pooled_trees_final_2014start_w3500/scores/cross_window_dm.csv,3500 vs 3000,ridge,baseline,DM p 16:00,0.19188145573618362,0.1918814557361836,2.7755575615628914e-17,True
+results/pooled_trees_final_2014start_w3500/scores/cross_window_dm.csv,3500 vs 3000,xgb,all_features,DM every bar,1.867621398642083,1.867621398642083,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/cross_window_dm.csv,3500 vs 3000,xgb,all_features,DM p every bar,0.061814861578240454,0.0618148615782404,5.551115123125783e-17,True
+results/pooled_trees_final_2014start_w3500/scores/cross_window_dm.csv,3500 vs 3000,xgb,all_features,DM 16:00,-0.1451380532702338,-0.1451380532702338,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/cross_window_dm.csv,3500 vs 3000,xgb,all_features,DM p 16:00,0.8846018742012103,0.8846018742012103,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/cross_window_dm.csv,3500 vs 3000,xgb,baseline,DM every bar,1.130027292892932,1.130027292892932,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/cross_window_dm.csv,3500 vs 3000,xgb,baseline,DM p every bar,0.2584647242209659,0.2584647242209659,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/cross_window_dm.csv,3500 vs 3000,xgb,baseline,DM 16:00,-0.5536416259118959,-0.5536416259118958,1.1102230246251565e-16,True
+results/pooled_trees_final_2014start_w3500/scores/cross_window_dm.csv,3500 vs 3000,xgb,baseline,DM p 16:00,0.5798241323233457,0.5798241323233457,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/econ.csv,3500,lgbm,baseline,D6 mid,0.46842318470063316,0.4684231847006331,5.551115123125783e-17,True
+results/pooled_trees_final_2014start_w3500/scores/econ.csv,3500,lgbm,all_features,D6 mid,1.6249556893714967,1.6249556893714967,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/econ.csv,3500,lgbm,full - HAR,dD6 mid,1.1565325046708634,1.1565325046708637,2.220446049250313e-16,True
+results/pooled_trees_final_2014start_w3500/scores/econ.csv,3500,lgbm,full - HAR,dD6 bootstrap p mid,0.04620924184836967,0.0462092418483696,6.938893903907228e-17,True
+results/pooled_trees_final_2014start_w3500/scores/econ.csv,3500,lgbm,baseline,D6 ba,0.1135017693219877,0.1135017693219877,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/econ.csv,3500,lgbm,all_features,D6 ba,1.2709368020898115,1.2709368020898115,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/econ.csv,3500,lgbm,full - HAR,dD6 ba,1.1574350327678236,1.1574350327678238,2.220446049250313e-16,True
+results/pooled_trees_final_2014start_w3500/scores/econ.csv,3500,lgbm,full - HAR,dD6 bootstrap p ba,0.04340868173634727,0.0434086817363472,6.938893903907228e-17,True
+results/pooled_trees_final_2014start_w3500/scores/econ.csv,3500,xgb,baseline,D6 mid,0.659656965894145,0.659656965894145,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/econ.csv,3500,xgb,all_features,D6 mid,1.541126380222829,1.541126380222829,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/econ.csv,3500,xgb,full - HAR,dD6 mid,0.8814694143286836,0.881469414328684,3.3306690738754696e-16,True
+results/pooled_trees_final_2014start_w3500/scores/econ.csv,3500,xgb,full - HAR,dD6 bootstrap p mid,0.07221444288857772,0.0722144428885777,1.3877787807814457e-17,True
+results/pooled_trees_final_2014start_w3500/scores/econ.csv,3500,xgb,baseline,D6 ba,0.3053369303466956,0.3053369303466956,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/econ.csv,3500,xgb,all_features,D6 ba,1.1865015860684416,1.1865015860684416,0.0,True
+results/pooled_trees_final_2014start_w3500/scores/econ.csv,3500,xgb,full - HAR,dD6 ba,0.8811646557217458,0.881164655721746,1.1102230246251565e-16,True
+results/pooled_trees_final_2014start_w3500/scores/econ.csv,3500,xgb,full - HAR,dD6 bootstrap p ba,0.07061412282456492,0.0706141228245649,1.3877787807814457e-17,True
+results/window_sweep_2014start_2026-10-22/part2/econ.csv,3000,enet,baseline,D6 mid,0.9830979904447705,0.9830979904447704,1.1102230246251565e-16,True
+results/window_sweep_2014start_2026-10-22/part2/econ.csv,3000,enet,all_features,D6 mid,1.93966564564731,1.93966564564731,0.0,True
+results/window_sweep_2014start_2026-10-22/part2/econ.csv,3000,enet,full - HAR,dD6 mid,0.9565676552025395,0.9565676552025396,1.1102230246251565e-16,True
+results/window_sweep_2014start_2026-10-22/part2/econ.csv,3000,enet,full - HAR,dD6 bootstrap p mid,0.134626925385077,0.134626925385077,0.0,True
+results/window_sweep_2014start_2026-10-22/part2/econ.csv,3000,enet,baseline,D6 ba,0.6218441129081016,0.6218441129081016,0.0,True
+results/window_sweep_2014start_2026-10-22/part2/econ.csv,3000,enet,all_features,D6 ba,1.5824839422778516,1.5824839422778516,0.0,True
+results/window_sweep_2014start_2026-10-22/part2/econ.csv,3000,enet,full - HAR,dD6 ba,0.9606398293697501,0.96063982936975,1.1102230246251565e-16,True
+results/window_sweep_2014start_2026-10-22/part2/econ.csv,3000,enet,full - HAR,dD6 bootstrap p ba,0.1308261652330466,0.1308261652330466,0.0,True
+results/window_sweep_2014start_2026-10-22/part2/econ.csv,3000,lasso,baseline,D6 mid,0.9830979904447705,0.9830979904447704,1.1102230246251565e-16,True
+results/window_sweep_2014start_2026-10-22/part2/econ.csv,3000,lasso,all_features,D6 mid,1.7222763697872003,1.7222763697872003,0.0,True
+results/window_sweep_2014start_2026-10-22/part2/econ.csv,3000,lasso,full - HAR,dD6 mid,0.7391783793424302,0.7391783793424298,4.440892098500626e-16,True
+results/window_sweep_2014start_2026-10-22/part2/econ.csv,3000,lasso,full - HAR,dD6 bootstrap p mid,0.22724544908981797,0.2272454490898179,8.326672684688674e-17,True
+results/window_sweep_2014start_2026-10-22/part2/econ.csv,3000,lasso,baseline,D6 ba,0.6218441129081016,0.6218441129081016,0.0,True
+results/window_sweep_2014start_2026-10-22/part2/econ.csv,3000,lasso,all_features,D6 ba,1.3637354785013747,1.3637354785013749,2.220446049250313e-16,True
+results/window_sweep_2014start_2026-10-22/part2/econ.csv,3000,lasso,full - HAR,dD6 ba,0.7418913655932732,0.7418913655932731,1.1102230246251565e-16,True
+results/window_sweep_2014start_2026-10-22/part2/econ.csv,3000,lasso,full - HAR,dD6 bootstrap p ba,0.22244448889777957,0.2224444888977795,5.551115123125783e-17,True
+results/window_sweep_2014start_2026-10-22/part2/econ.csv,3000,ridge,baseline,D6 mid,0.9830979904447705,0.9830979904447704,1.1102230246251565e-16,True
+results/window_sweep_2014start_2026-10-22/part2/econ.csv,3000,ridge,all_features,D6 mid,1.8455709905008795,1.8455709905008797,2.220446049250313e-16,True
+results/window_sweep_2014start_2026-10-22/part2/econ.csv,3000,ridge,full - HAR,dD6 mid,0.8624730000561085,0.8624730000561089,4.440892098500626e-16,True
+results/window_sweep_2014start_2026-10-22/part2/econ.csv,3000,ridge,full - HAR,dD6 bootstrap p mid,0.16143228645729146,0.1614322864572914,5.551115123125783e-17,True
+results/window_sweep_2014start_2026-10-22/part2/econ.csv,3000,ridge,baseline,D6 ba,0.6218441129081016,0.6218441129081016,0.0,True
+results/window_sweep_2014start_2026-10-22/part2/econ.csv,3000,ridge,all_features,D6 ba,1.4898093681643019,1.489809368164302,2.220446049250313e-16,True
+results/window_sweep_2014start_2026-10-22/part2/econ.csv,3000,ridge,full - HAR,dD6 ba,0.8679652552561999,0.8679652552562003,3.3306690738754696e-16,True
+results/window_sweep_2014start_2026-10-22/part2/econ.csv,3000,ridge,full - HAR,dD6 bootstrap p ba,0.15243048609721943,0.1524304860972194,2.7755575615628914e-17,True
+results/window_sweep_2014start_2026-10-22/part2/econ.csv,3500,enet,baseline,D6 mid,0.9985595194985935,0.9985595194985936,1.1102230246251565e-16,True
+results/window_sweep_2014start_2026-10-22/part2/econ.csv,3500,enet,all_features,D6 mid,1.9745221939969437,1.974522193996944,2.220446049250313e-16,True
+results/window_sweep_2014start_2026-10-22/part2/econ.csv,3500,enet,full - HAR,dD6 mid,0.9759626744983505,0.9759626744983504,1.1102230246251565e-16,True
+results/window_sweep_2014start_2026-10-22/part2/econ.csv,3500,enet,full - HAR,dD6 bootstrap p mid,0.10062012402480495,0.1006201240248049,5.551115123125783e-17,True
+results/window_sweep_2014start_2026-10-22/part2/econ.csv,3500,enet,baseline,D6 ba,0.6371084588353839,0.6371084588353839,0.0,True
+results/window_sweep_2014start_2026-10-22/part2/econ.csv,3500,enet,all_features,D6 ba,1.614876186448242,1.614876186448242,0.0,True
+results/window_sweep_2014start_2026-10-22/part2/econ.csv,3500,enet,full - HAR,dD6 ba,0.9777677276128581,0.977767727612858,1.1102230246251565e-16,True
+results/window_sweep_2014start_2026-10-22/part2/econ.csv,3500,enet,full - HAR,dD6 bootstrap p ba,0.09901980396079216,0.0990198039607921,5.551115123125783e-17,True
+results/window_sweep_2014start_2026-10-22/part2/econ.csv,3500,lasso,baseline,D6 mid,0.9985595194985935,0.9985595194985936,1.1102230246251565e-16,True
+results/window_sweep_2014start_2026-10-22/part2/econ.csv,3500,lasso,all_features,D6 mid,1.7335767303553185,1.7335767303553185,0.0,True
+results/window_sweep_2014start_2026-10-22/part2/econ.csv,3500,lasso,full - HAR,dD6 mid,0.735017210856725,0.735017210856725,0.0,True
+results/window_sweep_2014start_2026-10-22/part2/econ.csv,3500,lasso,full - HAR,dD6 bootstrap p mid,0.23604720944188837,0.2360472094418883,5.551115123125783e-17,True
+results/window_sweep_2014start_2026-10-22/part2/econ.csv,3500,lasso,baseline,D6 ba,0.6371084588353839,0.6371084588353839,0.0,True
+results/window_sweep_2014start_2026-10-22/part2/econ.csv,3500,lasso,all_features,D6 ba,1.3710631770921546,1.3710631770921546,0.0,True
+results/window_sweep_2014start_2026-10-22/part2/econ.csv,3500,lasso,full - HAR,dD6 ba,0.7339547182567706,0.7339547182567707,1.1102230246251565e-16,True
+results/window_sweep_2014start_2026-10-22/part2/econ.csv,3500,lasso,full - HAR,dD6 bootstrap p ba,0.2340468093618724,0.2340468093618724,0.0,True
+results/window_sweep_2014start_2026-10-22/part2/econ.csv,3500,ridge,baseline,D6 mid,0.9985595194985935,0.9985595194985936,1.1102230246251565e-16,True
+results/window_sweep_2014start_2026-10-22/part2/econ.csv,3500,ridge,all_features,D6 mid,1.7432646632393165,1.7432646632393165,0.0,True
+results/window_sweep_2014start_2026-10-22/part2/econ.csv,3500,ridge,full - HAR,dD6 mid,0.7447051437407233,0.744705143740723,2.220446049250313e-16,True
+results/window_sweep_2014start_2026-10-22/part2/econ.csv,3500,ridge,full - HAR,dD6 bootstrap p mid,0.1858371674334867,0.1858371674334867,0.0,True
+results/window_sweep_2014start_2026-10-22/part2/econ.csv,3500,ridge,baseline,D6 ba,0.6371084588353839,0.6371084588353839,0.0,True
+results/window_sweep_2014start_2026-10-22/part2/econ.csv,3500,ridge,all_features,D6 ba,1.380381339302713,1.380381339302713,0.0,True
+results/window_sweep_2014start_2026-10-22/part2/econ.csv,3500,ridge,full - HAR,dD6 ba,0.7432728804673289,0.743272880467329,1.1102230246251565e-16,True
+results/window_sweep_2014start_2026-10-22/part2/econ.csv,3500,ridge,full - HAR,dD6 bootstrap p ba,0.18383676735347068,0.1838367673534706,8.326672684688674e-17,True
+results/window_sweep_2014start_2026-10-22/w3000/scores.csv,3000,ridge,baseline,"qlike 16:00, 2020-2024",0.11366466505087337,0.1136646650508733,6.938893903907228e-17,True
+results/window_sweep_2014start_2026-10-22/w3000/scores.csv,3000,lasso,baseline,"qlike 16:00, 2020-2024",0.11366465754193751,0.1136646575419375,1.3877787807814457e-17,True
+results/window_sweep_2014start_2026-10-22/w3000/scores.csv,3000,enet,baseline,"qlike 16:00, 2020-2024",0.11366462515747601,0.113664625157476,1.3877787807814457e-17,True
+results/window_sweep_2014start_2026-10-22/w3000/scores.csv,3000,ridge,all_features,"qlike 16:00, 2020-2024",0.12599806887344797,0.1259980688734479,8.326672684688674e-17,True
+results/window_sweep_2014start_2026-10-22/w3000/scores.csv,3000,lasso,all_features,"qlike 16:00, 2020-2024",0.1300710093956647,0.1300710093956647,0.0,True
+results/window_sweep_2014start_2026-10-22/w3000/scores.csv,3000,enet,all_features,"qlike 16:00, 2020-2024",0.12335788119228674,0.1233578811922867,4.163336342344337e-17,True
+results/window_sweep_2014start_2026-10-22/w3000/scores.csv,3000,ols,baseline,"qlike 16:00, 2020-2024",0.11366466544877794,0.1136646654487779,4.163336342344337e-17,True
+results/window_sweep_2014start_2026-10-22/w3000/scores_all_bars.csv,3000,ridge,baseline,"n bars, 2020-2024",14066.0,14066.0,0.0,True
+results/window_sweep_2014start_2026-10-22/w3000/scores_all_bars.csv,3000,ridge,baseline,"qlike every bar, 2020-2024",0.19334330664048452,0.1933433066404845,2.7755575615628914e-17,True
+results/window_sweep_2014start_2026-10-22/w3000/scores_all_bars.csv,3000,lasso,baseline,"n bars, 2020-2024",14066.0,14066.0,0.0,True
+results/window_sweep_2014start_2026-10-22/w3000/scores_all_bars.csv,3000,lasso,baseline,"qlike every bar, 2020-2024",0.19334330740297892,0.1933433074029789,2.7755575615628914e-17,True
+results/window_sweep_2014start_2026-10-22/w3000/scores_all_bars.csv,3000,enet,baseline,"n bars, 2020-2024",14066.0,14066.0,0.0,True
+results/window_sweep_2014start_2026-10-22/w3000/scores_all_bars.csv,3000,enet,baseline,"qlike every bar, 2020-2024",0.193343315151626,0.193343315151626,0.0,True
+results/window_sweep_2014start_2026-10-22/w3000/scores_all_bars.csv,3000,ridge,all_features,"n bars, 2020-2024",14066.0,14066.0,0.0,True
+results/window_sweep_2014start_2026-10-22/w3000/scores_all_bars.csv,3000,ridge,all_features,"qlike every bar, 2020-2024",0.1874891331510103,0.1874891331510103,0.0,True
+results/window_sweep_2014start_2026-10-22/w3000/scores_all_bars.csv,3000,lasso,all_features,"n bars, 2020-2024",14066.0,14066.0,0.0,True
+results/window_sweep_2014start_2026-10-22/w3000/scores_all_bars.csv,3000,lasso,all_features,"qlike every bar, 2020-2024",0.1866498372729663,0.1866498372729663,0.0,True
+results/window_sweep_2014start_2026-10-22/w3000/scores_all_bars.csv,3000,enet,all_features,"n bars, 2020-2024",14066.0,14066.0,0.0,True
+results/window_sweep_2014start_2026-10-22/w3000/scores_all_bars.csv,3000,enet,all_features,"qlike every bar, 2020-2024",0.18509375575124468,0.1850937557512446,8.326672684688674e-17,True
+results/window_sweep_2014start_2026-10-22/w3000/scores_all_bars.csv,3000,ols,baseline,"n bars, 2020-2024",14066.0,14066.0,0.0,True
+results/window_sweep_2014start_2026-10-22/w3000/scores_all_bars.csv,3000,ols,baseline,"qlike every bar, 2020-2024",0.1933433058507202,0.1933433058507202,0.0,True
+results/window_sweep_2014start_2026-10-22/w3500/scores.csv,3500,ridge,baseline,"qlike 16:00, 2020-2024",0.113345870822619,0.113345870822619,0.0,True
+results/window_sweep_2014start_2026-10-22/w3500/scores.csv,3500,lasso,baseline,"qlike 16:00, 2020-2024",0.11334586484054957,0.1133458648405495,6.938893903907228e-17,True
+results/window_sweep_2014start_2026-10-22/w3500/scores.csv,3500,enet,baseline,"qlike 16:00, 2020-2024",0.11334583940006976,0.1133458394000697,5.551115123125783e-17,True
+results/window_sweep_2014start_2026-10-22/w3500/scores.csv,3500,ridge,all_features,"qlike 16:00, 2020-2024",0.11557087672199483,0.1155708767219948,2.7755575615628914e-17,True
+results/window_sweep_2014start_2026-10-22/w3500/scores.csv,3500,lasso,all_features,"qlike 16:00, 2020-2024",0.11798931971108384,0.1179893197110838,4.163336342344337e-17,True
+results/window_sweep_2014start_2026-10-22/w3500/scores.csv,3500,enet,all_features,"qlike 16:00, 2020-2024",0.11454963971279174,0.1145496397127917,4.163336342344337e-17,True
+results/window_sweep_2014start_2026-10-22/w3500/scores.csv,3500,ols,baseline,"qlike 16:00, 2020-2024",0.11334587106595573,0.1133458710659557,2.7755575615628914e-17,True
+results/window_sweep_2014start_2026-10-22/w3500/scores_all_bars.csv,3500,ridge,baseline,"n bars, 2020-2024",14066.0,14066.0,0.0,True
+results/window_sweep_2014start_2026-10-22/w3500/scores_all_bars.csv,3500,ridge,baseline,"qlike every bar, 2020-2024",0.19418937415071774,0.1941893741507177,5.551115123125783e-17,True
+results/window_sweep_2014start_2026-10-22/w3500/scores_all_bars.csv,3500,lasso,baseline,"n bars, 2020-2024",14066.0,14066.0,0.0,True
+results/window_sweep_2014start_2026-10-22/w3500/scores_all_bars.csv,3500,lasso,baseline,"qlike every bar, 2020-2024",0.19418937502046255,0.1941893750204625,5.551115123125783e-17,True
+results/window_sweep_2014start_2026-10-22/w3500/scores_all_bars.csv,3500,enet,baseline,"n bars, 2020-2024",14066.0,14066.0,0.0,True
+results/window_sweep_2014start_2026-10-22/w3500/scores_all_bars.csv,3500,enet,baseline,"qlike every bar, 2020-2024",0.19418938311257053,0.1941893831125705,2.7755575615628914e-17,True
+results/window_sweep_2014start_2026-10-22/w3500/scores_all_bars.csv,3500,ridge,all_features,"n bars, 2020-2024",14066.0,14066.0,0.0,True
+results/window_sweep_2014start_2026-10-22/w3500/scores_all_bars.csv,3500,ridge,all_features,"qlike every bar, 2020-2024",0.1833908639298196,0.1833908639298196,0.0,True
+results/window_sweep_2014start_2026-10-22/w3500/scores_all_bars.csv,3500,lasso,all_features,"n bars, 2020-2024",14066.0,14066.0,0.0,True
+results/window_sweep_2014start_2026-10-22/w3500/scores_all_bars.csv,3500,lasso,all_features,"qlike every bar, 2020-2024",0.18064024400907253,0.1806402440090725,2.7755575615628914e-17,True
+results/window_sweep_2014start_2026-10-22/w3500/scores_all_bars.csv,3500,enet,all_features,"n bars, 2020-2024",14066.0,14066.0,0.0,True
+results/window_sweep_2014start_2026-10-22/w3500/scores_all_bars.csv,3500,enet,all_features,"qlike every bar, 2020-2024",0.18252571086297237,0.1825257108629723,5.551115123125783e-17,True
+results/window_sweep_2014start_2026-10-22/w3500/scores_all_bars.csv,3500,ols,baseline,"n bars, 2020-2024",14066.0,14066.0,0.0,True
+results/window_sweep_2014start_2026-10-22/w3500/scores_all_bars.csv,3500,ols,baseline,"qlike every bar, 2020-2024",0.19418937341573725,0.1941893734157372,5.551115123125783e-17,True

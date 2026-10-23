@@ -73,6 +73,12 @@ WRITES
                                              option subsample), the R2 benchmark's start, the DM lag on the span, and
                                              the 19 March 2020 effect on the closing-interval trees.
 
+PENDING (2026-10-23, final_run.py PENDING): a pooled tree whose final run has no forecasts (pooled_trees_13.PENDING) is
+  not loaded and not gated; its two pooled cells are neither filled nor "--" but pending (no pooled cell is printed here:
+  Table 2 is the closing-interval side).  Under the switch \\rhoosNPending counts them (0 when nothing is pending; not
+  written with the switch off, so the printed file is unchanged), and \\rhoosNCells + \\rhoosNMissing + \\rhoosNPending
+  is the table's cell count.
+
 Run:  python writeup/make_rehaul_oos_table.py
 """
 
@@ -142,6 +148,8 @@ EST_NAME = {
 # EARLIER = {"a0", "lgbm", "xgb"}  # the earlier draft's pooled intraday specifications (note a)
 # PRELIM = {"pooltree_rf_all_features"}  # preliminary (dagger): 16:00 rows of a walk still running
 EARLIER = {"a0"}  # the earlier draft's pooled intraday specifications (note a)
+# 2026-10-23 (final_run.py PENDING): the pooled-tree keys of a pending estimator (none unless one is pending)
+PEND_KEYS = {f"pooltree_{e}_{b}" for e in pt13.PENDING for b in pt13.SETS}
 PRELIM: set[str] = set()  # preliminary (dagger): 16:00 rows of a walk still running
 
 
@@ -258,10 +266,13 @@ def load_cells() -> tuple[
     # assert keys == {k.key for k in rolling.table_keys()}, sorted(
     #     keys ^ {k.key for k in rolling.table_keys()}
     # )
-    pool_tree = {f"pooltree_{e}_{b}" for e in pt13.EST for b, _ in SETS}
-    assert pool_tree <= keys and set(pt13.SETS) == {b for b, _ in SETS}, sorted(
-        pool_tree - keys
+    # 2026-10-23 (final_run.py PENDING): the pooled trees of the finished estimators; a pending one is not loaded.
+    # Was: for e in pt13.EST
+    pool_tree = {f"pooltree_{e}_{b}" for e in pt13.EST_DONE for b, _ in SETS}
+    assert pool_tree | PEND_KEYS <= keys and set(pt13.SETS) == {b for b, _ in SETS}, (
+        sorted(pool_tree - keys)
     )
+    keys -= PEND_KEYS
     rk = {
         k.key
         for k in rolling.table_keys()
@@ -539,8 +550,14 @@ def table_side_set_rows(rows: list[dict], side: str) -> str:
     )
 
 
-SET_PHRASE = {"baseline": "the HAR benchmark", "all_features": "all features"}  # predictor set, in note prose
-NOTE_NAME = {"Random forest": "random forest", "Elastic net": "elastic net"}  # model, inside a sentence
+SET_PHRASE = {
+    "baseline": "the HAR benchmark",
+    "all_features": "all features",
+}  # predictor set, in note prose
+NOTE_NAME = {
+    "Random forest": "random forest",
+    "Elastic net": "elastic net",
+}  # model, inside a sentence
 
 
 def _and(names: list[str]) -> str:
@@ -556,7 +573,10 @@ def table_side(rows: list[dict], side: str) -> str:
     spec = SIDE_SPEC[side]
     ncol = 1 + 3 * len(SETS)
     body: list[str] = []
-    marked: dict[str, list[tuple[str, str]]] = {"a": [], "dagger": []}  # note -> (model, set code) cells
+    marked: dict[str, list[tuple[str, str]]] = {
+        "a": [],
+        "dagger": [],
+    }  # note -> (model, set code) cells
     panel = None
     for r in rows:
         mark = ""
@@ -635,7 +655,8 @@ def table_side(rows: list[dict], side: str) -> str:
         for i in range(len(SETS))
     )
     heads = " & ".join(
-        ["MSE ($10^{-\\rhoosMseExp}$)", "QLIKE", "$R^2_{\\mathrm{OOS}}$ (\\%)"] * len(SETS)
+        ["MSE ($10^{-\\rhoosMseExp}$)", "QLIKE", "$R^2_{\\mathrm{OOS}}$ (\\%)"]
+        * len(SETS)
     )
     return "\n".join(
         [
@@ -789,6 +810,7 @@ def numbers(
     n_live: int,
     mt_days: pd.DatetimeIndex,
     big: dict[str, float],
+    n_pending: int = 0,
 ) -> str:
     n_before = int((hist.index < days[0]).sum())
     n_early = int(((rolling.EARLY >= days[0]) & (rolling.EARLY <= days[-1])).sum())
@@ -804,6 +826,14 @@ def numbers(
         f"\\newcommand{{\\rhoosNSeriesLive}}{{{n_live}}}  % series the retail-feed set adds to the HAR benchmark",
         f"\\newcommand{{\\rhoosNCells}}{{{n_cells}}}  % filled cells (model x predictor set x scheme)",
         f"\\newcommand{{\\rhoosNMissing}}{{{n_missing}}}  % cells marked --",
+        # 2026-10-23 (final_run.py PENDING): under the switch only (the printed file is unchanged)
+        *(
+            [
+                f"\\newcommand{{\\rhoosNPending}}{{{n_pending}}}  % pooled cells pending (no final forecasts yet)"
+            ]
+            if fr.FINAL
+            else []
+        ),
         # 2026-10-15 (user: accuracy over every rolling forecast): the common rolling span of tab:rh_oos
         f"\\newcommand{{\\rhoosSpanStart}}{{{date_words(days[0])}}}  % first day of the common rolling span",
         f"\\newcommand{{\\rhoosSpanEnd}}{{{date_words(days[-1])}}}  % last day of the common rolling span",
@@ -890,6 +920,9 @@ def main() -> None:
     )
 
     rows, n_cells, n_missing, gui = [], 0, 0, []
+    n_pending = (
+        0  # 2026-10-23 (final_run.py PENDING): pooled cells of a pending estimator
+    )
     for name, panel, close, pool in model_rows():
         sets = [(b, lab) for b, lab in SETS if name != "OLS" or b == "baseline"]
         r: dict = {"model": name, "panel": panel, "sets": sets, "close": {}, "pool": {}}
@@ -900,6 +933,12 @@ def main() -> None:
                     r[side][b] = None
                     n_missing += 1
                     continue
+                if (
+                    k in PEND_KEYS
+                ):  # 2026-10-23 (final_run.py PENDING): not loaded, no number
+                    r[side][b] = None
+                    n_pending += 1
+                    continue
                 x = metrics(data[k], bench)
                 # 2026-10-15: parked -- the QLIKE printed was master_table qlike_raw (866 days; now asserted on those
                 # days in load_cells, and the printed QLIKE is on the rolling span: = rolling_eval metrics.csv below)
@@ -909,7 +948,9 @@ def main() -> None:
                 n_cells += 1
                 gui.append((name, b, side, k, x))
         rows.append(r)
-    assert n_cells + n_missing == 2 * (1 + 6 * len(SETS))
+    # 2026-10-23 (final_run.py PENDING): + the pending cells. Was: n_cells + n_missing == ...
+    assert n_cells + n_missing + n_pending == 2 * (1 + 6 * len(SETS))
+    assert n_pending == len(PEND_KEYS), (n_pending, sorted(PEND_KEYS))
     # 2026-10-15: every cell equals the rolling evaluation's common-span metrics (results/rolling_eval_2026-10-15)
     rm = pd.read_csv(REPO / "results" / "rolling_eval_2026-10-15" / "metrics.csv")
     rm = rm[rm["span"] == "common"].set_index("key")
@@ -950,6 +991,7 @@ def main() -> None:
             len(SUBGROUPS["live_feasible"]),
             mt_days,
             big,
+            n_pending,
         ),
         encoding="utf-8",
         newline="\n",
@@ -960,7 +1002,7 @@ def main() -> None:
         f"({int((hist.index < days[0]).sum())} before {days[0].date()}); benchmark on day 1 = {bench.iloc[0]:.4g}, "
         f"on the last day = {bench.iloc[-1]:.4g}; out-of-sample mean RV = {truth.mean():.4g}"
     )
-    print(f"cells: {n_cells} filled, {n_missing} missing ('--')")
+    print(f"cells: {n_cells} filled, {n_missing} missing ('--'), {n_pending} pending")
     print(
         f"{'model':14s} {'set':14s} {'scheme':6s} {'key':38s} {'MSEe10':>8s} {'QLIKE':>8s} {'R2 CT %':>8s} {'R2 GUI %':>8s}"
     )

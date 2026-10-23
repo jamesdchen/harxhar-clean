@@ -1,0 +1,85 @@
+gate,value,bound,n,ok
+quote book R = deck R,0.0,0.0,866,True
+quote book exit = deck exit,0.0,0.0,866,True
+quote book bid_c = deck bid_c,0.0,0.0,866,True
+quote book bid_p = deck bid_p,0.0,0.0,866,True
+quote book ask_c = deck ask_c,0.0,0.0,866,True
+quote book ask_p = deck ask_p,0.0,0.0,866,True
+OLS row iv_var = deck iv_var,0.0,0.0,866,True
+"j = 0 placed = the plain 16:00 forecast (self-check A, a0)",8.077982727172639e-13,1e-09,866,True
+self-check A: j = 0 Sharpe mid on 866 days = master_table.csv (a0),2.220446049250313e-16,1e-09,866,True
+"j = 0 placed = the plain 16:00 forecast (self-check A, b2lasso)",8.077982727172639e-13,1e-09,866,True
+self-check A: j = 0 Sharpe mid on 866 days = master_table.csv (b2lasso),0.0,1e-09,866,True
+"j = 0 placed = the plain 16:00 forecast (self-check A, blk2)",8.077982727172639e-13,1e-09,866,True
+self-check A: j = 0 Sharpe mid on 866 days = master_table.csv (blk2),0.0,1e-09,866,True
+"j = 0 placed = the plain 16:00 forecast (self-check A, blk2_inc)",8.077982727172639e-13,1e-09,866,True
+self-check A: j = 0 Sharpe mid on 866 days = master_table.csv (blk2_inc),0.0,1e-09,866,True
+"j = 0 placed = the plain 16:00 forecast (self-check A, enet)",8.077982727172639e-13,1e-09,866,True
+self-check A: j = 0 Sharpe mid on 866 days = master_table.csv (enet),0.0,1e-09,866,True
+"j = 0 placed = the plain 16:00 forecast (self-check A, lasso_f)",8.077982727172639e-13,1e-09,866,True
+self-check A: j = 0 Sharpe mid on 866 days = master_table.csv (lasso_f),0.0,1e-09,866,True
+"j = 0 placed = the plain 16:00 forecast (self-check A, lasso_t)",8.077982727172639e-13,1e-09,866,True
+self-check A: j = 0 Sharpe mid on 866 days = master_table.csv (lasso_t),0.0,1e-09,866,True
+"j = 0 placed = the plain 16:00 forecast (self-check A, lgbm)",8.077982727172639e-13,1e-09,866,True
+self-check A: j = 0 Sharpe mid on 866 days = master_table.csv (lgbm),0.0,1e-09,866,True
+"j = 0 placed = the plain 16:00 forecast (self-check A, xgb)",8.077982727172639e-13,1e-09,866,True
+self-check A: j = 0 Sharpe mid on 866 days = master_table.csv (xgb),0.0,1e-09,866,True
+"self-check A: shift_test_by_k.csv reproduced (every j, every column)",2.1161717447194572e-16,1e-09,231,True
+self-check A: the six printed shift macros reproduced (865 days),0.0,0.0,6,True
+self-check B: fixedfrac_modelset_summary.csv (model set) reproduced,1.8265730550256668e-16,1e-12,112,True
+self-check B: the four printed compounding macros reproduced,0.0,0.0,4,True
+plain = pred_adj^2 B (pooled_linear_rerun_2026-10-20_13_2012_w1000),0.0,1e-12,242982,True
+plain = pred_adj^2 B (w1000),0.0,1e-12,242796,True
+"j = 0 placed = the plain 16:00 forecast (self-check C, enet all_features)",0.0,1e-09,866,True
+"16:00 realized variance = the OLS row's rv_unclipped (self-check C, enet all_features)",0.0,1e-12,866,True
+"j = 0 placed = the plain 16:00 forecast (self-check C, enet baseline)",0.0,1e-09,866,True
+"16:00 realized variance = the OLS row's rv_unclipped (self-check C, enet baseline)",0.0,1e-12,866,True
+"j = 0 placed = the plain 16:00 forecast (self-check C, lasso all_features)",0.0,1e-09,866,True
+"16:00 realized variance = the OLS row's rv_unclipped (self-check C, lasso all_features)",0.0,1e-12,866,True
+"j = 0 placed = the plain 16:00 forecast (self-check C, lasso baseline)",0.0,1e-09,866,True
+"16:00 realized variance = the OLS row's rv_unclipped (self-check C, lasso baseline)",0.0,1e-12,866,True
+"j = 0 placed = the plain 16:00 forecast (self-check C, ridge all_features)",0.0,1e-09,866,True
+"16:00 realized variance = the OLS row's rv_unclipped (self-check C, ridge all_features)",0.0,1e-12,866,True
+"j = 0 placed = the plain 16:00 forecast (self-check C, ridge baseline)",0.0,1e-09,866,True
+"16:00 realized variance = the OLS row's rv_unclipped (self-check C, ridge baseline)",0.0,1e-12,866,True
+"j = 0 placed = the plain 16:00 forecast (self-check C, lgbm all_features)",0.0,1e-09,866,True
+"16:00 realized variance = the OLS row's rv_unclipped (self-check C, lgbm all_features)",0.0,1e-12,866,True
+"j = 0 placed = the plain 16:00 forecast (self-check C, lgbm baseline)",0.0,1e-09,866,True
+"16:00 realized variance = the OLS row's rv_unclipped (self-check C, lgbm baseline)",0.0,1e-12,866,True
+"j = 0 placed = the plain 16:00 forecast (self-check C, rf all_features)",0.0,1e-09,866,True
+"16:00 realized variance = the OLS row's rv_unclipped (self-check C, rf all_features)",0.0,1e-12,866,True
+"j = 0 placed = the plain 16:00 forecast (self-check C, rf baseline)",0.0,1e-09,866,True
+"16:00 realized variance = the OLS row's rv_unclipped (self-check C, rf baseline)",0.0,1e-12,866,True
+"j = 0 placed = the plain 16:00 forecast (self-check C, xgb all_features)",0.0,1e-09,866,True
+"16:00 realized variance = the OLS row's rv_unclipped (self-check C, xgb all_features)",0.0,1e-12,866,True
+"j = 0 placed = the plain 16:00 forecast (self-check C, xgb baseline)",0.0,1e-09,866,True
+"16:00 realized variance = the OLS row's rv_unclipped (self-check C, xgb baseline)",0.0,1e-12,866,True
+"self-check C: the printed pooled Sharpe ratios (D6, 614 days) reproduced",0.0,0.0,24,True
+plain = pred_adj^2 B (w3000),0.0,1e-12,203982,True
+plain = pred_adj^2 B (pooled_trees_final_2014start_w3000),0.0,1e-12,135880,True
+plain = pred_adj^2 B (pooled_rf_skx_2014start_w3000),0.0,1e-12,67940,True
+j = 0 placed = the plain 16:00 forecast (final enet all_features),0.0,1e-09,866,True
+16:00 realized variance = the OLS row's rv_unclipped (final enet all_features),0.0,1e-12,866,True
+j = 0 placed = the plain 16:00 forecast (final enet baseline),0.0,1e-09,866,True
+16:00 realized variance = the OLS row's rv_unclipped (final enet baseline),0.0,1e-12,866,True
+j = 0 placed = the plain 16:00 forecast (final lasso all_features),0.0,1e-09,866,True
+16:00 realized variance = the OLS row's rv_unclipped (final lasso all_features),0.0,1e-12,866,True
+j = 0 placed = the plain 16:00 forecast (final lasso baseline),0.0,1e-09,866,True
+16:00 realized variance = the OLS row's rv_unclipped (final lasso baseline),0.0,1e-12,866,True
+j = 0 placed = the plain 16:00 forecast (final ridge all_features),0.0,1e-09,866,True
+16:00 realized variance = the OLS row's rv_unclipped (final ridge all_features),0.0,1e-12,866,True
+j = 0 placed = the plain 16:00 forecast (final ridge baseline),0.0,1e-09,866,True
+16:00 realized variance = the OLS row's rv_unclipped (final ridge baseline),0.0,1e-12,866,True
+j = 0 placed = the plain 16:00 forecast (final lgbm all_features),0.0,1e-09,866,True
+16:00 realized variance = the OLS row's rv_unclipped (final lgbm all_features),0.0,1e-12,866,True
+j = 0 placed = the plain 16:00 forecast (final lgbm baseline),0.0,1e-09,866,True
+16:00 realized variance = the OLS row's rv_unclipped (final lgbm baseline),0.0,1e-12,866,True
+j = 0 placed = the plain 16:00 forecast (final xgb all_features),0.0,1e-09,866,True
+16:00 realized variance = the OLS row's rv_unclipped (final xgb all_features),0.0,1e-12,866,True
+j = 0 placed = the plain 16:00 forecast (final xgb baseline),0.0,1e-09,866,True
+16:00 realized variance = the OLS row's rv_unclipped (final xgb baseline),0.0,1e-12,866,True
+j = 0 placed = the plain 16:00 forecast (final rf all_features),0.0,1e-09,866,True
+16:00 realized variance = the OLS row's rv_unclipped (final rf all_features),0.0,1e-12,866,True
+j = 0 placed = the plain 16:00 forecast (final rf baseline),0.0,1e-09,866,True
+16:00 realized variance = the OLS row's rv_unclipped (final rf baseline),0.0,1e-12,866,True
+always short V (614 days) = results/close_compounding/fixedfrac_modelset.csv,0.0,1e-12,614,True

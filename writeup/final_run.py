@@ -27,15 +27,41 @@ OUTPUTS  REHAUL_GEN_DIR (default writeup/generated), REHAUL_FIG_DIR (default wri
 STAND-INS  writeup/tests/final_run_standins.py builds labelled stand-ins (the printed runs cut to the final bars);
          guard_standin() refuses them unless REHAUL_ALLOW_STANDIN=1 and GEN / FIG are outside writeup/.
 
+PENDING  (2026-10-23, owner: "where forest or MinGRU numbers are not finished, cells read pending") Under the switch, a
+         final run with no forecasts.parquet is PENDING: the random forest (RF_RUN; RF_PENDING, PENDING_TREES = ("rf",))
+         and the pooled MinGRU (MINGRU_RUN; MINGRU_PENDING).  A pending arm is never read from a printed run and never
+         stops a generator: its loader raises Pending on a read, the generators skip it and print PENDING_TEX
+         (\\rhPending{}, defined by PENDING_DEF at the top of every generated file that uses it) in each of its table
+         cells and macros, mark each such table row with ROW_MARK (writeup/tests/check_pending.py), leave it out of the
+         figures (or label it "pending"), and compute every count, aggregate or comparison that spans arms over the
+         FINISHED arms only.  REHAUL_REQUIRE_ALL=1 restores the hard failure (no arm is pending; a missing run raises in
+         its loader as before).  With the switch off nothing is pending.
+         The pooled forecasts the paper counts (its scope on 2026-10-23): the six pooled linear models (ridge, lasso,
+         elastic net on the HAR benchmark and on the full set; POOL_LINEAR x POOL_SETS) and the six pooled trees
+         (LightGBM, XGBoost, the random forest; POOL_TREES x POOL_SETS), POOL_N_ALL = 12.  The pooled OLS is Table 1's
+         reference row, not one of them.  The pooled MinGRU is parked (NN content): it is outside the 12, so it is
+         neither counted nor named as pending in the paper's text; MINGRU_PENDING only gates its loader.
+         Companion macros (make_rehaul_results.py, rehaul_results_numbers.tex): \\rhrPoolN and every other count
+         over the pooled forecasts / classes count the finished ones; \\rhrPoolNDone (= \\rhrPoolN), \\rhrPoolNAll
+         (12), \\rhrPoolNPending, \\rhrPoolPending (the pending arms as text, "the random forest"; empty when none),
+         \\rhrPoolPendingParen (" (the random forest: pending)"; empty when none); the generators' own denominators
+         get an ...All twin (e.g. \\rhrAfPoolPairsAll, \\rhorAfPairsAll).
+
 REGENERATE (once the final runs land; from the repository root, Git Bash; PowerShell: $env:REHAUL_FINAL_RUN = "1")
   export REHAUL_FINAL_RUN=1
-  python writeup/final_run.py                      # every input "ok"
+  python writeup/final_run.py                      # every input "ok" or "pending"
   python writeup/tests/check_final_loaders.py      # the loaders' gates and the cross-run bar / RV checks
   python writeup/make_rehaul_economics.py          # Section 7 (\\rhe..., E1-E4, figures)
   python writeup/make_rehaul_results.py            # Section 6 (\\rhr..., T1-T3, figures)
   python writeup/make_rehaul_oos_table.py          # Table 2 and \\rhoos... (reads rehaul_results_numbers.tex)
   python writeup/make_rehaul_oos_rerun.py          # Table 1 (--span 2014) and \\rhor...
   python writeup/make_rehaul_data_methods.py       # samples / tuning tables and \\rhdm...
+  python writeup/tests/check_pending.py            # no generated file carries a number for a pending arm
+  # the generators below do not read the switch (run them as they are; 2026-10-23, coordinator)
+  python writeup/make_rehaul_disclosures.py
+  python writeup/make_rehaul_pooled_extras.py
+  python writeup/make_rehaul_robust_window.py
+  python writeup/make_rehaul_fi_pooled.py          # Section 8 (pooled variable importance)
   cd writeup && pdflatex paper_rehaul && bibtex paper_rehaul && pdflatex paper_rehaul && pdflatex paper_rehaul
 """
 
@@ -145,24 +171,97 @@ def guard_standin(meta: dict, run: Path) -> None:
 _WARNED: set[str] = set()
 
 
+# ---------------------------------------------------------------------------------------------- pending arms
+# 2026-10-23 (owner): a final run without forecasts is PENDING (module docstring, PENDING); REHAUL_REQUIRE_ALL=1 makes
+# every arm required again (a missing run then raises in its loader, as before).
+REQUIRE_ALL: bool = _on("REHAUL_REQUIRE_ALL")
+
+
+class Pending(LookupError):
+    """Read of a model arm whose final run has no forecasts yet: the caller prints it as pending (never a printed
+    run's number)."""
+
+
+def _no_forecasts(run: Path) -> bool:
+    return not (run / "forecasts.parquet").is_file()
+
+
+RF_PENDING: bool = FINAL and not REQUIRE_ALL and _no_forecasts(RF_RUN)
+MINGRU_PENDING: bool = FINAL and not REQUIRE_ALL and _no_forecasts(MINGRU_RUN)
+PENDING_TREES: tuple[str, ...] = (
+    ("rf",) if RF_PENDING else ()
+)  # pooled_trees_13 estimator keys
+
+# LaTeX of a pending cell / macro value, its definition (top of every generated file that uses it), and the comment
+# that ends each table row whose cells are pending (writeup/tests/check_pending.py checks those rows hold no number)
+PENDING_TEX = r"\rhPending{}"
+PENDING_DEF = r"\providecommand{\rhPending}{\textit{pending}}"
+ROW_MARK = "% rhPending row"
+
+# the pooled forecasts the paper counts (scope 2026-10-23; module docstring): 6 linear + 6 trees; the MinGRU is parked
+POOL_LINEAR = ("enet", "lasso", "ridge")
+POOL_TREES = ("lgbm", "xgb", "rf")
+POOL_SETS = ("baseline", "all_features")
+POOL_N_ALL = (len(POOL_LINEAR) + len(POOL_TREES)) * len(POOL_SETS)  # 12
+# how the text names a pending arm (the pooled MinGRU is parked, so it is never named)
+PENDING_NAME = {"rf": "the random forest"}
+
+
+def pending(est: str) -> bool:
+    """True when the pooled estimator `est` (a POOL_LINEAR / POOL_TREES key) has no final forecasts yet."""
+    return est in PENDING_TREES
+
+
+def pool_classes(done: bool = True) -> list[str]:
+    """The pooled model classes (estimators) the paper counts, POOL_LINEAR then POOL_TREES; the finished ones only
+    unless done=False."""
+    return [e for e in POOL_LINEAR + POOL_TREES if not (done and pending(e))]
+
+
+def pool_n(done: bool = True) -> int:
+    """The pooled forecasts the paper counts (class x predictor set): the finished ones, or all (done=False)."""
+    return len(pool_classes(done)) * len(POOL_SETS)
+
+
+def pending_text() -> str:
+    """The pending pooled classes as text ("the random forest"); empty when none is pending."""
+    names = [PENDING_NAME[e] for e in PENDING_TREES]
+    return " and ".join(names)
+
+
+def cell(value: str, est: str) -> str:
+    """`value` (a formatted table cell or macro value), or PENDING_TEX when the pooled estimator `est` is pending."""
+    return PENDING_TEX if pending(est) else value
+
+
 def tag() -> str:
     """One log line: which inputs the loaders read."""
     if not FINAL:
         return "pooled runs: PRINTED (REHAUL_FINAL_RUN off)"
+    pend = [n for n, p in (("forest", RF_PENDING), ("MinGRU", MINGRU_PENDING)) if p]
     return (
         f"pooled runs: FINAL design, W = {WINDOW_DAYS:,} days, first day {FIRST_DAY.date()}; linear "
         f"{rel(LINEAR_RUN)}, trees {rel(TREES_RUN)}, forest {rel(RF_RUN)} [{RF_KEY}], MinGRU {rel(MINGRU_RUN)}"
+        + (f"; PENDING: {', '.join(pend)}" if pend else "")
+        + ("; REHAUL_REQUIRE_ALL" if REQUIRE_ALL else "")
     )
 
 
 if __name__ == "__main__":
     print(tag())
     print(f"GEN {GEN}\nFIG {FIG}\nRES {_RES_OUT or '(generators own directories)'}")
-    for name, p in (
-        ("linear", LINEAR_RUN),
-        ("trees", TREES_RUN),
-        ("forest", RF_RUN),
-        ("MinGRU", MINGRU_RUN),
+    for name, p, pend in (
+        ("linear", LINEAR_RUN, False),
+        ("trees", TREES_RUN, False),
+        ("forest", RF_RUN, RF_PENDING),
+        ("MinGRU", MINGRU_RUN, MINGRU_PENDING),
     ):
         fc = p / "forecasts.parquet"
-        print(f"  {name:7s} {'ok     ' if fc.is_file() else 'MISSING'} {fc}")
+        state = "ok     " if fc.is_file() else ("pending" if pend else "MISSING")
+        print(f"  {name:7s} {state} {fc}")
+    if FINAL:
+        print(
+            f"pooled forecasts counted: {pool_n()} finished of {pool_n(False)}"
+            + (f" ({pending_text()} pending)" if pending_text() else "")
+            + "; the pooled MinGRU is parked (outside the count)"
+        )

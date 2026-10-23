@@ -1,0 +1,13 @@
+est,set,status,forecasts
+ridge,baseline,finished,results\window_sweep_2014start_2026-10-22\w3000\forecasts.parquet
+ridge,all_features,finished,results\window_sweep_2014start_2026-10-22\w3000\forecasts.parquet
+lasso,baseline,finished,results\window_sweep_2014start_2026-10-22\w3000\forecasts.parquet
+lasso,all_features,finished,results\window_sweep_2014start_2026-10-22\w3000\forecasts.parquet
+enet,baseline,finished,results\window_sweep_2014start_2026-10-22\w3000\forecasts.parquet
+enet,all_features,finished,results\window_sweep_2014start_2026-10-22\w3000\forecasts.parquet
+lgbm,baseline,finished,results\pooled_trees_final_2014start_w3000\forecasts.parquet
+lgbm,all_features,finished,results\pooled_trees_final_2014start_w3000\forecasts.parquet
+xgb,baseline,finished,results\pooled_trees_final_2014start_w3000\forecasts.parquet
+xgb,all_features,finished,results\pooled_trees_final_2014start_w3000\forecasts.parquet
+rf,baseline,finished,results\pooled_rf_skx_2014start_w3000\forecasts.parquet
+rf,all_features,finished,results\pooled_rf_skx_2014start_w3000\forecasts.parquet

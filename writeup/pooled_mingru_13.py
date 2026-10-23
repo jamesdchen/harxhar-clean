@@ -23,6 +23,8 @@ FINAL RUN (2026-10-23; writeup/final_run.py, REHAUL_FINAL_RUN=1)
   trailing 39,000 bars (3,000 trading days), the mean of 5 seeds; 33,970 bars a set, 2014-01-02 10:00 .. 2024-04-30
   16:00 (the trees' bars).  Gates as above plus: forecasts.json's window is final_run.WINDOW_DAYS and its span starts at
   the first evaluation day's 10:00 bar, and the rows run from that bar to the last day's 16:00 bar.
+  PENDING (2026-10-23, final_run.py PENDING): with no forecasts in final_run.MINGRU_RUN the MinGRU is pending
+  (PENDING True): meta(), _frame(), bars(), at16() and plain_16() raise final_run.Pending (never the printed run).
 """
 
 from __future__ import annotations
@@ -46,10 +48,21 @@ if fr.FINAL:  # 2026-10-23: the final pooled rerun (writeup/final_run.py); the p
     RUN = fr.MINGRU_RUN
     FC = RUN / "forecasts.parquet"
     N_BARS_ARM = fr.N_BARS
+# 2026-10-23 (final_run.py PENDING): the final MinGRU run has no forecasts yet (never True with the switch off or
+# under REHAUL_REQUIRE_ALL=1)
+PENDING: bool = fr.MINGRU_PENDING
 _CACHE: dict[str, pd.DataFrame] = {}
 
 
+def _pending() -> None:
+    if PENDING:
+        raise fr.Pending(
+            f"pooled MinGRU: the final run has no forecasts yet ({fr.rel(RUN)})"
+        )
+
+
 def meta() -> dict:
+    _pending()
     m = json.loads((RUN / "forecasts.json").read_text())
     if fr.FINAL:  # 2026-10-23: the final design's window and first bar
         fr.guard_standin(m, RUN)
@@ -60,6 +73,7 @@ def meta() -> dict:
 
 
 def _frame() -> pd.DataFrame:
+    _pending()
     if "f" not in _CACHE:
         f = pd.read_parquet(
             FC,
