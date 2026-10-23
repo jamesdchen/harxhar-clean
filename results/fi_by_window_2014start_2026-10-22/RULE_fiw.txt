@@ -1,0 +1,70 @@
+RULE_fiw.txt -- is the pooled linear models' exogenous signal "dense and weak" across training windows?
+Written 2026-10-22 21:36 PDT, BEFORE any coefficient of this study was replayed or any P1/P2 number computed.
+Task approved by the repo owner (James: "maybe the training window ablation will help sell the dense but weak story").
+
+Seen before writing: the sweep's frozen penalties per W (results/window_sweep_2014start_2026-10-22/w<W>/
+frozen_penalties.json: ridge 1e4 / 1e4 / 1e3 / 1e3 / 1e3 / 1e3, lasso 1e-3 / 1e-3 / 1e-4 / 1e-3 / 1e-4 / 1e-4, elastic net
+1e-2 / 1e-3 / 1e-3 / 1e-3 / 1e-3 / 1e-3 at W = 1,000 / 1,500 / 2,000 / 2,500 / 3,000 / 3,500) and the already measured
+full-vs-HAR gaps (part1/linear_gap.csv, part2/gap.csv; P3 below).  No coefficient-level quantity of these walks.
+
+DATA
+- The 2014-start window learning-curve sweep on the final specification (STANDARDIZE_PENALTY in scaled coordinates,
+  binomial availability rule, WALK_KKT_RESEED, LATE_START_WARMUP, fomc_release excluded; 564 columns; penalty factor
+  0.01 on the 12 HAR + calendar columns), W = 1,000 / 1,500 / 2,000 / 2,500 / 3,000 / 3,500 days, full predictor set,
+  ridge, lasso, elastic net (l1_ratio 0.5), each W at its own frozen penalty.
+- Origins: the first row (10:00 bar) of every 21st session counted from the first 2014-01-02 row, through the end of the
+  data (2024-04-30): the same calendar origins for every W (the FI run's cadence, restarted at the sweep's first day).
+- Coefficients: the walk's own at each origin, replayed with the CURRENT runner code (experiments/pool_linear_pretune.py
+  at this branch's head) from the last 250-solve tune boundary g <= t through t (as results/rehaul_fi_pooled13_2026-10-22
+  fi13_replay.py).  No new walks.
+- GATE: every replayed forecast row g .. t equals that W's forecasts.parquet pred_adj (model, all_features) to <= 1e-12
+  absolute, at every origin.  A W x model failing the gate is reported as failed and not interpreted.
+
+MEASURES (exogenous = the 46 raw series, the 552 non-backbone columns; a variable = one raw series, all its columns)
+- gamma_j = the coefficient on the window-standardized column (what the penalty acts on): lasso / elastic net the walk's
+  scaled-coordinate theta_j (= beta_j s_j, s_j the seed-time window s.d.); ridge beta_j s_j(t) with s_j(t) the window s.d.
+  its solve at t used.  |gamma_j| is the s.d.-weighted |beta_j| of the FI method (S^sd).  Selected: gamma_j != 0 (NZ_TOL 0).
+- Per refit k: V_k = exogenous variables with >= 1 selected column; C_k = selected exogenous columns;
+  exogenous weight shares w_kA = sum_{j in A}|gamma_kj| / sum_{exog j}|gamma_kj|; N_eff,k = 1 / sum_A w_kA^2 (1/HHI);
+  n50_k, n80_k = the fewest variables whose largest shares sum to >= 0.5 / 0.8.
+- Per W: median (IQR) and mean over refits of V_k, C_k, N_eff,k, n50_k, n80_k; V_half / C_half = exogenous variables /
+  columns selected in >= half the refits; pooled shares w_A = sum_k sum_{j in A}|gamma_kj| / sum_k sum_{exog j}|gamma_kj|
+  (S^sd_A over the exogenous variables) and their N_eff, n50, n80; the 10 heaviest variables by pooled ridge w_A, their
+  overlap with W = 1,000's top 10, and the Spearman correlation of the 46 pooled shares between W's.
+
+PREDICTIONS (if the exogenous signal is dense and weak, then as W grows -- more observations per coefficient):
+- P1 (lasso; elastic net reported alike): the lasso selects more exogenous variables and columns: V_k (median, mean),
+  V_half, C_k (median, mean) and C_half rise with W.
+- P2 (ridge; lasso / elastic net reported alike): the ridge s.d.-weighted weight spreads: N_eff (1/HHI of S^sd_A over the
+  exogenous variables), n50 and n80 rise with W (per refit and pooled).
+- P3: the full-set advantage over HAR widens with W.  Already measured, reported alongside, not recomputed: part1 fold-3
+  (2013 validation year) MSE / QLIKE gap and the extra gain over W = 1,000; part2 OOS 2014-01 .. 2024-04 every-bar and
+  16:00 QLIKE gaps (DM p).  Known before writing: the 2013 validation-year linear gap narrowed with W after 1,500-2,000
+  (the extra gain over W = 1,000 is not significant at W >= 2,500).
+If the signal were sparse and strong, P1-P3 would be flat in W.
+
+DECISION RULE (per model, per measure)
+- Trend = OLS slope of the per-W statistic on W (per 1,000 days); also the W = 3,500 minus W = 1,000 difference and the
+  number of the 5 W steps in the predicted direction.
+- Uncertainty: paired moving-block bootstrap over refits (block 12 refits ~ 1 year, B = 2,000, seed 20261022; the same
+  resampled origin indices for every W, every statistic recomputed on each resample, including the >= half counts and
+  the pooled shares).  This is the variation over the evaluation span's origins, not the sampling error of one window's
+  estimate; consecutive windows overlap, so it understates total uncertainty.
+- A measure "rises" if the slope's 95% percentile interval is above 0, "falls" if below 0, else "flat".
+- A prediction is SUPPORTED for a model if every one of its measures rises, NOT SUPPORTED if none rises, PARTLY otherwise.
+- Every result is reported, including contrary ones (flat or falling).  The rule is not revised after seeing results;
+  anything added later is labelled post hoc.
+
+PRE-STATED CONFOUNDS AND SECONDARY ANALYSIS (stated now, before computing)
+- The frozen penalty changes with W (above).  The lasso / elastic-net penalty is per observation (mu = n alpha l1), so a
+  lower alpha mechanically selects more; the ridge penalty is not (Z'Z + alpha I, Z'Z ~ n), so its relative shrinkage
+  falls ~ 1/n at a fixed alpha and by a further 10x where alpha drops 1e4 -> 1e3.  The primary analysis (each W at its
+  frozen penalty) answers "what the final specification does"; it cannot separate the window from the penalty.
+- Secondary S1 (common penalty, not the walk): at every origin and W, the cold-seed fit at t at a fixed penalty -- the
+  runner's own tune-boundary path (a fresh PFTuned on [t - W, t): identifiability mask at t, standardized seed), i.e. the
+  walk's state had t been a tune boundary -- at lasso alpha 1e-4 and 1e-3, elastic net 1e-3 and 1e-2, ridge 1e3 and 1e4,
+  and ridge alpha = 1e4 x W / 1,000 (the W = 1,000 frozen relative shrinkage held fixed).  The same measures and decision
+  rule; labelled secondary.  At fixed per-observation alpha, sparse-strong predicts a flat or falling selection count
+  (false positives fall with n), dense-weak a rising one: S1's lasso P1 is the cleaner test.
+- Ridge P2 is a weaker test than P1: less shrinkage lets correlated columns of one variable carry offsetting weights,
+  which can raise group-level Sum|gamma| dispersion without any signal; read it with S1.
