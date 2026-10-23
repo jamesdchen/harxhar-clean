@@ -1,0 +1,3 @@
+est,set,n_columns,window_rows,threads,k,sec_refit,host,cpu
+rf_skx,baseline,12,39000,8,3,0.8135265509287516,b05-08.hpc.usc.edu,AMD EPYC 7513 32-Core Processor
+rf_skx,all_features,564,39000,8,3,27.4688302675883,b05-08.hpc.usc.edu,AMD EPYC 7513 32-Core Processor

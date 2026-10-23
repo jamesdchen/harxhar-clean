@@ -1,0 +1,15 @@
+piece,a,b,cpu_a,cpu_b,rows,equal,max_abs_diff_pred,dispatch_a,split_a
+rf_skx_all_features_bar_2014-01-02_2014-01-02_1of1,P1,P2,AMD EPYC 7513 32-Core Processor,AMD EPYC 7513 32-Core Processor,13.0,True,0.0,"['sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU', 'sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU']","{'max_bins': 256, 'min_bin_size': 1}"
+rf_skx_all_features_bar_2014-01-02_2014-01-02_1of1,P1,P3,AMD EPYC 7513 32-Core Processor,AMD EPYC 7542 32-Core Processor,13.0,True,0.0,"['sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU', 'sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU']","{'max_bins': 256, 'min_bin_size': 1}"
+rf_skx_all_features_bar_2014-01-02_2014-01-03_1of1,P1,P2,AMD EPYC 7513 32-Core Processor,AMD EPYC 7513 32-Core Processor,26.0,True,0.0,"['sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU', 'sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU']","{'max_bins': 256, 'min_bin_size': 1}"
+rf_skx_all_features_bar_2014-01-02_2014-01-03_1of1,P1,P3,AMD EPYC 7513 32-Core Processor,AMD EPYC 7542 32-Core Processor,26.0,True,0.0,"['sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU', 'sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU']","{'max_bins': 256, 'min_bin_size': 1}"
+rf_skx_baseline_bar_2014-01-02_2014-01-03_1of1,P1,P2,AMD EPYC 7513 32-Core Processor,AMD EPYC 7513 32-Core Processor,26.0,True,0.0,"['sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU', 'sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU']","{'max_bins': 256, 'min_bin_size': 1}"
+rf_skx_baseline_bar_2014-01-02_2014-01-03_1of1,P1,P3,AMD EPYC 7513 32-Core Processor,AMD EPYC 7542 32-Core Processor,26.0,True,0.0,"['sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU', 'sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU']","{'max_bins': 256, 'min_bin_size': 1}"
+fold_all_features_w1000_7513,fold,bench B (EPYC 7513),AMD EPYC 7513 32-Core Processor,,,True,0.0,,
+fold_all_features_w1000_7542,fold,bench B (EPYC 7513),AMD EPYC 7542 32-Core Processor,,,True,0.0,,
+fold_all_features_w3000_7513,fold,bench B (EPYC 7513),AMD EPYC 7513 32-Core Processor,,,True,0.0,,
+fold_all_features_w3000_7542,fold,bench B (EPYC 7513),AMD EPYC 7542 32-Core Processor,,,True,0.0,,
+fold_baseline_w1000_7513,fold,bench B (EPYC 7513),AMD EPYC 7513 32-Core Processor,,,True,0.0,,
+fold_baseline_w1000_7542,fold,bench B (EPYC 7513),AMD EPYC 7542 32-Core Processor,,,True,0.0,,
+fold_baseline_w3000_7513,fold,bench B (EPYC 7513),AMD EPYC 7513 32-Core Processor,,,True,0.0,,
+fold_baseline_w3000_7542,fold,bench B (EPYC 7513),AMD EPYC 7542 32-Core Processor,,,True,0.0,,

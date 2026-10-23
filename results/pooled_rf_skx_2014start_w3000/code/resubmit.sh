@@ -33,7 +33,8 @@ while read -r A TF W R CN CODE NT; do
   if [ ${#idx[@]} -gt 0 ]; then
     ex=$(sort -u $BAD | paste -sd, -)
     arr=$(IFS=,; echo "${idx[*]}")
-    j=$(cd $CODE && sbatch --parsable -J tfs_w${W}r --array=$arr -c ${NT:-8} --mem=16G -t 8:00:00 --constraint="$CN" \
+    T=6:00:00; [ "${NT:-8}" -ge 20 ] && T=3:30:00  # 2026-10-23 08:55: 4 GB and tight time limits (were 16G, 8:00:00)
+    j=$(cd $CODE && sbatch --parsable -J tfs_w${W}r --array=$arr -c ${NT:-8} --mem=4G -t $T --constraint="$CN" \
       ${ex:+--exclude=$ex} -o "$HB/logs/%x.%A_%a.out" \
       --export=ALL,MODE=walk,TASKFILE=$TF,HARXHAR_PY=$PY,DESIGN=$HB/designs/w$W,OUT=$R,WINDOW_DAYS=$W,OPENSSL_CONF=$OC \
       cluster/slurm/pooltree_rerun13.sbatch)
