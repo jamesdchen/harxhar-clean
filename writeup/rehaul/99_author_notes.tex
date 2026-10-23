@@ -23,6 +23,11 @@
     preview running; the final run is on the final design; trees to be decided.
   \item \textbf{MinGRU network:} parked; rerun on the final design before it enters (tuning grid, seeds and refit
     cadence to be decided).
+  \item \textbf{Standardization} (STANDARDIZE\_PENALTY, merged 2430543): the penalized pooled models are refit on
+    columns standardized within each estimation window (Section~\ref{sec:rh_methods_models}). The window study
+    now runs on a 2 January 2014 start, giving up 2012--13 of the accuracy sample, so that windows up to 3,500
+    days can be compared on the latest pre-sample fold; the first evaluation day of the final rerun follows that
+    study.
   \item \textbf{Closing-interval models:} not rerun (James, 22 October 2026); their full-sample rules are disclosed
     (notes S4a, S4c, S4d). The data fixes they predate (invalid-print nulling, FOMC calendar, VIX splice, fill cap)
     still need a disclosure in Section~\ref{sec:rh_data} (E28).
