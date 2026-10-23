@@ -53,3 +53,14 @@ GATE      (a) model_factory("rf_skx") + fit_predict reproduce the benchmark's en
 SCORING   as the other trees (results/pooled_trees_final_2014start_w3000/code/score_trees_final.py): QLIKE on every
           bar and at 16:00 with Diebold-Mariano tests (full vs HAR), the D6 Sharpe ratio with the bootstrap p, D1, the
           pooled 614-day ratio; output results/pooled_rf_skx_2014start_w<W>/.
+
+ADDENDA (dated; the rule above is unchanged)
+2026-10-23 01:58  Gate (gate/ in this directory): (a) 4/4 fold-3 fits equal to the benchmark's engine B; (b) EPYC 7542
+                  = 7513 for the fold fits (4/4) and the walk pieces (3/3), so the walks use both models; (c) a piece
+                  twice: 3/3 equal; (d) 20 threads = 8 threads: 3/3 equal (the owner asked for 20-thread jobs).
+2026-10-23 03:18  Threads per task follow the cluster's free cores: the tasks started at 20 threads keep them; tasks
+                  not yet started were resubmitted at 8 (03:18) or 20 (04:27) threads, 4 GB; the forecasts do not
+                  depend on it ((d) and the benchmark's 1 vs 8 threads); every piece's meta records its threads.
+2026-10-23 04:35  The one-model checks (a piece does not resume on another model; merge asserts one model an arm)
+                  read "one CPU family": EPYC 7513 and 7542 are one family by the gate's (b)
+                  (experiments/pooled_trees_rerun_13.py CPU_FAMILY); any other model is a family of its own.

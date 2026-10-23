@@ -99,8 +99,21 @@ CONFIGS = {
     # (results/pooled_rf_skx_2014start_w3000/RULE_rf_skx.txt)
     "rf_skx": ROOT / "cluster" / "pooltree_rf400_config.json",
 }
-# estimators whose pieces must all come from one CPU model (rf_skx: oneDAL's SIMD paths differ across CPU families)
+# estimators whose pieces must all come from one CPU family (rf_skx: oneDAL's SIMD paths differ across CPU families)
 ONE_CPU = ("rf_skx",)
+# 2026-10-23: CPU models that give the same rf_skx forecasts bit for bit (the rf_skx gate: fold fits and walk pieces
+# on EPYC 7513 and 7542 identical), one family for the ONE_CPU checks; any other model is a family of its own.
+# Was: one CPU model (len(set(cpus)) == 1).
+CPU_FAMILY = {
+    "AMD EPYC 7513 32-Core Processor": "AMD EPYC 7513/7542 (rf_skx gate: bit-identical)",
+    "AMD EPYC 7542 32-Core Processor": "AMD EPYC 7513/7542 (rf_skx gate: bit-identical)",
+}
+
+
+def cpu_family(model: str) -> str:
+    return CPU_FAMILY.get(model, model)
+
+
 DEFAULT_EST = (
     "lgbm",
     "xgb",
@@ -357,9 +370,9 @@ def cmd_walk(a) -> int:
         else {"wall_sec": 0.0, "refits": 0}
     )
     # 2026-10-23: the CPU model of every session that wrote the piece (a resumed piece may have run on several nodes);
-    # rf_skx refuses to resume on another CPU model (ONE_CPU)
+    # rf_skx refuses to resume on another CPU family (ONE_CPU, CPU_FAMILY)
     cpus: list[str] = [str(c) for c in prior.get("cpus", [])] + [cpu_model()]
-    if a.est in ONE_CPU and len(set(cpus)) > 1:
+    if a.est in ONE_CPU and len({cpu_family(c) for c in cpus}) > 1:
         raise SystemExit(
             f"{a.est}: piece {path.name} was begun on {cpus[:-1]}, this node is {cpus[-1]}"
         )
@@ -535,8 +548,8 @@ def cmd_merge(a) -> int:
                 pm = json.loads(p.with_suffix(".json").read_text())
                 cms |= set(pm.get("cpus") or [pm["cpu"]])
             if est in ONE_CPU:
-                assert len(cms) == 1, (
-                    f"{est} {s}: pieces from several CPU models {sorted(cms)}"
+                assert len({cpu_family(c) for c in cms}) == 1, (
+                    f"{est} {s}: pieces from several CPU families {sorted(cms)}"
                 )
             cpu_models[f"{est}/{s}"] = sorted(cms)
             frames.append(f[COLS])
