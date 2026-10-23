@@ -1,0 +1,48 @@
+# Pooled random forest (oneDAL, rf_skx), refit at every bar, 2014-01-02 .. 2024-04-30: the window learning curve
+
+One common scored set: 33,527 bars on 2,579 days (16:00: 2,579 days); every window's own scored set (the linear rows' of that window) is this set.  W = 1,000 / 2,000 / 3,000 / 3,500: CARC (insurance-selling-2026-09-19-e34-trees-final, results/pooled_rf_skx_2014start_w<W>).
+
+## QLIKE by window
+
+| model | set | W 1,000 all bars | W 2,000 all bars | W 3,000 all bars | W 3,500 all bars | W 1,000 16:00 | W 2,000 16:00 | W 3,000 16:00 | W 3,500 16:00 |
+|---|---|---|---|---|---|---|---|---|---|
+| Random forest (oneDAL) | HAR | 0.19041 | 0.18891 | 0.18950 | 0.18977 | 0.13099 | 0.12765 | 0.12660 | 0.12642 |
+| Random forest (oneDAL) | full | 0.17605 | 0.17026 | 0.16853 | 0.16854 | 0.12735 | 0.12641 | 0.12480 | 0.12414 |
+
+## DM, longer window against shorter (daily average QLIKE; negative = the longer window lower), DM (p)
+
+| model | set | bars | 1,000->2,000 | 2,000->3,000 | 3,000->3,500 | 1,000->3,000 |
+|---|---|---|---|---|---|---|
+| Random forest (oneDAL) | HAR | every bar | -0.00150: -2.04 (0.041) | +0.00060: +1.51 (0.130) | +0.00026: +1.15 (0.249) | -0.00091: -1.13 (0.258) |
+| Random forest (oneDAL) | HAR | 16:00 | -0.00334: -2.51 (0.012) | -0.00105: -1.15 (0.249) | -0.00018: -0.36 (0.716) | -0.00439: -2.47 (0.014) |
+| Random forest (oneDAL) | full | every bar | -0.00579: -5.97 (0.000) | -0.00173: -3.37 (0.001) | +0.00001: +0.02 (0.988) | -0.00752: -5.85 (0.000) |
+| Random forest (oneDAL) | full | 16:00 | -0.00095: -1.05 (0.292) | -0.00161: -2.27 (0.023) | -0.00067: -1.43 (0.153) | -0.00255: -2.51 (0.012) |
+
+## Gap full - HAR by window (daily average QLIKE difference; NW t in parentheses)
+
+| model | bars | W 1,000 | W 2,000 | W 3,000 | W 3,500 |
+|---|---|---|---|---|---|
+| Random forest (oneDAL) | every bar | -0.01436 (-10.61) | -0.01865 (-10.26) | -0.02097 (-9.85) | -0.02123 (-9.41) |
+| Random forest (oneDAL) | 16:00 | -0.00364 (-2.05) | -0.00124 (-0.62) | -0.00180 (-0.92) | -0.00229 (-1.15) |
+
+## Change of the gap between windows: extra gain = full's change - HAR's change (negative = full gains more)
+
+| model | bars | pair | full change | HAR change | extra gain | NW se | t | p |
+|---|---|---|---|---|---|---|---|---|
+| Random forest (oneDAL) | every bar | 1000->2000 | -0.00579 | -0.00150 | -0.00428 | 0.00092 | -4.65 | 0.000 |
+| Random forest (oneDAL) | every bar | 2000->3000 | -0.00173 | +0.00060 | -0.00233 | 0.00060 | -3.87 | 0.000 |
+| Random forest (oneDAL) | every bar | 3000->3500 | +0.00001 | +0.00026 | -0.00026 | 0.00043 | -0.60 | 0.551 |
+| Random forest (oneDAL) | every bar | 1000->3000 | -0.00752 | -0.00091 | -0.00661 | 0.00123 | -5.36 | 0.000 |
+| Random forest (oneDAL) | 16:00 | 1000->2000 | -0.00095 | -0.00334 | +0.00239 | 0.00142 | +1.68 | 0.092 |
+| Random forest (oneDAL) | 16:00 | 2000->3000 | -0.00161 | -0.00105 | -0.00056 | 0.00103 | -0.54 | 0.588 |
+| Random forest (oneDAL) | 16:00 | 3000->3500 | -0.00067 | -0.00018 | -0.00049 | 0.00068 | -0.71 | 0.478 |
+| Random forest (oneDAL) | 16:00 | 1000->3000 | -0.00255 | -0.00439 | +0.00183 | 0.00173 | +1.06 | 0.289 |
+
+## Sign strategy by window, 614 post-warmup option days (score_trees_final.py econ.csv): D6 HAR / full, ΔD6 (bootstrap p)
+
+| model | W | D6 mid HAR / full | ΔD6 mid (p) | D6 b/a HAR / full | ΔD6 b/a (p) | D1 HAR / full (LW p) | SR614 HAR / full |
+|---|---|---|---|---|---|---|---|
+| Random forest (oneDAL) | 1,000 | 0.82 / 0.89 | +0.07 (0.926) | 0.46 / 0.54 | +0.08 (0.910) | 1.16 / 0.87 (0.828) | 1.09 / 0.98 |
+| Random forest (oneDAL) | 2,000 | 0.20 / 1.34 | +1.13 (0.136) | -0.13 / 0.99 | +1.12 (0.139) | 0.93 / 1.12 (0.300) | 0.62 / 1.36 |
+| Random forest (oneDAL) | 3,000 | 0.01 / 1.96 | +1.95 (0.007) | -0.32 / 1.60 | +1.93 (0.007) | 0.66 / 1.65 (0.020) | 0.34 / 1.99 |
+| Random forest (oneDAL) | 3,500 | 0.74 / 1.92 | +1.18 (0.036) | 0.39 / 1.57 | +1.18 (0.033) | 0.86 / 1.55 (0.010) | 0.85 / 1.93 |
