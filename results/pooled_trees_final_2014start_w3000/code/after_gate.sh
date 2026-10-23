@@ -9,7 +9,10 @@ C=$1; GJ=$2
 PY=/scratch1/jc_905/envs/harxhar-r13/bin/python
 export PYTHONNOUSERSITE=1 PYTHONDONTWRITEBYTECODE=1
 PR=/scratch1/jc_905/harxhar-trees13/results/pooled_trees_rerun13_2026-10-20/w1000
-if squeue -u jc_905 -h -o "%j" | grep -q '^tf'; then echo "ABORT: tf jobs still queued"; squeue -u jc_905 | grep tf; exit 3; fi
+# SKIP_GATE=1: the walks are submitted while the gate's whole-piece reruns still run (their comparison later, GATE_ONLY=1)
+if [ "${SKIP_GATE:-0}" != 1 ] && squeue -u jc_905 -h -o "%j" | grep -q '^tf'; then
+  echo "ABORT: tf jobs still queued"; squeue -u jc_905 | grep tf; exit 3
+fi
 cd $BASE
 H0=$(git -C repo rev-parse HEAD)
 git -C repo fetch -q origin insurance-selling-2026-09-19-e34-trees-final
@@ -21,6 +24,7 @@ CD=$BASE/repo/results/pooled_trees_final_2014start_w3000/code
 $PY $CD/gate_cmp.py $PR/pieces gate/gate_check.csv A=gate/A B=gate/B B7542=gate/B7542 Brf16=gate/Brf16
 sacct -j "$GJ" -P --format=JobID,JobName%20,State,ExitCode,Elapsed,Start,End,NodeList,AllocCPUS,ReqMem,TotalCPU,CPUTimeRAW \
   | tr '|' ',' > gate/sacct_gate.csv
+if [ "${GATE_ONLY:-0}" = 1 ]; then exit 0; fi
 CN="epyc-7513|epyc-7542"
 bash $CD/submit_runs.sh 3000 gb 8 49 "$CN"
 bash $CD/submit_runs.sh 3500 gb 8 32 "$CN"
