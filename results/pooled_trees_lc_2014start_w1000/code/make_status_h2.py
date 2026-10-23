@@ -4,7 +4,7 @@ CPU models and CPU-hours by arm.
 usage: python make_status_h2.py <run dir> <window days> <runner commit> <code-tree commit> <jobs commit> <merge job>
 Reads <run dir>/pieces/*.json (the piece metas), progress.csv (collect.py), jobs.csv (qacct_parse.py of the run's
 arrays), forecasts.json, tasks.txt, tasks_gb.txt, timing/sec_refit_*_t1.csv, design/design_check.json,
-design/MD5SUMS, env/freeze.txt and ../pooled_trees_lc_2014start_w1000/gate/cpu_gate.csv.
+design/MD5SUMS, environment/freeze.txt and ../pooled_trees_lc_2014start_w1000/gate/cpu_gate.csv.
 """
 
 from __future__ import annotations
@@ -23,7 +23,9 @@ fj = json.loads((run / "forecasts.json").read_text())
 dc = json.loads((run / "design" / "design_check.json").read_text())[f"w{W}"]
 md5 = [ln for ln in (run / "design" / "MD5SUMS").read_text().splitlines() if ln.strip()]
 freeze = [
-    ln for ln in (run / "env" / "freeze.txt").read_text().splitlines() if ln.strip()
+    ln
+    for ln in (run / "environment" / "freeze.txt").read_text().splitlines()
+    if ln.strip()
 ]
 tasks = [
     ln.split() for ln in (run / "tasks_gb.txt").read_text().splitlines() if ln.strip()
@@ -166,7 +168,7 @@ L += [
     (
         "forecasts.parquet + forecasts.json, pieces/*.json (the piece parquets stay on Hoffman2: "
         f"/u/scratch/j/jamesdc1/tlc/runs/w{W}/pieces), tasks*.txt, timing/, jobs.csv (qacct), progress.csv, run.json, "
-        "design/ (md5, design_check.json), env/ (pip freeze), scores/, code/."
+        "design/ (md5, design_check.json), environment/ (pip freeze), scores/, code/."
     ),
 ]
 (run / "STATUS.md").write_text("\n".join(L) + "\n", encoding="utf-8")
