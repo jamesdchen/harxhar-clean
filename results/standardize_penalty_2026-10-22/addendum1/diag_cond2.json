@@ -1,0 +1,66 @@
+{
+ "59250/lasso/off": {
+  "alpha": 0.001,
+  "n_active": 84,
+  "n_active_s_lt_0p05": 0,
+  "n_active_s_lt_0p01": 0,
+  "min_active_s": 0.2628937958592823,
+  "cond_active_system": 16416.917718715307
+ },
+ "59250/lasso/on": {
+  "alpha": 0.001,
+  "n_active": 121,
+  "n_active_s_lt_0p05": 4,
+  "n_active_s_lt_0p01": 2,
+  "min_active_s": 0.0005877306471586069,
+  "cond_active_system": 371688276.19193435
+ },
+ "59250/enet/off": {
+  "alpha": 0.01,
+  "n_active": 34,
+  "n_active_s_lt_0p05": 0,
+  "n_active_s_lt_0p01": 0,
+  "min_active_s": 0.397497728027447,
+  "cond_active_system": 650.1204858261192
+ },
+ "59250/enet/on": {
+  "alpha": 0.01,
+  "n_active": 41,
+  "n_active_s_lt_0p05": 0,
+  "n_active_s_lt_0p01": 0,
+  "min_active_s": 0.1686872390413235,
+  "cond_active_system": 1272.979930534747
+ },
+ "74250/lasso/off": {
+  "alpha": 0.001,
+  "n_active": 101,
+  "n_active_s_lt_0p05": 0,
+  "n_active_s_lt_0p01": 0,
+  "min_active_s": 0.16612391112104796,
+  "cond_active_system": 40160.77652003318
+ },
+ "74250/lasso/on": {
+  "alpha": 0.001,
+  "n_active": 113,
+  "n_active_s_lt_0p05": 4,
+  "n_active_s_lt_0p01": 1,
+  "min_active_s": 0.0016640404357399178,
+  "cond_active_system": 140254671.88324815
+ },
+ "74250/enet/off": {
+  "alpha": 0.01,
+  "n_active": 34,
+  "n_active_s_lt_0p05": 0,
+  "n_active_s_lt_0p01": 0,
+  "min_active_s": 0.396732691370861,
+  "cond_active_system": 911.4911318740379
+ },
+ "74250/enet/on": {
+  "alpha": 0.01,
+  "n_active": 39,
+  "n_active_s_lt_0p05": 1,
+  "n_active_s_lt_0p01": 0,
+  "min_active_s": 0.01182763025155577,
+  "cond_active_system": 346356.96733682475
+ }
+}

@@ -1,0 +1,163 @@
+{
+ "origin": 59250,
+ "solves": 120,
+ "standardize": true,
+ "alpha": 0.001,
+ "sec": 65.3601427078247,
+ "kkt_reseeds": 13,
+ "kkt_sec": [
+  0.0649100000737235,
+  42.23000520002097
+ ],
+ "fails": [
+  {
+   "solve": 7,
+   "rel": 0.0005773579391225379,
+   "col": "vix_avail_ma_1",
+   "active": true,
+   "theta": -0.00010795351541301653,
+   "s_seed": 0.27283511504203417,
+   "mu_j": 3.5468564955464443,
+   "n_active": 121,
+   "n_viol": 1
+  },
+  {
+   "solve": 16,
+   "rel": 1.4938466331501724e-06,
+   "col": "adj_vvix_ma_25",
+   "active": false,
+   "theta": 0.0,
+   "s_seed": 0.13012196831471395,
+   "mu_j": 1.6915855880912813,
+   "n_active": 119,
+   "n_viol": 1
+  },
+  {
+   "solve": 19,
+   "rel": 4.631445718035613e-06,
+   "col": "adj_sumvolume_ma_5",
+   "active": false,
+   "theta": 0.0,
+   "s_seed": 0.9885382710634553,
+   "mu_j": 12.850997523824919,
+   "n_active": 120,
+   "n_viol": 1
+  },
+  {
+   "solve": 20,
+   "rel": 3.5692948319236297e-07,
+   "col": "adj_sumret4_ewstock_ma_1",
+   "active": false,
+   "theta": 0.0,
+   "s_seed": 2.043758545365077,
+   "mu_j": 26.568861089746,
+   "n_active": 119,
+   "n_viol": 1
+  },
+  {
+   "solve": 21,
+   "rel": 0.004322362017387484,
+   "col": "adj_sumret4_ewstock_ma_1",
+   "active": true,
+   "theta": 4.836662572278909e-06,
+   "s_seed": 2.043808982975492,
+   "mu_j": 26.569516778681397,
+   "n_active": 120,
+   "n_viol": 1
+  },
+  {
+   "solve": 24,
+   "rel": 2.439093474749395e-07,
+   "col": "stocktwits_sentiment_avail_ma_5",
+   "active": false,
+   "theta": 0.0,
+   "s_seed": 0.04159544808960649,
+   "mu_j": 0.5407408251648843,
+   "n_active": 120,
+   "n_viol": 1
+  },
+  {
+   "solve": 25,
+   "rel": 2.4810141936291563e-06,
+   "col": "stocktwits_attention_avail_ma_125",
+   "active": true,
+   "theta": 0.00847826055002204,
+   "s_seed": 0.0011733238479085851,
+   "mu_j": 0.015253210022811606,
+   "n_active": 121,
+   "n_viol": 1
+  },
+  {
+   "solve": 28,
+   "rel": 1.5527801747302569e-07,
+   "col": "adj_sellturnover_vwstock_ma_125",
+   "active": false,
+   "theta": 0.0,
+   "s_seed": 0.9072521597734359,
+   "mu_j": 11.794278077054667,
+   "n_active": 118,
+   "n_viol": 1
+  },
+  {
+   "solve": 38,
+   "rel": 0.0019175697966486408,
+   "col": "adj_sellturnover_vwstock_ma_125",
+   "active": true,
+   "theta": 3.966838308581533e-05,
+   "s_seed": 0.9071810784831889,
+   "mu_j": 11.793354020281456,
+   "n_active": 120,
+   "n_viol": 1
+  },
+  {
+   "solve": 50,
+   "rel": 2.441740205052014e-05,
+   "col": "adj_sellturnover_ewstock_ma_25",
+   "active": false,
+   "theta": 0.0,
+   "s_seed": 0.8511656136595829,
+   "mu_j": 11.065152977574577,
+   "n_active": 119,
+   "n_viol": 2
+  },
+  {
+   "solve": 88,
+   "rel": 1.4484136659065285e-08,
+   "col": "adj_sumret4_ma_125",
+   "active": false,
+   "theta": 0.0,
+   "s_seed": 1.2006348940131868,
+   "mu_j": 15.608253622171429,
+   "n_active": 120,
+   "n_viol": 1
+  },
+  {
+   "solve": 111,
+   "rel": 1.6310444618589994e-06,
+   "col": "adj_sellturnover_ewstock_ma_25",
+   "active": false,
+   "theta": 0.0,
+   "s_seed": 0.8509743667270411,
+   "mu_j": 11.062666767451534,
+   "n_active": 121,
+   "n_viol": 1
+  },
+  {
+   "solve": 112,
+   "rel": 0.0017983513270321799,
+   "col": "adj_sellturnover_ewstock_ma_25",
+   "active": true,
+   "theta": -7.487624547397364e-06,
+   "s_seed": 0.8514937674212942,
+   "mu_j": 11.069418976476825,
+   "n_active": 121,
+   "n_viol": 1
+  }
+ ],
+ "rel_quantiles": [
+  1.4484136659065285e-08,
+  2.4810141936291563e-06,
+  0.0018937261027253487,
+  0.004322362017387484
+ ]
+}
