@@ -17,7 +17,7 @@ PY=/scratch1/jc_905/envs/harxhar-r13/bin/python
 export PYTHONNOUSERSITE=1 PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=2
 echo "tf_stage on $(hostname) $(date)"
 F="X.npy y.npy b_oos.npy dates_oos.csv design.json"
-for W in 3000 3500; do
+for W in ${WS:-3000 3500}; do
   SRC=/scratch1/jc_905/wsweep/code/results/window_sweep_2014start_2026-10-22/w$W/_work
   for s in baseline all_features; do
     DEST=$BASE/designs/w$W/_work/design_$s
@@ -39,5 +39,5 @@ for s in baseline all_features; do (cd $P/design_$s && sha256sum X.npy y.npy b_o
 cd $BASE/repo
 export PYTHONPATH="$PWD:$PWD/experiments"
 "$PY" $BASE/repo/results/pooled_trees_final_2014start_w3000/code/design_check.py $BASE/repo $BASE/designs \
-  $BASE/designs/design_check.json 3000 3500
+  $BASE/designs/design_check${WS:+_$(echo $WS | tr " " _)}.json ${WS:-3000 3500}
 echo "tf_stage done $(date)"
