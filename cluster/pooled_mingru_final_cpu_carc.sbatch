@@ -21,8 +21,11 @@ set -euo pipefail
 WD=${WD:-3000}  # window days: 3000 (ROOT /home1/jc_905/pmf) or 3500 (ROOT /home1/jc_905/pmf35; sbatch -o its logs/)
 if [ "$WD" = 3000 ]; then ROOT=${ROOT:-/home1/jc_905/pmf}; else ROOT=${ROOT:-/home1/jc_905/pmf$((WD / 100))}; fi
 export PMF_WINDOW_DAYS=$WD
-PY=${PY:-/scratch1/jc_905/envs/harxhar-r13/bin/python}
-export PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 PMF_REPO=${PMF_REPO:-/scratch1/jc_905/harxhar-trees13}
+PY=${PY:-/home1/jc_905/envs/harxhar-r13/bin/python}  # 2026-10-23: the /home1 copy of the env (a broken /scratch1 client gave SIGBUS)
+# the env's libcrypto has the /scratch1 prefix compiled in (OPENSSLDIR, ENGINESDIR, MODULESDIR): point it at the copy
+EP=$(dirname "$(dirname "$PY")")
+export OPENSSL_CONF=$EP/ssl/openssl.cnf OPENSSL_MODULES=$EP/lib/ossl-modules OPENSSL_ENGINES=$EP/lib/engines-3
+export PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 PMF_REPO=${PMF_REPO:-/home1/jc_905/pmf/repo}  # src/models/window_mask.py of harxhar-trees13 (md5 e597d28a)
 export OMP_NUM_THREADS=4 OPENBLAS_NUM_THREADS=4 MKL_NUM_THREADS=4
 DESIGN=${DESIGN:-/scratch1/jc_905/wsweep/code/results/window_sweep_2014start_2026-10-22/w$WD/_work}
 LINRUN=${LINRUN:-/scratch1/jc_905/wsweep/code/results/window_sweep_2014start_2026-10-22/w$WD}

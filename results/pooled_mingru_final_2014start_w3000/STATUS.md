@@ -49,3 +49,20 @@ errors); binary copied from `/home1/jc_905/pm13/bin` (md5 44ab6fff).
 - 2026-10-23 00:23 PDT: the 76 held round-0 tune jobs (W 3,000 13319945-82, W 3,500 13320232-69) released
   (dependency cleared after the CPU checks); every pending job also excludes d23-14 (a Lustre bus error there today
   and on 2026-10-22).
+- 2026-10-23 00:40-01:45 PDT, the bus error (owner: "just fix the python error"). Reproduced on e21-09 with the same
+  check, CPU only (13322650): `df /scratch1` times out on that node; md5sum of the env's .so files fails with
+  "Input/output error" / "Cannot send after transport endpoint shutdown" (617 failing lines of 428 files' checks); the
+  check dies with exit 135 (SIGBUS) after 325 s. faulthandler: inside `import pandas` (gate script line 21). gdb:
+  SIGBUS in the dynamic loader (_dl_lookup_symbol_x -> _dl_relocate_object, resolving OpenBLAS's srot_k_CORE2 while
+  dlopen-ing numpy's OpenBLAS) = a page of a memory-mapped .so on /scratch1 that the node's broken Lustre client
+  could not read. Cause: the /scratch1 client of those GPU nodes (the same "transport endpoint shutdown" as the
+  2026-10-22 failures), not the env (no file of the env modified since 2026-10-20; on healthy nodes every md5 matches).
+  Fix: the env copied to /home1/jc_905/envs/harxhar-r13 (rsync from a healthy node; all 428 binaries md5-equal to
+  the originals, same file list), the GPU, probe and CPU Slurm scripts run Python from it (PY default), the CPU
+  stages import window_mask from /home1/jc_905/pmf/repo (md5 e597d28a, the copy of harxhar-trees13's), and OpenSSL
+  is pointed at the copy (OPENSSL_CONF: the env's libcrypto has the /scratch1 prefix compiled in, which cost a 49-s
+  stall in `import _hashlib` on the broken node). No GPU job reads /scratch1 any more. Verified ON e21-09 with its
+  /scratch1 still broken (13323199): md5 check 0 mismatches, both gate checks GATE PASS, gdb 0 SIGBUS. The round-0
+  tune jobs were never exposed (they run no Python on the GPU node and stage only from /home1). The d23-14 exclusion
+  was dropped from all 76 pending jobs. Diagnosis script: cluster/pooled_mingru_final_diag_buserror.sh (outputs in
+  /home1/jc_905/pmf/diag/).

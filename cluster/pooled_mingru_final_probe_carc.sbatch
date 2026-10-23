@@ -20,7 +20,14 @@ module load ver/2506 gcc/14.3.0 cuda/12.9.1 >/dev/null 2>&1
 export CUDA_DEVICE_MAX_CONNECTIONS=32
 ROOTS=${ROOTS:-/home1/jc_905/pmf /home1/jc_905/pmf35}
 MULTS=${MULTS:-1 2 4}
-PY=${PY:-/scratch1/jc_905/envs/harxhar-r13/bin/python}
+# 2026-10-23: the python env runs from /home1 (an md5-verified copy of /scratch1/jc_905/envs/harxhar-r13). On some GPU
+# nodes the /scratch1 Lustre client is broken (df: connection timed out; reads: "Input/output error", "Cannot send
+# after transport endpoint shutdown"), and paging in the env's memory-mapped .so files there raised SIGBUS (the gate
+# checks of 13319779 / 13319780; reproduced on e21-09 by 13322650). Nothing a GPU job reads is on /scratch1 now.
+PY=${PY:-/home1/jc_905/envs/harxhar-r13/bin/python}
+# the env's libcrypto has the /scratch1 prefix compiled in (OPENSSLDIR, ENGINESDIR, MODULESDIR): point it at the copy
+EP=$(dirname "$(dirname "$PY")")
+export OPENSSL_CONF=$EP/ssl/openssl.cnf OPENSSL_MODULES=$EP/lib/ossl-modules OPENSSL_ENGINES=$EP/lib/engines-3
 GOT=$(nvidia-smi --query-gpu=name --format=csv,noheader | head -1)
 echo "$(hostname) $GOT"
 echo "$GOT" | grep -q "P100" || { echo "got a $GOT, P100 required"; exit 1; }

@@ -31,7 +31,14 @@ JOBS=${JOBS:?JOBS}
 SUB=${SUB:?SUB tune or refit}
 TAG=${TAG:?TAG}
 CONC=${CONC:-6}
-PY=${PY:-/scratch1/jc_905/envs/harxhar-r13/bin/python}
+# 2026-10-23: the python env runs from /home1 (an md5-verified copy of /scratch1/jc_905/envs/harxhar-r13). On some GPU
+# nodes the /scratch1 Lustre client is broken (df: connection timed out; reads: "Input/output error", "Cannot send
+# after transport endpoint shutdown"), and paging in the env's memory-mapped .so files there raised SIGBUS (the gate
+# checks of 13319779 / 13319780; reproduced on e21-09 by 13322650). Nothing a GPU job reads is on /scratch1 now.
+PY=${PY:-/home1/jc_905/envs/harxhar-r13/bin/python}
+# the env's libcrypto has the /scratch1 prefix compiled in (OPENSSLDIR, ENGINESDIR, MODULESDIR): point it at the copy
+EP=$(dirname "$(dirname "$PY")")
+export OPENSSL_CONF=$EP/ssl/openssl.cnf OPENSSL_MODULES=$EP/lib/ossl-modules OPENSSL_ENGINES=$EP/lib/engines-3
 RUN=$ROOT/runs/${TAG}_$SLURM_JOB_ID
 case "$JOBS" in *all_features*) SET=all_features ;; *baseline*) SET=baseline ;; *) SET="baseline all_features" ;; esac
 LOCAL=${TMPDIR:-/tmp}/pmf_$SLURM_JOB_ID
