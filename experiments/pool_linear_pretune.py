@@ -635,19 +635,55 @@ def col_mode(Xa: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     return S[k, cols], run[k, cols]
 
 
+# evid_ref codes: no evidence rule; the k = 1 column is not in the design
+EV_EXEMPT, EV_ABSENT = -1, -2
+_EV_VALUE = re.compile(r"^adj_(.+)_ma_(\d+)$")
+_EV_AVAIL = re.compile(r"^(.+)_avail_ma_(\d+)$")
+
+
+def evid_ref(names: list[str], bb: np.ndarray) -> np.ndarray:
+    """2026-10-22 (RULE_std.txt addendum 2): for every column of [X, 1] the index of the column whose off-mode row count
+    is its evidence -- v's own k = 1 column of the same kind (adj_<v>_ma_1 for adj_<v>_ma_<k>, <v>_avail_ma_1 for
+    <v>_avail_ma_<k>); EV_ABSENT when that column is not in the design; EV_EXEMPT for the backbone (HAR + calendar) and
+    the intercept; a non-backbone column of neither form keeps its own count."""
+    idx = {n: j for j, n in enumerate(names)}
+    ref = np.full(len(names) + 1, EV_EXEMPT, dtype=np.int64)
+    for j, n in enumerate(names):
+        if bb[j]:
+            continue
+        m = _EV_VALUE.match(n)
+        k1 = f"adj_{m.group(1)}_ma_1" if m else None
+        if m is None:
+            m = _EV_AVAIL.match(n)
+            k1 = f"{m.group(1)}_avail_ma_1" if m else None
+        ref[j] = j if k1 is None else idx.get(k1, EV_ABSENT)
+    return ref
+
+
+def group_evidence(ev_own: np.ndarray, ref: np.ndarray) -> np.ndarray:
+    """Each column's evidence (addendum 2) from the per-column off-mode counts: the count of its reference column; 0 if
+    that column is absent; no limit (exempt) for the backbone and the intercept."""
+    big = np.iinfo(np.int64).max
+    return np.where(
+        ref >= 0, ev_own[np.maximum(ref, 0)], np.where(ref == EV_ABSENT, 0, big)
+    )
+
+
 def std_weights(
-    Xa: np.ndarray, locked: np.ndarray, full: bool = False
+    Xa: np.ndarray, locked: np.ndarray, ref: np.ndarray, full: bool = False
 ) -> tuple[np.ndarray, ...]:
     """(s, out) of the fit's rows Xa (masked columns already 0): s_j = np.std(Xa[:, j]) (ddof 0); out = the non-locked
-    columns with s_j < STD_MIN or (the evidence mask, 2026-10-22) fewer than STD_MIN_EVIDENCE rows that differ from
-    the column's modal value (masked for the fit, every masked column among them); s_j := 1 on out and on the locked
-    intercept (a weight never used: the column is 0, resp. unpenalized).  full: also (modal value, evidence)."""
+    columns with s_j < STD_MIN or (the evidence mask, 2026-10-22, addenda 1 and 2) an evidence below STD_MIN_EVIDENCE:
+    the rows that differ from the modal value of the column's reference column (evid_ref: the variable's k = 1 column)
+    (masked for the fit, every masked column among them); s_j := 1 on out and on the locked intercept (a weight never
+    used: the column is 0, resp. unpenalized).  full: also (modal value, own off-mode count) of every column."""
     s = np.std(Xa, axis=0)
     v, cnt = col_mode(Xa)
-    ev = Xa.shape[0] - cnt
+    ev_own = Xa.shape[0] - cnt
+    ev = group_evidence(ev_own, ref)
     out = ~locked & ((s < STD_MIN) | (ev < STD_MIN_EVIDENCE))
     sw = np.where(out | locked, 1.0, s)
-    return (sw, out, v, ev) if full else (sw, out)
+    return (sw, out, v, ev_own) if full else (sw, out)
 
 
 def ridge_keep(
@@ -714,13 +750,13 @@ def batch_theta_w(Xa, yr, locked, a, l1, w1, w2) -> np.ndarray:
 
 
 def fit_std(
-    Xa, yr, locked, kind, a, l1, pf, sw=None
+    Xa, yr, locked, kind, a, l1, pf, ref, sw=None
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """One standardized batch fit on the rows (Xa, yr) (masked columns 0): (theta, s, out) with s, out of std_weights
-    (or sw, std_weights of these rows computed by the caller); the out columns zeroed for the fit (theta_j = 0).
-    Ridge: (X'X + diag(a pf s^2)) theta = X'y on the kept columns; lasso / enet: batch_theta_w with w1 = pf s,
-    w2 = pf s^2."""
-    s, out = std_weights(Xa, locked) if sw is None else sw
+    (evidence references ref = evid_ref; or sw, std_weights of these rows computed by the caller); the out columns
+    zeroed for the fit (theta_j = 0).  Ridge: (X'X + diag(a pf s^2)) theta = X'y on the kept columns; lasso / enet:
+    batch_theta_w with w1 = pf s, w2 = pf s^2."""
+    s, out = std_weights(Xa, locked, ref) if sw is None else sw
     if out.any():
         Xa = Xa.copy()
         Xa[:, out] = 0.0
@@ -759,6 +795,7 @@ def make_class(ns: dict, r: float, sched: dict | None, g0: int, rec: list):
 
     class PFTuned(Base):
         bb = None  # bool over the feature columns, set by fit_predict from the column names
+        ev_ref = None  # 2026-10-22: evid_ref of the column names (the evidence mask's k = 1 columns), set with bb
         # 2026-10-22 (src/models/reclasso_har.py WALK_KKT_RESEED, read at every solve): with the flag on, every
         # lasso / elastic-net solve records (solve, violation / max(max|c|, 1), ok); every KKT-triggered reseed
         # (solve, relative violation before, after, ok after); seconds in the check and in the reseeds
@@ -820,7 +857,10 @@ def make_class(ns: dict, r: float, sched: dict | None, g0: int, rec: list):
                 ua[self._maskout] = 0.0
                 ur[self._maskout] = 0.0
                 self._evid_update(ua, ur)
-                low = (self._ev_d < STD_MIN_EVIDENCE) & ~self._maskout & ~self._locked
+                ev = group_evidence(
+                    self._ev_d, self.ev_ref
+                )  # addendum 2: the k = 1 counts
+                low = (ev < STD_MIN_EVIDENCE) & ~self._maskout & ~self._locked
                 if low.any():  # masked like the identifiability mask; cold reseed (weights and modes refreshed)
                     self._maskout = self._maskout | low
                     self._evid_only = self._evid_only | low
@@ -864,7 +904,8 @@ def make_class(ns: dict, r: float, sched: dict | None, g0: int, rec: list):
             var = self._sd_s2 / n - (self._sd_s1 / n) ** 2
             s = np.sqrt(np.maximum(var, 0.0))
             s[self._sd_run >= n] = 0.0
-            out = ~self._locked & ((s < STD_MIN) | (self._ev_d < STD_MIN_EVIDENCE))
+            ev = group_evidence(self._ev_d, self.ev_ref)  # addendum 2: the k = 1 counts
+            out = ~self._locked & ((s < STD_MIN) | (ev < STD_MIN_EVIDENCE))
             s = np.where(out | self._locked, 1.0, s)
             D = np.where(self._locked, 0.0, self.alpha_ * (self._pf * s * s))
             self._th = ridge_keep(self._G, self._c, D, ~out)
@@ -894,7 +935,14 @@ def make_class(ns: dict, r: float, sched: dict | None, g0: int, rec: list):
             Xa, yr = self._masked_window()
             rep = dict(REPAIR)
             th, s, out = fit_std(
-                Xa, yr, self._locked, self.kind_, self.alpha_, self.l1_, self._pf
+                Xa,
+                yr,
+                self._locked,
+                self.kind_,
+                self.alpha_,
+                self.l1_,
+                self._pf,
+                self.ev_ref,
             )
             REPAIR.update(rep)
             ok = ~out & ~self._locked & np.isfinite(self._sd_seed)
@@ -1004,7 +1052,7 @@ def make_class(ns: dict, r: float, sched: dict | None, g0: int, rec: list):
             # the tracker is exact between seeds <= TUNE_PER solves apart iff the window holds > 2 (250 + TUNE_PER)
             assert tw > 2 * (STD_MIN_EVIDENCE + TUNE_PER), tw
             pf = self._pf
-            s, out, v, ev = std_weights(Xa, self._locked, full=True)
+            s, out, v, ev = std_weights(Xa, self._locked, self.ev_ref, full=True)
             new = out & ~self._maskout
             nan_s = np.where(out | self._locked, np.nan, s)
             # the solve (OOS row) whose forecast first uses this seed
@@ -1064,7 +1112,9 @@ def make_class(ns: dict, r: float, sched: dict | None, g0: int, rec: list):
                 for kind, a, l1 in Base.grid:
                     if STANDARDIZE_PENALTY and a > 0.0:
                         # 2026-10-22: the weights from the fit block's s
-                        th = fit_std(Xf, yf, self._locked, kind, a, l1, pf)[0]
+                        th = fit_std(
+                            Xf, yf, self._locked, kind, a, l1, pf, self.ev_ref
+                        )[0]
                     elif kind == "ridge":
                         D = np.where(self._locked, 0.0, a * pf)
                         G = Xf.T @ Xf
@@ -1527,6 +1577,8 @@ def walk(a) -> None:
         names = list(hyperparams["_feature_names"])
         names_seen.append(names)
         Cls.bb = backbone_mask(names)
+        if hasattr(Cls, "ev_ref"):  # 2026-10-22 (evidence mask, addendum 2)
+            Cls.ev_ref = evid_ref(names, Cls.bb)
         Base.trace, Base.mask_trace, Base.reseed_trace = [], [], []
         if hasattr(Cls, "kkt_rows"):  # 2026-10-22 (WALK_KKT_RESEED)
             Cls.kkt_rows, Cls.kkt_reseeds, Cls.kkt_sec = [], [], [0.0, 0.0]
@@ -1705,9 +1757,12 @@ def pretune(a) -> None:
             if STANDARDIZE_PENALTY:
                 # 2026-10-22: the weights from this fold's fit block (fit_std: s of Xf, the s < STD_MIN and evidence-
                 # mask columns out)
-                sw_f = std_weights(Xf, locked)
+                ref = evid_ref(names, bb)  # addendum 2
+                sw_f = std_weights(Xf, locked, ref)
                 for kind, al, l1 in grid:
-                    th, s_f, out_f = fit_std(Xf, yf, locked, kind, al, l1, pf, sw_f)
+                    th, s_f, out_f = fit_std(
+                        Xf, yf, locked, kind, al, l1, pf, ref, sw_f
+                    )
                     res.append(Xv @ th - yv)
                 sd = s_f[~out_f & ~locked]
                 std_fold = dict(
