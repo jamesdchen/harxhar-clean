@@ -109,3 +109,14 @@ errors); binary copied from `/home1/jc_905/pm13/bin` (md5 44ab6fff).
   V100 / A100 / L40S gates still pending.
 - 2026-10-23 08:09 PDT: walk jobs for the W 3,000 full set written (13328148: 169,850 refits, 34 blocks; inits for
   all 33,970 bar origins, 13328147); timing probe 13328546 (debug P100: 24 origins x 5 seeds at CONC 6 / 12 / 24).
+- 2026-10-23 08:20-08:25 PDT: paused by the owner (local feeder loop stopped; nothing cancelled); resumed 08:27.
+- Probe 13328546 (debug P100, W 3,000 full set, 24 bar origins x 5 seeds, 35 epochs): CONC 6 292.8 s (2.44 P100-s a
+  refit), CONC 12 244.4 s (2.04), CONC 24 244.7 s (2.04); forecasts text-identical across 6 / 12 / 24 -> the walk runs
+  at CONC 24 (the highest identical). Projected full-set bar walk 169,850 x 2.04 s = 96 P100-hours. The 34 blocks are
+  cut into 68 halves (walk_all_features.b<k>a / b, 500 bar origins each, INITSUB bar_b<k>), at the head of the gpu
+  submit queue (gpu_queue2.txt), time limit 1:56.
+- Throughput (coordinator): experiments/pooled_mingru_final_tlim.py sets every file's time limit to its expected
+  runtime (jobs x the median measured P100-s a job of its (set, H, L); unmeasured cells: the cost model x 1.6) x 1.3
+  + 5 min; 86 pending jobs lowered by scontrol (none cancelled); the submit feeder reads the same map. V100 gate
+  (13324299, d13-08) FAILED like the A40: the binary segfaults at start. A100 / L40S gates pending (limits 20 min).
+  Tune concurrency test 13329097 (debug): round-0 shards rerun at higher CONC, compared with the stored runs.

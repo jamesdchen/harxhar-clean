@@ -1,7 +1,8 @@
 #!/bin/bash
 # 2026-10-23 final pooled MinGRU: keep the gpu partition's per-user submit limit (QOS gpu: 100 submitted, 36 running)
 # filled with the tune files still waiting to be submitted.  Each run submits the next lines of the queue file
-# (<root> <jobs file> <conc> <time limit> <nice> <debug-eligible 0|1>) while fewer than LIMIT of our jobs are in the
+# (<root> <jobs file> <conc> <time limit> <nice> <debug-eligible 0|1> [<sub tune|refit> <initsub>]) while fewer than
+# LIMIT of our jobs are in the
 # gpu partition; a debug-eligible file is also appended to the debug feeder's queue (pooled_mingru_final_debug_feed.sh
 # moves it to the debug partition if it is still pending there when a debug slot frees).
 #   usage (CARC login node, repeatedly): bash pooled_mingru_final_gpu_feed.sh [queue file]
@@ -15,10 +16,15 @@ n=$(squeue -u jc_905 -p gpu -h | wc -l)
 while [ "$n" -lt "$LIMIT" ]; do
   line=$(grep -v -x -F -f "$DONE" "$Q" | head -1)
   [ -z "$line" ] && break
-  read -r root file conc tl nice dbg <<< "$line"
+  read -r root file conc tl nice dbg sub isub <<< "$line"
+  sub=${sub:-tune}; isub=${isub:-}
+  # 2026-10-23: the measured time limit (experiments/pooled_mingru_final_tlim.py) when the map has the file
+  t2=$(awk -v f="$root/inputs/$file" '$1 == f {print $2}' /home1/jc_905/pmf/tlim_map.txt 2>/dev/null)
+  [ -n "$t2" ] && tl=$t2
   tag=${file%.txt}; tag=${tag//./_}
-  id=$(sbatch --parsable --job-name=pmft --mem=24G --time="$tl" --nice="$nice" -o "$root/logs/%x_%j.out" \
-       --export=NONE,ROOT=$root,JOBS=$file,SUB=tune,TAG=$tag,CONC=$conc,GPUTYPE=P100,POST=pooled_mingru_final_post_check.py $G) || break
+  jn=pmft; [ "$sub" = refit ] && jn=pmfw
+  id=$(sbatch --parsable --job-name=$jn --mem=24G --time="$tl" --nice="$nice" -o "$root/logs/%x_%j.out" \
+       --export=NONE,ROOT=$root,JOBS=$file,SUB=$sub,TAG=$tag,CONC=$conc,INITSUB=$isub,GPUTYPE=P100,POST=pooled_mingru_final_post_check.py $G) || break
   echo "$file $id" >> "$root/inputs/submitted.txt"
   [ "$dbg" = 1 ] && echo "$root $file $conc $id" >> /home1/jc_905/pmf/debug_queue.txt
   echo "$line" >> "$DONE"
