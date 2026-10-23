@@ -961,7 +961,9 @@ def st_check_run(a: argparse.Namespace) -> None:
                 bad.append(
                     (j["id"], "n_inputs", int(j["n_inputs"]), keepn.get((s, "tune")))
                 )
-    f = pr["f"].to_numpy(float)
+    f = pr.loc[pr["kind"].isin(["fc", "val"]), "f"].to_numpy(
+        float
+    )  # the forecast (fc_lin: the shortcut alone)
     res = dict(
         run=str(run),
         n_jobs=int(len(jo)),

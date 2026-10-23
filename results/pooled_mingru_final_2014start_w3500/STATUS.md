@@ -23,3 +23,6 @@ Owner, 2026-10-22 (relayed): "Test mingru 3.5k as well". Rule: `RULE_gru.txt` (t
   pooled_mingru_final_probe.py) at concurrency C, 2C, 4C with a bit-identity check. Projection sent to the
   coordinator (from the previous run's P100 walk logs scaled by window rows): about 175 P100-hours for the four bar
   walks at 10 epochs (W 3,000 full ~46, HAR ~34; W 3,500 full ~54, HAR ~39), more if the tuned H or L is large.
+- 2026-10-23 00:23 PDT: gate PASS (see the W 3,000 STATUS.md); W 3,500 canaries pass (13320230 tune; 13320231 refit,
+  rechecked on CPU 13322495 after the fc_lin check bug: keep and rows correct); the 38 round-0 tune jobs
+  13320232-69 released (nice 1000).

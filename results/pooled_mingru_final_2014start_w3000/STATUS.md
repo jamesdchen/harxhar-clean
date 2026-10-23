@@ -33,3 +33,19 @@ errors); binary copied from `/home1/jc_905/pm13/bin` (md5 44ab6fff).
   pooled_mingru_final_probe.py) at concurrency C, 2C, 4C with a bit-identity check. Projection sent to the
   coordinator (from the previous run's P100 walk logs scaled by window rows): about 175 P100-hours for the four bar
   walks at 10 epochs (W 3,000 full ~46, HAR ~34; W 3,500 full ~54, HAR ~39), more if the tuned H or L is large.
+- 2026-10-23 00:11-00:18 PDT: gate 13319779 (tune, d23-14) and 13319780 (refit, e21-09): the trainer finished (pool
+  phase 6.1 s for the 6 tune jobs) and the outputs were copied back and md5-checked, but the POST python (the
+  /scratch1 env) died with a bus error on both GPU nodes, so both jobs show FAILED. The same gate script was rerun on
+  CPU nodes (13322463 a03-13, 13322495 a01-12): GATE PASS for both. Tune: the previous frozen configurations on
+  fold 3 (3 seeds a set, 9,750 validation forecasts a set) are text-identical row by row to the stored runs
+  (13303258, 13303117), every best epoch equal (HAR 11/10/10, full 12/10/11), seed-mean validation QLIKE 0.12224961394006083
+  (HAR) and 0.10838531784708406 (full) = the stored pretune_qlike_folds.csv values (relative 2e-16, 7e-16: the
+  CSV text). Refit: the first walk origin (row 44,250, 3 seeds a set, 1,536 forecast rows a set) text-identical to
+  the stored walk runs (13303665, 13303659).
+- Canaries: 13319943 (tune, e21-07) and 13320230 (W 3,500 tune) COMPLETED; 13319944 / 13320231 (refits) FAILED only
+  on a check-run bug (it tested positivity on the fc_lin rows, the linear shortcut alone, which can be negative);
+  fixed (fc / val rows only) and rerun on CPU (13322495): all four canaries pass (status ok, trainer kept columns =
+  the ridge init's: 293 at the first and 345 at the last origin on the full set at W 3,000; rows exactly [o, next)).
+- 2026-10-23 00:23 PDT: the 76 held round-0 tune jobs (W 3,000 13319945-82, W 3,500 13320232-69) released
+  (dependency cleared after the CPU checks); every pending job also excludes d23-14 (a Lustre bus error there today
+  and on 2026-10-22).
