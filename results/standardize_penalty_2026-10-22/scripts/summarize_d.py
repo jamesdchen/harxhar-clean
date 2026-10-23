@@ -44,6 +44,7 @@ for m in ("ridge", "lasso", "enet"):
             repair_on=pt_on["repair"],
             std_left_out_beyond_mask_per_fold=[f.get("std_left_out_beyond_mask") for f in pt_on["folds"]],
             std_left_out_columns_fold3=(pt_on["folds"][-1].get("std_left_out_columns") or [])[:60],
+            std_binom_per_fold=[f.get("std_binom") for f in pt_on["folds"]],
             s_quantiles_5_50_95_per_fold=[f.get("std_s_quantiles_5_50_95") for f in pt_on["folds"]],
         )
 rep["select"] = sel
@@ -100,6 +101,13 @@ for m, c, est in (("lasso", 0, "reclasso"), ("enet", 2, "reclasticnet"), ("ridge
         evidence_out_top_columns_seeds=run.get("std_evid_out_top_columns_seeds"),
         evidence_reseeds=run.get("std_evid_reseeds"),
         evidence_reseed_columns=run.get("std_evid_reseed_columns"),
+        binom_per_seed_median=run.get("std_binom_per_seed_median"),
+        binom_per_seed_max=run.get("std_binom_per_seed_max"),
+        binom_columns_seeds=run.get("std_binom_columns_seeds"),
+        binom_reseeds=run.get("std_binom_reseeds"),
+        binom_reseed_columns=run.get("std_binom_reseed_columns"),
+        ridge_max_binom_per_bar=run.get("std_ridge_max_binom_per_bar"),
+        wall_ratio_on_off_same_session=round(run["wall_sec"] / off["wall_sec"], 2),
         wall_sec_on=round(run["wall_sec"], 1),
         wall_sec_on_less_blockend_diagnostic=round(run["wall_sec"] - run.get("std_blockend_sec", 0.0), 1),
         wall_sec_off_same_session=round(off["wall_sec"], 1),
@@ -121,9 +129,10 @@ for m, c, est in (("lasso", 0, "reclasso"), ("enet", 2, "reclasticnet"), ("ridge
             blockend_sec=run.get("std_blockend_sec"),
             repair=run["repair"],
         )
-        B = z["std_blockend"]
-        dd = np.abs(B[:, 2] - B[:, 1]) / np.abs(B[:, 1])
-        w["blockend_rel_dforecast_quantiles_50_90_99"] = [float(v) for v in np.quantile(dd, [0.5, 0.9, 0.99])]
+        if "std_blockend" in z.files:
+            B = z["std_blockend"]
+            dd = np.abs(B[:, 2] - B[:, 1]) / np.abs(B[:, 1])
+            w["blockend_rel_dforecast_quantiles_50_90_99"] = [float(v) for v in np.quantile(dd, [0.5, 0.9, 0.99])]
     else:
         R = z["std_ridge"]
         w |= dict(
