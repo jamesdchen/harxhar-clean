@@ -1,0 +1,145 @@
+{
+ "code_commit": "6c264b71b38cf6daf72496ccc2348ee787a99033",
+ "branch": "insurance-selling-2026-09-19-e34-wsweep",
+ "code_note": "e34 8898522 (LATE_START_WARMUP, EXCLUDE_FOMC_RELEASE, UNOBSERVED_NEUTRAL, WALK_KKT_RESEED, STANDARDIZE_PENALTY final -- scaled coordinates + binomial availability rule, grid rule -- on by default) + the --first-fold option (818b153)",
+ "first_day": "2016-01-04",
+ "cluster": "CARC Discovery (USC), Slurm account pollok_1603, partition main, --constraint epyc-7513|epyc-7542",
+ "window_days": 4000,
+ "first_fold": 3,
+ "environment": {
+  "python": "3.12.3 (uv)",
+  "numpy": "1.26.4 (OpenBLAS 0.3.23.dev)",
+  "numba": "0.68.0",
+  "pandas": "2.3.3",
+  "scipy": "1.17.1",
+  "OPENBLAS_CORETYPE": "Prescott (run B's kernel on the laptop)",
+  "NPY_DISABLE_CPU_FEATURES": "AVX512 targets where the node has them (none on EPYC)",
+  "threads": "1 per runner process (the orchestrator's run())"
+ },
+ "runner_cfg": [
+  "--sample",
+  "rth13",
+  "--har-base",
+  "5",
+  "--ex-flag",
+  "DROP_ACTIVITY_MA=1",
+  "--ex-flag",
+  "CALENDAR_THROUGH_OVERNIGHT=1",
+  "--ex-flag",
+  "DROP_OVERNIGHT_INDICATOR=1",
+  "--ex-flag",
+  "LEAN_GLOBAL_LAGS=1",
+  "--window-days",
+  "4000",
+  "--ex-flag",
+  "LATE_START_WARMUP=1"
+ ],
+ "folds": [
+  {
+   "fit": [
+    1767,
+    53767
+   ],
+   "val": [
+    54092,
+    57342
+   ],
+   "val_first": "2015-01-07 11:30:00",
+   "val_last": "2015-12-31 16:00:00",
+   "fold": 3
+  }
+ ],
+ "rule": "one penalty a model, the lowest mean validation MSE (adjusted scale, all 13 bars) over pre-sample folds 3 .. 3 of 4; frozen over the evaluation span",
+ "stages": {
+  "design": {
+   "wall_sec": 312,
+   "nodes": [
+    {
+     "stage": "design",
+     "host": "a03-11.hpc.usc.edu",
+     "cpu": "AMD EPYC 7513 32-Core Processor",
+     "slurm_job": "13317892",
+     "start": "Thu Oct 22 19:39:33 PDT 2026"
+    }
+   ]
+  },
+  "pretune_select": {
+   "wall_sec": 24,
+   "nodes": [
+    {
+     "stage": "pretune_select",
+     "host": "a02-12.hpc.usc.edu",
+     "cpu": "AMD EPYC 7513 32-Core Processor",
+     "slurm_job": "13318302",
+     "start": "Thu Oct 22 20:01:24 PDT 2026"
+    }
+   ]
+  },
+  "walk": {
+   "tasks": 14,
+   "max_task_wall_sec": 277,
+   "sum_task_sec": 2013,
+   "nodes": [
+    [
+     "a01-11.hpc.usc.edu",
+     "AMD EPYC 7513 32-Core Processor"
+    ],
+    [
+     "b04-19.hpc.usc.edu",
+     "AMD EPYC 7513 32-Core Processor"
+    ],
+    [
+     "b05-04.hpc.usc.edu",
+     "AMD EPYC 7513 32-Core Processor"
+    ],
+    [
+     "b09-08.hpc.usc.edu",
+     "AMD EPYC 7513 32-Core Processor"
+    ],
+    [
+     "b09-16.hpc.usc.edu",
+     "AMD EPYC 7513 32-Core Processor"
+    ],
+    [
+     "b09-17.hpc.usc.edu",
+     "AMD EPYC 7513 32-Core Processor"
+    ],
+    [
+     "b10-21.hpc.usc.edu",
+     "AMD EPYC 7513 32-Core Processor"
+    ],
+    [
+     "b22-07.hpc.usc.edu",
+     "AMD EPYC 7542 32-Core Processor"
+    ],
+    [
+     "b22-09.hpc.usc.edu",
+     "AMD EPYC 7542 32-Core Processor"
+    ],
+    [
+     "b22-30.hpc.usc.edu",
+     "AMD EPYC 7542 32-Core Processor"
+    ]
+   ]
+  },
+  "score": {
+   "wall_sec": 2,
+   "nodes": [
+    {
+     "stage": "score",
+     "host": "a02-16.hpc.usc.edu",
+     "cpu": "AMD EPYC 7513 32-Core Processor",
+     "slurm_job": "13318468",
+     "start": "Thu Oct 22 20:15:10 PDT 2026"
+    }
+   ]
+  }
+ },
+ "design_log_scale_lines": {
+  "baseline": [],
+  "all_features": [
+   "[scale] late-start warm-up: 61 columns, 5097084 values set to 0 (window 52000 rows)",
+   "[scale] unobserved-neutral: 134 columns, 2492143 values set to 0 (2439117 were 0 already)"
+  ]
+ }
+}

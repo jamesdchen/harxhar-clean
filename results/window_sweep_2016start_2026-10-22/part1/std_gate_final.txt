@@ -1,0 +1,15 @@
+frozen penalties author: {'ridge': {'baseline': 0.001, 'all_features': 10000.0}, 'lasso': {'baseline': 1e-07, 'all_features': 0.001}, 'enet': {'baseline': 1e-07, 'all_features': 0.01}}
+frozen penalties CARC:   {'ridge': {'baseline': 0.001, 'all_features': 10000.0}, 'lasso': {'baseline': 1e-07, 'all_features': 0.001}, 'enet': {'baseline': 1e-07, 'all_features': 0.01}}
+equal: True
+grid extensions equal: True | off-spec grid equal: True | standardize_penalty: True True
+mse_fold0: max rel diff 3.39e-12 (median 0.00e+00); bit for bit rows 23 of 38
+mse_fold1: max rel diff 1.79e-12 (median 0.00e+00); bit for bit rows 28 of 38
+mse_fold2: max rel diff 7.28e-13 (median 0.00e+00); bit for bit rows 27 of 38
+mse_fold3: max rel diff 1.57e-12 (median 0.00e+00); bit for bit rows 26 of 38
+mse_mean: max rel diff 1.15e-12 (median 0.00e+00); bit for bit rows 27 of 38
+ridge/baseline: picked 0.001; criterion author 0.066484895352 CARC 0.066484895352
+lasso/baseline: picked 1e-07; criterion author 0.066484896572 CARC 0.066484896572
+enet/baseline: picked 1e-07; criterion author 0.066484896068 CARC 0.066484896068
+ridge/all_features: picked 10000; criterion author 0.061872635860 CARC 0.061872635860
+lasso/all_features: picked 0.001; criterion author 0.061753078768 CARC 0.061753078768
+enet/all_features: picked 0.01; criterion author 0.061746735099 CARC 0.061746735099

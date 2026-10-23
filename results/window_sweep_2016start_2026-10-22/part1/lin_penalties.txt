@@ -1,0 +1,22 @@
+
+2016 start, fold 3: frozen penalty [grid rule: added; status]
+| arm | 1,000 | 1,500 | 2,000 | 2,500 | 3,000 | 3,500 | 4,000 |
+|---|---|---|---|---|---|---|---|
+| ridge HAR | 1e-3 [+1e-3; flat] | 1e-3 [+1e-3; flat] | 1e-3 [+1e-3; flat] | 1e-3 [+1e-3; flat] | 1e-3 [+1e-3; flat] | 1e-3 [+1e-3; flat] | 1e-3 [+1e-3; flat] |
+| ridge full | 1e5 [+1e4,1e5,1e6; interior] | 1e5 [+1e4,1e5,1e6; interior] | 1e5 [+1e4,1e5,1e6; interior] | 1e5 [+1e4,1e5,1e6; interior] | 1e4 [+1e4,1e5; interior] | 1e4 [+1e4,1e5; interior] | 1e3 [+1e4; interior] |
+| lasso HAR | 1e-4 [interior] | 1e-7 [+1e-7; flat] | 1e-8 [+1e-8,1e-7; flat] | 1e-8 [+1e-8,1e-7; flat] | 1e-7 [+1e-7; flat] | 1e-7 [+1e-7; flat] | 1e-7 [+1e-7; flat] |
+| lasso full | 1e-2 [+1e-1; interior] | 1e-2 [+1e-1; interior] | 1e-2 [+1e-1; interior] | 1e-2 [+1e-1; interior] | 1e-2 [+1e-1; interior] | 1e-2 [+1e-1; interior] | 1e-2 [+1e-1; interior] |
+| enet HAR | 1e-3 [interior] | 1e-7 [+1e-7; flat] | 1e-7 [+1e-7; flat] | 1e-7 [+1e-7; flat] | 1e-7 [+1e-7; flat] | 1e-7 [+1e-7; flat] | 1e-7 [+1e-7; flat] |
+| enet full | 1e-2 [+1e-1; interior] | 1e-2 [+1e-1; interior] | 1e-2 [+1e-1; interior] | 1e-2 [+1e-1; interior] | 1e-2 [+1e-1; interior] | 1e-2 [+1e-1; interior] | 1e-2 [+1e-1; interior] |
+first_fold: {1000: 3, 1500: 3, 2000: 3, 2500: 3, 3000: 3, 3500: 3, 4000: 3} std: {1000: True, 1500: True, 2000: True, 2500: True, 3000: True, 3500: True, 4000: True}
+
+2014 start, fold 3: frozen penalty [grid rule: added; status]
+| arm | 1,000 | 1,500 | 2,000 | 2,500 | 3,000 | 3,500 |
+|---|---|---|---|---|---|---|
+| ridge HAR | 1e-3 [+1e-3; flat] | 1e-3 [+1e-3; flat] | 1e-3 [+1e-3; flat] | 1e-3 [+1e-3; flat] | 1e-3 [+1e-3; flat] | 1e-3 [+1e-3; flat] |
+| ridge full | 1e4 [+1e4,1e5; interior] | 1e4 [+1e4,1e5; interior] | 1e3 [+1e4; interior] | 1e3 [+1e4; interior] | 1e3 [+1e4; interior] | 1e3 [+1e4; interior] |
+| lasso HAR | 1e-7 [+1e-7; flat] | 1e-8 [+1e-8,1e-7; flat] | 1e-8 [+1e-8,1e-7; flat] | 1e-8 [+1e-8,1e-7; flat] | 1e-8 [+1e-8,1e-7; flat] | 1e-8 [+1e-8,1e-7; flat] |
+| lasso full | 1e-3 [interior] | 1e-3 [interior] | 1e-4 [interior] | 1e-3 [interior] | 1e-4 [interior] | 1e-4 [interior] |
+| enet HAR | 1e-7 [+1e-7; flat] | 1e-7 [+1e-7; flat] | 1e-7 [+1e-7; flat] | 1e-7 [+1e-7; flat] | 1e-7 [+1e-7; flat] | 1e-7 [+1e-7; flat] |
+| enet full | 1e-2 [+1e-1; interior] | 1e-3 [interior] | 1e-3 [interior] | 1e-3 [interior] | 1e-3 [interior] | 1e-3 [interior] |
+first_fold: {1000: 3, 1500: 3, 2000: 3, 2500: 3, 3000: 3, 3500: 3} std: {1000: True, 1500: True, 2000: True, 2500: True, 3000: True, 3500: True}

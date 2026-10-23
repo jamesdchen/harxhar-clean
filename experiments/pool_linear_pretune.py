@@ -1947,7 +1947,13 @@ def pretune(a) -> None:
     t_wall = time.time()
     ns = spec_section(a.est, a.bucket, a.start, a.start + 1, a.halo)
     fold_n, emb = PRE_FOLD_SESS * PERIODS_PER_DAY, PRE_EMBARGO_SESS * PERIODS_PER_DAY
-    assert a.halo == PRE_FOLDS * fold_n + emb + W, a.halo
+    # 2026-10-22 (user, window sensitivity at 1,500 .. 3,000 days): --first-fold F fits only folds F .. PRE_FOLDS-1
+    # (fold f's validation rows stay start - (PRE_FOLDS - f) * fold_n .. start - (PRE_FOLDS - 1 - f) * fold_n, as
+    # with F = 0); the halo covers those folds only.  F = 0 (default) is the code above unchanged.  Was:
+    # assert a.halo == PRE_FOLDS * fold_n + emb + W, a.halo
+    F = a.first_fold
+    assert 0 <= F < PRE_FOLDS, F
+    assert a.halo == (PRE_FOLDS - F) * fold_n + emb + W, a.halo
     # 2026-10-22: --grid-alphas (the orchestrator's grid extensions)
     grid = grid_of(ns, a)
     Base = ns["RollingTunedLinear"]
@@ -1967,7 +1973,8 @@ def pretune(a) -> None:
         pf = np.ones(Xall.shape[1])
         pf[:-1][bb] = a.r
         e_all, info = [], []
-        for f in range(PRE_FOLDS):
+        # 2026-10-22 (--first-fold); was: for f in range(PRE_FOLDS):
+        for f in range(F, PRE_FOLDS):
             v1 = n - (PRE_FOLDS - 1 - f) * fold_n
             v0 = v1 - fold_n
             f0, f1 = v0 - emb - W, v0 - emb
@@ -2174,6 +2181,9 @@ def main() -> None:
     # 2026-10-22 (user): fomc_release back in all_features although EXCLUDE_FOMC_RELEASE is on (the late-start rerun
     # against the published 576-column run); default off
     ap.add_argument("--keep-fomc-release", action="store_true")
+    # 2026-10-22 (user, window sensitivity at 1,500 .. 3,000 days): pretune: the first pre-sample fold fitted (the
+    # folds before it have a fit window that starts before the design's first row); default 0, every fold
+    ap.add_argument("--first-fold", type=int, default=0)
     # 2026-10-22 (James: "add the KKT check flag"): src/models/reclasso_har.py WALK_KKT_RESEED for the walk (0 = off,
     # the walk before the flag bit for bit; 1 = on); empty = the module's default (on).  The walk's numerics only: not
     # part of the design cache's config

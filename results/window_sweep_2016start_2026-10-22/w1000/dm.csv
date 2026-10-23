@@ -1,0 +1,21 @@
+model,predictor_set,against,dm_qlike,dm_qlike_p,dm_qlike_mean_diff,dm_se,dm_se_p,dm_T,dm_hac_lag,note
+ridge,baseline,ols_rerun_13,-3.194327557617453,0.0014015699047132417,-3.566514384911365e-09,0.510230953674016,0.6098896689324851,1082.0,6.0,
+ridge,baseline,sub_ols_baseline,,,,,,,,results/linear_subsection_dedup/baseline/bar1600/reclasso/tw2000/causal_tune_linear/incumbent_ols/results_bar1600.csv not in the repo
+ridge,baseline,printed:poolpt_ridge_baseline,,,,,,,,results/spxw_pnl/yhat_poolpt_ridge_baseline.parquet not in the repo
+lasso,baseline,ols_rerun_13,-5.396125627025854,6.809527679501514e-08,-9.108622304645811e-05,-1.3428953122592,0.1793058745730206,1082.0,6.0,
+lasso,baseline,sub_ols_baseline,,,,,,,,results/linear_subsection_dedup/baseline/bar1600/reclasso/tw2000/causal_tune_linear/incumbent_ols/results_bar1600.csv not in the repo
+lasso,baseline,printed:poolpt_lasso_baseline,,,,,,,,results/spxw_pnl/yhat_poolpt_lasso_baseline.parquet not in the repo
+enet,baseline,ols_rerun_13,-5.661452460554238,1.5009709052284905e-08,-0.0004910690519517525,-1.3757376400602201,0.16890287414376975,1082.0,6.0,
+enet,baseline,sub_ols_baseline,,,,,,,,results/linear_subsection_dedup/baseline/bar1600/reclasso/tw2000/causal_tune_linear/incumbent_ols/results_bar1600.csv not in the repo
+enet,baseline,printed:poolpt_enet_baseline,,,,,,,,results/spxw_pnl/yhat_poolpt_enet_baseline.parquet not in the repo
+ridge,all_features,ols_rerun_13,-2.1882632445754426,0.028650432593327155,-0.004614903198912539,0.10005462612419147,0.9203009576061014,1082.0,6.0,
+ridge,all_features,sub_ols_baseline,,,,,,,,results/linear_subsection_dedup/baseline/bar1600/reclasso/tw2000/causal_tune_linear/incumbent_ols/results_bar1600.csv not in the repo
+ridge,all_features,printed:poolpt_ridge_all_features,,,,,,,,results/spxw_pnl/yhat_poolpt_ridge_all_features.parquet not in the repo
+lasso,all_features,ols_rerun_13,-0.9315551800152454,0.3515664551247475,-0.002378317224372145,1.2903200511020616,0.19693955785676778,1082.0,6.0,
+lasso,all_features,sub_ols_baseline,,,,,,,,results/linear_subsection_dedup/baseline/bar1600/reclasso/tw2000/causal_tune_linear/incumbent_ols/results_bar1600.csv not in the repo
+lasso,all_features,printed:poolpt_lasso_all_features,,,,,,,,results/spxw_pnl/yhat_poolpt_lasso_all_features.parquet not in the repo
+enet,all_features,ols_rerun_13,-0.7339025578421349,0.4630081280534553,-0.002457700530140911,1.3293962207610646,0.18371728402395296,1082.0,6.0,
+enet,all_features,sub_ols_baseline,,,,,,,,results/linear_subsection_dedup/baseline/bar1600/reclasso/tw2000/causal_tune_linear/incumbent_ols/results_bar1600.csv not in the repo
+enet,all_features,printed:poolpt_enet_all_features,,,,,,,,results/spxw_pnl/yhat_poolpt_enet_all_features.parquet not in the repo
+ols,baseline,sub_ols_baseline,,,,,,,,results/linear_subsection_dedup/baseline/bar1600/reclasso/tw2000/causal_tune_linear/incumbent_ols/results_bar1600.csv not in the repo
+ols,baseline,printed:a0,,,,,,,,results/spxw_pnl/yhat_a0.parquet not in the repo
