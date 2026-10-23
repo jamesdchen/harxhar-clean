@@ -73,6 +73,7 @@ def make(m: str, g0: int):
     Base.trace, Base.mask_trace, Base.reseed_trace = [], [], []
     Cls = P.make_class(ns, 0.01, P.ConstSched(a), g0, [])
     Cls.bb = bb
+    Cls.ev_ref = P.evid_ref(names, bb)
     Cls.kkt_rows, Cls.kkt_reseeds, Cls.kkt_sec = [], [], [0.0, 0.0]
     Cls.std_seeds, Cls.std_ridge, Cls.std_blockend = [], [], []
     Cls.std_evid_reseeds = []
@@ -105,12 +106,24 @@ for m in EST:
     Xa[:, probe._maskout] = 0.0
     n = len(yr)
     s = np.std(Xa, axis=0)
-    evid = np.array([len(c) - np.unique(c, return_counts=True)[1].max() for c in Xa.T])
+    own = np.array([len(c) - np.unique(c, return_counts=True)[1].max() for c in Xa.T])
+    evid = np.full(p + 1, 10**9)  # addendum 2, independently: the variable's k = 1 column of the same kind
+    for j, nm in enumerate(names):
+        if bb[j]:
+            continue
+        if nm.startswith("adj_"):
+            k1 = nm.rsplit("_ma_", 1)[0] + "_ma_1"
+        elif "_avail_ma_" in nm:
+            k1 = nm.split("_avail_ma_")[0] + "_avail_ma_1"
+        else:
+            k1 = nm
+        evid[j] = own[names.index(k1)] if k1 in names else 0
     out = ~locked & ((s < P.STD_MIN) | (evid < P.STD_MIN_EVIDENCE))
     walk_out = np.isnan(rg._sd_seed) & ~locked
     sc = np.where(out | locked, 1.0, s)
-    Z = Xa / sc
-    Z[:, out] = 0.0
+    mc = np.where(locked, 0.0, Xa.mean(axis=0))  # explicit: centre and scale (window mean and s.d.)
+    Z = (Xa - mc) / sc
+    Z[:, out] = 0.0  # (the intercept column stays 1)
     rep0 = dict(P.REPAIR)
     t0 = time.time()
     if kind == "ridge":
@@ -123,35 +136,48 @@ for m in EST:
     else:
         g = P.batch_theta_pf(ns, Z, yr, locked, a, l1, pf)
         mu, lam2 = n * a * l1, n * a * (1.0 - l1)
-        # the weighted problem (the walk's own state) and the explicit problem on Z
+        # the weighted problem (the walk's own centred state) and the explicit problem on Z
         kk_w = kkt_rel(rg._Gr, rg._c, rg._mu_vec, th)
         Gz = Z.T @ Z
         ei = np.flatnonzero(~locked)
         Gz[ei, ei] += lam2 * pf[ei]
         kk_e = kkt_rel(Gz, Z.T @ yr, np.where(locked, 0.0, mu * pf), g)
     t_e = time.time() - t0
-    beta = g / sc
-    sup = (np.abs(beta) > 0) | (np.abs(th) > 0)
+    beta = g / sc  # back-transform: slopes gamma / s, intercept gamma_0 - sum_j m_j beta_j
+    beta[-1] = g[-1] - mc @ beta
+    th_w = th.copy()  # the walk's centred coordinates -> the original ones
+    th_w[-1] -= rg._ctr @ th
+    # the uncentred solution of the same problem, same estimator (raw masked columns; the mask applied)
+    Xu = Xa.copy()
+    Xu[:, out] = 0.0
+    if kind == "ridge":
+        th_u = P.ridge_keep(Xu.T @ Xu, Xu.T @ yr, np.where(locked, 0.0, a * pf * sc * sc), ~out)
+    else:
+        th_u = P.batch_theta_w(Xu, yr, locked, a, l1, pf * sc, pf * sc * sc)
     xn = np.append(X[o], 1.0)
-    xn[out] = 0.0
+
+    def cmp(u, v):
+        sup = (np.abs(u) > 0) | (np.abs(v) > 0)
+        sl = ~locked
+        return dict(
+            normwise_slopes=float(np.abs(u - v)[sl].max() / np.abs(v[sl]).max()),
+            max_rel_on_support=float((np.abs(u - v)[sup] / np.maximum(np.abs(v)[sup], 1e-300)).max()),
+            intercept_rel=float(abs(u[-1] - v[-1]) / abs(v[-1])),
+            forecast_rel=float(abs(xn @ u - xn @ v) / abs(xn @ v)),
+            support_equal=bool(np.array_equal(u[sl] != 0, v[sl] != 0)),
+        )
+
     rb[m] = dict(
         origin=o,
         alpha=a,
         masked_identifiability=int(probe._maskout.sum()),
         evidence_out_beyond_mask_explicit=int((out & ~probe._maskout).sum()),
         evidence_out_sets_equal_walk_vs_explicit=bool(np.array_equal(walk_out, out)),
-        evidence_out_columns=[names[j] for j in np.flatnonzero(out & ~probe._maskout)][:40],
-        nnz_weighted=int((th != 0).sum()),
-        nnz_explicit=int((beta != 0).sum()),
-        support_equal=bool(np.array_equal(th != 0, beta != 0)),
-        max_abs_dtheta_over_max_abs_theta=float(np.abs(th - beta).max() / np.abs(beta).max()),
-        max_rel_dtheta_on_support=float(
-            (np.abs(th - beta)[sup] / np.maximum(np.abs(beta)[sup], 1e-300)).max()
-        ),
-        forecast_next_row_weighted=float(xn @ th),
-        forecast_next_row_explicit=float(xn @ beta),
-        forecast_rel_diff=float(abs(xn @ th - xn @ beta) / abs(xn @ beta)),
-        kkt_weighted_ok_rel=kk_w,
+        evidence_out_columns=[names[j] for j in np.flatnonzero(out & ~probe._maskout)][:60],
+        nnz_slopes=int((th_w[:-1] != 0).sum()),
+        walk_vs_explicit_standardized=cmp(th_w, beta),
+        walk_vs_uncentred_same_problem=cmp(th_w, th_u),
+        kkt_walk_centred_ok_rel=kk_w,
         kkt_explicit_ok_rel=kk_e,
         repair_explicit={k2: P.REPAIR[k2] - rep0[k2] for k2 in P.REPAIR},
         s_quantiles_5_50_95=[float(v) for v in np.quantile(s[~out & ~locked], [0.05, 0.5, 0.95])],
@@ -170,7 +196,9 @@ def short_walk(m: str, Xs, ys, o: int, nsolve: int):
     class Rec(Cls):
         def solve(self):
             super().solve()
-            ths.append(self._th.copy())
+            th = self._th.copy()
+            th[-1] -= self._ctr @ th  # the centred state (addendum 2) -> the original coordinates
+            ths.append(th)
 
     bt = ns["MultiStageBacktest"](
         residualizer=ns["IdentityResidualizer"](), regressor_factory=Rec, refit_frequency=1
@@ -230,7 +258,9 @@ for m in EST:
             pr_._locked = locked
             pr_._recompute_mask(np.hstack([X[blk0 - W : blk0], np.ones((W, 1))]))
             Xw[:, pr_._maskout] = 0.0
-            tb = P.fit_std(Xw, y[t - W : t], locked, "ridge", float(fr["ridge"]["all_features"]), 0.0, pf)[0]
+            tb = P.fit_std(
+                Xw, y[t - W : t], locked, "ridge", float(fr["ridge"]["all_features"]), 0.0, pf, P.evid_ref(names, bb)
+            )[0]
             worst = max(worst, float(np.abs(th0[i] - tb).max() / np.abs(tb).max()))
             xn = np.append(X[t], 1.0)
             worst_f = max(worst_f, float(abs(xn @ th0[i] - xn @ tb) / abs(xn @ tb)))

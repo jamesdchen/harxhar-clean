@@ -29,14 +29,26 @@ def rel(a, b):
     return float(np.abs(a - b).max() / max(np.abs(b).max(), 1e-300))
 
 
-def evidence(Xa):
-    """rows off the modal value, by np.unique counts (independent of P.col_mode)"""
-    return np.array([len(c) - np.unique(c, return_counts=True)[1].max() for c in Xa.T])
+def evidence(Xa, names, bb):
+    """addendum 2, independently: rows off the modal value (np.unique counts) of the variable's k = 1 column"""
+    own = np.array([len(c) - np.unique(c, return_counts=True)[1].max() for c in Xa.T])
+    ev = np.full(Xa.shape[1], 10**9)
+    for j, nm in enumerate(names):
+        if bb[j]:
+            continue
+        if nm.startswith("adj_"):
+            k1 = nm.rsplit("_ma_", 1)[0] + "_ma_1"
+        elif "_avail_ma_" in nm:
+            k1 = nm.split("_avail_ma_")[0] + "_avail_ma_1"
+        else:
+            k1 = nm
+        ev[j] = own[names.index(k1)] if k1 in names else 0
+    return ev
 
 
-def explicit(Xa, yr, locked, kind, a, l1, pf):
+def explicit(Xa, yr, locked, kind, a, l1, pf, names, bb):
     s = np.std(Xa, axis=0)
-    out = ~locked & ((s < P.STD_MIN) | (evidence(Xa) < P.STD_MIN_EVIDENCE))
+    out = ~locked & ((s < P.STD_MIN) | (evidence(Xa, names, bb) < P.STD_MIN_EVIDENCE))
     sc = np.where(out | locked, 1.0, s)
     Z = Xa / sc
     Z[:, out] = 0.0
@@ -67,12 +79,16 @@ locked = np.zeros(p + 1, dtype=bool)
 locked[-1] = True
 pf = np.ones(p + 1)
 pf[:6] = 0.01
+names1 = [f"har_ma_{k}" for k in range(6)] + [f"adj_x{j}_ma_1" for j in range(6, p)]
+names1[9], names1[10] = "adj_x7_ma_5", "x11_avail_ma_5"  # follows column 7; its k = 1 column is absent
+bb1 = np.array([n.startswith("har_ma_") for n in names1])
+ref1 = P.evid_ref(names1, bb1)
 for kind, a, l1 in [("ridge", 30.0, 0.0), ("lasso", 3e-3, 1.0), ("enet", 3e-3, 0.5)]:
-    th, s, out = P.fit_std(Xa, y, locked, kind, a, l1, pf)
-    th2 = explicit(Xa, y, locked, kind, a, l1, pf)
+    th, s, out = P.fit_std(Xa, y, locked, kind, a, l1, pf, ref1)
+    th2 = explicit(Xa, y, locked, kind, a, l1, pf, names1, bb1)
     print(f"1. {kind}: rel diff {rel(th, th2):.2e}, nnz {int((th != 0).sum())}, out {int(out.sum())}, REPAIR {P.REPAIR}")
     assert rel(th, th2) < 1e-8
-    assert th[3] == 0.0 and th[4] == 0.0 and th[7] == 0.0 and th[8] != 0.0, th[[3, 4, 7, 8]]
+    assert th[7] == 0.0 and th[8] != 0.0 and th[9] == 0.0 and th[10] == 0.0, th[[7, 8, 9, 10]]
 
 # ---- 2. the walk
 Wn = 1200
@@ -84,6 +100,8 @@ X[:, 7] = np.where((np.arange(N) >= 100) & (np.arange(N) < 460), rng.standard_no
 # the window [t-Wn, t) keeps >= 250 of them until t = 1200 + 210: evidence falls below 250 mid-block 0
 y = X @ beta + rng.standard_normal(N)
 names = [f"har_ma_{k}" for k in range(4)] + [f"adj_x{j}_ma_1" for j in range(4, p)]
+names[9], names[10] = "adj_x7_ma_5", "x11_avail_ma_5"
+X[:, 9] = X[:, 7] * 0.5 + 0.3 * (np.arange(N) % 7)  # many off-mode rows of its own; its evidence is column 7's
 
 
 def run_walk(est, alpha, flag):
@@ -94,6 +112,7 @@ def run_walk(est, alpha, flag):
     rec: list = []
     Cls = P.make_class(ns, 0.01, P.ConstSched(alpha), 0, rec)
     Cls.bb = np.array([n.startswith("har_ma_") for n in names])
+    Cls.ev_ref = P.evid_ref(names, Cls.bb)
     Base.trace, Base.mask_trace, Base.reseed_trace = [], [], []
     Cls.kkt_rows, Cls.kkt_reseeds, Cls.kkt_sec = [], [], [0.0, 0.0]
     Cls.std_seeds, Cls.std_ridge, Cls.std_blockend = [], [], []
@@ -103,8 +122,10 @@ def run_walk(est, alpha, flag):
     class Rec(Cls):
         def solve(self):
             super().solve()
-            Xa, yr = self._masked_window()
-            ths.append((self._th.copy(), self._maskout.copy()))
+            th = self._th.copy()
+            if P.STANDARDIZE_PENALTY:  # the centred state (addendum 2) back to the original coordinates
+                th[-1] -= self._ctr @ th
+            ths.append((th, self._maskout.copy()))
 
     bt = ns["MultiStageBacktest"](
         residualizer=ns["IdentityResidualizer"](), regressor_factory=Rec, refit_frequency=1
@@ -126,7 +147,7 @@ for est, alpha in [("ridge", 30.0), ("reclasso", 3e-3), ("reclasticnet", 3e-3)]:
         pfv = np.ones(p + 1)
         pfv[:4] = 0.01
         if kind == "ridge" or i in seeds:
-            tb = P.fit_std(Xw, y[t - Wn : t], locked, kind, alpha, l1, pfv)[0]
+            tb = P.fit_std(Xw, y[t - Wn : t], locked, kind, alpha, l1, pfv, Cls.ev_ref)[0]
             d = rel(th, tb)
             if kind == "ridge":
                 worst = max(worst, d)

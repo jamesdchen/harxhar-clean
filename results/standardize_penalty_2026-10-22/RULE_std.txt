@@ -103,3 +103,39 @@ EVIDENCE MASK (under STANDARDIZE_PENALTY only; flag off bit-identical):
 Re-run (fixed now): (a) flag off bit-identical: pretune + the same walk chunks as before; (b) the 3 origins with the
 mask applied to both sides (the explicit side computes the evidence independently, np.unique counts); (d) flag on:
 pretune / select for the 6 arms, the same 3 walk chunks.  No out-of-sample score.
+
+ADDENDUM 2 -- written 2026-10-22T18:02-07:00, before any code change or run of this rule.  Owner:
+"the proper rule" -- evidence is counted on the variable itself, not on the smoothed average (a k-bar average repeats
+each event k times, so its own off-mode row count overstates the evidence).
+  * The evidence of column (v, k) -- value average adj_<v>_ma_<k> or availability average <v>_avail_ma_<k> -- is the
+    number of rows of the fit's window in which v's own k = 1 column OF THE SAME KIND (adj_<v>_ma_1, resp.
+    <v>_avail_ma_1) differs from that k = 1 column's window mode (exact equality, on the masked design).  (v, k) enters
+    a standardized fit only if that count is >= STD_MIN_EVIDENCE = 250; otherwise it is masked like the
+    identifiability mask (coefficient 0).  If v's k = 1 column is itself masked (its masked-design column is 0: count 0)
+    or absent from the design, every horizon of v follows it (masked).
+  * HAR and calendar columns (the backbone, penalty factor r) and the locked intercept are exempt from the evidence
+    rule; the s < 1e-12 rule still applies to every non-locked column.  A non-backbone column of neither form keeps its
+    own count (none expected; counted and reported).
+  * Cadence and mechanics unchanged from addendum 1: ridge per bar (seed-time modes + per-bar off-mode counts of the
+    k = 1 columns), lasso / elastic net at every cold seed plus the between-seed tracker on the k = 1 counts (a drop
+    below 250 masks every live column of that group and reseeds cold), pretune on each fold's fit block.
+Re-run (fixed now): (a) flag off bit-identical (pretune + the same chunks); (b) equivalence with the mask on both sides
+(independent name parsing and np.unique counts on the explicit side); (c) causality; (d) pretune / select and the same
+three walk chunks; active-set condition numbers (2016, 2020).  No out-of-sample score.  Stop condition (coordinator):
+if the lasso active-set condition number is still above ~1e6 or the lasso walk is more than 2x slower than flag off,
+report it; no centering without the coordinator's decision.
+  ADDENDUM 2, CENTERING -- appended 2026-10-22T18:09-07:00, before the centering code or any run of the combined change (the
+  k = 1 evidence change above is not run on its own).  Owner: "implement the lasso fix as you fully described": (1)
+  centre and scale each column by its training-window mean and s.d., intercept unpenalized; (2) identifiability mask as
+  now; (3) evidence on the variable's own k = 1 column (above); (4) no floor; (5) ridge, lasso and elastic net alike.
+  Under STANDARDIZE_PENALTY only (flag off bit-identical).
+  * With a free, unpenalized intercept, shifting a column by a constant leaves the slopes and the forecasts unchanged
+    exactly, so centring is implemented as fixed offsets: at every cold seed m_j = the seed window's mean of column j
+    (masked design; 0 on masked columns; the intercept column stays 1), the state is built on x - m (Gram, X'y, batch
+    solution, the column moments), every entering / leaving row is shifted by the same m (updates stay rank-one), the
+    offsets are held between seeds like the weights, and the forecast is (x - m)' theta_c (theta_c's intercept = the
+    original intercept + m' beta).  Lasso / elastic net: the warm homotopy and the KKT check run on the centred
+    state.  Ridge: the same offsets (seed-time means, re-anchored at every seed), the per-bar solve on the centred
+    augmented system.  The batch fits (pretune folds, the causal re-choice grid, the block-end refit, the cold seed)
+    already residualize every column on the intercept (FWL: the window-centred columns) for the lasso / enet; ridge
+    pretune / grid fits: solved on the fold's fit-block-centred columns.

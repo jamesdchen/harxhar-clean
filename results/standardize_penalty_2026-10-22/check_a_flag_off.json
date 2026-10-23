@@ -1,5 +1,5 @@
 {
- "reference": "results/pooled_linear_rerun_2026-10-22_13_2012_w1000_latestart_nofomcrel_kkt (its _work in the kk_wt worktree) and its base run B (ls_wt _work, pretune); designs: run B's caches (read-only junctions)",
+ "reference": "results/pooled_linear_rerun_2026-10-22_13_2012_w1000_latestart_nofomcrel_kkt (kk_wt _work) and its base run B (ls_wt _work, pretune); designs: run B's caches (read-only junctions); code 58dca0c",
  "pretune_select": {
   "fold.npz baseline/ridge arrays identical to run B": true,
   "fold.npz baseline/lasso arrays identical to run B": true,
@@ -37,7 +37,7 @@
    ],
    "standardize_penalty": false,
    "wall_sec": [
-    179,
+    393,
     405
    ]
   },
@@ -53,7 +53,7 @@
    ],
    "standardize_penalty": false,
    "wall_sec": [
-    389,
+    659,
     715
    ]
   },
@@ -69,186 +69,8 @@
    ],
    "standardize_penalty": false,
    "wall_sec": [
-    294,
+    492,
     405
-   ]
-  },
-  "baseline\\enet\\causal_tune_linear": {
-   "rows": 40497,
-   "start": 44250,
-   "end": -1,
-   "csv_bytes_identical": true,
-   "rth_bytes_identical": true,
-   "kkt_reseeds": [
-    0,
-    0
-   ],
-   "standardize_penalty": false,
-   "wall_sec": [
-    28,
-    19
-   ]
-  },
-  "baseline\\lasso\\causal_tune_linear": {
-   "rows": 40497,
-   "start": 44250,
-   "end": -1,
-   "csv_bytes_identical": true,
-   "rth_bytes_identical": true,
-   "kkt_reseeds": [
-    0,
-    0
-   ],
-   "standardize_penalty": false,
-   "wall_sec": [
-    30,
-    20
-   ]
-  },
-  "baseline\\ols\\causal_tune_linear": {
-   "rows": 40497,
-   "start": 44250,
-   "end": -1,
-   "csv_bytes_identical": true,
-   "rth_bytes_identical": true,
-   "kkt_reseeds": [
-    null,
-    null
-   ],
-   "standardize_penalty": false,
-   "wall_sec": [
-    7,
-    20
-   ]
-  },
-  "baseline\\ridge\\causal_tune_linear": {
-   "rows": 40497,
-   "start": 44250,
-   "end": -1,
-   "csv_bytes_identical": true,
-   "rth_bytes_identical": true,
-   "kkt_reseeds": [
-    null,
-    null
-   ],
-   "standardize_penalty": false,
-   "wall_sec": [
-    5,
-    13
-   ]
-  }
- },
- "walks_pre_addendum_code_5db45e8": {
-  "all_features\\enet\\c2\\causal_tune_linear": {
-   "rows": 10250,
-   "start": 64750,
-   "end": 75000,
-   "csv_bytes_identical": true,
-   "rth_bytes_identical": true,
-   "kkt_reseeds": [
-    2,
-    2
-   ],
-   "standardize_penalty": false,
-   "wall_sec": [
-    445,
-    405
-   ]
-  },
-  "all_features\\lasso\\c0\\causal_tune_linear": {
-   "rows": 10250,
-   "start": 44250,
-   "end": 54500,
-   "csv_bytes_identical": true,
-   "rth_bytes_identical": true,
-   "kkt_reseeds": [
-    6,
-    6
-   ],
-   "standardize_penalty": false,
-   "wall_sec": [
-    790,
-    715
-   ]
-  },
-  "all_features\\ridge\\c0\\causal_tune_linear": {
-   "rows": 20250,
-   "start": 44250,
-   "end": 64500,
-   "csv_bytes_identical": true,
-   "rth_bytes_identical": true,
-   "kkt_reseeds": [
-    null,
-    null
-   ],
-   "standardize_penalty": false,
-   "wall_sec": [
-    567,
-    405
-   ]
-  },
-  "baseline\\enet\\causal_tune_linear": {
-   "rows": 40497,
-   "start": 44250,
-   "end": -1,
-   "csv_bytes_identical": true,
-   "rth_bytes_identical": true,
-   "kkt_reseeds": [
-    0,
-    0
-   ],
-   "standardize_penalty": false,
-   "wall_sec": [
-    91,
-    19
-   ]
-  },
-  "baseline\\lasso\\causal_tune_linear": {
-   "rows": 40497,
-   "start": 44250,
-   "end": -1,
-   "csv_bytes_identical": true,
-   "rth_bytes_identical": true,
-   "kkt_reseeds": [
-    0,
-    0
-   ],
-   "standardize_penalty": false,
-   "wall_sec": [
-    101,
-    20
-   ]
-  },
-  "baseline\\ols\\causal_tune_linear": {
-   "rows": 40497,
-   "start": 44250,
-   "end": -1,
-   "csv_bytes_identical": true,
-   "rth_bytes_identical": true,
-   "kkt_reseeds": [
-    null,
-    null
-   ],
-   "standardize_penalty": true,
-   "wall_sec": [
-    30,
-    20
-   ]
-  },
-  "baseline\\ridge\\causal_tune_linear": {
-   "rows": 40497,
-   "start": 44250,
-   "end": -1,
-   "csv_bytes_identical": true,
-   "rth_bytes_identical": true,
-   "kkt_reseeds": [
-    null,
-    null
-   ],
-   "standardize_penalty": false,
-   "wall_sec": [
-    18,
-    13
    ]
   }
  }

@@ -56,16 +56,23 @@ for o in (44250 + 250 * 60, 44250 + 250 * 120):
         for tag, fr, std in (("off", foff, False), ("on", fon, True)):
             a = float(fr[m]["all_features"])
             if std:
-                th = P.fit_std(Xa, yr, locked, m, a, l1, pf)[0]
+                th = P.fit_std(Xa, yr, locked, m, a, l1, pf, P.evid_ref(meta["names"], bb))[0]
                 sw = np.where(locked, 1.0, np.where(s < P.STD_MIN, 1.0, s))
             else:
                 th = P.batch_theta_pf(ns, Xa, yr, locked, a, l1, pf)
                 sw = np.ones(p + 1)
             A = np.flatnonzero((th != 0) | locked)
             lam2 = W * a * (1.0 - l1)
-            M = Xa[:, A].T @ Xa[:, A]
             ei = ~locked[A]
-            M[np.flatnonzero(ei), np.flatnonzero(ei)] += lam2 * (pf[A] * sw[A] * sw[A])[ei]
+            Mc = None
+            for cen in (False, True):  # the uncentred state (before addendum 2's centring) and the centred one
+                XA = Xa[:, A] - (np.where(locked[A], 0.0, Xa[:, A].mean(axis=0)) if cen else 0.0)
+                M = XA.T @ XA
+                M[np.flatnonzero(ei), np.flatnonzero(ei)] += lam2 * (pf[A] * sw[A] * sw[A])[ei]
+                if cen:
+                    Mc = M
+                else:
+                    Mu = M
             sa = s[A][ei]
             low = [(meta["names"][j], round(float(s[j]), 5), int(Xa.shape[0] - P.col_mode(Xa[:, [j]])[1][0])) for j in A[:-1] if s[j] < 0.05]
             rep[f"{o}/{m}/{tag}"] = dict(low_s_active=low,
@@ -74,7 +81,8 @@ for o in (44250 + 250 * 60, 44250 + 250 * 120):
                 n_active_s_lt_0p05=int((sa < 0.05).sum()),
                 n_active_s_lt_0p01=int((sa < 0.01).sum()),
                 min_active_s=float(sa.min()),
-                cond_active_system=float(np.linalg.cond(M)),
+                cond_active_system_uncentred=float(np.linalg.cond(Mu)),
+                cond_active_system_centred=float(np.linalg.cond(Mc)),
             )
             print(o, m, tag, rep[f"{o}/{m}/{tag}"], flush=True)
 Path(sys.argv[3]).write_text(json.dumps(rep, indent=1))
