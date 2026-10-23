@@ -5,7 +5,7 @@
 #   MODE tunejobs   ROUND=<r>: the tune jobs of round r (after a select that extended a grid)
 #   MODE select     ROUND=<r> [GPUH=<allocated tune P100-hours>]: picks, extension or frozen configuration
 #   MODE walkinits  array task i of N (--array=0-<N-1>, PARTS=N): the walk origins' ridge inits
-#   MODE walkjobs   the walk jobs files
+#   MODE walkjobs   the walk jobs files (SETS: the frozen sets to write, default both)
 #   MODE check      RUNDIR=<run dir>: check-run on one GPU run
 # ROOT (default /home1/jc_905/pmf): code/ (the runner), data/, inputs/, runs/, out/, logs/.  PMF_REPO: the checkout
 # whose src/ is imported (window_keep), the previous run's (/scratch1/jc_905/harxhar-trees13).  Python: the previous
@@ -46,9 +46,9 @@ case "${MODE:?MODE}" in
     G=""; [ -n "${GPUH:-}" ] && G="--tune-gpu-hours $GPUH"
     "$PY" "$S" select --data data --inputs inputs --runs runs --out out --round "${ROUND:?ROUND}" $G ;;
   walkinits)
-    "$PY" "$S" walk-inits --data data --inputs inputs --out out --part "${SLURM_ARRAY_TASK_ID:?array}" --parts "${PARTS:?PARTS}" ;;
+    "$PY" "$S" walk-inits --data data --inputs inputs --out out --part "${SLURM_ARRAY_TASK_ID:?array}" --parts "${PARTS:?PARTS}" --sets "${SETS:-baseline,all_features}" ;;
   walkjobs)
-    "$PY" "$S" walk-jobs --inputs inputs --out out ;;
+    "$PY" "$S" walk-jobs --inputs inputs --out out --sets "${SETS:-baseline,all_features}" ;;
   check)
     "$PY" "$S" check-run --inputs inputs --run "${RUNDIR:?RUNDIR}" ;;
   *) echo "unknown MODE $MODE"; exit 1 ;;

@@ -491,6 +491,41 @@ def heavy(c: dict) -> bool:
     return int(c["H"]) >= 256 or int(c["L"]) >= 48
 
 
+# 2026-10-23: P100-seconds a tune job (pool-phase time / jobs) measured in round 0 at W = 3,000 (CONC 12 HAR, 6 full),
+# for sharding the extension rounds into files of about MAX_FILE_GPU_S (they then fit the debug partition's 1 h);
+# outside the measured grid: H 4 as H 16, L 3 as L 8, H 1,024 = 10 x H 256, L 115 = 2.4 x L 48; x W / 39,000
+COST0 = {
+    "baseline": {
+        (16, 8): 0.49,
+        (16, 20): 0.64,
+        (16, 48): 5.80,
+        (64, 8): 0.63,
+        (64, 20): 0.94,
+        (64, 48): 6.27,
+        (256, 8): 3.33,
+        (256, 20): 5.84,
+        (256, 48): 13.75,
+    },
+    "all_features": {
+        (16, 8): 0.98,
+        (16, 20): 1.30,
+        (16, 48): 6.65,
+        (64, 8): 1.26,
+        (64, 20): 1.91,
+        (64, 48): 9.45,
+        (256, 8): 5.39,
+        (256, 20): 9.23,
+        (256, 48): 17.0,
+    },
+}
+MAX_FILE_GPU_S = 2700.0
+
+
+def job_cost(s: str, H: int, L: int) -> float:
+    c = COST0[s][(min(max(H, 16), 256), min(max(L, 8), 48))]
+    return c * (10.0 if H > 256 else 1.0) * (2.4 if L > 48 else 1.0) * W / 39000
+
+
 def st_tune_jobs(a: argparse.Namespace) -> None:
     inp = Path(a.inputs)
     plan = json.loads((inp / "plan.json").read_text())
@@ -504,13 +539,31 @@ def st_tune_jobs(a: argparse.Namespace) -> None:
         assert st["round"] == R, (s, st["round"], R)
         done = issued(inp, s)
         new = [c for c in configs(st["grid"]) if cfg_name(c) not in done]
-        groups: dict[tuple, list[dict]] = {}
-        for c in sorted(new, key=cfg_name):
-            k = (c["H"], c["L"], c["lr"] if heavy(c) else "*")
-            groups.setdefault(k, []).append(c)
-        for i, (k, cs) in enumerate(
-            sorted(groups.items(), key=lambda t: (int(t[0][0]), int(t[0][1]), t[0][2]))
-        ):
+        files: list[tuple[tuple, list[dict]]] = []
+        if (
+            R == 0
+        ):  # round 0 as written on 2026-10-22: (H, L) groups, the heavy ones split by lr
+            groups: dict[tuple, list[dict]] = {}
+            for c in sorted(new, key=cfg_name):
+                groups.setdefault(
+                    (c["H"], c["L"], c["lr"] if heavy(c) else "*"), []
+                ).append(c)
+            files = sorted(
+                groups.items(), key=lambda t: (int(t[0][0]), int(t[0][1]), t[0][2])
+            )
+        else:  # extension rounds: (H, L) groups cut into files of whole configurations of ~MAX_FILE_GPU_S
+            hl: dict[tuple, list[dict]] = {}
+            for c in sorted(new, key=cfg_name):
+                hl.setdefault((c["H"], c["L"]), []).append(c)
+            for (H, L), cs in sorted(
+                hl.items(), key=lambda t: (int(t[0][0]), int(t[0][1]))
+            ):
+                per = max(
+                    1, int(MAX_FILE_GPU_S // (job_cost(s, int(H), int(L)) * len(SEEDS)))
+                )
+                for j in range(0, len(cs), per):
+                    files.append(((H, L, "*"), cs[j : j + per]))
+        for i, (k, cs) in enumerate(files):
             lines = [tune_line(s, f, c, seed) for c in cs for seed in SEEDS]
             name = f"tune_{s}_r{R}.{i}.txt"
             (inp / name).write_bytes(("\n".join(lines) + "\n").encode())
@@ -524,6 +577,7 @@ def st_tune_jobs(a: argparse.Namespace) -> None:
                     lr=k[2],
                     n_cfg=len(cs),
                     n_jobs=len(lines),
+                    est_gpu_s=round(len(lines) * job_cost(s, int(k[0]), int(k[1])), 1),
                 )
             )
         with open(inp / f"issued_{s}.txt", "a") as fh:
@@ -621,6 +675,11 @@ def st_select(a: argparse.Namespace) -> None:
     frozen: dict[str, Any] = {}
     for s in SETS:
         st = load_grid(inp, s)
+        if (
+            st["status"] == "open" and st["round"] != R
+        ):  # a set in another round's extension: not evaluated now
+            say(f"select {s}: open in round {st['round']}, not evaluated in round {R}")
+            continue
         t = tune_table(data, runs, s)
         want = issued(inp, s)
         assert set(t["cfg"]) == want, (
@@ -709,6 +768,12 @@ def st_select(a: argparse.Namespace) -> None:
                 status=st["status"],
                 previous_pick=PREV_PICK[s],
             )
+    (out / "frozen_partial.json").write_text(
+        json.dumps(
+            dict(frozen=frozen, seeds=list(SEEDS), common=COMMON, rule="RULE_gru.txt"),
+            indent=1,
+        )
+    )  # the sets frozen so far (a set's walk may start before the other set's extension rounds end)
     if len(frozen) == len(SETS):
         (out / "frozen_config.json").write_text(
             json.dumps(
@@ -740,14 +805,25 @@ def bar_blocks(block: int) -> list[list[int]]:
     return [o[i : i + block] for i in range(0, len(o), block)]
 
 
+def load_frozen(out: Path, sets: str) -> dict:
+    """The frozen configurations of the requested sets (frozen_config.json, else frozen_partial.json)."""
+    p = out / "frozen_config.json"
+    fz = json.loads((p if p.is_file() else out / "frozen_partial.json").read_text())[
+        "frozen"
+    ]
+    want = sets.split(",")
+    assert all(s in fz for s in want), (sorted(fz), want)
+    return {s: fz[s] for s in want}
+
+
 def st_walk_inits(a: argparse.Namespace) -> None:
     """The frozen (L, wd_lin) ridge init of every bar origin of the blocks k = part, part + parts, ..."""
     data, inp, out = Path(a.data), Path(a.inputs), Path(a.out)
-    fz = json.loads((out / "frozen_config.json").read_text())["frozen"]
+    fz = load_frozen(out, a.sets)
     bl = bar_blocks(a.block)
     ks = list(range(a.part, len(bl), a.parts))
     recs: list[tuple] = []
-    for s in SETS:
+    for s in fz:
         D = TData(data, s)
         L, wl = int(fz[s]["L"]), fz[s]["wd_lin"]
         t0 = time.time()
@@ -830,10 +906,10 @@ def st_walk_jobs(a: argparse.Namespace) -> None:
     """IN/walk_<set>.b<k>.txt (every bar origin of block k x 5 seeds) and IN/probe_<set>.txt (the first
     --probe-origins origins of block 0, the same lines: a timing probe, not merged)."""
     inp, out = Path(a.inputs), Path(a.out)
-    fz = json.loads((out / "frozen_config.json").read_text())["frozen"]
+    fz = load_frozen(out, a.sets)
     bl = bar_blocks(a.block)
     lst, prb = [], []
-    for s in SETS:
+    for s in fz:
         n = 0
         for k, os_ in enumerate(bl):
             lines = [
@@ -1116,7 +1192,12 @@ def main() -> int:
     ap.add_argument("--part", type=int, default=0)
     ap.add_argument("--parts", type=int, default=1)
     ap.add_argument("--block", type=int, default=BLOCK)
-    ap.add_argument("--probe-origins", type=int, default=12)
+    ap.add_argument("--probe-origins", type=int, default=24)
+    ap.add_argument(
+        "--sets",
+        default="baseline,all_features",
+        help="walk-inits / walk-jobs: the sets",
+    )
     ap.add_argument("--data-rows", default="")
     a = ap.parse_args()
     {

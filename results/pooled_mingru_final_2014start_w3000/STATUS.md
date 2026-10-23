@@ -84,3 +84,18 @@ errors); binary copied from `/home1/jc_905/pm13/bin` (md5 44ab6fff).
   softplus, wd_enc / wd_lin, dec_zero, the window mask). Timing proxy (experiments/pooled_mingru_final_cpu_probe.py,
   13324616, EPYC 7513, torch 2.6 CPU, L 20 H 64, 39,000 rows): 5-6 s an epoch at 8-16 threads, 11-13 s at 32
   (~48 core-s an epoch vs 0.071 P100-s): not pursued.
+- 2026-10-23 06:00-07:36 PDT: the gpu partition started our jobs (16 W 3,000 shards there, 2 W 3,500), the debug
+  P100s ran the rest; W 3,000 round 0 complete at 07:36 (44 run directories = 32 shards + 12 halves; every
+  check-run ok). Allocated tune P100-hours so far 18.37.
+- 2026-10-23 07:38 PDT: select round 0 (13328049, a01-09): full set FROZEN L20_H64_lr0.003_we3_wl3_ll1e-05 (val
+  QLIKE 0.113381; interior on every axis; = the previous run's full pick; epochs 33 / 19 / 25 / 57 / 41). HAR set:
+  L48_H256_lr0.003_we3_wl30_ll0.0001 (0.122699; epochs 7 / 17 / 6 / 3 / 12) at the top of L, H, wd_lin and lr_lin
+  -> round 1 adds L 115, H 1,024, wd_lin 300, lr_lin 1e-3 (EXTEND): 2,544 new configurations, 12,720 jobs, 405
+  files (cost-aware sharding, ~45 P100-min a file), estimated 212 P100-hours (H 1,024 groups 186, L 115 at H <= 256
+  21, the new wd_lin / lr_lin values on the round-0 H x L 5). HAR surface flat (best a H x L cell 0.12270 ..
+  0.12314; 5 configurations within 0.1 % of the best). The 14 files with H <= 256 and L <= 48 submitted
+  (13328108-21, also in the debug feeder's queue); the L 115 and H 1,024 files held pending the owner's decision
+  (cost and bar-walk feasibility, message to the coordinator 07:50).
+- 2026-10-23 07:45 PDT: select re-run (13328140) to write out/frozen_partial.json (the full set, so its walk can
+  start while the HAR set extends; select now skips a set open in another round); full-set bar-walk ridge inits
+  13328147 (8-task array) -> walk jobs 13328148.
