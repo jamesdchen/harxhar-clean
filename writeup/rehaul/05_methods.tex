@@ -293,7 +293,21 @@
     the activity indicator (Section~\ref{sec:rh_predictors}). A $k$-interval average repeats each observation
     $k$ times, so its own count would overstate the evidence. Columns that fail are screened out like constant
     columns (below).
-  \editc{orange}{STD}{Decision: standardization within the estimation window is the specification (STANDARDIZE\_PENALTY, merged 2430543, 22 October 2026). Open: a screen for availability averages that are near-constant or near-duplicates at their binomial resolution $\sqrt{p(1-p)/k}$ is under test, as is solving in standardized coordinates (the same estimator, better conditioned).\\Problem: the printed pooled forecasts predate standardization; the rerun is pending (notes to the authors, ``Rerun pending'').}
+  % 2026-10-22 (user): binomial availability screen and scaled-coordinates solver (Addendum 3, merged 8898522).
+  \item An availability average over $k > 1$ intervals is a proportion, with sampling resolution
+    $\sqrt{p(1-p)/k}$ at its window mean $p$. It is screened out of a fit when its standard deviation over
+    $\mathcal W_{t,i}$ does not exceed that resolution, or when the standard deviation of its difference from an
+    earlier retained availability average of the same horizon does not exceed $\sqrt 2$ times the resolution at
+    the pair's mean: its movement is then no larger than independent missing observations would produce, so it
+    carries no detectable information. These are mostly the long-horizon availability averages of
+    regular-hours series, which record the trading calendar rather than the series.
+  \item The solvers work directly on the standardized columns, which gives the same estimates as penalizing the
+    raw columns with weights $\omega_j s_j$ and $\omega_j s_j^2$ but keeps the systems they solve well
+    conditioned.
+  % 2026-10-22 (user): parked -- the note before the screen and the solver were settled. Was: "... Open: a screen for
+  % availability averages that are near-constant or near-duplicates at their binomial resolution $\sqrt{p(1-p)/k}$ is
+  % under test, as is solving in standardized coordinates (the same estimator, better conditioned). ..."
+  \editc{orange}{STD}{Decision: standardization within the estimation window, the availability screen and the standardized-coordinate solvers are the specification (STANDARDIZE\_PENALTY, merged 2430543 and 8898522, 22 October 2026).\\Problem: the printed pooled forecasts predate all three; the rerun is pending (notes to the authors, ``Rerun pending'').}
   \item The lasso corresponds to $\alpha = 1$, and our elastic net specification fixes $\alpha = 0.5$.
   \item For ridge regression, we update $(\bm X_{t,i}^\top \bm X_{t,i} + \lambda\, \mathrm{diag}(\bm\omega))^{-1}$ via exact rank-one downdates and updates as observations exit and enter $\mathcal W_{t,i}$, where $\bm X_{t,i}$ stacks the rows $(1, \bm x_{t',i'}^\top)$ for $(t',i') \in \mathcal W_{t,i}$ and $\bm\omega = (\omega_0, \dots, \omega_p)^\top$.
   \item For the lasso and elastic net, we update the active set and coefficient vector via exact online homotopy \citep{Garrigues2008}, adding the incoming observation and dropping the outgoing observation at each step.
