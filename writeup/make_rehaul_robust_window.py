@@ -1255,7 +1255,7 @@ def main() -> None:
 % strategy on the {N_PW} post-warmup option days, differences tested by the paired block bootstrap (hac_inference).
 % Runs: {rel(linear_run(W_MAIN))}, {rel(trees_run(W_MAIN))}, {rel(rf_run(W_MAIN))} and their w{W_LONG} twins.
 % Pending: {", ".join(f"{e} at W = {W:,}" for W in WINDOWS for e in PEND[W]) or "none"}.
-{PENDING_DEF}
+% \\rhPending comes from the numbers file (a second \\providecommand here would stop the Overleaf flattener).
 \\ifdefined\\rhrbNdays\\else\\input{{generated/rehaul_robust_w3500_numbers}}\\fi
 \\begin{{table}}[tbp]
 \\centering
