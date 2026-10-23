@@ -43,6 +43,12 @@ dummy in the full set although src/data/loading.py EXCLUDE_FOMC_RELEASE is on; c
 of that set (it asserted all four, which fails at EXCLUDE_FOMC_RELEASE = True).  Without either option every stage
 is as before.
 
+2026-10-22 (user, window sensitivity: "Let's try 3k days then"): --first-fold F (default 0) fits pre-sample folds
+F .. 3 only, for windows whose fold-0 fit window starts before the design's first row (all 4 folds fit up to 2,381
+days, folds 1-3 up to 2,631, folds 2-3 up to 2,881, fold 3 up to 3,131). Fold f's fit and validation rows are the same
+global rows as with F = 0; the pre-tune halo is (4 - F) x 3,250 + 325 + W; select labels the columns mse_fold<F..3> and
+records info.first_fold. F = 0 is every stage as before.
+
 2026-10-22 (James: "add the KKT check flag"): --walk-kkt-reseed 0|1 passes the runner's option of that name to the walks
 (src/models/reclasso_har.py WALK_KKT_RESEED, on by default: after every warm lasso / elastic-net update the KKT
 conditions of the window's problem, a cold reseed where they fail); without it the walks run at the module's default.
@@ -110,6 +116,7 @@ W = TW_DAYS * PPD  # 26,000 rows
 PRE_FOLDS, PRE_FOLD_SESS, PRE_EMBARGO_SESS = 4, 250, 25
 PRE_HALO = PRE_FOLDS * PRE_FOLD_SESS * PPD + PRE_EMBARGO_SESS * PPD + W  # 39,325
 FIRST_DAY = "2020-01-03"
+FIRST_FOLD = 0  # 2026-10-22 (--first-fold): the first pre-sample fold fitted
 HAR_LADDER = [1, 5, 25, 125, 625, 3125]  # base 5 (author, 2026-10-19 correction)
 
 
@@ -260,6 +267,8 @@ def pretune_args(s: str, m: str, o: Path, S: int) -> list[str]:
     args += ["--design", str(design_dir(s))]
     if STD:  # 2026-10-22 (--standardize-penalty)
         args += ["--standardize-penalty", STD]
+    if FIRST_FOLD:  # 2026-10-22 (--first-fold)
+        args += ["--first-fold", str(FIRST_FOLD)]
     return args
 
 
@@ -414,8 +423,8 @@ def st_select(a) -> None:
                         model=m,
                         predictor_set=s,
                         alpha=float(al),
-                        **{
-                            f"mse_fold{f}": float(mse_f[f, j])
+                        **{  # 2026-10-22 (--first-fold): labelled by the fold's index; was f"mse_fold{f}"
+                            f"mse_fold{f + FIRST_FOLD}": float(mse_f[f, j])
                             for f in range(len(mse_f))
                         },
                         mse_mean=float(crit[j]),
@@ -429,24 +438,45 @@ def st_select(a) -> None:
     d = oos_dates()
     info = dict(
         rule="one penalty a model, the lowest mean validation MSE (adjusted scale, all 13 bars) over 4 pre-sample "
-        "folds; frozen over the evaluation span",
+        "folds; frozen over the evaluation span"
+        if not FIRST_FOLD  # 2026-10-22 (--first-fold)
+        else f"one penalty a model, the lowest mean validation MSE (adjusted scale, all 13 bars) over pre-sample "
+        f"folds {FIRST_FOLD} .. {PRE_FOLDS - 1} of {PRE_FOLDS}; frozen over the evaluation span",
         sample="13 regular-hours bars, end stamps 10:00-16:00 ET; HAR components and trailing averages on the full "
         "48-interval grid",
         window_rows=W,
         window_days=TW_DAYS,
         har_ladder=HAR_LADDER,
+        # 2026-10-22 (--first-fold F): folds F .. 3, offsets from the shorter halo (f - F); F = 0 as before
         folds=[
             dict(
-                fit=[S - PRE_HALO + f * 3250, S - PRE_HALO + f * 3250 + W],
-                val=[
-                    S - PRE_HALO + W + 325 + f * 3250,
-                    S - PRE_HALO + W + 325 + (f + 1) * 3250,
+                fit=[
+                    S - PRE_HALO + (f - FIRST_FOLD) * 3250,
+                    S - PRE_HALO + (f - FIRST_FOLD) * 3250 + W,
                 ],
-                val_first=str(d[S - PRE_HALO + W + 325 + f * 3250 - W]),
-                val_last=str(d[S - PRE_HALO + W + 325 + (f + 1) * 3250 - 1 - W]),
+                val=[
+                    S - PRE_HALO + W + 325 + (f - FIRST_FOLD) * 3250,
+                    S - PRE_HALO + W + 325 + (f - FIRST_FOLD + 1) * 3250,
+                ],
+                val_first=str(d[S - PRE_HALO + W + 325 + (f - FIRST_FOLD) * 3250 - W]),
+                val_last=str(
+                    d[S - PRE_HALO + W + 325 + (f - FIRST_FOLD + 1) * 3250 - 1 - W]
+                ),
+                **({"fold": f} if FIRST_FOLD else {}),
             )
-            for f in range(PRE_FOLDS)
+            for f in range(FIRST_FOLD, PRE_FOLDS)
         ],
+        **(
+            {
+                "first_fold": FIRST_FOLD,
+                "first_fold_note": f"folds 0 .. {FIRST_FOLD - 1} not fitted (--first-fold {FIRST_FOLD}); fold "
+                f"{FIRST_FOLD - 1}'s {W}-row fit window would start at design row "
+                f"{S - (PRE_FOLDS - FIRST_FOLD + 1) * 3250 - 325 - W} (a negative row is before the design's first row); the "
+                f"penalty is the lowest mean validation MSE over the folds {FIRST_FOLD} .. {PRE_FOLDS - 1}",
+            }
+            if FIRST_FOLD
+            else {}
+        ),
         grids=dict(
             ridge="1e-2 .. 1e3", lasso="1e-6 .. 1e-2", enet="1e-6 .. 1e-2, l1_ratio 0.5"
         ),
@@ -737,7 +767,7 @@ def st_score(a) -> None:
 
 
 def main() -> None:
-    global OUT, WORK, TW_DAYS, W, PRE_HALO, FIRST_DAY, KEEP_FOMC_RELEASE, WALK_KKT, STD
+    global OUT, WORK, TW_DAYS, W, PRE_HALO, FIRST_DAY, KEEP_FOMC_RELEASE, FIRST_FOLD, WALK_KKT, STD
     global GRID_EXT
     ap = argparse.ArgumentParser()
     ap.add_argument("stage", choices=("design", "pretune", "select", "walk", "score"))
@@ -766,6 +796,10 @@ def main() -> None:
     # EXCLUDE_FOMC_RELEASE is on (pool_linear_pretune.py --keep-fomc-release); the defaults add nothing to CFG
     ap.add_argument("--ex-flag", action="append", default=[])
     ap.add_argument("--keep-fomc-release", action="store_true")
+    # 2026-10-22 (user, window sensitivity at 1,500 .. 3,000 days): the pre-tune fits folds F .. 3 only (from 2,382
+    # days fold 0's fit window starts before the design's first row); pass it on every stage from pretune on
+    # (first_row's check); default 0, every fold
+    ap.add_argument("--first-fold", type=int, default=0)
     # 2026-10-22 (James: "add the KKT check flag"): the walks' WALK_KKT_RESEED (pool_linear_pretune.py --walk-kkt-reseed)
     ap.add_argument("--walk-kkt-reseed", default="", choices=("", "0", "1"))
     # 2026-10-22 (James: "yes, adopt standardization and hold the pretune"): the pretunes' and walks'
@@ -784,6 +818,12 @@ def main() -> None:
         W = TW_DAYS * PPD
         PRE_HALO = PRE_FOLDS * PRE_FOLD_SESS * PPD + PRE_EMBARGO_SESS * PPD + W
         CFG.extend(["--window-days", str(TW_DAYS)])
+    if a.first_fold:  # 2026-10-22 (--first-fold): the halo of folds F .. 3
+        assert 0 < a.first_fold < PRE_FOLDS, a.first_fold
+        FIRST_FOLD = a.first_fold
+        PRE_HALO = (
+            (PRE_FOLDS - FIRST_FOLD) * PRE_FOLD_SESS * PPD + PRE_EMBARGO_SESS * PPD + W
+        )
     for kv in a.ex_flag:  # 2026-10-22
         CFG.extend(["--ex-flag", kv])
     if a.keep_fomc_release:  # 2026-10-22
