@@ -52,6 +52,16 @@ records info.first_fold. F = 0 is every stage as before.
 2026-10-22 (James: "add the KKT check flag"): --walk-kkt-reseed 0|1 passes the runner's option of that name to the walks
 (src/models/reclasso_har.py WALK_KKT_RESEED, on by default: after every warm lasso / elastic-net update the KKT
 conditions of the window's problem, a cold reseed where they fail); without it the walks run at the module's default.
+
+2026-10-22 (James: "yes, adopt standardization and hold the pretune"): --standardize-penalty 0|1 passes the runner's
+option of that name to the pretunes and the walks (pool_linear_pretune.py STANDARDIZE_PENALTY, on by default: the
+penalties act on the window-standardized coefficients); without it both run at the runner's default.  The penalty grid
+rule of the new specification (RULE_std.txt), applied when the pretunes ran with the flag on (their run.json) unless
+--grid-extend 0|1 says otherwise: a selected penalty at either end of its grid adds the next decade in that direction
+(a pretune of that value only, pretune/<set>/<model>/ext_<alpha>/), until the selection is interior; stops early when
+the new end's criterion is within 1e-6 relative of the old end's ("flat") or after 6 decades ("cap"); every extension in
+frozen_penalties.json info.grid_extensions and pretune_mse.csv.  A walk whose penalty is off the spec's grid gets it as
+--grid-alphas.  With the flag off every stage is as before.
 """
 
 from __future__ import annotations
@@ -112,6 +122,11 @@ HAR_LADDER = [1, 5, 25, 125, 625, 3125]  # base 5 (author, 2026-10-19 correction
 
 KEEP_FOMC_RELEASE = False  # 2026-10-22: set by main from --keep-fomc-release
 WALK_KKT = ""  # 2026-10-22: set by main from --walk-kkt-reseed ("" = the runner's default)
+# 2026-10-22: set by main from --standardize-penalty ("" = the runner's default, on) and --grid-extend ("" = on iff
+# the pretunes ran standardized); the grid rule's safeguards (RULE_std.txt)
+STD = ""
+GRID_EXT = ""
+GRID_EXT_FLAT, GRID_EXT_CAP = 1e-6, 6
 
 
 def design_features() -> tuple[list[str], list[str]]:
@@ -246,26 +261,135 @@ def pre_dir(s: str, m: str) -> Path:
     return WORK / "pretune" / s / m
 
 
+def pretune_args(s: str, m: str, o: Path, S: int) -> list[str]:
+    args = ["pretune", "--bucket", s, "--est", EST[m], "--r", str(R_BB[s])]
+    args += ["--start", str(S), "--halo", str(PRE_HALO), "--out", str(o)]
+    args += ["--design", str(design_dir(s))]
+    if STD:  # 2026-10-22 (--standardize-penalty)
+        args += ["--standardize-penalty", STD]
+    if FIRST_FOLD:  # 2026-10-22 (--first-fold)
+        args += ["--first-fold", str(FIRST_FOLD)]
+    return args
+
+
+def runner_std_default() -> bool:
+    """2026-10-22: pool_linear_pretune.STANDARDIZE_PENALTY's default (what a run without --standardize-penalty does)."""
+    if str(RUNNER.parent) not in sys.path:
+        sys.path.insert(0, str(RUNNER.parent))
+    import pool_linear_pretune as PLP
+
+    return bool(PLP.STANDARDIZE_PENALTY)
+
+
+def std_effective() -> bool:
+    return STD == "1" if STD else runner_std_default()
+
+
+# ---------------------------------------------------------------------------- the grid rule (2026-10-22)
+def pre_folds(s: str, m: str) -> list[Path]:
+    """The pretune fold files of set s / model m: the spec grid's, then every grid extension's."""
+    base = pre_dir(s, m)
+    return [base / "fold.npz"] + sorted(base.glob("ext_*/fold.npz"))
+
+
+def pick(s: str, m: str) -> tuple[np.ndarray, np.ndarray, np.ndarray, int]:
+    """(grid ascending, resid (folds, grid, rows), mean validation MSE, argmin) over every pretuned penalty of set s /
+    model m (the spec grid and its extensions; without extensions exactly the spec grid's arrays)."""
+    zs = [np.load(p) for p in pre_folds(s, m)]
+    for z in zs[1:]:  # the same folds
+        assert np.array_equal(z["fit"], zs[0]["fit"]) and np.array_equal(
+            z["val"], zs[0]["val"]
+        ), (s, m)
+    if (
+        len(zs) == 1
+    ):  # the spec grid only: its arrays as stored (the reductions below then run as before)
+        grid, res = zs[0]["grid"], zs[0]["resid"]
+    else:
+        grid = np.concatenate([z["grid"] for z in zs])
+        o = np.argsort(grid, kind="stable")
+        grid = grid[o]
+        # (C order: a fancy-indexed res[:, o] is laid out grid-major and its mean sums in another order)
+        res = np.ascontiguousarray(
+            np.concatenate([z["resid"] for z in zs], axis=1)[:, o]
+        )
+    assert len(np.unique(grid)) == len(grid), (s, m, grid)
+    crit = (res**2).mean(axis=(0, 2))  # equal fold sizes: the mean of the fold means
+    return grid, res, crit, int(np.argmin(crit))
+
+
+def std_pretuned(s: str, m: str) -> bool:
+    """The pretune of set s / model m ran with STANDARDIZE_PENALTY on (its run.json; absent before the flag)."""
+    return bool(
+        json.loads((pre_dir(s, m) / "run.json").read_text()).get(
+            "standardize_penalty", False
+        )
+    )
+
+
+def grid_ext_on(s: str, m: str) -> bool:
+    return GRID_EXT == "1" if GRID_EXT else std_pretuned(s, m)
+
+
+def grid_state(s: str, m: str) -> dict:
+    """The grid rule (RULE_std.txt) on set s / model m: status interior | extend (with the next alpha) | flat | cap,
+    and the extensions made so far (ascending)."""
+    base = np.load(pre_dir(s, m) / "fold.npz")["grid"]
+    grid, _, crit, k = pick(s, m)
+    added = [float(g) for g in grid if g < base.min() or g > base.max()]
+    st: dict = dict(added=added, selected=float(grid[k]))
+    if 0 < k < len(grid) - 1:
+        return st | dict(status="interior")
+    down = k == 0
+    n_dir = sum((g < base.min()) if down else (g > base.max()) for g in added)
+    end, nxt = (0, 1) if down else (len(grid) - 1, len(grid) - 2)
+    if n_dir and abs(crit[end] - crit[nxt]) <= GRID_EXT_FLAT * crit[nxt]:
+        return st | dict(status="flat", direction="down" if down else "up")
+    if n_dir >= GRID_EXT_CAP:
+        return st | dict(status="cap", direction="down" if down else "up")
+    e = int(round(float(np.log10(grid[end])))) + (-1 if down else 1)
+    return st | dict(
+        status="extend", direction="down" if down else "up", alpha=float(f"1e{e}")
+    )
+
+
 def st_pretune(a) -> None:
     for s in SETS:
         check_design(s)
     S = first_row()
     jobs = []
     for s in SETS:
-        for m, e in EST.items():
+        for m in EST:
             o = pre_dir(s, m)
-            args = ["pretune", "--bucket", s, "--est", e, "--r", str(R_BB[s])]
-            args += ["--start", str(S), "--halo", str(PRE_HALO), "--out", str(o)]
-            args += ["--design", str(design_dir(s))]
-            if FIRST_FOLD:  # 2026-10-22 (--first-fold)
-                args += ["--first-fold", str(FIRST_FOLD)]
-            jobs.append((args, o / "run.log"))
+            jobs.append((pretune_args(s, m, o, S), o / "run.log"))
     say(f"pretune: start row {S}, halo {PRE_HALO}, {len(jobs)} jobs")
     pool(jobs, a.jobs)
+    # 2026-10-22: the grid rule -- one decade a round for every arm selected at a grid end, until none is
+    for rnd in range(1, 2 * GRID_EXT_CAP + 2):
+        ext = []
+        for s in SETS:
+            for m in EST:
+                if not grid_ext_on(s, m):
+                    continue
+                st = grid_state(s, m)
+                if st["status"] != "extend":
+                    continue
+                o = pre_dir(s, m) / f"ext_{st['alpha']!r}"
+                args = pretune_args(s, m, o, S) + ["--grid-alphas", repr(st["alpha"])]
+                ext.append((args, o / "run.log"))
+                say(
+                    f"grid rule round {rnd}: {s}/{m} selected {st['selected']!r} at the "
+                    f"{'lower' if st['direction'] == 'down' else 'upper'} end, adding {st['alpha']!r}"
+                )
+        if not ext:
+            break
+        pool(ext, a.jobs)
 
 
 def st_select(a) -> None:
     rows, frozen, designs = [], {}, {}
+    exts: dict = {}  # 2026-10-22: the grid rule's record
+    off_grid: dict = {}
+    std_on = {(s, m): std_pretuned(s, m) for s in SETS for m in EST}
     for s in SETS:
         meta = json.loads((design_dir(s) / "design.json").read_text())
         names = meta["names"]
@@ -280,14 +404,19 @@ def st_select(a) -> None:
             rows=meta["shape"][0],
         )
         for m in EST:
-            z = np.load(pre_dir(s, m) / "fold.npz")
-            res, grid = z["resid"], z["grid"]  # (folds, grid, rows)
+            # 2026-10-22: pick() -- the spec grid and the grid rule's extensions (none: the arrays as before)
+            # parked -- was: z = np.load(pre_dir(s, m) / "fold.npz"); res, grid = z["resid"], z["grid"];
+            # crit = (res**2).mean(axis=(0, 2)); k = int(np.argmin(crit))
+            grid, res, crit, k = pick(s, m)  # res (folds, grid, rows)
             mse_f = (res**2).mean(axis=2)  # (folds, grid)
-            crit = (res**2).mean(
-                axis=(0, 2)
-            )  # equal fold sizes: the mean of the fold means
-            k = int(np.argmin(crit))
             frozen.setdefault(m, {})[s] = float(grid[k])
+            if grid_ext_on(s, m):
+                st = grid_state(s, m)
+                assert st["status"] != "extend", (s, m, st, "run the pretune stage")
+                exts.setdefault(m, {})[s] = st
+            base = np.load(pre_dir(s, m) / "fold.npz")["grid"]
+            if float(grid[k]) not in [float(g) for g in base]:
+                off_grid.setdefault(m, {})[s] = float(grid[k])
             for j, al in enumerate(grid):
                 rows.append(
                     dict(
@@ -353,6 +482,18 @@ def st_select(a) -> None:
         ),
         runner_cfg=CFG,
     )
+    if (
+        any(std_on.values()) or exts
+    ):  # 2026-10-22: recorded only with the flag on (else the file as before)
+        assert len(set(std_on.values())) == 1, std_on
+        info |= dict(
+            standardize_penalty=all(std_on.values()),
+            std_rule="RULE_std.txt: penalties on the window-standardized coefficients s_j b_j (s_j = np.std, ddof 0, "
+            "over the fit's rows); grid rule: a selection at a grid end adds the next decade in that direction "
+            f"until interior (stop: flat within {GRID_EXT_FLAT} relative, or {GRID_EXT_CAP} decades)",
+            grid_extensions=exts,
+            off_spec_grid=off_grid,
+        )
     out = dict(
         **{m: frozen[m] for m in ("ridge", "lasso", "enet", "ols")},
         designs=designs,
@@ -372,6 +513,14 @@ def walk_jobs(
 ) -> list[tuple[list[str], Path, tuple]]:
     fp = OUT / "frozen_penalties.json"
     fr = json.loads(fp.read_text()) if fp.exists() else {}  # the OLS walk needs none
+    # 2026-10-22: the walks standardize iff the penalties were selected standardized
+    off_grid = fr.get("info", {}).get("off_spec_grid", {})
+    if fr and any(m in fr for m in EST):
+        sel_std = bool(fr.get("info", {}).get("standardize_penalty", False))
+        assert sel_std == std_effective(), (
+            f"frozen penalties selected with standardize_penalty={sel_std}, walks would run with "
+            f"{std_effective()} (--standardize-penalty)"
+        )
     S0 = walk_start()
     n = len(oos_dates()) + W  # design rows
     jobs = []
@@ -391,6 +540,12 @@ def walk_jobs(
             args = ["walk", "--bucket", s, "--est", EST.get(m, "ols")]
             if m != "ols":
                 args += ["--r", str(R_BB[s]), "--sched", f"const:{fr[m][s]!r}"]
+                if s in off_grid.get(
+                    m, {}
+                ):  # 2026-10-22: a grid-rule penalty, off the spec's grid
+                    args += ["--grid-alphas", repr(off_grid[m][s])]
+                if STD:  # 2026-10-22 (--standardize-penalty)
+                    args += ["--standardize-penalty", STD]
             args += [
                 "--start",
                 str(lo),
@@ -612,7 +767,8 @@ def st_score(a) -> None:
 
 
 def main() -> None:
-    global OUT, WORK, TW_DAYS, W, PRE_HALO, FIRST_DAY, KEEP_FOMC_RELEASE, FIRST_FOLD, WALK_KKT
+    global OUT, WORK, TW_DAYS, W, PRE_HALO, FIRST_DAY, KEEP_FOMC_RELEASE, FIRST_FOLD, WALK_KKT, STD
+    global GRID_EXT
     ap = argparse.ArgumentParser()
     ap.add_argument("stage", choices=("design", "pretune", "select", "walk", "score"))
     ap.add_argument("--jobs", type=int, default=4)
@@ -646,8 +802,14 @@ def main() -> None:
     ap.add_argument("--first-fold", type=int, default=0)
     # 2026-10-22 (James: "add the KKT check flag"): the walks' WALK_KKT_RESEED (pool_linear_pretune.py --walk-kkt-reseed)
     ap.add_argument("--walk-kkt-reseed", default="", choices=("", "0", "1"))
+    # 2026-10-22 (James: "yes, adopt standardization and hold the pretune"): the pretunes' and walks'
+    # STANDARDIZE_PENALTY (pool_linear_pretune.py --standardize-penalty), and the grid rule (default: on iff the
+    # pretunes ran standardized)
+    ap.add_argument("--standardize-penalty", default="", choices=("", "0", "1"))
+    ap.add_argument("--grid-extend", default="", choices=("", "0", "1"))
     a = ap.parse_args()
     WALK_KKT = a.walk_kkt_reseed  # 2026-10-22
+    STD, GRID_EXT = a.standardize_penalty, a.grid_extend  # 2026-10-22
     if a.out:
         OUT = Path(a.out).resolve()
         WORK = OUT / "_work"

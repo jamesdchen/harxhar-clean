@@ -1,0 +1,60 @@
+## w1000 design_baseline source=/scratch1/jc_905/wsweep/code/results/gate_w1000_nofomcrel_carc/_work/design_baseline shape=[84747, 12]
+04b0c0f26910bf0747b4472c4a1c3c37  X.npy
+996504f16da7982d64656d1ba0d9722a  y.npy
+633be55e3c2f90b02bb2eb61ec9b144a  b_oos.npy
+259fadd2ad69ff60c005778bef50ef1c  dates_oos.csv
+5555b7f31e453c8e7d3d409b827521ea  design.json
+## w1000 design_all_features source=/scratch1/jc_905/wsweep/code/results/gate_w1000_nofomcrel_carc/_work/design_all_features shape=[84747, 564]
+493ef22384b51eaadcdaeb78a79b5b80  X.npy
+996504f16da7982d64656d1ba0d9722a  y.npy
+633be55e3c2f90b02bb2eb61ec9b144a  b_oos.npy
+259fadd2ad69ff60c005778bef50ef1c  dates_oos.csv
+fcd16e39399df49b85079db43dcd886a  design.json
+## w1500 design_baseline source=/scratch1/jc_905/wsweep/code/results/pooled_linear_rerun_2026-10-22_13_2012_w1500_latestart_nofomcrel/_work/design_baseline shape=[84747, 12]
+c5d08d1007e2be222a83c94f0f1a6e96  X.npy
+996504f16da7982d64656d1ba0d9722a  y.npy
+cb9b3849a06767521b6f3e6a904828bb  b_oos.npy
+515c8162bc7855deb43c9fa55978ef17  dates_oos.csv
+4612b9678974e9955666f76c2e575649  design.json
+## w1500 design_all_features source=/scratch1/jc_905/wsweep/code/results/pooled_linear_rerun_2026-10-22_13_2012_w1500_latestart_nofomcrel/_work/design_all_features shape=[84747, 564]
+7c63306450df8440a26af3a639916e84  X.npy
+996504f16da7982d64656d1ba0d9722a  y.npy
+cb9b3849a06767521b6f3e6a904828bb  b_oos.npy
+515c8162bc7855deb43c9fa55978ef17  dates_oos.csv
+c0b80ecc341292ebb3724435de271c86  design.json
+## w2000 design_baseline source=/scratch1/jc_905/wsweep/code/results/pooled_linear_rerun_2026-10-22_13_2012_w2000_latestart_nofomcrel/_work/design_baseline shape=[84747, 12]
+dad13230add92920235396e65dee77ba  X.npy
+996504f16da7982d64656d1ba0d9722a  y.npy
+ebecb4bd285648c3cc39d475faf1a172  b_oos.npy
+37bf86d56250c6bff0748f6ebedbafbb  dates_oos.csv
+35845bfc078a13919d9d624b0bec6d08  design.json
+## w2000 design_all_features source=/scratch1/jc_905/wsweep/code/results/pooled_linear_rerun_2026-10-22_13_2012_w2000_latestart_nofomcrel/_work/design_all_features shape=[84747, 564]
+624fec4924f6e890e88fd069fc1dc395  X.npy
+996504f16da7982d64656d1ba0d9722a  y.npy
+ebecb4bd285648c3cc39d475faf1a172  b_oos.npy
+37bf86d56250c6bff0748f6ebedbafbb  dates_oos.csv
+b5b48f8ab040478bcc73b7920b7c8a90  design.json
+## w2500 design_baseline source=/scratch1/jc_905/wsweep/code/results/pooled_linear_rerun_2026-10-22_13_2012_w2500_latestart_nofomcrel/_work/design_baseline shape=[84747, 12]
+4708160b643968f17ea34edf4d246e98  X.npy
+996504f16da7982d64656d1ba0d9722a  y.npy
+5998feae6a6316dbbf85ef252b97ed5d  b_oos.npy
+252b6f2af7b1ffe2a3b5d6a60f30de05  dates_oos.csv
+11f4bebd127866d0edbee2b5a82db664  design.json
+## w2500 design_all_features source=/scratch1/jc_905/wsweep/code/results/pooled_linear_rerun_2026-10-22_13_2012_w2500_latestart_nofomcrel/_work/design_all_features shape=[84747, 564]
+c07d68f2e225b8125efeb0e7fa74df33  X.npy
+996504f16da7982d64656d1ba0d9722a  y.npy
+5998feae6a6316dbbf85ef252b97ed5d  b_oos.npy
+252b6f2af7b1ffe2a3b5d6a60f30de05  dates_oos.csv
+c37cb64e2ac2801861f9ec9a5af508d6  design.json
+## w3000 design_baseline source=/scratch1/jc_905/wsweep/code/results/pooled_linear_rerun_2026-10-22_13_2012_w3000_latestart_nofomcrel/_work/design_baseline shape=[84747, 12]
+05da4b5b30ec4579df77f1a3b6dd57ed  X.npy
+996504f16da7982d64656d1ba0d9722a  y.npy
+7670f01a3055265dfac28ebac1eca864  b_oos.npy
+d8a203fe273cd3e8e34987fe5a73048e  dates_oos.csv
+3e6f563afcdfea1573446db66edb75d0  design.json
+## w3000 design_all_features source=/scratch1/jc_905/wsweep/code/results/pooled_linear_rerun_2026-10-22_13_2012_w3000_latestart_nofomcrel/_work/design_all_features shape=[84747, 564]
+374bea97f35e33a02404dc47c82c3138  X.npy
+996504f16da7982d64656d1ba0d9722a  y.npy
+7670f01a3055265dfac28ebac1eca864  b_oos.npy
+d8a203fe273cd3e8e34987fe5a73048e  dates_oos.csv
+23656f621416928637fb8478013f8aba  design.json

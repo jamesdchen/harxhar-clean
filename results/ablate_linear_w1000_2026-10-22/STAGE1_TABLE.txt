@@ -1,0 +1,36 @@
+STAGE 1: leave one bucket out of the full set (564 columns), pooled 13-bar linear models, w1000, 2012 start (preview; RULE_ablate.txt)
+Each cell: ablation minus base full set of the same model. dQLIKE % = 100 (Q_abl / Q_base - 1), [DM p, daily average loss, two-sided]; dSR = D6 Sharpe ratio difference of the sign strategy, mid, 614 post-warmup days, [paired block bootstrap p]. Penalty re-picked on the 4 pre-2012 folds (base: ridge 1000, lasso 0.001, enet 0.01).
+
+bucket                         model    penalty    dQLIKE every bar 2012-24    dQLIKE every bar 2020-24    dQLIKE 16:00 (1,082 d)          dSR D6 mid
+-----------------------------------------------------------------------------------------------------------------------------------------------------
+moments                        ridge      1000*         +1.75% [p 0.000]         +0.73% [p 0.158]       -0.52% [p 0.798]   -0.34 [p 0.237]
+moments                        lasso      0.001         +1.99% [p 0.000]         +0.89% [p 0.081]       -0.24% [p 0.894]   -0.21 [p 0.427]
+moments                        enet       0.001        +10.65% [p 0.279]         +1.20% [p 0.345]       +1.76% [p 0.377]   -0.35 [p 0.266]
+liquidity                      ridge      1000*         +0.03% [p 0.903]         +0.10% [p 0.857]       +1.63% [p 0.244]   -0.40 [p 0.398]
+liquidity                      lasso      0.001         +0.03% [p 0.904]         -0.25% [p 0.650]       +1.54% [p 0.133]   -0.46 [p 0.305]
+liquidity                      enet       0.001         -1.09% [p 0.022]         -0.32% [p 0.737]       +4.47% [p 0.074]   -0.39 [p 0.425]
+market_ew                      ridge      1000*         -0.11% [p 0.312]         -0.44% [p 0.030]       -1.13% [p 0.163]   +0.02 [p 0.824]
+market_ew                      lasso      0.001         -0.00% [p 0.983]         -0.19% [p 0.148]       -0.70% [p 0.193]   -0.00 [p 0.527]
+market_ew                      enet       0.01*         +0.04% [p 0.497]         -0.10% [p 0.172]       -0.19% [p 0.431]   -0.01 [p 0.524]
+market_vw                      ridge      1000*         +0.04% [p 0.609]         +0.00% [p 0.967]       -0.11% [p 0.776]   -0.00 [p 0.978]
+market_vw                      lasso      0.001         +0.13% [p 0.147]         +0.18% [p 0.101]       -0.32% [p 0.328]   +0.02 [p 0.592]
+market_vw                      enet       0.01*         +0.12% [p 0.014]         +0.15% [p 0.017]       +0.12% [p 0.716]   -0.01 [p 0.802]
+implied_vol                    ridge      1000*         +0.02% [p 0.842]         -0.24% [p 0.097]       -1.49% [p 0.000]   +0.03 [p 0.788]
+implied_vol                    lasso      0.001         +0.02% [p 0.882]         -0.26% [p 0.258]       -1.46% [p 0.050]   +0.03 [p 0.790]
+implied_vol                    enet       0.01*         +0.03% [p 0.140]         +0.02% [p 0.530]       +0.06% [p 0.280]   +0.00 [p 1.000]
+fomc                           ridge      1000*         +1.73% [p 0.000]         +2.09% [p 0.000]       -0.51% [p 0.214]   +0.07 [p 0.555]
+fomc                           lasso      0.001         +1.36% [p 0.000]         +1.73% [p 0.000]       -0.44% [p 0.269]   +0.03 [p 0.630]
+fomc                           enet       0.01*         +0.46% [p 0.000]         +0.82% [p 0.006]       -0.84% [p 0.027]   +0.11 [p 0.164]
+sentiment                      ridge      1000*         +0.23% [p 0.229]         +0.29% [p 0.427]       -0.29% [p 0.571]   +0.05 [p 0.556]
+sentiment                      lasso      0.001         +0.31% [p 0.098]         +0.39% [p 0.343]       -0.12% [p 0.827]   -0.03 [p 0.645]
+sentiment                      enet       0.01*         +0.15% [p 0.008]         +0.47% [p 0.001]       +0.32% [p 0.327]   +0.08 [p 0.346]
+vol_demand                     ridge      1000*         -0.16% [p 0.170]         -0.25% [p 0.306]       +0.00% [p 0.999]   +0.14 [p 0.360]
+vol_demand                     lasso      0.001         -0.33% [p 0.000]         -0.53% [p 0.005]       -0.73% [p 0.116]   +0.06 [p 0.491]
+vol_demand                     enet       0.01*         -0.02% [p 0.403]         -0.03% [p 0.716]       -0.44% [p 0.003]   +0.00 [p 1.000]
+(* penalty at a grid end)
+
+For scale, base full set minus base HAR benchmark (same model):
+full vs HAR                    ridge                    -5.69% [p 0.000]         -4.19% [p 0.005]       +2.58% [p 0.549]   +0.25 [p 0.657]
+full vs HAR                    lasso                    -5.78% [p 0.000]         -3.89% [p 0.007]       +2.07% [p 0.584]   +0.38 [p 0.482]
+full vs HAR                    enet                     -4.88% [p 0.000]         -3.97% [p 0.000]       -0.87% [p 0.759]   +0.40 [p 0.360]
+Base levels: every-bar QLIKE 2012-24 ridge 0.1772 lasso 0.1771 enet 0.1787; 16:00 QLIKE 0.1236 / 0.1228 / 0.1194; D6 SR mid 1.32 / 1.43 / 1.47

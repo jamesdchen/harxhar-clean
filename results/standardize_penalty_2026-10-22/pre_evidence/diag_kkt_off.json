@@ -1,0 +1,14 @@
+{
+ "origin": 59250,
+ "solves": 120,
+ "standardize": false,
+ "alpha": 0.001,
+ "sec": 20.064924001693726,
+ "kkt_reseeds": 0,
+ "kkt_sec": [
+  0.062187700532376766,
+  0.0
+ ],
+ "fails": [],
+ "rel_quantiles": []
+}
