@@ -1,0 +1,7 @@
+# Hoffman2 gate, ONE thread (single-slot jobs): is each arm's piece independent of the thread count (printed: 8)?
+xgb baseline bar 2012-01-03 2024-04-30 2/2 2
+lgbm baseline bar 2012-01-03 2024-04-30 3/3 2
+rf baseline bar 2012-01-03 2024-04-30 5/5 2
+lgbm all_features bar 2012-01-03 2024-04-30 7/7 2
+xgb all_features bar 2012-01-03 2024-04-30 11/11 2
+rf all_features bar 2012-01-03 2024-04-30 190/190 1

@@ -1,0 +1,12 @@
+# Hoffman2 gate, 8 threads (the printed run's): the printed 2012-start w1000 pieces (CARC, runner db59af2), first and
+# last k trading days of each refitted on Hoffman2 by this branch's runner (the trees-final runner, 654c476).
+# "<est> <set> <refit> <first> <last> <i>/<n> <k>" (results/pooled_trees_final_2014start_w3000/code/gate_prep.py).
+xgb baseline bar 2012-01-03 2024-04-30 2/2 3
+lgbm baseline bar 2012-01-03 2024-04-30 3/3 3
+rf baseline bar 2012-01-03 2024-04-30 5/5 3
+lgbm all_features bar 2012-01-03 2024-04-30 7/7 3
+lgbm all_features bar 2012-01-03 2024-04-30 1/7 2
+xgb all_features bar 2012-01-03 2024-04-30 1/11 3
+xgb all_features bar 2012-01-03 2024-04-30 11/11 2
+rf all_features bar 2012-01-03 2024-04-30 190/190 1
+rf all_features bar 2012-01-03 2024-04-30 1/190 1
