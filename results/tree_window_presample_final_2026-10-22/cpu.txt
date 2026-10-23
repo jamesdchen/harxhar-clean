@@ -1,0 +1,7 @@
+stage 5 tasks allocated CPU-h 0.056 wall max s 30 states ['COMPLETED']
+gate 6 tasks allocated CPU-h 0.231 wall max s 48 states ['COMPLETED']
+fold 96 tasks allocated CPU-h 4.680 wall max s 188 states ['COMPLETED']
+13315151 used CPU-h 0.006
+13315152 used CPU-h 0.128
+13315192 used CPU-h 3.581
+total used CPU-h 3.715
