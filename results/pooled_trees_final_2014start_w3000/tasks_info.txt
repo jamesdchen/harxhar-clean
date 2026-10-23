@@ -1,0 +1,7 @@
+# lgbm baseline bar 2014-01-02..2024-04-30: 33970 refits x 0.93 s (8 threads) -> 3 tasks of ~2.92 h
+# xgb baseline bar 2014-01-02..2024-04-30: 33970 refits x 0.95 s (8 threads) -> 4 tasks of ~2.25 h
+# lgbm all_features bar 2014-01-02..2024-04-30: 33970 refits x 4.19 s (8 threads) -> 14 tasks of ~2.82 h
+# rf baseline bar 2014-01-02..2024-04-30: 33970 refits x 4.77 s (8 threads) -> 16 tasks of ~2.81 h
+# xgb all_features bar 2014-01-02..2024-04-30: 33970 refits x 9.19 s (8 threads) -> 29 tasks of ~2.99 h
+# rf all_features bar 2014-01-02..2024-04-30: 33970 refits x 172.80 s (8 threads) -> 544 tasks of ~3.00 h
+[22:38:15] 610 tasks -> /scratch1/jc_905/trees_final/runs/w3000/tasks.txt

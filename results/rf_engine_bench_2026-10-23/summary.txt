@@ -1,0 +1,200 @@
+## Fit seconds per refit, 8 threads (fold-3 fit: W x 13 rows)
+node                  epyc           xeon        
+W                     1000    3000   1000    3000
+engine set                                       
+A      all_features  45.21  185.39  61.48  241.44
+       baseline       1.15    3.92   1.51    5.59
+B      all_features   8.02   32.21  13.55   80.36
+       baseline       0.23    0.62   0.40    1.13
+B2048  all_features  14.46   57.18  28.47   97.23
+       baseline       0.34    1.07   0.66    1.96
+C      all_features  38.35   93.18  43.91  163.08
+       baseline       5.01   15.38   7.40   20.93
+
+## Pre-test fold 3 (validation 2013, 3,250 bars), 8 threads
+engine          set    W node  mse_adj    qlike  mean_leaves  same_twice  same_1_vs_T
+     A all_features 1000 epyc 0.053533 0.191680   285.140206        True         True
+     A all_features 1000 xeon 0.053533 0.191680   285.140206        True         True
+     B all_features 1000 epyc 0.053568 0.188942   347.356701        True         True
+     B all_features 1000 xeon 0.053568 0.188942   347.356701        True         True
+ B2048 all_features 1000 epyc 0.053631 0.189122   347.604124        True         True
+ B2048 all_features 1000 xeon 0.053634 0.189124   347.604124        True         True
+     C all_features 1000 epyc 0.053634 0.190398   531.379381        True         True
+     C all_features 1000 xeon 0.053634 0.190398   531.379381        True         True
+     A all_features 3000 epyc 0.053287 0.185546   849.979381        True         True
+     A all_features 3000 xeon 0.053287 0.185546   849.979381        True         True
+     B all_features 3000 epyc 0.053430 0.185775  1031.620619        True         True
+     B all_features 3000 xeon 0.053430 0.185775  1031.620619        True         True
+ B2048 all_features 3000 epyc 0.053382 0.186063  1029.529897        True         True
+ B2048 all_features 3000 xeon 0.053382 0.186063  1029.529897        True         True
+     C all_features 3000 epyc 0.053743 0.186040  1572.008247        True         True
+     C all_features 3000 xeon 0.053743 0.186040  1572.008247        True         True
+     A     baseline 1000 epyc 0.056288 0.201620   285.604124        True         True
+     A     baseline 1000 xeon 0.056288 0.201620   285.604124        True         True
+     B     baseline 1000 epyc 0.056095 0.201073   346.544330        True         True
+     B     baseline 1000 xeon 0.056095 0.201073   346.544330        True         True
+ B2048     baseline 1000 epyc 0.056242 0.201642   347.564948        True         True
+ B2048     baseline 1000 xeon 0.056242 0.201642   347.564948        True         True
+     C     baseline 1000 epyc 0.056448 0.202036   531.053608        True         True
+     C     baseline 1000 xeon 0.056448 0.202036   531.053608        True         True
+     A     baseline 3000 epyc 0.056530 0.199165   852.086598        True         True
+     A     baseline 3000 xeon 0.056530 0.199165   852.086598        True         True
+     B     baseline 3000 epyc 0.056470 0.198869  1034.488660        True         True
+     B     baseline 3000 xeon 0.056470 0.198869  1034.488660        True         True
+ B2048     baseline 3000 epyc 0.056659 0.199262  1033.575258        True         True
+ B2048     baseline 3000 xeon 0.056659 0.199262  1033.575258        True         True
+     C     baseline 3000 epyc 0.056999 0.200458  1576.797938        True         True
+     C     baseline 3000 xeon 0.056999 0.200458  1576.797938        True         True
+
+## Validation forecasts against engine A (same node), and each engine EPYC vs Xeon
+engine          set    W         node  corr_vs_A  median_rel_diff_vs_A  p90_rel_diff_vs_A  max_rel_diff_vs_A  bit_equal_vs_A
+     A all_features 1000         epyc   1.000000              0.000000           0.000000       0.000000e+00            True
+     A all_features 1000 epyc vs xeon        NaN                   NaN                NaN       0.000000e+00            True
+     A all_features 1000         xeon   1.000000              0.000000           0.000000       0.000000e+00            True
+     B all_features 1000         epyc   0.998444              0.008575           0.021683       8.142918e-02           False
+     B all_features 1000 epyc vs xeon        NaN                   NaN                NaN       3.569644e-15           False
+     B all_features 1000         xeon   0.998444              0.008575           0.021683       8.142918e-02           False
+ B2048 all_features 1000         epyc   0.998468              0.008323           0.020240       9.220287e-02           False
+ B2048 all_features 1000 epyc vs xeon        NaN                   NaN                NaN       1.997240e-03           False
+ B2048 all_features 1000         xeon   0.998455              0.008323           0.020240       9.388130e-02           False
+     C all_features 1000         epyc   0.996481              0.011832           0.028981       1.551619e-01           False
+     C all_features 1000 epyc vs xeon        NaN                   NaN                NaN       0.000000e+00            True
+     C all_features 1000         xeon   0.996481              0.011832           0.028981       1.551619e-01           False
+     A all_features 3000         epyc   1.000000              0.000000           0.000000       0.000000e+00            True
+     A all_features 3000 epyc vs xeon        NaN                   NaN                NaN       0.000000e+00            True
+     A all_features 3000         xeon   1.000000              0.000000           0.000000       0.000000e+00            True
+     B all_features 3000         epyc   0.998154              0.008341           0.020221       2.936161e-01           False
+     B all_features 3000 epyc vs xeon        NaN                   NaN                NaN       2.804091e-15           False
+     B all_features 3000         xeon   0.998154              0.008341           0.020221       2.936161e-01           False
+ B2048 all_features 3000         epyc   0.998850              0.007986           0.019357       6.484246e-02           False
+ B2048 all_features 3000 epyc vs xeon        NaN                   NaN                NaN       3.435305e-15           False
+ B2048 all_features 3000         xeon   0.998850              0.007986           0.019357       6.484246e-02           False
+     C all_features 3000         epyc   0.996443              0.011305           0.028823       1.949656e-01           False
+     C all_features 3000 epyc vs xeon        NaN                   NaN                NaN       0.000000e+00            True
+     C all_features 3000         xeon   0.996443              0.011305           0.028823       1.949656e-01           False
+     A     baseline 1000         epyc   1.000000              0.000000           0.000000       0.000000e+00            True
+     A     baseline 1000 epyc vs xeon        NaN                   NaN                NaN       0.000000e+00            True
+     A     baseline 1000         xeon   1.000000              0.000000           0.000000       0.000000e+00            True
+     B     baseline 1000         epyc   0.998863              0.006762           0.017098       1.532978e-01           False
+     B     baseline 1000 epyc vs xeon        NaN                   NaN                NaN       2.741824e-15           False
+     B     baseline 1000         xeon   0.998863              0.006762           0.017098       1.532978e-01           False
+ B2048     baseline 1000         epyc   0.999374              0.006183           0.015923       4.303747e-02           False
+ B2048     baseline 1000 epyc vs xeon        NaN                   NaN                NaN       2.592352e-15           False
+ B2048     baseline 1000         xeon   0.999374              0.006183           0.015923       4.303747e-02           False
+     C     baseline 1000         epyc   0.995926              0.013133           0.035049       2.363779e-01           False
+     C     baseline 1000 epyc vs xeon        NaN                   NaN                NaN       0.000000e+00            True
+     C     baseline 1000         xeon   0.995926              0.013133           0.035049       2.363779e-01           False
+     A     baseline 3000         epyc   1.000000              0.000000           0.000000       0.000000e+00            True
+     A     baseline 3000 epyc vs xeon        NaN                   NaN                NaN       0.000000e+00            True
+     A     baseline 3000         xeon   1.000000              0.000000           0.000000       0.000000e+00            True
+     B     baseline 3000         epyc   0.999142              0.006455           0.016572       1.481585e-01           False
+     B     baseline 3000 epyc vs xeon        NaN                   NaN                NaN       1.898197e-15           False
+     B     baseline 3000         xeon   0.999142              0.006455           0.016572       1.481585e-01           False
+ B2048     baseline 3000         epyc   0.999344              0.005860           0.014935       8.379711e-02           False
+ B2048     baseline 3000 epyc vs xeon        NaN                   NaN                NaN       1.244514e-15           False
+ B2048     baseline 3000         xeon   0.999344              0.005860           0.014935       8.379711e-02           False
+     C     baseline 3000         epyc   0.997001              0.011681           0.030163       1.661595e-01           False
+     C     baseline 3000 epyc vs xeon        NaN                   NaN                NaN       0.000000e+00            True
+     C     baseline 3000         xeon   0.997001              0.011681           0.030163       1.661595e-01           False
+
+## Thread runs
+engine          set    W node run  threads  fit_sec  fit_cpu_sec     pred_md5
+     A all_features 1000 epyc   T        8   45.207      355.882 d4def94c977f
+     A all_features 1000 epyc  T2        8   43.169      339.759 d4def94c977f
+     A all_features 1000 epyc   1        1  330.641      329.474 d4def94c977f
+     A all_features 1000 xeon   T        8   61.484      485.549 d4def94c977f
+     A all_features 1000 xeon  T2        8   60.348      477.689 d4def94c977f
+     A all_features 1000 xeon   1        1  398.472      397.108 d4def94c977f
+     A all_features 3000 epyc   T        8  185.391     1461.361 18095ccb2dfe
+     A all_features 3000 epyc  T2        8  175.955     1386.272 18095ccb2dfe
+     A all_features 3000 epyc   1        1 1293.288     1286.918 18095ccb2dfe
+     A all_features 3000 xeon   T        8  241.435     1912.753 18095ccb2dfe
+     A all_features 3000 xeon  T2        8  241.316     1909.743 18095ccb2dfe
+     A all_features 3000 xeon   1        1 1610.040     1604.218 18095ccb2dfe
+     A     baseline 1000 epyc   T        8    1.147        7.887 f04042824aa2
+     A     baseline 1000 epyc  T2        8    1.098        7.879 f04042824aa2
+     A     baseline 1000 epyc   1        1    7.732        7.701 f04042824aa2
+     A     baseline 1000 xeon   T        8    1.509       10.274 f04042824aa2
+     A     baseline 1000 xeon  T2        8    1.464       10.284 f04042824aa2
+     A     baseline 1000 xeon   1        1    8.998        8.977 f04042824aa2
+     A     baseline 3000 epyc   T        8    3.923       30.112 15b471206f0b
+     A     baseline 3000 epyc  T2        8    3.885       30.097 15b471206f0b
+     A     baseline 3000 epyc   1        1   29.310       29.178 15b471206f0b
+     A     baseline 3000 xeon   T        8    5.587       42.236 15b471206f0b
+     A     baseline 3000 xeon  T2        8    5.459       41.691 15b471206f0b
+     A     baseline 3000 xeon   1        1   35.520       35.430 15b471206f0b
+ B2048 all_features 1000 epyc   T        8   14.460      112.266 dccd17ea2b25
+ B2048 all_features 1000 epyc  T2        8   14.253      112.451 dccd17ea2b25
+ B2048 all_features 1000 epyc   1        1  111.200      110.544 dccd17ea2b25
+ B2048 all_features 1000 xeon   T        8   28.472      225.035 de862545199b
+ B2048 all_features 1000 xeon  T2        8   28.407      225.563 de862545199b
+ B2048 all_features 1000 xeon   1        1  186.911      186.294 de862545199b
+ B2048 all_features 3000 epyc   T        8   57.183      448.982 65782dee8d9d
+ B2048 all_features 3000 epyc  T2        8   57.582      453.479 65782dee8d9d
+ B2048 all_features 3000 epyc   1        1  410.492      408.036 65782dee8d9d
+ B2048 all_features 3000 xeon   T        8   97.233      769.452 b397dd6bebfc
+ B2048 all_features 3000 xeon  T2        8   97.611      775.229 b397dd6bebfc
+ B2048 all_features 3000 xeon   1        1  692.749      690.688 b397dd6bebfc
+ B2048     baseline 1000 epyc   T        8    0.340        2.526 fc7cd19c0bc3
+ B2048     baseline 1000 epyc  T2        8    0.329        2.591 fc7cd19c0bc3
+ B2048     baseline 1000 epyc   1        1    2.465        2.453 fc7cd19c0bc3
+ B2048     baseline 1000 xeon   T        8    0.661        4.849 f9e59c325c76
+ B2048     baseline 1000 xeon  T2        8    0.592        4.653 f9e59c325c76
+ B2048     baseline 1000 xeon   1        1    3.715        3.705 f9e59c325c76
+ B2048     baseline 3000 epyc   T        8    1.071        8.302 e7f5770917fb
+ B2048     baseline 3000 epyc  T2        8    1.042        8.236 e7f5770917fb
+ B2048     baseline 3000 epyc   1        1    8.140        8.092 e7f5770917fb
+ B2048     baseline 3000 xeon   T        8    1.963       15.341 d422816004c5
+ B2048     baseline 3000 xeon  T2        8    1.922       15.193 d422816004c5
+ B2048     baseline 3000 xeon   1        1   11.588       11.553 d422816004c5
+     B all_features 1000 epyc   T        8    8.023       57.189 22794557cb9c
+     B all_features 1000 epyc  T2        8    7.269       57.445 22794557cb9c
+     B all_features 1000 epyc   1        1   58.720       58.429 22794557cb9c
+     B all_features 1000 xeon   T        8   13.553      106.290 175e6d378cde
+     B all_features 1000 xeon  T2        8   13.398      105.647 175e6d378cde
+     B all_features 1000 xeon   1        1   88.789       88.512 175e6d378cde
+     B all_features 3000 epyc   T        8   32.208      245.524 2755743df235
+     B all_features 3000 epyc  T2        8   31.070      244.280 2755743df235
+     B all_features 3000 epyc   1        1  268.480      267.326 2755743df235
+     B all_features 3000 xeon   T        8   80.360      632.066 e6a69a247930
+     B all_features 3000 xeon  T2        8   82.897      653.586 e6a69a247930
+     B all_features 3000 xeon   1        1  611.923      609.677 e6a69a247930
+     B     baseline 1000 epyc   T        8    0.229        1.373 2d6180f65b2b
+     B     baseline 1000 epyc  T2        8    0.172        1.346 2d6180f65b2b
+     B     baseline 1000 epyc   1        1    1.341        1.334 2d6180f65b2b
+     B     baseline 1000 xeon   T        8    0.396        2.755 c459017b822d
+     B     baseline 1000 xeon  T2        8    0.342        2.702 c459017b822d
+     B     baseline 1000 xeon   1        1    2.035        2.030 c459017b822d
+     B     baseline 3000 epyc   T        8    0.620        4.605 ee49a7cdb6cc
+     B     baseline 3000 epyc  T2        8    0.578        4.536 ee49a7cdb6cc
+     B     baseline 3000 epyc   1        1    4.504        4.484 ee49a7cdb6cc
+     B     baseline 3000 xeon   T        8    1.126        8.715 e5591513d59d
+     B     baseline 3000 xeon  T2        8    1.096        8.659 e5591513d59d
+     B     baseline 3000 xeon   1        1    6.527        6.510 e5591513d59d
+     C all_features 1000 epyc   T        8   38.353      297.406 94900255077c
+     C all_features 1000 epyc  T2        8   34.360      267.229 94900255077c
+     C all_features 1000 epyc   1        1  143.313      142.683 94900255077c
+     C all_features 1000 xeon   T        8   43.906      342.241 94900255077c
+     C all_features 1000 xeon  T2        8   46.102      360.805 94900255077c
+     C all_features 1000 xeon   1        1  225.471      224.673 94900255077c
+     C all_features 3000 epyc   T        8   93.182      734.645 6441081c1146
+     C all_features 3000 epyc  T2        8   92.644      732.043 6441081c1146
+     C all_features 3000 epyc   1        1  403.912      401.875 6441081c1146
+     C all_features 3000 xeon   T        8  163.077     1283.376 6441081c1146
+     C all_features 3000 xeon  T2        8  161.772     1280.461 6441081c1146
+     C all_features 3000 xeon   1        1  919.903      916.734 6441081c1146
+     C     baseline 1000 epyc   T        8    5.009       39.002 648926d4ed9e
+     C     baseline 1000 epyc  T2        8    4.931       39.095 648926d4ed9e
+     C     baseline 1000 epyc   1        1    8.023        8.023 648926d4ed9e
+     C     baseline 1000 xeon   T        8    7.397       57.204 648926d4ed9e
+     C     baseline 1000 xeon  T2        8    7.225       56.654 648926d4ed9e
+     C     baseline 1000 xeon   1        1   10.097       10.065 648926d4ed9e
+     C     baseline 3000 epyc   T        8   15.377      120.513 64bcabe8a686
+     C     baseline 3000 epyc  T2        8   15.503      122.090 64bcabe8a686
+     C     baseline 3000 epyc   1        1   22.019       21.893 64bcabe8a686
+     C     baseline 3000 xeon   T        8   20.933      160.420 64bcabe8a686
+     C     baseline 3000 xeon  T2        8   20.640      159.271 64bcabe8a686
+     C     baseline 3000 xeon   1        1   31.359       31.268 64bcabe8a686
+
+## sklearnex dispatch log
+sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU | sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU

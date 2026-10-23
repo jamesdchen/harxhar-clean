@@ -40,6 +40,18 @@ Modes
 2012-01-03 .. 2024-04-30, so --first-day defaults to 2012-01-03 and the task file covers that span, arm by arm,
 cheapest first. --window-days defaults to the window of the design cache (asserted against it when given).
 
+2026-10-23 (repo owner, final rerun "linear + trees + MinGRU"): the walks on the final design (first evaluation day
+2014-01-02, windows 3,000 and 3,500 days; results/pooled_trees_final_2014start_w3000, _w3500). The full set has 564
+columns there (EXCLUDE_FOMC_RELEASE); check() accepts either cache, nothing else changed.
+
+2026-10-23 (owner, after results/rf_engine_bench_2026-10-23): --est rf_skx = the frozen forest (the same config file,
+seed 42, n_jobs = T to fit and 1 to predict) on Intel's oneDAL engine, sklearnex.ensemble.RandomForestRegressor,
+default 256 bins (rule: results/pooled_rf_skx_2014start_w3000/RULE_rf_skx.txt).  sklearnex is imported only for that
+estimator.  Its first fit in each session asserts oneDAL ran (no fallback to stock scikit-learn).  Every piece's meta
+records the CPU model of each session that wrote it ("cpus"); rf_skx refuses to resume on another model, and merge
+asserts one model for it (oneDAL's results differ across CPU families).  merge / time / tasks without --est cover
+lgbm, xgb and rf as before.
+
 Run:  python experiments/pooled_trees_rerun_13.py walk --design results/pooled_trees_rerun13_2026-10-20 \
           --est lgbm --set all_features --refit day --first-day 2020-01-03 --last-day 2020-01-07 --threads 4
 """
@@ -48,7 +60,9 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib.metadata
 import json
+import logging
 import math
 import os
 import platform
@@ -57,6 +71,7 @@ import sys
 import time
 import warnings
 from pathlib import Path
+from typing import ClassVar
 
 import numpy as np
 import pandas as pd
@@ -70,13 +85,61 @@ for _p in (ROOT, ROOT / "experiments"):
 warnings.filterwarnings("ignore", message="X does not have valid feature names")
 PPD = 13
 SETS = ("baseline", "all_features")
-N_COLS = {"baseline": 12, "all_features": 576}
+# 2026-10-23 (final rerun, 2014 start): src/data/loading.py EXCLUDE_FOMC_RELEASE (on) drops the FOMC statement-bar
+# series from the full set, 564 columns; a cache built with it (the printed 2012-start w1000 design, built before the
+# flag, or --keep-fomc-release) has its 12 columns more (value and availability averages at the 6 HAR horizons).
+# Was: N_COLS = {"baseline": 12, "all_features": 576}
+N_COLS = {"baseline": 12, "all_features": 564}
+N_FOMC_RELEASE = 12
 CONFIGS = {
     "lgbm": ROOT / "cluster" / "pooltree_lgbm_config.json",
     "xgb": ROOT / "cluster" / "xgbtop_xgb_config.json",
     "rf": ROOT / "cluster" / "pooltree_rf400_config.json",
+    # 2026-10-23 (owner): the same frozen forest on Intel's oneDAL engine (scikit-learn-intelex), default 256 bins
+    # (results/pooled_rf_skx_2014start_w3000/RULE_rf_skx.txt)
+    "rf_skx": ROOT / "cluster" / "pooltree_rf400_config.json",
 }
-COLS = ["model", "predictor_set", "date", "pred_adj", "true_adj", "B", "plain", "rv_actual"]
+# estimators whose pieces must all come from one CPU family (rf_skx: oneDAL's SIMD paths differ across CPU families)
+ONE_CPU = ("rf_skx",)
+# 2026-10-23: CPU models that give the same rf_skx forecasts bit for bit (the rf_skx gate: fold fits and walk pieces
+# on EPYC 7513 and 7542 identical), one family for the ONE_CPU checks; any other model is a family of its own.
+# Was: one CPU model (len(set(cpus)) == 1).
+CPU_FAMILY = {
+    "AMD EPYC 7513 32-Core Processor": "AMD EPYC 7513/7542 (rf_skx gate: bit-identical)",
+    "AMD EPYC 7542 32-Core Processor": "AMD EPYC 7513/7542 (rf_skx gate: bit-identical)",
+}
+
+
+def cpu_family(model: str) -> str:
+    return CPU_FAMILY.get(model, model)
+
+
+DEFAULT_EST = (
+    "lgbm",
+    "xgb",
+    "rf",
+)  # merge / time / tasks without --est: as before rf_skx existed
+
+
+class _SkxLog(logging.Handler):
+    """sklearnex's dispatch messages (accelerated version vs fallback to stock scikit-learn)."""
+
+    msgs: ClassVar[list[str]] = []
+
+    def emit(self, record: logging.LogRecord) -> None:
+        _SkxLog.msgs.append(record.getMessage())
+
+
+COLS = [
+    "model",
+    "predictor_set",
+    "date",
+    "pred_adj",
+    "true_adj",
+    "B",
+    "plain",
+    "rv_actual",
+]
 PIECE_COLS = COLS + ["fit_row"]
 # 2026-10-20 (author): parked -- the 2020 span first, then 2012-2019. Was:
 # SPANS = ("2020-01-03:2024-04-30", "2012-01-03:2019-12-31")
@@ -100,9 +163,16 @@ def check(root: Path, s: str, window_days: int) -> dict:
     import pooled_linear_rerun_2026_10_19_13 as LR
 
     LR.WORK = root / "_work"
-    names = LR.check_design(s)
-    assert len(names) == N_COLS[s], (s, len(names))
     meta = json.loads((design_dir(root, s) / "design.json").read_text())
+    # 2026-10-23: the FOMC statement-bar series is checked as the linear runner's --keep-fomc-release does when the
+    # cache holds it (the printed 576-column design), else as EXCLUDE_FOMC_RELEASE builds the set (the final 564).
+    # Was: names = LR.check_design(s); assert len(names) == N_COLS[s], (s, len(names))
+    LR.KEEP_FOMC_RELEASE = any(
+        n.startswith("adj_fomc_release_ma_") for n in meta["names"]
+    )
+    names = LR.check_design(s)
+    want = N_COLS[s] + (N_FOMC_RELEASE if LR.KEEP_FOMC_RELEASE else 0)
+    assert len(names) == want, (s, len(names), want)
     W = int(meta["config"]["window"])
     assert meta["config"]["periods_per_day"] == PPD, meta["config"]
     assert W == window_days * PPD, (W, window_days)
@@ -110,10 +180,14 @@ def check(root: Path, s: str, window_days: int) -> dict:
 
 
 def oos_dates(root: Path, s: str) -> pd.DatetimeIndex:
-    return pd.DatetimeIndex(pd.read_csv(design_dir(root, s) / "dates_oos.csv", parse_dates=["date"])["date"])
+    return pd.DatetimeIndex(
+        pd.read_csv(design_dir(root, s) / "dates_oos.csv", parse_dates=["date"])["date"]
+    )
 
 
-def span_rows(d: pd.DatetimeIndex, first: str, last: str | None) -> tuple[np.ndarray, str]:
+def span_rows(
+    d: pd.DatetimeIndex, first: str, last: str | None
+) -> tuple[np.ndarray, str]:
     """OOS rows of the span (first .. last day, last = the last design row by default) and the last day's label."""
     day = d.normalize()
     last = last or str(day[-1].date())
@@ -145,8 +219,13 @@ def sha256(p: Path) -> str:
 
 def rv_bars() -> pd.Series:
     """data/core_stats.parquet sumret2 by bar end (naive ET), as the linear runner's score stage."""
-    core = pd.read_parquet(ROOT / "data" / "core_stats.parquet", columns=["endbartime", "sumret2"])
-    rv = pd.Series(core["sumret2"].to_numpy(float), index=pd.DatetimeIndex(pd.to_datetime(core["endbartime"])))
+    core = pd.read_parquet(
+        ROOT / "data" / "core_stats.parquet", columns=["endbartime", "sumret2"]
+    )
+    rv = pd.Series(
+        core["sumret2"].to_numpy(float),
+        index=pd.DatetimeIndex(pd.to_datetime(core["endbartime"])),
+    )
     return rv[~rv.index.duplicated()]
 
 
@@ -158,11 +237,24 @@ def model_factory(est: str, threads: int):
     if est == "lgbm":
         import lightgbm as lgb
 
-        return cfg, lambda: lgb.LGBMRegressor(**params, num_threads=threads, random_state=42, verbosity=-1)
+        return cfg, lambda: lgb.LGBMRegressor(
+            **params, num_threads=threads, random_state=42, verbosity=-1
+        )
     if est == "xgb":
         import xgboost as xgb
 
-        return cfg, lambda: xgb.XGBRegressor(**params, n_jobs=threads, random_state=42, verbosity=0)
+        return cfg, lambda: xgb.XGBRegressor(
+            **params, n_jobs=threads, random_state=42, verbosity=0
+        )
+    if est == "rf_skx":
+        # 2026-10-23 (owner): imported only here, so an environment without sklearnex runs every other arm unchanged
+        from sklearnex.ensemble import RandomForestRegressor as SkxRF
+
+        lg = logging.getLogger("sklearnex")
+        if not any(isinstance(h, _SkxLog) for h in lg.handlers):
+            lg.addHandler(_SkxLog())
+        lg.setLevel(logging.INFO)
+        return cfg, lambda: SkxRF(**params, random_state=42, n_jobs=threads)
     from sklearn.ensemble import RandomForestRegressor
 
     return cfg, lambda: RandomForestRegressor(**params, random_state=42, n_jobs=threads)
@@ -171,8 +263,10 @@ def model_factory(est: str, threads: int):
 def fit_predict(make, est, Xw, yw, Xp) -> np.ndarray:
     m = make()
     m.fit(Xw, yw)
-    if est == "rf":
-        m.set_params(n_jobs=1)  # pooled_trees_walk.walk_rf: a one-thread predict sums in tree order
+    if est in ("rf", "rf_skx"):
+        m.set_params(
+            n_jobs=1
+        )  # pooled_trees_walk.walk_rf: a one-thread predict sums in tree order
     return np.asarray(m.predict(Xp), dtype=np.float64)
 
 
@@ -183,9 +277,23 @@ def versions() -> dict:
     import sklearn
     import xgboost
 
-    return dict(python=platform.python_version(), numpy=np.__version__, pandas=pd.__version__, scipy=scipy.__version__,
-                sklearn=sklearn.__version__, lightgbm=lightgbm.__version__, xgboost=xgboost.__version__,
-                pyarrow=pyarrow.__version__)
+    out = {
+        "python": platform.python_version(),
+        "numpy": np.__version__,
+        "pandas": pd.__version__,
+        "scipy": scipy.__version__,
+        "sklearn": sklearn.__version__,
+        "lightgbm": lightgbm.__version__,
+        "xgboost": xgboost.__version__,
+        "pyarrow": pyarrow.__version__,
+    }
+    # 2026-10-23: the oneDAL engine's packages where installed (the rf_skx venv); absent elsewhere, the dict unchanged
+    for k, dist in (("sklearnex", "scikit-learn-intelex"), ("daal", "daal")):
+        try:
+            out[k] = importlib.metadata.version(dist)
+        except importlib.metadata.PackageNotFoundError:
+            pass
+    return out
 
 
 def cpu_model() -> str:
@@ -202,7 +310,9 @@ class Arm:
     """One (estimator, set) on the design: X rows [lo, hi) in memory, C-ordered (the trees bin the values, so the
     layout does not change a fit)."""
 
-    def __init__(self, root: Path, s: str, window_days: int, lo: int = 0, hi: int | None = None):
+    def __init__(
+        self, root: Path, s: str, window_days: int, lo: int = 0, hi: int | None = None
+    ):
         self.meta = check(root, s, window_days)
         self.W = window_days * PPD
         dz = design_dir(root, s)
@@ -213,14 +323,18 @@ class Arm:
         self.y = np.load(dz / "y.npy")
         self.b = np.load(dz / "b_oos.npy")
         self.d = oos_dates(root, s)
-        assert len(self.y) == self.W + len(self.d) == self.meta["shape"][0] and len(self.b) == len(self.d)
+        assert len(self.y) == self.W + len(self.d) == self.meta["shape"][0] and len(
+            self.b
+        ) == len(self.d)
 
     def rows(self, r0: int, r1: int) -> np.ndarray:
         return self.X[r0 - self.lo : r1 - self.lo]
 
 
 # ============================================================================ walk
-def piece_path(out: Path, est: str, s: str, refit: str, first: str, last: str, part: str) -> Path:
+def piece_path(
+    out: Path, est: str, s: str, refit: str, first: str, last: str, part: str
+) -> Path:
     i, n = part.split("/")
     return out / "pieces" / f"{est}_{s}_{refit}_{first}_{last}_{i}of{n}.parquet"
 
@@ -235,28 +349,53 @@ def cmd_walk(a) -> int:
     path.parent.mkdir(parents=True, exist_ok=True)
     meta_p, ckpt_p = path.with_suffix(".json"), path.with_suffix(".ckpt.json")
     day = d.normalize()
-    groups = [mine[day[mine] == g] for g in day[mine].unique()] if a.refit == "day" else [mine[[k]] for k in
-                                                                                             range(len(mine))]
+    groups = (
+        [mine[day[mine] == g] for g in day[mine].unique()]
+        if a.refit == "day"
+        else [mine[[k]] for k in range(len(mine))]
+    )
     done = pd.read_parquet(path) if path.is_file() else pd.DataFrame(columns=PIECE_COLS)
     have = set(pd.DatetimeIndex(done["date"]).tolist())
     if meta_p.is_file() and len(done) == len(mine):
         say(f"complete: {path.name}")
         return 0
-    arm = Arm(root, a.set, a.window_days, lo=int(mine[0]), hi=W + int(mine[-1]) + 1)  # design rows W + mine[0] - W ..
+    arm = Arm(
+        root, a.set, a.window_days, lo=int(mine[0]), hi=W + int(mine[-1]) + 1
+    )  # design rows W + mine[0] - W ..
     cfg, make = model_factory(a.est, a.threads)
     rv = rv_bars()
-    prior = json.loads(ckpt_p.read_text()) if ckpt_p.is_file() else {"wall_sec": 0.0, "refits": 0}
-    say(f"walk {a.est} {a.set} {a.refit} {a.first_day}..{last} part {a.part}: {len(mine)} rows "
+    prior: dict = (
+        json.loads(ckpt_p.read_text())
+        if ckpt_p.is_file()
+        else {"wall_sec": 0.0, "refits": 0}
+    )
+    # 2026-10-23: the CPU model of every session that wrote the piece (a resumed piece may have run on several nodes);
+    # rf_skx refuses to resume on another CPU family (ONE_CPU, CPU_FAMILY)
+    cpus: list[str] = [str(c) for c in prior.get("cpus", [])] + [cpu_model()]
+    if a.est in ONE_CPU and len({cpu_family(c) for c in cpus}) > 1:
+        raise SystemExit(
+            f"{a.est}: piece {path.name} was begun on {cpus[:-1]}, this node is {cpus[-1]}"
+        )
+    say(
+        f"walk {a.est} {a.set} {a.refit} {a.first_day}..{last} part {a.part}: {len(mine)} rows "
         f"{d[mine[0]]} .. {d[mine[-1]]}, {len(groups)} refits, {len(have)} rows on disk; W {W}, "
-        f"{arm.X.shape[1]} columns, {cfg['name']} {cfg['sha']}, threads {a.threads}")
+        f"{arm.X.shape[1]} columns, {cfg['name']} {cfg['sha']}, threads {a.threads}"
+    )
     recs = [done] if len(done) else []
     t0, t_ck, k = time.time(), time.time(), 0
+    skx_dispatch: list[str] = []
 
     def save(final: bool) -> dict:
-        f = pd.concat(recs, ignore_index=True)[PIECE_COLS].sort_values("date", ignore_index=True)
+        f = pd.concat(recs, ignore_index=True)[PIECE_COLS].sort_values(
+            "date", ignore_index=True
+        )
         f.to_parquet(path.with_suffix(".part"), index=False)
         os.replace(path.with_suffix(".part"), path)
-        st = {"wall_sec": prior["wall_sec"] + time.time() - t0, "refits": prior["refits"] + k}
+        st = {
+            "wall_sec": prior["wall_sec"] + time.time() - t0,
+            "refits": prior["refits"] + k,
+            "cpus": cpus,
+        }
         if not final:
             ckpt_p.write_text(json.dumps(st))
         return st
@@ -266,30 +405,93 @@ def cmd_walk(a) -> int:
             continue
         r = W + g  # design rows
         r0 = int(r[0])  # the fit of the group's first row
-        yh = fit_predict(make, a.est, arm.rows(r0 - W, r0), arm.y[r0 - W : r0], arm.rows(r0, int(r[-1]) + 1))
+        yh = fit_predict(
+            make,
+            a.est,
+            arm.rows(r0 - W, r0),
+            arm.y[r0 - W : r0],
+            arm.rows(r0, int(r[-1]) + 1),
+        )
         b = arm.b[g]
-        recs.append(pd.DataFrame(dict(model=a.est, predictor_set=a.set, date=d[g], pred_adj=yh, true_adj=arm.y[r],
-                                      B=b, plain=yh**2 * b, rv_actual=rv.reindex(d[g]).to_numpy(),
-                                      fit_row=np.full(len(g), r0 - W, dtype=np.int64))))
+        recs.append(
+            pd.DataFrame(
+                {
+                    "model": a.est,
+                    "predictor_set": a.set,
+                    "date": d[g],
+                    "pred_adj": yh,
+                    "true_adj": arm.y[r],
+                    "B": b,
+                    "plain": yh**2 * b,
+                    "rv_actual": rv.reindex(d[g]).to_numpy(),
+                    "fit_row": np.full(len(g), r0 - W, dtype=np.int64),
+                }
+            )
+        )
         k += 1
+        if (
+            a.est == "rf_skx" and k == 1
+        ):  # the first fit ran on oneDAL, not stock scikit-learn; then quiet
+            assert any("fit: running accelerated version" in m for m in _SkxLog.msgs), (
+                _SkxLog.msgs[:5]
+            )
+            assert not any("fallback" in m.lower() for m in _SkxLog.msgs), _SkxLog.msgs[
+                :5
+            ]
+            skx_dispatch = sorted(set(_SkxLog.msgs))
+            logging.getLogger("sklearnex").setLevel(logging.WARNING)
         if time.time() - t_ck > a.ckpt_sec:
             save(False)
             t_ck = time.time()
-            say(f"  {k} refits, {(time.time() - t0) / k:.2f} s a refit, through {d[g[-1]]}")
+            say(
+                f"  {k} refits, {(time.time() - t0) / k:.2f} s a refit, through {d[g[-1]]}"
+            )
     st = save(True)
     f = pd.read_parquet(path)
     assert pd.DatetimeIndex(f["date"]).equals(d[mine]), "piece rows"
-    meta = dict(est=a.est, predictor_set=a.set, refit=a.refit, span=[a.first_day, last], part=a.part,
-                block=[str(d[mine[0]]), str(d[mine[-1]])], rows=int(len(mine)), refits=int(st["refits"]),
-                wall_sec=round(st["wall_sec"], 1), config=cfg["name"], sha=cfg["sha"], params=cfg.get("params"),
-                config_file=str(CONFIGS[a.est].relative_to(ROOT)), config_file_sha256=sha256(CONFIGS[a.est]),
-                window_rows=W, window_days=a.window_days, n_columns=int(arm.X.shape[1]), threads=a.threads,
-                host=platform.node(), cpu=cpu_model(), versions=versions(), design=str(design_dir(root, a.set)),
-                slurm_job=os.environ.get("SLURM_ARRAY_JOB_ID", os.environ.get("SLURM_JOB_ID", "")),
-                slurm_task=os.environ.get("SLURM_ARRAY_TASK_ID", ""))
+    meta = {
+        "est": a.est,
+        "predictor_set": a.set,
+        "refit": a.refit,
+        "span": [a.first_day, last],
+        "part": a.part,
+        "block": [str(d[mine[0]]), str(d[mine[-1]])],
+        "rows": len(mine),
+        "refits": int(st["refits"]),
+        "wall_sec": round(st["wall_sec"], 1),
+        "config": cfg["name"],
+        "sha": cfg["sha"],
+        "params": cfg.get("params"),
+        "config_file": str(CONFIGS[a.est].relative_to(ROOT)),
+        "config_file_sha256": sha256(CONFIGS[a.est]),
+        "window_rows": W,
+        "window_days": a.window_days,
+        "n_columns": int(arm.X.shape[1]),
+        "threads": a.threads,
+        "host": platform.node(),
+        "cpu": cpu_model(),
+        "cpus": sorted(set(cpus)),
+        "versions": versions(),
+        "design": str(design_dir(root, a.set)),
+        "slurm_job": os.environ.get(
+            "SLURM_ARRAY_JOB_ID", os.environ.get("SLURM_JOB_ID", "")
+        ),
+        "slurm_task": os.environ.get("SLURM_ARRAY_TASK_ID", ""),
+    }
+    if (
+        a.est == "rf_skx"
+    ):  # 2026-10-23: oneDAL's dispatch and its split settings (default 256 bins)
+        meta["skx_dispatch"] = skx_dispatch
+        meta["skx_split"] = {
+            k_: v
+            for k_, v in make().get_params().items()
+            if k_ in ("max_bins", "min_bin_size")
+        }
     meta_p.write_text(json.dumps(meta, indent=1))
     ckpt_p.unlink(missing_ok=True)
-    say(f"DONE {path.name}: {k} refits in {time.time() - t0:.1f} s ({meta['wall_sec']} s in all)")
+    say(
+        f"DONE {path.name}: {k} refits in {time.time() - t0:.1f} s ({meta['wall_sec']} s in all)"
+    )
     return 0
 
 
@@ -297,13 +499,20 @@ def cmd_walk(a) -> int:
 def cmd_merge(a) -> int:
     root, out = Path(a.design).resolve(), Path(a.out).resolve()
     frames, used = [], {}
-    for est in a.est or list(CONFIGS):
+    cpu_models: dict[str, list[str]] = {}
+    for est in a.est or list(DEFAULT_EST):
         for s in a.set or list(SETS):
             d = oos_dates(root, s)
             span, last = span_rows(d, a.first_day, a.last_day)
-            pat = re.compile(rf"^{est}_{s}_{a.refit}_{a.first_day}_{last}_(\d+)of(\d+)\.parquet$")
+            pat = re.compile(
+                rf"^{est}_{s}_{a.refit}_{a.first_day}_{last}_(\d+)of(\d+)\.parquet$"
+            )
             by_n: dict[int, dict[int, Path]] = {}
-            for p in sorted((out / "pieces").glob(f"{est}_{s}_{a.refit}_{a.first_day}_{last}_*of*.parquet")):
+            for p in sorted(
+                (out / "pieces").glob(
+                    f"{est}_{s}_{a.refit}_{a.first_day}_{last}_*of*.parquet"
+                )
+            ):
                 m = pat.match(p.name)
                 if m and p.with_suffix(".json").is_file():
                     by_n.setdefault(int(m.group(2)), {})[int(m.group(1))] = p
@@ -311,18 +520,38 @@ def cmd_merge(a) -> int:
             if a.n:
                 full = {n: ps for n, ps in full.items() if n == a.n}
             if not full:
-                say(f"{est} {s}: no complete set of pieces ({ {n: sorted(ps) for n, ps in by_n.items()} })")
+                say(
+                    f"{est} {s}: no complete set of pieces ({ {n: sorted(ps) for n, ps in by_n.items()} })"
+                )
                 if a.require_all:
                     raise SystemExit(1)
                 continue
-            assert len(full) == 1, f"{est} {s}: complete splits {sorted(full)}; pick one with --n"
+            assert len(full) == 1, (
+                f"{est} {s}: complete splits {sorted(full)}; pick one with --n"
+            )
             n, ps = next(iter(full.items()))
-            f = pd.concat([pd.read_parquet(ps[i]) for i in range(1, n + 1)], ignore_index=True)
+            f = pd.concat(
+                [pd.read_parquet(ps[i]) for i in range(1, n + 1)], ignore_index=True
+            )
             f = f.sort_values("date", ignore_index=True)
-            assert f["date"].is_unique and pd.DatetimeIndex(f["date"]).equals(d[span]), f"{est} {s}: span rows"
+            assert f["date"].is_unique and pd.DatetimeIndex(f["date"]).equals(
+                d[span]
+            ), f"{est} {s}: span rows"
             num = f[["pred_adj", "true_adj", "B", "plain", "rv_actual"]].to_numpy(float)
             assert np.isfinite(num).all(), f"{est} {s}: non-finite values"
-            assert np.allclose(f["plain"], f["pred_adj"] ** 2 * f["B"], rtol=1e-12, atol=0)
+            assert np.allclose(
+                f["plain"], f["pred_adj"] ** 2 * f["B"], rtol=1e-12, atol=0
+            )
+            # 2026-10-23: the CPU models of the pieces (every session of a resumed piece), one model for ONE_CPU
+            cms: set[str] = set()
+            for p in ps.values():
+                pm = json.loads(p.with_suffix(".json").read_text())
+                cms |= set(pm.get("cpus") or [pm["cpu"]])
+            if est in ONE_CPU:
+                assert len({cpu_family(c) for c in cms}) == 1, (
+                    f"{est} {s}: pieces from several CPU families {sorted(cms)}"
+                )
+            cpu_models[f"{est}/{s}"] = sorted(cms)
             frames.append(f[COLS])
             used[f"{est}/{s}"] = [p.name for p in ps.values()]
             say(f"{est} {s}: {len(f)} rows from {n} pieces")
@@ -333,8 +562,18 @@ def cmd_merge(a) -> int:
         fc[c] = fc[c].astype(np.float64)
     dest = Path(a.dest).resolve() if a.dest else out / "forecasts.parquet"
     fc.to_parquet(dest, index=False)
-    dest.with_suffix(".json").write_text(json.dumps(dict(refit=a.refit, span=[a.first_day, a.last_day],
-                                                         window_days=a.window_days, pieces=used), indent=1))
+    dest.with_suffix(".json").write_text(
+        json.dumps(
+            {
+                "refit": a.refit,
+                "span": [a.first_day, a.last_day],
+                "window_days": a.window_days,
+                "pieces": used,
+                "cpu_models": cpu_models,
+            },
+            indent=1,
+        )
+    )
     say(f"merged {len(fc)} rows -> {dest}")
     return 0
 
@@ -354,15 +593,34 @@ def cmd_time(a) -> int:
         rows0, _ = span_rows(d, a.spans[0].split(":")[0], None)
         r = W + rows0[: a.k]
         arm = Arm(root, s, a.window_days, lo=int(r[0]) - W, hi=int(r[-1]) + 1)
-        for est in a.est or list(CONFIGS):
+        for est in a.est or list(DEFAULT_EST):
             _, make = model_factory(est, a.threads)
             t0 = time.time()
             for rr in r:
-                fit_predict(make, est, arm.rows(rr - W, rr), arm.y[rr - W : rr], arm.rows(rr, rr + 1))
+                fit_predict(
+                    make,
+                    est,
+                    arm.rows(rr - W, rr),
+                    arm.y[rr - W : rr],
+                    arm.rows(rr, rr + 1),
+                )
             sec = (time.time() - t0) / len(r)
-            recs.append(dict(est=est, set=s, n_columns=int(arm.X.shape[1]), window_rows=W, threads=a.threads,
-                             k=len(r), sec_refit=sec, host=platform.node(), cpu=cpu_model()))
-            say(f"TIME {est} {s} ({arm.X.shape[1]} columns, W {W}, {a.threads} threads): {sec:.2f} s a refit")
+            recs.append(
+                {
+                    "est": est,
+                    "set": s,
+                    "n_columns": int(arm.X.shape[1]),
+                    "window_rows": W,
+                    "threads": a.threads,
+                    "k": len(r),
+                    "sec_refit": sec,
+                    "host": platform.node(),
+                    "cpu": cpu_model(),
+                }
+            )
+            say(
+                f"TIME {est} {s} ({arm.X.shape[1]} columns, W {W}, {a.threads} threads): {sec:.2f} s a refit"
+            )
     tab = pd.DataFrame(recs)
     proj = []
     for t in recs:
@@ -373,15 +631,32 @@ def cmd_time(a) -> int:
             for refit in ("bar", "day"):
                 n = refits_of(d, rows, refit)
                 cpu, wall = project(t["sec_refit"], t["threads"], n)
-                proj.append(dict(est=t["est"], set=t["set"], span=sp, refit=refit, refits=n, threads=t["threads"],
-                                 sec_refit=t["sec_refit"], cpu_hours=cpu, wall_hours_one_task=wall))
+                proj.append(
+                    {
+                        "est": t["est"],
+                        "set": t["set"],
+                        "span": sp,
+                        "refit": refit,
+                        "refits": n,
+                        "threads": t["threads"],
+                        "sec_refit": t["sec_refit"],
+                        "cpu_hours": cpu,
+                        "wall_hours_one_task": wall,
+                    }
+                )
     proj = pd.DataFrame(proj)
     (out / "timing").mkdir(parents=True, exist_ok=True)
     p = out / "timing" / "sec_refit.csv"
     tab.to_csv(p, mode="a", header=not p.is_file(), index=False)
-    proj.to_csv(out / "timing" / f"projection_{platform.node()}_{a.threads}t.csv", index=False)
+    proj.to_csv(
+        out / "timing" / f"projection_{platform.node()}_{a.threads}t.csv", index=False
+    )
     pd.set_option("display.width", 200)
-    print(tab.drop(columns=["cpu"]).to_string(index=False, float_format=lambda v: f"{v:.2f}"))
+    print(
+        tab.drop(columns=["cpu"]).to_string(
+            index=False, float_format=lambda v: f"{v:.2f}"
+        )
+    )
     print(proj.to_string(index=False, float_format=lambda v: f"{v:.2f}"))
     return 0
 
@@ -393,10 +668,12 @@ def cmd_tasks(a) -> int:
     # 2026-10-20 (author): parked -- span by span (the 2020 span first). Now arm by arm, cheapest first
     # (projected hours over every span and cadence of the call). Was: for sp in a.spans: for refit ...: for est ...
     arms = []
-    for est in a.est or list(CONFIGS):
+    for est in a.est or list(DEFAULT_EST):
         for s in a.set or list(SETS):
             t = sec[(sec["est"] == est) & (sec["set"] == s)]
-            assert len(t), f"no seconds a refit for {est} {s} at W {a.window_days * PPD}"
+            assert len(t), (
+                f"no seconds a refit for {est} {s} at W {a.window_days * PPD}"
+            )
             t = t.iloc[-1]
             d = oos_dates(root, s)
             lines, info, total = [], [], 0.0
@@ -406,11 +683,22 @@ def cmd_tasks(a) -> int:
                     rows, last_ = span_rows(d, first, last)
                     n_ref = refits_of(d, rows, refit)
                     n_days = int(d.normalize()[rows].nunique())
-                    n = max(1, min(n_days, math.ceil(t["sec_refit"] * n_ref / 3600 / a.target_hours)))
+                    n = max(
+                        1,
+                        min(
+                            n_days,
+                            math.ceil(t["sec_refit"] * n_ref / 3600 / a.target_hours),
+                        ),
+                    )
                     total += t["sec_refit"] * n_ref
-                    lines += [f"{est} {s} {refit} {first} {last_} {i}/{n}" for i in range(1, n + 1)]
-                    info.append(f"# {est} {s} {refit} {first}..{last_}: {n_ref} refits x {t['sec_refit']:.2f} s "
-                                f"({int(t['threads'])} threads) -> {n} tasks of ~{t['sec_refit'] * n_ref / n / 3600:.2f} h")
+                    lines += [
+                        f"{est} {s} {refit} {first} {last_} {i}/{n}"
+                        for i in range(1, n + 1)
+                    ]
+                    info.append(
+                        f"# {est} {s} {refit} {first}..{last_}: {n_ref} refits x {t['sec_refit']:.2f} s "
+                        f"({int(t['threads'])} threads) -> {n} tasks of ~{t['sec_refit'] * n_ref / n / 3600:.2f} h"
+                    )
             arms.append((total, lines, info))
     arms.sort(key=lambda x: x[0])
     lines = [ln for _, ls, _ in arms for ln in ls]
@@ -426,9 +714,15 @@ def cmd_compare(a) -> int:
     """Two design matrices (e.g. this container's X.npy against a CARC build): shape, layout, max absolute
     difference, share of exactly equal entries (NaN = NaN), and the columns that differ."""
     A, B = (np.load(p, mmap_mode="r") for p in a.files)
-    print(f"shapes {A.shape} {B.shape}; f_order {A.flags.f_contiguous} {B.flags.f_contiguous}")
+    print(
+        f"shapes {A.shape} {B.shape}; f_order {A.flags.f_contiguous} {B.flags.f_contiguous}"
+    )
     assert A.shape == B.shape, "shapes differ"
-    names = json.loads(Path(a.names).read_text())["names"] if a.names else [str(j) for j in range(A.shape[1])]
+    names = (
+        json.loads(Path(a.names).read_text())["names"]
+        if a.names
+        else [str(j) for j in range(A.shape[1])]
+    )
     n_eq, mx, cols = 0, 0.0, []
     for j in range(A.shape[1]):
         x, y = np.asarray(A[:, j]), np.asarray(B[:, j])
@@ -436,14 +730,28 @@ def cmd_compare(a) -> int:
         n_eq += int(eq.sum())
         if not eq.all():
             both = np.isfinite(x) & np.isfinite(y)
-            dj = float(np.max(np.abs(x[both] - y[both]))) if both.any() else float("nan")
+            dj = (
+                float(np.max(np.abs(x[both] - y[both]))) if both.any() else float("nan")
+            )
             nan_mismatch = int((np.isnan(x) != np.isnan(y)).sum())
             mx = max(mx, dj) if np.isfinite(dj) else mx
-            cols.append((names[j], int((~eq).sum()), dj, nan_mismatch, int(np.flatnonzero(~eq)[0])))
-    print(f"exactly equal entries: {n_eq} of {A.size} ({100 * n_eq / A.size:.6f} %); max |A - B| = {mx:.3e}; "
-          f"{len(cols)} of {A.shape[1]} columns differ")
+            cols.append(
+                (
+                    names[j],
+                    int((~eq).sum()),
+                    dj,
+                    nan_mismatch,
+                    int(np.flatnonzero(~eq)[0]),
+                )
+            )
+    print(
+        f"exactly equal entries: {n_eq} of {A.size} ({100 * n_eq / A.size:.6f} %); max |A - B| = {mx:.3e}; "
+        f"{len(cols)} of {A.shape[1]} columns differ"
+    )
     for c in cols[: a.show]:
-        print(f"  {c[0]}: {c[1]} entries differ, max |diff| {c[2]:.3e}, NaN mismatches {c[3]}, first row {c[4]}")
+        print(
+            f"  {c[0]}: {c[1]} entries differ, max |diff| {c[2]:.3e}, NaN mismatches {c[3]}, first row {c[4]}"
+        )
     return 0 if not cols else 1
 
 
@@ -453,8 +761,16 @@ def cmd_colsha(a) -> int:
     dz = design_dir(root, s)
     X = np.load(dz / "X.npy", mmap_mode="r")
     names = json.loads((dz / "design.json").read_text())["names"]
-    rows = [dict(column=j, name=names[j], sha256=hashlib.sha256(np.ascontiguousarray(X[:, j]).tobytes()).hexdigest())
-            for j in range(X.shape[1])]
+    rows = [
+        {
+            "column": j,
+            "name": names[j],
+            "sha256": hashlib.sha256(
+                np.ascontiguousarray(X[:, j]).tobytes()
+            ).hexdigest(),
+        }
+        for j in range(X.shape[1])
+    ]
     out.mkdir(parents=True, exist_ok=True)
     p = out / f"colsha_{s}_w{(X.shape[0] - len(oos_dates(root, s))) // PPD}d.csv"
     pd.DataFrame(rows).to_csv(p, index=False)
@@ -464,8 +780,14 @@ def cmd_colsha(a) -> int:
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("mode", choices=("walk", "merge", "time", "tasks", "compare", "colsha"))
-    ap.add_argument("--design", default=str(DEFAULT_DESIGN), help="the linear runner's --out directory")
+    ap.add_argument(
+        "mode", choices=("walk", "merge", "time", "tasks", "compare", "colsha")
+    )
+    ap.add_argument(
+        "--design",
+        default=str(DEFAULT_DESIGN),
+        help="the linear runner's --out directory",
+    )
     ap.add_argument("--out", default=str(DEFAULT_OUT))
     # 2026-10-20 (author): parked -- default=2000 (the window of Table 1's linear run); the CARC trees use 1,000 days.
     # Default now: the window of the design cache (design.json); when given, it is asserted against the cache.
@@ -473,29 +795,44 @@ def main() -> int:
     ap.add_argument("--est", action="append", choices=sorted(CONFIGS))
     ap.add_argument("--set", action="append", choices=SETS)
     ap.add_argument("--refit", choices=("bar", "day"), default="day")
-    ap.add_argument("--first-day", default="2012-01-03")  # 2026-10-20 (author): parked -- default="2020-01-03"
+    ap.add_argument(
+        "--first-day", default="2012-01-03"
+    )  # 2026-10-20 (author): parked -- default="2020-01-03"
     ap.add_argument("--last-day", default=None, help="default: the last design row")
     ap.add_argument("--part", default="1/1")
-    ap.add_argument("--threads", type=int, default=int(os.environ.get("SLURM_CPUS_PER_TASK", "4")))
+    ap.add_argument(
+        "--threads", type=int, default=int(os.environ.get("SLURM_CPUS_PER_TASK", "4"))
+    )
     ap.add_argument("--ckpt-sec", type=float, default=300.0)
     # merge
-    ap.add_argument("--n", type=int, default=0, help="merge: the split to use when several are complete")
+    ap.add_argument(
+        "--n",
+        type=int,
+        default=0,
+        help="merge: the split to use when several are complete",
+    )
     ap.add_argument("--dest", default="")
     ap.add_argument("--require-all", action="store_true")
     # time / tasks
     ap.add_argument("--k", type=int, default=3)
-    ap.add_argument("--span", action="append", dest="spans", help="first:last (time, tasks)")
+    ap.add_argument(
+        "--span", action="append", dest="spans", help="first:last (time, tasks)"
+    )
     ap.add_argument("--sec-table", action="append", default=[])
     ap.add_argument("--target-hours", type=float, default=3.0)
     ap.add_argument("--refits", default="day", help="tasks: bar, day or bar,day")
     ap.add_argument("--taskfile", default="cluster/pooltree_rerun13_tasks.txt")
     # compare
     ap.add_argument("files", nargs="*", help="compare: two X.npy files")
-    ap.add_argument("--names", default="", help="compare: a design.json for the column names")
+    ap.add_argument(
+        "--names", default="", help="compare: a design.json for the column names"
+    )
     ap.add_argument("--show", type=int, default=20)
     a = ap.parse_args()
     if a.mode == "walk":
-        assert a.est and a.set and len(a.est) == len(a.set) == 1, "walk: one --est and one --set"
+        assert a.est and a.set and len(a.est) == len(a.set) == 1, (
+            "walk: one --est and one --set"
+        )
         a.est, a.set = a.est[0], a.set[0]
     if a.mode == "time" and not a.spans:
         a.spans = ["2020-01-03:2024-04-30", "2012-01-03:2024-04-30"]
@@ -504,10 +841,20 @@ def main() -> int:
     if a.mode == "compare":
         assert len(a.files) == 2, "compare: two X.npy files"
     elif a.mode != "colsha" and a.window_days is None:
-        meta = json.loads((design_dir(Path(a.design).resolve(), "baseline") / "design.json").read_text())
+        meta = json.loads(
+            (
+                design_dir(Path(a.design).resolve(), "baseline") / "design.json"
+            ).read_text()
+        )
         a.window_days = int(meta["config"]["window"]) // PPD
-    return {"walk": cmd_walk, "merge": cmd_merge, "time": cmd_time, "tasks": cmd_tasks, "compare": cmd_compare,
-            "colsha": cmd_colsha}[a.mode](a)
+    return {
+        "walk": cmd_walk,
+        "merge": cmd_merge,
+        "time": cmd_time,
+        "tasks": cmd_tasks,
+        "compare": cmd_compare,
+        "colsha": cmd_colsha,
+    }[a.mode](a)
 
 
 if __name__ == "__main__":

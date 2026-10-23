@@ -1,0 +1,66 @@
+{
+ "refit": "bar",
+ "span": [
+  "2014-01-02",
+  "2024-04-30"
+ ],
+ "window_days": 3500,
+ "pieces": {
+  "lgbm/baseline": [
+   "lgbm_baseline_bar_2014-01-02_2024-04-30_1of2.parquet",
+   "lgbm_baseline_bar_2014-01-02_2024-04-30_2of2.parquet"
+  ],
+  "lgbm/all_features": [
+   "lgbm_all_features_bar_2014-01-02_2024-04-30_10of11.parquet",
+   "lgbm_all_features_bar_2014-01-02_2024-04-30_11of11.parquet",
+   "lgbm_all_features_bar_2014-01-02_2024-04-30_1of11.parquet",
+   "lgbm_all_features_bar_2014-01-02_2024-04-30_2of11.parquet",
+   "lgbm_all_features_bar_2014-01-02_2024-04-30_3of11.parquet",
+   "lgbm_all_features_bar_2014-01-02_2024-04-30_4of11.parquet",
+   "lgbm_all_features_bar_2014-01-02_2024-04-30_5of11.parquet",
+   "lgbm_all_features_bar_2014-01-02_2024-04-30_6of11.parquet",
+   "lgbm_all_features_bar_2014-01-02_2024-04-30_7of11.parquet",
+   "lgbm_all_features_bar_2014-01-02_2024-04-30_8of11.parquet",
+   "lgbm_all_features_bar_2014-01-02_2024-04-30_9of11.parquet"
+  ],
+  "xgb/baseline": [
+   "xgb_baseline_bar_2014-01-02_2024-04-30_1of2.parquet",
+   "xgb_baseline_bar_2014-01-02_2024-04-30_2of2.parquet"
+  ],
+  "xgb/all_features": [
+   "xgb_all_features_bar_2014-01-02_2024-04-30_10of17.parquet",
+   "xgb_all_features_bar_2014-01-02_2024-04-30_11of17.parquet",
+   "xgb_all_features_bar_2014-01-02_2024-04-30_12of17.parquet",
+   "xgb_all_features_bar_2014-01-02_2024-04-30_13of17.parquet",
+   "xgb_all_features_bar_2014-01-02_2024-04-30_14of17.parquet",
+   "xgb_all_features_bar_2014-01-02_2024-04-30_15of17.parquet",
+   "xgb_all_features_bar_2014-01-02_2024-04-30_16of17.parquet",
+   "xgb_all_features_bar_2014-01-02_2024-04-30_17of17.parquet",
+   "xgb_all_features_bar_2014-01-02_2024-04-30_1of17.parquet",
+   "xgb_all_features_bar_2014-01-02_2024-04-30_2of17.parquet",
+   "xgb_all_features_bar_2014-01-02_2024-04-30_3of17.parquet",
+   "xgb_all_features_bar_2014-01-02_2024-04-30_4of17.parquet",
+   "xgb_all_features_bar_2014-01-02_2024-04-30_5of17.parquet",
+   "xgb_all_features_bar_2014-01-02_2024-04-30_6of17.parquet",
+   "xgb_all_features_bar_2014-01-02_2024-04-30_7of17.parquet",
+   "xgb_all_features_bar_2014-01-02_2024-04-30_8of17.parquet",
+   "xgb_all_features_bar_2014-01-02_2024-04-30_9of17.parquet"
+  ]
+ },
+ "cpu_models": {
+  "lgbm/baseline": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "lgbm/all_features": [
+   "AMD EPYC 7513 32-Core Processor",
+   "AMD EPYC 7542 32-Core Processor"
+  ],
+  "xgb/baseline": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "xgb/all_features": [
+   "AMD EPYC 7513 32-Core Processor",
+   "AMD EPYC 7542 32-Core Processor"
+  ]
+ }
+}

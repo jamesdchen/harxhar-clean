@@ -1,0 +1,4 @@
+# Gate Brf16: this branch's runner, the random forest with 16 threads (EPYC 7513): is a forest piece independent of
+# the thread count (sklearn draws every tree's seed before the parallel fit; the predict runs on one thread)?
+rf baseline bar 2012-01-03 2024-04-30 5/5 3
+rf all_features bar 2012-01-03 2024-04-30 190/190 1

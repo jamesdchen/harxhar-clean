@@ -1,0 +1,105 @@
+{
+ "engine": "B",
+ "set": "baseline",
+ "window_days": 1000,
+ "n_columns": 12,
+ "fit_rows": [
+  34202,
+  47202
+ ],
+ "val_rows": [
+  47527,
+  50777
+ ],
+ "val_first": "2013-01-02 15:30:00",
+ "val_last": "2013-12-31 16:00:00",
+ "host": "b09-08.hpc.usc.edu",
+ "cpu": "AMD EPYC 7513 32-Core Processor",
+ "versions": {
+  "python": "3.12.15",
+  "numpy": "1.26.4",
+  "pandas": "2.3.3",
+  "scipy": "1.17.1",
+  "sklearn": "1.9.1",
+  "lightgbm": "4.6.0",
+  "xgboost": "3.2.0",
+  "pyarrow": "19.0.1"
+ },
+ "x_columns_check": 12,
+ "slurm_job": "13322588",
+ "slurm_task": "14",
+ "runs": [
+  {
+   "run": "T",
+   "threads": 8,
+   "fit_sec": 0.229,
+   "fit_cpu_sec": 1.373,
+   "predict_val_sec": 0.146,
+   "predict_one_row_sec": 0.0007,
+   "refit_sec": 0.23,
+   "mse_adj": 0.05609498745126483,
+   "qlike": 0.2010729770904024,
+   "n_qlike": 3250,
+   "pred_md5": "2d6180f65b2b4cb0bbce9e8166984f53",
+   "trees": 485,
+   "mean_leaves": 346.54432989690724,
+   "mean_depth": 17.96082474226804
+  },
+  {
+   "run": "T2",
+   "threads": 8,
+   "fit_sec": 0.172,
+   "fit_cpu_sec": 1.346,
+   "predict_val_sec": 0.147,
+   "predict_one_row_sec": 0.002,
+   "refit_sec": 0.173,
+   "mse_adj": 0.05609498745126483,
+   "qlike": 0.2010729770904024,
+   "n_qlike": 3250,
+   "pred_md5": "2d6180f65b2b4cb0bbce9e8166984f53",
+   "trees": 485,
+   "mean_leaves": 346.54432989690724,
+   "mean_depth": 17.96082474226804
+  },
+  {
+   "run": "1",
+   "threads": 1,
+   "fit_sec": 1.341,
+   "fit_cpu_sec": 1.334,
+   "predict_val_sec": 0.15,
+   "predict_one_row_sec": 0.0013,
+   "refit_sec": 1.343,
+   "mse_adj": 0.05609498745126483,
+   "qlike": 0.2010729770904024,
+   "n_qlike": 3250,
+   "pred_md5": "2d6180f65b2b4cb0bbce9e8166984f53",
+   "trees": 485,
+   "mean_leaves": 346.54432989690724,
+   "mean_depth": 17.96082474226804
+  }
+ ],
+ "config": {
+  "config": "rf400_rf_opt_00",
+  "params": {
+   "n_estimators": 485,
+   "max_depth": 20,
+   "min_samples_leaf": 12,
+   "max_features": 0.9013236540796851,
+   "max_samples": 0.41297156429787285,
+   "bootstrap": true,
+   "random_state": 42,
+   "n_jobs": 1
+  },
+  "engine": "sklearnex",
+  "sklearnex": "2199.9.9",
+  "daal4py": ""
+ },
+ "same_twice": true,
+ "max_abs_diff_twice": 0.0,
+ "same_1_vs_T": true,
+ "max_abs_diff_1_vs_T": 0.0,
+ "sklearnex_log": [
+  "sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU",
+  "sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU"
+ ]
+}

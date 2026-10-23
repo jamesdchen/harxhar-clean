@@ -1,0 +1,105 @@
+{
+ "engine": "B",
+ "set": "all_features",
+ "window_days": 1000,
+ "n_columns": 564,
+ "fit_rows": [
+  34202,
+  47202
+ ],
+ "val_rows": [
+  47527,
+  50777
+ ],
+ "val_first": "2013-01-02 15:30:00",
+ "val_last": "2013-12-31 16:00:00",
+ "host": "d11-37.hpc.usc.edu",
+ "cpu": "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz",
+ "versions": {
+  "python": "3.12.15",
+  "numpy": "1.26.4",
+  "pandas": "2.3.3",
+  "scipy": "1.17.1",
+  "sklearn": "1.9.1",
+  "lightgbm": "4.6.0",
+  "xgboost": "3.2.0",
+  "pyarrow": "19.0.1"
+ },
+ "x_columns_check": 564,
+ "slurm_job": "13322589",
+ "slurm_task": "6",
+ "runs": [
+  {
+   "run": "T",
+   "threads": 8,
+   "fit_sec": 13.553,
+   "fit_cpu_sec": 106.29,
+   "predict_val_sec": 0.412,
+   "predict_one_row_sec": 0.0022,
+   "refit_sec": 13.555,
+   "mse_adj": 0.053567685182483483,
+   "qlike": 0.18894195643388093,
+   "n_qlike": 3250,
+   "pred_md5": "175e6d378cde3d89629015a0adabf581",
+   "trees": 485,
+   "mean_leaves": 347.3567010309278,
+   "mean_depth": 18.129896907216494
+  },
+  {
+   "run": "T2",
+   "threads": 8,
+   "fit_sec": 13.398,
+   "fit_cpu_sec": 105.647,
+   "predict_val_sec": 0.496,
+   "predict_one_row_sec": 0.0017,
+   "refit_sec": 13.4,
+   "mse_adj": 0.053567685182483483,
+   "qlike": 0.18894195643388093,
+   "n_qlike": 3250,
+   "pred_md5": "175e6d378cde3d89629015a0adabf581",
+   "trees": 485,
+   "mean_leaves": 347.3567010309278,
+   "mean_depth": 18.129896907216494
+  },
+  {
+   "run": "1",
+   "threads": 1,
+   "fit_sec": 88.789,
+   "fit_cpu_sec": 88.512,
+   "predict_val_sec": 0.276,
+   "predict_one_row_sec": 0.0021,
+   "refit_sec": 88.792,
+   "mse_adj": 0.053567685182483483,
+   "qlike": 0.18894195643388093,
+   "n_qlike": 3250,
+   "pred_md5": "175e6d378cde3d89629015a0adabf581",
+   "trees": 485,
+   "mean_leaves": 347.3567010309278,
+   "mean_depth": 18.129896907216494
+  }
+ ],
+ "config": {
+  "config": "rf400_rf_opt_00",
+  "params": {
+   "n_estimators": 485,
+   "max_depth": 20,
+   "min_samples_leaf": 12,
+   "max_features": 0.9013236540796851,
+   "max_samples": 0.41297156429787285,
+   "bootstrap": true,
+   "random_state": 42,
+   "n_jobs": 1
+  },
+  "engine": "sklearnex",
+  "sklearnex": "2199.9.9",
+  "daal4py": ""
+ },
+ "same_twice": true,
+ "max_abs_diff_twice": 0.0,
+ "same_1_vs_T": true,
+ "max_abs_diff_1_vs_T": 0.0,
+ "sklearnex_log": [
+  "sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU",
+  "sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU"
+ ]
+}

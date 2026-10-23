@@ -1,0 +1,98 @@
+{
+ "engine": "A",
+ "set": "baseline",
+ "window_days": 3000,
+ "n_columns": 12,
+ "fit_rows": [
+  8202,
+  47202
+ ],
+ "val_rows": [
+  47527,
+  50777
+ ],
+ "val_first": "2013-01-02 15:30:00",
+ "val_last": "2013-12-31 16:00:00",
+ "host": "a01-03.hpc.usc.edu",
+ "cpu": "AMD EPYC 7513 32-Core Processor",
+ "versions": {
+  "python": "3.12.15",
+  "numpy": "1.26.4",
+  "pandas": "2.3.3",
+  "scipy": "1.17.1",
+  "sklearn": "1.9.1",
+  "lightgbm": "4.6.0",
+  "xgboost": "3.2.0",
+  "pyarrow": "19.0.1"
+ },
+ "x_columns_check": 12,
+ "slurm_job": "13322588",
+ "slurm_task": "9",
+ "runs": [
+  {
+   "run": "T",
+   "threads": 8,
+   "fit_sec": 3.923,
+   "fit_cpu_sec": 30.112,
+   "predict_val_sec": 0.152,
+   "predict_one_row_sec": 0.025,
+   "refit_sec": 3.948,
+   "mse_adj": 0.05653048400800489,
+   "qlike": 0.1991653039654265,
+   "n_qlike": 3250,
+   "pred_md5": "15b471206f0bd8074439a561c5d35691",
+   "trees": 485,
+   "mean_leaves": 852.0865979381443,
+   "mean_depth": 19.942268041237114
+  },
+  {
+   "run": "T2",
+   "threads": 8,
+   "fit_sec": 3.885,
+   "fit_cpu_sec": 30.097,
+   "predict_val_sec": 0.159,
+   "predict_one_row_sec": 0.0251,
+   "refit_sec": 3.91,
+   "mse_adj": 0.05653048400800489,
+   "qlike": 0.1991653039654265,
+   "n_qlike": 3250,
+   "pred_md5": "15b471206f0bd8074439a561c5d35691",
+   "trees": 485,
+   "mean_leaves": 852.0865979381443,
+   "mean_depth": 19.942268041237114
+  },
+  {
+   "run": "1",
+   "threads": 1,
+   "fit_sec": 29.31,
+   "fit_cpu_sec": 29.178,
+   "predict_val_sec": 0.161,
+   "predict_one_row_sec": 0.0249,
+   "refit_sec": 29.335,
+   "mse_adj": 0.05653048400800489,
+   "qlike": 0.1991653039654265,
+   "n_qlike": 3250,
+   "pred_md5": "15b471206f0bd8074439a561c5d35691",
+   "trees": 485,
+   "mean_leaves": 852.0865979381443,
+   "mean_depth": 19.942268041237114
+  }
+ ],
+ "config": {
+  "config": "rf400_rf_opt_00",
+  "params": {
+   "n_estimators": 485,
+   "max_depth": 20,
+   "min_samples_leaf": 12,
+   "max_features": 0.9013236540796851,
+   "max_samples": 0.41297156429787285,
+   "bootstrap": true
+  },
+  "engine": "sklearn"
+ },
+ "same_twice": true,
+ "max_abs_diff_twice": 0.0,
+ "same_1_vs_T": true,
+ "max_abs_diff_1_vs_T": 0.0,
+ "sklearnex_log": []
+}
