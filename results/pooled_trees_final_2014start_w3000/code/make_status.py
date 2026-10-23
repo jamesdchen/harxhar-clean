@@ -9,6 +9,7 @@ forecasts.json, timing/sec_refit.csv, design/MD5SUMS_<set>, design/design_check.
 from __future__ import annotations
 
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -16,6 +17,15 @@ import pandas as pd
 
 run, W, RUNNER, REPO_C = Path(sys.argv[1]), int(sys.argv[2]), sys.argv[3], sys.argv[4]
 MERGE = sys.argv[5] if len(sys.argv) > 5 else ""
+# 2026-10-23: the rf_skx runs (everything on /home1, the venv with scikit-learn-intelex) set these
+PY_BIN = os.environ.get("MS_PY", "/scratch1/jc_905/envs/harxhar-r13/bin/python")
+BASE = os.environ.get("MS_BASE", "/scratch1/jc_905/trees_final")
+RUNS = os.environ.get("MS_RUNS", "runs")
+NOTE = os.environ.get(
+    "MS_NOTE",
+    "the printed 2012-start w1000 run's runner (db59af2) with check() accepting the "
+    "564-column final design; gate: results/pooled_trees_final_2014start_w3000/gate/",
+)
 P = pd.read_csv(run / "progress.csv")
 J = pd.read_csv(run / "jobs.csv", dtype=str)
 fj = json.loads((run / "forecasts.json").read_text())
@@ -77,16 +87,15 @@ info = {
     "runner": "experiments/pooled_trees_rerun_13.py walk, through cluster/slurm/pooltree_rerun13.sbatch (MODE=walk)",
     "runner_commit": RUNNER,
     "repo_commit_at_submission": REPO_C,
-    "runner_note": "the printed 2012-start w1000 run's runner (db59af2) with check() accepting the 564-column final design; "
-    "gate: results/pooled_trees_final_2014start_w3000/gate/",
+    "runner_note": NOTE,
     "cluster": "CARC Discovery (USC), Slurm account pollok_1603, partition main, --constraint epyc-7513|epyc-7542",
     "environment": {
-        "python_bin": "/scratch1/jc_905/envs/harxhar-r13/bin/python",
+        "python_bin": PY_BIN,
         **m0["versions"],
     },
     "design": {
         "source": f"/scratch1/jc_905/wsweep/code/results/window_sweep_2014start_2026-10-22/w{W}/_work/design_{{baseline,all_features}}",
-        "copy": f"/scratch1/jc_905/trees_final/designs/w{W}/_work/design_{{baseline,all_features}} (md5 of the copy = md5 of the source)",
+        "copy": f"{BASE}/designs/w{W}/_work/design_{{baseline,all_features}} (md5 of the copy = md5 of the source)",
         "md5": {s: [ln for ln in v if ln.strip()] for s, v in md5.items()},
         "check": dc,
     },
@@ -128,9 +137,8 @@ L = [
     f"# Pooled trees, final design (2014 start), w{W}, bar refits, {fj['span'][0]}..{fj['span'][1]} (CARC Discovery)",
     "",
     (
-        f"Runner commit {RUNNER[:7]} (repo clone at {REPO_C[:7]} when submitted), env harxhar-r13 "
-        f"(python {m0['versions']['python']}, numpy {m0['versions']['numpy']}, lightgbm {m0['versions']['lightgbm']}, "
-        f"xgboost {m0['versions']['xgboost']}, sklearn {m0['versions']['sklearn']}). WINDOW_DAYS={W}, REFIT=bar. First row "
+        f"Runner commit {RUNNER[:7]} (code at {REPO_C[:7]} when submitted), python {PY_BIN} "
+        f"({', '.join(f'{k} {v}' for k, v in m0['versions'].items())}). WINDOW_DAYS={W}, REFIT=bar. First row "
         f"{dc['tree_first_date']}, {dc['tree_rows']:,} bars an arm on {dc['tree_days']:,} days."
     ),
     "",
@@ -165,7 +173,7 @@ L += [
     "## Files",
     (
         "forecasts.parquet + forecasts.json, pieces/*.json (piece parquets stay on CARC: "
-        f"/scratch1/jc_905/trees_final/runs/w{W}/pieces), tasks*.txt, timing/, jobs.csv (sacct), progress.csv, run.json, "
+        f"{BASE}/{RUNS}/w{W}/pieces), tasks*.txt, timing/, jobs.csv (sacct), progress.csv, run.json, "
         "design/ (md5, design_check.json), scores/, code/."
     ),
 ]
