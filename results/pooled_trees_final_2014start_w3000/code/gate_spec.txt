@@ -1,0 +1,10 @@
+# Gates A (runner db59af2, the printed run's code) and B (this branch's runner): EPYC 7513, 8 threads.
+# "<est> <set> <refit> <first> <last> <i>/<n> <k>": k = 0 the whole piece, k > 0 its first and last k days refitted.
+xgb baseline bar 2012-01-03 2024-04-30 2/2 0
+lgbm baseline bar 2012-01-03 2024-04-30 3/3 0
+rf baseline bar 2012-01-03 2024-04-30 5/5 3
+lgbm all_features bar 2012-01-03 2024-04-30 7/7 3
+xgb all_features bar 2012-01-03 2024-04-30 1/11 3
+xgb all_features bar 2012-01-03 2024-04-30 11/11 3
+rf all_features bar 2012-01-03 2024-04-30 190/190 1
+rf all_features bar 2012-01-03 2024-04-30 1/190 1
