@@ -1,0 +1,55 @@
+RULE_rf_skx.txt -- the pooled random forest of the final rerun ("linear + trees + MinGRU")
+Written 2026-10-23 01:45 PDT; committed before any rf_skx walk (and before its gate).
+
+DECISION  Repo owner, 2026-10-23 (relayed by the coordinator), after the engine benchmark
+          results/rf_engine_bench_2026-10-23: the random forest of the final rerun is engine B of that benchmark,
+          Intel's oneDAL engine through the Intel Extension for Scikit-learn, with the frozen configuration and no
+          re-tuning (as LightGBM and XGBoost keep theirs).  It replaces the stock scikit-learn walks (arrays
+          13321040 / 13321041, cancelled; their 14 started pieces discarded).
+
+ENGINE    sklearnex.ensemble.RandomForestRegressor, scikit-learn-intelex 2026.2.0 with daal 2026.2.0 (pulled in: tbb
+          2023.2.0, tcmlib 1.6.0), in the venv /scratch1/jc_905/trees_final/venv_skx = the env harxhar-r13 (python
+          3.12.15, numpy 1.26.4, pandas 2.3.3, scipy 1.17.1, scikit-learn 1.9.1, lightgbm 4.6.0, xgboost 3.2.0,
+          pyarrow 19.0.1) with --system-site-packages plus those packages only; harxhar-r13 itself is untouched.
+          Code: experiments/pooled_trees_rerun_13.py --est rf_skx (sklearnex imported only for that estimator); the
+          first fit of every session asserts that oneDAL ran ("running accelerated version", no fallback to stock
+          scikit-learn).
+
+CONFIG    the frozen rf400_rf_opt_00 (cluster/pooltree_rf400_config.json, sha 88eebb5fa9e8, the file of the stock
+          forest): n_estimators 485, max_depth 20, min_samples_leaf 12, max_features 0.9013236540796851,
+          max_samples 0.41297156429787285, bootstrap True; random_state 42; n_jobs 8 to fit and 1 to predict (as the
+          stock forest).  Split: sklearnex's default histogram split, max_bins 256, min_bin_size 1 (the 2,048-bin
+          variant of the benchmark is not used).
+
+CADENCE   a refit at every bar (--refit bar): the forecast of design row r is fitted on rows [r - W, r), the rows the
+          linear walks use; 13 bars a day (10:00 .. 16:00 ET bar ends).
+
+WINDOWS   W = 3,000 (main), 3,500 (robustness), 2,000 and 1,000 trading days (x 13 bars); first evaluation day
+          2014-01-02, span 2014-01-02 .. 2024-04-30 (33,970 bars an arm); the HAR benchmark (12 columns) and the
+          full set (564 columns); the final 2014-start designs (results/window_sweep_2014start_2026-10-22/w<W>,
+          copied with md5 to /scratch1/jc_905/trees_final/designs/w<W>).  Priority W = 3,000, 3,500, 2,000, 1,000.
+
+PIECES    the printed run's rule: experiments/pooled_trees_rerun_13.py tasks --refits bar --target-hours 3 on a CARC
+          time probe of rf_skx at 8 threads (3 refits at the first 2014-01-02 rows), arms cheapest first; walks
+          through cluster/slurm/pooltree_rerun13.sbatch (MODE=walk, HARXHAR_PY = the venv's python; checkpointed,
+          resumable); merge into forecasts.parquet with the columns of the other tree runs.
+
+CPU       one CPU family, AMD EPYC.  The benchmark: the same fit gives different forecasts on EPYC 7513 and Intel Xeon
+          4116 (3e-15 relative; oneDAL's SIMD paths differ), while two runs and 1 vs 8 threads on one node are
+          bit-identical.  EPYC 7513 and 7542 are both used only if the gate finds them bit-identical; otherwise every
+          rf_skx walk runs on EPYC 7513 (116 nodes, against 32 of 7542).  Every piece's meta records the CPU model of
+          each session that wrote it; a piece does not resume on another model; merge asserts one model an arm.
+
+REASON    results/rf_engine_bench_2026-10-23 (pre-test fold 3 only, validation 2013; no out-of-sample number), full
+          set, 8 threads, EPYC 7513: fit 8.0 s (W 1,000) and 32.2 s (W 3,000) against 45.2 s and 185.4 s for the stock
+          forest (5.6-5.8x); fold-3 MSE on the adjusted scale .053430 against .053287 at W 3,000 (+0.27 %), .053568
+          against .053533 at W 1,000; validation forecasts correlated .998 with the stock forest's, median relative
+          difference 0.83 %.  The projected bar walk at W 3,000, full set: about 2,430 CPU-hours against 14,000.
+
+GATE      (a) model_factory("rf_skx") + fit_predict reproduce the benchmark's engine-B fold-3 fits bit for bit
+          (W 1,000 and 3,000, both sets, EPYC 7513); (b) EPYC 7513 against 7542, the same fits; (c) a walk piece run
+          twice gives the same piece bit for bit (and once on 7542 when (b) passes).
+
+SCORING   as the other trees (results/pooled_trees_final_2014start_w3000/code/score_trees_final.py): QLIKE on every
+          bar and at 16:00 with Diebold-Mariano tests (full vs HAR), the D6 Sharpe ratio with the bootstrap p, D1, the
+          pooled 614-day ratio; output results/pooled_rf_skx_2014start_w<W>/.

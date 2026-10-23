@@ -44,6 +44,14 @@ cheapest first. --window-days defaults to the window of the design cache (assert
 2014-01-02, windows 3,000 and 3,500 days; results/pooled_trees_final_2014start_w3000, _w3500). The full set has 564
 columns there (EXCLUDE_FOMC_RELEASE); check() accepts either cache, nothing else changed.
 
+2026-10-23 (owner, after results/rf_engine_bench_2026-10-23): --est rf_skx = the frozen forest (the same config file,
+seed 42, n_jobs = T to fit and 1 to predict) on Intel's oneDAL engine, sklearnex.ensemble.RandomForestRegressor,
+default 256 bins (rule: results/pooled_rf_skx_2014start_w3000/RULE_rf_skx.txt).  sklearnex is imported only for that
+estimator.  Its first fit in each session asserts oneDAL ran (no fallback to stock scikit-learn).  Every piece's meta
+records the CPU model of each session that wrote it ("cpus"); rf_skx refuses to resume on another model, and merge
+asserts one model for it (oneDAL's results differ across CPU families).  merge / time / tasks without --est cover
+lgbm, xgb and rf as before.
+
 Run:  python experiments/pooled_trees_rerun_13.py walk --design results/pooled_trees_rerun13_2026-10-20 \
           --est lgbm --set all_features --refit day --first-day 2020-01-03 --last-day 2020-01-07 --threads 4
 """
@@ -52,7 +60,9 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib.metadata
 import json
+import logging
 import math
 import os
 import platform
@@ -61,6 +71,7 @@ import sys
 import time
 import warnings
 from pathlib import Path
+from typing import ClassVar
 
 import numpy as np
 import pandas as pd
@@ -84,7 +95,28 @@ CONFIGS = {
     "lgbm": ROOT / "cluster" / "pooltree_lgbm_config.json",
     "xgb": ROOT / "cluster" / "xgbtop_xgb_config.json",
     "rf": ROOT / "cluster" / "pooltree_rf400_config.json",
+    # 2026-10-23 (owner): the same frozen forest on Intel's oneDAL engine (scikit-learn-intelex), default 256 bins
+    # (results/pooled_rf_skx_2014start_w3000/RULE_rf_skx.txt)
+    "rf_skx": ROOT / "cluster" / "pooltree_rf400_config.json",
 }
+# estimators whose pieces must all come from one CPU model (rf_skx: oneDAL's SIMD paths differ across CPU families)
+ONE_CPU = ("rf_skx",)
+DEFAULT_EST = (
+    "lgbm",
+    "xgb",
+    "rf",
+)  # merge / time / tasks without --est: as before rf_skx existed
+
+
+class _SkxLog(logging.Handler):
+    """sklearnex's dispatch messages (accelerated version vs fallback to stock scikit-learn)."""
+
+    msgs: ClassVar[list[str]] = []
+
+    def emit(self, record: logging.LogRecord) -> None:
+        _SkxLog.msgs.append(record.getMessage())
+
+
 COLS = [
     "model",
     "predictor_set",
@@ -201,6 +233,15 @@ def model_factory(est: str, threads: int):
         return cfg, lambda: xgb.XGBRegressor(
             **params, n_jobs=threads, random_state=42, verbosity=0
         )
+    if est == "rf_skx":
+        # 2026-10-23 (owner): imported only here, so an environment without sklearnex runs every other arm unchanged
+        from sklearnex.ensemble import RandomForestRegressor as SkxRF
+
+        lg = logging.getLogger("sklearnex")
+        if not any(isinstance(h, _SkxLog) for h in lg.handlers):
+            lg.addHandler(_SkxLog())
+        lg.setLevel(logging.INFO)
+        return cfg, lambda: SkxRF(**params, random_state=42, n_jobs=threads)
     from sklearn.ensemble import RandomForestRegressor
 
     return cfg, lambda: RandomForestRegressor(**params, random_state=42, n_jobs=threads)
@@ -209,7 +250,7 @@ def model_factory(est: str, threads: int):
 def fit_predict(make, est, Xw, yw, Xp) -> np.ndarray:
     m = make()
     m.fit(Xw, yw)
-    if est == "rf":
+    if est in ("rf", "rf_skx"):
         m.set_params(
             n_jobs=1
         )  # pooled_trees_walk.walk_rf: a one-thread predict sums in tree order
@@ -223,7 +264,7 @@ def versions() -> dict:
     import sklearn
     import xgboost
 
-    return {
+    out = {
         "python": platform.python_version(),
         "numpy": np.__version__,
         "pandas": pd.__version__,
@@ -233,6 +274,13 @@ def versions() -> dict:
         "xgboost": xgboost.__version__,
         "pyarrow": pyarrow.__version__,
     }
+    # 2026-10-23: the oneDAL engine's packages where installed (the rf_skx venv); absent elsewhere, the dict unchanged
+    for k, dist in (("sklearnex", "scikit-learn-intelex"), ("daal", "daal")):
+        try:
+            out[k] = importlib.metadata.version(dist)
+        except importlib.metadata.PackageNotFoundError:
+            pass
+    return out
 
 
 def cpu_model() -> str:
@@ -303,11 +351,18 @@ def cmd_walk(a) -> int:
     )  # design rows W + mine[0] - W ..
     cfg, make = model_factory(a.est, a.threads)
     rv = rv_bars()
-    prior = (
+    prior: dict = (
         json.loads(ckpt_p.read_text())
         if ckpt_p.is_file()
         else {"wall_sec": 0.0, "refits": 0}
     )
+    # 2026-10-23: the CPU model of every session that wrote the piece (a resumed piece may have run on several nodes);
+    # rf_skx refuses to resume on another CPU model (ONE_CPU)
+    cpus: list[str] = [str(c) for c in prior.get("cpus", [])] + [cpu_model()]
+    if a.est in ONE_CPU and len(set(cpus)) > 1:
+        raise SystemExit(
+            f"{a.est}: piece {path.name} was begun on {cpus[:-1]}, this node is {cpus[-1]}"
+        )
     say(
         f"walk {a.est} {a.set} {a.refit} {a.first_day}..{last} part {a.part}: {len(mine)} rows "
         f"{d[mine[0]]} .. {d[mine[-1]]}, {len(groups)} refits, {len(have)} rows on disk; W {W}, "
@@ -315,6 +370,7 @@ def cmd_walk(a) -> int:
     )
     recs = [done] if len(done) else []
     t0, t_ck, k = time.time(), time.time(), 0
+    skx_dispatch: list[str] = []
 
     def save(final: bool) -> dict:
         f = pd.concat(recs, ignore_index=True)[PIECE_COLS].sort_values(
@@ -325,6 +381,7 @@ def cmd_walk(a) -> int:
         st = {
             "wall_sec": prior["wall_sec"] + time.time() - t0,
             "refits": prior["refits"] + k,
+            "cpus": cpus,
         }
         if not final:
             ckpt_p.write_text(json.dumps(st))
@@ -359,6 +416,17 @@ def cmd_walk(a) -> int:
             )
         )
         k += 1
+        if (
+            a.est == "rf_skx" and k == 1
+        ):  # the first fit ran on oneDAL, not stock scikit-learn; then quiet
+            assert any("fit: running accelerated version" in m for m in _SkxLog.msgs), (
+                _SkxLog.msgs[:5]
+            )
+            assert not any("fallback" in m.lower() for m in _SkxLog.msgs), _SkxLog.msgs[
+                :5
+            ]
+            skx_dispatch = sorted(set(_SkxLog.msgs))
+            logging.getLogger("sklearnex").setLevel(logging.WARNING)
         if time.time() - t_ck > a.ckpt_sec:
             save(False)
             t_ck = time.time()
@@ -389,6 +457,7 @@ def cmd_walk(a) -> int:
         "threads": a.threads,
         "host": platform.node(),
         "cpu": cpu_model(),
+        "cpus": sorted(set(cpus)),
         "versions": versions(),
         "design": str(design_dir(root, a.set)),
         "slurm_job": os.environ.get(
@@ -396,6 +465,15 @@ def cmd_walk(a) -> int:
         ),
         "slurm_task": os.environ.get("SLURM_ARRAY_TASK_ID", ""),
     }
+    if (
+        a.est == "rf_skx"
+    ):  # 2026-10-23: oneDAL's dispatch and its split settings (default 256 bins)
+        meta["skx_dispatch"] = skx_dispatch
+        meta["skx_split"] = {
+            k_: v
+            for k_, v in make().get_params().items()
+            if k_ in ("max_bins", "min_bin_size")
+        }
     meta_p.write_text(json.dumps(meta, indent=1))
     ckpt_p.unlink(missing_ok=True)
     say(
@@ -408,7 +486,8 @@ def cmd_walk(a) -> int:
 def cmd_merge(a) -> int:
     root, out = Path(a.design).resolve(), Path(a.out).resolve()
     frames, used = [], {}
-    for est in a.est or list(CONFIGS):
+    cpu_models: dict[str, list[str]] = {}
+    for est in a.est or list(DEFAULT_EST):
         for s in a.set or list(SETS):
             d = oos_dates(root, s)
             span, last = span_rows(d, a.first_day, a.last_day)
@@ -450,6 +529,16 @@ def cmd_merge(a) -> int:
             assert np.allclose(
                 f["plain"], f["pred_adj"] ** 2 * f["B"], rtol=1e-12, atol=0
             )
+            # 2026-10-23: the CPU models of the pieces (every session of a resumed piece), one model for ONE_CPU
+            cms: set[str] = set()
+            for p in ps.values():
+                pm = json.loads(p.with_suffix(".json").read_text())
+                cms |= set(pm.get("cpus") or [pm["cpu"]])
+            if est in ONE_CPU:
+                assert len(cms) == 1, (
+                    f"{est} {s}: pieces from several CPU models {sorted(cms)}"
+                )
+            cpu_models[f"{est}/{s}"] = sorted(cms)
             frames.append(f[COLS])
             used[f"{est}/{s}"] = [p.name for p in ps.values()]
             say(f"{est} {s}: {len(f)} rows from {n} pieces")
@@ -467,6 +556,7 @@ def cmd_merge(a) -> int:
                 "span": [a.first_day, a.last_day],
                 "window_days": a.window_days,
                 "pieces": used,
+                "cpu_models": cpu_models,
             },
             indent=1,
         )
@@ -490,7 +580,7 @@ def cmd_time(a) -> int:
         rows0, _ = span_rows(d, a.spans[0].split(":")[0], None)
         r = W + rows0[: a.k]
         arm = Arm(root, s, a.window_days, lo=int(r[0]) - W, hi=int(r[-1]) + 1)
-        for est in a.est or list(CONFIGS):
+        for est in a.est or list(DEFAULT_EST):
             _, make = model_factory(est, a.threads)
             t0 = time.time()
             for rr in r:
@@ -565,7 +655,7 @@ def cmd_tasks(a) -> int:
     # 2026-10-20 (author): parked -- span by span (the 2020 span first). Now arm by arm, cheapest first
     # (projected hours over every span and cadence of the call). Was: for sp in a.spans: for refit ...: for est ...
     arms = []
-    for est in a.est or list(CONFIGS):
+    for est in a.est or list(DEFAULT_EST):
         for s in a.set or list(SETS):
             t = sec[(sec["est"] == est) & (sec["set"] == s)]
             assert len(t), (
