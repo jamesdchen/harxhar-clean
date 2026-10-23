@@ -30,7 +30,8 @@ EP=$(dirname "$(dirname "$PY")")
 export OPENSSL_CONF=$EP/ssl/openssl.cnf OPENSSL_MODULES=$EP/lib/ossl-modules OPENSSL_ENGINES=$EP/lib/engines-3
 GOT=$(nvidia-smi --query-gpu=name --format=csv,noheader | head -1)
 echo "$(hostname) $GOT"
-echo "$GOT" | grep -q "P100" || { echo "got a $GOT, P100 required"; exit 1; }
+GPUTYPE=${GPUTYPE:-P100}  # ADDENDUM 3: the window's GPU type (submit with --constraint=<feature>, ROOTS=<that window>)
+echo "$GOT" | grep -qi "$GPUTYPE" || { echo "got a $GOT, $GPUTYPE required"; exit 1; }
 LOCAL=${TMPDIR:-/tmp}/pmfprobe_$SLURM_JOB_ID
 mkdir -p "$LOCAL"
 trap 'rm -rf "$LOCAL"' EXIT

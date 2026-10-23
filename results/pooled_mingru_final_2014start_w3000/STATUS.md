@@ -66,3 +66,21 @@ errors); binary copied from `/home1/jc_905/pm13/bin` (md5 44ab6fff).
   tune jobs were never exposed (they run no Python on the GPU node and stage only from /home1). The d23-14 exclusion
   was dropped from all 76 pending jobs. Diagnosis script: cluster/pooled_mingru_final_diag_buserror.sh (outputs in
   /home1/jc_905/pmf/diag/).
+- 2026-10-23 01:50-02:50 PDT (coordinator: speed up). GPU types for pollok_1603 (QOS normal, 36 GPUs a user): P100 74
+  (3 free), V100 52 (2), A40 50 (2), A100 36 (4), L40S 19 (6) in the gpu partition; debug partition: e23-02 (2 P100,
+  idle), b11-09 (2 A40). Nothing of ours starts in the gpu partition: fairshare factor 159 of 4,000 (priority ~3,200
+  vs ~10,000 for the jobs ahead), and backfill reserves for the top 100 pending jobs a partition
+  (bf_job_part_count_reserve=100) while ~520 higher-priority any-GPU jobs wait. Gate jobs on V100 / A40 / A100 /
+  L40S (cluster/pooled_mingru_final_gate_gputype_carc.sbatch: the P100 gate's jobs + a self-consistency rerun)
+  submitted 13324299-302, pending. Slurm scripts take GPUTYPE + --constraint (ADDENDUM 3 if a window moves).
+- Debug P100s: tune_baseline_r0.6 (13324590, 12 min: pool phase 675 s, 720 jobs, 23.6 epochs a job) and
+  tune_all_features_r0.6 (13324591, 24 min: 1,372 s, 26.9 epochs) COMPLETED, check-run ok; 0.040 / 0.071 P100-s a
+  job-epoch at W 3,000. Feeder cluster/pooled_mingru_final_debug_feed.sh (every 12 min from the laptop) moves the
+  remaining pending shards to debug (1 h limit), cancelling each pending gpu-partition twin (a shard runs once);
+  the six heavy full-set shards (H 256 x L 20 / 48 by lr) split in halves of whole configurations
+  (tune_all_features_r0.<k>a / b). W 3,000 first, then W 3,500.
+- CPU (coordinator): no CPU path implements this trainer (CUDA-only native_g9, cuRAND initial weights; the PyTorch
+  port experiments/puffer_forecast/torch_train.py lacks QLIKE / early stopping, the ridge-initialised shortcut,
+  softplus, wd_enc / wd_lin, dec_zero, the window mask). Timing proxy (experiments/pooled_mingru_final_cpu_probe.py,
+  13324616, EPYC 7513, torch 2.6 CPU, L 20 H 64, 39,000 rows): 5-6 s an epoch at 8-16 threads, 11-13 s at 32
+  (~48 core-s an epoch vs 0.071 P100-s): not pursued.

@@ -10,7 +10,8 @@
 #   CONC  concurrent models (the previous run: 6 on all features, 12 on the HAR benchmark)
 #   POST  optional: a python script under $ROOT/code, run after the copy-back with the run directory as argument
 #   INITSUB  optional: the ridge-init subdirectory of a bar-refit walk block (bar_b<k>), staged with the set's inits
-# GPU type pinned to the previous run's (P100, --constraint=p100); the job exits if it lands on another model.
+# GPU type: P100 by default (--constraint=p100, the previous run's); GPUTYPE + --constraint select another (ADDENDUM 3);
+# the job exits if it lands on another model.
 #SBATCH --account=pollok_1603
 #SBATCH --partition=gpu
 #SBATCH --gres=gpu:1
@@ -63,8 +64,10 @@ mkdir -p "$RUN"; cd "$RUN"; ln -sfn "$LOCAL/data" data
 GOT=$(nvidia-smi --query-gpu=name --format=csv,noheader | head -1)
 { hostname; date; nvidia-smi --query-gpu=name,driver_version,memory.total --format=csv,noheader
   md5sum "$ROOT/bin/forecast_train" "$ROOT/inputs/$JOBS"; cat "$ROOT/bin/provenance.txt"; echo "DATA=$DATA PFX=$PFX CONC=$CONC"; } > env.txt 2>&1
-echo "$GOT" | grep -q "P100" || { echo "got a $GOT, P100 required"; exit 1; }
-echo "p100|$GOT" > gpu_type.txt
+# 2026-10-23: the window's GPU type (RULE_gru.txt ADDENDUM 3; default P100); submit with --constraint=<its feature>
+GPUTYPE=${GPUTYPE:-P100}
+echo "$GOT" | grep -qi "$GPUTYPE" || { echo "got a $GOT, $GPUTYPE required"; exit 1; }
+echo "$GPUTYPE|$GOT" > gpu_type.txt
 cp "$ROOT/bin/forecast_train" "$LOCAL/ft"
 [ "$(md5sum < "$LOCAL/ft" | cut -c1-32)" = 44ab6fff270e15547335c6b36b3ceead ] || { echo "binary md5"; exit 1; }
 cp "$ROOT/inputs/$JOBS" "$LOCAL/jobs.txt"
