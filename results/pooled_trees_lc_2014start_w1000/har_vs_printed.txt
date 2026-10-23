@@ -1,0 +1,9 @@
+HAR-benchmark arms of this run against the printed 2012-start w1000 run (results/pooled_trees_rerun13_2026-10-20/w1000,
+CARC, 8 threads) on its 2014-01-02 .. 2024-04-30 rows: the HAR design is the same (design_baseline X.npy md5
+04b0c0f26910bf0747b4472c4a1c3c37 in both, y / B / dates equal), so the rows should agree bit for bit.
+
+lgbm baseline 33970 rows: DataFrame.equals True (every pred_adj bit-equal, B, rv_actual equal)
+xgb  baseline 33970 rows: DataFrame.equals True (every pred_adj bit-equal, B, rv_actual equal)
+lgbm all_features: differs everywhere (max |pred_adj diff| 0.126), as it must: the final design (564 columns,
+  standardization in scaled coordinates, availability screen) is not the printed 576-column one.
+xgb  all_features: differs everywhere (max 0.156), same reason.
