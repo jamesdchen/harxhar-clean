@@ -74,6 +74,8 @@ def make(m: str, g0: int):
     Cls = P.make_class(ns, 0.01, P.ConstSched(a), g0, [])
     Cls.bb = bb
     Cls.ev_ref = P.evid_ref(names, bb)
+    Cls.av = P.avail_k(names, bb)
+    Cls.std_binom, Cls.std_binom_reseeds = [], []
     Cls.kkt_rows, Cls.kkt_reseeds, Cls.kkt_sec = [], [], [0.0, 0.0]
     Cls.std_seeds, Cls.std_ridge, Cls.std_blockend = [], [], []
     Cls.std_evid_reseeds = []
@@ -119,6 +121,30 @@ for m in EST:
             k1 = nm
         evid[j] = own[names.index(k1)] if k1 in names else 0
     out = ~locked & ((s < P.STD_MIN) | (evid < P.STD_MIN_EVIDENCE))
+    # addendum 3, independently: the binomial availability rule (np.mean / np.std, greedy in design order)
+    binom = []
+    kept: dict = {}
+    for j, nmj in enumerate(names):
+        if bb[j] or out[j] or "_avail_ma_" not in nmj or nmj.endswith("_avail_ma_1"):
+            continue
+        kj = int(nmj.rsplit("_", 1)[1])
+        x = Xa[:, j]
+        pj = float(x.mean())
+        if float(x.std()) <= np.sqrt(pj * (1 - pj) / kj):
+            out[j] = True
+            binom.append((nmj, "near-constant", None))
+            continue
+        hit = None
+        for i in kept.get(kj, []):
+            pb = 0.5 * (pj + float(Xa[:, i].mean()))
+            if float((x - Xa[:, i]).std()) <= np.sqrt(2) * np.sqrt(pb * (1 - pb) / kj):
+                hit = names[i]
+                break
+        if hit is not None:
+            out[j] = True
+            binom.append((nmj, "near-duplicate", hit))
+        else:
+            kept.setdefault(kj, []).append(j)
     walk_out = np.isnan(rg._sd_seed) & ~locked
     sc = np.where(out | locked, 1.0, s)
     mc = np.where(locked, 0.0, Xa.mean(axis=0))  # explicit: centre and scale (window mean and s.d.)
@@ -145,8 +171,7 @@ for m in EST:
     t_e = time.time() - t0
     beta = g / sc  # back-transform: slopes gamma / s, intercept gamma_0 - sum_j m_j beta_j
     beta[-1] = g[-1] - mc @ beta
-    th_w = th.copy()  # the walk's centred coordinates -> the original ones
-    th_w[-1] -= rg._ctr @ th
+    th_w = rg.coef_original()  # the walk's scaled coordinates -> the original ones
     # the uncentred solution of the same problem, same estimator (raw masked columns; the mask applied)
     Xu = Xa.copy()
     Xu[:, out] = 0.0
@@ -174,9 +199,11 @@ for m in EST:
         evidence_out_beyond_mask_explicit=int((out & ~probe._maskout).sum()),
         evidence_out_sets_equal_walk_vs_explicit=bool(np.array_equal(walk_out, out)),
         evidence_out_columns=[names[j] for j in np.flatnonzero(out & ~probe._maskout)][:60],
+        binomial_rule_explicit=binom,
+        binomial_rule_walk=[(names[c], kd, names[q] if q >= 0 else None) for c, kd, q in Cls.std_binom[-1][1]],
         nnz_slopes=int((th_w[:-1] != 0).sum()),
         walk_vs_explicit_standardized=cmp(th_w, beta),
-        walk_vs_uncentred_same_problem=cmp(th_w, th_u),
+        walk_vs_weighted_uncentred_same_problem=cmp(th_w, th_u),
         kkt_walk_centred_ok_rel=kk_w,
         kkt_explicit_ok_rel=kk_e,
         repair_explicit={k2: P.REPAIR[k2] - rep0[k2] for k2 in P.REPAIR},
@@ -186,6 +213,16 @@ for m in EST:
     )
     print(m, json.dumps(rb[m]), flush=True)
 rep["b"] = rb
+cn: dict = {}
+for m in ("lasso", "enet"):
+    for o in (44250 + 250 * 60, 44250 + 250 * 120):
+        Cls, a, kind, l1 = make(m, o - W)
+        rg = Cls()
+        rg.init_window(X[o - W : o], y[o - W : o])
+        A = np.flatnonzero((rg._th != 0) | locked)
+        cn[f"{m}/{o}"] = dict(n_active=int(len(A) - 1), cond_solver_z=float(np.linalg.cond(rg._Gr[np.ix_(A, A)])))
+        print(m, o, cn[f"{m}/{o}"], flush=True)
+rep["cond_solver_coordinates"] = cn
 
 
 # ---------------------------------------------------------------- (c)
@@ -196,9 +233,7 @@ def short_walk(m: str, Xs, ys, o: int, nsolve: int):
     class Rec(Cls):
         def solve(self):
             super().solve()
-            th = self._th.copy()
-            th[-1] -= self._ctr @ th  # the centred state (addendum 2) -> the original coordinates
-            ths.append(th)
+            ths.append(self.coef_original())  # the scaled state (addendum 3) -> the original coordinates
 
     bt = ns["MultiStageBacktest"](
         residualizer=ns["IdentityResidualizer"](), regressor_factory=Rec, refit_frequency=1
@@ -259,7 +294,15 @@ for m in EST:
             pr_._recompute_mask(np.hstack([X[blk0 - W : blk0], np.ones((W, 1))]))
             Xw[:, pr_._maskout] = 0.0
             tb = P.fit_std(
-                Xw, y[t - W : t], locked, "ridge", float(fr["ridge"]["all_features"]), 0.0, pf, P.evid_ref(names, bb)
+                Xw,
+                y[t - W : t],
+                locked,
+                "ridge",
+                float(fr["ridge"]["all_features"]),
+                0.0,
+                pf,
+                P.evid_ref(names, bb),
+                P.avail_k(names, bb),
             )[0]
             worst = max(worst, float(np.abs(th0[i] - tb).max() / np.abs(tb).max()))
             xn = np.append(X[t], 1.0)
