@@ -120,7 +120,12 @@ boundary, mask-addition and KKT reseeds) and held between seeds.  Pretune: weigh
 trace.npz std_* (the s.d. at every seed; ridge: the within-block drift), run.json std_*; --std-check-blockends
 (diagnostic) also refits the lasso / elastic net at each block's last solve with the current window's weights and
 records the forecast difference.  Rule: results/standardize_penalty_2026-10-22/RULE_std.txt (written 2026-10-22 16:06
-PDT, before any run).
+PDT, before any run).  Its addenda (each written before its code): 1-2 the evidence mask (a column enters only if its
+variable's k = 1 column has >= 250 rows off its window mode) and the centring; 3 (19:25 PDT) the scaled coordinates
+(the lasso / elastic net warm path, KKT check and batch seed in z = (x - m) / s with m, s held between seeds and the
+penalty factors only; ridge with exact per-bar scaling -- the same estimator) and the binomial availability rule (a
+k > 1 availability average is masked when its window s.d. <= sqrt(p (1 - p) / k), or when it differs from an earlier
+kept one of the same k by an s.d. <= sqrt(2) times that resolution at the pair's mean level; a data-cleaning rule).
 """
 
 from __future__ import annotations
@@ -669,21 +674,98 @@ def group_evidence(ev_own: np.ndarray, ref: np.ndarray) -> np.ndarray:
     )
 
 
+def avail_k(names: list[str], bb: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """2026-10-22 (RULE_std.txt addendum 3): the availability averages <v>_avail_ma_<k> with k > 1 (column indices in
+    design order) and their k -- the columns the binomial availability rule applies to (the backbone exempt)."""
+    idx, ks = [], []
+    for j, n in enumerate(names):
+        m = _EV_AVAIL.match(n)
+        if m and not bb[j] and int(m.group(2)) > 1:
+            idx.append(j)
+            ks.append(int(m.group(2)))
+    return np.array(idx, dtype=np.int64), np.array(ks, dtype=np.int64)
+
+
+def av_stats(A: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """(m, s1, C) of the window rows A of the availability averages: the means, the sums of A - m and its cross-products
+    (the between-seed tracker's state; mean = m + s1 / n, cov = C / n - (s1 / n)(s1 / n)')."""
+    m = A.mean(axis=0)
+    D = A - m
+    return m, D.sum(axis=0), D.T @ D
+
+
+def av_mean_cov(st: tuple, n: int) -> tuple[np.ndarray, np.ndarray]:
+    """The window means and covariance matrix of the availability averages from av_stats-type sums over n rows."""
+    m, s1, C = st
+    return m + s1 / n, C / n - np.outer(s1 / n, s1 / n)
+
+
+def binom_mask(
+    mean: np.ndarray, cov: np.ndarray, ks: np.ndarray, eligible: np.ndarray
+) -> tuple[np.ndarray, list]:
+    """Addendum 3, the binomial availability rule on the availability averages (k > 1) eligible after the existing
+    masks: se = sqrt(p (1 - p) / k), p = the window mean; (i) near-constant: masked if the window s.d. <= se; (ii)
+    near-duplicate: in design order, masked if against an earlier kept one of the same k the s.d. of the difference
+    <= sqrt(2) sqrt(pbar (1 - pbar) / k), pbar the pair's mean level.  Returns (masked over the positions, records
+    (position, "near-constant" | "near-duplicate", partner position or -1))."""
+    q = len(ks)
+    masked = np.zeros(q, dtype=bool)
+    recs: list = []
+    kept: dict = {}
+    var = np.diag(cov)
+    for i in range(q):
+        if not eligible[i]:
+            continue
+        k = int(ks[i])
+        p = float(mean[i])
+        if np.sqrt(max(float(var[i]), 0.0)) <= np.sqrt(max(p * (1.0 - p), 0.0) / k):
+            masked[i] = True
+            recs.append((i, "near-constant", -1))
+            continue
+        kk = kept.setdefault(k, [])
+        if kk:
+            J = np.array(kk)
+            pbar = 0.5 * (p + mean[J])
+            sep = np.sqrt(np.maximum(pbar * (1.0 - pbar), 0.0) / k)
+            sdd = np.sqrt(np.maximum(var[i] + var[J] - 2.0 * cov[i, J], 0.0))
+            hit = np.flatnonzero(sdd <= np.sqrt(2.0) * sep)
+            if hit.size:
+                masked[i] = True
+                recs.append((i, "near-duplicate", int(J[hit[0]])))
+                continue
+        kk.append(i)
+    return masked, recs
+
+
 def std_weights(
-    Xa: np.ndarray, locked: np.ndarray, ref: np.ndarray, full: bool = False
-) -> tuple[np.ndarray, ...]:
+    Xa: np.ndarray,
+    locked: np.ndarray,
+    ref: np.ndarray,
+    av: tuple,
+    full: bool = False,
+) -> tuple:
     """(s, out) of the fit's rows Xa (masked columns already 0): s_j = np.std(Xa[:, j]) (ddof 0); out = the non-locked
     columns with s_j < STD_MIN or (the evidence mask, 2026-10-22, addenda 1 and 2) an evidence below STD_MIN_EVIDENCE:
-    the rows that differ from the modal value of the column's reference column (evid_ref: the variable's k = 1 column)
-    (masked for the fit, every masked column among them); s_j := 1 on out and on the locked intercept (a weight never
-    used: the column is 0, resp. unpenalized).  full: also (modal value, own off-mode count) of every column."""
+    the rows that differ from the modal value of the column's reference column (evid_ref: the variable's k = 1 column),
+    and then (addendum 3) the availability averages av = avail_k(...) the binomial rule masks (masked for the fit,
+    every masked column among them); s_j := 1 on out and on the locked intercept (a scale never used: the column is 0,
+    resp. unscaled).  full: also (modal value, own off-mode count) of every column, the availability averages' (m, s1,
+    C) and the binomial rule's records (column, kind, partner column)."""
     s = np.std(Xa, axis=0)
     v, cnt = col_mode(Xa)
     ev_own = Xa.shape[0] - cnt
     ev = group_evidence(ev_own, ref)
     out = ~locked & ((s < STD_MIN) | (ev < STD_MIN_EVIDENCE))
+    ai, ak = av
+    st = av_stats(Xa[:, ai])
+    mean, cov = av_mean_cov(st, Xa.shape[0])
+    bm, recs = binom_mask(mean, cov, ak, ~out[ai])
+    out[ai[bm]] = True
     sw = np.where(out | locked, 1.0, s)
-    return (sw, out, v, ev_own) if full else (sw, out)
+    if not full:
+        return sw, out
+    rr = [(int(ai[i]), kind, int(ai[j]) if j >= 0 else -1) for i, kind, j in recs]
+    return sw, out, v, ev_own, st, rr
 
 
 def ridge_keep(
@@ -749,27 +831,35 @@ def batch_theta_w(Xa, yr, locked, a, l1, w1, w2) -> np.ndarray:
     return th
 
 
+def batch_z(Z, yr, locked, a, l1, pf) -> np.ndarray:
+    """The KKT-certified batch fit in the scaled coordinates (addendum 3): the spec's FWL + batch elastic net with the
+    penalty factors pf only (batch_theta_pf with the spec's own enet_coef)."""
+    import src.models.reclasso_har as RH
+
+    return batch_theta_pf({"enet_coef": RH.enet_coef}, Z, yr, locked, a, l1, pf)
+
+
 def fit_std(
-    Xa, yr, locked, kind, a, l1, pf, ref, sw=None
+    Xa, yr, locked, kind, a, l1, pf, ref, av, sw=None
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """One standardized batch fit on the rows (Xa, yr) (masked columns 0): (theta, s, out) with s, out of std_weights
-    (evidence references ref = evid_ref; or sw, std_weights of these rows computed by the caller); the out columns
-    zeroed for the fit (theta_j = 0).  Ridge: (X'X + diag(a pf s^2)) theta = X'y on the kept columns; lasso / enet:
-    batch_theta_w with w1 = pf s, w2 = pf s^2."""
-    s, out = std_weights(Xa, locked, ref) if sw is None else sw
-    if out.any():
-        Xa = Xa.copy()
-        Xa[:, out] = 0.0
+    (evidence references ref = evid_ref, availability averages av = avail_k; or sw, std_weights of these rows computed
+    by the caller); the out columns masked for the fit (theta_j = 0).  Addendum 3: solved in the scaled coordinates
+    z = (x - m) / s (m, s of these rows) with the penalty factors pf only, intercept free -- ridge (Z'Z + diag(a pf))
+    gamma = Z'y on the kept columns, lasso / enet batch_z -- and back-transformed (beta = gamma / s, intercept
+    gamma_0 - m' beta): the weighted + centred problem of addenda 0-2."""
+    s, out = std_weights(Xa, locked, ref, av) if sw is None else sw
+    m = np.where(locked | out, 0.0, Xa.mean(axis=0))
+    Z = (Xa - m) / s
+    Z[:, out] = 0.0
     if kind == "ridge":
-        # (addendum 2) on the columns centred by their means on these rows; theta back in the original coordinates
-        # (intercept - m' beta); the lasso / enet batch residualizes on the intercept already (FWL)
-        m = np.where(locked, 0.0, Xa.mean(axis=0))
-        Xc = Xa - m
-        D = np.where(locked, 0.0, a * (pf * s * s))
-        th = ridge_keep(Xc.T @ Xc, Xc.T @ yr, D, ~out)
-        th[locked] -= m @ th
-        return th, s, out
-    return batch_theta_w(Xa, yr, locked, a, l1, pf * s, pf * s * s), s, out
+        D = np.where(locked, 0.0, a * pf)
+        g = ridge_keep(Z.T @ Z, Z.T @ yr, D, ~out)
+    else:
+        g = batch_z(Z, yr, locked, a, l1, pf)
+    th = g / s
+    th[locked] = g[locked] - m @ th
+    return th, s, out
 
 
 def _trailing_const(Xw: np.ndarray) -> np.ndarray:
@@ -802,6 +892,7 @@ def make_class(ns: dict, r: float, sched: dict | None, g0: int, rec: list):
     class PFTuned(Base):
         bb = None  # bool over the feature columns, set by fit_predict from the column names
         ev_ref = None  # 2026-10-22: evid_ref of the column names (the evidence mask's k = 1 columns), set with bb
+        av = None  # 2026-10-22 (addendum 3): avail_k of the column names (the binomial rule's columns), set with bb
         # 2026-10-22 (src/models/reclasso_har.py WALK_KKT_RESEED, read at every solve): with the flag on, every
         # lasso / elastic-net solve records (solve, violation / max(max|c|, 1), ok); every KKT-triggered reseed
         # (solve, relative violation before, after, ok after); seconds in the check and in the reseeds
@@ -820,6 +911,10 @@ def make_class(ns: dict, r: float, sched: dict | None, g0: int, rec: list):
         std_blockend: list = []
         std_blockend_sec: list = [0.0]
         std_evid_reseeds: list = []
+        # addendum 3: (solve, [(column, kind, partner)]) of the binomial availability rule at every cold seed;
+        # (solve, columns) of every binomial-rule-triggered lasso / enet reseed
+        std_binom: list = []
+        std_binom_reseeds: list = []
 
         def _std_on(self) -> bool:
             """STANDARDIZE_PENALTY applies (a penalized fit: the OLS at alpha 0 is never weighted)."""
@@ -896,10 +991,23 @@ def make_class(ns: dict, r: float, sched: dict | None, g0: int, rec: list):
                 )
                 self._seed()
                 return False
-            uc, rc = (
-                ua - self._ctr,
-                ur - self._ctr,
-            )  # the centred rows (masked entries stay 0: offset 0)
+            # addendum 3: the binomial rule on the live availability averages, from the tracked window moments
+            ai, ak = self.av
+            self._av_update(ua[ai], ur[ai])
+            mean, cov = av_mean_cov(self._av_st, len(self._y))
+            bm, _ = binom_mask(mean, cov, ak, ~self._maskout[ai])
+            if bm.any():  # masked like the identifiability mask; cold reseed
+                low = np.zeros(len(self._maskout), dtype=bool)
+                low[ai[bm]] = True
+                self._maskout = self._maskout | low
+                self._evid_only = self._evid_only | low
+                PFTuned.std_binom_reseeds.append(
+                    (g0 + self._n_solve, [int(j) for j in ai[bm]])
+                )
+                self._seed()
+                return False
+            # the scaled rows (addendum 3; masked entries stay 0: offset 0, scale 1)
+            uc, rc = (ua - self._ctr) / self._sc, (ur - self._ctr) / self._sc
             self._th, self._A, self._s = RH.enet_online(
                 self._Gr,
                 self._c,
@@ -925,6 +1033,21 @@ def make_class(ns: dict, r: float, sched: dict | None, g0: int, rec: list):
                 self._locked,
             )
             return True
+
+        def _av_update(self, a_in, a_out) -> None:
+            """The binomial rule's tracker (addendum 3): the availability averages' sums and cross-products about the
+            seed-time means, moved by the entering and leaving rows (masked design values)."""
+            m, s1, C = self._av_st
+            di, do = a_in - m, a_out - m
+            s1 += di - do
+            C += np.outer(di, di)
+            C -= np.outer(do, do)
+
+        def coef_original(self) -> np.ndarray:
+            """The walk's coefficients in the original coordinates (beta = theta / s, intercept theta_0 - m' beta)."""
+            b = self._th / self._sc
+            b[-1] = self._th[-1] - self._ctr @ b
+            return b
 
         def _roll_std_ridge(self, x_in, y_in, x_out, y_out):
             """The spec's ridge roll (the RAW ring, the masked update rows) with STANDARDIZE_PENALTY's state: X'X and
@@ -963,9 +1086,20 @@ def make_class(ns: dict, r: float, sched: dict | None, g0: int, rec: list):
             s[self._sd_run >= n] = 0.0
             ev = group_evidence(self._ev_d, self.ev_ref)  # addendum 2: the k = 1 counts
             out = ~self._locked & ((s < STD_MIN) | (ev < STD_MIN_EVIDENCE))
+            # addendum 3: the binomial rule per bar, on the window moments of the centred state
+            ai, ak = self.av
+            s1a = self._sd_s1[ai] / n
+            mean = self._ctr[ai] + s1a
+            cov = self._G[np.ix_(ai, ai)] / n - np.outer(s1a, s1a)
+            bm, _ = binom_mask(mean, cov, ak, ~out[ai])
+            out[ai[bm]] = True
+            rec_b = PFTuned.std_ridge[-1]
+            rec_b[3] = max(rec_b[3], int(bm.sum()))
             s = np.where(out | self._locked, 1.0, s)
-            D = np.where(self._locked, 0.0, self.alpha_ * (self._pf * s * s))
-            self._th = ridge_keep(self._G, self._c, D, ~out)
+            # exact per-bar scaling (addendum 3): z = (x - m0) / s_t, (Z'Z + diag(a pf)) gamma = Z'y, theta = gamma / s_t
+            D = np.where(self._locked, 0.0, self.alpha_ * self._pf)
+            g = ridge_keep(self._G / np.outer(s, s), self._c / s, D, ~out)
+            self._th = g / s
             rec_r = PFTuned.std_ridge[-1]
             ok = ~out & ~self._locked & np.isfinite(self._sd_seed)
             if ok.any():
@@ -976,8 +1110,10 @@ def make_class(ns: dict, r: float, sched: dict | None, g0: int, rec: list):
 
         def predict_one(self, x):
             """The spec's predict_one; --std-check-blockends: also the forecast with the block-end refit."""
-            if self._std_on():  # the centred state (addendum 2): (x - m)' theta_c
-                xa = np.append(np.asarray(x, dtype=np.float64), 1.0) - self._ctr
+            if self._std_on():  # the scaled state (addendum 3): ((x - m) / s)' theta
+                xa = (
+                    np.append(np.asarray(x, dtype=np.float64), 1.0) - self._ctr
+                ) / self._sc
                 p = float(xa @ self._th)
             else:
                 p = super().predict_one(x)
@@ -1004,6 +1140,7 @@ def make_class(ns: dict, r: float, sched: dict | None, g0: int, rec: list):
                 self.l1_,
                 self._pf,
                 self.ev_ref,
+                self.av,
             )
             REPAIR.update(rep)
             ok = ~out & ~self._locked & np.isfinite(self._sd_seed)
@@ -1097,14 +1234,15 @@ def make_class(ns: dict, r: float, sched: dict | None, g0: int, rec: list):
         def _seed_std(self):
             """STANDARDIZE_PENALTY's cold seed on the current (masked) window: s = np.std of the window (std_weights).
             Ridge: X'X, X'y, the column moments about the window means and the constancy run lengths, then the
-            bar's solve (_std_ridge_solve).  Lasso / elastic net: a column with s < STD_MIN or (the evidence mask,
-            addendum 1) fewer than STD_MIN_EVIDENCE rows off its modal value joins the mask (the columns masked by
-            that rule alone are re-evaluated, i.e. may come back, at every seed); mu_j = n a l1 pf_j s_j, the L2 term
-            n a (1 - l1) pf_j s_j^2 on Gr's diagonal, both held until the next seed; the batch solution
-            (batch_theta_w, KKT-certified) and its active set.  Both: the seed-time modal values and evidence counts
-            the between-seed evidence tracker starts from, and (addendum 2) the centred state: every non-locked column
-            shifted by its seed-window mean m (self._ctr, 0 on masked columns and on the intercept), held until the
-            next seed; theta is in the centred coordinates (forecast (x - m)' theta)."""
+            bar's solve (_std_ridge_solve, exact per-bar scaling).  Lasso / elastic net: a column with s < STD_MIN, or
+            (the evidence mask, addenda 1-2) whose variable's k = 1 column has fewer than STD_MIN_EVIDENCE rows off its
+            modal value, or (addendum 3) that the binomial availability rule masks, joins the mask (the columns masked
+            by these rules alone are re-evaluated, i.e. may come back, at every seed); the scaled state (addendum 3):
+            z = (x - m) / s with m, s of this window (self._ctr, self._sc; 0 / 1 on the masked columns and on the
+            intercept) held until the next seed, Gr = Z'Z + n a (1 - l1) pf on the diagonal, mu_j = n a l1 pf_j, the
+            KKT-certified batch solution in z (batch_z) and its active set; theta = gamma in z (forecast z(x)' theta).
+            Both: the seed-time modal values and evidence counts the between-seed evidence tracker starts from (and,
+            lasso / enet, the availability averages' moments the binomial tracker starts from)."""
             kind, a, l1 = self.kind_, self.alpha_, self.l1_
             evo = getattr(self, "_evid_only", None)
             if kind != "ridge" and evo is not None and evo.any():
@@ -1115,40 +1253,50 @@ def make_class(ns: dict, r: float, sched: dict | None, g0: int, rec: list):
             # the tracker is exact between seeds <= TUNE_PER solves apart iff the window holds > 2 (250 + TUNE_PER)
             assert tw > 2 * (STD_MIN_EVIDENCE + TUNE_PER), tw
             pf = self._pf
-            s, out, v, ev = std_weights(Xa, self._locked, self.ev_ref, full=True)
+            s, out, v, ev, _, brec = std_weights(
+                Xa, self._locked, self.ev_ref, self.av, full=True
+            )
             new = out & ~self._maskout
             nan_s = np.where(out | self._locked, np.nan, s)
             # the solve (OOS row) whose forecast first uses this seed
             at = g0 + self._n_solve - getattr(self, "_seed_off", 0)
             PFTuned.std_seeds.append((at, nan_s, int(new.sum()), np.flatnonzero(new)))
+            PFTuned.std_binom.append((at, brec))
             self._sd_seed = nan_s
             self._ev_v, self._ev_d = v, ev.astype(np.int64)
             if kind == "ridge":
                 self._sd_run = _trailing_const(Xa)
                 self._ctr = np.where(self._locked, 0.0, Xa.mean(axis=0))
+                self._sc = np.ones(
+                    len(self._ctr)
+                )  # (the per-bar scale is applied in the solve)
                 Xa -= self._ctr  # the centred state (addendum 2); Xa is a fresh array
                 self._G = Xa.T @ Xa
                 self._c = Xa.T @ yr
                 self._sd_s1 = Xa.sum(axis=0)
                 self._sd_s2 = (Xa * Xa).sum(axis=0)
-                PFTuned.std_ridge.append([g0 + self._n_solve, 0.0, 0])
+                PFTuned.std_ridge.append([g0 + self._n_solve, 0.0, 0, 0])
                 self._std_ridge_solve()
                 return
-            if new.any():  # masked for the fit, and (weights held) until the next seed re-evaluates them
+            if new.any():  # masked for the fit, and (scales held) until the next seed re-evaluates them
                 self._maskout = self._maskout | new
                 self._evid_only = new
                 Xa[:, new] = 0.0
+            # addendum 3: the binomial rule's between-seed tracker (masked design, after this seed's masks)
+            self._av_st = av_stats(Xa[:, self.av[0]])
+            # the scaled state (addendum 3): z = (x - m) / s, m and s of this window, held until the next seed
             self._ctr = np.where(self._locked, 0.0, Xa.mean(axis=0))
-            Xa -= self._ctr  # the centred state (addendum 2)
-            w1, w2 = pf * s, pf * s * s
+            self._sc = s  # (1 on the masked columns and the intercept)
+            Xa -= self._ctr
+            Xa /= self._sc
             mu, lam2 = tw * a * l1, tw * a * (1.0 - l1)
-            self._mu_vec = np.where(self._locked, 0.0, mu * w1)
+            self._mu_vec = np.where(self._locked, 0.0, mu * pf)
             Gr = Xa.T @ Xa
             ei = np.where(~self._locked)[0]
-            Gr[ei, ei] += lam2 * w2[ei]
+            Gr[ei, ei] += lam2 * pf[ei]
             self._Gr = Gr
             self._c = Xa.T @ yr
-            th = batch_theta_w(Xa, yr, self._locked, a, l1, w1, w2)
+            th = batch_z(Xa, yr, self._locked, a, l1, pf)
             self._A = list(np.where((np.abs(th) > 1e-9) | self._locked)[0])
             self._s = [
                 0.0 if self._locked[j] else float(np.sign(th[j])) for j in self._A
@@ -1177,7 +1325,7 @@ def make_class(ns: dict, r: float, sched: dict | None, g0: int, rec: list):
                     if STANDARDIZE_PENALTY and a > 0.0:
                         # 2026-10-22: the weights from the fit block's s
                         th = fit_std(
-                            Xf, yf, self._locked, kind, a, l1, pf, self.ev_ref
+                            Xf, yf, self._locked, kind, a, l1, pf, self.ev_ref, self.av
                         )[0]
                     elif kind == "ridge":
                         D = np.where(self._locked, 0.0, a * pf)
@@ -1574,6 +1722,22 @@ def std_record(Cls, penalized: bool, names: list | None = None) -> tuple[dict, d
         ),
     )
     npz |= dict(std_seed_evid_out=cnt)
+    # addendum 3: the binomial availability rule at the seeds and its between-seed reseeds
+    bs = getattr(Cls, "std_binom", [])
+    bc = np.array([len(x[1]) for x in bs]) if bs else np.zeros(1)
+    bf: dict = {}
+    for _, recs in bs:
+        for c, kind, q in recs:
+            key = f"{nm[c]} ({kind}{', ' + nm[q] if q >= 0 else ''})"
+            bf[key] = bf.get(key, 0) + 1
+    br = getattr(Cls, "std_binom_reseeds", [])
+    info |= dict(
+        std_binom_per_seed_median=float(np.median(bc)),
+        std_binom_per_seed_max=int(bc.max()),
+        std_binom_columns_seeds=sorted(bf.items(), key=lambda kv: -kv[1])[:30],
+        std_binom_reseeds=len(br),
+        std_binom_reseed_columns=sorted({nm[j] for _, js in br for j in js}),
+    )
     rr = getattr(Cls, "std_ridge", [])
     if rr:
         npz |= dict(std_ridge=np.array(rr, dtype=np.float64))
@@ -1581,6 +1745,7 @@ def std_record(Cls, penalized: bool, names: list | None = None) -> tuple[dict, d
             std_ridge_blocks=len(rr),
             std_ridge_max_within_block_rel_drift=float(max(x[1] for x in rr)),
             std_ridge_max_cols_left_out_beyond_mask=int(max(x[2] for x in rr)),
+            std_ridge_max_binom_per_bar=int(max(x[3] for x in rr)),
         )
     be = getattr(Cls, "std_blockend", [])
     if be:
@@ -1643,12 +1808,15 @@ def walk(a) -> None:
         Cls.bb = backbone_mask(names)
         if hasattr(Cls, "ev_ref"):  # 2026-10-22 (evidence mask, addendum 2)
             Cls.ev_ref = evid_ref(names, Cls.bb)
+        if hasattr(Cls, "av"):  # 2026-10-22 (binomial availability rule, addendum 3)
+            Cls.av = avail_k(names, Cls.bb)
         Base.trace, Base.mask_trace, Base.reseed_trace = [], [], []
         if hasattr(Cls, "kkt_rows"):  # 2026-10-22 (WALK_KKT_RESEED)
             Cls.kkt_rows, Cls.kkt_reseeds, Cls.kkt_sec = [], [], [0.0, 0.0]
         if hasattr(Cls, "std_seeds"):  # 2026-10-22 (STANDARDIZE_PENALTY)
             Cls.std_seeds, Cls.std_ridge, Cls.std_blockend = [], [], []
             Cls.std_blockend_sec, Cls.std_evid_reseeds = [0.0], []
+            Cls.std_binom, Cls.std_binom_reseeds = [], []
         bt = ns["MultiStageBacktest"](
             residualizer=ns["IdentityResidualizer"](),
             regressor_factory=Cls,
@@ -1829,10 +1997,12 @@ def pretune(a) -> None:
                 # 2026-10-22: the weights from this fold's fit block (fit_std: s of Xf, the s < STD_MIN and evidence-
                 # mask columns out)
                 ref = evid_ref(names, bb)  # addendum 2
-                sw_f = std_weights(Xf, locked, ref)
+                av = avail_k(names, bb)  # addendum 3
+                swf = std_weights(Xf, locked, ref, av, full=True)
+                sw_f = swf[:2]
                 for kind, al, l1 in grid:
                     th, s_f, out_f = fit_std(
-                        Xf, yf, locked, kind, al, l1, pf, ref, sw_f
+                        Xf, yf, locked, kind, al, l1, pf, ref, av, sw_f
                     )
                     res.append(Xv @ th - yv)
                 sd = s_f[~out_f & ~locked]
@@ -1840,6 +2010,11 @@ def pretune(a) -> None:
                     std_left_out_beyond_mask=int((out_f & ~mk).sum()),
                     std_left_out_columns=[
                         (names + ["intercept"])[j] for j in np.flatnonzero(out_f & ~mk)
+                    ],
+                    # addendum 3: the binomial availability rule's masks (column, kind, partner)
+                    std_binom=[
+                        (names[c], kind, names[q] if q >= 0 else None)
+                        for c, kind, q in swf[5]
                     ],
                     std_s_quantiles_5_50_95=[
                         float(v) for v in np.quantile(sd, [0.05, 0.5, 0.95])

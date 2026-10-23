@@ -46,9 +46,36 @@ def evidence(Xa, names, bb):
     return ev
 
 
+def binomial(Xa, names, bb, out):
+    """addendum 3, independently: the binomial availability rule on the k > 1 availability averages left live"""
+    m = np.zeros(Xa.shape[1], dtype=bool)
+    kept: dict = {}
+    for j, nm in enumerate(names):
+        if bb[j] or out[j] or "_avail_ma_" not in nm or nm.endswith("_avail_ma_1"):
+            continue
+        k = int(nm.rsplit("_", 1)[1])
+        x = Xa[:, j]
+        pj = x.mean()
+        if x.std() <= np.sqrt(pj * (1 - pj) / k):
+            m[j] = True
+            continue
+        dup = False
+        for i in kept.get(k, []):
+            pb = 0.5 * (pj + Xa[:, i].mean())
+            if (x - Xa[:, i]).std() <= np.sqrt(2) * np.sqrt(pb * (1 - pb) / k):
+                dup = True
+                break
+        if dup:
+            m[j] = True
+        else:
+            kept.setdefault(k, []).append(j)
+    return m
+
+
 def explicit(Xa, yr, locked, kind, a, l1, pf, names, bb):
     s = np.std(Xa, axis=0)
     out = ~locked & ((s < P.STD_MIN) | (evidence(Xa, names, bb) < P.STD_MIN_EVIDENCE))
+    out |= binomial(Xa, names + ["intercept"], np.append(bb, True), out)
     sc = np.where(out | locked, 1.0, s)
     Z = Xa / sc
     Z[:, out] = 0.0
@@ -72,6 +99,12 @@ X[:, 3] = 0.0  # a masked column (zero)
 X[:, 4] = 1.7  # constant (s < STD_MIN)
 X[:, 7] = np.where(rng.uniform(size=n) < 0.03, rng.standard_normal(n), 0.0)  # ~90 rows off the mode: evidence-masked
 X[:, 8] = np.where(np.arange(n) < 400, rng.standard_normal(n), 0.5)  # 400 rows off the mode: kept
+# addendum 3: availability flags (k = 1) and k = 25 averages: a near-constant one, a kept one, a near-duplicate
+for c in (12, 14, 16):
+    X[:, c] = (rng.uniform(size=n) < 0.8).astype(float)
+X[:, 13] = np.clip(0.99 + 0.005 * rng.standard_normal(n), 0, 1)  # s.d. 0.005 <= se ~ 0.02: near-constant
+X[:, 15] = np.clip(0.5 + 0.2 * rng.standard_normal(n), 0, 1)  # s.d. ~0.2 > se 0.1: kept
+X[:, 17] = np.clip(X[:, 15] + 0.01 * rng.standard_normal(n), 0, 1)  # differs by s.d. 0.01: near-duplicate of 15
 beta = rng.standard_normal(p) * (rng.uniform(size=p) < 0.4)
 y = X @ beta + rng.standard_normal(n)
 Xa = np.hstack([X, np.ones((n, 1))])
@@ -81,14 +114,17 @@ pf = np.ones(p + 1)
 pf[:6] = 0.01
 names1 = [f"har_ma_{k}" for k in range(6)] + [f"adj_x{j}_ma_1" for j in range(6, p)]
 names1[9], names1[10] = "adj_x7_ma_5", "x11_avail_ma_5"  # follows column 7; its k = 1 column is absent
+names1[12:18] = ["a_avail_ma_1", "a_avail_ma_25", "b_avail_ma_1", "b_avail_ma_25", "c_avail_ma_1", "c_avail_ma_25"]
 bb1 = np.array([n.startswith("har_ma_") for n in names1])
 ref1 = P.evid_ref(names1, bb1)
+av1 = P.avail_k(names1, bb1)
 for kind, a, l1 in [("ridge", 30.0, 0.0), ("lasso", 3e-3, 1.0), ("enet", 3e-3, 0.5)]:
-    th, s, out = P.fit_std(Xa, y, locked, kind, a, l1, pf, ref1)
+    th, s, out = P.fit_std(Xa, y, locked, kind, a, l1, pf, ref1, av1)
     th2 = explicit(Xa, y, locked, kind, a, l1, pf, names1, bb1)
     print(f"1. {kind}: rel diff {rel(th, th2):.2e}, nnz {int((th != 0).sum())}, out {int(out.sum())}, REPAIR {P.REPAIR}")
     assert rel(th, th2) < 1e-8
     assert th[7] == 0.0 and th[8] != 0.0 and th[9] == 0.0 and th[10] == 0.0, th[[7, 8, 9, 10]]
+    assert th[13] == 0.0 and th[17] == 0.0 and out[13] and out[17] and not out[15], th[[13, 15, 17]]
 
 # ---- 2. the walk
 Wn = 1200
@@ -113,18 +149,18 @@ def run_walk(est, alpha, flag):
     Cls = P.make_class(ns, 0.01, P.ConstSched(alpha), 0, rec)
     Cls.bb = np.array([n.startswith("har_ma_") for n in names])
     Cls.ev_ref = P.evid_ref(names, Cls.bb)
+    Cls.av = P.avail_k(names, Cls.bb)
     Base.trace, Base.mask_trace, Base.reseed_trace = [], [], []
     Cls.kkt_rows, Cls.kkt_reseeds, Cls.kkt_sec = [], [], [0.0, 0.0]
     Cls.std_seeds, Cls.std_ridge, Cls.std_blockend = [], [], []
     Cls.std_evid_reseeds = []
+    Cls.std_binom, Cls.std_binom_reseeds = [], []
     ths: list = []
 
     class Rec(Cls):
         def solve(self):
             super().solve()
-            th = self._th.copy()
-            if P.STANDARDIZE_PENALTY:  # the centred state (addendum 2) back to the original coordinates
-                th[-1] -= self._ctr @ th
+            th = self.coef_original() if P.STANDARDIZE_PENALTY else self._th.copy()
             ths.append((th, self._maskout.copy()))
 
     bt = ns["MultiStageBacktest"](
@@ -147,7 +183,7 @@ for est, alpha in [("ridge", 30.0), ("reclasso", 3e-3), ("reclasticnet", 3e-3)]:
         pfv = np.ones(p + 1)
         pfv[:4] = 0.01
         if kind == "ridge" or i in seeds:
-            tb = P.fit_std(Xw, y[t - Wn : t], locked, kind, alpha, l1, pfv, Cls.ev_ref)[0]
+            tb = P.fit_std(Xw, y[t - Wn : t], locked, kind, alpha, l1, pfv, Cls.ev_ref, Cls.av)[0]
             d = rel(th, tb)
             if kind == "ridge":
                 worst = max(worst, d)

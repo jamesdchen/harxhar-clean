@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 23.9) (preloaded format=pdflatex 2025.7.14)  22 OCT 2026 15:26
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 23.9) (preloaded format=pdflatex 2025.7.14)  22 OCT 2026 19:41
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -667,17 +667,17 @@ File: t1lmtt.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 ) [5]
 [6] [7]) (rehaul/03_data_floats.tex) (rehaul/04_features.tex [8] [9] [10]
 [11] [12]) (rehaul/04_features_floats.tex) (rehaul/05_methods.tex [13] [14]
-[15] [16] [17]) (rehaul/05_methods_floats.tex) (rehaul/06_results.tex [18]
-[19] [20]) (rehaul/06_results_floats.tex (generated/rehaul_results_oos.tex))
-(rehaul/08_feature_importance.tex) (rehaul/08_feature_importance_floats.tex)
-(rehaul/08b_fi_measures_floats.tex) (rehaul/07_economics.tex [21] [22] [23]
-[24] [25] [26] [27]) (rehaul/07_economics_floats.tex) [28]
-(rehaul/09_conclusion.tex) (paper_rehaul.bbl [29
+[15] [16] [17] [18]) (rehaul/05_methods_floats.tex) (rehaul/06_results.tex
+[19] [20] [21]) (rehaul/06_results_floats.tex (generated/rehaul_results_oos.tex
+)) (rehaul/08_feature_importance.tex) (rehaul/08_feature_importance_floats.tex)
+(rehaul/08b_fi_measures_floats.tex) (rehaul/07_economics.tex [22] [23] [24]
+[25] [26] [27] [28]) (rehaul/07_economics_floats.tex) [29]
+(rehaul/09_conclusion.tex) (paper_rehaul.bbl [30
 
-] [30] [31] [32])
-(rehaul/10_appendix.tex [33] [34] [35] [36] [37] [38] [39] [40]
-(generated/rehaul_econ_sharpe_defs.tex) [41] [42] [43] [44]
-(generated/rehaul_results_oos_last30.tex) [45]
+] [31] [32] [33])
+(rehaul/10_appendix.tex [34] [35] [36] [37] [38] [39] [40] [41]
+(generated/rehaul_econ_sharpe_defs.tex) [42] [43] [44] [45]
+(generated/rehaul_results_oos_last30.tex) [46]
 Overfull \hbox (86.47064pt too wide) in paragraph at lines 699--701
 \T1/lmr/m/n/10.95 (results/pooled_trees_rerun13_2026-10-20/w1000, fit-ted by \T
 1/lmtt/m/n/10.95 experiments/pooled_trees_rerun_13.py\T1/lmr/m/n/10.95 ),
@@ -701,15 +701,15 @@ Overfull \hbox (77.3145pt too wide) in paragraph at lines 701--702
 10.95 ), read by \T1/lmtt/m/n/10.95 writeup/make_rehaul_results.py
  []
 
-[46]) (rehaul/10_appendix_floats.tex (generated/rehaul_dm_samples.tex)
-(generated/rehaul_dm_hyper.tex) [47] [48] [49]
-(generated/rehaul_dm_dictionary.tex [50
+[47]) (rehaul/10_appendix_floats.tex (generated/rehaul_dm_samples.tex)
+(generated/rehaul_dm_hyper.tex) [48] [49] [50]
+(generated/rehaul_dm_dictionary.tex [51
 
 
-] [51] [52] [53]))
-(rehaul/10_statistical_tests.tex [54
+] [52] [53] [54]))
+(rehaul/10_statistical_tests.tex [55
 
-] [55] (generated/rehaul_app_hac_robust.tex)) (rehaul/99_author_notes.tex
+] [56] (generated/rehaul_app_hac_robust.tex)) (rehaul/99_author_notes.tex
 Underfull \hbox (badness 1107) in paragraph at lines 13--19
 \T1/lmr/m/n/10.95 no ob-ser-va-tion (UN-OB-SERVED_NEUTRAL), KKT-checked lasso a
 nd elastic-net
@@ -721,7 +721,7 @@ Underfull \hbox (badness 1728) in paragraph at lines 13--19
 opped
  []
 
-[56] [57] [58]) [59] (paper_rehaul.aux)
+[57] [58] [59]) [60] (paper_rehaul.aux)
  ***********
 LaTeX2e <2023-06-01> patch level 1
 L3 programming layer <2023-08-29>
@@ -730,8 +730,8 @@ Package rerunfilecheck Info: File `paper_rehaul.out' has not changed.
 (rerunfilecheck)             Checksum: 0073728DBC65C6830DCB11591D7C72E0;6236.
  ) 
 Here is how much of TeX's memory you used:
- 16132 strings out of 475248
- 263716 string characters out of 5757813
+ 16133 strings out of 475248
+ 263723 string characters out of 5757813
  2001801 words of memory out of 5000000
  37093 multiletter control sequences out of 15000+600000
  685578 words of font info for 132 fonts, out of 8000000 for 9000
@@ -765,9 +765,9 @@ pData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmsy9.pfb><C:/Users/james/App
 Data/Local/Programs/MiKTeX/fonts/type1/public/lm/lmtt10.pfb><C:/Users/james/App
 Data/Local/Programs/MiKTeX/fonts/type1/public/lm/lmtt9.pfb><C:/Users/james/AppD
 ata/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/symbols/msbm10.pfb>
-Output written on paper_rehaul.pdf (59 pages, 939946 bytes).
+Output written on paper_rehaul.pdf (60 pages, 945701 bytes).
 PDF statistics:
- 1261 PDF objects out of 1440 (max. 8388607)
- 185 named destinations out of 1000 (max. 500000)
+ 1271 PDF objects out of 1440 (max. 8388607)
+ 186 named destinations out of 1000 (max. 500000)
  305 words of extra memory for PDF output out of 10000 (max. 10000000)
 

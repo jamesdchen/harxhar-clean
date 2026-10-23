@@ -275,6 +275,39 @@
       \end{cases}
     \]
   \item When a penalized regression is fitted on the HAR benchmark alone, we apply a uniform penalty weight $\omega_j = 1$ across all predictors.
+  % 2026-10-22 (user): STANDARDIZE_PENALTY (experiments/pool_linear_pretune.py, merged 2430543), with the
+  % evidence requirement on the variable's own one-interval column (STD_MIN_EVIDENCE = MODE_MIN_PRINTS).
+  \item \textbf{Standardization within the estimation window.} The penalties apply to standardized coefficients
+    \citep{Tibshirani1996, FriedmanHastieTibshirani2010}. Each predictor column is centered and scaled by its mean
+    $m_j$ and standard deviation $s_j$ over $\mathcal W_{t,i}$; the objectives above are solved for the
+    coefficients $\gamma_j$ of the standardized columns $(x_j - m_j)/s_j$, with the weights $\omega_j$, and
+    transformed back, $\beta_j = \gamma_j / s_j$, the intercept absorbing the centering. Without this step the
+    penalty on a column's contribution to the forecast would scale with $1/s_j^2$ for ridge and $1/s_j$ for the
+    lasso, so columns with little spread, such as long-horizon averages, would be penalized far more heavily for
+    no economic reason. The robust standardization of Section~\ref{sec:rh_predictors} does not achieve this: it
+    equalizes interquartile ranges rather than variances, and its scale factors come from the rolling grid
+    rather than from the estimation window. For ridge, $m_j$ and $s_j$ are updated at every step; for the lasso
+    and elastic net, at every cold restart of the homotopy described below, and held fixed in between.
+  \item A column of an exogenous series enters a fit only if the series' own one-interval column differs from
+    its modal value on at least \rhdmModeMinPrints{} intervals of $\mathcal W_{t,i}$, the evidence requirement of
+    the activity indicator (Section~\ref{sec:rh_predictors}). A $k$-interval average repeats each observation
+    $k$ times, so its own count would overstate the evidence. Columns that fail are screened out like constant
+    columns (below).
+  % 2026-10-22 (user): binomial availability screen and scaled-coordinates solver (Addendum 3, merged 8898522).
+  \item An availability average over $k > 1$ intervals is a proportion, with sampling resolution
+    $\sqrt{p(1-p)/k}$ at its window mean $p$. It is screened out of a fit when its standard deviation over
+    $\mathcal W_{t,i}$ does not exceed that resolution, or when the standard deviation of its difference from an
+    earlier retained availability average of the same horizon does not exceed $\sqrt 2$ times the resolution at
+    the pair's mean: its movement is then no larger than independent missing observations would produce, so it
+    carries no detectable information. These are mostly the long-horizon availability averages of
+    regular-hours series, which record the trading calendar rather than the series.
+  \item The solvers work directly on the standardized columns, which gives the same estimates as penalizing the
+    raw columns with weights $\omega_j s_j$ and $\omega_j s_j^2$ but keeps the systems they solve well
+    conditioned.
+  % 2026-10-22 (user): parked -- the note before the screen and the solver were settled. Was: "... Open: a screen for
+  % availability averages that are near-constant or near-duplicates at their binomial resolution $\sqrt{p(1-p)/k}$ is
+  % under test, as is solving in standardized coordinates (the same estimator, better conditioned). ..."
+  \editc{orange}{STD}{Decision: standardization within the estimation window, the availability screen and the standardized-coordinate solvers are the specification (STANDARDIZE\_PENALTY, merged 2430543 and 8898522, 22 October 2026).\\Problem: the printed pooled forecasts predate all three; the rerun is pending (notes to the authors, ``Rerun pending'').}
   \item The lasso corresponds to $\alpha = 1$, and our elastic net specification fixes $\alpha = 0.5$.
   \item For ridge regression, we update $(\bm X_{t,i}^\top \bm X_{t,i} + \lambda\, \mathrm{diag}(\bm\omega))^{-1}$ via exact rank-one downdates and updates as observations exit and enter $\mathcal W_{t,i}$, where $\bm X_{t,i}$ stacks the rows $(1, \bm x_{t',i'}^\top)$ for $(t',i') \in \mathcal W_{t,i}$ and $\bm\omega = (\omega_0, \dots, \omega_p)^\top$.
   \item For the lasso and elastic net, we update the active set and coefficient vector via exact online homotopy \citep{Garrigues2008}, adding the incoming observation and dropping the outgoing observation at each step.

@@ -404,6 +404,15 @@ The sentence above keeps three calendar pieces: the five weekday dummies, the ho
         holds no interval before the day of the series' first print.
       \item $z^{(k)}_{t,i} = 0$ whenever the $k$-interval average holds no observed interval, $\bar a^{(k)}_{t,i} =
         0$, so that the averages of a feed that has stopped are exactly neutral.
+      % 2026-10-22 (user): why the penalized models standardize again after this step (STANDARDIZE_PENALTY,
+      % experiments/pool_linear_pretune.py, merged 2430543).
+      \item This step equalizes each column's interquartile range, not its variance. The ratio of a column's
+        standard deviation to its interquartile range varies with its tails, its skewness and its share of
+        zeros; the availability averages $\bar a^{(k)}$ keep their $[0,1]$ scale; and the scale factors come from
+        the rolling grid rather than from the sample on which a model is estimated. The step serves the data: it
+        limits the influence of outliers and keeps each series comparable over time. The penalized linear models
+        therefore also standardize every column within their own estimation window
+        (Section~\ref{sec:rh_methods_models}), so that the penalty treats every column alike.
       \end{itemize}
       \editc{orange}{S4d}{Decision: the late-start and no-observation rules of this step are the specification (src/backtest/executor.py LATE\_START\_WARMUP, merged 21570f0, and UNOBSERVED\_NEUTRAL, merged 5403acd; both 22 October 2026; note E28). A rerun of the pooled intraday models under them is approved and waits for the window choice.\\Problem: the printed pooled forecasts of Table~\ref{tab:rh_oos} predate both rules (their designs were built on 20 October 2026). There a series that starts late takes the scaler's output from its first window on, and the value averages of a feed that has stopped (volatility demand after 31 August 2023) hold the rescaled neutral fill instead of 0.}
     % 2026-10-17 (user, E8): parked -- the one-sentence intraday rule, and the note. The denominator is the
