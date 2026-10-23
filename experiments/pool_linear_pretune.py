@@ -203,6 +203,11 @@ KEEP_FOMC_RELEASE = False
 # ridge / lasso / elastic net on the window-standardized coefficients s_j b_j; read at call time; False = the runner
 # before the flag, bit for bit
 STANDARDIZE_PENALTY: bool = True
+# 2026-10-22 (owner: no floor on s, "learn from what we've done in the past"; RULE_std.txt addendum 1): the EVIDENCE
+# MASK of STANDARDIZE_PENALTY -- a non-locked column enters a standardized fit only if at least this many rows of the
+# fit's window differ from its modal value there; the 250-row minimum-evidence rule of src/backtest/executor.py
+# MODE_MIN_PRINTS (and src/features/transforms/target.py ASINH_ROUTE_MIN_ROWS), asserted equal in spec_section
+STD_MIN_EVIDENCE = 250
 # STD_MIN: a non-locked column whose window s.d. is below it is masked for the fit; STD_CHECK_BLOCKENDS: walk
 # --std-check-blockends (the diagnostic of the held lasso / elastic-net weights)
 STD_MIN = 1e-12
@@ -406,6 +411,11 @@ def spec_section(est: str, bucket: str, start: int, end: int, halo: int) -> dict
         ]
     import src.backtest.executor as EX
 
+    # 2026-10-22: the evidence mask's 250 is the executor's minimum-evidence count
+    assert STD_MIN_EVIDENCE == EX.MODE_MIN_PRINTS, (
+        STD_MIN_EVIDENCE,
+        EX.MODE_MIN_PRINTS,
+    )
     for k, v in EX_FLAGS.items():  # 2026-10-19 (--ex-flag)
         assert isinstance(getattr(EX, k), bool), k
         setattr(EX, k, v)
@@ -610,13 +620,34 @@ def batch_theta_pf(ns: dict, Xa, yr, locked, a, l1, pf) -> np.ndarray:
 
 
 # ============================================================================ STANDARDIZE_PENALTY (2026-10-22)
-def std_weights(Xa: np.ndarray, locked: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+def col_mode(Xa: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """(modal value, its count) of every column of Xa (exact equality; a tie returns one of the tied values, with the
+    same count)."""
+    n, p = Xa.shape
+    S = np.sort(Xa, axis=0)
+    new = np.empty((n, p), dtype=bool)
+    new[0] = True
+    np.not_equal(S[1:], S[:-1], out=new[1:])
+    idx = np.arange(n)[:, None]
+    run = idx - np.maximum.accumulate(np.where(new, idx, 0), axis=0) + 1
+    k = run.argmax(axis=0)
+    cols = np.arange(p)
+    return S[k, cols], run[k, cols]
+
+
+def std_weights(
+    Xa: np.ndarray, locked: np.ndarray, full: bool = False
+) -> tuple[np.ndarray, ...]:
     """(s, out) of the fit's rows Xa (masked columns already 0): s_j = np.std(Xa[:, j]) (ddof 0); out = the non-locked
-    columns with s_j < STD_MIN (masked for the fit, every masked column among them); s_j := 1 on out and on the locked
-    intercept (a weight never used: the column is 0, resp. unpenalized)."""
+    columns with s_j < STD_MIN or (the evidence mask, 2026-10-22) fewer than STD_MIN_EVIDENCE rows that differ from
+    the column's modal value (masked for the fit, every masked column among them); s_j := 1 on out and on the locked
+    intercept (a weight never used: the column is 0, resp. unpenalized).  full: also (modal value, evidence)."""
     s = np.std(Xa, axis=0)
-    out = ~locked & (s < STD_MIN)
-    return np.where(out | locked, 1.0, s), out
+    v, cnt = col_mode(Xa)
+    ev = Xa.shape[0] - cnt
+    out = ~locked & ((s < STD_MIN) | (ev < STD_MIN_EVIDENCE))
+    sw = np.where(out | locked, 1.0, s)
+    return (sw, out, v, ev) if full else (sw, out)
 
 
 def ridge_keep(
@@ -683,12 +714,13 @@ def batch_theta_w(Xa, yr, locked, a, l1, w1, w2) -> np.ndarray:
 
 
 def fit_std(
-    Xa, yr, locked, kind, a, l1, pf
+    Xa, yr, locked, kind, a, l1, pf, sw=None
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """One standardized batch fit on the rows (Xa, yr) (masked columns 0): (theta, s, out) with s, out of std_weights;
-    the out columns zeroed for the fit (theta_j = 0).  Ridge: (X'X + diag(a pf s^2)) theta = X'y on the kept columns;
-    lasso / enet: batch_theta_w with w1 = pf s, w2 = pf s^2."""
-    s, out = std_weights(Xa, locked)
+    """One standardized batch fit on the rows (Xa, yr) (masked columns 0): (theta, s, out) with s, out of std_weights
+    (or sw, std_weights of these rows computed by the caller); the out columns zeroed for the fit (theta_j = 0).
+    Ridge: (X'X + diag(a pf s^2)) theta = X'y on the kept columns; lasso / enet: batch_theta_w with w1 = pf s,
+    w2 = pf s^2."""
+    s, out = std_weights(Xa, locked) if sw is None else sw
     if out.any():
         Xa = Xa.copy()
         Xa[:, out] = 0.0
@@ -737,14 +769,30 @@ def make_class(ns: dict, r: float, sched: dict | None, g0: int, rec: list):
         # left-out / locked columns, columns newly masked by s < STD_MIN); ridge: [seed solve, max_j |s_j / s_j(seed)
         # - 1| over the block's bars, max columns left out beyond the mask]; --std-check-blockends: (solve, forecast
         # with the held weights, forecast with the current window's weights, max |s_now / s_held - 1|)
+        # evidence mask (addendum 1): std_seeds entries also carry the columns the rule leaves out beyond the
+        # identifiability mask at that seed; std_evid_reseeds: (solve, columns added) of every evidence-triggered
+        # lasso / enet reseed
         std_seeds: list = []
         std_ridge: list = []
         std_blockend: list = []
         std_blockend_sec: list = [0.0]
+        std_evid_reseeds: list = []
 
         def _std_on(self) -> bool:
             """STANDARDIZE_PENALTY applies (a penalized fit: the OLS at alpha 0 is never weighted)."""
             return STANDARDIZE_PENALTY and self.alpha_ > 0.0
+
+        def _recompute_mask(self, Xraw):
+            """The spec's identifiability mask; 2026-10-22: the evidence-only mask restarts with it (tune boundary)."""
+            super()._recompute_mask(Xraw)
+            self._evid_only = np.zeros(len(self._maskout), dtype=bool)
+
+        def _evid_update(self, ua, ur) -> None:
+            """The evidence tracker (addendum 1): rows of the window that differ from the seed-time modal value, per
+            column, moved by the entering and leaving rows (masked design values)."""
+            self._ev_d += (ua != self._ev_v).astype(np.int64) - (
+                ur != self._ev_v
+            ).astype(np.int64)
 
         def init_window(self, X_win, y_win):
             pf = np.ones(np.asarray(X_win).shape[1] + 1)
@@ -765,6 +813,22 @@ def make_class(ns: dict, r: float, sched: dict | None, g0: int, rec: list):
             n0 = len(Base.reseed_trace)
             super().roll(x_in, y_in, x_out, y_out)
             self._warm = self.kind_ != "ridge" and len(Base.reseed_trace) == n0
+            if self.kind_ != "ridge" and self._std_on() and self._warm:
+                # the evidence tracker (a mask-addition reseed has just recomputed it on the new window)
+                ua = np.append(np.asarray(x_in, dtype=np.float64), 1.0)
+                ur = np.append(np.asarray(x_out, dtype=np.float64), 1.0)
+                ua[self._maskout] = 0.0
+                ur[self._maskout] = 0.0
+                self._evid_update(ua, ur)
+                low = (self._ev_d < STD_MIN_EVIDENCE) & ~self._maskout & ~self._locked
+                if low.any():  # masked like the identifiability mask; cold reseed (weights and modes refreshed)
+                    self._maskout = self._maskout | low
+                    self._evid_only = self._evid_only | low
+                    PFTuned.std_evid_reseeds.append(
+                        (g0 + self._n_solve, [int(j) for j in np.flatnonzero(low)])
+                    )
+                    self._seed()
+                    self._warm = False
 
         def _roll_std_ridge(self, x_in, y_in, x_out, y_out):
             """The spec's ridge roll (the RAW ring, the masked update rows) with STANDARDIZE_PENALTY's state: X'X and
@@ -790,15 +854,17 @@ def make_class(ns: dict, r: float, sched: dict | None, g0: int, rec: list):
             di, do = ua - self._sd_m0, ur - self._sd_m0
             self._sd_s1 += di - do
             self._sd_s2 += di * di - do * do
+            self._evid_update(ua, ur)  # 2026-10-22: the evidence mask, every bar
 
         def _std_ridge_solve(self):
             """STANDARDIZE_PENALTY, ridge: s of the current window (the moments; 0 on a column constant over the
-            window), the columns with s < STD_MIN left out of this solve, (X'X + diag(a pf s^2)) b = X'y."""
+            window), the columns with s < STD_MIN or (evidence mask) fewer than STD_MIN_EVIDENCE rows off the modal
+            value left out of this solve, (X'X + diag(a pf s^2)) b = X'y."""
             n = len(self._y)
             var = self._sd_s2 / n - (self._sd_s1 / n) ** 2
             s = np.sqrt(np.maximum(var, 0.0))
             s[self._sd_run >= n] = 0.0
-            out = ~self._locked & (s < STD_MIN)
+            out = ~self._locked & ((s < STD_MIN) | (self._ev_d < STD_MIN_EVIDENCE))
             s = np.where(out | self._locked, 1.0, s)
             D = np.where(self._locked, 0.0, self.alpha_ * (self._pf * s * s))
             self._th = ridge_keep(self._G, self._c, D, ~out)
@@ -922,20 +988,30 @@ def make_class(ns: dict, r: float, sched: dict | None, g0: int, rec: list):
         def _seed_std(self):
             """STANDARDIZE_PENALTY's cold seed on the current (masked) window: s = np.std of the window (std_weights).
             Ridge: X'X, X'y, the column moments about the window means and the constancy run lengths, then the
-            bar's solve (_std_ridge_solve).  Lasso / elastic net: a column with s < STD_MIN joins the mask until the
-            next tune; mu_j = n a l1 pf_j s_j, the L2 term n a (1 - l1) pf_j s_j^2 on Gr's diagonal, both held
-            until the next seed; the batch solution (batch_theta_w, KKT-certified) and its active set."""
+            bar's solve (_std_ridge_solve).  Lasso / elastic net: a column with s < STD_MIN or (the evidence mask,
+            addendum 1) fewer than STD_MIN_EVIDENCE rows off its modal value joins the mask (the columns masked by
+            that rule alone are re-evaluated, i.e. may come back, at every seed); mu_j = n a l1 pf_j s_j, the L2 term
+            n a (1 - l1) pf_j s_j^2 on Gr's diagonal, both held until the next seed; the batch solution
+            (batch_theta_w, KKT-certified) and its active set.  Both: the seed-time modal values and evidence counts
+            the between-seed evidence tracker starts from."""
+            kind, a, l1 = self.kind_, self.alpha_, self.l1_
+            evo = getattr(self, "_evid_only", None)
+            if kind != "ridge" and evo is not None and evo.any():
+                self._maskout = self._maskout & ~evo  # un-masking: a seed-time event
+            self._evid_only = np.zeros(len(self._maskout), dtype=bool)
             Xa, yr = self._masked_window()
             tw = len(yr)
-            kind, a, l1 = self.kind_, self.alpha_, self.l1_
+            # the tracker is exact between seeds <= TUNE_PER solves apart iff the window holds > 2 (250 + TUNE_PER)
+            assert tw > 2 * (STD_MIN_EVIDENCE + TUNE_PER), tw
             pf = self._pf
-            s, out = std_weights(Xa, self._locked)
+            s, out, v, ev = std_weights(Xa, self._locked, full=True)
             new = out & ~self._maskout
             nan_s = np.where(out | self._locked, np.nan, s)
             # the solve (OOS row) whose forecast first uses this seed
             at = g0 + self._n_solve - getattr(self, "_seed_off", 0)
-            PFTuned.std_seeds.append((at, nan_s, int(new.sum())))
+            PFTuned.std_seeds.append((at, nan_s, int(new.sum()), np.flatnonzero(new)))
             self._sd_seed = nan_s
+            self._ev_v, self._ev_d = v, ev.astype(np.int64)
             if kind == "ridge":
                 self._G = Xa.T @ Xa
                 self._c = Xa.T @ yr
@@ -948,8 +1024,9 @@ def make_class(ns: dict, r: float, sched: dict | None, g0: int, rec: list):
                 PFTuned.std_ridge.append([g0 + self._n_solve, 0.0, 0])
                 self._std_ridge_solve()
                 return
-            if new.any():  # masked for the fit, and (weights held) until the next tune
+            if new.any():  # masked for the fit, and (weights held) until the next seed re-evaluates them
                 self._maskout = self._maskout | new
+                self._evid_only = new
                 Xa[:, new] = 0.0
             w1, w2 = pf * s, pf * s * s
             mu, lam2 = tw * a * l1, tw * a * (1.0 - l1)
@@ -1327,9 +1404,10 @@ def grid_of(ns: dict, a) -> list:
     return [(kind, float(v), l1) for v in a.grid_alphas.split(",")]
 
 
-def std_record(Cls, penalized: bool) -> tuple[dict, dict]:
+def std_record(Cls, penalized: bool, names: list | None = None) -> tuple[dict, dict]:
     """STANDARDIZE_PENALTY's walk record: trace.npz arrays (flag on only) and run.json fields (the flag always; False
-    for the OLS, which it never touches)."""
+    for the OLS, which it never touches).  Evidence mask: per seed the columns left out beyond the identifiability
+    mask (count median / max, the most frequent columns), the evidence-triggered reseeds."""
     info: dict = dict(standardize_penalty=bool(STANDARDIZE_PENALTY and penalized))
     seeds = getattr(Cls, "std_seeds", [])
     if not (STANDARDIZE_PENALTY and seeds):
@@ -1359,6 +1437,29 @@ def std_record(Cls, penalized: bool) -> tuple[dict, dict]:
         else 0.0,
         std_max_rel_change_l2_weight=float(rel2.max()) if len(rel2) else 0.0,
     )
+    # 2026-10-22 (evidence mask)
+    cnt = np.array([x[2] for x in seeds])
+    freq: dict = {}
+    for x in seeds:
+        for j in x[3]:
+            freq[int(j)] = freq.get(int(j), 0) + 1
+    nm = list(names or []) + ["intercept"]
+    top = sorted(freq.items(), key=lambda kv: -kv[1])[:25]
+    er = getattr(Cls, "std_evid_reseeds", [])
+    info |= dict(
+        std_evid_out_per_seed_median=float(np.median(cnt)),
+        std_evid_out_per_seed_max=int(cnt.max()),
+        std_evid_out_per_seed_min=int(cnt.min()),
+        std_evid_out_columns_ever=len(freq),
+        std_evid_out_top_columns_seeds=[
+            [nm[j] if j < len(nm) else j, c] for j, c in top
+        ],
+        std_evid_reseeds=len(er),
+        std_evid_reseed_columns=sorted(
+            {nm[j] if j < len(nm) else j for _, js in er for j in js}
+        ),
+    )
+    npz |= dict(std_seed_evid_out=cnt)
     rr = getattr(Cls, "std_ridge", [])
     if rr:
         npz |= dict(std_ridge=np.array(rr, dtype=np.float64))
@@ -1431,7 +1532,7 @@ def walk(a) -> None:
             Cls.kkt_rows, Cls.kkt_reseeds, Cls.kkt_sec = [], [], [0.0, 0.0]
         if hasattr(Cls, "std_seeds"):  # 2026-10-22 (STANDARDIZE_PENALTY)
             Cls.std_seeds, Cls.std_ridge, Cls.std_blockend = [], [], []
-            Cls.std_blockend_sec = [0.0]
+            Cls.std_blockend_sec, Cls.std_evid_reseeds = [0.0], []
         bt = ns["MultiStageBacktest"](
             residualizer=ns["IdentityResidualizer"](),
             regressor_factory=Cls,
@@ -1503,7 +1604,9 @@ def walk(a) -> None:
             f"check {Cls.kkt_sec[0]:.1f} s, reseeds {Cls.kkt_sec[1]:.1f} s"
         )
     # 2026-10-22 (STANDARDIZE_PENALTY): the s.d. at every cold seed, written only with the flag on
-    std_npz, std_info = std_record(Cls, a.est != "ols")
+    std_npz, std_info = std_record(
+        Cls, a.est != "ols", names_seen[0] if names_seen else None
+    )
     np.savez_compressed(
         out / "trace.npz",
         **kkt_npz,
@@ -1600,13 +1703,18 @@ def pretune(a) -> None:
             res = []
             std_fold: dict = {}
             if STANDARDIZE_PENALTY:
-                # 2026-10-22: the weights from this fold's fit block (fit_std: s of Xf, the s < STD_MIN columns out)
+                # 2026-10-22: the weights from this fold's fit block (fit_std: s of Xf, the s < STD_MIN and evidence-
+                # mask columns out)
+                sw_f = std_weights(Xf, locked)
                 for kind, al, l1 in grid:
-                    th, s_f, out_f = fit_std(Xf, yf, locked, kind, al, l1, pf)
+                    th, s_f, out_f = fit_std(Xf, yf, locked, kind, al, l1, pf, sw_f)
                     res.append(Xv @ th - yv)
                 sd = s_f[~out_f & ~locked]
                 std_fold = dict(
                     std_left_out_beyond_mask=int((out_f & ~mk).sum()),
+                    std_left_out_columns=[
+                        (names + ["intercept"])[j] for j in np.flatnonzero(out_f & ~mk)
+                    ],
                     std_s_quantiles_5_50_95=[
                         float(v) for v in np.quantile(sd, [0.05, 0.5, 0.95])
                     ],
