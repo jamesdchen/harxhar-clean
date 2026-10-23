@@ -1,0 +1,5 @@
+source,spearman_1000_3500,spearman_1500_2000,top10_overlap_1000_3500,top5_W1000,top5_W3500
+walk,0.28908082806407126,0.7903176071538698,5,"sumret, sumautocov, vix, stocktwits_sentiment, sumvolume","sumabsret, fomc_until_inv, sumret, fomc_day, sumret2_ewstock"
+S1_1000,0.42313388811170827,0.9370952821461609,7,"sumret, vix, vvix, sumret4, sumabsret_vwstock","sumabsret, fomc_until_inv, sumret, fomc_day, sumret2_ewstock"
+S1_10000,0.5412708462300814,0.948936170212766,6,"sumret, sumautocov, vix, stocktwits_sentiment, sumvolume","sumret, sumabsret_vwstock, sumautocov, sumabsret_ewstock, sumret2_ewstock"
+S1_rel,0.5418877494056343,0.955349984582177,8,"sumret, sumautocov, vix, stocktwits_sentiment, sumvolume","sumret, sumautocov, sumabsret_vwstock, sumret2_ewstock, sumabsret_ewstock"
