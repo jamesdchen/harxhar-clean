@@ -1,0 +1,3 @@
+# rf_skx baseline bar 2014-01-02..2024-04-30: 33970 refits x 0.78 s (8 threads) -> 3 tasks of ~2.45 h
+# rf_skx all_features bar 2014-01-02..2024-04-30: 33970 refits x 36.26 s (8 threads) -> 115 tasks of ~2.98 h
+[02:03:58] 118 tasks -> /home1/jc_905/trees_final/runs_skx/w3500/tasks.txt

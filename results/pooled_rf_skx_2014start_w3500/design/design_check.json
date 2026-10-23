@@ -1,0 +1,138 @@
+{
+ "w3000": {
+  "window_days": 3000,
+  "window_rows": 39000,
+  "baseline_shape": [
+   84747,
+   12
+  ],
+  "baseline_config": {
+   "sample": "rth13",
+   "periods_per_day": 13,
+   "window": 39000,
+   "har_base": "5",
+   "drop_fomc": false,
+   "ex_flags": {
+    "DROP_ACTIVITY_MA": true,
+    "CALENDAR_THROUGH_OVERNIGHT": true,
+    "DROP_OVERNIGHT_INDICATOR": true,
+    "LEAN_GLOBAL_LAGS": true,
+    "LATE_START_WARMUP": true
+   }
+  },
+  "baseline_fortran_order": true,
+  "all_features_shape": [
+   84747,
+   564
+  ],
+  "all_features_config": {
+   "sample": "rth13",
+   "periods_per_day": 13,
+   "window": 39000,
+   "har_base": "5",
+   "drop_fomc": false,
+   "ex_flags": {
+    "DROP_ACTIVITY_MA": true,
+    "CALENDAR_THROUGH_OVERNIGHT": true,
+    "DROP_OVERNIGHT_INDICATOR": true,
+    "LEAN_GLOBAL_LAGS": true,
+    "LATE_START_WARMUP": true
+   }
+  },
+  "all_features_fortran_order": true,
+  "oos_first": "2010-05-25 15:30:00",
+  "oos_last": "2024-04-30 16:00:00",
+  "n_oos": 45747,
+  "S": 50777,
+  "S_date": "2014-01-02 10:00:00",
+  "linear_walk_start_row": 50750,
+  "linear_walk_start_date": "2013-12-27 16:00:00",
+  "tree_first_row": 50777,
+  "tree_first_date": "2014-01-02 10:00:00",
+  "tree_last_date": "2024-04-30 16:00:00",
+  "tree_rows": 33970,
+  "tree_days": 2643,
+  "tree_first_fit_rows": [
+   11777,
+   50777
+  ],
+  "tree_first_fit_first_date": "design row 11777 (before the first OOS row)",
+  "sweep_linear_checked": [
+   "enet/all_features: 33997 rows, B equal, true_adj = y (28841 bit-equal, max |diff| 8.9e-16)",
+   "enet/baseline: 33997 rows, B equal, true_adj = y (28841 bit-equal, max |diff| 8.9e-16)",
+   "lasso/all_features: 33997 rows, B equal, true_adj = y (28841 bit-equal, max |diff| 8.9e-16)",
+   "lasso/baseline: 33997 rows, B equal, true_adj = y (28841 bit-equal, max |diff| 8.9e-16)",
+   "ols/baseline: 33997 rows, B equal, true_adj = y (28841 bit-equal, max |diff| 8.9e-16)",
+   "ridge/all_features: 33997 rows, B equal, true_adj = y (28841 bit-equal, max |diff| 8.9e-16)",
+   "ridge/baseline: 33997 rows, B equal, true_adj = y (28841 bit-equal, max |diff| 8.9e-16)"
+  ]
+ },
+ "w3500": {
+  "window_days": 3500,
+  "window_rows": 45500,
+  "baseline_shape": [
+   84747,
+   12
+  ],
+  "baseline_config": {
+   "sample": "rth13",
+   "periods_per_day": 13,
+   "window": 45500,
+   "har_base": "5",
+   "drop_fomc": false,
+   "ex_flags": {
+    "DROP_ACTIVITY_MA": true,
+    "CALENDAR_THROUGH_OVERNIGHT": true,
+    "DROP_OVERNIGHT_INDICATOR": true,
+    "LEAN_GLOBAL_LAGS": true,
+    "LATE_START_WARMUP": true
+   }
+  },
+  "baseline_fortran_order": true,
+  "all_features_shape": [
+   84747,
+   564
+  ],
+  "all_features_config": {
+   "sample": "rth13",
+   "periods_per_day": 13,
+   "window": 45500,
+   "har_base": "5",
+   "drop_fomc": false,
+   "ex_flags": {
+    "DROP_ACTIVITY_MA": true,
+    "CALENDAR_THROUGH_OVERNIGHT": true,
+    "DROP_OVERNIGHT_INDICATOR": true,
+    "LEAN_GLOBAL_LAGS": true,
+    "LATE_START_WARMUP": true
+   }
+  },
+  "all_features_fortran_order": true,
+  "oos_first": "2012-05-16 11:00:00",
+  "oos_last": "2024-04-30 16:00:00",
+  "n_oos": 39247,
+  "S": 50777,
+  "S_date": "2014-01-02 10:00:00",
+  "linear_walk_start_row": 50750,
+  "linear_walk_start_date": "2013-12-27 16:00:00",
+  "tree_first_row": 50777,
+  "tree_first_date": "2014-01-02 10:00:00",
+  "tree_last_date": "2024-04-30 16:00:00",
+  "tree_rows": 33970,
+  "tree_days": 2643,
+  "tree_first_fit_rows": [
+   5277,
+   50777
+  ],
+  "tree_first_fit_first_date": "design row 5277 (before the first OOS row)",
+  "sweep_linear_checked": [
+   "enet/all_features: 33997 rows, B equal, true_adj = y (28841 bit-equal, max |diff| 8.9e-16)",
+   "enet/baseline: 33997 rows, B equal, true_adj = y (28841 bit-equal, max |diff| 8.9e-16)",
+   "lasso/all_features: 33997 rows, B equal, true_adj = y (28841 bit-equal, max |diff| 8.9e-16)",
+   "lasso/baseline: 33997 rows, B equal, true_adj = y (28841 bit-equal, max |diff| 8.9e-16)",
+   "ols/baseline: 33997 rows, B equal, true_adj = y (28841 bit-equal, max |diff| 8.9e-16)",
+   "ridge/all_features: 33997 rows, B equal, true_adj = y (28841 bit-equal, max |diff| 8.9e-16)",
+   "ridge/baseline: 33997 rows, B equal, true_adj = y (28841 bit-equal, max |diff| 8.9e-16)"
+  ]
+ }
+}

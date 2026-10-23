@@ -1,0 +1,184 @@
+tf_stage on a03-13.hpc.usc.edu Thu Oct 22 21:46:05 PDT 2026
+w3000 design_baseline: md5 of the copy = md5 of the source
+w3000 design_baseline: source unchanged after the copy
+## w3000 design_baseline source=/scratch1/jc_905/wsweep/code/results/window_sweep_2014start_2026-10-22/w3000/_work/design_baseline
+05da4b5b30ec4579df77f1a3b6dd57ed  X.npy
+996504f16da7982d64656d1ba0d9722a  y.npy
+7670f01a3055265dfac28ebac1eca864  b_oos.npy
+d8a203fe273cd3e8e34987fe5a73048e  dates_oos.csv
+91b0800f1ff1aed3cc53af28cfc1fabc  design.json
+w3000 design_all_features: md5 of the copy = md5 of the source
+w3000 design_all_features: source unchanged after the copy
+## w3000 design_all_features source=/scratch1/jc_905/wsweep/code/results/window_sweep_2014start_2026-10-22/w3000/_work/design_all_features
+374bea97f35e33a02404dc47c82c3138  X.npy
+996504f16da7982d64656d1ba0d9722a  y.npy
+7670f01a3055265dfac28ebac1eca864  b_oos.npy
+d8a203fe273cd3e8e34987fe5a73048e  dates_oos.csv
+224b086bde8a54ef06e62ff23bfdf5e9  design.json
+/scratch1/jc_905/trees_final/designs/w3000/_work/logs/design_all_features.log:[scale] late-start warm-up: 61 columns, 4696970 values set to 0 (window 39000 rows)
+/scratch1/jc_905/trees_final/designs/w3000/_work/logs/design_all_features.log:[scale] unobserved-neutral: 134 columns, 2492143 values set to 0 (2384585 were 0 already)
+w3500 design_baseline: md5 of the copy = md5 of the source
+w3500 design_baseline: source unchanged after the copy
+## w3500 design_baseline source=/scratch1/jc_905/wsweep/code/results/window_sweep_2014start_2026-10-22/w3500/_work/design_baseline
+eb542249d8bad745c1dd86f9ad249cf7  X.npy
+996504f16da7982d64656d1ba0d9722a  y.npy
+c0dd76634e8d421a3e343138c3b47171  b_oos.npy
+f756e6bc11bdf951f5d58927b517690a  dates_oos.csv
+c9b73d141518b80ba5ad955a35b7c6fe  design.json
+w3500 design_all_features: md5 of the copy = md5 of the source
+w3500 design_all_features: source unchanged after the copy
+## w3500 design_all_features source=/scratch1/jc_905/wsweep/code/results/window_sweep_2014start_2026-10-22/w3500/_work/design_all_features
+118dbe77b10791077f0d5675a8640b5a  X.npy
+996504f16da7982d64656d1ba0d9722a  y.npy
+c0dd76634e8d421a3e343138c3b47171  b_oos.npy
+f756e6bc11bdf951f5d58927b517690a  dates_oos.csv
+bd2e10e3a90a907b074c68bed61c578f  design.json
+/scratch1/jc_905/trees_final/designs/w3500/_work/logs/design_all_features.log:[scale] late-start warm-up: 61 columns, 5010568 values set to 0 (window 45500 rows)
+/scratch1/jc_905/trees_final/designs/w3500/_work/logs/design_all_features.log:[scale] unobserved-neutral: 134 columns, 2492143 values set to 0 (2437951 were 0 already)
+## printed 2012-start w1000 design (/scratch1/jc_905/harxhar-trees13/results/pooled_linear_rerun_2026-10-19_13_w1000/_work), sha256
+7b6ebcf84f1418238ba8b5edfa079d100db62d922620f5927a9c24987962f0f8  X.npy design_baseline
+62285d583262c6fb11f99bbc7108397948f64faab6e4793eccf8ef741a10f588  y.npy design_baseline
+554ba4929f62b1b56773db35b89125705a467f7965b371e3c5364b0989aa9c48  b_oos.npy design_baseline
+ae99b11349ca86537d95a6db5d080c07db9e7b11996c86b271c75f989a3d72e5  dates_oos.csv design_baseline
+9485e67ec8ef36d0e68a2f07eee03969e60fb115d1be0bc65e8a792473195d85  X.npy design_all_features
+62285d583262c6fb11f99bbc7108397948f64faab6e4793eccf8ef741a10f588  y.npy design_all_features
+554ba4929f62b1b56773db35b89125705a467f7965b371e3c5364b0989aa9c48  b_oos.npy design_all_features
+ae99b11349ca86537d95a6db5d080c07db9e7b11996c86b271c75f989a3d72e5  dates_oos.csv design_all_features
+{
+ "window_days": 3000,
+ "window_rows": 39000,
+ "baseline_shape": [
+  84747,
+  12
+ ],
+ "baseline_config": {
+  "sample": "rth13",
+  "periods_per_day": 13,
+  "window": 39000,
+  "har_base": "5",
+  "drop_fomc": false,
+  "ex_flags": {
+   "DROP_ACTIVITY_MA": true,
+   "CALENDAR_THROUGH_OVERNIGHT": true,
+   "DROP_OVERNIGHT_INDICATOR": true,
+   "LEAN_GLOBAL_LAGS": true,
+   "LATE_START_WARMUP": true
+  }
+ },
+ "baseline_fortran_order": true,
+ "all_features_shape": [
+  84747,
+  564
+ ],
+ "all_features_config": {
+  "sample": "rth13",
+  "periods_per_day": 13,
+  "window": 39000,
+  "har_base": "5",
+  "drop_fomc": false,
+  "ex_flags": {
+   "DROP_ACTIVITY_MA": true,
+   "CALENDAR_THROUGH_OVERNIGHT": true,
+   "DROP_OVERNIGHT_INDICATOR": true,
+   "LEAN_GLOBAL_LAGS": true,
+   "LATE_START_WARMUP": true
+  }
+ },
+ "all_features_fortran_order": true,
+ "oos_first": "2010-05-25 15:30:00",
+ "oos_last": "2024-04-30 16:00:00",
+ "n_oos": 45747,
+ "S": 50777,
+ "S_date": "2014-01-02 10:00:00",
+ "linear_walk_start_row": 50750,
+ "linear_walk_start_date": "2013-12-27 16:00:00",
+ "tree_first_row": 50777,
+ "tree_first_date": "2014-01-02 10:00:00",
+ "tree_last_date": "2024-04-30 16:00:00",
+ "tree_rows": 33970,
+ "tree_days": 2643,
+ "tree_first_fit_rows": [
+  11777,
+  50777
+ ],
+ "tree_first_fit_first_date": "design row 11777 (before the first OOS row)",
+ "sweep_linear_checked": [
+  "enet/all_features: 33997 rows, B equal, true_adj = y (28841 bit-equal, max |diff| 8.9e-16)",
+  "enet/baseline: 33997 rows, B equal, true_adj = y (28841 bit-equal, max |diff| 8.9e-16)",
+  "lasso/all_features: 33997 rows, B equal, true_adj = y (28841 bit-equal, max |diff| 8.9e-16)",
+  "lasso/baseline: 33997 rows, B equal, true_adj = y (28841 bit-equal, max |diff| 8.9e-16)",
+  "ols/baseline: 33997 rows, B equal, true_adj = y (28841 bit-equal, max |diff| 8.9e-16)",
+  "ridge/all_features: 33997 rows, B equal, true_adj = y (28841 bit-equal, max |diff| 8.9e-16)",
+  "ridge/baseline: 33997 rows, B equal, true_adj = y (28841 bit-equal, max |diff| 8.9e-16)"
+ ]
+}
+{
+ "window_days": 3500,
+ "window_rows": 45500,
+ "baseline_shape": [
+  84747,
+  12
+ ],
+ "baseline_config": {
+  "sample": "rth13",
+  "periods_per_day": 13,
+  "window": 45500,
+  "har_base": "5",
+  "drop_fomc": false,
+  "ex_flags": {
+   "DROP_ACTIVITY_MA": true,
+   "CALENDAR_THROUGH_OVERNIGHT": true,
+   "DROP_OVERNIGHT_INDICATOR": true,
+   "LEAN_GLOBAL_LAGS": true,
+   "LATE_START_WARMUP": true
+  }
+ },
+ "baseline_fortran_order": true,
+ "all_features_shape": [
+  84747,
+  564
+ ],
+ "all_features_config": {
+  "sample": "rth13",
+  "periods_per_day": 13,
+  "window": 45500,
+  "har_base": "5",
+  "drop_fomc": false,
+  "ex_flags": {
+   "DROP_ACTIVITY_MA": true,
+   "CALENDAR_THROUGH_OVERNIGHT": true,
+   "DROP_OVERNIGHT_INDICATOR": true,
+   "LEAN_GLOBAL_LAGS": true,
+   "LATE_START_WARMUP": true
+  }
+ },
+ "all_features_fortran_order": true,
+ "oos_first": "2012-05-16 11:00:00",
+ "oos_last": "2024-04-30 16:00:00",
+ "n_oos": 39247,
+ "S": 50777,
+ "S_date": "2014-01-02 10:00:00",
+ "linear_walk_start_row": 50750,
+ "linear_walk_start_date": "2013-12-27 16:00:00",
+ "tree_first_row": 50777,
+ "tree_first_date": "2014-01-02 10:00:00",
+ "tree_last_date": "2024-04-30 16:00:00",
+ "tree_rows": 33970,
+ "tree_days": 2643,
+ "tree_first_fit_rows": [
+  5277,
+  50777
+ ],
+ "tree_first_fit_first_date": "design row 5277 (before the first OOS row)",
+ "sweep_linear_checked": [
+  "enet/all_features: 33997 rows, B equal, true_adj = y (28841 bit-equal, max |diff| 8.9e-16)",
+  "enet/baseline: 33997 rows, B equal, true_adj = y (28841 bit-equal, max |diff| 8.9e-16)",
+  "lasso/all_features: 33997 rows, B equal, true_adj = y (28841 bit-equal, max |diff| 8.9e-16)",
+  "lasso/baseline: 33997 rows, B equal, true_adj = y (28841 bit-equal, max |diff| 8.9e-16)",
+  "ols/baseline: 33997 rows, B equal, true_adj = y (28841 bit-equal, max |diff| 8.9e-16)",
+  "ridge/all_features: 33997 rows, B equal, true_adj = y (28841 bit-equal, max |diff| 8.9e-16)",
+  "ridge/baseline: 33997 rows, B equal, true_adj = y (28841 bit-equal, max |diff| 8.9e-16)"
+ ]
+}
+design checks passed for [3000, 3500] -> /scratch1/jc_905/trees_final/designs/design_check.json
+tf_stage done Thu Oct 22 21:46:24 PDT 2026
