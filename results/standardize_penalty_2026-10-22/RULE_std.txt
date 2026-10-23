@@ -73,3 +73,33 @@ unchanged; (d) flag on, w1000 design: pretune + select for the six penalized arm
 validation MSE at the chosen penalty vs flag off, timings), one walk chunk per full-set arm (KKT at every solve, seed
 weight updates, max weight change between consecutive seeds, runtime vs flag off).  No 2012-2024 out-of-sample score,
 QLIKE or Sharpe ratio is computed or reported.
+
+ADDENDUM 1 -- written 2026-10-22T17:16-07:00 (00:16 UTC 2026-10-23), BEFORE any code change or run of the evidence
+mask.  Owner's decision (relayed 2026-10-22): no floor on s; "learn from what we've done in the past" (the spec's
+identifiability mask: mask, don't clip; the 250-row minimum-evidence rules, src/backtest/executor.py MODE_MIN_PRINTS =
+250 and src/features/transforms/target.py ASINH_ROUTE_MIN_ROWS = 250; the parked LSTM's per-window standardization of
+near-constant *_avail_ma_* columns).
+
+EVIDENCE MASK (under STANDARDIZE_PENALTY only; flag off bit-identical):
+  * a non-locked column enters a standardized fit only if at least STD_MIN_EVIDENCE = 250 (= MODE_MIN_PRINTS, by name,
+    asserted equal) rows of the fit's window differ from the column's modal value in that window (evidence_j = n -
+    count of the modal value; values compared exactly, on the masked design).  Below: masked exactly like the
+    identifiability mask (zeroed in the fit, coefficient 0).  The s < 1e-12 rule stays (implied by it for n > 250).
+  * ridge: evaluated at every bar with its per-bar weights; the bar's solve leaves the column out (the same fit as the
+    column zeroed).  Implementation: the exact mode at every cold seed, then per bar the count of window rows that
+    differ from the seed-time modal value, updated with the entering and leaving rows.  Exact within a block: with
+    block length B <= 250 and window n > 2 (250 + B), a value holding more than n - 250 rows at a bar held at least
+    n - 500 at the seed, so it was the seed-time mode (two values cannot both hold n - 500 rows); hence "evidence < 250"
+    is the same event for the tracked count and the true count (asserted n > 1000).
+  * lasso / elastic net: evaluated at every cold seed (exact mode of the seed's window; a column masked by this rule
+    only is un-masked at a later seed when its evidence is back to >= 250 -- un-masking is a seed-time event, the
+    identifiability mask itself is still only recomputed at the tune boundary), plus a between-seed tracker (the count
+    above, per bar): when a live column's count drops below 250 it is added to the mask and the walk takes a cold reseed
+    (which also refreshes the weights and the seed-time modes).
+  * pretune: the same rule on each fold's fit block (exact mode); in-walk causal re-choice: on the forward split's fit
+    block.  The --std-check-blockends refit applies it to the current window.
+  * recorded: per seed the number of columns the evidence mask removes (beyond the identifiability mask) and which;
+    the evidence-triggered reseeds.
+Re-run (fixed now): (a) flag off bit-identical: pretune + the same walk chunks as before; (b) the 3 origins with the
+mask applied to both sides (the explicit side computes the evidence independently, np.unique counts); (d) flag on:
+pretune / select for the 6 arms, the same 3 walk chunks.  No out-of-sample score.

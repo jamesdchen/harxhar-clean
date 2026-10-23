@@ -43,6 +43,7 @@ for m in ("ridge", "lasso", "enet"):
             pretune_wall_sec_off=round(pt_off["wall_sec"], 1),
             repair_on=pt_on["repair"],
             std_left_out_beyond_mask_per_fold=[f.get("std_left_out_beyond_mask") for f in pt_on["folds"]],
+            std_left_out_columns_fold3=(pt_on["folds"][-1].get("std_left_out_columns") or [])[:60],
             s_quantiles_5_50_95_per_fold=[f.get("std_s_quantiles_5_50_95") for f in pt_on["folds"]],
         )
 rep["select"] = sel
@@ -51,6 +52,9 @@ names = None
 wk = {}
 for m, c, est in (("lasso", 0, "reclasso"), ("enet", 2, "reclasticnet"), ("ridge", 0, "ridge")):
     d = ON / "_work" / "walk" / "all_features" / m / f"c{c}"
+    if not (d / "run.json").exists():  # still running when summarized
+        wk[m] = dict(chunk=f"c{c}", status="not finished when summarized")
+        continue
     run = json.loads((d / "run.json").read_text())
     z = np.load(d / "trace.npz")
     names = list(z["names"]) + ["intercept"]
@@ -89,6 +93,13 @@ for m, c, est in (("lasso", 0, "reclasso"), ("enet", 2, "reclasticnet"), ("ridge
         share_column_seed_pairs_rel_change_gt_1=float((rel[ok] > 1.0).mean()),
         top_columns=top,
         s_quantiles_5_50_95=run["std_s_quantiles_5_50_95"],
+        evidence_out_per_seed_median=run.get("std_evid_out_per_seed_median"),
+        evidence_out_per_seed_max=run.get("std_evid_out_per_seed_max"),
+        evidence_out_per_seed_min=run.get("std_evid_out_per_seed_min"),
+        evidence_out_columns_ever=run.get("std_evid_out_columns_ever"),
+        evidence_out_top_columns_seeds=run.get("std_evid_out_top_columns_seeds"),
+        evidence_reseeds=run.get("std_evid_reseeds"),
+        evidence_reseed_columns=run.get("std_evid_reseed_columns"),
         wall_sec_on=round(run["wall_sec"], 1),
         wall_sec_on_less_blockend_diagnostic=round(run["wall_sec"] - run.get("std_blockend_sec", 0.0), 1),
         wall_sec_off_same_session=round(off["wall_sec"], 1),

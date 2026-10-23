@@ -37,6 +37,120 @@
    ],
    "standardize_penalty": false,
    "wall_sec": [
+    179,
+    405
+   ]
+  },
+  "all_features\\lasso\\c0\\causal_tune_linear": {
+   "rows": 10250,
+   "start": 44250,
+   "end": 54500,
+   "csv_bytes_identical": true,
+   "rth_bytes_identical": true,
+   "kkt_reseeds": [
+    6,
+    6
+   ],
+   "standardize_penalty": false,
+   "wall_sec": [
+    389,
+    715
+   ]
+  },
+  "all_features\\ridge\\c0\\causal_tune_linear": {
+   "rows": 20250,
+   "start": 44250,
+   "end": 64500,
+   "csv_bytes_identical": true,
+   "rth_bytes_identical": true,
+   "kkt_reseeds": [
+    null,
+    null
+   ],
+   "standardize_penalty": false,
+   "wall_sec": [
+    294,
+    405
+   ]
+  },
+  "baseline\\enet\\causal_tune_linear": {
+   "rows": 40497,
+   "start": 44250,
+   "end": -1,
+   "csv_bytes_identical": true,
+   "rth_bytes_identical": true,
+   "kkt_reseeds": [
+    0,
+    0
+   ],
+   "standardize_penalty": false,
+   "wall_sec": [
+    28,
+    19
+   ]
+  },
+  "baseline\\lasso\\causal_tune_linear": {
+   "rows": 40497,
+   "start": 44250,
+   "end": -1,
+   "csv_bytes_identical": true,
+   "rth_bytes_identical": true,
+   "kkt_reseeds": [
+    0,
+    0
+   ],
+   "standardize_penalty": false,
+   "wall_sec": [
+    30,
+    20
+   ]
+  },
+  "baseline\\ols\\causal_tune_linear": {
+   "rows": 40497,
+   "start": 44250,
+   "end": -1,
+   "csv_bytes_identical": true,
+   "rth_bytes_identical": true,
+   "kkt_reseeds": [
+    null,
+    null
+   ],
+   "standardize_penalty": false,
+   "wall_sec": [
+    7,
+    20
+   ]
+  },
+  "baseline\\ridge\\causal_tune_linear": {
+   "rows": 40497,
+   "start": 44250,
+   "end": -1,
+   "csv_bytes_identical": true,
+   "rth_bytes_identical": true,
+   "kkt_reseeds": [
+    null,
+    null
+   ],
+   "standardize_penalty": false,
+   "wall_sec": [
+    5,
+    13
+   ]
+  }
+ },
+ "walks_pre_addendum_code_5db45e8": {
+  "all_features\\enet\\c2\\causal_tune_linear": {
+   "rows": 10250,
+   "start": 64750,
+   "end": 75000,
+   "csv_bytes_identical": true,
+   "rth_bytes_identical": true,
+   "kkt_reseeds": [
+    2,
+    2
+   ],
+   "standardize_penalty": false,
+   "wall_sec": [
     445,
     405
    ]
@@ -134,72 +248,6 @@
    "standardize_penalty": false,
    "wall_sec": [
     18,
-    13
-   ]
-  }
- },
- "walks_rerun_on_committed_code_baseline": {
-  "baseline\\enet\\causal_tune_linear": {
-   "rows": 40497,
-   "start": 44250,
-   "end": -1,
-   "csv_bytes_identical": true,
-   "rth_bytes_identical": true,
-   "kkt_reseeds": [
-    0,
-    0
-   ],
-   "standardize_penalty": false,
-   "wall_sec": [
-    37,
-    19
-   ]
-  },
-  "baseline\\lasso\\causal_tune_linear": {
-   "rows": 40497,
-   "start": 44250,
-   "end": -1,
-   "csv_bytes_identical": true,
-   "rth_bytes_identical": true,
-   "kkt_reseeds": [
-    0,
-    0
-   ],
-   "standardize_penalty": false,
-   "wall_sec": [
-    44,
-    20
-   ]
-  },
-  "baseline\\ols\\causal_tune_linear": {
-   "rows": 40497,
-   "start": 44250,
-   "end": -1,
-   "csv_bytes_identical": true,
-   "rth_bytes_identical": true,
-   "kkt_reseeds": [
-    null,
-    null
-   ],
-   "standardize_penalty": false,
-   "wall_sec": [
-    4,
-    20
-   ]
-  },
-  "baseline\\ridge\\causal_tune_linear": {
-   "rows": 40497,
-   "start": 44250,
-   "end": -1,
-   "csv_bytes_identical": true,
-   "rth_bytes_identical": true,
-   "kkt_reseeds": [
-    null,
-    null
-   ],
-   "standardize_penalty": false,
-   "wall_sec": [
-    2,
     13
    ]
   }

@@ -31,6 +31,7 @@ for f in (
     "summarize_d.py",
     "diag_kkt.py",
     "diag_cond.py",
+    "diag_cond_names.py",
     "make_results.py",
 ):
     shutil.copy2(S / f, OUT / "scripts" / f)
@@ -42,9 +43,9 @@ def run(*args: str) -> dict:
     return json.loads(r.stdout[r.stdout.index("{") :])
 
 
-a_pre = run(str(S / "compare_a.py"), str(S / "a_off"))
-a_walk = run(str(S / "compare_a.py"), str(S / "a_off"), "walk")
-a_final = run(str(S / "compare_a.py"), str(S / "a_off_final"), "walk")
+a_pre = run(str(S / "compare_a.py"), str(S / "a_off2"))
+a_walk = run(str(S / "compare_a.py"), str(S / "a_off2"), "walk")
+a_final = run(str(S / "compare_a.py"), str(S / "a_off"), "walk")  # the pre-addendum code (5db45e8)
 (OUT / "check_a_flag_off.json").write_text(
     json.dumps(
         dict(
@@ -52,20 +53,29 @@ a_final = run(str(S / "compare_a.py"), str(S / "a_off_final"), "walk")
             "worktree) and its base run B (ls_wt _work, pretune); designs: run B's caches (read-only junctions)",
             pretune_select=a_pre,
             walks=a_walk,
-            walks_rerun_on_committed_code_baseline=a_final,
+            walks_pre_addendum_code_5db45e8=a_final,
         ),
         indent=1,
     )
 )
-bc = json.loads((S / "check_bc.json").read_text())
-bc["b_ridge_detail"] = json.loads((S / "check_b_ridge_detail.json").read_text())
+bc = json.loads((S / "check_bc2.json").read_text())
 (OUT / "check_b_c.json").write_text(json.dumps(bc, indent=1))
+PRE = OUT / "pre_evidence"
+PRE.mkdir(exist_ok=True)
+bc0 = json.loads((S / "check_bc.json").read_text())
+bc0["b_ridge_detail"] = json.loads((S / "check_b_ridge_detail.json").read_text())
+(PRE / "check_b_c.json").write_text(json.dumps(bc0, indent=1))
+shutil.copy2(S / "d_summary.json", PRE / "check_d.json")
+for f in ("diag_kkt_on.json", "diag_kkt_off.json", "diag_cond.json"):
+    shutil.copy2(S / f, PRE / f)
 shutil.copy2(S / "d_on_provenance.json", OUT / "d_design_provenance.json")
-for tag, d in (("flag_on", "d_on_run"), ("flag_off", "d_off_run")):
+for tag, d in (("flag_on", "d_on_run2"), ("flag_off", "d_off_run")):
     shutil.copy2(S / d / "frozen_penalties.json", OUT / "d_select" / f"frozen_penalties_{tag}.json")
     shutil.copy2(S / d / "pretune_mse.csv", OUT / "d_select" / f"pretune_mse_{tag}.csv")
-d = run(str(S / "summarize_d.py"), str(S / "d_on_run"), str(S / "d_off_run"), str(S / "a_off"), str(S / "d_summary.json"))
+d = run(str(S / "summarize_d.py"), str(S / "d_on_run2"), str(S / "d_off_run"), str(S / "a_off2"), str(S / "d_summary2.json"))
 (OUT / "check_d.json").write_text(json.dumps(d, indent=1))
-for f in ("diag_kkt_on.json", "diag_kkt_off.json", "diag_cond.json"):
+for f in ("diag_cond2.json", "diag_cond2_names.json"):
     shutil.copy2(S / f, OUT / f)
+for f in ("diag_kkt_on.json", "diag_kkt_off.json", "diag_cond.json"):
+    (OUT / f).unlink(missing_ok=True)  # moved to pre_evidence/
 print("assembled", OUT)

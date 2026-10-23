@@ -75,6 +75,7 @@ def make(m: str, g0: int):
     Cls.bb = bb
     Cls.kkt_rows, Cls.kkt_reseeds, Cls.kkt_sec = [], [], [0.0, 0.0]
     Cls.std_seeds, Cls.std_ridge, Cls.std_blockend = [], [], []
+    Cls.std_evid_reseeds = []
     return Cls, a, kind, l1
 
 
@@ -94,10 +95,19 @@ for m in EST:
     rg.init_window(X[o - W : o], y[o - W : o])  # the walk's cold seed at a tune boundary (a chunk starting here)
     th = rg._th.copy()
     t_w = time.time() - t0
-    Xa, yr = rg._masked_window()
+    # the explicit side: the identifiability mask of the window (the spec's, recomputed here), then s and the evidence
+    # (rows off the modal value, np.unique counts) computed independently of the runner's std_weights / col_mode
+    Xa = np.hstack([np.asarray(X[o - W : o]), np.ones((W, 1))])
+    yr = y[o - W : o]
+    probe = ns["RollingTunedLinear"]()
+    probe._locked = locked
+    probe._recompute_mask(Xa)
+    Xa[:, probe._maskout] = 0.0
     n = len(yr)
     s = np.std(Xa, axis=0)
-    out = ~locked & (s < P.STD_MIN)
+    evid = np.array([len(c) - np.unique(c, return_counts=True)[1].max() for c in Xa.T])
+    out = ~locked & ((s < P.STD_MIN) | (evid < P.STD_MIN_EVIDENCE))
+    walk_out = np.isnan(rg._sd_seed) & ~locked
     sc = np.where(out | locked, 1.0, s)
     Z = Xa / sc
     Z[:, out] = 0.0
@@ -123,12 +133,14 @@ for m in EST:
     beta = g / sc
     sup = (np.abs(beta) > 0) | (np.abs(th) > 0)
     xn = np.append(X[o], 1.0)
-    xn[rg._maskout] = 0.0
+    xn[out] = 0.0
     rb[m] = dict(
         origin=o,
         alpha=a,
-        masked=int(rg._maskout.sum()),
-        left_out_s_lt_1e12=int((out & ~rg._maskout).sum()),
+        masked_identifiability=int(probe._maskout.sum()),
+        evidence_out_beyond_mask_explicit=int((out & ~probe._maskout).sum()),
+        evidence_out_sets_equal_walk_vs_explicit=bool(np.array_equal(walk_out, out)),
+        evidence_out_columns=[names[j] for j in np.flatnonzero(out & ~probe._maskout)][:40],
         nnz_weighted=int((th != 0).sum()),
         nnz_explicit=int((beta != 0).sum()),
         support_equal=bool(np.array_equal(th != 0, beta != 0)),
@@ -164,7 +176,7 @@ def short_walk(m: str, Xs, ys, o: int, nsolve: int):
         residualizer=ns["IdentityResidualizer"](), regressor_factory=Rec, refit_frequency=1
     )
     pred = bt.run(Xs[o - W : o + nsolve], ys[o - W : o + nsolve], W, desc="c")
-    return pred, ths, [(s_, v.copy()) for s_, v, _ in Cls.std_seeds], Cls
+    return pred, ths, [(x[0], x[1].copy()) for x in Cls.std_seeds], Cls
 
 
 rc: dict = {}
@@ -203,6 +215,8 @@ for m in EST:
         of=NS - k,
         kkt_all_ok=all(x[2] for x in C0.kkt_rows) if C0.kkt_rows else None,
         kkt_reseeds=len(C0.kkt_reseeds),
+        evidence_reseeds=len(C0.std_evid_reseeds),
+        evidence_out_per_seed=[int(x[2]) for x in C0.std_seeds],
         sec=time.time() - t0,
     )
     if m == "ridge":  # every bar's walk coefficients against the batch fit_std of that bar's window
