@@ -1,0 +1,122 @@
+{
+ "59250/lasso/off": {
+  "low_s_active": [],
+  "alpha": 0.001,
+  "n_active": 84,
+  "n_active_s_lt_0p05": 0,
+  "n_active_s_lt_0p01": 0,
+  "min_active_s": 0.2628937958592823,
+  "cond_active_system": 16416.917718715307
+ },
+ "59250/lasso/on": {
+  "low_s_active": [
+   [
+    "sumret3_ewstock_avail_ma_625",
+    0.01698,
+    11525
+   ],
+   [
+    "sumret3_ewstock_avail_ma_3125",
+    0.00864,
+    12233
+   ],
+   [
+    "stocktwits_attention_avail_ma_625",
+    0.00059,
+    684
+   ],
+   [
+    "vvix_avail_ma_125",
+    0.04422,
+    11879
+   ]
+  ],
+  "alpha": 0.001,
+  "n_active": 121,
+  "n_active_s_lt_0p05": 4,
+  "n_active_s_lt_0p01": 2,
+  "min_active_s": 0.0005877306471586069,
+  "cond_active_system": 371688276.19193435
+ },
+ "59250/enet/off": {
+  "low_s_active": [],
+  "alpha": 0.01,
+  "n_active": 34,
+  "n_active_s_lt_0p05": 0,
+  "n_active_s_lt_0p01": 0,
+  "min_active_s": 0.397497728027447,
+  "cond_active_system": 650.1204858261192
+ },
+ "59250/enet/on": {
+  "low_s_active": [],
+  "alpha": 0.01,
+  "n_active": 41,
+  "n_active_s_lt_0p05": 0,
+  "n_active_s_lt_0p01": 0,
+  "min_active_s": 0.1686872390413235,
+  "cond_active_system": 1272.979930534747
+ },
+ "74250/lasso/off": {
+  "low_s_active": [],
+  "alpha": 0.001,
+  "n_active": 101,
+  "n_active_s_lt_0p05": 0,
+  "n_active_s_lt_0p01": 0,
+  "min_active_s": 0.16612391112104796,
+  "cond_active_system": 40160.77652003318
+ },
+ "74250/lasso/on": {
+  "low_s_active": [
+   [
+    "sumret2_ewstock_avail_ma_625",
+    0.01697,
+    9127
+   ],
+   [
+    "stocktwits_sentiment_avail_ma_3125",
+    0.00166,
+    825
+   ],
+   [
+    "vix_avail_ma_3125",
+    0.01183,
+    11802
+   ],
+   [
+    "vix3m_avail_ma_625",
+    0.01001,
+    10629
+   ]
+  ],
+  "alpha": 0.001,
+  "n_active": 113,
+  "n_active_s_lt_0p05": 4,
+  "n_active_s_lt_0p01": 1,
+  "min_active_s": 0.0016640404357399178,
+  "cond_active_system": 140254671.88324815
+ },
+ "74250/enet/off": {
+  "low_s_active": [],
+  "alpha": 0.01,
+  "n_active": 34,
+  "n_active_s_lt_0p05": 0,
+  "n_active_s_lt_0p01": 0,
+  "min_active_s": 0.396732691370861,
+  "cond_active_system": 911.4911318740379
+ },
+ "74250/enet/on": {
+  "low_s_active": [
+   [
+    "vix_avail_ma_3125",
+    0.01183,
+    11802
+   ]
+  ],
+  "alpha": 0.01,
+  "n_active": 39,
+  "n_active_s_lt_0p05": 1,
+  "n_active_s_lt_0p01": 0,
+  "min_active_s": 0.01182763025155577,
+  "cond_active_system": 346356.96733682475
+ }
+}

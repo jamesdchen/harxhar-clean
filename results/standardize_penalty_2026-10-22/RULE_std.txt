@@ -1,0 +1,141 @@
+RULE_std.txt -- written 2026-10-22T16:06-07:00 (23:06 UTC), BEFORE any code change, pretune, walk or score.
+Approved by the repo owner (James, 2026-10-22: "yes, adopt standardization and hold the pretune").
+Branch insurance-selling-2026-09-19-e34-std from e34 57575a4 (LATE_START_WARMUP, UNOBSERVED_NEUTRAL, WALK_KKT_RESEED).
+
+STANDARDIZE_PENALTY (module flag of experiments/pool_linear_pretune.py, default True; False = the runner before the
+flag, bit for bit).  The pooled intraday ridge, lasso and elastic net are fit as if every predictor column were scaled
+to unit variance within its training window (glmnet standardize=TRUE), implemented as per-column penalty weights.
+
+1. The code's penalty, exactly (the spec's units, specs/causal_tune_linear.py + the runner's penalty factors pf):
+   theta = the coefficient vector on the augmented design [X, 1]; the intercept column is locked (unpenalized, pf
+   unused); pf_j = r on the HAR benchmark block (har_ma_* and calendar), 1 elsewhere (r = 0.01 all_features, 1 baseline).
+   n = rows of the fit, a = the penalty (alpha), l1 = l1_ratio (lasso 1, elastic net 0.5).
+     ridge (sklearn Ridge units):     min ||y - X theta||^2 + a sum_j pf_j theta_j^2
+                                      i.e. (X'X + diag(a pf_j)) theta = X'y
+     lasso / elastic net (sklearn ElasticNet units):
+                                      min (1/2n) ||y - X theta||^2 + a sum_j pf_j [ l1 |theta_j| + (1-l1)/2 theta_j^2 ]
+                                      i.e. Gram form mu_j = n a l1 pf_j (L1), lam2_j = n a (1-l1) pf_j (on Gr's diagonal)
+   With the flag on, s_j = the column's s.d. in the fit's rows, and the penalty on the standardized coefficient
+   gamma_j = s_j theta_j of z_j = x_j / s_j is the existing one, so in the original units:
+     ridge:          a sum_j pf_j s_j^2 theta_j^2                 (diagonal a pf_j s_j^2)
+     lasso / enet:   a sum_j pf_j [ l1 s_j |theta_j| + (1-l1)/2 s_j^2 theta_j^2 ]
+                                                                  (mu_j = n a l1 pf_j s_j, lam2_j = n a (1-l1) pf_j s_j^2)
+   i.e. L1 weight pf_j s_j, L2 weight pf_j s_j^2.  Back-transform: theta_j = gamma_j / s_j.
+
+2. s_j = np.std(x_j, ddof=0) over exactly the rows the fit uses (after the identifiability mask; masked columns are 0
+   there), so causal: only rows inside the fit's window.  Intercept / centering unchanged: the free, unpenalized
+   intercept absorbs any column shift, so the fit equals the centred-and-scaled glmnet fit; nothing is centred.
+   Columns already masked stay masked.  A non-locked column with s_j < 1e-12 in the fit's rows is masked for that fit
+   (theta_j = 0).  In the lasso / enet walk (weights held between seeds) such a column joins the walk's mask until the
+   next tune boundary, as the spec's between-tune mask additions; in the ridge walk (weights every bar) it is left out
+   of that bar's solve only.
+
+3. Update cadence.
+   ridge: weights from each fit's own window, every bar (the walk refits every bar).  At every cold seed s = np.std of
+     the masked window; between seeds s comes from the window's column sums and sums of squares about the seed-time
+     column means, updated with the entering and leaving rows (equal to np.std of the current window up to rounding,
+     and dependent only on the state since the block's seed, so the chunk seam stays exact); a column that is exactly
+     constant over the current window (the spec's run-length tracker on raw rows, columns only) has s_j = 0.  The
+     solve every bar: (X'X + diag(a pf_j s_j^2)) theta = X'y on the kept columns, X'X and X'y kept rank-one since the
+     seed (replaces the Sherman-Morrison update of the fixed-penalty inverse).
+   lasso / elastic net (online homotopy): weights recomputed at every cold seed -- the 250-solve tune boundary, the
+     spec's between-tune mask-addition reseeds and the KKT-triggered reseeds (WALK_KKT_RESEED) -- from the seed's
+     window, and HELD FIXED between seeds (the warm state's mu_vec and the L2 term on Gr's diagonal are the seed's).
+     Approximation: between seeds the warm path solves the current window's problem with the last seed's weights, not
+     the current window's; the KKT check certifies that held-weight problem.  Measured and reported: the number of
+     cold-seed weight updates, the max relative change of a weight between consecutive seeds, and the forecast effect
+     at block ends (warm held-weight forecast vs the batch fit with the current window's weights) on the check chunks.
+
+4. Pretune: the same weights computed on each fold's fit block (the 13,000 rows before the embargo); validation rows
+   never enter s.  (In-walk causal re-choice, --sched causal, not used by the 13-bar runs: the grid fits use s of the
+   forward split's fit block, the seed s of the whole window.)
+
+5. Penalty grid rule (decided now, on the pre-2012 criterion only -- the mean validation MSE of the 4 pre-sample folds):
+   if a model's selected penalty is at either end of its grid, extend the grid by factors of 10 in that direction
+   (one decade per round, the pretune run for the new value only) until the selection is interior; every extension
+   reported.  Applies with the flag on (the new specification); with the flag off the selection is as before (so the
+   flag-off rerun reproduces the frozen penalties).  Termination safeguards (my addition, flagged for the owner): stop
+   when the new end's criterion is within 1e-6 relative of the previous end's (the penalty no longer binds at that
+   end: the argmin is taken and reported as "flat"), or after 6 extensions in one direction (reported, owner's call).
+
+6. Scope: the pooled intraday linear pipeline only (experiments/pool_linear_pretune.py modes pretune and walk, and the
+   orchestrator experiments/pooled_linear_rerun_2026_10_19_13.py that runs it).  The flag lives in the runner, which no
+   closing-interval path imports (src/unification.py RollingTunedLinear, experiments/close_exogpen*.py,
+   close_linear_pretune.py): they keep their behaviour.  src/models/reclasso_har.py unchanged.  Trees, MinGRU and the
+   OLS (unpenalized; --est ols) unaffected.
+
+Checks (fixed now): (a) flag off reproduces results/pooled_linear_rerun_2026-10-22_13_2012_w1000_latestart_nofomcrel_kkt
+bit for bit (pretune fold residuals and frozen penalties; walk CSV bytes of all four baseline arms (one chunk each) and
+one chunk of each full-set arm), on the cached designs (read-only); (b) on 3 real fits (ridge, lasso, enet, full set,
+w1000 design) the weighted fit equals an explicit fit on columns divided by their window s.d. (theta = gamma / s) to
+<= 1e-8 relative, both KKT-certified; (c) perturbing rows after the window end leaves weights and coefficients
+unchanged; (d) flag on, w1000 design: pretune + select for the six penalized arms (penalties, grid extensions, pre-2012
+validation MSE at the chosen penalty vs flag off, timings), one walk chunk per full-set arm (KKT at every solve, seed
+weight updates, max weight change between consecutive seeds, runtime vs flag off).  No 2012-2024 out-of-sample score,
+QLIKE or Sharpe ratio is computed or reported.
+
+ADDENDUM 1 -- written 2026-10-22T17:16-07:00 (00:16 UTC 2026-10-23), BEFORE any code change or run of the evidence
+mask.  Owner's decision (relayed 2026-10-22): no floor on s; "learn from what we've done in the past" (the spec's
+identifiability mask: mask, don't clip; the 250-row minimum-evidence rules, src/backtest/executor.py MODE_MIN_PRINTS =
+250 and src/features/transforms/target.py ASINH_ROUTE_MIN_ROWS = 250; the parked LSTM's per-window standardization of
+near-constant *_avail_ma_* columns).
+
+EVIDENCE MASK (under STANDARDIZE_PENALTY only; flag off bit-identical):
+  * a non-locked column enters a standardized fit only if at least STD_MIN_EVIDENCE = 250 (= MODE_MIN_PRINTS, by name,
+    asserted equal) rows of the fit's window differ from the column's modal value in that window (evidence_j = n -
+    count of the modal value; values compared exactly, on the masked design).  Below: masked exactly like the
+    identifiability mask (zeroed in the fit, coefficient 0).  The s < 1e-12 rule stays (implied by it for n > 250).
+  * ridge: evaluated at every bar with its per-bar weights; the bar's solve leaves the column out (the same fit as the
+    column zeroed).  Implementation: the exact mode at every cold seed, then per bar the count of window rows that
+    differ from the seed-time modal value, updated with the entering and leaving rows.  Exact within a block: with
+    block length B <= 250 and window n > 2 (250 + B), a value holding more than n - 250 rows at a bar held at least
+    n - 500 at the seed, so it was the seed-time mode (two values cannot both hold n - 500 rows); hence "evidence < 250"
+    is the same event for the tracked count and the true count (asserted n > 1000).
+  * lasso / elastic net: evaluated at every cold seed (exact mode of the seed's window; a column masked by this rule
+    only is un-masked at a later seed when its evidence is back to >= 250 -- un-masking is a seed-time event, the
+    identifiability mask itself is still only recomputed at the tune boundary), plus a between-seed tracker (the count
+    above, per bar): when a live column's count drops below 250 it is added to the mask and the walk takes a cold reseed
+    (which also refreshes the weights and the seed-time modes).
+  * pretune: the same rule on each fold's fit block (exact mode); in-walk causal re-choice: on the forward split's fit
+    block.  The --std-check-blockends refit applies it to the current window.
+  * recorded: per seed the number of columns the evidence mask removes (beyond the identifiability mask) and which;
+    the evidence-triggered reseeds.
+Re-run (fixed now): (a) flag off bit-identical: pretune + the same walk chunks as before; (b) the 3 origins with the
+mask applied to both sides (the explicit side computes the evidence independently, np.unique counts); (d) flag on:
+pretune / select for the 6 arms, the same 3 walk chunks.  No out-of-sample score.
+
+ADDENDUM 2 -- written 2026-10-22T18:02-07:00, before any code change or run of this rule.  Owner:
+"the proper rule" -- evidence is counted on the variable itself, not on the smoothed average (a k-bar average repeats
+each event k times, so its own off-mode row count overstates the evidence).
+  * The evidence of column (v, k) -- value average adj_<v>_ma_<k> or availability average <v>_avail_ma_<k> -- is the
+    number of rows of the fit's window in which v's own k = 1 column OF THE SAME KIND (adj_<v>_ma_1, resp.
+    <v>_avail_ma_1) differs from that k = 1 column's window mode (exact equality, on the masked design).  (v, k) enters
+    a standardized fit only if that count is >= STD_MIN_EVIDENCE = 250; otherwise it is masked like the
+    identifiability mask (coefficient 0).  If v's k = 1 column is itself masked (its masked-design column is 0: count 0)
+    or absent from the design, every horizon of v follows it (masked).
+  * HAR and calendar columns (the backbone, penalty factor r) and the locked intercept are exempt from the evidence
+    rule; the s < 1e-12 rule still applies to every non-locked column.  A non-backbone column of neither form keeps its
+    own count (none expected; counted and reported).
+  * Cadence and mechanics unchanged from addendum 1: ridge per bar (seed-time modes + per-bar off-mode counts of the
+    k = 1 columns), lasso / elastic net at every cold seed plus the between-seed tracker on the k = 1 counts (a drop
+    below 250 masks every live column of that group and reseeds cold), pretune on each fold's fit block.
+Re-run (fixed now): (a) flag off bit-identical (pretune + the same chunks); (b) equivalence with the mask on both sides
+(independent name parsing and np.unique counts on the explicit side); (c) causality; (d) pretune / select and the same
+three walk chunks; active-set condition numbers (2016, 2020).  No out-of-sample score.  Stop condition (coordinator):
+if the lasso active-set condition number is still above ~1e6 or the lasso walk is more than 2x slower than flag off,
+report it; no centering without the coordinator's decision.
+  ADDENDUM 2, CENTERING -- appended 2026-10-22T18:09-07:00, before the centering code or any run of the combined change (the
+  k = 1 evidence change above is not run on its own).  Owner: "implement the lasso fix as you fully described": (1)
+  centre and scale each column by its training-window mean and s.d., intercept unpenalized; (2) identifiability mask as
+  now; (3) evidence on the variable's own k = 1 column (above); (4) no floor; (5) ridge, lasso and elastic net alike.
+  Under STANDARDIZE_PENALTY only (flag off bit-identical).
+  * With a free, unpenalized intercept, shifting a column by a constant leaves the slopes and the forecasts unchanged
+    exactly, so centring is implemented as fixed offsets: at every cold seed m_j = the seed window's mean of column j
+    (masked design; 0 on masked columns; the intercept column stays 1), the state is built on x - m (Gram, X'y, batch
+    solution, the column moments), every entering / leaving row is shifted by the same m (updates stay rank-one), the
+    offsets are held between seeds like the weights, and the forecast is (x - m)' theta_c (theta_c's intercept = the
+    original intercept + m' beta).  Lasso / elastic net: the warm homotopy and the KKT check run on the centred
+    state.  Ridge: the same offsets (seed-time means, re-anchored at every seed), the per-bar solve on the centred
+    augmented system.  The batch fits (pretune folds, the causal re-choice grid, the block-end refit, the cold seed)
+    already residualize every column on the intercept (FWL: the window-centred columns) for the lasso / enet; ridge
+    pretune / grid fits: solved on the fold's fit-block-centred columns.

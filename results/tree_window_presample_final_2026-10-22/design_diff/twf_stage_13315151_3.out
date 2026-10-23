@@ -1,0 +1,42 @@
+twf_stage W=2500 from /scratch1/jc_905/wsweep/code/results/pooled_linear_rerun_2026-10-22_13_2012_w2500_latestart_nofomcrel/_work on b04-08.hpc.usc.edu Thu Oct 22 17:08:22 PDT 2026
+design_baseline: md5 of the copy = md5 of the source
+design_baseline: source unchanged after the copy
+4708160b643968f17ea34edf4d246e98  X.npy
+996504f16da7982d64656d1ba0d9722a  y.npy
+5998feae6a6316dbbf85ef252b97ed5d  b_oos.npy
+252b6f2af7b1ffe2a3b5d6a60f30de05  dates_oos.csv
+11f4bebd127866d0edbee2b5a82db664  design.json
+design_all_features: md5 of the copy = md5 of the source
+design_all_features: source unchanged after the copy
+c07d68f2e225b8125efeb0e7fa74df33  X.npy
+996504f16da7982d64656d1ba0d9722a  y.npy
+5998feae6a6316dbbf85ef252b97ed5d  b_oos.npy
+252b6f2af7b1ffe2a3b5d6a60f30de05  dates_oos.csv
+c37cb64e2ac2801861f9ec9a5af508d6  design.json
+/scratch1/jc_905/tree_wcheck_final/designs/w2500/logs/design_all_features.log:[scale] late-start warm-up: 61 columns, 4300576 values set to 0 (window 32500 rows)
+/scratch1/jc_905/tree_wcheck_final/designs/w2500/logs/design_all_features.log:[scale] unobserved-neutral: 134 columns, 2492143 values set to 0 (2373919 were 0 already)
+== baseline (window 32500 rows, S 44281)
+  names equal True | config equal True | shape [84747, 12] [84747, 12]
+  y.npy equal True
+  b_oos.npy equal True
+  dates_oos equal True
+  X: exactly equal 100.0000 % of all entries, 100.0000 % of the pre-2012 rows; 0 of 12 columns differ
+== all_features (window 32500 rows, S 44281)
+  names equal True | config equal True | shape [84747, 564] [84747, 564]
+  y.npy equal True
+  b_oos.npy equal True
+  dates_oos equal True
+  X: exactly equal 99.7527 % of all entries, 99.9303 % of the pre-2012 rows; 107 of 564 columns differ
+  values differing: 118224 (new value 0: 118224); pre-2012 rows: 17418 in 74 columns (new value 0: 17418); max |diff| 0.6703, pre-2012 0.5722
+                               column  n_diff  n_diff_pre2012  n_diff_new_zero  n_diff_pre2012_new_zero  max_abs  max_abs_pre2012  first_diff_row
+     adj_voldemand_spx_open_only_ma_5    2987               0             2987                        0 0.289845              0.0           73504
+     adj_voldemand_spx_open_only_ma_1    2987               0             2987                        0 0.236917              0.0           73504
+adj_voldemand_spx_open_and_close_ma_5    2987               0             2987                        0 0.380471              0.0           73504
+    adj_voldemand_spx_open_only_ma_25    2987               0             2987                        0 0.363528              0.0           73504
+adj_voldemand_spx_open_and_close_ma_1    2987               0             2987                        0 0.156623              0.0           73504
+adj_voldemand_all_open_and_close_ma_1    2987               0             2987                        0 0.149071              0.0           73504
+adj_voldemand_all_open_and_close_ma_5    2987               0             2987                        0 0.337243              0.0           73504
+    adj_voldemand_all_open_only_ma_25    2987               0             2987                        0 0.353478              0.0           73504
+     adj_voldemand_all_open_only_ma_5    2987               0             2987                        0 0.289914              0.0           73504
+     adj_voldemand_all_open_only_ma_1    2987               0             2987                        0 0.212916              0.0           73504
+twf_stage W=2500 done Thu Oct 22 17:08:41 PDT 2026

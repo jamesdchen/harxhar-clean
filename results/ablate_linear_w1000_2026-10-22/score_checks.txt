@@ -1,0 +1,4 @@
+scored bars: 39975 on 3075 days 2012-01-03 .. 2024-04-30; 2020-2024 cut 14066 bars; 16:00 rows 1082; base 16:00 QLIKE = scores.csv to 1e-10 (6 arms)
+loaded master frame and quote book (2 s)
+base returns = make_rehaul_economics.add_pooled_linear on the base run, bit for bit (q, mid, crossed; 6 arms)
+base vs HAR written (5 s)

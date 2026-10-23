@@ -1,0 +1,7 @@
+tag,rows_equal,config_sha_equal,x_md5_equal,mse_adj_earlier,mse_adj_gate,mse_bit_equal,mse_abs_diff,qlike_earlier,qlike_gate,qlike_bit_equal,pred_bit_equal,pred_max_abs_diff,host_earlier,host_gate,versions_equal,code_commit
+w1000_f3_lgbm_all_features,True,True,True,0.06743222153279194,0.06743222153279194,True,0.0,0.13076072082486082,0.13076072082486082,True,True,0.0,b10-20.hpc.usc.edu,b04-06.hpc.usc.edu,True,9d3fc057a96237dd1dfefc216de16874c1ce2224
+w1000_f3_lgbm_baseline,True,True,True,0.07685655197309109,0.07685655197309109,True,0.0,0.14562623819633871,0.14562623819633871,True,True,0.0,b09-15.hpc.usc.edu,b04-06.hpc.usc.edu,True,9d3fc057a96237dd1dfefc216de16874c1ce2224
+w1000_f3_rf_all_features,True,True,True,0.06858153782596399,0.06858153782596399,True,0.0,0.13413986039666403,0.13413986039666403,True,True,0.0,b05-17.hpc.usc.edu,a02-04.hpc.usc.edu,True,9d3fc057a96237dd1dfefc216de16874c1ce2224
+w1000_f3_rf_baseline,True,True,True,0.0751401512831462,0.0751401512831462,True,0.0,0.14579833248279842,0.14579833248279842,True,True,0.0,b10-17.hpc.usc.edu,b09-18.hpc.usc.edu,True,9d3fc057a96237dd1dfefc216de16874c1ce2224
+w1000_f3_xgb_all_features,True,True,True,0.06637361828418405,0.06637361828418405,True,0.0,0.13137035159332702,0.13137035159332702,True,True,0.0,a02-17.hpc.usc.edu,a02-04.hpc.usc.edu,True,9d3fc057a96237dd1dfefc216de16874c1ce2224
+w1000_f3_xgb_baseline,True,True,True,0.07688884478967088,0.07688884478967088,True,0.0,0.1465030730859475,0.1465030730859475,True,True,0.0,b10-05.hpc.usc.edu,b04-06.hpc.usc.edu,True,9d3fc057a96237dd1dfefc216de16874c1ce2224

@@ -1,0 +1,1636 @@
+{
+ "full": {
+  "stage": 0,
+  "bucket": null,
+  "series": [],
+  "drop": []
+ },
+ "B_moments": {
+  "stage": 1,
+  "bucket": "moments",
+  "series": [
+   "sumret",
+   "sumabsret",
+   "sumret3",
+   "sumret4",
+   "sumpret2",
+   "sumbipow",
+   "sumautocov"
+  ],
+  "drop": [
+   "adj_sumret_ma_1",
+   "adj_sumret_ma_5",
+   "adj_sumret_ma_25",
+   "adj_sumret_ma_125",
+   "adj_sumret_ma_625",
+   "adj_sumret_ma_3125",
+   "adj_sumabsret_ma_1",
+   "adj_sumabsret_ma_5",
+   "adj_sumabsret_ma_25",
+   "adj_sumabsret_ma_125",
+   "adj_sumabsret_ma_625",
+   "adj_sumabsret_ma_3125",
+   "adj_sumret3_ma_1",
+   "adj_sumret3_ma_5",
+   "adj_sumret3_ma_25",
+   "adj_sumret3_ma_125",
+   "adj_sumret3_ma_625",
+   "adj_sumret3_ma_3125",
+   "adj_sumret4_ma_1",
+   "adj_sumret4_ma_5",
+   "adj_sumret4_ma_25",
+   "adj_sumret4_ma_125",
+   "adj_sumret4_ma_625",
+   "adj_sumret4_ma_3125",
+   "adj_sumpret2_ma_1",
+   "adj_sumpret2_ma_5",
+   "adj_sumpret2_ma_25",
+   "adj_sumpret2_ma_125",
+   "adj_sumpret2_ma_625",
+   "adj_sumpret2_ma_3125",
+   "adj_sumbipow_ma_1",
+   "adj_sumbipow_ma_5",
+   "adj_sumbipow_ma_25",
+   "adj_sumbipow_ma_125",
+   "adj_sumbipow_ma_625",
+   "adj_sumbipow_ma_3125",
+   "adj_sumautocov_ma_1",
+   "adj_sumautocov_ma_5",
+   "adj_sumautocov_ma_25",
+   "adj_sumautocov_ma_125",
+   "adj_sumautocov_ma_625",
+   "adj_sumautocov_ma_3125",
+   "sumret_avail_ma_1",
+   "sumret_avail_ma_5",
+   "sumret_avail_ma_25",
+   "sumret_avail_ma_125",
+   "sumret_avail_ma_625",
+   "sumret_avail_ma_3125",
+   "sumabsret_avail_ma_1",
+   "sumabsret_avail_ma_5",
+   "sumabsret_avail_ma_25",
+   "sumabsret_avail_ma_125",
+   "sumabsret_avail_ma_625",
+   "sumabsret_avail_ma_3125",
+   "sumret3_avail_ma_1",
+   "sumret3_avail_ma_5",
+   "sumret3_avail_ma_25",
+   "sumret3_avail_ma_125",
+   "sumret3_avail_ma_625",
+   "sumret3_avail_ma_3125",
+   "sumret4_avail_ma_1",
+   "sumret4_avail_ma_5",
+   "sumret4_avail_ma_25",
+   "sumret4_avail_ma_125",
+   "sumret4_avail_ma_625",
+   "sumret4_avail_ma_3125",
+   "sumpret2_avail_ma_1",
+   "sumpret2_avail_ma_5",
+   "sumpret2_avail_ma_25",
+   "sumpret2_avail_ma_125",
+   "sumpret2_avail_ma_625",
+   "sumpret2_avail_ma_3125",
+   "sumbipow_avail_ma_1",
+   "sumbipow_avail_ma_5",
+   "sumbipow_avail_ma_25",
+   "sumbipow_avail_ma_125",
+   "sumbipow_avail_ma_625",
+   "sumbipow_avail_ma_3125",
+   "sumautocov_avail_ma_1",
+   "sumautocov_avail_ma_5",
+   "sumautocov_avail_ma_25",
+   "sumautocov_avail_ma_125",
+   "sumautocov_avail_ma_625",
+   "sumautocov_avail_ma_3125"
+  ]
+ },
+ "B_liquidity": {
+  "stage": 1,
+  "bucket": "liquidity",
+  "series": [
+   "sumvolume",
+   "numobs",
+   "turnover_ewstock",
+   "buyturnover_ewstock",
+   "sellturnover_ewstock",
+   "effspread_ewstock",
+   "spread_ewstock",
+   "turnover_vwstock",
+   "buyturnover_vwstock",
+   "sellturnover_vwstock",
+   "effspread_vwstock",
+   "spread_vwstock",
+   "ofi_ewstock",
+   "ofi_vwstock"
+  ],
+  "drop": [
+   "adj_sumvolume_ma_1",
+   "adj_sumvolume_ma_5",
+   "adj_sumvolume_ma_25",
+   "adj_sumvolume_ma_125",
+   "adj_sumvolume_ma_625",
+   "adj_sumvolume_ma_3125",
+   "adj_numobs_ma_1",
+   "adj_numobs_ma_5",
+   "adj_numobs_ma_25",
+   "adj_numobs_ma_125",
+   "adj_numobs_ma_625",
+   "adj_numobs_ma_3125",
+   "adj_turnover_ewstock_ma_1",
+   "adj_turnover_ewstock_ma_5",
+   "adj_turnover_ewstock_ma_25",
+   "adj_turnover_ewstock_ma_125",
+   "adj_turnover_ewstock_ma_625",
+   "adj_turnover_ewstock_ma_3125",
+   "adj_buyturnover_ewstock_ma_1",
+   "adj_buyturnover_ewstock_ma_5",
+   "adj_buyturnover_ewstock_ma_25",
+   "adj_buyturnover_ewstock_ma_125",
+   "adj_buyturnover_ewstock_ma_625",
+   "adj_buyturnover_ewstock_ma_3125",
+   "adj_sellturnover_ewstock_ma_1",
+   "adj_sellturnover_ewstock_ma_5",
+   "adj_sellturnover_ewstock_ma_25",
+   "adj_sellturnover_ewstock_ma_125",
+   "adj_sellturnover_ewstock_ma_625",
+   "adj_sellturnover_ewstock_ma_3125",
+   "adj_effspread_ewstock_ma_1",
+   "adj_effspread_ewstock_ma_5",
+   "adj_effspread_ewstock_ma_25",
+   "adj_effspread_ewstock_ma_125",
+   "adj_effspread_ewstock_ma_625",
+   "adj_effspread_ewstock_ma_3125",
+   "adj_spread_ewstock_ma_1",
+   "adj_spread_ewstock_ma_5",
+   "adj_spread_ewstock_ma_25",
+   "adj_spread_ewstock_ma_125",
+   "adj_spread_ewstock_ma_625",
+   "adj_spread_ewstock_ma_3125",
+   "adj_turnover_vwstock_ma_1",
+   "adj_turnover_vwstock_ma_5",
+   "adj_turnover_vwstock_ma_25",
+   "adj_turnover_vwstock_ma_125",
+   "adj_turnover_vwstock_ma_625",
+   "adj_turnover_vwstock_ma_3125",
+   "adj_buyturnover_vwstock_ma_1",
+   "adj_buyturnover_vwstock_ma_5",
+   "adj_buyturnover_vwstock_ma_25",
+   "adj_buyturnover_vwstock_ma_125",
+   "adj_buyturnover_vwstock_ma_625",
+   "adj_buyturnover_vwstock_ma_3125",
+   "adj_sellturnover_vwstock_ma_1",
+   "adj_sellturnover_vwstock_ma_5",
+   "adj_sellturnover_vwstock_ma_25",
+   "adj_sellturnover_vwstock_ma_125",
+   "adj_sellturnover_vwstock_ma_625",
+   "adj_sellturnover_vwstock_ma_3125",
+   "adj_effspread_vwstock_ma_1",
+   "adj_effspread_vwstock_ma_5",
+   "adj_effspread_vwstock_ma_25",
+   "adj_effspread_vwstock_ma_125",
+   "adj_effspread_vwstock_ma_625",
+   "adj_effspread_vwstock_ma_3125",
+   "adj_spread_vwstock_ma_1",
+   "adj_spread_vwstock_ma_5",
+   "adj_spread_vwstock_ma_25",
+   "adj_spread_vwstock_ma_125",
+   "adj_spread_vwstock_ma_625",
+   "adj_spread_vwstock_ma_3125",
+   "adj_ofi_ewstock_ma_1",
+   "adj_ofi_ewstock_ma_5",
+   "adj_ofi_ewstock_ma_25",
+   "adj_ofi_ewstock_ma_125",
+   "adj_ofi_ewstock_ma_625",
+   "adj_ofi_ewstock_ma_3125",
+   "adj_ofi_vwstock_ma_1",
+   "adj_ofi_vwstock_ma_5",
+   "adj_ofi_vwstock_ma_25",
+   "adj_ofi_vwstock_ma_125",
+   "adj_ofi_vwstock_ma_625",
+   "adj_ofi_vwstock_ma_3125",
+   "sumvolume_avail_ma_1",
+   "sumvolume_avail_ma_5",
+   "sumvolume_avail_ma_25",
+   "sumvolume_avail_ma_125",
+   "sumvolume_avail_ma_625",
+   "sumvolume_avail_ma_3125",
+   "numobs_avail_ma_1",
+   "numobs_avail_ma_5",
+   "numobs_avail_ma_25",
+   "numobs_avail_ma_125",
+   "numobs_avail_ma_625",
+   "numobs_avail_ma_3125",
+   "turnover_ewstock_avail_ma_1",
+   "turnover_ewstock_avail_ma_5",
+   "turnover_ewstock_avail_ma_25",
+   "turnover_ewstock_avail_ma_125",
+   "turnover_ewstock_avail_ma_625",
+   "turnover_ewstock_avail_ma_3125",
+   "buyturnover_ewstock_avail_ma_1",
+   "buyturnover_ewstock_avail_ma_5",
+   "buyturnover_ewstock_avail_ma_25",
+   "buyturnover_ewstock_avail_ma_125",
+   "buyturnover_ewstock_avail_ma_625",
+   "buyturnover_ewstock_avail_ma_3125",
+   "sellturnover_ewstock_avail_ma_1",
+   "sellturnover_ewstock_avail_ma_5",
+   "sellturnover_ewstock_avail_ma_25",
+   "sellturnover_ewstock_avail_ma_125",
+   "sellturnover_ewstock_avail_ma_625",
+   "sellturnover_ewstock_avail_ma_3125",
+   "effspread_ewstock_avail_ma_1",
+   "effspread_ewstock_avail_ma_5",
+   "effspread_ewstock_avail_ma_25",
+   "effspread_ewstock_avail_ma_125",
+   "effspread_ewstock_avail_ma_625",
+   "effspread_ewstock_avail_ma_3125",
+   "spread_ewstock_avail_ma_1",
+   "spread_ewstock_avail_ma_5",
+   "spread_ewstock_avail_ma_25",
+   "spread_ewstock_avail_ma_125",
+   "spread_ewstock_avail_ma_625",
+   "spread_ewstock_avail_ma_3125",
+   "turnover_vwstock_avail_ma_1",
+   "turnover_vwstock_avail_ma_5",
+   "turnover_vwstock_avail_ma_25",
+   "turnover_vwstock_avail_ma_125",
+   "turnover_vwstock_avail_ma_625",
+   "turnover_vwstock_avail_ma_3125",
+   "buyturnover_vwstock_avail_ma_1",
+   "buyturnover_vwstock_avail_ma_5",
+   "buyturnover_vwstock_avail_ma_25",
+   "buyturnover_vwstock_avail_ma_125",
+   "buyturnover_vwstock_avail_ma_625",
+   "buyturnover_vwstock_avail_ma_3125",
+   "sellturnover_vwstock_avail_ma_1",
+   "sellturnover_vwstock_avail_ma_5",
+   "sellturnover_vwstock_avail_ma_25",
+   "sellturnover_vwstock_avail_ma_125",
+   "sellturnover_vwstock_avail_ma_625",
+   "sellturnover_vwstock_avail_ma_3125",
+   "effspread_vwstock_avail_ma_1",
+   "effspread_vwstock_avail_ma_5",
+   "effspread_vwstock_avail_ma_25",
+   "effspread_vwstock_avail_ma_125",
+   "effspread_vwstock_avail_ma_625",
+   "effspread_vwstock_avail_ma_3125",
+   "spread_vwstock_avail_ma_1",
+   "spread_vwstock_avail_ma_5",
+   "spread_vwstock_avail_ma_25",
+   "spread_vwstock_avail_ma_125",
+   "spread_vwstock_avail_ma_625",
+   "spread_vwstock_avail_ma_3125",
+   "ofi_ewstock_avail_ma_1",
+   "ofi_ewstock_avail_ma_5",
+   "ofi_ewstock_avail_ma_25",
+   "ofi_ewstock_avail_ma_125",
+   "ofi_ewstock_avail_ma_625",
+   "ofi_ewstock_avail_ma_3125",
+   "ofi_vwstock_avail_ma_1",
+   "ofi_vwstock_avail_ma_5",
+   "ofi_vwstock_avail_ma_25",
+   "ofi_vwstock_avail_ma_125",
+   "ofi_vwstock_avail_ma_625",
+   "ofi_vwstock_avail_ma_3125"
+  ]
+ },
+ "B_market_ew": {
+  "stage": 1,
+  "bucket": "market_ew",
+  "series": [
+   "sumret2_ewstock",
+   "sumret3_ewstock",
+   "sumret4_ewstock",
+   "sumabsret_ewstock",
+   "sumbipow_ewstock",
+   "sumpret2_ewstock"
+  ],
+  "drop": [
+   "adj_sumret2_ewstock_ma_1",
+   "adj_sumret2_ewstock_ma_5",
+   "adj_sumret2_ewstock_ma_25",
+   "adj_sumret2_ewstock_ma_125",
+   "adj_sumret2_ewstock_ma_625",
+   "adj_sumret2_ewstock_ma_3125",
+   "adj_sumret3_ewstock_ma_1",
+   "adj_sumret3_ewstock_ma_5",
+   "adj_sumret3_ewstock_ma_25",
+   "adj_sumret3_ewstock_ma_125",
+   "adj_sumret3_ewstock_ma_625",
+   "adj_sumret3_ewstock_ma_3125",
+   "adj_sumret4_ewstock_ma_1",
+   "adj_sumret4_ewstock_ma_5",
+   "adj_sumret4_ewstock_ma_25",
+   "adj_sumret4_ewstock_ma_125",
+   "adj_sumret4_ewstock_ma_625",
+   "adj_sumret4_ewstock_ma_3125",
+   "adj_sumabsret_ewstock_ma_1",
+   "adj_sumabsret_ewstock_ma_5",
+   "adj_sumabsret_ewstock_ma_25",
+   "adj_sumabsret_ewstock_ma_125",
+   "adj_sumabsret_ewstock_ma_625",
+   "adj_sumabsret_ewstock_ma_3125",
+   "adj_sumbipow_ewstock_ma_1",
+   "adj_sumbipow_ewstock_ma_5",
+   "adj_sumbipow_ewstock_ma_25",
+   "adj_sumbipow_ewstock_ma_125",
+   "adj_sumbipow_ewstock_ma_625",
+   "adj_sumbipow_ewstock_ma_3125",
+   "adj_sumpret2_ewstock_ma_1",
+   "adj_sumpret2_ewstock_ma_5",
+   "adj_sumpret2_ewstock_ma_25",
+   "adj_sumpret2_ewstock_ma_125",
+   "adj_sumpret2_ewstock_ma_625",
+   "adj_sumpret2_ewstock_ma_3125",
+   "sumret2_ewstock_avail_ma_1",
+   "sumret2_ewstock_avail_ma_5",
+   "sumret2_ewstock_avail_ma_25",
+   "sumret2_ewstock_avail_ma_125",
+   "sumret2_ewstock_avail_ma_625",
+   "sumret2_ewstock_avail_ma_3125",
+   "sumret3_ewstock_avail_ma_1",
+   "sumret3_ewstock_avail_ma_5",
+   "sumret3_ewstock_avail_ma_25",
+   "sumret3_ewstock_avail_ma_125",
+   "sumret3_ewstock_avail_ma_625",
+   "sumret3_ewstock_avail_ma_3125",
+   "sumret4_ewstock_avail_ma_1",
+   "sumret4_ewstock_avail_ma_5",
+   "sumret4_ewstock_avail_ma_25",
+   "sumret4_ewstock_avail_ma_125",
+   "sumret4_ewstock_avail_ma_625",
+   "sumret4_ewstock_avail_ma_3125",
+   "sumabsret_ewstock_avail_ma_1",
+   "sumabsret_ewstock_avail_ma_5",
+   "sumabsret_ewstock_avail_ma_25",
+   "sumabsret_ewstock_avail_ma_125",
+   "sumabsret_ewstock_avail_ma_625",
+   "sumabsret_ewstock_avail_ma_3125",
+   "sumbipow_ewstock_avail_ma_1",
+   "sumbipow_ewstock_avail_ma_5",
+   "sumbipow_ewstock_avail_ma_25",
+   "sumbipow_ewstock_avail_ma_125",
+   "sumbipow_ewstock_avail_ma_625",
+   "sumbipow_ewstock_avail_ma_3125",
+   "sumpret2_ewstock_avail_ma_1",
+   "sumpret2_ewstock_avail_ma_5",
+   "sumpret2_ewstock_avail_ma_25",
+   "sumpret2_ewstock_avail_ma_125",
+   "sumpret2_ewstock_avail_ma_625",
+   "sumpret2_ewstock_avail_ma_3125"
+  ]
+ },
+ "B_market_vw": {
+  "stage": 1,
+  "bucket": "market_vw",
+  "series": [
+   "sumret2_vwstock",
+   "sumret3_vwstock",
+   "sumret4_vwstock",
+   "sumabsret_vwstock",
+   "sumbipow_vwstock",
+   "sumpret2_vwstock"
+  ],
+  "drop": [
+   "adj_sumret2_vwstock_ma_1",
+   "adj_sumret2_vwstock_ma_5",
+   "adj_sumret2_vwstock_ma_25",
+   "adj_sumret2_vwstock_ma_125",
+   "adj_sumret2_vwstock_ma_625",
+   "adj_sumret2_vwstock_ma_3125",
+   "adj_sumret3_vwstock_ma_1",
+   "adj_sumret3_vwstock_ma_5",
+   "adj_sumret3_vwstock_ma_25",
+   "adj_sumret3_vwstock_ma_125",
+   "adj_sumret3_vwstock_ma_625",
+   "adj_sumret3_vwstock_ma_3125",
+   "adj_sumret4_vwstock_ma_1",
+   "adj_sumret4_vwstock_ma_5",
+   "adj_sumret4_vwstock_ma_25",
+   "adj_sumret4_vwstock_ma_125",
+   "adj_sumret4_vwstock_ma_625",
+   "adj_sumret4_vwstock_ma_3125",
+   "adj_sumabsret_vwstock_ma_1",
+   "adj_sumabsret_vwstock_ma_5",
+   "adj_sumabsret_vwstock_ma_25",
+   "adj_sumabsret_vwstock_ma_125",
+   "adj_sumabsret_vwstock_ma_625",
+   "adj_sumabsret_vwstock_ma_3125",
+   "adj_sumbipow_vwstock_ma_1",
+   "adj_sumbipow_vwstock_ma_5",
+   "adj_sumbipow_vwstock_ma_25",
+   "adj_sumbipow_vwstock_ma_125",
+   "adj_sumbipow_vwstock_ma_625",
+   "adj_sumbipow_vwstock_ma_3125",
+   "adj_sumpret2_vwstock_ma_1",
+   "adj_sumpret2_vwstock_ma_5",
+   "adj_sumpret2_vwstock_ma_25",
+   "adj_sumpret2_vwstock_ma_125",
+   "adj_sumpret2_vwstock_ma_625",
+   "adj_sumpret2_vwstock_ma_3125",
+   "sumret2_vwstock_avail_ma_1",
+   "sumret2_vwstock_avail_ma_5",
+   "sumret2_vwstock_avail_ma_25",
+   "sumret2_vwstock_avail_ma_125",
+   "sumret2_vwstock_avail_ma_625",
+   "sumret2_vwstock_avail_ma_3125",
+   "sumret3_vwstock_avail_ma_1",
+   "sumret3_vwstock_avail_ma_5",
+   "sumret3_vwstock_avail_ma_25",
+   "sumret3_vwstock_avail_ma_125",
+   "sumret3_vwstock_avail_ma_625",
+   "sumret3_vwstock_avail_ma_3125",
+   "sumret4_vwstock_avail_ma_1",
+   "sumret4_vwstock_avail_ma_5",
+   "sumret4_vwstock_avail_ma_25",
+   "sumret4_vwstock_avail_ma_125",
+   "sumret4_vwstock_avail_ma_625",
+   "sumret4_vwstock_avail_ma_3125",
+   "sumabsret_vwstock_avail_ma_1",
+   "sumabsret_vwstock_avail_ma_5",
+   "sumabsret_vwstock_avail_ma_25",
+   "sumabsret_vwstock_avail_ma_125",
+   "sumabsret_vwstock_avail_ma_625",
+   "sumabsret_vwstock_avail_ma_3125",
+   "sumbipow_vwstock_avail_ma_1",
+   "sumbipow_vwstock_avail_ma_5",
+   "sumbipow_vwstock_avail_ma_25",
+   "sumbipow_vwstock_avail_ma_125",
+   "sumbipow_vwstock_avail_ma_625",
+   "sumbipow_vwstock_avail_ma_3125",
+   "sumpret2_vwstock_avail_ma_1",
+   "sumpret2_vwstock_avail_ma_5",
+   "sumpret2_vwstock_avail_ma_25",
+   "sumpret2_vwstock_avail_ma_125",
+   "sumpret2_vwstock_avail_ma_625",
+   "sumpret2_vwstock_avail_ma_3125"
+  ]
+ },
+ "B_implied_vol": {
+  "stage": 1,
+  "bucket": "implied_vol",
+  "series": [
+   "vix",
+   "vvix",
+   "vix3m"
+  ],
+  "drop": [
+   "adj_vix_ma_1",
+   "adj_vix_ma_5",
+   "adj_vix_ma_25",
+   "adj_vix_ma_125",
+   "adj_vix_ma_625",
+   "adj_vix_ma_3125",
+   "adj_vvix_ma_1",
+   "adj_vvix_ma_5",
+   "adj_vvix_ma_25",
+   "adj_vvix_ma_125",
+   "adj_vvix_ma_625",
+   "adj_vvix_ma_3125",
+   "adj_vix3m_ma_1",
+   "adj_vix3m_ma_5",
+   "adj_vix3m_ma_25",
+   "adj_vix3m_ma_125",
+   "adj_vix3m_ma_625",
+   "adj_vix3m_ma_3125",
+   "vix_avail_ma_1",
+   "vix_avail_ma_5",
+   "vix_avail_ma_25",
+   "vix_avail_ma_125",
+   "vix_avail_ma_625",
+   "vix_avail_ma_3125",
+   "vvix_avail_ma_1",
+   "vvix_avail_ma_5",
+   "vvix_avail_ma_25",
+   "vvix_avail_ma_125",
+   "vvix_avail_ma_625",
+   "vvix_avail_ma_3125",
+   "vix3m_avail_ma_1",
+   "vix3m_avail_ma_5",
+   "vix3m_avail_ma_25",
+   "vix3m_avail_ma_125",
+   "vix3m_avail_ma_625",
+   "vix3m_avail_ma_3125"
+  ]
+ },
+ "B_fomc": {
+  "stage": 1,
+  "bucket": "fomc",
+  "series": [
+   "fomc_day",
+   "fomc_until_inv",
+   "fomc_since_inv"
+  ],
+  "drop": [
+   "adj_fomc_day_ma_1",
+   "adj_fomc_day_ma_5",
+   "adj_fomc_day_ma_25",
+   "adj_fomc_day_ma_125",
+   "adj_fomc_day_ma_625",
+   "adj_fomc_day_ma_3125",
+   "adj_fomc_until_inv_ma_1",
+   "adj_fomc_until_inv_ma_5",
+   "adj_fomc_until_inv_ma_25",
+   "adj_fomc_until_inv_ma_125",
+   "adj_fomc_until_inv_ma_625",
+   "adj_fomc_until_inv_ma_3125",
+   "adj_fomc_since_inv_ma_1",
+   "adj_fomc_since_inv_ma_5",
+   "adj_fomc_since_inv_ma_25",
+   "adj_fomc_since_inv_ma_125",
+   "adj_fomc_since_inv_ma_625",
+   "adj_fomc_since_inv_ma_3125",
+   "fomc_day_avail_ma_1",
+   "fomc_day_avail_ma_5",
+   "fomc_day_avail_ma_25",
+   "fomc_day_avail_ma_125",
+   "fomc_day_avail_ma_625",
+   "fomc_day_avail_ma_3125",
+   "fomc_until_inv_avail_ma_1",
+   "fomc_until_inv_avail_ma_5",
+   "fomc_until_inv_avail_ma_25",
+   "fomc_until_inv_avail_ma_125",
+   "fomc_until_inv_avail_ma_625",
+   "fomc_until_inv_avail_ma_3125",
+   "fomc_since_inv_avail_ma_1",
+   "fomc_since_inv_avail_ma_5",
+   "fomc_since_inv_avail_ma_25",
+   "fomc_since_inv_avail_ma_125",
+   "fomc_since_inv_avail_ma_625",
+   "fomc_since_inv_avail_ma_3125"
+  ]
+ },
+ "B_sentiment": {
+  "stage": 1,
+  "bucket": "sentiment",
+  "series": [
+   "stocktwits_attention",
+   "stocktwits_sentiment",
+   "stocktwits_sentcount"
+  ],
+  "drop": [
+   "adj_stocktwits_attention_ma_1",
+   "adj_stocktwits_attention_ma_5",
+   "adj_stocktwits_attention_ma_25",
+   "adj_stocktwits_attention_ma_125",
+   "adj_stocktwits_attention_ma_625",
+   "adj_stocktwits_attention_ma_3125",
+   "adj_stocktwits_sentiment_ma_1",
+   "adj_stocktwits_sentiment_ma_5",
+   "adj_stocktwits_sentiment_ma_25",
+   "adj_stocktwits_sentiment_ma_125",
+   "adj_stocktwits_sentiment_ma_625",
+   "adj_stocktwits_sentiment_ma_3125",
+   "adj_stocktwits_sentcount_ma_1",
+   "adj_stocktwits_sentcount_ma_5",
+   "adj_stocktwits_sentcount_ma_25",
+   "adj_stocktwits_sentcount_ma_125",
+   "adj_stocktwits_sentcount_ma_625",
+   "adj_stocktwits_sentcount_ma_3125",
+   "stocktwits_attention_avail_ma_1",
+   "stocktwits_attention_avail_ma_5",
+   "stocktwits_attention_avail_ma_25",
+   "stocktwits_attention_avail_ma_125",
+   "stocktwits_attention_avail_ma_625",
+   "stocktwits_attention_avail_ma_3125",
+   "stocktwits_sentiment_avail_ma_1",
+   "stocktwits_sentiment_avail_ma_5",
+   "stocktwits_sentiment_avail_ma_25",
+   "stocktwits_sentiment_avail_ma_125",
+   "stocktwits_sentiment_avail_ma_625",
+   "stocktwits_sentiment_avail_ma_3125",
+   "stocktwits_sentcount_avail_ma_1",
+   "stocktwits_sentcount_avail_ma_5",
+   "stocktwits_sentcount_avail_ma_25",
+   "stocktwits_sentcount_avail_ma_125",
+   "stocktwits_sentcount_avail_ma_625",
+   "stocktwits_sentcount_avail_ma_3125"
+  ]
+ },
+ "B_vol_demand": {
+  "stage": 1,
+  "bucket": "vol_demand",
+  "series": [
+   "voldemand_spx_open_and_close",
+   "voldemand_spx_open_only",
+   "voldemand_all_open_and_close",
+   "voldemand_all_open_only"
+  ],
+  "drop": [
+   "adj_voldemand_spx_open_and_close_ma_1",
+   "adj_voldemand_spx_open_and_close_ma_5",
+   "adj_voldemand_spx_open_and_close_ma_25",
+   "adj_voldemand_spx_open_and_close_ma_125",
+   "adj_voldemand_spx_open_and_close_ma_625",
+   "adj_voldemand_spx_open_and_close_ma_3125",
+   "adj_voldemand_spx_open_only_ma_1",
+   "adj_voldemand_spx_open_only_ma_5",
+   "adj_voldemand_spx_open_only_ma_25",
+   "adj_voldemand_spx_open_only_ma_125",
+   "adj_voldemand_spx_open_only_ma_625",
+   "adj_voldemand_spx_open_only_ma_3125",
+   "adj_voldemand_all_open_and_close_ma_1",
+   "adj_voldemand_all_open_and_close_ma_5",
+   "adj_voldemand_all_open_and_close_ma_25",
+   "adj_voldemand_all_open_and_close_ma_125",
+   "adj_voldemand_all_open_and_close_ma_625",
+   "adj_voldemand_all_open_and_close_ma_3125",
+   "adj_voldemand_all_open_only_ma_1",
+   "adj_voldemand_all_open_only_ma_5",
+   "adj_voldemand_all_open_only_ma_25",
+   "adj_voldemand_all_open_only_ma_125",
+   "adj_voldemand_all_open_only_ma_625",
+   "adj_voldemand_all_open_only_ma_3125",
+   "voldemand_spx_open_and_close_avail_ma_1",
+   "voldemand_spx_open_and_close_avail_ma_5",
+   "voldemand_spx_open_and_close_avail_ma_25",
+   "voldemand_spx_open_and_close_avail_ma_125",
+   "voldemand_spx_open_and_close_avail_ma_625",
+   "voldemand_spx_open_and_close_avail_ma_3125",
+   "voldemand_spx_open_only_avail_ma_1",
+   "voldemand_spx_open_only_avail_ma_5",
+   "voldemand_spx_open_only_avail_ma_25",
+   "voldemand_spx_open_only_avail_ma_125",
+   "voldemand_spx_open_only_avail_ma_625",
+   "voldemand_spx_open_only_avail_ma_3125",
+   "voldemand_all_open_and_close_avail_ma_1",
+   "voldemand_all_open_and_close_avail_ma_5",
+   "voldemand_all_open_and_close_avail_ma_25",
+   "voldemand_all_open_and_close_avail_ma_125",
+   "voldemand_all_open_and_close_avail_ma_625",
+   "voldemand_all_open_and_close_avail_ma_3125",
+   "voldemand_all_open_only_avail_ma_1",
+   "voldemand_all_open_only_avail_ma_5",
+   "voldemand_all_open_only_avail_ma_25",
+   "voldemand_all_open_only_avail_ma_125",
+   "voldemand_all_open_only_avail_ma_625",
+   "voldemand_all_open_only_avail_ma_3125"
+  ]
+ },
+ "S_sumret": {
+  "stage": 2,
+  "bucket": "moments",
+  "series": [
+   "sumret"
+  ],
+  "drop": [
+   "adj_sumret_ma_1",
+   "adj_sumret_ma_5",
+   "adj_sumret_ma_25",
+   "adj_sumret_ma_125",
+   "adj_sumret_ma_625",
+   "adj_sumret_ma_3125",
+   "sumret_avail_ma_1",
+   "sumret_avail_ma_5",
+   "sumret_avail_ma_25",
+   "sumret_avail_ma_125",
+   "sumret_avail_ma_625",
+   "sumret_avail_ma_3125"
+  ]
+ },
+ "S_sumabsret": {
+  "stage": 2,
+  "bucket": "moments",
+  "series": [
+   "sumabsret"
+  ],
+  "drop": [
+   "adj_sumabsret_ma_1",
+   "adj_sumabsret_ma_5",
+   "adj_sumabsret_ma_25",
+   "adj_sumabsret_ma_125",
+   "adj_sumabsret_ma_625",
+   "adj_sumabsret_ma_3125",
+   "sumabsret_avail_ma_1",
+   "sumabsret_avail_ma_5",
+   "sumabsret_avail_ma_25",
+   "sumabsret_avail_ma_125",
+   "sumabsret_avail_ma_625",
+   "sumabsret_avail_ma_3125"
+  ]
+ },
+ "S_sumret3": {
+  "stage": 2,
+  "bucket": "moments",
+  "series": [
+   "sumret3"
+  ],
+  "drop": [
+   "adj_sumret3_ma_1",
+   "adj_sumret3_ma_5",
+   "adj_sumret3_ma_25",
+   "adj_sumret3_ma_125",
+   "adj_sumret3_ma_625",
+   "adj_sumret3_ma_3125",
+   "sumret3_avail_ma_1",
+   "sumret3_avail_ma_5",
+   "sumret3_avail_ma_25",
+   "sumret3_avail_ma_125",
+   "sumret3_avail_ma_625",
+   "sumret3_avail_ma_3125"
+  ]
+ },
+ "S_sumret4": {
+  "stage": 2,
+  "bucket": "moments",
+  "series": [
+   "sumret4"
+  ],
+  "drop": [
+   "adj_sumret4_ma_1",
+   "adj_sumret4_ma_5",
+   "adj_sumret4_ma_25",
+   "adj_sumret4_ma_125",
+   "adj_sumret4_ma_625",
+   "adj_sumret4_ma_3125",
+   "sumret4_avail_ma_1",
+   "sumret4_avail_ma_5",
+   "sumret4_avail_ma_25",
+   "sumret4_avail_ma_125",
+   "sumret4_avail_ma_625",
+   "sumret4_avail_ma_3125"
+  ]
+ },
+ "S_sumpret2": {
+  "stage": 2,
+  "bucket": "moments",
+  "series": [
+   "sumpret2"
+  ],
+  "drop": [
+   "adj_sumpret2_ma_1",
+   "adj_sumpret2_ma_5",
+   "adj_sumpret2_ma_25",
+   "adj_sumpret2_ma_125",
+   "adj_sumpret2_ma_625",
+   "adj_sumpret2_ma_3125",
+   "sumpret2_avail_ma_1",
+   "sumpret2_avail_ma_5",
+   "sumpret2_avail_ma_25",
+   "sumpret2_avail_ma_125",
+   "sumpret2_avail_ma_625",
+   "sumpret2_avail_ma_3125"
+  ]
+ },
+ "S_sumbipow": {
+  "stage": 2,
+  "bucket": "moments",
+  "series": [
+   "sumbipow"
+  ],
+  "drop": [
+   "adj_sumbipow_ma_1",
+   "adj_sumbipow_ma_5",
+   "adj_sumbipow_ma_25",
+   "adj_sumbipow_ma_125",
+   "adj_sumbipow_ma_625",
+   "adj_sumbipow_ma_3125",
+   "sumbipow_avail_ma_1",
+   "sumbipow_avail_ma_5",
+   "sumbipow_avail_ma_25",
+   "sumbipow_avail_ma_125",
+   "sumbipow_avail_ma_625",
+   "sumbipow_avail_ma_3125"
+  ]
+ },
+ "S_sumautocov": {
+  "stage": 2,
+  "bucket": "moments",
+  "series": [
+   "sumautocov"
+  ],
+  "drop": [
+   "adj_sumautocov_ma_1",
+   "adj_sumautocov_ma_5",
+   "adj_sumautocov_ma_25",
+   "adj_sumautocov_ma_125",
+   "adj_sumautocov_ma_625",
+   "adj_sumautocov_ma_3125",
+   "sumautocov_avail_ma_1",
+   "sumautocov_avail_ma_5",
+   "sumautocov_avail_ma_25",
+   "sumautocov_avail_ma_125",
+   "sumautocov_avail_ma_625",
+   "sumautocov_avail_ma_3125"
+  ]
+ },
+ "S_sumvolume": {
+  "stage": 2,
+  "bucket": "liquidity",
+  "series": [
+   "sumvolume"
+  ],
+  "drop": [
+   "adj_sumvolume_ma_1",
+   "adj_sumvolume_ma_5",
+   "adj_sumvolume_ma_25",
+   "adj_sumvolume_ma_125",
+   "adj_sumvolume_ma_625",
+   "adj_sumvolume_ma_3125",
+   "sumvolume_avail_ma_1",
+   "sumvolume_avail_ma_5",
+   "sumvolume_avail_ma_25",
+   "sumvolume_avail_ma_125",
+   "sumvolume_avail_ma_625",
+   "sumvolume_avail_ma_3125"
+  ]
+ },
+ "S_numobs": {
+  "stage": 2,
+  "bucket": "liquidity",
+  "series": [
+   "numobs"
+  ],
+  "drop": [
+   "adj_numobs_ma_1",
+   "adj_numobs_ma_5",
+   "adj_numobs_ma_25",
+   "adj_numobs_ma_125",
+   "adj_numobs_ma_625",
+   "adj_numobs_ma_3125",
+   "numobs_avail_ma_1",
+   "numobs_avail_ma_5",
+   "numobs_avail_ma_25",
+   "numobs_avail_ma_125",
+   "numobs_avail_ma_625",
+   "numobs_avail_ma_3125"
+  ]
+ },
+ "S_turnover_ewstock": {
+  "stage": 2,
+  "bucket": "liquidity",
+  "series": [
+   "turnover_ewstock"
+  ],
+  "drop": [
+   "adj_turnover_ewstock_ma_1",
+   "adj_turnover_ewstock_ma_5",
+   "adj_turnover_ewstock_ma_25",
+   "adj_turnover_ewstock_ma_125",
+   "adj_turnover_ewstock_ma_625",
+   "adj_turnover_ewstock_ma_3125",
+   "turnover_ewstock_avail_ma_1",
+   "turnover_ewstock_avail_ma_5",
+   "turnover_ewstock_avail_ma_25",
+   "turnover_ewstock_avail_ma_125",
+   "turnover_ewstock_avail_ma_625",
+   "turnover_ewstock_avail_ma_3125"
+  ]
+ },
+ "S_buyturnover_ewstock": {
+  "stage": 2,
+  "bucket": "liquidity",
+  "series": [
+   "buyturnover_ewstock"
+  ],
+  "drop": [
+   "adj_buyturnover_ewstock_ma_1",
+   "adj_buyturnover_ewstock_ma_5",
+   "adj_buyturnover_ewstock_ma_25",
+   "adj_buyturnover_ewstock_ma_125",
+   "adj_buyturnover_ewstock_ma_625",
+   "adj_buyturnover_ewstock_ma_3125",
+   "buyturnover_ewstock_avail_ma_1",
+   "buyturnover_ewstock_avail_ma_5",
+   "buyturnover_ewstock_avail_ma_25",
+   "buyturnover_ewstock_avail_ma_125",
+   "buyturnover_ewstock_avail_ma_625",
+   "buyturnover_ewstock_avail_ma_3125"
+  ]
+ },
+ "S_sellturnover_ewstock": {
+  "stage": 2,
+  "bucket": "liquidity",
+  "series": [
+   "sellturnover_ewstock"
+  ],
+  "drop": [
+   "adj_sellturnover_ewstock_ma_1",
+   "adj_sellturnover_ewstock_ma_5",
+   "adj_sellturnover_ewstock_ma_25",
+   "adj_sellturnover_ewstock_ma_125",
+   "adj_sellturnover_ewstock_ma_625",
+   "adj_sellturnover_ewstock_ma_3125",
+   "sellturnover_ewstock_avail_ma_1",
+   "sellturnover_ewstock_avail_ma_5",
+   "sellturnover_ewstock_avail_ma_25",
+   "sellturnover_ewstock_avail_ma_125",
+   "sellturnover_ewstock_avail_ma_625",
+   "sellturnover_ewstock_avail_ma_3125"
+  ]
+ },
+ "S_effspread_ewstock": {
+  "stage": 2,
+  "bucket": "liquidity",
+  "series": [
+   "effspread_ewstock"
+  ],
+  "drop": [
+   "adj_effspread_ewstock_ma_1",
+   "adj_effspread_ewstock_ma_5",
+   "adj_effspread_ewstock_ma_25",
+   "adj_effspread_ewstock_ma_125",
+   "adj_effspread_ewstock_ma_625",
+   "adj_effspread_ewstock_ma_3125",
+   "effspread_ewstock_avail_ma_1",
+   "effspread_ewstock_avail_ma_5",
+   "effspread_ewstock_avail_ma_25",
+   "effspread_ewstock_avail_ma_125",
+   "effspread_ewstock_avail_ma_625",
+   "effspread_ewstock_avail_ma_3125"
+  ]
+ },
+ "S_spread_ewstock": {
+  "stage": 2,
+  "bucket": "liquidity",
+  "series": [
+   "spread_ewstock"
+  ],
+  "drop": [
+   "adj_spread_ewstock_ma_1",
+   "adj_spread_ewstock_ma_5",
+   "adj_spread_ewstock_ma_25",
+   "adj_spread_ewstock_ma_125",
+   "adj_spread_ewstock_ma_625",
+   "adj_spread_ewstock_ma_3125",
+   "spread_ewstock_avail_ma_1",
+   "spread_ewstock_avail_ma_5",
+   "spread_ewstock_avail_ma_25",
+   "spread_ewstock_avail_ma_125",
+   "spread_ewstock_avail_ma_625",
+   "spread_ewstock_avail_ma_3125"
+  ]
+ },
+ "S_turnover_vwstock": {
+  "stage": 2,
+  "bucket": "liquidity",
+  "series": [
+   "turnover_vwstock"
+  ],
+  "drop": [
+   "adj_turnover_vwstock_ma_1",
+   "adj_turnover_vwstock_ma_5",
+   "adj_turnover_vwstock_ma_25",
+   "adj_turnover_vwstock_ma_125",
+   "adj_turnover_vwstock_ma_625",
+   "adj_turnover_vwstock_ma_3125",
+   "turnover_vwstock_avail_ma_1",
+   "turnover_vwstock_avail_ma_5",
+   "turnover_vwstock_avail_ma_25",
+   "turnover_vwstock_avail_ma_125",
+   "turnover_vwstock_avail_ma_625",
+   "turnover_vwstock_avail_ma_3125"
+  ]
+ },
+ "S_buyturnover_vwstock": {
+  "stage": 2,
+  "bucket": "liquidity",
+  "series": [
+   "buyturnover_vwstock"
+  ],
+  "drop": [
+   "adj_buyturnover_vwstock_ma_1",
+   "adj_buyturnover_vwstock_ma_5",
+   "adj_buyturnover_vwstock_ma_25",
+   "adj_buyturnover_vwstock_ma_125",
+   "adj_buyturnover_vwstock_ma_625",
+   "adj_buyturnover_vwstock_ma_3125",
+   "buyturnover_vwstock_avail_ma_1",
+   "buyturnover_vwstock_avail_ma_5",
+   "buyturnover_vwstock_avail_ma_25",
+   "buyturnover_vwstock_avail_ma_125",
+   "buyturnover_vwstock_avail_ma_625",
+   "buyturnover_vwstock_avail_ma_3125"
+  ]
+ },
+ "S_sellturnover_vwstock": {
+  "stage": 2,
+  "bucket": "liquidity",
+  "series": [
+   "sellturnover_vwstock"
+  ],
+  "drop": [
+   "adj_sellturnover_vwstock_ma_1",
+   "adj_sellturnover_vwstock_ma_5",
+   "adj_sellturnover_vwstock_ma_25",
+   "adj_sellturnover_vwstock_ma_125",
+   "adj_sellturnover_vwstock_ma_625",
+   "adj_sellturnover_vwstock_ma_3125",
+   "sellturnover_vwstock_avail_ma_1",
+   "sellturnover_vwstock_avail_ma_5",
+   "sellturnover_vwstock_avail_ma_25",
+   "sellturnover_vwstock_avail_ma_125",
+   "sellturnover_vwstock_avail_ma_625",
+   "sellturnover_vwstock_avail_ma_3125"
+  ]
+ },
+ "S_effspread_vwstock": {
+  "stage": 2,
+  "bucket": "liquidity",
+  "series": [
+   "effspread_vwstock"
+  ],
+  "drop": [
+   "adj_effspread_vwstock_ma_1",
+   "adj_effspread_vwstock_ma_5",
+   "adj_effspread_vwstock_ma_25",
+   "adj_effspread_vwstock_ma_125",
+   "adj_effspread_vwstock_ma_625",
+   "adj_effspread_vwstock_ma_3125",
+   "effspread_vwstock_avail_ma_1",
+   "effspread_vwstock_avail_ma_5",
+   "effspread_vwstock_avail_ma_25",
+   "effspread_vwstock_avail_ma_125",
+   "effspread_vwstock_avail_ma_625",
+   "effspread_vwstock_avail_ma_3125"
+  ]
+ },
+ "S_spread_vwstock": {
+  "stage": 2,
+  "bucket": "liquidity",
+  "series": [
+   "spread_vwstock"
+  ],
+  "drop": [
+   "adj_spread_vwstock_ma_1",
+   "adj_spread_vwstock_ma_5",
+   "adj_spread_vwstock_ma_25",
+   "adj_spread_vwstock_ma_125",
+   "adj_spread_vwstock_ma_625",
+   "adj_spread_vwstock_ma_3125",
+   "spread_vwstock_avail_ma_1",
+   "spread_vwstock_avail_ma_5",
+   "spread_vwstock_avail_ma_25",
+   "spread_vwstock_avail_ma_125",
+   "spread_vwstock_avail_ma_625",
+   "spread_vwstock_avail_ma_3125"
+  ]
+ },
+ "S_ofi_ewstock": {
+  "stage": 2,
+  "bucket": "liquidity",
+  "series": [
+   "ofi_ewstock"
+  ],
+  "drop": [
+   "adj_ofi_ewstock_ma_1",
+   "adj_ofi_ewstock_ma_5",
+   "adj_ofi_ewstock_ma_25",
+   "adj_ofi_ewstock_ma_125",
+   "adj_ofi_ewstock_ma_625",
+   "adj_ofi_ewstock_ma_3125",
+   "ofi_ewstock_avail_ma_1",
+   "ofi_ewstock_avail_ma_5",
+   "ofi_ewstock_avail_ma_25",
+   "ofi_ewstock_avail_ma_125",
+   "ofi_ewstock_avail_ma_625",
+   "ofi_ewstock_avail_ma_3125"
+  ]
+ },
+ "S_ofi_vwstock": {
+  "stage": 2,
+  "bucket": "liquidity",
+  "series": [
+   "ofi_vwstock"
+  ],
+  "drop": [
+   "adj_ofi_vwstock_ma_1",
+   "adj_ofi_vwstock_ma_5",
+   "adj_ofi_vwstock_ma_25",
+   "adj_ofi_vwstock_ma_125",
+   "adj_ofi_vwstock_ma_625",
+   "adj_ofi_vwstock_ma_3125",
+   "ofi_vwstock_avail_ma_1",
+   "ofi_vwstock_avail_ma_5",
+   "ofi_vwstock_avail_ma_25",
+   "ofi_vwstock_avail_ma_125",
+   "ofi_vwstock_avail_ma_625",
+   "ofi_vwstock_avail_ma_3125"
+  ]
+ },
+ "S_sumret2_ewstock": {
+  "stage": 2,
+  "bucket": "market_ew",
+  "series": [
+   "sumret2_ewstock"
+  ],
+  "drop": [
+   "adj_sumret2_ewstock_ma_1",
+   "adj_sumret2_ewstock_ma_5",
+   "adj_sumret2_ewstock_ma_25",
+   "adj_sumret2_ewstock_ma_125",
+   "adj_sumret2_ewstock_ma_625",
+   "adj_sumret2_ewstock_ma_3125",
+   "sumret2_ewstock_avail_ma_1",
+   "sumret2_ewstock_avail_ma_5",
+   "sumret2_ewstock_avail_ma_25",
+   "sumret2_ewstock_avail_ma_125",
+   "sumret2_ewstock_avail_ma_625",
+   "sumret2_ewstock_avail_ma_3125"
+  ]
+ },
+ "S_sumret3_ewstock": {
+  "stage": 2,
+  "bucket": "market_ew",
+  "series": [
+   "sumret3_ewstock"
+  ],
+  "drop": [
+   "adj_sumret3_ewstock_ma_1",
+   "adj_sumret3_ewstock_ma_5",
+   "adj_sumret3_ewstock_ma_25",
+   "adj_sumret3_ewstock_ma_125",
+   "adj_sumret3_ewstock_ma_625",
+   "adj_sumret3_ewstock_ma_3125",
+   "sumret3_ewstock_avail_ma_1",
+   "sumret3_ewstock_avail_ma_5",
+   "sumret3_ewstock_avail_ma_25",
+   "sumret3_ewstock_avail_ma_125",
+   "sumret3_ewstock_avail_ma_625",
+   "sumret3_ewstock_avail_ma_3125"
+  ]
+ },
+ "S_sumret4_ewstock": {
+  "stage": 2,
+  "bucket": "market_ew",
+  "series": [
+   "sumret4_ewstock"
+  ],
+  "drop": [
+   "adj_sumret4_ewstock_ma_1",
+   "adj_sumret4_ewstock_ma_5",
+   "adj_sumret4_ewstock_ma_25",
+   "adj_sumret4_ewstock_ma_125",
+   "adj_sumret4_ewstock_ma_625",
+   "adj_sumret4_ewstock_ma_3125",
+   "sumret4_ewstock_avail_ma_1",
+   "sumret4_ewstock_avail_ma_5",
+   "sumret4_ewstock_avail_ma_25",
+   "sumret4_ewstock_avail_ma_125",
+   "sumret4_ewstock_avail_ma_625",
+   "sumret4_ewstock_avail_ma_3125"
+  ]
+ },
+ "S_sumabsret_ewstock": {
+  "stage": 2,
+  "bucket": "market_ew",
+  "series": [
+   "sumabsret_ewstock"
+  ],
+  "drop": [
+   "adj_sumabsret_ewstock_ma_1",
+   "adj_sumabsret_ewstock_ma_5",
+   "adj_sumabsret_ewstock_ma_25",
+   "adj_sumabsret_ewstock_ma_125",
+   "adj_sumabsret_ewstock_ma_625",
+   "adj_sumabsret_ewstock_ma_3125",
+   "sumabsret_ewstock_avail_ma_1",
+   "sumabsret_ewstock_avail_ma_5",
+   "sumabsret_ewstock_avail_ma_25",
+   "sumabsret_ewstock_avail_ma_125",
+   "sumabsret_ewstock_avail_ma_625",
+   "sumabsret_ewstock_avail_ma_3125"
+  ]
+ },
+ "S_sumbipow_ewstock": {
+  "stage": 2,
+  "bucket": "market_ew",
+  "series": [
+   "sumbipow_ewstock"
+  ],
+  "drop": [
+   "adj_sumbipow_ewstock_ma_1",
+   "adj_sumbipow_ewstock_ma_5",
+   "adj_sumbipow_ewstock_ma_25",
+   "adj_sumbipow_ewstock_ma_125",
+   "adj_sumbipow_ewstock_ma_625",
+   "adj_sumbipow_ewstock_ma_3125",
+   "sumbipow_ewstock_avail_ma_1",
+   "sumbipow_ewstock_avail_ma_5",
+   "sumbipow_ewstock_avail_ma_25",
+   "sumbipow_ewstock_avail_ma_125",
+   "sumbipow_ewstock_avail_ma_625",
+   "sumbipow_ewstock_avail_ma_3125"
+  ]
+ },
+ "S_sumpret2_ewstock": {
+  "stage": 2,
+  "bucket": "market_ew",
+  "series": [
+   "sumpret2_ewstock"
+  ],
+  "drop": [
+   "adj_sumpret2_ewstock_ma_1",
+   "adj_sumpret2_ewstock_ma_5",
+   "adj_sumpret2_ewstock_ma_25",
+   "adj_sumpret2_ewstock_ma_125",
+   "adj_sumpret2_ewstock_ma_625",
+   "adj_sumpret2_ewstock_ma_3125",
+   "sumpret2_ewstock_avail_ma_1",
+   "sumpret2_ewstock_avail_ma_5",
+   "sumpret2_ewstock_avail_ma_25",
+   "sumpret2_ewstock_avail_ma_125",
+   "sumpret2_ewstock_avail_ma_625",
+   "sumpret2_ewstock_avail_ma_3125"
+  ]
+ },
+ "S_sumret2_vwstock": {
+  "stage": 2,
+  "bucket": "market_vw",
+  "series": [
+   "sumret2_vwstock"
+  ],
+  "drop": [
+   "adj_sumret2_vwstock_ma_1",
+   "adj_sumret2_vwstock_ma_5",
+   "adj_sumret2_vwstock_ma_25",
+   "adj_sumret2_vwstock_ma_125",
+   "adj_sumret2_vwstock_ma_625",
+   "adj_sumret2_vwstock_ma_3125",
+   "sumret2_vwstock_avail_ma_1",
+   "sumret2_vwstock_avail_ma_5",
+   "sumret2_vwstock_avail_ma_25",
+   "sumret2_vwstock_avail_ma_125",
+   "sumret2_vwstock_avail_ma_625",
+   "sumret2_vwstock_avail_ma_3125"
+  ]
+ },
+ "S_sumret3_vwstock": {
+  "stage": 2,
+  "bucket": "market_vw",
+  "series": [
+   "sumret3_vwstock"
+  ],
+  "drop": [
+   "adj_sumret3_vwstock_ma_1",
+   "adj_sumret3_vwstock_ma_5",
+   "adj_sumret3_vwstock_ma_25",
+   "adj_sumret3_vwstock_ma_125",
+   "adj_sumret3_vwstock_ma_625",
+   "adj_sumret3_vwstock_ma_3125",
+   "sumret3_vwstock_avail_ma_1",
+   "sumret3_vwstock_avail_ma_5",
+   "sumret3_vwstock_avail_ma_25",
+   "sumret3_vwstock_avail_ma_125",
+   "sumret3_vwstock_avail_ma_625",
+   "sumret3_vwstock_avail_ma_3125"
+  ]
+ },
+ "S_sumret4_vwstock": {
+  "stage": 2,
+  "bucket": "market_vw",
+  "series": [
+   "sumret4_vwstock"
+  ],
+  "drop": [
+   "adj_sumret4_vwstock_ma_1",
+   "adj_sumret4_vwstock_ma_5",
+   "adj_sumret4_vwstock_ma_25",
+   "adj_sumret4_vwstock_ma_125",
+   "adj_sumret4_vwstock_ma_625",
+   "adj_sumret4_vwstock_ma_3125",
+   "sumret4_vwstock_avail_ma_1",
+   "sumret4_vwstock_avail_ma_5",
+   "sumret4_vwstock_avail_ma_25",
+   "sumret4_vwstock_avail_ma_125",
+   "sumret4_vwstock_avail_ma_625",
+   "sumret4_vwstock_avail_ma_3125"
+  ]
+ },
+ "S_sumabsret_vwstock": {
+  "stage": 2,
+  "bucket": "market_vw",
+  "series": [
+   "sumabsret_vwstock"
+  ],
+  "drop": [
+   "adj_sumabsret_vwstock_ma_1",
+   "adj_sumabsret_vwstock_ma_5",
+   "adj_sumabsret_vwstock_ma_25",
+   "adj_sumabsret_vwstock_ma_125",
+   "adj_sumabsret_vwstock_ma_625",
+   "adj_sumabsret_vwstock_ma_3125",
+   "sumabsret_vwstock_avail_ma_1",
+   "sumabsret_vwstock_avail_ma_5",
+   "sumabsret_vwstock_avail_ma_25",
+   "sumabsret_vwstock_avail_ma_125",
+   "sumabsret_vwstock_avail_ma_625",
+   "sumabsret_vwstock_avail_ma_3125"
+  ]
+ },
+ "S_sumbipow_vwstock": {
+  "stage": 2,
+  "bucket": "market_vw",
+  "series": [
+   "sumbipow_vwstock"
+  ],
+  "drop": [
+   "adj_sumbipow_vwstock_ma_1",
+   "adj_sumbipow_vwstock_ma_5",
+   "adj_sumbipow_vwstock_ma_25",
+   "adj_sumbipow_vwstock_ma_125",
+   "adj_sumbipow_vwstock_ma_625",
+   "adj_sumbipow_vwstock_ma_3125",
+   "sumbipow_vwstock_avail_ma_1",
+   "sumbipow_vwstock_avail_ma_5",
+   "sumbipow_vwstock_avail_ma_25",
+   "sumbipow_vwstock_avail_ma_125",
+   "sumbipow_vwstock_avail_ma_625",
+   "sumbipow_vwstock_avail_ma_3125"
+  ]
+ },
+ "S_sumpret2_vwstock": {
+  "stage": 2,
+  "bucket": "market_vw",
+  "series": [
+   "sumpret2_vwstock"
+  ],
+  "drop": [
+   "adj_sumpret2_vwstock_ma_1",
+   "adj_sumpret2_vwstock_ma_5",
+   "adj_sumpret2_vwstock_ma_25",
+   "adj_sumpret2_vwstock_ma_125",
+   "adj_sumpret2_vwstock_ma_625",
+   "adj_sumpret2_vwstock_ma_3125",
+   "sumpret2_vwstock_avail_ma_1",
+   "sumpret2_vwstock_avail_ma_5",
+   "sumpret2_vwstock_avail_ma_25",
+   "sumpret2_vwstock_avail_ma_125",
+   "sumpret2_vwstock_avail_ma_625",
+   "sumpret2_vwstock_avail_ma_3125"
+  ]
+ },
+ "S_stocktwits_attention": {
+  "stage": 2,
+  "bucket": "sentiment",
+  "series": [
+   "stocktwits_attention"
+  ],
+  "drop": [
+   "adj_stocktwits_attention_ma_1",
+   "adj_stocktwits_attention_ma_5",
+   "adj_stocktwits_attention_ma_25",
+   "adj_stocktwits_attention_ma_125",
+   "adj_stocktwits_attention_ma_625",
+   "adj_stocktwits_attention_ma_3125",
+   "stocktwits_attention_avail_ma_1",
+   "stocktwits_attention_avail_ma_5",
+   "stocktwits_attention_avail_ma_25",
+   "stocktwits_attention_avail_ma_125",
+   "stocktwits_attention_avail_ma_625",
+   "stocktwits_attention_avail_ma_3125"
+  ]
+ },
+ "S_stocktwits_sentiment": {
+  "stage": 2,
+  "bucket": "sentiment",
+  "series": [
+   "stocktwits_sentiment"
+  ],
+  "drop": [
+   "adj_stocktwits_sentiment_ma_1",
+   "adj_stocktwits_sentiment_ma_5",
+   "adj_stocktwits_sentiment_ma_25",
+   "adj_stocktwits_sentiment_ma_125",
+   "adj_stocktwits_sentiment_ma_625",
+   "adj_stocktwits_sentiment_ma_3125",
+   "stocktwits_sentiment_avail_ma_1",
+   "stocktwits_sentiment_avail_ma_5",
+   "stocktwits_sentiment_avail_ma_25",
+   "stocktwits_sentiment_avail_ma_125",
+   "stocktwits_sentiment_avail_ma_625",
+   "stocktwits_sentiment_avail_ma_3125"
+  ]
+ },
+ "S_stocktwits_sentcount": {
+  "stage": 2,
+  "bucket": "sentiment",
+  "series": [
+   "stocktwits_sentcount"
+  ],
+  "drop": [
+   "adj_stocktwits_sentcount_ma_1",
+   "adj_stocktwits_sentcount_ma_5",
+   "adj_stocktwits_sentcount_ma_25",
+   "adj_stocktwits_sentcount_ma_125",
+   "adj_stocktwits_sentcount_ma_625",
+   "adj_stocktwits_sentcount_ma_3125",
+   "stocktwits_sentcount_avail_ma_1",
+   "stocktwits_sentcount_avail_ma_5",
+   "stocktwits_sentcount_avail_ma_25",
+   "stocktwits_sentcount_avail_ma_125",
+   "stocktwits_sentcount_avail_ma_625",
+   "stocktwits_sentcount_avail_ma_3125"
+  ]
+ },
+ "S_vix": {
+  "stage": 2,
+  "bucket": "implied_vol",
+  "series": [
+   "vix"
+  ],
+  "drop": [
+   "adj_vix_ma_1",
+   "adj_vix_ma_5",
+   "adj_vix_ma_25",
+   "adj_vix_ma_125",
+   "adj_vix_ma_625",
+   "adj_vix_ma_3125",
+   "vix_avail_ma_1",
+   "vix_avail_ma_5",
+   "vix_avail_ma_25",
+   "vix_avail_ma_125",
+   "vix_avail_ma_625",
+   "vix_avail_ma_3125"
+  ]
+ },
+ "S_vvix": {
+  "stage": 2,
+  "bucket": "implied_vol",
+  "series": [
+   "vvix"
+  ],
+  "drop": [
+   "adj_vvix_ma_1",
+   "adj_vvix_ma_5",
+   "adj_vvix_ma_25",
+   "adj_vvix_ma_125",
+   "adj_vvix_ma_625",
+   "adj_vvix_ma_3125",
+   "vvix_avail_ma_1",
+   "vvix_avail_ma_5",
+   "vvix_avail_ma_25",
+   "vvix_avail_ma_125",
+   "vvix_avail_ma_625",
+   "vvix_avail_ma_3125"
+  ]
+ },
+ "S_vix3m": {
+  "stage": 2,
+  "bucket": "implied_vol",
+  "series": [
+   "vix3m"
+  ],
+  "drop": [
+   "adj_vix3m_ma_1",
+   "adj_vix3m_ma_5",
+   "adj_vix3m_ma_25",
+   "adj_vix3m_ma_125",
+   "adj_vix3m_ma_625",
+   "adj_vix3m_ma_3125",
+   "vix3m_avail_ma_1",
+   "vix3m_avail_ma_5",
+   "vix3m_avail_ma_25",
+   "vix3m_avail_ma_125",
+   "vix3m_avail_ma_625",
+   "vix3m_avail_ma_3125"
+  ]
+ },
+ "S_voldemand_spx_open_and_close": {
+  "stage": 2,
+  "bucket": "vol_demand",
+  "series": [
+   "voldemand_spx_open_and_close"
+  ],
+  "drop": [
+   "adj_voldemand_spx_open_and_close_ma_1",
+   "adj_voldemand_spx_open_and_close_ma_5",
+   "adj_voldemand_spx_open_and_close_ma_25",
+   "adj_voldemand_spx_open_and_close_ma_125",
+   "adj_voldemand_spx_open_and_close_ma_625",
+   "adj_voldemand_spx_open_and_close_ma_3125",
+   "voldemand_spx_open_and_close_avail_ma_1",
+   "voldemand_spx_open_and_close_avail_ma_5",
+   "voldemand_spx_open_and_close_avail_ma_25",
+   "voldemand_spx_open_and_close_avail_ma_125",
+   "voldemand_spx_open_and_close_avail_ma_625",
+   "voldemand_spx_open_and_close_avail_ma_3125"
+  ]
+ },
+ "S_voldemand_spx_open_only": {
+  "stage": 2,
+  "bucket": "vol_demand",
+  "series": [
+   "voldemand_spx_open_only"
+  ],
+  "drop": [
+   "adj_voldemand_spx_open_only_ma_1",
+   "adj_voldemand_spx_open_only_ma_5",
+   "adj_voldemand_spx_open_only_ma_25",
+   "adj_voldemand_spx_open_only_ma_125",
+   "adj_voldemand_spx_open_only_ma_625",
+   "adj_voldemand_spx_open_only_ma_3125",
+   "voldemand_spx_open_only_avail_ma_1",
+   "voldemand_spx_open_only_avail_ma_5",
+   "voldemand_spx_open_only_avail_ma_25",
+   "voldemand_spx_open_only_avail_ma_125",
+   "voldemand_spx_open_only_avail_ma_625",
+   "voldemand_spx_open_only_avail_ma_3125"
+  ]
+ },
+ "S_voldemand_all_open_and_close": {
+  "stage": 2,
+  "bucket": "vol_demand",
+  "series": [
+   "voldemand_all_open_and_close"
+  ],
+  "drop": [
+   "adj_voldemand_all_open_and_close_ma_1",
+   "adj_voldemand_all_open_and_close_ma_5",
+   "adj_voldemand_all_open_and_close_ma_25",
+   "adj_voldemand_all_open_and_close_ma_125",
+   "adj_voldemand_all_open_and_close_ma_625",
+   "adj_voldemand_all_open_and_close_ma_3125",
+   "voldemand_all_open_and_close_avail_ma_1",
+   "voldemand_all_open_and_close_avail_ma_5",
+   "voldemand_all_open_and_close_avail_ma_25",
+   "voldemand_all_open_and_close_avail_ma_125",
+   "voldemand_all_open_and_close_avail_ma_625",
+   "voldemand_all_open_and_close_avail_ma_3125"
+  ]
+ },
+ "S_voldemand_all_open_only": {
+  "stage": 2,
+  "bucket": "vol_demand",
+  "series": [
+   "voldemand_all_open_only"
+  ],
+  "drop": [
+   "adj_voldemand_all_open_only_ma_1",
+   "adj_voldemand_all_open_only_ma_5",
+   "adj_voldemand_all_open_only_ma_25",
+   "adj_voldemand_all_open_only_ma_125",
+   "adj_voldemand_all_open_only_ma_625",
+   "adj_voldemand_all_open_only_ma_3125",
+   "voldemand_all_open_only_avail_ma_1",
+   "voldemand_all_open_only_avail_ma_5",
+   "voldemand_all_open_only_avail_ma_25",
+   "voldemand_all_open_only_avail_ma_125",
+   "voldemand_all_open_only_avail_ma_625",
+   "voldemand_all_open_only_avail_ma_3125"
+  ]
+ },
+ "S_fomc_day": {
+  "stage": 2,
+  "bucket": "fomc",
+  "series": [
+   "fomc_day"
+  ],
+  "drop": [
+   "adj_fomc_day_ma_1",
+   "adj_fomc_day_ma_5",
+   "adj_fomc_day_ma_25",
+   "adj_fomc_day_ma_125",
+   "adj_fomc_day_ma_625",
+   "adj_fomc_day_ma_3125",
+   "fomc_day_avail_ma_1",
+   "fomc_day_avail_ma_5",
+   "fomc_day_avail_ma_25",
+   "fomc_day_avail_ma_125",
+   "fomc_day_avail_ma_625",
+   "fomc_day_avail_ma_3125"
+  ]
+ },
+ "S_fomc_until_inv": {
+  "stage": 2,
+  "bucket": "fomc",
+  "series": [
+   "fomc_until_inv"
+  ],
+  "drop": [
+   "adj_fomc_until_inv_ma_1",
+   "adj_fomc_until_inv_ma_5",
+   "adj_fomc_until_inv_ma_25",
+   "adj_fomc_until_inv_ma_125",
+   "adj_fomc_until_inv_ma_625",
+   "adj_fomc_until_inv_ma_3125",
+   "fomc_until_inv_avail_ma_1",
+   "fomc_until_inv_avail_ma_5",
+   "fomc_until_inv_avail_ma_25",
+   "fomc_until_inv_avail_ma_125",
+   "fomc_until_inv_avail_ma_625",
+   "fomc_until_inv_avail_ma_3125"
+  ]
+ },
+ "S_fomc_since_inv": {
+  "stage": 2,
+  "bucket": "fomc",
+  "series": [
+   "fomc_since_inv"
+  ],
+  "drop": [
+   "adj_fomc_since_inv_ma_1",
+   "adj_fomc_since_inv_ma_5",
+   "adj_fomc_since_inv_ma_25",
+   "adj_fomc_since_inv_ma_125",
+   "adj_fomc_since_inv_ma_625",
+   "adj_fomc_since_inv_ma_3125",
+   "fomc_since_inv_avail_ma_1",
+   "fomc_since_inv_avail_ma_5",
+   "fomc_since_inv_avail_ma_25",
+   "fomc_since_inv_avail_ma_125",
+   "fomc_since_inv_avail_ma_625",
+   "fomc_since_inv_avail_ma_3125"
+  ]
+ }
+}

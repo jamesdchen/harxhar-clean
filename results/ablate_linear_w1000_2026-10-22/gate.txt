@@ -1,0 +1,17 @@
+penalty ridge: Hoffman2 1000.0, published 1000.0, equal
+penalty lasso: Hoffman2 0.001, published 0.001, equal
+penalty enet: Hoffman2 0.01, published 0.01, equal
+designs record equal (names, rows, factor): True
+info equal (rule, folds, grids, runner_cfg): True
+pretune_mse.csv mse_fold0: bit for bit
+pretune_mse.csv mse_fold1: bit for bit
+pretune_mse.csv mse_fold2: bit for bit
+pretune_mse.csv mse_fold3: bit for bit
+pretune_mse.csv mse_mean: bit for bit
+pretune fold.npz ridge: resid bit for bit; grid, folds, masks, names, backbone equal: True
+pretune fold.npz lasso: resid bit for bit; grid, folds, masks, names, backbone equal: True
+pretune fold.npz enet: resid bit for bit; grid, folds, masks, names, backbone equal: True
+forecasts ridge (40,497 bars): pred_adj bit for bit; plain bit for bit; true_adj bit for bit; B bit for bit
+forecasts lasso (40,497 bars): pred_adj bit for bit; plain bit for bit; true_adj bit for bit; B bit for bit
+forecasts enet (40,497 bars): pred_adj bit for bit; plain bit for bit; true_adj bit for bit; B bit for bit
+GATE PASS: penalties equal True, max relative forecast difference 0.00e+00
