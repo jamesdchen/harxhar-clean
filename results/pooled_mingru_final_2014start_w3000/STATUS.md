@@ -147,3 +147,12 @@ errors); binary copied from `/home1/jc_905/pm13/bin` (md5 44ab6fff).
 - GPU-type gates resubmitted (13346565-68) after finding the first V100 / A40 segfaults were the gate script's nested
   --out path (diagnosis v2 13331862: the gate's own jobs run cleanly on a V100). Heavy-shape packing (13335886): no
   gain at H 256 (memory-bound, ~860 deferrals), OOM at CONC 24 for full H 256 L 48: CONC 24 only for H <= 64, L <= 20.
+- 2026-10-23 13:30-14:00 PDT: GPU-type gates (fixed script): L40S (13346568) and A40 (13346566) NOT identical to the
+  P100 (validation forecasts max rel. diff 3.1 % / 1.6 % HAR, 10.3 % / 9.1 % full; best epochs identical; seed-mean
+  QLIKE within 0.05 %) but self-consistent (tune twice -> identical); L40S ~2x the P100's speed. V100 / A100 pending.
+- Read-only replay with the owner's fixed extension trigger (experiments/pooled_mingru_final_replay.py, 13351216,
+  replay_w3000/replay.json): extend an edge axis only if the best configuration at the edge beats the best at the
+  adjacent value by more than k bootstrap SE. HAR (k = 1 and 2): every edge test L48 / H256 / wd_lin 30 / lr_lin 1e-4
+  vs the adjacent best L20_H64_lr0.01_we3_wl3_ll1e-05: d = 0.000035, SE 0.000507 -> no extension; frozen at round 0
+  L48_H256_lr0.003_we3_wl30_ll0.0001 (0.122699; epochs 7/17/6/3/12; ~5.5 P100-s a refit, walk ~258 P100-h by tune
+  epoch cost). Full set: round-0 pick interior, unchanged. W 3,500 round 0 at 20 / 44 (not yet replayable).
