@@ -24,10 +24,20 @@
   \item \textbf{MinGRU network:} parked; rerun on the final design before it enters (tuning grid, seeds and refit
     cadence to be decided).
   \item \textbf{Standardization} (STANDARDIZE\_PENALTY, merged 2430543): the penalized pooled models are refit on
-    columns standardized within each estimation window (Section~\ref{sec:rh_methods_models}). The window study
-    now runs on a 2 January 2014 start, giving up 2012--13 of the accuracy sample, so that windows up to 3,500
-    days can be compared on the latest pre-sample fold; the first evaluation day of the final rerun follows that
-    study.
+    columns standardized within each estimation window (Section~\ref{sec:rh_methods_models}).
+  % 2026-10-23 (user): window decided after the learning-curve sweeps (results/window_sweep_2014start_2026-10-22,
+  % results/window_sweep_2016start_2026-10-22). Was: "The window study now runs on a 2 January 2014 start, giving up
+  % 2012--13 of the accuracy sample, so that windows up to 3,500 days can be compared on the latest pre-sample fold;
+  % the first evaluation day of the final rerun follows that study."
+  \item \textbf{Window and sample} (decided 23 October 2026): first evaluation day 2 January 2014 (2012--13 leave
+    the accuracy sample; the option-trading sample is unchanged), penalties and configurations tuned on the last
+    pre-sample fold (validation year 2013), main window 3,000 trading days, 3,500 days as robustness. The
+    learning curves: the linear models' closing-interval accuracy stops improving near 3,000 days and their
+    every-interval accuracy does not improve beyond 1,000; the trees improve until about 3,500. At 3,000 days only
+    one exogenous column is never live on the option days; at 3,500, VVIX, volatility demand and the longest
+    StockTwits sentiment averages are not. The linear runs exist; the tree walks (3,000: all three; 3,500:
+    LightGBM and XGBoost) and the MinGRU (3,000) are running. A test of the dense-and-weak reading across windows
+    (do more observations per coefficient bring in more variables?) is computed from the same sweep.
   \item \textbf{Closing-interval models:} not rerun (James, 22 October 2026); their full-sample rules are disclosed
     (notes S4a, S4c, S4d). The data fixes they predate (invalid-print nulling, FOMC calendar, VIX splice, fill cap)
     still need a disclosure in Section~\ref{sec:rh_data} (E28).
