@@ -1,0 +1,61 @@
+{
+ "est": "rf_skx",
+ "predictor_set": "all_features",
+ "refit": "bar",
+ "span": [
+  "2014-01-02",
+  "2024-04-30"
+ ],
+ "part": "49/115",
+ "block": [
+  "2018-04-26 10:00:00",
+  "2018-05-28 13:00:00"
+ ],
+ "rows": 293,
+ "refits": 293,
+ "wall_sec": 7414.9,
+ "config": "rf400_rf_opt_00",
+ "sha": "88eebb5fa9e8",
+ "params": {
+  "n_estimators": 485,
+  "max_depth": 20,
+  "min_samples_leaf": 12,
+  "max_features": 0.9013236540796851,
+  "max_samples": 0.41297156429787285,
+  "bootstrap": true
+ },
+ "config_file": "cluster/pooltree_rf400_config.json",
+ "config_file_sha256": "ba5c99b02b9359e070813a7ed8a421cb96205176a7dc91aa55c6b0288f164567",
+ "window_rows": 45500,
+ "window_days": 3500,
+ "n_columns": 564,
+ "threads": 20,
+ "host": "b22-18.hpc.usc.edu",
+ "cpu": "AMD EPYC 7542 32-Core Processor",
+ "cpus": [
+  "AMD EPYC 7542 32-Core Processor"
+ ],
+ "versions": {
+  "python": "3.12.15",
+  "numpy": "1.26.4",
+  "pandas": "2.3.3",
+  "scipy": "1.17.1",
+  "sklearn": "1.9.1",
+  "lightgbm": "4.6.0",
+  "xgboost": "3.2.0",
+  "pyarrow": "19.0.1",
+  "sklearnex": "2026.2.0",
+  "daal": "2026.2.0"
+ },
+ "design": "/home1/jc_905/trees_final/designs/w3500/_work/design_all_features",
+ "slurm_job": "13326246",
+ "slurm_task": "52",
+ "skx_dispatch": [
+  "sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU",
+  "sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU"
+ ],
+ "skx_split": {
+  "max_bins": 256,
+  "min_bin_size": 1
+ }
+}
