@@ -15,7 +15,7 @@ module load apptainer/1.2.2
 B=/u/scratch/j/jamesdc1/tlc
 NT=${THREADS:-${NSLOTS:-1}}
 TASK=${SGE_TASK_ID:-1}; [ "$TASK" = undefined ] && TASK=1
-LINE=$(sed -n "${TASK}p" "${TASKFILE:?TASKFILE}")
+LINE=$(sed -n "${TASK}p" "${TASKFILE:?TASKFILE}" | tr -d '\r')  # task files written on Windows: CRLF
 read -r EST SET REFIT FIRST LAST PART <<< "$LINE"
 [ -n "${PART:-}" ] || { echo "malformed line $TASK of $TASKFILE: '$LINE'"; exit 1; }
 CPU=$(grep -m1 'model name' /proc/cpuinfo | cut -d: -f2 | sed 's/^ *//')
