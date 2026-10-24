@@ -48,3 +48,14 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
 - 2026-10-23 19:10 PDT: G1 still PENDING on debug (e23-02's two P100s held by another user's 55-min jobs, 4 jobs ahead;
   our priority 3,163, fairshare factor 151). The same G1 file also submitted to the gpu partition (13354135, 12 min;
   P100s: 72 of 74 allocated): whichever starts first is kept, the other cancelled (G2's afterok then moved to it).
+- 2026-10-23 19:58 PDT: G1 still PENDING (debug: expected start 20:42; gpu: priority). The two E 1,000 G2 files (63 / 78
+  min limits, poor backfill odds) cancelled while PENDING (13353698 / 13353699, ours) and replaced by 6 files of one
+  (set, lr) each (v2g2m_*, 2 jobs, 28 / 33 min: 13355108-13). Every G2 file now waits afterok on either G1 copy.
+- 2026-10-23 20:41 PDT, hand-back (the agent's run ended before G1 ran): queued, nothing of v2 has run on a GPU yet.
+  G1 13353680 (debug, expected start 20:42) and its gpu copy 13354135 (cancel whichever has not started once one has);
+  G2 E 300 files 13353696 / 13353697 (debug), E 1,000 files 13355108-13 (gpu), all afterok on either G1 copy.
+  Next: pull runs/g1_baseline_<id> (summary/, tune/steps.csv.gz, tune/epochs.csv) and run
+  `pooled_mingru_v2.py g1-check`; then pull runs/v2g2*_*/summary and run `g2-decide` (E1 per set, Stage-1 lr set);
+  then Stage 1 at both windows (`jobs --kind s1`, W 3,500 with nice), `s1-table`, etc. per RULE_gru_v2.txt.
+  The old walk's pending halves (15 PENDING, 12 RUNNING) have older submit times and take the gpu partition's P100s
+  ahead of v2 jobs; not touched.
