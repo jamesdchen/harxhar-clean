@@ -191,3 +191,8 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   tau0.3_we15_E160 0.116303, tau0_we3_E40 0.116317 (spread of the top 3: 0.00009). The pick is again at the tau high
   edge (9) -> extension 2 (the last on that side): tau 27, 18 configurations, 270 jobs (tag v2s2x2, A40):
   13373353-54 gpu, 13373355-56 debug. G7 bar inits done (CPU 13373087 / 13373088: 24 files a set, both windows).
+- 2026-10-24 03:03 PDT G6 HAR (W 3,000) screen complete (P100, 20 files, 480 jobs, all n_bad 0; walls 389-1,277 s).
+  Screen top 5 by C (stage2/s2_screen_baseline_round0.csv): tau1_we0_E10 0.126221, tau0.3_we0_E10 0.126234,
+  tau1_we0_E20 0.126251, tau3_we0_E40 0.126288, tau3_we0_E20 0.126296 (the shortcut alone, L 20: 0.13044); long
+  training hurts (E 1,000 configurations 0.13-0.15). Fresh seeds for the shortlist (75 jobs, tag v2s2hc, debug P100):
+  13373698. Full-set extension 2: debug files 13373355-56 done, gpu 13373353-54 pending (A40).
