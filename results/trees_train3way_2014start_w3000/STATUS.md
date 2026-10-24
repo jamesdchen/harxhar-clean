@@ -122,3 +122,26 @@ Not submitted: ALL48's forest full set (runs/tasks/w3rf_full.txt, 368 lines; `co
   13371786 / 13371788 run.
 - Held: LightGBM walks 13371785 (ALL48_N39k) and 13371787 (ALL48), DependencyNeverSatisfied on 13371781; with them the
   merges / scores 13371791-13371794 (afterany on the LightGBM arrays) wait.  Nothing loosened; the owner decides.
+
+## Addenda C and D (02:00 PDT): the ALL48 forest full set (CARC + Hoffman2) and LightGBM deterministic
+
+RULE.txt addenda C and D committed in d9d01fd before their jobs; code archive `code_d9d01fd`.  Submitted 02:01 PDT
+(`code/submit_cd.sh`); cancelled first (never started): the addendum-B LightGBM walks 13371785 / 13371787 and their
+merges / scores 13371791-13371794.
+
+| Job | Name | What | Depends on |
+|---|---|---|---|
+| 13372422 | t3t_gda | gate D walks on EPYC 7513 (18 lines: ALL48 every / scored / one1-4, ALL48_N39k scored / one1-2, RTH13 record; both sets) | - |
+| 13372423 | t3t_gdb | gate D walks on EPYC 7542 (14 lines: ALL48 scored2 / one5-8, ALL48_N39k scored2 / one3-4; both sets) | - |
+| 13372424 | t3t_gdc | gate D (a): gate2 --arm ALL48 --est lgbm, gaterep --min-hosts 2 | gda, gdb |
+| 13372425 | t3t_gdr | gate D (b) record -> gate/gdb/colwise_vs_template.json | gda (afterany) |
+| 13372426 | t3t_w2l | ALL48_N39k LightGBM, deterministic + col-wise (12, %12) | gdc |
+| 13372427 | t3t_w3l | ALL48 LightGBM, deterministic + col-wise (31, %15) | gdc |
+| 13372428 / 13372429 | t3t_m2 / t3t_s2 | merge ALL48_N39k / scores_w2 | w2l, 13371786, 13371789 / m2, s1 13369760 |
+| 13372430 / 13372431 | t3t_m3 / t3t_s3 | merge ALL48 without the forest full set / scores_w3 | w3l, 13371788, 13371790 / m3, s2 |
+| 13372432 | t3t_w3f | ALL48 forest full set, lines 1-239 of w3rf_full.txt, 20 threads, 16 GB (%25) | - |
+| 13372433 | t3t_m4 | ALL48 merge with every class: intake runs/pieces_h2 + --accept-cpus (HELD until the Hoffman2 pieces are in) | w3f, w3l, 13371788, 13371790 |
+| 13372434 | t3t_s4 | final scores -> scores (last job of the whole run) | m4, s3 |
+
+Hoffman2: `runs/tasks/h2_assignment.txt` (ASSIGNED w3rf_full.txt 240-368 ALL48 rf_skx all_features),
+`runs/tasks/h2_code_commit.txt` (d9d01fd1...), incoming `runs/pieces_h2/`, gate runs `gate/h2/<tag>/{g1,g2}/`.
