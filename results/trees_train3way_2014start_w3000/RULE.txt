@@ -181,3 +181,45 @@ ADDENDUM B, 2026-10-24 01:25 PDT (08:25 UTC), before any job it affects: THE OWN
    sets passed bit for bit; the forest: its HAR set passed, its full set (13369749_3) still running at this writing).
    Placement: CARC EPYC 7513 / 7542 for every class (Hoffman2 not used: no gate there).  The merge of ALL48 skips the
    forest's full set (--skip rf_skx/all_features); the final scores cover every arm and class run.
+
+ADDENDUM C, 2026-10-24 02:00 PDT (09:00 UTC), before any job it affects: ALL48'S FOREST FULL SET APPROVED; CARC + HOFFMAN2
+   Owner (James, relayed by the coordinator, about 02:00 PDT): the forest's full set on ALL48 (3,000 days) runs now --
+   runs/tasks/w3rf_full.txt, 368 lines (the probe's rule: 145.9 s a refit at 20 threads, 27,527 CPU-hours projected) --
+   on CARC EPYC 7513 / 7542 and on Hoffman2 nodes whose CPU model passes the Hoffman2 gates; Hoffman2 is set up and run
+   by a separate (coordinator-launched) agent from CARC's exact inputs (md5-verified; no CARC-to-Hoffman2 connection).
+   Precondition kept: the forest's gate 2 on ALL48 passed (t3t_g2r 13371784: full set bit-identical over the 38-row
+   overnight slice).  Assignment: lines 1-239 on CARC (one array, 20 threads, throttled), lines 240-368 (129 lines,
+   35 %) reserved for Hoffman2; the current assignment is the file /scratch1/jc_905/trees3way/runs/tasks/
+   h2_assignment.txt (kept by this run; a line moves only by editing it, and a moved line restarts from scratch:
+   a forest piece never resumes on another CPU family).  Hoffman2 gates, per CPU model used (each model a tag): gate 1
+   (RTH13, the first and last 10 origins of the forest's both sets, against the templates' forecasts: <= 1e-14
+   relative, true_adj and B equal -- section 5's forest tolerance; across CPU families oneDAL differs by about 3e-15,
+   results/rf_engine_bench_2026-10-23) and gate 2 (ALL48 and ALL48_N3k slices of section 5, every row against the
+   scored origins, bit for bit), the runs delivered to CARC (gate/h2/<tag>/g1 and g2, with MD5SUMS) and checked there
+   (experiments/trees_train3way.py accept -> runs/pieces_h2/accepted_cpus.json).  Pieces: delivered to runs/pieces_h2/
+   with an MD5SUMS manifest; taken into runs/pieces/ by merge --intake only if md5, meta (arm, class, set, window,
+   line), rows, oneDAL 2026.2.0 and a gate-passed CPU model all check; merge --accept-cpus then asserts every CPU
+   model of the arm is gate-passed (one CPU family within each piece) and records each piece's CPU models in
+   forecasts.json.  So the ALL48 forest's full-set forecasts may come from more than one CPU family (each gated);
+   this departs from RULE_rf_skx.txt's one family an arm, by the owner's placement.  Merge and scores: the ALL48
+   merge with every class and the final scores run when the Hoffman2 pieces are in (a held job, released then); the
+   interim ALL48 merge without that cell stays as in addendum B.  Other not-yet-started work may be offered to
+   Hoffman2 in the assignment file if CARC is saturated (none at this writing).
+
+ADDENDUM D, 2026-10-24 02:00 PDT (09:00 UTC), before any LightGBM walk of ALL48 or ALL48_N39k: LIGHTGBM DETERMINISTIC
+   Gate C (addendum B) failed: with force_col_wise the ALL48 full-set LightGBM fit at 2014-01-03 10:00 still gave
+   0.8102594551794626 or ...627 in fresh processes on the same node (1 ulp); every other gate-C check passed.  Owner
+   (relayed by the coordinator, about 02:15 PDT; "option A"): bit-reproducible 48-period LightGBM through LightGBM's
+   deterministic=True together with force_col_wise=True in ALL48 and ALL48_N39k (LightGBM's documented setting for
+   stable multi-threaded results; the configuration's parameters, seed and threads unchanged).  ALL48_N3k, CLOSE,
+   RTH13_N3k and the reused RTH13 keep the template setting.  The piece meta records lgbm_deterministic and merge
+   asserts it per arm.  The LightGBM walk arrays of addendum B (13371785, 13371787) and their merges / scores
+   (13371791-13371794) are cancelled (never started) and resubmitted on the new code after gate D.
+   Gate D (8 threads, every line a separate process -> gate/gd; the fresh single fits on both EPYC 7513 and 7542 nodes):
+     (a) LightGBM with deterministic + force_col_wise, both sets: ALL48 (W 144,000) every-row against scored-only
+         refits over 2014-01-02 15:30 .. 2014-01-03 10:00 bit for bit; repeats bit for bit: the scored-only walk again
+         (scored2) and the 2014-01-03 10:00 origin fitted alone in 8 fresh processes (one1-4 on EPYC 7513, one5-8 on
+         7542) for ALL48, and for ALL48_N39k (scored2; one1-2 on 7513, one3-4 on 7542); at least 2 nodes per origin.
+         If (a) fails: stop and report (no other option is taken without the owner).
+     (b) record (no pass / fail): deterministic + force_col_wise against the template setting on RTH13 (W 39,000) at
+         the gate-1 origins, both sets -> gate/gdb/colwise_vs_template.json (the max relative difference of pred_adj).

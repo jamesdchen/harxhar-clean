@@ -72,8 +72,15 @@ ARMS: dict[str, dict[str, Any]] = {
     # 2026-10-24 addendum B (owner: "Force col-wise"): LightGBM with force_col_wise=True in ALL48 and ALL48_N39k (its
     # timing-based col-/row-wise choice made the 144,000-row window 1-ulp non-deterministic); ALL48_N3k's LightGBM
     # walks had started with the template setting and keep it.  Was: no lgbm_col_wise key (the template setting).
+    # 2026-10-24 addendum D (owner, option A): + LightGBM deterministic=True in the same arms (force_col_wise alone left
+    # a 1-ulp run-to-run difference, gate C).  Was: lgbm_col_wise=True only.
     "ALL48": dict(
-        design="ALL48", sample="all", W=144000, desc="all 48 half-hour intervals, 3,000 days", lgbm_col_wise=True
+        design="ALL48",
+        sample="all",
+        W=144000,
+        desc="all 48 half-hour intervals, 3,000 days",
+        lgbm_col_wise=True,
+        lgbm_deterministic=True,
     ),
     "ALL48_N3k": dict(design="ALL48", sample="all", W=3000, desc="all 48 half-hour intervals, the last 3,000 rows"),
     "ALL48_N39k": dict(
@@ -82,6 +89,7 @@ ARMS: dict[str, dict[str, Any]] = {
         W=39000,
         desc="all 48 half-hour intervals, the last 39,000 rows",
         lgbm_col_wise=True,
+        lgbm_deterministic=True,
     ),
 }
 # the templates' design caches (results/pooled_trees_final_2014start_w3000/run.json design.md5; the rf_skx run used the
@@ -206,19 +214,29 @@ def col_wise(a, est: str, arm: str) -> bool:
     return {"arm": bool(ARMS[arm].get("lgbm_col_wise", False)), "on": True, "off": False}[a.lgbm_col_wise]
 
 
-def model(est: str, threads: int, cw: bool):
-    """pooled_trees_rerun_13.model_factory; with cw, LightGBM's LGBMRegressor with force_col_wise=True added (the
-    same configuration, seed and threads otherwise)."""
+def determ(a, est: str, arm: str) -> bool:
+    """LightGBM's deterministic=True for this call: the arm's setting (addendum D), or --lgbm-deterministic on / off."""
+    if est != "lgbm":
+        return False
+    return {"arm": bool(ARMS[arm].get("lgbm_deterministic", False)), "on": True, "off": False}[a.lgbm_deterministic]
+
+
+def model(est: str, threads: int, cw: bool, det: bool = False):
+    """pooled_trees_rerun_13.model_factory; with cw / det, LightGBM's LGBMRegressor with force_col_wise=True /
+    deterministic=True added (the same configuration, seed and threads otherwise)."""
     cfg, make = T.model_factory(est, threads)
-    if not cw:
+    if not (cw or det):
         return cfg, make
     assert est == "lgbm"
     import lightgbm as lgb
 
     params = dict(cfg.get("params") or {})
-    return cfg, lambda: lgb.LGBMRegressor(
-        **params, num_threads=threads, random_state=42, verbosity=-1, force_col_wise=True
-    )
+    extra: dict = {}
+    if cw:
+        extra["force_col_wise"] = True
+    if det:
+        extra["deterministic"] = True
+    return cfg, lambda: lgb.LGBMRegressor(**params, num_threads=threads, random_state=42, verbosity=-1, **extra)
 
 
 def piece_path(out: Path, arm: str, est: str, s: str, tag: str) -> Path:
@@ -277,8 +295,8 @@ def cmd_walk(a) -> int:
     y_all = des.y()
     y = np.ascontiguousarray(y_all[need])
     b_all = des.b()
-    cw = col_wise(a, est, arm)
-    cfg, make = model(est, a.threads, cw)
+    cw, det = col_wise(a, est, arm), determ(a, est, arm)
+    cfg, make = model(est, a.threads, cw, det)
     rv = T.rv_bars()
     prior: dict = json.loads(ckpt_p.read_text()) if ckpt_p.is_file() else {"wall_sec": 0.0, "refits": 0}
     cpus: list[str] = [str(x) for x in prior.get("cpus", [])] + [T.cpu_model()]
@@ -287,7 +305,7 @@ def cmd_walk(a) -> int:
     say(
         f"walk {arm} {est} {s} {tag}: {len(rows)} refits {stamps[0]} .. {stamps[-1]}, {len(have)} on disk; design "
         f"{des.name} ({des.n} rows, {X.shape[1]} columns), sample {c['sample']} ({len(S)} rows), W {W}; "
-        f"{cfg['name']} {cfg['sha']}, threads {a.threads}{', LightGBM force_col_wise' if cw else ''}"
+        f"{cfg['name']} {cfg['sha']}, threads {a.threads}{', LightGBM force_col_wise' if cw else ''}{', deterministic' if det else ''}"
     )
     recs = [done] if len(done) else []
     t0, t_ck, k = time.time(), time.time(), 0
@@ -366,6 +384,7 @@ def cmd_walk(a) -> int:
     }
     if est == "lgbm":
         meta["lgbm_force_col_wise"] = cw
+        meta["lgbm_deterministic"] = det
     if est == "rf_skx":
         meta["skx_dispatch"] = skx_dispatch
         meta["skx_split"] = {k_: v for k_, v in make().get_params().items() if k_ in ("max_bins", "min_bin_size")}
@@ -382,6 +401,13 @@ def cmd_merge(a) -> int:
     root, out = Path(a.design_root).resolve(), Path(a.out).resolve()
     arm = a.arm
     frames, used, cms = [], {}, {}
+    # 2026-10-24 addendum C: CPU models accepted = CARC's EPYC 7513 / 7542 (the CARC gates) + the Hoffman2 models that
+    # passed the Hoffman2 gates (--accept-cpus, written by mode accept); Hoffman2 pieces enter through --intake.
+    h2_acc = set(json.loads(Path(a.accept_cpus).read_text())["accepted"]) if a.accept_cpus else set()
+    acc = set(T.CPU_FAMILY) | h2_acc
+    if a.intake:
+        intake(Path(a.intake), out, root, h2_acc)
+    piece_cpus: dict[str, list[str]] = {}
     for est in a.est or list(EST):
         for s in SETS:
             if f"{est}/{s}" in a.skip:  # addendum B: a class / set not run (ALL48's forest full set)
@@ -413,10 +439,17 @@ def cmd_merge(a) -> int:
             for p in ps.values():
                 pm = json.loads(p.with_suffix(".json").read_text())
                 assert (pm["arm"], pm["est"], pm["predictor_set"], pm["window_rows"]) == (arm, est, s, ARMS[arm]["W"])
-                if est == "lgbm":  # addendum B: the arm's setting (pieces before it carry no key = the template's)
+                if est == "lgbm":  # addenda B / D: the arm's settings (pieces before them carry no key = template's)
                     assert bool(pm.get("lgbm_force_col_wise", False)) == col_wise(a, est, arm), p.name
-                c |= set(pm.get("cpus") or [pm["cpu"]])
-            if est in T.ONE_CPU:
+                    assert bool(pm.get("lgbm_deterministic", False)) == determ(a, est, arm), p.name
+                pc = set(pm.get("cpus") or [pm["cpu"]])
+                piece_cpus[p.name] = sorted(pc)
+                if est in T.ONE_CPU:  # a piece never mixes CPU families (the walk refuses to resume across them)
+                    assert len({T.cpu_family(x) for x in pc}) == 1, f"{p.name}: CPU families {sorted(pc)}"
+                c |= pc
+            if a.accept_cpus:  # addendum C: every CPU model gate-passed (one family per piece, above)
+                assert c <= acc, f"{arm} {est} {s}: CPU models not gate-passed {sorted(c - acc)}"
+            elif est in T.ONE_CPU:
                 assert len({T.cpu_family(x) for x in c}) == 1, f"{arm} {est} {s}: CPU families {sorted(c)}"
             cms[f"{est}/{s}"] = sorted(c)
             used[f"{est}/{s}"] = [p.name for p in ps.values()]
@@ -431,9 +464,136 @@ def cmd_merge(a) -> int:
     dest.parent.mkdir(parents=True, exist_ok=True)
     fc.to_parquet(dest, index=False)
     dest.with_suffix(".json").write_text(
-        json.dumps(dict(arm=arm, window_rows=ARMS[arm]["W"], pieces=used, cpu_models=cms), indent=1)
+        json.dumps(
+            dict(
+                arm=arm,
+                window_rows=ARMS[arm]["W"],
+                pieces=used,
+                cpu_models=cms,
+                piece_cpus=piece_cpus,
+                accepted_cpus=sorted(acc),
+            ),
+            indent=1,
+        )
     )
     say(f"merged {len(fc)} rows -> {dest}")
+    return 0
+
+
+def read_md5sums(d: Path) -> dict[str, str]:
+    out: dict[str, str] = {}
+    for ln in (d / "MD5SUMS").read_text().splitlines():
+        if ln.strip():
+            h, name = ln.split(None, 1)
+            out[name.strip().lstrip("*")] = h
+    return out
+
+
+def intake(src: Path, out: Path, root: Path, h2_acc: set[str]) -> None:
+    """Addendum C: the Hoffman2 pieces delivered to src (with src/MD5SUMS) into <out>/pieces.  Each piece is taken only
+    if its parquet and json match the manifest's md5, its meta is the task line's (arm, class, set, window, i of n) with
+    no checkpoint pending, its CPU model (one) passed the Hoffman2 gates (h2_acc), rf_skx ran on oneDAL 2026.2.0, and
+    its rows are the line's block; a piece already in <out>/pieces must be byte-identical (else refused)."""
+    import re
+    import shutil
+    from argparse import Namespace
+
+    man = read_md5sums(src)
+    log = []
+    for p in sorted(src.glob("*.parquet")):
+        j = p.with_suffix(".json")
+        assert p.name in man and j.name in man, f"{p.name}: not in {src}/MD5SUMS"
+        assert md5(p) == man[p.name] and md5(j) == man[j.name], f"{p.name}: md5 differs from the manifest"
+        assert not p.with_suffix(".ckpt.json").exists(), f"{p.name}: checkpoint pending"
+        m = re.match(r"^(.+)_(lgbm|xgb|rf_skx)_(baseline|all_features)_([0-9]+)of([0-9]+)[.]parquet$", p.name)
+        assert m, p.name
+        arm, est, s_, i, n = m.group(1), m.group(2), m.group(3), m.group(4), m.group(5)
+        pm = json.loads(j.read_text())
+        assert (pm["arm"], pm["est"], pm["predictor_set"], pm["window_rows"], pm["tag"]) == (
+            arm,
+            est,
+            s_,
+            ARMS[arm]["W"],
+            f"{i}of{n}",
+        ), p.name
+        cpus = set(pm.get("cpus") or [pm["cpu"]])
+        assert len(cpus) == 1 and cpus <= h2_acc, f"{p.name}: CPU {sorted(cpus)} not a gate-passed Hoffman2 model"
+        if est == "rf_skx":
+            v = pm["versions"]
+            assert (v.get("sklearnex"), v.get("daal")) == ("2026.2.0", "2026.2.0"), (p.name, v)
+        des = Design(root, ARMS[arm]["design"], s_)
+        rows, _ = select(Namespace(ends=0, from_="", part=f"{i}/{n}", tag=""), root, des, arm)
+        f = pd.read_parquet(p)
+        assert pd.DatetimeIndex(f["date"]).equals(des.dates[rows]), f"{p.name}: rows"
+        dest = out / "pieces" / p.name
+        if dest.exists() or dest.with_suffix(".json").exists():
+            same = dest.exists() and md5(dest) == man[p.name] and md5(dest.with_suffix(".json")) == man[j.name]
+            assert same, f"{p.name}: a different piece of that name is already in {out}/pieces"
+            continue
+        tmp = dest.with_suffix(".h2tmp")
+        shutil.copyfile(p, tmp)
+        os.replace(tmp, dest)
+        shutil.copyfile(j, dest.with_suffix(".json"))
+        assert md5(dest) == man[p.name] and md5(dest.with_suffix(".json")) == man[j.name], p.name
+        log.append(dict(piece=p.name, md5=man[p.name], cpu=sorted(cpus), host=pm["host"], rows=len(f)))
+        say(f"intake {p.name} ({sorted(cpus)[0]}, {pm['host']})")
+    lp = out / "pieces_h2_intake.json"
+    old = json.loads(lp.read_text()) if lp.is_file() else []
+    lp.write_text(json.dumps(old + [dict(time=time.strftime("%F %T"), source=str(src), taken=log)], indent=1))
+    say(f"intake: {len(log)} new Hoffman2 pieces from {src}")
+
+
+def cmd_accept(a) -> int:
+    """Addendum C: the Hoffman2 gates, checked here on what Hoffman2 delivered: for each <h2-gates>/<tag>/ (one CPU
+    model), g1/pieces and g2/pieces md5-checked against their MD5SUMS, gate 1 (RTH13 --ends 10 against the templates:
+    LightGBM / XGBoost text-identical, the forest <= 1e-14 relative) and gate 2 (every row against the scored origins,
+    bit for bit) on the classes delivered; the models that pass -> <out>/pieces_h2/accepted_cpus.json."""
+    import re
+    from argparse import Namespace
+
+    acc: dict = {}
+    rec: dict = {}
+    for d in sorted(x for x in Path(a.h2_gates).iterdir() if x.is_dir()):
+        r: dict = {}
+        cpus: set[str] = set()
+        ok = True
+        for sub in ("g1", "g2"):
+            pd_ = d / sub / "pieces"
+            man = read_md5sums(pd_)
+            files = sorted(x for x in pd_.iterdir() if x.suffix in (".parquet", ".json") and ".ckpt" not in x.name)
+            good = all(x.name in man and md5(x) == man[x.name] for x in files) and len(files) > 0
+            r[f"{sub}_md5"] = bool(good)
+            ok &= good
+            for x in files:
+                if x.suffix == ".json":
+                    m = json.loads(x.read_text())
+                    cpus |= set(m.get("cpus") or [m["cpu"]])
+        e1 = sorted(
+            {
+                m.group(1)
+                for x in (d / "g1" / "pieces").glob("RTH13_*.parquet")
+                if (m := re.match(r"^RTH13_(lgbm|xgb|rf_skx)_", x.name))
+            }
+        )
+        e2 = sorted(
+            {
+                m.group(2)
+                for x in (d / "g2" / "pieces").glob("*_scored.parquet")
+                if (m := re.match(r"^(.+)_(lgbm|xgb|rf_skx)_", x.name))
+            }
+        )
+        r1 = cmd_gate1(Namespace(out=str(d / "g1"), est=e1, no_fail=False)) if ok and e1 else 3
+        r2 = cmd_gate2(Namespace(out=str(d / "g2"), arm_list=[], est=e2)) if ok and e2 else 3
+        r |= dict(classes_gate1=e1, classes_gate2=e2, gate1_rc=r1, gate2_rc=r2, cpus=sorted(cpus))
+        good = ok and r1 == 0 and r2 == 0 and len(cpus) == 1 and e1 == e2
+        r["pass"] = bool(good)
+        rec[d.name] = r
+        if good:
+            acc[sorted(cpus)[0]] = dict(tag=d.name, classes=e1)
+    o = Path(a.out).resolve() / "pieces_h2"
+    o.mkdir(parents=True, exist_ok=True)
+    (o / "accepted_cpus.json").write_text(json.dumps(dict(accepted=acc, checked=rec), indent=1))
+    say(f"ACCEPT {json.dumps(dict(accepted=acc, checked=rec))}")
     return 0
 
 
@@ -457,7 +617,7 @@ def cmd_time(a) -> int:
         )
         y = np.ascontiguousarray(des.y()[need])
         for est in a.est or list(EST):
-            _, make = model(est, a.threads, col_wise(a, est, arm))
+            _, make = model(est, a.threads, col_wise(a, est, arm), determ(a, est, arm))
             t0 = time.time()
             for p in P:
                 lo, hi = int(p) - W - base, int(p) - base
@@ -580,7 +740,7 @@ def cmd_gate1(a) -> int:
     g: dict = {}
     ok = True
     covered = set()
-    for est in EST:
+    for est in a.est or EST:
         tf = pd.read_parquet(TEMPLATE_FC[est])
         for s in SETS:
             ref = tf[(tf.model == est) & (tf.predictor_set == s)].set_index("date")
@@ -609,7 +769,7 @@ def cmd_gate1(a) -> int:
                 )
                 ok &= good
                 covered.add((est, s))
-    g["pass"] = bool(ok) and covered == {(e, s) for e in EST for s in SETS}
+    g["pass"] = bool(ok) and covered == {(e, s) for e in (a.est or EST) for s in SETS}
     (out / "gate1.json").write_text(json.dumps(g, indent=1))
     if a.no_fail:  # addendum B (b): a record only, written under another name
         (out / "gate1.json").rename(out / "colwise_vs_template.json")
@@ -622,13 +782,16 @@ def cmd_gate1(a) -> int:
 def cmd_gate2(a) -> int:
     """Gate 2: for each arm / est / set with both an 'every' and a 'scored' piece, the scored origins' forecasts of the
     every-row walk equal the scored-only walk's bit for bit (and date, true_adj, B)."""
+    import re
+
     out = Path(a.out).resolve()
     g: dict = {}
     ok = True
     n = 0
     for p in sorted((out / "pieces").glob("*_scored.parquet")):
         # 2026-10-24 (--arm, optional): the arms named only (a piece is <arm>_<est>_<set>_<tag>)
-        if a.arm_list and not any(p.name.startswith(f"{x}_{e}_") for x in a.arm_list for e in a.est or EST):
+        mm = re.match(r"^(.+)_(lgbm|xgb|rf_skx)_(baseline|all_features)_scored[.]parquet$", p.name)
+        if not mm or (a.arm_list and mm.group(1) not in a.arm_list) or (a.est and mm.group(2) not in a.est):
             continue
         q = p.with_name(p.name.replace("_scored.parquet", "_every.parquet"))
         assert q.is_file() and q.with_suffix(".json").is_file() and p.with_suffix(".json").is_file(), p.name
@@ -669,6 +832,7 @@ def cmd_gaterep(a) -> int:
     out = Path(a.out).resolve()
     g: dict = {}
     ok, n = True, 0
+    hosts: dict[str, set[str]] = {}
     for p in sorted((out / "pieces").glob("*.parquet")):
         m = re.match(r"^(.+)_(scored2|one[0-9]+)[.]parquet$", p.name)
         if not m:
@@ -693,6 +857,12 @@ def cmd_gaterep(a) -> int:
         )
         ok &= same
         n += 1
+        if m.group(2).startswith("one"):
+            hosts.setdefault(base.stem, set()).add(mr["host"])
+    # addendum D: the fresh single fits of each origin ran on at least --min-hosts nodes
+    g["one_hosts"] = {k: sorted(v) for k, v in hosts.items()}
+    if a.min_hosts:
+        ok &= all(len(v) >= a.min_hosts for v in hosts.values())
     g["pass"] = bool(ok) and n > 0
     (out / "gaterep.json").write_text(json.dumps(g, indent=1))
     say(f"GATE REPEATS {'PASS' if g['pass'] else 'FAIL'}: {json.dumps(g)}")
@@ -794,7 +964,10 @@ def cmd_check(a) -> int:
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("mode", choices=("check", "walk", "merge", "time", "tasks", "project", "gate1", "gate2", "gaterep"))
+    ap.add_argument(
+        "mode",
+        choices=("check", "walk", "merge", "time", "tasks", "project", "gate1", "gate2", "gaterep", "accept"),
+    )
     ap.add_argument("--design-root", default="", help="holds RTH13/ and ALL48/ (_work/design_<set>/)")
     ap.add_argument("--out", default="")
     ap.add_argument("--linear", default="", help="check: the linear comparison's results dir (read only)")
@@ -823,6 +996,12 @@ def main() -> int:
     ap.add_argument("--lgbm-col-wise", choices=("arm", "on", "off"), default="arm", help="walk / time / merge")
     ap.add_argument("--skip", action="append", default=[], help="merge: est/set not run")
     ap.add_argument("--no-fail", action="store_true", help="gate1: a record (colwise_vs_template.json), exit 0")
+    # 2026-10-24 addenda C / D
+    ap.add_argument("--lgbm-deterministic", choices=("arm", "on", "off"), default="arm", help="walk / time / merge")
+    ap.add_argument("--min-hosts", type=int, default=0, help="gaterep: nodes of the fresh single fits")
+    ap.add_argument("--accept-cpus", default="", help="merge: accepted_cpus.json (Hoffman2 models gate-passed)")
+    ap.add_argument("--intake", default="", help="merge: the Hoffman2 incoming piece directory (with MD5SUMS)")
+    ap.add_argument("--h2-gates", default="", help="accept: the directory of the delivered Hoffman2 gate runs")
     a = ap.parse_args()
     a.arm = a.arm_list[0] if a.arm_list else ""
     a.threads_of = dict((k, int(v)) for k, v in (x.split("=") for x in a.threads_of.split(",") if x))
@@ -840,6 +1019,7 @@ def main() -> int:
         "gate1": cmd_gate1,
         "gate2": cmd_gate2,
         "gaterep": cmd_gaterep,
+        "accept": cmd_accept,
     }[a.mode](a)
 
 

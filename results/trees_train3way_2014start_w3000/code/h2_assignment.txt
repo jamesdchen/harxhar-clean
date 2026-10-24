@@ -1,0 +1,29 @@
+# Hoffman2 assignment of the trees' three-way comparison (RULE.txt addendum C).  Kept by the CARC run; the live copy is
+# /scratch1/jc_905/trees3way/runs/tasks/h2_assignment.txt (this repo copy is its first version).  Rows (not starting
+# with #): <status> <task file> <line range> <arm> <est> <set> <threads used on CARC>
+#   status ASSIGNED = Hoffman2 runs these lines; OFFER = Hoffman2 may claim them through the coordinator (the CARC run
+#   then cancels its own tasks and flips the row to ASSIGNED); RETURNED = moved back to CARC (stop, do not deliver).
+# Task files: /scratch1/jc_905/trees3way/runs/tasks/<file>; line k = "<arm> <est> <set> <i>/<n>".
+# Code: the git archive of the commit in /scratch1/jc_905/trees3way/runs/tasks/h2_code_commit.txt (branch
+#   insurance-selling-2026-09-19-e34-train3way-trees; = CARC's code dir code_<sha7>); experiments/trees_train3way.py and
+#   experiments/pooled_trees_rerun_13.py must be md5-identical to CARC's.  A line runs
+#     python experiments/trees_train3way.py walk --arm <arm> --est <est> --set <set> --part <i>/<n> --threads <T> \
+#       --design-root <dir holding ALL48/_work/design_<set>/ and RTH13/_work/design_<set>/> --out <runs dir>
+#   -> <runs dir>/pieces/<arm>_<est>_<set>_<i>of<n>.parquet + .json (checkpointed; resumable on the same CPU model only:
+#   the forest refuses to resume on another CPU family, and every Hoffman2 model is its own family).
+# Inputs: CARC's /scratch1/jc_905/trees3way/designs/{ALL48,RTH13}/_work/design_<set>/ (X.npy, y.npy, b_oos.npy,
+#   dates_oos.csv, dates_all.csv, design.json), md5 against the MD5SUMS file in each directory.
+# Environment (CARC's venv_skx): python 3.12, numpy 1.26.4, pandas 2.3.3, scipy 1.17.1, scikit-learn 1.9.1,
+#   scikit-learn-intelex 2026.2.0, daal 2026.2.0, lightgbm 4.6.0, xgboost 3.2.0, pyarrow 19.0.1; PYTHONNOUSERSITE=1,
+#   OMP/MKL/OPENBLAS threads = T.  The forest's first fit asserts oneDAL ran (the walk does it).
+# Gates, per CPU model used (one tag a model, e.g. gold6240): delivered to CARC as
+#   /scratch1/jc_905/trees3way/gate/h2/<tag>/g1/pieces/ and .../g2/pieces/ (parquet + json, an MD5SUMS file in each)
+#   g1: walk --arm RTH13 --est rf_skx --set baseline|all_features --ends 10 --tag ends10_<tag> (--out <tag>/g1)
+#   g2: walk --arm ALL48 --est rf_skx --set baseline|all_features --from 2014-01-02T15:30 --to 2014-01-03T10:00
+#         --every-row --tag every   and the same without --every-row: --tag scored   (--out <tag>/g2)
+#       walk --arm ALL48_N3k (the same two, --from 2014-01-02T15:30 --to 2014-01-06T10:30)
+#   checked on CARC (trees_train3way.py accept): gate 1 <= 1e-14 relative against the templates, gate 2 bit for bit,
+#   one CPU model a tag; only pieces of accepted models are taken.
+# Delivery of pieces: finished pieces only (json present, no .ckpt.json) to /scratch1/jc_905/trees3way/runs/pieces_h2/
+#   with an MD5SUMS file (md5sum format) listing every parquet and json delivered; never overwrite a delivered file.
+ASSIGNED w3rf_full.txt 240-368 ALL48 rf_skx all_features 20
