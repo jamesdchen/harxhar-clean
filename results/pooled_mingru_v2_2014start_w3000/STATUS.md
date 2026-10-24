@@ -146,3 +146,16 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   (b11-13): status ok, forecast rows exactly [40,702, 44,277), finite and positive, kept columns = the init's (POST
   n_bad 0). Screen running on A40: 13367875-78, 13367888-89 completed (n_bad 0), 13367879-80 running, 7 pending.
   G3 HAR: 13369109 (debug P100) completed, 13369110-12 running, 9 pending (P100). G2's last file 13366976 completed.
+- 2026-10-24 01:31 PDT: G6 screen (full set, W 3,000, A40) complete: 15 files 13367875-89, 1,080 jobs, all n_bad 0
+  (walls 26-324 s a file on A40). Screen top 5 by C (stage2/s2_screen_all_features.csv): tau1_we3_E40 0.115805,
+  tau3_we3_E80 0.116024, tau0_we3_E40 0.116063, tau0.3_we15_E160 0.116111, tau3_we15_E300 0.116127 (the shortcut
+  alone, L 20: 0.12174). Fresh-seed confirmation (75 jobs, seeds 20261017-21, tag v2s2c) submitted on the debug A40s:
+  13371985-86.
+- 2026-10-24 01:03-01:29 PDT: 4 HAR Stage-1 files failed on /scratch1 (Lustre client "Cannot send after transport
+  endpoint shutdown" on e21-01, e22-10, e22-14: the copy back / log write failed; W 3,000 13369114 (.5), 13369116 (.7);
+  W 3,500 13369129 (.6), 13369131 (.7)). /home1 is writable again (80 of 100 GiB, someone freed space) but too tight
+  for v2's outputs (3 GB so far). New v2 root: /project2/pollok_1603/jc_905/pmf2(_35) (VAST NFS, 5 TiB group space;
+  the jc_905 dir mode 700; bin, code, inputs, inits copied from /scratch1, md5 of 102 / 84 files equal). Reruns from
+  there: W 3,000 .5 / .7 on the debug P100s (13371959-60), W 3,500 .6 / .7 on gpu P100 (13371961-62, nice 100).
+  Pending scratch jobs moved (cancelled while pending, resubmitted unchanged from /project2): W 3,500 screen .9-.13
+  (13370090-94 -> 13371964-68, L40S) and HAR .13 (13369142 -> 13371969, P100). Completed runs stay in /scratch1.
