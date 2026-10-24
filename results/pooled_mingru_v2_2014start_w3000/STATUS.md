@@ -332,3 +332,13 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
 - 2026-10-24 ~15:40 PDT (coordinator): debug never preempted us, so short remainder files (the <= 15-min tails of the
   36 old-script jobs as they end, and similar short reruns) go to the debug partition on the arm's type (P100 for
   the HAR arms, A40 for the full arms), at most 5 debug jobs, else gpu. Everything else unchanged.
+- 2026-10-24 15:59 PDT (owner: "maximize throughput without sacrificing accuracy"; coordinator: levers 1-4, each gated
+  by a byte-for-byte probe). (2) Stranded GPUs, read-only: P100 nodes d23-14, d23-16, e22-08, e22-09 have 2 free
+  GPUs each but 0 idle CPUs and 2 GB free memory (others' CPU jobs fill them): no request of ours can use them, so
+  right-sizing does not reach them; e21-01 / e21-07 / e21-10 have 1 free GPU each with 12-18 idle CPUs and 29-101 GB
+  (usable at our size). No A40 node had a free GPU. Measured usage: CPU efficiency 8-12 % of 4 CPUs (< 0.5 CPU);
+  MaxRSS HAR 3.7-4.0 GB, full set 7.5-7.7 GB (runs with step logs). Probes submitted on debug (TAG v2probe_*, files
+  inputs/probes/, never merged): 13386769 HAR W 3,000 24 refits P100 CONC 12 cpu 4 / 24G (vs the running gpu file
+  13380580 byte for byte); 13386770 the same at CONC 24, cpu 2 / 8G; 13386771 full W 3,000 48 refits A40 CONC 24
+  cpu 4 / 24G; 13386772 the same at CONC 48, cpu 2 / 8G; 13386773 salvage test: 72 full refits on P100, --time 6
+  (USR1 at 2 min), cpu 2 / 8G.
