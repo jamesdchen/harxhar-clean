@@ -163,3 +163,17 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   now goes through one wrapper with a lock (at most one SSH session at a time, the background wait included; batched
   commands a step; no SSH in loops; the single wait polls >= 15 min apart and retries a failed connection only after
   another 15 min). The wait re-armed on 13371959-60 / 13371985-86.
+- 2026-10-24 02:12 PDT G3 HAR (W 3,000) final (P100; 12 files incl. the 2 reruns from /project2, all n_bad 0;
+  stage1/s1_w3000_*.csv / _pick.json now hold both sets): pick H 256, L 8, lr 0.003, "memorizing": rho_1,000 0.3760 /
+  0.3846 / 0.3792 (3 seeds agree; rho <= 0.1 not reached). Only the H 256 cells memorize (0.377-0.380); H 64 0.729-0.733,
+  H 16 0.875 (lr 0.01 there). lr 0.03 leaves the recurrent branch at zero (rho 1.000) in most cells; at H 256 lr 0.01
+  also collapses (0.97-0.98). No conditional edge (a core cell memorizes; the pick is at L 8). Validation QLIKE at
+  epoch 1,000 0.29-0.31 at the H 256 cells vs minima 0.1240-0.1244 at epochs 10-12 (diagnostic).
+- 2026-10-24 02:12 PDT G6 full set (W 3,000) round 0 (A40): fresh-seed C of the shortlist (stage2/s2_fresh_*_round0):
+  tau3_we3_E80 0.115961 (pick), tau1_we3_E40 0.116016, tau3_we15_E300 0.116185, tau0.3_we15_E160 0.116303, tau0_we3_E40
+  0.116317. The pick is at the tau high edge (3) -> extension 1: tau 9 added (18 configurations x 3 folds x 5 screen
+  seeds = 270 jobs, tag v2s2x1, A40): 13372774-75 gpu, 13372776-77 debug. State: s2_state.json (ext tau high 1).
+- 2026-10-24 02:13 PDT G5 + G6 HAR (W 3,000), GPU type P100 (ADDENDUM 1b criterion at submission: P100 no type cap,
+  36 - our 7 gpu jobs + 2 debug; A40 12 + 2; L40S 6 - 5 pending): state baseline H 256, L 8, lr 0.003; grid tau
+  {0, 0.3, 1, 3} x E {10, ..., 300, 600, 1,000} (32 configurations, 480 jobs, est. 7.39 P100-h); canary (fold 1, tau 1,
+  E 20) 13372778 (debug) / 13372779 (gpu); screen afterok on either: 13372780-96 gpu, 13372797-98 debug.
