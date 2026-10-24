@@ -60,3 +60,19 @@ From the coordinator's 10:45 standing rule on, every state-changing command is w
 | ~10:46 | cw_twrf 13380322_6 (CLOSE_w2000 forest full set, d06-25, Xeon 4116) died after its 10:33 checkpoint (1,116 of 2,579 refits), exit 1, MaxRSS 0.7 GB, no message in its /scratch1 log -- treated as the node's failing /scratch1 mount (RULE.txt note to addendum A, c3626f3) |
 | 10:58 | (verbatim SSH) the partial piece renamed `*.failed_d06-25`; cw_twrf3 13381726 (that line from scratch, EPYC 7513 / 7542, d06-25 excluded); cw_tfin 13380323 re-pointed afterany 13380321, 13380322, 13381726 = the last job of the trees |
 | ~11:05 | linear pulled (scores, penalties per W, gate L, design check, logs -> `linear/`, `design_check.json`, `logs/`); local economics (`experiments/closewin_econ.py`, main checkout b3ca310): W = 3,000 D6 check PASS -> `linear/tables.txt`, `econ_d6.csv`, `econ_gap.csv` |
+| 11:40-11:41 | cw_twrf3 13381726 COMPLETED (EPYC 7542, 2,510 s); cw_tfin 13380323 COMPLETED: merge of the five new W (one piece each, --require-all), CPU check PASS (LightGBM / XGBoost all EPYC 7513 / 7542; the forest EPYC or Xeon 4116: W = 1,000 full, 1,500 both, 2,000 HAR on Xeon 4116), scores check PASS (W = 3,000 = the three-way CLOSE qlike_16 / gap rows; rv_actual, true_adj, B equal across W) |
+| ~11:50 | trees pulled (scores, piece metas, merge records, logs -> `trees/`); local economics: W = 3,000 D6 check PASS -> `trees/tables.txt` |
+
+## Done
+
+- Checks: design check PASS (six W designs: same 84,747 rows, W-independent y and B, w3000 = the three-way template md5);
+  gate L PASS (linear W = 3,000 = the three-way CLOSE arm: caches md5, penalties, pretune_mse, every forecast value);
+  gate T PASS (trees W = 3,000, 20 origins x 6 class / set, repr-identical, max rel diff 0, EPYC 7513); scorer W = 3,000
+  checks PASS (both families); econ W = 3,000 D6 checks PASS (both families).
+- Tables: `linear/tables.txt` (W = 1,000 labelled "1,000 (penalized: 1,001)" for ridge / lasso / elastic net),
+  `trees/tables.txt`; csv: `*/qlike16.csv`, `dm.csv`, `gap.csv`, `econ_d6.csv`, `econ_gap.csv`; 16:00 forecasts
+  `*/f16.parquet`.
+- CPU-hours (sacct, allocated CPUs x elapsed, every cw_ job 09:44 .. 11:41 PDT; `code/sacct_cw.txt`): 110.95 in all --
+  trees 110.28 (walks 67.49 LightGBM / XGBoost + 29.13 forest + 5.62 forest rerun + 0.10 rerun of line 1; the two
+  failed forest tasks 7.64; gate T 0.30; finish 0.01), linear 0.63, design stage 0.04.  Piece metas (wall x 8 threads,
+  the 30 completed pieces): 101.5.  The reused W = 3,000 tree forecasts (23.3 CPU-hours, three-way) are not counted.

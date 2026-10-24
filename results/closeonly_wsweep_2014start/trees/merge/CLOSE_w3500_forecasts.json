@@ -1,0 +1,68 @@
+{
+ "arm": "CLOSE_w3500",
+ "window_rows": 3500,
+ "pieces": {
+  "lgbm/baseline": [
+   "CLOSE_w3500_lgbm_baseline_1of1.parquet"
+  ],
+  "lgbm/all_features": [
+   "CLOSE_w3500_lgbm_all_features_1of1.parquet"
+  ],
+  "xgb/baseline": [
+   "CLOSE_w3500_xgb_baseline_1of1.parquet"
+  ],
+  "xgb/all_features": [
+   "CLOSE_w3500_xgb_all_features_1of1.parquet"
+  ],
+  "rf_skx/baseline": [
+   "CLOSE_w3500_rf_skx_baseline_1of1.parquet"
+  ],
+  "rf_skx/all_features": [
+   "CLOSE_w3500_rf_skx_all_features_1of1.parquet"
+  ]
+ },
+ "cpu_models": {
+  "lgbm/baseline": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "lgbm/all_features": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "xgb/baseline": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "xgb/all_features": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "rf_skx/baseline": [
+   "AMD EPYC 7542 32-Core Processor"
+  ],
+  "rf_skx/all_features": [
+   "AMD EPYC 7513 32-Core Processor"
+  ]
+ },
+ "piece_cpus": {
+  "CLOSE_w3500_lgbm_baseline_1of1.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "CLOSE_w3500_lgbm_all_features_1of1.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "CLOSE_w3500_xgb_baseline_1of1.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "CLOSE_w3500_xgb_all_features_1of1.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "CLOSE_w3500_rf_skx_baseline_1of1.parquet": [
+   "AMD EPYC 7542 32-Core Processor"
+  ],
+  "CLOSE_w3500_rf_skx_all_features_1of1.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ]
+ },
+ "accepted_cpus": [
+  "AMD EPYC 7513 32-Core Processor",
+  "AMD EPYC 7542 32-Core Processor"
+ ]
+}

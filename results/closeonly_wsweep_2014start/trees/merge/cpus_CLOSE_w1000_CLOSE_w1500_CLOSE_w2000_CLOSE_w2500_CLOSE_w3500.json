@@ -1,0 +1,185 @@
+{
+ "pass_": true,
+ "rec": {
+  "CLOSE_w1000/lgbm/baseline": {
+   "cpus": [
+    "AMD EPYC 7513 32-Core Processor"
+   ],
+   "pass_": true
+  },
+  "CLOSE_w1000/lgbm/all_features": {
+   "cpus": [
+    "AMD EPYC 7513 32-Core Processor"
+   ],
+   "pass_": true
+  },
+  "CLOSE_w1000/xgb/baseline": {
+   "cpus": [
+    "AMD EPYC 7513 32-Core Processor"
+   ],
+   "pass_": true
+  },
+  "CLOSE_w1000/xgb/all_features": {
+   "cpus": [
+    "AMD EPYC 7513 32-Core Processor"
+   ],
+   "pass_": true
+  },
+  "CLOSE_w1000/rf_skx/baseline": {
+   "cpus": [
+    "AMD EPYC 7513 32-Core Processor"
+   ],
+   "pass_": true
+  },
+  "CLOSE_w1000/rf_skx/all_features": {
+   "cpus": [
+    "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+   ],
+   "pass_": true
+  },
+  "CLOSE_w1500/lgbm/baseline": {
+   "cpus": [
+    "AMD EPYC 7542 32-Core Processor"
+   ],
+   "pass_": true
+  },
+  "CLOSE_w1500/lgbm/all_features": {
+   "cpus": [
+    "AMD EPYC 7542 32-Core Processor"
+   ],
+   "pass_": true
+  },
+  "CLOSE_w1500/xgb/baseline": {
+   "cpus": [
+    "AMD EPYC 7513 32-Core Processor"
+   ],
+   "pass_": true
+  },
+  "CLOSE_w1500/xgb/all_features": {
+   "cpus": [
+    "AMD EPYC 7513 32-Core Processor"
+   ],
+   "pass_": true
+  },
+  "CLOSE_w1500/rf_skx/baseline": {
+   "cpus": [
+    "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+   ],
+   "pass_": true
+  },
+  "CLOSE_w1500/rf_skx/all_features": {
+   "cpus": [
+    "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+   ],
+   "pass_": true
+  },
+  "CLOSE_w2000/lgbm/baseline": {
+   "cpus": [
+    "AMD EPYC 7513 32-Core Processor"
+   ],
+   "pass_": true
+  },
+  "CLOSE_w2000/lgbm/all_features": {
+   "cpus": [
+    "AMD EPYC 7513 32-Core Processor"
+   ],
+   "pass_": true
+  },
+  "CLOSE_w2000/xgb/baseline": {
+   "cpus": [
+    "AMD EPYC 7542 32-Core Processor"
+   ],
+   "pass_": true
+  },
+  "CLOSE_w2000/xgb/all_features": {
+   "cpus": [
+    "AMD EPYC 7513 32-Core Processor"
+   ],
+   "pass_": true
+  },
+  "CLOSE_w2000/rf_skx/baseline": {
+   "cpus": [
+    "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+   ],
+   "pass_": true
+  },
+  "CLOSE_w2000/rf_skx/all_features": {
+   "cpus": [
+    "AMD EPYC 7542 32-Core Processor"
+   ],
+   "pass_": true
+  },
+  "CLOSE_w2500/lgbm/baseline": {
+   "cpus": [
+    "AMD EPYC 7513 32-Core Processor"
+   ],
+   "pass_": true
+  },
+  "CLOSE_w2500/lgbm/all_features": {
+   "cpus": [
+    "AMD EPYC 7513 32-Core Processor"
+   ],
+   "pass_": true
+  },
+  "CLOSE_w2500/xgb/baseline": {
+   "cpus": [
+    "AMD EPYC 7513 32-Core Processor"
+   ],
+   "pass_": true
+  },
+  "CLOSE_w2500/xgb/all_features": {
+   "cpus": [
+    "AMD EPYC 7513 32-Core Processor"
+   ],
+   "pass_": true
+  },
+  "CLOSE_w2500/rf_skx/baseline": {
+   "cpus": [
+    "AMD EPYC 7513 32-Core Processor"
+   ],
+   "pass_": true
+  },
+  "CLOSE_w2500/rf_skx/all_features": {
+   "cpus": [
+    "AMD EPYC 7513 32-Core Processor"
+   ],
+   "pass_": true
+  },
+  "CLOSE_w3500/lgbm/baseline": {
+   "cpus": [
+    "AMD EPYC 7513 32-Core Processor"
+   ],
+   "pass_": true
+  },
+  "CLOSE_w3500/lgbm/all_features": {
+   "cpus": [
+    "AMD EPYC 7513 32-Core Processor"
+   ],
+   "pass_": true
+  },
+  "CLOSE_w3500/xgb/baseline": {
+   "cpus": [
+    "AMD EPYC 7513 32-Core Processor"
+   ],
+   "pass_": true
+  },
+  "CLOSE_w3500/xgb/all_features": {
+   "cpus": [
+    "AMD EPYC 7513 32-Core Processor"
+   ],
+   "pass_": true
+  },
+  "CLOSE_w3500/rf_skx/baseline": {
+   "cpus": [
+    "AMD EPYC 7542 32-Core Processor"
+   ],
+   "pass_": true
+  },
+  "CLOSE_w3500/rf_skx/all_features": {
+   "cpus": [
+    "AMD EPYC 7513 32-Core Processor"
+   ],
+   "pass_": true
+  }
+ }
+}
