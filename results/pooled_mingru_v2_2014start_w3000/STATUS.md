@@ -304,3 +304,6 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   W 3,000 165 pieces (1,220 P100-h), full W 3,000 22 (175 L40S-h), HAR W 3,500 25 (194 P100-h), full W 3,500 8
   (55 L40S-h): to be submitted at later check-ins, keeping <= 100 gpu-partition jobs (80 now: 13 running + 67
   pending) and <= 5 debug. Running originals: HAR W 3,000 000-012 (P100).
+- 2026-10-24 12:59 PDT top-up (steward: 80 gpu-partition jobs, 17 running): 15 HAR W 3,000 pieces of files 021-023
+  submitted (13383055-69, P100) -> 95 gpu-partition jobs (17 running P100, 66 pending P100, 12 pending L40S) + 5
+  debug pending. Unsubmitted: HAR W 3,000 150, full W 3,000 22, HAR W 3,500 25, full W 3,500 8.
