@@ -251,3 +251,14 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
     Projected every-bar walk (33,970 bars x 5 seeds an arm; G7 P100-s a refit): full W 3,000 214.7, full W 3,500 73.6,
       HAR W 3,000 1,995, HAR W 3,500 310 P100-h; 2,593 P100-h in all. Wall-clock at 17 P100s (the most v2 held at
       once, 06:05) 153 h (6.4 days; HAR W 3,000 alone 117 h); at the QOS's 36 GPUs 72 h.
+- 2026-10-24 09:00-09:20 PDT (owner, relayed: "A, walk all four as pre-registered"; 09:10 coordinator: HOLD, no GPU
+  walk job until the go). RULE ADDENDUM 2 (both windows) written before any walk job: the walk, SCORE (as the final
+  run's scorer), placement (HAR W 3,000 P100 27 lanes x 2; HAR W 3,500 A40 4 x 2; full W 3,000 A40 3 x 2; full W 3,500
+  L40S 2 x 2: 72 files, 36 lanes = the gpu QOS's 36 running jobs), steps log to /dev/null after a slice check, HOLD.
+  Read for it: QOS gpu = 36 running / 100 submitted, A40 12, L40S 6, A100 12; gpu partition 48 h, debug 1 h / 5 jobs;
+  the A100 gate 13346567 fails ADDENDUM 1 (full-set best epochs 12/10/10 vs P100 12/10/11; QLIKE 0.013 % / 0.027 %,
+  self-consistent); free at 09:06: P100 28 / 74, A40 1 / 50, L40S 2 / 19. The trainer has no switch for its step log
+  (forecast_train.cu opens steps.csv unconditionally): walk files point it at /dev/null.
+  Tooling: walk-plan / walk-inits / walk-merge / walk-combine (pooled_mingru_v2.py; merge tested on synthetic
+  forecasts: remainder file and complete paths), GPU sbatch NOSTEPS / PARTIAL_S, walk submit script (lanes,
+  afterok on the bar-init task and the slice check), slice check sbatch, CPU sbatch walkinits / merge modes.

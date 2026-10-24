@@ -503,6 +503,19 @@ def st_post(a: argparse.Namespace) -> None:
             if "id" in d:
                 lin[d["id"]] = d
     ii = pd.read_csv(root / "inputs" / "init_index_v2.csv")
+    # walk files: the per-bar inits of their sub-directory (inputs/walkinit/<set>_<sub>.csv, written by walk-inits)
+    subs = {
+        tuple(d["lin_init"].split("/")[2:4])
+        for d in lin.values()
+        if d.get("lin_init", "").count("/") == 4
+    }
+    wi = [
+        pd.read_csv(root / "inputs" / "walkinit" / f"{s}_{sb}.csv")
+        for s, sb in sorted(subs)
+        if (root / "inputs" / "walkinit" / f"{s}_{sb}.csv").is_file()
+    ]
+    if wi:
+        ii = pd.concat([ii] + wi, ignore_index=True)
     nkeep = dict(zip("data/pmf_lin_init/" + ii["file"], ii["n_keep"]))
     bad: list[list] = []
     missing = sorted(set(lin) - set(jo["id"]))
@@ -530,7 +543,12 @@ def st_post(a: argparse.Namespace) -> None:
             bad.append([j["id"], "epochs_run", int(j["epochs_run"]), want_e])
     # epoch curves (the epoch_curves_remote.py reduction + capped / non-finite counts and clipped steps)
     sp = run / sub / "steps.csv.gz"
-    st = pd.read_csv(sp if sp.is_file() else run / sub / "steps.csv")
+    sp = sp if sp.is_file() else run / sub / "steps.csv"
+    if not sp.is_file() or sp.stat().st_size == 0:
+        # walk files (NOSTEPS=1): the trainer's step log went to /dev/null, no epoch curves
+        st_post_tail(run, sub, out, jo, lin, bad)
+        return
+    st = pd.read_csv(sp)
     nb = dict(zip(jo["id"], zip(jo["N"].astype(int), jo["batch"].astype(int))))
     Nn = st["id"].map(lambda i: nb[i][0])
     Bb = st["id"].map(lambda i: nb[i][1])
@@ -550,6 +568,14 @@ def st_post(a: argparse.Namespace) -> None:
     ec["loss_w"] = ec["lw"] / ec["w"]
     ec = ec.drop(columns=["lw", "w"]).reset_index()
     ec.to_csv(out / "epoch_curves.csv", index=False, float_format="%.9g")
+    st_post_tail(run, sub, out, jo, lin, bad)
+
+
+def st_post_tail(
+    run: Path, sub: str, out: Path, jo: pd.DataFrame, lin: dict, bad: list
+) -> None:
+    """POST after the epoch curves: tune jobs' epochs.csv, refit forecasts (rows, finite, positive), fc_train."""
+    root = run.parents[1]
     ep = pd.read_csv(run / sub / "epochs.csv")
     ep[ep["id"].isin(set(jo.loc[jo["mode"] == "tune", "id"]))].to_csv(
         out / "epochs.csv", index=False
@@ -1641,6 +1667,273 @@ def st_g1_check(a: argparse.Namespace) -> None:
     say(json.dumps(res))
 
 
+# ============================================================================ every-bar walk (RULE ADDENDUM 2)
+WALK_RE = re.compile(r"^v2w_(baseline|all_features)_r(\d+)_s(\d+)$")
+SEEDS_WALK = SEEDS_SCREEN
+FIRST_EVAL = "2014-01-02 10:00:00"
+
+
+def walk_line(s: str, c: dict, o: int, seed: int, sub: str) -> str:
+    """One bar refit: the trailing W rows [o - W, o), the bar's own ridge init (window mask and Gram on [o - W, o),
+    L*, wl 0.003), from scratch (weights_init of (P, H, layers, seed)), the frozen pick, forecasting bar o."""
+    L, E = int(c["L"]), int(c["E"])
+    return kv(
+        id=f"v2w_{s}_r{o}_s{seed}",
+        data=f"data/pmf_{s}",
+        mode="refit",
+        w0=o - W,
+        w1=o,
+        fc_n=1,
+        L=L,
+        H=int(c["H"]),
+        lr=str(c["lr"]),
+        seed=seed,
+        epochs=E,
+        max_epochs=E,
+        patience=E,
+        **COMMON,
+        wd=wd_of(str(c["tau"]), str(c["lr"]), steps_per_epoch(W, L), E),
+        wd_enc=str(c["we"]),
+        lr_lin=0,
+        wd_lin=0,
+        lin_init=f"data/pmf_lin_init/{s}/{sub}/r{o}_L{L}_wl{WL}.f32",
+    )
+
+
+def st_walk_plan(a: argparse.Namespace) -> None:
+    """The walk files of this window's arms: per set, lanes x files_per_lane files of contiguous bar origins (file i:
+    lane i % lanes, seq i // lanes; a lane's files run one after another), every origin x 5 seeds; the bar-init tasks
+    (one a file: its origins' ridge inits in data/pmf_lin_init/<set>/w<i>); time limits from the G7 P100-s a refit
+    (x tlim_factor, default 1.15, + 1 h; at most the gpu partition's 48 h).  spec: {set: {H, L, lr, tau, we, E, conc, lanes,
+    files_per_lane, gpu, p100_s_refit}}."""
+    inp = Path(a.inputs)
+    inp.mkdir(parents=True, exist_ok=True)
+    spec = json.loads(Path(a.spec).read_text())
+    origins = list(range(S0, N_ROWS))
+    for s, c in spec.items():
+        nf = int(c["lanes"]) * int(c["files_per_lane"])
+        cuts = np.linspace(0, len(origins), nf + 1).round().astype(int)
+        files, tasks = [], []
+        for i in range(nf):
+            os_ = origins[cuts[i] : cuts[i + 1]]
+            sub = f"w{i:03d}"
+            lines = [walk_line(s, c, o, sd, sub) for o in os_ for sd in SEEDS_WALK]
+            name = f"v2w_{s}.{i:03d}.txt"
+            (inp / name).write_bytes(("\n".join(lines) + "\n").encode())
+            est = len(lines) * float(c["p100_s_refit"])
+            tl = int(math.ceil(est * float(c.get("tlim_factor", 1.15)) / 60 + 60))
+            assert tl <= 2880, (s, i, tl)
+            files.append(
+                dict(
+                    file=name,
+                    set=s,
+                    conc=int(c["conc"]),
+                    n_jobs=len(lines),
+                    est_gpu_s=round(est, 1),
+                    tlim_min=tl,
+                    initsub=sub,
+                    lane=i % int(c["lanes"]),
+                    seq=i // int(c["lanes"]),
+                    o0=os_[0],
+                    o1=os_[-1] + 1,
+                    gpu=c["gpu"],
+                )
+            )
+            tasks.append(
+                dict(task=i, set=s, o0=os_[0], o1=os_[-1] + 1, sub=sub, L=int(c["L"]))
+            )
+        pd.DataFrame(files).to_csv(
+            inp / f"files_v2w_{s}.csv", index=False, lineterminator="\n"
+        )
+        pd.DataFrame(tasks).to_csv(
+            inp / f"walkinit_{s}.csv", index=False, lineterminator="\n"
+        )
+        say(
+            f"walk {s} (W {WINDOW_DAYS}): {nf} files, {len(origins) * len(SEEDS_WALK)} refits, "
+            f"est {sum(f['est_gpu_s'] for f in files) / 3600:.1f} P100-h, longest file "
+            f"{max(f['est_gpu_s'] for f in files) / 3600:.1f} P100-h, time limits "
+            f"{min(f['tlim_min'] for f in files)}-{max(f['tlim_min'] for f in files)} min"
+        )
+
+
+def st_walk_inits(a: argparse.Namespace) -> None:
+    """CPU (one array task a walk file): the ridge init of every bar origin o of the task (window mask and Gram on
+    [o - W, o), lambda = wl / sd_y^2: ridge_init, as the G7 bar inits and the G0-verified Stage-2 inits) ->
+    ROOT/data/pmf_lin_init/<set>/<sub>/r<o>_L<L>_wl0.003.f32 and ROOT/inputs/walkinit/<set>_<sub>.csv."""
+    root, xdata = Path(a.root), Path(a.xdata)
+    t = pd.read_csv(a.tasks).set_index("task").loc[int(a.task)]
+    s, sub, L = str(t["set"]), str(t["sub"]), int(t["L"])
+    D = TData(xdata, s)
+    od = root / "data" / "pmf_lin_init" / s / sub
+    od.mkdir(parents=True, exist_ok=True)
+    rec = []
+    t0 = time.time()
+    for o in range(int(t["o0"]), int(t["o1"])):
+        v, keep, mu, sd, n = ridge_init(D, o - W, o, o, L)
+        assert len(v) == len(keep) + 1
+        name = f"r{o}_L{L}_wl{WL}.f32"
+        v.tofile(od / name)
+        rec.append(
+            dict(
+                design=s,
+                file=f"{s}/{sub}/{name}",
+                P=len(v),
+                n_keep=len(keep),
+                mu=mu,
+                sd=sd,
+                n=n,
+                kind="walk",
+                L=L,
+                fold=0,
+                origin=o,
+            )
+        )
+    (root / "inputs" / "walkinit").mkdir(parents=True, exist_ok=True)
+    pd.DataFrame(rec).to_csv(
+        root / "inputs" / "walkinit" / f"{s}_{sub}.csv", index=False
+    )
+    say(f"walk inits {s} {sub}: {len(rec)} origins in {time.time() - t0:.0f} s")
+
+
+def walk_read(runs: list[Path], s: str) -> tuple[pd.DataFrame, list[str]]:
+    """Every finished bar refit of set s in the run directories (complete runs first, then salvaged / partial
+    copies): one row an id with its forecast; the first copy of an id wins."""
+    got: dict[str, tuple[int, float, str]] = {}
+    srcs: list[str] = []
+    for root in runs:
+        for d in sorted(root.glob(f"v2w_{s}_*")):
+            for sub in ("refit", "partial", "salvage"):
+                jp, pp = d / sub / "jobs_out.csv", d / sub / "preds.csv"
+                if not (jp.is_file() and pp.is_file()):
+                    continue
+                jo = pd.read_csv(jp, on_bad_lines="skip")
+                pr = pd.read_csv(pp, on_bad_lines="skip")
+                if (
+                    sub != "refit" or root.name == "salvage"
+                ):  # copied mid-write: last lines may be torn
+                    jo, pr = jo.iloc[:-1], pr.iloc[:-1]
+                pr = pr.dropna(subset=["row", "f"])
+                ok = set(jo.loc[jo["status"] == "ok", "id"])
+                pr = pr[(pr["kind"] == "fc") & pr["id"].isin(ok)]
+                n0 = len(got)
+                for jid, row, f in zip(pr["id"], pr["row"], pr["f"]):
+                    got.setdefault(str(jid), (int(row), float(f), d.name))
+                srcs.append(f"{d.name}/{sub}: {len(got) - n0} new")
+    t = pd.DataFrame(
+        [(k, *v) for k, v in got.items()], columns=["id", "row", "f", "run"]
+    )
+    return t, srcs
+
+
+def st_walk_merge(a: argparse.Namespace) -> None:
+    """One arm (set, window): check every bar x seed is there exactly once (status ok, the forecast row = its
+    origin, finite, positive); the forecast = the 5-seed mean of f, plain = f^2 B -> OUT/forecasts_<set>.parquet
+    (the columns of the final run's merge, for experiments/pooled_mingru_final_score.py) and
+    forecasts_seeds_<set>.parquet; else OUT/remainder_<set>.txt: the job lines still missing (a rerun file)."""
+    s = a.set
+    out = Path(a.out)
+    out.mkdir(parents=True, exist_ok=True)
+    t, srcs = walk_read([Path(x) for x in a.runs.split(",")], s)
+    origins = np.arange(S0, N_ROWS)
+    want = {f"v2w_{s}_r{o}_s{sd}" for o in origins for sd in SEEDS_WALK}
+    t = t[t["id"].isin(want)]
+    missing = sorted(want - set(t["id"]))
+    rep: dict[str, Any] = dict(
+        set=s,
+        window_days=WINDOW_DAYS,
+        want=len(want),
+        have=int(len(t)),
+        missing=len(missing),
+        sources=srcs,
+    )
+    if missing:
+        ms = set(missing)
+        lines: list[str] = []
+        for p in sorted(Path(a.inputs).glob(f"v2w_{s}.*.txt")):
+            lines += [
+                ln for ln in p.read_text().splitlines() if ln.split()[0][3:] in ms
+            ]
+        (out / f"remainder_{s}.txt").write_text("\n".join(lines) + "\n")
+        rep["remainder_lines"] = len(lines)
+        (out / f"merge_{s}.json").write_text(json.dumps(rep, indent=1))
+        say(json.dumps({k: v for k, v in rep.items() if k != "sources"}))
+        return
+    m = t["id"].str.extract(WALK_RE)
+    t["origin"], t["seed"] = m[1].astype(int), m[2].astype(int)
+    assert (t["row"] == t["origin"]).all()
+    piv = t.pivot(index="origin", columns="seed", values="f").sort_index()
+    assert list(piv.columns) == list(SEEDS_WALK) and np.array_equal(
+        piv.index.to_numpy(), origins
+    )
+    F = piv.to_numpy(float)
+    assert np.isfinite(F).all() and (F > 0).all()
+    f = F.mean(axis=1)
+    rows = pd.read_csv(a.rows, keep_default_na=False, na_values={"B": [""]})
+    d = rows.set_index("row").loc[origins]
+    B = d["B"].to_numpy(float)
+    assert np.isfinite(B).all() and (B > 0).all()
+    dates = pd.DatetimeIndex(pd.to_datetime(d["date"]))
+    assert str(dates[0]) == FIRST_EVAL, dates[0]
+    core = pd.read_parquet(a.rv, columns=["endbartime", "sumret2"])
+    rv = pd.Series(
+        core["sumret2"].to_numpy(float),
+        index=pd.DatetimeIndex(pd.to_datetime(core["endbartime"])),
+    )
+    rv = rv[~rv.index.duplicated()]
+    fc = pd.DataFrame(
+        dict(
+            model="mingru",
+            predictor_set=s,
+            date=dates.astype("datetime64[ns]"),
+            pred_adj=f,
+            true_adj=d["y"].to_numpy(float),
+            B=B,
+            plain=f**2 * B,
+            rv_actual=rv.reindex(dates).to_numpy(),
+            f_seed_sd=F.std(axis=1, ddof=1),
+        )
+    )
+    fc.to_parquet(out / f"forecasts_{s}.parquet", index=False)
+    pd.DataFrame(
+        dict(
+            predictor_set=s,
+            seed=np.repeat(np.array(SEEDS_WALK), len(origins)),
+            date=np.tile(dates.to_numpy(), len(SEEDS_WALK)),
+            f=F.T.reshape(-1),
+        )
+    ).to_parquet(out / f"forecasts_seeds_{s}.parquet", index=False)
+    rep.update(span=[str(dates[0]), str(dates[-1])], runs=sorted(t["run"].unique()))
+    (out / f"merge_{s}.json").write_text(json.dumps(rep, indent=1))
+    say(f"merged {s}: {len(fc)} bars -> {out / f'forecasts_{s}.parquet'}")
+
+
+def st_walk_combine(a: argparse.Namespace) -> None:
+    """Both arms of a window -> OUT/forecasts.parquet (the scorer's input) and forecasts.json."""
+    out = Path(a.out)
+    fs = [pd.read_parquet(out / f"forecasts_{s}.parquet") for s in SETS]
+    assert (
+        len(fs[0]) == len(fs[1])
+        and (fs[0]["date"].to_numpy() == fs[1]["date"].to_numpy()).all()
+    )
+    pd.concat(fs, ignore_index=True).to_parquet(out / "forecasts.parquet", index=False)
+    (out / "forecasts.json").write_text(
+        json.dumps(
+            dict(
+                window_days=WINDOW_DAYS,
+                refit="every bar (RULE_gru_v2.txt ADDENDUM 2)",
+                span=[FIRST_EVAL, str(fs[0]["date"].max())],
+                seeds=list(SEEDS_WALK),
+                sets={
+                    s: json.loads((out / f"merge_{s}.json").read_text()) for s in SETS
+                },
+            ),
+            indent=1,
+            default=str,
+        )
+    )
+    say(f"combined -> {out / 'forecasts.parquet'}")
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument(
@@ -1655,6 +1948,10 @@ def main() -> int:
             "s2-report",
             "g1-check",
             "g2-decide",
+            "walk-plan",
+            "walk-inits",
+            "walk-merge",
+            "walk-combine",
         ],
     )
     ap.add_argument("--root", default="")
@@ -1684,6 +1981,11 @@ def main() -> int:
     ap.add_argument("--state", default="")
     ap.add_argument("--y-dir", default="")
     ap.add_argument("--write-state", action="store_true")
+    ap.add_argument("--tasks", default="")
+    ap.add_argument("--task", type=int, default=0)
+    ap.add_argument("--set", default="")
+    ap.add_argument("--rows", default="")
+    ap.add_argument("--rv", default=str(REPO / "data" / "core_stats.parquet"))
     a = ap.parse_args()
     if a.stage == "jobs" and a.epochs.startswith("{"):
         a.epochs = json.loads(a.epochs)
@@ -1698,6 +2000,10 @@ def main() -> int:
             "s2-report": st_s2_report,
             "g1-check": st_g1_check,
             "g2-decide": st_g2_decide,
+            "walk-plan": st_walk_plan,
+            "walk-inits": st_walk_inits,
+            "walk-merge": st_walk_merge,
+            "walk-combine": st_walk_combine,
         },
     )[a.stage](a)
     return 0

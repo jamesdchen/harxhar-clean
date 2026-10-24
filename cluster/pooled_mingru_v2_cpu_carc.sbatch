@@ -4,6 +4,8 @@
 #                   ridge inits, kept / late-start columns -> inputs/g0.json, inputs/init_index_v2.csv
 #   MODE barinits   L=<L*> SETS=<sets>: the G7 walk probe's 24 bar-origin ridge inits
 #   MODE post       RUNDIR=<run dir> JOBS=<jobs file>: the POST step of a GPU run, rerun on a CPU node
+#   MODE walkinits  TASKS=walkinit_<set>.csv (sbatch --array): the walk's per-bar ridge inits, one task a walk file
+#   MODE merge      SET=<set> OUTDIR=<dir> [RUNS=<dirs,>] [RV=<core_stats.parquet>]: one walk arm -> forecasts_<set>.parquet
 # ROOT /home1/jc_905/pmf2 (W 3,000) or /home1/jc_905/pmf2_35 (W 3,500); XDATA the old run's data (read-only).
 #SBATCH --account=pollok_1603
 #SBATCH --partition=main
@@ -27,6 +29,9 @@ case "${MODE:?MODE}" in
         "$PY" "$S" prep --root "$ROOT" --xdata "$XDATA" --folds-json $ROOT/code/folds14.json $ALT ;;
   barinits) "$PY" "$S" bar-inits --root "$ROOT" --xdata "$XDATA" --L "${L:?L}" --sets "${SETS:-baseline,all_features}" ;;
   post) "$PY" "$S" post --run "${RUNDIR:?RUNDIR}" --jobs "${JOBS:?JOBS}" ;;
+  # 2026-10-24 every-bar walk: one array task a walk file (TASKS = inputs/walkinit_<set>.csv); merge of one arm
+  walkinits) "$PY" "$S" walk-inits --root "$ROOT" --xdata "$XDATA" --tasks "$ROOT/inputs/${TASKS:?TASKS}" --task "${SLURM_ARRAY_TASK_ID:?array}" ;;
+  merge) "$PY" "$S" walk-merge --set "${SET:?SET}" --runs "${RUNS:-$ROOT/runs}" --inputs "$ROOT/inputs" --out "${OUTDIR:?OUTDIR}"            --rows "$XDATA/pmf_rows.csv" ${RV:+--rv "$RV"} ;;
   *) echo "unknown MODE $MODE"; exit 1 ;;
 esac
 date; echo V2CPU_DONE

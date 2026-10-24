@@ -1,0 +1,2 @@
+{"baseline": {"H": 256, "L": 8, "lr": "0.003", "tau": "27", "we": "0", "E": 300, "conc": 12, "lanes": 27, "files_per_lane": 2, "gpu": "P100", "p100_s_refit": 42.3},
+ "all_features": {"H": 64, "L": 8, "lr": "0.003", "tau": "9", "we": "3", "E": 160, "conc": 24, "lanes": 3, "files_per_lane": 2, "gpu": "A40", "p100_s_refit": 4.55}}

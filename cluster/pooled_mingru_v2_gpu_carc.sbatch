@@ -12,6 +12,9 @@
 # POST: experiments/pooled_mingru_v2.py post (check + epoch curves + compact forecasts into the run's summary/).
 # 2026-10-23 23:00 PDT: ROOT may be /scratch1/jc_905/pmf2(_35) (the /home1/jc_905 quota was exhausted at 22:38 PDT);
 # a trainer that exits non-zero now leaves its log and partial outputs in ROOT/salvage (they were lost with LOCAL).
+# 2026-10-24 walk files: NOSTEPS=1 points the trainer's per-step log (steps.csv) at /dev/null (forecasts unchanged;
+# the slice check pooled_mingru_v2_slice_carc.sbatch verifies it); PARTIAL_S=<s> copies jobs_out.csv / preds.csv to
+# RUN/partial every s seconds while the trainer runs (a node failure loses at most that much).
 #SBATCH --account=pollok_1603
 #SBATCH --partition=gpu
 #SBATCH --gres=gpu:1
@@ -65,7 +68,10 @@ cp "$ROOT/bin/forecast_train" "$LOCAL/ft"
 cp "$ROOT/inputs/$JOBS" "$LOCAL/jobs.txt"
 T0=$(date +%s)
 cd "$LOCAL"
+if [ "${NOSTEPS:-0}" = 1 ]; then mkdir -p "$LOCAL/$SUB"; ln -sfn /dev/null "$LOCAL/$SUB/steps.csv"; fi
+SYNCPID=""
 salvage() {
+  [ -n "$SYNCPID" ] && kill "$SYNCPID" 2>/dev/null
   S=$ROOT/salvage/${TAG}_$SLURM_JOB_ID; mkdir -p "$S/$SUB"
   for f in jobs_out.csv preds.csv epochs.csv; do [ -f "$LOCAL/$SUB/$f" ] && cp "$LOCAL/$SUB/$f" "$S/$SUB/"; done
   cp "$LOCAL/$SUB.log" "$S/" 2>/dev/null
@@ -75,7 +81,15 @@ salvage() {
 trap salvage USR1
 "$LOCAL/ft" run --jobs "$LOCAL/jobs.txt" --out "$LOCAL/$SUB" --concurrent "$CONC" --chunk 5 --pool > "$LOCAL/$SUB.log" 2>&1 &
 FTPID=$!
+if [ "${PARTIAL_S:-0}" -gt 0 ]; then
+  ( while sleep "$PARTIAL_S"; do mkdir -p "$RUN/partial"
+      for f in jobs_out.csv preds.csv; do cp "$LOCAL/$SUB/$f" "$RUN/partial/$f.tmp" 2>/dev/null && mv -f "$RUN/partial/$f.tmp" "$RUN/partial/$f"; done
+    done ) &
+  SYNCPID=$!
+fi
 set +e; wait "$FTPID"; RC=$?; set -e
+[ -n "$SYNCPID" ] && { kill "$SYNCPID" 2>/dev/null; wait "$SYNCPID" 2>/dev/null; SYNCPID=""; }
+[ -L "$LOCAL/$SUB/steps.csv" ] && rm -f "$LOCAL/$SUB/steps.csv"
 if [ "$RC" != 0 ]; then
   S=$ROOT/salvage/${TAG}_$SLURM_JOB_ID; mkdir -p "$S"
   cp -r "$LOCAL/$SUB" "$LOCAL/$SUB.log" "$S/" 2>/dev/null || true

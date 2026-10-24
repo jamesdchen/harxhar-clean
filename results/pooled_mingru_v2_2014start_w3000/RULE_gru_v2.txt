@@ -182,3 +182,38 @@ ADDENDUM 1a choice applied to the HAR Stage-1 groups at their submission (the co
          A40 12 + 2 debug - 16 (the full-set W 3,000 Stage-2 canary and 15 screen files) < 0; L40S 6 - 3 (the full-set
          W 3,500 Stage-1 group) = 3; P100 no type cap: 36 - 17 = 19, + 2 debug. Hence P100 for the HAR Stage-1 grids at
          both windows (W 3,000 first; W 3,500 nice 100), its < 1 h files also on the debug P100s (<= 5 debug jobs).
+
+ADDENDUM 2 2026-10-24 09:20 PDT (16:20 UTC; owner, James, relayed by the coordinator ~09:00 PDT: "A, walk all four as
+pre-registered"), written before any walk job; identical in both windows' copies. The every-bar walk of the four
+frozen picks (G6 / G7, STATUS.md):
+  W 3,000 full: H 64, L 8, lr 0.003, tau 9 (wd 0.12218715), wd_enc 3, E 160
+  W 3,000 HAR : H 256, L 8, lr 0.003, tau 27 (wd 0.196067752), wd_enc 0, E 300
+  W 3,500 full: H 64, L 8, lr 0.003, tau 1 (wd 0.045674614), wd_enc 3, E 40
+  W 3,500 HAR : H 256, L 8, lr 0.003, tau 3 (wd 0.137023842), wd_enc 0, E 40
+WALK     Every design row o from 2014-01-02 10:00 (row 50,777) through 2024-04-30 16:00 (row 84,746), 33,970 bars an
+         arm: one refit a seed (20261012-20261016) on the trailing W rows [o - W, o), from scratch (the trainer's
+         weights_init, no warm start), the shortcut frozen at that window's ridge init (window mask and closed-form
+         ridge on [o - W, o), L 8, wl 0.003: walk-inits, the G7 / Stage-2 formula), E* epochs fully annealed, wd from
+         the pick's tau with S of the walk window (305 / 356 steps an epoch), forecasting the single bar o (fc_n 1);
+         forecast = the 5-seed mean of f, plain = f^2 B.
+SCORE    (not written in this rule before) As RULE_gru.txt SCORE of the final run (experiments/pooled_mingru_final_score.py:
+         16:00 and every-bar QLIKE, DM full vs HAR, the sign strategy D6 / D1 / LLSW), a window as soon as both of its
+         arms are merged (walk-merge per arm, walk-combine -> forecasts.parquet), the linear run of the window as
+         context.
+PLACEMENT One validated GPU type per arm. QOS gpu (sacctmgr): 36 running jobs and GPUs a user, A40 <= 12, L40S <= 6,
+         100 submitted. A100 not used: its gate 13346567 is self-consistent and within 0.1 % but the full set's best
+         epochs differ from the P100's (12/10/10 vs 12/10/11); V100 failed (ADDENDUM 1).
+           HAR W 3,000 : P100, 27 lanes x 2 files (54 files of ~629 bars x 5 seeds, ~37 P100-h each)
+           HAR W 3,500 : A40, 4 lanes x 2 (8 files, ~38.7 P100-h each)
+           full W 3,000: A40, 3 lanes x 2 (6 files, ~35.8 P100-h each)
+           full W 3,500: L40S, 2 lanes x 2 (4 files, ~18.4 P100-h each)
+         36 lanes = the 36 running jobs; a lane's files run one after another (afterany). Time limits: the G7 P100-s a
+         refit x 1.15 (the L40S arm x 1.5: it measured ~0.9 of the P100's rate on these shapes) + 1 h, all <= 48 h.
+         No debug-partition walk files (its 5-job cap without a feeder would add < 0.3 % of the work). Bar inits:
+         CPU array jobs, one task a walk file; each walk file waits afterok on its task.
+LOGS     The per-step training log (steps.csv) of the walk files goes to /dev/null (NOSTEPS=1) only after the slice
+         check passes (cluster/pooled_mingru_v2_slice_carc.sbatch: the same bar refits run with and without the log,
+         preds.csv text-identical); every walk file waits afterok on it. Partial outputs are copied to RUN/partial every
+         15 min. Storage /project2/pollok_1603/jc_905/pmf2(_35) (not /home1: quota; not /scratch1: Lustre failures).
+HOLD     09:10 PDT (coordinator: the owner is reconsidering the window study): no GPU walk job and no slice check is
+         submitted until the go; the bar inits (CPU) and the walk files are prepared.
