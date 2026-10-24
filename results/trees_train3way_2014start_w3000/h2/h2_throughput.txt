@@ -1,0 +1,17 @@
+# Hoffman2 throughput, the ALL48 forest full set (rf_skx), 2026-10-24 10:25 PDT, written by the Hoffman2 executor
+# Gates (Hoffman2 job t3t_gsum 15261029, trees_train3way.py accept on CARC's code d9d01fd): all four CPU models PASS --
+#   gate 1 (RTH13 --ends 10, both sets, 8 threads) max relative difference to the templates 1.2e-15 (<= 1e-14), true_adj
+#   and B equal; gate 2 (ALL48 and ALL48_N3k, every row against scored-only, both sets) bit for bit.  Gold 6140 = Gold
+#   6240 bit for bit (12 of 12 gate pieces); every other pair of models, and each model against CARC's EPYC pieces,
+#   differs by <= 1.2e-15 relative (oneDAL's SIMD paths).
+# CARC reference: 151.5 s a refit at 20 threads (EPYC 7513, the gate-2 every-row piece; probe 145.9) = 3,030 CPU-s.
+# Hoffman2 runs 8-thread tasks (-pe shared 8): 8-slot jobs start within minutes; 20-slot jobs waited > 1.75 h.
+# columns: tag | CPU model | gate | threads | s a refit (ALL48 full set, every-row gate piece, 38 refits) | CPU-s a refit |
+#          CPU-s ratio to CARC | hours a line (91 refits) | 8-slot tasks startable now (free slots, 10:17 snapshot)
+gold6342 | Intel(R) Xeon(R) Gold 6342 CPU @ 2.80GHz | PASS | 8 | 212.1 | 1697 | 0.56 | 5.36 | 37
+gold6140 | Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz | PASS | 8 | 443.2 | 3546 | 1.17 | 11.20 | 257
+e5v4 | Intel(R) Xeon(R) CPU E5-2650 v4 @ 2.20GHz | PASS | 8 | 444.1 | 3553 | 1.17 | 11.23 | 60
+gold6240 | Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz | PASS | 8 | 463.3 | 3706 | 1.22 | 11.71 | 71
+# Per round, if more lines are assigned: Gold 6342 about 37 lines a 5.4 h round; Gold 6140 / 6240 / E5-2650 v4 about
+# 380 lines a 11-12 h round (snapshot capacity, not a reservation).
+# Wave 1 (the 20 ASSIGNED lines 349-368): Gold 6342 only (fastest; 37 startable), 8 threads, h_rt 12 h.

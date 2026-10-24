@@ -9,7 +9,7 @@
 #   assignment, a gate-passed CPU model and the piece's CPU model at its start), arch and h_rt from h2/walk_resources.txt
 #   (the gate summary; h_rt override as the second argument), $NT threads = slots (default 20; 8 where Hoffman2 does
 #   not schedule 20-slot jobs, the gated thread count), h_data per slot $HD (default 1536M at 20 slots, 2G at 8).
-# usage: bash submit_wave.sh <n lines> [h_rt]
+# usage: [NT=8] [ARCH_ONLY=<arch|arch>] bash submit_wave.sh <n lines> [h_rt]
 set -euo pipefail
 B=/u/scratch/j/jamesdc1/t3t
 N=${1:?n lines}
@@ -19,6 +19,7 @@ cd $B
 [ -s h2/passed_cpus.txt ] && [ -s h2/walk_resources.txt ] || { echo "ABORT: no gate-passed CPU model"; exit 3; }
 . h2/walk_resources.txt
 HRT=${2:-$HRT}
+ARCH=${ARCH_ONLY:-$ARCH}  # a subset of the passed models' arch values (e.g. the fastest)
 k=1
 while [ -e runs/tasks/h2_wave$k.txt ]; do k=$((k + 1)); done
 F=runs/tasks/h2_wave$k.txt
