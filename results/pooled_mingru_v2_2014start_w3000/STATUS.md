@@ -200,3 +200,9 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   tau3_we0_E40 0.126140 (pick), tau3_we0_E20 0.126283, tau1_we0_E20 0.126398, tau0.3_we0_E10 0.126432, tau1_we0_E10
   0.126451. The pick is at the tau high edge (3) -> extension 1: tau 9 x E {10, ..., 1,000} (8 configurations, 120
   jobs, tag v2s2hx1, P100): 13373988-89 gpu, 13373990-92 debug. (E 40 is interior.)
+- 2026-10-24 04:39 PDT: the background wait was killed by the harness (low laptop memory, ~1.8 GB free); re-armed.
+  03:20-05:40 the gpu partition started none of our pending jobs (P100, A40, L40S all queued behind higher-priority
+  work); the debug partition ran the HAR tau-9 files.
+- 2026-10-24 05:50 PDT G6 HAR (W 3,000) extension 1 done (tau 9, 120 jobs, P100: 13373988-92, n_bad 0). Round-1
+  shortlist (screen seeds, stage2/s2_screen_baseline_round1.csv): tau9_we0_E80 0.126084, tau1_we0_E10, tau0.3_we0_E10,
+  tau1_we0_E20, tau3_we0_E40; fresh seeds for the new member tau9_we0_E80 (15 jobs, tag v2s2hc1, debug P100).
