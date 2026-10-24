@@ -20,6 +20,10 @@
 \section{Related work}
 \label{sec:rh_related}
 % 2026-10-17 (user): prose rewritten in the style of Zhang, Zhang, Cucuringu, and Qian (2024).
+% 2026-10-24 (user, on E1): E1 parked text that exposited our estimators (components, target transform, origin);
+% it does not mean Related work avoids our paper. Each bullet places our setup and results in its strand at the
+% granularity an expert reader needs (what is the same, what is new, the obvious contrast), assuming the reader knows
+% the literature; definitions of our estimators and trading rule stay in Methods and Economics. Framing pass below.
 \begin{itemize}
 % 2026-10-15 (consolidation): parked -- (k) in trading days here vs intraday intervals everywhere else.
 % \item \textbf{Realized variance and the HAR model:}
@@ -38,7 +42,9 @@
   and $\RV^{(d)}_t$, $\RV^{(w)}_t$, and $\RV^{(m)}_t$ denote the average daily realized variance over the
   preceding 1, 5, and 22 trading days, respectively. Because all three components represent daily realized
   variances aggregated at the daily, weekly, and monthly horizons, forecasting the realized variance of a
-  specific intraday interval lies outside this standard daily specification.\newline
+  specific intraday interval lies outside this standard daily specification. Our benchmark carries the HAR
+  structure to the intraday interval, and the question we ask is how much a large set of exogenous predictors adds
+  to it.\newline
   See \citet{Corsi2009}, \citet{AndersenBollerslevDieboldLabys2003}, \citet{BarndorffNielsenShephard2004},
   \citet{AndersenBollerslevDiebold2007}, \citet{CorsiMittnikPigorschPigorsch2008},
   \citet{BollerslevPattonQuaedvlieg2016}, \citet{BekiermanManner2018}, \citet{BennedsenLundePakkanen2022},
@@ -49,8 +55,12 @@
   % divided by its diurnal adjustment (Section~\ref{sec:rh_data})."
   % \editc{red}{E1}{Related work says the HAR components average $y$... Predictors and Methods average $\tilde y$.}
   \begin{itemize}
+  % 2026-10-24 (user, framing pass): parked -- the sentence without the link to our pooling. Was: "In a multivariate
+  % setting, the panel HAR framework of \citet{BollerslevHoodHussLebedev2018} estimates a single pooled regression
+  % jointly across a cross-section of assets."
   \item In a multivariate setting, the panel HAR framework of \citet{BollerslevHoodHussLebedev2018} estimates a
-    single pooled regression jointly across a cross-section of assets.
+    single pooled regression jointly across a cross-section of assets; our intraday models pool in the same spirit,
+    across the intraday intervals of one index rather than across assets.
     % 2026-10-16 (user, E1): parked -- this named our estimator. Was: "the cross-asset counterpart of our intraday
     % model, which pools the intraday intervals of one index."
     % Key says "Lebedev"; the bib's author field (correctly) says Pedersen -- \citet prints the author field.
@@ -61,7 +71,8 @@
 \item \textbf{Diurnal pattern.} It is well documented that intraday return volatility exhibits a pronounced
   U-shaped pattern across the trading session. To account for this periodicity, standard practice scales intraday
   realized variance by a diurnal factor estimated from the corresponding clock-time interval on prior trading
-  days.\newline
+  days. We follow this practice; it is what allows one model to be estimated across all intervals of the trading
+  day.\newline
   % 2026-10-16 (user, E1): parked -- the display was our target, not the literature's. Was:
   % "divides by a diurnal adjustment, here $y_{t,i} = \sqrt{\RV_{t,i}/s^2_{t,i}}$, with $\RV_{t,i}$ the realized
   % variance of intraday interval $i$ on day $t$ and $s^2_{t,i}$ its diurnal adjustment."
@@ -80,7 +91,9 @@
   between option-implied variance and expected realized variance,
   $\E^{\mathbb{Q}}_t[\RV_t] - \E^{\mathbb{P}}_t[\RV_t]$, under the risk-neutral ($\mathbb Q$) and physical
   ($\mathbb P$) measures (where $\RV_t$ denotes the realized variance through expiration), is empirically
-  positive on average.\newline
+  positive on average. Our economic application sits at the end of a 0DTE option's life: we ask whether more
+  accurate forecasts of the closing half hour's realized variance, set against the option-implied variance,
+  translate into straddle returns.\newline
   See \citet{HizmeriBevilacqua2025}, as well as the foundational option-pricing frameworks of
   \citet{BlackScholes1973} and \citet{Merton1973}.
   \begin{itemize}
@@ -95,7 +108,11 @@
   \end{itemize}
 \item \textbf{Machine learning for volatility and returns.} A growing literature models conditional return and
   volatility dynamics via flexible nonlinear mappings $f(\bm x_t)$ of a high-dimensional predictor vector
-  $\bm x_t$.\newline
+  $\bm x_t$. Most of this work targets daily volatility or monthly returns. The closest precedent for our
+  setting, \citet{ZhangZhangCucuringuQian2024}, forecasts the realized volatility of intraday intervals for a
+  cross-section of stocks with one model across the intervals of the day and predictors built from realized
+  volatility alone; we keep that design for the S\&P~500 and ask what a large set of exogenous predictors adds,
+  comparing penalized linear models with tree ensembles.\newline
   See \citet{gu2020empirical} for return prediction and \citet{christensen2023machine} for realized volatility
   forecasting; for gradient-boosted decision trees, see \citet{Ke2017} (LightGBM) and \citet{Chen2016}
   (XGBoost); for Bayesian hyperparameter optimization, see \citet{Akiba2019} (Optuna).
@@ -135,7 +152,9 @@
   for a response vector $\bm y$, a predictor matrix $\bm X$, and an overall penalty strength $\lambda$, nesting
   ridge regression ($\alpha = 0$) and the lasso ($\alpha = 1$) as special cases; multi-penalty ridge extensions
   assign distinct regularization weights across feature blocks via $\lambda \sum_j \omega_j \beta_j^2$, where the
-  penalty weight $\omega_j$ is held constant within each block.\newline
+  penalty weight $\omega_j$ is held constant within each block. Our predictor set is large and its signals
+  individually weak, so the comparison of penalized linear models with tree ensembles, and of how their gains
+  change with the length of the training window, bears directly on the dense-versus-sparse question.\newline
   See \citet{GiannoneLenzaPrimiceri2021} on dense versus sparse representations, \citet{ShenXiu2025} on
   learning from many weak signals, \citet{KozakNagelSantosh2020} on shrinking the cross-section of returns,
   \citet{HoerlKennard1970} on ridge regression, \citet{Tibshirani1996} on the lasso, \citet{ZouHastie2005} on the
