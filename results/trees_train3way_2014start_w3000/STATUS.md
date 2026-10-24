@@ -239,3 +239,25 @@ Pool: lines 5-348 of runs/tasks/w3rf_full.txt, claims in runs/claims_w3rf_full/<
   ExcNodeList to d05-06, d06-25, d11-23, d11-24, d18-17, d18-26, d18-28, d18-29 (121 pending tasks, verified).
 - Pools at 09:30: EPYC 13377719 1 running / 149 pending; Xeon 4116 13378115 24 running / 121 pending / 5 failed; E5-2640
   v4 13378116 9 running / 11 pending / 0 failed; 37 lines claimed, 0 done.
+
+## Throughput-balanced split with Hoffman2; Xeon 4116 pool moved to /home1 (10:15-10:26 PDT)
+
+- Xeon 4116 pool 13378115 failures (16 by 10:15): all /scratch1 Lustre errors (errno 5 input/output error, errno 108
+  transport endpoint shutdown) on d11-23, d11-24, d11-29, d11-42, d06-19, d06-25 (and the earlier d05-06, d18-*).
+  `code/move_home1.sh` (a5c4171) released lines 7, 8, 9 and then stopped (set -e on an empty grep) before changing
+  anything else; `code/rebalance_h2.sh` (961c9ec, 10:25) released lines 20, 23, 26, 34, 35, 37, 39, 46, 47 (no piece
+  of any had been written; runs/claims_released.log) and cancelled the pool's 105 pending tasks (29 running left).
+- Hoffman2 gates passed for Gold 6140, 6240, 6342 and E5-2650 v4 (Hoffman2 executor, 10:25; gate 1 max rel 1.2e-15,
+  gate 2 bit for bit); measured hours a line at 8 threads: Gold 6342 5.4, Gold 6140 11.2, E5-2650 v4 11.2, Gold
+  6240 11.7.  Equal-finish split of the 294 unclaimed lines (Hoffman2 ~14 lines/h at <= ~120 tasks; CARC ~4.5 lines/h
+  for new lines; Hoffman2's 20-line wave 1 counted; its share rounded down to a multiple of 10):
+| Lines of w3rf_full.txt | Where | How |
+|---|---|---|
+| 1-4 | CARC 13372432 (20 threads) | running |
+| ~48 claimed lines in 5-79 | CARC: old Xeon 4116 pool 13378115 (29 running), EPYC pool 13377719, E5-2640 v4 pool 13378116 | started |
+| 25 unclaimed lines below 80 | CARC /scratch1 pools (EPYC 13377719, E5-2640 v4 13378116) | claim pool |
+| 80-138 (59) | CARC Xeon 4116 pool on /home1, 13381306 (64 tasks %40, 8 threads, 20 h; code, claims, pieces, logs on /home1; nodes above excluded) | reserved_home1 |
+| 139-348 (210) | Hoffman2 | pre-claimed owner_h2 |
+| 349-368 (20) | Hoffman2 wave 1 (15262038, Gold 6342) | assigned 02:15 |
+- runs/tasks/h2_assignment.txt: ASSIGNED 349-368 and 139-348.  Held final merge 13372433 also waits on 13381306; the
+  /home1 pieces are copied (md5) into runs/pieces before it is released.

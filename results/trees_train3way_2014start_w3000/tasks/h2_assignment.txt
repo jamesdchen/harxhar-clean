@@ -29,5 +29,8 @@
 #   one CPU model a tag; only pieces of accepted models are taken.
 # Delivery of pieces: finished pieces only (json present, no .ckpt.json) to /scratch1/jc_905/trees3way/runs/pieces_h2/
 #   with an MD5SUMS file (md5sum format) listing every parquet and json delivered; never overwrite a delivered file.
-RETURNED w3rf_full.txt 240-348 ALL48 rf_skx all_features 20
-ASSIGNED w3rf_full.txt 349-368 ALL48 rf_skx all_features 20
+# 2026-10-24_10:25:18 rebalance_h2.sh (throughput-balanced, coordinator 10:25): Hoffman2 ~14 lines/h at <= ~120
+#   concurrent 8-thread tasks (Gold 6342 ~35 at 5.4 h a line; Gold 6140 / 6240 / E5-2650 v4 ~85 at ~11.3 h), CARC
+#   ~4.5 lines/h for new lines; the second row's lines are pre-claimed 'owner_h2' in runs/claims_w3rf_full/.
+ASSIGNED w3rf_full.txt 349-368 ALL48 rf_skx all_features 8
+ASSIGNED w3rf_full.txt 139-348 ALL48 rf_skx all_features 8
