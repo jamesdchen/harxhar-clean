@@ -296,3 +296,11 @@ Pool: lines 5-348 of runs/tasks/w3rf_full.txt, claims in runs/claims_w3rf_full/<
   ALL48_rf_skx_all_features_58of368.ckpt.json (101 bytes) and .parquet (6,364 bytes) and its claim; back in the
   /scratch1 pools.  Pools then: EPYC 13377719 17 running / 122 pending; old Xeon 4116 13378115 26 running (21 failed);
   E5-2640 v4 13378116 9 / 11; /home1 Xeon 4116 13381306 3 running / 61 pending (its first tasks started).
+- Standing rule, batch 3: restarted line 19 (13378116_9, E5-2640 v4, d18-35, errno 108; deleted .ckpt.json 101 bytes,
+  .parquet 10,869 bytes), line 50 (13378115_40, d06-19, errno 108; 101 / 7,110 bytes), line 9 (13378115_46, d11-29,
+  errno 5; 147 / 7,442 bytes), and their claims.  Kept, outside the rule: line 63 (13378115_47, d11-29, failed 11:44:36
+  CARC clock, the same second as line 9's task on that node, exit 1:0) -- its log shows normal progress (12 refits,
+  ~368 s a refit at 8 threads) and no error line, so the cause is not shown as an I/O error; claim 'failed' and partial
+  piece (.ckpt.json 101 bytes, .parquet 6,818 bytes) left in place; asked.
+- Pools then: EPYC 13377719 20 running / 119 pending; old Xeon 4116 13378115 23 running (24 failed); E5-2640 v4
+  13378116 9 / 10 (1 failed); /home1 Xeon 4116 13381306 4 running / 60 pending; no forest line finished yet.
