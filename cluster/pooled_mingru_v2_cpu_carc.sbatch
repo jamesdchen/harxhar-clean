@@ -31,7 +31,7 @@ case "${MODE:?MODE}" in
   post) "$PY" "$S" post --run "${RUNDIR:?RUNDIR}" --jobs "${JOBS:?JOBS}" ;;
   # 2026-10-24 every-bar walk: one array task a walk file (TASKS = inputs/walkinit_<set>.csv); merge of one arm
   walkinits) "$PY" "$S" walk-inits --root "$ROOT" --xdata "$XDATA" --tasks "$ROOT/inputs/${TASKS:?TASKS}" --task "${SLURM_ARRAY_TASK_ID:?array}" ;;
-  merge) "$PY" "$S" walk-merge --set "${SET:?SET}" --runs "${RUNS:-$ROOT/runs}" --inputs "$ROOT/inputs" --out "${OUTDIR:?OUTDIR}"            --rows "$XDATA/pmf_rows.csv" ${RV:+--rv "$RV"} ;;
+  merge) "$PY" "$S" walk-merge --set "${SET:?SET}" --runs "${RUNS:-$ROOT/runs,$ROOT/salvage}" --inputs "$ROOT/inputs" --out "${OUTDIR:?OUTDIR}"            --rows "$XDATA/pmf_rows.csv" ${RV:+--rv "$RV"} ;;
   *) echo "unknown MODE $MODE"; exit 1 ;;
 esac
 date; echo V2CPU_DONE

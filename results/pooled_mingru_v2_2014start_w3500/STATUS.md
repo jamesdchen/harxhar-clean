@@ -63,3 +63,5 @@ the old run (read-only): `/home1/jc_905/pmf35/data` (design copies, fold-3 ridge
   (tau9_we0_E80 0.125766, tau0.3_we0_E10 0.125837, tau1_we0_E20 0.125891, tau3_we0_E20 0.125927); interior (tau 3 <
   9). Reported (stage2/s2_report.json): bootstrap SE 0.00009-0.00026, jackknife SE 0.00004-0.00011, 90 % MCS = the
   whole shortlist. G7 HAR (W 3,500), P100: H 256, L 8, lr 0.003, tau 3 (wd 0.137023842), E 40: 13378173 (nice 100).
+- 2026-10-24 09:20 PDT: RULE ADDENDUM 2 (walk of all four arms, placement, HOLD) -- see the W 3,000 STATUS.md. W 3,500
+  walk files prepared (HAR 8 files on A40, full 4 on L40S), bar inits submitted (CPU 13379951, 13379952); no GPU job.

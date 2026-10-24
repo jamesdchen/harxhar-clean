@@ -262,3 +262,12 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   Tooling: walk-plan / walk-inits / walk-merge / walk-combine (pooled_mingru_v2.py; merge tested on synthetic
   forecasts: remainder file and complete paths), GPU sbatch NOSTEPS / PARTIAL_S, walk submit script (lanes,
   afterok on the bar-init task and the slice check), slice check sbatch, CPU sbatch walkinits / merge modes.
+- 2026-10-24 09:18-09:25 PDT walk prepared (HOLD: no GPU job submitted). /project2/pollok_1603/jc_905/pmf2(_35)/inputs:
+  walk files v2w_<set>.<i>.txt (W 3,000: HAR 54, full 6; W 3,500: HAR 8, full 4; every origin 50,777 .. 84,746 x 5
+  seeds; plan files files_v2w_<set>.csv with lane / seq / time limit; est. 1,995.7 / 214.7 / 310.0 / 73.6 P100-h;
+  time limits 2,610-2,614 / 2,529 / 2,734-2,735 / 1,716-1,717 min), the slice file v2wslice.txt (W 3,000: 2 full-set
+  bars x 5 seeds + 1 HAR bar x 5 seeds), code/go_walk.sh (the slice check, then the 72 walk files; NOT run).
+  Bar inits submitted (CPU, main; oneweek refused: its QOS allows 50 submitted / 208 CPUs a user and our other
+  session holds 20 / 180): W 3,000 HAR 13379947 (54 tasks), full 13379948 (6); W 3,500 HAR 13379951 (8), full
+  13379952 (4, nice 100); ids in inputs/walkinit_<set>.jobid. core_stats.parquet is not under /home1/jc_905/pmf/repo
+  on CARC: the merge runs locally on pulled outputs (tested) or on CARC with RV=<path>.
