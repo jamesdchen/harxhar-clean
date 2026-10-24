@@ -103,3 +103,22 @@ ALL48_N39k; ALL48_N3k's LightGBM walks had started with the template setting and
 | 13371793 / 13371794 | t3t_m3 / t3t_s3 | merge ALL48 (--skip rf_skx/all_features) / final scores | w3l, w3x, w3h / m3, s2 |
 
 Not submitted: ALL48's forest full set (runs/tasks/w3rf_full.txt, 368 lines; `code/submit3_rf_full.sh`).
+
+## Gate C result (01:35 PDT; read 01:55): FAIL, a genuine LightGBM mismatch (not infrastructure); LightGBM walks held
+
+- Every gate C job COMPLETED (24 walk lines, the record 13371782); no I/O / Lustre error in any log; t3t_gcc 13371781
+  task 1 (gate2 --arm ALL48 --est lgbm) PASS, task 2 (gaterep) exit 3 = the gate's own failure.
+- (a) gate 2 with force_col_wise: ALL48 LightGBM both sets, every row vs scored-only, bit-identical (3 of 3 origins).
+- (a) repeats: ALL48_N39k both sets identical (scored2 at 3 origins, one1-2 at 10:00); ALL48 HAR set identical (scored2,
+  one1-4); ALL48 full set: scored, scored2 and every give 2014-01-03 10:00 = 0.8102594551794626, the 10:00 origin
+  alone in fresh processes gave ...627 (one1, b10-19), ...627 (one2, b10-19), ...626 (one3, b10-19), ...627 (one4,
+  b22-26) -- the same node gives both values, so force_col_wise does not remove the 1-ulp run-to-run
+  non-determinism (2.2e-16 relative; 15:30 and 16:00 identical in every run).  The diagnostic's batch copy (13371140,
+  a03-05) agrees: template setting 627 / 626 / 626 / 626, force_col_wise 626 / 627, force_row_wise 627 / 627.
+- (b) record: force_col_wise against the template setting on RTH13 (gate-1 origins, both sets): text-identical, max
+  relative difference 0.
+- Gate 2 on ALL48's forest (t3t_g2r 13371784): PASS (full set bit-identical, 38 every-row refits at 151.5 s, 3 scored
+  origins; HAR set too); XGBoost (13371783): PASS.  The forest walks 13371789 / 13371790 and the XGBoost walks
+  13371786 / 13371788 run.
+- Held: LightGBM walks 13371785 (ALL48_N39k) and 13371787 (ALL48), DependencyNeverSatisfied on 13371781; with them the
+  merges / scores 13371791-13371794 (afterany on the LightGBM arrays) wait.  Nothing loosened; the owner decides.
