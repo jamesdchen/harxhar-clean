@@ -38,3 +38,21 @@ bookworm container of the tree learning curve; threads = slots; numpy AVX-512 di
   gold6240 15261294, 15261295, 15261303; gold6342 15261296, 15261297, 15261304, 15261025 (tasks 3-6); e5v4 15261307,
   15261299 (tasks 2-5), 15261308, 15261305.  The walks will run at 8 threads (the gated count; recorded in each meta).
 - Assignment relayed (CARC, read 04:05): RETURNED w3rf_full.txt 240-348, ASSIGNED 349-368 (20 lines).
+
+## 10:17-10:20 PDT: gates passed; delivered; wave 1
+
+- Gates (t3t_gsum 15261029 at 09:38; `accept` on CARC's code): **all four models pass** -- gate 1 max relative
+  difference to the templates <= 1.2e-15, gate 2 bit for bit; Gold 6140 = Gold 6240 bit for bit; the other models
+  and CARC's EPYC differ from each other by <= 1.2e-15 relative.  Seconds a refit (ALL48 full set, 8 threads): Gold
+  6342 212.1, Gold 6140 443.2, E5-2650 v4 444.1, Gold 6240 463.3 (CARC EPYC 151.5 at 20 threads); `h2_throughput.txt`.
+  Gold 6342 gate piece: 8,174 s wall, maxvmem 5.5 GB.
+- Delivered (Hoffman2 deliver.sh gates -> laptop -> CARC carc_recv.sh, one session each side): 114 files, manifest
+  md5 e096304bd053ceabb7982907fa651011, `md5sum -c` OK on CARC, every pieces dir's MD5SUMS OK; /scratch1 write check
+  OK, so /scratch1/jc_905/trees3way/gate/h2/<tag>/{g1,g2}/pieces, h2/delivery_20261024_101930/ and
+  runs/tasks/h2_throughput.txt.  (A first attempt at 10:17 opened the CARC session without its command -- a local
+  command file had not been written -- so CARC's login shell read the tar stream as commands: all 64 lines it read
+  failed as "command not found" / "No such file" and the shell exited at a syntax error; no file in ~ changed, checked
+  at 10:19.)
+- Live assignment re-read 10:19 (mtime 02:13:47): ASSIGNED 349-368, RETURNED 240-348.  Wave 1: job 15262038
+  (t3t_w1), 20 lines 368..349, 8 threads, Gold 6342 only (fastest; 37 startable 8-slot tasks at 10:17), -tc 20,
+  h_rt 12 h, h_data 2G a slot.
