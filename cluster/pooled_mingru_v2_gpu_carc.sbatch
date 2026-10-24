@@ -7,8 +7,11 @@
 #   XDATA  the old run's data root (default by ROOT: /home1/jc_905/pmf/data or /home1/jc_905/pmf35/data), read-only
 #   JOBS   a file under $ROOT/inputs; SUB tune | refit; TAG run name ($ROOT/runs/${TAG}_$SLURM_JOB_ID); CONC models at once
 #   INITSUB optional ridge-init subdirectory (bar24 for the G7 walk probe)
+#   GPUTYPE the GPU model required (default P100; RULE ADDENDUM 1: a validated type, one type per comparison group);
+#           submit with the matching --constraint (the submit script does); the job exits on any other model
 # POST: experiments/pooled_mingru_v2.py post (check + epoch curves + compact forecasts into the run's summary/).
-# P100 only (--constraint=p100; the job exits on any other model).
+# 2026-10-23 23:00 PDT: ROOT may be /scratch1/jc_905/pmf2(_35) (the /home1/jc_905 quota was exhausted at 22:38 PDT);
+# a trainer that exits non-zero now leaves its log and partial outputs in ROOT/salvage (they were lost with LOCAL).
 #SBATCH --account=pollok_1603
 #SBATCH --partition=gpu
 #SBATCH --gres=gpu:1
@@ -29,6 +32,7 @@ JOBS=${JOBS:?JOBS}
 SUB=${SUB:?SUB tune or refit}
 TAG=${TAG:?TAG}
 CONC=${CONC:-6}
+GPUTYPE=${GPUTYPE:-P100}
 # the python env from /home1 (a broken /scratch1 Lustre client on some GPU nodes raised SIGBUS: old STATUS.md 2026-10-23)
 PY=${PY:-/home1/jc_905/envs/harxhar-r13/bin/python}
 EP=$(dirname "$(dirname "$PY")")
@@ -54,8 +58,8 @@ done
 mkdir -p "$RUN"; cd "$RUN"; ln -sfn "$LOCAL/data" data
 GOT=$(nvidia-smi --query-gpu=name --format=csv,noheader | head -1)
 { hostname; date; nvidia-smi --query-gpu=name,driver_version,memory.total --format=csv,noheader
-  md5sum "$ROOT/bin/forecast_train" "$ROOT/inputs/$JOBS"; echo "XDATA=$XDATA CONC=$CONC WD=$WD"; } > env.txt 2>&1
-echo "$GOT" | grep -qi P100 || { echo "got a $GOT, P100 required"; exit 1; }
+  md5sum "$ROOT/bin/forecast_train" "$ROOT/inputs/$JOBS"; echo "XDATA=$XDATA CONC=$CONC WD=$WD GPUTYPE=$GPUTYPE"; } > env.txt 2>&1
+echo "$GOT" | grep -qi "$GPUTYPE" || { echo "got a $GOT, $GPUTYPE required"; exit 1; }
 cp "$ROOT/bin/forecast_train" "$LOCAL/ft"
 [ "$(md5sum < "$LOCAL/ft" | cut -c1-32)" = 44ab6fff270e15547335c6b36b3ceead ] || { echo "binary md5"; exit 1; }
 cp "$ROOT/inputs/$JOBS" "$LOCAL/jobs.txt"
@@ -71,7 +75,12 @@ salvage() {
 trap salvage USR1
 "$LOCAL/ft" run --jobs "$LOCAL/jobs.txt" --out "$LOCAL/$SUB" --concurrent "$CONC" --chunk 5 --pool > "$LOCAL/$SUB.log" 2>&1 &
 FTPID=$!
-wait "$FTPID"
+set +e; wait "$FTPID"; RC=$?; set -e
+if [ "$RC" != 0 ]; then
+  S=$ROOT/salvage/${TAG}_$SLURM_JOB_ID; mkdir -p "$S"
+  cp -r "$LOCAL/$SUB" "$LOCAL/$SUB.log" "$S/" 2>/dev/null || true
+  echo "trainer exit $RC: log and partial outputs in $S"; tail -n 20 "$LOCAL/$SUB.log" || true; exit "$RC"
+fi
 [ -f "$LOCAL/$SUB/steps.csv" ] && gzip -f "$LOCAL/$SUB/steps.csv"
 (cd "$LOCAL" && find "$SUB" -type f -exec md5sum {} + | sort -k2 > "$SUB.md5")
 cd "$RUN"

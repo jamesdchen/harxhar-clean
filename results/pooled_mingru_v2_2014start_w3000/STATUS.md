@@ -71,3 +71,24 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   0.121038241 (rel 3.2e-9); mu_y / sd_y of the job = the init's. Diagnostic: rho_300 of (H 64, L 20, lr 0.003) = 0.782
   (does not memorize); validation QLIKE best at epoch 28 (0.12465), 0.14297 at epoch 300. G2's 8 files now released
   (dependency met), PENDING (debug: Resources / Priority; gpu: behind the old walk's halves).
+- 2026-10-23 21:48 PDT: G2 not started yet. Debug: 13353696 expected 22:00, 13353697 22:40 (debug's one P100 node
+  e23-02 held by another user's 55-min jobs). gpu: the 6 E 1,000 files are the top P100 pending jobs (priority 3,194);
+  the P100s are full (the old walk's 15 running halves end 22:40-23:21, none of its 68 halves pending). The local
+  background wait was killed by the harness for low laptop memory at ~21:47 (not the wait's own use); re-armed.
+- 2026-10-23 22:09-22:42 PDT G2 ran: E 300 files 13353696 (HAR, debug, 520 s) and 13353697 (full, debug, 733 s) and the
+  E 1,000 file 13355108 (HAR lr 0.001, gpu d23-16, 666 s) COMPLETED (checks n_bad 0). 13355109 / 13355110 (HAR E 1,000
+  lr 0.003 / 0.01) FAILED exit 1 at 22:40 / 22:42 with an empty log; 13355111-13 (full E 1,000, all lr) FAILED in 2 s
+  (signal 53, no log file). Diagnosis: the /home1/jc_905 quota (100 GiB) is exhausted ("Disk quota exceeded" on a
+  touch at 22:45; myquota's cached 89.2 GiB is stale): the old W 3,000 walk writes ~385 MB of steps.csv.gz a half to
+  /home1/jc_905/pmf/runs (pmf 33 GB). Old walk halves 13346982 / 13347424 failed the same way at 22:38 / 22:42 (not
+  touched; reported to the coordinator). The A100 gate 13346567 (writes to /home1/jc_905/pmf) will fail too if it
+  starts before space is freed.
+- 2026-10-23 22:35 PDT owner decision (relayed): every CARC GPU type may be used, one type per comparison group, each
+  validated first. RULE ADDENDUM 1 written (both windows) at 22:55 PDT before any v2 job on another type: validated A40
+  (13346566) and L40S (13346568) pass; V100 (13346565, read) FAILS the full-set conditions (seed-mean QLIKE 0.152 % >
+  0.1 %, best epochs 12/10/13 vs 12/10/11) and is not used; A100 pending. Free GPUs at 22:42 (gpu partition, nodes
+  up): L40S 2 / 19, A100 2 / 34, A40 0 / 50, P100 0 / 74, V100 0 / 52 (the coordinator's ~48 free V100 no longer held).
+- 2026-10-23 23:00 PDT: v2 roots moved to /scratch1/jc_905/pmf2 and /scratch1/jc_905/pmf2_35 (bin, code, inputs,
+  data/pmf_lin_init copied, md5 of every file equal: 59 / 44 files; bin and code of pmf2_35 link to pmf2's). Scripts
+  updated (GPUTYPE + --constraint; the sbatch path read from ROOT/code; a failed trainer leaves its log in salvage/).
+  Completed G1 / G2 runs stay in /home1/jc_905/pmf2/runs (read only).

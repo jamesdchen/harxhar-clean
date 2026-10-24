@@ -122,3 +122,42 @@ GATES    G0 (CPU): TQ_0 per set and L; per-fold window masks and ridge inits (ev
             seeds a set) and the wall-clock at the GPU counts actually obtained. No walk is submitted under this rule's work.
          A gate failure stops the work and is reported with its diagnosis.
 GPU      P100 only (gpu and debug partitions); the W 3,500 jobs carry a Slurm nice value; CARC root /home1/jc_905/pmf2_35.
+
+ADDENDUM 1 2026-10-23 22:55 PDT (2026-10-24 05:55 UTC; owner, James, relayed by the coordinator ~22:35 PDT: "for throughput
+without compromising accuracy, MinGRU v2 may use every CARC GPU type, not only P100"), written before any v2 job on a type
+other than P100; identical in both windows' copies. It replaces "P100 only" (TRAINER, GPU) as follows; nothing else changes.
+TYPES    P100, V100, A40, A100, L40S (gpu partition; debug: P100 / A40), each only after it passes VALIDATION.
+GROUPS   One GPU type per comparison group, never mixed inside a group:
+           - a Stage-1 grid at a window (both sets; every cell incl. the conditional H 1,024 / L 115 edges, lr and seed);
+           - a Stage-2 screen of a set at a window with its fresh-seed confirmation and every extension round (the G5
+             canary of that set and window runs on the same type);
+           - a G7 probe of a set at a window; (later) each walk arm.
+         G1 and G2 stay on P100 as submitted (their decisions apply as planned). The type of every group is recorded
+         (STATUS.md; the tables' gpu column from each run's env.txt).
+VALIDATION before first use: the GPU-type gate (cluster/pooled_mingru_final_gate_gputype_carc.sbatch: the P100 gate's
+         jobs, fold-3 tune with 3 seeds a set, plus the first walk origin; the tune file run twice). Pass: the two tune
+         runs identical (self-consistent) and, against the P100 reference, the seed-mean validation QLIKE within 0.1 %
+         relative and the best epochs equal, both sets. Results (read, not rerun):
+           A40  13346566 (a03-20): PASS. Self-consistent; QLIKE rel. diff 0.0096 % HAR / 0.044 % full; best epochs equal.
+           L40S 13346568 (b17-15): PASS. Self-consistent; 0.042 % / 0.044 %; best epochs equal.
+           V100 13346565 (d11-04, V100-PCIE-32GB): FAIL. Self-consistent and HAR passes (0.054 %, best epochs equal), but
+                the full set misses both conditions (0.152 % > 0.1 %; best epochs 12 / 10 / 13 vs the P100's 12 / 10 / 11).
+                V100 is not used.
+           A100 13346567: pending; used only if it completes and passes (it writes to /home1/jc_905/pmf, see STORAGE).
+         None of the types is P100-identical (validation forecasts max rel. diff 1.6-3.1 % HAR, 9-16 % full; the first walk
+         origin's refit forecasts of the full set up to 2-4x on single rows): numbers are comparable only inside a group.
+CHOICE   Per group, at its first submission: the validated type with the most free GPUs in the gpu partition (sinfo
+         GRES total - used on nodes up), within the QOS (100 submitted / 36 running jobs a user, gpu partition). Ties:
+         P100, then L40S, A40, A100. A group keeps its type for all its later jobs (extensions, reruns).
+CONC     The P100-measured safe concurrency (24 for H <= 64 and L <= 20; 7 for H 1,024; else 12 HAR / 6 full) on every
+         type: every validated type has more memory than the P100's 16 GB (A40 / L40S 48 GB, A100 40 / 80 GB).
+COST     The Stage-1 pick's cost order stays the P100 table (STAGE 1, unchanged). The time a model-epoch is re-measured
+         on the type used (each file's trainer wall / its jobs' epochs; t_train / epochs a job) and reported; the G7 probe
+         gives the walk cost on its type; the walk projection is reported in P100-hours and in hours of the type used.
+STORAGE  (infrastructure, not the rule's substance) The /home1/jc_905 quota (100 GiB) was exhausted at ~22:38 PDT (the old
+         W 3,000 walk's outputs, ~385 MB a half): 5 of G2's 8 files failed on writing (13355109-13355113: exit 1 / signal
+         53, no log), as did old walk halves 13346982 and 13347424. From 2026-10-23 23:00 PDT every v2 job runs from
+         /scratch1/jc_905/pmf2 (W 3,000) and /scratch1/jc_905/pmf2_35 (W 3,500): bin, code, inputs and ridge inits copied
+         from the /home1 roots with an md5 check; runs, logs and salvage written there. The design copies (XDATA) and the
+         Python env are still read from /home1 (reads work over quota). The completed G1 / G2 runs stay in /home1 roots.
+         The 5 failed G2 files are rerun unchanged on P100.

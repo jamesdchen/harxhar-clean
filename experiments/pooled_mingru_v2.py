@@ -926,6 +926,18 @@ S1_RE = re.compile(
 )
 
 
+def run_env(sm: Path) -> tuple[str, float]:
+    """The GPU model (nvidia-smi name, the third line of env.txt) and the file's trainer wall seconds (RULE
+    ADDENDUM 1: the type of every group is recorded; the time a model-epoch is re-measured on the type used)."""
+    p = sm / "env.txt"
+    if not p.is_file():
+        return "", float("nan")
+    ln = p.read_text().splitlines()
+    gpu = ln[2].split(",")[0].strip() if len(ln) > 2 else ""
+    wall = [float(x.split()[1]) for x in ln if x.startswith("wall_s ")]
+    return gpu, wall[0] if wall else float("nan")
+
+
 def load_summaries(
     runs: Path, pat: str
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
@@ -937,6 +949,7 @@ def load_summaries(
             continue
         j = pd.read_csv(sm / "jobs.csv")
         j["run"] = d.name
+        j["gpu"], j["run_wall_s"] = run_env(sm)
         J.append(j)
         C.append(pd.read_csv(sm / "epoch_curves.csv"))
         if (sm / "epochs.csv").is_file():
@@ -1001,6 +1014,8 @@ def s1_jobs_table(runs: Path, pat: str, g0: dict) -> pd.DataFrame:
             gn_max=float(c["gn_max"].max()) if len(c) else float("nan"),
             t_train=float(j["t_train"]),
             run=j["run"],
+            gpu=str(j["gpu"]),
+            run_wall_s=float(j["run_wall_s"]),
         )
         if len(v):
             vq = v["val_qlike"].to_numpy()
@@ -1078,6 +1093,8 @@ def st_s1_table(a: argparse.Namespace) -> None:
                 n_nonfinite=float(Tb["n_nonfinite"].sum()),
                 cost_epoch_p100s=cost,
                 walk_p100h_per_epoch=round(cost * 33_970 * 5 / 3600, 2),
+                gpu=";".join(sorted(set(Tb["gpu"].astype(str)))),
+                t_train_s_per_epoch=float((Tb["t_train"] / Tb["epochs_run"]).mean()),
                 lrs=";".join(
                     f"{x['lr']}:{x['TQ_E']:.6f}:{x['rho_E']:.4f}{'' if x['ok'] else '!'}"
                     for x in by_lr
@@ -1114,7 +1131,20 @@ def st_s1_table(a: argparse.Namespace) -> None:
             if need_h1024
             else ("L115 x H{64,256}" if need_l115 else None),
             final=bool(core_run and not need_h1024 and not need_l115),
+            gpu_types=sorted(set(Ts["gpu"].astype(str))),
         )
+    # RULE ADDENDUM 1: the type of every run and its measured GPU-s a model-epoch (the file's trainer wall / its jobs'
+    # epochs: the concurrency-shared rate on that type)
+    if len(T):
+        R = T.groupby("run").agg(
+            set=("set", "first"),
+            gpu=("gpu", "first"),
+            wall_s=("run_wall_s", "first"),
+            n_jobs=("seed", "size"),
+            model_epochs=("epochs_run", "sum"),
+        )
+        R["gpu_s_per_model_epoch"] = R["wall_s"] / R["model_epochs"]
+        R.to_csv(out / f"{a.name}_runs.csv", float_format="%.6g")
     pd.DataFrame(cell_rows).to_csv(
         out / f"{a.name}_cells.csv", index=False, float_format="%.6g"
     )
