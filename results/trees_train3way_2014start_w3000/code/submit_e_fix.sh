@@ -21,8 +21,13 @@ for v in "$a1" "$b1" "$c1" "$a2" "$b2" "$c2" "$pE"; do
   [ -n "$v" ] || { echo "ABORT: a job of submit_e.sh is missing"; exit 3; }
 done
 mkdir -p $CL
+p41=$(cd $CODE && sbatch --parsable --account=pollok_1603 -H -p main --constraint=xeon-4116 -J t3t_p41 -c 8 \
+  --mem=16G -t 24:00:00 --array=1-150%40 --dependency=afterok:$c1 -o "$BASE/logs/%x.%A_%a.out" \
+  --export=ALL,CODE=$CODE,TASKFILE=$T/w3rf_full.txt,LO=5,HI=348,CLAIMS=$CL $J/pool.sbatch) || p41=""
+echo "p41=${p41:-REFUSED}"
+[ -n "$p41" ] || { echo "ABORT: the Xeon 4116 pool was refused; nothing cancelled"; exit 3; }
 p26=$(cd $CODE && sbatch --parsable --account=pollok_1603 -H -p oneweek --constraint=xeon-2640v4 -J t3t_p26 -c 20 \
-  --mem=24G -t 24:00:00 --array=1-25%10 --dependency=afterok:$c2 -o "$BASE/logs/%x.%A_%a.out" \
+  --mem=24G -t 24:00:00 --array=1-20%10 --dependency=afterok:$c2 -o "$BASE/logs/%x.%A_%a.out" \
   --export=ALL,CODE=$CODE,TASKFILE=$T/w3rf_full.txt,LO=5,HI=348,CLAIMS=$CL $J/pool.sbatch) || p26=""
 echo "p26=${p26:-REFUSED}"
 scancel --state=PENDING 13372432 13372801
