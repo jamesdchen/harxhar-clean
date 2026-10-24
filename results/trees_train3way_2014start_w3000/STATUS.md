@@ -157,3 +157,9 @@ Hoffman2: `runs/tasks/h2_assignment.txt` (ASSIGNED w3rf_full.txt 240-368 ALL48 r
 
 Throughputs: CARC 3.7 h a line at 20 threads (probe; 25 slots -> 6.8 lines/h at %25); Hoffman2 not yet measured (its
 agent's probe per CPU model).  CARC runs upward from line 1, Hoffman2 downward from 368.
+
+| Time (PDT) | Event |
+|---|---|
+| 02:13 | live runs/tasks/h2_assignment.txt replaced by 2d7d2ab's (RETURNED 240-348, ASSIGNED 349-368; previous copy kept as h2_assignment.txt.bak_0215); runs/pieces_h2 and gate/h2 empty (nothing started on Hoffman2) |
+| 02:13 | t3t_w3f2 13372801: lines 240-348 of w3rf_full.txt on CARC, 20 threads, 16 GB, %10 |
+| 02:14 | snapshot: our running jobs 67 / 516 CPUs; LightGBM ALL48_N39k walks 13372426 running (6), so gate D (a) 13372424 exited 0 (afterok); forest slots running: 1 (13371789); 13372432, 13372801, 13371790 and 43 tasks of 13371789 pending |
