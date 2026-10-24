@@ -1,0 +1,114 @@
+{
+ "ALL48_N3k_lgbm_all_features": {
+  "every_rows": 91,
+  "scored_rows": 17,
+  "stamps_every": [
+   "2014-01-02 15:30:00",
+   "2014-01-06 10:30:00"
+  ],
+  "identical": true,
+  "differing": [],
+  "max_rel_diff": 0.0,
+  "sec_refit_every": 0.5835164835164836,
+  "sec_refit_scored": 0.49411764705882355,
+  "threads": 8,
+  "cpu": [
+   "AMD EPYC 7513 32-Core Processor",
+   "AMD EPYC 7513 32-Core Processor"
+  ]
+ },
+ "ALL48_N3k_lgbm_baseline": {
+  "every_rows": 91,
+  "scored_rows": 17,
+  "stamps_every": [
+   "2014-01-02 15:30:00",
+   "2014-01-06 10:30:00"
+  ],
+  "identical": true,
+  "differing": [],
+  "max_rel_diff": 0.0,
+  "sec_refit_every": 0.12967032967032968,
+  "sec_refit_scored": 0.09999999999999999,
+  "threads": 8,
+  "cpu": [
+   "AMD EPYC 7513 32-Core Processor",
+   "AMD EPYC 7513 32-Core Processor"
+  ]
+ },
+ "ALL48_N3k_rf_skx_all_features": {
+  "every_rows": 91,
+  "scored_rows": 17,
+  "stamps_every": [
+   "2014-01-02 15:30:00",
+   "2014-01-06 10:30:00"
+  ],
+  "identical": true,
+  "differing": [],
+  "max_rel_diff": 0.0,
+  "sec_refit_every": 1.2846153846153847,
+  "sec_refit_scored": 1.288235294117647,
+  "threads": 8,
+  "cpu": [
+   "AMD EPYC 7513 32-Core Processor",
+   "AMD EPYC 7513 32-Core Processor"
+  ]
+ },
+ "ALL48_N3k_rf_skx_baseline": {
+  "every_rows": 91,
+  "scored_rows": 17,
+  "stamps_every": [
+   "2014-01-02 15:30:00",
+   "2014-01-06 10:30:00"
+  ],
+  "identical": true,
+  "differing": [],
+  "max_rel_diff": 0.0,
+  "sec_refit_every": 0.04285714285714286,
+  "sec_refit_scored": 0.052941176470588235,
+  "threads": 8,
+  "cpu": [
+   "AMD EPYC 7513 32-Core Processor",
+   "AMD EPYC 7513 32-Core Processor"
+  ]
+ },
+ "ALL48_N3k_xgb_all_features": {
+  "every_rows": 91,
+  "scored_rows": 17,
+  "stamps_every": [
+   "2014-01-02 15:30:00",
+   "2014-01-06 10:30:00"
+  ],
+  "identical": true,
+  "differing": [],
+  "max_rel_diff": 0.0,
+  "sec_refit_every": 1.1989010989010989,
+  "sec_refit_scored": 1.2,
+  "threads": 8,
+  "cpu": [
+   "AMD EPYC 7513 32-Core Processor",
+   "AMD EPYC 7513 32-Core Processor"
+  ]
+ },
+ "ALL48_N3k_xgb_baseline": {
+  "every_rows": 91,
+  "scored_rows": 17,
+  "stamps_every": [
+   "2014-01-02 15:30:00",
+   "2014-01-06 10:30:00"
+  ],
+  "identical": true,
+  "differing": [],
+  "max_rel_diff": 0.0,
+  "sec_refit_every": 0.08131868131868132,
+  "sec_refit_scored": 0.1411764705882353,
+  "threads": 8,
+  "cpu": [
+   "AMD EPYC 7513 32-Core Processor",
+   "AMD EPYC 7513 32-Core Processor"
+  ]
+ },
+ "pass": true,
+ "arms": [
+  "ALL48_N3k"
+ ]
+}

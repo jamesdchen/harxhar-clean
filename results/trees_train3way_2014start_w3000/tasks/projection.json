@@ -1,0 +1,34 @@
+{
+ "cap": 25000.0,
+ "total_new_cpu_hours": 33648.9,
+ "by_arm": {
+  "ALL48": 29404.7,
+  "ALL48_N39k": 3571.9,
+  "ALL48_N3k": 318.8,
+  "CLOSE": 23.5,
+  "RTH13_N3k": 330.1
+ },
+ "by_arm_est": {
+  "ALL48/lgbm": 721.9,
+  "ALL48/rf_skx": 27754.5,
+  "ALL48/xgb": 928.3,
+  "ALL48_N39k/lgbm": 322.8,
+  "ALL48_N39k/rf_skx": 2596.8,
+  "ALL48_N39k/xgb": 652.2,
+  "ALL48_N3k/lgbm": 56.5,
+  "ALL48_N3k/rf_skx": 127.6,
+  "ALL48_N3k/xgb": 134.7,
+  "CLOSE/lgbm": 4.6,
+  "CLOSE/rf_skx": 7.9,
+  "CLOSE/xgb": 11.0,
+  "RTH13_N3k/lgbm": 59.6,
+  "RTH13_N3k/rf_skx": 102.2,
+  "RTH13_N3k/xgb": 168.3
+ },
+ "rth13_reused_actual_cpu_hours": {
+  "lgbm": 288.8,
+  "xgb": 410.3,
+  "rf_skx": 2625.8
+ },
+ "within_cap": false
+}

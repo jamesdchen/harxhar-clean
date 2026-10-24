@@ -164,3 +164,17 @@ agent's probe per CPU model).  CARC runs upward from line 1, Hoffman2 downward f
 | 02:13 | t3t_w3f2 13372801: lines 240-348 of w3rf_full.txt on CARC, 20 threads, 16 GB, %10 |
 | 02:14 | snapshot: our running jobs 67 / 516 CPUs; LightGBM ALL48_N39k walks 13372426 running (6), so gate D (a) 13372424 exited 0 (afterok); forest slots running: 1 (13371789); 13372432, 13372801, 13371790 and 43 tasks of 13371789 pending |
 | 04:10 | Hoffman2 placement at 8 threads (RULE.txt note to addendum C): Hoffman2 starts 20-slot jobs too slowly (3 of 16 in 1 h 45 min; 8-slot in 1-3 min); evidence of thread invariance: rf_skx gate (d) 20 = 8, the benchmark 1 = 8, this run's gate 1 (forest at 8 and 20 threads text-identical to the templates); Hoffman2 gates run at 8 threads (tags gold6140, gold6240, gold6342, e5v4); Hoffman2 env repair 15261300 (setuptools 84.1.0 / packaging 26.3), gates and its check 15261029 held behind it; no Hoffman2 gate piece yet; its estimate 9-15 h a line at 8 threads (CARC 3.7 h at 20); first wave 349-368 unchanged, later waves from runs/tasks/h2_throughput.txt |
+
+## Interim results: CLOSE, RTH13_N3k, ALL48_N3k against the reused RTH13 (05:05 PDT)
+
+- Walks 13369755 / 13369756 (40 pieces, all EPYC 7513 / 7542), merge 13369759, score 13369760 COMPLETED; the scorer's
+  checks passed (RTH13 reproduces the templates' metrics.csv and full-vs-HAR DM; R2 equal too).  CPU-hours from the
+  piece metas: CLOSE 23.3, RTH13_N3k 300.9, ALL48_N3k 301.7 (total 625.9; projected 672).
+- Local economics (`experiments/trees_train3way_econ.py` with the main checkout b3ca310): check passed (RTH13
+  reproduces the templates' econ.csv: D6 mid / bid-ask and the full-vs-HAR bootstrap p) -> `econ_w1/`.
+- Gate D (13372424): PASS -- ALL48 LightGBM both sets every-row = scored-only bit for bit; repeats identical: ALL48
+  full set 2014-01-03 10:00 = 0.8102594551794627 in the scored, scored2 and 8 fresh single fits (6 nodes, EPYC 7513
+  and 7542); HAR set and ALL48_N39k likewise.  Record (b) (13372425): deterministic + col-wise against the template
+  setting on RTH13, 20 origins a set: text-identical, max relative difference 0 (both sets).
+- Files: scores_w1/, econ_w1/, gate/ (g1, g2, gc, gcb, gd, gdb JSONs), design_check.json, timing/, tasks/ (task files,
+  projections, h2_assignment.txt), pieces/ (metas of the 40 pieces), CLOSE / RTH13_N3k / ALL48_N3k forecasts.json, logs/.

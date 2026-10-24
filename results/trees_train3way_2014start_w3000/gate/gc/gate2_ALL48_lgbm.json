@@ -1,0 +1,45 @@
+{
+ "ALL48_lgbm_all_features": {
+  "every_rows": 38,
+  "scored_rows": 3,
+  "stamps_every": [
+   "2014-01-02 15:30:00",
+   "2014-01-03 10:00:00"
+  ],
+  "identical": true,
+  "differing": [],
+  "max_rel_diff": 0.0,
+  "sec_refit_every": 10.38421052631579,
+  "sec_refit_scored": 8.533333333333333,
+  "threads": 8,
+  "cpu": [
+   "AMD EPYC 7513 32-Core Processor",
+   "AMD EPYC 7513 32-Core Processor"
+  ]
+ },
+ "ALL48_lgbm_baseline": {
+  "every_rows": 38,
+  "scored_rows": 3,
+  "stamps_every": [
+   "2014-01-02 15:30:00",
+   "2014-01-03 10:00:00"
+  ],
+  "identical": true,
+  "differing": [],
+  "max_rel_diff": 0.0,
+  "sec_refit_every": 0.8842105263157896,
+  "sec_refit_scored": 1.3,
+  "threads": 8,
+  "cpu": [
+   "AMD EPYC 7513 32-Core Processor",
+   "AMD EPYC 7513 32-Core Processor"
+  ]
+ },
+ "pass": true,
+ "arms": [
+  "ALL48"
+ ],
+ "est": [
+  "lgbm"
+ ]
+}

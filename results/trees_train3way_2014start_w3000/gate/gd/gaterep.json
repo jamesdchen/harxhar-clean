@@ -1,0 +1,600 @@
+{
+ "ALL48_N39k_lgbm_all_features_one1": {
+  "against": "ALL48_N39k_lgbm_all_features_scored",
+  "origins": 1,
+  "identical": true,
+  "pred_adj": [
+   "0.8135662470545495"
+  ],
+  "lgbm_force_col_wise": [
+   true,
+   true
+  ],
+  "host": [
+   "b10-19.hpc.usc.edu",
+   "b09-17.hpc.usc.edu"
+  ],
+  "cpu": [
+   "AMD EPYC 7513 32-Core Processor",
+   "AMD EPYC 7513 32-Core Processor"
+  ]
+ },
+ "ALL48_N39k_lgbm_all_features_one2": {
+  "against": "ALL48_N39k_lgbm_all_features_scored",
+  "origins": 1,
+  "identical": true,
+  "pred_adj": [
+   "0.8135662470545495"
+  ],
+  "lgbm_force_col_wise": [
+   true,
+   true
+  ],
+  "host": [
+   "a02-18.hpc.usc.edu",
+   "b09-17.hpc.usc.edu"
+  ],
+  "cpu": [
+   "AMD EPYC 7513 32-Core Processor",
+   "AMD EPYC 7513 32-Core Processor"
+  ]
+ },
+ "ALL48_N39k_lgbm_all_features_one3": {
+  "against": "ALL48_N39k_lgbm_all_features_scored",
+  "origins": 1,
+  "identical": true,
+  "pred_adj": [
+   "0.8135662470545495"
+  ],
+  "lgbm_force_col_wise": [
+   true,
+   true
+  ],
+  "host": [
+   "b22-26.hpc.usc.edu",
+   "b09-17.hpc.usc.edu"
+  ],
+  "cpu": [
+   "AMD EPYC 7542 32-Core Processor",
+   "AMD EPYC 7513 32-Core Processor"
+  ]
+ },
+ "ALL48_N39k_lgbm_all_features_one4": {
+  "against": "ALL48_N39k_lgbm_all_features_scored",
+  "origins": 1,
+  "identical": true,
+  "pred_adj": [
+   "0.8135662470545495"
+  ],
+  "lgbm_force_col_wise": [
+   true,
+   true
+  ],
+  "host": [
+   "b22-27.hpc.usc.edu",
+   "b09-17.hpc.usc.edu"
+  ],
+  "cpu": [
+   "AMD EPYC 7542 32-Core Processor",
+   "AMD EPYC 7513 32-Core Processor"
+  ]
+ },
+ "ALL48_N39k_lgbm_all_features_scored2": {
+  "against": "ALL48_N39k_lgbm_all_features_scored",
+  "origins": 3,
+  "identical": true,
+  "pred_adj": [
+   "0.9620199834537789",
+   "0.9713646791076194",
+   "0.8135662470545495"
+  ],
+  "lgbm_force_col_wise": [
+   true,
+   true
+  ],
+  "host": [
+   "b22-20.hpc.usc.edu",
+   "b09-17.hpc.usc.edu"
+  ],
+  "cpu": [
+   "AMD EPYC 7542 32-Core Processor",
+   "AMD EPYC 7513 32-Core Processor"
+  ]
+ },
+ "ALL48_N39k_lgbm_baseline_one1": {
+  "against": "ALL48_N39k_lgbm_baseline_scored",
+  "origins": 1,
+  "identical": true,
+  "pred_adj": [
+   "0.8507464293203095"
+  ],
+  "lgbm_force_col_wise": [
+   true,
+   true
+  ],
+  "host": [
+   "a03-13.hpc.usc.edu",
+   "b10-19.hpc.usc.edu"
+  ],
+  "cpu": [
+   "AMD EPYC 7513 32-Core Processor",
+   "AMD EPYC 7513 32-Core Processor"
+  ]
+ },
+ "ALL48_N39k_lgbm_baseline_one2": {
+  "against": "ALL48_N39k_lgbm_baseline_scored",
+  "origins": 1,
+  "identical": true,
+  "pred_adj": [
+   "0.8507464293203095"
+  ],
+  "lgbm_force_col_wise": [
+   true,
+   true
+  ],
+  "host": [
+   "b05-06.hpc.usc.edu",
+   "b10-19.hpc.usc.edu"
+  ],
+  "cpu": [
+   "AMD EPYC 7513 32-Core Processor",
+   "AMD EPYC 7513 32-Core Processor"
+  ]
+ },
+ "ALL48_N39k_lgbm_baseline_one3": {
+  "against": "ALL48_N39k_lgbm_baseline_scored",
+  "origins": 1,
+  "identical": true,
+  "pred_adj": [
+   "0.8507464293203095"
+  ],
+  "lgbm_force_col_wise": [
+   true,
+   true
+  ],
+  "host": [
+   "b22-27.hpc.usc.edu",
+   "b10-19.hpc.usc.edu"
+  ],
+  "cpu": [
+   "AMD EPYC 7542 32-Core Processor",
+   "AMD EPYC 7513 32-Core Processor"
+  ]
+ },
+ "ALL48_N39k_lgbm_baseline_one4": {
+  "against": "ALL48_N39k_lgbm_baseline_scored",
+  "origins": 1,
+  "identical": true,
+  "pred_adj": [
+   "0.8507464293203095"
+  ],
+  "lgbm_force_col_wise": [
+   true,
+   true
+  ],
+  "host": [
+   "b22-20.hpc.usc.edu",
+   "b10-19.hpc.usc.edu"
+  ],
+  "cpu": [
+   "AMD EPYC 7542 32-Core Processor",
+   "AMD EPYC 7513 32-Core Processor"
+  ]
+ },
+ "ALL48_N39k_lgbm_baseline_scored2": {
+  "against": "ALL48_N39k_lgbm_baseline_scored",
+  "origins": 3,
+  "identical": true,
+  "pred_adj": [
+   "1.0194518545140796",
+   "1.0581461864973096",
+   "0.8507464293203095"
+  ],
+  "lgbm_force_col_wise": [
+   true,
+   true
+  ],
+  "host": [
+   "b22-26.hpc.usc.edu",
+   "b10-19.hpc.usc.edu"
+  ],
+  "cpu": [
+   "AMD EPYC 7542 32-Core Processor",
+   "AMD EPYC 7513 32-Core Processor"
+  ]
+ },
+ "ALL48_lgbm_all_features_one1": {
+  "against": "ALL48_lgbm_all_features_scored",
+  "origins": 1,
+  "identical": true,
+  "pred_adj": [
+   "0.8102594551794627"
+  ],
+  "lgbm_force_col_wise": [
+   true,
+   true
+  ],
+  "host": [
+   "b10-19.hpc.usc.edu",
+   "b09-17.hpc.usc.edu"
+  ],
+  "cpu": [
+   "AMD EPYC 7513 32-Core Processor",
+   "AMD EPYC 7513 32-Core Processor"
+  ]
+ },
+ "ALL48_lgbm_all_features_one2": {
+  "against": "ALL48_lgbm_all_features_scored",
+  "origins": 1,
+  "identical": true,
+  "pred_adj": [
+   "0.8102594551794627"
+  ],
+  "lgbm_force_col_wise": [
+   true,
+   true
+  ],
+  "host": [
+   "b05-06.hpc.usc.edu",
+   "b09-17.hpc.usc.edu"
+  ],
+  "cpu": [
+   "AMD EPYC 7513 32-Core Processor",
+   "AMD EPYC 7513 32-Core Processor"
+  ]
+ },
+ "ALL48_lgbm_all_features_one3": {
+  "against": "ALL48_lgbm_all_features_scored",
+  "origins": 1,
+  "identical": true,
+  "pred_adj": [
+   "0.8102594551794627"
+  ],
+  "lgbm_force_col_wise": [
+   true,
+   true
+  ],
+  "host": [
+   "b09-17.hpc.usc.edu",
+   "b09-17.hpc.usc.edu"
+  ],
+  "cpu": [
+   "AMD EPYC 7513 32-Core Processor",
+   "AMD EPYC 7513 32-Core Processor"
+  ]
+ },
+ "ALL48_lgbm_all_features_one4": {
+  "against": "ALL48_lgbm_all_features_scored",
+  "origins": 1,
+  "identical": true,
+  "pred_adj": [
+   "0.8102594551794627"
+  ],
+  "lgbm_force_col_wise": [
+   true,
+   true
+  ],
+  "host": [
+   "b10-19.hpc.usc.edu",
+   "b09-17.hpc.usc.edu"
+  ],
+  "cpu": [
+   "AMD EPYC 7513 32-Core Processor",
+   "AMD EPYC 7513 32-Core Processor"
+  ]
+ },
+ "ALL48_lgbm_all_features_one5": {
+  "against": "ALL48_lgbm_all_features_scored",
+  "origins": 1,
+  "identical": true,
+  "pred_adj": [
+   "0.8102594551794627"
+  ],
+  "lgbm_force_col_wise": [
+   true,
+   true
+  ],
+  "host": [
+   "b22-27.hpc.usc.edu",
+   "b09-17.hpc.usc.edu"
+  ],
+  "cpu": [
+   "AMD EPYC 7542 32-Core Processor",
+   "AMD EPYC 7513 32-Core Processor"
+  ]
+ },
+ "ALL48_lgbm_all_features_one6": {
+  "against": "ALL48_lgbm_all_features_scored",
+  "origins": 1,
+  "identical": true,
+  "pred_adj": [
+   "0.8102594551794627"
+  ],
+  "lgbm_force_col_wise": [
+   true,
+   true
+  ],
+  "host": [
+   "b22-20.hpc.usc.edu",
+   "b09-17.hpc.usc.edu"
+  ],
+  "cpu": [
+   "AMD EPYC 7542 32-Core Processor",
+   "AMD EPYC 7513 32-Core Processor"
+  ]
+ },
+ "ALL48_lgbm_all_features_one7": {
+  "against": "ALL48_lgbm_all_features_scored",
+  "origins": 1,
+  "identical": true,
+  "pred_adj": [
+   "0.8102594551794627"
+  ],
+  "lgbm_force_col_wise": [
+   true,
+   true
+  ],
+  "host": [
+   "b22-26.hpc.usc.edu",
+   "b09-17.hpc.usc.edu"
+  ],
+  "cpu": [
+   "AMD EPYC 7542 32-Core Processor",
+   "AMD EPYC 7513 32-Core Processor"
+  ]
+ },
+ "ALL48_lgbm_all_features_one8": {
+  "against": "ALL48_lgbm_all_features_scored",
+  "origins": 1,
+  "identical": true,
+  "pred_adj": [
+   "0.8102594551794627"
+  ],
+  "lgbm_force_col_wise": [
+   true,
+   true
+  ],
+  "host": [
+   "b22-27.hpc.usc.edu",
+   "b09-17.hpc.usc.edu"
+  ],
+  "cpu": [
+   "AMD EPYC 7542 32-Core Processor",
+   "AMD EPYC 7513 32-Core Processor"
+  ]
+ },
+ "ALL48_lgbm_all_features_scored2": {
+  "against": "ALL48_lgbm_all_features_scored",
+  "origins": 3,
+  "identical": true,
+  "pred_adj": [
+   "0.9563561740358187",
+   "1.003421607782274",
+   "0.8102594551794627"
+  ],
+  "lgbm_force_col_wise": [
+   true,
+   true
+  ],
+  "host": [
+   "b22-26.hpc.usc.edu",
+   "b09-17.hpc.usc.edu"
+  ],
+  "cpu": [
+   "AMD EPYC 7542 32-Core Processor",
+   "AMD EPYC 7513 32-Core Processor"
+  ]
+ },
+ "ALL48_lgbm_baseline_one1": {
+  "against": "ALL48_lgbm_baseline_scored",
+  "origins": 1,
+  "identical": true,
+  "pred_adj": [
+   "0.8611124359385794"
+  ],
+  "lgbm_force_col_wise": [
+   true,
+   true
+  ],
+  "host": [
+   "b05-06.hpc.usc.edu",
+   "a03-13.hpc.usc.edu"
+  ],
+  "cpu": [
+   "AMD EPYC 7513 32-Core Processor",
+   "AMD EPYC 7513 32-Core Processor"
+  ]
+ },
+ "ALL48_lgbm_baseline_one2": {
+  "against": "ALL48_lgbm_baseline_scored",
+  "origins": 1,
+  "identical": true,
+  "pred_adj": [
+   "0.8611124359385794"
+  ],
+  "lgbm_force_col_wise": [
+   true,
+   true
+  ],
+  "host": [
+   "b09-17.hpc.usc.edu",
+   "a03-13.hpc.usc.edu"
+  ],
+  "cpu": [
+   "AMD EPYC 7513 32-Core Processor",
+   "AMD EPYC 7513 32-Core Processor"
+  ]
+ },
+ "ALL48_lgbm_baseline_one3": {
+  "against": "ALL48_lgbm_baseline_scored",
+  "origins": 1,
+  "identical": true,
+  "pred_adj": [
+   "0.8611124359385794"
+  ],
+  "lgbm_force_col_wise": [
+   true,
+   true
+  ],
+  "host": [
+   "b09-17.hpc.usc.edu",
+   "a03-13.hpc.usc.edu"
+  ],
+  "cpu": [
+   "AMD EPYC 7513 32-Core Processor",
+   "AMD EPYC 7513 32-Core Processor"
+  ]
+ },
+ "ALL48_lgbm_baseline_one4": {
+  "against": "ALL48_lgbm_baseline_scored",
+  "origins": 1,
+  "identical": true,
+  "pred_adj": [
+   "0.8611124359385794"
+  ],
+  "lgbm_force_col_wise": [
+   true,
+   true
+  ],
+  "host": [
+   "b09-17.hpc.usc.edu",
+   "a03-13.hpc.usc.edu"
+  ],
+  "cpu": [
+   "AMD EPYC 7513 32-Core Processor",
+   "AMD EPYC 7513 32-Core Processor"
+  ]
+ },
+ "ALL48_lgbm_baseline_one5": {
+  "against": "ALL48_lgbm_baseline_scored",
+  "origins": 1,
+  "identical": true,
+  "pred_adj": [
+   "0.8611124359385794"
+  ],
+  "lgbm_force_col_wise": [
+   true,
+   true
+  ],
+  "host": [
+   "b22-27.hpc.usc.edu",
+   "a03-13.hpc.usc.edu"
+  ],
+  "cpu": [
+   "AMD EPYC 7542 32-Core Processor",
+   "AMD EPYC 7513 32-Core Processor"
+  ]
+ },
+ "ALL48_lgbm_baseline_one6": {
+  "against": "ALL48_lgbm_baseline_scored",
+  "origins": 1,
+  "identical": true,
+  "pred_adj": [
+   "0.8611124359385794"
+  ],
+  "lgbm_force_col_wise": [
+   true,
+   true
+  ],
+  "host": [
+   "b22-26.hpc.usc.edu",
+   "a03-13.hpc.usc.edu"
+  ],
+  "cpu": [
+   "AMD EPYC 7542 32-Core Processor",
+   "AMD EPYC 7513 32-Core Processor"
+  ]
+ },
+ "ALL48_lgbm_baseline_one7": {
+  "against": "ALL48_lgbm_baseline_scored",
+  "origins": 1,
+  "identical": true,
+  "pred_adj": [
+   "0.8611124359385794"
+  ],
+  "lgbm_force_col_wise": [
+   true,
+   true
+  ],
+  "host": [
+   "b22-27.hpc.usc.edu",
+   "a03-13.hpc.usc.edu"
+  ],
+  "cpu": [
+   "AMD EPYC 7542 32-Core Processor",
+   "AMD EPYC 7513 32-Core Processor"
+  ]
+ },
+ "ALL48_lgbm_baseline_one8": {
+  "against": "ALL48_lgbm_baseline_scored",
+  "origins": 1,
+  "identical": true,
+  "pred_adj": [
+   "0.8611124359385794"
+  ],
+  "lgbm_force_col_wise": [
+   true,
+   true
+  ],
+  "host": [
+   "b22-20.hpc.usc.edu",
+   "a03-13.hpc.usc.edu"
+  ],
+  "cpu": [
+   "AMD EPYC 7542 32-Core Processor",
+   "AMD EPYC 7513 32-Core Processor"
+  ]
+ },
+ "ALL48_lgbm_baseline_scored2": {
+  "against": "ALL48_lgbm_baseline_scored",
+  "origins": 3,
+  "identical": true,
+  "pred_adj": [
+   "1.0076728097663323",
+   "1.0311888373346116",
+   "0.8611124359385794"
+  ],
+  "lgbm_force_col_wise": [
+   true,
+   true
+  ],
+  "host": [
+   "b22-26.hpc.usc.edu",
+   "a03-13.hpc.usc.edu"
+  ],
+  "cpu": [
+   "AMD EPYC 7542 32-Core Processor",
+   "AMD EPYC 7513 32-Core Processor"
+  ]
+ },
+ "one_hosts": {
+  "ALL48_N39k_lgbm_all_features_scored": [
+   "a02-18.hpc.usc.edu",
+   "b10-19.hpc.usc.edu",
+   "b22-26.hpc.usc.edu",
+   "b22-27.hpc.usc.edu"
+  ],
+  "ALL48_N39k_lgbm_baseline_scored": [
+   "a03-13.hpc.usc.edu",
+   "b05-06.hpc.usc.edu",
+   "b22-20.hpc.usc.edu",
+   "b22-27.hpc.usc.edu"
+  ],
+  "ALL48_lgbm_all_features_scored": [
+   "b05-06.hpc.usc.edu",
+   "b09-17.hpc.usc.edu",
+   "b10-19.hpc.usc.edu",
+   "b22-20.hpc.usc.edu",
+   "b22-26.hpc.usc.edu",
+   "b22-27.hpc.usc.edu"
+  ],
+  "ALL48_lgbm_baseline_scored": [
+   "b05-06.hpc.usc.edu",
+   "b09-17.hpc.usc.edu",
+   "b22-20.hpc.usc.edu",
+   "b22-26.hpc.usc.edu",
+   "b22-27.hpc.usc.edu"
+  ]
+ },
+ "pass": true
+}

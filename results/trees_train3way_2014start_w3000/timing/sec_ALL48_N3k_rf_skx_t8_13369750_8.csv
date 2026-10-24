@@ -1,0 +1,3 @@
+arm,est,set,n_columns,window_rows,threads,k,sec_refit,refits,cpu_hours,host,cpu,slurm_job
+ALL48_N3k,rf_skx,baseline,13,3000,8,3,0.4026322364807129,33970,30.39426016277737,b10-18.hpc.usc.edu,AMD EPYC 7513 32-Core Processor,13369750
+ALL48_N3k,rf_skx,all_features,565,3000,8,3,1.287131945292155,33970,97.16416040349891,b10-18.hpc.usc.edu,AMD EPYC 7513 32-Core Processor,13369750

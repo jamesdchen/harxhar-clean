@@ -1,0 +1,56 @@
+{
+ "arm": "ALL48_N3k",
+ "window_rows": 3000,
+ "pieces": {
+  "lgbm/baseline": [
+   "ALL48_N3k_lgbm_baseline_1of1.parquet"
+  ],
+  "lgbm/all_features": [
+   "ALL48_N3k_lgbm_all_features_1of2.parquet",
+   "ALL48_N3k_lgbm_all_features_2of2.parquet"
+  ],
+  "xgb/baseline": [
+   "ALL48_N3k_xgb_baseline_1of1.parquet"
+  ],
+  "xgb/all_features": [
+   "ALL48_N3k_xgb_all_features_1of6.parquet",
+   "ALL48_N3k_xgb_all_features_2of6.parquet",
+   "ALL48_N3k_xgb_all_features_3of6.parquet",
+   "ALL48_N3k_xgb_all_features_4of6.parquet",
+   "ALL48_N3k_xgb_all_features_5of6.parquet",
+   "ALL48_N3k_xgb_all_features_6of6.parquet"
+  ],
+  "rf_skx/baseline": [
+   "ALL48_N3k_rf_skx_baseline_1of2.parquet",
+   "ALL48_N3k_rf_skx_baseline_2of2.parquet"
+  ],
+  "rf_skx/all_features": [
+   "ALL48_N3k_rf_skx_all_features_1of5.parquet",
+   "ALL48_N3k_rf_skx_all_features_2of5.parquet",
+   "ALL48_N3k_rf_skx_all_features_3of5.parquet",
+   "ALL48_N3k_rf_skx_all_features_4of5.parquet",
+   "ALL48_N3k_rf_skx_all_features_5of5.parquet"
+  ]
+ },
+ "cpu_models": {
+  "lgbm/baseline": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "lgbm/all_features": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "xgb/baseline": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "xgb/all_features": [
+   "AMD EPYC 7513 32-Core Processor",
+   "AMD EPYC 7542 32-Core Processor"
+  ],
+  "rf_skx/baseline": [
+   "AMD EPYC 7542 32-Core Processor"
+  ],
+  "rf_skx/all_features": [
+   "AMD EPYC 7513 32-Core Processor"
+  ]
+ }
+}

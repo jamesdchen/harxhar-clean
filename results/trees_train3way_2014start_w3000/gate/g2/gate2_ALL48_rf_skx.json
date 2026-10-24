@@ -1,0 +1,45 @@
+{
+ "ALL48_rf_skx_all_features": {
+  "every_rows": 38,
+  "scored_rows": 3,
+  "stamps_every": [
+   "2014-01-02 15:30:00",
+   "2014-01-03 10:00:00"
+  ],
+  "identical": true,
+  "differing": [],
+  "max_rel_diff": 0.0,
+  "sec_refit_every": 151.5026315789474,
+  "sec_refit_scored": 167.46666666666667,
+  "threads": 20,
+  "cpu": [
+   "AMD EPYC 7513 32-Core Processor",
+   "AMD EPYC 7513 32-Core Processor"
+  ]
+ },
+ "ALL48_rf_skx_baseline": {
+  "every_rows": 38,
+  "scored_rows": 3,
+  "stamps_every": [
+   "2014-01-02 15:30:00",
+   "2014-01-03 10:00:00"
+  ],
+  "identical": true,
+  "differing": [],
+  "max_rel_diff": 0.0,
+  "sec_refit_every": 1.2236842105263157,
+  "sec_refit_scored": 1.3333333333333333,
+  "threads": 20,
+  "cpu": [
+   "AMD EPYC 7513 32-Core Processor",
+   "AMD EPYC 7513 32-Core Processor"
+  ]
+ },
+ "pass": true,
+ "arms": [
+  "ALL48"
+ ],
+ "est": [
+  "rf_skx"
+ ]
+}

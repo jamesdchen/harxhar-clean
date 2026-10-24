@@ -1,0 +1,27 @@
+{
+ "RTH13_lgbm_baseline_ends10_cd": {
+  "origins": 20,
+  "first": "2014-01-02 10:00:00",
+  "last": "2024-04-30 16:00:00",
+  "threads": 8,
+  "cpu": "AMD EPYC 7513 32-Core Processor",
+  "text_identical": true,
+  "max_rel_diff": 0.0,
+  "true_adj_equal": true,
+  "B_equal": true,
+  "pass_": true
+ },
+ "RTH13_lgbm_all_features_ends10_cd": {
+  "origins": 20,
+  "first": "2014-01-02 10:00:00",
+  "last": "2024-04-30 16:00:00",
+  "threads": 8,
+  "cpu": "AMD EPYC 7513 32-Core Processor",
+  "text_identical": true,
+  "max_rel_diff": 0.0,
+  "true_adj_equal": true,
+  "B_equal": true,
+  "pass_": true
+ },
+ "pass": false
+}
