@@ -282,3 +282,8 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   13380610-13380636), full W 3,000 A40 13380637-42 (lane ends 13380640-42). Each file afterok on the slice (and on its
   init task while queued), seq 1 afterany on its lane's seq 0. Bar inits at submission: W 3,000 HAR 54 / 54, full
   5 / 6; W 3,500 HAR 8 / 8, full 0 / 4 (running).
+- 2026-10-24 10:45 PDT standing rule (coordinator, all agents): every state-changing command (sbatch / scancel /
+  scontrol, rm / rmdir, mv or cp over existing files, edits of files jobs or other agents read, chmod) must appear
+  verbatim in the tool call (e.g. inside the SSH heredoc), never inside an uploaded / generated script that is then
+  executed. go_walk.sh and pooled_mingru_v2_walk_submit_carc.sh (both already run once, 10:20) are not to be used
+  as wrappers again; reruns / remainder files are submitted with explicit sbatch lines.
