@@ -222,3 +222,8 @@ Pool: lines 5-348 of runs/tasks/w3rf_full.txt, claims in runs/claims_w3rf_full/<
 - EPYC pool 13377719: 0 of 150 running at 07:24, every task pending with reason None (not yet evaluated); EPYC 7513 /
   7542 nodes with >= 8 idle CPUs: 26 (780 idle CPUs); our running 47 jobs / 616 CPUs; scheduler: backfill tests at
   most 3,000 jobs a cycle (bf_max_job_test), window 48 h, resolution 10 min.
+- 07:37 (coordinator 07:35): pool time limits lowered on the pending tasks with scontrol update (queue age kept), about
+  2x the hours a line: EPYC 13377719 24 h -> 16 h (est. 8.5 h a line at 8 threads), Xeon 4116 13378115 -> 20 h (est.
+  ~11 h), E5-2640 v4 13378116 -> 16 h (est. ~7.5 h at 20 threads); to be revisited once the first lines are timed.  A
+  line that times out keeps its claim with a 'term' marker and its checkpointed piece; it is resumed by releasing the
+  claim to a pool of the same CPU family (by hand, after a look).
