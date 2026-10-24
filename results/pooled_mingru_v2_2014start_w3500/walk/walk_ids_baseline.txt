@@ -26,3 +26,5 @@ pieces/v2w_baseline.002.p01.txt 13382928 gpu 635 P100 piece of v2w_baseline.002.
 pieces/v2w_baseline.002.p02.txt 13382929 gpu 635 P100 piece of v2w_baseline.002.txt
 pieces/v2w_baseline.002.p03.txt 13382930 gpu 635 P100 piece of v2w_baseline.002.txt
 pieces/v2w_baseline.002.p04.txt 13382931 gpu 635 P100 piece of v2w_baseline.002.txt
+pieces/v2w_baseline.000.d00r.txt 13383630 gpu 30 P100 remainder of debug piece d00 (13382912 preempted)
+pieces/v2w_baseline.000.d01r.txt 13383631 gpu 30 P100 remainder of debug piece d01 (13382913 preempted)

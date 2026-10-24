@@ -71,3 +71,10 @@ the old run (read-only): `/home1/jc_905/pmf35/data` (design copies, fold-3 ridge
 - 2026-10-24 12:45 PDT ADDENDUM 3: HAR W 3,500 re-pinned to P100, its 8 files cancelled while pending and replaced by
   45 pieces (20 submitted: 13382912-31, 5 of them on the debug P100s); full W 3,500 (L40S) 4 files replaced by 12
   pieces (4 submitted: 13382932-35). Unsubmitted pieces in walk/pieces_unsubmitted_<set>.csv.
+- 2026-10-24 14:06 PDT: debug pieces 13382912 / 13382913 (HAR W 3,500 d00 / d01, P100 e23-02) ended 13:57 with exit
+  143 after 38 min: PREEMPTED, not timed out -- the debug partition has PreemptMode=CANCEL (GraceTime 10 s) and
+  another user's jobs started on e23-02 at the same seconds; SIGTERM is not trapped, so no salvage, but the 15-min
+  partial copies hold 264 of 350 refits each. The 86 missing refits of each were written to new remainder files
+  (pieces/v2w_baseline.000.d00r.txt, .d01r.txt) and submitted on gpu P100, 30 min: 13383630, 13383631 (walk_ids).
+  No further debug pieces (preemption); the 3 pending (13382914-16) stay, their remainders follow the same way.
+  gpu partition: 97 of our jobs.
