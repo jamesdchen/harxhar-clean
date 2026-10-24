@@ -132,7 +132,7 @@ Overleaf sync.  The coordinator's design defaults, adopted as below.
 
 9. ADDENDA: dated, written before the job they affect.
 
-ADDENDUM A, 2026-10-24 00:58 PDT (07:58 UTC), before the jobs it affects: THE CAP STOP, GATE 2 ON ALL48 AND THE CHEAP ARMS
+ADDENDUM A, 2026-10-24 00:46 PDT (07:46 UTC), before the jobs it affects: THE CAP STOP, GATE 2 ON ALL48 AND THE CHEAP ARMS
    (a) The cap check (job 13369754) stopped as designed (exit 3): the probe projects 33,649 CPU-hours for the new walks
        (runs/tasks/projection.json; the ALL48 forest's full set alone 27,527 at 20 threads).  The ALL48_N39k walks and
        their merge / score (13369757, 13369758, 13369761, 13369762; cap-blocked, never started) were cancelled; neither
