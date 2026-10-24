@@ -369,3 +369,10 @@ Pool: lines 5-348 of runs/tasks/w3rf_full.txt, claims in runs/claims_w3rf_full/<
   m2, s2, s3, m4, s4 pending.  Pools: EPYC 13377719 32 running / 107 pending; old Xeon 4116 13378115 22 (25 failed);
   E5-2640 v4 13378116 9 / 0; /home1 13381306 4 / 60, 13382812 0 / 55, 13382813 3 / 9, 13383080 0 / 56, 13383081
   0 / 30, 13383082 0 / 8.  8 lines done.  Unclaimed: 4 below 80 (/scratch1), 52 of 80-138 and 52 of 317-368 (/home1).
+- Lines moved to the /scratch1 claim namespace (coordinator ~16:00 PDT, one session, changes written out): the 84
+  unclaimed lines 87-138 and 317-348, each first taken in the /home1 namespace (atomic mkdir + moved_scratch1 marker)
+  and then freed in /scratch1 (reserved_home1 removed); lines 80-86 (claimed in /home1) and 349-368 (/home1) untouched.
+  13377719 had 107 pending tasks (>= 84 + 10): no new array.  Unclaimed now: 88 lines in the /scratch1 namespace
+  (5-348; EPYC 13377719 32 running / 107 pending, E5-2640 v4 13378116 9 / 0), 20 in the /home1 namespace (349-368;
+  pools 13383080-82); the /home1 pools of 80-138 (13381306, 13382812, 13382813) have no unclaimed line left (their
+  pending tasks exit when they start).
