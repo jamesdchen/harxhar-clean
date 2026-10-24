@@ -247,3 +247,28 @@ ADDENDUM D, 2026-10-24 02:00 PDT (09:00 UTC), before any LightGBM walk of ALL48 
          If (a) fails: stop and report (no other option is taken without the owner).
      (b) record (no pass / fail): deterministic + force_col_wise against the template setting on RTH13 (W 39,000) at
          the gate-1 origins, both sets -> gate/gdb/colwise_vs_template.json (the max relative difference of pred_adj).
+
+ADDENDUM E, 2026-10-24 07:06 PDT (14:06 UTC), before any forest task on a new CPU model: MORE CARC CPU MODELS, A CLAIM POOL
+   Coordinator (07:02 PDT, under the owner's standing instruction: maximize throughput with the same bit-identical
+   checks): at 07:00 the forest's full set ran 4 tasks (13372432 lines 1-4, 20 threads) and 13372801 had not started;
+   3 EPYC 7513 / 7542 nodes had >= 20 idle CPUs (19 had >= 8), while Xeon Silver 4116 nodes (main 446 idle CPUs on 27
+   nodes with >= 8; oneweek 257) and Xeon E5-2640 v4 nodes (oneweek 276 idle, 13 whole idle nodes) were free.
+   (1) Gates of two further CARC CPU models, one tag each, as the EPYC and Hoffman2 gates, results under
+       gate/carc_<tag>/: x4116 (main and oneweek) and x2640v4 (oneweek): gate 1 (RTH13, the forest's both sets, the
+       first and last 10 origins, 8 threads: <= 1e-14 relative to the templates, true_adj and B equal) and gate 2
+       (scored-only against every row, bit for bit: ALL48 forest full set over the 38-row overnight slice at 20
+       threads; its HAR set and ALL48_N3k's both sets at 8 threads), plus a repeat of the ALL48 full-set scored-only
+       walk at 8 threads against the 20-thread one (bit for bit: thread invariance on that model); one CPU model a tag;
+       checked by experiments/trees_train3way.py accept --require-tag (exit 3 unless the tag passes) -> accepted_cpus.json
+       with the cluster of each model.  Walks there run afterok on their model's check.
+   (2) The not-yet-started lines 5-348 of runs/tasks/w3rf_full.txt (1-4 run in 13372432; 349-368 stay Hoffman2's)
+       move to a claim pool (code/pool.sbatch): each pool task claims the lowest unclaimed line with an atomic mkdir,
+       runs it to the end on its node and records the claim; pools on EPYC 7513 / 7542 at 8 threads (gated at 8 and
+       20; the thread count changes nothing, addendum C notes), on Xeon 4116 at 8 threads and on Xeon E5-2640 v4 at 20
+       threads after their gates.  The pending tasks of 13372432 and 13372801 are cancelled first (owner-approved for
+       this run; no started task touched): the pools are submitted held and released only once no such task is
+       pending, so no line runs twice.  A line that fails keeps its claim (marked) for a look: its piece resumes only
+       on the same CPU family.  Each piece stays on one CPU model (asserted per piece); the merge (--accept-cpus) now
+       requires every piece's CPU models to be gated on the cluster it ran on (EPYC 7513 / 7542 and the CARC tags
+       for CARC, the Hoffman2 tags for Hoffman2).  The ALL48_N39k forest stays on its EPYC array.  The held final merge
+       waits on the pools too.

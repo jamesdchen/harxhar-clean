@@ -403,8 +403,12 @@ def cmd_merge(a) -> int:
     frames, used, cms = [], {}, {}
     # 2026-10-24 addendum C: CPU models accepted = CARC's EPYC 7513 / 7542 (the CARC gates) + the Hoffman2 models that
     # passed the Hoffman2 gates (--accept-cpus, written by mode accept); Hoffman2 pieces enter through --intake.
-    h2_acc = set(json.loads(Path(a.accept_cpus).read_text())["accepted"]) if a.accept_cpus else set()
-    acc = set(T.CPU_FAMILY) | h2_acc
+    # 2026-10-24 addendum E: + CARC models that passed the same gates on CARC (gate/carc_<tag>); a piece's models must be
+    # accepted on the cluster it ran on (cluster_of).  Was: one set for both clusters.
+    accd = json.loads(Path(a.accept_cpus).read_text())["accepted"] if a.accept_cpus else {}
+    h2_acc = {m for m, v in accd.items() if v.get("cluster", "h2") == "h2"}
+    carc_acc = set(T.CPU_FAMILY) | {m for m, v in accd.items() if v.get("cluster") == "carc"}
+    acc = carc_acc | h2_acc
     if a.intake:
         intake(Path(a.intake), out, root, h2_acc)
     piece_cpus: dict[str, list[str]] = {}
@@ -444,6 +448,9 @@ def cmd_merge(a) -> int:
                     assert bool(pm.get("lgbm_deterministic", False)) == determ(a, est, arm), p.name
                 pc = set(pm.get("cpus") or [pm["cpu"]])
                 piece_cpus[p.name] = sorted(pc)
+                if a.accept_cpus:  # addendum E: accepted on the cluster the piece ran on
+                    cl = cluster_of(pm["host"])
+                    assert pc <= (carc_acc if cl == "carc" else h2_acc), f"{p.name}: {sorted(pc)} not gated on {cl}"
                 if est in T.ONE_CPU:  # a piece never mixes CPU families (the walk refuses to resume across them)
                     assert len({T.cpu_family(x) for x in pc}) == 1, f"{p.name}: CPU families {sorted(pc)}"
                 c |= pc
@@ -543,25 +550,49 @@ def intake(src: Path, out: Path, root: Path, h2_acc: set[str]) -> None:
     say(f"intake: {len(log)} new Hoffman2 pieces from {src}")
 
 
+def cluster_of(host: str) -> str:
+    """CARC compute nodes are <name>.hpc.usc.edu; anything else ran on Hoffman2 (addendum E)."""
+    return "carc" if host.endswith("hpc.usc.edu") else "h2"
+
+
+def gate_dirs(root: Path) -> list[tuple[Path, str]]:
+    """The gate runs of the non-template CPU models: <root>/h2/<tag> (Hoffman2) and <root>/carc_<tag> (CARC)."""
+    out = [(x, "h2") for x in sorted((root / "h2").iterdir()) if x.is_dir()] if (root / "h2").is_dir() else []
+    return out + [(x, "carc") for x in sorted(root.glob("carc_*")) if x.is_dir()]
+
+
 def cmd_accept(a) -> int:
-    """Addendum C: the Hoffman2 gates, checked here on what Hoffman2 delivered: for each <h2-gates>/<tag>/ (one CPU
-    model), g1/pieces and g2/pieces md5-checked against their MD5SUMS, gate 1 (RTH13 --ends 10 against the templates:
-    LightGBM / XGBoost text-identical, the forest <= 1e-14 relative) and gate 2 (every row against the scored origins,
-    bit for bit) on the classes delivered; the models that pass -> <out>/pieces_h2/accepted_cpus.json."""
+    """Addenda C / E: the gates of each further CPU model (one tag a model): Hoffman2's (<gate-root>/h2/<tag>, the
+    delivered g1 / g2 pieces md5-checked against their MD5SUMS) and CARC's (<gate-root>/carc_<tag>).  Gate 1 (RTH13
+    --ends 10 against the templates: LightGBM / XGBoost text-identical, the forest <= 1e-14 relative), gate 2 (every
+    row against the scored origins, bit for bit) on the classes run, and the repeats (scored2, e.g. another thread
+    count, bit for bit) where present; one CPU model a tag.  -> <tag>/accept.json and the union of the passing models
+    <out>/pieces_h2/accepted_cpus.json ({model: tag, cluster, classes}).  --require-tag T: exit 3 unless T passes."""
     import re
     from argparse import Namespace
 
     acc: dict = {}
     rec: dict = {}
-    for d in sorted(x for x in Path(a.h2_gates).iterdir() if x.is_dir()):
-        r: dict = {}
+    for d, cl in gate_dirs(Path(a.gate_root).resolve()):
+        if a.require_tag and d.name != a.require_tag:  # only this tag is (re)checked; the others are read back
+            prev = d / "accept.json"
+            if prev.is_file():
+                pr = json.loads(prev.read_text())
+                rec[d.name] = pr
+                if pr.get("pass"):
+                    acc[pr["cpus"][0]] = dict(tag=d.name, cluster=cl, classes=pr["classes_gate1"])
+            continue
+        r: dict = {"cluster": cl}
         cpus: set[str] = set()
         ok = True
         for sub in ("g1", "g2"):
             pd_ = d / sub / "pieces"
-            man = read_md5sums(pd_)
             files = sorted(x for x in pd_.iterdir() if x.suffix in (".parquet", ".json") and ".ckpt" not in x.name)
-            good = all(x.name in man and md5(x) == man[x.name] for x in files) and len(files) > 0
+            if cl == "h2":
+                man = read_md5sums(pd_)
+                good = all(x.name in man and md5(x) == man[x.name] for x in files) and len(files) > 0
+            else:  # written on CARC itself, no transfer
+                good = len(files) > 0
             r[f"{sub}_md5"] = bool(good)
             ok &= good
             for x in files:
@@ -584,16 +615,23 @@ def cmd_accept(a) -> int:
         )
         r1 = cmd_gate1(Namespace(out=str(d / "g1"), est=e1, no_fail=False)) if ok and e1 else 3
         r2 = cmd_gate2(Namespace(out=str(d / "g2"), arm_list=[], est=e2)) if ok and e2 else 3
-        r |= dict(classes_gate1=e1, classes_gate2=e2, gate1_rc=r1, gate2_rc=r2, cpus=sorted(cpus))
-        good = ok and r1 == 0 and r2 == 0 and len(cpus) == 1 and e1 == e2
+        has_rep = any((d / "g2" / "pieces").glob("*_scored2.parquet"))
+        r3 = cmd_gaterep(Namespace(out=str(d / "g2"), min_hosts=0)) if ok and has_rep else 0
+        r |= dict(classes_gate1=e1, classes_gate2=e2, gate1_rc=r1, gate2_rc=r2, repeats_rc=r3, cpus=sorted(cpus))
+        good = ok and r1 == 0 and r2 == 0 and r3 == 0 and len(cpus) == 1 and e1 == e2
         r["pass"] = bool(good)
         rec[d.name] = r
+        (d / "accept.json").write_text(json.dumps(r, indent=1))
         if good:
-            acc[sorted(cpus)[0]] = dict(tag=d.name, classes=e1)
+            acc[sorted(cpus)[0]] = dict(tag=d.name, cluster=cl, classes=e1)
     o = Path(a.out).resolve() / "pieces_h2"
     o.mkdir(parents=True, exist_ok=True)
-    (o / "accepted_cpus.json").write_text(json.dumps(dict(accepted=acc, checked=rec), indent=1))
+    tmp = o / f"accepted_cpus.json.{os.getpid()}"
+    tmp.write_text(json.dumps(dict(accepted=acc, checked=rec), indent=1))
+    os.replace(tmp, o / "accepted_cpus.json")
     say(f"ACCEPT {json.dumps(dict(accepted=acc, checked=rec))}")
+    if a.require_tag:
+        return 0 if rec.get(a.require_tag, {}).get("pass") else 3
     return 0
 
 
@@ -1001,7 +1039,8 @@ def main() -> int:
     ap.add_argument("--min-hosts", type=int, default=0, help="gaterep: nodes of the fresh single fits")
     ap.add_argument("--accept-cpus", default="", help="merge: accepted_cpus.json (Hoffman2 models gate-passed)")
     ap.add_argument("--intake", default="", help="merge: the Hoffman2 incoming piece directory (with MD5SUMS)")
-    ap.add_argument("--h2-gates", default="", help="accept: the directory of the delivered Hoffman2 gate runs")
+    ap.add_argument("--gate-root", default="", help="accept: holds h2/<tag>/ and carc_<tag>/ gate runs")
+    ap.add_argument("--require-tag", default="", help="accept: exit 3 unless this tag passes")
     a = ap.parse_args()
     a.arm = a.arm_list[0] if a.arm_list else ""
     a.threads_of = dict((k, int(v)) for k, v in (x.split("=") for x in a.threads_of.split(",") if x))
