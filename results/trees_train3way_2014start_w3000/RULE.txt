@@ -1,0 +1,133 @@
+THREE-WAY TRAINING-SAMPLE COMPARISON OF THE POOLED TREES (2014 start, 3,000-day window)
+
+Written 2026-10-24 about 00:15 PDT (07:15 UTC), before any job of this comparison; committed and pushed before the
+first submission.  Branch insurance-selling-2026-09-19-e34-train3way-trees (from insurance-selling-2026-09-19-e34-
+train3way d147474).  Request (owner, relayed by the coordinator): "run the three-way comparison for the trees too".
+It mirrors the linear comparison (results/linear_train3way_2014start_w3000/RULE.txt with its addendum A, equal training
+rows; its addendum B and the note withdrawing it concern the linear walks' warm state and do not apply here, see 4).
+Question: how does training the pooled trees on all 48 half-hour periods (ALL48), on the 13 regular-hours bars (RTH13)
+or on the closing half hour only (CLOSE) compare, scored on the 13 RTH bars and on the closing half hour, at equal
+calendar (3,000 days) and at equal training rows (N = 3,000 and 39,000)?  Nothing under writeup/ is edited; no
+Overleaf sync.  The coordinator's design defaults, adopted as below.
+
+1. TEMPLATES = ARM RTH13 (reused, not rerun; conditional on gate 1)
+   LightGBM lgbm_opt_00 (cluster/pooltree_lgbm_config.json, sha abab811bd4b6) and XGBoost xgb_opt_00
+   (cluster/xgbtop_xgb_config.json, sha 88bec9f385c7): results/pooled_trees_final_2014start_w3000 (runner
+   experiments/pooled_trees_rerun_13.py at 654c476, env /scratch1/jc_905/envs/harxhar-r13: python 3.12.15, numpy
+   1.26.4, lightgbm 4.6.0, xgboost 3.2.0; 8 threads; 699 CPU-hours: lgbm full 249.5 / HAR 39.3, xgb full 383.8 / HAR
+   26.5).  The random forest rf400_rf_opt_00 on oneDAL (rf_skx; cluster/pooltree_rf400_config.json, sha 88eebb5fa9e8;
+   sklearnex 2026.2.0, 256 bins): results/pooled_rf_skx_2014start_w3000 (RULE_rf_skx.txt; runner 3cbb85f / c989ee0,
+   venv /home1/jc_905/trees_final/venv_skx; 8-20 threads; 2,626 CPU-hours: full 2,575.5 / HAR 50.3).  Both: the final
+   13-bar design of the window sweep (results/window_sweep_2014start_2026-10-22/w3000: HAR benchmark 12 columns, full
+   set 564), W = 39,000 rows (3,000 days x 13), a refit at every bar from 2014-01-02 10:00 to 2024-04-30 16:00 (33,970
+   bars an arm on 2,643 days), the forecast of design row r fitted on rows [r - W, r) with seed 42; EPYC 7513 / 7542.
+   Their forecasts.parquet (repo md5 7f15d5a5... and f68016d4...) are the RTH13 rows of every table.
+
+2. ARMS (the training sample of each refit; everything else as the templates)
+   arm         design                                      window sample             W (rows)   refit origins
+   ALL48       the linear comparison's 48-interval design   every interval            144,000    the 33,970 below
+   RTH13       the templates' (reused)                      every RTH bar              39,000    (the templates')
+   CLOSE       the 13-bar design                            its 16:00 rows only         3,000    every 16:00 origin
+   ALL48_N3k   the 48-interval design                       every interval              3,000    the 33,970
+   RTH13_N3k   the 13-bar design                            every RTH bar               3,000    the 33,970
+   ALL48_N39k  the 48-interval design                       every interval             39,000    the 33,970
+   Equal calendar (3,000 days): ALL48 (144,000 rows), RTH13 (39,000), CLOSE (3,000 closes).  Equal rows: N = 3,000
+   (ALL48_N3k, RTH13_N3k, CLOSE) and N = 39,000 (ALL48_N39k against RTH13), as the linear addendum A.  No close-tuned
+   (@16) variant: the trees are not re-tuned.
+   Designs (reused from the linear comparison on CARC, /scratch1/jc_905/train3way/code/results/
+   linear_train3way_2014start_w3000/<ARM>/_work/design_<set>, copied with md5 checks; experiments/trees_train3way.py
+   check, all must hold):
+     13-bar: the linear comparison's rebuilt RTH13 caches, md5-identical (X, y, b_oos, dates_oos of both sets) to the
+       templates' design (results/pooled_trees_final_2014start_w3000/run.json design.md5); config rth13, 13 a day,
+       window 39,000, har_base 5, the templates' executor flags.
+     48-interval: the linear ALL48 caches (--sample 48, DROP_OVERNIGHT_INDICATOR=0: 13 and 565 columns, the 13-bar
+       columns plus is_overnight; window 144,000 rows; the same trailing averages on the full 48-interval grid; its own
+       rolling robust scaler and late-start warm-up on the 48-interval rows, a necessary difference as in the linear
+       RULE section 3).  y and B at the 33,970 origins equal the 13-bar design's (asserted).
+     CLOSE: the 16:00 rows of the 13-bar design (the 15:30 information set); asserted equal byte for byte to the
+       linear comparison's CLOSE cache (derive_close), so its X, y, B are RTH13's at every 16:00 row.
+     Equal-rows arms: the sibling design (13-bar or 48-interval) with a shorter training window only, as the linear
+       derive_window: the forecast at an origin is fitted on the last N rows of the sibling's sample before it, so X,
+       y, B are the sibling's and the scaler / late-start warm-up keep the sibling's 3,000-day rule (asserted: the
+       linear N3k / N39k caches equal the sibling's rows from W_sibling - N on).
+   Early-close sessions: dropped from the 13-bar design (RTH13, CLOSE, RTH13_N3k); kept in the 48-interval windows.
+   Trees use every column of the design as given (no runner-side masks).
+
+3. MODELS (the paper's tree protocol: frozen configurations, no re-tuning)
+   The frozen lgbm_opt_00, xgb_opt_00 and rf400_rf_opt_00 in every arm, built by pooled_trees_rerun_13.model_factory
+   (seed 42; LightGBM num_threads = T, XGBoost n_jobs = T, the forest n_jobs = T to fit and 1 to predict; rf_skx's
+   first fit of every session asserts oneDAL ran), fit_predict unchanged.  HAR benchmark set and full set.
+   CAVEAT (recorded, not acted on): the configurations were chosen on pooled 13-bar data with tens of thousands of
+   rows; at W = 3,000 rows (CLOSE, the N3k arms) their sample-size parameters bind differently -- LightGBM
+   min_child_samples 98 with bagging_fraction 0.56 (about 1,690 rows a tree), XGBoost min_child_weight 50.2 with
+   subsample 0.66, the forest min_samples_leaf 12 with max_samples 0.41 (about 1,240 rows a tree) and max_depth 20 --
+   and at W = 144,000 (ALL48) the opposite; the configurations may not suit those windows.
+
+4. WALK
+   The forecast at an origin (design row r, position j of r in the arm's sample S) is fitted from scratch on the
+   sample rows S[j - W] .. S[j - 1] with the fixed seed and predicts row r; plain = pred_adj^2 x B.  No state carries
+   from one refit to the next (each fit is a new estimator; the templates' pieces resume mid-walk bit for bit), so
+   refitting only at the origins gives exactly the forecast a walk refitting at every sample row would give there;
+   verified by gate 2 before any 48-interval walk.  Origins:
+     the 33,970 bar ends of the templates (every 13-bar design row from 2014-01-02 10:00 to 2024-04-30 16:00); in the
+       48-interval design the rows with those end stamps (asserted present).  The ALL48 arms do not refit at their
+       other rows (overnight, weekend, holiday rows and the early-close sessions' bars, none of which is scored).
+     CLOSE: the 16:00 rows among them (one a session).
+   Code: experiments/trees_train3way.py walk (pooled_trees_rerun_13's model code, checkpoints and meta; pieces of
+   contiguous trading-day blocks, the templates' rule: n = ceil(projected wall hours / 3 h) from the time probe), merge
+   (complete piece sets; one CPU family for rf_skx).  Environments: the templates' (LightGBM / XGBoost harxhar-r13,
+   the forest venv_skx), read only.  Threads: LightGBM / XGBoost 8 (the templates'); the forest 8 in CLOSE and the N3k
+   arms, 20 in ALL48_N39k and ALL48 (the rf_skx gate (d): 20 = 8 bit for bit); every piece's meta records them.
+   CPU: CARC EPYC 7513 / 7542 only (--constraint), the templates' nodes.
+
+5. GATES (before any walk; every walk array is afterok on them)
+   (0) design check (section 2), experiments/trees_train3way.py check -> design_check.json.
+   (1) this code path reproduces the templates: RTH13 (W 39,000), the first 10 and last 10 origins (2014-01-02
+       10:00 .. 14:30 and 2024-04-30 11:30 .. 16:00) of each class and set, 8 threads (the forest also at 20):
+       LightGBM / XGBoost pred_adj text-identical (repr) to the templates' forecasts.parquet, the forest within 1e-14
+       relative (its own reproducibility across CPU paths; expected 0 on EPYC 7513 / 7542); true_adj and B equal.
+   (2) scored-only against refit-at-every-row, each class and set: ALL48 (W 144,000) over 2014-01-02 15:30 ..
+       2014-01-03 10:00 (38 rows, an overnight gap; 3 scored origins) and ALL48_N3k (W 3,000) over 2014-01-02 15:30 ..
+       2014-01-06 10:30 (the overnight and weekend rows): the forecasts at the scored origins identical bit for bit
+       (pred_adj, true_adj, B).  A difference means state carries across refits: stop and report.
+   (3) time probe: 3 refits at the first origins of each arm, class and set at the walk's threads (and RTH13 as a
+       calibration against the templates' actual cost) -> CPU-hours = seconds a refit x refits x threads.  If the
+       projection of all new walks exceeds 25,000 CPU-hours, no walk of ALL48_N39k or ALL48 starts (an automatic
+       check, exit 3) and the run stops and reports before ALL48 is submitted.  The coordinator's projection: about
+       16,000 (ALL48 about 12,000 with the forest about 9,500; ALL48_N39k about 3,300; N3k arms about 250 each; CLOSE
+       about 20).
+   Order (cheapest first, results early): CLOSE, RTH13_N3k, ALL48_N3k (one chain), then ALL48_N39k, then ALL48
+   (submitted after the projection is read); within each, LightGBM and XGBoost before the forest.
+
+6. SCORING (CARC; experiments/trees_train3way_score.py = the linear comparison's section 6 with the tree classes)
+   Days: RE.history() days in 2014-01-02 .. 2024-04-30 (2,579).  (a) every RTH bar (every arm but CLOSE): the 13 bars
+   of those days with RV > 0 (33,527), QLIKE, MSE x 1e10, R2_OOS against the per-clock expanding mean; (b) 16:00
+   (every arm): RE.metrics with RE.ct_benchmark.  Diebold-Mariano (dm_test, HLN, Bartlett, lag 8 at T = 2,579) on
+   daily losses, QLIKE (primary) and squared error; negative = the first-named arm lower.  Pairs: at 16:00 ALL48 vs
+   RTH13, CLOSE vs RTH13, CLOSE vs ALL48, ALL48_N3k vs RTH13_N3k, CLOSE vs RTH13_N3k, CLOSE vs ALL48_N3k, ALL48_N39k vs
+   RTH13, and each equal-rows arm vs its equal-calendar sibling; every bar ALL48 vs RTH13, ALL48_N3k vs RTH13_N3k,
+   ALL48_N39k vs RTH13 and the equal-rows arms vs their siblings; full vs HAR within each arm and class (16:00, every
+   bar).  Checks: the RTH13 rows reproduce the templates' scores/metrics.csv (QLIKE and MSE, every bar and 16:00, bar
+   and day counts) to 1e-12 and their full-vs-HAR QLIKE DM (dm.csv) to 1e-9; every arm's rv_actual, true_adj and B
+   equal RTH13's at common rows.  Interim scores as arms finish (scores_w1, scores_w2); the final after ALL48.
+
+7. ECONOMICS AT THE CLOSE (local, experiments/trees_train3way_econ.py = the linear section 8 with the tree classes)
+   q = +1 if plain16 > iv_var else -1 on the 866 option days, mid and bid/ask returns, D6 Sharpe ratio on the 614
+   post-warmup days; the same pairs' differences with hac_inference.d6_diff_test (mid and bid/ask), and full vs HAR
+   within each arm.  Check: RTH13 reproduces the templates' scores/econ.csv (D6 mid / bid-ask of both sets and the
+   full-vs-HAR bootstrap p) to 1e-12.
+
+8. COMPUTE
+   CARC Discovery, account pollok_1603, partition main, --constraint epyc-7513|epyc-7542; staging /scratch1/jc_905/
+   trees3way (code = git archive of the commit, designs, runs, gates, timing, logs).  The per-user QOS (100 running
+   jobs, 2,000 CPUs) is shared with the linear comparison and the MinGRU runs: the arrays are throttled and never
+   touch another job.  Hoffman2: not used in phase 1.  A CARC-to-Hoffman2 transfer of the 48-interval design (1.4 GB;
+   no large transfer through the laptop) was denied by the permission classifier and not retried; Hoffman2 would
+   have to build that design itself and gate it (md5 against CARC's: the window sweep found Hoffman2's AVX-512 nodes
+   change the full-set design unless numpy's AVX-512 dispatch is off) and gate LightGBM / XGBoost on its CPUs (the
+   tree learning curve did: bit-identical to CARC's); whether to do so for ALL48's LightGBM / XGBoost is decided at
+   the projection, in an addendum before any Hoffman2 job.  The forest stays on CARC's EPYC (oneDAL differs across
+   CPU families).  Outputs here: STATUS.md, design_check.json, gate1.json, gate2.json, timing, projection, task files,
+   piece metas, score tables, econ tables, logs; no design caches or full forecast panels on the laptop.
+
+9. ADDENDA: dated, written before the job they affect.
