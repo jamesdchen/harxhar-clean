@@ -223,3 +223,6 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
 - 2026-10-24 06:39 PDT: HAR tau-27 extension: gpu files 13377080-81 done; the debug files 13377082-84 and the G7 probe
   13377090 waited 30 min behind other users in debug (its 2 P100s), cancelled while pending and resubmitted unchanged
   to gpu P100: 13377401-03 and G7 13377404.
+- 2026-10-24 06:55 PDT G7 full set (W 3,000) done (13377404, P100 e21-01, 120 refits, all ok, finite, positive; wall
+  546 s at CONC 24; t_train a refit 101 s mean while 24 share the GPU; g7/): 4.55 P100-s a bar refit (E 160) ->
+  every-bar walk 33,970 bars x 5 seeds = 214.7 P100-h for the full-set arm at W 3,000 (projection; no walk submitted).

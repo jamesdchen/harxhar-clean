@@ -37,6 +37,21 @@
     "low": 0,
     "high": 0
    }
+  },
+  "frozen": {
+   "pick": {
+    "tau": "1",
+    "we": "3",
+    "E": 40
+   },
+   "C_fresh": 0.1156098354858659,
+   "shortlist": [
+    "tau0.3_we3_E40",
+    "tau1_we3_E40",
+    "tau3_we3_E80",
+    "tau0_we3_E40",
+    "tau1_we15_E300"
+   ]
   }
  },
  "baseline": {

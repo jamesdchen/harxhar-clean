@@ -48,3 +48,9 @@ the old run (read-only): `/home1/jc_905/pmf35/data` (design copies, fold-3 ridge
 - 2026-10-24 06:39 PDT G6 HAR (W 3,500) round 0 (P100): fresh-seed pick tau3_we0_E40 0.125707 (tau0.3_we0_E10
   0.125837, tau1_we0_E20 0.125891, ...) at the tau high edge -> extension 1: tau 9 (120 jobs, tag v2s2hx1, gpu P100,
   nice 100): 13377396-400. Full-set fresh seeds 13377257-58 pending on L40S.
+- 2026-10-24 06:56 PDT G6 full set (W 3,500) FINAL (L40S): fresh-seed C (stage2/s2_fresh_all_features_final.csv):
+  tau1_we3_E40 0.115610 (pick), tau0_we3_E40 0.115630, tau3_we3_E80 0.115707, tau0.3_we3_E40 0.115745, tau1_we15_E300
+  0.115904; interior on every axis (no extension). Reported (stage2/s2_report_all_features.json): bootstrap SE of
+  C - C(pick) 0.00014-0.00032, seed-jackknife SE 0.00007-0.00016, 90 % MCS = the whole shortlist.
+- 2026-10-24 06:57 PDT G7 full set (W 3,500), P100: 24 origins x 5 seeds at H 64, L 8, lr 0.003, tau 1 (wd 0.045674614 at
+  S 356), wd_enc 3, E 40; 13377590 (gpu, nice 100).
