@@ -6,3 +6,7 @@ pieces/v2w_all_features.000.p00.txt 13382932 gpu 562 L40S piece of v2w_all_featu
 pieces/v2w_all_features.000.p01.txt 13382933 gpu 562 L40S piece of v2w_all_features.000.txt
 pieces/v2w_all_features.000.p02.txt 13382934 gpu 562 L40S piece of v2w_all_features.000.txt
 pieces/v2w_all_features.001.p00.txt 13382935 gpu 562 L40S piece of v2w_all_features.001.txt
+pieces/v2w_all_features.000.p00.txt 13384202 gpu 375 A40 piece (A40, ADDENDUM 3a)
+pieces/v2w_all_features.000.p01.txt 13384203 gpu 375 A40 piece (A40, ADDENDUM 3a)
+pieces/v2w_all_features.000.p02.txt 13384204 gpu 375 A40 piece (A40, ADDENDUM 3a)
+pieces/v2w_all_features.001.p00.txt 13384205 gpu 375 A40 piece (A40, ADDENDUM 3a)

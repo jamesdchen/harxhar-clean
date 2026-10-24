@@ -12,3 +12,12 @@ pieces/v2w_all_features.000.p04.txt 13382908 gpu 650 L40S piece of v2w_all_featu
 pieces/v2w_all_features.001.p00.txt 13382909 gpu 650 L40S piece of v2w_all_features.001.txt
 pieces/v2w_all_features.001.p01.txt 13382910 gpu 650 L40S piece of v2w_all_features.001.txt
 pieces/v2w_all_features.001.p02.txt 13382911 gpu 651 L40S piece of v2w_all_features.001.txt
+pieces/v2w_all_features.000.p00.txt 13384193 gpu 432 A40 piece (A40, ADDENDUM 3a)
+pieces/v2w_all_features.000.p01.txt 13384194 gpu 432 A40 piece (A40, ADDENDUM 3a)
+pieces/v2w_all_features.000.p02.txt 13384195 gpu 432 A40 piece (A40, ADDENDUM 3a)
+pieces/v2w_all_features.000.p03.txt 13384196 gpu 432 A40 piece (A40, ADDENDUM 3a)
+pieces/v2w_all_features.000.p04.txt 13384197 gpu 432 A40 piece (A40, ADDENDUM 3a)
+pieces/v2w_all_features.001.p00.txt 13384198 gpu 432 A40 piece (A40, ADDENDUM 3a)
+pieces/v2w_all_features.001.p01.txt 13384199 gpu 432 A40 piece (A40, ADDENDUM 3a)
+pieces/v2w_all_features.001.p02.txt 13384200 gpu 432 A40 piece (A40, ADDENDUM 3a)
+pieces/v2w_all_features.001.p03.txt 13384201 gpu 432 A40 piece (A40, ADDENDUM 3a)

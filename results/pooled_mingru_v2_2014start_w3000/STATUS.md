@@ -307,3 +307,11 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
 - 2026-10-24 12:59 PDT top-up (steward: 80 gpu-partition jobs, 17 running): 15 HAR W 3,000 pieces of files 021-023
   submitted (13383055-69, P100) -> 95 gpu-partition jobs (17 running P100, 66 pending P100, 12 pending L40S) + 5
   debug pending. Unsubmitted: HAR W 3,000 150, full W 3,000 22, HAR W 3,500 25, full W 3,500 8.
+- 2026-10-24 15:12:55 PDT (CARC clock; ADDENDUM 3a was committed just before, its header says 15:15 by mistake):
+  per arm started? HAR W 3,000 yes (13 originals + 22 pieces running), HAR W 3,500 yes (2 debug pieces running),
+  full W 3,000 no, full W 3,500 no. Free A40 0 / 50 (+ debug 2 / 2), L40S 5 / 19, P100 8 / 74; others' higher-priority
+  pending A40 104, L40S 108, P100 19; starts in the last 2 h A40 81, L40S 19, P100 91. Decision: both full arms
+  L40S -> A40. The 12 pending L40S pieces cancelled (walk_cancelled_all_features.txt) and 13 pieces submitted on A40:
+  full W 3,000 13384193-201 (9, 432 min), full W 3,500 13384202-05 (4, 375 min, nice 100). gpu partition 98 of
+  ours (35 running P100, 50 pending P100, 13 pending A40); debug 3. Unsubmitted: HAR W 3,000 150, full W 3,000 21,
+  HAR W 3,500 25, full W 3,500 8.
