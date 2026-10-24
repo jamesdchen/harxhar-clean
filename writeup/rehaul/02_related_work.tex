@@ -168,21 +168,42 @@
   % models of realized volatility over intraday buckets, ... Both build their predictors from volatility itself; we
   % keep a single model across the intervals of the day for the S\&P~500 and ask what a large set of exogenous
   % predictors adds, comparing penalized linear models with tree ensembles."
-  $\bm x_t$. Most of this work targets daily volatility or monthly returns. The closest machine-learning
-  precedent for our setting, \citet{ZhangZhangCucuringuQian2024}, forecasts realized volatility over intraday
-  buckets for a cross-section of stocks, fitting one model across all buckets of the day and, in its universal
-  variant, across stocks, with predictors built from realized volatility alone; we keep that design for the
-  S\&P~500 and ask what a large set of exogenous predictors adds, comparing penalized linear models with tree
+  % 2026-10-24 (user): parked -- before the precedent chronology for machine learning in return and realized-
+  % volatility forecasting (literature search, verified first-posting and publication dates). Was: "$\bm x_t$. Most of
+  % this work targets daily volatility or monthly returns. The closest machine-learning precedent ... comparing
+  % penalized linear models with tree ensembles.\newline See \citet{gu2020empirical} for return prediction and
+  % \citet{christensen2023machine} for realized volatility forecasting; for gradient-boosted decision trees, see
+  % \citet{Ke2017} (LightGBM) and \citet{Chen2016} (XGBoost); for Bayesian hyperparameter optimization, see
+  % \citet{Akiba2019} (Optuna)."
+  $\bm x_t$. In return prediction, penalized regressions and nonparametric characteristic selection preceded the
+  comparison of linear, penalized, tree-based, and neural-network models in \citet{gu2020empirical}, which has
+  become the benchmark. In realized volatility forecasting, single-method applications came first---bagging and
+  neural-network HAR models, the lasso, boosting, random forests, and neural networks---before
+  \citet{christensen2023machine} compared these methods with the HAR model for daily realized volatility. Most of
+  this work targets daily volatility or monthly returns. The closest machine-learning precedent for our setting,
+  \citet{ZhangZhangCucuringuQian2024}, forecasts realized volatility over intraday buckets for a cross-section of
+  stocks, fitting one model across all buckets of the day and, in its universal variant, across stocks, with
+  predictors built from realized volatility alone. Exogenous predictors, such as sentiment, attention, and news
+  measures, have so far been used for daily volatility; we keep the single-model design for the S\&P~500 and ask
+  what a large set of exogenous predictors adds at the intraday horizon, comparing penalized linear models with tree
   ensembles.\newline
-  See \citet{gu2020empirical} for return prediction and \citet{christensen2023machine} for realized volatility
-  forecasting; for gradient-boosted decision trees, see \citet{Ke2017} (LightGBM) and \citet{Chen2016}
-  (XGBoost); for Bayesian hyperparameter optimization, see \citet{Akiba2019} (Optuna).
+  See \citet{RapachStraussZhou2013} and \citet{FreybergerNeuhierlWeber2020} on penalized and nonparametric return
+  prediction and \citet{gu2020empirical} for the comparison of methods; for realized volatility,
+  \citet{HillebrandMedeiros2010} (bagging and neural-network HAR models), \citet{AudrinoKnaus2016} (the lasso),
+  \citet{MittnikRobinzonovSpindler2015} (boosting), \citet{LuongDokuchaev2018} (random forests),
+  \citet{Bucci2020} and \citet{RahimikiaPoon2020} (neural networks), \citet{christensen2023machine} (the comparison
+  of methods), and \citet{BrancoRubesamZevallos2024}, who find that nonlinear models rarely beat linear ones;
+  for gradient-boosted decision trees, see \citet{Ke2017} (LightGBM) and \citet{Chen2016} (XGBoost); for Bayesian
+  hyperparameter optimization, see \citet{Akiba2019} (Optuna).
   \begin{itemize}
   % 2026-10-15 (user): parked -- NN content parked for now. Was: "...; realized volatility: \citet{Bucci2020},
   % \citet{RahimikiaPoon2020}, \citet{ZhangZhangCucuringuQian2024}; MinGRU \citet{Feng2024}; PufferLib \citet{Suarez2024}."
+  % 2026-10-24 (user): parked -- the realized-volatility list moved into the bullet's chronology. Was: "...; for
+  % machine-learning applications to realized volatility and intraday commonality, see \citet{Bucci2020},
+  % \citet{RahimikiaPoon2020}, and \citet{ZhangZhangCucuringuQian2024}."
   \item For ensemble methods, see \citet{Breiman2001} on random forests and \citet{Friedman2001} on gradient
-    boosting; for machine-learning applications to realized volatility and intraday commonality, see
-    \citet{Bucci2020}, \citet{RahimikiaPoon2020}, and \citet{ZhangZhangCucuringuQian2024}.
+    boosting; on exogenous predictors of daily realized volatility, see \citet{AudrinoSigristBallinari2020}
+    (sentiment and attention measures) and \citet{CaporinPoli2017} (news measures built from textual data).
   % 2026-10-15 (bib pass): parked -- the [to add] placeholder, now \citet keys in references.bib. Was:
   % \item \todo{to add: Breiman 2001; Friedman 2001 (gradient boosting); Bucci 2020; Rahimikia--Poon 2020;
   %   Zhang--Zhang--Cucuringu--Qian 2024; MinGRU (Feng et al.\ 2024); PufferLib}.
