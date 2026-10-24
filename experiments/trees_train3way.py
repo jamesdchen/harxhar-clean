@@ -69,9 +69,20 @@ ARMS: dict[str, dict[str, Any]] = {
     "RTH13": dict(design="RTH13", sample="all", W=39000, desc="13 regular-hours bars, 3,000 days (the template)"),
     "CLOSE": dict(design="RTH13", sample="close", W=3000, desc="the closing half hour: the 16:00 rows, 3,000 sessions"),
     "RTH13_N3k": dict(design="RTH13", sample="all", W=3000, desc="13 regular-hours bars, the last 3,000 rows"),
-    "ALL48": dict(design="ALL48", sample="all", W=144000, desc="all 48 half-hour intervals, 3,000 days"),
+    # 2026-10-24 addendum B (owner: "Force col-wise"): LightGBM with force_col_wise=True in ALL48 and ALL48_N39k (its
+    # timing-based col-/row-wise choice made the 144,000-row window 1-ulp non-deterministic); ALL48_N3k's LightGBM
+    # walks had started with the template setting and keep it.  Was: no lgbm_col_wise key (the template setting).
+    "ALL48": dict(
+        design="ALL48", sample="all", W=144000, desc="all 48 half-hour intervals, 3,000 days", lgbm_col_wise=True
+    ),
     "ALL48_N3k": dict(design="ALL48", sample="all", W=3000, desc="all 48 half-hour intervals, the last 3,000 rows"),
-    "ALL48_N39k": dict(design="ALL48", sample="all", W=39000, desc="all 48 half-hour intervals, the last 39,000 rows"),
+    "ALL48_N39k": dict(
+        design="ALL48",
+        sample="all",
+        W=39000,
+        desc="all 48 half-hour intervals, the last 39,000 rows",
+        lgbm_col_wise=True,
+    ),
 }
 # the templates' design caches (results/pooled_trees_final_2014start_w3000/run.json design.md5; the rf_skx run used the
 # same files, results/pooled_rf_skx_2014start_w3000/design/)
@@ -188,6 +199,28 @@ def positions(S: np.ndarray, rows: np.ndarray, W: int) -> np.ndarray:
 
 
 # ============================================================================ walk
+def col_wise(a, est: str, arm: str) -> bool:
+    """LightGBM's force_col_wise for this call: the arm's setting (addendum B), or --lgbm-col-wise on / off."""
+    if est != "lgbm":
+        return False
+    return {"arm": bool(ARMS[arm].get("lgbm_col_wise", False)), "on": True, "off": False}[a.lgbm_col_wise]
+
+
+def model(est: str, threads: int, cw: bool):
+    """pooled_trees_rerun_13.model_factory; with cw, LightGBM's LGBMRegressor with force_col_wise=True added (the
+    same configuration, seed and threads otherwise)."""
+    cfg, make = T.model_factory(est, threads)
+    if not cw:
+        return cfg, make
+    assert est == "lgbm"
+    import lightgbm as lgb
+
+    params = dict(cfg.get("params") or {})
+    return cfg, lambda: lgb.LGBMRegressor(
+        **params, num_threads=threads, random_state=42, verbosity=-1, force_col_wise=True
+    )
+
+
 def piece_path(out: Path, arm: str, est: str, s: str, tag: str) -> Path:
     return out / "pieces" / f"{arm}_{est}_{s}_{tag}.parquet"
 
@@ -244,7 +277,8 @@ def cmd_walk(a) -> int:
     y_all = des.y()
     y = np.ascontiguousarray(y_all[need])
     b_all = des.b()
-    cfg, make = T.model_factory(est, a.threads)
+    cw = col_wise(a, est, arm)
+    cfg, make = model(est, a.threads, cw)
     rv = T.rv_bars()
     prior: dict = json.loads(ckpt_p.read_text()) if ckpt_p.is_file() else {"wall_sec": 0.0, "refits": 0}
     cpus: list[str] = [str(x) for x in prior.get("cpus", [])] + [T.cpu_model()]
@@ -253,7 +287,7 @@ def cmd_walk(a) -> int:
     say(
         f"walk {arm} {est} {s} {tag}: {len(rows)} refits {stamps[0]} .. {stamps[-1]}, {len(have)} on disk; design "
         f"{des.name} ({des.n} rows, {X.shape[1]} columns), sample {c['sample']} ({len(S)} rows), W {W}; "
-        f"{cfg['name']} {cfg['sha']}, threads {a.threads}"
+        f"{cfg['name']} {cfg['sha']}, threads {a.threads}{', LightGBM force_col_wise' if cw else ''}"
     )
     recs = [done] if len(done) else []
     t0, t_ck, k = time.time(), time.time(), 0
@@ -330,6 +364,8 @@ def cmd_walk(a) -> int:
         "slurm_job": os.environ.get("SLURM_ARRAY_JOB_ID", os.environ.get("SLURM_JOB_ID", "")),
         "slurm_task": os.environ.get("SLURM_ARRAY_TASK_ID", ""),
     }
+    if est == "lgbm":
+        meta["lgbm_force_col_wise"] = cw
     if est == "rf_skx":
         meta["skx_dispatch"] = skx_dispatch
         meta["skx_split"] = {k_: v for k_, v in make().get_params().items() if k_ in ("max_bins", "min_bin_size")}
@@ -348,6 +384,9 @@ def cmd_merge(a) -> int:
     frames, used, cms = [], {}, {}
     for est in a.est or list(EST):
         for s in SETS:
+            if f"{est}/{s}" in a.skip:  # addendum B: a class / set not run (ALL48's forest full set)
+                say(f"{arm} {est} {s}: skipped (--skip)")
+                continue
             des = Design(root, ARMS[arm]["design"], s)
             want = des.dates[arm_origins(root, des, arm)]
             pat = re.compile(rf"^{arm}_{est}_{s}_(\d+)of(\d+)\.parquet$")
@@ -374,6 +413,8 @@ def cmd_merge(a) -> int:
             for p in ps.values():
                 pm = json.loads(p.with_suffix(".json").read_text())
                 assert (pm["arm"], pm["est"], pm["predictor_set"], pm["window_rows"]) == (arm, est, s, ARMS[arm]["W"])
+                if est == "lgbm":  # addendum B: the arm's setting (pieces before it carry no key = the template's)
+                    assert bool(pm.get("lgbm_force_col_wise", False)) == col_wise(a, est, arm), p.name
                 c |= set(pm.get("cpus") or [pm["cpu"]])
             if est in T.ONE_CPU:
                 assert len({T.cpu_family(x) for x in c}) == 1, f"{arm} {est} {s}: CPU families {sorted(c)}"
@@ -416,7 +457,7 @@ def cmd_time(a) -> int:
         )
         y = np.ascontiguousarray(des.y()[need])
         for est in a.est or list(EST):
-            _, make = T.model_factory(est, a.threads)
+            _, make = model(est, a.threads, col_wise(a, est, arm))
             t0 = time.time()
             for p in P:
                 lo, hi = int(p) - W - base, int(p) - base
@@ -570,6 +611,10 @@ def cmd_gate1(a) -> int:
                 covered.add((est, s))
     g["pass"] = bool(ok) and covered == {(e, s) for e in EST for s in SETS}
     (out / "gate1.json").write_text(json.dumps(g, indent=1))
+    if a.no_fail:  # addendum B (b): a record only, written under another name
+        (out / "gate1.json").rename(out / "colwise_vs_template.json")
+        say(f"RECORD (no pass / fail): {json.dumps(g)}")
+        return 0
     say(f"GATE 1 {'PASS' if g['pass'] else 'FAIL'}: {json.dumps(g)}")
     return 0 if g["pass"] else 3
 
@@ -583,7 +628,7 @@ def cmd_gate2(a) -> int:
     n = 0
     for p in sorted((out / "pieces").glob("*_scored.parquet")):
         # 2026-10-24 (--arm, optional): the arms named only (a piece is <arm>_<est>_<set>_<tag>)
-        if a.arm_list and not any(p.name.startswith(f"{x}_{e}_") for x in a.arm_list for e in EST):
+        if a.arm_list and not any(p.name.startswith(f"{x}_{e}_") for x in a.arm_list for e in a.est or EST):
             continue
         q = p.with_name(p.name.replace("_scored.parquet", "_every.parquet"))
         assert q.is_file() and q.with_suffix(".json").is_file() and p.with_suffix(".json").is_file(), p.name
@@ -608,10 +653,49 @@ def cmd_gate2(a) -> int:
         n += 1
     g["pass"] = bool(ok) and n > 0
     g["arms"] = a.arm_list or "all"
-    (out / ("gate2.json" if not a.arm_list else f"gate2_{'_'.join(a.arm_list)}.json")).write_text(
-        json.dumps(g, indent=1)
-    )
+    g["est"] = a.est or "all"
+    name = "gate2" + "".join(f"_{x}" for x in a.arm_list) + ("".join(f"_{e}" for e in a.est) if a.est else "")
+    (out / f"{name}.json").write_text(json.dumps(g, indent=1))
     say(f"GATE 2 {'PASS' if g['pass'] else 'FAIL'}: {json.dumps(g)}")
+    return 0 if g["pass"] else 3
+
+
+def cmd_gaterep(a) -> int:
+    """Addendum B gate (a), repeats: every piece tagged scored2 or one<k> (a second process over the same origins, or
+    one origin fitted alone in a fresh process) against the 'scored' piece of the same arm / class / set: pred_adj,
+    true_adj, B identical bit for bit at every common origin (so the one<k> pieces also equal each other)."""
+    import re
+
+    out = Path(a.out).resolve()
+    g: dict = {}
+    ok, n = True, 0
+    for p in sorted((out / "pieces").glob("*.parquet")):
+        m = re.match(r"^(.+)_(scored2|one[0-9]+)[.]parquet$", p.name)
+        if not m:
+            continue
+        base = p.with_name(f"{m.group(1)}_scored.parquet")
+        assert base.is_file() and base.with_suffix(".json").is_file() and p.with_suffix(".json").is_file(), p.name
+        fb, fr = pd.read_parquet(base).set_index("date"), pd.read_parquet(p).set_index("date")
+        i = fr.index.intersection(fb.index)
+        same = len(i) == len(fr) and all(
+            np.array_equal(fb.loc[i, c].to_numpy(float), fr.loc[i, c].to_numpy(float))
+            for c in ("pred_adj", "true_adj", "B")
+        )
+        mr, mb = (json.loads(x.with_suffix(".json").read_text()) for x in (p, base))
+        g[p.stem] = dict(
+            against=base.stem,
+            origins=len(i),
+            identical=bool(same),
+            pred_adj=[repr(float(x)) for x in fr.loc[i, "pred_adj"]][:5],
+            lgbm_force_col_wise=[mr.get("lgbm_force_col_wise"), mb.get("lgbm_force_col_wise")],
+            host=[mr["host"], mb["host"]],
+            cpu=[mr["cpu"], mb["cpu"]],
+        )
+        ok &= same
+        n += 1
+    g["pass"] = bool(ok) and n > 0
+    (out / "gaterep.json").write_text(json.dumps(g, indent=1))
+    say(f"GATE REPEATS {'PASS' if g['pass'] else 'FAIL'}: {json.dumps(g)}")
     return 0 if g["pass"] else 3
 
 
@@ -710,7 +794,7 @@ def cmd_check(a) -> int:
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("mode", choices=("check", "walk", "merge", "time", "tasks", "project", "gate1", "gate2"))
+    ap.add_argument("mode", choices=("check", "walk", "merge", "time", "tasks", "project", "gate1", "gate2", "gaterep"))
     ap.add_argument("--design-root", default="", help="holds RTH13/ and ALL48/ (_work/design_<set>/)")
     ap.add_argument("--out", default="")
     ap.add_argument("--linear", default="", help="check: the linear comparison's results dir (read only)")
@@ -735,6 +819,10 @@ def main() -> int:
     ap.add_argument("--max-lines", type=int, default=0, help="tasks: raise the target hours until the lines fit")
     ap.add_argument("--taskdir", default="", help="project: the task files' directory")
     ap.add_argument("--cap", type=float, default=25000.0, help="project: CPU-hours")
+    # 2026-10-24 addendum B
+    ap.add_argument("--lgbm-col-wise", choices=("arm", "on", "off"), default="arm", help="walk / time / merge")
+    ap.add_argument("--skip", action="append", default=[], help="merge: est/set not run")
+    ap.add_argument("--no-fail", action="store_true", help="gate1: a record (colwise_vs_template.json), exit 0")
     a = ap.parse_args()
     a.arm = a.arm_list[0] if a.arm_list else ""
     a.threads_of = dict((k, int(v)) for k, v in (x.split("=") for x in a.threads_of.split(",") if x))
@@ -751,6 +839,7 @@ def main() -> int:
         "project": cmd_project,
         "gate1": cmd_gate1,
         "gate2": cmd_gate2,
+        "gaterep": cmd_gaterep,
     }[a.mode](a)
 
 

@@ -153,3 +153,31 @@ ADDENDUM A, 2026-10-24 00:46 PDT (07:46 UTC), before the jobs it affects: THE CA
        t3t_gate3k (experiments/trees_train3way.py gate1, and gate2 --arm ALL48_N3k), and the walk arrays 13369755 /
        13369756 re-pointed from t3t_gate (13369752, whose full gate 2 will record (b)) to it.  Nothing else changes;
        their merge / interim score (13369759, 13369760) as submitted.
+
+ADDENDUM B, 2026-10-24 01:25 PDT (08:25 UTC), before any job it affects: THE OWNER'S SCOPE AND LIGHTGBM COL-WISE
+   Owner (James, relayed by the coordinator, about 00:55 PDT): (1) "All but that cell now": ALL48_N39k for all three
+   classes and both sets, and ALL48 (3,000 days) for LightGBM and XGBoost (both sets) and the forest's HAR set; the
+   forest's full set on ALL48 (27,527 CPU-hours projected) is not run now -- its task file and submit script are
+   prepared and left unsubmitted.  The 25,000 CPU-hour cap of section 5 no longer blocks this subset (5,450 CPU-hours
+   projected: ALL48_N39k 3,572, ALL48 LightGBM 722, XGBoost 928, the forest's HAR set 228).  (2) "Force col-wise":
+   LightGBM runs with force_col_wise=True in the 48-period arms ALL48 and ALL48_N39k, because its timing-based col-wise
+   / row-wise choice made the 144,000-row window 1-ulp non-deterministic (addendum A (b)); the same model up to the
+   summation order of its histograms (force_col_wise is a computation setting; the frozen configuration's parameters,
+   seed and threads are unchanged).  ALL48_N3k's LightGBM walks (13369755 tasks 16-18) had already started with the
+   template setting at the decision: they keep it (recorded; its gate 2 was bit for bit).  CLOSE, RTH13_N3k and the
+   reused RTH13 keep the template setting.  Code: experiments/trees_train3way.py ARMS lgbm_col_wise (ALL48,
+   ALL48_N39k); the piece meta records lgbm_force_col_wise and merge asserts it per arm.
+   Gate C (before the LightGBM walks of ALL48 and ALL48_N39k, which run afterok on it; 8 threads, EPYC 7513 / 7542,
+   every line a separate process -> gate/gc):
+     (a) with force_col_wise, LightGBM both sets: ALL48 (W 144,000) every-row against scored-only refits over 2014-01-02
+         15:30 .. 2014-01-03 10:00 (38 rows, 3 scored origins) bit for bit (gate2 --arm ALL48 --est lgbm); and
+         repeats bit for bit: the scored-only walk a second time (scored2) and the 2014-01-03 10:00 origin fitted alone
+         in four fresh processes (one1 .. one4), for ALL48, and for ALL48_N39k (W 39,000; scored, scored2, one1, one2)
+         (gaterep).  A difference stops the LightGBM walks.
+     (b) for the record (no pass / fail): force_col_wise against the template setting on RTH13 (W 39,000) at the
+         gate-1 origins (first and last 10, both sets): the maximum relative difference of pred_adj -> gate/gcb/
+         colwise_vs_template.json.  The RTH13 arm keeps the template forecasts.
+   XGBoost and the forest of ALL48 / ALL48_N39k run afterok on gate 2 restricted to their class on ALL48 (XGBoost: both
+   sets passed bit for bit; the forest: its HAR set passed, its full set (13369749_3) still running at this writing).
+   Placement: CARC EPYC 7513 / 7542 for every class (Hoffman2 not used: no gate there).  The merge of ALL48 skips the
+   forest's full set (--skip rf_skx/all_features); the final scores cover every arm and class run.
