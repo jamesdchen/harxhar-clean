@@ -34,3 +34,14 @@ Jobs (CARC, account pollok_1603, partition main):
 To finish: pull scores/{linear,trees} (csv, tables_qlike.txt, f16.parquet, check.json), design_check.json, the gate
 jsons, the frozen penalties per W and the piece metas; run `experiments/closewin_econ.py <main checkout> <fam> ...`
 locally for each family (tables.txt); sacct CPU-hours.
+
+## Addendum A: the 10:15 failures (RULE.txt addendum A, commit 050a6a6, before its jobs)
+
+| Time (PDT) | Event |
+|---|---|
+| 09:44-09:49 | cw_stage 13380316 (design check PASS), cw_lin3k 13380317 (gate L PASS: W = 3,000 = the three-way CLOSE arm), cw_tgate 13380320 (gate T PASS; the three-way CLOSE forecasts reused as CLOSE_w3000) COMPLETED |
+| 09:47 | cw_linW 13380318 FAILED after 21 s: W = 1,000, every penalized walk on `assert tw > 2 * (STD_MIN_EVIDENCE + TUNE_PER)` (tw = 1,000) in pool_linear_pretune._seed_std (STANDARDIZE_PENALTY's tracker needs a window > 1,000 rows); not I/O; W = 1,500 .. 3,500 never started |
+| 09:57 | cw_twrf 13380322_1 (CLOSE_w1000 forest HAR, d05-39, Xeon 4116) FAILED: BrokenPipeError errno 108 reading data/core_stats.parquet on /scratch1 before any fit (no piece) -- a failing /scratch1 mount; the only I/O error in this sweep's logs |
+| 10:21 | `code/submit_a.sh 050a6a6`: code archive on /home1 (`/home1/jc_905/closewin/code_050a6a6`; the walk code cmp-identical to 62cfc8c's, src identical but __pycache__; git diff 62cfc8c..050a6a6 touches only the two scorers and results/); cw_linW2 13381257 (W = 1,500, 2,000, 2,500, 3,500, EPYC); cw_twrf2 13381258 (the failed forest line, EPYC only, d05-39 excluded); 13380322_9 / _10 (pending, W = 3,500 forest) restricted to EPYC 7513 / 7542 with the exclusions; cw_linS 13380319 cancelled, cw_linS2 13381259 (afterok 13381257; the new scorer) = the last linear job; cw_tfin 13380323 kept, re-pointed afterany 13380321, 13380322, 13381258 and restricted to EPYC = the last tree job |
+
+Linear W = 1,000 waits for the owner (RULE.txt addendum A options a-d); the linear tables start at W = 1,500 until then.
