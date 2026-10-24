@@ -28,3 +28,11 @@ the old run (read-only): `/home1/jc_905/pmf35/data` (design copies, fold-3 ridge
   jobs on it; A40's 12 with 7 of our screen files queued; P100 with 24 of our files queued): s2_state.json (H 64, L 8,
   lr 0.003; 72 configurations); canary 13370080 (fold 1 = the truncated fit [0, 40,702), tau 1, wd_enc 3, E 20, seed
   20261012); screen 13370081-95 (15 files, 1,080 jobs) afterok on it; nice 100.
+- 2026-10-24 02:30 PDT G4 HAR final (P100; 14 files incl. the 2 reruns from /project2 and .13 moved there; all n_bad 0;
+  stage1/s1_w3500_*.csv / _pick.json hold both sets): pick H 256, L 8, lr 0.003, "memorizing": rho_1,000 0.4215 /
+  0.4362 / 0.4281 (3 seeds agree). H 256 cells 0.426-0.429; H 64 0.750-0.753; H 16 0.876-0.879. Same pick as W 3,000.
+- 2026-10-24 02:31 PDT G5 + G6 HAR (W 3,500), GPU type P100 (ADDENDUM 1b criterion: P100 36 - 23 of our gpu jobs + 2
+  debug = 15, A40 12 + 2 = 14, L40S 6 - 5 = 1): s2_state.json baseline H 256, L 8, lr 0.003, tau {0, 0.3, 1, 3} x E
+  {10, ..., 1,000} (480 jobs, est. 8.00 P100-h); canary 13373061 (debug) / 13373062 (gpu); screen 13373063-80 (gpu) and
+  13373081-82 (debug) afterok on either; nice 100. Full-set W 3,500 screen: 5 files still pending on L40S (13371964-68,
+  queued since 01:44; the group stays L40S).

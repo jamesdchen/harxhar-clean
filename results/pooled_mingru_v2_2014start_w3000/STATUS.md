@@ -177,3 +177,8 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   36 - our 7 gpu jobs + 2 debug; A40 12 + 2; L40S 6 - 5 pending): state baseline H 256, L 8, lr 0.003; grid tau
   {0, 0.3, 1, 3} x E {10, ..., 300, 600, 1,000} (32 configurations, 480 jobs, est. 7.39 P100-h); canary (fold 1, tau 1,
   E 20) 13372778 (debug) / 13372779 (gpu); screen afterok on either: 13372780-96 gpu, 13372797-98 debug.
+- 2026-10-24 02:30 PDT: G5 PASS (HAR, W 3,000; P100): canaries 13372778 (debug) / 13372779 (gpu) completed, POST n_bad
+  0, finite, positive. HAR W 3,000 screen running (P100: 13372797-98 done, 8 running, 9 pending). Full set W 3,000
+  extension 1 (tau 9, A40: 13372774-77) done; round-1 shortlist (screen seeds, all 90 configurations): tau1_we3_E40,
+  tau9_we3_E160, tau3_we3_E80, tau0_we3_E40, tau0.3_we15_E160; fresh seeds for the new member tau9_we3_E160 (15 jobs,
+  tag v2s2c1, debug A40): 13373058.

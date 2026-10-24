@@ -1,0 +1,21 @@
+run,set,gpu,wall_s,n_jobs,model_epochs,gpu_s_per_model_epoch
+v2s1f_all_features_0_13367193,all_features,NVIDIA L40S,307,36,10800,0.0284259
+v2s1f_all_features_1_13367194,all_features,NVIDIA L40S,205,13,3900,0.0525641
+v2s1f_all_features_2_13367195,all_features,NVIDIA L40S,334,14,4200,0.0795238
+v2s1f_all_features_3_13367196,all_features,NVIDIA L40S,523,10,3000,0.174333
+v2s1f_all_features_4_13367197,all_features,NVIDIA L40S,527,6,1800,0.292778
+v2s1f_all_features_5_13367198,all_features,NVIDIA L40S,175,2,600,0.291667
+v2s1h_baseline_0_13369121,baseline,Tesla P100-PCIE-16GB,942,35,35000,0.0269143
+v2s1h_baseline_10_13369136,baseline,Tesla P100-PCIE-16GB,1444,2,2000,0.722
+v2s1h_baseline_11_13369138,baseline,Tesla P100-PCIE-16GB,1558,2,2000,0.779
+v2s1h_baseline_12_13369140,baseline,Tesla P100-PCIE-16GB,1593,2,2000,0.7965
+v2s1h_baseline_13_13371969,baseline,Tesla P100-PCIE-16GB,1620,2,2000,0.81
+v2s1h_baseline_1_13369122,baseline,Tesla P100-PCIE-16GB,259,1,1000,0.259
+v2s1h_baseline_2_13369123,baseline,Tesla P100-PCIE-16GB,1216,5,5000,0.2432
+v2s1h_baseline_3_13369124,baseline,Tesla P100-PCIE-16GB,1373,5,5000,0.2746
+v2s1h_baseline_4_13369125,baseline,Tesla P100-PCIE-16GB,1289,4,4000,0.32225
+v2s1h_baseline_5_13369127,baseline,Tesla P100-PCIE-16GB,1756,5,5000,0.3512
+v2s1h_baseline_6_13371961,baseline,Tesla P100-PCIE-16GB,1369,8,8000,0.171125
+v2s1h_baseline_7_13371962,baseline,Tesla P100-PCIE-16GB,1264,4,4000,0.316
+v2s1h_baseline_8_13369133,baseline,Tesla P100-PCIE-16GB,1319,4,4000,0.32975
+v2s1h_baseline_9_13369134,baseline,Tesla P100-PCIE-16GB,1053,2,2000,0.5265

@@ -1,0 +1,36 @@
+{
+ "all_features": {
+  "pick": {
+   "H": 64,
+   "L": 8,
+   "lr": "0.003"
+  },
+  "label": "memorizing",
+  "rho_E": 0.15751428702510384,
+  "rho_seeds": "0.1557;0.1584;0.1585",
+  "seeds_agree": true,
+  "core_complete": true,
+  "next_edge": null,
+  "final": true,
+  "gpu_types": [
+   "NVIDIA L40S"
+  ]
+ },
+ "baseline": {
+  "pick": {
+   "H": 256,
+   "L": 8,
+   "lr": "0.003"
+  },
+  "label": "memorizing",
+  "rho_E": 0.4286162919586968,
+  "rho_seeds": "0.4215;0.4362;0.4281",
+  "seeds_agree": true,
+  "core_complete": true,
+  "next_edge": null,
+  "final": true,
+  "gpu_types": [
+   "Tesla P100-PCIE-16GB"
+  ]
+ }
+}
