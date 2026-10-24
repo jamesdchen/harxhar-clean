@@ -2,11 +2,12 @@
 # CARC side of a Hoffman2 delivery (h2/code/deliver.sh), run from the staging directory the stream was untarred into:
 #   bash <stage>/h2/out/<K>/carc_recv.sh <stage> <K>
 # Checks every file against the sender's MD5SUMS_ALL, then moves it into the run (never overwriting a different file):
-#   gates   gate/h2/<tag>/{g1,g2}/pieces/* -> $B/gate/h2/...; h2/* (summary, accept, freezes) -> $B/h2/delivery_<K>/
+#   gates   gate/h2/<tag>/{g1,g2}/pieces/* -> $B/gate/h2/...; h2/* (summary, accept, freezes) -> $B/h2/delivery_<K>/;
+#           h2_throughput.txt also -> $B/runs/tasks/h2_throughput.txt
 #   pieces  runs/pieces/* -> $B/runs/pieces_h2/: the md5 lines appended to $B/runs/pieces_h2/MD5SUMS first, then the
 #           json, then the parquet (a rename on the same file system), so an intake never sees an unlisted piece
 set -euo pipefail
-B=/scratch1/jc_905/trees3way
+B=${T3T_BASE:-/scratch1/jc_905/trees3way}  # 2026-10-24 10:20: /project2/pollok_1603/jc_905/trees3way if /scratch1 fails
 S=$1
 K=$2
 cd $S
@@ -31,6 +32,11 @@ case $MODE in
       esac
     done < $M
     for d in $B/gate/h2/*/g1/pieces $B/gate/h2/*/g2/pieces; do (cd $d && md5sum -c --quiet MD5SUMS && echo "$d: MD5SUMS ok"); done
+    if [ -f $B/h2/delivery_$K/h2_throughput.txt ]; then
+      mkdir -p $B/runs/tasks
+      cp $B/h2/delivery_$K/h2_throughput.txt $B/runs/tasks/h2_throughput.txt
+      echo "throughput -> $B/runs/tasks/h2_throughput.txt"
+    fi
     ;;
   pieces)
     I=$B/runs/pieces_h2
