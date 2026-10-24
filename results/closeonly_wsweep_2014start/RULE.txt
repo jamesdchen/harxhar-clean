@@ -133,3 +133,27 @@ ADDENDUM A, 2026-10-24 10:25 PDT (17:25 UTC), before any job it affects: THE 10:
    is present.  Until the owner decides, the linear tables start at W = 1,500.  The pending linear score job 13380319
    (afterok on the failed 13380318, and the old scorer) is cancelled and resubmitted on the new code; the tree
    finish job 13380323 is kept, re-pointed (afterany) to include the forest rerun, and restricted to EPYC 7513 / 7542.
+
+ADDENDUM B, 2026-10-24 10:40 PDT (17:40 UTC), before any job it affects: LINEAR W = 1,000 AT 1,001 CLOSES (OPTION B)
+   Owner (James, relayed by the coordinator, about 11:00 PDT per the relay): "go on linear w=1k+1", i.e. addendum A's
+   option (b).  Reason: STANDARDIZE_PENALTY's between-seed evidence tracker is exact only when the window holds
+   tw > 2 x (STD_MIN_EVIDENCE + TUNE_PER) = 2 x (250 + 250) = 1,000 rows (pool_linear_pretune._seed_std asserts it), so
+   the penalized walks cannot run on a window of exactly 1,000 closes.
+   The W = 1,000 point of the linear sweep is then:
+     ridge, lasso, elastic net (HAR and full sets): a window of 1,001 closes, on the W = 1,000 design (its scaler and
+       late-start rule at 13,000 rows, unchanged) -- experiments/closewin_linear.py derive_shift: the W = 1,000 close
+       cache of section 2 (X, y, dates_all, rth13_rows byte-identical, md5-checked) with b_oos and dates_oos starting
+       one close later (config window 1,001), so that design row 1,001 is the first row with a stored B and every
+       window, in the pretune and in the walk, holds 1,001 closes (the runner's --window-rows 1001, the three-way's
+       equal-rows mechanism); the penalties re-tuned on fold 3 with the native rule at that window (validation the
+       same 250 closes of 2013, embargo 25, fit the 1,001 closes before it; the same grids and grid rule); frozen; the
+       walk from the 250-solve boundary at or before the first 2014-01-02 row, refit at every close.
+     OLS (HAR set): a window of 1,000 closes, the section-2 W = 1,000 cache and walk (OLS has no standardization).
+   The W = 1,000 walks of 13380318 that failed are set aside (their directory renamed walk_failed_0947, not reused).
+   experiments/closewin_linear.py export_1k writes the W = 1,000 forecasts (penalized from the 1,001-close walks, OLS
+   from the 1,000-close walk; linear_train3way.frame unchanged) to runs/linear/w1000_r1001/forecasts_rth.parquet,
+   whose frozen_penalties.json (the 1,001-close penalties) the scorer reads for W = 1,000.  Scoring and economics as
+   sections 4-5 with W = 1,000 included again (step 1,000 -> 1,500 and every vs-1,000 test use these forecasts); the
+   tables label the W column of the penalized models "1,000 (penalized: 1,001)" (OLS: 1,000) and qlike16.csv records
+   window_closes.  The pending linear score job 13381259 (scores without W = 1,000) is cancelled and replaced by one
+   that runs afterok on the W = 1,500 .. 3,500 job 13381257 and on the W = 1,000 job.

@@ -39,6 +39,8 @@ if FAM == "linear":
     EST: tuple[str, ...] = ("ridge", "lasso", "enet")
     MODELS = [("ols", "baseline")] + [(e, s) for s in ("baseline", "all_features") for e in EST]
     SRC = {W: RUNS / f"w{W}" / "forecasts_rth.parquet" for W in WS}
+    # 2026-10-24 addendum B: W = 1,000 = the penalized models at 1,001 closes + OLS at 1,000 (closewin_linear export_1k)
+    SRC[1000] = RUNS / "w1000_r1001" / "forecasts_rth.parquet"
 else:
     assert FAM == "trees", FAM
     EST = ("lgbm", "xgb", "rf_skx")
@@ -99,7 +101,7 @@ def ql(W: int, m: str, s: str) -> float:
 pen: dict = {}
 if FAM == "linear":
     for W in WSX:
-        fr = json.loads((RUNS / f"w{W}" / "frozen_penalties.json").read_text())
+        fr = json.loads((SRC[W].parent / "frozen_penalties.json").read_text())
         pen[W] = {(m, s): fr[m][s] for m, s in MODELS if m != "ols"}
 rows = []
 for W in WSX:
@@ -108,6 +110,7 @@ for W in WSX:
         rows.append(
             dict(
                 W=W,
+                window_closes=1001 if FAM == "linear" and W == 1000 and m != "ols" else W,  # addendum B
                 model=m,
                 set=s,
                 alpha=pen.get(W, {}).get((m, s), np.nan),

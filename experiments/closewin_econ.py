@@ -154,6 +154,11 @@ lines = [
 ]
 
 
+def wl(W: int, e: str) -> str:
+    """The W label (addendum B: the linear penalized models' W = 1,000 point is a 1,001-close window)."""
+    return "1,000 (penalized: 1,001)" if FAM == "linear" and W == 1000 and e != "ols" else f"{W:,}"
+
+
 def cell(m: str, s: str, W: int, kind: str) -> str:
     x = DM[(DM.model == m) & (DM.set == s) & (DM.W == W) & (DM.kind == kind)]
     return "—" if x.empty else f"{x.pct.iloc[0]:+.2f} ({x.dm_qlike_p.iloc[0]:.3f})"
@@ -170,7 +175,7 @@ for e in (["ols"] if FAM == "linear" else []) + list(EST):
         for W in WSX:
             x = Q[(Q.model == e) & (Q.set == s) & (Q.W == W)].iloc[0]
             ln = (
-                f"| {SL[s]} | {W:,} | {x.qlike:.5f} | {cell(e, s, W, 'step')} | {cell(e, s, W, 'vs1000')} | "
+                f"| {SL[s]} | {wl(W, e)} | {x.qlike:.5f} | {cell(e, s, W, 'step')} | {cell(e, s, W, 'vs1000')} | "
                 f"{cell(e, s, W, 'vs3000')} | {x.mse_e10:.4f} | {x.r2_oos_pct:.2f} |"
             )
             if FAM == "linear" and e != "ols":
@@ -181,7 +186,7 @@ for e in (["ols"] if FAM == "linear" else []) + list(EST):
     lines += ["| full vs HAR | W | 16:00 gap % (DM p) | DM stat |"]
     for W in WSX:
         x = G[(G.model == e) & (G.W == W)].iloc[0]
-        lines.append(f"| gap | {W:,} | {x.pct:+.2f} ({x.dm_qlike_p:.3f}) | {x.dm_qlike:+.2f} |")
+        lines.append(f"| gap | {wl(W, e)} | {x.pct:+.2f} ({x.dm_qlike_p:.3f}) | {x.dm_qlike:+.2f} |")
     lines += [
         "",
         f"{LAB[e]}: sign strategy, 614 post-warmup option days (2021-08 .. 2024-04)",
@@ -192,7 +197,7 @@ for e in (["ols"] if FAM == "linear" else []) + list(EST):
     for W in WSX:
         x = EC[(EC.model == e) & (EC.W == W)].iloc[0]
         lines.append(
-            f"| {W:,} | {x.d6_mid_har:.2f} | {x.d6_mid_full:.2f} | {x.dd6_mid:+.2f} ({x.d6_boot_p_mid:.3f}) | "
+            f"| {wl(W, e)} | {x.d6_mid_har:.2f} | {x.d6_mid_full:.2f} | {x.dd6_mid:+.2f} ({x.d6_boot_p_mid:.3f}) | "
             f"{x.dd6_ba:+.2f} ({x.d6_boot_p_ba:.3f}) | {x.d6_ba_har:.2f} / {x.d6_ba_full:.2f} | "
             f"{x.dd1_mid:+.2f} ({x.lw_p_mid:.3f}) | {x.dsr614_mid:+.2f} | {x.llsw_t_mid:.2f} ({x.llsw_p_mid:.3f}) | "
             f"{x.long_share_har:.3f} / {x.long_share_full:.3f} |"
