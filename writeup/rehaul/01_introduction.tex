@@ -49,8 +49,12 @@
   indexed by the model class $m$ and the predictor set $\mathcal X \in \{\mathrm{HAR}, \mathrm{Full}\}$.
   % 2026-10-16 (user, E12): parked -- $\hat y_t = f_{m,\mathcal X,\mathcal I}(\bm x_t)$.
   \begin{itemize}
+  % 2026-10-24 (user): parked -- intraday volatility forecasting cites Engle--Sokalska and Zhang et al. Was: "The
+  % primary empirical results reported in Section~\ref{sec:rh_results} focus on the pooled intraday estimation
+  % scheme, $\mathcal I = \{1, \dots, M\}$."
   \item The primary empirical results reported in Section~\ref{sec:rh_results} focus on the pooled intraday
-    estimation scheme, $\mathcal I = \{1, \dots, M\}$.
+    estimation scheme, $\mathcal I = \{1, \dots, M\}$, a single model across the intervals of the day, as in the
+    intraday volatility forecasting of \citet{EngleSokalska2012} and \citet{ZhangZhangCucuringuQian2024}.
   % 2026-10-18 (user, new-notes 10): parked -- closing cadence only in the closing section. Was: "\item As our primary benchmark forecast, we employ the daily ordinary least squares (OLS) regression on the"
   \item As our primary benchmark forecast, we employ the ordinary least squares (OLS) regression on the
     % 2026-10-17 (user): parked -- closing-interval material (relabeled: closing-interval HAR benchmark). Was: "estimated exclusively on the closing interval (see"

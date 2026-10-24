@@ -149,11 +149,20 @@
   % forecasts the realized volatility of intraday intervals for a cross-section of stocks with one model across the
   % intervals of the day and predictors built from realized volatility alone; we keep that design for the S\&P~500
   % and ask what a large set of exogenous predictors adds, comparing penalized linear models with tree ensembles."
-  $\bm x_t$. Most of this work targets daily volatility or monthly returns. The closest precedent for our
-  setting, \citet{ZhangZhangCucuringuQian2024}, forecasts realized volatility over intraday buckets for a
-  cross-section of stocks, fitting one model across all buckets of the day and, in its universal variant, across
-  stocks, with predictors built from realized volatility alone; we keep that design for the S\&P~500 and ask what a
-  large set of exogenous predictors adds, comparing penalized linear models with tree ensembles.\newline
+  % 2026-10-24 (user): parked -- intraday volatility forecasting cites Engle--Sokalska alongside Zhang et al. Was:
+  % "The closest precedent for our setting, \citet{ZhangZhangCucuringuQian2024}, forecasts realized volatility over
+  % intraday buckets for a cross-section of stocks, fitting one model across all buckets of the day and, in its
+  % universal variant, across stocks, with predictors built from realized volatility alone; we keep that design for
+  % the S\&P~500 and ask what a large set of exogenous predictors adds, comparing penalized linear models with tree
+  % ensembles."
+  $\bm x_t$. Most of this work targets daily volatility or monthly returns. The closest precedents for our
+  setting forecast the volatility of intraday intervals: \citet{EngleSokalska2012} with a multiplicative component
+  GARCH model, in which intraday volatility is the product of daily, diurnal, and stochastic intraday components,
+  estimated for a large cross-section of stocks and pooled across them, and \citet{ZhangZhangCucuringuQian2024}
+  with machine-learning models of realized volatility over intraday buckets, fitting one model across all buckets
+  of the day and, in its universal variant, across stocks. Both build their predictors from volatility itself; we
+  keep a single model across the intervals of the day for the S\&P~500 and ask what a large set of exogenous
+  predictors adds, comparing penalized linear models with tree ensembles.\newline
   See \citet{gu2020empirical} for return prediction and \citet{christensen2023machine} for realized volatility
   forecasting; for gradient-boosted decision trees, see \citet{Ke2017} (LightGBM) and \citet{Chen2016}
   (XGBoost); for Bayesian hyperparameter optimization, see \citet{Akiba2019} (Optuna).
