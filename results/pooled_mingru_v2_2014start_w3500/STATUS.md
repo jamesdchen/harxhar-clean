@@ -39,3 +39,9 @@ the old run (read-only): `/home1/jc_905/pmf35/data` (design copies, fold-3 ridge
 - 2026-10-24 02:46 PDT: G5 PASS (HAR, W 3,500; P100): canaries 13373061 (debug) / 13373062 (gpu) n_bad 0 (fold 1 = the
   truncated fit [0, 40,702)); HAR screen running (13373081-82 done, the rest running / pending). Full-set screen: 10 of 15
   files done; 13371964-68 still pending on L40S (queued 01:44; the L40S partition is contended).
+- 2026-10-24 06:22 PDT G6 screens (W 3,500) complete. Full set (L40S; the last 5 files waited 01:44-06:06 for the L40S,
+  ran on b17-15): top 5 tau0.3_we3_E40 0.115296, tau1_we3_E40 0.115507, tau3_we3_E80 0.115525, tau0_we3_E40 0.115782,
+  tau1_we15_E300 0.115797. HAR (P100, 20 files, all n_bad 0): top 5 tau3_we0_E40 0.125666, tau1_we0_E20 0.125732,
+  tau3_we0_E20 0.125787, tau0.3_we0_E10 0.125823, tau1_we0_E10 0.125863 (stage2/s2_screen_*_round0.csv; the
+  shortcut alone, L 20: full 0.12198, HAR 0.13040). Fresh seeds (75 jobs a set, nice 100): full 13377257-58 (L40S),
+  HAR 13377259 (P100).
