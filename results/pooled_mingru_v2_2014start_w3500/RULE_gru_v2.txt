@@ -178,3 +178,10 @@ DEBUG    Files estimated under 1 h run in the debug partition too (whole configu
          partitions), on its P100s for P100 groups and its A40s for A40 groups, at most 5 debug jobs of ours at a time.
          G2: 2 of its 4 pending P100 files moved to the debug P100s (13366977 / 13366978 cancelled while pending, rerun
          as 13367856 / 13367857); G2 stays P100.
+
+ADDENDUM 1b 2026-10-24 00:05 PDT (2026-10-24 07:05 UTC), written before any HAR Stage-1 job; identical in both copies. The
+ADDENDUM 1a choice applied to the HAR Stage-1 groups at their submission (the counts changed since 1a's "hence A40"):
+         concurrency available to us = the type's per-user cap minus our jobs already on it (+ its debug GPUs). At 00:00:
+         A40 12 + 2 debug - 16 (the full-set W 3,000 Stage-2 canary and 15 screen files) < 0; L40S 6 - 3 (the full-set
+         W 3,500 Stage-1 group) = 3; P100 no type cap: 36 - 17 = 19, + 2 debug. Hence P100 for the HAR Stage-1 grids at
+         both windows (W 3,000 first; W 3,500 nice 100), its < 1 h files also on the debug P100s (<= 5 debug jobs).

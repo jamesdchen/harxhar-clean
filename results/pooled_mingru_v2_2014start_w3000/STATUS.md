@@ -126,3 +126,13 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   0.003; tau {0, 0.3, 1, 3} x wd_enc {0, 3, 15} x E {10, ..., 300}); canary 13367874 (debug A40: fold 1, tau 1, wd_enc 3,
   E 20, seed 20261012, tag v2g5); screen (72 configurations x 3 folds x 5 seeds = 1,080 jobs, 15 files, est. 5.95
   P100-h with the 15 s a job overhead) afterok on the canary: 13367875-87 (gpu A40), 13367888-89 (debug A40).
+- 2026-10-23 23:56 PDT G2 decision (g2_decide.json; P100): HAR E1 = 1,000: (256, 20) at its best lr 0.003 (2-seed mean
+  TQ_300) rho_300 0.582 > 0.5, rho_1,000 0.375, relative gain 35.5 % >= 20 %. Full set E1 = 300 (rho_300 ~ 0). Stage-1
+  lr set {0.003, 0.01, 0.03} (argmins: full (64,20) 0.003, (256,20) 0.003; HAR (64,20) 0.01, (256,20) 0.003). Both
+  windows. Diagnostics: HAR E 1,000 at lr 0.001 rho 0.495, at lr 0.01 rho 1.0000000 (both seeds: the recurrent branch
+  collapsed to zero output, the forecast = the shortcut); full E 1,000 at 0.003 rho ~ 0, at 0.01 0.0009. G2 reruns
+  13366974 / 13366975 (gpu P100), 13367856 / 13367857 (debug P100) completed (n_bad 0); 13366976 (full lr 0.001
+  E 1,000, wall-clock only) running. G3 / G4 full set: W 3,500 13367193-95 completed, 13367196 running, 13367197-98
+  pending (L40S). Canary 13367874 still pending in debug (A40).
+- 2026-10-24 00:05 PDT: RULE ADDENDUM 1b: the HAR Stage-1 groups (both windows) on P100 (the type with the most cap
+  headroom at submission: A40's 12 are taken by our full-set screen).
