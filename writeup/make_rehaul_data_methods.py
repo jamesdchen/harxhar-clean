@@ -34,6 +34,21 @@ Inputs that are gitignored / local (the script stops with the path if one is mis
       panel before the E6 / E9 cut; experiments/pooled_trees_base5.py design --sample 48)
   results/puffer_forecast_2026-10-12/_work/{walk_softplus,walk_softplus_rinit_q,pwalk_wdgrid}/   MinGRU job files
 
+2026-10-23 (final run, writeup/final_run.py; coordinator requests):
+  E31  the samples note states the burn-in per series: 3,125 observations of each series as built, i.e. 3,125 trading
+       days on the closing-interval series (one observation a day), 1,560 on the series of the two last-hour intervals
+       (the linear pre-sample) and 104 on the 30-minute grid (Panel B; the 16:00 intervals inside the burn-in), as
+       \\rhdmBurnInDaysClose / \\rhdmBurnInDaysPre / \\rhdmBurnInDaysGrid.  The final runs do not change it (the pooled
+       13-bar design takes its bars from the grid after the same burn-in; the closing-interval panel is not rerun).
+  Under REHAUL_FINAL_RUN=1 the samples note adds the pooled linear pre-sample scheme (fit on W bars, a gap of
+  \\rhdmPlPreEmbargoSess sessions = \\rhdmPlPreEmbargoBars bars, validation on \\rhdmPlPreFoldSess sessions =
+  \\rhdmPlPreFoldBars bars of pre-sample fold \\rhdmPlPreFoldUsed, and the grid-extension rule with \\rhdmPlGridExtTol
+  and \\rhdmPlGridExtCap), and the hyperparameter note names the forest's engine of the final rerun (Intel's oneDAL
+  through the Intel Extension for Scikit-learn, RULE_rf_skx.txt).  New macros (both modes; constants of
+  experiments/pooled_linear_rerun_2026_10_19_13.py, checked against the run's frozen_penalties.json): \\rhdmPlPreFolds,
+  \\rhdmPlPreFoldUsed, \\rhdmPlPreFoldSess, \\rhdmPlPreFoldBars, \\rhdmPlPreEmbargoSess, \\rhdmPlPreEmbargoBars,
+  \\rhdmPlGridExtTol, \\rhdmPlGridExtCap, and the three burn-in macros above.
+
     python writeup/make_rehaul_data_methods.py
 """
 
@@ -341,7 +356,9 @@ def stack(*lines: str, align: str = "c") -> str:
 def write(name: str, text: str) -> None:
     p = GEN / name
     p.write_bytes(text.encode("utf-8"))
-    print(f"wrote {fr.rel(p)}")  # 2026-10-23: a test run writes outside the repository. Was: p.relative_to(REPO)
+    print(
+        f"wrote {fr.rel(p)}"
+    )  # 2026-10-23: a test run writes outside the repository. Was: p.relative_to(REPO)
 
 
 # ============================================================================ source constants (ast; no execution)
@@ -557,6 +574,24 @@ def panel() -> dict:
         ),
     )
     P["clp"] = clp
+    # 2026-10-23 (E31): the burn-in in trading days on each series as built: the 16:00 intervals among its first
+    # `burn` observations (the closing-interval series has one a day; the last-hour series two a session; the grid all
+    # observed 30-minute intervals)
+    s16 = t[hm == "16:00"].reset_index(drop=True)
+    tl_all = t[hm.isin(["15:30", "16:00"])].reset_index(drop=True)
+    P["burn_days"] = {
+        "close": len(s16.iloc[:burn]),
+        "pre": int((tl_all.iloc[:burn].dt.strftime("%H:%M") == "16:00").sum()),
+        "grid": int((hm.iloc[:burn] == "16:00").sum()),
+    }
+    check(
+        P["burn_days"]["close"] == burn
+        and s16.iloc[burn] == t16.iloc[0]
+        and tl_all.iloc[burn] == tl.iloc[0]
+        and P["burn_days"]["grid"] < P["burn_days"]["pre"] < burn,
+        f"E31 burn-in in trading days: closing-interval {P['burn_days']['close']}, last-hour series "
+        f"{P['burn_days']['pre']}, grid {P['burn_days']['grid']} (the 16:00 intervals of the first {burn} observations)",
+    )
     nval = clp["PRE_FOLDS"] * clp["PRE_FOLD_LEN"]
     P["pre"] = (pre.iloc[0], pre.iloc[-1], len(pre), pre.iloc[-nval], nval)
     check(
@@ -1018,11 +1053,17 @@ def design_tables(P: dict, bmap: dict[str, str]) -> dict:
     )
     # 2026-10-19 (user): parked -- base 5 across the paper. Was:
     # check(Q["rungs"] == {2**i for i in range(12)}, "pooled ladder = base 2, 1 .. 2048")
-    check(Q["rungs"] == set(resolve_har_lags()), "pooled ladder = base 5, 1 .. 3125 (the per-bar ladder)")
+    check(
+        Q["rungs"] == set(resolve_har_lags()),
+        "pooled ladder = base 5, 1 .. 3125 (the per-bar ladder)",
+    )
     check(A["rungs"] == set(resolve_har_lags()), "per-bar ladder = base 5, 1 .. 3125")
     # 2026-10-19 (user): parked -- the base-5 panel leaves FOMC out by choice. Was: "pooled panel of record is pre-FOMC",
     # 2026-10-19 (user): parked -- the pooled model includes the FOMC series (author decision). Was: check(not Q["series"]["value"] & set(LD.FOMC_FEATURES), "pooled panel has no FOMC series")
-    check(Q["series"]["value"] == set(LD.ALL_FEATURES), "pooled panel has every series, FOMC included")
+    check(
+        Q["series"]["value"] == set(LD.ALL_FEATURES),
+        "pooled panel has every series, FOMC included",
+    )
     check(
         # 2026-10-19 (user): parked -- base 5 across the paper. Was: == 52 + 43 * 12 * 2 + 5 * 12, "1,144 = 52 + 43x12x2 + 5x12"
         # (the 5 activity series were the old full-sample mode rule's; the base-5 panel is built under the causal
@@ -1337,7 +1378,10 @@ def dictionary(P: dict, bmap: dict[str, str], D: dict) -> list[dict]:
         )
     R = pd.DataFrame(rows)
     # 2026-10-22 (user, third-list 5): the count from OUTLINE. Was: "7 activity flags"
-    check(int(R["active"].sum()) == OUTLINE["n_active"], f"{OUTLINE['n_active']} activity flags")
+    check(
+        int(R["active"].sum()) == OUTLINE["n_active"],
+        f"{OUTLINE['n_active']} activity flags",
+    )
     # 2026-10-22 (user, S4a follow-up): in both chains. Was: set(R.loc[R["transform"] == "asinh", "series"]) ==
     # set(LD.SUBGROUPS["vol_demand"]), "asinh = the voldemand family"
     check(
@@ -2511,7 +2555,9 @@ def write_samples(P: dict) -> None:
     )
     ppd = TG.PERIODS_PER_DAY
     # 2026-10-23 (final design): the folds of the pooled linear penalties (final_run.TUNE_FOLDS, validation 2013)
-    pen_folds = json.loads(need(pl13.RUN / "frozen_penalties.json").read_text(encoding="utf-8"))["info"]["folds"]
+    pen_folds = json.loads(
+        need(pl13.RUN / "frozen_penalties.json").read_text(encoding="utf-8")
+    )["info"]["folds"]
     if fr.FINAL:
         check(
             tuple(int(f["fold"]) for f in pen_folds) == fr.TUNE_FOLDS
@@ -2676,10 +2722,17 @@ def write_samples(P: dict) -> None:
     notes = [
         r"Dates are interval-end dates (ET); Obs.\ and the rolling estimation window $W$ are in the units of each "
         r"panel.",
-        rf"The burn-in, {n_(P['burn'])} intervals, is the longest HAR horizon and is applied to each series as built "
-        r"(the closing-interval series, the intraday grid and, for the linear pre-sample, the series of the two "
-        rf"intervals of the last hour), so the closing-interval sample starts in {b0.year} and the pre-sample in "
-        rf"{r0.year}.",
+        # 2026-10-23 (E31): parked -- "\rhdmBurnIn intervals" for every series; the burn-in per series in trading
+        # days. Was:
+        # rf"The burn-in, {n_(P['burn'])} intervals, is the longest HAR horizon and is applied to each series as built "
+        # r"(the closing-interval series, the intraday grid and, for the linear pre-sample, the series of the two "
+        # rf"intervals of the last hour), so the closing-interval sample starts in {b0.year} and the pre-sample in "
+        # rf"{r0.year}.",
+        r"The burn-in is the longest HAR horizon, \rhdmBurnIn{} observations of each series as built: on the "
+        r"closing-interval series, one observation a trading day, \rhdmBurnInDaysClose{} trading days, so the "
+        rf"closing-interval sample starts in {b0.year}; on the series of the two intervals of the last hour (the linear "
+        rf"pre-sample) \rhdmBurnInDaysPre{{}} trading days, so the pre-sample starts in {r0.year}; on the intraday grid "
+        r"(Panel B) \rhdmBurnIn{} 30-minute intervals, \rhdmBurnInDaysGrid{} trading days.",
         # 2026-10-15 (finish): parked -- the computed 96{,}000 and 2{,}000 -> \rhdmPooledLinWindow (write_numbers) and
         # \cmPtFitWin (checked below), and the pointer -> Appendix B.1 (sec:rh_exp_samples), where the gap and the
         # validation sample are stated. Was:
@@ -2707,6 +2760,20 @@ def write_samples(P: dict) -> None:
         rf"it on the next {P['tm']['SCREEN_REFIT']}, stepping forward {P['tm']['SCREEN_REFIT']} intervals at a time.",
         rf"Each validation sample follows a {clp['EMBARGO']}-day gap and a \cmPtFitWin-day estimation sample "
         r"(Section~\ref{sec:rh_exp_samples}).",
+        # 2026-10-23 (final design, coordinator): the pooled linear pre-sample scheme of the final rerun
+        *(
+            [
+                r"The penalties of the pooled linear models on the regular-hours bars are chosen once, on pre-sample "
+                r"fold \rhdmPlPreFoldUsed: each candidate is fitted on the $W$ bars before a gap of "
+                r"\rhdmPlPreEmbargoSess{} sessions (\rhdmPlPreEmbargoBars{} bars) and scored on the next "
+                r"\rhdmPlPreFoldSess{} sessions (\rhdmPlPreFoldBars{} bars, the validation row above); a penalty "
+                r"selected at an end of its grid adds the next decade in that direction until the selection is "
+                r"interior, stopping when the criterion changes by less than \rhdmPlGridExtTol{} relative or after "
+                r"\rhdmPlGridExtCap{} decades.",
+            ]
+            if fr.FINAL
+            else []
+        ),
         # "Full trading days: expiration days that are not early-close days.",  # 2026-10-15: + the evaluation span
         r"Full trading days: expiration days that are not early-close days. Panel C: the evaluation span holds every "
         r"trading day on which all rolling forecasts exist (Section~\ref{sec:rh_results_eval}); the straddle economics "
@@ -2732,7 +2799,8 @@ def write_design(D: dict) -> None:
     """F1 (tab:rh_dm_design): columns of the HAR benchmark and the full predictor set, by predictor group."""
     import src.backtest.executor as EX
 
-    A, Q, k, kq, nser = D["A"], D["Q"], D["k"], D["kq"], D["nser"]
+    # 2026-10-23: _kq (ruff F841: unused here; the parked code reads kq)
+    A, Q, k, _kq, nser = D["A"], D["Q"], D["k"], D["kq"], D["nser"]
 
     # 2026-10-15 (table legibility): parked -- bold totals (bold marks 5% significance in the paper's tables)
     # def B(s) -> str:
@@ -2964,7 +3032,7 @@ def write_dictionary(rows: list[dict], D: dict) -> None:
         len(vd_share) == len(LD.SUBGROUPS["vol_demand"]) and min(vd_share) > 0.5,
         "the volatility-demand series are routed to asinh on most of their intervals (causal routing)",
     )
-    kq = D["kq"]
+    # kq = D["kq"]  # 2026-10-23: unused (ruff F841); the parked code below reads it
     # 2026-10-22 (user, S4a): the activity indicator by model class (04_features.tex, notes S4a / S4b). The chi-bar
     # marks and the "full-sample mode ... on ...% of intervals" descriptions are the full-sample rule's
     # (EX.mode_inflated on the forward-filled series, dictionary()): the rule of the closing-interval forecasts
@@ -3372,6 +3440,26 @@ def write_hyper(P: dict, TS: dict, LP: dict, NN: dict) -> None:
         rf"Implementations: LightGBM \citep{{Ke2017}} with {impl['LightGBM']}, XGBoost \citep{{Chen2016}} with "
         rf"{impl['XGBoost']} and the scikit-learn random forest with {impl['random forest']}; random seeds are fixed.",
     ]
+    # 2026-10-23 (final design, coordinator): the forest of the final rerun runs on Intel's oneDAL engine (the frozen
+    # configuration, its default histogram split; results/pooled_rf_skx_2014start_w3000/RULE_rf_skx.txt). Was (both
+    # modes): "... and the scikit-learn random forest with {impl['random forest']}; random seeds are fixed."
+    if fr.FINAL:
+        rule = need(RF_SKX_RULE).read_text(encoding="utf-8")
+        bins = re.search(r"max_bins (\d+)", rule)
+        check(
+            "sklearnex.ensemble.RandomForestRegressor" in rule
+            and "cluster/pooltree_rf400_config.json" in rule
+            and bins is not None,
+            "final forest: oneDAL engine through sklearnex, the frozen configuration, its histogram split "
+            "(RULE_rf_skx.txt)",
+        )
+        assert bins is not None
+        notes_a[-1] = (
+            rf"Implementations: LightGBM \citep{{Ke2017}} with {impl['LightGBM']}, XGBoost \citep{{Chen2016}} with "
+            rf"{impl['XGBoost']} and the random forest of Intel's oneDAL library (through the Intel Extension for "
+            rf"Scikit-learn) with {impl['random forest']} and histogram-based split finding ({bins.group(1)} bins); "
+            r"random seeds are fixed."
+        )
     # the macros of the notes above carry the values this run computes
     check(
         P["tm"]["WINDOW"] == T["POOLED_WINDOW_ROWS"] == P["pooled_window"],
@@ -3914,10 +4002,28 @@ if fr.FINAL:  # 2026-10-23: the final rerun's frozen penalties (window_sweep_201
         "rhdmPlPenEnetBase": r"\ensuremath{10^{-7}}",
         "rhdmPlPenEnetAll": r"\ensuremath{10^{-3}}",
     }
+# 2026-10-23 (E31; final design, coordinator): the burn-in per series and the pooled linear pre-sample constants
+TYPED |= {
+    "rhdmBurnInDaysClose": "3{,}125",
+    "rhdmBurnInDaysPre": "1{,}560",
+    "rhdmBurnInDaysGrid": "104",
+    "rhdmPlPreFolds": "4",
+    "rhdmPlPreFoldUsed": "3" if fr.FINAL else "0--3",
+    "rhdmPlPreFoldSess": "250",
+    "rhdmPlPreFoldBars": "3{,}250",
+    "rhdmPlPreEmbargoSess": "25",
+    "rhdmPlPreEmbargoBars": "325",
+    "rhdmPlGridExtTol": r"\ensuremath{10^{-6}}",
+    "rhdmPlGridExtCap": "6",
+}
 WORDS = {1: "one", 2: "two", 3: "three", 4: "four", 5: "five"}
 # 2026-10-15 (finish): the pooled linear models' window, 2,000 trading days x 48 intervals = 96,000, had no macro
 # (typed with a FLAG in 03_data.tex, 06_results.tex and 10_appendix.tex); \rhdmPooledLinWindow reads it from the code.
 POOL_LINEAR = REPO / "experiments" / "pool_linear_pretune.py"
+# 2026-10-23 (final design): the rule of the final rerun's forest (its engine) and the orchestrator of the pooled linear
+# 13-bar reruns (pre-sample fold constants, grid-extension rule)
+RF_SKX_RULE = RES / "pooled_rf_skx_2014start_w3000" / "RULE_rf_skx.txt"
+PL13_ORCH = REPO / "experiments" / "pooled_linear_rerun_2026_10_19_13.py"
 _POOLED_LIN_W: dict[str, int] = {}
 
 
@@ -4195,6 +4301,93 @@ def write_numbers(P: dict, D: dict, TS: dict, LP: dict) -> None:
         f"{D['n_pooled']} = {D['kq']} + {len(D['cal'])} + {D['n_edge_pooled']} + {D['n_series_pooled']} x {D['kq']} "
         f"+ {D['n_series_pooled']} x {D['kq']} + {D['n_active_pooled']} x {D['kq']} (the Predictors section's display)",
     )
+    # 2026-10-23 (E31): the burn-in in trading days on each series as built (P["burn_days"], panel())
+    bd = P["burn_days"]
+    vals["rhdmBurnInDaysClose"] = (
+        n_(bd["close"]),
+        "burn-in on the closing-interval series (one observation a day), trading days",
+    )
+    vals["rhdmBurnInDaysPre"] = (
+        n_(bd["pre"]),
+        "burn-in on the series of the two last-hour intervals (linear pre-sample), trading days (its 16:00 rows)",
+    )
+    vals["rhdmBurnInDaysGrid"] = (
+        n_(bd["grid"]),
+        "burn-in on the 30-minute grid (Panel B), trading days (the 16:00 intervals among its first rhdmBurnIn)",
+    )
+    # 2026-10-23 (final design, coordinator): the pooled linear pre-sample folds and the grid-extension rule of the
+    # 13-bar reruns (experiments/pooled_linear_rerun_2026_10_19_13.py), checked against the run's frozen_penalties.json
+    oc = consts(
+        PL13_ORCH,
+        (
+            "PPD",
+            "PRE_FOLDS",
+            "PRE_FOLD_SESS",
+            "PRE_EMBARGO_SESS",
+            "GRID_EXT_FLAT",
+            "GRID_EXT_CAP",
+        ),
+    )
+    pinfo = fp["info"]
+    folds = pinfo["folds"]
+    fold_no = [int(f.get("fold", i)) for i, f in enumerate(folds)]
+    check(
+        all(
+            f["val"][1] - f["val"][0] == oc["PRE_FOLD_SESS"] * oc["PPD"]
+            and f["val"][0] - f["fit"][1] == oc["PRE_EMBARGO_SESS"] * oc["PPD"]
+            and f["fit"][1] - f["fit"][0] == int(pinfo["window_rows"])
+            for f in folds
+        )
+        and fold_no == list(range(oc["PRE_FOLDS"] - len(folds), oc["PRE_FOLDS"])),
+        f"pooled linear pre-sample folds {fold_no} of {oc['PRE_FOLDS']}: fit on W rows, a gap of "
+        f"{oc['PRE_EMBARGO_SESS']} sessions, validation {oc['PRE_FOLD_SESS']} sessions (frozen_penalties.json)",
+    )
+    if fr.FINAL:
+        check(
+            f"flat within {oc['GRID_EXT_FLAT']:g} relative, or {oc['GRID_EXT_CAP']} decades"
+            in str(pinfo.get("std_rule", "")),
+            "the final run's grid-extension rule = the orchestrator's GRID_EXT_FLAT / GRID_EXT_CAP (std_rule)",
+        )
+    e_tol = round(math.log10(oc["GRID_EXT_FLAT"]))
+    check(
+        abs(math.log10(oc["GRID_EXT_FLAT"]) - e_tol) < 1e-12,
+        "the grid tolerance is a power of 10",
+    )
+    vals |= {
+        "rhdmPlPreFolds": (
+            str(oc["PRE_FOLDS"]),
+            "pooled linear 13-bar reruns: pre-sample folds defined",
+        ),
+        "rhdmPlPreFoldUsed": (
+            str(fold_no[0]) if len(fold_no) == 1 else f"{fold_no[0]}--{fold_no[-1]}",
+            "... the fold(s) the frozen penalties are chosen on (frozen_penalties.json)",
+        ),
+        "rhdmPlPreFoldSess": (
+            str(oc["PRE_FOLD_SESS"]),
+            "... validation sample of a fold, sessions",
+        ),
+        "rhdmPlPreFoldBars": (
+            n_(oc["PRE_FOLD_SESS"] * oc["PPD"]),
+            "... the same in regular-hours bars",
+        ),
+        "rhdmPlPreEmbargoSess": (
+            str(oc["PRE_EMBARGO_SESS"]),
+            "... gap before the validation sample, sessions",
+        ),
+        "rhdmPlPreEmbargoBars": (
+            n_(oc["PRE_EMBARGO_SESS"] * oc["PPD"]),
+            "... the same in regular-hours bars",
+        ),
+        "rhdmPlGridExtTol": (
+            rf"\ensuremath{{10^{{{e_tol}}}}}",
+            "penalty grid rule (RULE_std.txt item 5): stop when the new end's criterion is within this relative "
+            "change of the previous end's (GRID_EXT_FLAT)",
+        ),
+        "rhdmPlGridExtCap": (
+            str(oc["GRID_EXT_CAP"]),
+            "... or after this many decades added in one direction (GRID_EXT_CAP)",
+        ),
+    }
     check(set(vals) == set(TYPED), "every \\rhdm macro has its typed value")
     for k, (v, _) in vals.items():
         check(v == TYPED[k], rf"\{k} = {v} (typed {TYPED[k]})")

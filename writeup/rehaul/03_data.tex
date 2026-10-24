@@ -15,6 +15,10 @@
 % 2026-10-15 (finish, phase 2): typed 1,291, 300,317, 303,442, 3,125, 24,000, 3,469, 872, 6 -> \rhdm... macros; the
 % pooled window stated per model class (trees \rhdmPooledWindow, linear 96,000, typed with a FLAG); the held-out count
 % corrected (\rhdmHeldOutExpirations later expirations, \rhdmHeldOut full trading days).
+% 2026-10-23 (E28): the disclosure numbers of this section (\rhds..., writeup/make_rehaul_disclosures.py: the ends of
+% the feeds, the domain rule, the fill cap and the no-observation counts of the final design), loaded here, not in the
+% preamble; step 5 of Section 4 (04_features.tex) uses two of them.
+\input{generated/rehaul_disclosure_numbers}
 
 \section{Data}
 \label{sec:rh_data}
@@ -154,15 +158,42 @@ Question for the professor: what is the formula of the score between the endpoin
     $1/(1+n^{-}_{t,i})$, where $n^{+}_{t,i}$ and $n^{-}_{t,i}$ denote the number of intervals until the next
     scheduled announcement and since the most recent scheduled announcement, respectively. Because the meeting
     schedule is announced in advance, these variables are known prior to the start of the interval.
+  % 2026-10-23 (E28): the ends of the feeds, disclosed (user, 2026-10-22: "disclose the tails in the text"). Numbers:
+  % writeup/make_rehaul_disclosures.py (data/vix_and_voldemand.parquet, data/free_feed/*_1h_yahoo.parquet,
+  % data/releases.parquet; src/data/loading.py SPLICE_VIX_FREE_FEED, VIX_SPLICE_SLOTS and FOMC_CALENDAR_FIX). "The same
+  % value to the second decimal": |Yahoo - vendor| < 0.006 index points (experiments/data_audit_stages.py).
+  \item \textbf{Ends of the feeds.} Our data end on \rhdsSampleEnd, but three feeds stop earlier. The file of the
+    implied volatility indices ends on \rhdsVixVendorLast. For the remaining \rhdsVixSpliceDays{} trading days we
+    splice in the hourly closes of the free Yahoo Finance feed for the same three indices, each written at the end of
+    its hour and carried to the next half-hour stamp, on the stamps at which the file prints each index. On the stamps
+    both sources carry, from \rhdsVixOverlapStart{} to \rhdsVixVendorLast, the two print the same value to the second
+    decimal on \rhdsVixAgree\% (VIX), \rhdsVixThreeMAgree\% (VIX3M), and \rhdsVvixAgree\% (VVIX) of the stamps. The FOMC
+    release file ends with the statement of \rhdsFomcFileLast; we add the \rhdsFomcAdded{} scheduled statements it omits
+    before the end of our data, so no FOMC value is missing. The volatility-demand feed ends on \rhdsVdLast{} and is
+    not extended: from then on its four series are unobserved (see the data cleaning below).
   % 2026-10-22 (user, E28): parked -- the note's problem statement, out of date since the data fixes of 15 October 2026 (the VIX splice, the FOMC calendar fix, the forward-fill cap). Was: "\editc{orange}{E28}{Decision: to decide: disclose the staleness in the text, or add a staleness cap.\\Problem: VIX, VIX3M and VVIX end in February 2024, volatility demand in August 2023 and the FOMC series in November 2023, and they are forward-filled with no staleness cap until \rhoosSpanEnd, the end of the evaluation span.\\ Checked on the data: the last observed VIX, VIX3M and VVIX bar is on 12 February 2024 and the last volatility-demand bar on 31 August 2023 (data/vix\_and\_voldemand.parquet); the last scheduled FOMC print is on 1 November 2023 (data/releases.parquet, column ``fomc release''; the loader leaves the tail missing, src/data/loading.py:120--124). The forward fill feeds the trailing baseline statistics, and every interval with $a_{t,i} = 0$ is then stored as the causal median (data cleaning, below), so over the tail the availability averages $\bar a^{(k)}$ fall to zero. The text discloses none of this.}"
-  \editc{orange}{E28}{Decision (user, 2026-10-22): disclose the tails in the text; add the flag UNOBSERVED\_NEUTRAL (src/backtest/executor.py, on a branch, for the next design rerun) so that the averages of an unobserved series are exactly neutral.\\Problem (updated 2026-10-22, checked on the 13-bar design): only the volatility-demand series stop early, and the text discloses none of the tails.\\
-\textit{VIX, VIX3M, VVIX:} the vendor file ends on 12 February 2024 (data/vix\_and\_voldemand.parquet); the design splices Yahoo's hourly closes from 13 February to 30 April 2024, 54 trade days (src/data/loading.py, SPLICE\_VIX\_FREE\_FEED), each hourly close carried into the next half-hour bar. Agreement where both exist: on the hourly overlap (December 2023 to February 2024) the Yahoo close equals the vendor print on 96\% (VIX), 88\% (VIX3M) and 100\% (VVIX) of stamps (results/data\_audit\_2026-10-15/vix\_yahoo\_overlap.csv); at the daily close, 2006--2023, Yahoo's close equals the vendor bar holding the 16:15 close on 96\% of days for VIX and 93\% for VIX3M (99\% and 98\% within 0.1\%; daily log changes correlate 0.9998 and 0.995; results/data\_audit\_2026-10-22/yahoo\_vs\_vendor\_daily.csv; VVIX has no vendor bar after 16:00). In the design these series are live to the end of the span (availability about 0.85--0.90). \textit{FOMC:} the release file stops at the 1 November 2023 statement; the three scheduled statements to 30 April 2024 are added (FOMC\_CALENDAR\_FIX), so no FOMC row is unobserved. \textit{Volatility demand:} the last print is on 31 August 2023. The forward fill is capped at 26 bars (APPLY\_FFILL\_LIMIT, since 15 October 2026); after that the series is unobserved, its availability averages $\bar a^{(k)}$ fall to zero, and its value averages hold the neutral fill, which the rolling scaler keeps rescaling as its window moves (a slow drift, e.g.\ from about $-0.28$ to $-0.16$ for the 1-interval average, September 2023 to April 2024). UNOBSERVED\_NEUTRAL sets them to exactly 0 there. Disclosure for the text: the end of the volatility-demand feed and the cap; the VIX-family splice and its agreement.}
+  % 2026-10-23 (E28): parked -- the note, resolved: the tails are disclosed in the item "Ends of the feeds" above and in
+  % the data cleaning below (the domain rule, the fill cap, the no-observation rule and its counts; \rhds... macros of
+  % writeup/make_rehaul_disclosures.py), and the final runs set the averages of an unobserved series to 0
+  % (UNOBSERVED_NEUTRAL on in results/window_sweep_2014start_2026-10-22/w3000 and w3500, whose design the final trees
+  % and forest read); the closing-interval forecasts, not rerun, are disclosed as fitted (last item of the cleaning). Was:
+  % \editc{orange}{E28}{Decision (user, 2026-10-22): disclose the tails in the text; add the flag UNOBSERVED\_NEUTRAL (src/backtest/executor.py, on a branch, for the next design rerun) so that the averages of an unobserved series are exactly neutral.\\Problem (updated 2026-10-22, checked on the 13-bar design): only the volatility-demand series stop early, and the text discloses none of the tails.\\
+  % \textit{VIX, VIX3M, VVIX:} the vendor file ends on 12 February 2024 (data/vix\_and\_voldemand.parquet); the design splices Yahoo's hourly closes from 13 February to 30 April 2024, 54 trade days (src/data/loading.py, SPLICE\_VIX\_FREE\_FEED), each hourly close carried into the next half-hour bar. Agreement where both exist: on the hourly overlap (December 2023 to February 2024) the Yahoo close equals the vendor print on 96\% (VIX), 88\% (VIX3M) and 100\% (VVIX) of stamps (results/data\_audit\_2026-10-15/vix\_yahoo\_overlap.csv); at the daily close, 2006--2023, Yahoo's close equals the vendor bar holding the 16:15 close on 96\% of days for VIX and 93\% for VIX3M (99\% and 98\% within 0.1\%; daily log changes correlate 0.9998 and 0.995; results/data\_audit\_2026-10-22/yahoo\_vs\_vendor\_daily.csv; VVIX has no vendor bar after 16:00). In the design these series are live to the end of the span (availability about 0.85--0.90). \textit{FOMC:} the release file stops at the 1 November 2023 statement; the three scheduled statements to 30 April 2024 are added (FOMC\_CALENDAR\_FIX), so no FOMC row is unobserved. \textit{Volatility demand:} the last print is on 31 August 2023. The forward fill is capped at 26 bars (APPLY\_FFILL\_LIMIT, since 15 October 2026); after that the series is unobserved, its availability averages $\bar a^{(k)}$ fall to zero, and its value averages hold the neutral fill, which the rolling scaler keeps rescaling as its window moves (a slow drift, e.g.\ from about $-0.28$ to $-0.16$ for the 1-interval average, September 2023 to April 2024). UNOBSERVED\_NEUTRAL sets them to exactly 0 there. Disclosure for the text: the end of the volatility-demand feed and the cap; the VIX-family splice and its agreement.}
   % 2026-10-17 (user): parked -- SPXW option quotes are not a data-section source group.
   % \item \textbf{SPXW option quotes on expiration days} (S\&P 500 Weeklys), every 30 minutes: bid, ask, midquote,
   %   underlying level, implied volatility and delta. \rhdmSpxwExpirations{} expirations, 2020--2025.
-  \item \todo{name the vendor of each file}.
-  \editc{blue}{E2}{Decision: name the vendor, the price field, the roll, and the bin edges.\\Problem: the vendor, the price inside the one-minute log change, the day whose volume picks the front month, and the clock edges of every bin except 15:30--16:00 and the weekend break are missing, so the panel cannot be rebuilt.\\
-The futures moments are now sums of one-minute changes in the log price of the front-month contract, the most active. The text does not say whether that price is a last trade, a midpoint, or a settlement, and it does not name the vendor of the file. It does not say which day's volume makes a contract the most active. The closing bin is 15:30--16:00 ET, and the grid drops Friday 20:00 through Sunday 18:30. Each other bin is a half hour ending on a half-hour stamp. Those stamps are not listed, so the $M=\rhdmNIntervals$ bins cannot be rebuilt from the text.}
+  % 2026-10-23 (E2): parked -- the bare todo; the item now states the time stamps, which the repository documents (the
+  % column endbartime of every file; src/data/loading.py FREQ = 30min, FRIDAY_CLOSE, SUNDAY_OPEN; 48 stamps 00:00 .. 23:30
+  % in data/core_stats.parquet). The vendor, the price field and the roll day are not documented (note E2). Was:
+  % "\item \todo{name the vendor of each file}."
+  \item \textbf{Time stamps.} Every file stamps an interval by its end, in Eastern time, on a grid of half-hour
+    stamps from 00:00 to 23:30: interval $(t,i)$ holds the half hour that ends at its stamp, so the closing interval
+    $i = c$ is stamped 16:00. \todo{name the vendor of each file, the price inside the one-minute log-price change
+    (trade or quote), and the day whose volume selects the front-month contract.}
+  % 2026-10-23 (E2): parked -- the note's problem before the time stamps were stated. Was:
+  % \editc{blue}{E2}{Decision: name the vendor, the price field, the roll, and the bin edges.\\Problem: the vendor, the price inside the one-minute log change, the day whose volume picks the front month, and the clock edges of every bin except 15:30--16:00 and the weekend break are missing, so the panel cannot be rebuilt.\\
+  % The futures moments are now sums of one-minute changes in the log price of the front-month contract, the most active. The text does not say whether that price is a last trade, a midpoint, or a settlement, and it does not name the vendor of the file. It does not say which day's volume makes a contract the most active. The closing bin is 15:30--16:00 ET, and the grid drops Friday 20:00 through Sunday 18:30. Each other bin is a half hour ending on a half-hour stamp. Those stamps are not listed, so the $M=\rhdmNIntervals$ bins cannot be rebuilt from the text.}
+  \editc{blue}{E2}{Decision: name the vendor, the price field, the roll, and the bin edges.\\Problem (updated 2026-10-23): the bin edges are stated (item above: each stamp is the end of its interval, the column endbartime of every file; src/data/loading.py builds the half-hour grid and cuts Friday 20:00 to Sunday 18:30). Not documented anywhere in the repository, so still open, for the data provider: the vendor of every file except the Yahoo splice (no file or document names one; the builder of data/core\_stats.parquet is not in the repository, live/close\_signal/features.py), the price inside the one-minute log change (trade or quote), and the day whose volume picks the front month (data\_explainer\_v11 says only ``front-month (i.e., the most active)'').\\Also to confirm with the provider: data/core\_stats.parquet carries the stamps 17:30 and 18:00 ET with thirty one-minute observations but almost no volume (15 March 2023: 71 and 205 contracts, against 8,624 at 17:00), inside CME's 17:00--18:00 ET maintenance halt.}
   \end{itemize}
 \item \textbf{Intraday grid and data cleaning.}
   \begin{itemize}
@@ -178,17 +209,57 @@ The futures moments are now sums of one-minute changes in the log price of the f
   \item Lag operators step backward sequentially through the retained intervals in $\mathcal{G}$ in chronological
     order, spanning overnight sessions and trading-day boundaries; thus, $(t, i - j)$ refers to the $j$-th
     retained interval preceding $(t, i)$, which may lie on an earlier trading day.
-  \item Exchange holidays and early-close sessions are retained in the futures panel, whereas early-close days
-    are excluded from the option-trading evaluation sample.
+  % 2026-10-23 (final design): parked -- the pooled models' samples leave out the early-close sessions too
+  % (src/backtest/executor.py DROP_EARLY_CLOSE_SESSIONS; the 13-bar design of results/window_sweep_2014start_2026-10-22
+  % has no early-close row, checked by writeup/make_rehaul_disclosures.py). Was: "\item Exchange holidays and early-close
+  % sessions are retained in the futures panel, whereas early-close days are excluded from the option-trading evaluation
+  % sample."
+  \item Exchange holidays and early-close sessions are retained in the grid $\mathcal{G}$, on which the trailing
+    averages of Section~\ref{sec:rh_predictors} are computed, whereas early-close days are excluded from the
+    estimation and evaluation samples of the pooled models and from the option-trading evaluation sample.
+  % 2026-10-23 (E28): the domain rule (src/data/loading.py NULL_INVALID_PRINTS, STRICTLY_POSITIVE_SERIES,
+  % NON_NEGATIVE_SERIES; since 15 October 2026), disclosed; counts from load_raw_data's own call
+  % (writeup/make_rehaul_disclosures.py), on the calendar-open grid.
+  \item Before any other step, a print outside the domain of its series is set to missing: a nonpositive quoted or
+    effective spread, total turnover, futures volume, observation count, or index level, and a negative value of a
+    series that cannot be negative. This rule removes \rhdsInvalidPrints{} prints, \rhdsInvalidVolume{} of them zero
+    futures volumes recorded on intervals that carry one-minute price changes.
   \item For each exogenous series $u$, we first record a binary availability (non-missingness) indicator prior to
     any imputation:
     \[
       a_{t,i} = \mathbf{1}\{u \text{ observed in interval } (t,i)\} \in \{0, 1\}.
     \]
-  \item Subsequently, $u_{t,i}$ is forward-filled (carrying the last observed value forward without a staleness
-    cap) for the purpose of computing trailing baseline statistics, after which every interval with
-    $a_{t,i} = 0$ is replaced by the causal median imputation described in step 4 of
+  % 2026-10-23 (E28): parked -- "(carrying the last observed value forward without a staleness cap)": the final design
+  % caps the fill (src/backtest/executor.py FFILL_LIMIT under APPLY_FFILL_LIMIT, since 15 October 2026); the uncapped
+  % fill of the closing-interval forecasts is disclosed in the last item. Was: "\item Subsequently, $u_{t,i}$ is
+  % forward-filled (carrying the last observed value forward without a staleness cap) for the purpose of computing
+  % trailing baseline statistics, after which every interval with $a_{t,i} = 0$ is replaced by the causal median
+  % imputation described in step 4 of Section~\ref{sec:rh_predictors}."
+  \item Subsequently, $u_{t,i}$ is forward-filled, carrying the last observed value forward over at most
+    \rhdsFfillCap{} intervals, for the purpose of computing trailing baseline statistics, after which every interval
+    with $a_{t,i} = 0$ is replaced by the causal median imputation described in step 4 of
     Section~\ref{sec:rh_predictors}.
+  % 2026-10-23 (E28): the no-observation rule (src/backtest/executor.py UNOBSERVED_NEUTRAL) and its counts: on the
+  % design, the design log of results/window_sweep_2014start_2026-10-22/w3000/run_info.json (the same at w3500); on the
+  % scored bars, recomputed from the availability flags by writeup/make_rehaul_disclosures.py, gated on that log.
+  \item A series whose feed stops is unobserved from its last print on, and its availability averages
+    $\bar a^{(k)}_{t,i}$ fall to zero. Whenever a $k$-interval average holds no observed interval, its standardized
+    value is set to zero (step 7 of Section~\ref{sec:rh_predictors}), so the series enters the model at the neutral
+    value. In the pooled models this rule acts, on at least one interval, on \rhdsUnobsCols{} of the
+    \rhdsValueCols{} value averages of the full predictor set over the whole sample and on \rhdsUnobsColsEval{} of
+    them within the evaluation span from \rhdsEvalStart: on every
+    horizon of the four volatility-demand series once their feed has stopped, and on the shorter horizons of the
+    series that do not print on every interval (volatility demand, the implied volatility indices, the constituent
+    aggregates, and the StockTwits series) where the averaging window falls in a gap between their prints.
+  % 2026-10-23 (E28; James, 2026-10-22: the closing-interval models are not rerun): their data as fitted. The design
+  % cache of 6 October 2026 equals the build with every data-fix flag off (results/data_audit_2026-10-15/SUMMARY.md,
+  % gate a): no domain rule, no VIX splice, no FOMC calendar fix, no fill cap, the full-sample imputation median
+  % (CAUSAL_NEUTRAL_FILL off); LATE_START_WARMUP and UNOBSERVED_NEUTRAL date from 22 October 2026.
+  \item The closing-interval forecasts (Appendix~\ref{app:rh_closing}) were fitted before these data fixes and are
+    reported as fitted: in their data no print is set to missing by the domain rule, the implied volatility indices
+    are unobserved after \rhdsVixVendorLast{} and the FOMC series after \rhdsFomcFileLast, the forward fill has no
+    cap, every unobserved interval is imputed with the median of the series over the full sample, and no average is
+    set to zero for want of observations or before a series starts.
   % 2026-10-16 (user): the stored value on $a_{t,i}=0$ is the expanding median of earlier observed
   % adjusted values. Parked -- "imputed with the full-sample median", and E3, which recorded that
   % the median uses later observations:

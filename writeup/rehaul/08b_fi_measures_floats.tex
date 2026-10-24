@@ -7,6 +7,16 @@
 % 2026-10-15 (consolidation): parked -- the number files are loaded once in the preamble of paper_rehaul.tex.
 % \ifdefined\rhfiNRefits\else\input{generated/rehaul_fi_numbers}\fi
 
+% 2026-10-23 (user, RR / E19): supporting floats of the pooled variable importance on the final runs
+% (writeup/make_rehaul_fi_pooled.py; the main ones are in 08_feature_importance_floats.tex). The closing-interval floats
+% of the 15 October measures pass below stay parked.
+% The linear models across training windows: the dense-and-weak test (P1, P2) of results/fi_by_window_2014start_2026-10-22
+\input{generated/rehaul_fip_window}
+% SHAP interactions in LightGBM and XGBoost: shares by class, the largest pairs with a non-standard series
+\input{generated/rehaul_fip_inter}
+% Response shapes of the leading non-standard series (mean SHAP by decile of the dominant predictor)
+\input{generated/rehaul_fip_fig_shapes}
+
 % 2026-10-15 (consolidation): comments updated to the section's terms (predictor groups, the probe benchmark, K_A).
 % Two panels (linear models, tree ensembles): the five leading predictor groups per model by its aggregate measure,
 % Kendall's W, and the number of exogenous series with a predictor above the random probe

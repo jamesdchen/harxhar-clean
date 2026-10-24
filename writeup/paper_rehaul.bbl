@@ -1,4 +1,4 @@
-\begin{thebibliography}{65}
+\begin{thebibliography}{66}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -347,6 +347,15 @@ Oliver Ledoit and Michael Wolf.
 \newblock \emph{Journal of Empirical Finance}, 15\penalty0 (5):\penalty0
   850--859, 2008.
 \newblock \doi{10.1016/j.jempfin.2008.03.002}.
+
+\bibitem[Lundberg et~al.(2020)Lundberg, Erion, Chen, DeGrave, Prutkin, Nair,
+  Katz, Himmelfarb, Bansal, and Lee]{lundberg2020local}
+Scott~M. Lundberg, Gabriel Erion, Hugh Chen, Alex DeGrave, Jordan~M. Prutkin,
+  Bala Nair, Ronit Katz, Jonathan Himmelfarb, Nisha Bansal, and Su-In Lee.
+\newblock From local explanations to global understanding with explainable {AI}
+  for trees.
+\newblock \emph{Nature Machine Intelligence}, 2\penalty0 (1):\penalty0 56--67,
+  2020.
 
 \bibitem[Merton(1973)]{Merton1973}
 Robert~C. Merton.

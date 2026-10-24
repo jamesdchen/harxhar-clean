@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 23.9) (preloaded format=pdflatex 2025.7.14)  22 OCT 2026 21:30
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 23.9) (preloaded format=pdflatex 2025.7.14)  23 OCT 2026 11:03
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -481,8 +481,10 @@ Package uniquecounter Info: New unique counter `rerunfilecheck' on input line 2
 (generated/close_compounding_numbers.tex)
 (generated/close_shift_test_numbers.tex) (generated/rehaul_oos_numbers.tex)
 (generated/rehaul_oos_rerun_numbers.tex)
+(generated/rehaul_pooled_extras_numbers.tex)
+(generated/rehaul_robust_w3500_numbers.tex) (generated/rehaul_fip_numbers.tex)
 LaTeX Font Info:    Trying to load font information for T1+lmr on input line 11
-0.
+8.
 
 (C:\Users\james\AppData\Local\Programs\MiKTeX\tex/latex/lm\t1lmr.fd
 File: t1lmr.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
@@ -495,24 +497,24 @@ File: l3backend-pdftex.def 2023-04-19 L3 backend support: PDF output (pdfTeX)
 ) (paper_rehaul.aux)
 \openout1 = `paper_rehaul.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 110.
-LaTeX Font Info:    ... okay on input line 110.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 110.
-LaTeX Font Info:    ... okay on input line 110.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 110.
-LaTeX Font Info:    ... okay on input line 110.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 110.
-LaTeX Font Info:    ... okay on input line 110.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 110.
-LaTeX Font Info:    ... okay on input line 110.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 110.
-LaTeX Font Info:    ... okay on input line 110.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 110.
-LaTeX Font Info:    ... okay on input line 110.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 110.
-LaTeX Font Info:    ... okay on input line 110.
-LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 110.
-LaTeX Font Info:    ... okay on input line 110.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 118.
+LaTeX Font Info:    ... okay on input line 118.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 118.
+LaTeX Font Info:    ... okay on input line 118.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 118.
+LaTeX Font Info:    ... okay on input line 118.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 118.
+LaTeX Font Info:    ... okay on input line 118.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 118.
+LaTeX Font Info:    ... okay on input line 118.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 118.
+LaTeX Font Info:    ... okay on input line 118.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 118.
+LaTeX Font Info:    ... okay on input line 118.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 118.
+LaTeX Font Info:    ... okay on input line 118.
+LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 118.
+LaTeX Font Info:    ... okay on input line 118.
 
 *geometry* driver: auto-detecting
 *geometry* detected driver: pdftex
@@ -583,64 +585,64 @@ Package: ltcaption 2021/01/08 v1.4c longtable captions (AR)
 )
 Package caption Info: threeparttable package is loaded.
 Package caption Info: End \AtBeginDocument code.
-Package hyperref Info: Link coloring OFF on input line 110.
+Package hyperref Info: Link coloring OFF on input line 118.
 
 (paper_rehaul.out) (paper_rehaul.out)
 \@outlinefile=\write3
 \openout3 = `paper_rehaul.out'.
 
 LaTeX Font Info:    Trying to load font information for OT1+lmr on input line 1
-12.
+20.
 
 (C:\Users\james\AppData\Local\Programs\MiKTeX\tex/latex/lm\ot1lmr.fd
 File: ot1lmr.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
 LaTeX Font Info:    Trying to load font information for OML+lmm on input line 1
-12.
+20.
 
 (C:\Users\james\AppData\Local\Programs\MiKTeX\tex/latex/lm\omllmm.fd
 File: omllmm.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
 LaTeX Font Info:    Trying to load font information for OMS+lmsy on input line 
-112.
+120.
 
 (C:\Users\james\AppData\Local\Programs\MiKTeX\tex/latex/lm\omslmsy.fd
 File: omslmsy.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
 LaTeX Font Info:    Trying to load font information for OMX+lmex on input line 
-112.
+120.
 
 (C:\Users\james\AppData\Local\Programs\MiKTeX\tex/latex/lm\omxlmex.fd
 File: omxlmex.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <12> on input line 112.
+(Font)              <12> on input line 120.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <8> on input line 112.
+(Font)              <8> on input line 120.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <6> on input line 112.
-LaTeX Font Info:    Trying to load font information for U+msa on input line 112
+(Font)              <6> on input line 120.
+LaTeX Font Info:    Trying to load font information for U+msa on input line 120
 .
 
 (C:\Users\james\AppData\Local\Programs\MiKTeX\tex/latex/amsfonts\umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
-LaTeX Font Info:    Trying to load font information for U+msb on input line 112
+LaTeX Font Info:    Trying to load font information for U+msb on input line 120
 .
 
 (C:\Users\james\AppData\Local\Programs\MiKTeX\tex/latex/amsfonts\umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <10> on input line 123.
+(Font)              <10> on input line 131.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <7> on input line 123.
+(Font)              <7> on input line 131.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <5> on input line 123.
+(Font)              <5> on input line 131.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <10.95> on input line 146.
+(Font)              <10.95> on input line 165.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <9> on input line 158.
+(Font)              <9> on input line 183.
 
 [1
 
@@ -659,8 +661,9 @@ File: ts1lmr.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 }])
 (rehaul/02_related_work.tex [3] [4{C:/Users/james/AppData/Local/Programs/MiKTeX
 /fonts/enc/dvips/lm/lm-mathex.enc}]) (rehaul/03_data.tex
-LaTeX Font Info:    Trying to load font information for T1+lmtt on input line 6
-8.
+(generated/rehaul_disclosure_numbers.tex)
+LaTeX Font Info:    Trying to load font information for T1+lmtt on input line 7
+2.
 
 (C:\Users\james\AppData\Local\Programs\MiKTeX\tex/latex/lm\t1lmtt.fd
 File: t1lmtt.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
@@ -669,59 +672,141 @@ File: t1lmtt.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 [11] [12]) (rehaul/04_features_floats.tex) (rehaul/05_methods.tex [13] [14]
 [15] [16] [17] [18]) (rehaul/05_methods_floats.tex) (rehaul/06_results.tex
 [19] [20] [21]) (rehaul/06_results_floats.tex (generated/rehaul_results_oos.tex
-)) (rehaul/08_feature_importance.tex) (rehaul/08_feature_importance_floats.tex)
-(rehaul/08b_fi_measures_floats.tex) (rehaul/07_economics.tex [22] [23] [24]
-[25] [26] [27] [28]) (rehaul/07_economics_floats.tex) [29]
-(rehaul/09_conclusion.tex) (paper_rehaul.bbl [30
+)) (rehaul/08_feature_importance.tex [22] [23] [24] [25])
+(rehaul/08_feature_importance_floats.tex (generated/rehaul_fip_shares.tex)
+(generated/rehaul_fip_nonstd.tex) (generated/rehaul_fip_fig_rank.tex
+<figures/fi_pooled/fip_rank.pdf, id=660, 469.755pt x 375.804pt>
+File: figures/fi_pooled/fip_rank.pdf Graphic file (type pdf)
+<use figures/fi_pooled/fip_rank.pdf>
+Package pdftex.def Info: figures/fi_pooled/fip_rank.pdf  used on input line 6.
+(pdftex.def)             Requested size: 469.75502pt x 375.80309pt.
+)
+(generated/rehaul_fip_fig_time.tex
+<figures/fi_pooled/fip_time.pdf, id=663, 469.755pt x 476.98201pt>
+File: figures/fi_pooled/fip_time.pdf Graphic file (type pdf)
+<use figures/fi_pooled/fip_time.pdf>
+Package pdftex.def Info: figures/fi_pooled/fip_time.pdf  used on input line 6.
+(pdftex.def)             Requested size: 469.75502pt x 476.98083pt.
+) (generated/rehaul_fip_fig_cond.tex
+<figures/fi_pooled/fip_cond.pdf, id=664, 469.755pt x 281.85298pt>
+File: figures/fi_pooled/fip_cond.pdf Graphic file (type pdf)
+<use figures/fi_pooled/fip_cond.pdf>
+Package pdftex.def Info: figures/fi_pooled/fip_cond.pdf  used on input line 6.
+(pdftex.def)             Requested size: 469.75502pt x 281.8523pt.
+))
+(rehaul/08b_fi_measures_floats.tex (generated/rehaul_fip_window.tex
+Underfull \hbox (badness 3471) in paragraph at lines 34--35
+[]\T1/lmr/m/it/9 Notes: \T1/lmr/m/n/9 The pooled ridge, lasso and elas-tic net 
+on the full pre-dic-tor set, rolling win-dows $\OML/lmm/m/it/9 W \OT1/lmr/m/n/9
+ =
+ []
 
-] [31] [32] [33])
-(rehaul/10_appendix.tex [34] [35] [36] [37] [38] [39] [40] [41]
-(generated/rehaul_econ_sharpe_defs.tex) [42] [43] [44] [45]
-(generated/rehaul_results_oos_last30.tex) [46]
-Overfull \hbox (86.47064pt too wide) in paragraph at lines 699--701
-\T1/lmr/m/n/10.95 (results/pooled_trees_rerun13_2026-10-20/w1000, fit-ted by \T
-1/lmtt/m/n/10.95 experiments/pooled_trees_rerun_13.py\T1/lmr/m/n/10.95 ),
+) (generated/rehaul_fip_inter.tex) (generated/rehaul_fip_fig_shapes.tex
+<figures/fi_pooled/fip_shapes.pdf, id=666, 469.755pt x 303.534pt>
+File: figures/fi_pooled/fip_shapes.pdf Graphic file (type pdf)
+<use figures/fi_pooled/fip_shapes.pdf>
+Package pdftex.def Info: figures/fi_pooled/fip_shapes.pdf  used on input line 6
+.
+(pdftex.def)             Requested size: 469.75502pt x 303.53325pt.
+))
+(rehaul/07_economics.tex [26] [27] [28] [29 <./figures/fi_pooled/fip_rank.pdf>]
+[30 <./figures/fi_pooled/fip_time.pdf>] [31 <./figures/fi_pooled/fip_cond.pdf>]
+[32 <./figures/fi_pooled/fip_shapes.pdf>] [33] [34] [35] [36] [37] [38])
+(rehaul/07_economics_floats.tex) [39] (rehaul/09_conclusion.tex)
+(paper_rehaul.bbl [40
+
+] [41] [42] [43] [44]) (rehaul/10_appendix.tex [45]
+[46] [47] [48] [49] (generated/rehaul_robust_w3500_table.tex) [50]
+(generated/rehaul_econ_sharpe_defs.tex)
+(generated/rehaul_pooled_extras_table.tex) [51] [52] [53] [54] [55] [56]
+(generated/rehaul_results_oos_last30.tex) [57]
+Underfull \hbox (badness 1072) in paragraph at lines 903--911
+\T1/lmr/m/n/10.95 Boost in re-sults/pooled_trees_final_2014start_w3000, and the
+ ran-dom for-est in
  []
 
 
-Underfull \hbox (badness 1783) in paragraph at lines 699--701
-\T1/lmr/m/n/10.95 read by \T1/lmtt/m/n/10.95 writeup/make_rehaul_results.py\T1/
-lmr/m/n/10.95 , \T1/lmtt/m/n/10.95 writeup/make_rehaul_economics.py
+Underfull \hbox (badness 1400) in paragraph at lines 911--920
+[]\T1/lmtt/m/n/10.95 writeup/pooled_trees_13.py\T1/lmr/m/n/10.95 : the fore-cas
+ts of the pooled tree en-sem-bles, fit-
  []
 
 
-Underfull \hbox (badness 1571) in paragraph at lines 701--702
-[]\T1/lmtt/m/n/10.95 writeup/pooled_linear_13.py\T1/lmr/m/n/10.95 : the 16:00 f
-ore-casts of the pooled lin-ear mod-
+Underfull \hbox (badness 10000) in paragraph at lines 911--920
+\T1/lmr/m/n/10.95 ted by \T1/lmtt/m/n/10.95 experiments/pooled_trees_rerun_13.p
+y \T1/lmr/m/n/10.95 (Light-GBM and XG-Boost
  []
 
 
-Overfull \hbox (77.3145pt too wide) in paragraph at lines 701--702
-\T1/lmtt/m/n/10.95 experiments/pooled_linear_rerun_2026_10_19_13.py\T1/lmr/m/n/
-10.95 ), read by \T1/lmtt/m/n/10.95 writeup/make_rehaul_results.py
- []
-
-[47]) (rehaul/10_appendix_floats.tex (generated/rehaul_dm_samples.tex)
-(generated/rehaul_dm_hyper.tex) [48] [49] [50]
-(generated/rehaul_dm_dictionary.tex [51
-
-
-] [52] [53] [54]))
-(rehaul/10_statistical_tests.tex [55
-
-] [56] (generated/rehaul_app_hac_robust.tex)) (rehaul/99_author_notes.tex
-Underfull \hbox (badness 1107) in paragraph at lines 13--19
-\T1/lmr/m/n/10.95 no ob-ser-va-tion (UN-OB-SERVED_NEUTRAL), KKT-checked lasso a
-nd elastic-net
+Underfull \hbox (badness 4872) in paragraph at lines 911--920
+\T1/lmr/m/n/10.95 in re-sults/pooled_trees_final_2014start_w3000, the ran-dom f
+or-est, on In-tel's
  []
 
 
-Underfull \hbox (badness 1728) in paragraph at lines 13--19
-\T1/lmr/m/n/10.95 walks (WALK_KKT_RESEED), the FOMC statement-interval dummy dr
-opped
+Underfull \hbox (badness 3000) in paragraph at lines 911--920
+\T1/lmr/m/n/10.95 oneDAL en-gine, in re-sults/pooled_rf_skx_2014start_w3000). T
+hey are read
  []
 
-[57] [58] [59]) [60] (paper_rehaul.aux)
+
+Underfull \hbox (badness 10000) in paragraph at lines 911--920
+\T1/lmr/m/n/10.95 by \T1/lmtt/m/n/10.95 writeup/make_rehaul_results.py\T1/lmr/m
+/n/10.95 , \T1/lmtt/m/n/10.95 writeup/make_rehaul_economics.py\T1/lmr/m/n/10.95
+ ,
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 911--920
+\T1/lmtt/m/n/10.95 writeup/make_rehaul_oos_table.py\T1/lmr/m/n/10.95 , \T1/lmtt
+/m/n/10.95 writeup/make_rehaul_oos_rerun.py \T1/lmr/m/n/10.95 and
+ []
+
+[58]
+Underfull \hbox (badness 6063) in paragraph at lines 920--925
+\T1/lmr/m/n/10.95 lin-ear mod-els of Ta-ble []1[] (results/window_sweep_2014sta
+rt_2026-10-22/w3000,
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 920--925
+\T1/lmr/m/n/10.95 fit-ted by \T1/lmtt/m/n/10.95 experiments/pooled_linear_rerun
+_2026_10_19_13.py\T1/lmr/m/n/10.95 ), read by
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 920--925
+\T1/lmtt/m/n/10.95 writeup/make_rehaul_results.py\T1/lmr/m/n/10.95 , \T1/lmtt/m
+/n/10.95 writeup/make_rehaul_economics.py \T1/lmr/m/n/10.95 and
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 920--925
+\T1/lmtt/m/n/10.95 writeup/make_rehaul_data_methods.py\T1/lmr/m/n/10.95 ; \T1/l
+mtt/m/n/10.95 writeup/make_rehaul_oos_rerun.py
+ []
+
+) (rehaul/10_appendix_floats.tex (generated/rehaul_dm_samples.tex)
+(generated/rehaul_dm_hyper.tex) [59] [60] [61]
+(generated/rehaul_dm_dictionary.tex [62
+
+
+] [63] [64] [65]))
+(rehaul/10_statistical_tests.tex [66
+
+] [67] (generated/rehaul_app_hac_robust.tex)) (rehaul/99_author_notes.tex
+Underfull \hbox (badness 1917) in paragraph at lines 39--43
+[]\T1/lmr/bx/n/10.95 MinGRU net-work: \T1/lmr/m/n/10.95 parked in the pa-per. I
+ts fi-nal re-run is run-ning (re-
+ []
+
+
+Underfull \hbox (badness 6348) in paragraph at lines 39--43
+\T1/lmr/m/n/10.95 sults/pooled_mingru_final_2014start_w3000 and _w3500, RULE_gr
+u.txt with
+ []
+
+[68] [69]) [70] (paper_rehaul.aux)
  ***********
 LaTeX2e <2023-06-01> patch level 1
 L3 programming layer <2023-08-29>
@@ -730,13 +815,13 @@ Package rerunfilecheck Info: File `paper_rehaul.out' has not changed.
 (rerunfilecheck)             Checksum: 0073728DBC65C6830DCB11591D7C72E0;6236.
  ) 
 Here is how much of TeX's memory you used:
- 16133 strings out of 475248
- 263723 string characters out of 5757813
- 2001801 words of memory out of 5000000
- 37093 multiletter control sequences out of 15000+600000
+ 17290 strings out of 475248
+ 286492 string characters out of 5757813
+ 2002801 words of memory out of 5000000
+ 38181 multiletter control sequences out of 15000+600000
  685578 words of font info for 132 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 75i,17n,79p,2660b,814s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 75i,17n,79p,3029b,886s stack positions out of 10000i,1000n,20000p,200000b,200000s
 <C:/Users/james/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmbx10.pf
 b><C:/Users/james/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmbx12.pf
 b><C:/Users/james/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmbx9.pfb
@@ -765,9 +850,9 @@ pData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmsy9.pfb><C:/Users/james/App
 Data/Local/Programs/MiKTeX/fonts/type1/public/lm/lmtt10.pfb><C:/Users/james/App
 Data/Local/Programs/MiKTeX/fonts/type1/public/lm/lmtt9.pfb><C:/Users/james/AppD
 ata/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/symbols/msbm10.pfb>
-Output written on paper_rehaul.pdf (60 pages, 946375 bytes).
+Output written on paper_rehaul.pdf (70 pages, 1100798 bytes).
 PDF statistics:
- 1271 PDF objects out of 1440 (max. 8388607)
- 186 named destinations out of 1000 (max. 500000)
- 305 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 1493 PDF objects out of 1728 (max. 8388607)
+ 213 named destinations out of 1000 (max. 500000)
+ 325 words of extra memory for PDF output out of 10000 (max. 10000000)
 

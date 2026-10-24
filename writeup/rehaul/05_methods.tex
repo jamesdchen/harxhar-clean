@@ -58,7 +58,11 @@
 % closing-interval scheme and an intraday interval under the pooled intraday scheme
 % (Section~\ref{sec:rh_methods_schemes})."
 % 2026-10-17 (user): parked -- closing-interval material (the benchmark's daily period moved to Appendix app:rh_closing_bench). Was: "A period corresponds to a 30-minute intraday interval under our pooled intraday scheme (Appendix~\ref{sec:rh_exp_schemes}) and to a trading day for the daily benchmark forecast (Section~\ref{sec:rh_results_eval})."
-\item \textbf{Rolling-window out-of-sample exercise.} We conduct a rolling-window out-of-sample forecasting exercise in which each model is re-estimated every period using only predictors in the information set $\mathcal F_t$ available at the 15:30 ET forecast origin. A period corresponds to a 30-minute intraday interval under our pooled intraday scheme (Appendix~\ref{sec:rh_exp_schemes}).
+% 2026-10-23 (phase 2, final design): the pooled models' every-interval origin added (Table 1 scores every
+% regular-hours bar: writeup/make_rehaul_oos_rerun.py; the trailing averages are lagged one interval, Section 4, and
+% the final runs refit at every bar, results/pooled_trees_final_2014start_w3000/forecasts.json "refit": "bar"). The
+% two sentences before it are unchanged.
+\item \textbf{Rolling-window out-of-sample exercise.} We conduct a rolling-window out-of-sample forecasting exercise in which each model is re-estimated every period using only predictors in the information set $\mathcal F_t$ available at the 15:30 ET forecast origin. A period corresponds to a 30-minute intraday interval under our pooled intraday scheme (Appendix~\ref{sec:rh_exp_schemes}). The 15:30 origin is that of the closing interval $i = c$; the pooled models also forecast every other interval $(t,i)$ of their estimation sample, each at its own origin, the start of the interval, from the information available then (Table~\ref{tab:rh_oos}).
 \item \textbf{Notation.} We index trading days by $t = 1, \dots, T$ and the 30-minute intraday intervals of day $t$ (including the overnight session) by $i = 1, \dots, M$, where $i = c$ denotes the closing half-hour interval (15:30--16:00 ET).
   \begin{itemize}
   % 2026-10-16 (formula pass): parked -- RV_{t,i} = sum_k r_{t,i,k}^2 and the lag (t, i-j) are defined once
@@ -160,7 +164,13 @@
   % 2026-10-15: scorer = actual RV_{t,c} (unwinsorized), as sections/methods.tex:183-185 already stated; the
   % pointers above (master_table_close.py:29-31, rows.py:602) are the pre-switch scorer.
 % 2026-10-15 (notation pass): the "Fit objective" bullet moved below the windows, which define its sample.
-\item \textbf{Rolling estimation window.} Under the intraday scheme, the estimation window at origin $(t,i)$ is $\mathcal W_{t,i}$ (Appendix~\ref{sec:rh_exp_schemes}), consisting of the $W$ most recent intervals prior to $(t,i)$. We let $\mathcal I$ denote the subset of intraday intervals included in estimation.
+% 2026-10-23 (final design, window/sample): parked -- the window counted "intervals" without saying which; the pooled
+% models of the final runs are estimated on the 13 regular-hours intervals, and their window holds W of those
+% (results/window_sweep_2014start_2026-10-22/w3000/frozen_penalties.json: window_rows 39,000 = 3,000 x 13). Was:
+% "\item \textbf{Rolling estimation window.} Under the intraday scheme, the estimation window at origin $(t,i)$ is
+% $\mathcal W_{t,i}$ (Appendix~\ref{sec:rh_exp_schemes}), consisting of the $W$ most recent intervals prior to $(t,i)$.
+% We let $\mathcal I$ denote the subset of intraday intervals included in estimation."
+\item \textbf{Rolling estimation window.} We let $\mathcal I$ denote the subset of intraday intervals included in estimation. Under the intraday scheme, the estimation window at origin $(t,i)$ is $\mathcal W_{t,i}$ (Appendix~\ref{sec:rh_exp_schemes}), consisting of the $W$ most recent intervals in $\mathcal I$ prior to $(t,i)$ (the intervals in $\mathcal I$ and the value of $W$ are given in Section~\ref{sec:rh_exp_setup}).
   % 2026-10-16 (user, E12): parked -- the window was a trading-day index. Was:
   % $\mathcal W_t = \{t - W, \dots, t-1\}$: the last $W$ periods before the forecast origin.
   % 2026-10-15 (user): parked -- moved to Training schemes (the scheme-specific windows). Was:
@@ -177,14 +187,35 @@
 % are implementation; they move to Experimental setup (sec:rh_exp_samples). Was: "an estimation sample, a
 % \cmPtEmbargo-observation gap and a 125-observation validation sample: ... $n_{\mathrm{gap}} = \cmPtEmbargo$,
 % $n_{\mathrm{val}} = 125$. Observation $t$ never enters."
-\item \textbf{Hyperparameter-selection splits.} In line with \citet{gu2020empirical}, we partition the rolling window forward in time into an estimation subsample, an embargo gap of $n_{\mathrm{gap}}$ observations, and a validation subsample of $n_{\mathrm{val}}$ observations:
+% 2026-10-23 (final design; coordinator, from the appendix pass): parked -- one split, a partition of the rolling
+% window, for every model. The pooled linear models of the final runs are tuned once on a pre-sample fold whose estimation
+% subsample is a full window of W bars, followed by the gap and the validation year (frozen_penalties.json of
+% results/window_sweep_2014start_2026-10-22/w3000: fit [8202, 47202) = 39,000 bars, gap 325 = 25 x 13, validation
+% [47527, 50777) = 3,250 = 250 x 13; experiments/pooled_linear_rerun_2026_10_19_13.py PRE_FOLD_SESS, PRE_EMBARGO_SESS;
+% the closing-interval linear models' pre-sample folds have the same form, experiments/close_linear_pretune.py
+% pre_folds). The partition of the window stays for the re-selections (src/models/reclasso_har.py forward_window_split;
+% Appendix sec:rh_exp_samples names the models). Was: "\item \textbf{Hyperparameter-selection splits.} In line with
+% \citet{gu2020empirical}, we partition the rolling window forward in time into an estimation subsample, an embargo
+% gap of $n_{\mathrm{gap}}$ observations, and a validation subsample of $n_{\mathrm{val}}$ observations: [the display
+% below] Target interval $(t,i)$ never enters any of these sets. The lengths $n_{\mathrm{gap}}$ and $n_{\mathrm{val}}$
+% are given in Appendix~\ref{sec:rh_exp_samples}."
+\item \textbf{Hyperparameter-selection splits.} In line with \citet{gu2020empirical}, every split runs forward in time: an estimation subsample, an embargo gap of $n_{\mathrm{gap}}$ observations, and a validation subsample of $n_{\mathrm{val}}$ observations. We use two forms of split.
+  \begin{itemize}
+  \item \emph{Pre-sample split.} The pooled linear models of Table~\ref{tab:rh_oos} choose their penalties once, on a split that ends before the first forecast, and hold them fixed for every forecast; the closing-interval linear models choose theirs on pre-sample folds of the same form (Appendix~\ref{app:rh_closing_sample}). The estimation subsample is a full window of $W$ observations, so that each candidate penalty is fitted on as many observations as a forecast. For a split whose validation subsample ends just before $(t,i)$,
   \begin{gather*}
-    \mathcal W^{\mathrm{est}}_{t,i} = \{(t,\, i - W), \dots, (t,\, i - n_{\mathrm{val}} - n_{\mathrm{gap}} - 1)\}, \\
+    \mathcal W^{\mathrm{est}}_{t,i} = \{(t,\, i - n_{\mathrm{val}} - n_{\mathrm{gap}} - W), \dots, (t,\, i - n_{\mathrm{val}} - n_{\mathrm{gap}} - 1)\}, \\
     \mathcal W^{\mathrm{gap}}_{t,i} = \{(t,\, i - n_{\mathrm{val}} - n_{\mathrm{gap}}), \dots,
       (t,\, i - n_{\mathrm{val}} - 1)\}, \\
     \mathcal W^{\mathrm{val}}_{t,i} = \{(t,\, i - n_{\mathrm{val}}), \dots, (t,\, i - 1)\}.
   \end{gather*}
-  Target interval $(t,i)$ never enters any of these sets. The lengths $n_{\mathrm{gap}}$ and $n_{\mathrm{val}}$ are given in Appendix~\ref{sec:rh_exp_samples}.
+  For the pooled linear models this split is \rhorPenSample, with the first scored forecast at the interval that follows it. The pooled tree ensembles keep one configuration per method, selected on the pre-sample and held fixed (Appendix~\ref{sec:rh_methods_tuning}).
+  \item \emph{Split of the rolling window.} A model that re-selects its hyperparameters during the evaluation partitions its own rolling window $\mathcal W_{t,i}$, so that the three subsamples together hold $W$ observations:
+  \begin{gather*}
+    \mathcal W^{\mathrm{est}}_{t,i} = \{(t,\, i - W), \dots, (t,\, i - n_{\mathrm{val}} - n_{\mathrm{gap}} - 1)\},
+  \end{gather*}
+  with $\mathcal W^{\mathrm{gap}}_{t,i}$ and $\mathcal W^{\mathrm{val}}_{t,i}$ as above.
+  \end{itemize}
+  Target interval $(t,i)$ never enters any of these sets. The lengths $n_{\mathrm{gap}}$ and $n_{\mathrm{val}}$ of each split, and the models that use each form, are given in Appendix~\ref{sec:rh_exp_samples}.
   % 2026-10-16 (user, E12): parked -- the splits were indexed by the trading day $t$. Was:
   % W^est_t = {t - W, ..., t - n_val - n_gap - 1}, and the same for the gap and the validation sample;
   % observation $t$ never enters.
@@ -230,7 +261,11 @@
   % with $\bar y^{(k)}_t$ the mean over the $k$ half-hours before the close.
   % \editc{red}{E12}{Decision: restrict this display to the daily benchmark, or add the interval index.}
   \item The vector $\bm D_{t,i}$ collects the calendar dummy variables with coefficient vector $\bm\delta$; a pure HAR specification restricts $\bm\delta = \bm 0$. Our HAR benchmark ($\mathcal X = \mathrm{HAR}$) includes both the HAR components and the calendar dummies.
-  \item The full predictor vector $\bm x_{t,i} \in \mathbb R^p$ ($\mathcal X = \mathrm{Full}$) augments the HAR benchmark with the multi-horizon averages $\bar u^{(k)}_{t,i}$ ($k \in \mathcal K$) and the corresponding availability and activity indicators for every exogenous series $u$ (Section~\ref{sec:rh_predictors}).
+  % 2026-10-23 (S4c scope, final design): parked -- the pooled design has no activity averages (DROP_ACTIVITY_MA in the
+  % final runs; frozen_penalties.json holds no *_active_ma_* column); they are the closing-interval model's. Was: "...
+  % with the multi-horizon averages $\bar u^{(k)}_{t,i}$ ($k \in \mathcal K$) and the corresponding availability and
+  % activity indicators for every exogenous series $u$ (Section~\ref{sec:rh_predictors})."
+  \item The full predictor vector $\bm x_{t,i} \in \mathbb R^p$ ($\mathcal X = \mathrm{Full}$) augments the HAR benchmark with the multi-horizon averages $\bar u^{(k)}_{t,i}$ ($k \in \mathcal K$) and the corresponding availability averages $\bar a^{(k)}_{t,i}$ for every exogenous series $u$ (Section~\ref{sec:rh_predictors}); the closing-interval model also carries the averages $\bar\chi^{(k)}_{t,i}$ of the activity indicators (Appendix~\ref{app:rh_closing_predictors}).
   % 2026-10-15 (consolidation): parked -- x^{(k)}_t reads as an element of \bm x_t; Predictors writes \bar u^{(k)}.
   % predictors plus the HAR components $x^{(k)}_t$, $k \in \mathcal K$, of each additional series.
   \end{itemize}
@@ -307,10 +342,20 @@
   % 2026-10-22 (user): parked -- the note before the screen and the solver were settled. Was: "... Open: a screen for
   % availability averages that are near-constant or near-duplicates at their binomial resolution $\sqrt{p(1-p)/k}$ is
   % under test, as is solving in standardized coordinates (the same estimator, better conditioned). ..."
-  \editc{orange}{STD}{Decision: standardization within the estimation window, the availability screen and the standardized-coordinate solvers are the specification (STANDARDIZE\_PENALTY, merged 2430543 and 8898522, 22 October 2026).\\Problem: the printed pooled forecasts predate all three; the rerun is pending (notes to the authors, ``Rerun pending'').}
+  % 2026-10-23 (STD, final design): parked -- the note, resolved: the final pooled linear runs are fitted with
+  % standardization within the estimation window, the evidence and binomial availability screens and the
+  % standardized-coordinate solvers (results/window_sweep_2014start_2026-10-22/w3000 and w3500, run_info.json code_note
+  % "STANDARDIZE_PENALTY final -- scaled coordinates + binomial availability rule ... on by default", frozen_penalties.json
+  % info.standardize_penalty true), and the paper's pooled numbers are generated from them (writeup/final_run.py). The
+  % trees are scale-invariant and do not use it. Was:
+  % \editc{orange}{STD}{Decision: standardization within the estimation window, the availability screen and the standardized-coordinate solvers are the specification (STANDARDIZE\_PENALTY, merged 2430543 and 8898522, 22 October 2026).\\Problem: the printed pooled forecasts predate all three; the rerun is pending (notes to the authors, ``Rerun pending'').}
   \item The lasso corresponds to $\alpha = 1$, and our elastic net specification fixes $\alpha = 0.5$.
   \item For ridge regression, we update $(\bm X_{t,i}^\top \bm X_{t,i} + \lambda\, \mathrm{diag}(\bm\omega))^{-1}$ via exact rank-one downdates and updates as observations exit and enter $\mathcal W_{t,i}$, where $\bm X_{t,i}$ stacks the rows $(1, \bm x_{t',i'}^\top)$ for $(t',i') \in \mathcal W_{t,i}$ and $\bm\omega = (\omega_0, \dots, \omega_p)^\top$.
   \item For the lasso and elastic net, we update the active set and coefficient vector via exact online homotopy \citep{Garrigues2008}, adding the incoming observation and dropping the outgoing observation at each step.
+  % 2026-10-23 (final design): the KKT check of the walks (src/models/reclasso_har.py WALK_KKT_RESEED and walk_kkt, on in
+  % the final runs: run_info.json code_note; the cold seed at every 250th solve, experiments/pool_linear_pretune.py
+  % docstring). No typed count: "at fixed intervals".
+  \item The homotopy restarts from a cold solve on the current window at fixed intervals. Between restarts, after each update we check the Karush--Kuhn--Tucker conditions of the current window's problem; where they fail, the updated solution is replaced by a cold solve on the current window, from which the homotopy continues.
   % 2026-10-15 (user): parked -- last-30-min scheme moved to the end of the economics section. Was: "...; in the
   % closing-interval model this always removes five of the 16 calendar dummies (Section~\ref{sec:rh_predictors})."
   \item At every estimation step, only the screened predictor subset $\mathcal J_{t,i}$ enters the solver: columns that are constant within $\mathcal W_{t,i}$ or exact duplicates of an earlier retained column are omitted. In models estimated solely on the closing interval, this screen automatically removes the hour-of-day and overnight indicators (Section~\ref{sec:rh_predictors}).
@@ -574,6 +619,11 @@
 % 2026-10-16 (formula pass): parked -- the back-transform was repeated from Problem formulation. Was:
 % "The variance forecast is the back-transformed fit, hat sigma^2_t = hat y_t^2 s^2_{t,c} (Section setup)".
 \item \textbf{Forecast and realization.} We evaluate the unadjusted back-transformed variance forecast $\hat\sigma^2_t$ defined in Section~\ref{sec:rh_methods_setup} against the actual, unwinsorized realized variance of the closing interval, $\RV_t \equiv \RV_{t,c}$ (winsorization is applied to $\tilde y_{t,c}$ during model estimation only).
+% 2026-10-23 (phase 2, final design): Table 1's every-interval scoring (writeup/make_rehaul_oos_rerun.py docstring,
+% SCORED / FORECAST / METRICS / TESTS: sigma2 = yhat^2 x s^2 of each interval against its actual RV, intervals with a
+% non-positive or missing RV dropped, MSE and QLIKE averaged over the scored intervals, R2_OOS against the expanding
+% historical mean of the same time-of-day interval from \rhoosBenchStart, DM on each day's average loss).
+\item \textbf{Every-interval scoring of the pooled models.} The definitions below are written for the closing interval. Table~\ref{tab:rh_oos} applies them interval by interval to the pooled models, on the \rhorNIntB{} regular-hours intervals of the days in $\mathcal T_{\mathrm{oos}}$ with a positive realized variance: each forecast $\hat\sigma^2_{t,i} = \hat y_{t,i}^{\,2}\, s^2_{t,i}$ is scored against $\RV_{t,i}$; $\overline{\QLIKE}$ and the MSE average over the scored intervals; the reference forecast of $R^2_{\mathrm{OOS}}$ is the historical mean realized variance of the same interval of the day, over every earlier trading day from \rhoosBenchStart; and the Diebold--Mariano test is applied to each day's average loss.
   % 2026-10-15 (user): parked -- "Out of sample period doesn't make sense for forecasts because we're performing
   % rolling backtests ..."; T_oos keeps its symbol, redefined as the forecast origins of the rolling exercise. Was:
   % "The out-of-sample period is the set $\mathcal T_{\mathrm{oos}}$ of trading days on which the forecasts are
