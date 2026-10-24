@@ -156,3 +156,18 @@ errors); binary copied from `/home1/jc_905/pm13/bin` (md5 44ab6fff).
   vs the adjacent best L20_H64_lr0.01_we3_wl3_ll1e-05: d = 0.000035, SE 0.000507 -> no extension; frozen at round 0
   L48_H256_lr0.003_we3_wl30_ll0.0001 (0.122699; epochs 7/17/6/3/12; ~5.5 P100-s a refit, walk ~258 P100-h by tune
   epoch cost). Full set: round-0 pick interior, unchanged. W 3,500 round 0 at 20 / 44 (not yet replayable).
+- 2026-10-23 22:38-23:32 PDT, full-set bar walk (68 halves walk_all_features.b<k>a / b from gpu_queue2.txt, P100,
+  CONC 24, INITSUB bar_b<k>, POST = the check-run; job ids in /home1/jc_905/pmf/inputs/submitted.txt): 65 halves
+  COMPLETED, each with check_run.json n_jobs 2,500, n_bad 0, finite, positive. 3 FAILED 1:0 with empty logs while
+  /home1/jc_905 was over its 100 GiB quota (101 GiB at 22:57; 5 MinGRU v2 jobs failed in the same window; the
+  coordinator freed space at ~23:05, 89 GiB cached at 23:30): 13346982 b32b (e22-05, 22:38; trainer complete, 2,500
+  ok, copy md5-verified, wall_s 4,769, but the POST wrote no check_run.json), 13347424 b33a (e21-10, 22:42) and
+  13347580 b33b (e21-15, 22:46) (no refit/ output: the copy-back failed). Owner (James): "Rerun them on P100". Moved
+  aside, nothing deleted: the three run directories to /home1/jc_905/pmf/runs/_failed_quota_2026-10-23/ (+ MOVED.txt),
+  so that merge (runs/walk_<set>_b*_*) does not read b32b twice. Resubmitted 23:32 with the original command lines
+  (sacct SubmitLine; same sbatch md5 1540f27e, binary 44ab6fff, inputs md5 = the failed jobs' env.txt, CONC 24,
+  P100 constraint, INITSUB bar_b32 / bar_b33, time limits 116 / 113 / 113 min, POST check-run): 13367745 b32b,
+  13367746 b33a, 13367747 b33b (gpu partition, 16 of our jobs there). No dependent job: merge needs
+  out/frozen_config.json and the walks of both sets (only frozen_partial.json, the full set, exists; no HAR walk
+  file), and the scorer runs on the laptop. After the reruns: the b32b rerun's forecasts can be compared with the
+  moved-aside b32b (expected text-identical, as the probe at CONC 6 / 12 / 24).
