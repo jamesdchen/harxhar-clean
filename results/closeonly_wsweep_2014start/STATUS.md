@@ -44,4 +44,15 @@ locally for each family (tables.txt); sacct CPU-hours.
 | 09:57 | cw_twrf 13380322_1 (CLOSE_w1000 forest HAR, d05-39, Xeon 4116) FAILED: BrokenPipeError errno 108 reading data/core_stats.parquet on /scratch1 before any fit (no piece) -- a failing /scratch1 mount; the only I/O error in this sweep's logs |
 | 10:21 | `code/submit_a.sh 050a6a6`: code archive on /home1 (`/home1/jc_905/closewin/code_050a6a6`; the walk code cmp-identical to 62cfc8c's, src identical but __pycache__; git diff 62cfc8c..050a6a6 touches only the two scorers and results/); cw_linW2 13381257 (W = 1,500, 2,000, 2,500, 3,500, EPYC); cw_twrf2 13381258 (the failed forest line, EPYC only, d05-39 excluded); 13380322_9 / _10 (pending, W = 3,500 forest) restricted to EPYC 7513 / 7542 with the exclusions; cw_linS 13380319 cancelled, cw_linS2 13381259 (afterok 13381257; the new scorer) = the last linear job; cw_tfin 13380323 kept, re-pointed afterany 13380321, 13380322, 13381258 and restricted to EPYC = the last tree job |
 
-Linear W = 1,000 waits for the owner (RULE.txt addendum A options a-d); the linear tables start at W = 1,500 until then.
+Linear W = 1,000 waited for the owner (RULE.txt addendum A options a-d) until addendum B.
+
+## Addendum B: linear W = 1,000 at 1,001 closes (owner option b; RULE.txt addendum B, commit a3e87f3, before its jobs)
+
+From the coordinator's 10:45 standing rule on, every state-changing command is written verbatim in the SSH tool call
+(no submission scripts); submit.sh and submit_a.sh (above) were piped scripts.
+
+| Time (PDT) | Event |
+|---|---|
+| 10:27-10:30 | cw_linW2 13381257 (W = 1,500 .. 3,500), cw_linS2 13381259 (scores without W = 1,000) and cw_twrf2 13381258 COMPLETED |
+| 10:36 | code archive `/home1/jc_905/closewin/code_a3e87f3` (linear_train3way{,_runner}.py, pool_linear_pretune.py, the orchestrator, closewin.py cmp-identical to 62cfc8c's); the failed W = 1,000 walks set aside (`mv runs/linear/w1000/_work/walk runs/linear/w1000/_work/walk_failed_0947`); cw_lin1k 13381484 (sbatch --wrap: OLS walk at 1,000 on w1000; derive_shift -> w1000_r1001; pretune / select / walks 1-6 at --rows 1001; export_1k; EPYC); `scancel 13381259` a no-op (it had completed); the first linS3 submission refused (afterok on the completed, purged 13381257: "Job dependency problem") |
+| 10:37 | the scores without W = 1,000 moved to `scores/linear_addA_noW1000` (mv to a new name); cw_linS3 13381487 (afterok 13381484) = the last linear job, -> scores/linear with W = 1,000 |
