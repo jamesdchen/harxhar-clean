@@ -1,0 +1,167 @@
+{
+ "run": "",
+ "branch": "insurance-selling-2026-09-19-e34-trees-final",
+ "runner": "experiments/pooled_trees_rerun_13.py walk, through cluster/slurm/pooltree_rerun13.sbatch (MODE=walk)",
+ "runner_commit": "c989ee02d417e50aa7189b345224258d22fe958f",
+ "repo_commit_at_submission": "c989ee02d417e50aa7189b345224258d22fe958f",
+ "runner_note": "rf_skx walks and merge: runner c989ee0 (3cbb85f + one-CPU checks by CPU family; code_c989ee0 on /home1); rule and gate: results/pooled_rf_skx_2014start_w3000/",
+ "cluster": "CARC Discovery (USC), Slurm account pollok_1603, partition main, --constraint epyc-7513|epyc-7542",
+ "environment": {
+  "python_bin": "/home1/jc_905/trees_final/venv_skx/bin/python",
+  "python": "3.12.15",
+  "numpy": "1.26.4",
+  "pandas": "2.3.3",
+  "scipy": "1.17.1",
+  "sklearn": "1.9.1",
+  "lightgbm": "4.6.0",
+  "xgboost": "3.2.0",
+  "pyarrow": "19.0.1",
+  "sklearnex": "2026.2.0",
+  "daal": "2026.2.0"
+ },
+ "design": {
+  "source": "/scratch1/jc_905/wsweep/code/results/window_sweep_2014start_2026-10-22/w1000/_work/design_{baseline,all_features}",
+  "copy": "/home1/jc_905/trees_final/designs/w1000/_work/design_{baseline,all_features} (md5 of the copy = md5 of the source)",
+  "md5": {
+   "baseline": [
+    "04b0c0f26910bf0747b4472c4a1c3c37  X.npy",
+    "996504f16da7982d64656d1ba0d9722a  y.npy",
+    "633be55e3c2f90b02bb2eb61ec9b144a  b_oos.npy",
+    "259fadd2ad69ff60c005778bef50ef1c  dates_oos.csv",
+    "5fc3f1f898105da1662d2dd5e0e20a05  design.json"
+   ],
+   "all_features": [
+    "493ef22384b51eaadcdaeb78a79b5b80  X.npy",
+    "996504f16da7982d64656d1ba0d9722a  y.npy",
+    "633be55e3c2f90b02bb2eb61ec9b144a  b_oos.npy",
+    "259fadd2ad69ff60c005778bef50ef1c  dates_oos.csv",
+    "85ba013f9c11a8e4adb582586ac89f3a  design.json"
+   ]
+  },
+  "check": {
+   "window_days": 1000,
+   "window_rows": 13000,
+   "baseline_shape": [
+    84747,
+    12
+   ],
+   "baseline_config": {
+    "sample": "rth13",
+    "periods_per_day": 13,
+    "window": 13000,
+    "har_base": "5",
+    "drop_fomc": false,
+    "ex_flags": {
+     "DROP_ACTIVITY_MA": true,
+     "CALENDAR_THROUGH_OVERNIGHT": true,
+     "DROP_OVERNIGHT_INDICATOR": true,
+     "LEAN_GLOBAL_LAGS": true,
+     "LATE_START_WARMUP": true
+    }
+   },
+   "baseline_fortran_order": true,
+   "all_features_shape": [
+    84747,
+    564
+   ],
+   "all_features_config": {
+    "sample": "rth13",
+    "periods_per_day": 13,
+    "window": 13000,
+    "har_base": "5",
+    "drop_fomc": false,
+    "ex_flags": {
+     "DROP_ACTIVITY_MA": true,
+     "CALENDAR_THROUGH_OVERNIGHT": true,
+     "DROP_OVERNIGHT_INDICATOR": true,
+     "LEAN_GLOBAL_LAGS": true,
+     "LATE_START_WARMUP": true
+    }
+   },
+   "all_features_fortran_order": true,
+   "oos_first": "2002-06-05 12:30:00",
+   "oos_last": "2024-04-30 16:00:00",
+   "n_oos": 71747,
+   "S": 50777,
+   "S_date": "2014-01-02 10:00:00",
+   "linear_walk_start_row": 50750,
+   "linear_walk_start_date": "2013-12-27 16:00:00",
+   "tree_first_row": 50777,
+   "tree_first_date": "2014-01-02 10:00:00",
+   "tree_last_date": "2024-04-30 16:00:00",
+   "tree_rows": 33970,
+   "tree_days": 2643,
+   "tree_first_fit_rows": [
+    37777,
+    50777
+   ],
+   "tree_first_fit_first_date": "2010-01-11 12:30:00",
+   "sweep_linear_checked": [
+    "enet/all_features: 33997 rows, B equal, true_adj = y (28841 bit-equal, max |diff| 8.9e-16)",
+    "enet/baseline: 33997 rows, B equal, true_adj = y (28841 bit-equal, max |diff| 8.9e-16)",
+    "lasso/all_features: 33997 rows, B equal, true_adj = y (28841 bit-equal, max |diff| 8.9e-16)",
+    "lasso/baseline: 33997 rows, B equal, true_adj = y (28841 bit-equal, max |diff| 8.9e-16)",
+    "ols/baseline: 33997 rows, B equal, true_adj = y (28841 bit-equal, max |diff| 8.9e-16)",
+    "ridge/all_features: 33997 rows, B equal, true_adj = y (28841 bit-equal, max |diff| 8.9e-16)",
+    "ridge/baseline: 33997 rows, B equal, true_adj = y (28841 bit-equal, max |diff| 8.9e-16)"
+   ]
+  }
+ },
+ "window_days": 1000,
+ "window_rows": 13000,
+ "span": [
+  "2014-01-02",
+  "2024-04-30"
+ ],
+ "refit": "bar",
+ "first_row": "2014-01-02 10:00:00",
+ "bars_per_arm": 33970,
+ "days": 2643,
+ "configs": {
+  "rf_skx": {
+   "name": "rf400_rf_opt_00",
+   "sha": "88eebb5fa9e8",
+   "file": "cluster/pooltree_rf400_config.json",
+   "file_sha256": "ba5c99b02b9359e070813a7ed8a421cb96205176a7dc91aa55c6b0288f164567"
+  }
+ },
+ "threads": {
+  "rf_skx/all_features": [
+   8
+  ],
+  "rf_skx/baseline": [
+   8
+  ]
+ },
+ "pieces": {
+  "rf_skx/all_features": 25,
+  "rf_skx/baseline": 1
+ },
+ "task_rule": "experiments/pooled_trees_rerun_13.py tasks --refits bar --target-hours 3 on the CARC time probe (timing/sec_refit.csv, 3 refits at the first 2014-01-02 rows, 8 threads), arms cheapest first (the printed run's rule)",
+ "slurm_arrays": [
+  "13324536",
+  "13325351",
+  "13326248",
+  "13329102"
+ ],
+ "merge_job": "13348559",
+ "sacct": {
+  "array_tasks": 29,
+  "states": {
+   "COMPLETED": 26,
+   "CANCELLED": 3
+  },
+  "alloc_cpu_h": 668.9,
+  "used_cpu_h": 656.5
+ },
+ "cpu_h_by_arm": {
+  "rf_skx/all_features": 655.0,
+  "rf_skx/baseline": 13.4
+ },
+ "cpu_h_total": 668.4,
+ "cpu_models": {
+  "AMD EPYC 7513 32-Core Processor": 22,
+  "AMD EPYC 7542 32-Core Processor": 4
+ },
+ "versions_distinct": 1
+}

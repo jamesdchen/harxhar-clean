@@ -1,0 +1,76 @@
+{
+ "refit": "bar",
+ "span": [
+  "2014-01-02",
+  "2024-04-30"
+ ],
+ "window_days": 2000,
+ "pieces": {
+  "rf_skx/baseline": [
+   "rf_skx_baseline_bar_2014-01-02_2024-04-30_1of2.parquet",
+   "rf_skx_baseline_bar_2014-01-02_2024-04-30_2of2.parquet"
+  ],
+  "rf_skx/all_features": [
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_10of51.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_11of51.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_12of51.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_13of51.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_14of51.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_15of51.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_16of51.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_17of51.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_18of51.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_19of51.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_1of51.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_20of51.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_21of51.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_22of51.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_23of51.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_24of51.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_25of51.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_26of51.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_27of51.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_28of51.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_29of51.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_2of51.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_30of51.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_31of51.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_32of51.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_33of51.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_34of51.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_35of51.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_36of51.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_37of51.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_38of51.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_39of51.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_3of51.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_40of51.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_41of51.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_42of51.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_43of51.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_44of51.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_45of51.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_46of51.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_47of51.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_48of51.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_49of51.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_4of51.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_50of51.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_51of51.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_5of51.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_6of51.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_7of51.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_8of51.parquet",
+   "rf_skx_all_features_bar_2014-01-02_2024-04-30_9of51.parquet"
+  ]
+ },
+ "cpu_models": {
+  "rf_skx/baseline": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "rf_skx/all_features": [
+   "AMD EPYC 7513 32-Core Processor",
+   "AMD EPYC 7542 32-Core Processor"
+  ]
+ }
+}
