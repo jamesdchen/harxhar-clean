@@ -92,3 +92,18 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   data/pmf_lin_init copied, md5 of every file equal: 59 / 44 files; bin and code of pmf2_35 link to pmf2's). Scripts
   updated (GPUTYPE + --constraint; the sbatch path read from ROOT/code; a failed trainer leaves its log in salvage/).
   Completed G1 / G2 runs stay in /home1/jc_905/pmf2/runs (read only).
+- 2026-10-23 22:52 PDT: the 5 failed G2 files rerun unchanged on P100 from /scratch1/jc_905/pmf2 (13366974 HAR lr
+  0.003 / 13366975 HAR lr 0.01 / 13366976-78 full lr 0.001 / 0.003 / 0.01; run dirs v2g2m_*_<id> there).
+  G2 decision read so far (g2-decide on the 3 completed files; the E 300 files are complete): Stage-1 lr set
+  {0.003, 0.01, 0.03} (argmin of the 2-seed mean TQ_300: full (64,20) 0.003, (256,20) 0.003; HAR (64,20) 0.01 ->
+  + 0.03, (256,20) 0.003; 0.001 the argmin nowhere). Full set: (256,20) at its best lr 0.003 has rho_300 ~ 0 (TQ_300
+  -2e-10: float32 rounding of a perfect training fit) <= 0.5 -> E1 = 300 for the full set at both windows (its E 1,000
+  runs do not enter). HAR: (256,20) at 0.003 has rho_300 0.582 > 0.5 -> E1 waits for the E 1,000 run at lr 0.003
+  (13366974). Diagnostics: full set memorizes fast (H 64 L 20 lr 0.003 rho_300 0.123; validation QLIKE 0.45-0.88 at
+  epoch 300 vs best 0.118-0.121 at epochs 3-7); HAR does not at E 300 (best rho_300 0.576 / 0.588).
+- 2026-10-23 22:55 PDT G3 (W 3,000) and G4 (W 3,500), full set, submitted: core grid 9 cells x lr {0.003, 0.01, 0.03}
+  x 3 seeds, E 300 (81 jobs a window). GPU type of the Stage-1 group at each window: L40S (ADDENDUM 1 choice: free in
+  the gpu partition at 22:55:53 L40S 2, A100 2 (not validated), A40 / P100 / V100 0). W 3,000 13367188-92 (5 files),
+  W 3,500 13367193-98 (6 files, nice 100). Job files now hold one concurrency each (pack_files: a file runs at its
+  minimum CONC; mixing CONC 24 and 6 cells would have slowed the small cells). The HAR half of each window's grid
+  follows on L40S once G2 fixes HAR's E1.

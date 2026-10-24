@@ -704,12 +704,14 @@ def s2_line(
 def pack_files(
     items: list[tuple[str, float, int]], max_s: float
 ) -> list[list[tuple[str, float, int]]]:
-    """Cut (line, P100-s, conc) items, in order, into files of at most max_s estimated P100-s."""
+    """Cut (line, P100-s, conc) items, in order, into files of at most max_s estimated P100-s; a file holds one
+    concurrency only (2026-10-23: a file runs at its minimum concurrency, so mixing CONC 24 and 6 cells slowed the
+    small cells below the estimates the time limits come from)."""
     out: list[list] = []
     cur: list = []
     tot = 0.0
     for it in items:
-        if cur and tot + it[1] > max_s:
+        if cur and (tot + it[1] > max_s or it[2] != cur[0][2]):
             out.append(cur)
             cur, tot = [], 0.0
         cur.append(it)
