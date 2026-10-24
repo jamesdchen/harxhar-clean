@@ -311,3 +311,9 @@ Pool: lines 5-348 of runs/tasks/w3rf_full.txt, claims in runs/claims_w3rf_full/<
   input/output error); no error line in its log; the four checks passed; deleted
   ALL48_rf_skx_all_features_63of368.ckpt.json (101 bytes), .parquet (6,818 bytes) and its claim; back in the
   /scratch1 pools.
+- Standing rule, batch 4 (steward alert: 13378116 2 failed): line 37 (13378116_10, E5-2640 v4, d18-35, errno 108 on the
+  piece's .part, ended 12:36 CARC clock) kept for now: its piece files changed within the last 10 minutes (check 3);
+  rechecked at the next alert.  First completed lines: 13 and 17 (E5-2640 v4, 20 threads, 3.65 / 3.66 h for 98 refits
+  each).  Pools: EPYC 13377719 20 running / 119 pending (11 failed); old Xeon 4116 13378115 23 running (24 failed);
+  E5-2640 v4 13378116 9 / 7 (2 failed, 2 done); /home1 Xeon 4116 13381306 4 / 60; unclaimed below 80: 40, 46, 47, 50,
+  52, 58, 63, 67-79.
