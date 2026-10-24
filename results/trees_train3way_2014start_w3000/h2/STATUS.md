@@ -114,3 +114,18 @@ bookworm container of the tree learning curve; threads = slots; numpy AVX-512 di
   which walk.sh checks at start); Xeon 6736P and Gold 6442Y are not gated.
 - UGE (the old scheduler): the per-user cap smp/1 = 200 slots binds (25 eight-thread tasks), so raising -tc or
   shortening h_rt there does not help; nothing changed on UGE.
+
+## 12:49-12:52 PDT (Hoffman2 clock): option 1 (Slurm pi_shared Gold 6342) refused by Slurm; lines back on UGE
+
+- Prepared on /u/scratch (each file written verbatim in a session heredoc): jobs/walk_slurm.sh (md5 5c791306...),
+  jobs/line_slurm.sh, jobs/cmp_slurm.sh / .py (the bit-identity check: 5 UGE Gold 6342 gate lines rerun on Slurm and
+  compared bit for bit), lines/chk_gold6342.txt, h2/passed_cpus_slurm.txt (Gold 6342 only),
+  runs/tasks/h2_slurm1_gold6342.txt (205 lines).  qdel 15262074 15262075 (205 pending, none running).
+- sbatch (pi_shared, --qos=pi_shared24) refused all three jobs: "pi_shared is for groups whose nodes are in SLURM;
+  account pi_mcucurin has no pi_* partition yet" -- nothing ran on Slurm (runs_slurm/pieces empty).  Only the campus
+  partition (QOS campus24: 1,024 CPUs, 16 nodes, 100 jobs a user, 1 day) is open to us; it has no Gold 6342 nodes
+  (Gold 6240, Xeon 6736P, Gold 6442Y, E5-2670).
+- 12:52: the 205 lines requeued on UGE Gold 6140 exactly as before: 15263238 (190 lines, -tc 95) and 15263239
+  (15 lines, -tc 25, held on 15262057); runs/tasks/h2_placement.txt updated.
+- Slurm GPUs open to us (campus): g15 A100 x4 (drained), g33 RTX PRO 6000 Blackwell x2 (1 in use), g35 RTX PRO 6000
+  Blackwell x7 (7 in use); campus24 caps 2 GPUs a user, 1 day; highp only for pi_* accounts.
