@@ -205,3 +205,20 @@ Pool: lines 5-348 of runs/tasks/w3rf_full.txt, claims in runs/claims_w3rf_full/<
 | Time (PDT) | Lines of w3rf_full.txt | From -> to | Why |
 |---|---|---|---|
 | 07:09 | 5-239 (13372432, pending) and 240-348 (13372801, pending) | EPYC 20-thread arrays -> claim pool (EPYC 8 threads; Xeon 4116 / E5-2640 v4 after their gates) | addendum E: 4 forest tasks running, 3 EPYC nodes with >= 20 idle CPUs |
+
+## Xeon gate failures: infrastructure (07:22-07:25 PDT)
+
+- Failed gate tasks (no comparison ran in any): x4116 13377713_1 (RTH13 rf HAR gate 1; d05-06) SIGBUS (exit 135);
+  x2640v4 13377716_3 / _4 (d18-17), _9 (d18-26) SIGBUS, 13377717_1 (d18-28) BrokenPipeError errno 108 (ESHUTDOWN)
+  reading the design csv, 13377717_2 (d18-29) SIGBUS -- the mmap / reads of the /scratch1 design on nodes with failing
+  Lustre mounts.  Completed gate tasks ran on d05-13, d05-15, d11-11, d11-17, d18-13, d18-18, d18-24.
+- RULE.txt note to addendum E (6e1eb98); `code/submit_e2.sh` (07:24): designs copied to /home1 (13378109, md5-checked);
+  incomplete pieces of the failed lines removed; reruns with the /home1 designs, nodes d05-06, d18-17, d18-26,
+  d18-28, d18-29 excluded: 13378110 (x4116, 1 line, 8 threads), 13378111 (x2640v4, 3 lines, 8 threads), 13378112
+  (x2640v4, 2 lines, 20 threads); new checks 13378113 (x4116: afterany 13377713 / 13377714, afterok 13378110) and
+  13378114 (x2640v4: afterany 13377716 / 13377717, afterok 13378111 / 13378112); never-started 13377715, 13377718,
+  13377761, 13377762 cancelled; Xeon pools resubmitted with DESIGNS=/home1, the nodes excluded: 13378115 (x4116, main,
+  150 %40, afterok 13378113), 13378116 (x2640v4, oneweek, 20 %10, afterok 13378114); held merge 13372433 re-pointed.
+- EPYC pool 13377719: 0 of 150 running at 07:24, every task pending with reason None (not yet evaluated); EPYC 7513 /
+  7542 nodes with >= 8 idle CPUs: 26 (780 idle CPUs); our running 47 jobs / 616 CPUs; scheduler: backfill tests at
+  most 3,000 jobs a cycle (bf_max_job_test), window 48 h, resolution 10 min.
