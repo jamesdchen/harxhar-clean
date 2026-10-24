@@ -39,7 +39,7 @@ case $MODE in
     fi
     ;;
   pieces)
-    I=$B/runs/pieces_h2
+    I=${T3T_PIECES:-$B/runs/pieces_h2}  # /project2/pollok_1603/jc_905/trees3way/pieces_h2 if /scratch1 fails
     mkdir -p $I
     touch $I/MD5SUMS
     n=0

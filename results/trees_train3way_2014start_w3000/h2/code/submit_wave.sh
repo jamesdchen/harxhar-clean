@@ -9,7 +9,9 @@
 #   assignment, a gate-passed CPU model and the piece's CPU model at its start), arch and h_rt from h2/walk_resources.txt
 #   (the gate summary; h_rt override as the second argument), $NT threads = slots (default 20; 8 where Hoffman2 does
 #   not schedule 20-slot jobs, the gated thread count), h_data per slot $HD (default 1536M at 20 slots, 2G at 8).
-# usage: [NT=8] [ARCH_ONLY=<arch|arch>] bash submit_wave.sh <n lines> [h_rt]
+# usage: [NT=8] [ARCH_ONLY=<arch|arch>] [SEC=<s a refit at NT threads> WTAG=<tag>] bash submit_wave.sh <n lines> [h_rt]
+#   SEC (no h_rt argument): h_rt = 1.4 x the longest selected line (13 refits a day; CARC's w3rf_full.txt lines 1-67 are
+#   8 trading days, the rest 7) x SEC, at least 4 h, at most 24 h; WTAG goes into the job name (t3t_w<k>_<tag>).
 set -euo pipefail
 B=/u/scratch/j/jamesdc1/t3t
 N=${1:?n lines}
@@ -40,8 +42,12 @@ while read -r L; do
   n=$((n + 1))
 done < h2/.assigned_lines
 [ $n -gt 0 ] || { rm -f $F.tmp; echo "no assigned line left to start"; exit 0; }
+if [ -z "${2:-}" ] && [ -n "${SEC:-}" ]; then
+  days=$(awk '{split($4, p, "/"); d = (p[1] + 0 <= 67) ? 8 : 7; if (d > m) m = d} END {print m}' $F.tmp)
+  HRT=$(awk -v d=$days -v s=$SEC 'BEGIN {h = int(13 * d * s * 1.4 / 3600) + 1; if (h < 4) h = 4; if (h > 24) h = 24; print h ":00:00"}')
+fi
 mv $F.tmp $F
 echo w3rf_full.txt > $F.source
-j=$(qsub -terse -N t3t_w$k -t 1-$n -tc $n -pe shared $NT -l "h_rt=$HRT,h_data=$HD,arch=$ARCH" \
+j=$(qsub -terse -N t3t_w$k${WTAG:+_$WTAG} -t 1-$n -tc $n -pe shared $NT -l "h_rt=$HRT,h_data=$HD,arch=$ARCH" \
   -o "$B/logs/w$k.\$TASK_ID.log" -v "TASKFILE=$B/$F" jobs/walk.sh | cut -d. -f1)
 echo "wave $k $(date +%F_%T) job=$j lines=$n ($(head -1 $F | awk '{print $4}') .. $(tail -1 $F | awk '{print $4}')) tc=$n threads=$NT h_rt=$HRT h_data=$HD arch=$ARCH" | tee -a jobids.txt
