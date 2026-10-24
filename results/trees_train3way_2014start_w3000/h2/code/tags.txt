@@ -1,0 +1,5 @@
+# Hoffman2 gate tags of the trees' three-way comparison: <tag> <UGE arch> <CPU model regex (grep -E on /proc/cpuinfo)>
+gold6140 intel-gold-6140 Gold.6140
+gold6240 intel-gold-6240 Gold.6240
+gold6342 intel-gold-6342 Gold.6342
+e5v4 intel-E5-2650v4 E5-2650.v4
