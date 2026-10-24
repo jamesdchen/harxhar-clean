@@ -5,6 +5,9 @@
 # (ALL48, 3,000-day penalties: full-set ridge / lasso / elastic net and the OLS, rows [S0, S0+500) long vs a chunk from
 # S0+250); the re-split walks run afterok on it.  Replaces the cancelled (not started) 13367776, 13367778, 13367779,
 # 13367780.  Target about 30-45 min a task.
+# AS RUN (23:52 PDT): ALL48_N39k 13367778 had started by then (2 tasks running), so it kept its split too; only
+# ALL48@16 was re-split: 13367776, 13367779, 13367780 cancelled; gate_seam 13367866, ALL48@16 13367867 (21 tasks),
+# export5 13367868 (afterok 13367775, 13367777, 13367778, 13367867), score5 13367869 -- the w4 line was not run.
 # usage: submit3s.sh   -> prints every job id; the score job is the end of the chain
 set -euo pipefail
 B=/scratch1/jc_905/train3way

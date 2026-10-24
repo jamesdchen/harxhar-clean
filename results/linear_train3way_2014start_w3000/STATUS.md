@@ -103,3 +103,6 @@ solve is the tune (identifiability mask + cold seed of the same window) the long
 standardization scales and OLS sums restart from that window in both.  Checked bit for bit by gate_seam (ALL48,
 3,000-day penalties: full-set ridge, lasso, elastic net and the OLS; rows [S0, S0 + 500) as one walk against a chunk
 starting at S0 + 250: date, true_adj and pred_adj strings must be identical), on which the re-split walks run afterok.
+| Time (PDT, 2026-10-23) | Event |
+|---|---|
+| 23:52 | by submission time ALL48_N39k 13367778 had started (2 tasks running): kept as is (10 tasks), like ALL48 13367775 and ALL48_N3k 13367777.  Only ALL48@16 re-split: 13367776, export4 13367779, score4 13367780 cancelled (not started); submitted gate_seam 13367866, ALL48@16 walks 13367867 (21 tasks, afterok gate_seam), export5 13367868 (afterok 13367775, 13367777, 13367778, 13367867), SCORE5 13367869 = the last job (both designs, scores_all/) |
