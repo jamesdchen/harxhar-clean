@@ -357,3 +357,9 @@ Pool: lines 5-348 of runs/tasks/w3rf_full.txt, claims in runs/claims_w3rf_full/<
   20 threads, no error line) kept: no I/O error of its own; the same-node check of the extension is run at the next
   alert.  Pools: EPYC 13377719 32 / 107; old Xeon 4116 13378115 23; E5-2640 v4 13378116 8 / 1 (3 failed); /home1
   13381306 4 / 60, 13382812 0 / 55, 13382813 3 / 9, 13383080 0 / 56, 13383081 0 / 30, 13383082 0 / 8; 8 lines done.
+- Standing rule, second extension (coordinator ~15:45 PDT): it also covers a task whose own log is clean (no
+  traceback, exception, assertion or OOM) when it ran on a node already on our excluded bad-node list because of a
+  logged /scratch1 I/O error on that node earlier the same day (e.g. d18-35: line 37's errno 108 at 12:36).  Limit:
+  a line that fails a second time and qualifies only under an extension (not a logged I/O error of its own) is parked
+  and asked about.  Lines restarted under an extension so far: 63 (same node / same second as an errno 5); 39 is
+  approved for restart (d18-35) and is restarted at the next alert's batch, with the same four checks.
