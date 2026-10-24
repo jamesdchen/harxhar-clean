@@ -79,3 +79,27 @@ Phase 2 (ALL48, 3,000 days): `code/submit2.sh` after the gates and the projectio
   (w1r, 15 lines) re-pointed to afterok:13371164 (now pending on resources); merge 13369759 and interim score 13369760
   (scores_w1) as submitted = the last job of the chain.  Still running: 13369749_3 (gate 2, the ALL48 forest full
   set), 13369752 (the full gate comparison; no dependents now), 13371140 (the diagnostic's batch copy).
+
+## Addendum B: the owner's scope and LightGBM col-wise (01:25 PDT)
+
+RULE.txt addendum B committed in 8b85295 before its jobs; code archive `code_8b85295` (ARMS lgbm_col_wise for ALL48 and
+ALL48_N39k; ALL48_N3k's LightGBM walks had started with the template setting and keep it).  Submitted 01:26 PDT
+(`code/submit2b.sh code_8b85295 13369760 13369749`):
+
+| Job | Name | What | Depends on |
+|---|---|---|---|
+| 13371780 | t3t_gc | gate C walks (24 lines: ALL48 LightGBM every / scored / scored2 / one1-4, ALL48_N39k scored / scored2 / one1-2, RTH13 col-wise record; both sets) | - |
+| 13371781 | t3t_gcc | gate C (a): gate2 --arm ALL48 --est lgbm, gaterep | gc |
+| 13371782 | t3t_gcb | gate C (b) record: colwise_vs_template.json | gc (afterany) |
+| 13371783 | t3t_g2x | gate 2 on ALL48's XGBoost | - |
+| 13371784 | t3t_g2r | gate 2 on ALL48's forest | 13369749 (its full set still running) |
+| 13371785 | t3t_w2l | ALL48_N39k LightGBM, col-wise (12, %12) | gcc |
+| 13371786 | t3t_w2x | ALL48_N39k XGBoost (23, %15) | g2x |
+| 13371787 | t3t_w3l | ALL48 LightGBM, col-wise (31, %15) | gcc |
+| 13371788 | t3t_w3x | ALL48 XGBoost (40, %15) | g2x |
+| 13371789 | t3t_w2r | ALL48_N39k forest, 20 threads (44, %20) | g2r |
+| 13371790 | t3t_w3h | ALL48 forest HAR set, 20 threads (4, %4) | g2r |
+| 13371791 / 13371792 | t3t_m2 / t3t_s2 | merge ALL48_N39k / scores_w2 | w2l, w2x, w2r / m2, s1 13369760 |
+| 13371793 / 13371794 | t3t_m3 / t3t_s3 | merge ALL48 (--skip rf_skx/all_features) / final scores | w3l, w3x, w3h / m3, s2 |
+
+Not submitted: ALL48's forest full set (runs/tasks/w3rf_full.txt, 368 lines; `code/submit3_rf_full.sh`).
