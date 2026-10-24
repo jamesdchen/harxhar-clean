@@ -71,3 +71,19 @@ bookworm container of the tree learning curve; threads = slots; numpy AVX-512 di
   E5-2650 v4 or Gold 6240 had started (wave 1 queued since 10:19).  The gates of those three models had each run on
   one or two nodes only (6342 n1077, 6240 n1849, E5-2650 v4 n7368 / n7005); much of their capacity is in owner pods
   closed to us (e.g. bern_pod_6240.q / 6342.q).  RQS h_rt limits seen: andrewst 12 h, econdjs 8 h, sch 4 h.
+
+## 10:42-10:45 PDT (Hoffman2 clock): unstarted tasks moved to Gold 6140 (coordinator's go, ~11:50 PDT)
+
+- All six wave arrays put on user hold (qhold), then running tasks listed (`qstat -s r -g d`): only Gold 6140
+  15262057 tasks 1-25 (lines 174-198) had started; nothing finished.  First attempt (10:42) aborted before any qdel:
+  `qstat -g d` did not list the held pending tasks, so its coverage check failed and the holds were released.  Second
+  attempt (10:43): pending = every task of each array's task file that is not running (no task had finished), coverage
+  checked = exactly lines 139-368, each once; no piece file for any moved line.
+- qdel of the 205 pending tasks (15262038: 20, 15262055: 60, 15262056: 50, 15262057: 40, 15262058: 20, 15262059: 15),
+  every qdel verbatim in the heredoc and each returned success; 15262057's 25 running tasks untouched (25 running after).
+- Gold 6140, 8 threads, h_rt 16 h, h_data 2G a slot, fresh pieces only:
+  15262074 (t3t_w3a_6140) 190 lines = 199-368 and 154-173, -tc 95;
+  15262075 (t3t_w3b_6140) 15 lines = 139-153, -tc 25, held on 15262057 (starts as its 25 finish).
+  Total concurrent <= 120 (25 + 95, then 95 + 25).
+- Projected (11.2 h a line on Gold 6140): 15262057 ~21:50 today; 15262074 round 1 ~22:00, round 2 ~09:15 Oct 25;
+  15262075 ~09:05 Oct 25 -> all 230 Hoffman2 lines ~09:00-10:00 PDT Oct 25, if the tasks start promptly.
