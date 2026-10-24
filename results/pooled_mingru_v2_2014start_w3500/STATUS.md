@@ -17,3 +17,6 @@ the old run (read-only): `/home1/jc_905/pmf35/data` (design copies, fold-3 ridge
 - 2026-10-23 22:55 PDT: v2 root moved to /scratch1/jc_905/pmf2_35 (the /home1 quota; see the W 3,000 STATUS.md and
   RULE ADDENDUM 1). G4 (Stage 1, full set) submitted on L40S, nice 100: 13367193-98 (6 files, 81 jobs: core grid x lr
   {0.003, 0.01, 0.03} x 3 seeds, E 300; w0 1,702). GPU type of this window's Stage-1 group: L40S.
+- 2026-10-24 00:08 PDT: G2 decided (W 3,000 STATUS.md, g2_decide.json): HAR E1 = 1,000, full set 300; lr {0.003, 0.01,
+  0.03}. G4 HAR submitted on P100 (ADDENDUM 1b), nice 100: 13369121-42 (14 files, 81 jobs, E 1,000, w0 1,702). G4 full
+  set: 13367193-95 completed, 13367196 running, 13367197-98 pending (L40S).

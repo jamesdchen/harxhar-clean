@@ -136,3 +136,9 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   pending (L40S). Canary 13367874 still pending in debug (A40).
 - 2026-10-24 00:05 PDT: RULE ADDENDUM 1b: the HAR Stage-1 groups (both windows) on P100 (the type with the most cap
   headroom at submission: A40's 12 are taken by our full-set screen).
+- 2026-10-24 00:08 PDT G3 HAR (W 3,000) submitted on P100: 12 files (81 jobs: 9 cells x lr {0.003, 0.01, 0.03} x 3
+  seeds, E 1,000; est. 4.20 P100-h): 13369109-10 debug P100, 13369111-20 gpu P100. G4 HAR (W 3,500): 14 files
+  13369121-42 gpu P100, nice 100 (est. 4.86 P100-h). The full-set canary also submitted to gpu A40 (13369150; the debug
+  copy 13367874 waits behind other users' debug jobs); the 15 screen files now wait on "afterok:13367874 ?
+  afterok:13369150" (either copy). The commit "G2 decided ..." swept in another session's untracked
+  hoffman2_gpu_test/ files by a directory add; untracked again in the next commit (files left on disk).
