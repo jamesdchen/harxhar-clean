@@ -350,3 +350,10 @@ Pool: lines 5-348 of runs/tasks/w3rf_full.txt, claims in runs/claims_w3rf_full/<
   /home1 Xeon 4116 13381306 4 / 60; EPYC /home1 13382812 0 / 55; oneweek Xeon 4116 13382813 3 / 9; new 13383080 0 / 56,
   13383081 0 / 30, 13383082 0 / 8.  Lines done 8 (/scratch1 namespace); unclaimed: 7 below 80, 52 of 80-138, 52 of
   317-368.  Our normal-QOS running jobs 59; oneweek 204 of 208 CPUs.
+- Steward alert (~15:30 PDT): merge 13372430 (ALL48 without the forest full set) COMPLETED: lgbm / xgb both sets and
+  rf_skx HAR, 33,970 rows each (169,850 rows) -> runs/ALL48/forecasts.parquet; its score 13372431 waits on 13372429,
+  which waits on the ALL48_N39k merge 13372428 (the N39k forest 13371789: 43 of 44 tasks done, 1 running).  Line 39
+  (13378116_13, E5-2640 v4, d18-35, ended 13:22 CARC clock, exit 1:0; log shows normal progress, ~129 s a refit at
+  20 threads, no error line) kept: no I/O error of its own; the same-node check of the extension is run at the next
+  alert.  Pools: EPYC 13377719 32 / 107; old Xeon 4116 13378115 23; E5-2640 v4 13378116 8 / 1 (3 failed); /home1
+  13381306 4 / 60, 13382812 0 / 55, 13382813 3 / 9, 13383080 0 / 56, 13383081 0 / 30, 13383082 0 / 8; 8 lines done.
