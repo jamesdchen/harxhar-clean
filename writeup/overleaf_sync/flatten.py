@@ -1075,8 +1075,8 @@ def check(fl: Flattener, out_dir: Path, flat: str, keep: bool) -> bool:
         ok &= same_text and same_pages
 
         undefined = main_log.count("Undefined control sequence")
-        errors_main = collections.Counter(l for l in main_log.splitlines() if l.startswith("! "))
-        errors_paper = collections.Counter(l for l in paper_log.splitlines() if l.startswith("! "))
+        errors_main = collections.Counter(ln for ln in main_log.splitlines() if ln.startswith("! "))
+        errors_paper = collections.Counter(ln for ln in paper_log.splitlines() if ln.startswith("! "))
         print(f"  'Undefined control sequence' in main.log: {undefined}")
         new_errors = errors_main - errors_paper
         if new_errors:
@@ -1123,6 +1123,12 @@ def main(argv: list[str] | None = None) -> int:
         default="",
         help="write each .bib as <name><suffix>.bib and point \\bibliography at it (e.g. 2: references2.bib)",
     )
+    ap.add_argument(
+        "--figures-out",
+        type=Path,
+        default=None,
+        help="write the figures copied into --out, one path relative to --out a line (overleaf_git.sh commits them)",
+    )
     args = ap.parse_args(argv)
 
     fl = Flattener(args.entry, args.name, args.bib_suffix)
@@ -1144,6 +1150,7 @@ def main(argv: list[str] | None = None) -> int:
     out_dir.mkdir(parents=True, exist_ok=True)
     with open(out_dir / fl.flat_name, "w", encoding="utf-8", newline="") as fh:
         fh.write(flat)
+    copied_figures: list[str] = []
     for rel, out_rel in [(b, fl.out_bib(b)) for b in fl.bibs] + [(f, f) for f in fl.figures]:
         src = fl.root / rel
         if not src.is_file():
@@ -1151,6 +1158,13 @@ def main(argv: list[str] | None = None) -> int:
             continue
         (out_dir / out_rel).parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(src, out_dir / out_rel)
+        if rel in fl.figures:
+            copied_figures.append(out_rel)
+    # 2026-10-24: the caller commits the figures from this list (they were copied but never committed, so Overleaf
+    # compiled the flat paper without them).
+    if args.figures_out is not None:
+        with open(args.figures_out, "w", encoding="utf-8", newline="\n") as fh:
+            fh.write("".join(f"{f}\n" for f in copied_figures))
     args.map.parent.mkdir(parents=True, exist_ok=True)
     with open(args.map, "w", encoding="utf-8", newline="") as fh:
         fh.write(map_text)

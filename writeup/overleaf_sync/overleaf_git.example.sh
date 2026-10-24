@@ -12,11 +12,13 @@
 # 2026-10-20 (user): the project already holds an earlier draft (main.tex, references.bib, sections/, ...), which stays
 # as it is. The flat paper is written as main2.tex, with its bibliography as references2.bib, and nothing else is
 # added or changed in the project (set main2.tex as the main document in Overleaf to compile it).
+# 2026-10-24: the flat paper's live figures are committed too, at their paths under writeup/ (flatten.py copied them
+# but they were never committed, so Overleaf compiled without them); a figure never replaces a project file.
 #
 # push: clones (or updates) the Overleaf project in $OVERLEAF_DIR. It refuses if Overleaf's main2.tex differs from the
 #       last flatten in writeup/overleaf_sync/map.json, because that means human edits not yet pulled back; --first
 #       allows the very first push (no main2.tex yet). It flattens (flatten.py --name main2.tex --bib-suffix 2, with
-#       --check if given), commits only main2.tex and references2.bib, pushes to Overleaf, then commits map.json in
+#       --check if given), commits main2.tex, references2.bib and the figures it copied, pushes to Overleaf, then commits map.json in
 #       harxhar-clean (push that commit yourself).
 # pull: pulls the Overleaf project and runs unflatten.py on its main2.tex (--dry-run: report only). Then rebuild the
 #       paper, and run `push` so Overleaf gets the regenerated main2.tex.
@@ -86,9 +88,20 @@ push)
     if [[ $first -eq 1 && -e "$DIR/$FLAT" ]] && ! same_as_last_flatten; then
         die "--first, but $DIR/$FLAT already exists with other content; pull it back first"
     fi
-    python3 "$SYNC/flatten.py" --out "$DIR" --map "$MAP" --name "$FLAT" --bib-suffix "$BIB_SUFFIX" ${check[@]+"${check[@]}"}
+    figlist="$(mktemp)"
+    python3 "$SYNC/flatten.py" --out "$DIR" --map "$MAP" --name "$FLAT" --bib-suffix "$BIB_SUFFIX" \
+        --figures-out "$figlist" ${check[@]+"${check[@]}"}
+    figs=()
+    while IFS= read -r f; do [[ -n "$f" ]] && figs+=("$f"); done < "$figlist"
+    rm -f "$figlist"
+    for f in ${figs[@]+"${figs[@]}"}; do  # a figure may replace only a file an earlier flatten committed
+        if git -C "$DIR" ls-files --error-unmatch -- "$f" >/dev/null 2>&1 \
+            && [[ "$(git -C "$DIR" log -1 --format=%s -- "$f")" != "Flatten from harxhar-clean "* ]]; then
+            die "$f is one of the project's own files; not overwriting it (restore: git -C \"$DIR\" checkout -- \"$f\")"
+        fi
+    done
     sha="$(git -C "$REPO" rev-parse --short HEAD)"
-    git -C "$DIR" add -- "$FLAT" "references$BIB_SUFFIX.bib"   # only the flat paper's files, never the project's own
+    git -C "$DIR" add -- "$FLAT" "references$BIB_SUFFIX.bib" ${figs[@]+"${figs[@]}"}   # only the flat paper's files, never the project's own
     if git -C "$DIR" diff --cached --quiet; then
         echo "overleaf_git: Overleaf already has this flatten; nothing to push"
     else
