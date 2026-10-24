@@ -100,3 +100,17 @@ bookworm container of the tree learning curve; threads = slots; numpy AVX-512 di
 - The five deleted arrays are gone (`qstat -j`: do not exist).
 - Task -> line: 15262074 task k = line 369 - k for k <= 170 (368..199), line 344 - k for k 171-190 (173..154);
   15262075 task k = line 154 - k (153..139).  Queued tasks start by task number as slots free (from ~21:50).
+
+## 12:40 PDT: the new Hoffman2 Slurm cluster (hoffman2.oarc.ucla.edu; read only, two sessions)
+
+- Same /u/scratch (the t3t staging, env and designs are visible there); apptainer/1.3.4 module.  Association
+  pi_mcucurin with QOS campus24 / pi_shared24 / highp.  PreemptMode OFF; sched/backfill.
+- campus partition (QOS campus24: per user cpu=1024, node=16, 100 jobs, 500 submitted, 1 day): idle 8-CPU slots now
+  Gold 6240 173, Xeon 6736P 97, Gold 6442Y 84; 63 jobs (1,577 CPUs) pending in it.
+- pi_shared partition (default; QOS pi_shared24: no per-user CPU limit, 1 day; PI nodes, no preemption; nothing
+  pending): idle 8-CPU slots now Gold 6342 277 (50 nodes), Gold 6240 118, Gold 6140 105, E5-2650 v4 74, Xeon 6736P
+  160 (ungated), E5-2697A v4 14.
+- Gold 6342, 6240, 6140 and E5-2650 v4 are gate-passed models (if the Slurm nodes report the same CPU model strings,
+  which walk.sh checks at start); Xeon 6736P and Gold 6442Y are not gated.
+- UGE (the old scheduler): the per-user cap smp/1 = 200 slots binds (25 eight-thread tasks), so raising -tc or
+  shortening h_rt there does not help; nothing changed on UGE.
