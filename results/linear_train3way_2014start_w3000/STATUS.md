@@ -46,3 +46,14 @@ To finish (after score 13361445): pull `scores/` (tables, csv, f16.parquet) and 
 | 22:20 | code on CARC: linear_train3way{,_runner,_score}.py of 06d5871 (additive: new arms, derive_window, --window-rows, the `both` scoring switch; no equal-calendar computation changed) |
 | 22:21 | submitted: RTH13_N3k derive/pretune/select 13364083; ALL48_N3k + ALL48_N39k derive/pretune/select 13364084 (after the ALL48 design 13361323); walks RTH13_N3k 13364085 (8), ALL48_N3k 13364086 (14), ALL48_N39k 13364087 (22) |
 | 22:23 | export2 13364094 (afterok 13361327, 13361442, 13364085-87; afterany 13361445) and SCORE2 13364095 (both designs, `scores_all/`) - the last job of both chains |
+
+## Addendum B: scored-only refits in the 48-interval arms (RULE.txt addendum B, commit 8225da2, before any affected walk)
+
+| Time (PDT, 2026-10-23) | Event |
+|---|---|
+| 22:30-22:35 | RTH13_N3k derive/pretune/select 13364083 and walks 13364085 (8 tasks) done, every task COMPLETED |
+| 22:46 | ALL48 design 13361323 done (3,111 s; all-features design in one pass) |
+| 22:48 | owner-approved scancel of the pending ALL48 walks 13361327, 13361442, 13364086, 13364087 and the dependent export / score jobs 13361444, 13361445, 13364094, 13364095 (none had started) |
+| 22:50 | synthetic check on CARC (srun 13366875, 900 rows of a 48-row-a-day cache): OLS and ridge bit-identical, lasso / elastic net <= 3e-14 relative, 18 warm re-solves all by the active-set repair, KKT clean |
+| 22:55 | code on CARC: linear_train3way{,_runner}.py of 8225da2 (the scored-only refit, gate_refit), linear_train3way_score.py of 06d5871 |
+| 22:56 | submitted: gate_refit 13366980 (after ALL48 pretune/select 13361324); walks ALL48 13366981 (22 tasks), ALL48@16 13366982 (21; after select16 13361440), ALL48_N3k 13366983 (9) and ALL48_N39k 13366984 (13) (after 13364084); every walk afterok on the gate; export3 13366985; SCORE3 13366986 = the last job (both designs, scores_all/) |
