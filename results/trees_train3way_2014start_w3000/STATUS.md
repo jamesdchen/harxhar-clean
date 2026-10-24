@@ -74,3 +74,8 @@ Phase 2 (ALL48, 3,000 days): `code/submit2.sh` after the gates and the projectio
   (a duplicate batch copy 13371140 was submitted while the srun ran; same script).
 - RULE.txt addendum A: the cheap arms run after gate 1 + gate 2 on ALL48_N3k (new job t3t_gate3k); ALL48_N39k and ALL48
   wait for the owner.
+- 00:47: code archive `code_028cfbb` (walk code unchanged; gate2 --arm added); t3t_gate3k 13371164 (gate1 + gate2
+  --arm ALL48_N3k) COMPLETED: GATE 1 PASS, GATE 2 (ALL48_N3k) PASS; walk arrays 13369755 (w1g, 25 lines) / 13369756
+  (w1r, 15 lines) re-pointed to afterok:13371164 (now pending on resources); merge 13369759 and interim score 13369760
+  (scores_w1) as submitted = the last job of the chain.  Still running: 13369749_3 (gate 2, the ALL48 forest full
+  set), 13369752 (the full gate comparison; no dependents now), 13371140 (the diagnostic's batch copy).
