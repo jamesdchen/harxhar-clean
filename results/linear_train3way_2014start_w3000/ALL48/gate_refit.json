@@ -1,0 +1,208 @@
+{
+ "rows": 400,
+ "walk_start": 171000,
+ "baseline/ridge": {
+  "scored_origins": 104,
+  "max_rel_diff": 0.0,
+  "tol": 1e-09,
+  "same_rows": true,
+  "nan_ok": true,
+  "kkt_not_ok": 0,
+  "kkt_reseeds": 0,
+  "refit": {
+   "mode": "scored@2014-01-02",
+   "resolves": 0,
+   "resolve_kkt_ok": 0,
+   "resolve_active_repair": 0,
+   "resolve_cd_polish": 0,
+   "resolve_cold_seed": 0,
+   "tracker_seeds_in_gaps": 0,
+   "solves": 105,
+   "tune_solves_unscored": 1,
+   "skipped": 294,
+   "tune_per": 250,
+   "rows": 400,
+   "scored": 104
+  },
+  "cpu_sec": {
+   "all": 0.39243699199999993,
+   "scored": 0.3663318149999999
+  },
+  "pass_": true
+ },
+ "baseline/lasso": {
+  "scored_origins": 104,
+  "max_rel_diff": 4.902916263376773e-16,
+  "tol": 1e-06,
+  "same_rows": true,
+  "nan_ok": true,
+  "kkt_not_ok": 0,
+  "kkt_reseeds": 0,
+  "refit": {
+   "mode": "scored@2014-01-02",
+   "resolves": 8,
+   "resolve_kkt_ok": 0,
+   "resolve_active_repair": 8,
+   "resolve_cd_polish": 0,
+   "resolve_cold_seed": 0,
+   "tracker_seeds_in_gaps": 0,
+   "solves": 105,
+   "tune_solves_unscored": 1,
+   "skipped": 294,
+   "tune_per": 250,
+   "rows": 400,
+   "scored": 104
+  },
+  "cpu_sec": {
+   "all": 0.5056136949999999,
+   "scored": 0.4542579230000001
+  },
+  "pass_": true
+ },
+ "baseline/enet": {
+  "scored_origins": 104,
+  "max_rel_diff": 6.610230814815214e-16,
+  "tol": 1e-06,
+  "same_rows": true,
+  "nan_ok": true,
+  "kkt_not_ok": 0,
+  "kkt_reseeds": 0,
+  "refit": {
+   "mode": "scored@2014-01-02",
+   "resolves": 8,
+   "resolve_kkt_ok": 0,
+   "resolve_active_repair": 8,
+   "resolve_cd_polish": 0,
+   "resolve_cold_seed": 0,
+   "tracker_seeds_in_gaps": 0,
+   "solves": 105,
+   "tune_solves_unscored": 1,
+   "skipped": 294,
+   "tune_per": 250,
+   "rows": 400,
+   "scored": 104
+  },
+  "cpu_sec": {
+   "all": 0.460704633,
+   "scored": 0.43174390500000004
+  },
+  "pass_": true
+ },
+ "all_features/ridge": {
+  "scored_origins": 104,
+  "max_rel_diff": 0.0,
+  "tol": 1e-09,
+  "same_rows": true,
+  "nan_ok": true,
+  "kkt_not_ok": 0,
+  "kkt_reseeds": 0,
+  "refit": {
+   "mode": "scored@2014-01-02",
+   "resolves": 0,
+   "resolve_kkt_ok": 0,
+   "resolve_active_repair": 0,
+   "resolve_cd_polish": 0,
+   "resolve_cold_seed": 0,
+   "tracker_seeds_in_gaps": 0,
+   "solves": 105,
+   "tune_solves_unscored": 1,
+   "skipped": 294,
+   "tune_per": 250,
+   "rows": 400,
+   "scored": 104
+  },
+  "cpu_sec": {
+   "all": 25.596001798,
+   "scored": 25.461362507
+  },
+  "pass_": true
+ },
+ "all_features/lasso": {
+  "scored_origins": 104,
+  "max_rel_diff": 1.5538464840675262e-05,
+  "tol": 1e-06,
+  "same_rows": true,
+  "nan_ok": true,
+  "kkt_not_ok": 0,
+  "kkt_reseeds": 2,
+  "refit": {
+   "mode": "scored@2014-01-02",
+   "resolves": 8,
+   "resolve_kkt_ok": 0,
+   "resolve_active_repair": 8,
+   "resolve_cd_polish": 0,
+   "resolve_cold_seed": 0,
+   "tracker_seeds_in_gaps": 0,
+   "solves": 105,
+   "tune_solves_unscored": 1,
+   "skipped": 294,
+   "tune_per": 250,
+   "rows": 400,
+   "scored": 104
+  },
+  "cpu_sec": {
+   "all": 126.175187237,
+   "scored": 126.458231684
+  },
+  "pass_": false
+ },
+ "all_features/enet": {
+  "scored_origins": 104,
+  "max_rel_diff": 8.8558446134937e-06,
+  "tol": 1e-06,
+  "same_rows": true,
+  "nan_ok": true,
+  "kkt_not_ok": 0,
+  "kkt_reseeds": 1,
+  "refit": {
+   "mode": "scored@2014-01-02",
+   "resolves": 8,
+   "resolve_kkt_ok": 0,
+   "resolve_active_repair": 8,
+   "resolve_cd_polish": 0,
+   "resolve_cold_seed": 0,
+   "tracker_seeds_in_gaps": 0,
+   "solves": 105,
+   "tune_solves_unscored": 1,
+   "skipped": 294,
+   "tune_per": 250,
+   "rows": 400,
+   "scored": 104
+  },
+  "cpu_sec": {
+   "all": 69.010427521,
+   "scored": 53.319183358000004
+  },
+  "pass_": false
+ },
+ "baseline/ols": {
+  "scored_origins": 104,
+  "max_rel_diff": 0.0,
+  "tol": 1e-09,
+  "same_rows": true,
+  "nan_ok": true,
+  "kkt_not_ok": 0,
+  "kkt_reseeds": 0,
+  "refit": {
+   "mode": "scored@2014-01-02",
+   "resolves": 0,
+   "resolve_kkt_ok": 0,
+   "resolve_active_repair": 0,
+   "resolve_cd_polish": 0,
+   "resolve_cold_seed": 0,
+   "tracker_seeds_in_gaps": 0,
+   "solves": 104,
+   "tune_solves_unscored": 0,
+   "skipped": 295,
+   "tune_per": 250,
+   "rows": 400,
+   "scored": 104
+  },
+  "cpu_sec": {
+   "all": 0.13339425100000002,
+   "scored": 0.11439390599999988
+  },
+  "pass_": true
+ },
+ "pass": false
+}

@@ -57,3 +57,28 @@ To finish (after score 13361445): pull `scores/` (tables, csv, f16.parquet) and 
 | 22:50 | synthetic check on CARC (srun 13366875, 900 rows of a 48-row-a-day cache): OLS and ridge bit-identical, lasso / elastic net <= 3e-14 relative, 18 warm re-solves all by the active-set repair, KKT clean |
 | 22:55 | code on CARC: linear_train3way{,_runner}.py of 8225da2 (the scored-only refit, gate_refit), linear_train3way_score.py of 06d5871 |
 | 22:56 | submitted: gate_refit 13366980 (after ALL48 pretune/select 13361324); walks ALL48 13366981 (22 tasks), ALL48@16 13366982 (21; after select16 13361440), ALL48_N3k 13366983 (9) and ALL48_N39k 13366984 (13) (after 13364084); every walk afterok on the gate; export3 13366985; SCORE3 13366986 = the last job (both designs, scores_all/) |
+
+## Addendum B gate: FAILED (genuine mismatch, not infrastructure); ALL48 walks held
+
+Gate 13366980 ran to completion (23:02-23:04 PDT, 2 min 13 s, MaxRSS 12 GB, exit 3 = the gate's own failure; every
+file under /scratch1, nothing under /home1). `ALL48/gate_refit.json`: 104 scored origins of the 400-row slice.
+
+| Model | Max rel diff (scored vs full) | Tolerance | KKT (both walks) | Pass |
+|---|---|---|---|---|
+| OLS, ridge HAR, ridge full | 0 (bit-identical) | 1e-9 | - | yes |
+| lasso HAR, enet HAR | 4.9e-16, 6.6e-16 | 1e-6 | clean | yes |
+| lasso full | 1.55e-5 (45 of 104 origins > 1e-6) | 1e-6 | residual <= 1.9e-14 relative at every solve | NO |
+| enet full | 8.9e-6 (33 of 104 origins > 1e-6) | 1e-6 | residual <= 1.1e-14 relative at every solve | NO |
+
+Diagnosis: the differences sit exactly on the stretches where the two walks' last cold seed differs. Under
+STANDARDIZE_PENALTY the lasso / elastic-net scales (m, s) are recomputed at every cold seed and held until the next;
+WALK_KKT_RESEED's KKT-triggered reseeds happened at different rows in the two walks (full: lasso rows 238, 341, enet
+100, 104 - checks at every row, overnight included; scored-only: lasso 82, 282, enet 286 - checks at scored rows only,
+after a different warm path), so between such a reseed and the next common seed (the 250-row tune) the two walks
+solve differently weighted problems.  Where the seed history is the same, they agree to <= 1.5e-14 (lasso rows 0-82
+and 250-282, enet 0-100 and 250-286); each solution is KKT-exact for its own problem.  The multi-row overnight update
+and the warm re-solve are not the source (every re-solve by the active-set repair, KKT clean).
+Cost on the slice (CPU s, full / scored-only): ridge full 25.6 / 25.5, lasso full 126.2 / 126.5, enet full 69.0 / 53.3 -
+the 144,000-row cold seeds (tune every 250 rows, KKT reseeds) dominate, so scored-only saves little.
+The held walks 13366981-13366984, export3 13366985 and score3 13366986 stay pending (afterok on the failed gate:
+they cannot start).  Nothing loosened; the owner decides.
