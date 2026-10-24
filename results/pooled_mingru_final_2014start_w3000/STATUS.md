@@ -171,3 +171,12 @@ errors); binary copied from `/home1/jc_905/pm13/bin` (md5 44ab6fff).
   out/frozen_config.json and the walks of both sets (only frozen_partial.json, the full set, exists; no HAR walk
   file), and the scorer runs on the laptop. After the reruns: the b32b rerun's forecasts can be compared with the
   moved-aside b32b (expected text-identical, as the probe at CONC 6 / 12 / 24).
+- 2026-10-24 01:20-01:53 PDT: the three reruns COMPLETED (0:0), each POST check-run ok: 13367745 b32b (e21-06, 1:19:19;
+  2,500 jobs, 5,000 preds), 13367746 b33a (e22-14, 1:18:32; 2,425 / 4,850), 13367747 b33b (d23-13, 1:16:48;
+  2,425 / 4,850); n_bad 0, finite, positive; P100; copies md5-verified. b32b rerun vs the moved-aside b32b
+  (13346982): preds.csv and epochs.csv identical as text after sorting (every forecast f text-identical by id and
+  row; the files differ only in line order, the pool's completion order); jobs_out.csv differs only in t_setup /
+  t_capture / t_train. Full-set bar walk complete (read-only check on CARC, the merge stage's full-set assertions):
+  68 halves b0a .. b33b each once in runs/, every check_run.json n_bad 0 / finite / positive with n_jobs = its jobs
+  file's lines; 169,850 refits = every bar 50,777 .. 84,746 x 5 seeds, all status ok, no duplicate id; 169,850 fc
+  rows, row = origin, finite and positive. Not merged or scored: merge needs the HAR walk (owner's decision pending).
