@@ -1,0 +1,70 @@
+{
+ "observed": "2026-10-23 22:45 - 2026-10-24 02:12 PDT (jamesdc1, group mcucurin)",
+ "filesystem": "/u/home and /u/scratch shared by both schedulers; same SSH key logs in to both; test dir /u/scratch/j/jamesdc1/pmf2_h2 (scratch purge 14 days)",
+ "uge_legacy": {
+  "login": "hoffman2 = hoffman2.idre.ucla.edu (CentOS 7.9, glibc 2.17, git 1.8)",
+  "request": "qsub -l gpu,<TYPE>,cuda=1,h_rt=1:00:00,h_data=16G  (TYPE: A100 L40S H100 H200 A6000 V100 RTX2080Ti P4 K40; A100/A6000/H100/H200 are FORCED complexes, must be named)",
+  "h_rt_max": "24:00:00 (gpu_*.q)",
+  "highp": "not required; only for groups owning nodes (mcucurin owns no GPU node)",
+  "per_user_caps_rqs_gpu": {
+   "g* hosts": "cuda=4",
+   "A100/H100/H200 hosts": "cuda=2",
+   "H200": "cuda=1"
+  },
+  "jamesdc1_in_blocking_usersets": {
+   "blacklist": false,
+   "a100x": false,
+   "h200x": false,
+   "gpu_check": false,
+   "gpu_watch": false
+  },
+  "gpu_state": {
+   "A100": "g13, g16 (4 x 80/40 GB each) all busy; g15 drained (now in Slurm); 82 jobs pending",
+   "L40S": "13 nodes, only g18-g20 enabled (g21 1 slot, g22-g30 disabled); 351 jobs pending",
+   "H100": "g17, g31 disabled",
+   "H200": "g32",
+   "A6000": "g14 (2)",
+   "V100": "g8, g9 (1 each)",
+   "RTX2080Ti": "g6, g7, g10, g11, g12 (2 each); one free GPU (g12) at submission",
+   "P4": "m3, m4"
+  },
+  "toolchain": "cuda/12.3 (newest module), gcc/11.3.0; driver 535.154 (2080 Ti), 550.163 (P4)",
+  "waits": {
+   "15260303 RTX2080Ti (g12)": "88 s",
+   "15260405 RTX2080Ti (g12)": "69 s",
+   "15260301 A100": "not started after 3 h 23 min (submitted 22:48:32)",
+   "15260302 L40S": "not started after 3 h 23 min (submitted 22:48:33)",
+   "15260441 RTX2080Ti excluding g12": "not started after 2 h 48 min (submitted 23:23:15)"
+  }
+ },
+ "slurm_production": {
+  "login": "hoffman2.oarc.ucla.edu (Rocky 9.8)",
+  "request": "sbatch -p campus --gres=gpu:1 -C RTXPRO6000Bw --time=1:00:00 --mem=64G -c 2  (account pi_mcucurin and QOS campus24 set by default)",
+  "time_max": "1-00:00:00 (campus24, pi_shared24); highp 14 d only on owned nodes (no pi_mcucurin partition)",
+  "per_user_caps": {
+   "campus24": "gres/gpu=2, cpu=1024, 100 jobs",
+   "pi_shared24": "gres/gpu=4"
+  },
+  "campus_gpu_nodes": {
+   "g33": "2 x RTX PRO 6000 Blackwell Server Edition 97 GB (sm_120)",
+   "g35": "7 x RTX PRO 6000 Blackwell",
+   "g15": "4 x A100 40 GB, drained"
+  },
+  "gpu_state": "all 9 RTX PRO 6000 busy with 12-24 h jobs; 5 RTXPRO6000Bw jobs pending",
+  "toolchain": "cuda/12.2 12.4 12.8 13.0 13.2 modules, system gcc 11.5; driver 595.58 (CUDA 13.2)",
+  "waits": {
+   "491533 RTXPRO6000Bw": "1 h 49 min (23:24:17 -> 01:13:36)",
+   "491667 RTXPRO6000Bw": "22 min (01:27:30 -> ~01:49:40)"
+  }
+ },
+ "binary": {
+  "carc_binary": "bin/forecast_train md5 44ab6fff (native_g9 .cu af1964d0) runs unchanged on both: needs glibc <= 2.17, GLIBCXX_3.4.29, libcublas.so.12 / libcurand.so.10 (cuda 12.3 / 12.8 modules); static CUDA runtime 12.9 runs on driver 535 (minor-version compatibility) and 595; sm_120 runs the compute_90 PTX (driver JIT)",
+  "hoffman2_builds_for_2080Ti_diagnosis_only": {
+   "0776deac": "nvcc 12.3 + gcc 11.3, CARC flags (15260303)",
+   "de96ce20": "same flags (15260405 ft_std)",
+   "4f90ef41": "CARC flags + sm_75 SASS (15260405 ft_75)"
+  }
+ },
+ "not_done": "compute-sanitizer memcheck could not run the trainer (segfault inside the tool, 0 errors reported)",
+ "laptop_permission_denied": "listing local ssh.exe processes via PowerShell Get-CimInstance (after stopping the old poll); not retried"
+}

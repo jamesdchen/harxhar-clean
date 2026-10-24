@@ -1,0 +1,9 @@
+g1_r1 rc=2 wall_s=51.616451354 conc=3 jobs=3 bin=ft 44ab6fff
+CARC binary did not complete G1 here: building native_g9 from source with the CARC build flags
+g1_r1 rc=2 wall_s=40.448136777 conc=3 jobs=3 bin=ft_h2 0776deac
+g1_r2 rc=2 wall_s=20.579049555 conc=3 jobs=3 bin=ft_h2 0776deac
+b48_c12 rc=2 wall_s=1.106649710 conc=12 jobs=48 bin=ft_h2 0776deac
+b48_c24 rc=2 wall_s=2.017714812 conc=24 jobs=48 bin=ft_h2 0776deac
+b48_c48 rc=2 wall_s=1.082440479 conc=48 jobs=48 bin=ft_h2 0776deac
+b96_c96 rc=139 wall_s=3.681528882 conc=96 jobs=96 bin=ft_h2 0776deac
+Fri Oct 23 22:52:40 PDT 2026

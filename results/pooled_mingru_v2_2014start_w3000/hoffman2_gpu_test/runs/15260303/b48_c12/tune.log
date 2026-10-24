@@ -1,0 +1,3 @@
+device NVIDIA GeForce RTX 2080 Ti (sm_75, 68 SMs), driver 12020, runtime 12030, precision fp32
+run: math fp32, gather fc_gather_seq, CUDA_DEVICE_MAX_CONNECTIONS 32
+CUDA error cudaStreamCreateWithFlags(&t.stream, cudaStreamNonBlocking) at forecast_train.cu:1392: an illegal memory access was encountered

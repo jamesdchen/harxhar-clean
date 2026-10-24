@@ -1,0 +1,5 @@
+san_std rc=11 wall_s=3.124070049 conc=3 jobs=3 bin=ft_std de96ce20 compute-sanitizer --tool memcheck --print-limit 30 --error-exitcode 86
+san_75 rc=11 wall_s=2.958464972 conc=3 jobs=3 bin=ft_75 4f90ef41 compute-sanitizer --tool memcheck --print-limit 30 --error-exitcode 86
+g1_r1 rc=0 wall_s=78.680607916 conc=3 jobs=3 bin=ft_75 4f90ef41 
+g1_r2 rc=2 wall_s=1.445118323 conc=3 jobs=3 bin=ft_75 4f90ef41 
+Fri Oct 23 23:10:13 PDT 2026

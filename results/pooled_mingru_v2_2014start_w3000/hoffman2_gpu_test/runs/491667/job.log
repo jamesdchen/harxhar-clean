@@ -1,0 +1,17 @@
+g33
+Sat Oct 24 01:49:43 PDT 2026
+Rocky Linux release 9.8 (Blue Onyx)
+JOB_ID=491667 node=g33 CUDA_VISIBLE_DEVICES=0
+index, name, uuid, driver_version, memory.total [MiB], pci.bus_id
+0, NVIDIA RTX PRO 6000 Blackwell Server Edition, GPU-024e8395-14e8-4ba6-cfee-77e0fbe9c2d8, 595.58.03, 97887 MiB, 00000000:76:00.0
+44ab6fff270e15547335c6b36b3ceead  /u/scratch/j/jamesdc1/pmf2_h2/bin/forecast_train
+04a4ecdc977c7e5436fce40f3a7f7fa5  /u/scratch/j/jamesdc1/pmf2_h2/inputs/bench96.txt
+187c9191ae662dcab5d79da0ae5cce1a  /u/scratch/j/jamesdc1/pmf2_h2/inputs/bench_H1024_E10_K7.txt
+70645f4832f739d60e0093fe4676df09  /u/scratch/j/jamesdc1/pmf2_h2/inputs/bench_H256_E20_K24.txt
+ 01:49:43 up 7 days, 16:08,  0 users,  load average: 2.01, 3.47, 3.87
+2
+b256_c12 rc=0 wall_s=72 conc=12 jobs=24 bin=ft 44ab6fff
+b1024_c7 rc=0 wall_s=58 conc=7 jobs=7 bin=ft 44ab6fff
+b96_c48 rc=0 wall_s=484 conc=48 jobs=96 bin=ft 44ab6fff
+b96_c96 rc=0 wall_s=503 conc=96 jobs=96 bin=ft 44ab6fff
+H2B2_DONE

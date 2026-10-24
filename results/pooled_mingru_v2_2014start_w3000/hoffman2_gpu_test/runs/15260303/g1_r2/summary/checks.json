@@ -1,0 +1,14 @@
+{
+ "run": "C:\\Users\\james\\AppData\\Local\\Temp\\claude\\C--Users-james-CC-Allowed-harxhar-0dte-professor\\bd4224e0-12aa-4614-b6a6-3fe50535ade1\\scratchpad\\h2gpu\\h2\\15260303\\g1_r2",
+ "sub": "tune",
+ "n_jobs": 0,
+ "status": {},
+ "bad": [
+  [
+   "missing jobs",
+   3,
+   "v2g1refit_baseline_L20_H64_lr0.003_E300_s20261012"
+  ]
+ ],
+ "n_bad": 1
+}

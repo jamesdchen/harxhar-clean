@@ -1,0 +1,16 @@
+H2 build: Build cuda_12.3.r12.3/compiler.33567101_0; gcc (GCC) 11.3.0; ARCHS -gencode arch=compute_60,code=sm_60 -gencode arch=compute_70,code=sm_70 -gencode arch=compute_80,code=sm_80 -gencode arch=compute_86,code=sm_86 -gencode arch=compute_89,code=sm_89 -gencode arch=compute_90,code=sm_90 -gencode arch=compute_90,code=compute_90
+af1964d01576005365f553b98fb91d0c  /work/15260303.1.gpu_RTX2080Ti.q/v2h2_15260303/build/forecast_train.cu
+18da60d6442275e80bf3fb7935780661  /work/15260303.1.gpu_RTX2080Ti.q/v2h2_15260303/build/puffer_substrate.cuh
+0776deacabfce51a0471a29df8769e5b  /work/15260303.1.gpu_RTX2080Ti.q/v2h2_15260303/ft_h2
+	linux-vdso.so.1 =>  (0x00007ffe88439000)
+	libcublas.so.12 => /u/local/cuda/12.3/lib64/libcublas.so.12 (0x00002b5c5bb01000)
+	libcurand.so.10 => /u/local/cuda/12.3/lib64/libcurand.so.10 (0x00002b5c622c6000)
+	librt.so.1 => /lib64/librt.so.1 (0x00002b5c686cb000)
+	libpthread.so.0 => /lib64/libpthread.so.0 (0x00002b5c688d3000)
+	libdl.so.2 => /lib64/libdl.so.2 (0x00002b5c68aef000)
+	libstdc++.so.6 => /u/local/compilers/gcc/11.3.0/lib64/libstdc++.so.6 (0x00002b5c68cf3000)
+	libm.so.6 => /lib64/libm.so.6 (0x00002b5c690f9000)
+	libgcc_s.so.1 => /u/local/compilers/gcc/11.3.0/lib64/libgcc_s.so.1 (0x00002b5c693fb000)
+	libc.so.6 => /lib64/libc.so.6 (0x00002b5c69613000)
+	/lib64/ld-linux-x86-64.so.2 (0x00002b5c5b8dd000)
+	libcublasLt.so.12 => /u/local/cuda/12.3/lib64/libcublasLt.so.12 (0x00002b5c699e1000)

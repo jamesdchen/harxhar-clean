@@ -1,0 +1,1 @@
+id,data,mode,loss,w0,w1,L,H,layers,batch,lr,seed,N,S,epochs_run,best_epoch,n_eval,best_val_mse,mu_y,sd_y,huber_delta,qlike_cap,nonfinite,status,t_setup,t_capture,t_train,wave_wall,wave_size,n_params,wave_train_wall,n_inputs,n_clipped,math,stop_loss,link,wd,wd_enc,lin,lr_lin,wd_lin,dec_zero,es

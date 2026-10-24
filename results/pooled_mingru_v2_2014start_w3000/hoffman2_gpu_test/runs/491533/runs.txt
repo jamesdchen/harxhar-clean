@@ -1,0 +1,7 @@
+g1_r1 rc=0 wall_s= conc=3 jobs=3 bin=ft 44ab6fff
+g1_r2 rc=0 wall_s= conc=3 jobs=3 bin=ft 44ab6fff
+b48_c12 rc=0 wall_s= conc=12 jobs=48 bin=ft 44ab6fff
+b48_c24 rc=0 wall_s= conc=24 jobs=48 bin=ft 44ab6fff
+b48_c48 rc=137 wall_s= conc=48 jobs=48 bin=ft 44ab6fff
+b96_c96 rc=137 wall_s= conc=96 jobs=96 bin=ft 44ab6fff
+Sat Oct 24 01:24:43 PDT 2026

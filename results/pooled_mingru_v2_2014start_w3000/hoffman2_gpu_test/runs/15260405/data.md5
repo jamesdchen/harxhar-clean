@@ -1,0 +1,7 @@
+d99d23e377868a4ca9d072906fc6b511  ./pmf_baseline/X.f32
+8012ac1af63c97b1016c7cfd3b4252a8  ./pmf_baseline/X.f64
+0ae66589ac6e1a00e1ef93de0f7c7afb  ./pmf_baseline/columns.txt
+6e8770cb03331c102dfc6cde74bfb578  ./pmf_baseline/enc_pf.f64
+fdf4fea830e943b4ec61e54d6e16fa94  ./pmf_baseline/meta.txt
+acf8201a772b1e927b3e89106c4246a0  ./pmf_baseline/y.f32
+ecf4d559bcfa5a042351a5295491caab  ./pmf_lin_init/baseline/tune_f3_L20_wl0.003.f32

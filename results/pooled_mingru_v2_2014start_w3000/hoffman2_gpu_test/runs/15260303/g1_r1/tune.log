@@ -1,0 +1,4 @@
+device NVIDIA GeForce RTX 2080 Ti (sm_75, 68 SMs), driver 12020, runtime 12030, precision fp32
+run: math fp32, gather fc_gather_seq, CUDA_DEVICE_MAX_CONNECTIONS 32
+[9533304.9] pool phase 0: 1 jobs on 1 slots in 39.27 s (setup 0.24 s, 1 captures 0.47 s, 0 pool trims, 0 deferrals)
+CUDA error cudaMemcpyAsync(h.data(), t.d_rows, n_all * 4, cudaMemcpyDeviceToHost, t.stream) at forecast_train.cu:977: an illegal memory access was encountered

@@ -1,0 +1,3 @@
+device NVIDIA RTX PRO 6000 Blackwell Server Edition (sm_120, 188 SMs), driver 13020, runtime 12090, precision fp32
+run: math fp32, gather fc_gather_seq, CUDA_DEVICE_MAX_CONNECTIONS 32
+[662970.4] pool phase 0: 24 jobs on 12 slots in 70.89 s (setup 0.60 s, 12 captures 4.53 s, 0 pool trims, 0 deferrals)
