@@ -1,0 +1,4 @@
+chain 2026-10-24_09:44:00 code=62cfc8c stage=13380316 lin3k=13380317 linW=13380318 linS=13380319 tgate=13380320 twgb=13380321 twrf=13380322 tfin=13380323
+addendumA 2026-10-24_10:20:57 code=050a6a6 linW2=13381257 twrf2=13381258 linS2=13381259 cancelled=13380319 tfin=13380323(re-pointed)
+addendumB 2026-10-24_10:37:04 code=a3e87f3 lin1k=13381484 linS3=13381487; 13381259 (linS2) had COMPLETED before the scancel (no-op): its scores without W = 1,000 moved to scores/linear_addA_noW1000; set_aside=w1000/_work/walk_failed_0947
+noteA 2026-10-24_10:58:06 twrf3=13381726 (line 6 CLOSE_w2000 rf_skx all_features, from scratch on EPYC; the d06-25 partial piece renamed *.failed_d06-25); tfin 13380323 re-pointed afterany 13380321 13380322 13381726
