@@ -89,3 +89,5 @@ they cannot start).  Nothing loosened; the owner decides.
 |---|---|
 | ~23:40 | owner (relayed): option A - every ALL48 walk refits at every row (RULE section 5), no new gate |
 | 23:35-23:40 | RULE.txt note to addendum B and this entry committed before any new walk; experiments/linear_train3way.py no longer sets --refit-rows |
+| 23:42 | code on CARC: linear_train3way.py of 779aee1 (no --refit-rows), runner of 8225da2, score of 06d5871; scancel of the held 13366981-13366986 (owner-approved) |
+| 23:43 | submitted, full refit at every row: walks ALL48 13367775 (19 tasks: ridge 2, lasso 8, enet 5 chunks), ALL48@16 13367776 (18; changed models: ridge full, lasso HAR + full, enet HAR), ALL48_N3k 13367777 (8), ALL48_N39k 13367778 (10); export4 13367779; SCORE4 13367780 = the last job (both designs, scores_all/) |
