@@ -216,6 +216,19 @@ ADDENDUM C, 2026-10-24 02:00 PDT (09:00 UTC), before any job it affects: ALL48'S
    240-348 return to CARC as a second throttled array; each later reassignment (lines, from / to, why) is logged in
    STATUS.md and in runs/tasks/h2_assignment.txt.  CARC's forest throttles rise toward the QOS headroom (100 running
    jobs / 2,000 CPUs, the other arrays first) as the cheap arms, XGBoost and the ALL48_N39k forest finish.
+   Note to addendum C, 2026-10-24 04:10 PDT (11:10 UTC), before any Hoffman2 gate or forest line ran: HOFFMAN2 AT 8
+   THREADS.  The Hoffman2 executor (relayed by the coordinator, 04:15 PDT): Hoffman2 starts 20-slot jobs too slowly (3
+   of 16 in 1 h 45 min; 8-slot jobs in 1-3 min), so its gates and its forest walks run at 8 threads (the thread count
+   recorded in every piece's meta).  Evidence that the thread count does not change the forest's forecasts: the rf_skx
+   gate (d) (RULE_rf_skx.txt: 20 threads = 8 threads, 3 of 3 walk pieces bit for bit, EPYC), the engine benchmark (1 =
+   8 threads on one node), and this run's gate 1 on CARC (the forest at 8 and at 20 threads, both text-identical to the
+   templates at the 20 origins of each set, EPYC 7542).  On Hoffman2's Intel models the Hoffman2 gates themselves run
+   at 8 threads, the setting of its walks, so they test what is run there.  The CPU-model tags gated there: gold6140,
+   gold6240, gold6342, e5v4 (one tag a model).  The Hoffman2 environment build had failed (daal4py needed packaging /
+   setuptools; pinned to CARC's setuptools 84.1.0 / packaging 26.3, repair job 15261300); no Hoffman2 gate piece exists
+   yet.  Its estimate: 9-15 h a line of ALL48's full set at 8 threads, against 3.7 h at 20 threads on CARC; a line must
+   finish on one CPU model (no resume across families).  The first wave stays lines 349-368; later waves are sized from
+   the measured Hoffman2 throughput (runs/tasks/h2_throughput.txt, written by the Hoffman2 executor).
 
 ADDENDUM D, 2026-10-24 02:00 PDT (09:00 UTC), before any LightGBM walk of ALL48 or ALL48_N39k: LIGHTGBM DETERMINISTIC
    Gate C (addendum B) failed: with force_col_wise the ALL48 full-set LightGBM fit at 2014-01-03 10:00 still gave
