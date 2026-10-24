@@ -45,3 +45,6 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   formula). G2 submitted held afterok on G1's job (its POST checks only status / kept columns / rows; the G1 criteria
   are checked before any G2 number is used, G2 cancelled if G1 fails): E 300 files 13353696 (HAR) / 13353697 (full) on
   debug, E 1,000 files 13353698 / 13353699 on gpu.
+- 2026-10-23 19:10 PDT: G1 still PENDING on debug (e23-02's two P100s held by another user's 55-min jobs, 4 jobs ahead;
+  our priority 3,163, fairshare factor 151). The same G1 file also submitted to the gpu partition (13354135, 12 min;
+  P100s: 72 of 74 allocated): whichever starts first is kept, the other cancelled (G2's afterok then moved to it).

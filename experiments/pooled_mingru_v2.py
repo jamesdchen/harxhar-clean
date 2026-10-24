@@ -20,6 +20,7 @@ Local stages (on pulled summaries)
 from __future__ import annotations
 
 import argparse
+import gzip
 import hashlib
 import json
 import math
@@ -1465,6 +1466,139 @@ def st_s2_report(a: argparse.Namespace) -> None:
     say(json.dumps(out, indent=1)[:3000])
 
 
+def st_g2_decide(a: argparse.Namespace) -> None:
+    """G2 (RULE GATES): per set, E1 (300 or 1,000) from (256, 20) at the set's best lr by the 2-seed mean TQ_300, and
+    the Stage-1 lr set from the argmin lr of every (set, cell)."""
+    g0 = json.loads(Path(a.g0).read_text())
+    T = s1_jobs_table(Path(a.runs), a.pattern, g0)
+    T.to_csv(Path(a.out).with_suffix(".jobs.csv"), index=False, float_format="%.9g")
+    T3 = T[T["E"] == 300]
+    T10 = T[T["E"] == 1000]
+    argmins: dict[str, str] = {}
+    res: dict[str, Any] = dict(sets={})
+    for s, Ts in T3.groupby("set"):
+        rs: dict[str, Any] = dict(cells={})
+        for (H, L), Tc in Ts.groupby(["H", "L"]):
+            m = Tc.groupby("lr").agg(
+                TQ=("TQ_E", "mean"),
+                rho=("rho_E", "mean"),
+                n=("seed", "size"),
+                nf=("n_nonfinite", "sum"),
+            )
+            m = m[(m["n"] == 2) & (m["nf"] == 0)]
+            best = str(m.sort_values(["TQ"]).index[0])
+            argmins[f"{s}_H{H}_L{L}"] = best
+            rs["cells"][f"H{H}_L{L}"] = dict(
+                best_lr=best,
+                by_lr={
+                    k: dict(TQ_300=float(v["TQ"]), rho_300=float(v["rho"]))
+                    for k, v in m.iterrows()
+                },
+            )
+        b = rs["cells"]["H256_L20"]
+        lr = b["best_lr"]
+        rho300 = b["by_lr"][lr]["rho_300"]
+        t10 = T10[
+            (T10["set"] == s) & (T10["H"] == 256) & (T10["L"] == 20) & (T10["lr"] == lr)
+        ]
+        rho1000 = float(t10["rho_E"].mean()) if len(t10) == 2 else float("nan")
+        gain = (rho300 - rho1000) / rho300
+        E1 = 300 if (rho300 <= 0.5 or gain < 0.2) else 1000
+        rs.update(
+            lr_256_20=lr,
+            rho_300=rho300,
+            rho_1000=rho1000,
+            rel_gain=gain,
+            E1=E1,
+            E1000_by_lr={
+                k: float(v["rho_E"].mean())
+                for k, v in T10[(T10["set"] == s)].groupby("lr")
+            },
+        )
+        res["sets"][s] = rs
+    lrs = {"0.003", "0.01"}
+    if "0.001" in argmins.values():
+        lrs.add("0.001")
+    if "0.01" in argmins.values():
+        lrs.add("0.03")
+    res["argmins"] = argmins
+    res["stage1_lrs"] = sorted(lrs, key=float)
+    Path(a.out).write_text(json.dumps(res, indent=1))
+    say(json.dumps(res, indent=1))
+
+
+def st_g1_check(a: argparse.Namespace) -> None:
+    """G1 on a pulled run directory (summary/ + tune/steps.csv.gz + tune/epochs.csv): 300 epochs; steps.csv
+    text-identical (the id field dropped) between the tune job and its refit twin; the twin's exact in-sample QLIKE
+    (fc_train rows) within 1% of the last-epoch running mean; its validation QLIKE (trainer formula on rows
+    [47,527, 50,777)) = the tune job's epochs.csv epoch-300 val_qlike within 1e-5 relative; no non-finite; and the
+    shortcut alone through the trainer (lr 0, 1 epoch) against the offline TQ_0."""
+    run = Path(a.run)
+    g0 = json.loads(Path(a.g0).read_text())
+    y = np.fromfile(Path(a.y_dir) / "y_baseline.f32", "<f4").astype(np.float64)
+    jo = pd.read_csv(run / "summary" / "jobs.csv").set_index("id")
+    tid = next(i for i in jo.index if i.startswith("v2g1tune_"))
+    rid = next(i for i in jo.index if i.startswith("v2g1refit_"))
+    sid = next(i for i in jo.index if i.startswith("v2g1short_"))
+    lines: dict[str, list[str]] = {tid: [], rid: [], sid: []}
+    with gzip.open(run / "tune" / "steps.csv.gz", "rt") as fh:
+        next(fh)
+        for ln in fh:
+            i, rest = ln.split(",", 1)
+            lines[i].append(rest)
+    ident = lines[tid] == lines[rid]
+    nd = sum(x != y_ for x, y_ in zip(lines[tid], lines[rid]))
+    ec = pd.read_csv(run / "summary" / "epoch_curves.csv")
+    tq = ec[ec["id"] == rid].sort_values("epoch")["loss_w"].to_numpy()
+    tq_t = ec[ec["id"] == tid].sort_values("epoch")["loss_w"].to_numpy()
+    trq = pd.read_csv(run / "summary" / "train_ql.csv").set_index("id")
+    exact = float(trq.loc[rid, "train_ql"])
+    z = np.load(run / "summary" / "fc.npz")
+    F = {str(i): z["F"][k].astype(np.float64) for k, i in enumerate(z["ids"])}
+    fv = F[rid][EMB:]
+    v0, v1 = TUNE["val"]
+    vq_twin = float(np.mean(qlike_trainer(y[v0:v1], fv)))
+    ep = pd.read_csv(run / "tune" / "epochs.csv")
+    vq_tune = float(ep[(ep["id"] == tid) & (ep["epoch"] == 300)]["val_qlike"].iloc[0])
+    s1 = g0["sets"]["baseline"]["stage1"]["20"]
+    tq0_trainer = float(trq.loc[sid, "train_ql"])
+    res: dict[str, Any] = dict(
+        epochs_run=dict(
+            tune=int(jo.loc[tid, "epochs_run"]), refit=int(jo.loc[rid, "epochs_run"])
+        ),
+        steps_identical=bool(ident),
+        n_steps=len(lines[tid]),
+        n_step_lines_differing=int(nd),
+        TQ_300_running=float(tq[-1]),
+        TQ_300_running_tune=float(tq_t[-1]),
+        in_sample_exact=exact,
+        in_sample_rel_dev=float(abs(exact - tq[-1]) / tq[-1]),
+        val_qlike_twin=vq_twin,
+        val_qlike_tune_epoch300=vq_tune,
+        val_rel_dev=float(abs(vq_twin - vq_tune) / vq_tune),
+        nonfinite=float(
+            ec[ec["id"].isin([tid, rid])]["n_nonfinite"].sum()
+            + jo.loc[[tid, rid], "nonfinite"].sum()
+        ),
+        TQ0_offline=float(s1["TQ0"]),
+        TQ0_trainer=tq0_trainer,
+        TQ0_rel_dev=float(abs(tq0_trainer - s1["TQ0"]) / s1["TQ0"]),
+        mu_sd_job=[float(jo.loc[rid, "mu_y"]), float(jo.loc[rid, "sd_y"])],
+        mu_sd_init=[s1["mu"], s1["sd"]],
+        rho_300=float(tq[-1] / s1["TQ0"]),
+        rows_train=[int(trq.loc[rid, "row0"]), int(trq.loc[rid, "row1"])],
+    )
+    res["pass"] = bool(
+        res["epochs_run"] == dict(tune=300, refit=300)
+        and ident
+        and res["in_sample_rel_dev"] <= 0.01
+        and res["val_rel_dev"] <= 1e-5
+        and res["nonfinite"] == 0
+    )
+    Path(a.out).write_text(json.dumps(res, indent=1))
+    say(json.dumps(res))
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument(
@@ -1477,6 +1611,8 @@ def main() -> int:
             "s1-table",
             "s2-table",
             "s2-report",
+            "g1-check",
+            "g2-decide",
         ],
     )
     ap.add_argument("--root", default="")
@@ -1518,6 +1654,8 @@ def main() -> int:
             "s1-table": st_s1_table,
             "s2-table": st_s2_table,
             "s2-report": st_s2_report,
+            "g1-check": st_g1_check,
+            "g2-decide": st_g2_decide,
         },
     )[a.stage](a)
     return 0
