@@ -582,17 +582,23 @@ def cmd_gate2(a) -> int:
     ok = True
     n = 0
     for p in sorted((out / "pieces").glob("*_scored.parquet")):
+        # 2026-10-24 (--arm, optional): the arms named only (a piece is <arm>_<est>_<set>_<tag>)
+        if a.arm_list and not any(p.name.startswith(f"{x}_{e}_") for x in a.arm_list for e in EST):
+            continue
         q = p.with_name(p.name.replace("_scored.parquet", "_every.parquet"))
         assert q.is_file() and q.with_suffix(".json").is_file() and p.with_suffix(".json").is_file(), p.name
         fs, fe = pd.read_parquet(p).set_index("date"), pd.read_parquet(q).set_index("date")
         e = fe.reindex(fs.index)
         same = all(np.array_equal(fs[c].to_numpy(float), e[c].to_numpy(float)) for c in ("pred_adj", "true_adj", "B"))
         ms, me = (json.loads(x.with_suffix(".json").read_text()) for x in (p, q))
+        ps, pe = fs["pred_adj"].to_numpy(float), e["pred_adj"].to_numpy(float)
         g[p.stem.replace("_scored", "")] = dict(
             every_rows=len(fe),
             scored_rows=len(fs),
             stamps_every=[str(fe.index[0]), str(fe.index[-1])],
             identical=bool(same),
+            differing=[str(t) for t, x, y_ in zip(fs.index, ps, pe) if x != y_],
+            max_rel_diff=float(np.max(np.abs(ps - pe) / np.abs(pe))),
             sec_refit_every=me["wall_sec"] / max(1, me["refits"]),
             sec_refit_scored=ms["wall_sec"] / max(1, ms["refits"]),
             threads=me["threads"],
@@ -601,7 +607,10 @@ def cmd_gate2(a) -> int:
         ok &= same and len(fe) > len(fs) > 0
         n += 1
     g["pass"] = bool(ok) and n > 0
-    (out / "gate2.json").write_text(json.dumps(g, indent=1))
+    g["arms"] = a.arm_list or "all"
+    (out / ("gate2.json" if not a.arm_list else f"gate2_{'_'.join(a.arm_list)}.json")).write_text(
+        json.dumps(g, indent=1)
+    )
     say(f"GATE 2 {'PASS' if g['pass'] else 'FAIL'}: {json.dumps(g)}")
     return 0 if g["pass"] else 3
 

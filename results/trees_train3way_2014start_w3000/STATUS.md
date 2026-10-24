@@ -34,3 +34,43 @@ Phase 1 jobs (CARC, account pollok_1603, partition main, EPYC 7513 / 7542):
 | 13369762 | t3t_s2 | interim scores -> scores_w2 (last job of phase 1) | m2, s1 |
 
 Phase 2 (ALL48, 3,000 days): `code/submit2.sh` after the gates and the projection are read.
+
+## Gate 0, gate 1, the probe and the cap (2026-10-24 00:40 PDT)
+
+- Gate 0 (`design_check.json`, stage 13369745): PASS -- the 13-bar caches md5-identical to the templates' design; configs;
+  ALL48 names = RTH13's + is_overnight; y and B equal at the 33,970 origins (CLOSE: 2,579 16:00 origins); the linear
+  CLOSE cache = the 16:00 rows byte for byte (the trees' CLOSE windows inside it); the linear N3k / N39k caches = the
+  sibling's rows from W_sibling - N on.
+- Gate 1 (`gate/g1`, comparison run on the login node 00:41; the gate job will rerun it): PASS -- 8 of 8 pieces (3
+  classes x 2 sets at 8 threads, the forest also at 20), 20 origins each, pred_adj text-identical to the templates'
+  forecasts (max relative difference 0), true_adj and B equal; EPYC 7513 and 7542.
+- Time probe (13369750 / 13369751) -> task files and projections (tasks 13369753); cap 13369754 FAILED with exit 3 =
+  the designed stop: projection 33,649 CPU-hours > 25,000 (`runs/tasks/projection.json`).
+
+| Arm | LightGBM | XGBoost | Forest (rf_skx) | Total |
+|---|---|---|---|---|
+| CLOSE (8 threads) | 4.6 | 11.0 | 7.9 | 23.5 |
+| RTH13_N3k (8) | 59.6 | 168.3 | 102.2 | 330.1 |
+| ALL48_N3k (8) | 56.5 | 134.7 | 127.6 | 318.8 |
+| ALL48_N39k (8; forest 20) | 322.8 | 652.2 | 2,596.8 | 3,571.8 |
+| ALL48 (8; forest 20) | 721.9 | 928.3 | 27,754.5 | 29,404.7 |
+| total | 1,165.4 | 1,894.5 | 30,589.0 | 33,648.9 |
+
+  ALL48 forest, full set: 145.9 s a refit at 20 threads (27,526.9 CPU-h; HAR 227.6) = 9.8x RTH13's probe at 20 threads
+  (14.8 s); calibration: RTH13's forest probe at 8 threads (34.0 s -> 2,569 CPU-h) against the template's actual
+  2,575.5, at 20 threads 2,797.
+- 00:41: the cap-blocked ALL48_N39k walks 13369757 / 13369758 (DependencyNeverSatisfied) and their merge / score
+  13369761 / 13369762 cancelled (never started).  Not resubmitted: ALL48_N39k and ALL48 wait for the owner.
+
+## Gate 2 and addendum A (00:45-01:00 PDT)
+
+- Gate 2, pairs finished by 00:42: ALL48_N3k 6 of 6 identical (91 every-row refits, 17 scored origins each); ALL48 (38
+  every-row refits, 3 scored origins) LightGBM HAR, XGBoost HAR and full, the forest HAR identical; LightGBM full NOT
+  identical at 2014-01-03 10:00 (0.8102594551794627 scored-only, 0.8102594551794626 every row; 1 ulp); the forest
+  full still running (13369749_3).
+- Diagnostic srun 13371033 (a04-17, EPYC 7513), the 10:00 origin fitted alone in 8 fresh processes: template config
+  626 / 627 / 626 / 626 (LightGBM's auto choice col / col / col / row-wise), force_col_wise 626 / 626, force_row_wise
+  627 / 627 -> LightGBM run-to-run non-determinism at 1 ulp on the 144,000-row window, not state across refits
+  (a duplicate batch copy 13371140 was submitted while the srun ran; same script).
+- RULE.txt addendum A: the cheap arms run after gate 1 + gate 2 on ALL48_N3k (new job t3t_gate3k); ALL48_N39k and ALL48
+  wait for the owner.

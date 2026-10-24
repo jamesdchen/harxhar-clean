@@ -131,3 +131,25 @@ Overleaf sync.  The coordinator's design defaults, adopted as below.
    piece metas, score tables, econ tables, logs; no design caches or full forecast panels on the laptop.
 
 9. ADDENDA: dated, written before the job they affect.
+
+ADDENDUM A, 2026-10-24 00:58 PDT (07:58 UTC), before the jobs it affects: THE CAP STOP, GATE 2 ON ALL48 AND THE CHEAP ARMS
+   (a) The cap check (job 13369754) stopped as designed (exit 3): the probe projects 33,649 CPU-hours for the new walks
+       (runs/tasks/projection.json; the ALL48 forest's full set alone 27,527 at 20 threads).  The ALL48_N39k walks and
+       their merge / score (13369757, 13369758, 13369761, 13369762; cap-blocked, never started) were cancelled; neither
+       ALL48_N39k nor ALL48 is submitted until the owner decides (the coordinator's instruction).
+   (b) Gate 2 found one difference: LightGBM, full set, ALL48 (W 144,000), origin 2014-01-03 10:00: pred_adj
+       0.8102594551794627 refitted at the scored origins only against 0.8102594551794626 refitted at every row (1 ulp,
+       2.2e-16 relative); the other two origins of that piece and every other finished pair (ALL48 LightGBM HAR,
+       XGBoost both sets, the forest's HAR set; ALL48_N3k every class and set, 17 origins each) are identical bit for
+       bit; the forest's ALL48 full set was still running.  Diagnostic (srun 13371033, EPYC 7513, the same window and
+       origin, a single fit in a fresh process each time, 8 threads, LightGBM's own log): the template configuration
+       gave 0.8102594551794626, ...627, ...626, ...626 in four processes (its timing-based multi-threading choice
+       logged col-wise, col-wise, col-wise, row-wise); force_col_wise gave ...626 twice, force_row_wise ...627 twice.
+       So the difference is LightGBM's run-to-run non-determinism on this window (present in a fresh process with no
+       earlier refit), not state carried across refits.  Gate 1 (W 39,000) and gate 2 on ALL48_N3k (W 3,000) showed
+       none.  How to treat the 1-ulp non-determinism of the ALL48 LightGBM walk goes to the owner with (a).
+   (c) The cheap arms (CLOSE, RTH13_N3k, ALL48_N3k; 672 CPU-hours projected) start after gate 1 and gate 2 restricted
+       to their own 48-interval arm, ALL48_N3k (the same bit-for-bit criterion; every class and set passed): a new job
+       t3t_gate3k (experiments/trees_train3way.py gate1, and gate2 --arm ALL48_N3k), and the walk arrays 13369755 /
+       13369756 re-pointed from t3t_gate (13369752, whose full gate 2 will record (b)) to it.  Nothing else changes;
+       their merge / interim score (13369759, 13369760) as submitted.
