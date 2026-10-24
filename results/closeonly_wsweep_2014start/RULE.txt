@@ -1,0 +1,107 @@
+CLOSE-ONLY WINDOW SWEEP OF THE POOLED LINEAR MODELS AND TREES (2014 start; W = 1,000 .. 3,500 closes)
+
+Written 2026-10-24 about 10:00 PDT (17:00 UTC), before any job of this sweep; committed and pushed before the first
+submission.  Branch insurance-selling-2026-09-19-e34-closeonly-wsweep (from insurance-selling-2026-09-19-e34-train3way
+0106ccb; experiments/trees_train3way{,_score,_econ}.py taken unchanged from origin/insurance-selling-2026-09-19-e34-
+train3way-trees 37e5bb6).  Request (owner, relayed by the coordinator): "run the close-only window sweep too".
+It extends the close-only (CLOSE) arm of the two three-way comparisons (results/linear_train3way_2014start_w3000/
+RULE.txt; results/trees_train3way_2014start_w3000/RULE.txt on the trees branch), trained at W = 3,000 closes, to the
+windows of the pooled window sweep (results/window_sweep_2014start_2026-10-22: W = 1,000, 1,500, 2,000, 2,500, 3,000,
+3,500), reusing their code and conventions so that every number is comparable with theirs.  Nothing under writeup/ is
+edited; no Overleaf sync.
+
+1. DESIGNS (each W its own, as the pooled sweep)
+   For each W the pooled sweep's 13-bar design at that W (CARC /scratch1/jc_905/wsweep/code/results/
+   window_sweep_2014start_2026-10-22/w<W>/_work/design_<set>/, both sets; code 6c264b7; the rolling robust scaler and
+   LATE_START_WARMUP at the window 13 W rows, its flags and HAR ladder those of the three-way RTH13 template).  Copied
+   off /scratch1 (the trees comparison's Lustre problem) to /home1/jc_905/closewin/designs/RTH13_w<W>/_work/
+   design_<set>/ (X, y, b_oos, dates_oos, design.json; md5 of each copy = the source's, before and after the copy),
+   plus dates_all.csv (the date of every design row, which the sweep's caches do not store) = the linear three-way's
+   rebuilt RTH13 dates_all.csv (whose X, y, b_oos and dates_oos are md5-identical to w3000's).  Checks
+   (experiments/closewin.py stage -> design_check.json; exit 3 on any failure; every later job runs afterok on it):
+     (a) the same rows in every W: 84,747 rows, y.npy md5-identical to the rebuilt RTH13's (y, the adjusted target, is
+         W-independent), dates_oos.csv = dates_all[13 W:];
+     (b) config: sample rth13, 13 a day, window 13 W, har_base 5, the template's ex_flags; column names equal across W;
+     (c) W = 3,000: X, y, b_oos, dates_oos md5-identical to the three-way templates' design;
+     (d) B (b_oos) of every W equal to W = 1,000's at the common OOS rows (B is built on the full grid).
+   The close sample at W = the design's 16:00 rows (the 15:30 information set), so X, y and B of every 16:00 row are
+   those of the W design (its scaler and late-start rule at W, as the pooled sweep's W arm).
+
+2. LINEAR (experiments/closewin_linear.py: experiments/linear_train3way.py's CLOSE arm with its window WD set to W;
+   nothing else changes)
+   derive_close (unchanged): the 16:00 rows of the W design from the W-th 16:00 row before the first one with a
+   stored B; window W closes (rows); first evaluation day 2014-01-02; the walk refits at every session's 16:00 origin
+   (the runner's walk from the 250-solve boundary at or before the first 2014-01-02 row to 30 April 2024; mask and
+   cold seed every 250th solve; window = the last W closes).  Models: OLS (HAR set); ridge, lasso, elastic net on the
+   HAR and full sets; penalty factors (0.01 / 1 on the HAR block), STANDARDIZE_PENALTY, WALK_KKT_RESEED, the grids and
+   the grid rule as the three-way.  Penalties re-tuned per W with the native rule: fold 3, validation = the 250 closes
+   before 2014-01-02 (2013), embargo 25 closes, fit = the W closes before the embargo, the lowest mean validation MSE
+   (adjusted scale); one penalty a model, frozen over the evaluation span.  Environment and settings of the linear
+   three-way (the wsweep uv venv read only, OpenBLAS Prescott, numpy AVX512 dispatch off, 1 thread a runner process),
+   CARC EPYC 7513 / 7542.
+   GATE L (W = 3,000 runs first; the other five W run afterok on it): the W = 3,000 run reproduces the three-way CLOSE
+   arm exactly: derived caches md5-identical (X, y, b_oos, dates_oos, dates_all, rth13_rows of both sets) and their
+   design.json equal (names, shape, hp, config, raw_cols, bucket, f_order; derived_from but the source path), frozen
+   penalties, grid-rule record and pretune_mse.csv identical, forecasts_rth.parquet identical in every value (date,
+   alpha, pred_adj, true_adj, B, plain, pred_raw_duan, true_raw, rv_actual of every model).  Exit 3 otherwise.  The
+   scorer then checks W = 3,000's 16:00 QLIKE / MSE / R2_OOS against the three-way scores_all/qlike_16.csv CLOSE rows
+   to 1e-12 (OLS HAR 0.122286, elastic net full 0.114385) and its full-vs-HAR rows of gap.csv to 1e-9.
+
+3. TREES (experiments/closewin_trees.py: experiments/trees_train3way.py with arms CLOSE_w<W> = design RTH13_w<W>,
+   sample its 16:00 rows, window W closes; its walk / merge code unchanged)
+   LightGBM lgbm_opt_00, XGBoost xgb_opt_00, the random forest rf400_rf_opt_00 on oneDAL (rf_skx), the frozen
+   configurations of the three-way (no re-tuning), seed 42, HAR and full sets, 8 threads, the three-way's
+   environments (harxhar-r13; venv_skx).  Origins: the three-way CLOSE's 2,579 16:00 rows from 2014-01-02 to
+   2024-04-30 (taken from the W = 3,000 design; every W design has the same rows, check (a)); the forecast at an origin
+   is fitted from scratch on the W 16:00 rows before it and predicts it; plain = pred_adj^2 x B.  One piece per W,
+   class and set (the three-way CLOSE's split, 1 of 1; resumable from its checkpoint on the same CPU family).
+   CAVEAT (recorded, not acted on): the configurations were tuned on pooled 13-bar data with tens of thousands of rows;
+   at W = 1,000 .. 3,500 closes their sample-size parameters (LightGBM min_child_samples 98 with bagging_fraction 0.56,
+   XGBoost min_child_weight 50.2 with subsample 0.66, the forest min_samples_leaf 12 with max_samples 0.41 and
+   max_depth 20) bind differently, the more so the smaller W; the trees are not re-tuned (the paper's tree protocol).
+   CPU models (gated ones only): LightGBM and XGBoost on EPYC 7513 / 7542 (their only gated models: the three-way gate
+   1); the forest on EPYC 7513 / 7542 or Xeon Silver 4116 (main; gated for the forest by the three-way's addendum E,
+   carc_x4116 in runs/pieces_h2/accepted_cpus.json); the nodes with failing /scratch1 mounts excluded (d05-06, d18-17,
+   d18-26, d18-28, d18-29); one CPU model a piece (recorded; the merge's forecasts.json lists them and a check asserts
+   the rule above).  E5-2640 v4 (oneweek) is not used.
+   GATE T (before any other W; every tree walk runs afterok on it): W = 3,000, the first 10 and last 10 16:00 origins
+   of each class and set on EPYC 7513 / 7542 at 8 threads, against the three-way CLOSE forecasts (CARC /scratch1/
+   jc_905/trees3way/runs/CLOSE/forecasts.parquet, md5 2f5661cde01750be1f5a44c47f88aad7, the source of its scores_w1):
+   LightGBM / XGBoost pred_adj text-identical (repr), the forest within 1e-14 relative (expected 0 on EPYC), true_adj
+   and B equal.  Exit 3 otherwise.  On a pass, W = 3,000's forecasts are the three-way CLOSE forecasts (reused,
+   md5-checked copy; its 23.3 CPU-hours not spent again).
+
+4. SCORING AT 16:00 (experiments/closewin_score.py on CARC; the three-way scorers' 16:00 conventions)
+   Days: RE.history() days in 2014-01-02 .. 2024-04-30 (2,579: positive closing print, early closes dropped).  Per W
+   and model: QLIKE, MSE x 1e10, R2_OOS (RE.metrics with RE.ct_benchmark).  Diebold-Mariano: RE.dm_pair (dm_test as is:
+   HLN, Bartlett, lag max(0, floor(4 (T/100)^(2/9))) = 8 at T = 2,579) on the daily losses, QLIKE (primary) and
+   squared error, a minus b (negative = W lower): each W against the previous W (step 1,000 -> 1,500 -> .. -> 3,500),
+   against W = 1,000 and against W = 3,000; full vs HAR within each W and estimator (ridge, lasso, elastic net;
+   LightGBM, XGBoost, forest).  Checks: rv_actual, true_adj and B of every W and model equal at the 16:00 rows from
+   2014; W = 3,000 reproduces the three-way CLOSE rows of qlike_16.csv (to 1e-12) and of gap.csv at 16:00 (pct, DM, p
+   to 1e-9): linear scores_all/, trees scores_w1/.
+
+5. ECONOMICS AT THE CLOSE (experiments/closewin_econ.py, local; the three-way econ construction)
+   q = +1 (long straddle) if plain16 > iv_var, else -1, on the 866 option days; mid return q x R, bid/ask return
+   gui._crossed_return; D6 Sharpe ratio (E.sharpe) on the 614 post-warmup days, per W and model.  Full minus HAR per W
+   and estimator as the window sweep's score14.py (b): ΔD6 with hac_inference.d6_diff_test (block LW_BLOCK, LW_BOOT,
+   D6_SEED), mid and bid/ask; ΔD1 with the Ledoit-Wolf p; ΔSR614; LLSW; the long shares.  Check: W = 3,000's D6 (mid
+   and bid/ask) reproduces the three-way CLOSE rows of econ_d6.csv to 1e-12 (linear econ/, trees econ_w1/).
+
+6. TABLES: per estimator in the layout of the pooled sweep's part2/tables.txt, 16:00 only (the close-only models do
+   not forecast the other bars): QLIKE (set, W, QLIKE, Δ% step (DM p), Δ% vs 1,000 (DM p), Δ% vs 3,000 (DM p), MSE,
+   R2_OOS, the linear penalty), the full-vs-HAR gap with its DM p, and the sign strategy (D6 HAR / full, ΔD6 (boot p),
+   ΔD6 b/a (boot p), D6 b/a, ΔD1 (LW p), ΔSR614, LLSW t (p), long shares) -> tables.txt (linear/, trees/).
+
+7. COMPUTE
+   CARC Discovery, account pollok_1603, partition main; staging /scratch1/jc_905/closewin (code = git archive of the
+   commit, runs, scores, logs), designs /home1/jc_905/closewin/designs (6 x ~0.4 GB).  Linear: minutes (3 jobs).
+   Trees: projected from the three-way CLOSE pieces (10,480 s wall at 8 threads at W = 3,000 = 23.3 CPU-hours) scaled
+   by W / 3,000: about 82 CPU-hours for the five new W plus < 1 for gate T (no time probe).  Cheapest first (linear;
+   then the tree lines in W order, LightGBM before XGBoost, the HAR set first).  Concurrency: the tree arrays throttled
+   (LightGBM / XGBoost %8, forest %4), so at most about 14 of this sweep's jobs run at once (the QOS is shared with the
+   trees' forest pools and the MinGRU jobs; no other job is touched).  Outputs here: STATUS.md, design_check.json,
+   gate jsons, frozen penalties per W, score and econ tables, logs; no design caches or forecast panels but the
+   16:00 forecasts (f16.parquet).
+
+8. ADDENDA: dated, written before the job they affect.
