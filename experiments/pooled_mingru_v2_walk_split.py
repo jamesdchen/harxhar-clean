@@ -28,7 +28,7 @@ def tlim(est_s: float) -> int:
 for win, s, files, gpu, sref, target, nice, ndebug in ARMS:
     od = OUT / win / "pieces"
     od.mkdir(parents=True, exist_ok=True)
-    rows = []
+    rows: list[dict] = []
     for i in files:
         src = SP / f"orig{win}" / f"v2w_{s}.{i:03d}.txt"
         lines = src.read_text().splitlines()
@@ -86,7 +86,7 @@ for win, s, files, gpu, sref, target, nice, ndebug in ARMS:
                 )
             )
         # every origin of the original file in exactly one piece
-        got = sum(r["n_jobs"] for r in rows if r["orig"] == f"v2w_{s}.{i:03d}.txt")
+        got = sum(int(r["n_jobs"]) for r in rows if r["orig"] == f"v2w_{s}.{i:03d}.txt")
         assert got == len(lines), (s, i, got, len(lines))
     m = pd.DataFrame(rows)
     m.to_csv(OUT / win / f"pieces_{s}.csv", index=False, lineterminator="\n")
