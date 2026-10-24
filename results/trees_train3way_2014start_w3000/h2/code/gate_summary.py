@@ -6,7 +6,8 @@ Adds, for the record: each piece's CPU model, host, threads and seconds a refit;
 EPYC gate piece of the same slice (gate/g1, gate/g2 of the CARC run: bit-identical? max relative difference of
 pred_adj); each tag against each other tag (which Hoffman2 models give the same forests bit for bit); and the walk
 projection of the assigned lines on each tag's measured seconds a refit (the ALL48 forest full set, every-row gate piece,
-20 threads).  Writes <out>/gate_summary.json, <out>/gate_summary.txt, <out>/passed_cpus.txt (the accepted CPU models
+at its threads: 20, or 8 for the pieces resubmitted at 8 threads on 2026-10-24 04:10 because Hoffman2 did not schedule
+20-slot jobs; CARC's rf_skx gate (d): 8 = 20 threads bit for bit).  Writes <out>/gate_summary.json, <out>/gate_summary.txt, <out>/passed_cpus.txt (the accepted CPU models
 whose longest assigned piece fits the queue's 24 h with margin) and <out>/walk_resources.txt (ARCH = their UGE arch
 values, HRT = the walks' h_rt).
 
@@ -102,6 +103,7 @@ def main() -> int:
     cm = meta(carc_every)
     carc_sec = cm["wall_sec"] / max(1, cm["refits"]) if cm else float("nan")
     s["carc_sec_refit_all48_rf_full_t20"] = carc_sec
+    s["carc_threads"] = cm["threads"] if cm else None
     s["carc_cpu"] = cm["cpu"] if cm else None
     for t in sorted(x.name for x in h2.iterdir() if x.is_dir()):
         rec: dict[str, Any] = dict(tags.get(t, {}), pieces={}, accept=acc["checked"].get(t))
@@ -127,13 +129,17 @@ def main() -> int:
                 rec["pieces"][p.name] = r
         ev = rec["pieces"].get("ALL48_rf_skx_all_features_every.parquet", {})
         sec = ev.get("sec_refit")
-        rec["sec_refit_all48_rf_full_t20"] = sec
+        nt = int(ev.get("threads") or 0)
+        rec["sec_refit_all48_rf_full"] = sec
+        rec["threads_all48_rf_full"] = nt
         if sec and refits:
             rec["projection"] = dict(
-                ratio_to_carc=sec / carc_sec,
+                ratio_to_carc_20_threads=sec / carc_sec,
+                cpu_seconds_a_refit=sec * nt,
+                cpu_ratio_to_carc=sec * nt / (carc_sec * 20),
                 longest_piece_hours=max(refits) * sec / 3600,
                 wall_hours_all_lines=sum(refits) * sec / 3600,
-                cpu_hours_all_lines=sum(refits) * sec * 20 / 3600,
+                cpu_hours_all_lines=sum(refits) * sec * nt / 3600,
             )
         rec["accepted"] = t in accepted_tags
         s["tags"][t] = rec
@@ -173,7 +179,8 @@ def main() -> int:
         ac = r["accept"] or {}
         lines.append(
             f"[{t}] {r.get('arch')} cpus {ac.get('cpus')} accept pass={ac.get('pass')} gate1_rc={ac.get('gate1_rc')} "
-            f"gate2_rc={ac.get('gate2_rc')}; ALL48 full s/refit={r['sec_refit_all48_rf_full_t20']}; "
+            f"gate2_rc={ac.get('gate2_rc')}; ALL48 full s/refit={r['sec_refit_all48_rf_full']} "
+            f"at {r['threads_all48_rf_full']} threads; "
             f"projection={r.get('projection')}"
         )
         for n, p in r["pieces"].items():
