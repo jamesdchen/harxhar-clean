@@ -1,4 +1,4 @@
-\begin{thebibliography}{66}
+\begin{thebibliography}{79}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -60,6 +60,20 @@ Donald W.~K. Andrews.
   estimation.
 \newblock \emph{Econometrica}, 59\penalty0 (3):\penalty0 817--858, 1991.
 \newblock \doi{10.2307/2938229}.
+
+\bibitem[Bakshi and Kapadia(2003)]{BakshiKapadia2003}
+Gurdip Bakshi and Nikunj Kapadia.
+\newblock Delta-hedged gains and the negative market volatility risk premium.
+\newblock \emph{Review of Financial Studies}, 16\penalty0 (2):\penalty0
+  527--566, 2003.
+\newblock \doi{10.1093/rfs/hhg002}.
+
+\bibitem[Bandi et~al.(2008)Bandi, Russell, and Yang]{BandiRussellYang2008}
+Federico~M. Bandi, Jeffrey~R. Russell, and Chen Yang.
+\newblock Realized volatility forecasting and option pricing.
+\newblock \emph{Journal of Econometrics}, 147\penalty0 (1):\penalty0 34--46,
+  2008.
+\newblock \doi{10.1016/j.jeconom.2008.09.002}.
 
 \bibitem[Bandi et~al.(2023)Bandi, Fusari, and Ren{\`o}]{BandiFusariReno2023}
 Federico~M. Bandi, Nicola Fusari, and Roberto Ren{\`o}.
@@ -147,6 +161,14 @@ Leo Breiman.
 \newblock \emph{Machine Learning}, 45\penalty0 (1):\penalty0 5--32, 2001.
 \newblock \doi{10.1023/A:1010933404324}.
 
+\bibitem[Broadie et~al.(2009)Broadie, Chernov, and
+  Johannes]{BroadieChernovJohannes2009}
+Mark Broadie, Mikhail Chernov, and Michael Johannes.
+\newblock Understanding index option returns.
+\newblock \emph{Review of Financial Studies}, 22\penalty0 (11):\penalty0
+  4493--4529, 2009.
+\newblock \doi{10.1093/rfs/hhp032}.
+
 \bibitem[Brogaard et~al.(2023)Brogaard, Han, and Won]{BrogaardHanWon2023}
 Jonathan Brogaard, Jaehee Han, and Peter~Y. Won.
 \newblock Does {0DTE} options trading increase volatility?
@@ -175,11 +197,34 @@ Peter Carr and Liuren Wu.
   1311--1341, 2009.
 \newblock \doi{10.1093/rfs/hhn038}.
 
+\bibitem[Cenesizoglu and Timmermann(2012)]{CenesizogluTimmermann2012}
+Tolga Cenesizoglu and Allan Timmermann.
+\newblock Do return prediction models add economic value?
+\newblock \emph{Journal of Banking \& Finance}, 36\penalty0 (11):\penalty0
+  2974--2987, 2012.
+\newblock \doi{10.1016/j.jbankfin.2012.06.008}.
+
+\bibitem[Chan et~al.(2009)Chan, Jha, and Kalimipalli]{ChanJhaKalimipalli2009}
+Wing~Hong Chan, Ranjini Jha, and Madhu Kalimipalli.
+\newblock The economic value of using realized volatility in forecasting future
+  implied volatility.
+\newblock \emph{Journal of Financial Research}, 32\penalty0 (3):\penalty0
+  231--259, 2009.
+\newblock \doi{10.1111/j.1475-6803.2009.01249.x}.
+
 \bibitem[Chen and Guestrin(2016)]{Chen2016}
 Tianqi Chen and Carlos Guestrin.
 \newblock {XGBoost}: A scalable tree boosting system.
 \newblock In \emph{Proceedings of the 22nd ACM SIGKDD International Conference
   on Knowledge Discovery and Data Mining}, pages 785--794, 2016.
+
+\bibitem[Chong and Todorov(2026)]{ChongTodorov2026}
+Carsten~H. Chong and Viktor Todorov.
+\newblock Do equity and options markets agree about volatility?
+\newblock \emph{Journal of Finance}, 2026.
+\newblock \doi{10.1111/jofi.70070}.
+\newblock Forthcoming; published online 23 July 2026; working paper SSRN
+  4933153.
 
 \bibitem[Christensen et~al.(2023)Christensen, Siggaard, and
   Veliyev]{christensen2023machine}
@@ -199,6 +244,12 @@ Fulvio Corsi.
 Fulvio Corsi, Stefan Mittnik, Christian Pigorsch, and Uta Pigorsch.
 \newblock The volatility of realized volatility.
 \newblock \emph{Econometric Reviews}, 27\penalty0 (1-3):\penalty0 46--78, 2008.
+
+\bibitem[Coval and Shumway(2001)]{CovalShumway2001}
+Joshua~D. Coval and Tyler Shumway.
+\newblock Expected option returns.
+\newblock \emph{Journal of Finance}, 56\penalty0 (3):\penalty0 983--1009, 2001.
+\newblock \doi{10.1111/0022-1082.00352}.
 
 \bibitem[Diebold and Mariano(1995)]{DieboldMariano1995}
 Francis~X. Diebold and Roberto~S. Mariano.
@@ -232,6 +283,14 @@ Robert~F. Engle and Magdalena~E. Sokalska.
 \newblock \emph{Journal of Financial Econometrics}, 10\penalty0 (1):\penalty0
   54--83, 2012.
 \newblock \doi{10.1093/jjfinec/nbr005}.
+
+\bibitem[Engle et~al.(1993)Engle, Hong, Kane, and Noh]{EngleHongKaneNoh1993}
+Robert~F. Engle, Che-Hsiung Hong, Alex Kane, and Jaesun Noh.
+\newblock Arbitrage valuation of variance forecasts with simulated options.
+\newblock \emph{Advances in Futures and Options Research}, 6:\penalty0
+  393--415, 1993.
+\newblock NBER Working Paper 3350 (1990); NBER dates the volume 1992,
+  pp.~393--416.
 
 \bibitem[Fleming et~al.(2001)Fleming, Kirby, and
   Ostdiek]{FlemingKirbyOstdiek2001}
@@ -268,6 +327,13 @@ Domenico Giannone, Michele Lenza, and Giorgio~E. Primiceri.
 \newblock Economic predictions with big data: The illusion of sparsity.
 \newblock \emph{Econometrica}, 89\penalty0 (5):\penalty0 2409--2437, 2021.
 
+\bibitem[Goyal and Saretto(2009)]{GoyalSaretto2009}
+Amit Goyal and Alessio Saretto.
+\newblock Cross-section of option returns and volatility.
+\newblock \emph{Journal of Financial Economics}, 94\penalty0 (2):\penalty0
+  310--326, 2009.
+\newblock \doi{10.1016/j.jfineco.2009.01.001}.
+
 \bibitem[Gu et~al.(2020)Gu, Kelly, and Xiu]{gu2020empirical}
 Shihao Gu, Bryan Kelly, and Dacheng Xiu.
 \newblock Empirical asset pricing via machine learning.
@@ -292,6 +358,14 @@ Peter~R. Hansen, Zhuo Huang, and Howard~Howan Shek.
   volatility.
 \newblock \emph{Journal of Applied Econometrics}, 27\penalty0 (6):\penalty0
   877--906, 2012.
+
+\bibitem[Harvey and Whaley(1992)]{HarveyWhaley1992}
+Campbell~R. Harvey and Robert~E. Whaley.
+\newblock Market volatility prediction and the efficiency of the {S\&P} 100
+  index option market.
+\newblock \emph{Journal of Financial Economics}, 31\penalty0 (1):\penalty0
+  43--73, 1992.
+\newblock \doi{10.1016/0304-405X(92)90011-L}.
 
 \bibitem[Harvey et~al.(1997)Harvey, Leybourne, and
   Newbold]{HarveyLeybourneNewbold1997}
@@ -348,6 +422,13 @@ Oliver Ledoit and Michael Wolf.
   850--859, 2008.
 \newblock \doi{10.1016/j.jempfin.2008.03.002}.
 
+\bibitem[Leitch and Tanner(1991)]{LeitchTanner1991}
+Gordon Leitch and J.~Ernest Tanner.
+\newblock Economic forecast evaluation: Profits versus the conventional error
+  measures.
+\newblock \emph{American Economic Review}, 81\penalty0 (3):\penalty0 580--590,
+  1991.
+
 \bibitem[Lundberg et~al.(2020)Lundberg, Erion, Chen, DeGrave, Prutkin, Nair,
   Katz, Himmelfarb, Bansal, and Lee]{lundberg2020local}
 Scott~M. Lundberg, Gabriel Erion, Hugh Chen, Alex DeGrave, Jordan~M. Prutkin,
@@ -363,6 +444,13 @@ Robert~C. Merton.
 \newblock \emph{Bell Journal of Economics and Management Science}, 4\penalty0
   (1):\penalty0 141--183, 1973.
 
+\bibitem[Muravyev and Ni(2020)]{MuravyevNi2020}
+Dmitriy Muravyev and Xuechuan Ni.
+\newblock Why do option returns change sign from day to night?
+\newblock \emph{Journal of Financial Economics}, 136\penalty0 (1):\penalty0
+  219--238, 2020.
+\newblock \doi{10.1016/j.jfineco.2018.12.006}.
+
 \bibitem[Newey and West(1987)]{NeweyWest1987}
 Whitney~K. Newey and Kenneth~D. West.
 \newblock A simple, positive semi-definite, heteroskedasticity and
@@ -376,6 +464,12 @@ Whitney~K. Newey and Kenneth~D. West.
 \newblock \emph{Review of Economic Studies}, 61\penalty0 (4):\penalty0
   631--653, 1994.
 \newblock \doi{10.2307/2297912}.
+
+\bibitem[Noh et~al.(1994)Noh, Engle, and Kane]{NohEngleKane1994}
+Jaesun Noh, Robert~F. Engle, and Alex Kane.
+\newblock Forecasting volatility and option prices of the {S\&P} 500 index.
+\newblock \emph{Journal of Derivatives}, 2\penalty0 (1):\penalty0 17--30, 1994.
+\newblock \doi{10.3905/jod.1994.407901}.
 
 \bibitem[Patton(2011)]{Patton2011}
 Andrew~J. Patton.

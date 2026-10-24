@@ -24,6 +24,8 @@
 % it does not mean Related work avoids our paper. Each bullet places our setup and results in its strand at the
 % granularity an expert reader needs (what is the same, what is new, the obvious contrast), assuming the reader knows
 % the literature; definitions of our estimators and trading rule stay in Methods and Economics. Framing pass below.
+% 2026-10-24 (user): the language follows the prose of the papers cited (their terms and phrasing), so the section
+% reads as part of that literature; facts about cited papers are taken from their own abstracts or text.
 \begin{itemize}
 % 2026-10-15 (consolidation): parked -- (k) in trading days here vs intraday intervals everywhere else.
 % \item \textbf{Realized variance and the HAR model:}
@@ -91,28 +93,67 @@
   between option-implied variance and expected realized variance,
   $\E^{\mathbb{Q}}_t[\RV_t] - \E^{\mathbb{P}}_t[\RV_t]$, under the risk-neutral ($\mathbb Q$) and physical
   ($\mathbb P$) measures (where $\RV_t$ denotes the realized variance through expiration), is empirically
-  positive on average. Our economic application sits at the end of a 0DTE option's life: we ask whether more
-  accurate forecasts of the closing half hour's realized variance, set against the option-implied variance,
-  translate into straddle returns.\newline
+  % 2026-10-24 (user, straddle bullet): parked -- the framing sentence, now split between this bullet (straddle
+  % returns, the benchmark) and the new economic-evaluation bullet. Was: "Our economic application sits at the end of
+  % a 0DTE option's life: we ask whether more accurate forecasts of the closing half hour's realized variance, set
+  % against the option-implied variance, translate into straddle returns."; and the reading list "See
+  % \citet{HizmeriBevilacqua2025}, as well as the foundational option-pricing frameworks of \citet{BlackScholes1973}
+  % and \citet{Merton1973}."
+  positive on average, so that zero-beta at-the-money straddles and delta-hedged index option positions lose
+  money on average; the unconditional short straddle is therefore the natural benchmark for a strategy that trades
+  straddles on a variance forecast. Our straddles are 0DTE options held through the closing half hour, the last
+  interval of their life.\newline
   See \citet{HizmeriBevilacqua2025}, as well as the foundational option-pricing frameworks of
-  \citet{BlackScholes1973} and \citet{Merton1973}.
+  \citet{BlackScholes1973} and \citet{Merton1973}; on the returns of index straddles and delta-hedged options, see
+  \citet{CovalShumway2001}, \citet{BakshiKapadia2003}, and \citet{BroadieChernovJohannes2009}.
   \begin{itemize}
+  % 2026-10-24 (user, straddle bullet): parked -- the 0DTE reading list before Chong--Todorov and Muravyev--Ni. Was:
+  % "On zero-days-to-expiration (0DTE) options, see \citet{BandiFusariReno2023}, \citet{BeckmeyerBrangerGayda2023},
+  % \citet{BrogaardHanWon2023}, \citet{DimErakerVilkov2024}, \citet{Vilkov2026}, and \citet{AlmeidaFreireHizmeri2025};
+  % on the variance risk premium more broadly, see \citet{CarrWu2009} and \citet{BollerslevTauchenZhou2009}."
+  % Vilkov2026: cite for its design only; its repository (KNOWN-ISSUES, August 2026) reports a transaction-cost error
+  % that removes its positive net Sharpe ratios, with a revision in progress.
   \item On zero-days-to-expiration (0DTE) options, see \citet{BandiFusariReno2023},
     \citet{BeckmeyerBrangerGayda2023}, \citet{BrogaardHanWon2023}, \citet{DimErakerVilkov2024},
-    \citet{Vilkov2026}, and \citet{AlmeidaFreireHizmeri2025}; on the variance risk premium more broadly, see
-    \citet{CarrWu2009} and \citet{BollerslevTauchenZhou2009}.
+    \citet{Vilkov2026}, and \citet{AlmeidaFreireHizmeri2025}; on whether equity and 0DTE options markets agree
+    about volatility, and on trading their disagreement, see \citet{ChongTodorov2026}; on why option returns differ
+    between the trading day and the night, see \citet{MuravyevNi2020}; on the variance risk premium more broadly,
+    see \citet{CarrWu2009} and \citet{BollerslevTauchenZhou2009}.
   % 2026-10-15 (bib pass): parked -- the [to add] placeholder, now \citet keys in references.bib. Was:
   % \item \todo{to add: Bandi--Fusari--Ren\`o 2023; Beckmeyer--Branger--Gayda 2023; Brogaard--Han--Won 2023;
   %   Dim--Eraker--Vilkov 2024; Vilkov, 0DTE trading rules; Almeida--Freire--Hizmeri 2025; Carr--Wu 2009;
   %   Bollerslev--Tauchen--Zhou 2009}.
   \end{itemize}
+% 2026-10-24 (user): new bullet -- the gap in the literature our economic test fills (option-based evaluation of
+% volatility forecasts); references verified against each paper's abstract or text.
+\item \textbf{Economic evaluation of volatility forecasts.} A long tradition values volatility forecasts by the
+  profits they earn trading options: a trader buys (sells) straddles when the price implied by the variance forecast
+  exceeds (falls short of) the market price, and competing forecasts are ranked by the returns that result. Because
+  conventional error measures are only weakly related to the profits a forecast earns, forecasts are judged on both.
+  Our economic test brings this evaluation to the intraday horizon, trading forecasts of the closing half hour's
+  variance through 0DTE straddles held to the close.\newline
+  See \citet{EngleHongKaneNoh1993} and \citet{NohEngleKane1994} on valuing variance forecasts through simulated
+  options and S\&P~500 straddle trading, \citet{HarveyWhaley1992} on predictable implied volatility whose trading
+  profits do not survive transaction costs, \citet{BandiRussellYang2008} on ranking high-frequency variance
+  forecasts by the profits and Sharpe ratios of option trading, and \citet{ChanJhaKalimipalli2009} on statistical
+  gains from realized volatility that do not translate into economic gains after costs.
+  \begin{itemize}
+  \item On straddle returns sorted on the gap between realized and implied volatility, see
+    \citet{GoyalSaretto2009}; on profits versus conventional error measures, see \citet{LeitchTanner1991} and
+    \citet{CenesizogluTimmermann2012}.
+  \end{itemize}
 \item \textbf{Machine learning for volatility and returns.} A growing literature models conditional return and
   volatility dynamics via flexible nonlinear mappings $f(\bm x_t)$ of a high-dimensional predictor vector
+  % 2026-10-24 (user, prose follows the literature): parked -- the Zhang et al. sentence before their own terms
+  % (buckets, universal model). Was: "The closest precedent for our setting, \citet{ZhangZhangCucuringuQian2024},
+  % forecasts the realized volatility of intraday intervals for a cross-section of stocks with one model across the
+  % intervals of the day and predictors built from realized volatility alone; we keep that design for the S\&P~500
+  % and ask what a large set of exogenous predictors adds, comparing penalized linear models with tree ensembles."
   $\bm x_t$. Most of this work targets daily volatility or monthly returns. The closest precedent for our
-  setting, \citet{ZhangZhangCucuringuQian2024}, forecasts the realized volatility of intraday intervals for a
-  cross-section of stocks with one model across the intervals of the day and predictors built from realized
-  volatility alone; we keep that design for the S\&P~500 and ask what a large set of exogenous predictors adds,
-  comparing penalized linear models with tree ensembles.\newline
+  setting, \citet{ZhangZhangCucuringuQian2024}, forecasts realized volatility over intraday buckets for a
+  cross-section of stocks, fitting one model across all buckets of the day and, in its universal variant, across
+  stocks, with predictors built from realized volatility alone; we keep that design for the S\&P~500 and ask what a
+  large set of exogenous predictors adds, comparing penalized linear models with tree ensembles.\newline
   See \citet{gu2020empirical} for return prediction and \citet{christensen2023machine} for realized volatility
   forecasting; for gradient-boosted decision trees, see \citet{Ke2017} (LightGBM) and \citet{Chen2016}
   (XGBoost); for Bayesian hyperparameter optimization, see \citet{Akiba2019} (Optuna).
