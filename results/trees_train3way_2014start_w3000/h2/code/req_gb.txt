@@ -8,3 +8,4 @@ tqdm==4.70.1
 lightgbm==4.6.0
 xgboost==3.2.0
 setuptools==84.1.0
+packaging==26.3
