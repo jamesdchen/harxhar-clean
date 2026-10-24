@@ -236,3 +236,15 @@ SPLIT    The 61 not-yet-started walk files are cancelled while pending and repla
          the QOS (<= 100 submitted): 82 at 12:45, the rest at later check-ins. The 11 running HAR W 3,000 files
          (000-010) run on unchanged. W 3,500 pieces keep nice 100. An arm is complete when walk-merge finds every
          bar x seed; inputs/pieces_<set>.csv lists every piece and walk_ids_<set>.txt every submission.
+
+ADDENDUM 3a 2026-10-24 15:15 PDT (CARC clock; owner, relayed: "why can't we use the A40s?"), written before the
+affected jobs; identical in both copies. ADDENDUM 1a's CHOICE re-applied to the arms none of whose walk pieces had
+started (15:12): full W 3,000 and full W 3,500 (L40S, 8 + 4 pieces pending since 12:45, none started). HAR W 3,000
+(13 originals + 22 pieces running) and HAR W 3,500 (2 debug pieces running, 2 preempted) have started: they stay
+P100. At 15:12: free A40 0 / 50 (+ debug 2 / 2), L40S 5 / 19, P100 8 / 74; others' pending jobs above our priority
+accepting A40 104, L40S 108, P100 19; jobs started in the last 2 h on A40 81, L40S 19, P100 91; per-user caps A40 12
+(ours 0), L40S 6 shared by both full arms. A40 gives clearly more: twice the cap, ~4x the L40S turnover against the
+same competing demand, and 1.39x the P100 rate on these shapes (L40S ~0.9x). Both full arms -> A40: their 12
+pending L40S pieces are cancelled and the same piece files resubmitted on A40 (time limits from the A40 rate:
+est x 1.3 + 30 min, 432 / 375 min), more pieces in later top-ups. The debug A40s are not used (debug preempts:
+PreemptMode=CANCEL; two debug pieces were preempted at 38 min).
