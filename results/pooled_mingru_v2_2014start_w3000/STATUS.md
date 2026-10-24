@@ -206,3 +206,17 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
 - 2026-10-24 05:50 PDT G6 HAR (W 3,000) extension 1 done (tau 9, 120 jobs, P100: 13373988-92, n_bad 0). Round-1
   shortlist (screen seeds, stage2/s2_screen_baseline_round1.csv): tau9_we0_E80 0.126084, tau1_we0_E10, tau0.3_we0_E10,
   tau1_we0_E20, tau3_we0_E40; fresh seeds for the new member tau9_we0_E80 (15 jobs, tag v2s2hc1, debug P100).
+- 2026-10-24 06:06 PDT G6 full set (W 3,000) FINAL (A40): extension 2 (tau 27) done (13373353 gpu, 13373355-56 and
+  13376916 debug; 13373354 cancelled while pending and rerun on the debug A40s); no tau-27 configuration enters the
+  screen top 5, so the shortlist and the fresh-seed pick stand: tau 9, wd_enc 3, E 160, fresh C 0.115927 (interior
+  on every axis: tau 9 < 27, wd_enc 3 in {0, 3, 15}, E 160 in {10, ..., 300}). Reported, not deciding
+  (stage2/s2_report_all_features.json): bootstrap SE of C - C(pick) 0.00017-0.00040; seed-jackknife SE of C
+  0.00003-0.00018; 90 % MCS = the whole shortlist (p 0.80). Pick vs runner-up tau3_we3_E80: 0.000034 (0.2 SE).
+- 2026-10-24 06:06 PDT G6 HAR (W 3,000) round 1: fresh-seed pick tau9_we0_E80 0.126130 (tau3_we0_E40 0.126140,
+  tau1_we0_E20 0.126398, ...): at the tau high edge (9) -> extension 2 (the last): tau 27 (120 jobs, tag v2s2hx2, P100):
+  13377080-81 gpu, 13377082-84 debug.
+- 2026-10-24 06:06 PDT G7 full set (W 3,000), P100 (the probe's output is P100-hours; one file): 24 origins x 5 seeds at
+  H 64, L 8, lr 0.003, tau 9 (wd 0.12218715 at S 305), wd_enc 3, E 160; first submission 13377085 cancelled while
+  pending: the bar inits of the full set were missing (the CPU jobs got SETS=baseline only: a comma inside --export
+  splits the variable); full-set bar inits recomputed (CPU 13377088 W 3,000, 13377089 W 3,500); G7 resubmitted
+  13377090 (debug P100) afterok on 13377088.
