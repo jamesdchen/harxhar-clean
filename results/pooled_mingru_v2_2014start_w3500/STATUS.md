@@ -20,3 +20,11 @@ the old run (read-only): `/home1/jc_905/pmf35/data` (design copies, fold-3 ridge
 - 2026-10-24 00:08 PDT: G2 decided (W 3,000 STATUS.md, g2_decide.json): HAR E1 = 1,000, full set 300; lr {0.003, 0.01,
   0.03}. G4 HAR submitted on P100 (ADDENDUM 1b), nice 100: 13369121-42 (14 files, 81 jobs, E 1,000, w0 1,702). G4 full
   set: 13367193-95 completed, 13367196 running, 13367197-98 pending (L40S).
+- 2026-10-24 00:15 PDT G4 full set final (stage1/s1_w3500_full_*; L40S b17-16, 13367193-98 all n_bad 0): pick H 64,
+  L 8, lr 0.003, "memorizing": rho_300 0.1557 / 0.1584 / 0.1585 (3 seeds agree). (16, *) cells rho 0.697-0.699 (do not
+  memorize); H 64 cells 0.158-0.163; H 256 ~ 0. lr 0.03 diverges everywhere; 0.003 the argmin in every cell. Same pick
+  as W 3,000. Measured L40S 0.028 GPU-s a model-epoch at CONC 24 (H <= 64, L <= 20).
+- 2026-10-24 00:16 PDT G5 + G6 full set (W 3,500), GPU type L40S (ADDENDUM 1a criterion: L40S cap 6 with none of our
+  jobs on it; A40's 12 with 7 of our screen files queued; P100 with 24 of our files queued): s2_state.json (H 64, L 8,
+  lr 0.003; 72 configurations); canary 13370080 (fold 1 = the truncated fit [0, 40,702), tau 1, wd_enc 3, E 20, seed
+  20261012); screen 13370081-95 (15 files, 1,080 jobs) afterok on it; nice 100.

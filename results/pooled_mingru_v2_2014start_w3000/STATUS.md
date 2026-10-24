@@ -142,3 +142,7 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   copy 13367874 waits behind other users' debug jobs); the 15 screen files now wait on "afterok:13367874 ?
   afterok:13369150" (either copy). The commit "G2 decided ..." swept in another session's untracked
   hoffman2_gpu_test/ files by a directory add; untracked again in the next commit (files left on disk).
+- 2026-10-24 00:15 PDT G5 PASS (full set, W 3,000; A40): canary 13367874 (debug b11-09) and its gpu copy 13369150
+  (b11-13): status ok, forecast rows exactly [40,702, 44,277), finite and positive, kept columns = the init's (POST
+  n_bad 0). Screen running on A40: 13367875-78, 13367888-89 completed (n_bad 0), 13367879-80 running, 7 pending.
+  G3 HAR: 13369109 (debug P100) completed, 13369110-12 running, 9 pending (P100). G2's last file 13366976 completed.
