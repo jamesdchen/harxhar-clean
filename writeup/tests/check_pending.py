@@ -18,8 +18,9 @@ check fails (exit 1, one line a failure) unless:
     out.  With the forest finished, no row is marked, the rows are there and each holds a number.
  3. FOREST MACROS (FOREST_MACRO, in the macro files of the paper's generators): with the forest pending each is
     \\rhPending{}; with it finished none is.
- 4. \\rhPending: every file that uses \\rhPending defines it (final_run.PENDING_DEF); in the paper's generators' files
-    it is used only when an arm is pending.
+ 4. \\rhPending: every file that uses \\rhPending (outside comments) defines it (final_run.PENDING_DEF) or loads a
+    generated numbers file that does (2bfefe6: a table file relies on its numbers file, \\ifdefined ... \\input);
+    in the paper's generators' files it is used only when an arm is pending.
  5. COUNTS (when the macro files are there): \\rhrPoolN = \\rhrPoolNDone = final_run.pool_n(), \\rhrPoolNAll =
     final_run.POOL_N_ALL, \\rhrPoolNPending = their difference, \\rhrPoolPending = final_run.pending_text();
     \\rhorAfPairs = the finished classes of Table 1, \\rhorAfPairsAll = 6, \\rhorAfTreeN, \\rhorPending = the pending
@@ -61,6 +62,8 @@ FOREST_ROWS: dict[str, tuple[str | None, str | None, str]] = {
         _FIRST,
     ),
     "rehaul_econ_sharpe_defs.tex": (None, None, _FIRST),
+    # 2026-10-23 (coordinator, tree learning curve): Section 8's trees across windows (make_rehaul_fip_lc.py), both panels
+    "rehaul_fip_lc_table.tex": (None, None, _FIRST),
 }
 # macros of the pooled forest (names in the generators' styles); the closing-interval forest's (...RfClose...) are
 # other runs and are not matched
@@ -97,6 +100,23 @@ def macros(text: str) -> dict[str, str]:
             continue
         out[m.group(1)] = val
     return out
+
+
+_COMMENT = re.compile(r"(?<!\\)%.*$", re.MULTILINE)
+_INPUT = re.compile(r"\\input\{generated/([^}]+)\}")
+
+
+def defines_pending(text: str, gen: Path) -> bool:
+    """The file defines \\rhPending, or \\inputs a generated file of the directory that does."""
+    if fr.PENDING_DEF in text:
+        return True
+    for name in _INPUT.findall(_COMMENT.sub("", text)):
+        p = gen / (name if name.endswith(".tex") else name + ".tex")
+        if p.is_file() and fr.PENDING_DEF in p.read_text(
+            encoding="utf-8", errors="replace"
+        ):
+            return True
+    return False
 
 
 def has_digit(line: str) -> bool:
@@ -156,9 +176,12 @@ def main() -> int:
                 if own and not any_pending:
                     bad.append(f"{f.name}:{i}: a pending row, but no arm is pending")
         # 4. \rhPending is defined where used, and used (in the paper's generators' files) only when pending
-        body = text.replace(fr.PENDING_DEF, "")
+        # 2026-10-23: a use in a comment is not a use; a file that loads a generated numbers file defining it (the
+        # 2bfefe6 convention for table files) defines it. Was: body = text.replace(fr.PENDING_DEF, ""); a use
+        # anywhere in the text, and PENDING_DEF in the file itself.
+        body = _COMMENT.sub("", text.replace(fr.PENDING_DEF, ""))
         if r"\rhPending" in body:
-            if fr.PENDING_DEF not in text:
+            if not defines_pending(text, gen):
                 bad.append(f"{f.name}: uses \\rhPending without {fr.PENDING_DEF}")
             if own and not any_pending:
                 bad.append(f"{f.name}: uses \\rhPending, but no arm is pending")

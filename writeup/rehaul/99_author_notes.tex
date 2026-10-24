@@ -28,10 +28,16 @@
   % \textbf{Variable importance} (Section~\ref{sec:rh_fi}): the pooled linear results on the current design
   % (results/rehaul\_fi\_pooled13\_2026-10-22, preliminary) go in after the rerun; the scope of the tree analysis
   % (SHAP by variable and state, interaction-free refits, SHAP interactions) is to be decided."
+  % 2026-10-23 (coordinator, tree learning curve): parked -- "the trees at the robustness window" is now their SHAP
+  % values only; the trees' accuracy across windows is in. Was: "Still to come: the ablations (below), the MinGRU, a
+  % linear SHAP on the same forecast rows (so both model families share one measure), and the trees at the robustness
+  % window."
   \item \textbf{Variable importance} (Section~\ref{sec:rh_fi}): the linear models' importance and the trees' SHAP
-    attributions on the final design at the main window are in. Still to come: the ablations (below), the MinGRU,
-    a linear SHAP on the same forecast rows (so both model families share one measure), and the trees at the
-    robustness window.
+    attributions on the final design at the main window are in, and so is the trees' window learning curve
+    (LightGBM, XGBoost and the forest at \rhlcWOne--\rhlcWLong{} days, \rhlcNArmsDone{} of \rhlcNArmsAll{} walks; the
+    full set's extra gain over the HAR benchmark, Table~\ref{tab:rh_fip_lc}, writeup/make\_rehaul\_fip\_lc.py). Still to
+    come: the ablations (below), the MinGRU, a linear SHAP on the same forecast rows (so both model families share
+    one measure), and the trees' SHAP values at the robustness window.
   \item \textbf{Ablations:} leave one bucket out, then one variable out within the buckets that matter. The linear
     preview on the earlier design exists; the final run on the final design is not run; trees to be decided.
   % 2026-10-23 (user): parked -- the MinGRU rerun is running. Was: "\item \textbf{MinGRU network:} parked; rerun on
@@ -55,8 +61,16 @@
     pre-sample fold (validation year 2013), main window 3,000 trading days, 3,500 days as robustness. The
     learning curves: the linear models' closing-interval accuracy stops improving near 3,000 days and their
     every-interval accuracy does not improve beyond 1,000; the trees' pre-sample fits improve until about 3,500.
-    Out of sample, the longer window changes no tree's accuracy significantly and moves only the linear models
-    (Table~\ref{tab:rh_robust_w3500}). The dense-and-weak test across windows is in Section~\ref{sec:rh_fi}.
+  % 2026-10-23 (coordinator, tree learning curve): parked -- the out-of-sample sentence now also covers the trees' walks
+  % below the main window (W = 1,000 and 2,000, finished). Was: "Out of sample, the longer window changes no tree's
+  % accuracy significantly and moves only the linear models (Table~\ref{tab:rh_robust_w3500}). The dense-and-weak test
+  % across windows is in Section~\ref{sec:rh_fi}."
+    Out of sample, \rhlcWLong{} days against \rhlcWMain{} change no tree's accuracy significantly and move only the
+    linear models (Table~\ref{tab:rh_robust_w3500}). Below the main window the trees do improve: from \rhlcWOne{} to
+    \rhlcWTwo{} days the full set's every-bar QLIKE falls significantly in \rhlcFullFallOneTwoBarWho, and its lead
+    over the HAR benchmark widens until \rhlcWMain{} days (Table~\ref{tab:rh_fip_lc}; \rhlcNArmsDone{} of
+    \rhlcNArmsAll{} tree walks finished). The dense-and-weak tests across windows (the linear models' coefficients,
+    the trees' extra gain) are in Section~\ref{sec:rh_fi}.
   % 2026-10-23 (user, E32): James decided to rerun the closing-interval trees with a refit at every session. Was:
   % "\item \textbf{Closing-interval models:} not rerun (James, 22 October 2026); their full-sample rules are disclosed
   %   (notes S4a, S4c, S4d). The data fixes they predate (invalid-print nulling, FOMC calendar, VIX splice, fill cap)

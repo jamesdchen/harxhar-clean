@@ -58,7 +58,11 @@
 % re-estimations, results/rehaul\_fi\_pooled13\_2026-10-22: dense across variables, sparse within each) and goes in after
 % the rerun of the pooled models; the tree analysis is to be decided.\\Problem: this subsection is still a placeholder.
 % See the notes to the authors, ``Rerun pending''.}"
-\editc{orange}{RR}{Decision (user, 2026-10-22/23): variable importance on the final pooled runs at the main window, the linear models' standardized coefficients and the tree ensembles' TreeSHAP values at \rhfipNOrigins{} monthly origins; the preliminary pooled run (results/rehaul\_fi\_pooled13\_2026-10-22) is superseded.\\Still to come: the ablations (leave one category out, then one series out within the categories that matter; not run); the MinGRU network (parked, not covered); the trees at the \rhfipWMax-day robustness window (only the linear models are computed there). The forest's walk gate is complete (\rhfipRfGateEq{} of \rhfipNOrigins{} origins).}
+% 2026-10-23 (coordinator, tree learning curve): parked -- the note's "trees at the robustness window" item, now scoped
+% to the SHAP values (the trees' accuracy across windows is in, tab:rh_fip_lc). Was: "...; the trees at the
+% \rhfipWMax-day robustness window (only the linear models are computed there). The forest's walk gate is complete
+% (\rhfipRfGateEq{} of \rhfipNOrigins{} origins).}"
+\editc{orange}{RR}{Decision (user, 2026-10-22/23): variable importance on the final pooled runs at the main window, the linear models' standardized coefficients and the tree ensembles' TreeSHAP values at \rhfipNOrigins{} monthly origins; the preliminary pooled run (results/rehaul\_fi\_pooled13\_2026-10-22) is superseded.\\Still to come: the ablations (leave one category out, then one series out within the categories that matter; not run); the MinGRU network (parked, not covered); the trees' SHAP values at the \rhfipWMax-day robustness window (only the linear models' coefficients are computed there). The trees' accuracy across windows is in: \rhlcNArmsDone{} of the \rhlcNArmsAll{} walks at \rhlcWOne--\rhlcWLong{} days (Table~\ref{tab:rh_fip_lc}). The forest's walk gate is complete (\rhfipRfGateEq{} of \rhfipNOrigins{} origins).}
 % 2026-10-23 (user, RR): parked -- the placeholder; the results follow. Was: "Variable importance is not yet computed for
 % the pooled intraday model; the closing-interval analysis is parked (note E19)."
 \begin{itemize}
@@ -161,6 +165,38 @@
     reading is not supported for the linear models. A falling count is also what a signal that changes over time
     would produce, since a longer window averages over more regimes; the study does not test that, so it does not
     show a sparse and strong signal either.
+  % 2026-10-23 (coordinator, tree learning curve): added -- the tree ensembles across windows. Macros \rhlc...:
+  % generated/rehaul_fip_lc_numbers.tex, written by writeup/make_rehaul_fip_lc.py, which recomputes every value from the
+  % merged every-bar walks at W = 1,000 / 2,000 / 3,000 / 3,500 (LightGBM and XGBoost: results/pooled_trees_lc_2014start_w1000,
+  % _w2000 and results/pooled_trees_final_2014start_w3000, _w3500; the forest: results/pooled_rf_skx_2014start_w<W>) and
+  % checks it against results/pooled_trees_lc_2014start_cross_window and results/pooled_rf_skx_2014start_cross_window
+  % (selfcheck.csv in results/rehaul_fip_lc_final). Its claims() checks the words below. An extra gain averaged over
+  % the three trees is in neither file and is not printed.
+  \item Tree ensembles across windows (Table~\ref{tab:rh_fip_lc}; descriptive: no rule fixed this comparison before
+    the walks). The trees' SHAP values are computed at the main window only, so for them the test is on accuracy: if
+    the exogenous signal were dense and weak, the full predictor set would gain more from a longer window than the
+    HAR benchmark does. The walks share the design of Table~\ref{tab:rh_oos}, at $W = \rhlcWOne$, \rhlcWTwo, \rhlcWMain{}
+    and \rhlcWLong{} trading days (refit at every bar, frozen configurations, the same \rhlcNBars{} scored bars). The
+    extra gain from $W_1$ to $W_2$ is the change of the full set's daily QLIKE minus the HAR benchmark's (negative:
+    the full set gains more), with a Newey--West $t$ over the \rhlcNDays{} days. On every bar the full set is more
+    accurate than the benchmark at every window ($t$ from \rhlcGapTMinBar{} to \rhlcGapTMaxBar), its lead widens up
+    to \rhlcWMain{} days in all three trees, and the extra gain is negative and significant at the 5\% level for
+    \rhlcSigNegOneTwoBarWho{} from \rhlcWOne{} to \rhlcWTwo{} days ($t = \rhlcTLgbmOneTwoBar$, \rhlcTXgbOneTwoBar{}
+    and \rhlcTRfOneTwoBar{} for LightGBM, XGBoost and the forest), for \rhlcSigNegTwoMainBarWho{} from \rhlcWTwo{} to
+    \rhlcWMain{} ($t = \rhlcTLgbmTwoMainBar$ and \rhlcTRfTwoMainBar; XGBoost \rhlcTXgbTwoMainBar) and for
+    \rhlcSigNegMainLongBarWho{} from \rhlcWMain{} to \rhlcWLong{} days. The full set's own loss falls significantly
+    from \rhlcWOne{} to \rhlcWTwo{} days in \rhlcFullFallOneTwoBarWho{} (DM \rhlcDmFullLgbmOneTwoBar,
+    \rhlcDmFullXgbOneTwoBar, \rhlcDmFullRfOneTwoBar) and from \rhlcWTwo{} to \rhlcWMain{} in
+    \rhlcFullFallTwoMainBarWho{} (DM \rhlcDmFullRfTwoMainBar); LightGBM's extra gain at that step comes mostly from
+    the benchmark's loss rising (DM \rhlcDmHarLgbmTwoMainBar). At the 16:00 bar the full set's lead is significant at
+    the 5\% level in \rhlcNGapSigClose{} of the \rhlcNGapCellsClose{} model--window cells, and the extra gain has no
+    consistent sign: it is significant toward the full set in \rhlcNSigNegClose{} of the \rhlcNStepsClose{}
+    tree--window steps (\rhlcSigNegTwoMainCloseWho{} from \rhlcWTwo{} to \rhlcWMain{} days, $t =
+    \rhlcTLgbmTwoMainClose$ and \rhlcTXgbTwoMainClose), toward the benchmark in \rhlcNSigPosClose{} (LightGBM from
+    \rhlcWOne{} to \rhlcWTwo{} days, $t = \rhlcTLgbmOneTwoClose$), and never for the forest. On every bar, then, the
+    full set's advantage grows with the window until \rhlcWMain{} days and then stops, as a dense and weak signal
+    would predict; a signal that needs more data to be fitted nonlinearly would do the same, and accuracy alone does
+    not say which series the longer window brings in.
   \item Concentration at the main window (Table~\ref{tab:rh_fip_shares}, Panel D; descriptive, computed from the
     pooled shares). The effective number of exogenous series, $N_{\mathrm{eff}} = 1/\sum_A s_A^2$ over the exogenous
     shares, is \rhfipLgbmNeff, \rhfipXgbNeff{} and \rhfipRfNeff{} for the trees against \rhfipRidgeNeff{} for the
@@ -241,8 +277,15 @@
   VIX3M and \rhfipFomcDay{} (LightGBM).
 \item \textbf{In short.} In the trees, the HAR components and the futures' realized moments carry most of the
   attribution.
-  The exogenous signal is not dense and weak in the sense tested: a longer window does not bring more series into the
-  linear models, and the trees concentrate their exogenous attribution on a few series. The non-standard series
+  % 2026-10-23 (coordinator, tree learning curve): parked -- the dense-and-weak sentence now separates the linear
+  % models from the trees (the trees' accuracy across windows, tab:rh_fip_lc). Was: "The exogenous signal is not dense
+  % and weak in the sense tested: a longer window does not bring more series into the linear models, and the trees
+  % concentrate their exogenous attribution on a few series."
+  For the linear models the exogenous signal is not dense and weak in the sense tested: a longer window does not
+  bring more series in. The trees concentrate their exogenous attribution on a few series, yet on every bar their
+  full predictor set's lead over the HAR benchmark widens with the window until \rhlcWMain{} trading days and then
+  stops (at the 16:00 bar the change has no consistent sign), as a dense and weak signal would predict. The
+  non-standard series
   matter conditionally, on FOMC statement days, at the first bar and at the bars where the FOMC calendar peaks, and
   in calm markets, and about half of their attribution runs through interactions, the largest of them with the HAR
   components. The tree ensembles use them less than the linear models do, through monotone, one-sided responses.

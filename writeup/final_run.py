@@ -62,6 +62,7 @@ REGENERATE (once the final runs land; from the repository root, Git Bash; PowerS
   python writeup/make_rehaul_pooled_extras.py
   python writeup/make_rehaul_robust_window.py
   python writeup/make_rehaul_fi_pooled.py          # Section 8 (pooled variable importance)
+  python writeup/make_rehaul_fip_lc.py             # Section 8 (the trees across windows, 1,000-3,500 days; 2026-10-23)
   cd writeup && pdflatex paper_rehaul && bibtex paper_rehaul && pdflatex paper_rehaul && pdflatex paper_rehaul
 """
 
