@@ -8,6 +8,11 @@
   * mode design also writes dates_all.csv, the date label of every design row (the rows _backtest_and_save hands to
     the walk, rows 0 .. W - 1 included), captured from the output of src.backtest.executor.apply_horizon_shift; every
     array the design stores is unchanged.
+  * --window-rows N (2026-10-23 addendum, equal training rows): the rolling window is N rows instead of
+    --window-days x rows a day, for the design-cache modes only (pretune, walk with --design: a cache derived by
+    experiments/linear_train3way.py derive_window, whose config records window = N).  The runner's W is the only
+    window those modes use (cached_backtest, the walk's MultiStageBacktest, the pretune's fit block, config_dict);
+    the spec's TRAIN_WIN (days) is read only by the design path.
 
 usage: python experiments/linear_train3way_runner.py <the runner's arguments>
 """
@@ -40,6 +45,18 @@ def main() -> None:
     mode, sample = sys.argv[1], _arg("--sample", "48")
     if sample == "close_r":
         assert mode in ("pretune", "walk") and _arg("--design"), "close_r: a derived design cache, pretune / walk only"
+    rows = _arg("--window-rows")
+    if rows:  # 2026-10-23 addendum: a row-count window on a derived design cache
+        assert mode in ("pretune", "walk") and _arg("--design"), "--window-rows: a derived design cache only"
+        i = sys.argv.index("--window-rows")
+        del sys.argv[i : i + 2]
+        cfg = P.configure
+
+        def configure(a) -> None:
+            cfg(a)
+            P.W = int(rows)
+
+        P.configure = configure
     if mode != "design":
         P.main()
         return

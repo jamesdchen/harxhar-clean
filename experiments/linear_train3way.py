@@ -86,6 +86,14 @@ ARMS: dict[str, dict[str, Any]] = {
         desc="the closing half hour, design built on the closing rows (segment bar1600)",
     ),
 }
+# 2026-10-23 addendum (owner: equal training rows): the sibling's design cache with its leading rows dropped
+# (derive_window), so X, y, B and every date are the sibling's (its 3,000-day scaler and late-start warm-up); the
+# window is the last `rows` rows (runner --window-rows), the penalties re-tuned on fold 3 at that window
+ARMS |= {
+    "ALL48_N3k": dict(ARMS["ALL48"], rows=3000, src="ALL48", desc="all 48 half-hour intervals, the last 3,000 rows"),
+    "RTH13_N3k": dict(ARMS["RTH13"], rows=3000, src="RTH13", desc="13 regular-hours bars, the last 3,000 rows"),
+    "ALL48_N39k": dict(ARMS["ALL48"], rows=39000, src="ALL48", desc="all 48 half-hour intervals, the last 39,000 rows"),
+}
 RUNNER = HERE / "linear_train3way_runner.py"
 RTH_CLOCKS = {f"{h:02d}:{m:02d}" for h in range(10, 17) for m in (0, 30)} - {"16:30"}
 ARM = ""
@@ -103,9 +111,11 @@ def configure(arm: str, out: Path) -> None:
     for f in c["flags"]:
         cfg += ["--ex-flag", f]
     cfg += ["--window-days", str(WD), "--ex-flag", "LATE_START_WARMUP=1"]
+    if "rows" in c:  # 2026-10-23 addendum: a row-count window (design-cache modes)
+        cfg += ["--window-rows", str(c["rows"])]
     O.CFG[:] = cfg
     O.PPD, O.TW_DAYS = c["ppd"], WD
-    O.W = WD * c["ppd"]
+    O.W = c.get("rows", WD * c["ppd"])
     O.FIRST_FOLD = FIRST_FOLD
     O.PRE_HALO = (O.PRE_FOLDS - FIRST_FOLD) * O.PRE_FOLD_SESS * O.PPD + O.PRE_EMBARGO_SESS * O.PPD + O.W
     O.FIRST_DAY = FIRST_DAY
@@ -148,7 +158,7 @@ def md5(p: Path) -> str:
 
 # ============================================================================ stages
 def st_design(a) -> None:
-    assert ARM != "CLOSE", "CLOSE is derived from the RTH13 design (derive_close)"
+    assert ARM != "CLOSE" and "rows" not in ARMS[ARM], f"{ARM} is derived (derive_close / derive_window)"
     O.st_design(a)
     for s in O.SETS:
         assert (O.design_dir(s) / "dates_all.csv").exists(), s
@@ -197,6 +207,52 @@ def st_derive_close(a) -> None:
         )
         (o / "design.json").write_text(json.dumps(out))
         O.say(f"derive_close {s}: {Xc.shape} from {X.shape}, rth13 rows {rows[0]} .. {rows[-1]}")
+    for s in O.SETS:
+        check_design(s)
+
+
+def st_derive_window(a) -> None:
+    """2026-10-23 addendum: an equal-rows arm's design caches -- the sibling's (--from, the arm's out dir) from design
+    row W_sibling - N on, so design row N is the sibling's row W_sibling: X, y, b_oos, dates_oos and every date are
+    the sibling's (its scaler and late-start warm-up at 3,000 days); config.window = N."""
+    import shutil
+
+    src = Path(a.src).resolve() / "_work"
+    N = O.W
+    for s in O.SETS:
+        dz = src / f"design_{s}"
+        meta = json.loads((dz / "design.json").read_text())
+        assert meta["config"]["sample"] == ARMS[ARM]["sample"], meta["config"]
+        Ws = int(meta["config"]["window"])
+        drop = Ws - N
+        assert drop >= 0, (Ws, N)
+        X = np.load(dz / "X.npy", mmap_mode="r")
+        y, b = np.load(dz / "y.npy"), np.load(dz / "b_oos.npy")
+        da = pd.read_csv(dz / "dates_all.csv", dtype=str)["date"]
+        assert len(da) == X.shape[0] == len(y) == Ws + len(b)
+        Xc = X[drop:]
+        Xc = np.asfortranarray(Xc) if meta["f_order"] else np.ascontiguousarray(Xc)
+        o = O.design_dir(s)
+        o.mkdir(parents=True, exist_ok=True)
+        np.save(o / "X.npy", Xc)
+        np.save(o / "y.npy", np.ascontiguousarray(y[drop:]))
+        np.save(o / "b_oos.npy", b)
+        shutil.copyfile(dz / "dates_oos.csv", o / "dates_oos.csv")
+        pd.DataFrame({"date": da.iloc[drop:].to_numpy()}).to_csv(o / "dates_all.csv", index=False)
+        out = dict(
+            meta,
+            config=dict(meta["config"], window=N),
+            shape=list(Xc.shape),
+            derived_from=dict(
+                design=str(dz),
+                rule="the sibling's design from row W_sibling - N on (X, y, B, dates unchanged); window N rows",
+                window_sibling=Ws,
+                rows_dropped=int(drop),
+                x_md5=md5(dz / "X.npy"),
+            ),
+        )
+        (o / "design.json").write_text(json.dumps(out))
+        O.say(f"derive_window {s}: {Xc.shape} from {X.shape} (dropped {drop} leading rows), window {N}")
     for s in O.SETS:
         check_design(s)
 
@@ -260,6 +316,9 @@ def st_select(a) -> None:
     fr["info"]["sample"] = ARMS[ARM]["desc"] + "; HAR components and trailing averages on the full 48-interval grid"
     fr["info"]["arm"] = ARM
     fr["info"]["window_rows"] = O.W
+    fr["info"]["window_days"] = O.W / O.PPD  # 2026-10-23 addendum: rows / rows a day (fractional for N-row arms)
+    if "rows" in ARMS[ARM]:
+        fr["info"]["design_window_rows"] = WD * O.PPD  # the scaler / late-start window of the sibling's design
     p.write_text(json.dumps(fr, indent=1))
     O.say(f"{ARM} folds: {fr['info']['folds']}")
 
@@ -556,7 +615,18 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument(
         "stage",
-        choices=("design", "derive_close", "pretune", "select", "walk1", "gate", "select16", "walk16", "export"),
+        choices=(
+            "design",
+            "derive_close",
+            "derive_window",
+            "pretune",
+            "select",
+            "walk1",
+            "gate",
+            "select16",
+            "walk16",
+            "export",
+        ),
     )
     ap.add_argument("--arm", required=True, choices=tuple(ARMS))
     ap.add_argument("--out", required=True)
@@ -564,7 +634,7 @@ def main() -> None:
     ap.add_argument("--chunks", action="append", default=[])
     ap.add_argument("--only", action="append", default=[])
     ap.add_argument("--task", type=int, default=0, help="walk1 / walk16: job number (1-based); 0 = SLURM_ARRAY_TASK_ID")
-    ap.add_argument("--from", dest="src", default="", help="derive_close: the RTH13 out dir")
+    ap.add_argument("--from", dest="src", default="", help="derive_close / derive_window: the source arm out dir")
     ap.add_argument("--ref", default="", help="gate: the template run dir")
     ap.add_argument("--gate-rows", type=int, default=50)
     ap.add_argument("--with16", action="store_true")
@@ -573,6 +643,7 @@ def main() -> None:
     {
         "design": st_design,
         "derive_close": st_derive_close,
+        "derive_window": st_derive_window,
         "pretune": st_pretune,
         "select": st_select,
         "walk1": st_walk1,

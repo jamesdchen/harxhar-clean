@@ -123,3 +123,48 @@ whether the paper should score QLIKE and its tests on the close only.  Nothing u
     Erratum 2026-10-23 21:52 PDT (no rule changed): the header's "Written 2026-10-23 21:45 PDT" is wrong; the file was
     written about 21:37 PDT and committed in 419e7ad at 21:38:55 PDT, pushed before the first job was submitted
     (Slurm 13361320, submitted 21:39:50 PDT).
+
+ADDENDUM A, 2026-10-23 22:07 PDT (2026-10-24 05:07 UTC), before any of its jobs: EQUAL TRAINING ROWS
+   Owner (James, relayed by the coordinator): "we should also ablate equal training rows instead of fixing the raw
+   clock time 3k day window."  The equal-calendar arms above run unchanged; this adds an equal-rows ablation.
+   Arms (N = training rows; the window is the last N rows of the arm's sample at every origin):
+     N = 3,000:  ALL48_N3k (about 62.5 days of 48 intervals), RTH13_N3k (about 231 sessions of 13 bars), CLOSE (the
+                 existing arm: 3,000 closes = 3,000 sessions; reused, not rerun).
+     N = 39,000: ALL48_N39k (about 812.5 days) against RTH13 (the existing 3,000-day arm, 39,000 rows; reused).
+                 CLOSE cannot reach 39,000 rows.
+   Exactly N rows, not a whole-day window: the runner takes a row-count window in its design-cache modes (new runner
+   option --window-rows N in experiments/linear_train3way_runner.py; the runner's W is the only window cached_backtest,
+   the walk and the pretune use; the spec's TRAIN_WIN in days is read by the design path only, which these arms never
+   run).  So ALL48_N3k, RTH13_N3k and ALL48_N39k have windows of exactly 3,000, 3,000 and 39,000 rows.
+   Design (experiments/linear_train3way.py derive_window): each new arm uses its equal-calendar sibling's design
+   cache (ALL48 or the rebuilt RTH13) with the leading W_sibling - N rows dropped, so X, y, B and every date are the
+   sibling's, byte for byte; only the regression window differs.  Columns, flags, models, solver settings (penalty
+   factors, STANDARDIZE_PENALTY, WALK_KKT_RESEED), refit cadence (every row; mask and cold seed every 250th solve) and
+   the walk's first origin (the same 250-solve boundary in the sibling's OOS index) are the sibling's.
+   Scaler and late-start rule (the check asked for): both keep the sibling's 3,000-day window, i.e. the sibling's
+   design matrix is used as it is.  Reason: the pipeline sets the rolling robust scaler's window (and LATE_START_WARMUP's
+   "W live rows") to the training window only because it prescales with train_win; at 62.5-231 days that window would
+   be about as short as, or shorter than, the longest trailing averages (k = 3,125 intervals of the 48-interval grid
+   = about 65 days, in both the 48-interval and the 13-bar designs), so the median / IQR of the long HAR and
+   value averages inside the window would be near-degenerate (the scaler's only floor on the target HAR columns is 1%
+   of their running maximum IQR), and the late-start zeroing would end years earlier than in the siblings.  Keeping
+   them makes the equal-rows arms differ from their siblings in the number of training rows only.  (The runner-side
+   masks - identifiability, STANDARDIZE_PENALTY's evidence mask, the binomial availability rule - act on each fit
+   window as always, so a 3,000-row window can leave out more sparse or constant columns, as in CLOSE.)
+   Tuning: re-tuned with the native rule on fold 3 at that window: validation = the same 250 x PPD rows before the
+   first 2014-01-02 row (about 2013) as the sibling, embargo 25 x PPD rows, fit = the N rows before the embargo; the
+   lowest mean validation MSE (adjusted scale, the arm's own validation rows); the same grids and grid rule; frozen.
+   No close-tuned (@16) variant for the new arms.
+   Scoring as section 6: every RTH bar for ALL48_N3k, RTH13_N3k, ALL48_N39k; 16:00 for all; DM at equal N: at 16:00
+   ALL48_N3k vs RTH13_N3k, CLOSE vs RTH13_N3k, CLOSE vs ALL48_N3k, ALL48_N39k vs RTH13; every bar ALL48_N3k vs
+   RTH13_N3k, ALL48_N39k vs RTH13; also each equal-rows arm vs its equal-calendar sibling (16:00 and every bar); full
+   vs HAR within each arm; the close D6 Sharpe ratio and the same pairs' differences (section 8).  One scoring job
+   covers both designs (it replaces the equal-calendar-only export / score jobs 13361444 / 13361445, cancelled before
+   they ran).
+   Confounds each design leaves: equal calendar (3,000 days) = unequal rows (144,000 / 39,000 / 3,000); equal rows =
+   unequal span and recency: at N = 3,000 the pooled windows cover only the last 62.5 (ALL48) or 231 (RTH13) days
+   while CLOSE covers about 12 years; at N = 39,000 ALL48 covers about 812 days, RTH13 3,000.  In both designs the
+   scaler and late-start warm-up are those of the 3,000-day designs.
+   Compute estimate for the addendum: ALL48_N3k about 3-5 CPU-hours (127,000 origins a model, cheap seeds),
+   ALL48_N39k about 4-6 (RTH13's per-row cost with a 39,000-row window, 3.7x the origins), RTH13_N3k under 1; with the
+   equal-calendar arms (ALL48 10-20, ALL48@16 at most as much) the total stays well under 100 CPU-hours.

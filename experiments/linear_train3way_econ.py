@@ -41,6 +41,14 @@ PAIRS = [
     ("CLOSE_NAT", "RTH13"),
     ("ALL48@16", "RTH13"),
     ("RTH13@16", "RTH13"),
+    # 2026-10-23 addendum: equal training rows
+    ("ALL48_N3k", "RTH13_N3k"),
+    ("CLOSE", "RTH13_N3k"),
+    ("CLOSE", "ALL48_N3k"),
+    ("ALL48_N39k", "RTH13"),
+    ("ALL48_N3k", "ALL48"),
+    ("RTH13_N3k", "RTH13"),
+    ("ALL48_N39k", "ALL48"),
 ]
 
 mt, model_set, series, fam = E.load()

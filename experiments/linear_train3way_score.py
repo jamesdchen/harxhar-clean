@@ -48,8 +48,12 @@ SRC = {
     "CLOSE_NAT": RES / "CLOSE_NAT" / "forecasts_rth.parquet",
     "ALL48@16": RES / "ALL48" / "forecasts16_rth.parquet",
     "RTH13@16": RES / "RTH13" / "forecasts16_rth.parquet",
+    # 2026-10-23 addendum (equal training rows): N = 3,000 (with CLOSE) and N = 39,000 (with RTH13)
+    "ALL48_N3k": RES / "ALL48_N3k" / "forecasts_rth.parquet",
+    "RTH13_N3k": RES / "RTH13_N3k" / "forecasts_rth.parquet",
+    "ALL48_N39k": RES / "ALL48_N39k" / "forecasts_rth.parquet",
 }
-BAR = ("ALL48", "RTH13", "ALL48@16", "RTH13@16")  # variants with every RTH bar
+BAR = ("ALL48", "RTH13", "ALL48@16", "RTH13@16", "ALL48_N3k", "RTH13_N3k", "ALL48_N39k")  # variants with every RTH bar
 COLS = ["model", "predictor_set", "alpha", "date", "true_adj", "B", "plain", "rv_actual"]
 
 
@@ -198,8 +202,27 @@ PAIRS16 = [
     ("ALL48@16", "RTH13"),
     ("RTH13@16", "RTH13"),
     ("ALL48@16", "ALL48"),
+    # 2026-10-23 addendum: equal rows (N = 3,000: three arms; N = 39,000: ALL48 vs RTH13), and each equal-rows arm
+    # against its equal-calendar sibling
+    ("ALL48_N3k", "RTH13_N3k"),
+    ("CLOSE", "RTH13_N3k"),
+    ("CLOSE", "ALL48_N3k"),
+    ("ALL48_N39k", "RTH13"),
+    ("ALL48_N3k", "ALL48"),
+    ("RTH13_N3k", "RTH13"),
+    ("ALL48_N39k", "ALL48"),
 ]
-PAIRSB = [("ALL48", "RTH13"), ("ALL48@16", "RTH13"), ("RTH13@16", "RTH13"), ("ALL48@16", "ALL48")]
+PAIRSB = [
+    ("ALL48", "RTH13"),
+    ("ALL48@16", "RTH13"),
+    ("RTH13@16", "RTH13"),
+    ("ALL48@16", "ALL48"),
+    ("ALL48_N3k", "RTH13_N3k"),
+    ("ALL48_N39k", "RTH13"),
+    ("ALL48_N3k", "ALL48"),
+    ("RTH13_N3k", "RTH13"),
+    ("ALL48_N39k", "ALL48"),
+]
 dms = []
 for m, s in MODELS:
     for a, b in PAIRS16:
