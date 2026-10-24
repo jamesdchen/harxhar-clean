@@ -36,3 +36,6 @@ the old run (read-only): `/home1/jc_905/pmf35/data` (design copies, fold-3 ridge
   {10, ..., 1,000} (480 jobs, est. 8.00 P100-h); canary 13373061 (debug) / 13373062 (gpu); screen 13373063-80 (gpu) and
   13373081-82 (debug) afterok on either; nice 100. Full-set W 3,500 screen: 5 files still pending on L40S (13371964-68,
   queued since 01:44; the group stays L40S).
+- 2026-10-24 02:46 PDT: G5 PASS (HAR, W 3,500; P100): canaries 13373061 (debug) / 13373062 (gpu) n_bad 0 (fold 1 = the
+  truncated fit [0, 40,702)); HAR screen running (13373081-82 done, the rest running / pending). Full-set screen: 10 of 15
+  files done; 13371964-68 still pending on L40S (queued 01:44; the L40S partition is contended).

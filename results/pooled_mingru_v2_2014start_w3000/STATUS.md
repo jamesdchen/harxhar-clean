@@ -186,3 +186,8 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   Gram on [o - W, o), o = 50,777 .. 50,800) are computed now for both sets at both windows (CPU 13373087 W 3,000,
   13373088 W 3,500, /project2 roots). The G7 job writer now cuts a probe into whole-origin files under the 1 h debug
   limit (HAR H 256 at E 1,000 would be ~4.9 P100-h in one file).
+- 2026-10-24 02:46 PDT G6 full set (W 3,000) round 1 (A40): fresh-seed C of the round-1 shortlist (stage2/
+  s2_fresh_all_features_round1.csv): tau9_we3_E160 0.115927 (pick), tau3_we3_E80 0.115961, tau1_we3_E40 0.116016,
+  tau0.3_we15_E160 0.116303, tau0_we3_E40 0.116317 (spread of the top 3: 0.00009). The pick is again at the tau high
+  edge (9) -> extension 2 (the last on that side): tau 27, 18 configurations, 270 jobs (tag v2s2x2, A40):
+  13373353-54 gpu, 13373355-56 debug. G7 bar inits done (CPU 13373087 / 13373088: 24 files a set, both windows).
