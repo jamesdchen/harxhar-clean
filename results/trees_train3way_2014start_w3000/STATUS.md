@@ -145,3 +145,15 @@ merges / scores 13371791-13371794.
 
 Hoffman2: `runs/tasks/h2_assignment.txt` (ASSIGNED w3rf_full.txt 240-368 ALL48 rf_skx all_features),
 `runs/tasks/h2_code_commit.txt` (d9d01fd1...), incoming `runs/pieces_h2/`, gate runs `gate/h2/<tag>/{g1,g2}/`.
+
+## Forest full-set split: throughput-balanced (RULE.txt note to addendum C, 02:15 PDT)
+
+| Time (PDT) | Lines of w3rf_full.txt | From -> to | Why |
+|---|---|---|---|
+| 02:01 | 1-239 | CARC (array 13372432, %25) | addendum C |
+| 02:01 | 240-368 | Hoffman2 (reserved) | addendum C, static 35 % |
+| 02:15 | 240-348 | Hoffman2 -> CARC (second array, below) | owner: Hoffman2 slower; equal-finish-time split, Hoffman2 rounded down; none started on Hoffman2 |
+| 02:15 | 349-368 | Hoffman2, first wave (20 lines) | sized to a first round on Hoffman2 after its gates; re-estimated from its measured lines a line |
+
+Throughputs: CARC 3.7 h a line at 20 threads (probe; 25 slots -> 6.8 lines/h at %25); Hoffman2 not yet measured (its
+agent's probe per CPU model).  CARC runs upward from line 1, Hoffman2 downward from 368.

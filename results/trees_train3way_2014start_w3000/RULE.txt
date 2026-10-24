@@ -205,6 +205,17 @@ ADDENDUM C, 2026-10-24 02:00 PDT (09:00 UTC), before any job it affects: ALL48'S
    merge with every class and the final scores run when the Hoffman2 pieces are in (a held job, released then); the
    interim ALL48 merge without that cell stays as in addendum B.  Other not-yet-started work may be offered to
    Hoffman2 in the assignment file if CARC is saturated (none at this writing).
+   Note to addendum C, 2026-10-24 02:15 PDT (09:15 UTC), before any Hoffman2 forest line started: THROUGHPUT-BALANCED
+   SPLIT.  Owner (relayed): Hoffman2 is slower than CARC; the static 35 % block is replaced by an equal-finish-time
+   split re-estimated every wave.  Throughput of a cluster = forest slots actually running / hours a line there (CARC:
+   3.7 h a line at 20 threads, the probe; Hoffman2: the Hoffman2 agent's probe for each CPU model); unstarted lines
+   are assigned so that n_H2 / thr_H2 = n_CARC / thr_CARC, Hoffman2's share rounded down (a long line stranded on the
+   slower cluster sets the tail, and a piece cannot resume across CPU families).  Only started lines are committed.
+   CARC runs the lines upward from line 1, Hoffman2 downward from line 368, so the boundary can move either way
+   without touching a started line.  First wave: Hoffman2 lines 349-368 (20 lines, once its gates pass); lines
+   240-348 return to CARC as a second throttled array; each later reassignment (lines, from / to, why) is logged in
+   STATUS.md and in runs/tasks/h2_assignment.txt.  CARC's forest throttles rise toward the QOS headroom (100 running
+   jobs / 2,000 CPUs, the other arrays first) as the cheap arms, XGBoost and the ALL48_N39k forest finish.
 
 ADDENDUM D, 2026-10-24 02:00 PDT (09:00 UTC), before any LightGBM walk of ALL48 or ALL48_N39k: LIGHTGBM DETERMINISTIC
    Gate C (addendum B) failed: with force_col_wise the ALL48 full-set LightGBM fit at 2014-01-03 10:00 still gave

@@ -3,6 +3,9 @@
 # with #): <status> <task file> <line range> <arm> <est> <set> <threads used on CARC>
 #   status ASSIGNED = Hoffman2 runs these lines; OFFER = Hoffman2 may claim them through the coordinator (the CARC run
 #   then cancels its own tasks and flips the row to ASSIGNED); RETURNED = moved back to CARC (stop, do not deliver).
+# Split (RULE.txt note to addendum C): throughput-balanced, re-estimated each wave; CARC runs lines upward from 1,
+#   Hoffman2 downward from 368; only started lines are committed.  Log: 2026-10-24 02:15 PDT first wave 349-368 to
+#   Hoffman2, 240-348 returned to CARC (owner: Hoffman2 slower than CARC).
 # Task files: /scratch1/jc_905/trees3way/runs/tasks/<file>; line k = "<arm> <est> <set> <i>/<n>".
 # Code: the git archive of the commit in /scratch1/jc_905/trees3way/runs/tasks/h2_code_commit.txt (branch
 #   insurance-selling-2026-09-19-e34-train3way-trees; = CARC's code dir code_<sha7>); experiments/trees_train3way.py and
@@ -26,4 +29,5 @@
 #   one CPU model a tag; only pieces of accepted models are taken.
 # Delivery of pieces: finished pieces only (json present, no .ckpt.json) to /scratch1/jc_905/trees3way/runs/pieces_h2/
 #   with an MD5SUMS file (md5sum format) listing every parquet and json delivered; never overwrite a delivered file.
-ASSIGNED w3rf_full.txt 240-368 ALL48 rf_skx all_features 20
+RETURNED w3rf_full.txt 240-348 ALL48 rf_skx all_features 20
+ASSIGNED w3rf_full.txt 349-368 ALL48 rf_skx all_features 20
