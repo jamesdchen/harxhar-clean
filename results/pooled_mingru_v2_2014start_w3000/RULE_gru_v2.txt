@@ -1,0 +1,121 @@
+RULE (pooled ridge-init MinGRU v2: "memorize, then regularize") -- written 2026-10-23 18:40 PDT (2026-10-24 01:40 UTC),
+before any v2 job was submitted. Window: W = 3,000 trading days (39,000 rows). The W = 3,500 window has its own copy
+(results/pooled_mingru_v2_2014start_w3500/RULE_gru_v2.txt): the same rule, its window's rows and design caches.
+
+Source: the v2 design (coordinator, 2026-10-24 UTC; read-only review of the final rerun, results/pooled_mingru_final_2014start_w3000
+RULE_gru.txt / STATUS.md / analysis_w3000 / replay_w3000). Owner decisions (James), binding:
+  - Doctrine: first memorize the training data, then generalize out of sample with regularization. The one-bootstrap-SE
+    selection rule is rejected (too wide): no SE enters any choice below.
+  - Walk budget: no cap. Stage 1 may pick any capacity up to the ladder caps (H 1,024, L 115). The projected walk P100-hours
+    and wall-clock are reported before any walk is submitted (informational, not a gate).
+  - The old-rule tuning is not needed: our pending / held old-rule tune jobs are cancelled (running jobs finish); the old-rule
+    W 3,000 full-set every-bar walk (13328148 and its halves) keeps running as a legacy row.
+  - Validation years 2011, 2012, 2013 (folds 1-3), equal weight, at both windows.
+Nothing of the old rule's tuning is reused as a number; reused are its data, ridge inits of fold 3, binary, environment,
+GPU-type / concurrency findings and cost tables.
+
+DESIGN   The old run's trainer copies of the 2014-start W = 3,000 design caches, read-only: /home1/jc_905/pmf/data/pmf_<set>/
+         (X.f32 / X.f64 / y.f32 / enc_pf.f64 / meta.txt / columns.txt; 84,747 rows; HAR benchmark 12 columns, full set 564;
+         data row = design row; dates of rows >= 39,000 in pmf_rows.csv). Not rebuilt.
+TRAINER  native_g9, unchanged (bin/forecast_train md5 44ab6fff, .cu af1964d0), P100 only: one MinGRU layer with highway gates,
+         softplus link, zero-initialised decoder (dec_zero=1), linear shortcut lin=1 started at the window's closed-form ridge
+         and FROZEN (lr_lin=0, wd_lin=0); Muon (momentum 0.95, clip 1.0), cosine lr to 0 over max_epochs (per-epoch values),
+         batch 128, QLIKE loss (eps 1e-3 floor, |dL/df| cap at the 0.99 quantile), window mask on, xstd 0. Only job keys of the
+         trainer's known-key list are used. No dropout knob exists; decay = decoupled wd (every weight matrix except the
+         encoder bias column; per step W <- W (1 - lr_t wd)) and wd_enc (encoder input columns, x pf: 0.01 HAR / calendar
+         block, 1 exogenous).
+SHORTCUT Frozen at wd_lin 0.003 (the ridge init's lambda = 0.003 / sd_y^2, pf as the linear arms): the shortcut-alone fold-3
+         validation optimum of both sets in the old run (HAR 0.13013, full 0.12268). Stage 1 then measures only the recurrent
+         branch's capacity on the ridge residual.
+SEEDS    Stage 1: 20261012, 20261013, 20261014. Stage 2 screen: 20261012-20261016; Stage 2 confirmation: 20261017-20261021.
+
+FOLDS    (fold_fit14.fold_rows, S = 50,777 = 2014-01-02 10:00; validation block of fold f = [S - 13,000 + 3,250 f, + 3,250);
+         checked against results/window_sweep_2014start_2026-10-22/folds14.json; 325-row embargo)
+           fold 1: fit [1,702, 40,702)  validation [41,027, 44,277) 2011-01-05 13:30 .. 2011-12-30 14:00
+           fold 2: fit [4,952, 43,952)  validation [44,277, 47,527) 2011-12-30 14:30 .. 2013-01-02 15:00
+           fold 3: fit [8,202, 47,202)  validation [47,527, 50,777) 2013-01-02 15:30 .. 2013-12-31 16:00
+         Nothing dated 2014-01-02 or later enters any choice. Fold 0 is infeasible (fit would start before row 0).
+
+STAGE 1  Capacity by training fit (memorization), fold 3 rows, tune mode (so the old fold-3 ridge inits apply; the validation
+         QLIKE per epoch is logged as a diagnostic only, it decides nothing). Job line:
+           mode=tune w0=8202 w1=50777 val_tail=3250 embargo=325 fc_n=1 layers=1 batch=128 max_epochs=E1 patience=E1
+           momentum=0.95 max_grad_norm=1.0 anneal=1 min_lr_ratio=0 mask=1 xstd=0 link=softplus loss=qlike es=qlike lin=1
+           dec_zero=1 wd=0 wd_enc=0 lr_lin=0 wd_lin=0 lin_init=data/pmf_lin_init/<set>/tune_f3_L{L}_wl0.003.f32
+         (patience = max_epochs: early stopping never fires). E1 = 300 unless G2 sets 1,000 for the set.
+         Metrics: TQ_0 = the training QLIKE of the frozen shortcut alone (epoch 0: decoder zero), computed offline on the
+         training rows [w0 + L - 1, 47,202) with the trainer's loss formula (r = max(y^2, eps^2) / (f^2 + eps^2), eps 1e-3,
+         f = softplus(c + s v.x), c = log(expm1(mu_y)), s = sd_y (1 + exp(-c)), mu_y / sd_y the float32 training-target mean /
+         sd); TQ_e = the row-weighted epoch-e mean of steps.csv's minibatch loss (the epoch_curves_remote.py reduction);
+         rho(e) = TQ_e / TQ_0. Also logged: epochs to rho <= 0.9 / 0.5 / 0.1, capped-gradient and non-finite counts, grad norm
+         (mean / max an epoch), validation QLIKE an epoch and the train-validation gap (diagnostics).
+         A cell (H, L) at learning rate lr MEMORIZES if rho(E1) <= 0.5 for each of the 3 seeds (rho <= 0.1 reported).
+         lr of a cell = argmin over the lr set of the 3-seed mean TQ_E1 (training only; ties: the lower lr).
+         Grid: core H {16, 64, 256} x L {8, 20, 48}; then
+           + H 1,024 x L {8, 20} only if no core cell memorizes;
+           + L 115 x H {64, 256} only if the cheapest memorizing cell (after the core, and after H 1,024 if run) is at L 48.
+         Pick (H*, L*, lr*) = the cheapest memorizing cell over every cell run, by walk cost an epoch (the old run's measured
+         P100-s a tune model-epoch, analysis_w3000/summary.json epoch_cost; HAR: (16,8) .0194 (16,20) .0238 (64,8) .0264
+         (64,20) .0401 (256,8) .146 (16,48) .206 (256,20) .250 (64,48) .268 (16,115) .293 (64,115) .404 (256,48) .608
+         (256,115) 1.227 (1024,20) 5.53; full: (16,8) .0373 (64,8) .0475 (16,20) .0495 (64,20) .0707 (256,8) .200 (16,48) .242
+         (256,20) .330 (64,48) .346 (256,48) .607; a cell missing from the table: its Stage-1 measured P100-s a model-epoch),
+         ties to the smaller H, then the smaller L. If no cell memorizes: the cell with the lowest 3-seed mean rho(E1) at its
+         lr, labelled "capacity-limited". No affordability cap.
+         Concurrency (measured safe limits): CONC 24 for H <= 64 and L <= 20; 7 for H 1,024; otherwise 12 on HAR, 6 on the full
+         set (full H 256 L 48 ran out of GPU memory at 24).
+
+STAGE 2  Regularize and validate. Frozen from Stage 1: H*, L*, lr*. Shortcut lin=1 dec_zero=1 lr_lin=0 wd_lin=0 at the fold's
+         own wd_lin 0.003 ridge. Mode refit (the walk's exact procedure), fully annealed, no early stopping:
+           mode=refit w0=fit0 w1=fit1 fc_n=3575 epochs=E max_epochs=E patience=E (other keys as Stage 1, no val_tail /
+           embargo / es), lin_init = the fold's ridge init: window mask on [fit0, fit1), Gram on [fit0 + L* - 1, fit1),
+           wl 0.003 (data/pmf_lin_init/<set>/s2_f<k>_L<L>_wl0.003.f32).
+         Forecast rows [fit1, fit1 + 3,575); scored rows [fit1 + 325, fit1 + 3,575) = the fold's validation block.
+         Axes: tau (total decoupled decay) {0, 0.3, 1, 3}: wd = tau / (0.5 lr* S (E + 1)), S = ceil((fit1 - fit0 - L* + 1) / 128)
+               the fold's steps an epoch (sum of the cosine factors over E epochs = 0.5 (E + 1)), so exp(-tau) is the total
+               shrink of the decayed weights over the run;
+               wd_enc {0, 3, 15} on the full set only (0 on HAR: its pf is 0.01 on every column);
+               E {10, 20, 40, 80, 160, 300} (if G2 set Stage 1 to 1,000 epochs for the set: + {600, 1,000}).
+         Ladders for extensions: tau low edge 0 -> 0.1, then 0.03; high edge 3 -> 9, then 27. wd_enc high edge 15 -> 75, then
+         375 (0 is a natural bound, not extended). E ladder 5, 10, 20, 40, 80, 160, 300, 600, 1,000, 2,000 (next value beyond
+         the edge). At most 2 extensions per axis.
+         Criterion C (a configuration, a seed set): for each fold, the QLIKE of the seed-mean forecast fbar over the fold's
+         validation rows with y > 0 (q = y^2 / fbar^2, mean of q - log q - 1); C = the equal-weight mean over folds 1-3.
+         A configuration without finite positive forecasts of every seed on every validation row of every fold is skipped.
+         Rule: (1) top 5 by C on the screen seeds; (2) the shortlist rerun with the 5 fresh seeds; (3) the pick = argmin C on
+         the fresh seeds only; (4) ties within 1e-7: the lower walk cost (fewer epochs E), then the configuration name order;
+         (5) a pick at an edge of the current grid on tau, wd_enc or E: the next ladder value of every such axis is added (the
+         full factorial of the extended grid not yet run, screen seeds) and (1)-(3) are redone over every configuration run;
+         repeat until the pick is interior or every edge axis has had its 2 extensions (or is at a natural bound).
+         No SE gating. Reported, not deciding: the paired 10-day (130-row) moving-block bootstrap stratified by fold (blocks
+         drawn within each fold, B 2,000, seed 20261023) SE of C(config) - C(pick) over the shortlist on the fresh seeds; the
+         seed jackknife SE of C (leave one fresh seed out); the 90% Hansen model confidence set (T_max, the same bootstrap)
+         over the shortlist.
+EPOCHS   Refit epochs in the walk: E* (the same for every seed; no per-seed early-stop epochs). wd of the walk: the pick's tau
+         with S of the walk window (39,000 rows).
+
+GATES    G0 (CPU): TQ_0 per set and L; per-fold window masks and ridge inits (every ladder L); fold rows and dates against
+            folds14.json; the fold-3 tune inits recomputed byte for byte; kept-column counts and the share of partly zeroed
+            late-start columns per fold (LATE_START_WARMUP, full set). Pass: every init's length = the trainer's kept columns + 1.
+         G1 (W 3,000, HAR L 20 H 64 lr 0.003, seed 20261012, E 300): the Stage-1 line plus a refit-mode twin (w0 8,202,
+            w1 47,202, fc_n 3,575, fc_train 1, epochs = max_epochs = 300). Pass: 300 epochs run; steps.csv text-identical
+            between the two; the exact in-sample QLIKE of the twin's fc_train rows (the trainer's formula) within 1% of the
+            last-epoch running mean TQ_300; the twin's validation QLIKE (the trainer's formula on its forecast rows
+            [47,527, 50,777)) = epochs.csv epoch 300 val_qlike within 1e-5 relative; no non-finite.
+         G2 (W 3,000, both sets): cells (64, 20) and (256, 20), lr {0.001, 0.003, 0.01}, seeds 20261012-13, E 300; plus E 1,000
+            of (256, 20) (run at all three lr for wall-clock; only the set's best lr at (256, 20) by 2-seed mean TQ_300 enters
+            the decision). Per set: keep E1 = 300 if the 2-seed mean rho_300 of (256, 20) at that lr <= 0.5, or if the E 1,000
+            run lowers it by < 20% relative ((rho_300 - rho_1000) / rho_300 < 0.2); else E1 = 1,000 (both windows).
+            lr set of Stage 1 (both sets, both windows): {0.003, 0.01}, plus 0.001 if 0.001 is the argmin of the 2-seed mean
+            TQ_300 for any (set, cell) of G2, plus 0.03 (the ladder's next value) if 0.01 is the argmin for any (set, cell).
+            The old run's round-0 curves of (L20, H64) configurations are compared as a sanity check (no decision).
+         G3: Stage 1 at W 3,000 (core grid + conditional edges). Output per cell: rho, epochs to thresholds, validation curve,
+            walk cost an epoch. Pass: the 3 seeds agree on the memorizing status of the chosen cell.
+         G4: Stage 1 at W 3,500, as G3.
+         G5: Stage-2 canary (one configuration, one seed, one fold per set and window). Pass: forecast rows exactly
+            [fit1, fit1 + 3,575); finite positive; the trainer's kept columns = the init's.
+         G6: Stage-2 screen + fresh-seed confirmation per set and window. Output: pick, shortlist, bootstrap / jackknife SEs,
+            MCS. Pass: the pick is interior, or extended per the rule.
+         G7: a 24-origin x 5-seed walk probe at the pick (the first 24 bar origins from row 50,777, fc_n 1, each origin's own
+            ridge init at L* / wl 0.003, as probe 13328546). Report the projected every-bar walk P100-hours (33,970 bars x 5
+            seeds a set) and the wall-clock at the GPU counts actually obtained. No walk is submitted under this rule's work.
+         A gate failure stops the work and is reported with its diagnosis.
+GPU      P100 only (gpu and debug partitions); the W 3,500 jobs carry a Slurm nice value; CARC root /home1/jc_905/pmf2.
