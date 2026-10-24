@@ -261,3 +261,19 @@ Pool: lines 5-348 of runs/tasks/w3rf_full.txt, claims in runs/claims_w3rf_full/<
 | 349-368 (20) | Hoffman2 wave 1 (15262038, Gold 6342) | assigned 02:15 |
 - runs/tasks/h2_assignment.txt: ASSIGNED 349-368 and 139-348.  Held final merge 13372433 also waits on 13381306; the
   /home1 pieces are copied (md5) into runs/pieces before it is released.
+
+## A bug in the line releases (found 11:30 PDT): partial Xeon 4116 pieces
+
+- The releases of 09:30-10:25 (release_failed.sh, move_home1.sh, rebalance_h2.sh) tested "no piece written" with
+  `ls a.parquet a.json a.ckpt.json`, which fails when any one of the three is absent: lines whose piece had a parquet
+  and a checkpoint but no final json (a partial piece, begun on Xeon 4116) were taken as unwritten and released.  No
+  piece file was deleted (only claim directories and stray .part files).  Fixed in the three scripts (each file tested
+  on its own).
+- Effect: EPYC pool tasks 13377719_10, _11, _13-_21 (b10-20, a03-11) claimed released lines 7, 8, 20, 23, 26, 34, 35,
+  37, 39, 46, 47 and stopped at once by design ("rf_skx: piece ... was begun on ['Intel(R) Xeon(R) Silver 4116 ...'],
+  this node is AMD EPYC 7513"): the one-CPU-family guard; nothing was computed on EPYC for them.  Those 11 lines and
+  line 52 (13378115_42, d11-42, errno 5) now hold a claim with a 'failed' marker and a partial Xeon 4116 piece
+  (parquet + checkpoint) on /scratch1; no pool takes them.  The old pool's other failures (/scratch1 errno 5 / 108 on
+  d06-19, d06-25, d11-23, d11-24, d11-29, d11-42) left no claim.
+- Pools at 11:30: EPYC 13377719 12 running / 127 pending; old Xeon 4116 13378115 28 running; E5-2640 v4 13378116 9 / 11;
+  /home1 Xeon 4116 13381306 0 / 64 (not starting); 330 claim directories, 0 done; unclaimed below 80: 66-79.

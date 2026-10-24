@@ -21,7 +21,7 @@ while IFS='|' read -r jid st ex node; do
     continue
   fi
   pc=$BASE/runs/pieces/$(sed -n "${k}p" $T/w3rf_full.txt | awk '{split($4,a,"/"); print $1 "_" $2 "_" $3 "_" a[1] "of" a[2]}')
-  if [ -e $CL/$k/done ] || ls $pc.parquet $pc.json $pc.ckpt.json > /dev/null 2>&1; then
+  if [ -e $CL/$k/done ] || [ -e $pc.parquet ] || [ -e $pc.json ] || [ -e $pc.ckpt.json ]; then  # 2026-10-24 fix: was `ls a b c`, false when any one is absent
     echo "$jid line $k: a piece exists or done -> left claimed ($(ls $pc.* 2> /dev/null | sed 's|.*/||' | paste -sd' '))"
     continue
   fi

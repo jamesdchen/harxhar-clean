@@ -49,7 +49,7 @@ while IFS='|' read -r jid st ex node; do
   k=$(grep -l -E "^[^ ]+ ${jid} " $CLS/*/claim 2> /dev/null | head -1 | xargs -r dirname | xargs -r basename)
   if [ -z "$k" ]; then continue; fi
   pc=$(piece $k)
-  if [ -e $CLS/$k/done ] || ls $pc.parquet $pc.json $pc.ckpt.json > /dev/null 2>&1; then
+  if [ -e $CLS/$k/done ] || [ -e $pc.parquet ] || [ -e $pc.json ] || [ -e $pc.ckpt.json ]; then  # 2026-10-24 fix: was `ls a b c`, false when any one is absent
     echo "$jid line $k: a piece exists or done -> left claimed"
     continue
   fi
