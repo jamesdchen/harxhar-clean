@@ -335,3 +335,18 @@ Pool: lines 5-348 of runs/tasks/w3rf_full.txt, claims in runs/claims_w3rf_full/<
   /home1 Xeon 4116 13381306 4 / 60; EPYC /home1 13382812 0 / 55; oneweek Xeon 4116 13382813 0 / 12.  Unclaimed: 21
   lines below 80 (/scratch1 namespace), 55 of 80-138 (/home1 namespace).  Hoffman2's 230 lines (139-368): its array
   15262074 had not started (its executor diagnosing); no line taken back.
+
+## Lines 317-368 returned by Hoffman2 (coordinator ~15:05 PDT; one CARC session, state changes verbatim)
+
+- None of 317-368 had started on Hoffman2 (its array 15263238 tasks 1-180 deleted; h2/STATUS.md 9a89328); no piece of
+  them existed on CARC.  runs/tasks/h2_assignment.txt rows now: ASSIGNED 139-316, RETURNED 317-368 (backup kept).
+- Lines 317-348: their owner_h2 claim markers replaced by reserved_home1 (the /scratch1 pools keep skipping them);
+  349-368 had no /scratch1 claim.  178 owner_h2 claims remain (139-316).
+- New pools on the /home1 claim namespace for lines 317-368 (code_961c9ec; pieces / logs / claims on /home1): EPYC
+  7513 / 7542 13383080 (56 tasks %40, 8 threads, 13 h), Xeon 4116 13383081 (main, 30 %20, 8 threads, 14 h, bad nodes
+  excluded), E5-2640 v4 13383082 (oneweek, 8 %8, 20 threads, 6 h).  Held final merge 13372433 afterany 13377719,
+  13378115, 13378116, 13381306, 13382812, 13382813, 13383080, 13383081, 13383082, 13372427.
+- State: EPYC /scratch1 13377719 28 running / 111 pending; old Xeon 4116 13378115 23 running; E5-2640 v4 13378116 9 / 1;
+  /home1 Xeon 4116 13381306 4 / 60; EPYC /home1 13382812 0 / 55; oneweek Xeon 4116 13382813 3 / 9; new 13383080 0 / 56,
+  13383081 0 / 30, 13383082 0 / 8.  Lines done 8 (/scratch1 namespace); unclaimed: 7 below 80, 52 of 80-138, 52 of
+  317-368.  Our normal-QOS running jobs 59; oneweek 204 of 208 CPUs.
