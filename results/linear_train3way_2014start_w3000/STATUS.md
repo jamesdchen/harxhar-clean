@@ -35,3 +35,14 @@ closes; 2013 has 249 regular sessions).
 
 To finish (after score 13361445): pull `scores/` (tables, csv, f16.parquet) and the small run files; run
 `experiments/linear_train3way_econ.py <main checkout> scores/f16.parquet econ/` locally; sacct CPU-hours.
+
+## Addendum A: equal training rows (RULE.txt addendum A, commit b8e0a5e, 22:10 PDT, before its jobs)
+
+| Time (PDT, 2026-10-23) | Event |
+|---|---|
+| 21:50-21:55 | RTH13@16 walks 13361443 done (6 jobs: lasso HAR, enet HAR, lasso full in 4 chunks; every task COMPLETED 0:0) |
+| ~22:05 | ALL48 design 13361323 started (b10-03) |
+| 22:16 | `scancel 13361444 13361445` (the first chain's export / score) denied by the auto-mode classifier; not retried. They run as submitted (equal-calendar scores to `scores/`); the addendum's export / score wait for them (afterany) and write `scores_all/` |
+| 22:20 | code on CARC: linear_train3way{,_runner,_score}.py of 06d5871 (additive: new arms, derive_window, --window-rows, the `both` scoring switch; no equal-calendar computation changed) |
+| 22:21 | submitted: RTH13_N3k derive/pretune/select 13364083; ALL48_N3k + ALL48_N39k derive/pretune/select 13364084 (after the ALL48 design 13361323); walks RTH13_N3k 13364085 (8), ALL48_N3k 13364086 (14), ALL48_N39k 13364087 (22) |
+| 22:23 | export2 13364094 (afterok 13361327, 13361442, 13364085-87; afterany 13361445) and SCORE2 13364095 (both designs, `scores_all/`) - the last job of both chains |

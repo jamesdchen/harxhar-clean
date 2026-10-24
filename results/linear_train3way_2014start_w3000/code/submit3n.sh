@@ -12,7 +12,10 @@ S=$B/jobs/stage3.sh
 R=results/linear_train3way_2014start_w3000
 REF=/scratch1/jc_905/wsweep/code/results/window_sweep_2014start_2026-10-22/w3000   # the template (read only)
 ALLD=13361323                                                # the ALL48 design (equal-calendar chain)
-WALKS_CAL=13361327:13361328:13361329:13361442:13361443       # every equal-calendar walk (ALL48, CLOSE, CLOSE_NAT, @16)
+# As run 2026-10-23 22:20 PDT: jobs 13364083-13364087 from this script; its export line then failed ("Job dependency
+# problem": the finished walk arrays 13361328, 13361329, 13361443 had left slurmctld, MinJobAge 300 s; sacct: every
+# task COMPLETED 0:0), so export2 13364094 / score2 13364095 were submitted by hand with the list below.
+WALKS_CAL=13361327:13361442   # the equal-calendar walks still pending (ALL48, ALL48@16); the others finished OK
 OLD_SCORE=13361445                                            # the first chain's score job (after its export 13361444)
 A=(--parsable --account=pollok_1603 --partition=main --constraint="epyc-7513|epyc-7542")
 cd $B/jobs
