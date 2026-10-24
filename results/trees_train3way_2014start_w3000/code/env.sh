@@ -4,7 +4,8 @@
 #   gb     /scratch1/jc_905/envs/harxhar-r13 (LightGBM 4.6.0, XGBoost 3.2.0; the LightGBM / XGBoost template's)
 #   skx    /home1/jc_905/trees_final/venv_skx (the same env + scikit-learn-intelex 2026.2.0; the rf_skx template's)
 #   sweep  /scratch1/jc_905/wsweep/venv (scoring, as the linear comparison's score job)
-BASE=/scratch1/jc_905/trees3way
+# 2026-10-24 (addendum E note): T3T_BASE moves runs / logs off /scratch1 for pools on nodes with failing mounts.
+BASE=${T3T_BASE:-/scratch1/jc_905/trees3way}
 pyof() {
   case $1 in
     gb | lgbm | xgb) echo /scratch1/jc_905/envs/harxhar-r13/bin/python ;;
