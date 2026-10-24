@@ -1,0 +1,5 @@
+est,set,n_columns,window_rows,threads,k,sec_refit,host,cpu
+lgbm,baseline,12,26000,1,3,0.7803239027659098,n1849,Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz
+xgb,baseline,12,26000,1,3,0.685370922088623,n1849,Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz
+lgbm,all_features,564,26000,1,3,15.60982092221578,n1849,Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz
+xgb,all_features,564,26000,1,3,20.912032922108967,n1849,Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz

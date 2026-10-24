@@ -1,0 +1,51 @@
+{
+ "est": "lgbm",
+ "predictor_set": "all_features",
+ "refit": "bar",
+ "span": [
+  "2014-01-02",
+  "2024-04-30"
+ ],
+ "part": "32/50",
+ "block": [
+  "2020-06-08 10:00:00",
+  "2020-08-19 16:00:00"
+ ],
+ "rows": 683,
+ "refits": 683,
+ "wall_sec": 11684.3,
+ "config": "lgbm_opt_00",
+ "sha": "abab811bd4b6",
+ "params": {
+  "num_leaves": 20,
+  "learning_rate": 0.01296404565731986,
+  "n_estimators": 392,
+  "min_child_samples": 98,
+  "feature_fraction": 0.7017000121697539,
+  "bagging_fraction": 0.5636236714089857,
+  "lambda_l1": 1.0413823540826713e-08,
+  "lambda_l2": 0.015950303832251992,
+  "bagging_freq": 1
+ },
+ "config_file": "cluster/pooltree_lgbm_config.json",
+ "config_file_sha256": "0937a810100bcd0ab42bebb927fa46e13403b04c47790823a5cf84d4d4109928",
+ "window_rows": 26000,
+ "window_days": 2000,
+ "n_columns": 564,
+ "threads": 1,
+ "host": "n6406",
+ "cpu": "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz",
+ "versions": {
+  "python": "3.12.3",
+  "numpy": "1.26.4",
+  "pandas": "2.3.3",
+  "scipy": "1.17.1",
+  "sklearn": "1.9.1",
+  "lightgbm": "4.6.0",
+  "xgboost": "3.2.0",
+  "pyarrow": "19.0.1"
+ },
+ "design": "/u/scratch/j/jamesdc1/tlc/designs/w2000/_work/design_all_features",
+ "slurm_job": "15250856",
+ "slurm_task": "38"
+}

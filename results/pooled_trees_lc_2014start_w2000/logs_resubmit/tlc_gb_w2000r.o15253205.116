@@ -1,0 +1,27 @@
+tlc walk task 116 job 15253205 on n7368 [Intel(R) Xeon(R) CPU E5-2650 v4 @ 2.20GHz], 1 threads (NSLOTS 1), Fri Oct 23 09:06:10 PDT 2026: xgb all_features bar 2014-01-02 2024-04-30 60/66
+INFO:    fuse2fs not found, will not be able to mount EXT3 filesystems
+INFO:    gocryptfs not found, will not be able to use gocryptfs
+NPY_DISABLE_CPU_FEATURES=
+[09:07:47] walk xgb all_features bar 2014-01-02..2024-04-30 part 60/66: 520 rows 2023-03-28 10:00:00 .. 2023-05-23 16:00:00, 520 refits, 340 rows on disk; W 26000, 564 columns, xgb_opt_00 88bec9f385c7, threads 1
+[09:13:18]   9 refits, 36.76 s a refit, through 2023-05-04 15:00:00
+[09:18:26]   18 refits, 35.47 s a refit, through 2023-05-05 13:00:00
+[09:23:32]   27 refits, 35.00 s a refit, through 2023-05-08 11:00:00
+[09:28:42]   36 refits, 34.84 s a refit, through 2023-05-08 15:30:00
+[09:33:50]   45 refits, 34.72 s a refit, through 2023-05-09 13:30:00
+[09:38:57]   54 refits, 34.62 s a refit, through 2023-05-10 11:30:00
+[09:44:04]   63 refits, 34.56 s a refit, through 2023-05-10 16:00:00
+[09:49:12]   72 refits, 34.51 s a refit, through 2023-05-11 14:00:00
+[09:54:20]   81 refits, 34.48 s a refit, through 2023-05-12 12:00:00
+[09:59:28]   90 refits, 34.45 s a refit, through 2023-05-15 10:00:00
+[10:04:40]   99 refits, 34.48 s a refit, through 2023-05-15 14:30:00
+[10:09:59]   108 refits, 34.55 s a refit, through 2023-05-16 12:30:00
+[10:15:12]   117 refits, 34.57 s a refit, through 2023-05-17 10:30:00
+[10:20:21]   126 refits, 34.56 s a refit, through 2023-05-17 15:00:00
+[10:25:29]   135 refits, 34.53 s a refit, through 2023-05-18 13:00:00
+[10:30:34]   144 refits, 34.49 s a refit, through 2023-05-19 11:00:00
+[10:35:46]   153 refits, 34.50 s a refit, through 2023-05-19 15:30:00
+[10:40:57]   162 refits, 34.50 s a refit, through 2023-05-22 13:30:00
+[10:46:03]   171 refits, 34.48 s a refit, through 2023-05-23 11:30:00
+[10:51:09]   180 refits, 34.45 s a refit, through 2023-05-23 16:00:00
+[10:51:14] DONE xgb_all_features_bar_2014-01-02_2024-04-30_60of66.parquet: 180 refits in 6206.3 s (26395.2 s in all)
+tlc walk task 116 done in 6312 s on n7368 Fri Oct 23 10:51:22 PDT 2026

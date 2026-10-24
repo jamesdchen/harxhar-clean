@@ -1,0 +1,242 @@
+{
+ "run": "pooled_trees_lc_2014start_w1000",
+ "branch": "insurance-selling-2026-09-19-e34-tree-lc",
+ "runner": "experiments/pooled_trees_rerun_13.py walk (code/h2/walk.sh, one UGE array task a piece)",
+ "runner_commit": "654c47604427cd8f39a38201d57531306881238d",
+ "runner_note": "the final tree walks' runner (654c476: the printed 2012-start w1000 run's runner db59af2 with check() accepting the 564-column final design)",
+ "code_tree_commit": "475319a3132f9c1b468b7212d7436b9324db74c4",
+ "job_scripts_commit": "f88c6b48ef3f7b1c2e55c858d6e17b9c852bcb12",
+ "cluster": "Hoffman2 (UCLA IDRE, UGE 8.6.4), /u/scratch/j/jamesdc1/tlc; every (window, tree, set) of this run on Hoffman2",
+ "environment": {
+  "container": "Debian bookworm-slim (copy of /u/scratch/j/jamesdc1/wsweep/deb.sif), apptainer 1.2.2",
+  "python": "3.12.3 (uv-managed CPython, venv /u/scratch/j/jamesdc1/tlc/venv)",
+  "libgomp": "Debian bookworm libgomp1 12.2.0-14+deb12u1 (LightGBM); XGBoost and scikit-learn their wheels' own",
+  "env_vars": "OMP/MKL/OpenBLAS/numba threads = 1, OPENBLAS_CORETYPE=Haswell, numpy AVX-512 dispatch off",
+  "versions": {
+   "python": "3.12.3",
+   "numpy": "1.26.4",
+   "pandas": "2.3.3",
+   "scipy": "1.17.1",
+   "sklearn": "1.9.1",
+   "lightgbm": "4.6.0",
+   "xgboost": "3.2.0",
+   "pyarrow": "19.0.1"
+  },
+  "freeze": [
+   "cloudpickle==3.1.2",
+   "joblib==1.6.0",
+   "lightgbm==4.6.0",
+   "llvmlite==0.50.0",
+   "narwhals==2.27.1",
+   "numba==0.68.0",
+   "numpy==1.26.4",
+   "nvidia-nccl-cu12==2.32.3",
+   "pandas==2.3.3",
+   "pyarrow==19.0.1",
+   "python-dateutil==3.0.0",
+   "pytz==2026.5",
+   "scikit-learn==1.9.1",
+   "scipy==1.17.1",
+   "six==1.17.0",
+   "threadpoolctl==3.7.0",
+   "tqdm==4.70.1",
+   "tzdata==2026.5",
+   "xgboost==3.2.0"
+  ]
+ },
+ "design": {
+  "source": "CARC /scratch1/jc_905/wsweep/code/results/window_sweep_2014start_2026-10-22/w1000/_work/design_{baseline,all_features} (the 2014-start window sweep, built on CARC)",
+  "copy": "/u/scratch/j/jamesdc1/tlc/designs/w1000/_work/ (md5 of the copy = md5 at the source, checked on arrival)",
+  "md5": [
+   "04b0c0f26910bf0747b4472c4a1c3c37  /scratch1/jc_905/wsweep/code/results/window_sweep_2014start_2026-10-22/w1000/_work/design_baseline/X.npy",
+   "996504f16da7982d64656d1ba0d9722a  /scratch1/jc_905/wsweep/code/results/window_sweep_2014start_2026-10-22/w1000/_work/design_baseline/y.npy",
+   "633be55e3c2f90b02bb2eb61ec9b144a  /scratch1/jc_905/wsweep/code/results/window_sweep_2014start_2026-10-22/w1000/_work/design_baseline/b_oos.npy",
+   "259fadd2ad69ff60c005778bef50ef1c  /scratch1/jc_905/wsweep/code/results/window_sweep_2014start_2026-10-22/w1000/_work/design_baseline/dates_oos.csv",
+   "5fc3f1f898105da1662d2dd5e0e20a05  /scratch1/jc_905/wsweep/code/results/window_sweep_2014start_2026-10-22/w1000/_work/design_baseline/design.json",
+   "493ef22384b51eaadcdaeb78a79b5b80  /scratch1/jc_905/wsweep/code/results/window_sweep_2014start_2026-10-22/w1000/_work/design_all_features/X.npy",
+   "996504f16da7982d64656d1ba0d9722a  /scratch1/jc_905/wsweep/code/results/window_sweep_2014start_2026-10-22/w1000/_work/design_all_features/y.npy",
+   "633be55e3c2f90b02bb2eb61ec9b144a  /scratch1/jc_905/wsweep/code/results/window_sweep_2014start_2026-10-22/w1000/_work/design_all_features/b_oos.npy",
+   "259fadd2ad69ff60c005778bef50ef1c  /scratch1/jc_905/wsweep/code/results/window_sweep_2014start_2026-10-22/w1000/_work/design_all_features/dates_oos.csv",
+   "85ba013f9c11a8e4adb582586ac89f3a  /scratch1/jc_905/wsweep/code/results/window_sweep_2014start_2026-10-22/w1000/_work/design_all_features/design.json"
+  ],
+  "check": {
+   "window_days": 1000,
+   "window_rows": 13000,
+   "baseline_shape": [
+    84747,
+    12
+   ],
+   "baseline_config": {
+    "sample": "rth13",
+    "periods_per_day": 13,
+    "window": 13000,
+    "har_base": "5",
+    "drop_fomc": false,
+    "ex_flags": {
+     "DROP_ACTIVITY_MA": true,
+     "CALENDAR_THROUGH_OVERNIGHT": true,
+     "DROP_OVERNIGHT_INDICATOR": true,
+     "LEAN_GLOBAL_LAGS": true,
+     "LATE_START_WARMUP": true
+    }
+   },
+   "baseline_fortran_order": true,
+   "all_features_shape": [
+    84747,
+    564
+   ],
+   "all_features_config": {
+    "sample": "rth13",
+    "periods_per_day": 13,
+    "window": 13000,
+    "har_base": "5",
+    "drop_fomc": false,
+    "ex_flags": {
+     "DROP_ACTIVITY_MA": true,
+     "CALENDAR_THROUGH_OVERNIGHT": true,
+     "DROP_OVERNIGHT_INDICATOR": true,
+     "LEAN_GLOBAL_LAGS": true,
+     "LATE_START_WARMUP": true
+    }
+   },
+   "all_features_fortran_order": true,
+   "oos_first": "2002-06-05 12:30:00",
+   "oos_last": "2024-04-30 16:00:00",
+   "n_oos": 71747,
+   "S": 50777,
+   "S_date": "2014-01-02 10:00:00",
+   "linear_walk_start_row": 50750,
+   "linear_walk_start_date": "2013-12-27 16:00:00",
+   "tree_first_row": 50777,
+   "tree_first_date": "2014-01-02 10:00:00",
+   "tree_last_date": "2024-04-30 16:00:00",
+   "tree_rows": 33970,
+   "tree_days": 2643,
+   "tree_first_fit_rows": [
+    37777,
+    50777
+   ],
+   "tree_first_fit_first_date": "2010-01-11 12:30:00",
+   "sweep_linear_checked": [
+    "enet/all_features: 33997 rows, B equal, true_adj = y (28841 bit-equal, max |diff| 8.9e-16)",
+    "enet/baseline: 33997 rows, B equal, true_adj = y (28841 bit-equal, max |diff| 8.9e-16)",
+    "lasso/all_features: 33997 rows, B equal, true_adj = y (28841 bit-equal, max |diff| 8.9e-16)",
+    "lasso/baseline: 33997 rows, B equal, true_adj = y (28841 bit-equal, max |diff| 8.9e-16)",
+    "ols/baseline: 33997 rows, B equal, true_adj = y (28841 bit-equal, max |diff| 8.9e-16)",
+    "ridge/all_features: 33997 rows, B equal, true_adj = y (28841 bit-equal, max |diff| 8.9e-16)",
+    "ridge/baseline: 33997 rows, B equal, true_adj = y (28841 bit-equal, max |diff| 8.9e-16)"
+   ]
+  }
+ },
+ "window_days": 1000,
+ "window_rows": 13000,
+ "span": [
+  "2014-01-02",
+  "2024-04-30"
+ ],
+ "refit": "bar",
+ "first_row": "2014-01-02 10:00:00",
+ "bars_per_arm": 33970,
+ "days": 2643,
+ "configs": {
+  "lgbm": {
+   "name": "lgbm_opt_00",
+   "sha": "abab811bd4b6",
+   "file": "cluster/pooltree_lgbm_config.json",
+   "file_sha256": "0937a810100bcd0ab42bebb927fa46e13403b04c47790823a5cf84d4d4109928"
+  },
+  "xgb": {
+   "name": "xgb_opt_00",
+   "sha": "88bec9f385c7",
+   "file": "cluster/xgbtop_xgb_config.json",
+   "file_sha256": "53f1daaf6a2335991ab20f4ee5303231d4674d147fe0d6bbed71684d6c5d818a"
+  }
+ },
+ "threads": {
+  "lgbm/all_features": [
+   1
+  ],
+  "lgbm/baseline": [
+   1
+  ],
+  "xgb/all_features": [
+   1
+  ],
+  "xgb/baseline": [
+   1
+  ]
+ },
+ "pieces": {
+  "lgbm/all_features": 34,
+  "lgbm/baseline": 2,
+  "xgb/all_features": 41,
+  "xgb/baseline": 2
+ },
+ "task_rule": "experiments/pooled_trees_rerun_13.py tasks --refits bar --target-hours 3 on the Hoffman2 1-thread time probe (timing/sec_refit_gb_t1.csv: 3 refits at the first 2014-01-02 rows, Gold 6240), arms cheapest first (the printed run's rule)",
+ "uge_arrays": [
+  "15250855",
+  "15252387"
+ ],
+ "merge_job": "15252387",
+ "accounting": {
+  "records": 80,
+  "exit_status": {
+   "0": 80
+  },
+  "slot_h": 246.1,
+  "cpu_h": 244.9,
+  "hosts": 25
+ },
+ "cpu_h_by_arm": {
+  "lgbm/all_features": 119.9,
+  "lgbm/baseline": 4.4,
+  "xgb/all_features": 116.8,
+  "xgb/baseline": 4.7
+ },
+ "cpu_h_total": 245.7,
+ "cpu_models": {
+  "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz": 42,
+  "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz": 16,
+  "Intel(R) Xeon(R) 6736P": 16,
+  "Intel(R) Xeon(R) CPU E5-2650 v4 @ 2.20GHz": 4,
+  "Intel(R) Xeon(R) Gold 6342 CPU @ 2.80GHz": 1
+ },
+ "cpu_gate": [
+  {
+   "cpu": "Intel(R) Xeon(R) 6736P",
+   "threads": 1,
+   "gate_pieces": 6,
+   "gate_bit_equal": 6,
+   "gated": true
+  },
+  {
+   "cpu": "Intel(R) Xeon(R) CPU E5-2650 v4 @ 2.20GHz",
+   "threads": 1,
+   "gate_pieces": 5,
+   "gate_bit_equal": 5,
+   "gated": true
+  },
+  {
+   "cpu": "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz",
+   "threads": 1,
+   "gate_pieces": 6,
+   "gate_bit_equal": 6,
+   "gated": true
+  },
+  {
+   "cpu": "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz",
+   "threads": 1,
+   "gate_pieces": 5,
+   "gate_bit_equal": 5,
+   "gated": true
+  },
+  {
+   "cpu": "Intel(R) Xeon(R) Gold 6342 CPU @ 2.80GHz",
+   "threads": 1,
+   "gate_pieces": 6,
+   "gate_bit_equal": 6,
+   "gated": true
+  }
+ ],
+ "versions_distinct": 1
+}

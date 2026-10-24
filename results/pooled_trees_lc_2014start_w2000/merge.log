@@ -1,0 +1,9 @@
+tlc py job 15254375 on n1152 [Intel(R) Xeon(R) 6736P], 1 threads, Fri Oct 23 11:05:11 PDT 2026: experiments/pooled_trees_rerun_13.py merge --design /u/scratch/j/jamesdc1/tlc/designs/w2000 --out /u/scratch/j/jamesdc1/tlc/runs/w2000 --window-days 2000 --refit bar --first-day 2014-01-02 --last-day 2024-04-30 --est lgbm --est xgb --require-all
+INFO:    fuse2fs not found, will not be able to mount EXT3 filesystems
+INFO:    gocryptfs not found, will not be able to use gocryptfs
+[11:05:45] lgbm baseline: 33970 rows from 3 pieces
+[11:05:55] lgbm all_features: 33970 rows from 50 pieces
+[11:05:57] xgb baseline: 33970 rows from 3 pieces
+[11:06:01] xgb all_features: 33970 rows from 66 pieces
+[11:06:01] merged 135880 rows -> /u/scratch/j/jamesdc1/tlc/runs/w2000/forecasts.parquet
+tlc py done Fri Oct 23 11:06:02 PDT 2026

@@ -1,0 +1,7 @@
+# xgb baseline bar 2014-01-02..2024-04-30: 33970 refits x 0.69 s (1 threads) -> 3 tasks of ~2.16 h
+# lgbm baseline bar 2014-01-02..2024-04-30: 33970 refits x 0.78 s (1 threads) -> 3 tasks of ~2.45 h
+# lgbm all_features bar 2014-01-02..2024-04-30: 33970 refits x 15.61 s (1 threads) -> 50 tasks of ~2.95 h
+# rf baseline bar 2014-01-02..2024-04-30: 33970 refits x 20.90 s (1 threads) -> 66 tasks of ~2.99 h
+# xgb all_features bar 2014-01-02..2024-04-30: 33970 refits x 20.91 s (1 threads) -> 66 tasks of ~2.99 h
+# rf all_features bar 2014-01-02..2024-04-30: 33970 refits x 921.44 s (1 threads) -> 2643 tasks of ~3.29 h
+[00:12:45] 2831 tasks -> results/pooled_trees_lc_2014start_w2000/tasks.txt
