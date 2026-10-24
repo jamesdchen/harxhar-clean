@@ -87,3 +87,16 @@ bookworm container of the tree learning curve; threads = slots; numpy AVX-512 di
   Total concurrent <= 120 (25 + 95, then 95 + 25).
 - Projected (11.2 h a line on Gold 6140): 15262057 ~21:50 today; 15262074 round 1 ~22:00, round 2 ~09:15 Oct 25;
   15262075 ~09:05 Oct 25 -> all 230 Hoffman2 lines ~09:00-10:00 PDT Oct 25, if the tasks start promptly.
+
+## 12:39 PDT (Hoffman2 clock): why 15262074 does not start -- a per-user slot cap
+
+- `qquota -u jamesdc1`: `smp/1 slots=200/200 users jamesdc1 pes !dc* queues campus*.q,pod*.q,msa*.q` (and h_data
+  400G/2400G): every shared-PE job of ours on the campus / pod / msa queues counts against 200 slots, and 15262057's
+  25 running 8-slot tasks use all 200.  No hold, no dependency, request identical to 15262057's (arch=intel-gold-6140,
+  h_data=2G, h_rt=16h, pe shared 8, project campus_prj, -tc 95); Gold 6140 had 73 hosts with >= 8 free slots
+  (216 eight-slot tasks) at 12:39; scheduler info is off; maxujobs 0, max_u_jobs 500.  Not a request problem of ours:
+  nothing changed.
+- Realistic Hoffman2 concurrency: 200 cores = 25 tasks at 8 threads (11.2 h a line on Gold 6140) = about 2.2 lines/h.
+- The five deleted arrays are gone (`qstat -j`: do not exist).
+- Task -> line: 15262074 task k = line 369 - k for k <= 170 (368..199), line 344 - k for k 171-190 (173..154);
+  15262075 task k = line 154 - k (153..139).  Queued tasks start by task number as slots free (from ~21:50).
