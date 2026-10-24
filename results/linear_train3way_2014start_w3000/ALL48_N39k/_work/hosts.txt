@@ -1,0 +1,14 @@
+derive_window host b01-07.hpc.usc.edu |  AMD EPYC 7513 32-Core Processor | SLURM_JOB_ID 13364084 | Fri Oct 23 23:01:38 PDT 2026
+pretune host b01-07.hpc.usc.edu |  AMD EPYC 7513 32-Core Processor | SLURM_JOB_ID 13364084 | Fri Oct 23 23:01:43 PDT 2026
+select host b01-07.hpc.usc.edu |  AMD EPYC 7513 32-Core Processor | SLURM_JOB_ID 13364084 | Fri Oct 23 23:01:59 PDT 2026
+walk1.1 host a01-14.hpc.usc.edu |  AMD EPYC 7513 32-Core Processor | SLURM_JOB_ID 13367823 | Fri Oct 23 23:36:00 PDT 2026
+walk1.2 host a01-04.hpc.usc.edu |  AMD EPYC 7513 32-Core Processor | SLURM_JOB_ID 13367824 | Fri Oct 23 23:36:31 PDT 2026
+walk1.3 host a01-14.hpc.usc.edu |  AMD EPYC 7513 32-Core Processor | SLURM_JOB_ID 13367825 | Fri Oct 23 23:37:03 PDT 2026
+walk1.4 host a01-04.hpc.usc.edu |  AMD EPYC 7513 32-Core Processor | SLURM_JOB_ID 13367826 | Fri Oct 23 23:38:05 PDT 2026
+walk1.6 host b05-06.hpc.usc.edu |  AMD EPYC 7513 32-Core Processor | SLURM_JOB_ID 13367828 | Fri Oct 23 23:38:06 PDT 2026
+walk1.7 host b05-06.hpc.usc.edu |  AMD EPYC 7513 32-Core Processor | SLURM_JOB_ID 13367829 | Fri Oct 23 23:38:06 PDT 2026
+walk1.5 host b05-06.hpc.usc.edu |  AMD EPYC 7513 32-Core Processor | SLURM_JOB_ID 13367827 | Fri Oct 23 23:38:06 PDT 2026
+walk1.9 host a01-14.hpc.usc.edu |  AMD EPYC 7513 32-Core Processor | SLURM_JOB_ID 13367831 | Fri Oct 23 23:38:36 PDT 2026
+walk1.10 host b22-28.hpc.usc.edu |  AMD EPYC 7542 32-Core Processor | SLURM_JOB_ID 13367778 | Fri Oct 23 23:38:37 PDT 2026
+walk1.8 host a04-08.hpc.usc.edu |  AMD EPYC 7513 32-Core Processor | SLURM_JOB_ID 13367830 | Fri Oct 23 23:38:37 PDT 2026
+export host b22-27.hpc.usc.edu |  AMD EPYC 7542 32-Core Processor | SLURM_JOB_ID 13367868 | Sat Oct 24 01:25:01 PDT 2026

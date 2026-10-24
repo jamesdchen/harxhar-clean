@@ -8,3 +8,4 @@ walk1.7 2 b10-04.hpc.usc.edu
 walk1.4 12 b10-04.hpc.usc.edu
 walk1.6 17 b10-04.hpc.usc.edu
 walk1.5 20 b10-04.hpc.usc.edu
+export 2 b22-27.hpc.usc.edu

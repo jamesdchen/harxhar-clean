@@ -8,3 +8,4 @@ walk1.2 host b09-15.hpc.usc.edu |  AMD EPYC 7513 32-Core Processor | SLURM_JOB_I
 walk1.5 host b10-04.hpc.usc.edu |  AMD EPYC 7513 32-Core Processor | SLURM_JOB_ID 13361413 | Fri Oct 23 21:46:38 PDT 2026
 walk1.6 host b10-04.hpc.usc.edu |  AMD EPYC 7513 32-Core Processor | SLURM_JOB_ID 13361414 | Fri Oct 23 21:46:38 PDT 2026
 walk1.4 host b10-04.hpc.usc.edu |  AMD EPYC 7513 32-Core Processor | SLURM_JOB_ID 13361412 | Fri Oct 23 21:46:38 PDT 2026
+export host b22-27.hpc.usc.edu |  AMD EPYC 7542 32-Core Processor | SLURM_JOB_ID 13367868 | Sat Oct 24 01:24:47 PDT 2026

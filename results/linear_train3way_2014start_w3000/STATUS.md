@@ -106,3 +106,15 @@ starting at S0 + 250: date, true_adj and pred_adj strings must be identical), on
 | Time (PDT, 2026-10-23) | Event |
 |---|---|
 | 23:52 | by submission time ALL48_N39k 13367778 had started (2 tasks running): kept as is (10 tasks), like ALL48 13367775 and ALL48_N3k 13367777.  Only ALL48@16 re-split: 13367776, export4 13367779, score4 13367780 cancelled (not started); submitted gate_seam 13367866, ALL48@16 walks 13367867 (21 tasks, afterok gate_seam), export5 13367868 (afterok 13367775, 13367777, 13367778, 13367867), SCORE5 13367869 = the last job (both designs, scores_all/) |
+
+## Done (2026-10-24)
+
+| Time (PDT) | Event |
+|---|---|
+| 23:5x-01:2x | gate_seam 13367866 PASS (`ALL48/gate_seam.json`: the chunk from row S0 + 250 identical to the long walk's last 250 rows - date, true_adj, pred_adj strings - for full-set ridge, lasso, elastic net and the OLS); every walk array COMPLETED (ALL48 13367775 19/19, ALL48_N3k 13367777 8/8, ALL48_N39k 13367778 10/10, ALL48@16 13367867 21/21) |
+| 01:25-01:26 | export5 13367868 and SCORE5 13367869 COMPLETED: `scores_all/` (qlike_16, qlike_bar, dm, gap, design_diag, f16.parquet, tables.txt); checks in the score log: rv_actual, true_adj, B of every variant equal RTH13's at every common row; 33,527 bars on 2,579 days; RTH13 reproduces part2 qlike.csv / gap.csv (w3000) |
+| ~02:00 | `econ/` (econ_d6.csv, econ_diff.csv, econ_tables.txt) run locally with experiments/linear_train3way_econ.py; check: RTH13 reproduces part2/econ.csv (D6 mid / bid-ask, full-vs-HAR bootstrap p) |
+
+CPU-hours (sacct, this comparison's jobs only, 2026-10-23 21:39 .. 2026-10-24 01:26): 33.9 allocated, 32.6 used
+(TotalCPU); of which the full-refit walks ALL48 12.5, ALL48@16 15.8, ALL48_N39k 2.1, ALL48_N3k 0.6; the ALL48 design
+1.7; the two gates 0.3; everything else under 1.  The reused RTH13 arm (w3000, 1.1 CPU-hours) is not counted.

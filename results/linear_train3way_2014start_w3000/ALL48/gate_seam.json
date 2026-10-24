@@ -1,0 +1,29 @@
+{
+ "walk_start": 171000,
+ "seam_row": 171250,
+ "all_features/ridge": {
+  "long_rows": 500,
+  "seam_rows": 250,
+  "identical": true,
+  "first": "2014-01-08 21:30:00"
+ },
+ "all_features/lasso": {
+  "long_rows": 500,
+  "seam_rows": 250,
+  "identical": true,
+  "first": "2014-01-08 21:30:00"
+ },
+ "all_features/enet": {
+  "long_rows": 500,
+  "seam_rows": 250,
+  "identical": true,
+  "first": "2014-01-08 21:30:00"
+ },
+ "baseline/ols": {
+  "long_rows": 500,
+  "seam_rows": 250,
+  "identical": true,
+  "first": "2014-01-08 21:30:00"
+ },
+ "pass": true
+}

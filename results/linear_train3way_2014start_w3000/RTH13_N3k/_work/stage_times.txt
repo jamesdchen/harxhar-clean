@@ -1,0 +1,12 @@
+derive_window 3 b10-17.hpc.usc.edu
+pretune 9 b10-17.hpc.usc.edu
+select 0 b10-17.hpc.usc.edu
+walk1.8 5 b10-19.hpc.usc.edu
+walk1.1 7 a04-03.hpc.usc.edu
+walk1.2 12 b01-07.hpc.usc.edu
+walk1.3 14 b22-02.hpc.usc.edu
+walk1.6 92 b05-04.hpc.usc.edu
+walk1.5 92 b05-01.hpc.usc.edu
+walk1.4 123 b22-28.hpc.usc.edu
+walk1.7 158 b10-20.hpc.usc.edu
+export 3 b22-27.hpc.usc.edu
