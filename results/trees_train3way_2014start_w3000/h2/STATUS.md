@@ -56,3 +56,18 @@ bookworm container of the tree learning curve; threads = slots; numpy AVX-512 di
 - Live assignment re-read 10:19 (mtime 02:13:47): ASSIGNED 349-368, RETURNED 240-348.  Wave 1: job 15262038
   (t3t_w1), 20 lines 368..349, 8 threads, Gold 6342 only (fastest; 37 startable 8-slot tasks at 10:17), -tc 20,
   h_rt 12 h, h_data 2G a slot.
+
+## 10:35-10:40 PDT: waves for lines 139-348 (owner release)
+
+- CARC live assignment (mtime 10:25:18): ASSIGNED 349-368 and 139-348 (8 threads; 139-348 pre-claimed owner_h2); no
+  CARC piece or checkpoint of lines 139-368; w3rf_full.txt md5 5222fbdd00a97093c8d3f13994a6ee85 on both clusters.
+- Every qsub / qalter verbatim in the session heredoc (standing rule of 10:45).  First attempt (10:36) aborted on a
+  wrong overlap check of mine before any change; the task files it wrote (new files) were kept.
+- 10:37: wave 1 15262038 h_rt 12 h -> 8 h (qalter; 5.4 h a line).  Submitted, 8 threads, h_data 2G a slot:
+  Gold 6342 15262055 (lines 289-348, -tc 15, 8 h) and 15262056 (239-288, -tc 20, 8 h, held on wave 1);
+  Gold 6140 15262057 (174-238, -tc 50, 16 h); E5-2650 v4 15262058 (154-173, -tc 20, 16 h); Gold 6240 15262059
+  (139-153, -tc 15, 17 h).
+- After 150 s: Gold 6140 25 running (pod_smp.q, 20 nodes), 40 queued; no task of Gold 6342 (wave 1 and 15262055),
+  E5-2650 v4 or Gold 6240 had started (wave 1 queued since 10:19).  The gates of those three models had each run on
+  one or two nodes only (6342 n1077, 6240 n1849, E5-2650 v4 n7368 / n7005); much of their capacity is in owner pods
+  closed to us (e.g. bern_pod_6240.q / 6342.q).  RQS h_rt limits seen: andrewst 12 h, econdjs 8 h, sch 4 h.
