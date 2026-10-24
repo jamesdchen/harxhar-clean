@@ -108,7 +108,10 @@ TEX = ROOT / "writeup" / "generated" / "appendix_close_murphy_splits.tex"
 # stored CSVs, no re-scoring).
 NUMBERS_TEX = ROOT / "writeup" / "generated" / "close_murphy_splits_numbers.tex"
 # the values 07_economics.tex typed on 2026-10-15; write_numbers() stops if a stored value differs
-NUMBERS_TYPED = {"hmurRhoESLossMid": r"\ensuremath{-}0.55"}
+# 2026-10-23 (user, E32): the model set loses its 18 ten-day tree rungs (112 -> 94 forecasts), which moves the rank
+# correlation from -0.55 to -0.52; the text no longer prints it (parked 2026-10-17 in writeup/rehaul/07_economics.tex
+# for the post-warmup \rheRankCorrES). Was: NUMBERS_TYPED = {"hmurRhoESLossMid": r"\ensuremath{-}0.55"}
+NUMBERS_TYPED = {"hmurRhoESLossMid": r"\ensuremath{-}0.52"}
 DAILY = mtc.OUT / "master_table_daily.parquet"
 MASTER = mtc.OUT / "master_table.csv"
 HEADLINE = mtc.HEADLINE

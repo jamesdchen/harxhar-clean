@@ -1,9 +1,9 @@
 # Shift (dating) test across the paper's model set (plain forecast f²·B, no recalibration)
 
-Written by `experiments/close_shift_test_headline.py` (`main`, 2026-10-06: no headline model, user decision) from `shift_test_modelset.csv` (every forecast × k), `shift_test_by_k.csv`, `shift_test_not_shifted.csv` and `shift_test_gates.csv`. Model set: 112 forecasts (results/close_master_table/paper_model_set.csv). Each shifted row is placed on the traded bar's scale as ŷ_k²·B_16:00 (no smear, no recalibration); the deck's 15:30 sign(s) trade, mid and crossed fills; point estimates only.
+Written by `experiments/close_shift_test_headline.py` (`main`, 2026-10-06: no headline model, user decision) from `shift_test_modelset.csv` (every forecast × k), `shift_test_by_k.csv`, `shift_test_not_shifted.csv` and `shift_test_gates.csv`. Model set: 94 forecasts (results/close_master_table/paper_model_set.csv). Each shifted row is placed on the traded bar's scale as ŷ_k²·B_16:00 (no smear, no recalibration); the deck's 15:30 sign(s) trade, mid and crossed fills; point estimates only.
 
 - Shifted: 9 forecasts whose tables carry the 10:00–16:00 session rows (paper 9).
-- Not shifted: 103 forecasts (per-bar trees 90, per-bar linear 7, pooled linear 6) — their tables hold only the 16:00 row (per-bar regressions of the 16:00 bar, and the pre-tuned pooled forecasts, exported at the 16:00 bar only), so there is no earlier or next-session row to read (`shift_test_not_shifted.csv`); nothing is fitted for this test.
+- Not shifted: 85 forecasts (per-bar trees 72, per-bar linear 7, pooled linear 6) — their tables hold only the 16:00 row (per-bar regressions of the 16:00 bar, and the pre-tuned pooled forecasts, exported at the 16:00 bar only), so there is no earlier or next-session row to read (`shift_test_not_shifted.csv`); nothing is fitted for this test.
 - Days: the 865 deck days on which every shifted forecast has every shifted row. k = 0 on all 866 days reproduces the master table's Sharpe for every shifted forecast (gated to 1e-9).
 
 | row | read | median Sharpe mid | range mid | median crossed | below k=0 | median Δ mid | median agree % |

@@ -1433,9 +1433,9 @@ NOTE_SAMPLE = (
     "actual realized variance of the closing half hour and $\\hat\\sigma^2_t = \\hat y_t^{\\,2} s^2_{t,c}$ the "
     "variance forecast."
 )
-NOTE_TREES = (
-    "Closing-interval trees use fixed hyperparameters and are re-estimated daily"
-)
+# 2026-10-23 (user, E32): every closing-interval tree is re-estimated every trading session ("daily" is the linear
+# models' word). Was: "Closing-interval trees use fixed hyperparameters and are re-estimated daily"
+NOTE_TREES = "Closing-interval trees use fixed hyperparameters and are re-estimated every trading session"
 ITEM_EARLIER_FULL = (
     "\\item[a] Full predictor set: the earlier draft's intraday specification."
 )
@@ -2554,10 +2554,18 @@ def main() -> None:
         int(((af["mse_pct"] > 0) & (af["p_mse"] < SIG)).sum()),
     )
     # (51, 38, 2) on the trimmed target (parked 2026-10-15, data audit #10)
-    assert n_af == 51, n_af
-    if gate_866:  # 2026-10-15: the 866-day values of record
-        assert (n_af, n_lower, n_lower_sig) == (51, 38, 3), (n_af, n_lower, n_lower_sig)
-        assert (n_mse_up, n_mse_up_sig) == (51, 0), (n_mse_up, n_mse_up_sig)
+    # 2026-10-23 (user, E32): 51 -> 42 pairs (the nine ten-day tree rungs on the full set left the model set). Was:
+    # assert n_af == 51, n_af
+    # if gate_866:  # 2026-10-15: the 866-day values of record
+    #     assert (n_af, n_lower, n_lower_sig) == (51, 38, 3), (n_af, n_lower, n_lower_sig)
+    #     assert (n_mse_up, n_mse_up_sig) == (51, 0), (n_mse_up, n_mse_up_sig)
+    # (the 866-day values of record were the 112-forecast set's; the 94-forecast set has none on record: reported)
+    assert n_af == 42, n_af
+    if gate_866:
+        print(
+            f"E32 mt866: pairs {n_af}, QLIKE lower {n_lower} ({n_lower_sig} sig.), MSE higher {n_mse_up} "
+            f"({n_mse_up_sig} sig.); was (51, 38, 3) and (51, 0) on the 112-forecast set"
+        )
     # 2026-10-17 (user, E17): 47 of 51 pairs have dsh > 0 on the 614 post-warmup days (was 50 of 51 on all 866 days)
     # assert (
     #     int((af["dsh"] > 0).sum()) == 47
@@ -2566,7 +2574,8 @@ def main() -> None:
     # 2026-10-18 (user, new-notes 15): soft check (dsh is per-year now; p_t is the unitless HAC t, unchanged)
     soft(
         int((af["dsh"] > 0).sum()) == 47,
-        f"all-vs-HAR pairs dsh>0: {int((af['dsh'] > 0).sum())} of 51 (was 47)",
+        # 2026-10-23 (user, E32): "of {n_af}" (was "of 51"; 47 is the 112-forecast set's count)
+        f"all-vs-HAR pairs dsh>0: {int((af['dsh'] > 0).sum())} of {n_af} (was 47 of 51)",
     )
     # 2026-10-21 (user, decision #2): Sharpe claim, Ledoit-Wolf p (was p_t, the HAC t of the mean differential)
     soft(
@@ -2584,6 +2593,8 @@ def main() -> None:
     # \cmTrVsRidge*: re-estimated every 10 sessions or daily, untuned or random search, and Optuna best of 50 at
     # TUNE_PER 1 / 5 / 25 / 250, MSE rule), each against the ridge of record subpt_ridge_<set>, re-scored here on this
     # run's span (the campaign's counts were written on the 866 days with the campaign-era XGBoost / forest).
+    # 2026-10-23 (user, E32): 48 -> 36, the ten-day rungs (T10, RS10 MSE rule) having left the model set: every tree
+    # compared is re-estimated every trading session (T1, RS1, Optuna).
     tr_keys = [
         k
         for k in s["key"]
@@ -2593,7 +2604,7 @@ def main() -> None:
             k,
         )
     ]
-    assert len(tr_keys) == 48, len(tr_keys)
+    assert len(tr_keys) == 36, len(tr_keys)  # 2026-10-23 (user, E32). Was: == 48
     tr = pd.DataFrame(
         [
             pair(
@@ -2856,10 +2867,15 @@ def main() -> None:
     # assert len(rank) == 118, len(rank)  # was 116 (the full-set pooled LightGBM / XGBoost were the lgbm / xgb rows)
     # 2026-10-22 (user, E34): was 118; + the six pooled linear models (PL13_KEY)
     # 2026-10-23 (final_run.py PENDING): less the pending arms. Was: assert len(rank) == 124, len(rank)
-    assert len(rank) == 124 - len(POOL_PENDING), len(rank)
-    assert not gate_866 or int(rank.loc[OLS, "rank"]) == 8, rank.loc[
-        OLS, "rank"
-    ]  # was 9
+    # 2026-10-23 (user, E32): 124 -> 106, the model set (112 -> 94 forecasts) plus the 12 pooled rows. Was:
+    # assert len(rank) == 124 - len(POOL_PENDING), len(rank)
+    # assert not gate_866 or int(rank.loc[OLS, "rank"]) == 8, rank.loc[OLS, "rank"]  # was 9
+    # (the OLS's 866-day rank of record, 8, was among the 112-forecast set's: reported under --span mt866)
+    assert len(rank) == 106 - len(POOL_PENDING), len(rank)
+    if gate_866:
+        print(
+            f"E32 mt866: the OLS ranks {int(rank.loc[OLS, 'rank'])} (was 8 with the 112-forecast set)"
+        )
     ms = rank[rank["in_set"] & (rank.index != OLS)]
     n_set, n_lower3, n_lower3_sig, n_worse_sig = (
         len(ms),
@@ -2868,18 +2884,16 @@ def main() -> None:
         int(((ms["pct"] > 0) & (ms["p"] < SIG)).sum()),
     )
     # (111, 7, 0, 48) on the trimmed target (parked 2026-10-15)
-    assert n_set == 111, n_set
-    assert not gate_866 or (n_set, n_lower3, n_lower3_sig, n_worse_sig) == (
-        111,
-        7,
-        0,
-        51,
-    ), (
-        n_set,
-        n_lower3,
-        n_lower3_sig,
-        n_worse_sig,
-    )
+    # 2026-10-23 (user, E32): 111 -> 93 (the 18 ten-day tree rungs left the model set); the 866-day values of record
+    # (111, 7, 0, 51) were the 112-forecast set's, so under --span mt866 they are reported, not asserted. Was:
+    # assert n_set == 111, n_set
+    # assert not gate_866 or (n_set, n_lower3, n_lower3_sig, n_worse_sig) == (111, 7, 0, 51), (...)
+    assert n_set == 93, n_set
+    if gate_866:
+        print(
+            f"E32 mt866: model set vs OLS {(n_set, n_lower3, n_lower3_sig, n_worse_sig)}; "
+            "was (111, 7, 0, 51) on the 112-forecast set"
+        )
     # 2026-10-18 (user, new-notes 26 / second-list N8): re-scope -- closing-interval DM tests stay out of the headline
     # significance count. The headline counts are over the paper's \rhrPoolN pooled intraday forecasts (T1 Panel B,
     # FAMILY_ROWS pool keys; the master table stores the full-set pooled LightGBM / XGBoost as "lgbm" / "xgb"),
@@ -3250,7 +3264,9 @@ def main() -> None:
     print(
         f"decision #2: vs-short significant mean gains {sum(v['t'] > 0 and v['p'] < SIG for v in vs_ms.values())} (was 20)"
     )
-    assert sum(v["tail"] < 0 for v in vs_ms.values()) == 102  # \rheTailNeg
+    # 2026-10-23 (user, E32): 87 of the 94 forecasts (= \cmMasterDiffExTenNegN); was 102 of 112. Was:
+    # assert sum(v["tail"] < 0 for v in vs_ms.values()) == 102  # \rheTailNeg
+    assert sum(v["tail"] < 0 for v in vs_ms.values()) == 87  # \rheTailNeg
     en = "subpt_enet_all_features"  # \rheEnetSh, \rheEnetShX, \rheEnetT
     # near_t(lv[en]["sharpe"], 1.93, 5e-3)  # was 1.92 on 866 days
     # near_t(lv[en]["sharpe_x"], 1.56, 5e-3)  # was 1.43 on 866 days
@@ -3682,9 +3698,9 @@ def main() -> None:
     )
     soft(
         max(s["key"], key=lambda k: lv[k]["sharpe"]) == "subpt_enet_all_features",
-        f"model-set max Sharpe is the closing enet (got {max(s['key'], key=lambda k: lv[
-                k
-            ]['sharpe'])})",
+        f"model-set max Sharpe is the closing enet (got {
+            max(s['key'], key=lambda k: lv[k]['sharpe'])
+        })",
     )
 
     # ---- macros for the captions ----

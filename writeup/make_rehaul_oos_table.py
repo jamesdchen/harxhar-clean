@@ -510,10 +510,12 @@ def table_side_set_rows(rows: list[dict], side: str) -> str:
             "all features, from an exercise still in progress.",
         ]
     else:
+        # 2026-10-23 (user, E32): the trees are re-estimated every trading session ("daily" is the linear models' word;
+        # appendix app:rh_closing_bench). Was: "... Trees use fixed hyperparameters and are re-estimated daily (Section..."
         notes = common + (
             "Each model is estimated on the last 30 minutes of each trading day only (one observation per day); the "
             "OLS on the HAR benchmark is the benchmark forecast. Trees use fixed hyperparameters and are re-estimated "
-            "daily (Section~\\ref{sec:rh_exp_schemes}). The intraday models on the same days are in "
+            "every trading session (Appendix~\\ref{app:rh_closing_bench}). The intraday models on the same days are in "
             "Table~\\ref{tab:rh_oos}."
         )
         marks = []
@@ -642,10 +644,12 @@ def table_side(rows: list[dict], side: str) -> str:
             if who:
                 marks.append(text.format("; ".join(who)))
     else:
+        # 2026-10-23 (user, E32): the trees are re-estimated every trading session ("daily" is the linear models' word;
+        # appendix app:rh_closing_bench). Was: "... Trees use fixed hyperparameters and are re-estimated daily (Section..."
         notes = common + (
             "Each model is estimated on the last 30 minutes of each trading day only (one observation per day); the "
             "OLS on the HAR benchmark is the benchmark forecast. Trees use fixed hyperparameters and are re-estimated "
-            "daily (Section~\\ref{sec:rh_exp_schemes}). The intraday models on the same days are in "
+            "every trading session (Appendix~\\ref{app:rh_closing_bench}). The intraday models on the same days are in "
             "Table~\\ref{tab:rh_oos}."
         )
         marks = []

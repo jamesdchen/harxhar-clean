@@ -33,7 +33,7 @@ Random forest & $6.0^{*\phantom{**}}$ & $(1.84)$ & $1.11^{**\phantom{*}}$ & $(2.
 \end{tabular}
 \begin{tablenotes}[flushleft]
 \footnotesize
-\item \textit{Notes:} Sample, loss and tests as in Table~\ref{tab:rh_axis1}. Each row compares the pooled intraday model with the closing-interval model of the same class on the predictor set of the panel: $\Delta = 100(\bar L^{\mathrm{pool}}/\bar L^{\mathrm{close}} - 1)$, positive when the closing-interval model is more accurate, and $\Delta\SR$ is the intraday minus the closing-interval Sharpe ratio. $^{*}$, $^{**}$ and $^{***}$ denote significance at the 10\%, 5\% and 1\% levels. Closing-interval trees use fixed hyperparameters and are re-estimated daily; the intraday trees are re-estimated at every interval, on a rolling window of past intervals (Section~\ref{sec:rh_exp_schemes}).
+\item \textit{Notes:} Sample, loss and tests as in Table~\ref{tab:rh_axis1}. Each row compares the pooled intraday model with the closing-interval model of the same class on the predictor set of the panel: $\Delta = 100(\bar L^{\mathrm{pool}}/\bar L^{\mathrm{close}} - 1)$, positive when the closing-interval model is more accurate, and $\Delta\SR$ is the intraday minus the closing-interval Sharpe ratio. $^{*}$, $^{**}$ and $^{***}$ denote significance at the 10\%, 5\% and 1\% levels. Closing-interval trees use fixed hyperparameters and are re-estimated every trading session; the intraday trees are re-estimated at every interval, on a rolling window of past intervals (Section~\ref{sec:rh_exp_schemes}).
 \end{tablenotes}
 \end{threeparttable}
 \end{table}

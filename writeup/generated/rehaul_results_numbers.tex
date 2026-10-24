@@ -19,17 +19,17 @@
 \providecommand{\rhrDays}{866}  % days of the option-data subsample: trades, Sharpe ratios (accuracy: rhoosDays of rehaul_oos_numbers)
 \providecommand{\rhrNNPooledSeeds}{3}  % seeds averaged in the pooled MinGRU forecast
 \providecommand{\rhrOlsQ}{0.1033}  % QLIKE of the per-bar OLS on HAR + calendar
-\providecommand{\rhrAfPairs}{51}  % model-set input-set pairs (all features vs HAR + cal.)
-\providecommand{\rhrAfLower}{35}  % ... QLIKE lower with all features
+\providecommand{\rhrAfPairs}{42}  % model-set input-set pairs (all features vs HAR + cal.)
+\providecommand{\rhrAfLower}{28}  % ... QLIKE lower with all features
 \providecommand{\rhrAfLowerSig}{4}  % ... and DM p < 0.05
-\providecommand{\rhrAfMseHigher}{49}  % ... variance-space MSE higher with all features
+\providecommand{\rhrAfMseHigher}{40}  % ... variance-space MSE higher with all features
 \providecommand{\rhrAfMseHigherSig}{0}  % ... and DM (squared error) p < 0.05
-\providecommand{\rhrNModelSet}{112}  % forecasts in the master table's model set
-\providecommand{\rhrRankN}{124}  % forecasts ranked in the full table
-\providecommand{\rhrNSet}{111}  % model-set forecasts other than the OLS
+\providecommand{\rhrNModelSet}{94}  % forecasts in the master table's model set
+\providecommand{\rhrRankN}{106}  % forecasts ranked in the full table
+\providecommand{\rhrNSet}{93}  % model-set forecasts other than the OLS
 \providecommand{\rhrNLower}{7}  % ... with lower QLIKE than the OLS
 \providecommand{\rhrNLowerSig}{2}  % ... and DM p < 0.05
-\providecommand{\rhrNWorseSig}{56}  % ... significantly worse than the OLS (DM p < 0.05)
+\providecommand{\rhrNWorseSig}{49}  % ... significantly worse than the OLS (DM p < 0.05)
 \providecommand{\rhrNLowerPool}{0}  % pooled intraday forecasts (rhrPoolN) with lower QLIKE than the OLS (item 26 headline)
 \providecommand{\rhrNLowerSigPool}{0}  % ... and DM p < 0.05 (item 26 headline; closing-interval tests excluded)
 \providecommand{\rhrNWorseSigPool}{10}  % pooled intraday forecasts significantly worse than the OLS (DM p < 0.05)
@@ -73,9 +73,9 @@
 \providecommand{\rhrPoolTreeBaseQMax}{0.113}  % ... max
 \providecommand{\rhrSampleStart}{3 January 2020}  % first day of the option-data subsample (= of the rolling span)
 \providecommand{\rhrSampleEnd}{30 April 2024}  % last day of the option-data subsample (= of the rolling span)
-\providecommand{\rhrTrVsRidgeN}{48}  % tree forecasts compared with the closing-interval ridge, same predictors
-\providecommand{\rhrTrVsRidgeQAbove}{48}  % ... with the higher average QLIKE
-\providecommand{\rhrTrVsRidgeQAboveSig}{23}  % ... and DM p < 0.05
+\providecommand{\rhrTrVsRidgeN}{36}  % tree forecasts compared with the closing-interval ridge, same predictors
+\providecommand{\rhrTrVsRidgeQAbove}{36}  % ... with the higher average QLIKE
+\providecommand{\rhrTrVsRidgeQAboveSig}{17}  % ... and DM p < 0.05
 \providecommand{\rhrTrVsRidgeQBelowSig}{0}  % ... lower and DM p < 0.05
 \providecommand{\rhrLassoMseExCrashPct}{\ensuremath{-}4.4}  % lasso (full) vs the HAR benchmark: MSE % change outside 24 Feb - 30 Apr 2020
 \providecommand{\rhrDMLag}{6}  % Newey-West lag q_NW of every DM statistic (dm_test's automatic lag)

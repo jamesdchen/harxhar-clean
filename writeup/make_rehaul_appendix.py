@@ -969,7 +969,9 @@ LADDER_PANEL = dict(  # -> the guide's; the change a panel's rows share is in it
             r"Earlier draft's model: block-penalized $\to$ single-penalty ridge, intraday",
             r"Ridge: intraday $\to$ closing-interval",
             r"Closing-interval ridge: predictor set",
-            r"Full predictor set: ridge $\to$ other model (trees re-estimated every 10 days)",
+            # 2026-10-23 (user, E32): the trees' steps read the every-session twins (make_table_close_main.py LADDER).
+            # Was: r"Full predictor set: ridge $\to$ other model (trees re-estimated every 10 days)",
+            r"Full predictor set: ridge $\to$ other model (trees re-estimated every trading session)",
             r"Dropping the \rhappNsessionEdge{} duplicated HAR interactions",
             r"Within-window screening (LightGBM): screened minus unscreened",
             r"Re-estimation frequency (LightGBM): every 10 trading days $\to$ daily",
@@ -992,8 +994,10 @@ LADDER_ROW = {  # (upstream panel, upstream row label without its \quad), parse 
     ): r"HAR benchmark $\to$ full predictor set",
     (_LP[3], "lasso"): "Lasso",
     (_LP[3], "elastic net"): "Elastic net",
+    # 2026-10-23 (user, E32): the upstream labels end "refit every session" (the every-session twins). Was:
+    # (_LP[3], f"{m}, {up}, refit every 10"): f"{MODEL_CAP[m]}, {new}"
     **{
-        (_LP[3], f"{m}, {up}, refit every 10"): f"{MODEL_CAP[m]}, {new}"
+        (_LP[3], f"{m}, {up}, refit every session"): f"{MODEL_CAP[m]}, {new}"
         for m in MODELS
         for up, new in _TUNE.items()
     },
@@ -2018,7 +2022,10 @@ def caption_numbers() -> None:
     # days t > 252 (experiments/close_compounding_headline.py, WARMUP = gui._SIZING_WARMUP), the sample of the Sharpe
     # ratios (\rheSzDays). Was: assert set(ff["n"].unique()) == {N_DAYS}
     comp_days = int(ff["n"].unique()[0])
-    assert set(ff["n"].unique()) == {comp_days} and comp_days == N_DAYS - COMP_WARMUP, (ff["n"].unique(), N_DAYS)
+    assert set(ff["n"].unique()) == {comp_days} and comp_days == N_DAYS - COMP_WARMUP, (
+        ff["n"].unique(),
+        N_DAYS,
+    )
     macro("rhappCompDays", comp_days)
 
     # Section 8: the feature-importance figures

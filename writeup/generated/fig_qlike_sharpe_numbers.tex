@@ -7,29 +7,29 @@
 % difference (614 post-warmup days, bandwidth 33, fixed-b p); Sharpe changes: Ledoit-Wolf p;
 % ES(c = 1): close_murphy_splits_headline.elementary on f / iv, y / iv.  Point estimates.
 % pooled pairs: family pooled twin
-\newcommand{\fqsPairs}{51}  % models on both input sets (pairs drawn)
+\newcommand{\fqsPairs}{42}  % models on both input sets (pairs drawn)
 \newcommand{\fqsPairsPerBarLinear}{3}  % of which per-bar linear (pre-tuned)
 \newcommand{\fqsPairsPooled}{3}  % of which pooled 48-bar linear
-\newcommand{\fqsPairsTree}{45}  % of which per-bar trees
-\newcommand{\fqsPoints}{103}  % points drawn: both ends of every pair + the HAR + cal. OLS
+\newcommand{\fqsPairsTree}{36}  % of which per-bar trees
+\newcommand{\fqsPoints}{85}  % points drawn: both ends of every pair + the HAR + cal. OLS
 \newcommand{\fqsDays}{866}  % trade days
-\newcommand{\fqsQLower}{38}  % QLIKE lower with all features
+\newcommand{\fqsQLower}{31}  % QLIKE lower with all features
 \newcommand{\fqsQLowerSig}{3}  % ... and DM significant at 5 %
-\newcommand{\fqsQHigher}{13}  % QLIKE higher with all features
+\newcommand{\fqsQHigher}{11}  % QLIKE higher with all features
 \newcommand{\fqsQHigherSig}{0}  % ... and DM significant at 5 %
 \newcommand{\fqsQLowerSigLagFourteen}{2}  % sensitivity: QLIKE lower, DM at lag 14 significant
 \newcommand{\fqsQHigherSigLagFourteen}{0}  % sensitivity: QLIKE higher, DM at lag 14 significant
-\newcommand{\fqsShHigher}{50}  % Sharpe (mid) higher with all features
+\newcommand{\fqsShHigher}{41}  % Sharpe (mid) higher with all features
 \newcommand{\fqsShHigherSig}{6}  % ... and Ledoit-Wolf p < 0.05 (614 post-warmup days)
 \newcommand{\fqsShLower}{1}  % Sharpe (mid) lower with all features
 \newcommand{\fqsShLowerSig}{0}  % ... and Ledoit-Wolf p < 0.05 (614 post-warmup days)
-\newcommand{\fqsQLowerShHigher}{37}  % both: QLIKE lower and Sharpe higher
-\newcommand{\fqsMedDQ}{\ensuremath{-}0.0018}  % median QLIKE change (all features minus HAR + cal.)
-\newcommand{\fqsMedDQPct}{\ensuremath{-}1.7}  % median QLIKE change, % of the HAR + cal. QLIKE
-\newcommand{\fqsMedDSh}{\ensuremath{+}0.54}  % median Sharpe (mid) change
-\newcommand{\fqsESLower}{35}  % elementary score at the threshold (c = 1) lower with all features
-\newcommand{\fqsCorrES}{0.05}  % Pearson corr. across pairs: ES(c = 1) change vs HAC t of the P&L change
-\newcommand{\fqsCorrQ}{0.07}  % Pearson corr. across pairs: QLIKE change vs HAC t of the P&L change
+\newcommand{\fqsQLowerShHigher}{30}  % both: QLIKE lower and Sharpe higher
+\newcommand{\fqsMedDQ}{\ensuremath{-}0.0016}  % median QLIKE change (all features minus HAR + cal.)
+\newcommand{\fqsMedDQPct}{\ensuremath{-}1.6}  % median QLIKE change, % of the HAR + cal. QLIKE
+\newcommand{\fqsMedDSh}{\ensuremath{+}0.53}  % median Sharpe (mid) change
+\newcommand{\fqsESLower}{29}  % elementary score at the threshold (c = 1) lower with all features
+\newcommand{\fqsCorrES}{0.07}  % Pearson corr. across pairs: ES(c = 1) change vs HAC t of the P&L change
+\newcommand{\fqsCorrQ}{0.12}  % Pearson corr. across pairs: QLIKE change vs HAC t of the P&L change
 \newcommand{\fqsInShade}{2}  % all-features points in the shaded quadrant
 \newcommand{\fqsInShadeBase}{0}  % HAR + cal. points in the shaded quadrant
 \newcommand{\fqsOlsQ}{0.0967}  % QLIKE of the HAR + cal. OLS
@@ -37,7 +37,7 @@
 \newcommand{\fqsDMLag}{6}  % Newey-West lag of the DM statistic (the master table's)
 \newcommand{\fqsHACS}{33}  % bandwidth S of the t of the mean P&L change (LLSW 2018, 614 post-warmup days)
 \newcommand{\fqsSigPct}{5}  % two-sided level of the counts, %
-\newcommand{\fqsQuadBetterBoth}{37}  % change figure: lower QLIKE, higher Sharpe
-\newcommand{\fqsQuadShOnly}{13}  % change figure: higher QLIKE, higher Sharpe
+\newcommand{\fqsQuadBetterBoth}{30}  % change figure: lower QLIKE, higher Sharpe
+\newcommand{\fqsQuadShOnly}{11}  % change figure: higher QLIKE, higher Sharpe
 \newcommand{\fqsQuadQOnly}{1}  % change figure: lower QLIKE, lower Sharpe
 \newcommand{\fqsQuadWorseBoth}{0}  % change figure: higher QLIKE, lower Sharpe

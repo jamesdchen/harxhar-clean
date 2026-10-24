@@ -202,8 +202,22 @@ def switched_unmasked(path: Path) -> Path | None:
     return u if u.is_file() else None
 
 
-def in_paper_set(key: str, family: str) -> bool:
+# 2026-10-23 (user, E32, option A: the closing-interval trees refit at every trading session, no new walk): the two
+# master-table families that refit every 10 sessions -- "per-bar tree (untuned)" (T10, subtree_<est>_<set>) and
+# "per-bar tree (tuned)" (RS10 / RS10q, subtree_tuned[q]_<set>_<est>; REFIT_EVERY = 10, specs/causal_tune_trees.py)
+# -- leave the paper model set.  Their every-session twins (T1 subtree_daily_<set>_<est>, RS1 / RS1q
+# subtree_tuned[q]_daily_<set>_<est>: the same specification and hyperparameter rule, refit every session) are in it
+# already, as is every Optuna rung (refit every session).  The twins equal the ten-day forecasts bit for bit on every
+# ten-day refit row and the random-search picks are identical (experiments/e32_cadence_gate.py,
+# results/e32_cadence_gate/twins.csv, picks.csv).  keep_ten_day=True gives the set as it was before (the printed
+# reference of the self-checks and the E32 count macros).
+TEN_DAY_FAMILIES = ("per-bar tree (untuned)", "per-bar tree (tuned)")
+
+
+def in_paper_set(key: str, family: str, keep_ten_day: bool = False) -> bool:
     if is_live(key) or "LSTM" in family:
+        return False
+    if family in TEN_DAY_FAMILIES and not keep_ten_day:  # 2026-10-23 (user, E32)
         return False
     if family == "paper":
         return True
@@ -229,10 +243,17 @@ def in_paper_set(key: str, family: str) -> bool:
     return ok and input_set(key) is not None
 
 
-def paper_model_set(master: pd.DataFrame) -> pd.DataFrame:
-    """The paper model set: master_table.csv indexed by key, table A rows only."""
+def paper_model_set(master: pd.DataFrame, keep_ten_day: bool = False) -> pd.DataFrame:
+    """The paper model set: master_table.csv indexed by key, table A rows only.
+
+    2026-10-23 (user, E32): without the ten-day tree rungs (TEN_DAY_FAMILIES) unless keep_ten_day."""
     a = master[master["table"] == "A"]
-    return a[[in_paper_set(k, f) for k, f in zip(a.index, a["family"].astype(str))]]
+    return a[
+        [
+            in_paper_set(k, f, keep_ten_day)
+            for k, f in zip(a.index, a["family"].astype(str))
+        ]
+    ]
 
 
 TREES = ["lgbm", "xgb", "rf"]

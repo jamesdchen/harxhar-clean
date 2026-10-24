@@ -46,6 +46,14 @@ the per-bar OLS baseline stays.  pretune_macros: the facts the methods text quot
 arm f of results/pool_linear_pretune_2026-10-06/, experiments/stack_pool_pretune_yhat.py); the
 stored one-penalty pool_* rows stay in the master table but are out of the paper set; poolpt_macros
 report the pooled f arm against the causal arm (a) honestly.
+2026-10-23 (user, E32, option A): every closing-interval tree of the paper refits at every trading
+session.  The model set (camp.paper_model_set) leaves out the two ten-day families (T10, RS10 /
+RS10q; camp.TEN_DAY_FAMILIES) and keeps their every-session twins (T1, RS1 / RS1q) and the Optuna
+rungs, which were in it already; Table 7 panel D parks its two ten-day rows and Table 8's
+estimator steps read the every-session twins.  e32_macros: the forecasts left out and the twin
+evidence (results/e32_cadence_gate/twins.csv, picks.csv; experiments/e32_cadence_gate.py).  The
+campaign's own steps (the per-window mask on T10 / RS10, the refit cadence T10 -> T1) stay: they
+are the record of that ablation, not model-set forecasts.
 
 Nothing is typed by hand: every cell and every macro is read from the CSVs named below.  The
 qualitative statements the prose makes about them were asserted here; while the text is
@@ -193,20 +201,14 @@ PERBAR_LINEAR = [  # 2026-10-06: ridge / lasso / elastic net pre-tuned (subpt_*;
 # master table, and its provenance (per-window mask, one CPU class) against
 # master_table_provenance.csv.  2026-10-06: on all_features (was live_feasible, removed from
 # the paper by user decision).
+# 2026-10-23 (user, E32): parked -- the two ten-day rows (T10, RS10), out of the model set (camp.TEN_DAY_FAMILIES);
+# the rows below are the every-session rungs. Were the first and third rows:
+#     ("subtree_lgbm_all_features", "LightGBM, shipped settings, refit every 10", "all_features"),
+#     ("subtree_tuned_all_features_lgbm", "LightGBM, random search, refit every 10", "all_features"),
 PERBAR_NONLINEAR = [
-    (
-        "subtree_lgbm_all_features",
-        "LightGBM, shipped settings, refit every 10",
-        "all_features",
-    ),
     (
         "subtree_daily_all_features_lgbm",
         "LightGBM, shipped settings, refit daily",
-        "all_features",
-    ),
-    (
-        "subtree_tuned_all_features_lgbm",
-        "LightGBM, random search, refit every 10",
         "all_features",
     ),
     (
@@ -224,9 +226,9 @@ PERBAR_NONLINEAR = [
     # ("lstm_intraday_all_features", "LSTM over half-hour bars, refit daily", "all_features"),
 ]
 NONLINEAR_FAMILY = {  # key -> the master table's family (one row per family)
-    "subtree_lgbm_all_features": "per-bar tree (untuned)",
+    # "subtree_lgbm_all_features": "per-bar tree (untuned)",  # 2026-10-23 (user, E32): parked (ten-day row)
     "subtree_daily_all_features_lgbm": "per-bar tree (untuned, daily refit)",
-    "subtree_tuned_all_features_lgbm": "per-bar tree (tuned)",
+    # "subtree_tuned_all_features_lgbm": "per-bar tree (tuned)",  # 2026-10-23 (user, E32): parked (ten-day row)
     "subtree_tuned_daily_all_features_lgbm": "per-bar tree (random search, daily)",
     "subtree_optuna_tp1_all_features_lgbm": "per-bar tree (Optuna, TUNE_PER=1, best-of-50)",
     # "lstm_all_features": "LSTM", "lstm_intraday_all_features": "LSTM (intraday sequence)",
@@ -759,18 +761,16 @@ LADDER = [
         "subpt_enet_all_features",
         "elastic net",
     ),
-    (
-        "Estimator on \\texttt{all\\_features}: per-bar ridge $\\to$ alternative",
-        "subpt_ridge_all_features",
-        "subtree_lgbm_all_features",
-        "LightGBM, shipped settings, refit every 10",
-    ),
-    (
-        "Estimator on \\texttt{all\\_features}: per-bar ridge $\\to$ alternative",
-        "subpt_ridge_all_features",
-        "subtree_xgb_all_features",
-        "XGBoost, shipped settings, refit every 10",
-    ),
+    # 2026-10-23 (user, E32): parked -- the trees' estimator steps on the ten-day rungs (T10 subtree_<est>_all_features,
+    # RS10 subtree_tuned_all_features_<est>), out of the model set (camp.TEN_DAY_FAMILIES); the steps below read their
+    # every-session twins (T1, RS1). Were, each from "subpt_ridge_all_features" in the block "Estimator on
+    # \\texttt{all\\_features}: per-bar ridge $\\to$ alternative":
+    #     ("subtree_lgbm_all_features", "LightGBM, shipped settings, refit every 10"),
+    #     ("subtree_xgb_all_features", "XGBoost, shipped settings, refit every 10"),
+    #     ("subtree_rf_all_features", "random forest, shipped settings, refit every 10"),
+    #     ("subtree_tuned_all_features_lgbm", "LightGBM, random search, refit every 10"),
+    #     ("subtree_tuned_all_features_xgb", "XGBoost, random search, refit every 10"),
+    #     ("subtree_tuned_all_features_rf", "random forest, random search, refit every 10"),
     # 2026-10-13 parked (user; review items 76-79: the forest on trial 255 of the 400-trial search, behind the rf
     # keys of the master table -- experiments/master_table_close.py PERBAR_SWITCH):
     # (
@@ -779,30 +779,23 @@ LADDER = [
     #     "subtree_rfdev_all_features",  # 2026-10-06: the dev-tuned forest (was subtree_rf_*)
     #     "random forest, dev-tuned settings, refit every 10",
     # ),
-    (
-        "Estimator on \\texttt{all\\_features}: per-bar ridge $\\to$ alternative",
-        "subpt_ridge_all_features",
-        "subtree_rf_all_features",
-        "random forest, shipped settings, refit every 10",
-    ),
-    (
-        "Estimator on \\texttt{all\\_features}: per-bar ridge $\\to$ alternative",
-        "subpt_ridge_all_features",
-        "subtree_tuned_all_features_lgbm",
-        "LightGBM, random search, refit every 10",
-    ),
-    (
-        "Estimator on \\texttt{all\\_features}: per-bar ridge $\\to$ alternative",
-        "subpt_ridge_all_features",
-        "subtree_tuned_all_features_xgb",
-        "XGBoost, random search, refit every 10",
-    ),
-    (
-        "Estimator on \\texttt{all\\_features}: per-bar ridge $\\to$ alternative",
-        "subpt_ridge_all_features",
-        "subtree_tuned_all_features_rf",
-        "random forest, random search, refit every 10",
-    ),
+    *[
+        (
+            "Estimator on \\texttt{all\\_features}: per-bar ridge $\\to$ alternative",
+            "subpt_ridge_all_features",
+            f"subtree_{rung}all_features_{est}",
+            f"{name}, {how}, refit every session",
+        )
+        for rung, how in (
+            ("daily_", "shipped settings"),
+            ("tuned_daily_", "random search"),
+        )
+        for est, name in (
+            ("lgbm", "LightGBM"),
+            ("xgb", "XGBoost"),
+            ("rf", "random forest"),
+        )
+    ],
 ]
 EST_FROM = (
     "subpt_ridge_all_features"  # 2026-10-06: pre-tuned  # the estimator steps' "from"
@@ -2410,6 +2403,64 @@ def write_model_set(ms: pd.DataFrame) -> None:
     print(f"wrote {MODEL_SET_OUT.relative_to(ROOT)} ({len(out)} forecasts)")
 
 
+# 2026-10-23 (user, E32, option A): the ten-day tree rungs leave the model set for their every-session twins; the twin
+# evidence is the tracked output of experiments/e32_cadence_gate.py (twins: every ten-day table against its twin;
+# picks: the random-search tuning traces at both cadences)
+E32_GATE = RES / "e32_cadence_gate"
+
+
+def _int_tex(n: int) -> str:
+    return f"{int(n):,}".replace(",", "{,}")
+
+
+def e32_macros(d: pd.DataFrame, ms: pd.DataFrame) -> dict[str, str]:
+    """The forecasts the every-session refit takes out of the model set, and the evidence that each has its twin in it.
+
+    A forecast left out is a model-set forecast of a ten-day family (camp.TEN_DAY_FAMILIES); its gate row
+    (results/e32_cadence_gate/twins.csv, the table the master table reads) must be ok -- same stamps, baseline and
+    realized variance, the forecast bit for bit on every ten-day refit row -- and its twin must be in the model set.
+    The random-search rungs' tuning traces (picks.csv) must agree in every column but the tuning time.
+    """
+    m: dict[str, str] = {}
+    pre = camp.paper_model_set(d, keep_ten_day=True)
+    drop = [k for k in pre.index if k not in ms.index]
+    assert set(ms.index) <= set(pre.index)
+    assert set(pre.loc[drop, "family"]) == set(camp.TEN_DAY_FAMILIES), sorted(
+        set(pre.loc[drop, "family"])
+    )
+    assert not ms["family"].isin(camp.TEN_DAY_FAMILIES).any()
+    tw = pd.read_csv(E32_GATE / "twins.csv")
+    tw = tw[tw["read_by_master"].astype(bool)].set_index("key10")
+    assert tw.index.is_unique
+    missing = [k for k in drop if k not in tw.index]
+    assert not missing, ("a forecast left out has no gate row", missing)
+    x = tw.loc[drop]
+    assert x["present"].astype(bool).all() and x["ok"].astype(bool).all()
+    assert (x["refit_rows_bit_equal"] == x["refit_rows"]).all()
+    assert x["key1"].isin(ms.index).all(), "a twin is not in the model set"
+    for c in ("rows", "refit_rows", "other_rows"):
+        assert x[c].nunique() == 1, c
+    tuned = x[x["rung"].str.startswith("RS10")]
+    pk = pd.read_csv(E32_GATE / "picks.csv").set_index(["token", "bucket"])
+    tr = pk.loc[sorted(set(zip(tuned["token"], tuned["bucket"])))]
+    assert tr["ok"].astype(bool).all() and (tr["columns_differing"] == "tune_sec").all()
+    assert tr["tuning_points"].nunique() == 1
+    m["cmTenDayN"] = str(len(drop))
+    m["cmMasterNWithTenDay"] = str(len(pre))
+    m["cmTenDayUntunedN"] = str(int((x["rung"] == "T10").sum()))
+    m["cmTenDayTunedN"] = str(len(tuned))
+    m["cmTenDayRows"] = _int_tex(x["rows"].iloc[0])
+    m["cmTenDayRefitRows"] = str(int(x["refit_rows"].iloc[0]))
+    m["cmTenDayOtherRows"] = _int_tex(x["other_rows"].iloc[0])
+    m["cmTenDayTraces"] = str(len(tr))
+    m["cmTenDayTunePoints"] = str(int(tr["tuning_points"].iloc[0]))
+    print(
+        f"E32: {len(drop)} ten-day forecasts out of the model set ({len(pre)} -> {len(ms)}); twins bit-equal on "
+        f"{m['cmTenDayRefitRows']} of {x['rows'].iloc[0]} rows; {len(tr)} tuning traces identical"
+    )
+    return m
+
+
 # --------------------------------------------------------------------------- the pre-tuned pooled models
 POOL_STUDY = (
     RES / "pool_linear_pretune_2026-10-06"
@@ -2725,6 +2776,9 @@ def main() -> None:
     m.update(pretune_macros())  # 2026-10-06: the pre-tuned per-bar linear models
     m.update(poolpt_macros(d))  # 2026-10-06: the pre-tuned pooled linear models
     m.update(tree_prov_macros())  # 2026-10-06: the trees' settings (dev-tuned forest)
+    m.update(
+        e32_macros(d, ms)
+    )  # 2026-10-23 (user, E32): every closing-interval tree refit every session
     m.update(
         lean_unused_macros(d)
     )  # 2026-10-08 parked (lean set; replaced by an MCS): defined, unused

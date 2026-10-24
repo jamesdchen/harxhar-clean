@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 23.9) (preloaded format=pdflatex 2025.7.14)  23 OCT 2026 11:03
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 23.9) (preloaded format=pdflatex 2025.7.14)  23 OCT 2026 18:50
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -719,82 +719,82 @@ Package pdftex.def Info: figures/fi_pooled/fip_shapes.pdf  used on input line 6
 [46] [47] [48] [49] (generated/rehaul_robust_w3500_table.tex) [50]
 (generated/rehaul_econ_sharpe_defs.tex)
 (generated/rehaul_pooled_extras_table.tex) [51] [52] [53] [54] [55] [56]
-(generated/rehaul_results_oos_last30.tex) [57]
-Underfull \hbox (badness 1072) in paragraph at lines 903--911
+[57] (generated/rehaul_results_oos_last30.tex) [58]
+Underfull \hbox (badness 1072) in paragraph at lines 920--928
 \T1/lmr/m/n/10.95 Boost in re-sults/pooled_trees_final_2014start_w3000, and the
  ran-dom for-est in
  []
 
 
-Underfull \hbox (badness 1400) in paragraph at lines 911--920
+Underfull \hbox (badness 1400) in paragraph at lines 928--937
 []\T1/lmtt/m/n/10.95 writeup/pooled_trees_13.py\T1/lmr/m/n/10.95 : the fore-cas
 ts of the pooled tree en-sem-bles, fit-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 911--920
+Underfull \hbox (badness 10000) in paragraph at lines 928--937
 \T1/lmr/m/n/10.95 ted by \T1/lmtt/m/n/10.95 experiments/pooled_trees_rerun_13.p
 y \T1/lmr/m/n/10.95 (Light-GBM and XG-Boost
  []
 
 
-Underfull \hbox (badness 4872) in paragraph at lines 911--920
+Underfull \hbox (badness 4872) in paragraph at lines 928--937
 \T1/lmr/m/n/10.95 in re-sults/pooled_trees_final_2014start_w3000, the ran-dom f
 or-est, on In-tel's
  []
 
 
-Underfull \hbox (badness 3000) in paragraph at lines 911--920
+Underfull \hbox (badness 3000) in paragraph at lines 928--937
 \T1/lmr/m/n/10.95 oneDAL en-gine, in re-sults/pooled_rf_skx_2014start_w3000). T
 hey are read
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 911--920
+Underfull \hbox (badness 10000) in paragraph at lines 928--937
 \T1/lmr/m/n/10.95 by \T1/lmtt/m/n/10.95 writeup/make_rehaul_results.py\T1/lmr/m
 /n/10.95 , \T1/lmtt/m/n/10.95 writeup/make_rehaul_economics.py\T1/lmr/m/n/10.95
  ,
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 911--920
+Underfull \hbox (badness 10000) in paragraph at lines 928--937
 \T1/lmtt/m/n/10.95 writeup/make_rehaul_oos_table.py\T1/lmr/m/n/10.95 , \T1/lmtt
 /m/n/10.95 writeup/make_rehaul_oos_rerun.py \T1/lmr/m/n/10.95 and
  []
 
-[58]
-Underfull \hbox (badness 6063) in paragraph at lines 920--925
+
+Underfull \hbox (badness 6063) in paragraph at lines 937--942
 \T1/lmr/m/n/10.95 lin-ear mod-els of Ta-ble []1[] (results/window_sweep_2014sta
 rt_2026-10-22/w3000,
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 920--925
+Underfull \hbox (badness 10000) in paragraph at lines 937--942
 \T1/lmr/m/n/10.95 fit-ted by \T1/lmtt/m/n/10.95 experiments/pooled_linear_rerun
 _2026_10_19_13.py\T1/lmr/m/n/10.95 ), read by
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 920--925
+Underfull \hbox (badness 10000) in paragraph at lines 937--942
 \T1/lmtt/m/n/10.95 writeup/make_rehaul_results.py\T1/lmr/m/n/10.95 , \T1/lmtt/m
 /n/10.95 writeup/make_rehaul_economics.py \T1/lmr/m/n/10.95 and
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 920--925
+Underfull \hbox (badness 10000) in paragraph at lines 937--942
 \T1/lmtt/m/n/10.95 writeup/make_rehaul_data_methods.py\T1/lmr/m/n/10.95 ; \T1/l
 mtt/m/n/10.95 writeup/make_rehaul_oos_rerun.py
  []
 
-) (rehaul/10_appendix_floats.tex (generated/rehaul_dm_samples.tex)
-(generated/rehaul_dm_hyper.tex) [59] [60] [61]
-(generated/rehaul_dm_dictionary.tex [62
+[59]) (rehaul/10_appendix_floats.tex (generated/rehaul_dm_samples.tex)
+(generated/rehaul_dm_hyper.tex) [60] [61] [62]
+(generated/rehaul_dm_dictionary.tex [63
 
 
-] [63] [64] [65]))
-(rehaul/10_statistical_tests.tex [66
+] [64] [65] [66]))
+(rehaul/10_statistical_tests.tex [67
 
-] [67] (generated/rehaul_app_hac_robust.tex)) (rehaul/99_author_notes.tex
+] [68] (generated/rehaul_app_hac_robust.tex)) (rehaul/99_author_notes.tex
 Underfull \hbox (badness 1917) in paragraph at lines 39--43
 []\T1/lmr/bx/n/10.95 MinGRU net-work: \T1/lmr/m/n/10.95 parked in the pa-per. I
 ts fi-nal re-run is run-ning (re-
@@ -806,7 +806,7 @@ Underfull \hbox (badness 6348) in paragraph at lines 39--43
 u.txt with
  []
 
-[68] [69]) [70] (paper_rehaul.aux)
+[69] [70]) [71] (paper_rehaul.aux)
  ***********
 LaTeX2e <2023-06-01> patch level 1
 L3 programming layer <2023-08-29>
@@ -815,10 +815,10 @@ Package rerunfilecheck Info: File `paper_rehaul.out' has not changed.
 (rerunfilecheck)             Checksum: 0073728DBC65C6830DCB11591D7C72E0;6236.
  ) 
 Here is how much of TeX's memory you used:
- 17290 strings out of 475248
- 286492 string characters out of 5757813
+ 17300 strings out of 475248
+ 286125 string characters out of 5757813
  2002801 words of memory out of 5000000
- 38181 multiletter control sequences out of 15000+600000
+ 38190 multiletter control sequences out of 15000+600000
  685578 words of font info for 132 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  75i,17n,79p,3029b,886s stack positions out of 10000i,1000n,20000p,200000b,200000s
@@ -850,9 +850,9 @@ pData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmsy9.pfb><C:/Users/james/App
 Data/Local/Programs/MiKTeX/fonts/type1/public/lm/lmtt10.pfb><C:/Users/james/App
 Data/Local/Programs/MiKTeX/fonts/type1/public/lm/lmtt9.pfb><C:/Users/james/AppD
 ata/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/symbols/msbm10.pfb>
-Output written on paper_rehaul.pdf (70 pages, 1100798 bytes).
+Output written on paper_rehaul.pdf (71 pages, 1103402 bytes).
 PDF statistics:
- 1493 PDF objects out of 1728 (max. 8388607)
- 213 named destinations out of 1000 (max. 500000)
+ 1499 PDF objects out of 1728 (max. 8388607)
+ 214 named destinations out of 1000 (max. 500000)
  325 words of extra memory for PDF output out of 10000 (max. 10000000)
 

@@ -3,7 +3,7 @@
 % 2026-10-06: the paper's model set (results/close_master_table/paper_model_set.csv); no headline; plain forecast f^2 B.
 \begingroup\scriptsize\setlength{\tabcolsep}{3pt}
 \begin{longtable}{llrrrrrrr}
-\caption{Compounding at a fixed $f=0.03$ of wealth per day across the paper's model set (112 forecasts, each its plain forecast $\hat y^2B$, no recalibration), the 614 post-warmup days, by group: how many end above one unit of wealth, the median terminal wealth $W_T=\prod_t(1+f\,q_tR_t)$ and its range, the median annualized log-growth $g$, the median and the largest fall of wealth from its running peak, and the smallest ruin bound $1/|\min_t R'_t|$ (the sample's worst day). Always short on the same days.}\label{tab:app_compounding_headline}\\
+\caption{Compounding at a fixed $f=0.03$ of wealth per day across the paper's model set (94 forecasts, each its plain forecast $\hat y^2B$, no recalibration), the 614 post-warmup days, by group: how many end above one unit of wealth, the median terminal wealth $W_T=\prod_t(1+f\,q_tR_t)$ and its range, the median annualized log-growth $g$, the median and the largest fall of wealth from its running peak, and the smallest ruin bound $1/|\min_t R'_t|$ (the sample's worst day). Always short on the same days.}\label{tab:app_compounding_headline}\\
 \toprule
 group & fill & above 1 & median $W_T$ & range & median $g$ & median DD & largest DD & min ruin bound \\
 \midrule
@@ -21,11 +21,11 @@ pooled linear & mid & 6 of 6 & 3.72 & 1.90 to 8.58 & +0.49 & 39\,\% & 48\,\% & 0
 pooled linear & crossed & 6 of 6 & 2.29 & 1.17 to 5.30 & +0.29 & 43\,\% & 53\,\% & 0.18 \\
 per-bar linear & mid & 7 of 7 & 6.00 & 5.06 to 8.77 & +0.74 & 28\,\% & 28\,\% & 0.18 \\
 per-bar linear & crossed & 7 of 7 & 3.70 & 3.12 to 5.42 & +0.54 & 30\,\% & 36\,\% & 0.18 \\
-per-bar trees & mid & 74 of 90 & 2.12 & 0.59 to 8.06 & +0.31 & 41\,\% & 59\,\% & 0.10 \\
-per-bar trees & crossed & 53 of 90 & 1.30 & 0.36 to 4.97 & +0.11 & 46\,\% & 68\,\% & 0.09 \\
+per-bar trees & mid & 56 of 72 & 1.91 & 0.59 to 8.06 & +0.26 & 44\,\% & 59\,\% & 0.10 \\
+per-bar trees & crossed & 38 of 72 & 1.17 & 0.36 to 4.97 & +0.06 & 50\,\% & 68\,\% & 0.09 \\
 \addlinespace
-\textbf{model set} & mid & 96 of 112 & 2.37 & 0.59 to 8.77 & +0.35 & 39\,\% & 59\,\% & 0.10 \\
-\textbf{model set} & crossed & 75 of 112 & 1.45 & 0.36 to 5.42 & +0.15 & 44\,\% & 68\,\% & 0.09 \\
+\textbf{model set} & mid & 78 of 94 & 2.22 & 0.59 to 8.77 & +0.33 & 40\,\% & 59\,\% & 0.10 \\
+\textbf{model set} & crossed & 60 of 94 & 1.35 & 0.36 to 5.42 & +0.12 & 45\,\% & 68\,\% & 0.09 \\
 \addlinespace
 always short & mid &  & 1.07 &  & +0.03 & 52\,\% & 52\,\% & 0.10 \\
 always short & crossed &  & 0.64 &  & -0.18 & 60\,\% & 60\,\% & 0.09 \\
@@ -33,26 +33,26 @@ always short & crossed &  & 0.64 &  & -0.18 & 60\,\% & 60\,\% & 0.09 \\
 \endgroup
 
 \newcommand{\cmpF}{0.03}
-\newcommand{\cmpNSet}{112}
-\newcommand{\cmpNPosMid}{96}
-\newcommand{\cmpNPosX}{75}
-\newcommand{\cmpWMedMid}{2.4}
+\newcommand{\cmpNSet}{94}
+\newcommand{\cmpNPosMid}{78}
+\newcommand{\cmpNPosX}{60}
+\newcommand{\cmpWMedMid}{2.2}
 \newcommand{\cmpWLoMid}{0.6}
 \newcommand{\cmpWHiMid}{8.8}
-\newcommand{\cmpWMedX}{1.4}
+\newcommand{\cmpWMedX}{1.3}
 \newcommand{\cmpWLoX}{0.4}
 \newcommand{\cmpWHiX}{5.4}
-\newcommand{\cmpGMedMid}{+0.35}
+\newcommand{\cmpGMedMid}{+0.33}
 \newcommand{\cmpGLoMid}{-0.21}
 \newcommand{\cmpGHiMid}{+0.89}
-\newcommand{\cmpGMedX}{+0.15}
-\newcommand{\cmpDDMedMid}{39}
+\newcommand{\cmpGMedX}{+0.12}
+\newcommand{\cmpDDMedMid}{40}
 \newcommand{\cmpDDMaxMid}{59}
-\newcommand{\cmpDDMedX}{44}
+\newcommand{\cmpDDMedX}{45}
 \newcommand{\cmpDDMaxX}{68}
 \newcommand{\cmpWorstDayMax}{33}
 \newcommand{\cmpRuinMin}{0.09}
-\newcommand{\cmpNRuinOK}{112}
+\newcommand{\cmpNRuinOK}{94}
 \newcommand{\cmpBestLabel}{per-bar elastic net [all\_features], pre-tuned}
 \newcommand{\cmpWorstLabel}{Optuna per-bar random forest, TUNE\_PER 25, best of 25 [baseline]}
 \newcommand{\cmpAW}{1.07}
@@ -60,10 +60,10 @@ always short & crossed &  & 0.64 &  & -0.18 & 60\,\% & 60\,\% & 0.09 \\
 \newcommand{\cmpARuin}{0.10}
 \newcommand{\cmpAWX}{0.64}
 \newcommand{\cmpNYears}{4}
-\newcommand{\cmpYearsNPosMid}{2021: 41, 2022: 112, 2023: 99, 2024: 103}
-\newcommand{\cmpYearsNPosX}{2021: 33, 2022: 111, 2023: 86, 2024: 89}
-\newcommand{\cmpYearsMedMid}{2021: $-0.88$, 2022: $+0.54$, 2023: $+0.37$, 2024: $+0.65$}
-\newcommand{\cmpYearsMedX}{2021: $-1.25$, 2022: $+0.36$, 2023: $+0.19$, 2024: $+0.45$}
+\newcommand{\cmpYearsNPosMid}{2021: 33, 2022: 94, 2023: 82, 2024: 87}
+\newcommand{\cmpYearsNPosX}{2021: 27, 2022: 93, 2023: 71, 2024: 73}
+\newcommand{\cmpYearsMedMid}{2021: $-1.24$, 2022: $+0.54$, 2023: $+0.38$, 2024: $+0.65$}
+\newcommand{\cmpYearsMedX}{2021: $-1.62$, 2022: $+0.36$, 2023: $+0.19$, 2024: $+0.45$}
 % 2026-10-06: the headline macros are parked (no headline model; user decision). Each is a
 % visible ?? stub until sections/appendix_close_compounding.tex stops using it.
 \newcommand{\cmpHW}{\textbf{??}}
