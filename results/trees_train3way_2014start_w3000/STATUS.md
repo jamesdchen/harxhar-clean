@@ -277,3 +277,12 @@ Pool: lines 5-348 of runs/tasks/w3rf_full.txt, claims in runs/claims_w3rf_full/<
   d06-19, d06-25, d11-23, d11-24, d11-29, d11-42) left no claim.
 - Pools at 11:30: EPYC 13377719 12 running / 127 pending; old Xeon 4116 13378115 28 running; E5-2640 v4 13378116 9 / 11;
   /home1 Xeon 4116 13381306 0 / 64 (not starting); 330 claim directories, 0 done; unclaimed below 80: 66-79.
+- Owner decision A (relayed ~11:40 PDT): the 12 parked lines restarted from scratch.  One CARC session (CARC clock
+  10:39), every command verbatim in the heredoc: for each of lines 7, 8, 20, 23, 26, 34, 35, 37, 39, 46, 47, 52 it was
+  checked that no final metadata (.json) and no 'done' marker existed, that the claim had a 'failed' marker, that the
+  claimant task (13377719_10, _11, _13-_21; 13378115_42) was no longer in the queue, and that neither piece file had
+  changed in the last 10 minutes; all 12 passed.  Deleted per line: the partial piece's parquet (4,096-6,648 bytes)
+  and checkpoint json (100-101 bytes), both written on Xeon Silver 4116 between 09:37 and 10:23 (no .part existed),
+  and the claim directory (claim + failed); each entry is in runs/claims_released.log.  The lines are unclaimed again
+  in the /scratch1 claim namespace, below line 80: the EPYC pool 13377719 (13 running / 126 pending) and the E5-2640
+  v4 pool 13378116 (9 / 11) take them next (lowest unclaimed first), on any gated model.
