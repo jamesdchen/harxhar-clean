@@ -1,0 +1,4 @@
+design host a04-03.hpc.usc.edu |  AMD EPYC 7513 32-Core Processor | SLURM_JOB_ID 13361320 | Fri Oct 23 21:40:21 PDT 2026
+pretune host b05-06.hpc.usc.edu |  AMD EPYC 7513 32-Core Processor | SLURM_JOB_ID 13361321 | Fri Oct 23 21:45:35 PDT 2026
+select host b05-06.hpc.usc.edu |  AMD EPYC 7513 32-Core Processor | SLURM_JOB_ID 13361321 | Fri Oct 23 21:45:52 PDT 2026
+gate host b05-06.hpc.usc.edu |  AMD EPYC 7513 32-Core Processor | SLURM_JOB_ID 13361321 | Fri Oct 23 21:45:53 PDT 2026

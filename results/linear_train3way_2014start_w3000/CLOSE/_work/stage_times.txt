@@ -1,0 +1,10 @@
+derive_close 2 b05-06.hpc.usc.edu
+pretune 6 b05-06.hpc.usc.edu
+select 0 b05-06.hpc.usc.edu
+walk1.1 3 b22-09.hpc.usc.edu
+walk1.2 3 b22-09.hpc.usc.edu
+walk1.7 3 a02-02.hpc.usc.edu
+walk1.3 4 b22-02.hpc.usc.edu
+walk1.4 13 b22-28.hpc.usc.edu
+walk1.6 16 a02-02.hpc.usc.edu
+walk1.5 25 a01-03.hpc.usc.edu

@@ -1,0 +1,4 @@
+design 302 a04-03.hpc.usc.edu
+pretune 17 b05-06.hpc.usc.edu
+select 1 b05-06.hpc.usc.edu
+gate 25 b05-06.hpc.usc.edu

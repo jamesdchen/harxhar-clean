@@ -1,0 +1,98 @@
+{
+ "ref": "/scratch1/jc_905/wsweep/code/results/window_sweep_2014start_2026-10-22/w3000",
+ "i_design_baseline": {
+  "X.npy": [
+   "05da4b5b30ec4579df77f1a3b6dd57ed",
+   "05da4b5b30ec4579df77f1a3b6dd57ed"
+  ],
+  "y.npy": [
+   "996504f16da7982d64656d1ba0d9722a",
+   "996504f16da7982d64656d1ba0d9722a"
+  ],
+  "b_oos.npy": [
+   "7670f01a3055265dfac28ebac1eca864",
+   "7670f01a3055265dfac28ebac1eca864"
+  ],
+  "dates_oos.csv": [
+   "d8a203fe273cd3e8e34987fe5a73048e",
+   "d8a203fe273cd3e8e34987fe5a73048e"
+  ],
+  "names": true,
+  "shape": true,
+  "hp": true,
+  "config": true,
+  "raw_cols": true,
+  "bucket": true,
+  "f_order": true,
+  "pass": true
+ },
+ "i_design_all_features": {
+  "X.npy": [
+   "374bea97f35e33a02404dc47c82c3138",
+   "374bea97f35e33a02404dc47c82c3138"
+  ],
+  "y.npy": [
+   "996504f16da7982d64656d1ba0d9722a",
+   "996504f16da7982d64656d1ba0d9722a"
+  ],
+  "b_oos.npy": [
+   "7670f01a3055265dfac28ebac1eca864",
+   "7670f01a3055265dfac28ebac1eca864"
+  ],
+  "dates_oos.csv": [
+   "d8a203fe273cd3e8e34987fe5a73048e",
+   "d8a203fe273cd3e8e34987fe5a73048e"
+  ],
+  "names": true,
+  "shape": true,
+  "hp": true,
+  "config": true,
+  "raw_cols": true,
+  "bucket": true,
+  "f_order": true,
+  "pass": true
+ },
+ "ii_pretune": {
+  "penalties_equal": true,
+  "pretune_mse_equal": true,
+  "mine": {
+   "ridge": {
+    "baseline": 0.001,
+    "all_features": 1000.0
+   },
+   "lasso": {
+    "baseline": 1e-08,
+    "all_features": 0.0001
+   },
+   "enet": {
+    "baseline": 1e-07,
+    "all_features": 0.001
+   }
+  }
+ },
+ "iii_walk_all_features_ridge": {
+  "rows": 50,
+  "identical": true,
+  "first": "2013-12-27 16:00:00",
+  "last": "2014-01-03 14:30:00"
+ },
+ "iii_walk_all_features_lasso": {
+  "rows": 50,
+  "identical": true,
+  "first": "2013-12-27 16:00:00",
+  "last": "2014-01-03 14:30:00"
+ },
+ "iii_walk_all_features_enet": {
+  "rows": 50,
+  "identical": true,
+  "first": "2013-12-27 16:00:00",
+  "last": "2014-01-03 14:30:00"
+ },
+ "iii_walk_baseline_ols": {
+  "rows": 50,
+  "identical": true,
+  "first": "2013-12-27 16:00:00",
+  "last": "2014-01-03 14:30:00"
+ },
+ "pass": true
+}
