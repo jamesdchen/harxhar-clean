@@ -157,3 +157,12 @@ ADDENDUM B, 2026-10-24 10:40 PDT (17:40 UTC), before any job it affects: LINEAR 
    tables label the W column of the penalized models "1,000 (penalized: 1,001)" (OLS: 1,000) and qlike16.csv records
    window_closes.  The pending linear score job 13381259 (scores without W = 1,000) is cancelled and replaced by one
    that runs afterok on the W = 1,500 .. 3,500 job 13381257 and on the W = 1,000 job.
+
+NOTE TO ADDENDUM A, 2026-10-24 11:00 PDT (18:00 UTC), before the rerun: cw_twrf 13380322 task 6 (CLOSE_w2000, forest,
+   full set; d06-25, Xeon Silver 4116) died at about 10:46 after its 10:33 checkpoint (1,116 of 2,579 refits), exit 1,
+   MaxRSS 0.7 of 8 GB, with no message in its log -- its log and checkpoint are on /scratch1, and the same code
+   finished the forest's full set at W = 1,000, 1,500 and 2,500 on other nodes: treated as the failing /scratch1 mount
+   on that node (no code or numerical change).  As addendum A (1): the partial piece (Xeon 4116) is set aside by
+   renaming its parquet and checkpoint (*.failed_d06-25), and the line is rerun from scratch on EPYC 7513 / 7542 (a
+   forest piece never resumes across CPU families), d06-25 added to the excluded nodes; the tree finish job 13380323 is
+   re-pointed to wait for it.
