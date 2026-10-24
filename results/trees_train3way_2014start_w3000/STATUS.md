@@ -178,3 +178,30 @@ agent's probe per CPU model).  CARC runs upward from line 1, Hoffman2 downward f
   setting on RTH13, 20 origins a set: text-identical, max relative difference 0 (both sets).
 - Files: scores_w1/, econ_w1/, gate/ (g1, g2, gc, gcb, gd, gdb JSONs), design_check.json, timing/, tasks/ (task files,
   projections, h2_assignment.txt), pieces/ (metas of the 40 pieces), CLOSE / RTH13_N3k / ALL48_N3k forecasts.json, logs/.
+
+## Addendum E (07:06 PDT): Xeon 4116 / E5-2640 v4 gates on CARC, a claim pool for the forest full set
+
+RULE.txt addendum E committed in 65f789a before any forest task on a new model; code archive `code_65f789a`.
+`code/submit_e.sh` (07:07) submitted the gates and the EPYC pool (held), then stopped before any cancel: the Xeon 4116
+pool (-p main,oneweek, 200 tasks) was refused, QOSMaxSubmitJobPerUserLimit (oneweek's MaxSubmitPU is 50 and a
+multi-partition job counts against it).  `code/submit_e_fix.sh` (9448039, 07:09) completed it: the 4116 pool on main
+only, the E5-2640 v4 pool as 20 tasks, then the pending tasks of 13372432 / 13372801 cancelled (none left pending;
+13372432 lines 1-4 still running at 20 threads), then the pools released.
+
+| Job | Name | What | Depends on |
+|---|---|---|---|
+| 13377713 / 13377714 | t3t_ge41a / b | Xeon 4116 gates (9 lines at 8 threads / 2 at 20 threads; main,oneweek) -> gate/carc_x4116 | - |
+| 13377715 | t3t_ge41c | accept --require-tag carc_x4116 | ge41a, ge41b |
+| 13377716 / 13377717 | t3t_ge26a / b | Xeon E5-2640 v4 gates (oneweek) -> gate/carc_x2640v4 | - |
+| 13377718 | t3t_ge26c | accept --require-tag carc_x2640v4 | ge26a, ge26b |
+| 13377719 | t3t_pE | pool on EPYC 7513 / 7542, 8 threads, 16 GB, 150 tasks %20 | - |
+| 13377761 | t3t_p41 | pool on Xeon 4116 (main), 8 threads, 16 GB, 150 tasks %40 | ge41c |
+| 13377762 | t3t_p26 | pool on Xeon E5-2640 v4 (oneweek), 20 threads, 24 GB, 20 tasks %10 | ge26c |
+
+Pool: lines 5-348 of runs/tasks/w3rf_full.txt, claims in runs/claims_w3rf_full/<line>/ (claim, done, failed, term).
+320 pool tasks for 344 lines: more tasks are added as the pools run down.  Held final merge 13372433 now waits on
+13372432, the three pools, 13372427, 13371788, 13371790.
+
+| Time (PDT) | Lines of w3rf_full.txt | From -> to | Why |
+|---|---|---|---|
+| 07:09 | 5-239 (13372432, pending) and 240-348 (13372801, pending) | EPYC 20-thread arrays -> claim pool (EPYC 8 threads; Xeon 4116 / E5-2640 v4 after their gates) | addendum E: 4 forest tasks running, 3 EPYC nodes with >= 20 idle CPUs |
