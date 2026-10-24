@@ -196,3 +196,7 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   tau1_we0_E20 0.126251, tau3_we0_E40 0.126288, tau3_we0_E20 0.126296 (the shortcut alone, L 20: 0.13044); long
   training hurts (E 1,000 configurations 0.13-0.15). Fresh seeds for the shortlist (75 jobs, tag v2s2hc, debug P100):
   13373698. Full-set extension 2: debug files 13373355-56 done, gpu 13373353-54 pending (A40).
+- 2026-10-24 03:19 PDT G6 HAR (W 3,000) round 0 (P100): fresh-seed C (stage2/s2_fresh_baseline_round0.csv):
+  tau3_we0_E40 0.126140 (pick), tau3_we0_E20 0.126283, tau1_we0_E20 0.126398, tau0.3_we0_E10 0.126432, tau1_we0_E10
+  0.126451. The pick is at the tau high edge (3) -> extension 1: tau 9 x E {10, ..., 1,000} (8 configurations, 120
+  jobs, tag v2s2hx1, P100): 13373988-89 gpu, 13373990-92 debug. (E 40 is interior.)
