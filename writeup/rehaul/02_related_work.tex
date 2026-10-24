@@ -73,8 +73,14 @@
 \item \textbf{Diurnal pattern.} It is well documented that intraday return volatility exhibits a pronounced
   U-shaped pattern across the trading session. To account for this periodicity, standard practice scales intraday
   realized variance by a diurnal factor estimated from the corresponding clock-time interval on prior trading
+  % 2026-10-24 (user): parked -- the framing sentence before it cited the intraday volatility forecasting precedents.
+  % Was: "We follow this practice; it is what allows one model to be estimated across all intervals of the trading
+  % day."
   days. We follow this practice; it is what allows one model to be estimated across all intervals of the trading
-  day.\newline
+  day, as in the intraday volatility forecasts of \citet{EngleSokalska2012}, whose multiplicative component GARCH
+  model writes intraday volatility as the product of daily, diurnal, and stochastic intraday components and is
+  estimated pooled across a large cross-section of stocks, and, with machine-learning models over intraday buckets,
+  of \citet{ZhangZhangCucuringuQian2024}.\newline
   % 2026-10-16 (user, E1): parked -- the display was our target, not the literature's. Was:
   % "divides by a diurnal adjustment, here $y_{t,i} = \sqrt{\RV_{t,i}/s^2_{t,i}}$, with $\RV_{t,i}$ the realized
   % variance of intraday interval $i$ on day $t$ and $s^2_{t,i}$ its diurnal adjustment."
@@ -155,14 +161,19 @@
   % universal variant, across stocks, with predictors built from realized volatility alone; we keep that design for
   % the S\&P~500 and ask what a large set of exogenous predictors adds, comparing penalized linear models with tree
   % ensembles."
-  $\bm x_t$. Most of this work targets daily volatility or monthly returns. The closest precedents for our
-  setting forecast the volatility of intraday intervals: \citet{EngleSokalska2012} with a multiplicative component
-  GARCH model, in which intraday volatility is the product of daily, diurnal, and stochastic intraday components,
-  estimated for a large cross-section of stocks and pooled across them, and \citet{ZhangZhangCucuringuQian2024}
-  with machine-learning models of realized volatility over intraday buckets, fitting one model across all buckets
-  of the day and, in its universal variant, across stocks. Both build their predictors from volatility itself; we
-  keep a single model across the intervals of the day for the S\&P~500 and ask what a large set of exogenous
-  predictors adds, comparing penalized linear models with tree ensembles.\newline
+  % 2026-10-24 (user): parked -- Engle--Sokalska is not machine learning; it moves to the Diurnal pattern bullet
+  % (intraday volatility forecasting), and this bullet keeps Zhang et al. as the machine-learning precedent. Was:
+  % "The closest precedents for our setting forecast the volatility of intraday intervals: \citet{EngleSokalska2012}
+  % with a multiplicative component GARCH model, ..., and \citet{ZhangZhangCucuringuQian2024} with machine-learning
+  % models of realized volatility over intraday buckets, ... Both build their predictors from volatility itself; we
+  % keep a single model across the intervals of the day for the S\&P~500 and ask what a large set of exogenous
+  % predictors adds, comparing penalized linear models with tree ensembles."
+  $\bm x_t$. Most of this work targets daily volatility or monthly returns. The closest machine-learning
+  precedent for our setting, \citet{ZhangZhangCucuringuQian2024}, forecasts realized volatility over intraday
+  buckets for a cross-section of stocks, fitting one model across all buckets of the day and, in its universal
+  variant, across stocks, with predictors built from realized volatility alone; we keep that design for the
+  S\&P~500 and ask what a large set of exogenous predictors adds, comparing penalized linear models with tree
+  ensembles.\newline
   See \citet{gu2020empirical} for return prediction and \citet{christensen2023machine} for realized volatility
   forecasting; for gradient-boosted decision trees, see \citet{Ke2017} (LightGBM) and \citet{Chen2016}
   (XGBoost); for Bayesian hyperparameter optimization, see \citet{Akiba2019} (Optuna).
