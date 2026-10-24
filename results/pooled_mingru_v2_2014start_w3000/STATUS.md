@@ -159,3 +159,7 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   there: W 3,000 .5 / .7 on the debug P100s (13371959-60), W 3,500 .6 / .7 on gpu P100 (13371961-62, nice 100).
   Pending scratch jobs moved (cancelled while pending, resubmitted unchanged from /project2): W 3,500 screen .9-.13
   (13370090-94 -> 13371964-68, L40S) and HAR .13 (13369142 -> 13371969, P100). Completed runs stay in /scratch1.
+- 2026-10-24 02:17 PDT (coordinator ~02:15, owner: "be careful about ssh connections"): every CARC call of this session
+  now goes through one wrapper with a lock (at most one SSH session at a time, the background wait included; batched
+  commands a step; no SSH in loops; the single wait polls >= 15 min apart and retries a failed connection only after
+  another 15 min). The wait re-armed on 13371959-60 / 13371985-86.
