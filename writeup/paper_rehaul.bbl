@@ -1,4 +1,4 @@
-\begin{thebibliography}{79}
+\begin{thebibliography}{88}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -60,6 +60,23 @@ Donald W.~K. Andrews.
   estimation.
 \newblock \emph{Econometrica}, 59\penalty0 (3):\penalty0 817--858, 1991.
 \newblock \doi{10.2307/2938229}.
+
+\bibitem[Audrino and Knaus(2016)]{AudrinoKnaus2016}
+Francesco Audrino and Simon~D. Knaus.
+\newblock Lassoing the {HAR} model: A model selection perspective on realized
+  volatility dynamics.
+\newblock \emph{Econometric Reviews}, 35\penalty0 (8-10):\penalty0 1485--1521,
+  2016.
+\newblock \doi{10.1080/07474938.2015.1092801}.
+
+\bibitem[Audrino et~al.(2020)Audrino, Sigrist, and
+  Ballinari]{AudrinoSigristBallinari2020}
+Francesco Audrino, Fabio Sigrist, and Daniele Ballinari.
+\newblock The impact of sentiment and attention measures on stock market
+  volatility.
+\newblock \emph{International Journal of Forecasting}, 36\penalty0
+  (2):\penalty0 334--357, 2020.
+\newblock \doi{10.1016/j.ijforecast.2019.05.010}.
 
 \bibitem[Bakshi and Kapadia(2003)]{BakshiKapadia2003}
 Gurdip Bakshi and Nikunj Kapadia.
@@ -155,6 +172,13 @@ Tim Bollerslev, Benjamin Hood, John Huss, and Lasse~Heje Pedersen.
 \newblock \emph{The Review of Financial Studies}, 31\penalty0 (7):\penalty0
   2729--2773, 2018.
 
+\bibitem[Branco et~al.(2024)Branco, Rubesam, and
+  Zevallos]{BrancoRubesamZevallos2024}
+Rafael~R. Branco, Alexandre Rubesam, and Mauricio Zevallos.
+\newblock Forecasting realized volatility: Does anything beat linear models?
+\newblock \emph{Journal of Empirical Finance}, 78:\penalty0 101524, 2024.
+\newblock \doi{10.1016/j.jempfin.2024.101524}.
+
 \bibitem[Breiman(2001)]{Breiman2001}
 Leo Breiman.
 \newblock Random forests.
@@ -189,6 +213,13 @@ John~Y. Campbell and Samuel~B. Thompson.
 \newblock \emph{Review of Financial Studies}, 21\penalty0 (4):\penalty0
   1509--1531, 2008.
 \newblock \doi{10.1093/rfs/hhm055}.
+
+\bibitem[Caporin and Poli(2017)]{CaporinPoli2017}
+Massimiliano Caporin and Francesco Poli.
+\newblock Building news measures from textual data and an application to
+  volatility forecasting.
+\newblock \emph{Econometrics}, 5\penalty0 (3):\penalty0 35, 2017.
+\newblock \doi{10.3390/econometrics5030035}.
 
 \bibitem[Carr and Wu(2009)]{CarrWu2009}
 Peter Carr and Liuren Wu.
@@ -232,6 +263,7 @@ Kim Christensen, Mathias Siggaard, and Bezirgen Veliyev.
 \newblock A machine learning approach to volatility forecasting.
 \newblock \emph{Journal of Financial Econometrics}, 21\penalty0 (5):\penalty0
   1680--1727, 2023.
+\newblock \doi{10.1093/jjfinec/nbac020}.
 
 \bibitem[Corsi(2009)]{Corsi2009}
 Fulvio Corsi.
@@ -299,6 +331,14 @@ Jeff Fleming, Chris Kirby, and Barbara Ostdiek.
 \newblock \emph{Journal of Finance}, 56\penalty0 (1):\penalty0 329--352, 2001.
 \newblock \doi{10.1111/0022-1082.00327}.
 
+\bibitem[Freyberger et~al.(2020)Freyberger, Neuhierl, and
+  Weber]{FreybergerNeuhierlWeber2020}
+Joachim Freyberger, Andreas Neuhierl, and Michael Weber.
+\newblock Dissecting characteristics nonparametrically.
+\newblock \emph{Review of Financial Studies}, 33\penalty0 (5):\penalty0
+  2326--2377, 2020.
+\newblock \doi{10.1093/rfs/hhz123}.
+
 \bibitem[Friedman et~al.(2010)Friedman, Hastie, and
   Tibshirani]{FriedmanHastieTibshirani2010}
 Jerome Friedman, Trevor Hastie, and Robert Tibshirani.
@@ -339,6 +379,7 @@ Shihao Gu, Bryan Kelly, and Dacheng Xiu.
 \newblock Empirical asset pricing via machine learning.
 \newblock \emph{Review of Financial Studies}, 33\penalty0 (5):\penalty0
   2223--2273, 2020.
+\newblock \doi{10.1093/rfs/hhaa009}.
 
 \bibitem[Hansen(2005)]{Hansen2005}
 Peter~R. Hansen.
@@ -373,6 +414,13 @@ David Harvey, Stephen Leybourne, and Paul Newbold.
 \newblock Testing the equality of prediction mean squared errors.
 \newblock \emph{International Journal of Forecasting}, 13\penalty0
   (2):\penalty0 281--291, 1997.
+
+\bibitem[Hillebrand and Medeiros(2010)]{HillebrandMedeiros2010}
+Eric Hillebrand and Marcelo~C. Medeiros.
+\newblock The benefits of bagging for forecast models of realized volatility.
+\newblock \emph{Econometric Reviews}, 29\penalty0 (5-6):\penalty0 571--593,
+  2010.
+\newblock \doi{10.1080/07474938.2010.481554}.
 
 \bibitem[Hizmeri and Bevilacqua(2025)]{HizmeriBevilacqua2025}
 Rodrigo Hizmeri and Mattia Bevilacqua.
@@ -438,11 +486,26 @@ Scott~M. Lundberg, Gabriel Erion, Hugh Chen, Alex DeGrave, Jordan~M. Prutkin,
 \newblock \emph{Nature Machine Intelligence}, 2\penalty0 (1):\penalty0 56--67,
   2020.
 
+\bibitem[Luong and Dokuchaev(2018)]{LuongDokuchaev2018}
+Chuong Luong and Nikolai Dokuchaev.
+\newblock Forecasting of realised volatility with the random forests algorithm.
+\newblock \emph{Journal of Risk and Financial Management}, 11\penalty0
+  (4):\penalty0 61, 2018.
+\newblock \doi{10.3390/jrfm11040061}.
+
 \bibitem[Merton(1973)]{Merton1973}
 Robert~C. Merton.
 \newblock Theory of rational option pricing.
 \newblock \emph{Bell Journal of Economics and Management Science}, 4\penalty0
   (1):\penalty0 141--183, 1973.
+
+\bibitem[Mittnik et~al.(2015)Mittnik, Robinzonov, and
+  Spindler]{MittnikRobinzonovSpindler2015}
+Stefan Mittnik, Nikolay Robinzonov, and Martin Spindler.
+\newblock Stock market volatility: Identifying major drivers and the nature of
+  their impact.
+\newblock \emph{Journal of Banking \& Finance}, 58:\penalty0 1--14, 2015.
+\newblock \doi{10.1016/j.jbankfin.2015.04.003}.
 
 \bibitem[Muravyev and Ni(2020)]{MuravyevNi2020}
 Dmitriy Muravyev and Xuechuan Ni.
@@ -481,7 +544,17 @@ Andrew~J. Patton.
 Eghbal Rahimikia and Ser-Huang Poon.
 \newblock Machine learning for realised volatility forecasting.
 \newblock \url{https://ssrn.com/abstract=3707796}, 2020.
-\newblock Working paper, SSRN 3707796.
+\newblock Working paper, SSRN 3707796, first posted 12 October 2020; published
+  as Journal of Empirical Finance 88 (2026) 101739,
+  doi:10.1016/j.jempfin.2026.101739.
+
+\bibitem[Rapach et~al.(2013)Rapach, Strauss, and Zhou]{RapachStraussZhou2013}
+David~E. Rapach, Jack~K. Strauss, and Guofu Zhou.
+\newblock International stock return predictability: What is the role of the
+  {United States}?
+\newblock \emph{Journal of Finance}, 68\penalty0 (4):\penalty0 1633--1662,
+  2013.
+\newblock \doi{10.1111/jofi.12041}.
 
 \bibitem[Romano and Wolf(2005)]{RomanoWolf2005}
 Joseph~P. Romano and Michael Wolf.

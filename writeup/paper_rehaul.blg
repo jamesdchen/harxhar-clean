@@ -5,44 +5,50 @@ Reallocating 'name_of_file' (item size: 1) to 9 items.
 The style file: plainnat.bst
 Reallocating 'name_of_file' (item size: 1) to 11 items.
 Database file #1: references.bib
-You've used 66 entries,
+I was expecting a `,' or a `}'---line 1303 of file references.bib
+ :   
+ :   doi       = {10.1016/j.jfineco.2019.06.008},
+(Error may have been on previous line)
+I'm skipping whatever remains of this entry
+You've used 88 entries,
             2773 wiz_defined-function locations,
-            1064 strings with 17455 characters,
-and the built_in function-call counts, 31911 in all, are:
-= -- 2971
-> -- 1742
-< -- 42
-+ -- 588
-- -- 522
-* -- 2697
-:= -- 4850
-add.period$ -- 232
-call.type$ -- 66
-change.case$ -- 372
-chr.to.int$ -- 66
-cite$ -- 132
-duplicate$ -- 1359
-empty$ -- 2639
-format.name$ -- 634
-if$ -- 6676
+            1214 strings with 21960 characters,
+and the built_in function-call counts, 42591 in all, are:
+= -- 3999
+> -- 2303
+< -- 54
++ -- 775
+- -- 687
+* -- 3636
+:= -- 6493
+add.period$ -- 322
+call.type$ -- 88
+change.case$ -- 493
+chr.to.int$ -- 88
+cite$ -- 176
+duplicate$ -- 1808
+empty$ -- 3507
+format.name$ -- 845
+if$ -- 8900
 int.to.chr$ -- 1
 int.to.str$ -- 1
-missing$ -- 56
-newline$ -- 370
-num.names$ -- 266
-pop$ -- 672
+missing$ -- 78
+newline$ -- 504
+num.names$ -- 354
+pop$ -- 848
 preamble$ -- 1
-purify$ -- 305
+purify$ -- 404
 quote$ -- 0
-skip$ -- 1056
+skip$ -- 1399
 stack$ -- 0
-substring$ -- 1518
-swap$ -- 110
+substring$ -- 2048
+swap$ -- 132
 text.length$ -- 7
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 726
+type$ -- 968
 warning$ -- 0
-while$ -- 311
+while$ -- 416
 width$ -- 0
-write$ -- 923
+write$ -- 1256
+(There was 1 error message)
