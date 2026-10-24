@@ -10,3 +10,7 @@ pieces/v2w_all_features.000.p00.txt 13384202 gpu 375 A40 piece (A40, ADDENDUM 3a
 pieces/v2w_all_features.000.p01.txt 13384203 gpu 375 A40 piece (A40, ADDENDUM 3a)
 pieces/v2w_all_features.000.p02.txt 13384204 gpu 375 A40 piece (A40, ADDENDUM 3a)
 pieces/v2w_all_features.001.p00.txt 13384205 gpu 375 A40 piece (A40, ADDENDUM 3a)
+pieces/v2w_all_features.000.p00.txt 13385646 gpu 375 A40 resubmitted (fixed sbatch)
+pieces/v2w_all_features.000.p01.txt 13385647 gpu 375 A40 resubmitted (fixed sbatch)
+pieces/v2w_all_features.000.p02.txt 13385648 gpu 375 A40 resubmitted (fixed sbatch)
+pieces/v2w_all_features.001.p00.txt 13385649 gpu 375 A40 resubmitted (fixed sbatch)

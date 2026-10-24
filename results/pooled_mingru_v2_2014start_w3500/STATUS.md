@@ -78,3 +78,17 @@ the old run (read-only): `/home1/jc_905/pmf35/data` (design copies, fold-3 ridge
   (pieces/v2w_baseline.000.d00r.txt, .d01r.txt) and submitted on gpu P100, 30 min: 13383630, 13383631 (walk_ids).
   No further debug pieces (preemption); the 3 pending (13382914-16) stay, their remainders follow the same way.
   gpu partition: 97 of our jobs.
+- 2026-10-24 15:30-15:33 PDT CORRECTION: the four "preempted" debug pieces (13382912-15) were NOT preempted. Every
+  one ended at its trainer's end (elapsed 2,265-2,271 s, the same each time) with exit 143 inside the job script: the
+  15-min partial-copy loop (PARTIAL_S, added 2026-10-24) is stopped with kill + wait, and under set -e the wait's
+  status 143 ended the script before the outputs were copied back (reproduced locally). Other users' debug jobs
+  started at those seconds because ours had just ended. Consequences: every walk job submitted before 15:32 ends as
+  FAILED 143 without POST, keeping only its last 15-min partial copy (it loses at most its last 15 min of refits).
+  Fix (cluster/pooled_mingru_v2_gpu_carc.sbatch, md5 802e37ae): "|| true" on that kill and wait, applied on CARC
+  with an explicit sed (15:31). All 63 pending walk jobs (submitted with the old script) cancelled while pending
+  and resubmitted unchanged with the fixed script (walk_cancelled_r3_fix.log; walk_ids "resubmitted" lines),
+  except HAR W 3,000 piece 023.p04 (back to the unsubmitted list: QOS 100). New remainder files for 13382914/15
+  (d02r, d03r) submitted; d04 (13382916) moved from debug to gpu P100: no walk work is left on debug. gpu partition:
+  100 of ours (36 running with the old script, 51 P100 + 13 A40 pending with the new one). The 36 running
+  (HAR W 3,000 originals 000-012 and 23 pieces) will end FAILED 143: their missing tail refits are rerun from
+  walk-merge's remainder files as each finishes.

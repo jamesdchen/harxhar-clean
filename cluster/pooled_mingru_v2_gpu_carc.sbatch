@@ -71,7 +71,7 @@ cd "$LOCAL"
 if [ "${NOSTEPS:-0}" = 1 ]; then mkdir -p "$LOCAL/$SUB"; ln -sfn /dev/null "$LOCAL/$SUB/steps.csv"; fi
 SYNCPID=""
 salvage() {
-  [ -n "$SYNCPID" ] && kill "$SYNCPID" 2>/dev/null
+  [ -n "$SYNCPID" ] && kill "$SYNCPID" 2>/dev/null || true
   S=$ROOT/salvage/${TAG}_$SLURM_JOB_ID; mkdir -p "$S/$SUB"
   for f in jobs_out.csv preds.csv epochs.csv; do [ -f "$LOCAL/$SUB/$f" ] && cp "$LOCAL/$SUB/$f" "$S/$SUB/"; done
   cp "$LOCAL/$SUB.log" "$S/" 2>/dev/null
@@ -88,7 +88,7 @@ if [ "${PARTIAL_S:-0}" -gt 0 ]; then
   SYNCPID=$!
 fi
 set +e; wait "$FTPID"; RC=$?; set -e
-[ -n "$SYNCPID" ] && { kill "$SYNCPID" 2>/dev/null; wait "$SYNCPID" 2>/dev/null; SYNCPID=""; }
+[ -n "$SYNCPID" ] && { kill "$SYNCPID" 2>/dev/null || true; wait "$SYNCPID" 2>/dev/null || true; SYNCPID=""; }  # 2026-10-24 15:35: || true (set -e killed the job here with 143 before the copy back)
 [ -L "$LOCAL/$SUB/steps.csv" ] && rm -f "$LOCAL/$SUB/steps.csv"
 if [ "$RC" != 0 ]; then
   S=$ROOT/salvage/${TAG}_$SLURM_JOB_ID; mkdir -p "$S"
