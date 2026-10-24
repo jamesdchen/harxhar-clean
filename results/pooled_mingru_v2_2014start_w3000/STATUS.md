@@ -115,3 +115,14 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   13367857; 13366975 / 13366976 stay pending in gpu. RULE ADDENDUM 1a (both windows): a Stage-1 group is one set's grid
   at a window; groups not yet started take A40 (12 + 2 debug); debug used for < 1 h files (<= 5 jobs). The old walk's
   reruns 13367745-7 (pending) are not ours to touch.
+- 2026-10-23 23:37 PDT G3 full set (W 3,000) final (stage1/s1_w3000_full_*.csv / _pick.json; L40S): pick H 64, L 8,
+  lr 0.003, "memorizing": rho_300 0.1211 / 0.1214 / 0.1245 (3 seeds agree; rho <= 0.1 not reached). The cheaper
+  (16, 8) / (16, 20) / (16, 48) cells do not memorize (rho 0.676-0.678); every H 64 cell does (0.122-0.126), every
+  H 256 cell to rho ~ 0 (<= 0.1 too). lr 0.03 diverges in every cell (TQ_300 16-933, no non-finite); lr 0.003 is the
+  argmin in all 9 cells. Validation QLIKE at epoch 300 0.16-0.93 vs per-run minima 0.1175-0.1203 at epochs 2-8
+  (diagnostic). No conditional edge applies (a core cell memorizes; the pick is at L 8). Measured on the L40S: 0.025
+  GPU-s a model-epoch for H <= 64, L <= 20 at CONC 24 (P100 table 0.037-0.071); 0.046-0.25 for the CONC 6 files.
+- 2026-10-23 23:38 PDT G5 + G6 (full set, W 3,000), GPU type A40 (ADDENDUM 1a): state s2_state.json (H 64, L 8, lr
+  0.003; tau {0, 0.3, 1, 3} x wd_enc {0, 3, 15} x E {10, ..., 300}); canary 13367874 (debug A40: fold 1, tau 1, wd_enc 3,
+  E 20, seed 20261012, tag v2g5); screen (72 configurations x 3 folds x 5 seeds = 1,080 jobs, 15 files, est. 5.95
+  P100-h with the 15 s a job overhead) afterok on the canary: 13367875-87 (gpu A40), 13367888-89 (debug A40).

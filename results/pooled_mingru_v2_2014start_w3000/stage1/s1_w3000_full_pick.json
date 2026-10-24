@@ -1,0 +1,19 @@
+{
+ "all_features": {
+  "pick": {
+   "H": 64,
+   "L": 8,
+   "lr": "0.003"
+  },
+  "label": "memorizing",
+  "rho_E": 0.12232520173804862,
+  "rho_seeds": "0.1211;0.1214;0.1245",
+  "seeds_agree": true,
+  "core_complete": true,
+  "next_edge": null,
+  "final": true,
+  "gpu_types": [
+   "NVIDIA L40S"
+  ]
+ }
+}

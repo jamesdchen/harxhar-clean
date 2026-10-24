@@ -1,0 +1,6 @@
+run,set,gpu,wall_s,n_jobs,model_epochs,gpu_s_per_model_epoch
+v2s1f_all_features_0_13367188,all_features,NVIDIA L40S,265,36,10800,0.024537
+v2s1f_all_features_1_13367189,all_features,NVIDIA L40S,205,15,4500,0.0455556
+v2s1f_all_features_2_13367190,all_features,NVIDIA L40S,386,16,4800,0.0804167
+v2s1f_all_features_3_13367191,all_features,NVIDIA L40S,524,9,2700,0.194074
+v2s1f_all_features_4_13367192,all_features,NVIDIA L40S,378,5,1500,0.252
