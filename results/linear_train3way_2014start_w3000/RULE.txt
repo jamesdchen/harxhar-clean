@@ -1,0 +1,121 @@
+THREE-WAY TRAINING-SAMPLE COMPARISON OF THE POOLED LINEAR MODELS (2014 start, 3,000-day window)
+
+Written 2026-10-23 21:45 PDT (2026-10-24 04:45 UTC), before any job of this comparison was submitted.
+Branch insurance-selling-2026-09-19-e34-train3way (from insurance-selling-2026-09-19-e34 b3ca310).
+Request (owner, relayed by the coordinator): "run the clean three-way training comparison for the linear models".
+Question: how does training on all 48 half-hour periods (ALL48), on the 13 regular-hours bars (RTH13), or on the
+closing half hour only (CLOSE) compare, scored on the 13 RTH bars and on the closing half hour?  Feeds a decision on
+whether the paper should score QLIKE and its tests on the close only.  Nothing under writeup/ is edited; no Overleaf sync.
+
+1. TEMPLATE = ARM RTH13
+   results/window_sweep_2014start_2026-10-22/w3000 (run_info.json): code 6c264b7 (e34 8898522 + --first-fold), runner
+   experiments/pool_linear_pretune.py driven by experiments/pooled_linear_rerun_2026_10_19_13.py; --sample rth13
+   --har-base 5; ex-flags DROP_ACTIVITY_MA=1 CALENDAR_THROUGH_OVERNIGHT=1 DROP_OVERNIGHT_INDICATOR=1 LEAN_GLOBAL_LAGS=1
+   LATE_START_WARMUP=1; --window-days 3000 (39,000 bars); --first-day 2014-01-02; --first-fold 3; LATE_START_WARMUP,
+   UNOBSERVED_NEUTRAL, EXCLUDE_FOMC_RELEASE, WALK_KKT_RESEED, STANDARDIZE_PENALTY and the grid rule (RULE_std.txt) at
+   their defaults (on); penalty factor 0.01 on the HAR benchmark block of the full set, 1 on the HAR set; rule "one
+   penalty a model, the lowest mean validation MSE (adjusted scale, all 13 bars) over pre-sample fold 3; frozen over the
+   evaluation span".  This branch's base carries the same model code: git diff 6c264b7 b3ca310 -- src specs notebooks is
+   empty, and under experiments/ only unrelated files changed (pool_linear_pretune.py and the orchestrator identical).
+
+2. ARMS (the training sample; everything else as the template)
+   ALL48   every interval of the 48-interval grid (runner --sample 48, segment none): overnight, Sunday-evening and
+           exchange-holiday intervals and the NYSE early-close sessions included, as the 48-interval sample has always
+           been built.  Window 3,000 x 48 = 144,000 intervals (the pipeline's row count; about 2,950 sessions, since
+           Friday and Sunday rows are partial days).
+   RTH13   the template.  Its forecasts (w3000/forecasts.parquet) are reused, conditional on the gate (section 7).
+   CLOSE   the closing half hour only: the 16:00 rows of the RTH13 design, taken from the RTH13 design caches rebuilt
+           by this branch (gate (i)), so X, y and B of every 16:00 row are byte-identical to RTH13's; window 3,000 rows
+           (sessions).  New code: experiments/linear_train3way.py derive_close (no other change to the rows).
+   Secondary arms (labelled as such; not the comparison's primary rows):
+   CLOSE_NAT  the closing half hour with the design built natively on the closing rows (runner --sample close =
+           segment bar1600 of src/backtest/segmentation.py, lag scope global as rth13, the template's flags), i.e.
+           the scaler and its guards on the closing rows; window 3,000 rows.
+   ALL48@16, RTH13@16  ALL48 and RTH13 with the penalty re-selected on fold 3's validation rows ending 16:00 only
+           (validation MSE at 16:00), to separate "pooled sample" from "tuned for the close".  Walked only for the
+           models whose pick changes (else identical to the primary).  Kept only if it costs < 2x the primary (it
+           cannot cost more than the primary: at most every model is walked once more).
+
+3. PREDICTORS (the template's construction in every arm: src/backtest/executor.py through the spec's run_executor)
+   HAR ladder base 5 (k = 1, 5, 25, 125, 625, 3125 intervals) and every trailing average computed on the full
+   48-interval grid; HAR benchmark set = 6 HAR + calendar; full set = HAR + 47 series x 6 value averages + 47 x 6
+   availability averages + calendar (RTH13: 12 and 564 columns).  The target adj_RV and its diurnal baseline B are
+   built on the full grid before any slicing, so they are the same at every common row (asserted when scoring).
+   Column differences, all necessary:
+     ALL48: + is_overnight (DROP_OVERNIGHT_INDICATOR=0): 13 and 565 columns.
+     CLOSE, CLOSE_NAT: the RTH13 columns; hour is constant on the closing rows and is removed by the runner's
+       identifiability mask at every seed (as any column constant in a window).
+   Sample-dependent steps (a necessary difference the brief did not list): the pipeline's rolling robust scaler
+   (median / IQR over the trailing W rows of the arm's own sample, src/features/transforms/scaling.py), its guards
+   (_build_scale_guards: reference IQR, MA-window erosion) and LATE_START_WARMUP's zeroing (W live rows) act on the
+   rows of the design they are built on.  Raw (pre-scale) values of a 16:00 row are the same in every arm; scaled
+   values are identical in RTH13 and CLOSE (CLOSE takes RTH13's rows) and differ in ALL48 and CLOSE_NAT through the
+   scaler's statistics.  Quantified on the 16:00 rows of 2014-2024 at scoring (diagnostic only, not a gate).
+   Runner-side masks evaluated on each arm's own fit window: identifiability (constant / duplicated columns),
+   STANDARDIZE_PENALTY's evidence mask (>= 250 rows off the window mode) and the binomial availability rule; a
+   3,000-row window (CLOSE) can therefore leave out more sparse columns.  Early-close sessions: dropped in RTH13,
+   CLOSE, CLOSE_NAT (DROP_EARLY_CLOSE_SESSIONS, segment path), kept in ALL48 (the 48-interval path keeps every row).
+
+4. TUNING (fold 3 only, the orchestrator's fold scheme counted in each arm's rows; PPD = 48, 13, 1)
+   validation = the 250 x PPD rows before the first 2014-01-02 row (about calendar 2013), embargo 25 x PPD rows,
+   fit = the W rows before the embargo.  ALL48: 12,000 / 1,200 / 144,000; RTH13: the template's (3,250 / 325 / 39,000,
+   validation 2013-01-02 15:30 .. 2013-12-31 16:00); CLOSE, CLOSE_NAT: 250 / 25 / 3,000.  Criterion: the lowest mean
+   validation MSE on the adjusted scale over the arm's own validation rows.  Grids: ridge 1e-2 .. 1e3, lasso and
+   elastic net 1e-6 .. 1e-2 (l1_ratio 0.5), one value a decade, plus the grid rule (a pick at a grid end adds the next
+   decade until interior; stop when flat within 1e-6 relative or after 6 decades).  One penalty a model, frozen over
+   the evaluation span.  OLS: min-norm least squares (--ols auto), no penalty.  ALL48@16 / RTH13@16: the same fold.npz
+   residuals restricted to the validation rows ending 16:00, the grid rule on that criterion (its extensions
+   pretuned under _work/pretune16/).
+
+5. MODELS AND WALK
+   OLS (HAR set); ridge, lasso, elastic net on the HAR set and on the full set; solver settings unchanged
+   (STANDARDIZE_PENALTY, WALK_KKT_RESEED, penalty factors).  Walk: the runner unchanged, refit at every row of the
+   arm's sample from the 250-solve boundary at or before the first 2014-01-02 row to the end of the data (30 April
+   2024): rank-one / warm homotopy update every row, identifiability mask and cold seed every 250th solve, window of
+   the last W rows.  ALL48 also refits at overnight rows (the runner rolls its window one row at a time; there is no
+   skip) - only its RTH rows are scored.  CLOSE / CLOSE_NAT origin: every session's 16:00 row (the 15:30 information
+   set: trailing averages through the bar ending 15:30).  Forecast of a row = the model fit on the W rows before it;
+   plain = pred_adj^2 x B.  Chunks of 250-solve blocks (each chunk with a W-row halo reproduces the whole walk).
+
+6. SCORING (score14.py's functions and conventions; days = RE.history() days in 2014-01-02 .. 2024-04-30, 2,579)
+   (a) every RTH bar: the 13 bars of those days with RV > 0 (33,527 bars), ALL48, RTH13 (and ALL48@16, RTH13@16):
+       QLIKE = mean over the bars (= the mean of the daily 13-bar averages: every day has 13 bars), MSE (x 1e10),
+       R2_OOS = 1 - SSE / SSE_bench, bench = the expanding mean of the same clock's RV over the prior days of that
+       clock's history (positive finite prints, early closes dropped; at 16:00 this is RE.ct_benchmark).
+   (b) 16:00: the closing half hour on the same 2,579 days, every arm: QLIKE, MSE, R2_OOS (RE.metrics with
+       RE.ct_benchmark).
+   Diebold-Mariano: src.evaluation.diebold_mariano.dm_test as is (HLN, Bartlett, lag max(0, floor(4 (T/100)^(2/9)))
+   = 8 at T = 2,579) on daily losses, QLIKE (primary) and squared error; negative = the first-named arm lower.
+   Pairs: each model at 16:00: ALL48 vs RTH13, CLOSE vs RTH13, CLOSE vs ALL48 (secondary arms vs RTH13 too); every bar
+   (daily 13-bar mean): ALL48 vs RTH13 (ALL48@16, RTH13@16 vs RTH13); full vs HAR within each arm and estimator
+   (ridge, lasso, elastic net) at 16:00 (every arm) and every bar (ALL48, RTH13).
+   Checks: RTH13's numbers reproduce part2/qlike.csv and part2/gap.csv of the window sweep (w3000) to 1e-12.
+   Context only: the paper's closing-interval HAR benchmark (\rhrOlsQ = 0.1033, writeup/generated/
+   rehaul_results_numbers.tex: the per-bar OLS on HAR + calendar), its own design, window and span.
+
+7. GATE (before the reused RTH13 forecasts are relied on; all must hold, else stop and report)
+   (i)   the RTH13 design caches rebuilt by this branch on CARC: X.npy, y.npy, b_oos.npy, dates_oos.csv byte-identical
+         (md5) to w3000/_work/design_*; names, shape, hp, config, raw_cols equal;
+   (ii)  the RTH13 pretune + select rerun here: frozen penalties equal and pretune_mse.csv equal in every value;
+   (iii) walk slices, the first 50 origins from the walk start (2013-12-27 16:00), all-features ridge, lasso and
+         elastic net and the OLS: date, true_adj and pred_adj strings identical to the w3000 walk tables;
+   (iv)  the CARC copy of w3000/forecasts.parquet has the md5 of the repo's copy (the reused file).
+   The ALL48, CLOSE and CLOSE_NAT walks start only after (i)-(iii) pass (Slurm afterok on the gate job).
+
+8. ECONOMICS AT THE CLOSE (make_rehaul_economics.add_pooled_linear's construction, run locally on the pulled 16:00
+   forecasts: the quote book and master table are local)
+   q = +1 (long straddle) if plain16 > iv_var, else -1, on the 866 option days (the OLS row's days, iv_var and quote
+   book); mid return q x R, bid/ask return gui._crossed_return; D6 Sharpe ratio (E.sharpe) on the 614 post-warmup
+   days; for each model: CLOSE - RTH13 and ALL48 - RTH13 (and the secondary arms - RTH13) with hac_inference.
+   d6_diff_test (block hi.LW_BLOCK, hi.LW_BOOT resamples, seed hi.D6_SEED), mid and bid/ask.  Check: RTH13's D6
+   values reproduce part2/econ.csv (w3000) to 1e-12.
+
+9. COMPUTE
+   CARC Discovery, account pollok_1603, partition main, --constraint epyc-7513|epyc-7542; the wsweep uv venv (Python
+   3.12.3, numpy 1.26.4, numba 0.68.0, OpenBLAS kernel Prescott, numpy AVX512 dispatch off) used read only; code and
+   outputs under /scratch1/jc_905/train3way (new).  Estimate: ALL48 walks 10-20 CPU-hours (3.7x RTH13's rows with a
+   3.7x longer window), the rest a few CPU-hours; stop and report before submitting if the estimate passes 100.
+   Outputs here: STATUS.md, per-arm frozen_penalties.json, pretune_mse.csv, gate.json, score tables, logs; no design
+   caches or full forecast panels are copied to the laptop.
+
+10. ADDENDA: dated, written before the job they affect.
