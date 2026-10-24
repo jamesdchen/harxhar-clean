@@ -107,3 +107,11 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   W 3,500 13367193-98 (6 files, nice 100). Job files now hold one concurrency each (pack_files: a file runs at its
   minimum CONC; mixing CONC 24 and 6 cells would have slowed the small cells). The HAR half of each window's grid
   follows on L40S once G2 fixes HAR's E1.
+- 2026-10-23 23:35-23:45 PDT (coordinator 23:36: all CARC resources, debug included; per-type QOS caps A40 12, A100 12,
+  L40S 6 a user). G3 full set (W 3,000) COMPLETED on L40S b17-16: 13367188-92, 23:02-23:33, walls 277 / 209 / 390 /
+  528 / 381 s (est. 914-1,428 P100-s a file: L40S ~3x the P100 table's rate). G4 full set: 13367193 RUNNING on L40S
+  since 23:33, 13367194-98 pending (stay L40S). G2: 13366974 (HAR lr 0.003 E 1,000, the decision run) RUNNING on P100
+  e22-03 since 23:34; 13366977 / 13366978 cancelled while pending and resubmitted to the debug P100s as 13367856 /
+  13367857; 13366975 / 13366976 stay pending in gpu. RULE ADDENDUM 1a (both windows): a Stage-1 group is one set's grid
+  at a window; groups not yet started take A40 (12 + 2 debug); debug used for < 1 h files (<= 5 jobs). The old walk's
+  reruns 13367745-7 (pending) are not ours to touch.

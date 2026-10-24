@@ -161,3 +161,20 @@ STORAGE  (infrastructure, not the rule's substance) The /home1/jc_905 quota (100
          from the /home1 roots with an md5 check; runs, logs and salvage written there. The design copies (XDATA) and the
          Python env are still read from /home1 (reads work over quota). The completed G1 / G2 runs stay in /home1 roots.
          The 5 failed G2 files are rerun unchanged on P100.
+
+ADDENDUM 1a 2026-10-23 23:45 PDT (2026-10-24 06:45 UTC; coordinator 23:36 PDT, owner: "use all CARC resources, debug
+included"), written before any HAR Stage-1 job; identical in both windows' copies. Amends ADDENDUM 1:
+GROUPS   A Stage-1 group is one set's grid at a window (every cell incl. the conditional edges, lr and seed): the Stage-1
+         pick and the cell lr are chosen within a set, no Stage-1 comparison crosses sets. The full-set grids at
+         W 3,000 (13367188-92, all completed 23:02-23:33 on L40S b17-16) and W 3,500 (13367193 started 23:33 on L40S)
+         had started on L40S before this addendum: both stay L40S. The other groups are unchanged.
+CHOICE   Replaces "the most free GPUs at submission": a group none of whose jobs has started takes the validated type
+         with the most concurrency available to us. Per-user QOS (sacctmgr, 23:36): gpu partition 36 GPUs a user, of
+         which A100 12, A40 12, L40S 6 (P100 no type cap, but its 74 GPUs were all in use at 22:42, 22:55 and 23:35 with
+         80 higher-priority pending jobs accepting P100); debug partition 5 jobs submitted / running a user, 1 h, GPUs
+         2 x P100 (e23-02) and 2 x A40 (b11-09). Hence A40 (12 + 2 in debug) for the groups not yet started: the HAR
+         Stage-1 grids at both windows, and later groups unless the counts change (each choice recorded in STATUS.md).
+DEBUG    Files estimated under 1 h run in the debug partition too (whole configurations a file, never split across
+         partitions), on its P100s for P100 groups and its A40s for A40 groups, at most 5 debug jobs of ours at a time.
+         G2: 2 of its 4 pending P100 files moved to the debug P100s (13366977 / 13366978 cancelled while pending, rerun
+         as 13367856 / 13367857); G2 stays P100.
