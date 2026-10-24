@@ -75,12 +75,18 @@
   % "\item \textbf{Closing-interval models:} not rerun (James, 22 October 2026); their full-sample rules are disclosed
   %   (notes S4a, S4c, S4d). The data fixes they predate (invalid-print nulling, FOMC calendar, VIX splice, fill cap)
   %   still need a disclosure in Section~\ref{sec:rh_data} (E28)."
+  % 2026-10-23 (user, E32 resolved): parked -- the item while the tree rerun was pending. Was: "... The
+  %   closing-interval \emph{trees} are being rerun with a refit at every trading session instead of every 10 (James,
+  %   23 October 2026, note E32; branch insurance-selling-2026-09-19-e34-e32-daily), hyperparameters kept per each
+  %   specification's rule. Their numbers, the appendix's ``every 10 trading days'' and the E32 box change when that
+  %   rerun lands."
   \item \textbf{Closing-interval models:} the linear models are not rerun (James, 22 October 2026); their
     full-sample rules and the data fixes they predate are disclosed (notes S4a, S4c, S4d, E28; Section~\ref{sec:rh_data}).
-    The closing-interval \emph{trees} are being rerun with a refit at every trading session instead of every 10
-    (James, 23 October 2026, note E32; branch insurance-selling-2026-09-19-e34-e32-daily), hyperparameters kept per
-    each specification's rule. Their numbers, the appendix's ``every 10 trading days'' and the E32 box change when
-    that rerun lands.
+    The closing-interval \emph{trees} are re-estimated every trading session (note E32, resolved 23 October 2026;
+    branch insurance-selling-2026-09-19-e34-e32-daily): no new walk was needed, since every rung that refit every 10
+    trading days already had its every-session twin, with the same hyperparameter rule. The \cmTenDayN{} ten-day
+    forecasts left the model set (\cmMasterNWithTenDay{} to \cmMasterN{} forecasts), and every closing-interval
+    number was regenerated from the twins (Appendix~\ref{app:rh_closing_bench}).
   % 2026-10-23 (user, E35): parked -- resolved: the fitted design's count is \rhorNColsAf (Section~\ref{sec:rh_predictors}).
   % Was: "\item \textbf{Predictor count:} $\rhdmNColsPooled$ still counts the calendar and interaction columns cut by
   % note E9 and the FOMC statement dummy; the printed design has 576 columns and the rerun's will have 564. Take the

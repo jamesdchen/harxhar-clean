@@ -1,8 +1,8 @@
 gate,value,bound,n,ok
-"Sharpe mid = master_table.csv, every forecast",2.220446049250313e-16,1e-09,112,True
-"Sharpe crossed = master_table.csv, every forecast",3.3306690738754696e-15,1e-09,112,True
-"ret_mid = q R, every forecast",0.0,1e-12,112,True
-"q = sign(plain - iv_var), every forecast",0.0,0.0,112,True
-the ruin bound exceeds f = 0.03 for every forecast and fill (no wealth factor <= 0),0.0,0.0,226,True
-"fixedfrac_headline.csv = the committed copy (HEAD = 34b0492), always short's rows (no forecast), 866-day recomputation",7.632783294297951e-17,1e-09,14,True
-"peryear_growth.csv = the committed copy (HEAD = 34b0492), always short's rows (no forecast), 866-day recomputation",5.551115123125783e-17,1e-09,20,True
+"Sharpe mid = master_table.csv, every forecast",2.220446049250313e-16,1e-09,94,True
+"Sharpe crossed = master_table.csv, every forecast",3.3306690738754696e-15,1e-09,94,True
+"ret_mid = q R, every forecast",0.0,1e-12,94,True
+"q = sign(plain - iv_var), every forecast",0.0,0.0,94,True
+the ruin bound exceeds f = 0.03 for every forecast and fill (no wealth factor <= 0),0.0,0.0,190,True
+"fixedfrac_headline.csv = the committed copy (HEAD = 0be871d), always short's rows (no forecast), 866-day recomputation",7.632783294297951e-17,1e-09,14,True
+"peryear_growth.csv = the committed copy (HEAD = 0be871d), always short's rows (no forecast), 866-day recomputation",5.551115123125783e-17,1e-09,20,True

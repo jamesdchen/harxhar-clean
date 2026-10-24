@@ -15,21 +15,21 @@
 \providecommand{\rheNNBaseShX}{}\renewcommand{\rheNNBaseShX}{0.50}  % ... crossed
 \providecommand{\rheSigVsShort}{}\renewcommand{\rheSigVsShort}{0}  % model-set forecasts whose mean mid-return gain over always short has t > 0 and fixed-b p < 0.05
 \providecommand{\rheSigVsShortFull}{}\renewcommand{\rheSigVsShortFull}{0}  % ... of which on the full predictor set (all_features)
-\providecommand{\rhePairs}{}\renewcommand{\rhePairs}{51}  % HAR + cal. -> all features pairs in the model set
-\providecommand{\rhePairsUp}{}\renewcommand{\rhePairsUp}{47}  % ... Sharpe mid higher with all features
-\providecommand{\rhePairsSig}{}\renewcommand{\rhePairsSig}{13}  % ... Sharpe mid higher and D6 bootstrap p < 0.05
+\providecommand{\rhePairs}{}\renewcommand{\rhePairs}{42}  % HAR + cal. -> all features pairs in the model set
+\providecommand{\rhePairsUp}{}\renewcommand{\rhePairsUp}{38}  % ... Sharpe mid higher with all features
+\providecommand{\rhePairsSig}{}\renewcommand{\rhePairsSig}{12}  % ... Sharpe mid higher and D6 bootstrap p < 0.05
 \providecommand{\rhePairsSigNeg}{}\renewcommand{\rhePairsSigNeg}{0}  % ... Sharpe mid lower and D6 bootstrap p < 0.05
 \providecommand{\rhePairsSigLW}{}\renewcommand{\rhePairsSigLW}{6}  % ... Sharpe mid higher and Ledoit-Wolf p < 0.05 (robustness)
 \providecommand{\rhePairsSigNegLW}{}\renewcommand{\rhePairsSigNegLW}{0}  % ... Sharpe mid lower and Ledoit-Wolf p < 0.05 (robustness)
-\providecommand{\rhePairsMed}{}\renewcommand{\rhePairsMed}{\ensuremath{+}0.71}  % ... median dSharpe mid
-\providecommand{\rheSzSignMed}{}\renewcommand{\rheSzSignMed}{0.90}  % sizing sign: model-set median Sharpe mid, 614 days
-\providecommand{\rheSzClipMed}{}\renewcommand{\rheSzClipMed}{0.86}  % sizing clip: model-set median Sharpe mid, 614 days
+\providecommand{\rhePairsMed}{}\renewcommand{\rhePairsMed}{\ensuremath{+}0.81}  % ... median dSharpe mid
+\providecommand{\rheSzSignMed}{}\renewcommand{\rheSzSignMed}{0.85}  % sizing sign: model-set median Sharpe mid, 614 days
+\providecommand{\rheSzClipMed}{}\renewcommand{\rheSzClipMed}{0.87}  % sizing clip: model-set median Sharpe mid, 614 days
 \providecommand{\rheSzLfssMed}{}\renewcommand{\rheSzLfssMed}{1.06}  % sizing lfss: model-set median Sharpe mid, 614 days
-\providecommand{\rheSzRankMed}{}\renewcommand{\rheSzRankMed}{0.88}  % sizing rank: model-set median Sharpe mid, 614 days
+\providecommand{\rheSzRankMed}{}\renewcommand{\rheSzRankMed}{0.90}  % sizing rank: model-set median Sharpe mid, 614 days
 \providecommand{\rheSzShort}{}\renewcommand{\rheSzShort}{\ensuremath{-}0.12}  % always short, Sharpe mid on the 614 sizing days
-\providecommand{\rheSzClipBeats}{}\renewcommand{\rheSzClipBeats}{71}  % clip above sign(s), of 112 (mid)
-\providecommand{\rheSzClipGain}{}\renewcommand{\rheSzClipGain}{\ensuremath{+}0.16}  % median clip - sign(s) Sharpe mid
-\providecommand{\rheTailNeg}{}\renewcommand{\rheTailNeg}{102}  % model-set forecasts whose gain over short is < 0 without 10 best days
+\providecommand{\rheSzClipBeats}{}\renewcommand{\rheSzClipBeats}{63}  % clip above sign(s), of 94 (mid)
+\providecommand{\rheSzClipGain}{}\renewcommand{\rheSzClipGain}{\ensuremath{+}0.17}  % median clip - sign(s) Sharpe mid
+\providecommand{\rheTailNeg}{}\renewcommand{\rheTailNeg}{87}  % model-set forecasts whose gain over short is < 0 without 10 best days
 \providecommand{\rheLassoSh}{}\renewcommand{\rheLassoSh}{1.44}  % per-bar lasso all features, Sharpe mid
 \providecommand{\rheLassoShX}{}\renewcommand{\rheLassoShX}{1.09}  % ... crossed
 \providecommand{\rheAfEnetDSh}{}\renewcommand{\rheAfEnetDSh}{\ensuremath{+}0.21}  % per-bar enet: dSharpe mid, all features minus HAR + calendar (E2)
@@ -38,9 +38,9 @@
 \providecommand{\rheShortLossYears}{}\renewcommand{\rheShortLossYears}{2}  % calendar years in which always short has a negative mean mid return, 614 post-warmup days (t > WARMUP)
 \providecommand{\rheNYears}{}\renewcommand{\rheNYears}{4}  % calendar years spanned by the 614 post-warmup days (2021-2024)
 \providecommand{\rheLgbmBestSh}{}\renewcommand{\rheLgbmBestSh}{2.01}  % best closing-interval LightGBM specification by post-warmup Sharpe mid on all features (ex post; unused by the text since 2026-10-17)
-\providecommand{\rheLgbmCloseFixedSh}{}\renewcommand{\rheLgbmCloseFixedSh}{1.19}  % closing-interval LightGBM, fixed hyperparameters re-estimated daily, all features: post-warmup Sharpe mid (2026-10-17)
-\providecommand{\rheVsShortAbove}{}\renewcommand{\rheVsShortAbove}{106}  % model-set forecasts with post-warmup Sharpe mid above always short
-\providecommand{\rheRankCorrQ}{}\renewcommand{\rheRankCorrQ}{\ensuremath{-}0.14}  % Spearman rank correlation of mean QLIKE with post-warmup Sharpe mid across the model set
+\providecommand{\rheLgbmCloseFixedSh}{}\renewcommand{\rheLgbmCloseFixedSh}{1.19}  % closing-interval LightGBM, fixed hyperparameters re-estimated every trading session, all features: post-warmup Sharpe mid (2026-10-17)
+\providecommand{\rheVsShortAbove}{}\renewcommand{\rheVsShortAbove}{88}  % model-set forecasts with post-warmup Sharpe mid above always short
+\providecommand{\rheRankCorrQ}{}\renewcommand{\rheRankCorrQ}{\ensuremath{-}0.06}  % Spearman rank correlation of mean QLIKE with post-warmup Sharpe mid across the model set
 \providecommand{\rheRankCorrES}{}\renewcommand{\rheRankCorrES}{\ensuremath{-}0.64}  % Spearman rank correlation of mean ES_1 with post-warmup Sharpe mid across the model set
 \providecommand{\rheRankCorrQPool}{}\renewcommand{\rheRankCorrQPool}{0.26}  % Spearman rank correlation of mean QLIKE with post-warmup Sharpe mid across the 12 pooled intraday forecasts
 \providecommand{\rheRankCorrESPool}{}\renewcommand{\rheRankCorrESPool}{\ensuremath{-}0.45}  % Spearman rank correlation of mean ES_1 with post-warmup Sharpe mid across the 12 pooled intraday forecasts
@@ -167,8 +167,8 @@
 \providecommand{\rheDSixCovFour}{}\renewcommand{\rheDSixCovFour}{0.331}  % ... c_y, the fraction of the calendar year covered
 \providecommand{\rheDSixAFour}{}\renewcommand{\rheDSixAFour}{251.1}  % ... A_y = N_y / c_y, option days per calendar year
 \providecommand{\rheDMLag}{}\renewcommand{\rheDMLag}{6}  % Newey-West lag q of the DM statistics in Table E3
-\providecommand{\rheModelSetN}{}\renewcommand{\rheModelSetN}{112}  % forecasts in the model set
-\providecommand{\rheTreeSpecs}{}\renewcommand{\rheTreeSpecs}{15}  % tree specifications per estimator on the full predictor set (E1 note a)
+\providecommand{\rheModelSetN}{}\renewcommand{\rheModelSetN}{94}  % forecasts in the model set
+\providecommand{\rheTreeSpecs}{}\renewcommand{\rheTreeSpecs}{12}  % tree specifications per estimator on the full predictor set (E1 note a)
 \providecommand{\rheTreeNBars}{}\renewcommand{\rheTreeNBars}{13}  % pooled trees: regular-hours 30-minute bars a day (10:00..16:00 ET bar ends)
 \providecommand{\rheTreeWindowDays}{}\renewcommand{\rheTreeWindowDays}{3{,}000}  % pooled trees: rolling window, trading days
 \providecommand{\rheTreeWindowBars}{}\renewcommand{\rheTreeWindowBars}{39{,}000}  % pooled trees: rolling window, bars (days x bars a day)
@@ -177,8 +177,8 @@
 \providecommand{\rhePoolWindowDays}{}\renewcommand{\rhePoolWindowDays}{3{,}000}  % pooled intraday models: rolling window, trading days
 \providecommand{\rhePoolWindowBars}{}\renewcommand{\rhePoolWindowBars}{39{,}000}  % pooled intraday models: rolling window, bars (days x bars a day)
 \providecommand{\rhePoolRunStart}{}\renewcommand{\rhePoolRunStart}{2 January 2014}  % pooled intraday models: first evaluation day of the rolling-window walk
-\providecommand{\rheTreePairs}{}\renewcommand{\rheTreePairs}{45}  % HAR -> full-set tree pairs (E2 Panel C)
-\providecommand{\rheTreePairsEach}{}\renewcommand{\rheTreePairsEach}{15}  % ... per estimator
+\providecommand{\rheTreePairs}{}\renewcommand{\rheTreePairs}{36}  % HAR -> full-set tree pairs (E2 Panel C)
+\providecommand{\rheTreePairsEach}{}\renewcommand{\rheTreePairsEach}{12}  % ... per estimator
 \providecommand{\rheSzWarmup}{}\renewcommand{\rheSzWarmup}{252}  % sizing: days that only build the scale
 \providecommand{\rheSzDays}{}\renewcommand{\rheSzDays}{614}  % sizing: days scored
 \providecommand{\rheTopDays}{}\renewcommand{\rheTopDays}{10}  % the tail check: days of largest gain dropped

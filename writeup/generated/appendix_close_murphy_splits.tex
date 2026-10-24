@@ -3,7 +3,7 @@
 % 2026-10-06: the paper's model set (results/close_master_table/paper_model_set.csv); no headline; plain forecast f^2 B; point estimates only.
 \begingroup\scriptsize\setlength{\tabcolsep}{2.5pt}
 \begin{longtable}{p{0.2\textwidth}rrrrrrrr}
-\caption{The paper's model set (112 forecasts, each its plain forecast $\hat y^2B$, no recalibration) scored two ways on the 866 deck days, by group: the median QLIKE against the actual (not winsorized) realized variance and its range, the median elementary score at the trade's threshold (the 15:30 implied variance), the median economic loss $|R|\,\mathbf 1\{q\neq\mathrm{sign}(R)\}$, the median shares of days on the realized variance's side of the threshold and on the payoff's side, and the median $\mathrm{sign}(s)$ Sharpe ratio at both fills. The last two rows are rules told the realized variance, and the payoff's sign, in advance.}\label{tab:app_murphy_headline}\\
+\caption{The paper's model set (94 forecasts, each its plain forecast $\hat y^2B$, no recalibration) scored two ways on the 866 deck days, by group: the median QLIKE against the actual (not winsorized) realized variance and its range, the median elementary score at the trade's threshold (the 15:30 implied variance), the median economic loss $|R|\,\mathbf 1\{q\neq\mathrm{sign}(R)\}$, the median shares of days on the realized variance's side of the threshold and on the payoff's side, and the median $\mathrm{sign}(s)$ Sharpe ratio at both fills. The last two rows are rules told the realized variance, and the payoff's sign, in advance.}\label{tab:app_murphy_headline}\\
 \toprule
 group & $n$ & QLIKE & range & ES($c{=}1$) & EL & $RV$ side \% & $R$ side \% & Sharpe mid/crossed \\
 \midrule
@@ -18,8 +18,8 @@ group & $n$ & QLIKE & range & ES($c{=}1$) & EL & $RV$ side \% & $R$ side \% & Sh
 paper & 9 & 0.109 & 0.108 to 0.127 & 0.094 & 0.371 & 70.1 & 57.3 & 1.28 / 0.80 \\
 pooled linear & 6 & 0.108 & 0.104 to 0.110 & 0.094 & 0.378 & 71.1 & 56.6 & 1.06 / 0.57 \\
 per-bar linear & 7 & 0.097 & 0.093 to 0.097 & 0.099 & 0.367 & 68.7 & 56.8 & 1.37 / 0.89 \\
-per-bar trees & 90 & 0.103 & 0.096 to 0.110 & 0.099 & 0.382 & 69.5 & 55.7 & 0.96 / 0.48 \\
-\textbf{model set} & 112 & 0.103 & 0.093 to 0.127 & 0.099 & 0.378 & 69.5 & 56.0 & 1.08 / 0.59 \\
+per-bar trees & 72 & 0.103 & 0.096 to 0.110 & 0.100 & 0.383 & 69.3 & 55.7 & 0.92 / 0.45 \\
+\textbf{model set} & 94 & 0.103 & 0.093 to 0.127 & 0.099 & 0.378 & 69.5 & 56.1 & 1.07 / 0.58 \\
 \raggedright oracle: told RV & & -- & & -- & 0.261 & 100.0 & 62.9 & 4.53 / 4.07 \\
 \raggedright oracle: told the payoff's sign & & -- & & -- & 0.000 & 62.9 & 100.0 & 17.35 / 17.28 \\
 \end{longtable}
@@ -27,7 +27,7 @@ per-bar trees & 90 & 0.103 & 0.096 to 0.110 & 0.099 & 0.382 & 69.5 & 55.7 & 0.96
 
 \begingroup\scriptsize\setlength{\tabcolsep}{2.5pt}
 \begin{longtable}{p{0.27\textwidth}rrrrrrr}
-\caption{Sample splits of the $\mathrm{sign}(s)$ return (midpoint fill) across the paper's model set (112 forecasts, plain forecast): per split the number of forecasts with a positive Sharpe ratio, the median, smallest and largest Sharpe ratio, the median $t=\sqrt{n}\,\bar x/s_x$ and the number of forecasts with $t>1.96$, and always short on the same days.}\label{tab:app_splits_headline}\\
+\caption{Sample splits of the $\mathrm{sign}(s)$ return (midpoint fill) across the paper's model set (94 forecasts, plain forecast): per split the number of forecasts with a positive Sharpe ratio, the median, smallest and largest Sharpe ratio, the median $t=\sqrt{n}\,\bar x/s_x$ and the number of forecasts with $t>1.96$, and always short on the same days.}\label{tab:app_splits_headline}\\
 \toprule
 split & days & Sharpe $>0$ & median & range & median $t$ & $t>1.96$ & always short \\
 \midrule
@@ -39,21 +39,21 @@ split & days & Sharpe $>0$ & median & range & median $t$ & $t>1.96$ & always sho
 \endhead
 \bottomrule
 \endlastfoot
-\raggedright all days & 866 & 112 & 1.08 & 0.29 to 1.92 & 1.99 & 58 & 0.20 \\
-\raggedright through 2020-03-31 (the COVID quarter) & 39 & 61 & 0.31 & -3.96 to 3.67 & 0.12 & 0 & -3.25 \\
-\raggedright after 2020-03-31 & 827 & 112 & 1.13 & 0.21 to 2.20 & 2.06 & 59 & 0.42 \\
-\raggedright before 2022-05-16 & 377 & 110 & 0.87 & -0.51 to 2.12 & 1.07 & 13 & -0.45 \\
-\raggedright from 2022-05-16 (daily SPXW listings) & 489 & 112 & 1.14 & 0.22 to 2.34 & 1.59 & 40 & 0.73 \\
-\raggedright settlement pins (R = -1) & 193 & 112 & 7.54 & 4.34 to 14.63 & 6.60 & 112 & -- \\
-\raggedright off pins & 673 & 25 & -0.33 & -1.94 to 0.68 & -0.53 & 0 & -3.77 \\
+\raggedright all days & 866 & 94 & 1.07 & 0.29 to 1.92 & 1.97 & 48 & 0.20 \\
+\raggedright through 2020-03-31 (the COVID quarter) & 39 & 51 & 0.23 & -3.96 to 3.67 & 0.09 & 0 & -3.25 \\
+\raggedright after 2020-03-31 & 827 & 94 & 1.12 & 0.21 to 2.20 & 2.03 & 48 & 0.42 \\
+\raggedright before 2022-05-16 & 377 & 92 & 0.79 & -0.51 to 2.12 & 0.96 & 8 & -0.45 \\
+\raggedright from 2022-05-16 (daily SPXW listings) & 489 & 94 & 1.17 & 0.22 to 2.34 & 1.62 & 34 & 0.73 \\
+\raggedright settlement pins (R = -1) & 193 & 94 & 7.54 & 4.34 to 14.63 & 6.60 & 94 & -- \\
+\raggedright off pins & 673 & 16 & -0.36 & -1.94 to 0.68 & -0.59 & 0 & -3.77 \\
 \end{longtable}
 \endgroup
 
-\newcommand{\hmurNSet}{112}
+\newcommand{\hmurNSet}{94}
 \newcommand{\hmurNPaper}{9}
 \newcommand{\hmurNPooled}{6}
 \newcommand{\hmurNPerbarLinear}{7}
-\newcommand{\hmurNTrees}{90}
+\newcommand{\hmurNTrees}{72}
 \newcommand{\hmurQLIKEMed}{0.103}
 \newcommand{\hmurQLIKEMin}{0.093}
 \newcommand{\hmurQLIKEMax}{0.127}
@@ -66,8 +66,8 @@ split & days & Sharpe $>0$ & median & range & median $t$ & $t>1.96$ & always sho
 \newcommand{\hmurHitPayMed}{56}
 \newcommand{\hmurHitPayMin}{54}
 \newcommand{\hmurHitPayMax}{60}
-\newcommand{\hmurSharpeMidMed}{1.08}
-\newcommand{\hmurSharpeXMed}{0.59}
+\newcommand{\hmurSharpeMidMed}{1.07}
+\newcommand{\hmurSharpeXMed}{0.58}
 \newcommand{\hmurTopMed}{7}
 \newcommand{\hmurOracleAgree}{63}
 \newcommand{\hmurOracleMiss}{37}
@@ -81,78 +81,78 @@ split & days & Sharpe $>0$ & median & range & median $t$ & $t>1.96$ & always sho
 \newcommand{\hmurGridMax}{4}
 \newcommand{\hmurNLeadPaper}{14}
 \newcommand{\hmurNLeadPooled}{3}
-\newcommand{\hmurNLeadPerbarLinear}{7}
-\newcommand{\hmurNLeadTrees}{9}
-\newcommand{\hmurRhoQX}{+0.20}
-\newcommand{\hmurRhoESX}{+0.54}
-\newcommand{\hmurRhoQMid}{+0.20}
-\newcommand{\hmurRhoESMid}{+0.55}
+\newcommand{\hmurNLeadPerbarLinear}{8}
+\newcommand{\hmurNLeadTrees}{8}
+\newcommand{\hmurRhoQX}{+0.14}
+\newcommand{\hmurRhoESX}{+0.51}
+\newcommand{\hmurRhoQMid}{+0.14}
+\newcommand{\hmurRhoESMid}{+0.52}
 \newcommand{\hsplNCovid}{39}
 \newcommand{\hsplNPin}{193}
 \newcommand{\hsplPinPct}{22.3}
 \newcommand{\hsplASPinMean}{+1.00}
 \newcommand{\hsplASOffPinMean}{-0.27}
 \newcommand{\hsplPinMeanMed}{+0.43}
-\newcommand{\hsplOffPinMeanMed}{-0.02}
-\newcommand{\hsplPinShareMed}{123}
-\newcommand{\hsplSignDiffMed}{0.17}
-\newcommand{\hsplSignNPos}{112}
-\newcommand{\hsplSignTMed}{1.82}
-\newcommand{\hsplSignNT}{52}
+\newcommand{\hsplOffPinMeanMed}{-0.03}
+\newcommand{\hsplPinShareMed}{129}
+\newcommand{\hsplSignDiffMed}{0.16}
+\newcommand{\hsplSignNPos}{94}
+\newcommand{\hsplSignTMed}{1.80}
+\newcommand{\hsplSignNT}{43}
 \newcommand{\hsplAllN}{866}
-\newcommand{\hsplAllNPos}{112}
-\newcommand{\hsplAllMed}{1.08}
+\newcommand{\hsplAllNPos}{94}
+\newcommand{\hsplAllMed}{1.07}
 \newcommand{\hsplAllMin}{0.29}
 \newcommand{\hsplAllMax}{1.92}
-\newcommand{\hsplAllTMed}{1.99}
-\newcommand{\hsplAllNT}{58}
+\newcommand{\hsplAllTMed}{1.97}
+\newcommand{\hsplAllNT}{48}
 \newcommand{\hsplAllAS}{0.20}
 \newcommand{\hsplCovidN}{39}
-\newcommand{\hsplCovidNPos}{61}
-\newcommand{\hsplCovidMed}{0.31}
+\newcommand{\hsplCovidNPos}{51}
+\newcommand{\hsplCovidMed}{0.23}
 \newcommand{\hsplCovidMin}{-3.96}
 \newcommand{\hsplCovidMax}{3.67}
-\newcommand{\hsplCovidTMed}{0.12}
+\newcommand{\hsplCovidTMed}{0.09}
 \newcommand{\hsplCovidNT}{0}
 \newcommand{\hsplCovidAS}{-3.25}
 \newcommand{\hsplPostCovidN}{827}
-\newcommand{\hsplPostCovidNPos}{112}
-\newcommand{\hsplPostCovidMed}{1.13}
+\newcommand{\hsplPostCovidNPos}{94}
+\newcommand{\hsplPostCovidMed}{1.12}
 \newcommand{\hsplPostCovidMin}{0.21}
 \newcommand{\hsplPostCovidMax}{2.20}
-\newcommand{\hsplPostCovidTMed}{2.06}
-\newcommand{\hsplPostCovidNT}{59}
+\newcommand{\hsplPostCovidTMed}{2.03}
+\newcommand{\hsplPostCovidNT}{48}
 \newcommand{\hsplPostCovidAS}{0.42}
 \newcommand{\hsplPreN}{377}
-\newcommand{\hsplPreNPos}{110}
-\newcommand{\hsplPreMed}{0.87}
+\newcommand{\hsplPreNPos}{92}
+\newcommand{\hsplPreMed}{0.79}
 \newcommand{\hsplPreMin}{-0.51}
 \newcommand{\hsplPreMax}{2.12}
-\newcommand{\hsplPreTMed}{1.07}
-\newcommand{\hsplPreNT}{13}
+\newcommand{\hsplPreTMed}{0.96}
+\newcommand{\hsplPreNT}{8}
 \newcommand{\hsplPreAS}{-0.45}
 \newcommand{\hsplPostN}{489}
-\newcommand{\hsplPostNPos}{112}
-\newcommand{\hsplPostMed}{1.14}
+\newcommand{\hsplPostNPos}{94}
+\newcommand{\hsplPostMed}{1.17}
 \newcommand{\hsplPostMin}{0.22}
 \newcommand{\hsplPostMax}{2.34}
-\newcommand{\hsplPostTMed}{1.59}
-\newcommand{\hsplPostNT}{40}
+\newcommand{\hsplPostTMed}{1.62}
+\newcommand{\hsplPostNT}{34}
 \newcommand{\hsplPostAS}{0.73}
 \newcommand{\hsplPinN}{193}
-\newcommand{\hsplPinNPos}{112}
+\newcommand{\hsplPinNPos}{94}
 \newcommand{\hsplPinMed}{7.54}
 \newcommand{\hsplPinMin}{4.34}
 \newcommand{\hsplPinMax}{14.63}
 \newcommand{\hsplPinTMed}{6.60}
-\newcommand{\hsplPinNT}{112}
+\newcommand{\hsplPinNT}{94}
 \newcommand{\hsplPinAS}{--}
 \newcommand{\hsplOffPinN}{673}
-\newcommand{\hsplOffPinNPos}{25}
-\newcommand{\hsplOffPinMed}{-0.33}
+\newcommand{\hsplOffPinNPos}{16}
+\newcommand{\hsplOffPinMed}{-0.36}
 \newcommand{\hsplOffPinMin}{-1.94}
 \newcommand{\hsplOffPinMax}{0.68}
-\newcommand{\hsplOffPinTMed}{-0.53}
+\newcommand{\hsplOffPinTMed}{-0.59}
 \newcommand{\hsplOffPinNT}{0}
 \newcommand{\hsplOffPinAS}{-3.77}
 % 2026-10-06: the headline macros are parked (no headline model; user decision). Each is a

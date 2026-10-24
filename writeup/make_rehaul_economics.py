@@ -3,7 +3,9 @@
 Outline: writeup/PAPER_REHAUL_OUTLINE_2026-10-15.md, section 7 (E1-E4 and the figures).
 
 DATA
-  The paper model set (results/close_master_table/paper_model_set.csv, 112 forecasts) and its per-day frame
+  The paper model set (results/close_master_table/paper_model_set.csv, 94 forecasts since 2026-10-23, note E32: the
+  18 closing-interval tree forecasts that refit every 10 trading days left it for their every-session twins; was 112)
+  and its per-day frame
   results/close_master_table/master_table_daily.parquet (q, ret_mid, ret_crossed, plain, iv_var, qlike_raw on 866
   trade days); master_table.csv gates every recomputed number.  The straddle book (R, exit, bids, asks) is the GUI's
   quote book (results/atm_straddle_0dte_1530/daily_a0.parquet).  The per-bar MinGRU (ridge-initialised shortcut,
@@ -422,7 +424,8 @@ def load():
     mt = pd.read_csv(RES / "master_table.csv").set_index("key")
     ps = pd.read_csv(RES / "paper_model_set.csv")
     model_set = list(ps["key"])
-    assert len(model_set) == 112, len(model_set)
+    # 2026-10-23 (user, E32): the ten-day tree rungs left the model set. Was: assert len(model_set) == 112
+    assert len(model_set) == 94, len(model_set)
     daily = pd.read_parquet(RES / "master_table_daily.parquet")
     daily = daily[daily["key"].isin(model_set)].copy()
     daily["day"] = pd.to_datetime(daily["day"]).dt.normalize()
@@ -937,12 +940,15 @@ def tree_spec(key: str) -> str:
     """Plain-words specification of a closing-interval tree key, in the guide's terms (trading days, re-estimated,
     hyperparameters selected on squared-error loss or QLIKE)."""
     loss = "QLIKE" if ("tunedq" in key or "optunaq" in key) else "squared-error loss"
+    # 2026-10-23 (user, E32): the trees' cadence is "every trading session" ("daily" is the closing-interval linear
+    # models' word); the ten-day branches below are no longer in the model set. Was: "re-estimated daily" (fixed
+    # hyperparameters, random search) and "re-tuned daily" (Optuna, TUNE_PER = 1)
     if key.startswith("subtree_daily_"):
-        return "fixed hyperparameters, re-estimated daily"
+        return "fixed hyperparameters, re-estimated every trading session"
     if key.startswith("subtree_tuned_daily_") or key.startswith(
         "subtree_tunedq_daily_"
     ):
-        return f"random search, re-estimated daily, selected on {loss}"
+        return f"random search, re-estimated every trading session, selected on {loss}"
     if key.startswith("subtree_tuned") and "optuna" not in key:
         return f"random search, re-estimated every 10 trading days, selected on {loss}"
     if key.startswith("subtree_optuna"):
@@ -952,7 +958,7 @@ def tree_spec(key: str) -> str:
             if "_k" in key.split("_tp")[1][:8]
             else "50"
         )
-        every = "daily" if tp == "1" else f"every {tp} trading days"
+        every = "every trading session" if tp == "1" else f"every {tp} trading days"
         return f"Optuna search ({k} trials), re-tuned {every}, selected on {loss}"
     if key.startswith("subtree_"):
         return "fixed hyperparameters, re-estimated every 10 trading days"
@@ -2587,7 +2593,8 @@ def main() -> None:
     # outline cross-checks
     # 2026-10-18 (user, new-notes 15): soft. Was: assert (e2i["n"] == 51 and e2i["up"] == 47 and e2i["sig"] == 4
     #     and r2(e2i["med"]) == 0.62), e2i; assert e4i["beat_mid"]["clip"] == 98; assert r2(e4i["short_mid"]) == 0.34
-    assert e2i["n"] == 51, e2i
+    # 2026-10-23 (user, E32): 51 -> 42 pairs (the nine ten-day tree rungs on all features). Was: assert e2i["n"] == 51
+    assert e2i["n"] == 42, e2i
     soft(
         (e2i["up"], e2i["sig"], r2(e2i["med"])),
         (47, 4, 0.62),
@@ -2769,6 +2776,7 @@ robust clip is above the sign strategy for {e4i["beat_mid"]["clip"]} of the {e4i
     # ratio is annualised per trade day, as in the tables."
     # 2026-10-22 (user, D6): parked -- "scaled by the square root of that year's number of option days"; each year is
     # now annualized by sqrt(A_y). Was: "..., scaled by the square root of that year's number of option days."
+    # 2026-10-23 (user, E32): the model set's size from the set (was the typed "112")
     fig3 = (
         HEADER
         + rf"""\begin{{figure}}[tbp]
@@ -2777,7 +2785,7 @@ robust clip is above the sign strategy for {e4i["beat_mid"]["clip"]} of the {e4i
 \caption{{Sharpe ratio by calendar year at mid, $q_t = \sign(\hat\sigma^2_t - \mathrm{{IV}}^2_t)$, for the forecasts of
 Figure~\ref{{fig:rh_econ_cumpnl}} and the short-straddle benchmark (2020 to 2024: {", ".join(num(v) for v in ys)}); 2024 runs from
 January to April. Each year's ratio is $\SR_y$ of Section~\ref{{sec:rh_econ_measures}}, annualized by the square root of $A_y$, that year's option days per calendar year. Grey: the interquartile range
-and median of the 112 forecasts of the model set (median {", ".join(num(v) for v in yrs["set_med"])}).}}
+and median of the {len(model_set)} forecasts of the model set (median {", ".join(num(v) for v in yrs["set_med"])}).}}
 \label{{fig:rh_econ_byyear}}
 \end{{figure}}
 """
@@ -2907,7 +2915,8 @@ and median of the 112 forecasts of the model set (median {", ".join(num(v) for v
     nums += mac(
         "rheSzClipBeats",
         str(e4i["beat_mid"]["clip"]),
-        "clip above sign(s), of 112 (mid)",
+        # 2026-10-23 (user, E32): the set's size from the set. Was: "clip above sign(s), of 112 (mid)"
+        f"clip above sign(s), of {e4i['n']} (mid)",
     )
     nums += mac(
         "rheSzClipGain",
@@ -3013,7 +3022,9 @@ and median of the 112 forecasts of the model set (median {", ".join(num(v) for v
     nums += mac(
         "rheLgbmCloseFixedSh",
         m2(trade_stats(series, close_fixed["lgbm"])["sh_mid"]),
-        "closing-interval LightGBM, fixed hyperparameters re-estimated daily, all features: post-warmup Sharpe mid (2026-10-17)",
+        # 2026-10-23 (user, E32): "every trading session" (was "re-estimated daily")
+        "closing-interval LightGBM, fixed hyperparameters re-estimated every trading session, all features: post-warmup "
+        "Sharpe mid (2026-10-17)",
     )
     nums += mac(
         "rheVsShortAbove",

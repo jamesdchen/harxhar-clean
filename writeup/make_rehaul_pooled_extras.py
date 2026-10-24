@@ -81,6 +81,7 @@ RUN  (repository root)  python writeup/make_rehaul_pooled_extras.py
 
 from __future__ import annotations
 
+import io
 import json
 import re
 import subprocess
@@ -736,8 +737,21 @@ def selfcheck_shift(mk: pd.DataFrame) -> None:
 
 
 def selfcheck_compounding() -> None:
-    """B: the printed compounding numbers (the master table's model set, the 614 post-warmup days)."""
+    """B: the printed compounding numbers (the master table's model set, the 614 post-warmup days).
+
+    2026-10-23 (user, E32): the printed numbers are those of the model set before note E32 -- the forecasts of
+    paper_model_set.csv plus the closing-interval tree rungs that refit every 10 sessions, which left it for their
+    every-session twins (each ten-day key whose twin is in the set; the master table's tables, read_by_master, of
+    results/e32_cadence_gate/twins.csv) -- and they are checked against fixedfrac_modelset_summary.csv as committed at
+    PRINTED_REF (results/close_compounding/ now holds the post-E32 set's).  Was: keys = paper_model_set.csv only, and
+    the summary read from the working tree.
+    """
     keys = list(pd.read_csv(MT_DIR / "paper_model_set.csv")["key"].astype(str))
+    tw = pd.read_csv(ROOT / "results" / "e32_cadence_gate" / "twins.csv")
+    tw = tw[tw["read_by_master"].astype(bool) & tw["key1"].isin(keys)]
+    ten_day = sorted(set(tw["key10"]))
+    assert ten_day and not set(ten_day) & set(keys), ten_day
+    keys = keys + ten_day
     D = pd.read_parquet(
         MT_DIR / "master_table_daily.parquet",
         columns=["key", "day", "ret_mid", "ret_crossed"],
@@ -755,8 +769,12 @@ def selfcheck_compounding() -> None:
                 }
             )
     fa = pd.DataFrame(rows)
+    # 2026-10-23 (user, E32): the summary as committed at PRINTED_REF (the pre-E32 model set's). Was:
+    # stored = pd.read_csv(ROOT / "results" / "close_compounding" / "fixedfrac_modelset_summary.csv")
     stored = pd.read_csv(
-        ROOT / "results" / "close_compounding" / "fixedfrac_modelset_summary.csv"
+        io.StringIO(
+            committed("results/close_compounding/fixedfrac_modelset_summary.csv")
+        )
     )
     stored = stored[stored["group"] == "model set"].set_index("fill")
     worst = 0.0

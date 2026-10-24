@@ -21,32 +21,32 @@ Rank & Model & Predictors & QLIKE & $\Delta$ (\%) & $\DM$ \\
 4 & XGBoost & Full & 0.1031 & $-0.1^{\phantom{***}}$ & $(-0.04)$ \\
 8 & OLS (benchmark) & HAR & 0.1033 & --$^{\phantom{***}}$ & -- \\
 9 & LightGBM & Full & 0.1049 & $1.5^{\phantom{***}}$ & $(0.51)$ \\
-11 & Random forest & Full & 0.1060 & $2.6^{\phantom{***}}$ & $(0.86)$ \\
-18 & Random forest & HAR & 0.1068 & $3.5^{*\phantom{**}}$ & $(1.70)$ \\
-29 & XGBoost & HAR & 0.1076 & $4.2^{**\phantom{*}}$ & $(2.09)$ \\
-53 & LightGBM & HAR & 0.1094 & $5.9^{***}$ & $(2.70)$ \\
+10 & Random forest & Full & 0.1060 & $2.6^{\phantom{***}}$ & $(0.86)$ \\
+15 & Random forest & HAR & 0.1068 & $3.5^{*\phantom{**}}$ & $(1.70)$ \\
+25 & XGBoost & HAR & 0.1076 & $4.2^{**\phantom{*}}$ & $(2.09)$ \\
+45 & LightGBM & HAR & 0.1094 & $5.9^{***}$ & $(2.70)$ \\
 \addlinespace[4pt]
 \multicolumn{6}{@{}l}{\textit{Panel B: Intraday models}} \\
 \addlinespace[2pt]
-39 & XGBoost & Full & 0.1079 & $4.5^{\phantom{***}}$ & $(1.14)$ \\
-49 & LightGBM & Full & 0.1089 & $5.5^{\phantom{***}}$ & $(1.34)$ \\
-67 & LightGBM & HAR & 0.1101 & $6.6^{**\phantom{*}}$ & $(2.16)$ \\
-69 & XGBoost & HAR & 0.1102 & $6.7^{**\phantom{*}}$ & $(2.23)$ \\
-88 & Random forest & Full & 0.1123 & $8.8^{**\phantom{*}}$ & $(2.06)$ \\
-96 & Random forest & HAR & 0.1131 & $9.6^{***}$ & $(2.78)$ \\
-102 & Elastic net & HAR & 0.1137 & $10.1^{***}$ & $(2.61)$ \\
-103 & Lasso & HAR & 0.1137 & $10.1^{***}$ & $(2.61)$ \\
-104 & Ridge & HAR & 0.1137 & $10.1^{***}$ & $(2.61)$ \\
-106 & Ridge (block penalty)\tnote{a} & Full & 0.1140 & $10.4^{**\phantom{*}}$ & $(2.27)$ \\
-121 & Elastic net & Full & 0.1234 & $19.5^{***}$ & $(3.34)$ \\
-122 & Ridge & Full & 0.1260 & $22.0^{***}$ & $(3.61)$ \\
-123 & OLS\tnote{a} & HAR & 0.1291 & $25.0^{***}$ & $(4.56)$ \\
-124 & Lasso & Full & 0.1301 & $26.0^{***}$ & $(3.66)$ \\
+32 & XGBoost & Full & 0.1079 & $4.5^{\phantom{***}}$ & $(1.14)$ \\
+41 & LightGBM & Full & 0.1089 & $5.5^{\phantom{***}}$ & $(1.34)$ \\
+54 & LightGBM & HAR & 0.1101 & $6.6^{**\phantom{*}}$ & $(2.16)$ \\
+56 & XGBoost & HAR & 0.1102 & $6.7^{**\phantom{*}}$ & $(2.23)$ \\
+75 & Random forest & Full & 0.1123 & $8.8^{**\phantom{*}}$ & $(2.06)$ \\
+82 & Random forest & HAR & 0.1131 & $9.6^{***}$ & $(2.78)$ \\
+87 & Elastic net & HAR & 0.1137 & $10.1^{***}$ & $(2.61)$ \\
+88 & Lasso & HAR & 0.1137 & $10.1^{***}$ & $(2.61)$ \\
+89 & Ridge & HAR & 0.1137 & $10.1^{***}$ & $(2.61)$ \\
+91 & Ridge (block penalty)\tnote{a} & Full & 0.1140 & $10.4^{**\phantom{*}}$ & $(2.27)$ \\
+103 & Elastic net & Full & 0.1234 & $19.5^{***}$ & $(3.34)$ \\
+104 & Ridge & Full & 0.1260 & $22.0^{***}$ & $(3.61)$ \\
+105 & OLS\tnote{a} & HAR & 0.1291 & $25.0^{***}$ & $(4.56)$ \\
+106 & Lasso & Full & 0.1301 & $26.0^{***}$ & $(3.66)$ \\
 \bottomrule
 \end{tabular}
 \begin{tablenotes}[flushleft]
 \footnotesize
-\item \textit{Notes:} Sample, loss and tests as in Table~\ref{tab:rh_axis1}. $\Delta = 100(\bar L/\bar L^{\mathrm{OLS}} - 1)$ compares each forecast with the HAR benchmark, the closing-interval OLS on the HAR predictor set, with $\DM$ in parentheses; negative values favor the forecast. Rank is the position among the \rhrRankN{} forecasts of Table~\ref{tab:rh_rank_full}; the closing-interval ridge, lasso and elastic net on the HAR predictor set are within \rhrLinBaseMaxPct\% of the benchmark and are omitted. Closing-interval trees use fixed hyperparameters and are re-estimated daily. $^{*}$, $^{**}$ and $^{***}$ denote significance at the 10\%, 5\% and 1\% levels.
+\item \textit{Notes:} Sample, loss and tests as in Table~\ref{tab:rh_axis1}. $\Delta = 100(\bar L/\bar L^{\mathrm{OLS}} - 1)$ compares each forecast with the HAR benchmark, the closing-interval OLS on the HAR predictor set, with $\DM$ in parentheses; negative values favor the forecast. Rank is the position among the \rhrRankN{} forecasts of Table~\ref{tab:rh_rank_full}; the closing-interval ridge, lasso and elastic net on the HAR predictor set are within \rhrLinBaseMaxPct\% of the benchmark and are omitted. Closing-interval trees use fixed hyperparameters and are re-estimated every trading session. $^{*}$, $^{**}$ and $^{***}$ denote significance at the 10\%, 5\% and 1\% levels.
 \item[a] The earlier draft's intraday specification.
 \end{tablenotes}
 \end{threeparttable}

@@ -1,0 +1,16 @@
+token,bucket,root,tuning_points,trace_rows,columns_differing,ok
+lgbm,baseline,results\linear_subsection_trees_tuned_mask,6,12,tune_sec,True
+lgbm,all_features,results\linear_subsection_trees_tuned_mask,6,12,tune_sec,True
+lgbm,live_feasible,results\linear_subsection_trees_tuned_mask,6,12,tune_sec,True
+xgb,baseline,results\linear_subsection_trees_tuned_mask,6,12,tune_sec,True
+xgb,all_features,results\linear_subsection_trees_tuned_mask,6,12,tune_sec,True
+xgb,live_feasible,results\linear_subsection_trees_tuned_mask,6,12,tune_sec,True
+rf,baseline,results\linear_subsection_trees_tuned_mask,6,12,tune_sec,True
+rf,all_features,results\linear_subsection_trees_tuned_mask,6,12,tune_sec,True
+rf,live_feasible,results\linear_subsection_trees_tuned_mask,6,12,tune_sec,True
+xgbtop,baseline,results\linear_subsection_trees_tuned_mask_xgbtop,6,12,tune_sec,True
+xgbtop,all_features,results\linear_subsection_trees_tuned_mask_xgbtop,6,12,tune_sec,True
+xgbtop,lean_vol_vix,results\linear_subsection_trees_tuned_mask_xgbtop,6,12,tune_sec,True
+rf400,baseline,results\linear_subsection_trees_tuned_mask_rf400,6,12,tune_sec,True
+rf400,all_features,results\linear_subsection_trees_tuned_mask_rf400,6,12,tune_sec,True
+rf400,lean_vol_vix,results\linear_subsection_trees_tuned_mask_rf400,6,12,tune_sec,True
