@@ -291,3 +291,8 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   without the step log (15 bar refits, all ok) -> NOSTEPS stands. Bar inits 72 / 72 done. Walk: the 36 seq-0 files
   are eligible (P100 27, A40 7, L40S 2; Slurm's expected start of the first P100 files ~14:09), the 36 seq-1 files
   wait on their lanes. Free at 11:37: P100 8 / 74, A40 0 / 50, L40S 4 / 19.
+- 2026-10-24 12:40-12:45 PDT (owner, relayed ~13:35: "MAXIMIZE THROUGHPUT"): state at 12:40: HAR W 3,000 11 files
+  running (000-010, P100, started 11:50-12:37), every other walk file pending (16 HAR W 3,000 seq 0, 27 seq 1, and
+  all files of the other three arms); free P100 8, L40S 5, A40 0. RULE ADDENDUM 3 (both copies): HAR W 3,500 -> P100,
+  full W 3,000 -> L40S (re-pin of arms not started); the 61 pending files replaced by 302 pieces of ~7-8 h
+  (walk/pieces_<set>.csv; experiments/pooled_mingru_v2_walk_split.py), 5 debug P100 pieces; submitted in rounds.

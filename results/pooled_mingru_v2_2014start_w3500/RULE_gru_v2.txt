@@ -223,3 +223,19 @@ HOLD     09:10 PDT (coordinator: the owner is reconsidering the window study): n
 RELEASE  2026-10-24 ~10:15 PDT (owner, relayed: "I release the mingru run"): the HOLD of 09:10 PDT is lifted; the walk is
          submitted as ADDENDUM 2 places it (re-checked at 09:54 PDT: free P100 8 / 74, A40 0 / 50, L40S 2 / 19; others'
          pending jobs accepting P100 109, A40 247, L40S 249: the same order as at planning, placement unchanged).
+
+ADDENDUM 3 2026-10-24 12:45 PDT by the CARC clock (owner, relayed ~13:35 PDT: "MAXIMIZE THROUGHPUT"), written before
+the affected jobs; identical in both copies. Results unchanged: the same refits (picks, seeds, per-bar inits, lines);
+only which GPU type and which job file run them.
+RE-PIN   Arms none of whose files had started at 12:40: HAR W 3,500 (A40) -> P100; full W 3,000 (A40) -> L40S; full
+         W 3,500 stays L40S; HAR W 3,000 stays P100 (11 of its files running). Free at 12:40 (gpu partition): P100
+         8 / 74 (others' pending jobs accepting it 43), L40S 5 / 19 (173), A40 0 / 50 (172): A40 the least free
+         capacity; P100 the most (HAR W 3,500); L40S the most net of our own pending P100 demand (16 HAR W 3,000 files
+         waiting) and under its 6-GPU cap (full W 3,000). One validated type per arm still holds.
+SPLIT    The 61 not-yet-started walk files are cancelled while pending and replaced by 302 pieces of whole bar-origin
+         blocks inside one original file (its bar-init directory w<i>): ~7-8 h each on the arm's type (P100 42.3 /
+         6.57 s a refit; L40S 5.06 / 1.73 s = the G7 P100 rate / 0.9 measured on these shapes), time limit
+         est x 1.3 + 30 min; 5 HAR W 3,500 pieces of 70 bars (~38 min) on the debug P100s. Submitted in rounds within
+         the QOS (<= 100 submitted): 82 at 12:45, the rest at later check-ins. The 11 running HAR W 3,000 files
+         (000-010) run on unchanged. W 3,500 pieces keep nice 100. An arm is complete when walk-merge finds every
+         bar x seed; inputs/pieces_<set>.csv lists every piece and walk_ids_<set>.txt every submission.
