@@ -287,3 +287,7 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   verbatim in the tool call (e.g. inside the SSH heredoc), never inside an uploaded / generated script that is then
   executed. go_walk.sh and pooled_mingru_v2_walk_submit_carc.sh (both already run once, 10:20) are not to be used
   as wrappers again; reruns / remainder files are submitted with explicit sbatch lines.
+- 2026-10-24 11:37 PDT: slice check 13380579 PASS (P100 e22-10, 11:07-11:17): preds.csv text-identical with and
+  without the step log (15 bar refits, all ok) -> NOSTEPS stands. Bar inits 72 / 72 done. Walk: the 36 seq-0 files
+  are eligible (P100 27, A40 7, L40S 2; Slurm's expected start of the first P100 files ~14:09), the 36 seq-1 files
+  wait on their lanes. Free at 11:37: P100 8 / 74, A40 0 / 50, L40S 4 / 19.
