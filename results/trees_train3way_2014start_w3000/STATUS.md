@@ -363,3 +363,9 @@ Pool: lines 5-348 of runs/tasks/w3rf_full.txt, claims in runs/claims_w3rf_full/<
   a line that fails a second time and qualifies only under an extension (not a logged I/O error of its own) is parked
   and asked about.  Lines restarted under an extension so far: 63 (same node / same second as an errno 5); 39 is
   approved for restart (d18-35) and is restarted at the next alert's batch, with the same four checks.
+- Standing rule batch (steward alert ~15:50 PDT): line 39 restarted (coordinator-approved; d18-35; deleted .ckpt.json
+  100 bytes, .parquet 6,930 bytes, claim; its earlier restarts: the 10:25 release and decision A); line 51 restarted
+  (13378115_41, d11-42, own errno 108; .ckpt.json 102 bytes, .parquet 7,650 bytes, claim).  Merges / scores: m3 done;
+  m2, s2, s3, m4, s4 pending.  Pools: EPYC 13377719 32 running / 107 pending; old Xeon 4116 13378115 22 (25 failed);
+  E5-2640 v4 13378116 9 / 0; /home1 13381306 4 / 60, 13382812 0 / 55, 13382813 3 / 9, 13383080 0 / 56, 13383081
+  0 / 30, 13383082 0 / 8.  8 lines done.  Unclaimed: 4 below 80 (/scratch1), 52 of 80-138 and 52 of 317-368 (/home1).
