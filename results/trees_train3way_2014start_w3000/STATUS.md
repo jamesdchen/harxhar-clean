@@ -286,3 +286,9 @@ Pool: lines 5-348 of runs/tasks/w3rf_full.txt, claims in runs/claims_w3rf_full/<
   and the claim directory (claim + failed); each entry is in runs/claims_released.log.  The lines are unclaimed again
   in the /scratch1 claim namespace, below line 80: the EPYC pool 13377719 (13 running / 126 pending) and the E5-2640
   v4 pool 13378116 (9 / 11) take them next (lowest unclaimed first), on any gated model.
+- Standing rule (coordinator ~12:05 PDT, option A extended): a pool task that fails on a /scratch1 I/O error and leaves
+  only a partial piece -> the line restarts from scratch after the four checks (no final json / done; claim 'failed'
+  and its task gone; piece files unchanged >= 10 min; the failure an I/O error), the deletes written out in the SSH
+  session, logged in runs/claims_released.log.  Line 40 (13378115_28, d11-24, errno 5 "Failed stat()ing path" /
+  input/output error, 1 h 16 min): deleted ALL48_rf_skx_all_features_40of368.ckpt.json (102 bytes),
+  .parquet (0 bytes) and .part (0 bytes), and its claim; back in the /scratch1 pools (CARC clock 10:57).
