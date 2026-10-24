@@ -119,3 +119,7 @@ whether the paper should score QLIKE and its tests on the close only.  Nothing u
    caches or full forecast panels are copied to the laptop.
 
 10. ADDENDA: dated, written before the job they affect.
+
+    Erratum 2026-10-23 21:52 PDT (no rule changed): the header's "Written 2026-10-23 21:45 PDT" is wrong; the file was
+    written about 21:37 PDT and committed in 419e7ad at 21:38:55 PDT, pushed before the first job was submitted
+    (Slurm 13361320, submitted 21:39:50 PDT).
