@@ -210,3 +210,13 @@ ADDENDUM B, 2026-10-23 22:50 PDT (2026-10-24 05:50 UTC), before any affected wal
    dominate the cost at a 144,000-row window, so the splits shrink less than the ~3.7x fewer refits
    (ALL48 / ALL48@16: ridge 6, lasso 6, enet 6; ALL48_N39k: 2 / 4 / 3; ALL48_N3k: 1 / 2 / 2).  The scoring is
    unchanged (the NaN rows are never scored: every scored bar is a refit origin).
+
+NOTE TO ADDENDUM B, 2026-10-23 23:35 PDT (2026-10-24 06:35 UTC), before any new walk: SCORED-ONLY REFITS WITHDRAWN
+   The addendum B gate (job 13366980, ALL48/gate_refit.json, commit 3cd7027) failed: OLS and ridge bit-identical,
+   HAR-set lasso / elastic net <= 7e-16, but the full-set lasso and elastic net differed by up to 1.55e-5 and 8.9e-6
+   relative (> 1e-6) - KKT-exact in both walks; the cause is WALK_KKT_RESEED's reseeds landing on different rows (full
+   refit checks every row, scored-only scored rows only), each resetting STANDARDIZE_PENALTY's held scales.  Owner
+   (James, relayed by the coordinator, about 23:40 PDT): option A, full refit.  Every ALL48 walk (ALL48, ALL48@16,
+   ALL48_N3k, ALL48_N39k) refits at every row as section 5 specifies - the runner's walk, the same estimator as RTH13,
+   CLOSE and the template, and the gate's reference path - so no new gate.  --refit-rows stays in the runner shim
+   (default all) but no arm sets it.  The held jobs 13366981-13366986 are cancelled and resubmitted (owner-approved).

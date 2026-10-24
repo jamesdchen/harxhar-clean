@@ -82,3 +82,10 @@ Cost on the slice (CPU s, full / scored-only): ridge full 25.6 / 25.5, lasso ful
 the 144,000-row cold seeds (tune every 250 rows, KKT reseeds) dominate, so scored-only saves little.
 The held walks 13366981-13366984, export3 13366985 and score3 13366986 stay pending (afterok on the failed gate:
 they cannot start).  Nothing loosened; the owner decides.
+
+## Note to addendum B: scored-only refits withdrawn (owner option A, full refit)
+
+| Time (PDT, 2026-10-23) | Event |
+|---|---|
+| ~23:40 | owner (relayed): option A - every ALL48 walk refits at every row (RULE section 5), no new gate |
+| 23:35-23:40 | RULE.txt note to addendum B and this entry committed before any new walk; experiments/linear_train3way.py no longer sets --refit-rows |

@@ -63,8 +63,9 @@ ARMS: dict[str, dict[str, Any]] = {
         ],
         cal=CAL + ["is_overnight"],
         desc="all 48 half-hour intervals of the 48-interval grid (overnight included)",
-        # 2026-10-23 addendum B (owner: "skip the refits at the overnight rows"): refits at the scored origins only
-        refit=f"scored@{FIRST_DAY}",
+        # 2026-10-23 addendum B (owner: "skip the refits at the overnight rows"): refits at the scored origins only.
+        # 2026-10-23 23:35 PDT (owner, after the addendum B gate failed, commit 3cd7027): WITHDRAWN -- option A, every
+        # row refitted as RULE section 5 (the runner's walk, no --refit-rows). Was: refit=f"scored@{FIRST_DAY}",
     ),
     "RTH13": dict(
         sample="rth13",
