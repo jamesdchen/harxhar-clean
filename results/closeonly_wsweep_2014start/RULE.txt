@@ -105,3 +105,31 @@ edited; no Overleaf sync.
    16:00 forecasts (f16.parquet).
 
 8. ADDENDA: dated, written before the job they affect.
+
+ADDENDUM A, 2026-10-24 10:25 PDT (17:25 UTC), before any job it affects: THE 10:15 FAILURES, RERUNS, LINEAR W = 1,000
+   State at 10:15 (coordinator): cw_stage, cw_lin3k, cw_tgate COMPLETED; design check, gate L and gate T PASS
+   (design_check.json, runs/linear/w3000/gate.json, runs/trees/gate/gate.json); cw_linW 13380318 FAILED; cw_twrf
+   13380322 task 1 FAILED; cw_twgb 12 of 20 done, the rest running.  Diagnosis (one CARC session, logs and sacct):
+   (1) cw_twrf task 1 (CLOSE_w1000, forest, HAR set; d05-39, Xeon Silver 4116): BrokenPipeError errno 108 (ESHUTDOWN)
+       reading data/core_stats.parquet of the code archive on /scratch1, before its first fit (no piece, no
+       checkpoint) -- infrastructure, the failing /scratch1 mounts of the trees comparison; no other log of this sweep
+       has an I/O error.  Rerun unchanged (same code, same line) on EPYC 7513 / 7542 only, d05-39 added to the excluded
+       nodes, the code read from a /home1 copy of the archive; the two pending forest tasks (W = 3,500, lines 9-10)
+       restricted to EPYC 7513 / 7542 and the same exclusions (placement only; the forest is gated on EPYC).
+   (2) cw_linW, W = 1,000 (the first window of the job; 1,500 .. 3,500 never started): not I/O.  derive_close, the
+       fold-3 pretune and select ran (penalties ridge 1 / 1e4, lasso 1e-2 / 1e-2, elastic net 1e-2 / 1e-2, HAR / full;
+       several grid ends extended), then every penalized walk (ridge, lasso, elastic net) stopped at its first cold
+       seed on pool_linear_pretune._seed_std's guard `assert tw > 2 * (STD_MIN_EVIDENCE + TUNE_PER)` = 1,000, tw = 1,000:
+       STANDARDIZE_PENALTY's between-seed evidence tracker is exact only for windows of more than 1,000 rows, and
+       W = 1,000 closes sits on the bound.  Nothing is loosened: the linear W = 1,000 arm waits for the owner, options
+       (a) dropped for the linear models (their step / vs-first comparisons start at 1,500); (b) the penalized models
+       at 1,001 closes (the smallest window the walk accepts: runner --window-rows 1001 on the W = 1,000 design,
+       re-tuned on fold 3) with OLS at 1,000; (c) TUNE_PER 249 at W = 1,000 (identifiability mask and cold seed every
+       249 solves); (d) STANDARDIZE_PENALTY off at W = 1,000.  The trees at W = 1,000 are unaffected.
+       W = 1,500, 2,000, 2,500, 3,500 are rerun unchanged (the code of the walks is 62cfc8c's, compared file by file on
+       CARC) from the /home1 copy of the code.
+   Scoring (code change, no rule change): experiments/closewin_score.py and closewin_econ.py score the windows present
+   (W = 3,000 required); the step DM runs between consecutive windows present, the vs-1,000 tests only where W = 1,000
+   is present.  Until the owner decides, the linear tables start at W = 1,500.  The pending linear score job 13380319
+   (afterok on the failed 13380318, and the old scorer) is cancelled and resubmitted on the new code; the tree
+   finish job 13380323 is kept, re-pointed (afterany) to include the forest rerun, and restricted to EPYC 7513 / 7542.

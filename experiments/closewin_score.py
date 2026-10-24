@@ -44,6 +44,10 @@ else:
     EST = ("lgbm", "xgb", "rf_skx")
     MODELS = [(e, s) for e in EST for s in ("baseline", "all_features")]
     SRC = {W: RUNS / f"CLOSE_w{W}" / "forecasts.parquet" for W in WS}
+# 2026-10-24 addendum A: the windows present only (linear W = 1,000 waits for the owner); W = 3,000 must be present
+WSX = tuple(W for W in WS if SRC[W].is_file())
+assert W_REF in WSX, WSX
+print(f"windows scored: {WSX}; missing: {tuple(W for W in WS if W not in WSX)}", flush=True)
 
 hist = RE.history()
 hdays = hist.index[(hist.index >= SPAN[0]) & (hist.index <= SPAN[1])]
@@ -52,8 +56,8 @@ bench16 = RE.ct_benchmark(hist, hdays)
 rv16 = hist.reindex(hdays)
 
 F: dict[int, pd.DataFrame] = {}
-for W, p in SRC.items():
-    f = pd.read_parquet(p)
+for W in WSX:
+    f = pd.read_parquet(SRC[W])
     f["date"] = pd.to_datetime(f["date"])
     f["day"] = f["date"].dt.normalize().astype("datetime64[ns]")
     f = f[f["date"].dt.strftime("%H:%M") == "16:00"]
@@ -64,7 +68,7 @@ for W, p in SRC.items():
 
 P16: dict = {}
 G16: dict = {}
-for W in WS:
+for W in WSX:
     for m, s in MODELS:
         g = F[W][(F[W].model == m) & (F[W].predictor_set == s)].set_index("day").sort_index()
         assert g.index.is_unique, (W, m, s)
@@ -75,7 +79,7 @@ for W in WS:
         assert np.allclose(g["rv_actual"].to_numpy(float), rv16.to_numpy(float), rtol=1e-12, atol=0), (W, m, s)
         P16[(W, m, s)] = p
 # the truth, the target and B agree across W at every 16:00 row from 2014
-for W in WS:
+for W in WSX:
     for m, s in MODELS:
         a, b = G16[(W, m, s)], G16[(W_REF, MODELS[0][0], MODELS[0][1])]
         i = a.index.intersection(b.index)
@@ -94,11 +98,11 @@ def ql(W: int, m: str, s: str) -> float:
 
 pen: dict = {}
 if FAM == "linear":
-    for W in WS:
+    for W in WSX:
         fr = json.loads((RUNS / f"w{W}" / "frozen_penalties.json").read_text())
         pen[W] = {(m, s): fr[m][s] for m, s in MODELS if m != "ols"}
 rows = []
-for W in WS:
+for W in WSX:
     for m, s in MODELS:
         mt = RE.metrics(rv16, P16[(W, m, s)], bench16)
         rows.append(
@@ -116,16 +120,16 @@ for W in WS:
 Q = pd.DataFrame(rows)
 dms = []
 for m, s in MODELS:
-    for i, W in enumerate(WS):
-        for kind, Wb in (("step", WS[i - 1] if i else None), ("vs1000", W_FIRST), ("vs3000", W_REF)):
-            if Wb is None or Wb == W:
+    for i, W in enumerate(WSX):
+        for kind, Wb in (("step", WSX[i - 1] if i else None), ("vs1000", W_FIRST), ("vs3000", W_REF)):
+            if Wb is None or Wb == W or Wb not in WSX:
                 continue
             r = RE.dm_pair(rv16, P16[(W, m, s)], P16[(Wb, m, s)])
             qa, qb = ql(W, m, s), ql(Wb, m, s)
             dms.append(dict(kind=kind, model=m, set=s, W=W, W_b=Wb, qlike=qa, qlike_b=qb, pct=100 * (qa / qb - 1), **r))
 DM = pd.DataFrame(dms)
 gaps = []
-for W in WS:
+for W in WSX:
     for e in EST:
         r = RE.dm_pair(rv16, P16[(W, e, "all_features")], P16[(W, e, "baseline")])
         qh, qf = ql(W, e, "baseline"), ql(W, e, "all_features")
@@ -158,7 +162,7 @@ print(f"CHECK (W = 3,000 = the three-way CLOSE): {'PASS' if chk['pass'] else 'FA
 
 # ---------------------------------------------------------------------------- the 16:00 forecasts (economics, local)
 f16 = []
-for W in WS:
+for W in WSX:
     for m, s in MODELS:
         g = G16[(W, m, s)]
         f16.append(

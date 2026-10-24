@@ -70,10 +70,12 @@ R, ex, bid, ask = (b[c].to_numpy(float) for c in ("R", "ex", "bid", "ask"))
 
 f16 = pd.read_parquet(SC / "f16.parquet")
 f16["day"] = pd.to_datetime(f16["day"]).astype(days.dtype)
+WSX = tuple(W for W in WS if W in set(f16["W"]))  # 2026-10-24 addendum A: the windows scored
+assert W_REF in WSX, WSX
 RET: dict = {}
 PL: dict = {}
 rows = []
-for W in WS:
+for W in WSX:
     for m, s in MODELS:
         g = f16[(f16.W == W) & (f16.model == m) & (f16.predictor_set == s)].set_index("day").reindex(days)
         p = g["plain"].to_numpy(float)
@@ -110,7 +112,7 @@ chk["pass"] = all(v["pass_"] for v in chk.values())
 print(f"CHECK econ (W = 3,000 = the three-way CLOSE D6): {'PASS' if chk['pass'] else 'FAIL'}", flush=True)
 
 econ = []
-for W in WS:
+for W in WSX:
     for e in EST:
         out: dict = dict(W=W, model=e)
         h, fu = RET[(W, e, "baseline")], RET[(W, e, "all_features")]
@@ -165,7 +167,7 @@ for e in (["ols"] if FAM == "linear" else []) + list(EST):
         head += " penalty |"
     lines += [head, "|" + "---|" * (head.count("|") - 1)]
     for s in sets:
-        for W in WS:
+        for W in WSX:
             x = Q[(Q.model == e) & (Q.set == s) & (Q.W == W)].iloc[0]
             ln = (
                 f"| {SL[s]} | {W:,} | {x.qlike:.5f} | {cell(e, s, W, 'step')} | {cell(e, s, W, 'vs1000')} | "
@@ -177,7 +179,7 @@ for e in (["ols"] if FAM == "linear" else []) + list(EST):
     if e == "ols":
         continue
     lines += ["| full vs HAR | W | 16:00 gap % (DM p) | DM stat |"]
-    for W in WS:
+    for W in WSX:
         x = G[(G.model == e) & (G.W == W)].iloc[0]
         lines.append(f"| gap | {W:,} | {x.pct:+.2f} ({x.dm_qlike_p:.3f}) | {x.dm_qlike:+.2f} |")
     lines += [
@@ -187,7 +189,7 @@ for e in (["ols"] if FAM == "linear" else []) + list(EST):
         "long HAR / full |",
         "|---|---|---|---|---|---|---|---|---|---|",
     ]
-    for W in WS:
+    for W in WSX:
         x = EC[(EC.model == e) & (EC.W == W)].iloc[0]
         lines.append(
             f"| {W:,} | {x.d6_mid_har:.2f} | {x.d6_mid_full:.2f} | {x.dd6_mid:+.2f} ({x.d6_boot_p_mid:.3f}) | "
@@ -198,7 +200,7 @@ for e in (["ols"] if FAM == "linear" else []) + list(EST):
 if FAM == "linear":
     lines += ["", "OLS (HAR set): sign strategy D6 (mid / bid-ask) by W"]
     lines += ["| W | D6 mid | D6 b/a | long |", "|---|---|---|---|"]
-    for W in WS:
+    for W in WSX:
         x = D6[(D6.model == "ols") & (D6.W == W)].iloc[0]
         lines.append(f"| {W:,} | {x.d6_mid:.2f} | {x.d6_ba:.2f} | {x.long_share_614:.3f} |")
 lines += ["", f"W = {W_REF:,} check against the three-way CLOSE D6: {'PASS' if chk['pass'] else 'FAIL'}"]
