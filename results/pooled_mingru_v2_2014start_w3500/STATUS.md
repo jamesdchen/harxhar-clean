@@ -7,3 +7,10 @@ the old run (read-only): `/home1/jc_905/pmf35/data` (design copies, fold-3 ridge
 
 ## Log
 - Cluster housekeeping (cancellations, feeders): logged in ../pooled_mingru_v2_2014start_w3000/STATUS.md.
+- 2026-10-23 18:49 PDT G0 PASS (W 3,500, CPU 13353666; first attempt 13353638 failed on its own assertion: rows < 45,500
+  are undated in the W 3,500 export, fixed by dating rows [39,000, 45,500) from the W 3,000 export, equal on every row
+  dated in both). Folds: fit [0, 40,702) (89.5 % of W), [0, 43,952) (96.6 %), [1,702, 47,202); validation dates =
+  folds14.json. Stage-1 inits recomputed byte for byte (full keep 295, HAR 12); TQ_0 HAR 0.116384 / 0.116390 /
+  0.116387 / 0.116427 (L 8 / 20 / 48 / 115), full 0.107735 / 0.107740 / 0.107750 / 0.107789. Stage-2 kept columns full
+  284 / 290 / 295; partly zeroed late-start columns 3 / 3 / 6. Shortcut-alone validation QLIKE (L20) by fold: HAR
+  0.12640 / 0.13490 / 0.12991, full 0.11586 / 0.12709 / 0.12300.
