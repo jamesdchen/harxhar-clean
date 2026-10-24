@@ -16,3 +16,25 @@ Environment (CARC, `env_carc.txt` of transfer 1): harxhar-r13 = python 3.12.15, 
 0.68.0; venv_skx adds daal 2026.2.0, scikit-learn-intelex 2026.2.0, tbb 2023.2.0, tcmlib 1.6.0.  Hoffman2: the same
 pins (`req_gb.txt`, `req_skx.txt` derived from CARC's venv_skx listing) in uv venvs (CPython 3.12.3) inside the Debian
 bookworm container of the tree learning curve; threads = slots; numpy AVX-512 dispatch off; OpenBLAS Haswell.
+
+## 04:04-04:08 PDT: why the gates did not run, and the fix (coordinator's check-in 04:01)
+
+- Scheduler: `schedd_job_info false` (no per-job reason); the all-user RQS `single` (pes single/shared, pod/idre
+  queues, 64 slots) is disabled and `qquota -u jamesdc1` shows no limit of ours.  Free slots at 04:04 (NCPU minus
+  used/reserved, usable queue instances): hosts with >= 20 free: Gold 6140 45, Gold 6240 9, Gold 6342 3, E5-2650 v4 8;
+  with >= 8 free: 64, 21, 8, 34.  The 8-slot tasks resubmitted at 04:04 started within 1-3 min; 20-slot tasks waited
+  1 h 45 min (3 of 16 started).
+- Second finding: the env build (15261016) had failed its sklearnex smoke test -- daal4py imports packaging, else
+  distutils, neither in the uv venvs (CARC's harxhar-r13 has setuptools 84.1.0 and packaging 26.3) -- so no ENV_OK, and
+  every gate task that started exited "no env" in seconds: no gate piece exists yet.
+- fix1 (`code/fix1_8threads.sh`): every pending 20-slot gate task deleted (own tasks only) and its line resubmitted
+  unchanged at 8 threads (the forest's thread-invariance, CARC's rf_skx gate (d)).  fix2-4 (`code/fix2_env.sh`,
+  `fix3_env.sh`, `fix4_env.sh`): setuptools 84.1.0 and packaging 26.3 pinned (`req_gb.txt`, `req_skx.txt`),
+  `t3t_envfix` 15261300 (running from 04:07:54) re-checks the env and writes ENV_OK; every line whose task exited
+  "no env" resubmitted at 8 threads; every queued gate job held on 15261300; `t3t_gsum` 15261029 held on 15261300 and
+  every gate job.  (fix3 parsed two ids for the env job, so its qsubs failed and only its holds took; fix4 submitted
+  its four lines.)
+- Gate jobs now (all 8 threads, 12 lines a tag): gold6140 15261301, 15261302, 15261306, 15261293 (task 2);
+  gold6240 15261294, 15261295, 15261303; gold6342 15261296, 15261297, 15261304, 15261025 (tasks 3-6); e5v4 15261307,
+  15261299 (tasks 2-5), 15261308, 15261305.  The walks will run at 8 threads (the gated count; recorded in each meta).
+- Assignment relayed (CARC, read 04:05): RETURNED w3rf_full.txt 240-348, ASSIGNED 349-368 (20 lines).
