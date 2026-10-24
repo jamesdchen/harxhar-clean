@@ -272,3 +272,10 @@ ADDENDUM E, 2026-10-24 07:06 PDT (14:06 UTC), before any forest task on a new CP
        requires every piece's CPU models to be gated on the cluster it ran on (EPYC 7513 / 7542 and the CARC tags
        for CARC, the Hoffman2 tags for Hoffman2).  The ALL48_N39k forest stays on its EPYC array.  The held final merge
        waits on the pools too.
+   Note to addendum E, 2026-10-24 07:35 PDT (14:35 UTC), before any rerun: of the Xeon gate tasks, 1 (x4116) and 5
+   (x2640v4) died on infrastructure, not on a comparison -- SIGBUS (exit 135) on the mmap of the /scratch1 design and
+   ESHUTDOWN (errno 108) reading it, on nodes d05-06, d18-17, d18-26, d18-28, d18-29 (failing /scratch1 Lustre mounts,
+   as the rf_skx run met); no gate comparison ran on them.  They are rerun unchanged on the same CPU models with the
+   designs read from an md5-checked /home1 copy and those nodes excluded, their incomplete pieces removed first (a
+   gate walk is not resumed); the Xeon pools likewise read the designs from /home1 and exclude those nodes.  No
+   tolerance or check changes.
