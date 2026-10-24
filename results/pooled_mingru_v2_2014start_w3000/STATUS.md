@@ -342,3 +342,7 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   13380580 byte for byte); 13386770 the same at CONC 24, cpu 2 / 8G; 13386771 full W 3,000 48 refits A40 CONC 24
   cpu 4 / 24G; 13386772 the same at CONC 48, cpu 2 / 8G; 13386773 salvage test: 72 full refits on P100, --time 6
   (USR1 at 2 min), cpu 2 / 8G.
+- 2026-10-24 16:29 PDT: probe 13386771 (A40 debug, full W 3,000, 48 refits, CONC 24) completed: wall 144 s = 3.0 A40-s a
+  refit (G7 P100 4.55: A40 ~1.5x); no gpu-partition A40 walk output exists yet to compare it with (piece 000.p00 not
+  started). 13386772 (CONC 48, cpu 2 / 8G) OUT_OF_MEMORY in 27 s (8G < the full set's ~7.6 GB + CONC 48): retest
+  CONC 48 at cpu 4 / 24G submitted on debug A40: 13387069. P100 probes 13386769 / 70 running, 13386773 pending.
