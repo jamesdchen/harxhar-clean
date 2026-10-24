@@ -59,3 +59,7 @@ the old run (read-only): `/home1/jc_905/pmf35/data` (design copies, fold-3 ridge
   G6 HAR (W 3,500) extension 1 (tau 9) done (13377396-400, n_bad 0). Round-1 screen shortlist (stage2/
   s2_screen_baseline_round1.csv): tau9_we0_E80 0.125603, tau3_we0_E40, tau1_we0_E20, tau3_we0_E20, tau0.3_we0_E10;
   fresh seeds for tau9_we0_E80 (15 jobs, P100, nice 100): 13377956.
+- 2026-10-24 07:29 PDT G6 HAR (W 3,500) FINAL (P100): the round-1 fresh-seed pick stays tau3_we0_E40 0.125707
+  (tau9_we0_E80 0.125766, tau0.3_we0_E10 0.125837, tau1_we0_E20 0.125891, tau3_we0_E20 0.125927); interior (tau 3 <
+  9). Reported (stage2/s2_report.json): bootstrap SE 0.00009-0.00026, jackknife SE 0.00004-0.00011, 90 % MCS = the
+  whole shortlist. G7 HAR (W 3,500), P100: H 256, L 8, lr 0.003, tau 3 (wd 0.137023842), E 40: 13378173 (nice 100).

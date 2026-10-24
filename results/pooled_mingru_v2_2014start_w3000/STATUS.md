@@ -230,3 +230,9 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   shortlist (stage2/s2_screen_baseline_round2.csv): tau27_we0_E300 0.126069, tau9_we0_E80 0.126084, tau1_we0_E10,
   tau0.3_we0_E10, tau1_we0_E20; fresh seeds for tau27_we0_E300 (15 jobs, P100): 13377955. tau has had its 2 high
   extensions: a pick at tau 27 stands (the ladder is exhausted).
+- 2026-10-24 07:29 PDT G6 HAR (W 3,000) FINAL (P100): fresh-seed pick tau27_we0_E300 0.126108 (tau9_we0_E80 0.126130,
+  tau1_we0_E20 0.126398, tau0.3_we0_E10 0.126432, tau1_we0_E10 0.126451). tau 27 is the ladder's last value (2 high
+  extensions done): the rule stops there ("extended per the rule"); E 300 interior in {10, ..., 1,000}. Reported
+  (stage2/s2_report.json, both sets): bootstrap SE of C - C(pick) 0.00014-0.00023, seed-jackknife SE 0.00005-0.00015,
+  90 % MCS = the whole shortlist (p 0.42). G7 HAR (W 3,000), P100: H 256, L 8, lr 0.003, tau 27 (wd 0.196067752),
+  E 300, 4 files of 6 origins x 5 seeds: 13378169-72.
