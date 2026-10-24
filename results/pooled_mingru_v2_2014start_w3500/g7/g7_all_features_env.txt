@@ -1,0 +1,7 @@
+e21-11.hpc.usc.edu
+Sat Oct 24 06:57:51 PDT 2026
+Tesla P100-PCIE-16GB, 580.159.04, 16384 MiB
+44ab6fff270e15547335c6b36b3ceead  /project2/pollok_1603/jc_905/pmf2_35/bin/forecast_train
+3e56a53c444808f9e121df487832e162  /project2/pollok_1603/jc_905/pmf2_35/inputs/v2g7_all_features_c24.0.txt
+XDATA=/home1/jc_905/pmf35/data CONC=24 WD=3500 GPUTYPE=P100
+wall_s 187

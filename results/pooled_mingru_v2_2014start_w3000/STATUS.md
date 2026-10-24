@@ -226,3 +226,7 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
 - 2026-10-24 06:55 PDT G7 full set (W 3,000) done (13377404, P100 e21-01, 120 refits, all ok, finite, positive; wall
   546 s at CONC 24; t_train a refit 101 s mean while 24 share the GPU; g7/): 4.55 P100-s a bar refit (E 160) ->
   every-bar walk 33,970 bars x 5 seeds = 214.7 P100-h for the full-set arm at W 3,000 (projection; no walk submitted).
+- 2026-10-24 07:13 PDT G6 HAR (W 3,000) extension 2 (tau 27) done (13377080-81, 13377401-03; n_bad 0). Round-2 screen
+  shortlist (stage2/s2_screen_baseline_round2.csv): tau27_we0_E300 0.126069, tau9_we0_E80 0.126084, tau1_we0_E10,
+  tau0.3_we0_E10, tau1_we0_E20; fresh seeds for tau27_we0_E300 (15 jobs, P100): 13377955. tau has had its 2 high
+  extensions: a pick at tau 27 stands (the ladder is exhausted).

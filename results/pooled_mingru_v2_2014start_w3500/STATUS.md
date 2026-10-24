@@ -54,3 +54,8 @@ the old run (read-only): `/home1/jc_905/pmf35/data` (design copies, fold-3 ridge
   C - C(pick) 0.00014-0.00032, seed-jackknife SE 0.00007-0.00016, 90 % MCS = the whole shortlist.
 - 2026-10-24 06:57 PDT G7 full set (W 3,500), P100: 24 origins x 5 seeds at H 64, L 8, lr 0.003, tau 1 (wd 0.045674614 at
   S 356), wd_enc 3, E 40; 13377590 (gpu, nice 100).
+- 2026-10-24 07:13 PDT G7 full set (W 3,500) done (13377590, P100 e21-11, 120 refits ok, finite, positive; wall 187 s
+  at CONC 24; g7/): 1.56 P100-s a bar refit (E 40) -> every-bar walk 33,970 x 5 = 73.6 P100-h (projection).
+  G6 HAR (W 3,500) extension 1 (tau 9) done (13377396-400, n_bad 0). Round-1 screen shortlist (stage2/
+  s2_screen_baseline_round1.csv): tau9_we0_E80 0.125603, tau3_we0_E40, tau1_we0_E20, tau3_we0_E20, tau0.3_we0_E10;
+  fresh seeds for tau9_we0_E80 (15 jobs, P100, nice 100): 13377956.
