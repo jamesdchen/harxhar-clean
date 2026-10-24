@@ -129,3 +129,19 @@ bookworm container of the tree learning curve; threads = slots; numpy AVX-512 di
   (15 lines, -tc 25, held on 15262057); runs/tasks/h2_placement.txt updated.
 - Slurm GPUs open to us (campus): g15 A100 x4 (drained), g33 RTX PRO 6000 Blackwell x2 (1 in use), g35 RTX PRO 6000
   Blackwell x7 (7 in use); campus24 caps 2 GPUs a user, 1 day; highp only for pi_* accounts.
+
+## 12:54-12:58 PDT (Hoffman2 clock): rebalance (coordinator 14:45 PDT) -- Slurm campus Gold 6240, UGE 25, 52 lines back to CARC
+
+- UGE: qhold 15263238, no task running, `qdel 15263238 -t 1-180` (lines 368..199 and 173..164, none started),
+  qrls.  UGE keeps one round of 25 after 15262057: 15263238 tasks 181-190 (lines 163-154) and 15263239 (lines
+  153-139, held on 15262057).  15262057's 25 running tasks (lines 174-198) untouched.
+- RETURNED to CARC (never started on Hoffman2): lines 317-368 (52).  Hoffman2 copies: runs/tasks/h2_assignment.txt
+  now RETURNED 317-368 / ASSIGNED 139-316; runs/tasks/h2_placement.txt.
+- Slurm campus (QOS campus24), Gold 6240 only (h2/passed_cpus_slurm.txt; condition (b) amended to 6240):
+  check 494142 (the 5 UGE Gold 6240 gate lines rerun at 8 threads -> gate_slurm/gold6240), compare 494143
+  (afterany; jobs/cmp_slurm.py bit for bit against gate/h2/gold6240 + gate2 on ALL48_N3k), production 494144
+  (runs/tasks/h2_slurm1_gold6240.txt = 128 lines 316-199 and 173-164; 32 jobs x 4 lines, 32 CPUs, 48G, 15.5 h, %16;
+  the campus QOS counts every job as a node, 16 a user, so each job runs 4 eight-thread lines; 173 idle 8-CPU Gold 6240
+  slots at submission, 64 used at most) -> runs_slurm/pieces, not delivered before the check passes.
+- 12:58: 14 production jobs (56 lines) and 3 check jobs running; every log shows "Intel(R) Xeon(R) Gold 6240 CPU @
+  2.60GHz"; no refusal or error.
