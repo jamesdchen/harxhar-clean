@@ -91,3 +91,15 @@ they cannot start).  Nothing loosened; the owner decides.
 | 23:35-23:40 | RULE.txt note to addendum B and this entry committed before any new walk; experiments/linear_train3way.py no longer sets --refit-rows |
 | 23:42 | code on CARC: linear_train3way.py of 779aee1 (no --refit-rows), runner of 8225da2, score of 06d5871; scancel of the held 13366981-13366986 (owner-approved) |
 | 23:43 | submitted, full refit at every row: walks ALL48 13367775 (19 tasks: ridge 2, lasso 8, enet 5 chunks), ALL48@16 13367776 (18; changed models: ridge full, lasso HAR + full, enet HAR), ALL48_N3k 13367777 (8), ALL48_N39k 13367778 (10); export4 13367779; SCORE4 13367780 = the last job (both designs, scores_all/) |
+
+## Finer splits (coordinator 23:36 PDT: use the CARC resources; split only where bit-identical)
+
+At 23:35 the ALL48 walks 13367775 (tasks 1-8 running) and ALL48_N3k 13367777 (1-7 running) had started: their splits
+are kept (19 / 8 tasks).  ALL48@16 13367776 and ALL48_N39k 13367778 had not started: cancelled with export4 13367779 and
+score4 13367780 and resubmitted finer (ALL48@16: ridge full 4, lasso full 15 chunks, 21 tasks; ALL48_N39k: ridge 2,
+lasso 5, enet 3 chunks, 14 tasks).  Exactness: every chunk starts on the walk's own cold-seed row (every 250th solve
+from the walk start, asserted by the runner: start - halo is a re-choice boundary) with a W-row halo, so its first
+solve is the tune (identifiability mask + cold seed of the same window) the long walk does there, and the trackers,
+standardization scales and OLS sums restart from that window in both.  Checked bit for bit by gate_seam (ALL48,
+3,000-day penalties: full-set ridge, lasso, elastic net and the OLS; rows [S0, S0 + 500) as one walk against a chunk
+starting at S0 + 250: date, true_adj and pred_adj strings must be identical), on which the re-split walks run afterok.

@@ -485,6 +485,50 @@ def st_gate_refit(a) -> None:
         sys.exit(3)
 
 
+def st_gate_seam(a) -> None:
+    """Chunk-seam check (2026-10-23 23:36, coordinator: finer splits only where bit-identical): a walk chunk starts on
+    the walk's own cold-seed rows (every TUNE_PER-th solve from the walk start; the runner asserts start - halo is
+    such a row) with a W-row halo, so its first solve is the tune (identifiability mask + cold seed on the same window)
+    the single long walk does there.  Checked here: for the full-set ridge, lasso, elastic net and the OLS of this arm,
+    the walk over rows [S0, S0 + 2 x 250) against a chunk over [S0 + 250, S0 + 500); the chunk's date, true_adj and
+    pred_adj strings must equal the long walk's last 250 rows.  Exit 3 otherwise (the re-split walks run afterok)."""
+    S0 = O.walk_start()
+    T = 250
+    only = ["all_features/ridge", "all_features/lasso", "all_features/enet", "baseline/ols"]
+    jobs = O.walk_jobs({}, only)
+    run = []
+    for args, _, (s, m, _c) in jobs:
+        for lab, lo, hi in (("long", S0, S0 + 2 * T), ("seam", S0 + T, S0 + 2 * T)):
+            aa = list(args)
+            aa[aa.index("--start") + 1] = str(lo)
+            aa[aa.index("--end") + 1] = str(hi)
+            o = O.WORK / "gate_seam" / lab / s / m
+            aa[aa.index("--out") + 1] = str(o)
+            run.append((aa, o / "run.log"))
+    O.pool(run, a.jobs)
+    g: dict = {"walk_start": S0, "seam_row": S0 + T}
+    ok = True
+    for _, _, (s, m, _c) in jobs:
+        est = O.EST.get(m, "ols")
+        rows = {}
+        for lab in ("long", "seam"):
+            f = O.WORK / "gate_seam" / lab / s / m / "causal_tune_linear" / est / s / "results.csv"
+            rows[lab] = [",".join(np.array(ln.split(","))[[0, 2, 3]]) for ln in f.read_text().splitlines()[1:]]
+        same = len(rows["long"]) == 2 * T and rows["long"][T:] == rows["seam"]
+        g[f"{s}/{m}"] = dict(
+            long_rows=len(rows["long"]),
+            seam_rows=len(rows["seam"]),
+            identical=same,
+            first=rows["seam"][0][:19] if rows["seam"] else "",
+        )
+        ok &= same
+    g["pass"] = bool(ok)
+    (O.OUT / "gate_seam.json").write_text(json.dumps(g, indent=1))
+    O.say(f"SEAM GATE {'PASS' if ok else 'FAIL'}: {json.dumps(g)}")
+    if not ok:
+        sys.exit(3)
+
+
 # ---------------------------------------------------------------------------- secondary: tuned at 16:00
 def pre16_dir(s: str, m: str) -> Path:
     return O.WORK / "pretune16" / s / m
@@ -696,6 +740,7 @@ def main() -> None:
             "derive_close",
             "derive_window",
             "gate_refit",
+            "gate_seam",
             "pretune",
             "select",
             "walk1",
@@ -722,6 +767,7 @@ def main() -> None:
         "derive_close": st_derive_close,
         "derive_window": st_derive_window,
         "gate_refit": st_gate_refit,
+        "gate_seam": st_gate_seam,
         "pretune": st_pretune,
         "select": st_select,
         "walk1": st_walk1,
