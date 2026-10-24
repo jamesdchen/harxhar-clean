@@ -376,3 +376,20 @@ Pool: lines 5-348 of runs/tasks/w3rf_full.txt, claims in runs/claims_w3rf_full/<
   (5-348; EPYC 13377719 32 running / 107 pending, E5-2640 v4 13378116 9 / 0), 20 in the /home1 namespace (349-368;
   pools 13383080-82); the /home1 pools of 80-138 (13381306, 13382812, 13382813) have no unclaimed line left (their
   pending tasks exit when they start).
+
+## Throughput batch (coordinator ~17:30 PDT; CARC sessions with changes written out)
+
+- Standing rule: no claim marked failed.
+- Measured (completed forest full-set lines, wall a line): EPYC 7513 8 threads n=3 max 6.24 h (mean 6.09); EPYC 7513
+  20 threads n=3 max 5.04 h; EPYC 7542 20 threads n=1 5.66 h; E5-2640 v4 20 threads n=16 max 3.91 h (mean 3.81); Xeon
+  4116 none completed yet (~360 s a refit).  MaxRSS of completed pool tasks at most 2.2 GB (requests 16 / 24 GB).
+- Pending tasks right-sized (scontrol update; the first attempt failed on the memory unit and changed nothing): EPYC
+  pools 13377719 (107 pending) and 13383080 (56) -> 7:50:00 (1.25 x 6.24 h) and 5,120 MB; Xeon 4116 13383081 (30)
+  -> 5,120 MB, 14 h kept (no measured line).  E5-2640 v4 pools had no pending task.
+- Partitions open to us with gated models: main and oneweek (ours); largemem (EPYC 7513, 0 idle); debug (1 h limit);
+  gpu (EPYC 7513 / E5-2640 v4 GPU nodes: not used for CPU-only work).  No new pool.
+- Pending tasks of the empty /home1 pools 13381306 (60), 13382812 (55), 13382813 (9) cancelled; running tasks kept.
+  Held merge 13372433 afterany 13377719, 13378115, 13378116, 13381306, 13382813, 13383080, 13383081, 13383082.
+- Watch 349-368: 8 started (349-356, E5-2640 v4 /home1 pool 13383082), 12 unclaimed; /scratch1 namespace 88
+  unclaimed.  Lines done: 19.  Our main-partition running jobs 55 (440 CPUs); oneweek 204 of 208 CPUs.  Merges m2 / m4
+  and scores s2 / s3 / s4 still pending.
