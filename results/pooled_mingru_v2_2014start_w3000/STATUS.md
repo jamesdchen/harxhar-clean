@@ -275,3 +275,10 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   P100 8 / 74, A40 0 / 50, L40S 2 / 19 (pending others accepting them 109 / 247 / 249): placement kept. Bar inits:
   W 3,000 HAR 54 / 54 and W 3,500 HAR 8 / 8 done (61-66 s a task), W 3,000 full 4 / 6 done (2 running), W 3,500 full
   0 / 4 done (4 running). go_walk.sh run next (one session).
+- 2026-10-24 ~10:20 PDT WALK SUBMITTED (go_walk.sh, one session; the first attempt submitted nothing: a dependency on
+  the already finished, purged init task 13379947_0 is refused ("Job dependency problem"); the scripts now depend
+  only on init tasks still queued or running, checked with sacct). Slice check 13380579 (P100). Walk files (ids and
+  lane / seq in walk/walk_ids_<set>.txt): HAR W 3,000 P100 13380580-13380636 (54; lane ends = seq 1:
+  13380610-13380636), full W 3,000 A40 13380637-42 (lane ends 13380640-42). Each file afterok on the slice (and on its
+  init task while queued), seq 1 afterany on its lane's seq 0. Bar inits at submission: W 3,000 HAR 54 / 54, full
+  5 / 6; W 3,500 HAR 8 / 8, full 0 / 4 (running).

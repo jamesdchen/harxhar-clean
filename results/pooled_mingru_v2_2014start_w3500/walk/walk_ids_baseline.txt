@@ -1,0 +1,8 @@
+v2w_baseline.000.txt 13380643 gpu 2734 A40 lane 0 seq 0
+v2w_baseline.001.txt 13380644 gpu 2734 A40 lane 1 seq 0
+v2w_baseline.002.txt 13380645 gpu 2735 A40 lane 2 seq 0
+v2w_baseline.003.txt 13380646 gpu 2734 A40 lane 3 seq 0
+v2w_baseline.004.txt 13380647 gpu 2734 A40 lane 0 seq 1
+v2w_baseline.005.txt 13380648 gpu 2735 A40 lane 1 seq 1
+v2w_baseline.006.txt 13380649 gpu 2734 A40 lane 2 seq 1
+v2w_baseline.007.txt 13380650 gpu 2734 A40 lane 3 seq 1

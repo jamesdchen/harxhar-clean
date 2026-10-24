@@ -1,0 +1,4 @@
+v2w_all_features.000.txt 13380651 gpu 1716 L40S lane 0 seq 0
+v2w_all_features.001.txt 13380652 gpu 1717 L40S lane 1 seq 0
+v2w_all_features.002.txt 13380653 gpu 1717 L40S lane 0 seq 1
+v2w_all_features.003.txt 13380654 gpu 1716 L40S lane 1 seq 1
