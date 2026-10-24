@@ -159,8 +159,9 @@ ADDENDUM A, 2026-10-23 22:07 PDT (2026-10-24 05:07 UTC), before any of its jobs:
    ALL48_N3k vs RTH13_N3k, CLOSE vs RTH13_N3k, CLOSE vs ALL48_N3k, ALL48_N39k vs RTH13; every bar ALL48_N3k vs
    RTH13_N3k, ALL48_N39k vs RTH13; also each equal-rows arm vs its equal-calendar sibling (16:00 and every bar); full
    vs HAR within each arm; the close D6 Sharpe ratio and the same pairs' differences (section 8).  One scoring job
-   covers both designs (it replaces the equal-calendar-only export / score jobs 13361444 / 13361445, cancelled before
-   they ran).
+   covers both designs (written to scores_all/).  [22:16 PDT, before any addendum job: the scancel of the first chain's
+   export / score jobs 13361444 / 13361445 was denied by the auto-mode classifier and was not retried; they run as
+   submitted (equal-calendar scores to scores/), and the addendum's export / score wait for them (afterany).]
    Confounds each design leaves: equal calendar (3,000 days) = unequal rows (144,000 / 39,000 / 3,000); equal rows =
    unequal span and recency: at N = 3,000 the pooled windows cover only the last 62.5 (ALL48) or 231 (RTH13) days
    while CLOSE covers about 12 years; at N = 39,000 ALL48 covers about 812 days, RTH13 3,000.  In both designs the

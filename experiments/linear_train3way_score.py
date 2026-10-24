@@ -11,7 +11,10 @@ Full vs HAR within each variant and estimator.  Checks: RTH13 reproduces part2/q
 1e-12; every variant's rv_actual, true_adj and B agree at common rows.  Diagnostic: the 16:00 rows of the ALL48 and
 CLOSE_NAT designs against RTH13's (the arm-specific scaler), and CLOSE's against RTH13's (identical by construction).
 
-usage: python experiments/linear_train3way_score.py <results dir> <template run dir (w3000)>
+usage: python experiments/linear_train3way_score.py <results dir> <template run dir (w3000)> [both]
+  without 'both': the equal-calendar variants only, -> <results dir>/scores/ (the first chain's score job);
+  with 'both' (RULE.txt addendum A): + the equal-rows arms ALL48_N3k, RTH13_N3k, ALL48_N39k and their pairs,
+  -> <results dir>/scores_all/
   -> <results dir>/scores/: qlike_bar.csv qlike_16.csv dm.csv gap.csv f16.parquet design_diag.csv tables.txt
 """
 
@@ -35,7 +38,8 @@ import rolling_eval_2026_10_15 as RE  # noqa: E402
 from src.evaluation.diebold_mariano import dm_test  # noqa: E402
 
 RES, REF = Path(sys.argv[1]).resolve(), Path(sys.argv[2]).resolve()
-OUT = RES / "scores"
+BOTH = len(sys.argv) > 3 and sys.argv[3] == "both"  # 2026-10-23 addendum A
+OUT = RES / ("scores_all" if BOTH else "scores")
 OUT.mkdir(exist_ok=True)
 SPAN = (pd.Timestamp("2014-01-02"), pd.Timestamp("2024-04-30"))
 REF_MD5 = "4e5c7c1771b66ed251cf0f79774e7fd3"  # the repo's w3000/forecasts.parquet (RULE.txt gate iv)
@@ -53,7 +57,20 @@ SRC = {
     "RTH13_N3k": RES / "RTH13_N3k" / "forecasts_rth.parquet",
     "ALL48_N39k": RES / "ALL48_N39k" / "forecasts_rth.parquet",
 }
-BAR = ("ALL48", "RTH13", "ALL48@16", "RTH13@16", "ALL48_N3k", "RTH13_N3k", "ALL48_N39k")  # variants with every RTH bar
+BAR: tuple[str, ...] = (
+    "ALL48",
+    "RTH13",
+    "ALL48@16",
+    "RTH13@16",
+    "ALL48_N3k",
+    "RTH13_N3k",
+    "ALL48_N39k",
+)  # variants with every RTH bar
+NEW = {"ALL48_N3k", "RTH13_N3k", "ALL48_N39k"}  # addendum A's variants: scored only with 'both'
+if not BOTH:
+    for _v in NEW:
+        SRC.pop(_v)
+    BAR = tuple(v for v in BAR if v not in NEW)
 COLS = ["model", "predictor_set", "alpha", "date", "true_adj", "B", "plain", "rv_actual"]
 
 
@@ -223,6 +240,9 @@ PAIRSB = [
     ("RTH13_N3k", "RTH13"),
     ("ALL48_N39k", "ALL48"),
 ]
+if not BOTH:
+    PAIRS16 = [x for x in PAIRS16 if not set(x) & NEW]
+    PAIRSB = [x for x in PAIRSB if not set(x) & NEW]
 dms = []
 for m, s in MODELS:
     for a, b in PAIRS16:
