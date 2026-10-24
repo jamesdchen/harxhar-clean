@@ -220,3 +220,6 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   pending: the bar inits of the full set were missing (the CPU jobs got SETS=baseline only: a comma inside --export
   splits the variable); full-set bar inits recomputed (CPU 13377088 W 3,000, 13377089 W 3,500); G7 resubmitted
   13377090 (debug P100) afterok on 13377088.
+- 2026-10-24 06:39 PDT: HAR tau-27 extension: gpu files 13377080-81 done; the debug files 13377082-84 and the G7 probe
+  13377090 waited 30 min behind other users in debug (its 2 P100s), cancelled while pending and resubmitted unchanged
+  to gpu P100: 13377401-03 and G7 13377404.

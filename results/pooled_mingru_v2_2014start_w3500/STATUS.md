@@ -45,3 +45,6 @@ the old run (read-only): `/home1/jc_905/pmf35/data` (design copies, fold-3 ridge
   tau3_we0_E20 0.125787, tau0.3_we0_E10 0.125823, tau1_we0_E10 0.125863 (stage2/s2_screen_*_round0.csv; the
   shortcut alone, L 20: full 0.12198, HAR 0.13040). Fresh seeds (75 jobs a set, nice 100): full 13377257-58 (L40S),
   HAR 13377259 (P100).
+- 2026-10-24 06:39 PDT G6 HAR (W 3,500) round 0 (P100): fresh-seed pick tau3_we0_E40 0.125707 (tau0.3_we0_E10
+  0.125837, tau1_we0_E20 0.125891, ...) at the tau high edge -> extension 1: tau 9 (120 jobs, tag v2s2hx1, gpu P100,
+  nice 100): 13377396-400. Full-set fresh seeds 13377257-58 pending on L40S.
