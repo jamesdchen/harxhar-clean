@@ -4,3 +4,11 @@ v2w_all_features.002.txt 13380639 gpu 2529 A40 lane 2 seq 0
 v2w_all_features.003.txt 13380640 gpu 2529 A40 lane 0 seq 1
 v2w_all_features.004.txt 13380641 gpu 2529 A40 lane 1 seq 1
 v2w_all_features.005.txt 13380642 gpu 2529 A40 lane 2 seq 1
+pieces/v2w_all_features.000.p00.txt 13382904 gpu 650 L40S piece of v2w_all_features.000.txt
+pieces/v2w_all_features.000.p01.txt 13382905 gpu 651 L40S piece of v2w_all_features.000.txt
+pieces/v2w_all_features.000.p02.txt 13382906 gpu 650 L40S piece of v2w_all_features.000.txt
+pieces/v2w_all_features.000.p03.txt 13382907 gpu 651 L40S piece of v2w_all_features.000.txt
+pieces/v2w_all_features.000.p04.txt 13382908 gpu 650 L40S piece of v2w_all_features.000.txt
+pieces/v2w_all_features.001.p00.txt 13382909 gpu 650 L40S piece of v2w_all_features.001.txt
+pieces/v2w_all_features.001.p01.txt 13382910 gpu 650 L40S piece of v2w_all_features.001.txt
+pieces/v2w_all_features.001.p02.txt 13382911 gpu 651 L40S piece of v2w_all_features.001.txt

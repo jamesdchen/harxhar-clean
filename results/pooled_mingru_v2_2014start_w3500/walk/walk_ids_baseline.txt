@@ -6,3 +6,23 @@ v2w_baseline.004.txt 13380647 gpu 2734 A40 lane 0 seq 1
 v2w_baseline.005.txt 13380648 gpu 2735 A40 lane 1 seq 1
 v2w_baseline.006.txt 13380649 gpu 2734 A40 lane 2 seq 1
 v2w_baseline.007.txt 13380650 gpu 2734 A40 lane 3 seq 1
+pieces/v2w_baseline.000.d00.txt 13382912 debug 60 P100 piece of v2w_baseline.000.txt
+pieces/v2w_baseline.000.d01.txt 13382913 debug 60 P100 piece of v2w_baseline.000.txt
+pieces/v2w_baseline.000.d02.txt 13382914 debug 60 P100 piece of v2w_baseline.000.txt
+pieces/v2w_baseline.000.d03.txt 13382915 debug 60 P100 piece of v2w_baseline.000.txt
+pieces/v2w_baseline.000.d04.txt 13382916 debug 60 P100 piece of v2w_baseline.000.txt
+pieces/v2w_baseline.000.p00.txt 13382917 gpu 585 P100 piece of v2w_baseline.000.txt
+pieces/v2w_baseline.000.p01.txt 13382918 gpu 585 P100 piece of v2w_baseline.000.txt
+pieces/v2w_baseline.000.p02.txt 13382919 gpu 586 P100 piece of v2w_baseline.000.txt
+pieces/v2w_baseline.000.p03.txt 13382920 gpu 585 P100 piece of v2w_baseline.000.txt
+pieces/v2w_baseline.000.p04.txt 13382921 gpu 585 P100 piece of v2w_baseline.000.txt
+pieces/v2w_baseline.001.p00.txt 13382922 gpu 635 P100 piece of v2w_baseline.001.txt
+pieces/v2w_baseline.001.p01.txt 13382923 gpu 635 P100 piece of v2w_baseline.001.txt
+pieces/v2w_baseline.001.p02.txt 13382924 gpu 635 P100 piece of v2w_baseline.001.txt
+pieces/v2w_baseline.001.p03.txt 13382925 gpu 635 P100 piece of v2w_baseline.001.txt
+pieces/v2w_baseline.001.p04.txt 13382926 gpu 635 P100 piece of v2w_baseline.001.txt
+pieces/v2w_baseline.002.p00.txt 13382927 gpu 635 P100 piece of v2w_baseline.002.txt
+pieces/v2w_baseline.002.p01.txt 13382928 gpu 635 P100 piece of v2w_baseline.002.txt
+pieces/v2w_baseline.002.p02.txt 13382929 gpu 635 P100 piece of v2w_baseline.002.txt
+pieces/v2w_baseline.002.p03.txt 13382930 gpu 635 P100 piece of v2w_baseline.002.txt
+pieces/v2w_baseline.002.p04.txt 13382931 gpu 635 P100 piece of v2w_baseline.002.txt

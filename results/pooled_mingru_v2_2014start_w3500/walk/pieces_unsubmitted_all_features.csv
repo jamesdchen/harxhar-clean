@@ -1,0 +1,9 @@
+piece,orig,initsub,o0,o1,n_jobs,est_s,tlim_min,gpu,partition,nice
+pieces/v2w_all_features.001.p01.txt,v2w_all_features.001.txt,w001,62100,64931,14155,24535,562,L40S,gpu,100
+pieces/v2w_all_features.001.p02.txt,v2w_all_features.001.txt,w001,64931,67762,14155,24535,562,L40S,gpu,100
+pieces/v2w_all_features.002.p00.txt,v2w_all_features.002.txt,w002,67762,70593,14155,24535,562,L40S,gpu,100
+pieces/v2w_all_features.002.p01.txt,v2w_all_features.002.txt,w002,70593,73424,14155,24535,562,L40S,gpu,100
+pieces/v2w_all_features.002.p02.txt,v2w_all_features.002.txt,w002,73424,76255,14155,24535,562,L40S,gpu,100
+pieces/v2w_all_features.003.p00.txt,v2w_all_features.003.txt,w003,76255,79086,14155,24535,562,L40S,gpu,100
+pieces/v2w_all_features.003.p01.txt,v2w_all_features.003.txt,w003,79086,81916,14150,24527,562,L40S,gpu,100
+pieces/v2w_all_features.003.p02.txt,v2w_all_features.003.txt,w003,81916,84747,14155,24535,562,L40S,gpu,100

@@ -296,3 +296,11 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   all files of the other three arms); free P100 8, L40S 5, A40 0. RULE ADDENDUM 3 (both copies): HAR W 3,500 -> P100,
   full W 3,000 -> L40S (re-pin of arms not started); the 61 pending files replaced by 302 pieces of ~7-8 h
   (walk/pieces_<set>.csv; experiments/pooled_mingru_v2_walk_split.py), 5 debug P100 pieces; submitted in rounds.
+- 2026-10-24 12:45 PDT (CARC clock) ADDENDUM 3 applied, every state change written out in the tool call: 59 pending
+  walk files cancelled (ours, PENDING, v2w; walk/walk_cancelled_<set>.txt) -- HAR W 3,000 011 and 012 had started
+  12:40-12:45 and were kept (their pieces skipped). Submitted 72 pieces (walk_ids_<set>.txt, lines "pieces/..."):
+  HAR W 3,000 P100 40 (13382856-13382903), full W 3,000 L40S 8 (13382904-11), HAR W 3,500 P100 15 gpu + 5 debug
+  (13382912-31), full W 3,500 L40S 4 (13382932-35). Not yet submitted (walk/pieces_unsubmitted_<set>.csv): HAR
+  W 3,000 165 pieces (1,220 P100-h), full W 3,000 22 (175 L40S-h), HAR W 3,500 25 (194 P100-h), full W 3,500 8
+  (55 L40S-h): to be submitted at later check-ins, keeping <= 100 gpu-partition jobs (80 now: 13 running + 67
+  pending) and <= 5 debug. Running originals: HAR W 3,000 000-012 (P100).

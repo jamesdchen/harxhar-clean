@@ -68,3 +68,6 @@ the old run (read-only): `/home1/jc_905/pmf35/data` (design copies, fold-3 ridge
 - 2026-10-24 10:15 PDT RELEASE (owner): HOLD lifted, the walk submitted by go_walk.sh (see the W 3,000 STATUS.md).
 - 2026-10-24 ~10:20 PDT WALK SUBMITTED: HAR W 3,500 A40 13380643-50 (8; lane ends 13380647-50), full W 3,500 L40S
   13380651-54 (4; lane ends 13380653-54), nice 100; ids in walk/walk_ids_<set>.txt; slice check 13380579.
+- 2026-10-24 12:45 PDT ADDENDUM 3: HAR W 3,500 re-pinned to P100, its 8 files cancelled while pending and replaced by
+  45 pieces (20 submitted: 13382912-31, 5 of them on the debug P100s); full W 3,500 (L40S) 4 files replaced by 12
+  pieces (4 submitted: 13382932-35). Unsubmitted pieces in walk/pieces_unsubmitted_<set>.csv.
