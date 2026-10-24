@@ -304,3 +304,10 @@ Pool: lines 5-348 of runs/tasks/w3rf_full.txt, claims in runs/claims_w3rf_full/<
   piece (.ckpt.json 101 bytes, .parquet 6,818 bytes) left in place; asked.
 - Pools then: EPYC 13377719 20 running / 119 pending; old Xeon 4116 13378115 23 running (24 failed); E5-2640 v4
   13378116 9 / 10 (1 failed); /home1 Xeon 4116 13381306 4 running / 60 pending; no forest line finished yet.
+- Standing rule extended (coordinator ~12:45 PDT): it also covers a pool task whose own log shows no error but which
+  failed on the same node within 5 minutes of a task with a logged /scratch1 I/O error (errno 5 / 108 / transport
+  endpoint), provided its log has no traceback, exception, assertion or OOM message (any of those -> ask).  Applied to
+  line 63: its task 13378115_47 ended on d11-29 at 11:44:36 (CARC clock), the same second as 13378115_46 there (errno 5
+  input/output error); no error line in its log; the four checks passed; deleted
+  ALL48_rf_skx_all_features_63of368.ckpt.json (101 bytes), .parquet (6,818 bytes) and its claim; back in the
+  /scratch1 pools.
