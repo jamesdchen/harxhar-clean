@@ -38,8 +38,8 @@ def main() -> int:
     free: dict[str, tuple[int, int]] = {}
     for ln in Path(a.free8).read_text().splitlines():
         if ln.strip():
-            arch, h, c = ln.split()
-            free[arch] = (int(h), int(c))
+            ar_, nh, nc = ln.split()
+            free[ar_] = (int(nh), int(nc))
     carc = float(s["carc_sec_refit_all48_rf_full_t20"])
     carc_cpu = carc * 20
     out = [
