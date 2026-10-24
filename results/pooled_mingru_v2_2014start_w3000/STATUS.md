@@ -329,3 +329,6 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   100 of ours (36 running with the old script, 51 P100 + 13 A40 pending with the new one). The 36 running
   (HAR W 3,000 originals 000-012 and 23 pieces) will end FAILED 143: their missing tail refits are rerun from
   walk-merge's remainder files as each finishes.
+- 2026-10-24 ~15:40 PDT (coordinator): debug never preempted us, so short remainder files (the <= 15-min tails of the
+  36 old-script jobs as they end, and similar short reruns) go to the debug partition on the arm's type (P100 for
+  the HAR arms, A40 for the full arms), at most 5 debug jobs, else gpu. Everything else unchanged.
