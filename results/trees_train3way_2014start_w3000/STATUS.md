@@ -227,3 +227,15 @@ Pool: lines 5-348 of runs/tasks/w3rf_full.txt, claims in runs/claims_w3rf_full/<
   ~11 h), E5-2640 v4 13378116 -> 16 h (est. ~7.5 h at 20 threads); to be revisited once the first lines are timed.  A
   line that times out keeps its claim with a 'term' marker and its checkpointed piece; it is resumed by releasing the
   claim to a pool of the same CPU family (by hand, after a look).
+
+## Xeon 4116 pool failures (09:25-09:35 PDT): /scratch1 Lustre on more d-nodes
+
+- 13378115 failed tasks (5 by 09:30), all /scratch1 errors on their nodes, none a computation: _7 (d11-24, line 20)
+  OSError errno 5 (I/O error) reading a file; _11 (d11-23, line 23) errno 108 stat()ing the piece's .part; _21 (d06-25,
+  line 32) errno 108 writing its own claim marker; _16 (d11-24, line 27); _10 (d11-24, exit 0:53) failed before
+  claiming any line (its log on /scratch1 empty).  No piece of lines 20, 23, 27, 32 had been written.
+- `code/fix_pool_failures.sh` (37e5bb6) diagnosed them; `code/release_failed.sh` (2a6dce2) released lines 20, 23, 27,
+  32 (claims removed, logged in runs/claims_released.log; any pool may run them from scratch) and set the pending tasks'
+  ExcNodeList to d05-06, d06-25, d11-23, d11-24, d18-17, d18-26, d18-28, d18-29 (121 pending tasks, verified).
+- Pools at 09:30: EPYC 13377719 1 running / 149 pending; Xeon 4116 13378115 24 running / 121 pending / 5 failed; E5-2640
+  v4 13378116 9 running / 11 pending / 0 failed; 37 lines claimed, 0 done.
