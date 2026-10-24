@@ -292,3 +292,7 @@ Pool: lines 5-348 of runs/tasks/w3rf_full.txt, claims in runs/claims_w3rf_full/<
   session, logged in runs/claims_released.log.  Line 40 (13378115_28, d11-24, errno 5 "Failed stat()ing path" /
   input/output error, 1 h 16 min): deleted ALL48_rf_skx_all_features_40of368.ckpt.json (102 bytes),
   .parquet (0 bytes) and .part (0 bytes), and its claim; back in the /scratch1 pools (CARC clock 10:57).
+- Standing rule, batch 2: line 58 (13378115_45, d06-19, errno 5 input/output error): deleted
+  ALL48_rf_skx_all_features_58of368.ckpt.json (101 bytes) and .parquet (6,364 bytes) and its claim; back in the
+  /scratch1 pools.  Pools then: EPYC 13377719 17 running / 122 pending; old Xeon 4116 13378115 26 running (21 failed);
+  E5-2640 v4 13378116 9 / 11; /home1 Xeon 4116 13381306 3 running / 61 pending (its first tasks started).
