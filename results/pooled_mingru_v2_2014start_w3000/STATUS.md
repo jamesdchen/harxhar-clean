@@ -236,3 +236,18 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   (stage2/s2_report.json, both sets): bootstrap SE of C - C(pick) 0.00014-0.00023, seed-jackknife SE 0.00005-0.00015,
   90 % MCS = the whole shortlist (p 0.42). G7 HAR (W 3,000), P100: H 256, L 8, lr 0.003, tau 27 (wd 0.196067752),
   E 300, 4 files of 6 origins x 5 seeds: 13378169-72.
+- 2026-10-24 08:00 PDT G7 HAR done, both windows (P100; all refits ok, finite, positive). W 3,000: 13378169-72, 4 files
+  of 30 refits, walls 1,267-1,270 s -> 42.3 P100-s a bar refit (E 300) -> every-bar walk 1,995 P100-h. W 3,500:
+  13378173, 120 refits, wall 788 s -> 6.57 P100-s a refit (E 40) -> 310 P100-h. The old A100 gate 13346567 ran
+  (06:47, b05-13): self-consistent; its check numbers not read (A100 not used by v2).
+- 2026-10-24 08:05 PDT SUMMARY (all v2 gates passed; STOP before any every-bar walk, none submitted):
+    picks (H, L, lr | tau, wd_enc, E | fresh-seed C):
+      W 3,000 full: 64, 8, 0.003 | 9, 3, 160 | 0.115927   (Stage 1 L40S, Stage 2 A40)
+      W 3,000 HAR : 256, 8, 0.003 | 27, 0, 300 | 0.126108  (P100 / P100; tau at the ladder's last value)
+      W 3,500 full: 64, 8, 0.003 | 1, 3, 40 | 0.115610     (L40S / L40S)
+      W 3,500 HAR : 256, 8, 0.003 | 3, 0, 40 | 0.125707    (P100 / P100)
+    GPU time used by v2 (allocated elapsed, incl. staging, POST and failed attempts; v2_gpu_jobs_acct.txt):
+      P100 30.25 h (114 jobs), L40S 2.33 h (29), A40 1.07 h (28).
+    Projected every-bar walk (33,970 bars x 5 seeds an arm; G7 P100-s a refit): full W 3,000 214.7, full W 3,500 73.6,
+      HAR W 3,000 1,995, HAR W 3,500 310 P100-h; 2,593 P100-h in all. Wall-clock at 17 P100s (the most v2 held at
+      once, 06:05) 153 h (6.4 days; HAR W 3,000 alone 117 h); at the QOS's 36 GPUs 72 h.
