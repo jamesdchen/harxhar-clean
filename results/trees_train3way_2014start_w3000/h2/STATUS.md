@@ -145,3 +145,14 @@ bookworm container of the tree learning curve; threads = slots; numpy AVX-512 di
   slots at submission, 64 used at most) -> runs_slurm/pieces, not delivered before the check passes.
 - 12:58: 14 production jobs (56 lines) and 3 check jobs running; every log shows "Intel(R) Xeon(R) Gold 6240 CPU @
   2.60GHz"; no refusal or error.
+
+## 14:24 PDT (Hoffman2 clock): Slurm Gold 6240 bit-identity check PASSED
+
+- 494142 (5 lines) and 494143 COMPLETED: all 5 Slurm pieces identical bit for bit to the UGE Gold 6240 gate pieces
+  (dates, pred_adj, true_adj, B) and their parquet files byte-identical -- RTH13 full set --ends 10 (20 rows), ALL48
+  full set scored (3), ALL48_N3k full set every (91) and scored (17), ALL48 HAR scored (3); one CPU model (Intel(R)
+  Xeon(R) Gold 6240 CPU @ 2.60GHz, n1803 / n1804 / n1807); gate 2 on the Slurm ALL48_N3k every / scored pair PASS.
+  gate_slurm/gold6240/check.json.  Slurm Gold 6240 pieces may be delivered to CARC.
+- Production 494144: 16 jobs (64 lines) running, 16 jobs (64 lines) pending (array limit); no error in any log;
+  64 checkpoints, 292.9 s a refit on average (271-522) with 4 walks a node = about 7.4 h a 91-refit line (UGE Gold
+  6240 gate piece: 463 s).  No piece finished yet.  Projected: round 1 ~20:30, round 2 ~04:30 Sunday (Hoffman2 clock).
