@@ -220,3 +220,6 @@ LOGS     The per-step training log (steps.csv) of the walk files goes to /dev/nu
          15 min. Storage /project2/pollok_1603/jc_905/pmf2(_35) (not /home1: quota; not /scratch1: Lustre failures).
 HOLD     09:10 PDT (coordinator: the owner is reconsidering the window study): no GPU walk job and no slice check is
          submitted until the go; the bar inits (CPU) and the walk files are prepared.
+RELEASE  2026-10-24 ~10:15 PDT (owner, relayed: "I release the mingru run"): the HOLD of 09:10 PDT is lifted; the walk is
+         submitted as ADDENDUM 2 places it (re-checked at 09:54 PDT: free P100 8 / 74, A40 0 / 50, L40S 2 / 19; others'
+         pending jobs accepting P100 109, A40 247, L40S 249: the same order as at planning, placement unchanged).

@@ -271,3 +271,7 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   session holds 20 / 180): W 3,000 HAR 13379947 (54 tasks), full 13379948 (6); W 3,500 HAR 13379951 (8), full
   13379952 (4, nice 100); ids in inputs/walkinit_<set>.jobid. core_stats.parquet is not under /home1/jc_905/pmf/repo
   on CARC: the merge runs locally on pulled outputs (tested) or on CARC with RV=<path>.
+- 2026-10-24 10:15 PDT RELEASE (owner, relayed: "I release the mingru run"; HOLD 09:10-10:15). Re-check 09:54: free
+  P100 8 / 74, A40 0 / 50, L40S 2 / 19 (pending others accepting them 109 / 247 / 249): placement kept. Bar inits:
+  W 3,000 HAR 54 / 54 and W 3,500 HAR 8 / 8 done (61-66 s a task), W 3,000 full 4 / 6 done (2 running), W 3,500 full
+  0 / 4 done (4 running). go_walk.sh run next (one session).

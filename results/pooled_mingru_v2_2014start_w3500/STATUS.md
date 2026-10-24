@@ -65,3 +65,4 @@ the old run (read-only): `/home1/jc_905/pmf35/data` (design copies, fold-3 ridge
   whole shortlist. G7 HAR (W 3,500), P100: H 256, L 8, lr 0.003, tau 3 (wd 0.137023842), E 40: 13378173 (nice 100).
 - 2026-10-24 09:20 PDT: RULE ADDENDUM 2 (walk of all four arms, placement, HOLD) -- see the W 3,000 STATUS.md. W 3,500
   walk files prepared (HAR 8 files on A40, full 4 on L40S), bar inits submitted (CPU 13379951, 13379952); no GPU job.
+- 2026-10-24 10:15 PDT RELEASE (owner): HOLD lifted, the walk submitted by go_walk.sh (see the W 3,000 STATUS.md).
