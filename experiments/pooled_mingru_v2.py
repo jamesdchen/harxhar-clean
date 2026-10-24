@@ -898,20 +898,30 @@ def st_jobs(a: argparse.Namespace) -> None:
                             lin_init=f"data/pmf_lin_init/{s}/bar24/r{o}_L{L}_wl{WL}.f32",
                         )
                     )
+            # whole origins (5 seeds) a file, files of at most --max-file-s estimated P100-s (a long probe, e.g. HAR
+            # H 256 at E 1,000, is cut into pieces that fit the debug partition's hour)
+            per = len(SEEDS_SCREEN)
+            items = [
+                ("\n".join(lines[i : i + per]), per * E * epoch_cost(s, H, L), 0)
+                for i in range(0, len(lines), per)
+            ]
             for c in sp["concs"]:
-                name = f"v2g7_{s}_c{c}.txt"
-                (inp / name).write_bytes(("\n".join(lines) + "\n").encode())
-                est = len(lines) * E * epoch_cost(s, H, L)
-                lst.append(
-                    dict(
-                        file=name,
-                        set=s,
-                        conc=int(c),
-                        n_jobs=len(lines),
-                        est_gpu_s=round(est, 1),
-                        tlim_min=tlim_min(est),
+                for i, gr in enumerate(pack_files(items, a.max_file_s)):
+                    name = f"v2g7_{s}_c{c}.{i}.txt"
+                    (inp / name).write_bytes(
+                        ("\n".join(x[0] for x in gr) + "\n").encode()
                     )
-                )
+                    est = sum(x[1] for x in gr)
+                    lst.append(
+                        dict(
+                            file=name,
+                            set=s,
+                            conc=int(c),
+                            n_jobs=per * len(gr),
+                            est_gpu_s=round(est, 1),
+                            tlim_min=tlim_min(est),
+                        )
+                    )
     else:
         raise SystemExit(f"unknown kind {kind}")
     pd.DataFrame(lst).to_csv(

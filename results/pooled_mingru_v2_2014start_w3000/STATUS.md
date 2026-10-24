@@ -182,3 +182,7 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   extension 1 (tau 9, A40: 13372774-77) done; round-1 shortlist (screen seeds, all 90 configurations): tau1_we3_E40,
   tau9_we3_E160, tau3_we3_E80, tau0_we3_E40, tau0.3_we15_E160; fresh seeds for the new member tau9_we3_E160 (15 jobs,
   tag v2s2c1, debug A40): 13373058.
+- 2026-10-24 02:31 PDT: G7 preparation: every Stage-1 pick is at L 8, so the 24 bar-origin ridge inits (L 8, mask and
+  Gram on [o - W, o), o = 50,777 .. 50,800) are computed now for both sets at both windows (CPU 13373087 W 3,000,
+  13373088 W 3,500, /project2 roots). The G7 job writer now cuts a probe into whole-origin files under the 1 h debug
+  limit (HAR H 256 at E 1,000 would be ~4.9 P100-h in one file).
