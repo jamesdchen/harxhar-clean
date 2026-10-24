@@ -317,3 +317,21 @@ Pool: lines 5-348 of runs/tasks/w3rf_full.txt, claims in runs/claims_w3rf_full/<
   each).  Pools: EPYC 13377719 20 running / 119 pending (11 failed); old Xeon 4116 13378115 23 running (24 failed);
   E5-2640 v4 13378116 9 / 7 (2 failed, 2 done); /home1 Xeon 4116 13381306 4 / 60; unclaimed below 80: 40, 46, 47, 50,
   52, 58, 63, 67-79.
+
+## Maximize throughput (owner ~13:35 PDT; one CARC session, state changes verbatim)
+
+- Standing rule: line 37 (13378116_10, errno 108) restarted (deleted .ckpt.json 101 bytes, .parquet 6,931 bytes and its
+  claim).
+- EPYC /scratch1 pool 13377719: throttle 20 -> 40; pending tasks' time limit 16 h -> 13 h.  /home1 Xeon 4116 pool
+  13381306: pending 20 h -> 14 h.  E5-2640 v4 pool 13378116: pending 16 h -> 6 h (measured 3.65 h a line at 20
+  threads) and nodes d05-06, d06-19, d06-25, d11-23, d11-24, d11-29, d11-42, d18-17, d18-26, d18-28, d18-29, d18-35
+  excluded.
+- New pools on the /home1 claim namespace (lines 80-138, code_961c9ec, pieces / logs / claims on /home1): EPYC 7513 /
+  7542 13382812 (55 tasks %40, 8 threads, 13 h) and oneweek Xeon 4116 13382813 (12 tasks %3, 8 threads, 14 h; the
+  oneweek QOS had 180 of 208 CPUs in use by the E5-2640 v4 pool).
+- Held final merge 13372433: dependency afterany 13377719, 13378115, 13378116, 13381306, 13382812, 13382813, 13372427
+  (13372432, 13371788, 13371790 had left the queue).
+- State: EPYC 13377719 20 running / 119 pending; old Xeon 4116 13378115 23 running; E5-2640 v4 13378116 9 / 7 (2 done);
+  /home1 Xeon 4116 13381306 4 / 60; EPYC /home1 13382812 0 / 55; oneweek Xeon 4116 13382813 0 / 12.  Unclaimed: 21
+  lines below 80 (/scratch1 namespace), 55 of 80-138 (/home1 namespace).  Hoffman2's 230 lines (139-368): its array
+  15262074 had not started (its executor diagnosing); no line taken back.
