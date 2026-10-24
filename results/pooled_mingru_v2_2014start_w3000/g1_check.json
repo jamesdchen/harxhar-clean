@@ -1,0 +1,34 @@
+{
+ "epochs_run": {
+  "tune": 300,
+  "refit": 300
+ },
+ "steps_identical": true,
+ "n_steps": 91500,
+ "n_step_lines_differing": 0,
+ "TQ_300_running": 0.0946890315,
+ "TQ_300_running_tune": 0.0946890315,
+ "in_sample_exact": 0.0946888058531,
+ "in_sample_rel_dev": 2.3830310273292335e-06,
+ "val_qlike_twin": 0.1429725518028105,
+ "val_qlike_tune_epoch300": 0.142972559,
+ "val_rel_dev": 5.0339656514312796e-08,
+ "nonfinite": 0.0,
+ "TQ0_offline": 0.12103824079521923,
+ "TQ0_trainer": 0.121038240408,
+ "TQ0_rel_dev": 3.1991478590515407e-09,
+ "mu_sd_job": [
+  0.962224185,
+  0.349204451
+ ],
+ "mu_sd_init": [
+  0.9622241854667664,
+  0.3492044508457184
+ ],
+ "rho_300": 0.7823067394064441,
+ "rows_train": [
+  8221,
+  47202
+ ],
+ "pass": true
+}

@@ -59,3 +59,15 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   then Stage 1 at both windows (`jobs --kind s1`, W 3,500 with nice), `s1-table`, etc. per RULE_gru_v2.txt.
   The old walk's pending halves (15 PENDING, 12 RUNNING) have older submit times and take the gpu partition's P100s
   ahead of v2 jobs; not touched.
+- 2026-10-23 20:43 PDT (continuation agent): G1 13353680 started on debug at 20:42:33 (e23-02). Its gpu copy 13354135
+  (ours, PENDING) cancelled; the 8 G2 files' dependency moved from "afterok:13353680?afterok:13354135" to
+  afterok:13353680 (13353696 / 13353697 debug, 13355108-13 gpu). Polls from here: one background wait at a time,
+  900 s between checks (low laptop RAM).
+- 2026-10-23 20:59 PDT G1 PASS (13353680, debug e23-02 P100, 20:42:33-20:44:45, wall 127 s; g1_check.json): 300 epochs
+  run by the tune job and its refit twin; steps.csv text-identical (91,500 step lines, 0 differ); exact in-sample QLIKE
+  of the twin's fc_train rows [8,221, 47,202) 0.0946888 vs last-epoch running mean TQ_300 0.0946890 (rel 2.4e-6 <= 1%);
+  twin's validation QLIKE (trainer formula, rows [47,527, 50,777)) 0.14297255 = epochs.csv epoch 300 0.14297256 (rel
+  5.0e-8 <= 1e-5); no non-finite; the shortcut alone through the trainer (lr 0, 1 epoch) 0.121038240 = offline TQ_0
+  0.121038241 (rel 3.2e-9); mu_y / sd_y of the job = the init's. Diagnostic: rho_300 of (H 64, L 20, lr 0.003) = 0.782
+  (does not memorize); validation QLIKE best at epoch 28 (0.12465), 0.14297 at epoch 300. G2's 8 files now released
+  (dependency met), PENDING (debug: Resources / Priority; gpu: behind the old walk's halves).
