@@ -63,6 +63,8 @@ ARMS: dict[str, dict[str, Any]] = {
         ],
         cal=CAL + ["is_overnight"],
         desc="all 48 half-hour intervals of the 48-interval grid (overnight included)",
+        # 2026-10-23 addendum B (owner: "skip the refits at the overnight rows"): refits at the scored origins only
+        refit=f"scored@{FIRST_DAY}",
     ),
     "RTH13": dict(
         sample="rth13",
@@ -113,6 +115,8 @@ def configure(arm: str, out: Path) -> None:
     cfg += ["--window-days", str(WD), "--ex-flag", "LATE_START_WARMUP=1"]
     if "rows" in c:  # 2026-10-23 addendum: a row-count window (design-cache modes)
         cfg += ["--window-rows", str(c["rows"])]
+    if "refit" in c:  # 2026-10-23 addendum B: the walk refits at the scored origins only
+        cfg += ["--refit-rows", c["refit"]]
     O.CFG[:] = cfg
     O.PPD, O.TW_DAYS = c["ppd"], WD
     O.W = c.get("rows", WD * c["ppd"])
@@ -409,6 +413,77 @@ def st_gate(a) -> None:
         sys.exit(3)
 
 
+def st_gate_refit(a) -> None:
+    """RULE.txt addendum B gate: the first a.gate_rows rows of every model's walk from the walk start (the frozen
+    penalties of this arm), run with every row refitted (--refit-rows all) and with the scored origins only (the arm's
+    --refit-rows); at every scored origin OLS and ridge must agree to <= 1e-9 relative, lasso and elastic net to
+    <= 1e-6 relative with every scored-only solve KKT-certified (no failing check after the walk's reseeds) and no
+    resolve falling back past the active-set repair to a failure; non-scored rows must be NaN in the scored-only
+    table, and the two tables must share dates and true_adj.  Exit 3 on failure (the walks run afterok on it)."""
+    assert "refit" in ARMS[ARM], ARM
+    S0 = O.walk_start()
+    jobs = O.walk_jobs({}, None)
+    run = []
+    for args, _, (s, m, _c) in jobs:
+        for mode in ("all", "scored"):
+            aa = list(args)
+            aa[aa.index("--end") + 1] = str(S0 + a.gate_rows)
+            o = O.WORK / "gate_refit" / mode / s / m
+            aa[aa.index("--out") + 1] = str(o)
+            if mode == "all":  # the first --refit-rows wins in the runner (the arm's own follows in CFG)
+                aa += ["--refit-rows", "all"]
+            run.append((aa, o / "run.log"))
+    O.pool(run, a.jobs)
+    g: dict = {"rows": a.gate_rows, "walk_start": S0}
+    ok = True
+    for _, _, (s, m, _c) in jobs:
+        est = O.EST.get(m, "ols")
+        rr = {}
+        for mode in ("all", "scored"):
+            o = O.WORK / "gate_refit" / mode / s / m
+            rr[mode] = pd.read_csv(o / "causal_tune_linear" / est / s / "results.csv")
+        fa, fs = rr["all"], rr["scored"]
+        same_rows = fa["date"].equals(fs["date"]) and np.array_equal(
+            fa["true_adj"].to_numpy(), fs["true_adj"].to_numpy()
+        )
+        d = pd.to_datetime(fs["date"])
+        scored = (d.dt.strftime("%H:%M").isin(RTH_CLOCKS) & (d >= pd.Timestamp(FIRST_DAY))).to_numpy()
+        ps, pa = fs["pred_adj"].to_numpy(float), fa["pred_adj"].to_numpy(float)
+        nan_ok = bool(np.isfinite(ps[scored]).all() and np.isnan(ps[~scored]).all() and np.isfinite(pa).all())
+        rel = float(np.max(np.abs(ps[scored] - pa[scored]) / np.abs(pa[scored]))) if scored.any() else float("nan")
+        base = O.WORK / "gate_refit" / "scored" / s / m
+        rj = json.loads((base / "run.json").read_text())
+        rf = json.loads((base / "refit_rows.json").read_text())
+        cpu = {
+            mode: json.loads((O.WORK / "gate_refit" / mode / s / m / "run.json").read_text())["cpu_sec"]
+            for mode in ("all", "scored")
+        }
+        if m in ("ols", "ridge"):
+            tol, kkt_ok = 1e-9, True
+        else:
+            tol = 1e-6
+            kkt_ok = int(rj.get("kkt_not_ok_after_check", 0)) == 0
+        good = bool(same_rows and nan_ok and scored.sum() > 0 and rel <= tol and kkt_ok)
+        g[f"{s}/{m}"] = dict(
+            scored_origins=int(scored.sum()),
+            max_rel_diff=rel,
+            tol=tol,
+            same_rows=same_rows,
+            nan_ok=nan_ok,
+            kkt_not_ok=int(rj.get("kkt_not_ok_after_check", 0)),
+            kkt_reseeds=int(rj.get("kkt_reseeds", 0)),
+            refit=rf,
+            cpu_sec=cpu,
+            pass_=good,
+        )
+        ok &= good
+    g["pass"] = bool(ok)
+    (O.OUT / "gate_refit.json").write_text(json.dumps(g, indent=1))
+    O.say(f"REFIT GATE {'PASS' if ok else 'FAIL'}: {json.dumps(g)}")
+    if not ok:
+        sys.exit(3)
+
+
 # ---------------------------------------------------------------------------- secondary: tuned at 16:00
 def pre16_dir(s: str, m: str) -> Path:
     return O.WORK / "pretune16" / s / m
@@ -619,6 +694,7 @@ def main() -> None:
             "design",
             "derive_close",
             "derive_window",
+            "gate_refit",
             "pretune",
             "select",
             "walk1",
@@ -644,6 +720,7 @@ def main() -> None:
         "design": st_design,
         "derive_close": st_derive_close,
         "derive_window": st_derive_window,
+        "gate_refit": st_gate_refit,
         "pretune": st_pretune,
         "select": st_select,
         "walk1": st_walk1,

@@ -169,3 +169,44 @@ ADDENDUM A, 2026-10-23 22:07 PDT (2026-10-24 05:07 UTC), before any of its jobs:
    Compute estimate for the addendum: ALL48_N3k about 3-5 CPU-hours (127,000 origins a model, cheap seeds),
    ALL48_N39k about 4-6 (RTH13's per-row cost with a 39,000-row window, 3.7x the origins), RTH13_N3k under 1; with the
    equal-calendar arms (ALL48 10-20, ALL48@16 at most as much) the total stays well under 100 CPU-hours.
+
+ADDENDUM B, 2026-10-23 22:50 PDT (2026-10-24 05:50 UTC), before any affected walk ran: SCORED-ONLY REFITS IN THE
+48-INTERVAL ARMS
+   Owner (James, relayed by the coordinator, about 22:45 PDT): "yes, skip the refits at the overnight rows. it just
+   means that for streaming every day needs a multi row stream."  Applies to every ALL48 walk not yet run: ALL48 (the
+   3,000-day arm), ALL48@16, ALL48_N3k, ALL48_N39k.  Section 5's "ALL48 also refits at overnight rows" no longer
+   holds for them; RTH13, CLOSE, CLOSE_NAT and the RTH13 equal-rows arm are unchanged (their walks already ran).
+   Rule (runner option --refit-rows scored@2014-01-02, experiments/linear_train3way_runner.py; set for every ALL48 arm
+   in experiments/linear_train3way.py): the walk refits only at the scored origins, the rows whose end stamp is a
+   regular-hours bar (10:00 .. 16:00) on or after 2014-01-02, and writes NaN as the forecast of every other row.  The
+   window at each scored origin is the trailing N rows ending at it, exactly as before: every row still enters and
+   leaves the window's state in order.  Between a day's 16:00 refit and the next day's 10:00 refit the overnight rows
+   move the state as data only - for streaming, each day is a multi-row stream - and within the day the window
+   advances one row per refit:
+     OLS, ridge: their rank-one sums move every row as always; only the solve is skipped, so the state at a scored
+       origin, and therefore its forecast, is the full-refit walk's (up to floating point);
+     lasso, elastic net: the overnight rows update the problem (Gr += s u u', c += s u w) without the homotopy's path
+       tracking; at the next scored origin the solution of the current problem is restored warm from the last one
+       (reclasso_har.walk_kkt; if it fails, the active-set repair pool_linear_pretune._active_repair, else
+       _cd_polish, else the cold seed, all at WALK_KKT_RESEED's tolerance), then the walk's own solve and KKT check /
+       reseed as before; within the day the warm homotopy as before.  They solve the same convex problem at every
+       scored origin, so they agree with the full-refit walk to solver tolerance.
+     Row-count events stay on their rows: the identifiability mask and cold seed every 250th row (a tune on a
+       non-scored row is still run), the between-seed trackers (degenerate columns, evidence, binomial rule) every
+       row, the OLS's exact rebuild every 250 rows.
+   Gate (automatic, inside the chain; experiments/linear_train3way.py gate_refit): after the ALL48 pretune / select,
+   the first 400 rows of every model's walk from the ALL48 walk start (the 3,000-day ALL48 frozen penalties, all 7
+   models) are run twice, every row refitted and scored-only.  The slice spans the late-December rows before the
+   first scored origin (one long stale stretch), the first scored days of January 2014 with their overnight and
+   weekend gaps, and the 250th-row tune.  It passes only if, at every scored origin, OLS and ridge agree to <= 1e-9
+   relative, lasso and elastic net to <= 1e-6 relative with every scored-only solve KKT-certified (no failing check
+   after the walk's own reseeds), the non-scored rows are NaN and both tables share dates and true_adj.  Exit 3
+   otherwise: every ALL48 walk runs afterok on it.  (A synthetic check on CARC, 900 rows of a 48-row-a-day cache:
+   OLS and ridge bit-identical, lasso / elastic net within 3e-14 relative, every re-solve by the active-set repair,
+   KKT clean.)
+   Jobs: the pending ALL48 walks 13361327, 13361442, 13364086, 13364087 and the dependent export / score jobs
+   13361444, 13361445, 13364094, 13364095 were cancelled (22:48 PDT, owner-approved) before any of them started,
+   and resubmitted in the scored-only form with re-balanced chunks: the 250-row cold seeds remain on their rows and
+   dominate the cost at a 144,000-row window, so the splits shrink less than the ~3.7x fewer refits
+   (ALL48 / ALL48@16: ridge 6, lasso 6, enet 6; ALL48_N39k: 2 / 4 / 3; ALL48_N3k: 1 / 2 / 2).  The scoring is
+   unchanged (the NaN rows are never scored: every scored bar is a refit origin).
