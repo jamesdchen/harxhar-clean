@@ -80,6 +80,24 @@ CFG = [
     "LATE_START_WARMUP=1",
 ]
 FIRST_EVAL, LAST_EVAL = pd.Timestamp("2014-01-02"), pd.Timestamp("2024-04-30")
+# the final design's configuration as the design caches record it (design.json "config")
+CONFIG = {
+    "sample": "rth13",
+    "periods_per_day": 13,
+    "window": 39000,
+    "har_base": "5",
+    "drop_fomc": False,
+    "ex_flags": {
+        "DROP_ACTIVITY_MA": True,
+        "CALENDAR_THROUGH_OVERNIGHT": True,
+        "DROP_OVERNIGHT_INDICATOR": True,
+        "LEAN_GLOBAL_LAGS": True,
+        "LATE_START_WARMUP": True,
+    },
+}
+# 2026-10-25 addendum A (b): reference columns through numpy's power function (sumret4's fourth root) may differ from
+# CARC's build at the last bits (the container's libm); every other reference column must be bit-identical
+POW_COLS_TOL = 1e-12
 
 
 def say(msg: str) -> None:
@@ -106,13 +124,24 @@ def load_X(d: Path) -> np.ndarray:
 def cmd_check(a) -> int:
     full, har = Path(a.full), Path(a.har)
     rec: dict = {"full": str(full), "har": str(har), "md5": {}, "fail": []}
+    # 2026-10-25 addendum A (a): design.json is recorded, not required (the Hoffman2 copies are the linear three-way
+    # comparison's rebuilt caches, whose design.json records that build); its names and config are checked instead.
+    # Was: every file of TEMPLATE_MD5 required.
     for s, d in (("all_features", full), ("baseline", har)):
         for f, want in TEMPLATE_MD5[s].items():
             got = md5(d / f)
             rec["md5"][f"{s}/{f}"] = got
-            if got != want:
+            if got != want and f != "design.json":
                 rec["fail"].append(f"md5 {s}/{f} {got} != {want}")
     mf, mh = meta(full), meta(har)
+    fz = json.loads(
+        (ROOT / "results" / "window_sweep_2014start_2026-10-22" / "w3000" / "frozen_penalties.json").read_text()
+    )
+    for s, m_ in (("all_features", mf), ("baseline", mh)):
+        if m_["names"] != fz["designs"][s]["columns"]:
+            rec["fail"].append(f"{s}: names differ from w3000 frozen_penalties.json")
+        if m_.get("config") != CONFIG:
+            rec["fail"].append(f"{s}: config {m_.get('config')} != {CONFIG}")
     names = mf["names"]
     AA.check_full_names(names)
     assert mh["names"] == AA.HAR12, mh["names"]
@@ -200,7 +229,9 @@ def cmd_cmpnew(a) -> int:
         x, y = np.asarray(Xn[:, mn["names"].index(n)]), np.asarray(Xf[:, mf["names"].index(n)])
         eq = bool(np.array_equal(x, y) and x.tobytes() == y.tobytes())
         rec["columns"][n] = eq if eq else float(np.nanmax(np.abs(x - y)))
-        if not eq:
+        # 2026-10-25 addendum A (b): sumret4's value averages within POW_COLS_TOL (recorded); was: every column exact
+        pow_ok = n.startswith("adj_sumret4_ma_") and rec["columns"][n] <= POW_COLS_TOL
+        if not eq and not pow_ok:
             rec["fail"].append(f"column {n} differs (max abs {rec['columns'][n]:.3e})")
     for f in ("y.npy", "b_oos.npy", "dates_oos.csv"):
         if (new / f).read_bytes() != (full / f).read_bytes():
@@ -231,11 +262,25 @@ def cmd_cmpnew(a) -> int:
 
 
 # ============================================================================ the linear arms' caches
-def write_subset(src: Path, names: list[str], out: Path, arm: str, bucket: str) -> dict:
+def write_subset(src: Path, names: list[str], out: Path, arm: str, bucket: str, extra: Path | None = None) -> dict:
+    """The arm's cache: the columns `names` of `src` (F order), and (2026-10-25 addendum A (b)) columns `src` does not
+    have from `extra` (the classical arms: HAR, calendar and RS+ from the full cache, the new series from abl_new)."""
     m = meta(src)
     X = load_X(src)
-    idx = [m["names"].index(n) for n in names]
-    sub = np.asfortranarray(X[:, idx], dtype=np.float64)
+    sub = np.empty((X.shape[0], len(names)), dtype=np.float64, order="F")
+    me = meta(extra) if extra is not None else None
+    Xe = load_X(extra) if extra is not None else None
+    from_extra = []
+    for j, n in enumerate(names):
+        if n in m["names"]:
+            sub[:, j] = X[:, m["names"].index(n)]
+        else:
+            assert me is not None and Xe is not None and n in me["names"], n
+            sub[:, j] = Xe[:, me["names"].index(n)]
+            from_extra.append(n)
+    if extra is not None:
+        for f in ("y.npy", "b_oos.npy", "dates_oos.csv"):
+            assert (src / f).read_bytes() == (extra / f).read_bytes(), f
     out.mkdir(parents=True, exist_ok=True)
     np.save(out / "X.npy", sub)
     for f in ("y.npy", "b_oos.npy", "dates_oos.csv"):
@@ -252,7 +297,14 @@ def write_subset(src: Path, names: list[str], out: Path, arm: str, bucket: str) 
         names=names,
         shape=list(sub.shape),
         f_order=bool(sub.flags.f_contiguous),
-        ablation=dict(arm=arm, source=str(src), source_x_md5=md5(src / "X.npy"), n_cols=len(names)),
+        ablation=dict(
+            arm=arm,
+            source=str(src),
+            source_x_md5=md5(src / "X.npy"),
+            n_cols=len(names),
+            from_extra=from_extra,
+            extra=str(extra) if extra is not None else None,
+        ),
     )
     (out / "design.json").write_text(json.dumps(mm))
     return dict(arm=arm, bucket=bucket, n_cols=len(names), x_md5=md5(out / "X.npy"), source=str(src))
@@ -266,10 +318,12 @@ def cmd_subsets(a) -> int:
     recs = []
     recs.append(write_subset(full, AA.arm_names("har", fn, gs), root / "har_sub", "har_sub", "baseline"))
     for arm in AA.LINEAR_ARMS:
-        src, names = (new, nn) if arm in AA.CLASSICAL else (full, fn)
-        cols = AA.arm_names(arm, names, gs)
+        # 2026-10-25 addendum A (b): a classical arm takes every column the full cache has from it (HAR, calendar,
+        # RS+) and only the new series from abl_new.  Was: every column of a classical arm from abl_new.
+        cols = AA.arm_names(arm, nn if arm in AA.CLASSICAL else fn, gs)
         assert len(cols) == AA.n_cols(arm), (arm, len(cols), AA.n_cols(arm))
-        recs.append(write_subset(src, cols, root / arm, arm, "all_features"))
+        extra = new if arm in AA.CLASSICAL else None
+        recs.append(write_subset(full, cols, root / arm, arm, "all_features", extra=extra))
         say(f"subset {arm}: {len(cols)} columns")
     pd.DataFrame(recs).to_csv(root / "subsets.csv", index=False)
     return 0

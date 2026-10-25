@@ -1,0 +1,55 @@
+% DRAFT (2026-10-25), not \input by the paper: predictor-group ablations and augmented-HAR benchmarks.
+% Numbers: writeup/generated/rehaul_ablation_numbers.tex (\rhab...) and Table tab:rh_ablation
+% (writeup/generated/rehaul_ablation_table.tex), both from writeup/make_rehaul_ablations.py on
+% results/ablations_2014start_w3000 (RULE.txt, STATUS.md).  To use: \input{generated/rehaul_ablation_numbers} in the
+% preamble, the table in 06_results_floats.tex, this text in Section~\ref{sec:rh_results_predictors}.
+% [RESULTS PARAGRAPHS: written after the runs finish]
+% Two references are not in writeup/references.bib yet (BollerslevPattonQuaedvlieg2016 is):
+% @article{PattonSheppard2015,
+%   title={Good volatility, bad volatility: signed jumps and the persistence of volatility},
+%   author={Patton, Andrew J. and Sheppard, Kevin}, journal={The Review of Economics and Statistics},
+%   volume={97}, number={3}, pages={683--697}, year={2015}}
+% @article{CorsiReno2012,
+%   title={Discrete-time volatility forecasting with persistent leverage effect and the link with continuous-time
+%          volatility modeling},
+%   author={Corsi, Fulvio and Ren{\`o}, Roberto}, journal={Journal of Business \& Economic Statistics},
+%   volume={30}, number={3}, pages={368--380}, year={2012}}
+
+\subsection{Which predictors carry the gain?}
+\label{sec:rh_results_ablation}
+
+The comparison of Table~\ref{tab:rh_oos} sets the full predictor set against the HAR benchmark.  Two questions remain:
+whether the gain comes from data beyond the futures contract itself, and whether a richer volatility model built from
+the same one-minute E-mini returns would close the gap.  We answer both with the design of Table~\ref{tab:rh_oos}
+unchanged---the same rows, window, re-estimation at every bar, scored bars and test---and only the columns changed.
+
+\paragraph{Design.}  The 46 exogenous series form the eight groups of Table~\ref{tab:rh_dm_dictionary}.  For each group
+$g$ we fit two models in every class: the full set without $g$ (all of $g$'s trailing averages $u^{(k)}$ and
+availability shares $\bar a^{(k)}$ removed) and the HAR benchmark with $g$ added.  The first measures what $g$
+contributes given everything else; the second what it contributes on its own.  Hyperparameters stay those of the full
+set: the linear penalties chosen on the 2013 pre-sample fold for the full predictor set (with the HAR block
+penalized at one hundredth of the rate of the exogenous columns), and the single frozen configuration of each tree
+method.  The random forest, the most expensive class, is fitted for the eight additions and for the removal of the
+realized moments.  Panel~D of Table~\ref{tab:rh_ablation} restates the full-set row of Table~\ref{tab:rh_oos}.
+
+\paragraph{Augmented HAR benchmarks.}  The first group, the futures' own realized moments, is the natural
+``augmented HAR'': it adds the return, absolute variation, skewness, quarticity, positive semivariance, bipower
+variation and autocovariance of the same one-minute E-mini returns that define the target.  We also fit the three
+classical extensions of the HAR model by OLS, each built from the same one-minute data and passed through the same
+diurnal adjustment, variance-stabilizing transform and trailing averages as every other series: the semivariance HAR
+of \citet{PattonSheppard2015}, which adds the positive and negative realized semivariances $\mathrm{RS}^{\pm}$ of the
+last half hour; the HARQ model of \citet{BollerslevPattonQuaedvlieg2016}, which adds the interaction of the last
+half hour's realized variance with the square root of its realized quarticity $\mathrm{RQ} = (N/3)\sum_k r^4_{t,i,k}$
+(in the volatility units of the design, $\sqrt{\RV\,\mathrm{RQ}^{1/2}}$); and the leverage HAR of
+\citet{CorsiReno2012}, which adds the negative part of the half-hour return, $\min(r_{t,i}, 0)$, at every HAR horizon.
+A fourth model adds all three.  The negative semivariance is $\mathrm{RS}^{-} = \RV - \mathrm{RS}^{+}$, exact on every
+bar of the data.
+
+\paragraph{Late-starting series.}  The implied-volatility, sentiment and volatility-demand series start after the
+data, and a series enters as zero until the rolling window holds 3,000 trading days of its history
+(Section~\ref{sec:rh_predictors}).  In the evaluation sample this rule binds for most of the span: the VIX enters on
+\rhabLiveVixFromKone{} (its longest average on \rhabLiveVixFromKlast{}), VIX3M on \rhabLiveVixthreemFromKone{},
+StockTwits attention on \rhabLiveAttnFromKone{} and the other StockTwits series on \rhabLiveSentFromKone{}, the
+volatility-demand series on \rhabLiveVdSpxOcFromKone{} (and their feed stops on \rhabLiveVdSpxOcLast{}... [check]),
+and VVIX on \rhabLiveVvixFromKone{}.  Before those dates the groups contribute only their availability shares, so
+the ablation rows of these groups measure the series over the later part of the sample only.

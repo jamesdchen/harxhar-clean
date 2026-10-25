@@ -154,3 +154,24 @@ Nothing of the paper (writeup/rehaul, writeup/generated outside this run's two f
    and writeup/generated/rehaul_ablation_table.tex (tab:rh_ablation); a draft writeup/drafts/2026-10-25_ablations.tex.
 
 9. ADDENDA: dated, written before the job they affect.
+
+ADDENDUM A, 2026-10-25 14:15 PDT (21:15 UTC), before any job it affects: GATE 0 ON THE HOFFMAN2 COPIES AND THE ABL_NEW BUILD
+   Gate 0 (jobs 499293 / 499294, 13:53) failed on two points, neither a difference in the data the walks read:
+   (a) gate 0a: the design.json files of the Hoffman2 copies (the linear three-way comparison's rebuilt RTH13 caches,
+       transferred md5-checked by its Hoffman2 executor) differ from the templates' design.json (md5 5d52a800... /
+       01bdbcea... against 224b086b... / 91b0800f...): they record that rebuild.  X, y, b_oos and dates_oos of both
+       caches are md5-equal to the templates' (the three-way comparison's gate 0 compared the same four files); the HAR
+       columns of the full cache equal the baseline X bit for bit; the E-mini availability averages are constant 1.
+       Change: design.json's md5 is recorded, not required; its names must equal w3000/frozen_penalties.json's columns
+       of the set and its config the final design's (ablate_design.py CONFIG).
+   (b) gate 0b: in the abl_new cache built on Hoffman2 (Gold 6240, the container), the HAR and calendar columns and the
+       reference series sumret and sumpret2 (value and availability averages) are bit-identical to the full cache, and
+       y, b_oos, dates_oos too; the six value averages of sumret4 differ by at most 2.8e-14 absolute (its fourth root
+       goes through numpy's power function, i.e. the container's libm, against CARC's; the square-root and identity
+       chains are exact).  The new series use only square roots, products, clips and the identity (no power function).
+       Change: the classical arms take every column the full cache has (HAR, calendar, RS+ = adj_sumpret2_ma_1) from the
+       full cache and only the new series' columns (sumnret2, rvsqrq, negret) from abl_new; gate 0b requires the
+       reference columns bit-identical except sumret4's value averages, which must be within 1e-12 absolute (recorded).
+   The jobs depending on 499293 / 499294 (499295-499317; never started) were cancelled; everything of the 13:53
+   submission is resubmitted unchanged on the code of this addendum's commit.  The UGE gate 15272780 (tree gate A on
+   Gold 6140, independent of gate 0's two points) and its pool 15272781 stay queued.
