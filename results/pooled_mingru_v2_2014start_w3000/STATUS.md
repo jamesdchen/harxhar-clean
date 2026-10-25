@@ -419,3 +419,5 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   COMPLETED 0:0, 945 / 940 refits ok, finite, positive, walls 2,616 / 2,602 s (2.77 s a refit at cpu 2 / 16G, CONC
   24). Debug refilled: 13423529-30 (005.p00.g03-g04, A40), 13423531 (053.p01.g06, P100). gpu 99 (24 running P100,
   still no gpu A40 running). No FAILED since 02:30.
+- 2026-10-25 04:08 PDT: debug refill 13423689 (005.p00.g05, A40), 13423690 (053.p01.g07, P100). gpu 99 (25 running
+  P100), debug 5. No FAILED since 03:20.
