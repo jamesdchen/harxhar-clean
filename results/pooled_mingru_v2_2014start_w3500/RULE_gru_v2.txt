@@ -281,3 +281,28 @@ pieces of ~189 bars, ~47 min at the measured A40 3.0 s a refit; W 3,500 file 003
 ~44 min at an estimated 1.12 s a refit), time limits est x 1.2 (<= 60 min). Identity: the debug A40 output is covered
 by the A40 probes (13386771 / 13387069 / 13416868 identical); when the first gpu-partition A40 walk piece runs, a few
 of its refits are rerun on debug A40 and compared byte for byte.
+
+ADDENDUM 3d 2026-10-25 11:55 PDT (coordinator ~11:50 PDT, owner: maximize throughput), written before the affected
+jobs and before the comparison it prescribes; both copies. Full W 3,500 has no refit done (0 of 169,850 at 11:46): its
+4 gpu-partition A40 pieces (13385646-49, pending since 2026-10-24 15:15) never started, its 18 debug A40 pieces (file
+003, ADDENDUM 3c) were cut but never submitted. ADDENDUM 1a's CHOICE (a group none of whose jobs has started) is
+re-applied to it between the validated P100 and L40S. A40 is left out: none of our gpu-partition A40 pieces has started
+in 21 h (at 11:46 rank 135 of 189 A40-eligible pending jobs, priority 3,772 vs 4,200-5,300 ahead) and the 2 debug A40s
+carry full W 3,000. Full W 3,000 (16,911 refits done on A40) stays A40 (the owner is deciding whether to restart it).
+COMPARE  At the next CARC session: per type, gpu-partition GPUs total / in use / free on nodes with the request's CPUs
+         and memory idle (cpu 4 / 24G), others' pending jobs accepting the type, GPU jobs started on its nodes in the
+         last 6 h, our running jobs against the 36-GPU QOS and the L40S cap of 6. Concurrency available to the arm:
+           P100: our gpu-partition P100 queue is HAR (W 3,000 nice 0 ahead, W 3,500 nice 100), so at most the 2 debug
+                 P100s (taken from HAR W 3,000's debug pieces);
+           L40S: min(6, 36 - our running gpu-partition jobs, free L40S usable at cpu 4 / 24G).
+         Rule: L40S if its concurrency is >= 2 at the check, else P100.
+CANARY   On the chosen type (debug if P100): the arm's first 24 bar origins x 5 seeds (rows 50,777-50,800 = the G7
+         probe's origins; the first 120 lines of inputs/v2w_all_features.000.txt as inputs/pieces/canary/
+         v2w_all_features.000.c24.txt), CONC 24, NOSTEPS 1, TAG v2wcanary_* (outside walk-merge's v2w_<set>_* glob).
+         Pass (G5's criteria on the walk): POST n_bad 0 (every job status ok, epochs_run 40, the trainer's kept columns =
+         the bar init's n_keep, forecast row = origin, finite, positive).
+RE-PIN   If the canary passes, the whole arm moves to the chosen type, recorded in STATUS.md before the jobs: its 4 pending
+         gpu A40 pieces are cancelled, its 18 debug A40 pieces withdrawn, and its 12 pieces (inputs/pieces_all_features
+         .csv) run on the type: L40S in the gpu partition (est 1.73 s a refit, time limit 562 min = est x 1.3 + 30 min,
+         cpu 4 / 24G, nice 0); P100 as <= 50-min debug pieces and gpu pieces with nice 100 behind HAR W 3,000. If it
+         fails, nothing moves and the failure is reported.
