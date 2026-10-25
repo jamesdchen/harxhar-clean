@@ -356,3 +356,13 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   topped up to 5: 13392939 (g04). gpu: 36 running P100 (cap), 51 P100 + 13 A40 pending.
 - 2026-10-24 19:57 PDT: debug pieces 13390082 / 13390083 COMPLETED 0:0 (2,891 s); debug topped up to 5: 13396806-07
   (053.p00.g05-g06). gpu unchanged (36 running P100, 51 P100 + 13 A40 pending).
+- 2026-10-24 20:27 PDT: old-script HAR W 3,000 pieces ending FAILED 143 as expected (013.p00-p04, 014.p00-p03 so far:
+  13382856-64); each lost 44-55 of its 625-630 refits (the trainer appends jobs_out / preds in batches, so the last
+  15-min copy lags). Their missing lines written to new remainder files per original file (pieces/rem/
+  v2w_baseline.013.rem10242027.txt 256 refits, .014.rem10242027.txt 195; inputs/rem_10242027.list,
+  walk_remaindered.txt) and submitted on gpu P100 (debug full): 13401259, 13401260. MISTAKE: their time limits
+  (37 / 31 min) came from a formula that divided the 42.3 P100-s a refit by CONC once too often; they need ~3.0 /
+  2.3 h. To fix at the next session (>= 20:57): cancel them if still pending and resubmit with ~264 / 210 min; if
+  one starts first, its time-limit salvage + partial copies keep what it finished and the rest gets another
+  remainder. gpu top-up: 6 HAR W 3,000 pieces 023.p04, 024.p00-p04 (13401261-66, 608 min). gpu 95 (28 running),
+  debug 5.

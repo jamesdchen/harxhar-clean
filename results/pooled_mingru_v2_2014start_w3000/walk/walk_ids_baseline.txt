@@ -145,3 +145,11 @@ pieces/dbg/v2w_baseline.053.p00.g03.txt 13390084 debug 60 P100 debug piece of pi
 pieces/dbg/v2w_baseline.053.p00.g04.txt 13392939 debug 60 P100 debug piece of pieces/v2w_baseline.053.p00.txt (ADDENDUM 3b)
 pieces/dbg/v2w_baseline.053.p00.g05.txt 13396806 debug 60 P100 debug piece of pieces/v2w_baseline.053.p00.txt (ADDENDUM 3b)
 pieces/dbg/v2w_baseline.053.p00.g06.txt 13396807 debug 60 P100 debug piece of pieces/v2w_baseline.053.p00.txt (ADDENDUM 3b)
+pieces/rem/v2w_baseline.013.rem10242027.txt 13401259 gpu 37 P100 remainder (256 refits) of old-script jobs
+pieces/rem/v2w_baseline.014.rem10242027.txt 13401260 gpu 31 P100 remainder (195 refits) of old-script jobs
+pieces/v2w_baseline.023.p04.txt 13401261 gpu 608 P100 piece (top-up)
+pieces/v2w_baseline.024.p00.txt 13401262 gpu 608 P100 piece (top-up)
+pieces/v2w_baseline.024.p01.txt 13401263 gpu 608 P100 piece (top-up)
+pieces/v2w_baseline.024.p02.txt 13401264 gpu 603 P100 piece (top-up)
+pieces/v2w_baseline.024.p03.txt 13401265 gpu 608 P100 piece (top-up)
+pieces/v2w_baseline.024.p04.txt 13401266 gpu 608 P100 piece (top-up)
