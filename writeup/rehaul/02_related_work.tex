@@ -183,9 +183,12 @@
   this work targets daily volatility or monthly returns.
   % 2026-10-25 (user): added -- Maisch, Zhang, Ulrich and Zimmer (SSRN 7269778): machine learning for intraday option
   % returns, the nearest work in our market and bar length; framed against our target (the index's volatility).
+  % 2026-10-25 (user): parked -- their predictors named in full (predictor-overlap check: their 69 features are
+  % contract-level and option-implied; ours are market-wide exogenous series). Was: "... options from contract
+  % characteristics and sort the contracts into long--short portfolios."
   At the intraday horizon, machine learning has also reached option returns: \citet{MaischZhangUlrichZimmer2026}
-  predict the half-hourly delta-hedged returns of S\&P~500 index options from contract characteristics and sort the
-  contracts into long--short portfolios. We forecast the volatility of the index itself, and options enter only
+  predict the half-hourly delta-hedged returns of S\&P~500 index options from contract characteristics, Greeks, and
+  option-implied measures of the index's return distribution, and sort the contracts into long--short portfolios. We forecast the volatility of the index itself, and options enter only
   through our economic test. The closest machine-learning precedent for our setting,
   \citet{ZhangZhangCucuringuQian2024}, forecasts realized volatility over intraday buckets for a cross-section of
   stocks, fitting one model across all buckets of the day and, in its universal variant, across stocks, with
