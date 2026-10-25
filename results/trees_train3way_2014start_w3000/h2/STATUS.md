@@ -206,3 +206,12 @@ bookworm container of the tree learning curve; threads = slots; numpy AVX-512 di
   317-368, 164-167, 139-153; ASSIGNED 168-316, 154-163; runs/tasks/h2_placement.txt.
 - Left on Hoffman2: UGE 15262057 last task (line 187, 83 of 91 refits at 23:14), 15263238 10 running (lines 154-163,
   14-24 refits each at 23:14, ~09:00-10:00 Sunday); Slurm 494144 round 2, 60 lines (~03:20-03:50 Sunday).
+
+## 00:35 PDT Sunday: 15262057 complete; sixth delivery
+
+- 15262057 (lines 174-198): all 25 tasks ended normally ("done in" in 25 of 25 logs, no error); the last, line 187 on
+  n6643, 91 refits in 49,043 s (539 s a refit).
+- Delivered: line 187; manifest md5 28c4390758bc6a57d15376d10232fb6e, 2 files md5-verified on CARC, /scratch1 ok;
+  runs/pieces_h2 MD5SUMS ok, 89 pieces.
+- Running: UGE 15263238 lines 154-163 at 25-36 of 91 refits (about 280-400 s a refit; ~05:00-08:00 Sunday); Slurm
+  494144 round 2, 60 lines (~03:20-03:50).  No error in any log.
