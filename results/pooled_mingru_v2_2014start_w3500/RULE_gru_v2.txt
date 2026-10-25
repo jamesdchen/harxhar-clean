@@ -337,7 +337,7 @@ W 3,500  ADDENDUM 3d counts this demand: the debug P100s carry full W 3,000 (can
          our gpu-partition P100 queue both W 3,000 arms at nice 0, so full W 3,500's P100 concurrency is 0 until they
          drain; 3d's rule becomes: L40S if its concurrency is >= 1 at the check, else P100.
 
-ADDENDUM 3f 2026-10-25 12:01 PDT, local clock (owner, relayed by the coordinator: "validate on hoffman"), written
+ADDENDUM 3f 2026-10-25 11:59 PDT, local clock (owner, relayed by the coordinator: "validate on hoffman"), written
 before the affected jobs; both copies. Full W 3,500 is HELD: a separate agent validates Hoffman2's UGE L40S
 (gpu_l40s.q) under ADDENDUM 1 VALIDATION and runs the arm's G5 canary there. Until the coordinator relays that verdict
 no refit of the arm starts on any type: ADDENDUM 3d's comparison and canary are not run (3e's W 3,500 paragraph
