@@ -143,3 +143,5 @@ pieces/dbg/v2w_baseline.053.p00.g01.txt 13390082 debug 60 P100 debug piece of pi
 pieces/dbg/v2w_baseline.053.p00.g02.txt 13390083 debug 60 P100 debug piece of pieces/v2w_baseline.053.p00.txt (ADDENDUM 3b)
 pieces/dbg/v2w_baseline.053.p00.g03.txt 13390084 debug 60 P100 debug piece of pieces/v2w_baseline.053.p00.txt (ADDENDUM 3b)
 pieces/dbg/v2w_baseline.053.p00.g04.txt 13392939 debug 60 P100 debug piece of pieces/v2w_baseline.053.p00.txt (ADDENDUM 3b)
+pieces/dbg/v2w_baseline.053.p00.g05.txt 13396806 debug 60 P100 debug piece of pieces/v2w_baseline.053.p00.txt (ADDENDUM 3b)
+pieces/dbg/v2w_baseline.053.p00.g06.txt 13396807 debug 60 P100 debug piece of pieces/v2w_baseline.053.p00.txt (ADDENDUM 3b)

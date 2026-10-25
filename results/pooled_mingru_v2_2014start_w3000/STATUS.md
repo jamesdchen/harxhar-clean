@@ -354,3 +354,5 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
 - 2026-10-24 19:16 PDT: first walk job with the fixed script done end to end: debug piece 13390081 (053.p00.g00, P100
   e23-02) COMPLETED 0:0 in 2,887 s, outputs copied back, POST n_bad 0 (70 refits ok, finite, positive). Debug
   topped up to 5: 13392939 (g04). gpu: 36 running P100 (cap), 51 P100 + 13 A40 pending.
+- 2026-10-24 19:57 PDT: debug pieces 13390082 / 13390083 COMPLETED 0:0 (2,891 s); debug topped up to 5: 13396806-07
+  (053.p00.g05-g06). gpu unchanged (36 running P100, 51 P100 + 13 A40 pending).
