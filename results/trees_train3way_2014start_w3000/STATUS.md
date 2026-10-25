@@ -459,3 +459,5 @@ Pool: lines 5-348 of runs/tasks/w3rf_full.txt, claims in runs/claims_w3rf_full/<
   refits, 462 s) -> 13436653 (4:45); 340 (13377719_139, a01-19, 55/91, 400 s) -> 13436654 (4:30); 341 (13422082_6,
   b09-15, 55/91, 395 s) -> 13436655 (4:30); 342 (13377719_143, a04-07, 60/91, 367 s) -> 13436656 (3:52).  38 free
   non-slow EPYC nodes had 107 eight-CPU slots.  Held merge 13372433 afterany 13377719, 13422082, 13436653-56.
+- 14:24 (CARC clock): 367 of 368 pieces complete; line 340 still resuming (13436654 on b10-17, EPYC 7513, 310 s a
+  refit; 55 + 34 of 91 refits) -> done about 14:35.  Accept, the /home1 copy and the merge release wait for it.
