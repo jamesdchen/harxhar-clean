@@ -156,3 +156,15 @@ bookworm container of the tree learning curve; threads = slots; numpy AVX-512 di
 - Production 494144: 16 jobs (64 lines) running, 16 jobs (64 lines) pending (array limit); no error in any log;
   64 checkpoints, 292.9 s a refit on average (271-522) with 4 walks a node = about 7.4 h a 91-refit line (UGE Gold
   6240 gate piece: 463 s).  No piece finished yet.  Projected: round 1 ~20:30, round 2 ~04:30 Sunday (Hoffman2 clock).
+
+## 20:41-20:42 PDT: first delivery; Slurm round 2 running
+
+- Slurm 494144: 15 jobs COMPLETED (round 1), 16 running (round 2 from ~20:10-20:40), 1 pending (job 32, 4 lines;
+  starts when a slot frees ~03:30); 61 pieces finished, 282.1 s a refit (272-302) = about 7.1 h a line; no error.
+  163 idle 8-CPU Gold 6240 slots on campus at 20:41.
+- UGE: 15262057 23 running (2 finished), 15263238 2 running + 1 queued, 15263239 held.
+- Delivered 20:42 (Hoffman2 inline tar -> laptop -> CARC inline receive; every mv and MD5SUMS append written out in
+  the command): 63 pieces = lines 175, 188 (UGE Gold 6140) and 253-312, 314 (Slurm Gold 6240); manifest md5
+  44d9a40c60d67c934d1750966196de14, 127 files md5-verified in CARC staging, /scratch1 write check ok, moved into
+  /scratch1/jc_905/trees3way/runs/pieces_h2 (MD5SUMS: 63 pieces, md5sum -c ok); the Slurm check record ->
+  h2/slurm_gold6240_check.json.
