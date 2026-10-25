@@ -404,3 +404,5 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   (16 running P100), debug 5.
 - 2026-10-25 00:15 PDT top-up: debug 13422305 (053.p01.g04), gpu 13422306 (027.p04, cpu 2 / 8G). gpu 99 (22 running
   P100, 64 P100 + 13 A40 pending), debug 5. No FAILED walk job since 23:00.
+- 2026-10-25 01:04 PDT top-up: debug 13422440-41 (053.p01.g05-g06), gpu 13422442-43 (028.p00-p01, cpu 2 / 8G). gpu 98
+  (20 running P100), debug 5. No FAILED walk job since 00:00.
