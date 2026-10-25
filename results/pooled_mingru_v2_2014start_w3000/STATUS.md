@@ -374,3 +374,11 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   resubmit with T = ceil(N / 12) x 9 min x 1.3 + 30 (debug only if <= 60 min, i.e. N <= 24); remainder batches
   also take jobs that ended by salvage (exit 3) and read salvage copies. gpu top-up: 025.p00-p04, 026.p00-p01
   (13406059-65). gpu 94 (22 running P100, 59 P100 + 13 A40 pending), debug 5.
+- 2026-10-24 21:29 PDT: our P100 pieces wait on hardware (18 running of the 36 cap; P100 free GPUs: e21-10 1, and 8
+  stranded on nodes with 0 idle CPUs; 9 others' P100 jobs above our priority). The two debug remainders with short
+  limits (13406057 / 58) cancelled while pending. The salvaged remainders 13401259 / 60 (33 / 27 min) and these two
+  had 0 refits in their salvage copies: the trainer writes jobs_out / preds in batches, so a short run leaves
+  nothing (lever 4, --time-min, stays off). Rebuilt with old-script failures 13382871-73 (016.p00-p02) into
+  4 remainder files at the corrected limit (ceil(N/12) x 9 min x 1.3 + 30): 13410671 (013, 256, 287 min),
+  13410672 (014, 241, 275), 13410673 (015, 253, 287), 13410674 (016, 151, 182). gpu top-up 026.p02-p04,
+  027.p00-p01 (13410675-79). gpu 99; debug 2 (room for 3: next session).
