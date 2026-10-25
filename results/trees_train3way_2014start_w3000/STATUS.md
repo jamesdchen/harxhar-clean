@@ -461,3 +461,14 @@ Pool: lines 5-348 of runs/tasks/w3rf_full.txt, claims in runs/claims_w3rf_full/<
   non-slow EPYC nodes had 107 eight-CPU slots.  Held merge 13372433 afterany 13377719, 13422082, 13436653-56.
 - 14:24 (CARC clock): 367 of 368 pieces complete; line 340 still resuming (13436654 on b10-17, EPYC 7513, 310 s a
   refit; 55 + 34 of 91 refits) -> done about 14:35.  Accept, the /home1 copy and the merge release wait for it.
+
+## Final merge released (2026-10-25 14:33 CARC clock)
+
+- 368 of 368 ALL48 forest full-set pieces complete (CARC /scratch1 and /home1, Hoffman2 159 via pieces_h2).
+- accept (code_6e1eb98, gate/h2/{e5v4, gold6140, gold6240, gold6342}, gate/carc_x2640v4, gate/carc_x4116): every tag
+  passed gate 1, gate 2 and the repeats, one CPU model a tag; accepted: Hoffman2 E5-2650 v4, Gold 6140, Gold 6240,
+  Gold 6342; CARC E5-2640 v4, Xeon Silver 4116 (EPYC 7513 / 7542 by the CARC gates).  Models used by the pieces:
+  CARC EPYC 7513, EPYC 7542, E5-2640 v4, Xeon 4116; Hoffman2 Gold 6140, Gold 6240 -- all accepted on their cluster.
+- The /home1 pieces (27 lines: 80-86, 349-368; 54 files) copied into runs/pieces, md5-equal.
+- 13372433 (merge of ALL48 with every class: intake of runs/pieces_h2, --accept-cpus) dependency cleared and
+  released; 13372434 (final scores -> scores/) afterok on it.
