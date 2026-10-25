@@ -443,3 +443,8 @@ Pool: lines 5-348 of runs/tasks/w3rf_full.txt, claims in runs/claims_w3rf_full/<
   the last 2 h (11.0 lines/h); median running-EPYC s/refit 264.6 s (75 tasks) -> 6.69 h a 91-refit line; CARC's last
   claim in ~1.2 h -> tail ~10:40 (CARC clock); CARC can claim ~16 lines in the window to 11:00 -> k = 0: nothing
   reserved for Hoffman2's Slurm round 3, h2_assignment.txt unchanged.
+- 09:21 (CARC clock): 13377719_116 (line 319, a02-14; started 01:18 with the old 7:50 limit, before the 01:27 scan
+  covered it) TIMED OUT with 86 of 91 refits checkpointed -> resume job 13425458 (3 h).  Every other timed-out task
+  had its resume job (24 in resumes.log; their pieces complete except lines 144, 167, 318, still resuming).  No running
+  task with a 7:50 limit is left uncovered.  Complete forest full-set pieces: 159 on /scratch1, 27 on /home1;
+  running: 13377719 17, 13422082 2, resume jobs 3 (+1 pending).
