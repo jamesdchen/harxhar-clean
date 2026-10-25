@@ -366,3 +366,11 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   one starts first, its time-limit salvage + partial copies keep what it finished and the rest gets another
   remainder. gpu top-up: 6 HAR W 3,000 pieces 023.p04, 024.p00-p04 (13401261-66, 608 min). gpu 95 (28 running),
   debug 5.
+- 2026-10-24 20:58 PDT: 13401259 (013 remainder, 37-min limit) had started: it will end by its time-limit salvage;
+  13401260 (014 remainder, 31 min) had already left the queue. New old-script failures 13382865-70 (014.p04,
+  015.p00-p04; 46-53 refits lost each): remainders 13406057 (014, 46 refits) and 13406058 (015, 253 refits), on debug --
+  SECOND MISTAKE: their limits (34 / 53 min) again came from a mis-scaled formula (an extra /10); they need ~1.2 h
+  / ~3.1 h at 12 refits a wave (~9 min a wave on a P100). Fix next session (>= 21:28): cancel if still pending and
+  resubmit with T = ceil(N / 12) x 9 min x 1.3 + 30 (debug only if <= 60 min, i.e. N <= 24); remainder batches
+  also take jobs that ended by salvage (exit 3) and read salvage copies. gpu top-up: 025.p00-p04, 026.p00-p01
+  (13406059-65). gpu 94 (22 running P100, 59 P100 + 13 A40 pending), debug 5.
