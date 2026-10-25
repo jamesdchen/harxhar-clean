@@ -415,3 +415,7 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   debug 5. No FAILED since 01:00.
 - 2026-10-25 02:36 PDT: debug 13423199 (053.p01.g05, P100); gpu top-up 13423200-01 (028.p04, 029.p00). gpu 99 (21
   running P100, 0 A40 running), debug 5 (3 A40 pending: the debug A40s are taken). No FAILED since 02:00.
+- 2026-10-25 03:27 PDT: the first full-set walk pieces are done, on the debug A40s: 13422686 / 87 (005.p00.g00-g01)
+  COMPLETED 0:0, 945 / 940 refits ok, finite, positive, walls 2,616 / 2,602 s (2.77 s a refit at cpu 2 / 16G, CONC
+  24). Debug refilled: 13423529-30 (005.p00.g03-g04, A40), 13423531 (053.p01.g06, P100). gpu 99 (24 running P100,
+  still no gpu A40 running). No FAILED since 02:30.
