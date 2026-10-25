@@ -1795,13 +1795,37 @@ def st_walk_inits(a: argparse.Namespace) -> None:
     say(f"walk inits {s} {sub}: {len(rec)} origins in {time.time() - t0:.0f} s")
 
 
-def walk_read(runs: list[Path], s: str) -> tuple[pd.DataFrame, list[str]]:
+def run_gputype(root: Path, d: Path) -> str:
+    """The GPUTYPE a walk run was required to run on (its env.txt; a salvage directory's run is runs/<same name>)."""
+    cands = [d / "env.txt", d / "summary" / "env.txt"]
+    if root.name == "salvage":
+        cands += [
+            root.parent / "runs" / d.name / "env.txt",
+            root.parent / "runs" / d.name / "summary" / "env.txt",
+        ]
+    for e in cands:
+        if e.is_file():
+            m = re.search(r"GPUTYPE=(\S+)", e.read_text(errors="replace"))
+            if m:
+                return m.group(1)
+    return ""
+
+
+def walk_read(runs: list[Path], s: str, gputype: str) -> tuple[pd.DataFrame, list[str]]:
     """Every finished bar refit of set s in the run directories (complete runs first, then salvaged / partial
-    copies): one row an id with its forecast; the first copy of an id wins."""
+    copies): one row an id with its forecast; the first copy of an id wins. One GPU type an arm (RULE ADDENDUM 1 /
+    3e): every run must carry GPUTYPE=gputype in its env.txt, else the merge stops (types are never mixed)."""
+    if not gputype:
+        raise SystemExit("walk-merge needs --gputype (the arm's one GPU type)")
     got: dict[str, tuple[int, float, str]] = {}
     srcs: list[str] = []
     for root in runs:
         for d in sorted(root.glob(f"v2w_{s}_*")):
+            gt = run_gputype(root, d)
+            if gt.upper() != gputype.upper():
+                raise SystemExit(
+                    f"{d}: GPUTYPE {gt or 'unknown'} != the arm's {gputype}: types are never mixed"
+                )
             for sub in ("refit", "partial", "salvage"):
                 jp, pp = d / sub / "jobs_out.csv", d / sub / "preds.csv"
                 if not (jp.is_file() and pp.is_file()):
@@ -1833,7 +1857,7 @@ def st_walk_merge(a: argparse.Namespace) -> None:
     s = a.set
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
-    t, srcs = walk_read([Path(x) for x in a.runs.split(",")], s)
+    t, srcs = walk_read([Path(x) for x in a.runs.split(",")], s, a.gputype)
     origins = np.arange(S0, N_ROWS)
     want = {f"v2w_{s}_r{o}_s{sd}" for o in origins for sd in SEEDS_WALK}
     t = t[t["id"].isin(want)]
@@ -1841,6 +1865,7 @@ def st_walk_merge(a: argparse.Namespace) -> None:
     rep: dict[str, Any] = dict(
         set=s,
         window_days=WINDOW_DAYS,
+        gputype=a.gputype,
         want=len(want),
         have=int(len(t)),
         missing=len(missing),
@@ -1984,6 +2009,7 @@ def main() -> int:
     ap.add_argument("--tasks", default="")
     ap.add_argument("--task", type=int, default=0)
     ap.add_argument("--set", default="")
+    ap.add_argument("--gputype", default="")
     ap.add_argument("--rows", default="")
     ap.add_argument("--rv", default=str(REPO / "data" / "core_stats.parquet"))
     a = ap.parse_args()

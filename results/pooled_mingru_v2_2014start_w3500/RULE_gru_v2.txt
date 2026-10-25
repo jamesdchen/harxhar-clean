@@ -306,3 +306,33 @@ RE-PIN   If the canary passes, the whole arm moves to the chosen type, recorded 
          .csv) run on the type: L40S in the gpu partition (est 1.73 s a refit, time limit 562 min = est x 1.3 + 30 min,
          cpu 4 / 24G, nice 0); P100 as <= 50-min debug pieces and gpu pieces with nice 100 behind HAR W 3,000. If it
          fails, nothing moves and the failure is reported.
+
+ADDENDUM 3e 2026-10-25 12:05 PDT (owner, James, ~12:05 PDT, relayed by the coordinator: "b if p100s are being
+allocated"; we hold 34-37 P100s), written before the affected jobs; both copies. Option B: full W 3,000 restarts WHOLE on
+P100; one GPU type per arm still holds.
+REASON   No gpu-partition A40 capacity for us: our 13 A40 pieces never started in 21 h (11:46: rank 135 of 189
+         A40-eligible pending jobs, priority 3,772 vs 4,200-5,300 ahead); at the last 6 h's rates the A40 arms end
+         Thu-Fri (full W 3,000 ~86 h on the 2 debug A40s alone), the P100 arms ~Tue.
+CANARY   First, on a debug P100: full W 3,000's first 24 bar origins x 5 seeds (rows 50,777-50,800 = the G7 probe's
+         origins; the first 120 lines of inputs/v2w_all_features.000.txt as inputs/pieces/canary/
+         v2w_all_features.000.c24.txt), CONC 24, cpu 2 / 16G, NOSTEPS 1, TAG v2wcanary_all_features_P100; pass as
+         ADDENDUM 3d's canary (POST n_bad 0). If it fails nothing moves: full W 3,000 stays A40 (option A), reported.
+MOVE     If it passes, before any P100 piece of the arm:
+         (a) every full W 3,000 A40 job is cancelled: the 9 gpu pieces 13385617-25 (pending) and its debug A40 pieces,
+             pending or running;
+         (b) its A40 outputs (16,911 refits at 11:46, plus what the running debug pieces add) are archived, never
+             deleted, never merged: the W 3,000 root's runs/v2w_all_features_* and salvage/v2w_all_features_* move to
+             archive_a40_full_w3000/{runs,salvage}/, its walk_ids_all_features.txt to archive_a40_full_w3000/inputs/
+             (a new walk_ids_all_features.txt starts with the P100 arm; the local copies likewise); walk-merge now takes
+             --gputype and stops if any run of the arm carries another GPUTYPE in its env.txt (types never mixed);
+         (c) the arm runs on P100 from its existing piece files: gpu partition 000-004 .p00-.p04 (25 pieces of 5,660
+             refits ~ 1,132 bars), est at the G7 P100 rate 4.55 s a refit (or the canary's rate if higher) = 7.2 h,
+             time limit est x 1.3 + 30 min (588 min); file 005's five pieces cut into 50 debug P100 pieces of ~113
+             bars (566 refits, ~43 min; time limit est x 1.2, <= 60 min) under inputs/pieces/dbgp/, sharing the 2
+             debug P100s with HAR W 3,000. cpu 2 / 16G (validated: 13416868), CONC 24, nice 0 like HAR W 3,000; the
+             slots freed by the A40 cancellations go to its pieces, later gpu top-ups alternate full and HAR W 3,000
+             pieces so that the arm does not end last. A debug piece not yet submitted when the gpu pieces are all
+             submitted may run in the gpu partition (same type).
+W 3,500  ADDENDUM 3d counts this demand: the debug P100s carry full W 3,000 (canary, then debug pieces) and HAR W 3,000,
+         our gpu-partition P100 queue both W 3,000 arms at nice 0, so full W 3,500's P100 concurrency is 0 until they
+         drain; 3d's rule becomes: L40S if its concurrency is >= 1 at the check, else P100.
