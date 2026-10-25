@@ -476,3 +476,6 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   13447098-100 (dbgp 005.p00.g00-g02, 52 min); 11 gpu pieces (002.p04-004.p04) and 47 debug pieces wait in
   walk/pieces_unsubmitted_all_features.csv / walk/dbgp_pieces_all_features.csv. gpu 99 (34 running P100, 65 pending
   P100: no A40 job of ours remains), debug 5. Full W 3,500's P100 canary 13446389 still pending on debug. No FAILED.
+- 2026-10-25 14:25 PDT: debug refill 13447489 (dbgp 005.p00.g03, full W 3,000 P100), 13447490 (053.p03.g03, HAR). Only
+  one debug P100 serves us at a time (13447098 running; another user's P100 job queued there). gpu 99 (34 running
+  P100, 65 pending). No FAILED.

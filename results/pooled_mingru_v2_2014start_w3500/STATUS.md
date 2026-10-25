@@ -100,3 +100,9 @@ the old run (read-only): `/home1/jc_905/pmf35/data` (design copies, fold-3 ridge
   usable at cpu 4 / 24G (the 8 free ones sit on nodes without 4 idle CPUs / 24G); ours running 34 of 36, L40S 0 of 6 ->
   L40S concurrency 0 -> P100 (the rule: L40S if >= 1). G5 canary of full W 3,500 on a debug P100: 13446389 (120 refits,
   rows 50,777-50,800 x 5 seeds, pieces/canary/v2w_all_features.000.c24.txt, cpu 2 / 16G, CONC 24).
+- 2026-10-25 14:25 PDT ADDENDUM 3d / 3g: G5 canary of full W 3,500 on P100 13446389 PASS (debug e23-02, COMPLETED 3:57;
+  120 jobs status ok, finite, positive, n_bad 0; trainer wall 182 s = 1.52 s a refit, the G7 P100 rate 1.56). RE-PIN:
+  the whole arm runs on P100 (one type): its 12 pieces (14,150-14,155 refits each, est at 1.56 s = 6.1 h, time limit
+  est x 1.3 + 30 = 509 min, cpu 2 / 16G, CONC 24, nice 100 behind both W 3,000 arms) are listed in
+  walk/pieces_unsubmitted_all_features.csv and go into the gpu partition as our 100-job cap frees after the W 3,000
+  pieces. Its walk-merge runs with --gputype P100.
