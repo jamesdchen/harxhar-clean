@@ -453,3 +453,9 @@ Pool: lines 5-348 of runs/tasks/w3rf_full.txt, claims in runs/claims_w3rf_full/<
   places.  Missing 11, all running on EPYC (17 h limits): 323, 324, 336, 339, 340, 341, 342, 343, 345, 346, 348; the
   slowest (345: 47 of ~91 refits at 462 s; 340 / 341: 55 at ~400 s; 342: 59 at 368 s) finish around 15:00-17:00.
   Accept and the final merge wait for them (13372433 held).
+- 11:18 (CARC clock), coordinator-approved: the four slowest running lines moved off slow nodes, each by FIRST a resume
+  job (EPYC 7513 / 7542, 8 threads, 5 GB, limit 1.5 x remaining refits x 300 s, excluding the 30 EPYC nodes measured
+  > 320 s a refit tonight, afterany on the task) and THEN scancel of the task: line 345 (13377719_142, a04-04, 47/85
+  refits, 462 s) -> 13436653 (4:45); 340 (13377719_139, a01-19, 55/91, 400 s) -> 13436654 (4:30); 341 (13422082_6,
+  b09-15, 55/91, 395 s) -> 13436655 (4:30); 342 (13377719_143, a04-07, 60/91, 367 s) -> 13436656 (3:52).  38 free
+  non-slow EPYC nodes had 107 eight-CPU slots.  Held merge 13372433 afterany 13377719, 13422082, 13436653-56.
