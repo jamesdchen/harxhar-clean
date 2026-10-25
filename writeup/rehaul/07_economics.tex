@@ -427,6 +427,18 @@ We consider four rules:
 % Code: close_murphy_splits_headline.py:263 correlates -loss with Sharpe (\hmurRhoQX = +0.18, \hmurRhoESX = +0.50).
 % The old text gave QLIKE as -0.18 (loss) and ES as +0.50 (-loss): mixed sign conventions. The minus on ES is
 % inferred from the macros.
+% 2026-10-25 (user): added -- a moderate comparison with Maisch, Zhang, Ulrich and Zimmer (SSRN 7269778), the
+% intraday option-return paper of the related work; qualitative only (their Sharpe ratios are per half hour on
+% decile portfolios of 2015, ours annualized on one straddle a day), so no number of theirs is printed.
+\item \textbf{Relation to intraday option-return prediction.} \citet{MaischZhangUlrichZimmer2026} also trade
+  S\&P~500 index options on half-hourly machine-learning forecasts, but they forecast the delta-hedged return of each
+  contract from its characteristics and sort the contracts into decile long--short portfolios every half hour. Their
+  portfolio returns are computed at mid-quotes, and they note that trading each option at its quoted bid and ask
+  prices would erase a large share of the profits. Our test differs in three respects: the forecast is the variance
+  of the underlying over the closing half hour, set against the straddle's implied variance; the position is a
+  single at-the-money 0DTE straddle a day, entered at 15:30 and held to expiration; and its Sharpe ratios are
+  reported at quoted bid/ask prices as well as at mid-quotes. Because the two designs differ in horizon, position,
+  and sample period, their Sharpe ratios are not directly comparable.
 \item \textbf{Robustness checks} (detailed in Appendix~\ref{app:rh_robust_trade}):
   \begin{itemize}
   % 2026-10-15 (consolidation): shift offset k -> j (k is the HAR horizon); the numbers below stay typed: their macros

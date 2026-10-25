@@ -1,4 +1,4 @@
-\begin{thebibliography}{88}
+\begin{thebibliography}{89}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -454,6 +454,7 @@ Serhiy Kozak, Stefan Nagel, and Shrihari Santosh.
 \newblock Shrinking the cross-section.
 \newblock \emph{Journal of Financial Economics}, 135\penalty0 (2):\penalty0
   271--292, 2020.
+\newblock \doi{10.1016/j.jfineco.2019.06.008}.
 
 \bibitem[Lazarus et~al.(2018)Lazarus, Lewis, Stock, and
   Watson]{LazarusLewisStockWatson2018}
@@ -492,6 +493,14 @@ Chuong Luong and Nikolai Dokuchaev.
 \newblock \emph{Journal of Risk and Financial Management}, 11\penalty0
   (4):\penalty0 61, 2018.
 \newblock \doi{10.3390/jrfm11040061}.
+
+\bibitem[Maisch et~al.(2026)Maisch, Zhang, Ulrich, and
+  Zimmer]{MaischZhangUlrichZimmer2026}
+Jakob Maisch, Ziwei Zhang, Maxim Ulrich, and Lukas Zimmer.
+\newblock Big data machine learning portfolios in thirty minute {SPX} options.
+\newblock \url{https://ssrn.com/abstract=7269778}, 2026.
+\newblock Working paper, Karlsruhe Institute of Technology; SSRN 7269778 (PDF
+  dated 12 August 2026).
 
 \bibitem[Merton(1973)]{Merton1973}
 Robert~C. Merton.

@@ -7,7 +7,7 @@ The importer maps each pasted entry to the key below by title, so the paper need
 If Scholar lists a working paper and a journal version, take the journal version unless the text
 cites the working paper on purpose (e.g. `RahimikiaPoon2020`, kept as the 2020 SSRN paper for priority).
 
-## 1. Added to the bibliography on 2026-10-24 (22): check these first
+## 1. Added to the bibliography on 2026-10-24 (23): check these first
 
 | Key | Search on Google Scholar (click, then Cite -> BibTeX) | First author, year | Venue (ours) |
 |---|---|---|---|
@@ -33,6 +33,7 @@ cites the working paper on purpose (e.g. `RahimikiaPoon2020`, kept as the 2020 S
 | `AudrinoSigristBallinari2020` | [The Impact of Sentiment and Attention Measures on Stock Market Volatility](https://scholar.google.com/scholar?q=%22The+Impact+of+Sentiment+and+Attention+Measures+on+Stock+Market+Volatility%22+Audrino) | Audrino, 2020 | International Journal of Forecasting |
 | `CaporinPoli2017` | [Building News Measures from Textual Data and an Application to Volatility Forecasting](https://scholar.google.com/scholar?q=%22Building+News+Measures+from+Textual+Data+and+an+Application+to+Volatility+Forecasting%22+Caporin) | Caporin, 2017 | Econometrics |
 | `BrancoRubesamZevallos2024` | [Forecasting Realized Volatility: Does Anything Beat Linear Models?](https://scholar.google.com/scholar?q=%22Forecasting+Realized+Volatility%3A+Does+Anything+Beat+Linear+Models%3F%22+Branco) | Branco, 2024 | Journal of Empirical Finance |
+| `MaischZhangUlrichZimmer2026` | [Big Data Machine Learning Portfolios in Thirty Minute SPX Options](https://scholar.google.com/scholar?q=%22Big+Data+Machine+Learning+Portfolios+in+Thirty+Minute+SPX+Options%22+Maisch) | Maisch, 2026 | Working paper, Karlsruhe Institute of Technology; SSRN 72697 |
 
 ## 2. Every other entry the paper cites (70)
 

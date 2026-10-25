@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 23.9) (preloaded format=pdflatex 2025.7.14)  24 OCT 2026 10:55
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 23.9) (preloaded format=pdflatex 2025.7.14)  25 OCT 2026 12:20
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -676,20 +676,20 @@ enc}]
 (rehaul/08_feature_importance.tex [23] [24] [25] [26] [27] [28])
 (rehaul/08_feature_importance_floats.tex (generated/rehaul_fip_shares.tex)
 (generated/rehaul_fip_nonstd.tex) (generated/rehaul_fip_fig_rank.tex
-<figures/fi_pooled/fip_rank.pdf, id=757, 469.755pt x 375.804pt>
+<figures/fi_pooled/fip_rank.pdf, id=760, 469.755pt x 375.804pt>
 File: figures/fi_pooled/fip_rank.pdf Graphic file (type pdf)
 <use figures/fi_pooled/fip_rank.pdf>
 Package pdftex.def Info: figures/fi_pooled/fip_rank.pdf  used on input line 6.
 (pdftex.def)             Requested size: 469.75502pt x 375.80309pt.
 )
 (generated/rehaul_fip_fig_time.tex
-<figures/fi_pooled/fip_time.pdf, id=760, 469.755pt x 476.98201pt>
+<figures/fi_pooled/fip_time.pdf, id=763, 469.755pt x 476.98201pt>
 File: figures/fi_pooled/fip_time.pdf Graphic file (type pdf)
 <use figures/fi_pooled/fip_time.pdf>
 Package pdftex.def Info: figures/fi_pooled/fip_time.pdf  used on input line 6.
 (pdftex.def)             Requested size: 469.75502pt x 476.98083pt.
 ) (generated/rehaul_fip_fig_cond.tex
-<figures/fi_pooled/fip_cond.pdf, id=761, 469.755pt x 281.85298pt>
+<figures/fi_pooled/fip_cond.pdf, id=764, 469.755pt x 281.85298pt>
 File: figures/fi_pooled/fip_cond.pdf Graphic file (type pdf)
 <use figures/fi_pooled/fip_cond.pdf>
 Package pdftex.def Info: figures/fi_pooled/fip_cond.pdf  used on input line 6.
@@ -704,7 +704,7 @@ on the full pre-dic-tor set, rolling win-dows $\OML/lmm/m/it/9 W \OT1/lmr/m/n/9
 
 ) (generated/rehaul_fip_lc_table.tex) (generated/rehaul_fip_inter.tex)
 (generated/rehaul_fip_fig_shapes.tex
-<figures/fi_pooled/fip_shapes.pdf, id=764, 469.755pt x 303.534pt>
+<figures/fi_pooled/fip_shapes.pdf, id=767, 469.755pt x 303.534pt>
 File: figures/fi_pooled/fip_shapes.pdf Graphic file (type pdf)
 <use figures/fi_pooled/fip_shapes.pdf>
 Package pdftex.def Info: figures/fi_pooled/fip_shapes.pdf  used on input line 6
@@ -718,16 +718,16 @@ d/fip_shapes.pdf>] [38] [39] [40] [41]) (rehaul/07_economics_floats.tex)
 
 ] [44] [45] [46] [47]
 [48]) (rehaul/10_appendix.tex [49] [50] [51] [52] [53] [54]
-(generated/rehaul_robust_w3500_table.tex)
-(generated/rehaul_econ_sharpe_defs.tex) [55] [56] [57]
+(generated/rehaul_robust_w3500_table.tex) [55] [56]
+(generated/rehaul_econ_sharpe_defs.tex) [57]
 (generated/rehaul_pooled_extras_table.tex) [58] [59] [60] [61]
-(generated/rehaul_results_oos_last30.tex) [62]
+(generated/rehaul_results_oos_last30.tex)
 Underfull \hbox (badness 1072) in paragraph at lines 920--928
 \T1/lmr/m/n/10.95 Boost in re-sults/pooled_trees_final_2014start_w3000, and the
  ran-dom for-est in
  []
 
-
+[62]
 Underfull \hbox (badness 1400) in paragraph at lines 928--937
 []\T1/lmtt/m/n/10.95 writeup/pooled_trees_13.py\T1/lmr/m/n/10.95 : the fore-cas
 ts of the pooled tree en-sem-bles, fit-
@@ -813,18 +813,14 @@ u.txt with
 LaTeX2e <2023-06-01> patch level 1
 L3 programming layer <2023-08-29>
  ***********
-
-
-LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
-
 Package rerunfilecheck Info: File `paper_rehaul.out' has not changed.
 (rerunfilecheck)             Checksum: 0073728DBC65C6830DCB11591D7C72E0;6236.
  ) 
 Here is how much of TeX's memory you used:
- 17647 strings out of 475248
- 294520 string characters out of 5757813
+ 17651 strings out of 475248
+ 294657 string characters out of 5757813
  2002801 words of memory out of 5000000
- 38502 multiletter control sequences out of 15000+600000
+ 38505 multiletter control sequences out of 15000+600000
  685578 words of font info for 132 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  75i,17n,79p,3029b,846s stack positions out of 10000i,1000n,20000p,200000b,200000s
@@ -856,9 +852,9 @@ pData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmsy9.pfb><C:/Users/james/App
 Data/Local/Programs/MiKTeX/fonts/type1/public/lm/lmtt10.pfb><C:/Users/james/App
 Data/Local/Programs/MiKTeX/fonts/type1/public/lm/lmtt9.pfb><C:/Users/james/AppD
 ata/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/symbols/msbm10.pfb>
-Output written on paper_rehaul.pdf (76 pages, 1135644 bytes).
+Output written on paper_rehaul.pdf (76 pages, 1138170 bytes).
 PDF statistics:
- 1616 PDF objects out of 1728 (max. 8388607)
- 243 named destinations out of 1000 (max. 500000)
+ 1622 PDF objects out of 1728 (max. 8388607)
+ 244 named destinations out of 1000 (max. 500000)
  325 words of extra memory for PDF output out of 10000 (max. 10000000)
 
