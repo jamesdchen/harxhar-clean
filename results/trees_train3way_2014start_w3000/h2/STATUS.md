@@ -254,3 +254,15 @@ bookworm container of the tree learning curve; threads = slots; numpy AVX-512 di
 - Delivered: lines 155, 157, 158 (UGE); manifest md5 5e700b95a4d0ab624f79d064161384f1, 6 files md5-verified on CARC,
   /scratch1 ok; runs/pieces_h2 MD5SUMS ok, 158 pieces.
 - Left: line 154 (UGE 15263238, the last Hoffman2 line) at 86 of 91 refits: ~09:00.  No error.
+
+## 09:00 PDT Sunday: Hoffman2 done -- all 159 assigned lines delivered
+
+- Line 154 (15263238 task 190, n6637): 91 refits in 41,017 s, ended 08:52; all 10 of 15263238 "done in", no error;
+  no t3t job left on UGE or Slurm, no checkpoint left.
+- Delivered: line 154; manifest md5 06e753fcea3a3de5c896f895d0420a11, md5-verified on CARC, /scratch1 ok.
+- CARC /scratch1/jc_905/trees3way/runs/pieces_h2: MD5SUMS 318 lines (159 pieces x parquet + json), md5sum -c ok;
+  the parquet set is exactly the 159 ASSIGNED lines 154-163 and 168-316 (checked on CARC).
+- By scheduler and CPU model (8 threads each): UGE Gold 6140 35 lines (174-198, 154-163); Slurm campus Gold 6240
+  124 lines (168-173, 199-316).  Returned unstarted to CARC: 139-153, 164-167, 317-368.
+- Seconds a refit (ALL48 forest full set, 8 threads): Slurm Gold 6240 ~272-282 with 4 walks a node; UGE Gold 6140
+  ~400-540 (shared pod nodes).
