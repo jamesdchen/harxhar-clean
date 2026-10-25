@@ -196,3 +196,13 @@ bookworm container of the tree learning curve; threads = slots; numpy AVX-512 di
   complete: lines 253-316), 60 checkpointed (round 2); no error in any log.
 - Delivered: 5 pieces = lines 176, 193, 197 (UGE) and 313, 316 (Slurm); manifest md5
   0044599ab064742aa875cc0eab666c3b, 10 files md5-verified on CARC, /scratch1 ok; runs/pieces_h2 MD5SUMS ok, 86 pieces.
+
+## 23:14-23:15 PDT: fifth delivery; lines 139-153 returned to CARC
+
+- Delivered: 2 pieces = lines 174, 186 (UGE); manifest md5 4833492bae8a44fa9102e7ed40fbb4e5, 4 files md5-verified on
+  CARC, /scratch1 ok; runs/pieces_h2 MD5SUMS ok, 88 pieces.
+- 15263239 (lines 139-153) had no running task, no log, no piece or checkpoint: user hold at 23:14, then (coordinator,
+  23:15) `qdel 15263239`.  RETURNED to CARC: lines 139-153.  Hoffman2 copies: runs/tasks/h2_assignment.txt RETURNED
+  317-368, 164-167, 139-153; ASSIGNED 168-316, 154-163; runs/tasks/h2_placement.txt.
+- Left on Hoffman2: UGE 15262057 last task (line 187, 83 of 91 refits at 23:14), 15263238 10 running (lines 154-163,
+  14-24 refits each at 23:14, ~09:00-10:00 Sunday); Slurm 494144 round 2, 60 lines (~03:20-03:50 Sunday).
