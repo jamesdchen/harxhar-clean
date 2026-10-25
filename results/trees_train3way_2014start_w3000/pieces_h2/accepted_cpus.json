@@ -1,0 +1,156 @@
+{
+ "accepted": {
+  "Intel(R) Xeon(R) CPU E5-2650 v4 @ 2.20GHz": {
+   "tag": "e5v4",
+   "cluster": "h2",
+   "classes": [
+    "rf_skx"
+   ]
+  },
+  "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz": {
+   "tag": "gold6140",
+   "cluster": "h2",
+   "classes": [
+    "rf_skx"
+   ]
+  },
+  "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz": {
+   "tag": "gold6240",
+   "cluster": "h2",
+   "classes": [
+    "rf_skx"
+   ]
+  },
+  "Intel(R) Xeon(R) Gold 6342 CPU @ 2.80GHz": {
+   "tag": "gold6342",
+   "cluster": "h2",
+   "classes": [
+    "rf_skx"
+   ]
+  },
+  "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz": {
+   "tag": "carc_x2640v4",
+   "cluster": "carc",
+   "classes": [
+    "rf_skx"
+   ]
+  },
+  "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz": {
+   "tag": "carc_x4116",
+   "cluster": "carc",
+   "classes": [
+    "rf_skx"
+   ]
+  }
+ },
+ "checked": {
+  "e5v4": {
+   "cluster": "h2",
+   "g1_md5": true,
+   "g2_md5": true,
+   "classes_gate1": [
+    "rf_skx"
+   ],
+   "classes_gate2": [
+    "rf_skx"
+   ],
+   "gate1_rc": 0,
+   "gate2_rc": 0,
+   "repeats_rc": 0,
+   "cpus": [
+    "Intel(R) Xeon(R) CPU E5-2650 v4 @ 2.20GHz"
+   ],
+   "pass": true
+  },
+  "gold6140": {
+   "cluster": "h2",
+   "g1_md5": true,
+   "g2_md5": true,
+   "classes_gate1": [
+    "rf_skx"
+   ],
+   "classes_gate2": [
+    "rf_skx"
+   ],
+   "gate1_rc": 0,
+   "gate2_rc": 0,
+   "repeats_rc": 0,
+   "cpus": [
+    "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+   ],
+   "pass": true
+  },
+  "gold6240": {
+   "cluster": "h2",
+   "g1_md5": true,
+   "g2_md5": true,
+   "classes_gate1": [
+    "rf_skx"
+   ],
+   "classes_gate2": [
+    "rf_skx"
+   ],
+   "gate1_rc": 0,
+   "gate2_rc": 0,
+   "repeats_rc": 0,
+   "cpus": [
+    "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+   ],
+   "pass": true
+  },
+  "gold6342": {
+   "cluster": "h2",
+   "g1_md5": true,
+   "g2_md5": true,
+   "classes_gate1": [
+    "rf_skx"
+   ],
+   "classes_gate2": [
+    "rf_skx"
+   ],
+   "gate1_rc": 0,
+   "gate2_rc": 0,
+   "repeats_rc": 0,
+   "cpus": [
+    "Intel(R) Xeon(R) Gold 6342 CPU @ 2.80GHz"
+   ],
+   "pass": true
+  },
+  "carc_x2640v4": {
+   "cluster": "carc",
+   "g1_md5": true,
+   "g2_md5": true,
+   "classes_gate1": [
+    "rf_skx"
+   ],
+   "classes_gate2": [
+    "rf_skx"
+   ],
+   "gate1_rc": 0,
+   "gate2_rc": 0,
+   "repeats_rc": 0,
+   "cpus": [
+    "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz"
+   ],
+   "pass": true
+  },
+  "carc_x4116": {
+   "cluster": "carc",
+   "g1_md5": true,
+   "g2_md5": true,
+   "classes_gate1": [
+    "rf_skx"
+   ],
+   "classes_gate2": [
+    "rf_skx"
+   ],
+   "gate1_rc": 0,
+   "gate2_rc": 0,
+   "repeats_rc": 0,
+   "cpus": [
+    "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+   ],
+   "pass": true
+  }
+ }
+}

@@ -86,6 +86,376 @@
    "ALL48_rf_skx_baseline_2of4.parquet",
    "ALL48_rf_skx_baseline_3of4.parquet",
    "ALL48_rf_skx_baseline_4of4.parquet"
+  ],
+  "rf_skx/all_features": [
+   "ALL48_rf_skx_all_features_100of368.parquet",
+   "ALL48_rf_skx_all_features_101of368.parquet",
+   "ALL48_rf_skx_all_features_102of368.parquet",
+   "ALL48_rf_skx_all_features_103of368.parquet",
+   "ALL48_rf_skx_all_features_104of368.parquet",
+   "ALL48_rf_skx_all_features_105of368.parquet",
+   "ALL48_rf_skx_all_features_106of368.parquet",
+   "ALL48_rf_skx_all_features_107of368.parquet",
+   "ALL48_rf_skx_all_features_108of368.parquet",
+   "ALL48_rf_skx_all_features_109of368.parquet",
+   "ALL48_rf_skx_all_features_10of368.parquet",
+   "ALL48_rf_skx_all_features_110of368.parquet",
+   "ALL48_rf_skx_all_features_111of368.parquet",
+   "ALL48_rf_skx_all_features_112of368.parquet",
+   "ALL48_rf_skx_all_features_113of368.parquet",
+   "ALL48_rf_skx_all_features_114of368.parquet",
+   "ALL48_rf_skx_all_features_115of368.parquet",
+   "ALL48_rf_skx_all_features_116of368.parquet",
+   "ALL48_rf_skx_all_features_117of368.parquet",
+   "ALL48_rf_skx_all_features_118of368.parquet",
+   "ALL48_rf_skx_all_features_119of368.parquet",
+   "ALL48_rf_skx_all_features_11of368.parquet",
+   "ALL48_rf_skx_all_features_120of368.parquet",
+   "ALL48_rf_skx_all_features_121of368.parquet",
+   "ALL48_rf_skx_all_features_122of368.parquet",
+   "ALL48_rf_skx_all_features_123of368.parquet",
+   "ALL48_rf_skx_all_features_124of368.parquet",
+   "ALL48_rf_skx_all_features_125of368.parquet",
+   "ALL48_rf_skx_all_features_126of368.parquet",
+   "ALL48_rf_skx_all_features_127of368.parquet",
+   "ALL48_rf_skx_all_features_128of368.parquet",
+   "ALL48_rf_skx_all_features_129of368.parquet",
+   "ALL48_rf_skx_all_features_12of368.parquet",
+   "ALL48_rf_skx_all_features_130of368.parquet",
+   "ALL48_rf_skx_all_features_131of368.parquet",
+   "ALL48_rf_skx_all_features_132of368.parquet",
+   "ALL48_rf_skx_all_features_133of368.parquet",
+   "ALL48_rf_skx_all_features_134of368.parquet",
+   "ALL48_rf_skx_all_features_135of368.parquet",
+   "ALL48_rf_skx_all_features_136of368.parquet",
+   "ALL48_rf_skx_all_features_137of368.parquet",
+   "ALL48_rf_skx_all_features_138of368.parquet",
+   "ALL48_rf_skx_all_features_139of368.parquet",
+   "ALL48_rf_skx_all_features_13of368.parquet",
+   "ALL48_rf_skx_all_features_140of368.parquet",
+   "ALL48_rf_skx_all_features_141of368.parquet",
+   "ALL48_rf_skx_all_features_142of368.parquet",
+   "ALL48_rf_skx_all_features_143of368.parquet",
+   "ALL48_rf_skx_all_features_144of368.parquet",
+   "ALL48_rf_skx_all_features_145of368.parquet",
+   "ALL48_rf_skx_all_features_146of368.parquet",
+   "ALL48_rf_skx_all_features_147of368.parquet",
+   "ALL48_rf_skx_all_features_148of368.parquet",
+   "ALL48_rf_skx_all_features_149of368.parquet",
+   "ALL48_rf_skx_all_features_14of368.parquet",
+   "ALL48_rf_skx_all_features_150of368.parquet",
+   "ALL48_rf_skx_all_features_151of368.parquet",
+   "ALL48_rf_skx_all_features_152of368.parquet",
+   "ALL48_rf_skx_all_features_153of368.parquet",
+   "ALL48_rf_skx_all_features_154of368.parquet",
+   "ALL48_rf_skx_all_features_155of368.parquet",
+   "ALL48_rf_skx_all_features_156of368.parquet",
+   "ALL48_rf_skx_all_features_157of368.parquet",
+   "ALL48_rf_skx_all_features_158of368.parquet",
+   "ALL48_rf_skx_all_features_159of368.parquet",
+   "ALL48_rf_skx_all_features_15of368.parquet",
+   "ALL48_rf_skx_all_features_160of368.parquet",
+   "ALL48_rf_skx_all_features_161of368.parquet",
+   "ALL48_rf_skx_all_features_162of368.parquet",
+   "ALL48_rf_skx_all_features_163of368.parquet",
+   "ALL48_rf_skx_all_features_164of368.parquet",
+   "ALL48_rf_skx_all_features_165of368.parquet",
+   "ALL48_rf_skx_all_features_166of368.parquet",
+   "ALL48_rf_skx_all_features_167of368.parquet",
+   "ALL48_rf_skx_all_features_168of368.parquet",
+   "ALL48_rf_skx_all_features_169of368.parquet",
+   "ALL48_rf_skx_all_features_16of368.parquet",
+   "ALL48_rf_skx_all_features_170of368.parquet",
+   "ALL48_rf_skx_all_features_171of368.parquet",
+   "ALL48_rf_skx_all_features_172of368.parquet",
+   "ALL48_rf_skx_all_features_173of368.parquet",
+   "ALL48_rf_skx_all_features_174of368.parquet",
+   "ALL48_rf_skx_all_features_175of368.parquet",
+   "ALL48_rf_skx_all_features_176of368.parquet",
+   "ALL48_rf_skx_all_features_177of368.parquet",
+   "ALL48_rf_skx_all_features_178of368.parquet",
+   "ALL48_rf_skx_all_features_179of368.parquet",
+   "ALL48_rf_skx_all_features_17of368.parquet",
+   "ALL48_rf_skx_all_features_180of368.parquet",
+   "ALL48_rf_skx_all_features_181of368.parquet",
+   "ALL48_rf_skx_all_features_182of368.parquet",
+   "ALL48_rf_skx_all_features_183of368.parquet",
+   "ALL48_rf_skx_all_features_184of368.parquet",
+   "ALL48_rf_skx_all_features_185of368.parquet",
+   "ALL48_rf_skx_all_features_186of368.parquet",
+   "ALL48_rf_skx_all_features_187of368.parquet",
+   "ALL48_rf_skx_all_features_188of368.parquet",
+   "ALL48_rf_skx_all_features_189of368.parquet",
+   "ALL48_rf_skx_all_features_18of368.parquet",
+   "ALL48_rf_skx_all_features_190of368.parquet",
+   "ALL48_rf_skx_all_features_191of368.parquet",
+   "ALL48_rf_skx_all_features_192of368.parquet",
+   "ALL48_rf_skx_all_features_193of368.parquet",
+   "ALL48_rf_skx_all_features_194of368.parquet",
+   "ALL48_rf_skx_all_features_195of368.parquet",
+   "ALL48_rf_skx_all_features_196of368.parquet",
+   "ALL48_rf_skx_all_features_197of368.parquet",
+   "ALL48_rf_skx_all_features_198of368.parquet",
+   "ALL48_rf_skx_all_features_199of368.parquet",
+   "ALL48_rf_skx_all_features_19of368.parquet",
+   "ALL48_rf_skx_all_features_1of368.parquet",
+   "ALL48_rf_skx_all_features_200of368.parquet",
+   "ALL48_rf_skx_all_features_201of368.parquet",
+   "ALL48_rf_skx_all_features_202of368.parquet",
+   "ALL48_rf_skx_all_features_203of368.parquet",
+   "ALL48_rf_skx_all_features_204of368.parquet",
+   "ALL48_rf_skx_all_features_205of368.parquet",
+   "ALL48_rf_skx_all_features_206of368.parquet",
+   "ALL48_rf_skx_all_features_207of368.parquet",
+   "ALL48_rf_skx_all_features_208of368.parquet",
+   "ALL48_rf_skx_all_features_209of368.parquet",
+   "ALL48_rf_skx_all_features_20of368.parquet",
+   "ALL48_rf_skx_all_features_210of368.parquet",
+   "ALL48_rf_skx_all_features_211of368.parquet",
+   "ALL48_rf_skx_all_features_212of368.parquet",
+   "ALL48_rf_skx_all_features_213of368.parquet",
+   "ALL48_rf_skx_all_features_214of368.parquet",
+   "ALL48_rf_skx_all_features_215of368.parquet",
+   "ALL48_rf_skx_all_features_216of368.parquet",
+   "ALL48_rf_skx_all_features_217of368.parquet",
+   "ALL48_rf_skx_all_features_218of368.parquet",
+   "ALL48_rf_skx_all_features_219of368.parquet",
+   "ALL48_rf_skx_all_features_21of368.parquet",
+   "ALL48_rf_skx_all_features_220of368.parquet",
+   "ALL48_rf_skx_all_features_221of368.parquet",
+   "ALL48_rf_skx_all_features_222of368.parquet",
+   "ALL48_rf_skx_all_features_223of368.parquet",
+   "ALL48_rf_skx_all_features_224of368.parquet",
+   "ALL48_rf_skx_all_features_225of368.parquet",
+   "ALL48_rf_skx_all_features_226of368.parquet",
+   "ALL48_rf_skx_all_features_227of368.parquet",
+   "ALL48_rf_skx_all_features_228of368.parquet",
+   "ALL48_rf_skx_all_features_229of368.parquet",
+   "ALL48_rf_skx_all_features_22of368.parquet",
+   "ALL48_rf_skx_all_features_230of368.parquet",
+   "ALL48_rf_skx_all_features_231of368.parquet",
+   "ALL48_rf_skx_all_features_232of368.parquet",
+   "ALL48_rf_skx_all_features_233of368.parquet",
+   "ALL48_rf_skx_all_features_234of368.parquet",
+   "ALL48_rf_skx_all_features_235of368.parquet",
+   "ALL48_rf_skx_all_features_236of368.parquet",
+   "ALL48_rf_skx_all_features_237of368.parquet",
+   "ALL48_rf_skx_all_features_238of368.parquet",
+   "ALL48_rf_skx_all_features_239of368.parquet",
+   "ALL48_rf_skx_all_features_23of368.parquet",
+   "ALL48_rf_skx_all_features_240of368.parquet",
+   "ALL48_rf_skx_all_features_241of368.parquet",
+   "ALL48_rf_skx_all_features_242of368.parquet",
+   "ALL48_rf_skx_all_features_243of368.parquet",
+   "ALL48_rf_skx_all_features_244of368.parquet",
+   "ALL48_rf_skx_all_features_245of368.parquet",
+   "ALL48_rf_skx_all_features_246of368.parquet",
+   "ALL48_rf_skx_all_features_247of368.parquet",
+   "ALL48_rf_skx_all_features_248of368.parquet",
+   "ALL48_rf_skx_all_features_249of368.parquet",
+   "ALL48_rf_skx_all_features_24of368.parquet",
+   "ALL48_rf_skx_all_features_250of368.parquet",
+   "ALL48_rf_skx_all_features_251of368.parquet",
+   "ALL48_rf_skx_all_features_252of368.parquet",
+   "ALL48_rf_skx_all_features_253of368.parquet",
+   "ALL48_rf_skx_all_features_254of368.parquet",
+   "ALL48_rf_skx_all_features_255of368.parquet",
+   "ALL48_rf_skx_all_features_256of368.parquet",
+   "ALL48_rf_skx_all_features_257of368.parquet",
+   "ALL48_rf_skx_all_features_258of368.parquet",
+   "ALL48_rf_skx_all_features_259of368.parquet",
+   "ALL48_rf_skx_all_features_25of368.parquet",
+   "ALL48_rf_skx_all_features_260of368.parquet",
+   "ALL48_rf_skx_all_features_261of368.parquet",
+   "ALL48_rf_skx_all_features_262of368.parquet",
+   "ALL48_rf_skx_all_features_263of368.parquet",
+   "ALL48_rf_skx_all_features_264of368.parquet",
+   "ALL48_rf_skx_all_features_265of368.parquet",
+   "ALL48_rf_skx_all_features_266of368.parquet",
+   "ALL48_rf_skx_all_features_267of368.parquet",
+   "ALL48_rf_skx_all_features_268of368.parquet",
+   "ALL48_rf_skx_all_features_269of368.parquet",
+   "ALL48_rf_skx_all_features_26of368.parquet",
+   "ALL48_rf_skx_all_features_270of368.parquet",
+   "ALL48_rf_skx_all_features_271of368.parquet",
+   "ALL48_rf_skx_all_features_272of368.parquet",
+   "ALL48_rf_skx_all_features_273of368.parquet",
+   "ALL48_rf_skx_all_features_274of368.parquet",
+   "ALL48_rf_skx_all_features_275of368.parquet",
+   "ALL48_rf_skx_all_features_276of368.parquet",
+   "ALL48_rf_skx_all_features_277of368.parquet",
+   "ALL48_rf_skx_all_features_278of368.parquet",
+   "ALL48_rf_skx_all_features_279of368.parquet",
+   "ALL48_rf_skx_all_features_27of368.parquet",
+   "ALL48_rf_skx_all_features_280of368.parquet",
+   "ALL48_rf_skx_all_features_281of368.parquet",
+   "ALL48_rf_skx_all_features_282of368.parquet",
+   "ALL48_rf_skx_all_features_283of368.parquet",
+   "ALL48_rf_skx_all_features_284of368.parquet",
+   "ALL48_rf_skx_all_features_285of368.parquet",
+   "ALL48_rf_skx_all_features_286of368.parquet",
+   "ALL48_rf_skx_all_features_287of368.parquet",
+   "ALL48_rf_skx_all_features_288of368.parquet",
+   "ALL48_rf_skx_all_features_289of368.parquet",
+   "ALL48_rf_skx_all_features_28of368.parquet",
+   "ALL48_rf_skx_all_features_290of368.parquet",
+   "ALL48_rf_skx_all_features_291of368.parquet",
+   "ALL48_rf_skx_all_features_292of368.parquet",
+   "ALL48_rf_skx_all_features_293of368.parquet",
+   "ALL48_rf_skx_all_features_294of368.parquet",
+   "ALL48_rf_skx_all_features_295of368.parquet",
+   "ALL48_rf_skx_all_features_296of368.parquet",
+   "ALL48_rf_skx_all_features_297of368.parquet",
+   "ALL48_rf_skx_all_features_298of368.parquet",
+   "ALL48_rf_skx_all_features_299of368.parquet",
+   "ALL48_rf_skx_all_features_29of368.parquet",
+   "ALL48_rf_skx_all_features_2of368.parquet",
+   "ALL48_rf_skx_all_features_300of368.parquet",
+   "ALL48_rf_skx_all_features_301of368.parquet",
+   "ALL48_rf_skx_all_features_302of368.parquet",
+   "ALL48_rf_skx_all_features_303of368.parquet",
+   "ALL48_rf_skx_all_features_304of368.parquet",
+   "ALL48_rf_skx_all_features_305of368.parquet",
+   "ALL48_rf_skx_all_features_306of368.parquet",
+   "ALL48_rf_skx_all_features_307of368.parquet",
+   "ALL48_rf_skx_all_features_308of368.parquet",
+   "ALL48_rf_skx_all_features_309of368.parquet",
+   "ALL48_rf_skx_all_features_30of368.parquet",
+   "ALL48_rf_skx_all_features_310of368.parquet",
+   "ALL48_rf_skx_all_features_311of368.parquet",
+   "ALL48_rf_skx_all_features_312of368.parquet",
+   "ALL48_rf_skx_all_features_313of368.parquet",
+   "ALL48_rf_skx_all_features_314of368.parquet",
+   "ALL48_rf_skx_all_features_315of368.parquet",
+   "ALL48_rf_skx_all_features_316of368.parquet",
+   "ALL48_rf_skx_all_features_317of368.parquet",
+   "ALL48_rf_skx_all_features_318of368.parquet",
+   "ALL48_rf_skx_all_features_319of368.parquet",
+   "ALL48_rf_skx_all_features_31of368.parquet",
+   "ALL48_rf_skx_all_features_320of368.parquet",
+   "ALL48_rf_skx_all_features_321of368.parquet",
+   "ALL48_rf_skx_all_features_322of368.parquet",
+   "ALL48_rf_skx_all_features_323of368.parquet",
+   "ALL48_rf_skx_all_features_324of368.parquet",
+   "ALL48_rf_skx_all_features_325of368.parquet",
+   "ALL48_rf_skx_all_features_326of368.parquet",
+   "ALL48_rf_skx_all_features_327of368.parquet",
+   "ALL48_rf_skx_all_features_328of368.parquet",
+   "ALL48_rf_skx_all_features_329of368.parquet",
+   "ALL48_rf_skx_all_features_32of368.parquet",
+   "ALL48_rf_skx_all_features_330of368.parquet",
+   "ALL48_rf_skx_all_features_331of368.parquet",
+   "ALL48_rf_skx_all_features_332of368.parquet",
+   "ALL48_rf_skx_all_features_333of368.parquet",
+   "ALL48_rf_skx_all_features_334of368.parquet",
+   "ALL48_rf_skx_all_features_335of368.parquet",
+   "ALL48_rf_skx_all_features_336of368.parquet",
+   "ALL48_rf_skx_all_features_337of368.parquet",
+   "ALL48_rf_skx_all_features_338of368.parquet",
+   "ALL48_rf_skx_all_features_339of368.parquet",
+   "ALL48_rf_skx_all_features_33of368.parquet",
+   "ALL48_rf_skx_all_features_340of368.parquet",
+   "ALL48_rf_skx_all_features_341of368.parquet",
+   "ALL48_rf_skx_all_features_342of368.parquet",
+   "ALL48_rf_skx_all_features_343of368.parquet",
+   "ALL48_rf_skx_all_features_344of368.parquet",
+   "ALL48_rf_skx_all_features_345of368.parquet",
+   "ALL48_rf_skx_all_features_346of368.parquet",
+   "ALL48_rf_skx_all_features_347of368.parquet",
+   "ALL48_rf_skx_all_features_348of368.parquet",
+   "ALL48_rf_skx_all_features_349of368.parquet",
+   "ALL48_rf_skx_all_features_34of368.parquet",
+   "ALL48_rf_skx_all_features_350of368.parquet",
+   "ALL48_rf_skx_all_features_351of368.parquet",
+   "ALL48_rf_skx_all_features_352of368.parquet",
+   "ALL48_rf_skx_all_features_353of368.parquet",
+   "ALL48_rf_skx_all_features_354of368.parquet",
+   "ALL48_rf_skx_all_features_355of368.parquet",
+   "ALL48_rf_skx_all_features_356of368.parquet",
+   "ALL48_rf_skx_all_features_357of368.parquet",
+   "ALL48_rf_skx_all_features_358of368.parquet",
+   "ALL48_rf_skx_all_features_359of368.parquet",
+   "ALL48_rf_skx_all_features_35of368.parquet",
+   "ALL48_rf_skx_all_features_360of368.parquet",
+   "ALL48_rf_skx_all_features_361of368.parquet",
+   "ALL48_rf_skx_all_features_362of368.parquet",
+   "ALL48_rf_skx_all_features_363of368.parquet",
+   "ALL48_rf_skx_all_features_364of368.parquet",
+   "ALL48_rf_skx_all_features_365of368.parquet",
+   "ALL48_rf_skx_all_features_366of368.parquet",
+   "ALL48_rf_skx_all_features_367of368.parquet",
+   "ALL48_rf_skx_all_features_368of368.parquet",
+   "ALL48_rf_skx_all_features_36of368.parquet",
+   "ALL48_rf_skx_all_features_37of368.parquet",
+   "ALL48_rf_skx_all_features_38of368.parquet",
+   "ALL48_rf_skx_all_features_39of368.parquet",
+   "ALL48_rf_skx_all_features_3of368.parquet",
+   "ALL48_rf_skx_all_features_40of368.parquet",
+   "ALL48_rf_skx_all_features_41of368.parquet",
+   "ALL48_rf_skx_all_features_42of368.parquet",
+   "ALL48_rf_skx_all_features_43of368.parquet",
+   "ALL48_rf_skx_all_features_44of368.parquet",
+   "ALL48_rf_skx_all_features_45of368.parquet",
+   "ALL48_rf_skx_all_features_46of368.parquet",
+   "ALL48_rf_skx_all_features_47of368.parquet",
+   "ALL48_rf_skx_all_features_48of368.parquet",
+   "ALL48_rf_skx_all_features_49of368.parquet",
+   "ALL48_rf_skx_all_features_4of368.parquet",
+   "ALL48_rf_skx_all_features_50of368.parquet",
+   "ALL48_rf_skx_all_features_51of368.parquet",
+   "ALL48_rf_skx_all_features_52of368.parquet",
+   "ALL48_rf_skx_all_features_53of368.parquet",
+   "ALL48_rf_skx_all_features_54of368.parquet",
+   "ALL48_rf_skx_all_features_55of368.parquet",
+   "ALL48_rf_skx_all_features_56of368.parquet",
+   "ALL48_rf_skx_all_features_57of368.parquet",
+   "ALL48_rf_skx_all_features_58of368.parquet",
+   "ALL48_rf_skx_all_features_59of368.parquet",
+   "ALL48_rf_skx_all_features_5of368.parquet",
+   "ALL48_rf_skx_all_features_60of368.parquet",
+   "ALL48_rf_skx_all_features_61of368.parquet",
+   "ALL48_rf_skx_all_features_62of368.parquet",
+   "ALL48_rf_skx_all_features_63of368.parquet",
+   "ALL48_rf_skx_all_features_64of368.parquet",
+   "ALL48_rf_skx_all_features_65of368.parquet",
+   "ALL48_rf_skx_all_features_66of368.parquet",
+   "ALL48_rf_skx_all_features_67of368.parquet",
+   "ALL48_rf_skx_all_features_68of368.parquet",
+   "ALL48_rf_skx_all_features_69of368.parquet",
+   "ALL48_rf_skx_all_features_6of368.parquet",
+   "ALL48_rf_skx_all_features_70of368.parquet",
+   "ALL48_rf_skx_all_features_71of368.parquet",
+   "ALL48_rf_skx_all_features_72of368.parquet",
+   "ALL48_rf_skx_all_features_73of368.parquet",
+   "ALL48_rf_skx_all_features_74of368.parquet",
+   "ALL48_rf_skx_all_features_75of368.parquet",
+   "ALL48_rf_skx_all_features_76of368.parquet",
+   "ALL48_rf_skx_all_features_77of368.parquet",
+   "ALL48_rf_skx_all_features_78of368.parquet",
+   "ALL48_rf_skx_all_features_79of368.parquet",
+   "ALL48_rf_skx_all_features_7of368.parquet",
+   "ALL48_rf_skx_all_features_80of368.parquet",
+   "ALL48_rf_skx_all_features_81of368.parquet",
+   "ALL48_rf_skx_all_features_82of368.parquet",
+   "ALL48_rf_skx_all_features_83of368.parquet",
+   "ALL48_rf_skx_all_features_84of368.parquet",
+   "ALL48_rf_skx_all_features_85of368.parquet",
+   "ALL48_rf_skx_all_features_86of368.parquet",
+   "ALL48_rf_skx_all_features_87of368.parquet",
+   "ALL48_rf_skx_all_features_88of368.parquet",
+   "ALL48_rf_skx_all_features_89of368.parquet",
+   "ALL48_rf_skx_all_features_8of368.parquet",
+   "ALL48_rf_skx_all_features_90of368.parquet",
+   "ALL48_rf_skx_all_features_91of368.parquet",
+   "ALL48_rf_skx_all_features_92of368.parquet",
+   "ALL48_rf_skx_all_features_93of368.parquet",
+   "ALL48_rf_skx_all_features_94of368.parquet",
+   "ALL48_rf_skx_all_features_95of368.parquet",
+   "ALL48_rf_skx_all_features_96of368.parquet",
+   "ALL48_rf_skx_all_features_97of368.parquet",
+   "ALL48_rf_skx_all_features_98of368.parquet",
+   "ALL48_rf_skx_all_features_99of368.parquet",
+   "ALL48_rf_skx_all_features_9of368.parquet"
   ]
  },
  "cpu_models": {
@@ -105,6 +475,14 @@
   ],
   "rf_skx/baseline": [
    "AMD EPYC 7513 32-Core Processor"
+  ],
+  "rf_skx/all_features": [
+   "AMD EPYC 7513 32-Core Processor",
+   "AMD EPYC 7542 32-Core Processor",
+   "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz",
+   "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz",
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz",
+   "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
   ]
  },
  "piece_cpus": {
@@ -332,10 +710,1128 @@
   ],
   "ALL48_rf_skx_baseline_4of4.parquet": [
    "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_100of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_101of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_102of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_103of368.parquet": [
+   "AMD EPYC 7542 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_104of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_105of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_106of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor",
+   "AMD EPYC 7542 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_107of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor",
+   "AMD EPYC 7542 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_108of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_109of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_10of368.parquet": [
+   "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+  ],
+  "ALL48_rf_skx_all_features_110of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_111of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_112of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_113of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_114of368.parquet": [
+   "AMD EPYC 7542 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_115of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_116of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_117of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_118of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_119of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_11of368.parquet": [
+   "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz"
+  ],
+  "ALL48_rf_skx_all_features_120of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_121of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_122of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_123of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_124of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_125of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_126of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_127of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_128of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_129of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_12of368.parquet": [
+   "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz"
+  ],
+  "ALL48_rf_skx_all_features_130of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_131of368.parquet": [
+   "AMD EPYC 7542 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_132of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_133of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_134of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_135of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_136of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_137of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_138of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_139of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_13of368.parquet": [
+   "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz"
+  ],
+  "ALL48_rf_skx_all_features_140of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_141of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor",
+   "AMD EPYC 7542 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_142of368.parquet": [
+   "AMD EPYC 7542 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_143of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_144of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_145of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_146of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_147of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_148of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_149of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_14of368.parquet": [
+   "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz"
+  ],
+  "ALL48_rf_skx_all_features_150of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_151of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_152of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_153of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_154of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+  ],
+  "ALL48_rf_skx_all_features_155of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+  ],
+  "ALL48_rf_skx_all_features_156of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+  ],
+  "ALL48_rf_skx_all_features_157of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+  ],
+  "ALL48_rf_skx_all_features_158of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+  ],
+  "ALL48_rf_skx_all_features_159of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+  ],
+  "ALL48_rf_skx_all_features_15of368.parquet": [
+   "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz"
+  ],
+  "ALL48_rf_skx_all_features_160of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_161of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_162of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+  ],
+  "ALL48_rf_skx_all_features_163of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+  ],
+  "ALL48_rf_skx_all_features_164of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_165of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_166of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_167of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_168of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_169of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_16of368.parquet": [
+   "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz"
+  ],
+  "ALL48_rf_skx_all_features_170of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_171of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_172of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_173of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_174of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_175of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+  ],
+  "ALL48_rf_skx_all_features_176of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+  ],
+  "ALL48_rf_skx_all_features_177of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+  ],
+  "ALL48_rf_skx_all_features_178of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+  ],
+  "ALL48_rf_skx_all_features_179of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+  ],
+  "ALL48_rf_skx_all_features_17of368.parquet": [
+   "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz"
+  ],
+  "ALL48_rf_skx_all_features_180of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+  ],
+  "ALL48_rf_skx_all_features_181of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+  ],
+  "ALL48_rf_skx_all_features_182of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+  ],
+  "ALL48_rf_skx_all_features_183of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_184of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+  ],
+  "ALL48_rf_skx_all_features_185of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+  ],
+  "ALL48_rf_skx_all_features_186of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_187of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+  ],
+  "ALL48_rf_skx_all_features_188of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_189of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+  ],
+  "ALL48_rf_skx_all_features_18of368.parquet": [
+   "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz"
+  ],
+  "ALL48_rf_skx_all_features_190of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+  ],
+  "ALL48_rf_skx_all_features_191of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+  ],
+  "ALL48_rf_skx_all_features_192of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+  ],
+  "ALL48_rf_skx_all_features_193of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_194of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+  ],
+  "ALL48_rf_skx_all_features_195of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+  ],
+  "ALL48_rf_skx_all_features_196of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+  ],
+  "ALL48_rf_skx_all_features_197of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+  ],
+  "ALL48_rf_skx_all_features_198of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+  ],
+  "ALL48_rf_skx_all_features_199of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_19of368.parquet": [
+   "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz"
+  ],
+  "ALL48_rf_skx_all_features_1of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_200of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_201of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_202of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_203of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_204of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_205of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_206of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_207of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_208of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_209of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_20of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_210of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_211of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_212of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_213of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_214of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_215of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_216of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_217of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_218of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_219of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_21of368.parquet": [
+   "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+  ],
+  "ALL48_rf_skx_all_features_220of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_221of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_222of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_223of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_224of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_225of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_226of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_227of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_228of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_229of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_22of368.parquet": [
+   "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+  ],
+  "ALL48_rf_skx_all_features_230of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_231of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_232of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_233of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_234of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_235of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_236of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_237of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_238of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_239of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_23of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_240of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_241of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_242of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_243of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_244of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_245of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_246of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_247of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_248of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_249of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_24of368.parquet": [
+   "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+  ],
+  "ALL48_rf_skx_all_features_250of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_251of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_252of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_253of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_254of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_255of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_256of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_257of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_258of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_259of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_25of368.parquet": [
+   "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+  ],
+  "ALL48_rf_skx_all_features_260of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_261of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_262of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_263of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_264of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_265of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_266of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_267of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_268of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_269of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_26of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_270of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_271of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_272of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_273of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_274of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_275of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_276of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_277of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_278of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_279of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_27of368.parquet": [
+   "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+  ],
+  "ALL48_rf_skx_all_features_280of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_281of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_282of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_283of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_284of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_285of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_286of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_287of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_288of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_289of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_28of368.parquet": [
+   "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+  ],
+  "ALL48_rf_skx_all_features_290of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_291of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_292of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_293of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_294of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_295of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_296of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_297of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_298of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_299of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_29of368.parquet": [
+   "AMD EPYC 7542 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_2of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_300of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_301of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_302of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_303of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_304of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_305of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_306of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_307of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_308of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_309of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_30of368.parquet": [
+   "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+  ],
+  "ALL48_rf_skx_all_features_310of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_311of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_312of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_313of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_314of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_315of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_316of368.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "ALL48_rf_skx_all_features_317of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_318of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_319of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_31of368.parquet": [
+   "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+  ],
+  "ALL48_rf_skx_all_features_320of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_321of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_322of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_323of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_324of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_325of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_326of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_327of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_328of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_329of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_32of368.parquet": [
+   "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+  ],
+  "ALL48_rf_skx_all_features_330of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_331of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_332of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_333of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_334of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_335of368.parquet": [
+   "AMD EPYC 7542 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_336of368.parquet": [
+   "AMD EPYC 7542 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_337of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_338of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_339of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_33of368.parquet": [
+   "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+  ],
+  "ALL48_rf_skx_all_features_340of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_341of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_342of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_343of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_344of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_345of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_346of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_347of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_348of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_349of368.parquet": [
+   "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz"
+  ],
+  "ALL48_rf_skx_all_features_34of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_350of368.parquet": [
+   "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz"
+  ],
+  "ALL48_rf_skx_all_features_351of368.parquet": [
+   "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz"
+  ],
+  "ALL48_rf_skx_all_features_352of368.parquet": [
+   "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz"
+  ],
+  "ALL48_rf_skx_all_features_353of368.parquet": [
+   "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz"
+  ],
+  "ALL48_rf_skx_all_features_354of368.parquet": [
+   "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz"
+  ],
+  "ALL48_rf_skx_all_features_355of368.parquet": [
+   "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz"
+  ],
+  "ALL48_rf_skx_all_features_356of368.parquet": [
+   "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz"
+  ],
+  "ALL48_rf_skx_all_features_357of368.parquet": [
+   "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+  ],
+  "ALL48_rf_skx_all_features_358of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor",
+   "AMD EPYC 7542 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_359of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor",
+   "AMD EPYC 7542 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_35of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_360of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor",
+   "AMD EPYC 7542 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_361of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_362of368.parquet": [
+   "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+  ],
+  "ALL48_rf_skx_all_features_363of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_364of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_365of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_366of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_367of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_368of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_36of368.parquet": [
+   "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+  ],
+  "ALL48_rf_skx_all_features_37of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_38of368.parquet": [
+   "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+  ],
+  "ALL48_rf_skx_all_features_39of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_3of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_40of368.parquet": [
+   "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz"
+  ],
+  "ALL48_rf_skx_all_features_41of368.parquet": [
+   "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+  ],
+  "ALL48_rf_skx_all_features_42of368.parquet": [
+   "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+  ],
+  "ALL48_rf_skx_all_features_43of368.parquet": [
+   "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+  ],
+  "ALL48_rf_skx_all_features_44of368.parquet": [
+   "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+  ],
+  "ALL48_rf_skx_all_features_45of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_46of368.parquet": [
+   "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz"
+  ],
+  "ALL48_rf_skx_all_features_47of368.parquet": [
+   "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz"
+  ],
+  "ALL48_rf_skx_all_features_48of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_49of368.parquet": [
+   "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+  ],
+  "ALL48_rf_skx_all_features_4of368.parquet": [
+   "AMD EPYC 7542 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_50of368.parquet": [
+   "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz"
+  ],
+  "ALL48_rf_skx_all_features_51of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_52of368.parquet": [
+   "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz"
+  ],
+  "ALL48_rf_skx_all_features_53of368.parquet": [
+   "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+  ],
+  "ALL48_rf_skx_all_features_54of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_55of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_56of368.parquet": [
+   "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+  ],
+  "ALL48_rf_skx_all_features_57of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_58of368.parquet": [
+   "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz"
+  ],
+  "ALL48_rf_skx_all_features_59of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_5of368.parquet": [
+   "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+  ],
+  "ALL48_rf_skx_all_features_60of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_61of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_62of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_63of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_64of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_65of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_66of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_67of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_68of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_69of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_6of368.parquet": [
+   "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+  ],
+  "ALL48_rf_skx_all_features_70of368.parquet": [
+   "AMD EPYC 7542 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_71of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_72of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_73of368.parquet": [
+   "AMD EPYC 7542 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_74of368.parquet": [
+   "AMD EPYC 7542 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_75of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_76of368.parquet": [
+   "AMD EPYC 7542 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_77of368.parquet": [
+   "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz"
+  ],
+  "ALL48_rf_skx_all_features_78of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_79of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_7of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_80of368.parquet": [
+   "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+  ],
+  "ALL48_rf_skx_all_features_81of368.parquet": [
+   "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+  ],
+  "ALL48_rf_skx_all_features_82of368.parquet": [
+   "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+  ],
+  "ALL48_rf_skx_all_features_83of368.parquet": [
+   "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+  ],
+  "ALL48_rf_skx_all_features_84of368.parquet": [
+   "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+  ],
+  "ALL48_rf_skx_all_features_85of368.parquet": [
+   "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+  ],
+  "ALL48_rf_skx_all_features_86of368.parquet": [
+   "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+  ],
+  "ALL48_rf_skx_all_features_87of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_88of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_89of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_8of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_90of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor",
+   "AMD EPYC 7542 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_91of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_92of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_93of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_94of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_95of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor",
+   "AMD EPYC 7542 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_96of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_97of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_98of368.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_99of368.parquet": [
+   "AMD EPYC 7542 32-Core Processor"
+  ],
+  "ALL48_rf_skx_all_features_9of368.parquet": [
+   "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz"
   ]
  },
  "accepted_cpus": [
   "AMD EPYC 7513 32-Core Processor",
-  "AMD EPYC 7542 32-Core Processor"
+  "AMD EPYC 7542 32-Core Processor",
+  "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz",
+  "Intel(R) Xeon(R) CPU E5-2650 v4 @ 2.20GHz",
+  "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz",
+  "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz",
+  "Intel(R) Xeon(R) Gold 6342 CPU @ 2.80GHz",
+  "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
  ]
 }

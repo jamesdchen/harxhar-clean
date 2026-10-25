@@ -32,8 +32,9 @@
 # 2026-10-24_10:25:18 rebalance_h2.sh (throughput-balanced, coordinator 10:25): Hoffman2 ~14 lines/h at <= ~120
 #   concurrent 8-thread tasks (Gold 6342 ~35 at 5.4 h a line; Gold 6140 / 6240 / E5-2650 v4 ~85 at ~11.3 h), CARC
 #   ~4.5 lines/h for new lines; the second row's lines are pre-claimed 'owner_h2' in runs/claims_w3rf_full/.
-# 2026-10-24 ~21:00 PDT: Hoffman2 returned 317-368 (15:05) and 164-167 (job 494144_32 cancelled pending); CARC copy
-# 2026-10-24 ~23:25 PDT: Hoffman2 returned 139-153 (UGE 15263239 deleted while held); CARC copy
+# 2026-10-24_13:00:00 Hoffman2 returned lines 317-368 to CARC (none started there; its array 15263238 tasks 1-180 deleted; h2/STATUS.md 9a89328): rows ASSIGNED 139-316, RETURNED 317-368; on CARC lines 317-368 run in the /home1 claim namespace (pools t3t_pEr, t3t_p41r, t3t_p26r)
+# 2026-10-24_20:47:16 Hoffman2 returned lines 164-167 (Slurm job 494144_32 cancelled while pending at 20:46; no log, piece or checkpoint; h2/STATUS.md f287259); their owner_h2 claims removed on CARC; the EPYC pool 13377719 takes them
+# 2026-10-24_23:24:43 Hoffman2 returned lines 139-153 (UGE 15263239 deleted while held, no task started; h2/STATUS.md a8ec987); their owner_h2 claims removed on CARC; a fresh /scratch1 EPYC pool takes them
 ASSIGNED w3rf_full.txt 154-163 ALL48 rf_skx all_features 8
 ASSIGNED w3rf_full.txt 168-316 ALL48 rf_skx all_features 8
 RETURNED w3rf_full.txt 139-153 ALL48 rf_skx all_features 8

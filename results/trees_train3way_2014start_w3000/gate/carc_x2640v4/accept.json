@@ -1,0 +1,18 @@
+{
+ "cluster": "carc",
+ "g1_md5": true,
+ "g2_md5": true,
+ "classes_gate1": [
+  "rf_skx"
+ ],
+ "classes_gate2": [
+  "rf_skx"
+ ],
+ "gate1_rc": 0,
+ "gate2_rc": 0,
+ "repeats_rc": 0,
+ "cpus": [
+  "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz"
+ ],
+ "pass": true
+}

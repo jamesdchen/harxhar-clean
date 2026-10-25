@@ -1,0 +1,33 @@
+2026-10-25_01:27:05 line 39: 13377719_44 TIMEOUT at 7:50 with 102 of 104 refits checkpointed (EPYC 7513); resumed on EPYC by job 13422638 (3 h); claim kept
+2026-10-25_01:27:05 line 107: 13377719_68 projected 13.10 h > its 7:50:00 limit (40/91 refits, 515 s a refit); resume job 13422639 (11:03:00) afterany:13377719_68
+2026-10-25_01:27:05 line 318: 13377719_115 projected 8.71 h > its 7:50:00 limit (2/91 refits, 344 s a refit); resume job 13422640 (17:00:00) afterany:13377719_115
+2026-10-25_01:27:05 line 167: 13377719_113 projected 9.24 h > its 7:50:00 limit (3/91 refits, 362 s a refit); resume job 13422641 (17:00:00) afterany:13377719_113
+2026-10-25_01:27:06 line 153: 13377719_109 projected 8.15 h > its 7:50:00 limit (8/91 refits, 319 s a refit); resume job 13422642 (17:00:00) afterany:13377719_109
+2026-10-25_01:27:06 line 144: 13377719_100 projected 8.44 h > its 7:50:00 limit (17/91 refits, 330 s a refit); resume job 13422643 (16:02:00) afterany:13377719_100
+2026-10-25_01:27:06 line 141: 13377719_98 projected 8.11 h > its 7:50:00 limit (21/91 refits, 317 s a refit); resume job 13422644 (15:10:00) afterany:13377719_98
+2026-10-25_01:27:06 line 139: 13377719_96 projected 7.86 h > its 7:50:00 limit (21/91 refits, 304 s a refit); resume job 13422645 (15:10:00) afterany:13377719_96
+2026-10-25_01:27:07 line 136: 13377719_93 projected 8.30 h > its 7:50:00 limit (21/91 refits, 324 s a refit); resume job 13422646 (15:10:00) afterany:13377719_93
+2026-10-25_01:27:07 line 126: 13377719_84 projected 9.56 h > its 7:50:00 limit (19/91 refits, 377 s a refit); resume job 13422647 (15:36:00) afterany:13377719_84
+2026-10-25_01:27:08 line 117: 13377719_78 projected 7.71 h > its 7:50:00 limit (54/91 refits, 303 s a refit); resume job 13422648 (8:01:00) afterany:13377719_78
+2026-10-25_01:27:08 line 114: 13377719_75 projected 7.69 h > its 7:50:00 limit (62/91 refits, 302 s a refit); resume job 13422649 (6:17:00) afterany:13377719_75
+2026-10-25_01:27:08 line 106: 13377719_67 projected 8.13 h > its 7:50:00 limit (62/85 refits, 342 s a refit); resume job 13422650 (4:59:00) afterany:13377719_67
+2026-10-25_01:27:08 line 105: 13377719_66 projected 8.76 h > its 7:50:00 limit (63/91 refits, 345 s a refit); resume job 13422651 (6:04:00) afterany:13377719_66
+2026-10-25_01:27:08 line 104: 13377719_65 projected 9.16 h > its 7:50:00 limit (61/91 refits, 362 s a refit); resume job 13422652 (6:30:00) afterany:13377719_65
+2026-10-25_01:27:08 line 103: 13377719_64 projected 7.86 h > its 7:50:00 limit (72/91 refits, 307 s a refit); resume job 13422653 (4:07:00) afterany:13377719_64
+2026-10-25_01:27:08 line 97: 13377719_58 projected 8.03 h > its 7:50:00 limit (73/85 refits, 338 s a refit); resume job 13422654 (3:00:00) afterany:13377719_58
+2026-10-25_01:27:09 line 96: 13377719_57 projected 7.77 h > its 7:50:00 limit (82/91 refits, 305 s a refit); resume job 13422655 (3:00:00) afterany:13377719_57
+2026-10-25_01:27:09 line 95: 13377719_56 projected 8.10 h > its 7:50:00 limit (79/91 refits, 318 s a refit); resume job 13422656 (3:00:00) afterany:13377719_56
+2026-10-25_01:27:09 line 90: 13377719_51 projected 11.01 h > its 7:50:00 limit (60/91 refits, 424 s a refit); resume job 13422657 (6:43:00) afterany:13377719_51
+2026-10-25_01:27:09 line 87: 13377719_48 projected 9.54 h > its 7:50:00 limit (73/91 refits, 376 s a refit); resume job 13422658 (3:54:00) afterany:13377719_48
+2026-10-25_01:27:09 line 365: 13383080_10 projected 11.48 h > its 7:50:00 limit (39/91 refits, 449 s a refit); resume job 13422659 (11:16:00) afterany:13383080_10
+2026-10-25_01:27:09 line 366: 13383080_9 projected 8.53 h > its 7:50:00 limit (53/91 refits, 335 s a refit); resume job 13422660 (8:14:00) afterany:13383080_9
+2026-10-25_01:27:09 line 367: 13383080_8 projected 8.23 h > its 7:50:00 limit (55/91 refits, 323 s a refit); resume job 13422661 (7:48:00) afterany:13383080_8
+2026-10-25_01:27:10 line 363: 13383080_7 projected 13.19 h > its 7:50:00 limit (34/91 refits, 518 s a refit); resume job 13422662 (12:21:00) afterany:13383080_7
+2026-10-25_01:27:10 line 360: 13383080_3 projected 9.11 h > its 7:50:00 limit (52/91 refits, 357 s a refit); resume job 13422663 (8:27:00) afterany:13383080_3
+2026-10-25_01:27:11 line 359: 13383080_2 projected 8.50 h > its 7:50:00 limit (57/91 refits, 335 s a refit); resume job 13422664 (7:22:00) afterany:13383080_2
+2026-10-25_01:27:11 line 358: 13383080_1 projected 8.23 h > its 7:50:00 limit (64/85 refits, 347 s a refit); resume job 13422665 (4:33:00) afterany:13383080_1
+2026-10-25_09:21:28 line 319: 13377719_116 TIMEOUT (not in this log before); resume job 13425458 (3:00:00), 86/91 refits checkpointed
+2026-10-25_11:18:15 line 345: moved off slow node a04-04 (462.19 s a refit, 47/85 refits): resume job 13436653 (4:45:00, ExcNodeList slow nodes) afterany:13377719_142, then scancel 13377719_142 (coordinator-approved)
+2026-10-25_11:18:15 line 340: moved off slow node a01-19 (400.22 s a refit, 55/91 refits): resume job 13436654 (4:30:00, ExcNodeList slow nodes) afterany:13377719_139, then scancel 13377719_139 (coordinator-approved)
+2026-10-25_11:18:15 line 341: moved off slow node b09-15 (395.05 s a refit, 55/91 refits): resume job 13436655 (4:30:00, ExcNodeList slow nodes) afterany:13422082_6, then scancel 13422082_6 (coordinator-approved)
+2026-10-25_11:18:15 line 342: moved off slow node a04-07 (367.39 s a refit, 60/91 refits): resume job 13436656 (3:52:00, ExcNodeList slow nodes) afterany:13377719_143, then scancel 13377719_143 (coordinator-approved)

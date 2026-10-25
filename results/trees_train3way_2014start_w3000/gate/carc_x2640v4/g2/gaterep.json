@@ -1,0 +1,26 @@
+{
+ "ALL48_rf_skx_all_features_scored2": {
+  "against": "ALL48_rf_skx_all_features_scored",
+  "origins": 3,
+  "identical": true,
+  "pred_adj": [
+   "1.0386563823872583",
+   "1.0056140853271842",
+   "0.8266807792737686"
+  ],
+  "lgbm_force_col_wise": [
+   null,
+   null
+  ],
+  "host": [
+   "d18-13.hpc.usc.edu",
+   "d18-30.hpc.usc.edu"
+  ],
+  "cpu": [
+   "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz",
+   "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz"
+  ]
+ },
+ "one_hosts": {},
+ "pass": true
+}

@@ -1,0 +1,79 @@
+{
+ "ALL48_N3k_rf_skx_all_features": {
+  "every_rows": 91,
+  "scored_rows": 17,
+  "stamps_every": [
+   "2014-01-02 15:30:00",
+   "2014-01-06 10:30:00"
+  ],
+  "identical": true,
+  "differing": [],
+  "max_rel_diff": 0.0,
+  "sec_refit_every": 2.587912087912088,
+  "sec_refit_scored": 2.235294117647059,
+  "threads": 8,
+  "cpu": [
+   "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz",
+   "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+  ]
+ },
+ "ALL48_N3k_rf_skx_baseline": {
+  "every_rows": 91,
+  "scored_rows": 17,
+  "stamps_every": [
+   "2014-01-02 15:30:00",
+   "2014-01-06 10:30:00"
+  ],
+  "identical": true,
+  "differing": [],
+  "max_rel_diff": 0.0,
+  "sec_refit_every": 0.10109890109890109,
+  "sec_refit_scored": 0.12352941176470589,
+  "threads": 8,
+  "cpu": [
+   "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz",
+   "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+  ]
+ },
+ "ALL48_rf_skx_all_features": {
+  "every_rows": 38,
+  "scored_rows": 3,
+  "stamps_every": [
+   "2014-01-02 15:30:00",
+   "2014-01-03 10:00:00"
+  ],
+  "identical": true,
+  "differing": [],
+  "max_rel_diff": 0.0,
+  "sec_refit_every": 160.89210526315787,
+  "sec_refit_scored": 146.03333333333333,
+  "threads": 20,
+  "cpu": [
+   "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz",
+   "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+  ]
+ },
+ "ALL48_rf_skx_baseline": {
+  "every_rows": 38,
+  "scored_rows": 3,
+  "stamps_every": [
+   "2014-01-02 15:30:00",
+   "2014-01-03 10:00:00"
+  ],
+  "identical": true,
+  "differing": [],
+  "max_rel_diff": 0.0,
+  "sec_refit_every": 4.6499999999999995,
+  "sec_refit_scored": 5.166666666666667,
+  "threads": 8,
+  "cpu": [
+   "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz",
+   "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+  ]
+ },
+ "pass": true,
+ "arms": "all",
+ "est": [
+  "rf_skx"
+ ]
+}

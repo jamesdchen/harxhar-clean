@@ -1,0 +1,58 @@
+{
+ "arm": "ALL48",
+ "est": "rf_skx",
+ "predictor_set": "all_features",
+ "tag": "272of368",
+ "design": "/u/scratch/j/jamesdc1/t3t/carc/designs/ALL48/_work/design_all_features",
+ "design_window": 144000,
+ "sample": "all",
+ "window_rows": 144000,
+ "block": [
+  "2021-09-07 10:00:00",
+  "2021-09-15 16:00:00"
+ ],
+ "rows": 91,
+ "refits": 91,
+ "wall_sec": 25163.1,
+ "config": "rf400_rf_opt_00",
+ "sha": "88eebb5fa9e8",
+ "params": {
+  "n_estimators": 485,
+  "max_depth": 20,
+  "min_samples_leaf": 12,
+  "max_features": 0.9013236540796851,
+  "max_samples": 0.41297156429787285,
+  "bootstrap": true
+ },
+ "config_file": "cluster/pooltree_rf400_config.json",
+ "config_file_sha256": "ba5c99b02b9359e070813a7ed8a421cb96205176a7dc91aa55c6b0288f164567",
+ "n_columns": 565,
+ "threads": 8,
+ "host": "n1850",
+ "cpu": "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz",
+ "cpus": [
+  "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+ ],
+ "versions": {
+  "python": "3.12.3",
+  "numpy": "1.26.4",
+  "pandas": "2.3.3",
+  "scipy": "1.17.1",
+  "sklearn": "1.9.1",
+  "lightgbm": "4.6.0",
+  "xgboost": "3.2.0",
+  "pyarrow": "19.0.1",
+  "sklearnex": "2026.2.0",
+  "daal": "2026.2.0"
+ },
+ "slurm_job": "494144",
+ "slurm_task": "45",
+ "skx_dispatch": [
+  "sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU",
+  "sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU"
+ ],
+ "skx_split": {
+  "max_bins": 256,
+  "min_bin_size": 1
+ }
+}

@@ -1,0 +1,18 @@
+{
+ "cluster": "h2",
+ "g1_md5": true,
+ "g2_md5": true,
+ "classes_gate1": [
+  "rf_skx"
+ ],
+ "classes_gate2": [
+  "rf_skx"
+ ],
+ "gate1_rc": 0,
+ "gate2_rc": 0,
+ "repeats_rc": 0,
+ "cpus": [
+  "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+ ],
+ "pass": true
+}

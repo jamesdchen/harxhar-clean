@@ -472,3 +472,17 @@ Pool: lines 5-348 of runs/tasks/w3rf_full.txt, claims in runs/claims_w3rf_full/<
 - The /home1 pieces (27 lines: 80-86, 349-368; 54 files) copied into runs/pieces, md5-equal.
 - 13372433 (merge of ALL48 with every class: intake of runs/pieces_h2, --accept-cpus) dependency cleared and
   released; 13372434 (final scores -> scores/) afterok on it.
+
+## Final (2026-10-25 ~14:50 CARC clock)
+
+- Merge 13372433 COMPLETED: intake of Hoffman2's 159 pieces (md5, meta, rows, CPU model gated), ALL48 every class and
+  set (203,820 rows) -> runs/ALL48/forecasts.parquet; final scores 13372434 COMPLETED -> scores/ (every arm: ALL48,
+  RTH13 (templates), CLOSE, ALL48_N3k, RTH13_N3k, ALL48_N39k; scorer check passed: RTH13 reproduces the templates'
+  metrics.csv and full-vs-HAR DM).  Close economics (local, main checkout b3ca310) -> econ/; check passed (RTH13
+  reproduces the templates' econ.csv).
+- CPU-hours (CARC: sacct allocated CPUs x elapsed of every t3t_ job, failed / timed-out / cancelled included;
+  sacct_cpu_hours.txt): 19,711 (walks 19,564; gates, probes, diagnostics, merges, scores 147), of which the ALL48
+  forest full set 13,676 (pools, resume jobs, 13372432).  Hoffman2: the forest full set's 159 pieces 9,958 (wall x
+  threads from their metas), excluding Hoffman2's gates.  Template RTH13 reused (3,325).
+- Files: scores/, econ/, scores_w1/-w3/, econ_w1/, econ_w3/, gate/ (all gate JSONs incl. carc_* and h2/* accept),
+  pieces/ and pieces_h2/ (metas), pieces_h2_intake.json, resumes.log, claims_released.log, tasks/, sacct_cpu_hours.txt.

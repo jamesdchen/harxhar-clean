@@ -1,0 +1,27 @@
+{
+ "RTH13_rf_skx_baseline_ends10_t8": {
+  "origins": 20,
+  "first": "2014-01-02 10:00:00",
+  "last": "2024-04-30 16:00:00",
+  "threads": 8,
+  "cpu": "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz",
+  "text_identical": false,
+  "max_rel_diff": 8.277851264550256e-16,
+  "true_adj_equal": true,
+  "B_equal": true,
+  "pass_": true
+ },
+ "RTH13_rf_skx_all_features_ends10_t8": {
+  "origins": 20,
+  "first": "2014-01-02 10:00:00",
+  "last": "2024-04-30 16:00:00",
+  "threads": 8,
+  "cpu": "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz",
+  "text_identical": false,
+  "max_rel_diff": 8.106316689150265e-16,
+  "true_adj_equal": true,
+  "B_equal": true,
+  "pass_": true
+ },
+ "pass": true
+}
