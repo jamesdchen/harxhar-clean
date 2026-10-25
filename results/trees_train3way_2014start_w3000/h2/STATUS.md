@@ -224,3 +224,9 @@ bookworm container of the tree learning curve; threads = slots; numpy AVX-512 di
 - Delivered: 60 Slurm pieces = lines 168-173 and 199-252; manifest md5 904529af9b963a268d111c98f6c9d05f, 120 files
   md5-verified on CARC, /scratch1 ok; runs/pieces_h2 MD5SUMS ok, 149 pieces = every assigned line but 154-163.
 - Left: UGE 15263238 lines 154-163 at 57-70 of 91 refits (about 410 s a refit since 00:35): ~06:50-08:20.
+
+## 06:20 PDT Sunday: eighth delivery
+
+- Delivered: line 162 (UGE); manifest md5 a71f1161fd38d96562170edfa7064d94, 2 files md5-verified on CARC, /scratch1 ok;
+  runs/pieces_h2 MD5SUMS ok, 150 pieces.
+- Left: UGE 15263238, 9 lines (154-161, 163) at 73-87 of 91 refits (~410-440 s a refit): ~06:50-08:35.  No error.
