@@ -1,0 +1,66 @@
+{
+ "dir": "/u/scratch/j/jamesdc1/abl/gate/u6140",
+ "classes": {
+  "xgb": {
+   "pass_": true,
+   "checks": [
+    {
+     "arm": "full",
+     "rows": 20,
+     "text_identical": 20,
+     "max_rel": 0.0,
+     "side_equal": true,
+     "cpus": [
+      "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+     ],
+     "sec_refit": 7.74,
+     "pass_": true
+    },
+    {
+     "arm": "har",
+     "rows": 20,
+     "text_identical": 20,
+     "max_rel": 0.0,
+     "side_equal": true,
+     "cpus": [
+      "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+     ],
+     "sec_refit": 1.1949999999999998,
+     "pass_": true
+    }
+   ]
+  },
+  "lgbm": {
+   "pass_": true,
+   "checks": [
+    {
+     "arm": "full",
+     "rows": 20,
+     "text_identical": 20,
+     "max_rel": 0.0,
+     "side_equal": true,
+     "cpus": [
+      "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+     ],
+     "sec_refit": 5.5600000000000005,
+     "pass_": true
+    },
+    {
+     "arm": "har",
+     "rows": 20,
+     "text_identical": 20,
+     "max_rel": 0.0,
+     "side_equal": true,
+     "cpus": [
+      "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+     ],
+     "sec_refit": 1.5150000000000001,
+     "pass_": true
+    }
+   ]
+  }
+ },
+ "fail": [],
+ "cpu": "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz",
+ "pass": true
+}

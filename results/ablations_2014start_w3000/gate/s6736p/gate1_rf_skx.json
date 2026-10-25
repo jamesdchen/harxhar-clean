@@ -1,0 +1,37 @@
+{
+ "dir": "/u/scratch/j/jamesdc1/abl/gate/s6736p",
+ "classes": {
+  "rf_skx": {
+   "pass_": true,
+   "checks": [
+    {
+     "arm": "full",
+     "rows": 20,
+     "text_identical": 2,
+     "max_rel": 1.0519952063378515e-15,
+     "side_equal": true,
+     "cpus": [
+      "Intel(R) Xeon(R) 6736P"
+     ],
+     "sec_refit": 25.115000000000002,
+     "pass_": true
+    },
+    {
+     "arm": "har",
+     "rows": 20,
+     "text_identical": 3,
+     "max_rel": 1.7132469246704352e-15,
+     "side_equal": true,
+     "cpus": [
+      "Intel(R) Xeon(R) 6736P"
+     ],
+     "sec_refit": 0.52,
+     "pass_": true
+    }
+   ]
+  }
+ },
+ "fail": [],
+ "cpu": "Intel(R) Xeon(R) 6736P",
+ "pass": true
+}

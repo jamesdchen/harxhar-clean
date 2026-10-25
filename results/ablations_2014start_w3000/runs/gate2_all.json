@@ -1,0 +1,49 @@
+{
+ "classes": {
+  "lgbm": {
+   "models": {
+    "s6240": [
+     "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+    ],
+    "s6736p": [
+     "Intel(R) Xeon(R) 6736P"
+    ],
+    "s6442y": [
+     "Intel(R) Xeon(R) Gold 6442Y"
+    ]
+   },
+   "identical": true,
+   "max_rel": 0.0
+  },
+  "xgb": {
+   "models": {
+    "s6240": [
+     "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+    ],
+    "s6736p": [
+     "Intel(R) Xeon(R) 6736P"
+    ],
+    "s6442y": [
+     "Intel(R) Xeon(R) Gold 6442Y"
+    ]
+   },
+   "identical": true,
+   "max_rel": 0.0
+  },
+  "rf_skx": {
+   "models": {
+    "s6240": [
+     "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+    ],
+    "s6736p": [
+     "Intel(R) Xeon(R) 6736P"
+    ],
+    "s6442y": [
+     "Intel(R) Xeon(R) Gold 6442Y"
+    ]
+   },
+   "identical": false,
+   "max_rel": 1.7851572915166854e-15
+  }
+ }
+}

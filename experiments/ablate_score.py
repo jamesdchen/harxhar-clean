@@ -1,7 +1,8 @@
 """Scores of the ablation run (results/ablations_2014start_w3000/RULE.txt section 7), on the laptop.
 
-Reads the merged forecasts the cluster wrote (results/ablations_2014start_w3000/forecasts/: linear.parquet = ablate_linear
-merge; trees/<est>_<arm>.parquet = ablate_trees merge, date and pred_adj) and the templates (the final run: linear w3000,
+Reads the merged forecasts the cluster wrote, compacted (results/ablations_2014start_w3000/forecasts/linear_wide.parquet
+and trees_wide.parquet: date and one pred_adj column per "<class>|<arm>", from ablate_linear / ablate_trees merge) and
+the templates (the final run: linear w3000,
 LightGBM / XGBoost, the forest on oneDAL), and scores every (class, arm) the way Table 1 does
 (writeup/make_rehaul_oos_rerun.py): plain = pred_adj^2 x B against the bar's actual RV (data/core_stats.parquet sumret2),
 QLIKE = r - ln r - 1 (r = RV / plain) and squared error, Diebold-Mariano (src/evaluation/diebold_mariano.dm_test) on
@@ -87,26 +88,22 @@ def load_panel(res: Path) -> tuple[dict[tuple[str, str], pd.Series], pd.Series]:
     for (m, s), f in tt.groupby(["model", "predictor_set"]):
         out[(m, SET_ARM[s])] = pd.Series(f["plain"].to_numpy(), index=pd.DatetimeIndex(f["date"]))
     B = tt[(tt["model"] == "lgbm") & (tt["predictor_set"] == "all_features")].set_index("date")["B"]
-    lin = res / "forecasts" / "linear.parquet"
-    if lin.is_file():
-        la = pd.read_parquet(lin)
-        for (arm, m), f in la.groupby(["arm", "model"]):
-            if arm in ("full", "har_sub"):  # gate L's reproductions: identical to the templates (checked)
-                ref = out[(m, "full" if arm == "full" else "har")]
-                got = pd.Series(f["plain"].to_numpy(), index=pd.DatetimeIndex(f["date"]))
-                assert np.array_equal(got.reindex(ref.index).to_numpy(), ref.to_numpy()), (arm, m)
-                continue
-            out[(m, arm)] = pd.Series(f["plain"].to_numpy(), index=pd.DatetimeIndex(f["date"]))
-    for p in sorted((res / "forecasts" / "trees").glob("*.parquet")):
-        est, arm = p.stem.split("_", 1)
-        if est == "rf":  # rf_skx_<arm>
-            est, arm = "rf_skx", arm.split("_", 1)[1]
-        cls = {"rf_skx": "rf"}.get(est, est)
-        f = pd.read_parquet(p)
-        d = pd.DatetimeIndex(f["date"])
+    lb = lt[(lt["model"] == "ridge") & (lt["predictor_set"] == "all_features")].set_index("date")["B"]
+    assert np.array_equal(lb.reindex(B.index).to_numpy(), B.to_numpy()), "linear and tree templates' B"
+    # the merged ablation forecasts, compact: one column of pred_adj per "<class>|<arm>" (2014-01-02 on)
+    for name in ("linear_wide.parquet", "trees_wide.parquet"):
+        p = res / "forecasts" / name
+        if not p.is_file():
+            continue
+        w = pd.read_parquet(p)
+        d = pd.DatetimeIndex(w["date"])
         b = B.reindex(d).to_numpy()
-        assert np.isfinite(b).all(), p.name
-        out[(cls, arm)] = pd.Series(f["pred_adj"].to_numpy() ** 2 * b, index=d)
+        assert np.isfinite(b).all(), name
+        for col in w.columns[1:]:
+            cls, arm = col.split("|")
+            cls = {"rf_skx": "rf"}.get(cls, cls)
+            assert (cls, arm) not in out, (cls, arm)
+            out[(cls, arm)] = pd.Series(w[col].to_numpy() ** 2 * b, index=d)
     return out, B
 
 
