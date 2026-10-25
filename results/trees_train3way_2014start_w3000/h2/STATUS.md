@@ -168,3 +168,10 @@ bookworm container of the tree learning curve; threads = slots; numpy AVX-512 di
   44d9a40c60d67c934d1750966196de14, 127 files md5-verified in CARC staging, /scratch1 write check ok, moved into
   /scratch1/jc_905/trees3way/runs/pieces_h2 (MD5SUMS: 63 pieces, md5sum -c ok); the Slurm check record ->
   h2/slurm_gold6240_check.json.
+
+## 20:46 PDT: lines 164-167 returned to CARC
+
+- Slurm 494144_32 (task-file lines 125-128 = w3rf_full.txt lines 167, 166, 165, 164) was PENDING, never started (no
+  log, no piece or checkpoint on either cluster): `scancel 494144_32`; the 16 running jobs untouched (16 running
+  after); UGE untouched.  Hoffman2 copies: runs/tasks/h2_assignment.txt RETURNED 317-368 and 164-167, ASSIGNED
+  168-316 and 139-163; runs/tasks/h2_placement.txt.  Slurm Gold 6240 now 124 lines (316-199, 173-168).
