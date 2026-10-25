@@ -448,3 +448,8 @@ Pool: lines 5-348 of runs/tasks/w3rf_full.txt, claims in runs/claims_w3rf_full/<
   had its resume job (24 in resumes.log; their pieces complete except lines 144, 167, 318, still resuming).  No running
   task with a 7:50 limit is left uncovered.  Complete forest full-set pieces: 159 on /scratch1, 27 on /home1;
   running: 13377719 17, 13422082 2, resume jobs 3 (+1 pending).
+- 11:16 (CARC clock): 357 of the 368 ALL48 forest full-set pieces complete (CARC /scratch1 176, /home1 30 incl. lines
+  1-4 and the resumed ones; Hoffman2 159: Gold 6240 131, Gold 6140 28; pieces_h2 MD5SUMS check clean); no line in two
+  places.  Missing 11, all running on EPYC (17 h limits): 323, 324, 336, 339, 340, 341, 342, 343, 345, 346, 348; the
+  slowest (345: 47 of ~91 refits at 462 s; 340 / 341: 55 at ~400 s; 342: 59 at 368 s) finish around 15:00-17:00.
+  Accept and the final merge wait for them (13372433 held).
