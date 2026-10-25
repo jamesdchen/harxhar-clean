@@ -439,3 +439,7 @@ Pool: lines 5-348 of runs/tasks/w3rf_full.txt, claims in runs/claims_w3rf_full/<
   runs/claims_w3rf_full_resume and /home1/.../claims_w3rf_full_resume; the original claims stay); runs/resumes.log.
 - Held merge 13372433 also waits on the 28 resume jobs (33 jobs in all).  Unclaimed lines at 01:25: 28 (/scratch1);
   claims in the last 2 h: 36 (18 / h).  Lines done: 82 (/scratch1) + 15 (/home1).
+- Round-3 decision (coordinator 02:47; CARC clock 02:48): U = 13 unclaimed (336-348, /scratch1 namespace); 22 claims in
+  the last 2 h (11.0 lines/h); median running-EPYC s/refit 264.6 s (75 tasks) -> 6.69 h a 91-refit line; CARC's last
+  claim in ~1.2 h -> tail ~10:40 (CARC clock); CARC can claim ~16 lines in the window to 11:00 -> k = 0: nothing
+  reserved for Hoffman2's Slurm round 3, h2_assignment.txt unchanged.
