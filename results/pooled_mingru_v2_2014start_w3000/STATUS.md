@@ -346,3 +346,8 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   refit (G7 P100 4.55: A40 ~1.5x); no gpu-partition A40 walk output exists yet to compare it with (piece 000.p00 not
   started). 13386772 (CONC 48, cpu 2 / 8G) OUT_OF_MEMORY in 27 s (8G < the full set's ~7.6 GB + CONC 48): retest
   CONC 48 at cpu 4 / 24G submitted on debug A40: 13387069. P100 probes 13386769 / 70 running, 13386773 pending.
+- 2026-10-24 18:10 PDT (ADDENDUM 3b applied): the 45 debug pieces of HAR W 3,000 file 053 uploaded
+  (inputs/pieces/dbg/, walk/dbg_pieces_baseline.csv); 4 submitted on the debug P100s (cpu 2 / 8G, 60 min):
+  13390081-84 (g00-g03 of 053.p00); the steward pings for refills (<= 5 debug jobs, one session of mine per 30 min).
+  Salvage retest (72 full refits on P100, --time 9: USR1 at ~5 min) 13390085 (v2probe, expected exit 3).
+  gpu partition unchanged: 36 running P100 (the cap), 51 P100 + 13 A40 pending.
