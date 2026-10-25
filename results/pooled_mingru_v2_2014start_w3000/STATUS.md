@@ -410,3 +410,6 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   -> 18; walk/dbg_pieces_all_features.csv). HAR debug pieces 13422440-41 (053.p01.g05-g06) cancelled while pending
   (back in the debug pool); full W 3,000 debug A40 pieces submitted (cpu 2 / 16G, CONC 24, 57 min): 13422686-87
   (005.p00.g00-g01). Debug now 3 HAR P100 (1 running) + 2 full A40 (pending). gpu 98 (20 running P100).
+- 2026-10-25 02:05 PDT: debug 13423085 (full W 3,000 005.p00.g02, A40); the 3 debug A40 pieces wait (the debug A40s
+  are busy); gpu top-up 13423086-87 (028.p02-p03, cpu 2 / 8G). gpu 98 (22 running P100; 0 gpu A40 running yet),
+  debug 5. No FAILED since 01:00.

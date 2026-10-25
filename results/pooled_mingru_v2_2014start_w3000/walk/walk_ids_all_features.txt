@@ -32,3 +32,4 @@ pieces/v2w_all_features.001.p02.txt 13385624 gpu 432 A40 resubmitted (fixed sbat
 pieces/v2w_all_features.001.p03.txt 13385625 gpu 432 A40 resubmitted (fixed sbatch)
 pieces/dbg/v2w_all_features.005.p00.g00.txt 13422686 debug 57 A40 debug piece of pieces/v2w_all_features.005.p00.txt (ADDENDUM 3c)
 pieces/dbg/v2w_all_features.005.p00.g01.txt 13422687 debug 57 A40 debug piece of pieces/v2w_all_features.005.p00.txt (ADDENDUM 3c)
+pieces/dbg/v2w_all_features.005.p00.g02.txt 13423085 debug 57 A40 debug piece of pieces/v2w_all_features.005.p00.txt (ADDENDUM 3c)
