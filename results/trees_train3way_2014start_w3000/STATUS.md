@@ -414,3 +414,9 @@ Pool: lines 5-348 of runs/tasks/w3rf_full.txt, claims in runs/claims_w3rf_full/<
   other claim on CARC; their owner_h2 claims removed in the /scratch1 namespace; only the EPYC pool 13377719 (73
   pending) can take them (the /scratch1 Xeon 4116 / E5-2640 v4 pools have no pending task).  h2_assignment.txt:
   ASSIGNED 139-163, 168-316; RETURNED 164-167, 317-368.
+- Lines 139-153 returned by Hoffman2 (~23:25 PDT; UGE 15263239 deleted while held, no task started; h2/STATUS.md
+  a8ec987): no piece or other claim on CARC; owner_h2 claims removed; h2_assignment.txt ASSIGNED 154-163, 168-316 /
+  RETURNED 139-153, 164-167, 317-368.  Fresh /scratch1 EPYC 7513 / 7542 pool 13422082 (15 tasks, 8 threads, 7:50:00,
+  5 GB, code_65f789a as 13377719): 5 running, 10 pending at submission.  Held merge 13372433 afterany 13377719,
+  13378115, 13383080, 13383081, 13422082.  Note: 13377719 still had 69 pending tasks but 40 running = its throttle (40);
+  only 4 lines were claimed between 20:44 and 23:25 (unclaimed 54 -> 54 before the 15 returned lines).
