@@ -223,6 +223,9 @@ def cmd_merge(a) -> int:
     d = pd.DatetimeIndex(pd.read_csv(full / "dates_oos.csv", parse_dates=["date"])["date"])
     B = pd.Series(np.load(full / "b_oos.npy"), index=d)
     y = np.load(full / "y.npy")
+    t = pd.read_parquet(W3000 / "forecasts.parquet", columns=["model", "predictor_set", "date", "true_adj"])
+    t = t[(t["model"] == "ols") & (t["predictor_set"] == "baseline")]
+    ty = pd.Series(t["true_adj"].to_numpy(), index=pd.DatetimeIndex(t["date"]))
     lines = [ln.split() for ln in Path(a.tasks).read_text().splitlines() if ln.strip()]
     pairs = sorted({(arm, m, int(k)) for arm, m, _, k in lines}, key=lambda x: (x[0], x[1]))
     frames, missing = [], []
@@ -235,7 +238,11 @@ def cmd_merge(a) -> int:
         dt = pd.DatetimeIndex(r["date"])
         b = B.reindex(dt).to_numpy()
         assert np.isfinite(b).all(), (arm, m)
-        assert np.array_equal(r["true_adj"].to_numpy(), y[39000 + d.get_indexer(dt)]), (arm, m, "true_adj")
+        # 2026-10-25: the walk tables' true_adj went through to_csv / read_csv (pandas' default float parser, the
+        # templates' path), so it equals the template's true_adj exactly and y.npy to the last bits.  Was:
+        # assert np.array_equal(r["true_adj"].to_numpy(), y[39000 + d.get_indexer(dt)])
+        assert np.allclose(r["true_adj"].to_numpy(), y[39000 + d.get_indexer(dt)], rtol=1e-14, atol=0), (arm, m)
+        assert np.array_equal(r["true_adj"].to_numpy(), ty.reindex(dt).to_numpy()), (arm, m, "true_adj")
         frames.append(
             pd.DataFrame(
                 dict(

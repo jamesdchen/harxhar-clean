@@ -48,3 +48,9 @@ pool_s6736p 499356-499358, pool_s6442y 499359-499360, pool_s6240 499361-499369; 
 | 14:16 | tree pools started (9 x Gold 6240 x 4, 2 x 6442Y x 6, 3 x 6736P x 9 = 75 workers, 600 CPUs); first round: XGBoost / LightGBM lines (the forest became eligible at 14:27) |
 | 14:29 | lg / lp resubmitted without the prep1 dependency: 499465 / 499466 (499347 / 499348 cancelled unstarted) |
 | 14:30 | UGE gate replaced by an 8-slot job 15273084 (+ pool 15273085); T2 job 499467 over the three Slurm gate dirs; RULE.txt addendum B |
+| 14:43 | gate L 499465 PASS on Gold 6240: the seven final linear walks (ridge, lasso, elastic net on the full cache; the four HAR-benchmark walks on the 12-column subset of the full cache) reproduce w3000/forecasts.parquet's pred_adj and true_adj bit for bit on all 33,997 rows -> gate/passed_lin; linear pool 499466 started 14:43 (16 workers) |
+| 14:30 | T2 499467 (runs/gate2_all.json): LightGBM and XGBoost lo_rm first-10 forecasts bit-identical on Gold 6240, Gold 6442Y, Xeon 6736P; the forest differs across them by at most 1.8e-15 relative (recorded; a forest piece stays on one CPU model) |
+| 14:45 | UGE gate 15273084 PASS (Gold 6140, LightGBM and XGBoost text-identical to the templates); UGE pool 15273085 running (22 x 8 slots) |
+| 15:20 | linear pool 499466 done: all 121 ablation walks (16 group arms x ridge / lasso / elastic net in 1-4 chunks, 4 classical arms x 4 models, add_rm OLS) exit 0, no failed claim |
+| 15:37 | tree pools: 85 lines claimed (78 XGBoost, 6 LightGBM, 1 forest), none finished yet (XGBoost lo arms 4.6-4.8 s a refit on Gold 6240); linear merge 499726 |
+| 15:53 | linear merge 499726 failed on its own check: the walk tables' true_adj (read back by pandas' default float parser, as the templates') differs from y.npy in the last bits; check changed to: equal to the template's true_adj exactly, to y.npy within 1e-14 relative (ablate_linear.py); merge resubmitted |
