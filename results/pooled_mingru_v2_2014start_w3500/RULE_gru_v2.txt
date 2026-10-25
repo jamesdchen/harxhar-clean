@@ -272,3 +272,12 @@ DECISIONS (1) The debug partition (outside the 36-GPU gpu QOS; 2 P100 + 2 A40; a
          requests unchanged. (3) CONC unchanged (12 HAR, 24 full): higher CONC is identical but not faster.
          (4) --time-min not applied: we hold the 36-GPU cap, so no start is blocked by our time limits; the salvage
          test is rerun with a longer limit before any later use.
+
+ADDENDUM 3c 2026-10-25 01:20 PDT (coordinator, owner: maximize throughput), before the affected jobs; both copies.
+The debug partition's 2 A40s run full-set pieces (same arm, same A40 type: one type per arm holds): at most 2-3 HAR
+P100 pieces stay in debug, the other 2-3 debug slots take <= 50-min full-set pieces at cpu 2 / 16G (validated by
+13416868), full W 3,000 first. Pieces are cut from full-set pieces never submitted (W 3,000 file 005 p00-p04 -> 30
+pieces of ~189 bars, ~47 min at the measured A40 3.0 s a refit; W 3,500 file 003 p00-p02 -> 18 pieces of ~472 bars,
+~44 min at an estimated 1.12 s a refit), time limits est x 1.2 (<= 60 min). Identity: the debug A40 output is covered
+by the A40 probes (13386771 / 13387069 / 13416868 identical); when the first gpu-partition A40 walk piece runs, a few
+of its refits are rerun on debug A40 and compared byte for byte.
