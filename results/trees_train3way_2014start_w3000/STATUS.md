@@ -420,3 +420,6 @@ Pool: lines 5-348 of runs/tasks/w3rf_full.txt, claims in runs/claims_w3rf_full/<
   5 GB, code_65f789a as 13377719): 5 running, 10 pending at submission.  Held merge 13372433 afterany 13377719,
   13378115, 13383080, 13383081, 13422082.  Note: 13377719 still had 69 pending tasks but 40 running = its throttle (40);
   only 4 lines were claimed between 20:44 and 23:25 (unclaimed 54 -> 54 before the 15 returned lines).
+- 13377719 throttle 40 -> 64 (coordinator-approved): main-partition running jobs 61 (13377719 40, the others 21) plus
+  13422082's 10 pending, so 64 keeps our total at <= 95 under the normal QOS's 100.  From 02:30 each alert report gives
+  the unclaimed lines and the claim rate of the last 2 h (Slurm frees ~60 Gold 6240 slots at ~03:30, finish ~11:00).
