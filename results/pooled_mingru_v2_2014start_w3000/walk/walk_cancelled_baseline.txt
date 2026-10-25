@@ -39,3 +39,5 @@
 13380634 v2w_baseline.051.txt cancelled while pending: replaced by pieces (ADDENDUM 3)
 13380635 v2w_baseline.052.txt cancelled while pending: replaced by pieces (ADDENDUM 3)
 13380636 v2w_baseline.053.txt cancelled while pending: replaced by pieces (ADDENDUM 3)
+13422441 pieces/dbg/v2w_baseline.053.p01.g06.txt cancelled while pending: debug slot given to a full-set A40 piece (ADDENDUM 3c)
+13422440 pieces/dbg/v2w_baseline.053.p01.g05.txt cancelled while pending: debug slot given to a full-set A40 piece (ADDENDUM 3c)

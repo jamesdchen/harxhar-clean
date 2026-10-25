@@ -406,3 +406,7 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   P100, 64 P100 + 13 A40 pending), debug 5. No FAILED walk job since 23:00.
 - 2026-10-25 01:04 PDT top-up: debug 13422440-41 (053.p01.g05-g06), gpu 13422442-43 (028.p00-p01, cpu 2 / 8G). gpu 98
   (20 running P100), debug 5. No FAILED walk job since 00:00.
+- 2026-10-25 01:34 PDT ADDENDUM 3c applied: 48 full-set debug pieces uploaded (W 3,000 file 005 -> 30, W 3,500 file 003
+  -> 18; walk/dbg_pieces_all_features.csv). HAR debug pieces 13422440-41 (053.p01.g05-g06) cancelled while pending
+  (back in the debug pool); full W 3,000 debug A40 pieces submitted (cpu 2 / 16G, CONC 24, 57 min): 13422686-87
+  (005.p00.g00-g01). Debug now 3 HAR P100 (1 running) + 2 full A40 (pending). gpu 98 (20 running P100).
