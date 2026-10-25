@@ -445,3 +445,12 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
 - 2026-10-25 11:15 PDT: debug 13425926/927 (A40) and 13425928 (P100) COMPLETED (46.7/46.7/48.2 min). Debug refill
   13436117-18 (005.p02.g05, 005.p03.g00, A40), 13436119 (053.p02.g08, P100); gpu top-up 13436120 (031.p02). gpu 99
   (34 running P100; 13 A40 still pending), debug 5. No FAILED since 10:20.
+- 2026-10-25 11:46 PDT: debug refill 13441303 (005.p03.g01, A40), 13441304 (053.p03.g00, P100); gpu top-up 13441305
+  (031.p03). gpu 99 (34 running P100), debug 5. No FAILED since 11:10. Throughput snapshot (read-only, for the owner):
+  refits done (unique ok ids in runs/ + salvage/, partial copies included) W3000 HAR 54,276 / 169,850, W3000 full
+  16,911, W3500 HAR 1,750, W3500 full 0. Measured GPU-s / refit (COMPLETED jobs): W3000 HAR P100 41.1, W3000 full
+  debug A40 2.91, W3500 HAR P100 6.63 (694 refits); W3500 full A40 1.12 planned (unmeasured). GPUs over the last 6 h:
+  W3000 HAR 27.26 gpu + 1.11 debug, W3000 full 1.44 debug A40, W3500 arms 0 (nice 100). Remaining: P100 1,629 GPU-h
+  (both HAR arms; ~57 h at 28.4 GPUs), A40 176 GPU-h (both full arms; ~122 h at 1.44 GPUs, ~88 h at the debug ceiling
+  of 2). gpu-partition A40: 27 nodes x 2 (b11-12 drained); >= 44 jobs by others started on them in the last 6 h; our 13
+  A40 pieces rank 135 of 189 A40-eligible pending (priority 3,772 vs 4,200-5,300 ahead), no start estimate.

@@ -49,3 +49,4 @@ pieces/dbg/v2w_all_features.005.p02.g03.txt 13425927 debug 57 A40 debug piece of
 pieces/dbg/v2w_all_features.005.p02.g04.txt 13428376 debug 57 A40 debug piece of pieces/v2w_all_features.005.p02.txt (ADDENDUM 3c)
 pieces/dbg/v2w_all_features.005.p02.g05.txt 13436117 debug 57 A40 debug piece of pieces/v2w_all_features.005.p02.txt (ADDENDUM 3c)
 pieces/dbg/v2w_all_features.005.p03.g00.txt 13436118 debug 57 A40 debug piece of pieces/v2w_all_features.005.p03.txt (ADDENDUM 3c)
+pieces/dbg/v2w_all_features.005.p03.g01.txt 13441303 debug 57 A40 debug piece of pieces/v2w_all_features.005.p03.txt (ADDENDUM 3c)

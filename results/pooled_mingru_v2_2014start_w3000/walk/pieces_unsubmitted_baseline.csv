@@ -1,5 +1,4 @@
 piece,orig,initsub,o0,o1,n_jobs,est_s,tlim_min,gpu,partition,nice
-pieces/v2w_baseline.031.p03.txt,v2w_baseline.031.txt,w031,70655,70781,630,26649,608,P100,gpu,0
 pieces/v2w_baseline.031.p04.txt,v2w_baseline.031.txt,w031,70781,70907,630,26649,608,P100,gpu,0
 pieces/v2w_baseline.032.p00.txt,v2w_baseline.032.txt,w032,70907,71033,630,26649,608,P100,gpu,0
 pieces/v2w_baseline.032.p01.txt,v2w_baseline.032.txt,w032,71033,71159,630,26649,608,P100,gpu,0
