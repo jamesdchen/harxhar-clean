@@ -248,3 +248,9 @@ bookworm container of the tree learning curve; threads = slots; numpy AVX-512 di
 - Delivered: line 163 (UGE); manifest md5 28f3c074c866523d0706a6832e1b427a, 2 files md5-verified on CARC, /scratch1
   ok; runs/pieces_h2 MD5SUMS ok, 155 pieces.
 - Left: UGE 15263238, 4 lines: 155 and 157 at 87, 158 at 86, 154 at 81 of 91 refits: ~08:10-09:00.  No error.
+
+## 08:23 PDT Sunday: twelfth delivery
+
+- Delivered: lines 155, 157, 158 (UGE); manifest md5 5e700b95a4d0ab624f79d064161384f1, 6 files md5-verified on CARC,
+  /scratch1 ok; runs/pieces_h2 MD5SUMS ok, 158 pieces.
+- Left: line 154 (UGE 15263238, the last Hoffman2 line) at 86 of 91 refits: ~09:00.  No error.
