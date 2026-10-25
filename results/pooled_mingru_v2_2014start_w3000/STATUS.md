@@ -482,3 +482,6 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
 - 2026-10-25 14:55 PDT: first full W 3,000 P100 piece done: debug 13447098 (dbgp 005.p00.g00, 566 refits) COMPLETED
   41:06 (4.36 s a refit with staging). Both debug P100s now ours (13447099-100 running). Debug refill 13447877
   (053.p03.g04). gpu 99 (34 running, 65 pending). No FAILED.
+- 2026-10-25 15:34 PDT: debug 13447099/100 (dbgp 005.p00.g01-g02) COMPLETED 41:04 / 41:18; gpu 13385585 (HAR)
+  COMPLETED 7:11. Debug refill 13448492 (dbgp 005.p00.g04), 13448493 (053.p03.g05); gpu top-up 13448494 (full
+  002.p04). gpu 99 (34 running, 65 pending), debug 5 (1 running: the other debug P100 is another user's). No FAILED.

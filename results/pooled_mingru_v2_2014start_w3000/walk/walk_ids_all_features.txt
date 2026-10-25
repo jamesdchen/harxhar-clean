@@ -16,3 +16,5 @@ pieces/dbgp/v2w_all_features.005.p00.g00.txt 13447098 debug 52 P100 debug piece 
 pieces/dbgp/v2w_all_features.005.p00.g01.txt 13447099 debug 52 P100 debug piece of pieces/v2w_all_features.005.p00.txt (ADDENDUM 3e)
 pieces/dbgp/v2w_all_features.005.p00.g02.txt 13447100 debug 52 P100 debug piece of pieces/v2w_all_features.005.p00.txt (ADDENDUM 3e)
 pieces/dbgp/v2w_all_features.005.p00.g03.txt 13447489 debug 52 P100 debug piece of pieces/v2w_all_features.005.p00.txt (ADDENDUM 3e)
+pieces/dbgp/v2w_all_features.005.p00.g04.txt 13448492 debug 52 P100 debug piece of pieces/v2w_all_features.005.p00.txt (ADDENDUM 3e)
+pieces/v2w_all_features.002.p04.txt 13448494 gpu 588 P100 piece (ADDENDUM 3e, cpu 2 / 16G)
