@@ -423,3 +423,19 @@ Pool: lines 5-348 of runs/tasks/w3rf_full.txt, claims in runs/claims_w3rf_full/<
 - 13377719 throttle 40 -> 64 (coordinator-approved): main-partition running jobs 61 (13377719 40, the others 21) plus
   13422082's 10 pending, so 64 keeps our total at <= 95 under the normal QOS's 100.  From 02:30 each alert report gives
   the unclaimed lines and the claim rate of the last 2 h (Slurm frees ~60 Gold 6240 slots at ~03:30, finish ~11:00).
+
+## Time-limit fix (2026-10-25 01:25 CARC clock; coordinator, urgent)
+
+- 13377719_44 (line 39, a03-18, EPYC 7513) TIMED OUT at 07:50:29 with 102 of its 104 refits in its checkpointed
+  piece (274.8 s a refit): the 7:50 limit (1.25 x the 6.24 h max of 3 lines) was too short for slower lines / nodes.
+  Of 77 running EPYC tasks, 26 were projected past 7:50 (300-518 s a refit; 1-82 of 85-104 refits done).
+- Pending tasks: raising the limit is allowed -> 13377719 (33 pending) and 13422082 (10) set to 17:00:00 (1.3 x 518 s x
+  91 refits).  Running tasks: `scontrol update JobId=13377719_68 TimeLimit=17:00:00` -> "Access/permission denied"
+  (Slurm; not retried).
+- A timeout loses at most 5 minutes (the walk checkpoints every 300 s), so timed-out lines are RESUMED on the same CPU
+  family from their pieces, not restarted (no deletion): line 39 by job 13422638 (3 h), and for each of the 26 at-risk
+  running tasks a resume job that starts when the task ends (afterany; it finds the piece complete and exits if the task
+  finishes in time): 13422639-13422665 (EPYC 7513 / 7542, 8 threads, 5 GB, 3-17 h; separate claim namespaces
+  runs/claims_w3rf_full_resume and /home1/.../claims_w3rf_full_resume; the original claims stay); runs/resumes.log.
+- Held merge 13372433 also waits on the 28 resume jobs (33 jobs in all).  Unclaimed lines at 01:25: 28 (/scratch1);
+  claims in the last 2 h: 36 (18 / h).  Lines done: 82 (/scratch1) + 15 (/home1).
