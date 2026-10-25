@@ -175,3 +175,10 @@ bookworm container of the tree learning curve; threads = slots; numpy AVX-512 di
   log, no piece or checkpoint on either cluster): `scancel 494144_32`; the 16 running jobs untouched (16 running
   after); UGE untouched.  Hoffman2 copies: runs/tasks/h2_assignment.txt RETURNED 317-368 and 164-167, ASSIGNED
   168-316 and 139-163; runs/tasks/h2_placement.txt.  Slurm Gold 6240 now 124 lines (316-199, 173-168).
+
+## 21:22 PDT: second delivery
+
+- UGE: 15262057 15 running (10 finished), 15263238 10 running (lines 163-154), 15263239 held.  Slurm 494144: 16
+  running, 15 completed, 1 cancelled (job 32); 62 pieces finished; no error.
+- Delivered: 9 pieces = lines 178, 180, 182, 183, 192, 194, 196, 198 (UGE) and 315 (Slurm); manifest md5
+  ff0f9539f87f2e088d50c745c3c60789, 18 files md5-verified on CARC, /scratch1 ok; runs/pieces_h2 MD5SUMS ok, 72 pieces.
