@@ -460,3 +460,8 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   pieces). 50 debug P100 pieces of file 005 uploaded to inputs/pieces/dbgp/ (28,310 lines = the five 005 pieces, whose
   md5 match the local cut source; manifest walk/dbgp_pieces_all_features.csv). Debug refill 13445233-34 (053.p03.g01-g02,
   P100). No new A40 debug piece. gpu 94 (34 running P100; 9 full W 3,000 A40 pending). No FAILED since 11:40.
+- 2026-10-25 13:24 PDT ADDENDUM 3e: full W 3,000 P100 canary 13445232 PASS (debug e23-02, COMPLETED 9:27; checks.json
+  120 jobs status ok 120, finite, positive, n_bad 0; trainer wall 528 s = 4.40 s a refit at CONC 24, under the G7 4.55,
+  so time limits use 4.55). It waited ~50 min for a debug P100 (siniukov's P100 job also pending there). The move
+  (cancel the A40 jobs, archive, P100 pieces) runs at the next session. Debug A40 13441303 ended (005.p03.g01). Two
+  earlier attempts at this session's command failed to parse locally (nothing ran); the command was shortened.

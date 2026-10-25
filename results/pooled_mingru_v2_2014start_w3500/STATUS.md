@@ -96,3 +96,7 @@ the old run (read-only): `/home1/jc_905/pmf35/data` (design copies, fold-3 ridge
   Its 4 pending gpu A40 pieces 13385646-49 cancelled (walk/walk_cancelled_all_features.txt); its 18 debug A40 pieces
   (file 003) withdrawn, never submitted (removed from the W 3,000 dir's walk/dbg_pieces_all_features.csv); all 12 pieces
   listed in walk/pieces_unsubmitted_all_features.csv as HELD. 0 refits done; nothing new submitted for it.
+- 2026-10-25 13:24 PDT ADDENDUM 3g (hold released) / 3d choice: CARC L40S in the gpu partition: 22 GPUs, 14 in use, 0
+  usable at cpu 4 / 24G (the 8 free ones sit on nodes without 4 idle CPUs / 24G); ours running 34 of 36, L40S 0 of 6 ->
+  L40S concurrency 0 -> P100 (the rule: L40S if >= 1). G5 canary of full W 3,500 on a debug P100: 13446389 (120 refits,
+  rows 50,777-50,800 x 5 seeds, pieces/canary/v2w_all_features.000.c24.txt, cpu 2 / 16G, CONC 24).

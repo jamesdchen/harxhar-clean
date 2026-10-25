@@ -1,0 +1,1 @@
+pieces/canary/v2w_all_features.000.c24.txt 13446389 debug 30 P100 G5 canary of full W 3,500 (ADDENDUM 3d / 3g)
