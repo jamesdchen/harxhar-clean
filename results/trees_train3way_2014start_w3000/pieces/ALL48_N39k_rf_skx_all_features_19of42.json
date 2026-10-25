@@ -1,0 +1,58 @@
+{
+ "arm": "ALL48_N39k",
+ "est": "rf_skx",
+ "predictor_set": "all_features",
+ "tag": "19of42",
+ "design": "/scratch1/jc_905/trees3way/designs/ALL48/_work/design_all_features",
+ "design_window": 144000,
+ "sample": "all",
+ "window_rows": 39000,
+ "block": [
+  "2018-06-07 10:00:00",
+  "2018-09-04 16:00:00"
+ ],
+ "rows": 808,
+ "refits": 808,
+ "wall_sec": 9511.9,
+ "config": "rf400_rf_opt_00",
+ "sha": "88eebb5fa9e8",
+ "params": {
+  "n_estimators": 485,
+  "max_depth": 20,
+  "min_samples_leaf": 12,
+  "max_features": 0.9013236540796851,
+  "max_samples": 0.41297156429787285,
+  "bootstrap": true
+ },
+ "config_file": "cluster/pooltree_rf400_config.json",
+ "config_file_sha256": "ba5c99b02b9359e070813a7ed8a421cb96205176a7dc91aa55c6b0288f164567",
+ "n_columns": 565,
+ "threads": 20,
+ "host": "a03-12.hpc.usc.edu",
+ "cpu": "AMD EPYC 7513 32-Core Processor",
+ "cpus": [
+  "AMD EPYC 7513 32-Core Processor"
+ ],
+ "versions": {
+  "python": "3.12.15",
+  "numpy": "1.26.4",
+  "pandas": "2.3.3",
+  "scipy": "1.17.1",
+  "sklearn": "1.9.1",
+  "lightgbm": "4.6.0",
+  "xgboost": "3.2.0",
+  "pyarrow": "19.0.1",
+  "sklearnex": "2026.2.0",
+  "daal": "2026.2.0"
+ },
+ "slurm_job": "13371789",
+ "slurm_task": "21",
+ "skx_dispatch": [
+  "sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU",
+  "sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU"
+ ],
+ "skx_split": {
+  "max_bins": 256,
+  "min_bin_size": 1
+ }
+}

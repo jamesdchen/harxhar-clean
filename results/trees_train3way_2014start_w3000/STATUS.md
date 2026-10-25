@@ -393,3 +393,10 @@ Pool: lines 5-348 of runs/tasks/w3rf_full.txt, claims in runs/claims_w3rf_full/<
 - Watch 349-368: 8 started (349-356, E5-2640 v4 /home1 pool 13383082), 12 unclaimed; /scratch1 namespace 88
   unclaimed.  Lines done: 19.  Our main-partition running jobs 55 (440 CPUs); oneweek 204 of 208 CPUs.  Merges m2 / m4
   and scores s2 / s3 / s4 still pending.
+
+## Interim results 2: ALL48_N39k and ALL48 (without the forest's full set) (pulled ~17:20 PDT)
+
+- Merges 13372428 (ALL48_N39k, every class and set) and 13372430 (ALL48 without rf_skx/all_features) and scores
+  13372429 (scores_w2) / 13372431 (scores_w3, every arm merged so far) COMPLETED; both scorer checks passed (RTH13
+  reproduces the templates' metrics.csv and full-vs-HAR DM).  Local economics on scores_w3 (econ_w3/): check passed.
+- Files: scores_w2/, scores_w3/, econ_w3/, ALL48 / ALL48_N39k forecasts.json, piece metas, logs.

@@ -1,0 +1,341 @@
+{
+ "arm": "ALL48",
+ "window_rows": 144000,
+ "pieces": {
+  "lgbm/baseline": [
+   "ALL48_lgbm_baseline_1of3.parquet",
+   "ALL48_lgbm_baseline_2of3.parquet",
+   "ALL48_lgbm_baseline_3of3.parquet"
+  ],
+  "lgbm/all_features": [
+   "ALL48_lgbm_all_features_10of28.parquet",
+   "ALL48_lgbm_all_features_11of28.parquet",
+   "ALL48_lgbm_all_features_12of28.parquet",
+   "ALL48_lgbm_all_features_13of28.parquet",
+   "ALL48_lgbm_all_features_14of28.parquet",
+   "ALL48_lgbm_all_features_15of28.parquet",
+   "ALL48_lgbm_all_features_16of28.parquet",
+   "ALL48_lgbm_all_features_17of28.parquet",
+   "ALL48_lgbm_all_features_18of28.parquet",
+   "ALL48_lgbm_all_features_19of28.parquet",
+   "ALL48_lgbm_all_features_1of28.parquet",
+   "ALL48_lgbm_all_features_20of28.parquet",
+   "ALL48_lgbm_all_features_21of28.parquet",
+   "ALL48_lgbm_all_features_22of28.parquet",
+   "ALL48_lgbm_all_features_23of28.parquet",
+   "ALL48_lgbm_all_features_24of28.parquet",
+   "ALL48_lgbm_all_features_25of28.parquet",
+   "ALL48_lgbm_all_features_26of28.parquet",
+   "ALL48_lgbm_all_features_27of28.parquet",
+   "ALL48_lgbm_all_features_28of28.parquet",
+   "ALL48_lgbm_all_features_2of28.parquet",
+   "ALL48_lgbm_all_features_3of28.parquet",
+   "ALL48_lgbm_all_features_4of28.parquet",
+   "ALL48_lgbm_all_features_5of28.parquet",
+   "ALL48_lgbm_all_features_6of28.parquet",
+   "ALL48_lgbm_all_features_7of28.parquet",
+   "ALL48_lgbm_all_features_8of28.parquet",
+   "ALL48_lgbm_all_features_9of28.parquet"
+  ],
+  "xgb/baseline": [
+   "ALL48_xgb_baseline_1of3.parquet",
+   "ALL48_xgb_baseline_2of3.parquet",
+   "ALL48_xgb_baseline_3of3.parquet"
+  ],
+  "xgb/all_features": [
+   "ALL48_xgb_all_features_10of37.parquet",
+   "ALL48_xgb_all_features_11of37.parquet",
+   "ALL48_xgb_all_features_12of37.parquet",
+   "ALL48_xgb_all_features_13of37.parquet",
+   "ALL48_xgb_all_features_14of37.parquet",
+   "ALL48_xgb_all_features_15of37.parquet",
+   "ALL48_xgb_all_features_16of37.parquet",
+   "ALL48_xgb_all_features_17of37.parquet",
+   "ALL48_xgb_all_features_18of37.parquet",
+   "ALL48_xgb_all_features_19of37.parquet",
+   "ALL48_xgb_all_features_1of37.parquet",
+   "ALL48_xgb_all_features_20of37.parquet",
+   "ALL48_xgb_all_features_21of37.parquet",
+   "ALL48_xgb_all_features_22of37.parquet",
+   "ALL48_xgb_all_features_23of37.parquet",
+   "ALL48_xgb_all_features_24of37.parquet",
+   "ALL48_xgb_all_features_25of37.parquet",
+   "ALL48_xgb_all_features_26of37.parquet",
+   "ALL48_xgb_all_features_27of37.parquet",
+   "ALL48_xgb_all_features_28of37.parquet",
+   "ALL48_xgb_all_features_29of37.parquet",
+   "ALL48_xgb_all_features_2of37.parquet",
+   "ALL48_xgb_all_features_30of37.parquet",
+   "ALL48_xgb_all_features_31of37.parquet",
+   "ALL48_xgb_all_features_32of37.parquet",
+   "ALL48_xgb_all_features_33of37.parquet",
+   "ALL48_xgb_all_features_34of37.parquet",
+   "ALL48_xgb_all_features_35of37.parquet",
+   "ALL48_xgb_all_features_36of37.parquet",
+   "ALL48_xgb_all_features_37of37.parquet",
+   "ALL48_xgb_all_features_3of37.parquet",
+   "ALL48_xgb_all_features_4of37.parquet",
+   "ALL48_xgb_all_features_5of37.parquet",
+   "ALL48_xgb_all_features_6of37.parquet",
+   "ALL48_xgb_all_features_7of37.parquet",
+   "ALL48_xgb_all_features_8of37.parquet",
+   "ALL48_xgb_all_features_9of37.parquet"
+  ],
+  "rf_skx/baseline": [
+   "ALL48_rf_skx_baseline_1of4.parquet",
+   "ALL48_rf_skx_baseline_2of4.parquet",
+   "ALL48_rf_skx_baseline_3of4.parquet",
+   "ALL48_rf_skx_baseline_4of4.parquet"
+  ]
+ },
+ "cpu_models": {
+  "lgbm/baseline": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "lgbm/all_features": [
+   "AMD EPYC 7513 32-Core Processor",
+   "AMD EPYC 7542 32-Core Processor"
+  ],
+  "xgb/baseline": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "xgb/all_features": [
+   "AMD EPYC 7513 32-Core Processor",
+   "AMD EPYC 7542 32-Core Processor"
+  ],
+  "rf_skx/baseline": [
+   "AMD EPYC 7513 32-Core Processor"
+  ]
+ },
+ "piece_cpus": {
+  "ALL48_lgbm_baseline_1of3.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_lgbm_baseline_2of3.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_lgbm_baseline_3of3.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_lgbm_all_features_10of28.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_lgbm_all_features_11of28.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_lgbm_all_features_12of28.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_lgbm_all_features_13of28.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_lgbm_all_features_14of28.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_lgbm_all_features_15of28.parquet": [
+   "AMD EPYC 7542 32-Core Processor"
+  ],
+  "ALL48_lgbm_all_features_16of28.parquet": [
+   "AMD EPYC 7542 32-Core Processor"
+  ],
+  "ALL48_lgbm_all_features_17of28.parquet": [
+   "AMD EPYC 7542 32-Core Processor"
+  ],
+  "ALL48_lgbm_all_features_18of28.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_lgbm_all_features_19of28.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_lgbm_all_features_1of28.parquet": [
+   "AMD EPYC 7542 32-Core Processor"
+  ],
+  "ALL48_lgbm_all_features_20of28.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_lgbm_all_features_21of28.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_lgbm_all_features_22of28.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_lgbm_all_features_23of28.parquet": [
+   "AMD EPYC 7542 32-Core Processor"
+  ],
+  "ALL48_lgbm_all_features_24of28.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_lgbm_all_features_25of28.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_lgbm_all_features_26of28.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_lgbm_all_features_27of28.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_lgbm_all_features_28of28.parquet": [
+   "AMD EPYC 7542 32-Core Processor"
+  ],
+  "ALL48_lgbm_all_features_2of28.parquet": [
+   "AMD EPYC 7542 32-Core Processor"
+  ],
+  "ALL48_lgbm_all_features_3of28.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_lgbm_all_features_4of28.parquet": [
+   "AMD EPYC 7542 32-Core Processor"
+  ],
+  "ALL48_lgbm_all_features_5of28.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_lgbm_all_features_6of28.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_lgbm_all_features_7of28.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_lgbm_all_features_8of28.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_lgbm_all_features_9of28.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_xgb_baseline_1of3.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_xgb_baseline_2of3.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_xgb_baseline_3of3.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_xgb_all_features_10of37.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_xgb_all_features_11of37.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_xgb_all_features_12of37.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_xgb_all_features_13of37.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_xgb_all_features_14of37.parquet": [
+   "AMD EPYC 7542 32-Core Processor"
+  ],
+  "ALL48_xgb_all_features_15of37.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_xgb_all_features_16of37.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_xgb_all_features_17of37.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_xgb_all_features_18of37.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_xgb_all_features_19of37.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_xgb_all_features_1of37.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_xgb_all_features_20of37.parquet": [
+   "AMD EPYC 7542 32-Core Processor"
+  ],
+  "ALL48_xgb_all_features_21of37.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_xgb_all_features_22of37.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_xgb_all_features_23of37.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_xgb_all_features_24of37.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_xgb_all_features_25of37.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_xgb_all_features_26of37.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_xgb_all_features_27of37.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_xgb_all_features_28of37.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_xgb_all_features_29of37.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_xgb_all_features_2of37.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_xgb_all_features_30of37.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_xgb_all_features_31of37.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_xgb_all_features_32of37.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_xgb_all_features_33of37.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_xgb_all_features_34of37.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_xgb_all_features_35of37.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_xgb_all_features_36of37.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_xgb_all_features_37of37.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_xgb_all_features_3of37.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_xgb_all_features_4of37.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_xgb_all_features_5of37.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_xgb_all_features_6of37.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_xgb_all_features_7of37.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_xgb_all_features_8of37.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_xgb_all_features_9of37.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_baseline_1of4.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_baseline_2of4.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_baseline_3of4.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "ALL48_rf_skx_baseline_4of4.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ]
+ },
+ "accepted_cpus": [
+  "AMD EPYC 7513 32-Core Processor",
+  "AMD EPYC 7542 32-Core Processor"
+ ]
+}

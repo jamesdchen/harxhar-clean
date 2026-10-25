@@ -1,0 +1,52 @@
+{
+ "arm": "ALL48_N39k",
+ "est": "xgb",
+ "predictor_set": "baseline",
+ "tag": "5of8",
+ "design": "/scratch1/jc_905/trees3way/designs/ALL48/_work/design_baseline",
+ "design_window": 144000,
+ "sample": "all",
+ "window_rows": 39000,
+ "block": [
+  "2019-03-07 10:00:00",
+  "2020-06-19 16:00:00"
+ ],
+ "rows": 4248,
+ "refits": 4248,
+ "wall_sec": 1720.2,
+ "config": "xgb_opt_00",
+ "sha": "88bec9f385c7",
+ "params": {
+  "max_depth": 5,
+  "learning_rate": 0.01233734017817195,
+  "n_estimators": 367,
+  "min_child_weight": 50.20121979133419,
+  "subsample": 0.6551492349018447,
+  "colsample_bytree": 0.6538448390071842,
+  "reg_alpha": 0.021478436574914658,
+  "reg_lambda": 1.15908122770414e-05,
+  "gamma": 1.5147505105071128e-06,
+  "tree_method": "hist"
+ },
+ "config_file": "cluster/xgbtop_xgb_config.json",
+ "config_file_sha256": "961ca7096386aba2aad9fa54a50a7be5c9a711b4399fa80b49c8ec6f6854f3dc",
+ "n_columns": 13,
+ "threads": 8,
+ "host": "b22-26.hpc.usc.edu",
+ "cpu": "AMD EPYC 7542 32-Core Processor",
+ "cpus": [
+  "AMD EPYC 7542 32-Core Processor"
+ ],
+ "versions": {
+  "python": "3.12.15",
+  "numpy": "1.26.4",
+  "pandas": "2.3.3",
+  "scipy": "1.17.1",
+  "sklearn": "1.9.1",
+  "lightgbm": "4.6.0",
+  "xgboost": "3.2.0",
+  "pyarrow": "19.0.1"
+ },
+ "slurm_job": "13371786",
+ "slurm_task": "5"
+}

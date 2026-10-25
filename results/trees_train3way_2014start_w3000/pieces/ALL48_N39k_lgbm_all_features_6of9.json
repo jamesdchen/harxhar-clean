@@ -1,0 +1,53 @@
+{
+ "arm": "ALL48_N39k",
+ "est": "lgbm",
+ "predictor_set": "all_features",
+ "tag": "6of9",
+ "design": "/scratch1/jc_905/trees3way/designs/ALL48/_work/design_all_features",
+ "design_window": 144000,
+ "sample": "all",
+ "window_rows": 39000,
+ "block": [
+  "2019-10-02 10:00:00",
+  "2020-11-23 16:00:00"
+ ],
+ "rows": 3786,
+ "refits": 3786,
+ "wall_sec": 15107.7,
+ "config": "lgbm_opt_00",
+ "sha": "abab811bd4b6",
+ "params": {
+  "num_leaves": 20,
+  "learning_rate": 0.01296404565731986,
+  "n_estimators": 392,
+  "min_child_samples": 98,
+  "feature_fraction": 0.7017000121697539,
+  "bagging_fraction": 0.5636236714089857,
+  "lambda_l1": 1.0413823540826713e-08,
+  "lambda_l2": 0.015950303832251992,
+  "bagging_freq": 1
+ },
+ "config_file": "cluster/pooltree_lgbm_config.json",
+ "config_file_sha256": "1349f96a9ae69198db9f754c07993c729fe02b6c5a0a45c66d0ce4dae3e80d0d",
+ "n_columns": 565,
+ "threads": 8,
+ "host": "a02-19.hpc.usc.edu",
+ "cpu": "AMD EPYC 7513 32-Core Processor",
+ "cpus": [
+  "AMD EPYC 7513 32-Core Processor"
+ ],
+ "versions": {
+  "python": "3.12.15",
+  "numpy": "1.26.4",
+  "pandas": "2.3.3",
+  "scipy": "1.17.1",
+  "sklearn": "1.9.1",
+  "lightgbm": "4.6.0",
+  "xgboost": "3.2.0",
+  "pyarrow": "19.0.1"
+ },
+ "slurm_job": "13372426",
+ "slurm_task": "9",
+ "lgbm_force_col_wise": true,
+ "lgbm_deterministic": true
+}
