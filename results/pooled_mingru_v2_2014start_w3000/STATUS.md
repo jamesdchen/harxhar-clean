@@ -402,3 +402,5 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   not resized (the free A40 fits the current request). Remainder of 13382886 (017.p02, 49 refits): 13422010 (gpu, 88
   min). Debug filled: 13422011-12 (053.p01.g02-g03). gpu top-up (cpu 2 / 8G): 027.p02-p03 (13422013-14). gpu 99
   (16 running P100), debug 5.
+- 2026-10-25 00:15 PDT top-up: debug 13422305 (053.p01.g04), gpu 13422306 (027.p04, cpu 2 / 8G). gpu 99 (22 running
+  P100, 64 P100 + 13 A40 pending), debug 5. No FAILED walk job since 23:00.
