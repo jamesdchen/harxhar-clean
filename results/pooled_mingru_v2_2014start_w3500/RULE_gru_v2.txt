@@ -344,3 +344,13 @@ no refit of the arm starts on any type: ADDENDUM 3d's comparison and canary are 
 lapses); its 4 pending gpu A40 pieces 13385646-49 are cancelled and its 18 debug A40 pieces (file 003, ADDENDUM 3c)
 withdrawn (never submitted); its piece files stay for whichever type is chosen. The freed gpu slots go to full
 W 3,000's P100 pieces (3e). Full W 3,000 proceeds under 3e.
+
+ADDENDUM 3g 2026-10-25 13:02 PDT, local clock (coordinator: the Hoffman2 UGE L40S pool is effectively closed to us:
+group-only rules on g19 / g21, g20's one shared GPU in use, g22-g30 disabled, at most 3 reachable GPUs, all busy until
+tonight with 7+ older jobs queued; its gate job stays queued unattended), written before the affected jobs; both copies.
+The HOLD of ADDENDUM 3f is released. Full W 3,500 (0 refits) takes ADDENDUM 1a's choice among the CARC types now, as
+ADDENDUM 3d prescribes with 3e's W 3,500 paragraph (the debug P100s and our gpu-partition P100 queue carry both W 3,000
+arms at nice 0, so its P100 concurrency is 0 until they drain): L40S if min(6 - our L40S jobs, 36 - our running
+gpu-partition jobs, free L40S usable at cpu 4 / 24G) >= 1 at the check, else P100. Its G5 canary (3d) runs first on the
+chosen type; the re-pin (3d) follows only if it passes. Its 4 A40 pieces stay cancelled, its 18 debug A40 pieces
+withdrawn.
