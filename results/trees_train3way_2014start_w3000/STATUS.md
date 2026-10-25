@@ -400,3 +400,13 @@ Pool: lines 5-348 of runs/tasks/w3rf_full.txt, claims in runs/claims_w3rf_full/<
   13372429 (scores_w2) / 13372431 (scores_w3, every arm merged so far) COMPLETED; both scorer checks passed (RTH13
   reproduces the templates' metrics.csv and full-vs-HAR DM).  Local economics on scores_w3 (econ_w3/): check passed.
 - Files: scores_w2/, scores_w3/, econ_w3/, ALL48 / ALL48_N39k forecasts.json, piece metas, logs.
+
+## CARC tail decision (coordinator ~21:00 PDT; CARC clock 20:44)
+
+- Unclaimed U = 54 lines, all in the /scratch1 namespace (117-138, 317-348; 349-368 all claimed); claims in the last
+  3 h: 42 -> CARC start rate r = 14.0 lines/h; 6.76 h to 03:30 -> U3 = max(0, 54 - 14.0 x 6.76) = 0 -> k = 0: no line
+  reserved for Hoffman2's Slurm round 3, nothing moved, h2_assignment.txt unchanged.
+- At that rate the last unclaimed line starts around 00:40; EPYC lines take ~6.2 h (done by ~07:00), a Xeon 4116 line
+  ~10 h.  Pools: EPYC 13377719 40 running / 73 pending; old Xeon 4116 13378115 10 running; EPYC /home1 13383080
+  10 / 28; Xeon 4116 /home1 13383081 2 / 26; E5-2640 v4 pools empty.  Lines done: 55 (/scratch1) + 10 (/home1); no
+  failed claim.
