@@ -1,0 +1,17 @@
+piece,orig,initsub,o0,o1,n_jobs,est_s,tlim_min,gpu,partition,nice
+pieces/v2w_all_features.001.p04.txt,v2w_all_features.001.txt,w001,60968,62100,5660,28614,650,L40S,gpu,0
+pieces/v2w_all_features.002.p00.txt,v2w_all_features.002.txt,w002,62100,63232,5660,28614,650,L40S,gpu,0
+pieces/v2w_all_features.002.p01.txt,v2w_all_features.002.txt,w002,63232,64365,5665,28640,651,L40S,gpu,0
+pieces/v2w_all_features.002.p02.txt,v2w_all_features.002.txt,w002,64365,65497,5660,28614,650,L40S,gpu,0
+pieces/v2w_all_features.002.p03.txt,v2w_all_features.002.txt,w002,65497,66630,5665,28640,651,L40S,gpu,0
+pieces/v2w_all_features.002.p04.txt,v2w_all_features.002.txt,w002,66630,67762,5660,28614,650,L40S,gpu,0
+pieces/v2w_all_features.003.p00.txt,v2w_all_features.003.txt,w003,67762,68894,5660,28614,650,L40S,gpu,0
+pieces/v2w_all_features.003.p01.txt,v2w_all_features.003.txt,w003,68894,70027,5665,28640,651,L40S,gpu,0
+pieces/v2w_all_features.003.p02.txt,v2w_all_features.003.txt,w003,70027,71159,5660,28614,650,L40S,gpu,0
+pieces/v2w_all_features.003.p03.txt,v2w_all_features.003.txt,w003,71159,72292,5665,28640,651,L40S,gpu,0
+pieces/v2w_all_features.003.p04.txt,v2w_all_features.003.txt,w003,72292,73424,5660,28614,650,L40S,gpu,0
+pieces/v2w_all_features.004.p00.txt,v2w_all_features.004.txt,w004,73424,74556,5660,28614,650,L40S,gpu,0
+pieces/v2w_all_features.004.p01.txt,v2w_all_features.004.txt,w004,74556,75688,5660,28614,650,L40S,gpu,0
+pieces/v2w_all_features.004.p02.txt,v2w_all_features.004.txt,w004,75688,76821,5665,28640,651,L40S,gpu,0
+pieces/v2w_all_features.004.p03.txt,v2w_all_features.004.txt,w004,76821,77953,5660,28614,650,L40S,gpu,0
+pieces/v2w_all_features.004.p04.txt,v2w_all_features.004.txt,w004,77953,79085,5660,28614,650,L40S,gpu,0

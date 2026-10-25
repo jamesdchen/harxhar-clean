@@ -1,0 +1,52 @@
+v2w_all_features.000.txt 13380637 gpu 2529 A40 lane 0 seq 0
+v2w_all_features.001.txt 13380638 gpu 2529 A40 lane 1 seq 0
+v2w_all_features.002.txt 13380639 gpu 2529 A40 lane 2 seq 0
+v2w_all_features.003.txt 13380640 gpu 2529 A40 lane 0 seq 1
+v2w_all_features.004.txt 13380641 gpu 2529 A40 lane 1 seq 1
+v2w_all_features.005.txt 13380642 gpu 2529 A40 lane 2 seq 1
+pieces/v2w_all_features.000.p00.txt 13382904 gpu 650 L40S piece of v2w_all_features.000.txt
+pieces/v2w_all_features.000.p01.txt 13382905 gpu 651 L40S piece of v2w_all_features.000.txt
+pieces/v2w_all_features.000.p02.txt 13382906 gpu 650 L40S piece of v2w_all_features.000.txt
+pieces/v2w_all_features.000.p03.txt 13382907 gpu 651 L40S piece of v2w_all_features.000.txt
+pieces/v2w_all_features.000.p04.txt 13382908 gpu 650 L40S piece of v2w_all_features.000.txt
+pieces/v2w_all_features.001.p00.txt 13382909 gpu 650 L40S piece of v2w_all_features.001.txt
+pieces/v2w_all_features.001.p01.txt 13382910 gpu 650 L40S piece of v2w_all_features.001.txt
+pieces/v2w_all_features.001.p02.txt 13382911 gpu 651 L40S piece of v2w_all_features.001.txt
+pieces/v2w_all_features.000.p00.txt 13384193 gpu 432 A40 piece (A40, ADDENDUM 3a)
+pieces/v2w_all_features.000.p01.txt 13384194 gpu 432 A40 piece (A40, ADDENDUM 3a)
+pieces/v2w_all_features.000.p02.txt 13384195 gpu 432 A40 piece (A40, ADDENDUM 3a)
+pieces/v2w_all_features.000.p03.txt 13384196 gpu 432 A40 piece (A40, ADDENDUM 3a)
+pieces/v2w_all_features.000.p04.txt 13384197 gpu 432 A40 piece (A40, ADDENDUM 3a)
+pieces/v2w_all_features.001.p00.txt 13384198 gpu 432 A40 piece (A40, ADDENDUM 3a)
+pieces/v2w_all_features.001.p01.txt 13384199 gpu 432 A40 piece (A40, ADDENDUM 3a)
+pieces/v2w_all_features.001.p02.txt 13384200 gpu 432 A40 piece (A40, ADDENDUM 3a)
+pieces/v2w_all_features.001.p03.txt 13384201 gpu 432 A40 piece (A40, ADDENDUM 3a)
+pieces/v2w_all_features.000.p00.txt 13385617 gpu 432 A40 resubmitted (fixed sbatch)
+pieces/v2w_all_features.000.p01.txt 13385618 gpu 432 A40 resubmitted (fixed sbatch)
+pieces/v2w_all_features.000.p02.txt 13385619 gpu 432 A40 resubmitted (fixed sbatch)
+pieces/v2w_all_features.000.p03.txt 13385620 gpu 432 A40 resubmitted (fixed sbatch)
+pieces/v2w_all_features.000.p04.txt 13385621 gpu 432 A40 resubmitted (fixed sbatch)
+pieces/v2w_all_features.001.p00.txt 13385622 gpu 432 A40 resubmitted (fixed sbatch)
+pieces/v2w_all_features.001.p01.txt 13385623 gpu 432 A40 resubmitted (fixed sbatch)
+pieces/v2w_all_features.001.p02.txt 13385624 gpu 432 A40 resubmitted (fixed sbatch)
+pieces/v2w_all_features.001.p03.txt 13385625 gpu 432 A40 resubmitted (fixed sbatch)
+pieces/dbg/v2w_all_features.005.p00.g00.txt 13422686 debug 57 A40 debug piece of pieces/v2w_all_features.005.p00.txt (ADDENDUM 3c)
+pieces/dbg/v2w_all_features.005.p00.g01.txt 13422687 debug 57 A40 debug piece of pieces/v2w_all_features.005.p00.txt (ADDENDUM 3c)
+pieces/dbg/v2w_all_features.005.p00.g02.txt 13423085 debug 57 A40 debug piece of pieces/v2w_all_features.005.p00.txt (ADDENDUM 3c)
+pieces/dbg/v2w_all_features.005.p00.g03.txt 13423529 debug 57 A40 debug piece of pieces/v2w_all_features.005.p00.txt (ADDENDUM 3c)
+pieces/dbg/v2w_all_features.005.p00.g04.txt 13423530 debug 57 A40 debug piece of pieces/v2w_all_features.005.p00.txt (ADDENDUM 3c)
+pieces/dbg/v2w_all_features.005.p00.g05.txt 13423689 debug 57 A40 debug piece of pieces/v2w_all_features.005.p00.txt (ADDENDUM 3c)
+pieces/dbg/v2w_all_features.005.p01.g00.txt 13423912 debug 57 A40 debug piece of pieces/v2w_all_features.005.p01.txt (ADDENDUM 3c)
+pieces/dbg/v2w_all_features.005.p01.g01.txt 13424170 debug 57 A40 debug piece of pieces/v2w_all_features.005.p01.txt (ADDENDUM 3c)
+pieces/dbg/v2w_all_features.005.p01.g02.txt 13424171 debug 57 A40 debug piece of pieces/v2w_all_features.005.p01.txt (ADDENDUM 3c)
+pieces/dbg/v2w_all_features.005.p01.g03.txt 13424643 debug 57 A40 debug piece of pieces/v2w_all_features.005.p01.txt (ADDENDUM 3c)
+pieces/dbg/v2w_all_features.005.p01.g04.txt 13424745 debug 57 A40 debug piece of pieces/v2w_all_features.005.p01.txt (ADDENDUM 3c)
+pieces/dbg/v2w_all_features.005.p01.g05.txt 13425100 debug 57 A40 debug piece of pieces/v2w_all_features.005.p01.txt (ADDENDUM 3c)
+pieces/dbg/v2w_all_features.005.p02.g00.txt 13425101 debug 57 A40 debug piece of pieces/v2w_all_features.005.p02.txt (ADDENDUM 3c)
+pieces/dbg/v2w_all_features.005.p02.g01.txt 13425342 debug 57 A40 debug piece of pieces/v2w_all_features.005.p02.txt (ADDENDUM 3c)
+pieces/dbg/v2w_all_features.005.p02.g02.txt 13425926 debug 57 A40 debug piece of pieces/v2w_all_features.005.p02.txt (ADDENDUM 3c)
+pieces/dbg/v2w_all_features.005.p02.g03.txt 13425927 debug 57 A40 debug piece of pieces/v2w_all_features.005.p02.txt (ADDENDUM 3c)
+pieces/dbg/v2w_all_features.005.p02.g04.txt 13428376 debug 57 A40 debug piece of pieces/v2w_all_features.005.p02.txt (ADDENDUM 3c)
+pieces/dbg/v2w_all_features.005.p02.g05.txt 13436117 debug 57 A40 debug piece of pieces/v2w_all_features.005.p02.txt (ADDENDUM 3c)
+pieces/dbg/v2w_all_features.005.p03.g00.txt 13436118 debug 57 A40 debug piece of pieces/v2w_all_features.005.p03.txt (ADDENDUM 3c)
+pieces/dbg/v2w_all_features.005.p03.g01.txt 13441303 debug 57 A40 debug piece of pieces/v2w_all_features.005.p03.txt (ADDENDUM 3c)

@@ -465,3 +465,14 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   so time limits use 4.55). It waited ~50 min for a debug P100 (siniukov's P100 job also pending there). The move
   (cancel the A40 jobs, archive, P100 pieces) runs at the next session. Debug A40 13441303 ended (005.p03.g01). Two
   earlier attempts at this session's command failed to parse locally (nothing ran); the command was shortened.
+- 2026-10-25 13:55 PDT ADDENDUM 3e MOVE (canary 13445232 passed): full W 3,000 restarts whole on P100.
+  Cancelled: the 9 pending gpu A40 pieces 13385617-25 (no debug A40 job of the arm was left: 13441303 had ended).
+  Archived, never deleted, never merged: the W 3,000 root's 20 run dirs runs/v2w_all_features_* (all GPUTYPE=A40; no
+  salvage dirs) -> archive_a40_full_w3000/runs/; inputs/walk_ids_all_features.txt and walk_cancelled_all_features.txt
+  -> archive_a40_full_w3000/inputs/*_A40.txt; locally walk/archive_a40_full_w3000/ (walk_ids, walk_cancelled, the A40
+  debug-piece and L40S/A40 unsubmitted lists). runs/ and salvage/ hold no v2w_all_features_* dir; walk-merge now needs
+  --gputype P100 and stops on any other type. P100 pieces (time limits from the G7 4.55 s a refit, the canary's 4.40
+  being lower): gpu 13447084-97 (000.p00-002.p03, 588-589 min, cpu 2 / 16G, CONC 24, nice 0, TAG *_p100), debug
+  13447098-100 (dbgp 005.p00.g00-g02, 52 min); 11 gpu pieces (002.p04-004.p04) and 47 debug pieces wait in
+  walk/pieces_unsubmitted_all_features.csv / walk/dbgp_pieces_all_features.csv. gpu 99 (34 running P100, 65 pending
+  P100: no A40 job of ours remains), debug 5. Full W 3,500's P100 canary 13446389 still pending on debug. No FAILED.
