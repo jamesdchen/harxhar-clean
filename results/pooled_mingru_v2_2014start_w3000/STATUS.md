@@ -382,3 +382,10 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   4 remainder files at the corrected limit (ceil(N/12) x 9 min x 1.3 + 30): 13410671 (013, 256, 287 min),
   13410672 (014, 241, 275), 13410673 (015, 253, 287), 13410674 (016, 151, 182). gpu top-up 026.p02-p04,
   027.p00-p01 (13410675-79). gpu 99; debug 2 (room for 3: next session).
+- 2026-10-24 22:00 PDT ADDENDUM 1a's choice re-checked for the full arms (none of their 13 A40 pieces has started):
+  free GPUs L40S 5 / A40 0 / P100 8 (none of them on a node with >= 4 idle CPUs and >= 24 GB free); others' pending
+  jobs above our priority L40S 137 / A40 133 / P100 1; jobs started in the last 2 h L40S 15 / A40 58 / P100 115;
+  ours running L40S 0 / A40 0 / P100 14. L40S does not give clearly more (a quarter of A40's turnover against the
+  same demand, half its cap, its free GPUs on full nodes): both full arms stay A40, no change. Remainder batch 4
+  (old-script 13382882-85: 016.p03-p04, 017.p00-p01): 13411742 (016, 94 refits, 123 min), 13411743 (017, 102,
+  135 min). Debug filled to 5: 13411744-46 (053.p00.g07-g09). gpu 97 (14 running P100, 70 P100 + 13 A40 pending).
