@@ -307,7 +307,7 @@ RE-PIN   If the canary passes, the whole arm moves to the chosen type, recorded 
          cpu 4 / 24G, nice 0); P100 as <= 50-min debug pieces and gpu pieces with nice 100 behind HAR W 3,000. If it
          fails, nothing moves and the failure is reported.
 
-ADDENDUM 3e 2026-10-25 12:05 PDT (owner, James, ~12:05 PDT, relayed by the coordinator: "b if p100s are being
+ADDENDUM 3e 2026-10-25 11:58 PDT, local clock (owner, James, "~12:05" by the coordinator's clock: "b if p100s are being
 allocated"; we hold 34-37 P100s), written before the affected jobs; both copies. Option B: full W 3,000 restarts WHOLE on
 P100; one GPU type per arm still holds.
 REASON   No gpu-partition A40 capacity for us: our 13 A40 pieces never started in 21 h (11:46: rank 135 of 189
