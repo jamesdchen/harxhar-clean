@@ -175,3 +175,21 @@ ADDENDUM A, 2026-10-25 14:15 PDT (21:15 UTC), before any job it affects: GATE 0 
    The jobs depending on 499293 / 499294 (499295-499317; never started) were cancelled; everything of the 13:53
    submission is resubmitted unchanged on the code of this addendum's commit.  The UGE gate 15272780 (tree gate A on
    Gold 6140, independent of gate 0's two points) and its pool 15272781 stay queued.
+
+ADDENDUM B, 2026-10-25 14:35 PDT (21:35 UTC), before the jobs it affects: LATE-START CROSS-CHECK, T2, THE UGE GATE
+   (a) prep1 (499346) wrote every output (abl_new + gate 0b PASS, the 21 linear arm caches, runs/latestart_w3000.csv)
+       and then exited 3 on its last check: for adj_vix3m_ma_1 / _5 / _25 the full cache's first non-zero row is
+       75,444, the rule's zero prefix (latestart_rule_all.csv, w3000) 75,438 / 75,438 / 75,443.  The rule counts the
+       LATE_START_WARMUP zeros only; the rows between are UNOBSERVED_NEUTRAL zeros (VIX3M without a print in the
+       averaging window around 2021-07-05), applied after it.  The check is refined to "first non-zero row >= the rule's
+       zero prefix" (recorded per column; the scorer reports both); no output changes.  Its dependants lg / lp
+       (499347 / 499348, never started) were cancelled and resubmitted without the dependency on prep1 (499465 /
+       499466), the caches they read being written and gate 0b passed.
+   (b) The project job (499355) received GATES = the Gold 6240 gate only: sbatch --export splits a value at its commas.
+       So T2 compared one model, and the projection (12,255 CPU-hours: LightGBM 2,620, XGBoost 3,280, forest 6,355; no
+       forest arm dropped) used Gold 6240's seconds a refit, the slowest of the three Slurm models in the gate pieces.
+       T2 is rerun over the three Slurm gate dirs as its own job (499467 -> runs/gate2_all.json), before any merge;
+       merge reads that file.  The projection stands (within the cap at the slowest model's speed).
+   (c) The UGE gate on Gold 6140 (15272780, 24 slots) had not started after 37 minutes; it and its held pool were
+       deleted unstarted and resubmitted with 8 slots (15273084, its 3 lines per class in parallel on 8 slots: the
+       forecasts do not depend on it, its timings are not used) and the same pool (15273085, 22 x 8 slots).

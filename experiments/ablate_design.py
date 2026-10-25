@@ -385,7 +385,10 @@ def cmd_latestart(a) -> int:
             )
             if rule is not None and c in rule.index:
                 rec["rule_zero_prefix_rows"] = int(rule.loc[c, "zero_prefix_rows"])
-                rec["rule_match"] = rec["rule_zero_prefix_rows"] == z
+                # 2026-10-25 addendum B (a): UNOBSERVED_NEUTRAL may zero rows right after the late-start prefix, so the
+                # first non-zero row is at or after the rule's prefix.  Was: rule_match = (prefix == z)
+                rec["rule_exact"] = rec["rule_zero_prefix_rows"] == z
+                rec["rule_match"] = z >= rec["rule_zero_prefix_rows"]
             rows.append(rec)
     out = pd.DataFrame(rows)
     out.to_csv(a.out, index=False)

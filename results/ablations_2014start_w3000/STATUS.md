@@ -16,6 +16,10 @@ projection, merge), `cluster/ablate/` (Hoffman2 job scripts: `py.sh`, `prep0.sh`
 | 13:53 | submitted (Slurm campus, QOS campus24; UGE): see the job table |
 | 14:09 | poll: gate 0a (499293) FAIL only on design.json md5 (the copies record the three-way comparison's rebuild; X / y / b_oos / dates md5-equal, HAR subset = baseline X, E-mini availability constant 1); gate 0b (499294) FAIL only on sumret4's six value averages (<= 2.8e-14 absolute; numpy power through the container's libm); HAR, calendar, sumret, sumpret2 bit-identical; abl_new built (84 columns, its statistics equal the laptop build's) |
 | 14:10 | scancel 499295-499317 (dependants of the failed gates; never started); RULE.txt addendum A |
+| 14:12 | addendum A committed (8923fd9) and pushed; its four changed files extracted into the Hoffman2 code tree from the LF archive of 8923fd9 (md5 4c8254e9...); tar -d: no content difference between the tree and the archive |
+| 14:13 | resubmitted unchanged on 8923fd9 (second job table); UGE 15272780 / 15272781 kept |
+
+First submission (13:53; 499293 / 499294 failed gate 0, 499295-499317 cancelled unstarted):
 
 | Job | Name | What | Depends on |
 |---|---|---|---|
@@ -32,3 +36,15 @@ projection, merge), `cluster/ablate/` (Hoffman2 job scripts: `py.sh`, `prep0.sh`
 | 499309-499317 | abl_pool_s6240 | tree pools, 4 workers each | tA_s6240 (afterany) |
 | 15272780 | abl_tA_u6140 | tree gate A on UGE Gold 6140 | - |
 | 15272781 | abl_pool_u6140 | UGE tree pool, 22 tasks x 1 worker (8 slots; LightGBM / XGBoost only) | tA_u6140 |
+
+Second submission (14:13, code 8923fd9), the same jobs and dependencies: p0 499345, p1 499346, lg 499347, lp 499348,
+tA_s6240 499349, tB_s6240 499350, tA_s6736p 499351, tB_s6736p 499352, tA_s6442y 499353, tB_s6442y 499354, proj 499355,
+pool_s6736p 499356-499358, pool_s6442y 499359-499360, pool_s6240 499361-499369; UGE tA_u6140 15272780, pool 15272781.
+
+| Time (PDT) | Event |
+|---|---|
+| 14:13-14:27 | p0 499345 PASS (gate 0a); p1 499346: abl_new rebuilt, gate 0b PASS, 21 linear caches, latestart_w3000.csv, then exit 3 on the late-start cross-check (vix3m k = 1, 5, 25: UNOBSERVED_NEUTRAL zeros after the rule's prefix; addendum B (a)) |
+| 14:16-14:27 | tree gates T1: PASS for LightGBM, XGBoost and the forest on all three Slurm models (Gold 6240, Gold 6442Y, Xeon 6736P): LightGBM / XGBoost 20 of 20 origins text-identical to the templates for the full set and the HAR benchmark, the forest within 1e-14; projection 499355: 12,255 CPU-hours (Gold 6240 speed), no forest arm dropped -> projection.done |
+| 14:16 | tree pools started (9 x Gold 6240 x 4, 2 x 6442Y x 6, 3 x 6736P x 9 = 75 workers, 600 CPUs); first round: XGBoost / LightGBM lines (the forest became eligible at 14:27) |
+| 14:29 | lg / lp resubmitted without the prep1 dependency: 499465 / 499466 (499347 / 499348 cancelled unstarted) |
+| 14:30 | UGE gate replaced by an 8-slot job 15273084 (+ pool 15273085); T2 job 499467 over the three Slurm gate dirs; RULE.txt addendum B |
