@@ -70,8 +70,13 @@ Across the \rhrPoolN{} pooled intraday forecasts, the rank correlation of the st
     \rheShortSh{} and \rheShortShX{} for the unconditional short straddle; its gain over that benchmark is
     statistically significant in \rhrPoolShortSig{} of the \rhrPoolN{} pooled forecasts and is concentrated on a few
     days (Section~\ref{sec:rh_econ_results}).
-  \item Their profits come from ranking contracts on predicted returns, which they trace to mispricing; ours come
-    from timing the variance premium of the closing half hour with a realized variance forecast. Their gross Sharpe
+  % 2026-10-25 (user, step 1 of the gap analysis): parked -- "ours come from timing the variance premium of the
+  % closing half hour with a realized variance forecast": no decomposition of the straddle profits backs it yet, and
+  % the short straddle shows no detectable variance risk premium in the sample (Section 7). Was: "Their profits come
+  % from ranking contracts on predicted returns, which they trace to mispricing; ours come from timing the variance
+  % premium of the closing half hour with a realized variance forecast."
+  \item Their profits come from ranking contracts on predicted returns, which they trace to mispricing; ours rest on
+    the sign of a realized variance forecast against the implied variance of a single straddle. Their gross Sharpe
     ratios are far larger and rest on a turnover that quoted spreads would largely absorb; ours are modest, but they
     come from a single trade a day and are reported at quoted bid/ask prices.
   \end{itemize}
@@ -82,7 +87,8 @@ Across the \rhrPoolN{} pooled intraday forecasts, the rank correlation of the st
 % 2026-10-23 (user, phase 2): added -- the variable importance of the pooled models (08_feature_importance.tex, \rhfip...).
 \item \textbf{Which series the pooled models use.} In the tree ensembles the non-standard series, those outside the HAR components, the futures' own realized moments and trading activity, and the VIX, hold \rhfipNsExMin--\rhfipNsExMax\% of the exogenous attribution, less than in the penalized linear models (\rhfipEnetNsEx--\rhfipLassoNsEx\%); the trees' attribution is concentrated in a few series and their non-standard share is higher on FOMC statement days (Section~\ref{sec:rh_fi}).
 % 2026-10-25 (user: the alternative-data angle, not overdone): added -- what the alternative data carry (Section 8).
-The alternative data carry little of the trees' attribution (the StockTwits series \rhfipSentMin--\rhfipSentMax\% and the volatility-demand series \rhfipVdMin--\rhfipVdMax\% of the total); the non-standard weight sits mostly with the constituents' trading measures and the FOMC calendar.
+% 2026-10-25 (user, step 1 of the gap analysis): parked -- the sentence read the small shares as evidence about the alternative data; under the late-start rule they are zero on most scored bars. Was: "The alternative data carry little of the trees' attribution (the StockTwits series \rhfipSentMin--\rhfipSentMax\% and the volatility-demand series \rhfipVdMin--\rhfipVdMax\% of the total); the non-standard weight sits mostly with the constituents' trading measures and the FOMC calendar."
+The non-standard weight sits mostly with the constituents' trading measures and the FOMC calendar. The alternative data hold little of the trees' attribution (the StockTwits series \rhfipSentMin--\rhfipSentMax\% and the volatility-demand series \rhfipVdMin--\rhfipVdMax\% of the total), but they start late and their value averages are live on only \rhlvStSentEvLo--\rhlvStAttEvHi\% and \rhlvVdEvLo--\rhlvVdEvHi\% of the scored bars, so the evaluation says little about their value; on the option days of the economic test, StockTwits attention is live on \rhlvStAttOptLo--\rhlvStAttOptHi\% of days.
 \item \textbf{Scope and limitations.}
   \begin{itemize}
   % 2026-10-20 (user): parked -- Table 1 scored from 2012 (TABLE1_SWITCH.md, approved). Was: "\item Our out-of-sample evaluation spans $T_{\mathrm{oos}} = \rhoosDays$ trading days from \rhoosSpanStart{} to \rhoosSpanEnd."

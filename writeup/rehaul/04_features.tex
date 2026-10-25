@@ -433,6 +433,20 @@
       \item For a series whose first print comes after the first day of the sample, $z^{(k)}_{t,i} = 0$ until every
         interval of the window $\mathcal{W}_{t,i}$ is live, an interval being live when its $k$-interval average
         holds no interval before the day of the series' first print.
+      % 2026-10-25 (user, step 1 of the gap analysis): added -- the reach of the rule over the evaluation samples
+      % (writeup/make_rehaul_live_windows.py; Lo = the longest horizon, Hi = k = 1).
+      \item Because the window spans \rhorWindowDays{} trading days, the series that start late enter the models
+        late. On the regular-hours bars scored from \rhorSpanStart{} to \rhorSpanEnd, the value averages are live
+        on \rhlvVixEvLo--\rhlvVixEvHi\% of bars for the VIX (first print \rhlvVixFirst), \rhlvVixThreeEvLo--\rhlvVixThreeEvHi\%
+        for VIX3M (\rhlvVixThreeFirst), \rhlvStAttEvLo--\rhlvStAttEvHi\% for StockTwits attention (\rhlvStAttFirst),
+        \rhlvStSentEvLo--\rhlvStSentEvHi\% for the StockTwits sentiment and tag count (\rhlvStSentFirst),
+        \rhlvVdEvLo--\rhlvVdEvHi\% for volatility demand (\rhlvVdFirst, a feed that stops in 2023), and
+        \rhlvVvixEvLo--\rhlvVvixEvHi\% for VVIX (\rhlvVvixFirst); the ranges run over the horizons $k$. On the
+        closing bars of the \rheSzDays{} post-warmup option days of Section~\ref{sec:rh_econ}, the shares are
+        \rhlvStAttOptLo--\rhlvStAttOptHi\% for StockTwits attention, \rhlvStSentOptLo--\rhlvStSentOptHi\% for its
+        sentiment and tag count, \rhlvVdOptLo--\rhlvVdOptHi\% for volatility demand, \rhlvVixThreeOptLo--\rhlvVixThreeOptHi\%
+        for VIX3M, and \rhlvVvixOptLo--\rhlvVvixOptHi\% for VVIX. The availability averages $\bar a^{(k)}$ are not
+        affected.
       \item $z^{(k)}_{t,i} = 0$ whenever the $k$-interval average holds no observed interval, $\bar a^{(k)}_{t,i} =
         0$, so that the averages of a feed that has stopped are exactly neutral.
       % 2026-10-22 (user): why the penalized models standardize again after this step (STANDARDIZE_PENALTY,
