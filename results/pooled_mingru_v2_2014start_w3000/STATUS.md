@@ -427,3 +427,5 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   running P100), debug 5. No FAILED since 04:40.
 - 2026-10-25 06:21 PDT: debug refill 13424643 (005.p01.g03, A40), 13424644 (053.p02.g01, P100); gpu top-up
   13424645-46 (029.p01-p02). gpu 99 (25 running P100), debug 5. No FAILED since 05:30.
+- 2026-10-25 07:01 PDT: debug refill 13424745 (005.p01.g04, A40), 13424746 (053.p02.g02, P100); gpu top-up 13424747
+  (029.p03). gpu 99 (24 running P100; no gpu A40 yet), debug 5. No FAILED since 06:15.
