@@ -410,3 +410,7 @@ Pool: lines 5-348 of runs/tasks/w3rf_full.txt, claims in runs/claims_w3rf_full/<
   ~10 h.  Pools: EPYC 13377719 40 running / 73 pending; old Xeon 4116 13378115 10 running; EPYC /home1 13383080
   10 / 28; Xeon 4116 /home1 13383081 2 / 26; E5-2640 v4 pools empty.  Lines done: 55 (/scratch1) + 10 (/home1); no
   failed claim.
+- Lines 164-167 returned by Hoffman2 (Slurm 494144_32 cancelled while pending, h2/STATUS.md f287259): no piece or
+  other claim on CARC; their owner_h2 claims removed in the /scratch1 namespace; only the EPYC pool 13377719 (73
+  pending) can take them (the /scratch1 Xeon 4116 / E5-2640 v4 pools have no pending task).  h2_assignment.txt:
+  ASSIGNED 139-163, 168-316; RETURNED 164-167, 317-368.
