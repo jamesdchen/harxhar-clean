@@ -176,3 +176,5 @@ pieces/rem/v2w_baseline.017.rem10242200.txt 13411743 gpu 135 P100 remainder (102
 pieces/dbg/v2w_baseline.053.p00.g07.txt 13411744 debug 60 P100 debug piece of pieces/v2w_baseline.053.p00.txt (ADDENDUM 3b)
 pieces/dbg/v2w_baseline.053.p00.g08.txt 13411745 debug 60 P100 debug piece of pieces/v2w_baseline.053.p00.txt (ADDENDUM 3b)
 pieces/dbg/v2w_baseline.053.p00.g09.txt 13411746 debug 60 P100 debug piece of pieces/v2w_baseline.053.p00.txt (ADDENDUM 3b)
+pieces/dbg/v2w_baseline.053.p01.g00.txt 13416869 debug 60 P100 debug piece of pieces/v2w_baseline.053.p01.txt (ADDENDUM 3b)
+pieces/dbg/v2w_baseline.053.p01.g01.txt 13416870 debug 60 P100 debug piece of pieces/v2w_baseline.053.p01.txt (ADDENDUM 3b)

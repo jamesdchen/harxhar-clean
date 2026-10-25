@@ -389,3 +389,11 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   same demand, half its cap, its free GPUs on full nodes): both full arms stay A40, no change. Remainder batch 4
   (old-script 13382882-85: 016.p03-p04, 017.p00-p01): 13411742 (016, 94 refits, 123 min), 13411743 (017, 102,
   135 min). Debug filled to 5: 13411744-46 (053.p00.g07-g09). gpu 97 (14 running P100, 70 P100 + 13 A40 pending).
+- 2026-10-24 22:38 PDT right-sizing check (coordinator): free GPUs / on nodes with >= 2 idle CPUs and >= 8 GB / >= 16 GB
+  / (>= 4 CPUs and >= 24 GB): P100 8 / 0 / 0 / 0; A40 1 / 1 / 1 / 1; L40S 7 / 0 / 0 / 0 (A100 2, V100 2: not used).
+  No P100 sits on a node with 2 CPUs and 8 GB to spare, so the pending HAR pieces were NOT updated (no scontrol);
+  the 6 HAR remainders already ask cpu 2 / 8G. The one free A40 already fits the full-set request (cpu 4 / 24G);
+  the full-set cpu 2 / 16G probe is submitted anyway on debug A40 (13416868; same 48 refits as 13386771) so the
+  smaller size is ready if A40 nodes fill up. MISTAKE: 13411746 (22:00) named a debug piece that does not exist
+  (053.p00 has g00-g08): cancelled while pending. Debug filled: 13416869-70 (053.p01.g00-g01). Old-script failure
+  13382886 (017.p02) not yet remaindered (next session). gpu 96 (15 running P100), debug 5.
