@@ -454,3 +454,9 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   (both HAR arms; ~57 h at 28.4 GPUs), A40 176 GPU-h (both full arms; ~122 h at 1.44 GPUs, ~88 h at the debug ceiling
   of 2). gpu-partition A40: 27 nodes x 2 (b11-12 drained); >= 44 jobs by others started on them in the last 6 h; our 13
   A40 pieces rank 135 of 189 A40-eligible pending (priority 3,772 vs 4,200-5,300 ahead), no start estimate.
+- 2026-10-25 12:16 PDT (ADDENDUM 3e / 3f): debug 13436117/118 (A40) and 13436119 (P100) COMPLETED (46.7/46.7/48.2 min).
+  Full W 3,000 P100 canary 13445232 (debug, 120 refits = rows 50,777-50,800 x 5 seeds, pieces/canary/
+  v2w_all_features.000.c24.txt, cpu 2 / 16G, CONC 24, TAG v2wcanary_all_features_P100; ahead of our pending HAR debug
+  pieces). 50 debug P100 pieces of file 005 uploaded to inputs/pieces/dbgp/ (28,310 lines = the five 005 pieces, whose
+  md5 match the local cut source; manifest walk/dbgp_pieces_all_features.csv). Debug refill 13445233-34 (053.p03.g01-g02,
+  P100). No new A40 debug piece. gpu 94 (34 running P100; 9 full W 3,000 A40 pending). No FAILED since 11:40.

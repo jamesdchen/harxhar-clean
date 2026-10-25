@@ -6,3 +6,7 @@
 13382933 pieces/v2w_all_features.000.p01.txt cancelled while pending: re-pinned L40S -> A40 (ADDENDUM 3a)
 13382934 pieces/v2w_all_features.000.p02.txt cancelled while pending: re-pinned L40S -> A40 (ADDENDUM 3a)
 13382935 pieces/v2w_all_features.001.p00.txt cancelled while pending: re-pinned L40S -> A40 (ADDENDUM 3a)
+pieces/v2w_all_features.000.p00.txt 13385646 cancelled while pending: full W 3,500 held for the Hoffman2 L40S validation (ADDENDUM 3f)
+pieces/v2w_all_features.000.p01.txt 13385647 cancelled while pending: full W 3,500 held for the Hoffman2 L40S validation (ADDENDUM 3f)
+pieces/v2w_all_features.000.p02.txt 13385648 cancelled while pending: full W 3,500 held for the Hoffman2 L40S validation (ADDENDUM 3f)
+pieces/v2w_all_features.001.p00.txt 13385649 cancelled while pending: full W 3,500 held for the Hoffman2 L40S validation (ADDENDUM 3f)

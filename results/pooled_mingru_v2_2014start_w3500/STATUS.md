@@ -92,3 +92,7 @@ the old run (read-only): `/home1/jc_905/pmf35/data` (design copies, fold-3 ridge
   100 of ours (36 running with the old script, 51 P100 + 13 A40 pending with the new one). The 36 running
   (HAR W 3,000 originals 000-012 and 23 pieces) will end FAILED 143: their missing tail refits are rerun from
   walk-merge's remainder files as each finishes.
+- 2026-10-25 12:16 PDT ADDENDUM 3f: full W 3,500 HELD for the Hoffman2 L40S validation (owner: "validate on hoffman").
+  Its 4 pending gpu A40 pieces 13385646-49 cancelled (walk/walk_cancelled_all_features.txt); its 18 debug A40 pieces
+  (file 003) withdrawn, never submitted (removed from the W 3,000 dir's walk/dbg_pieces_all_features.csv); all 12 pieces
+  listed in walk/pieces_unsubmitted_all_features.csv as HELD. 0 refits done; nothing new submitted for it.
