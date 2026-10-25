@@ -145,8 +145,3 @@ pieces/v2w_baseline.052.p01.txt,v2w_baseline.052.txt,w052,83615,83741,630,26649,
 pieces/v2w_baseline.052.p02.txt,v2w_baseline.052.txt,w052,83741,83866,625,26438,603,P100,gpu,0
 pieces/v2w_baseline.052.p03.txt,v2w_baseline.052.txt,w052,83866,83992,630,26649,608,P100,gpu,0
 pieces/v2w_baseline.052.p04.txt,v2w_baseline.052.txt,w052,83992,84118,630,26649,608,P100,gpu,0
-pieces/v2w_baseline.053.p00.txt,v2w_baseline.053.txt,w053,84118,84244,630,26649,608,P100,gpu,0
-pieces/v2w_baseline.053.p01.txt,v2w_baseline.053.txt,w053,84244,84370,630,26649,608,P100,gpu,0
-pieces/v2w_baseline.053.p02.txt,v2w_baseline.053.txt,w053,84370,84495,625,26438,603,P100,gpu,0
-pieces/v2w_baseline.053.p03.txt,v2w_baseline.053.txt,w053,84495,84621,630,26649,608,P100,gpu,0
-pieces/v2w_baseline.053.p04.txt,v2w_baseline.053.txt,w053,84621,84747,630,26649,608,P100,gpu,0

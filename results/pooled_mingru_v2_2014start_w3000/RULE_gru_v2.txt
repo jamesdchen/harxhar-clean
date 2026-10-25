@@ -248,3 +248,24 @@ same competing demand, and 1.39x the P100 rate on these shapes (L40S ~0.9x). Bot
 pending L40S pieces are cancelled and the same piece files resubmitted on A40 (time limits from the A40 rate:
 est x 1.3 + 30 min, 432 / 375 min), more pieces in later top-ups. The debug A40s are not used (debug preempts:
 PreemptMode=CANCEL; two debug pieces were preempted at 38 min).
+
+ADDENDUM 3b 2026-10-24 17:45 PDT (owner: "maximize throughput without sacrificing accuracy"; coordinator: levers 1-4,
+each gated by a byte-for-byte probe), written before the affected jobs; identical in both copies. Probes (debug,
+TAG v2probe_*, never merged; 2026-10-24 16:00-16:35):
+  - HAR W 3,000, 24 refits on the debug P100s: CONC 12 / cpu 4 / 24G and CONC 24 / cpu 2 / 8G both text-identical
+    (48 forecast rows each) to the same refits of the running gpu-partition file 13380580 (P100). Debug P100 =
+    gpu-partition P100; CONC 24 and cpu 2 / 8G change no output. Rate: CONC 12 41.8 s, CONC 24 42.4 s a refit
+    (no gain at H 256).
+  - full W 3,000, 48 refits on the debug A40s: CONC 24 (cpu 4 / 24G) and CONC 48 (cpu 4 / 24G) text-identical
+    (96 rows); CONC 48 slower (3.4 vs 3.0 s a refit); CONC 48 at 8G ran out of memory (MaxRSS 7.5 GB at CONC 24,
+    13.6 GB at CONC 48). No gpu-partition A40 walk output exists yet to compare debug A40 against.
+  - salvage at a short limit (--time 6): the handler ran but no refit had finished yet (empty copy): inconclusive.
+DECISIONS (1) The debug partition (outside the 36-GPU gpu QOS; 2 P100 + 2 A40; at most 5 jobs) runs HAR W 3,000
+         pieces on its P100s: the original file 053 (its five ~7.4 h pieces, not yet submitted) is cut into 45
+         pieces of 14 bars x 5 seeds (~46-49 min at 42.3 s a refit; time limit est x 1.2, <= 60 min), kept full by
+         the steward's alerts. Debug A40 for the full arms waits for a gpu-partition A40 walk output to compare.
+         (2) Stranded P100s (free GPUs on nodes with 0 idle CPUs) cannot be reached by any request; new HAR pieces on
+         debug ask cpu 2 / mem 8G (probe-validated; HAR MaxRSS 3.7 GB at CONC 12); gpu-partition and full-set
+         requests unchanged. (3) CONC unchanged (12 HAR, 24 full): higher CONC is identical but not faster.
+         (4) --time-min not applied: we hold the 36-GPU cap, so no start is blocked by our time limits; the salvage
+         test is rerun with a longer limit before any later use.
