@@ -105,6 +105,10 @@
 % (writeup/make_rehaul_fip_lc.py: \rhlc..., Table tab:rh_fip_lc). Macro-only file; no name is defined in another
 % loaded file (checked).
 \input{generated/rehaul_fip_lc_numbers}
+% 2026-10-25 (user): numbers reported by Maisch, Zhang, Ulrich and Zimmer (SSRN 7269778), for the comparison in the
+% conclusion (writeup/make_external_numbers.py: \extMaisch...). Macro-only file; not results of ours; no name is
+% defined in another loaded file (checked).
+\input{generated/external_maisch_numbers}
 
 % 2026-10-15 (consolidation): parked -- "closing bar" is code jargon (guide section 1: the closing half hour).
 % \title{Forecasting Closing-Bar Variance for 0DTE SPX Options\\\large Bullet-point draft of the full paper}
@@ -125,8 +129,14 @@ paper}
 % 2026-10-17 (user): prose rewritten in the style of Zhang, Zhang, Cucuringu, and Qian (2024).
 \begin{abstract}
 % 2026-10-17 (user, new-notes 1): parked -- the target is built from front-month E-mini futures (03_data, Realized moments). Was: "forecasts of the realized variance of the S\&P 500"
-We investigate whether exogenous predictors improve intraday forecasts of a futures-based (E-mini) proxy for the realized variance of the S\&P 500
-over the closing half-hour interval (15:30--16:00 ET).
+% 2026-10-25 (user: lineage in the realized volatility literature; the alternative-data angle, not overdone): parked
+% -- the opening sentence. Was: "We investigate whether exogenous predictors improve intraday forecasts of a
+% futures-based (E-mini) proxy for the realized variance of the S\&P 500 over the closing half-hour interval
+% (15:30--16:00 ET)."
+Carrying the realized volatility literature to an intraday interval, we investigate whether exogenous predictors,
+drawn from the intraday trading of the index's constituents and from alternative data such as social-media
+sentiment and option order flow, improve intraday forecasts of a futures-based (E-mini) proxy for the realized
+variance of the S\&P 500 over the closing half-hour interval (15:30--16:00 ET).
 % 2026-10-22 (user): parked -- the pooled models are estimated on the 13 regular-hours bars (E34). Was: "Specifically, we estimate each model across all half-hour intervals and evaluate the forecast issued at 15:30 for the closing half hour over the out-of-sample period from"
 Specifically, we estimate pooled models on the \rhePoolNBars{} regular-hours half-hour bars of each trading day
 with a rolling window of \rhorWindowDays{} trading days and evaluate the forecast issued at 15:30 for the closing
@@ -154,10 +164,14 @@ specification remains less accurate under QLIKE than a
 % 2026-10-18 (user, new-notes 11): parked -- a HAR-type model with its horizons, not a daily HAR regression; still the closing-interval OLS the comparison uses (make_rehaul_results.py:1276). Was: "daily HAR regression estimated solely on the closing interval, incorporating the exogenous predictors narrows"
 % 2026-10-22 (user, E34: one design for the 12 pooled forecasts): parked -- "narrows this gap across all model classes"; the count is printed. Was: "... incorporating the exogenous predictors narrows this gap across all model classes."
 HAR-type model in the spirit of \citet{Corsi2009}, estimated by OLS on the closing-interval observations of the target's trailing averages over $k \in \{1, 5, 25, 125, 625, 3125\}$ samples plus calendar columns, incorporating the exogenous predictors narrows
-this gap in \rhrVsBmPoolNarrow{} of the \rhrAfPoolPairs{} model classes, the tree ensembles. In an economic application to zero-days-to-expiration (0DTE) S\&P 500
+% 2026-10-25 (user: the option trades as an application of the variance forecasts): parked -- "In an economic
+% application to zero-days-to-expiration (0DTE) S\&P 500 straddles on expiration days, a sign-based trading strategy
+% achieves ..."
+this gap in \rhrVsBmPoolNarrow{} of the \rhrAfPoolPairs{} model classes, the tree ensembles. Because the target is
+the variance of the closing half hour, the forecasts have a direct application: in zero-days-to-expiration (0DTE) S\&P 500
 % 2026-10-23 (user, N1 / new-notes 15c, final rerun): parked -- "across every intraday model class" was typed for the 2012 design (note N15c); on the final rerun the count is printed (\rhrAfPoolShHigher, make_rehaul_results.py). Restore "every" only if it equals \rhrAfPoolPairs; the forest storyline (writeup/RF_STORY_OPTIONS.md) is not decided here. Was: "straddles on expiration days, a sign-based trading strategy achieves a higher Sharpe ratio under the full predictor set than under the HAR benchmark across every intraday model class."
 % 2026-10-23 (user, N1 / N15c resolved, phase 2): parked -- the count; on the final rerun \rhrAfPoolShHigher = \rhrAfPoolPairs (all six classes; the MinGRU is parked), so "every" is restored, scoped to the classes and with the significance count (note N15c). Was: "... than under the HAR benchmark in \rhrAfPoolShHigher{} of the \rhrAfPoolPairs{} intraday model classes."
-straddles on expiration days, a sign-based trading strategy achieves a higher Sharpe ratio under the full
+straddles held over that half hour on expiration days, a sign-based trading strategy achieves a higher Sharpe ratio under the full
 predictor set than under the HAR benchmark in every one of the \rhrAfPoolPairs{} intraday model classes, in point
 estimates; the gain is statistically significant at the 5\% level in \rhrAfPoolShHigherSig{} of them.
 \end{abstract}

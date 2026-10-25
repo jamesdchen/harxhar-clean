@@ -188,14 +188,20 @@
   % characteristics and sort the contracts into long--short portfolios."
   At the intraday horizon, machine learning has also reached option returns: \citet{MaischZhangUlrichZimmer2026}
   predict the half-hourly delta-hedged returns of S\&P~500 index options from contract characteristics, Greeks, and
-  option-implied measures of the index's return distribution, and sort the contracts into long--short portfolios. We forecast the volatility of the index itself, and options enter only
-  through our economic test. The closest machine-learning precedent for our setting,
+  option-implied measures of the index's return distribution, and sort the contracts into long--short portfolios.
+  % 2026-10-25 (user: lineage in the realized volatility literature; option trading as an application): parked --
+  % "We forecast the volatility of the index itself, and options enter only through our economic test."
+  Our forecasts belong to the realized volatility literature: we forecast the volatility of the index itself, and
+  options enter only as an application of these forecasts. The closest machine-learning precedent for our setting,
   \citet{ZhangZhangCucuringuQian2024}, forecasts realized volatility over intraday buckets for a cross-section of
   stocks, fitting one model across all buckets of the day and, in its universal variant, across stocks, with
-  predictors built from realized volatility alone. Exogenous predictors, such as sentiment, attention, and news
+  % 2026-10-25 (user: the alternative-data angle, not overdone): parked -- "Exogenous predictors, such as sentiment,
+  % attention, and news measures, have so far been used for daily volatility; ... ask what a large set of exogenous
+  % predictors adds at the intraday horizon, ..."
+  predictors built from realized volatility alone. Alternative data, such as sentiment, attention, and news
   measures, have so far been used for daily volatility; we keep the single-model design for the S\&P~500 and ask
-  what a large set of exogenous predictors adds at the intraday horizon, comparing penalized linear models with tree
-  ensembles.\newline
+  what a large set of exogenous predictors, alternative data among them, adds at the intraday horizon, comparing
+  penalized linear models with tree ensembles.\newline
   See \citet{RapachStraussZhou2013} and \citet{FreybergerNeuhierlWeber2020} on penalized and nonparametric return
   prediction and \citet{gu2020empirical} for the comparison of methods; for realized volatility,
   \citet{HillebrandMedeiros2010} (bagging and neural-network HAR models), \citet{AudrinoKnaus2016} (the lasso),

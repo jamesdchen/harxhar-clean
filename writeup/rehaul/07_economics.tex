@@ -34,6 +34,13 @@
 
 \section{Economic value of the forecasts}
 \label{sec:rh_econ}
+% 2026-10-25 (user: the option trades as an application of the realized variance forecasts): added -- the lead.
+Our forecasts target the realized variance of the closing half hour, and that target has a direct counterpart in
+the options market: a same-day-expiring straddle bought at the start of the closing half hour and held to the close
+pays off on the variance realized over that half hour, against the variance implied by its price. We therefore value
+the forecasts as the literature on the economic evaluation of volatility forecasts does
+(Section~\ref{sec:rh_related}), by the returns of the straddle trades they signal; the main strategy uses each
+forecast only through the sign of its difference from the implied variance.
 % 2026-10-22 (user): rerun note.
 % 2026-10-23 (user, final rerun): parked -- the note before the window choice; the window is decided and the generators read the final rerun (writeup/final_run.py). Was: "\editc{orange}{RR}{Decision: a rerun of the pooled intraday models is approved (22 October 2026) and waits for the window choice.\\Problem: every pooled number in this section (the 12 pooled forecasts, their Sharpe ratios and tests) comes from forecasts that predate the late-start, no-observation and KKT-check fixes and the window choice, and will move. The closing-interval models of Section~\ref{sec:rh_econ_last30} are not rerun. See the notes to the authors, ``Rerun pending''.}"
 % 2026-10-23 (user, final rerun, phase 2): parked -- note RR resolved: the pooled forecasts of this section are the final rerun, and the interval-shift test and the compounded wealth now run on them (notes E26, E27, N15b resolved below). Was: "\editc{orange}{RR}{Decision: the pooled intraday models are rerun on the final design (decided 23 October 2026; writeup/final\_run.py): evaluation from \rhePoolRunStart, a rolling window of \rhePoolWindowDays{} trading days, re-estimated at every bar, with the late-start, no-observation and KKT-check fixes and without the FOMC statement dummy; the option-trading sample $\mathcal T_{\mathrm{opt}}$ is unchanged. The \rhrPoolN{} pooled forecasts of this section, their Sharpe ratios and tests are generated from those runs (REHAUL\_FINAL\_RUN=1). The closing-interval models of Appendix~\ref{sec:rh_econ_last30} are not rerun.\\Pending (2026-10-23): the statistics over the model set (the interval-shift test and the compounded wealth, notes E26, E27, N15b, N18) are not on the final rerun; the sentences whose wording depends on the final values are rechecked in the second pass.}"

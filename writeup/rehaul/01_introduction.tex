@@ -23,6 +23,13 @@
 \label{sec:rh_intro}
 % 2026-10-17 (user): prose rewritten in the style of Zhang, Zhang, Cucuringu, and Qian (2024).
 \begin{itemize}
+% 2026-10-25 (user: emphasize our lineage in the realized volatility literature): added -- the first item.
+\item \textbf{Realized volatility at the intraday horizon.} Realized variance, the sum of squared high-frequency
+  returns, made volatility observable and forecastable \citep{AndersenBollerslevDieboldLabys2003,
+  BarndorffNielsenShephard2002}, and the heterogeneous autoregressive (HAR) model of \citet{Corsi2009} has become
+  the benchmark for forecasting it at the daily horizon. We carry this program to a single intraday interval, the
+  closing half hour of the trading day, and ask what predictors from outside the index's own price history add to
+  the HAR benchmark there.
 \item \textbf{Research question.} We investigate whether incorporating exogenous predictors improves intraday
   % 2026-10-17 (user, new-notes 1): parked -- the target is built from front-month E-mini futures (03_data, Realized moments). Was: "forecasts of the realized variance of the S\&P 500"
   forecasts of a futures-based (E-mini) proxy for the realized variance of the S\&P 500 over the closing half-hour interval.
@@ -36,11 +43,20 @@
     HAR benchmark; the exogenous series constitute the exact difference between the two sets (see
     Section~\ref{sec:rh_predictors}).
   \end{itemize}
+% 2026-10-25 (user: the alternative-data angle, not overdone): parked -- the list named news and earnings
+% announcements, which are not among the predictors (Appendix Table tab:rh_dm_dictionary: StockTwits is the only
+% text-based source, the FOMC calendar the only announcement series). Was: "Consequently, it omits a rich set of
+% exogenous variables available by 15:30, including higher-order realized moments, liquidity measures, the
+% cross-section of constituent returns, news and social-media sentiment, option-implied volatility, volatility
+% demand indicators, and scheduled macroeconomic and earnings announcements."
 \item \textbf{Motivation for the HAR baseline.} Following \citet{Corsi2009}, the standard HAR regression models
   realized volatility solely as a linear function of its own past lags. Consequently, it omits a rich set of
-  exogenous variables available by 15:30, including higher-order realized moments, liquidity measures, the
-  cross-section of constituent returns, news and social-media sentiment, option-implied volatility, volatility
-  demand indicators, and scheduled macroeconomic and earnings announcements.
+  exogenous variables available by 15:30: higher-order realized moments of the futures; the intraday trading of
+  the index's constituents, through their realized moments, liquidity, and order-flow imbalance; option-implied
+  volatility; the calendar of FOMC announcements; and alternative data, namely social-media sentiment and attention
+  from StockTwits and the net option vega bought by non-market-makers (volatility demand). Alternative data of this
+  kind have been used to forecast daily realized volatility \citep{AudrinoSigristBallinari2020,CaporinPoli2017}; we
+  ask whether they help at the intraday horizon.
 \item \textbf{Empirical design.} For each intraday interval $(t,i)$, we consider a single forecast mapping of
   the form
   \[
@@ -108,12 +124,27 @@
     models (\rhfipEnetNsEx--\rhfipLassoNsEx\%). The trees' attribution is concentrated: half of each tree's
     exogenous attribution sits in \rhfipLgbmNHalf{} series, against \rhfipRidgeNHalf{} for ridge regression. It also
     depends on the day: the trees' non-standard share is higher on FOMC statement days than on other days.
+    % 2026-10-25 (user: the alternative-data angle, not overdone): added -- what the alternative data carry
+    % (08_feature_importance.tex, the StockTwits and volatility-demand shares of the trees' total attribution; the
+    % five largest non-standard series are four constituent measures and the FOMC calendar).
+    The alternative data carry little of it: the StockTwits series hold \rhfipSentMin--\rhfipSentMax\% and the
+    volatility-demand series \rhfipVdMin--\rhfipVdMax\% of the trees' total attribution, and the non-standard weight
+    sits mostly with the constituents' trading measures and the FOMC calendar.
   \end{itemize}
-\item \textbf{Economic application.} To assess the economic value of the forecasts on trading days with a
+% 2026-10-25 (user: the option trades as an application of the realized variance forecasts): parked -- the opening
+% of the item. Was: "\item \textbf{Economic application.} To assess the economic value of the forecasts on trading
+% days with a same-day SPXW expiration, we construct a trading strategy that takes a long or short position in a
+% zero-days-to-expiration (0DTE) at-the-money straddle based on the sign of the difference between the variance
+% forecast and option-implied variance (see Section~\ref{sec:rh_econ})."
+\item \textbf{Economic application.} Because the target is the realized variance of the closing half hour, the
+  forecasts have a direct application in the options market: a zero-days-to-expiration (0DTE) at-the-money
+  straddle held over that half hour pays off on the variance realized over it, against the variance implied by its
+  price. Following the tradition of valuing volatility forecasts by the option trades they support
+  \citep{EngleHongKaneNoh1993,NohEngleKane1994}, we construct, on trading days with a
   % 2026-10-18 (user, second-list 20): parked -- SPXW is the weekly PM-settled series the strategy trades; SPX is the monthly. Was: "same-day SPX expiration"
-  same-day SPXW expiration, we construct a trading strategy that takes a long or short position in a
-  zero-days-to-expiration (0DTE) at-the-money straddle based on the sign of the difference between the variance
-  forecast and option-implied variance (see Section~\ref{sec:rh_econ}). Using the full predictor set increases
+  same-day SPXW expiration, a trading strategy that takes a long or short position in this straddle based on the
+  sign of the difference between the variance forecast and option-implied variance (see Section~\ref{sec:rh_econ}).
+  Using the full predictor set increases
   % 2026-10-23 (user, N1 / new-notes 15c, final rerun): parked -- "in every intraday model class" was typed for the 2012 design (note N15c); the count is printed (\rhrAfPoolShHigher, make_rehaul_results.py). Restore "every" only if it equals \rhrAfPoolPairs on the final rerun; the forest storyline (writeup/RF_STORY_OPTIONS.md) is not decided here. Was: "the annualized Sharpe ratio of this strategy relative to the HAR benchmark in every intraday model class (see"
   % 2026-10-23 (user, N15c resolved, phase 2): parked -- the count; \rhrAfPoolShHigher = \rhrAfPoolPairs on the final rerun, so "every" is restored, scoped to the six classes (MinGRU parked), with the significance count. Was: "... in \rhrAfPoolShHigher{} of the \rhrAfPoolPairs{} intraday model classes (see Section~\ref{sec:rh_econ_results})."
   the annualized Sharpe ratio of this strategy relative to the HAR benchmark in every one of the
