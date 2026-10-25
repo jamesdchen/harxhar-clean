@@ -178,3 +178,8 @@ pieces/dbg/v2w_baseline.053.p00.g08.txt 13411745 debug 60 P100 debug piece of pi
 pieces/dbg/v2w_baseline.053.p00.g09.txt 13411746 debug 60 P100 debug piece of pieces/v2w_baseline.053.p00.txt (ADDENDUM 3b)
 pieces/dbg/v2w_baseline.053.p01.g00.txt 13416869 debug 60 P100 debug piece of pieces/v2w_baseline.053.p01.txt (ADDENDUM 3b)
 pieces/dbg/v2w_baseline.053.p01.g01.txt 13416870 debug 60 P100 debug piece of pieces/v2w_baseline.053.p01.txt (ADDENDUM 3b)
+pieces/rem/v2w_baseline.017.rem10242314.txt 13422010 gpu 88 P100 remainder (49 refits)
+pieces/dbg/v2w_baseline.053.p01.g02.txt 13422011 debug 60 P100 debug piece of pieces/v2w_baseline.053.p01.txt (ADDENDUM 3b)
+pieces/dbg/v2w_baseline.053.p01.g03.txt 13422012 debug 60 P100 debug piece of pieces/v2w_baseline.053.p01.txt (ADDENDUM 3b)
+pieces/v2w_baseline.027.p02.txt 13422013 gpu 603 P100 piece (top-up, cpu 2 / 8G)
+pieces/v2w_baseline.027.p03.txt 13422014 gpu 608 P100 piece (top-up, cpu 2 / 8G)

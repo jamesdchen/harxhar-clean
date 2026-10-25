@@ -397,3 +397,8 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   smaller size is ready if A40 nodes fill up. MISTAKE: 13411746 (22:00) named a debug piece that does not exist
   (053.p00 has g00-g08): cancelled while pending. Debug filled: 13416869-70 (053.p01.g00-g01). Old-script failure
   13382886 (017.p02) not yet remaindered (next session). gpu 96 (15 running P100), debug 5.
+- 2026-10-24 23:14 PDT: full-set A40 probe at cpu 2 / 16G (13416868, debug A40 b11-09, 149 s) text-identical to
+  13386771 (cpu 4 / 24G; 96 forecast rows): cpu 2 / 16G is validated for the full set; the pending A40 pieces are
+  not resized (the free A40 fits the current request). Remainder of 13382886 (017.p02, 49 refits): 13422010 (gpu, 88
+  min). Debug filled: 13422011-12 (053.p01.g02-g03). gpu top-up (cpu 2 / 8G): 027.p02-p03 (13422013-14). gpu 99
+  (16 running P100), debug 5.
