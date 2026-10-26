@@ -51,6 +51,9 @@ NAME = {
 }
 SPANS = ("all", "c16", "c16_2020")
 
+LABEL = "PRE-PATCH design: the FOMC calendar features are those before the pending FOMC fix."
+LABEL_SHORT = "PRE-PATCH design (FOMC features before the pending fix)."
+
 
 def say(msg: str) -> None:
     print(msg, flush=True)
@@ -149,7 +152,7 @@ def load_linear(work: Path, m: str, o: pd.DataFrame, tag: str = "") -> tuple[dic
 
 
 def main() -> int:
-    global RES
+    global RES, LABEL, LABEL_SHORT
     ap = argparse.ArgumentParser()
     ap.add_argument("--work", required=True)
     ap.add_argument("--models", default=",".join(C.MODELS))
@@ -166,6 +169,8 @@ def main() -> int:
     a = ap.parse_args()
     if a.out:
         RES = Path(a.out)
+    if a.sets_tag:
+        LABEL = LABEL_SHORT = "PATCHED design (FOMC fix adopted: FOMC_SCHEDULE_2020_FIX, FOMC_PROXIMITY_NO_WINSOR)."
     RES.mkdir(parents=True, exist_ok=True)
     work = Path(a.work)
     models = [m for m in a.models.split(",") if m]
@@ -408,7 +413,7 @@ def main() -> int:
     R.to_csv(RES / "readings.csv", index=False)
 
     # ---------------------------------------------------------------- tables.txt
-    lines = ["PRE-PATCH design: the FOMC calendar features are those before the pending FOMC fix.", ""]
+    lines = [LABEL, ""]
     for sp in ("all", "c16", "c16_2020"):
         lines.append(f"QLIKE by rung, span {sp} (P = primary, pre-sample ranking; S = secondary, look-ahead)")
         hdr = f"{'model':14s}" + "".join(f"{'k=' + str(k):>10s}" for k in C.KS)
@@ -498,7 +503,7 @@ def figure(S: pd.DataFrame, models: list[str]) -> None:
     fig.text(
         0.5,
         0.005,
-        "PRE-PATCH design (FOMC features before the pending fix). Monthly refits (126 origins, held 21 sessions); "
+        LABEL_SHORT + " Monthly refits (126 origins, held 21 sessions); "
         "Table 1's 33,527 bars.\n"
         "Gray lines: the model's full set (solid) and its HAR-benchmark rung (dotted).",
         ha="center",
