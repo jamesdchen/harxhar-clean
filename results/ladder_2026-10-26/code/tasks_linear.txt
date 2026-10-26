@@ -1,0 +1,3 @@
+linear run ridge 32
+linear run lasso 32
+linear run enet 32

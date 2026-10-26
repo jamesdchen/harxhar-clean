@@ -1,0 +1,4 @@
+trees rank lgbm 16
+trees rank xgb 16
+trees rank rf_skx 16
+linear rank 3
