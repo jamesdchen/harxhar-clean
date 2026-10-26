@@ -40,3 +40,14 @@
 - L (linear walks of cell A vs w3000): PASS -- pred_adj and true_adj bit for bit, 7 models x 33,997 rows (gates/L.json).
 
 ## STEP 2 (linear, scores_linear/): MATERIAL (B vs A; also D vs C); coordinator told 10-26 01:22 and 01:40 PDT.
+| 10-26 01:19 | 13458387 | trees cell B, LightGBM full set, 14 pieces: COMPLETED (247 CPU-h) |
+| 10-26 01:19 | 13458388 | trees cell B, XGBoost full set, 29 pieces: COMPLETED (380 CPU-h) |
+| 10-26 01:19 | 13458389 | trees cell B, rf_skx full set, 87 pieces: 83 COMPLETED, 4 RUNNING at 13:05 |
+| 10-26 01:19 | 13458390 | 7(c) pre-sample tree check, 37 tasks: COMPLETED (286 CPU-h) |
+| 10-26 01:19 | 13458518 | 7(b) annual year walks, 66 tasks: COMPLETED |
+
+## Results so far
+- STEP 2 (linear factorial): scores_linear/ -- MATERIAL (B vs A and D vs C).
+- 7(a), 7(b): scores_step4_linear/ (neighbours nbr_*, annual ANN; vs HAR of cell B and vs the frozen arm of cell B).
+- 7(c): tune2013/ (tune2013_tables.md, tune2013_scores.csv, verdict json; piece metas in tune2013/pieces/).
+- Trees: LightGBM and XGBoost merged (forecasts/forecasts_gb.parquet); the forest pending.
