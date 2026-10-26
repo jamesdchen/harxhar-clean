@@ -1,0 +1,63 @@
+{
+ "reference": "results/window_sweep_2014start_2026-10-22/w3000/forecasts.parquet",
+ "models": {
+  "all_features/enet": {
+   "rows": 33997,
+   "rows_ref": 33997,
+   "same_rows": true,
+   "pred_adj_equal": true,
+   "true_adj_equal": true,
+   "max_abs": 0.0
+  },
+  "all_features/lasso": {
+   "rows": 33997,
+   "rows_ref": 33997,
+   "same_rows": true,
+   "pred_adj_equal": true,
+   "true_adj_equal": true,
+   "max_abs": 0.0
+  },
+  "all_features/ridge": {
+   "rows": 33997,
+   "rows_ref": 33997,
+   "same_rows": true,
+   "pred_adj_equal": true,
+   "true_adj_equal": true,
+   "max_abs": 0.0
+  },
+  "baseline/enet": {
+   "rows": 33997,
+   "rows_ref": 33997,
+   "same_rows": true,
+   "pred_adj_equal": true,
+   "true_adj_equal": true,
+   "max_abs": 0.0
+  },
+  "baseline/lasso": {
+   "rows": 33997,
+   "rows_ref": 33997,
+   "same_rows": true,
+   "pred_adj_equal": true,
+   "true_adj_equal": true,
+   "max_abs": 0.0
+  },
+  "baseline/ols": {
+   "rows": 33997,
+   "rows_ref": 33997,
+   "same_rows": true,
+   "pred_adj_equal": true,
+   "true_adj_equal": true,
+   "max_abs": 0.0
+  },
+  "baseline/ridge": {
+   "rows": 33997,
+   "rows_ref": 33997,
+   "same_rows": true,
+   "pred_adj_equal": true,
+   "true_adj_equal": true,
+   "max_abs": 0.0
+  }
+ },
+ "fail": [],
+ "pass": true
+}

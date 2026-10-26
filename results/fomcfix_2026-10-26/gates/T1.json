@@ -1,0 +1,386 @@
+{
+ "pieces": [
+  {
+   "tag": "e7513",
+   "piece": "lgbm_all_features_bar_2014-01-02_2014-01-02_1of1",
+   "est": "lgbm",
+   "set": "all_features",
+   "rows": 13,
+   "first": "2014-01-02 10:00:00",
+   "last": "2014-01-02 16:00:00",
+   "cpus": [
+    "AMD EPYC 7513 32-Core Processor"
+   ],
+   "threads": 8,
+   "host": "a01-02.hpc.usc.edu",
+   "versions": {
+    "python": "3.12.15",
+    "numpy": "1.26.4",
+    "pandas": "2.3.3",
+    "scipy": "1.17.1",
+    "sklearn": "1.9.1",
+    "lightgbm": "4.6.0",
+    "xgboost": "3.2.0",
+    "pyarrow": "19.0.1",
+    "sklearnex": "2026.2.0",
+    "daal": "2026.2.0"
+   },
+   "pred_adj_equal": true,
+   "true_adj_equal": true,
+   "B_equal": true,
+   "max_abs_pred_adj": 0.0,
+   "max_rel_pred_adj": 0.0
+  },
+  {
+   "tag": "e7513",
+   "piece": "lgbm_all_features_bar_2024-04-30_2024-04-30_1of1",
+   "est": "lgbm",
+   "set": "all_features",
+   "rows": 13,
+   "first": "2024-04-30 10:00:00",
+   "last": "2024-04-30 16:00:00",
+   "cpus": [
+    "AMD EPYC 7513 32-Core Processor"
+   ],
+   "threads": 8,
+   "host": "a03-17.hpc.usc.edu",
+   "versions": {
+    "python": "3.12.15",
+    "numpy": "1.26.4",
+    "pandas": "2.3.3",
+    "scipy": "1.17.1",
+    "sklearn": "1.9.1",
+    "lightgbm": "4.6.0",
+    "xgboost": "3.2.0",
+    "pyarrow": "19.0.1",
+    "sklearnex": "2026.2.0",
+    "daal": "2026.2.0"
+   },
+   "pred_adj_equal": true,
+   "true_adj_equal": true,
+   "B_equal": true,
+   "max_abs_pred_adj": 0.0,
+   "max_rel_pred_adj": 0.0
+  },
+  {
+   "tag": "e7513",
+   "piece": "rf_skx_all_features_bar_2014-01-02_2014-01-02_1of1",
+   "est": "rf_skx",
+   "set": "all_features",
+   "rows": 13,
+   "first": "2014-01-02 10:00:00",
+   "last": "2014-01-02 16:00:00",
+   "cpus": [
+    "AMD EPYC 7513 32-Core Processor"
+   ],
+   "threads": 8,
+   "host": "b10-20.hpc.usc.edu",
+   "versions": {
+    "python": "3.12.15",
+    "numpy": "1.26.4",
+    "pandas": "2.3.3",
+    "scipy": "1.17.1",
+    "sklearn": "1.9.1",
+    "lightgbm": "4.6.0",
+    "xgboost": "3.2.0",
+    "pyarrow": "19.0.1",
+    "sklearnex": "2026.2.0",
+    "daal": "2026.2.0"
+   },
+   "pred_adj_equal": true,
+   "true_adj_equal": true,
+   "B_equal": true,
+   "max_abs_pred_adj": 0.0,
+   "max_rel_pred_adj": 0.0
+  },
+  {
+   "tag": "e7513",
+   "piece": "rf_skx_all_features_bar_2024-04-30_2024-04-30_1of1",
+   "est": "rf_skx",
+   "set": "all_features",
+   "rows": 13,
+   "first": "2024-04-30 10:00:00",
+   "last": "2024-04-30 16:00:00",
+   "cpus": [
+    "AMD EPYC 7513 32-Core Processor"
+   ],
+   "threads": 8,
+   "host": "a04-04.hpc.usc.edu",
+   "versions": {
+    "python": "3.12.15",
+    "numpy": "1.26.4",
+    "pandas": "2.3.3",
+    "scipy": "1.17.1",
+    "sklearn": "1.9.1",
+    "lightgbm": "4.6.0",
+    "xgboost": "3.2.0",
+    "pyarrow": "19.0.1",
+    "sklearnex": "2026.2.0",
+    "daal": "2026.2.0"
+   },
+   "pred_adj_equal": true,
+   "true_adj_equal": true,
+   "B_equal": true,
+   "max_abs_pred_adj": 0.0,
+   "max_rel_pred_adj": 0.0
+  },
+  {
+   "tag": "e7513",
+   "piece": "xgb_all_features_bar_2014-01-02_2014-01-02_1of1",
+   "est": "xgb",
+   "set": "all_features",
+   "rows": 13,
+   "first": "2014-01-02 10:00:00",
+   "last": "2014-01-02 16:00:00",
+   "cpus": [
+    "AMD EPYC 7513 32-Core Processor"
+   ],
+   "threads": 8,
+   "host": "b04-17.hpc.usc.edu",
+   "versions": {
+    "python": "3.12.15",
+    "numpy": "1.26.4",
+    "pandas": "2.3.3",
+    "scipy": "1.17.1",
+    "sklearn": "1.9.1",
+    "lightgbm": "4.6.0",
+    "xgboost": "3.2.0",
+    "pyarrow": "19.0.1",
+    "sklearnex": "2026.2.0",
+    "daal": "2026.2.0"
+   },
+   "pred_adj_equal": true,
+   "true_adj_equal": true,
+   "B_equal": true,
+   "max_abs_pred_adj": 0.0,
+   "max_rel_pred_adj": 0.0
+  },
+  {
+   "tag": "e7513",
+   "piece": "xgb_all_features_bar_2024-04-30_2024-04-30_1of1",
+   "est": "xgb",
+   "set": "all_features",
+   "rows": 13,
+   "first": "2024-04-30 10:00:00",
+   "last": "2024-04-30 16:00:00",
+   "cpus": [
+    "AMD EPYC 7513 32-Core Processor"
+   ],
+   "threads": 8,
+   "host": "b10-04.hpc.usc.edu",
+   "versions": {
+    "python": "3.12.15",
+    "numpy": "1.26.4",
+    "pandas": "2.3.3",
+    "scipy": "1.17.1",
+    "sklearn": "1.9.1",
+    "lightgbm": "4.6.0",
+    "xgboost": "3.2.0",
+    "pyarrow": "19.0.1",
+    "sklearnex": "2026.2.0",
+    "daal": "2026.2.0"
+   },
+   "pred_adj_equal": true,
+   "true_adj_equal": true,
+   "B_equal": true,
+   "max_abs_pred_adj": 0.0,
+   "max_rel_pred_adj": 0.0
+  },
+  {
+   "tag": "e7542",
+   "piece": "lgbm_all_features_bar_2014-01-02_2014-01-02_1of1",
+   "est": "lgbm",
+   "set": "all_features",
+   "rows": 13,
+   "first": "2014-01-02 10:00:00",
+   "last": "2014-01-02 16:00:00",
+   "cpus": [
+    "AMD EPYC 7542 32-Core Processor"
+   ],
+   "threads": 8,
+   "host": "b22-09.hpc.usc.edu",
+   "versions": {
+    "python": "3.12.15",
+    "numpy": "1.26.4",
+    "pandas": "2.3.3",
+    "scipy": "1.17.1",
+    "sklearn": "1.9.1",
+    "lightgbm": "4.6.0",
+    "xgboost": "3.2.0",
+    "pyarrow": "19.0.1",
+    "sklearnex": "2026.2.0",
+    "daal": "2026.2.0"
+   },
+   "pred_adj_equal": true,
+   "true_adj_equal": true,
+   "B_equal": true,
+   "max_abs_pred_adj": 0.0,
+   "max_rel_pred_adj": 0.0
+  },
+  {
+   "tag": "e7542",
+   "piece": "lgbm_all_features_bar_2024-04-30_2024-04-30_1of1",
+   "est": "lgbm",
+   "set": "all_features",
+   "rows": 13,
+   "first": "2024-04-30 10:00:00",
+   "last": "2024-04-30 16:00:00",
+   "cpus": [
+    "AMD EPYC 7542 32-Core Processor"
+   ],
+   "threads": 8,
+   "host": "b22-12.hpc.usc.edu",
+   "versions": {
+    "python": "3.12.15",
+    "numpy": "1.26.4",
+    "pandas": "2.3.3",
+    "scipy": "1.17.1",
+    "sklearn": "1.9.1",
+    "lightgbm": "4.6.0",
+    "xgboost": "3.2.0",
+    "pyarrow": "19.0.1",
+    "sklearnex": "2026.2.0",
+    "daal": "2026.2.0"
+   },
+   "pred_adj_equal": true,
+   "true_adj_equal": true,
+   "B_equal": true,
+   "max_abs_pred_adj": 0.0,
+   "max_rel_pred_adj": 0.0
+  },
+  {
+   "tag": "e7542",
+   "piece": "rf_skx_all_features_bar_2014-01-02_2014-01-02_1of1",
+   "est": "rf_skx",
+   "set": "all_features",
+   "rows": 13,
+   "first": "2014-01-02 10:00:00",
+   "last": "2014-01-02 16:00:00",
+   "cpus": [
+    "AMD EPYC 7542 32-Core Processor"
+   ],
+   "threads": 8,
+   "host": "b22-20.hpc.usc.edu",
+   "versions": {
+    "python": "3.12.15",
+    "numpy": "1.26.4",
+    "pandas": "2.3.3",
+    "scipy": "1.17.1",
+    "sklearn": "1.9.1",
+    "lightgbm": "4.6.0",
+    "xgboost": "3.2.0",
+    "pyarrow": "19.0.1",
+    "sklearnex": "2026.2.0",
+    "daal": "2026.2.0"
+   },
+   "pred_adj_equal": true,
+   "true_adj_equal": true,
+   "B_equal": true,
+   "max_abs_pred_adj": 0.0,
+   "max_rel_pred_adj": 0.0
+  },
+  {
+   "tag": "e7542",
+   "piece": "rf_skx_all_features_bar_2024-04-30_2024-04-30_1of1",
+   "est": "rf_skx",
+   "set": "all_features",
+   "rows": 13,
+   "first": "2024-04-30 10:00:00",
+   "last": "2024-04-30 16:00:00",
+   "cpus": [
+    "AMD EPYC 7542 32-Core Processor"
+   ],
+   "threads": 8,
+   "host": "b22-28.hpc.usc.edu",
+   "versions": {
+    "python": "3.12.15",
+    "numpy": "1.26.4",
+    "pandas": "2.3.3",
+    "scipy": "1.17.1",
+    "sklearn": "1.9.1",
+    "lightgbm": "4.6.0",
+    "xgboost": "3.2.0",
+    "pyarrow": "19.0.1",
+    "sklearnex": "2026.2.0",
+    "daal": "2026.2.0"
+   },
+   "pred_adj_equal": true,
+   "true_adj_equal": true,
+   "B_equal": true,
+   "max_abs_pred_adj": 0.0,
+   "max_rel_pred_adj": 0.0
+  },
+  {
+   "tag": "e7542",
+   "piece": "xgb_all_features_bar_2014-01-02_2014-01-02_1of1",
+   "est": "xgb",
+   "set": "all_features",
+   "rows": 13,
+   "first": "2014-01-02 10:00:00",
+   "last": "2014-01-02 16:00:00",
+   "cpus": [
+    "AMD EPYC 7542 32-Core Processor"
+   ],
+   "threads": 8,
+   "host": "b22-24.hpc.usc.edu",
+   "versions": {
+    "python": "3.12.15",
+    "numpy": "1.26.4",
+    "pandas": "2.3.3",
+    "scipy": "1.17.1",
+    "sklearn": "1.9.1",
+    "lightgbm": "4.6.0",
+    "xgboost": "3.2.0",
+    "pyarrow": "19.0.1",
+    "sklearnex": "2026.2.0",
+    "daal": "2026.2.0"
+   },
+   "pred_adj_equal": true,
+   "true_adj_equal": true,
+   "B_equal": true,
+   "max_abs_pred_adj": 0.0,
+   "max_rel_pred_adj": 0.0
+  },
+  {
+   "tag": "e7542",
+   "piece": "xgb_all_features_bar_2024-04-30_2024-04-30_1of1",
+   "est": "xgb",
+   "set": "all_features",
+   "rows": 13,
+   "first": "2024-04-30 10:00:00",
+   "last": "2024-04-30 16:00:00",
+   "cpus": [
+    "AMD EPYC 7542 32-Core Processor"
+   ],
+   "threads": 8,
+   "host": "b22-20.hpc.usc.edu",
+   "versions": {
+    "python": "3.12.15",
+    "numpy": "1.26.4",
+    "pandas": "2.3.3",
+    "scipy": "1.17.1",
+    "sklearn": "1.9.1",
+    "lightgbm": "4.6.0",
+    "xgboost": "3.2.0",
+    "pyarrow": "19.0.1",
+    "sklearnex": "2026.2.0",
+    "daal": "2026.2.0"
+   },
+   "pred_adj_equal": true,
+   "true_adj_equal": true,
+   "B_equal": true,
+   "max_abs_pred_adj": 0.0,
+   "max_rel_pred_adj": 0.0
+  }
+ ],
+ "pass_by_class_cpu": {
+  "lgbm|AMD EPYC 7513 32-Core Processor": true,
+  "rf_skx|AMD EPYC 7513 32-Core Processor": true,
+  "xgb|AMD EPYC 7513 32-Core Processor": true,
+  "lgbm|AMD EPYC 7542 32-Core Processor": true,
+  "rf_skx|AMD EPYC 7542 32-Core Processor": true,
+  "xgb|AMD EPYC 7542 32-Core Processor": true
+ },
+ "fail": [],
+ "n_pieces": 12
+}

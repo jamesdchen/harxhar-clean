@@ -19,7 +19,8 @@
   % \mathrm{DM} = \frac{\bar d}{\sqrt{\hat\Omega / n}}, \qquad
   % \mathrm{DM}^{\ast} = \mathrm{DM} \sqrt{\frac{n + 1 - 2h + h(h-1)/n}{n}}, \qquad h = 1 .
   \begin{itemize}
-  \item Here $A$ and $B$ denote competing forecast series $f_{m,\mathcal X,\mathcal I}$, indexed by the model class $m$, the predictor set $\mathcal X \in \{\mathrm{HAR}, \mathrm{Full}\}$, and the estimation interval set $\mathcal I \in \{\{c\}, \{1, \dots, M\}\}$.
+  \item Here $A$ and $B$ denote competing forecast series $f_{m,\mathcal X,\mathcal I}$, indexed by the model class $m$, the predictor set $\mathcal X \in \{\mathrm{HAR}, \mathrm{Full}\}$, and the estimation interval set $\mathcal I \in \{\{c\}, \mathcal I_{\mathrm{rh}}\}$.
+  % 2026-10-25 (user): parked -- the label \{1, \dots, M\} for the pooled models' set; they are estimated on I_rh.
   % 2026-10-15 (user): parked -- "out-of-sample days"; the evaluation set and the option-data subsample. Was:
   % "\item $\mathcal O$: the out-of-sample days of the exercise, numbered $t = 1, \dots, |\mathcal O|$ in time order;
   %   $\mathcal O = \mathcal T_{\mathrm{oos}}$, $|\mathcal T_{\mathrm{oos}}| = T_{\mathrm{oos}}$, in the headline

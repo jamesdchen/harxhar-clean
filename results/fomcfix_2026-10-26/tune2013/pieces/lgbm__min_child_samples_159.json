@@ -1,0 +1,56 @@
+{
+ "est": "lgbm",
+ "predictor_set": "all_features",
+ "refit": "day",
+ "span": [
+  "2013-01-02",
+  "2013-12-31"
+ ],
+ "part": "1/1",
+ "block": [
+  "2013-01-02 10:00:00",
+  "2013-12-31 16:00:00"
+ ],
+ "rows": 3261,
+ "refits": 255,
+ "wall_sec": 795.3,
+ "config": "lgbm_opt_00__min_child_samples_159",
+ "sha": "ee73352c09a6",
+ "params": {
+  "num_leaves": 20,
+  "learning_rate": 0.01296404565731986,
+  "n_estimators": 392,
+  "min_child_samples": 159,
+  "feature_fraction": 0.7017000121697539,
+  "bagging_fraction": 0.5636236714089857,
+  "lambda_l1": 1.0413823540826713e-08,
+  "lambda_l2": 0.015950303832251992,
+  "bagging_freq": 1
+ },
+ "config_file": "results/fomcfix_2026-10-26/tune2013/configs/lgbm__min_child_samples_159.json",
+ "config_file_sha256": "5d65dab1e5d0a43ddac650e079843e96a1d5d9f24e40a47ac99324972c12405a",
+ "window_rows": 39000,
+ "window_days": 3000,
+ "n_columns": 564,
+ "threads": 8,
+ "host": "b01-03.hpc.usc.edu",
+ "cpu": "AMD EPYC 7513 32-Core Processor",
+ "cpus": [
+  "AMD EPYC 7513 32-Core Processor"
+ ],
+ "versions": {
+  "python": "3.12.15",
+  "numpy": "1.26.4",
+  "pandas": "2.3.3",
+  "scipy": "1.17.1",
+  "sklearn": "1.9.1",
+  "lightgbm": "4.6.0",
+  "xgboost": "3.2.0",
+  "pyarrow": "19.0.1",
+  "sklearnex": "2026.2.0",
+  "daal": "2026.2.0"
+ },
+ "design": "/home1/jc_905/fomcfix_lin/runs/B/_work/design_all_features",
+ "slurm_job": "13458390",
+ "slurm_task": "12"
+}

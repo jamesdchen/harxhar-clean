@@ -63,7 +63,9 @@
 % the final runs refit at every bar, results/pooled_trees_final_2014start_w3000/forecasts.json "refit": "bar"). The
 % two sentences before it are unchanged.
 \item \textbf{Rolling-window out-of-sample exercise.} We conduct a rolling-window out-of-sample forecasting exercise in which each model is re-estimated every period using only predictors in the information set $\mathcal F_t$ available at the 15:30 ET forecast origin. A period corresponds to a 30-minute intraday interval under our pooled intraday scheme (Appendix~\ref{sec:rh_exp_schemes}). The 15:30 origin is that of the closing interval $i = c$; the pooled models also forecast every other interval $(t,i)$ of their estimation sample, each at its own origin, the start of the interval, from the information available then (Table~\ref{tab:rh_oos}).
-\item \textbf{Notation.} We index trading days by $t = 1, \dots, T$ and the 30-minute intraday intervals of day $t$ (including the overnight session) by $i = 1, \dots, M$, where $i = c$ denotes the closing half-hour interval (15:30--16:00 ET).
+% 2026-10-25 (user): the regular-hours set named; the pooled models are estimated on it (segment rth13 of
+% src/backtest/segmentation.py, lag scope "global": trailing averages on the full grid, rows sliced after).
+\item \textbf{Notation.} We index trading days by $t = 1, \dots, T$ and the 30-minute intraday intervals of day $t$ (including the overnight session) by $i = 1, \dots, M$, where $i = c$ denotes the closing half-hour interval (15:30--16:00 ET). The regular-hours intervals, those ending 10:00 to 16:00~ET, form the subset $\mathcal I_{\mathrm{rh}} \subset \{1, \dots, M\}$, which contains $c$.
   \begin{itemize}
   % 2026-10-16 (formula pass): parked -- RV_{t,i} = sum_k r_{t,i,k}^2 and the lag (t, i-j) are defined once
   % in Data (sec:rh_data). Was: the sum, with r_{t,i,k} the kth one-minute log return and N_{t,i} <= 30

@@ -218,12 +218,17 @@
 % paper's training scheme: estimated on all $M = \rhdmNIntervals$ intervals of each day, overnight included; one
 % observation per interval, so a period is an intraday interval and $\mathcal W_{t,i} = \{(t, i-W), \dots, (t, i-1)\}$
 % holds the $W$ intervals before $(t,i)$."
-\item \textbf{Intraday scheme} ($\mathcal I = \{1, \dots, M\}$), the paper's training scheme: one observation per
-  interval, so a period is an intraday interval and $\mathcal W_{t,i}$ holds the $W$ observations before $(t,i)$
+% 2026-10-25 (user): parked -- the label I = {1, ..., M} kept for the 13-bar design; now I = I_rh (Section 5,
+% Notation), with the reason the estimation sample leaves out the overnight intervals.
+\item \textbf{Intraday scheme} ($\mathcal I = \mathcal I_{\mathrm{rh}}$), the paper's training scheme: one observation
+  per interval, so a period is an intraday interval and $\mathcal W_{t,i}$ holds the $W$ observations before $(t,i)$
   (Section~\ref{sec:rh_methods_setup}). The pooled models of Table~\ref{tab:rh_oos} and
   Sections~\ref{sec:rh_results}--\ref{sec:rh_econ} are estimated on the \rhorNBars{} regular-hours bars of each
   day, bar ends 10:00 to 16:00~ET, with the HAR components and trailing averages computed on the full grid of
-  $M = \rhdmNIntervals$ intervals, overnight included (Section~\ref{sec:rh_predictors}). The pooled linear models
+  $M = \rhdmNIntervals$ intervals, overnight included (Section~\ref{sec:rh_predictors}). The estimation sample
+  follows the intraday volatility forecasting literature, which leaves the overnight return out
+  \citep{EngleSokalska2012,ZhangZhangCucuringuQian2024}; the predictors use the overnight intervals, which the
+  futures trade (Section~\ref{sec:rh_related}). The pooled linear models
   of the model set, which are not in Table~\ref{tab:rh_oos}, are estimated on all $M$ intervals of each day,
   overnight included.
   % 2026-10-23 (user, final run): parked -- \rhdmNColsPooled counts the dictionary's candidate columns of Section 4, not

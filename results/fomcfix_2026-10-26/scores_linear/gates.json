@@ -1,0 +1,427 @@
+{
+ "main_head": "2d1b4b051b8f4d7ead31c9718f568a55e5111ed6",
+ "checks": [
+  {
+   "name": "A ols/baseline qlike bar",
+   "got": 0.18926910695294918,
+   "want": 0.1892691069529491,
+   "rel": 4.440892098500626e-16,
+   "ok": true
+  },
+  {
+   "name": "A ols/baseline mse bar",
+   "got": 1.1119448816754727e-10,
+   "want": 1.1119448816754728e-10,
+   "rel": 1.1102230246251565e-16,
+   "ok": true
+  },
+  {
+   "name": "A ols/baseline qlike 16:00 2020-24",
+   "got": 0.11366466544877794,
+   "want": 0.1136646654487779,
+   "rel": 4.440892098500626e-16,
+   "ok": true
+  },
+  {
+   "name": "A ridge/baseline qlike bar",
+   "got": 0.1892691076975534,
+   "want": 0.1892691076975534,
+   "rel": 0.0,
+   "ok": true
+  },
+  {
+   "name": "A ridge/baseline mse bar",
+   "got": 1.111944887097601e-10,
+   "want": 1.1119448870976007e-10,
+   "rel": 2.220446049250313e-16,
+   "ok": true
+  },
+  {
+   "name": "A ridge/baseline qlike 16:00 2020-24",
+   "got": 0.11366466505087337,
+   "want": 0.1136646650508733,
+   "rel": 6.661338147750939e-16,
+   "ok": true
+  },
+  {
+   "name": "A ridge/baseline qlike 16:00 2014-24",
+   "got": 0.1268740711272148,
+   "want": 0.1268740711272148,
+   "rel": 0.0,
+   "ok": true
+  },
+  {
+   "name": "A ridge/all_features qlike bar",
+   "got": 0.17911932432603708,
+   "want": 0.179119324326037,
+   "rel": 4.440892098500626e-16,
+   "ok": true
+  },
+  {
+   "name": "A ridge/all_features mse bar",
+   "got": 2.2411649464353843e-10,
+   "want": 2.2411649464353843e-10,
+   "rel": 0.0,
+   "ok": true
+  },
+  {
+   "name": "A ridge/all_features qlike 16:00 2020-24",
+   "got": 0.12599806887344797,
+   "want": 0.1259980688734479,
+   "rel": 6.661338147750939e-16,
+   "ok": true
+  },
+  {
+   "name": "A ridge/all_features qlike 16:00 2014-24",
+   "got": 0.12789173104169888,
+   "want": 0.1278917310416988,
+   "rel": 6.661338147750939e-16,
+   "ok": true
+  },
+  {
+   "name": "A lasso/baseline qlike bar",
+   "got": 0.1892691092712099,
+   "want": 0.1892691092712099,
+   "rel": 0.0,
+   "ok": true
+  },
+  {
+   "name": "A lasso/baseline mse bar",
+   "got": 1.1119448592613057e-10,
+   "want": 1.1119448592613056e-10,
+   "rel": 2.220446049250313e-16,
+   "ok": true
+  },
+  {
+   "name": "A lasso/baseline qlike 16:00 2020-24",
+   "got": 0.11366465754193751,
+   "want": 0.1136646575419375,
+   "rel": 2.220446049250313e-16,
+   "ok": true
+  },
+  {
+   "name": "A lasso/baseline qlike 16:00 2014-24",
+   "got": 0.12687406324893025,
+   "want": 0.1268740632489302,
+   "rel": 4.440892098500626e-16,
+   "ok": true
+  },
+  {
+   "name": "A lasso/all_features qlike bar",
+   "got": 0.17747045062811498,
+   "want": 0.1774704506281149,
+   "rel": 4.440892098500626e-16,
+   "ok": true
+  },
+  {
+   "name": "A lasso/all_features mse bar",
+   "got": 2.3651969799596e-10,
+   "want": 2.3651969799596004e-10,
+   "rel": 2.220446049250313e-16,
+   "ok": true
+  },
+  {
+   "name": "A lasso/all_features qlike 16:00 2020-24",
+   "got": 0.1300710093956647,
+   "want": 0.1300710093956647,
+   "rel": 0.0,
+   "ok": true
+  },
+  {
+   "name": "A lasso/all_features qlike 16:00 2014-24",
+   "got": 0.1310411485198228,
+   "want": 0.1310411485198228,
+   "rel": 0.0,
+   "ok": true
+  },
+  {
+   "name": "A enet/baseline qlike bar",
+   "got": 0.1892691199967904,
+   "want": 0.1892691199967904,
+   "rel": 0.0,
+   "ok": true
+  },
+  {
+   "name": "A enet/baseline mse bar",
+   "got": 1.1119447799768186e-10,
+   "want": 1.1119447799768183e-10,
+   "rel": 2.220446049250313e-16,
+   "ok": true
+  },
+  {
+   "name": "A enet/baseline qlike 16:00 2020-24",
+   "got": 0.11366462515747601,
+   "want": 0.113664625157476,
+   "rel": 2.220446049250313e-16,
+   "ok": true
+  },
+  {
+   "name": "A enet/baseline qlike 16:00 2014-24",
+   "got": 0.1268740298807714,
+   "want": 0.1268740298807714,
+   "rel": 0.0,
+   "ok": true
+  },
+  {
+   "name": "A enet/all_features qlike bar",
+   "got": 0.17784241687331742,
+   "want": 0.1778424168733174,
+   "rel": 2.220446049250313e-16,
+   "ok": true
+  },
+  {
+   "name": "A enet/all_features mse bar",
+   "got": 2.432584034056291e-10,
+   "want": 2.432584034056291e-10,
+   "rel": 0.0,
+   "ok": true
+  },
+  {
+   "name": "A enet/all_features qlike 16:00 2020-24",
+   "got": 0.12335788119228674,
+   "want": 0.1233578811922867,
+   "rel": 4.440892098500626e-16,
+   "ok": true
+  },
+  {
+   "name": "A enet/all_features qlike 16:00 2014-24",
+   "got": 0.12622048949697234,
+   "want": 0.1262204894969723,
+   "rel": 4.440892098500626e-16,
+   "ok": true
+  },
+  {
+   "name": "A ridge DM bar",
+   "got": -5.626740028038358,
+   "want": -5.626740028038358,
+   "rel": 0.0,
+   "ok": true
+  },
+  {
+   "name": "A ridge DM p bar",
+   "got": 1.8364718179577945e-08,
+   "want": 1.8364718179577945e-08,
+   "rel": 0.0,
+   "ok": true
+  },
+  {
+   "name": "A ridge DM 16:00",
+   "got": 0.307241155316293,
+   "want": 0.307241155316293,
+   "rel": 0.0,
+   "ok": true
+  },
+  {
+   "name": "A ridge DM p 16:00",
+   "got": 0.7586598219998005,
+   "want": 0.7586598219998005,
+   "rel": 0.0,
+   "ok": true
+  },
+  {
+   "name": "A ridge gap % bar",
+   "got": -5.362620184026767,
+   "want": -5.362620184026746,
+   "rel": 3.9968028886505635e-15,
+   "ok": true
+  },
+  {
+   "name": "A ridge d6_mid_har",
+   "got": 0.9830979904447705,
+   "want": 0.9830979904447704,
+   "rel": 2.220446049250313e-16,
+   "ok": true
+  },
+  {
+   "name": "A ridge d6_mid_full",
+   "got": 1.8455709905008795,
+   "want": 1.8455709905008797,
+   "rel": 1.1102230246251565e-16,
+   "ok": true
+  },
+  {
+   "name": "A ridge d6_ba_har",
+   "got": 0.6218441129081016,
+   "want": 0.6218441129081016,
+   "rel": 0.0,
+   "ok": true
+  },
+  {
+   "name": "A ridge d6_ba_full",
+   "got": 1.4898093681643019,
+   "want": 1.489809368164302,
+   "rel": 1.1102230246251565e-16,
+   "ok": true
+  },
+  {
+   "name": "A ridge d6_boot_p_mid",
+   "got": 0.16143228645729146,
+   "want": 0.1614322864572914,
+   "rel": 4.440892098500626e-16,
+   "ok": true
+  },
+  {
+   "name": "A ridge d6_boot_p_ba",
+   "got": 0.15243048609721943,
+   "want": 0.1524304860972194,
+   "rel": 2.220446049250313e-16,
+   "ok": true
+  },
+  {
+   "name": "A lasso DM bar",
+   "got": -4.724103724172205,
+   "want": -4.724103724172205,
+   "rel": 0.0,
+   "ok": true
+  },
+  {
+   "name": "A lasso DM p bar",
+   "got": 2.3113243308524787e-06,
+   "want": 2.3113243308524787e-06,
+   "rel": 0.0,
+   "ok": true
+  },
+  {
+   "name": "A lasso DM 16:00",
+   "got": 1.0366574014639633,
+   "want": 1.0366574014639631,
+   "rel": 2.220446049250313e-16,
+   "ok": true
+  },
+  {
+   "name": "A lasso DM p 16:00",
+   "got": 0.29989555141322327,
+   "want": 0.2998955514132232,
+   "rel": 2.220446049250313e-16,
+   "ok": true
+  },
+  {
+   "name": "A lasso gap % bar",
+   "got": -6.233800480451457,
+   "want": -6.233800480451479,
+   "rel": 3.552713678800501e-15,
+   "ok": true
+  },
+  {
+   "name": "A lasso d6_mid_har",
+   "got": 0.9830979904447705,
+   "want": 0.9830979904447704,
+   "rel": 2.220446049250313e-16,
+   "ok": true
+  },
+  {
+   "name": "A lasso d6_mid_full",
+   "got": 1.7222763697872003,
+   "want": 1.7222763697872003,
+   "rel": 0.0,
+   "ok": true
+  },
+  {
+   "name": "A lasso d6_ba_har",
+   "got": 0.6218441129081016,
+   "want": 0.6218441129081016,
+   "rel": 0.0,
+   "ok": true
+  },
+  {
+   "name": "A lasso d6_ba_full",
+   "got": 1.3637354785013747,
+   "want": 1.3637354785013749,
+   "rel": 1.1102230246251565e-16,
+   "ok": true
+  },
+  {
+   "name": "A lasso d6_boot_p_mid",
+   "got": 0.22724544908981797,
+   "want": 0.2272454490898179,
+   "rel": 4.440892098500626e-16,
+   "ok": true
+  },
+  {
+   "name": "A lasso d6_boot_p_ba",
+   "got": 0.22244448889777957,
+   "want": 0.2224444888977795,
+   "rel": 2.220446049250313e-16,
+   "ok": true
+  },
+  {
+   "name": "A enet DM bar",
+   "got": -6.979288074147892,
+   "want": -6.979288074147892,
+   "rel": 0.0,
+   "ok": true
+  },
+  {
+   "name": "A enet DM p bar",
+   "got": 2.9667958890781535e-12,
+   "want": 2.9667958890781535e-12,
+   "rel": 0.0,
+   "ok": true
+  },
+  {
+   "name": "A enet DM 16:00",
+   "got": -0.2122032801646664,
+   "want": -0.2122032801646664,
+   "rel": 0.0,
+   "ok": true
+  },
+  {
+   "name": "A enet DM p 16:00",
+   "got": 0.8319484478135402,
+   "want": 0.8319484478135402,
+   "rel": 0.0,
+   "ok": true
+  },
+  {
+   "name": "A enet gap % bar",
+   "got": -6.0372780956908345,
+   "want": -6.037278095690812,
+   "rel": 3.774758283725532e-15,
+   "ok": true
+  },
+  {
+   "name": "A enet d6_mid_har",
+   "got": 0.9830979904447705,
+   "want": 0.9830979904447704,
+   "rel": 2.220446049250313e-16,
+   "ok": true
+  },
+  {
+   "name": "A enet d6_mid_full",
+   "got": 1.93966564564731,
+   "want": 1.93966564564731,
+   "rel": 0.0,
+   "ok": true
+  },
+  {
+   "name": "A enet d6_ba_har",
+   "got": 0.6218441129081016,
+   "want": 0.6218441129081016,
+   "rel": 0.0,
+   "ok": true
+  },
+  {
+   "name": "A enet d6_ba_full",
+   "got": 1.5824839422778516,
+   "want": 1.5824839422778516,
+   "rel": 0.0,
+   "ok": true
+  },
+  {
+   "name": "A enet d6_boot_p_mid",
+   "got": 0.134626925385077,
+   "want": 0.134626925385077,
+   "rel": 0.0,
+   "ok": true
+  },
+  {
+   "name": "A enet d6_boot_p_ba",
+   "got": 0.1308261652330466,
+   "want": 0.1308261652330466,
+   "rel": 0.0,
+   "ok": true
+  }
+ ],
+ "fail": [],
+ "pass": true
+}

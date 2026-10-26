@@ -421,9 +421,18 @@ def spec_section(est: str, bucket: str, start: int, end: int, halo: int) -> dict
         STD_MIN_EVIDENCE,
         EX.MODE_MIN_PRINTS,
     )
+    import src.data.loading as LD_
+    import src.features.transforms.target as TG_
+
     for k, v in EX_FLAGS.items():  # 2026-10-19 (--ex-flag)
-        assert isinstance(getattr(EX, k), bool), k
-        setattr(EX, k, v)
+        # 2026-10-25 (results/fomcfix_2026-10-26/RULE.txt): a flag that src/backtest/executor.py does not have is
+        # looked up in src/data/loading.py, then src/features/transforms/target.py (FOMC_SCHEDULE_2020_FIX,
+        # FOMC_PROXIMITY_NO_WINSOR); the executor's flags are set as before.  Was:
+        # assert isinstance(getattr(EX, k), bool), k
+        # setattr(EX, k, v)
+        mod = next((m for m in (EX, LD_, TG_) if hasattr(m, k)), EX)
+        assert isinstance(getattr(mod, k), bool), k
+        setattr(mod, k, v)
     if DROP_FOMC:  # 2026-10-19 (--drop-fomc)
         from src.data.loading import FOMC_FEATURES
 

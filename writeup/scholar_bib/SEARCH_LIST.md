@@ -7,7 +7,7 @@ The importer maps each pasted entry to the key below by title, so the paper need
 If Scholar lists a working paper and a journal version, take the journal version unless the text
 cites the working paper on purpose (e.g. `RahimikiaPoon2020`, kept as the 2020 SSRN paper for priority).
 
-## 1. Added to the bibliography on 2026-10-24 (23): check these first
+## 1. Added to the bibliography on 2026-10-24 (26): check these first
 
 | Key | Search on Google Scholar (click, then Cite -> BibTeX) | First author, year | Venue (ours) |
 |---|---|---|---|
@@ -34,6 +34,9 @@ cites the working paper on purpose (e.g. `RahimikiaPoon2020`, kept as the 2020 S
 | `CaporinPoli2017` | [Building News Measures from Textual Data and an Application to Volatility Forecasting](https://scholar.google.com/scholar?q=%22Building+News+Measures+from+Textual+Data+and+an+Application+to+Volatility+Forecasting%22+Caporin) | Caporin, 2017 | Econometrics |
 | `BrancoRubesamZevallos2024` | [Forecasting Realized Volatility: Does Anything Beat Linear Models?](https://scholar.google.com/scholar?q=%22Forecasting+Realized+Volatility%3A+Does+Anything+Beat+Linear+Models%3F%22+Branco) | Branco, 2024 | Journal of Empirical Finance |
 | `MaischZhangUlrichZimmer2026` | [Big Data Machine Learning Portfolios in Thirty Minute SPX Options](https://scholar.google.com/scholar?q=%22Big+Data+Machine+Learning+Portfolios+in+Thirty+Minute+SPX+Options%22+Maisch) | Maisch, 2026 | Working paper, Karlsruhe Institute of Technology; SSRN 72697 |
+| `StroudJohannes2014` | [Bayesian Modeling and Forecasting of 24-Hour High-Frequency Volatility](https://scholar.google.com/scholar?q=%22Bayesian+Modeling+and+Forecasting+of+24-Hour+High-Frequency+Volatility%22+Stroud) | Stroud, 2014 | Journal of the American Statistical Association |
+| `ChenYuZivot2012` | [Predicting Stock Volatility Using After-Hours Information: Evidence from the NASDAQ Actively Traded Stocks](https://scholar.google.com/scholar?q=%22Predicting+Stock+Volatility+Using+After-Hours+Information%3A+Evidence+from+the+NASDAQ+Actively+Traded+Stocks%22+Chen) | Chen, 2012 | International Journal of Forecasting |
+| `TodorovaSoucek2014` | [Overnight Information Flow and Realized Volatility Forecasting](https://scholar.google.com/scholar?q=%22Overnight+Information+Flow+and+Realized+Volatility+Forecasting%22+Todorova) | Todorova, 2014 | Finance Research Letters |
 
 ## 2. Every other entry the paper cites (70)
 

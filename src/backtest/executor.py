@@ -36,6 +36,7 @@ from src.diagnostics import check_and_report
 from src.evaluation.metrics import apply_duan_smearing, save_chunk_reduce
 from src.data.loading import (
     NYSE_EARLY_CLOSE_DATES,
+    NYSE_HOLIDAY_FUTURES_SESSIONS,
     apply_overnight_fills,
     load_raw_data,
 )
@@ -198,6 +199,20 @@ LATE_START_WARMUP: bool = True
 # score.  Off: the design before this flag, bit for bit.
 UNOBSERVED_NEUTRAL: bool = True
 
+# -- 2026-10-25 (coordinator, author approved; audit 2026-10-25 fidelity-4, numbers-7, correctness-5, design-11;
+# results/fomcfix_2026-10-26/RULE.txt addendum A): a measurement arm, default off.  On a full NYSE holiday the cash
+# market is closed and the E-mini trades a shortened session to 13:00 ET.  Its regular-hours bars (bar ends 10:00 ..
+# 13:00; 443 bars on 64 holidays in 2014-01-02 .. 2024-04-30) are rows of the 13-bar design and enter the target's
+# diurnal factor B (the per-slot trailing mean of the last 20 in-slot bars) of the regular-hours slots, but are never
+# scored.  DROP_HOLIDAY_SESSIONS on: (a) a per-bar (time-of-day segment) design drops those sessions, as
+# DROP_EARLY_CLOSE_SESSIONS drops the early closes; (b) their bars ending 10:00 .. 16:00 do not enter B's trailing
+# window (as B_REGULAR_BARS_ONLY leaves out the early closes' post-13:00 bars; such a bar takes the B of the next
+# regular bar of its slot).  The grid keeps them: every trailing average (the HAR components and the predictors'
+# averages) is computed on the full grid as before, and the predictors' own diurnal adjustment is unchanged.  The
+# dates: src/data/loading.py NYSE_HOLIDAY_FUTURES_SESSIONS (the sample's own calendar).  Off: the design before the
+# flag, bit for bit.
+DROP_HOLIDAY_SESSIONS: bool = False
+
 
 def early_close_post_bars(t: pd.Series) -> np.ndarray:
     """Bars ending 13:30 .. 17:00 ET on an NYSE early-close day (src.data.loading calendar)."""
@@ -205,6 +220,15 @@ def early_close_post_bars(t: pd.Series) -> np.ndarray:
     mins = tt.dt.hour * 60 + tt.dt.minute
     ec = tt.dt.normalize().isin(pd.to_datetime(list(NYSE_EARLY_CLOSE_DATES)))
     return (ec & (mins > 13 * 60) & (mins <= 17 * 60)).to_numpy()
+
+
+def holiday_rth_bars(t: pd.Series) -> np.ndarray:
+    """DROP_HOLIDAY_SESSIONS: bars ending 10:00 .. 16:00 ET on a full NYSE holiday with a futures session
+    (src.data.loading NYSE_HOLIDAY_FUTURES_SESSIONS)."""
+    tt = pd.to_datetime(t)
+    mins = tt.dt.hour * 60 + tt.dt.minute
+    hol = tt.dt.normalize().isin(pd.to_datetime(list(NYSE_HOLIDAY_FUTURES_SESSIONS)))
+    return (hol & (mins >= 10 * 60) & (mins <= 16 * 60)).to_numpy()
 
 
 def _series_age_columns(df: pd.DataFrame, exog_cols: list[str]) -> pd.DataFrame:
@@ -993,6 +1017,13 @@ def load_and_transform(
     if B_REGULAR_BARS_ONLY and target_use_diurnal:
         # 2026-10-15 (user): B over regular bars only; see B_REGULAR_BARS_ONLY
         excl = early_close_post_bars(df["t"])
+        if DROP_HOLIDAY_SESSIONS:
+            # 2026-10-25 (DROP_HOLIDAY_SESSIONS): nor the holiday sessions' regular-hours bars
+            excl = excl | holiday_rth_bars(df["t"])
+        if excl.any():
+            transform_kwargs["baseline_exclude"] = excl
+    elif DROP_HOLIDAY_SESSIONS and target_use_diurnal:
+        excl = holiday_rth_bars(df["t"])
         if excl.any():
             transform_kwargs["baseline_exclude"] = excl
     adj_rv, baseline = robust_transform(df, "RV", **transform_kwargs)
@@ -1153,11 +1184,16 @@ def _iter_TOD_segment(
             df = df.iloc[resolve_har_lags()[-1] :].reset_index(drop=True)
 
     early = pd.to_datetime(list(NYSE_EARLY_CLOSE_DATES))
+    holidays = pd.to_datetime(list(NYSE_HOLIDAY_FUTURES_SESSIONS))
     for seg_name in segments:
         seg_df = slice_to_segment(df, seg_name)
         if DROP_EARLY_CLOSE_SESSIONS:
             # 2026-10-15 (user): no early-close session in a per-bar design; see DROP_EARLY_CLOSE_SESSIONS
             keep = ~pd.to_datetime(seg_df["t"]).dt.normalize().isin(early)
+            seg_df = seg_df.loc[keep.to_numpy()].reset_index(drop=True)
+        if DROP_HOLIDAY_SESSIONS:
+            # 2026-10-25: no holiday futures session in a per-bar design; see DROP_HOLIDAY_SESSIONS
+            keep = ~pd.to_datetime(seg_df["t"]).dt.normalize().isin(holidays)
             seg_df = seg_df.loc[keep.to_numpy()].reset_index(drop=True)
         if deferred is not None:
             seg_df = deferred.attach(full, seg_df)
