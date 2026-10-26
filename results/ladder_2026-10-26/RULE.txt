@@ -191,3 +191,44 @@ every-bar full-vs-HAR QLIKE change is ridge -6.0 %, lasso -9.0 %, elastic net -6
 linear models).  Every output (tables, figures, generated macros, the draft) is labelled pre-patch; both may be rerun on
 the patched design later.  The ladder's one-page summary is kept in the main repository
 (results/meeting_2026-10-26/FI_BRIEF.md), not here.
+
+ADDENDUM 3, 2026-10-26 15:00 PDT, before any job it covers (coordinator: the author ADOPTED the FOMC-patched design,
+branch insurance-selling-2026-09-19-e34-fomcfix, flags FOMC_SCHEDULE_2020_FIX = FOMC_PROXIMITY_NO_WINSOR = 1).
+RERUN ON THE PATCHED DESIGN.  Nothing above is revised; the pre-patch results stay as they are, labelled pre-patch.
+(1) Designs.  W = 3,000: cell B of results/fomcfix_2026-10-26 (its gate G3: X differs from the pre-patch X only in the
+    12 value averages adj_fomc_until_inv_ma_k / adj_fomc_since_inv_ma_k), CARC /home1/jc_905/fomcfix_lin/runs/B/_work/
+    design_all_features, read in place.  W = 1,000 / 2,000 / 3,500 (grid): built by this run with the fomcfix code tree and
+    venv (/home1/jc_905/fomcfix_lin/{code,venv}), the command of its lin_stage.sh "design" stage with --window-days W
+    (experiments/pooled_linear_rerun_2026_10_19_13.py design --window-days W --first-day 2014-01-02 --ex-flag
+    LATE_START_WARMUP=1 --ex-flag FOMC_SCHEDULE_2020_FIX=1 --ex-flag FOMC_PROXIMITY_NO_WINSOR=1), into
+    /home1/jc_905/ladder_fomcfix/designs/w<W>.  Gate D (each W): against the pre-patch cache of that W (Addendum 1 (3)):
+    names equal; y, b_oos, dates_oos md5-equal; X bit-equal in every column except those 12.
+(2) k-ladder at W = 3,000 (sections 1-6 unchanged; all six models, the forest last).  PRIMARY ranking recomputed on the
+    patched design (pre-sample fit at 2013-01-02).  SECONDARY (look-ahead) ranking from the patched TreeSHAP study (4)
+    (its m1_variables.csv) and the patched linear shares (its m2_linear_shares.csv): run as a second pass after (4); if
+    that pass cannot finish, the patched ladder is reported on the primary ranking only, saying so.
+    Gates: GT: the trees' full rung at each origin equals the patched every-bar walk (fomcfix cell B: LightGBM / XGBoost
+    forecasts_gb.parquet; the forest's merged walk when its last piece (13465922_85) is done -- the forest is gated
+    last) bit for bit, 126 / 126, and equals the patched SHAP refits' predictions where present.  GL1: the linear full
+    rung's replayed rows equal the cell-B linear walks (fomcfix forecasts) to <= 1e-12.  GL2 is dropped (the ablation
+    arms are pre-patch) and replaced by GP (patch invariance): every rung, of any model, whose series set contains
+    neither fomc_until_inv nor fomc_since_inv and equals a pre-patch rung's set reproduces that pre-patch rung's
+    forecasts bit for bit.
+    The linear replays read the patched design through the fomcfix code tree (its pool_linear_pretune.py knows the two
+    flags; its sha256 recorded), with the two flags added to the run configuration (check_meta).
+(3) Grid (Addendum 1 unchanged) on the patched designs of (1); gates GP and, at W = 3,000, those of (2).  Only the
+    scaling framing (B) goes to the paper; the complexity framing (A) is not used (kept out of the draft's text).
+(4) TreeSHAP on the patched design: RULE_shap.txt of results/tree_shap_w3000_2014start_2026-10-23 unchanged (models,
+    origins, SHAP variant, classes, measures M1-M5, bootstrap), new directory
+    results/tree_shap_w3000_2014start_fomcfix_2026-10-26; all three models on CARC (EPYC 7513 / 7542), the study's
+    code (shap_common.py / shap_run.py / export_x.py) unchanged, design = (1).  M2's linear reference = the patched
+    linear walks' gamma at the 126 origins (the full-set replays of (2), which also store theta and the scales;
+    gamma = theta x s for ridge, theta for lasso / elastic net, as fi_by_window's fiw_reduce.gam_of), gated by GL1.
+    Gate: G1 (LightGBM, XGBoost) the refit at each origin equals the patched walk's pred_adj bit for bit, 126 / 126;
+    G2 (forest) as RULE_shap (repeats bit-identical, oneDAL vs the explained trees, and vs the patched forest walk at the
+    origin rows it has -- gated last); G3 additivity.
+(5) Compute: designs 3 x ~0.5 h x 8 CPUs; ladder ~30, grid ~45, SHAP ~45 CPU-hours; about 130 CPU-hours in all (cap
+    2,000).
+(6) Report: what moved against pre-patch -- per model and rung the QLIKE and gain changes, the readings (k90, verdict,
+    best k per window), the rankings, M1 / M2 / M4 shares; the generated files of this branch regenerated on the
+    patched results (the pre-patch ones kept under their own names).
