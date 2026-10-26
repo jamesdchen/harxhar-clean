@@ -541,3 +541,8 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   13465605 (053.p04.g04). gpu 93 (36 running P100, 57 pending), debug 3. No FAILED since 13:00. Refits done (unique ok
   ids, runs + salvage incl. partial copies): W 3,000 HAR 109,643 / 169,850, full (P100) 137,556, W 3,500 HAR 63,695
   (its nice-100 jobs ran overnight once the W 3,000 queue emptied), full 0 (pieces not yet submitted).
+- 2026-10-26 14:14 PDT: ADDENDUM 3e (all other gpu pieces of the arm submitted): full W 3,000 file 005's untouched
+  pieces 005.p03 / 005.p04 go to the gpu partition whole: 13466531-32 (589 / 588 min, cpu 2 / 16G); their 20 debug
+  pieces are withdrawn (walk/dbgp_withdrawn_005_p03_p04.csv), so no refit runs twice. gpu top-up 13466533-48 (HAR
+  047.p01-050.p01); debug 13466549-50 (dbgp 005.p02.g02-g03), 13466551 (053.p04.g05). gpu 99 (35 running P100, 64
+  pending); debug 5 of ours, none running (other users hold the debug P100s). No FAILED since 13:30.
