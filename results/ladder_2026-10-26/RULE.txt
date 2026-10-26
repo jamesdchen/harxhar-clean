@@ -139,7 +139,7 @@ reduced feature set has been seen.
    Caveats to state: monthly refits held for 21 sessions (not the every-bar walks of Table 1); the FOMC calendar
    features will change after a pending patch (this design is pre-patch).
 
-ADDENDUM 1, 2026-10-26 01:35 PDT, written after the k-ladder above was scored and reported (results 0b27878) and BEFORE
+ADDENDUM 1, 2026-10-26 01:10-01:19 PDT (committed a7d97c7 01:19), written after the k-ladder above was scored and reported (results 0b27878) and BEFORE
 any job of the grid below.  Request (coordinator, author approved): extend the ladder into a window x feature-count
 grid and frame it two ways ("complexity" in the sense of Kelly, Malamud and Zhou 2024, JF 79(1) 459-503,
 KellyMalamudZhou2024; plain data-and-feature scaling).
