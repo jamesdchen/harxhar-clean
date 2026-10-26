@@ -7,7 +7,6 @@ gate.csv, m1_*.csv, m2_*.csv, m3_*.csv, m4_*.csv, m5_*.csv, tables.txt, run_info
 from __future__ import annotations
 
 import argparse
-import io
 import json
 import time
 from pathlib import Path
@@ -409,25 +408,19 @@ def main() -> int:
     out(
         "\n== M2 rank agreement with the linear models (W = 3,000 walks, same 126 origins)"
     )
-    z = np.load(
-        io.BytesIO(
-            C.git_show(
-                f"{C.FIW_SHA}:results/fi_by_window_2014start_2026-10-22/fiw_gamma.npz"
-            )
-        )
-    )
+    # 2026-10-26 (results/ladder_2026-10-26/RULE.txt addendum 3 (4), the FOMC-patched rerun): the linear reference is
+    # the patched walks' gamma at the 126 origins (inputs/fiw_gamma_fomcfix.npz, from the ladder's patched full-set
+    # replays, gated to the cell-B walks), not fi_by_window's pre-patch fiw_gamma.npz.  Was:
+    #     z = np.load(io.BytesIO(C.git_show(f"{C.FIW_SHA}:results/fi_by_window_2014start_2026-10-22/fiw_gamma.npz")))
+    z = np.load(RES / "inputs" / "fiw_gamma_fomcfix.npz")
     assert list(z["columns"]) == T["column"].tolist()
     assert list(pd.to_datetime(z["origins"])) == list(o["origin"])
     P = C.group_matrix(T)
     LIN = {
         m: np.abs(z[f"walk_w3000_{m}_gamma"]) @ P.T for m in ("ridge", "lasso", "enet")
     }  # K x 48
-    fv = pd.read_csv(RES / "inputs" / "fiw_variables_w3000_walk.csv")
-    chk = fv[fv["model"] == "ridge"].set_index("variable")["pooled_share"]
-    rshare = LIN["ridge"][:, EX].sum(0) / LIN["ridge"][:, EX].sum()
-    assert np.allclose(rshare, chk.reindex(C.EXOG).to_numpy(), rtol=1e-9, atol=1e-12), (
-        "ridge share != fiw_variables"
-    )
+    # 2026-10-26 (addendum 3): the check against fi_by_window's pre-patch fiw_variables_w3000_walk.csv does not apply to
+    # the patched gamma (there is no patched fiw_variables); the gamma file's own gate is GL1 of the ladder's replays.
     m2 = []
     pooled_lin = {m: LIN[m].sum(0) for m in LIN}
     pd.DataFrame(
@@ -923,7 +916,7 @@ def main() -> int:
         ),
         models=ests,
         runner_sha=C.RUNNER_SHA,
-        fiw_sha=C.FIW_SHA,
+        linear_reference="inputs/fiw_gamma_fomcfix.npz (patched replays, addendum 3)",
         seconds=round(time.time() - t0, 1),
     )
     for e in ests:
