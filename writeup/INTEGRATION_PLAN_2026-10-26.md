@@ -19,12 +19,14 @@ text parked in dated comments, Overleaf push with `--check` after the commit.
 | D10 | Beta / optimal-allocation analysis in the appendix | `make_rehaul_econ_beta.py` + `drafts/2026-10-26_econ_beta.tex`; CI-HAR row moves with D2/D3; trim macros to those used; bib: TreynorMazuy1966, GibbonsRossShanken1989 |
 | D11 | Live-window reading of the alternative data | Done (commit c4d5392) |
 | D12 | Cite Andersen-Su-Todorov-Zhang (round-the-clock E-mini diurnal curve) in the diurnal bullet | verify metadata first |
-| D13 | FOMC fixes (missing 18 Mar 2020 meeting; no winsorizing of the proximity ramps) | Running (branch -fomcfix): linear 2x2 with holidays, then full-set trees; ablations/robustness rerun only if material (author decides) |
+| D13 | FOMC fixes ADOPTED (author 2026-10-26): the paper's numbers come from the patched design (FOMC_SCHEDULE_2020_FIX, FOMC_PROXIMITY_NO_WINSOR; branch -fomcfix) | Patched linear + LightGBM/XGBoost done, forest last piece pending. Rerun on the patched design: linear ablations, FOMC tree arms (add_fomc x3, lo_fomc LightGBM/XGBoost), ladder + scaling grid, tree SHAP (and the live-window shares built on it). Other tree ablation arms and the three-way / window robustness arms stay pre-patch, disclosed |
+| D14 | Tree tuning: disclose only (author: tuning only needs to put off-the-shelf models in the forecasting regime) | Appendix: transferred configurations, 2013 pre-sample neighbourhood check, penalty neighbours, annual re-tuning, oneDAL forest engine |
+| D15 | NYSE-holiday sessions: KEEP and disclose (2 sentences + the measured linear 2x2 as robustness). **NOTE FOR OFFICIAL PUBLICATION: rerun with DROP_HOLIDAY_SESSIONS on (all models) before the final version.** | |
 
 ## Pending author decisions
 
-- Tuning-provenance checks (audit #6): results coming from the FOMC-fix agent (penalty neighbours, annual re-tune, tree pre-sample neighbourhood); decide after.
-- NYSE-holiday sessions (audit #3): measured in the 2x2; disclose or drop after.
+- Tuning-provenance checks (audit #6): DECIDED, disclose only (D14).
+- NYSE-holiday sessions (audit #3): DECIDED, keep + disclose; rerun with them dropped before official publication (D15).
 - Complexity / scaling framing (Kelly-Malamud-Zhou 2024): grid and draft `drafts/2026-10-26_complexity.tex` coming after the ladder; author decides whether to make the argument.
 - Clark-West on MSE as appendix robustness: proposed, awaiting go.
 - Hoffman2 Xeon bit-for-bit CI-HAR gate: blocked by permissions; bundle staged; author to run or skip.
