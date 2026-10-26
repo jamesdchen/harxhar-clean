@@ -100,10 +100,10 @@ def rung_k(rid: str) -> tuple[str, int]:
     return rid[0], int(rid[1:])
 
 
-def load_trees(work: Path, est: str, o: pd.DataFrame) -> tuple[dict[str, np.ndarray], dict, dict]:
+def load_trees(work: Path, est: str, o: pd.DataFrame, tag: str = "") -> tuple[dict[str, np.ndarray], dict, dict]:
     d = work / "trees" / est
     sets: dict = {}
-    for f in sorted(d.glob("sets_part*.json")):
+    for f in sorted(d.glob(f"sets_{tag}_part*.json" if tag else "sets_part*.json")):
         s = json.loads(f.read_text())
         assert not sets or s == sets, f"sets differ across parts of {est}"
         sets = s
@@ -125,9 +125,9 @@ def load_trees(work: Path, est: str, o: pd.DataFrame) -> tuple[dict[str, np.ndar
     return out, sets, {"p0": p0, **flags}
 
 
-def load_linear(work: Path, m: str, o: pd.DataFrame) -> tuple[dict[str, np.ndarray], dict, dict]:
+def load_linear(work: Path, m: str, o: pd.DataFrame, tag: str = "") -> tuple[dict[str, np.ndarray], dict, dict]:
     d = work / "linear" / m
-    sets = json.loads((d / "sets.json").read_text())
+    sets = json.loads((d / (f"sets_{tag}.json" if tag else "sets.json")).read_text())
     preds: dict[str, np.ndarray] = {}
     extra: dict = {"replay": [], "g": [], "reseeds": {}}
     for rid in sets["fitted"]:
@@ -154,6 +154,15 @@ def main() -> int:
     ap.add_argument("--work", required=True)
     ap.add_argument("--models", default=",".join(C.MODELS))
     ap.add_argument("--out", default="")
+    # 2026-10-26 (RULE.txt addendum 3, the FOMC-patched rerun; every default = the pre-patch run unchanged)
+    ap.add_argument("--sets-tag", default="", help="pri / sec: the patched runner's sets files")
+    ap.add_argument("--secondary-json", default=str(HERE / "secondary_importance.json"), help="or 'none'")
+    ap.add_argument("--walk-lin", default="", help="linear walks to gate GL1 against (default: LIN_T)")
+    ap.add_argument(
+        "--walk-trees", default="", help="comma-separated tree walk parquets for GT (default: SHAP gate.csv)"
+    )
+    ap.add_argument("--prepatch-wide", default="", help="pre-patch forecasts_wide.parquet for gate GP")
+    ap.add_argument("--prepatch-work", default="", help="pre-patch work dir (its sets) for gate GP")
     a = ap.parse_args()
     if a.out:
         RES = Path(a.out)
@@ -176,8 +185,10 @@ def main() -> int:
     for m in models:
         fam = "linear" if m in C.LINEAR else m
         imp_p = json.loads((work / f"rank_{fam}.json").read_text())["importance"][m]
-        imp_s = json.loads((HERE / "secondary_importance.json").read_text())[m]
-        for tag, imp in (("primary", imp_p), ("secondary", imp_s)):
+        pairs = [("primary", imp_p)]
+        if a.secondary_json != "none":
+            pairs.append(("secondary", json.loads(Path(a.secondary_json).read_text())[m]))
+        for tag, imp in pairs:
             order = C.order_from_importance(imp, tie)
             tot = sum(imp.values())
             for r_, s in enumerate(order, 1):
@@ -192,18 +203,26 @@ def main() -> int:
     gates: dict = {}
     wide: dict[str, np.ndarray] = {}
     gsh = pd.read_csv(SHAP_GATE)
-    abl = pd.read_parquet(ABL_WIDE) if ABL_WIDE.is_file() else None
+    abl = pd.read_parquet(ABL_WIDE) if (ABL_WIDE.is_file() and not a.walk_lin) else None
+    wt = pd.concat([pd.read_parquet(f) for f in a.walk_trees.split(",")], ignore_index=True) if a.walk_trees else None
+    lwalk = pd.read_parquet(a.walk_lin) if a.walk_lin else lt
+    pre_w = pd.read_parquet(a.prepatch_wide).set_index("date") if a.prepatch_wide else None
     for m in models:
         if m in C.TREES:
-            pr, sets, fl = load_trees(work, m, o)
-            g = gsh[gsh.est == m].sort_values("k")
-            ref = np.array([float.fromhex(h) for h in g["pred_origin_hex"]])
+            pr, sets, fl = load_trees(work, m, o, a.sets_tag)
+            if wt is not None:  # the patched every-bar walk at the origin rows
+                ww = wt[(wt.model == m) & (wt.predictor_set == "all_features")].set_index("date")["pred_adj"]
+                ref = ww.reindex(pd.DatetimeIndex(o["origin"])).to_numpy()
+            else:
+                g = gsh[gsh.est == m].sort_values("k")
+                ref = np.array([float.fromhex(h) for h in g["pred_origin_hex"]])
             mine = np.array(fl["p0"]["full"])
             first = np.array([pr["full"][int(r - C.R_FIRST)] for r in o["r"]])
             gates[m] = dict(
                 GT_origin_bit_equal=int((mine == ref).sum()),
                 GT_origin_n=len(ref),
-                GT_origin_maxabs=float(np.abs(mine - ref).max()),
+                GT_origin_maxabs=float(np.nanmax(np.abs(mine - ref))) if np.isfinite(ref).any() else float("nan"),
+                GT_origin_walk_missing=int((~np.isfinite(ref)).sum()),
                 GT_block_first_equals_p0=bool(np.array_equal(first, mine)),
                 GT_block_vs_shap_equal=int(sum(fl["shap_pred_equal"])),
                 GT_block_vs_shap_n=len(fl["shap_pred_equal"]),
@@ -214,8 +233,8 @@ def main() -> int:
                 and gates[m]["GT_block_vs_shap_equal"] == gates[m]["GT_block_vs_shap_n"]
             )
         else:
-            pr, sets, ex = load_linear(work, m, o)
-            f = lt[(lt.model == m) & (lt.predictor_set == "all_features")].set_index("date")["pred_adj"]
+            pr, sets, ex = load_linear(work, m, o, a.sets_tag)
+            f = lwalk[(lwalk.model == m) & (lwalk.predictor_set == "all_features")].set_index("date")["pred_adj"]
             mx, n = 0.0, 0
             for g0, rep, i in zip(ex["g"], ex["replay"], o["oos_row"]):
                 walk = f.reindex(dd[g0 : int(i) + 1]).to_numpy()
@@ -235,6 +254,26 @@ def main() -> int:
             gates[m]["pass"] = gates[m]["GL1_pass"] and all(
                 v for k_, v in gates[m].items() if k_.startswith("GL2_") and k_.endswith("pass_1e12")
             )
+        if pre_w is not None:  # gate GP: rungs without the FOMC proximity series = their pre-patch twins, bit for bit
+            pw = Path(a.prepatch_work)
+            if m in C.TREES:
+                pre_sets = json.loads(sorted((pw / "trees" / m).glob("sets_part*.json"))[0].read_text())
+            else:
+                pre_sets = json.loads((pw / "linear" / m / "sets.json").read_text())
+            pre_of = {frozenset(pre_sets["sets"][r]): r for r in pre_sets["fitted"]}
+            n_cmp, n_eq, bad = 0, 0, []
+            for rid in sets["fitted"]:
+                ss = frozenset(sets["sets"][rid])
+                if rid == "full" or ss & {"fomc_until_inv", "fomc_since_inv"} or ss not in pre_of:
+                    continue
+                n_cmp += 1
+                twin = pre_w[f"{m}|{pre_of[ss]}"].reindex(rows_dates).to_numpy()
+                if np.array_equal(pr[rid], twin):
+                    n_eq += 1
+                else:
+                    bad.append(rid)
+            gates[m].update(GP_compared=n_cmp, GP_bit_equal=n_eq, GP_differ=bad)
+            gates[m]["pass"] = bool(gates[m]["pass"] and not bad)
         sets_of[m] = sets
         for rid, fitted in sets["alias"].items():
             panel[(m, rid)] = pd.Series(pr[fitted] ** 2 * b, index=rows_dates)
@@ -326,9 +365,10 @@ def main() -> int:
     S.to_csv(RES / "scores.csv", index=False)
 
     # ---------------------------------------------------------------- readings (RULE section 6)
+    RANKS = ["P"] + (["S"] if (S.ranking == "S").any() else [])
     rd = []
     for m in models:
-        for rank_ in ("P", "S"):
+        for rank_ in RANKS:
             for sp in ("all", "c16"):
                 f = S[(S.model == m) & (S.span == sp) & (S.ranking.isin([rank_, "both"]))].set_index("k")
                 lf, lh = float(f.loc[46, "qlike"]), float(f.loc[0, "qlike"])
@@ -372,7 +412,7 @@ def main() -> int:
     for sp in ("all", "c16", "c16_2020"):
         lines.append(f"QLIKE by rung, span {sp} (P = primary, pre-sample ranking; S = secondary, look-ahead)")
         hdr = f"{'model':14s}" + "".join(f"{'k=' + str(k):>10s}" for k in C.KS)
-        for rank_ in ("P", "S"):
+        for rank_ in RANKS:
             lines.append(f"  ranking {rank_}")
             lines.append("  " + hdr)
             for m in models:
@@ -380,7 +420,7 @@ def main() -> int:
                 lines.append("  " + f"{NAME[m]:14s}" + "".join(f"{float(f.loc[k, 'qlike']):10.5f}" for k in C.KS))
         lines.append("")
     lines.append("Retained % of the full set's QLIKE gain over the model's own HAR rung, and DM p vs full (span all)")
-    for rank_ in ("P", "S"):
+    for rank_ in RANKS:
         lines.append(f"  ranking {rank_}")
         for m in models:
             f = S[(S.model == m) & (S.span == "all") & (S.ranking.isin([rank_, "both"]))].set_index("k")
@@ -421,6 +461,8 @@ def figure(S: pd.DataFrame, models: list[str]) -> None:
                 ("S", ORANGE, "--", "secondary (look-ahead)"),
                 ("P", BLUE, "-", "primary (pre-sample)"),
             ):
+                if not (f.ranking == rank_).any():  # a run without the secondary ranking
+                    continue
                 g = f[f.ranking.isin([rank_, "both"])].sort_values("k")
                 ax.plot(
                     [xs[int(k)] for k in g.k],
