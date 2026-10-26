@@ -537,3 +537,7 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   P100 = the QOS cap again, 18 pending); 45 v2w gpu jobs and 1 debug job COMPLETED since 01:50, none FAILED. Debug:
   e23-02 (P100) is back (mixed): our 13457218-19 running, 13457950 pending; b11-09 (A40) still drained. Debug came back
   before the move, so per the coordinator's condition nothing is moved to the gpu partition.
+- 2026-10-26 13:33 PDT: gpu top-up 13465558-603 (46 HAR pieces 038.p00-047.p00), debug 13465604 (dbgp 005.p02.g01),
+  13465605 (053.p04.g04). gpu 93 (36 running P100, 57 pending), debug 3. No FAILED since 13:00. Refits done (unique ok
+  ids, runs + salvage incl. partial copies): W 3,000 HAR 109,643 / 169,850, full (P100) 137,556, W 3,500 HAR 63,695
+  (its nice-100 jobs ran overnight once the W 3,000 queue emptied), full 0 (pieces not yet submitted).
