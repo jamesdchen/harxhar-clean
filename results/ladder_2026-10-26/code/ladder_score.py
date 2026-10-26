@@ -368,7 +368,7 @@ def main() -> int:
     R.to_csv(RES / "readings.csv", index=False)
 
     # ---------------------------------------------------------------- tables.txt
-    lines = []
+    lines = ["PRE-PATCH design: the FOMC calendar features are those before the pending FOMC fix.", ""]
     for sp in ("all", "c16", "c16_2020"):
         lines.append(f"QLIKE by rung, span {sp} (P = primary, pre-sample ranking; S = secondary, look-ahead)")
         hdr = f"{'model':14s}" + "".join(f"{'k=' + str(k):>10s}" for k in C.KS)
@@ -456,7 +456,8 @@ def figure(S: pd.DataFrame, models: list[str]) -> None:
     fig.text(
         0.5,
         0.005,
-        "Monthly refits (126 origins, held 21 sessions); Table 1's 33,527 bars.\n"
+        "PRE-PATCH design (FOMC features before the pending fix). Monthly refits (126 origins, held 21 sessions); "
+        "Table 1's 33,527 bars.\n"
         "Gray lines: the model's full set (solid) and its HAR-benchmark rung (dotted).",
         ha="center",
         fontsize=7.5,

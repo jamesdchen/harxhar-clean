@@ -184,3 +184,10 @@ KellyMalamudZhou2024; plain data-and-feature scaling).
     carc/); writeup/make_rehaul_complexity.py -> writeup/generated/rehaul_complexity_numbers.tex (\rhcx... macros) and
     the figure float; writeup/drafts/2026-10-26_complexity.tex (the two framings side by side, a proposed related-work
     sentence citing KellyMalamudZhou2024, the caveats).  No paper file is edited.
+
+ADDENDUM 2, 2026-10-26 13:10 PDT (coordinator): labelling only, no change to any design, rule or number.  The ladder and
+the grid run on the PRE-PATCH design (the FOMC calendar features before the pending FOMC fix; after the patch the
+every-bar full-vs-HAR QLIKE change is ridge -6.0 %, lasso -9.0 %, elastic net -6.7 %, so the fix is material for the
+linear models).  Every output (tables, figures, generated macros, the draft) is labelled pre-patch; both may be rerun on
+the patched design later.  The ladder's one-page summary is kept in the main repository
+(results/meeting_2026-10-26/FI_BRIEF.md), not here.

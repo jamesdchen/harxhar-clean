@@ -1,3 +1,5 @@
+PRE-PATCH design: the FOMC calendar features are those before the pending FOMC fix.
+
 QLIKE by rung, span all (P = primary, pre-sample ranking; S = secondary, look-ahead)
   ranking P
   model               k=46      k=20      k=10       k=5       k=3       k=1       k=0
