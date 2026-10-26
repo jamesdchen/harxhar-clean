@@ -7,7 +7,7 @@ The importer maps each pasted entry to the key below by title, so the paper need
 If Scholar lists a working paper and a journal version, take the journal version unless the text
 cites the working paper on purpose (e.g. `RahimikiaPoon2020`, kept as the 2020 SSRN paper for priority).
 
-## 1. Added to the bibliography on 2026-10-24 (26): check these first
+## 1. Added to the bibliography on 2026-10-24 (27): check these first
 
 | Key | Search on Google Scholar (click, then Cite -> BibTeX) | First author, year | Venue (ours) |
 |---|---|---|---|
@@ -37,6 +37,7 @@ cites the working paper on purpose (e.g. `RahimikiaPoon2020`, kept as the 2020 S
 | `StroudJohannes2014` | [Bayesian Modeling and Forecasting of 24-Hour High-Frequency Volatility](https://scholar.google.com/scholar?q=%22Bayesian+Modeling+and+Forecasting+of+24-Hour+High-Frequency+Volatility%22+Stroud) | Stroud, 2014 | Journal of the American Statistical Association |
 | `ChenYuZivot2012` | [Predicting Stock Volatility Using After-Hours Information: Evidence from the NASDAQ Actively Traded Stocks](https://scholar.google.com/scholar?q=%22Predicting+Stock+Volatility+Using+After-Hours+Information%3A+Evidence+from+the+NASDAQ+Actively+Traded+Stocks%22+Chen) | Chen, 2012 | International Journal of Forecasting |
 | `TodorovaSoucek2014` | [Overnight Information Flow and Realized Volatility Forecasting](https://scholar.google.com/scholar?q=%22Overnight+Information+Flow+and+Realized+Volatility+Forecasting%22+Todorova) | Todorova, 2014 | Finance Research Letters |
+| `KellyMalamudZhou2024` | [The Virtue of Complexity in Return Prediction](https://scholar.google.com/scholar?q=%22The+Virtue+of+Complexity+in+Return+Prediction%22+Kelly) | Kelly, 2024 | Journal of Finance |
 
 ## 2. Every other entry the paper cites (70)
 
@@ -112,3 +113,8 @@ cites the working paper on purpose (e.g. `RahimikiaPoon2020`, kept as the 2020 S
 | `lundberg2020local` | [From Local Explanations to Global Understanding with Explainable AI for Trees](https://scholar.google.com/scholar?q=%22From+Local+Explanations+to+Global+Understanding+with+Explainable+AI+for+Trees%22+Lundberg) | Lundberg, 2020 | Nature Machine Intelligence |
 | `vanWieringen2023ridge` | [Lecture Notes on Ridge Regression](https://scholar.google.com/scholar?q=%22Lecture+Notes+on+Ridge+Regression%22+Van+Wieringen) | Van Wieringen, 2023 | Version 0.60 (v8), 27 June 2023 |
 | `vandeWiel2021multipenalty` | [Fast Cross-validation for Multi-penalty High-dimensional Ridge Regression](https://scholar.google.com/scholar?q=%22Fast+Cross-validation+for+Multi-penalty+High-dimensional+Ridge+Regression%22+Van+De+Wiel) | Van De Wiel, 2021 | Journal of Computational and Graphical Statistics |
+
+## Cited but not in references.bib
+
+- `GibbonsRossShanken1989`
+- `TreynorMazuy1966`
