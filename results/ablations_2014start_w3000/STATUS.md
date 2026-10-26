@@ -60,3 +60,4 @@ pool_s6736p 499356-499358, pool_s6442y 499359-499360, pool_s6240 499361-499369; 
 | 17:12 | tree pools: 53 of 470 lines done (XGBoost 48, LightGBM 4, forest 1), 35 forest lines running; seconds a refit (8 threads): XGBoost lo arms 3.4-4.7, LightGBM lo arms 2.1-3.0, the forest add_vd 1.5 (6442Y); no failed line |
 | 17:25 | final tree merge prepared: experiments/ablate_widen.py (T2 over the four gate dirs -> gate2_final.json, every complete arm merged, compact trees_wide.parquet) and cluster/ablate/merge.sh calling it (neither read by a running job) |
 | 17:40 | 71 of 470 tree lines done (XGBoost 64, LightGBM 6, forest 1), 61 running, 0 failed; the laptop's local poll timer was stopped by Claude Code (low laptop memory), reported to the coordinator; the pools run unattended |
+| 22:55 | 177 of 470 tree lines done (forest 72, XGBoost 99, LightGBM 6), 56 running, 0 failed; workers exiting early on a pool.sh eligibility race (addendum C); pool2.sh written |

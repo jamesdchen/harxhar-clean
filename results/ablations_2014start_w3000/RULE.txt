@@ -193,3 +193,15 @@ ADDENDUM B, 2026-10-25 14:35 PDT (21:35 UTC), before the jobs it affects: LATE-S
    (c) The UGE gate on Gold 6140 (15272780, 24 slots) had not started after 37 minutes; it and its held pool were
        deleted unstarted and resubmitted with 8 slots (15273084, its 3 lines per class in parallel on 8 slots: the
        forecasts do not depend on it, its timings are not used) and the same pool (15273085, 22 x 8 slots).
+
+ADDENDUM C, 2026-10-25 23:05 PDT (06:05 UTC Oct 26), before the jobs it affects: POOL WORKERS EXITING EARLY
+   At 22:55 177 of 470 tree lines were done, 0 failed, but pool workers had been exiting with "no eligible line left"
+   while 237 lines were unclaimed (the two Gold 6442Y pools and one Gold 6240 pool ended between 18:30 and 20:21).
+   Cause: pool.sh tested eligibility as "cat gate/*/passed_<est> | grep -q <cpu>" under pipefail; when grep exits on its
+   first match before cat has written the remaining files, cat dies of SIGPIPE and the pipeline reports failure, so a
+   worker skipped lines at random and stopped when a scan found none.  No line was run wrongly (a skipped line stays
+   unclaimed), only capacity was lost.  Fix: cluster/ablate/pool2.sh = pool.sh with grep reading the passed files
+   itself (nothing else changed); pool.sh is left untouched (running jobs read it).  New pool jobs on pool2.sh: Slurm
+   campus Xeon 6736P (9 workers) and Gold 6442Y (6 workers) jobs queued to fill the 16-node / 1,024-CPU cap as the old
+   jobs end, and a UGE Gold 6140 array (LightGBM / XGBoost) queued behind the 200-slot cap; the same task file, claims,
+   gates and checks.
