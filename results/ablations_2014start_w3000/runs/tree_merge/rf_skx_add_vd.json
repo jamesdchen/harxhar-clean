@@ -1,0 +1,48 @@
+{
+ "arm": "add_vd",
+ "est": "rf_skx",
+ "n_pieces": 12,
+ "rows": 33970,
+ "cpus": [
+  "Intel(R) Xeon(R) 6736P",
+  "Intel(R) Xeon(R) Gold 6442Y"
+ ],
+ "piece_cpus": {
+  "add_vd_rf_skx_1of12.parquet": [
+   "Intel(R) Xeon(R) Gold 6442Y"
+  ],
+  "add_vd_rf_skx_2of12.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_vd_rf_skx_3of12.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_vd_rf_skx_4of12.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_vd_rf_skx_5of12.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_vd_rf_skx_6of12.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_vd_rf_skx_7of12.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_vd_rf_skx_8of12.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_vd_rf_skx_9of12.parquet": [
+   "Intel(R) Xeon(R) Gold 6442Y"
+  ],
+  "add_vd_rf_skx_10of12.parquet": [
+   "Intel(R) Xeon(R) Gold 6442Y"
+  ],
+  "add_vd_rf_skx_11of12.parquet": [
+   "Intel(R) Xeon(R) Gold 6442Y"
+  ],
+  "add_vd_rf_skx_12of12.parquet": [
+   "Intel(R) Xeon(R) Gold 6442Y"
+  ]
+ }
+}

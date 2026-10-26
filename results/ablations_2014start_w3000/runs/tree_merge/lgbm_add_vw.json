@@ -1,0 +1,22 @@
+{
+ "arm": "add_vw",
+ "est": "lgbm",
+ "n_pieces": 3,
+ "rows": 33970,
+ "cpus": [
+  "Intel(R) Xeon(R) 6736P",
+  "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz",
+  "Intel(R) Xeon(R) Gold 6442Y"
+ ],
+ "piece_cpus": {
+  "add_vw_lgbm_1of3.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_vw_lgbm_2of3.parquet": [
+   "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+  ],
+  "add_vw_lgbm_3of3.parquet": [
+   "Intel(R) Xeon(R) Gold 6442Y"
+  ]
+ }
+}

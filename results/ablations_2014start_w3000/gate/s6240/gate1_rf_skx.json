@@ -1,0 +1,37 @@
+{
+ "dir": "/u/scratch/j/jamesdc1/abl/gate/s6240",
+ "classes": {
+  "rf_skx": {
+   "pass_": true,
+   "checks": [
+    {
+     "arm": "full",
+     "rows": 20,
+     "text_identical": 3,
+     "max_rel": 7.179842510175115e-16,
+     "side_equal": true,
+     "cpus": [
+      "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+     ],
+     "sec_refit": 41.68,
+     "pass_": true
+    },
+    {
+     "arm": "har",
+     "rows": 20,
+     "text_identical": 5,
+     "max_rel": 8.277851264550256e-16,
+     "side_equal": true,
+     "cpus": [
+      "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+     ],
+     "sec_refit": 0.765,
+     "pass_": true
+    }
+   ]
+  }
+ },
+ "fail": [],
+ "cpu": "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz",
+ "pass": true
+}

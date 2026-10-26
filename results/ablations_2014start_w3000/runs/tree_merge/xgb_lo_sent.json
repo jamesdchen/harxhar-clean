@@ -1,0 +1,59 @@
+{
+ "arm": "lo_sent",
+ "est": "xgb",
+ "n_pieces": 16,
+ "rows": 33970,
+ "cpus": [
+  "Intel(R) Xeon(R) 6736P"
+ ],
+ "piece_cpus": {
+  "lo_sent_xgb_1of16.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "lo_sent_xgb_2of16.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "lo_sent_xgb_3of16.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "lo_sent_xgb_4of16.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "lo_sent_xgb_5of16.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "lo_sent_xgb_6of16.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "lo_sent_xgb_7of16.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "lo_sent_xgb_8of16.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "lo_sent_xgb_9of16.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "lo_sent_xgb_10of16.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "lo_sent_xgb_11of16.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "lo_sent_xgb_12of16.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "lo_sent_xgb_13of16.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "lo_sent_xgb_14of16.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "lo_sent_xgb_15of16.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "lo_sent_xgb_16of16.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ]
+ }
+}

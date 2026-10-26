@@ -1,0 +1,38 @@
+{
+ "arm": "add_iv",
+ "est": "rf_skx",
+ "n_pieces": 9,
+ "rows": 33970,
+ "cpus": [
+  "Intel(R) Xeon(R) 6736P"
+ ],
+ "piece_cpus": {
+  "add_iv_rf_skx_1of9.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_iv_rf_skx_2of9.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_iv_rf_skx_3of9.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_iv_rf_skx_4of9.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_iv_rf_skx_5of9.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_iv_rf_skx_6of9.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_iv_rf_skx_7of9.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_iv_rf_skx_8of9.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_iv_rf_skx_9of9.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ]
+ }
+}

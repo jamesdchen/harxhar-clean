@@ -1,0 +1,28 @@
+{
+ "classes": {
+  "lgbm": {
+   "models": [
+    [
+     "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+    ]
+   ],
+   "identical": null
+  },
+  "xgb": {
+   "models": [
+    [
+     "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+    ]
+   ],
+   "identical": null
+  },
+  "rf_skx": {
+   "models": [
+    [
+     "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+    ]
+   ],
+   "identical": null
+  }
+ }
+}

@@ -1,0 +1,277 @@
+group,series,k,column,first_print,last_print,zero_prefix_rows,first_live_row,first_live_date,live_from,eval_rows,eval_rows_nonzero,eval_share_nonzero,rule_zero_prefix_rows,rule_match
+rm,sumabsret,1,adj_sumabsret_ma_1,1998-01-05 01:30:00,2024-04-30 23:30:00,0,0,,whole design,33970,33970,1.0,,
+rm,sumabsret,5,adj_sumabsret_ma_5,1998-01-05 01:30:00,2024-04-30 23:30:00,0,0,,whole design,33970,33970,1.0,,
+rm,sumabsret,25,adj_sumabsret_ma_25,1998-01-05 01:30:00,2024-04-30 23:30:00,0,0,,whole design,33970,33970,1.0,,
+rm,sumabsret,125,adj_sumabsret_ma_125,1998-01-05 01:30:00,2024-04-30 23:30:00,0,0,,whole design,33970,33970,1.0,,
+rm,sumabsret,625,adj_sumabsret_ma_625,1998-01-05 01:30:00,2024-04-30 23:30:00,0,0,,whole design,33970,33970,1.0,,
+rm,sumabsret,3125,adj_sumabsret_ma_3125,1998-01-05 01:30:00,2024-04-30 23:30:00,0,0,,whole design,33970,33970,1.0,,
+rm,sumautocov,1,adj_sumautocov_ma_1,1998-01-05 02:00:00,2024-04-30 23:30:00,0,0,,whole design,33970,33970,1.0,,
+rm,sumautocov,5,adj_sumautocov_ma_5,1998-01-05 02:00:00,2024-04-30 23:30:00,0,0,,whole design,33970,33970,1.0,,
+rm,sumautocov,25,adj_sumautocov_ma_25,1998-01-05 02:00:00,2024-04-30 23:30:00,0,0,,whole design,33970,33970,1.0,,
+rm,sumautocov,125,adj_sumautocov_ma_125,1998-01-05 02:00:00,2024-04-30 23:30:00,0,0,,whole design,33970,33970,1.0,,
+rm,sumautocov,625,adj_sumautocov_ma_625,1998-01-05 02:00:00,2024-04-30 23:30:00,0,0,,whole design,33970,33970,1.0,,
+rm,sumautocov,3125,adj_sumautocov_ma_3125,1998-01-05 02:00:00,2024-04-30 23:30:00,0,0,,whole design,33970,33970,1.0,,
+rm,sumbipow,1,adj_sumbipow_ma_1,1998-01-05 02:00:00,2024-04-30 23:30:00,0,0,,whole design,33970,33970,1.0,,
+rm,sumbipow,5,adj_sumbipow_ma_5,1998-01-05 02:00:00,2024-04-30 23:30:00,0,0,,whole design,33970,33970,1.0,,
+rm,sumbipow,25,adj_sumbipow_ma_25,1998-01-05 02:00:00,2024-04-30 23:30:00,0,0,,whole design,33970,33970,1.0,,
+rm,sumbipow,125,adj_sumbipow_ma_125,1998-01-05 02:00:00,2024-04-30 23:30:00,0,0,,whole design,33970,33970,1.0,,
+rm,sumbipow,625,adj_sumbipow_ma_625,1998-01-05 02:00:00,2024-04-30 23:30:00,0,0,,whole design,33970,33970,1.0,,
+rm,sumbipow,3125,adj_sumbipow_ma_3125,1998-01-05 02:00:00,2024-04-30 23:30:00,0,0,,whole design,33970,33970,1.0,,
+rm,sumpret2,1,adj_sumpret2_ma_1,1998-01-05 01:30:00,2024-04-30 23:30:00,0,0,,whole design,33970,33970,1.0,,
+rm,sumpret2,5,adj_sumpret2_ma_5,1998-01-05 01:30:00,2024-04-30 23:30:00,0,0,,whole design,33970,33970,1.0,,
+rm,sumpret2,25,adj_sumpret2_ma_25,1998-01-05 01:30:00,2024-04-30 23:30:00,0,0,,whole design,33970,33970,1.0,,
+rm,sumpret2,125,adj_sumpret2_ma_125,1998-01-05 01:30:00,2024-04-30 23:30:00,0,0,,whole design,33970,33970,1.0,,
+rm,sumpret2,625,adj_sumpret2_ma_625,1998-01-05 01:30:00,2024-04-30 23:30:00,0,0,,whole design,33970,33970,1.0,,
+rm,sumpret2,3125,adj_sumpret2_ma_3125,1998-01-05 01:30:00,2024-04-30 23:30:00,0,0,,whole design,33970,33970,1.0,,
+rm,sumret,1,adj_sumret_ma_1,1998-01-05 01:30:00,2024-04-30 23:30:00,0,0,,whole design,33970,33970,1.0,,
+rm,sumret,5,adj_sumret_ma_5,1998-01-05 01:30:00,2024-04-30 23:30:00,0,0,,whole design,33970,33970,1.0,,
+rm,sumret,25,adj_sumret_ma_25,1998-01-05 01:30:00,2024-04-30 23:30:00,0,0,,whole design,33970,33970,1.0,,
+rm,sumret,125,adj_sumret_ma_125,1998-01-05 01:30:00,2024-04-30 23:30:00,0,0,,whole design,33970,33970,1.0,,
+rm,sumret,625,adj_sumret_ma_625,1998-01-05 01:30:00,2024-04-30 23:30:00,0,0,,whole design,33970,33970,1.0,,
+rm,sumret,3125,adj_sumret_ma_3125,1998-01-05 01:30:00,2024-04-30 23:30:00,0,0,,whole design,33970,33970,1.0,,
+rm,sumret3,1,adj_sumret3_ma_1,1998-01-05 01:30:00,2024-04-30 23:30:00,0,0,,whole design,33970,33970,1.0,,
+rm,sumret3,5,adj_sumret3_ma_5,1998-01-05 01:30:00,2024-04-30 23:30:00,0,0,,whole design,33970,33970,1.0,,
+rm,sumret3,25,adj_sumret3_ma_25,1998-01-05 01:30:00,2024-04-30 23:30:00,0,0,,whole design,33970,33970,1.0,,
+rm,sumret3,125,adj_sumret3_ma_125,1998-01-05 01:30:00,2024-04-30 23:30:00,0,0,,whole design,33970,33970,1.0,,
+rm,sumret3,625,adj_sumret3_ma_625,1998-01-05 01:30:00,2024-04-30 23:30:00,0,0,,whole design,33970,33970,1.0,,
+rm,sumret3,3125,adj_sumret3_ma_3125,1998-01-05 01:30:00,2024-04-30 23:30:00,0,0,,whole design,33970,33970,1.0,,
+rm,sumret4,1,adj_sumret4_ma_1,1998-01-05 01:30:00,2024-04-30 23:30:00,0,0,,whole design,33970,33970,1.0,,
+rm,sumret4,5,adj_sumret4_ma_5,1998-01-05 01:30:00,2024-04-30 23:30:00,0,0,,whole design,33970,33970,1.0,,
+rm,sumret4,25,adj_sumret4_ma_25,1998-01-05 01:30:00,2024-04-30 23:30:00,0,0,,whole design,33970,33970,1.0,,
+rm,sumret4,125,adj_sumret4_ma_125,1998-01-05 01:30:00,2024-04-30 23:30:00,0,0,,whole design,33970,33970,1.0,,
+rm,sumret4,625,adj_sumret4_ma_625,1998-01-05 01:30:00,2024-04-30 23:30:00,0,0,,whole design,33970,33970,1.0,,
+rm,sumret4,3125,adj_sumret4_ma_3125,1998-01-05 01:30:00,2024-04-30 23:30:00,0,0,,whole design,33970,33970,1.0,,
+liq,buyturnover_ewstock,1,adj_buyturnover_ewstock_ma_1,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+liq,buyturnover_ewstock,5,adj_buyturnover_ewstock_ma_5,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+liq,buyturnover_ewstock,25,adj_buyturnover_ewstock_ma_25,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+liq,buyturnover_ewstock,125,adj_buyturnover_ewstock_ma_125,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+liq,buyturnover_ewstock,625,adj_buyturnover_ewstock_ma_625,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+liq,buyturnover_ewstock,3125,adj_buyturnover_ewstock_ma_3125,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+liq,buyturnover_vwstock,1,adj_buyturnover_vwstock_ma_1,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+liq,buyturnover_vwstock,5,adj_buyturnover_vwstock_ma_5,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+liq,buyturnover_vwstock,25,adj_buyturnover_vwstock_ma_25,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+liq,buyturnover_vwstock,125,adj_buyturnover_vwstock_ma_125,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+liq,buyturnover_vwstock,625,adj_buyturnover_vwstock_ma_625,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+liq,buyturnover_vwstock,3125,adj_buyturnover_vwstock_ma_3125,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+liq,effspread_ewstock,1,adj_effspread_ewstock_ma_1,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+liq,effspread_ewstock,5,adj_effspread_ewstock_ma_5,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+liq,effspread_ewstock,25,adj_effspread_ewstock_ma_25,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+liq,effspread_ewstock,125,adj_effspread_ewstock_ma_125,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+liq,effspread_ewstock,625,adj_effspread_ewstock_ma_625,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+liq,effspread_ewstock,3125,adj_effspread_ewstock_ma_3125,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+liq,effspread_vwstock,1,adj_effspread_vwstock_ma_1,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+liq,effspread_vwstock,5,adj_effspread_vwstock_ma_5,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+liq,effspread_vwstock,25,adj_effspread_vwstock_ma_25,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+liq,effspread_vwstock,125,adj_effspread_vwstock_ma_125,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+liq,effspread_vwstock,625,adj_effspread_vwstock_ma_625,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+liq,effspread_vwstock,3125,adj_effspread_vwstock_ma_3125,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+liq,numobs,1,adj_numobs_ma_1,1998-01-05 01:30:00,2024-04-30 23:30:00,0,0,,whole design,33970,1695,0.04989696791286429,,
+liq,numobs,5,adj_numobs_ma_5,1998-01-05 01:30:00,2024-04-30 23:30:00,0,0,,whole design,33970,5011,0.1475125110391522,,
+liq,numobs,25,adj_numobs_ma_25,1998-01-05 01:30:00,2024-04-30 23:30:00,0,0,,whole design,33970,33970,1.0,,
+liq,numobs,125,adj_numobs_ma_125,1998-01-05 01:30:00,2024-04-30 23:30:00,0,0,,whole design,33970,33970,1.0,,
+liq,numobs,625,adj_numobs_ma_625,1998-01-05 01:30:00,2024-04-30 23:30:00,0,0,,whole design,33970,33959,0.9996761848690021,,
+liq,numobs,3125,adj_numobs_ma_3125,1998-01-05 01:30:00,2024-04-30 23:30:00,0,0,,whole design,33970,33970,1.0,,
+liq,ofi_ewstock,1,adj_ofi_ewstock_ma_1,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+liq,ofi_ewstock,5,adj_ofi_ewstock_ma_5,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+liq,ofi_ewstock,25,adj_ofi_ewstock_ma_25,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+liq,ofi_ewstock,125,adj_ofi_ewstock_ma_125,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+liq,ofi_ewstock,625,adj_ofi_ewstock_ma_625,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+liq,ofi_ewstock,3125,adj_ofi_ewstock_ma_3125,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+liq,ofi_vwstock,1,adj_ofi_vwstock_ma_1,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+liq,ofi_vwstock,5,adj_ofi_vwstock_ma_5,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+liq,ofi_vwstock,25,adj_ofi_vwstock_ma_25,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+liq,ofi_vwstock,125,adj_ofi_vwstock_ma_125,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+liq,ofi_vwstock,625,adj_ofi_vwstock_ma_625,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+liq,ofi_vwstock,3125,adj_ofi_vwstock_ma_3125,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+liq,sellturnover_ewstock,1,adj_sellturnover_ewstock_ma_1,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+liq,sellturnover_ewstock,5,adj_sellturnover_ewstock_ma_5,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+liq,sellturnover_ewstock,25,adj_sellturnover_ewstock_ma_25,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+liq,sellturnover_ewstock,125,adj_sellturnover_ewstock_ma_125,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+liq,sellturnover_ewstock,625,adj_sellturnover_ewstock_ma_625,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+liq,sellturnover_ewstock,3125,adj_sellturnover_ewstock_ma_3125,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+liq,sellturnover_vwstock,1,adj_sellturnover_vwstock_ma_1,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+liq,sellturnover_vwstock,5,adj_sellturnover_vwstock_ma_5,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+liq,sellturnover_vwstock,25,adj_sellturnover_vwstock_ma_25,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+liq,sellturnover_vwstock,125,adj_sellturnover_vwstock_ma_125,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+liq,sellturnover_vwstock,625,adj_sellturnover_vwstock_ma_625,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+liq,sellturnover_vwstock,3125,adj_sellturnover_vwstock_ma_3125,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+liq,spread_ewstock,1,adj_spread_ewstock_ma_1,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+liq,spread_ewstock,5,adj_spread_ewstock_ma_5,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+liq,spread_ewstock,25,adj_spread_ewstock_ma_25,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+liq,spread_ewstock,125,adj_spread_ewstock_ma_125,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+liq,spread_ewstock,625,adj_spread_ewstock_ma_625,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+liq,spread_ewstock,3125,adj_spread_ewstock_ma_3125,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+liq,spread_vwstock,1,adj_spread_vwstock_ma_1,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33526,0.9869296438033559,,
+liq,spread_vwstock,5,adj_spread_vwstock_ma_5,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+liq,spread_vwstock,25,adj_spread_vwstock_ma_25,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+liq,spread_vwstock,125,adj_spread_vwstock_ma_125,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+liq,spread_vwstock,625,adj_spread_vwstock_ma_625,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+liq,spread_vwstock,3125,adj_spread_vwstock_ma_3125,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+liq,sumvolume,1,adj_sumvolume_ma_1,1998-01-05 10:00:00,2024-04-30 23:30:00,0,0,,whole design,33970,33970,1.0,,
+liq,sumvolume,5,adj_sumvolume_ma_5,1998-01-05 10:00:00,2024-04-30 23:30:00,0,0,,whole design,33970,33970,1.0,,
+liq,sumvolume,25,adj_sumvolume_ma_25,1998-01-05 10:00:00,2024-04-30 23:30:00,0,0,,whole design,33970,33970,1.0,,
+liq,sumvolume,125,adj_sumvolume_ma_125,1998-01-05 10:00:00,2024-04-30 23:30:00,0,0,,whole design,33970,33970,1.0,,
+liq,sumvolume,625,adj_sumvolume_ma_625,1998-01-05 10:00:00,2024-04-30 23:30:00,0,0,,whole design,33970,33970,1.0,,
+liq,sumvolume,3125,adj_sumvolume_ma_3125,1998-01-05 10:00:00,2024-04-30 23:30:00,0,0,,whole design,33970,33970,1.0,,
+liq,turnover_ewstock,1,adj_turnover_ewstock_ma_1,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+liq,turnover_ewstock,5,adj_turnover_ewstock_ma_5,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+liq,turnover_ewstock,25,adj_turnover_ewstock_ma_25,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+liq,turnover_ewstock,125,adj_turnover_ewstock_ma_125,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+liq,turnover_ewstock,625,adj_turnover_ewstock_ma_625,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+liq,turnover_ewstock,3125,adj_turnover_ewstock_ma_3125,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+liq,turnover_vwstock,1,adj_turnover_vwstock_ma_1,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+liq,turnover_vwstock,5,adj_turnover_vwstock_ma_5,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+liq,turnover_vwstock,25,adj_turnover_vwstock_ma_25,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+liq,turnover_vwstock,125,adj_turnover_vwstock_ma_125,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+liq,turnover_vwstock,625,adj_turnover_vwstock_ma_625,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+liq,turnover_vwstock,3125,adj_turnover_vwstock_ma_3125,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+ew,sumabsret_ewstock,1,adj_sumabsret_ewstock_ma_1,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+ew,sumabsret_ewstock,5,adj_sumabsret_ewstock_ma_5,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+ew,sumabsret_ewstock,25,adj_sumabsret_ewstock_ma_25,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+ew,sumabsret_ewstock,125,adj_sumabsret_ewstock_ma_125,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+ew,sumabsret_ewstock,625,adj_sumabsret_ewstock_ma_625,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+ew,sumabsret_ewstock,3125,adj_sumabsret_ewstock_ma_3125,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+ew,sumbipow_ewstock,1,adj_sumbipow_ewstock_ma_1,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+ew,sumbipow_ewstock,5,adj_sumbipow_ewstock_ma_5,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+ew,sumbipow_ewstock,25,adj_sumbipow_ewstock_ma_25,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+ew,sumbipow_ewstock,125,adj_sumbipow_ewstock_ma_125,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+ew,sumbipow_ewstock,625,adj_sumbipow_ewstock_ma_625,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+ew,sumbipow_ewstock,3125,adj_sumbipow_ewstock_ma_3125,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+ew,sumpret2_ewstock,1,adj_sumpret2_ewstock_ma_1,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+ew,sumpret2_ewstock,5,adj_sumpret2_ewstock_ma_5,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+ew,sumpret2_ewstock,25,adj_sumpret2_ewstock_ma_25,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+ew,sumpret2_ewstock,125,adj_sumpret2_ewstock_ma_125,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+ew,sumpret2_ewstock,625,adj_sumpret2_ewstock_ma_625,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+ew,sumpret2_ewstock,3125,adj_sumpret2_ewstock_ma_3125,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+ew,sumret2_ewstock,1,adj_sumret2_ewstock_ma_1,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+ew,sumret2_ewstock,5,adj_sumret2_ewstock_ma_5,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+ew,sumret2_ewstock,25,adj_sumret2_ewstock_ma_25,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+ew,sumret2_ewstock,125,adj_sumret2_ewstock_ma_125,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+ew,sumret2_ewstock,625,adj_sumret2_ewstock_ma_625,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+ew,sumret2_ewstock,3125,adj_sumret2_ewstock_ma_3125,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+ew,sumret3_ewstock,1,adj_sumret3_ewstock_ma_1,1998-01-05 09:00:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+ew,sumret3_ewstock,5,adj_sumret3_ewstock_ma_5,1998-01-05 09:00:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+ew,sumret3_ewstock,25,adj_sumret3_ewstock_ma_25,1998-01-05 09:00:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+ew,sumret3_ewstock,125,adj_sumret3_ewstock_ma_125,1998-01-05 09:00:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+ew,sumret3_ewstock,625,adj_sumret3_ewstock_ma_625,1998-01-05 09:00:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+ew,sumret3_ewstock,3125,adj_sumret3_ewstock_ma_3125,1998-01-05 09:00:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+ew,sumret4_ewstock,1,adj_sumret4_ewstock_ma_1,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+ew,sumret4_ewstock,5,adj_sumret4_ewstock_ma_5,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+ew,sumret4_ewstock,25,adj_sumret4_ewstock_ma_25,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+ew,sumret4_ewstock,125,adj_sumret4_ewstock_ma_125,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+ew,sumret4_ewstock,625,adj_sumret4_ewstock_ma_625,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+ew,sumret4_ewstock,3125,adj_sumret4_ewstock_ma_3125,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+vw,sumabsret_vwstock,1,adj_sumabsret_vwstock_ma_1,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+vw,sumabsret_vwstock,5,adj_sumabsret_vwstock_ma_5,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+vw,sumabsret_vwstock,25,adj_sumabsret_vwstock_ma_25,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+vw,sumabsret_vwstock,125,adj_sumabsret_vwstock_ma_125,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+vw,sumabsret_vwstock,625,adj_sumabsret_vwstock_ma_625,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+vw,sumabsret_vwstock,3125,adj_sumabsret_vwstock_ma_3125,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+vw,sumbipow_vwstock,1,adj_sumbipow_vwstock_ma_1,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+vw,sumbipow_vwstock,5,adj_sumbipow_vwstock_ma_5,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+vw,sumbipow_vwstock,25,adj_sumbipow_vwstock_ma_25,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+vw,sumbipow_vwstock,125,adj_sumbipow_vwstock_ma_125,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+vw,sumbipow_vwstock,625,adj_sumbipow_vwstock_ma_625,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+vw,sumbipow_vwstock,3125,adj_sumbipow_vwstock_ma_3125,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+vw,sumpret2_vwstock,1,adj_sumpret2_vwstock_ma_1,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+vw,sumpret2_vwstock,5,adj_sumpret2_vwstock_ma_5,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+vw,sumpret2_vwstock,25,adj_sumpret2_vwstock_ma_25,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+vw,sumpret2_vwstock,125,adj_sumpret2_vwstock_ma_125,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+vw,sumpret2_vwstock,625,adj_sumpret2_vwstock_ma_625,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+vw,sumpret2_vwstock,3125,adj_sumpret2_vwstock_ma_3125,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+vw,sumret2_vwstock,1,adj_sumret2_vwstock_ma_1,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+vw,sumret2_vwstock,5,adj_sumret2_vwstock_ma_5,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+vw,sumret2_vwstock,25,adj_sumret2_vwstock_ma_25,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+vw,sumret2_vwstock,125,adj_sumret2_vwstock_ma_125,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+vw,sumret2_vwstock,625,adj_sumret2_vwstock_ma_625,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+vw,sumret2_vwstock,3125,adj_sumret2_vwstock_ma_3125,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+vw,sumret3_vwstock,1,adj_sumret3_vwstock_ma_1,1998-01-05 09:00:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+vw,sumret3_vwstock,5,adj_sumret3_vwstock_ma_5,1998-01-05 09:00:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+vw,sumret3_vwstock,25,adj_sumret3_vwstock_ma_25,1998-01-05 09:00:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+vw,sumret3_vwstock,125,adj_sumret3_vwstock_ma_125,1998-01-05 09:00:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+vw,sumret3_vwstock,625,adj_sumret3_vwstock_ma_625,1998-01-05 09:00:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+vw,sumret3_vwstock,3125,adj_sumret3_vwstock_ma_3125,1998-01-05 09:00:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+vw,sumret4_vwstock,1,adj_sumret4_vwstock_ma_1,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+vw,sumret4_vwstock,5,adj_sumret4_vwstock_ma_5,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+vw,sumret4_vwstock,25,adj_sumret4_vwstock_ma_25,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33527,0.9869590815425375,,
+vw,sumret4_vwstock,125,adj_sumret4_vwstock_ma_125,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+vw,sumret4_vwstock,625,adj_sumret4_vwstock_ma_625,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+vw,sumret4_vwstock,3125,adj_sumret4_vwstock_ma_3125,1998-01-05 08:30:00,2024-04-30 20:00:00,0,0,,whole design,33970,33970,1.0,,
+sent,stocktwits_attention,1,adj_stocktwits_attention_ma_1,2009-03-23 15:00:00,2024-04-30 23:30:00,74143,35143,2009-03-23 10:00:00,2021-02-11 14:00:00,33970,10604,0.3121577862820135,74143.0,True
+sent,stocktwits_attention,5,adj_stocktwits_attention_ma_5,2009-03-23 15:00:00,2024-04-30 23:30:00,74143,35143,2009-03-23 10:00:00,2021-02-11 14:00:00,33970,10604,0.3121577862820135,74143.0,True
+sent,stocktwits_attention,25,adj_stocktwits_attention_ma_25,2009-03-23 15:00:00,2024-04-30 23:30:00,74148,35148,2009-03-23 12:30:00,2021-02-12 10:00:00,33970,10599,0.3120105975861054,74148.0,True
+sent,stocktwits_attention,125,adj_stocktwits_attention_ma_125,2009-03-23 15:00:00,2024-04-30 23:30:00,74178,35178,2009-03-25 14:30:00,2021-02-16 15:00:00,33970,10569,0.31112746541065645,74178.0,True
+sent,stocktwits_attention,625,adj_stocktwits_attention_ma_625,2009-03-23 15:00:00,2024-04-30 23:30:00,74312,35312,2009-04-09 10:00:00,2021-03-03 10:30:00,33970,10435,0.3071828083603179,74312.0,True
+sent,stocktwits_attention,3125,adj_stocktwits_attention_ma_3125,2009-03-23 15:00:00,2024-04-30 23:30:00,74966,35966,2009-06-22 10:00:00,2021-05-13 12:30:00,33970,9781,0.28793052693553134,74966.0,True
+sent,stocktwits_sentcount,1,adj_stocktwits_sentcount_ma_1,2010-06-01 21:00:00,2024-04-30 23:30:00,78045,39045,2010-06-01 10:00:00,2022-04-19 10:00:00,33970,6702,0.19729172799528996,78045.0,True
+sent,stocktwits_sentcount,5,adj_stocktwits_sentcount_ma_5,2010-06-01 21:00:00,2024-04-30 23:30:00,78045,39045,2010-06-01 10:00:00,2022-04-19 10:00:00,33970,6702,0.19729172799528996,78045.0,True
+sent,stocktwits_sentcount,25,adj_stocktwits_sentcount_ma_25,2010-06-01 21:00:00,2024-04-30 23:30:00,78050,39050,2010-06-01 12:30:00,2022-04-19 12:30:00,33970,6697,0.1971445392993818,78050.0,True
+sent,stocktwits_sentcount,125,adj_stocktwits_sentcount_ma_125,2010-06-01 21:00:00,2024-04-30 23:30:00,78080,39080,2010-06-03 14:30:00,2022-04-21 14:30:00,33970,6667,0.1962614071239329,78080.0,True
+sent,stocktwits_sentcount,625,adj_stocktwits_sentcount_ma_625,2010-06-01 21:00:00,2024-04-30 23:30:00,78214,39214,2010-06-18 10:00:00,2022-05-06 10:00:00,33970,6533,0.19231675007359436,78214.0,True
+sent,stocktwits_sentcount,3125,adj_stocktwits_sentcount_ma_3125,2010-06-01 21:00:00,2024-04-30 23:30:00,78872,39872,2010-08-30 12:00:00,2022-07-19 10:00:00,33970,5875,0.17294671769208125,78872.0,True
+sent,stocktwits_sentiment,1,adj_stocktwits_sentiment_ma_1,2010-06-01 21:00:00,2024-04-30 23:30:00,78045,39045,2010-06-01 10:00:00,2022-04-19 10:00:00,33970,6702,0.19729172799528996,78045.0,True
+sent,stocktwits_sentiment,5,adj_stocktwits_sentiment_ma_5,2010-06-01 21:00:00,2024-04-30 23:30:00,78045,39045,2010-06-01 10:00:00,2022-04-19 10:00:00,33970,6702,0.19729172799528996,78045.0,True
+sent,stocktwits_sentiment,25,adj_stocktwits_sentiment_ma_25,2010-06-01 21:00:00,2024-04-30 23:30:00,78050,39050,2010-06-01 12:30:00,2022-04-19 12:30:00,33970,6697,0.1971445392993818,78050.0,True
+sent,stocktwits_sentiment,125,adj_stocktwits_sentiment_ma_125,2010-06-01 21:00:00,2024-04-30 23:30:00,78080,39080,2010-06-03 14:30:00,2022-04-21 14:30:00,33970,6667,0.1962614071239329,78080.0,True
+sent,stocktwits_sentiment,625,adj_stocktwits_sentiment_ma_625,2010-06-01 21:00:00,2024-04-30 23:30:00,78214,39214,2010-06-18 10:00:00,2022-05-06 10:00:00,33970,6533,0.19231675007359436,78214.0,True
+sent,stocktwits_sentiment,3125,adj_stocktwits_sentiment_ma_3125,2010-06-01 21:00:00,2024-04-30 23:30:00,78872,39872,2010-08-30 12:00:00,2022-07-19 10:00:00,33970,5875,0.17294671769208125,78872.0,True
+iv,vix,1,adj_vix_ma_1,2006-05-22 10:30:00,2024-04-30 17:00:00,64906,25906,2006-05-22 10:00:00,2018-04-19 12:00:00,33970,19569,0.5760671180453342,64906.0,True
+iv,vix,5,adj_vix_ma_5,2006-05-22 10:30:00,2024-04-30 17:00:00,64906,25906,2006-05-22 10:00:00,2018-04-19 12:00:00,33970,19578,0.5763320576979688,64906.0,True
+iv,vix,25,adj_vix_ma_25,2006-05-22 10:30:00,2024-04-30 17:00:00,64911,25911,2006-05-22 12:30:00,2018-04-19 14:30:00,33970,19573,0.5761848690020607,64911.0,True
+iv,vix,125,adj_vix_ma_125,2006-05-22 10:30:00,2024-04-30 17:00:00,64941,25941,2006-05-24 14:30:00,2018-04-24 10:00:00,33970,19806,0.5830438622313806,64941.0,True
+iv,vix,625,adj_vix_ma_625,2006-05-22 10:30:00,2024-04-30 17:00:00,65066,26066,2006-06-08 10:00:00,2018-05-07 14:00:00,33970,19681,0.5793641448336768,65066.0,True
+iv,vix,3125,adj_vix_ma_3125,2006-05-22 10:30:00,2024-04-30 17:00:00,65720,26720,2006-08-21 10:00:00,2018-07-18 15:30:00,33970,19027,0.5601118634088902,65720.0,True
+iv,vix3m,1,adj_vix3m_ma_1,2009-08-12 10:30:00,2024-04-30 16:30:00,75444,36444,2009-08-12 13:00:00,2021-07-06 10:30:00,33970,8412,0.2476302619958787,75438.0,False
+iv,vix3m,5,adj_vix3m_ma_5,2009-08-12 10:30:00,2024-04-30 16:30:00,75444,36444,2009-08-12 13:00:00,2021-07-06 10:30:00,33970,8418,0.2478068884309685,75438.0,False
+iv,vix3m,25,adj_vix3m_ma_25,2009-08-12 10:30:00,2024-04-30 16:30:00,75444,36444,2009-08-12 13:00:00,2021-07-06 10:30:00,33970,8418,0.2478068884309685,75443.0,False
+iv,vix3m,125,adj_vix3m_ma_125,2009-08-12 10:30:00,2024-04-30 16:30:00,75473,36473,2009-08-14 14:30:00,2021-07-08 12:00:00,33970,9274,0.2730055931704445,75473.0,True
+iv,vix3m,625,adj_vix3m_ma_625,2009-08-12 10:30:00,2024-04-30 16:30:00,75607,36607,2009-08-31 10:00:00,2021-07-22 14:00:00,33970,9140,0.26906093612010595,75607.0,True
+iv,vix3m,3125,adj_vix3m_ma_3125,2009-08-12 10:30:00,2024-04-30 16:30:00,76261,37261,2009-11-10 10:00:00,2021-10-01 12:30:00,33970,8486,0.2498086546953194,76261.0,True
+iv,vvix,1,adj_vvix_ma_1,2012-03-26 10:30:00,2024-04-30 16:00:00,84030,45030,2012-03-26 10:00:00,2024-02-12 12:30:00,33970,602,0.017721518987341773,84030.0,True
+iv,vvix,5,adj_vvix_ma_5,2012-03-26 10:30:00,2024-04-30 16:00:00,84030,45030,2012-03-26 10:00:00,2024-02-12 12:30:00,33970,602,0.017721518987341773,84030.0,True
+iv,vvix,25,adj_vvix_ma_25,2012-03-26 10:30:00,2024-04-30 16:00:00,84035,45035,2012-03-26 12:30:00,2024-02-12 15:00:00,33970,597,0.01757433029143362,84035.0,True
+iv,vvix,125,adj_vvix_ma_125,2012-03-26 10:30:00,2024-04-30 16:00:00,84065,45065,2012-03-28 14:30:00,2024-02-15 10:30:00,33970,682,0.02007653812187224,84065.0,True
+iv,vvix,625,adj_vvix_ma_625,2012-03-26 10:30:00,2024-04-30 16:00:00,84199,45199,2012-04-13 10:00:00,2024-02-29 15:30:00,33970,548,0.016131881071533707,84199.0,True
+iv,vvix,3125,adj_vvix_ma_3125,2012-03-26 10:30:00,2024-04-30 16:00:00,84747,45747,2012-06-12 15:30:00,never,33970,0,0.0,84747.0,True
+vd,voldemand_all_open_and_close,1,adj_voldemand_all_open_and_close_ma_1,2011-01-03 10:00:00,2023-08-31 19:00:00,79994,40994,2011-01-03 10:00:00,2022-11-16 15:00:00,33970,2343,0.06897262290256108,79994.0,True
+vd,voldemand_all_open_and_close,5,adj_voldemand_all_open_and_close_ma_5,2011-01-03 10:00:00,2023-08-31 19:00:00,79994,40994,2011-01-03 10:00:00,2022-11-16 15:00:00,33970,2343,0.06897262290256108,79994.0,True
+vd,voldemand_all_open_and_close,25,adj_voldemand_all_open_and_close_ma_25,2011-01-03 10:00:00,2023-08-31 19:00:00,79999,40999,2011-01-03 12:30:00,2022-11-17 11:00:00,33970,2339,0.06885487194583456,79999.0,True
+vd,voldemand_all_open_and_close,125,adj_voldemand_all_open_and_close_ma_125,2011-01-03 10:00:00,2023-08-31 19:00:00,80029,41029,2011-01-05 14:30:00,2022-11-21 13:00:00,33970,2571,0.07568442743597292,80029.0,True
+vd,voldemand_all_open_and_close,625,adj_voldemand_all_open_and_close_ma_625,2011-01-03 10:00:00,2023-08-31 19:00:00,80154,41154,2011-01-20 10:00:00,2022-12-06 13:30:00,33970,2583,0.07603768030615249,80154.0,True
+vd,voldemand_all_open_and_close,3125,adj_voldemand_all_open_and_close_ma_3125,2011-01-03 10:00:00,2023-08-31 19:00:00,80819,41819,2011-04-01 15:30:00,2023-02-20 11:00:00,33970,2562,0.07541948778333823,80819.0,True
+vd,voldemand_all_open_only,1,adj_voldemand_all_open_only_ma_1,2011-01-03 10:00:00,2023-08-31 19:00:00,79994,40994,2011-01-03 10:00:00,2022-11-16 15:00:00,33970,2343,0.06897262290256108,79994.0,True
+vd,voldemand_all_open_only,5,adj_voldemand_all_open_only_ma_5,2011-01-03 10:00:00,2023-08-31 19:00:00,79994,40994,2011-01-03 10:00:00,2022-11-16 15:00:00,33970,2343,0.06897262290256108,79994.0,True
+vd,voldemand_all_open_only,25,adj_voldemand_all_open_only_ma_25,2011-01-03 10:00:00,2023-08-31 19:00:00,79999,40999,2011-01-03 12:30:00,2022-11-17 11:00:00,33970,2339,0.06885487194583456,79999.0,True
+vd,voldemand_all_open_only,125,adj_voldemand_all_open_only_ma_125,2011-01-03 10:00:00,2023-08-31 19:00:00,80029,41029,2011-01-05 14:30:00,2022-11-21 13:00:00,33970,2571,0.07568442743597292,80029.0,True
+vd,voldemand_all_open_only,625,adj_voldemand_all_open_only_ma_625,2011-01-03 10:00:00,2023-08-31 19:00:00,80154,41154,2011-01-20 10:00:00,2022-12-06 13:30:00,33970,2583,0.07603768030615249,80154.0,True
+vd,voldemand_all_open_only,3125,adj_voldemand_all_open_only_ma_3125,2011-01-03 10:00:00,2023-08-31 19:00:00,80819,41819,2011-04-01 15:30:00,2023-02-20 11:00:00,33970,2562,0.07541948778333823,80819.0,True
+vd,voldemand_spx_open_and_close,1,adj_voldemand_spx_open_and_close_ma_1,2011-01-03 10:00:00,2023-08-31 19:00:00,79994,40994,2011-01-03 10:00:00,2022-11-16 15:00:00,33970,2343,0.06897262290256108,79994.0,True
+vd,voldemand_spx_open_and_close,5,adj_voldemand_spx_open_and_close_ma_5,2011-01-03 10:00:00,2023-08-31 19:00:00,79994,40994,2011-01-03 10:00:00,2022-11-16 15:00:00,33970,2343,0.06897262290256108,79994.0,True
+vd,voldemand_spx_open_and_close,25,adj_voldemand_spx_open_and_close_ma_25,2011-01-03 10:00:00,2023-08-31 19:00:00,79999,40999,2011-01-03 12:30:00,2022-11-17 11:00:00,33970,2339,0.06885487194583456,79999.0,True
+vd,voldemand_spx_open_and_close,125,adj_voldemand_spx_open_and_close_ma_125,2011-01-03 10:00:00,2023-08-31 19:00:00,80029,41029,2011-01-05 14:30:00,2022-11-21 13:00:00,33970,2571,0.07568442743597292,80029.0,True
+vd,voldemand_spx_open_and_close,625,adj_voldemand_spx_open_and_close_ma_625,2011-01-03 10:00:00,2023-08-31 19:00:00,80154,41154,2011-01-20 10:00:00,2022-12-06 13:30:00,33970,2583,0.07603768030615249,80154.0,True
+vd,voldemand_spx_open_and_close,3125,adj_voldemand_spx_open_and_close_ma_3125,2011-01-03 10:00:00,2023-08-31 19:00:00,80819,41819,2011-04-01 15:30:00,2023-02-20 11:00:00,33970,2562,0.07541948778333823,80819.0,True
+vd,voldemand_spx_open_only,1,adj_voldemand_spx_open_only_ma_1,2011-01-03 10:00:00,2023-08-31 19:00:00,79994,40994,2011-01-03 10:00:00,2022-11-16 15:00:00,33970,2343,0.06897262290256108,79994.0,True
+vd,voldemand_spx_open_only,5,adj_voldemand_spx_open_only_ma_5,2011-01-03 10:00:00,2023-08-31 19:00:00,79994,40994,2011-01-03 10:00:00,2022-11-16 15:00:00,33970,2343,0.06897262290256108,79994.0,True
+vd,voldemand_spx_open_only,25,adj_voldemand_spx_open_only_ma_25,2011-01-03 10:00:00,2023-08-31 19:00:00,79999,40999,2011-01-03 12:30:00,2022-11-17 11:00:00,33970,2339,0.06885487194583456,79999.0,True
+vd,voldemand_spx_open_only,125,adj_voldemand_spx_open_only_ma_125,2011-01-03 10:00:00,2023-08-31 19:00:00,80029,41029,2011-01-05 14:30:00,2022-11-21 13:00:00,33970,2571,0.07568442743597292,80029.0,True
+vd,voldemand_spx_open_only,625,adj_voldemand_spx_open_only_ma_625,2011-01-03 10:00:00,2023-08-31 19:00:00,80154,41154,2011-01-20 10:00:00,2022-12-06 13:30:00,33970,2583,0.07603768030615249,80154.0,True
+vd,voldemand_spx_open_only,3125,adj_voldemand_spx_open_only_ma_3125,2011-01-03 10:00:00,2023-08-31 19:00:00,80819,41819,2011-04-01 15:30:00,2023-02-20 11:00:00,33970,2562,0.07541948778333823,80819.0,True
+fomc,fomc_day,1,adj_fomc_day_ma_1,1998-01-05 01:30:00,2024-04-30 23:30:00,244,-38756,"< design row 39,000","< row 39,000",33970,1053,0.030997939358257287,,
+fomc,fomc_day,5,adj_fomc_day_ma_5,1998-01-05 01:30:00,2024-04-30 23:30:00,244,-38756,"< design row 39,000","< row 39,000",33970,1053,0.030997939358257287,,
+fomc,fomc_day,25,adj_fomc_day_ma_25,1998-01-05 01:30:00,2024-04-30 23:30:00,244,-38756,"< design row 39,000","< row 39,000",33970,1458,0.04292022372681778,,
+fomc,fomc_day,125,adj_fomc_day_ma_125,1998-01-05 01:30:00,2024-04-30 23:30:00,244,-38756,"< design row 39,000","< row 39,000",33970,3559,0.1047689137474242,,
+fomc,fomc_day,625,adj_fomc_day_ma_625,1998-01-05 01:30:00,2024-04-30 23:30:00,0,0,,whole design,33970,14529,0.4277009125699146,,
+fomc,fomc_day,3125,adj_fomc_day_ma_3125,1998-01-05 01:30:00,2024-04-30 23:30:00,0,0,,whole design,33970,4603,0.1355019134530468,,
+fomc,fomc_since_inv,1,adj_fomc_since_inv_ma_1,1998-02-04 14:30:00,2024-04-30 23:30:00,0,0,,whole design,33970,33893,0.9977332940830145,,
+fomc,fomc_since_inv,5,adj_fomc_since_inv_ma_5,1998-02-04 14:30:00,2024-04-30 23:30:00,0,0,,whole design,33970,33898,0.9978804827789226,,
+fomc,fomc_since_inv,25,adj_fomc_since_inv_ma_25,1998-02-04 14:30:00,2024-04-30 23:30:00,0,0,,whole design,33970,33916,0.998410362084192,,
+fomc,fomc_since_inv,125,adj_fomc_since_inv_ma_125,1998-02-04 14:30:00,2024-04-30 23:30:00,0,0,,whole design,33970,33936,0.9989991168678245,,
+fomc,fomc_since_inv,625,adj_fomc_since_inv_ma_625,1998-02-04 14:30:00,2024-04-30 23:30:00,0,0,,whole design,33970,33964,0.9998233735649102,,
+fomc,fomc_since_inv,3125,adj_fomc_since_inv_ma_3125,1998-02-04 14:30:00,2024-04-30 23:30:00,39296,296,1998-07-08 10:00:00,2010-06-28 12:00:00,33970,33970,1.0,39296.0,True
+fomc,fomc_until_inv,1,adj_fomc_until_inv_ma_1,1998-01-05 01:30:00,2024-04-30 23:30:00,0,0,,whole design,33970,33893,0.9977332940830145,,
+fomc,fomc_until_inv,5,adj_fomc_until_inv_ma_5,1998-01-05 01:30:00,2024-04-30 23:30:00,0,0,,whole design,33970,33895,0.9977921695613777,,
+fomc,fomc_until_inv,25,adj_fomc_until_inv_ma_25,1998-01-05 01:30:00,2024-04-30 23:30:00,0,0,,whole design,33970,33920,0.9985281130409185,,
+fomc,fomc_until_inv,125,adj_fomc_until_inv_ma_125,1998-01-05 01:30:00,2024-04-30 23:30:00,0,0,,whole design,33970,33934,0.9989402413894612,,
+fomc,fomc_until_inv,625,adj_fomc_until_inv_ma_625,1998-01-05 01:30:00,2024-04-30 23:30:00,0,0,,whole design,33970,33963,0.9997939358257286,,
+fomc,fomc_until_inv,3125,adj_fomc_until_inv_ma_3125,1998-01-05 01:30:00,2024-04-30 23:30:00,0,0,,whole design,33970,33970,1.0,,

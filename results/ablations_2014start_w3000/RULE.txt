@@ -1,0 +1,207 @@
+AUGMENTED-HAR BENCHMARKS AND PREDICTOR-GROUP ABLATIONS OF THE POOLED INTRADAY FORECASTS (2014 start, 3,000-day window)
+
+Written 2026-10-25 about 13:40 PDT (20:40 UTC), before any job of this run; committed and pushed before the first
+submission.  Branch insurance-selling-2026-09-19-e34-ablations (from insurance-selling-2026-09-19-e34 381f1da), worktree
+C:\Users\james\AppData\Local\Temp\ablate_wt.  Request (coordinator): a referee will say the "exogenous" gain is not
+isolated -- the top contributors are the futures' own realized moments and there is neither an ablation nor an
+augmented-HAR benchmark.  Run (1) augmented-HAR benchmarks and (2) predictor-group ablations and score them as Table 1.
+Nothing of the paper (writeup/rehaul, writeup/generated outside this run's two files) is edited; no Overleaf sync.
+
+0. WHAT IS FIXED (the final run, writeup/final_run.py)
+   Design: the final 13-bar design of results/window_sweep_2014start_2026-10-22/w3000 (rows = 13 regular-hours bars,
+   end stamps 10:00 .. 16:00 ET; HAR ladder and every trailing average on the 48-interval grid, k in {1, 5, 25, 125,
+   625, 3125}; rolling robust scaling over W = 39,000 rows; LATE_START_WARMUP, UNOBSERVED_NEUTRAL, EXCLUDE_FOMC_RELEASE
+   on; HAR benchmark set 12 columns = har_ma_k (6) + DOW_0..4 + hour; full set 564 columns = those 12 + 46 series x
+   (6 value averages adj_<s>_ma_k + 6 availability averages <s>_avail_ma_k)).  Design caches (md5, = the templates'):
+   all_features X 374bea97f35e33a02404dc47c82c3138, baseline X 05da4b5b30ec4579df77f1a3b6dd57ed, y 996504f1...,
+   b_oos 7670f01a..., dates_oos d8a203fe....  Window W = 39,000 rows, re-estimated at every bar, the forecast of design
+   row r fitted on rows [r - W, r); plain = pred_adj^2 x B.
+   Hyperparameters frozen, never re-tuned here:
+     ridge / lasso / elastic net (l1_ratio 0.5): the penalties chosen on pre-sample fold 3 (validation 2013),
+       frozen_penalties.json of w3000: all_features ridge 1000, lasso 1e-4, enet 1e-3, penalty factor r = 0.01 on the
+       HAR benchmark block; baseline ridge 1e-3, lasso 1e-8, enet 1e-7, r = 1; STANDARDIZE_PENALTY and WALK_KKT_RESEED
+       at the runner's defaults (on), as the final walks.  OLS: min-norm least squares (--ols minnorm).
+     LightGBM lgbm_opt_00 (cluster/pooltree_lgbm_config.json, sha abab811bd4b6), XGBoost xgb_opt_00
+       (cluster/xgbtop_xgb_config.json, sha 88bec9f385c7), random forest rf400_rf_opt_00 on oneDAL (rf_skx;
+       cluster/pooltree_rf400_config.json, sha 88eebb5fa9e8): seed 42, 8 threads, model code of
+       experiments/pooled_trees_rerun_13.py (model_factory, fit_predict) unchanged.
+   Templates (reused, not rerun; the Full and HAR rows of every comparison): linear w3000 forecasts.parquet; trees
+   results/pooled_trees_final_2014start_w3000/forecasts.parquet (lgbm, xgb), results/pooled_rf_skx_2014start_w3000/
+   forecasts.parquet (rf_skx).
+
+1. GROUPS (src/data/loading.py SUBGROUPS, the paper's 8 groups of the predictor dictionary)
+   key   SUBGROUPS     series                                                                       columns
+   rm    moments       sumret sumabsret sumret3 sumret4 sumpret2 sumbipow sumautocov (E-mini)         84
+   liq   liquidity     sumvolume numobs (E-mini); turnover, buy/sell turnover, eff. spread, spread,
+                       OFI of the EW and VW constituents                                               168
+   ew    market_ew     EW constituent RV, RSK, RQ, RAV, BV, RS+                                        72
+   vw    market_vw     VW constituent, the same six                                                    72
+   sent  sentiment     StockTwits attention, sentiment, sentcount                                      36
+   iv    implied_vol   VIX, VVIX, VIX3M                                                                36
+   vd    vol_demand    the four volatility-demand series                                               48
+   fomc  fomc          fomc_day, fomc_until_inv, fomc_since_inv                                        36
+   A group's columns = its series' 6 value and 6 availability averages (12 a series).  Sum 552 + 12 = 564.
+
+2. ARMS (each a column subset of the final full-set design, rows and every value unchanged)
+   lo_<g>   leave one group out: the full set without group g's columns (8 arms)
+   add_<g>  add one group: the HAR benchmark set plus group g's columns (8 arms); add_rm is the augmented HAR "HAR +
+            the futures' realized moments"
+   Every step of the data preparation and of the scaling acts column by column (pool_linear_pretune.py docstring, gated
+   bit for bit there), so a column subset of the full design is the design the pipeline builds for that subset of
+   series; gate 0 checks it on the HAR benchmark set (the 12 columns of the full design = the baseline design).
+   Classical HAR extensions (augmented-HAR benchmarks) from the same E-mini one-minute data (data/core_stats.parquet:
+   sumret2 = RV, sumpret2 = RS+, sumret4, numobs, sumret).  All inputs exist; three new series are built by the
+   pipeline itself (same load, domain rule, diurnal adjustment, variance-stabilizing map by name, winsorizing,
+   trailing averages on the 48-interval grid, rolling scaling, late-start and unobserved rules), named so the
+   existing name rules treat them as their siblings:
+     sumnret2 = RS- = sumret2 - sumpret2 (>= 0 on every bar of the data; clipped at 0 against rounding), as sumpret2:
+                non-negative, mean diurnal adjustment, sqrt
+     rvsqrq   = RV x sqrt(RQ), RQ = (numobs / 3) x sumret4 (Barndorff-Nielsen--Shephard realized quarticity), as RV:
+                non-negative, mean diurnal adjustment, sqrt -- so its k = 1 average is sqrt(RV_{t-1} RQ_{t-1}^{1/2}),
+                the HARQ interaction RV x RQ^{1/2} of Bollerslev, Patton and Quaedvlieg (2016) in the design's
+                volatility units (the target and the HAR terms are square roots of diurnally adjusted RV)
+     negret   = min(sumret, 0), the half hour's negative return (Corsi and Reno 2012), as sumret: signed, s.d. diurnal
+                adjustment, identity (mode-inflated at 0: the existing hurdle / scale-guard rules apply)
+   built in one design (bucket abl_new = sumret, sumret4, sumpret2 [reference series, must equal the full design's
+   columns bit for bit, gate 0] + sumnret2, rvsqrq, negret).  Arms (value averages only; the E-mini series are observed
+   on every bar, so their availability averages are constant -- asserted on the full design for sumret and sumpret2):
+     shar     HAR + RS+^(1) + RS-^(1)                     (Patton and Sheppard 2015: the k = 1 term split by sign)
+     harq     HAR + (RV RQ^{1/2})^(1)                      (BPQ 2016 HARQ: the k = 1 interaction)
+     lhar     HAR + negret^(k), k in K                      (Corsi and Reno 2012 leverage, the 6 horizons)
+     sharql   HAR + the 9 columns above                    (all three extensions together)
+   The original HAR is the template's baseline (OLS a0 row of Table 1).
+
+3. MODELS x ARMS
+   ridge, lasso, elastic net: the 16 group arms and the 4 classical arms, every one with the full set's frozen
+     penalty and r = 0.01 on the HAR benchmark block (an arm with exogenous columns is penalized as the full set is);
+     no re-tuning.
+   OLS (min-norm): add_rm and the 4 classical arms (the classical augmented-HAR benchmarks).
+   LightGBM, XGBoost: the 16 group arms.  LightGBM with deterministic=True and force_col_wise=True in every arm (the
+     three-way comparison's addenda B / D: bit-reproducible across processes and nodes; its record gate D (b) found the
+     setting text-identical to the template on this design); gate 1 below checks that it reproduces the templates.
+   Random forest (rf_skx), the most expensive: the 8 add_<g> arms and lo_rm (the referee's group), if the projection
+     (section 6) allows; the other lo_<g> forest arms are not run (about 18,000 CPU-hours, over the budget).
+
+4. WALK
+   Linear: experiments/pool_linear_pretune.py walk unchanged (--design = the arm's column-subset cache, written by
+     experiments/ablate_design.py with the full cache's meta, config and F order), the final run's arguments (CFG of
+     pooled_linear_rerun_2026_10_19_13.py + --window-days 3000 --ex-flag LATE_START_WARMUP=1), its walk start
+     (2013-12-27 16:00, 33,997 rows) and its chunking (250-solve boundaries, W halo; full-set-sized arms in 2 / 4 / 4
+     chunks for ridge / lasso / elastic net, every other arm in 1); one thread a walk.
+   Trees: experiments/ablate_trees.py walk (pooled_trees_rerun_13's model code; the arm's columns selected from the full
+     cache in memory, C-ordered float64, as the templates' Arm); origins = the templates' 33,970 bars (every OOS row from
+     2014-01-02 10:00 to 2024-04-30 16:00); pieces = contiguous blocks of trading days sized to about 3 hours at 8
+     threads from the measured cost (section 6); checkpoints every 300 s, resumable; a forest piece never resumes on
+     another CPU family (pooled_trees_rerun_13 ONE_CPU), and every piece records its CPU models.
+
+5. GATES (before any walk of the class / CPU model they cover; a failed gate stops that class there and is reported)
+   (0) design: the Hoffman2 copies of the full and baseline caches md5-equal to the templates' (section 0); the 12
+       HAR-benchmark columns of the full cache equal the baseline cache's X bit for bit, y / b_oos / dates equal; the
+       abl_new cache's HAR and calendar columns and its reference series' 12 columns each equal the full cache's bit for
+       bit, y / b_oos / dates equal; sumret / sumpret2 availability averages constant 1 on the full cache.
+   (L) linear: the 14 walk tasks of the final w3000 run (7 models x their chunks), run by this run's code path (the full
+       cache, and the HAR benchmark as the 12-column subset of the full cache) on the CPU model the linear walks use,
+       reproduce w3000/forecasts.parquet's pred_adj bit for bit on all 33,997 rows of each model.
+   (T1) trees, per CPU model and class: the templates' first and last 10 origins of the full set and of the HAR
+       benchmark (the latter as the 12-column subset of the full cache): LightGBM (deterministic + col-wise) and
+       XGBoost pred_adj text-identical (repr) to the templates, the forest within 1e-14 relative; true_adj and B equal.
+   (T2) trees, across CPU models: lo_rm's first 10 origins on every gated model of a class: LightGBM / XGBoost
+       bit-identical across models (then pieces of different models may enter one arm); the forest: recorded only
+       (an arm's forest pieces may come from several gated models, each piece from one; differences of the order 1e-15
+       relative, as the three-way comparison's addendum C).
+   CPU models gated (one tag each): Hoffman2 Slurm campus Gold 6240, Gold 6442Y, Xeon 6736P; Hoffman2 UGE Gold 6140
+   (more by addendum).  A model whose gate is not passed gets no line of that class.
+
+6. COMPUTE AND BUDGET (CPU-hours = seconds a refit x refits x threads)
+   Measured cost of the templates (CARC EPYC 7513 / 7542, 8 threads, 33,970 refits): LightGBM full 249.5 / HAR 39.3,
+   XGBoost full 383.8 / HAR 26.5, forest full 2,575.5 / HAR 50.3; the linear w3000 walks 1.1 CPU-hours for all seven.
+   Cost linear in the column count p (per arm a + b p fitted on HAR p = 12 and full p = 564):
+     LightGBM 16 arms ~2,310; XGBoost ~3,280; forest add_<g> 8 arms ~2,930 and lo_rm ~2,190; linear ~30; gates and
+     the abl_new design ~100 -> about 10,800 CPU-hours at EPYC speed.  The time probe (the gate pieces' seconds a
+     refit on each gated model, at the slowest gated model's speed) rescales it; if the projection of all tree walks
+     exceeds 15,000 CPU-hours, lo_rm's forest is dropped first, then the forest's add_<g> arms from the most columns
+     down (ablate_trees.py project -> rf_skip.txt), and the coordinator is told.  The projection gates the forest
+     lines only (no forest line starts before it); LightGBM / XGBoost (about 5,600 CPU-hours at EPYC speed, 8,400 at
+     1.5 x) start after their own T1 gate on a model.
+   Placement: Hoffman2 (idle for us): Slurm campus (hoffman2.oarc.ucla.edu; per user 16 nodes / 1,024 CPUs / 100 jobs;
+   jobs of 4-9 eight-thread workers a node) and UGE (cap 200 slots, shared with our other jobs; 8-slot tasks).  Workers
+   take lines from one claim pool (the lowest unclaimed line their CPU model is gated for, atomic mkdir), forest lines
+   first (longest), then XGBoost, LightGBM.  CARC is not used unless the projection or Hoffman2's throughput needs it
+   (addendum first; never its GPUs).  No other user's job (e.g. pp_pooltre) and no job of another run is touched.
+   Staging /u/scratch/j/jamesdc1/abl (code = git archive of the commit; design caches md5-copied from the three-way
+   comparison's Hoffman2 staging, its container and venvs used read only).
+
+7. SCORING (local, experiments/ablate_score.py; the test of Table 1, writeup/make_rehaul_oos_rerun.py)
+   Spans: (a) every bar of the 2,579 evaluation days 2014-01-02 .. 2024-04-30 (NYSE days with a positive 16:00 print,
+   early closes dropped; bars with RV > 0 and a finite positive forecast of every arm: Table 1's 33,527 bars, asserted);
+   (b) the 16:00 bar of those days; (c) the 16:00 bar on 2020-01-03 .. 2024-04-30 (1,082 days).  Loss: QLIKE (primary)
+   r - ln r - 1, r = RV / forecast, and squared error (MSE x 1e10).  Diebold-Mariano (src/evaluation/diebold_mariano.
+   dm_test: HLN, Bartlett, Newey-West lag max(h - 1, auto)) on daily losses (the daily average in (a)); negative = the
+   first-named arm has the lower loss.  Pairs, within class: every arm vs Full and vs HAR; the classical OLS arms vs the
+   OLS HAR; and, across classes, each class's Full vs each OLS classical benchmark and vs add_rm (OLS).  Checks: the
+   Full and HAR rows reproduce results/oos_final_2014start/table1_w3000/metrics.csv (QLIKE, MSE, every bar and
+   qlike_1600) to 1e-12 and its full-vs-HAR QLIKE DM to 1e-9; every arm's true_adj and B equal the template's.
+   Late series: per series, the first print (first observed bar of the 48-interval frame), and per horizon k the first
+   live design row and date (the trailing average holds no pre-start bar) and the first row whose scaled value is not
+   zeroed by LATE_START_WARMUP (first live row + 39,000), from the rule (executor.late_start_warmup) and checked
+   against the full cache's zero prefixes and results/window_sweep_2014start_2026-10-22/latestart/
+   latestart_rule_all.csv; the share of the evaluation bars on which each late group's value columns are live.
+
+8. OUTPUTS
+   results/ablations_2014start_w3000/: RULE.txt, STATUS.md, gate JSONs, timing / projection, task files, piece metas,
+   forecasts (compact: arm, class, date, pred_adj; plain from the templates' B), scores/, latestart/.
+   writeup/make_rehaul_ablations.py -> writeup/generated/rehaul_ablation_numbers.tex (macros \rhab..., letters only)
+   and writeup/generated/rehaul_ablation_table.tex (tab:rh_ablation); a draft writeup/drafts/2026-10-25_ablations.tex.
+
+9. ADDENDA: dated, written before the job they affect.
+
+ADDENDUM A, 2026-10-25 14:15 PDT (21:15 UTC), before any job it affects: GATE 0 ON THE HOFFMAN2 COPIES AND THE ABL_NEW BUILD
+   Gate 0 (jobs 499293 / 499294, 13:53) failed on two points, neither a difference in the data the walks read:
+   (a) gate 0a: the design.json files of the Hoffman2 copies (the linear three-way comparison's rebuilt RTH13 caches,
+       transferred md5-checked by its Hoffman2 executor) differ from the templates' design.json (md5 5d52a800... /
+       01bdbcea... against 224b086b... / 91b0800f...): they record that rebuild.  X, y, b_oos and dates_oos of both
+       caches are md5-equal to the templates' (the three-way comparison's gate 0 compared the same four files); the HAR
+       columns of the full cache equal the baseline X bit for bit; the E-mini availability averages are constant 1.
+       Change: design.json's md5 is recorded, not required; its names must equal w3000/frozen_penalties.json's columns
+       of the set and its config the final design's (ablate_design.py CONFIG).
+   (b) gate 0b: in the abl_new cache built on Hoffman2 (Gold 6240, the container), the HAR and calendar columns and the
+       reference series sumret and sumpret2 (value and availability averages) are bit-identical to the full cache, and
+       y, b_oos, dates_oos too; the six value averages of sumret4 differ by at most 2.8e-14 absolute (its fourth root
+       goes through numpy's power function, i.e. the container's libm, against CARC's; the square-root and identity
+       chains are exact).  The new series use only square roots, products, clips and the identity (no power function).
+       Change: the classical arms take every column the full cache has (HAR, calendar, RS+ = adj_sumpret2_ma_1) from the
+       full cache and only the new series' columns (sumnret2, rvsqrq, negret) from abl_new; gate 0b requires the
+       reference columns bit-identical except sumret4's value averages, which must be within 1e-12 absolute (recorded).
+   The jobs depending on 499293 / 499294 (499295-499317; never started) were cancelled; everything of the 13:53
+   submission is resubmitted unchanged on the code of this addendum's commit.  The UGE gate 15272780 (tree gate A on
+   Gold 6140, independent of gate 0's two points) and its pool 15272781 stay queued.
+
+ADDENDUM B, 2026-10-25 14:35 PDT (21:35 UTC), before the jobs it affects: LATE-START CROSS-CHECK, T2, THE UGE GATE
+   (a) prep1 (499346) wrote every output (abl_new + gate 0b PASS, the 21 linear arm caches, runs/latestart_w3000.csv)
+       and then exited 3 on its last check: for adj_vix3m_ma_1 / _5 / _25 the full cache's first non-zero row is
+       75,444, the rule's zero prefix (latestart_rule_all.csv, w3000) 75,438 / 75,438 / 75,443.  The rule counts the
+       LATE_START_WARMUP zeros only; the rows between are UNOBSERVED_NEUTRAL zeros (VIX3M without a print in the
+       averaging window around 2021-07-05), applied after it.  The check is refined to "first non-zero row >= the rule's
+       zero prefix" (recorded per column; the scorer reports both); no output changes.  Its dependants lg / lp
+       (499347 / 499348, never started) were cancelled and resubmitted without the dependency on prep1 (499465 /
+       499466), the caches they read being written and gate 0b passed.
+   (b) The project job (499355) received GATES = the Gold 6240 gate only: sbatch --export splits a value at its commas.
+       So T2 compared one model, and the projection (12,255 CPU-hours: LightGBM 2,620, XGBoost 3,280, forest 6,355; no
+       forest arm dropped) used Gold 6240's seconds a refit, the slowest of the three Slurm models in the gate pieces.
+       T2 is rerun over the three Slurm gate dirs as its own job (499467 -> runs/gate2_all.json), before any merge;
+       merge reads that file.  The projection stands (within the cap at the slowest model's speed).
+   (c) The UGE gate on Gold 6140 (15272780, 24 slots) had not started after 37 minutes; it and its held pool were
+       deleted unstarted and resubmitted with 8 slots (15273084, its 3 lines per class in parallel on 8 slots: the
+       forecasts do not depend on it, its timings are not used) and the same pool (15273085, 22 x 8 slots).
+
+ADDENDUM C, 2026-10-25 23:05 PDT (06:05 UTC Oct 26), before the jobs it affects: POOL WORKERS EXITING EARLY
+   At 22:55 177 of 470 tree lines were done, 0 failed, but pool workers had been exiting with "no eligible line left"
+   while 237 lines were unclaimed (the two Gold 6442Y pools and one Gold 6240 pool ended between 18:30 and 20:21).
+   Cause: pool.sh tested eligibility as "cat gate/*/passed_<est> | grep -q <cpu>" under pipefail; when grep exits on its
+   first match before cat has written the remaining files, cat dies of SIGPIPE and the pipeline reports failure, so a
+   worker skipped lines at random and stopped when a scan found none.  No line was run wrongly (a skipped line stays
+   unclaimed), only capacity was lost.  Fix: cluster/ablate/pool2.sh = pool.sh with grep reading the passed files
+   itself (nothing else changed); pool.sh is left untouched (running jobs read it).  New pool jobs on pool2.sh: Slurm
+   campus Xeon 6736P (9 workers) and Gold 6442Y (6 workers) jobs queued to fill the 16-node / 1,024-CPU cap as the old
+   jobs end, and a UGE Gold 6140 array (LightGBM / XGBoost) queued behind the 200-slot cap; the same task file, claims,
+   gates and checks.

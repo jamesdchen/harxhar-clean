@@ -1,0 +1,37 @@
+{
+ "dir": "/u/scratch/j/jamesdc1/abl/gate/s6442y",
+ "classes": {
+  "rf_skx": {
+   "pass_": true,
+   "checks": [
+    {
+     "arm": "full",
+     "rows": 20,
+     "text_identical": 2,
+     "max_rel": 1.0519952063378515e-15,
+     "side_equal": true,
+     "cpus": [
+      "Intel(R) Xeon(R) Gold 6442Y"
+     ],
+     "sec_refit": 23.675,
+     "pass_": true
+    },
+    {
+     "arm": "har",
+     "rows": 20,
+     "text_identical": 3,
+     "max_rel": 1.7132469246704352e-15,
+     "side_equal": true,
+     "cpus": [
+      "Intel(R) Xeon(R) Gold 6442Y"
+     ],
+     "sec_refit": 0.595,
+     "pass_": true
+    }
+   ]
+  }
+ },
+ "fail": [],
+ "cpu": "Intel(R) Xeon(R) Gold 6442Y",
+ "pass": true
+}

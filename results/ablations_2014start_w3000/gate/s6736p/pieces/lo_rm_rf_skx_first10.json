@@ -1,0 +1,54 @@
+{
+ "arm": "lo_rm",
+ "est": "rf_skx",
+ "tag": "first10",
+ "n_columns": 480,
+ "columns_md5": "a9da768873c3c279f18631366c370d2d",
+ "design": "/u/scratch/j/jamesdc1/abl/designs/full",
+ "window_rows": 39000,
+ "block": [
+  "2014-01-02 10:00:00",
+  "2014-01-02 14:30:00"
+ ],
+ "rows": 10,
+ "refits": 10,
+ "wall_sec": 211.8,
+ "config": "rf400_rf_opt_00",
+ "sha": "88eebb5fa9e8",
+ "params": {
+  "n_estimators": 485,
+  "max_depth": 20,
+  "min_samples_leaf": 12,
+  "max_features": 0.9013236540796851,
+  "max_samples": 0.41297156429787285,
+  "bootstrap": true
+ },
+ "config_file_sha256": "ba5c99b02b9359e070813a7ed8a421cb96205176a7dc91aa55c6b0288f164567",
+ "threads": 8,
+ "host": "n1183",
+ "cpu": "Intel(R) Xeon(R) 6736P",
+ "cpus": [
+  "Intel(R) Xeon(R) 6736P"
+ ],
+ "versions": {
+  "python": "3.12.3",
+  "numpy": "1.26.4",
+  "pandas": "2.3.3",
+  "scipy": "1.17.1",
+  "sklearn": "1.9.1",
+  "lightgbm": "4.6.0",
+  "xgboost": "3.2.0",
+  "pyarrow": "19.0.1",
+  "sklearnex": "2026.2.0",
+  "daal": "2026.2.0"
+ },
+ "job": "499352",
+ "skx_dispatch": [
+  "sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU",
+  "sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU"
+ ],
+ "skx_split": {
+  "max_bins": 256,
+  "min_bin_size": 1
+ }
+}
