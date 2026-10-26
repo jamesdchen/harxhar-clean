@@ -546,3 +546,5 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   pieces are withdrawn (walk/dbgp_withdrawn_005_p03_p04.csv), so no refit runs twice. gpu top-up 13466533-48 (HAR
   047.p01-050.p01); debug 13466549-50 (dbgp 005.p02.g02-g03), 13466551 (053.p04.g05). gpu 99 (35 running P100, 64
   pending); debug 5 of ours, none running (other users hold the debug P100s). No FAILED since 13:30.
+- 2026-10-26 16:43 PDT: gpu top-up 13471931-43: the last 13 HAR W 3,000 pieces (050.p02-052.p04): every W 3,000 gpu
+  piece is now submitted. Debug 13471946 (053.p04.g06). gpu 99 (26 running P100, 73 pending). No FAILED since 14:10.

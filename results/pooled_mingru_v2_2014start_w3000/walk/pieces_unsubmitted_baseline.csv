@@ -1,14 +1,1 @@
 piece,orig,initsub,o0,o1,n_jobs,est_s,tlim_min,gpu,partition,nice
-pieces/v2w_baseline.050.p02.txt,v2w_baseline.050.txt,w050,82483,82608,625,26438,603,P100,gpu,0
-pieces/v2w_baseline.050.p03.txt,v2w_baseline.050.txt,w050,82608,82734,630,26649,608,P100,gpu,0
-pieces/v2w_baseline.050.p04.txt,v2w_baseline.050.txt,w050,82734,82860,630,26649,608,P100,gpu,0
-pieces/v2w_baseline.051.p00.txt,v2w_baseline.051.txt,w051,82860,82986,630,26649,608,P100,gpu,0
-pieces/v2w_baseline.051.p01.txt,v2w_baseline.051.txt,w051,82986,83112,630,26649,608,P100,gpu,0
-pieces/v2w_baseline.051.p02.txt,v2w_baseline.051.txt,w051,83112,83237,625,26438,603,P100,gpu,0
-pieces/v2w_baseline.051.p03.txt,v2w_baseline.051.txt,w051,83237,83363,630,26649,608,P100,gpu,0
-pieces/v2w_baseline.051.p04.txt,v2w_baseline.051.txt,w051,83363,83489,630,26649,608,P100,gpu,0
-pieces/v2w_baseline.052.p00.txt,v2w_baseline.052.txt,w052,83489,83615,630,26649,608,P100,gpu,0
-pieces/v2w_baseline.052.p01.txt,v2w_baseline.052.txt,w052,83615,83741,630,26649,608,P100,gpu,0
-pieces/v2w_baseline.052.p02.txt,v2w_baseline.052.txt,w052,83741,83866,625,26438,603,P100,gpu,0
-pieces/v2w_baseline.052.p03.txt,v2w_baseline.052.txt,w052,83866,83992,630,26649,608,P100,gpu,0
-pieces/v2w_baseline.052.p04.txt,v2w_baseline.052.txt,w052,83992,84118,630,26649,608,P100,gpu,0

@@ -106,3 +106,6 @@ the old run (read-only): `/home1/jc_905/pmf35/data` (design copies, fold-3 ridge
   est x 1.3 + 30 = 509 min, cpu 2 / 16G, CONC 24, nice 100 behind both W 3,000 arms) are listed in
   walk/pieces_unsubmitted_all_features.csv and go into the gpu partition as our 100-job cap frees after the W 3,000
   pieces. Its walk-merge runs with --gputype P100.
+- 2026-10-26 16:43 PDT: W 3,500 top-up behind the W 3,000 queue (nice 100): HAR 13471944-45 (003.p00-p01, cpu 2 / 8G).
+  Full W 3,500 P100 pieces not yet submitted: the guard skipped 000.p00-p01 because walk_ids_all_features.txt still
+  holds their cancelled L40S / A40 lines; the next session matches P100 lines only.
