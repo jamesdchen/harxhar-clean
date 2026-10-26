@@ -271,9 +271,16 @@ def cmd_tasks(a) -> int:
 
 
 # ============================================================================ gates
-def template(est: str) -> pd.DataFrame:
+def template(est: str, gb: str = "") -> pd.DataFrame:
+    """The template forecasts of est; gb (addendum D): another file for LightGBM / XGBoost (fomcfix forecasts_gb, the
+    full set on the patched design; its HAR rows are the templates')."""
     f = pd.read_parquet(TEMPLATE_FC[est])
-    return f[f["model"] == est]
+    f = f[f["model"] == est]
+    if gb and est in ("lgbm", "xgb"):
+        g = pd.read_parquet(gb)
+        g = g[(g["model"] == est) & (g["predictor_set"] == "all_features")]
+        f = pd.concat([f[f["predictor_set"] != "all_features"], g], ignore_index=True)
+    return f
 
 
 def cmd_gate1(a) -> int:
@@ -281,7 +288,7 @@ def cmd_gate1(a) -> int:
     rec: dict = {"dir": str(out), "classes": {}, "fail": []}
     cpu = None
     for est in [e for e in a.est.split(",") if e] or list(EST):
-        tf = template(est)
+        tf = template(est, a.template_gb)
         res: list[dict] = []
         ok = True
         for arm in ("full", "har"):
@@ -471,6 +478,7 @@ def main() -> int:
     ap.add_argument("--gate2", default="")
     ap.add_argument("--tasks", default="")
     ap.add_argument("--cap", type=float, default=15000.0)
+    ap.add_argument("--template-gb", default="", help="gate1: LightGBM / XGBoost full-set templates (addendum D)")
     a = ap.parse_args()
     return {
         "tasks": cmd_tasks,

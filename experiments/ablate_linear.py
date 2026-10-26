@@ -47,7 +47,7 @@ def say(msg: str) -> None:
     print(f"[{time.strftime('%H:%M:%S')}] {msg}", flush=True)
 
 
-def orchestrator(full: Path):
+def orchestrator(full: Path, cell: str = ""):
     """pooled_linear_rerun_2026_10_19_13 set up as its main() does for the final run (--window-days 3000
     --first-day 2014-01-02 --first-fold 3 --ex-flag LATE_START_WARMUP=1), reading w3000's frozen_penalties.json and
     the full cache's dates."""
@@ -64,6 +64,10 @@ def orchestrator(full: Path):
     orch.FIRST_FOLD = 3
     orch.PRE_HALO = (orch.PRE_FOLDS - 3) * orch.PRE_FOLD_SESS * orch.PPD + orch.PRE_EMBARGO_SESS * orch.PPD + orch.W
     orch.CFG.extend(["--ex-flag", "LATE_START_WARMUP=1"])
+    # 2026-10-26 addendum D: the cell's design flags after LATE_START_WARMUP (as fomcfix's walk_task.py), e.g.
+    # FOMC_SCHEDULE_2020_FIX=1,FOMC_PROXIMITY_NO_WINSOR=1,DROP_HOLIDAY_SESSIONS=0; empty = the final design
+    for f in [x for x in cell.replace("+", ",").split(",") if x]:  # "+" also separates (sbatch --export splits ",")
+        orch.CFG.extend(["--ex-flag", f])
     orch.FIRST_DAY = "2014-01-02"
     orch.design_dir = lambda s: full  # dates_oos.csv only (both sets share the rows)
     _SETUP["done"] = True
@@ -126,7 +130,7 @@ def cmd_walk1(a) -> int:
     lines = [ln.split() for ln in Path(a.tasks).read_text().splitlines() if ln.strip()]
     arm, model, c, k = lines[a.line - 1]
     c, k = int(c), int(k)
-    orch = orchestrator(Path(a.full))
+    orch = orchestrator(Path(a.full), a.cell)
     root = Path(a.root)
     o = out_dir(root, arm, model, c, k)
     args = walk_args(orch, arm, model, c, k, design_of(arm, Path(a.designs), Path(a.full)), o)
@@ -174,6 +178,9 @@ def cmd_gate(a) -> int:
     ref = pd.read_parquet(
         W3000 / "forecasts.parquet", columns=["model", "predictor_set", "date", "pred_adj", "true_adj"]
     )
+    if a.ref_full:  # 2026-10-26 addendum D: the full-set walks against another run's (fomcfix lin_B.parquet)
+        rf = pd.read_parquet(a.ref_full, columns=["model", "predictor_set", "date", "pred_adj", "true_adj"])
+        ref = pd.concat([ref[ref["predictor_set"] != "all_features"], rf], ignore_index=True)
     rec: dict = {"checks": [], "fail": []}
     for arm, s, ms in (("full", "all_features", PEN), ("har_sub", "baseline", (*PEN, "ols"))):
         for m in ms:
@@ -272,6 +279,8 @@ def main() -> int:
     ap.add_argument("--designs", default="")
     ap.add_argument("--full", default="")
     ap.add_argument("--out", default="")
+    ap.add_argument("--cell", default="", help="extra design flags NAME=v,... (addendum D)")
+    ap.add_argument("--ref-full", default="", help="gate: the full-set walks' reference parquet (addendum D)")
     a = ap.parse_args()
     return {"tasks": cmd_tasks, "walk1": cmd_walk1, "gate": cmd_gate, "merge": cmd_merge}[a.mode](a)
 

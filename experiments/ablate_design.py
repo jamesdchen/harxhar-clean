@@ -173,6 +173,41 @@ def cmd_check(a) -> int:
     return 0 if rec["pass"] else 3
 
 
+# ============================================================================ gate F0 (addendum D)
+FIX_X_MD5 = "725eb201044783d3cdc62501307dcc3a"  # fomcfix cell B, design_all_features/X.npy (its gate G3)
+FOMC_PROX = [f"adj_fomc_{s}_inv_ma_{k}" for s in ("until", "since") for k in AA.HAR_K]
+
+
+def cmd_checkfix(a) -> int:
+    """Gate F0: the FOMC-patched full cache against the final one: X md5 = fomcfix's, y / b_oos / dates bytes equal,
+    names equal, every column bit-identical except exactly the 12 FOMC proximity value averages (which differ)."""
+    old, new = Path(a.full), Path(a.new)
+    rec: dict = {"old": str(old), "new": str(new), "fail": []}
+    rec["x_md5"] = md5(new / "X.npy")
+    if rec["x_md5"] != FIX_X_MD5:
+        rec["fail"].append(f"X md5 {rec['x_md5']} != {FIX_X_MD5}")
+    for f in ("y.npy", "b_oos.npy", "dates_oos.csv"):
+        if (old / f).read_bytes() != (new / f).read_bytes():
+            rec["fail"].append(f"{f} differs")
+    mo, mn = meta(old), meta(new)
+    if mo["names"] != mn["names"]:
+        rec["fail"].append("names differ")
+    rec["config_new"] = mn.get("config")
+    Xo, Xn = load_X(old), load_X(new)
+    diff = []
+    for j, n in enumerate(mo["names"]):
+        x, y = np.asarray(Xo[:, j]), np.asarray(Xn[:, j])
+        if not (np.array_equal(x, y) and x.tobytes() == y.tobytes()):
+            diff.append(n)
+    rec["differing_columns"] = diff
+    if sorted(diff) != sorted(FOMC_PROX):
+        rec["fail"].append(f"differing columns {diff} != the 12 FOMC proximity averages")
+    rec["pass"] = not rec["fail"]
+    Path(a.out).write_text(json.dumps(rec, indent=1))
+    say(f"gate F0 {'PASS' if rec['pass'] else 'FAIL'}: {len(diff)} differing columns; {rec['fail']}")
+    return 0 if rec["pass"] else 3
+
+
 # ============================================================================ the new series
 def register_new_series() -> None:
     """Add sumnret2, rvsqrq, negret to the loaded frame (as add_derived_features adds the OFI ratios: after the domain
@@ -384,11 +419,12 @@ def cmd_latestart(a) -> int:
                 eval_share_nonzero=live_ev / len(ev),
             )
             if rule is not None and c in rule.index:
-                rec["rule_zero_prefix_rows"] = int(rule.loc[c, "zero_prefix_rows"])
+                rz = int(rule.loc[c, "zero_prefix_rows"])
+                rec["rule_zero_prefix_rows"] = rz
                 # 2026-10-25 addendum B (a): UNOBSERVED_NEUTRAL may zero rows right after the late-start prefix, so the
                 # first non-zero row is at or after the rule's prefix.  Was: rule_match = (prefix == z)
-                rec["rule_exact"] = rec["rule_zero_prefix_rows"] == z
-                rec["rule_match"] = z >= rec["rule_zero_prefix_rows"]
+                rec["rule_exact"] = rz == z
+                rec["rule_match"] = z >= rz
             rows.append(rec)
     out = pd.DataFrame(rows)
     out.to_csv(a.out, index=False)
@@ -401,7 +437,7 @@ def cmd_latestart(a) -> int:
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("mode", choices=("check", "newseries", "cmpnew", "subsets", "latestart"))
+    ap.add_argument("mode", choices=("check", "newseries", "cmpnew", "subsets", "latestart", "checkfix"))
     ap.add_argument("--full", default="")
     ap.add_argument("--har", default="")
     ap.add_argument("--new", default="")
@@ -417,6 +453,7 @@ def main() -> int:
         "cmpnew": cmd_cmpnew,
         "subsets": cmd_subsets,
         "latestart": cmd_latestart,
+        "checkfix": cmd_checkfix,
     }[a.mode](a)
 
 
