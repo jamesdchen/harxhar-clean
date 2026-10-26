@@ -494,3 +494,6 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
 - 2026-10-25 17:36 PDT: COMPLETED since 16:50 incl. gpu 13385612-16, 13401261 (HAR, ~7:11), debug 13447877 (HAR).
   Debug refill 13450736 (dbgp 005.p01.g00); gpu top-up alternating: 13450737-42 (full 004.p00-p02, HAR 033.p00-p02).
   gpu 99 (35 running P100, 64 pending), debug 5 (1 running). No FAILED.
+- 2026-10-25 18:20 PDT: COMPLETED since 17:30: gpu 13401262 (HAR, 7:11), debug 13448492 (dbgp 005.p00.g04, 41:04).
+  Both debug P100s ours. Debug refill 13452412 (053.p03.g07); gpu top-up 13452413 (full 004.p03). gpu 99 (35 running
+  P100, 64 pending), debug 5 (2 running). No FAILED.

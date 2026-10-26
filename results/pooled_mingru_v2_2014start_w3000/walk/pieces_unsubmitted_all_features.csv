@@ -1,3 +1,2 @@
 piece,orig,initsub,o0,o1,n_jobs,est_s,tlim_min,gpu,partition,nice
-pieces/v2w_all_features.004.p03.txt,v2w_all_features.004.txt,w004,76821,77953,5660,25753,588,P100,gpu,0
 pieces/v2w_all_features.004.p04.txt,v2w_all_features.004.txt,w004,77953,79085,5660,25753,588,P100,gpu,0
