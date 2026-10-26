@@ -1,0 +1,14 @@
+{
+ "model": "lasso",
+ "wdays": 2000,
+ "frozen": 0.0001,
+ "design": "/scratch1/jc_905/fi_window/w2000/design_all_features",
+ "n_jobs": 882,
+ "wall": 216.69799852371216,
+ "host": "b10-20.hpc.usc.edu",
+ "env": {
+  "OPENBLAS_CORETYPE": "Prescott",
+  "NPY_DISABLE_CPU_FEATURES": "",
+  "SLURM_JOB_ID": "13458803"
+ }
+}

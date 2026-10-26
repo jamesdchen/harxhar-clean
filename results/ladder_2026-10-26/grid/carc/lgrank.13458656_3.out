@@ -1,0 +1,6 @@
+lgrid task 3 on b10-19.hpc.usc.edu [AMD EPYC 7513 32-Core Processor] Mon Oct 26 01:29:59 PDT 2026
+line: linear rank-linear 1000
+[01:30:19] W 1000 rank ridge: live 46; top 10 ['sumret', 'sumautocov', 'sumabsret_vwstock', 'numobs', 'sumret3', 'sumabsret_ewstock', 'sumvolume', 'vix', 'spread_ewstock', 'sumret2_vwstock']
+[01:30:19] W 1000 rank lasso: live 46; top 10 ['sumret', 'sumabsret', 'sumabsret_vwstock', 'sumret4', 'vix', 'sumautocov', 'sumbipow', 'numobs', 'sumvolume', 'spread_ewstock']
+[01:30:19] W 1000 rank enet: live 46; top 10 ['sumret', 'sumabsret_vwstock', 'sumautocov', 'sumabsret_ewstock', 'sumret3', 'buyturnover_vwstock', 'fomc_day', 'sumret3_ewstock', 'ofi_vwstock', 'sumret3_vwstock']
+lgrid task 3 done Mon Oct 26 01:30:19 PDT 2026

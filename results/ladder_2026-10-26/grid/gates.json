@@ -1,0 +1,110 @@
+{
+ "w1000/lgbm": {
+  "origin_bit_equal": 126,
+  "n": 126,
+  "maxabs": 0.0,
+  "pass": true
+ },
+ "w1000/xgb": {
+  "origin_bit_equal": 126,
+  "n": 126,
+  "maxabs": 0.0,
+  "pass": true
+ },
+ "w1000/ridge": {
+  "rows": 15483,
+  "maxabs": 4.440892098500626e-16,
+  "pass": true
+ },
+ "w1000/lasso": {
+  "rows": 15483,
+  "maxabs": 4.440892098500626e-16,
+  "pass": true
+ },
+ "w1000/enet": {
+  "rows": 15483,
+  "maxabs": 4.440892098500626e-16,
+  "pass": true
+ },
+ "w2000/lgbm": {
+  "origin_bit_equal": 126,
+  "n": 126,
+  "maxabs": 0.0,
+  "pass": true
+ },
+ "w2000/xgb": {
+  "origin_bit_equal": 126,
+  "n": 126,
+  "maxabs": 0.0,
+  "pass": true
+ },
+ "w2000/ridge": {
+  "rows": 15483,
+  "maxabs": 8.881784197001252e-16,
+  "pass": true
+ },
+ "w2000/lasso": {
+  "rows": 15483,
+  "maxabs": 4.440892098500626e-16,
+  "pass": true
+ },
+ "w2000/enet": {
+  "rows": 15483,
+  "maxabs": 4.440892098500626e-16,
+  "pass": true
+ },
+ "w3000/lgbm": {
+  "origin_bit_equal": 126,
+  "n": 126,
+  "maxabs": 0.0,
+  "pass": true
+ },
+ "w3000/xgb": {
+  "origin_bit_equal": 126,
+  "n": 126,
+  "maxabs": 0.0,
+  "pass": true
+ },
+ "w3000/ridge": {
+  "rows": 15483,
+  "maxabs": 8.881784197001252e-16,
+  "pass": true
+ },
+ "w3000/lasso": {
+  "rows": 15483,
+  "maxabs": 8.881784197001252e-16,
+  "pass": true
+ },
+ "w3000/enet": {
+  "rows": 15483,
+  "maxabs": 8.881784197001252e-16,
+  "pass": true
+ },
+ "w3500/lgbm": {
+  "origin_bit_equal": 126,
+  "n": 126,
+  "maxabs": 0.0,
+  "pass": true
+ },
+ "w3500/xgb": {
+  "origin_bit_equal": 126,
+  "n": 126,
+  "maxabs": 0.0,
+  "pass": true
+ },
+ "w3500/ridge": {
+  "rows": 15483,
+  "maxabs": 4.440892098500626e-16,
+  "pass": true
+ },
+ "w3500/lasso": {
+  "rows": 15483,
+  "maxabs": 4.440892098500626e-16,
+  "pass": true
+ },
+ "w3500/enet": {
+  "rows": 15483,
+  "maxabs": 4.440892098500626e-16,
+  "pass": true
+ }
+}

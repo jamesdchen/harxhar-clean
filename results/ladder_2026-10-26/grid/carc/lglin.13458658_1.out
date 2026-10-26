@@ -1,0 +1,13 @@
+lgrid task 1 on a02-05.hpc.usc.edu [AMD EPYC 7513 32-Core Processor] Mon Oct 26 02:06:17 PDT 2026
+line: linear run-linear 1000 ridge
+[02:06:33] W 1000 ridge alpha 10000.0: sets ['full', 'har', 'P20', 'P10', 'P5', 'P3', 'P1']; 882 jobs, 16 workers
+[02:06:53] 100/882 jobs, 21s (last full k=112 0.8s)
+[02:22:03] 200/882 jobs, 931s (last har k=78 0.0s)
+[02:22:05] 300/882 jobs, 933s (last P20 k=49 0.3s)
+[02:22:08] 400/882 jobs, 935s (last P10 k=25 0.2s)
+[02:22:09] 500/882 jobs, 936s (last P10 k=120 0.2s)
+[02:22:09] 600/882 jobs, 937s (last P5 k=99 0.1s)
+[02:22:10] 700/882 jobs, 937s (last P3 k=59 0.1s)
+[02:22:10] 800/882 jobs, 938s (last P1 k=35 0.1s)
+[02:22:10] 882/882 jobs, 938s (last P1 k=124 0.1s)
+lgrid task 1 done Mon Oct 26 02:22:11 PDT 2026

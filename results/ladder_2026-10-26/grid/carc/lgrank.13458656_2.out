@@ -1,0 +1,4 @@
+lgrid task 2 on b10-19.hpc.usc.edu [AMD EPYC 7513 32-Core Processor] Mon Oct 26 01:29:27 PDT 2026
+line: trees rank-trees 1000 xgb
+[01:29:36] W 1000 rank xgb: additivity 2.6e-06 True; top 10 ['sumabsret', 'stocktwits_sentiment', 'effspread_vwstock', 'sumret', 'sumabsret_ewstock', 'sumautocov', 'sumabsret_vwstock', 'spread_vwstock', 'sumret3_vwstock', 'fomc_until_inv']
+lgrid task 2 done Mon Oct 26 01:29:37 PDT 2026

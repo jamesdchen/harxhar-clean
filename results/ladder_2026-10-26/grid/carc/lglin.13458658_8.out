@@ -1,0 +1,13 @@
+lgrid task 8 on a03-09.hpc.usc.edu [AMD EPYC 7513 32-Core Processor] Mon Oct 26 02:16:05 PDT 2026
+line: linear run-linear 3500 lasso
+[02:16:07] W 3500 lasso alpha 0.0001: sets ['full', 'har', 'P20', 'P10', 'P5', 'P3', 'P1']; 882 jobs, 16 workers
+[02:22:07] 100/882 jobs, 360s (last full k=100 44.2s)
+[02:22:51] 200/882 jobs, 404s (last har k=85 0.1s)
+[02:23:34] 300/882 jobs, 447s (last P20 k=48 9.4s)
+[02:24:20] 400/882 jobs, 493s (last P10 k=24 2.7s)
+[02:24:37] 500/882 jobs, 510s (last P10 k=118 2.5s)
+[02:24:43] 600/882 jobs, 517s (last P5 k=95 1.0s)
+[02:24:47] 700/882 jobs, 521s (last P3 k=74 0.4s)
+[02:24:49] 800/882 jobs, 523s (last P1 k=43 0.2s)
+[02:24:50] 882/882 jobs, 524s (last P1 k=120 0.4s)
+lgrid task 8 done Mon Oct 26 02:24:51 PDT 2026
