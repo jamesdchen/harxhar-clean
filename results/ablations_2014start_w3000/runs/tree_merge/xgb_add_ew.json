@@ -1,0 +1,24 @@
+{
+ "arm": "add_ew",
+ "est": "xgb",
+ "n_pieces": 4,
+ "rows": 33970,
+ "cpus": [
+  "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz",
+  "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+ ],
+ "piece_cpus": {
+  "add_ew_xgb_1of4.parquet": [
+   "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+  ],
+  "add_ew_xgb_2of4.parquet": [
+   "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+  ],
+  "add_ew_xgb_3of4.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "add_ew_xgb_4of4.parquet": [
+   "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+  ]
+ }
+}

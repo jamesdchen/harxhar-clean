@@ -1,0 +1,37 @@
+{
+ "arm": "lo_liq",
+ "est": "lgbm",
+ "n_pieces": 8,
+ "rows": 33970,
+ "cpus": [
+  "Intel(R) Xeon(R) 6736P",
+  "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz",
+  "Intel(R) Xeon(R) Gold 6442Y"
+ ],
+ "piece_cpus": {
+  "lo_liq_lgbm_1of8.parquet": [
+   "Intel(R) Xeon(R) Gold 6442Y"
+  ],
+  "lo_liq_lgbm_2of8.parquet": [
+   "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+  ],
+  "lo_liq_lgbm_3of8.parquet": [
+   "Intel(R) Xeon(R) Gold 6442Y"
+  ],
+  "lo_liq_lgbm_4of8.parquet": [
+   "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+  ],
+  "lo_liq_lgbm_5of8.parquet": [
+   "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+  ],
+  "lo_liq_lgbm_6of8.parquet": [
+   "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+  ],
+  "lo_liq_lgbm_7of8.parquet": [
+   "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+  ],
+  "lo_liq_lgbm_8of8.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ]
+ }
+}

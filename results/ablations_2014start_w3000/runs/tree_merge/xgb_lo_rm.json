@@ -1,0 +1,54 @@
+{
+ "arm": "lo_rm",
+ "est": "xgb",
+ "n_pieces": 14,
+ "rows": 33970,
+ "cpus": [
+  "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz",
+  "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+ ],
+ "piece_cpus": {
+  "lo_rm_xgb_1of14.parquet": [
+   "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+  ],
+  "lo_rm_xgb_2of14.parquet": [
+   "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+  ],
+  "lo_rm_xgb_3of14.parquet": [
+   "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+  ],
+  "lo_rm_xgb_4of14.parquet": [
+   "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+  ],
+  "lo_rm_xgb_5of14.parquet": [
+   "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+  ],
+  "lo_rm_xgb_6of14.parquet": [
+   "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+  ],
+  "lo_rm_xgb_7of14.parquet": [
+   "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+  ],
+  "lo_rm_xgb_8of14.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "lo_rm_xgb_9of14.parquet": [
+   "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+  ],
+  "lo_rm_xgb_10of14.parquet": [
+   "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+  ],
+  "lo_rm_xgb_11of14.parquet": [
+   "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+  ],
+  "lo_rm_xgb_12of14.parquet": [
+   "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+  ],
+  "lo_rm_xgb_13of14.parquet": [
+   "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+  ],
+  "lo_rm_xgb_14of14.parquet": [
+   "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+  ]
+ }
+}

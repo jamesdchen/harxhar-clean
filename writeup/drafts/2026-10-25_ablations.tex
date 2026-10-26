@@ -3,7 +3,8 @@
 % (writeup/generated/rehaul_ablation_table.tex), both from writeup/make_rehaul_ablations.py on
 % results/ablations_2014start_w3000 (RULE.txt, STATUS.md).  To use: \input{generated/rehaul_ablation_numbers} in the
 % preamble, the table in 06_results_floats.tex, this text in Section~\ref{sec:rh_results_predictors}.
-% [RESULTS PARAGRAPHS: written after the runs finish]
+% Results: 2026-10-26, every tree and linear arm finished (STATUS.md).  PRE-PATCH FOMC DESIGN: the FOMC rows are
+% preliminary (the 18 March 2020 meeting and the winsorized proximity ramps of the pending patch change them).
 % Two references are not in writeup/references.bib yet (BollerslevPattonQuaedvlieg2016 is):
 % @article{PattonSheppard2015,
 %   title={Good volatility, bad volatility: signed jumps and the persistence of volatility},
@@ -53,3 +54,34 @@ StockTwits attention on \rhabLiveAttnFromKone{} and the other StockTwits series 
 volatility-demand series on \rhabLiveVdSpxOcFromKone{} (and their feed stops on \rhabLiveVdSpxOcLast{}... [check]),
 and VVIX on \rhabLiveVvixFromKone{}.  Before those dates the groups contribute only their availability shares, so
 the ablation rows of these groups measure the series over the later part of the sample only.
+
+\paragraph{The gain survives the augmented HAR.}  Panel~D of Table~\ref{tab:rh_ablation} sets each class's full set
+against its own HAR benchmark plus the futures' realized moments.  Over every bar the full set keeps a lower QLIKE in
+all \rhabNClassesBeatAddRm{} classes: by \rhabLgbmFullVsAddRmAllPct\% for LightGBM ($\DM = \rhabLgbmFullVsAddRmAllDm$),
+\rhabXgbFullVsAddRmAllPct\% for XGBoost and \rhabRfFullVsAddRmAllPct\% for the random forest, and by
+\rhabRidgeFullVsAddRmAllPct\% to \rhabLassoFullVsAddRmAllPct\% for the penalized linear models
+($\DM = \rhabRidgeFullVsAddRmAllDm$ to $\rhabEnetFullVsAddRmAllDm$).  The classical extensions estimated by OLS gain little
+over the HAR benchmark: \rhabOlsSharAllPct\% for SHAR, \rhabOlsHarqAllPct\% for HARQ, \rhabOlsLharAllPct\% for LHAR and
+\rhabOlsSharqlAllPct\% for the three together (Panel~C); every class's full set beats the last of these
+($\DM = \rhabLgbmFullVsOlsSharqlAllDm$ for LightGBM, $\rhabEnetFullVsOlsSharqlAllDm$ for the elastic net).  At the closing
+half hour the picture differs: the trees' full sets are no better than their own HAR plus realized moments
+(\rhabLgbmFullVsAddRmClosePct\% for LightGBM, \rhabRfFullVsAddRmClosePct\% for the forest, $\DM =
+\rhabRfFullVsAddRmCloseDm$), and the linear full sets are worse.
+
+\paragraph{Two groups carry it.}  Removing a group from the full set (Panel~A) costs little except for two groups: the
+FOMC calendar (\rhabLgbmLoFomcAllPct\% for LightGBM, \rhabXgbLoFomcAllPct\% for XGBoost, \rhabRidgeLoFomcAllPct\% to
+\rhabLassoLoFomcAllPct\% for the linear models) and the futures' realized moments (\rhabLgbmLoRmAllPct\% for LightGBM,
+$\DM = \rhabLgbmLoRmAllDm$; \rhabRfLoRmAllPct\% for the forest, $\DM = \rhabRfLoRmAllDm$; \rhabRidgeLoRmAllPct\% for ridge).
+No other group's removal changes QLIKE by more than a few tenths of a percent.  Added to the HAR benchmark on its own
+(Panel~B), the FOMC calendar gives most of the trees' gain (\rhabLgbmAddFomcAllPct\% for LightGBM against
+\rhabLgbmFullAllPct\% for the full set), the realized moments about \rhabXgbAddRmAllPct\% (XGBoost), and the liquidity
+and constituent-market groups gains of the same order (\rhabXgbAddVwAllPct\% for the value-weighted market) that
+disappear once the rest of the set is present: their information overlaps with the futures' moments.  The FOMC
+numbers are from the design before the pending calendar patch and are preliminary.
+
+\paragraph{Alternative data on its live window.}  Panel~E scores the late-starting groups only on the bars on which
+their value averages are live.  There the gains are small: about one percent for the trees from the VIX
+(\rhabXgbAddIvLiveIvPct\% for XGBoost, $\DM = \rhabXgbAddIvLiveIvDm$, from \rhabLiveIvStart), nothing measurable from
+StockTwits (from \rhabLiveSentStart), and losses for the linear models from volatility demand
+(\rhabRidgeAddVdLiveVdPct\% for ridge between \rhabLiveVdStart{} and \rhabLiveVdEnd).  The full-sample gains of these
+groups in Panel~B therefore come mainly from their availability shares, not from the series' values.

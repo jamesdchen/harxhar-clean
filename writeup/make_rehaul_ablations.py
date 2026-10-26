@@ -46,7 +46,7 @@ CLS_NAME = {
     "enet": "Elastic net",
     "lgbm": "LightGBM",
     "xgb": "XGBoost",
-    "rf": "Random forest",
+    "rf": "Forest",
 }
 G_TEX = {"rm": "Rm", "liq": "Liq", "ew": "Ew", "vw": "Vw", "sent": "Sent", "iv": "Iv", "vd": "Vd", "fomc": "Fomc"}
 ARM_TEX = {"full": "Full", "har": "Har", "shar": "Shar", "harq": "Harq", "lhar": "Lhar", "sharql": "Sharql"}
@@ -56,13 +56,13 @@ SPAN_TEX = {"all": "All", "c16": "Close", "c16_2020": "CloseLate"}
 # 2026-10-26 (coordinator): live-window subsamples of the late groups (experiments/ablate_score.py LIVE): span ->
 # (macro tag, group, row label); the macros of these spans cover the group's own arms and the full set only
 LIVE_TEX = {
-    "live_sent": ("LiveSent", "sent", "Sentiment, all three series live"),
+    "live_sent": ("LiveSent", "sent", "StockTwits live"),
     "live16_sent": ("LiveSentClose", "sent", ""),
-    "live_iv": ("LiveIv", "iv", "Implied volatility, VIX live"),
+    "live_iv": ("LiveIv", "iv", "VIX live"),
     "live16_iv": ("LiveIvClose", "iv", ""),
-    "live_ivb": ("LiveIvb", "iv", "Implied volatility, VIX and VIX3M live"),
+    "live_ivb": ("LiveIvb", "iv", "VIX, VIX3M live"),
     "live16_ivb": ("LiveIvbClose", "iv", ""),
-    "live_vd": ("LiveVd", "vd", "Volatility demand, live until the feed stops"),
+    "live_vd": ("LiveVd", "vd", "Vol. demand live"),
     "live16_vd": ("LiveVdClose", "vd", ""),
 }
 WORDS = {0: "none", 1: "one", 2: "two", 3: "three", 4: "four", 5: "five", 6: "six", 7: "seven", 8: "eight"}
@@ -162,6 +162,15 @@ def main() -> int:
         lines.append(mac(f"{t}Start", date_tex(w["start"]), f"first bar of the live window {key}"))
         lines.append(mac(f"{t}End", date_tex(w["end"]), f"last bar of the live window {key}"))
         lines.append(mac(f"{t}Days", f"{w['days']:,}".replace(",", "{,}"), f"trading days of the live window {key}"))
+    for c in CLS[1:]:  # the full set against the class's own HAR + realized moments (sign of the stored test flipped)
+        for sp, st in SPAN_TEX.items():
+            k = (c, "add_rm", c, "full", sp)
+            if k in dq.index:
+                nm = f"{CLS_TEX[c]}FullVsAddRm{st}"
+                pc = 100.0 * (q.loc[(c, "full", sp), "qlike"] / q.loc[(c, "add_rm", sp), "qlike"] - 1.0)
+                lines.append(mac(f"{nm}Pct", fmt(pc, 1), f"QLIKE change % {c} full vs own add_rm"))
+                lines.append(mac(f"{nm}Dm", fmt(-dq.loc[k, "dm"], 2), "DM full vs own add_rm"))
+                lines.append(mac(f"{nm}P", fmt_p(dq.loc[k, "p"]), "p-value"))
     for c in CLS[1:]:
         for b in ("add_rm", "shar", "harq", "lhar", "sharql", "har"):
             for sp, st in SPAN_TEX.items():
@@ -172,12 +181,13 @@ def main() -> int:
                     lines.append(mac(f"{nm}P", fmt_p(dq.loc[k, "p"]), "p-value"))
     # counts for the prose (every bar)
     cls_pen_tree = [c for c in CLS[1:] if (c, "add_rm") in have]
+    # the stored test is add_rm against the full set: the full set lower <=> DM > 0 there
     beat_addrm = [
         c
         for c in cls_pen_tree
-        if (c, "full", c, "add_rm", "all") in dq.index
-        and dq.loc[(c, "full", c, "add_rm", "all"), "dm"] < 0
-        and dq.loc[(c, "full", c, "add_rm", "all"), "p"] < 0.05
+        if (c, "add_rm", c, "full", "all") in dq.index
+        and dq.loc[(c, "add_rm", c, "full", "all"), "dm"] > 0
+        and dq.loc[(c, "add_rm", c, "full", "all"), "p"] < 0.05
     ]
     lines.append(mac("NClassesAddRm", WORDS[len(cls_pen_tree)], "classes with an add_rm arm"))
     lines.append(mac("NClassesBeatAddRm", WORDS[len(beat_addrm)], "full set beats its own add_rm, DM p < 0.05"))
@@ -230,6 +240,15 @@ def cell(q, dq, c: str, a: str, have: set, sp: str = "all") -> str:
     return f"{fmt(p, 1)} ({fmt(dq.loc[k, 'dm'], 1)})"
 
 
+def full_vs_addrm(q, dq, c: str, have: set, sp: str = "all") -> str:
+    """The class's full set against its own HAR + realized moments (the stored test is add_rm vs full: sign flipped)."""
+    k = (c, "add_rm", c, "full", sp)
+    if (c, "full") not in have or (c, "add_rm") not in have or k not in dq.index:
+        return "--"
+    p = 100.0 * (q.loc[(c, "full", sp), "qlike"] / q.loc[(c, "add_rm", sp), "qlike"] - 1.0)
+    return f"{fmt(p, 1)} ({fmt(-dq.loc[k, 'dm'], 1)})"
+
+
 def table(M: pd.DataFrame, D: pd.DataFrame, have: set) -> str:
     q = M.set_index(["cls", "arm", "span"])
     dq = D[D["loss"] == "qlike"].set_index(["cls", "arm", "vs_cls", "vs_arm", "span"])
@@ -241,8 +260,8 @@ def table(M: pd.DataFrame, D: pd.DataFrame, have: set) -> str:
     out += [
         "\\begin{table}[htbp]",
         "\\centering",
-        "\\footnotesize",
-        "\\setlength{\\tabcolsep}{3pt}",
+        "\\scriptsize",
+        "\\setlength{\\tabcolsep}{1.5pt}",
         "\\begin{threeparttable}",
         "\\caption{Predictor-group ablations and augmented-HAR benchmarks: change in QLIKE (\\%)}",
         "\\label{tab:rh_ablation}",
@@ -271,11 +290,11 @@ def table(M: pd.DataFrame, D: pd.DataFrame, have: set) -> str:
         f"\\multicolumn{{{len(cols) + 1}}}{{@{{}}l}}{{\\textit{{D. Full set, against the HAR benchmark (Table~\\ref{{tab:rh_oos}})}}}} \\\\",
     ]
     out.append("All features & " + " & ".join(cell(q, dq, c, "full", have) for c in cols) + " \\\\")
+    out.append("All features vs HAR + RM & " + " & ".join(full_vs_addrm(q, dq, c, have) for c in cols) + " \\\\")
     if any(sp in set(M["span"]) for sp in LIVE_TEX):
         out += [
             "\\addlinespace[4pt]",
-            f"\\multicolumn{{{len(cols) + 1}}}{{@{{}}l}}{{\\textit{{E. Late-starting groups on the bars on which they are live"
-            " (subsamples): group added to the HAR benchmark / removed from the full set}} \\\\",
+            f"\\multicolumn{{{len(cols) + 1}}}{{@{{}}l}}{{\\textit{{E. Late-starting groups on their live bars (subsamples): added to HAR / removed from the full set}}}} \\\\",
         ]
         for sp, (_t, g, lab) in LIVE_TEX.items():
             if not lab or sp not in set(M["span"]):
@@ -287,13 +306,16 @@ def table(M: pd.DataFrame, D: pd.DataFrame, have: set) -> str:
         "\\end{tabular*}",
         "\\begin{tablenotes}[flushleft]",
         "\\footnotesize",
-        "\\item \\textit{Notes:} Each cell is the percentage change in QLIKE of a pooled intraday forecast against its"
+        "\\item \\textit{Notes:} Design before the FOMC patch (the scheduled 18 March 2020 meeting missing,"
+        " the proximity ramps not winsorized): the FOMC rows are preliminary. Each cell is the percentage change in QLIKE of a pooled intraday forecast against its"
         " reference, with the Diebold--Mariano statistic of the difference in parentheses (negative: the arm has the lower"
         " loss); every bar of Table~\\ref{tab:rh_oos} is scored (2014--2024) and the test runs on daily average QLIKE."
         " Panel A removes one predictor group (its series' trailing averages and availability shares) from the full"
         " set; Panel B adds one group to the HAR benchmark; Panel C adds the semivariances RS$^{+}$ and RS$^{-}$ of the"
         " last half hour (SHAR), the HARQ interaction of realized variance with the square root of realized quarticity,"
         " and the negative half-hour returns at every HAR horizon (LHAR), all from the same E-mini one-minute data."
+        " The last row of Panel D (HAR + RM) sets the full set against the same class's HAR benchmark plus the"
+        " futures' realized moments (Panel B's first row)."
         " Every model keeps the full set's frozen hyperparameters (the linear penalties chosen on the 2013 pre-sample"
         " fold for the full set; one configuration per tree method).  The random forest is run for Panel B and for the"
         " realized-moment group of Panel A only.  Series that start after the data enter as zero until the rolling"

@@ -1,0 +1,20 @@
+{
+ "arm": "add_vd",
+ "est": "xgb",
+ "n_pieces": 3,
+ "rows": 33970,
+ "cpus": [
+  "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+ ],
+ "piece_cpus": {
+  "add_vd_xgb_1of3.parquet": [
+   "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+  ],
+  "add_vd_xgb_2of3.parquet": [
+   "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+  ],
+  "add_vd_xgb_3of3.parquet": [
+   "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+  ]
+ }
+}

@@ -1,0 +1,118 @@
+{
+ "arm": "add_liq",
+ "est": "rf_skx",
+ "n_pieces": 35,
+ "rows": 33970,
+ "cpus": [
+  "Intel(R) Xeon(R) 6736P",
+  "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz",
+  "Intel(R) Xeon(R) Gold 6442Y"
+ ],
+ "piece_cpus": {
+  "add_liq_rf_skx_1of35.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_liq_rf_skx_2of35.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_liq_rf_skx_3of35.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_liq_rf_skx_4of35.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_liq_rf_skx_5of35.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_liq_rf_skx_6of35.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_liq_rf_skx_7of35.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_liq_rf_skx_8of35.parquet": [
+   "Intel(R) Xeon(R) Gold 6442Y"
+  ],
+  "add_liq_rf_skx_9of35.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_liq_rf_skx_10of35.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_liq_rf_skx_11of35.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_liq_rf_skx_12of35.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_liq_rf_skx_13of35.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_liq_rf_skx_14of35.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "add_liq_rf_skx_15of35.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_liq_rf_skx_16of35.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_liq_rf_skx_17of35.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_liq_rf_skx_18of35.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_liq_rf_skx_19of35.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_liq_rf_skx_20of35.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_liq_rf_skx_21of35.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_liq_rf_skx_22of35.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_liq_rf_skx_23of35.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_liq_rf_skx_24of35.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_liq_rf_skx_25of35.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_liq_rf_skx_26of35.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_liq_rf_skx_27of35.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_liq_rf_skx_28of35.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_liq_rf_skx_29of35.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_liq_rf_skx_30of35.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_liq_rf_skx_31of35.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_liq_rf_skx_32of35.parquet": [
+   "Intel(R) Xeon(R) Gold 6442Y"
+  ],
+  "add_liq_rf_skx_33of35.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_liq_rf_skx_34of35.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_liq_rf_skx_35of35.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ]
+ }
+}

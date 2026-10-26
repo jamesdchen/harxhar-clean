@@ -1,0 +1,21 @@
+{
+ "arm": "add_fomc",
+ "est": "xgb",
+ "n_pieces": 3,
+ "rows": 33970,
+ "cpus": [
+  "Intel(R) Xeon(R) 6736P",
+  "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+ ],
+ "piece_cpus": {
+  "add_fomc_xgb_1of3.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "add_fomc_xgb_2of3.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_fomc_xgb_3of3.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ]
+ }
+}

@@ -1,0 +1,21 @@
+{
+ "arm": "add_ew",
+ "est": "lgbm",
+ "n_pieces": 3,
+ "rows": 33970,
+ "cpus": [
+  "Intel(R) Xeon(R) 6736P",
+  "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+ ],
+ "piece_cpus": {
+  "add_ew_lgbm_1of3.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_ew_lgbm_2of3.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "add_ew_lgbm_3of3.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ]
+ }
+}

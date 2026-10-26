@@ -1,0 +1,69 @@
+{
+ "arm": "add_rm",
+ "est": "rf_skx",
+ "n_pieces": 19,
+ "rows": 33970,
+ "cpus": [
+  "Intel(R) Xeon(R) 6736P",
+  "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+ ],
+ "piece_cpus": {
+  "add_rm_rf_skx_1of19.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_rm_rf_skx_2of19.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_rm_rf_skx_3of19.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_rm_rf_skx_4of19.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_rm_rf_skx_5of19.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "add_rm_rf_skx_6of19.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_rm_rf_skx_7of19.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_rm_rf_skx_8of19.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_rm_rf_skx_9of19.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_rm_rf_skx_10of19.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_rm_rf_skx_11of19.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_rm_rf_skx_12of19.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_rm_rf_skx_13of19.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_rm_rf_skx_14of19.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_rm_rf_skx_15of19.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_rm_rf_skx_16of19.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_rm_rf_skx_17of19.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_rm_rf_skx_18of19.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "add_rm_rf_skx_19of19.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ]
+ }
+}
