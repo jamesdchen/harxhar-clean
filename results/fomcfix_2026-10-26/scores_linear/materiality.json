@@ -1,0 +1,199 @@
+{
+ "fomc_B_vs_A": {
+  "cells": "B vs A",
+  "classes": {
+   "ridge": {
+    "sign_flip_bar": false,
+    "cross_5pct_bar": false,
+    "qlike_full_change_pct_bar": -0.7170753597033341,
+    "qlike_change_gt_0.5pct_bar": true,
+    "sign_flip_c16": false,
+    "cross_5pct_c16": false,
+    "qlike_full_change_pct_c16": 0.9654574428357154,
+    "qlike_change_gt_0.5pct_c16": true,
+    "d6_mid_full_change": -0.09212529978649142,
+    "d6_ba_full_change": -0.08949906830395649,
+    "d6_change_gt_0.10": false,
+    "material": true
+   },
+   "lasso": {
+    "sign_flip_bar": false,
+    "cross_5pct_bar": false,
+    "qlike_full_change_pct_bar": -2.915359458754263,
+    "qlike_change_gt_0.5pct_bar": true,
+    "sign_flip_c16": false,
+    "cross_5pct_c16": false,
+    "qlike_full_change_pct_c16": 0.9205784825019547,
+    "qlike_change_gt_0.5pct_c16": true,
+    "d6_mid_full_change": 0.031016563225716,
+    "d6_ba_full_change": 0.03156188041643082,
+    "d6_change_gt_0.10": false,
+    "material": true
+   },
+   "enet": {
+    "sign_flip_bar": false,
+    "cross_5pct_bar": false,
+    "qlike_full_change_pct_bar": -0.6984819371780415,
+    "qlike_change_gt_0.5pct_bar": true,
+    "sign_flip_c16": true,
+    "cross_5pct_c16": false,
+    "qlike_full_change_pct_c16": 1.1215444403051,
+    "qlike_change_gt_0.5pct_c16": true,
+    "d6_mid_full_change": 0.011537840994519932,
+    "d6_ba_full_change": 0.010928124492784796,
+    "d6_change_gt_0.10": false,
+    "material": true
+   }
+  },
+  "material": true
+ },
+ "fomc_D_vs_C": {
+  "cells": "D vs C",
+  "classes": {
+   "ridge": {
+    "sign_flip_bar": false,
+    "cross_5pct_bar": false,
+    "qlike_full_change_pct_bar": -0.7389657278364603,
+    "qlike_change_gt_0.5pct_bar": true,
+    "sign_flip_c16": true,
+    "cross_5pct_c16": false,
+    "qlike_full_change_pct_c16": 1.0873829731314455,
+    "qlike_change_gt_0.5pct_c16": true,
+    "d6_mid_full_change": -0.137391002400159,
+    "d6_ba_full_change": -0.13932179734847194,
+    "d6_change_gt_0.10": true,
+    "material": true
+   },
+   "lasso": {
+    "sign_flip_bar": false,
+    "cross_5pct_bar": false,
+    "qlike_full_change_pct_bar": -2.7382807001074427,
+    "qlike_change_gt_0.5pct_bar": true,
+    "sign_flip_c16": false,
+    "cross_5pct_c16": false,
+    "qlike_full_change_pct_c16": 1.2138202354257333,
+    "qlike_change_gt_0.5pct_c16": true,
+    "d6_mid_full_change": -0.07498222278609878,
+    "d6_ba_full_change": -0.07626633621150591,
+    "d6_change_gt_0.10": false,
+    "material": true
+   },
+   "enet": {
+    "sign_flip_bar": false,
+    "cross_5pct_bar": false,
+    "qlike_full_change_pct_bar": -0.7163294899407369,
+    "qlike_change_gt_0.5pct_bar": true,
+    "sign_flip_c16": false,
+    "cross_5pct_c16": false,
+    "qlike_full_change_pct_c16": 1.2381257370493781,
+    "qlike_change_gt_0.5pct_c16": true,
+    "d6_mid_full_change": -0.06386054437510724,
+    "d6_ba_full_change": -0.06151802228112446,
+    "d6_change_gt_0.10": false,
+    "material": true
+   }
+  },
+  "material": true
+ },
+ "holiday_C_vs_A_information": {
+  "cells": "C vs A",
+  "classes": {
+   "ridge": {
+    "sign_flip_bar": false,
+    "cross_5pct_bar": false,
+    "qlike_full_change_pct_bar": 0.14837430156238174,
+    "qlike_change_gt_0.5pct_bar": false,
+    "sign_flip_c16": true,
+    "cross_5pct_c16": false,
+    "qlike_full_change_pct_c16": -1.2731288177295075,
+    "qlike_change_gt_0.5pct_c16": true,
+    "d6_mid_full_change": 0.08626766735897329,
+    "d6_ba_full_change": 0.08883953713903314,
+    "d6_change_gt_0.10": false,
+    "material": true
+   },
+   "lasso": {
+    "sign_flip_bar": false,
+    "cross_5pct_bar": false,
+    "qlike_full_change_pct_bar": 0.15036029710173704,
+    "qlike_change_gt_0.5pct_bar": false,
+    "sign_flip_c16": false,
+    "cross_5pct_c16": false,
+    "qlike_full_change_pct_c16": -0.7847261667438987,
+    "qlike_change_gt_0.5pct_c16": true,
+    "d6_mid_full_change": 0.4949453014759593,
+    "d6_ba_full_change": 0.49791303306033474,
+    "d6_change_gt_0.10": true,
+    "material": true
+   },
+   "enet": {
+    "sign_flip_bar": false,
+    "cross_5pct_bar": false,
+    "qlike_full_change_pct_bar": 0.1417082937851255,
+    "qlike_change_gt_0.5pct_bar": false,
+    "sign_flip_c16": false,
+    "cross_5pct_c16": false,
+    "qlike_full_change_pct_c16": -1.0636143343008553,
+    "qlike_change_gt_0.5pct_c16": true,
+    "d6_mid_full_change": -0.26583751399127875,
+    "d6_ba_full_change": -0.26756794101791703,
+    "d6_change_gt_0.10": true,
+    "material": true
+   }
+  },
+  "material": true
+ },
+ "holiday_D_vs_B_information": {
+  "cells": "D vs B",
+  "classes": {
+   "ridge": {
+    "sign_flip_bar": false,
+    "cross_5pct_bar": false,
+    "qlike_full_change_pct_bar": 0.12629311500045315,
+    "qlike_change_gt_0.5pct_bar": false,
+    "sign_flip_c16": false,
+    "cross_5pct_c16": false,
+    "qlike_full_change_pct_c16": -1.1539065963063977,
+    "qlike_change_gt_0.5pct_c16": true,
+    "d6_mid_full_change": 0.04100196474530571,
+    "d6_ba_full_change": 0.039016808094517685,
+    "d6_change_gt_0.10": false,
+    "material": true
+   },
+   "lasso": {
+    "sign_flip_bar": false,
+    "cross_5pct_bar": false,
+    "qlike_full_change_pct_bar": 0.33303081409157276,
+    "qlike_change_gt_0.5pct_bar": false,
+    "sign_flip_c16": false,
+    "cross_5pct_c16": false,
+    "qlike_full_change_pct_c16": -0.4964394639410563,
+    "qlike_change_gt_0.5pct_c16": false,
+    "d6_mid_full_change": 0.3889465154641445,
+    "d6_ba_full_change": 0.390084816432398,
+    "d6_change_gt_0.10": true,
+    "material": true
+   },
+   "enet": {
+    "sign_flip_bar": false,
+    "cross_5pct_bar": false,
+    "qlike_full_change_pct_bar": 0.12370973286295328,
+    "qlike_change_gt_0.5pct_bar": false,
+    "sign_flip_c16": true,
+    "cross_5pct_c16": false,
+    "qlike_full_change_pct_c16": -0.949552269684073,
+    "qlike_change_gt_0.5pct_c16": true,
+    "d6_mid_full_change": -0.3412358993609059,
+    "d6_ba_full_change": -0.3400140877918263,
+    "d6_change_gt_0.10": true,
+    "material": true
+   }
+  },
+  "material": true
+ },
+ "trees_B_vs_A_information": {
+  "cells": "B vs A",
+  "classes": {},
+  "material": false
+ }
+}

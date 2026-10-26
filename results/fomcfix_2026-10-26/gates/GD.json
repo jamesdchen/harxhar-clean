@@ -1,0 +1,207 @@
+{
+ "ref": "/home1/jc_905/fomcfix_lin/runs/C",
+ "new": "/home1/jc_905/fomcfix_lin/runs/D",
+ "expect": "fomc",
+ "fail": [],
+ "baseline": {
+  "md5_ref": {
+   "X.npy": "25a25170aa731c47dccc7bb96ea7fef5",
+   "y.npy": "5128d1c143324b99bec7b6ff91da18e2",
+   "b_oos.npy": "a054c157d0e2f03c72596b2b97dcf2d1",
+   "dates_oos.csv": "44857e1b5e75c57a5fb836b267bf5966"
+  },
+  "md5_new": {
+   "X.npy": "25a25170aa731c47dccc7bb96ea7fef5",
+   "y.npy": "5128d1c143324b99bec7b6ff91da18e2",
+   "b_oos.npy": "a054c157d0e2f03c72596b2b97dcf2d1",
+   "dates_oos.csv": "44857e1b5e75c57a5fb836b267bf5966"
+  },
+  "shape_ref": [
+   84071,
+   12
+  ],
+  "shape_new": [
+   84071,
+   12
+  ],
+  "config_new": {
+   "sample": "rth13",
+   "periods_per_day": 13,
+   "window": 39000,
+   "har_base": "5",
+   "drop_fomc": false,
+   "ex_flags": {
+    "DROP_ACTIVITY_MA": true,
+    "CALENDAR_THROUGH_OVERNIGHT": true,
+    "DROP_OVERNIGHT_INDICATOR": true,
+    "LEAN_GLOBAL_LAGS": true,
+    "LATE_START_WARMUP": true,
+    "FOMC_SCHEDULE_2020_FIX": true,
+    "FOMC_PROXIMITY_NO_WINSOR": true,
+    "DROP_HOLIDAY_SESSIONS": true
+   }
+  },
+  "md5_equal": {
+   "X.npy": true,
+   "y.npy": true,
+   "b_oos.npy": true,
+   "dates_oos.csv": true
+  }
+ },
+ "all_features": {
+  "md5_ref": {
+   "X.npy": "1d1945e08abe4d8167ace8a880af9fa5",
+   "y.npy": "5128d1c143324b99bec7b6ff91da18e2",
+   "b_oos.npy": "a054c157d0e2f03c72596b2b97dcf2d1",
+   "dates_oos.csv": "44857e1b5e75c57a5fb836b267bf5966"
+  },
+  "md5_new": {
+   "X.npy": "2f61541ab77fbc0f570683323cf6225a",
+   "y.npy": "5128d1c143324b99bec7b6ff91da18e2",
+   "b_oos.npy": "a054c157d0e2f03c72596b2b97dcf2d1",
+   "dates_oos.csv": "44857e1b5e75c57a5fb836b267bf5966"
+  },
+  "shape_ref": [
+   84071,
+   564
+  ],
+  "shape_new": [
+   84071,
+   564
+  ],
+  "config_new": {
+   "sample": "rth13",
+   "periods_per_day": 13,
+   "window": 39000,
+   "har_base": "5",
+   "drop_fomc": false,
+   "ex_flags": {
+    "DROP_ACTIVITY_MA": true,
+    "CALENDAR_THROUGH_OVERNIGHT": true,
+    "DROP_OVERNIGHT_INDICATOR": true,
+    "LEAN_GLOBAL_LAGS": true,
+    "LATE_START_WARMUP": true,
+    "FOMC_SCHEDULE_2020_FIX": true,
+    "FOMC_PROXIMITY_NO_WINSOR": true,
+    "DROP_HOLIDAY_SESSIONS": true
+   }
+  },
+  "md5_equal": {
+   "X.npy": false,
+   "y.npy": true,
+   "b_oos.npy": true,
+   "dates_oos.csv": true
+  },
+  "differing_columns": [
+   {
+    "column": "adj_fomc_until_inv_ma_1",
+    "n_rows": 84040,
+    "first_row": 0,
+    "first": "pre-OOS row 0",
+    "last_row": 84070,
+    "last": "2024-04-30 16:00:00",
+    "max_abs": 2.110364861454512
+   },
+   {
+    "column": "adj_fomc_until_inv_ma_5",
+    "n_rows": 83959,
+    "first_row": 0,
+    "first": "pre-OOS row 0",
+    "last_row": 84070,
+    "last": "2024-04-30 16:00:00",
+    "max_abs": 1.968644089646276
+   },
+   {
+    "column": "adj_fomc_until_inv_ma_25",
+    "n_rows": 84038,
+    "first_row": 0,
+    "first": "pre-OOS row 0",
+    "last_row": 84070,
+    "last": "2024-04-30 16:00:00",
+    "max_abs": 1.9521099998992597
+   },
+   {
+    "column": "adj_fomc_until_inv_ma_125",
+    "n_rows": 84057,
+    "first_row": 0,
+    "first": "pre-OOS row 0",
+    "last_row": 84070,
+    "last": "2024-04-30 16:00:00",
+    "max_abs": 1.824384960506361
+   },
+   {
+    "column": "adj_fomc_until_inv_ma_625",
+    "n_rows": 84071,
+    "first_row": 0,
+    "first": "pre-OOS row 0",
+    "last_row": 84070,
+    "last": "2024-04-30 16:00:00",
+    "max_abs": 1.74017724970274
+   },
+   {
+    "column": "adj_fomc_until_inv_ma_3125",
+    "n_rows": 84071,
+    "first_row": 0,
+    "first": "pre-OOS row 0",
+    "last_row": 84070,
+    "last": "2024-04-30 16:00:00",
+    "max_abs": 7.566966551621027
+   },
+   {
+    "column": "adj_fomc_since_inv_ma_1",
+    "n_rows": 84071,
+    "first_row": 0,
+    "first": "pre-OOS row 0",
+    "last_row": 84070,
+    "last": "2024-04-30 16:00:00",
+    "max_abs": 7.1430951114073995
+   },
+   {
+    "column": "adj_fomc_since_inv_ma_5",
+    "n_rows": 84071,
+    "first_row": 0,
+    "first": "pre-OOS row 0",
+    "last_row": 84070,
+    "last": "2024-04-30 16:00:00",
+    "max_abs": 4.207730255954394
+   },
+   {
+    "column": "adj_fomc_since_inv_ma_25",
+    "n_rows": 84071,
+    "first_row": 0,
+    "first": "pre-OOS row 0",
+    "last_row": 84070,
+    "last": "2024-04-30 16:00:00",
+    "max_abs": 4.312098102817297
+   },
+   {
+    "column": "adj_fomc_since_inv_ma_125",
+    "n_rows": 84050,
+    "first_row": 0,
+    "first": "pre-OOS row 0",
+    "last_row": 84070,
+    "last": "2024-04-30 16:00:00",
+    "max_abs": 3.0496644279689646
+   },
+   {
+    "column": "adj_fomc_since_inv_ma_625",
+    "n_rows": 84071,
+    "first_row": 0,
+    "first": "pre-OOS row 0",
+    "last_row": 84070,
+    "last": "2024-04-30 16:00:00",
+    "max_abs": 2.3319745084015255
+   },
+   {
+    "column": "adj_fomc_since_inv_ma_3125",
+    "n_rows": 44775,
+    "first_row": 39296,
+    "first": "2010-07-14 15:00:00",
+    "last_row": 84070,
+    "last": "2024-04-30 16:00:00",
+    "max_abs": 9.33048229247407
+   }
+  ]
+ },
+ "pass": true
+}

@@ -1,0 +1,109 @@
+{
+ "ref": "/home1/jc_905/fomcfix_lin/runs/A",
+ "new": "/home1/jc_905/fomcfix_lin/runs/C",
+ "expect": "holiday",
+ "fail": [],
+ "baseline": {
+  "md5_ref": {
+   "X.npy": "05da4b5b30ec4579df77f1a3b6dd57ed",
+   "y.npy": "996504f16da7982d64656d1ba0d9722a",
+   "b_oos.npy": "7670f01a3055265dfac28ebac1eca864",
+   "dates_oos.csv": "d8a203fe273cd3e8e34987fe5a73048e"
+  },
+  "md5_new": {
+   "X.npy": "25a25170aa731c47dccc7bb96ea7fef5",
+   "y.npy": "5128d1c143324b99bec7b6ff91da18e2",
+   "b_oos.npy": "a054c157d0e2f03c72596b2b97dcf2d1",
+   "dates_oos.csv": "44857e1b5e75c57a5fb836b267bf5966"
+  },
+  "shape_ref": [
+   84747,
+   12
+  ],
+  "shape_new": [
+   84071,
+   12
+  ],
+  "config_new": {
+   "sample": "rth13",
+   "periods_per_day": 13,
+   "window": 39000,
+   "har_base": "5",
+   "drop_fomc": false,
+   "ex_flags": {
+    "DROP_ACTIVITY_MA": true,
+    "CALENDAR_THROUGH_OVERNIGHT": true,
+    "DROP_OVERNIGHT_INDICATOR": true,
+    "LEAN_GLOBAL_LAGS": true,
+    "LATE_START_WARMUP": true,
+    "FOMC_SCHEDULE_2020_FIX": false,
+    "FOMC_PROXIMITY_NO_WINSOR": false,
+    "DROP_HOLIDAY_SESSIONS": true
+   }
+  },
+  "md5_equal": {
+   "X.npy": false,
+   "y.npy": false,
+   "b_oos.npy": false,
+   "dates_oos.csv": false
+  },
+  "oos_first_ref": "2010-05-25 15:30:00",
+  "oos_first_new": "2010-06-11 10:00:00",
+  "rows_ref": 45747,
+  "rows_new": 45071,
+  "holiday_rows_ref_oos": 531,
+  "holiday_rows_2014_2024_ref": 443
+ },
+ "all_features": {
+  "md5_ref": {
+   "X.npy": "374bea97f35e33a02404dc47c82c3138",
+   "y.npy": "996504f16da7982d64656d1ba0d9722a",
+   "b_oos.npy": "7670f01a3055265dfac28ebac1eca864",
+   "dates_oos.csv": "d8a203fe273cd3e8e34987fe5a73048e"
+  },
+  "md5_new": {
+   "X.npy": "1d1945e08abe4d8167ace8a880af9fa5",
+   "y.npy": "5128d1c143324b99bec7b6ff91da18e2",
+   "b_oos.npy": "a054c157d0e2f03c72596b2b97dcf2d1",
+   "dates_oos.csv": "44857e1b5e75c57a5fb836b267bf5966"
+  },
+  "shape_ref": [
+   84747,
+   564
+  ],
+  "shape_new": [
+   84071,
+   564
+  ],
+  "config_new": {
+   "sample": "rth13",
+   "periods_per_day": 13,
+   "window": 39000,
+   "har_base": "5",
+   "drop_fomc": false,
+   "ex_flags": {
+    "DROP_ACTIVITY_MA": true,
+    "CALENDAR_THROUGH_OVERNIGHT": true,
+    "DROP_OVERNIGHT_INDICATOR": true,
+    "LEAN_GLOBAL_LAGS": true,
+    "LATE_START_WARMUP": true,
+    "FOMC_SCHEDULE_2020_FIX": false,
+    "FOMC_PROXIMITY_NO_WINSOR": false,
+    "DROP_HOLIDAY_SESSIONS": true
+   }
+  },
+  "md5_equal": {
+   "X.npy": false,
+   "y.npy": false,
+   "b_oos.npy": false,
+   "dates_oos.csv": false
+  },
+  "oos_first_ref": "2010-05-25 15:30:00",
+  "oos_first_new": "2010-06-11 10:00:00",
+  "rows_ref": 45747,
+  "rows_new": 45071,
+  "holiday_rows_ref_oos": 531,
+  "holiday_rows_2014_2024_ref": 443
+ },
+ "pass": true
+}
