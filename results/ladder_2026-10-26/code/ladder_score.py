@@ -190,6 +190,7 @@ def main() -> int:
     panel: dict[tuple[str, str], pd.Series] = {}
     sets_of: dict[str, dict] = {}
     gates: dict = {}
+    wide: dict[str, np.ndarray] = {}
     gsh = pd.read_csv(SHAP_GATE)
     abl = pd.read_parquet(ABL_WIDE) if ABL_WIDE.is_file() else None
     for m in models:
@@ -237,7 +238,10 @@ def main() -> int:
         sets_of[m] = sets
         for rid, fitted in sets["alias"].items():
             panel[(m, rid)] = pd.Series(pr[fitted] ** 2 * b, index=rows_dates)
+        for rid in sets["fitted"]:
+            wide[f"{m}|{rid}"] = pr[rid]
     (RES / "gates.json").write_text(json.dumps(gates, indent=1, default=str))
+    pd.DataFrame({"date": rows_dates, **wide}).to_parquet(RES / "forecasts_wide.parquet", index=False)
     say(json.dumps({m: g["pass"] for m, g in gates.items()}))
 
     # ---------------------------------------------------------------- scored bars (Table 1's)

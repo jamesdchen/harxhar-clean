@@ -1,0 +1,15 @@
+{
+ "model": "enet",
+ "frozen": 0.001,
+ "r_bb": 0.01,
+ "n_jobs": 1638,
+ "wall": 50.14108943939209,
+ "host": "b10-20.hpc.usc.edu",
+ "numpy": "1.26.4",
+ "python": "3.12.3",
+ "env": {
+  "OPENBLAS_CORETYPE": "Prescott",
+  "NPY_DISABLE_CPU_FEATURES": "",
+  "SLURM_JOB_ID": "13457020"
+ }
+}

@@ -1,0 +1,47 @@
+ladder task 3 on a02-03.hpc.usc.edu [AMD EPYC 7513 32-Core Processor] Sun Oct 25 23:37:24 PDT 2026
+line: trees run lgbm 3/3
+design md5 ok
+[00:09:07] lgbm lgbm_opt_00 abab811bd4b6: 10 fitted sets ['full', 'har', 'P20', 'P10', 'P5', 'P3', 'P1', 'S20', 'S10', 'S3']; origins 84..125
+[00:09:19] lgbm k= 84 2020-11-24 rows 267: full 3.2s har 0.5s P20 1.7s P10 1.1s P5 0.7s P3 0.6s P1 0.6s S20 1.6s S10 1.1s S3 0.6s
+[00:09:30] lgbm k= 85 2020-12-28 rows 267: full 3.0s har 0.5s P20 1.6s P10 1.1s P5 0.7s P3 0.6s P1 0.5s S20 1.6s S10 1.1s S3 0.6s
+[00:09:41] lgbm k= 86 2021-01-27 rows 267: full 3.0s har 0.5s P20 1.6s P10 1.1s P5 0.7s P3 0.6s P1 0.5s S20 1.6s S10 1.1s S3 0.6s
+[00:09:53] lgbm k= 87 2021-02-25 rows 273: full 3.1s har 0.5s P20 1.6s P10 1.1s P5 0.7s P3 0.6s P1 0.5s S20 1.6s S10 1.1s S3 0.6s
+[00:10:04] lgbm k= 88 2021-03-26 rows 273: full 3.0s har 0.5s P20 1.6s P10 1.1s P5 0.7s P3 0.6s P1 0.6s S20 1.6s S10 1.1s S3 0.6s
+[00:10:15] lgbm k= 89 2021-04-27 rows 273: full 3.0s har 0.5s P20 1.7s P10 1.1s P5 0.7s P3 0.6s P1 0.6s S20 1.6s S10 1.1s S3 0.6s
+[00:10:26] lgbm k= 90 2021-05-26 rows 267: full 3.0s har 0.5s P20 1.7s P10 1.1s P5 0.7s P3 0.6s P1 0.5s S20 1.6s S10 1.1s S3 0.6s
+[00:10:38] lgbm k= 91 2021-06-24 rows 267: full 3.1s har 0.5s P20 1.7s P10 1.1s P5 0.7s P3 0.6s P1 0.5s S20 1.6s S10 1.1s S3 0.6s
+[00:10:49] lgbm k= 92 2021-07-23 rows 273: full 3.0s har 0.5s P20 1.6s P10 1.1s P5 0.7s P3 0.6s P1 0.6s S20 1.6s S10 1.0s S3 0.6s
+[00:11:00] lgbm k= 93 2021-08-23 rows 267: full 3.0s har 0.5s P20 1.6s P10 1.1s P5 0.7s P3 0.6s P1 0.5s S20 1.6s S10 1.1s S3 0.6s
+[00:11:11] lgbm k= 94 2021-09-21 rows 273: full 3.0s har 0.4s P20 1.7s P10 1.0s P5 0.7s P3 0.6s P1 0.6s S20 1.6s S10 1.1s S3 0.6s
+[00:11:23] lgbm k= 95 2021-10-20 rows 273: full 3.0s har 0.5s P20 1.7s P10 1.1s P5 0.7s P3 0.6s P1 0.6s S20 1.6s S10 1.1s S3 0.6s
+[00:11:34] lgbm k= 96 2021-11-18 rows 267: full 3.0s har 0.4s P20 1.6s P10 1.0s P5 0.7s P3 0.6s P1 0.6s S20 1.6s S10 1.1s S3 0.6s
+[00:11:45] lgbm k= 97 2021-12-20 rows 267: full 3.1s har 0.5s P20 1.6s P10 1.1s P5 0.7s P3 0.6s P1 0.5s S20 1.6s S10 1.1s S3 0.6s
+[00:11:57] lgbm k= 98 2022-01-19 rows 273: full 3.0s har 0.5s P20 1.6s P10 1.1s P5 0.7s P3 0.6s P1 0.6s S20 1.6s S10 1.1s S3 0.6s
+[00:12:08] lgbm k= 99 2022-02-17 rows 267: full 3.1s har 0.5s P20 1.6s P10 1.1s P5 0.7s P3 0.6s P1 0.5s S20 1.6s S10 1.0s S3 0.6s
+[00:12:19] lgbm k=100 2022-03-18 rows 273: full 3.0s har 0.4s P20 1.6s P10 1.1s P5 0.7s P3 0.6s P1 0.5s S20 1.6s S10 1.1s S3 0.6s
+[00:12:30] lgbm k=101 2022-04-19 rows 273: full 3.1s har 0.5s P20 1.6s P10 1.1s P5 0.7s P3 0.6s P1 0.6s S20 1.6s S10 1.1s S3 0.6s
+[00:12:42] lgbm k=102 2022-05-18 rows 267: full 3.1s har 0.5s P20 1.6s P10 1.0s P5 0.7s P3 0.6s P1 0.6s S20 1.6s S10 1.1s S3 0.6s
+[00:12:53] lgbm k=103 2022-06-16 rows 261: full 3.1s har 0.4s P20 1.7s P10 1.1s P5 0.7s P3 0.6s P1 0.5s S20 1.7s S10 1.1s S3 0.6s
+[00:13:05] lgbm k=104 2022-07-15 rows 273: full 3.0s har 0.5s P20 1.7s P10 1.1s P5 0.7s P3 0.6s P1 0.6s S20 1.7s S10 1.1s S3 0.6s
+[00:13:16] lgbm k=105 2022-08-15 rows 267: full 3.2s har 0.5s P20 1.7s P10 1.1s P5 0.7s P3 0.6s P1 0.6s S20 1.7s S10 1.1s S3 0.6s
+[00:13:28] lgbm k=106 2022-09-13 rows 273: full 3.1s har 0.5s P20 1.7s P10 1.0s P5 0.7s P3 0.6s P1 0.6s S20 1.7s S10 1.1s S3 0.6s
+[00:13:39] lgbm k=107 2022-10-12 rows 273: full 3.2s har 0.5s P20 1.7s P10 1.1s P5 0.7s P3 0.6s P1 0.5s S20 1.7s S10 1.1s S3 0.6s
+[00:13:50] lgbm k=108 2022-11-10 rows 267: full 3.1s har 0.5s P20 1.7s P10 1.1s P5 0.7s P3 0.6s P1 0.6s S20 1.7s S10 1.1s S3 0.6s
+[00:14:02] lgbm k=109 2022-12-12 rows 273: full 3.2s har 0.5s P20 1.7s P10 1.1s P5 0.7s P3 0.6s P1 0.5s S20 1.7s S10 1.1s S3 0.6s
+[00:14:13] lgbm k=110 2023-01-12 rows 267: full 3.2s har 0.5s P20 1.6s P10 1.1s P5 0.7s P3 0.6s P1 0.5s S20 1.7s S10 1.1s S3 0.6s
+[00:14:25] lgbm k=111 2023-02-10 rows 267: full 3.2s har 0.5s P20 1.7s P10 1.0s P5 0.7s P3 0.6s P1 0.6s S20 1.7s S10 1.0s S3 0.6s
+[00:14:36] lgbm k=112 2023-03-13 rows 273: full 3.2s har 0.4s P20 1.7s P10 1.0s P5 0.7s P3 0.6s P1 0.5s S20 1.6s S10 1.0s S3 0.6s
+[00:14:48] lgbm k=113 2023-04-12 rows 273: full 3.3s har 0.5s P20 1.7s P10 1.0s P5 0.7s P3 0.6s P1 0.6s S20 1.6s S10 1.0s S3 0.6s
+[00:14:59] lgbm k=114 2023-05-11 rows 267: full 3.2s har 0.5s P20 1.7s P10 1.0s P5 0.7s P3 0.6s P1 0.6s S20 1.7s S10 1.0s S3 0.6s
+[00:15:11] lgbm k=115 2023-06-09 rows 261: full 3.3s har 0.5s P20 1.7s P10 1.0s P5 0.7s P3 0.6s P1 0.6s S20 1.7s S10 1.0s S3 0.6s
+[00:15:22] lgbm k=116 2023-07-11 rows 273: full 3.2s har 0.5s P20 1.7s P10 1.0s P5 0.7s P3 0.6s P1 0.5s S20 1.7s S10 1.0s S3 0.6s
+[00:15:33] lgbm k=117 2023-08-09 rows 267: full 3.3s har 0.5s P20 1.7s P10 1.0s P5 0.7s P3 0.6s P1 0.6s S20 1.7s S10 1.0s S3 0.6s
+[00:15:45] lgbm k=118 2023-09-07 rows 273: full 3.2s har 0.5s P20 1.6s P10 0.9s P5 0.7s P3 0.6s P1 0.5s S20 1.7s S10 1.0s S3 0.6s
+[00:15:56] lgbm k=119 2023-10-06 rows 273: full 3.3s har 0.5s P20 1.7s P10 1.0s P5 0.7s P3 0.6s P1 0.6s S20 1.7s S10 1.0s S3 0.6s
+[00:16:08] lgbm k=120 2023-11-06 rows 267: full 3.2s har 0.5s P20 1.7s P10 1.0s P5 0.7s P3 0.6s P1 0.6s S20 1.7s S10 1.0s S3 0.6s
+[00:16:19] lgbm k=121 2023-12-06 rows 273: full 3.3s har 0.5s P20 1.7s P10 1.0s P5 0.7s P3 0.6s P1 0.5s S20 1.7s S10 1.0s S3 0.6s
+[00:16:31] lgbm k=122 2024-01-08 rows 267: full 3.2s har 0.5s P20 1.7s P10 1.0s P5 0.7s P3 0.6s P1 0.6s S20 1.7s S10 1.0s S3 0.6s
+[00:16:42] lgbm k=123 2024-02-06 rows 267: full 3.3s har 0.5s P20 1.7s P10 1.0s P5 0.7s P3 0.6s P1 0.6s S20 1.7s S10 1.0s S3 0.6s
+[00:16:54] lgbm k=124 2024-03-06 rows 273: full 3.3s har 0.5s P20 1.7s P10 1.0s P5 0.7s P3 0.6s P1 0.5s S20 1.7s S10 1.0s S3 0.6s
+[00:17:05] lgbm k=125 2024-04-05 rows 234: full 3.4s har 0.5s P20 1.7s P10 1.0s P5 0.7s P3 0.6s P1 0.5s S20 1.7s S10 1.0s S3 0.6s
+ladder task 3 done Mon Oct 26 00:17:05 PDT 2026

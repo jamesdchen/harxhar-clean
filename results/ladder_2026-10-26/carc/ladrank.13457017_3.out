@@ -1,0 +1,7 @@
+ladder task 3 on a02-19.hpc.usc.edu [AMD EPYC 7513 32-Core Processor] Sun Oct 25 23:10:16 PDT 2026
+line: trees rank rf_skx 16
+design md5 ok
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[23:11:41] rank rf_skx: additivity 1.7e-14 pass True; top 10 ['sumabsret', 'sumabsret_vwstock', 'sumret', 'sumabsret_ewstock', 'effspread_vwstock', 'sumret3', 'sumautocov', 'fomc_until_inv', 'sumret3_vwstock', 'sumret3_ewstock']
+ladder task 3 done Sun Oct 25 23:11:41 PDT 2026

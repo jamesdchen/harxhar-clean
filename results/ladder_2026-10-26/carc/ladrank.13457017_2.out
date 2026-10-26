@@ -1,0 +1,5 @@
+ladder task 2 on a02-16.hpc.usc.edu [AMD EPYC 7513 32-Core Processor] Sun Oct 25 23:10:17 PDT 2026
+line: trees rank xgb 16
+design md5 ok
+[23:10:30] rank xgb: additivity 1.9e-06 pass True; top 10 ['sumabsret', 'stocktwits_sentiment', 'sumabsret_vwstock', 'sumret', 'effspread_vwstock', 'sumabsret_ewstock', 'sumautocov', 'sumret3', 'vix', 'fomc_until_inv']
+ladder task 2 done Sun Oct 25 23:10:31 PDT 2026
