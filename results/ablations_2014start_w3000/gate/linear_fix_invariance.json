@@ -1,0 +1,8 @@
+{
+ "fomc_free_identical": true,
+ "n_fomc_free": 41,
+ "with_fomc_changed": 24,
+ "n_with_fomc": 24,
+ "not_identical_fomc_free": [],
+ "unchanged_with_fomc": []
+}
