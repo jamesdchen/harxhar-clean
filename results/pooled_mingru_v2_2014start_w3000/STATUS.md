@@ -533,3 +533,7 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   our 4 debug jobs (13456827, 13457218-19, 13457950) and everyone else's pend with ReqNodeNotAvail. No reservation
   covers them (the only ones are tac450 on d14 nodes). gpu top-up 13458936 (HAR 037.p04). gpu 99 (23 running P100, 76
   pending). COMPLETED since 00:40: 13385632 (HAR, 7:31), 13456293 (debug). No FAILED.
+- 2026-10-26 13:02 PDT re-sync (no refills 03:00-13:00: this agent hit a usage limit): gpu 54 of ours (36 running
+  P100 = the QOS cap again, 18 pending); 45 v2w gpu jobs and 1 debug job COMPLETED since 01:50, none FAILED. Debug:
+  e23-02 (P100) is back (mixed): our 13457218-19 running, 13457950 pending; b11-09 (A40) still drained. Debug came back
+  before the move, so per the coordinator's condition nothing is moved to the gpu partition.
