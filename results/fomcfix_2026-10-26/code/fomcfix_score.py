@@ -216,6 +216,9 @@ dms = []
 for c, fam, m, s in PANEL:
     if s == "all_features" and fam in ("linear", "tree"):
         dms += dm_pair((c, fam, m, s), (c, fam, m, "baseline"), "full vs HAR")
+    if fam == "linear" and c not in ("A", "B", "C", "D") and m != "ols" and ("B", fam, m, s) in PANEL:
+        # a re-tuned cell (RULE.txt 7(b)): each arm against the frozen arm of cell B
+        dms += dm_pair((c, fam, m, s), ("B", fam, m, s), "vs frozen (cell B)")
     if fam == "extra":
         dms += dm_pair((c, fam, m, s), ("B", "linear", m, "baseline"), "full vs HAR")
         dms += dm_pair((c, fam, m, s), ("B", "linear", m, "all_features"), "vs frozen full (cell B)")

@@ -11,8 +11,10 @@
 #         walk1           line SLURM_ARRAY_TASK_ID of $TASKS through code/walk_task.py
 #         py              python code/<script> <args...> (env PYARGS), e.g. the gates and the collection
 set -euo pipefail
-B=/scratch1/jc_905/fomcfix
-PY=/scratch1/jc_905/wsweep/venv/bin/python
+# 2026-10-26 (RULE.txt addendum C): the staging and the venv on /home1 (FF_BASE, FF_PY); the defaults are the first
+# submission's /scratch1 paths
+B=${FF_BASE:-/scratch1/jc_905/fomcfix}
+PY=${FF_PY:-/scratch1/jc_905/wsweep/venv/bin/python}
 cd $B/code
 OUT=$1; ST=$2; J=${3:-1}
 F="--window-days 3000 --first-day ${FIRST_DAY:-2014-01-02} --ex-flag LATE_START_WARMUP=1"
