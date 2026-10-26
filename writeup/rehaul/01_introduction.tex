@@ -138,12 +138,21 @@
     % \rhfipSentMin--\rhfipSentMax\% and the volatility-demand series \rhfipVdMin--\rhfipVdMax\% of the trees' total
     % attribution, and the non-standard weight sits mostly with the constituents' trading measures and the FOMC
     % calendar."
-    The non-standard weight sits mostly with the constituents' trading measures and the FOMC calendar. The
-    alternative data hold little of it (the StockTwits series \rhfipSentMin--\rhfipSentMax\% and the
-    volatility-demand series \rhfipVdMin--\rhfipVdMax\% of the trees' total attribution), but this is a weak test
-    of their value: they start late, so under our causal construction their value averages are live on only
+    % 2026-10-26 (user: the live-year shares are the fairer read): parked -- the pooled shares as the main figure.
+    % Was: "The alternative data hold little of it (the StockTwits series \rhfipSentMin--\rhfipSentMax\% and the
+    % volatility-demand series \rhfipVdMin--\rhfipVdMax\% of the trees' total attribution), but this is a weak test of
+    % their value: they start late, so under our causal construction their value averages are live on only
+    % \rhlvStSentEvLo--\rhlvStAttEvHi\% (StockTwits) and \rhlvVdEvLo--\rhlvVdEvHi\% (volatility demand) of the scored
+    % bars (Section~\ref{sec:rh_predictors})."
+    The non-standard weight sits mostly with the constituents' trading measures and the FOMC calendar. Pooled over
+    the span, the alternative data hold little of it (the StockTwits series \rhfipSentMin--\rhfipSentMax\% and the
+    volatility-demand series \rhfipVdMin--\rhfipVdMax\% of the trees' total attribution), but the pooled share
+    understates them: they start late, so under our causal construction their value averages are live on only
     \rhlvStSentEvLo--\rhlvStAttEvHi\% (StockTwits) and \rhlvVdEvLo--\rhlvVdEvHi\% (volatility demand) of the scored
-    bars (Section~\ref{sec:rh_predictors}).
+    bars (Section~\ref{sec:rh_predictors}). In the years they are live their share rises, StockTwits to
+    \rhfilStwLiveMin--\rhfilStwLiveMax\% and volatility demand to \rhfilVdLiveMin--\rhfilVdLiveMax\%, although the
+    models have then seen their values on at most \rhfilStwWinPct\% of the training window
+    (Section~\ref{sec:rh_fi}).
   \end{itemize}
 % 2026-10-25 (user: the option trades as an application of the realized variance forecasts): parked -- the opening
 % of the item. Was: "\item \textbf{Economic application.} To assess the economic value of the forecasts on trading

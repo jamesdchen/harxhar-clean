@@ -139,6 +139,23 @@
     (\rhfipNsFourMin--\rhfipNsFourMax\%) and \rhfipNsFive{} (\rhfipNsFiveMin--\rhfipNsFiveMax\%). The rest carry
     little: the StockTwits series together \rhfipSentMin--\rhfipSentMax\%, the volatility-demand series together
     \rhfipVdMin--\rhfipVdMax\%, VVIX \rhfipVvixMin--\rhfipVvixMax\%, VIX3M \rhfipVixThreeMMin--\rhfipVixThreeMMax\%.
+  % 2026-10-26 (user: "make this explicit"): added -- the late-starting series in the years their value averages
+  % are live (writeup/make_rehaul_fi_live.py: \rhfil..., Figure fig:rh_fi_live; yearly shares of the TreeSHAP study).
+  \item The pooled shares understate the late-starting series (Figure~\ref{fig:rh_fi_live}). Under the late-start
+    rule (Section~\ref{sec:rh_predictors}) their value averages stay at the neutral zero until a full window
+    postdates their first print, so for most of the span the trees can use only their availability averages, which
+    record when a series prints, not what it prints. Over the full calendar years in which the value averages are
+    live, the yearly shares rise: StockTwits from \rhfilStwPreMin--\rhfilStwPreMax\% of the total
+    (\rhfilStwPreYears) to \rhfilStwLiveMin--\rhfilStwLiveMax\% (\rhfilStwLiveYears), VIX3M from
+    \rhfilVixThreePreMin--\rhfilVixThreePreMax\% to \rhfilVixThreeLiveMin--\rhfilVixThreeLiveMax\%, and volatility
+    demand from \rhfilVdPreMin--\rhfilVdPreMax\% to \rhfilVdLiveMin--\rhfilVdLiveMax\% in \rhfilVdLiveYears, its only
+    full live year before its feed stops. The VIX's share does not rise (\rhfilVixPreMin--\rhfilVixPreMax\% in
+    \rhfilVixPreYears, \rhfilVixLiveMin--\rhfilVixLiveMax\% in \rhfilVixLiveYears), and VVIX is live only from
+    \rhfilVvixLiveFrom. Even in the live years the models have seen these values on a small part of their training
+    window: at the last origin, \rhfilLastOrigin, the \rhfilWinDays-day window holds live values on
+    \rhfilStwWinPct\% of its days for StockTwits, \rhfilVixThreeWinPct\% for VIX3M and \rhfilVdWinPct\% for
+    volatility demand (\rhfilVixWinPct\% for the VIX). The live-year shares are the fairer measure of how much the
+    trees use the alternative data; like every SHAP share here, they measure use, not a gain in accuracy.
   \item The ridge ranks the series differently. Its largest exogenous series is \rhfipRidgeTopOne{}
     (\rhfipRidgeTopOneEx\% of its exogenous total), and it puts the FOMC calendar near the top: \rhfipFomcUntil{} at
     rank \rhfipRidgeRankFomcUntil{} and \rhfipFomcDay{} at rank \rhfipRidgeRankFomcDay{} of \rhfipNExog, where the
