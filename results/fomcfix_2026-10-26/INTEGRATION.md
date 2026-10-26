@@ -16,7 +16,7 @@ start) with the two FOMC patches on and holiday sessions kept.  Everything below
 | `results/window_sweep_2014start_fomcfix/w3000/` | linear run, same layout as `results/window_sweep_2014start_2026-10-22/w3000` |
 | `results/window_sweep_2014start_fomcfix/part2/` | `score14.py` tables for W = 3,000 (as `.../window_sweep_2014start_2026-10-22/part2`) |
 | `results/pooled_trees_final_2014start_fomcfix_w3000/` | LightGBM + XGBoost, same layout as `results/pooled_trees_final_2014start_w3000` |
-| `results/pooled_rf_skx_2014start_fomcfix_w3000/` | the forest on oneDAL, same layout as `results/pooled_rf_skx_2014start_w3000` -- NOT YET BUILT (section 7) |
+| `results/pooled_rf_skx_2014start_fomcfix_w3000/` | the forest on oneDAL, same layout as `results/pooled_rf_skx_2014start_w3000` |
 | `results/fomcfix_2026-10-26/` | rule, gates, factorial scores, STEP 4 checks, run code |
 
 With P1 and P2 default on, any design built after the merge is the patched design (with both flags off it is the
@@ -58,7 +58,7 @@ Rerunning any of these is the coordinator's decision (not done here).
 | elastic net | 0.17784 -> 0.17660 | -6.04 -> -6.69 | 0.12622 -> 0.12764 | -0.52 (0.832) -> +0.60 (0.807) | 1.94 -> 1.95 |
 | LightGBM | 0.16128 -> 0.16106 | -13.99 -> -14.11 | 0.12013 -> 0.12021 | -2.73 (0.071) -> -2.67 (0.079) | 1.75 -> 1.67 |
 | XGBoost | 0.16272 -> 0.16121 | -13.80 -> -14.60 | 0.11924 -> 0.11954 | -3.39 (0.030) -> -3.15 (0.044) | 1.67 -> 1.71 |
-| random forest | PENDING: piece 85 of 87 (job 13465922_85) was still running at 15:11 PDT; see section 7 |
+| random forest | 0.16853 -> 0.16808 | -11.07 -> -11.30 | 0.12480 -> 0.12459 | -1.42 (0.357) -> -1.60 (0.302 in DM terms: -1.03) | 1.96 -> 1.99 |
 HAR-benchmark rows, the OLS, the penalties and the configurations do not change.  Every-bar full-vs-HAR tests stay at
 p < 0.001.  Sign change: the elastic net's 16:00 comparison (insignificant both ways).  Generated macros that will
 change: everything computed from the full-set pooled forecasts (Table 1, Table 2 / `\rhoos...`, `\rhr...`,
@@ -93,21 +93,5 @@ directories' own scores (`scores.csv`, `scores/`, `part2/`) were produced by the
 (`pooled_linear_rerun_2026_10_19_13.py score`, `score14.py`, `score_trees_final.py` with one compatibility line:
 `results/fomcfix_2026-10-26/code/score_trees_fomcfix.py`).
 
-## 7. Still to do: the forest (job 13465922_85)
-Until this directory exists, the switch leaves the forest PENDING (final_run's pending rule), so do not regenerate
-for the paper before it lands.
-1. CARC login node, once `sacct -j 13465922` shows COMPLETED (one command):
-   `cd /home1/jc_905/fomcfix_trees/code && PYTHONNOUSERSITE=1 PYTHONPATH=$PWD:$PWD/experiments OMP_NUM_THREADS=1
-   OPENSSL_CONF=/home1/jc_905/envs/harxhar-r13/ssl/openssl.cnf /home1/jc_905/trees_final/venv_skx/bin/python
-   experiments/pooled_trees_rerun_13.py merge --design /home1/jc_905/fomcfix_lin/runs/B --out
-   /home1/jc_905/fomcfix_trees/runs/B --window-days 3000 --refit bar --first-day 2014-01-02 --last-day 2024-04-30
-   --est rf_skx --set all_features --require-all --dest /home1/jc_905/fomcfix_trees/runs/B/forecasts_rf.parquet`
-2. Fetch `forecasts_rf.parquet` and `forecasts_rf.json`.  Build `results/pooled_rf_skx_2014start_fomcfix_w3000/`
-   as `results/pooled_trees_final_2014start_fomcfix_w3000/` was built: `forecasts.parquet` = the template's
-   `rf_skx/baseline` rows followed by the new `rf_skx/all_features` rows (columns of the template), `forecasts.json`
-   (refit bar, span 2014-01-02 .. 2024-04-30, window_days 3000, pieces), `run.json`, `design/design_check.json`
-   (copy of the template's).
-3. Scores: `python results/fomcfix_2026-10-26/code/score_trees_fomcfix.py <main worktree>
-   3000=<abs path>/results/pooled_rf_skx_2014start_fomcfix_w3000=<abs path>/results/window_sweep_2014start_fomcfix/w3000`
-   and `results/fomcfix_2026-10-26/code/fomcfix_score.py ... --trees A=templates --trees B=<lgbm+xgb+rf_skx cell-B file>`
-   for the old-vs-new table.
+## 7. Forest
+Done 2026-10-26 16:55 (job 13465922_85 completed, merge of 87 pieces, scored with score_trees_fomcfix.py; the switch loads all three run directories with the loaders' gates).  Forest cell B vs printed: full QLIKE every bar 0.16853 -> 0.16808, 16:00 0.12480 -> 0.12459 (DM -0.92 (0.357) -> -1.03 (0.302)); D6 full 1.96 -> 1.99 (dD6 +1.98, p 0.007).

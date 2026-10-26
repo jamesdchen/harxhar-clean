@@ -74,3 +74,6 @@ forecasts_trees_B.parquet, and score (laptop):
 ## Forest, provisional (86 of 87 pieces, 33,586 of 33,970 bars; not scored)
 Against the template (rf_skx, cell A): true_adj and B equal on every row; pred_adj relative difference median 0.28 %,
 90th percentile 0.77 %, largest 41 %; correlation 0.99986.  Pieces on EPYC 7513 and 7542 (one family).
+
+## Forest done (10-26 16:55)
+13465922_85 COMPLETED (resumed from checkpoint); 87 pieces merged; results/pooled_rf_skx_2014start_fomcfix_w3000 built and scored.
