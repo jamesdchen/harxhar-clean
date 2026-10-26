@@ -1,0 +1,7 @@
+lgbm 1/2 1
+lgbm 2/2 1
+xgb 1/2 1
+xgb 2/2 1
+rf_skx 1/3 16
+rf_skx 2/3 16
+rf_skx 3/3 16;export_x 1/1 1

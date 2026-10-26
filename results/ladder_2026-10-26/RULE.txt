@@ -192,7 +192,7 @@ linear models).  Every output (tables, figures, generated macros, the draft) is 
 the patched design later.  The ladder's one-page summary is kept in the main repository
 (results/meeting_2026-10-26/FI_BRIEF.md), not here.
 
-ADDENDUM 3, 2026-10-26 15:00 PDT, before any job it covers (coordinator: the author ADOPTED the FOMC-patched design,
+ADDENDUM 3, 2026-10-26 14:45-14:51 PDT (committed c4abf6f 14:51), before any job it covers (coordinator: the author ADOPTED the FOMC-patched design,
 branch insurance-selling-2026-09-19-e34-fomcfix, flags FOMC_SCHEDULE_2020_FIX = FOMC_PROXIMITY_NO_WINSOR = 1).
 RERUN ON THE PATCHED DESIGN.  Nothing above is revised; the pre-patch results stay as they are, labelled pre-patch.
 (1) Designs.  W = 3,000: cell B of results/fomcfix_2026-10-26 (its gate G3: X differs from the pre-patch X only in the
