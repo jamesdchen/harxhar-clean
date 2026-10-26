@@ -1,0 +1,57 @@
+{
+ "est": "xgb",
+ "predictor_set": "all_features",
+ "refit": "day",
+ "span": [
+  "2013-01-02",
+  "2013-12-31"
+ ],
+ "part": "1/1",
+ "block": [
+  "2013-01-02 10:00:00",
+  "2013-12-31 16:00:00"
+ ],
+ "rows": 3261,
+ "refits": 255,
+ "wall_sec": 1230.7,
+ "config": "xgb_opt_00__lr_x2",
+ "sha": "cc3e95e6f3e4",
+ "params": {
+  "max_depth": 5,
+  "learning_rate": 0.0246746803563439,
+  "n_estimators": 367,
+  "min_child_weight": 50.20121979133419,
+  "subsample": 0.6551492349018447,
+  "colsample_bytree": 0.6538448390071842,
+  "reg_alpha": 0.021478436574914658,
+  "reg_lambda": 1.15908122770414e-05,
+  "gamma": 1.5147505105071128e-06,
+  "tree_method": "hist"
+ },
+ "config_file": "results/fomcfix_2026-10-26/tune2013/configs/xgb__lr_x2.json",
+ "config_file_sha256": "4e8a2a69a4f34949e25959f8d77fb851ae45e66e6a5b32128738278bcdbf25d3",
+ "window_rows": 39000,
+ "window_days": 3000,
+ "n_columns": 564,
+ "threads": 8,
+ "host": "b22-30.hpc.usc.edu",
+ "cpu": "AMD EPYC 7542 32-Core Processor",
+ "cpus": [
+  "AMD EPYC 7542 32-Core Processor"
+ ],
+ "versions": {
+  "python": "3.12.15",
+  "numpy": "1.26.4",
+  "pandas": "2.3.3",
+  "scipy": "1.17.1",
+  "sklearn": "1.9.1",
+  "lightgbm": "4.6.0",
+  "xgboost": "3.2.0",
+  "pyarrow": "19.0.1",
+  "sklearnex": "2026.2.0",
+  "daal": "2026.2.0"
+ },
+ "design": "/home1/jc_905/fomcfix_lin/runs/B/_work/design_all_features",
+ "slurm_job": "13458390",
+ "slurm_task": "21"
+}

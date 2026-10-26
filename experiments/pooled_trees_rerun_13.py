@@ -230,21 +230,26 @@ def rv_bars() -> pd.Series:
 
 
 # ============================================================================ models
-def model_factory(est: str, threads: int):
-    """experiments/pooled_trees_base5.py model_factory (seed 42; T threads)."""
-    cfg = json.loads(CONFIGS[est].read_text(encoding="utf-8"))
+def model_factory(
+    est: str, threads: int, config_file: Path | None = None, seed: int = 42
+):
+    """experiments/pooled_trees_base5.py model_factory (seed 42; T threads).
+
+    2026-10-25 (results/fomcfix_2026-10-26/RULE.txt, the pre-sample tuning check): ``config_file`` replaces the frozen
+    configuration file of ``est`` and ``seed`` the random state; the defaults are the frozen file and 42, as before."""
+    cfg = json.loads((config_file or CONFIGS[est]).read_text(encoding="utf-8"))
     params = dict(cfg.get("params") or cfg.get("rf_params") or {})
     if est == "lgbm":
         import lightgbm as lgb
 
         return cfg, lambda: lgb.LGBMRegressor(
-            **params, num_threads=threads, random_state=42, verbosity=-1
+            **params, num_threads=threads, random_state=seed, verbosity=-1
         )
     if est == "xgb":
         import xgboost as xgb
 
         return cfg, lambda: xgb.XGBRegressor(
-            **params, n_jobs=threads, random_state=42, verbosity=0
+            **params, n_jobs=threads, random_state=seed, verbosity=0
         )
     if est == "rf_skx":
         # 2026-10-23 (owner): imported only here, so an environment without sklearnex runs every other arm unchanged
@@ -254,10 +259,12 @@ def model_factory(est: str, threads: int):
         if not any(isinstance(h, _SkxLog) for h in lg.handlers):
             lg.addHandler(_SkxLog())
         lg.setLevel(logging.INFO)
-        return cfg, lambda: SkxRF(**params, random_state=42, n_jobs=threads)
+        return cfg, lambda: SkxRF(**params, random_state=seed, n_jobs=threads)
     from sklearn.ensemble import RandomForestRegressor
 
-    return cfg, lambda: RandomForestRegressor(**params, random_state=42, n_jobs=threads)
+    return cfg, lambda: RandomForestRegressor(
+        **params, random_state=seed, n_jobs=threads
+    )
 
 
 def fit_predict(make, est, Xw, yw, Xp) -> np.ndarray:
@@ -362,7 +369,9 @@ def cmd_walk(a) -> int:
     arm = Arm(
         root, a.set, a.window_days, lo=int(mine[0]), hi=W + int(mine[-1]) + 1
     )  # design rows W + mine[0] - W ..
-    cfg, make = model_factory(a.est, a.threads)
+    # 2026-10-25 (fomcfix RULE.txt): --config-file / --seed (defaults: the frozen file, 42)
+    cfg_file = Path(a.config_file).resolve() if a.config_file else CONFIGS[a.est]
+    cfg, make = model_factory(a.est, a.threads, cfg_file, a.seed)
     rv = rv_bars()
     prior: dict = (
         json.loads(ckpt_p.read_text())
@@ -462,8 +471,11 @@ def cmd_walk(a) -> int:
         "config": cfg["name"],
         "sha": cfg["sha"],
         "params": cfg.get("params"),
-        "config_file": str(CONFIGS[a.est].relative_to(ROOT)),
-        "config_file_sha256": sha256(CONFIGS[a.est]),
+        "config_file": str(
+            cfg_file.relative_to(ROOT) if cfg_file.is_relative_to(ROOT) else cfg_file
+        ),
+        "config_file_sha256": sha256(cfg_file),
+        **({"seed": a.seed} if a.seed != 42 else {}),
         "window_rows": W,
         "window_days": a.window_days,
         "n_columns": int(arm.X.shape[1]),
@@ -626,8 +638,8 @@ def cmd_time(a) -> int:
     for t in recs:
         d = oos_dates(root, t["set"])
         for sp in a.spans:
-            f, l = sp.split(":")
-            rows, _ = span_rows(d, f, l)
+            f, la = sp.split(":")
+            rows, _ = span_rows(d, f, la)
             for refit in ("bar", "day"):
                 n = refits_of(d, rows, refit)
                 cpu, wall = project(t["sec_refit"], t["threads"], n)
@@ -804,6 +816,10 @@ def main() -> int:
         "--threads", type=int, default=int(os.environ.get("SLURM_CPUS_PER_TASK", "4"))
     )
     ap.add_argument("--ckpt-sec", type=float, default=300.0)
+    # 2026-10-25 (results/fomcfix_2026-10-26/RULE.txt): walk with another configuration file or seed (the pre-sample
+    # tuning check); defaults: the frozen file of --est and seed 42, every walk as before
+    ap.add_argument("--config-file", default="")
+    ap.add_argument("--seed", type=int, default=42)
     # merge
     ap.add_argument(
         "--n",

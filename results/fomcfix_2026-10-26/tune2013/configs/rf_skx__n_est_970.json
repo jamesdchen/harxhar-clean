@@ -1,0 +1,21 @@
+{
+ "family": "rf",
+ "name": "rf400_rf_opt_00__n_est_970",
+ "sha": "c46acca6f872",
+ "params": {
+  "n_estimators": 970,
+  "max_depth": 20,
+  "min_samples_leaf": 12,
+  "max_features": 0.9013236540796851,
+  "max_samples": 0.41297156429787285,
+  "bootstrap": true
+ },
+ "provenance": {
+  "base": "rf400_rf_opt_00",
+  "base_sha": "88eebb5fa9e8",
+  "change": {
+   "n_estimators": 970
+  },
+  "rule": "results/fomcfix_2026-10-26/RULE.txt 7(c): one factor at a time around the transferred configuration"
+ }
+}

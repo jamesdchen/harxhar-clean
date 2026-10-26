@@ -406,6 +406,39 @@ NYSE_EARLY_CLOSE_DATES: tuple[str, ...] = (
     "2025-12-24",
 )
 
+# 2026-10-25 (coordinator, author approved; audit 2026-10-25 fidelity-4, numbers-7, correctness-5, design-11;
+# results/fomcfix_2026-10-26/RULE.txt addendum A): the full NYSE holidays on which the E-mini traded a shortened session
+# with regular-hours bars (bar ends 10:00 .. 13:00), 123 dates 2004-01-19 .. 2024-02-19, from the sample's own calendar:
+# the dates with a bar ending 10:00 .. 16:00 in the 48-interval grid (after the dead-session drop), no bar at 16:00,
+# not an NYSE early close (NYSE_EARLY_CLOSE_DATES), and no print of any constituent series (the 24 *_ewstock /
+# *_vwstock columns) on any bar of the date -- the NYSE did not trade.  Each is a weekday that the rule calendar of
+# experiments/rolling_eval_2026_10_15.nyse_sessions marks as a holiday, and no rule-calendar holiday has a 16:00 bar;
+# 64 of them, with 443 regular-hours bars, fall in the evaluation span 2014-01-02 .. 2024-04-30 (re-derived and
+# asserted by results/fomcfix_2026-10-26/code/holiday_sessions.py).  Read by the executor's DROP_HOLIDAY_SESSIONS only.
+NYSE_HOLIDAY_FUTURES_SESSIONS: tuple[str, ...] = (
+    "2004-01-19", "2004-02-16", "2004-07-05", "2004-09-06", "2004-11-25", "2005-01-17",
+    "2005-02-21", "2005-05-30", "2005-07-04", "2005-09-05", "2005-11-24", "2006-01-16",
+    "2006-02-20", "2006-05-29", "2006-07-04", "2006-09-04", "2006-11-23", "2007-01-15",
+    "2007-02-19", "2007-05-28", "2007-07-04", "2007-09-03", "2007-11-22", "2008-01-21",
+    "2008-02-18", "2008-05-26", "2008-07-04", "2008-09-01", "2008-11-27", "2009-01-19",
+    "2009-02-16", "2009-05-25", "2009-07-03", "2009-09-07", "2009-11-26", "2010-01-18",
+    "2010-02-15", "2010-05-31", "2010-07-05", "2010-09-06", "2010-11-25", "2011-01-17",
+    "2011-02-21", "2011-05-30", "2011-07-04", "2011-09-05", "2011-11-24", "2012-01-16",
+    "2012-02-20", "2012-05-28", "2012-07-04", "2012-09-03", "2012-11-22", "2013-01-21",
+    "2013-02-18", "2013-05-27", "2013-07-04", "2013-09-02", "2013-11-28", "2014-01-20",
+    "2014-02-17", "2014-05-26", "2014-07-04", "2014-09-01", "2014-11-27", "2015-01-19",
+    "2015-02-16", "2015-05-25", "2015-07-03", "2015-09-07", "2015-11-26", "2016-01-18",
+    "2016-02-15", "2016-05-30", "2016-07-04", "2016-09-05", "2016-11-24", "2017-01-16",
+    "2017-02-20", "2017-05-29", "2017-07-04", "2017-09-04", "2017-11-23", "2018-01-15",
+    "2018-02-19", "2018-05-28", "2018-07-04", "2018-09-03", "2018-11-22", "2019-01-21",
+    "2019-02-18", "2019-05-27", "2019-07-04", "2019-09-02", "2019-11-28", "2020-01-20",
+    "2020-02-17", "2020-05-25", "2020-07-03", "2020-09-07", "2020-11-26", "2021-01-18",
+    "2021-02-15", "2021-05-31", "2021-07-05", "2021-09-06", "2021-11-25", "2022-01-17",
+    "2022-02-21", "2022-05-30", "2022-06-20", "2022-07-04", "2022-09-05", "2022-11-24",
+    "2023-01-16", "2023-02-20", "2023-05-29", "2023-06-19", "2023-07-04", "2023-09-04",
+    "2023-11-23", "2024-01-15", "2024-02-19",
+)
+
 # data/releases.parquet is a stale pull: every release calendar in it stops between 2023-10
 # and 2024-01, and the FOMC one at the 2023-11-01 statement, so the "dead tail" the executor
 # imputed over 2023-11-01 .. 2024-04-30 (123 of the 866 trade days) was three missing
@@ -420,6 +453,23 @@ FOMC_MISSING_STATEMENTS: tuple[str, ...] = (
     "2024-03-20 14:30",
 )
 FOMC_NEXT_STATEMENT: str = "2024-05-01 14:30"
+
+# 2026-10-25 (coordinator; audit 2026-10-25 correctness-7; results/fomcfix_2026-10-26/RULE.txt): the proximity series
+# use the pre-announced schedule around March 2020.  data/releases.parquet "fomc release" holds the statements that were
+# issued, and the scheduled 17-18 March 2020 meeting is not among them: the Fed replaced it with the emergency action
+# announced on Sunday 15 March 2020 at about 17:00 ET.  So from the 2020-01-29 statement to that announcement
+# fomc_until_inv measured the distance to 2020-04-29, which the market could not know, and after it fomc_since_inv
+# counted from 2020-01-29.  With FOMC_SCHEDULE_2020_FIX on: on every bar after the 2020-01-29 statement that ends before
+# the announcement, fomc_until_inv counts to the scheduled 2020-03-18 statement (its 14:30 bar end, the stamp
+# convention of FOMC_MISSING_STATEMENTS); from the announcement on it counts to 2020-04-29 as before; fomc_since_inv
+# counts from the first bar after the announcement (the Sunday-evening reopen, 2020-03-15 18:30) until the 2020-04-29
+# statement.  No statement is added: fomc_release and fomc_day are unchanged.  Off: the frame before the flag, bit for
+# bit.
+FOMC_SCHEDULE_2020_FIX: bool = True
+FOMC_2020_PREV: str = "2020-01-29 14:30"  # the last statement before the replaced meeting
+FOMC_2020_SCHEDULED: str = "2020-03-18 14:30"  # the replaced meeting's scheduled statement (bar end)
+FOMC_2020_ANNOUNCEMENT: str = "2020-03-15 17:00"  # the emergency action (Sunday, ET)
+FOMC_2020_NEXT: str = "2020-04-29 14:30"  # the next statement issued
 
 # VIX / VIX3M / VVIX stop at 2024-02-12 in data/vix_and_voldemand.parquet, 54 of the 866
 # trade days short of the panel end; their imputed tail put the VIX availability ladders
@@ -492,6 +542,33 @@ def _calendar_open_bars_between(t0: pd.Timestamp, t1: pd.Timestamp) -> int:
     return int((~closed).sum())
 
 
+def fomc_schedule_2020(
+    t: pd.Series, event_pos: np.ndarray, until: np.ndarray, since: np.ndarray
+) -> tuple[int, int]:
+    """FOMC_SCHEDULE_2020_FIX on the frame's bar ends ``t`` and statement rows ``event_pos``: rewrite ``until`` and
+    ``since`` in place (see the flag).  A no-op unless the frame holds the 2020-01-29 and 2020-04-29 statements, no
+    statement between them, and the scheduled 2020-03-18 14:30 bar.  Returns the rows changed in each."""
+    tv = pd.DatetimeIndex(pd.to_datetime(t)).to_numpy()
+    prev, sched = np.datetime64(pd.Timestamp(FOMC_2020_PREV)), np.datetime64(pd.Timestamp(FOMC_2020_SCHEDULED))
+    ann, nxt = np.datetime64(pd.Timestamp(FOMC_2020_ANNOUNCEMENT)), np.datetime64(pd.Timestamp(FOMC_2020_NEXT))
+    if not event_pos.size:
+        return 0, 0
+    ev_t = tv[event_pos]
+    k = int(np.searchsorted(ev_t, ann))
+    ps = np.flatnonzero(tv == sched)
+    if k == 0 or k >= len(event_pos) or ev_t[k - 1] != prev or ev_t[k] != nxt or not ps.size:
+        return 0, 0  # not this frame's calendar: nothing to fix
+    e_prev, e_next, p_sched = int(event_pos[k - 1]), int(event_pos[k]), int(ps[0])
+    after_ann = np.flatnonzero(tv > ann)
+    i = np.arange(len(tv))
+    before = (i > e_prev) & (tv < ann)
+    until[before] = 1.0 / (1.0 + (p_sched - i[before]).astype(np.float64))
+    reopen = int(after_ann[0])
+    later = (i >= reopen) & (i < e_next)
+    since[later] = 1.0 / (1.0 + (i[later] - reopen).astype(np.float64))
+    return int(before.sum()), int(later.sum())
+
+
 def add_fomc_features(df: pd.DataFrame) -> list[str]:
     """Scheduled-FOMC dummies + inverse bar-distance; NaN after last live print."""
     if FOMC_RAW_COL not in df.columns or "t" not in df.columns:
@@ -526,6 +603,9 @@ def add_fomc_features(df: pd.DataFrame) -> list[str]:
         prev = np.searchsorted(event_pos, i, side="right") - 1
         ok2 = prev >= 0
         since[ok2] = 1.0 / (1.0 + (i[ok2] - event_pos[prev[ok2]]).astype(np.float64))
+    if FOMC_SCHEDULE_2020_FIX:
+        # 2026-10-25 (audit correctness-7): the pre-announced schedule around the replaced March 2020 meeting
+        fomc_schedule_2020(t, event_pos, until, since)
     nxt_t = pd.Timestamp(FOMC_NEXT_STATEMENT)
     if (
         FOMC_CALENDAR_FIX

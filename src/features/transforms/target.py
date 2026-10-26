@@ -199,6 +199,14 @@ def series_is_signed(col_name: str, series: pd.Series) -> bool:
 # ladders were constant; fomc_day's ladder became 27.6x its indicator.
 FOMC_FLAGS_IDENTITY: bool = True
 FOMC_FLAG_SERIES: frozenset[str] = frozenset({"fomc_release", "fomc_day"})
+# 2026-10-25 (coordinator; audit 2026-10-25 fidelity-7; results/fomcfix_2026-10-26/RULE.txt): FOMC_PROXIMITY_NO_WINSOR.
+# fomc_until_inv and fomc_since_inv are deterministic ramps (the log of 1 / (1 + bars to / since the statement)),
+# monotone between statements, so the current bar is the extreme of its own trailing window and the rolling 240-bar
+# 1/99 clip bound on about 87 % of bars, holding each series about two bars behind, most of all next to a statement.
+# With the flag on, the two proximity series skip rolling_winsorize (as FOMC_FLAG_SERIES do); the log and every later
+# step are unchanged.  Off: the chain before the flag, bit for bit.
+FOMC_PROXIMITY_NO_WINSOR: bool = True
+FOMC_PROXIMITY_SERIES: frozenset[str] = frozenset({"fomc_until_inv", "fomc_since_inv"})
 # CAUSAL_SD_FLOOR: the signed branch's s.d. floor is DIURNAL_STD_FLOOR_FRAC x the median of the
 # per-slot s.d. over the rows UP TO the current one (each s.d. is itself built from earlier
 # in-slot rows), not over the full sample (2026-10-15 audit: the causal floor sits 8-50 %
@@ -826,7 +834,9 @@ def robust_transform(
     elif stabilized and not allow_missing:
         series = series.fillna(0.0)  # matches rule 5's NaN policy for signed features
 
-    if winsor_window != 0:
+    # 2026-10-25 (FOMC_PROXIMITY_NO_WINSOR): the FOMC proximity ramps are not winsorized
+    no_winsor = FOMC_PROXIMITY_NO_WINSOR and col_name in FOMC_PROXIMITY_SERIES
+    if winsor_window != 0 and not no_winsor:
         ww = winsor_window if winsor_window is not None else 240
         series = rolling_winsorize(
             series,

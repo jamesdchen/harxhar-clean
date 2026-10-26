@@ -1,0 +1,235 @@
+FOMC-FEATURE FIXES OF THE FINAL POOLED DESIGN: MEASUREMENT (LINEAR), TREES ON THE PATCHED DESIGN, TUNING-PROVENANCE CHECKS
+
+Written 2026-10-25 about 23:25 PDT (2026-10-26 06:25 UTC), before any job of this run; committed and pushed before the
+first submission.  Branch insurance-selling-2026-09-19-e34-fomcfix (from insurance-selling-2026-09-19-e34 e235754),
+worktree C:\Users\james\AppData\Local\Temp\fomcfix_wt.  Request: the coordinator (audit 2026-10-25, findings
+correctness-7 and fidelity-7).  Nothing of the paper (writeup/rehaul/*.tex, writeup/paper_rehaul.tex, the generators)
+is edited here; no Overleaf sync.  Addenda: dated, written before the job they affect (section 10).
+
+0. WHAT IS FIXED (the final run, writeup/final_run.py; unchanged here)
+   Design: the final 13-bar design of results/window_sweep_2014start_2026-10-22/w3000 (rows = the 13 regular-hours bars,
+   end stamps 10:00 .. 16:00 ET, NYSE early-close sessions dropped; HAR ladder and every trailing average on the
+   48-interval grid (lag scope global), base 5, k in {1, 5, 25, 125, 625, 3125}; rolling robust scaling over W = 39,000
+   rows (3,000 days); LATE_START_WARMUP, UNOBSERVED_NEUTRAL, EXCLUDE_FOMC_RELEASE on; DROP_ACTIVITY_MA,
+   CALENDAR_THROUGH_OVERNIGHT, DROP_OVERNIGHT_INDICATOR, LEAN_GLOBAL_LAGS on; HAR benchmark set 12 columns, full set 564
+   columns).  Its caches (md5): baseline X 05da4b5b30ec4579df77f1a3b6dd57ed, all_features X
+   374bea97f35e33a02404dc47c82c3138, y 996504f16da7982d64656d1ba0d9722a, b_oos 7670f01a3055265dfac28ebac1eca864,
+   dates_oos d8a203fe273cd3e8e34987fe5a73048e (CARC /scratch1/jc_905/wsweep/code/results/window_sweep_2014start_
+   2026-10-22/w3000/_work/).
+   Linear: ridge / lasso / elastic net (l1_ratio 0.5) with the frozen penalties of w3000/frozen_penalties.json
+   (all_features ridge 1000, lasso 1e-4, enet 1e-3, penalty factor r = 0.01 on the HAR benchmark block; baseline ridge
+   1e-3, lasso 1e-8, enet 1e-7, r = 1), STANDARDIZE_PENALTY and WALK_KKT_RESEED at the runner's defaults (on); the OLS
+   min-norm; walk from the re-choice boundary 2013-12-27 16:00 (design row 50,750), 33,997 rows a model, refit at every
+   bar; chunks 2 / 4 / 4 for the full-set ridge / lasso / elastic net (14 walk tasks in all).
+   Trees: LightGBM lgbm_opt_00 (cluster/pooltree_lgbm_config.json, sha abab811bd4b6), XGBoost xgb_opt_00
+   (cluster/xgbtop_xgb_config.json, sha 88bec9f385c7), the random forest rf400_rf_opt_00 on oneDAL (rf_skx;
+   cluster/pooltree_rf400_config.json, sha 88eebb5fa9e8); seed 42, 8 threads, refit at every bar, 33,970 bars an arm
+   2014-01-02 10:00 .. 2024-04-30 16:00; the model code of experiments/pooled_trees_rerun_13.py (model_factory,
+   fit_predict) unchanged.  Templates: results/pooled_trees_final_2014start_w3000/forecasts.parquet (lgbm, xgb),
+   results/pooled_rf_skx_2014start_w3000/forecasts.parquet (rf_skx), with their task partitions (tasks_gb.txt: lgbm
+   full 14 pieces, xgb full 29; rf_skx tasks.txt: full 87).
+
+1. THE PATCHES (each a module flag, default on, dated comment; off = the design before it, bit for bit)
+   P1 src/data/loading.py FOMC_SCHEDULE_2020_FIX (audit correctness-7).  The scheduled 17-18 March 2020 meeting is not
+      in data/releases.parquet (replaced by the emergency action announced Sunday 2020-03-15 about 17:00 ET).  On every
+      bar after the 2020-01-29 statement that ends before the announcement, fomc_until_inv counts to the scheduled
+      2020-03-18 statement, stamped at its 14:30 bar end (the convention of FOMC_MISSING_STATEMENTS); from the
+      announcement on it counts to 2020-04-29 (as before); fomc_since_inv counts from the first bar after the
+      announcement (the Sunday-evening reopen, 2020-03-15 18:30 bar end) until the 2020-04-29 statement.  fomc_release
+      and fomc_day are unchanged (no statement added).  Changed rows of the frame (calendar-open grid, where the
+      distances are counted): fomc_until_inv on 2020-01-29 15:00 .. 2020-03-13 20:00 (1,571 bars), fomc_since_inv on
+      2020-03-15 18:30 .. 2020-04-29 14:00 (1,600 bars).  NOTE: the request's "2020-01-30 .. 2020-04-29" leaves out the
+      2020-01-29 bars after the 14:30 statement (15:00 onward); their next statement is 2020-03-18 too, so they change
+      (in the 13-bar design: the 15:00, 15:30 and 16:00 rows of 2020-01-29).  The gate below asserts the exact ranges.
+   P2 src/features/transforms/target.py FOMC_PROXIMITY_NO_WINSOR (audit fidelity-7).  fomc_until_inv and
+      fomc_since_inv skip rolling_winsorize (as FOMC_FLAG_SERIES do), keeping the log and every later step.  The
+      gappy-series behaviour of the winsorizer (VIX family bounds void through NaN gaps) is not touched (a text fix).
+   Both flags reach the runners through --ex-flag NAME=0|1 (experiments/pool_linear_pretune.py: a flag the executor
+   does not have is looked up in src/data/loading.py, then in src/features/transforms/target.py), so every design of
+   this run records both in its config.
+
+2. CELLS (the linear measurement is a 2 x 2 factorial, ADDENDUM A; this section: the FOMC factor)
+   A  the current design: P1 = P2 = 0 (and the holiday factor off).  Its forecasts are the existing final forecasts
+      (w3000/forecasts.parquet); gate L reproduces them from the rebuilt design.
+   B  the FOMC patches: P1 = P2 = 1.
+   Also built for gate G3b only (no walk): P1 = 1, P2 = 0.
+   Every cell: the frozen penalties of section 0 (never re-tuned for the measurement), the same walk start, the same
+   scored set and scorers.  The HAR benchmark set has no FOMC column: cell B's baseline cache must be md5-equal to
+   cell A's (gate G3), and then cell B's HAR rows and the OLS are cell A's (not re-walked).
+
+3. GATES (a failed gate stops what depends on it and is reported)
+   G1 (frame, any machine; code/fomc_frame_check.py): load_raw_data with P1 on vs off differs only in fomc_until_inv
+      and fomc_since_inv, exactly on the ranges of P1 with the values of the rule; load_and_transform (the final
+      design's arguments) on the FOMC series under P1, P2 in {0, 1}: only the adj_ proximity columns (and P1's raw
+      columns) differ; P1 alone changes nothing before 2020-01-29 15:00; P2's changed share of the 2014-2024
+      regular-hours rows is reported (the audit's ~87 %).  Run on the laptop before this file: PASS
+      (results/fomcfix_2026-10-26/gate_G1_frame.json: 86.65 % / 86.88 %).
+   G2 (design, CARC): the cell-A build (both flags 0) reproduces the final design: X, y, b_oos, dates_oos of both sets
+      md5-equal to section 0.
+   G3 (design): cell B against cell A: the baseline cache md5-equal (X, y, b_oos, dates); the full cache's y, b_oos,
+      dates md5-equal; its X equal bit for bit in every column except the 12 value averages
+      adj_fomc_until_inv_ma_k / adj_fomc_since_inv_ma_k (availability averages equal).
+   G3b (design): the P1-only build against cell A: the same column set may differ, and no row before the design row
+      of 2020-01-29 15:00 differs.  Through the trailing averages (up to 3,125 grid bars), the rolling scaler (39,000
+      rows) and its expanding reference IQR, a change in early 2020 can move later rows of those 12 columns; the last
+      differing row and the size of the differences after 2020-04-29 are reported, not gated.
+   L  (linear walks, CARC): the 14 walk tasks of the final run on the cell-A build reproduce w3000/forecasts.parquet's
+      pred_adj and true_adj bit for bit on all 33,997 rows of each of the 7 models.
+   S  (scoring, laptop): the cell-A rows reproduce results/oos_final_2014start/table1_w3000/metrics.csv (QLIKE and MSE
+      every bar, qlike_1600) to 1e-12 relative and its full-vs-HAR QLIKE DM (every bar) to 1e-9, and the D6 Sharpe
+      ratios of results/window_sweep_2014start_2026-10-22/part2/econ.csv (W = 3,000: d6_mid / d6_ba, HAR and full)
+      to 1e-9; for the trees, results/pooled_trees_final_2014start_w3000/scores and results/pooled_rf_skx_2014start_
+      w3000/scores (metrics, DM, econ) the same way.
+   T1 (trees, CARC, per class and CPU model EPYC 7513 / 7542): the first and the last evaluation day (2014-01-02 and
+      2024-04-30, 13 + 13 origins) of the full set on the cell-A build (= the templates' design) reproduce the
+      templates' pred_adj bit for bit (LightGBM, XGBoost, rf_skx), with the environment the walks use.  Only then do
+      the cell-B walks of that class start on that model.
+
+4. SCORING (laptop; code/fomcfix_score.py; the test of Table 1, writeup/make_rehaul_oos_rerun.py)
+   Spans: every bar of the 2,579 evaluation days 2014-01-02 .. 2024-04-30 (NYSE days with a positive 16:00 print,
+   early closes dropped) with RV > 0 and a finite positive forecast of every arm of the panel = Table 1's 33,527 bars
+   (asserted); and the 16:00 bar of those days (2,579).  Forecast plain = pred_adj^2 x B (the cell's own B); truth the
+   bar's sumret2 (data/core_stats.parquet).  Losses QLIKE = r - ln r - 1 (r = RV / plain) and squared error (MSE x
+   1e10).  Diebold-Mariano: src/evaluation/diebold_mariano.dm_test (HLN, Newey-West lag max(h - 1, automatic) = 8 on
+   2,579 days), on the daily average loss (every bar) or the daily 16:00 loss; full vs HAR benchmark of the same class
+   (negative = the full set lower).  % vs HAR = 100 (QLIKE_full / QLIKE_HAR - 1).  D6: the sign strategy of
+   writeup/make_rehaul_economics.add_pooled_linear (q = +1 if the 16:00 plain > iv_var else -1, the quote book's
+   straddle, the 866 option days), the paper's Sharpe ratio make_rehaul_economics.sharpe on the 614 post-warmup days,
+   mid and bid/ask, with hac_inference.d6_diff_test (full vs HAR) for the p; modules and economic inputs read from the
+   main worktree (read only; its *.py asserted unmodified against its HEAD).
+
+5. MATERIALITY (the FOMC effect, cell B against cell A; pre-registered)
+   MATERIAL if, for any of ridge, lasso, elastic net, at every bar or at 16:00:
+     (a) the full-vs-HAR comparison changes sign (the sign of the QLIKE DM statistic flips), or
+     (b) it crosses the 5 % line (DM p < 0.05 in one cell and >= 0.05 in the other), or
+     (c) |QLIKE_full(B) / QLIKE_full(A) - 1| > 0.5 %, or
+     (d) the full set's D6 Sharpe ratio changes by more than 0.10 in absolute value (mid or bid/ask).
+   Reported per class and span with every quantity of (a)-(d); MATERIAL yes/no.
+   DECISION RULE: whatever the result, the three full-set trees are rerun on the cell-B design (section 6).  If
+   MATERIAL, the coordinator is told at once (SendMessage to "main"); nothing else follows from it here: no ablation
+   arm and no robustness arm is rerun (the coordinator decides).  The linear results go to the coordinator as soon as
+   they exist.
+
+6. TREES ON THE PATCHED DESIGN (STEP 3)
+   LightGBM, XGBoost, rf_skx on cell B's full set, the frozen configurations, seed 42, 8 threads, bar refits,
+   2014-01-02 .. 2024-04-30 (33,970 bars), the templates' piece partition (lgbm 14, xgb 29, rf_skx 87 pieces; resumable
+   pieces as experiments/pooled_trees_rerun_13.py walk), merged with its merge mode.  The HAR-benchmark trees are not
+   rerun: their design is md5-equal (G3) and they read no FOMC column; their rows are the templates'.  Scored as
+   section 4 (Table 1 + D6), old (templates) vs new.
+   Environment: CARC Discovery, account pollok_1603, partition main, --constraint "epyc-7513|epyc-7542" (one CPU
+   family: the rf_skx gate of RULE_rf_skx.txt and the trees' gate found 7513 = 7542 bit for bit); python
+   /home1/jc_905/trees_final/venv_skx (the env harxhar-r13 + scikit-learn-intelex 2026.2.0 / daal 2026.2.0; lightgbm
+   4.6.0, xgboost 3.2.0, scikit-learn 1.9.1) for all three classes, under T1.  Run directory /home1/jc_905/fomcfix_trees
+   (design caches md5-copied there).  Hoffman2 Slurm campus only by addendum (its CPU models would need their own T1).
+
+7. TUNING-PROVENANCE CHECKS (STEP 4; results only, nothing for the paper; on the cell-B design)
+   (a) Linear penalty sensitivity: each penalized class at the frozen penalty's neighbours on its pretune grid (one
+       step down and up; the grid of w3000/pretune_mse.csv, the grid rule's extension included): full set ridge 100 and
+       1e4 (1e4 is the grid rule's extension: off the spec grid, passed as --grid-alphas), lasso 1e-5 and 1e-3, elastic
+       net 1e-4 and 1e-2; walked like the frozen arm (same start, chunks 2 / 4 / 4), scored as section 4 against the HAR
+       benchmark of the class (cell B's, = cell A's) and against the frozen full arm (cell B), every bar and 16:00.
+   (b) Linear annual re-tuning: for each year Y = 2014 .. 2024 the penalty of each class and set is re-chosen with the
+       pretune machinery of the final run (experiments/pooled_linear_rerun_2026_10_19_13.py pretune + select, --first-fold
+       3, the same grids and grid rule) with --first-day = the first trading day of Y: validation = the 250 sessions
+       (3,250 rows) before the first bar of Y (the previous calendar year less its first 1-2 sessions), a 25-session
+       embargo, fit on the 39,000 rows before it; only data before Y.  The year's penalty is applied to the bars of Y:
+       a walk from the main walk's 250-solve block boundary at or before the first bar of Y (so a year whose penalty
+       equals the frozen one reproduces the frozen walk) to the last bar of Y, the rows before Y discarded; years
+       stitched.  The OLS is not tuned.  Scored as section 4 (full vs HAR of the re-tuned arms; each re-tuned arm vs its
+       frozen arm), every bar and 16:00; the penalties by year reported (Y = 2014 is the frozen choice made on the cell-B
+       design: equal to the frozen penalty or not, reported).
+   (c) Trees, PRE-SAMPLE ONLY: validation year 2013 = fold 3's year; nothing of this check is scored on 2014 or later.
+       Cadence (coarser than the walk, pre-registered): a refit at the first bar of every 2013 trading day (fit on the
+       39,000 rows before it), forecasting the day's 13 bars (experiments/pooled_trees_rerun_13.py walk --refit day
+       --first-day 2013-01-02 --last-day 2013-12-31; 251 refits).  Variants per class, one factor at a time around the
+       transferred (frozen) configuration T:
+         LightGBM: num_leaves 10 / 40; learning_rate x 1/2 / x 2; n_estimators 196 / 784; min_child_samples 159
+                   (98 x 39,000 / 24,000, the leaf size rescaled from the tuning window).
+         XGBoost:  max_depth 4 / 6; learning_rate x 1/2 / x 2; n_estimators 184 / 734; min_child_weight 81.58
+                   (50.20 x 39,000 / 24,000).
+         rf_skx:   max_depth 15 / 25; n_estimators 243 / 970; min_samples_leaf 6 / 20 (12 x 39,000 / 24,000 = 19.5,
+                   rounded); max_features 0.70 / 1.0.
+       and T with seeds 43, 44, 45, 46 (the seed noise of T).  Full set only.  Metrics on the 2013 bars (all 13 bars of
+       each day): MSE on the adjusted scale (the tuning criterion) and QLIKE of plain against the bar's RV (RV > 0).
+       Reported: the ranking by MSE (and QLIKE); T is "within noise of the best" when the Diebold-Mariano test (dm_test,
+       daily average loss, 2013 days) of the best variant against T has p >= 0.05 (MSE; QLIKE reported too); the seed
+       range of T's MSE is reported beside it.  No configuration is changed by this check.
+   (d) The forest engine: no new work; the numbers of results/rf_engine_bench_2026-10-23 (fold 3) are quoted.
+
+8. COMPUTE, CAPS, PLACEMENT
+   CPU-hours = allocated cores x wall.  Projections (template timings, EPYC): designs 5 builds x 2 cores x < 0.5 h;
+   linear walks and pretunes (cells A-D, 7(a), 7(b)) < 40; trees (section 6) lgbm 249.5 + xgb 383.8 + rf_skx 2,575.5 =
+   3,209 + gate T1 about 20; 7(c) about 320.  CAPS: section 6 + T1 4,000 CPU-hours; 7(c) 1,500; linear 100.  A cap
+   reached stops new submissions of that part and is reported.  Jobs: CARC main (EPYC 7513 / 7542 constraint), never
+   CARC GPUs; at most about 60 running jobs of this run at a time (the per-user limit of 100 is shared with the MinGRU
+   jobs on CARC, which are not touched); no other run's job and no other user's job is touched (the tree-ablation run
+   on Hoffman2 -- UGE array 15273085 and its Slurm pools -- and the MinGRU walk included).
+   Linear environment (the final linear runs'): /scratch1/jc_905/wsweep/venv (python 3.12.3, numpy 1.26.4, OpenBLAS
+   0.3.23.dev), OPENBLAS_CORETYPE=Prescott, numpy's AVX-512 dispatch off where present, one thread a runner process;
+   staging /scratch1/jc_905/fomcfix (code = git archive of the commit, LF line endings).
+   Cluster discipline: native OpenSSH, one session per cluster at a time, polls >= 15 minutes apart; every state-
+   changing command (sbatch, scancel, file copies and moves) issued verbatim from the laptop, none inside a job script.
+
+9. OUTPUTS
+   results/fomcfix_2026-10-26/: RULE.txt, STATUS.md, code/, gate JSONs, compact forecasts (date, pred_adj, B per arm),
+   scores/ (metrics, DM, D6, materiality, effects), tune2013/ (7(c)), annual/ (7(b) penalties).  The laptop holds only
+   compact forecasts and scores.
+
+10. ADDENDA (dated; each written before the jobs it affects)
+
+ADDENDUM A, 2026-10-25 23:25 PDT (2026-10-26 06:25 UTC), with the rule, before any job: THE HOLIDAY FACTOR AND THE 2 x 2 FACTORIAL
+   (coordinator, author approved; audit fidelity-4, numbers-7, correctness-5, design-11)
+   On full NYSE holidays the E-mini trades a shortened session to about 13:00 ET; its regular-hours bars are rows of the
+   13-bar design and enter the target's diurnal factor B (D_{t,i}: the per-slot trailing mean of the last 20 in-slot
+   bars) of the regular-hours slots, and they are forecast but never scored (33,970 forecasts against 33,527 scored
+   bars).  DROP_EARLY_CLOSE_SESSIONS drops the NYSE half days, not the full holidays.
+   Holiday dates (from the sample's own calendar; src/data/loading.py NYSE_HOLIDAY_FUTURES_SESSIONS, re-derived and
+   asserted by code/holiday_sessions.py -> holiday_sessions.csv): a date with a bar ending 10:00 .. 16:00 in the
+   48-interval grid, no 16:00 bar, not an NYSE early close, and no print of any of the 24 constituent series
+   (*_ewstock, *_vwstock) on any bar of the date.  123 dates 2004-01-19 .. 2024-02-19; every one a weekday that the NYSE
+   rule calendar (experiments/rolling_eval_2026_10_15.nyse_sessions) marks as a holiday; no rule-calendar holiday has a
+   16:00 bar.  In 2014-01-02 .. 2024-04-30: 64 dates, 443 regular-hours bars (= 33,970 - 33,527).
+   Flag src/backtest/executor.py DROP_HOLIDAY_SESSIONS (default off; off = bit for bit): (a) the 13-bar design drops
+   those sessions' rows (as the early closes); (b) their bars ending 10:00 .. 16:00 leave B's trailing window (as
+   B_REGULAR_BARS_ONLY leaves out the early closes' post-13:00 bars).  The grid keeps them: the HAR components and the
+   predictors' trailing averages on the full grid as before; the predictors' own diurnal adjustment unchanged.
+   Because B changes the target, both predictor sets are re-walked.
+   CELLS (each with the frozen penalties of section 0, the same scored set (Table 1's 33,527 bars, every bar and
+   16:00), the same scorers; only the named factor differs between compared cells):
+     A  current design (P1 = P2 = 0, holidays kept) = the existing final forecasts (gate L)
+     B  FOMC patches only (P1 = P2 = 1, holidays kept)
+     C  holiday sessions dropped only (P1 = P2 = 0, DROP_HOLIDAY_SESSIONS = 1)
+     D  both (P1 = P2 = 1, DROP_HOLIDAY_SESSIONS = 1)
+   Linear only (ridge, lasso, elastic net on both sets, and the HAR-set OLS, a separate walk): cells C and D walk all
+   14 tasks; their walk start is the 250-solve boundary at or before their own first 2014-01-02 row.  Trees stay as in
+   section 6: cell B only, holiday sessions kept.
+   Effects reported per class, span (every bar, 16:00) and quantity (QLIKE full and HAR, % vs HAR, DM statistic and
+   p, MSE, D6 full and HAR mid and bid/ask):  FOMC effect B - A and D - C;  holiday effect C - A and D - B;
+   interaction (D - C) - (B - A).  The materiality rule of section 5 is the FOMC effect's (B against A); for the
+   holiday effect the same four criteria are reported as information (C against A), not as a decision.
+   Gates: GC (design) cell C's dates_oos = cell A's without exactly the holiday rows (rows of the 123 dates); every
+   2014-2024 scored bar present.  GD (design) cell D against cell C as G3 (baseline md5-equal, the full set's y, b_oos,
+   dates equal, only the 12 FOMC value-average columns differ).  Scored bars: cells C and D forecast every one of the
+   33,527 bars (asserted).
+
+ADDENDUM B, 2026-10-25 23:24 PDT (2026-10-26 06:24 UTC), before the T1 gate jobs: T1'S INPUT
+   T1 runs on the templates' own design copy, /home1/jc_905/trees_final/designs/w3000 (read only; md5 of X, y, b_oos,
+   dates_oos = section 0, re-checked by the job's log), not on this run's cell-A build: the same bytes when G2 passes,
+   and it lets T1 run while the design builds queue.  Everything else of T1 as section 3 (the first and the last
+   evaluation day, full set, LightGBM / XGBoost / rf_skx, EPYC 7513 and 7542, the environment of section 6, pred_adj
+   bit for bit against the templates).  Its outputs: /home1/jc_905/fomcfix_trees/runs/gateT1/<cpu>/pieces/.
+
+ADDENDUM C, 2026-10-26 00:27 PDT (2026-10-26 07:27 UTC), before the jobs it affects: LINEAR STAGING ON /home1
+   The five design jobs (13457116-20, submitted 2026-10-25 23:22 PDT on nodes a01-14, a01-16, a02-17, a04-03, a04-17)
+   hung in I/O on /scratch1 for an hour (about 75 CPU-seconds each; processes asleep; cell C's baseline cache stopped
+   after X.npy and y.npy) -- the failing /scratch1 mount of some compute nodes that moved the rf_skx run to /home1.
+   They were cancelled at 00:27 PDT; nothing they wrote is used.  Changes, nothing else:
+   (a) linear staging /home1/jc_905/fomcfix_lin (code = git archive of this addendum's commit; runs/); task files
+       regenerated with those paths (code/lin_tasks.py, unchanged).
+   (b) the final linear runs' venv copied byte for byte from /scratch1 to /home1/jc_905/fomcfix_lin/{uvpython,venv}
+       (cp -a on the login node; the two absolute symlinks and pyvenv.cfg's home re-pointed to the copy; the md5 of
+       every shared library and every .py of site-packages compared with the source and recorded); the numerical
+       settings of section 8 unchanged.  G2 (bit-identical final design) still gates the environment.
+   (c) code/lin_stage.sh reads the staging root and the python from FF_BASE / FF_PY (defaults: the first paths).
+   (d) the section-6 tree walks and 7(c) read cell B's design cache in place, /home1/jc_905/fomcfix_lin/runs/B (the
+       same file system; its md5 recorded by G3), instead of an md5-copy under /home1/jc_905/fomcfix_trees.
