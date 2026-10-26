@@ -514,3 +514,8 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   No FAILED.
 - 2026-10-25 23:34 PDT: COMPLETED since 22:45: debug 13455342 (dbgp, 42:00), 13455771 (HAR, 48:12). Debug refill
   13457218 (053.p04.g03), 13457219 (dbgp 005.p02.g00). gpu 99 (36 running P100, 63 pending), debug 5. No FAILED.
+- 2026-10-26 00:05 PDT: old-script HAR originals 13380580 (file 000) and 13380581 (001) ended FAILED 143 after 35:50
+  (the pre-15:32 sync-loop bug, expected); from their 15-min partial copies 3,098 / 3,116 of 3,145 refits are done.
+  Remainders pieces/rem/v2w_baseline.000.rem10260005.txt (47 refits) 13457679 (gpu, 76 min) and .001.rem10260005.txt
+  (29) 13457680 (gpu, 65 min). gpu top-up 13457681-86 (HAR 034.p01-p04, 035.p00-p01). gpu 94 (36 running P100, 58
+  pending), debug 4. No other FAILED.
