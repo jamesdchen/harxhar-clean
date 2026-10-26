@@ -501,3 +501,5 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   refill 13454205 (dbgp 005.p01.g01), 13454206 (053.p03.g08); gpu top-up 13454207 (HAR 033.p03), 13454208 (full
   004.p04): all 25 full W 3,000 gpu pieces are now submitted (41 dbgp pieces left for debug). gpu 99 (33 running P100,
   66 pending), debug 5 (1 running). No FAILED.
+- 2026-10-25 19:42 PDT: COMPLETED since 18:55: gpu 13401264 (HAR), debug 13450378 (HAR). Debug refill 13454666 (dbgp
+  005.p01.g02). gpu 99 (33 running P100, 66 pending), debug 5 (2 running). No FAILED.
