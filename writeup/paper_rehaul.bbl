@@ -1,4 +1,4 @@
-\begin{thebibliography}{89}
+\begin{thebibliography}{92}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -242,6 +242,14 @@ Wing~Hong Chan, Ranjini Jha, and Madhu Kalimipalli.
 \newblock \emph{Journal of Financial Research}, 32\penalty0 (3):\penalty0
   231--259, 2009.
 \newblock \doi{10.1111/j.1475-6803.2009.01249.x}.
+
+\bibitem[Chen et~al.(2012)Chen, Yu, and Zivot]{ChenYuZivot2012}
+Chun-Hung Chen, Wei-Choun Yu, and Eric Zivot.
+\newblock Predicting stock volatility using after-hours information: Evidence
+  from the {NASDAQ} actively traded stocks.
+\newblock \emph{International Journal of Forecasting}, 28\penalty0
+  (2):\penalty0 366--383, 2012.
+\newblock \doi{10.1016/j.ijforecast.2011.04.005}.
 
 \bibitem[Chen and Guestrin(2016)]{Chen2016}
 Tianqi Chen and Carlos Guestrin.
@@ -576,6 +584,14 @@ Zhouyu Shen and Dacheng Xiu.
 \newblock Can machines learn weak signals?
 \newblock Technical report, NBER Working Paper 33421, 2025.
 
+\bibitem[Stroud and Johannes(2014)]{StroudJohannes2014}
+Jonathan~R. Stroud and Michael~S. Johannes.
+\newblock Bayesian modeling and forecasting of 24-hour high-frequency
+  volatility.
+\newblock \emph{Journal of the American Statistical Association}, 109\penalty0
+  (508):\penalty0 1368--1384, 2014.
+\newblock \doi{10.1080/01621459.2014.937003}.
+
 \bibitem[Taylor and Xu(1997)]{TaylorXu1997}
 Stephen~J. Taylor and Xinzhong Xu.
 \newblock The incremental volatility information in one million foreign
@@ -589,6 +605,13 @@ Robert Tibshirani.
 \newblock Regression shrinkage and selection via the lasso.
 \newblock \emph{Journal of the Royal Statistical Society: Series B},
   58\penalty0 (1):\penalty0 267--288, 1996.
+
+\bibitem[Todorova and Sou{\v{c}}ek(2014)]{TodorovaSoucek2014}
+Neda Todorova and Michael Sou{\v{c}}ek.
+\newblock Overnight information flow and realized volatility forecasting.
+\newblock \emph{Finance Research Letters}, 11\penalty0 (4):\penalty0 420--428,
+  2014.
+\newblock \doi{10.1016/j.frl.2014.07.001}.
 
 \bibitem[van~de Wiel et~al.(2021)van~de Wiel, van Nee, and
   Rauschenberger]{vandeWiel2021multipenalty}

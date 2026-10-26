@@ -68,9 +68,14 @@
   % 2026-10-24 (user): parked -- intraday volatility forecasting cites Engle--Sokalska and Zhang et al. Was: "The
   % primary empirical results reported in Section~\ref{sec:rh_results} focus on the pooled intraday estimation
   % scheme, $\mathcal I = \{1, \dots, M\}$."
+  % 2026-10-25 (user): parked -- "I = {1, ..., M}, a single model across the intervals of the day": the pooled
+  % models are estimated on the regular-hours intervals, their predictors computed on the full grid. Was: "...
+  % estimation scheme, $\mathcal I = \{1, \dots, M\}$, a single model across the intervals of the day, as in the ..."
   \item The primary empirical results reported in Section~\ref{sec:rh_results} focus on the pooled intraday
-    estimation scheme, $\mathcal I = \{1, \dots, M\}$, a single model across the intervals of the day, as in the
-    intraday volatility forecasting of \citet{EngleSokalska2012} and \citet{ZhangZhangCucuringuQian2024}.
+    estimation scheme, $\mathcal I = \mathcal I_{\mathrm{rh}}$, a single model across the intervals of the regular
+    trading session, as in the intraday volatility forecasting of \citet{EngleSokalska2012} and
+    \citet{ZhangZhangCucuringuQian2024}. Its predictors are computed over the futures' full intraday grid, overnight
+    intervals included.
   % 2026-10-18 (user, new-notes 10): parked -- closing cadence only in the closing section. Was: "\item As our primary benchmark forecast, we employ the daily ordinary least squares (OLS) regression on the"
   \item As our primary benchmark forecast, we employ the ordinary least squares (OLS) regression on the
     % 2026-10-17 (user): parked -- closing-interval material (relabeled: closing-interval HAR benchmark). Was: "estimated exclusively on the closing interval (see"

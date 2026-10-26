@@ -76,11 +76,15 @@
   % 2026-10-24 (user): parked -- the framing sentence before it cited the intraday volatility forecasting precedents.
   % Was: "We follow this practice; it is what allows one model to be estimated across all intervals of the trading
   % day."
-  days. We follow this practice; it is what allows one model to be estimated across all intervals of the trading
-  day, as in the intraday volatility forecasts of \citet{EngleSokalska2012}, whose multiplicative component GARCH
-  model writes intraday volatility as the product of daily, diurnal, and stochastic intraday components and is
-  estimated pooled across a large cross-section of stocks, and, with machine-learning models over intraday buckets,
-  of \citet{ZhangZhangCucuringuQian2024}.\newline
+  % 2026-10-25 (user): parked -- "all intervals of the trading day": both precedents estimate on the regular
+  % session and delete the overnight return (Engle--Sokalska, Sec. 2.1; Zhang et al., Sec. 3). Was: "days. We follow
+  % this practice; it is what allows one model to be estimated across all intervals of the trading day, as in ..."
+  days. We follow this practice; it is what allows one model to be estimated across the intervals of the regular
+  trading session, as in the intraday volatility forecasts of \citet{EngleSokalska2012}, whose multiplicative
+  component GARCH model writes intraday volatility as the product of daily, diurnal, and stochastic intraday
+  components and is estimated pooled across a large cross-section of stocks, and, with machine-learning models over
+  intraday buckets, of \citet{ZhangZhangCucuringuQian2024}. Both leave the overnight return out of estimation, and
+  so do we: our models are estimated on the regular-hours intervals only (Section~\ref{sec:rh_exp_setup}).\newline
   % 2026-10-16 (user, E1): parked -- the display was our target, not the literature's. Was:
   % "divides by a diurnal adjustment, here $y_{t,i} = \sqrt{\RV_{t,i}/s^2_{t,i}}$, with $\RV_{t,i}$ the realized
   % variance of intraday interval $i$ on day $t$ and $s^2_{t,i}$ its diurnal adjustment."
@@ -95,6 +99,17 @@
   % 2026-10-15 (bib pass): parked -- the [to add] placeholder, now \citet keys in references.bib. Was:
   % \item \todo{to add: Taylor--Xu 1997 (periodicity factor); Engle--Sokalska 2012 (intraday volatility)}.
   \end{itemize}
+% 2026-10-25 (user): new bullet -- overnight data enter the predictors, not the estimation sample.
+\item \textbf{Overnight information.} Volatility forecasts for the trading session have long used information from
+  outside it: after-hours realized variance helps predict next-day stock volatility \citep{ChenYuZivot2012}, and
+  overnight information, including the realized volatility of related assets that trade while the home market is
+  closed, improves realized volatility forecasts \citep{TodorovaSoucek2014}. For the S\&P 500 futures, which trade
+  nearly around the clock, \citet{StroudJohannes2014} model all 5-minute returns, not only those of the regular
+  session, and argue that deleting the overnight returns removes important information. These studies forecast
+  daily or session volatility. We carry the idea to the intraday interval: our models are estimated and scored on
+  the regular-hours intervals, as in the precedents above, while their predictors, the trailing averages of the
+  target and of the exogenous series, are computed over the futures' full intraday grid, overnight intervals
+  included (Section~\ref{sec:rh_predictors}).
 \item \textbf{0DTE options and the variance risk premium.} The variance risk premium, defined as the difference
   between option-implied variance and expected realized variance,
   $\E^{\mathbb{Q}}_t[\RV_t] - \E^{\mathbb{P}}_t[\RV_t]$, under the risk-neutral ($\mathbb Q$) and physical

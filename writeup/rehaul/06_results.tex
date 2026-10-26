@@ -355,7 +355,8 @@ We refer the reader to Appendix~\ref{app:rh_impl} for comprehensive implementati
 % within the pooled intraday scheme. Was: "... the same model $m$ and estimation sample $\mathcal I$ on the two
 % predictor sets, ... the loss of the forecast $f_{m,\mathcal X,\mathcal I}$:"
 \item \textbf{Paired comparison within each model class.} To isolate the predictive contribution of the exogenous
-  features within each intraday model class $m$ ($\mathcal I = \{1, \dots, M\}$), we form the daily loss
+  % 2026-10-25 (user): parked -- the label I = {1, ..., M}; the pooled models are estimated on I_rh.
+  features within each intraday model class $m$ ($\mathcal I = \mathcal I_{\mathrm{rh}}$), we form the daily loss
   differential $d_t = L^{\text{Full}}_t - L^{\text{HAR}}_t$, where
   % 2026-10-15 (user): parked -- "park all tables that I haven't mentioned in this chat". Was: $f_{m,\mathcal X,\mathcal I}$ (Table~\ref{tab:rh_axis1}):
   $L^{\mathcal X}_t$ denotes the QLIKE loss of the forecast $f_{m,\mathcal X,\{1,\dots,M\}}$. We report the
