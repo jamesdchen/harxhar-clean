@@ -159,7 +159,7 @@ def main() -> None:
     GEN.mkdir(parents=True, exist_ok=True)
     lines = [
         HEAD,
-        "% \rhcx... macros of the draft scaling subsection (writeup/drafts/2026-10-26_complexity.tex): the window x",
+        "% \\rhcx... macros of the draft scaling subsection (writeup/drafts/2026-10-26_complexity.tex): the window x",
         f"% feature-count grid of {GRID.relative_to(ROOT).as_posix()} (RULE.txt ADDENDA 1 and 3).  Names: Gain<Model><Span>",
         "% <W><k> (QLIKE gain over the same window's k = 0 rung, x 10^3), Kstar / Kninety (best k, k at 90 % of the full",
         "% set's gain), ...Read (the reading across windows), Model Lgbm Xgb Ridge Lasso Enet, Span Bar (every bar) / Close",
@@ -171,7 +171,7 @@ def main() -> None:
             "% A record of the pre-patch run: same macro names as rehaul_complexity_numbers.tex; never input both."
         )
     for name, value, note in M:
-        lines.append(f"\providecommand{{\{name}}}{{}}\renewcommand{{\{name}}}{{{value}}}  % {note}")
+        lines.append(f"\\providecommand{{\\{name}}}{{}}\\renewcommand{{\\{name}}}{{{value}}}  % {note}")
     (GEN / f"rehaul_complexity_numbers{TAG}.tex").write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
     figures(S)
     cap = CAPTION[TAG]
