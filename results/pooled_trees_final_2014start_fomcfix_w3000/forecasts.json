@@ -1,0 +1,90 @@
+{
+ "refit": "bar",
+ "span": [
+  "2014-01-02",
+  "2024-04-30"
+ ],
+ "window_days": 3000,
+ "pieces": {
+  "lgbm/baseline": [
+   "lgbm_baseline_bar_2014-01-02_2024-04-30_1of3.parquet",
+   "lgbm_baseline_bar_2014-01-02_2024-04-30_2of3.parquet",
+   "lgbm_baseline_bar_2014-01-02_2024-04-30_3of3.parquet"
+  ],
+  "lgbm/all_features": [
+   "lgbm_all_features_bar_2014-01-02_2024-04-30_10of14.parquet",
+   "lgbm_all_features_bar_2014-01-02_2024-04-30_11of14.parquet",
+   "lgbm_all_features_bar_2014-01-02_2024-04-30_12of14.parquet",
+   "lgbm_all_features_bar_2014-01-02_2024-04-30_13of14.parquet",
+   "lgbm_all_features_bar_2014-01-02_2024-04-30_14of14.parquet",
+   "lgbm_all_features_bar_2014-01-02_2024-04-30_1of14.parquet",
+   "lgbm_all_features_bar_2014-01-02_2024-04-30_2of14.parquet",
+   "lgbm_all_features_bar_2014-01-02_2024-04-30_3of14.parquet",
+   "lgbm_all_features_bar_2014-01-02_2024-04-30_4of14.parquet",
+   "lgbm_all_features_bar_2014-01-02_2024-04-30_5of14.parquet",
+   "lgbm_all_features_bar_2014-01-02_2024-04-30_6of14.parquet",
+   "lgbm_all_features_bar_2014-01-02_2024-04-30_7of14.parquet",
+   "lgbm_all_features_bar_2014-01-02_2024-04-30_8of14.parquet",
+   "lgbm_all_features_bar_2014-01-02_2024-04-30_9of14.parquet"
+  ],
+  "xgb/baseline": [
+   "xgb_baseline_bar_2014-01-02_2024-04-30_1of4.parquet",
+   "xgb_baseline_bar_2014-01-02_2024-04-30_2of4.parquet",
+   "xgb_baseline_bar_2014-01-02_2024-04-30_3of4.parquet",
+   "xgb_baseline_bar_2014-01-02_2024-04-30_4of4.parquet"
+  ],
+  "xgb/all_features": [
+   "xgb_all_features_bar_2014-01-02_2024-04-30_10of29.parquet",
+   "xgb_all_features_bar_2014-01-02_2024-04-30_11of29.parquet",
+   "xgb_all_features_bar_2014-01-02_2024-04-30_12of29.parquet",
+   "xgb_all_features_bar_2014-01-02_2024-04-30_13of29.parquet",
+   "xgb_all_features_bar_2014-01-02_2024-04-30_14of29.parquet",
+   "xgb_all_features_bar_2014-01-02_2024-04-30_15of29.parquet",
+   "xgb_all_features_bar_2014-01-02_2024-04-30_16of29.parquet",
+   "xgb_all_features_bar_2014-01-02_2024-04-30_17of29.parquet",
+   "xgb_all_features_bar_2014-01-02_2024-04-30_18of29.parquet",
+   "xgb_all_features_bar_2014-01-02_2024-04-30_19of29.parquet",
+   "xgb_all_features_bar_2014-01-02_2024-04-30_1of29.parquet",
+   "xgb_all_features_bar_2014-01-02_2024-04-30_20of29.parquet",
+   "xgb_all_features_bar_2014-01-02_2024-04-30_21of29.parquet",
+   "xgb_all_features_bar_2014-01-02_2024-04-30_22of29.parquet",
+   "xgb_all_features_bar_2014-01-02_2024-04-30_23of29.parquet",
+   "xgb_all_features_bar_2014-01-02_2024-04-30_24of29.parquet",
+   "xgb_all_features_bar_2014-01-02_2024-04-30_25of29.parquet",
+   "xgb_all_features_bar_2014-01-02_2024-04-30_26of29.parquet",
+   "xgb_all_features_bar_2014-01-02_2024-04-30_27of29.parquet",
+   "xgb_all_features_bar_2014-01-02_2024-04-30_28of29.parquet",
+   "xgb_all_features_bar_2014-01-02_2024-04-30_29of29.parquet",
+   "xgb_all_features_bar_2014-01-02_2024-04-30_2of29.parquet",
+   "xgb_all_features_bar_2014-01-02_2024-04-30_3of29.parquet",
+   "xgb_all_features_bar_2014-01-02_2024-04-30_4of29.parquet",
+   "xgb_all_features_bar_2014-01-02_2024-04-30_5of29.parquet",
+   "xgb_all_features_bar_2014-01-02_2024-04-30_6of29.parquet",
+   "xgb_all_features_bar_2014-01-02_2024-04-30_7of29.parquet",
+   "xgb_all_features_bar_2014-01-02_2024-04-30_8of29.parquet",
+   "xgb_all_features_bar_2014-01-02_2024-04-30_9of29.parquet"
+  ]
+ },
+ "cpu_models": {
+  "lgbm/baseline": [
+   "AMD EPYC 7513 32-Core Processor",
+   "AMD EPYC 7542 32-Core Processor"
+  ],
+  "lgbm/all_features": [
+   "AMD EPYC 7513 32-Core Processor",
+   "AMD EPYC 7542 32-Core Processor"
+  ],
+  "xgb/baseline": [
+   "AMD EPYC 7513 32-Core Processor",
+   "AMD EPYC 7542 32-Core Processor"
+  ],
+  "xgb/all_features": [
+   "AMD EPYC 7513 32-Core Processor",
+   "AMD EPYC 7542 32-Core Processor"
+  ]
+ },
+ "sources": {
+  "baseline": "results/pooled_trees_final_2014start_w3000 (HAR benchmark design md5-identical, gate G3; not rerun)",
+  "all_features": "CARC /home1/jc_905/fomcfix_trees/runs/B (cell B of results/fomcfix_2026-10-26/RULE.txt)"
+ }
+}

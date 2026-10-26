@@ -1,0 +1,24 @@
+# Pooled trees, final design, W = 3,000 days: scores 2014-01-02 .. 2024-04-30
+2,579 evaluation days; every bar: 33,527 bars (the linear rows' scored set, asserted); 16:00: 2,579 days.  QLIKE, MSE x 1e10, R2_OOS in %.  DM: all features vs HAR benchmark of the same model on the daily average loss (negative = full lower), p in parentheses.
+
+| model | set | QLIKE every bar | MSE every bar | R2_OOS | QLIKE 16:00 | DM full vs HAR, every bar | DM 16:00 |
+|---|---|---|---|---|---|---|---|
+| LightGBM | HAR | 0.18751 | 1.182 | 63.27 | 0.12350 |  |  |
+| LightGBM | full | 0.16106 | 1.418 | 55.93 | 0.12021 | -10.26 (0.000) | -1.76 (0.079) |
+| XGBoost | HAR | 0.18878 | 1.161 | 63.91 | 0.12342 |  |  |
+| XGBoost | full | 0.16121 | 1.350 | 58.03 | 0.11954 | -9.94 (0.000) | -2.01 (0.044) |
+| OLS (linear run) | HAR | 0.18927 | 1.112 | 65.44 | 0.12687 |  |  |
+| Ridge (linear run) | HAR | 0.18927 | 1.112 | 65.44 | 0.12687 |  |  |
+| Ridge (linear run) | full | 0.17783 | 2.230 | 30.70 | 0.12913 | -6.28 (0.000) | +0.67 (0.500) |
+| Lasso (linear run) | HAR | 0.18927 | 1.112 | 65.44 | 0.12687 |  |  |
+| Lasso (linear run) | full | 0.17230 | 2.387 | 25.83 | 0.13225 | -6.34 (0.000) | +1.35 (0.178) |
+| Elastic net (linear run) | HAR | 0.18927 | 1.112 | 65.44 | 0.12687 |  |  |
+| Elastic net (linear run) | full | 0.17660 | 2.420 | 24.78 | 0.12764 | -7.36 (0.000) | +0.24 (0.807) |
+
+## Sign strategy, 614 post-warmup option days (2021-08-11 .. 2024-04-30), trees
+D6 Sharpe ratio (paper), ΔD6 = full − HAR with the D6 bootstrap p; D1 with the Ledoit–Wolf p; SR614 = the pooled 614-day ratio; LLSW t (p) of the daily return difference (mid).
+
+| model | D6 HAR | D6 full | ΔD6 mid (p) | D6 b/a HAR | D6 b/a full | ΔD6 b/a (p) | D1 HAR / full | ΔD1 (LW p) | SR614 HAR / full | LLSW t (p) | long share HAR / full |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| LightGBM | 0.61 | 1.67 | +1.06 (0.063) | 0.25 | 1.31 | +1.06 (0.061) | 0.70 / 1.32 | +0.62 (0.050) | 0.69 / 1.62 | 1.89 (0.076) | 0.311 / 0.238 |
+| XGBoost | 0.91 | 1.71 | +0.81 (0.116) | 0.55 | 1.36 | +0.81 (0.114) | 0.99 / 1.29 | +0.30 (0.204) | 1.04 / 1.63 | 1.16 (0.268) | 0.314 / 0.233 |
