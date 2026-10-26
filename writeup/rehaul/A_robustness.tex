@@ -22,15 +22,15 @@
 \ifdefined\rhtaNdays\else\input{generated/rehaul_train_arms_numbers}\fi
 \ifdefined\rhrbWinMain\else\input{generated/rehaul_robust_w3500_numbers}\fi
 \ifdefined\rhholNSessions\else\IfFileExists{generated/rehaul_holiday_numbers.tex}{\input{generated/rehaul_holiday_numbers}}{}\fi
-\providecommand{\rhPending}{\textit{pending}}
+% 2026-10-26 (coordinator): parked stop-gap, the macro is now generated -- \providecommand{\rhPending}{\textit{pending}}
 % Window-sweep macros, not generated yet (NUMBERS: from results/window_sweep_2014start_2026-10-22/part2 and
 % latestart/latestart_spans.txt). Stop-gaps at the values of the sweep's design (part2/tables.txt: windows 1,000,
 % 1,500, ..., 3,500 trading days; latestart_spans.txt, fold-3 validation year: some late-start columns live at
 % W = 1,000, none at W >= 2,000); \providecommand, so a generated macro wins once it exists.
-\providecommand{\rhwsNWin}{six}  % windows scored out of sample
-\providecommand{\rhwsWinMin}{1{,}000}  % shortest window, trading days
-\providecommand{\rhwsWinMax}{3{,}500}  % longest window, trading days
-\providecommand{\rhwsLateNoneFrom}{2{,}000}  % shortest window at which no late-start column is live in the fold
+% 2026-10-26 (coordinator): parked stop-gap, the macro is now generated -- \providecommand{\rhwsNWin}{six}  % windows scored out of sample
+% 2026-10-26 (coordinator): parked stop-gap, the macro is now generated -- \providecommand{\rhwsWinMin}{1{,}000}  % shortest window, trading days
+% 2026-10-26 (coordinator): parked stop-gap, the macro is now generated -- \providecommand{\rhwsWinMax}{3{,}500}  % longest window, trading days
+% 2026-10-26 (coordinator): parked stop-gap, the macro is now generated -- \providecommand{\rhwsLateNoneFrom}{2{,}000}  % shortest window at which no late-start column is live in the fold
 
 \subsection{Estimation window}
 \label{app:rh_robust_window}

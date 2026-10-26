@@ -8,27 +8,27 @@
 % Stop-gap definitions (2026-10-26, DATA agent): constants of the code with no generated macro yet, at the values of the
 % code. \providecommand, so the generators' macros win once they exist (requested from the NUMBERS agent; generator in
 % brackets). The first two and the FOMC dates repeat the lines of 04_features.tex and 03_data.tex (no-ops here then).
-\providecommand{\rhdmWinsorWindow}{240}  % [make_rehaul_data_methods.py] target.py rolling_winsorize window (robust_transform default 240)
-\providecommand{\rhdmIqrFloorFrac}{0.01}  % [make_rehaul_data_methods.py] scaling.py IQR_FLOOR_FRAC
-\providecommand{\rhdmWinsorLoPct}{1}  % [make_rehaul_data_methods.py] target.py WINSOR_LOWER_Q x 100
-\providecommand{\rhdmWinsorHiPct}{99}  % [make_rehaul_data_methods.py] target.py WINSOR_UPPER_Q x 100
-\providecommand{\rhdmBandLo}{0.5}  % [make_rehaul_data_methods.py] target.py DIURNAL_SLOT_BAND_FRAC (band [f rho, rho / f])
-\providecommand{\rhdmBandHi}{2}  % [make_rehaul_data_methods.py] 1 / DIURNAL_SLOT_BAND_FRAC
-\providecommand{\rhdmSlotRefWindow}{250}  % [make_rehaul_data_methods.py] target.py DIURNAL_SLOT_REF_WINDOW
-\providecommand{\rhdmSlotRefMin}{20}  % [make_rehaul_data_methods.py] target.py DIURNAL_SLOT_REF_MIN
-\providecommand{\rhdmSdFloorFrac}{0.1}  % [make_rehaul_data_methods.py] target.py DIURNAL_STD_FLOOR_FRAC
-\providecommand{\rhdmLogFloor}{\ensuremath{10^{-12}}}  % [make_rehaul_data_methods.py] target.py log rule, log(clip(x, 1e-12))
-\providecommand{\rhdmAsinhScaleFrac}{0.01}  % [make_rehaul_data_methods.py] target.py asinh scale floor, 0.01 x expanding median
-\providecommand{\rhdmAsinhHalfLife}{12{,}000}  % [make_rehaul_data_methods.py] ASINH_SCALE_HALFLIFE_DAYS x PERIODS_PER_DAY
-\providecommand{\rhdmAsinhHalfLifeDays}{250}  % [make_rehaul_data_methods.py] target.py ASINH_SCALE_HALFLIFE_DAYS
-\providecommand{\rhdmIqrGridStep}{480}  % [make_rehaul_data_methods.py] executor.py _expanding_real_iqr grid_step
-\providecommand{\rhdmIqrMinRows}{8}  % [make_rehaul_data_methods.py] executor.py _expanding_real_iqr, rows before a value
-\providecommand{\rhdmIqrEps}{\ensuremath{10^{-12}}}  % [make_rehaul_data_methods.py] scaling.py IQR guard (below it -> 1)
-\providecommand{\rhdmBarsPerSession}{46}  % [make_rehaul_data_methods.py] executor.py BARS_PER_SESSION (ERODE_IN_BARS)
-\providecommand{\rhdsFomcSchedMeeting}{17--18 March 2020}  % [make_rehaul_disclosures.py] loading.py FOMC_2020_SCHEDULED
-\providecommand{\rhdsFomcReplaced}{15 March 2020}  % [make_rehaul_disclosures.py] loading.py FOMC_2020_ANNOUNCEMENT
-\providecommand{\rhdsFomcNextIssued}{29 April 2020}  % [make_rehaul_disclosures.py] loading.py FOMC_2020_NEXT
-\providecommand{\rhPending}{\textit{pending}}
+% 2026-10-26 (coordinator): parked stop-gap, the macro is now generated -- \providecommand{\rhdmWinsorWindow}{240}  % [make_rehaul_data_methods.py] target.py rolling_winsorize window (robust_transform default 240)
+% 2026-10-26 (coordinator): parked stop-gap, the macro is now generated -- \providecommand{\rhdmIqrFloorFrac}{0.01}  % [make_rehaul_data_methods.py] scaling.py IQR_FLOOR_FRAC
+% 2026-10-26 (coordinator): parked stop-gap, the macro is now generated -- \providecommand{\rhdmWinsorLoPct}{1}  % [make_rehaul_data_methods.py] target.py WINSOR_LOWER_Q x 100
+% 2026-10-26 (coordinator): parked stop-gap, the macro is now generated -- \providecommand{\rhdmWinsorHiPct}{99}  % [make_rehaul_data_methods.py] target.py WINSOR_UPPER_Q x 100
+% 2026-10-26 (coordinator): parked stop-gap, the macro is now generated -- \providecommand{\rhdmBandLo}{0.5}  % [make_rehaul_data_methods.py] target.py DIURNAL_SLOT_BAND_FRAC (band [f rho, rho / f])
+% 2026-10-26 (coordinator): parked stop-gap, the macro is now generated -- \providecommand{\rhdmBandHi}{2}  % [make_rehaul_data_methods.py] 1 / DIURNAL_SLOT_BAND_FRAC
+% 2026-10-26 (coordinator): parked stop-gap, the macro is now generated -- \providecommand{\rhdmSlotRefWindow}{250}  % [make_rehaul_data_methods.py] target.py DIURNAL_SLOT_REF_WINDOW
+% 2026-10-26 (coordinator): parked stop-gap, the macro is now generated -- \providecommand{\rhdmSlotRefMin}{20}  % [make_rehaul_data_methods.py] target.py DIURNAL_SLOT_REF_MIN
+% 2026-10-26 (coordinator): parked stop-gap, the macro is now generated -- \providecommand{\rhdmSdFloorFrac}{0.1}  % [make_rehaul_data_methods.py] target.py DIURNAL_STD_FLOOR_FRAC
+% 2026-10-26 (coordinator): parked stop-gap, the macro is now generated -- \providecommand{\rhdmLogFloor}{\ensuremath{10^{-12}}}  % [make_rehaul_data_methods.py] target.py log rule, log(clip(x, 1e-12))
+% 2026-10-26 (coordinator): parked stop-gap, the macro is now generated -- \providecommand{\rhdmAsinhScaleFrac}{0.01}  % [make_rehaul_data_methods.py] target.py asinh scale floor, 0.01 x expanding median
+% 2026-10-26 (coordinator): parked stop-gap, the macro is now generated -- \providecommand{\rhdmAsinhHalfLife}{12{,}000}  % [make_rehaul_data_methods.py] ASINH_SCALE_HALFLIFE_DAYS x PERIODS_PER_DAY
+% 2026-10-26 (coordinator): parked stop-gap, the macro is now generated -- \providecommand{\rhdmAsinhHalfLifeDays}{250}  % [make_rehaul_data_methods.py] target.py ASINH_SCALE_HALFLIFE_DAYS
+% 2026-10-26 (coordinator): parked stop-gap, the macro is now generated -- \providecommand{\rhdmIqrGridStep}{480}  % [make_rehaul_data_methods.py] executor.py _expanding_real_iqr grid_step
+% 2026-10-26 (coordinator): parked stop-gap, the macro is now generated -- \providecommand{\rhdmIqrMinRows}{8}  % [make_rehaul_data_methods.py] executor.py _expanding_real_iqr, rows before a value
+% 2026-10-26 (coordinator): parked stop-gap, the macro is now generated -- \providecommand{\rhdmIqrEps}{\ensuremath{10^{-12}}}  % [make_rehaul_data_methods.py] scaling.py IQR guard (below it -> 1)
+% 2026-10-26 (coordinator): parked stop-gap, the macro is now generated -- \providecommand{\rhdmBarsPerSession}{46}  % [make_rehaul_data_methods.py] executor.py BARS_PER_SESSION (ERODE_IN_BARS)
+% 2026-10-26 (coordinator): parked stop-gap, the macro is now generated -- \providecommand{\rhdsFomcSchedMeeting}{17--18 March 2020}  % [make_rehaul_disclosures.py] loading.py FOMC_2020_SCHEDULED
+% 2026-10-26 (coordinator): parked stop-gap, the macro is now generated -- \providecommand{\rhdsFomcReplaced}{15 March 2020}  % [make_rehaul_disclosures.py] loading.py FOMC_2020_ANNOUNCEMENT
+% 2026-10-26 (coordinator): parked stop-gap, the macro is now generated -- \providecommand{\rhdsFomcNextIssued}{29 April 2020}  % [make_rehaul_disclosures.py] loading.py FOMC_2020_NEXT
+% 2026-10-26 (coordinator): parked stop-gap, the macro is now generated -- \providecommand{\rhPending}{\textit{pending}}
 
 % ----------------------------------------------------------------------------------------------------------------------
 % From 03_data.tex (2026-10-26): the liquidity, market, sentiment, implied-volatility and volatility-demand bullets,

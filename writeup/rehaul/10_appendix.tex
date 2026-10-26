@@ -336,11 +336,11 @@
 % 2026-10-26 (integration, JFEc; D15, audit fidelity-4 / design-11): added -- the holiday sessions in s^2.
 % 2026-10-26 (integration, JFEc; DATA relay, audit numbers-16): typed 20, 5, 240, 1st / 99th -> macros. NUMBERS adds
 % them to make_rehaul_data_methods.py; the stop-gaps below hold the code's values and yield to the generated ones.
-\providecommand{\rhdmDiurnalWindow}{20}  % [make_rehaul_data_methods.py] target.py per-slot rolling(20) of the diurnal factor
-\providecommand{\rhdmDiurnalMin}{5}  % [make_rehaul_data_methods.py] target.py min_periods = 5 of that rolling mean
-\providecommand{\rhdmWinsorWindow}{240}  % [make_rehaul_data_methods.py] target.py rolling_winsorize window
-\providecommand{\rhdmWinsorLoPct}{1}  % [make_rehaul_data_methods.py] target.py WINSOR_LOWER_Q x 100
-\providecommand{\rhdmWinsorHiPct}{99}  % [make_rehaul_data_methods.py] target.py WINSOR_UPPER_Q x 100
+% 2026-10-26 (coordinator): parked stop-gap, the macro is now generated -- \providecommand{\rhdmDiurnalWindow}{20}  % [make_rehaul_data_methods.py] target.py per-slot rolling(20) of the diurnal factor
+% 2026-10-26 (coordinator): parked stop-gap, the macro is now generated -- \providecommand{\rhdmDiurnalMin}{5}  % [make_rehaul_data_methods.py] target.py min_periods = 5 of that rolling mean
+% 2026-10-26 (coordinator): parked stop-gap, the macro is now generated -- \providecommand{\rhdmWinsorWindow}{240}  % [make_rehaul_data_methods.py] target.py rolling_winsorize window
+% 2026-10-26 (coordinator): parked stop-gap, the macro is now generated -- \providecommand{\rhdmWinsorLoPct}{1}  % [make_rehaul_data_methods.py] target.py WINSOR_LOWER_Q x 100
+% 2026-10-26 (coordinator): parked stop-gap, the macro is now generated -- \providecommand{\rhdmWinsorHiPct}{99}  % [make_rehaul_data_methods.py] target.py WINSOR_UPPER_Q x 100
 \item \textbf{Diurnal adjustment} $s^2_{t,i}$ (Section~\ref{sec:rh_methods_setup}): $n_{\mathrm{d}} =
   \rhdmDiurnalWindow$ trading days, at least $\underline n_{\mathrm{d}} = \rhdmDiurnalMin$ of them; intervals with
   fewer have $s^2_{t,i} = 1$. The trailing bars of a regular-hours slot include those of the shortened sessions
