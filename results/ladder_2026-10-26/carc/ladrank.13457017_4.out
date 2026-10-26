@@ -1,0 +1,7 @@
+ladder task 4 on a03-17.hpc.usc.edu [AMD EPYC 7513 32-Core Processor] Sun Oct 25 23:10:16 PDT 2026
+line: linear rank 3
+NPY_DISABLE_CPU_FEATURES=
+[23:11:09] rank ridge: recon 5.1e-15, live 45; top 10 ['fomc_day', 'sumabsret', 'fomc_until_inv', 'sumret', 'sumabsret_vwstock', 'sumautocov', 'turnover_ewstock', 'sumret4', 'spread_vwstock', 'buyturnover_vwstock']
+[23:11:09] rank lasso: recon 5.8e-15, live 45; top 10 ['fomc_until_inv', 'fomc_day', 'fomc_since_inv', 'sumabsret', 'sumret', 'turnover_ewstock', 'sumabsret_vwstock', 'buyturnover_ewstock', 'sumbipow', 'sumret4']
+[23:11:09] rank enet: recon 1.6e-15, live 45; top 10 ['sumabsret', 'fomc_day', 'sumret', 'sumabsret_vwstock', 'fomc_until_inv', 'sumautocov', 'sumret4', 'sumret2_ewstock', 'sumret3_vwstock', 'sumret3']
+ladder task 4 done Sun Oct 25 23:11:09 PDT 2026

@@ -1,0 +1,13 @@
+lgrid task 3 on a03-09.hpc.usc.edu [AMD EPYC 7513 32-Core Processor] Mon Oct 26 02:13:30 PDT 2026
+line: linear run-linear 1000 enet
+[02:13:31] W 1000 enet alpha 0.01: sets ['full', 'har', 'P20', 'P10', 'P5', 'P3', 'P1']; 882 jobs, 16 workers
+[02:13:45] 100/882 jobs, 14s (last full k=97 2.0s)
+[02:13:47] 200/882 jobs, 16s (last har k=81 0.1s)
+[02:13:49] 300/882 jobs, 18s (last P20 k=47 0.6s)
+[02:13:53] 400/882 jobs, 21s (last P10 k=19 0.3s)
+[02:13:54] 500/882 jobs, 23s (last P5 k=2 0.1s)
+[02:13:55] 600/882 jobs, 24s (last P5 k=93 0.1s)
+[02:13:55] 700/882 jobs, 24s (last P3 k=75 0.1s)
+[02:13:56] 800/882 jobs, 25s (last P1 k=35 0.1s)
+[02:13:56] 882/882 jobs, 25s (last P1 k=124 0.1s)
+lgrid task 3 done Mon Oct 26 02:13:56 PDT 2026

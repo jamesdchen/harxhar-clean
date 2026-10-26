@@ -1,0 +1,15 @@
+{
+ "model": "ridge",
+ "frozen": 1000.0,
+ "r_bb": 0.01,
+ "n_jobs": 1764,
+ "wall": 60.792179584503174,
+ "host": "b22-20.hpc.usc.edu",
+ "numpy": "1.26.4",
+ "python": "3.12.3",
+ "env": {
+  "OPENBLAS_CORETYPE": "Prescott",
+  "NPY_DISABLE_CPU_FEATURES": "",
+  "SLURM_JOB_ID": "13457033"
+ }
+}

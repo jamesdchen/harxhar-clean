@@ -1,0 +1,9 @@
+trees rank-trees 1000 lgbm
+trees rank-trees 1000 xgb
+linear rank-linear 1000
+trees rank-trees 2000 lgbm
+trees rank-trees 2000 xgb
+linear rank-linear 2000
+trees rank-trees 3500 lgbm
+trees rank-trees 3500 xgb
+linear rank-linear 3500

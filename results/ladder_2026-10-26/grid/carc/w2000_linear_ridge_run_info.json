@@ -1,0 +1,14 @@
+{
+ "model": "ridge",
+ "wdays": 2000,
+ "frozen": 1000.0,
+ "design": "/scratch1/jc_905/fi_window/w2000/design_all_features",
+ "n_jobs": 882,
+ "wall": 31.319048166275024,
+ "host": "a03-09.hpc.usc.edu",
+ "env": {
+  "OPENBLAS_CORETYPE": "Prescott",
+  "NPY_DISABLE_CPU_FEATURES": "",
+  "SLURM_JOB_ID": "13458796"
+ }
+}

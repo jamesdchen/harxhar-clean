@@ -1,0 +1,14 @@
+{
+ "model": "enet",
+ "wdays": 2000,
+ "frozen": 0.001,
+ "design": "/scratch1/jc_905/fi_window/w2000/design_all_features",
+ "n_jobs": 882,
+ "wall": 50.06105303764343,
+ "host": "a03-09.hpc.usc.edu",
+ "env": {
+  "OPENBLAS_CORETYPE": "Prescott",
+  "NPY_DISABLE_CPU_FEATURES": "",
+  "SLURM_JOB_ID": "13458804"
+ }
+}

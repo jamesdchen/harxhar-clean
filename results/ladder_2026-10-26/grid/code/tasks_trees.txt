@@ -1,0 +1,12 @@
+trees run-trees 1000 lgbm 1/2
+trees run-trees 1000 lgbm 2/2
+trees run-trees 1000 xgb 1/2
+trees run-trees 1000 xgb 2/2
+trees run-trees 2000 lgbm 1/2
+trees run-trees 2000 lgbm 2/2
+trees run-trees 2000 xgb 1/2
+trees run-trees 2000 xgb 2/2
+trees run-trees 3500 lgbm 1/2
+trees run-trees 3500 lgbm 2/2
+trees run-trees 3500 xgb 1/2
+trees run-trees 3500 xgb 2/2
