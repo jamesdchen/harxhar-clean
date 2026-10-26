@@ -1,0 +1,140 @@
+RULE.txt -- FEATURE-COUNT LADDER (top-k exogenous series) of the pooled intraday forecasts, 2014 start, W = 3,000 days.
+Written 2026-10-25 23:05-23:40 PDT, BEFORE any job, fit, ranking or score of this study; committed and pushed before the
+first submission.  Branch insurance-selling-2026-09-19-e34-ladder (from insurance-selling-2026-09-19-e34 e235754),
+worktree C:\Users\james\AppData\Local\Temp\ladder_wt.  Request: the coordinator (overnight; results and a one-page
+summary by 08:30 PDT 2026-10-26).  Nothing of the paper (writeup/rehaul, paper_rehaul.tex, generators) is edited.
+
+QUESTION
+Section 8 (writeup/rehaul/08_feature_importance.tex) asks whether the exogenous signal is "dense and weak" (many series
+each adding a little) or concentrated (a few series carry it).  Following Maisch, Zhang, Ulrich and Zimmer (SSRN
+7269778, Table 5: retrain on the top 69 / 20 / 10 / 5 / 3 / 1 features; their SHAP ranking comes from the FIRST
+TRAINING WINDOW only, to avoid look-ahead, their footnote 4), retrain every model on the top-k exogenous series only and
+see how the out-of-sample loss depends on k.  If a few series carry the signal, a small k keeps most of the full set's
+gain over the HAR benchmark; if the signal is dense and weak, the loss falls steadily as k grows.  The group ablations
+(leave-one-group-out / add-one-group, results/ablations_2014start_w3000 on -ablations) are a different question and are
+not redone here.
+
+Seen before writing (no ladder quantity of any kind): results/tree_shap_w3000_2014start_2026-10-23 (README, RULE_shap,
+code, carc logs; the column names of m1_variables.csv / m2_linear_shares.csv, whose values define the SECONDARY ranking
+below), results/fi_by_window_2014start_2026-10-22 (README, code/fiw_replay.py, run_info.json gate timings),
+results/window_sweep_2014start_2026-10-22/w3000/frozen_penalties.json, results/ablations_2014start_w3000/RULE.txt and
+experiments/ablate_score.py on -ablations (scoring conventions; the column list of its linear_wide.parquet), the runners
+experiments/pool_linear_pretune.py and experiments/pooled_trees_rerun_13.py at 3cbb85f.  No out-of-sample loss of any
+reduced feature set has been seen.
+
+1. DATA AND MODELS (fixed; nothing re-tuned)
+- Design: the final 2014-start 13-bar design at W = 3,000 days (39,000 rows), full set 564 columns = the 12 HAR-benchmark
+  columns (har_ma_k, k = 1, 5, 25, 125, 625, 3125; DOW_0..4; hour) + 46 exogenous series x 12 columns (6 value averages
+  adj_<s>_ma_k and 6 availability averages <s>_avail_ma_k).  X md5 374bea97f35e33a02404dc47c82c3138 (checked in every
+  job): trees read /home1/jc_905/trees_final/designs/w3000/_work/design_all_features, the linear models
+  /scratch1/jc_905/fi_window/w3000/design_all_features (the same X, checked).  Every step of the data preparation and
+  the scaling acts column by column (pool_linear_pretune.py docstring; gate 0 of the ablation run), so a column subset
+  of this design is the design of that subset of series.
+- Units of the ladder: the 46 exogenous SERIES.  A series enters with all 12 of its columns.  Every rung keeps the 12
+  HAR-benchmark columns.  Columns are always taken in design order.
+- Rungs: k in {46 (= the full set), 20, 10, 5, 3, 1, 0 (= the 12 HAR-benchmark columns only)}.
+- Models, in priority order: LightGBM (lgbm_opt_00, abab811bd4b6), XGBoost (xgb_opt_00, 88bec9f385c7), ridge (alpha
+  1e3), lasso (1e-4), elastic net (1e-3, l1_ratio 0.5), random forest on oneDAL (rf_skx, rf400_rf_opt_00,
+  88eebb5fa9e8) last, only if it finishes before the deadline.  Trees: model_factory / fit_predict of
+  experiments/pooled_trees_rerun_13.py at 3cbb85f unchanged (seed 42, 8 fit threads, forest predict with n_jobs = 1),
+  loaded from CARC /home1/jc_905/tree_shap/runner (sha256 of the git blobs checked as in tree_shap's shap_common.py).
+  Linear: experiments/pool_linear_pretune.py (CARC copy /scratch1/jc_905/fi_window/code, sha256 83ecf628... = this
+  branch's) through fiw_replay.py's set-up (MultiStageBacktest fast path, STANDARDIZE_PENALTY, WALK_KKT_RESEED, the
+  binomial availability and evidence rules at their defaults), the FULL SET's frozen penalty of w3000
+  frozen_penalties.json and penalty factor r = 0.01 on the 12 HAR-benchmark columns for EVERY rung (k = 0 included: an
+  arm is penalized as the full set is, as in the ablation run); backbone mask, evidence references and availability
+  columns recomputed from the rung's column names (name-driven functions of the runner).
+
+2. ORIGINS AND ESTIMATION (as the tree SHAP refits)
+- The 126 monthly origins of fi_by_window_2014start (results/tree_shap_w3000_2014start_2026-10-23/inputs/fiw_origins.csv,
+  sha256 checked): the 10:00 bar of every 21st session from 2014-01-02 through 2024-04-05; design row r_k = 39,000 +
+  oos_row_k.  Block N_k = design rows [r_k, r_{k+1}) (r_127 = end of data); the blocks partition the 33,970 forecast rows
+  2014-01-02 10:00 .. 2024-04-30 16:00.
+- Trees: at origin k, for each rung, one fit on design rows [r_k - 39,000, r_k) restricted to the rung's columns (the
+  every-bar walk's refit at r_k); its forecasts of every row of N_k (held for the block).
+- Linear: the walk's own state at r_k on the rung's columns: the walk replayed from the last 250-solve tune boundary
+  g = (i // 250) x 250 <= i = r_k - 39,000 through i (fiw_replay.py "replay"; a cold seed at g, the warm updates and
+  any KKT / mask reseeds through i), then that state's predict_one on every row of N_k (held for the block).  Why the
+  replay and not a cold fit at r_k: the cold fit differs from the walk's state by up to 3.8 / 9.4 / 6.9 % (ridge /
+  lasso / elastic net, fi_by_window run_info.json), the replay reproduces the walk exactly.
+- Forecasts are pred_adj (the adjusted scale); plain = pred_adj^2 x B with B of the bar (the linear template
+  w3000/forecasts.parquet, equal to the trees' B).
+
+3. RANKINGS (the order in which series enter; each model its own)
+- PRIMARY (no look-ahead; the analogue of Maisch et al.'s first-training-window SHAP ranking): ONE pre-sample fit of
+  the full set at the origin 2013-01-02 10:00 (design row r_0; window [r_0 - 39,000, r_0)), explained on the 2013
+  rows only (design rows [r_0, 50,777): every bar dated 2013-01-02 .. 2013-12-31, the year of the penalties' validation
+  fold), fixed for all 126 origins.
+    trees: I_s = mean over the 2013 rows of |sum over the series' 12 columns of the TreeSHAP value| (path-dependent
+      TreeSHAP of that fit: LightGBM pred_contrib, XGBoost pred_contribs, the forest shap.TreeExplainer on the
+      sklearnex estimators_ with input_dtype float64, as code/shap_run.py of the SHAP study); additivity checked
+      (1e-9; XGBoost 1e-5 x max(1, |f|)).
+    linear: I_s = sum over the series' 12 columns of |beta_j| x sd_j, beta_j the coefficient of the walk state's forecast
+      function on the design column j (beta_j = f(e_j) - f(0) of its predict_one, f affine), sd_j the s.d. (ddof 0) of
+      column j over the 2013 rows.  The linear fit at r_0 is the walk replayed from g_0 = (i_0 // 250) x 250 through
+      i_0 = r_0 - 39,000 (as every rung).
+- SECONDARY (LABELLED LOOK-AHEAD, descriptive only): the full-span pooled ranking -- trees: mean |SHAP| of
+  results/tree_shap_w3000_2014start_2026-10-23/m1_variables.csv (all 33,970 forecast rows, each model its own);
+  linear: the paper's W = 3,000 s.d.-weighted exogenous shares (same directory, m2_linear_shares.csv share_exog, each
+  model its own).  These rankings use the evaluation span, so the secondary ladder is NOT an out-of-sample test of the
+  selection; it bounds what a ranking that knew the span could do.
+- Ties (e.g. series constant in the ranking window, I_s = 0) are broken by design order (the series' first column).
+  Rung k = the top k series of the ranking.  A rung whose series set equals another ranking's rung of the same model
+  is fitted once and reported under both.
+
+4. GATES (before any score is read)
+- GT trees: the full rung (k = 46) forecast at each origin row r_k equals the SHAP study's refit (gate.csv
+  pred_origin_hex, = the walk's pred_adj) bit for bit, 126 / 126, for each tree model; XGBoost and the forest also
+  every row of every block equal to the SHAP refits' stored predictions (CARC /home1/jc_905/tree_shap/work/<est>/k###.npz
+  "pred") bit for bit (LightGBM's per-origin files were not kept).
+- GL1 linear: the full rung's replayed forecasts (rows g .. r_k of every origin) equal the w3000 walk's pred_adj
+  (forecasts.parquet, all_features) to <= 1e-12 absolute (the fi_by_window gate).
+- GL2 linear subsets: the same code path on two column subsets that were already walked every bar by the ablation run
+  (add_iv = HAR + vix, vvix, vix3m; add_fomc = HAR + fomc_day, fomc_until_inv, fomc_since_inv; full-set penalty,
+  r = 0.01): the replayed forecast at each of the 126 origin rows equals that arm's walk pred_adj (ablation run
+  linear_wide.parquet, -ablations fcf5570) to <= 1e-12 absolute (recorded; those walks ran on another cluster, so a
+  difference <= 1e-9 is reported as a numerical, not a code, difference).
+- A failed gate is reported with its maximum difference; the model's ladder is still scored but flagged, and the
+  coordinator is told.
+
+5. SCORING (local; the conventions of Table 1, writeup/make_rehaul_oos_rerun.py / experiments/ablate_score.py)
+- Bars: Table 1's 33,527 scored bars (the 2,579 evaluation days 2014-01-02 .. 2024-04-30: NYSE days with a positive
+  16:00 print, early closes dropped; bars with RV > 0; asserted equal to Table 1's count, and every rung must have a
+  finite positive forecast on all of them).  RV = data/core_stats.parquet sumret2.
+- Loss: QLIKE = r - ln r - 1, r = RV / plain (primary); squared error recorded.
+- Spans: "all" = every scored bar; "c16" = the 16:00 bar of the 2,579 days; "c16_2020" = the 16:00 bar on 2020-01-03 ..
+  2024-04-30 (Table 1's 16:00 column; secondary).
+- Tests: Diebold-Mariano (src/evaluation/diebold_mariano.dm_test: HLN correction, Bartlett, Newey-West lag max(h - 1,
+  auto) = 8 on 2,579 days) on the daily average loss ("all") or the per-day 16:00 loss ("c16"); every rung vs the same
+  model's k = 46 and vs its k = 0 (same ranking; k = 46 and k = 0 do not depend on the ranking).  Negative = the rung
+  has the lower loss.
+- Retained gain: R_k = (L_0 - L_k) / (L_0 - L_46) x 100 % (QLIKE), reported when L_0 - L_46 > 0; > 100 % = the rung
+  beats the full set.
+- Reference rows (context only): the every-bar walks of Table 1 (results/oos_final_2014start/table1_w3000/metrics.csv:
+  each model's full set and HAR benchmark), to show what the monthly refit costs against the every-bar refit.
+
+6. READING (fixed now; per model, PRIMARY ranking, span "all", QLIKE)
+- k90 = the smallest k with R_k >= 90 % (also k50, k75 reported).
+    CONCENTRATED          k90 <= 5   (5 or fewer series keep 90 % of the full set's gain)
+    INTERMEDIATE          k90 in {10, 20}
+    DENSE AND WEAK        no reduced rung (k <= 20) reaches 90 %
+    NO GAIN TO RETAIN     L_46 >= L_0 (the full set does not beat the model's own HAR rung at monthly refits)
+- Also stated for each model: whether any reduced rung has a lower loss than the full set, and the DM p-value of
+  k = 20, 10, 5 vs k = 46.  The same reading on the secondary ranking and on "c16" is reported, labelled.  Nothing above
+  is revised after seeing results; anything added later is labelled post hoc.
+
+7. COMPUTE (CARC; native OpenSSH, host usc-discovery, one session at a time, polls >= 15 minutes apart; every sbatch /
+   scancel / file move typed verbatim in the tool call; no job of another run touched)
+- Staging /scratch1/jc_905/ladder/{code (git archive of the commit, LF), work, logs}.  Trees: python
+  /home1/jc_905/trees_final/venv_skx (read only) + /home1/jc_905/tree_shap/pylib (shap 0.49.1), EPYC 7513 | 7542 only
+  (XGBoost's subsampling is platform-dependent).  Linear: /scratch1/jc_905/wsweep/venv with OPENBLAS_CORETYPE=Prescott
+  and AVX512 numpy targets off (fi_by_window's fiw_job.sh environment), EPYC 7513 | 7542.
+- Jobs: (1) rank array (lgbm, xgb, rf_skx, linear); (2) ladder arrays depending on (1): trees by model x origin chunk,
+  linear by model x origin chunk; every task writes one file per (model, origin) atomically (resumable).
+- Fetch: the per-origin forecast files only (a few tens of MB); scored on the laptop.
+
+8. OUTPUTS: results/ladder_2026-10-26/: RULE.txt, rankings (rank_primary.csv, rank_secondary.csv), gates.json,
+   scores.csv (model x ranking x k x span: QLIKE, MSE, DM vs full and vs HAR, R_k), ladder.png / ladder.pdf (QLIKE vs k
+   per model, full and HAR lines, every bar and 16:00), SUMMARY.md (one page for the meeting), code/.
+   Caveats to state: monthly refits held for 21 sessions (not the every-bar walks of Table 1); the FOMC calendar
+   features will change after a pending patch (this design is pre-patch).
