@@ -205,3 +205,42 @@ ADDENDUM C, 2026-10-25 23:05 PDT (06:05 UTC Oct 26), before the jobs it affects:
    campus Xeon 6736P (9 workers) and Gold 6442Y (6 workers) jobs queued to fill the 16-node / 1,024-CPU cap as the old
    jobs end, and a UGE Gold 6140 array (LightGBM / XGBoost) queued behind the 200-slot cap; the same task file, claims,
    gates and checks.
+
+ADDENDUM D, 2026-10-26 15:05 PDT (22:05 UTC), before any job it affects: THE ABLATIONS ON THE FOMC-PATCHED DESIGN
+   The author adopted the FOMC-patched design (branch insurance-selling-2026-09-19-e34-fomcfix, cell B of its
+   results/fomcfix_2026-10-26/RULE.txt: FOMC_SCHEDULE_2020_FIX and FOMC_PROXIMITY_NO_WINSOR on).  Its full-set cache
+   (CARC /home1/jc_905/fomcfix_lin/runs/B/_work/design_all_features; X md5 725eb201044783d3cdc62501307dcc3a, y / b_oos /
+   dates_oos md5 = the final design's) differs from the final cache only in the 12 value averages
+   adj_fomc_{until,since}_inv_ma_k (its gate G3); its baseline cache is md5-equal to the final one.  That branch is merged
+   into this one (7abfaea: its runner changes -- the FOMC flags reachable through --ex-flag, model_factory's optional
+   config file / seed -- keep every default; its gates L and T1 show the defaults reproduce the final walks).
+   Coordinator (2026-10-26 ~14:45 PDT): rerun on the patched design (1) every linear ablation arm, (2) the FOMC tree arms
+   (add_fomc for LightGBM, XGBoost, the forest; lo_fomc for LightGBM, XGBoost; cap ~900 CPU-hours); the templates'
+   full-set rows from the patched walks (fomcfix: linear forecasts/lin_B.parquet, LightGBM / XGBoost
+   forecasts/forecasts_gb.parquet, the forest when its merge exists); every other tree arm stays pre-patch, labelled.
+   (a) Transfer: the cell-B full cache (X, y, b_oos, dates_oos, design.json) CARC -> laptop pipe -> Hoffman2
+       /u/scratch/j/jamesdc1/abl/designs_fix/full (one read-only CARC session, tar to stdout), md5-checked on arrival.
+   (b) Gate F0 (Hoffman2, ablate_design.py checkfix): the copy's X md5 = 725eb201...; y, b_oos, dates_oos bytes = the
+       final cache's; names equal; every column bit-identical to the final cache except exactly the 12 FOMC value
+       averages (which must differ).
+   (c) Linear: the 21 arm caches rebuilt from the patched full cache (classical arms: HAR, calendar, RS+ from it, the new
+       series from abl_new, unchanged); all 135 walks of tasks/linear.txt with the final run's arguments plus
+       --ex-flag FOMC_SCHEDULE_2020_FIX=1 --ex-flag FOMC_PROXIMITY_NO_WINSOR=1 --ex-flag DROP_HOLIDAY_SESSIONS=0 (the
+       cell-B config the caches record), on Gold 6240 (gate L's model).  Gate LF: the 10 full-set walks reproduce
+       fomcfix's lin_B.parquet (pred_adj, true_adj) bit for bit and the 4 HAR walks w3000's.  Check: every arm without
+       a FOMC column (lo_fomc, add_<g> for g != fomc, the classical arms) reproduces its pre-patch walk bit for bit.
+   (d) Trees: add_fomc for LightGBM, XGBoost and the forest on the patched cache (the same piece partition, models,
+       gated CPU models and claim pool as before; task file tasks/trees_fomcfix.txt).  lo_fomc is NOT re-walked: it has
+       no FOMC column, and its 528 columns are bit-identical in both caches (gate F0), so its pre-patch forecasts are its
+       patched-design forecasts bit for bit (a walk would reproduce them and cost ~600 CPU-hours); what changes for
+       lo_fomc is its reference, the patched full set.  The same holds for every add_<g>, g != fomc (no FOMC column).
+       Gate FT (Gold 6240): the patched full set's first and last 10 origins (LightGBM, XGBoost) reproduce fomcfix's
+       forecasts_gb.parquet (CARC EPYC) text-identically.  Projected cost: LightGBM ~53, XGBoost ~42, forest ~160
+       CPU-hours (EPYC speed) + gates ~10.
+   (e) Scoring (laptop): a patched panel (scores_fomcfix/): the templates' full-set rows from the patched walks (HAR and
+       OLS rows unchanged); every linear arm patched; trees add_fomc patched, lo_fomc and add_<g> (design-invariant)
+       from the pre-patch walks; the trees' lo_<g>, g != fomc (they hold the pre-patch FOMC columns) stay pre-patch and
+       are compared with the pre-patch full set, marked in the table ("pre-patch FOMC design; only the FOMC group is
+       rerun on the patched design").  New explicit comparison: the full set against HAR + FOMC (add_fomc), every class,
+       every bar and 16:00.  Checks: the HAR / OLS rows reproduce Table 1; the patched full rows reproduce fomcfix's
+       scores_linear (cell B) to 1e-12.  The pre-patch scores stay in scores/.
