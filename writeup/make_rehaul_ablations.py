@@ -175,6 +175,7 @@ def main() -> int:
             if r["series"] in SERIES_TEX:
                 s = SERIES_TEX[r["series"]]
                 lines.append(mac(f"Live{s}First", date_tex(str(r["first_print"])), f"first print {r['series']}"))
+                lines.append(mac(f"Live{s}Last", date_tex(str(r["last_print"])), f"last print {r['series']}"))
                 lines.append(mac(f"Live{s}FromKone", date_tex(str(r["live_from_k1"])), "first non-zeroed value, k = 1"))
                 lines.append(mac(f"Live{s}FromKlast", date_tex(str(r["live_from_k3125"])), "the same, k = 3125"))
                 lines.append(
