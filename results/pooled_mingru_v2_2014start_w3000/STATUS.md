@@ -529,3 +529,7 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   priority 5,971 vs our best 3,766 (fair share), and untyped-GPU jobs of other users hold P100 nodes (e.g. muttreja,
   siniukov, bowenson). Our 75 gpu jobs pend (53 reason None, 22 Priority). Debug: every debug job (ours 4, others)
   pending with ReqNodeNotAvail (nodes reserved).
+- 2026-10-26 01:57 PDT: the debug partition's GPU nodes are DRAINED (e23-02 P100 x2, b11-09 A40 x2; d05-41 drained):
+  our 4 debug jobs (13456827, 13457218-19, 13457950) and everyone else's pend with ReqNodeNotAvail. No reservation
+  covers them (the only ones are tac450 on d14 nodes). gpu top-up 13458936 (HAR 037.p04). gpu 99 (23 running P100, 76
+  pending). COMPLETED since 00:40: 13385632 (HAR, 7:31), 13456293 (debug). No FAILED.
