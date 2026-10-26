@@ -524,3 +524,8 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   remainders pieces/rem/v2w_baseline.<002-012>.rem10260035.txt (17-56 refits): 13457950 (002, debug 53 min),
   13457951-60 (gpu, 53-88 min by the wave formula). gpu top-up 13457961-72 (HAR 035.p02-037.p03). gpu 99 but only 23
   running P100 (76 pending): the 13 P100s the originals freed went to other users first. debug 5 (1 running).
+- 2026-10-26 01:16 PDT (read-only check): all 76 gpu-partition P100s allocated, 24 ours (from 34-36 until 00:20).
+  The 13 P100s freed by the old-script originals went to other users: others' pending jobs accepting P100 reach
+  priority 5,971 vs our best 3,766 (fair share), and untyped-GPU jobs of other users hold P100 nodes (e.g. muttreja,
+  siniukov, bowenson). Our 75 gpu jobs pend (53 reason None, 22 Priority). Debug: every debug job (ours 4, others)
+  pending with ReqNodeNotAvail (nodes reserved).
