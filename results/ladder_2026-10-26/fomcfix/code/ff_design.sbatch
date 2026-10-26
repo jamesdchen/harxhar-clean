@@ -20,6 +20,6 @@ export OPENBLAS_CORETYPE=Prescott PYTHONDONTWRITEBYTECODE=1 PYTHONNOUSERSITE=1
 export NPY_DISABLE_CPU_FEATURES="$("$PY" -c 'from numpy.core._multiarray_umath import __cpu_features__ as f, __cpu_dispatch__ as d; print(" ".join(k for k in d if k.startswith("AVX512") and f.get(k)))')"
 echo "design W $W on $(hostname) [$(grep -m1 'model name' /proc/cpuinfo | cut -d: -f2)] $(date)"
 "$PY" experiments/pooled_linear_rerun_2026_10_19_13.py design --jobs 8 --window-days "$W" --first-day 2014-01-02 \
-  --ex-flag LATE_START_WARMUP=1 --ex-flag FOMC_SCHEDULE_2020_FIX=1 --ex-flag FOMC_PROXIMITY_NO_WINSOR=1 --out "$OUT"
+  --ex-flag LATE_START_WARMUP=1 --ex-flag FOMC_SCHEDULE_2020_FIX=1 --ex-flag FOMC_PROXIMITY_NO_WINSOR=1 --ex-flag DROP_HOLIDAY_SESSIONS=0 --out "$OUT"
 ls -la "$OUT/_work/design_all_features"
 echo "design W $W done $(date)"

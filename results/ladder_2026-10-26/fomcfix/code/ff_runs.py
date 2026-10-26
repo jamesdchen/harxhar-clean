@@ -46,7 +46,7 @@ PATCHED = {
     3500: "/home1/jc_905/ladder_fomcfix/designs/w3500/_work/design_all_features",
 }
 PREPATCH = "/scratch1/jc_905/fi_window/w{W}/design_all_features"  # X md5 of RULE addendum 1 (3)
-FOMC_FLAGS = ["FOMC_SCHEDULE_2020_FIX=1", "FOMC_PROXIMITY_NO_WINSOR=1"]
+FOMC_FLAGS = ["FOMC_SCHEDULE_2020_FIX=1", "FOMC_PROXIMITY_NO_WINSOR=1", "DROP_HOLIDAY_SESSIONS=0"]  # = cell B config
 FOMC_PROX = ("fomc_until_inv", "fomc_since_inv")
 FROZEN_RULE = {
     1000: {"ridge": 1e4, "lasso": 1e-3, "enet": 1e-2},
