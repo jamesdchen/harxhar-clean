@@ -211,3 +211,10 @@ ADDENDUM A, 2026-10-25 23:25 PDT (2026-10-26 06:25 UTC), with the rule, before a
    2014-2024 scored bar present.  GD (design) cell D against cell C as G3 (baseline md5-equal, the full set's y, b_oos,
    dates equal, only the 12 FOMC value-average columns differ).  Scored bars: cells C and D forecast every one of the
    33,527 bars (asserted).
+
+ADDENDUM B, 2026-10-25 23:40 PDT (2026-10-26 06:40 UTC), before the T1 gate jobs: T1'S INPUT
+   T1 runs on the templates' own design copy, /home1/jc_905/trees_final/designs/w3000 (read only; md5 of X, y, b_oos,
+   dates_oos = section 0, re-checked by the job's log), not on this run's cell-A build: the same bytes when G2 passes,
+   and it lets T1 run while the design builds queue.  Everything else of T1 as section 3 (the first and the last
+   evaluation day, full set, LightGBM / XGBoost / rf_skx, EPYC 7513 and 7542, the environment of section 6, pred_adj
+   bit for bit against the templates).  Its outputs: /home1/jc_905/fomcfix_trees/runs/gateT1/<cpu>/pieces/.
