@@ -229,5 +229,6 @@
 % 2026-10-26 (integration, JFEc; D3): the final appendix section, on the models estimated on the closing half hour
 % alone (rehaul/A_closing.tex, APPENDIX agent). It is \input here, after the statistical tests, so that it is the last
 % section of the online appendix.
-\IfFileExists{rehaul/A_closing.tex}{\input{rehaul/A_closing}}{}
+% 2026-10-26 (coordinator): unwrapped \IfFileExists{rehaul/A_closing.tex} (the file exists; the flat Overleaf build has no rehaul/ directory, so the wrapper skipped its body there).
+\input{rehaul/A_closing}
 

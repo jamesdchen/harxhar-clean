@@ -33,12 +33,15 @@
   and the predictor dictionary (Table~\ref{tab:rh_dm_dictionary}).
 \item \textbf{Implementation details} (Appendix~\ref{app:rh_impl}): samples and windows, the training scheme in
   practice, the tuned hyperparameters and the tuning procedures.
-\IfFileExists{rehaul/A_methods.tex}{\item \textbf{Estimators, implementation and tuning}
+% 2026-10-26 (coordinator): unwrapped \IfFileExists{rehaul/A_methods.tex} (the file exists; the flat Overleaf build has no rehaul/ directory, so the wrapper skipped its body there).
+\item \textbf{Estimators, implementation and tuning}
   (Appendix~\ref{app:rh_methods}): the estimators in full, the selection splits, and how the frozen
-  hyperparameters were obtained, with checks of them.}{}
-\IfFileExists{rehaul/A_results.tex}{\item \textbf{Additional results on forecast accuracy}
-  (Appendix~\ref{app:rh_results}).}{}
-\IfFileExists{rehaul/A_fi.tex}{\item \textbf{Variable importance: details} (Appendix~\ref{app:rh_sec_fi}).}{}
+  hyperparameters were obtained, with checks of them.
+% 2026-10-26 (coordinator): unwrapped \IfFileExists{rehaul/A_results.tex} (the file exists; the flat Overleaf build has no rehaul/ directory, so the wrapper skipped its body there).
+\item \textbf{Additional results on forecast accuracy}
+  (Appendix~\ref{app:rh_results}).
+% 2026-10-26 (coordinator): unwrapped \IfFileExists{rehaul/A_fi.tex} (the file exists; the flat Overleaf build has no rehaul/ directory, so the wrapper skipped its body there).
+\item \textbf{Variable importance: details} (Appendix~\ref{app:rh_sec_fi}).
 \item \textbf{Economic application: details} (Appendix~\ref{app:rh_econ}): the straddle's sample, quotes and
   execution; the Sharpe ratio and its alternatives; position sizing, compounding and the interval-shift test;
   where the profits come from; market exposure.
@@ -281,7 +284,8 @@
 % scaler of the pooled design, and no live text cites sec:rh_close_scale any more (checked 2026-10-26).
 
 % 2026-10-26 (integration, JFEc): the predictor construction moved out of Sections 3-4 (DATA agent).
-\IfFileExists{rehaul/A_data_predictors.tex}{\input{rehaul/A_data_predictors}}{}
+% 2026-10-26 (coordinator): unwrapped \IfFileExists{rehaul/A_data_predictors.tex} (the file exists; the flat Overleaf build has no rehaul/ directory, so the wrapper skipped its body there).
+\input{rehaul/A_data_predictors}
 
 % 2026-10-26 (integration, JFEc): the predictor dictionary (a landscape longtable) moved here from
 % 10_appendix_floats.tex, where it was printed after the Reproducibility section.
@@ -845,18 +849,21 @@
 % \end{itemize}
 
 % 2026-10-26 (integration, JFEc): the methods details moved out of Section 5 (METHODS agent).
-\IfFileExists{rehaul/A_methods.tex}{\input{rehaul/A_methods}}{}
+% 2026-10-26 (coordinator): unwrapped \IfFileExists{rehaul/A_methods.tex} (the file exists; the flat Overleaf build has no rehaul/ directory, so the wrapper skipped its body there).
+\input{rehaul/A_methods}
 
 % 2026-10-26 (integration, JFEc): the additional accuracy results moved out of Section 6 (RESULTS agent). The file opens with its
 % own \section (label app:rh_results).
-\IfFileExists{rehaul/A_results.tex}{\clearpage\input{rehaul/A_results}}{}
+% 2026-10-26 (coordinator): unwrapped \IfFileExists{rehaul/A_results.tex} (the file exists; the flat Overleaf build has no rehaul/ directory, so the wrapper skipped its body there).
+\clearpage\input{rehaul/A_results}
 
 % 2026-10-26 (integration, JFEc): the variable-importance details moved out of Section 7 (VI agent).
-\IfFileExists{rehaul/A_fi.tex}{%
+% 2026-10-26 (coordinator): unwrapped \IfFileExists{rehaul/A_fi.tex} (the file exists; the flat Overleaf build has no rehaul/ directory, so the wrapper skipped its body there).
+%
 \clearpage
 \section{Variable importance: details}
 \label{app:rh_sec_fi}
-\input{rehaul/A_fi}}{}
+\input{rehaul/A_fi}
 
 % 2026-10-26 (integration, JFEc): retitled "Economic application: details" and labelled app:rh_econ (ECON relay); the label
 % app:rh_robust_trade stays on it. The section hosts rehaul/A_econ.tex (\subsection's only). Its earlier items
@@ -957,7 +964,8 @@
 % \end{itemize}
 
 % 2026-10-26 (integration, JFEc): the economics details moved out of Section 8 (ECON agent).
-\IfFileExists{rehaul/A_econ.tex}{\input{rehaul/A_econ}}{}
+% 2026-10-26 (coordinator): unwrapped \IfFileExists{rehaul/A_econ.tex} (the file exists; the flat Overleaf build has no rehaul/ directory, so the wrapper skipped its body there).
+\input{rehaul/A_econ}
 
 % 2026-10-26 (integration, JFEc): retitled; the section hosts rehaul/A_robustness.tex (windows, training samples,
 % holiday sessions, tuning). Was: "\section{Robustness of the statistical results}".
@@ -996,7 +1004,8 @@
 
 % 2026-10-26 (integration, JFEc; D5, D8, D14, D15): the robustness subsections (estimation window, training sample,
 % NYSE-holiday sessions, hyperparameter tuning).
-\IfFileExists{rehaul/A_robustness.tex}{\input{rehaul/A_robustness}}{}
+% 2026-10-26 (coordinator): unwrapped \IfFileExists{rehaul/A_robustness.tex} (the file exists; the flat Overleaf build has no rehaul/ directory, so the wrapper skipped its body there).
+\input{rehaul/A_robustness}
 
 % 2026-10-26 (integration, JFEc; D3, audit numbers-10): parked -- the whole section "Closing-interval models" of the
 % master-table closing-interval model set (old data rules, W = 2,000 trading days, the four-fold pre-sample, the

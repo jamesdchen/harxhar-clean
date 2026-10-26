@@ -51,12 +51,14 @@
     at a window of \rhwsWinMin{} trading days, but none is live at a window of \rhwsLateNoneFrom{} trading days or
     more, so the learning curve compares different effective predictor sets.
   \end{itemize}
-\IfFileExists{generated/rehaul_window_sweep_table.tex}{%
+% 2026-10-26 (coordinator): unwrapped \IfFileExists{generated/rehaul_window_sweep_table.tex} (the file exists; the flat Overleaf build has no rehaul/ directory, so the wrapper skipped its body there). Its false branch was:
+% | %
+% | \item \textbf{Every window, penalized linear models.} The forecasts and scores at every window are in the
+% |   replication package.
+%
 \item \textbf{Every window, penalized linear models.} Table~\ref{tab:rh_window_sweep} reports, at each window, the
   change in QLIKE from the full predictor set against the HAR benchmark, on every bar and on the 16:00 bar.
-\input{generated/rehaul_window_sweep_table}}{%
-\item \textbf{Every window, penalized linear models.} The forecasts and scores at every window are in the
-  replication package.}
+\input{generated/rehaul_window_sweep_table}
 % 2026-10-26 (integration, JFEc): moved here from the item "Estimation window" of 10_appendix.tex (section Robustness
 % of the statistical results), split into sub-items; the pre-patch design marked (D13), and the 16:00 counts at the
 % two windows added (audit correctness-2: the 16:00 comparisons are window-sensitive). The 2026-10-23 check of that
@@ -195,7 +197,15 @@
 \subsection{NYSE-holiday sessions}
 \label{app:rh_robust_holiday}
 \begin{itemize}
-\IfFileExists{generated/rehaul_holiday_table.tex}{%
+% 2026-10-26 (coordinator): unwrapped \IfFileExists{generated/rehaul_holiday_table.tex} (the file exists; the flat Overleaf build has no rehaul/ directory, so the wrapper skipped its body there). Its false branch was:
+% | %
+% | \item \textbf{The sessions.} On full NYSE holidays the E-mini trades a shortened session that ends at about
+% |   13:00~ET. Its regular-hours bars are rows of the estimation sample and enter the target's diurnal factor, but they
+% |   are not scored, since Table~\ref{tab:rh_oos} scores the bars of NYSE trading days
+% |   (Appendix~\ref{app:rh_dp_sessions}). The main design keeps them.
+% | \item \textbf{The sessions dropped.} The pooled linear models re-estimated without the holiday sessions are in the
+% |   replication package.
+%
 \item \textbf{The sessions.} On full NYSE holidays the E-mini trades a shortened session whose last regular-hours
   bar ends at about \rhholLastBar~ET. The \rhholNSessions{} such sessions of the evaluation span have \rhholNBars{}
   regular-hours bars. They are rows of the estimation sample and enter the target's diurnal factor, but they are not
@@ -211,11 +221,5 @@
     \rhholEffDBClosePpRng{} (without the fixes, \rhholEffCABarPpRng{} and \rhholEffCAClosePpRng).
   \item The Sharpe ratio of the full-set sign strategy moves by \rhholEffDBShFullRng.
   \end{itemize}
-\input{generated/rehaul_holiday_table}}{%
-\item \textbf{The sessions.} On full NYSE holidays the E-mini trades a shortened session that ends at about
-  13:00~ET. Its regular-hours bars are rows of the estimation sample and enter the target's diurnal factor, but they
-  are not scored, since Table~\ref{tab:rh_oos} scores the bars of NYSE trading days
-  (Appendix~\ref{app:rh_dp_sessions}). The main design keeps them.
-\item \textbf{The sessions dropped.} The pooled linear models re-estimated without the holiday sessions are in the
-  replication package.}
+\input{generated/rehaul_holiday_table}
 \end{itemize}
