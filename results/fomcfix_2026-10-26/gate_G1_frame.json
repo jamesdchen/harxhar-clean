@@ -1,0 +1,93 @@
+{
+ "raw_fomc_until_inv": {
+  "first": "2020-01-29 15:00:00",
+  "last": "2020-03-13 20:00:00",
+  "n_rows": 1571,
+  "old_first": 0.00031525851197982345,
+  "new_first": 0.000585480093676815,
+  "old_last": 0.0006242197253433209,
+  "new_last": 0.007246376811594203
+ },
+ "raw_fomc_since_inv": {
+  "first": "2020-03-15 18:30:00",
+  "last": "2020-04-29 14:00:00",
+  "n_rows": 1600,
+  "old_first": 0.0006357279084551812,
+  "new_first": 1.0,
+  "old_last": 0.00031525851197982345,
+  "new_last": 0.000625
+ },
+ "transformed_p10_p20_vs_p10_p20": {
+  "differing_columns": [],
+  "adj_fomc_until_inv": {
+   "n_rows": 0,
+   "share_rth_2014_2024": 0.0,
+   "first": null,
+   "last": null
+  },
+  "adj_fomc_since_inv": {
+   "n_rows": 0,
+   "share_rth_2014_2024": 0.0,
+   "first": null,
+   "last": null
+  }
+ },
+ "transformed_p10_p21_vs_p10_p20": {
+  "differing_columns": [
+   "adj_fomc_until_inv",
+   "adj_fomc_since_inv"
+  ],
+  "adj_fomc_until_inv": {
+   "n_rows": 254296,
+   "share_rth_2014_2024": 0.8665292905504858,
+   "first": "1998-01-14 13:30:00",
+   "last": "2024-04-30 23:30:00"
+  },
+  "adj_fomc_since_inv": {
+   "n_rows": 253863,
+   "share_rth_2014_2024": 0.8688254342066529,
+   "first": "1998-02-17 13:00:00",
+   "last": "2024-04-30 23:30:00"
+  }
+ },
+ "transformed_p11_p20_vs_p10_p20": {
+  "differing_columns": [
+   "fomc_until_inv",
+   "fomc_since_inv",
+   "adj_fomc_until_inv",
+   "adj_fomc_since_inv"
+  ],
+  "adj_fomc_until_inv": {
+   "n_rows": 1798,
+   "share_rth_2014_2024": 0.013982926111274654,
+   "first": "2020-01-29 16:30:00",
+   "last": "2020-03-20 18:30:00"
+  },
+  "adj_fomc_since_inv": {
+   "n_rows": 1555,
+   "share_rth_2014_2024": 0.012246099499558434,
+   "first": "2020-03-15 18:30:00",
+   "last": "2020-04-29 16:00:00"
+  }
+ },
+ "transformed_p11_p21_vs_p10_p20": {
+  "differing_columns": [
+   "fomc_until_inv",
+   "fomc_since_inv",
+   "adj_fomc_until_inv",
+   "adj_fomc_since_inv"
+  ],
+  "adj_fomc_until_inv": {
+   "n_rows": 254530,
+   "share_rth_2014_2024": 0.868177803944657,
+   "first": "1998-01-14 13:30:00",
+   "last": "2024-04-30 23:30:00"
+  },
+  "adj_fomc_since_inv": {
+   "n_rows": 253863,
+   "share_rth_2014_2024": 0.8688254342066529,
+   "first": "1998-02-17 13:00:00",
+   "last": "2024-04-30 23:30:00"
+  }
+ }
+}

@@ -1,0 +1,24 @@
+{
+ "family": "lgbm",
+ "name": "lgbm_opt_00__lr_x2",
+ "sha": "2eea4a2b0613",
+ "params": {
+  "num_leaves": 20,
+  "learning_rate": 0.02592809131463972,
+  "n_estimators": 392,
+  "min_child_samples": 98,
+  "feature_fraction": 0.7017000121697539,
+  "bagging_fraction": 0.5636236714089857,
+  "lambda_l1": 1.0413823540826713e-08,
+  "lambda_l2": 0.015950303832251992,
+  "bagging_freq": 1
+ },
+ "provenance": {
+  "base": "lgbm_opt_00",
+  "base_sha": "abab811bd4b6",
+  "change": {
+   "learning_rate": 0.02592809131463972
+  },
+  "rule": "results/fomcfix_2026-10-26/RULE.txt 7(c): one factor at a time around the transferred configuration"
+ }
+}
