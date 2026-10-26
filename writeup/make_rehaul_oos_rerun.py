@@ -117,6 +117,10 @@ from src.evaluation.diebold_mariano import dm_test  # noqa: E402
 GEN = fr.GEN
 OUT_TABLE = GEN / "rehaul_results_oos.tex"
 OUT_NUMBERS = GEN / "rehaul_oos_rerun_numbers.tex"
+OUT_VSOLS = (
+    GEN / "rehaul_results_oos_vsols.tex"
+)  # 2026-10-26 (D2): Table tab:rh_oos_vsols, every forecast vs the OLS-HAR
+OUT_VSOLS_NUM = GEN / "rehaul_oos_vs_ols_numbers.tex"  # 2026-10-26 (D2): its \rhorVsOls... macros
 OUT_RES = REPO / "results" / "oos_rerun_2026-10-20"
 CORE = REPO / "data" / "core_stats.parquet"
 R48 = REPO / "results" / "pooled_linear_rerun_2026-10-19_48"
@@ -199,9 +203,11 @@ SPANS = {
         res=REPO / "results" / "oos_final_2014start" / f"table1_w{fr.WINDOW_DAYS}",
         window=fr.WINDOW_DAYS,
         trees=True,
+        # 2026-10-26 (audit numbers-14): subperiod B starts on the first trading day after A (2 January 2020), so the
+        # two parts cover every evaluation day (1,496 + 1,083 = 2,579). Was: ("B", FIRST_DAY, LAST_DAY, SPAN_DAYS)
         subs=[
             ("A", fr.SUB_A[0], fr.SUB_A[1], 1496),
-            ("B", FIRST_DAY, LAST_DAY, SPAN_DAYS),
+            ("B", pd.Timestamp("2020-01-02"), LAST_DAY, 1083),
         ],
     ),
 }
@@ -221,9 +227,7 @@ def core() -> pd.DataFrame:
     return c.set_index("endbartime")["sumret2"].sort_index()
 
 
-def evaluation_days(
-    rv: pd.Series, first=FIRST_DAY, last=LAST_DAY, n=SPAN_DAYS
-) -> pd.DatetimeIndex:
+def evaluation_days(rv: pd.Series, first=FIRST_DAY, last=LAST_DAY, n=SPAN_DAYS) -> pd.DatetimeIndex:
     """The 1,082 trading days of the span: a positive closing-half-hour print, early closes dropped."""
     s = rv[(rv.index.hour == 16) & (rv.index.minute == 0)]
     d = pd.DatetimeIndex(s.index.normalize())
@@ -255,12 +259,8 @@ def forecasts(panel: str, r13: Path = R13) -> dict[tuple[str, str], pd.DataFrame
             columns=["model", "predictor_set", "date", "plain", "rv_actual"],
         )
         for (m, s), f in g.groupby(["model", "predictor_set"]):
-            out[(m, s)] = f.set_index(pd.to_datetime(f["date"])).rename(
-                columns={"rv_actual": "rv"}
-            )[["plain", "rv"]]
-    assert set(out) == {
-        (m, s) for m, _ in MODELS for s, _ in SETS if m != "ols" or s == "baseline"
-    }, sorted(out)
+            out[(m, s)] = f.set_index(pd.to_datetime(f["date"])).rename(columns={"rv_actual": "rv"})[["plain", "rv"]]
+    assert set(out) == {(m, s) for m, _ in MODELS for s, _ in SETS if m != "ols" or s == "baseline"}, sorted(out)
     for k, f in out.items():
         assert not f.index.duplicated().any(), k
     return out
@@ -282,15 +282,11 @@ def tree_forecasts(cfg: dict) -> dict[tuple[str, str], pd.DataFrame]:
         cfg["first"],
         cfg["last"],
     )
-    assert [e for e, _ in TREES] == list(pt13.EST) and {s for s, _ in SETS} == set(
-        pt13.SETS
-    )
+    assert [e for e, _ in TREES] == list(pt13.EST) and {s for s, _ in SETS} == set(pt13.SETS)
     g = pt13._frame()  # the loader's checked frame (every bar of every finished arm)
     out = {}
     for (e, s), f in g.groupby(["model", "predictor_set"]):
-        out[(e, s)] = f.set_index(pd.to_datetime(f["date"])).rename(
-            columns={"rv_actual": "rv"}
-        )[["plain", "rv"]]
+        out[(e, s)] = f.set_index(pd.to_datetime(f["date"])).rename(columns={"rv_actual": "rv"})[["plain", "rv"]]
         assert not out[(e, s)].index.duplicated().any(), (e, s)
     # 2026-10-23 (final_run.py PENDING): the finished methods only (a pending one has no rows). Was: for e, _ in TREES
     assert set(out) == {(e, s) for e in pt13.EST_DONE for s, _ in SETS}, sorted(out)
@@ -309,9 +305,7 @@ def scored_set(fc: dict, rv: pd.Series, days: pd.DatetimeIndex) -> pd.DatetimeIn
     t = rv.reindex(idx)
     idx = idx[(t.to_numpy() > 0) & np.isfinite(t.to_numpy())]
     for k, f in fc.items():  # the files' truth is the core_stats print
-        assert np.array_equal(
-            f["rv"].reindex(idx).to_numpy(), rv.reindex(idx).to_numpy()
-        ), k
+        assert np.array_equal(f["rv"].reindex(idx).to_numpy(), rv.reindex(idx).to_numpy()), k
     return idx.sort_values()
 
 
@@ -320,12 +314,8 @@ def slot_benchmark(rv: pd.Series, idx: pd.DatetimeIndex) -> pd.Series:
     (positive prints, early-close days out), causal by construction."""
     h = rv[(rv.index >= HIST_START) & (rv.to_numpy() > 0) & np.isfinite(rv.to_numpy())]
     h = h[~pd.DatetimeIndex(h.index.normalize()).isin(EARLY)]
-    frame = pd.DataFrame(
-        {"rv": h.to_numpy(), "slot": h.index.strftime("%H:%M"), "t": h.index}
-    )
-    frame["csum"] = (
-        frame.groupby("slot")["rv"].cumsum() - frame["rv"]
-    )  # earlier days only
+    frame = pd.DataFrame({"rv": h.to_numpy(), "slot": h.index.strftime("%H:%M"), "t": h.index})
+    frame["csum"] = frame.groupby("slot")["rv"].cumsum() - frame["rv"]  # earlier days only
     frame["n"] = frame.groupby("slot").cumcount()
     frame["bench"] = frame["csum"] / frame["n"].where(frame["n"] > 0)
     b = frame.set_index("t")["bench"]
@@ -336,9 +326,7 @@ def slot_benchmark(rv: pd.Series, idx: pd.DatetimeIndex) -> pd.Series:
         want = idx[idx.strftime("%H:%M") == slot]
         if len(want):
             gg = g.set_index("t")
-            pos = gg.index.searchsorted(
-                want, side="left"
-            )  # first history row at or after t: its prior mean
+            pos = gg.index.searchsorted(want, side="left")  # first history row at or after t: its prior mean
             means = []
             for t, p in zip(want, pos):
                 csum = gg["rv"].iloc[:p].sum()
@@ -357,21 +345,14 @@ def slot_benchmark(rv: pd.Series, idx: pd.DatetimeIndex) -> pd.Series:
 # --------------------------------------------------------------------------- statistics
 
 
-def loss(
-    f: pd.DataFrame, idx: pd.DatetimeIndex, rv: pd.Series
-) -> tuple[np.ndarray, np.ndarray]:
+def loss(f: pd.DataFrame, idx: pd.DatetimeIndex, rv: pd.Series) -> tuple[np.ndarray, np.ndarray]:
     p, y = f["plain"].reindex(idx).to_numpy(float), rv.reindex(idx).to_numpy(float)
     r = y / p
     return r - np.log(r) - 1.0, (y - p) ** 2
 
 
 def daily(x: np.ndarray, idx: pd.DatetimeIndex) -> np.ndarray:
-    return (
-        pd.Series(x, index=pd.DatetimeIndex(idx.normalize()))
-        .groupby(level=0)
-        .mean()
-        .to_numpy()
-    )
+    return pd.Series(x, index=pd.DatetimeIndex(idx.normalize())).groupby(level=0).mean().to_numpy()
 
 
 def fmt(x: float, dp: int) -> str:
@@ -388,6 +369,172 @@ def fmt_p(p: float) -> str:
 
 def thousands(n: int) -> str:
     return f"{n:,}".replace(",", "{,}")
+
+
+# --------------------------------------------------------------------------- 2026-10-26 (D2): vs the RTH13 OLS-HAR
+VS_TAG = {"ridge": "Ridge", "lasso": "Lasso", "enet": "Enet", "lgbm": "Lgbm", "xgb": "Xgb", "rf": "Rf"}
+VS_NAME = {
+    "ridge": "Ridge",
+    "lasso": "Lasso",
+    "enet": "Elastic net",
+    "lgbm": "LightGBM",
+    "xgb": "XGBoost",
+    "rf": "Random forest",
+}
+VS_SET = {"baseline": "Har", "all_features": "Full"}
+
+
+def _rng_pos(vals: list[float], dp: int = 1) -> str:
+    """Reductions as text: "a--b" (one value when they print equal)."""
+    lo, hi = f"{min(vals):.{dp}f}", f"{max(vals):.{dp}f}"
+    return lo if lo == hi else f"{lo}--{hi}"
+
+
+def vs_ols_macros(vso: pd.DataFrame, mac) -> list[str]:
+    """The \\rhorVsOls... macros (every forecast vs the RTH13 pooled OLS-HAR) and the lasso-vs-ridge test."""
+    out = [
+        "% 2026-10-26 (D2): every forecast vs the RTH13 pooled OLS on the HAR set (Table 1's OLS row); daily DM (HLN)"
+    ]
+    v = vso[vso["against"] == "ols_baseline"]
+    for (m, st), g in v.groupby(["model", "set"]):
+        for span, suf in (("bar", ""), ("c16", "Close")):
+            r = g[g["span"] == span].iloc[0]
+            t = f"{VS_TAG[m]}{VS_SET[st]}{suf}"
+            where = "every bar" if span == "bar" else "16:00 bar"
+            out.append(mac(f"rhorVsOlsPct{t}", fmt(r.pct, 1), f"{m} {st} vs OLS-HAR, {where}: % QLIKE change"))
+            out.append(mac(f"rhorVsOlsDm{t}", fmt(r.dm, 2), f"{m} {st} vs OLS-HAR, {where}: DM"))
+            out.append(mac(f"rhorVsOlsP{t}", fmt_p(r.p), f"{m} {st} vs OLS-HAR, {where}: DM p"))
+    for span, suf in (("bar", ""), ("c16", "Close")):
+        full = v[(v["set"] == "all_features") & (v["span"] == span)]
+        har = v[(v["set"] == "baseline") & (v["span"] == span)]
+        low = full[full.pct < 0]
+        sig = low[low.p < SIG]
+        out.append(mac(f"rhorVsOlsFullN{suf}", str(len(full)), "full-set forecasts compared (finished classes)"))
+        out.append(mac(f"rhorVsOlsFullLower{suf}", str(len(low)), "... with the lower QLIKE than the OLS-HAR"))
+        out.append(mac(f"rhorVsOlsFullLowerSig{suf}", str(len(sig)), f"... and DM p < {SIG}"))
+        out.append(mac(f"rhorVsOlsLowerSig{suf}", str(len(sig)), "= rhorVsOlsFullLowerSig (FRONT's name)"))
+        out.append(
+            mac(
+                f"rhorVsOlsFullHigherSig{suf}",
+                str(int(((full.pct > 0) & (full.p < SIG)).sum())),
+                "full set significantly worse",
+            )
+        )
+        lin = full[full.model.isin(["ridge", "lasso", "enet"])]
+        tre = full[full.model.isin(["lgbm", "xgb", "rf"])]
+        if span == "bar":
+            assert (lin.pct < 0).all() and (tre.pct < 0).all(), (
+                "the RedRng macros print reductions: every full set lower"
+            )
+            out.append(
+                mac(
+                    "rhorVsOlsRedLinRng",
+                    _rng_pos(list(-lin.pct)),
+                    "every bar: QLIKE reduction (%) of the linear full sets vs OLS-HAR",
+                )
+            )
+            out.append(
+                mac(
+                    "rhorVsOlsRedTreeRng",
+                    _rng_pos(list(-tre.pct)),
+                    "every bar: QLIKE reduction (%) of the tree full sets vs OLS-HAR",
+                )
+            )
+            out.append(mac("rhorVsOlsRedLinMin", f"{(-lin.pct).min():.1f}", "every bar: smallest linear reduction (%)"))
+            out.append(mac("rhorVsOlsRedLinMax", f"{(-lin.pct).max():.1f}", "every bar: largest linear reduction (%)"))
+            out.append(mac("rhorVsOlsRedTreeMin", f"{(-tre.pct).min():.1f}", "every bar: smallest tree reduction (%)"))
+            out.append(mac("rhorVsOlsRedTreeMax", f"{(-tre.pct).max():.1f}", "every bar: largest tree reduction (%)"))
+        th = har[har.model.isin(["lgbm", "xgb", "rf"])]
+        if len(th):
+            out.append(
+                mac(
+                    f"rhorVsOlsPctTreeHarMaxAbs{suf}",
+                    f"{th.pct.abs().max():.1f}",
+                    "largest |% change| of a tree HAR-set forecast vs OLS-HAR",
+                )
+            )
+        lh = har[har.model.isin(["ridge", "lasso", "enet"])]
+        if len(lh):
+            out.append(
+                mac(
+                    f"rhorVsOlsPctLinHarMaxAbs{suf}",
+                    f"{lh.pct.abs().max():.2f}",
+                    "largest |% change| of a linear HAR-set forecast vs OLS-HAR (they coincide with it)",
+                )
+            )
+        out.append(mac(f"rhorVsOlsPMax{suf}", fmt_p(full.p.max()), "largest DM p of the full sets vs OLS-HAR"))
+    lr = vso[(vso["against"] == "ridge_all_features") & (vso["model"] == "lasso") & (vso["span"] == "bar")]
+    if len(lr):
+        r = lr.iloc[0]
+        out.append(
+            mac(
+                "rhldDmLassoRidge", fmt(r.dm, 2), "every bar: DM, lasso full set minus ridge full set (Table 1's walks)"
+            )
+        )
+        out.append(mac("rhldPLassoRidge", fmt_p(r.p), "its p-value"))
+        out.append(mac("rhldPctLassoRidge", fmt(r.pct, 1), "every bar: % QLIKE, lasso full vs ridge full"))
+    return out
+
+
+def vs_ols_table(vso: pd.DataFrame, met: pd.DataFrame) -> str:
+    """Table tab:rh_oos_vsols: every forecast of Table 1 against the RTH13 pooled OLS on the HAR set."""
+    v = vso[vso["against"] == "ols_baseline"]
+    q = met[met.panel == "13"].set_index(["model", "set"])
+    body = []
+    for m in ("ridge", "lasso", "enet", "lgbm", "xgb", "rf"):
+        if not (v.model == m).any():
+            continue
+        first = True
+        for st, lab in (("baseline", "HAR set"), ("all_features", "Full set")):
+            g = v[(v.model == m) & (v.set == st)].set_index("span")
+            if g.empty:
+                continue
+            cells = [VS_NAME[m] if first else "", lab, f"{q.loc[(m, st), 'qlike']:.4f}"]
+            first = False
+            for span in ("bar", "c16"):
+                r = g.loc[span]
+                cells += [fmt(r.pct, 1), f"{fmt(r.dm, 2)} ({fmt_p(r.p)})"]
+            body.append(" & ".join(cells) + " \\\\")
+        if m in ("enet",):
+            body.append("\\addlinespace[3pt]")
+    q_ols = q.loc[("ols", "baseline"), "qlike"]
+    return "\n".join(
+        [
+            HEAD,
+            "% Table tab:rh_oos_vsols (2026-10-26, integration plan D2): every forecast of Table 1 against the primary",
+            "% benchmark, the RTH13 pooled OLS on the HAR set; CSV results/oos_final_2014start/table1_w<W>/vs_ols.csv.",
+            "\\begin{table}[htbp]",
+            "\\centering",
+            "\\small",
+            "\\begin{threeparttable}",
+            "\\caption{Forecast accuracy against the OLS on the HAR benchmark set}",
+            "\\label{tab:rh_oos_vsols}",
+            "\\begin{tabular*}{\\linewidth}{@{\\extracolsep{\\fill}}llrrrrr@{}}",
+            "\\toprule",
+            " & & & \\multicolumn{2}{c}{Every bar} & \\multicolumn{2}{c}{16:00 bar} \\\\",
+            "\\cmidrule(lr){4-5}\\cmidrule(lr){6-7}",
+            "Model & Set & QLIKE & \\% vs OLS & DM ($p$) & \\% vs OLS & DM ($p$) \\\\",
+            "\\midrule",
+            f"OLS & HAR set & {q_ols:.4f} & & & & \\\\",
+            "\\addlinespace[3pt]",
+            *body,
+            "\\bottomrule",
+            "\\end{tabular*}",
+            "\\begin{tablenotes}[flushleft]",
+            "\\footnotesize",
+            "\\item \\textit{Notes:} The forecasts of Table~\\ref{tab:rh_oos} on the same \\rhorNIntB{} bars, each against "
+            "the primary benchmark, the OLS on the HAR benchmark set estimated on the \\rhorNBars{} regular-hours bars "
+            "(Table~\\ref{tab:rh_oos}'s OLS row). QLIKE: every bar. \\% vs OLS: the change in QLIKE relative to the OLS "
+            "(negative: lower loss than the benchmark), at every bar and at the 16:00 bar of the \\rhorDays{} evaluation "
+            "days. DM: the Diebold--Mariano statistic, with the correction of \\citet{HarveyLeybourneNewbold1997}, of the "
+            "daily average QLIKE (every bar) or the daily 16:00 QLIKE, forecast minus OLS, Newey--West lag \\rhorHacLag, "
+            "$p$-value in parentheses.",
+            "\\end{tablenotes}",
+            "\\end{threeparttable}",
+            "\\end{table}",
+            "",
+        ]
+    )
 
 
 # --------------------------------------------------------------------------- main
@@ -428,6 +575,7 @@ def main() -> None:
     days = evaluation_days(rv, cfg["first"], cfg["last"], cfg["n_days"])
     ck_first, ck_last, ck_days = cfg["check"]
     met_rows, dm_rows, panels, sub_rows = [], [], {}, []
+    vsols_rows: list[dict] = []  # 2026-10-26 (D2): every forecast vs the RTH13 pooled OLS-HAR
     for pid, _ in PANELS:
         if pid not in cfg["panels"]:
             continue
@@ -440,9 +588,7 @@ def main() -> None:
             # also asserts each tree's rv_actual is the core_stats print
             idx_t = scored_set({**fc, **ft}, rv, days)
             miss = idx.difference(idx_t)
-            assert idx_t.equals(idx), (
-                f"the trees miss {len(miss)} bars the linear rows score, e.g. {list(miss[:5])}"
-            )
+            assert idx_t.equals(idx), f"the trees miss {len(miss)} bars the linear rows score, e.g. {list(miss[:5])}"
         fa = {**fc, **ft}
         bench = slot_benchmark(rv, idx)
         y = rv.reindex(idx).to_numpy(float)
@@ -461,9 +607,12 @@ def main() -> None:
                 sc = pd.read_csv((R48 if pid == "48" else r13) / "scores.csv")
                 setcol = "set" if "set" in sc.columns else "predictor_set"
                 ref = sc[(sc["model"] == k[0]) & (sc[setcol] == k[1])]["qlike"].iloc[0]
-                assert len(on16) == ck_days and np.isclose(
-                    q16.mean(), ref, rtol=1e-10, atol=0
-                ), (pid, k, q16.mean(), ref)
+                assert len(on16) == ck_days and np.isclose(q16.mean(), ref, rtol=1e-10, atol=0), (
+                    pid,
+                    k,
+                    q16.mean(),
+                    ref,
+                )
             else:
                 # a tree (no scores.csv): its 16:00 rows are pooled_trees_13.at16, the rows the prose numbers read
                 a16 = pt13.at16(*k).reindex(pd.DatetimeIndex(on16.normalize()))
@@ -486,9 +635,7 @@ def main() -> None:
             )
         # 2026-10-22 (user, E36): parked -- the linear rows only. Was: for m, _ in MODELS:  # tests on the daily ...
         # 2026-10-23 (final_run.py PENDING): the finished tree methods only (DONE). Was: MODELS + (TREES if ft else [])
-        for m, _ in MODELS + (
-            DONE if ft else []
-        ):  # tests on the daily average loss (the trees get the same tests)
+        for m, _ in MODELS + (DONE if ft else []):  # tests on the daily average loss (the trees get the same tests)
             pairs = []
             if m != "ols":
                 pairs.append(
@@ -519,16 +666,12 @@ def main() -> None:
                             hac_lag=int(r["hac_lag"]),
                         )
                     )
-        for tag, s_first, s_last, s_days in cfg[
-            "subs"
-        ]:  # subperiods: the same scored bars, cut by date
+        for tag, s_first, s_last, s_days in cfg["subs"]:  # subperiods: the same scored bars, cut by date
             sidx = idx[(idx.normalize() >= s_first) & (idx.normalize() <= s_last)]
             n_sd = pd.DatetimeIndex(sidx.normalize()).nunique()
             assert n_sd == s_days, (tag, n_sd)
             sl = idx.isin(sidx)
-            den_s = float(
-                ((y[sl] - bench.to_numpy()[sl]) ** 2).sum()
-            )  # R2_OOS of the subperiod, same benchmark
+            den_s = float(((y[sl] - bench.to_numpy()[sl]) ** 2).sum())  # R2_OOS of the subperiod, same benchmark
             # 2026-10-22 (user, E36): the trees' rows too (CSV only; the \rhorSub... macros stay on the linear rows).
             # Was: for k in fc:
             for k in fa:
@@ -573,6 +716,36 @@ def main() -> None:
                         hac_lag=int(r["hac_lag"]),
                     )
                 )
+        # 2026-10-26 (integration plan D2): every forecast against the primary benchmark, the RTH13 pooled OLS on the
+        # HAR set (Table 1's OLS row): QLIKE % change and DM (HLN, daily average loss) at every bar, and at the 16:00 bar
+        # (per-day 16:00 loss) of the same scored days; also the lasso against the ridge on the full set (Section 8)
+        if pid == "13":
+            on16_all = idx[(idx.hour == 16) & (idx.minute == 0)]
+            assert len(on16_all) == len(days), "a 16:00 bar on every evaluation day"
+            q16_by = {k: loss(f, on16_all, rv)[0] for k, f in fa.items()}
+            ref = ("ols", "baseline")
+            pairs_bm = [(k, ref) for k in fa if k != ref]
+            if ("lasso", "all_features") in fa and ("ridge", "all_features") in fa:
+                pairs_bm.append((("lasso", "all_features"), ("ridge", "all_features")))
+            for a_, b_ in pairs_bm:
+                for span, la, lb in (
+                    ("bar", daily(L[a_][0], idx), daily(L[b_][0], idx)),
+                    ("c16", q16_by[a_], q16_by[b_]),
+                ):
+                    r = dm_test(la, lb)
+                    vsols_rows.append(
+                        dict(
+                            model=a_[0],
+                            set=a_[1],
+                            against=f"{b_[0]}_{b_[1]}",
+                            span=span,
+                            pct=float(100.0 * (la.mean() / lb.mean() - 1.0)),
+                            dm=float(r["dm"]),
+                            p=float(r["p"]),
+                            T=int(r["T"]),
+                            hac_lag=int(r["hac_lag"]),
+                        )
+                    )
         panels[pid] = (idx, days)
     met = pd.DataFrame(met_rows)
     dms = pd.DataFrame(dm_rows)
@@ -582,15 +755,14 @@ def main() -> None:
     dms.to_csv(out_res / "dm.csv", index=False)
     if len(subs):
         subs.to_csv(out_res / "subperiods.csv", index=False)
+    vso = pd.DataFrame(vsols_rows)
+    if len(vso):
+        vso.to_csv(out_res / "vs_ols.csv", index=False)
     # 2026-10-23: the 2014 span (final rerun) is built like the 2012 one. Was: span12 = args.span == "2012"
     span12 = args.span in ("2012", "2014")
     final14 = args.span == "2014"
     # 2026-10-23: the pre-sample of the frozen penalties, from the run's own folds (2008--2011 printed, 2013 final)
-    fp_info = (
-        json.loads((r13 / "frozen_penalties.json").read_text())["info"]
-        if span12
-        else {}
-    )
+    fp_info = json.loads((r13 / "frozen_penalties.json").read_text())["info"] if span12 else {}
     n_folds = len(fp_info.get("folds", []))
     pen_years = ""
     if span12:
@@ -627,12 +799,7 @@ def main() -> None:
     # and a "Panel B ... 13" block, each with its OLS, ridge, lasso and elastic net rows.
     body = []
     for m, name in MODELS:
-        line = (
-            [name]
-            + cell("13", m, "baseline")
-            + cell("13", m, "all_features")
-            + [test("13", m)]
-        )
+        line = [name] + cell("13", m, "baseline") + cell("13", m, "all_features") + [test("13", m)]
         body.append(" & ".join(line) + " \\\\")
         if m == "ols":
             body.append("\\addlinespace[3pt]")
@@ -644,19 +811,10 @@ def main() -> None:
             "\\addlinespace[3pt]",
         ]
         for m, name in TREES:
-            if (
-                m in PEND
-            ):  # 2026-10-23 (final_run.py PENDING): the row stays, every cell pending, the row marked
-                body.append(
-                    " & ".join([name] + [fr.PENDING_TEX] * 7) + " \\\\ " + fr.ROW_MARK
-                )
+            if m in PEND:  # 2026-10-23 (final_run.py PENDING): the row stays, every cell pending, the row marked
+                body.append(" & ".join([name] + [fr.PENDING_TEX] * 7) + " \\\\ " + fr.ROW_MARK)
                 continue
-            line = (
-                [name]
-                + cell("13", m, "baseline")
-                + cell("13", m, "all_features")
-                + [test("13", m)]
-            )
+            line = [name] + cell("13", m, "baseline") + cell("13", m, "all_features") + [test("13", m)]
             body.append(" & ".join(line) + " \\\\")
     lag = sorted(set(dms["hac_lag"]))
     # span-dependent text; the defaults are the 2020 table as committed
@@ -677,9 +835,7 @@ def main() -> None:
         "re-estimated every interval (Section~\\ref{sec:rh_methods}), trained and scored on the 13 regular-hours "
         "half-hour bars ending 10:00 to 16:00~ET."
     )
-    trees_txt = (
-        " Tree ensembles are left out until they are re-estimated on this design."
-    )
+    trees_txt = " Tree ensembles are left out until they are re-estimated on this design."
     if span12:
         # 2026-10-22 (user, E36): parked -- the linear rerun only. Was: "% tab:rh_oos, 2012 span (--span 2012): the
         # pooled linear rerun from 2012 on the 13 regular-hours bars (base 5," / "% FOMC in, ...-day window, penalties
@@ -737,9 +893,7 @@ def main() -> None:
         [
             HEAD,
             *top,
-            *(
-                [fr.PENDING_DEF] if PEND and cfg["trees"] else []
-            ),  # 2026-10-23 (final_run.py PENDING)
+            *([fr.PENDING_DEF] if PEND and cfg["trees"] else []),  # 2026-10-23 (final_run.py PENDING)
             "\\begin{table}[htbp]",
             "\\centering",
             "\\small",
@@ -764,7 +918,9 @@ def main() -> None:
             f"\\item \\textit{{Notes:}} {lead}, one design for every row: the HAR components at "
             "horizons $k \\in \\{1, 5, 25, 125, 625, 3125\\}$, the full predictor set with the FOMC series, "
             f"{design} {span_txt}, \\rhorNIntB{{}} bars "
-            "(bars with a non-positive realized variance dropped); each forecast $\\hat\\sigma^2_{t,i} = \\hat y^{2}_{t,i}\\, s^2_{t,i}$ is "
+            # 2026-10-26 (audit design-11): the NYSE-holiday sessions are forecast, not scored
+            "(bars with a non-positive realized variance dropped; the bars of the shortened futures sessions on NYSE "
+            "holidays are forecast but not scored); each forecast $\\hat\\sigma^2_{t,i} = \\hat y^{2}_{t,i}\\, s^2_{t,i}$ is "
             "scored against the actual realized variance $\\RV_{t,i}$ of its interval. MSE (in units of "
             "$10^{-\\rhoosMseExp}$) and QLIKE are averages over the scored intervals. "
             "$R^2_{\\mathrm{OOS}} = 1 - \\sum (\\RV_{t,i} - \\hat\\sigma^2_{t,i})^2 / \\sum (\\RV_{t,i} - "
@@ -773,7 +929,8 @@ def main() -> None:
             "\\rhoosBenchStart{} \\citep{CampbellThompson2008}. DM: the Diebold--Mariano statistic, with the "
             "correction of \\citet{HarveyLeybourneNewbold1997}, for the daily average QLIKE of the full predictor "
             "set minus that of the HAR benchmark of the same model (negative: the full set has the lower loss), "
-            f"Newey--West lag {', '.join(str(x) for x in lag)}, $p$-value in parentheses.{trees_txt} Models trained "
+            # 2026-10-26 (audit numbers-3): the lag from \\rhorHacLag. Was: f"Newey--West lag {', '.join(...)}, ..."
+            f"Newey--West lag \\rhorHacLag, $p$-value in parentheses.{trees_txt} Models trained "
             "on the last 30 minutes are in Table~\\ref{tab:rh_oos_last30}.",
             "\\end{tablenotes}",
             "\\end{threeparttable}",
@@ -828,8 +985,7 @@ def main() -> None:
             mac(
                 "rhorNIntB",
                 thousands(len(panels["13"][0])),
-                "scored bars, 13 regular-hours bars; the same bars for "
-                "every row, linear and trees (asserted)",
+                "scored bars, 13 regular-hours bars; the same bars for every row, linear and trees (asserted)",
             ),
             mac("rhorDays", thousands(len(days)), "trading days of the span"),
             mac(
@@ -862,13 +1018,7 @@ def main() -> None:
             ),
             mac(
                 "rhorPenFolds",
-                str(
-                    len(
-                        json.loads((r13 / "frozen_penalties.json").read_text())["info"][
-                            "folds"
-                        ]
-                    )
-                ),
+                str(len(json.loads((r13 / "frozen_penalties.json").read_text())["info"]["folds"])),
                 "validation folds on which the penalties are chosen",
             ),
             mac(
@@ -891,11 +1041,7 @@ def main() -> None:
         # printed number changes): the first year, the folds as a word and as a phrase (singular for one fold), the
         # columns of the full 13-bar set, and the bars of each tree arm
         words = {1: "one", 2: "two", 3: "three", 4: "four", 5: "five"}
-        n_af = int(
-            json.loads((r13 / "frozen_penalties.json").read_text())["designs"][
-                "all_features"
-            ]["n_columns"]
-        )
+        n_af = int(json.loads((r13 / "frozen_penalties.json").read_text())["designs"]["all_features"]["n_columns"])
         assert n_af == (564 if final14 else 576), n_af
         lines += [
             mac("rhorSpanStartYear", str(cfg["first"].year), "first year of the span"),
@@ -922,9 +1068,7 @@ def main() -> None:
         fpj = json.loads((r13 / "frozen_penalties.json").read_text())
         base_cols = fpj["designs"]["baseline"]["columns"]
         n_cal = len(base_cols) - len(fpj["info"]["har_ladder"])
-        assert (
-            n_cal == len([c for c in base_cols if not c.startswith("har_ma_")]) == 6
-        ), base_cols
+        assert n_cal == len([c for c in base_cols if not c.startswith("har_ma_")]) == 6, base_cols
         lines.append(
             mac(
                 "rhorNCalendarAf",
@@ -962,9 +1106,7 @@ def main() -> None:
         # 2026-10-22 (user, E36): the trees' tests, named as the linear rows'
         if cfg["trees"] and pid == "13":
             for m, _ in TREES:
-                if (
-                    m in PEND
-                ):  # 2026-10-23 (final_run.py PENDING): no test of a pending method
+                if m in PEND:  # 2026-10-23 (final_run.py PENDING): no test of a pending method
                     cap = {"lgbm": "Lgbm", "xgb": "Xgb", "rf": "Rf"}[m]
                     lines.append(
                         mac(
@@ -973,9 +1115,7 @@ def main() -> None:
                             f"DM, QLIKE, all features vs HAR, {m}: pending",
                         )
                     )
-                    lines.append(
-                        mac(f"rhorP{cap}{tag}", fr.PENDING_TEX, "its p-value: pending")
-                    )
+                    lines.append(mac(f"rhorP{cap}{tag}", fr.PENDING_TEX, "its p-value: pending"))
                     continue
                 r = dms[
                     (dms.panel == pid)
@@ -994,17 +1134,11 @@ def main() -> None:
                 lines.append(mac(f"rhorP{cap}{tag}", fmt_p(r.p), "its p-value"))
     # 2026-10-22 (user, E36): counts of the tests of Table 1's DM column (linear and trees)
     if cfg["trees"]:
-        af_t = dms[
-            (dms.panel == "13")
-            & (dms.comparison == "all features vs HAR benchmark")
-            & (dms.loss == "qlike")
-        ]
+        af_t = dms[(dms.panel == "13") & (dms.comparison == "all features vs HAR benchmark") & (dms.loss == "qlike")]
         q13 = met[met.panel == "13"].set_index(["model", "set"])["qlike"]
         # 2026-10-23 (final_run.py PENDING): the finished tree methods. Was: tree_m = [m for m, _ in TREES]
         lin_m, tree_m = [m for m, _ in MODELS[1:]], [m for m, _ in DONE]
-        assert sorted(af_t.model) == sorted(lin_m + tree_m) and len(af_t) == len(
-            lin_m + tree_m
-        ), sorted(af_t.model)
+        assert sorted(af_t.model) == sorted(lin_m + tree_m) and len(af_t) == len(lin_m + tree_m), sorted(af_t.model)
 
         def printed_p(p: float) -> float:
             """The p-value as the table and the rhorP...B macros print it (<0.001 read as 0)."""
@@ -1090,17 +1224,27 @@ def main() -> None:
             ),
             mac("rhorAfTreeLowerSig", str(tree_sig), f"... and DM p < {SIG}"),
         ]
+    # 2026-10-26 (integration plan D2): every forecast against the primary benchmark, the RTH13 pooled OLS on the HAR set
+    # (Table 1's OLS row): \rhorVsOls{Pct,Dm,P}<Model><Set>[Close] (every bar / 16:00), counts and ranges; the lasso
+    # against the ridge on the full set (\rhldDmLassoRidge, \rhldPLassoRidge, Section 8's names); a companion table
+    # Written to a macro file of their own, rehaul_oos_vs_ols_numbers.tex (the name the preamble loads).
+    if len(vso):
+        vs_lines = [
+            HEAD,
+            "% \\rhorVsOls... macros (2026-10-26, integration plan D2): every forecast of Table 1 against the primary",
+            "% benchmark, the RTH13 pooled OLS on the HAR set; and \\rhldDmLassoRidge / \\rhldPLassoRidge (Section 8).",
+        ] + vs_ols_macros(vso, mac)
+        (args.out_dir / OUT_VSOLS_NUM.name).write_text("\n".join(vs_lines) + "\n", encoding="utf-8", newline="\n")
+        (args.out_dir / OUT_VSOLS.name).write_text(vs_ols_table(vso, met), encoding="utf-8", newline="\n")
     # 2026-10-20 (user): parked -- the macros of every row, set and test of each subperiod. Was: \rhorSub{One,Two}
     # {Start,End,Days,NInt}, ...Qlike{Ols,Ridge,Lasso,Enet}{Har,Af}, ...Dm/P{Ridge,Lasso,Enet}. Now: what the one
     # sentence on the split quotes (06_results.tex), with A = 2012-2019 and B = 2020-2024.
     for tag, s_first, s_last, _ in cfg["subs"]:
         # 2026-10-22 (user, E36): the linear rows only (subperiods.csv also holds the trees). Was:
         # g = subs[(subs.tag == tag) & (subs.against == "")].set_index(["model", "set"])
-        g = subs[
-            (subs.tag == tag)
-            & (subs.against == "")
-            & subs.model.isin([m for m, _ in MODELS])
-        ].set_index(["model", "set"])
+        g = subs[(subs.tag == tag) & (subs.against == "") & subs.model.isin([m for m, _ in MODELS])].set_index(
+            ["model", "set"]
+        )
         har = g.xs("baseline", level="set")
         assert len(har) == len(MODELS) and len(g) == 2 * len(MODELS) - 1, (
             tag,
@@ -1122,9 +1266,7 @@ def main() -> None:
         q_har = one_or_range([f"{v:.4f}" for v in har.qlike])
         r_har = one_or_range([fmt(v, 1) for v in har.r2_oos_pct])
         af = g.xs("all_features", level="set")
-        lines.append(
-            f"% subperiod {tag}: {s_first.date()} .. {s_last.date()}, the bars of Table 1 cut by date"
-        )
+        lines.append(f"% subperiod {tag}: {s_first.date()} .. {s_last.date()}, the bars of Table 1 cut by date")
         lines.append(
             mac(
                 f"rhorSub{tag}Label",
@@ -1188,9 +1330,7 @@ def main() -> None:
                 "R2_OOS (%), all features, highest of the three",
             )
         )
-    if (
-        PEND and cfg["trees"]
-    ):  # 2026-10-23 (final_run.py PENDING): \rhPending is used by the macros above
+    if PEND and cfg["trees"]:  # 2026-10-23 (final_run.py PENDING): \rhPending is used by the macros above
         lines.insert(1, fr.PENDING_DEF)
     out_numbers.write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
 

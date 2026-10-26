@@ -27,7 +27,7 @@
 \providecommand{\rheSzLfssMed}{}\renewcommand{\rheSzLfssMed}{1.06}  % sizing lfss: model-set median Sharpe mid, 614 days
 \providecommand{\rheSzRankMed}{}\renewcommand{\rheSzRankMed}{0.90}  % sizing rank: model-set median Sharpe mid, 614 days
 \providecommand{\rheSzShort}{}\renewcommand{\rheSzShort}{\ensuremath{-}0.12}  % always short, Sharpe mid on the 614 sizing days
-\providecommand{\rheSzClipBeats}{}\renewcommand{\rheSzClipBeats}{63}  % clip above sign(s), of 94 (mid)
+\providecommand{\rheSzClipBeats}{}\renewcommand{\rheSzClipBeats}{64}  % clip above sign(s), of 94 (mid)
 \providecommand{\rheSzClipGain}{}\renewcommand{\rheSzClipGain}{\ensuremath{+}0.17}  % median clip - sign(s) Sharpe mid
 \providecommand{\rheTailNeg}{}\renewcommand{\rheTailNeg}{87}  % model-set forecasts whose gain over short is < 0 without 10 best days
 \providecommand{\rheLassoSh}{}\renewcommand{\rheLassoSh}{1.44}  % per-bar lasso all features, Sharpe mid
@@ -40,15 +40,19 @@
 \providecommand{\rheLgbmBestSh}{}\renewcommand{\rheLgbmBestSh}{2.01}  % best closing-interval LightGBM specification by post-warmup Sharpe mid on all features (ex post; unused by the text since 2026-10-17)
 \providecommand{\rheLgbmCloseFixedSh}{}\renewcommand{\rheLgbmCloseFixedSh}{1.19}  % closing-interval LightGBM, fixed hyperparameters re-estimated every trading session, all features: post-warmup Sharpe mid (2026-10-17)
 \providecommand{\rheVsShortAbove}{}\renewcommand{\rheVsShortAbove}{88}  % model-set forecasts with post-warmup Sharpe mid above always short
-\providecommand{\rheRankCorrQ}{}\renewcommand{\rheRankCorrQ}{\ensuremath{-}0.06}  % Spearman rank correlation of mean QLIKE with post-warmup Sharpe mid across the model set
-\providecommand{\rheRankCorrES}{}\renewcommand{\rheRankCorrES}{\ensuremath{-}0.64}  % Spearman rank correlation of mean ES_1 with post-warmup Sharpe mid across the model set
-\providecommand{\rheRankCorrQPool}{}\renewcommand{\rheRankCorrQPool}{0.26}  % Spearman rank correlation of mean QLIKE with post-warmup Sharpe mid across the 12 pooled intraday forecasts
+\providecommand{\rheRankCorrQ}{}\renewcommand{\rheRankCorrQ}{\ensuremath{-}0.04}  % Spearman rank correlation of mean QLIKE with post-warmup Sharpe mid across the model set
+\providecommand{\rheRankCorrES}{}\renewcommand{\rheRankCorrES}{\ensuremath{-}0.65}  % Spearman rank correlation of mean ES_1 with post-warmup Sharpe mid across the model set
+\providecommand{\rheRankCorrQPool}{}\renewcommand{\rheRankCorrQPool}{0.25}  % Spearman rank correlation of mean QLIKE with post-warmup Sharpe mid across the 12 pooled intraday forecasts
 \providecommand{\rheRankCorrESPool}{}\renewcommand{\rheRankCorrESPool}{\ensuremath{-}0.45}  % Spearman rank correlation of mean ES_1 with post-warmup Sharpe mid across the 12 pooled intraday forecasts
+\providecommand{\rheRankCorrQPoolDistinct}{}\renewcommand{\rheRankCorrQPoolDistinct}{0.25}  % Spearman of mean QLIKE with post-warmup Sharpe mid across the 10 distinct pooled forecasts
+\providecommand{\rheRankCorrESPoolDistinct}{}\renewcommand{\rheRankCorrESPoolDistinct}{\ensuremath{-}0.43}  % Spearman of mean ES_1 with post-warmup Sharpe mid across the 10 distinct pooled forecasts
+\providecommand{\rhePoolNDistinct}{}\renewcommand{\rhePoolNDistinct}{10}  % distinct pooled intraday forecasts (HAR-set linear counted once)
+\providecommand{\rhePoolShMedDistinct}{}\renewcommand{\rhePoolShMedDistinct}{1.69}  % median post-warmup Sharpe mid over the distinct pooled forecasts
 \providecommand{\rhePoolNDone}{}\renewcommand{\rhePoolNDone}{12}  % pooled intraday forecasts behind rheRankCorr...Pool, rhePoolWorthlessShare... and rheSplit... (finished final runs; = rhrPoolN)
 \providecommand{\rhePoolNAll}{}\renewcommand{\rhePoolNAll}{12}  % pooled intraday forecasts the paper counts, pending ones included (= rhrPoolNAll)
 \providecommand{\rheRankCorrQPoolDOne}{}\renewcommand{\rheRankCorrQPoolDOne}{0.37}  % ... as rheRankCorrQPool, with the DOne Sharpe ratio (robustness)
 \providecommand{\rheRankCorrESPoolDOne}{}\renewcommand{\rheRankCorrESPoolDOne}{\ensuremath{-}0.35}  % ... as rheRankCorrESPool, with the DOne Sharpe ratio (robustness)
-\providecommand{\rheRankCorrQPoolDTwo}{}\renewcommand{\rheRankCorrQPoolDTwo}{0.23}  % ... as rheRankCorrQPool, with the DTwo Sharpe ratio (robustness)
+\providecommand{\rheRankCorrQPoolDTwo}{}\renewcommand{\rheRankCorrQPoolDTwo}{0.25}  % ... as rheRankCorrQPool, with the DTwo Sharpe ratio (robustness)
 \providecommand{\rheRankCorrESPoolDTwo}{}\renewcommand{\rheRankCorrESPoolDTwo}{\ensuremath{-}0.34}  % ... as rheRankCorrESPool, with the DTwo Sharpe ratio (robustness)
 \providecommand{\rheWorthlessDays}{}\renewcommand{\rheWorthlessDays}{137}  % post-warmup option days with R_t = -1 (straddle expires worthless)
 \providecommand{\rhePoolWorthlessShareMed}{}\renewcommand{\rhePoolWorthlessShareMed}{37}  % median % of positive mid return from R_t = -1 days, 12 pooled intraday forecasts, 614 days

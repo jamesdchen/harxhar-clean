@@ -1,0 +1,264 @@
+% A_closing.tex -- the final section of the online appendix: the models estimated on the closing half hour alone
+% (decision D3). Created 2026-10-26 (integration pass for JFEc; APPENDIX agent). \input at the end of
+% rehaul/10_statistical_tests.tex, so it is the last appendix section. Bullets only (author, 2026-10-26).
+% It replaces the appendix section "Closing-interval models" of rehaul/10_appendix.tex, built on the master-table
+% closing-interval model set under the old data rules (W = 2,000 trading days, its own predictor set and tuning; audit
+% numbers-10), and its subsection "Training on the last 30 minutes" (sec:rh_econ_last30): both are parked, whole, at the
+% end of 10_appendix.tex. Every label of that section that live text cites is kept here: app:rh_closing,
+% app:rh_closing_sample, app:rh_closing_predictors, app:rh_closing_bench, sec:rh_econ_last30, sec:rh_results_pooled.
+% sec:rh_close_scale (its standardization display) is not kept: no live text cites it, and Appendix app:rh_dp_scale
+% (rehaul/A_data_predictors.tex) states the scaler. Table tab:rh_oos_last30 (the old model set) is parked with the
+% section; its label is aliased below to Table tab:rh_train_arms, so a stale \ref still resolves.
+% Sources: results/ci_har_rebuild_2026-10-26/RULE.txt and measure/ (the rebuilt closing-interval HAR benchmark; the
+% NUMBERS agent switches the generators to it); drafts/2026-10-26_train_arms.tex (the CLOSE sample; \rhta...,
+% writeup/make_rehaul_train_arms.py, whose claims() asserts the class names, directions and "all / every / none");
+% drafts/2026-10-25_close_accuracy.tex, first item (\rhca..., writeup/make_rehaul_close_accuracy.py);
+% drafts/2026-10-25_mcs.tex, Parts B and C (\rhmcs..., writeup/make_rehaul_mcs.py, draft_claims()); the CI-HAR
+% strategy macros of writeup/make_rehaul_econ_main.py (\rhem...CiHar, released by ECON for this section).
+% Numbers: macros only. The \rhci... macros of the rebuild are not generated yet: they print \rhPending until NUMBERS
+% defines them (values in measure/accuracy.csv, dm_old_vs_new.csv and summary.json: first forecast 14 June 2006;
+% closing-half-hour QLIKE on T_close 0.1033 (old) and 0.1025 (rebuilt), DM -0.86 (p = 0.39); the sign strategy changes
+% position on 18 of the 614 post-warmup days).
+% Evaluation spans as in Methods (05_methods.tex): T_oos, Table 1's span; T_close, its 2020-2024 subset.
+% FOMC fixes (D13): the CLOSE sample ran on the design before them; marked in the text (DATA relay, app:rh_dp_fomc).
+\ifdefined\rhtaNdays\else\input{generated/rehaul_train_arms_numbers}\fi
+\ifdefined\rhcaNdaysSpan\else\input{generated/rehaul_close_accuracy_numbers}\fi
+\ifdefined\rhmcsBlock\else\input{generated/rehaul_mcs_numbers}\fi
+\ifdefined\rhemShCiHar\else\input{generated/rehaul_econ_main_numbers}\fi
+\providecommand{\rhPending}{\textit{pending}}
+\providecommand{\rhciFirst}{\rhPending}  % first forecast of the rebuilt CI-HAR (14 June 2006)
+\providecommand{\rhciQOldClose}{\rhPending}  % QLIKE, 16:00 bar, T_close, the CI-HAR forecasts before the rebuild
+\providecommand{\rhciQNewClose}{\rhPending}  % ... the rebuilt CI-HAR
+\providecommand{\rhciDmOldNewClose}{\rhPending}  % DM, rebuilt minus earlier, daily QLIKE on T_close
+\providecommand{\rhciPOldNewClose}{\rhPending}  % ... its p statement (\ensuremath{p = ...})
+\providecommand{\rhciFlipDays}{\rhPending}  % post-warmup option days on which the CI-HAR sign position changes
+
+% Alias: the label of the parked Table tab:rh_oos_last30 (old closing-interval model set) points at Table
+% tab:rh_train_arms, which holds the models trained on the closing half hour (CLOSE, Panels A, C-F). The aux entry is
+% copied from the previous run, so the alias resolves one LaTeX run after tab:rh_train_arms does. Remove it once no
+% generated note cites tab:rh_oos_last30 (the close-accuracy table note does, 2026-10-26).
+\makeatletter
+\expandafter\ifx\csname r@tab:rh_train_arms\endcsname\relax\else
+  \immediate\write\@auxout{\string\newlabel{tab:rh_oos_last30}{%
+    \unexpanded\expandafter\expandafter\expandafter{\csname r@tab:rh_train_arms\endcsname}}}%
+\fi
+\makeatother
+
+\clearpage
+\section{Closing-interval models}
+\label{app:rh_closing}
+\begin{itemize}
+\item \textbf{Scope.} The models of the main text are estimated on every regular-hours bar and forecast every bar.
+  This section collects the models estimated on the closing half hour alone ($\mathcal I = \{c\}$, one observation
+  a trading day): the closing-interval HAR benchmark, rebuilt under the current data chain, and the pooled models of
+  Table~\ref{tab:rh_oos} re-estimated on the closing half hour (the CLOSE sample). It also reports the accuracy of
+  the pooled models' closing half hour on both evaluation spans and the multiple-comparison procedures, whose sets
+  of the closing half hour include the closing-interval HAR benchmark.
+\item \textbf{Not reported.} The closing-interval linear models and tree ensembles of earlier drafts, a separate
+  model set fitted under the earlier data rules with its own window, predictor set and tuning, are not reported;
+  the CLOSE sample replaces them.
+\end{itemize}
+
+\subsection{The closing-interval models}
+\label{app:rh_closing_sample}
+\label{app:rh_closing_bench}
+\label{app:rh_closing_predictors}
+\begin{itemize}
+% Moved from the parked subsection "Closing-interval HAR benchmark and estimation" (10_appendix.tex), lightly edited.
+\item \textbf{The closing-interval HAR benchmark.} A HAR-type model in the spirit of \citet{Corsi2009}, not Corsi's
+  daily HAR: OLS on the HAR components of the target at the horizons $\mathcal K$ and \rhdmNCalendar{} calendar
+  columns (\cmPNewBase{} columns in all), estimated on closing-interval observations only, over a rolling window of
+  $W = \cmPtFitWin$ trading days, and re-estimated every trading day. It has no exogenous series and no FOMC column.
+  It is not the paper's benchmark, which is the pooled OLS on the HAR benchmark (Section~\ref{sec:rh_methods}).
+\item \textbf{Rebuilt under the current data chain.} The benchmark's forecasts in earlier drafts were built under the
+  data rules in force before the data fixes of Section~\ref{sec:rh_data}. They are rebuilt with the same model and
+  code, every data rule at its current setting.
+  \begin{itemize}
+  \item Three rules change the benchmark's inputs. The diurnal factor of the target averages regular in-slot bars
+    only, so the bars after the 13:00 close of an early-close session leave it, which moves the target and the HAR
+    components for $n_{\mathrm{d}}$ trading days after each early close (Appendix~\ref{sec:rh_exp_samples}). The
+    16:00 rows of the early-close sessions leave the design, as they leave the pooled design. The burn-in of the HAR
+    components is dropped on the half-hour grid rather than on the series of closes, so the benchmark's estimation
+    sample starts earlier and its forecasts cover $\mathcal T_{\mathrm{oos}}$ (first forecast \rhciFirst).
+  \item The other data rules act on exogenous series only and do not reach a design without them.
+  \item With the earlier rules switched back on, the code reproduces the earlier forecasts up to floating-point
+    rounding.
+  \item On the closing half hour of $\mathcal T_{\mathrm{close}}$ the rebuilt benchmark's average QLIKE loss is
+    \rhciQNewClose, against \rhciQOldClose{} before the rebuild ($\DM = \rhciDmOldNewClose$,
+    \rhciPOldNewClose), and its sign strategy takes the other position on \rhciFlipDays{} of the \rheSzDays{}
+    post-warmup days.
+  \end{itemize}
+\item \textbf{Its strategy.} The sign strategy on the benchmark's forecast (Section~\ref{sec:rh_econ_strategy}) has
+  $\SR = \rhemShCiHar$ at mid-quotes and \rhemShXCiHar{} at quoted bid and ask prices, against the short straddle
+  $\Delta\SR = \rhemDShCiHarVsShort$ (bootstrap $p = \rhemPDShCiHarVsShort$). The full-set strategies of the pooled
+  models have the higher Sharpe ratio in \rhemFullVsCiHarPos{} of the \rhorAfPairs{} model classes
+  ($\Delta\SR = \rhemFullVsCiHarMin$ to $\rhemFullVsCiHarMax$); \rhemFullVsCiHarSig{} of these differences are
+  significant at the 5\% level under the bootstrap test (the smallest $p$, \rhemFullVsCiHarPMin).
+\item \textbf{Models trained on the closing half hour (CLOSE).} A pre-registered comparison of training samples
+  (Appendix~\ref{app:rh_robust_train}) re-estimated every pooled model of Table~\ref{tab:rh_oos} on the closing half
+  hour alone.
+  \begin{itemize}
+  \item Sample: the 16:00 rows of the main design, over a rolling window of \rhtaRowsCl{} closes, refit at every
+    close, on the design before the FOMC fixes of Appendix~\ref{app:rh_dp_fomc}.
+  \item Predictors: those of the main design at the 16:00 bar (Section~\ref{sec:rh_predictors}), computed on the full
+    half-hour grid.
+  \item Tuning: the frozen tree configurations of the main design, and the rule that chooses the linear penalties
+    applied to the sample's own pre-sample rows (validation year \rhtaValYear). A natively built CLOSE design
+    (CLOSE-nat) checks the linear models.
+  \item Scoring: the 16:00 bar of the \rhtaNdays{} trading days from \rhtaStart{} to \rhtaEnd, the days of
+    Table~\ref{tab:rh_oos}.
+  \end{itemize}
+\end{itemize}
+
+% The CLOSE results of drafts/2026-10-26_train_arms.tex (Panels A, C, D, E and F of tab:rh_train_arms, input in
+% rehaul/A_robustness.tex), lightly edited. The labels of the parked subsection "Training on the last 30 minutes" are
+% kept on it (sec:rh_econ_last30 is cited from 08_feature_importance.tex and the close-accuracy table).
+\subsection{Training on the closing half hour}
+\label{sec:rh_econ_last30}
+\label{sec:rh_results_pooled}
+\begin{itemize}
+\item \textbf{Against the main design.} Trained on the close alone, the full-set forecasts of the penalized linear
+  models have a lower 16:00 loss than those of the main design ($\Delta\% = \rhtaLinClVsRthClosePctMin$ to
+  $\rhtaLinClVsRthClosePctMax$, each with $p < 0.001$); those of the tree ensembles do not differ significantly
+  ($\Delta\% = \rhtaTreeClVsRthClosePctMin$ to $\rhtaTreeClVsRthClosePctMax$; the smallest $p$,
+  \rhtaTreeClVsRthClosePMin; Table~\ref{tab:rh_train_arms}, Panel~C).
+  \begin{itemize}
+  \item For the trees, training on the close alone raises the 16:00 loss of the HAR benchmark (for LightGBM from
+    \rhtaQHarLgbmRthClose{} to \rhtaQHarLgbmClClose).
+  \end{itemize}
+\item \textbf{Full predictor set against the HAR benchmark.} Within CLOSE the full predictor set lowers the 16:00
+  loss in all six classes (Panel~A).
+  \begin{itemize}
+  \item $\Delta\% = \rhtaLinPctClCloseMin$ to $\rhtaLinPctClCloseMax$ for the penalized linear models and
+    $\rhtaTreePctClCloseMin$ to $\rhtaTreePctClCloseMax$ for the tree ensembles, each with $p < 0.001$; CLOSE-nat
+    gives the same result for the linear models ($\Delta\% = \rhtaLinPctClNatCloseMin$ to
+    $\rhtaLinPctClNatCloseMax$, each with $p < 0.001$).
+  \item In the main design the same comparison gives $\Delta\% = \rhtaPctRthCloseMin$ to $\rhtaPctRthCloseMax$,
+    significant at the 5\% level for XGBoost only (\rhtaPXgbRthClose).
+  \item A full-versus-HAR change compares two forecasts trained on the same sample, so it also moves with the HAR
+    benchmark: for the trees, the larger change under CLOSE reflects their weaker HAR benchmark there (above).
+  \end{itemize}
+\item \textbf{The window.} A follow-up run, specified in its own written rule before it was estimated,
+  re-estimated CLOSE on windows of \rhtaWsMin{} to \rhtaWsMax{} closes (Panel~F). The full predictor set has the
+  lower 16:00 loss in all \rhtaWsNCells{} window and class pairs ($\Delta\% = \rhtaWsLinPctMin$ to
+  $\rhtaWsLinPctMax$ for the penalized linear models, $\rhtaWsTreePctMin$ to $\rhtaWsTreePctMax$ for the tree
+  ensembles), significantly at the 5\% level in \rhtaWsNSig{} of them and in every class from \rhtaWsSigFrom{}
+  closes on.
+\item \textbf{Equal numbers of rows.} CLOSE, with \rhtaRowsCl{} rows, has a lower 16:00 loss than RTH13-3k, the
+  main sample cut to the same number of rows, in all six classes ($\Delta\% = \rhtaClVsRthThreeKClosePctMin$ to
+  $\rhtaClVsRthThreeKClosePctMax$; the largest $p$, \rhtaClVsRthThreeKClosePMax; Panel~D). Its window spans about
+  \rhtaSpanClSmall{} years against about \rhtaSpanRthSmall{} trading days, so this comparison does not separate the
+  choice of intervals from the span of the window.
+\item \textbf{The trade} (Panel~E). The full-set sign strategies trained on CLOSE have $\SR$ from \rhtaShFullClMin{}
+  to \rhtaShFullClMax, against \rhtaShFullRthMin{} to \rhtaShFullRthMax{} in the main design.
+  \begin{itemize}
+  \item None of the \rhtaNDShTests{} differences in $\SR$ between the full-set strategies of ALL48 or CLOSE and
+    those of the main design is significant at the 5\% level (the smallest $p$, \rhtaDShPMin).
+  \item For the tree ensembles, the full-set strategy's gain over the HAR benchmark's is significant at the 5\% level
+    in \rhtaNTreeShSigCl{} of the three classes under CLOSE, where the trees' HAR benchmark strategies have $\SR$
+    from \rhtaShTreeHarClMin{} to \rhtaShTreeHarClMax.
+  \end{itemize}
+\item \textbf{Caveats.} The tree configurations were chosen on an earlier design and, by the rule, are not
+  re-tuned; with \rhtaRowsCl{} rows their sample-size parameters may not suit the window
+  (Appendix~\ref{app:rh_tuning}).
+\item \textbf{Summary.} Training on the closing half hour alone lowers the 16:00 loss of the penalized linear models
+  but not of the tree ensembles; within CLOSE the full predictor set beats the HAR benchmark in all six classes; and
+  no Sharpe ratio differs significantly from the main design's.
+\end{itemize}
+
+% The first item of drafts/2026-10-25_close_accuracy.tex (RESULTS agent: "belongs with tab:rh_close_accuracy in your
+% A_closing"), lightly edited. Its comparison with the closing-interval HAR benchmark is in A_results.tex
+% (app:rh_results_classes); its sentence on the old closing-interval lasso is dropped (D3). Panel B, continued, of the
+% generated table still holds the old closing-interval model set (NUMBERS asked to drop it or replace it by CLOSE).
+\subsection{Accuracy of the closing half hour}
+\label{app:rh_closing_accuracy}
+\begin{itemize}
+\item \textbf{The table.} Table~\ref{tab:rh_close_accuracy} reports the 15:30 forecast of the closing half hour from
+  the pooled models of Table~\ref{tab:rh_oos} on the \rhcaNdaysSpan{} trading days of $\mathcal T_{\mathrm{oos}}$,
+  from \rhcaStartSpan{} to \rhcaEndSpan{} (Panel~A), and on $\mathcal T_{\mathrm{close}}$ (Panel~B).
+\item \textbf{On $\mathcal T_{\mathrm{oos}}$.} The full predictor set lowers the average QLIKE loss of the closing
+  half hour in \rhcaNLowerCloseSpan{} of the \rhorAfPairs{} model classes.
+  \begin{itemize}
+  \item It lowers it for the three tree ensembles ($\Delta\% = \rhcaTreePctCloseSpanMin$ to
+    $\rhcaTreePctCloseSpanMax$) and the elastic net ($\Delta\% = \rhcaPctEnetCloseSpan$); the reduction is
+    statistically significant at the 5\% level for XGBoost only ($\Delta\% = \rhcaPctXgbCloseSpan$,
+    $\DM = \rhcaDmXgbCloseSpan$, \rhcaPXgbCloseSpan).
+  \item It raises the loss of ridge regression ($\Delta\% = \rhcaPctRidgeCloseSpan$, $\DM = \rhcaDmRidgeCloseSpan$)
+    and the lasso ($\Delta\% = \rhcaPctLassoCloseSpan$, $\DM = \rhcaDmLassoCloseSpan$), neither significantly.
+  \end{itemize}
+\item \textbf{On $\mathcal T_{\mathrm{close}}$.} The same comparison gives lower losses for the tree ensembles
+  ($\Delta\% = \rhcaTreePctCloseOosMin$ to $\rhcaTreePctCloseOosMax$, none significant) and higher losses for the
+  penalized linear models ($\Delta\% = \rhcaLinPctCloseOosMin$ to $\rhcaLinPctCloseOosMax$, significant at the 5\%
+  level for ridge regression and the lasso).
+\item \textbf{Why the linear models differ between the spans.} Their full-set change has opposite signs on the two
+  halves of $\mathcal T_{\mathrm{oos}}$.
+  \begin{itemize}
+  \item On \rhcaYearsPre{} the full predictor set lowers their closing-half-hour loss ($\Delta\% =
+    \rhcaPctRidgeClosePre$, \rhcaPctLassoClosePre{} and \rhcaPctEnetClosePre{} for ridge regression, the lasso and
+    the elastic net; $\DM = \rhcaDmRidgeClosePre$, \rhcaDmLassoClosePre{} and \rhcaDmEnetClosePre), and in
+    \rhcaYrsDownRidgeClosePre, \rhcaYrsDownLassoClosePre{} and \rhcaYrsDownEnetClosePre{} of the \rhcaNYrsPre{}
+    calendar years.
+  \item On $\mathcal T_{\mathrm{close}}$ it raises their loss in \rhcaYrsUpRidgeCloseOos{} of the \rhcaNYrsOos{}
+    calendar years, most in \rhcaWorstYrRidgeCloseOos{} ($\Delta\% = \rhcaWorstYrPctRidgeCloseOos$ for ridge
+    regression).
+  \item Over the whole span the two halves offset, and no linear change is significant.
+  \end{itemize}
+\item \textbf{Against the closing-interval HAR benchmark.} The pooled forecasts are compared with it on
+  $\mathcal T_{\mathrm{close}}$ in Appendix~\ref{app:rh_results_classes} (Table~\ref{tab:rh_close_accuracy},
+  Panel~B), and jointly in Appendix~\ref{app:rh_closing_mcs}.
+\end{itemize}
+\input{generated/rehaul_close_accuracy_table}
+
+% Parts B and C of drafts/2026-10-25_mcs.tex, condensed. The forecast sets and the rejected hypotheses are printed by
+% macros (\rhmcs...Set..., ...Rej...), so the text follows a rerun on the rebuilt closing-interval HAR benchmark; the
+% remaining words ("every", "all", "none", "alone") are asserted in make_rehaul_mcs.py (draft_claims) and are to be
+% rechecked when NUMBERS reruns it on the rebuilt benchmark (A_results.tex flags the same, item PENDING (D9)).
+\subsection{Multiple comparisons}
+\label{app:rh_closing_mcs}
+\begin{itemize}
+\item \textbf{What is tested.} Tables~\ref{tab:rh_mcs} and~\ref{tab:rh_mcs_spa} apply the model confidence set, the
+  test of superior predictive ability (SPA) and StepM of Appendix~\ref{sec:rh_methods_tests} to the
+  \rhmcsNModelsWord{} distinct pooled forecasts of Table~\ref{tab:rh_oos} and, at the closing half hour on
+  $\mathcal T_{\mathrm{close}}$, to the closing-interval HAR benchmark as well. Each SPA and StepM family compares
+  the \rhmcsNAlt{} full-set forecasts, or strategies, with their comparisons.
+\item \textbf{Every bar, QLIKE.} The 90\% model confidence set holds \rhmcsBarQlikeTmaxSetNinety{} under $T_{\max}$
+  and \rhmcsBarQlikeTrangeSetNinety{} under $T_R$, at block lengths \rhmcsBlockLo, \rhmcsBlock{} and
+  \rhmcsBlockHi; no forecast on the HAR benchmark is in it. The reductions in QLIKE from the full predictor set
+  survive the adjustment in all \rhorAfPairs{} model classes: the SPA $p$-value is \rhmcsBarQAfSpaC, and StepM
+  rejects all \rhmcsNAlt{} hypotheses, with every adjusted $p$-value \rhmcsBarQAfPMax.
+\item \textbf{Every bar, squared error.} The 75\% set holds all \rhmcsBarMseTmaxNSevenFive{} forecasts, and StepM
+  rejects none of the \rhmcsNAlt{} hypotheses (SPA $p$-value \rhmcsBarMAfSpaC).
+\item \textbf{The closing half hour on $\mathcal T_{\mathrm{oos}}$.} The forecasts are hard to tell apart.
+  \begin{itemize}
+  \item Under $T_{\max}$ the 90\% set holds \rhmcsAllQlikeTmaxNNinety{} of the \rhmcsNModels{} pooled forecasts,
+    under $T_R$ \rhmcsAllQlikeTrangeSetNinety; the 75\% set holds \rhmcsAllQlikeTmaxSetSevenFive{} alone.
+  \item Against the HAR benchmark of the same class, the SPA $p$-value is \rhmcsAllQAfSpaC; StepM rejects for
+    \rhmcsAllQAfRej, and the two-sided StepM for \rhmcsAllQAfRejTwo.
+  \end{itemize}
+\item \textbf{The closing half hour on $\mathcal T_{\mathrm{close}}$}, with the closing-interval HAR benchmark.
+  \begin{itemize}
+  \item The 90\% set holds \rhmcsOosQlikeTmaxSetNinety{} under $T_{\max}$ and \rhmcsOosQlikeTrangeSetNinety{}
+    under $T_R$; the 75\% set holds \rhmcsOosQlikeTmaxSetSevenFive.
+  \item Against the HAR benchmark of the same class, no full-set forecast is more accurate after the adjustment (SPA
+    $p$-value \rhmcsOosQAfSpaC; smallest StepM-adjusted $p$-value \rhmcsOosQAfPMin). The two-sided StepM confirms a
+    higher loss for \rhmcsOosQAfRejTwo{} (adjusted $p$-value \rhmcsOosQAfPTwoLasso), not for ridge regression
+    (\rhmcsOosQAfPTwoRidge).
+  \item No full-set forecast is more accurate than the closing-interval HAR benchmark (SPA $p$-value
+    \rhmcsOosQBmSpaC). Testing all \rhmcsNModelsWord{} distinct pooled forecasts against it at once, the two-sided
+    StepM confirms a higher loss for \rhmcsOosQBmAllRejTwo.
+  \item Under squared error every forecast is in the 75\% sets (\rhmcsOosMseTmaxNSevenFive{} of
+    \rhmcsNModelsBench), and StepM rejects no hypothesis.
+  \end{itemize}
+\item \textbf{Strategies} (Table~\ref{tab:rh_mcs_spa}, Panels~C and~D; the \rheSzDays{} post-warmup days).
+  \begin{itemize}
+  \item Against the unconditional short straddle, the Sharpe ratio gain survives the adjustment for every full-set
+    strategy: the SPA $p$-value is \rhmcsMidShortSrSpaC{} at mid-quotes and \rhmcsBaShortSrSpaC{} at quoted bid and
+    ask prices, and StepM rejects all \rhmcsNAlt{} hypotheses (two-sided adjusted $p$-values at most
+    \rhmcsMidShortSrPTwoMax{} and \rhmcsBaShortSrPTwoMax). For the mean daily return differential the SPA $p$-value
+    is \rhmcsMidShortMeanSpaC, and StepM rejects \rhmcsMidShortMeanNRej{} of the \rhmcsNAlt{} hypotheses.
+  \item Against the HAR-benchmark strategy of the same class, the Sharpe ratio gain survives for the random forest
+    alone: SPA $p$-value \rhmcsMidTwinSrSpaC, StepM-adjusted $p$-value \rhmcsMidTwinSrPRf{} (two-sided
+    \rhmcsMidTwinSrPTwoRf).
+  \end{itemize}
+\end{itemize}
+\input{generated/rehaul_mcs_table}

@@ -89,6 +89,10 @@ EST_NAME = {
 SETS = ("all_features", "baseline")
 SET_MAC = {"all_features": "Full", "baseline": "Har"}
 CI = me.OLS  # sub_ols_baseline: the closing-interval OLS on the HAR benchmark set (CI-HAR)
+# 2026-10-26 (integration plan D2): the primary benchmark is the RTH13 pooled OLS on the HAR set (Table 1's OLS row);
+# its strategy is a row of its own (add_ols_har), the reference of the main table's Delta SR column. The CI-HAR leaves
+# the main table (D3: closing-interval models in the final appendix section); its macros are still written.
+OLSH = "poolpt13_ols_baseline"
 SHORT = me.SHORT
 YEAR_WORD = ("One", "Two", "Three", "Four", "Five", "Six")
 WORDS = {0: "zero", 1: "one", 2: "two", 3: "three", 4: "four", 5: "five", 6: "six"}
@@ -103,6 +107,8 @@ def tag(k: str) -> str:
     """Macro stem of a row: <Est><Set>, CiHar or Short."""
     if k == CI:
         return "CiHar"
+    if k == OLSH:
+        return "OlsHar"
     if k == SHORT:
         return "Short"
     for e in EST:
@@ -148,6 +154,39 @@ def add_har_trees(series: dict) -> None:
     for est in TREES:
         k = key(est, "baseline")
         assert np.array_equal(rk[k]["mid"].to_numpy(float), series[k]["mid"].to_numpy(float)), k
+
+
+def add_ols_har(series: dict) -> None:
+    """2026-10-26 (D2): the RTH13 pooled OLS on the HAR set as a strategy row, traded exactly as
+    me.add_pooled_linear trades the pooled linear rows (sign of plain - iv_var on the OLS row's days, the quote book's
+    straddle, bid/ask by gui._crossed_return)."""
+    daily = pd.read_parquet(me.RES / "master_table_daily.parquet", columns=["key", "day", "iv_var", "rv_unclipped"])
+    daily["day"] = pd.to_datetime(daily["day"]).dt.normalize()
+    b = series[CI]
+    days = b.index
+    ref = daily[daily["key"] == CI].set_index("day").sort_index()
+    ref.index = ref.index.astype(days.dtype)
+    ref = ref.reindex(days)
+    iv, rv = ref["iv_var"].to_numpy(float), ref["rv_unclipped"].to_numpy(float)
+    assert np.isfinite(iv).all() and np.isfinite(rv).all()
+    p = me.lin_16("ols", "baseline", days, rv)
+    q = np.where(p > iv, 1.0, -1.0)
+    ratio = rv / p
+    assert OLSH not in series
+    series[OLSH] = pd.DataFrame(
+        {
+            "q": q,
+            "mid": q * b["R"].to_numpy(float),
+            "x": gui._crossed_return(q, b["ex"].to_numpy(), b["bid"].to_numpy(), b["ask"].to_numpy()),
+            "s": p - iv,
+            "qlike": ratio - np.log(ratio) - 1.0,
+            "R": b["R"].to_numpy(float),
+            "ex": b["ex"].to_numpy(float),
+            "bid": b["bid"].to_numpy(float),
+            "ask": b["ask"].to_numpy(float),
+        },
+        index=days,
+    )
 
 
 def har_linear_check() -> dict:
@@ -476,6 +515,38 @@ def numbers_tex(st: dict, pairs: dict, spread: dict, harlin: dict, yr: dict) -> 
         mac(f"rhemPT{t}VsCiHar", pval(p["pt"]), "... its fixed-b p")
 
     lines.append(
+        "% ---- 2026-10-26 (D2): every Full forecast against the RTH13 pooled OLS-HAR strategy (primary benchmark)"
+    )
+    r_o = st[OLSH]
+    mac("rhemShOlsHar", num(r_o["sh_mid"]), f"{OLSH}: SR, mid (the OLS-HAR strategy)")
+    mac("rhemShXOlsHar", num(r_o["sh_x"]), "... at quoted bid/ask")
+    mac("rhemMeanOlsHar", num(100 * r_o["mean_mid"], 1), "... mean daily return, %, mid")
+    mac("rhemDShOlsHarVsShort", num(r_o["dsh_short"]), "... minus the short straddle: Delta SR, mid")
+    mac("rhemPDShOlsHarVsShort", pval(r_o["p_short"]), "... its bootstrap p")
+    for e in EST:
+        t = EST_MAC[e]
+        p_ = pairs[("ols", e)]
+        mac(f"rhemDSh{t}FullVsOls", num(p_["dsh"]), f"{e}: Full minus OLS-HAR, Delta SR, mid")
+        mac(f"rhemPDSh{t}FullVsOls", pval(p_["p"]), "... its bootstrap p")
+        mac(f"rhemDShX{t}FullVsOls", num(p_["dsh_x"]), "... Delta SR at bid/ask")
+        mac(f"rhemPDShX{t}FullVsOls", pval(p_["p_x"]), "... its bootstrap p")
+    d_o = [pairs[("ols", e)]["dsh"] for e in EST]
+    p_o = [pairs[("ols", e)]["p"] for e in EST]
+    n_sig_o = sum(pairs[("ols", e)]["p"] < 0.05 and pairs[("ols", e)]["dsh"] > 0 for e in EST)
+    n_sig_ox = sum(pairs[("ols", e)]["p_x"] < 0.05 and pairs[("ols", e)]["dsh_x"] > 0 for e in EST)
+    mac("rhemFullVsOlsMin", num(min(d_o)), "Full minus OLS-HAR, Delta SR mid: min over the six")
+    mac("rhemFullVsOlsMax", num(max(d_o)), "... max")
+    mac("rhemFullVsOlsMed", num(float(np.median(d_o))), "... median")
+    mac("rhemFullVsOlsPMin", pval(min(p_o)), "... smallest bootstrap p")
+    mac("rhemFullVsOlsPMax", pval(max(p_o)), "... largest bootstrap p")
+    mac("rhemFullVsOlsPos", str(sum(d > 0 for d in d_o)), "... Delta SR > 0, mid")
+    mac("rhemFullVsOlsSig", str(n_sig_o), "... significantly positive (bootstrap, 5 %), mid")
+    mac("rhemFullVsOlsSigWord", WORDS[n_sig_o], "... in words")
+    mac("rhemFullVsOlsSigX", str(n_sig_ox), "... significantly positive at bid/ask")
+    mac("rhemFullVsOlsSigXWord", WORDS[n_sig_ox], "... in words")
+    mac("rhemFullVsOlsHarSig", str(n_sig_o), "= rhemFullVsOlsSig (FRONT's name)")
+
+    lines.append(
         "% ---- counts over the six Full forecasts (5 %; bootstrap for Delta SR, fixed-b for mean differentials)"
     )
     full = [key(e, "all_features") for e in EST]
@@ -614,12 +685,15 @@ def table_tex(st: dict, pairs: dict) -> str:
         )
     ):
         body += me.panel_head(title, ncol, first=pi == 0)
-        for e in EST:
-            k = key(e, pset)
+        # 2026-10-26 (D2): Panel B's three coinciding linear HAR rows are one row, the pooled OLS (note b); the last
+        # column is Delta SR against the OLS-HAR strategy (was: against the closing-interval HAR, note c)
+        ests = EST if pset == "all_features" else ("ols", *TREES)
+        for e in ests:
+            k = OLSH if e == "ols" else key(e, pset)
             r = st[k]
             vs_h = pairs.get(("har", e)) if pset == "all_features" else None
-            ci = pairs[("ci", k)]
-            label = EST_NAME[e] + ("\\tnote{b}" if pset == "baseline" and e in LINEAR else "")
+            vs_o = pairs.get(("ols", e)) if pset == "all_features" else None
+            label = "OLS\\tnote{b}" if e == "ols" else EST_NAME[e]
             top = [
                 me.cell(r["sh_mid"], 2, starred=False),
                 me.cell(r["sh_x"], 2, starred=False),
@@ -628,7 +702,7 @@ def table_tex(st: dict, pairs: dict) -> str:
                 me.cell(r["dsh_short"], 2, me.n_stars_p(r["p_short"])),
                 me.cell(r["t_short"], 2, me.n_stars_p(r["pt_short"])),
                 me.cell(vs_h["dsh"], 2, me.n_stars_p(vs_h["p"])) if vs_h else "--$^{\\phantom{***}}$",
-                me.cell(ci["dsh"], 2, me.n_stars_p(ci["p"])),
+                me.cell(vs_o["dsh"], 2, me.n_stars_p(vs_o["p"])) if vs_o else "--$^{\\phantom{***}}$",
             ]
             under = [
                 "",
@@ -638,25 +712,12 @@ def table_tex(st: dict, pairs: dict) -> str:
                 me.pbrack(r["p_short"]),
                 "",
                 me.pbrack(vs_h["p"]) if vs_h else "",
-                me.pbrack(ci["p"]),
+                me.pbrack(vs_o["p"]) if vs_o else "",
             ]
             body += me.rows2(label, top, under)
-    body += me.panel_head("Panel C: Benchmarks", ncol)
-    r = st[CI]
-    body += me.rows2(
-        "Closing-interval HAR\\tnote{c}",
-        [
-            me.cell(r["sh_mid"], 2, starred=False),
-            me.cell(r["sh_x"], 2, starred=False),
-            me.cell(100 * r["mean_mid"], 1, starred=False),
-            me.cell(100 * r["mean_x"], 1, starred=False),
-            me.cell(r["dsh_short"], 2, me.n_stars_p(r["p_short"])),
-            me.cell(r["t_short"], 2, me.n_stars_p(r["pt_short"])),
-            "--$^{\\phantom{***}}$",
-            "--$^{\\phantom{***}}$",
-        ],
-        ["", "", "", "", me.pbrack(r["p_short"]), "", "", ""],
-    )
+    # 2026-10-26 (D2/D3): parked -- the closing-interval HAR row of Panel C ("Closing-interval HAR\\tnote{c}"); it is
+    # in the closing-interval appendix section now
+    body += me.panel_head("Panel C: Benchmark", ncol)
     r = st[SHORT]
     body += me.rows2(
         me.SHORT_LABEL,
@@ -674,9 +735,9 @@ def table_tex(st: dict, pairs: dict) -> str:
     )
     return (
         HEADER
-        + "% Table tab:rh_econ_main: the sign strategy of the 12 pooled intraday forecasts, the closing-interval HAR\n"
-        "% forecast and the short straddle, 614 post-warmup days. Macros: \\rhem... (rehaul_econ_main_numbers.tex).\n"
-        "\\ifdefined\\rhemShCiHar\\else\\input{generated/rehaul_econ_main_numbers}\\fi\n"
+        + "% Table tab:rh_econ_main: the sign strategy of the pooled intraday forecasts (the HAR-set linear rows as the\n"
+        "% OLS) and the short straddle, 614 post-warmup days. Macros: \\rhem... (rehaul_econ_main_numbers.tex).\n"
+        "\\ifdefined\\rhemShOlsHar\\else\\input{generated/rehaul_econ_main_numbers}\\fi\n"
         "\\begin{table}[tbp]\n\\centering\n\\footnotesize\n\\setlength{\\tabcolsep}{4pt}\n"
         "\\begin{threeparttable}\n"
         "\\caption{Economic value of the forecasts: the sign strategy}\n"
@@ -685,27 +746,25 @@ def table_tex(st: dict, pairs: dict) -> str:
         " & \\multicolumn{2}{c}{$\\SR$} & \\multicolumn{2}{c}{Mean return (\\%)} & "
         "\\multicolumn{2}{c}{vs.\\ short straddle} & \\multicolumn{2}{c}{$\\Delta\\SR$ vs.} \\\\\n"
         "\\cmidrule(lr){2-3}\\cmidrule(lr){4-5}\\cmidrule(lr){6-7}\\cmidrule(l){8-9}\n"
-        " & Mid & Bid/ask & Mid & Bid/ask & $\\Delta\\SR$ & $t(\\bar\\Delta)$ & HAR set & Closing HAR \\\\\n"
+        " & Mid & Bid/ask & Mid & Bid/ask & $\\Delta\\SR$ & $t(\\bar\\Delta)$ & HAR set & OLS-HAR \\\\\n"
         "\\midrule\n" + body + "\\bottomrule\n\\end{tabular}\n\\begin{tablenotes}[flushleft]\n\\footnotesize\n"
         "\\item \\textit{Notes:} The sign strategy $q_t = \\sign(\\hat\\sigma^2_t - \\mathrm{IV}^2_t)$ on the "
         "\\rheSzDays{} post-warmup days of $\\mathcal T_{\\mathrm{opt}}$; the short straddle holds $q_t \\equiv -1$. "
         "$\\SR$ is the annualized Sharpe ratio of Section~\\ref{sec:rh_econ_measures}, at mid-quotes and at quoted "
         "bid/ask prices; mean return is the mean daily return in percent of the premium. Every comparison is at "
         "mid-quotes. $\\Delta\\SR$ is the difference of the Sharpe ratios: against the short straddle; against the "
-        "same model class on the HAR benchmark set (full-set rows only); against the closing-interval HAR forecast "
-        "(note c). Under each $\\Delta\\SR$, in brackets, the $p$-value of the paired block-bootstrap test of equal "
+        "same model class on the HAR benchmark set and against the OLS on the HAR benchmark set (full-set rows "
+        "only). Under each $\\Delta\\SR$, in brackets, the $p$-value of the paired block-bootstrap test of equal "
         "Sharpe ratios (block length \\rheBootBlock{}, \\rheBootN{} resamples); $t(\\bar\\Delta)$ is the "
         "$t$-statistic of the mean daily return differential against the short straddle (Newey--West, bandwidth "
         "$S = \\rheHACS$, fixed-$b$ critical values; Section~\\ref{sec:rh_methods_tests}). "
         + me.STAR_NOTE
         + "\n\\item[a] Panels A and B: models estimated on the \\rhePoolNBars{} regular-hours 30-minute intervals "
         "of each day (the pooled intraday scheme); each trades its 15:30 forecast of the 15:30--16:00 ET variance.\n"
-        "\\item[b] On the HAR benchmark set the ridge, lasso and elastic net forecasts coincide with one another "
-        "and with the pooled OLS (largest relative difference \\rhemHarLinMaxRelDiff{} over \\rhemHarLinNRows{} "
-        "forecasts; the positions agree on every day), so Panel B holds \\rhemHarDistinctWord{} distinct "
-        "forecasts.\n"
-        "\\item[c] The OLS on the HAR benchmark set estimated on the closing interval only (one observation a "
-        "day), the HAR benchmark of Section~\\ref{sec:rh_results}.\n"
+        "\\item[b] The OLS on the HAR benchmark set, the primary benchmark (Table~\\ref{tab:rh_oos}); the ridge, "
+        "lasso and elastic net forecasts on that set coincide with it (largest relative difference "
+        "\\rhemHarLinMaxRelDiff{} over \\rhemHarLinNRows{} forecasts; the positions agree on every day), so Panel B "
+        "holds \\rhemHarDistinctWord{} distinct forecasts.\n"
         "\\end{tablenotes}\n\\end{threeparttable}\n\\end{table}\n"
     )
 
@@ -770,7 +829,8 @@ def fig_byyear(yr: dict, first_day: pd.Timestamp, last_day: pd.Timestamp) -> Non
     marker_har = ["o", "s", "s", "s"]
     for i, x in enumerate(xs):
         ax.hlines(yr["short"][i], x - half, x + half, colors=INK, linestyles=(0, (4, 2)), lw=1.0, zorder=2)
-        ax.hlines(yr["ci"][i], x - half, x + half, colors=BLUE, lw=1.4, zorder=2)
+        # 2026-10-26 (D2/D3): parked -- the closing-interval HAR line. Was:
+        # ax.hlines(yr["ci"][i], x - half, x + half, colors=BLUE, lw=1.4, zorder=2)
         ax.hlines(yr["full_med"][i], x - 0.31, x - 0.01, colors=MAG, lw=1.8, zorder=3)
         ax.hlines(yr["har_med"][i], x + 0.03, x + 0.29, colors=MAG, lw=1.8, zorder=3)
         for j in range(6):
@@ -814,7 +874,6 @@ def fig_byyear(yr: dict, first_day: pd.Timestamp, last_day: pd.Timestamp) -> Non
         Line2D([], [], color=MAG, lw=1.8),
         Line2D([], [], ls="", marker="o", ms=4.6, mfc="white", mec=MAG, mew=1.0),
         Line2D([], [], ls="", marker="s", ms=4.6, mfc="white", mec=MAG, mew=1.0),
-        Line2D([], [], color=BLUE, lw=1.4),
         Line2D([], [], color=INK, lw=1.0, ls=(0, (4, 2))),
     ]
     labels = [
@@ -823,7 +882,6 @@ def fig_byyear(yr: dict, first_day: pd.Timestamp, last_day: pd.Timestamp) -> Non
         "Median (left: full set; right: HAR set)",
         "Intraday linear, HAR set",
         "Intraday trees, HAR set",
-        "Closing-interval HAR",
         me.SHORT_LABEL,
     ]
     fig.legend(handles, labels, loc="outside upper center", ncol=3, frameon=False, handlelength=2.2, columnspacing=1.4)
@@ -841,7 +899,7 @@ def fig_float_tex(yr: dict) -> str:
     words = YEAR_WORD[: len(yr["years"])]
     seq = lambda stem: ", ".join(f"\\{stem}{w}{{}}" for w in words)  # noqa: E731
     return (
-        HEADER + "\\ifdefined\\rhemShCiHar\\else\\input{generated/rehaul_econ_main_numbers}\\fi\n"
+        HEADER + "\\ifdefined\\rhemShOlsHar\\else\\input{generated/rehaul_econ_main_numbers}\\fi\n"
         "\\begin{figure}[tbp]\n\\centering\n"
         "\\includegraphics[width=\\linewidth]{generated/rehaul_econ_byyear.pdf}\n"
         "\\caption{Sharpe ratio of the sign strategy by calendar year, at mid-quotes, on the \\rheSzDays{} "
@@ -852,8 +910,9 @@ def fig_float_tex(yr: dict) -> str:
         "set (open; the ridge, lasso and elastic net forecasts coincide, Table~\\ref{tab:rh_econ_main}); circles are "
         "linear models, squares tree ensembles, and the short magenta lines the group medians "
         f"(full set: {seq('rhemByYearFullMed')}; HAR set: {seq('rhemByYearHarMed')}). "
-        "The long lines mark the closing-interval HAR forecast (solid; "
-        f"{seq('rhemByYearCiHar')}) and the short straddle (dashed; {seq('rhemByYearShort')}). "
+        # 2026-10-26 (D2/D3): parked -- the closing-interval HAR line. Was: "The long lines mark the closing-interval
+        # HAR forecast (solid; {seq('rhemByYearCiHar')}) and the short straddle (dashed; ...)."
+        f"The long dashed line marks the short straddle ({seq('rhemByYearShort')}). "
         f"The years hold {seq('rhemNy')} option days, and the first and last are partial.}}\n"
         "\\label{fig:rh_econ_byyear}\n\\end{figure}\n"
     )
@@ -882,9 +941,11 @@ def draft_claims(st: dict, pairs: dict, yr: dict) -> None:
         (st[SHORT]["sh_mid"] < 0, "the short straddle's SR is negative at mid"),
         (yr["partial"] == [yr["years"][0], yr["years"][-1]], "the first and the last year (only) are partial"),
     ]
-    bad = [c for ok, c in claims if not ok]
+    # 2026-10-26 (D2/D3): the three CI-HAR claims (the first three) left the main text: reported, not asserted
+    reported = {c for _, c in claims[:3]}
+    bad = [c for ok, c in claims if not ok and c not in reported]
     for ok, c in claims:
-        print(f"  draft claim {'holds' if ok else 'FAILS'}: {c}")
+        print(f"  draft claim {'holds' if ok else 'FAILS'}{' (reported only)' if c in reported else ''}: {c}")
     assert not bad, f"DRAFT CLAIMS no longer hold: {bad}"
 
 
@@ -905,14 +966,19 @@ def main() -> None:
     q0 = series[key("ridge", "baseline")]["q"].to_numpy(float)
     for e in LINEAR:
         assert np.array_equal(series[key(e, "baseline")]["q"].to_numpy(float), q0), e
+    add_ols_har(series)  # 2026-10-26 (D2): the primary benchmark's strategy
+    assert np.array_equal(series[OLSH]["q"].to_numpy(float), q0), "the OLS-HAR trades as the HAR-set ridge"
 
     rows = [key(e, s) for s in SETS for e in EST] + [CI, SHORT]
     st = {k: row_stats(series, k) for k in rows}
+    st[OLSH] = row_stats(series, OLSH)  # 2026-10-26 (D2)
     pairs: dict = {}
     for e in EST:
         pairs[("har", e)] = pair(series, key(e, "all_features"), key(e, "baseline"))
     for k in rows[:12]:
         pairs[("ci", k)] = pair(series, k, CI)
+    for e in EST:  # 2026-10-26 (D2): every full-set strategy against the OLS-HAR strategy
+        pairs[("ols", e)] = pair(series, key(e, "all_features"), OLSH)
 
     b = series[CI]
     bid, ask = b["bid"].to_numpy(float), b["ask"].to_numpy(float)

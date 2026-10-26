@@ -47,3 +47,22 @@
 \newcommand{\rhdmPlPreEmbargoBars}{325}  % ... the same in regular-hours bars
 \newcommand{\rhdmPlGridExtTol}{\ensuremath{10^{-6}}}  % penalty grid rule (RULE_std.txt item 5): stop when the new end's criterion is within this relative change of the previous end's (GRID_EXT_FLAT)
 \newcommand{\rhdmPlGridExtCap}{6}  % ... or after this many decades added in one direction (GRID_EXT_CAP)
+\newcommand{\rhdmWinsorWindow}{240}  % target.py rolling_winsorize window (rows)
+\newcommand{\rhdmWinsorLoPct}{1}  % target.py WINSOR_LOWER_Q x 100
+\newcommand{\rhdmWinsorHiPct}{99}  % target.py WINSOR_UPPER_Q x 100
+\newcommand{\rhdmIqrFloorFrac}{0.01}  % scaling.py IQR_FLOOR_FRAC
+\newcommand{\rhdmBandLo}{0.5}  % target.py DIURNAL_SLOT_BAND_FRAC (band [f rho, rho / f])
+\newcommand{\rhdmBandHi}{2}  % 1 / DIURNAL_SLOT_BAND_FRAC
+\newcommand{\rhdmSlotRefWindow}{250}  % target.py DIURNAL_SLOT_REF_WINDOW
+\newcommand{\rhdmSlotRefMin}{20}  % target.py DIURNAL_SLOT_REF_MIN
+\newcommand{\rhdmSdFloorFrac}{0.1}  % target.py DIURNAL_STD_FLOOR_FRAC
+\newcommand{\rhdmLogFloor}{\ensuremath{10^{-12}}}  % target.py log rule, log(clip(x, 1e-12)) (asserted in the source)
+\newcommand{\rhdmIqrEps}{\ensuremath{10^{-12}}}  % scaling.py IQR guard (below it -> 1; asserted in the source)
+\newcommand{\rhdmAsinhScaleFrac}{0.01}  % target.py asinh scale floor, 0.01 x expanding median (asserted in the source)
+\newcommand{\rhdmAsinhHalfLife}{12{,}000}  % ASINH_SCALE_HALFLIFE_DAYS x PERIODS_PER_DAY (intervals)
+\newcommand{\rhdmAsinhHalfLifeDays}{250}  % target.py ASINH_SCALE_HALFLIFE_DAYS
+\newcommand{\rhdmIqrGridStep}{480}  % executor.py _expanding_real_iqr grid_step
+\newcommand{\rhdmIqrMinRows}{8}  % executor.py _expanding_real_iqr, rows before a value
+\newcommand{\rhdmBarsPerSession}{46}  % executor.py BARS_PER_SESSION (ERODE_IN_BARS)
+\newcommand{\rhdmDiurnalWindow}{20}  % target.py DIURNAL_WINDOW: the diurnal factor's per-slot window
+\newcommand{\rhdmDiurnalMin}{5}  % target.py DIURNAL_MIN_PERIODS: its minimum observations

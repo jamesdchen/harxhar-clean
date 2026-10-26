@@ -50,9 +50,7 @@ Model set (\rhePairs) & $0.23$ & $1.11$ & $0.81^{\phantom{***}}$ & $0.79^{\phant
 \item \textit{Notes:} Each pair is one model estimated on the HAR benchmark and on the full predictor set, with
 everything else unchanged, over the out-of-sample period ($T_{\mathrm{oos}} = \rheNdays$ trading days). $\SR$ is the
 annualized Sharpe ratio of the sign strategy; $\Delta\SR$ is the full-set minus the HAR-benchmark $\SR$, at
-mid-quotes and at quoted bid/ask prices, with the $p$-value of the paired block-bootstrap test of equal Sharpe ratios on the \rheSzDays{} post-warmup days, in brackets (Section~\ref{sec:rh_methods_tests}). On the HAR benchmark the three
-closing-interval linear models hold the same position as the closing-interval OLS on every day, so they share its
-$\SR$. Panel C gives medians across the closing-interval tree pairs (every hyperparameter specification in the model
+mid-quotes and at quoted bid/ask prices, with the $p$-value of the paired block-bootstrap test of equal Sharpe ratios on the \rheSzDays{} post-warmup days, in brackets (Section~\ref{sec:rh_methods_tests}). On the HAR benchmark the three closing-interval linear models hold the same position as one another; they differ from the closing-interval OLS, rebuilt under the current data rules, on at most 32 days. Panel C gives medians across the closing-interval tree pairs (every hyperparameter specification in the model
 set) and across all pairs of the \rheModelSetN{} forecasts of the model set, with the number of pairs whose
 Sharpe ratio difference is significantly positive at the 5\% level in brackets (none is significantly negative at that level). $^{*}$, $^{**}$ and $^{***}$ denote significance at the 10\%, 5\% and 1\% levels.
 \end{tablenotes}

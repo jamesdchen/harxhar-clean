@@ -120,9 +120,7 @@ def _import_final_run():
 fr = _import_final_run()
 
 # ---------------------------------------------------------------------------------------------- constants
-WARMUP = (
-    gui._SIZING_WARMUP
-)  # 252: the days t > WARMUP are the sample of every printed Sharpe ratio
+WARMUP = gui._SIZING_WARMUP  # 252: the days t > WARMUP are the sample of every printed Sharpe ratio
 assert WARMUP == 252, WARMUP
 N_OPT = 866  # option days, 2020-01-03 .. 2024-04-30
 N_PW = N_OPT - WARMUP  # 614 post-warmup days
@@ -136,9 +134,7 @@ NEXT_SHIFTS = list(range(1, 7))  # +1 .. +6 = the next session's 10:00 .. 12:30 
 ALL_SHIFTS = SAME_SHIFTS + NEXT_SHIFTS
 BAND_Z = 1.96  # close_shift_test_headline.write_numbers: 1.96 sqrt(252 / n)
 
-DECK = (
-    ROOT / "results" / "atm_straddle_0dte_1530" / "daily_blk2.parquet"
-)  # score_linear_subsection.DECK
+DECK = ROOT / "results" / "atm_straddle_0dte_1530" / "daily_blk2.parquet"  # score_linear_subsection.DECK
 MT_DIR = ROOT / "results" / "close_master_table"
 OLS_KEY = "sub_ols_baseline"  # make_rehaul_economics.OLS: the row whose iv_var / rv_unclipped every pooled row reads
 
@@ -176,15 +172,8 @@ PENDING = r"\rhPending"
 PROVIDE_PENDING = r"\providecommand{\rhPending}{\textit{pending}}"
 
 # the printed runs of self-check C (pooled_linear_13.RUN, pooled_trees_13.RUN before the final switch)
-PRINTED_LINEAR = (
-    ROOT
-    / "results"
-    / "pooled_linear_rerun_2026-10-20_13_2012_w1000"
-    / "forecasts.parquet"
-)
-PRINTED_TREES = (
-    ROOT / "results" / "pooled_trees_rerun13_2026-10-20" / "w1000" / "forecasts.parquet"
-)
+PRINTED_LINEAR = ROOT / "results" / "pooled_linear_rerun_2026-10-20_13_2012_w1000" / "forecasts.parquet"
+PRINTED_TREES = ROOT / "results" / "pooled_trees_rerun13_2026-10-20" / "w1000" / "forecasts.parquet"
 
 GATES: list[dict] = []
 
@@ -210,9 +199,7 @@ PRINTED_REF = "300a8d2"
 
 def committed(rel: str) -> str:
     """A tracked file as committed at PRINTED_REF (the printed reference the self-checks reproduce)."""
-    return subprocess.check_output(
-        ["git", "show", f"{PRINTED_REF}:{rel}"], cwd=ROOT
-    ).decode("utf-8")
+    return subprocess.check_output(["git", "show", f"{PRINTED_REF}:{rel}"], cwd=ROOT).decode("utf-8")
 
 
 def macro_values(tex: str) -> dict[str, str]:
@@ -229,9 +216,7 @@ def macro_values(tex: str) -> dict[str, str]:
 # ---------------------------------------------------------------------------------------------- Sharpe ratios
 def sr_d6(x, dates) -> float:
     """The paper's Sharpe ratio (D6) on exactly the days given (make_rehaul_economics.sharpe_days)."""
-    return float(
-        hi.d6_sharpe(np.asarray(x, float), dates=pd.DatetimeIndex(dates))["sharpe"]
-    )
+    return float(hi.d6_sharpe(np.asarray(x, float), dates=pd.DatetimeIndex(dates))["sharpe"])
 
 
 def sr_fixed(x, dates) -> float:  # noqa: ARG001
@@ -256,14 +241,10 @@ def band_fixed(dates) -> float:
 def load_market() -> pd.DataFrame:
     """The 866 option days: R, exit, bid, ask (quote book), iv_var and rv_unclipped (the OLS row), gated against the
     deck the shift test read."""
-    qb = pd.read_parquet(
-        gui._QUOTE_BOOK, columns=["R", "exit", "bid_c", "bid_p", "ask_c", "ask_p"]
-    )
+    qb = pd.read_parquet(gui._QUOTE_BOOK, columns=["R", "exit", "bid_c", "bid_p", "ask_c", "ask_p"])
     qb.index = pd.DatetimeIndex(pd.to_datetime(qb.index)).normalize().as_unit("ns")
     qb = qb.sort_index()
-    deck = pd.read_parquet(
-        DECK, columns=["R", "exit", "bid_c", "bid_p", "ask_c", "ask_p", "iv_var"]
-    ).sort_index()
+    deck = pd.read_parquet(DECK, columns=["R", "exit", "bid_c", "bid_p", "ask_c", "ask_p", "iv_var"]).sort_index()
     deck.index = pd.DatetimeIndex(pd.to_datetime(deck.index)).normalize().as_unit("ns")
     d = pd.read_parquet(
         MT_DIR / "master_table_daily.parquet",
@@ -287,9 +268,7 @@ def load_market() -> pd.DataFrame:
         )
     gate(
         "OLS row iv_var = deck iv_var",
-        float(
-            np.abs(o["iv_var"].to_numpy(float) - deck["iv_var"].to_numpy(float)).max()
-        ),
+        float(np.abs(o["iv_var"].to_numpy(float) - deck["iv_var"].to_numpy(float)).max()),
         0,
         N_OPT,
     )
@@ -325,9 +304,7 @@ def trade(pred: pd.Series, mk: pd.DataFrame) -> pd.DataFrame:
 
 
 # ---------------------------------------------------------------------------------------------- forecasts
-def read_run(
-    path: Path, models: dict[str, str], n_rows: int | None
-) -> dict[tuple[str, str], pd.DataFrame]:
+def read_run(path: Path, models: dict[str, str], n_rows: int | None) -> dict[tuple[str, str], pd.DataFrame]:
     """The arms (model -> name, both predictor sets) of one pooled forecasts.parquet, each a frame of its regular-
     hours bars (day, hhmm, pred_adj, B, plain, rv).  Gates (pooled_linear_13._frame / pooled_trees_13._frame): finite,
     plain = pred_adj^2 B to 1e-12, the 13 bars 10:00 .. 16:00, n_rows rows an arm, no duplicated bar."""
@@ -351,9 +328,7 @@ def read_run(
     t = pd.to_datetime(f["date"])
     if t.dt.tz is not None:
         t = t.dt.tz_convert("America/New_York").dt.tz_localize(None)
-    f = f.assign(
-        day=t.dt.normalize().astype("datetime64[ns]"), hhmm=t.dt.strftime("%H:%M")
-    )
+    f = f.assign(day=t.dt.normalize().astype("datetime64[ns]"), hhmm=t.dt.strftime("%H:%M"))
     assert sorted(f["hhmm"].unique()) == SESSION_BARS, sorted(f["hhmm"].unique())
     out = {}
     for (m, s), g in f.groupby(["model", "predictor_set"]):
@@ -362,9 +337,9 @@ def read_run(
         if n_rows is not None:
             assert len(g) == n_rows, (path, m, s, len(g), n_rows)
         assert not g.duplicated(["day", "hhmm"]).any(), (path, m, s)
-        out[(models[m], s)] = g[
-            ["day", "hhmm", "pred_adj", "B", "plain", "rv_actual"]
-        ].rename(columns={"rv_actual": "rv"})
+        out[(models[m], s)] = g[["day", "hhmm", "pred_adj", "B", "plain", "rv_actual"]].rename(
+            columns={"rv_actual": "rv"}
+        )
     assert set(out) == {(e, s) for e in models.values() for s in SETS}, (
         path,
         sorted(out),
@@ -408,17 +383,13 @@ def final_arms() -> tuple[dict[tuple[str, str], pd.DataFrame], list[dict]]:
     return arms, status
 
 
-def shifted(
-    panel: pd.DataFrame, mk: pd.DataFrame, plain_ref: pd.Series | None, name: str
-) -> dict[int, pd.Series]:
+def shifted(panel: pd.DataFrame, mk: pd.DataFrame, plain_ref: pd.Series | None, name: str) -> dict[int, pd.Series]:
     """close_shift_test_headline.main(): every offset's forecast on the option days, placed as yhat_j^2 B_16:00.
     Gates: j = 0 equals the plain 16:00 forecast (the run's own column, or plain_ref when given); the 16:00 bar's
     realized variance equals the OLS row's rv_unclipped (make_rehaul_economics.tree_16 / lin_16), when stored."""
     days = mk.index
     sessions = pd.DatetimeIndex(sorted(panel["day"].unique()))
-    nxt = pd.Series(
-        sessions[1:], index=sessions[:-1]
-    )  # session -> the next session in the panel
+    nxt = pd.Series(sessions[1:], index=sessions[:-1])  # session -> the next session in the panel
     by_bar = {b: panel[panel["hhmm"] == b].set_index("day") for b in SESSION_BARS}
     b16 = by_bar["16:00"]["B"].reindex(days)
     out: dict[int, pd.Series] = {}
@@ -429,11 +400,7 @@ def shifted(
         yk = by_bar[bar]["pred_adj"].reindex(key_days)
         yk.index = days
         out[j] = yk**2 * b16
-    ref = (
-        by_bar["16:00"]["plain"].reindex(days)
-        if plain_ref is None
-        else plain_ref.reindex(days)
-    )
+    ref = by_bar["16:00"]["plain"].reindex(days) if plain_ref is None else plain_ref.reindex(days)
     gate(
         f"j = 0 placed = the plain 16:00 forecast ({name})",
         float((out[0] / ref - 1).abs().max()),
@@ -485,13 +452,9 @@ def shift_test(
                     "Sharpe_mid": sr(t["mid"], common),
                     "Sharpe_crossed": sr(t["x"], common),
                     "pct_buy": float(100 * (t["q"] > 0).mean()),
-                    "agree_with_bar0_pct": float(
-                        100 * (t["q"].to_numpy() == q0).mean()
-                    ),
-                    "dSharpe_mid_vs_bar0": sr(t["mid"], common)
-                    - sr(t0c["mid"], common),
-                    "dSharpe_crossed_vs_bar0": sr(t["x"], common)
-                    - sr(t0c["x"], common),
+                    "agree_with_bar0_pct": float(100 * (t["q"].to_numpy() == q0).mean()),
+                    "dSharpe_mid_vs_bar0": sr(t["mid"], common) - sr(t0c["mid"], common),
+                    "dSharpe_crossed_vs_bar0": sr(t["x"], common) - sr(t0c["x"], common),
                     "Sharpe_mid_eval_days_at_k0": sr(t0["mid"], eval_days),
                     "Sharpe_crossed_eval_days_at_k0": sr(t0["x"], eval_days),
                 }
@@ -583,12 +546,8 @@ def swing(tab: pd.DataFrame) -> dict[str, float]:
         "same_dlo": float(s_off.min()),
         "same_dhi": float(s_off.max()),
         # close_shift_test_headline.main(): shiftStaleNBelowMin / Max (forecasts below their own j = 0, j < 0)
-        "stale_nbelow_min": int(
-            same[same["k"].astype(int) < 0]["n_mid_below_k0"].min()
-        ),
-        "stale_nbelow_max": int(
-            same[same["k"].astype(int) < 0]["n_mid_below_k0"].max()
-        ),
+        "stale_nbelow_min": int(same[same["k"].astype(int) < 0]["n_mid_below_k0"].min()),
+        "stale_nbelow_max": int(same[same["k"].astype(int) < 0]["n_mid_below_k0"].max()),
     }
 
 
@@ -639,32 +598,20 @@ def selfcheck_shift(mk: pd.DataFrame) -> None:
     """A: the original shift test (the earlier draft's nine forecasts, sqrt(252), all 866 option days)."""
     import atm_straddle_lib as asl
 
-    stored = pd.read_csv(
-        ROOT / "results" / "close_shift_test" / "shift_test_by_k.csv", index_col=0
-    )
-    keys = sorted(
-        pd.read_csv(ROOT / "results" / "close_shift_test" / "shift_test_modelset.csv")[
-            "key"
-        ].unique()
-    )
+    stored = pd.read_csv(ROOT / "results" / "close_shift_test" / "shift_test_by_k.csv", index_col=0)
+    keys = sorted(pd.read_csv(ROOT / "results" / "close_shift_test" / "shift_test_modelset.csv")["key"].unique())
     paths = {
         **asl.yhat_paths(ROOT),
         "b2lasso": ROOT / "results" / "spxw_pnl" / "yhat_b2lasso.parquet",
     }
     mt = pd.read_csv(MT_DIR / "master_table.csv").set_index("key")
-    D = pd.read_parquet(
-        MT_DIR / "master_table_daily.parquet", columns=["key", "day", "plain"]
-    )
+    D = pd.read_parquet(MT_DIR / "master_table_daily.parquet", columns=["key", "day", "plain"])
     D["day"] = pd.to_datetime(D["day"]).dt.normalize().astype("datetime64[ns]")
     F = {}
     for k in keys:
         d = pd.read_parquet(paths[k], columns=["t", "yhat", "baseline"])
         t = pd.to_datetime(d["t"])
-        et = (
-            t.dt.tz_convert("America/New_York").dt.tz_localize(None)
-            if t.dt.tz is not None
-            else t
-        )
+        et = t.dt.tz_convert("America/New_York").dt.tz_localize(None) if t.dt.tz is not None else t
         p = pd.DataFrame(
             {"pred_adj": d["yhat"].to_numpy(float), "B": d["baseline"].to_numpy(float)},
             index=pd.DatetimeIndex(et.to_numpy()).as_unit("ns"),
@@ -703,9 +650,7 @@ def selfcheck_shift(mk: pd.DataFrame) -> None:
     a = tab.loc[rows, cols].to_numpy(float)
     b = stored.loc[rows, cols].to_numpy(float)
     both = np.isnan(a) & np.isnan(b)
-    diff = float(
-        np.max(np.where(both, 0.0, np.abs(a - b) / np.maximum(1.0, np.abs(b))))
-    )
+    diff = float(np.max(np.where(both, 0.0, np.abs(a - b) / np.maximum(1.0, np.abs(b)))))
     tab.loc[rows, cols].to_csv(OUT / "selfcheck_A_shift_by_k.csv")
     gate(
         "self-check A: shift_test_by_k.csv reproduced (every j, every column)",
@@ -771,11 +716,7 @@ def selfcheck_compounding() -> None:
     fa = pd.DataFrame(rows)
     # 2026-10-23 (user, E32): the summary as committed at PRINTED_REF (the pre-E32 model set's). Was:
     # stored = pd.read_csv(ROOT / "results" / "close_compounding" / "fixedfrac_modelset_summary.csv")
-    stored = pd.read_csv(
-        io.StringIO(
-            committed("results/close_compounding/fixedfrac_modelset_summary.csv")
-        )
-    )
+    stored = pd.read_csv(io.StringIO(committed("results/close_compounding/fixedfrac_modelset_summary.csv")))
     stored = stored[stored["group"] == "model set"].set_index("fill")
     worst = 0.0
     sm = {}
@@ -784,8 +725,7 @@ def selfcheck_compounding() -> None:
         for c, v in sm[fill].items():
             worst = max(
                 worst,
-                abs(v - float(stored.loc[fill, c]))
-                / max(1.0, abs(float(stored.loc[fill, c]))),
+                abs(v - float(stored.loc[fill, c])) / max(1.0, abs(float(stored.loc[fill, c]))),
             )
     pd.DataFrame(sm).T.to_csv(OUT / "selfcheck_B_compounding_summary.csv")
     gate(
@@ -963,9 +903,7 @@ def write_tex(
                 "1.96 sqrt(sum_y A_y/N_y)/K: 95 % half-width of the D6 SR under iid returns at SR = 0, those days",
             ),
         ]
-    if (
-        sw_alt is not None
-    ):  # ALTERNATIVE (owner decision): j <= 0 only, on all 614 post-warmup days
+    if sw_alt is not None:  # ALTERNATIVE (owner decision): j <= 0 only, on all 614 post-warmup days
         M += [
             (
                 "rhpsPwNdays",
@@ -1126,6 +1064,24 @@ def write_tex(
             ]
         sep = r" \\[2pt]" if (s == "all_features" and i < len(st) - 1) else r" \\"
         T.append(f"{lab} & {SET_NAME[s]} & " + " & ".join(cells) + sep)
+    # 2026-10-26 (integration, ECON; audit results-16): the unconditional short straddle's compounding row (it reads no
+    # forecast, so no interval-shift cells); the text cites this table for its V and drawdowns (\rhpcAW..., \rhpcAWX...)
+    if long is not None and (cb["key"] == "always short").any():
+        am = cb[(cb["key"] == "always short") & (cb["fill"] == "mid")].iloc[0]
+        ax_ = cb[(cb["key"] == "always short") & (cb["fill"] == "crossed")].iloc[0]
+        T += [
+            r"\addlinespace[3pt]",
+            r"Short straddle & -- & -- & -- & -- & "
+            + " & ".join(
+                [
+                    f"${am['terminal']:.2f}$",
+                    f"${ax_['terminal']:.2f}$",
+                    f"${100 * abs(am['maxDD_frac']):.0f}$",
+                    f"${100 * abs(ax_['maxDD_frac']):.0f}$",
+                ]
+            )
+            + r" \\",
+        ]
     T += [
         r"\bottomrule",
         r"\end{tabular}",
@@ -1169,11 +1125,7 @@ def main() -> None:
     F = {}
     for (e, s), p in arms.items():
         F[arm_key(e, s)] = shifted(p, mk, None, f"final {e} {s}")
-    order = [
-        arm_key(r["est"], r["set"])
-        for _, r in st.iterrows()
-        if r["status"] == "finished"
-    ]
+    order = [arm_key(r["est"], r["set"]) for _, r in st.iterrows() if r["status"] == "finished"]
     F = {k: F[k] for k in order}
 
     sw = csum = sw_alt = None
@@ -1223,23 +1175,16 @@ def main() -> None:
         cb = pd.DataFrame(rows)
         cb.to_csv(OUT / "compounding_by_arm.csv", index=False)
         # always short reads no forecast: it equals the committed 614-day row of the model-set compounding
-        fa = pd.read_csv(
-            ROOT / "results" / "close_compounding" / "fixedfrac_modelset.csv"
-        )
+        fa = pd.read_csv(ROOT / "results" / "close_compounding" / "fixedfrac_modelset.csv")
         fa = fa[fa["key"] == "always short"].set_index("fill")
         gate(
             "always short V (614 days) = results/close_compounding/fixedfrac_modelset.csv",
-            max(
-                abs(aw[f]["terminal"] / float(fa.loc[f, "terminal"]) - 1)
-                for f in ("mid", "crossed")
-            ),
+            max(abs(aw[f]["terminal"] / float(fa.loc[f, "terminal"]) - 1) for f in ("mid", "crossed")),
             1e-12,
             N_PW,
         )
         fs = cb[cb["key"] != "always short"]
-        csum = {
-            fill: comp_summary(fs[fs["fill"] == fill]) for fill in ("mid", "crossed")
-        }
+        csum = {fill: comp_summary(fs[fs["fill"] == fill]) for fill in ("mid", "crossed")}
         pd.DataFrame(csum).T.to_csv(OUT / "compounding_summary.csv")
         print(pd.DataFrame(csum).T.round(3).to_string())
 

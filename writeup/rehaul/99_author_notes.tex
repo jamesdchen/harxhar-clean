@@ -4,154 +4,279 @@
 % typed; park (comment out with a dated note) rather than delete.
 % Macros to use here: editorial only; drop before circulating
 
+% 2026-10-26 (integration, JFEc): this section compiles only under \authornotestrue (preamble of paper_rehaul.tex);
+% the submission build leaves it out, and every \editc box with it. FRONT owns this file. The other section agents
+% report their open notes to the coordinator, who adds them under "Notes moved from the section files" below. The
+% list of 15-23 October is parked verbatim after \end{itemize} (lines marked "% | "); its open items are carried over
+% below, its resolved ones are named in the parking comment.
+
 \section{Notes to the authors (not part of the paper)}
 \begin{itemize}
-% 2026-10-23 (user): parked -- the final rerun is in (REHAUL_FINAL_RUN, writeup/final_run.py; linear, LightGBM,
-% XGBoost and the oneDAL random forest at 3,000 and 3,500 days; MinGRU running and parked). Was:
-% "\item \textbf{Rerun pending (22 October 2026): the pooled numbers in this draft are preliminary.} Approved, and
-%   waiting for the window choice:"
-\item \textbf{Final rerun (23 October 2026): the pooled numbers in this draft are final} for the linear models
-  (OLS, ridge, lasso, elastic net), LightGBM, XGBoost and the random forest (Intel's oneDAL engine), on the final
-  design at the main window and the robustness window (Table~\ref{tab:rh_oos}, Sections~\ref{sec:rh_results}
-  and~\ref{sec:rh_econ}, Table~\ref{tab:rh_robust_w3500}). The generators read the final runs under the switch
-  REHAUL\_FINAL\_RUN=1 (writeup/final\_run.py, which lists the regeneration order); a model whose final forecasts are
-  missing prints \emph{pending} and is left out of every count (writeup/tests/check\_pending.py).
+\item \textbf{Integration pass of 26 October 2026 (target: the Journal of Financial Econometrics).} Title, abstract
+  (at most 100 words), introduction and conclusion now state the every-bar question (D1) with OLS on the HAR benchmark
+  set, pooled on the regular-hours bars, as the benchmark (D2); the closing half hour is the bar of the application
+  and the closing-interval models live only in the final appendix section (D3). Variable importance is
+  Section~\ref{sec:rh_fi}, after Results.
   \begin{itemize}
-  % 2026-10-23 (user): parked -- done. Was: "\item \textbf{Pooled intraday models} (Table~\ref{tab:rh_oos},
-  % Sections~\ref{sec:rh_results} and~\ref{sec:rh_econ}): ridge, lasso, elastic net and OLS, LightGBM, XGBoost and
-  % the random forest, rerun under the final design: late-start zeroing (LATE\_START\_WARMUP), the neutral value for
-  % windows with no observation (UNOBSERVED\_NEUTRAL), KKT-checked lasso and elastic-net walks (WALK\_KKT\_RESEED),
-  % the FOMC statement-interval dummy dropped (EXCLUDE\_FOMC\_RELEASE), and the rolling window chosen on the pre-2012
-  % folds (window sweep running). The printed forecasts use a 1,000-day window without these changes (notes S4d,
-  % E28)."
-  % 2026-10-23 (user): parked -- Section 8 now reports the final-run variable importance. Was: "\item
-  % \textbf{Variable importance} (Section~\ref{sec:rh_fi}): the pooled linear results on the current design
-  % (results/rehaul\_fi\_pooled13\_2026-10-22, preliminary) go in after the rerun; the scope of the tree analysis
-  % (SHAP by variable and state, interaction-free refits, SHAP interactions) is to be decided."
-  % 2026-10-23 (coordinator, tree learning curve): parked -- "the trees at the robustness window" is now their SHAP
-  % values only; the trees' accuracy across windows is in. Was: "Still to come: the ablations (below), the MinGRU, a
-  % linear SHAP on the same forecast rows (so both model families share one measure), and the trees at the robustness
-  % window."
-  \item \textbf{Variable importance} (Section~\ref{sec:rh_fi}): the linear models' importance and the trees' SHAP
-    attributions on the final design at the main window are in, and so is the trees' window learning curve
-    (LightGBM, XGBoost and the forest at \rhlcWOne--\rhlcWLong{} days, \rhlcNArmsDone{} of \rhlcNArmsAll{} walks; the
-    full set's extra gain over the HAR benchmark, Table~\ref{tab:rh_fip_lc}, writeup/make\_rehaul\_fip\_lc.py). Still to
-    come: the ablations (below), the MinGRU, a linear SHAP on the same forecast rows (so both model families share
-    one measure), and the trees' SHAP values at the robustness window.
-  \item \textbf{Ablations:} leave one bucket out, then one variable out within the buckets that matter. The linear
-    preview on the earlier design exists; the final run on the final design is not run; trees to be decided.
-  % 2026-10-23 (user): parked -- the MinGRU rerun is running. Was: "\item \textbf{MinGRU network:} parked; rerun on
-  % the final design before it enters (tuning grid, seeds and refit cadence to be decided)."
-  \item \textbf{MinGRU network:} parked in the paper. Its final rerun is running (results/pooled\_mingru\_final\_2014start\_w3000
-    and \_w3500, RULE\_gru.txt with addenda 1--3: refit at every bar, tuned on the last pre-sample fold, grid
-    extended while a pick sits at an edge, with no compute cap per James's ``max tuning''). It enters when its walks
-    are scored.
-  \item \textbf{Standardization} (STANDARDIZE\_PENALTY, merged 2430543): the penalized pooled models are refit on
-    columns standardized within each estimation window (Section~\ref{sec:rh_methods_models}).
-  % 2026-10-23 (user): window decided after the learning-curve sweeps (results/window_sweep_2014start_2026-10-22,
-  % results/window_sweep_2016start_2026-10-22). Was: "The window study now runs on a 2 January 2014 start, giving up
-  % 2012--13 of the accuracy sample, so that windows up to 3,500 days can be compared on the latest pre-sample fold;
-  % the first evaluation day of the final rerun follows that study."
-  % 2026-10-23 (user): parked -- the walks are done. Was, at the end of the item below: "The linear runs exist; the
-  % tree walks (3,000: all three; 3,500: LightGBM and XGBoost) and the MinGRU (3,000) are running. A test of the
-  % dense-and-weak reading across windows (do more observations per coefficient bring in more variables?) is
-  % computed from the same sweep."
-  \item \textbf{Window and sample} (decided 23 October 2026): first evaluation day 2 January 2014 (2012--13 leave
-    the accuracy sample; the option-trading sample is unchanged), penalties and configurations tuned on the last
-    pre-sample fold (validation year 2013), main window 3,000 trading days, 3,500 days as robustness. The
-    learning curves: the linear models' closing-interval accuracy stops improving near 3,000 days and their
-    every-interval accuracy does not improve beyond 1,000; the trees' pre-sample fits improve until about 3,500.
-  % 2026-10-23 (coordinator, tree learning curve): parked -- the out-of-sample sentence now also covers the trees' walks
-  % below the main window (W = 1,000 and 2,000, finished). Was: "Out of sample, the longer window changes no tree's
-  % accuracy significantly and moves only the linear models (Table~\ref{tab:rh_robust_w3500}). The dense-and-weak test
-  % across windows is in Section~\ref{sec:rh_fi}."
-    Out of sample, \rhlcWLong{} days against \rhlcWMain{} change no tree's accuracy significantly and move only the
-    linear models (Table~\ref{tab:rh_robust_w3500}). Below the main window the trees do improve: from \rhlcWOne{} to
-    \rhlcWTwo{} days the full set's every-bar QLIKE falls significantly in \rhlcFullFallOneTwoBarWho, and its lead
-    over the HAR benchmark widens until \rhlcWMain{} days (Table~\ref{tab:rh_fip_lc}; \rhlcNArmsDone{} of
-    \rhlcNArmsAll{} tree walks finished). The dense-and-weak tests across windows (the linear models' coefficients,
-    the trees' extra gain) are in Section~\ref{sec:rh_fi}.
-  % 2026-10-23 (user, E32): James decided to rerun the closing-interval trees with a refit at every session. Was:
-  % "\item \textbf{Closing-interval models:} not rerun (James, 22 October 2026); their full-sample rules are disclosed
-  %   (notes S4a, S4c, S4d). The data fixes they predate (invalid-print nulling, FOMC calendar, VIX splice, fill cap)
-  %   still need a disclosure in Section~\ref{sec:rh_data} (E28)."
-  % 2026-10-23 (user, E32 resolved): parked -- the item while the tree rerun was pending. Was: "... The
-  %   closing-interval \emph{trees} are being rerun with a refit at every trading session instead of every 10 (James,
-  %   23 October 2026, note E32; branch insurance-selling-2026-09-19-e34-e32-daily), hyperparameters kept per each
-  %   specification's rule. Their numbers, the appendix's ``every 10 trading days'' and the E32 box change when that
-  %   rerun lands."
-  \item \textbf{Closing-interval models:} the linear models are not rerun (James, 22 October 2026); their
-    full-sample rules and the data fixes they predate are disclosed (notes S4a, S4c, S4d, E28; Section~\ref{sec:rh_data}).
-    The closing-interval \emph{trees} are re-estimated every trading session (note E32, resolved 23 October 2026;
-    branch insurance-selling-2026-09-19-e34-e32-daily): no new walk was needed, since every rung that refit every 10
-    trading days already had its every-session twin, with the same hyperparameter rule. The \cmTenDayN{} ten-day
-    forecasts left the model set (\cmMasterNWithTenDay{} to \cmMasterN{} forecasts), and every closing-interval
-    number was regenerated from the twins (Appendix~\ref{app:rh_closing_bench}).
-  % 2026-10-23 (user, E35): parked -- resolved: the fitted design's count is \rhorNColsAf (Section~\ref{sec:rh_predictors}).
-  % Was: "\item \textbf{Predictor count:} $\rhdmNColsPooled$ still counts the calendar and interaction columns cut by
-  % note E9 and the FOMC statement dummy; the printed design has 576 columns and the rerun's will have 564. Take the
-  % count from the design at the rerun."
+  % 2026-10-26 (coordinator): the numbers below are now generated and wired in (no placeholder left); the abstract's
+  % claim holds (\rhemFullVsOlsHarSig = 0). Was:
+  % \item \textbf{Numbers still to be generated.} The front matter prints each as \rhPending{name}. Table~1 against the
+  \iffalse
+  \item \textbf{Numbers still to be generated.} The front matter prints each as \rhPending{name}. Table~1 against the
+    OLS benchmark (D2): \texttt{rhorVsOlsRedLinRng} and \texttt{rhorVsOlsRedTreeRng} (the every-bar QLIKE reduction
+    of the full set against the OLS, in percent, as positive numbers and as text ``a--b'' over the three linear and
+    the three tree classes) and \texttt{rhorVsOlsLowerSig} (classes whose full set is significantly below the OLS,
+    5\% level). The economics against the OLS-HAR strategy: \texttt{rhemFullVsOlsHarSig} (full-set strategies whose
+    Sharpe-ratio gain over it is significant, D6 bootstrap); the abstract's ``but not, significantly, HAR forecasts''
+    holds only if it is zero. The ablations at 16:00: \texttt{rhabNClassesBeatAddRmClose} (classes whose full set
+    beats its HAR benchmark plus the realized moments at the closing half hour, DM $p < 0.05$). The feature-count
+    ladder on the patched design: \texttt{ladderTopK} (the rung quoted, ten series), \texttt{ladderTreeRetainRng} (the
+    share of the trees' full-set gain it retains, as text ``a--b''), \texttt{ladderLinKstarRng} (the linear models'
+    best rung, as text ``a--b''). In Section~\ref{sec:rh_data}: \texttt{holiday} (the NYSE-holiday disclosure, D15;
+    relayed by DATA).
+  \fi
+  \item \textbf{FOMC-patched design (D13).} The paper's numbers are to come from the patched design
+    (FOMC\_SCHEDULE\_2020\_FIX, FOMC\_PROXIMITY\_NO\_WINSOR; branch -fomcfix). Rerun on it: the linear ablations, the
+    FOMC tree arms (add\_fomc for the three trees, lo\_fomc for LightGBM and XGBoost), the ladder and scaling grid,
+    and the tree SHAP values with the live-window shares built on them; the forest's last piece is pending. The other
+    tree ablation arms and the three-way and window robustness arms stay pre-patch and are disclosed. Until the
+    generators are rerun, the \texttt{\textbackslash rhab...} and \texttt{\textbackslash rhcx...} macros of the front
+    matter are pre-patch.
+  \item \textbf{Before official publication (D15).} NOTE FOR OFFICIAL PUBLICATION: rerun with
+    DROP\_HOLIDAY\_SESSIONS on (all models) before the final version. This draft keeps the NYSE-holiday futures
+    sessions in the estimation sample and discloses them (two sentences and the linear $2 \times 2$ as robustness).
+  \item \textbf{Pending author decisions} (plan of 26 October 2026): Clark--West on MSE as appendix robustness
+    (proposed, awaiting a go); the Hoffman2 Xeon bit-for-bit gate for the closing-interval HAR (blocked by
+    permissions, bundle staged: run or skip).
+  \item \textbf{Notes moved from the section files.} From paper\_rehaul.tex, note E34 (open part): the model set of
+    the master table (the \cmMasterN{} forecasts) still holds earlier designs, the earlier draft's pooled 48-interval
+    forecasts and the master table's pooled linear runs on all \rhdmNIntervals{} intervals; D3 drops the old
+    closing-interval model set, so check that no appendix statistic still runs over it. The pooled MinGRU stays
+    parked. % 2026-10-26: the coordinator adds the open notes the other section agents report here.
+  % 2026-10-26 (relay from VI via the coordinator): added.
+  \item \textbf{Variable importance on the pre-patch design} (from Section~\ref{sec:rh_fi}): the trees' SHAP values,
+    the live-window shares built on them (Figure~\ref{fig:rh_fi_live}), the feature-count ladder
+    (Figure~\ref{fig:rh_ladder}) and the window $\times$ feature-count grid are on the design before the FOMC patch
+    and are being rerun on the patched design (D13). The ladder macros are wired in (pre-patch values until the
+    rerun lands).
+  % 2026-10-26 (relay from NUMBERS via the coordinator): added.
+  \item \textbf{Open numbers items} (NUMBERS, 26 October). The samples table shows 85,314 rows rather than 84,747;
+    the early-close drop alone gives 84,770, and the rest of the gap is unexplained. Panels C--E of
+    \texttt{rehaul\_app\_hac\_robust} still hold the old closing-interval sets. The design note of the parked
+    \texttt{oos\_last30} table is stale. The cell macros of the \texttt{fip\_window} figure are not written.
+  \item \textbf{Claims changed by the rebuilt closing-interval HAR (D9).} Its Sharpe ratio is now
+    \rhrOlsSharpe{} and it ranks among the top four closing-interval forecasts, so the earlier ``top four = three
+    subperiod fits and XGBoost'' no longer holds (kept: the top four are closing-interval forecasts, none
+    significantly better). Its gap to the closing-interval HAR-set fits is now a computed bound, 0.8\%, not 0.01\%.
+    The GRS test no longer rejects for it. Four MCS statements on $\mathcal T_{\mathrm{close}}$ changed and are
+    reported, not asserted. Generators that do not follow the \texttt{REHAUL\_FOMCFIX} switch: robust\_window,
+    fi\_pooled, fip\_lc (hard-coded paths); ladder, complexity, window\_sweep, ablations (rerun inputs of their own);
+    tuning, holiday, ci\_har (fixed inputs).
   \end{itemize}
-% 2026-10-16 (user): parked -- the title, abstract, introduction and conclusion now state the
-% intraday exogenous-feature comparison, not the 24-hour panel.
-% \item \textbf{The current title, abstract, introduction and conclusion describe the old 24-hour panel} and need
-%   replacing.
-% 2026-10-18 (user, second-list N8): parked -- the re-base is done (results anchor on the closing-interval OLS); counts now from macros, re-scoped per new-notes 26 (closing-interval tests out of the headline significance count). Was: "\item \textbf{The results text anchors on the pooled block ridge;} re-base it on the per-bar OLS. Against that OLS, 7   of 111 forecasts have lower QLIKE, none significantly."
-\item \textbf{Accuracy against the benchmark:} \rhrNLowerPool{} of the \rhrPoolN{} pooled intraday forecasts have lower QLIKE than the daily HAR benchmark, \rhrNLowerSigPool{} significantly (Diebold--Mariano, 5\% level); closing-interval tests are left out of this count (Appendix~\ref{app:rh_closing}).
-% 2026-10-23 (user, S4c): parked -- scoped to the closing-interval forecasts, which are not rerun; disclosed in
-% Sections~\ref{sec:rh_data} and~\ref{sec:rh_predictors}. Was: "\item \textbf{Data issue to fix before final numbers:}"
-\item \textbf{Closing-interval forecasts, as fitted (disclosed, not a fix):}
+% 2026-10-26: carried over from the list of 23 October 2026 (parked below), updated.
+\item \textbf{Window and sample} (decided 23 October 2026; disclosure D8, audit correctness-2): first evaluation day
+  2 January 2014, penalties and configurations fixed on the last pre-sample fold (validation year 2013), main window
+  3,000 trading days, 3,500 days as robustness. The main window was fixed after the six candidate windows had been
+  scored out of sample on the evaluation span (results/window\_sweep\_2014start\_2026-10-22/part2); the pre-sample
+  learning curve of the linear models favours 1,000 days on MSE, and the closing-half-hour comparisons change sign
+  across windows while the every-bar gain does not. The body must say how the window was chosen, and the appendix
+  reports every window.
+\item \textbf{Variable importance} (Section~\ref{sec:rh_fi}): still to come are the MinGRU, a linear SHAP on the same
+  forecast rows (so both model families share one measure), and the trees' SHAP values at the robustness window.
+\item \textbf{MinGRU network:} parked in the paper. Its final rerun (\url{results/pooled_mingru_final_2014start_w3000}
+  and \url{_w3500}, RULE\_gru.txt with addenda 1--3) enters when its walks are scored.
+\item \textbf{Open decisions for James} (23 October 2026, still open on 26 October):
   \begin{itemize}
-  \item the activity flags are computed after the forward fill, so the FOMC flags read 1 on every trade day after
-    November 2023;
-  % 2026-10-18 (user, second-list N4): rerun-needed flag.
-  % 2026-10-22 (user, S4c): parked -- the note before the decision not to rerun the closing-interval models. Was:
-  % \editc{orange}{S4c}{Decision: rerun needed under the causal rule (note S4a).\\Problem: this item describes the old behaviour of the printed forecasts of 6--7 October 2026 (full-sample mode, flags read after the fill). Commit b29774a (15 October 2026) sets CAUSAL\_MODE\_INFLATION and ACTIVE\_FROM\_OBSERVED in src/backtest/executor.py, so after the rerun the flags come from observed prints. The code comment counts 123 FOMC days, not 122.}
-  % 2026-10-23 (user, S4c): parked -- resolved: the item is now scoped to the closing-interval forecasts and is a
-  % disclosure, not a fix. Was: \editc{orange}{S4c}{Decision: no rerun of the closing-interval models (James, 22
-  % October 2026; note S4a): the flags read after the fill stay in the printed closing-interval forecasts, disclosed
-  % in Section~\ref{sec:rh_predictors} (activity indicators) and Table~\ref{tab:rh_dm_dictionary}.\\Problem: this item
-  % is not marked as true of the closing-interval forecasts only, and it is no longer a fix to make before final
-  % numbers. The pooled intraday forecasts of Table~\ref{tab:rh_oos} were built after commit b29774a
-  % (CAUSAL\_MODE\_INFLATION and ACTIVE\_FROM\_OBSERVED in src/backtest/executor.py: flags from observed prints) and
-  % carry no activity averages (note E6). The code comment counts 123 FOMC days, not 122.}
-  % 2026-10-23 (user, E28): parked -- the pooled final design caps the fill and splices the VIX family; the
-  % closing-interval models keep the uncapped fill as fitted (Section~\ref{sec:rh_data}). Was: "\item VIX,
-  % volume-demand and FOMC feeds end early and are carried forward without limit into 2024."
-  \item the VIX, volatility-demand and FOMC feeds end early and are carried forward without limit into 2024 (the
-    pooled final design caps the fill and splices the VIX family instead).
-  \end{itemize}
-\item \textbf{Missing outputs:} paired-comparison tables (axis 1, axis 2), DM against the OLS in the master table,
-  and the model confidence set over models (note E14).
-% 2026-10-15 (user): parked -- NN content parked for now
-% \item \textbf{Pending:} the pooled random forest (full table) and the pooled ridge-init network.
-% 2026-10-23 (user): parked -- the forest's final walks are in at both windows. Was: "\item \textbf{Pending:} the
-% pooled random forest (full table)."
-% 2026-10-23 (user, E15): parked -- resolved: one frozen pre-sample pick per model on the final design (notes E15,
-% E23; Section~\ref{sec:rh_results}). The window-study evidence below is kept for the record. Was:
-% \item \textbf{E15, sample and window still open} (2026-10-16). Hyperparameters: one configuration per model, chosen once on the pre-sample and frozen on the evaluation span. The daily HAR OLS stays outside the scheme. Not applied to Table~\ref{tab:rh_oos}.
-%   \begin{itemize}
-%   \item Open choice: all $\rhdmNIntervals$ intervals, overnight included, or the 13 regular-hours bars (end stamps 10:00--16:00). Window: $\rhdmPooledWindow$ intervals or $\rhdmPooledLinWindow$ intervals ($\cmPtFitWin$ trading days on the 48-bar grid).
-%   \item Calendar (note E9): columns after the overnight indicator are out of the specification, including the products of the target HAR components with the opening- and closing-interval indicators. The overnight indicator stays only if the overnight intervals stay in the training sample. On the 13 regular-hours bars it equals 1 only on the 16:00 bar. Not applied to the printed column counts or Table~\ref{tab:rh_oos}.
-%   \item Shorter window, 16:00 rows only (closing-interval window study, 2026-10-03; trees refit every 10 sessions and the linear penalties are re-chosen, so this is not the frozen rule). LightGBM QLIKE 0.1110 at $\rhdmPooledWindow/\rhdmNIntervals$ sessions and 0.1006 at $\cmPtFitWin$ sessions (DM 2.71). Ridge 0.1194 and 0.1027 (DM 2.94). Lasso 0.0998 and 0.1006 (DM $-0.36$).
-%   \item A 48-bar pool against a one-bar fit, HAR plus calendar, 2012--2024. The pool preferred the shorter window; the one-bar fits preferred $\cmPtFitWin$ days. At the 16:00 bar the one-bar QLIKE gain was 6--8\% on the shorter window and 12--13\% at $\cmPtFitWin$ days. The full predictor set on one bar was worse on the shorter window (+4.1\%, 8 bars worse) and flat at $\cmPtFitWin$ days (+0.5\%).
-%   \item The 13 regular-hours bars as one model against the 48-bar pool, $\cmPtFitWin$ days, mean over buckets. QLIKE lower by 1.75\% / 1.86\% / 1.85\% (ridge / elastic net / lasso); at the close, 5.5--6.0\%. The 15:30 sign trade, crossed, matched the pool (0.70 / 0.62 / 0.68 against the pool's 0.72 / 0.68 / 0.73). It moved only for a fit on the 16:00 bar alone (QLIKE 8.6--9.5\% below the pool; crossed Sharpe 1.00 / 0.92 / 0.85, lasso / elastic net / ridge).
-%   \end{itemize}
-\item \textbf{Open decisions for James} (23 October 2026):
-  \begin{itemize}
-  \item E21: the code counts $n_{\mathrm{gap}}$ in trading days, which reverses the 17 October reading (Appendix~\ref{app:rh_impl}); please confirm.
-  \item E2: the vendor of each file, the price field and the roll rule are not documented in the repository; the
-    core file also carries stamps inside CME's daily halt. Needs the data provider.
-  \item The pooled interval-shift test (Section~\ref{sec:rh_econ}): which days, the noise-band formula under the
-    Sharpe ratio's yearly weights, and how to read the earlier-interval pattern.
-  \item The random forest's storyline (RF\_STORY\_OPTIONS.md): at the main window it has the largest pooled Sharpe
-    gain from the full set, against a near-zero Sharpe ratio for its HAR-only arm that is higher at the robustness
-    window (Table~\ref{tab:rh_robust_w3500}).
+  \item E21: the code counts $n_{\mathrm{gap}}$ in trading days, which reverses the 17 October reading
+    (Appendix~\ref{app:rh_impl}); please confirm.
+  % 2026-10-26 (relay from DATA): E2 detailed; the note and its visible \todo are parked in rehaul/03_data.tex. Was:
+  % "E2: the vendor of each file, the price field and the roll rule are not documented in the repository; the core
+  % file also carries stamps inside CME's daily halt. Needs the data provider."
+  \item E2 (from Section~\ref{sec:rh_data}): the vendor of each file, the price field and the roll day are not
+    documented in the repository, and the core file carries 17:30 and 18:00 stamps inside CME's daily maintenance
+    halt. Needs the data provider.
+  % 2026-10-26 (relay from ECON): the test moved to the economics appendix; the reference follows it. Was:
+  % "(Section~\ref{sec:rh_econ})".
+  \item E26b, the pooled interval-shift test (Appendix~\ref{app:rh_econ_shift}): (i) which days (every shift on the
+    days on which every shifted forecast exists, or only the earlier bars on all post-warmup days of the printed
+    Sharpe ratios), (ii) the sampling band under the Sharpe ratio's yearly weights in place of
+    $1.96\sqrt{252/n}$, and (iii) how to read the pattern at the earlier bars. The earlier reading (``well within''
+    the band) is parked in rehaul/A\_econ.tex.
+  \item The random forest's storyline (RF\_STORY\_OPTIONS.md): its HAR-only arm has a near-zero Sharpe ratio at the
+    main window, so its within-class Sharpe gain is the largest; against the OLS-HAR strategy (D2) the comparison
+    awaits \texttt{rhemFullVsOlsHarSig}.
   \item The Sharpe ratio's yearly weights give the short final year (2024) a quarter of the weight; one sentence of
     disclosure, or a sensitivity check.
-  \item Still open from the notes: E13 (old-divisor DM statistics in the closing study), E14 (MCS / SPA / StepM
-    named but not reported), E23's sensitivity check, E30 (sentiment formula: the professor), E33 (MAE and
-    calibration: compute or drop), and the reach of the late-start rule over the evaluation span.
+  % 2026-10-26 (relay from DATA): E30 split out and detailed; parked in rehaul/04_features.tex.
+  \item E30 (from Section~\ref{sec:rh_predictors}; the professor): the formula of the StockTwits sentiment score
+    between its endpoints $\pm 1$.
+  \item Still open from the notes: E13 (old-divisor DM statistics in the closing study; check after the
+    closing-interval rebuild, D9) and E23's sensitivity check.
   \end{itemize}
-\item \textbf{The full outline,} with source and macro pointers, is \url{writeup/PAPER_REHAUL_OUTLINE_2026-10-15.md}.
+\item \textbf{The full outline,} with source and macro pointers, is \url{writeup/PAPER_REHAUL_OUTLINE_2026-10-15.md};
+  the plan and the shared spec of this pass are \url{writeup/INTEGRATION_PLAN_2026-10-26.md} and
+  \url{writeup/INTEGRATION_SPEC_2026-10-26.md}.
 \end{itemize}
+
+% 2026-10-26 (integration, JFEc): parked -- the notes list of 15-23 October 2026, verbatim, each line prefixed "% | ".
+% Carried over above (updated): window and sample (now with the D8 disclosure, audit correctness-2), variable
+% importance still to come, the MinGRU, the open decisions E21, E2, the interval-shift test, the forest's storyline,
+% the yearly weights, E13, E23, E30. Resolved and not carried over: "Final rerun (23 October 2026): the pooled numbers
+% are final" (superseded by the FOMC patch, D13); the ablations (run and scored: results/ablations_2014start_w3000,
+% tab:rh_ablation); the standardization (merged 2430543); the closing-interval models and "Closing-interval
+% forecasts, as fitted" (superseded: the old closing-interval model set is dropped and the closing-interval HAR
+% rebuilt, D3, D9); "Accuracy against the benchmark" (the closing-interval HAR is no longer the benchmark, D2);
+% "Missing outputs" (MCS/SPA/StepM drafted, drafts/2026-10-25_mcs, note E14; the master table is dropped with D3);
+% E33 (MAE and calibration computed, drafts/2026-10-25_close_accuracy); the reach of the late-start rule (D11,
+% \rhlv... macros).
+% | \section{Notes to the authors (not part of the paper)}
+% | \begin{itemize}
+% | % 2026-10-23 (user): parked -- the final rerun is in (REHAUL_FINAL_RUN, writeup/final_run.py; linear, LightGBM,
+% | % XGBoost and the oneDAL random forest at 3,000 and 3,500 days; MinGRU running and parked). Was:
+% | % "\item \textbf{Rerun pending (22 October 2026): the pooled numbers in this draft are preliminary.} Approved, and
+% | %   waiting for the window choice:"
+% | \item \textbf{Final rerun (23 October 2026): the pooled numbers in this draft are final} for the linear models
+% |   (OLS, ridge, lasso, elastic net), LightGBM, XGBoost and the random forest (Intel's oneDAL engine), on the final
+% |   design at the main window and the robustness window (Table~\ref{tab:rh_oos}, Sections~\ref{sec:rh_results}
+% |   and~\ref{sec:rh_econ}, Table~\ref{tab:rh_robust_w3500}). The generators read the final runs under the switch
+% |   REHAUL\_FINAL\_RUN=1 (writeup/final\_run.py, which lists the regeneration order); a model whose final forecasts are
+% |   missing prints \emph{pending} and is left out of every count (writeup/tests/check\_pending.py).
+% |   \begin{itemize}
+% |   % 2026-10-23 (user): parked -- done. Was: "\item \textbf{Pooled intraday models} (Table~\ref{tab:rh_oos},
+% |   % Sections~\ref{sec:rh_results} and~\ref{sec:rh_econ}): ridge, lasso, elastic net and OLS, LightGBM, XGBoost and
+% |   % the random forest, rerun under the final design: late-start zeroing (LATE\_START\_WARMUP), the neutral value for
+% |   % windows with no observation (UNOBSERVED\_NEUTRAL), KKT-checked lasso and elastic-net walks (WALK\_KKT\_RESEED),
+% |   % the FOMC statement-interval dummy dropped (EXCLUDE\_FOMC\_RELEASE), and the rolling window chosen on the pre-2012
+% |   % folds (window sweep running). The printed forecasts use a 1,000-day window without these changes (notes S4d,
+% |   % E28)."
+% |   % 2026-10-23 (user): parked -- Section 8 now reports the final-run variable importance. Was: "\item
+% |   % \textbf{Variable importance} (Section~\ref{sec:rh_fi}): the pooled linear results on the current design
+% |   % (results/rehaul\_fi\_pooled13\_2026-10-22, preliminary) go in after the rerun; the scope of the tree analysis
+% |   % (SHAP by variable and state, interaction-free refits, SHAP interactions) is to be decided."
+% |   % 2026-10-23 (coordinator, tree learning curve): parked -- "the trees at the robustness window" is now their SHAP
+% |   % values only; the trees' accuracy across windows is in. Was: "Still to come: the ablations (below), the MinGRU, a
+% |   % linear SHAP on the same forecast rows (so both model families share one measure), and the trees at the robustness
+% |   % window."
+% |   \item \textbf{Variable importance} (Section~\ref{sec:rh_fi}): the linear models' importance and the trees' SHAP
+% |     attributions on the final design at the main window are in, and so is the trees' window learning curve
+% |     (LightGBM, XGBoost and the forest at \rhlcWOne--\rhlcWLong{} days, \rhlcNArmsDone{} of \rhlcNArmsAll{} walks; the
+% |     full set's extra gain over the HAR benchmark, Table~\ref{tab:rh_fip_lc}, writeup/make\_rehaul\_fip\_lc.py). Still to
+% |     come: the ablations (below), the MinGRU, a linear SHAP on the same forecast rows (so both model families share
+% |     one measure), and the trees' SHAP values at the robustness window.
+% |   \item \textbf{Ablations:} leave one bucket out, then one variable out within the buckets that matter. The linear
+% |     preview on the earlier design exists; the final run on the final design is not run; trees to be decided.
+% |   % 2026-10-23 (user): parked -- the MinGRU rerun is running. Was: "\item \textbf{MinGRU network:} parked; rerun on
+% |   % the final design before it enters (tuning grid, seeds and refit cadence to be decided)."
+% |   \item \textbf{MinGRU network:} parked in the paper. Its final rerun is running (results/pooled\_mingru\_final\_2014start\_w3000
+% |     and \_w3500, RULE\_gru.txt with addenda 1--3: refit at every bar, tuned on the last pre-sample fold, grid
+% |     extended while a pick sits at an edge, with no compute cap per James's ``max tuning''). It enters when its walks
+% |     are scored.
+% |   \item \textbf{Standardization} (STANDARDIZE\_PENALTY, merged 2430543): the penalized pooled models are refit on
+% |     columns standardized within each estimation window (Section~\ref{sec:rh_methods_models}).
+% |   % 2026-10-23 (user): window decided after the learning-curve sweeps (results/window_sweep_2014start_2026-10-22,
+% |   % results/window_sweep_2016start_2026-10-22). Was: "The window study now runs on a 2 January 2014 start, giving up
+% |   % 2012--13 of the accuracy sample, so that windows up to 3,500 days can be compared on the latest pre-sample fold;
+% |   % the first evaluation day of the final rerun follows that study."
+% |   % 2026-10-23 (user): parked -- the walks are done. Was, at the end of the item below: "The linear runs exist; the
+% |   % tree walks (3,000: all three; 3,500: LightGBM and XGBoost) and the MinGRU (3,000) are running. A test of the
+% |   % dense-and-weak reading across windows (do more observations per coefficient bring in more variables?) is
+% |   % computed from the same sweep."
+% |   \item \textbf{Window and sample} (decided 23 October 2026): first evaluation day 2 January 2014 (2012--13 leave
+% |     the accuracy sample; the option-trading sample is unchanged), penalties and configurations tuned on the last
+% |     pre-sample fold (validation year 2013), main window 3,000 trading days, 3,500 days as robustness. The
+% |     learning curves: the linear models' closing-interval accuracy stops improving near 3,000 days and their
+% |     every-interval accuracy does not improve beyond 1,000; the trees' pre-sample fits improve until about 3,500.
+% |   % 2026-10-23 (coordinator, tree learning curve): parked -- the out-of-sample sentence now also covers the trees' walks
+% |   % below the main window (W = 1,000 and 2,000, finished). Was: "Out of sample, the longer window changes no tree's
+% |   % accuracy significantly and moves only the linear models (Table~\ref{tab:rh_robust_w3500}). The dense-and-weak test
+% |   % across windows is in Section~\ref{sec:rh_fi}."
+% |     Out of sample, \rhlcWLong{} days against \rhlcWMain{} change no tree's accuracy significantly and move only the
+% |     linear models (Table~\ref{tab:rh_robust_w3500}). Below the main window the trees do improve: from \rhlcWOne{} to
+% |     \rhlcWTwo{} days the full set's every-bar QLIKE falls significantly in \rhlcFullFallOneTwoBarWho, and its lead
+% |     over the HAR benchmark widens until \rhlcWMain{} days (Table~\ref{tab:rh_fip_lc}; \rhlcNArmsDone{} of
+% |     \rhlcNArmsAll{} tree walks finished). The dense-and-weak tests across windows (the linear models' coefficients,
+% |     the trees' extra gain) are in Section~\ref{sec:rh_fi}.
+% |   % 2026-10-23 (user, E32): James decided to rerun the closing-interval trees with a refit at every session. Was:
+% |   % "\item \textbf{Closing-interval models:} not rerun (James, 22 October 2026); their full-sample rules are disclosed
+% |   %   (notes S4a, S4c, S4d). The data fixes they predate (invalid-print nulling, FOMC calendar, VIX splice, fill cap)
+% |   %   still need a disclosure in Section~\ref{sec:rh_data} (E28)."
+% |   % 2026-10-23 (user, E32 resolved): parked -- the item while the tree rerun was pending. Was: "... The
+% |   %   closing-interval \emph{trees} are being rerun with a refit at every trading session instead of every 10 (James,
+% |   %   23 October 2026, note E32; branch insurance-selling-2026-09-19-e34-e32-daily), hyperparameters kept per each
+% |   %   specification's rule. Their numbers, the appendix's ``every 10 trading days'' and the E32 box change when that
+% |   %   rerun lands."
+% |   \item \textbf{Closing-interval models:} the linear models are not rerun (James, 22 October 2026); their
+% |     full-sample rules and the data fixes they predate are disclosed (notes S4a, S4c, S4d, E28; Section~\ref{sec:rh_data}).
+% |     The closing-interval \emph{trees} are re-estimated every trading session (note E32, resolved 23 October 2026;
+% |     branch insurance-selling-2026-09-19-e34-e32-daily): no new walk was needed, since every rung that refit every 10
+% |     trading days already had its every-session twin, with the same hyperparameter rule. The \cmTenDayN{} ten-day
+% |     forecasts left the model set (\cmMasterNWithTenDay{} to \cmMasterN{} forecasts), and every closing-interval
+% |     number was regenerated from the twins (Appendix~\ref{app:rh_closing_bench}).
+% |   % 2026-10-23 (user, E35): parked -- resolved: the fitted design's count is \rhorNColsAf (Section~\ref{sec:rh_predictors}).
+% |   % Was: "\item \textbf{Predictor count:} $\rhdmNColsPooled$ still counts the calendar and interaction columns cut by
+% |   % note E9 and the FOMC statement dummy; the printed design has 576 columns and the rerun's will have 564. Take the
+% |   % count from the design at the rerun."
+% |   \end{itemize}
+% | % 2026-10-16 (user): parked -- the title, abstract, introduction and conclusion now state the
+% | % intraday exogenous-feature comparison, not the 24-hour panel.
+% | % \item \textbf{The current title, abstract, introduction and conclusion describe the old 24-hour panel} and need
+% | %   replacing.
+% | % 2026-10-18 (user, second-list N8): parked -- the re-base is done (results anchor on the closing-interval OLS); counts now from macros, re-scoped per new-notes 26 (closing-interval tests out of the headline significance count). Was: "\item \textbf{The results text anchors on the pooled block ridge;} re-base it on the per-bar OLS. Against that OLS, 7   of 111 forecasts have lower QLIKE, none significantly."
+% | \item \textbf{Accuracy against the benchmark:} \rhrNLowerPool{} of the \rhrPoolN{} pooled intraday forecasts have lower QLIKE than the daily HAR benchmark, \rhrNLowerSigPool{} significantly (Diebold--Mariano, 5\% level); closing-interval tests are left out of this count (Appendix~\ref{app:rh_closing}).
+% | % 2026-10-23 (user, S4c): parked -- scoped to the closing-interval forecasts, which are not rerun; disclosed in
+% | % Sections~\ref{sec:rh_data} and~\ref{sec:rh_predictors}. Was: "\item \textbf{Data issue to fix before final numbers:}"
+% | \item \textbf{Closing-interval forecasts, as fitted (disclosed, not a fix):}
+% |   \begin{itemize}
+% |   \item the activity flags are computed after the forward fill, so the FOMC flags read 1 on every trade day after
+% |     November 2023;
+% |   % 2026-10-18 (user, second-list N4): rerun-needed flag.
+% |   % 2026-10-22 (user, S4c): parked -- the note before the decision not to rerun the closing-interval models. Was:
+% |   % \editc{orange}{S4c}{Decision: rerun needed under the causal rule (note S4a).\\Problem: this item describes the old behaviour of the printed forecasts of 6--7 October 2026 (full-sample mode, flags read after the fill). Commit b29774a (15 October 2026) sets CAUSAL\_MODE\_INFLATION and ACTIVE\_FROM\_OBSERVED in src/backtest/executor.py, so after the rerun the flags come from observed prints. The code comment counts 123 FOMC days, not 122.}
+% |   % 2026-10-23 (user, S4c): parked -- resolved: the item is now scoped to the closing-interval forecasts and is a
+% |   % disclosure, not a fix. Was: \editc{orange}{S4c}{Decision: no rerun of the closing-interval models (James, 22
+% |   % October 2026; note S4a): the flags read after the fill stay in the printed closing-interval forecasts, disclosed
+% |   % in Section~\ref{sec:rh_predictors} (activity indicators) and Table~\ref{tab:rh_dm_dictionary}.\\Problem: this item
+% |   % is not marked as true of the closing-interval forecasts only, and it is no longer a fix to make before final
+% |   % numbers. The pooled intraday forecasts of Table~\ref{tab:rh_oos} were built after commit b29774a
+% |   % (CAUSAL\_MODE\_INFLATION and ACTIVE\_FROM\_OBSERVED in src/backtest/executor.py: flags from observed prints) and
+% |   % carry no activity averages (note E6). The code comment counts 123 FOMC days, not 122.}
+% |   % 2026-10-23 (user, E28): parked -- the pooled final design caps the fill and splices the VIX family; the
+% |   % closing-interval models keep the uncapped fill as fitted (Section~\ref{sec:rh_data}). Was: "\item VIX,
+% |   % volume-demand and FOMC feeds end early and are carried forward without limit into 2024."
+% |   \item the VIX, volatility-demand and FOMC feeds end early and are carried forward without limit into 2024 (the
+% |     pooled final design caps the fill and splices the VIX family instead).
+% |   \end{itemize}
+% | \item \textbf{Missing outputs:} paired-comparison tables (axis 1, axis 2), DM against the OLS in the master table,
+% |   and the model confidence set over models (note E14).
+% | % 2026-10-15 (user): parked -- NN content parked for now
+% | % \item \textbf{Pending:} the pooled random forest (full table) and the pooled ridge-init network.
+% | % 2026-10-23 (user): parked -- the forest's final walks are in at both windows. Was: "\item \textbf{Pending:} the
+% | % pooled random forest (full table)."
+% | % 2026-10-23 (user, E15): parked -- resolved: one frozen pre-sample pick per model on the final design (notes E15,
+% | % E23; Section~\ref{sec:rh_results}). The window-study evidence below is kept for the record. Was:
+% | % \item \textbf{E15, sample and window still open} (2026-10-16). Hyperparameters: one configuration per model, chosen once on the pre-sample and frozen on the evaluation span. The daily HAR OLS stays outside the scheme. Not applied to Table~\ref{tab:rh_oos}.
+% | %   \begin{itemize}
+% | %   \item Open choice: all $\rhdmNIntervals$ intervals, overnight included, or the 13 regular-hours bars (end stamps 10:00--16:00). Window: $\rhdmPooledWindow$ intervals or $\rhdmPooledLinWindow$ intervals ($\cmPtFitWin$ trading days on the 48-bar grid).
+% | %   \item Calendar (note E9): columns after the overnight indicator are out of the specification, including the products of the target HAR components with the opening- and closing-interval indicators. The overnight indicator stays only if the overnight intervals stay in the training sample. On the 13 regular-hours bars it equals 1 only on the 16:00 bar. Not applied to the printed column counts or Table~\ref{tab:rh_oos}.
+% | %   \item Shorter window, 16:00 rows only (closing-interval window study, 2026-10-03; trees refit every 10 sessions and the linear penalties are re-chosen, so this is not the frozen rule). LightGBM QLIKE 0.1110 at $\rhdmPooledWindow/\rhdmNIntervals$ sessions and 0.1006 at $\cmPtFitWin$ sessions (DM 2.71). Ridge 0.1194 and 0.1027 (DM 2.94). Lasso 0.0998 and 0.1006 (DM $-0.36$).
+% | %   \item A 48-bar pool against a one-bar fit, HAR plus calendar, 2012--2024. The pool preferred the shorter window; the one-bar fits preferred $\cmPtFitWin$ days. At the 16:00 bar the one-bar QLIKE gain was 6--8\% on the shorter window and 12--13\% at $\cmPtFitWin$ days. The full predictor set on one bar was worse on the shorter window (+4.1\%, 8 bars worse) and flat at $\cmPtFitWin$ days (+0.5\%).
+% | %   \item The 13 regular-hours bars as one model against the 48-bar pool, $\cmPtFitWin$ days, mean over buckets. QLIKE lower by 1.75\% / 1.86\% / 1.85\% (ridge / elastic net / lasso); at the close, 5.5--6.0\%. The 15:30 sign trade, crossed, matched the pool (0.70 / 0.62 / 0.68 against the pool's 0.72 / 0.68 / 0.73). It moved only for a fit on the 16:00 bar alone (QLIKE 8.6--9.5\% below the pool; crossed Sharpe 1.00 / 0.92 / 0.85, lasso / elastic net / ridge).
+% | %   \end{itemize}
+% | \item \textbf{Open decisions for James} (23 October 2026):
+% |   \begin{itemize}
+% |   \item E21: the code counts $n_{\mathrm{gap}}$ in trading days, which reverses the 17 October reading (Appendix~\ref{app:rh_impl}); please confirm.
+% |   \item E2: the vendor of each file, the price field and the roll rule are not documented in the repository; the
+% |     core file also carries stamps inside CME's daily halt. Needs the data provider.
+% |   \item The pooled interval-shift test (Section~\ref{sec:rh_econ}): which days, the noise-band formula under the
+% |     Sharpe ratio's yearly weights, and how to read the earlier-interval pattern.
+% |   \item The random forest's storyline (RF\_STORY\_OPTIONS.md): at the main window it has the largest pooled Sharpe
+% |     gain from the full set, against a near-zero Sharpe ratio for its HAR-only arm that is higher at the robustness
+% |     window (Table~\ref{tab:rh_robust_w3500}).
+% |   \item The Sharpe ratio's yearly weights give the short final year (2024) a quarter of the weight; one sentence of
+% |     disclosure, or a sensitivity check.
+% |   \item Still open from the notes: E13 (old-divisor DM statistics in the closing study), E14 (MCS / SPA / StepM
+% |     named but not reported), E23's sensitivity check, E30 (sentiment formula: the professor), E33 (MAE and
+% |     calibration: compute or drop), and the reach of the late-start rule over the evaluation span.
+% |   \end{itemize}
+% | \item \textbf{The full outline,} with source and macro pointers, is \url{writeup/PAPER_REHAUL_OUTLINE_2026-10-15.md}.
+% | \end{itemize}

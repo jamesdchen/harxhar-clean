@@ -26,117 +26,117 @@ Rank & Model & Specification & Predictors & QLIKE & $\Delta$ (\%) & $\DM$ \\
 \endlastfoot
 \multicolumn{7}{@{}l}{\textit{Panel A: Closing-interval models}} \\
 \addlinespace[2pt]
-1 & Lasso & -- & Full & 0.0992 & $-4.0^{*\phantom{**}}$ & $(-1.91)$ \\
-2 & Elastic net & -- & Full & 0.1014 & $-1.8^{\phantom{***}}$ & $(-0.55)$ \\
-3 & Ridge & -- & Full & 0.1031 & $-0.1^{\phantom{***}}$ & $(-0.04)$ \\
-4 & XGBoost & Fixed, daily & Full & 0.1031 & $-0.1^{\phantom{***}}$ & $(-0.04)$ \\
-5 & Lasso & -- & HAR & 0.1033 & $0.0^{***}$ & $(-2.60)$ \\
-6 & Elastic net & -- & HAR & 0.1033 & $0.0^{**\phantom{*}}$ & $(-2.46)$ \\
-7 & Ridge & -- & HAR & 0.1033 & $0.0^{\phantom{***}}$ & $(-0.96)$ \\
-8 & OLS (benchmark) & -- & HAR & 0.1033 & --$^{\phantom{***}}$ & -- \\
-9 & LightGBM & Fixed, daily & Full & 0.1049 & $1.5^{\phantom{***}}$ & $(0.51)$ \\
-10 & Random forest & Fixed, daily & Full & 0.1060 & $2.6^{\phantom{***}}$ & $(0.86)$ \\
-11 & Random forest & Optuna (QLIKE), 25 d, 50 trials & HAR & 0.1062 & $2.8^{\phantom{***}}$ & $(1.36)$ \\
-12 & LightGBM & Random search (QLIKE), daily & Full & 0.1063 & $3.0^{\phantom{***}}$ & $(0.94)$ \\
-13 & Random forest & Random search (QLIKE), daily & HAR & 0.1065 & $3.1^{\phantom{***}}$ & $(1.56)$ \\
-14 & LightGBM & Random search (MSE), daily & Full & 0.1068 & $3.5^{\phantom{***}}$ & $(0.97)$ \\
-15 & Random forest & Fixed, daily & HAR & 0.1068 & $3.5^{*\phantom{**}}$ & $(1.70)$ \\
-16 & Random forest & Optuna (MSE), daily, 10 trials & Full & 0.1070 & $3.6^{\phantom{***}}$ & $(1.12)$ \\
-17 & Random forest & Optuna (MSE), daily, 25 trials & Full & 0.1070 & $3.6^{\phantom{***}}$ & $(1.16)$ \\
-18 & Random forest & Optuna (MSE), 5 d, 50 trials & Full & 0.1071 & $3.7^{\phantom{***}}$ & $(1.08)$ \\
-19 & Random forest & Optuna (MSE), daily, 50 trials & Full & 0.1072 & $3.8^{\phantom{***}}$ & $(1.18)$ \\
-20 & Random forest & Random search (QLIKE), daily & Full & 0.1073 & $3.9^{\phantom{***}}$ & $(1.29)$ \\
-21 & XGBoost & Optuna (MSE), daily, 25 trials & Full & 0.1073 & $3.9^{\phantom{***}}$ & $(1.13)$ \\
-22 & Random forest & Optuna (MSE), 25 d, 10 trials & Full & 0.1073 & $3.9^{\phantom{***}}$ & $(1.21)$ \\
-23 & Random forest & Optuna (MSE), daily, 50 trials & HAR & 0.1074 & $4.0^{*\phantom{**}}$ & $(1.79)$ \\
-24 & Random forest & Optuna (MSE), daily, 25 trials & HAR & 0.1075 & $4.1^{*\phantom{**}}$ & $(1.94)$ \\
-25 & XGBoost & Fixed, daily & HAR & 0.1076 & $4.2^{**\phantom{*}}$ & $(2.09)$ \\
-26 & Random forest & Optuna (MSE), 25 d, 25 trials & HAR & 0.1077 & $4.3^{*\phantom{**}}$ & $(1.82)$ \\
-27 & Random forest & Optuna (MSE), 5 d, 50 trials & HAR & 0.1078 & $4.4^{*\phantom{**}}$ & $(1.89)$ \\
-28 & XGBoost & Random search (MSE), daily & Full & 0.1078 & $4.4^{\phantom{***}}$ & $(1.17)$ \\
-29 & XGBoost & Random search (QLIKE), daily & Full & 0.1078 & $4.4^{\phantom{***}}$ & $(1.18)$ \\
-30 & Random forest & Optuna (MSE), daily, 10 trials & HAR & 0.1078 & $4.4^{**\phantom{*}}$ & $(2.09)$ \\
-33 & Random forest & Optuna (MSE), 25 d, 50 trials & HAR & 0.1080 & $4.6^{**\phantom{*}}$ & $(1.98)$ \\
-34 & Random forest & Optuna (MSE), 25 d, 25 trials & Full & 0.1082 & $4.7^{\phantom{***}}$ & $(1.49)$ \\
-35 & XGBoost & Optuna (MSE), 5 d, 50 trials & HAR & 0.1082 & $4.8^{**\phantom{*}}$ & $(2.15)$ \\
-36 & XGBoost & Optuna (MSE), daily, 10 trials & HAR & 0.1085 & $5.1^{**\phantom{*}}$ & $(2.14)$ \\
-38 & LightGBM & Optuna (MSE), 250 d, 50 trials & Full & 0.1086 & $5.2^{\phantom{***}}$ & $(1.26)$ \\
-39 & Random forest & Optuna (MSE), 25 d, 10 trials & HAR & 0.1088 & $5.3^{**\phantom{*}}$ & $(2.03)$ \\
-40 & XGBoost & Optuna (MSE), daily, 50 trials & Full & 0.1089 & $5.5^{*\phantom{**}}$ & $(1.67)$ \\
-42 & Random forest & Optuna (MSE), 250 d, 50 trials & Full & 0.1090 & $5.5^{*\phantom{**}}$ & $(1.66)$ \\
-43 & Random forest & Optuna (QLIKE), 25 d, 50 trials & Full & 0.1091 & $5.7^{\phantom{***}}$ & $(1.63)$ \\
-44 & XGBoost & Optuna (MSE), 25 d, 50 trials & HAR & 0.1091 & $5.7^{**\phantom{*}}$ & $(2.21)$ \\
-45 & LightGBM & Fixed, daily & HAR & 0.1094 & $5.9^{***}$ & $(2.70)$ \\
-46 & XGBoost & Optuna (MSE), 5 d, 50 trials & Full & 0.1094 & $6.0^{*\phantom{**}}$ & $(1.77)$ \\
-47 & LightGBM & Optuna (MSE), daily, 10 trials & Full & 0.1095 & $6.0^{*\phantom{**}}$ & $(1.65)$ \\
-48 & LightGBM & Optuna (MSE), daily, 25 trials & Full & 0.1096 & $6.1^{*\phantom{**}}$ & $(1.75)$ \\
-49 & LightGBM & Random search (QLIKE), daily & HAR & 0.1097 & $6.2^{***}$ & $(2.85)$ \\
-50 & XGBoost & Optuna (MSE), daily, 50 trials & HAR & 0.1099 & $6.4^{**\phantom{*}}$ & $(2.57)$ \\
-51 & Random forest & Optuna (MSE), 25 d, 50 trials & Full & 0.1100 & $6.5^{*\phantom{**}}$ & $(1.89)$ \\
-52 & LightGBM & Optuna (MSE), 25 d, 25 trials & HAR & 0.1100 & $6.5^{***}$ & $(2.81)$ \\
-53 & XGBoost & Optuna (QLIKE), 25 d, 50 trials & HAR & 0.1101 & $6.6^{*\phantom{**}}$ & $(1.93)$ \\
-57 & XGBoost & Optuna (MSE), daily, 25 trials & HAR & 0.1102 & $6.7^{**\phantom{*}}$ & $(2.56)$ \\
-58 & XGBoost & Optuna (MSE), 25 d, 10 trials & HAR & 0.1102 & $6.7^{***}$ & $(2.93)$ \\
-59 & LightGBM & Optuna (MSE), daily, 50 trials & Full & 0.1103 & $6.8^{**\phantom{*}}$ & $(1.97)$ \\
-60 & XGBoost & Optuna (MSE), 25 d, 25 trials & HAR & 0.1103 & $6.8^{**\phantom{*}}$ & $(2.53)$ \\
-61 & LightGBM & Optuna (QLIKE), 25 d, 50 trials & HAR & 0.1104 & $6.9^{***}$ & $(2.87)$ \\
-62 & LightGBM & Optuna (MSE), 5 d, 50 trials & Full & 0.1104 & $6.9^{*\phantom{**}}$ & $(1.87)$ \\
-63 & XGBoost & Optuna (MSE), daily, 10 trials & Full & 0.1106 & $7.1^{**\phantom{*}}$ & $(2.00)$ \\
-64 & LightGBM & Optuna (MSE), daily, 10 trials & HAR & 0.1110 & $7.5^{***}$ & $(2.78)$ \\
-65 & XGBoost & Optuna (MSE), 250 d, 50 trials & Full & 0.1111 & $7.6^{*\phantom{**}}$ & $(1.69)$ \\
-66 & LightGBM & Optuna (MSE), 25 d, 25 trials & Full & 0.1112 & $7.6^{*\phantom{**}}$ & $(1.87)$ \\
-67 & LightGBM & Optuna (MSE), 25 d, 50 trials & HAR & 0.1112 & $7.7^{***}$ & $(2.82)$ \\
-68 & LightGBM & Optuna (MSE), 5 d, 50 trials & HAR & 0.1114 & $7.9^{***}$ & $(3.27)$ \\
-70 & Random forest & Random search (MSE), daily & Full & 0.1117 & $8.1^{**\phantom{*}}$ & $(1.98)$ \\
-71 & LightGBM & Optuna (MSE), daily, 50 trials & HAR & 0.1117 & $8.1^{***}$ & $(3.01)$ \\
-72 & Random forest & Optuna (MSE), 250 d, 50 trials & HAR & 0.1121 & $8.6^{**\phantom{*}}$ & $(2.00)$ \\
-73 & LightGBM & Optuna (MSE), 25 d, 10 trials & HAR & 0.1122 & $8.7^{***}$ & $(3.29)$ \\
-76 & XGBoost & Optuna (MSE), 25 d, 25 trials & Full & 0.1126 & $9.0^{**\phantom{*}}$ & $(2.26)$ \\
-78 & XGBoost & Random search (QLIKE), daily & HAR & 0.1127 & $9.1^{**\phantom{*}}$ & $(1.96)$ \\
-79 & LightGBM & Optuna (MSE), daily, 25 trials & HAR & 0.1127 & $9.2^{***}$ & $(3.26)$ \\
-81 & LightGBM & Optuna (MSE), 25 d, 10 trials & Full & 0.1128 & $9.3^{**\phantom{*}}$ & $(2.03)$ \\
-83 & XGBoost & Optuna (QLIKE), 25 d, 50 trials & Full & 0.1134 & $9.8^{**\phantom{*}}$ & $(2.25)$ \\
-84 & LightGBM & Optuna (QLIKE), 25 d, 50 trials & Full & 0.1134 & $9.9^{**\phantom{*}}$ & $(2.10)$ \\
-86 & XGBoost & Optuna (MSE), 25 d, 50 trials & Full & 0.1136 & $10.0^{**\phantom{*}}$ & $(2.42)$ \\
-90 & LightGBM & Random search (MSE), daily & HAR & 0.1139 & $10.3^{***}$ & $(2.59)$ \\
-95 & Random forest & Random search (MSE), daily & HAR & 0.1151 & $11.5^{**\phantom{*}}$ & $(2.40)$ \\
-96 & LightGBM & Optuna (MSE), 25 d, 50 trials & Full & 0.1152 & $11.6^{***}$ & $(2.61)$ \\
-98 & LightGBM & Optuna (MSE), 250 d, 50 trials & HAR & 0.1160 & $12.3^{***}$ & $(2.84)$ \\
-99 & XGBoost & Optuna (MSE), 25 d, 10 trials & Full & 0.1161 & $12.4^{***}$ & $(2.72)$ \\
-100 & XGBoost & Optuna (MSE), 250 d, 50 trials & HAR & 0.1165 & $12.8^{***}$ & $(3.24)$ \\
-102 & XGBoost & Random search (MSE), daily & HAR & 0.1175 & $13.8^{***}$ & $(2.78)$ \\
+1 & Lasso & -- & Full & 0.0992 & $-3.3^{\phantom{***}}$ & $(-1.44)$ \\
+2 & Elastic net & -- & Full & 0.1014 & $-1.1^{\phantom{***}}$ & $(-0.32)$ \\
+3 & OLS (benchmark) & -- & HAR & 0.1025 & --$^{\phantom{***}}$ & -- \\
+4 & Ridge & -- & Full & 0.1031 & $0.6^{\phantom{***}}$ & $(0.15)$ \\
+5 & XGBoost & Fixed, daily & Full & 0.1031 & $0.6^{\phantom{***}}$ & $(0.21)$ \\
+6 & Lasso & -- & HAR & 0.1033 & $0.7^{\phantom{***}}$ & $(0.86)$ \\
+7 & Elastic net & -- & HAR & 0.1033 & $0.7^{\phantom{***}}$ & $(0.86)$ \\
+8 & Ridge & -- & HAR & 0.1033 & $0.7^{\phantom{***}}$ & $(0.86)$ \\
+9 & LightGBM & Fixed, daily & Full & 0.1049 & $2.3^{\phantom{***}}$ & $(0.72)$ \\
+10 & Random forest & Fixed, daily & Full & 0.1060 & $3.4^{\phantom{***}}$ & $(1.11)$ \\
+11 & Random forest & Optuna (QLIKE), 25 d, 50 trials & HAR & 0.1062 & $3.6^{*\phantom{**}}$ & $(1.93)$ \\
+12 & LightGBM & Random search (QLIKE), daily & Full & 0.1063 & $3.7^{\phantom{***}}$ & $(1.12)$ \\
+13 & Random forest & Random search (QLIKE), daily & HAR & 0.1065 & $3.9^{**\phantom{*}}$ & $(2.14)$ \\
+14 & LightGBM & Random search (MSE), daily & Full & 0.1068 & $4.2^{\phantom{***}}$ & $(1.18)$ \\
+15 & Random forest & Fixed, daily & HAR & 0.1068 & $4.2^{**\phantom{*}}$ & $(2.28)$ \\
+16 & Random forest & Optuna (MSE), daily, 10 trials & Full & 0.1070 & $4.3^{\phantom{***}}$ & $(1.36)$ \\
+17 & Random forest & Optuna (MSE), daily, 25 trials & Full & 0.1070 & $4.4^{\phantom{***}}$ & $(1.42)$ \\
+18 & Random forest & Optuna (MSE), 5 d, 50 trials & Full & 0.1071 & $4.5^{\phantom{***}}$ & $(1.36)$ \\
+19 & Random forest & Optuna (MSE), daily, 50 trials & Full & 0.1072 & $4.6^{\phantom{***}}$ & $(1.45)$ \\
+20 & Random forest & Random search (QLIKE), daily & Full & 0.1073 & $4.7^{\phantom{***}}$ & $(1.54)$ \\
+21 & XGBoost & Optuna (MSE), daily, 25 trials & Full & 0.1073 & $4.7^{\phantom{***}}$ & $(1.36)$ \\
+22 & Random forest & Optuna (MSE), 25 d, 10 trials & Full & 0.1073 & $4.7^{\phantom{***}}$ & $(1.46)$ \\
+23 & Random forest & Optuna (MSE), daily, 50 trials & HAR & 0.1074 & $4.8^{**\phantom{*}}$ & $(2.34)$ \\
+24 & Random forest & Optuna (MSE), daily, 25 trials & HAR & 0.1075 & $4.9^{**\phantom{*}}$ & $(2.52)$ \\
+25 & XGBoost & Fixed, daily & HAR & 0.1076 & $5.0^{**\phantom{*}}$ & $(2.45)$ \\
+26 & Random forest & Optuna (MSE), 25 d, 25 trials & HAR & 0.1077 & $5.0^{**\phantom{*}}$ & $(2.46)$ \\
+27 & Random forest & Optuna (MSE), 5 d, 50 trials & HAR & 0.1078 & $5.1^{**\phantom{*}}$ & $(2.52)$ \\
+28 & XGBoost & Random search (MSE), daily & Full & 0.1078 & $5.1^{\phantom{***}}$ & $(1.39)$ \\
+29 & XGBoost & Random search (QLIKE), daily & Full & 0.1078 & $5.2^{\phantom{***}}$ & $(1.41)$ \\
+30 & Random forest & Optuna (MSE), daily, 10 trials & HAR & 0.1078 & $5.2^{***}$ & $(2.67)$ \\
+33 & Random forest & Optuna (MSE), 25 d, 50 trials & HAR & 0.1080 & $5.4^{***}$ & $(2.62)$ \\
+34 & Random forest & Optuna (MSE), 25 d, 25 trials & Full & 0.1082 & $5.5^{*\phantom{**}}$ & $(1.74)$ \\
+35 & XGBoost & Optuna (MSE), 5 d, 50 trials & HAR & 0.1082 & $5.6^{**\phantom{*}}$ & $(2.57)$ \\
+36 & XGBoost & Optuna (MSE), daily, 10 trials & HAR & 0.1085 & $5.9^{**\phantom{*}}$ & $(2.57)$ \\
+38 & LightGBM & Optuna (MSE), 250 d, 50 trials & Full & 0.1086 & $5.9^{\phantom{***}}$ & $(1.44)$ \\
+39 & Random forest & Optuna (MSE), 25 d, 10 trials & HAR & 0.1088 & $6.1^{**\phantom{*}}$ & $(2.52)$ \\
+40 & XGBoost & Optuna (MSE), daily, 50 trials & Full & 0.1089 & $6.2^{*\phantom{**}}$ & $(1.88)$ \\
+42 & Random forest & Optuna (MSE), 250 d, 50 trials & Full & 0.1090 & $6.3^{**\phantom{*}}$ & $(2.00)$ \\
+43 & Random forest & Optuna (QLIKE), 25 d, 50 trials & Full & 0.1091 & $6.4^{*\phantom{**}}$ & $(1.89)$ \\
+44 & XGBoost & Optuna (MSE), 25 d, 50 trials & HAR & 0.1091 & $6.4^{***}$ & $(2.70)$ \\
+45 & LightGBM & Fixed, daily & HAR & 0.1094 & $6.7^{***}$ & $(3.03)$ \\
+46 & XGBoost & Optuna (MSE), 5 d, 50 trials & Full & 0.1094 & $6.8^{*\phantom{**}}$ & $(1.96)$ \\
+47 & LightGBM & Optuna (MSE), daily, 10 trials & Full & 0.1095 & $6.8^{*\phantom{**}}$ & $(1.91)$ \\
+48 & LightGBM & Optuna (MSE), daily, 25 trials & Full & 0.1096 & $6.9^{**\phantom{*}}$ & $(1.98)$ \\
+49 & LightGBM & Random search (QLIKE), daily & HAR & 0.1097 & $7.0^{***}$ & $(3.57)$ \\
+50 & XGBoost & Optuna (MSE), daily, 50 trials & HAR & 0.1099 & $7.2^{***}$ & $(2.99)$ \\
+51 & Random forest & Optuna (MSE), 25 d, 50 trials & Full & 0.1100 & $7.3^{**\phantom{*}}$ & $(2.17)$ \\
+52 & LightGBM & Optuna (MSE), 25 d, 25 trials & HAR & 0.1100 & $7.3^{***}$ & $(3.36)$ \\
+53 & XGBoost & Optuna (QLIKE), 25 d, 50 trials & HAR & 0.1101 & $7.4^{**\phantom{*}}$ & $(2.24)$ \\
+57 & XGBoost & Optuna (MSE), daily, 25 trials & HAR & 0.1102 & $7.5^{***}$ & $(2.89)$ \\
+58 & XGBoost & Optuna (MSE), 25 d, 10 trials & HAR & 0.1102 & $7.5^{***}$ & $(3.34)$ \\
+59 & LightGBM & Optuna (MSE), daily, 50 trials & Full & 0.1103 & $7.6^{**\phantom{*}}$ & $(2.20)$ \\
+60 & XGBoost & Optuna (MSE), 25 d, 25 trials & HAR & 0.1103 & $7.6^{***}$ & $(2.92)$ \\
+61 & LightGBM & Optuna (QLIKE), 25 d, 50 trials & HAR & 0.1104 & $7.7^{***}$ & $(3.36)$ \\
+62 & LightGBM & Optuna (MSE), 5 d, 50 trials & Full & 0.1104 & $7.7^{**\phantom{*}}$ & $(2.10)$ \\
+63 & XGBoost & Optuna (MSE), daily, 10 trials & Full & 0.1106 & $7.9^{**\phantom{*}}$ & $(2.19)$ \\
+64 & LightGBM & Optuna (MSE), daily, 10 trials & HAR & 0.1110 & $8.3^{***}$ & $(3.34)$ \\
+65 & XGBoost & Optuna (MSE), 250 d, 50 trials & Full & 0.1111 & $8.4^{*\phantom{**}}$ & $(1.81)$ \\
+66 & LightGBM & Optuna (MSE), 25 d, 25 trials & Full & 0.1112 & $8.4^{**\phantom{*}}$ & $(2.08)$ \\
+67 & LightGBM & Optuna (MSE), 25 d, 50 trials & HAR & 0.1112 & $8.5^{***}$ & $(3.38)$ \\
+68 & LightGBM & Optuna (MSE), 5 d, 50 trials & HAR & 0.1114 & $8.7^{***}$ & $(3.58)$ \\
+70 & Random forest & Random search (MSE), daily & Full & 0.1117 & $8.9^{**\phantom{*}}$ & $(2.24)$ \\
+71 & LightGBM & Optuna (MSE), daily, 50 trials & HAR & 0.1117 & $8.9^{***}$ & $(3.50)$ \\
+72 & Random forest & Optuna (MSE), 250 d, 50 trials & HAR & 0.1121 & $9.4^{**\phantom{*}}$ & $(2.28)$ \\
+73 & LightGBM & Optuna (MSE), 25 d, 10 trials & HAR & 0.1122 & $9.5^{***}$ & $(3.83)$ \\
+76 & XGBoost & Optuna (MSE), 25 d, 25 trials & Full & 0.1126 & $9.8^{**\phantom{*}}$ & $(2.39)$ \\
+78 & XGBoost & Random search (QLIKE), daily & HAR & 0.1127 & $9.9^{**\phantom{*}}$ & $(2.20)$ \\
+79 & LightGBM & Optuna (MSE), daily, 25 trials & HAR & 0.1127 & $10.0^{***}$ & $(3.71)$ \\
+81 & LightGBM & Optuna (MSE), 25 d, 10 trials & Full & 0.1128 & $10.1^{**\phantom{*}}$ & $(2.29)$ \\
+83 & XGBoost & Optuna (QLIKE), 25 d, 50 trials & Full & 0.1134 & $10.7^{**\phantom{*}}$ & $(2.36)$ \\
+84 & LightGBM & Optuna (QLIKE), 25 d, 50 trials & Full & 0.1134 & $10.7^{**\phantom{*}}$ & $(2.32)$ \\
+86 & XGBoost & Optuna (MSE), 25 d, 50 trials & Full & 0.1136 & $10.8^{**\phantom{*}}$ & $(2.52)$ \\
+90 & LightGBM & Random search (MSE), daily & HAR & 0.1139 & $11.1^{***}$ & $(2.89)$ \\
+95 & Random forest & Random search (MSE), daily & HAR & 0.1151 & $12.3^{***}$ & $(2.64)$ \\
+96 & LightGBM & Optuna (MSE), 25 d, 50 trials & Full & 0.1152 & $12.4^{***}$ & $(2.86)$ \\
+98 & LightGBM & Optuna (MSE), 250 d, 50 trials & HAR & 0.1160 & $13.2^{***}$ & $(3.17)$ \\
+99 & XGBoost & Optuna (MSE), 25 d, 10 trials & Full & 0.1161 & $13.2^{***}$ & $(2.90)$ \\
+100 & XGBoost & Optuna (MSE), 250 d, 50 trials & HAR & 0.1165 & $13.6^{***}$ & $(3.54)$ \\
+102 & XGBoost & Random search (MSE), daily & HAR & 0.1175 & $14.6^{***}$ & $(3.02)$ \\
 \addlinespace[4pt]
 \multicolumn{7}{@{}l}{\textit{Panel B: Intraday models}} \\
 \addlinespace[2pt]
-31 & Elastic net & All \rhdmNIntervals{} intervals & Full & 0.1078 & $4.4^{\phantom{***}}$ & $(1.17)$ \\
-32 & XGBoost$^{\ddagger}$ & -- & Full & 0.1079 & $4.5^{\phantom{***}}$ & $(1.14)$ \\
-37 & Ridge & All \rhdmNIntervals{} intervals & Full & 0.1086 & $5.1^{\phantom{***}}$ & $(1.36)$ \\
-41 & LightGBM$^{\ddagger}$ & -- & Full & 0.1089 & $5.5^{\phantom{***}}$ & $(1.34)$ \\
-54 & LightGBM$^{\ddagger}$ & -- & HAR & 0.1101 & $6.6^{**\phantom{*}}$ & $(2.16)$ \\
-55 & Lasso & All \rhdmNIntervals{} intervals & Full & 0.1101 & $6.7^{\phantom{***}}$ & $(1.62)$ \\
-56 & XGBoost$^{\ddagger}$ & -- & HAR & 0.1102 & $6.7^{**\phantom{*}}$ & $(2.23)$ \\
-75 & Random forest$^{\ddagger}$ & -- & Full & 0.1123 & $8.8^{**\phantom{*}}$ & $(2.06)$ \\
-77 & XGBoost & Earlier draft, no FOMC & Full & 0.1126 & $9.0^{**\phantom{*}}$ & $(2.18)$ \\
-80 & LightGBM & Earlier draft, no FOMC & Full & 0.1128 & $9.2^{**\phantom{*}}$ & $(2.16)$ \\
-82 & Random forest$^{\ddagger}$ & -- & HAR & 0.1131 & $9.6^{***}$ & $(2.78)$ \\
-85 & Lasso & All \rhdmNIntervals{} intervals & HAR & 0.1135 & $10.0^{***}$ & $(3.09)$ \\
-87 & Elastic net$^{\ddagger}$ & -- & HAR & 0.1137 & $10.1^{***}$ & $(2.61)$ \\
-88 & Lasso$^{\ddagger}$ & -- & HAR & 0.1137 & $10.1^{***}$ & $(2.61)$ \\
-89 & Ridge$^{\ddagger}$ & -- & HAR & 0.1137 & $10.1^{***}$ & $(2.61)$ \\
-92 & Elastic net & All \rhdmNIntervals{} intervals & HAR & 0.1142 & $10.6^{***}$ & $(3.21)$ \\
-94 & Ridge & All \rhdmNIntervals{} intervals & HAR & 0.1143 & $10.7^{***}$ & $(3.15)$ \\
-103 & Elastic net$^{\ddagger}$ & -- & Full & 0.1234 & $19.5^{***}$ & $(3.34)$ \\
-104 & Ridge$^{\ddagger}$ & -- & Full & 0.1260 & $22.0^{***}$ & $(3.61)$ \\
-106 & Lasso$^{\ddagger}$ & -- & Full & 0.1301 & $26.0^{***}$ & $(3.66)$ \\
+31 & Elastic net & All \rhdmNIntervals{} intervals & Full & 0.1078 & $5.2^{\phantom{***}}$ & $(1.40)$ \\
+32 & XGBoost$^{\ddagger}$ & -- & Full & 0.1079 & $5.2^{\phantom{***}}$ & $(1.30)$ \\
+37 & Ridge & All \rhdmNIntervals{} intervals & Full & 0.1086 & $5.9^{\phantom{***}}$ & $(1.60)$ \\
+41 & LightGBM$^{\ddagger}$ & -- & Full & 0.1089 & $6.3^{\phantom{***}}$ & $(1.49)$ \\
+54 & LightGBM$^{\ddagger}$ & -- & HAR & 0.1101 & $7.4^{***}$ & $(2.60)$ \\
+55 & Lasso & All \rhdmNIntervals{} intervals & Full & 0.1101 & $7.5^{*\phantom{**}}$ & $(1.85)$ \\
+56 & XGBoost$^{\ddagger}$ & -- & HAR & 0.1102 & $7.5^{***}$ & $(2.70)$ \\
+75 & Random forest$^{\ddagger}$ & -- & Full & 0.1123 & $9.6^{**\phantom{*}}$ & $(2.13)$ \\
+77 & XGBoost & Earlier draft, no FOMC & Full & 0.1126 & $9.8^{**\phantom{*}}$ & $(2.24)$ \\
+80 & LightGBM & Earlier draft, no FOMC & Full & 0.1128 & $10.0^{**\phantom{*}}$ & $(2.22)$ \\
+82 & Random forest$^{\ddagger}$ & -- & HAR & 0.1131 & $10.4^{***}$ & $(3.12)$ \\
+85 & Lasso & All \rhdmNIntervals{} intervals & HAR & 0.1135 & $10.8^{***}$ & $(3.55)$ \\
+87 & Elastic net$^{\ddagger}$ & -- & HAR & 0.1137 & $10.9^{***}$ & $(2.84)$ \\
+88 & Lasso$^{\ddagger}$ & -- & HAR & 0.1137 & $10.9^{***}$ & $(2.84)$ \\
+89 & Ridge$^{\ddagger}$ & -- & HAR & 0.1137 & $10.9^{***}$ & $(2.84)$ \\
+92 & Elastic net & All \rhdmNIntervals{} intervals & HAR & 0.1142 & $11.4^{***}$ & $(3.69)$ \\
+94 & Ridge & All \rhdmNIntervals{} intervals & HAR & 0.1143 & $11.5^{***}$ & $(3.61)$ \\
+103 & Elastic net$^{\ddagger}$ & -- & Full & 0.1234 & $20.3^{***}$ & $(3.36)$ \\
+104 & Ridge$^{\ddagger}$ & -- & Full & 0.1260 & $22.9^{***}$ & $(3.63)$ \\
+106 & Lasso$^{\ddagger}$ & -- & Full & 0.1301 & $26.9^{***}$ & $(3.68)$ \\
 \addlinespace[4pt]
 \multicolumn{7}{@{}l}{\textit{Panel C: Intraday models, earlier draft's specification}} \\
 \addlinespace[2pt]
-69 & Lasso & Fixed penalty, no FOMC & Full & 0.1116 & $8.1^{*\phantom{**}}$ & $(1.87)$ \\
-74 & Ridge & Block penalty, no FOMC & Full & 0.1123 & $8.8^{**\phantom{*}}$ & $(1.96)$ \\
-91 & Ridge & Block penalty & Full & 0.1140 & $10.4^{**\phantom{*}}$ & $(2.27)$ \\
-93 & Lasso & Fixed penalty & Full & 0.1143 & $10.7^{**\phantom{*}}$ & $(2.37)$ \\
-97 & Lasso & Re-tuned penalty, no FOMC & Full & 0.1158 & $12.1^{***}$ & $(2.64)$ \\
-101 & Elastic net & Re-tuned penalty, no FOMC & Full & 0.1174 & $13.6^{***}$ & $(2.95)$ \\
-105 & OLS & -- & HAR & 0.1291 & $25.0^{***}$ & $(4.56)$ \\
+69 & Lasso & Fixed penalty, no FOMC & Full & 0.1116 & $8.9^{**\phantom{*}}$ & $(2.09)$ \\
+74 & Ridge & Block penalty, no FOMC & Full & 0.1123 & $9.6^{**\phantom{*}}$ & $(2.20)$ \\
+91 & Ridge & Block penalty & Full & 0.1140 & $11.3^{**\phantom{*}}$ & $(2.50)$ \\
+93 & Lasso & Fixed penalty & Full & 0.1143 & $11.5^{***}$ & $(2.58)$ \\
+97 & Lasso & Re-tuned penalty, no FOMC & Full & 0.1158 & $13.0^{***}$ & $(2.69)$ \\
+101 & Elastic net & Re-tuned penalty, no FOMC & Full & 0.1174 & $14.5^{***}$ & $(2.99)$ \\
+105 & OLS & -- & HAR & 0.1291 & $26.0^{***}$ & $(4.75)$ \\
 \end{longtable}
 }

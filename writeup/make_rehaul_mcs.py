@@ -186,9 +186,13 @@ BOUNDARY: list[dict] = []  # StepM decisions on the level (run_family)
 
 
 def gate(name: str, item: str, value: object, ok: bool) -> None:
+    # 2026-10-26 (integration plan D2/D3/D9): the draft's claims on T_close (16:00, the 1,082 days with the
+    # closing-interval HAR benchmark, now the rebuilt CI-HAR) belong to the closing-interval appendix section; they are
+    # reported, not asserted (a changed one prints CHANGED and is listed in gates.csv with ok = False)
+    reported = name == "draft claim" and item.startswith("16:00 T_oos")
     GATES.append({"gate": name, "item": item, "value": str(value), "ok": bool(ok)})
-    print(f"  [{'ok' if ok else 'FAIL'}] {name}: {item} ({value})")
-    assert ok, (name, item, value)
+    print(f"  [{'ok' if ok else ('CHANGED (reported)' if reported else 'FAIL')}] {name}: {item} ({value})")
+    assert ok or reported, (name, item, value)
 
 
 def say(msg: str) -> None:
@@ -1405,11 +1409,12 @@ def table_mcs(res: dict, keys: dict, acc: dict) -> str:
         "\\setlength{\\tabcolsep}{4pt}",
         "\\begin{threeparttable}",
         "\\caption{Model confidence sets of the pooled intraday forecasts}",
+        # 2026-10-26 (integration, RESULTS/APPENDIX): the 1,082-day span is T_close (T_oos is Table 1's span)
         "\\label{tab:rh_mcs}",
         "\\begin{tabular*}{\\linewidth}{@{\\extracolsep{\\fill}}lrrrrrr@{}}",
         "\\toprule",
         f" & \\multicolumn{{2}}{{c}}{{Every bar, {yrs}}} & \\multicolumn{{2}}{{c}}{{16:00 bar, {yrs}}}"
-        " & \\multicolumn{2}{c}{16:00 bar, $\\mathcal T_{\\mathrm{oos}}$} \\\\",
+        " & \\multicolumn{2}{c}{16:00 bar, $\\mathcal T_{\\mathrm{close}}$} \\\\",
         "\\cmidrule(lr){2-3}\\cmidrule(lr){4-5}\\cmidrule(lr){6-7}",
         "Forecast & $T_{\\max}$ & $T_R$ & $T_{\\max}$ & $T_R$ & $T_{\\max}$ & $T_R$ \\\\",
         "\\midrule",
@@ -1438,13 +1443,13 @@ def table_mcs(res: dict, keys: dict, acc: dict) -> str:
         "\\begin{tablenotes}[flushleft]",
         "\\footnotesize",
         "\\item \\textit{Notes:} MCS $p$-values \\citep{HansenLundeNason2011} of the pooled intraday forecasts of "
-        "Table~\\ref{tab:rh_oos} and, on $\\mathcal T_{\\mathrm{oos}}$, of the closing-interval HAR benchmark. A "
+        "Table~\\ref{tab:rh_oos} and, on $\\mathcal T_{\\mathrm{close}}$, of the closing-interval HAR benchmark. A "
         "forecast is in the 90\\% (75\\%) model confidence set when its $p$-value is at least 0.10 (0.25); "
         "\\textbf{bold}: in the 75\\% set, \\textit{italic}: in the 90\\% set only. $T_{\\max}$ and $T_R$: the two "
         "statistics of the elimination rule. Losses are daily (on every bar, the mean loss of the day's "
         "\\rhorNBars{} bars), so the bootstrap resamples trading days: the \\rhmcsDaysAll{} days from "
         "\\rhorSpanStart{} to \\rhorSpanEnd{} in the first four columns and the \\rhmcsDaysOos{} days of "
-        "$\\mathcal T_{\\mathrm{oos}}$ in the last two. Circular moving-block bootstrap, blocks of \\rhmcsBlock{} "
+        "$\\mathcal T_{\\mathrm{close}}$ in the last two. Circular moving-block bootstrap, blocks of \\rhmcsBlock{} "
         "trading days, \\rhmcsB{} replications, seed \\rhmcsSeed; the same resamples at every elimination step. "
         "$^{a}$The pooled ridge, lasso and elastic net on the HAR benchmark reproduce the pooled OLS (their "
         "penalties are numerically zero), so they enter as one model, the OLS forecast. "
@@ -1495,9 +1500,9 @@ def table_spa(fam: dict) -> str:
     out += head("Panel A: QLIKE, full predictor set against the HAR benchmark of the same class", True)
     out += rows("BarQAf", "Every bar, 2014--2024")
     out += rows("AllQAf", "16:00 bar, 2014--2024")
-    out += rows("OosQAf", "16:00 bar, $\\mathcal T_{\\mathrm{oos}}$")
+    out += rows("OosQAf", "16:00 bar, $\\mathcal T_{\\mathrm{close}}$")
     out += head("Panel B: QLIKE, full predictor set against the closing-interval HAR benchmark")
-    out += rows("OosQBm", "16:00 bar, $\\mathcal T_{\\mathrm{oos}}$")
+    out += rows("OosQBm", "16:00 bar, $\\mathcal T_{\\mathrm{close}}$")
     out += head("Panel C: sign strategies against the unconditional short straddle")
     out += rows("MidShortMean", "Mean return, mid-quotes")
     out += rows("BaShortMean", "Mean return, bid/ask")

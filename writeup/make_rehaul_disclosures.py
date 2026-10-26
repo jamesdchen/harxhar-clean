@@ -95,6 +95,10 @@ EXPECT: dict[str, str] = {
     "rhdsUnobsCols": "134",
     "rhdsUnobsColsEval": "113",
     "rhdsEvalStart": "2 January 2014",
+    # 2026-10-26 (integration, DATA agent): the FOMC schedule fix of 2020 (loading.FOMC_SCHEDULE_2020_FIX, decision D13)
+    "rhdsFomcSchedMeeting": "17--18 March 2020",
+    "rhdsFomcReplaced": "15 March 2020",
+    "rhdsFomcNextIssued": "29 April 2020",
 }
 
 
@@ -121,20 +125,14 @@ def feed_ends() -> dict[str, Any]:
     vix_days = {last[c].normalize() for c in VIX_FAMILY}
     vd_days = {last[c].normalize() for c in VOLDEMAND}
     assert len(vix_days) == 1, f"VIX, VIX3M and VVIX end on different days: {last}"
-    assert len(vd_days) == 1, (
-        f"the volatility-demand series end on different days: {last}"
-    )
+    assert len(vd_days) == 1, f"the volatility-demand series end on different days: {last}"
     vix_last, vd_last = vix_days.pop(), vd_days.pop()
 
     end = pd.Timestamp(LD.VIX_SPLICE_END)
-    core = pd.read_parquet(
-        DATA / "core_stats.parquet", columns=["endbartime", "sumret2"]
-    )
+    core = pd.read_parquet(DATA / "core_stats.parquet", columns=["endbartime", "sumret2"])
     core["t"] = naive(core["endbartime"])
     assert core["t"].max().normalize() == end.normalize(), (core["t"].max(), end)
-    at16 = core[(core["t"].dt.strftime("%H:%M") == "16:00") & core["sumret2"].notna()][
-        "t"
-    ].dt.normalize()
+    at16 = core[(core["t"].dt.strftime("%H:%M") == "16:00") & core["sumret2"].notna()]["t"].dt.normalize()
     splice_days = int(((at16 > vix_last) & (at16 <= end)).sum())
 
     agree: dict[str, int] = {}
@@ -144,9 +142,7 @@ def feed_ends() -> dict[str, Any]:
         s = v.set_index("t")[c].dropna()
         j = s.to_frame("vendor").join(ys.rename("yahoo"), how="inner")
         assert len(j) > 0, c
-        agree[c] = int(
-            round(100 * float((np.abs(j["yahoo"] - j["vendor"]) < SAME_PRINT).mean()))
-        )
+        agree[c] = int(round(100 * float((np.abs(j["yahoo"] - j["vendor"]) < SAME_PRINT).mean())))
         first_overlap.append(j.index.min())
     return {
         "vix_last": vix_last,
@@ -159,9 +155,7 @@ def feed_ends() -> dict[str, Any]:
 
 
 def fomc_file() -> dict[str, Any]:
-    r = pd.read_parquet(
-        DATA / "releases.parquet", columns=["endbartime", LD.FOMC_RAW_COL]
-    )
+    r = pd.read_parquet(DATA / "releases.parquet", columns=["endbartime", LD.FOMC_RAW_COL])
     t = naive(r["endbartime"])
     last = t[pd.to_numeric(r[LD.FOMC_RAW_COL], errors="coerce").fillna(0.0) > 0].max()
     added = [pd.Timestamp(s) for s in LD.FOMC_MISSING_STATEMENTS]
@@ -207,11 +201,7 @@ def design_columns(run: Path) -> tuple[list[str], int, dict[str, Any]]:
     # the trees of the final run read this design (md5-identical copy); their check places its first forecast row
     dc = fr.TREES_RUN / "design" / "design_check.json"
     key = f"w{fr.WINDOW_DAYS}"
-    if (
-        run == fr.LINEAR_RUN
-        and dc.is_file()
-        and key in (d := json.loads(dc.read_text(encoding="utf-8")))
-    ):
+    if run == fr.LINEAR_RUN and dc.is_file() and key in (d := json.loads(dc.read_text(encoding="utf-8"))):
         c = d[key]
         assert int(c["all_features_shape"][0]) == rows["n"], (
             c["all_features_shape"],
@@ -221,9 +211,7 @@ def design_columns(run: Path) -> tuple[list[str], int, dict[str, Any]]:
         rows["anchor_stamp"] = pd.Timestamp(c["oos_first"])
     info = json.loads((run / "run_info.json").read_text(encoding="utf-8"))
     lines = info["design_log_scale_lines"]["all_features"]
-    hits = [
-        m for ln in lines if (m := re.search(r"unobserved-neutral: (\d+) columns", ln))
-    ]
+    hits = [m for ln in lines if (m := re.search(r"unobserved-neutral: (\d+) columns", ln))]
     assert len(hits) == 1, lines
     return value_cols, int(hits[0].group(1)), rows
 
@@ -240,20 +228,14 @@ def unobserved_counts(
     hhmm = t.dt.strftime("%H:%M")
     # the design's rows: the 13 regular-hours bars of every session but the NYSE early closes (executor
     # DROP_EARLY_CLOSE_SESSIONS: a time-of-day segment holds no early-close session), from the design's first row
-    early = (
-        t.dt.normalize()
-        .isin(pd.to_datetime(list(LD.NYSE_EARLY_CLOSE_DATES)))
-        .to_numpy()
-    )
+    early = t.dt.normalize().isin(pd.to_datetime(list(LD.NYSE_EARLY_CLOSE_DATES))).to_numpy()
     assert EX.DROP_EARLY_CLOSE_SESSIONS
     rth_pos = np.flatnonzero(((hhmm >= RTH[0]) & (hhmm <= RTH[1])).to_numpy() & ~early)
     at = np.flatnonzero(t.iloc[rth_pos].to_numpy() == np.datetime64(rows["val_last"]))
     assert len(at) == 1, rows
     first = int(at[0]) - rows["val_last_row"]
     assert first >= 0 and len(rth_pos) - first == rows["n"], (first, len(rth_pos), rows)
-    if (
-        "anchor_row" in rows
-    ):  # a second fixed point inside the pre-sample (the trees' design check of the same design)
+    if "anchor_row" in rows:  # a second fixed point inside the pre-sample (the trees' design check of the same design)
         assert t.iloc[rth_pos[first + rows["anchor_row"]]] == rows["anchor_stamp"], rows
     rth = np.zeros(len(df), dtype=bool)
     rth[rth_pos[first:]] = True
@@ -267,9 +249,7 @@ def unobserved_counts(
         c, k = m.group(1), int(m.group(2))
         obs = df[c].notna().astype(np.float64)
         a = obs.rolling(window=k, min_periods=1).mean().shift(1).to_numpy()
-        none = (
-            a < 0.5 / k
-        )  # NaN (the first row) is not "none", as in executor.unobserved_neutral
+        none = a < 0.5 / k  # NaN (the first row) is not "none", as in executor.unobserved_neutral
         n_any += bool((none & rth).any())
         n_eval += bool((none & scored).any())
     return n_any, n_eval
@@ -290,15 +270,9 @@ def main() -> None:
     if other.is_dir():
         assert design_columns(other)[1] == log_count, (run, other)
     fc = pd.read_parquet(run / "forecasts.parquet", columns=["date"])
-    eval_stamps = pd.DatetimeIndex(
-        sorted(
-            set(pd.to_datetime(fc["date"])[pd.to_datetime(fc["date"]) >= fr.FIRST_DAY])
-        )
-    )
+    eval_stamps = pd.DatetimeIndex(sorted(set(pd.to_datetime(fc["date"])[pd.to_datetime(fc["date"]) >= fr.FIRST_DAY])))
     n_any, n_eval = unobserved_counts(df, value_cols, eval_stamps, rows)
-    assert n_any == log_count, (
-        f"recomputed no-observation count {n_any} != the design log's {log_count}"
-    )
+    assert n_any == log_count, f"recomputed no-observation count {n_any} != the design log's {log_count}"
 
     vals: dict[str, tuple[str, str]] = {
         "rhdsSampleEnd": (
@@ -364,6 +338,27 @@ def main() -> None:
             "first evaluation day of the final runs: the first scored bar's day (final_run.FIRST_DAY)",
         ),
     }
+    # 2026-10-26 (integration, DATA agent): the FOMC schedule fix of 2020 (src/data/loading.py FOMC_2020_*): the
+    # replaced meeting (two days ending on its scheduled statement day), the emergency action, the next statement
+    sched = pd.Timestamp(LD.FOMC_2020_SCHEDULED)
+    ann = pd.Timestamp(LD.FOMC_2020_ANNOUNCEMENT)
+    nxt = pd.Timestamp(LD.FOMC_2020_NEXT)
+    first = sched - pd.Timedelta(days=1)
+    assert first.month == sched.month and LD.FOMC_SCHEDULE_2020_FIX
+    vals |= {
+        "rhdsFomcSchedMeeting": (
+            f"{first.day}--{sched.day} {sched:%B %Y}",
+            "the scheduled FOMC meeting replaced by the emergency action (statement day loading.FOMC_2020_SCHEDULED)",
+        ),
+        "rhdsFomcReplaced": (
+            day(ann.normalize()),
+            "the day of the emergency action that replaced it (loading.FOMC_2020_ANNOUNCEMENT)",
+        ),
+        "rhdsFomcNextIssued": (
+            day(nxt.normalize()),
+            "the next statement issued (loading.FOMC_2020_NEXT)",
+        ),
+    }
     bad = {k: (v[0], EXPECT[k]) for k, v in vals.items() if v[0] != EXPECT[k]}
     assert not bad, f"values differ from those checked on 2026-10-23: {bad}"
 
@@ -373,9 +368,7 @@ def main() -> None:
         f"% Run files: {Path(fr.rel(run)).as_posix()}; scored bars from {fr.FIRST_DAY.date()}.",
     ]
     for k, (v, note) in vals.items():
-        lines.append(
-            f"\\providecommand{{\\{k}}}{{}}\\renewcommand{{\\{k}}}{{{v}}}  % {note}"
-        )
+        lines.append(f"\\providecommand{{\\{k}}}{{}}\\renewcommand{{\\{k}}}{{{v}}}  % {note}")
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
     print(f"wrote {fr.rel(OUT)}")

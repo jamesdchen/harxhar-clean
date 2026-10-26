@@ -58,9 +58,7 @@ def load_est(work: Path, est: str, o: pd.DataFrame, M: int) -> dict:
             cpu=str(z["cpu"]) if "cpu" in z.files else "laptop (pre-guard run)",
         )
         if "tree_mean" in z.files:
-            rel = np.abs(z["pred"] - z["tree_mean"]) / np.maximum(
-                np.abs(z["pred"]), 1e-300
-            )
+            rel = np.abs(z["pred"] - z["tree_mean"]) / np.maximum(np.abs(z["pred"]), 1e-300)
             rec["onedal_vs_trees_rel_max"] = float(rel.max())
         if "repeat_pred_equal" in z.files:
             rec["repeat_pred_equal"] = bool(z["repeat_pred_equal"])
@@ -96,9 +94,7 @@ def boot_counts(K: int, seed: int = C.SEED) -> np.ndarray:
     nb = int(np.ceil(K / BLOCK))
     cnt = np.zeros((B_BOOT, K))
     for b in range(B_BOOT):
-        idx = (rng.integers(0, K, nb)[:, None] + np.arange(BLOCK)[None, :]).ravel()[
-            :K
-        ] % K
+        idx = (rng.integers(0, K, nb)[:, None] + np.arange(BLOCK)[None, :]).ravel()[:K] % K
         np.add.at(cnt[b], idx, 1.0)
     return cnt
 
@@ -132,9 +128,7 @@ def main() -> int:
     d = C.oos_dates()
     rows = np.concatenate([np.arange(r, e) for r, e in zip(o["r"], o["r_end"])])
     dates = pd.DatetimeIndex(d[rows - C.W])
-    korig = np.concatenate(
-        [np.full(e - r, k) for k, r, e in zip(o["k"], o["r"], o["r_end"])]
-    )
+    korig = np.concatenate([np.full(e - r, k) for k, r, e in zip(o["k"], o["r"], o["r_end"])])
     year = dates.year.to_numpy()
     bar = dates.strftime("%H:%M").to_numpy()
     GI = {g: i for i, g in enumerate(C.GROUPS)}
@@ -142,18 +136,11 @@ def main() -> int:
     NS = np.array([GI[g] for g in C.NONSTANDARD])
     NS_EX = np.array(sorted(set(NS) | {GI[g] for g in C.EMINI_ACTIVITY}))
     if a.gate_only:  # the origins computed so far
-        have = {
-            e: sorted(int(f.stem[1:]) for f in (work / e).glob("k[0-9][0-9][0-9].npz"))
-            for e in ests
-        }
-        o = o[
-            o["k"].isin(set.intersection(*[set(v) for v in have.values()]))
-        ].reset_index(drop=True)
+        have = {e: sorted(int(f.stem[1:]) for f in (work / e).glob("k[0-9][0-9][0-9].npz")) for e in ests}
+        o = o[o["k"].isin(set.intersection(*[set(v) for v in have.values()]))].reset_index(drop=True)
     data = {e: load_est(work, e, o, M) for e in ests}
     RES = C.RES
-    out(
-        f"tree SHAP, W = 3,000, 2014 start: {K} origins, {len(rows)} forecast rows, models {ests}"
-    )
+    out(f"tree SHAP, W = 3,000, 2014 start: {K} origins, {len(rows)} forecast rows, models {ests}")
 
     # ------------------------------------------------------------------ gate
     walk = pd.read_csv(RES / "inputs" / "walk_origin_rows.csv", parse_dates=["date"])
@@ -166,8 +153,7 @@ def main() -> int:
         gt["walk_fit_row"] = gt["origin"].map(w["fit_row"])
         gt["fit_row"] = o.set_index("k").loc[gt["k"], "r"].to_numpy() - C.W
         gt["walk_equal"] = [
-            (float.fromhex(h) == p) if isinstance(h, str) else np.nan
-            for h, p in zip(gt["walk_hex"], gt["pred_origin"])
+            (float.fromhex(h) == p) if isinstance(h, str) else np.nan for h, p in zip(gt["walk_hex"], gt["pred_origin"])
         ]
         gt["walk_abs_diff"] = [
             abs(float.fromhex(h) - p) if isinstance(h, str) else np.nan
@@ -193,9 +179,7 @@ def main() -> int:
             )
             + (
                 f"; oneDAL vs estimators_ mean rel max {g['onedal_vs_trees_rel_max'].max():.2g}"
-                if g.get("onedal_vs_trees_rel_max", pd.Series(dtype=float))
-                .notna()
-                .any()
+                if g.get("onedal_vs_trees_rel_max", pd.Series(dtype=float)).notna().any()
                 else ""
             )
         )
@@ -217,9 +201,7 @@ def main() -> int:
         np.add.at(SA[e], korig, np.abs(data[e]["PG"]))
 
     # ------------------------------------------------------------------ M1
-    out(
-        "\n== M1 importance shares (share of total mean|SHAP| over the 48 variables; % ; 95% block-bootstrap CI)"
-    )
+    out("\n== M1 importance shares (share of total mean|SHAP| over the 48 variables; % ; 95% block-bootstrap CI)")
     m1 = []
     for e in ests:
         PG = np.abs(data[e]["PG"])
@@ -227,29 +209,11 @@ def main() -> int:
         s = Imean / Imean.sum()
         sx = Imean / Imean[EX].sum()
         Icol = data[e]["colabs"].sum(0) / len(rows)
-        Ivar_col = np.array(
-            [Icol[(T["group"] == g).to_numpy()].sum() for g in C.GROUPS]
-        )
+        Ivar_col = np.array([Icol[(T["group"] == g).to_numpy()].sum() for g in C.GROUPS])
         boot = cnt @ SA[e]
         bs = boot / boot.sum(1, keepdims=True)
-        lv = np.array(
-            [
-                [
-                    data[e]["live"][k][(T["group"] == g).to_numpy()].any()
-                    for g in C.GROUPS
-                ]
-                for k in range(K)
-            ]
-        )
-        us = np.array(
-            [
-                [
-                    data[e]["used"][k][(T["group"] == g).to_numpy()].any()
-                    for g in C.GROUPS
-                ]
-                for k in range(K)
-            ]
-        )
+        lv = np.array([[data[e]["live"][k][(T["group"] == g).to_numpy()].any() for g in C.GROUPS] for k in range(K)])
+        us = np.array([[data[e]["used"][k][(T["group"] == g).to_numpy()].any() for g in C.GROUPS] for k in range(K)])
         for i, g in enumerate(C.GROUPS):
             lo, hi = ci(bs[:, i])
             m1.append(
@@ -269,9 +233,7 @@ def main() -> int:
                 )
             )
     m1 = pd.DataFrame(m1)
-    m1["rank"] = (
-        m1.groupby("est")["share"].rank(ascending=False, method="first").astype(int)
-    )
+    m1["rank"] = m1.groupby("est")["share"].rank(ascending=False, method="first").astype(int)
     m1.to_csv(RES / "m1_variables.csv", index=False)
     cls_rows, bk_rows = [], []
     for e in ests:
@@ -320,10 +282,7 @@ def main() -> int:
         out(
             f"{C.BUCKET_NAME[b]:28s}"
             + "".join(
-                f"{pct(r.at[e, 'share']):>9s} [{pct(r.at[e, 'lo'])}, {pct(r.at[e, 'hi'])}]".rjust(
-                    24
-                )
-                for e in ests
+                f"{pct(r.at[e, 'share']):>9s} [{pct(r.at[e, 'lo'])}, {pct(r.at[e, 'hi'])}]".rjust(24) for e in ests
             )
         )
     for name in ("STANDARD", "NON-STANDARD", "NON-STANDARD incl. sumvolume/numobs"):
@@ -331,24 +290,17 @@ def main() -> int:
         out(
             f"{name[:28]:28s}"
             + "".join(
-                f"{pct(r.at[e, 'share']):>9s} [{pct(r.at[e, 'lo'])}, {pct(r.at[e, 'hi'])}]".rjust(
-                    24
-                )
-                for e in ests
+                f"{pct(r.at[e, 'share']):>9s} [{pct(r.at[e, 'lo'])}, {pct(r.at[e, 'hi'])}]".rjust(24) for e in ests
             )
         )
         out(
             f"{'  of the exogenous total':28s}"
             + "".join(
-                f"{pct(r.at[e, 'share_exog']):>9s} [{pct(r.at[e, 'lo_exog'])}, {pct(r.at[e, 'hi_exog'])}]".rjust(
-                    24
-                )
+                f"{pct(r.at[e, 'share_exog']):>9s} [{pct(r.at[e, 'lo_exog'])}, {pct(r.at[e, 'hi_exog'])}]".rjust(24)
                 for e in ests
             )
         )
-    out(
-        "\nTop 15 variables by share (%), NON-STANDARD marked *; [K_used of 126 origins]"
-    )
+    out("\nTop 15 variables by share (%), NON-STANDARD marked *; [K_used of 126 origins]")
     for e in ests:
         t = m1[m1["est"] == e].sort_values("share", ascending=False).head(15)
         out(
@@ -360,13 +312,8 @@ def main() -> int:
         )
     out("NON-STANDARD variables by share (%):")
     for e in ests:
-        t = m1[(m1["est"] == e) & (m1["cls"] == "NON-STANDARD")].sort_values(
-            "share", ascending=False
-        )
-        out(
-            f"{C.EST_NAME[e]}: "
-            + "; ".join(f"{r.variable} {pct(r.share, 2)}" for r in t.itertuples())
-        )
+        t = m1[(m1["est"] == e) & (m1["cls"] == "NON-STANDARD")].sort_values("share", ascending=False)
+        out(f"{C.EST_NAME[e]}: " + "; ".join(f"{r.variable} {pct(r.share, 2)}" for r in t.itertuples()))
     # by year
     yrs = sorted(set(year))
     by_year = []
@@ -392,42 +339,24 @@ def main() -> int:
     out("\nNON-STANDARD share by year (%)")
     out(f"{'':14s}" + "".join(f"{y:>7d}" for y in yrs))
     for e in ests:
-        t = (
-            by_year[(by_year["est"] == e) & (by_year["cls"] == "NON-STANDARD")]
-            .groupby("year")["share"]
-            .sum()
-        )
+        t = by_year[(by_year["est"] == e) & (by_year["cls"] == "NON-STANDARD")].groupby("year")["share"].sum()
         out(f"{C.EST_NAME[e]:14s}" + "".join(f"{pct(t[y]):>7s}" for y in yrs))
     out("HAR terms share by year (%)")
     for e in ests:
-        t = by_year[
-            (by_year["est"] == e) & (by_year["variable"] == "har_ma")
-        ].set_index("year")["share"]
+        t = by_year[(by_year["est"] == e) & (by_year["variable"] == "har_ma")].set_index("year")["share"]
         out(f"{C.EST_NAME[e]:14s}" + "".join(f"{pct(t[y]):>7s}" for y in yrs))
 
     # ------------------------------------------------------------------ M2
-    out(
-        "\n== M2 rank agreement with the linear models (W = 3,000 walks, same 126 origins)"
-    )
-    z = np.load(
-        io.BytesIO(
-            C.git_show(
-                f"{C.FIW_SHA}:results/fi_by_window_2014start_2026-10-22/fiw_gamma.npz"
-            )
-        )
-    )
+    out("\n== M2 rank agreement with the linear models (W = 3,000 walks, same 126 origins)")
+    z = np.load(io.BytesIO(C.git_show(f"{C.FIW_SHA}:results/fi_by_window_2014start_2026-10-22/fiw_gamma.npz")))
     assert list(z["columns"]) == T["column"].tolist()
     assert list(pd.to_datetime(z["origins"])) == list(o["origin"])
     P = C.group_matrix(T)
-    LIN = {
-        m: np.abs(z[f"walk_w3000_{m}_gamma"]) @ P.T for m in ("ridge", "lasso", "enet")
-    }  # K x 48
+    LIN = {m: np.abs(z[f"walk_w3000_{m}_gamma"]) @ P.T for m in ("ridge", "lasso", "enet")}  # K x 48
     fv = pd.read_csv(RES / "inputs" / "fiw_variables_w3000_walk.csv")
     chk = fv[fv["model"] == "ridge"].set_index("variable")["pooled_share"]
     rshare = LIN["ridge"][:, EX].sum(0) / LIN["ridge"][:, EX].sum()
-    assert np.allclose(rshare, chk.reindex(C.EXOG).to_numpy(), rtol=1e-9, atol=1e-12), (
-        "ridge share != fiw_variables"
-    )
+    assert np.allclose(rshare, chk.reindex(C.EXOG).to_numpy(), rtol=1e-9, atol=1e-12), "ridge share != fiw_variables"
     m2 = []
     pooled_lin = {m: LIN[m].sum(0) for m in LIN}
     pd.DataFrame(
@@ -436,11 +365,7 @@ def main() -> int:
                 linear=m,
                 variable=g,
                 share_all=pooled_lin[m][i] / pooled_lin[m].sum(),
-                share_exog=(
-                    pooled_lin[m][i] / pooled_lin[m][EX].sum()
-                    if g in C.EXOG
-                    else np.nan
-                ),
+                share_exog=(pooled_lin[m][i] / pooled_lin[m][EX].sum() if g in C.EXOG else np.nan),
             )
             for m in LIN
             for i, g in enumerate(C.GROUPS)
@@ -453,12 +378,7 @@ def main() -> int:
     for e in ests:
         tree_ex = SA[e][:, EX].sum(0)
         tree_all = SA[e].sum(0)
-        tree_col = (
-            m1[m1["est"] == e]
-            .set_index("variable")["share_col"]
-            .reindex(C.GROUPS)
-            .to_numpy()
-        )
+        tree_col = m1[m1["est"] == e].set_index("variable")["share_col"].reindex(C.GROUPS).to_numpy()
         for m in ("ridge", "lasso", "enet"):
             lex, lall = pooled_lin[m][EX], pooled_lin[m]
             for scope, tv, lv_, names in (
@@ -502,15 +422,11 @@ def main() -> int:
         out(
             f"  {r.est:7s} vs {r.linear:7s} {r.scope:34s} Spearman {r.spearman:+.2f}, top-10 overlap {r.top10_overlap}/10"
         )
-    out(
-        f"ridge top 10 (46 exogenous): {' '.join(top10(pooled_lin['ridge'][EX], C.EXOG))}"
-    )
+    out(f"ridge top 10 (46 exogenous): {' '.join(top10(pooled_lin['ridge'][EX], C.EXOG))}")
     for e in ests:
         out(f"{C.EST_NAME[e]} top 10: {' '.join(top10(SA[e][:, EX].sum(0), C.EXOG))}")
     # D: NON-STANDARD share, tree minus ridge
-    out(
-        "\nD = NON-STANDARD share, tree minus linear (pooled over origins; paired block bootstrap)"
-    )
+    out("\nD = NON-STANDARD share, tree minus linear (pooled over origins; paired block bootstrap)")
     md = []
     for e in ests:
         bt = cnt @ SA[e]
@@ -527,13 +443,9 @@ def main() -> int:
             ):
                 tv = SA[e][:, num].sum() / SA[e][:, den].sum()
                 lv_ = LIN[m][:, num].sum() / LIN[m][:, den].sum()
-                dd = bt[:, num].sum(1) / bt[:, den].sum(1) - bl[:, num].sum(1) / bl[
-                    :, den
-                ].sum(1)
+                dd = bt[:, num].sum(1) / bt[:, den].sum(1) - bl[:, num].sum(1) / bl[:, den].sum(1)
                 lo, hi = ci(dd)
-                verdict = (
-                    "MORE" if lo > 0 else "LESS" if hi < 0 else "NO CLEAR DIFFERENCE"
-                )
+                verdict = "MORE" if lo > 0 else "LESS" if hi < 0 else "NO CLEAR DIFFERENCE"
                 md.append(
                     dict(
                         est=e,
@@ -557,9 +469,7 @@ def main() -> int:
             )
 
     # ------------------------------------------------------------------ M3
-    out(
-        "\n== M3 response shape of the NON-STANDARD variables (mean SHAP by bin of the dominant value column)"
-    )
+    out("\n== M3 response shape of the NON-STANDARD variables (mean SHAP by bin of the dominant value column)")
     xr = load_x(work, rows)
     m3, m3b = [], []
     for e in ests:
@@ -567,12 +477,7 @@ def main() -> int:
         sel = [g for g in C.NONSTANDARD if sh.at[g, "share"] >= 0.005]
         selnote = {g: "" for g in sel}
         if len(sel) < 5:
-            top = (
-                sh.loc[C.NONSTANDARD]
-                .sort_values("share", ascending=False)
-                .index[:5]
-                .tolist()
-            )
+            top = sh.loc[C.NONSTANDARD].sort_values("share", ascending=False).index[:5].tolist()
             for g in top:
                 if g not in sel:
                     sel.append(g)
@@ -649,24 +554,30 @@ def main() -> int:
             )
 
     # ------------------------------------------------------------------ M4
-    out(
-        "\n== M4 conditional importance (NON-STANDARD share of the total / of the exogenous total, %)"
-    )
+    out("\n== M4 conditional importance (NON-STANDARD share of the total / of the exogenous total, %)")
     vix = pd.read_parquet(C.REPO / "data" / "free_feed" / "vix_1d_yahoo.parquet")
     vix["t"] = pd.to_datetime(vix["t"]).dt.normalize()
     vix = vix.set_index("t")["close"].sort_index()
-    vix_o = np.array(
-        [float(vix[vix.index < dd.normalize()].iloc[-1]) for dd in o["origin"]]
-    )
+    vix_o = np.array([float(vix[vix.index < dd.normalize()].iloc[-1]) for dd in o["origin"]])
     terc = pd.qcut(vix_o, 3, labels=False)
-    rel = pd.read_parquet(
-        C.REPO / "data" / "releases.parquet", columns=["endbartime", "fomc release"]
-    )
+    rel = pd.read_parquet(C.REPO / "data" / "releases.parquet", columns=["endbartime", "fomc release"])
     src = (C.REPO / "src" / "data" / "loading.py").read_text(encoding="utf-8")
     assert 'for d in ("2020-03-03",)' in src  # UNSCHEDULED_FOMC_DAYS
-    fdays = set(
-        pd.to_datetime(rel.loc[rel["fomc release"] > 0, "endbartime"]).dt.normalize()
-    ) - {pd.Timestamp("2020-03-03")}
+    fdays = set(pd.to_datetime(rel.loc[rel["fomc release"] > 0, "endbartime"]).dt.normalize()) - {
+        pd.Timestamp("2020-03-03")
+    }
+    # 2026-10-26 (integration, audit results-9): add the statements the loader adds (src/data/loading.py
+    # FOMC_MISSING_STATEMENTS under FOMC_CALENDAR_FIX; 2023-12-13, 2024-01-31, 2024-03-20), so the FOMC-day subset holds
+    # the span's 81 statement days, as the models' predictors do. The m4_* files of the run of 2026-10-23 on disk were
+    # written BEFORE this fix (78 days); the SHAP rerun on the FOMC-patched design uses it.
+    import re
+
+    if re.search(r"^FOMC_CALENDAR_FIX: bool = True", src, re.M):
+        _m = re.search(r"^FOMC_MISSING_STATEMENTS: tuple\[str, \.\.\.\] = \(([^)]*)\)", src, re.M)
+        assert _m, "loading.FOMC_MISSING_STATEMENTS"
+        _miss = re.findall(r'"(\d{4}-\d{2}-\d{2})[^"]*"', _m.group(1))
+        assert len(_miss) == 3, _miss
+        fdays |= {pd.Timestamp(x).normalize() for x in _miss}
     fomc = dates.normalize().isin(fdays)
     oinfo = o.assign(vix_prev_close=vix_o, vix_tercile=terc)
     oinfo.to_csv(RES / "m4_origins_vix.csv", index=False)
@@ -676,9 +587,7 @@ def main() -> int:
         f"{len(set(dates[fomc].normalize()))} days, {int(fomc.sum())} rows"
     )
     rows_t = terc[korig]
-    subsets = [
-        ("vix", f"VIX {['low', 'mid', 'high'][t]}", rows_t == t) for t in range(3)
-    ]
+    subsets = [("vix", f"VIX {['low', 'mid', 'high'][t]}", rows_t == t) for t in range(3)]
     subsets += [("bar", b, bar == b) for b in sorted(set(bar))]
     subsets += [("fomc", "FOMC day", fomc), ("fomc", "other day", ~fomc)]
     m4 = []
@@ -710,9 +619,7 @@ def main() -> int:
                 top5_nonstandard=" ".join(f"{g}:{pct(sh[GI[g]], 2)}" for g in top),
             )
             for b in C.BUCKETS:
-                rec[f"bucket_{b}"] = sum(
-                    sh[GI[g]] for g in C.GROUPS if C.CAT_OF[g] == b
-                )
+                rec[f"bucket_{b}"] = sum(sh[GI[g]] for g in C.GROUPS if C.CAT_OF[g] == b)
             m4.append(rec)
     m4 = pd.DataFrame(m4)
     m4.to_csv(RES / "m4_subsets.csv", index=False)
@@ -730,13 +637,8 @@ def main() -> int:
                 ("of total", NS, np.arange(48)),
                 ("of exogenous", np.intersect1d(NS, EX), EX),
             ):
-                v = (
-                    Sa[:, num].sum() / Sa[:, den].sum()
-                    - Sb[:, num].sum() / Sb[:, den].sum()
-                )
-                dd = ba[:, num].sum(1) / ba[:, den].sum(1) - bb[:, num].sum(1) / bb[
-                    :, den
-                ].sum(1)
+                v = Sa[:, num].sum() / Sa[:, den].sum() - Sb[:, num].sum() / Sb[:, den].sum()
+                dd = ba[:, num].sum(1) / ba[:, den].sum(1) - bb[:, num].sum(1) / bb[:, den].sum(1)
                 lo, hi = ci(dd)
                 con.append(
                     dict(
@@ -746,11 +648,7 @@ def main() -> int:
                         diff=v,
                         lo=lo,
                         hi=hi,
-                        verdict="higher"
-                        if lo > 0
-                        else "lower"
-                        if hi < 0
-                        else "no clear difference",
+                        verdict="higher" if lo > 0 else "lower" if hi < 0 else "no clear difference",
                     )
                 )
             for b in ("fomc", "implied_vol", "har_ma", "calendar"):
@@ -766,11 +664,7 @@ def main() -> int:
                         diff=v,
                         lo=lo,
                         hi=hi,
-                        verdict="higher"
-                        if lo > 0
-                        else "lower"
-                        if hi < 0
-                        else "no clear difference",
+                        verdict="higher" if lo > 0 else "lower" if hi < 0 else "no clear difference",
                     )
                 )
     con = pd.DataFrame(con)
@@ -836,11 +730,7 @@ def main() -> int:
         Tm = np.zeros((len(C.BUCKETS), len(C.BUCKETS)))
         for p in range(len(C.BUCKETS)):
             for q in range(len(C.BUCKETS)):
-                Tm[p, q] = (
-                    np.abs(Gb[:, p, q]).mean()
-                    if p == q
-                    else np.abs(2 * Gb[:, p, q]).mean()
-                )
+                Tm[p, q] = np.abs(Gb[:, p, q]).mean() if p == q else np.abs(2 * Gb[:, p, q]).mean()
         tri = np.triu(Tm).sum()
         for p, bp in enumerate(C.BUCKETS):
             for q, bq in enumerate(C.BUCKETS):
@@ -868,8 +758,7 @@ def main() -> int:
                             var_b=gj,
                             T=TA[i, j],
                             share=TA[i, j] / triA,
-                            both_nonstandard=gi in C.NONSTANDARD
-                            and gj in C.NONSTANDARD,
+                            both_nonstandard=gi in C.NONSTANDARD and gj in C.NONSTANDARD,
                         )
                     )
     m5s, m5v, m5b, m5p = (pd.DataFrame(x) for x in (m5s, m5v, m5b, m5p))
@@ -888,22 +777,14 @@ def main() -> int:
         b = m5b[m5b["est"] == e].sort_values("share", ascending=False).head(8)
         out(
             f"  {e} largest bucket cells: "
-            + "; ".join(
-                f"{r.bucket_a} x {r.bucket_b} {pct(r.share)}" for r in b.itertuples()
-            )
+            + "; ".join(f"{r.bucket_a} x {r.bucket_b} {pct(r.share)}" for r in b.itertuples())
         )
         p = m5p[m5p["est"] == e].head(10)
         out(
             f"  {e} top 10 pairs with a NON-STANDARD variable: "
-            + "; ".join(
-                f"{r.var_a} x {r.var_b} {pct(r.share, 2)}" for r in p.itertuples()
-            )
+            + "; ".join(f"{r.var_a} x {r.var_b} {pct(r.share, 2)}" for r in p.itertuples())
         )
-        v = (
-            m5v[(m5v["est"] == e) & (m5v["cls"] == "NON-STANDARD")]
-            .sort_values("main_abs", ascending=False)
-            .head(8)
-        )
+        v = m5v[(m5v["est"] == e) & (m5v["cls"] == "NON-STANDARD")].sort_values("main_abs", ascending=False).head(8)
         out(
             f"  {e} NON-STANDARD interaction fraction (largest 8 by main effect): "
             + "; ".join(f"{r.variable} {pct(r.inter_frac)}" for r in v.itertuples())
@@ -937,33 +818,19 @@ def classify(m: np.ndarray, I_A: float) -> tuple[str, str, float, float]:
     """RULE_shap.txt M3 shape rule on the bin means m_1..m_B."""
     B = len(m)
     R = float(m.max() - m.min())
-    rho = (
-        float(spearmanr(np.arange(B), m).statistic)
-        if B > 2
-        else float(np.sign(m[-1] - m[0]))
-    )
+    rho = float(spearmanr(np.arange(B), m).statistic) if B > 2 else float(np.sign(m[-1] - m[0]))
     if R < 0.5 * I_A:
         return "FLAT", "", rho, R
     if B <= 3:
         shape = "STEP " + ("up" if m[-1] > m[0] else "down")
     elif abs(rho) >= 0.9:
         tot = abs(m[-1] - m[0])
-        shape = (
-            "THRESHOLD" if np.abs(np.diff(m)).max() >= 0.5 * tot else "MONOTONE"
-        ) + (" up" if rho > 0 else " down")
+        shape = ("THRESHOLD" if np.abs(np.diff(m)).max() >= 0.5 * tot else "MONOTONE") + (" up" if rho > 0 else " down")
     else:
         kmin, kmax = int(np.argmin(m)), int(np.argmax(m))
-        if (
-            0 < kmin < B - 1
-            and m[0] - m[kmin] >= 0.25 * R
-            and m[-1] - m[kmin] >= 0.25 * R
-        ):
+        if 0 < kmin < B - 1 and m[0] - m[kmin] >= 0.25 * R and m[-1] - m[kmin] >= 0.25 * R:
             shape = "U-SHAPED"
-        elif (
-            0 < kmax < B - 1
-            and m[kmax] - m[0] >= 0.25 * R
-            and m[kmax] - m[-1] >= 0.25 * R
-        ):
+        elif 0 < kmax < B - 1 and m[kmax] - m[0] >= 0.25 * R and m[kmax] - m[-1] >= 0.25 * R:
             shape = "INVERTED-U"
         else:
             shape = "IRREGULAR"
@@ -985,9 +852,7 @@ def load_x(work: Path, rows: np.ndarray) -> np.ndarray:
     return np.asarray(X[rows[0] : rows[-1] + 1], dtype=np.float32)
 
 
-def load_cols(
-    work: Path, est: str, o: pd.DataFrame, cols: list[int]
-) -> dict[int, np.ndarray]:
+def load_cols(work: Path, est: str, o: pd.DataFrame, cols: list[int]) -> dict[int, np.ndarray]:
     parts: dict[int, list] = {j: [] for j in cols}
     for k in o["k"]:
         ph = np.load(work / est / f"k{k:03d}.npz")["phi"]

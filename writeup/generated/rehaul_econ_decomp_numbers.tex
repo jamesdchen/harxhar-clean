@@ -48,11 +48,11 @@
 \providecommand{\rhedGainShareMax}{}\renewcommand{\rhedGainShareMax}{83}  % highest gain over short / mean return, % across the six full-set pooled forecasts, 614 days
 \providecommand{\rhedHarGainMin}{}\renewcommand{\rhedHarGainMin}{0.0}  % lowest mean gain over the short straddle, % across the six HAR-benchmark pooled forecasts, 614 days
 \providecommand{\rhedHarGainMax}{}\renewcommand{\rhedHarGainMax}{5.0}  % highest mean gain over the short straddle, % across the six HAR-benchmark pooled forecasts, 614 days
-\providecommand{\rhedOlsLongN}{}\renewcommand{\rhedOlsLongN}{184}  % long days of the closing-interval HAR forecast (sub_ols_baseline)
-\providecommand{\rhedOlsLongMid}{}\renewcommand{\rhedOlsLongMid}{15}  % ... its mean mid return on long days, %
-\providecommand{\rhedOlsShortMid}{}\renewcommand{\rhedOlsShortMid}{10}  % ... its mean mid return on short days, %
-\providecommand{\rhedOlsLongHit}{}\renewcommand{\rhedOlsLongHit}{45}  % ... % of its long days with RV > IV^2
-\providecommand{\rhedOlsSh}{}\renewcommand{\rhedOlsSh}{1.47}  % ... its Sharpe ratio, mid (= rhrOlsSharpe)
+\providecommand{\rhedOlsLongN}{}\renewcommand{\rhedOlsLongN}{198}  % long days of the closing-interval HAR forecast (sub_ols_baseline)
+\providecommand{\rhedOlsLongMid}{}\renewcommand{\rhedOlsLongMid}{9}  % ... its mean mid return on long days, %
+\providecommand{\rhedOlsShortMid}{}\renewcommand{\rhedOlsShortMid}{8}  % ... its mean mid return on short days, %
+\providecommand{\rhedOlsLongHit}{}\renewcommand{\rhedOlsLongHit}{46}  % ... % of its long days with RV > IV^2
+\providecommand{\rhedOlsSh}{}\renewcommand{\rhedOlsSh}{0.99}  % ... its Sharpe ratio, mid (= rhrOlsSharpe)
 \providecommand{\rhedCalLevelMin}{}\renewcommand{\rhedCalLevelMin}{0.95}  % lowest mean forecast / mean RV across the six full-set pooled forecasts, 614 days
 \providecommand{\rhedCalLevelMax}{}\renewcommand{\rhedCalLevelMax}{1.01}  % highest mean forecast / mean RV across the six full-set pooled forecasts, 614 days
 \providecommand{\rhedCalScaleMin}{}\renewcommand{\rhedCalScaleMin}{1.09}  % lowest mean of RV / forecast (QLIKE-optimal scale) across the six full-set pooled forecasts, 614 days
@@ -86,8 +86,8 @@
 \providecommand{\rhedHarBcShUpN}{}\renewcommand{\rhedHarBcShUpN}{5}  % HAR-benchmark forecasts whose mid SR rises under the bias correction
 \providecommand{\rhedMoveSqIV}{}\renewcommand{\rhedMoveSqIV}{1.01}  % mean of the squared S&P 500 half-hour log return over IV_t^2, 614 days
 \providecommand{\rhedMoveSqRV}{}\renewcommand{\rhedMoveSqRV}{1.15}  % mean squared S&P 500 half-hour log return over mean RV_t, 614 days
-\providecommand{\rhedOlsCalScale}{}\renewcommand{\rhedOlsCalScale}{1.02}  % mean of RV / forecast, closing-interval HAR forecast
-\providecommand{\rhedOlsBcSh}{}\renewcommand{\rhedOlsBcSh}{1.10}  % Sharpe ratio mid under the bias correction, closing-interval HAR
+\providecommand{\rhedOlsCalScale}{}\renewcommand{\rhedOlsCalScale}{1.01}  % mean of RV / forecast, closing-interval HAR forecast
+\providecommand{\rhedOlsBcSh}{}\renewcommand{\rhedOlsBcSh}{1.00}  % Sharpe ratio mid under the bias correction, closing-interval HAR
 \providecommand{\rhedBcFlipRidge}{}\renewcommand{\rhedBcFlipRidge}{107}  % positions changed by the bias correction, poolpt13_ridge_all_features
 \providecommand{\rhedBcShRidge}{}\renewcommand{\rhedBcShRidge}{1.07}  % Sharpe ratio mid under the bias correction, poolpt13_ridge_all_features
 \providecommand{\rhedBcFlipLasso}{}\renewcommand{\rhedBcFlipLasso}{120}  % positions changed by the bias correction, poolpt13_lasso_all_features
@@ -323,8 +323,8 @@
 \providecommand{\rhedHarRegAlphaAMax}{}\renewcommand{\rhedHarRegAlphaAMax}{7.0}  % highest alpha, (a), mid, % per day across the six HAR-benchmark pooled forecasts, 614 days
 \providecommand{\rhedHarRegAlphaAPMin}{}\renewcommand{\rhedHarRegAlphaAPMin}{0.082}  % lowest fixed-b p of alpha, (a), mid across the six HAR-benchmark pooled forecasts, 614 days
 \providecommand{\rhedHarRegAlphaAPMax}{}\renewcommand{\rhedHarRegAlphaAPMax}{0.745}  % highest fixed-b p of alpha, (a), mid across the six HAR-benchmark pooled forecasts, 614 days
-\providecommand{\rhedOlsRegAlphaA}{}\renewcommand{\rhedOlsRegAlphaA}{11.3}  % alpha, (a), mid, closing-interval HAR forecast, % per day
-\providecommand{\rhedOlsRegAlphaAP}{}\renewcommand{\rhedOlsRegAlphaAP}{0.007}  % ... its fixed-b p
+\providecommand{\rhedOlsRegAlphaA}{}\renewcommand{\rhedOlsRegAlphaA}{8.1}  % alpha, (a), mid, closing-interval HAR forecast, % per day
+\providecommand{\rhedOlsRegAlphaAP}{}\renewcommand{\rhedOlsRegAlphaAP}{0.051}  % ... its fixed-b p
 \providecommand{\rhedRegAlphaAExBestMin}{}\renewcommand{\rhedRegAlphaAExBestMin}{\ensuremath{-}1.0}  % lowest alpha, (a), mid, without the forecast's ten best days, % per day across the six full-set pooled forecasts, 614 days
 \providecommand{\rhedRegAlphaAExBestMax}{}\renewcommand{\rhedRegAlphaAExBestMax}{2.1}  % highest alpha, (a), mid, without the forecast's ten best days, % per day across the six full-set pooled forecasts, 614 days
 \providecommand{\rhedRegAlphaAExBestPMin}{}\renewcommand{\rhedRegAlphaAExBestPMin}{0.42}  % lowest ... its fixed-b p across the six full-set pooled forecasts, 614 days

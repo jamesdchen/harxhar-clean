@@ -22,8 +22,8 @@
 \providecommand{\rhmcsLinGap}{}\renewcommand{\rhmcsLinGap}{5 \times 10^{-6}}  % largest relative gap between the daily every-bar QLIKE of a linear HAR forecast and the pooled OLS (math mode)
 \providecommand{\rhmcsDaysAll}{}\renewcommand{\rhmcsDaysAll}{2{,}579}  % trading days 2014-2024 (Table 1's span)
 \providecommand{\rhmcsDaysOos}{}\renewcommand{\rhmcsDaysOos}{1{,}082}  % trading days of T_oos
-\providecommand{\rhmcsDaysCh}{}\renewcommand{\rhmcsDaysCh}{1{,}460}  % trading days of the closing-interval benchmark's span within 2014-2024
-\providecommand{\rhmcsChStart}{}\renewcommand{\rhmcsChStart}{25 June 2018}  % first day of the closing-interval HAR benchmark's forecasts
+\providecommand{\rhmcsDaysCh}{}\renewcommand{\rhmcsDaysCh}{2{,}579}  % trading days of the closing-interval benchmark's span within 2014-2024
+\providecommand{\rhmcsChStart}{}\renewcommand{\rhmcsChStart}{2 January 2014}  % first day of the closing-interval HAR benchmark's forecasts
 \providecommand{\rhmcsNBars}{}\renewcommand{\rhmcsNBars}{33{,}527}  % bars of the every-bar sample (13 a day)
 \providecommand{\rhmcsNPw}{}\renewcommand{\rhmcsNPw}{614}  % post-warmup option days of the strategy tests
 \providecommand{\rhmcsLinSameTrades}{}\renewcommand{\rhmcsLinSameTrades}{yes}  % the three linear HAR sign strategies have identical daily returns (mid and bid/ask)
@@ -243,73 +243,73 @@
 \providecommand{\rhmcsAllMseTrangeNSevenFiveHi}{}\renewcommand{\rhmcsAllMseTrangeNSevenFiveHi}{10}  % ... at block length 20
 \providecommand{\rhmcsAllMseTrangeSetSevenFiveHi}{}\renewcommand{\rhmcsAllMseTrangeSetSevenFiveHi}{the random forest on the HAR benchmark, the linear models on the HAR benchmark, the random forest on the full predictor set, XGBoost on the full predictor set, the elastic net on the full predictor set, ridge regression on the full predictor set, the lasso on the full predictor set, XGBoost on the HAR benchmark, LightGBM on the full predictor set, and LightGBM on the HAR benchmark}  % ... at block length 20
 \providecommand{\rhmcsAllMseTrangeBest}{}\renewcommand{\rhmcsAllMseTrangeBest}{the random forest on the HAR benchmark}  % the last model left (MCS p-value 1)
-\providecommand{\rhmcsOosQlikeTmaxPLinHar}{}\renewcommand{\rhmcsOosQlikeTmaxPLinHar}{0.052}  % MCS p-value, 16:00 bar, T_oos, Qlike, Tmax: Linear, HAR
-\providecommand{\rhmcsOosQlikeTmaxPRidgeFull}{}\renewcommand{\rhmcsOosQlikeTmaxPRidgeFull}{0.011}  % MCS p-value, 16:00 bar, T_oos, Qlike, Tmax: Ridge, Full
-\providecommand{\rhmcsOosQlikeTmaxPLassoFull}{}\renewcommand{\rhmcsOosQlikeTmaxPLassoFull}{0.011}  % MCS p-value, 16:00 bar, T_oos, Qlike, Tmax: Lasso, Full
-\providecommand{\rhmcsOosQlikeTmaxPEnetFull}{}\renewcommand{\rhmcsOosQlikeTmaxPEnetFull}{0.036}  % MCS p-value, 16:00 bar, T_oos, Qlike, Tmax: Elastic net, Full
-\providecommand{\rhmcsOosQlikeTmaxPLgbmHar}{}\renewcommand{\rhmcsOosQlikeTmaxPLgbmHar}{0.246}  % MCS p-value, 16:00 bar, T_oos, Qlike, Tmax: LightGBM, HAR
-\providecommand{\rhmcsOosQlikeTmaxPLgbmFull}{}\renewcommand{\rhmcsOosQlikeTmaxPLgbmFull}{0.246}  % MCS p-value, 16:00 bar, T_oos, Qlike, Tmax: LightGBM, Full
-\providecommand{\rhmcsOosQlikeTmaxPXgbHar}{}\renewcommand{\rhmcsOosQlikeTmaxPXgbHar}{0.246}  % MCS p-value, 16:00 bar, T_oos, Qlike, Tmax: XGBoost, HAR
-\providecommand{\rhmcsOosQlikeTmaxPXgbFull}{}\renewcommand{\rhmcsOosQlikeTmaxPXgbFull}{0.26}  % MCS p-value, 16:00 bar, T_oos, Qlike, Tmax: XGBoost, Full
-\providecommand{\rhmcsOosQlikeTmaxPRfHar}{}\renewcommand{\rhmcsOosQlikeTmaxPRfHar}{0.052}  % MCS p-value, 16:00 bar, T_oos, Qlike, Tmax: Random forest, HAR
+\providecommand{\rhmcsOosQlikeTmaxPLinHar}{}\renewcommand{\rhmcsOosQlikeTmaxPLinHar}{0.040}  % MCS p-value, 16:00 bar, T_oos, Qlike, Tmax: Linear, HAR
+\providecommand{\rhmcsOosQlikeTmaxPRidgeFull}{}\renewcommand{\rhmcsOosQlikeTmaxPRidgeFull}{0.012}  % MCS p-value, 16:00 bar, T_oos, Qlike, Tmax: Ridge, Full
+\providecommand{\rhmcsOosQlikeTmaxPLassoFull}{}\renewcommand{\rhmcsOosQlikeTmaxPLassoFull}{0.012}  % MCS p-value, 16:00 bar, T_oos, Qlike, Tmax: Lasso, Full
+\providecommand{\rhmcsOosQlikeTmaxPEnetFull}{}\renewcommand{\rhmcsOosQlikeTmaxPEnetFull}{0.035}  % MCS p-value, 16:00 bar, T_oos, Qlike, Tmax: Elastic net, Full
+\providecommand{\rhmcsOosQlikeTmaxPLgbmHar}{}\renewcommand{\rhmcsOosQlikeTmaxPLgbmHar}{0.16}  % MCS p-value, 16:00 bar, T_oos, Qlike, Tmax: LightGBM, HAR
+\providecommand{\rhmcsOosQlikeTmaxPLgbmFull}{}\renewcommand{\rhmcsOosQlikeTmaxPLgbmFull}{0.16}  % MCS p-value, 16:00 bar, T_oos, Qlike, Tmax: LightGBM, Full
+\providecommand{\rhmcsOosQlikeTmaxPXgbHar}{}\renewcommand{\rhmcsOosQlikeTmaxPXgbHar}{0.16}  % MCS p-value, 16:00 bar, T_oos, Qlike, Tmax: XGBoost, HAR
+\providecommand{\rhmcsOosQlikeTmaxPXgbFull}{}\renewcommand{\rhmcsOosQlikeTmaxPXgbFull}{0.20}  % MCS p-value, 16:00 bar, T_oos, Qlike, Tmax: XGBoost, Full
+\providecommand{\rhmcsOosQlikeTmaxPRfHar}{}\renewcommand{\rhmcsOosQlikeTmaxPRfHar}{0.040}  % MCS p-value, 16:00 bar, T_oos, Qlike, Tmax: Random forest, HAR
 \providecommand{\rhmcsOosQlikeTmaxPRfFull}{}\renewcommand{\rhmcsOosQlikeTmaxPRfFull}{0.13}  % MCS p-value, 16:00 bar, T_oos, Qlike, Tmax: Random forest, Full
 \providecommand{\rhmcsOosQlikeTmaxPBench}{}\renewcommand{\rhmcsOosQlikeTmaxPBench}{1.00}  % MCS p-value, 16:00 bar, T_oos, Qlike, Tmax: Closing-interval HAR benchmark
 \providecommand{\rhmcsOosQlikeTmaxNNinety}{}\renewcommand{\rhmcsOosQlikeTmaxNNinety}{6}  % models in the 90 % MCS (of 11)
 \providecommand{\rhmcsOosQlikeTmaxSetNinety}{}\renewcommand{\rhmcsOosQlikeTmaxSetNinety}{the closing-interval HAR benchmark, XGBoost on the full predictor set, LightGBM on the full predictor set, XGBoost on the HAR benchmark, LightGBM on the HAR benchmark, and the random forest on the full predictor set}  % the 90 % MCS, best (last eliminated) first
 \providecommand{\rhmcsOosQlikeTmaxStableNinety}{}\renewcommand{\rhmcsOosQlikeTmaxStableNinety}{yes}  % the 90 % MCS is the same at block lengths (5, 20)
-\providecommand{\rhmcsOosQlikeTmaxPMaxOutNinety}{}\renewcommand{\rhmcsOosQlikeTmaxPMaxOutNinety}{0.052}  % largest MCS p-value outside the 90 % set
+\providecommand{\rhmcsOosQlikeTmaxPMaxOutNinety}{}\renewcommand{\rhmcsOosQlikeTmaxPMaxOutNinety}{0.040}  % largest MCS p-value outside the 90 % set
 \providecommand{\rhmcsOosQlikeTmaxNNinetyLo}{}\renewcommand{\rhmcsOosQlikeTmaxNNinetyLo}{6}  % ... at block length 5
 \providecommand{\rhmcsOosQlikeTmaxSetNinetyLo}{}\renewcommand{\rhmcsOosQlikeTmaxSetNinetyLo}{the closing-interval HAR benchmark, XGBoost on the full predictor set, LightGBM on the full predictor set, XGBoost on the HAR benchmark, LightGBM on the HAR benchmark, and the random forest on the full predictor set}  % ... at block length 5
 \providecommand{\rhmcsOosQlikeTmaxNNinetyHi}{}\renewcommand{\rhmcsOosQlikeTmaxNNinetyHi}{6}  % ... at block length 20
 \providecommand{\rhmcsOosQlikeTmaxSetNinetyHi}{}\renewcommand{\rhmcsOosQlikeTmaxSetNinetyHi}{the closing-interval HAR benchmark, XGBoost on the full predictor set, LightGBM on the full predictor set, LightGBM on the HAR benchmark, XGBoost on the HAR benchmark, and the random forest on the full predictor set}  % ... at block length 20
-\providecommand{\rhmcsOosQlikeTmaxNSevenFive}{}\renewcommand{\rhmcsOosQlikeTmaxNSevenFive}{2}  % models in the 75 % MCS (of 11)
-\providecommand{\rhmcsOosQlikeTmaxSetSevenFive}{}\renewcommand{\rhmcsOosQlikeTmaxSetSevenFive}{the closing-interval HAR benchmark and XGBoost on the full predictor set}  % the 75 % MCS, best (last eliminated) first
-\providecommand{\rhmcsOosQlikeTmaxStableSevenFive}{}\renewcommand{\rhmcsOosQlikeTmaxStableSevenFive}{no}  % the 75 % MCS is the same at block lengths (5, 20)
-\providecommand{\rhmcsOosQlikeTmaxPMaxOutSevenFive}{}\renewcommand{\rhmcsOosQlikeTmaxPMaxOutSevenFive}{0.246}  % largest MCS p-value outside the 75 % set
-\providecommand{\rhmcsOosQlikeTmaxNSevenFiveLo}{}\renewcommand{\rhmcsOosQlikeTmaxNSevenFiveLo}{2}  % ... at block length 5
-\providecommand{\rhmcsOosQlikeTmaxSetSevenFiveLo}{}\renewcommand{\rhmcsOosQlikeTmaxSetSevenFiveLo}{the closing-interval HAR benchmark and XGBoost on the full predictor set}  % ... at block length 5
+\providecommand{\rhmcsOosQlikeTmaxNSevenFive}{}\renewcommand{\rhmcsOosQlikeTmaxNSevenFive}{1}  % models in the 75 % MCS (of 11)
+\providecommand{\rhmcsOosQlikeTmaxSetSevenFive}{}\renewcommand{\rhmcsOosQlikeTmaxSetSevenFive}{the closing-interval HAR benchmark}  % the 75 % MCS, best (last eliminated) first
+\providecommand{\rhmcsOosQlikeTmaxStableSevenFive}{}\renewcommand{\rhmcsOosQlikeTmaxStableSevenFive}{yes}  % the 75 % MCS is the same at block lengths (5, 20)
+\providecommand{\rhmcsOosQlikeTmaxPMaxOutSevenFive}{}\renewcommand{\rhmcsOosQlikeTmaxPMaxOutSevenFive}{0.20}  % largest MCS p-value outside the 75 % set
+\providecommand{\rhmcsOosQlikeTmaxNSevenFiveLo}{}\renewcommand{\rhmcsOosQlikeTmaxNSevenFiveLo}{1}  % ... at block length 5
+\providecommand{\rhmcsOosQlikeTmaxSetSevenFiveLo}{}\renewcommand{\rhmcsOosQlikeTmaxSetSevenFiveLo}{the closing-interval HAR benchmark}  % ... at block length 5
 \providecommand{\rhmcsOosQlikeTmaxNSevenFiveHi}{}\renewcommand{\rhmcsOosQlikeTmaxNSevenFiveHi}{1}  % ... at block length 20
 \providecommand{\rhmcsOosQlikeTmaxSetSevenFiveHi}{}\renewcommand{\rhmcsOosQlikeTmaxSetSevenFiveHi}{the closing-interval HAR benchmark}  % ... at block length 20
 \providecommand{\rhmcsOosQlikeTmaxBest}{}\renewcommand{\rhmcsOosQlikeTmaxBest}{the closing-interval HAR benchmark}  % the last model left (MCS p-value 1)
-\providecommand{\rhmcsOosQlikeTrangePLinHar}{}\renewcommand{\rhmcsOosQlikeTrangePLinHar}{0.061}  % MCS p-value, 16:00 bar, T_oos, Qlike, Trange: Linear, HAR
-\providecommand{\rhmcsOosQlikeTrangePRidgeFull}{}\renewcommand{\rhmcsOosQlikeTrangePRidgeFull}{0.008}  % MCS p-value, 16:00 bar, T_oos, Qlike, Trange: Ridge, Full
+\providecommand{\rhmcsOosQlikeTrangePLinHar}{}\renewcommand{\rhmcsOosQlikeTrangePLinHar}{0.033}  % MCS p-value, 16:00 bar, T_oos, Qlike, Trange: Linear, HAR
+\providecommand{\rhmcsOosQlikeTrangePRidgeFull}{}\renewcommand{\rhmcsOosQlikeTrangePRidgeFull}{0.009}  % MCS p-value, 16:00 bar, T_oos, Qlike, Trange: Ridge, Full
 \providecommand{\rhmcsOosQlikeTrangePLassoFull}{}\renewcommand{\rhmcsOosQlikeTrangePLassoFull}{0.011}  % MCS p-value, 16:00 bar, T_oos, Qlike, Trange: Lasso, Full
 \providecommand{\rhmcsOosQlikeTrangePEnetFull}{}\renewcommand{\rhmcsOosQlikeTrangePEnetFull}{0.016}  % MCS p-value, 16:00 bar, T_oos, Qlike, Trange: Elastic net, Full
-\providecommand{\rhmcsOosQlikeTrangePLgbmHar}{}\renewcommand{\rhmcsOosQlikeTrangePLgbmHar}{0.12}  % MCS p-value, 16:00 bar, T_oos, Qlike, Trange: LightGBM, HAR
+\providecommand{\rhmcsOosQlikeTrangePLgbmHar}{}\renewcommand{\rhmcsOosQlikeTrangePLgbmHar}{0.033}  % MCS p-value, 16:00 bar, T_oos, Qlike, Trange: LightGBM, HAR
 \providecommand{\rhmcsOosQlikeTrangePLgbmFull}{}\renewcommand{\rhmcsOosQlikeTrangePLgbmFull}{0.14}  % MCS p-value, 16:00 bar, T_oos, Qlike, Trange: LightGBM, Full
-\providecommand{\rhmcsOosQlikeTrangePXgbHar}{}\renewcommand{\rhmcsOosQlikeTrangePXgbHar}{0.12}  % MCS p-value, 16:00 bar, T_oos, Qlike, Trange: XGBoost, HAR
-\providecommand{\rhmcsOosQlikeTrangePXgbFull}{}\renewcommand{\rhmcsOosQlikeTrangePXgbFull}{0.26}  % MCS p-value, 16:00 bar, T_oos, Qlike, Trange: XGBoost, Full
-\providecommand{\rhmcsOosQlikeTrangePRfHar}{}\renewcommand{\rhmcsOosQlikeTrangePRfHar}{0.052}  % MCS p-value, 16:00 bar, T_oos, Qlike, Trange: Random forest, HAR
+\providecommand{\rhmcsOosQlikeTrangePXgbHar}{}\renewcommand{\rhmcsOosQlikeTrangePXgbHar}{0.033}  % MCS p-value, 16:00 bar, T_oos, Qlike, Trange: XGBoost, HAR
+\providecommand{\rhmcsOosQlikeTrangePXgbFull}{}\renewcommand{\rhmcsOosQlikeTrangePXgbFull}{0.20}  % MCS p-value, 16:00 bar, T_oos, Qlike, Trange: XGBoost, Full
+\providecommand{\rhmcsOosQlikeTrangePRfHar}{}\renewcommand{\rhmcsOosQlikeTrangePRfHar}{0.019}  % MCS p-value, 16:00 bar, T_oos, Qlike, Trange: Random forest, HAR
 \providecommand{\rhmcsOosQlikeTrangePRfFull}{}\renewcommand{\rhmcsOosQlikeTrangePRfFull}{0.016}  % MCS p-value, 16:00 bar, T_oos, Qlike, Trange: Random forest, Full
 \providecommand{\rhmcsOosQlikeTrangePBench}{}\renewcommand{\rhmcsOosQlikeTrangePBench}{1.00}  % MCS p-value, 16:00 bar, T_oos, Qlike, Trange: Closing-interval HAR benchmark
-\providecommand{\rhmcsOosQlikeTrangeNNinety}{}\renewcommand{\rhmcsOosQlikeTrangeNNinety}{5}  % models in the 90 % MCS (of 11)
-\providecommand{\rhmcsOosQlikeTrangeSetNinety}{}\renewcommand{\rhmcsOosQlikeTrangeSetNinety}{the closing-interval HAR benchmark, XGBoost on the full predictor set, LightGBM on the full predictor set, LightGBM on the HAR benchmark, and XGBoost on the HAR benchmark}  % the 90 % MCS, best (last eliminated) first
+\providecommand{\rhmcsOosQlikeTrangeNNinety}{}\renewcommand{\rhmcsOosQlikeTrangeNNinety}{3}  % models in the 90 % MCS (of 11)
+\providecommand{\rhmcsOosQlikeTrangeSetNinety}{}\renewcommand{\rhmcsOosQlikeTrangeSetNinety}{the closing-interval HAR benchmark, XGBoost on the full predictor set, and LightGBM on the full predictor set}  % the 90 % MCS, best (last eliminated) first
 \providecommand{\rhmcsOosQlikeTrangeStableNinety}{}\renewcommand{\rhmcsOosQlikeTrangeStableNinety}{yes}  % the 90 % MCS is the same at block lengths (5, 20)
-\providecommand{\rhmcsOosQlikeTrangePMaxOutNinety}{}\renewcommand{\rhmcsOosQlikeTrangePMaxOutNinety}{0.061}  % largest MCS p-value outside the 90 % set
-\providecommand{\rhmcsOosQlikeTrangeNNinetyLo}{}\renewcommand{\rhmcsOosQlikeTrangeNNinetyLo}{5}  % ... at block length 5
-\providecommand{\rhmcsOosQlikeTrangeSetNinetyLo}{}\renewcommand{\rhmcsOosQlikeTrangeSetNinetyLo}{the closing-interval HAR benchmark, XGBoost on the full predictor set, LightGBM on the full predictor set, LightGBM on the HAR benchmark, and XGBoost on the HAR benchmark}  % ... at block length 5
-\providecommand{\rhmcsOosQlikeTrangeNNinetyHi}{}\renewcommand{\rhmcsOosQlikeTrangeNNinetyHi}{5}  % ... at block length 20
-\providecommand{\rhmcsOosQlikeTrangeSetNinetyHi}{}\renewcommand{\rhmcsOosQlikeTrangeSetNinetyHi}{the closing-interval HAR benchmark, XGBoost on the full predictor set, LightGBM on the full predictor set, LightGBM on the HAR benchmark, and XGBoost on the HAR benchmark}  % ... at block length 20
-\providecommand{\rhmcsOosQlikeTrangeNSevenFive}{}\renewcommand{\rhmcsOosQlikeTrangeNSevenFive}{2}  % models in the 75 % MCS (of 11)
-\providecommand{\rhmcsOosQlikeTrangeSetSevenFive}{}\renewcommand{\rhmcsOosQlikeTrangeSetSevenFive}{the closing-interval HAR benchmark and XGBoost on the full predictor set}  % the 75 % MCS, best (last eliminated) first
-\providecommand{\rhmcsOosQlikeTrangeStableSevenFive}{}\renewcommand{\rhmcsOosQlikeTrangeStableSevenFive}{no}  % the 75 % MCS is the same at block lengths (5, 20)
-\providecommand{\rhmcsOosQlikeTrangePMaxOutSevenFive}{}\renewcommand{\rhmcsOosQlikeTrangePMaxOutSevenFive}{0.14}  % largest MCS p-value outside the 75 % set
-\providecommand{\rhmcsOosQlikeTrangeNSevenFiveLo}{}\renewcommand{\rhmcsOosQlikeTrangeNSevenFiveLo}{2}  % ... at block length 5
-\providecommand{\rhmcsOosQlikeTrangeSetSevenFiveLo}{}\renewcommand{\rhmcsOosQlikeTrangeSetSevenFiveLo}{the closing-interval HAR benchmark and XGBoost on the full predictor set}  % ... at block length 5
+\providecommand{\rhmcsOosQlikeTrangePMaxOutNinety}{}\renewcommand{\rhmcsOosQlikeTrangePMaxOutNinety}{0.033}  % largest MCS p-value outside the 90 % set
+\providecommand{\rhmcsOosQlikeTrangeNNinetyLo}{}\renewcommand{\rhmcsOosQlikeTrangeNNinetyLo}{3}  % ... at block length 5
+\providecommand{\rhmcsOosQlikeTrangeSetNinetyLo}{}\renewcommand{\rhmcsOosQlikeTrangeSetNinetyLo}{the closing-interval HAR benchmark, XGBoost on the full predictor set, and LightGBM on the full predictor set}  % ... at block length 5
+\providecommand{\rhmcsOosQlikeTrangeNNinetyHi}{}\renewcommand{\rhmcsOosQlikeTrangeNNinetyHi}{3}  % ... at block length 20
+\providecommand{\rhmcsOosQlikeTrangeSetNinetyHi}{}\renewcommand{\rhmcsOosQlikeTrangeSetNinetyHi}{the closing-interval HAR benchmark, XGBoost on the full predictor set, and LightGBM on the full predictor set}  % ... at block length 20
+\providecommand{\rhmcsOosQlikeTrangeNSevenFive}{}\renewcommand{\rhmcsOosQlikeTrangeNSevenFive}{1}  % models in the 75 % MCS (of 11)
+\providecommand{\rhmcsOosQlikeTrangeSetSevenFive}{}\renewcommand{\rhmcsOosQlikeTrangeSetSevenFive}{the closing-interval HAR benchmark}  % the 75 % MCS, best (last eliminated) first
+\providecommand{\rhmcsOosQlikeTrangeStableSevenFive}{}\renewcommand{\rhmcsOosQlikeTrangeStableSevenFive}{yes}  % the 75 % MCS is the same at block lengths (5, 20)
+\providecommand{\rhmcsOosQlikeTrangePMaxOutSevenFive}{}\renewcommand{\rhmcsOosQlikeTrangePMaxOutSevenFive}{0.20}  % largest MCS p-value outside the 75 % set
+\providecommand{\rhmcsOosQlikeTrangeNSevenFiveLo}{}\renewcommand{\rhmcsOosQlikeTrangeNSevenFiveLo}{1}  % ... at block length 5
+\providecommand{\rhmcsOosQlikeTrangeSetSevenFiveLo}{}\renewcommand{\rhmcsOosQlikeTrangeSetSevenFiveLo}{the closing-interval HAR benchmark}  % ... at block length 5
 \providecommand{\rhmcsOosQlikeTrangeNSevenFiveHi}{}\renewcommand{\rhmcsOosQlikeTrangeNSevenFiveHi}{1}  % ... at block length 20
 \providecommand{\rhmcsOosQlikeTrangeSetSevenFiveHi}{}\renewcommand{\rhmcsOosQlikeTrangeSetSevenFiveHi}{the closing-interval HAR benchmark}  % ... at block length 20
 \providecommand{\rhmcsOosQlikeTrangeBest}{}\renewcommand{\rhmcsOosQlikeTrangeBest}{the closing-interval HAR benchmark}  % the last model left (MCS p-value 1)
-\providecommand{\rhmcsOosMseTmaxPLinHar}{}\renewcommand{\rhmcsOosMseTmaxPLinHar}{0.54}  % MCS p-value, 16:00 bar, T_oos, Mse, Tmax: Linear, HAR
+\providecommand{\rhmcsOosMseTmaxPLinHar}{}\renewcommand{\rhmcsOosMseTmaxPLinHar}{0.55}  % MCS p-value, 16:00 bar, T_oos, Mse, Tmax: Linear, HAR
 \providecommand{\rhmcsOosMseTmaxPRidgeFull}{}\renewcommand{\rhmcsOosMseTmaxPRidgeFull}{0.45}  % MCS p-value, 16:00 bar, T_oos, Mse, Tmax: Ridge, Full
-\providecommand{\rhmcsOosMseTmaxPLassoFull}{}\renewcommand{\rhmcsOosMseTmaxPLassoFull}{0.38}  % MCS p-value, 16:00 bar, T_oos, Mse, Tmax: Lasso, Full
+\providecommand{\rhmcsOosMseTmaxPLassoFull}{}\renewcommand{\rhmcsOosMseTmaxPLassoFull}{0.39}  % MCS p-value, 16:00 bar, T_oos, Mse, Tmax: Lasso, Full
 \providecommand{\rhmcsOosMseTmaxPEnetFull}{}\renewcommand{\rhmcsOosMseTmaxPEnetFull}{0.50}  % MCS p-value, 16:00 bar, T_oos, Mse, Tmax: Elastic net, Full
-\providecommand{\rhmcsOosMseTmaxPLgbmHar}{}\renewcommand{\rhmcsOosMseTmaxPLgbmHar}{0.54}  % MCS p-value, 16:00 bar, T_oos, Mse, Tmax: LightGBM, HAR
-\providecommand{\rhmcsOosMseTmaxPLgbmFull}{}\renewcommand{\rhmcsOosMseTmaxPLgbmFull}{0.54}  % MCS p-value, 16:00 bar, T_oos, Mse, Tmax: LightGBM, Full
-\providecommand{\rhmcsOosMseTmaxPXgbHar}{}\renewcommand{\rhmcsOosMseTmaxPXgbHar}{0.54}  % MCS p-value, 16:00 bar, T_oos, Mse, Tmax: XGBoost, HAR
-\providecommand{\rhmcsOosMseTmaxPXgbFull}{}\renewcommand{\rhmcsOosMseTmaxPXgbFull}{0.54}  % MCS p-value, 16:00 bar, T_oos, Mse, Tmax: XGBoost, Full
+\providecommand{\rhmcsOosMseTmaxPLgbmHar}{}\renewcommand{\rhmcsOosMseTmaxPLgbmHar}{0.55}  % MCS p-value, 16:00 bar, T_oos, Mse, Tmax: LightGBM, HAR
+\providecommand{\rhmcsOosMseTmaxPLgbmFull}{}\renewcommand{\rhmcsOosMseTmaxPLgbmFull}{0.55}  % MCS p-value, 16:00 bar, T_oos, Mse, Tmax: LightGBM, Full
+\providecommand{\rhmcsOosMseTmaxPXgbHar}{}\renewcommand{\rhmcsOosMseTmaxPXgbHar}{0.55}  % MCS p-value, 16:00 bar, T_oos, Mse, Tmax: XGBoost, HAR
+\providecommand{\rhmcsOosMseTmaxPXgbFull}{}\renewcommand{\rhmcsOosMseTmaxPXgbFull}{0.55}  % MCS p-value, 16:00 bar, T_oos, Mse, Tmax: XGBoost, Full
 \providecommand{\rhmcsOosMseTmaxPRfHar}{}\renewcommand{\rhmcsOosMseTmaxPRfHar}{1.00}  % MCS p-value, 16:00 bar, T_oos, Mse, Tmax: Random forest, HAR
-\providecommand{\rhmcsOosMseTmaxPRfFull}{}\renewcommand{\rhmcsOosMseTmaxPRfFull}{0.54}  % MCS p-value, 16:00 bar, T_oos, Mse, Tmax: Random forest, Full
-\providecommand{\rhmcsOosMseTmaxPBench}{}\renewcommand{\rhmcsOosMseTmaxPBench}{0.54}  % MCS p-value, 16:00 bar, T_oos, Mse, Tmax: Closing-interval HAR benchmark
+\providecommand{\rhmcsOosMseTmaxPRfFull}{}\renewcommand{\rhmcsOosMseTmaxPRfFull}{0.55}  % MCS p-value, 16:00 bar, T_oos, Mse, Tmax: Random forest, Full
+\providecommand{\rhmcsOosMseTmaxPBench}{}\renewcommand{\rhmcsOosMseTmaxPBench}{0.55}  % MCS p-value, 16:00 bar, T_oos, Mse, Tmax: Closing-interval HAR benchmark
 \providecommand{\rhmcsOosMseTmaxNNinety}{}\renewcommand{\rhmcsOosMseTmaxNNinety}{11}  % models in the 90 % MCS (of 11)
 \providecommand{\rhmcsOosMseTmaxSetNinety}{}\renewcommand{\rhmcsOosMseTmaxSetNinety}{the random forest on the HAR benchmark, XGBoost on the HAR benchmark, LightGBM on the HAR benchmark, the linear models on the HAR benchmark, the random forest on the full predictor set, the closing-interval HAR benchmark, XGBoost on the full predictor set, LightGBM on the full predictor set, the elastic net on the full predictor set, ridge regression on the full predictor set, and the lasso on the full predictor set}  % the 90 % MCS, best (last eliminated) first
 \providecommand{\rhmcsOosMseTmaxStableNinety}{}\renewcommand{\rhmcsOosMseTmaxStableNinety}{yes}  % the 90 % MCS is the same at block lengths (5, 20)
@@ -331,13 +331,13 @@
 \providecommand{\rhmcsOosMseTrangePRidgeFull}{}\renewcommand{\rhmcsOosMseTrangePRidgeFull}{0.61}  % MCS p-value, 16:00 bar, T_oos, Mse, Trange: Ridge, Full
 \providecommand{\rhmcsOosMseTrangePLassoFull}{}\renewcommand{\rhmcsOosMseTrangePLassoFull}{0.61}  % MCS p-value, 16:00 bar, T_oos, Mse, Trange: Lasso, Full
 \providecommand{\rhmcsOosMseTrangePEnetFull}{}\renewcommand{\rhmcsOosMseTrangePEnetFull}{0.61}  % MCS p-value, 16:00 bar, T_oos, Mse, Trange: Elastic net, Full
-\providecommand{\rhmcsOosMseTrangePLgbmHar}{}\renewcommand{\rhmcsOosMseTrangePLgbmHar}{0.56}  % MCS p-value, 16:00 bar, T_oos, Mse, Trange: LightGBM, HAR
+\providecommand{\rhmcsOosMseTrangePLgbmHar}{}\renewcommand{\rhmcsOosMseTrangePLgbmHar}{0.58}  % MCS p-value, 16:00 bar, T_oos, Mse, Trange: LightGBM, HAR
 \providecommand{\rhmcsOosMseTrangePLgbmFull}{}\renewcommand{\rhmcsOosMseTrangePLgbmFull}{0.61}  % MCS p-value, 16:00 bar, T_oos, Mse, Trange: LightGBM, Full
 \providecommand{\rhmcsOosMseTrangePXgbHar}{}\renewcommand{\rhmcsOosMseTrangePXgbHar}{0.61}  % MCS p-value, 16:00 bar, T_oos, Mse, Trange: XGBoost, HAR
 \providecommand{\rhmcsOosMseTrangePXgbFull}{}\renewcommand{\rhmcsOosMseTrangePXgbFull}{0.61}  % MCS p-value, 16:00 bar, T_oos, Mse, Trange: XGBoost, Full
 \providecommand{\rhmcsOosMseTrangePRfHar}{}\renewcommand{\rhmcsOosMseTrangePRfHar}{1.00}  % MCS p-value, 16:00 bar, T_oos, Mse, Trange: Random forest, HAR
 \providecommand{\rhmcsOosMseTrangePRfFull}{}\renewcommand{\rhmcsOosMseTrangePRfFull}{0.61}  % MCS p-value, 16:00 bar, T_oos, Mse, Trange: Random forest, Full
-\providecommand{\rhmcsOosMseTrangePBench}{}\renewcommand{\rhmcsOosMseTrangePBench}{0.57}  % MCS p-value, 16:00 bar, T_oos, Mse, Trange: Closing-interval HAR benchmark
+\providecommand{\rhmcsOosMseTrangePBench}{}\renewcommand{\rhmcsOosMseTrangePBench}{0.58}  % MCS p-value, 16:00 bar, T_oos, Mse, Trange: Closing-interval HAR benchmark
 \providecommand{\rhmcsOosMseTrangeNNinety}{}\renewcommand{\rhmcsOosMseTrangeNNinety}{11}  % models in the 90 % MCS (of 11)
 \providecommand{\rhmcsOosMseTrangeSetNinety}{}\renewcommand{\rhmcsOosMseTrangeSetNinety}{the random forest on the HAR benchmark, XGBoost on the HAR benchmark, the linear models on the HAR benchmark, the random forest on the full predictor set, XGBoost on the full predictor set, LightGBM on the full predictor set, the elastic net on the full predictor set, ridge regression on the full predictor set, the lasso on the full predictor set, the closing-interval HAR benchmark, and LightGBM on the HAR benchmark}  % the 90 % MCS, best (last eliminated) first
 \providecommand{\rhmcsOosMseTrangeStableNinety}{}\renewcommand{\rhmcsOosMseTrangeStableNinety}{yes}  % the 90 % MCS is the same at block lengths (5, 20)
@@ -355,73 +355,73 @@
 \providecommand{\rhmcsOosMseTrangeNSevenFiveHi}{}\renewcommand{\rhmcsOosMseTrangeNSevenFiveHi}{11}  % ... at block length 20
 \providecommand{\rhmcsOosMseTrangeSetSevenFiveHi}{}\renewcommand{\rhmcsOosMseTrangeSetSevenFiveHi}{the random forest on the HAR benchmark, the linear models on the HAR benchmark, the random forest on the full predictor set, XGBoost on the HAR benchmark, XGBoost on the full predictor set, LightGBM on the full predictor set, the elastic net on the full predictor set, ridge regression on the full predictor set, the lasso on the full predictor set, the closing-interval HAR benchmark, and LightGBM on the HAR benchmark}  % ... at block length 20
 \providecommand{\rhmcsOosMseTrangeBest}{}\renewcommand{\rhmcsOosMseTrangeBest}{the random forest on the HAR benchmark}  % the last model left (MCS p-value 1)
-\providecommand{\rhmcsChQlikeTmaxPLinHar}{}\renewcommand{\rhmcsChQlikeTmaxPLinHar}{0.14}  % MCS p-value, 16:00 bar, the benchmark's span, Qlike, Tmax: Linear, HAR
-\providecommand{\rhmcsChQlikeTmaxPRidgeFull}{}\renewcommand{\rhmcsChQlikeTmaxPRidgeFull}{0.095}  % MCS p-value, 16:00 bar, the benchmark's span, Qlike, Tmax: Ridge, Full
-\providecommand{\rhmcsChQlikeTmaxPLassoFull}{}\renewcommand{\rhmcsChQlikeTmaxPLassoFull}{0.041}  % MCS p-value, 16:00 bar, the benchmark's span, Qlike, Tmax: Lasso, Full
-\providecommand{\rhmcsChQlikeTmaxPEnetFull}{}\renewcommand{\rhmcsChQlikeTmaxPEnetFull}{0.14}  % MCS p-value, 16:00 bar, the benchmark's span, Qlike, Tmax: Elastic net, Full
-\providecommand{\rhmcsChQlikeTmaxPLgbmHar}{}\renewcommand{\rhmcsChQlikeTmaxPLgbmHar}{0.31}  % MCS p-value, 16:00 bar, the benchmark's span, Qlike, Tmax: LightGBM, HAR
-\providecommand{\rhmcsChQlikeTmaxPLgbmFull}{}\renewcommand{\rhmcsChQlikeTmaxPLgbmFull}{0.55}  % MCS p-value, 16:00 bar, the benchmark's span, Qlike, Tmax: LightGBM, Full
-\providecommand{\rhmcsChQlikeTmaxPXgbHar}{}\renewcommand{\rhmcsChQlikeTmaxPXgbHar}{0.36}  % MCS p-value, 16:00 bar, the benchmark's span, Qlike, Tmax: XGBoost, HAR
-\providecommand{\rhmcsChQlikeTmaxPXgbFull}{}\renewcommand{\rhmcsChQlikeTmaxPXgbFull}{0.72}  % MCS p-value, 16:00 bar, the benchmark's span, Qlike, Tmax: XGBoost, Full
-\providecommand{\rhmcsChQlikeTmaxPRfHar}{}\renewcommand{\rhmcsChQlikeTmaxPRfHar}{0.11}  % MCS p-value, 16:00 bar, the benchmark's span, Qlike, Tmax: Random forest, HAR
-\providecommand{\rhmcsChQlikeTmaxPRfFull}{}\renewcommand{\rhmcsChQlikeTmaxPRfFull}{0.14}  % MCS p-value, 16:00 bar, the benchmark's span, Qlike, Tmax: Random forest, Full
+\providecommand{\rhmcsChQlikeTmaxPLinHar}{}\renewcommand{\rhmcsChQlikeTmaxPLinHar}{0.103}  % MCS p-value, 16:00 bar, the benchmark's span, Qlike, Tmax: Linear, HAR
+\providecommand{\rhmcsChQlikeTmaxPRidgeFull}{}\renewcommand{\rhmcsChQlikeTmaxPRidgeFull}{0.104}  % MCS p-value, 16:00 bar, the benchmark's span, Qlike, Tmax: Ridge, Full
+\providecommand{\rhmcsChQlikeTmaxPLassoFull}{}\renewcommand{\rhmcsChQlikeTmaxPLassoFull}{0.103}  % MCS p-value, 16:00 bar, the benchmark's span, Qlike, Tmax: Lasso, Full
+\providecommand{\rhmcsChQlikeTmaxPEnetFull}{}\renewcommand{\rhmcsChQlikeTmaxPEnetFull}{0.17}  % MCS p-value, 16:00 bar, the benchmark's span, Qlike, Tmax: Elastic net, Full
+\providecommand{\rhmcsChQlikeTmaxPLgbmHar}{}\renewcommand{\rhmcsChQlikeTmaxPLgbmHar}{0.17}  % MCS p-value, 16:00 bar, the benchmark's span, Qlike, Tmax: LightGBM, HAR
+\providecommand{\rhmcsChQlikeTmaxPLgbmFull}{}\renewcommand{\rhmcsChQlikeTmaxPLgbmFull}{0.17}  % MCS p-value, 16:00 bar, the benchmark's span, Qlike, Tmax: LightGBM, Full
+\providecommand{\rhmcsChQlikeTmaxPXgbHar}{}\renewcommand{\rhmcsChQlikeTmaxPXgbHar}{0.17}  % MCS p-value, 16:00 bar, the benchmark's span, Qlike, Tmax: XGBoost, HAR
+\providecommand{\rhmcsChQlikeTmaxPXgbFull}{}\renewcommand{\rhmcsChQlikeTmaxPXgbFull}{0.27}  % MCS p-value, 16:00 bar, the benchmark's span, Qlike, Tmax: XGBoost, Full
+\providecommand{\rhmcsChQlikeTmaxPRfHar}{}\renewcommand{\rhmcsChQlikeTmaxPRfHar}{0.103}  % MCS p-value, 16:00 bar, the benchmark's span, Qlike, Tmax: Random forest, HAR
+\providecommand{\rhmcsChQlikeTmaxPRfFull}{}\renewcommand{\rhmcsChQlikeTmaxPRfFull}{0.104}  % MCS p-value, 16:00 bar, the benchmark's span, Qlike, Tmax: Random forest, Full
 \providecommand{\rhmcsChQlikeTmaxPBench}{}\renewcommand{\rhmcsChQlikeTmaxPBench}{1.00}  % MCS p-value, 16:00 bar, the benchmark's span, Qlike, Tmax: Closing-interval HAR benchmark
-\providecommand{\rhmcsChQlikeTmaxNNinety}{}\renewcommand{\rhmcsChQlikeTmaxNNinety}{9}  % models in the 90 % MCS (of 11)
-\providecommand{\rhmcsChQlikeTmaxSetNinety}{}\renewcommand{\rhmcsChQlikeTmaxSetNinety}{the closing-interval HAR benchmark, XGBoost on the full predictor set, LightGBM on the full predictor set, XGBoost on the HAR benchmark, LightGBM on the HAR benchmark, the random forest on the full predictor set, the linear models on the HAR benchmark, the elastic net on the full predictor set, and the random forest on the HAR benchmark}  % the 90 % MCS, best (last eliminated) first
+\providecommand{\rhmcsChQlikeTmaxNNinety}{}\renewcommand{\rhmcsChQlikeTmaxNNinety}{11}  % models in the 90 % MCS (of 11)
+\providecommand{\rhmcsChQlikeTmaxSetNinety}{}\renewcommand{\rhmcsChQlikeTmaxSetNinety}{the closing-interval HAR benchmark, XGBoost on the full predictor set, LightGBM on the full predictor set, LightGBM on the HAR benchmark, XGBoost on the HAR benchmark, the elastic net on the full predictor set, the random forest on the full predictor set, ridge regression on the full predictor set, the random forest on the HAR benchmark, the linear models on the HAR benchmark, and the lasso on the full predictor set}  % the 90 % MCS, best (last eliminated) first
 \providecommand{\rhmcsChQlikeTmaxStableNinety}{}\renewcommand{\rhmcsChQlikeTmaxStableNinety}{no}  % the 90 % MCS is the same at block lengths (5, 20)
-\providecommand{\rhmcsChQlikeTmaxPMaxOutNinety}{}\renewcommand{\rhmcsChQlikeTmaxPMaxOutNinety}{0.095}  % largest MCS p-value outside the 90 % set
-\providecommand{\rhmcsChQlikeTmaxNNinetyLo}{}\renewcommand{\rhmcsChQlikeTmaxNNinetyLo}{9}  % ... at block length 5
-\providecommand{\rhmcsChQlikeTmaxSetNinetyLo}{}\renewcommand{\rhmcsChQlikeTmaxSetNinetyLo}{the closing-interval HAR benchmark, XGBoost on the full predictor set, LightGBM on the full predictor set, XGBoost on the HAR benchmark, LightGBM on the HAR benchmark, the random forest on the full predictor set, the linear models on the HAR benchmark, the elastic net on the full predictor set, and the random forest on the HAR benchmark}  % ... at block length 5
-\providecommand{\rhmcsChQlikeTmaxNNinetyHi}{}\renewcommand{\rhmcsChQlikeTmaxNNinetyHi}{10}  % ... at block length 20
-\providecommand{\rhmcsChQlikeTmaxSetNinetyHi}{}\renewcommand{\rhmcsChQlikeTmaxSetNinetyHi}{the closing-interval HAR benchmark, XGBoost on the full predictor set, LightGBM on the full predictor set, XGBoost on the HAR benchmark, LightGBM on the HAR benchmark, the random forest on the full predictor set, the elastic net on the full predictor set, the linear models on the HAR benchmark, the random forest on the HAR benchmark, and ridge regression on the full predictor set}  % ... at block length 20
-\providecommand{\rhmcsChQlikeTmaxNSevenFive}{}\renewcommand{\rhmcsChQlikeTmaxNSevenFive}{5}  % models in the 75 % MCS (of 11)
-\providecommand{\rhmcsChQlikeTmaxSetSevenFive}{}\renewcommand{\rhmcsChQlikeTmaxSetSevenFive}{the closing-interval HAR benchmark, XGBoost on the full predictor set, LightGBM on the full predictor set, XGBoost on the HAR benchmark, and LightGBM on the HAR benchmark}  % the 75 % MCS, best (last eliminated) first
-\providecommand{\rhmcsChQlikeTmaxStableSevenFive}{}\renewcommand{\rhmcsChQlikeTmaxStableSevenFive}{yes}  % the 75 % MCS is the same at block lengths (5, 20)
-\providecommand{\rhmcsChQlikeTmaxPMaxOutSevenFive}{}\renewcommand{\rhmcsChQlikeTmaxPMaxOutSevenFive}{0.14}  % largest MCS p-value outside the 75 % set
-\providecommand{\rhmcsChQlikeTmaxNSevenFiveLo}{}\renewcommand{\rhmcsChQlikeTmaxNSevenFiveLo}{5}  % ... at block length 5
-\providecommand{\rhmcsChQlikeTmaxSetSevenFiveLo}{}\renewcommand{\rhmcsChQlikeTmaxSetSevenFiveLo}{the closing-interval HAR benchmark, XGBoost on the full predictor set, LightGBM on the full predictor set, XGBoost on the HAR benchmark, and LightGBM on the HAR benchmark}  % ... at block length 5
-\providecommand{\rhmcsChQlikeTmaxNSevenFiveHi}{}\renewcommand{\rhmcsChQlikeTmaxNSevenFiveHi}{5}  % ... at block length 20
-\providecommand{\rhmcsChQlikeTmaxSetSevenFiveHi}{}\renewcommand{\rhmcsChQlikeTmaxSetSevenFiveHi}{the closing-interval HAR benchmark, XGBoost on the full predictor set, LightGBM on the full predictor set, XGBoost on the HAR benchmark, and LightGBM on the HAR benchmark}  % ... at block length 20
+\providecommand{\rhmcsChQlikeTmaxPMaxOutNinety}{}\renewcommand{\rhmcsChQlikeTmaxPMaxOutNinety}{--}  % largest MCS p-value outside the 90 % set
+\providecommand{\rhmcsChQlikeTmaxNNinetyLo}{}\renewcommand{\rhmcsChQlikeTmaxNNinetyLo}{6}  % ... at block length 5
+\providecommand{\rhmcsChQlikeTmaxSetNinetyLo}{}\renewcommand{\rhmcsChQlikeTmaxSetNinetyLo}{the closing-interval HAR benchmark, XGBoost on the full predictor set, LightGBM on the full predictor set, LightGBM on the HAR benchmark, XGBoost on the HAR benchmark, and the elastic net on the full predictor set}  % ... at block length 5
+\providecommand{\rhmcsChQlikeTmaxNNinetyHi}{}\renewcommand{\rhmcsChQlikeTmaxNNinetyHi}{11}  % ... at block length 20
+\providecommand{\rhmcsChQlikeTmaxSetNinetyHi}{}\renewcommand{\rhmcsChQlikeTmaxSetNinetyHi}{the closing-interval HAR benchmark, XGBoost on the full predictor set, LightGBM on the full predictor set, LightGBM on the HAR benchmark, XGBoost on the HAR benchmark, the elastic net on the full predictor set, the random forest on the full predictor set, ridge regression on the full predictor set, the random forest on the HAR benchmark, the linear models on the HAR benchmark, and the lasso on the full predictor set}  % ... at block length 20
+\providecommand{\rhmcsChQlikeTmaxNSevenFive}{}\renewcommand{\rhmcsChQlikeTmaxNSevenFive}{2}  % models in the 75 % MCS (of 11)
+\providecommand{\rhmcsChQlikeTmaxSetSevenFive}{}\renewcommand{\rhmcsChQlikeTmaxSetSevenFive}{the closing-interval HAR benchmark and XGBoost on the full predictor set}  % the 75 % MCS, best (last eliminated) first
+\providecommand{\rhmcsChQlikeTmaxStableSevenFive}{}\renewcommand{\rhmcsChQlikeTmaxStableSevenFive}{no}  % the 75 % MCS is the same at block lengths (5, 20)
+\providecommand{\rhmcsChQlikeTmaxPMaxOutSevenFive}{}\renewcommand{\rhmcsChQlikeTmaxPMaxOutSevenFive}{0.17}  % largest MCS p-value outside the 75 % set
+\providecommand{\rhmcsChQlikeTmaxNSevenFiveLo}{}\renewcommand{\rhmcsChQlikeTmaxNSevenFiveLo}{1}  % ... at block length 5
+\providecommand{\rhmcsChQlikeTmaxSetSevenFiveLo}{}\renewcommand{\rhmcsChQlikeTmaxSetSevenFiveLo}{the closing-interval HAR benchmark}  % ... at block length 5
+\providecommand{\rhmcsChQlikeTmaxNSevenFiveHi}{}\renewcommand{\rhmcsChQlikeTmaxNSevenFiveHi}{2}  % ... at block length 20
+\providecommand{\rhmcsChQlikeTmaxSetSevenFiveHi}{}\renewcommand{\rhmcsChQlikeTmaxSetSevenFiveHi}{the closing-interval HAR benchmark and XGBoost on the full predictor set}  % ... at block length 20
 \providecommand{\rhmcsChQlikeTmaxBest}{}\renewcommand{\rhmcsChQlikeTmaxBest}{the closing-interval HAR benchmark}  % the last model left (MCS p-value 1)
-\providecommand{\rhmcsChQlikeTrangePLinHar}{}\renewcommand{\rhmcsChQlikeTrangePLinHar}{0.017}  % MCS p-value, 16:00 bar, the benchmark's span, Qlike, Trange: Linear, HAR
-\providecommand{\rhmcsChQlikeTrangePRidgeFull}{}\renewcommand{\rhmcsChQlikeTrangePRidgeFull}{0.017}  % MCS p-value, 16:00 bar, the benchmark's span, Qlike, Trange: Ridge, Full
-\providecommand{\rhmcsChQlikeTrangePLassoFull}{}\renewcommand{\rhmcsChQlikeTrangePLassoFull}{0.017}  % MCS p-value, 16:00 bar, the benchmark's span, Qlike, Trange: Lasso, Full
-\providecommand{\rhmcsChQlikeTrangePEnetFull}{}\renewcommand{\rhmcsChQlikeTrangePEnetFull}{0.026}  % MCS p-value, 16:00 bar, the benchmark's span, Qlike, Trange: Elastic net, Full
-\providecommand{\rhmcsChQlikeTrangePLgbmHar}{}\renewcommand{\rhmcsChQlikeTrangePLgbmHar}{0.58}  % MCS p-value, 16:00 bar, the benchmark's span, Qlike, Trange: LightGBM, HAR
-\providecommand{\rhmcsChQlikeTrangePLgbmFull}{}\renewcommand{\rhmcsChQlikeTrangePLgbmFull}{0.56}  % MCS p-value, 16:00 bar, the benchmark's span, Qlike, Trange: LightGBM, Full
-\providecommand{\rhmcsChQlikeTrangePXgbHar}{}\renewcommand{\rhmcsChQlikeTrangePXgbHar}{0.58}  % MCS p-value, 16:00 bar, the benchmark's span, Qlike, Trange: XGBoost, HAR
-\providecommand{\rhmcsChQlikeTrangePXgbFull}{}\renewcommand{\rhmcsChQlikeTrangePXgbFull}{0.72}  % MCS p-value, 16:00 bar, the benchmark's span, Qlike, Trange: XGBoost, Full
-\providecommand{\rhmcsChQlikeTrangePRfHar}{}\renewcommand{\rhmcsChQlikeTrangePRfHar}{0.006}  % MCS p-value, 16:00 bar, the benchmark's span, Qlike, Trange: Random forest, HAR
+\providecommand{\rhmcsChQlikeTrangePLinHar}{}\renewcommand{\rhmcsChQlikeTrangePLinHar}{\ensuremath{<}0.001}  % MCS p-value, 16:00 bar, the benchmark's span, Qlike, Trange: Linear, HAR
+\providecommand{\rhmcsChQlikeTrangePRidgeFull}{}\renewcommand{\rhmcsChQlikeTrangePRidgeFull}{0.011}  % MCS p-value, 16:00 bar, the benchmark's span, Qlike, Trange: Ridge, Full
+\providecommand{\rhmcsChQlikeTrangePLassoFull}{}\renewcommand{\rhmcsChQlikeTrangePLassoFull}{0.009}  % MCS p-value, 16:00 bar, the benchmark's span, Qlike, Trange: Lasso, Full
+\providecommand{\rhmcsChQlikeTrangePEnetFull}{}\renewcommand{\rhmcsChQlikeTrangePEnetFull}{0.023}  % MCS p-value, 16:00 bar, the benchmark's span, Qlike, Trange: Elastic net, Full
+\providecommand{\rhmcsChQlikeTrangePLgbmHar}{}\renewcommand{\rhmcsChQlikeTrangePLgbmHar}{0.009}  % MCS p-value, 16:00 bar, the benchmark's span, Qlike, Trange: LightGBM, HAR
+\providecommand{\rhmcsChQlikeTrangePLgbmFull}{}\renewcommand{\rhmcsChQlikeTrangePLgbmFull}{0.31}  % MCS p-value, 16:00 bar, the benchmark's span, Qlike, Trange: LightGBM, Full
+\providecommand{\rhmcsChQlikeTrangePXgbHar}{}\renewcommand{\rhmcsChQlikeTrangePXgbHar}{0.007}  % MCS p-value, 16:00 bar, the benchmark's span, Qlike, Trange: XGBoost, HAR
+\providecommand{\rhmcsChQlikeTrangePXgbFull}{}\renewcommand{\rhmcsChQlikeTrangePXgbFull}{0.31}  % MCS p-value, 16:00 bar, the benchmark's span, Qlike, Trange: XGBoost, Full
+\providecommand{\rhmcsChQlikeTrangePRfHar}{}\renewcommand{\rhmcsChQlikeTrangePRfHar}{\ensuremath{<}0.001}  % MCS p-value, 16:00 bar, the benchmark's span, Qlike, Trange: Random forest, HAR
 \providecommand{\rhmcsChQlikeTrangePRfFull}{}\renewcommand{\rhmcsChQlikeTrangePRfFull}{\ensuremath{<}0.001}  % MCS p-value, 16:00 bar, the benchmark's span, Qlike, Trange: Random forest, Full
 \providecommand{\rhmcsChQlikeTrangePBench}{}\renewcommand{\rhmcsChQlikeTrangePBench}{1.00}  % MCS p-value, 16:00 bar, the benchmark's span, Qlike, Trange: Closing-interval HAR benchmark
-\providecommand{\rhmcsChQlikeTrangeNNinety}{}\renewcommand{\rhmcsChQlikeTrangeNNinety}{5}  % models in the 90 % MCS (of 11)
-\providecommand{\rhmcsChQlikeTrangeSetNinety}{}\renewcommand{\rhmcsChQlikeTrangeSetNinety}{the closing-interval HAR benchmark, XGBoost on the full predictor set, XGBoost on the HAR benchmark, LightGBM on the HAR benchmark, and LightGBM on the full predictor set}  % the 90 % MCS, best (last eliminated) first
+\providecommand{\rhmcsChQlikeTrangeNNinety}{}\renewcommand{\rhmcsChQlikeTrangeNNinety}{3}  % models in the 90 % MCS (of 11)
+\providecommand{\rhmcsChQlikeTrangeSetNinety}{}\renewcommand{\rhmcsChQlikeTrangeSetNinety}{the closing-interval HAR benchmark, XGBoost on the full predictor set, and LightGBM on the full predictor set}  % the 90 % MCS, best (last eliminated) first
 \providecommand{\rhmcsChQlikeTrangeStableNinety}{}\renewcommand{\rhmcsChQlikeTrangeStableNinety}{yes}  % the 90 % MCS is the same at block lengths (5, 20)
-\providecommand{\rhmcsChQlikeTrangePMaxOutNinety}{}\renewcommand{\rhmcsChQlikeTrangePMaxOutNinety}{0.026}  % largest MCS p-value outside the 90 % set
-\providecommand{\rhmcsChQlikeTrangeNNinetyLo}{}\renewcommand{\rhmcsChQlikeTrangeNNinetyLo}{5}  % ... at block length 5
-\providecommand{\rhmcsChQlikeTrangeSetNinetyLo}{}\renewcommand{\rhmcsChQlikeTrangeSetNinetyLo}{the closing-interval HAR benchmark, XGBoost on the full predictor set, XGBoost on the HAR benchmark, LightGBM on the HAR benchmark, and LightGBM on the full predictor set}  % ... at block length 5
-\providecommand{\rhmcsChQlikeTrangeNNinetyHi}{}\renewcommand{\rhmcsChQlikeTrangeNNinetyHi}{5}  % ... at block length 20
-\providecommand{\rhmcsChQlikeTrangeSetNinetyHi}{}\renewcommand{\rhmcsChQlikeTrangeSetNinetyHi}{the closing-interval HAR benchmark, XGBoost on the full predictor set, XGBoost on the HAR benchmark, LightGBM on the HAR benchmark, and LightGBM on the full predictor set}  % ... at block length 20
-\providecommand{\rhmcsChQlikeTrangeNSevenFive}{}\renewcommand{\rhmcsChQlikeTrangeNSevenFive}{5}  % models in the 75 % MCS (of 11)
-\providecommand{\rhmcsChQlikeTrangeSetSevenFive}{}\renewcommand{\rhmcsChQlikeTrangeSetSevenFive}{the closing-interval HAR benchmark, XGBoost on the full predictor set, XGBoost on the HAR benchmark, LightGBM on the HAR benchmark, and LightGBM on the full predictor set}  % the 75 % MCS, best (last eliminated) first
+\providecommand{\rhmcsChQlikeTrangePMaxOutNinety}{}\renewcommand{\rhmcsChQlikeTrangePMaxOutNinety}{0.023}  % largest MCS p-value outside the 90 % set
+\providecommand{\rhmcsChQlikeTrangeNNinetyLo}{}\renewcommand{\rhmcsChQlikeTrangeNNinetyLo}{3}  % ... at block length 5
+\providecommand{\rhmcsChQlikeTrangeSetNinetyLo}{}\renewcommand{\rhmcsChQlikeTrangeSetNinetyLo}{the closing-interval HAR benchmark, XGBoost on the full predictor set, and LightGBM on the full predictor set}  % ... at block length 5
+\providecommand{\rhmcsChQlikeTrangeNNinetyHi}{}\renewcommand{\rhmcsChQlikeTrangeNNinetyHi}{3}  % ... at block length 20
+\providecommand{\rhmcsChQlikeTrangeSetNinetyHi}{}\renewcommand{\rhmcsChQlikeTrangeSetNinetyHi}{the closing-interval HAR benchmark, XGBoost on the full predictor set, and LightGBM on the full predictor set}  % ... at block length 20
+\providecommand{\rhmcsChQlikeTrangeNSevenFive}{}\renewcommand{\rhmcsChQlikeTrangeNSevenFive}{3}  % models in the 75 % MCS (of 11)
+\providecommand{\rhmcsChQlikeTrangeSetSevenFive}{}\renewcommand{\rhmcsChQlikeTrangeSetSevenFive}{the closing-interval HAR benchmark, XGBoost on the full predictor set, and LightGBM on the full predictor set}  % the 75 % MCS, best (last eliminated) first
 \providecommand{\rhmcsChQlikeTrangeStableSevenFive}{}\renewcommand{\rhmcsChQlikeTrangeStableSevenFive}{yes}  % the 75 % MCS is the same at block lengths (5, 20)
-\providecommand{\rhmcsChQlikeTrangePMaxOutSevenFive}{}\renewcommand{\rhmcsChQlikeTrangePMaxOutSevenFive}{0.026}  % largest MCS p-value outside the 75 % set
-\providecommand{\rhmcsChQlikeTrangeNSevenFiveLo}{}\renewcommand{\rhmcsChQlikeTrangeNSevenFiveLo}{5}  % ... at block length 5
-\providecommand{\rhmcsChQlikeTrangeSetSevenFiveLo}{}\renewcommand{\rhmcsChQlikeTrangeSetSevenFiveLo}{the closing-interval HAR benchmark, XGBoost on the full predictor set, XGBoost on the HAR benchmark, LightGBM on the HAR benchmark, and LightGBM on the full predictor set}  % ... at block length 5
-\providecommand{\rhmcsChQlikeTrangeNSevenFiveHi}{}\renewcommand{\rhmcsChQlikeTrangeNSevenFiveHi}{5}  % ... at block length 20
-\providecommand{\rhmcsChQlikeTrangeSetSevenFiveHi}{}\renewcommand{\rhmcsChQlikeTrangeSetSevenFiveHi}{the closing-interval HAR benchmark, XGBoost on the full predictor set, XGBoost on the HAR benchmark, LightGBM on the HAR benchmark, and LightGBM on the full predictor set}  % ... at block length 20
+\providecommand{\rhmcsChQlikeTrangePMaxOutSevenFive}{}\renewcommand{\rhmcsChQlikeTrangePMaxOutSevenFive}{0.023}  % largest MCS p-value outside the 75 % set
+\providecommand{\rhmcsChQlikeTrangeNSevenFiveLo}{}\renewcommand{\rhmcsChQlikeTrangeNSevenFiveLo}{3}  % ... at block length 5
+\providecommand{\rhmcsChQlikeTrangeSetSevenFiveLo}{}\renewcommand{\rhmcsChQlikeTrangeSetSevenFiveLo}{the closing-interval HAR benchmark, XGBoost on the full predictor set, and LightGBM on the full predictor set}  % ... at block length 5
+\providecommand{\rhmcsChQlikeTrangeNSevenFiveHi}{}\renewcommand{\rhmcsChQlikeTrangeNSevenFiveHi}{3}  % ... at block length 20
+\providecommand{\rhmcsChQlikeTrangeSetSevenFiveHi}{}\renewcommand{\rhmcsChQlikeTrangeSetSevenFiveHi}{the closing-interval HAR benchmark, XGBoost on the full predictor set, and LightGBM on the full predictor set}  % ... at block length 20
 \providecommand{\rhmcsChQlikeTrangeBest}{}\renewcommand{\rhmcsChQlikeTrangeBest}{the closing-interval HAR benchmark}  % the last model left (MCS p-value 1)
-\providecommand{\rhmcsChMseTmaxPLinHar}{}\renewcommand{\rhmcsChMseTmaxPLinHar}{0.55}  % MCS p-value, 16:00 bar, the benchmark's span, Mse, Tmax: Linear, HAR
-\providecommand{\rhmcsChMseTmaxPRidgeFull}{}\renewcommand{\rhmcsChMseTmaxPRidgeFull}{0.46}  % MCS p-value, 16:00 bar, the benchmark's span, Mse, Tmax: Ridge, Full
-\providecommand{\rhmcsChMseTmaxPLassoFull}{}\renewcommand{\rhmcsChMseTmaxPLassoFull}{0.39}  % MCS p-value, 16:00 bar, the benchmark's span, Mse, Tmax: Lasso, Full
-\providecommand{\rhmcsChMseTmaxPEnetFull}{}\renewcommand{\rhmcsChMseTmaxPEnetFull}{0.52}  % MCS p-value, 16:00 bar, the benchmark's span, Mse, Tmax: Elastic net, Full
-\providecommand{\rhmcsChMseTmaxPLgbmHar}{}\renewcommand{\rhmcsChMseTmaxPLgbmHar}{0.55}  % MCS p-value, 16:00 bar, the benchmark's span, Mse, Tmax: LightGBM, HAR
+\providecommand{\rhmcsChMseTmaxPLinHar}{}\renewcommand{\rhmcsChMseTmaxPLinHar}{0.57}  % MCS p-value, 16:00 bar, the benchmark's span, Mse, Tmax: Linear, HAR
+\providecommand{\rhmcsChMseTmaxPRidgeFull}{}\renewcommand{\rhmcsChMseTmaxPRidgeFull}{0.48}  % MCS p-value, 16:00 bar, the benchmark's span, Mse, Tmax: Ridge, Full
+\providecommand{\rhmcsChMseTmaxPLassoFull}{}\renewcommand{\rhmcsChMseTmaxPLassoFull}{0.41}  % MCS p-value, 16:00 bar, the benchmark's span, Mse, Tmax: Lasso, Full
+\providecommand{\rhmcsChMseTmaxPEnetFull}{}\renewcommand{\rhmcsChMseTmaxPEnetFull}{0.54}  % MCS p-value, 16:00 bar, the benchmark's span, Mse, Tmax: Elastic net, Full
+\providecommand{\rhmcsChMseTmaxPLgbmHar}{}\renewcommand{\rhmcsChMseTmaxPLgbmHar}{0.57}  % MCS p-value, 16:00 bar, the benchmark's span, Mse, Tmax: LightGBM, HAR
 \providecommand{\rhmcsChMseTmaxPLgbmFull}{}\renewcommand{\rhmcsChMseTmaxPLgbmFull}{0.54}  % MCS p-value, 16:00 bar, the benchmark's span, Mse, Tmax: LightGBM, Full
-\providecommand{\rhmcsChMseTmaxPXgbHar}{}\renewcommand{\rhmcsChMseTmaxPXgbHar}{0.55}  % MCS p-value, 16:00 bar, the benchmark's span, Mse, Tmax: XGBoost, HAR
-\providecommand{\rhmcsChMseTmaxPXgbFull}{}\renewcommand{\rhmcsChMseTmaxPXgbFull}{0.54}  % MCS p-value, 16:00 bar, the benchmark's span, Mse, Tmax: XGBoost, Full
+\providecommand{\rhmcsChMseTmaxPXgbHar}{}\renewcommand{\rhmcsChMseTmaxPXgbHar}{0.57}  % MCS p-value, 16:00 bar, the benchmark's span, Mse, Tmax: XGBoost, HAR
+\providecommand{\rhmcsChMseTmaxPXgbFull}{}\renewcommand{\rhmcsChMseTmaxPXgbFull}{0.57}  % MCS p-value, 16:00 bar, the benchmark's span, Mse, Tmax: XGBoost, Full
 \providecommand{\rhmcsChMseTmaxPRfHar}{}\renewcommand{\rhmcsChMseTmaxPRfHar}{1.00}  % MCS p-value, 16:00 bar, the benchmark's span, Mse, Tmax: Random forest, HAR
-\providecommand{\rhmcsChMseTmaxPRfFull}{}\renewcommand{\rhmcsChMseTmaxPRfFull}{0.55}  % MCS p-value, 16:00 bar, the benchmark's span, Mse, Tmax: Random forest, Full
-\providecommand{\rhmcsChMseTmaxPBench}{}\renewcommand{\rhmcsChMseTmaxPBench}{0.55}  % MCS p-value, 16:00 bar, the benchmark's span, Mse, Tmax: Closing-interval HAR benchmark
+\providecommand{\rhmcsChMseTmaxPRfFull}{}\renewcommand{\rhmcsChMseTmaxPRfFull}{0.57}  % MCS p-value, 16:00 bar, the benchmark's span, Mse, Tmax: Random forest, Full
+\providecommand{\rhmcsChMseTmaxPBench}{}\renewcommand{\rhmcsChMseTmaxPBench}{0.57}  % MCS p-value, 16:00 bar, the benchmark's span, Mse, Tmax: Closing-interval HAR benchmark
 \providecommand{\rhmcsChMseTmaxNNinety}{}\renewcommand{\rhmcsChMseTmaxNNinety}{11}  % models in the 90 % MCS (of 11)
 \providecommand{\rhmcsChMseTmaxSetNinety}{}\renewcommand{\rhmcsChMseTmaxSetNinety}{the random forest on the HAR benchmark, XGBoost on the HAR benchmark, LightGBM on the HAR benchmark, the linear models on the HAR benchmark, the random forest on the full predictor set, the closing-interval HAR benchmark, XGBoost on the full predictor set, LightGBM on the full predictor set, the elastic net on the full predictor set, ridge regression on the full predictor set, and the lasso on the full predictor set}  % the 90 % MCS, best (last eliminated) first
 \providecommand{\rhmcsChMseTmaxStableNinety}{}\renewcommand{\rhmcsChMseTmaxStableNinety}{yes}  % the 90 % MCS is the same at block lengths (5, 20)
@@ -429,43 +429,43 @@
 \providecommand{\rhmcsChMseTmaxNNinetyLo}{}\renewcommand{\rhmcsChMseTmaxNNinetyLo}{11}  % ... at block length 5
 \providecommand{\rhmcsChMseTmaxSetNinetyLo}{}\renewcommand{\rhmcsChMseTmaxSetNinetyLo}{the random forest on the HAR benchmark, XGBoost on the HAR benchmark, LightGBM on the HAR benchmark, the linear models on the HAR benchmark, the random forest on the full predictor set, the closing-interval HAR benchmark, XGBoost on the full predictor set, LightGBM on the full predictor set, the elastic net on the full predictor set, ridge regression on the full predictor set, and the lasso on the full predictor set}  % ... at block length 5
 \providecommand{\rhmcsChMseTmaxNNinetyHi}{}\renewcommand{\rhmcsChMseTmaxNNinetyHi}{11}  % ... at block length 20
-\providecommand{\rhmcsChMseTmaxSetNinetyHi}{}\renewcommand{\rhmcsChMseTmaxSetNinetyHi}{the random forest on the HAR benchmark, XGBoost on the HAR benchmark, LightGBM on the HAR benchmark, the linear models on the HAR benchmark, the closing-interval HAR benchmark, the random forest on the full predictor set, XGBoost on the full predictor set, LightGBM on the full predictor set, the elastic net on the full predictor set, ridge regression on the full predictor set, and the lasso on the full predictor set}  % ... at block length 20
+\providecommand{\rhmcsChMseTmaxSetNinetyHi}{}\renewcommand{\rhmcsChMseTmaxSetNinetyHi}{the random forest on the HAR benchmark, XGBoost on the HAR benchmark, LightGBM on the HAR benchmark, the linear models on the HAR benchmark, the random forest on the full predictor set, the closing-interval HAR benchmark, XGBoost on the full predictor set, LightGBM on the full predictor set, the elastic net on the full predictor set, ridge regression on the full predictor set, and the lasso on the full predictor set}  % ... at block length 20
 \providecommand{\rhmcsChMseTmaxNSevenFive}{}\renewcommand{\rhmcsChMseTmaxNSevenFive}{11}  % models in the 75 % MCS (of 11)
 \providecommand{\rhmcsChMseTmaxSetSevenFive}{}\renewcommand{\rhmcsChMseTmaxSetSevenFive}{the random forest on the HAR benchmark, XGBoost on the HAR benchmark, LightGBM on the HAR benchmark, the linear models on the HAR benchmark, the random forest on the full predictor set, the closing-interval HAR benchmark, XGBoost on the full predictor set, LightGBM on the full predictor set, the elastic net on the full predictor set, ridge regression on the full predictor set, and the lasso on the full predictor set}  % the 75 % MCS, best (last eliminated) first
-\providecommand{\rhmcsChMseTmaxStableSevenFive}{}\renewcommand{\rhmcsChMseTmaxStableSevenFive}{no}  % the 75 % MCS is the same at block lengths (5, 20)
+\providecommand{\rhmcsChMseTmaxStableSevenFive}{}\renewcommand{\rhmcsChMseTmaxStableSevenFive}{yes}  % the 75 % MCS is the same at block lengths (5, 20)
 \providecommand{\rhmcsChMseTmaxPMaxOutSevenFive}{}\renewcommand{\rhmcsChMseTmaxPMaxOutSevenFive}{--}  % largest MCS p-value outside the 75 % set
-\providecommand{\rhmcsChMseTmaxNSevenFiveLo}{}\renewcommand{\rhmcsChMseTmaxNSevenFiveLo}{10}  % ... at block length 5
-\providecommand{\rhmcsChMseTmaxSetSevenFiveLo}{}\renewcommand{\rhmcsChMseTmaxSetSevenFiveLo}{the random forest on the HAR benchmark, XGBoost on the HAR benchmark, LightGBM on the HAR benchmark, the linear models on the HAR benchmark, the random forest on the full predictor set, the closing-interval HAR benchmark, XGBoost on the full predictor set, LightGBM on the full predictor set, the elastic net on the full predictor set, and ridge regression on the full predictor set}  % ... at block length 5
+\providecommand{\rhmcsChMseTmaxNSevenFiveLo}{}\renewcommand{\rhmcsChMseTmaxNSevenFiveLo}{11}  % ... at block length 5
+\providecommand{\rhmcsChMseTmaxSetSevenFiveLo}{}\renewcommand{\rhmcsChMseTmaxSetSevenFiveLo}{the random forest on the HAR benchmark, XGBoost on the HAR benchmark, LightGBM on the HAR benchmark, the linear models on the HAR benchmark, the random forest on the full predictor set, the closing-interval HAR benchmark, XGBoost on the full predictor set, LightGBM on the full predictor set, the elastic net on the full predictor set, ridge regression on the full predictor set, and the lasso on the full predictor set}  % ... at block length 5
 \providecommand{\rhmcsChMseTmaxNSevenFiveHi}{}\renewcommand{\rhmcsChMseTmaxNSevenFiveHi}{11}  % ... at block length 20
-\providecommand{\rhmcsChMseTmaxSetSevenFiveHi}{}\renewcommand{\rhmcsChMseTmaxSetSevenFiveHi}{the random forest on the HAR benchmark, XGBoost on the HAR benchmark, LightGBM on the HAR benchmark, the linear models on the HAR benchmark, the closing-interval HAR benchmark, the random forest on the full predictor set, XGBoost on the full predictor set, LightGBM on the full predictor set, the elastic net on the full predictor set, ridge regression on the full predictor set, and the lasso on the full predictor set}  % ... at block length 20
+\providecommand{\rhmcsChMseTmaxSetSevenFiveHi}{}\renewcommand{\rhmcsChMseTmaxSetSevenFiveHi}{the random forest on the HAR benchmark, XGBoost on the HAR benchmark, LightGBM on the HAR benchmark, the linear models on the HAR benchmark, the random forest on the full predictor set, the closing-interval HAR benchmark, XGBoost on the full predictor set, LightGBM on the full predictor set, the elastic net on the full predictor set, ridge regression on the full predictor set, and the lasso on the full predictor set}  % ... at block length 20
 \providecommand{\rhmcsChMseTmaxBest}{}\renewcommand{\rhmcsChMseTmaxBest}{the random forest on the HAR benchmark}  % the last model left (MCS p-value 1)
-\providecommand{\rhmcsChMseTrangePLinHar}{}\renewcommand{\rhmcsChMseTrangePLinHar}{0.64}  % MCS p-value, 16:00 bar, the benchmark's span, Mse, Trange: Linear, HAR
-\providecommand{\rhmcsChMseTrangePRidgeFull}{}\renewcommand{\rhmcsChMseTrangePRidgeFull}{0.64}  % MCS p-value, 16:00 bar, the benchmark's span, Mse, Trange: Ridge, Full
-\providecommand{\rhmcsChMseTrangePLassoFull}{}\renewcommand{\rhmcsChMseTrangePLassoFull}{0.64}  % MCS p-value, 16:00 bar, the benchmark's span, Mse, Trange: Lasso, Full
-\providecommand{\rhmcsChMseTrangePEnetFull}{}\renewcommand{\rhmcsChMseTrangePEnetFull}{0.64}  % MCS p-value, 16:00 bar, the benchmark's span, Mse, Trange: Elastic net, Full
-\providecommand{\rhmcsChMseTrangePLgbmHar}{}\renewcommand{\rhmcsChMseTrangePLgbmHar}{0.56}  % MCS p-value, 16:00 bar, the benchmark's span, Mse, Trange: LightGBM, HAR
-\providecommand{\rhmcsChMseTrangePLgbmFull}{}\renewcommand{\rhmcsChMseTrangePLgbmFull}{0.64}  % MCS p-value, 16:00 bar, the benchmark's span, Mse, Trange: LightGBM, Full
-\providecommand{\rhmcsChMseTrangePXgbHar}{}\renewcommand{\rhmcsChMseTrangePXgbHar}{0.64}  % MCS p-value, 16:00 bar, the benchmark's span, Mse, Trange: XGBoost, HAR
-\providecommand{\rhmcsChMseTrangePXgbFull}{}\renewcommand{\rhmcsChMseTrangePXgbFull}{0.64}  % MCS p-value, 16:00 bar, the benchmark's span, Mse, Trange: XGBoost, Full
+\providecommand{\rhmcsChMseTrangePLinHar}{}\renewcommand{\rhmcsChMseTrangePLinHar}{0.65}  % MCS p-value, 16:00 bar, the benchmark's span, Mse, Trange: Linear, HAR
+\providecommand{\rhmcsChMseTrangePRidgeFull}{}\renewcommand{\rhmcsChMseTrangePRidgeFull}{0.65}  % MCS p-value, 16:00 bar, the benchmark's span, Mse, Trange: Ridge, Full
+\providecommand{\rhmcsChMseTrangePLassoFull}{}\renewcommand{\rhmcsChMseTrangePLassoFull}{0.65}  % MCS p-value, 16:00 bar, the benchmark's span, Mse, Trange: Lasso, Full
+\providecommand{\rhmcsChMseTrangePEnetFull}{}\renewcommand{\rhmcsChMseTrangePEnetFull}{0.65}  % MCS p-value, 16:00 bar, the benchmark's span, Mse, Trange: Elastic net, Full
+\providecommand{\rhmcsChMseTrangePLgbmHar}{}\renewcommand{\rhmcsChMseTrangePLgbmHar}{0.43}  % MCS p-value, 16:00 bar, the benchmark's span, Mse, Trange: LightGBM, HAR
+\providecommand{\rhmcsChMseTrangePLgbmFull}{}\renewcommand{\rhmcsChMseTrangePLgbmFull}{0.65}  % MCS p-value, 16:00 bar, the benchmark's span, Mse, Trange: LightGBM, Full
+\providecommand{\rhmcsChMseTrangePXgbHar}{}\renewcommand{\rhmcsChMseTrangePXgbHar}{0.65}  % MCS p-value, 16:00 bar, the benchmark's span, Mse, Trange: XGBoost, HAR
+\providecommand{\rhmcsChMseTrangePXgbFull}{}\renewcommand{\rhmcsChMseTrangePXgbFull}{0.65}  % MCS p-value, 16:00 bar, the benchmark's span, Mse, Trange: XGBoost, Full
 \providecommand{\rhmcsChMseTrangePRfHar}{}\renewcommand{\rhmcsChMseTrangePRfHar}{1.00}  % MCS p-value, 16:00 bar, the benchmark's span, Mse, Trange: Random forest, HAR
-\providecommand{\rhmcsChMseTrangePRfFull}{}\renewcommand{\rhmcsChMseTrangePRfFull}{0.64}  % MCS p-value, 16:00 bar, the benchmark's span, Mse, Trange: Random forest, Full
-\providecommand{\rhmcsChMseTrangePBench}{}\renewcommand{\rhmcsChMseTrangePBench}{0.61}  % MCS p-value, 16:00 bar, the benchmark's span, Mse, Trange: Closing-interval HAR benchmark
+\providecommand{\rhmcsChMseTrangePRfFull}{}\renewcommand{\rhmcsChMseTrangePRfFull}{0.65}  % MCS p-value, 16:00 bar, the benchmark's span, Mse, Trange: Random forest, Full
+\providecommand{\rhmcsChMseTrangePBench}{}\renewcommand{\rhmcsChMseTrangePBench}{0.62}  % MCS p-value, 16:00 bar, the benchmark's span, Mse, Trange: Closing-interval HAR benchmark
 \providecommand{\rhmcsChMseTrangeNNinety}{}\renewcommand{\rhmcsChMseTrangeNNinety}{11}  % models in the 90 % MCS (of 11)
-\providecommand{\rhmcsChMseTrangeSetNinety}{}\renewcommand{\rhmcsChMseTrangeSetNinety}{the random forest on the HAR benchmark, XGBoost on the HAR benchmark, the linear models on the HAR benchmark, the random forest on the full predictor set, XGBoost on the full predictor set, the elastic net on the full predictor set, LightGBM on the full predictor set, ridge regression on the full predictor set, the lasso on the full predictor set, the closing-interval HAR benchmark, and LightGBM on the HAR benchmark}  % the 90 % MCS, best (last eliminated) first
+\providecommand{\rhmcsChMseTrangeSetNinety}{}\renewcommand{\rhmcsChMseTrangeSetNinety}{the random forest on the HAR benchmark, the linear models on the HAR benchmark, XGBoost on the HAR benchmark, the random forest on the full predictor set, XGBoost on the full predictor set, the elastic net on the full predictor set, ridge regression on the full predictor set, the lasso on the full predictor set, LightGBM on the full predictor set, the closing-interval HAR benchmark, and LightGBM on the HAR benchmark}  % the 90 % MCS, best (last eliminated) first
 \providecommand{\rhmcsChMseTrangeStableNinety}{}\renewcommand{\rhmcsChMseTrangeStableNinety}{yes}  % the 90 % MCS is the same at block lengths (5, 20)
 \providecommand{\rhmcsChMseTrangePMaxOutNinety}{}\renewcommand{\rhmcsChMseTrangePMaxOutNinety}{--}  % largest MCS p-value outside the 90 % set
 \providecommand{\rhmcsChMseTrangeNNinetyLo}{}\renewcommand{\rhmcsChMseTrangeNNinetyLo}{11}  % ... at block length 5
-\providecommand{\rhmcsChMseTrangeSetNinetyLo}{}\renewcommand{\rhmcsChMseTrangeSetNinetyLo}{the random forest on the HAR benchmark, XGBoost on the HAR benchmark, the linear models on the HAR benchmark, XGBoost on the full predictor set, the random forest on the full predictor set, the elastic net on the full predictor set, LightGBM on the full predictor set, ridge regression on the full predictor set, LightGBM on the HAR benchmark, the lasso on the full predictor set, and the closing-interval HAR benchmark}  % ... at block length 5
+\providecommand{\rhmcsChMseTrangeSetNinetyLo}{}\renewcommand{\rhmcsChMseTrangeSetNinetyLo}{the random forest on the HAR benchmark, the linear models on the HAR benchmark, XGBoost on the HAR benchmark, XGBoost on the full predictor set, the random forest on the full predictor set, the elastic net on the full predictor set, ridge regression on the full predictor set, LightGBM on the full predictor set, the lasso on the full predictor set, the closing-interval HAR benchmark, and LightGBM on the HAR benchmark}  % ... at block length 5
 \providecommand{\rhmcsChMseTrangeNNinetyHi}{}\renewcommand{\rhmcsChMseTrangeNNinetyHi}{11}  % ... at block length 20
-\providecommand{\rhmcsChMseTrangeSetNinetyHi}{}\renewcommand{\rhmcsChMseTrangeSetNinetyHi}{the random forest on the HAR benchmark, the linear models on the HAR benchmark, the random forest on the full predictor set, XGBoost on the full predictor set, XGBoost on the HAR benchmark, the elastic net on the full predictor set, LightGBM on the full predictor set, ridge regression on the full predictor set, the lasso on the full predictor set, the closing-interval HAR benchmark, and LightGBM on the HAR benchmark}  % ... at block length 20
+\providecommand{\rhmcsChMseTrangeSetNinetyHi}{}\renewcommand{\rhmcsChMseTrangeSetNinetyHi}{the random forest on the HAR benchmark, the linear models on the HAR benchmark, the random forest on the full predictor set, XGBoost on the full predictor set, the elastic net on the full predictor set, ridge regression on the full predictor set, the lasso on the full predictor set, XGBoost on the HAR benchmark, LightGBM on the full predictor set, the closing-interval HAR benchmark, and LightGBM on the HAR benchmark}  % ... at block length 20
 \providecommand{\rhmcsChMseTrangeNSevenFive}{}\renewcommand{\rhmcsChMseTrangeNSevenFive}{11}  % models in the 75 % MCS (of 11)
-\providecommand{\rhmcsChMseTrangeSetSevenFive}{}\renewcommand{\rhmcsChMseTrangeSetSevenFive}{the random forest on the HAR benchmark, XGBoost on the HAR benchmark, the linear models on the HAR benchmark, the random forest on the full predictor set, XGBoost on the full predictor set, the elastic net on the full predictor set, LightGBM on the full predictor set, ridge regression on the full predictor set, the lasso on the full predictor set, the closing-interval HAR benchmark, and LightGBM on the HAR benchmark}  % the 75 % MCS, best (last eliminated) first
+\providecommand{\rhmcsChMseTrangeSetSevenFive}{}\renewcommand{\rhmcsChMseTrangeSetSevenFive}{the random forest on the HAR benchmark, the linear models on the HAR benchmark, XGBoost on the HAR benchmark, the random forest on the full predictor set, XGBoost on the full predictor set, the elastic net on the full predictor set, ridge regression on the full predictor set, the lasso on the full predictor set, LightGBM on the full predictor set, the closing-interval HAR benchmark, and LightGBM on the HAR benchmark}  % the 75 % MCS, best (last eliminated) first
 \providecommand{\rhmcsChMseTrangeStableSevenFive}{}\renewcommand{\rhmcsChMseTrangeStableSevenFive}{yes}  % the 75 % MCS is the same at block lengths (5, 20)
 \providecommand{\rhmcsChMseTrangePMaxOutSevenFive}{}\renewcommand{\rhmcsChMseTrangePMaxOutSevenFive}{--}  % largest MCS p-value outside the 75 % set
 \providecommand{\rhmcsChMseTrangeNSevenFiveLo}{}\renewcommand{\rhmcsChMseTrangeNSevenFiveLo}{11}  % ... at block length 5
-\providecommand{\rhmcsChMseTrangeSetSevenFiveLo}{}\renewcommand{\rhmcsChMseTrangeSetSevenFiveLo}{the random forest on the HAR benchmark, XGBoost on the HAR benchmark, the linear models on the HAR benchmark, XGBoost on the full predictor set, the random forest on the full predictor set, the elastic net on the full predictor set, LightGBM on the full predictor set, ridge regression on the full predictor set, LightGBM on the HAR benchmark, the lasso on the full predictor set, and the closing-interval HAR benchmark}  % ... at block length 5
+\providecommand{\rhmcsChMseTrangeSetSevenFiveLo}{}\renewcommand{\rhmcsChMseTrangeSetSevenFiveLo}{the random forest on the HAR benchmark, the linear models on the HAR benchmark, XGBoost on the HAR benchmark, XGBoost on the full predictor set, the random forest on the full predictor set, the elastic net on the full predictor set, ridge regression on the full predictor set, LightGBM on the full predictor set, the lasso on the full predictor set, the closing-interval HAR benchmark, and LightGBM on the HAR benchmark}  % ... at block length 5
 \providecommand{\rhmcsChMseTrangeNSevenFiveHi}{}\renewcommand{\rhmcsChMseTrangeNSevenFiveHi}{11}  % ... at block length 20
-\providecommand{\rhmcsChMseTrangeSetSevenFiveHi}{}\renewcommand{\rhmcsChMseTrangeSetSevenFiveHi}{the random forest on the HAR benchmark, the linear models on the HAR benchmark, the random forest on the full predictor set, XGBoost on the full predictor set, XGBoost on the HAR benchmark, the elastic net on the full predictor set, LightGBM on the full predictor set, ridge regression on the full predictor set, the lasso on the full predictor set, the closing-interval HAR benchmark, and LightGBM on the HAR benchmark}  % ... at block length 20
+\providecommand{\rhmcsChMseTrangeSetSevenFiveHi}{}\renewcommand{\rhmcsChMseTrangeSetSevenFiveHi}{the random forest on the HAR benchmark, the linear models on the HAR benchmark, the random forest on the full predictor set, XGBoost on the full predictor set, the elastic net on the full predictor set, ridge regression on the full predictor set, the lasso on the full predictor set, XGBoost on the HAR benchmark, LightGBM on the full predictor set, the closing-interval HAR benchmark, and LightGBM on the HAR benchmark}  % ... at block length 20
 \providecommand{\rhmcsChMseTrangeBest}{}\renewcommand{\rhmcsChMseTrangeBest}{the random forest on the HAR benchmark}  % the last model left (MCS p-value 1)
 \providecommand{\rhmcsBarQAfSpaC}{}\renewcommand{\rhmcsBarQAfSpaC}{\ensuremath{<}0.001}  % SPA p-value (consistent), family BarQAf
 \providecommand{\rhmcsBarQAfSpaL}{}\renewcommand{\rhmcsBarQAfSpaL}{\ensuremath{<}0.001}  % ... lower
@@ -728,23 +728,23 @@
 \providecommand{\rhmcsOosQAfPMinHi}{}\renewcommand{\rhmcsOosQAfPMinHi}{0.41}  % smallest adjusted p, block length 20
 \providecommand{\rhmcsOosQAfPTwoMinHi}{}\renewcommand{\rhmcsOosQAfPTwoMinHi}{0.074}  % ... two-sided, block length 20
 \providecommand{\rhmcsOosQBmSpaC}{}\renewcommand{\rhmcsOosQBmSpaC}{0.53}  % SPA p-value (consistent), family OosQBm
-\providecommand{\rhmcsOosQBmSpaL}{}\renewcommand{\rhmcsOosQBmSpaL}{0.12}  % ... lower
-\providecommand{\rhmcsOosQBmSpaU}{}\renewcommand{\rhmcsOosQBmSpaU}{0.71}  % ... upper
+\providecommand{\rhmcsOosQBmSpaL}{}\renewcommand{\rhmcsOosQBmSpaL}{0.095}  % ... lower
+\providecommand{\rhmcsOosQBmSpaU}{}\renewcommand{\rhmcsOosQBmSpaU}{0.69}  % ... upper
 \providecommand{\rhmcsOosQBmNRej}{}\renewcommand{\rhmcsOosQBmNRej}{0}  % StepM rejections at FWER 5 % (of 6)
 \providecommand{\rhmcsOosQBmNRejWord}{}\renewcommand{\rhmcsOosQBmNRejWord}{none}  % ... as a word
 \providecommand{\rhmcsOosQBmNRaw}{}\renewcommand{\rhmcsOosQBmNRaw}{0}  % single-test bootstrap p < 0.05 (no adjustment)
 \providecommand{\rhmcsOosQBmNRawWord}{}\renewcommand{\rhmcsOosQBmNRawWord}{none}  % ... as a word
 \providecommand{\rhmcsOosQBmNPos}{}\renewcommand{\rhmcsOosQBmNPos}{0}  % alternatives with a positive estimate (better than the benchmark)
-\providecommand{\rhmcsOosQBmPMin}{}\renewcommand{\rhmcsOosQBmPMin}{0.96}  % smallest StepM-adjusted p-value
+\providecommand{\rhmcsOosQBmPMin}{}\renewcommand{\rhmcsOosQBmPMin}{0.97}  % smallest StepM-adjusted p-value
 \providecommand{\rhmcsOosQBmPMax}{}\renewcommand{\rhmcsOosQBmPMax}{1.00}  % largest StepM-adjusted p-value
 \providecommand{\rhmcsOosQBmPTwoMin}{}\renewcommand{\rhmcsOosQBmPTwoMin}{0.002}  % smallest two-sided StepM-adjusted p-value
-\providecommand{\rhmcsOosQBmPTwoMax}{}\renewcommand{\rhmcsOosQBmPTwoMax}{0.26}  % largest two-sided StepM-adjusted p-value
-\providecommand{\rhmcsOosQBmRawMin}{}\renewcommand{\rhmcsOosQBmRawMin}{0.87}  % smallest single-test bootstrap p-value
+\providecommand{\rhmcsOosQBmPTwoMax}{}\renewcommand{\rhmcsOosQBmPTwoMax}{0.20}  % largest two-sided StepM-adjusted p-value
+\providecommand{\rhmcsOosQBmRawMin}{}\renewcommand{\rhmcsOosQBmRawMin}{0.90}  % smallest single-test bootstrap p-value
 \providecommand{\rhmcsOosQBmRej}{}\renewcommand{\rhmcsOosQBmRej}{none}  % the alternatives StepM rejects at 5 % (none: none)
-\providecommand{\rhmcsOosQBmNRejTwo}{}\renewcommand{\rhmcsOosQBmNRejTwo}{3}  % StepM rejections at FWER 5 %, two-sided
-\providecommand{\rhmcsOosQBmNRejTwoWord}{}\renewcommand{\rhmcsOosQBmNRejTwoWord}{three}  % ... as a word
+\providecommand{\rhmcsOosQBmNRejTwo}{}\renewcommand{\rhmcsOosQBmNRejTwo}{4}  % StepM rejections at FWER 5 %, two-sided
+\providecommand{\rhmcsOosQBmNRejTwoWord}{}\renewcommand{\rhmcsOosQBmNRejTwoWord}{four}  % ... as a word
 \providecommand{\rhmcsOosQBmNRawTwo}{}\renewcommand{\rhmcsOosQBmNRawTwo}{4}  % single-test bootstrap p < 0.05, two-sided
-\providecommand{\rhmcsOosQBmRejTwo}{}\renewcommand{\rhmcsOosQBmRejTwo}{ridge regression on the full predictor set, the lasso on the full predictor set, and the elastic net on the full predictor set}  % the alternatives the two-sided StepM rejects at 5 % (none: none)
+\providecommand{\rhmcsOosQBmRejTwo}{}\renewcommand{\rhmcsOosQBmRejTwo}{ridge regression on the full predictor set, the lasso on the full predictor set, the elastic net on the full predictor set, and the random forest on the full predictor set}  % the alternatives the two-sided StepM rejects at 5 % (none: none)
 \providecommand{\rhmcsOosQBmPRidge}{}\renewcommand{\rhmcsOosQBmPRidge}{1.00}  % StepM-adjusted p-value (one-sided), Ridge
 \providecommand{\rhmcsOosQBmRawRidge}{}\renewcommand{\rhmcsOosQBmRawRidge}{1.00}  % single-test bootstrap p-value (one-sided), Ridge
 \providecommand{\rhmcsOosQBmPTwoRidge}{}\renewcommand{\rhmcsOosQBmPTwoRidge}{0.002}  % StepM-adjusted p-value (two-sided), Ridge
@@ -752,35 +752,35 @@
 \providecommand{\rhmcsOosQBmPLasso}{}\renewcommand{\rhmcsOosQBmPLasso}{1.00}  % StepM-adjusted p-value (one-sided), Lasso
 \providecommand{\rhmcsOosQBmRawLasso}{}\renewcommand{\rhmcsOosQBmRawLasso}{1.00}  % single-test bootstrap p-value (one-sided), Lasso
 \providecommand{\rhmcsOosQBmPTwoLasso}{}\renewcommand{\rhmcsOosQBmPTwoLasso}{0.002}  % StepM-adjusted p-value (two-sided), Lasso
-\providecommand{\rhmcsOosQBmRawTwoLasso}{}\renewcommand{\rhmcsOosQBmRawTwoLasso}{0.001}  % single-test bootstrap p-value (two-sided), Lasso
+\providecommand{\rhmcsOosQBmRawTwoLasso}{}\renewcommand{\rhmcsOosQBmRawTwoLasso}{\ensuremath{<}0.001}  % single-test bootstrap p-value (two-sided), Lasso
 \providecommand{\rhmcsOosQBmPEnet}{}\renewcommand{\rhmcsOosQBmPEnet}{1.00}  % StepM-adjusted p-value (one-sided), Elastic net
 \providecommand{\rhmcsOosQBmRawEnet}{}\renewcommand{\rhmcsOosQBmRawEnet}{1.00}  % single-test bootstrap p-value (one-sided), Elastic net
-\providecommand{\rhmcsOosQBmPTwoEnet}{}\renewcommand{\rhmcsOosQBmPTwoEnet}{0.004}  % StepM-adjusted p-value (two-sided), Elastic net
+\providecommand{\rhmcsOosQBmPTwoEnet}{}\renewcommand{\rhmcsOosQBmPTwoEnet}{0.003}  % StepM-adjusted p-value (two-sided), Elastic net
 \providecommand{\rhmcsOosQBmRawTwoEnet}{}\renewcommand{\rhmcsOosQBmRawTwoEnet}{0.001}  % single-test bootstrap p-value (two-sided), Elastic net
-\providecommand{\rhmcsOosQBmPLgbm}{}\renewcommand{\rhmcsOosQBmPLgbm}{0.97}  % StepM-adjusted p-value (one-sided), LightGBM
-\providecommand{\rhmcsOosQBmRawLgbm}{}\renewcommand{\rhmcsOosQBmRawLgbm}{0.90}  % single-test bootstrap p-value (one-sided), LightGBM
-\providecommand{\rhmcsOosQBmPTwoLgbm}{}\renewcommand{\rhmcsOosQBmPTwoLgbm}{0.19}  % StepM-adjusted p-value (two-sided), LightGBM
-\providecommand{\rhmcsOosQBmRawTwoLgbm}{}\renewcommand{\rhmcsOosQBmRawTwoLgbm}{0.18}  % single-test bootstrap p-value (two-sided), LightGBM
-\providecommand{\rhmcsOosQBmPXgb}{}\renewcommand{\rhmcsOosQBmPXgb}{0.96}  % StepM-adjusted p-value (one-sided), XGBoost
-\providecommand{\rhmcsOosQBmRawXgb}{}\renewcommand{\rhmcsOosQBmRawXgb}{0.87}  % single-test bootstrap p-value (one-sided), XGBoost
-\providecommand{\rhmcsOosQBmPTwoXgb}{}\renewcommand{\rhmcsOosQBmPTwoXgb}{0.26}  % StepM-adjusted p-value (two-sided), XGBoost
-\providecommand{\rhmcsOosQBmRawTwoXgb}{}\renewcommand{\rhmcsOosQBmRawTwoXgb}{0.26}  % single-test bootstrap p-value (two-sided), XGBoost
+\providecommand{\rhmcsOosQBmPLgbm}{}\renewcommand{\rhmcsOosQBmPLgbm}{0.98}  % StepM-adjusted p-value (one-sided), LightGBM
+\providecommand{\rhmcsOosQBmRawLgbm}{}\renewcommand{\rhmcsOosQBmRawLgbm}{0.93}  % single-test bootstrap p-value (one-sided), LightGBM
+\providecommand{\rhmcsOosQBmPTwoLgbm}{}\renewcommand{\rhmcsOosQBmPTwoLgbm}{0.15}  % StepM-adjusted p-value (two-sided), LightGBM
+\providecommand{\rhmcsOosQBmRawTwoLgbm}{}\renewcommand{\rhmcsOosQBmRawTwoLgbm}{0.14}  % single-test bootstrap p-value (two-sided), LightGBM
+\providecommand{\rhmcsOosQBmPXgb}{}\renewcommand{\rhmcsOosQBmPXgb}{0.97}  % StepM-adjusted p-value (one-sided), XGBoost
+\providecommand{\rhmcsOosQBmRawXgb}{}\renewcommand{\rhmcsOosQBmRawXgb}{0.90}  % single-test bootstrap p-value (one-sided), XGBoost
+\providecommand{\rhmcsOosQBmPTwoXgb}{}\renewcommand{\rhmcsOosQBmPTwoXgb}{0.20}  % StepM-adjusted p-value (two-sided), XGBoost
+\providecommand{\rhmcsOosQBmRawTwoXgb}{}\renewcommand{\rhmcsOosQBmRawTwoXgb}{0.20}  % single-test bootstrap p-value (two-sided), XGBoost
 \providecommand{\rhmcsOosQBmPRf}{}\renewcommand{\rhmcsOosQBmPRf}{1.00}  % StepM-adjusted p-value (one-sided), Random forest
-\providecommand{\rhmcsOosQBmRawRf}{}\renewcommand{\rhmcsOosQBmRawRf}{0.97}  % single-test bootstrap p-value (one-sided), Random forest
-\providecommand{\rhmcsOosQBmPTwoRf}{}\renewcommand{\rhmcsOosQBmPTwoRf}{0.051}  % StepM-adjusted p-value (two-sided), Random forest
-\providecommand{\rhmcsOosQBmRawTwoRf}{}\renewcommand{\rhmcsOosQBmRawTwoRf}{0.038}  % single-test bootstrap p-value (two-sided), Random forest
+\providecommand{\rhmcsOosQBmRawRf}{}\renewcommand{\rhmcsOosQBmRawRf}{0.98}  % single-test bootstrap p-value (one-sided), Random forest
+\providecommand{\rhmcsOosQBmPTwoRf}{}\renewcommand{\rhmcsOosQBmPTwoRf}{0.041}  % StepM-adjusted p-value (two-sided), Random forest
+\providecommand{\rhmcsOosQBmRawTwoRf}{}\renewcommand{\rhmcsOosQBmRawTwoRf}{0.030}  % single-test bootstrap p-value (two-sided), Random forest
 \providecommand{\rhmcsOosQBmNRejLo}{}\renewcommand{\rhmcsOosQBmNRejLo}{0}  % StepM rejections at 5 %, block length 5
-\providecommand{\rhmcsOosQBmSpaCLo}{}\renewcommand{\rhmcsOosQBmSpaCLo}{0.52}  % SPA p-value (consistent), block length 5
-\providecommand{\rhmcsOosQBmNRejTwoLo}{}\renewcommand{\rhmcsOosQBmNRejTwoLo}{3}  % ... two-sided, block length 5
-\providecommand{\rhmcsOosQBmPMinLo}{}\renewcommand{\rhmcsOosQBmPMinLo}{0.95}  % smallest adjusted p, block length 5
-\providecommand{\rhmcsOosQBmPTwoMinLo}{}\renewcommand{\rhmcsOosQBmPTwoMinLo}{0.001}  % ... two-sided, block length 5
+\providecommand{\rhmcsOosQBmSpaCLo}{}\renewcommand{\rhmcsOosQBmSpaCLo}{0.53}  % SPA p-value (consistent), block length 5
+\providecommand{\rhmcsOosQBmNRejTwoLo}{}\renewcommand{\rhmcsOosQBmNRejTwoLo}{4}  % ... two-sided, block length 5
+\providecommand{\rhmcsOosQBmPMinLo}{}\renewcommand{\rhmcsOosQBmPMinLo}{0.96}  % smallest adjusted p, block length 5
+\providecommand{\rhmcsOosQBmPTwoMinLo}{}\renewcommand{\rhmcsOosQBmPTwoMinLo}{\ensuremath{<}0.001}  % ... two-sided, block length 5
 \providecommand{\rhmcsOosQBmNRejHi}{}\renewcommand{\rhmcsOosQBmNRejHi}{0}  % StepM rejections at 5 %, block length 20
 \providecommand{\rhmcsOosQBmSpaCHi}{}\renewcommand{\rhmcsOosQBmSpaCHi}{0.53}  % SPA p-value (consistent), block length 20
 \providecommand{\rhmcsOosQBmNRejTwoHi}{}\renewcommand{\rhmcsOosQBmNRejTwoHi}{4}  % ... two-sided, block length 20
-\providecommand{\rhmcsOosQBmPMinHi}{}\renewcommand{\rhmcsOosQBmPMinHi}{0.97}  % smallest adjusted p, block length 20
+\providecommand{\rhmcsOosQBmPMinHi}{}\renewcommand{\rhmcsOosQBmPMinHi}{0.98}  % smallest adjusted p, block length 20
 \providecommand{\rhmcsOosQBmPTwoMinHi}{}\renewcommand{\rhmcsOosQBmPTwoMinHi}{0.003}  % ... two-sided, block length 20
 \providecommand{\rhmcsOosQBmAllSpaC}{}\renewcommand{\rhmcsOosQBmAllSpaC}{0.53}  % SPA p-value (consistent), family OosQBmAll
-\providecommand{\rhmcsOosQBmAllSpaL}{}\renewcommand{\rhmcsOosQBmAllSpaL}{0.13}  % ... lower
+\providecommand{\rhmcsOosQBmAllSpaL}{}\renewcommand{\rhmcsOosQBmAllSpaL}{0.096}  % ... lower
 \providecommand{\rhmcsOosQBmAllSpaU}{}\renewcommand{\rhmcsOosQBmAllSpaU}{0.80}  % ... upper
 \providecommand{\rhmcsOosQBmAllNRej}{}\renewcommand{\rhmcsOosQBmAllNRej}{0}  % StepM rejections at FWER 5 % (of 10)
 \providecommand{\rhmcsOosQBmAllNRejWord}{}\renewcommand{\rhmcsOosQBmAllNRejWord}{none}  % ... as a word
@@ -789,62 +789,62 @@
 \providecommand{\rhmcsOosQBmAllNPos}{}\renewcommand{\rhmcsOosQBmAllNPos}{0}  % alternatives with a positive estimate (better than the benchmark)
 \providecommand{\rhmcsOosQBmAllPMin}{}\renewcommand{\rhmcsOosQBmAllPMin}{0.98}  % smallest StepM-adjusted p-value
 \providecommand{\rhmcsOosQBmAllPMax}{}\renewcommand{\rhmcsOosQBmAllPMax}{1.00}  % largest StepM-adjusted p-value
-\providecommand{\rhmcsOosQBmAllPTwoMin}{}\renewcommand{\rhmcsOosQBmAllPTwoMin}{0.004}  % smallest two-sided StepM-adjusted p-value
-\providecommand{\rhmcsOosQBmAllPTwoMax}{}\renewcommand{\rhmcsOosQBmAllPTwoMax}{0.26}  % largest two-sided StepM-adjusted p-value
-\providecommand{\rhmcsOosQBmAllRawMin}{}\renewcommand{\rhmcsOosQBmAllRawMin}{0.87}  % smallest single-test bootstrap p-value
+\providecommand{\rhmcsOosQBmAllPTwoMin}{}\renewcommand{\rhmcsOosQBmAllPTwoMin}{0.003}  % smallest two-sided StepM-adjusted p-value
+\providecommand{\rhmcsOosQBmAllPTwoMax}{}\renewcommand{\rhmcsOosQBmAllPTwoMax}{0.20}  % largest two-sided StepM-adjusted p-value
+\providecommand{\rhmcsOosQBmAllRawMin}{}\renewcommand{\rhmcsOosQBmAllRawMin}{0.90}  % smallest single-test bootstrap p-value
 \providecommand{\rhmcsOosQBmAllRej}{}\renewcommand{\rhmcsOosQBmAllRej}{none}  % the alternatives StepM rejects at 5 % (none: none)
-\providecommand{\rhmcsOosQBmAllNRejTwo}{}\renewcommand{\rhmcsOosQBmAllNRejTwo}{5}  % StepM rejections at FWER 5 %, two-sided
-\providecommand{\rhmcsOosQBmAllNRejTwoWord}{}\renewcommand{\rhmcsOosQBmAllNRejTwoWord}{five}  % ... as a word
+\providecommand{\rhmcsOosQBmAllNRejTwo}{}\renewcommand{\rhmcsOosQBmAllNRejTwo}{8}  % StepM rejections at FWER 5 %, two-sided
+\providecommand{\rhmcsOosQBmAllNRejTwoWord}{}\renewcommand{\rhmcsOosQBmAllNRejTwoWord}{eight}  % ... as a word
 \providecommand{\rhmcsOosQBmAllNRawTwo}{}\renewcommand{\rhmcsOosQBmAllNRawTwo}{8}  % single-test bootstrap p < 0.05, two-sided
-\providecommand{\rhmcsOosQBmAllRejTwo}{}\renewcommand{\rhmcsOosQBmAllRejTwo}{the linear models on the HAR benchmark, ridge regression on the full predictor set, the lasso on the full predictor set, the elastic net on the full predictor set, and the random forest on the HAR benchmark}  % the alternatives the two-sided StepM rejects at 5 % (none: none)
+\providecommand{\rhmcsOosQBmAllRejTwo}{}\renewcommand{\rhmcsOosQBmAllRejTwo}{the linear models on the HAR benchmark, ridge regression on the full predictor set, the lasso on the full predictor set, the elastic net on the full predictor set, LightGBM on the HAR benchmark, XGBoost on the HAR benchmark, the random forest on the HAR benchmark, and the random forest on the full predictor set}  % the alternatives the two-sided StepM rejects at 5 % (none: none)
 \providecommand{\rhmcsOosQBmAllPLinHar}{}\renewcommand{\rhmcsOosQBmAllPLinHar}{1.00}  % StepM-adjusted p-value (one-sided), Linear, HAR
 \providecommand{\rhmcsOosQBmAllRawLinHar}{}\renewcommand{\rhmcsOosQBmAllRawLinHar}{0.99}  % single-test bootstrap p-value (one-sided), Linear, HAR
-\providecommand{\rhmcsOosQBmAllPTwoLinHar}{}\renewcommand{\rhmcsOosQBmAllPTwoLinHar}{0.025}  % StepM-adjusted p-value (two-sided), Linear, HAR
-\providecommand{\rhmcsOosQBmAllRawTwoLinHar}{}\renewcommand{\rhmcsOosQBmAllRawTwoLinHar}{0.012}  % single-test bootstrap p-value (two-sided), Linear, HAR
+\providecommand{\rhmcsOosQBmAllPTwoLinHar}{}\renewcommand{\rhmcsOosQBmAllPTwoLinHar}{0.013}  % StepM-adjusted p-value (two-sided), Linear, HAR
+\providecommand{\rhmcsOosQBmAllRawTwoLinHar}{}\renewcommand{\rhmcsOosQBmAllRawTwoLinHar}{0.007}  % single-test bootstrap p-value (two-sided), Linear, HAR
 \providecommand{\rhmcsOosQBmAllPRidgeFull}{}\renewcommand{\rhmcsOosQBmAllPRidgeFull}{1.00}  % StepM-adjusted p-value (one-sided), Ridge, Full
 \providecommand{\rhmcsOosQBmAllRawRidgeFull}{}\renewcommand{\rhmcsOosQBmAllRawRidgeFull}{1.00}  % single-test bootstrap p-value (one-sided), Ridge, Full
-\providecommand{\rhmcsOosQBmAllPTwoRidgeFull}{}\renewcommand{\rhmcsOosQBmAllPTwoRidgeFull}{0.004}  % StepM-adjusted p-value (two-sided), Ridge, Full
+\providecommand{\rhmcsOosQBmAllPTwoRidgeFull}{}\renewcommand{\rhmcsOosQBmAllPTwoRidgeFull}{0.003}  % StepM-adjusted p-value (two-sided), Ridge, Full
 \providecommand{\rhmcsOosQBmAllRawTwoRidgeFull}{}\renewcommand{\rhmcsOosQBmAllRawTwoRidgeFull}{\ensuremath{<}0.001}  % single-test bootstrap p-value (two-sided), Ridge, Full
 \providecommand{\rhmcsOosQBmAllPLassoFull}{}\renewcommand{\rhmcsOosQBmAllPLassoFull}{1.00}  % StepM-adjusted p-value (one-sided), Lasso, Full
 \providecommand{\rhmcsOosQBmAllRawLassoFull}{}\renewcommand{\rhmcsOosQBmAllRawLassoFull}{1.00}  % single-test bootstrap p-value (one-sided), Lasso, Full
-\providecommand{\rhmcsOosQBmAllPTwoLassoFull}{}\renewcommand{\rhmcsOosQBmAllPTwoLassoFull}{0.004}  % StepM-adjusted p-value (two-sided), Lasso, Full
-\providecommand{\rhmcsOosQBmAllRawTwoLassoFull}{}\renewcommand{\rhmcsOosQBmAllRawTwoLassoFull}{0.001}  % single-test bootstrap p-value (two-sided), Lasso, Full
+\providecommand{\rhmcsOosQBmAllPTwoLassoFull}{}\renewcommand{\rhmcsOosQBmAllPTwoLassoFull}{0.003}  % StepM-adjusted p-value (two-sided), Lasso, Full
+\providecommand{\rhmcsOosQBmAllRawTwoLassoFull}{}\renewcommand{\rhmcsOosQBmAllRawTwoLassoFull}{\ensuremath{<}0.001}  % single-test bootstrap p-value (two-sided), Lasso, Full
 \providecommand{\rhmcsOosQBmAllPEnetFull}{}\renewcommand{\rhmcsOosQBmAllPEnetFull}{1.00}  % StepM-adjusted p-value (one-sided), Elastic net, Full
 \providecommand{\rhmcsOosQBmAllRawEnetFull}{}\renewcommand{\rhmcsOosQBmAllRawEnetFull}{1.00}  % single-test bootstrap p-value (one-sided), Elastic net, Full
-\providecommand{\rhmcsOosQBmAllPTwoEnetFull}{}\renewcommand{\rhmcsOosQBmAllPTwoEnetFull}{0.008}  % StepM-adjusted p-value (two-sided), Elastic net, Full
+\providecommand{\rhmcsOosQBmAllPTwoEnetFull}{}\renewcommand{\rhmcsOosQBmAllPTwoEnetFull}{0.006}  % StepM-adjusted p-value (two-sided), Elastic net, Full
 \providecommand{\rhmcsOosQBmAllRawTwoEnetFull}{}\renewcommand{\rhmcsOosQBmAllRawTwoEnetFull}{0.001}  % single-test bootstrap p-value (two-sided), Elastic net, Full
 \providecommand{\rhmcsOosQBmAllPLgbmHar}{}\renewcommand{\rhmcsOosQBmAllPLgbmHar}{1.00}  % StepM-adjusted p-value (one-sided), LightGBM, HAR
-\providecommand{\rhmcsOosQBmAllRawLgbmHar}{}\renewcommand{\rhmcsOosQBmAllRawLgbmHar}{0.98}  % single-test bootstrap p-value (one-sided), LightGBM, HAR
-\providecommand{\rhmcsOosQBmAllPTwoLgbmHar}{}\renewcommand{\rhmcsOosQBmAllPTwoLgbmHar}{0.064}  % StepM-adjusted p-value (two-sided), LightGBM, HAR
-\providecommand{\rhmcsOosQBmAllRawTwoLgbmHar}{}\renewcommand{\rhmcsOosQBmAllRawTwoLgbmHar}{0.031}  % single-test bootstrap p-value (two-sided), LightGBM, HAR
+\providecommand{\rhmcsOosQBmAllRawLgbmHar}{}\renewcommand{\rhmcsOosQBmAllRawLgbmHar}{0.99}  % single-test bootstrap p-value (one-sided), LightGBM, HAR
+\providecommand{\rhmcsOosQBmAllPTwoLgbmHar}{}\renewcommand{\rhmcsOosQBmAllPTwoLgbmHar}{0.021}  % StepM-adjusted p-value (two-sided), LightGBM, HAR
+\providecommand{\rhmcsOosQBmAllRawTwoLgbmHar}{}\renewcommand{\rhmcsOosQBmAllRawTwoLgbmHar}{0.009}  % single-test bootstrap p-value (two-sided), LightGBM, HAR
 \providecommand{\rhmcsOosQBmAllPLgbmFull}{}\renewcommand{\rhmcsOosQBmAllPLgbmFull}{0.99}  % StepM-adjusted p-value (one-sided), LightGBM, Full
-\providecommand{\rhmcsOosQBmAllRawLgbmFull}{}\renewcommand{\rhmcsOosQBmAllRawLgbmFull}{0.90}  % single-test bootstrap p-value (one-sided), LightGBM, Full
-\providecommand{\rhmcsOosQBmAllPTwoLgbmFull}{}\renewcommand{\rhmcsOosQBmAllPTwoLgbmFull}{0.19}  % StepM-adjusted p-value (two-sided), LightGBM, Full
-\providecommand{\rhmcsOosQBmAllRawTwoLgbmFull}{}\renewcommand{\rhmcsOosQBmAllRawTwoLgbmFull}{0.18}  % single-test bootstrap p-value (two-sided), LightGBM, Full
+\providecommand{\rhmcsOosQBmAllRawLgbmFull}{}\renewcommand{\rhmcsOosQBmAllRawLgbmFull}{0.93}  % single-test bootstrap p-value (one-sided), LightGBM, Full
+\providecommand{\rhmcsOosQBmAllPTwoLgbmFull}{}\renewcommand{\rhmcsOosQBmAllPTwoLgbmFull}{0.15}  % StepM-adjusted p-value (two-sided), LightGBM, Full
+\providecommand{\rhmcsOosQBmAllRawTwoLgbmFull}{}\renewcommand{\rhmcsOosQBmAllRawTwoLgbmFull}{0.14}  % single-test bootstrap p-value (two-sided), LightGBM, Full
 \providecommand{\rhmcsOosQBmAllPXgbHar}{}\renewcommand{\rhmcsOosQBmAllPXgbHar}{1.00}  % StepM-adjusted p-value (one-sided), XGBoost, HAR
-\providecommand{\rhmcsOosQBmAllRawXgbHar}{}\renewcommand{\rhmcsOosQBmAllRawXgbHar}{0.98}  % single-test bootstrap p-value (one-sided), XGBoost, HAR
-\providecommand{\rhmcsOosQBmAllPTwoXgbHar}{}\renewcommand{\rhmcsOosQBmAllPTwoXgbHar}{0.057}  % StepM-adjusted p-value (two-sided), XGBoost, HAR
-\providecommand{\rhmcsOosQBmAllRawTwoXgbHar}{}\renewcommand{\rhmcsOosQBmAllRawTwoXgbHar}{0.027}  % single-test bootstrap p-value (two-sided), XGBoost, HAR
+\providecommand{\rhmcsOosQBmAllRawXgbHar}{}\renewcommand{\rhmcsOosQBmAllRawXgbHar}{0.99}  % single-test bootstrap p-value (one-sided), XGBoost, HAR
+\providecommand{\rhmcsOosQBmAllPTwoXgbHar}{}\renewcommand{\rhmcsOosQBmAllPTwoXgbHar}{0.017}  % StepM-adjusted p-value (two-sided), XGBoost, HAR
+\providecommand{\rhmcsOosQBmAllRawTwoXgbHar}{}\renewcommand{\rhmcsOosQBmAllRawTwoXgbHar}{0.006}  % single-test bootstrap p-value (two-sided), XGBoost, HAR
 \providecommand{\rhmcsOosQBmAllPXgbFull}{}\renewcommand{\rhmcsOosQBmAllPXgbFull}{0.98}  % StepM-adjusted p-value (one-sided), XGBoost, Full
-\providecommand{\rhmcsOosQBmAllRawXgbFull}{}\renewcommand{\rhmcsOosQBmAllRawXgbFull}{0.87}  % single-test bootstrap p-value (one-sided), XGBoost, Full
-\providecommand{\rhmcsOosQBmAllPTwoXgbFull}{}\renewcommand{\rhmcsOosQBmAllPTwoXgbFull}{0.26}  % StepM-adjusted p-value (two-sided), XGBoost, Full
-\providecommand{\rhmcsOosQBmAllRawTwoXgbFull}{}\renewcommand{\rhmcsOosQBmAllRawTwoXgbFull}{0.26}  % single-test bootstrap p-value (two-sided), XGBoost, Full
+\providecommand{\rhmcsOosQBmAllRawXgbFull}{}\renewcommand{\rhmcsOosQBmAllRawXgbFull}{0.90}  % single-test bootstrap p-value (one-sided), XGBoost, Full
+\providecommand{\rhmcsOosQBmAllPTwoXgbFull}{}\renewcommand{\rhmcsOosQBmAllPTwoXgbFull}{0.20}  % StepM-adjusted p-value (two-sided), XGBoost, Full
+\providecommand{\rhmcsOosQBmAllRawTwoXgbFull}{}\renewcommand{\rhmcsOosQBmAllRawTwoXgbFull}{0.20}  % single-test bootstrap p-value (two-sided), XGBoost, Full
 \providecommand{\rhmcsOosQBmAllPRfHar}{}\renewcommand{\rhmcsOosQBmAllPRfHar}{1.00}  % StepM-adjusted p-value (one-sided), Random forest, HAR
 \providecommand{\rhmcsOosQBmAllRawRfHar}{}\renewcommand{\rhmcsOosQBmAllRawRfHar}{1.00}  % single-test bootstrap p-value (one-sided), Random forest, HAR
-\providecommand{\rhmcsOosQBmAllPTwoRfHar}{}\renewcommand{\rhmcsOosQBmAllPTwoRfHar}{0.016}  % StepM-adjusted p-value (two-sided), Random forest, HAR
-\providecommand{\rhmcsOosQBmAllRawTwoRfHar}{}\renewcommand{\rhmcsOosQBmAllRawTwoRfHar}{0.005}  % single-test bootstrap p-value (two-sided), Random forest, HAR
+\providecommand{\rhmcsOosQBmAllPTwoRfHar}{}\renewcommand{\rhmcsOosQBmAllPTwoRfHar}{0.007}  % StepM-adjusted p-value (two-sided), Random forest, HAR
+\providecommand{\rhmcsOosQBmAllRawTwoRfHar}{}\renewcommand{\rhmcsOosQBmAllRawTwoRfHar}{0.002}  % single-test bootstrap p-value (two-sided), Random forest, HAR
 \providecommand{\rhmcsOosQBmAllPRfFull}{}\renewcommand{\rhmcsOosQBmAllPRfFull}{1.00}  % StepM-adjusted p-value (one-sided), Random forest, Full
-\providecommand{\rhmcsOosQBmAllRawRfFull}{}\renewcommand{\rhmcsOosQBmAllRawRfFull}{0.97}  % single-test bootstrap p-value (one-sided), Random forest, Full
-\providecommand{\rhmcsOosQBmAllPTwoRfFull}{}\renewcommand{\rhmcsOosQBmAllPTwoRfFull}{0.064}  % StepM-adjusted p-value (two-sided), Random forest, Full
-\providecommand{\rhmcsOosQBmAllRawTwoRfFull}{}\renewcommand{\rhmcsOosQBmAllRawTwoRfFull}{0.038}  % single-test bootstrap p-value (two-sided), Random forest, Full
+\providecommand{\rhmcsOosQBmAllRawRfFull}{}\renewcommand{\rhmcsOosQBmAllRawRfFull}{0.98}  % single-test bootstrap p-value (one-sided), Random forest, Full
+\providecommand{\rhmcsOosQBmAllPTwoRfFull}{}\renewcommand{\rhmcsOosQBmAllPTwoRfFull}{0.041}  % StepM-adjusted p-value (two-sided), Random forest, Full
+\providecommand{\rhmcsOosQBmAllRawTwoRfFull}{}\renewcommand{\rhmcsOosQBmAllRawTwoRfFull}{0.030}  % single-test bootstrap p-value (two-sided), Random forest, Full
 \providecommand{\rhmcsOosQBmAllNRejLo}{}\renewcommand{\rhmcsOosQBmAllNRejLo}{0}  % StepM rejections at 5 %, block length 5
-\providecommand{\rhmcsOosQBmAllSpaCLo}{}\renewcommand{\rhmcsOosQBmAllSpaCLo}{0.52}  % SPA p-value (consistent), block length 5
-\providecommand{\rhmcsOosQBmAllNRejTwoLo}{}\renewcommand{\rhmcsOosQBmAllNRejTwoLo}{5}  % ... two-sided, block length 5
+\providecommand{\rhmcsOosQBmAllSpaCLo}{}\renewcommand{\rhmcsOosQBmAllSpaCLo}{0.53}  % SPA p-value (consistent), block length 5
+\providecommand{\rhmcsOosQBmAllNRejTwoLo}{}\renewcommand{\rhmcsOosQBmAllNRejTwoLo}{8}  % ... two-sided, block length 5
 \providecommand{\rhmcsOosQBmAllPMinLo}{}\renewcommand{\rhmcsOosQBmAllPMinLo}{0.98}  % smallest adjusted p, block length 5
-\providecommand{\rhmcsOosQBmAllPTwoMinLo}{}\renewcommand{\rhmcsOosQBmAllPTwoMinLo}{0.003}  % ... two-sided, block length 5
+\providecommand{\rhmcsOosQBmAllPTwoMinLo}{}\renewcommand{\rhmcsOosQBmAllPTwoMinLo}{0.002}  % ... two-sided, block length 5
 \providecommand{\rhmcsOosQBmAllNRejHi}{}\renewcommand{\rhmcsOosQBmAllNRejHi}{0}  % StepM rejections at 5 %, block length 20
 \providecommand{\rhmcsOosQBmAllSpaCHi}{}\renewcommand{\rhmcsOosQBmAllSpaCHi}{0.53}  % SPA p-value (consistent), block length 20
-\providecommand{\rhmcsOosQBmAllNRejTwoHi}{}\renewcommand{\rhmcsOosQBmAllNRejTwoHi}{5}  % ... two-sided, block length 20
+\providecommand{\rhmcsOosQBmAllNRejTwoHi}{}\renewcommand{\rhmcsOosQBmAllNRejTwoHi}{8}  % ... two-sided, block length 20
 \providecommand{\rhmcsOosQBmAllPMinHi}{}\renewcommand{\rhmcsOosQBmAllPMinHi}{0.99}  % smallest adjusted p, block length 20
 \providecommand{\rhmcsOosQBmAllPTwoMinHi}{}\renewcommand{\rhmcsOosQBmAllPTwoMinHi}{0.006}  % ... two-sided, block length 20
 \providecommand{\rhmcsOosMAfSpaC}{}\renewcommand{\rhmcsOosMAfSpaC}{0.67}  % SPA p-value (consistent), family OosMAf
@@ -899,19 +899,19 @@
 \providecommand{\rhmcsOosMAfNRejTwoHi}{}\renewcommand{\rhmcsOosMAfNRejTwoHi}{0}  % ... two-sided, block length 20
 \providecommand{\rhmcsOosMAfPMinHi}{}\renewcommand{\rhmcsOosMAfPMinHi}{0.88}  % smallest adjusted p, block length 20
 \providecommand{\rhmcsOosMAfPTwoMinHi}{}\renewcommand{\rhmcsOosMAfPTwoMinHi}{0.39}  % ... two-sided, block length 20
-\providecommand{\rhmcsOosMBmSpaC}{}\renewcommand{\rhmcsOosMBmSpaC}{0.73}  % SPA p-value (consistent), family OosMBm
-\providecommand{\rhmcsOosMBmSpaL}{}\renewcommand{\rhmcsOosMBmSpaL}{0.44}  % ... lower
-\providecommand{\rhmcsOosMBmSpaU}{}\renewcommand{\rhmcsOosMBmSpaU}{0.73}  % ... upper
+\providecommand{\rhmcsOosMBmSpaC}{}\renewcommand{\rhmcsOosMBmSpaC}{0.71}  % SPA p-value (consistent), family OosMBm
+\providecommand{\rhmcsOosMBmSpaL}{}\renewcommand{\rhmcsOosMBmSpaL}{0.43}  % ... lower
+\providecommand{\rhmcsOosMBmSpaU}{}\renewcommand{\rhmcsOosMBmSpaU}{0.71}  % ... upper
 \providecommand{\rhmcsOosMBmNRej}{}\renewcommand{\rhmcsOosMBmNRej}{0}  % StepM rejections at FWER 5 % (of 6)
 \providecommand{\rhmcsOosMBmNRejWord}{}\renewcommand{\rhmcsOosMBmNRejWord}{none}  % ... as a word
 \providecommand{\rhmcsOosMBmNRaw}{}\renewcommand{\rhmcsOosMBmNRaw}{0}  % single-test bootstrap p < 0.05 (no adjustment)
 \providecommand{\rhmcsOosMBmNRawWord}{}\renewcommand{\rhmcsOosMBmNRawWord}{none}  % ... as a word
-\providecommand{\rhmcsOosMBmNPos}{}\renewcommand{\rhmcsOosMBmNPos}{0}  % alternatives with a positive estimate (better than the benchmark)
-\providecommand{\rhmcsOosMBmPMin}{}\renewcommand{\rhmcsOosMBmPMin}{0.83}  % smallest StepM-adjusted p-value
+\providecommand{\rhmcsOosMBmNPos}{}\renewcommand{\rhmcsOosMBmNPos}{1}  % alternatives with a positive estimate (better than the benchmark)
+\providecommand{\rhmcsOosMBmPMin}{}\renewcommand{\rhmcsOosMBmPMin}{0.71}  % smallest StepM-adjusted p-value
 \providecommand{\rhmcsOosMBmPMax}{}\renewcommand{\rhmcsOosMBmPMax}{0.88}  % largest StepM-adjusted p-value
-\providecommand{\rhmcsOosMBmPTwoMin}{}\renewcommand{\rhmcsOosMBmPTwoMin}{0.42}  % smallest two-sided StepM-adjusted p-value
-\providecommand{\rhmcsOosMBmPTwoMax}{}\renewcommand{\rhmcsOosMBmPTwoMax}{0.76}  % largest two-sided StepM-adjusted p-value
-\providecommand{\rhmcsOosMBmRawMin}{}\renewcommand{\rhmcsOosMBmRawMin}{0.63}  % smallest single-test bootstrap p-value
+\providecommand{\rhmcsOosMBmPTwoMin}{}\renewcommand{\rhmcsOosMBmPTwoMin}{0.46}  % smallest two-sided StepM-adjusted p-value
+\providecommand{\rhmcsOosMBmPTwoMax}{}\renewcommand{\rhmcsOosMBmPTwoMax}{0.87}  % largest two-sided StepM-adjusted p-value
+\providecommand{\rhmcsOosMBmRawMin}{}\renewcommand{\rhmcsOosMBmRawMin}{0.41}  % smallest single-test bootstrap p-value
 \providecommand{\rhmcsOosMBmRej}{}\renewcommand{\rhmcsOosMBmRej}{none}  % the alternatives StepM rejects at 5 % (none: none)
 \providecommand{\rhmcsOosMBmNRejTwo}{}\renewcommand{\rhmcsOosMBmNRejTwo}{0}  % StepM rejections at FWER 5 %, two-sided
 \providecommand{\rhmcsOosMBmNRejTwoWord}{}\renewcommand{\rhmcsOosMBmNRejTwoWord}{none}  % ... as a word
@@ -919,346 +919,346 @@
 \providecommand{\rhmcsOosMBmRejTwo}{}\renewcommand{\rhmcsOosMBmRejTwo}{none}  % the alternatives the two-sided StepM rejects at 5 % (none: none)
 \providecommand{\rhmcsOosMBmPRidge}{}\renewcommand{\rhmcsOosMBmPRidge}{0.88}  % StepM-adjusted p-value (one-sided), Ridge
 \providecommand{\rhmcsOosMBmRawRidge}{}\renewcommand{\rhmcsOosMBmRawRidge}{0.88}  % single-test bootstrap p-value (one-sided), Ridge
-\providecommand{\rhmcsOosMBmPTwoRidge}{}\renewcommand{\rhmcsOosMBmPTwoRidge}{0.44}  % StepM-adjusted p-value (two-sided), Ridge
-\providecommand{\rhmcsOosMBmRawTwoRidge}{}\renewcommand{\rhmcsOosMBmRawTwoRidge}{0.253}  % single-test bootstrap p-value (two-sided), Ridge
+\providecommand{\rhmcsOosMBmPTwoRidge}{}\renewcommand{\rhmcsOosMBmPTwoRidge}{0.48}  % StepM-adjusted p-value (two-sided), Ridge
+\providecommand{\rhmcsOosMBmRawTwoRidge}{}\renewcommand{\rhmcsOosMBmRawTwoRidge}{0.26}  % single-test bootstrap p-value (two-sided), Ridge
 \providecommand{\rhmcsOosMBmPLasso}{}\renewcommand{\rhmcsOosMBmPLasso}{0.88}  % StepM-adjusted p-value (one-sided), Lasso
 \providecommand{\rhmcsOosMBmRawLasso}{}\renewcommand{\rhmcsOosMBmRawLasso}{0.88}  % single-test bootstrap p-value (one-sided), Lasso
-\providecommand{\rhmcsOosMBmPTwoLasso}{}\renewcommand{\rhmcsOosMBmPTwoLasso}{0.42}  % StepM-adjusted p-value (two-sided), Lasso
-\providecommand{\rhmcsOosMBmRawTwoLasso}{}\renewcommand{\rhmcsOosMBmRawTwoLasso}{0.24}  % single-test bootstrap p-value (two-sided), Lasso
+\providecommand{\rhmcsOosMBmPTwoLasso}{}\renewcommand{\rhmcsOosMBmPTwoLasso}{0.46}  % StepM-adjusted p-value (two-sided), Lasso
+\providecommand{\rhmcsOosMBmRawTwoLasso}{}\renewcommand{\rhmcsOosMBmRawTwoLasso}{0.251}  % single-test bootstrap p-value (two-sided), Lasso
 \providecommand{\rhmcsOosMBmPEnet}{}\renewcommand{\rhmcsOosMBmPEnet}{0.88}  % StepM-adjusted p-value (one-sided), Elastic net
 \providecommand{\rhmcsOosMBmRawEnet}{}\renewcommand{\rhmcsOosMBmRawEnet}{0.88}  % single-test bootstrap p-value (one-sided), Elastic net
-\providecommand{\rhmcsOosMBmPTwoEnet}{}\renewcommand{\rhmcsOosMBmPTwoEnet}{0.44}  % StepM-adjusted p-value (two-sided), Elastic net
-\providecommand{\rhmcsOosMBmRawTwoEnet}{}\renewcommand{\rhmcsOosMBmRawTwoEnet}{0.251}  % single-test bootstrap p-value (two-sided), Elastic net
-\providecommand{\rhmcsOosMBmPLgbm}{}\renewcommand{\rhmcsOosMBmPLgbm}{0.88}  % StepM-adjusted p-value (one-sided), LightGBM
-\providecommand{\rhmcsOosMBmRawLgbm}{}\renewcommand{\rhmcsOosMBmRawLgbm}{0.83}  % single-test bootstrap p-value (one-sided), LightGBM
-\providecommand{\rhmcsOosMBmPTwoLgbm}{}\renewcommand{\rhmcsOosMBmPTwoLgbm}{0.49}  % StepM-adjusted p-value (two-sided), LightGBM
-\providecommand{\rhmcsOosMBmRawTwoLgbm}{}\renewcommand{\rhmcsOosMBmRawTwoLgbm}{0.35}  % single-test bootstrap p-value (two-sided), LightGBM
-\providecommand{\rhmcsOosMBmPXgb}{}\renewcommand{\rhmcsOosMBmPXgb}{0.88}  % StepM-adjusted p-value (one-sided), XGBoost
-\providecommand{\rhmcsOosMBmRawXgb}{}\renewcommand{\rhmcsOosMBmRawXgb}{0.79}  % single-test bootstrap p-value (one-sided), XGBoost
-\providecommand{\rhmcsOosMBmPTwoXgb}{}\renewcommand{\rhmcsOosMBmPTwoXgb}{0.56}  % StepM-adjusted p-value (two-sided), XGBoost
-\providecommand{\rhmcsOosMBmRawTwoXgb}{}\renewcommand{\rhmcsOosMBmRawTwoXgb}{0.45}  % single-test bootstrap p-value (two-sided), XGBoost
-\providecommand{\rhmcsOosMBmPRf}{}\renewcommand{\rhmcsOosMBmPRf}{0.83}  % StepM-adjusted p-value (one-sided), Random forest
-\providecommand{\rhmcsOosMBmRawRf}{}\renewcommand{\rhmcsOosMBmRawRf}{0.63}  % single-test bootstrap p-value (one-sided), Random forest
-\providecommand{\rhmcsOosMBmPTwoRf}{}\renewcommand{\rhmcsOosMBmPTwoRf}{0.76}  % StepM-adjusted p-value (two-sided), Random forest
-\providecommand{\rhmcsOosMBmRawTwoRf}{}\renewcommand{\rhmcsOosMBmRawTwoRf}{0.76}  % single-test bootstrap p-value (two-sided), Random forest
+\providecommand{\rhmcsOosMBmPTwoEnet}{}\renewcommand{\rhmcsOosMBmPTwoEnet}{0.48}  % StepM-adjusted p-value (two-sided), Elastic net
+\providecommand{\rhmcsOosMBmRawTwoEnet}{}\renewcommand{\rhmcsOosMBmRawTwoEnet}{0.26}  % single-test bootstrap p-value (two-sided), Elastic net
+\providecommand{\rhmcsOosMBmPLgbm}{}\renewcommand{\rhmcsOosMBmPLgbm}{0.87}  % StepM-adjusted p-value (one-sided), LightGBM
+\providecommand{\rhmcsOosMBmRawLgbm}{}\renewcommand{\rhmcsOosMBmRawLgbm}{0.81}  % single-test bootstrap p-value (one-sided), LightGBM
+\providecommand{\rhmcsOosMBmPTwoLgbm}{}\renewcommand{\rhmcsOosMBmPTwoLgbm}{0.60}  % StepM-adjusted p-value (two-sided), LightGBM
+\providecommand{\rhmcsOosMBmRawTwoLgbm}{}\renewcommand{\rhmcsOosMBmRawTwoLgbm}{0.41}  % single-test bootstrap p-value (two-sided), LightGBM
+\providecommand{\rhmcsOosMBmPXgb}{}\renewcommand{\rhmcsOosMBmPXgb}{0.87}  % StepM-adjusted p-value (one-sided), XGBoost
+\providecommand{\rhmcsOosMBmRawXgb}{}\renewcommand{\rhmcsOosMBmRawXgb}{0.77}  % single-test bootstrap p-value (one-sided), XGBoost
+\providecommand{\rhmcsOosMBmPTwoXgb}{}\renewcommand{\rhmcsOosMBmPTwoXgb}{0.70}  % StepM-adjusted p-value (two-sided), XGBoost
+\providecommand{\rhmcsOosMBmRawTwoXgb}{}\renewcommand{\rhmcsOosMBmRawTwoXgb}{0.53}  % single-test bootstrap p-value (two-sided), XGBoost
+\providecommand{\rhmcsOosMBmPRf}{}\renewcommand{\rhmcsOosMBmPRf}{0.71}  % StepM-adjusted p-value (one-sided), Random forest
+\providecommand{\rhmcsOosMBmRawRf}{}\renewcommand{\rhmcsOosMBmRawRf}{0.41}  % single-test bootstrap p-value (one-sided), Random forest
+\providecommand{\rhmcsOosMBmPTwoRf}{}\renewcommand{\rhmcsOosMBmPTwoRf}{0.87}  % StepM-adjusted p-value (two-sided), Random forest
+\providecommand{\rhmcsOosMBmRawTwoRf}{}\renewcommand{\rhmcsOosMBmRawTwoRf}{0.87}  % single-test bootstrap p-value (two-sided), Random forest
 \providecommand{\rhmcsOosMBmNRejLo}{}\renewcommand{\rhmcsOosMBmNRejLo}{0}  % StepM rejections at 5 %, block length 5
-\providecommand{\rhmcsOosMBmSpaCLo}{}\renewcommand{\rhmcsOosMBmSpaCLo}{0.80}  % SPA p-value (consistent), block length 5
+\providecommand{\rhmcsOosMBmSpaCLo}{}\renewcommand{\rhmcsOosMBmSpaCLo}{0.79}  % SPA p-value (consistent), block length 5
 \providecommand{\rhmcsOosMBmNRejTwoLo}{}\renewcommand{\rhmcsOosMBmNRejTwoLo}{0}  % ... two-sided, block length 5
-\providecommand{\rhmcsOosMBmPMinLo}{}\renewcommand{\rhmcsOosMBmPMinLo}{0.88}  % smallest adjusted p, block length 5
-\providecommand{\rhmcsOosMBmPTwoMinLo}{}\renewcommand{\rhmcsOosMBmPTwoMinLo}{0.30}  % ... two-sided, block length 5
+\providecommand{\rhmcsOosMBmPMinLo}{}\renewcommand{\rhmcsOosMBmPMinLo}{0.79}  % smallest adjusted p, block length 5
+\providecommand{\rhmcsOosMBmPTwoMinLo}{}\renewcommand{\rhmcsOosMBmPTwoMinLo}{0.33}  % ... two-sided, block length 5
 \providecommand{\rhmcsOosMBmNRejHi}{}\renewcommand{\rhmcsOosMBmNRejHi}{0}  % StepM rejections at 5 %, block length 20
-\providecommand{\rhmcsOosMBmSpaCHi}{}\renewcommand{\rhmcsOosMBmSpaCHi}{0.70}  % SPA p-value (consistent), block length 20
+\providecommand{\rhmcsOosMBmSpaCHi}{}\renewcommand{\rhmcsOosMBmSpaCHi}{0.67}  % SPA p-value (consistent), block length 20
 \providecommand{\rhmcsOosMBmNRejTwoHi}{}\renewcommand{\rhmcsOosMBmNRejTwoHi}{0}  % ... two-sided, block length 20
-\providecommand{\rhmcsOosMBmPMinHi}{}\renewcommand{\rhmcsOosMBmPMinHi}{0.84}  % smallest adjusted p, block length 20
-\providecommand{\rhmcsOosMBmPTwoMinHi}{}\renewcommand{\rhmcsOosMBmPTwoMinHi}{0.51}  % ... two-sided, block length 20
-\providecommand{\rhmcsOosMBmAllSpaC}{}\renewcommand{\rhmcsOosMBmAllSpaC}{0.22}  % SPA p-value (consistent), family OosMBmAll
-\providecommand{\rhmcsOosMBmAllSpaL}{}\renewcommand{\rhmcsOosMBmAllSpaL}{0.18}  % ... lower
-\providecommand{\rhmcsOosMBmAllSpaU}{}\renewcommand{\rhmcsOosMBmAllSpaU}{0.22}  % ... upper
+\providecommand{\rhmcsOosMBmPMinHi}{}\renewcommand{\rhmcsOosMBmPMinHi}{0.67}  % smallest adjusted p, block length 20
+\providecommand{\rhmcsOosMBmPTwoMinHi}{}\renewcommand{\rhmcsOosMBmPTwoMinHi}{0.56}  % ... two-sided, block length 20
+\providecommand{\rhmcsOosMBmAllSpaC}{}\renewcommand{\rhmcsOosMBmAllSpaC}{0.21}  % SPA p-value (consistent), family OosMBmAll
+\providecommand{\rhmcsOosMBmAllSpaL}{}\renewcommand{\rhmcsOosMBmAllSpaL}{0.21}  % ... lower
+\providecommand{\rhmcsOosMBmAllSpaU}{}\renewcommand{\rhmcsOosMBmAllSpaU}{0.21}  % ... upper
 \providecommand{\rhmcsOosMBmAllNRej}{}\renewcommand{\rhmcsOosMBmAllNRej}{0}  % StepM rejections at FWER 5 % (of 10)
 \providecommand{\rhmcsOosMBmAllNRejWord}{}\renewcommand{\rhmcsOosMBmAllNRejWord}{none}  % ... as a word
 \providecommand{\rhmcsOosMBmAllNRaw}{}\renewcommand{\rhmcsOosMBmAllNRaw}{0}  % single-test bootstrap p < 0.05 (no adjustment)
 \providecommand{\rhmcsOosMBmAllNRawWord}{}\renewcommand{\rhmcsOosMBmAllNRawWord}{none}  % ... as a word
-\providecommand{\rhmcsOosMBmAllNPos}{}\renewcommand{\rhmcsOosMBmAllNPos}{3}  % alternatives with a positive estimate (better than the benchmark)
-\providecommand{\rhmcsOosMBmAllPMin}{}\renewcommand{\rhmcsOosMBmAllPMin}{0.22}  % smallest StepM-adjusted p-value
+\providecommand{\rhmcsOosMBmAllNPos}{}\renewcommand{\rhmcsOosMBmAllNPos}{5}  % alternatives with a positive estimate (better than the benchmark)
+\providecommand{\rhmcsOosMBmAllPMin}{}\renewcommand{\rhmcsOosMBmAllPMin}{0.21}  % smallest StepM-adjusted p-value
 \providecommand{\rhmcsOosMBmAllPMax}{}\renewcommand{\rhmcsOosMBmAllPMax}{0.88}  % largest StepM-adjusted p-value
-\providecommand{\rhmcsOosMBmAllPTwoMin}{}\renewcommand{\rhmcsOosMBmAllPTwoMin}{0.45}  % smallest two-sided StepM-adjusted p-value
-\providecommand{\rhmcsOosMBmAllPTwoMax}{}\renewcommand{\rhmcsOosMBmAllPTwoMax}{0.88}  % largest two-sided StepM-adjusted p-value
-\providecommand{\rhmcsOosMBmAllRawMin}{}\renewcommand{\rhmcsOosMBmAllRawMin}{0.102}  % smallest single-test bootstrap p-value
+\providecommand{\rhmcsOosMBmAllPTwoMin}{}\renewcommand{\rhmcsOosMBmAllPTwoMin}{0.41}  % smallest two-sided StepM-adjusted p-value
+\providecommand{\rhmcsOosMBmAllPTwoMax}{}\renewcommand{\rhmcsOosMBmAllPTwoMax}{0.97}  % largest two-sided StepM-adjusted p-value
+\providecommand{\rhmcsOosMBmAllRawMin}{}\renewcommand{\rhmcsOosMBmAllRawMin}{0.094}  % smallest single-test bootstrap p-value
 \providecommand{\rhmcsOosMBmAllRej}{}\renewcommand{\rhmcsOosMBmAllRej}{none}  % the alternatives StepM rejects at 5 % (none: none)
 \providecommand{\rhmcsOosMBmAllNRejTwo}{}\renewcommand{\rhmcsOosMBmAllNRejTwo}{0}  % StepM rejections at FWER 5 %, two-sided
 \providecommand{\rhmcsOosMBmAllNRejTwoWord}{}\renewcommand{\rhmcsOosMBmAllNRejTwoWord}{none}  % ... as a word
 \providecommand{\rhmcsOosMBmAllNRawTwo}{}\renewcommand{\rhmcsOosMBmAllNRawTwo}{0}  % single-test bootstrap p < 0.05, two-sided
 \providecommand{\rhmcsOosMBmAllRejTwo}{}\renewcommand{\rhmcsOosMBmAllRejTwo}{none}  % the alternatives the two-sided StepM rejects at 5 % (none: none)
-\providecommand{\rhmcsOosMBmAllPLinHar}{}\renewcommand{\rhmcsOosMBmAllPLinHar}{0.85}  % StepM-adjusted p-value (one-sided), Linear, HAR
-\providecommand{\rhmcsOosMBmAllRawLinHar}{}\renewcommand{\rhmcsOosMBmAllRawLinHar}{0.61}  % single-test bootstrap p-value (one-sided), Linear, HAR
-\providecommand{\rhmcsOosMBmAllPTwoLinHar}{}\renewcommand{\rhmcsOosMBmAllPTwoLinHar}{0.88}  % StepM-adjusted p-value (two-sided), Linear, HAR
-\providecommand{\rhmcsOosMBmAllRawTwoLinHar}{}\renewcommand{\rhmcsOosMBmAllRawTwoLinHar}{0.80}  % single-test bootstrap p-value (two-sided), Linear, HAR
+\providecommand{\rhmcsOosMBmAllPLinHar}{}\renewcommand{\rhmcsOosMBmAllPLinHar}{0.77}  % StepM-adjusted p-value (one-sided), Linear, HAR
+\providecommand{\rhmcsOosMBmAllRawLinHar}{}\renewcommand{\rhmcsOosMBmAllRawLinHar}{0.41}  % single-test bootstrap p-value (one-sided), Linear, HAR
+\providecommand{\rhmcsOosMBmAllPTwoLinHar}{}\renewcommand{\rhmcsOosMBmAllPTwoLinHar}{0.97}  % StepM-adjusted p-value (two-sided), Linear, HAR
+\providecommand{\rhmcsOosMBmAllRawTwoLinHar}{}\renewcommand{\rhmcsOosMBmAllRawTwoLinHar}{0.88}  % single-test bootstrap p-value (two-sided), Linear, HAR
 \providecommand{\rhmcsOosMBmAllPRidgeFull}{}\renewcommand{\rhmcsOosMBmAllPRidgeFull}{0.88}  % StepM-adjusted p-value (one-sided), Ridge, Full
 \providecommand{\rhmcsOosMBmAllRawRidgeFull}{}\renewcommand{\rhmcsOosMBmAllRawRidgeFull}{0.88}  % single-test bootstrap p-value (one-sided), Ridge, Full
-\providecommand{\rhmcsOosMBmAllPTwoRidgeFull}{}\renewcommand{\rhmcsOosMBmAllPTwoRidgeFull}{0.57}  % StepM-adjusted p-value (two-sided), Ridge, Full
-\providecommand{\rhmcsOosMBmAllRawTwoRidgeFull}{}\renewcommand{\rhmcsOosMBmAllRawTwoRidgeFull}{0.253}  % single-test bootstrap p-value (two-sided), Ridge, Full
+\providecommand{\rhmcsOosMBmAllPTwoRidgeFull}{}\renewcommand{\rhmcsOosMBmAllPTwoRidgeFull}{0.55}  % StepM-adjusted p-value (two-sided), Ridge, Full
+\providecommand{\rhmcsOosMBmAllRawTwoRidgeFull}{}\renewcommand{\rhmcsOosMBmAllRawTwoRidgeFull}{0.26}  % single-test bootstrap p-value (two-sided), Ridge, Full
 \providecommand{\rhmcsOosMBmAllPLassoFull}{}\renewcommand{\rhmcsOosMBmAllPLassoFull}{0.88}  % StepM-adjusted p-value (one-sided), Lasso, Full
 \providecommand{\rhmcsOosMBmAllRawLassoFull}{}\renewcommand{\rhmcsOosMBmAllRawLassoFull}{0.88}  % single-test bootstrap p-value (one-sided), Lasso, Full
-\providecommand{\rhmcsOosMBmAllPTwoLassoFull}{}\renewcommand{\rhmcsOosMBmAllPTwoLassoFull}{0.55}  % StepM-adjusted p-value (two-sided), Lasso, Full
-\providecommand{\rhmcsOosMBmAllRawTwoLassoFull}{}\renewcommand{\rhmcsOosMBmAllRawTwoLassoFull}{0.24}  % single-test bootstrap p-value (two-sided), Lasso, Full
+\providecommand{\rhmcsOosMBmAllPTwoLassoFull}{}\renewcommand{\rhmcsOosMBmAllPTwoLassoFull}{0.54}  % StepM-adjusted p-value (two-sided), Lasso, Full
+\providecommand{\rhmcsOosMBmAllRawTwoLassoFull}{}\renewcommand{\rhmcsOosMBmAllRawTwoLassoFull}{0.251}  % single-test bootstrap p-value (two-sided), Lasso, Full
 \providecommand{\rhmcsOosMBmAllPEnetFull}{}\renewcommand{\rhmcsOosMBmAllPEnetFull}{0.88}  % StepM-adjusted p-value (one-sided), Elastic net, Full
 \providecommand{\rhmcsOosMBmAllRawEnetFull}{}\renewcommand{\rhmcsOosMBmAllRawEnetFull}{0.88}  % single-test bootstrap p-value (one-sided), Elastic net, Full
-\providecommand{\rhmcsOosMBmAllPTwoEnetFull}{}\renewcommand{\rhmcsOosMBmAllPTwoEnetFull}{0.58}  % StepM-adjusted p-value (two-sided), Elastic net, Full
-\providecommand{\rhmcsOosMBmAllRawTwoEnetFull}{}\renewcommand{\rhmcsOosMBmAllRawTwoEnetFull}{0.251}  % single-test bootstrap p-value (two-sided), Elastic net, Full
-\providecommand{\rhmcsOosMBmAllPLgbmHar}{}\renewcommand{\rhmcsOosMBmAllPLgbmHar}{0.42}  % StepM-adjusted p-value (one-sided), LightGBM, HAR
-\providecommand{\rhmcsOosMBmAllRawLgbmHar}{}\renewcommand{\rhmcsOosMBmAllRawLgbmHar}{0.13}  % single-test bootstrap p-value (one-sided), LightGBM, HAR
-\providecommand{\rhmcsOosMBmAllPTwoLgbmHar}{}\renewcommand{\rhmcsOosMBmAllPTwoLgbmHar}{0.59}  % StepM-adjusted p-value (two-sided), LightGBM, HAR
-\providecommand{\rhmcsOosMBmAllRawTwoLgbmHar}{}\renewcommand{\rhmcsOosMBmAllRawTwoLgbmHar}{0.27}  % single-test bootstrap p-value (two-sided), LightGBM, HAR
-\providecommand{\rhmcsOosMBmAllPLgbmFull}{}\renewcommand{\rhmcsOosMBmAllPLgbmFull}{0.88}  % StepM-adjusted p-value (one-sided), LightGBM, Full
-\providecommand{\rhmcsOosMBmAllRawLgbmFull}{}\renewcommand{\rhmcsOosMBmAllRawLgbmFull}{0.83}  % single-test bootstrap p-value (one-sided), LightGBM, Full
-\providecommand{\rhmcsOosMBmAllPTwoLgbmFull}{}\renewcommand{\rhmcsOosMBmAllPTwoLgbmFull}{0.59}  % StepM-adjusted p-value (two-sided), LightGBM, Full
-\providecommand{\rhmcsOosMBmAllRawTwoLgbmFull}{}\renewcommand{\rhmcsOosMBmAllRawTwoLgbmFull}{0.35}  % single-test bootstrap p-value (two-sided), LightGBM, Full
-\providecommand{\rhmcsOosMBmAllPXgbHar}{}\renewcommand{\rhmcsOosMBmAllPXgbHar}{0.22}  % StepM-adjusted p-value (one-sided), XGBoost, HAR
-\providecommand{\rhmcsOosMBmAllRawXgbHar}{}\renewcommand{\rhmcsOosMBmAllRawXgbHar}{0.102}  % single-test bootstrap p-value (one-sided), XGBoost, HAR
-\providecommand{\rhmcsOosMBmAllPTwoXgbHar}{}\renewcommand{\rhmcsOosMBmAllPTwoXgbHar}{0.45}  % StepM-adjusted p-value (two-sided), XGBoost, HAR
-\providecommand{\rhmcsOosMBmAllRawTwoXgbHar}{}\renewcommand{\rhmcsOosMBmAllRawTwoXgbHar}{0.19}  % single-test bootstrap p-value (two-sided), XGBoost, HAR
-\providecommand{\rhmcsOosMBmAllPXgbFull}{}\renewcommand{\rhmcsOosMBmAllPXgbFull}{0.88}  % StepM-adjusted p-value (one-sided), XGBoost, Full
-\providecommand{\rhmcsOosMBmAllRawXgbFull}{}\renewcommand{\rhmcsOosMBmAllRawXgbFull}{0.79}  % single-test bootstrap p-value (one-sided), XGBoost, Full
-\providecommand{\rhmcsOosMBmAllPTwoXgbFull}{}\renewcommand{\rhmcsOosMBmAllPTwoXgbFull}{0.67}  % StepM-adjusted p-value (two-sided), XGBoost, Full
-\providecommand{\rhmcsOosMBmAllRawTwoXgbFull}{}\renewcommand{\rhmcsOosMBmAllRawTwoXgbFull}{0.45}  % single-test bootstrap p-value (two-sided), XGBoost, Full
+\providecommand{\rhmcsOosMBmAllPTwoEnetFull}{}\renewcommand{\rhmcsOosMBmAllPTwoEnetFull}{0.56}  % StepM-adjusted p-value (two-sided), Elastic net, Full
+\providecommand{\rhmcsOosMBmAllRawTwoEnetFull}{}\renewcommand{\rhmcsOosMBmAllRawTwoEnetFull}{0.26}  % single-test bootstrap p-value (two-sided), Elastic net, Full
+\providecommand{\rhmcsOosMBmAllPLgbmHar}{}\renewcommand{\rhmcsOosMBmAllPLgbmHar}{0.30}  % StepM-adjusted p-value (one-sided), LightGBM, HAR
+\providecommand{\rhmcsOosMBmAllRawLgbmHar}{}\renewcommand{\rhmcsOosMBmAllRawLgbmHar}{0.12}  % single-test bootstrap p-value (one-sided), LightGBM, HAR
+\providecommand{\rhmcsOosMBmAllPTwoLgbmHar}{}\renewcommand{\rhmcsOosMBmAllPTwoLgbmHar}{0.54}  % StepM-adjusted p-value (two-sided), LightGBM, HAR
+\providecommand{\rhmcsOosMBmAllRawTwoLgbmHar}{}\renewcommand{\rhmcsOosMBmAllRawTwoLgbmHar}{0.24}  % single-test bootstrap p-value (two-sided), LightGBM, HAR
+\providecommand{\rhmcsOosMBmAllPLgbmFull}{}\renewcommand{\rhmcsOosMBmAllPLgbmFull}{0.87}  % StepM-adjusted p-value (one-sided), LightGBM, Full
+\providecommand{\rhmcsOosMBmAllRawLgbmFull}{}\renewcommand{\rhmcsOosMBmAllRawLgbmFull}{0.81}  % single-test bootstrap p-value (one-sided), LightGBM, Full
+\providecommand{\rhmcsOosMBmAllPTwoLgbmFull}{}\renewcommand{\rhmcsOosMBmAllPTwoLgbmFull}{0.70}  % StepM-adjusted p-value (two-sided), LightGBM, Full
+\providecommand{\rhmcsOosMBmAllRawTwoLgbmFull}{}\renewcommand{\rhmcsOosMBmAllRawTwoLgbmFull}{0.41}  % single-test bootstrap p-value (two-sided), LightGBM, Full
+\providecommand{\rhmcsOosMBmAllPXgbHar}{}\renewcommand{\rhmcsOosMBmAllPXgbHar}{0.21}  % StepM-adjusted p-value (one-sided), XGBoost, HAR
+\providecommand{\rhmcsOosMBmAllRawXgbHar}{}\renewcommand{\rhmcsOosMBmAllRawXgbHar}{0.094}  % single-test bootstrap p-value (one-sided), XGBoost, HAR
+\providecommand{\rhmcsOosMBmAllPTwoXgbHar}{}\renewcommand{\rhmcsOosMBmAllPTwoXgbHar}{0.41}  % StepM-adjusted p-value (two-sided), XGBoost, HAR
+\providecommand{\rhmcsOosMBmAllRawTwoXgbHar}{}\renewcommand{\rhmcsOosMBmAllRawTwoXgbHar}{0.16}  % single-test bootstrap p-value (two-sided), XGBoost, HAR
+\providecommand{\rhmcsOosMBmAllPXgbFull}{}\renewcommand{\rhmcsOosMBmAllPXgbFull}{0.87}  % StepM-adjusted p-value (one-sided), XGBoost, Full
+\providecommand{\rhmcsOosMBmAllRawXgbFull}{}\renewcommand{\rhmcsOosMBmAllRawXgbFull}{0.77}  % single-test bootstrap p-value (one-sided), XGBoost, Full
+\providecommand{\rhmcsOosMBmAllPTwoXgbFull}{}\renewcommand{\rhmcsOosMBmAllPTwoXgbFull}{0.79}  % StepM-adjusted p-value (two-sided), XGBoost, Full
+\providecommand{\rhmcsOosMBmAllRawTwoXgbFull}{}\renewcommand{\rhmcsOosMBmAllRawTwoXgbFull}{0.53}  % single-test bootstrap p-value (two-sided), XGBoost, Full
 \providecommand{\rhmcsOosMBmAllPRfHar}{}\renewcommand{\rhmcsOosMBmAllPRfHar}{0.22}  % StepM-adjusted p-value (one-sided), Random forest, HAR
-\providecommand{\rhmcsOosMBmAllRawRfHar}{}\renewcommand{\rhmcsOosMBmAllRawRfHar}{0.11}  % single-test bootstrap p-value (one-sided), Random forest, HAR
-\providecommand{\rhmcsOosMBmAllPTwoRfHar}{}\renewcommand{\rhmcsOosMBmAllPTwoRfHar}{0.45}  % StepM-adjusted p-value (two-sided), Random forest, HAR
-\providecommand{\rhmcsOosMBmAllRawTwoRfHar}{}\renewcommand{\rhmcsOosMBmAllRawTwoRfHar}{0.21}  % single-test bootstrap p-value (two-sided), Random forest, HAR
-\providecommand{\rhmcsOosMBmAllPRfFull}{}\renewcommand{\rhmcsOosMBmAllPRfFull}{0.85}  % StepM-adjusted p-value (one-sided), Random forest, Full
-\providecommand{\rhmcsOosMBmAllRawRfFull}{}\renewcommand{\rhmcsOosMBmAllRawRfFull}{0.63}  % single-test bootstrap p-value (one-sided), Random forest, Full
-\providecommand{\rhmcsOosMBmAllPTwoRfFull}{}\renewcommand{\rhmcsOosMBmAllPTwoRfFull}{0.88}  % StepM-adjusted p-value (two-sided), Random forest, Full
-\providecommand{\rhmcsOosMBmAllRawTwoRfFull}{}\renewcommand{\rhmcsOosMBmAllRawTwoRfFull}{0.76}  % single-test bootstrap p-value (two-sided), Random forest, Full
+\providecommand{\rhmcsOosMBmAllRawRfHar}{}\renewcommand{\rhmcsOosMBmAllRawRfHar}{0.100}  % single-test bootstrap p-value (one-sided), Random forest, HAR
+\providecommand{\rhmcsOosMBmAllPTwoRfHar}{}\renewcommand{\rhmcsOosMBmAllPTwoRfHar}{0.42}  % StepM-adjusted p-value (two-sided), Random forest, HAR
+\providecommand{\rhmcsOosMBmAllRawTwoRfHar}{}\renewcommand{\rhmcsOosMBmAllRawTwoRfHar}{0.18}  % single-test bootstrap p-value (two-sided), Random forest, HAR
+\providecommand{\rhmcsOosMBmAllPRfFull}{}\renewcommand{\rhmcsOosMBmAllPRfFull}{0.77}  % StepM-adjusted p-value (one-sided), Random forest, Full
+\providecommand{\rhmcsOosMBmAllRawRfFull}{}\renewcommand{\rhmcsOosMBmAllRawRfFull}{0.41}  % single-test bootstrap p-value (one-sided), Random forest, Full
+\providecommand{\rhmcsOosMBmAllPTwoRfFull}{}\renewcommand{\rhmcsOosMBmAllPTwoRfFull}{0.97}  % StepM-adjusted p-value (two-sided), Random forest, Full
+\providecommand{\rhmcsOosMBmAllRawTwoRfFull}{}\renewcommand{\rhmcsOosMBmAllRawTwoRfFull}{0.87}  % single-test bootstrap p-value (two-sided), Random forest, Full
 \providecommand{\rhmcsOosMBmAllNRejLo}{}\renewcommand{\rhmcsOosMBmAllNRejLo}{0}  % StepM rejections at 5 %, block length 5
 \providecommand{\rhmcsOosMBmAllSpaCLo}{}\renewcommand{\rhmcsOosMBmAllSpaCLo}{0.14}  % SPA p-value (consistent), block length 5
 \providecommand{\rhmcsOosMBmAllNRejTwoLo}{}\renewcommand{\rhmcsOosMBmAllNRejTwoLo}{0}  % ... two-sided, block length 5
 \providecommand{\rhmcsOosMBmAllPMinLo}{}\renewcommand{\rhmcsOosMBmAllPMinLo}{0.14}  % smallest adjusted p, block length 5
-\providecommand{\rhmcsOosMBmAllPTwoMinLo}{}\renewcommand{\rhmcsOosMBmAllPTwoMinLo}{0.31}  % ... two-sided, block length 5
+\providecommand{\rhmcsOosMBmAllPTwoMinLo}{}\renewcommand{\rhmcsOosMBmAllPTwoMinLo}{0.30}  % ... two-sided, block length 5
 \providecommand{\rhmcsOosMBmAllNRejHi}{}\renewcommand{\rhmcsOosMBmAllNRejHi}{0}  % StepM rejections at 5 %, block length 20
 \providecommand{\rhmcsOosMBmAllSpaCHi}{}\renewcommand{\rhmcsOosMBmAllSpaCHi}{0.31}  % SPA p-value (consistent), block length 20
 \providecommand{\rhmcsOosMBmAllNRejTwoHi}{}\renewcommand{\rhmcsOosMBmAllNRejTwoHi}{0}  % ... two-sided, block length 20
 \providecommand{\rhmcsOosMBmAllPMinHi}{}\renewcommand{\rhmcsOosMBmAllPMinHi}{0.31}  % smallest adjusted p, block length 20
-\providecommand{\rhmcsOosMBmAllPTwoMinHi}{}\renewcommand{\rhmcsOosMBmAllPTwoMinHi}{0.64}  % ... two-sided, block length 20
-\providecommand{\rhmcsChQBmSpaC}{}\renewcommand{\rhmcsChQBmSpaC}{0.56}  % SPA p-value (consistent), family ChQBm
-\providecommand{\rhmcsChQBmSpaL}{}\renewcommand{\rhmcsChQBmSpaL}{0.35}  % ... lower
-\providecommand{\rhmcsChQBmSpaU}{}\renewcommand{\rhmcsChQBmSpaU}{0.68}  % ... upper
+\providecommand{\rhmcsOosMBmAllPTwoMinHi}{}\renewcommand{\rhmcsOosMBmAllPTwoMinHi}{0.62}  % ... two-sided, block length 20
+\providecommand{\rhmcsChQBmSpaC}{}\renewcommand{\rhmcsChQBmSpaC}{0.54}  % SPA p-value (consistent), family ChQBm
+\providecommand{\rhmcsChQBmSpaL}{}\renewcommand{\rhmcsChQBmSpaL}{0.14}  % ... lower
+\providecommand{\rhmcsChQBmSpaU}{}\renewcommand{\rhmcsChQBmSpaU}{0.67}  % ... upper
 \providecommand{\rhmcsChQBmNRej}{}\renewcommand{\rhmcsChQBmNRej}{0}  % StepM rejections at FWER 5 % (of 6)
 \providecommand{\rhmcsChQBmNRejWord}{}\renewcommand{\rhmcsChQBmNRejWord}{none}  % ... as a word
 \providecommand{\rhmcsChQBmNRaw}{}\renewcommand{\rhmcsChQBmNRaw}{0}  % single-test bootstrap p < 0.05 (no adjustment)
 \providecommand{\rhmcsChQBmNRawWord}{}\renewcommand{\rhmcsChQBmNRawWord}{none}  % ... as a word
 \providecommand{\rhmcsChQBmNPos}{}\renewcommand{\rhmcsChQBmNPos}{0}  % alternatives with a positive estimate (better than the benchmark)
-\providecommand{\rhmcsChQBmPMin}{}\renewcommand{\rhmcsChQBmPMin}{0.81}  % smallest StepM-adjusted p-value
-\providecommand{\rhmcsChQBmPMax}{}\renewcommand{\rhmcsChQBmPMax}{0.99}  % largest StepM-adjusted p-value
-\providecommand{\rhmcsChQBmPTwoMin}{}\renewcommand{\rhmcsChQBmPTwoMin}{0.018}  % smallest two-sided StepM-adjusted p-value
-\providecommand{\rhmcsChQBmPTwoMax}{}\renewcommand{\rhmcsChQBmPTwoMax}{0.72}  % largest two-sided StepM-adjusted p-value
-\providecommand{\rhmcsChQBmRawMin}{}\renewcommand{\rhmcsChQBmRawMin}{0.64}  % smallest single-test bootstrap p-value
+\providecommand{\rhmcsChQBmPMin}{}\renewcommand{\rhmcsChQBmPMin}{0.94}  % smallest StepM-adjusted p-value
+\providecommand{\rhmcsChQBmPMax}{}\renewcommand{\rhmcsChQBmPMax}{1.00}  % largest StepM-adjusted p-value
+\providecommand{\rhmcsChQBmPTwoMin}{}\renewcommand{\rhmcsChQBmPTwoMin}{0.008}  % smallest two-sided StepM-adjusted p-value
+\providecommand{\rhmcsChQBmPTwoMax}{}\renewcommand{\rhmcsChQBmPTwoMax}{0.27}  % largest two-sided StepM-adjusted p-value
+\providecommand{\rhmcsChQBmRawMin}{}\renewcommand{\rhmcsChQBmRawMin}{0.86}  % smallest single-test bootstrap p-value
 \providecommand{\rhmcsChQBmRej}{}\renewcommand{\rhmcsChQBmRej}{none}  % the alternatives StepM rejects at 5 % (none: none)
-\providecommand{\rhmcsChQBmNRejTwo}{}\renewcommand{\rhmcsChQBmNRejTwo}{3}  % StepM rejections at FWER 5 %, two-sided
-\providecommand{\rhmcsChQBmNRejTwoWord}{}\renewcommand{\rhmcsChQBmNRejTwoWord}{three}  % ... as a word
-\providecommand{\rhmcsChQBmNRawTwo}{}\renewcommand{\rhmcsChQBmNRawTwo}{3}  % single-test bootstrap p < 0.05, two-sided
-\providecommand{\rhmcsChQBmRejTwo}{}\renewcommand{\rhmcsChQBmRejTwo}{ridge regression on the full predictor set, the lasso on the full predictor set, and the elastic net on the full predictor set}  % the alternatives the two-sided StepM rejects at 5 % (none: none)
-\providecommand{\rhmcsChQBmPRidge}{}\renewcommand{\rhmcsChQBmPRidge}{0.99}  % StepM-adjusted p-value (one-sided), Ridge
+\providecommand{\rhmcsChQBmNRejTwo}{}\renewcommand{\rhmcsChQBmNRejTwo}{4}  % StepM rejections at FWER 5 %, two-sided
+\providecommand{\rhmcsChQBmNRejTwoWord}{}\renewcommand{\rhmcsChQBmNRejTwoWord}{four}  % ... as a word
+\providecommand{\rhmcsChQBmNRawTwo}{}\renewcommand{\rhmcsChQBmNRawTwo}{4}  % single-test bootstrap p < 0.05, two-sided
+\providecommand{\rhmcsChQBmRejTwo}{}\renewcommand{\rhmcsChQBmRejTwo}{ridge regression on the full predictor set, the lasso on the full predictor set, the elastic net on the full predictor set, and the random forest on the full predictor set}  % the alternatives the two-sided StepM rejects at 5 % (none: none)
+\providecommand{\rhmcsChQBmPRidge}{}\renewcommand{\rhmcsChQBmPRidge}{1.00}  % StepM-adjusted p-value (one-sided), Ridge
 \providecommand{\rhmcsChQBmRawRidge}{}\renewcommand{\rhmcsChQBmRawRidge}{0.99}  % single-test bootstrap p-value (one-sided), Ridge
-\providecommand{\rhmcsChQBmPTwoRidge}{}\renewcommand{\rhmcsChQBmPTwoRidge}{0.029}  % StepM-adjusted p-value (two-sided), Ridge
-\providecommand{\rhmcsChQBmRawTwoRidge}{}\renewcommand{\rhmcsChQBmRawTwoRidge}{0.013}  % single-test bootstrap p-value (two-sided), Ridge
-\providecommand{\rhmcsChQBmPLasso}{}\renewcommand{\rhmcsChQBmPLasso}{0.99}  % StepM-adjusted p-value (one-sided), Lasso
-\providecommand{\rhmcsChQBmRawLasso}{}\renewcommand{\rhmcsChQBmRawLasso}{0.99}  % single-test bootstrap p-value (one-sided), Lasso
-\providecommand{\rhmcsChQBmPTwoLasso}{}\renewcommand{\rhmcsChQBmPTwoLasso}{0.018}  % StepM-adjusted p-value (two-sided), Lasso
-\providecommand{\rhmcsChQBmRawTwoLasso}{}\renewcommand{\rhmcsChQBmRawTwoLasso}{0.007}  % single-test bootstrap p-value (two-sided), Lasso
-\providecommand{\rhmcsChQBmPEnet}{}\renewcommand{\rhmcsChQBmPEnet}{0.99}  % StepM-adjusted p-value (one-sided), Elastic net
+\providecommand{\rhmcsChQBmPTwoRidge}{}\renewcommand{\rhmcsChQBmPTwoRidge}{0.015}  % StepM-adjusted p-value (two-sided), Ridge
+\providecommand{\rhmcsChQBmRawTwoRidge}{}\renewcommand{\rhmcsChQBmRawTwoRidge}{0.007}  % single-test bootstrap p-value (two-sided), Ridge
+\providecommand{\rhmcsChQBmPLasso}{}\renewcommand{\rhmcsChQBmPLasso}{1.00}  % StepM-adjusted p-value (one-sided), Lasso
+\providecommand{\rhmcsChQBmRawLasso}{}\renewcommand{\rhmcsChQBmRawLasso}{1.00}  % single-test bootstrap p-value (one-sided), Lasso
+\providecommand{\rhmcsChQBmPTwoLasso}{}\renewcommand{\rhmcsChQBmPTwoLasso}{0.008}  % StepM-adjusted p-value (two-sided), Lasso
+\providecommand{\rhmcsChQBmRawTwoLasso}{}\renewcommand{\rhmcsChQBmRawTwoLasso}{0.002}  % single-test bootstrap p-value (two-sided), Lasso
+\providecommand{\rhmcsChQBmPEnet}{}\renewcommand{\rhmcsChQBmPEnet}{1.00}  % StepM-adjusted p-value (one-sided), Elastic net
 \providecommand{\rhmcsChQBmRawEnet}{}\renewcommand{\rhmcsChQBmRawEnet}{0.99}  % single-test bootstrap p-value (one-sided), Elastic net
-\providecommand{\rhmcsChQBmPTwoEnet}{}\renewcommand{\rhmcsChQBmPTwoEnet}{0.047}  % StepM-adjusted p-value (two-sided), Elastic net
-\providecommand{\rhmcsChQBmRawTwoEnet}{}\renewcommand{\rhmcsChQBmRawTwoEnet}{0.024}  % single-test bootstrap p-value (two-sided), Elastic net
-\providecommand{\rhmcsChQBmPLgbm}{}\renewcommand{\rhmcsChQBmPLgbm}{0.85}  % StepM-adjusted p-value (one-sided), LightGBM
-\providecommand{\rhmcsChQBmRawLgbm}{}\renewcommand{\rhmcsChQBmRawLgbm}{0.69}  % single-test bootstrap p-value (one-sided), LightGBM
-\providecommand{\rhmcsChQBmPTwoLgbm}{}\renewcommand{\rhmcsChQBmPTwoLgbm}{0.63}  % StepM-adjusted p-value (two-sided), LightGBM
-\providecommand{\rhmcsChQBmRawTwoLgbm}{}\renewcommand{\rhmcsChQBmRawTwoLgbm}{0.60}  % single-test bootstrap p-value (two-sided), LightGBM
-\providecommand{\rhmcsChQBmPXgb}{}\renewcommand{\rhmcsChQBmPXgb}{0.81}  % StepM-adjusted p-value (one-sided), XGBoost
-\providecommand{\rhmcsChQBmRawXgb}{}\renewcommand{\rhmcsChQBmRawXgb}{0.64}  % single-test bootstrap p-value (one-sided), XGBoost
-\providecommand{\rhmcsChQBmPTwoXgb}{}\renewcommand{\rhmcsChQBmPTwoXgb}{0.72}  % StepM-adjusted p-value (two-sided), XGBoost
-\providecommand{\rhmcsChQBmRawTwoXgb}{}\renewcommand{\rhmcsChQBmRawTwoXgb}{0.72}  % single-test bootstrap p-value (two-sided), XGBoost
-\providecommand{\rhmcsChQBmPRf}{}\renewcommand{\rhmcsChQBmPRf}{0.99}  % StepM-adjusted p-value (one-sided), Random forest
-\providecommand{\rhmcsChQBmRawRf}{}\renewcommand{\rhmcsChQBmRawRf}{0.97}  % single-test bootstrap p-value (one-sided), Random forest
-\providecommand{\rhmcsChQBmPTwoRf}{}\renewcommand{\rhmcsChQBmPTwoRf}{0.076}  % StepM-adjusted p-value (two-sided), Random forest
-\providecommand{\rhmcsChQBmRawTwoRf}{}\renewcommand{\rhmcsChQBmRawTwoRf}{0.056}  % single-test bootstrap p-value (two-sided), Random forest
+\providecommand{\rhmcsChQBmPTwoEnet}{}\renewcommand{\rhmcsChQBmPTwoEnet}{0.025}  % StepM-adjusted p-value (two-sided), Elastic net
+\providecommand{\rhmcsChQBmRawTwoEnet}{}\renewcommand{\rhmcsChQBmRawTwoEnet}{0.011}  % single-test bootstrap p-value (two-sided), Elastic net
+\providecommand{\rhmcsChQBmPLgbm}{}\renewcommand{\rhmcsChQBmPLgbm}{0.96}  % StepM-adjusted p-value (one-sided), LightGBM
+\providecommand{\rhmcsChQBmRawLgbm}{}\renewcommand{\rhmcsChQBmRawLgbm}{0.91}  % single-test bootstrap p-value (one-sided), LightGBM
+\providecommand{\rhmcsChQBmPTwoLgbm}{}\renewcommand{\rhmcsChQBmPTwoLgbm}{0.20}  % StepM-adjusted p-value (two-sided), LightGBM
+\providecommand{\rhmcsChQBmRawTwoLgbm}{}\renewcommand{\rhmcsChQBmRawTwoLgbm}{0.18}  % single-test bootstrap p-value (two-sided), LightGBM
+\providecommand{\rhmcsChQBmPXgb}{}\renewcommand{\rhmcsChQBmPXgb}{0.94}  % StepM-adjusted p-value (one-sided), XGBoost
+\providecommand{\rhmcsChQBmRawXgb}{}\renewcommand{\rhmcsChQBmRawXgb}{0.86}  % single-test bootstrap p-value (one-sided), XGBoost
+\providecommand{\rhmcsChQBmPTwoXgb}{}\renewcommand{\rhmcsChQBmPTwoXgb}{0.27}  % StepM-adjusted p-value (two-sided), XGBoost
+\providecommand{\rhmcsChQBmRawTwoXgb}{}\renewcommand{\rhmcsChQBmRawTwoXgb}{0.27}  % single-test bootstrap p-value (two-sided), XGBoost
+\providecommand{\rhmcsChQBmPRf}{}\renewcommand{\rhmcsChQBmPRf}{1.00}  % StepM-adjusted p-value (one-sided), Random forest
+\providecommand{\rhmcsChQBmRawRf}{}\renewcommand{\rhmcsChQBmRawRf}{0.99}  % single-test bootstrap p-value (one-sided), Random forest
+\providecommand{\rhmcsChQBmPTwoRf}{}\renewcommand{\rhmcsChQBmPTwoRf}{0.015}  % StepM-adjusted p-value (two-sided), Random forest
+\providecommand{\rhmcsChQBmRawTwoRf}{}\renewcommand{\rhmcsChQBmRawTwoRf}{0.007}  % single-test bootstrap p-value (two-sided), Random forest
 \providecommand{\rhmcsChQBmNRejLo}{}\renewcommand{\rhmcsChQBmNRejLo}{0}  % StepM rejections at 5 %, block length 5
-\providecommand{\rhmcsChQBmSpaCLo}{}\renewcommand{\rhmcsChQBmSpaCLo}{0.58}  % SPA p-value (consistent), block length 5
-\providecommand{\rhmcsChQBmNRejTwoLo}{}\renewcommand{\rhmcsChQBmNRejTwoLo}{3}  % ... two-sided, block length 5
-\providecommand{\rhmcsChQBmPMinLo}{}\renewcommand{\rhmcsChQBmPMinLo}{0.80}  % smallest adjusted p, block length 5
-\providecommand{\rhmcsChQBmPTwoMinLo}{}\renewcommand{\rhmcsChQBmPTwoMinLo}{0.009}  % ... two-sided, block length 5
+\providecommand{\rhmcsChQBmSpaCLo}{}\renewcommand{\rhmcsChQBmSpaCLo}{0.54}  % SPA p-value (consistent), block length 5
+\providecommand{\rhmcsChQBmNRejTwoLo}{}\renewcommand{\rhmcsChQBmNRejTwoLo}{4}  % ... two-sided, block length 5
+\providecommand{\rhmcsChQBmPMinLo}{}\renewcommand{\rhmcsChQBmPMinLo}{0.95}  % smallest adjusted p, block length 5
+\providecommand{\rhmcsChQBmPTwoMinLo}{}\renewcommand{\rhmcsChQBmPTwoMinLo}{0.004}  % ... two-sided, block length 5
 \providecommand{\rhmcsChQBmNRejHi}{}\renewcommand{\rhmcsChQBmNRejHi}{0}  % StepM rejections at 5 %, block length 20
-\providecommand{\rhmcsChQBmSpaCHi}{}\renewcommand{\rhmcsChQBmSpaCHi}{0.57}  % SPA p-value (consistent), block length 20
-\providecommand{\rhmcsChQBmNRejTwoHi}{}\renewcommand{\rhmcsChQBmNRejTwoHi}{2}  % ... two-sided, block length 20
-\providecommand{\rhmcsChQBmPMinHi}{}\renewcommand{\rhmcsChQBmPMinHi}{0.82}  % smallest adjusted p, block length 20
-\providecommand{\rhmcsChQBmPTwoMinHi}{}\renewcommand{\rhmcsChQBmPTwoMinHi}{0.022}  % ... two-sided, block length 20
-\providecommand{\rhmcsChQBmAllSpaC}{}\renewcommand{\rhmcsChQBmAllSpaC}{0.66}  % SPA p-value (consistent), family ChQBmAll
-\providecommand{\rhmcsChQBmAllSpaL}{}\renewcommand{\rhmcsChQBmAllSpaL}{0.37}  % ... lower
-\providecommand{\rhmcsChQBmAllSpaU}{}\renewcommand{\rhmcsChQBmAllSpaU}{0.78}  % ... upper
+\providecommand{\rhmcsChQBmSpaCHi}{}\renewcommand{\rhmcsChQBmSpaCHi}{0.53}  % SPA p-value (consistent), block length 20
+\providecommand{\rhmcsChQBmNRejTwoHi}{}\renewcommand{\rhmcsChQBmNRejTwoHi}{4}  % ... two-sided, block length 20
+\providecommand{\rhmcsChQBmPMinHi}{}\renewcommand{\rhmcsChQBmPMinHi}{0.95}  % smallest adjusted p, block length 20
+\providecommand{\rhmcsChQBmPTwoMinHi}{}\renewcommand{\rhmcsChQBmPTwoMinHi}{0.009}  % ... two-sided, block length 20
+\providecommand{\rhmcsChQBmAllSpaC}{}\renewcommand{\rhmcsChQBmAllSpaC}{0.54}  % SPA p-value (consistent), family ChQBmAll
+\providecommand{\rhmcsChQBmAllSpaL}{}\renewcommand{\rhmcsChQBmAllSpaL}{0.14}  % ... lower
+\providecommand{\rhmcsChQBmAllSpaU}{}\renewcommand{\rhmcsChQBmAllSpaU}{0.79}  % ... upper
 \providecommand{\rhmcsChQBmAllNRej}{}\renewcommand{\rhmcsChQBmAllNRej}{0}  % StepM rejections at FWER 5 % (of 10)
 \providecommand{\rhmcsChQBmAllNRejWord}{}\renewcommand{\rhmcsChQBmAllNRejWord}{none}  % ... as a word
 \providecommand{\rhmcsChQBmAllNRaw}{}\renewcommand{\rhmcsChQBmAllNRaw}{0}  % single-test bootstrap p < 0.05 (no adjustment)
 \providecommand{\rhmcsChQBmAllNRawWord}{}\renewcommand{\rhmcsChQBmAllNRawWord}{none}  % ... as a word
 \providecommand{\rhmcsChQBmAllNPos}{}\renewcommand{\rhmcsChQBmAllNPos}{0}  % alternatives with a positive estimate (better than the benchmark)
-\providecommand{\rhmcsChQBmAllPMin}{}\renewcommand{\rhmcsChQBmAllPMin}{0.88}  % smallest StepM-adjusted p-value
+\providecommand{\rhmcsChQBmAllPMin}{}\renewcommand{\rhmcsChQBmAllPMin}{0.98}  % smallest StepM-adjusted p-value
 \providecommand{\rhmcsChQBmAllPMax}{}\renewcommand{\rhmcsChQBmAllPMax}{1.00}  % largest StepM-adjusted p-value
-\providecommand{\rhmcsChQBmAllPTwoMin}{}\renewcommand{\rhmcsChQBmAllPTwoMin}{0.025}  % smallest two-sided StepM-adjusted p-value
-\providecommand{\rhmcsChQBmAllPTwoMax}{}\renewcommand{\rhmcsChQBmAllPTwoMax}{0.72}  % largest two-sided StepM-adjusted p-value
-\providecommand{\rhmcsChQBmAllRawMin}{}\renewcommand{\rhmcsChQBmAllRawMin}{0.64}  % smallest single-test bootstrap p-value
+\providecommand{\rhmcsChQBmAllPTwoMin}{}\renewcommand{\rhmcsChQBmAllPTwoMin}{\ensuremath{<}0.001}  % smallest two-sided StepM-adjusted p-value
+\providecommand{\rhmcsChQBmAllPTwoMax}{}\renewcommand{\rhmcsChQBmAllPTwoMax}{0.27}  % largest two-sided StepM-adjusted p-value
+\providecommand{\rhmcsChQBmAllRawMin}{}\renewcommand{\rhmcsChQBmAllRawMin}{0.86}  % smallest single-test bootstrap p-value
 \providecommand{\rhmcsChQBmAllRej}{}\renewcommand{\rhmcsChQBmAllRej}{none}  % the alternatives StepM rejects at 5 % (none: none)
-\providecommand{\rhmcsChQBmAllNRejTwo}{}\renewcommand{\rhmcsChQBmAllNRejTwo}{3}  % StepM rejections at FWER 5 %, two-sided
-\providecommand{\rhmcsChQBmAllNRejTwoWord}{}\renewcommand{\rhmcsChQBmAllNRejTwoWord}{three}  % ... as a word
-\providecommand{\rhmcsChQBmAllNRawTwo}{}\renewcommand{\rhmcsChQBmAllNRawTwo}{5}  % single-test bootstrap p < 0.05, two-sided
-\providecommand{\rhmcsChQBmAllRejTwo}{}\renewcommand{\rhmcsChQBmAllRejTwo}{ridge regression on the full predictor set, the lasso on the full predictor set, and the random forest on the HAR benchmark}  % the alternatives the two-sided StepM rejects at 5 % (none: none)
+\providecommand{\rhmcsChQBmAllNRejTwo}{}\renewcommand{\rhmcsChQBmAllNRejTwo}{8}  % StepM rejections at FWER 5 %, two-sided
+\providecommand{\rhmcsChQBmAllNRejTwoWord}{}\renewcommand{\rhmcsChQBmAllNRejTwoWord}{eight}  % ... as a word
+\providecommand{\rhmcsChQBmAllNRawTwo}{}\renewcommand{\rhmcsChQBmAllNRawTwo}{8}  % single-test bootstrap p < 0.05, two-sided
+\providecommand{\rhmcsChQBmAllRejTwo}{}\renewcommand{\rhmcsChQBmAllRejTwo}{the linear models on the HAR benchmark, ridge regression on the full predictor set, the lasso on the full predictor set, the elastic net on the full predictor set, LightGBM on the HAR benchmark, XGBoost on the HAR benchmark, the random forest on the HAR benchmark, and the random forest on the full predictor set}  % the alternatives the two-sided StepM rejects at 5 % (none: none)
 \providecommand{\rhmcsChQBmAllPLinHar}{}\renewcommand{\rhmcsChQBmAllPLinHar}{1.00}  % StepM-adjusted p-value (one-sided), Linear, HAR
-\providecommand{\rhmcsChQBmAllRawLinHar}{}\renewcommand{\rhmcsChQBmAllRawLinHar}{0.98}  % single-test bootstrap p-value (one-sided), Linear, HAR
-\providecommand{\rhmcsChQBmAllPTwoLinHar}{}\renewcommand{\rhmcsChQBmAllPTwoLinHar}{0.073}  % StepM-adjusted p-value (two-sided), Linear, HAR
-\providecommand{\rhmcsChQBmAllRawTwoLinHar}{}\renewcommand{\rhmcsChQBmAllRawTwoLinHar}{0.031}  % single-test bootstrap p-value (two-sided), Linear, HAR
+\providecommand{\rhmcsChQBmAllRawLinHar}{}\renewcommand{\rhmcsChQBmAllRawLinHar}{1.00}  % single-test bootstrap p-value (one-sided), Linear, HAR
+\providecommand{\rhmcsChQBmAllPTwoLinHar}{}\renewcommand{\rhmcsChQBmAllPTwoLinHar}{\ensuremath{<}0.001}  % StepM-adjusted p-value (two-sided), Linear, HAR
+\providecommand{\rhmcsChQBmAllRawTwoLinHar}{}\renewcommand{\rhmcsChQBmAllRawTwoLinHar}{\ensuremath{<}0.001}  % single-test bootstrap p-value (two-sided), Linear, HAR
 \providecommand{\rhmcsChQBmAllPRidgeFull}{}\renewcommand{\rhmcsChQBmAllPRidgeFull}{1.00}  % StepM-adjusted p-value (one-sided), Ridge, Full
 \providecommand{\rhmcsChQBmAllRawRidgeFull}{}\renewcommand{\rhmcsChQBmAllRawRidgeFull}{0.99}  % single-test bootstrap p-value (one-sided), Ridge, Full
-\providecommand{\rhmcsChQBmAllPTwoRidgeFull}{}\renewcommand{\rhmcsChQBmAllPTwoRidgeFull}{0.044}  % StepM-adjusted p-value (two-sided), Ridge, Full
-\providecommand{\rhmcsChQBmAllRawTwoRidgeFull}{}\renewcommand{\rhmcsChQBmAllRawTwoRidgeFull}{0.013}  % single-test bootstrap p-value (two-sided), Ridge, Full
+\providecommand{\rhmcsChQBmAllPTwoRidgeFull}{}\renewcommand{\rhmcsChQBmAllPTwoRidgeFull}{0.015}  % StepM-adjusted p-value (two-sided), Ridge, Full
+\providecommand{\rhmcsChQBmAllRawTwoRidgeFull}{}\renewcommand{\rhmcsChQBmAllRawTwoRidgeFull}{0.007}  % single-test bootstrap p-value (two-sided), Ridge, Full
 \providecommand{\rhmcsChQBmAllPLassoFull}{}\renewcommand{\rhmcsChQBmAllPLassoFull}{1.00}  % StepM-adjusted p-value (one-sided), Lasso, Full
-\providecommand{\rhmcsChQBmAllRawLassoFull}{}\renewcommand{\rhmcsChQBmAllRawLassoFull}{0.99}  % single-test bootstrap p-value (one-sided), Lasso, Full
-\providecommand{\rhmcsChQBmAllPTwoLassoFull}{}\renewcommand{\rhmcsChQBmAllPTwoLassoFull}{0.025}  % StepM-adjusted p-value (two-sided), Lasso, Full
-\providecommand{\rhmcsChQBmAllRawTwoLassoFull}{}\renewcommand{\rhmcsChQBmAllRawTwoLassoFull}{0.007}  % single-test bootstrap p-value (two-sided), Lasso, Full
+\providecommand{\rhmcsChQBmAllRawLassoFull}{}\renewcommand{\rhmcsChQBmAllRawLassoFull}{1.00}  % single-test bootstrap p-value (one-sided), Lasso, Full
+\providecommand{\rhmcsChQBmAllPTwoLassoFull}{}\renewcommand{\rhmcsChQBmAllPTwoLassoFull}{0.008}  % StepM-adjusted p-value (two-sided), Lasso, Full
+\providecommand{\rhmcsChQBmAllRawTwoLassoFull}{}\renewcommand{\rhmcsChQBmAllRawTwoLassoFull}{0.002}  % single-test bootstrap p-value (two-sided), Lasso, Full
 \providecommand{\rhmcsChQBmAllPEnetFull}{}\renewcommand{\rhmcsChQBmAllPEnetFull}{1.00}  % StepM-adjusted p-value (one-sided), Elastic net, Full
 \providecommand{\rhmcsChQBmAllRawEnetFull}{}\renewcommand{\rhmcsChQBmAllRawEnetFull}{0.99}  % single-test bootstrap p-value (one-sided), Elastic net, Full
-\providecommand{\rhmcsChQBmAllPTwoEnetFull}{}\renewcommand{\rhmcsChQBmAllPTwoEnetFull}{0.068}  % StepM-adjusted p-value (two-sided), Elastic net, Full
-\providecommand{\rhmcsChQBmAllRawTwoEnetFull}{}\renewcommand{\rhmcsChQBmAllRawTwoEnetFull}{0.024}  % single-test bootstrap p-value (two-sided), Elastic net, Full
-\providecommand{\rhmcsChQBmAllPLgbmHar}{}\renewcommand{\rhmcsChQBmAllPLgbmHar}{0.99}  % StepM-adjusted p-value (one-sided), LightGBM, HAR
-\providecommand{\rhmcsChQBmAllRawLgbmHar}{}\renewcommand{\rhmcsChQBmAllRawLgbmHar}{0.88}  % single-test bootstrap p-value (one-sided), LightGBM, HAR
-\providecommand{\rhmcsChQBmAllPTwoLgbmHar}{}\renewcommand{\rhmcsChQBmAllPTwoLgbmHar}{0.38}  % StepM-adjusted p-value (two-sided), LightGBM, HAR
-\providecommand{\rhmcsChQBmAllRawTwoLgbmHar}{}\renewcommand{\rhmcsChQBmAllRawTwoLgbmHar}{0.24}  % single-test bootstrap p-value (two-sided), LightGBM, HAR
-\providecommand{\rhmcsChQBmAllPLgbmFull}{}\renewcommand{\rhmcsChQBmAllPLgbmFull}{0.92}  % StepM-adjusted p-value (one-sided), LightGBM, Full
-\providecommand{\rhmcsChQBmAllRawLgbmFull}{}\renewcommand{\rhmcsChQBmAllRawLgbmFull}{0.69}  % single-test bootstrap p-value (one-sided), LightGBM, Full
-\providecommand{\rhmcsChQBmAllPTwoLgbmFull}{}\renewcommand{\rhmcsChQBmAllPTwoLgbmFull}{0.63}  % StepM-adjusted p-value (two-sided), LightGBM, Full
-\providecommand{\rhmcsChQBmAllRawTwoLgbmFull}{}\renewcommand{\rhmcsChQBmAllRawTwoLgbmFull}{0.60}  % single-test bootstrap p-value (two-sided), LightGBM, Full
-\providecommand{\rhmcsChQBmAllPXgbHar}{}\renewcommand{\rhmcsChQBmAllPXgbHar}{0.99}  % StepM-adjusted p-value (one-sided), XGBoost, HAR
-\providecommand{\rhmcsChQBmAllRawXgbHar}{}\renewcommand{\rhmcsChQBmAllRawXgbHar}{0.87}  % single-test bootstrap p-value (one-sided), XGBoost, HAR
-\providecommand{\rhmcsChQBmAllPTwoXgbHar}{}\renewcommand{\rhmcsChQBmAllPTwoXgbHar}{0.38}  % StepM-adjusted p-value (two-sided), XGBoost, HAR
-\providecommand{\rhmcsChQBmAllRawTwoXgbHar}{}\renewcommand{\rhmcsChQBmAllRawTwoXgbHar}{0.249}  % single-test bootstrap p-value (two-sided), XGBoost, HAR
-\providecommand{\rhmcsChQBmAllPXgbFull}{}\renewcommand{\rhmcsChQBmAllPXgbFull}{0.88}  % StepM-adjusted p-value (one-sided), XGBoost, Full
-\providecommand{\rhmcsChQBmAllRawXgbFull}{}\renewcommand{\rhmcsChQBmAllRawXgbFull}{0.64}  % single-test bootstrap p-value (one-sided), XGBoost, Full
-\providecommand{\rhmcsChQBmAllPTwoXgbFull}{}\renewcommand{\rhmcsChQBmAllPTwoXgbFull}{0.72}  % StepM-adjusted p-value (two-sided), XGBoost, Full
-\providecommand{\rhmcsChQBmAllRawTwoXgbFull}{}\renewcommand{\rhmcsChQBmAllRawTwoXgbFull}{0.72}  % single-test bootstrap p-value (two-sided), XGBoost, Full
+\providecommand{\rhmcsChQBmAllPTwoEnetFull}{}\renewcommand{\rhmcsChQBmAllPTwoEnetFull}{0.025}  % StepM-adjusted p-value (two-sided), Elastic net, Full
+\providecommand{\rhmcsChQBmAllRawTwoEnetFull}{}\renewcommand{\rhmcsChQBmAllRawTwoEnetFull}{0.011}  % single-test bootstrap p-value (two-sided), Elastic net, Full
+\providecommand{\rhmcsChQBmAllPLgbmHar}{}\renewcommand{\rhmcsChQBmAllPLgbmHar}{1.00}  % StepM-adjusted p-value (one-sided), LightGBM, HAR
+\providecommand{\rhmcsChQBmAllRawLgbmHar}{}\renewcommand{\rhmcsChQBmAllRawLgbmHar}{1.00}  % single-test bootstrap p-value (one-sided), LightGBM, HAR
+\providecommand{\rhmcsChQBmAllPTwoLgbmHar}{}\renewcommand{\rhmcsChQBmAllPTwoLgbmHar}{0.003}  % StepM-adjusted p-value (two-sided), LightGBM, HAR
+\providecommand{\rhmcsChQBmAllRawTwoLgbmHar}{}\renewcommand{\rhmcsChQBmAllRawTwoLgbmHar}{\ensuremath{<}0.001}  % single-test bootstrap p-value (two-sided), LightGBM, HAR
+\providecommand{\rhmcsChQBmAllPLgbmFull}{}\renewcommand{\rhmcsChQBmAllPLgbmFull}{0.99}  % StepM-adjusted p-value (one-sided), LightGBM, Full
+\providecommand{\rhmcsChQBmAllRawLgbmFull}{}\renewcommand{\rhmcsChQBmAllRawLgbmFull}{0.91}  % single-test bootstrap p-value (one-sided), LightGBM, Full
+\providecommand{\rhmcsChQBmAllPTwoLgbmFull}{}\renewcommand{\rhmcsChQBmAllPTwoLgbmFull}{0.20}  % StepM-adjusted p-value (two-sided), LightGBM, Full
+\providecommand{\rhmcsChQBmAllRawTwoLgbmFull}{}\renewcommand{\rhmcsChQBmAllRawTwoLgbmFull}{0.18}  % single-test bootstrap p-value (two-sided), LightGBM, Full
+\providecommand{\rhmcsChQBmAllPXgbHar}{}\renewcommand{\rhmcsChQBmAllPXgbHar}{1.00}  % StepM-adjusted p-value (one-sided), XGBoost, HAR
+\providecommand{\rhmcsChQBmAllRawXgbHar}{}\renewcommand{\rhmcsChQBmAllRawXgbHar}{1.00}  % single-test bootstrap p-value (one-sided), XGBoost, HAR
+\providecommand{\rhmcsChQBmAllPTwoXgbHar}{}\renewcommand{\rhmcsChQBmAllPTwoXgbHar}{0.002}  % StepM-adjusted p-value (two-sided), XGBoost, HAR
+\providecommand{\rhmcsChQBmAllRawTwoXgbHar}{}\renewcommand{\rhmcsChQBmAllRawTwoXgbHar}{\ensuremath{<}0.001}  % single-test bootstrap p-value (two-sided), XGBoost, HAR
+\providecommand{\rhmcsChQBmAllPXgbFull}{}\renewcommand{\rhmcsChQBmAllPXgbFull}{0.98}  % StepM-adjusted p-value (one-sided), XGBoost, Full
+\providecommand{\rhmcsChQBmAllRawXgbFull}{}\renewcommand{\rhmcsChQBmAllRawXgbFull}{0.86}  % single-test bootstrap p-value (one-sided), XGBoost, Full
+\providecommand{\rhmcsChQBmAllPTwoXgbFull}{}\renewcommand{\rhmcsChQBmAllPTwoXgbFull}{0.27}  % StepM-adjusted p-value (two-sided), XGBoost, Full
+\providecommand{\rhmcsChQBmAllRawTwoXgbFull}{}\renewcommand{\rhmcsChQBmAllRawTwoXgbFull}{0.27}  % single-test bootstrap p-value (two-sided), XGBoost, Full
 \providecommand{\rhmcsChQBmAllPRfHar}{}\renewcommand{\rhmcsChQBmAllPRfHar}{1.00}  % StepM-adjusted p-value (one-sided), Random forest, HAR
-\providecommand{\rhmcsChQBmAllRawRfHar}{}\renewcommand{\rhmcsChQBmAllRawRfHar}{0.99}  % single-test bootstrap p-value (one-sided), Random forest, HAR
-\providecommand{\rhmcsChQBmAllPTwoRfHar}{}\renewcommand{\rhmcsChQBmAllPTwoRfHar}{0.049}  % StepM-adjusted p-value (two-sided), Random forest, HAR
-\providecommand{\rhmcsChQBmAllRawTwoRfHar}{}\renewcommand{\rhmcsChQBmAllRawTwoRfHar}{0.015}  % single-test bootstrap p-value (two-sided), Random forest, HAR
+\providecommand{\rhmcsChQBmAllRawRfHar}{}\renewcommand{\rhmcsChQBmAllRawRfHar}{1.00}  % single-test bootstrap p-value (one-sided), Random forest, HAR
+\providecommand{\rhmcsChQBmAllPTwoRfHar}{}\renewcommand{\rhmcsChQBmAllPTwoRfHar}{\ensuremath{<}0.001}  % StepM-adjusted p-value (two-sided), Random forest, HAR
+\providecommand{\rhmcsChQBmAllRawTwoRfHar}{}\renewcommand{\rhmcsChQBmAllRawTwoRfHar}{\ensuremath{<}0.001}  % single-test bootstrap p-value (two-sided), Random forest, HAR
 \providecommand{\rhmcsChQBmAllPRfFull}{}\renewcommand{\rhmcsChQBmAllPRfFull}{1.00}  % StepM-adjusted p-value (one-sided), Random forest, Full
-\providecommand{\rhmcsChQBmAllRawRfFull}{}\renewcommand{\rhmcsChQBmAllRawRfFull}{0.97}  % single-test bootstrap p-value (one-sided), Random forest, Full
-\providecommand{\rhmcsChQBmAllPTwoRfFull}{}\renewcommand{\rhmcsChQBmAllPTwoRfFull}{0.11}  % StepM-adjusted p-value (two-sided), Random forest, Full
-\providecommand{\rhmcsChQBmAllRawTwoRfFull}{}\renewcommand{\rhmcsChQBmAllRawTwoRfFull}{0.056}  % single-test bootstrap p-value (two-sided), Random forest, Full
+\providecommand{\rhmcsChQBmAllRawRfFull}{}\renewcommand{\rhmcsChQBmAllRawRfFull}{0.99}  % single-test bootstrap p-value (one-sided), Random forest, Full
+\providecommand{\rhmcsChQBmAllPTwoRfFull}{}\renewcommand{\rhmcsChQBmAllPTwoRfFull}{0.015}  % StepM-adjusted p-value (two-sided), Random forest, Full
+\providecommand{\rhmcsChQBmAllRawTwoRfFull}{}\renewcommand{\rhmcsChQBmAllRawTwoRfFull}{0.007}  % single-test bootstrap p-value (two-sided), Random forest, Full
 \providecommand{\rhmcsChQBmAllNRejLo}{}\renewcommand{\rhmcsChQBmAllNRejLo}{0}  % StepM rejections at 5 %, block length 5
-\providecommand{\rhmcsChQBmAllSpaCLo}{}\renewcommand{\rhmcsChQBmAllSpaCLo}{0.67}  % SPA p-value (consistent), block length 5
-\providecommand{\rhmcsChQBmAllNRejTwoLo}{}\renewcommand{\rhmcsChQBmAllNRejTwoLo}{2}  % ... two-sided, block length 5
-\providecommand{\rhmcsChQBmAllPMinLo}{}\renewcommand{\rhmcsChQBmAllPMinLo}{0.87}  % smallest adjusted p, block length 5
-\providecommand{\rhmcsChQBmAllPTwoMinLo}{}\renewcommand{\rhmcsChQBmAllPTwoMinLo}{0.015}  % ... two-sided, block length 5
+\providecommand{\rhmcsChQBmAllSpaCLo}{}\renewcommand{\rhmcsChQBmAllSpaCLo}{0.54}  % SPA p-value (consistent), block length 5
+\providecommand{\rhmcsChQBmAllNRejTwoLo}{}\renewcommand{\rhmcsChQBmAllNRejTwoLo}{8}  % ... two-sided, block length 5
+\providecommand{\rhmcsChQBmAllPMinLo}{}\renewcommand{\rhmcsChQBmAllPMinLo}{0.98}  % smallest adjusted p, block length 5
+\providecommand{\rhmcsChQBmAllPTwoMinLo}{}\renewcommand{\rhmcsChQBmAllPTwoMinLo}{\ensuremath{<}0.001}  % ... two-sided, block length 5
 \providecommand{\rhmcsChQBmAllNRejHi}{}\renewcommand{\rhmcsChQBmAllNRejHi}{0}  % StepM rejections at 5 %, block length 20
-\providecommand{\rhmcsChQBmAllSpaCHi}{}\renewcommand{\rhmcsChQBmAllSpaCHi}{0.67}  % SPA p-value (consistent), block length 20
-\providecommand{\rhmcsChQBmAllNRejTwoHi}{}\renewcommand{\rhmcsChQBmAllNRejTwoHi}{3}  % ... two-sided, block length 20
-\providecommand{\rhmcsChQBmAllPMinHi}{}\renewcommand{\rhmcsChQBmAllPMinHi}{0.90}  % smallest adjusted p, block length 20
-\providecommand{\rhmcsChQBmAllPTwoMinHi}{}\renewcommand{\rhmcsChQBmAllPTwoMinHi}{0.032}  % ... two-sided, block length 20
-\providecommand{\rhmcsChMBmSpaC}{}\renewcommand{\rhmcsChMBmSpaC}{0.74}  % SPA p-value (consistent), family ChMBm
-\providecommand{\rhmcsChMBmSpaL}{}\renewcommand{\rhmcsChMBmSpaL}{0.43}  % ... lower
-\providecommand{\rhmcsChMBmSpaU}{}\renewcommand{\rhmcsChMBmSpaU}{0.74}  % ... upper
+\providecommand{\rhmcsChQBmAllSpaCHi}{}\renewcommand{\rhmcsChQBmAllSpaCHi}{0.53}  % SPA p-value (consistent), block length 20
+\providecommand{\rhmcsChQBmAllNRejTwoHi}{}\renewcommand{\rhmcsChQBmAllNRejTwoHi}{8}  % ... two-sided, block length 20
+\providecommand{\rhmcsChQBmAllPMinHi}{}\renewcommand{\rhmcsChQBmAllPMinHi}{0.98}  % smallest adjusted p, block length 20
+\providecommand{\rhmcsChQBmAllPTwoMinHi}{}\renewcommand{\rhmcsChQBmAllPTwoMinHi}{\ensuremath{<}0.001}  % ... two-sided, block length 20
+\providecommand{\rhmcsChMBmSpaC}{}\renewcommand{\rhmcsChMBmSpaC}{0.73}  % SPA p-value (consistent), family ChMBm
+\providecommand{\rhmcsChMBmSpaL}{}\renewcommand{\rhmcsChMBmSpaL}{0.46}  % ... lower
+\providecommand{\rhmcsChMBmSpaU}{}\renewcommand{\rhmcsChMBmSpaU}{0.73}  % ... upper
 \providecommand{\rhmcsChMBmNRej}{}\renewcommand{\rhmcsChMBmNRej}{0}  % StepM rejections at FWER 5 % (of 6)
 \providecommand{\rhmcsChMBmNRejWord}{}\renewcommand{\rhmcsChMBmNRejWord}{none}  % ... as a word
 \providecommand{\rhmcsChMBmNRaw}{}\renewcommand{\rhmcsChMBmNRaw}{0}  % single-test bootstrap p < 0.05 (no adjustment)
 \providecommand{\rhmcsChMBmNRawWord}{}\renewcommand{\rhmcsChMBmNRawWord}{none}  % ... as a word
-\providecommand{\rhmcsChMBmNPos}{}\renewcommand{\rhmcsChMBmNPos}{0}  % alternatives with a positive estimate (better than the benchmark)
-\providecommand{\rhmcsChMBmPMin}{}\renewcommand{\rhmcsChMBmPMin}{0.84}  % smallest StepM-adjusted p-value
-\providecommand{\rhmcsChMBmPMax}{}\renewcommand{\rhmcsChMBmPMax}{0.89}  % largest StepM-adjusted p-value
-\providecommand{\rhmcsChMBmPTwoMin}{}\renewcommand{\rhmcsChMBmPTwoMin}{0.44}  % smallest two-sided StepM-adjusted p-value
-\providecommand{\rhmcsChMBmPTwoMax}{}\renewcommand{\rhmcsChMBmPTwoMax}{0.73}  % largest two-sided StepM-adjusted p-value
-\providecommand{\rhmcsChMBmRawMin}{}\renewcommand{\rhmcsChMBmRawMin}{0.64}  % smallest single-test bootstrap p-value
+\providecommand{\rhmcsChMBmNPos}{}\renewcommand{\rhmcsChMBmNPos}{1}  % alternatives with a positive estimate (better than the benchmark)
+\providecommand{\rhmcsChMBmPMin}{}\renewcommand{\rhmcsChMBmPMin}{0.73}  % smallest StepM-adjusted p-value
+\providecommand{\rhmcsChMBmPMax}{}\renewcommand{\rhmcsChMBmPMax}{0.88}  % largest StepM-adjusted p-value
+\providecommand{\rhmcsChMBmPTwoMin}{}\renewcommand{\rhmcsChMBmPTwoMin}{0.50}  % smallest two-sided StepM-adjusted p-value
+\providecommand{\rhmcsChMBmPTwoMax}{}\renewcommand{\rhmcsChMBmPTwoMax}{0.91}  % largest two-sided StepM-adjusted p-value
+\providecommand{\rhmcsChMBmRawMin}{}\renewcommand{\rhmcsChMBmRawMin}{0.43}  % smallest single-test bootstrap p-value
 \providecommand{\rhmcsChMBmRej}{}\renewcommand{\rhmcsChMBmRej}{none}  % the alternatives StepM rejects at 5 % (none: none)
 \providecommand{\rhmcsChMBmNRejTwo}{}\renewcommand{\rhmcsChMBmNRejTwo}{0}  % StepM rejections at FWER 5 %, two-sided
 \providecommand{\rhmcsChMBmNRejTwoWord}{}\renewcommand{\rhmcsChMBmNRejTwoWord}{none}  % ... as a word
 \providecommand{\rhmcsChMBmNRawTwo}{}\renewcommand{\rhmcsChMBmNRawTwo}{0}  % single-test bootstrap p < 0.05, two-sided
 \providecommand{\rhmcsChMBmRejTwo}{}\renewcommand{\rhmcsChMBmRejTwo}{none}  % the alternatives the two-sided StepM rejects at 5 % (none: none)
-\providecommand{\rhmcsChMBmPRidge}{}\renewcommand{\rhmcsChMBmPRidge}{0.89}  % StepM-adjusted p-value (one-sided), Ridge
+\providecommand{\rhmcsChMBmPRidge}{}\renewcommand{\rhmcsChMBmPRidge}{0.88}  % StepM-adjusted p-value (one-sided), Ridge
 \providecommand{\rhmcsChMBmRawRidge}{}\renewcommand{\rhmcsChMBmRawRidge}{0.87}  % single-test bootstrap p-value (one-sided), Ridge
-\providecommand{\rhmcsChMBmPTwoRidge}{}\renewcommand{\rhmcsChMBmPTwoRidge}{0.45}  % StepM-adjusted p-value (two-sided), Ridge
-\providecommand{\rhmcsChMBmRawTwoRidge}{}\renewcommand{\rhmcsChMBmRawTwoRidge}{0.26}  % single-test bootstrap p-value (two-sided), Ridge
-\providecommand{\rhmcsChMBmPLasso}{}\renewcommand{\rhmcsChMBmPLasso}{0.89}  % StepM-adjusted p-value (one-sided), Lasso
-\providecommand{\rhmcsChMBmRawLasso}{}\renewcommand{\rhmcsChMBmRawLasso}{0.88}  % single-test bootstrap p-value (one-sided), Lasso
-\providecommand{\rhmcsChMBmPTwoLasso}{}\renewcommand{\rhmcsChMBmPTwoLasso}{0.44}  % StepM-adjusted p-value (two-sided), Lasso
-\providecommand{\rhmcsChMBmRawTwoLasso}{}\renewcommand{\rhmcsChMBmRawTwoLasso}{0.248}  % single-test bootstrap p-value (two-sided), Lasso
-\providecommand{\rhmcsChMBmPEnet}{}\renewcommand{\rhmcsChMBmPEnet}{0.89}  % StepM-adjusted p-value (one-sided), Elastic net
+\providecommand{\rhmcsChMBmPTwoRidge}{}\renewcommand{\rhmcsChMBmPTwoRidge}{0.52}  % StepM-adjusted p-value (two-sided), Ridge
+\providecommand{\rhmcsChMBmRawTwoRidge}{}\renewcommand{\rhmcsChMBmRawTwoRidge}{0.29}  % single-test bootstrap p-value (two-sided), Ridge
+\providecommand{\rhmcsChMBmPLasso}{}\renewcommand{\rhmcsChMBmPLasso}{0.88}  % StepM-adjusted p-value (one-sided), Lasso
+\providecommand{\rhmcsChMBmRawLasso}{}\renewcommand{\rhmcsChMBmRawLasso}{0.87}  % single-test bootstrap p-value (one-sided), Lasso
+\providecommand{\rhmcsChMBmPTwoLasso}{}\renewcommand{\rhmcsChMBmPTwoLasso}{0.50}  % StepM-adjusted p-value (two-sided), Lasso
+\providecommand{\rhmcsChMBmRawTwoLasso}{}\renewcommand{\rhmcsChMBmRawTwoLasso}{0.28}  % single-test bootstrap p-value (two-sided), Lasso
+\providecommand{\rhmcsChMBmPEnet}{}\renewcommand{\rhmcsChMBmPEnet}{0.88}  % StepM-adjusted p-value (one-sided), Elastic net
 \providecommand{\rhmcsChMBmRawEnet}{}\renewcommand{\rhmcsChMBmRawEnet}{0.87}  % single-test bootstrap p-value (one-sided), Elastic net
-\providecommand{\rhmcsChMBmPTwoEnet}{}\renewcommand{\rhmcsChMBmPTwoEnet}{0.46}  % StepM-adjusted p-value (two-sided), Elastic net
-\providecommand{\rhmcsChMBmRawTwoEnet}{}\renewcommand{\rhmcsChMBmRawTwoEnet}{0.253}  % single-test bootstrap p-value (two-sided), Elastic net
-\providecommand{\rhmcsChMBmPLgbm}{}\renewcommand{\rhmcsChMBmPLgbm}{0.89}  % StepM-adjusted p-value (one-sided), LightGBM
-\providecommand{\rhmcsChMBmRawLgbm}{}\renewcommand{\rhmcsChMBmRawLgbm}{0.84}  % single-test bootstrap p-value (one-sided), LightGBM
-\providecommand{\rhmcsChMBmPTwoLgbm}{}\renewcommand{\rhmcsChMBmPTwoLgbm}{0.48}  % StepM-adjusted p-value (two-sided), LightGBM
-\providecommand{\rhmcsChMBmRawTwoLgbm}{}\renewcommand{\rhmcsChMBmRawTwoLgbm}{0.33}  % single-test bootstrap p-value (two-sided), LightGBM
-\providecommand{\rhmcsChMBmPXgb}{}\renewcommand{\rhmcsChMBmPXgb}{0.89}  % StepM-adjusted p-value (one-sided), XGBoost
-\providecommand{\rhmcsChMBmRawXgb}{}\renewcommand{\rhmcsChMBmRawXgb}{0.80}  % single-test bootstrap p-value (one-sided), XGBoost
-\providecommand{\rhmcsChMBmPTwoXgb}{}\renewcommand{\rhmcsChMBmPTwoXgb}{0.55}  % StepM-adjusted p-value (two-sided), XGBoost
-\providecommand{\rhmcsChMBmRawTwoXgb}{}\renewcommand{\rhmcsChMBmRawTwoXgb}{0.43}  % single-test bootstrap p-value (two-sided), XGBoost
-\providecommand{\rhmcsChMBmPRf}{}\renewcommand{\rhmcsChMBmPRf}{0.84}  % StepM-adjusted p-value (one-sided), Random forest
-\providecommand{\rhmcsChMBmRawRf}{}\renewcommand{\rhmcsChMBmRawRf}{0.64}  % single-test bootstrap p-value (one-sided), Random forest
-\providecommand{\rhmcsChMBmPTwoRf}{}\renewcommand{\rhmcsChMBmPTwoRf}{0.73}  % StepM-adjusted p-value (two-sided), Random forest
-\providecommand{\rhmcsChMBmRawTwoRf}{}\renewcommand{\rhmcsChMBmRawTwoRf}{0.73}  % single-test bootstrap p-value (two-sided), Random forest
+\providecommand{\rhmcsChMBmPTwoEnet}{}\renewcommand{\rhmcsChMBmPTwoEnet}{0.52}  % StepM-adjusted p-value (two-sided), Elastic net
+\providecommand{\rhmcsChMBmRawTwoEnet}{}\renewcommand{\rhmcsChMBmRawTwoEnet}{0.28}  % single-test bootstrap p-value (two-sided), Elastic net
+\providecommand{\rhmcsChMBmPLgbm}{}\renewcommand{\rhmcsChMBmPLgbm}{0.88}  % StepM-adjusted p-value (one-sided), LightGBM
+\providecommand{\rhmcsChMBmRawLgbm}{}\renewcommand{\rhmcsChMBmRawLgbm}{0.82}  % single-test bootstrap p-value (one-sided), LightGBM
+\providecommand{\rhmcsChMBmPTwoLgbm}{}\renewcommand{\rhmcsChMBmPTwoLgbm}{0.55}  % StepM-adjusted p-value (two-sided), LightGBM
+\providecommand{\rhmcsChMBmRawTwoLgbm}{}\renewcommand{\rhmcsChMBmRawTwoLgbm}{0.37}  % single-test bootstrap p-value (two-sided), LightGBM
+\providecommand{\rhmcsChMBmPXgb}{}\renewcommand{\rhmcsChMBmPXgb}{0.87}  % StepM-adjusted p-value (one-sided), XGBoost
+\providecommand{\rhmcsChMBmRawXgb}{}\renewcommand{\rhmcsChMBmRawXgb}{0.77}  % single-test bootstrap p-value (one-sided), XGBoost
+\providecommand{\rhmcsChMBmPTwoXgb}{}\renewcommand{\rhmcsChMBmPTwoXgb}{0.71}  % StepM-adjusted p-value (two-sided), XGBoost
+\providecommand{\rhmcsChMBmRawTwoXgb}{}\renewcommand{\rhmcsChMBmRawTwoXgb}{0.53}  % single-test bootstrap p-value (two-sided), XGBoost
+\providecommand{\rhmcsChMBmPRf}{}\renewcommand{\rhmcsChMBmPRf}{0.73}  % StepM-adjusted p-value (one-sided), Random forest
+\providecommand{\rhmcsChMBmRawRf}{}\renewcommand{\rhmcsChMBmRawRf}{0.43}  % single-test bootstrap p-value (one-sided), Random forest
+\providecommand{\rhmcsChMBmPTwoRf}{}\renewcommand{\rhmcsChMBmPTwoRf}{0.91}  % StepM-adjusted p-value (two-sided), Random forest
+\providecommand{\rhmcsChMBmRawTwoRf}{}\renewcommand{\rhmcsChMBmRawTwoRf}{0.91}  % single-test bootstrap p-value (two-sided), Random forest
 \providecommand{\rhmcsChMBmNRejLo}{}\renewcommand{\rhmcsChMBmNRejLo}{0}  % StepM rejections at 5 %, block length 5
-\providecommand{\rhmcsChMBmSpaCLo}{}\renewcommand{\rhmcsChMBmSpaCLo}{0.81}  % SPA p-value (consistent), block length 5
+\providecommand{\rhmcsChMBmSpaCLo}{}\renewcommand{\rhmcsChMBmSpaCLo}{0.80}  % SPA p-value (consistent), block length 5
 \providecommand{\rhmcsChMBmNRejTwoLo}{}\renewcommand{\rhmcsChMBmNRejTwoLo}{0}  % ... two-sided, block length 5
-\providecommand{\rhmcsChMBmPMinLo}{}\renewcommand{\rhmcsChMBmPMinLo}{0.88}  % smallest adjusted p, block length 5
-\providecommand{\rhmcsChMBmPTwoMinLo}{}\renewcommand{\rhmcsChMBmPTwoMinLo}{0.31}  % ... two-sided, block length 5
+\providecommand{\rhmcsChMBmPMinLo}{}\renewcommand{\rhmcsChMBmPMinLo}{0.80}  % smallest adjusted p, block length 5
+\providecommand{\rhmcsChMBmPTwoMinLo}{}\renewcommand{\rhmcsChMBmPTwoMinLo}{0.35}  % ... two-sided, block length 5
 \providecommand{\rhmcsChMBmNRejHi}{}\renewcommand{\rhmcsChMBmNRejHi}{0}  % StepM rejections at 5 %, block length 20
-\providecommand{\rhmcsChMBmSpaCHi}{}\renewcommand{\rhmcsChMBmSpaCHi}{0.70}  % SPA p-value (consistent), block length 20
+\providecommand{\rhmcsChMBmSpaCHi}{}\renewcommand{\rhmcsChMBmSpaCHi}{0.69}  % SPA p-value (consistent), block length 20
 \providecommand{\rhmcsChMBmNRejTwoHi}{}\renewcommand{\rhmcsChMBmNRejTwoHi}{0}  % ... two-sided, block length 20
-\providecommand{\rhmcsChMBmPMinHi}{}\renewcommand{\rhmcsChMBmPMinHi}{0.84}  % smallest adjusted p, block length 20
-\providecommand{\rhmcsChMBmPTwoMinHi}{}\renewcommand{\rhmcsChMBmPTwoMinHi}{0.52}  % ... two-sided, block length 20
-\providecommand{\rhmcsChMBmAllSpaC}{}\renewcommand{\rhmcsChMBmAllSpaC}{0.24}  % SPA p-value (consistent), family ChMBmAll
-\providecommand{\rhmcsChMBmAllSpaL}{}\renewcommand{\rhmcsChMBmAllSpaL}{0.19}  % ... lower
-\providecommand{\rhmcsChMBmAllSpaU}{}\renewcommand{\rhmcsChMBmAllSpaU}{0.24}  % ... upper
+\providecommand{\rhmcsChMBmPMinHi}{}\renewcommand{\rhmcsChMBmPMinHi}{0.69}  % smallest adjusted p, block length 20
+\providecommand{\rhmcsChMBmPTwoMinHi}{}\renewcommand{\rhmcsChMBmPTwoMinHi}{0.63}  % ... two-sided, block length 20
+\providecommand{\rhmcsChMBmAllSpaC}{}\renewcommand{\rhmcsChMBmAllSpaC}{0.253}  % SPA p-value (consistent), family ChMBmAll
+\providecommand{\rhmcsChMBmAllSpaL}{}\renewcommand{\rhmcsChMBmAllSpaL}{0.24}  % ... lower
+\providecommand{\rhmcsChMBmAllSpaU}{}\renewcommand{\rhmcsChMBmAllSpaU}{0.253}  % ... upper
 \providecommand{\rhmcsChMBmAllNRej}{}\renewcommand{\rhmcsChMBmAllNRej}{0}  % StepM rejections at FWER 5 % (of 10)
 \providecommand{\rhmcsChMBmAllNRejWord}{}\renewcommand{\rhmcsChMBmAllNRejWord}{none}  % ... as a word
 \providecommand{\rhmcsChMBmAllNRaw}{}\renewcommand{\rhmcsChMBmAllNRaw}{0}  % single-test bootstrap p < 0.05 (no adjustment)
 \providecommand{\rhmcsChMBmAllNRawWord}{}\renewcommand{\rhmcsChMBmAllNRawWord}{none}  % ... as a word
-\providecommand{\rhmcsChMBmAllNPos}{}\renewcommand{\rhmcsChMBmAllNPos}{3}  % alternatives with a positive estimate (better than the benchmark)
-\providecommand{\rhmcsChMBmAllPMin}{}\renewcommand{\rhmcsChMBmAllPMin}{0.24}  % smallest StepM-adjusted p-value
-\providecommand{\rhmcsChMBmAllPMax}{}\renewcommand{\rhmcsChMBmAllPMax}{0.89}  % largest StepM-adjusted p-value
-\providecommand{\rhmcsChMBmAllPTwoMin}{}\renewcommand{\rhmcsChMBmAllPTwoMin}{0.46}  % smallest two-sided StepM-adjusted p-value
-\providecommand{\rhmcsChMBmAllPTwoMax}{}\renewcommand{\rhmcsChMBmAllPTwoMax}{0.87}  % largest two-sided StepM-adjusted p-value
-\providecommand{\rhmcsChMBmAllRawMin}{}\renewcommand{\rhmcsChMBmAllRawMin}{0.102}  % smallest single-test bootstrap p-value
+\providecommand{\rhmcsChMBmAllNPos}{}\renewcommand{\rhmcsChMBmAllNPos}{5}  % alternatives with a positive estimate (better than the benchmark)
+\providecommand{\rhmcsChMBmAllPMin}{}\renewcommand{\rhmcsChMBmAllPMin}{0.253}  % smallest StepM-adjusted p-value
+\providecommand{\rhmcsChMBmAllPMax}{}\renewcommand{\rhmcsChMBmAllPMax}{0.88}  % largest StepM-adjusted p-value
+\providecommand{\rhmcsChMBmAllPTwoMin}{}\renewcommand{\rhmcsChMBmAllPTwoMin}{0.48}  % smallest two-sided StepM-adjusted p-value
+\providecommand{\rhmcsChMBmAllPTwoMax}{}\renewcommand{\rhmcsChMBmAllPTwoMax}{0.96}  % largest two-sided StepM-adjusted p-value
+\providecommand{\rhmcsChMBmAllRawMin}{}\renewcommand{\rhmcsChMBmAllRawMin}{0.11}  % smallest single-test bootstrap p-value
 \providecommand{\rhmcsChMBmAllRej}{}\renewcommand{\rhmcsChMBmAllRej}{none}  % the alternatives StepM rejects at 5 % (none: none)
 \providecommand{\rhmcsChMBmAllNRejTwo}{}\renewcommand{\rhmcsChMBmAllNRejTwo}{0}  % StepM rejections at FWER 5 %, two-sided
 \providecommand{\rhmcsChMBmAllNRejTwoWord}{}\renewcommand{\rhmcsChMBmAllNRejTwoWord}{none}  % ... as a word
 \providecommand{\rhmcsChMBmAllNRawTwo}{}\renewcommand{\rhmcsChMBmAllNRawTwo}{0}  % single-test bootstrap p < 0.05, two-sided
 \providecommand{\rhmcsChMBmAllRejTwo}{}\renewcommand{\rhmcsChMBmAllRejTwo}{none}  % the alternatives the two-sided StepM rejects at 5 % (none: none)
-\providecommand{\rhmcsChMBmAllPLinHar}{}\renewcommand{\rhmcsChMBmAllPLinHar}{0.87}  % StepM-adjusted p-value (one-sided), Linear, HAR
-\providecommand{\rhmcsChMBmAllRawLinHar}{}\renewcommand{\rhmcsChMBmAllRawLinHar}{0.61}  % single-test bootstrap p-value (one-sided), Linear, HAR
-\providecommand{\rhmcsChMBmAllPTwoLinHar}{}\renewcommand{\rhmcsChMBmAllPTwoLinHar}{0.87}  % StepM-adjusted p-value (two-sided), Linear, HAR
-\providecommand{\rhmcsChMBmAllRawTwoLinHar}{}\renewcommand{\rhmcsChMBmAllRawTwoLinHar}{0.78}  % single-test bootstrap p-value (two-sided), Linear, HAR
-\providecommand{\rhmcsChMBmAllPRidgeFull}{}\renewcommand{\rhmcsChMBmAllPRidgeFull}{0.89}  % StepM-adjusted p-value (one-sided), Ridge, Full
+\providecommand{\rhmcsChMBmAllPLinHar}{}\renewcommand{\rhmcsChMBmAllPLinHar}{0.76}  % StepM-adjusted p-value (one-sided), Linear, HAR
+\providecommand{\rhmcsChMBmAllRawLinHar}{}\renewcommand{\rhmcsChMBmAllRawLinHar}{0.41}  % single-test bootstrap p-value (one-sided), Linear, HAR
+\providecommand{\rhmcsChMBmAllPTwoLinHar}{}\renewcommand{\rhmcsChMBmAllPTwoLinHar}{0.96}  % StepM-adjusted p-value (two-sided), Linear, HAR
+\providecommand{\rhmcsChMBmAllRawTwoLinHar}{}\renewcommand{\rhmcsChMBmAllRawTwoLinHar}{0.86}  % single-test bootstrap p-value (two-sided), Linear, HAR
+\providecommand{\rhmcsChMBmAllPRidgeFull}{}\renewcommand{\rhmcsChMBmAllPRidgeFull}{0.88}  % StepM-adjusted p-value (one-sided), Ridge, Full
 \providecommand{\rhmcsChMBmAllRawRidgeFull}{}\renewcommand{\rhmcsChMBmAllRawRidgeFull}{0.87}  % single-test bootstrap p-value (one-sided), Ridge, Full
-\providecommand{\rhmcsChMBmAllPTwoRidgeFull}{}\renewcommand{\rhmcsChMBmAllPTwoRidgeFull}{0.58}  % StepM-adjusted p-value (two-sided), Ridge, Full
-\providecommand{\rhmcsChMBmAllRawTwoRidgeFull}{}\renewcommand{\rhmcsChMBmAllRawTwoRidgeFull}{0.26}  % single-test bootstrap p-value (two-sided), Ridge, Full
-\providecommand{\rhmcsChMBmAllPLassoFull}{}\renewcommand{\rhmcsChMBmAllPLassoFull}{0.89}  % StepM-adjusted p-value (one-sided), Lasso, Full
-\providecommand{\rhmcsChMBmAllRawLassoFull}{}\renewcommand{\rhmcsChMBmAllRawLassoFull}{0.88}  % single-test bootstrap p-value (one-sided), Lasso, Full
-\providecommand{\rhmcsChMBmAllPTwoLassoFull}{}\renewcommand{\rhmcsChMBmAllPTwoLassoFull}{0.56}  % StepM-adjusted p-value (two-sided), Lasso, Full
-\providecommand{\rhmcsChMBmAllRawTwoLassoFull}{}\renewcommand{\rhmcsChMBmAllRawTwoLassoFull}{0.248}  % single-test bootstrap p-value (two-sided), Lasso, Full
-\providecommand{\rhmcsChMBmAllPEnetFull}{}\renewcommand{\rhmcsChMBmAllPEnetFull}{0.89}  % StepM-adjusted p-value (one-sided), Elastic net, Full
+\providecommand{\rhmcsChMBmAllPTwoRidgeFull}{}\renewcommand{\rhmcsChMBmAllPTwoRidgeFull}{0.63}  % StepM-adjusted p-value (two-sided), Ridge, Full
+\providecommand{\rhmcsChMBmAllRawTwoRidgeFull}{}\renewcommand{\rhmcsChMBmAllRawTwoRidgeFull}{0.29}  % single-test bootstrap p-value (two-sided), Ridge, Full
+\providecommand{\rhmcsChMBmAllPLassoFull}{}\renewcommand{\rhmcsChMBmAllPLassoFull}{0.88}  % StepM-adjusted p-value (one-sided), Lasso, Full
+\providecommand{\rhmcsChMBmAllRawLassoFull}{}\renewcommand{\rhmcsChMBmAllRawLassoFull}{0.87}  % single-test bootstrap p-value (one-sided), Lasso, Full
+\providecommand{\rhmcsChMBmAllPTwoLassoFull}{}\renewcommand{\rhmcsChMBmAllPTwoLassoFull}{0.61}  % StepM-adjusted p-value (two-sided), Lasso, Full
+\providecommand{\rhmcsChMBmAllRawTwoLassoFull}{}\renewcommand{\rhmcsChMBmAllRawTwoLassoFull}{0.28}  % single-test bootstrap p-value (two-sided), Lasso, Full
+\providecommand{\rhmcsChMBmAllPEnetFull}{}\renewcommand{\rhmcsChMBmAllPEnetFull}{0.88}  % StepM-adjusted p-value (one-sided), Elastic net, Full
 \providecommand{\rhmcsChMBmAllRawEnetFull}{}\renewcommand{\rhmcsChMBmAllRawEnetFull}{0.87}  % single-test bootstrap p-value (one-sided), Elastic net, Full
-\providecommand{\rhmcsChMBmAllPTwoEnetFull}{}\renewcommand{\rhmcsChMBmAllPTwoEnetFull}{0.59}  % StepM-adjusted p-value (two-sided), Elastic net, Full
-\providecommand{\rhmcsChMBmAllRawTwoEnetFull}{}\renewcommand{\rhmcsChMBmAllRawTwoEnetFull}{0.253}  % single-test bootstrap p-value (two-sided), Elastic net, Full
-\providecommand{\rhmcsChMBmAllPLgbmHar}{}\renewcommand{\rhmcsChMBmAllPLgbmHar}{0.46}  % StepM-adjusted p-value (one-sided), LightGBM, HAR
-\providecommand{\rhmcsChMBmAllRawLgbmHar}{}\renewcommand{\rhmcsChMBmAllRawLgbmHar}{0.14}  % single-test bootstrap p-value (one-sided), LightGBM, HAR
-\providecommand{\rhmcsChMBmAllPTwoLgbmHar}{}\renewcommand{\rhmcsChMBmAllPTwoLgbmHar}{0.63}  % StepM-adjusted p-value (two-sided), LightGBM, HAR
-\providecommand{\rhmcsChMBmAllRawTwoLgbmHar}{}\renewcommand{\rhmcsChMBmAllRawTwoLgbmHar}{0.28}  % single-test bootstrap p-value (two-sided), LightGBM, HAR
-\providecommand{\rhmcsChMBmAllPLgbmFull}{}\renewcommand{\rhmcsChMBmAllPLgbmFull}{0.89}  % StepM-adjusted p-value (one-sided), LightGBM, Full
-\providecommand{\rhmcsChMBmAllRawLgbmFull}{}\renewcommand{\rhmcsChMBmAllRawLgbmFull}{0.84}  % single-test bootstrap p-value (one-sided), LightGBM, Full
-\providecommand{\rhmcsChMBmAllPTwoLgbmFull}{}\renewcommand{\rhmcsChMBmAllPTwoLgbmFull}{0.63}  % StepM-adjusted p-value (two-sided), LightGBM, Full
-\providecommand{\rhmcsChMBmAllRawTwoLgbmFull}{}\renewcommand{\rhmcsChMBmAllRawTwoLgbmFull}{0.33}  % single-test bootstrap p-value (two-sided), LightGBM, Full
-\providecommand{\rhmcsChMBmAllPXgbHar}{}\renewcommand{\rhmcsChMBmAllPXgbHar}{0.24}  % StepM-adjusted p-value (one-sided), XGBoost, HAR
-\providecommand{\rhmcsChMBmAllRawXgbHar}{}\renewcommand{\rhmcsChMBmAllRawXgbHar}{0.102}  % single-test bootstrap p-value (one-sided), XGBoost, HAR
-\providecommand{\rhmcsChMBmAllPTwoXgbHar}{}\renewcommand{\rhmcsChMBmAllPTwoXgbHar}{0.46}  % StepM-adjusted p-value (two-sided), XGBoost, HAR
-\providecommand{\rhmcsChMBmAllRawTwoXgbHar}{}\renewcommand{\rhmcsChMBmAllRawTwoXgbHar}{0.20}  % single-test bootstrap p-value (two-sided), XGBoost, HAR
-\providecommand{\rhmcsChMBmAllPXgbFull}{}\renewcommand{\rhmcsChMBmAllPXgbFull}{0.89}  % StepM-adjusted p-value (one-sided), XGBoost, Full
-\providecommand{\rhmcsChMBmAllRawXgbFull}{}\renewcommand{\rhmcsChMBmAllRawXgbFull}{0.80}  % single-test bootstrap p-value (one-sided), XGBoost, Full
-\providecommand{\rhmcsChMBmAllPTwoXgbFull}{}\renewcommand{\rhmcsChMBmAllPTwoXgbFull}{0.66}  % StepM-adjusted p-value (two-sided), XGBoost, Full
-\providecommand{\rhmcsChMBmAllRawTwoXgbFull}{}\renewcommand{\rhmcsChMBmAllRawTwoXgbFull}{0.43}  % single-test bootstrap p-value (two-sided), XGBoost, Full
-\providecommand{\rhmcsChMBmAllPRfHar}{}\renewcommand{\rhmcsChMBmAllPRfHar}{0.24}  % StepM-adjusted p-value (one-sided), Random forest, HAR
+\providecommand{\rhmcsChMBmAllPTwoEnetFull}{}\renewcommand{\rhmcsChMBmAllPTwoEnetFull}{0.64}  % StepM-adjusted p-value (two-sided), Elastic net, Full
+\providecommand{\rhmcsChMBmAllRawTwoEnetFull}{}\renewcommand{\rhmcsChMBmAllRawTwoEnetFull}{0.28}  % single-test bootstrap p-value (two-sided), Elastic net, Full
+\providecommand{\rhmcsChMBmAllPLgbmHar}{}\renewcommand{\rhmcsChMBmAllPLgbmHar}{0.48}  % StepM-adjusted p-value (one-sided), LightGBM, HAR
+\providecommand{\rhmcsChMBmAllRawLgbmHar}{}\renewcommand{\rhmcsChMBmAllRawLgbmHar}{0.15}  % single-test bootstrap p-value (one-sided), LightGBM, HAR
+\providecommand{\rhmcsChMBmAllPTwoLgbmHar}{}\renewcommand{\rhmcsChMBmAllPTwoLgbmHar}{0.68}  % StepM-adjusted p-value (two-sided), LightGBM, HAR
+\providecommand{\rhmcsChMBmAllRawTwoLgbmHar}{}\renewcommand{\rhmcsChMBmAllRawTwoLgbmHar}{0.30}  % single-test bootstrap p-value (two-sided), LightGBM, HAR
+\providecommand{\rhmcsChMBmAllPLgbmFull}{}\renewcommand{\rhmcsChMBmAllPLgbmFull}{0.88}  % StepM-adjusted p-value (one-sided), LightGBM, Full
+\providecommand{\rhmcsChMBmAllRawLgbmFull}{}\renewcommand{\rhmcsChMBmAllRawLgbmFull}{0.82}  % single-test bootstrap p-value (one-sided), LightGBM, Full
+\providecommand{\rhmcsChMBmAllPTwoLgbmFull}{}\renewcommand{\rhmcsChMBmAllPTwoLgbmFull}{0.68}  % StepM-adjusted p-value (two-sided), LightGBM, Full
+\providecommand{\rhmcsChMBmAllRawTwoLgbmFull}{}\renewcommand{\rhmcsChMBmAllRawTwoLgbmFull}{0.37}  % single-test bootstrap p-value (two-sided), LightGBM, Full
+\providecommand{\rhmcsChMBmAllPXgbHar}{}\renewcommand{\rhmcsChMBmAllPXgbHar}{0.253}  % StepM-adjusted p-value (one-sided), XGBoost, HAR
+\providecommand{\rhmcsChMBmAllRawXgbHar}{}\renewcommand{\rhmcsChMBmAllRawXgbHar}{0.11}  % single-test bootstrap p-value (one-sided), XGBoost, HAR
+\providecommand{\rhmcsChMBmAllPTwoXgbHar}{}\renewcommand{\rhmcsChMBmAllPTwoXgbHar}{0.49}  % StepM-adjusted p-value (two-sided), XGBoost, HAR
+\providecommand{\rhmcsChMBmAllRawTwoXgbHar}{}\renewcommand{\rhmcsChMBmAllRawTwoXgbHar}{0.21}  % single-test bootstrap p-value (two-sided), XGBoost, HAR
+\providecommand{\rhmcsChMBmAllPXgbFull}{}\renewcommand{\rhmcsChMBmAllPXgbFull}{0.87}  % StepM-adjusted p-value (one-sided), XGBoost, Full
+\providecommand{\rhmcsChMBmAllRawXgbFull}{}\renewcommand{\rhmcsChMBmAllRawXgbFull}{0.77}  % single-test bootstrap p-value (one-sided), XGBoost, Full
+\providecommand{\rhmcsChMBmAllPTwoXgbFull}{}\renewcommand{\rhmcsChMBmAllPTwoXgbFull}{0.79}  % StepM-adjusted p-value (two-sided), XGBoost, Full
+\providecommand{\rhmcsChMBmAllRawTwoXgbFull}{}\renewcommand{\rhmcsChMBmAllRawTwoXgbFull}{0.53}  % single-test bootstrap p-value (two-sided), XGBoost, Full
+\providecommand{\rhmcsChMBmAllPRfHar}{}\renewcommand{\rhmcsChMBmAllPRfHar}{0.253}  % StepM-adjusted p-value (one-sided), Random forest, HAR
 \providecommand{\rhmcsChMBmAllRawRfHar}{}\renewcommand{\rhmcsChMBmAllRawRfHar}{0.11}  % single-test bootstrap p-value (one-sided), Random forest, HAR
-\providecommand{\rhmcsChMBmAllPTwoRfHar}{}\renewcommand{\rhmcsChMBmAllPTwoRfHar}{0.46}  % StepM-adjusted p-value (two-sided), Random forest, HAR
+\providecommand{\rhmcsChMBmAllPTwoRfHar}{}\renewcommand{\rhmcsChMBmAllPTwoRfHar}{0.48}  % StepM-adjusted p-value (two-sided), Random forest, HAR
 \providecommand{\rhmcsChMBmAllRawTwoRfHar}{}\renewcommand{\rhmcsChMBmAllRawTwoRfHar}{0.21}  % single-test bootstrap p-value (two-sided), Random forest, HAR
-\providecommand{\rhmcsChMBmAllPRfFull}{}\renewcommand{\rhmcsChMBmAllPRfFull}{0.87}  % StepM-adjusted p-value (one-sided), Random forest, Full
-\providecommand{\rhmcsChMBmAllRawRfFull}{}\renewcommand{\rhmcsChMBmAllRawRfFull}{0.64}  % single-test bootstrap p-value (one-sided), Random forest, Full
-\providecommand{\rhmcsChMBmAllPTwoRfFull}{}\renewcommand{\rhmcsChMBmAllPTwoRfFull}{0.87}  % StepM-adjusted p-value (two-sided), Random forest, Full
-\providecommand{\rhmcsChMBmAllRawTwoRfFull}{}\renewcommand{\rhmcsChMBmAllRawTwoRfFull}{0.73}  % single-test bootstrap p-value (two-sided), Random forest, Full
+\providecommand{\rhmcsChMBmAllPRfFull}{}\renewcommand{\rhmcsChMBmAllPRfFull}{0.76}  % StepM-adjusted p-value (one-sided), Random forest, Full
+\providecommand{\rhmcsChMBmAllRawRfFull}{}\renewcommand{\rhmcsChMBmAllRawRfFull}{0.43}  % single-test bootstrap p-value (one-sided), Random forest, Full
+\providecommand{\rhmcsChMBmAllPTwoRfFull}{}\renewcommand{\rhmcsChMBmAllPTwoRfFull}{0.96}  % StepM-adjusted p-value (two-sided), Random forest, Full
+\providecommand{\rhmcsChMBmAllRawTwoRfFull}{}\renewcommand{\rhmcsChMBmAllRawTwoRfFull}{0.91}  % single-test bootstrap p-value (two-sided), Random forest, Full
 \providecommand{\rhmcsChMBmAllNRejLo}{}\renewcommand{\rhmcsChMBmAllNRejLo}{0}  % StepM rejections at 5 %, block length 5
-\providecommand{\rhmcsChMBmAllSpaCLo}{}\renewcommand{\rhmcsChMBmAllSpaCLo}{0.18}  % SPA p-value (consistent), block length 5
+\providecommand{\rhmcsChMBmAllSpaCLo}{}\renewcommand{\rhmcsChMBmAllSpaCLo}{0.21}  % SPA p-value (consistent), block length 5
 \providecommand{\rhmcsChMBmAllNRejTwoLo}{}\renewcommand{\rhmcsChMBmAllNRejTwoLo}{0}  % ... two-sided, block length 5
-\providecommand{\rhmcsChMBmAllPMinLo}{}\renewcommand{\rhmcsChMBmAllPMinLo}{0.18}  % smallest adjusted p, block length 5
-\providecommand{\rhmcsChMBmAllPTwoMinLo}{}\renewcommand{\rhmcsChMBmAllPTwoMinLo}{0.35}  % ... two-sided, block length 5
+\providecommand{\rhmcsChMBmAllPMinLo}{}\renewcommand{\rhmcsChMBmAllPMinLo}{0.21}  % smallest adjusted p, block length 5
+\providecommand{\rhmcsChMBmAllPTwoMinLo}{}\renewcommand{\rhmcsChMBmAllPTwoMinLo}{0.40}  % ... two-sided, block length 5
 \providecommand{\rhmcsChMBmAllNRejHi}{}\renewcommand{\rhmcsChMBmAllNRejHi}{0}  % StepM rejections at 5 %, block length 20
-\providecommand{\rhmcsChMBmAllSpaCHi}{}\renewcommand{\rhmcsChMBmAllSpaCHi}{0.37}  % SPA p-value (consistent), block length 20
+\providecommand{\rhmcsChMBmAllSpaCHi}{}\renewcommand{\rhmcsChMBmAllSpaCHi}{0.39}  % SPA p-value (consistent), block length 20
 \providecommand{\rhmcsChMBmAllNRejTwoHi}{}\renewcommand{\rhmcsChMBmAllNRejTwoHi}{0}  % ... two-sided, block length 20
-\providecommand{\rhmcsChMBmAllPMinHi}{}\renewcommand{\rhmcsChMBmAllPMinHi}{0.37}  % smallest adjusted p, block length 20
-\providecommand{\rhmcsChMBmAllPTwoMinHi}{}\renewcommand{\rhmcsChMBmAllPTwoMinHi}{0.68}  % ... two-sided, block length 20
+\providecommand{\rhmcsChMBmAllPMinHi}{}\renewcommand{\rhmcsChMBmAllPMinHi}{0.39}  % smallest adjusted p, block length 20
+\providecommand{\rhmcsChMBmAllPTwoMinHi}{}\renewcommand{\rhmcsChMBmAllPTwoMinHi}{0.69}  % ... two-sided, block length 20
 \providecommand{\rhmcsMidShortMeanSpaC}{}\renewcommand{\rhmcsMidShortMeanSpaC}{0.024}  % SPA p-value (consistent), family MidShortMean
 \providecommand{\rhmcsMidShortMeanSpaL}{}\renewcommand{\rhmcsMidShortMeanSpaL}{0.024}  % ... lower
 \providecommand{\rhmcsMidShortMeanSpaU}{}\renewcommand{\rhmcsMidShortMeanSpaU}{0.024}  % ... upper

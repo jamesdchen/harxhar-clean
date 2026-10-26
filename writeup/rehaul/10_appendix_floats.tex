@@ -17,6 +17,11 @@
 % 2026-10-15 (finish, user): NN content parked for now -- the three MinGRU tables (tab:rh_app_mingru_dev,
 % tab:rh_app_mingru_all, tab:rh_app_mingru_dayclass) are commented out in place; no \ref elsewhere points to them.
 % The parked fig:rh_app_wealth caption uses V_t for wealth (as 07_economics.tex).
+% 2026-10-26 (integration, JFEc; APPENDIX agent): the three live floats of this file (the samples table, the
+% hyperparameter table and the predictor dictionary) moved into rehaul/10_appendix.tex, next to the text that cites
+% them: this file is \input after 10_appendix.tex, so its floats printed after the last appendix section (the
+% Reproducibility section, which therefore ran to about nine pages). The \input lines are parked below; this file now
+% prints nothing. New appendix floats go into the A_*.tex file of their section.
 
 % =====================================================================================================================
 % A0. Implementation details (app:rh_impl, 10_appendix.tex). 2026-10-15 (user): "table 4 the hyperparameter table,
@@ -26,10 +31,10 @@
 % =====================================================================================================================
 % 2026-10-15 (user): "table 2 estimation and evaluation samples also needs to go into the appendix" -- moved here from
 % 03_data_floats.tex, first, with the samples-and-windows material (sec:rh_exp_samples).
-\input{generated/rehaul_dm_samples}
+% 2026-10-26 (integration, JFEc): parked -- moved to rehaul/10_appendix.tex. Was: \input{generated/rehaul_dm_samples}
 % 2026-10-15 (user): parked -- "park all tables that I haven't mentioned in this chat"
 % \input{generated/rehaul_dm_tuning}
-\input{generated/rehaul_dm_hyper}
+% 2026-10-26 (integration, JFEc): parked -- moved to rehaul/10_appendix.tex. Was: \input{generated/rehaul_dm_hyper}
 
 % =====================================================================================================================
 % A1. Tree tuning rungs. The tables re-lay out the campaign's generated tables (numbers copied verbatim by the
@@ -566,8 +571,8 @@
 % 2026-10-15: the feature dictionary (47 series), moved here from 04_features_floats.tex (Appendix A).
 % 2026-10-15 (user): parked -- "park all tables that I haven't mentioned in this chat"
 % 2026-10-17 (user, E5): the dictionary is the series list. Unparked.
-\clearpage
-\input{generated/rehaul_dm_dictionary}
+% 2026-10-26 (integration, JFEc): parked -- moved to rehaul/10_appendix.tex. Was: \clearpage
+% 2026-10-26 (integration, JFEc): parked -- moved to rehaul/10_appendix.tex. Was: \input{generated/rehaul_dm_dictionary}
 
 % 2026-10-15 (consolidation): the full ranking of every forecast (a longtable, tab:rh_rank_full), moved here from
 % 06_results_floats.tex (results generator item 1).

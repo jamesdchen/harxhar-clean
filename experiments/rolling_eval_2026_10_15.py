@@ -22,6 +22,8 @@ run's PERBAR_SWITCH / PAPER_SWITCHED active; gate: its discover() resolves the s
                            benchmark is the per-bar incumbent arm file
                            results/linear_subsection_dedup/baseline/bar1600/reclasso/tw2000/causal_tune_linear/
                            incumbent_ols/results_bar1600.csv (B = true_raw / true_adj^2, compare_mfiv_harlag._prep);
+                           since 2026-10-26 (integration plan D9) its rebuild under the current data chain,
+                           results/ci_har_rebuild_2026-10-26/results_bar1600.csv (same model; forecasts from 2006-06-14);
   closing-interval trees   results/spxw_pnl/yhat_subtree_daily_<set>_lgbm.parquet,
                            results/trees_xgbtop_1600/yhat_subtree_daily_<set>_xgbtop.parquet,
                            results/trees_rf400_1600/yhat_subtree_daily_<set>_rf400.parquet (PERBAR_SWITCH);
@@ -86,9 +88,7 @@ for _v in (
     "NUMBA_NUM_THREADS",
 ):
     os.environ[_v] = "1"
-os.environ.setdefault(
-    "MASTER_TABLE_ARM_ROOT", "linear_subsection_dedup"
-)  # the paper run's arm root
+os.environ.setdefault("MASTER_TABLE_ARM_ROOT", "linear_subsection_dedup")  # the paper run's arm root
 
 import sys  # noqa: E402
 from dataclasses import dataclass  # noqa: E402
@@ -111,7 +111,13 @@ MT = RES / "close_master_table"
 CORE = REPO / "data" / "core_stats.parquet"
 OUT = RES / "rolling_eval_2026-10-15"
 OLS = "sub_ols_baseline"
-OLS_ARM = (
+# 2026-10-26 (integration plan D9): the CI-HAR is the rebuild under the current data chain (RULE.txt next to it), the
+# file experiments/master_table_close.py reads for sub_ols_baseline (CI_HAR_REBUILD). Parked -- the incumbent_ols arm:
+# OLS_ARM = (
+#     RES / "linear_subsection_dedup" / "baseline" / "bar1600" / "reclasso" / "tw2000" / "causal_tune_linear"
+#     / "incumbent_ols" / "results_bar1600.csv"
+# )
+OLS_ARM_OLD = (
     RES
     / "linear_subsection_dedup"
     / "baseline"
@@ -122,18 +128,15 @@ OLS_ARM = (
     / "incumbent_ols"
     / "results_bar1600.csv"
 )
+OLS_ARM = RES / "ci_har_rebuild_2026-10-26" / "results_bar1600.csv"
 MT_FIRST, MT_LAST, MT_N = pd.Timestamp("2020-01-03"), pd.Timestamp("2024-04-30"), 866
 PLAIN_RTOL = 1e-10  # the plain forecast vs master_table_daily plain on the 866 days
 QLIKE_RTOL = 1e-12  # QLIKE vs master_table.csv qlike_raw
 MSE_EXP = 10  # MSE printed x 10^MSE_EXP (as make_rehaul_oos_table)
 
 # hyperparameter selection and the first day free of it
-PRETUNE_END = pd.Timestamp(
-    "2020-01-03"
-)  # close_linear_pretune / pool_linear_pretune: folds before the first trade day
-DEV_END = pd.Timestamp(
-    "2003-01-01"
-)  # experiments/tree_menu_dev.py DEV_END_DATE (score_unification TREE_DEV_END)
+PRETUNE_END = pd.Timestamp("2020-01-03")  # close_linear_pretune / pool_linear_pretune: folds before the first trade day
+DEV_END = pd.Timestamp("2003-01-01")  # experiments/tree_menu_dev.py DEV_END_DATE (score_unification TREE_DEV_END)
 HP_NOTE = {
     "ols": "none (OLS)",
     "pretune": "penalty pre-tuned on 4 x 250-session validation folds tiling the 1,000 16:00 sessions before 2020-01-03 "
@@ -198,12 +201,8 @@ def table_keys() -> list[Key]:
             )
     close_tree = {
         "lgbm": lambda b: SPXW / f"yhat_subtree_daily_{b}_lgbm.parquet",
-        "xgb": lambda b: (
-            RES / "trees_xgbtop_1600" / f"yhat_subtree_daily_{b}_xgbtop.parquet"
-        ),
-        "rf": lambda b: (
-            RES / "trees_rf400_1600" / f"yhat_subtree_daily_{b}_rf400.parquet"
-        ),
+        "xgb": lambda b: RES / "trees_xgbtop_1600" / f"yhat_subtree_daily_{b}_xgbtop.parquet",
+        "rf": lambda b: RES / "trees_rf400_1600" / f"yhat_subtree_daily_{b}_rf400.parquet",
     }
     pt = RES / "pooled_trees_2026-10-07"
     pool_tree = {
@@ -275,9 +274,7 @@ def nyse_sessions(first: str, last: str) -> pd.DatetimeIndex:
 
     class NYSE(AbstractHolidayCalendar):
         rules = [
-            Holiday(
-                "New Year", month=1, day=1, observance=sunday_to_monday
-            ),  # Saturday: no Friday closure
+            Holiday("New Year", month=1, day=1, observance=sunday_to_monday),  # Saturday: no Friday closure
             USMartinLutherKingJr,
             USPresidentsDay,
             GoodFriday,
@@ -329,9 +326,7 @@ def truth_history() -> tuple[pd.Series, pd.Series]:
     et = pd.to_datetime(c["endbartime"])
     assert et.dt.tz is None, "core_stats stamps are naive ET"
     m = ((et.dt.hour == 16) & (et.dt.minute == 0)).to_numpy()
-    s = pd.Series(
-        c.loc[m, "sumret2"].to_numpy(float), index=_day_index(et[m])
-    ).sort_index()
+    s = pd.Series(c.loc[m, "sumret2"].to_numpy(float), index=_day_index(et[m])).sort_index()
     assert not s.index.duplicated().any()
     s = s[np.isfinite(s.to_numpy())]
     hist = s[(s.to_numpy() > 0) & ~s.index.isin(EARLY)]
@@ -383,17 +378,13 @@ def read_key(k: Key) -> pd.DataFrame:
 
 def ct_benchmark(hist: pd.Series, days: pd.DatetimeIndex) -> pd.Series:
     """RVbar_{t-1}: mean of hist strictly before t (expanding, causal); = make_rehaul_oos_table.ct_benchmark."""
-    prior = hist.cumsum().shift(1) / pd.Series(
-        np.arange(len(hist), dtype=float), index=hist.index
-    )
+    prior = hist.cumsum().shift(1) / pd.Series(np.arange(len(hist), dtype=float), index=hist.index)
     b = prior.replace([np.inf], np.nan).reindex(days)
     hv, hi = hist.to_numpy(float), hist.index
     cs = np.concatenate([[0.0], np.cumsum(hv)])
     for t, v in b.items():  # brute force: the value at t uses days < t only
         n = int(np.searchsorted(hi, t, side="left"))
-        assert (
-            n > 0 and hi[n - 1] < t and np.isclose(v, hv[:n].mean(), rtol=1e-12, atol=0)
-        ), t
+        assert n > 0 and hi[n - 1] < t and np.isclose(v, hv[:n].mean(), rtol=1e-12, atol=0), t
         assert np.isclose(cs[n] / n, v, rtol=1e-12, atol=0), t
     return b
 
@@ -408,9 +399,7 @@ def metrics(rv: pd.Series, plain: pd.Series, bench: pd.Series) -> dict[str, floa
     return {
         "mse": float(e2.mean()),
         "qlike": float(qlike_daily(rv.to_numpy(float), plain.to_numpy(float)).mean()),
-        "r2_oos_pct": float(
-            100.0 * (1.0 - e2.sum() / ((rv - bench.reindex(rv.index)) ** 2).sum())
-        ),
+        "r2_oos_pct": float(100.0 * (1.0 - e2.sum() / ((rv - bench.reindex(rv.index)) ** 2).sum())),
     }
 
 
@@ -550,9 +539,7 @@ def main() -> None:
                 rel,
                 rel == 0.0,
             )
-        exp = nyse[
-            (nyse >= f.index.min()) & (nyse <= f.index.max()) & ~nyse.isin(EARLY)
-        ]
+        exp = nyse[(nyse >= f.index.min()) & (nyse <= f.index.max()) & ~nyse.isin(EARLY)]
         gaps = exp[~exp.isin(f.index)]
         data[k.key] = f[["plain", "rv"]]
         hc = k.hp_clean_from
@@ -595,9 +582,7 @@ def main() -> None:
         columns=["key", "day", "plain", "rv_unclipped", "qlike_raw"],
     )
     daily["day"] = _day_index(pd.to_datetime(daily["day"]))
-    mt_days = pd.DatetimeIndex(
-        daily.loc[daily["key"] == OLS, "day"].sort_values().to_numpy()
-    ).as_unit("ns")
+    mt_days = pd.DatetimeIndex(daily.loc[daily["key"] == OLS, "day"].sort_values().to_numpy()).as_unit("ns")
     gate(
         "master days",
         OLS,
@@ -641,9 +626,7 @@ def main() -> None:
                 "QLIKE = master_table.csv qlike_raw (866 days)",
                 k.key,
                 q - float(mtab.loc[k.key, "qlike_raw"]),
-                bool(
-                    np.isclose(q, mtab.loc[k.key, "qlike_raw"], rtol=QLIKE_RTOL, atol=0)
-                ),
+                bool(np.isclose(q, mtab.loc[k.key, "qlike_raw"], rtol=QLIKE_RTOL, atol=0)),
             )
         else:  # pooltree_*: make_rehaul_oos_table.plain_16 is f^2 B on the table's own 16:00 rows -- the same rule
             gate(
@@ -697,9 +680,7 @@ def main() -> None:
             "scored() = this run's frame",
             k.key,
             len(a),
-            bool(
-                a.index.equals(b.index) and np.array_equal(a.to_numpy(), b.to_numpy())
-            ),
+            bool(a.index.equals(b.index) and np.array_equal(a.to_numpy(), b.to_numpy())),
         )
 
     # benchmark on every scored day of every key
@@ -809,8 +790,7 @@ def main() -> None:
     )
     print(piv.round(4).to_string())
     print(
-        f"{len(gates)} gates, all ok; wrote {OUT.relative_to(REPO)}/spans.csv, metrics.csv, common_span.csv, "
-        "gates.csv"
+        f"{len(gates)} gates, all ok; wrote {OUT.relative_to(REPO)}/spans.csv, metrics.csv, common_span.csv, gates.csv"
     )
 
 

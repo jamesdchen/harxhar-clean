@@ -91,18 +91,11 @@ DATA = REPO / "data"
 RES = REPO / "results"
 CLEAN = REPO.parent / "harxhar-clean"
 DESIGN_DIRS = (
-    RES
-    / "close_design"
-    / "_work",  # experiments/capture_design_close.py's default cache
+    RES / "close_design" / "_work",  # experiments/capture_design_close.py's default cache
     RES / "linear_pretune_2026-10-06" / "_work" / "design",
     RES / "trees_pretune_2026-10-06" / "_work" / "design",
 )
-DESIGN_EXPORT = (
-    RES
-    / "close_studies_2026-10-03"
-    / "forecasts"
-    / "design_bar1600_all_features.parquet"
-)
+DESIGN_EXPORT = RES / "close_studies_2026-10-03" / "forecasts" / "design_bar1600_all_features.parquet"
 # 2026-10-19 (user): parked -- base 5 across the paper. Was the base-2 panel of the earlier pooled fits:
 # POOLED_CACHE = CLEAN / "results" / "prep_cache_all_features_b2.npz"
 POOLED_PANEL = REPO / "results" / "pooled_trees_base5_2026-10-19_48" / "panel_full.json"
@@ -255,9 +248,7 @@ def colspec(permille: list[int], align: str | None = None) -> str:
     tabular is exactly \\textwidth wide (outer gaps removed with @{})."""
     assert sum(permille) == 1000, sum(permille)
     k = 2 * (len(permille) - 1)
-    cols = [
-        rf"p{{\dimexpr(\textwidth-{k}\tabcolsep)*{w}/1000\relax}}" for w in permille
-    ]
+    cols = [rf"p{{\dimexpr(\textwidth-{k}\tabcolsep)*{w}/1000\relax}}" for w in permille]
     return "@{}" + "".join(cols) + "@{}"
 
 
@@ -318,19 +309,14 @@ def P_(frac: float) -> str:
     return rf">{{\raggedright\arraybackslash}}p{{{frac:.3f}\textwidth}}"
 
 
-def pcols(
-    permille: list[int], width: str = r"\linewidth", sep: str = r"\tabcolsep"
-) -> str:
+def pcols(permille: list[int], width: str = r"\linewidth", sep: str = r"\tabcolsep") -> str:
     """Ragged-right p{} columns whose widths are shares (per mille) of `width` less the inner column gaps, so the
     table is exactly `width` wide (outer gaps removed with @{})."""
     assert sum(permille) == 1000, sum(permille)
     k = 2 * (len(permille) - 1)
     return (
         "@{}"
-        + "".join(
-            rf">{{\raggedright\arraybackslash}}p{{\dimexpr({width}-{k}{sep})*{w}/1000\relax}}"
-            for w in permille
-        )
+        + "".join(rf">{{\raggedright\arraybackslash}}p{{\dimexpr({width}-{k}{sep})*{w}/1000\relax}}" for w in permille)
         + "@{}"
     )
 
@@ -356,9 +342,7 @@ def stack(*lines: str, align: str = "c") -> str:
 def write(name: str, text: str) -> None:
     p = GEN / name
     p.write_bytes(text.encode("utf-8"))
-    print(
-        f"wrote {fr.rel(p)}"
-    )  # 2026-10-23: a test run writes outside the repository. Was: p.relative_to(REPO)
+    print(f"wrote {fr.rel(p)}")  # 2026-10-23: a test run writes outside the repository. Was: p.relative_to(REPO)
 
 
 # ============================================================================ source constants (ast; no execution)
@@ -383,9 +367,7 @@ def consts(path: Path, names: tuple[str, ...], extra: dict | None = None) -> dic
             continue
         value = node.value
         assert value is not None
-        stmt = ast.Module(
-            body=[ast.Assign(targets=targets, value=value)], type_ignores=[]
-        )
+        stmt = ast.Module(body=[ast.Assign(targets=targets, value=value)], type_ignores=[])
         ast.fix_missing_locations(stmt)
         try:
             exec(compile(stmt, str(path), "exec"), ns)  # noqa: S102 -- literal constants of our own source
@@ -398,9 +380,7 @@ def consts(path: Path, names: tuple[str, ...], extra: dict | None = None) -> dic
 
 def macros() -> dict[str, str]:
     m = {}
-    for k, v in re.findall(
-        r"\\newcommand\{\\(\w+)\}\{(.*)\}", need(MACROS).read_text(encoding="utf-8")
-    ):
+    for k, v in re.findall(r"\\newcommand\{\\(\w+)\}\{(.*)\}", need(MACROS).read_text(encoding="utf-8")):
         m[k] = v
     return m
 
@@ -443,16 +423,11 @@ def sources() -> dict:
         cols = [c for c in d.columns if c != "endbartime"]
         xs[f] = (len(cols), *span(d, cols))
     check(
-        xs["ewstock_stats"][1:] == xs["vwstock_stats"][1:]
-        and xs["ewstock_stats"][0] == xs["vwstock_stats"][0],
+        xs["ewstock_stats"][1:] == xs["vwstock_stats"][1:] and xs["ewstock_stats"][0] == xs["vwstock_stats"][0],
         "EW and VW cross-section files share columns count, span and print count",
     )
     S["xs"] = xs["ewstock_stats"]
-    ewc = [
-        c
-        for c in pd.read_parquet(DATA / "ewstock_stats.parquet").columns
-        if c != "endbartime"
-    ]
+    ewc = [c for c in pd.read_parquet(DATA / "ewstock_stats.parquet").columns if c != "endbartime"]
     S["xs_moments"] = sum(c.startswith("sum") for c in ewc)
     check(
         S["xs_moments"] == 6 and len(ewc) - S["xs_moments"] == 5,
@@ -482,9 +457,7 @@ def sources() -> dict:
         len(ev) == OUTLINE["fomc_events"] and set(ev.dt.strftime("%H:%M")) == {"14:30"},
         "246 FOMC bars, all 14:30",
     )
-    S["release_flags"] = [
-        c for c in rel.columns if c not in ("endbartime", LD.FOMC_RAW_COL)
-    ]
+    S["release_flags"] = [c for c in rel.columns if c not in ("endbartime", LD.FOMC_RAW_COL)]
     ch = pd.read_parquet(
         need(DATA / "spxw_chain.parquet"),
         columns=["expiration", "timestamp", "early_close"],
@@ -524,18 +497,12 @@ def panel() -> dict:
         ("DEFAULT_WINDOW_BARS",),
         {"PERIODS_PER_DAY": TG.PERIODS_PER_DAY},
     )
-    check(
-        uw["DEFAULT_WINDOW_BARS"] == W, "pooled window 24,000 bars (src/unification.py)"
-    )
+    check(uw["DEFAULT_WINDOW_BARS"] == W, "pooled window 24,000 bars (src/unification.py)")
     P["pooled_window"] = uw["DEFAULT_WINDOW_BARS"]
     P["pooled_fc"] = (t.iloc[burn + W], t.iloc[-1], len(df) - burn - W)
     # the tree development span: pooled rows strictly before the first bar of 2003 (experiments/tree_menu_dev.py)
-    tm = consts(
-        REPO / "experiments" / "tree_menu_dev.py", ("WINDOW", "SCREEN_REFIT", "BOXES")
-    )
-    rf = json.loads(
-        need(RES / "rf_devmenu_2026-10-06" / "budget400" / "rf_config.json").read_text()
-    )
+    tm = consts(REPO / "experiments" / "tree_menu_dev.py", ("WINDOW", "SCREEN_REFIT", "BOXES"))
+    rf = json.loads(need(RES / "rf_devmenu_2026-10-06" / "budget400" / "rf_config.json").read_text())
     dev_end = int(rf["provenance"]["dev_end_row"])
     tp = t.iloc[burn:].reset_index(drop=True)
     check(
@@ -599,13 +566,10 @@ def panel() -> dict:
         "pre-tune 3,947 from 2004-04-13",
     )
     check(
-        d_(pre.iloc[-nval]) == OUTLINE["val_first"]
-        and d_(pre.iloc[-1]) == OUTLINE["val_last"],
+        d_(pre.iloc[-nval]) == OUTLINE["val_first"] and d_(pre.iloc[-1]) == OUTLINE["val_last"],
         "pre-tune validation 2016-01-06 .. 2020-01-02",
     )
-    facts = pd.read_csv(
-        need(RES / "linear_pretune_2026-10-06" / "paper_facts.csv")
-    ).set_index("item")["value"]
+    facts = pd.read_csv(need(RES / "linear_pretune_2026-10-06" / "paper_facts.csv")).set_index("item")["value"]
     P["facts"] = facts
     check(
         int(facts["pre-2020 16:00 sessions in the design"]) == len(pre)
@@ -619,9 +583,7 @@ def panel() -> dict:
             dz = d
             break
     if dz is None:
-        raise SystemExit(
-            f"missing input: design_bar1600_all_features.npz in any of {[str(d) for d in DESIGN_DIRS]}"
-        )
+        raise SystemExit(f"missing input: design_bar1600_all_features.npz in any of {[str(d) for d in DESIGN_DIRS]}")
     za = np.load(dz / "design_bar1600_all_features.npz", allow_pickle=False)
     zb = np.load(dz / "design_bar1600_baseline.npz", allow_pickle=False)
     P["design_dir"] = dz
@@ -634,8 +596,7 @@ def panel() -> dict:
     P["names_base"] = drop_excluded([str(v) for v in zb["names"]])
     gone = [c for c in cached_all if c not in P["names_all"]]
     check(
-        len(gone) == 18 * len(EXCLUDED_SERIES)
-        and {column_series(c) for c in gone} == set(EXCLUDED_SERIES),
+        len(gone) == 18 * len(EXCLUDED_SERIES) and {column_series(c) for c in gone} == set(EXCLUDED_SERIES),
         f"the 16:00 design less {EXCLUDED_SERIES or 'no series'}: {len(gone)} columns "
         "(6 averages, 6 availability, 6 activity each)",
     )
@@ -659,10 +620,7 @@ def panel() -> dict:
     cal_cols = [c for c in P["names_all"] if c in CAL_TEX]
     # 2026-10-22 (user, third-list 5): Xa's columns are the cache's (cached_all). Was: P["names_all"].index(c)
     P["cal_const"] = [
-        c
-        for c in cal_cols
-        if np.nanmax(Xa[:, cached_all.index(c)])
-        == np.nanmin(Xa[:, cached_all.index(c)])
+        c for c in cal_cols if np.nanmax(Xa[:, cached_all.index(c)]) == np.nanmin(Xa[:, cached_all.index(c)])
     ]
     check(
         P["cal_const"] == ["hour", "is_overnight", "is_open", "is_close"],
@@ -717,8 +675,7 @@ def panel() -> dict:
     first = pd.Timestamp(clp["FIRST_TRADE_DAY"])
     P["test16"] = int((fcd >= first).sum())
     check(
-        P["test16"] == OUTLINE["sessions_1600_test"]
-        and d_(days.min()) == clp["FIRST_TRADE_DAY"],
+        P["test16"] == OUTLINE["sessions_1600_test"] and d_(days.min()) == clp["FIRST_TRADE_DAY"],
         "1,087 16:00 sessions in the test period, first trade day 2020-01-03",
     )
     # 2026-10-15 (user): the evaluation span of the accuracy statistics -- every trading day on which all rolling
@@ -728,9 +685,7 @@ def panel() -> dict:
 
     span = rolling.common_span()
     P["span"] = span
-    P["span_ec"] = int(
-        ((rolling.EARLY >= span.min()) & (rolling.EARLY <= span.max())).sum()
-    )
+    P["span_ec"] = int(((rolling.EARLY >= span.min()) & (rolling.EARLY <= span.max())).sum())
     check(
         set(days).issubset(set(span)) and d_(span.min()) == clp["FIRST_TRADE_DAY"],
         "the 866 option-data days lie in the evaluation span, which starts on the first trade day",
@@ -1017,9 +972,7 @@ def design_tables(P: dict, bmap: dict[str, str]) -> dict:
         "per bar: 6 HAR + 16 calendar, no edge",
     )
     check(
-        B["har"] == A["har"]
-        and B["calendar"] == A["calendar"]
-        and len(P["names_base"]) == OUTLINE["p_base"],
+        B["har"] == A["har"] and B["calendar"] == A["calendar"] and len(P["names_base"]) == OUTLINE["p_base"],
         "baseline = the 22 backbone columns of all_features",
     )
     check(
@@ -1072,9 +1025,7 @@ def design_tables(P: dict, bmap: dict[str, str]) -> dict:
         # (with FOMC the causal rule also flags fomc_day and fomc_release: 6 activity series)
         # 2026-10-22 (user, third-list 5): parked -- without fomc_release, 46 series and 5 activity series. Was:
         # len(pooled_names) == OUTLINE["p_pooled"] == 34 + 47 * 6 * 2 + 6 * 6, "634 = 34 + 47x6x2 + 6x6",
-        len(pooled_names)
-        == OUTLINE["p_pooled"]
-        == 34 + ns * 6 * 2 + OUTLINE["n_active_pooled"] * 6
+        len(pooled_names) == OUTLINE["p_pooled"] == 34 + ns * 6 * 2 + OUTLINE["n_active_pooled"] * 6
         and len(Q["series"]["active"]) == OUTLINE["n_active_pooled"],
         f"{OUTLINE['p_pooled']} = 34 + {ns}x6x2 + {OUTLINE['n_active_pooled']}x6",
     )
@@ -1173,11 +1124,7 @@ def semantic_label(col: str, has_neg: bool) -> str:
     """Which branch target.apply_semantic_transform takes for this column, found by running it on a probe."""
     with np.errstate(invalid="ignore", divide="ignore"):
         out = TG.apply_semantic_transform(PROBE.copy(), col, has_neg).to_numpy(float)
-        hits = [
-            k
-            for k, f in CANDIDATES.items()
-            if np.allclose(out, f(PROBE.to_numpy(float)), equal_nan=True)
-        ]
+        hits = [k for k, f in CANDIDATES.items() if np.allclose(out, f(PROBE.to_numpy(float)), equal_nan=True)]
     assert len(hits) == 1, (col, hits)
     return hits[0]
 
@@ -1186,12 +1133,7 @@ def semantic_label(col: str, has_neg: bool) -> str:
 def pre_fix_chain() -> Iterator[None]:
     """2026-10-22 (user, S4a follow-up): the pre-2026-10-15 chain for the duration (every PRE_FIX_FLAGS flag off,
     restored on exit): the chain of the closing-interval forecasts, which are not rerun."""
-    saved = [
-        (m, n, getattr(m, n))
-        for m, names in PRE_FIX_FLAGS
-        for n in names
-        if hasattr(m, n)
-    ]
+    saved = [(m, n, getattr(m, n)) for m, names in PRE_FIX_FLAGS for n in names if hasattr(m, n)]
     try:
         for m, n, _ in saved:
             setattr(m, n, False)
@@ -1208,9 +1150,7 @@ def causal_route(df: pd.DataFrame, s: str) -> tuple[np.ndarray, np.ndarray]:
     before the row, at least ASINH_ROUTE_MIN_ROWS of them.  Checked against robust_transform's own baseline (1.0 on
     every routed row)."""
     x = df[s]
-    _, base, floor = TG.diurnal_adjust_with_floor(
-        x, df["time_of_day"], True, slot_band=TG.DIURNAL_SLOT_BAND_FRAC
-    )
+    _, base, floor = TG.diurnal_adjust_with_floor(x, df["time_of_day"], True, slot_band=TG.DIURNAL_SLOT_BAND_FRAC)
     check(
         isinstance(floor, pd.Series),
         f"{s}: the s.d. floor is the causal per-row floor (CAUSAL_SD_FLOOR)",
@@ -1246,12 +1186,7 @@ def dictionary(P: dict, bmap: dict[str, str], D: dict) -> list[dict]:
         not LD.RATIO_FILL_COLS,
         "the overnight 1.0 fill is a no-op (RATIO_FILL_COLS empty)",
     )
-    flags = [
-        bool(getattr(m, n))
-        for m, names in PRE_FIX_FLAGS
-        for n in names
-        if hasattr(m, n)
-    ]
+    flags = [bool(getattr(m, n)) for m, names in PRE_FIX_FLAGS for n in names if hasattr(m, n)]
     check(
         not DOCUMENT_PRE_FIX_CHAIN
         and len(flags) == sum(len(names) for _, names in PRE_FIX_FLAGS)
@@ -1263,9 +1198,7 @@ def dictionary(P: dict, bmap: dict[str, str], D: dict) -> list[dict]:
     df = P["df"].copy()
     # 2026-10-22 (user, S4a follow-up): parked -- the unlimited fill of the pre-2026-10-15 chain (now df0 below). Was:
     # df[LD.ALL_FEATURES] = df[LD.ALL_FEATURES].ffill()  # load_and_transform: ffill(limit=None), the run's setting
-    df[LD.ALL_FEATURES] = df[LD.ALL_FEATURES].ffill(
-        limit=EX.FFILL_LIMIT
-    )  # load_and_transform under APPLY_FFILL_LIMIT
+    df[LD.ALL_FEATURES] = df[LD.ALL_FEATURES].ffill(limit=EX.FFILL_LIMIT)  # load_and_transform under APPLY_FFILL_LIMIT
     files: dict[str, str] = {}
     for f in (
         "core_stats",
@@ -1293,9 +1226,7 @@ def dictionary(P: dict, bmap: dict[str, str], D: dict) -> list[dict]:
             transform = semantic_label(s, neg)
             if not excl and neg and not TG.has_name_stabilizer(s):
                 # the asinh gate: robust_transform swaps in asinh when the s.d. divisor is pinned on >= half the rows
-                _, base = TG.diurnal_adjust(
-                    x, df0["time_of_day"], True, slot_band=TG.DIURNAL_SLOT_BAND_FRAC
-                )
+                _, base = TG.diurnal_adjust(x, df0["time_of_day"], True, slot_band=TG.DIURNAL_SLOT_BAND_FRAC)
                 pinned = float(np.isclose(base, base.min(), rtol=1e-9).mean())
                 _, rb = TG.robust_transform(df0, s)
                 routed = bool((rb == 1.0).all())
@@ -1306,22 +1237,14 @@ def dictionary(P: dict, bmap: dict[str, str], D: dict) -> list[dict]:
                 if routed:
                     transform, diurnal = "asinh", "none"
             inflated, mode = EX.mode_inflated(x.to_numpy(dtype=np.float64))
-            share = (
-                float(np.mean(x.dropna().to_numpy() == mode))
-                if inflated
-                else float("nan")
-            )
+            share = float(np.mean(x.dropna().to_numpy() == mode)) if inflated else float("nan")
             check(
                 inflated == (s in D["act"]),
                 f"{s}: activity flag = an _active ladder in the design",
             )
             raw = raw0[s]
             nn = int((raw < 0).sum())
-            fneg = (
-                pd.Timestamp(raw0.loc[raw < 0, "t"].iloc[0]).strftime("%Y-%m-%d %H:%M")
-                if nn
-                else ""
-            )
+            fneg = pd.Timestamp(raw0.loc[raw < 0, "t"].iloc[0]).strftime("%Y-%m-%d %H:%M") if nn else ""
             pre[s] = dict(
                 transform=transform,
                 diurnal=diurnal,
@@ -1393,8 +1316,7 @@ def dictionary(P: dict, bmap: dict[str, str], D: dict) -> list[dict]:
     check(
         set(
             R.loc[
-                (R["transform"] != R["transform_pre"])
-                | (R["diurnal"] != R["diurnal_pre"]),
+                (R["transform"] != R["transform_pre"]) | (R["diurnal"] != R["diurnal_pre"]),
                 "series",
             ]
         )
@@ -1646,23 +1568,13 @@ def tree_settings(P: dict) -> dict:
         ("LGBM_PARAMS", "SEED", "REFIT_EVERY", "POOLED_WINDOW_ROWS"),
     )
     X = json.loads(need(RES / "trees_xgbtop_1600" / "xgb_config.json").read_text())
-    XT = consts(REPO / "specs" / "causal_tune_trees_xgbtop.py", ("XGB_PARAMS",))[
-        "XGB_PARAMS"
-    ]
-    R4 = consts(REPO / "specs" / "causal_tune_trees_rf400.py", ("RF_PARAMS",))[
-        "RF_PARAMS"
-    ]
+    XT = consts(REPO / "specs" / "causal_tune_trees_xgbtop.py", ("XGB_PARAMS",))["XGB_PARAMS"]
+    R4 = consts(REPO / "specs" / "causal_tune_trees_rf400.py", ("RF_PARAMS",))["RF_PARAMS"]
     rf = P["rf"]
     scale = OUTLINE["perbar_window"] / T["POOLED_WINDOW_ROWS"]
+    check(XT == X["config"]["params"], "xgbtop spec params = xgb_config.json (xgb_opt_00)")
     check(
-        XT == X["config"]["params"], "xgbtop spec params = xgb_config.json (xgb_opt_00)"
-    )
-    check(
-        abs(
-            XT["min_child_weight"] * scale
-            - X["per_bar_params_train_win_2000"]["min_child_weight"]
-        )
-        < 1e-12,
+        abs(XT["min_child_weight"] * scale - X["per_bar_params_train_win_2000"]["min_child_weight"]) < 1e-12,
         "XGBoost min_child_weight scaled x 2000/24000",
     )
     check(
@@ -1687,14 +1599,11 @@ def tree_settings(P: dict) -> dict:
         r"forest settings = the \cmTreeProvRf* macros",
     )
     check(
-        M["cmTreeProvLgbmLeaf"]
-        == str(max(1, round(T["LGBM_PARAMS"]["min_child_samples"] * scale))),
+        M["cmTreeProvLgbmLeaf"] == str(max(1, round(T["LGBM_PARAMS"]["min_child_samples"] * scale))),
         "LightGBM leaf 98 -> 8 = the macro",
     )
     check(int(rf["trial"]) == 255, "forest = trial 255")
-    return dict(
-        T=T, X=XT, Xs=X["per_bar_params_train_win_2000"], R=R4, rf=rf, scale=scale, M=M
-    )
+    return dict(T=T, X=XT, Xs=X["per_bar_params_train_win_2000"], R=R4, rf=rf, scale=scale, M=M)
 
 
 def linear_picks(P: dict) -> dict:
@@ -1715,8 +1624,7 @@ def linear_picks(P: dict) -> dict:
     )
     grids = {k: [a for _, a, _ in v] for k, v in G["ESTIMATOR_GRIDS"].items()}
     check(
-        grids["ridge"] == [10.0**k for k in range(-2, 4)]
-        or np.allclose(grids["ridge"], np.logspace(-2, 3, 6)),
+        grids["ridge"] == [10.0**k for k in range(-2, 4)] or np.allclose(grids["ridge"], np.logspace(-2, 3, 6)),
         "ridge grid 1e-2 .. 1e3",
     )
     check(
@@ -1729,9 +1637,7 @@ def linear_picks(P: dict) -> dict:
         "elastic net rho = 0.5",
     )
     check(
-        float(f["backbone penalty ratio (HAR + calendar / exogenous)"])
-        == P["clp"]["R_BB"]
-        == 0.01,
+        float(f["backbone penalty ratio (HAR + calendar / exogenous)"]) == P["clp"]["R_BB"] == 0.01,
         "R_BB = 0.01",
     )
     check(
@@ -1760,11 +1666,7 @@ def frozen_arms_printed() -> None:
                 need(RES / "spxw_pnl" / f"yhat_subpt_{est}_{b}.parquet"),
                 columns=["t", "yhat"],
             )
-            et = (
-                pd.to_datetime(st["t"])
-                .dt.tz_convert("America/New_York")
-                .dt.tz_localize(None)
-            )
+            et = pd.to_datetime(st["t"]).dt.tz_convert("America/New_York").dt.tz_localize(None)
             ys = pd.Series(
                 st["yhat"].to_numpy(),
                 index=pd.DatetimeIndex(et.to_numpy()).as_unit("ns"),
@@ -1775,9 +1677,7 @@ def frozen_arms_printed() -> None:
                 index=pd.DatetimeIndex(pd.to_datetime(fa["date"])).as_unit("ns"),
             ).sort_index()
             check(
-                len(fs) == len(ys) > 0
-                and ys.index.equals(fs.index)
-                and np.array_equal(ys.to_numpy(), fs.to_numpy()),
+                len(fs) == len(ys) > 0 and ys.index.equals(fs.index) and np.array_equal(ys.to_numpy(), fs.to_numpy()),
                 f"yhat_subpt_{est}_{b} = the {arm} arm bit for bit (penalty held fixed, no re-tune)",
             )
 
@@ -1863,9 +1763,7 @@ def mingru() -> dict:
         pj += jobs(PFW / "pwalk_wdgrid" / f"tune_block{k}.txt")
     gp = grid(pj, ("L", "H", "lr", "wd"))
     check(
-        math.prod(len(v) for v in gp.values())
-        == len(pw["GRID"]) * len(pw["WDS"])
-        == 48,
+        math.prod(len(v) for v in gp.values()) == len(pw["GRID"]) * len(pw["WDS"]) == 48,
         "pooled grid 8 x 6 wd = 48",
     )
     plan = json.loads(need(PFW / "pwalk_wdgrid" / "plan.json").read_text())
@@ -1918,28 +1816,16 @@ def mingru() -> dict:
     sel_rows = []
     for des in ("baseline", "all_features"):
         for k in range(5):
-            hit = sorted(
-                (PFR / "pooled_rinit_study" / "runs").glob(
-                    f"prq_{des}_b{k}_sel_*/selection.json"
-                )
-            )
+            hit = sorted((PFR / "pooled_rinit_study" / "runs").glob(f"prq_{des}_b{k}_sel_*/selection.json"))
             check(len(hit) == 1, f"one selection file for pooled QLIKE {des} block {k}")
             s = json.loads(hit[0].read_text())[des]
             check(
                 s["criterion"] == "qlike",
                 f"pooled QLIKE {des} block {k} selected on QLIKE",
             )
-            sel_rows.append(
-                dict(block=k, design=des, cfg=s["cfg"], n_val=int(s["n_val"]))
-            )
-    pplan = json.loads(
-        need(PFW / "pwalk_rinitq_all_features" / "plan.json").read_text()
-    )
-    pblocks = (
-        pplan["blocks"]
-        if isinstance(pplan["blocks"], list)
-        else ast.literal_eval(pplan["blocks"])
-    )
+            sel_rows.append(dict(block=k, design=des, cfg=s["cfg"], n_val=int(s["n_val"])))
+    pplan = json.loads(need(PFW / "pwalk_rinitq_all_features" / "plan.json").read_text())
+    pblocks = pplan["blocks"] if isinstance(pplan["blocks"], list) else ast.literal_eval(pplan["blocks"])
     nper = [len(b["origins"]) for b in pblocks]
     check(
         len(pblocks) == 5 and len(set(nper[:-1])) == 1 and nper[-1] <= nper[0],
@@ -2323,9 +2209,7 @@ def rng(lo, hi, log: bool = False) -> str:
 def grid10(gr) -> str:
     ks = [int(round(math.log10(a))) for a in gr]
     check(ks == list(range(ks[0], ks[-1] + 1)), "a one-per-decade grid")
-    return (
-        rf"$\{{10^{{{ks[0]}}}, 10^{{{ks[1]}}}, \dots, 10^{{{ks[-1]}}}\}}$ ({len(gr)})"
-    )
+    return rf"$\{{10^{{{ks[0]}}}, 10^{{{ks[1]}}}, \dots, 10^{{{ks[-1]}}}\}}$ ({len(gr)})"
 
 
 def ftable(
@@ -2496,24 +2380,21 @@ def write_samples(P: dict) -> None:
     # design and against every arm of the trees' forecast file.
     tw = pt13.meta()
     check(
-        tw["refit"] == "bar"
-        and tw["window_bars"] == tw["window_days"] * tw["bars_day"],
+        tw["refit"] == "bar" and tw["window_bars"] == tw["window_days"] * tw["bars_day"],
         "pooled trees: re-estimated every bar on window_days x bars_day bars (pooled_trees_13.meta)",
     )
     tg = P["df"]["t"]
     hm = tg.dt.strftime("%H:%M")
     rth = sorted(c for c in set(hm) if "10:00" <= c <= "16:00")
     check(
-        len(rth) == tw["bars_day"] == pt13.N_BARS_DAY
-        and (rth[0], rth[-1]) == ("10:00", "16:00"),
+        len(rth) == tw["bars_day"] == pt13.N_BARS_DAY and (rth[0], rth[-1]) == ("10:00", "16:00"),
         "13 regular-hours bars a day, bar ends 10:00 .. 16:00 ET",
     )
     burn = P["burn"]
     t13 = tg.iloc[burn:][hm.iloc[burn:].isin(rth)].reset_index(drop=True)
     d13 = json.loads(need(POOLED_DESIGN_13).read_text(encoding="utf-8"))
     check(
-        len(t13) == int(d13["n_rows"])
-        and t13.iloc[0] == pd.Timestamp(d13["first_row_t"]),
+        len(t13) == int(d13["n_rows"]) and t13.iloc[0] == pd.Timestamp(d13["first_row_t"]),
         "regular-hours bars after the burn-in = the rows of the 13-bar design (pooled_trees_base5_2026-10-19_13)",
     )
     if str(REPO / "experiments") not in sys.path:
@@ -2529,8 +2410,7 @@ def write_samples(P: dict) -> None:
     fa = pt13._frame()[["model", "predictor_set", "date"]]
     check(
         all(
-            len(g) == len(fc13) == pt13.N_BARS_ARM
-            and set(pd.to_datetime(g["date"])) == set(fc13)
+            len(g) == len(fc13) == pt13.N_BARS_ARM and set(pd.to_datetime(g["date"])) == set(fc13)
             for _, g in fa.groupby(["model", "predictor_set"])
         ),
         "every pooled-tree arm forecasts the regular-hours bars of its span, early-close days out",
@@ -2555,9 +2435,7 @@ def write_samples(P: dict) -> None:
     )
     ppd = TG.PERIODS_PER_DAY
     # 2026-10-23 (final design): the folds of the pooled linear penalties (final_run.TUNE_FOLDS, validation 2013)
-    pen_folds = json.loads(
-        need(pl13.RUN / "frozen_penalties.json").read_text(encoding="utf-8")
-    )["info"]["folds"]
+    pen_folds = json.loads(need(pl13.RUN / "frozen_penalties.json").read_text(encoding="utf-8"))["info"]["folds"]
     if fr.FINAL:
         check(
             tuple(int(f["fold"]) for f in pen_folds) == fr.TUNE_FOLDS
@@ -2690,7 +2568,9 @@ def write_samples(P: dict) -> None:
         panel_row("Panel C: Evaluation samples (trading days)", 5),
         cells(
             [
-                rf"Evaluation span ($T_{{\mathrm{{oos}}}}$): trading days on which every forecast exists, less "
+                # 2026-10-26 (integration, APPENDIX): the 1,082-day span is T_close (T_oos is Table 1's 2,579-day
+                # span). Was: rf"Evaluation span ($T_{{\mathrm{{oos}}}}$): trading days on which every forecast ..."
+                rf"Closing-interval span ($T_{{\mathrm{{close}}}}$): trading days on which every forecast exists, less "
                 rf"early-close days ({P['span_ec']})",
                 D_(P["span"].min()),
                 D_(P["span"].max()),
@@ -2789,9 +2669,7 @@ def write_samples(P: dict) -> None:
     )
     write(
         "rehaul_dm_samples.tex",
-        ftable(
-            "tab:rh_dm_samples", "Estimation and evaluation samples.", spec, body, notes
-        ),
+        ftable("tab:rh_dm_samples", "Estimation and evaluation samples.", spec, body, notes),
     )
 
 
@@ -2810,9 +2688,7 @@ def write_design(D: dict) -> None:
 
     body = [
         r"\toprule",
-        r" & & \multicolumn{4}{c}{Closing-interval model} & "
-        + mc(1, stack("Pooled", "intraday"))
-        + r" \\",
+        r" & & \multicolumn{4}{c}{Closing-interval model} & " + mc(1, stack("Pooled", "intraday")) + r" \\",
         r"\cmidrule(lr){3-6}\cmidrule(l){7-7}",
         cells(
             [
@@ -2950,9 +2826,7 @@ def write_design(D: dict) -> None:
     spec = "@{}lrrrrrr@{}"
     write(
         "rehaul_dm_design.tex",
-        ftable(
-            "tab:rh_dm_design", "Composition of the predictor sets.", spec, body, notes
-        ),
+        ftable("tab:rh_dm_design", "Composition of the predictor sets.", spec, body, notes),
     )
 
 
@@ -3016,9 +2890,7 @@ def write_dictionary(rows: list[dict], D: dict) -> None:
         and sp["transform_pre"] == "identity"
         and sp["diurnal_pre"] == "s.d."
         and not sp["neg"]
-        and (sp["transform"], sp["diurnal"])
-        == (twin["transform"], twin["diurnal"])
-        == ("log", "mean"),
+        and (sp["transform"], sp["diurnal"]) == (twin["transform"], twin["diurnal"]) == ("log", "mean"),
         "VW quoted spread: signed by its negative print(s) in the closing-interval forecasts' chain; log and the "
         "mean, as its EW twin, in the fixed chain",
     )
@@ -3043,16 +2915,12 @@ def write_dictionary(rows: list[dict], D: dict) -> None:
     # _active ladders (POOLED_PANEL, built under that rule, before the E6 cut).
     import src.backtest.executor as EX
 
-    fp = json.loads(
-        need(pl13.RUN / "frozen_penalties.json").read_text(encoding="utf-8")
-    )
+    fp = json.loads(need(pl13.RUN / "frozen_penalties.json").read_text(encoding="utf-8"))
     d13 = json.loads(need(POOLED_DESIGN_13).read_text(encoding="utf-8"))
     check(
         not any(
             "_active_ma_" in c
-            for c in [
-                str(c) for s in fp["designs"] for c in fp["designs"][s]["columns"]
-            ]
+            for c in [str(c) for s in fp["designs"] for c in fp["designs"][s]["columns"]]
             + [str(c) for c in d13["names"]]
         ),
         "the pooled 13-bar designs (linear rerun of Table 1, base-5 trees) have no chi-bar column (E6)",
@@ -3081,7 +2949,7 @@ def write_dictionary(rows: list[dict], D: dict) -> None:
         r"\textsuperscript{\dag}Closing-interval models only: $\bar\chi^{(k)}(u)$, the share of those intervals off "
         rf"the series' mode, for the {len(D['act'])} series whose full-sample mode accounts for at least "
         rf"{100 * EX.ZERO_INFLATED_FRAC:.0f}\% of intervals (mode and share in the description), the rule of the "
-        r"closing-interval forecasts reported, which predate the causal rule of Section~\ref{sec:rh_predictors}. "
+        r"closing-interval forecasts reported, which predate the causal rule of Appendix~\ref{app:rh_dp_transform}. "
         r"The pooled intraday models of Table~\ref{tab:rh_oos} carry no $\bar\chi^{(k)}$. "
         rf"Under the causal rule, the specification, {len(causal)} series are mode-inflated at some interval: "
         + ser_list(causal)
@@ -3106,7 +2974,7 @@ def write_dictionary(rows: list[dict], D: dict) -> None:
         # rf"${series_tex(twin['series'])}$ takes $\log v$ and the mean.",
         r"Diurnal adjustment: division by the trailing same-interval mean (mean) or standard deviation (s.d.); "
         r"$g$: the variance-stabilizing map; the volatility-demand series take $\operatorname{asinh}(u_{t,i} / "
-        r"\kappa_{t,i})$ in place of both where the routing rule of Section~\ref{sec:rh_predictors} applies, on "
+        r"\kappa_{t,i})$ in place of both where the routing rule of Appendix~\ref{app:rh_dp_transform} applies, on "
         rf"{100 * min(vd_share):.1f}\% or more of their intervals after the first print.",
         r"A series is signed when the quantity it measures can be negative, not when its sample has a negative value.",
         r"The columns give the chain of the pooled intraday forecasts of Table~\ref{tab:rh_oos}, in which the "
@@ -3114,11 +2982,7 @@ def write_dictionary(rows: list[dict], D: dict) -> None:
         r"closing-interval forecasts predate that chain: they take both over the full sample, call a series signed "
         r"when any value in its full sample is negative, and log and winsorize the FOMC day dummy. In this table "
         rf"that changes two rows: ${series_tex(sp['series'])}$, signed by "
-        + (
-            "a single negative print"
-            if sp["n_neg"] == 1
-            else f"{sp['n_neg']} negative prints"
-        )
+        + ("a single negative print" if sp["n_neg"] == 1 else f"{sp['n_neg']} negative prints")
         + (" (" if sp["n_neg"] == 1 else " (the first on ")
         + rf"{sp['first_neg']} ET) and so given $g(v) = v$ and the s.d.\ adjustment, and "
         + rf"${series_tex(fd['series'])}$, given {TRANSFORM_G[fd['transform_pre']]}.",
@@ -3177,9 +3041,7 @@ def write_dictionary(rows: list[dict], D: dict) -> None:
             desc += rf"; full-sample mode {r['mode']:g} on {100 * r['share']:.0f}\% of intervals"
         # 2026-10-22 (user, S4a): chi-bar marked closing-interval only (dagger, table note). Was:
         # pred = r"$u^{(k)}$, $\bar a^{(k)}$" + (r", $\bar\chi^{(k)}$" if r["active"] else "")
-        pred = r"$u^{(k)}$, $\bar a^{(k)}$" + (
-            r", $\bar\chi^{(k)}$\textsuperscript{\dag}" if r["active"] else ""
-        )
+        pred = r"$u^{(k)}$, $\bar a^{(k)}$" + (r", $\bar\chi^{(k)}$\textsuperscript{\dag}" if r["active"] else "")
         out.append(
             cells(
                 [
@@ -3206,10 +3068,8 @@ def write_hyper(P: dict, TS: dict, LP: dict, NN: dict) -> None:
     lg = T["LGBM_PARAMS"]
     L = LP["L"]
     check(
-        sum(int(v[1].split(" of ")[0]) for v in L.values())
-        == int(LP["M"]["cmPtFiredTotal"])
-        and sum(int(v[1].split(" of ")[1]) for v in L.values())
-        == int(LP["M"]["cmPtFiredOf"]),
+        sum(int(v[1].split(" of ")[0]) for v in L.values()) == int(LP["M"]["cmPtFiredTotal"])
+        and sum(int(v[1].split(" of ")[1]) for v in L.values()) == int(LP["M"]["cmPtFiredOf"]),
         r"retunes fired per arm sum to \cmPtFiredTotal of \cmPtFiredOf",
     )
     sc = TS["scale"]
@@ -3223,9 +3083,7 @@ def write_hyper(P: dict, TS: dict, LP: dict, NN: dict) -> None:
             "XGB_REG_LAMBDA_LO",
         ),
     )
-    op = consts(
-        REPO / "specs" / "causal_tune_trees_optuna.py", ("N_TRIALS_DEFAULT", "BUDGETS")
-    )
+    op = consts(REPO / "specs" / "causal_tune_trees_optuna.py", ("N_TRIALS_DEFAULT", "BUDGETS"))
     ts = consts(
         REPO / "specs" / "causal_tune_trees_tuned.py",
         ("N_CANDIDATES", "GRID_SEED", "RF_MAX_FEATURES", "RF_MAX_DEPTH", "RF_MIN_LEAF"),
@@ -3234,9 +3092,7 @@ def write_hyper(P: dict, TS: dict, LP: dict, NN: dict) -> None:
     check(
         re.search(
             r"min\(OJ\.XGB_REG_LAMBDA_LO, 10\.0 \*\* math\.floor\(math\.log10\(shipped\)\)\)",
-            (REPO / "specs" / "causal_tune_trees_optuna_xgbtop.py").read_text(
-                encoding="utf-8"
-            ),
+            (REPO / "specs" / "causal_tune_trees_optuna_xgbtop.py").read_text(encoding="utf-8"),
         )
         is not None
         and xlo == 1e-5,
@@ -3249,17 +3105,11 @@ def write_hyper(P: dict, TS: dict, LP: dict, NN: dict) -> None:
     )
     check(
         msz is not None
-        and int(msz.group(3))
-        == len(ts["RF_MAX_FEATURES"])
-        * len(ts["RF_MAX_DEPTH"])
-        * len(ts["RF_MIN_LEAF"]),
+        and int(msz.group(3)) == len(ts["RF_MAX_FEATURES"]) * len(ts["RF_MAX_DEPTH"]) * len(ts["RF_MIN_LEAF"]),
         "random-search grid sizes (RF = 4 x 4 x 7)",
     )
     assert msz is not None
-    box = {
-        fam: {n: (lo, hi, lg_) for n, lo, hi, lg_, _ in P["tm"]["BOXES"][fam]}
-        for fam in ("lgbm", "xgb")
-    }
+    box = {fam: {n: (lo, hi, lg_) for n, lo, hi, lg_, _ in P["tm"]["BOXES"][fam]} for fam in ("lgbm", "xgb")}
     box["rf"] = {b[0]: (b[1], b[2], b[3]) for b in rf["provenance"]["box"]}
     nblk = len(NN["q"]["sel"])
     check(
@@ -3363,7 +3213,10 @@ def write_hyper(P: dict, TS: dict, LP: dict, NN: dict) -> None:
         if fam != "lgbm":
             body.append(r"\addlinespace")
         for i, k in enumerate(keys):
-            v = num(prm[k]) + (f" ({num(scaled[k])})" if k in scaled else "")
+            # 2026-10-26 (integration, APPENDIX; audit fidelity-2): the final design uses n_min unrescaled (the
+            # configurations are transferred unchanged), so the rescaled value is no longer printed. Was:
+            # v = num(prm[k]) + (f" ({num(scaled[k])})" if k in scaled else "")
+            v = num(prm[k])
             body.append(
                 cells(
                     [
@@ -3378,9 +3231,7 @@ def write_hyper(P: dict, TS: dict, LP: dict, NN: dict) -> None:
     fixed = {
         "LightGBM": {k: v for k, v in lg.items() if k not in shipped["lgbm"][1]},
         "XGBoost": {k: v for k, v in X.items() if k not in shipped["xgb"][1]},
-        "random forest": {
-            k: v for k, v in rf["params"].items() if k not in shipped["rf"][1]
-        },
+        "random forest": {k: v for k, v in rf["params"].items() if k not in shipped["rf"][1]},
     }
     # 2026-10-15 (table legibility): parked -- library names and a typewriter value in the notes; the fixed
     # settings are now written in words (FIXED_VALUE_WORDS), each checked against the shipped dicts.
@@ -3388,15 +3239,10 @@ def write_hyper(P: dict, TS: dict, LP: dict, NN: dict) -> None:
     # def fval(v) -> str: ...
     # fx = "; ".join(f"{nm} " + ", ".join(f"{FIXED_WORDS[k]} {fval(v)}" for k, v in d.items()) ...)
     check(
-        {(nm, k, v) for nm, d in fixed.items() for k, v in d.items()}
-        == set(FIXED_VALUE_WORDS),
+        {(nm, k, v) for nm, d in fixed.items() for k, v in d.items()} == set(FIXED_VALUE_WORDS),
         "the fixed library settings are exactly bagging every round, histogram splits, bootstrap samples",
     )
-    impl = {
-        nm: FIXED_VALUE_WORDS[(nm, k, v)]
-        for nm, d in fixed.items()
-        for k, v in d.items()
-    }
+    impl = {nm: FIXED_VALUE_WORDS[(nm, k, v)] for nm, d in fixed.items() for k, v in d.items()}
     # 2026-10-22 (coordinator, appendix agent): parked -- the re-selection count. Since the 2026-10-18 swap (commit
     # 80e7476, new-notes 24, note E23) the closing-interval linear forecasts are the frozen arms (c_frozen on the HAR
     # benchmark, d_frozen_bb on the full predictor set): one pre-sample pick, no re-tune (frozen_arms_printed()). Was:
@@ -3435,8 +3281,11 @@ def write_hyper(P: dict, TS: dict, LP: dict, NN: dict) -> None:
         r"(\rhdmPooledWindow-interval window; random forest: trial \rhdmRfTrial{} of "
         r"\cmTreeProvRfTrials), ranked by MSE and then held fixed for both predictor sets; (log): "
         r"searched on a logarithmic scale.",
-        r"$n_{\min}$ was selected on \rhdmPooledWindow{} intervals and is rescaled to the "
-        r"\cmPtFitWin-day window (rescaled value in parentheses).",
+        # 2026-10-26 (integration, APPENDIX; audit fidelity-2): n_min is used unrescaled on the final design. Was:
+        # r"$n_{\min}$ was selected on \rhdmPooledWindow{} intervals and is rescaled to the "
+        # r"\cmPtFitWin-day window (rescaled value in parentheses).",
+        r"$n_{\min}$ was selected on \rhdmPooledWindow{} intervals and is used unchanged on the final design's "
+        r"window of \rhorWindowBars{} bars (Appendix~\ref{app:rh_tuning}).",
         rf"Implementations: LightGBM \citep{{Ke2017}} with {impl['LightGBM']}, XGBoost \citep{{Chen2016}} with "
         rf"{impl['XGBoost']} and the scikit-learn random forest with {impl['random forest']}; random seeds are fixed.",
     ]
@@ -3504,24 +3353,14 @@ def write_hyper(P: dict, TS: dict, LP: dict, NN: dict) -> None:
     # RF_MAX_DEPTH_CHOICES (2, 4, 8, 16, 32, None) is patched by specs/causal_tune_trees_optuna_rfp.py (depth_ladder,
     # :93; applied at :131-136) to {d/8, d/4, d/2, d, 2d} + None around the fixed depth d (rf_opt_00, d = 20), which
     # gives (3, 5, 10, 20, 40, None), the grid the picks run's trials record. The ladder is recomputed here from d.
-    rfp_src = (REPO / "specs" / "causal_tune_trees_optuna_rfp.py").read_text(
-        encoding="utf-8"
-    )
+    rfp_src = (REPO / "specs" / "causal_tune_trees_optuna_rfp.py").read_text(encoding="utf-8")
     check(
         "def depth_ladder" in rfp_src and "(0.125, 0.25, 0.5, 1.0, 2.0)" in rfp_src,
         "the forest's depth axis is re-centred by depth_ladder (factors 1/8 .. 2)",
     )
     d_rf = int(rf["params"]["max_depth"])
     rf_depths = (
-        *sorted(
-            {
-                v
-                for v in (
-                    math.floor(d_rf * f + 0.5) for f in (0.125, 0.25, 0.5, 1.0, 2.0)
-                )
-                if v >= 1
-            }
-        ),
+        *sorted({v for v in (math.floor(d_rf * f + 0.5) for f in (0.125, 0.25, 0.5, 1.0, 2.0)) if v >= 1}),
         None,
     )
     check(
@@ -3533,9 +3372,7 @@ def write_hyper(P: dict, TS: dict, LP: dict, NN: dict) -> None:
             body_b.append(r"\addlinespace")
         for i, (k, v) in enumerate(oj["SPACES"][fam].items()):
             if fam == "rf" and k == "max_depth":
-                space = gset(
-                    rf_depths
-                )  # the patched axis (depth_ladder), not the jobs' default
+                space = gset(rf_depths)  # the patched axis (depth_ladder), not the jobs' default
             elif v[0] == "cat":
                 space = gset(v[1])
             else:
@@ -3543,9 +3380,7 @@ def write_hyper(P: dict, TS: dict, LP: dict, NN: dict) -> None:
                 space = rng(lo, v[2], v[3])
             # 2026-10-15 (user): parked -- NN content parked for now (the "Selected" column, NA for every tree row)
             # body_b.append(cells([MODEL[fam] if i == 0 else "", tree_word(fam, k), space, NA]))
-            body_b.append(
-                cells([MODEL[fam] if i == 0 else "", tree_word(fam, k), space])
-            )
+            body_b.append(cells([MODEL[fam] if i == 0 else "", tree_word(fam, k), space]))
     # 2026-10-15 (user): parked -- NN content parked for now: the Selected cell of the random-search row and the
     # Panel B heading.
     # body_b += [r"\addlinespace", cells(["Random search", "The same hyperparameters",
@@ -3565,16 +3400,12 @@ def write_hyper(P: dict, TS: dict, LP: dict, NN: dict) -> None:
     q, pr = NN["q"], NN["pooled_rq"]
     check(len(pr["sel"]) == nblk, "10 (block, design) picks in the pooled QLIKE walk")
 
-    def nn_rows(
-        label: str, d: dict, keys: tuple[tuple[str, str, str], ...]
-    ) -> list[str]:
+    def nn_rows(label: str, d: dict, keys: tuple[tuple[str, str, str], ...]) -> list[str]:
         cnt = pick_counts(d["sel"])
         out = [mc(4, label, "@{}l") + r" \\"]
         for gk, sk, lab in keys:
             v, m = cnt[sk]
-            out.append(
-                cells(["", lab, gset(d["grid"][gk]), f"{g_(v)} ({m}/{len(d['sel'])})"])
-            )
+            out.append(cells(["", lab, gset(d["grid"][gk]), f"{g_(v)} ({m}/{len(d['sel'])})"]))
         return out
 
     base_keys = (
@@ -3686,17 +3517,13 @@ def write_tuning(P: dict, TS: dict, NN: dict) -> None:
             "PRE_EMBARGO_SESS",
         ),
     )
-    lin = consts(
-        REPO / "specs" / "causal_tune_linear.py", ("TUNE_PER", "VAL_TAIL", "EMBARGO")
-    )
+    lin = consts(REPO / "specs" / "causal_tune_linear.py", ("TUNE_PER", "VAL_TAIL", "EMBARGO"))
     tp = sorted({v[0] for v in op["PATHS"].values()})
     # 2026-10-15 (user): parked -- NN content parked for now (the pooled MinGRU row read NN["pooled_rq"]; the
     # closing-interval walk's 125 / 25 check below still reads NN["q"])
     # q, pr = NN["q"], NN["pooled_rq"]
     q = NN["q"]
-    nexp = consts(REPO / "src" / "unification.py", ("N_TREE_EXPERTS",))[
-        "N_TREE_EXPERTS"
-    ]
+    nexp = consts(REPO / "src" / "unification.py", ("N_TREE_EXPERTS",))["N_TREE_EXPERTS"]
     mb = re.search(
         r"TREE_REFIT_EVERY=(\d+)",
         (REPO / "specs" / "causal_tune_trees.py").read_text(encoding="utf-8"),
@@ -3710,27 +3537,22 @@ def write_tuning(P: dict, TS: dict, NN: dict) -> None:
     # every bar; pooled_trees_13.meta()). Was: bank_every = int(mb.group(1))
     tw = pt13.meta()
     check(
-        tw["refit"] == "bar"
-        and tw["window_bars"] == tw["window_days"] * tw["bars_day"],
+        tw["refit"] == "bar" and tw["window_bars"] == tw["window_days"] * tw["bars_day"],
         "pooled trees: re-estimated every bar on window_days x bars_day bars (tuning table)",
     )
     check(
-        lin["VAL_TAIL"] == clp["VAL_TAIL"] == 125
-        and lin["EMBARGO"] == clp["EMBARGO"] == 25,
+        lin["VAL_TAIL"] == clp["VAL_TAIL"] == 125 and lin["EMBARGO"] == clp["EMBARGO"] == 25,
         "125 / 25 split",
     )
     check(
-        q["common"]["val_tail"] == clp["VAL_TAIL"]
-        and q["common"]["embargo"] == clp["EMBARGO"],
+        q["common"]["val_tail"] == clp["VAL_TAIL"] and q["common"]["embargo"] == clp["EMBARGO"],
         "MinGRU per-bar 125 / 25",
     )
     check(pl["TW_DAYS"] == clp["TW"], "pooled linear window = 2,000 sessions")
     # 2026-10-22 (user, E34): the pooled linear 13-bar rerun of Table 1 and Sections 6-7 (pooled_linear_13.py): window
     # and pre-sample folds from its frozen_penalties.json (fit / validation row ranges, half-open, on its design)
     lw = pl13.meta()
-    li = json.loads(
-        need(pl13.RUN / "frozen_penalties.json").read_text(encoding="utf-8")
-    )["info"]
+    li = json.loads(need(pl13.RUN / "frozen_penalties.json").read_text(encoding="utf-8"))["info"]
     fit_len = {f["fit"][1] - f["fit"][0] for f in li["folds"]}
     val_len = {f["val"][1] - f["val"][0] for f in li["folds"]}
     gap_len = {f["val"][0] - f["fit"][1] for f in li["folds"]}
@@ -3738,9 +3560,7 @@ def write_tuning(P: dict, TS: dict, NN: dict) -> None:
         fit_len == {lw["window_bars"]}
         and len(val_len) == 1
         and len(gap_len) == 1
-        and all(
-            a["val"][1] == b["val"][0] for a, b in zip(li["folds"], li["folds"][1:])
-        ),
+        and all(a["val"][1] == b["val"][0] for a, b in zip(li["folds"], li["folds"][1:])),
         "pooled linear 13-bar pre-sample: folds fit on the window, equal validation spans and gaps, contiguous",
     )
     check(
@@ -3894,9 +3714,7 @@ def write_tuning(P: dict, TS: dict, NN: dict) -> None:
     # the code: T['SEED'], oj['TPE_SEED_BASE'] plus an offset per specification, ts['GRID_SEED']) and the
     # pre-sample validation dates (in tab:rh_dm_samples).
     check(
-        isinstance(T["SEED"], int)
-        and isinstance(oj["TPE_SEED_BASE"], int)
-        and isinstance(ts["GRID_SEED"], int),
+        isinstance(T["SEED"], int) and isinstance(oj["TPE_SEED_BASE"], int) and isinstance(ts["GRID_SEED"], int),
         "every tree seed is a fixed integer",
     )
     notes = [
@@ -3934,9 +3752,7 @@ def write_tuning(P: dict, TS: dict, NN: dict) -> None:
 # TYPED holds each value as the text typed it on 2026-10-15; the run stops if a computed value differs, so a change
 # in the data or the code cannot move a number silently (update the text and TYPED together).
 NUMBERS_FILE = "rehaul_dm_numbers.tex"
-BUCKETS_NUMBERS = (
-    GEN / "buckets_numbers.tex"
-)  # \bkSize<Bucket>: the group sizes 7/14/6/6/3/3/4/4 (make_buckets_tex.py)
+BUCKETS_NUMBERS = GEN / "buckets_numbers.tex"  # \bkSize<Bucket>: the group sizes 7/14/6/6/3/3/4/4 (make_buckets_tex.py)
 BK_SIZE = {
     "moments": "bkSizeMom",
     "liquidity": "bkSizeLiq",
@@ -4016,6 +3832,29 @@ TYPED |= {
     "rhdmPlGridExtTol": r"\ensuremath{10^{-6}}",
     "rhdmPlGridExtCap": "6",
 }
+# 2026-10-26 (integration, DATA agent; audit numbers-16): the transformation constants the appendix typed, read from
+# the code (target.py, scaling.py, executor.py) and asserted against these values
+TYPED |= {
+    "rhdmWinsorWindow": "240",
+    "rhdmWinsorLoPct": "1",
+    "rhdmWinsorHiPct": "99",
+    "rhdmIqrFloorFrac": "0.01",
+    "rhdmBandLo": "0.5",
+    "rhdmBandHi": "2",
+    "rhdmSlotRefWindow": "250",
+    "rhdmSlotRefMin": "20",
+    "rhdmSdFloorFrac": "0.1",
+    "rhdmLogFloor": r"\ensuremath{10^{-12}}",
+    "rhdmIqrEps": r"\ensuremath{10^{-12}}",
+    "rhdmAsinhScaleFrac": "0.01",
+    "rhdmAsinhHalfLife": "12{,}000",
+    "rhdmAsinhHalfLifeDays": "250",
+    "rhdmIqrGridStep": "480",
+    "rhdmIqrMinRows": "8",
+    "rhdmBarsPerSession": "46",
+    "rhdmDiurnalWindow": "20",
+    "rhdmDiurnalMin": "5",
+}
 WORDS = {1: "one", 2: "two", 3: "three", 4: "four", 5: "five"}
 # 2026-10-15 (finish): the pooled linear models' window, 2,000 trading days x 48 intervals = 96,000, had no macro
 # (typed with a FLAG in 03_data.tex, 06_results.tex and 10_appendix.tex); \rhdmPooledLinWindow reads it from the code.
@@ -4089,8 +3928,7 @@ def write_numbers(P: dict, D: dict, TS: dict, LP: dict) -> None:
     # 2026-10-22 (user, E34): \rhdmPooledWindow is no longer the trees' estimation window (pooled_trees_13.meta()); what
     # it still measures in the text is the window of the tree search (10_appendix.tex, the n_min item)
     check(
-        P["pooled_window"] == P["tm"]["WINDOW"]
-        and P["pooled_window"] != pt13.meta()["window_bars"],
+        P["pooled_window"] == P["tm"]["WINDOW"] and P["pooled_window"] != pt13.meta()["window_bars"],
         r"\rhdmPooledWindow = the tree search's window (experiments/tree_menu_dev.py), not the base-5 trees' window",
     )
     check(
@@ -4103,10 +3941,7 @@ def write_numbers(P: dict, D: dict, TS: dict, LP: dict) -> None:
     )
     lat, lat_full = P["later"]
     check(
-        lat - lat_full
-        == int(
-            SRC["exp"][SRC["exp"].index > pd.Timestamp(clp["LAST_TRADE_DAY"])].sum()
-        ),
+        lat - lat_full == int(SRC["exp"][SRC["exp"].index > pd.Timestamp(clp["LAST_TRADE_DAY"])].sum()),
         "held-out expirations less their early closes = the held-out full trading days",
     )
     # the group sizes are \bkSize* of buckets_numbers.tex (macro-only; loaded by the preamble): same counts here
@@ -4120,18 +3955,14 @@ def write_numbers(P: dict, D: dict, TS: dict, LP: dict) -> None:
 
     share_pct = 100 * EX.ZERO_INFLATED_FRAC
     check(
-        abs(share_pct - round(share_pct)) < 1e-9
-        and EX.CAUSAL_MODE_INFLATION
-        and EX.ACTIVE_FROM_OBSERVED,
+        abs(share_pct - round(share_pct)) < 1e-9 and EX.CAUSAL_MODE_INFLATION and EX.ACTIVE_FROM_OBSERVED,
         "the mode share is a whole percent; the executor's causal rule is on (CAUSAL_MODE_INFLATION, "
         "ACTIVE_FROM_OBSERVED)",
     )
     # 2026-10-22 (user, S4a follow-up): the causal asinh routing constants (\rhdmAsinhPinnedShare, \rhdmAsinhMinRows)
     pinned_pct = 100 * TG.DIURNAL_PINNED_MAX
     check(
-        abs(pinned_pct - round(pinned_pct)) < 1e-9
-        and TG.CAUSAL_ASINH_ROUTING
-        and TG.CAUSAL_SD_FLOOR,
+        abs(pinned_pct - round(pinned_pct)) < 1e-9 and TG.CAUSAL_ASINH_ROUTING and TG.CAUSAL_SD_FLOOR,
         "the pinned share is a whole percent; the causal s.d. floor and asinh routing are on (target.py)",
     )
     vals = {
@@ -4259,9 +4090,7 @@ def write_numbers(P: dict, D: dict, TS: dict, LP: dict) -> None:
     }
     # 2026-10-22 (coordinator): the pooled linear 13-bar rerun's frozen penalties (pooled_linear_13.py checks every
     # forecast row's alpha against the same file)
-    fp = json.loads(
-        need(pl13.RUN / "frozen_penalties.json").read_text(encoding="utf-8")
-    )
+    fp = json.loads(need(pl13.RUN / "frozen_penalties.json").read_text(encoding="utf-8"))
     for est, tag in (("ridge", "Ridge"), ("lasso", "Lasso"), ("enet", "Enet")):
         for b, bt in (("baseline", "Base"), ("all_features", "All")):
             a = float(fp[est][b])
@@ -4277,11 +4106,7 @@ def write_numbers(P: dict, D: dict, TS: dict, LP: dict) -> None:
             )
     # 2026-10-22 (user, S4a follow-up; E6): the display has no activity-average term; the panel count keeps it
     check(
-        D["n_cols_pooled"]
-        == D["kq"]
-        + len(D["cal"])
-        + D["n_edge_pooled"]
-        + 2 * D["n_series_pooled"] * D["kq"]
+        D["n_cols_pooled"] == D["kq"] + len(D["cal"]) + D["n_edge_pooled"] + 2 * D["n_series_pooled"] * D["kq"]
         and D["n_pooled"] == D["n_cols_pooled"] + D["n_active_pooled"] * D["kq"],
         f"{D['n_cols_pooled']} = {D['kq']} + {len(D['cal'])} + {D['n_edge_pooled']} + {D['n_series_pooled']} x "
         f"{D['kq']} + {D['n_series_pooled']} x {D['kq']} (the Predictors section's display, no activity averages: "
@@ -4388,6 +4213,7 @@ def write_numbers(P: dict, D: dict, TS: dict, LP: dict) -> None:
             "... or after this many decades added in one direction (GRID_EXT_CAP)",
         ),
     }
+    vals |= transform_constants()  # 2026-10-26 (integration, DATA agent): the transformation constants
     check(set(vals) == set(TYPED), "every \\rhdm macro has its typed value")
     for k, (v, _) in vals.items():
         check(v == TYPED[k], rf"\{k} = {v} (typed {TYPED[k]})")
@@ -4407,6 +4233,65 @@ def write_numbers(P: dict, D: dict, TS: dict, LP: dict) -> None:
     ]
     lines += [rf"\newcommand{{\{k}}}{{{v}}}  % {what}" for k, (v, what) in vals.items()]
     write(NUMBERS_FILE, "\n".join(lines) + "\n")
+
+
+def _src_default(fn, name: str):
+    """A keyword default of a function, read from its signature."""
+    import inspect
+
+    return inspect.signature(fn).parameters[name].default
+
+
+def transform_constants() -> dict[str, tuple[str, str]]:
+    """2026-10-26 (integration, DATA agent; audit numbers-16): the constants of the transformation chain that the
+    Data and Predictors appendix states, read from src/ (target.py, scaling.py, executor.py), never typed."""
+    import src.backtest.executor as EX
+    from src.features.transforms import scaling as SC
+
+    def pct(x: float) -> str:
+        v = 100 * x
+        check(abs(v - round(v)) < 1e-9, f"{x} is a whole percent")
+        return str(int(round(v)))
+
+    def plain(x: float) -> str:
+        return f"{x:g}"
+
+    tg_src = (REPO / "src" / "features" / "transforms" / "target.py").read_text(encoding="utf-8")
+    sc_src = (REPO / "src" / "features" / "transforms" / "scaling.py").read_text(encoding="utf-8")
+    check("np.log(series.clip(lower=1e-12))" in tg_src, "target.py log rule: log(clip(x, 1e-12))")
+    check("0.01 * s.expanding(min_periods=50).median()" in tg_src, "target.py asinh scale floor: 0.01 x median")
+    check("iq if iq >= 1e-12 else 1.0" in sc_src, "scaling.py IQR guard 1e-12")
+    win = _src_default(TG.rolling_winsorize, "window")
+    step = _src_default(EX._expanding_real_iqr, "grid_step")
+    ex_src = (REPO / "src" / "backtest" / "executor.py").read_text(encoding="utf-8")
+    m = re.search(r"if past\.size >= (\d+):", ex_src)
+    check(m is not None, "executor.py _expanding_real_iqr: rows before a value")
+    assert m is not None
+    band = TG.DIURNAL_SLOT_BAND_FRAC
+    return {
+        "rhdmWinsorWindow": (str(win), "target.py rolling_winsorize window (rows)"),
+        "rhdmWinsorLoPct": (pct(TG.WINSOR_LOWER_Q), "target.py WINSOR_LOWER_Q x 100"),
+        "rhdmWinsorHiPct": (pct(TG.WINSOR_UPPER_Q), "target.py WINSOR_UPPER_Q x 100"),
+        "rhdmIqrFloorFrac": (plain(SC.IQR_FLOOR_FRAC), "scaling.py IQR_FLOOR_FRAC"),
+        "rhdmBandLo": (plain(band), "target.py DIURNAL_SLOT_BAND_FRAC (band [f rho, rho / f])"),
+        "rhdmBandHi": (plain(1.0 / band), "1 / DIURNAL_SLOT_BAND_FRAC"),
+        "rhdmSlotRefWindow": (str(TG.DIURNAL_SLOT_REF_WINDOW), "target.py DIURNAL_SLOT_REF_WINDOW"),
+        "rhdmSlotRefMin": (str(TG.DIURNAL_SLOT_REF_MIN), "target.py DIURNAL_SLOT_REF_MIN"),
+        "rhdmSdFloorFrac": (plain(TG.DIURNAL_STD_FLOOR_FRAC), "target.py DIURNAL_STD_FLOOR_FRAC"),
+        "rhdmLogFloor": (r"\ensuremath{10^{-12}}", "target.py log rule, log(clip(x, 1e-12)) (asserted in the source)"),
+        "rhdmIqrEps": (r"\ensuremath{10^{-12}}", "scaling.py IQR guard (below it -> 1; asserted in the source)"),
+        "rhdmAsinhScaleFrac": ("0.01", "target.py asinh scale floor, 0.01 x expanding median (asserted in the source)"),
+        "rhdmAsinhHalfLife": (
+            n_(TG.ASINH_SCALE_HALFLIFE_DAYS * TG.PERIODS_PER_DAY),
+            "ASINH_SCALE_HALFLIFE_DAYS x PERIODS_PER_DAY (intervals)",
+        ),
+        "rhdmAsinhHalfLifeDays": (str(TG.ASINH_SCALE_HALFLIFE_DAYS), "target.py ASINH_SCALE_HALFLIFE_DAYS"),
+        "rhdmIqrGridStep": (str(step), "executor.py _expanding_real_iqr grid_step"),
+        "rhdmIqrMinRows": (m.group(1), "executor.py _expanding_real_iqr, rows before a value"),
+        "rhdmBarsPerSession": (str(EX.BARS_PER_SESSION), "executor.py BARS_PER_SESSION (ERODE_IN_BARS)"),
+        "rhdmDiurnalWindow": (str(TG.DIURNAL_WINDOW), "target.py DIURNAL_WINDOW: the diurnal factor's per-slot window"),
+        "rhdmDiurnalMin": (str(TG.DIURNAL_MIN_PERIODS), "target.py DIURNAL_MIN_PERIODS: its minimum observations"),
+    }
 
 
 # ============================================================================ main
@@ -4448,9 +4333,7 @@ def pin_documented_chain() -> None:
             if hasattr(mod, nm):
                 setattr(mod, nm, False)
                 off.append(nm)
-    print(
-        f"documenting the pre-2026-10-15 chain: {', '.join(off) or 'no fix flags present'} off"
-    )
+    print(f"documenting the pre-2026-10-15 chain: {', '.join(off) or 'no fix flags present'} off")
 
 
 def main() -> None:

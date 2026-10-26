@@ -191,6 +191,29 @@ def main() -> int:
     ]
     lines.append(mac("NClassesAddRm", WORDS[len(cls_pen_tree)], "classes with an add_rm arm"))
     lines.append(mac("NClassesBeatAddRm", WORDS[len(beat_addrm)], "full set beats its own add_rm, DM p < 0.05"))
+    # 2026-10-26 (integration, RESULTS / FRONT): the same count at the 16:00 bar (span c16), as a word
+    beat_addrm_close = [
+        c
+        for c in cls_pen_tree
+        if (c, "add_rm", c, "full", "c16") in dq.index
+        and dq.loc[(c, "add_rm", c, "full", "c16"), "dm"] > 0
+        and dq.loc[(c, "add_rm", c, "full", "c16"), "p"] < 0.05
+    ]
+    lines.append(
+        mac("NClassesBeatAddRmClose", WORDS[len(beat_addrm_close)], "16:00: full set beats its own add_rm, DM p < 0.05")
+    )
+    # 2026-10-26 (integration, VI): the trees' FOMC gain share: the add-FOMC arm's QLIKE change over the full set's
+    # (both against the class's HAR arm, every bar), in percent
+    tree_share = [
+        100.0 * pct(c, "add_fomc", "all") / pct(c, "full", "all")
+        for c in ("lgbm", "xgb", "rf")
+        if (c, "add_fomc", "all") in q.index and (c, "full", "all") in q.index
+    ]
+    assert len(tree_share) == 3, "the add-FOMC arm of every tree class"
+    lines.append(
+        mac("TreeFomcGainShareMin", fmt(min(tree_share), 0), "trees: add-FOMC change / full-set change, %, lowest")
+    )
+    lines.append(mac("TreeFomcGainShareMax", fmt(max(tree_share), 0), "trees: the same, highest"))
     best = min(
         ("add_rm", "shar", "harq", "lhar", "sharql"),
         key=lambda b: q.loc[("ols", b, "all"), "qlike"] if ("ols", b, "all") in q.index else np.inf,

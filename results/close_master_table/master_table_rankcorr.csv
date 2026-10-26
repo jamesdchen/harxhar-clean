@@ -1,10 +1,10 @@
 set,n_forecasts,qlike,sharpe,spearman
-all table-A forecasts,295,plain,mid,-0.28702637261959296
-all table-A forecasts,295,plain,crossed,-0.28744612824515975
-"per-bar forecasts (linear, VIX-only, trees, tuned, LSTM, bucket studies)",265,plain,mid,-0.2814551387043939
-"per-bar forecasts (linear, VIX-only, trees, tuned, LSTM, bucket studies)",265,plain,crossed,-0.2800042559228259
-per-bar linear + VIX-only family,43,plain,mid,0.4525823014195107
-per-bar linear + VIX-only family,43,plain,crossed,0.452431289640592
+all table-A forecasts,295,plain,mid,-0.2836589789374293
+all table-A forecasts,295,plain,crossed,-0.2841133246702254
+"per-bar forecasts (linear, VIX-only, trees, tuned, LSTM, bucket studies)",265,plain,mid,-0.27835734275654833
+"per-bar forecasts (linear, VIX-only, trees, tuned, LSTM, bucket studies)",265,plain,crossed,-0.276947729529656
+per-bar linear + VIX-only family,43,plain,mid,0.44714587737843553
+per-bar linear + VIX-only family,43,plain,crossed,0.4469948655995168
 "per-bar nonlinear (every tree rung, LSTM)",198,plain,mid,-0.35612534291206843
 "per-bar nonlinear (every tree rung, LSTM)",198,plain,crossed,-0.35326996465174665
 48-bar forecasts (paper + pooled twins),30,plain,mid,-0.4211345939933259

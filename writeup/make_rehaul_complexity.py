@@ -11,7 +11,8 @@ DESIGN   windows W = 1,000 / 2,000 / 3,000 / 3,500 trading days (T = 13 W rows);
          33,527 bars (every bar) and the 16:00 bar; DM HLN (lag 8) against k = 0.
 WRITES   writeup/generated/rehaul_complexity_numbers.tex   \\rhcx... macros
          writeup/generated/rehaul_complexity_floats.tex    fig:rh_cx_complexity, fig:rh_cx_scaling
-         writeup/figures/rehaul_complexity_c.pdf, rehaul_complexity_scaling.pdf
+         writeup/figures/rehaul_complexity_features.pdf (2026-10-26, framing B; was rehaul_complexity_c.pdf),
+         rehaul_complexity_scaling.pdf
 
 Run:  python writeup/make_rehaul_complexity.py     (from the repository root)
 """
@@ -96,7 +97,7 @@ def main() -> None:
         )
         for m in ("ridge", "lasso", "enet"):
             e = int(round(np.log10(float(fz[m]["all_features"]))))
-            add(f"Pen{MTAG[m]}{WTAG[w]}", f"\ensuremath{{10^{{{e}}}}}", f"{m} frozen penalty at W {w} (all_features)")
+            add(f"Pen{MTAG[m]}{WTAG[w]}", f"\\ensuremath{{10^{{{e}}}}}", f"{m} frozen penalty at W {w} (all_features)")
 
     for m in MODELS:
         for sp in ("all", "c16"):
@@ -164,13 +165,16 @@ def main() -> None:
 % Floats of the draft complexity / scaling subsection (writeup/drafts/2026-10-26_complexity.tex).
 \begin{{figure}}[tbp]
   \centering
-  \includegraphics[width=\linewidth]{{figures/rehaul_complexity_c.pdf}}
-  \caption{{Gain over the HAR benchmark set against complexity $c = P/T$. Each panel is one model; each line one
-    rolling window ($W = \rhcxWOne$, \rhcxWTwo, \rhcxWMain{{}} and \rhcxWLong{{}} trading days, $T = 13W$ bars), its
-    points the rungs $k = 0, 1, 3, 5, 10, 20, 46$ exogenous series ($P = 12 + 12k$ predictors). Gain: QLIKE of the same
-    window's $k = 0$ rung minus the rung's, $\times 10^3$, on the \rhcxNBars{{}} scored bars (top) and the 16:00 bar
-    (bottom). Monthly refits at \rhcxNOrigins{{}} origins; $c \le \rhcxCMax$ throughout. Pre-patch design: the FOMC
-    calendar features before the pending fix.}}
+  \includegraphics[width=\linewidth]{{figures/rehaul_complexity_features.pdf}}
+  % 2026-10-26 (integration, VI; framing B): parked -- the complexity framing (gain against c = P/T on a log axis,
+  % figures/rehaul_complexity_c.pdf). Was: "Gain over the HAR benchmark set against complexity $c = P/T$. ... $c \le
+  % \rhcxCMax$ throughout."
+  \caption{{Feature scaling: the gain over the HAR benchmark set against the number of exogenous series $k$ at a fixed
+    window. Each panel is one model; each line one rolling window ($W = \rhcxWOne$, \rhcxWTwo, \rhcxWMain{{}} and
+    \rhcxWLong{{}} trading days, $T = 13W$ bars), its points the rungs $k = 0, 1, 3, 5, 10, 20, 46$ exogenous series
+    ($P = 12 + 12k$ predictors). Gain: QLIKE of the same window's $k = 0$ rung minus the rung's, $\times 10^3$, on the
+    \rhcxNBars{{}} scored bars (top) and the 16:00 bar (bottom). Monthly refits at \rhcxNOrigins{{}} origins.
+    Pre-patch design: the FOMC calendar features before the fix.}}
   \label{{fig:rh_cx_complexity}}
 \end{{figure}}
 \begin{{figure}}[tbp]
@@ -211,8 +215,11 @@ def figures(S: pd.DataFrame) -> None:
             ax = axes[i, j]
             for w in WS:
                 g = S[(S.model == m) & (S.span == sp) & (S.wdays == w)].sort_values("k")
-                ax.plot(g["c"], g["gain"] * 1e3, color=WCOL[w], lw=1.6, marker="o", ms=3, label=f"$W$ = {w:,}")
-            ax.set_xscale("log")
+                # 2026-10-26 (framing B, feature scaling): the rungs on an even axis. Was: ax.plot(g["c"], ...) with
+                # ax.set_xscale("log") (gain against c = P/T)
+                xk = [KS.index(int(k)) for k in g["k"]]
+                ax.plot(xk, g["gain"] * 1e3, color=WCOL[w], lw=1.6, marker="o", ms=3, label=f"$W$ = {w:,}")
+            ax.set_xticks(range(len(KS)), [str(k) for k in KS])
             style(ax)
             if i == 0:
                 ax.set_title(
@@ -225,11 +232,11 @@ def figures(S: pd.DataFrame) -> None:
             if j == 0:
                 ax.set_ylabel(("every bar" if sp == "all" else "16:00") + r", gain $\times 10^3$", fontsize=8)
             if i == 1:
-                ax.set_xlabel(r"$c = P/T$", fontsize=8, color=INK2)
+                ax.set_xlabel("exogenous series $k$", fontsize=8, color=INK2)  # was: $c = P/T$
     h, lb = axes[0, 0].get_legend_handles_labels()
     fig.legend(h, lb, loc="upper center", ncol=4, frameon=False, fontsize=8)
     fig.tight_layout(rect=(0, 0, 1, 0.93))
-    fig.savefig(FIG / "rehaul_complexity_c.pdf")
+    fig.savefig(FIG / "rehaul_complexity_features.pdf")  # 2026-10-26 (framing B). Was: rehaul_complexity_c.pdf
     plt.close(fig)
 
     fig, axes = plt.subplots(1, len(MODELS), figsize=(11.0, 2.6), squeeze=False)

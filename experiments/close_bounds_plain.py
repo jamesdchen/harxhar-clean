@@ -67,25 +67,16 @@ CHECK_FAMILY = "direct rest-of-day at 15:30 (check)"
 ALWAYS_SHORT = "always_short"
 LIVE = "live_"  # live_feasible, live_vix_only, live_vix_rvol (2026-10-06: not in the paper)
 GATE_TOL = 1e-12  # the master table's numbers, recomputed with its own functions
-B_REL_TOL = (
-    1e-9  # the reconstructed B against the target's B (a rolling mean, re-summed)
-)
-N_B_DAYS = (
-    94  # the text: "Ninety-four of the 866 scored days fall inside such a window"
-)
+B_REL_TOL = 1e-9  # the reconstructed B against the target's B (a rolling mean, re-summed)
+N_B_DAYS = 94  # the text: "Ninety-four of the 866 scored days fall inside such a window"
 OLD_B = "under a tenth of a Sharpe ratio and a handful of flipped positions (session-bar map)"
-OLD_CENS = (
-    0.06  # writeup/fill_close_option_numbers.py IVDROP_MAX (notebook scorer, mid)
-)
+OLD_CENS = 0.06  # writeup/fill_close_option_numbers.py IVDROP_MAX (notebook scorer, mid)
 
 
 def model_set(m: pd.DataFrame) -> pd.DataFrame:
     """Table A minus check rows, always short and every live-feasible row."""
     return m[
-        (m["table"] == "A")
-        & (m["family"] != CHECK_FAMILY)
-        & (m["key"] != ALWAYS_SHORT)
-        & ~m["key"].str.contains(LIVE)
+        (m["table"] == "A") & (m["family"] != CHECK_FAMILY) & (m["key"] != ALWAYS_SHORT) & ~m["key"].str.contains(LIVE)
     ]
 
 
@@ -93,22 +84,11 @@ def b_factor() -> tuple[pd.Series, pd.Series]:
     """B_repaired / B on every 16:00 session (by day), and the affected-day flag."""
     t = mtc.load_target()
     rv, early = t["rv_unclipped"], t["early_close"].astype(bool)
-    contaminated = (
-        rv.rolling(DIURNAL_WINDOW, min_periods=DIURNAL_MIN_PERIODS).mean().shift(1)
-    )
+    contaminated = rv.rolling(DIURNAL_WINDOW, min_periods=DIURNAL_MIN_PERIODS).mean().shift(1)
     reg = rv[~early]
-    repaired = (
-        reg.rolling(DIURNAL_WINDOW, min_periods=DIURNAL_MIN_PERIODS).mean().shift(1)
-    ).reindex(t.index)
+    repaired = (reg.rolling(DIURNAL_WINDOW, min_periods=DIURNAL_MIN_PERIODS).mean().shift(1)).reindex(t.index)
     # a day is affected when an early close is among its window's previous DIURNAL_WINDOW rows
-    affected = (
-        early.astype(int)
-        .rolling(DIURNAL_WINDOW, min_periods=1)
-        .sum()
-        .shift(1)
-        .fillna(0)
-        > 0
-    ) & ~early
+    affected = (early.astype(int).rolling(DIURNAL_WINDOW, min_periods=1).sum().shift(1).fillna(0) > 0) & ~early
     rel = (contaminated[affected] / t.loc[affected, "B"] - 1.0).abs()
     factor = pd.Series(1.0, index=t.index)
     factor[affected] = repaired[affected] / contaminated[affected]
@@ -151,7 +131,11 @@ def main() -> int:
         )
         assert g <= GATE_TOL, (k, "reproduces master_table.csv", g)
         # (1) B repaired on the affected days
-        t1 = mtc.trade_days(dk["plain"] * factor, deck)
+        # 2026-10-26 (integration plan D9): the rebuilt CI-HAR (master_table_close.CI_HAR_REBUILT) is scored on its own
+        # B, which already leaves the early closes' post-close bars out (B_REGULAR_BARS_ONLY, the repair measured
+        # here), so its repaired variant is itself (factor 1). Was: t1 = mtc.trade_days(dk["plain"] * factor, deck)
+        own_b = mtc.CI_HAR_REBUILT and k == mtc.CI_HAR_KEY
+        t1 = mtc.trade_days(dk["plain"] * (1.0 if own_b else factor), deck)
         un = ~aff.to_numpy()
         assert (t1.loc[un] == t0.loc[un]).all().all(), (k, "unaffected days unchanged")
         rows_b.append(
@@ -166,7 +150,7 @@ def main() -> int:
                 "Sharpe_crossed": mtc.sharpe(t0["crossed"].to_numpy()),
                 "Sharpe_crossed_variant": mtc.sharpe(t1["crossed"].to_numpy()),
                 "positions_flipped": int((t1["q"] != t0["q"]).sum()),
-                "max_rel_forecast_change": float((factor - 1.0).abs().max()),
+                "max_rel_forecast_change": 0.0 if own_b else float((factor - 1.0).abs().max()),
             }
         )
         # (2) censored-IV days dropped (positions and returns of the other days unchanged)

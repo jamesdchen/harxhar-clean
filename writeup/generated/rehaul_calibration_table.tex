@@ -28,7 +28,7 @@ Full & Ridge & $1.10$ & $1.05$ & $41.7$ & $1.35$ & $0.18^{\phantom{***}}$ & $0.9
  & XGBoost & $1.07$ & $1.06$ & $40.8$ & $1.37$ & $0.39^{\phantom{***}}$ & $0.93^{\phantom{***}}$ & $(0.08)$ & $0.40$ & $0.00^{\phantom{***}}$ & $1.01^{\phantom{***}}$ & $(0.01)$ & $0.79$ \\
  & Random forest & $1.08$ & $1.06$ & $41.1$ & $1.37$ & $0.43^{*\phantom{**}}$ & $0.92^{\phantom{***}}$ & $(0.09)$ & $0.39$ & $-0.11^{\phantom{***}}$ & $1.00^{\phantom{***}}$ & $(0.01)$ & $0.79$ \\
 \addlinespace[4pt]
-\multicolumn{14}{@{}l}{\textit{Panel B: every bar, \rhcaYearsOos{} ($\mathcal T_{\mathrm{oos}}$)}} \\
+\multicolumn{14}{@{}l}{\textit{Panel B: every bar, \rhcaYearsOos{} ($\mathcal T_{\mathrm{close}}$)}} \\
 \addlinespace[2pt]
 HAR & Linear$^{a}$ & $1.06$ & $1.05$ & $38.0$ & $3.42$ & $0.41^{\phantom{***}}$ & $0.99^{\phantom{***}}$ & $(0.08)$ & $0.67$ & $0.15^{\phantom{***}}$ & $1.02^{**\phantom{*}}$ & $(0.01)$ & $0.79$ \\
  & LightGBM & $1.07$ & $1.03$ & $38.5$ & $3.43$ & $0.72^{**\phantom{*}}$ & $0.94^{\phantom{***}}$ & $(0.06)$ & $0.66$ & $0.03^{\phantom{***}}$ & $1.01^{\phantom{***}}$ & $(0.01)$ & $0.80$ \\
@@ -54,7 +54,7 @@ Full & Ridge & $1.13$ & $1.06$ & $46.7$ & $1.66$ & $-0.02^{\phantom{***}}$ & $1.
  & XGBoost & $1.10$ & $1.04$ & $45.7$ & $1.74$ & $0.19^{\phantom{***}}$ & $0.99^{\phantom{***}}$ & $(0.08)$ & $0.62$ & $-0.86^{***}$ & $0.94^{***}$ & $(0.02)$ & $0.80$ \\
  & Random forest & $1.12$ & $1.04$ & $46.3$ & $1.78$ & $0.25^{\phantom{***}}$ & $0.98^{\phantom{***}}$ & $(0.08)$ & $0.61$ & $-1.05^{***}$ & $0.92^{***}$ & $(0.02)$ & $0.79$ \\
 \addlinespace[4pt]
-\multicolumn{14}{@{}l}{\textit{Panel D: closing half hour (16:00 bar), \rhcaYearsOos{} ($\mathcal T_{\mathrm{oos}}$)}} \\
+\multicolumn{14}{@{}l}{\textit{Panel D: closing half hour (16:00 bar), \rhcaYearsOos{} ($\mathcal T_{\mathrm{close}}$)}} \\
 \addlinespace[2pt]
 HAR & Linear$^{a}$ & $1.09$ & $1.10$ & $47.7$ & $4.55$ & $-1.23^{*\phantom{**}}$ & $1.21^{**\phantom{*}}$ & $(0.09)$ & $0.80$ & $-0.38^{*\phantom{**}}$ & $0.97^{*\phantom{**}}$ & $(0.02)$ & $0.84$ \\
  & LightGBM & $1.03$ & $1.03$ & $42.9$ & $4.63$ & $-0.68^{\phantom{***}}$ & $1.08^{\phantom{***}}$ & $(0.06)$ & $0.81$ & $-0.33^{\phantom{***}}$ & $0.98^{\phantom{***}}$ & $(0.02)$ & $0.84$ \\
@@ -70,7 +70,7 @@ Full & Ridge & $1.16$ & $0.97$ & $51.5$ & $5.38$ & $3.62^{***}$ & $0.70^{***}$ &
 \end{tabular*}
 \begin{tablenotes}[flushleft]
 \footnotesize
-\item \textit{Notes:} The forecasts of Table~\ref{tab:rh_oos} (HAR: HAR benchmark; Full: full predictor set), scored against the actual realized variance on every bar (Panels~A and B, the bars of Table~\ref{tab:rh_oos}) and on the 16:00 bar (Panels~C and D, one forecast a day); \rhcaYearsPre{} runs from \rhcaStartPre{} ($\rhcaNdaysPre$ days) and \rhcaYearsOos{} is $\mathcal T_{\mathrm{oos}}$ ($\rhcaNdaysOos$ days). $\overline{r}$: the mean of $r_t = \RV_t/\hat\sigma^2_t$; $\overline{\RV}/\overline{\hat\sigma^2}$: the ratio of the means; Under: the share of forecasts below the realized variance; MAE and the levels intercept $a$ in units of $10^{-\rhcaUnitExp}$. Levels and Logs: Mincer--Zarnowitz regressions by OLS, Newey--West standard errors (Bartlett kernel; $\rhcaHacLagBarPre$ and $\rhcaHacLagBarOos$ bars in Panels~A and B, $\rhcaDMLagPre$ and $\rhcaDMLagOos$ days in Panels~C and D); stars test $a = 0$ and $b = 1$: $^{*}$, $^{**}$, $^{***}$ at the 10\%, 5\% and 1\% levels. $^{a}$~OLS, ridge, lasso and elastic net, whose forecasts on the HAR benchmark coincide (largest relative difference $\rhcaHarLinGap$).
+\item \textit{Notes:} The forecasts of Table~\ref{tab:rh_oos} (HAR: HAR benchmark; Full: full predictor set), scored against the actual realized variance on every bar (Panels~A and B, the bars of Table~\ref{tab:rh_oos}) and on the 16:00 bar (Panels~C and D, one forecast a day); \rhcaYearsPre{} runs from \rhcaStartPre{} ($\rhcaNdaysPre$ days) and \rhcaYearsOos{} is $\mathcal T_{\mathrm{close}}$ ($\rhcaNdaysOos$ days). $\overline{r}$: the mean of $r_t = \RV_t/\hat\sigma^2_t$; $\overline{\RV}/\overline{\hat\sigma^2}$: the ratio of the means; Under: the share of forecasts below the realized variance; MAE and the levels intercept $a$ in units of $10^{-\rhcaUnitExp}$. Levels and Logs: Mincer--Zarnowitz regressions by OLS, Newey--West standard errors (Bartlett kernel; $\rhcaHacLagBarPre$ and $\rhcaHacLagBarOos$ bars in Panels~A and B, $\rhcaDMLagPre$ and $\rhcaDMLagOos$ days in Panels~C and D); stars test $a = 0$ and $b = 1$: $^{*}$, $^{**}$, $^{***}$ at the 10\%, 5\% and 1\% levels. $^{a}$~OLS, ridge, lasso and elastic net, whose forecasts on the HAR benchmark coincide (largest relative difference $\rhcaHarLinGap$).
 \end{tablenotes}
 \end{threeparttable}
 \end{table}

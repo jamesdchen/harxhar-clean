@@ -62,7 +62,7 @@ from src.evaluation.diebold_mariano import dm_test  # noqa: E402
 me = em.me
 OUT = REPO / "results" / "ci_har_rebuild_2026-10-26"
 MEAS = OUT / "measure"
-OLD_PATH = rolling.OLS_ARM
+OLD_PATH = rolling.OLS_ARM_OLD  # 2026-10-26: rolling.OLS_ARM is the rebuilt file since the D9 switch
 NEW_PATH = OUT / "results_bar1600.csv"
 CI = rolling.OLS  # sub_ols_baseline
 GEN = REPO / "writeup" / "generated"

@@ -18,7 +18,7 @@
 % Pval: the whole statement, $p = 0.18$ or $p < 0.001$; Stars: superscript stars, empty if not significant.
 \providecommand{\rhrDays}{866}  % days of the option-data subsample: trades, Sharpe ratios (accuracy: rhoosDays of rehaul_oos_numbers)
 \providecommand{\rhrNNPooledSeeds}{3}  % seeds averaged in the pooled MinGRU forecast
-\providecommand{\rhrOlsQ}{0.1033}  % QLIKE of the per-bar OLS on HAR + calendar
+\providecommand{\rhrOlsQ}{0.1025}  % QLIKE of the per-bar OLS on HAR + calendar
 \providecommand{\rhrAfPairs}{42}  % model-set input-set pairs (all features vs HAR + cal.)
 \providecommand{\rhrAfLower}{28}  % ... QLIKE lower with all features
 \providecommand{\rhrAfLowerSig}{4}  % ... and DM p < 0.05
@@ -27,32 +27,32 @@
 \providecommand{\rhrNModelSet}{94}  % forecasts in the master table's model set
 \providecommand{\rhrRankN}{106}  % forecasts ranked in the full table
 \providecommand{\rhrNSet}{93}  % model-set forecasts other than the OLS
-\providecommand{\rhrNLower}{7}  % ... with lower QLIKE than the OLS
-\providecommand{\rhrNLowerSig}{2}  % ... and DM p < 0.05
-\providecommand{\rhrNWorseSig}{49}  % ... significantly worse than the OLS (DM p < 0.05)
+\providecommand{\rhrNLower}{2}  % ... with lower QLIKE than the OLS
+\providecommand{\rhrNLowerSig}{0}  % ... and DM p < 0.05
+\providecommand{\rhrNWorseSig}{62}  % ... significantly worse than the OLS (DM p < 0.05)
 \providecommand{\rhrNLowerPool}{0}  % pooled intraday forecasts (rhrPoolN) with lower QLIKE than the OLS (item 26 headline)
 \providecommand{\rhrNLowerSigPool}{0}  % ... and DM p < 0.05 (item 26 headline; closing-interval tests excluded)
 \providecommand{\rhrNWorseSigPool}{10}  % pooled intraday forecasts significantly worse than the OLS (DM p < 0.05)
-\providecommand{\rhrLinBaseMaxPct}{0.00}  % largest |% change| of the per-bar ridge / lasso / enet on HAR + cal. vs the OLS
-\providecommand{\rhrSETopFiveOls}{77}  % % of the OLS's total squared error on its 5 largest days
+\providecommand{\rhrLinBaseMaxPct}{0.74}  % largest |% change| of the per-bar ridge / lasso / enet on HAR + cal. vs the OLS
+\providecommand{\rhrSETopFiveOls}{76}  % % of the OLS's total squared error on its 5 largest days
 \providecommand{\rhrSETopFiveMin}{73}  % min over the F5 forecasts (OLS, lasso, XGBoost; MinGRU parked): % of squared error on the 5 largest days
 \providecommand{\rhrSETopFiveMax}{87}  % max over the F5 forecasts
 \providecommand{\rhrQLTopFiveMin}{9}  % min over the F5 forecasts (OLS, lasso, XGBoost; MinGRU parked): % of total QLIKE on the 5 largest days
 \providecommand{\rhrQLTopFiveMax}{10}  % max over the F5 forecasts
-\providecommand{\rhrCumLassoTotal}{\ensuremath{-}4.43}  % lasso, all features: sum over days of the QLIKE difference vs the OLS
-\providecommand{\rhrCumLassoWindow}{\ensuremath{+}0.78}  % ... of which in 24 Feb - 30 Apr 2020
-\providecommand{\rhrCumXgbTotal}{\ensuremath{-}0.13}  % XGBoost (daily refit), all features: sum over days
-\providecommand{\rhrCumXgbWindow}{\ensuremath{+}1.15}  % ... of which in 24 Feb - 30 Apr 2020
-\providecommand{\rhrCumNnTotal}{\ensuremath{+}0.79}  % MinGRU, all features: sum over days (parked: off F3, unused by the floats)
-\providecommand{\rhrCumNnWindow}{\ensuremath{+}0.52}  % ... of which in 24 Feb - 30 Apr 2020
-\providecommand{\rhrOlsSharpe}{1.47}  % sign(s) Sharpe mid of the per-bar OLS on HAR + calendar
+\providecommand{\rhrCumLassoTotal}{\ensuremath{-}3.61}  % lasso, all features: sum over days of the QLIKE difference vs the OLS
+\providecommand{\rhrCumLassoWindow}{\ensuremath{+}0.20}  % ... of which in 24 Feb - 30 Apr 2020
+\providecommand{\rhrCumXgbTotal}{\ensuremath{+}0.69}  % XGBoost (daily refit), all features: sum over days
+\providecommand{\rhrCumXgbWindow}{\ensuremath{+}0.57}  % ... of which in 24 Feb - 30 Apr 2020
+\providecommand{\rhrCumNnTotal}{\ensuremath{+}1.60}  % MinGRU, all features: sum over days (parked: off F3, unused by the floats)
+\providecommand{\rhrCumNnWindow}{\ensuremath{-}0.06}  % ... of which in 24 Feb - 30 Apr 2020
+\providecommand{\rhrOlsSharpe}{0.99}  % sign(s) Sharpe mid of the per-bar OLS on HAR + calendar
 \providecommand{\rhrLassoAllQ}{0.0992}  % QLIKE, per-bar lasso, all features
 \providecommand{\rhrXgbAllQ}{0.1031}  % QLIKE, per-bar XGBoost (daily refit), all features
 \providecommand{\rhrLgbmAllQ}{0.1049}  % QLIKE, per-bar LightGBM (daily refit), all features
 \providecommand{\rhrEnetAllQ}{0.1014}  % QLIKE, per-bar elastic net, all features
 \providecommand{\rhrRidgeAllQ}{0.1031}  % QLIKE, per-bar ridge, all features
 \providecommand{\rhrNnAllQ}{0.1040}  % QLIKE, per-bar MinGRU (ridge-init, QLIKE-tuned), all features
-\providecommand{\rhrOlsRank}{8}  % rank of the per-bar OLS among the RankN forecasts
+\providecommand{\rhrOlsRank}{3}  % rank of the per-bar OLS among the RankN forecasts
 \providecommand{\rhrNnAfPct}{\ensuremath{-}2.2}  % per-bar MinGRU: QLIKE % change, all features vs HAR + cal.
 \providecommand{\rhrNnAfP}{0.57}  % ... its DM p
 \providecommand{\rhrAfMedPct}{\ensuremath{-}0.9}  % median QLIKE % change over the AfPairs pairs
@@ -77,7 +77,7 @@
 \providecommand{\rhrTrVsRidgeQAbove}{36}  % ... with the higher average QLIKE
 \providecommand{\rhrTrVsRidgeQAboveSig}{17}  % ... and DM p < 0.05
 \providecommand{\rhrTrVsRidgeQBelowSig}{0}  % ... lower and DM p < 0.05
-\providecommand{\rhrLassoMseExCrashPct}{\ensuremath{-}4.4}  % lasso (full) vs the HAR benchmark: MSE % change outside 24 Feb - 30 Apr 2020
+\providecommand{\rhrLassoMseExCrashPct}{\ensuremath{-}2.3}  % lasso (full) vs the HAR benchmark: MSE % change outside 24 Feb - 30 Apr 2020
 \providecommand{\rhrDMLag}{6}  % Newey-West lag q_NW of every DM statistic (dm_test's automatic lag)
 \providecommand{\rhrRobLagNW}{5}  % robustness table: Newey-West (1994) lag floor(4 (T/100)^(2/9)), T = 614
 \providecommand{\rhrRobLagOld}{12}  % robustness table: the previous lag floor(1.5 T^(1/3)), T = 614
@@ -118,116 +118,116 @@
 \providecommand{\rhrQNnCloseFull}{0.1040}  % mean QLIKE, mingru_rinitq_all_features
 \providecommand{\rhrQNnPoolHar}{0.1237}  % mean QLIKE, mingru_pooled_rinitq_baseline
 \providecommand{\rhrQNnPoolFull}{0.1167}  % mean QLIKE, mingru_pooled_rinitq_all_features
-\providecommand{\rhrVsBmRidgeCloseHarPct}{0.0}  % subpt_ridge_baseline vs the HAR benchmark (closing-interval OLS): QLIKE % change
-\providecommand{\rhrVsBmRidgeCloseHarDm}{\ensuremath{-}0.96}  % ... its DM
-\providecommand{\rhrVsBmRidgeCloseHarPval}{\ensuremath{p = 0.34}}  % ... its two-sided p (the whole statement)
+\providecommand{\rhrVsBmRidgeCloseHarPct}{0.7}  % subpt_ridge_baseline vs the HAR benchmark (closing-interval OLS): QLIKE % change
+\providecommand{\rhrVsBmRidgeCloseHarDm}{0.86}  % ... its DM
+\providecommand{\rhrVsBmRidgeCloseHarPval}{\ensuremath{p = 0.39}}  % ... its two-sided p (the whole statement)
 \providecommand{\rhrVsBmRidgeCloseHarStars}{}  % ... its stars (10 / 5 / 1 %)
-\providecommand{\rhrVsBmRidgeCloseFullPct}{\ensuremath{-}0.1}  % subpt_ridge_all_features vs the HAR benchmark (closing-interval OLS): QLIKE % change
-\providecommand{\rhrVsBmRidgeCloseFullDm}{\ensuremath{-}0.04}  % ... its DM
-\providecommand{\rhrVsBmRidgeCloseFullPval}{\ensuremath{p = 0.97}}  % ... its two-sided p (the whole statement)
+\providecommand{\rhrVsBmRidgeCloseFullPct}{0.6}  % subpt_ridge_all_features vs the HAR benchmark (closing-interval OLS): QLIKE % change
+\providecommand{\rhrVsBmRidgeCloseFullDm}{0.15}  % ... its DM
+\providecommand{\rhrVsBmRidgeCloseFullPval}{\ensuremath{p = 0.88}}  % ... its two-sided p (the whole statement)
 \providecommand{\rhrVsBmRidgeCloseFullStars}{}  % ... its stars (10 / 5 / 1 %)
-\providecommand{\rhrVsBmRidgePoolHarPct}{10.1}  % poolpt13_ridge_baseline vs the HAR benchmark (closing-interval OLS): QLIKE % change
-\providecommand{\rhrVsBmRidgePoolHarDm}{2.61}  % ... its DM
-\providecommand{\rhrVsBmRidgePoolHarPval}{\ensuremath{p = 0.009}}  % ... its two-sided p (the whole statement)
+\providecommand{\rhrVsBmRidgePoolHarPct}{10.9}  % poolpt13_ridge_baseline vs the HAR benchmark (closing-interval OLS): QLIKE % change
+\providecommand{\rhrVsBmRidgePoolHarDm}{2.84}  % ... its DM
+\providecommand{\rhrVsBmRidgePoolHarPval}{\ensuremath{p = 0.004}}  % ... its two-sided p (the whole statement)
 \providecommand{\rhrVsBmRidgePoolHarStars}{\ensuremath{^{***}}}  % ... its stars (10 / 5 / 1 %)
-\providecommand{\rhrVsBmRidgePoolFullPct}{22.0}  % poolpt13_ridge_all_features vs the HAR benchmark (closing-interval OLS): QLIKE % change
-\providecommand{\rhrVsBmRidgePoolFullDm}{3.61}  % ... its DM
+\providecommand{\rhrVsBmRidgePoolFullPct}{22.9}  % poolpt13_ridge_all_features vs the HAR benchmark (closing-interval OLS): QLIKE % change
+\providecommand{\rhrVsBmRidgePoolFullDm}{3.63}  % ... its DM
 \providecommand{\rhrVsBmRidgePoolFullPval}{\ensuremath{p < 0.001}}  % ... its two-sided p (the whole statement)
 \providecommand{\rhrVsBmRidgePoolFullStars}{\ensuremath{^{***}}}  % ... its stars (10 / 5 / 1 %)
-\providecommand{\rhrVsBmLassoCloseHarPct}{0.0}  % subpt_lasso_baseline vs the HAR benchmark (closing-interval OLS): QLIKE % change
-\providecommand{\rhrVsBmLassoCloseHarDm}{\ensuremath{-}2.60}  % ... its DM
-\providecommand{\rhrVsBmLassoCloseHarPval}{\ensuremath{p = 0.009}}  % ... its two-sided p (the whole statement)
-\providecommand{\rhrVsBmLassoCloseHarStars}{\ensuremath{^{***}}}  % ... its stars (10 / 5 / 1 %)
-\providecommand{\rhrVsBmLassoCloseFullPct}{\ensuremath{-}4.0}  % subpt_lasso_all_features vs the HAR benchmark (closing-interval OLS): QLIKE % change
-\providecommand{\rhrVsBmLassoCloseFullDm}{\ensuremath{-}1.91}  % ... its DM
-\providecommand{\rhrVsBmLassoCloseFullPval}{\ensuremath{p = 0.056}}  % ... its two-sided p (the whole statement)
-\providecommand{\rhrVsBmLassoCloseFullStars}{\ensuremath{^{*}}}  % ... its stars (10 / 5 / 1 %)
-\providecommand{\rhrVsBmLassoPoolHarPct}{10.1}  % poolpt13_lasso_baseline vs the HAR benchmark (closing-interval OLS): QLIKE % change
-\providecommand{\rhrVsBmLassoPoolHarDm}{2.61}  % ... its DM
-\providecommand{\rhrVsBmLassoPoolHarPval}{\ensuremath{p = 0.009}}  % ... its two-sided p (the whole statement)
+\providecommand{\rhrVsBmLassoCloseHarPct}{0.7}  % subpt_lasso_baseline vs the HAR benchmark (closing-interval OLS): QLIKE % change
+\providecommand{\rhrVsBmLassoCloseHarDm}{0.86}  % ... its DM
+\providecommand{\rhrVsBmLassoCloseHarPval}{\ensuremath{p = 0.39}}  % ... its two-sided p (the whole statement)
+\providecommand{\rhrVsBmLassoCloseHarStars}{}  % ... its stars (10 / 5 / 1 %)
+\providecommand{\rhrVsBmLassoCloseFullPct}{\ensuremath{-}3.3}  % subpt_lasso_all_features vs the HAR benchmark (closing-interval OLS): QLIKE % change
+\providecommand{\rhrVsBmLassoCloseFullDm}{\ensuremath{-}1.44}  % ... its DM
+\providecommand{\rhrVsBmLassoCloseFullPval}{\ensuremath{p = 0.15}}  % ... its two-sided p (the whole statement)
+\providecommand{\rhrVsBmLassoCloseFullStars}{}  % ... its stars (10 / 5 / 1 %)
+\providecommand{\rhrVsBmLassoPoolHarPct}{10.9}  % poolpt13_lasso_baseline vs the HAR benchmark (closing-interval OLS): QLIKE % change
+\providecommand{\rhrVsBmLassoPoolHarDm}{2.84}  % ... its DM
+\providecommand{\rhrVsBmLassoPoolHarPval}{\ensuremath{p = 0.004}}  % ... its two-sided p (the whole statement)
 \providecommand{\rhrVsBmLassoPoolHarStars}{\ensuremath{^{***}}}  % ... its stars (10 / 5 / 1 %)
-\providecommand{\rhrVsBmLassoPoolFullPct}{26.0}  % poolpt13_lasso_all_features vs the HAR benchmark (closing-interval OLS): QLIKE % change
-\providecommand{\rhrVsBmLassoPoolFullDm}{3.66}  % ... its DM
+\providecommand{\rhrVsBmLassoPoolFullPct}{26.9}  % poolpt13_lasso_all_features vs the HAR benchmark (closing-interval OLS): QLIKE % change
+\providecommand{\rhrVsBmLassoPoolFullDm}{3.68}  % ... its DM
 \providecommand{\rhrVsBmLassoPoolFullPval}{\ensuremath{p < 0.001}}  % ... its two-sided p (the whole statement)
 \providecommand{\rhrVsBmLassoPoolFullStars}{\ensuremath{^{***}}}  % ... its stars (10 / 5 / 1 %)
-\providecommand{\rhrVsBmEnetCloseHarPct}{0.0}  % subpt_enet_baseline vs the HAR benchmark (closing-interval OLS): QLIKE % change
-\providecommand{\rhrVsBmEnetCloseHarDm}{\ensuremath{-}2.46}  % ... its DM
-\providecommand{\rhrVsBmEnetCloseHarPval}{\ensuremath{p = 0.014}}  % ... its two-sided p (the whole statement)
-\providecommand{\rhrVsBmEnetCloseHarStars}{\ensuremath{^{**}}}  % ... its stars (10 / 5 / 1 %)
-\providecommand{\rhrVsBmEnetCloseFullPct}{\ensuremath{-}1.8}  % subpt_enet_all_features vs the HAR benchmark (closing-interval OLS): QLIKE % change
-\providecommand{\rhrVsBmEnetCloseFullDm}{\ensuremath{-}0.55}  % ... its DM
-\providecommand{\rhrVsBmEnetCloseFullPval}{\ensuremath{p = 0.58}}  % ... its two-sided p (the whole statement)
+\providecommand{\rhrVsBmEnetCloseHarPct}{0.7}  % subpt_enet_baseline vs the HAR benchmark (closing-interval OLS): QLIKE % change
+\providecommand{\rhrVsBmEnetCloseHarDm}{0.86}  % ... its DM
+\providecommand{\rhrVsBmEnetCloseHarPval}{\ensuremath{p = 0.39}}  % ... its two-sided p (the whole statement)
+\providecommand{\rhrVsBmEnetCloseHarStars}{}  % ... its stars (10 / 5 / 1 %)
+\providecommand{\rhrVsBmEnetCloseFullPct}{\ensuremath{-}1.1}  % subpt_enet_all_features vs the HAR benchmark (closing-interval OLS): QLIKE % change
+\providecommand{\rhrVsBmEnetCloseFullDm}{\ensuremath{-}0.32}  % ... its DM
+\providecommand{\rhrVsBmEnetCloseFullPval}{\ensuremath{p = 0.75}}  % ... its two-sided p (the whole statement)
 \providecommand{\rhrVsBmEnetCloseFullStars}{}  % ... its stars (10 / 5 / 1 %)
-\providecommand{\rhrVsBmEnetPoolHarPct}{10.1}  % poolpt13_enet_baseline vs the HAR benchmark (closing-interval OLS): QLIKE % change
-\providecommand{\rhrVsBmEnetPoolHarDm}{2.61}  % ... its DM
-\providecommand{\rhrVsBmEnetPoolHarPval}{\ensuremath{p = 0.009}}  % ... its two-sided p (the whole statement)
+\providecommand{\rhrVsBmEnetPoolHarPct}{10.9}  % poolpt13_enet_baseline vs the HAR benchmark (closing-interval OLS): QLIKE % change
+\providecommand{\rhrVsBmEnetPoolHarDm}{2.84}  % ... its DM
+\providecommand{\rhrVsBmEnetPoolHarPval}{\ensuremath{p = 0.004}}  % ... its two-sided p (the whole statement)
 \providecommand{\rhrVsBmEnetPoolHarStars}{\ensuremath{^{***}}}  % ... its stars (10 / 5 / 1 %)
-\providecommand{\rhrVsBmEnetPoolFullPct}{19.5}  % poolpt13_enet_all_features vs the HAR benchmark (closing-interval OLS): QLIKE % change
-\providecommand{\rhrVsBmEnetPoolFullDm}{3.34}  % ... its DM
+\providecommand{\rhrVsBmEnetPoolFullPct}{20.3}  % poolpt13_enet_all_features vs the HAR benchmark (closing-interval OLS): QLIKE % change
+\providecommand{\rhrVsBmEnetPoolFullDm}{3.36}  % ... its DM
 \providecommand{\rhrVsBmEnetPoolFullPval}{\ensuremath{p < 0.001}}  % ... its two-sided p (the whole statement)
 \providecommand{\rhrVsBmEnetPoolFullStars}{\ensuremath{^{***}}}  % ... its stars (10 / 5 / 1 %)
-\providecommand{\rhrVsBmLgbmCloseHarPct}{5.9}  % subtree_daily_baseline_lgbm vs the HAR benchmark (closing-interval OLS): QLIKE % change
-\providecommand{\rhrVsBmLgbmCloseHarDm}{2.70}  % ... its DM
-\providecommand{\rhrVsBmLgbmCloseHarPval}{\ensuremath{p = 0.007}}  % ... its two-sided p (the whole statement)
+\providecommand{\rhrVsBmLgbmCloseHarPct}{6.7}  % subtree_daily_baseline_lgbm vs the HAR benchmark (closing-interval OLS): QLIKE % change
+\providecommand{\rhrVsBmLgbmCloseHarDm}{3.03}  % ... its DM
+\providecommand{\rhrVsBmLgbmCloseHarPval}{\ensuremath{p = 0.002}}  % ... its two-sided p (the whole statement)
 \providecommand{\rhrVsBmLgbmCloseHarStars}{\ensuremath{^{***}}}  % ... its stars (10 / 5 / 1 %)
-\providecommand{\rhrVsBmLgbmCloseFullPct}{1.5}  % subtree_daily_all_features_lgbm vs the HAR benchmark (closing-interval OLS): QLIKE % change
-\providecommand{\rhrVsBmLgbmCloseFullDm}{0.51}  % ... its DM
-\providecommand{\rhrVsBmLgbmCloseFullPval}{\ensuremath{p = 0.61}}  % ... its two-sided p (the whole statement)
+\providecommand{\rhrVsBmLgbmCloseFullPct}{2.3}  % subtree_daily_all_features_lgbm vs the HAR benchmark (closing-interval OLS): QLIKE % change
+\providecommand{\rhrVsBmLgbmCloseFullDm}{0.72}  % ... its DM
+\providecommand{\rhrVsBmLgbmCloseFullPval}{\ensuremath{p = 0.47}}  % ... its two-sided p (the whole statement)
 \providecommand{\rhrVsBmLgbmCloseFullStars}{}  % ... its stars (10 / 5 / 1 %)
-\providecommand{\rhrVsBmLgbmPoolHarPct}{6.6}  % pooltree_lgbm_baseline vs the HAR benchmark (closing-interval OLS): QLIKE % change
-\providecommand{\rhrVsBmLgbmPoolHarDm}{2.16}  % ... its DM
-\providecommand{\rhrVsBmLgbmPoolHarPval}{\ensuremath{p = 0.031}}  % ... its two-sided p (the whole statement)
-\providecommand{\rhrVsBmLgbmPoolHarStars}{\ensuremath{^{**}}}  % ... its stars (10 / 5 / 1 %)
-\providecommand{\rhrVsBmLgbmPoolFullPct}{5.5}  % pooltree_lgbm_all_features vs the HAR benchmark (closing-interval OLS): QLIKE % change
-\providecommand{\rhrVsBmLgbmPoolFullDm}{1.34}  % ... its DM
-\providecommand{\rhrVsBmLgbmPoolFullPval}{\ensuremath{p = 0.18}}  % ... its two-sided p (the whole statement)
+\providecommand{\rhrVsBmLgbmPoolHarPct}{7.4}  % pooltree_lgbm_baseline vs the HAR benchmark (closing-interval OLS): QLIKE % change
+\providecommand{\rhrVsBmLgbmPoolHarDm}{2.60}  % ... its DM
+\providecommand{\rhrVsBmLgbmPoolHarPval}{\ensuremath{p = 0.009}}  % ... its two-sided p (the whole statement)
+\providecommand{\rhrVsBmLgbmPoolHarStars}{\ensuremath{^{***}}}  % ... its stars (10 / 5 / 1 %)
+\providecommand{\rhrVsBmLgbmPoolFullPct}{6.3}  % pooltree_lgbm_all_features vs the HAR benchmark (closing-interval OLS): QLIKE % change
+\providecommand{\rhrVsBmLgbmPoolFullDm}{1.49}  % ... its DM
+\providecommand{\rhrVsBmLgbmPoolFullPval}{\ensuremath{p = 0.14}}  % ... its two-sided p (the whole statement)
 \providecommand{\rhrVsBmLgbmPoolFullStars}{}  % ... its stars (10 / 5 / 1 %)
-\providecommand{\rhrVsBmXgbCloseHarPct}{4.2}  % subtree_daily_baseline_xgb vs the HAR benchmark (closing-interval OLS): QLIKE % change
-\providecommand{\rhrVsBmXgbCloseHarDm}{2.09}  % ... its DM
-\providecommand{\rhrVsBmXgbCloseHarPval}{\ensuremath{p = 0.037}}  % ... its two-sided p (the whole statement)
+\providecommand{\rhrVsBmXgbCloseHarPct}{5.0}  % subtree_daily_baseline_xgb vs the HAR benchmark (closing-interval OLS): QLIKE % change
+\providecommand{\rhrVsBmXgbCloseHarDm}{2.45}  % ... its DM
+\providecommand{\rhrVsBmXgbCloseHarPval}{\ensuremath{p = 0.014}}  % ... its two-sided p (the whole statement)
 \providecommand{\rhrVsBmXgbCloseHarStars}{\ensuremath{^{**}}}  % ... its stars (10 / 5 / 1 %)
-\providecommand{\rhrVsBmXgbCloseFullPct}{\ensuremath{-}0.1}  % subtree_daily_all_features_xgb vs the HAR benchmark (closing-interval OLS): QLIKE % change
-\providecommand{\rhrVsBmXgbCloseFullDm}{\ensuremath{-}0.04}  % ... its DM
-\providecommand{\rhrVsBmXgbCloseFullPval}{\ensuremath{p = 0.97}}  % ... its two-sided p (the whole statement)
+\providecommand{\rhrVsBmXgbCloseFullPct}{0.6}  % subtree_daily_all_features_xgb vs the HAR benchmark (closing-interval OLS): QLIKE % change
+\providecommand{\rhrVsBmXgbCloseFullDm}{0.21}  % ... its DM
+\providecommand{\rhrVsBmXgbCloseFullPval}{\ensuremath{p = 0.83}}  % ... its two-sided p (the whole statement)
 \providecommand{\rhrVsBmXgbCloseFullStars}{}  % ... its stars (10 / 5 / 1 %)
-\providecommand{\rhrVsBmXgbPoolHarPct}{6.7}  % pooltree_xgb_baseline vs the HAR benchmark (closing-interval OLS): QLIKE % change
-\providecommand{\rhrVsBmXgbPoolHarDm}{2.23}  % ... its DM
-\providecommand{\rhrVsBmXgbPoolHarPval}{\ensuremath{p = 0.026}}  % ... its two-sided p (the whole statement)
-\providecommand{\rhrVsBmXgbPoolHarStars}{\ensuremath{^{**}}}  % ... its stars (10 / 5 / 1 %)
-\providecommand{\rhrVsBmXgbPoolFullPct}{4.5}  % pooltree_xgb_all_features vs the HAR benchmark (closing-interval OLS): QLIKE % change
-\providecommand{\rhrVsBmXgbPoolFullDm}{1.14}  % ... its DM
-\providecommand{\rhrVsBmXgbPoolFullPval}{\ensuremath{p = 0.25}}  % ... its two-sided p (the whole statement)
+\providecommand{\rhrVsBmXgbPoolHarPct}{7.5}  % pooltree_xgb_baseline vs the HAR benchmark (closing-interval OLS): QLIKE % change
+\providecommand{\rhrVsBmXgbPoolHarDm}{2.70}  % ... its DM
+\providecommand{\rhrVsBmXgbPoolHarPval}{\ensuremath{p = 0.007}}  % ... its two-sided p (the whole statement)
+\providecommand{\rhrVsBmXgbPoolHarStars}{\ensuremath{^{***}}}  % ... its stars (10 / 5 / 1 %)
+\providecommand{\rhrVsBmXgbPoolFullPct}{5.2}  % pooltree_xgb_all_features vs the HAR benchmark (closing-interval OLS): QLIKE % change
+\providecommand{\rhrVsBmXgbPoolFullDm}{1.30}  % ... its DM
+\providecommand{\rhrVsBmXgbPoolFullPval}{\ensuremath{p = 0.19}}  % ... its two-sided p (the whole statement)
 \providecommand{\rhrVsBmXgbPoolFullStars}{}  % ... its stars (10 / 5 / 1 %)
-\providecommand{\rhrVsBmRfCloseHarPct}{3.5}  % subtree_daily_baseline_rf vs the HAR benchmark (closing-interval OLS): QLIKE % change
-\providecommand{\rhrVsBmRfCloseHarDm}{1.70}  % ... its DM
-\providecommand{\rhrVsBmRfCloseHarPval}{\ensuremath{p = 0.089}}  % ... its two-sided p (the whole statement)
-\providecommand{\rhrVsBmRfCloseHarStars}{\ensuremath{^{*}}}  % ... its stars (10 / 5 / 1 %)
-\providecommand{\rhrVsBmRfCloseFullPct}{2.6}  % subtree_daily_all_features_rf vs the HAR benchmark (closing-interval OLS): QLIKE % change
-\providecommand{\rhrVsBmRfCloseFullDm}{0.86}  % ... its DM
-\providecommand{\rhrVsBmRfCloseFullPval}{\ensuremath{p = 0.39}}  % ... its two-sided p (the whole statement)
+\providecommand{\rhrVsBmRfCloseHarPct}{4.2}  % subtree_daily_baseline_rf vs the HAR benchmark (closing-interval OLS): QLIKE % change
+\providecommand{\rhrVsBmRfCloseHarDm}{2.28}  % ... its DM
+\providecommand{\rhrVsBmRfCloseHarPval}{\ensuremath{p = 0.022}}  % ... its two-sided p (the whole statement)
+\providecommand{\rhrVsBmRfCloseHarStars}{\ensuremath{^{**}}}  % ... its stars (10 / 5 / 1 %)
+\providecommand{\rhrVsBmRfCloseFullPct}{3.4}  % subtree_daily_all_features_rf vs the HAR benchmark (closing-interval OLS): QLIKE % change
+\providecommand{\rhrVsBmRfCloseFullDm}{1.11}  % ... its DM
+\providecommand{\rhrVsBmRfCloseFullPval}{\ensuremath{p = 0.27}}  % ... its two-sided p (the whole statement)
 \providecommand{\rhrVsBmRfCloseFullStars}{}  % ... its stars (10 / 5 / 1 %)
-\providecommand{\rhrVsBmRfPoolHarPct}{9.6}  % pooltree_rf_baseline vs the HAR benchmark (closing-interval OLS): QLIKE % change
-\providecommand{\rhrVsBmRfPoolHarDm}{2.78}  % ... its DM
-\providecommand{\rhrVsBmRfPoolHarPval}{\ensuremath{p = 0.005}}  % ... its two-sided p (the whole statement)
+\providecommand{\rhrVsBmRfPoolHarPct}{10.4}  % pooltree_rf_baseline vs the HAR benchmark (closing-interval OLS): QLIKE % change
+\providecommand{\rhrVsBmRfPoolHarDm}{3.12}  % ... its DM
+\providecommand{\rhrVsBmRfPoolHarPval}{\ensuremath{p = 0.002}}  % ... its two-sided p (the whole statement)
 \providecommand{\rhrVsBmRfPoolHarStars}{\ensuremath{^{***}}}  % ... its stars (10 / 5 / 1 %)
-\providecommand{\rhrVsBmRfPoolFullPct}{8.8}  % pooltree_rf_all_features vs the HAR benchmark (closing-interval OLS): QLIKE % change
-\providecommand{\rhrVsBmRfPoolFullDm}{2.06}  % ... its DM
-\providecommand{\rhrVsBmRfPoolFullPval}{\ensuremath{p = 0.040}}  % ... its two-sided p (the whole statement)
+\providecommand{\rhrVsBmRfPoolFullPct}{9.6}  % pooltree_rf_all_features vs the HAR benchmark (closing-interval OLS): QLIKE % change
+\providecommand{\rhrVsBmRfPoolFullDm}{2.13}  % ... its DM
+\providecommand{\rhrVsBmRfPoolFullPval}{\ensuremath{p = 0.033}}  % ... its two-sided p (the whole statement)
 \providecommand{\rhrVsBmRfPoolFullStars}{\ensuremath{^{**}}}  % ... its stars (10 / 5 / 1 %)
-\providecommand{\rhrVsBmNnCloseHarPct}{2.9}  % mingru_rinitq_baseline vs the HAR benchmark (closing-interval OLS): QLIKE % change
-\providecommand{\rhrVsBmNnCloseHarDm}{1.32}  % ... its DM
-\providecommand{\rhrVsBmNnCloseHarPval}{\ensuremath{p = 0.19}}  % ... its two-sided p (the whole statement)
-\providecommand{\rhrVsBmNnCloseHarStars}{}  % ... its stars (10 / 5 / 1 %)
-\providecommand{\rhrVsBmNnCloseFullPct}{0.7}  % mingru_rinitq_all_features vs the HAR benchmark (closing-interval OLS): QLIKE % change
-\providecommand{\rhrVsBmNnCloseFullDm}{0.19}  % ... its DM
-\providecommand{\rhrVsBmNnCloseFullPval}{\ensuremath{p = 0.85}}  % ... its two-sided p (the whole statement)
+\providecommand{\rhrVsBmNnCloseHarPct}{3.7}  % mingru_rinitq_baseline vs the HAR benchmark (closing-interval OLS): QLIKE % change
+\providecommand{\rhrVsBmNnCloseHarDm}{1.77}  % ... its DM
+\providecommand{\rhrVsBmNnCloseHarPval}{\ensuremath{p = 0.077}}  % ... its two-sided p (the whole statement)
+\providecommand{\rhrVsBmNnCloseHarStars}{\ensuremath{^{*}}}  % ... its stars (10 / 5 / 1 %)
+\providecommand{\rhrVsBmNnCloseFullPct}{1.4}  % mingru_rinitq_all_features vs the HAR benchmark (closing-interval OLS): QLIKE % change
+\providecommand{\rhrVsBmNnCloseFullDm}{0.37}  % ... its DM
+\providecommand{\rhrVsBmNnCloseFullPval}{\ensuremath{p = 0.71}}  % ... its two-sided p (the whole statement)
 \providecommand{\rhrVsBmNnCloseFullStars}{}  % ... its stars (10 / 5 / 1 %)
-\providecommand{\rhrVsBmNnPoolHarPct}{19.8}  % mingru_pooled_rinitq_baseline vs the HAR benchmark (closing-interval OLS): QLIKE % change
-\providecommand{\rhrVsBmNnPoolHarDm}{4.52}  % ... its DM
+\providecommand{\rhrVsBmNnPoolHarPct}{20.6}  % mingru_pooled_rinitq_baseline vs the HAR benchmark (closing-interval OLS): QLIKE % change
+\providecommand{\rhrVsBmNnPoolHarDm}{5.20}  % ... its DM
 \providecommand{\rhrVsBmNnPoolHarPval}{\ensuremath{p < 0.001}}  % ... its two-sided p (the whole statement)
 \providecommand{\rhrVsBmNnPoolHarStars}{\ensuremath{^{***}}}  % ... its stars (10 / 5 / 1 %)
-\providecommand{\rhrVsBmNnPoolFullPct}{13.0}  % mingru_pooled_rinitq_all_features vs the HAR benchmark (closing-interval OLS): QLIKE % change
-\providecommand{\rhrVsBmNnPoolFullDm}{3.64}  % ... its DM
+\providecommand{\rhrVsBmNnPoolFullPct}{13.8}  % mingru_pooled_rinitq_all_features vs the HAR benchmark (closing-interval OLS): QLIKE % change
+\providecommand{\rhrVsBmNnPoolFullDm}{4.11}  % ... its DM
 \providecommand{\rhrVsBmNnPoolFullPval}{\ensuremath{p < 0.001}}  % ... its two-sided p (the whole statement)
 \providecommand{\rhrVsBmNnPoolFullStars}{\ensuremath{^{***}}}  % ... its stars (10 / 5 / 1 %)
 \providecommand{\rhrAfRidgeClosePct}{\ensuremath{-}0.1}  % T1, per-bar Ridge: Full vs HAR: QLIKE % change
@@ -486,15 +486,15 @@
 \providecommand{\rhrPoolQLinHarMax}{0.1137}  % ... max
 \providecommand{\rhrPoolQTreeHarMin}{0.1101}  % mean QLIKE, pooled trees on HAR: min
 \providecommand{\rhrPoolQTreeHarMax}{0.1131}  % ... max
-\providecommand{\rhrVsBmPoolLinFullPctMin}{19.5}  % pooled linear on Full vs the benchmark forecast: QLIKE % change, min (all > 0)
-\providecommand{\rhrVsBmPoolLinFullPctMax}{26.0}  % ... max
-\providecommand{\rhrVsBmPoolTreeFullPctMin}{4.5}  % pooled trees on Full vs the benchmark forecast: min
-\providecommand{\rhrVsBmPoolTreeFullPctMax}{8.8}  % ... max
-\providecommand{\rhrVsBmPoolHarPctMin}{6.6}  % pooled models on HAR vs the benchmark forecast: min
-\providecommand{\rhrVsBmPoolHarPctMax}{10.1}  % ... max
+\providecommand{\rhrVsBmPoolLinFullPctMin}{20.3}  % pooled linear on Full vs the benchmark forecast: QLIKE % change, min (all > 0)
+\providecommand{\rhrVsBmPoolLinFullPctMax}{26.9}  % ... max
+\providecommand{\rhrVsBmPoolTreeFullPctMin}{5.2}  % pooled trees on Full vs the benchmark forecast: min
+\providecommand{\rhrVsBmPoolTreeFullPctMax}{9.6}  % ... max
+\providecommand{\rhrVsBmPoolHarPctMin}{7.4}  % pooled models on HAR vs the benchmark forecast: min
+\providecommand{\rhrVsBmPoolHarPctMax}{10.9}  % ... max
 \providecommand{\rhrVsBmPoolTreeFullSig}{1}  % pooled trees (of 3) on Full: excess QLIKE over the benchmark forecast, p < 0.05 (rhrVsBm<M>PoolFullPval)
 \providecommand{\rhrVsBmPoolHarSig}{6}  % pooled models (of 6) on HAR: excess QLIKE over the benchmark forecast, p < 0.05 (rhrVsBm<M>PoolHarPval)
-\providecommand{\rhrVsBmPoolHarSigOne}{4}  % ... and p < 0.01
+\providecommand{\rhrVsBmPoolHarSigOne}{6}  % ... and p < 0.01
 \providecommand{\rhrTreePoolVsCloseHarSig}{0}  % tree classes (of 3) whose pooled-minus-closing-interval QLIKE difference on HAR (T2) has DM p < 0.05
 \providecommand{\rhrTreePoolVsCloseFullSig}{0}  % ... on Full
 \providecommand{\rhrLinPoolVsCloseFullSig}{3}  % linear classes (of 3) whose pooled-minus-closing-interval QLIKE difference on Full (T2) has DM p < 0.05
@@ -519,6 +519,12 @@
 \providecommand{\rhrPoolSzRankMed}{1.16}  % sizing rank of |gap|: median
 \providecommand{\rhrPoolSzClipBeats}{3}  % pooled forecasts with clip Sharpe mid above sign
 \providecommand{\rhrPoolTailNeg}{11}  % pooled forecasts whose gain over the short straddle is < 0 without their 10 best days
+\providecommand{\rhrPoolNDistinct}{10}  % distinct pooled forecasts (HAR-set linear counted once)
+\providecommand{\rhrPoolSzSignMedDistinct}{1.69}  % sizing sign: median Sharpe mid over the distinct pooled forecasts, 614 days
+\providecommand{\rhrPoolSzClipMedDistinct}{1.35}  % sizing robust clip: median over the distinct pooled forecasts
+\providecommand{\rhrPoolSzRankMedDistinct}{1.47}  % sizing rank of |gap|: median over the distinct pooled forecasts
+\providecommand{\rhrPoolSzClipBeatsDistinct}{3}  % distinct pooled forecasts with clip Sharpe mid above sign
+\providecommand{\rhrPoolTailNegDistinct}{9}  % distinct pooled forecasts whose gain over the short straddle is < 0 without their 10 best days
 \providecommand{\rhrPoolNDone}{12}  % pooled intraday forecasts counted: the finished ones (= rhrPoolN)
 \providecommand{\rhrPoolNAll}{12}  % pooled intraday forecasts in the paper's scope (6 classes x HAR, Full; MinGRU parked)
 \providecommand{\rhrPoolNPending}{0}  % pooled intraday forecasts pending (no final forecasts yet)

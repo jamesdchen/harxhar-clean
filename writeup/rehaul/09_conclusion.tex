@@ -13,98 +13,180 @@
 % 2026-10-15 (consolidation): parked -- the number files are loaded once in the preamble of paper_rehaul.tex.
 % \ifdefined\cmNdays\else\input{generated/close_main_numbers}\fi
 
+% 2026-10-26 (integration, JFEc; D1, D2, D7): the conclusion rewritten for the every-bar headline and the RTH13
+% OLS-HAR benchmark, about one page. The closing-interval HAR comparison left with D2 (it lives in the closing-interval
+% appendix only, D3); the Maisch et al. comparison is one short item with the corrected facts (audit front-2,
+% numbers-4: the Sharpe-ratio gain over the short straddle is a D6-bootstrap count, \rhemFullVsShortSig of six; the old
+% \rhrPoolShortSig was the fixed-b mean-return count over all twelve forecasts). The previous live text is parked
+% verbatim after \end{itemize} (lines marked "% | "). \rhPending{name}: numbers whose macro is not generated yet.
+
 \section{Conclusion}
 \label{sec:rh_conclusion}
+% 2026-10-26 (author requirement, relayed by the coordinator): bold-lead items with nested sub-items; the wording is
+% that of the same day's rewrite (not committed before), split into sub-items and tightened to the one-page budget,
+% so nothing is parked for this step.
 \begin{itemize}
-% 2026-10-25 (user: lineage in the realized volatility literature; the alternative-data angle, not overdone): added.
-\item \textbf{Realized volatility at the intraday horizon.} We carry the HAR approach to forecasting realized
-  volatility to the closing half hour of the S\&P~500 and ask what exogenous predictors, from the intraday trading
-  of the index's constituents to alternative data such as social-media sentiment and option order flow, add to it.
-% 2026-10-22 (user, E34: one design for the 12 pooled forecasts): parked -- "across all" no longer holds with the pooled linear models on the trees' design; the count is printed and the heading no longer states a reduction. Was: "\item \textbf{Exogenous predictors reduce QLIKE loss in pooled intraday models.} Relative to the HAR benchmark, augmenting the model with the full exogenous predictor set lowers mean QLIKE across all \rhrAfPoolPairs{} pooled intraday model classes, with \rhrAfPoolLowerSig{} of these reductions statistically significant at the 5\% level (Section~\ref{sec:rh_results})."
-% 2026-10-23 (user, final rerun, phase 2): parked -- on the final rerun the closing-half-hour QLIKE is lower with the full set for the three tree ensembles only and higher for the three penalized linear models; the every-bar result of Table 1 and the window robustness added). Was: "\item \textbf{Exogenous predictors and QLIKE loss in pooled intraday models.} Relative to the HAR benchmark, augmenting the model with the full exogenous predictor set lowers mean QLIKE in \rhrAfPoolLower{} of the \rhrAfPoolPairs{} pooled intraday model classes, with \rhrAfPoolLowerSig{} of these reductions statistically significant at the 5\% level (Section~\ref{sec:rh_results})."
-% 2026-10-23 (phase 2): "all ... each significant" backed by \rhorAfLower = \rhorAfLowerSig = \rhorAfPairs (6), "none" by \rhrAfPoolLowerSig = 0.
-\item \textbf{Exogenous predictors and QLIKE loss in pooled intraday models.} Relative to the HAR benchmark, augmenting the model with the full exogenous predictor set lowers mean QLIKE on every regular-hours bar in all \rhorAfPairs{} pooled intraday model classes, each reduction statistically significant at the 5\% level. For the forecast of the closing half hour it lowers mean QLIKE in \rhrAfPoolLower{} of the \rhrAfPoolPairs{} classes, the \rhrPoolNTreeWord{} tree ensembles, none of these reductions statistically significant at the 5\% level, and raises it for the \rhrPoolNLinWord{} penalized linear models (Section~\ref{sec:rh_results}). With a window of \rhrbWinLong{} trading days the every-bar result holds in \rhrbNFullLowerSigBarLong{} of the \rhrbNModelsLong{} classes (Table~\ref{tab:rh_robust_w3500}).
-% 2026-10-22 (user, E34): parked -- with the base-5 pooled trees their reductions are no longer the largest or significant (make_rehaul_results.py, E34 CLAIM); no ranking. Was: "The largest relative reductions occur in the tree ensembles, while among the penalized linear specifications the elastic net achieves a statistically significant reduction."
-% 2026-10-22 (user, E34: one design for the 12 pooled forecasts): parked -- the pooled elastic net's reduction is no longer significant; the count is printed. Was: "Among the penalized linear specifications the elastic net achieves a statistically significant reduction; among the tree ensembles, the reduction is statistically significant at the 5\% level in \rhrAfPoolTreeLowerSig{} of the three classes."
-% 2026-10-23 (user, final rerun, phase 2): parked -- the linear significance count is moot (the full set raises the linear models' closing-half-hour QLIKE) and "three" was typed). Was: "The reduction is statistically significant at the 5\% level in \rhrAfPoolLinLowerSig{} of the three penalized linear classes and in \rhrAfPoolTreeLowerSig{} of the three tree classes."
-% 2026-10-19 (user): parked -- the MSE finding, with the QLIKE/squared-error divergence bullet of 06_results.tex and the abstract's MSE clause. Was:
-% \item \textbf{Divergence between QLIKE and squared-error loss.} Evaluated under mean squared error, expanding to the full predictor set increases MSE in \rhrAfPoolMseHigher{} of the \rhrAfPoolPairs{} intraday classes, although none of the MSE differences is statistically significant.
-% 2026-10-17 (user): parked -- closing-interval material (relabeled: closing-interval HAR benchmark). Was: "Comparison with the daily HAR benchmark. ... than the daily OLS HAR benchmark estimated solely on closing-interval data."
-% 2026-10-18 (user, new-notes 10): parked -- closing cadence only in the closing section. Was: "\item \textbf{Comparison with the closing-interval HAR benchmark.} Every pooled intraday specification incurs a higher mean QLIKE than the closing-interval HAR benchmark, the daily OLS HAR regression estimated solely on closing-interval data. Incorporating the full exogenous predictor set narrows this loss gap in every model class, leaving the gap statistically insignificant at the 5\% level for all three penalized linear models while remaining significant for the tree ensembles (Section~\ref{sec:rh_results_classes})."
-% 2026-10-22 (user, E34): parked -- with the base-5 pooled trees the gap stays significant for \rhrVsBmPoolTreeFullSig{} of the three tree ensembles, not all (make_rehaul_results.py, E34 CLAIM). Was: "... leaving the gap statistically insignificant at the 5\% level for all three penalized linear models while remaining significant for the tree ensembles (Section~\ref{sec:rh_results_classes})."
-\item \textbf{Comparison with the closing-interval HAR benchmark.} Every pooled intraday specification incurs a higher mean QLIKE than the closing-interval HAR benchmark, the OLS HAR regression estimated solely on closing-interval data.
-% 2026-10-22 (user, E34: one design for the 12 pooled forecasts): parked -- "in every model class" and "insignificant ... for all three penalized linear models" no longer hold; counts printed. Was: "Incorporating the full exogenous predictor set narrows this loss gap in every model class, leaving the gap statistically insignificant at the 5\% level for all three penalized linear models while it remains significant for \rhrVsBmPoolTreeFullSig{} of the three tree ensembles (Section~\ref{sec:rh_results_classes})."
-% 2026-10-23 (user, final rerun, phase 2): parked -- typed "three" (twice); the classes in which the gap narrows named). Was: "Incorporating the full exogenous predictor set narrows this loss gap in \rhrVsBmPoolNarrow{} of the \rhrAfPoolPairs{} model classes; on the full predictor set the gap is statistically significant at the 5\% level for \rhrVsBmPoolLinFullSig{} of the three penalized linear models and for \rhrVsBmPoolTreeFullSig{} of the three tree ensembles (Section~\ref{sec:rh_results_classes})."
-Incorporating the full exogenous predictor set narrows this loss gap in \rhrVsBmPoolNarrow{} of the \rhrAfPoolPairs{} model classes, the tree ensembles, and widens it for the penalized linear models; on the full predictor set the gap is statistically significant at the 5\% level for \rhrVsBmPoolLinFullSig{} of the \rhrPoolNLinWord{} penalized linear models and for \rhrVsBmPoolTreeFullSig{} of the \rhrPoolNTreeWord{} tree ensembles (Section~\ref{sec:rh_results_classes}).
-% 2026-10-17 (user): parked -- closing-interval material (moved to Appendix sec:rh_econ_last30). Was:
-% \item \textbf{Closing-interval estimation as a structural refinement.} Restricting estimation of each model class to the closing half hour lowers mean QLIKE further across all specifications, and within this closing-interval scheme the full exogenous predictor set continues to reduce mean QLIKE in every model class (Section~\ref{sec:rh_econ_last30}).
-\item \textbf{Models trained on the closing half hour.} Results for each model class estimated on the closing interval alone are reported in Appendix~\ref{sec:rh_econ_last30}.
-% 2026-10-17 (user, E25): parked -- the rank correlations now run over the pooled intraday forecasts (\rheRankCorrQPool, \rheRankCorrESPool), where QLIKE is no longer weakly correlated. Was: "Across the full model set, global statistical accuracy ($\overline{\QLIKE}$) exhibits only a weak rank correlation with straddle Sharpe ratios, whereas local accuracy at the implied-variance threshold ($\overline{\mathrm{ES}}_1$) aligns much more closely with economic gains"
-% 2026-10-18 (user, second-list N5): parked -- the correlation is between loss and SR, not accuracy and SR; values from \rheRankCorrQPool / \rheRankCorrESPool. Was: "\item \textbf{Economic value in 0DTE straddles.} When the variance forecasts are used to trade same-day-expiring SPXW straddles over the closing half hour on the option-data subsample, adding the exogenous predictors increases the sign strategy's post-warmup Sharpe ratio in every intraday model class. Across the \rhrPoolN{} pooled intraday forecasts, both global statistical accuracy ($\overline{\QLIKE}$) and local accuracy at the implied-variance threshold ($\overline{\mathrm{ES}}_1$) are negatively rank-correlated with straddle Sharpe ratios (Section~\ref{sec:rh_econ_results})."
-% 2026-10-23 (user, N1 / new-notes 15c, final rerun): parked -- "in every intraday model class" was typed for the 2012 design (note N15c); the count is printed (\rhrAfPoolShHigher, make_rehaul_results.py). Restore "every" only if it equals \rhrAfPoolPairs on the final rerun; the forest storyline (writeup/RF_STORY_OPTIONS.md) is not decided here. Was: "... adding the exogenous predictors increases the sign strategy's post-warmup Sharpe ratio in every intraday model class."
-% 2026-10-23 (user, N15c resolved, phase 2): parked -- the count; \rhrAfPoolShHigher = \rhrAfPoolPairs on the final rerun, so "every" is restored, scoped to the six classes (MinGRU parked), with the significance count). Was: "\item \textbf{Economic value in 0DTE straddles.} When the variance forecasts are used to trade same-day-expiring SPXW straddles over the closing half hour on the option-data subsample, adding the exogenous predictors increases the sign strategy's post-warmup Sharpe ratio in \rhrAfPoolShHigher{} of the \rhrAfPoolPairs{} intraday model classes. % 2026-10-22 (user, E34: one design for the 12 pooled forecasts): parked -- the sign claim ("both negatively rank-correlated"), which does not hold on one design. Was: "Across the \rhrPoolN{} pooled intraday forecasts, average QLIKE loss and $\overline{\mathrm{ES}}_1$, the loss at the implied-variance threshold, are both negatively rank-correlated with straddle Sharpe ratios, at \rheRankCorrQPool{} and a weak \rheRankCorrESPool{} for $\overline{\mathrm{ES}}_1$ (Section~\ref{sec:rh_econ_results}).""
-% 2026-10-25 (user: the option trades as an application of the variance forecasts): "As an application of the
-% forecasts," added; the sentence is otherwise unchanged. Was: "\item \textbf{Economic value in 0DTE straddles.}
-% When the variance forecasts are used to trade ..."
-\item \textbf{Economic value in 0DTE straddles.} As an application of the forecasts, when they are used to trade same-day-expiring SPXW straddles over the closing half hour on the option-data subsample, adding the exogenous predictors increases the sign strategy's post-warmup Sharpe ratio in every one of the \rhrAfPoolPairs{} intraday model classes, in point estimates, and significantly at the 5\% level in \rhrAfPoolShHigherSig{} of them. % 2026-10-22 (user, E34: one design for the 12 pooled forecasts): parked -- the sign claim ("both negatively rank-correlated"), which does not hold on one design. Was: "Across the \rhrPoolN{} pooled intraday forecasts, average QLIKE loss and $\overline{\mathrm{ES}}_1$, the loss at the implied-variance threshold, are both negatively rank-correlated with straddle Sharpe ratios, at \rheRankCorrQPool{} and a weak \rheRankCorrESPool{} for $\overline{\mathrm{ES}}_1$ (Section~\ref{sec:rh_econ_results})."
-% 2026-10-23 (user, final rerun, phase 2): parked -- the signs stated (facts; the QLIKE correlation is positive on the final rerun, under all three Sharpe ratio definitions)). Was: "Across the \rhrPoolN{} pooled intraday forecasts, the rank correlation of the straddle Sharpe ratio is \rheRankCorrQPool{} with average QLIKE loss and \rheRankCorrESPool{} with $\overline{\mathrm{ES}}_1$, the loss at the implied-variance threshold (Section~\ref{sec:rh_econ_results})."
-Across the \rhrPoolN{} pooled intraday forecasts, the rank correlation of the straddle Sharpe ratio is positive with average QLIKE loss, \rheRankCorrQPool, and negative with $\overline{\mathrm{ES}}_1$, the loss at the implied-variance threshold, \rheRankCorrESPool{} (Section~\ref{sec:rh_econ_results}).
-% 2026-10-25 (user: compare and contrast our trading results with Maisch, Zhang, Ulrich and Zimmer, SSRN 7269778):
-% added. Their numbers are \extMaisch... macros (writeup/make_external_numbers.py, each with its page and table in
-% their PDF); ours are the pooled full-set Sharpe ratios of Section 7 (D6, post-warmup days).
-\item \textbf{Comparison with machine-learning option portfolios.} Our straddle trades share their market and bar
-  length with those of \citet{MaischZhangUlrichZimmer2026}, who trade S\&P~500 index options on machine-learning
-  forecasts of their half-hourly delta-hedged returns. The overlap is one of setting: our trades apply realized
-  variance forecasts, whereas their option returns are the object of the forecasts, and the two strategies differ in
-  what they trade and in what their Sharpe ratios measure.
+\item \textbf{Exogenous predictors in intraday realized variance forecasts.} We ask what exogenous predictors, from
+  the futures' own realized moments and the constituents' trading to the FOMC calendar, implied volatility and
+  alternative data, add to pooled forecasts of the E-mini S\&P~500's realized variance on every regular-hours bar,
+  against OLS on the HAR benchmark set.
+% 2026-10-26: "all ... each significant" backed by \rhorAfLower = \rhorAfLowerSig = \rhorAfPairs (Table 1).
+\item \textbf{The exogenous predictors improve the forecast of every bar} (Section~\ref{sec:rh_results}).
   \begin{itemize}
-  \item Their decile long--short portfolios, re-formed every half hour across the cross-section of contracts over
-    \extMaischTestMonths{} test months of \extMaischYear, reach half-hourly Sharpe ratios of \extMaischSrGbrt{} and
-    \extMaischSrEns{} for their two best specifications (\extMaischSrGbrtAnn{} and \extMaischSrEnsAnn{} annualized),
-    gross and at mid-quotes. Weighting the contracts by open interest lowers them to \extMaischSrGbrtOi{} and
-    \extMaischSrEnsOi, and by their own account trading each option at its quoted bid and ask would erase a large
-    share of the profits.
-  \item Our strategy holds one at-the-money straddle a day, signed by the variance forecast of the closing half
-    hour. On the full predictor set its annualized Sharpe ratio is \rhrPoolShFullMin--\rhrPoolShFullMax{} at
-    mid-quotes and \rhrPoolShXFullMin--\rhrPoolShXFullMax{} at quoted bid/ask prices over the \rheSzDays{} post-warmup days, against
-    \rheShortSh{} and \rheShortShX{} for the unconditional short straddle; its gain over that benchmark is
-    statistically significant in \rhrPoolShortSig{} of the \rhrPoolN{} pooled forecasts and is concentrated on a few
-    days (Section~\ref{sec:rh_econ_results}).
-  % 2026-10-25 (user, step 1 of the gap analysis): parked -- "ours come from timing the variance premium of the
-  % closing half hour with a realized variance forecast": no decomposition of the straddle profits backs it yet, and
-  % the short straddle shows no detectable variance risk premium in the sample (Section 7). Was: "Their profits come
-  % from ranking contracts on predicted returns, which they trace to mispricing; ours come from timing the variance
-  % premium of the closing half hour with a realized variance forecast."
-  \item Their profits come from ranking contracts on predicted returns, which they trace to mispricing; ours rest on
-    the sign of a realized variance forecast against the implied variance of a single straddle. Their gross Sharpe
-    ratios are far larger and rest on a turnover that quoted spreads would largely absorb; ours are modest, but they
-    come from a single trade a day and are reported at quoted bid/ask prices.
+  \item The full set lowers the average QLIKE loss in all \rhorAfPairs{} model classes, each reduction significant at
+    the 5\% level, by \rhorVsOlsRedLinRng{}\% (penalized linear models) and \rhorVsOlsRedTreeRng{}\%
+    (tree ensembles) against the OLS benchmark.
+  \item The gain survives the HAR benchmark augmented with the futures' realized moments (significantly in
+    \rhabNClassesBeatAddRm{} of the \rhabNClassesAddRm{} classes), the classical HAR extensions and a window of
+    \rhrbWinLong{} days (\rhrbNFullLowerSigBarLong{} of \rhrbNModelsLong{} classes); it is weakest at the closing half
+    hour (significant in \rhcaNLowerSigCloseSpan{} of \rhorAfPairs{} classes).
   \end{itemize}
-% 2026-10-22 (user, E34: one design for the 12 pooled forecasts): parked -- the note named one class. Was: "\editc{orange}{N15c}{Problem: ``every intraday model class'' no longer holds under the per-year Sharpe ratio (pooled random forest $\Delta\SR = \rhrAfRfPoolDSh$); see note N15c in Section~\ref{sec:rh_econ}.}"
-% 2026-10-22 (user, D6): parked -- the note under the per-year ratio D1; under the Sharpe ratio of note D6 the sentence holds in point estimates. Was: "\editc{orange}{N15c}{Problem: ``every intraday model class'' does not hold: the full predictor set raises the pooled Sharpe ratio in \rhrAfPoolShHigher{} of the \rhrAfPoolPairs{} classes ($\Delta\SR$ from \rhrAfPoolDShMin{} to \rhrAfPoolDShMax); see note N15c in Section~\ref{sec:rh_econ}.}"
-% 2026-10-23 (user, N1 / new-notes 15c, final rerun): parked -- the note on the 2012 design ("holds in point estimates" was a statement about the 1,000-day runs from 3 January 2012); on the final rerun the sentences print the count. Was: "\editc{orange}{N15c}{Problem: under the Sharpe ratio of note D6, the full predictor set raises the pooled Sharpe ratio in \rhrAfPoolShHigher{} of the \rhrAfPoolPairs{} classes ($\Delta\SR$ from \rhrAfPoolDShMin{} to \rhrAfPoolDShMax), so ``every intraday model class'' holds in point estimates; \rhrAfPoolShHigherSig{} of these gains are statistically significant at the 5\% level (bootstrap test), and under the previous ratio the count was \rheDefDOnePos{} of \rheDefN{}. See notes N15c and D6 in Section~\ref{sec:rh_econ}.}"
-% 2026-10-23 (user, N15c resolved, phase 2): parked -- "every" restored: \rhrAfPoolShHigher = \rhrAfPoolPairs on the final rerun (see Section 7). Was: "\editc{orange}{N15c}{Problem (2026-10-23, final rerun): ``every intraday model class'' is parked; the sentence prints the count, \rhrAfPoolShHigher{} of the \rhrAfPoolPairs{} classes ($\Delta\SR$ from \rhrAfPoolDShMin{} to \rhrAfPoolDShMax{} under the Sharpe ratio of note D6; \rhrAfPoolShHigherSig{} of these gains statistically significant at the 5\% level, bootstrap test; under the previous ratio the count was \rheDefDOnePos{} of \rheDefN{}). Restore ``every'' only if the two are equal on the final rerun; the forest storyline is not decided. See notes N15c and D6 in Section~\ref{sec:rh_econ}.}"
-% 2026-10-23 (user, phase 2): added -- the variable importance of the pooled models (08_feature_importance.tex, \rhfip...).
-\item \textbf{Which series the pooled models use.} In the tree ensembles the non-standard series, those outside the HAR components, the futures' own realized moments and trading activity, and the VIX, hold \rhfipNsExMin--\rhfipNsExMax\% of the exogenous attribution, less than in the penalized linear models (\rhfipEnetNsEx--\rhfipLassoNsEx\%); the trees' attribution is concentrated in a few series and their non-standard share is higher on FOMC statement days (Section~\ref{sec:rh_fi}).
-% 2026-10-25 (user: the alternative-data angle, not overdone): added -- what the alternative data carry (Section 8).
-% 2026-10-25 (user, step 1 of the gap analysis): parked -- the sentence read the small shares as evidence about the alternative data; under the late-start rule they are zero on most scored bars. Was: "The alternative data carry little of the trees' attribution (the StockTwits series \rhfipSentMin--\rhfipSentMax\% and the volatility-demand series \rhfipVdMin--\rhfipVdMax\% of the total); the non-standard weight sits mostly with the constituents' trading measures and the FOMC calendar."
-% 2026-10-25: parked -- the attention share as \rhlvStAttOptLo--\rhlvStAttOptHi (now 100.0--100.0); one range macro.
-% 2026-10-26 (user: the live-year shares are the fairer read): parked -- "The alternative data hold little of the trees'
-% attribution (the StockTwits series \rhfipSentMin--\rhfipSentMax\% and the volatility-demand series
-% \rhfipVdMin--\rhfipVdMax\% of the total), but they start late and their value averages are live on only
-% \rhlvStSentEvLo--\rhlvStAttEvHi\% and \rhlvVdEvLo--\rhlvVdEvHi\% of the scored bars, so the evaluation says little
-% about their value;"
-The non-standard weight sits mostly with the constituents' trading measures and the FOMC calendar. Pooled over the span, the alternative data hold little of the trees' attribution (the StockTwits series \rhfipSentMin--\rhfipSentMax\% and the volatility-demand series \rhfipVdMin--\rhfipVdMax\% of the total), but they start late and their value averages are live on only \rhlvStSentEvLo--\rhlvStAttEvHi\% and \rhlvVdEvLo--\rhlvVdEvHi\% of the scored bars; in the years they are live their share rises (StockTwits \rhfilStwLiveMin--\rhfilStwLiveMax\%, volatility demand \rhfilVdLiveMin--\rhfilVdLiveMax\%), from models that have seen their values on at most \rhfilStwWinPct\% of the training window, so the evaluation says little about their value; on the option days of the economic test, StockTwits attention is live on \rhlvStAttOptRange\% of days.
-\item \textbf{Scope and limitations.}
+\item \textbf{The gain is concentrated} (Sections~\ref{sec:rh_results_ablation} and~\ref{sec:rh_fi}). The FOMC calendar
+  carries most of the trees' gain and the futures' realized moments come second; the \ladderTopK{}
+  highest-ranked series retain \ladderTreeRetainRng{}\% of it, and the linear models do best with
+  \ladderLinKstarRng{} series. The signal sits in a few series rather than spreading thinly over many.
+% 2026-10-26 (audit correctness-4, front-11): the option-day live share of StockTwits attention alone (100%) parked;
+% the evaluation bars are the reach that matters, and the training-window share is \rhfilStwWinPct.
+\item \textbf{Alternative data add little, even when live.}
   \begin{itemize}
-  % 2026-10-20 (user): parked -- Table 1 scored from 2012 (TABLE1_SWITCH.md, approved). Was: "\item Our out-of-sample evaluation spans $T_{\mathrm{oos}} = \rhoosDays$ trading days from \rhoosSpanStart{} to \rhoosSpanEnd."
-  % 2026-10-22 (user, E36): parked -- "the forecast accuracy of the pooled linear models (Table~\ref{tab:rh_oos})"; Table 1 now holds the tree ensembles too.
-  \item Our out-of-sample evaluation spans $T_{\mathrm{oos}} = \rhoosDays$ trading days from \rhoosSpanStart{} to \rhoosSpanEnd; the forecast accuracy of the pooled linear models and tree ensembles (Table~\ref{tab:rh_oos}) is scored on \rhorDays{} trading days from \rhorSpanStart{} to \rhorSpanEnd.
-  \item The empirical analysis focuses on a single equity index (the S\&P~500) and a single target horizon (the 15:30--16:00 ET closing half hour).
-  \item In our economic evaluation, the straddle is held unhedged to cash settlement, and executing at quoted bid and ask prices rather than mid-quotes materially reduces the strategy's Sharpe ratio (Section~\ref{sec:rh_econ}).
+  \item Under our causal construction the StockTwits and volatility-demand series are live on
+    \rhlvStSentEvLo--\rhlvStAttEvHi\% and \rhlvVdEvLo--\rhlvVdEvHi\% of the scored bars; on those bars they change the
+    loss little, and volatility demand raises that of the linear models.
+  \item Their share of the trees' attribution rises in their live years (StockTwits
+    \rhfilStwLiveMin--\rhfilStwLiveMax\%, from at most \rhfilStwWinPct\% of the training window), but use is not
+    accuracy.
   \end{itemize}
-\item \textbf{Directions for future work.} Natural extensions include out-of-sample evaluation on post-\rhoosSpanEnd{} option expirations, cross-market validation on additional index option chains, and intraday variance forecasting at earlier decision origins prior to 15:30 ET.
+\item \textbf{QLIKE and squared error.} Under squared-error loss the full set is not more accurate (its mean squared
+  error is higher in \rhcaNMseHigherBarSpan{} of \rhorAfPairs{} classes, significantly in \rhcaNMseHigherSigBarSpan),
+  a difference carried almost entirely by \rhcaTopDays{} days of the COVID-19 crash; without the crash window it is
+  significantly lower in \rhcaNMseLowerSigBarOosExCrash{} classes.
+% 2026-10-26: "the full-set strategies beat the short straddle" backed by \rhemFullVsShortSig (D6 bootstrap); the
+% count against the RTH13 OLS-HAR strategy awaits \rhPending{rhemFullVsOlsHarSig}; "no significant market beta" by
+% \rhebBetaSigFull = 0.
+\item \textbf{An application to 0DTE straddles} (Section~\ref{sec:rh_econ}).
+  \begin{itemize}
+  \item Signed by the forecast of the closing bar's variance against implied variance, one at-the-money SPXW
+    straddle a day earns annualized Sharpe ratios of \rhrPoolShFullMin--\rhrPoolShFullMax{} at mid-quotes
+    (\rhrPoolShXFullMin--\rhrPoolShXFullMax{} at bid/ask) on the full set, against \rheShortSh{} for the short
+    straddle, significantly more in \rhemFullVsShortSig{} of the \rhorAfPairs{} classes; against the HAR strategy, in
+    \rhemFullVsOlsHarSig{}.
+  \item The gain is earned on the days the strategies buy and rests on their \rhedNTop{} best days; no strategy has a
+    significant market beta.
+  \end{itemize}
+\item \textbf{Comparison with machine-learning option portfolios.}
+  \begin{itemize}
+  \item \citet{MaischZhangUlrichZimmer2026} trade decile long--short portfolios of S\&P~500 index options of all
+    maturities, re-formed every half hour on forecasts of delta-hedged returns, over \extMaischTestMonths{} months of
+    \extMaischYear. Their Sharpe ratios (\extMaischSrGbrtAnn{} and \extMaischSrEnsAnn{} annualized) are gross, at
+    mid-quotes; by their account quoted spreads would erase much of the profit.
+  \item Ours come from one unhedged straddle a day, are far smaller, are reported at bid/ask too, and rest on a few
+    days.
+  \end{itemize}
+\item \textbf{Scope and extensions.} One index and one futures contract; a window fixed after an out-of-sample
+  comparison of windows, all reported in the online appendix; NYSE-holiday sessions kept in the estimation sample; a
+  short option sample (\rheSzDays{} days). Extensions: the sessions after \rhorSpanEnd, other markets, density
+  forecasts, and trades entered at earlier bars from the every-bar forecasts already produced.
 \end{itemize}
+
+% 2026-10-26 (integration, JFEc; D1, D2): parked -- the conclusion of 16-26 October 2026, verbatim (its live lines
+% and its own dated comments), each line prefixed "% | ". It led with the closing half hour, compared every pooled
+% forecast with the closing-interval HAR benchmark (D2: no longer in the main text), reported the closing-half-hour
+% counts on T_oos without the span (audit numbers-2), attached the fixed-b mean-return count \rhrPoolShortSig to the
+% Sharpe ratios in the Maisch comparison (audit front-2, numbers-4), quoted only StockTwits attention's option-day live
+% share (audit correctness-4, front-11), and proposed "earlier decision origins" as future work although every bar is
+% already forecast (audit front-12).
+% | \section{Conclusion}
+% | \label{sec:rh_conclusion}
+% | \begin{itemize}
+% | % 2026-10-25 (user: lineage in the realized volatility literature; the alternative-data angle, not overdone): added.
+% | \item \textbf{Realized volatility at the intraday horizon.} We carry the HAR approach to forecasting realized
+% |   volatility to the closing half hour of the S\&P~500 and ask what exogenous predictors, from the intraday trading
+% |   of the index's constituents to alternative data such as social-media sentiment and option order flow, add to it.
+% | % 2026-10-22 (user, E34: one design for the 12 pooled forecasts): parked -- "across all" no longer holds with the pooled linear models on the trees' design; the count is printed and the heading no longer states a reduction. Was: "\item \textbf{Exogenous predictors reduce QLIKE loss in pooled intraday models.} Relative to the HAR benchmark, augmenting the model with the full exogenous predictor set lowers mean QLIKE across all \rhrAfPoolPairs{} pooled intraday model classes, with \rhrAfPoolLowerSig{} of these reductions statistically significant at the 5\% level (Section~\ref{sec:rh_results})."
+% | % 2026-10-23 (user, final rerun, phase 2): parked -- on the final rerun the closing-half-hour QLIKE is lower with the full set for the three tree ensembles only and higher for the three penalized linear models; the every-bar result of Table 1 and the window robustness added). Was: "\item \textbf{Exogenous predictors and QLIKE loss in pooled intraday models.} Relative to the HAR benchmark, augmenting the model with the full exogenous predictor set lowers mean QLIKE in \rhrAfPoolLower{} of the \rhrAfPoolPairs{} pooled intraday model classes, with \rhrAfPoolLowerSig{} of these reductions statistically significant at the 5\% level (Section~\ref{sec:rh_results})."
+% | % 2026-10-23 (phase 2): "all ... each significant" backed by \rhorAfLower = \rhorAfLowerSig = \rhorAfPairs (6), "none" by \rhrAfPoolLowerSig = 0.
+% | \item \textbf{Exogenous predictors and QLIKE loss in pooled intraday models.} Relative to the HAR benchmark, augmenting the model with the full exogenous predictor set lowers mean QLIKE on every regular-hours bar in all \rhorAfPairs{} pooled intraday model classes, each reduction statistically significant at the 5\% level. For the forecast of the closing half hour it lowers mean QLIKE in \rhrAfPoolLower{} of the \rhrAfPoolPairs{} classes, the \rhrPoolNTreeWord{} tree ensembles, none of these reductions statistically significant at the 5\% level, and raises it for the \rhrPoolNLinWord{} penalized linear models (Section~\ref{sec:rh_results}). With a window of \rhrbWinLong{} trading days the every-bar result holds in \rhrbNFullLowerSigBarLong{} of the \rhrbNModelsLong{} classes (Table~\ref{tab:rh_robust_w3500}).
+% | % 2026-10-22 (user, E34): parked -- with the base-5 pooled trees their reductions are no longer the largest or significant (make_rehaul_results.py, E34 CLAIM); no ranking. Was: "The largest relative reductions occur in the tree ensembles, while among the penalized linear specifications the elastic net achieves a statistically significant reduction."
+% | % 2026-10-22 (user, E34: one design for the 12 pooled forecasts): parked -- the pooled elastic net's reduction is no longer significant; the count is printed. Was: "Among the penalized linear specifications the elastic net achieves a statistically significant reduction; among the tree ensembles, the reduction is statistically significant at the 5\% level in \rhrAfPoolTreeLowerSig{} of the three classes."
+% | % 2026-10-23 (user, final rerun, phase 2): parked -- the linear significance count is moot (the full set raises the linear models' closing-half-hour QLIKE) and "three" was typed). Was: "The reduction is statistically significant at the 5\% level in \rhrAfPoolLinLowerSig{} of the three penalized linear classes and in \rhrAfPoolTreeLowerSig{} of the three tree classes."
+% | % 2026-10-19 (user): parked -- the MSE finding, with the QLIKE/squared-error divergence bullet of 06_results.tex and the abstract's MSE clause. Was:
+% | % \item \textbf{Divergence between QLIKE and squared-error loss.} Evaluated under mean squared error, expanding to the full predictor set increases MSE in \rhrAfPoolMseHigher{} of the \rhrAfPoolPairs{} intraday classes, although none of the MSE differences is statistically significant.
+% | % 2026-10-17 (user): parked -- closing-interval material (relabeled: closing-interval HAR benchmark). Was: "Comparison with the daily HAR benchmark. ... than the daily OLS HAR benchmark estimated solely on closing-interval data."
+% | % 2026-10-18 (user, new-notes 10): parked -- closing cadence only in the closing section. Was: "\item \textbf{Comparison with the closing-interval HAR benchmark.} Every pooled intraday specification incurs a higher mean QLIKE than the closing-interval HAR benchmark, the daily OLS HAR regression estimated solely on closing-interval data. Incorporating the full exogenous predictor set narrows this loss gap in every model class, leaving the gap statistically insignificant at the 5\% level for all three penalized linear models while remaining significant for the tree ensembles (Section~\ref{sec:rh_results_classes})."
+% | % 2026-10-22 (user, E34): parked -- with the base-5 pooled trees the gap stays significant for \rhrVsBmPoolTreeFullSig{} of the three tree ensembles, not all (make_rehaul_results.py, E34 CLAIM). Was: "... leaving the gap statistically insignificant at the 5\% level for all three penalized linear models while remaining significant for the tree ensembles (Section~\ref{sec:rh_results_classes})."
+% | \item \textbf{Comparison with the closing-interval HAR benchmark.} Every pooled intraday specification incurs a higher mean QLIKE than the closing-interval HAR benchmark, the OLS HAR regression estimated solely on closing-interval data.
+% | % 2026-10-22 (user, E34: one design for the 12 pooled forecasts): parked -- "in every model class" and "insignificant ... for all three penalized linear models" no longer hold; counts printed. Was: "Incorporating the full exogenous predictor set narrows this loss gap in every model class, leaving the gap statistically insignificant at the 5\% level for all three penalized linear models while it remains significant for \rhrVsBmPoolTreeFullSig{} of the three tree ensembles (Section~\ref{sec:rh_results_classes})."
+% | % 2026-10-23 (user, final rerun, phase 2): parked -- typed "three" (twice); the classes in which the gap narrows named). Was: "Incorporating the full exogenous predictor set narrows this loss gap in \rhrVsBmPoolNarrow{} of the \rhrAfPoolPairs{} model classes; on the full predictor set the gap is statistically significant at the 5\% level for \rhrVsBmPoolLinFullSig{} of the three penalized linear models and for \rhrVsBmPoolTreeFullSig{} of the three tree ensembles (Section~\ref{sec:rh_results_classes})."
+% | Incorporating the full exogenous predictor set narrows this loss gap in \rhrVsBmPoolNarrow{} of the \rhrAfPoolPairs{} model classes, the tree ensembles, and widens it for the penalized linear models; on the full predictor set the gap is statistically significant at the 5\% level for \rhrVsBmPoolLinFullSig{} of the \rhrPoolNLinWord{} penalized linear models and for \rhrVsBmPoolTreeFullSig{} of the \rhrPoolNTreeWord{} tree ensembles (Section~\ref{sec:rh_results_classes}).
+% | % 2026-10-17 (user): parked -- closing-interval material (moved to Appendix sec:rh_econ_last30). Was:
+% | % \item \textbf{Closing-interval estimation as a structural refinement.} Restricting estimation of each model class to the closing half hour lowers mean QLIKE further across all specifications, and within this closing-interval scheme the full exogenous predictor set continues to reduce mean QLIKE in every model class (Section~\ref{sec:rh_econ_last30}).
+% | \item \textbf{Models trained on the closing half hour.} Results for each model class estimated on the closing interval alone are reported in Appendix~\ref{sec:rh_econ_last30}.
+% | % 2026-10-17 (user, E25): parked -- the rank correlations now run over the pooled intraday forecasts (\rheRankCorrQPool, \rheRankCorrESPool), where QLIKE is no longer weakly correlated. Was: "Across the full model set, global statistical accuracy ($\overline{\QLIKE}$) exhibits only a weak rank correlation with straddle Sharpe ratios, whereas local accuracy at the implied-variance threshold ($\overline{\mathrm{ES}}_1$) aligns much more closely with economic gains"
+% | % 2026-10-18 (user, second-list N5): parked -- the correlation is between loss and SR, not accuracy and SR; values from \rheRankCorrQPool / \rheRankCorrESPool. Was: "\item \textbf{Economic value in 0DTE straddles.} When the variance forecasts are used to trade same-day-expiring SPXW straddles over the closing half hour on the option-data subsample, adding the exogenous predictors increases the sign strategy's post-warmup Sharpe ratio in every intraday model class. Across the \rhrPoolN{} pooled intraday forecasts, both global statistical accuracy ($\overline{\QLIKE}$) and local accuracy at the implied-variance threshold ($\overline{\mathrm{ES}}_1$) are negatively rank-correlated with straddle Sharpe ratios (Section~\ref{sec:rh_econ_results})."
+% | % 2026-10-23 (user, N1 / new-notes 15c, final rerun): parked -- "in every intraday model class" was typed for the 2012 design (note N15c); the count is printed (\rhrAfPoolShHigher, make_rehaul_results.py). Restore "every" only if it equals \rhrAfPoolPairs on the final rerun; the forest storyline (writeup/RF_STORY_OPTIONS.md) is not decided here. Was: "... adding the exogenous predictors increases the sign strategy's post-warmup Sharpe ratio in every intraday model class."
+% | % 2026-10-23 (user, N15c resolved, phase 2): parked -- the count; \rhrAfPoolShHigher = \rhrAfPoolPairs on the final rerun, so "every" is restored, scoped to the six classes (MinGRU parked), with the significance count). Was: "\item \textbf{Economic value in 0DTE straddles.} When the variance forecasts are used to trade same-day-expiring SPXW straddles over the closing half hour on the option-data subsample, adding the exogenous predictors increases the sign strategy's post-warmup Sharpe ratio in \rhrAfPoolShHigher{} of the \rhrAfPoolPairs{} intraday model classes. % 2026-10-22 (user, E34: one design for the 12 pooled forecasts): parked -- the sign claim ("both negatively rank-correlated"), which does not hold on one design. Was: "Across the \rhrPoolN{} pooled intraday forecasts, average QLIKE loss and $\overline{\mathrm{ES}}_1$, the loss at the implied-variance threshold, are both negatively rank-correlated with straddle Sharpe ratios, at \rheRankCorrQPool{} and a weak \rheRankCorrESPool{} for $\overline{\mathrm{ES}}_1$ (Section~\ref{sec:rh_econ_results}).""
+% | % 2026-10-25 (user: the option trades as an application of the variance forecasts): "As an application of the
+% | % forecasts," added; the sentence is otherwise unchanged. Was: "\item \textbf{Economic value in 0DTE straddles.}
+% | % When the variance forecasts are used to trade ..."
+% | \item \textbf{Economic value in 0DTE straddles.} As an application of the forecasts, when they are used to trade same-day-expiring SPXW straddles over the closing half hour on the option-data subsample, adding the exogenous predictors increases the sign strategy's post-warmup Sharpe ratio in every one of the \rhrAfPoolPairs{} intraday model classes, in point estimates, and significantly at the 5\% level in \rhrAfPoolShHigherSig{} of them. % 2026-10-22 (user, E34: one design for the 12 pooled forecasts): parked -- the sign claim ("both negatively rank-correlated"), which does not hold on one design. Was: "Across the \rhrPoolN{} pooled intraday forecasts, average QLIKE loss and $\overline{\mathrm{ES}}_1$, the loss at the implied-variance threshold, are both negatively rank-correlated with straddle Sharpe ratios, at \rheRankCorrQPool{} and a weak \rheRankCorrESPool{} for $\overline{\mathrm{ES}}_1$ (Section~\ref{sec:rh_econ_results})."
+% | % 2026-10-23 (user, final rerun, phase 2): parked -- the signs stated (facts; the QLIKE correlation is positive on the final rerun, under all three Sharpe ratio definitions)). Was: "Across the \rhrPoolN{} pooled intraday forecasts, the rank correlation of the straddle Sharpe ratio is \rheRankCorrQPool{} with average QLIKE loss and \rheRankCorrESPool{} with $\overline{\mathrm{ES}}_1$, the loss at the implied-variance threshold (Section~\ref{sec:rh_econ_results})."
+% | Across the \rhrPoolN{} pooled intraday forecasts, the rank correlation of the straddle Sharpe ratio is positive with average QLIKE loss, \rheRankCorrQPool, and negative with $\overline{\mathrm{ES}}_1$, the loss at the implied-variance threshold, \rheRankCorrESPool{} (Section~\ref{sec:rh_econ_results}).
+% | % 2026-10-25 (user: compare and contrast our trading results with Maisch, Zhang, Ulrich and Zimmer, SSRN 7269778):
+% | % added. Their numbers are \extMaisch... macros (writeup/make_external_numbers.py, each with its page and table in
+% | % their PDF); ours are the pooled full-set Sharpe ratios of Section 7 (D6, post-warmup days).
+% | \item \textbf{Comparison with machine-learning option portfolios.} Our straddle trades share their market and bar
+% |   length with those of \citet{MaischZhangUlrichZimmer2026}, who trade S\&P~500 index options on machine-learning
+% |   forecasts of their half-hourly delta-hedged returns. The overlap is one of setting: our trades apply realized
+% |   variance forecasts, whereas their option returns are the object of the forecasts, and the two strategies differ in
+% |   what they trade and in what their Sharpe ratios measure.
+% |   \begin{itemize}
+% |   \item Their decile long--short portfolios, re-formed every half hour across the cross-section of contracts over
+% |     \extMaischTestMonths{} test months of \extMaischYear, reach half-hourly Sharpe ratios of \extMaischSrGbrt{} and
+% |     \extMaischSrEns{} for their two best specifications (\extMaischSrGbrtAnn{} and \extMaischSrEnsAnn{} annualized),
+% |     gross and at mid-quotes. Weighting the contracts by open interest lowers them to \extMaischSrGbrtOi{} and
+% |     \extMaischSrEnsOi, and by their own account trading each option at its quoted bid and ask would erase a large
+% |     share of the profits.
+% |   \item Our strategy holds one at-the-money straddle a day, signed by the variance forecast of the closing half
+% |     hour. On the full predictor set its annualized Sharpe ratio is \rhrPoolShFullMin--\rhrPoolShFullMax{} at
+% |     mid-quotes and \rhrPoolShXFullMin--\rhrPoolShXFullMax{} at quoted bid/ask prices over the \rheSzDays{} post-warmup days, against
+% |     \rheShortSh{} and \rheShortShX{} for the unconditional short straddle; its gain over that benchmark is
+% |     statistically significant in \rhrPoolShortSig{} of the \rhrPoolN{} pooled forecasts and is concentrated on a few
+% |     days (Section~\ref{sec:rh_econ_results}).
+% |   % 2026-10-25 (user, step 1 of the gap analysis): parked -- "ours come from timing the variance premium of the
+% |   % closing half hour with a realized variance forecast": no decomposition of the straddle profits backs it yet, and
+% |   % the short straddle shows no detectable variance risk premium in the sample (Section 7). Was: "Their profits come
+% |   % from ranking contracts on predicted returns, which they trace to mispricing; ours come from timing the variance
+% |   % premium of the closing half hour with a realized variance forecast."
+% |   \item Their profits come from ranking contracts on predicted returns, which they trace to mispricing; ours rest on
+% |     the sign of a realized variance forecast against the implied variance of a single straddle. Their gross Sharpe
+% |     ratios are far larger and rest on a turnover that quoted spreads would largely absorb; ours are modest, but they
+% |     come from a single trade a day and are reported at quoted bid/ask prices.
+% |   \end{itemize}
+% | % 2026-10-22 (user, E34: one design for the 12 pooled forecasts): parked -- the note named one class. Was: "\editc{orange}{N15c}{Problem: ``every intraday model class'' no longer holds under the per-year Sharpe ratio (pooled random forest $\Delta\SR = \rhrAfRfPoolDSh$); see note N15c in Section~\ref{sec:rh_econ}.}"
+% | % 2026-10-22 (user, D6): parked -- the note under the per-year ratio D1; under the Sharpe ratio of note D6 the sentence holds in point estimates. Was: "\editc{orange}{N15c}{Problem: ``every intraday model class'' does not hold: the full predictor set raises the pooled Sharpe ratio in \rhrAfPoolShHigher{} of the \rhrAfPoolPairs{} classes ($\Delta\SR$ from \rhrAfPoolDShMin{} to \rhrAfPoolDShMax); see note N15c in Section~\ref{sec:rh_econ}.}"
+% | % 2026-10-23 (user, N1 / new-notes 15c, final rerun): parked -- the note on the 2012 design ("holds in point estimates" was a statement about the 1,000-day runs from 3 January 2012); on the final rerun the sentences print the count. Was: "\editc{orange}{N15c}{Problem: under the Sharpe ratio of note D6, the full predictor set raises the pooled Sharpe ratio in \rhrAfPoolShHigher{} of the \rhrAfPoolPairs{} classes ($\Delta\SR$ from \rhrAfPoolDShMin{} to \rhrAfPoolDShMax), so ``every intraday model class'' holds in point estimates; \rhrAfPoolShHigherSig{} of these gains are statistically significant at the 5\% level (bootstrap test), and under the previous ratio the count was \rheDefDOnePos{} of \rheDefN{}. See notes N15c and D6 in Section~\ref{sec:rh_econ}.}"
+% | % 2026-10-23 (user, N15c resolved, phase 2): parked -- "every" restored: \rhrAfPoolShHigher = \rhrAfPoolPairs on the final rerun (see Section 7). Was: "\editc{orange}{N15c}{Problem (2026-10-23, final rerun): ``every intraday model class'' is parked; the sentence prints the count, \rhrAfPoolShHigher{} of the \rhrAfPoolPairs{} classes ($\Delta\SR$ from \rhrAfPoolDShMin{} to \rhrAfPoolDShMax{} under the Sharpe ratio of note D6; \rhrAfPoolShHigherSig{} of these gains statistically significant at the 5\% level, bootstrap test; under the previous ratio the count was \rheDefDOnePos{} of \rheDefN{}). Restore ``every'' only if the two are equal on the final rerun; the forest storyline is not decided. See notes N15c and D6 in Section~\ref{sec:rh_econ}.}"
+% | % 2026-10-23 (user, phase 2): added -- the variable importance of the pooled models (08_feature_importance.tex, \rhfip...).
+% | \item \textbf{Which series the pooled models use.} In the tree ensembles the non-standard series, those outside the HAR components, the futures' own realized moments and trading activity, and the VIX, hold \rhfipNsExMin--\rhfipNsExMax\% of the exogenous attribution, less than in the penalized linear models (\rhfipEnetNsEx--\rhfipLassoNsEx\%); the trees' attribution is concentrated in a few series and their non-standard share is higher on FOMC statement days (Section~\ref{sec:rh_fi}).
+% | % 2026-10-25 (user: the alternative-data angle, not overdone): added -- what the alternative data carry (Section 8).
+% | % 2026-10-25 (user, step 1 of the gap analysis): parked -- the sentence read the small shares as evidence about the alternative data; under the late-start rule they are zero on most scored bars. Was: "The alternative data carry little of the trees' attribution (the StockTwits series \rhfipSentMin--\rhfipSentMax\% and the volatility-demand series \rhfipVdMin--\rhfipVdMax\% of the total); the non-standard weight sits mostly with the constituents' trading measures and the FOMC calendar."
+% | % 2026-10-25: parked -- the attention share as \rhlvStAttOptLo--\rhlvStAttOptHi (now 100.0--100.0); one range macro.
+% | % 2026-10-26 (user: the live-year shares are the fairer read): parked -- "The alternative data hold little of the trees'
+% | % attribution (the StockTwits series \rhfipSentMin--\rhfipSentMax\% and the volatility-demand series
+% | % \rhfipVdMin--\rhfipVdMax\% of the total), but they start late and their value averages are live on only
+% | % \rhlvStSentEvLo--\rhlvStAttEvHi\% and \rhlvVdEvLo--\rhlvVdEvHi\% of the scored bars, so the evaluation says little
+% | % about their value;"
+% | The non-standard weight sits mostly with the constituents' trading measures and the FOMC calendar. Pooled over the span, the alternative data hold little of the trees' attribution (the StockTwits series \rhfipSentMin--\rhfipSentMax\% and the volatility-demand series \rhfipVdMin--\rhfipVdMax\% of the total), but they start late and their value averages are live on only \rhlvStSentEvLo--\rhlvStAttEvHi\% and \rhlvVdEvLo--\rhlvVdEvHi\% of the scored bars; in the years they are live their share rises (StockTwits \rhfilStwLiveMin--\rhfilStwLiveMax\%, volatility demand \rhfilVdLiveMin--\rhfilVdLiveMax\%), from models that have seen their values on at most \rhfilStwWinPct\% of the training window, so the evaluation says little about their value; on the option days of the economic test, StockTwits attention is live on \rhlvStAttOptRange\% of days.
+% | \item \textbf{Scope and limitations.}
+% |   \begin{itemize}
+% |   % 2026-10-20 (user): parked -- Table 1 scored from 2012 (TABLE1_SWITCH.md, approved). Was: "\item Our out-of-sample evaluation spans $T_{\mathrm{oos}} = \rhoosDays$ trading days from \rhoosSpanStart{} to \rhoosSpanEnd."
+% |   % 2026-10-22 (user, E36): parked -- "the forecast accuracy of the pooled linear models (Table~\ref{tab:rh_oos})"; Table 1 now holds the tree ensembles too.
+% |   \item Our out-of-sample evaluation spans $T_{\mathrm{oos}} = \rhoosDays$ trading days from \rhoosSpanStart{} to \rhoosSpanEnd; the forecast accuracy of the pooled linear models and tree ensembles (Table~\ref{tab:rh_oos}) is scored on \rhorDays{} trading days from \rhorSpanStart{} to \rhorSpanEnd.
+% |   \item The empirical analysis focuses on a single equity index (the S\&P~500) and a single target horizon (the 15:30--16:00 ET closing half hour).
+% |   \item In our economic evaluation, the straddle is held unhedged to cash settlement, and executing at quoted bid and ask prices rather than mid-quotes materially reduces the strategy's Sharpe ratio (Section~\ref{sec:rh_econ}).
+% |   \end{itemize}
+% | \item \textbf{Directions for future work.} Natural extensions include out-of-sample evaluation on post-\rhoosSpanEnd{} option expirations, cross-market validation on additional index option chains, and intraday variance forecasting at earlier decision origins prior to 15:30 ET.
+% | \end{itemize}
 % 2026-10-16 (user): the conclusion now follows the intraday exogenous-feature results.
 % The MinGRU bullet and the closing-interval-versus-intraday headline are parked with the old list.
 % \begin{itemize}

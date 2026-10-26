@@ -1,0 +1,344 @@
+% A_fi.tex -- online appendix: variable importance details (2026-10-26, integration and pruning pass, JFEc page
+% budget; writeup/INTEGRATION_SPEC_2026-10-26.md, VI agent). Material moved out of the main-text section Variable
+% importance (rehaul/08_feature_importance.tex, label sec:rh_fi), lightly edited: the construction and its checks, the
+% rankings and their time profile, the conditional shares, the response shapes and interactions, the window test
+% (P1/P2) and the trees across windows, and the window x feature-count grid (framing B of
+% writeup/drafts/2026-10-26_complexity.tex only: data and feature scaling; the complexity framing in the sense of
+% KellyMalamudZhou2024 is not used, per the spec). Floats moved with their text: tab:rh_fip_nonstd, fig:rh_fip_rank,
+% fig:rh_fip_time, fig:rh_fip_cond (from 08_feature_importance_floats.tex); tab:rh_fip_window, tab:rh_fip_lc,
+% tab:rh_fip_inter, fig:rh_fip_shapes (from 08b_fi_measures_floats.tex); fig:rh_cx_complexity, fig:rh_cx_scaling
+% (generated/rehaul_complexity_floats.tex). Macros: \rhfip... (generated/rehaul_fip_numbers.tex), \rhlc...
+% (generated/rehaul_fip_lc_numbers.tex), \rhcx... (generated/rehaul_complexity_numbers.tex), \rhor...
+% (generated/rehaul_oos_rerun_numbers.tex); all loaded in the preamble of paper_rehaul.tex (FRONT adds
+% rehaul_complexity_numbers). The file holds \subsection's only; APPENDIX wires it into the online appendix.
+% Design note: the SHAP values, the ladder and the grid are on the design before the FOMC patch (D13); to be rerun on
+% the patched design.
+\ifdefined\rhfipNOrigins\else\input{generated/rehaul_fip_numbers}\fi
+\ifdefined\rhlcWMain\else\input{generated/rehaul_fip_lc_numbers}\fi
+\ifdefined\rhcxWMain\else\input{generated/rehaul_complexity_numbers}\fi
+
+% ---------------------------------------------------------------------------------------------------------------------
+% 2026-10-26 (integration, JFEc): moved from 08_feature_importance.tex, "What is computed" and two Scope sub-bullets.
+% Audit fixes: results-8 (the explained bars include the NYSE-holiday futures sessions, which Table 1 does not score:
+% 33,970 against 33,527 bars), results-20 (the tree configurations come from the development-span Optuna menu, not
+% from the last pre-sample fold). Was (results-20): "The penalties and the tree configurations were chosen on the last
+% pre-sample fold, which ends on \rhfipTuneLast, so no explained bar lies in a tuning fold."
+\subsection{Variable importance: construction and checks}
+\label{app:rh_fi_compute}
+\begin{itemize}
+\item \textbf{Models.} The pooled intraday models of the final design (rolling window of \rhfipWindowDays{} trading
+  days, \rhfipWindowBars{} bars; full predictor set of \rhfipNCols{} predictors in \rhfipNGroups{} groups: each of the
+  \rhfipNExog{} exogenous series with its \rhfipNPerSeries{} predictors, the HAR components and the calendar dummies),
+  explained at monthly origins.
+\item \textbf{Origins.} $k = 1, \dots, K$, $K = \rhfipNOrigins$: one every \rhfipOriginEvery{} trading days, at the
+  \rhfipBarFirst{} bar, from \rhfipFirstOrigin{} to \rhfipLastOrigin. Origin $k$'s model forecasts its block
+  $\mathcal O_k$, the \rhfipOriginEvery{} trading days up to the next origin (the last block: \rhfipLastBlock{} days);
+  the blocks partition all $|\mathcal O| = \rhfipNRows$ bars from \rhfipFirstOrigin{} to \rhfipLastDay.
+\item \textbf{Sample.} The \rhfipNRows{} bars include the bars of the shortened futures sessions held on NYSE
+  holidays, which the models are estimated on but Table~\ref{tab:rh_oos} does not score (it scores \rhorNIntB{} bars
+  on the same dates); every share in Section~\ref{sec:rh_fi} and here is computed over all explained bars.
+\item \textbf{Tuning.} The linear penalties were chosen on the last pre-sample fold, which ends on \rhfipTuneLast, and
+  the tree configurations on an earlier development sample (Appendix~\ref{app:rh_hyper}), so no explained bar lies in
+  a tuning sample.
+\item \textbf{Tree ensembles} (LightGBM, XGBoost, random forest). At each origin the model is refit on the
+  \rhfipWindowBars{} bars before it, as its every-bar walk refits at that bar, and held for the block.
+  Path-dependent TreeSHAP values \citep{lundberg2020local} of every bar $(t,i) \in \mathcal O_k$, on the scale of the
+  forecast, add up to it, and a group's value sums its predictors' values:
+  \[
+    \hat y_{t,i} = \phi_{k,0} + \sum_{j=1}^{p} \phi_{t,i,j}, \qquad
+    \phi_{t,i,A} = \sum_{j \in A} \phi_{t,i,j}, \qquad
+    s_A = \frac{I_A}{\sum_{B} I_B}, \quad I_A = \frac{1}{|\mathcal O|} \sum_{(t,i) \in \mathcal O} |\phi_{t,i,A}| ,
+  \]
+  with $\phi_{k,0}$ the model's expected forecast over its own training sample (the trees' node covers), so no
+  background sample is chosen.
+\item \textbf{Linear models} (ridge, lasso, elastic net). The walk's own coefficients at each origin on the
+  window-standardized predictors, which the penalty acts on, $\gamma_{k,j} = \hat\beta_{k,j}\,\mathrm{sd}_{k,j}$, and
+  a group's share $S_A = \sum_k \sum_{j \in A} |\gamma_{k,j}| / \sum_k \sum_{j} |\gamma_{k,j}|$; penalties as frozen
+  for this window (ridge \rhfipRidgePen, lasso \rhfipLassoPen, elastic net \rhfipEnetPen), with the penalty factor
+  \rhfipHarPf{} on the HAR components and the calendar dummies.
+\item \textbf{Classes}, fixed before any SHAP value was computed. Standard (\rhfipNStd{} groups): the HAR components,
+  the calendar dummies, the futures' \rhfipNMom{} realized moments, the VIX, and the futures' volume and trade count.
+  Non-standard: the other \rhfipNNonStd{} series (constituent liquidity, the equal- and value-weighted market
+  moments, StockTwits sentiment, volatility demand, the FOMC calendar, VVIX and VIX3M).
+\item \textbf{Intervals.} \rhfipCiLevel\% moving-block bootstrap over the origins (blocks of \rhfipBootBlock{}
+  origins, about a year; \rhfipBootB{} resamples), paired across models. They measure the variation over the span's
+  origins, not the sampling error of one fit.
+\item \textbf{Correlated predictors.} Between correlated predictors (the equal- and value-weighted versions of a
+  series, a series' value and availability averages) the credit follows the trees' split choices; summing over a
+  group removes the split within the group, not the split between groups.
+\item \textbf{Checks.} SHAP explains each origin's refit held for its block, whereas the walks refit at every bar; the
+  two coincide at the origin bars. There the refits equal the walks' forecasts bit for bit at \rhfipLgbmGateEq,
+  \rhfipXgbGateEq{} and \rhfipRfGateEq{} of the \rhfipNOrigins{} origins (LightGBM, XGBoost, random forest). The
+  linear coefficients are the walks' own (their replayed forecasts match to \rhfipLinGateMax). XGBoost computes SHAP
+  values in single precision: they add up to the forecast within \rhfipXgbAddMax{} (tolerance \rhfipXgbAddTol);
+  LightGBM's and the forest's within \rhfipAddMaxDouble.
+\end{itemize}
+
+% ---------------------------------------------------------------------------------------------------------------------
+% 2026-10-26 (integration, JFEc): moved from 08_feature_importance.tex: the rank-agreement part of "The ridge ranks the
+% series differently" (its FOMC-rank part stays in the main text) and "Over time"; the leading non-standard series
+% (Table tab:rh_fip_nonstd) and the ranking figure (fig:rh_fip_rank) moved with them.
+\subsection{Variable importance: rankings and their time profile}
+\label{app:rh_fi_rank}
+% 2026-10-26 (coordinator, JFEc page budget): moved here from rehaul/08_feature_importance_floats.tex.
+\input{generated/rehaul_fi_live_fig}
+\begin{itemize}
+\item \textbf{Rankings} (Figure~\ref{fig:rh_fip_rank}, Table~\ref{tab:rh_fip_nonstd}). The ridge ranks the series
+  differently from the trees. Its largest exogenous series is \rhfipRidgeTopOne{} (\rhfipRidgeTopOneEx\% of its
+  exogenous total), where \rhfipTreeTopOne{} leads in every tree (\rhfipLgbmTopOneEx, \rhfipXgbTopOneEx{} and
+  \rhfipRfTopOneEx\% of the exogenous total). Spearman rank correlation of the \rhfipNExog{} shares with the ridge's:
+  \rhfipLgbmSpRidge, \rhfipXgbSpRidge, \rhfipRfSpRidge{} (the two top-\rhfipTopN{} lists share \rhfipLgbmTopRidge,
+  \rhfipXgbTopRidge{} and \rhfipRfTopRidge{} series); among the trees: \rhfipSpLgbmXgb{} (LightGBM, XGBoost),
+  \rhfipSpLgbmRf{} and \rhfipSpXgbRf{} (each against the forest). The remaining non-standard series carry little:
+  VVIX \rhfipVvixMin--\rhfipVvixMax\% of the total, VIX3M \rhfipVixThreeMMin--\rhfipVixThreeMMax\%.
+\item \textbf{Over time} (Figure~\ref{fig:rh_fip_time}). Every tree's non-standard share falls below its pooled value
+  from \rhfipDipFirst{} to \rhfipDipLast{} and is lowest in \rhfipNsYearMinYr{} (\rhfipLgbmNsYearMin,
+  \rhfipXgbNsYearMin{} and \rhfipRfNsYearMin\% of the total); the HAR components gain in the same years (LightGBM:
+  \rhfipLgbmHarYearMax\% in \rhfipLgbmHarYearMaxYr, against \rhfipLgbmHarYearMin\% in \rhfipLgbmHarYearMinYr). The
+  ridge's non-standard share of its exogenous total also dips, to its lowest in \rhfipRidgeNsExYearMinYr{}
+  (\rhfipRidgeNsExYearMin\%, against \rhfipRidgeNsExYearMax\% in \rhfipRidgeNsExYearMaxYr; linear models dated by
+  the origin). Panels (b) and (c) show the leading series year by year.
+\end{itemize}
+% The leading non-standard series: share, rank (trees, ridge), response shape, interaction fraction
+\input{generated/rehaul_fip_nonstd}
+% The 46 exogenous series ranked, trees vs ridge
+\input{generated/rehaul_fip_fig_rank}
+% Over time: non-standard share by year (trees, linear models) and the leading series by year (LightGBM, ridge)
+\input{generated/rehaul_fip_fig_time}
+
+% ---------------------------------------------------------------------------------------------------------------------
+% 2026-10-26 (integration, JFEc): moved from 08_feature_importance.tex, "Only sometimes, or conditionally?".
+% AUDIT results-9 (open, generator change flagged to NUMBERS): \rhfipFomcDays prints 78 FOMC statement days, but the
+% span holds 81 scheduled statements. The SHAP reducer (results/tree_shap_w3000_2014start_2026-10-23/code/
+% shap_reduce.py:662-670) builds the FOMC-day subset from data/releases.parquet ('fomc release' > 0), which lacks the
+% three statements the loader adds (src/data/loading.py FOMC_MISSING_STATEMENTS: 2023-12-13, 2024-01-31, 2024-03-20;
+% Data section), so their 39 bars count as other days. Fix: build the subset from the loader's calendar, recompute
+% \rhfipFomcDays, \rhfipFomcRows and the ...NsFomc / ...NsOther / ...UntilFomc / ...UntilOther / ...FomcDiff macros
+% (writeup/make_rehaul_fi_pooled.py). The tree SHAP study is to be rerun on the FOMC-patched design anyway (D13).
+\subsection{Variable importance: conditional shares}
+\label{app:rh_fi_cond}
+\begin{itemize}
+\item \textbf{Only sometimes, or conditionally?} (Figure~\ref{fig:rh_fip_cond}). The trees split on most series at
+  every origin (\rhfipLgbmNUsedAll, \rhfipXgbNUsedAll{} and \rhfipRfNUsedAll{} of the \rhfipNExog); what changes with
+  the conditions is how much the series move the forecast.
+  \begin{itemize}
+  \item FOMC statement days (\rhfipFomcDays{} days in the span): the non-standard share is \rhfipLgbmNsFomc,
+    \rhfipXgbNsFomc{} and \rhfipRfNsFomc\% of the total, against \rhfipLgbmNsOther, \rhfipXgbNsOther{} and
+    \rhfipRfNsOther\% on other days (differences \rhfipLgbmFomcDiff{} [\rhfipLgbmFomcDiffLo, \rhfipLgbmFomcDiffHi],
+    \rhfipXgbFomcDiff{} [\rhfipXgbFomcDiffLo, \rhfipXgbFomcDiffHi] and \rhfipRfFomcDiff{} [\rhfipRfFomcDiffLo,
+    \rhfipRfFomcDiffHi] percentage points). Almost all of it is \rhfipFomcUntil: \rhfipLgbmUntilFomc,
+    \rhfipXgbUntilFomc{} and \rhfipRfUntilFomc\% of the total on statement days, against \rhfipLgbmUntilOther{} and
+    \rhfipXgbUntilOther\% on other days (LightGBM, XGBoost).
+  \item Bar of the day: the non-standard share is highest at the first bar, \rhfipBarFirst{} (\rhfipLgbmNsFirstBar,
+    \rhfipXgbNsFirstBar, \rhfipRfNsFirstBar\%), and at \rhfipBarPeakA{} and \rhfipBarPeakB{} (LightGBM
+    \rhfipLgbmNsAftMin--\rhfipLgbmNsAftMax\%), the bars where the FOMC calendar's share peaks (LightGBM
+    \rhfipLgbmFomcBucketAft\%, against a median of \rhfipLgbmFomcBucketOtherBars\% over the other bars). It is lower
+    at the last bar: \rhfipBarLast{} minus \rhfipBarFirst{} \rhfipLgbmLateDiff{} [\rhfipLgbmLateDiffLo,
+    \rhfipLgbmLateDiffHi], \rhfipXgbLateDiff{} [\rhfipXgbLateDiffLo, \rhfipXgbLateDiffHi] and \rhfipRfLateDiff{}
+    [\rhfipRfLateDiffLo, \rhfipRfLateDiffHi] percentage points.
+  \item Volatility regime (tercile of the VIX close before the origin): the non-standard share is lower in the
+    high-VIX tercile than in the low one, \rhfipLgbmVixDiff{} [\rhfipLgbmVixDiffLo, \rhfipLgbmVixDiffHi],
+    \rhfipXgbVixDiff{} [\rhfipXgbVixDiffLo, \rhfipXgbVixDiffHi] and \rhfipRfVixDiff{} [\rhfipRfVixDiffLo,
+    \rhfipRfVixDiffHi] percentage points of the total, and the HAR components gain instead (\rhfipLgbmVixHar,
+    \rhfipXgbVixHar, \rhfipRfVixHar). As a share of the exogenous total the drop is clear for XGBoost and the forest
+    and not for LightGBM (\rhfipLgbmVixDiffEx{} [\rhfipLgbmVixDiffExLo, \rhfipLgbmVixDiffExHi]).
+  \end{itemize}
+\end{itemize}
+% Conditional: by bar of the day, FOMC statement days, VIX tercile
+\input{generated/rehaul_fip_fig_cond}
+
+% ---------------------------------------------------------------------------------------------------------------------
+% 2026-10-26 (integration, JFEc): moved from 08_feature_importance.tex, "Shape of the response" and "Interactions".
+\subsection{Variable importance: response shapes and interactions}
+\label{app:rh_fi_shapes}
+\begin{itemize}
+\item \textbf{Shape of the response} (Table~\ref{tab:rh_fip_nonstd}, Figure~\ref{fig:rh_fip_shapes}). For each
+  non-standard series with a share of at least \rhfipShapeMin\% in a tree (\rhfipLgbmNShape, \rhfipXgbNShape{} and
+  \rhfipRfNShape{} series), the mean SHAP value by decile of its dominant predictor is classified by a rule fixed in
+  advance: monotone \rhfipLgbmNMono, \rhfipXgbNMono{} and \rhfipRfNMono; irregular \rhfipLgbmNIrr, \rhfipXgbNIrr{} and
+  \rhfipRfNIrr; a step \rhfipLgbmNStep, \rhfipXgbNStep{} and \rhfipRfNStep; flat \rhfipLgbmNFlat, \rhfipXgbNFlat{} and
+  \rhfipRfNFlat; none U-shaped, inverted-U or a threshold. Most responses are one-sided (asymmetric: \rhfipLgbmNAsym,
+  \rhfipXgbNAsym{} and \rhfipRfNAsym).
+  \begin{itemize}
+  \item The market's cross-sectional absolute returns and the spreads rise monotonically and are asymmetric toward
+    the top tail: \rhfipAbsVw{} moves the forecast from \rhfipAbsVwLgbmLo\% of the mean forecast in its bottom
+    decile to \rhfipAbsVwLgbmHi\% in its top decile (LightGBM; XGBoost \rhfipAbsVwXgbHi\%, forest \rhfipAbsVwRfHi\%).
+  \item \rhfipOfi{} falls monotonically: a larger order-flow imbalance lowers the forecast, from \rhfipOfiLgbmLo\% to
+    \rhfipOfiLgbmHi\% (LightGBM).
+  \item \rhfipFomcUntil{} (dominant predictor: its average over $k = \rhfipUntilHorizon$ samples) is labeled irregular
+    by the rule; read from the figure (post hoc), it is flat through the lower deciles and jumps in the top decile,
+    the approach of a statement, to \rhfipUntilLgbmHi, \rhfipUntilXgbHi{} and \rhfipUntilRfHi\% of the mean forecast.
+  \end{itemize}
+\item \textbf{Interactions} (Table~\ref{tab:rh_fip_inter}; boosted trees, \rhfipInterRows{} bars, descriptive).
+  Interactions carry \rhfipLgbmInterVar{} and \rhfipXgbInterVar\% of the attribution at the group level
+  (\rhfipLgbmInterCol{} and \rhfipXgbInterCol\% at the predictor level). They carry \rhfipLgbmInterNs{} and
+  \rhfipXgbInterNs\% of a non-standard series' attribution against \rhfipLgbmInterStd{} and \rhfipXgbInterStd\% for
+  the standard groups; more than half of that gap comes from the HAR components, which act mostly on their own
+  (\rhfipLgbmInterHar\% through interactions in LightGBM), and the calendar dummies: the standard exogenous series
+  alone reach \rhfipLgbmInterStdEx{} and \rhfipXgbInterStdEx\% (descriptive). The largest pairs with a non-standard
+  series pair it with the HAR components, \rhfipPairOneA{} $\times$ \rhfipPairOneB{} (\rhfipLgbmPairOne{} and
+  \rhfipXgbPairOne\% of the pair total) and \rhfipPairTwoA{} $\times$ \rhfipPairTwoB{} (\rhfipLgbmPairTwo{} and
+  \rhfipXgbPairTwo\%), and the HAR components are in \rhfipLgbmPairsHar{} and \rhfipXgbPairsHar{} of the ten largest.
+  The weakest series act mostly through interactions: \rhfipLgbmInterWeakMin--\rhfipLgbmInterWeakMax\% of the
+  attribution of the StockTwits series, VVIX, VIX3M and \rhfipFomcDay{} (LightGBM).
+\end{itemize}
+% Response shapes of the leading non-standard series (mean SHAP by decile of the dominant predictor)
+\input{generated/rehaul_fip_fig_shapes}
+% SHAP interactions in LightGBM and XGBoost: shares by class, the largest pairs with a non-standard series
+\input{generated/rehaul_fip_inter}
+
+% ---------------------------------------------------------------------------------------------------------------------
+% 2026-10-26 (integration, JFEc): moved from 08_feature_importance.tex, "Dense and weak, or concentrated?" (the linear
+% models across windows and the tree ensembles across windows). In the main text the feature-count ladder and the
+% ridge--lasso comparison replace this test (coordinator, 2026-10-26).
+% AUDIT results-7 (fixed here): the conclusion is qualified as "at a penalty held fixed across windows"; at the tuned
+% penalties the elastic net supports P1 and P2, and the rise coincides with the tenfold penalty drop; the count of
+% fixed-penalty statistics is said to include the ridge's P1 statistics, which the table prints as "--" (NUMBERS may
+% instead print them or count only the printed cells). Was (linear bullet, 08_feature_importance.tex of 2026-10-26):
+% "... At a penalty held fixed across windows, none of the \rhfipSOneMeasures{} statistics rises with $W$
+% (\rhfipSOneFalls{} fall, \rhfipSOneFlat{} stay flat); ... At the penalties tuned for each window, P1 is
+% ``\rhfipEnetPOneWalk'' for the elastic net and ``\rhfipLassoPOneWalk'' for the lasso, but the counts rise only where
+% the tuned penalty falls tenfold (elastic net: from \rhfipEnetPenWMin{} at $W = \rhfipWMin$ to \rhfipEnetPenWNext{}
+% at \rhfipWNext); the ridge's weight does not spread (...). The dense-and-weak reading is not supported for the linear
+% models. A falling count is also what a signal that changes over time would produce, since a longer window averages
+% over more regimes; the study does not test that, so it does not show a sparse and strong signal either."
+\subsection{Variable importance: the window test}
+\label{app:rh_fi_window}
+\begin{itemize}
+\item \textbf{Linear models across windows} (Table~\ref{tab:rh_fip_window}). If the exogenous signal were dense and
+  weak, more observations per coefficient would bring more series in: a longer window would select more exogenous
+  series (P1) and spread the weight over more of them (P2). The test refits nothing new: the walks at $W$ from
+  \rhfipWMin{} to \rhfipWMax{} trading days, at the same \rhfipNOrigins{} origins, with the predictions and the rule
+  fixed before computing.
+  \begin{itemize}
+  \item At a penalty held fixed across windows, none of the \rhfipSOneMeasures{} statistics rises with $W$
+    (\rhfipSOneFalls{} fall, \rhfipSOneFlat{} stay flat; the count includes the ridge's P1 statistics, which the
+    table does not print); for example the lasso at \rhfipLassoSOneLo{} selects \rhfipLassoSOneVWMin{} exogenous
+    series on average at $W = \rhfipWMin$ and \rhfipLassoSOneVWMax{} at \rhfipWMax.
+  \item At the penalties tuned for each window, the walks behind the paper's forecasts, the elastic net supports
+    both predictions (P1 ``\rhfipEnetPOneWalk'', P2 ``\rhfipEnetPTwoWalk''), the lasso P1 partly
+    (``\rhfipLassoPOneWalk''; P2 ``\rhfipLassoPTwoWalk''), and the ridge's weight does not spread ($N_{\mathrm{eff}}$
+    \rhfipRidgeNeffWMin{} at \rhfipWMin{} and \rhfipRidgeNeffWMax{} at \rhfipWMax{} days, slope \rhfipRidgeNeffSlope{}
+    per \rhfipSlopeUnit{} days [\rhfipRidgeNeffSlopeLo, \rhfipRidgeNeffSlopeHi]). The elastic net's rise coincides
+    with a tenfold drop of its tuned penalty, from \rhfipEnetPenWMin{} at $W = \rhfipWMin$ to \rhfipEnetPenWNext{} at
+    \rhfipWNext, so window and penalty move together.
+  \item So at a penalty held fixed across windows a longer window does not bring more series into the linear
+    models, and at the tuned penalties it does for the elastic net, together with a smaller penalty. A falling count
+    is also what a signal that changes over time would produce, since a longer window averages over more regimes.
+    The test does not separate these readings; Section~\ref{sec:rh_fi} relies instead on the feature-count ladder
+    and the ridge--lasso comparison.
+  \end{itemize}
+  % 2026-10-23 (coordinator, tree learning curve): added -- the tree ensembles across windows. Macros \rhlc...:
+  % generated/rehaul_fip_lc_numbers.tex, written by writeup/make_rehaul_fip_lc.py, which recomputes every value from the
+  % merged every-bar walks at W = 1,000 / 2,000 / 3,000 / 3,500 (LightGBM and XGBoost: results/pooled_trees_lc_2014start_w1000,
+  % _w2000 and results/pooled_trees_final_2014start_w3000, _w3500; the forest: results/pooled_rf_skx_2014start_w<W>) and
+  % checks it against results/pooled_trees_lc_2014start_cross_window and results/pooled_rf_skx_2014start_cross_window
+  % (selfcheck.csv in results/rehaul_fip_lc_final). Its claims() checks the words below. An extra gain averaged over
+  % the three trees is in neither file and is not printed.
+\item \textbf{Tree ensembles across windows} (Table~\ref{tab:rh_fip_lc}; descriptive: no rule fixed this comparison
+  before the walks). The trees' SHAP values are computed at the main window only, so for them the test is on
+  accuracy: if the exogenous signal were dense and weak, the full predictor set would gain more from a longer window
+  than the HAR benchmark does. The walks share the design of Table~\ref{tab:rh_oos}, at $W = \rhlcWOne$, \rhlcWTwo,
+  \rhlcWMain{} and \rhlcWLong{} trading days (refit at every bar, frozen configurations, the same \rhlcNBars{} scored
+  bars). The extra gain from $W_1$ to $W_2$ is the change of the full set's daily QLIKE minus the HAR benchmark's
+  (negative: the full set gains more), with a Newey--West $t$ over the \rhlcNDays{} days. On every bar the full set is
+  more accurate than the benchmark at every window ($t$ from \rhlcGapTMinBar{} to \rhlcGapTMaxBar), its lead widens up
+  to \rhlcWMain{} days in all three trees, and the extra gain is negative and significant at the 5\% level for
+  \rhlcSigNegOneTwoBarWho{} from \rhlcWOne{} to \rhlcWTwo{} days ($t = \rhlcTLgbmOneTwoBar$, \rhlcTXgbOneTwoBar{} and
+  \rhlcTRfOneTwoBar{} for LightGBM, XGBoost and the forest), for \rhlcSigNegTwoMainBarWho{} from \rhlcWTwo{} to
+  \rhlcWMain{} ($t = \rhlcTLgbmTwoMainBar$ and \rhlcTRfTwoMainBar; XGBoost \rhlcTXgbTwoMainBar) and for
+  \rhlcSigNegMainLongBarWho{} from \rhlcWMain{} to \rhlcWLong{} days. The full set's own loss falls significantly
+  from \rhlcWOne{} to \rhlcWTwo{} days in \rhlcFullFallOneTwoBarWho{} (DM \rhlcDmFullLgbmOneTwoBar,
+  \rhlcDmFullXgbOneTwoBar, \rhlcDmFullRfOneTwoBar) and from \rhlcWTwo{} to \rhlcWMain{} in
+  \rhlcFullFallTwoMainBarWho{} (DM \rhlcDmFullRfTwoMainBar); LightGBM's extra gain at that step comes mostly from
+  the benchmark's loss rising (DM \rhlcDmHarLgbmTwoMainBar). At the 16:00 bar the full set's lead is significant at
+  the 5\% level in \rhlcNGapSigClose{} of the \rhlcNGapCellsClose{} model--window cells, and the extra gain has no
+  consistent sign: it is significant toward the full set in \rhlcNSigNegClose{} of the \rhlcNStepsClose{}
+  tree--window steps (\rhlcSigNegTwoMainCloseWho{} from \rhlcWTwo{} to \rhlcWMain{} days, $t =
+  \rhlcTLgbmTwoMainClose$ and \rhlcTXgbTwoMainClose), toward the benchmark in \rhlcNSigPosClose{} (LightGBM from
+  \rhlcWOne{} to \rhlcWTwo{} days, $t = \rhlcTLgbmOneTwoClose$), and never for the forest. On every bar, then, the
+  full set's advantage grows with the window until \rhlcWMain{} days and then stops, as a dense and weak signal
+  would predict; a signal that needs more data to be fitted nonlinearly would do the same, and accuracy alone does
+  not say which series the longer window brings in. The feature-count ladder of Section~\ref{sec:rh_fi} and the grid
+  of Appendix~\ref{app:rh_fi_scaling} address that question.
+\end{itemize}
+% The linear models across training windows: the dense-and-weak test (P1, P2) of results/fi_by_window_2014start_2026-10-22
+\input{generated/rehaul_fip_window}
+% The tree ensembles across training windows, the full set's gap over the HAR benchmark and its extra gain between
+% windows (writeup/make_rehaul_fip_lc.py, \rhlc... macros)
+\input{generated/rehaul_fip_lc_table}
+
+% ---------------------------------------------------------------------------------------------------------------------
+% 2026-10-26 (integration, JFEc): from writeup/drafts/2026-10-26_complexity.tex, framing B only (data and feature
+% scaling; INTEGRATION_SPEC: not the complexity argument of KellyMalamudZhou2024). Not carried over: the draft's
+% \editc{CX}, the framing-A item (complexity c = P/T), the caveats that only concern c, and the proposed related-work
+% sentence. Edits: "held for the next 21 sessions" -> \rhfipOriginEvery; "P = 12 + 12k" -> \rhcxPHar + \rhfipNPerSeries k;
+% the rung labels (k = 0, 1, 3, 5, 10, 20, 46) are the RULE's design (results/ladder_2026-10-26/RULE.txt ADDENDUM 1).
+% Floats: generated/rehaul_complexity_floats.tex (NUMBERS: the first figure's caption is framed on c = P/T; the
+% framing-B version is gain against the number of series at each window, results/ladder_2026-10-26/grid/
+% fig_feature_scaling.pdf). PRE-PATCH design (RULE.txt ADDENDUM 2); to be rerun on the patched design (D13).
+\subsection{Variable importance: training window, number of series and the exogenous gain}
+\label{app:rh_fi_scaling}
+\begin{itemize}
+\item \textbf{Question.} Does the gain from the exogenous series grow with the number of series a model sees and
+  with the length of its training window, and does the number of series worth keeping grow with the window? If the
+  exogenous signal were dense and weak, more data per coefficient would let more of the weak series pay for
+  themselves, so the best number of series would rise with the window.
+\item \textbf{Design.}
+  \begin{itemize}
+  \item The feature-count ladder of Section~\ref{sec:rh_fi} at rolling windows of $W = \rhcxWOne$, \rhcxWTwo,
+    \rhcxWMain{} and \rhcxWLong{} trading days ($T = \rhfipNBars\,W$, from \rhcxTOne{} to \rhcxTLong{} bars), with the rungs
+    $k = 0, 1, 3, 5, 10, 20, \rhcxNSeries$: each rung keeps the \rhcxPHar{} columns of the HAR benchmark set and all
+    columns of the top $k$ exogenous series, so it has $P = \rhcxPHar + \rhfipNPerSeries\,k$ predictors (\rhcxPFull{}
+    for the full set).
+  \item The series are ranked separately at each window and for each model, by one fit before the evaluation span
+    (explained on the bars of \rhorPenYears: mean absolute SHAP value for the trees, $\sum |\beta|\,\mathrm{sd}$ for
+    the linear models), the first-training-window ranking of \citet{MaischZhangUlrichZimmer2026}.
+  \item LightGBM and XGBoost on their frozen configurations at every window (minimum leaf sizes not rescaled with
+    $T$); ridge, lasso and elastic net on each window's own frozen penalty (ridge \rhcxPenRidgeOne{} at $W =
+    \rhcxWOne$, \rhcxPenRidgeMain{} at the other windows; lasso \rhcxPenLassoOne{} and \rhcxPenLassoMain; elastic net
+    \rhcxPenEnetOne{} and \rhcxPenEnetMain).
+  \item Each rung is refitted at the \rhcxNOrigins{} monthly origins of Section~\ref{sec:rh_fi} and held for the
+    next \rhfipOriginEvery{} trading days. The full rung equals the every-bar walk at every origin
+    (\rhcxNGatesPass{} of \rhcxNGates{} window--model gates).
+  \item Gain $G(W, k)$: the QLIKE of the same window's $k = 0$ rung minus the rung's, $\times 10^3$, on the
+    \rhcxNBars{} scored bars of Table~\ref{tab:rh_oos} and on the 16:00 bar; Diebold--Mariano tests against $k = 0$
+    (HLN, Newey--West lag \rhcxHacLag). Figures~\ref{fig:rh_cx_complexity} and~\ref{fig:rh_cx_scaling}.
+  \end{itemize}
+\item \textbf{Feature scaling} (fixed $T$). At the main window the trees' gain rises with the number of series and
+  is nearly complete at 10 (LightGBM at $W = \rhcxWMain$: \rhcxGainLgbmBarMainFive{} at $k = 5$,
+  \rhcxGainLgbmBarMainTen{} at $k = 10$, \rhcxGainLgbmBarMainFull{} for the full set). The linear models' gain is
+  hump-shaped in the number of series (ridge: \rhcxGainRidgeBarMainFive, \rhcxGainRidgeBarMainTen{} and
+  \rhcxGainRidgeBarMainFull).
+\item \textbf{Data scaling} (fixed $k$; Figure~\ref{fig:rh_cx_scaling}). The trees gain most from the first doubling
+  of the window. LightGBM at $k = 10$: \rhcxGainLgbmBarOneTen{} at $W = \rhcxWOne$, \rhcxGainLgbmBarTwoTen{} at
+  \rhcxWTwo, \rhcxGainLgbmBarLongTen{} at \rhcxWLong; its full set: \rhcxGainLgbmBarOneFull, \rhcxGainLgbmBarTwoFull,
+  \rhcxGainLgbmBarMainFull, \rhcxGainLgbmBarLongFull. At the shortest window LightGBM's top ten keep much less of its
+  full set's gain than at the longer ones, its top 20 nearly all of it (\rhcxGainLgbmBarOneTwenty); XGBoost's top ten
+  keep nearly all of it at every window (\rhcxGainXgbBarOneTen{} against \rhcxGainXgbBarOneFull{} at $W =
+  \rhcxWOne$). The linear models' gain at $k = 10$ also rises with the window (ridge
+  \rhcxGainRidgeBarOneTen{} to \rhcxGainRidgeBarLongTen); their full set's does not change monotonically with the
+  window (ridge \rhcxGainRidgeBarOneFull, \rhcxGainRidgeBarTwoFull, \rhcxGainRidgeBarMainFull,
+  \rhcxGainRidgeBarLongFull).
+\item \textbf{Does the best number of series rise with the window?} On every bar it \rhcxKstarReadXgbBar{} for
+  XGBoost ($k^\ast = \rhcxKstarXgbBarOne$, \rhcxKstarXgbBarTwo, \rhcxKstarXgbBarMain, \rhcxKstarXgbBarLong{} at the
+  four windows). It \rhcxKstarReadLgbmBar{} for LightGBM (the full set, $k^\ast = \rhcxKstarLgbmBarOne$, at every
+  window). It \rhcxKstarReadLassoBar{} for the lasso ($\rhcxKstarLassoBarOne$, \rhcxKstarLassoBarTwo,
+  \rhcxKstarLassoBarMain, \rhcxKstarLassoBarLong) and \rhcxKstarReadEnetBar{} for the elastic net
+  ($\rhcxKstarEnetBarOne$, \rhcxKstarEnetBarTwo, \rhcxKstarEnetBarMain, \rhcxKstarEnetBarLong). It
+  \rhcxKstarReadRidgeBar{} for the ridge ($\rhcxKstarRidgeBarOne$, \rhcxKstarRidgeBarTwo, \rhcxKstarRidgeBarMain,
+  \rhcxKstarRidgeBarLong). At the 16:00 bar it rises with the window for \rhcxWhoKstarRisesClose{} of the models,
+  falls for \rhcxWhoKstarFallsClose{} and is not monotone for \rhcxWhoKstarMixedClose. The dense-and-weak prediction
+  therefore holds on every bar for \rhcxWhoKstarRisesBar{} and at the 16:00 bar for \rhcxWhoKstarRisesClose. For the
+  linear models the best number of series is largest at the shortest window, where the tenfold larger penalty favors
+  the full set, and smaller after it.
+\item \textbf{Caveats.} The minimum leaf sizes of the trees are not rescaled with $T$, so a shorter window also means
+  relatively larger leaves. The window length is confounded with regime averaging: a longer window averages over more
+  regimes. The linear penalties also change with the window (tenfold at $W = \rhcxWOne$), and the rankings are
+  refitted at each window, so the series behind a given $k$ differ across windows. The refits are monthly and held for
+  \rhfipOriginEvery{} trading days, not the every-bar walks of Table~\ref{tab:rh_oos}; holding a fit costs the full
+  linear set most. The design precedes the FOMC-calendar patch, and the FOMC calendar is among the top-ranked series of
+  the linear models. Four windows and no intervals: the grid is descriptive.
+\end{itemize}
+% Floats of the grid: gain against the rungs at each window, and against the window at fixed k (pre-patch design)
+\input{generated/rehaul_complexity_floats}

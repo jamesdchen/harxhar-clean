@@ -41,7 +41,11 @@
 \providecommand{\rhfipInterRows}{}\renewcommand{\rhfipInterRows}{1{,}008}  % M5 rows
 \providecommand{\rhfipInterPerOrigin}{}\renewcommand{\rhfipInterPerOrigin}{8}  % M5 rows per origin
 \providecommand{\rhfipFomcRows}{}\renewcommand{\rhfipFomcRows}{1{,}014}
-\providecommand{\rhfipFomcDays}{}\renewcommand{\rhfipFomcDays}{78}  % FOMC statement days among the bars (13 bars a day)
+\providecommand{\rhfipFomcDaysShap}{}\renewcommand{\rhfipFomcDaysShap}{78}  % FOMC statement days in the SHAP subset (M4; releases.parquet only)
+\providecommand{\rhfipFomcDays}{}\renewcommand{\rhfipFomcDays}{81}  % scheduled FOMC statement days in the span (loader calendar)
+\providecommand{\rhfipFomcDaysMissing}{}\renewcommand{\rhfipFomcDaysMissing}{3}  % statement days the SHAP subset leaves out (counted with the other days until the patched SHAP rerun)
+\providecommand{\rhfipNHolSessions}{}\renewcommand{\rhfipNHolSessions}{64}  % NYSE-holiday futures sessions among the explained bars (not scored in Table 1)
+\providecommand{\rhfipNHolBars}{}\renewcommand{\rhfipNHolBars}{443}  % their regular-hours bars
 \providecommand{\rhfipVixLo}{}\renewcommand{\rhfipVixLo}{13.96}
 \providecommand{\rhfipVixHi}{}\renewcommand{\rhfipVixHi}{19.02}
 \providecommand{\rhfipLgbmHar}{}\renewcommand{\rhfipLgbmHar}{51.6}

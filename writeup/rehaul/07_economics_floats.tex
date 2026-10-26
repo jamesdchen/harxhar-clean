@@ -11,6 +11,22 @@
 % Figure palette (one hue per model class, also in the tables' panel order): closing-interval linear blue,
 % closing-interval trees vermilion, closing-interval MinGRU green, pooled intraday magenta, short-straddle benchmark
 % black dashed. fig_qlike_sharpe keeps its own per-estimator colors.
+%
+% 2026-10-26 (integration, JFEc): the section's two live floats are the main table and the by-year figure of
+% drafts/2026-10-25_econ_main.tex (generator writeup/make_rehaul_econ_main.py; \rhem... macros from
+% generated/rehaul_econ_main_numbers.tex, to be loaded in the preamble; each float also loads it if undefined).
+% The floats of the profit decomposition (tab:rh_econ_longshort, tab:rh_econ_quintiles, tab:rh_econ_bestdays,
+% tab:rh_econ_riskreg) and of market exposure (tab:rh_econ_beta, fig:rh_econ_beta_cum) are \input in
+% rehaul/A_econ.tex. PENDING (NUMBERS, D2): both floats below still carry the closing-interval HAR forecast (the
+% "Closing HAR" column and Panel C row of the table, the solid line of the figure); regenerate them without it, with
+% the benchmark forecast (the pooled OLS on the HAR benchmark set) as the comparator column.
+
+% Main table: the sign strategy of the pooled forecasts and the short straddle (Section 7, Results)
+\input{generated/rehaul_econ_main_table}
+
+% Sharpe ratio by calendar year (Section 7, Results). The parked float generated/rehaul_econ_fig_byyear.tex below
+% (make_rehaul_economics.py) carries the same label fig:rh_econ_byyear and stays parked.
+% 2026-10-26 (coordinator, JFEc page budget): moved -- \input{generated/rehaul_econ_byyear_fig} (fig:rh_econ_byyear) -> rehaul/A_econ.tex, app:rh_econ_sharpe.
 
 % E1: always short and the key forecasts
 % 2026-10-15 (user): parked -- "park all tables that I haven't mentioned in this chat"
@@ -68,6 +84,8 @@
 
 % Sharpe by year
 % 2026-10-15 (user): parked -- non-standard figure; focus on legible tables
+% 2026-10-26 (integration, JFEc): stays parked -- the by-year figure is now generated/rehaul_econ_byyear_fig.tex
+% (make_rehaul_econ_main.py, input above), which carries the same label.
 % \input{generated/rehaul_econ_fig_byyear}
 
 % 2026-10-15 (user): Table 1 split ("Split it") -- the last-30-minutes columns of Table 1 as their own table, at the end

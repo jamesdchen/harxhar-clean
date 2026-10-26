@@ -196,14 +196,10 @@ def load() -> tuple[pd.DataFrame, pd.Series, dict[str, pd.DataFrame]]:
     ms = pd.read_csv(MODEL_SET)
     mt = pd.read_csv(MASTER).set_index("key")
     ms = ms[ms["input_set"].isin([BASE, ALL])].copy()
-    lstm = ms["key"].str.startswith("lstm") | ms["family"].str.contains(
-        "LSTM", case=False
-    )
+    lstm = ms["key"].str.startswith("lstm") | ms["family"].str.contains("LSTM", case=False)
     ms = ms[~lstm]
     # per-bar linear = the pre-tuned subpt_* rows; the OLS stays as the reference point only
-    old_linear = (ms["family"] == "per-bar linear") & ~ms["key"].str.startswith(
-        "subpt_"
-    )
+    old_linear = (ms["family"] == "per-bar linear") & ~ms["key"].str.startswith("subpt_")
     assert OLS_KEY in set(ms["key"]), f"{OLS_KEY} is not in the model set"
     ms = ms[~old_linear]
     fam = ms.set_index("key")["family"].astype(str)
@@ -218,9 +214,7 @@ def load() -> tuple[pd.DataFrame, pd.Series, dict[str, pd.DataFrame]]:
             unpaired.append(k)
         elif m.group(1) == BASE:
             pairs.append((k, other))
-    print(
-        f"model set: {len(keys)} forecasts on {BASE} / {ALL}; {len(pairs)} pairs; unpaired: {unpaired}"
-    )
+    print(f"model set: {len(keys)} forecasts on {BASE} / {ALL}; {len(pairs)} pairs; unpaired: {unpaired}")
 
     need = sorted({x for p in pairs for x in p} | {OLS_KEY})
     missing = [k for k in need if k not in mt.index]
@@ -247,38 +241,41 @@ def load() -> tuple[pd.DataFrame, pd.Series, dict[str, pd.DataFrame]]:
         # "daily qlike_raw = QLIKE(target, plain)",  # 2026-10-15 (user): parked -- scored against the trimmed target; scores now use actual RV (data audit #10)
         "daily qlike_raw = QLIKE(rv_unclipped, plain)",
         max(
-            float(
-                np.abs(
-                    cms.qlike(f["rv_unclipped"].to_numpy(), f["plain"].to_numpy())
-                    - f["qlike_raw"]
-                ).max()
-            )
+            float(np.abs(cms.qlike(f["rv_unclipped"].to_numpy(), f["plain"].to_numpy()) - f["qlike_raw"]).max())
             for f in fr.values()
         ),
         1e-12,
     )
     gate(
         "Sharpe of daily ret_mid = master Sharpe_mid",
-        max(
-            abs(mtc.sharpe(fr[k]["ret_mid"].to_numpy()) / mt.loc[k, "Sharpe_mid"] - 1)
-            for k in need
-        ),
+        max(abs(mtc.sharpe(fr[k]["ret_mid"].to_numpy()) / mt.loc[k, "Sharpe_mid"] - 1) for k in need),
         GATE_REL,
     )
     gate(
         "q = sign(plain - iv_var)",
-        max(
-            float(np.abs(np.where(f["plain"] > f["iv_var"], 1.0, -1.0) - f["q"]).max())
-            for f in fr.values()
-        ),
+        max(float(np.abs(np.where(f["plain"] > f["iv_var"], 1.0, -1.0) - f["q"]).max()) for f in fr.values()),
         0,
     )
+    # 2026-10-26 (integration plan D9): the rebuilt CI-HAR (OLS_KEY) is scored on its own B, so its winsorized
+    # training target ("target", a diagnostic no score uses since 2026-10-15) differs from the other forecasts' on the
+    # days its B differs; the scoring truth rv_unclipped and iv_var stay shared by every forecast. Was: one gate over
+    # ("target", "rv_unclipped", "iv_var") against fr[OLS_KEY].
     gate(
-        "target, rv_unclipped and iv_var shared by every forecast",
+        "rv_unclipped and iv_var shared by every forecast",
         max(
             float(np.abs(f[c].to_numpy() / fr[OLS_KEY][c].to_numpy() - 1).max())
             for f in fr.values()
-            for c in ("target", "rv_unclipped", "iv_var")
+            for c in ("rv_unclipped", "iv_var")
+        ),
+        GATE_REL,
+    )
+    ref_t = next(k for k in fr if k != OLS_KEY)
+    gate(
+        "target shared by every forecast but the rebuilt CI-HAR",
+        max(
+            float(np.abs(f["target"].to_numpy() / fr[ref_t]["target"].to_numpy() - 1).max())
+            for k, f in fr.items()
+            if k != OLS_KEY
         ),
         GATE_REL,
     )
@@ -297,12 +294,8 @@ def load() -> tuple[pd.DataFrame, pd.Series, dict[str, pd.DataFrame]]:
     rows = []
     for b, a in pairs:
         fb, fa = fr[b], fr[a]
-        dm = dm_test(
-            fa["qlike_raw"].to_numpy(), fb["qlike_raw"].to_numpy(), hac_lag=DM_LAG
-        )
-        dm14 = dm_test(
-            fa["qlike_raw"].to_numpy(), fb["qlike_raw"].to_numpy(), hac_lag=DM_LAG_CHECK
-        )
+        dm = dm_test(fa["qlike_raw"].to_numpy(), fb["qlike_raw"].to_numpy(), hac_lag=DM_LAG)
+        dm14 = dm_test(fa["qlike_raw"].to_numpy(), fb["qlike_raw"].to_numpy(), hac_lag=DM_LAG_CHECK)
         # 2026-10-21 (user, decision #2): parked -- 866 days, lag 14. Was:
         # t, lag = asl.newey_west_t(fa["ret_mid"].to_numpy() - fb["ret_mid"].to_numpy())
         ra, rb = fa["ret_mid"].to_numpy(float), fb["ret_mid"].to_numpy(float)
@@ -359,23 +352,15 @@ def quadrants(p: pd.DataFrame) -> dict[str, int]:
 
 def numbers(p: pd.DataFrame, ols: pd.Series) -> list[tuple[str, str, str]]:
     """(macro, value, comment) for the caption."""
-    assert not (p["dq"] == 0).any() and not (p["dsh"] == 0).any(), (
-        "a tie: decide how to count it"
-    )
+    assert not (p["dq"] == 0).any() and not (p["dsh"] == 0).any(), "a tie: decide how to count it"
     ql, qs, qs14 = p["dq"] < 0, p["dm_p"] < SIG, p["dm_p14"] < SIG
     # 2026-10-21 (user, decision #2): Sharpe-change significance from the Ledoit-Wolf p. Was: p["t_p"] < SIG
     sh, ss = p["dsh"] > 0, p["lw_p"] < SIG
     lin = (~p["pooled"]) & p["key_base"].str.startswith("subpt_")
     tree = p["key_base"].str.startswith("subtree")
-    assert int(lin.sum() + p["pooled"].sum() + tree.sum()) == len(p), (
-        "a pair outside linear / pooled / tree"
-    )
-    shade_all = int(
-        ((p["q_all"] < ols["qlike_raw"]) & (p["sh_all"] > ols["Sharpe_mid"])).sum()
-    )
-    shade_base = int(
-        ((p["q_base"] < ols["qlike_raw"]) & (p["sh_base"] > ols["Sharpe_mid"])).sum()
-    )
+    assert int(lin.sum() + p["pooled"].sum() + tree.sum()) == len(p), "a pair outside linear / pooled / tree"
+    shade_all = int(((p["q_all"] < ols["qlike_raw"]) & (p["sh_all"] > ols["Sharpe_mid"])).sum())
+    shade_base = int(((p["q_base"] < ols["qlike_raw"]) & (p["sh_base"] > ols["Sharpe_mid"])).sum())
     r_es = float(np.corrcoef(p["des"], p["t_hac"])[0, 1])
     r_q = float(np.corrcoef(p["dq"], p["t_hac"])[0, 1])
     dm_lags, hac_lags = sorted(set(p["dm_lag"])), sorted(set(p["hac_s"]))  # 2026-10-21: hac_s (was hac_lag)
@@ -556,9 +541,7 @@ def _style() -> None:
     )
 
 
-def _fade_segments(
-    x0: float, y0: float, x1: float, y1: float
-) -> tuple[np.ndarray, np.ndarray]:
+def _fade_segments(x0: float, y0: float, x1: float, y1: float) -> tuple[np.ndarray, np.ndarray]:
     """A line from (x0, y0) to (x1, y1) whose opacity rises from LINK_ALPHA[0] to LINK_ALPHA[1].
 
     LINK_STEPS nested segments, segment j from the j-th step point to (x1, y1), each with the
@@ -568,9 +551,7 @@ def _fade_segments(
     """
     u = np.arange(LINK_STEPS) / LINK_STEPS
     xs, ys = x0 + (x1 - x0) * u, y0 + (y1 - y0) * u
-    seg = np.stack(
-        [np.column_stack([xs, ys]), np.tile([x1, y1], (LINK_STEPS, 1))], axis=1
-    )
+    seg = np.stack([np.column_stack([xs, ys]), np.tile([x1, y1], (LINK_STEPS, 1))], axis=1)
     target = LINK_ALPHA[0] + (LINK_ALPHA[1] - LINK_ALPHA[0]) * (u + 0.5 / LINK_STEPS)
     left = np.concatenate([[1.0], 1.0 - target[:-1]])  # transmittance before segment j
     rgba = np.tile((*to_rgb(LINK), 0.0), (LINK_STEPS, 1))
@@ -583,15 +564,11 @@ class _PairHandle:
 
 
 class _PairHandler(HandlerBase):
-    def create_artists(
-        self, legend, orig_handle, xdescent, ydescent, width, height, fontsize, trans
-    ):
+    def create_artists(self, legend, orig_handle, xdescent, ydescent, width, height, fontsize, trans):
         y = height / 2.0 - ydescent
         x0, x1 = -xdescent + 2.5, -xdescent + width - 2.5
         seg, rgba = _fade_segments(x0, y, x1, y)
-        lc = LineCollection(
-            seg, colors=rgba, linewidths=1.1, capstyle="butt", transform=trans
-        )
+        lc = LineCollection(seg, colors=rgba, linewidths=1.1, capstyle="butt", transform=trans)
         a = Line2D(
             [x0],
             [y],
@@ -738,9 +715,7 @@ def figure(p: pd.DataFrame, ols: pd.Series) -> None:
 
     seen = set(p["est"]) | {"OLS"}
     est_handles = [
-        Line2D([], [], marker="o", ls="", ms=5, mfc=c, mec=c, label=n)
-        for n, c in EST_COLOR.items()
-        if n in seen
+        Line2D([], [], marker="o", ls="", ms=5, mfc=c, mec=c, label=n) for n, c in EST_COLOR.items() if n in seen
     ]
     enc_handles = [
         _PairHandle(),
@@ -918,9 +893,7 @@ def figure_change(p: pd.DataFrame) -> None:
         # 2026-10-21 (user, decision #2): Ledoit-Wolf. Was: if r.t_p < SIG: what.append(f"HAC t {_signed(r.t_hac, 2)}")
         if r.lw_p < SIG:
             what.append(f"Ledoit-Wolf p {r.lw_p:.3f}")
-        key_lines.append(
-            f"{i}  {describe(r.key_base, r.est, r.pooled)} ({', '.join(what)})"
-        )
+        key_lines.append(f"{i}  {describe(r.key_base, r.est, r.pooled)} ({', '.join(what)})")
     # the count of models in each quadrant, in its corner
     quad = quadrants(p)
     halo = [pe.withStroke(linewidth=2.5, foreground="white")]
@@ -987,9 +960,7 @@ def figure_change(p: pd.DataFrame) -> None:
     ]
     if not p["pooled"].any():
         del enc[1]
-    fig.subplots_adjust(
-        left=0.10, right=0.70, top=0.98, bottom=0.11 + 0.034 * len(key_lines)
-    )
+    fig.subplots_adjust(left=0.10, right=0.70, top=0.98, bottom=0.11 + 0.034 * len(key_lines))
     leg1 = fig.legend(
         handles=est_handles,
         loc="upper left",

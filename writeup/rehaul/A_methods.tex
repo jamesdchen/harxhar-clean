@@ -1,0 +1,273 @@
+% A_methods.tex -- online appendix: the estimators, the implementation and the tuning behind the Methods section
+% (Section 5, rehaul/05_methods.tex). Created 2026-10-26 (integration pass, JFEc; METHODS agent). Every item below
+% moved here from 05_methods.tex, lightly edited (the previous Methods text is parked, whole, at the end of that file),
+% except the subsection "Tuning: provenance and checks" (app:rh_tuning), which is new: the disclosure of decision D14
+% (writeup/INTEGRATION_PLAN_2026-10-26.md), with the audit findings correctness-3, fidelity-3, fidelity-2, design-10 and
+% correctness-9 (scratchpad audit_2026-10-25.md).
+% Wiring: APPENDIX \input's this file (rehaul/A_methods) in the online appendix, best before or after "Implementation
+% details" (app:rh_impl, 10_appendix.tex), whose subsections sec:rh_exp_samples, sec:rh_methods_hyper and
+% sec:rh_methods_tuning are cited below.
+% House rules: every number from a generated macro. \rhPending{} (defined by \providecommand in the number files of the
+% preamble; it takes no argument and prints "pending") marks a number whose macro the NUMBERS agent has yet to emit; the
+% macro wanted is named in the comment on the same line, with its value in the run files (to be checked by NUMBERS):
+%   \rhtuNLateSeries        late-starting series zeroed in every value average of the selection fold (10)
+%   \rhtuTreeSearchSpan     the pre-sample of the trees' Optuna search ("1998--2002")
+%   \rhtuTreeHarBase        HAR-ladder base of the design the trees were tuned on (2)
+%   \rhtuTreeNCols          columns of that design (1{,}144)
+%   \rhtuRfBins             histogram bins of the oneDAL forest's splits (256; RULE_rf_skx.txt, max_bins)
+%   \rhtuRfMseDiffPct       fold-3 validation MSE of the oneDAL forest relative to the stock forest at W = 3,000,
+%                           percent (0.27; RULE_rf_skx.txt REASON, results/rf_engine_bench_2026-10-23)
+%   \rhtuAnnFirstYear, \rhtuAnnLastYear   the years of the annual re-tuning check (2014, 2024)
+%   \rhtuTreeNSeeds         further seeds of the transferred tree configurations in the 2013 check (4)
+% Run files of the checks: results/fomcfix_2026-10-26 (RULE.txt section 7; scores_step4_linear/ for the neighbouring
+% penalties and the annual re-tuning, tune2013/ for the trees' 2013 check), on the FOMC-patched final design (D13).
+
+\section{Estimators, implementation and tuning}
+\label{app:rh_methods}
+% 2026-10-26 (integration, coordinator: the paper keeps its bullet structure): the three prose passages of this file
+% outside a list (this opening, the closing sentences of the selection splits, the opening of the tuning subsection)
+% and the timing sentences after the nested list of the screens became bold-lead items; wording unchanged.
+\begin{itemize}
+\item \textbf{Contents.} This appendix gives the estimators of Section~\ref{sec:rh_methods_models} in full, the
+  splits on which hyperparameters are selected, the solvers and screens of the penalized regressions, and how the
+  frozen hyperparameters of the main text were obtained, with four checks of them.
+\end{itemize}
+
+\subsection{Selection splits}
+\label{app:rh_methods_splits}
+% 2026-10-26 (integration, JFEc): moved from 05_methods.tex ("Hyperparameter-selection splits"); the displays now use
+% the lag on the estimation sample, (t,i) \ominus j (audit design-3: the grid lag (t, i-j) of Section 3 steps through
+% every grid interval, overnight included, while the final pre-sample fold counts rows of the 13-bar design: fit
+% [8202, 47202), gap 325, validation [47527, 50777), results/window_sweep_2014start_2026-10-22/w3000/run_info.json).
+\begin{itemize}
+\item \textbf{Pre-sample split.} In line with \citet{gu2020empirical}, a split runs forward in time: an estimation
+  subsample, an embargo gap of $n_{\mathrm{gap}}$ observations and a validation subsample of $n_{\mathrm{val}}$
+  observations. For a split whose validation subsample ends just before $(t,i)$, with $(t,i) \ominus j$ the $j$th
+  observation of the estimation sample before $(t,i)$ (Section~\ref{sec:rh_methods_setup}),
+  \begin{gather*}
+    \mathcal W^{\mathrm{est}}_{t,i} = \{(t,i) \ominus j : j = n_{\mathrm{val}} + n_{\mathrm{gap}} + 1, \dots,
+      n_{\mathrm{val}} + n_{\mathrm{gap}} + W\}, \\
+    \mathcal W^{\mathrm{gap}}_{t,i} = \{(t,i) \ominus j : j = n_{\mathrm{val}} + 1, \dots,
+      n_{\mathrm{val}} + n_{\mathrm{gap}}\}, \qquad
+    \mathcal W^{\mathrm{val}}_{t,i} = \{(t,i) \ominus j : j = 1, \dots, n_{\mathrm{val}}\}.
+  \end{gather*}
+  The estimation subsample is a full window of $W$ observations, so that each candidate is fitted on as many
+  observations as a forecast. The pooled linear models choose their penalties once on such a split, \rhorPenSample,
+  with $n_{\mathrm{gap}} = \rhdmPlPreEmbargoBars$ bars (\rhdmPlPreEmbargoSess{} trading days) and
+  $n_{\mathrm{val}} = \rhdmPlPreFoldBars$ bars (\rhdmPlPreFoldSess{} trading days); the first scored forecast follows
+  it. Each candidate penalty $\lambda$ is fitted on $\mathcal W^{\mathrm{est}}_{t,i}$ and scored by the mean squared
+  error of $\tilde y$ over $\mathcal W^{\mathrm{val}}_{t,i}$; the minimizer is held fixed at every forecast
+  (Appendix~\ref{sec:rh_methods_tuning}; grids and picks in Appendix~\ref{sec:rh_methods_hyper}). The
+  closing-interval linear models choose theirs on pre-sample folds of the same form
+  (Appendix~\ref{app:rh_closing}).
+\item \textbf{Split of the rolling window.} A model that re-selects its hyperparameters during the evaluation, as
+  some closing-interval models do, partitions its own window $\mathcal W_{t,i}$, so that the three subsamples together
+  hold $W$ observations:
+  \[
+    \mathcal W^{\mathrm{est}}_{t,i} = \{(t,i) \ominus j : j = n_{\mathrm{val}} + n_{\mathrm{gap}} + 1, \dots, W\},
+  \]
+  with $\mathcal W^{\mathrm{gap}}_{t,i}$ and $\mathcal W^{\mathrm{val}}_{t,i}$ as above. No forecast of the main text
+  re-selects.
+\item \textbf{Use of the subsamples.} The target interval $(t,i)$ never enters any of these sets. During a selection,
+  a candidate is estimated on $\mathcal W^{\mathrm{est}}_{t,i}$ and evaluated on $\mathcal W^{\mathrm{val}}_{t,i}$;
+  every forecast is estimated on the full window $\mathcal W_{t,i}$.
+\end{itemize}
+% src/models/reclasso_har.py:255-265 (forward_window_split); specs/causal_tune_linear.py:157-162;
+% experiments/pooled_linear_rerun_2026_10_19_13.py PRE_FOLD_SESS, PRE_EMBARGO_SESS (moved with the bullet).
+
+\subsection{Penalized linear regressions}
+\label{app:rh_methods_linear}
+% 2026-10-26 (integration, JFEc): moved from 05_methods.tex ("Penalized linear regressions" and its sub-bullets),
+% lightly edited. Changed: the typed "100 times" (audit design-15) -> the weight \rhfiBackbonePf itself; the typed
+% "alpha = 0.5" -> "the midpoint of [0, 1]"; the ridge solver (audit fidelity-9: under STANDARDIZE_PENALTY the ridge
+% re-solves the standardized system every bar with X'X and X'y kept by rank-one updates, which "replaces the
+% Sherman-Morrison update", results/standardize_penalty_2026-10-22/RULE_std.txt items 3 and addendum 3); the timing of
+% the screens (fidelity-9 and its verifier: ridge applies the constant, evidence and availability screens every bar,
+% the exact-duplicate screen at its cold solves; the lasso and elastic net apply every screen at a cold solve and add
+% failing columns between them, the lasso also constant and duplicate ones; the trees have no screen). The
+% closing-interval clause of the old screen bullet (hour and overnight indicators) is closing-interval material, dropped
+% (audit design-13 (g)). Was: see the parked Methods text at the end of 05_methods.tex.
+\begin{itemize}
+\item \textbf{Objectives.} Following the penalized HAR formulation of \citet{ZhangZhangCucuringuQian2024}, the
+  estimates at origin $(t,i)$ are
+  \begin{align*}
+    \hat{\bm\beta}^{\mathrm{ridge}}_{t,i} &= \argmin_{\beta_0, \bm\beta} \sum_{(t',i') \in \mathcal W_{t,i}}
+      (\tilde y_{t',i'} - \beta_0 - \bm x_{t',i'}^\top \bm\beta)^2 + \lambda \sum_{j=1}^{p} \omega_j\, \beta_j^2, \\
+    \hat{\bm\beta}^{\mathrm{enet}}_{t,i} &= \argmin_{\beta_0, \bm\beta} \sum_{(t',i') \in \mathcal W_{t,i}}
+      (\tilde y_{t',i'} - \beta_0 - \bm x_{t',i'}^\top \bm\beta)^2
+      + \lambda\alpha \sum_{j=1}^{p} \omega_j |\beta_j|
+      + \frac{\lambda(1-\alpha)}{2} \sum_{j=1}^{p} \omega_j\, \beta_j^2 ,
+  \end{align*}
+  where $\lambda > 0$ sets the overall strength of the penalty, $\alpha \in [0,1]$ is the elastic-net mixing
+  parameter and $\omega_j \ge 0$ is predictor $j$'s penalty weight; the intercept $\beta_0$ is not penalized. The lasso
+  is $\alpha = 1$, and our elastic net fixes $\alpha$ at the midpoint of $[0,1]$. For ridge, $\lambda$ is the grid
+  value reported in Table~\ref{tab:rh_dm_hyper}. For the lasso and the elastic net the table reports the
+  \texttt{scikit-learn} penalty parameter, and $\lambda$ above is $2n$ times the tabulated value, with $n$ the number
+  of observations in the window.
+\item \textbf{Penalty weights.} On the full predictor set the HAR-set columns are penalized more lightly than the
+  additional predictors:
+  \[
+    \omega_j =
+    \begin{cases}
+      \underline\omega = \rhfiBackbonePf & j \in \text{HAR set}, \\
+      1 & j \text{ an additional predictor}.
+    \end{cases}
+  \]
+  A penalized regression on the HAR set alone uses $\omega_j = 1$ for every predictor.
+\item \textbf{Standardization within the estimation window.} The penalties apply to standardized coefficients
+  \citep{Tibshirani1996, FriedmanHastieTibshirani2010}. Each predictor column is centred and scaled by its mean $m_j$
+  and standard deviation $s_j$ over $\mathcal W_{t,i}$; the objectives above are solved for the coefficients
+  $\gamma_j$ of the standardized columns $(x_j - m_j)/s_j$, with the weights $\omega_j$, and transformed back,
+  $\beta_j = \gamma_j / s_j$, the intercept absorbing the centring. Without this step the penalty on a column's
+  contribution to the forecast would scale with $1/s_j^2$ for ridge and $1/s_j$ for the lasso, so that columns with
+  little spread, such as long-horizon averages, would be penalized far more heavily for no economic reason. The robust
+  standardization of Section~\ref{sec:rh_predictors} does not achieve this: it equalizes interquartile ranges rather
+  than variances, and its scale factors are not those of the estimation window. For ridge, $m_j$ and $s_j$ are those
+  of the current window at every bar; for the lasso and the elastic net they are recomputed at every cold solve of the
+  homotopy below and held fixed in between. Solving in standardized coordinates gives the same estimates as penalizing
+  the raw columns with weights $\omega_j s_j$ ($\ell_1$) and $\omega_j s_j^2$ ($\ell_2$), and keeps the systems the
+  solvers work on well conditioned.
+\item \textbf{Screens.} Only a screened subset $\mathcal J_{t,i}$ of the predictors enters a fit:
+  \begin{itemize}
+  \item columns that are constant within $\mathcal W_{t,i}$, or exact duplicates of an earlier retained column, are
+    left out;
+  \item a column of an exogenous series enters only if the series' own one-interval column differs from its modal
+    value on at least \rhdmModeMinPrints{} intervals of $\mathcal W_{t,i}$, the evidence requirement of the activity
+    indicator (Appendix~\ref{app:rh_dp_transform}); a $k$-interval average repeats each observation $k$ times, so its own
+    count would overstate the evidence;
+  \item an availability average over $k > 1$ intervals is a proportion, with sampling resolution $\sqrt{p(1-p)/k}$
+    at its window mean $p$. It is left out when its standard deviation over $\mathcal W_{t,i}$ does not exceed that
+    resolution, or when the standard deviation of its difference from an earlier retained availability average of the
+    same horizon does not exceed $\sqrt 2$ times the resolution at the pair's mean: its movement is then no larger than
+    independent missing observations would produce. These are mostly the long-horizon availability averages of
+    regular-hours series, which record the trading calendar rather than the series.
+  \end{itemize}
+\item \textbf{Timing of the screens.} The HAR set is exempt from the second and third screens. Ridge applies the first screen's constant columns and the
+  other two screens at every bar, and the exact duplicates at each of its cold solves (below). The lasso and the
+  elastic net apply every screen at each cold solve; between cold solves, a retained column that fails the evidence or
+  the availability screen, or, for the lasso, becomes constant or an exact duplicate, is left out at once and the
+  solver restarts cold. The tree ensembles use every column.
+\item \textbf{Solvers.} With $\bm X_{t,i}$ stacking the rows $(1, \bm x_{t',i'}^\top)$, $(t',i') \in \mathcal W_{t,i}$,
+  on the retained columns, ridge solves at every bar the normal equations of the current window in standardized
+  coordinates, with the cross-products $\bm X_{t,i}^\top \bm X_{t,i}$ and $\bm X_{t,i}^\top \tilde{\bm y}$ updated by
+  rank one as observations enter and leave $\mathcal W_{t,i}$ and recomputed from the current window at fixed
+  intervals, its cold solves. The lasso and the elastic net update the active set and
+  the coefficients by exact online homotopy \citep{Garrigues2008}, adding the entering observation and dropping the
+  leaving one at each step. The homotopy restarts from a cold solve on the current window at fixed intervals; between
+  restarts, after each update we check the Karush--Kuhn--Tucker conditions of the current window's problem, and where
+  they fail the solution is replaced by a cold solve on the current window, from which the homotopy continues. The OLS
+  benchmark is the minimum-norm least-squares solution on the window (Section~\ref{sec:rh_methods_models}).
+\end{itemize}
+% experiments/close_exogpen_kernel.c:3-12, 650-676 (lambda scales); experiments/pool_linear_pretune.py (STANDARDIZE_PENALTY,
+% _std_ridge_solve, min-norm OLS, eigh pseudo-inverse); src/models/reclasso_har.py (WALK_KKT_RESEED, walk_kkt);
+% specs/causal_tune_linear.py:118-123, 270-288 (identifiability mask at the tune boundary; between-tune additions for
+% lam2 = 0 only); results/standardize_penalty_2026-10-22/RULE_std.txt (addenda 1-3: evidence and availability rules,
+% their cadence).
+
+\subsection{Tree ensembles}
+\label{app:rh_methods_trees}
+% 2026-10-26 (integration, JFEc): moved from 05_methods.tex ("Tree ensembles" and its sub-bullets), lightly edited;
+% the forest engine added (audit correctness-9: results/pooled_rf_skx_2014start_w3000/RULE_rf_skx.txt, ENGINE and
+% CONFIG; experiments/pooled_trees_rerun_13.py:248-256).
+\begin{itemize}
+\item \textbf{Gradient boosting} \citep{Friedman2001}, implemented with LightGBM \citep{Ke2017} and XGBoost
+  \citep{Chen2016}, minimizes the squared-error loss $\tfrac12 (\tilde y - F)^2$ over boosting rounds $b = 1, \dots, B$
+  with learning rate $\eta$. Each regression tree $f_b$ partitions the predictor space into $J$ leaves with leaf weights
+  $\bm w$, where leaf $j$ contains the observation subset $\mathcal R_j$ of size $n_j = |\mathcal R_j|$. When the
+  $\ell_1$ leaf penalty $\lambda_1^{\mathrm{tree}} = 0$, the additive update and the optimal leaf weight are
+  \begin{align*}
+    F_b &= F_{b-1} + \eta f_b, \\
+    w_j^\ast &= -\frac{\sum_{(t',i') \in \mathcal R_j}\bigl(F_{b-1}(\bm x_{t',i'}) - \tilde y_{t',i'}\bigr)}
+      {n_j + \lambda_2^{\mathrm{tree}}} .
+  \end{align*}
+  At round $b$, tree $f_b$ is grown to minimize the regularized second-order objective
+  \[
+    \sum_{(t',i') \in \mathcal W_{t,i}} \Bigl[\bigl(F_{b-1}(\bm x_{t',i'}) - \tilde y_{t',i'}\bigr)
+      f_b(\bm x_{t',i'}) + \tfrac12 f_b(\bm x_{t',i'})^2\Bigr]
+    + \gamma^{\mathrm{tree}} J + \lambda_1^{\mathrm{tree}} \lVert \bm w \rVert_1
+    + \tfrac12 \lambda_2^{\mathrm{tree}} \lVert \bm w \rVert_2^2 ,
+  \]
+  where $\gamma^{\mathrm{tree}}$ penalizes each leaf and $\lambda_1^{\mathrm{tree}}, \lambda_2^{\mathrm{tree}}$
+  shrink the leaf weights. Every leaf must contain at least $n_{\min}$ observations ($n_j \ge n_{\min}$), the minimum
+  leaf size in LightGBM and, under the unit Hessian of the squared-error loss, the minimum child weight in XGBoost.
+\item \textbf{Random forest} \citep{Breiman2001}: the equally weighted average of $B$ regression trees $f_b$, each
+  grown on a bootstrap sample of the estimation window with a random subset of the predictors tried at each split,
+  \[
+    \hat y_{t,i} = \frac1B \sum_{b=1}^{B} f_b(\bm x_{t,i}).
+  \]
+  The forest is fitted with Intel's oneDAL engine (Intel Extension for Scikit-learn), whose splits search histograms of
+  \rhtuRfBins{} bins of each predictor rather than every threshold, % -> \rhtuRfBins
+  with the configuration selected for the stock \texttt{scikit-learn} forest (Appendix~\ref{app:rh_tuning}).
+\item \textbf{Implementation.} Each method keeps one configuration (Table~\ref{tab:rh_dm_hyper}), refitted at every bar
+  on $\mathcal W_{t,i}$ with a fixed random seed. The trees are invariant to monotone transformations of a column, so
+  they are not standardized again within the window, and they use every column, with no screen.
+\end{itemize}
+% Code vs paper (moved): both libraries' L2 objectives are (1/2)(y - F)^2, so h_{t'} = 1 and XGBoost's min_child_weight
+% counts rows.
+
+\subsection{Tuning: provenance and checks}
+\label{app:rh_tuning}
+% 2026-10-26 (integration, JFEc): new -- decision D14 (author, 2026-10-26: tuning only needs to put off-the-shelf models
+% in the forecasting regime; disclose, do not re-tune). Facts: the selection fold, w3000/frozen_penalties.json (fold 3,
+% validation 2013-01-02 .. 2013-12-31) and the late-start rule (src/backtest/executor.py late_start_warmup zeroes rows
+% [0, L + W)); results/window_sweep_2014start_2026-10-22/latestart/latestart_spans.txt, fold 3 at w3000: every
+% late-start series never live (audit correctness-3, fidelity-3). The tree configurations, cluster/pooltree_lgbm_config.json,
+% cluster/xgbtop_xgb_config.json, cluster/pooltree_rf400_config.json (provenance window 24000; experiments/
+% tree_menu_dev.py and tree_menu_dev_rf.py on the frozen base-2 panel, src/unification._load_panel, HAR_BASE = 2,
+% prep_cache_all_features_b2.npz "300,317 x 1144", masked scaler; audit fidelity-2, design-10). The forest engine,
+% RULE_rf_skx.txt and results/rf_engine_bench_2026-10-23 (audit correctness-9). The four checks, results/fomcfix_2026-10-26
+% (RULE.txt section 7 (a)-(d), STATUS.md), on the FOMC-patched design. Direction words checked 2026-10-26 against
+% scores_step4_linear/tables.md (every-bar full-vs-HAR DM p < 0.001 at all six neighbours and in all three re-tuned
+% classes) and tune2013/tune2013_tables.md (forest: T within noise of the best; LightGBM and XGBoost: the best variant,
+% doubled learning rate or more rounds, lower on MSE with DM p < 0.01, not on QLIKE, p 0.33 and 0.08).
+\begin{itemize}
+\item \textbf{Scope of the tuning.} The tuning of the main text only has to put off-the-shelf estimators in the
+  forecasting regime; it is not a search for the best configuration, and every comparison of the main text holds the
+  hyperparameters fixed. This subsection discloses how the frozen values were obtained and reports four checks of
+  them on the final design (Table~\ref{tab:rh_tuning}).
+\item \textbf{Linear penalties: the selection fold.} The penalties are selected once, on the split of
+  Appendix~\ref{app:rh_methods_splits}: \rhorPenSample. Under the late-start rule of Section~\ref{sec:rh_predictors}, the value
+  averages of a series that starts late are zero until a full window of its data exists. In the selection fold this
+  holds for all \rhtuNLateSeries{} late-starting series, % -> \rhtuNLateSeries
+  VIX, VIX3M, VVIX, the StockTwits series and the volatility-demand series; the first of their averages to
+  go live, the one-interval VIX average, does so in \rhlvVixLiveYear{} (Section~\ref{sec:rh_predictors}). The full-set penalties are therefore selected on a design without the implied-volatility series or any alternative
+  data, and then govern those columns once they go live. The same holds for the trees' pre-sample check below.
+\item \textbf{Tree configurations: transferred from an earlier design.} The configuration of each tree method is the
+  best trial of an Optuna search \citep{Akiba2019} (for the random forest, trial \rhdmRfTrial{} of
+  \cmTreeProvRfTrials) on the \rhtuTreeSearchSpan{} pre-sample of an earlier design of this panel: % -> \rhtuTreeSearchSpan
+  all \rhdmNIntervals{} intervals of the day, overnight included, a HAR ladder of base \rhtuTreeHarBase{}, % -> \rhtuTreeHarBase
+  \rhtuTreeNCols{} columns without the FOMC series, % -> \rhtuTreeNCols
+  the data before the corrections of Section~\ref{sec:rh_data}, a masked robust scaler and a window of
+  \rhdmPooledWindow{} intervals. The configurations are used unchanged on the final design (\rhorNBars{} regular-hours
+  bars, \rhorNColsAf{} columns, $W = \rhorWindowBars$), the minimum leaf size $n_{\min}$ included, which is not
+  rescaled to the longer window.
+\item \textbf{The forest engine.} The forest's configuration was selected with the stock \texttt{scikit-learn} forest,
+  which tries every threshold; the forest of the main text is fitted with Intel's oneDAL engine, which splits on
+  histograms (Appendix~\ref{app:rh_methods_trees}) and is several times faster. On the selection fold its validation
+  MSE is within \rhtuRfMseDiffPct{} percent of the stock forest's at the same window, % -> \rhtuRfMseDiffPct
+  and its validation forecasts are nearly perfectly correlated with the stock forest's (Table~\ref{tab:rh_tuning}).
+\item \textbf{Check 1: neighbouring penalties.} Each full-set penalized regression is rerun over the whole evaluation
+  with its penalty one grid step below and one above the frozen value, the HAR-set forecasts unchanged. At every
+  neighbouring penalty the full set's every-bar QLIKE remains significantly below the HAR set's
+  (Table~\ref{tab:rh_tuning}).
+\item \textbf{Check 2: annual re-tuning.} For each year from \rhtuAnnFirstYear{} to \rhtuAnnLastYear{}, % -> \rhtuAnnFirstYear, \rhtuAnnLastYear
+  each penalty is re-selected by the same procedure on a split whose validation subsample is the
+  \rhdmPlPreFoldSess{} trading days before the year, using only data before the year, and is applied to the bars of
+  that year. From its first live year on, a late-starting series is live in the validation subsample, so the
+  re-selected penalties see the implied-volatility series and the alternative data. In every class the full set's
+  every-bar gain over the HAR set stays significant (Table~\ref{tab:rh_tuning}).
+\item \textbf{Check 3: a pre-sample neighbourhood of each tree configuration.} On the validation year of the
+  selection fold only, with a refit at the first bar of every day on the $W$ observations before it, each tree method
+  is fitted at its transferred configuration, at \rhtuTreeNSeeds{} further seeds of it, % -> \rhtuTreeNSeeds
+  and at variants that move one hyperparameter at a time: the number of leaves (LightGBM) or the depth, the learning
+  rate halved and doubled (boosting), half and twice the trees, the minimum leaf size rescaled to the window (for the
+  forest also halved), and for the forest the share of predictors tried at a split. For the forest the transferred
+  configuration is within noise of the best variant (Diebold--Mariano test of the best variant against it, on the
+  daily validation MSE, $p \ge 0.05$). For LightGBM the best variant, a doubled learning rate, and for XGBoost the best
+  variant, twice the boosting rounds, have a significantly lower validation MSE than the transferred configuration,
+  but not a significantly lower validation QLIKE. This check uses no data after the pre-sample and changes no
+  configuration.
+\end{itemize}
+% The tuning table (Table tab:rh_tuning) is generated by the NUMBERS agent (writeup/generated/rehaul_tuning_table.tex,
+% 2026-10-26); this \input needs that file (the Overleaf flattener stops on an \input of a missing file).
+\input{generated/rehaul_tuning_table}

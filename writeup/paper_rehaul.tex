@@ -39,9 +39,17 @@
 \setlist{itemsep=1pt, topsep=3pt, parsep=0pt}
 \setlist[itemize,2]{label=--}
 \newcommand{\todo}[1]{\textit{[#1]}}
+% 2026-10-26 (integration, JFEc): the author-notes switch. \authornotesfalse, the default, is the submission build:
+% every \editc box prints nothing and the notes to the authors (rehaul/99_author_notes.tex) are not read.
+% \authornotestrue restores the draft view (the boxes, the notes section and the draft subtitle).
+\newif\ifauthornotes
+\authornotesfalse
 % 2026-10-16 (user): editorial notes for the consistency pass. Colored boxes in the draft, not part of the paper.
 % red: two live statements disagree. orange: the statement does not match the computation behind a printed number.
 % blue: a reader cannot recover the input or the rule. Numbered E1--E25 so a note can be named in editing.
+% 2026-10-26 (integration, JFEc): the box is defined only under \authornotestrue; otherwise \editc takes its three
+% arguments and prints nothing.
+\ifauthornotes
 \newcommand{\editc}[3]{%
   \par\smallskip\noindent
   \begingroup
@@ -54,6 +62,18 @@
   \endgroup
   \par\smallskip
 }
+\else
+\newcommand{\editc}[3]{\ignorespaces}
+\fi
+% 2026-10-26 (integration, JFEc): \rhPending marks a number whose generated macro is not written yet. \rhPending{}
+% (the generators' form, and \rhPending alone) prints "pending"; \rhPending{name} prints the name of the missing macro,
+% so the gap is visible in the PDF. Defined before the number files: their \providecommand{\rhPending}{...} lines
+% leave this definition in place.
+\makeatletter
+\DeclareRobustCommand{\rhPending}{\@ifnextchar\bgroup{\rh@pending}{\textit{pending}}}
+\newcommand{\rh@pending}[1]{%
+  \if\relax\detokenize{#1}\relax\textit{pending}\else\textit{[pending: \texttt{\detokenize{#1}}]}\fi}
+\makeatother
 % 2026-10-19 (user): the draft names each exogenous series by its raw parquet column name for now (the "% data field"
 % names of generated/rehaul_dm_dictionary.tex). \rawseriesfalse restores the symbols of the 15 October notation pass
 % (writeup/NOTATION_GUIDE_ADDENDA_2026-10-15.md, A.2). \ser{raw}{symbol}: the series' name; \serx{raw}{raw
@@ -116,71 +136,138 @@
 % 2026-10-25 (user, step 1 of the gap analysis): the reach of the late-start rule (writeup/make_rehaul_live_windows.py:
 % \rhlv...). Macro-only file; no name is defined in another loaded file (checked).
 \input{generated/rehaul_live_numbers}
+% 2026-10-26 (integration, JFEc): the macro files of the drafts integrated in this pass (D5, D6, D10; the ladder grid).
+% Each is macro-only (every non-comment line is a definition, checked) and no macro name in them is defined in any
+% other file loaded here (checked by script, 26 October 2026). Their floats load them only when undefined
+% (\ifdefined ... \input), so do not \input them again in a section file: rehaul_ablation_numbers uses \newcommand,
+% and a second load stops the build. Definition styles differ between the generated files: \newcommand (a duplicate
+% stops the build), \providecommand alone (the first load wins) and \providecommand{}\renewcommand (the last load
+% wins), so a new file is checked for name collisions, not for load order.
+%   rehaul_ablation_numbers      writeup/make_rehaul_ablations.py        \rhab...  (tab:rh_ablation; drafts/2026-10-25_ablations)
+%   rehaul_econ_main_numbers     writeup/make_rehaul_econ_main.py        \rhem...  (tab:rh_econ_main; drafts/2026-10-25_econ_main)
+%   rehaul_econ_decomp_numbers   writeup/make_rehaul_econ_decomp.py      \rhed...  (drafts/2026-10-25_econ_decomp)
+%   rehaul_mcs_numbers           writeup/make_rehaul_mcs.py              \rhmcs... (tab:rh_mcs_spa; drafts/2026-10-25_mcs)
+%   rehaul_close_accuracy_numbers writeup/make_rehaul_close_accuracy.py  \rhca...  (drafts/2026-10-25_close_accuracy)
+%   rehaul_econ_beta_numbers     writeup/make_rehaul_econ_beta.py        \rheb...  (tab:rh_econ_beta; drafts/2026-10-26_econ_beta)
+%   rehaul_train_arms_numbers    writeup/make_rehaul_train_arms.py       \rhta...  (tab:rh_train_arms; drafts/2026-10-26_train_arms)
+%   rehaul_complexity_numbers    writeup/make_rehaul_complexity.py       \rhcx...  (drafts/2026-10-26_complexity; pre-patch)
+\input{generated/rehaul_ablation_numbers}
+\input{generated/rehaul_econ_main_numbers}
+\input{generated/rehaul_econ_decomp_numbers}
+\input{generated/rehaul_mcs_numbers}
+\input{generated/rehaul_close_accuracy_numbers}
+\input{generated/rehaul_econ_beta_numbers}
+\input{generated/rehaul_train_arms_numbers}
+\input{generated/rehaul_complexity_numbers}
+% ---- 2026-10-26 (integration, JFEc): RESERVED BLOCK for the NUMBERS agent's new macro files -------------------
+% To come: the feature-count ladder on the FOMC-patched design (D13), the tuning disclosure (D14), the NYSE-holiday
+% disclosure (D15) and Table 1 against the RTH13 OLS-HAR benchmark (D2). Add each here as a macro-only \input, after
+% checking that none of its macro names is defined in a file loaded above. The front matter marks the numbers these
+% files are to supply with \rhPending{name} (see the integration report and rehaul/99_author_notes.tex); replace
+% each \rhPending{name} by the generated macro once the file is loaded. File names below are placeholders.
+% 2026-10-26 (coordinator): the NUMBERS agent's files, now generated (no name collision with the files above, checked
+% by the NUMBERS agent); the \rhPending{name} placeholders were replaced by these macros.
+\input{generated/rehaul_ladder_numbers}
+\input{generated/rehaul_tuning_numbers}
+\input{generated/rehaul_holiday_numbers}
+\input{generated/rehaul_oos_vs_ols_numbers}
+\input{generated/rehaul_window_sweep_numbers}
+\input{generated/rehaul_ci_har_numbers}
+% ---- end of the reserved block ------------------------------------------------------------------------------------
 
 % 2026-10-15 (consolidation): parked -- "closing bar" is code jargon (guide section 1: the closing half hour).
 % \title{Forecasting Closing-Bar Variance for 0DTE SPX Options\\\large Bullet-point draft of the full paper}
 % 2026-10-16 (user): the paper is about exogenous features in the intraday forecast. Parked --
 % \title{Forecasting the Variance of the Closing Half Hour for 0DTE SPX Options\\\large Bullet-point draft of the full paper}
-\title{Exogenous Features in Intraday Forecasts of Closing-Half-Hour Variance\\\large Bullet-point draft of the full
-paper}
+% 2026-10-26 (integration, JFEc; D1, the every-bar headline): parked -- the closing half hour as the target. Was:
+% "\title{Exogenous Features in Intraday Forecasts of Closing-Half-Hour Variance\\\large Bullet-point draft of the full
+% paper}". The draft subtitle now prints only under \authornotestrue.
+\title{Exogenous Predictors in Pooled Intraday Forecasts of Realized Variance\ifauthornotes\\\large Bullet-point
+draft of the full paper\fi}
 % 2026-10-17 (user): parked -- Chris Jones, and the previous order.
 % \author{James Chen \and Austin Pollok \and Chris Jones \and Mihai Cucuringu}
 \author{James Chen \and Mihai Cucuringu \and Christopher S. Jones \and Austin Pollok}
 % 2026-10-18 (user, second-list 19): parked -- draft date updated to 18 October 2026 (fixed date, not \today). Was: "Working draft, 15 October 2026"
 % 2026-10-23 (user, final-run integration): parked -- draft date updated to 23 October 2026 (fixed date, not \today). Was: "Working draft, 18 October 2026"
-\date{Working draft, 23 October 2026 --- not for citation}
+% 2026-10-26 (integration, JFEc): parked -- draft date updated to 26 October 2026 (fixed date, not \today). Was: "Working draft, 23 October 2026"
+\date{Working draft, 26 October 2026 --- not for citation}
 
 \begin{document}
 \maketitle
 
 % 2026-10-17 (user): prose rewritten in the style of Zhang, Zhang, Cucuringu, and Qian (2024).
 \begin{abstract}
+% 2026-10-26 (integration, JFEc; D1, D2, D7): parked -- the abstract of 23-25 October 2026 (the closing half hour as
+% the target, the closing-interval HAR as the benchmark; JFEc allows 100 words). Its live lines are commented
+% out below with a leading "% | "; its earlier parked comments are kept as they were.
 % 2026-10-17 (user, new-notes 1): parked -- the target is built from front-month E-mini futures (03_data, Realized moments). Was: "forecasts of the realized variance of the S\&P 500"
 % 2026-10-25 (user: lineage in the realized volatility literature; the alternative-data angle, not overdone): parked
 % -- the opening sentence. Was: "We investigate whether exogenous predictors improve intraday forecasts of a
 % futures-based (E-mini) proxy for the realized variance of the S\&P 500 over the closing half-hour interval
 % (15:30--16:00 ET)."
-Carrying the realized volatility literature to an intraday interval, we investigate whether exogenous predictors,
-drawn from the intraday trading of the index's constituents and from alternative data such as social-media
-sentiment and option order flow, improve intraday forecasts of a futures-based (E-mini) proxy for the realized
-variance of the S\&P 500 over the closing half-hour interval (15:30--16:00 ET).
+% | Carrying the realized volatility literature to an intraday interval, we investigate whether exogenous predictors,
+% | drawn from the intraday trading of the index's constituents and from alternative data such as social-media
+% | sentiment and option order flow, improve intraday forecasts of a futures-based (E-mini) proxy for the realized
+% | variance of the S\&P 500 over the closing half-hour interval (15:30--16:00 ET).
 % 2026-10-22 (user): parked -- the pooled models are estimated on the 13 regular-hours bars (E34). Was: "Specifically, we estimate each model across all half-hour intervals and evaluate the forecast issued at 15:30 for the closing half hour over the out-of-sample period from"
-Specifically, we estimate pooled models on the \rhePoolNBars{} regular-hours half-hour bars of each trading day
-with a rolling window of \rhorWindowDays{} trading days and evaluate the forecast issued at 15:30 for the closing
-half hour over the out-of-sample period from
+% | Specifically, we estimate pooled models on the \rhePoolNBars{} regular-hours half-hour bars of each trading day
+% | with a rolling window of \rhorWindowDays{} trading days and evaluate the forecast issued at 15:30 for the closing
+% | half hour over the out-of-sample period from
 % 2026-10-20 (user): parked -- Table 1 scored from 2012 (TABLE1_SWITCH.md, approved). Was: "\rhoosSpanStart{} to \rhoosSpanEnd{} ($T_{\mathrm{oos}} = \rhoosDays$ trading days). We compare a benchmark"
-\rhoosSpanStart{} to \rhoosSpanEnd{} ($T_{\mathrm{oos}} = \rhoosDays$ trading days), and the forecasts of every
-regular-hours bar from \rhorSpanStart{} to \rhorSpanEnd{} (\rhorDays{} trading days). We compare a benchmark
-heterogeneous autoregressive (HAR) predictor set against an augmented predictor set that incorporates exogenous
+% | \rhoosSpanStart{} to \rhoosSpanEnd{} ($T_{\mathrm{oos}} = \rhoosDays$ trading days), and the forecasts of every
+% | regular-hours bar from \rhorSpanStart{} to \rhorSpanEnd{} (\rhorDays{} trading days). We compare a benchmark
+% | heterogeneous autoregressive (HAR) predictor set against an augmented predictor set that incorporates exogenous
 % 2026-10-22 (user, E34: one design for the 12 pooled forecasts): parked -- "lower ... across all" no longer holds with the pooled linear models on the trees' design; the count is printed. Was: "series. Under the QLIKE loss, the full predictor set yields lower average out-of-sample loss than the HAR benchmark across all \rhrAfPoolPairs{} intraday model classes, with \rhrAfPoolLowerSig{} of the \rhrAfPoolPairs{} reductions statistically significant at the 5\% level."
 % 2026-10-23 (user, final rerun, phase 2): parked -- on the final rerun the closing-half-hour QLIKE is lower with the full set for the three tree ensembles only and higher for the three penalized linear models (06_results, sec:rh_results_predictors); the every-bar result of Table 1, the sample the abstract names second, is added. Was: "series. Under the QLIKE loss, the full predictor set yields a lower average out-of-sample loss than the HAR benchmark in \rhrAfPoolLower{} of the \rhrAfPoolPairs{} intraday model classes, with \rhrAfPoolLowerSig{} of these reductions statistically significant at the 5\% level. Furthermore, although every intraday specification remains less accurate under QLIKE than a"
 % 2026-10-23 (phase 2): "all ... each significant" backed by \rhorAfLower = \rhorAfLowerSig = \rhorAfPairs (6), "none"
 % by \rhrAfPoolLowerSig = 0 (generated/rehaul_oos_rerun_numbers.tex, rehaul_results_numbers.tex); counts in Section 6.
-series. Under the QLIKE loss, scored on every regular-hours bar, the full predictor set yields a lower average
-out-of-sample loss than the HAR benchmark in all \rhorAfPairs{} intraday model classes, each reduction statistically
-significant at the 5\% level. For the forecast of the closing half hour, it lowers the loss in \rhrAfPoolLower{} of
-the \rhrAfPoolPairs{} classes, the \rhrPoolNTreeWord{} tree ensembles, none of these reductions statistically
-significant at the 5\% level, and raises it for the \rhrPoolNLinWord{} penalized linear models.
+% | series. Under the QLIKE loss, scored on every regular-hours bar, the full predictor set yields a lower average
+% | out-of-sample loss than the HAR benchmark in all \rhorAfPairs{} intraday model classes, each reduction statistically
+% | significant at the 5\% level. For the forecast of the closing half hour, it lowers the loss in \rhrAfPoolLower{} of
+% | the \rhrAfPoolPairs{} classes, the \rhrPoolNTreeWord{} tree ensembles, none of these reductions statistically
+% | significant at the 5\% level, and raises it for the \rhrPoolNLinWord{} penalized linear models.
 % 2026-10-19 (user): parked -- the MSE clause, with the QLIKE/squared-error divergence bullet of 06_results.tex. Was:
 % "\rhrAfPoolPairs{} reductions statistically significant at the 5\% level, whereas mean squared error does not
 % confirm these gains. Furthermore, ..."
 % 2026-10-23 (final rerun): "every intraday specification remains less accurate" still holds: \rhrNLowerPool = 0 of
 % the \rhrPoolN pooled forecasts have a lower QLIKE than the closing-interval HAR benchmark (make_rehaul_results.py).
-Furthermore, although every intraday
-specification remains less accurate under QLIKE than a
+% | Furthermore, although every intraday
+% | specification remains less accurate under QLIKE than a
 % 2026-10-18 (user, new-notes 11): parked -- a HAR-type model with its horizons, not a daily HAR regression; still the closing-interval OLS the comparison uses (make_rehaul_results.py:1276). Was: "daily HAR regression estimated solely on the closing interval, incorporating the exogenous predictors narrows"
 % 2026-10-22 (user, E34: one design for the 12 pooled forecasts): parked -- "narrows this gap across all model classes"; the count is printed. Was: "... incorporating the exogenous predictors narrows this gap across all model classes."
-HAR-type model in the spirit of \citet{Corsi2009}, estimated by OLS on the closing-interval observations of the target's trailing averages over $k \in \{1, 5, 25, 125, 625, 3125\}$ samples plus calendar columns, incorporating the exogenous predictors narrows
+% | HAR-type model in the spirit of \citet{Corsi2009}, estimated by OLS on the closing-interval observations of the target's trailing averages over $k \in \{1, 5, 25, 125, 625, 3125\}$ samples plus calendar columns, incorporating the exogenous predictors narrows
 % 2026-10-25 (user: the option trades as an application of the variance forecasts): parked -- "In an economic
 % application to zero-days-to-expiration (0DTE) S\&P 500 straddles on expiration days, a sign-based trading strategy
 % achieves ..."
-this gap in \rhrVsBmPoolNarrow{} of the \rhrAfPoolPairs{} model classes, the tree ensembles. Because the target is
-the variance of the closing half hour, the forecasts have a direct application: in zero-days-to-expiration (0DTE) S\&P 500
+% | this gap in \rhrVsBmPoolNarrow{} of the \rhrAfPoolPairs{} model classes, the tree ensembles. Because the target is
+% | the variance of the closing half hour, the forecasts have a direct application: in zero-days-to-expiration (0DTE) S\&P 500
 % 2026-10-23 (user, N1 / new-notes 15c, final rerun): parked -- "across every intraday model class" was typed for the 2012 design (note N15c); on the final rerun the count is printed (\rhrAfPoolShHigher, make_rehaul_results.py). Restore "every" only if it equals \rhrAfPoolPairs; the forest storyline (writeup/RF_STORY_OPTIONS.md) is not decided here. Was: "straddles on expiration days, a sign-based trading strategy achieves a higher Sharpe ratio under the full predictor set than under the HAR benchmark across every intraday model class."
 % 2026-10-23 (user, N1 / N15c resolved, phase 2): parked -- the count; on the final rerun \rhrAfPoolShHigher = \rhrAfPoolPairs (all six classes; the MinGRU is parked), so "every" is restored, scoped to the classes and with the significance count (note N15c). Was: "... than under the HAR benchmark in \rhrAfPoolShHigher{} of the \rhrAfPoolPairs{} intraday model classes."
-straddles held over that half hour on expiration days, a sign-based trading strategy achieves a higher Sharpe ratio under the full
-predictor set than under the HAR benchmark in every one of the \rhrAfPoolPairs{} intraday model classes, in point
-estimates; the gain is statistically significant at the 5\% level in \rhrAfPoolShHigherSig{} of them.
+% | straddles held over that half hour on expiration days, a sign-based trading strategy achieves a higher Sharpe ratio under the full
+% | predictor set than under the HAR benchmark in every one of the \rhrAfPoolPairs{} intraday model classes, in point
+% | estimates; the gain is statistically significant at the 5\% level in \rhrAfPoolShHigherSig{} of them.
+% 2026-10-26 (integration, JFEc; D1 every bar, D2 the RTH13 OLS-HAR benchmark, D7 the squared-error clause): new
+% abstract, at most 100 words (JFEc; counted with each macro as one word). Backing of the words that are not macros:
+% "significantly in all": \rhorAfLowerSig = \rhorAfPairs (each class's full set against its own HAR set; the linear
+% HAR-set forecasts coincide with the OLS benchmark), and, for the trees against the OLS benchmark,
+% \rhPending{rhorVsOlsLowerSig} (Table 1 against the RTH13 OLS-HAR, NUMBERS agent). "beats augmented HAR models":
+% \rhabNClassesBeatAddRm = \rhabNClassesAddRm and the SHAR/HARQ/LHAR comparisons (\rhab...FullVsOlsSharqlAllP).
+% "concentrated": \rhabLgbmAddFomcAllPct against \rhabLgbmFullAllPct, \rhabLgbmLoRmAllPct (Section 6) and the
+% feature-count ladder (Section 7). "add little even when live": tab:rh_ablation Panel E (\rhab...LiveSentPct,
+% \rhab...LiveVdPct). "a few crash days offset it": \rhcaNMseHigherBarSpan = \rhorAfPairs, \rhcaNMseHigherSigBarSpan,
+% \rhcaTopDays, \rhcaNMseLowerSigBarOosExCrash. The last sentence: \rhemFullVsShortSig = 6 (bootstrap) against the
+% short straddle; "but not, significantly," the HAR forecasts holds only while \rhPending{rhemFullVsOlsHarSig} = 0
+% (each full-set strategy against the RTH13 OLS-HAR strategy, D6 bootstrap; within class \rhemFullVsHarSig = 1, the
+% random forest against its own HAR set): CHECK when the macro lands.
+% 2026-10-26 (relay from RELATED, audit front-14(b)): the two families of model classes named. Was: "... by
+% \rhPending{rhorVsOlsRedLinRng}\% (linear) and \rhPending{rhorVsOlsRedTreeRng}\% (trees), ..."
+We ask what exogenous predictors, from constituents' trading to alternative data, add to pooled E-mini S\&P~500
+realized-variance forecasts for every regular-hours half-hour bar. Against an OLS heterogeneous autoregressive (HAR)
+benchmark, the full set lowers QLIKE loss significantly in all \rhorAfPairs{} model classes, by
+\rhorVsOlsRedLinRng{}\% (penalized linear models) and \rhorVsOlsRedTreeRng{}\% (tree
+ensembles), and beats augmented HAR models. The gain concentrates in the FOMC calendar and the futures' realized
+moments; alternative data add little even when live. Under squared error, a few crash days offset it. In 0DTE
+straddles, full-set forecasts beat passive selling but not, significantly, HAR forecasts.
 \end{abstract}
 
 \editc{black}{Notes}{Colored notes are draft comments, not paper text.\\
@@ -205,9 +292,17 @@ The pooled trees are not refitted (user, 2026-10-19: not in this pass); the base
 \editc{orange}{E34}{Decision: base 5 across the paper (user, 2026-10-19); the pooled trees are the base-5 refit (user, 2026-10-22); the six pooled linear models of Sections~\ref{sec:rh_results} and~\ref{sec:rh_econ} are the forecasts of Table~\ref{tab:rh_oos} on the same design (user, 2026-10-22), so the \rhrPoolN{} pooled intraday forecasts share one design: the \rhePoolNBars{} regular-hours bars, a rolling window of \rhePoolWindowDays{} trading days, evaluation from \rhePoolRunStart.\\Problem: (i) the model set (the \cmMasterN{} forecasts of the master table) still holds earlier designs: the earlier draft's pooled 48-interval forecasts (the ``paper'' family, among them its LightGBM and XGBoost) and the master table's pooled linear runs on all \rhdmNIntervals{} intervals with $W = \rhdmPooledLinWindow$ intervals (marked ``All \rhdmNIntervals{} intervals'' in generated/rehaul\_results\_t3\_full.tex, not in the paper), so the statistics computed over the model set in Section~\ref{sec:rh_econ} and in the appendix (the counts against the short straddle, the sizing and compounding medians, the interval-shift test) include them. (ii) On the one design, the full predictor set lowers the closing-interval QLIKE in \rhrAfPoolLower{} of the \rhrAfPoolPairs{} pooled classes (\rhrAfPoolLowerSig{} significantly) and raises the sign strategy's Sharpe ratio in \rhrAfPoolShHigher{} of them (note N15c); the sentences that said otherwise now print counts (writeup/E34\_OVERNIGHT\_REPORT.md). Table~\ref{tab:rh_dm_samples} gives the shared window.\\
 The pooled trees (LightGBM, XGBoost and the random forest, on the HAR benchmark and on the full predictor set) are the refit on the design of the pooled linear models of Table~\ref{tab:rh_oos}: results/pooled\_trees\_rerun13\_2026-10-20/w1000 (CARC; branch insurance-selling-2026-09-19-trees-results, commit 6746103), base-5 HAR horizons, FOMC series in, the frozen configurations, re-estimated at every bar on a rolling window of \rheTreeWindowBars{} bars, from \rheTreeRunStart{} to \rhorSpanEnd. writeup/pooled\_trees\_13.py reads their 16:00 rows for make\_rehaul\_results.py, make\_rehaul\_economics.py and make\_rehaul\_oos\_table.py, and writeup/make\_rehaul\_oos\_rerun.py scores every bar of them in Table~\ref{tab:rh_oos} (note E36), so the counts in this abstract and in the introduction (\rhrAfPoolPairs{} classes, \rhrAfPoolLowerSig{} significant), the pooled comparisons of Sections~\ref{sec:rh_results} and~\ref{sec:rh_econ} and of the appendix now use them; the tree rows of Table~\ref{tab:rh_oos_last30} are closing-interval models and are unchanged. The intraday OLS of the earlier Table~\ref{tab:rh_oos} left the table with note E36. With the refit, the QLIKE reduction from the full predictor set is statistically significant at the 5\% level in \rhrAfPoolTreeLowerSig{} of the three tree classes (all three before), and the sentences that said each tree difference was significant now print counts (writeup/E34\_OVERNIGHT\_REPORT.md).}
 \fi
-\editc{orange}{E34}{Decision: one design for the \rhrPoolN{} pooled intraday forecasts (user, 2026-10-22), now the final rerun (decided 23 October 2026; writeup/final\_run.py, generators switched with REHAUL\_FINAL\_RUN=1): the \rhePoolNBars{} regular-hours bars, the base-5 HAR horizons, the \rhorNColsAf{} columns of the full predictor set, a rolling window of \rhePoolWindowDays{} trading days ($W = \rhePoolWindowBars$ bars) re-estimated at every bar, evaluation from \rhePoolRunStart; the linear penalties chosen once on \rhorPenSample{} and then frozen, and each tree method on its frozen configuration from the earlier Optuna search, not re-tuned. Inputs: the linear models from results/window\_sweep\_2014start\_2026-10-22/w3000; LightGBM and XGBoost from results/pooled\_trees\_final\_2014start\_w3000; the random forest, fitted on its frozen configuration with Intel's oneDAL engine (Intel Extension for Scikit-learn), from results/pooled\_rf\_skx\_2014start\_w3000 (RULE\_rf\_skx.txt). The abstract, the introduction and the conclusion state counts over these forecasts (note N15c, resolved 23 October 2026).\\Problem: the model set (the \cmMasterN{} forecasts of the master table) still holds earlier designs, the earlier draft's pooled 48-interval forecasts (the ``paper'' family, among them its LightGBM and XGBoost) and the master table's pooled linear runs on all \rhdmNIntervals{} intervals with $W = \rhdmPooledLinWindow$ intervals, so the statistics computed over the model set in the appendix include them. Section~\ref{sec:rh_econ} no longer uses it: since 23 October 2026 the interval-shift test and the compounded wealth run on the \rhpsNfc{} pooled forecasts (writeup/make\_rehaul\_pooled\_extras.py; notes E26, E27, N15b resolved).\\Robustness: the same runs at a window of \rhrbWinLong{} trading days are in Table~\ref{tab:rh_robust_w3500}. Pending: the pooled MinGRU (parked).}
+% 2026-10-26 (integration, JFEc): parked -- the E34 note. Resolved: one design for the pooled forecasts, the final
+% rerun, counts in the front matter (N15c). Open part moved to rehaul/99_author_notes.tex (the master table's model
+% set holds earlier designs; the MinGRU). Was:
+% \editc{orange}{E34}{Decision: one design for the \rhrPoolN{} pooled intraday forecasts (user, 2026-10-22), now the final rerun (decided 23 October 2026; writeup/final\_run.py, generators switched with REHAUL\_FINAL\_RUN=1): the \rhePoolNBars{} regular-hours bars, the base-5 HAR horizons, the \rhorNColsAf{} columns of the full predictor set, a rolling window of \rhePoolWindowDays{} trading days ($W = \rhePoolWindowBars$ bars) re-estimated at every bar, evaluation from \rhePoolRunStart; the linear penalties chosen once on \rhorPenSample{} and then frozen, and each tree method on its frozen configuration from the earlier Optuna search, not re-tuned. Inputs: the linear models from results/window\_sweep\_2014start\_2026-10-22/w3000; LightGBM and XGBoost from results/pooled\_trees\_final\_2014start\_w3000; the random forest, fitted on its frozen configuration with Intel's oneDAL engine (Intel Extension for Scikit-learn), from results/pooled\_rf\_skx\_2014start\_w3000 (RULE\_rf\_skx.txt). The abstract, the introduction and the conclusion state counts over these forecasts (note N15c, resolved 23 October 2026).\\Problem: the model set (the \cmMasterN{} forecasts of the master table) still holds earlier designs, the earlier draft's pooled 48-interval forecasts (the ``paper'' family, among them its LightGBM and XGBoost) and the master table's pooled linear runs on all \rhdmNIntervals{} intervals with $W = \rhdmPooledLinWindow$ intervals, so the statistics computed over the model set in the appendix include them. Section~\ref{sec:rh_econ} no longer uses it: since 23 October 2026 the interval-shift test and the compounded wealth run on the \rhpsNfc{} pooled forecasts (writeup/make\_rehaul\_pooled\_extras.py; notes E26, E27, N15b resolved).\\Robustness: the same runs at a window of \rhrbWinLong{} trading days are in Table~\ref{tab:rh_robust_w3500}. Pending: the pooled MinGRU (parked).}
 % 2026-10-23 (user, E34, phase 2): parked -- in the note above, "... so the statistics computed over the model set in Section~\ref{sec:rh_econ} and in the appendix (the counts against the short straddle, the sizing and compounding medians, the interval-shift test) include them (notes E26, E27, N15b).\\Pending (2026-10-23): the robustness runs at the longer window (the random forest's walk at that window is not finished); the pooled MinGRU stays parked. The wording of the sentences whose direction depends on the final values is checked in the second pass."
 
+% 2026-10-26 (integration, JFEc): section order of the main text after the pass (writeup/INTEGRATION_SPEC_2026-10-26.md):
+% 1 Introduction, 2 Related work, 3 Data, 4 Predictors, 5 Methods, 6 Results (accuracy and ablations), 7 Variable
+% importance (rehaul/08_feature_importance, promoted from a subsection of Results to its own \section; label
+% sec:rh_fi kept), 8 Economic application (rehaul/07_economics), 9 Conclusion; references; online appendix. The file
+% names keep their old numbers; the order of the \input lines below sets the section numbers.
 % 2026-10-16 (user): introduction restored. It states the exogenous-feature question.
 \input{rehaul/01_introduction}
 \input{rehaul/02_related_work}
@@ -221,9 +316,12 @@ The pooled trees (LightGBM, XGBoost and the random forest, on the HAR benchmark 
 \input{rehaul/06_results_floats}
 % 2026-10-15 (user): variable importance moved to the end of Experiments and results, as a subsection (was after
 % Economic value, as its own section).
+% 2026-10-26 (integration, JFEc): Variable importance is Section 7, its own section after Results (the VI agent
+% turns its \subsection into a \section in rehaul/08_feature_importance.tex); its floats follow it.
 \input{rehaul/08_feature_importance}
 \input{rehaul/08_feature_importance_floats}
 \input{rehaul/08b_fi_measures_floats}
+% 2026-10-26 (integration, JFEc): the economic application is Section 8.
 \input{rehaul/07_economics}
 \input{rehaul/07_economics_floats}
 % \input{rehaul/08_feature_importance}
@@ -237,11 +335,18 @@ The pooled trees (LightGBM, XGBoost and the random forest, on the HAR benchmark 
 \bibliography{references}
 
 \appendix
+% 2026-10-26 (integration, JFEc): the online appendix. The new appendix files of this pass (rehaul/A_*.tex: data and
+% predictors, methods, results, variable importance, economics, closing-interval models, robustness) are wired in by
+% the APPENDIX agent from rehaul/10_appendix.tex, not here, so that no file is read twice.
 \input{rehaul/10_appendix}
 \input{rehaul/10_appendix_floats}
 % 2026-10-16 (user): Statistical tests moved out of Methods. After the implementation floats so those
 % tables stay with Implementation details.
 \input{rehaul/10_statistical_tests}
+% 2026-10-26 (integration, JFEc): the notes to the authors compile only under \authornotestrue (preamble); the
+% submission build leaves them out. Was: "\input{rehaul/99_author_notes}" (unconditional).
+\ifauthornotes
 \input{rehaul/99_author_notes}
+\fi
 
 \end{document}

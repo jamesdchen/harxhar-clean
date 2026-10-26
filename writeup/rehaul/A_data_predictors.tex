@@ -1,0 +1,445 @@
+% A_data_predictors.tex -- online appendix: construction of the data and the predictors (2026-10-26, integration pass
+% for JFEc; DATA agent). Material moved out of Sections 3 and 4 (rehaul/03_data.tex, rehaul/04_features.tex), lightly
+% edited, with the audit fixes of 2026-10-25 and the author decisions D13 (FOMC fixes) and D15 (holiday sessions) of
+% writeup/INTEGRATION_PLAN_2026-10-26.md. One \subsection per block, each with an app:rh_dp_* label; the APPENDIX agent
+% wires this file in (suggested: inside \section{Data and predictors}, label app:rh_data, of rehaul/10_appendix.tex).
+% House rules: every number from a generated macro; replaced text parked in dated comments in the section files.
+%
+% Stop-gap definitions (2026-10-26, DATA agent): constants of the code with no generated macro yet, at the values of the
+% code. \providecommand, so the generators' macros win once they exist (requested from the NUMBERS agent; generator in
+% brackets). The first two and the FOMC dates repeat the lines of 04_features.tex and 03_data.tex (no-ops here then).
+\providecommand{\rhdmWinsorWindow}{240}  % [make_rehaul_data_methods.py] target.py rolling_winsorize window (robust_transform default 240)
+\providecommand{\rhdmIqrFloorFrac}{0.01}  % [make_rehaul_data_methods.py] scaling.py IQR_FLOOR_FRAC
+\providecommand{\rhdmWinsorLoPct}{1}  % [make_rehaul_data_methods.py] target.py WINSOR_LOWER_Q x 100
+\providecommand{\rhdmWinsorHiPct}{99}  % [make_rehaul_data_methods.py] target.py WINSOR_UPPER_Q x 100
+\providecommand{\rhdmBandLo}{0.5}  % [make_rehaul_data_methods.py] target.py DIURNAL_SLOT_BAND_FRAC (band [f rho, rho / f])
+\providecommand{\rhdmBandHi}{2}  % [make_rehaul_data_methods.py] 1 / DIURNAL_SLOT_BAND_FRAC
+\providecommand{\rhdmSlotRefWindow}{250}  % [make_rehaul_data_methods.py] target.py DIURNAL_SLOT_REF_WINDOW
+\providecommand{\rhdmSlotRefMin}{20}  % [make_rehaul_data_methods.py] target.py DIURNAL_SLOT_REF_MIN
+\providecommand{\rhdmSdFloorFrac}{0.1}  % [make_rehaul_data_methods.py] target.py DIURNAL_STD_FLOOR_FRAC
+\providecommand{\rhdmLogFloor}{\ensuremath{10^{-12}}}  % [make_rehaul_data_methods.py] target.py log rule, log(clip(x, 1e-12))
+\providecommand{\rhdmAsinhScaleFrac}{0.01}  % [make_rehaul_data_methods.py] target.py asinh scale floor, 0.01 x expanding median
+\providecommand{\rhdmAsinhHalfLife}{12{,}000}  % [make_rehaul_data_methods.py] ASINH_SCALE_HALFLIFE_DAYS x PERIODS_PER_DAY
+\providecommand{\rhdmAsinhHalfLifeDays}{250}  % [make_rehaul_data_methods.py] target.py ASINH_SCALE_HALFLIFE_DAYS
+\providecommand{\rhdmIqrGridStep}{480}  % [make_rehaul_data_methods.py] executor.py _expanding_real_iqr grid_step
+\providecommand{\rhdmIqrMinRows}{8}  % [make_rehaul_data_methods.py] executor.py _expanding_real_iqr, rows before a value
+\providecommand{\rhdmIqrEps}{\ensuremath{10^{-12}}}  % [make_rehaul_data_methods.py] scaling.py IQR guard (below it -> 1)
+\providecommand{\rhdmBarsPerSession}{46}  % [make_rehaul_data_methods.py] executor.py BARS_PER_SESSION (ERODE_IN_BARS)
+\providecommand{\rhdsFomcSchedMeeting}{17--18 March 2020}  % [make_rehaul_disclosures.py] loading.py FOMC_2020_SCHEDULED
+\providecommand{\rhdsFomcReplaced}{15 March 2020}  % [make_rehaul_disclosures.py] loading.py FOMC_2020_ANNOUNCEMENT
+\providecommand{\rhdsFomcNextIssued}{29 April 2020}  % [make_rehaul_disclosures.py] loading.py FOMC_2020_NEXT
+\providecommand{\rhPending}{\textit{pending}}
+
+% ----------------------------------------------------------------------------------------------------------------------
+% From 03_data.tex (2026-10-26): the liquidity, market, sentiment, implied-volatility and volatility-demand bullets,
+% the time stamps and the ends of the feeds. First-print years: \rhlv...First (writeup/make_rehaul_live_windows.py,
+% the first print of each series) in place of the typed years; the volatility-demand end: \rhdsVdLast.
+\subsection{Data sources}
+\label{app:rh_dp_sources}
+\begin{itemize}
+% From 03_data.tex (2026-10-26): the display of the futures' realized moments and the sentence that names them.
+% Sums read off the column names: the builder of data/core_stats.parquet is not in the repo
+% (live/close_signal/features.py:1-25); sumpret2 = positive semivariance is an assumed reading; bipower unnormalized.
+\item \textbf{Realized moments.} With $r_{t,i,k}$ the one-minute log-price changes of Section~\ref{sec:rh_data}, the
+  \bkSizeMom{} realized-moment series are the one-minute sums
+  % 2026-10-19 (user): raw parquet names for now (\ifrawseries, paper_rehaul.tex preamble): each sum is named by its
+  % column of data/core_stats.parquet. The \else branch is the display of the symbols.
+  \ifrawseries
+  \begin{gather*}
+    \sername{sumret}_{t,i} = \sum_k r_{t,i,k}, \quad \sername{sumabsret}_{t,i} = \sum_k |r_{t,i,k}|, \quad
+    \sername{sumret3}_{t,i} = \sum_k r_{t,i,k}^3,\\
+    \sername{sumret4}_{t,i} = \sum_k r_{t,i,k}^4, \quad
+    \sername{sumpret2}_{t,i} = \sum_k r_{t,i,k}^2\,\mathbf{1}\{r_{t,i,k} > 0\},\\
+    \sername{sumbipow}_{t,i} = \sum_{k \ge 2} |r_{t,i,k}|\,|r_{t,i,k-1}|, \quad
+    \sername{sumautocov}_{t,i} = \sum_{k \ge 2} r_{t,i,k}\, r_{t,i,k-1}.
+  \end{gather*}
+  \else
+  \[
+    \sum_k r_{t,i,k}, \quad \sum_k |r_{t,i,k}|, \quad \sum_k r_{t,i,k}^3, \quad \sum_k r_{t,i,k}^4, \quad
+    \mathrm{RS}^{+}_{t,i} = \sum_k r_{t,i,k}^2\,\mathbf{1}\{r_{t,i,k} > 0\},
+  \]
+  \[
+    \mathrm{BV}_{t,i} = \sum_{k \ge 2} |r_{t,i,k}|\,|r_{t,i,k-1}|, \qquad
+    \mathrm{AC}_{t,i} = \sum_{k \ge 2} r_{t,i,k}\, r_{t,i,k-1}.
+  \]
+  \fi
+  The third sum is the unnormalized realized skewness of \citet{AmayaChristoffersenJacobsVasquez2015} (before the
+  division by $\RV^{3/2}_{t,i}/\sqrt{N_{t,i}}$), the fourth the realized quarticity without the factor $N_{t,i}/3$,
+  $\ser{sumpret2}{\mathrm{RS}^{+}}_{t,i}$ the positive realized semivariance of
+  \citet{BarndorffNielsenKinnebrockShephard2010}, $\ser{sumbipow}{\mathrm{BV}}_{t,i}$ the bipower variation of
+  \citet{BarndorffNielsenShephard2004} without its $\pi/2$ factor, and $\ser{sumautocov}{\mathrm{AC}}_{t,i}$ the
+  first-order realized autocovariance. The realized variance itself is the target and not a predictor.
+\item \textbf{Liquidity.} From the front-month futures contract we take the total contract volume traded in the half
+  hour and the number of observed one-minute intervals $N_{t,i}$\ifrawseries{} (\sername{numobs})\fi. From intraday
+  data on the S\&P~500 constituents, 1993 to 2024, we form equal- and value-weighted cross-sectional aggregates of
+  share turnover, buyer-initiated turnover, seller-initiated turnover, the effective spread, the quoted spread and
+  order-flow imbalance. Constituent turnover is the number of shares traded in the half hour divided by the prior
+  day's shares outstanding; buyer- and seller-initiated turnover aggregate the trades by their estimated direction.
+  The effective spread is the average percentage deviation of the transaction price from the prevailing mid-quote,
+  and the quoted spread the average percentage bid--ask spread. Equal-weighted aggregates are simple cross-sectional
+  averages; value-weighted aggregates weight each constituent by its prior-day market capitalization. For each
+  weighting ($\ser{ofi_ewstock}{\mathrm{OFI}^{\mathrm{EW}}}$ and $\ser{ofi_vwstock}{\mathrm{OFI}^{\mathrm{VW}}}$),
+  order-flow imbalance is
+  \[
+    \mathrm{OFI}_{t,i} = \frac{\mathrm{Buy}_{t,i} - \mathrm{Sell}_{t,i}}{\mathrm{Buy}_{t,i} + \mathrm{Sell}_{t,i}}
+      \in [-1, 1],
+    \qquad \text{missing if } \mathrm{Buy}_{t,i} + \mathrm{Sell}_{t,i} = 0 ,
+  \]
+  with $\mathrm{Buy}_{t,i}$ and $\mathrm{Sell}_{t,i}$ the aggregate buyer- and seller-initiated turnover of interval
+  $(t,i)$.
+  % loading.py:161-180, built on the unfilled legs.
+\item \textbf{Market moments.} For each weighting, the \bkSizeMew{} constituent moments are the realized variance,
+  realized skewness, realized quarticity, absolute variation, bipower variation and positive semivariance, computed
+  from 5-minute log returns rather than the one-minute changes of the futures moments. The constituent groups omit
+  the signed return sum and the realized autocovariance; the futures group omits the realized variance, which is the
+  target.
+\item \textbf{Sentiment.} StockTwits message streams, from \rhlvStAttFirst{} for all posts and \rhlvStSentFirst{} for
+  posts tagged by their users: attention, the number of posts in the half hour; the sentiment score, $1$ when every
+  tagged post is bullish and $-1$ when every tagged post is bearish; and the sentiment count, the number of posts
+  tagged bullish or bearish.
+  % 2026-10-26 (integration): parked -- the visible note E30, still open (the score between its endpoints); reported to
+  % FRONT for rehaul/99_author_notes.tex. Was:
+  % \editc{orange}{E30}{Decision: open, for the professor.\\Problem: the text gives only the $\pm 1$ endpoints of the sentiment score.\\
+  % Question for the professor: what is the formula of the score between the endpoints, and what value does it take on intervals with no tagged posts? The repository receives the score precomputed (data/spy\_and\_sentiment.parquet, column stocktwits\_sentiment, first observed in June 2010); src/data/loading.py:280 reads it as a net score in $[-1, 1]$, and no script in src/ or experiments/ computes it.}
+\item \textbf{Implied volatility.} The 30-day S\&P~500 implied volatility index (VIX, from \rhlvVixFirst), the
+  three-month index (VIX3M, from \rhlvVixThreeFirst) and the implied volatility of the VIX (VVIX, from
+  \rhlvVvixFirst), in a vendor file that ends on \rhdsVixVendorLast.
+\item \textbf{Volatility demand.} From Cboe option-volume records, \rhlvVdFirst{} to \rhdsVdLast, the net vega bought by
+  customers other than market makers, in \bkSizeVd{} series that cross two option universes (options on the
+  S\&P~500 index and on the top S\&P~500 exchange-traded funds, and all exchange-traded options) with two sets of
+  trades (all opening and closing customer trades, and opening customer trades only).
+\item \textbf{Time stamps.} Every file stamps an interval by its end, in Eastern time, on a grid of half-hour stamps
+  from 00:00 to 23:30: interval $(t,i)$ holds the half hour that ends at its stamp, so the closing interval $i = c$ is
+  stamped 16:00.
+  % 2026-10-26 (integration): parked -- the visible \todo and the note E2, still open (vendor, price field, roll day;
+  % the 17:30/18:00 stamps inside CME's maintenance halt); reported to FRONT for rehaul/99_author_notes.tex. Was:
+  % "\todo{name the vendor of each file, the price inside the one-minute log-price change (trade or quote), and the day
+  % whose volume selects the front-month contract.}" and the box \editc{blue}{E2}{...} of 03_data.tex (parked there).
+% writeup/make_rehaul_disclosures.py (data/vix_and_voldemand.parquet, data/free_feed/*_1h_yahoo.parquet,
+% data/releases.parquet; src/data/loading.py SPLICE_VIX_FREE_FEED, VIX_SPLICE_SLOTS and FOMC_CALENDAR_FIX). "The same
+% value to the second decimal": |Yahoo - vendor| < 0.006 index points (experiments/data_audit_stages.py).
+\item \textbf{Ends of the feeds.} Our data end on \rhdsSampleEnd, but three feeds stop earlier. The file of the implied
+  volatility indices ends on \rhdsVixVendorLast. For the remaining \rhdsVixSpliceDays{} trading days we splice in the
+  hourly closes of the free Yahoo Finance feed for the same three indices, each written at the end of its hour and
+  carried to the next half-hour stamp, on the stamps at which the file prints each index. On the stamps both sources
+  carry, from \rhdsVixOverlapStart{} to \rhdsVixVendorLast, the two print the same value to the second decimal on
+  \rhdsVixAgree\% (VIX), \rhdsVixThreeMAgree\% (VIX3M) and \rhdsVvixAgree\% (VVIX) of the stamps. The FOMC release
+  file ends with the statement of \rhdsFomcFileLast; we add the \rhdsFomcAdded{} scheduled statements it omits before
+  the end of our data, so no FOMC value is missing (Appendix~\ref{app:rh_dp_fomc}). The volatility-demand feed ends on
+  \rhdsVdLast{} and is not extended: from then on its \bkSizeVd{} series are unobserved
+  (Appendix~\ref{app:rh_dp_sessions}).
+\end{itemize}
+
+% ----------------------------------------------------------------------------------------------------------------------
+% 2026-10-26 (D13, author: FOMC fixes adopted): src/data/loading.py FOMC_CALENDAR_FIX / FOMC_MISSING_STATEMENTS (the
+% three statements after the release file), FOMC_SCHEDULE_2020_FIX (fomc_schedule_2020: until_inv counts to the
+% scheduled 2020-03-18 14:30 statement on the bars after the 2020-01-29 statement that end before the 2020-03-15 17:00
+% announcement; since_inv counts from the first bar after the announcement, the Sunday 18:30 reopen, to the 2020-04-29
+% statement; fomc_release and fomc_day unchanged), src/features/transforms/target.py FOMC_FLAGS_IDENTITY (fomc_day: no
+% log, no clip) and FOMC_PROXIMITY_NO_WINSOR (the proximity ramps skip rolling_winsorize; the log and every later step
+% unchanged). Distances: add_fomc_features on the frame before the dead-session drop, i.e. the calendar-open grid (the
+% weekend break cut, every other half hour kept). results/fomcfix_2026-10-26/RULE.txt (P1, P2) and STATUS.md (gates
+% G1, G3, G3b). Audit 2026-10-25 correctness-7 and fidelity-7.
+\subsection{FOMC calendar}
+\label{app:rh_dp_fomc}
+\begin{itemize}
+\item \textbf{Statements.} The scheduled statement times come from the release file, which ends with the statement of
+  \rhdsFomcFileLast, and from the \rhdsFomcAdded{} scheduled statements that follow it up to the end of our data. The
+  statement-day indicator equals 1 on every interval of a day with a scheduled statement. The distances
+  $n^{+}_{t,i}$ and $n^{-}_{t,i}$ count half-hour intervals on the grid less the weekend break.
+\item \textbf{The pre-announced calendar in March 2020.} The release file holds the statements that were issued, and
+  the meeting scheduled for \rhdsFomcSchedMeeting{} is not among them: the Federal Reserve replaced it with the
+  action announced on Sunday, \rhdsFomcReplaced. The proximity measures follow the calendar that was public at each
+  interval. Until that announcement, $n^{+}_{t,i}$ counts the intervals to that meeting's scheduled statement; from
+  the announcement on, $n^{+}_{t,i}$ counts to the next statement issued, on
+  \rhdsFomcNextIssued, and $n^{-}_{t,i}$ counts from the first interval after the announcement. No statement is added,
+  so the statement-day indicator is unchanged.
+\item \textbf{No winsorization.} The statement-day indicator passes through every step unchanged. The proximity
+  measures, after the logarithm of step~2, are deterministic ramps that rise or fall monotonically between
+  statements, so each value is an extreme of its own trailing window and a rolling quantile clip would bind on most
+  intervals, holding the series behind its true value. They skip the winsorization of step~3; every other step
+  applies.
+\item Both rules change only the two proximity series. Forecasts built before them (some robustness and ablation
+  arms, marked where they are reported) count to the next statement issued in early 2020 and clip the proximity
+  measures.
+\end{itemize}
+
+% ----------------------------------------------------------------------------------------------------------------------
+% From 03_data.tex (2026-10-26): the early closes, the holiday sessions (D15, author 2026-10-26: keep and disclose;
+% audit fidelity-4, numbers-7, correctness-5, design-11), the domain rule, the availability indicator, the fill cap and
+% the no-observation counts.
+% Holidays: results/fomcfix_2026-10-26/RULE.txt addendum A and holiday_sessions.csv (src/data/loading.py
+% NYSE_HOLIDAY_FUTURES_SESSIONS: a date with a bar ending 10:00 .. 16:00 on the grid, no 16:00 bar, not an NYSE early
+% close, and no print of any constituent series; every one an NYSE rule-calendar holiday). The forecast and scored
+% counts: \rhorNTreeBars (each pooled arm) and \rhorNIntB (Table 1), whose difference is the holiday bars of the span.
+% src/backtest/executor.py DROP_EARLY_CLOSE_SESSIONS, B_REGULAR_BARS_ONLY (target only: baseline_exclude =
+% early_close_post_bars, bars ending 13:30 .. 17:00), DROP_HOLIDAY_SESSIONS (default off; the robustness cells C, D).
+% D15, NOTE FOR OFFICIAL PUBLICATION: rerun with DROP_HOLIDAY_SESSIONS on (all models) before the final version.
+\subsection{Sessions, cleaning and missing values}
+\label{app:rh_dp_sessions}
+\begin{itemize}
+\item \textbf{Grid.} The grid $\mathcal G$ starts at the first observed realized variance; the weekend break it leaves
+  out runs from Friday 20:00 to Sunday 18:30~ET:
+  \[
+    (t,i) \in \mathcal{G} \iff \RV_{t,i} \text{ observed and } (t,i) \notin (\text{Fri } 20{:}00,\ \text{Sun } 18{:}30) .
+  \]
+\item \textbf{Early closes.} The early-close sessions stay in the grid $\mathcal G$, on which every trailing average is
+  computed, but the pooled models neither estimate on nor score any interval of them, and the option-trading sample
+  leaves them out. The intervals after their 13:00~ET close leave the window $\mathcal D_{t,i}$ of the target's
+  diurnal factor $s^2_{t,i}$; the diurnal factors of the exogenous series keep them.
+\item \textbf{Holiday sessions.} On full NYSE holidays the cash market is closed and the E-mini trades a shortened
+  session that ends at about 13:00~ET. Its regular-hours intervals, which carry little variance, are rows of the
+  \rhorNBars-bar estimation sample and enter the windows $\mathcal D_{t,i}$ of the target's diurnal factor at their
+  times of day; they are forecast but never scored, which is why each pooled model has \rhorNTreeBars{} forecasts
+  and \rhorNIntB{} scored bars over the evaluation span. Because the estimation window counts rows, its
+  \rhorWindowBars{} rows span slightly fewer than \rhorWindowDays{} trading days. In the robustness check of
+  Appendix~\ref{app:rh_robust_holiday}, the holiday sessions leave the estimation sample and the windows $\mathcal D_{t,i}$, while
+  every trailing average is still computed on the full grid; the linear models are refitted with their frozen
+  penalties, and the every-bar comparisons of the full predictor set with the HAR benchmark change by
+  \rhholEffCABarPpRng{} percentage points.
+\item \textbf{Domain rule.} Before any other step, a print outside the domain of its series is set to missing: a
+  nonpositive quoted or effective spread, total turnover, futures volume, observation count or index level, and a
+  negative value of a series that cannot be negative. The rule removes \rhdsInvalidPrints{} prints,
+  \rhdsInvalidVolume{} of them zero futures volumes on intervals that carry one-minute price changes.
+\item \textbf{Availability and filling.} For each exogenous series the availability indicator $a_{t,i}$ is recorded
+  before any filling. The series is then forward-filled over at most \rhdsFfillCap{} intervals, and the diurnal
+  factors, the variance-stabilizing scale and the winsorization bounds are computed on the filled series; every
+  interval with $a_{t,i} = 0$ then takes the imputed value of step~4 (Appendix~\ref{app:rh_dp_transform}). A gap
+  longer than the cap stays missing in these statistics.
+\item \textbf{No observation.} A series whose feed stops is unobserved from its last print on, and its availability
+  averages fall to zero. Wherever a $k$-interval average holds no observed interval, its standardized value is set to
+  zero (step~6 of Section~\ref{sec:rh_predictors}). In the pooled models this rule acts, on at least one interval, on
+  \rhdsUnobsCols{} of the \rhdsValueCols{} value averages of the full predictor set over the whole sample and on
+  \rhdsUnobsColsEval{} of them within the evaluation span from \rhdsEvalStart: on every horizon of the volatility-demand
+  series once their feed has stopped, and on the shorter horizons of the series that do not print on every interval
+  (volatility demand, the implied volatility indices, the constituent aggregates and the StockTwits series) where the
+  averaging window falls in a gap between their prints.
+\end{itemize}
+
+% ----------------------------------------------------------------------------------------------------------------------
+% From 04_features.tex (2026-10-26): steps 1-4 with their displays and the activity indicator (formerly step 5), the
+% closing-interval clauses moved to app:rh_dp_asfitted. Code: src/features/transforms/target.py robust_transform,
+% diurnal_adjust_with_floor (CAUSAL_SD_FLOOR), series_is_signed (SIGN_BY_NAME), the map (rule list), asinh_stabilize_pair
+% and the routing (CAUSAL_ASINH_ROUTING, ASINH_ROUTE_MIN_ROWS, DIURNAL_PINNED_MAX), rolling_winsorize (min_periods =
+% window when allow_missing is False, as in load_and_transform's exogenous call); src/backtest/executor.py
+% causal_neutral_fill (CAUSAL_NEUTRAL_FILL), causal_activity (CAUSAL_MODE_INFLATION, ACTIVE_FROM_OBSERVED,
+% MODE_MIN_PRINTS, ZERO_INFLATED_FRAC), DROP_ACTIVITY_MA. Winsorization reach: audit 2026-10-25 fidelity-7 (bounds
+% defined on 0% of 2014-2024 regular-hours rows for VIX3M and VVIX, 66% for VIX, 86% for the constituent aggregates;
+% scratchpad audit/winsor_check.py; shares not yet macros, so not printed).
+\subsection{Transformations of the exogenous series}
+\label{app:rh_dp_transform}
+% 2026-10-26 (coordinator: the paper keeps its bullet structure): the lead sentence as a bold-lead item.
+\begin{itemize}
+\item \textbf{Order.} Steps 1 to 4 of Section~\ref{sec:rh_predictors} are applied to each exogenous series $u$ in this
+  order; step~5 forms the trailing averages, and step~6 (Appendix~\ref{app:rh_dp_scale}) standardizes them.
+\end{itemize}
+\begin{enumerate}
+\item \emph{Diurnal adjustment.} Each raw series is divided by a time-of-day factor estimated over the prior-day set
+  $\mathcal D_{t,i}$ of $s^2_{t,i}$ (Section~\ref{sec:rh_methods_setup}) and bounded relative to its own trailing
+  median:
+  \[
+    \tilde u_{t,i} = \frac{u_{t,i}}{b^{(u)}_{t,i}}, \qquad
+    b^{(u)}_{t,i} =
+    \begin{cases}
+      \clip\bigl(\operatorname{mean}_{t' \in \mathcal{D}_{t,i}} u_{t',i},\ \rhdmBandLo\,\rho_{t,i},\
+        \rhdmBandHi\,\rho_{t,i}\bigr), & u \ge 0,\\[2pt]
+      \max\bigl\{\clip\bigl(\operatorname{sd}_{t' \in \mathcal{D}_{t,i}} u_{t',i},\ \rhdmBandLo\,\rho_{t,i},\
+        \rhdmBandHi\,\rho_{t,i}\bigr),\ \rhdmSdFloorFrac\,\bar\sigma^{(u)}_{t,i}\bigr\}, & u \text{ signed},
+    \end{cases}
+  \]
+  \begin{itemize}
+  \item where $\rho_{t,i}$ is the median of the \rhdmSlotRefWindow{} most recent unbounded factors of interval $i$
+    (at least \rhdmSlotRefMin{} of them), and $\bar\sigma^{(u)}_{t,i}$ the median of the nonzero trailing standard
+    deviations $\operatorname{sd}_{t'' \in \mathcal{D}_{t',i'}} u_{t'',i'}$ over all intervals $(t',i')$ up to
+    $(t,i)$, every time of day pooled (before the first such standard deviation the adjusted value is undefined and
+    is imputed as in step~4);
+  \item a series is signed when the quantity it measures can be negative, not when its sample has a negative value
+    (Table~\ref{tab:rh_dm_dictionary});
+  \item $b^{(u)}_{t,i} = 1$ whenever the factor of a nonnegative series is zero or undefined; and
+  \item the implied volatility indices, the StockTwits sentiment score and the FOMC series are not adjusted.
+  \end{itemize}
+\item \emph{Variance stabilization.} The first matching rule of
+  \[
+    g(v) =
+    \begin{cases}
+      \sqrt{v} & \text{squared returns, realized variance, turnover,}\\
+        & \text{bipower variation, effective spread},\\
+      \sign(v)\,|v|^{1/2} & \text{autocovariance},\\
+      v^{1/3} & \text{cubed returns},\\
+      \sign(v)\,|v|^{1/4} & \text{fourth-power returns},\\
+      v & \text{other signed series, absolute returns},\\
+      \log \max(v, \rhdmLogFloor) & \text{otherwise}
+    \end{cases}
+  \]
+  replaces $\tilde u_{t,i}$ by $g(\tilde u_{t,i})$.
+  \begin{itemize}
+  \item A signed series without a power rule is routed at interval $(t,i)$ to an inverse hyperbolic sine of the raw
+    series when its standard-deviation divisor sat at its floor on at least \rhdmAsinhPinnedShare\% of its intervals
+    since its first print and before $(t,i)$, at least \rhdmAsinhMinRows{} of them. This routes the volatility-demand
+    series, on almost all of their intervals (Table~\ref{tab:rh_dm_dictionary}), and no other series:
+    \[
+      \tilde u_{t,i} = \operatorname{asinh}(u_{t,i} / \kappa_{t,i}), \qquad
+      \kappa_{t,i} = \max\bigl\{ e_{t,i-1},\ \rhdmAsinhScaleFrac \operatorname{med}_{j \ge 1} e_{t,i-j} \bigr\},
+    \]
+    where $e_{t,i}$ is an exponentially weighted moving average of $|u|$ over the nonzero intervals ($u \ne 0$) with
+    a half-life of \rhdmAsinhHalfLife{} such intervals (nominally \rhdmAsinhHalfLifeDays{} days of \rhdmNIntervals{}
+    intervals).
+  \item The FOMC statement-day indicator passes through unchanged, and the FOMC proximity measures take the logarithm
+    (Appendix~\ref{app:rh_dp_fomc}).
+  \end{itemize}
+\item \emph{Winsorization.} With $\mathcal U_{t,i} = \{\tilde u_{t,i-j} : j = 1, \dots, n_{\mathrm{w}}\}$ the
+  preceding $n_{\mathrm{w}} = \rhdmWinsorWindow$ intervals of the grid, all times of day pooled,
+  \[
+    \tilde u_{t,i} \leftarrow \clip\bigl(\tilde u_{t,i},\ \underline Q^{(u)}_{t,i},\ \overline Q^{(u)}_{t,i}\bigr),
+  \]
+  where $\underline Q^{(u)}_{t,i}$ and $\overline Q^{(u)}_{t,i}$ are the empirical \rhdmWinsorLoPct{}st and
+  \rhdmWinsorHiPct{}th percentiles of $\mathcal U_{t,i}$, the levels of the target's winsorization
+  (Section~\ref{sec:rh_methods_setup}).
+  \begin{itemize}
+  \item The bounds are defined only when all $n_{\mathrm{w}}$ values of $\mathcal U_{t,i}$ exist, after the forward
+    fill of at most \rhdsFfillCap{} intervals; otherwise the interval is not clipped. Series whose prints leave longer
+    gaps are therefore clipped only where a full window of values precedes the interval: VIX3M and VVIX, which print
+    only part of the day, never; the VIX and the constituent aggregates on part of the sample; the futures' own
+    moments and liquidity series, which print on every interval of the grid, throughout.
+  \item The FOMC series are not winsorized (Appendix~\ref{app:rh_dp_fomc}).
+  \end{itemize}
+\item \emph{Imputation.} An unobserved interval takes the expanding median of the series' earlier observed
+  transformed values; $a_{t,i}$ enters the model separately, through its trailing averages:
+  \[
+    \tilde u_{t,i} \leftarrow
+    \begin{cases}
+      \tilde u_{t,i}, & a_{t,i} = 1,\\
+      \operatorname{med}\mathcal{A}_{t,i}, & a_{t,i} = 0,\ \mathcal{A}_{t,i} \ne \emptyset,\\
+      \tilde u_{(1)}, & a_{t,i} = 0,\ \mathcal{A}_{t,i} = \emptyset,
+    \end{cases}
+  \]
+  where $\mathcal{A}_{t,i} = \{\tilde u_{t',i'} : (t',i') \prec (t,i),\ a_{t',i'} = 1\}$, $(t',i') \prec (t,i)$ means
+  that $(t',i')$ is an interval of the grid strictly before $(t,i)$, and $\tilde u_{(1)}$ is the transformed value on
+  the series' first observed interval. The late-start rule of step~6 keeps $\tilde u_{(1)}$ out of every forecast.
+\end{enumerate}
+\begin{itemize}
+\item \textbf{Activity indicator (not in the pooled models).} A series is mode-inflated at interval $(t,i)$ when it has
+  at least \rhdmModeMinPrints{} observed prints strictly before $(t,i)$ and their most frequent value, $m_{t,i}$,
+  accounts for at least \rhdmModeShare\% of them. On every interval at which the series is mode-inflated,
+  \[
+    \chi_{t,i} =
+    \begin{cases}
+      \mathbf{1}\{u_{t,i} \ne m_{t,i}\}, & a_{t,i} = 1,\\
+      \chi^{\circ}_{t,i}, & a_{t,i} = 0,
+    \end{cases}
+  \]
+  where $\chi^{\circ}_{t,i}$ is the more frequent value of $\chi$ on the series' earlier observed intervals (0 on a
+  tie), and $\chi_{t,i} = 0$ elsewhere. Under this rule \rhdmNActivePooled{} series are mode-inflated at some interval:
+  the number of observations, the \bkSizeSent{} StockTwits series (on part of the sample) and the FOMC statement-day
+  indicator; the volatility-demand series never are. The pooled models carry no trailing averages of $\chi$; the
+  evidence requirement of the penalized linear models (Appendix~\ref{app:rh_methods_linear}) uses the same threshold of
+  \rhdmModeMinPrints{} intervals, and the closing-interval panel of the earlier model set carries the averages
+  (Appendix~\ref{app:rh_closing_predictors}).
+\end{itemize}
+
+% ----------------------------------------------------------------------------------------------------------------------
+% From 04_features.tex (2026-10-26): step 6 in full, as the code builds every pooled design (audit 2026-10-25
+% correctness-1, design-1, fidelity-1, fidelity-12): experiments/pool_linear_pretune.py run_executor(prescale=True) ->
+% src/backtest/executor.py _backtest_and_save, prescale branch: _build_scale_guards (ref_iqr = _expanding_real_iqr over
+% the availability mask eroded by ceil(k x rows-per-session / BARS_PER_SESSION) design rows (ERODE_IN_BARS), mode rows
+% left out (CAUSAL_GUARD_MODE, _PastMode: MODE_MIN_PRINTS, ZERO_INFLATED_FRAC), grid_step 480, warm-up value 1 until 8
+% rows; the *_avail_ma_* columns fixed, HAR and calendar columns ref 0), then rolling_robust_scale
+% (src/features/transforms/scaling.py _rolling_scale_cols: rows [0, W) on the first window's statistics, row t >= W on
+% [t - W, t); IQR floored at IQR_FLOOR_FRAC x the running maximum, < 1e-12 -> 1, then at ref_iqr), then
+% late_start_warmup (LATE_START_WARMUP) and unobserved_neutral (UNOBSERVED_NEUTRAL). The masked scaler
+% (apply_masked_scaling, scaling.masked_rolling_scale_col: observed rows only, every 480 rows, 512-row minimum) is called
+% by no final design (only experiments/run_geometry_local.py, data_audit_stages.py, data_fix_2026_10_15.py); the design
+% log of results/window_sweep_2014start_2026-10-22/w3000/run_info.json has no masked-rescaling line. The first window:
+% the first W = 39,000 rows of the 13-bar design (June 1998 to May 2010), after the HAR burn-in, before every forecast.
+% Live shares: writeup/make_rehaul_live_windows.py (generated/rehaul_live_numbers.tex); the training-window reading of
+% audit correctness-4 stated in words (no macro yet).
+\subsection{Robust standardization}
+\label{app:rh_dp_scale}
+\begin{itemize}
+\item \textbf{Window and statistics.} The rows are those of the estimation sample, the \rhorNBars{} regular-hours bars
+  of each day. Row $(t,i)$ is scaled with the median and the interquartile range of the $W = \rhorWindowBars$ rows
+  before it, $\mathcal W_{t,i}$, imputed rows included, so both are recomputed at every row; the rows of the first
+  window take that window's statistics, and all of them precede the first forecast. The denominator of
+  Section~\ref{sec:rh_predictors}, step~6, takes the largest of three scales: the window's interquartile range; a
+  relative floor, \rhdmIqrFloorFrac{} times the largest interquartile range of the column up to $(t,i)$; and the
+  causal floor $\mathrm{IQR}^{\ast(k)}_{t,i}$. A scale below \rhdmIqrEps{} is replaced by 1 before the causal floor
+  applies.
+\item \textbf{The causal floor} $\mathrm{IQR}^{\ast(k)}_{t,i}$ is the interquartile range of the column over the
+  earlier rows whose $k$-interval average holds only observed intervals (the availability mask eroded over about
+  $\lceil k \cdot \rhorNBars / \rhdmBarsPerSession \rceil$ rows of the sample). When at least \rhdmModeMinPrints{}
+  earlier rows exist and one value accounts for at least \rhdmModeShare\% of them, rows at that value are left out.
+  The floor is re-evaluated every \rhdmIqrGridStep{} rows and held in between, and it equals 1 until
+  \rhdmIqrMinRows{} such rows exist. It guards against a window that holds mostly imputed values, whose interquartile
+  range collapses.
+\item \textbf{Columns.} The availability averages $\bar a^{(k)}$ keep their $[0, 1]$ scale. The HAR components and the
+  calendar columns are scaled by the same rule without the causal floor ($\mathrm{IQR}^{\ast(k)} = 0$).
+\item \textbf{Late start.} For a series whose first print comes after the first day of the sample, an interval is live
+  for horizon $k$ when its $k$-interval average holds no interval before the day of the first print. The standardized
+  value $z^{(k)}_{t,i}$ is set to 0 on every row whose window $\mathcal W_{t,i}$ holds a row that is not live; since
+  liveness only switches on, these are the first $L + W$ rows, $L$ the first live row. A late series therefore enters
+  a forecast only once a full window of live averages exists, and because the rows before that point stay at zero,
+  the estimation windows of the following years hold few rows on which the series varies (none at the first such
+  forecast). The availability averages are not affected.
+\item \textbf{Live shares on the option days.} On the closing bars of the \rheSzDays{} post-warmup option days of
+  Section~\ref{sec:rh_econ}, the value averages are live on \rhlvVixOptRange\% of bars for the VIX,
+  \rhlvVixThreeOptRange\% for VIX3M, \rhlvStAttOptRange\% for StockTwits attention, \rhlvStSentOptRange\% for its
+  sentiment and tag count, \rhlvVdOptRange\% for volatility demand and \rhlvVvixOptRange\% for VVIX (ranges over $k$).
+  The first prints are in \rhlvVixFirst{} (VIX), \rhlvVixThreeFirst{} (VIX3M), \rhlvStAttFirst{} (StockTwits
+  attention), \rhlvStSentFirst{} (sentiment and tag count), \rhlvVdFirst{} (volatility demand) and \rhlvVvixFirst{}
+  (VVIX); the one-interval averages turn live in \rhlvVixLiveYear, \rhlvVixThreeLiveYear, \rhlvStAttLiveYear,
+  \rhlvStSentLiveYear, \rhlvVdLiveYear{} and \rhlvVvixLiveYear{}, respectively.
+\item \textbf{No observation.} After the late-start rule, $z^{(k)}_{t,i} = 0$ on every row whose $k$-interval average
+  holds no observed interval ($\bar a^{(k)}_{t,i} = 0$); the scaler's statistics are computed before either rule and
+  are not changed by them.
+\item \textbf{Why the linear models standardize again.} The step equalizes each column's interquartile range, not its
+  variance: the ratio of a column's standard deviation to its interquartile range varies with its tails, its skewness
+  and its share of zeros, and each row is scaled with its own trailing window, so the columns of an estimation window
+  are not standardized on that window. The step serves the data: it limits the influence of outliers and keeps each
+  series comparable over time. The penalized linear models therefore also standardize every column within their own
+  estimation window (Appendix~\ref{app:rh_methods_linear}), so that the penalty treats every column alike.
+\end{itemize}
+
+% ----------------------------------------------------------------------------------------------------------------------
+% From 03_data.tex (last item of the data cleaning) and 04_features.tex (the closing-interval clauses of steps 1, 2, 4
+% and 5 and the full-sample list of the causal-construction item), 2026-10-26, with the two target-side differences of
+% audit fidelity-5 / design-9 / correctness-6 (results/data_audit_2026-10-15/SUMMARY.md, row 6 and gate a).
+% APPENDIX / coordinator: per D3 and D9 the closing-interval models of the paper are the CI-HAR rebuilt under the current
+% data chain (results/ci_har_rebuild_2026-10-26/RULE.txt: no exogenous series; B_REGULAR_BARS_ONLY,
+% DROP_EARLY_CLOSE_SESSIONS and BURNIN_IN_BAR_SPACE on) and the CLOSE arm (the 16:00 rows of the main design), both on
+% the data chain of this appendix. This subsection applies only to forecasts of the earlier closing-interval model set
+% (the design cache of 6 October 2026, every data-fix flag off); DROP IT (and its \ref's) if no such forecast remains
+% in the paper.
+% 2026-10-26 (coordinator, D3/D9): parked -- the earlier closing-interval model set is no longer reported (the CI-HAR is rebuilt on the current data chain; the closing-interval models are the three-way CLOSE arm), so its as-fitted data disclosure goes. Was:
+% \subsection{Earlier closing-interval forecasts: data as fitted}
+% \label{app:rh_dp_asfitted}
+% 2026-10-26 (coordinator: the paper keeps its bullet structure): the lead sentences as bold-lead items, the list nested.
+% \begin{itemize}
+% \item \textbf{Scope.} The rebuilt closing-interval HAR benchmark and the models trained on the closing half hour
+%   (Appendix~\ref{app:rh_closing}) use the data of this appendix.
+% \item \textbf{Earlier forecasts, as fitted.} Forecasts of the earlier closing-interval model set, where reported, were
+%   fitted before these data fixes:
+% \begin{itemize}
+% \item no print is set to missing by the domain rule; the implied volatility indices are unobserved after
+%   \rhdsVixVendorLast{} and the FOMC series after \rhdsFomcFileLast; the forward fill has no cap; and every unobserved
+%   interval is imputed with the median of the series over the full sample;
+% \item no average is set to zero for want of observations or before a series starts;
+% \item the target's diurnal factor includes the intervals of the early-close sessions after the 13:00~ET close, and the
+%   16:00 rows of those sessions are estimation rows;
+% \item the standard-deviation floor $\bar\sigma^{(u)}$ of step~1 is the full-sample median of the same standard
+%   deviations, and a series is signed when any value in its full sample is negative, which signs the value-weighted
+%   quoted spread through a single invalid print;
+% \item the inverse hyperbolic sine routing of step~2 uses the share over the full sample, the intervals before the first
+%   print included, which routes the same volatility-demand series on every interval; $\kappa_{t,i}$ takes its
+%   full-sample median where it is not yet defined; and the FOMC statement-day indicator is logged and winsorized;
+% \item the FOMC proximity measures count to and from the statements issued, without the March 2020 rule of
+%   Appendix~\ref{app:rh_dp_fomc}, and are winsorized;
+% \item the activity indicator is read on the forward-filled series with a full-sample rule: a series is mode-inflated
+%   when its full-sample mode accounts for at least \rhdmModeShare\% of all intervals, and
+%   $\chi_{t,i} = \mathbf{1}\{u_{t,i} \ne \operatorname{mode}(u)\}$. Under that rule the \rhdmNActive{} series marked in
+%   Table~\ref{tab:rh_dm_dictionary} carry the indicator (the number of observations, the \bkSizeVd{} volatility-demand
+%   series and the FOMC statement-day indicator) and, in the fitted forecasts, so does the FOMC statement-interval
+%   indicator, since dropped from the predictors. Read after the fill, the indicator of a series whose feed has stopped
+%   keeps the value of its last print, so the FOMC statement-day indicator equals 1 on every interval after
+%   \rhdsFomcFileLast.
+% \end{itemize}
+% \end{itemize}

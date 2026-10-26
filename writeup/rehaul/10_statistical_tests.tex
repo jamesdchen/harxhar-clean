@@ -1,6 +1,12 @@
 % 2026-10-16 (user): moved from Methods (05_methods.tex). Label sec:rh_methods_tests kept.
 % The results section footnotes this analysis.
+% 2026-10-26 (integration, JFEc; APPENDIX agent): the evaluation spans renamed as in Methods (T_oos = Table 1's span,
+% T_close = the 2020-2024 subset), the multiple-comparison item of drafts/2026-10-25_mcs.tex (Part A) in place of note
+% E14, note E13 parked, and the final appendix section (rehaul/A_closing.tex, closing-interval models; D3) \input at
+% the end of this file, after the statistical tests.
+\ifdefined\rhmcsBlock\else\input{generated/rehaul_mcs_numbers}\fi
 
+\clearpage
 \section{Statistical tests}
 \label{sec:rh_methods_tests}
 \begin{itemize}
@@ -25,7 +31,13 @@
   % "\item $\mathcal O$: the out-of-sample days of the exercise, numbered $t = 1, \dots, |\mathcal O|$ in time order;
   %   $\mathcal O = \mathcal T_{\mathrm{oos}}$, $|\mathcal T_{\mathrm{oos}}| = T_{\mathrm{oos}}$, in the headline
   %   comparison."
-  \item The evaluation set $\mathcal O$, indexed chronologically by $t = 1, \dots, |\mathcal O|$, equals the full evaluation span $\mathcal O = \mathcal T_{\mathrm{oos}}$ ($|\mathcal T_{\mathrm{oos}}| = T_{\mathrm{oos}}$) for statistical accuracy comparisons and the option-data subsample $\mathcal T_{\mathrm{opt}} \subset \mathcal T_{\mathrm{oos}}$ for straddle return comparisons (Section~\ref{sec:rh_data}).
+  % 2026-10-26 (integration, JFEc; METHODS relay, audit fidelity-6 / design-2 / design-14): T_oos defined two ways and
+  % T_opt cited to Section 3, which no longer defines it; the straddle tests use T_opt^+. Was: "\item The evaluation set
+  % $\mathcal O$, indexed chronologically by $t = 1, \dots, |\mathcal O|$, equals the full evaluation span $\mathcal O =
+  % \mathcal T_{\mathrm{oos}}$ ($|\mathcal T_{\mathrm{oos}}| = T_{\mathrm{oos}}$) for statistical accuracy comparisons
+  % and the option-data subsample $\mathcal T_{\mathrm{opt}} \subset \mathcal T_{\mathrm{oos}}$ for straddle return
+  % comparisons (Section~\ref{sec:rh_data})."
+  \item The evaluation set $\mathcal O$, indexed chronologically by $t = 1, \dots, |\mathcal O|$, is the span of the comparison: for accuracy comparisons, $\mathcal T_{\mathrm{oos}}$, the $T_{\mathrm{oos}} = \rhorDays$ trading days of Table~\ref{tab:rh_oos}, or, for comparisons that involve the closing-interval models of Appendix~\ref{app:rh_closing}, its subset $\mathcal T_{\mathrm{close}}$ of $T_{\mathrm{close}} = \rhoosDays$ days (Section~\ref{sec:rh_results_eval}); for straddle return comparisons, the $T = \rheSzDays$ post-warmup days $\mathcal T^{+}_{\mathrm{opt}}$ of the option-data subsample $\mathcal T_{\mathrm{opt}}$ (Sections~\ref{sec:rh_econ_strategy} and~\ref{sec:rh_econ_measures}).
   \item We denote by $\bar d$ the sample mean of $d_t$ over $\mathcal O$ and compute two-sided $p$-values under the standard normal distribution as $p = 2\bigl\{1 - \Phi(|\DM|)\bigr\}$.
   \item Under this sign convention, $\DM < 0$ indicates that forecast $A$ achieves a lower average loss than forecast $B$. Throughout the paper, ``statistically significant'' refers to significance at the 5\% level ($p < 0.05$).
   % 2026-10-15 (user): merged from Forecast evaluation (moved from 06_results.tex): the p-value formula, the sign
@@ -57,9 +69,14 @@
 % 2026-10-18 (user, E13): parked -- resolved; dm_test now divides gamma_j by |O|, matching the display; DM statistics regenerated on 2026-10-18 for the accuracy tables and macros (make_rehaul_results.py, make_rehaul_economics.py); the appendix study tables still need regenerating (note below). Was:
 % \editc{orange}{E13}{Decision: change this display, or recompute the printed $\DM$.\\Problem: this display divides $\hat\gamma_j$ by $|\mathcal O|$, and every printed $\DM$ was computed by \texttt{dm\_test}, which divides by $|\mathcal O|-j$.\\
 % The autocovariance $\hat\gamma_j$ in the display is the average of the products $(d_t-\bar d)(d_{t-j}-\bar d)$, and the divisor written in front of the sum is $|\mathcal O|$, the number of days in the comparison. There are only $|\mathcal O|-j$ such products, because the first $j$ days have no lag-$j$ partner. The function that produced the printed Diebold--Mariano statistics is \texttt{dm\_test}, and it takes those products with \texttt{np.mean}, which divides by the length of the array it is given, $|\mathcal O|-j$. The HAC $t$ on returns comes from \texttt{newey\_west\_t}, and that function divides by $|\mathcal O|$, so it matches this display. The accuracy-section $\DM$ numbers match \texttt{dm\_test}. On $\mathcal T_{\mathrm{oos}}$ the lag runs from 1 through $\rhoosDMLag$, and at each of those lags the two divisors differ.}
-\editc{orange}{E13}{Decision: regenerate the remaining $\DM$ statistics.\\Problem: \texttt{dm\_test} now divides $\hat\gamma_j$ by $|\mathcal O|$, as displayed. The accuracy tables and macros were regenerated on 2026-10-18, but the $\DM$ statistics and significance stars in the appendix tuning and study tables are read from stored study outputs computed with the old divisor $|\mathcal O|-j$, so they predate the change and must be regenerated.}
+% 2026-10-26 (integration, JFEc): parked -- note E13, moot for the printed paper: the appendix tuning and study tables
+% whose DM statistics predate the divisor change (tab:rh_app_tune_*, 10_appendix_floats.tex) are all parked; the printed
+% DM statistics come from the regenerated generators. Was:
+% \editc{orange}{E13}{Decision: regenerate the remaining $\DM$ statistics.\\Problem: \texttt{dm\_test} now divides $\hat\gamma_j$ by $|\mathcal O|$, as displayed. The accuracy tables and macros were regenerated on 2026-10-18, but the $\DM$ statistics and significance stars in the appendix tuning and study tables are read from stored study outputs computed with the old divisor $|\mathcal O|-j$, so they predate the change and must be regenerated.}
   \begin{itemize}
-  \item For the Diebold--Mariano test, we set the bandwidth according to the plug-in rule $q_{\mathrm{NW}} = \lfloor 4 (|\mathcal O|/100)^{2/9} \rfloor$ (its numerical value on $\mathcal T_{\mathrm{oos}}$ is reported in Section~\ref{sec:rh_exp_setup}).
+  % 2026-10-26 (integration, JFEc; METHODS relay, audit fidelity-6): one lag per span. Was: "(its numerical value on
+  % $\mathcal T_{\mathrm{oos}}$ is reported in Section~\ref{sec:rh_exp_setup})."
+  \item For the Diebold--Mariano test, we set the bandwidth according to the plug-in rule $q_{\mathrm{NW}} = \lfloor 4 (|\mathcal O|/100)^{2/9} \rfloor$: $q_{\mathrm{NW}} = \rhorHacLag$ on $\mathcal T_{\mathrm{oos}}$ and $\rhoosDMLag$ on $\mathcal T_{\mathrm{close}}$.
   % 2026-10-15 (user): parked -- moved to Methods with Forecast evaluation, numbers removed (the lag value now lives in
   % Experimental setup, 06_results.tex). Was: "\item DM: $q_{\mathrm{NW}} = \lfloor 4 (|\mathcal O|/100)^{2/9}
   % \rfloor$, which gives $q_{\mathrm{NW}} = \fqsDMLag$ on $\mathcal T_{\mathrm{oos}}$."
@@ -131,17 +148,86 @@
   \item The test concerns the Sharpe ratios of daily returns over the $T$ post-warmup days, without the year-by-year annualization of Section~\ref{sec:rh_econ_measures}.
   \end{itemize}
 % 2026-10-22 (user, D6): parked -- the Ledoit--Wolf test as the test of the text's Sharpe statements; now the bootstrap of $\Delta\SR$, with the Ledoit--Wolf $p$ beside it. Was: "... the fixed-$b$ test above; and the $p$-value of the \citet{LedoitWolf2008} test. Statements in the text about mean returns use the fixed-$b$ test, and statements about Sharpe ratios use the \citet{LedoitWolf2008} test." and "\item Of the \rhrRobNPairs{} tests of equal Sharpe ratios, \rhrRobLWSig{} reject at the 5\% level with block length \rheLWBlock{}, \rhrRobLWSigLo{} with block length \rheLWBlockLo{} and \rhrRobLWSigHi{} with block length \rheLWBlockHi{}."
-\item \textbf{Robustness to the long-run variance estimator.} Table~\ref{tab:rh_app_hac_robust} lists every comparison of strategy returns whose statistical significance Section~\ref{sec:rh_econ} or Appendix~\ref{sec:rh_econ_last30} states. For each comparison it reports the $t$-statistic of the mean return differential with the Newey--West variance at lag truncation $q_{\mathrm{NW}} = \lfloor 4 (T/100)^{2/9} \rfloor = \rhrRobLagNW$ \citep{NeweyWest1994} and at $q_{\mathrm{NW}} = \lfloor 1.5\, T^{1/3} \rfloor = \rhrRobLagOld$, the lag truncation of an earlier version of this paper, both with standard normal $p$-values; the fixed-$b$ test above; the $p$-value of the bootstrap test of equal Sharpe ratios; and that of the \citet{LedoitWolf2008} test. Statements in the text about mean returns use the fixed-$b$ test, and statements about Sharpe ratios use the bootstrap test.
+% 2026-10-26 (integration, JFEc; D3): parked -- "or Appendix~\ref{sec:rh_econ_last30}": the statements about the
+% master-table closing-interval models are parked (Panel C of the table, pooled minus closing-interval model, still
+% compares with that dropped set; NUMBERS asked to drop or replace it). Was: "... whose statistical significance
+% Section~\ref{sec:rh_econ} or Appendix~\ref{sec:rh_econ_last30} states."
+\item \textbf{Robustness to the long-run variance estimator.} Table~\ref{tab:rh_app_hac_robust} lists the comparisons of strategy returns whose statistical significance Section~\ref{sec:rh_econ} states. For each comparison it reports the $t$-statistic of the mean return differential with the Newey--West variance at lag truncation $q_{\mathrm{NW}} = \lfloor 4 (T/100)^{2/9} \rfloor = \rhrRobLagNW$ \citep{NeweyWest1994} and at $q_{\mathrm{NW}} = \lfloor 1.5\, T^{1/3} \rfloor = \rhrRobLagOld$, the lag truncation of an earlier version of this paper, both with standard normal $p$-values; the fixed-$b$ test above; the $p$-value of the bootstrap test of equal Sharpe ratios; and that of the \citet{LedoitWolf2008} test. Statements in the text about mean returns use the fixed-$b$ test, and statements about Sharpe ratios use the bootstrap test.
   \begin{itemize}
   \item Of the \rhrRobN{} tests of a mean, \rhrRobFbSig{} are statistically significant at the 5\% level under the fixed-$b$ test, \rhrRobNWFiveSig{} at lag truncation \rhrRobLagNW{} and \rhrRobNWTwelveSig{} at lag truncation \rhrRobLagOld{} with standard normal critical values.
   \item Of the \rhrRobNPairs{} tests of equal Sharpe ratios, \rhrRobBootSig{} reject at the 5\% level under the bootstrap test; under the \citet{LedoitWolf2008} test of the pooled ratios, \rhrRobLWSig{} reject with block length \rheLWBlock{}, \rhrRobLWSigLo{} with block length \rheLWBlockLo{} and \rhrRobLWSigHi{} with block length \rheLWBlockHi{}.
   \end{itemize}
 \input{generated/rehaul_app_hac_robust}
-\item \textbf{Multiple-comparison procedures.} For joint comparisons across predictor sets and model families, one may also consider the model confidence set of \citet{HansenLundeNason2011}, the superior predictive ability test of \citet{Hansen2005}, and the StepM procedure of \citet{RomanoWolf2005}.
-\editc{blue}{E14}{Decision: drop the sentence, or report the set.\\Problem: the model confidence set, the superior predictive ability test, and StepM are named, and the paper reports none of their outputs.\\
-This bullet names three procedures and says they are for the comparison of predictor sets: the model confidence set, which returns the set of models not beaten at a stated confidence level; the superior predictive ability test, which returns a $p$-value against a benchmark; and StepM, which steps through the models and rejects some of them. No table in the paper states an MCS membership, an SPA $p$-value, or a StepM rejection. The next bullet says the main tables are point estimates and contain no bootstrap intervals, which is the kind of output those three procedures produce. The comparisons that are printed are Diebold--Mariano statistics on QLIKE and on squared error.}
+% 2026-10-26 (integration, JFEc): the item replaced by Part A of drafts/2026-10-25_mcs.tex (writeup/make_rehaul_mcs.py,
+% \rhmcs... macros; its sentence on the closing-interval HAR benchmark's first forecast left out, since the rebuilt
+% benchmark, results/ci_har_rebuild_2026-10-26, has forecasts over the whole of T_oos). Note E14 resolved: the sets and
+% tests are reported in Tables tab:rh_mcs and tab:rh_mcs_spa (rehaul/A_closing.tex). Was:
+% "\item \textbf{Multiple-comparison procedures.} For joint comparisons across predictor sets and model families, one
+% may also consider the model confidence set of \citet{HansenLundeNason2011}, the superior predictive ability test of
+% \citet{Hansen2005}, and the StepM procedure of \citet{RomanoWolf2005}." and
+% \editc{blue}{E14}{Decision: drop the sentence, or report the set.\\Problem: the model confidence set, the superior predictive ability test, and StepM are named, and the paper reports none of their outputs.\\
+% This bullet names three procedures and says they are for the comparison of predictor sets: the model confidence set, which returns the set of models not beaten at a stated confidence level; the superior predictive ability test, which returns a $p$-value against a benchmark; and StepM, which steps through the models and rejects some of them. No table in the paper states an MCS membership, an SPA $p$-value, or a StepM rejection. The next bullet says the main tables are point estimates and contain no bootstrap intervals, which is the kind of output those three procedures produce. The comparisons that are printed are Diebold--Mariano statistics on QLIKE and on squared error.}
+\item \textbf{Multiple-comparison procedures.} Each test above compares two forecasts, or two strategies, at a time,
+  and Sections~\ref{sec:rh_results} and~\ref{sec:rh_econ} make many such comparisons. Three procedures account for
+  their number; Tables~\ref{tab:rh_mcs} and~\ref{tab:rh_mcs_spa} report them (Appendix~\ref{app:rh_closing_mcs}).
+  \begin{itemize}
+  \item \emph{Model confidence set} \citep{HansenLundeNason2011}. Starting from a set $\mathcal M$ of forecasts with
+    daily losses $L_{i,t}$, each step tests the equal predictive ability of the forecasts in $\mathcal M$ and, if it
+    rejects, removes one of them. With $\bar d_{ij}$ the average of $L_{i,t} - L_{j,t}$ over $\mathcal O$ and
+    $\bar d_{i\cdot}$ the average loss of forecast $i$ minus the average over $\mathcal M$, the two statistics are
+    \[
+      T_{\max} = \max_{i \in \mathcal M} t_{i\cdot}, \quad
+      t_{i\cdot} = \frac{\bar d_{i\cdot}}{\sqrt{\widehat{\mathrm{var}}(\bar d_{i\cdot})}},
+      \qquad
+      T_R = \max_{i, j \in \mathcal M} |t_{ij}|, \quad
+      t_{ij} = \frac{\bar d_{ij}}{\sqrt{\widehat{\mathrm{var}}(\bar d_{ij})}},
+    \]
+    and their elimination rules remove $\arg\max_i t_{i\cdot}$ and $\arg\max_i \max_j t_{ij}$, respectively. The
+    variances and the null distributions of $T_{\max}$ and $T_R$ come from the bootstrap below, with the statistics
+    recentred at their sample values. The elimination continues to the last forecast, so every forecast has an MCS
+    $p$-value: the largest step $p$-value up to its removal, and one for the last forecast. The $(1-\alpha)$ model
+    confidence set holds the forecasts whose $p$-value is at least $\alpha$; we report the 90\% and 75\% sets.
+  \item \emph{Superior predictive ability} \citep{Hansen2005}. For a family of $K$ comparisons with daily
+    differentials $d_{k,t}$, positive when the alternative $k$ is better than its comparison (the loss of the
+    comparison minus that of the alternative, or the return of the alternative minus that of the comparison), the
+    test of $H_0\colon \max_k \E[d_{k,t}] \le 0$ uses $T^{\mathrm{SPA}} = \max\bigl(0, \max_k \bar d_k/\hat\sigma_k\bigr)$,
+    with $\hat\sigma_k$ the bootstrap standard deviation of $\bar d_k$. We report its consistent $p$-value.
+  \item \emph{StepM} \citep{RomanoWolf2005}. The studentized step-down procedure tests the $K$ hypotheses
+    $H_k\colon \E[d_{k,t}] \le 0$ and controls the familywise error rate, the probability of rejecting at least one
+    true $H_k$. With $t_k = \bar d_k/\hat\sigma_k$ ordered as $t_{(1)} \ge \dots \ge t_{(K)}$ and
+    $Z^{*}_k = (\bar d^{*}_k - \bar d_k)/\hat\sigma_k$ in a bootstrap sample, the adjusted $p$-value of the $j$-th
+    hypothesis is
+    \[
+      \tilde p_{(j)} = \max_{i \le j} \Pr\nolimits^{*}\Bigl(\max_{l \ge i} Z^{*}_{(l)} \ge t_{(i)}\Bigr),
+    \]
+    and StepM at level $\alpha$ rejects the $H_k$ with $\tilde p_k < \alpha$. The two-sided version, for
+    $H_k\colon \E[d_{k,t}] = 0$, replaces $t_k$ and $Z^{*}_k$ by their absolute values. Beside each adjusted $p$-value
+    we report the bootstrap $p$-value of the comparison alone, $\Pr^{*}(Z^{*}_k \ge t_k)$.
+  \item \emph{Sharpe ratios.} For a difference of the Sharpe ratios of Section~\ref{sec:rh_econ_measures},
+    $\Delta\SR_k$ takes the place of $\bar d_k$ and $\Delta\SR^{*}_k$, computed in each bootstrap sample as in the
+    test of equal Sharpe ratios above, the place of $\bar d^{*}_k$. For a single comparison the two-sided bootstrap
+    $p$-value is then the $p$-value of that test.
+  \item \emph{Bootstrap.} The three procedures resample trading days with the circular moving-block bootstrap: blocks
+    of \rhmcsBlock{} consecutive days, \rhmcsB{} samples, the same samples for every forecast of a comparison and at
+    every elimination step. The forecast losses use seed \rhmcsSeed; the strategy returns use the samples of the test
+    of equal Sharpe ratios above (seed \rhmcsSeedEcon). The block length is fixed rather than calibrated; we also
+    report the results at block lengths \rhmcsBlockLo{} and \rhmcsBlockHi.
+  \item \emph{Losses and forecasts.} The losses are daily: for the forecasts of every regular-hours bar, the average
+    loss of the day's \rhorNBars{} bars, as in the Diebold--Mariano tests of Table~\ref{tab:rh_oos}, so the bootstrap
+    resamples days. The pooled ridge regression, lasso and elastic net on the HAR benchmark reproduce the pooled OLS
+    (their penalties are numerically zero): their daily every-bar losses differ from those of the OLS by at most
+    $\rhmcsLinGap$ in relative terms, so they enter the model confidence set as one forecast, the OLS. The set
+    therefore holds \rhmcsNModelsWord{} distinct pooled forecasts, and \rhmcsNModelsBenchWord{} with the
+    closing-interval HAR benchmark of Appendix~\ref{app:rh_closing} in the sets of the closing half hour.
+  \end{itemize}
 % 2026-10-21 (user, decision #2): parked -- "Diebold--Mariano or HAC $t$-statistics". Was: "\item \textbf{Reporting convention.} All main tables report point estimates accompanied by pairwise Diebold--Mariano or HAC $t$-statistics, without bootstrap confidence intervals."
 % 2026-10-22 (user, D6): parked -- "or \citet{LedoitWolf2008} bootstrap $p$-values for Sharpe ratio differences"; now the bootstrap of $\Delta\SR$ (note D6).
-\item \textbf{Reporting convention.} All main tables report point estimates accompanied by pairwise Diebold--Mariano statistics, $t$-statistics of mean returns with fixed-$b$ critical values, or block-bootstrap $p$-values for Sharpe ratio differences, without bootstrap confidence intervals.
+% 2026-10-26 (integration, JFEc; drafts/2026-10-25_mcs.tex, Part D8): the multiple-comparison tables named.
+\item \textbf{Reporting convention.} All main tables report point estimates accompanied by pairwise Diebold--Mariano statistics, $t$-statistics of mean returns with fixed-$b$ critical values, or block-bootstrap $p$-values for Sharpe ratio differences, without bootstrap confidence intervals. Tables~\ref{tab:rh_mcs} and~\ref{tab:rh_mcs_spa} report the multiple-comparison procedures.
 \end{itemize}
+
+% 2026-10-26 (integration, JFEc; D3): the final appendix section, on the models estimated on the closing half hour
+% alone (rehaul/A_closing.tex, APPENDIX agent). It is \input here, after the statistical tests, so that it is the last
+% section of the online appendix.
+\IfFileExists{rehaul/A_closing.tex}{\input{rehaul/A_closing}}{}
 

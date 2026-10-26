@@ -26,270 +26,376 @@
 % the literature; definitions of our estimators and trading rule stay in Methods and Economics. Framing pass below.
 % 2026-10-24 (user): the language follows the prose of the papers cited (their terms and phrasing), so the section
 % reads as part of that literature; facts about cited papers are taken from their own abstracts or text.
+% 2026-10-26 (integration, JFEc): the section cut from about 3 to about 1.5 pages (plan: RV lineage, pooled intraday
+% forecasting with overnight predictors, machine learning for RV, dense versus sparse signals, alternative data,
+% economic evaluation and 0DTE options incl. Maisch et al.); the "See ..." reading lists cut to the essential
+% citations. Audit fixes: front-13 (the weakness of the exogenous signals is a hypothesis the paper tests, not a
+% premise), front-9 (alternative-data novelty softened: intraday sentiment studies exist, Behrendt--Schmidt 2018),
+% front-14 (the straddle trade is an application, not a contribution to forecast evaluation). D12: the round-the-clock
+% S&P 500 futures intraday volatility curve of Andersen, Su, Todorov and Zhang (JASA 2024; key
+% AndersenSuTodorovZhang2024, added by NUMBERS) cited in the diurnal sentence; the finding stated is from their
+% abstract. The Diurnal pattern and Overnight information bullets are merged into one; the variance-risk-premium bullet is merged into the
+% economic-evaluation bullet, and Maisch et al. moves there from the machine-learning bullet; the elastic-net display
+% and the estimator, ensemble, and tuning cites (Methods and Appendix cite them where the models are defined) are
+% dropped. The pre-cut section is parked in full at the end of this file.
 \begin{itemize}
-% 2026-10-15 (consolidation): parked -- (k) in trading days here vs intraday intervals everywhere else.
-% \item \textbf{Realized variance and the HAR model:}
-%   $\E_t[\RV^{(1)}_{t+1}] = \beta_0 + \sum_{k} \beta_k\, \RV^{(k)}_t$, $k \in \{1,5,22\}$ trading days, with
-%   $\RV^{(k)}_t$ the average daily realized variance over the last $k$ trading days. Our HAR components
-%   $\bar y^{(k)}_t$ take the same averages of $y$ over $k$ intraday intervals.\newline
-% 2026-10-15 (finish): parked -- the Introduction is parked, so Related work opens the paper; the bullet now defines
-% E_t and the daily target and reads standalone. Was: "$\E_t[\RV_{t+1}] = \beta_0 + ...$, with $\RV^{(d)}_t$, ... the
-% average daily realized variance over the last 1, 5 and 22 trading days. Our HAR components $\bar y^{(k)}_t$ take the
-% same averages of $y$ over $k$ intraday intervals."
-\item \textbf{Realized variance and the HAR model.} Following \citet{Corsi2009}, the heterogeneous
-  autoregressive (HAR) model specifies the conditional expectation of next-day realized variance as a linear
-  function of past realized variances aggregated over daily, weekly, and monthly horizons:
-  $\E_t[\RV^{(d)}_{t+1}] = \beta_0 + \beta_d\, \RV^{(d)}_t + \beta_w\, \RV^{(w)}_t + \beta_m\, \RV^{(m)}_t$,
-  where $\E_t$ denotes the conditional expectation given information available at the forecast origin on day $t$,
-  and $\RV^{(d)}_t$, $\RV^{(w)}_t$, and $\RV^{(m)}_t$ denote the average daily realized variance over the
-  preceding 1, 5, and 22 trading days, respectively. Because all three components represent daily realized
-  variances aggregated at the daily, weekly, and monthly horizons, forecasting the realized variance of a
-  specific intraday interval lies outside this standard daily specification. Our benchmark carries the HAR
-  structure to the intraday interval, and the question we ask is how much a large set of exogenous predictors adds
-  to it.\newline
-  See \citet{Corsi2009}, \citet{AndersenBollerslevDieboldLabys2003}, \citet{BarndorffNielsenShephard2004},
-  \citet{AndersenBollerslevDiebold2007}, \citet{CorsiMittnikPigorschPigorsch2008},
-  \citet{BollerslevPattonQuaedvlieg2016}, \citet{BekiermanManner2018}, \citet{BennedsenLundePakkanen2022},
-  \citet{HansenHuangShek2012}, and \citet{AndersenBollerslevChristoffersenDiebold2006}.
-  % 2026-10-16 (user, E1): parked -- Related work does not describe our estimators. The components, the square-root
-  % target, and the 15:30 origin belong in Methods. Was: "... on day $t$ (here 15:30 ET) and ... Our HAR components
-  % $\bar y^{(k)}_t$ take the same averages over $k$ intraday intervals of $y$, the square root of realized variance
-  % divided by its diurnal adjustment (Section~\ref{sec:rh_data})."
-  % \editc{red}{E1}{Related work says the HAR components average $y$... Predictors and Methods average $\tilde y$.}
-  \begin{itemize}
-  % 2026-10-24 (user, framing pass): parked -- the sentence without the link to our pooling. Was: "In a multivariate
-  % setting, the panel HAR framework of \citet{BollerslevHoodHussLebedev2018} estimates a single pooled regression
-  % jointly across a cross-section of assets."
-  \item In a multivariate setting, the panel HAR framework of \citet{BollerslevHoodHussLebedev2018} estimates a
-    single pooled regression jointly across a cross-section of assets; our intraday models pool in the same spirit,
-    across the intraday intervals of one index rather than across assets.
-    % 2026-10-16 (user, E1): parked -- this named our estimator. Was: "the cross-asset counterpart of our intraday
-    % model, which pools the intraday intervals of one index."
-    % Key says "Lebedev"; the bib's author field (correctly) says Pedersen -- \citet prints the author field.
-  \item For the theoretical foundations of realized variance, see \citet{BarndorffNielsenShephard2002}.
-  % 2026-10-15 (bib pass): parked -- the [to add] placeholder, now a \citet key in references.bib. Was:
-  % \item \todo{to add: Barndorff-Nielsen--Shephard 2002 (realized variance)}.
-  \end{itemize}
-\item \textbf{Diurnal pattern.} It is well documented that intraday return volatility exhibits a pronounced
-  U-shaped pattern across the trading session. To account for this periodicity, standard practice scales intraday
-  realized variance by a diurnal factor estimated from the corresponding clock-time interval on prior trading
-  % 2026-10-24 (user): parked -- the framing sentence before it cited the intraday volatility forecasting precedents.
-  % Was: "We follow this practice; it is what allows one model to be estimated across all intervals of the trading
-  % day."
-  % 2026-10-25 (user): parked -- "all intervals of the trading day": both precedents estimate on the regular
-  % session and delete the overnight return (Engle--Sokalska, Sec. 2.1; Zhang et al., Sec. 3). Was: "days. We follow
-  % this practice; it is what allows one model to be estimated across all intervals of the trading day, as in ..."
-  days. We follow this practice; it is what allows one model to be estimated across the intervals of the regular
-  trading session, as in the intraday volatility forecasts of \citet{EngleSokalska2012}, whose multiplicative
-  component GARCH model writes intraday volatility as the product of daily, diurnal, and stochastic intraday
-  components and is estimated pooled across a large cross-section of stocks, and, with machine-learning models over
-  intraday buckets, of \citet{ZhangZhangCucuringuQian2024}. Both leave the overnight return out of estimation, and
-  so do we: our models are estimated on the regular-hours intervals only (Section~\ref{sec:rh_exp_setup}).\newline
-  % 2026-10-16 (user, E1): parked -- the display was our target, not the literature's. Was:
-  % "divides by a diurnal adjustment, here $y_{t,i} = \sqrt{\RV_{t,i}/s^2_{t,i}}$, with $\RV_{t,i}$ the realized
-  % variance of intraday interval $i$ on day $t$ and $s^2_{t,i}$ its diurnal adjustment."
-  See \citet{AndersenBollerslev1997} on intraday periodicity, \citet{EngleGallo2006} on intraday range and
-  volatility measures as indicators of daily volatility, and \citet{HizmeriBevilacqua2025} on morning
-  volatility uncertainty.
-  % 2026-10-15 (notation pass): EngleGallo2006 is a multiple-indicators model of daily volatility, not a periodicity
-  % paper; its claim is narrowed to what it shows.
-  \begin{itemize}
-  \item See also \citet{TaylorXu1997} on diurnal volatility adjustments and \citet{EngleSokalska2012} on
-    multiplicative decompositions of intraday volatility.
-  % 2026-10-15 (bib pass): parked -- the [to add] placeholder, now \citet keys in references.bib. Was:
-  % \item \todo{to add: Taylor--Xu 1997 (periodicity factor); Engle--Sokalska 2012 (intraday volatility)}.
-  \end{itemize}
-% 2026-10-25 (user): new bullet -- overnight data enter the predictors, not the estimation sample.
-\item \textbf{Overnight information.} Volatility forecasts for the trading session have long used information from
-  outside it: after-hours realized variance helps predict next-day stock volatility \citep{ChenYuZivot2012}, and
-  overnight information, including the realized volatility of related assets that trade while the home market is
-  closed, improves realized volatility forecasts \citep{TodorovaSoucek2014}. For the S\&P 500 futures, which trade
-  nearly around the clock, \citet{StroudJohannes2014} model all 5-minute returns, not only those of the regular
-  session, and argue that deleting the overnight returns removes important information. These studies forecast
-  daily or session volatility. We carry the idea to the intraday interval: our models are estimated and scored on
-  the regular-hours intervals, as in the precedents above, while their predictors, the trailing averages of the
-  target and of the exogenous series, are computed over the futures' full intraday grid, overnight intervals
-  included (Section~\ref{sec:rh_predictors}).
-\item \textbf{0DTE options and the variance risk premium.} The variance risk premium, defined as the difference
-  between option-implied variance and expected realized variance,
-  $\E^{\mathbb{Q}}_t[\RV_t] - \E^{\mathbb{P}}_t[\RV_t]$, under the risk-neutral ($\mathbb Q$) and physical
-  ($\mathbb P$) measures (where $\RV_t$ denotes the realized variance through expiration), is empirically
-  % 2026-10-24 (user, straddle bullet): parked -- the framing sentence, now split between this bullet (straddle
-  % returns, the benchmark) and the new economic-evaluation bullet. Was: "Our economic application sits at the end of
-  % a 0DTE option's life: we ask whether more accurate forecasts of the closing half hour's realized variance, set
-  % against the option-implied variance, translate into straddle returns."; and the reading list "See
-  % \citet{HizmeriBevilacqua2025}, as well as the foundational option-pricing frameworks of \citet{BlackScholes1973}
-  % and \citet{Merton1973}."
-  positive on average, so that zero-beta at-the-money straddles and delta-hedged index option positions lose
-  money on average; the unconditional short straddle is therefore the natural benchmark for a strategy that trades
-  straddles on a variance forecast. Our straddles are 0DTE options held through the closing half hour, the last
-  interval of their life.\newline
-  See \citet{HizmeriBevilacqua2025}, as well as the foundational option-pricing frameworks of
-  \citet{BlackScholes1973} and \citet{Merton1973}; on the returns of index straddles and delta-hedged options, see
-  \citet{CovalShumway2001}, \citet{BakshiKapadia2003}, and \citet{BroadieChernovJohannes2009}.
-  \begin{itemize}
-  % 2026-10-24 (user, straddle bullet): parked -- the 0DTE reading list before Chong--Todorov and Muravyev--Ni. Was:
-  % "On zero-days-to-expiration (0DTE) options, see \citet{BandiFusariReno2023}, \citet{BeckmeyerBrangerGayda2023},
-  % \citet{BrogaardHanWon2023}, \citet{DimErakerVilkov2024}, \citet{Vilkov2026}, and \citet{AlmeidaFreireHizmeri2025};
-  % on the variance risk premium more broadly, see \citet{CarrWu2009} and \citet{BollerslevTauchenZhou2009}."
-  % Vilkov2026: cite for its design only; its repository (KNOWN-ISSUES, August 2026) reports a transaction-cost error
-  % that removes its positive net Sharpe ratios, with a revision in progress.
-  \item On zero-days-to-expiration (0DTE) options, see \citet{BandiFusariReno2023},
-    \citet{BeckmeyerBrangerGayda2023}, \citet{BrogaardHanWon2023}, \citet{DimErakerVilkov2024},
-    \citet{Vilkov2026}, and \citet{AlmeidaFreireHizmeri2025}; on whether equity and 0DTE options markets agree
-    about volatility, and on trading their disagreement, see \citet{ChongTodorov2026}; on why option returns differ
-    between the trading day and the night, see \citet{MuravyevNi2020}; on the variance risk premium more broadly,
-    see \citet{CarrWu2009} and \citet{BollerslevTauchenZhou2009}.
-  % 2026-10-15 (bib pass): parked -- the [to add] placeholder, now \citet keys in references.bib. Was:
-  % \item \todo{to add: Bandi--Fusari--Ren\`o 2023; Beckmeyer--Branger--Gayda 2023; Brogaard--Han--Won 2023;
-  %   Dim--Eraker--Vilkov 2024; Vilkov, 0DTE trading rules; Almeida--Freire--Hizmeri 2025; Carr--Wu 2009;
-  %   Bollerslev--Tauchen--Zhou 2009}.
-  \end{itemize}
-% 2026-10-24 (user): new bullet -- the gap in the literature our economic test fills (option-based evaluation of
-% volatility forecasts); references verified against each paper's abstract or text.
-\item \textbf{Economic evaluation of volatility forecasts.} A long tradition values volatility forecasts by the
-  profits they earn trading options: a trader buys (sells) straddles when the price implied by the variance forecast
-  exceeds (falls short of) the market price, and competing forecasts are ranked by the returns that result. Because
-  conventional error measures are only weakly related to the profits a forecast earns, forecasts are judged on both.
-  Our economic test brings this evaluation to the intraday horizon, trading forecasts of the closing half hour's
-  variance through 0DTE straddles held to the close.\newline
-  See \citet{EngleHongKaneNoh1993} and \citet{NohEngleKane1994} on valuing variance forecasts through simulated
-  options and S\&P~500 straddle trading, \citet{HarveyWhaley1992} on predictable implied volatility whose trading
-  profits do not survive transaction costs, \citet{BandiRussellYang2008} on ranking high-frequency variance
-  forecasts by the profits and Sharpe ratios of option trading, and \citet{ChanJhaKalimipalli2009} on statistical
-  gains from realized volatility that do not translate into economic gains after costs.
-  \begin{itemize}
-  \item On straddle returns sorted on the gap between realized and implied volatility, see
-    \citet{GoyalSaretto2009}; on profits versus conventional error measures, see \citet{LeitchTanner1991} and
-    \citet{CenesizogluTimmermann2012}.
-  \end{itemize}
-\item \textbf{Machine learning for volatility and returns.} A growing literature models conditional return and
-  volatility dynamics via flexible nonlinear mappings $f(\bm x_t)$ of a high-dimensional predictor vector
-  % 2026-10-24 (user, prose follows the literature): parked -- the Zhang et al. sentence before their own terms
-  % (buckets, universal model). Was: "The closest precedent for our setting, \citet{ZhangZhangCucuringuQian2024},
-  % forecasts the realized volatility of intraday intervals for a cross-section of stocks with one model across the
-  % intervals of the day and predictors built from realized volatility alone; we keep that design for the S\&P~500
-  % and ask what a large set of exogenous predictors adds, comparing penalized linear models with tree ensembles."
-  % 2026-10-24 (user): parked -- intraday volatility forecasting cites Engle--Sokalska alongside Zhang et al. Was:
-  % "The closest precedent for our setting, \citet{ZhangZhangCucuringuQian2024}, forecasts realized volatility over
-  % intraday buckets for a cross-section of stocks, fitting one model across all buckets of the day and, in its
-  % universal variant, across stocks, with predictors built from realized volatility alone; we keep that design for
-  % the S\&P~500 and ask what a large set of exogenous predictors adds, comparing penalized linear models with tree
-  % ensembles."
-  % 2026-10-24 (user): parked -- Engle--Sokalska is not machine learning; it moves to the Diurnal pattern bullet
-  % (intraday volatility forecasting), and this bullet keeps Zhang et al. as the machine-learning precedent. Was:
-  % "The closest precedents for our setting forecast the volatility of intraday intervals: \citet{EngleSokalska2012}
-  % with a multiplicative component GARCH model, ..., and \citet{ZhangZhangCucuringuQian2024} with machine-learning
-  % models of realized volatility over intraday buckets, ... Both build their predictors from volatility itself; we
-  % keep a single model across the intervals of the day for the S\&P~500 and ask what a large set of exogenous
-  % predictors adds, comparing penalized linear models with tree ensembles."
-  % 2026-10-24 (user): parked -- before the precedent chronology for machine learning in return and realized-
-  % volatility forecasting (literature search, verified first-posting and publication dates). Was: "$\bm x_t$. Most of
-  % this work targets daily volatility or monthly returns. The closest machine-learning precedent ... comparing
-  % penalized linear models with tree ensembles.\newline See \citet{gu2020empirical} for return prediction and
-  % \citet{christensen2023machine} for realized volatility forecasting; for gradient-boosted decision trees, see
-  % \citet{Ke2017} (LightGBM) and \citet{Chen2016} (XGBoost); for Bayesian hyperparameter optimization, see
-  % \citet{Akiba2019} (Optuna)."
-  $\bm x_t$. In return prediction, penalized regressions and nonparametric characteristic selection preceded the
-  comparison of linear, penalized, tree-based, and neural-network models in \citet{gu2020empirical}, which has
-  become the benchmark. In realized volatility forecasting, single-method applications came first---bagging and
-  neural-network HAR models, the lasso, boosting, random forests, and neural networks---before
-  \citet{christensen2023machine} compared these methods with the HAR model for daily realized volatility. Most of
-  this work targets daily volatility or monthly returns.
-  % 2026-10-25 (user): added -- Maisch, Zhang, Ulrich and Zimmer (SSRN 7269778): machine learning for intraday option
-  % returns, the nearest work in our market and bar length; framed against our target (the index's volatility).
-  % 2026-10-25 (user): parked -- their predictors named in full (predictor-overlap check: their 69 features are
-  % contract-level and option-implied; ours are market-wide exogenous series). Was: "... options from contract
-  % characteristics and sort the contracts into long--short portfolios."
-  At the intraday horizon, machine learning has also reached option returns: \citet{MaischZhangUlrichZimmer2026}
-  predict the half-hourly delta-hedged returns of S\&P~500 index options from contract characteristics, Greeks, and
-  option-implied measures of the index's return distribution, and sort the contracts into long--short portfolios.
-  % 2026-10-25 (user: lineage in the realized volatility literature; option trading as an application): parked --
-  % "We forecast the volatility of the index itself, and options enter only through our economic test."
-  Our forecasts belong to the realized volatility literature: we forecast the volatility of the index itself, and
-  options enter only as an application of these forecasts. The closest machine-learning precedent for our setting,
-  \citet{ZhangZhangCucuringuQian2024}, forecasts realized volatility over intraday buckets for a cross-section of
-  stocks, fitting one model across all buckets of the day and, in its universal variant, across stocks, with
-  % 2026-10-25 (user: the alternative-data angle, not overdone): parked -- "Exogenous predictors, such as sentiment,
-  % attention, and news measures, have so far been used for daily volatility; ... ask what a large set of exogenous
-  % predictors adds at the intraday horizon, ..."
-  predictors built from realized volatility alone. Alternative data, such as sentiment, attention, and news
-  measures, have so far been used for daily volatility; we keep the single-model design for the S\&P~500 and ask
-  what a large set of exogenous predictors, alternative data among them, adds at the intraday horizon, comparing
-  penalized linear models with tree ensembles.\newline
-  See \citet{RapachStraussZhou2013} and \citet{FreybergerNeuhierlWeber2020} on penalized and nonparametric return
-  prediction and \citet{gu2020empirical} for the comparison of methods; for realized volatility,
-  \citet{HillebrandMedeiros2010} (bagging and neural-network HAR models), \citet{AudrinoKnaus2016} (the lasso),
-  \citet{MittnikRobinzonovSpindler2015} (boosting), \citet{LuongDokuchaev2018} (random forests),
-  \citet{Bucci2020} and \citet{RahimikiaPoon2020} (neural networks), \citet{christensen2023machine} (the comparison
-  of methods), and \citet{BrancoRubesamZevallos2024}, who find that nonlinear models rarely beat linear ones;
-  for gradient-boosted decision trees, see \citet{Ke2017} (LightGBM) and \citet{Chen2016} (XGBoost); for Bayesian
-  hyperparameter optimization, see \citet{Akiba2019} (Optuna).
-  \begin{itemize}
-  % 2026-10-15 (user): parked -- NN content parked for now. Was: "...; realized volatility: \citet{Bucci2020},
-  % \citet{RahimikiaPoon2020}, \citet{ZhangZhangCucuringuQian2024}; MinGRU \citet{Feng2024}; PufferLib \citet{Suarez2024}."
-  % 2026-10-24 (user): parked -- the realized-volatility list moved into the bullet's chronology. Was: "...; for
-  % machine-learning applications to realized volatility and intraday commonality, see \citet{Bucci2020},
-  % \citet{RahimikiaPoon2020}, and \citet{ZhangZhangCucuringuQian2024}."
-  \item For ensemble methods, see \citet{Breiman2001} on random forests and \citet{Friedman2001} on gradient
-    boosting; on exogenous predictors of daily realized volatility, see \citet{AudrinoSigristBallinari2020}
-    (sentiment and attention measures) and \citet{CaporinPoli2017} (news measures built from textual data).
-  % 2026-10-15 (bib pass): parked -- the [to add] placeholder, now \citet keys in references.bib. Was:
-  % \item \todo{to add: Breiman 2001; Friedman 2001 (gradient boosting); Bucci 2020; Rahimikia--Poon 2020;
-  %   Zhang--Zhang--Cucuringu--Qian 2024; MinGRU (Feng et al.\ 2024); PufferLib}.
-  \end{itemize}
-% 2026-10-16 (user): parked -- forecast evaluation is standard. Cite Patton, Diebold--Mariano,
-% Harvey--Leybourne--Newbold, Newey--West, Ehm, and the model-confidence set where those methods are used
-% (Forecast evaluation, Statistical tests, Economic value). Mincer--Zarnowitz and White's reality check are not used.
-% \item \textbf{Forecast evaluation:} QLIKE is robust to noise in the volatility proxy: with a conditionally unbiased
-%   proxy it ranks forecasts as the true conditional variance would, and
-%   $\argmin_{v > 0} \E_t[\QLIKE(\RV_t, v)] = \E_t[\RV_t]$, with
-%   $\QLIKE(\RV, v) = \RV/v - \log(\RV/v) - 1$.\newline
-%   \citet{Patton2011} (robust loss functions), \citet{DieboldMariano1995} with the small-sample correction of
-%   \citet{HarveyLeybourneNewbold1997}, \citet{HansenLundeNason2011} (model confidence set), \citet{Ehm2016}
-%   (Murphy diagrams, elementary scores), \citet{MincerZarnowitz1969} (forecast-efficiency regressions).
-%   \begin{itemize}
-%   \item \citet{Hansen2005} (superior predictive ability), \citet{White2000} (reality check), \citet{RomanoWolf2005}
-%     (StepM), \citet{NeweyWest1987} (HAC variance).
-%   % 2026-10-15 (bib pass): parked -- the [to add] placeholder, now \citet keys in references.bib. Was:
-%   % \item \todo{to add: Hansen 2005 (superior predictive ability); White 2000 (reality check); Romano--Wolf 2005
-%   %   (StepM); Newey--West 1987 (HAC variance)}.
-%   \end{itemize}
-\item \textbf{Shrinkage with many weak signals.} In high-dimensional linear regressions, penalized estimators
-  regularize the coefficient vector via
-  \[
-    \hat{\bm\beta} = \argmin_{\bm\beta} \lVert \bm y - \bm X\bm\beta \rVert_2^2
-      + \lambda\bigl(\alpha \lVert\bm\beta\rVert_1 + \tfrac{1-\alpha}{2} \lVert\bm\beta\rVert_2^2\bigr)
-  \]
-  for a response vector $\bm y$, a predictor matrix $\bm X$, and an overall penalty strength $\lambda$, nesting
-  ridge regression ($\alpha = 0$) and the lasso ($\alpha = 1$) as special cases; multi-penalty ridge extensions
-  assign distinct regularization weights across feature blocks via $\lambda \sum_j \omega_j \beta_j^2$, where the
-  penalty weight $\omega_j$ is held constant within each block. Our predictor set is large and its signals
-  individually weak, so the comparison of penalized linear models with tree ensembles, and of how their gains
-  change with the length of the training window, bears directly on the dense-versus-sparse question.\newline
-  See \citet{GiannoneLenzaPrimiceri2021} on dense versus sparse representations, \citet{ShenXiu2025} on
-  learning from many weak signals, \citet{KozakNagelSantosh2020} on shrinking the cross-section of returns,
-  \citet{HoerlKennard1970} on ridge regression, \citet{Tibshirani1996} on the lasso, \citet{ZouHastie2005} on the
-  elastic net, and \citet{vandeWiel2021multipenalty} and \citet{vanWieringen2023ridge} on multi-penalty ridge
-  estimation.
-  \begin{itemize}
-  \item See also \citet{Zou2006} on the adaptive lasso and feature-specific penalty weights, and
-    \citet{FriedmanHastieTibshirani2010} on coordinate-descent estimation under the elastic-net
-    parametrization.
-  % 2026-10-15 (bib pass): parked -- the [to add] placeholder, now \citet keys in references.bib. Was:
-  % \item \todo{to add: Zou 2006 (adaptive lasso, penalty weights); Friedman--Hastie--Tibshirani 2010 (elastic-net
-  %   parametrization)}.
-  \end{itemize}
-% 2026-10-16 (user): parked -- SHAP is standard. The decomposition and the Lundberg cites stay in Variable
-% importance, where the values are computed. Aas et al. (dependent features) is not used.
-% \item \textbf{Variable importance:} Shapley additive explanations (SHAP) decompose each forecast additively,
-%   $\hat y_t = \phi_0 + \sum_{j=1}^{p} \phi_{t,j}$, with $\phi_{t,j}$ the contribution of predictor $j$ of $p$ and
-%   $\phi_0$ the average forecast.\newline
-%   \citet{lundberg2017unified} (SHAP), \citet{lundberg2018consistent} (TreeSHAP), \citet{aas2021explaining}
-%   (dependent features).
-% 2026-10-15 (user): parked -- no smearing mentions
-% \item \textbf{Retransformation} (one sentence): a smearing estimate would correct $\hat y_t^{\,2} s^2_{t,c}$ for
-%   retransformation bias; we do not.\newline
-%   \citet{Duan1983}, \citet{ManningMullahy2001}.
+\item \textbf{Realized variance and the HAR model.} Realized variance, the sum of squared high-frequency returns,
+  makes volatility observable and forecastable \citep{AndersenBollerslevDieboldLabys2003,
+  BarndorffNielsenShephard2002}, and the heterogeneous autoregressive (HAR) model of \citet{Corsi2009}, which
+  regresses next-day realized variance on its averages over the past day, week, and month, has become the benchmark
+  for forecasting it. Its extensions add jumps \citep{AndersenBollerslevDiebold2007}, signed semivariances
+  \citep{PattonSheppard2015}, leverage \citep{CorsiReno2012}, and the measurement error of realized variance
+  \citep{BollerslevPattonQuaedvlieg2016}, and the panel HAR of \citet{BollerslevHoodHussLebedev2018} estimates a
+  single pooled regression across a cross-section of assets. These are models of daily variance. We carry the HAR
+  structure to the intraday interval, pool it across the intervals of one index rather than across assets, and ask
+  how much a large set of exogenous predictors adds to it.
+\item \textbf{Pooled intraday forecasting and overnight information.} Intraday volatility follows a pronounced
+  U-shaped pattern across the trading session, and scaling intraday returns or realized variances by a diurnal
+  factor is standard practice \citep{AndersenBollerslev1997,TaylorXu1997}; \citet{AndersenSuTodorovZhang2024}
+  estimate this curve for the S\&P~500 futures around the clock and find that volatility outside U.S. trading hours
+  matters more in the later part of their sample. With this scaling, one model can be estimated across the intervals
+  of the regular session: \citet{EngleSokalska2012} estimate a multiplicative component GARCH model of intraday
+  volatility, with daily, diurnal, and stochastic intraday components, pooled across a large cross-section of
+  stocks, and \citet{ZhangZhangCucuringuQian2024} fit machine-learning models of realized volatility across all
+  intraday buckets of the day, with predictors built from realized volatility alone. Both leave the overnight return
+  out of estimation, and so do we (Section~\ref{sec:rh_methods}). Yet information from outside the session helps
+  forecast it: after-hours realized variance \citep{ChenYuZivot2012} and overnight information, including the
+  realized volatility of related assets that trade while the home market is closed \citep{TodorovaSoucek2014},
+  improve volatility forecasts, and for the S\&P~500 futures \citet{StroudJohannes2014} argue that deleting the
+  overnight returns removes important information. These studies forecast daily or session volatility; we carry the
+  idea to the intraday interval by computing our predictors over the futures' full intraday grid, overnight
+  intervals included (Section~\ref{sec:rh_predictors}).
+\item \textbf{Machine learning for realized volatility.} Applications of bagging, the lasso, boosting, random
+  forests, and neural networks to realized volatility \citep{HillebrandMedeiros2010,AudrinoKnaus2016,
+  MittnikRobinzonovSpindler2015,LuongDokuchaev2018,RahimikiaPoon2020} preceded the comparison of these methods with
+  the HAR model for daily realized volatility in \citet{christensen2023machine}, much as \citet{gu2020empirical}
+  compared linear, penalized, tree-based, and neural-network models for returns; \citet{BrancoRubesamZevallos2024}
+  find that nonlinear models rarely beat linear ones. Most of this work targets daily volatility; we compare
+  penalized linear models with tree ensembles on every regular-hours interval.
+\item \textbf{Dense or sparse signals.} In macroeconomic, microeconomic, and financial data, the posterior over
+  predictive models does not typically concentrate on a single sparse model \citep{GiannoneLenzaPrimiceri2021}, and
+  a characteristics-sparse stochastic discount factor cannot adequately summarize the cross-section of expected
+  stock returns \citep{KozakNagelSantosh2020}; \citet{ShenXiu2025} ask whether machine-learning methods can learn
+  weak signals. That our exogenous signal is dense and weak, spread thinly over many series, is a hypothesis we
+  test, not a premise: ridge regression suits a dense signal and the lasso a sparse one, and we compare penalized
+  linear models with tree ensembles across the number of exogenous series and the length of the training window
+  (Section~\ref{sec:rh_fi}). Unlike the complex models of \citet{KellyMalamudZhou2024}, which have more parameters
+  than observations, ours have far fewer predictors than training observations.
+  % 2026-10-26 (integration, JFEc): optional KMZ clause (coordinator: one clause; the author has not yet decided on
+  % the complexity argument, plan "Pending author decisions"); delete the sentence if the author drops KMZ. No number
+  % is quoted: the grid's c = P/T is at most \rhcxCMax (\rhcxCMaxMain for the full set at W = 3,000), macros of
+  % generated/rehaul_complexity_numbers.tex, which the preamble does not \input today.
+\item \textbf{Alternative data.} Sentiment, attention, and news measures have mostly been used to forecast daily
+  realized volatility \citep{AudrinoSigristBallinari2020,CaporinPoli2017}; at the intraday horizon,
+  \citet{BehrendtSchmidt2018} relate Twitter sentiment and activity to the intraday volatility of individual stocks.
+  We ask what such data add to a pooled intraday model of the index's realized variance, next to the futures' own
+  realized moments, the trading of the index's constituents, implied volatility, and the FOMC calendar.
+\item \textbf{Economic evaluation of volatility forecasts and 0DTE options.} A long tradition ranks volatility
+  forecasts by the profits of trading options on them, buying (selling) straddles when the price implied by the
+  forecast exceeds (falls short of) the market price \citep{EngleHongKaneNoh1993,NohEngleKane1994,
+  BandiRussellYang2008}; statistical gains need not survive transaction costs
+  \citep{HarveyWhaley1992,ChanJhaKalimipalli2009}. Because the variance risk premium is positive on average
+  \citep{CarrWu2009,BollerslevTauchenZhou2009}, zero-beta at-the-money straddles and delta-hedged index options lose
+  money on average \citep{CovalShumway2001,BakshiKapadia2003}, which makes the unconditional short straddle the
+  natural benchmark for a strategy that trades straddles on a variance forecast. A recent literature studies the
+  pricing, trading, and volatility effects of zero-days-to-expiration (0DTE) options on the S\&P~500
+  \citep{BandiFusariReno2023,BeckmeyerBrangerGayda2023,DimErakerVilkov2024}, and \citet{ChongTodorov2026} ask
+  whether equity and 0DTE options markets agree about volatility and trade their disagreement. Nearest to our market
+  and bar length, \citet{MaischZhangUlrichZimmer2026} predict the half-hourly delta-hedged returns of S\&P~500 index
+  options from contract characteristics, Greeks, and option-implied measures of the index's return distribution,
+  and sort the contracts into long--short portfolios. Our forecasts belong to the realized volatility literature,
+  and options enter only as an application: one 0DTE at-the-money straddle a day through the closing half hour,
+  long or short as the forecast for that interval exceeds or falls short of the implied variance
+  (Section~\ref{sec:rh_econ}).
 \end{itemize}
 
+% ---------------------------------------------------------------------------------------------------------------------
+% 2026-10-26 (integration, JFEc): parked -- the pre-cut section body (about 3 pages), kept verbatim below (its own
+% dated comments included, one extra "% " level). Cuts, by bullet: (1) HAR: the HAR equation and the E_t definition
+% (now one clause in words; Methods writes our HAR benchmark and defines E_t), the "lies outside this standard daily
+% specification" sentence, the reading list (BarndorffNielsenShephard2004,
+% CorsiMittnikPigorschPigorsch2008, BekiermanManner2018, BennedsenLundePakkanen2022, HansenHuangShek2012,
+% AndersenBollerslevChristoffersenDiebold2006) and the Barndorff-Nielsen--Shephard 2002 sub-item (now cited in the
+% opening sentence); added the HAR extensions (jumps, semivariances, leverage, measurement error) that the ablations
+% compare against. (2) Diurnal pattern + Overnight information merged; EngleGallo2006 and HizmeriBevilacqua2025 cut;
+% the "We follow this practice" sentence folded in; Andersen--Su--Todorov--Zhang 2024 added (D12). (3) 0DTE/VRP
+% bullet: the Q/P formula and the VRP definition (Economics defines the VRP), "Our straddles are 0DTE options held
+% through the closing half hour, the last interval of their life" (now the bullet's last sentence),
+% BlackScholes1973, Merton1973, HizmeriBevilacqua2025, BroadieChernovJohannes2009, BrogaardHanWon2023, Vilkov2026,
+% AlmeidaFreireHizmeri2025, MuravyevNi2020 cut; the rest merged into the economic-evaluation bullet. (4) Economic
+% evaluation: "Our economic test brings this evaluation to the intraday horizon" (audit front-14) replaced by the
+% application sentence; the "conventional error measures are only weakly related to the profits" sentence and its
+% sub-item (LeitchTanner1991, CenesizogluTimmermann2012) and GoyalSaretto2009 cut. (5) Machine learning:
+% RapachStraussZhou2013, FreybergerNeuhierlWeber2020, Bucci2020, Ke2017, Chen2016, Akiba2019, Breiman2001,
+% Friedman2001 cut (the model cites stay in Methods and the Appendix); the per-method chronology kept as one \citep; Maisch et al. moved to the economic-evaluation bullet; the alternative-data sentence ("have so far been
+% used for daily volatility", audit front-9) became its own softened bullet. (6) Shrinkage: the elastic-net display
+% and the multi-penalty sentence (Methods defines the estimators), "its signals individually weak" (audit front-13),
+% HoerlKennard1970, Tibshirani1996, ZouHastie2005, vandeWiel2021multipenalty, vanWieringen2023ridge, Zou2006,
+% FriedmanHastieTibshirani2010 cut; the bullet renamed "Dense or sparse signals"; the optional KellyMalamudZhou2024
+% clause added.
+% \begin{itemize}
+% % 2026-10-15 (consolidation): parked -- (k) in trading days here vs intraday intervals everywhere else.
+% % \item \textbf{Realized variance and the HAR model:}
+% %   $\E_t[\RV^{(1)}_{t+1}] = \beta_0 + \sum_{k} \beta_k\, \RV^{(k)}_t$, $k \in \{1,5,22\}$ trading days, with
+% %   $\RV^{(k)}_t$ the average daily realized variance over the last $k$ trading days. Our HAR components
+% %   $\bar y^{(k)}_t$ take the same averages of $y$ over $k$ intraday intervals.\newline
+% % 2026-10-15 (finish): parked -- the Introduction is parked, so Related work opens the paper; the bullet now defines
+% % E_t and the daily target and reads standalone. Was: "$\E_t[\RV_{t+1}] = \beta_0 + ...$, with $\RV^{(d)}_t$, ... the
+% % average daily realized variance over the last 1, 5 and 22 trading days. Our HAR components $\bar y^{(k)}_t$ take the
+% % same averages of $y$ over $k$ intraday intervals."
+% \item \textbf{Realized variance and the HAR model.} Following \citet{Corsi2009}, the heterogeneous
+%   autoregressive (HAR) model specifies the conditional expectation of next-day realized variance as a linear
+%   function of past realized variances aggregated over daily, weekly, and monthly horizons:
+%   $\E_t[\RV^{(d)}_{t+1}] = \beta_0 + \beta_d\, \RV^{(d)}_t + \beta_w\, \RV^{(w)}_t + \beta_m\, \RV^{(m)}_t$,
+%   where $\E_t$ denotes the conditional expectation given information available at the forecast origin on day $t$,
+%   and $\RV^{(d)}_t$, $\RV^{(w)}_t$, and $\RV^{(m)}_t$ denote the average daily realized variance over the
+%   preceding 1, 5, and 22 trading days, respectively. Because all three components represent daily realized
+%   variances aggregated at the daily, weekly, and monthly horizons, forecasting the realized variance of a
+%   specific intraday interval lies outside this standard daily specification. Our benchmark carries the HAR
+%   structure to the intraday interval, and the question we ask is how much a large set of exogenous predictors adds
+%   to it.\newline
+%   See \citet{Corsi2009}, \citet{AndersenBollerslevDieboldLabys2003}, \citet{BarndorffNielsenShephard2004},
+%   \citet{AndersenBollerslevDiebold2007}, \citet{CorsiMittnikPigorschPigorsch2008},
+%   \citet{BollerslevPattonQuaedvlieg2016}, \citet{BekiermanManner2018}, \citet{BennedsenLundePakkanen2022},
+%   \citet{HansenHuangShek2012}, and \citet{AndersenBollerslevChristoffersenDiebold2006}.
+%   % 2026-10-16 (user, E1): parked -- Related work does not describe our estimators. The components, the square-root
+%   % target, and the 15:30 origin belong in Methods. Was: "... on day $t$ (here 15:30 ET) and ... Our HAR components
+%   % $\bar y^{(k)}_t$ take the same averages over $k$ intraday intervals of $y$, the square root of realized variance
+%   % divided by its diurnal adjustment (Section~\ref{sec:rh_data})."
+%   % \editc{red}{E1}{Related work says the HAR components average $y$... Predictors and Methods average $\tilde y$.}
+%   \begin{itemize}
+%   % 2026-10-24 (user, framing pass): parked -- the sentence without the link to our pooling. Was: "In a multivariate
+%   % setting, the panel HAR framework of \citet{BollerslevHoodHussLebedev2018} estimates a single pooled regression
+%   % jointly across a cross-section of assets."
+%   \item In a multivariate setting, the panel HAR framework of \citet{BollerslevHoodHussLebedev2018} estimates a
+%     single pooled regression jointly across a cross-section of assets; our intraday models pool in the same spirit,
+%     across the intraday intervals of one index rather than across assets.
+%     % 2026-10-16 (user, E1): parked -- this named our estimator. Was: "the cross-asset counterpart of our intraday
+%     % model, which pools the intraday intervals of one index."
+%     % Key says "Lebedev"; the bib's author field (correctly) says Pedersen -- \citet prints the author field.
+%   \item For the theoretical foundations of realized variance, see \citet{BarndorffNielsenShephard2002}.
+%   % 2026-10-15 (bib pass): parked -- the [to add] placeholder, now a \citet key in references.bib. Was:
+%   % \item \todo{to add: Barndorff-Nielsen--Shephard 2002 (realized variance)}.
+%   \end{itemize}
+% \item \textbf{Diurnal pattern.} It is well documented that intraday return volatility exhibits a pronounced
+%   U-shaped pattern across the trading session. To account for this periodicity, standard practice scales intraday
+%   realized variance by a diurnal factor estimated from the corresponding clock-time interval on prior trading
+%   % 2026-10-24 (user): parked -- the framing sentence before it cited the intraday volatility forecasting precedents.
+%   % Was: "We follow this practice; it is what allows one model to be estimated across all intervals of the trading
+%   % day."
+%   % 2026-10-25 (user): parked -- "all intervals of the trading day": both precedents estimate on the regular
+%   % session and delete the overnight return (Engle--Sokalska, Sec. 2.1; Zhang et al., Sec. 3). Was: "days. We follow
+%   % this practice; it is what allows one model to be estimated across all intervals of the trading day, as in ..."
+%   days. We follow this practice; it is what allows one model to be estimated across the intervals of the regular
+%   trading session, as in the intraday volatility forecasts of \citet{EngleSokalska2012}, whose multiplicative
+%   component GARCH model writes intraday volatility as the product of daily, diurnal, and stochastic intraday
+%   components and is estimated pooled across a large cross-section of stocks, and, with machine-learning models over
+%   intraday buckets, of \citet{ZhangZhangCucuringuQian2024}. Both leave the overnight return out of estimation, and
+%   so do we: our models are estimated on the regular-hours intervals only (Section~\ref{sec:rh_exp_setup}).\newline
+%   % 2026-10-16 (user, E1): parked -- the display was our target, not the literature's. Was:
+%   % "divides by a diurnal adjustment, here $y_{t,i} = \sqrt{\RV_{t,i}/s^2_{t,i}}$, with $\RV_{t,i}$ the realized
+%   % variance of intraday interval $i$ on day $t$ and $s^2_{t,i}$ its diurnal adjustment."
+%   See \citet{AndersenBollerslev1997} on intraday periodicity, \citet{EngleGallo2006} on intraday range and
+%   volatility measures as indicators of daily volatility, and \citet{HizmeriBevilacqua2025} on morning
+%   volatility uncertainty.
+%   % 2026-10-15 (notation pass): EngleGallo2006 is a multiple-indicators model of daily volatility, not a periodicity
+%   % paper; its claim is narrowed to what it shows.
+%   \begin{itemize}
+%   \item See also \citet{TaylorXu1997} on diurnal volatility adjustments and \citet{EngleSokalska2012} on
+%     multiplicative decompositions of intraday volatility.
+%   % 2026-10-15 (bib pass): parked -- the [to add] placeholder, now \citet keys in references.bib. Was:
+%   % \item \todo{to add: Taylor--Xu 1997 (periodicity factor); Engle--Sokalska 2012 (intraday volatility)}.
+%   \end{itemize}
+% % 2026-10-25 (user): new bullet -- overnight data enter the predictors, not the estimation sample.
+% \item \textbf{Overnight information.} Volatility forecasts for the trading session have long used information from
+%   outside it: after-hours realized variance helps predict next-day stock volatility \citep{ChenYuZivot2012}, and
+%   overnight information, including the realized volatility of related assets that trade while the home market is
+%   closed, improves realized volatility forecasts \citep{TodorovaSoucek2014}. For the S\&P 500 futures, which trade
+%   nearly around the clock, \citet{StroudJohannes2014} model all 5-minute returns, not only those of the regular
+%   session, and argue that deleting the overnight returns removes important information. These studies forecast
+%   daily or session volatility. We carry the idea to the intraday interval: our models are estimated and scored on
+%   the regular-hours intervals, as in the precedents above, while their predictors, the trailing averages of the
+%   target and of the exogenous series, are computed over the futures' full intraday grid, overnight intervals
+%   included (Section~\ref{sec:rh_predictors}).
+% \item \textbf{0DTE options and the variance risk premium.} The variance risk premium, defined as the difference
+%   between option-implied variance and expected realized variance,
+%   $\E^{\mathbb{Q}}_t[\RV_t] - \E^{\mathbb{P}}_t[\RV_t]$, under the risk-neutral ($\mathbb Q$) and physical
+%   ($\mathbb P$) measures (where $\RV_t$ denotes the realized variance through expiration), is empirically
+%   % 2026-10-24 (user, straddle bullet): parked -- the framing sentence, now split between this bullet (straddle
+%   % returns, the benchmark) and the new economic-evaluation bullet. Was: "Our economic application sits at the end of
+%   % a 0DTE option's life: we ask whether more accurate forecasts of the closing half hour's realized variance, set
+%   % against the option-implied variance, translate into straddle returns."; and the reading list "See
+%   % \citet{HizmeriBevilacqua2025}, as well as the foundational option-pricing frameworks of \citet{BlackScholes1973}
+%   % and \citet{Merton1973}."
+%   positive on average, so that zero-beta at-the-money straddles and delta-hedged index option positions lose
+%   money on average; the unconditional short straddle is therefore the natural benchmark for a strategy that trades
+%   straddles on a variance forecast. Our straddles are 0DTE options held through the closing half hour, the last
+%   interval of their life.\newline
+%   See \citet{HizmeriBevilacqua2025}, as well as the foundational option-pricing frameworks of
+%   \citet{BlackScholes1973} and \citet{Merton1973}; on the returns of index straddles and delta-hedged options, see
+%   \citet{CovalShumway2001}, \citet{BakshiKapadia2003}, and \citet{BroadieChernovJohannes2009}.
+%   \begin{itemize}
+%   % 2026-10-24 (user, straddle bullet): parked -- the 0DTE reading list before Chong--Todorov and Muravyev--Ni. Was:
+%   % "On zero-days-to-expiration (0DTE) options, see \citet{BandiFusariReno2023}, \citet{BeckmeyerBrangerGayda2023},
+%   % \citet{BrogaardHanWon2023}, \citet{DimErakerVilkov2024}, \citet{Vilkov2026}, and \citet{AlmeidaFreireHizmeri2025};
+%   % on the variance risk premium more broadly, see \citet{CarrWu2009} and \citet{BollerslevTauchenZhou2009}."
+%   % Vilkov2026: cite for its design only; its repository (KNOWN-ISSUES, August 2026) reports a transaction-cost error
+%   % that removes its positive net Sharpe ratios, with a revision in progress.
+%   \item On zero-days-to-expiration (0DTE) options, see \citet{BandiFusariReno2023},
+%     \citet{BeckmeyerBrangerGayda2023}, \citet{BrogaardHanWon2023}, \citet{DimErakerVilkov2024},
+%     \citet{Vilkov2026}, and \citet{AlmeidaFreireHizmeri2025}; on whether equity and 0DTE options markets agree
+%     about volatility, and on trading their disagreement, see \citet{ChongTodorov2026}; on why option returns differ
+%     between the trading day and the night, see \citet{MuravyevNi2020}; on the variance risk premium more broadly,
+%     see \citet{CarrWu2009} and \citet{BollerslevTauchenZhou2009}.
+%   % 2026-10-15 (bib pass): parked -- the [to add] placeholder, now \citet keys in references.bib. Was:
+%   % \item \todo{to add: Bandi--Fusari--Ren\`o 2023; Beckmeyer--Branger--Gayda 2023; Brogaard--Han--Won 2023;
+%   %   Dim--Eraker--Vilkov 2024; Vilkov, 0DTE trading rules; Almeida--Freire--Hizmeri 2025; Carr--Wu 2009;
+%   %   Bollerslev--Tauchen--Zhou 2009}.
+%   \end{itemize}
+% % 2026-10-24 (user): new bullet -- the gap in the literature our economic test fills (option-based evaluation of
+% % volatility forecasts); references verified against each paper's abstract or text.
+% \item \textbf{Economic evaluation of volatility forecasts.} A long tradition values volatility forecasts by the
+%   profits they earn trading options: a trader buys (sells) straddles when the price implied by the variance forecast
+%   exceeds (falls short of) the market price, and competing forecasts are ranked by the returns that result. Because
+%   conventional error measures are only weakly related to the profits a forecast earns, forecasts are judged on both.
+%   Our economic test brings this evaluation to the intraday horizon, trading forecasts of the closing half hour's
+%   variance through 0DTE straddles held to the close.\newline
+%   See \citet{EngleHongKaneNoh1993} and \citet{NohEngleKane1994} on valuing variance forecasts through simulated
+%   options and S\&P~500 straddle trading, \citet{HarveyWhaley1992} on predictable implied volatility whose trading
+%   profits do not survive transaction costs, \citet{BandiRussellYang2008} on ranking high-frequency variance
+%   forecasts by the profits and Sharpe ratios of option trading, and \citet{ChanJhaKalimipalli2009} on statistical
+%   gains from realized volatility that do not translate into economic gains after costs.
+%   \begin{itemize}
+%   \item On straddle returns sorted on the gap between realized and implied volatility, see
+%     \citet{GoyalSaretto2009}; on profits versus conventional error measures, see \citet{LeitchTanner1991} and
+%     \citet{CenesizogluTimmermann2012}.
+%   \end{itemize}
+% \item \textbf{Machine learning for volatility and returns.} A growing literature models conditional return and
+%   volatility dynamics via flexible nonlinear mappings $f(\bm x_t)$ of a high-dimensional predictor vector
+%   % 2026-10-24 (user, prose follows the literature): parked -- the Zhang et al. sentence before their own terms
+%   % (buckets, universal model). Was: "The closest precedent for our setting, \citet{ZhangZhangCucuringuQian2024},
+%   % forecasts the realized volatility of intraday intervals for a cross-section of stocks with one model across the
+%   % intervals of the day and predictors built from realized volatility alone; we keep that design for the S\&P~500
+%   % and ask what a large set of exogenous predictors adds, comparing penalized linear models with tree ensembles."
+%   % 2026-10-24 (user): parked -- intraday volatility forecasting cites Engle--Sokalska alongside Zhang et al. Was:
+%   % "The closest precedent for our setting, \citet{ZhangZhangCucuringuQian2024}, forecasts realized volatility over
+%   % intraday buckets for a cross-section of stocks, fitting one model across all buckets of the day and, in its
+%   % universal variant, across stocks, with predictors built from realized volatility alone; we keep that design for
+%   % the S\&P~500 and ask what a large set of exogenous predictors adds, comparing penalized linear models with tree
+%   % ensembles."
+%   % 2026-10-24 (user): parked -- Engle--Sokalska is not machine learning; it moves to the Diurnal pattern bullet
+%   % (intraday volatility forecasting), and this bullet keeps Zhang et al. as the machine-learning precedent. Was:
+%   % "The closest precedents for our setting forecast the volatility of intraday intervals: \citet{EngleSokalska2012}
+%   % with a multiplicative component GARCH model, ..., and \citet{ZhangZhangCucuringuQian2024} with machine-learning
+%   % models of realized volatility over intraday buckets, ... Both build their predictors from volatility itself; we
+%   % keep a single model across the intervals of the day for the S\&P~500 and ask what a large set of exogenous
+%   % predictors adds, comparing penalized linear models with tree ensembles."
+%   % 2026-10-24 (user): parked -- before the precedent chronology for machine learning in return and realized-
+%   % volatility forecasting (literature search, verified first-posting and publication dates). Was: "$\bm x_t$. Most of
+%   % this work targets daily volatility or monthly returns. The closest machine-learning precedent ... comparing
+%   % penalized linear models with tree ensembles.\newline See \citet{gu2020empirical} for return prediction and
+%   % \citet{christensen2023machine} for realized volatility forecasting; for gradient-boosted decision trees, see
+%   % \citet{Ke2017} (LightGBM) and \citet{Chen2016} (XGBoost); for Bayesian hyperparameter optimization, see
+%   % \citet{Akiba2019} (Optuna)."
+%   $\bm x_t$. In return prediction, penalized regressions and nonparametric characteristic selection preceded the
+%   comparison of linear, penalized, tree-based, and neural-network models in \citet{gu2020empirical}, which has
+%   become the benchmark. In realized volatility forecasting, single-method applications came first---bagging and
+%   neural-network HAR models, the lasso, boosting, random forests, and neural networks---before
+%   \citet{christensen2023machine} compared these methods with the HAR model for daily realized volatility. Most of
+%   this work targets daily volatility or monthly returns.
+%   % 2026-10-25 (user): added -- Maisch, Zhang, Ulrich and Zimmer (SSRN 7269778): machine learning for intraday option
+%   % returns, the nearest work in our market and bar length; framed against our target (the index's volatility).
+%   % 2026-10-25 (user): parked -- their predictors named in full (predictor-overlap check: their 69 features are
+%   % contract-level and option-implied; ours are market-wide exogenous series). Was: "... options from contract
+%   % characteristics and sort the contracts into long--short portfolios."
+%   At the intraday horizon, machine learning has also reached option returns: \citet{MaischZhangUlrichZimmer2026}
+%   predict the half-hourly delta-hedged returns of S\&P~500 index options from contract characteristics, Greeks, and
+%   option-implied measures of the index's return distribution, and sort the contracts into long--short portfolios.
+%   % 2026-10-25 (user: lineage in the realized volatility literature; option trading as an application): parked --
+%   % "We forecast the volatility of the index itself, and options enter only through our economic test."
+%   Our forecasts belong to the realized volatility literature: we forecast the volatility of the index itself, and
+%   options enter only as an application of these forecasts. The closest machine-learning precedent for our setting,
+%   \citet{ZhangZhangCucuringuQian2024}, forecasts realized volatility over intraday buckets for a cross-section of
+%   stocks, fitting one model across all buckets of the day and, in its universal variant, across stocks, with
+%   % 2026-10-25 (user: the alternative-data angle, not overdone): parked -- "Exogenous predictors, such as sentiment,
+%   % attention, and news measures, have so far been used for daily volatility; ... ask what a large set of exogenous
+%   % predictors adds at the intraday horizon, ..."
+%   predictors built from realized volatility alone. Alternative data, such as sentiment, attention, and news
+%   measures, have so far been used for daily volatility; we keep the single-model design for the S\&P~500 and ask
+%   what a large set of exogenous predictors, alternative data among them, adds at the intraday horizon, comparing
+%   penalized linear models with tree ensembles.\newline
+%   See \citet{RapachStraussZhou2013} and \citet{FreybergerNeuhierlWeber2020} on penalized and nonparametric return
+%   prediction and \citet{gu2020empirical} for the comparison of methods; for realized volatility,
+%   \citet{HillebrandMedeiros2010} (bagging and neural-network HAR models), \citet{AudrinoKnaus2016} (the lasso),
+%   \citet{MittnikRobinzonovSpindler2015} (boosting), \citet{LuongDokuchaev2018} (random forests),
+%   \citet{Bucci2020} and \citet{RahimikiaPoon2020} (neural networks), \citet{christensen2023machine} (the comparison
+%   of methods), and \citet{BrancoRubesamZevallos2024}, who find that nonlinear models rarely beat linear ones;
+%   for gradient-boosted decision trees, see \citet{Ke2017} (LightGBM) and \citet{Chen2016} (XGBoost); for Bayesian
+%   hyperparameter optimization, see \citet{Akiba2019} (Optuna).
+%   \begin{itemize}
+%   % 2026-10-15 (user): parked -- NN content parked for now. Was: "...; realized volatility: \citet{Bucci2020},
+%   % \citet{RahimikiaPoon2020}, \citet{ZhangZhangCucuringuQian2024}; MinGRU \citet{Feng2024}; PufferLib \citet{Suarez2024}."
+%   % 2026-10-24 (user): parked -- the realized-volatility list moved into the bullet's chronology. Was: "...; for
+%   % machine-learning applications to realized volatility and intraday commonality, see \citet{Bucci2020},
+%   % \citet{RahimikiaPoon2020}, and \citet{ZhangZhangCucuringuQian2024}."
+%   \item For ensemble methods, see \citet{Breiman2001} on random forests and \citet{Friedman2001} on gradient
+%     boosting; on exogenous predictors of daily realized volatility, see \citet{AudrinoSigristBallinari2020}
+%     (sentiment and attention measures) and \citet{CaporinPoli2017} (news measures built from textual data).
+%   % 2026-10-15 (bib pass): parked -- the [to add] placeholder, now \citet keys in references.bib. Was:
+%   % \item \todo{to add: Breiman 2001; Friedman 2001 (gradient boosting); Bucci 2020; Rahimikia--Poon 2020;
+%   %   Zhang--Zhang--Cucuringu--Qian 2024; MinGRU (Feng et al.\ 2024); PufferLib}.
+%   \end{itemize}
+% % 2026-10-16 (user): parked -- forecast evaluation is standard. Cite Patton, Diebold--Mariano,
+% % Harvey--Leybourne--Newbold, Newey--West, Ehm, and the model-confidence set where those methods are used
+% % (Forecast evaluation, Statistical tests, Economic value). Mincer--Zarnowitz and White's reality check are not used.
+% % \item \textbf{Forecast evaluation:} QLIKE is robust to noise in the volatility proxy: with a conditionally unbiased
+% %   proxy it ranks forecasts as the true conditional variance would, and
+% %   $\argmin_{v > 0} \E_t[\QLIKE(\RV_t, v)] = \E_t[\RV_t]$, with
+% %   $\QLIKE(\RV, v) = \RV/v - \log(\RV/v) - 1$.\newline
+% %   \citet{Patton2011} (robust loss functions), \citet{DieboldMariano1995} with the small-sample correction of
+% %   \citet{HarveyLeybourneNewbold1997}, \citet{HansenLundeNason2011} (model confidence set), \citet{Ehm2016}
+% %   (Murphy diagrams, elementary scores), \citet{MincerZarnowitz1969} (forecast-efficiency regressions).
+% %   \begin{itemize}
+% %   \item \citet{Hansen2005} (superior predictive ability), \citet{White2000} (reality check), \citet{RomanoWolf2005}
+% %     (StepM), \citet{NeweyWest1987} (HAC variance).
+% %   % 2026-10-15 (bib pass): parked -- the [to add] placeholder, now \citet keys in references.bib. Was:
+% %   % \item \todo{to add: Hansen 2005 (superior predictive ability); White 2000 (reality check); Romano--Wolf 2005
+% %   %   (StepM); Newey--West 1987 (HAC variance)}.
+% %   \end{itemize}
+% \item \textbf{Shrinkage with many weak signals.} In high-dimensional linear regressions, penalized estimators
+%   regularize the coefficient vector via
+%   \[
+%     \hat{\bm\beta} = \argmin_{\bm\beta} \lVert \bm y - \bm X\bm\beta \rVert_2^2
+%       + \lambda\bigl(\alpha \lVert\bm\beta\rVert_1 + \tfrac{1-\alpha}{2} \lVert\bm\beta\rVert_2^2\bigr)
+%   \]
+%   for a response vector $\bm y$, a predictor matrix $\bm X$, and an overall penalty strength $\lambda$, nesting
+%   ridge regression ($\alpha = 0$) and the lasso ($\alpha = 1$) as special cases; multi-penalty ridge extensions
+%   assign distinct regularization weights across feature blocks via $\lambda \sum_j \omega_j \beta_j^2$, where the
+%   penalty weight $\omega_j$ is held constant within each block. Our predictor set is large and its signals
+%   individually weak, so the comparison of penalized linear models with tree ensembles, and of how their gains
+%   change with the length of the training window, bears directly on the dense-versus-sparse question.\newline
+%   See \citet{GiannoneLenzaPrimiceri2021} on dense versus sparse representations, \citet{ShenXiu2025} on
+%   learning from many weak signals, \citet{KozakNagelSantosh2020} on shrinking the cross-section of returns,
+%   \citet{HoerlKennard1970} on ridge regression, \citet{Tibshirani1996} on the lasso, \citet{ZouHastie2005} on the
+%   elastic net, and \citet{vandeWiel2021multipenalty} and \citet{vanWieringen2023ridge} on multi-penalty ridge
+%   estimation.
+%   \begin{itemize}
+%   \item See also \citet{Zou2006} on the adaptive lasso and feature-specific penalty weights, and
+%     \citet{FriedmanHastieTibshirani2010} on coordinate-descent estimation under the elastic-net
+%     parametrization.
+%   % 2026-10-15 (bib pass): parked -- the [to add] placeholder, now \citet keys in references.bib. Was:
+%   % \item \todo{to add: Zou 2006 (adaptive lasso, penalty weights); Friedman--Hastie--Tibshirani 2010 (elastic-net
+%   %   parametrization)}.
+%   \end{itemize}
+% % 2026-10-16 (user): parked -- SHAP is standard. The decomposition and the Lundberg cites stay in Variable
+% % importance, where the values are computed. Aas et al. (dependent features) is not used.
+% % \item \textbf{Variable importance:} Shapley additive explanations (SHAP) decompose each forecast additively,
+% %   $\hat y_t = \phi_0 + \sum_{j=1}^{p} \phi_{t,j}$, with $\phi_{t,j}$ the contribution of predictor $j$ of $p$ and
+% %   $\phi_0$ the average forecast.\newline
+% %   \citet{lundberg2017unified} (SHAP), \citet{lundberg2018consistent} (TreeSHAP), \citet{aas2021explaining}
+% %   (dependent features).
+% % 2026-10-15 (user): parked -- no smearing mentions
+% % \item \textbf{Retransformation} (one sentence): a smearing estimate would correct $\hat y_t^{\,2} s^2_{t,c}$ for
+% %   retransformation bias; we do not.\newline
+% %   \citet{Duan1983}, \citet{ManningMullahy2001}.
+% \end{itemize}

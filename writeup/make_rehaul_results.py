@@ -177,9 +177,7 @@ MT = REPO / "results" / "close_master_table"
 # 2026-10-22 (user, E34): parked -- the base-2 pooled trees (and their stored scores, score_*/levels.csv, pairs.csv);
 # the pooled trees are now read through pooled_trees_13.py (pt13, PT13_KEY). Was:
 # POOLTREE = REPO / "results" / "pooled_trees_2026-10-07"
-PT13_KEY = {
-    f"pooltree_{e}_{b}": (e, b) for e in pt13.EST for b in pt13.SETS
-}  # key -> (estimator, predictor set)
+PT13_KEY = {f"pooltree_{e}_{b}": (e, b) for e in pt13.EST for b in pt13.SETS}  # key -> (estimator, predictor set)
 # 2026-10-22 (user, E34: one design for the 12 pooled forecasts): the pooled linear models of the 13-bar rerun on the
 # trees' design (pooled_linear_13.py), rows of their own; they are the pooled linear rows of T1 / T2 and of every
 # 12-forecast pooled statistic, in place of the master table's 48-interval poolpt_* (which stay in the model set)
@@ -190,30 +188,12 @@ POOL_PENDING = {k for k, (e, _) in PT13_KEY.items() if pt13.is_pending(e)}
 PT13_DONE = {k: v for k, v in PT13_KEY.items() if k not in POOL_PENDING}
 PT = fr.PENDING_TEX
 WORDS = {0: "zero", 1: "one", 2: "two", 3: "three", 4: "four", 5: "five", 6: "six"}
-NN_FC = (
-    REPO
-    / "results"
-    / "puffer_forecast_2026-10-12"
-    / "qlike_study"
-    / "score_rinitq"
-    / "forecasts.csv"
-)
-NN_INPUTS = (
-    REPO / "results" / "feature_mcs_2026-10-08" / "_work" / "inputs" / "inputs.json"
-)
-NN_TARGETS = (
-    REPO / "results" / "close_studies_2026-10-03" / "forecasts" / "targets.parquet"
-)
+NN_FC = REPO / "results" / "puffer_forecast_2026-10-12" / "qlike_study" / "score_rinitq" / "forecasts.csv"
+NN_INPUTS = REPO / "results" / "feature_mcs_2026-10-08" / "_work" / "inputs" / "inputs.json"
+NN_TARGETS = REPO / "results" / "close_studies_2026-10-03" / "forecasts" / "targets.parquet"
 NN_POOLED = REPO / "results" / "puffer_forecast_2026-10-12" / "pooled_rinit_study"
 NN_POOLED_RUN = NN_POOLED / "runs" / "pwalk_rinitq_composite"
-NN_POOLED_ROWS = (
-    REPO
-    / "results"
-    / "puffer_forecast_2026-10-12"
-    / "_work"
-    / "pooled_walk"
-    / "rows.csv"
-)
+NN_POOLED_ROWS = REPO / "results" / "puffer_forecast_2026-10-12" / "_work" / "pooled_walk" / "rows.csv"
 NN_POOLED_SEEDS: list[int] = []  # filled by nn_pooled_frames
 QUOTES = REPO / "results" / "atm_straddle_0dte_1530" / "daily_a0.parquet"
 GUI_DAILY = REPO / "results" / "close_master_table_gui" / "master_table_daily.parquet"
@@ -225,9 +205,7 @@ NDAYS = 866  # the option-data subsample: trades and Sharpe ratios (and every ac
 # scores them on the 866 days, as before, and asserts the values of record
 SPAN = "rolling"
 ACC: dict[int, pd.DataFrame] = {}
-NN_PLAIN: dict[
-    str, pd.Series
-] = {}  # the MinGRU forecasts on every day they exist (filled by nn_frames / nn_pooled)
+NN_PLAIN: dict[str, pd.Series] = {}  # the MinGRU forecasts on every day they exist (filled by nn_frames / nn_pooled)
 ANN = 252.0**0.5
 SIG = 0.05
 LEVELS = (0.10, 0.05, 0.01)  # the star levels (2026-10-15, table legibility)
@@ -282,11 +260,7 @@ def load_master() -> tuple[pd.DataFrame, pd.DataFrame, dict[str, pd.DataFrame]]:
 
 def frame(plain: pd.Series, ref: pd.DataFrame, quotes: pd.DataFrame) -> pd.DataFrame:
     """Daily frame of a forecast not in the master table, on the OLS row's days (GUI construction)."""
-    j = (
-        ref[["target", "rv_unclipped", "iv_var"]]
-        .join(plain.rename("plain"), how="inner")
-        .join(quotes, how="inner")
-    )
+    j = ref[["target", "rv_unclipped", "iv_var"]].join(plain.rename("plain"), how="inner").join(quotes, how="inner")
     if len(j) != NDAYS or not np.isfinite(j["plain"]).all():
         raise ValueError("a forecast is missing on a trade day")
     # r = (j["target"] / j["plain"]).to_numpy(float)  # 2026-10-15 (user): parked -- scored against the trimmed target; scores now use actual RV (data audit #10)
@@ -312,9 +286,7 @@ def crossed(q: np.ndarray, j: pd.DataFrame) -> np.ndarray:
     ex = j["exit"].to_numpy(float)
     bid = (j["bid_c"] + j["bid_p"]).to_numpy(float)
     ask = (j["ask_c"] + j["ask_p"]).to_numpy(float)
-    return np.where(
-        q > 0, q * (ex / ask - 1.0), np.where(q < 0, q * (ex / bid - 1.0), 0.0)
-    )
+    return np.where(q > 0, q * (ex / ask - 1.0), np.where(q < 0, q * (ex / bid - 1.0), 0.0))
 
 
 def plain_16(path: Path) -> pd.Series:
@@ -337,25 +309,17 @@ def nn_frames(ref: pd.DataFrame, quotes: pd.DataFrame) -> dict[str, pd.DataFrame
     out = {}
     for b in ("baseline", "all_features"):
         e = fc[fc["design"] == b]
-        f = pd.Series(
-            e["mean"].to_numpy(float), index=_day(dates.iloc[e["row"].to_numpy()])
-        )
+        f = pd.Series(e["mean"].to_numpy(float), index=_day(dates.iloc[e["row"].to_numpy()]))
         assert not f.index.duplicated().any()
         out[f"mingru_rinitq_{b}"] = frame(f**2 * b_day.reindex(f.index), ref, quotes)
-        NN_PLAIN[f"mingru_rinitq_{b}"] = f**2 * b_day.reindex(
-            f.index
-        )  # every day (2026-10-15: rolling span)
+        NN_PLAIN[f"mingru_rinitq_{b}"] = f**2 * b_day.reindex(f.index)  # every day (2026-10-15: rolling span)
     return out
 
 
-def nn_pooled_frames(
-    ref: pd.DataFrame, quotes: pd.DataFrame
-) -> dict[str, pd.DataFrame]:
+def nn_pooled_frames(ref: pd.DataFrame, quotes: pd.DataFrame) -> dict[str, pd.DataFrame]:
     """The pooled ridge-init MinGRU, QLIKE-tuned, at the panel's 16:00 bar (rows.py's pooled path, pooled_score view 2):
     f = the seed mean of every block's refit forecasts, plain = f^2 x the panel's own 16:00 baseline."""
-    panel = pd.read_csv(NN_POOLED_ROWS, usecols=["row", "t_et", "baseline"]).set_index(
-        "row"
-    )
+    panel = pd.read_csv(NN_POOLED_ROWS, usecols=["row", "t_et", "baseline"]).set_index("row")
     t = pd.to_datetime(panel["t_et"])
     at16 = panel[((t.dt.hour == 16) & (t.dt.minute == 0)).to_numpy()]
     at16 = at16.assign(day=_day(pd.to_datetime(at16["t_et"])))
@@ -370,9 +334,7 @@ def nn_pooled_frames(
     out = {}
     for b in ("baseline", "all_features"):
         m = pr[pr["design"] == b].groupby("row")["f"].agg(["mean", "count"])
-        assert (m["count"] == m["count"].iloc[0]).all(), (
-            "seed counts differ across rows"
-        )
+        assert (m["count"] == m["count"].iloc[0]).all(), "seed counts differ across rows"
         NN_POOLED_SEEDS.append(int(m["count"].iloc[0]))
         g = at16.join(m, how="inner")
         assert not g["day"].duplicated().any(), "two 16:00 bars on one day"
@@ -381,9 +343,7 @@ def nn_pooled_frames(
             index=g["day"],
         )
         out[f"mingru_pooled_rinitq_{b}"] = frame(plain, ref, quotes)
-        NN_PLAIN[f"mingru_pooled_rinitq_{b}"] = (
-            plain  # every 16:00 row (2026-10-15: rolling span)
-        )
+        NN_PLAIN[f"mingru_pooled_rinitq_{b}"] = plain  # every 16:00 row (2026-10-15: rolling span)
     assert len(set(NN_POOLED_SEEDS)) == 1
     return out
 
@@ -391,18 +351,12 @@ def nn_pooled_frames(
 def load_all() -> tuple[pd.DataFrame, pd.DataFrame, dict[str, pd.DataFrame]]:
     m, s, by = load_master()
     ref = by[OLS]
-    quotes = pd.read_parquet(
-        QUOTES, columns=["R", "exit", "bid_c", "bid_p", "ask_c", "ask_p"]
-    )
+    quotes = pd.read_parquet(QUOTES, columns=["R", "exit", "bid_c", "bid_p", "ask_c", "ask_p"])
     quotes.index = pd.to_datetime(quotes.index).normalize()
     # gate: the master table's mid / crossed returns are the quote book's, so the added rows' returns are comparable
     jr = ref.join(quotes, how="inner")
-    assert len(jr) == NDAYS and np.allclose(
-        jr["ret_mid"], jr["q"] * jr["R"], rtol=1e-12, atol=1e-15
-    ), "quote-book R"
-    assert np.allclose(
-        jr["ret_crossed"], crossed(jr["q"].to_numpy(), jr), rtol=1e-10, atol=1e-14
-    ), "crossed"
+    assert len(jr) == NDAYS and np.allclose(jr["ret_mid"], jr["q"] * jr["R"], rtol=1e-12, atol=1e-15), "quote-book R"
+    assert np.allclose(jr["ret_crossed"], crossed(jr["q"].to_numpy(), jr), rtol=1e-10, atol=1e-14), "crossed"
     # gate: the master table's QLIKE is the plain f^2 B QLIKE of its own daily columns (against the actual RV)
     # r = (ref["target"] / ref["plain"]).to_numpy(float)  # 2026-10-15 (user): parked -- scored against the trimmed target; scores now use actual RV (data audit #10)
     r = (ref["rv_unclipped"] / ref["plain"]).to_numpy(float)
@@ -410,10 +364,11 @@ def load_all() -> tuple[pd.DataFrame, pd.DataFrame, dict[str, pd.DataFrame]]:
     if GUI_DAILY.is_file():  # the GUI's master copy carries the same OLS target and RV (the NN scoring reads it there)
         g = pd.read_parquet(GUI_DAILY, columns=["key", "day", "target", "rv_unclipped"])
         g = g[g["key"] == OLS].assign(day=lambda x: _day(x["day"])).set_index("day")
-        for c in ("target", "rv_unclipped"):
-            assert np.allclose(g[c].reindex(ref.index), ref[c], rtol=1e-12), (
-                f"GUI vs master OLS {c}"
-            )
+        # 2026-10-26 (integration plan D9): the master table's OLS is the rebuilt CI-HAR, scored on its own B, so its
+        # winsorized training target ("target", a diagnostic) differs from the GUI copy's (built 2026-10-15 on the old
+        # file); the scoring truth must still agree. Was: for c in ("target", "rv_unclipped"):
+        for c in ("rv_unclipped",):
+            assert np.allclose(g[c].reindex(ref.index), ref[c], rtol=1e-12), f"GUI vs master OLS {c}"
     by.update(nn_frames(ref, quotes))
     by.update(nn_pooled_frames(ref, quotes))
     # 2026-10-22 (user, E34): parked -- the base-2 pooled trees, and the full-set pooled LightGBM / XGBoost aliased to
@@ -435,9 +390,7 @@ def load_all() -> tuple[pd.DataFrame, pd.DataFrame, dict[str, pd.DataFrame]]:
     for k, (est, b) in PT13_DONE.items():
         g = pt13.at16(est, b)
         by[k] = frame(g["plain"], ref, quotes)
-        rel = float(
-            np.max(np.abs(g["rv"].reindex(ref.index) / ref["rv_unclipped"] - 1.0))
-        )
+        rel = float(np.max(np.abs(g["rv"].reindex(ref.index) / ref["rv_unclipped"] - 1.0)))
         assert rel <= 1e-12, (k, rel)
     # 2026-10-22 (user, E34: one design for the 12 pooled forecasts): the six pooled linear models of the 13-bar rerun
     # on the trees' design at the 16:00 bar, frames of their own (the master table's poolpt_* stay in the model set);
@@ -446,9 +399,7 @@ def load_all() -> tuple[pd.DataFrame, pd.DataFrame, dict[str, pd.DataFrame]]:
         assert k not in by, k
         g = pl13.at16(est, b)
         by[k] = frame(g["plain"], ref, quotes)
-        rel = float(
-            np.max(np.abs(g["rv"].reindex(ref.index) / ref["rv_unclipped"] - 1.0))
-        )
+        rel = float(np.max(np.abs(g["rv"].reindex(ref.index) / ref["rv_unclipped"] - 1.0)))
         assert rel <= 1e-12, (k, rel)
     if SPAN == "rolling":
         build_acc(s, by)
@@ -474,9 +425,7 @@ def build_acc(s: pd.DataFrame, by: dict[str, pd.DataFrame]) -> None:
     rv = rolling.history().reindex(days)
     assert np.isfinite(rv.to_numpy()).all() and (rv > 0).all()
     keys = (
-        set(s["key"])
-        | set(NN_PLAIN)
-        | {k for _, _, pb, pool in FAMILY_ROWS + [NN_ROW] for k in (*pb, *(pool or ()))}
+        set(s["key"]) | set(NN_PLAIN) | {k for _, _, pb, pool in FAMILY_ROWS + [NN_ROW] for k in (*pb, *(pool or ()))}
     )
     # 2026-10-22 (user, E34): parked -- the four base-2 pooled trees outside the master table. Was:
     # keys |= {f"pooltree_{e}_baseline" for e in ("lgbm", "xgb", "rf")} | {
@@ -489,9 +438,7 @@ def build_acc(s: pd.DataFrame, by: dict[str, pd.DataFrame]) -> None:
     # for k, (est, b) in PT13_KEY.items():  # 2026-10-22 (user, E34): + the pooled linear models on the trees' design
     #     g = pt13.at16(est, b)
     # 2026-10-23 (final_run.py PENDING): the finished arms only. Was: for k, v in PT13_KEY.items()
-    for k, g in [(k, pt13.at16(*v)) for k, v in PT13_DONE.items()] + [
-        (k, pl13.at16(*v)) for k, v in PL13_KEY.items()
-    ]:
+    for k, g in [(k, pt13.at16(*v)) for k, v in PT13_DONE.items()] + [(k, pl13.at16(*v)) for k, v in PL13_KEY.items()]:
         miss = days[~days.isin(g.index)]
         assert len(miss) == 0, (k, len(miss), miss[:5])
         rel = float(np.max(np.abs(g["rv"].reindex(days) / rv - 1.0)))
@@ -527,9 +474,7 @@ def build_acc(s: pd.DataFrame, by: dict[str, pd.DataFrame]) -> None:
         assert f.index.isin(days).all(), k
         rel = float(np.max(np.abs(a["plain"].reindex(f.index) / f["plain"] - 1.0)))
         assert rel <= 1e-10, (k, rel)
-        assert np.array_equal(
-            a["rv_unclipped"].reindex(f.index).to_numpy(), f["rv_unclipped"].to_numpy()
-        ), k
+        assert np.array_equal(a["rv_unclipped"].reindex(f.index).to_numpy(), f["rv_unclipped"].to_numpy()), k
         ACC[id(f)] = a
     print(
         f"accuracy frames: {len(ACC)} forecasts on the common rolling span {days[0].date()} .. {days[-1].date()} "
@@ -728,9 +673,7 @@ def hac_robust_rows(specs: list[tuple]) -> list[dict]:
         if b is not None:
             for blk in (hi.LW_BLOCK, *hi.LW_BLOCK_ALT):
                 row[f"lw{blk}"] = lw_p(a, b, block=blk)
-            row["bt"] = boot_p(
-                a, b
-            )  # 2026-10-22 (user, D6): the test behind the text's Sharpe-ratio statements
+            row["bt"] = boot_p(a, b)  # 2026-10-22 (user, D6): the test behind the text's Sharpe-ratio statements
         rows.append(row)
     return rows
 
@@ -753,9 +696,7 @@ def table_hac_robust(rows: list[dict]) -> str:
         if r["panel"] != panel:
             panel = r["panel"]
             body += panel_head(panel, 11, first=r is rows[0])
-        if r.get(
-            "pending"
-        ):  # 2026-10-23 (final_run.py PENDING): every cell pending, the row marked
+        if r.get("pending"):  # 2026-10-23 (final_run.py PENDING): every cell pending, the row marked
             body += pend_row(r["label"], 10)
             continue
         dsh = "--" if r["dsh"] is None else f"${_fmt(r['dsh'], 2)}$"
@@ -981,9 +922,7 @@ def tree_spec(rest: str) -> str:
         return "Fixed, daily"
     if rest in ("tuned", "tunedq", "tuned_daily", "tunedq_daily"):
         loss = "QLIKE" if rest.startswith("tunedq") else "MSE"
-        return f"Random search ({loss}), " + (
-            "daily" if rest.endswith("daily") else "every 10 d"
-        )
+        return f"Random search ({loss}), " + ("daily" if rest.endswith("daily") else "every 10 d")
     tok = rest.split("_")
     assert tok[0] in ("optuna", "optunaq") and tok[1].startswith("tp"), rest
     loss = "QLIKE" if tok[0] == "optunaq" else "MSE"
@@ -1017,9 +956,7 @@ def describe_key(key: str) -> dict[str, str]:
         )
     if key in EARLIER:
         mdl, spec, inputs = EARLIER[key]
-        return dict(
-            model=mdl, spec=spec, family=LIN, fit="pooled", panel="C", inputs=inputs
-        )
+        return dict(model=mdl, spec=spec, family=LIN, fit="pooled", panel="C", inputs=inputs)
     if key in EARLIER_TREES:
         return dict(
             model=EST_NAME[key],
@@ -1030,9 +967,7 @@ def describe_key(key: str) -> dict[str, str]:
             inputs="Full",
         )
     if key == OLS:
-        return dict(
-            model="OLS", spec="--", family=LIN, fit="per-bar", panel="A", inputs="HAR"
-        )
+        return dict(model="OLS", spec="--", family=LIN, fit="per-bar", panel="A", inputs="HAR")
     b = "baseline" if "_baseline" in key else "all_features"
     # 2026-10-22 (user, E34): + poolpt13_ (the pooled linear models on the trees' design). Was:
     # for pre, fit in (("subpt_", "per-bar"), ("poolpt_", "pooled")):
@@ -1052,11 +987,7 @@ def describe_key(key: str) -> dict[str, str]:
                 inputs=SET_NAME[b],
             )
     assert key.startswith("subtree_"), key
-    est = (
-        key.rsplit("_", 1)[1]
-        if key.split("_")[-1] in ("lgbm", "xgb", "rf")
-        else key.split("_")[1]
-    )
+    est = key.rsplit("_", 1)[1] if key.split("_")[-1] in ("lgbm", "xgb", "rf") else key.split("_")[1]
     rest = key[len("subtree_") :].replace(f"_{b}", "").replace(f"{est}", "").strip("_")
     rest = rest.replace("__", "_")
     return dict(
@@ -1436,9 +1367,7 @@ NOTE_SAMPLE = (
 # 2026-10-23 (user, E32): every closing-interval tree is re-estimated every trading session ("daily" is the linear
 # models' word). Was: "Closing-interval trees use fixed hyperparameters and are re-estimated daily"
 NOTE_TREES = "Closing-interval trees use fixed hyperparameters and are re-estimated every trading session"
-ITEM_EARLIER_FULL = (
-    "\\item[a] Full predictor set: the earlier draft's intraday specification."
-)
+ITEM_EARLIER_FULL = "\\item[a] Full predictor set: the earlier draft's intraday specification."
 ITEM_PRELIM = (
     "\\item[$\\dagger$] Preliminary: the closing-interval forecasts of the intraday random forest on the full "
     "predictor set, from an exercise still in progress."
@@ -1522,9 +1451,7 @@ def table_t1(rows: list[dict]) -> str:
             "% are the pooled trees of the 13-bar rerun, base 5 (results/pooled_trees_rerun13_2026-10-20/w1000,"
             if not fr.FINAL
             else f"% are the pooled trees of the final 13-bar rerun ({fr.rel(pt13.RUN)}, {fr.rel(fr.RF_RUN)}"
-            + (
-                " PENDING," if pt13.is_pending("rf") else ","
-            ),  # 2026-10-23 (final_run.py PENDING)
+            + (" PENDING," if pt13.is_pending("rf") else ","),  # 2026-10-23 (final_run.py PENDING)
             "% writeup/pooled_trees_13.py).",
             # 2026-10-23 (final_run.py PENDING): \rhPending's definition when a row is pending (no line otherwise)
             *([fr.PENDING_DEF] if any(r.get("pending") for r in rows) else []),
@@ -1607,9 +1534,7 @@ def table_t2(rows: list[dict]) -> str:
         [
             HEAD,
             "% tab:rh_axis2 (T2): intraday minus closing-interval, same model class and predictor set.",
-            *(
-                [fr.PENDING_DEF] if any(r.get("pending") for r in rows) else []
-            ),  # 2026-10-23 (PENDING)
+            *([fr.PENDING_DEF] if any(r.get("pending") for r in rows) else []),  # 2026-10-23 (PENDING)
             "\\begin{table}[htbp]",
             "\\centering",
             "\\small",
@@ -1782,9 +1707,7 @@ def table_t3_full(rank: pd.DataFrame, pending: tuple[str, ...] = ()) -> str:
         out.append(panel_head(title, 7, first=panel == "A").rstrip("\n"))
         for k, r in rank[rank["panel"] == panel].sort_values("qlike").iterrows():
             if k == OLS:
-                out.append(
-                    f"{r['rank']} & OLS (benchmark) & -- & HAR & {q4(r['qlike'])} & {cell(None, 1)} & -- \\\\"
-                )
+                out.append(f"{r['rank']} & OLS (benchmark) & -- & HAR & {q4(r['qlike'])} & {cell(None, 1)} & -- \\\\")
                 continue
             out.append(
                 f"{r['rank']} & {rank_name(k, r, False)} & {r['spec']} & {r['inputs']} & {q4(r['qlike'])} & "
@@ -1940,9 +1863,7 @@ def fig_f1(rows: list[dict]) -> None:
         y -= 1
         for r in [r for r in rows if r["fit"] == fit]:
             items.append((y, r))
-            ylabels.append(
-                (y, r["name"] + ("$^\\dagger$" if r.get("mark") else ""), False)
-            )
+            ylabels.append((y, r["name"] + ("$^\\dagger$" if r.get("mark") else ""), False))
             y -= 1
         y -= 0.5
     ax.axvline(0, color=INK, lw=0.7, zorder=1)
@@ -2018,19 +1939,13 @@ def fig_f1(rows: list[dict]) -> None:
     # 2026-10-23 (final rerun): the range widens to the nearest whole percent past a band that leaves it (the final
     # pooled linear models' bands reach +26 %); the printed run's bands lie inside, so its range stays. Was:
     # ax.set_xlim(-22, 12)
-    ends = [
-        (r["pct"] - r["hw"], r["pct"] + r["hw"])
-        for _, r in items
-        if not r.get("pending") and np.isfinite(r["hw"])
-    ]
+    ends = [(r["pct"] - r["hw"], r["pct"] + r["hw"]) for _, r in items if not r.get("pending") and np.isfinite(r["hw"])]
     ax.set_xlim(
         min([-22.0] + [float(np.floor(a)) - 1.0 for a, _ in ends if a < -22.0]),
         max([12.0] + [float(np.ceil(b)) + 1.0 for _, b in ends if b > 12.0]),
     )
     ax.set_xlabel("Change in QLIKE, all features vs HAR + calendar (%), with 95% band")
-    ax.xaxis.set_major_formatter(
-        matplotlib.ticker.FuncFormatter(lambda v, _: minus(f"{v:+.0f}") if v else "0")
-    )
+    ax.xaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(lambda v, _: minus(f"{v:+.0f}") if v else "0"))
     top = blended_transform_factory(ax.transData, ax.transAxes)
     ax.text(
         -0.6,
@@ -2064,9 +1979,7 @@ def fig_f1(rows: list[dict]) -> None:
 
 def fig_f2(rows: list[dict], levels: dict[str, dict]) -> None:
     """Dumbbell: per-bar and pooled QLIKE of each family, one panel per input set."""
-    fig, axes = plt.subplots(
-        1, 2, figsize=(W, 2.95), sharey=True, sharex=True, layout="constrained"
-    )
+    fig, axes = plt.subplots(1, 2, figsize=(W, 2.95), sharey=True, sharex=True, layout="constrained")
     names = [r["name"] for r in rows]
     ys = -np.arange(len(rows), dtype=float)
     ols_q = levels[OLS]["qlike"]
@@ -2142,9 +2055,7 @@ def fig_f2(rows: list[dict], levels: dict[str, dict]) -> None:
     axes[0].set_ylim(ys[-1] - 0.6, 0.6)
     # 2026-10-23 (final rerun): the range widens past a QLIKE that leaves it (the final pooled lasso on the full set,
     # 0.1301); the printed run's QLIKEs lie inside, so its range stays. Was: axes[0].set_xlim(0.0885, 0.1285)
-    qs_ = [levels[OLS]["qlike"]] + [
-        levels[k]["qlike"] for r in rows for k in (*r["perbar"], *(r["pooled"] or ()))
-    ]
+    qs_ = [levels[OLS]["qlike"]] + [levels[k]["qlike"] for r in rows for k in (*r["perbar"], *(r["pooled"] or ()))]
     axes[0].set_xlim(
         min([0.0885] + [x - 0.002 for x in qs_ if x < 0.0885]),
         max([0.1285] + [x + 0.002 for x in qs_ if x > 0.1285]),
@@ -2228,9 +2139,7 @@ def fig_f3(by: dict[str, pd.DataFrame], best: list[tuple[str, str, str]]) -> dic
     ax.set_xlim(pd.Timestamp("2020-01-01"), ref.index[-1] + pd.Timedelta(days=5))
     ax.grid(axis="y", color=GRID, lw=0.6, zorder=0)
     ax.set_axisbelow(True)
-    ax.yaxis.set_major_formatter(
-        matplotlib.ticker.FuncFormatter(lambda v, _: minus(f"{v:.1f}") if v else "0")
-    )
+    ax.yaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(lambda v, _: minus(f"{v:.1f}") if v else "0"))
     ax.tick_params(axis="y", labelcolor=MUTED, length=2.5, color=FRAME)
     ax.text(
         0.99,
@@ -2256,9 +2165,7 @@ def fig_f3(by: dict[str, pd.DataFrame], best: list[tuple[str, str, str]]) -> dic
     return out
 
 
-def fig_f5(
-    by: dict[str, pd.DataFrame], show: list[tuple[str, str | None, str]]
-) -> dict:
+def fig_f5(by: dict[str, pd.DataFrame], show: list[tuple[str, str | None, str]]) -> dict:
     """Panel (a): each day's share of the OLS's total squared error; (b) share of total loss in the k worst days."""
     fig, (a, b) = plt.subplots(
         1,
@@ -2305,18 +2212,12 @@ def fig_f5(
         g = acc_of(by[key])
         for loss, ls in (("se", "-"), ("ql", dash)):
             # v = ((g["target"] - g["plain"]) ** 2) if loss == "se" else g["qlike_raw"]  # 2026-10-15 (user): parked -- scored against the trimmed target; scores now use actual RV (data audit #10)
-            v = (
-                ((g["rv_unclipped"] - g["plain"]) ** 2)
-                if loss == "se"
-                else g["qlike_raw"]
-            )
+            v = ((g["rv_unclipped"] - g["plain"]) ** 2) if loss == "se" else g["qlike_raw"]
             c = 100 * np.cumsum(np.sort(v.to_numpy())[::-1]) / v.sum()
             b.plot(k, c, color=INK if fam is None else C[fam], lw=1.3, ls=ls, zorder=3)
             out[f"{key}_{loss}_top5"] = float(c[4])
             if loss == "se":
-                out[f"{key}_se_top5_days"] = [
-                    str(d.date()) for d in v.sort_values(ascending=False).index[:5]
-                ]
+                out[f"{key}_se_top5_days"] = [str(d.date()) for d in v.sort_values(ascending=False).index[:5]]
     b.set_xscale("log")
     # b.set_xlim(1, NDAYS)  # 2026-10-15: parked -- the rolling span's day count
     b.set_xlim(1, len(f))
@@ -2331,10 +2232,7 @@ def fig_f5(
     b.set_title("(b) Concentration of the loss", fontsize=9, loc="left", pad=4)
     b.text(8, 84, "squared error", fontsize=8, color=INK, ha="left", va="top")
     b.text(45, 25, "QLIKE", fontsize=8, color=INK, ha="left", va="top")
-    h = [
-        Line2D([], [], color=INK if fam is None else C[fam], lw=1.3, label=label)
-        for _, fam, label in show
-    ]
+    h = [Line2D([], [], color=INK if fam is None else C[fam], lw=1.3, label=label) for _, fam, label in show]
     h += [
         Line2D([], [], color=MUTED, lw=1.3, label="squared error"),
         Line2D([], [], color=MUTED, lw=1.3, ls=dash, label="QLIKE"),
@@ -2373,14 +2271,8 @@ def main() -> None:
     # E17) stopped the run on the 21 *_tw500 keys of 550 days (outside the model set and every table; the failure
     # predates E34); mt866 now scores the 866-day frames. Was:
     # lv = {k: level(f) for k, f in by.items() if SPAN == "mt866" or id(f) in ACC}
-    lv = {
-        k: level(f)
-        for k, f in by.items()
-        if (len(f) == NDAYS if SPAN == "mt866" else id(f) in ACC)
-    }
-    gate_866 = (
-        SPAN == "mt866"
-    )  # the values of record below are the 866-day accuracy numbers
+    lv = {k: level(f) for k, f in by.items() if (len(f) == NDAYS if SPAN == "mt866" else id(f) in ACC)}
+    gate_866 = SPAN == "mt866"  # the values of record below are the 866-day accuracy numbers
 
     # ---- known values (outline, section 6) ----
     # 2026-10-15 (data audit #10): every QLIKE / DM below is against the actual RV; the values asserted before
@@ -2456,9 +2348,7 @@ def main() -> None:
                     **pair(by[pool[1]], by[pool[0]], lw=True),
                 }
             )
-    t1 = [r for r in t1 if r["fit"] == "per-bar"] + [
-        r for r in t1 if r["fit"] == "pooled"
-    ]
+    t1 = [r for r in t1 if r["fit"] == "per-bar"] + [r for r in t1 if r["fit"] == "pooled"]
     T1 = {(r["fit"], r["name"]): r for r in t1}
     # 2026-10-15 (user): parked -- NN content parked for now; T1 rows: 14 -> 12
     t1 = [r for r in t1 if r["family"] != NN]
@@ -2496,9 +2386,7 @@ def main() -> None:
     }
     for kk, (qb, qa, pct, dmv) in expect_t1.items():
         r = T1[kk]
-        if r.get(
-            "pending"
-        ):  # 2026-10-23 (final_run.py PENDING): no value of a pending arm
+        if r.get("pending"):  # 2026-10-23 (final_run.py PENDING): no value of a pending arm
             continue
         if kk[0] == "pooled" and kk[1] in tree_names34:
             # 2026-10-22 (user, E34): parked -- the base-2 pooled trees' values of record, asserted by the near() calls
@@ -2517,9 +2405,7 @@ def main() -> None:
         near(r["qa"], qa, 5e-5 if qa < 0.1 or kk[0] == "per-bar" else 5e-4)
         near(r["pct"], pct, 0.05 + 1e-9)
         if dmv is not None:
-            near(
-                r["dm"], dmv, 0.02
-            )  # same-estimator base; the outline paired the per-bar linear rows with the OLS
+            near(r["dm"], dmv, 0.02)  # same-estimator base; the outline paired the per-bar linear rows with the OLS
     near(T1[("per-bar", NN_NAME)]["p"], 0.32, 0.005)  # was 0.34 (trimmed target)
     # 2026-10-17 (user, E17): dsh on the 614 post-warmup days (was Ridge 0.05, Lasso 0.50, Elastic net 0.55,
     # LightGBM 0.54, XGBoost 0.16, Random forest 0.18 on all 866 days)
@@ -2533,9 +2419,7 @@ def main() -> None:
     }
     for nme, (dsh, t) in expect_dsh.items():
         # 2026-10-18 (user, new-notes 15): dsh is per-year now. Was: near_t(T1[("per-bar", nme)]["dsh"], dsh, 0.005 + 1e-9)
-        print(
-            f"NN15 value: T1 per-bar {nme} dsh {T1[('per-bar', nme)]['dsh']:.4f} (was {dsh})"
-        )
+        print(f"NN15 value: T1 per-bar {nme} dsh {T1[('per-bar', nme)]['dsh']:.4f} (was {dsh})")
         near_t(T1[("per-bar", nme)]["t"], t, 0.02)
 
     # all 51 input-set pairs of the model set (the fig_qlike_sharpe counts)
@@ -2609,10 +2493,7 @@ def main() -> None:
         [
             pair(
                 by[k],
-                by[
-                    "subpt_ridge_"
-                    + ("all_features" if "all_features" in k else "baseline")
-                ],
+                by["subpt_ridge_" + ("all_features" if "all_features" in k else "baseline")],
             )
             for k in tr_keys
         ],
@@ -2629,13 +2510,9 @@ def main() -> None:
     # has a lower MSE than the benchmark forecast"), on this run's span
     la_, ol_ = acc_of(by["subpt_lasso_all_features"]), acc_of(by[OLS])
     out_w = (la_.index < CRASH[0]) | (la_.index > CRASH[1])
-    mse_ex = [
-        float(((x["rv_unclipped"] - x["plain"])[out_w] ** 2).mean()) for x in (la_, ol_)
-    ]
+    mse_ex = [float(((x["rv_unclipped"] - x["plain"])[out_w] ** 2).mean()) for x in (la_, ol_)]
     lasso_mse_ex_pct = 100.0 * (mse_ex[0] / mse_ex[1] - 1.0)
-    print(
-        f"lasso (full) vs OLS, MSE outside 24 Feb - 30 Apr 2020: {lasso_mse_ex_pct:+.1f} %"
-    )
+    print(f"lasso (full) vs OLS, MSE outside 24 Feb - 30 Apr 2020: {lasso_mse_ex_pct:+.1f} %")
 
     # ---- T2: pooled minus per-bar ----
     t2: list[dict] = []  # 2026-10-23: typed (a pending row is a dict of its own)
@@ -2750,12 +2627,7 @@ def main() -> None:
                     f"E34 CHANGED: T2 {nme} {b}: % {x_['pct']:.2f} / DM {x_['dm']:.2f} "
                     f"(was {lo_}-{hi_} % / DM {dlo_}-{dhi_})"
                 )
-    t2_t = [
-        r[b]["t"]
-        for r in t2
-        if not r.get("pending") and r["family"] != NN
-        for b in ("baseline", "all_features")
-    ]
+    t2_t = [r[b]["t"] for r in t2 if not r.get("pending") and r["family"] != NN for b in ("baseline", "all_features")]
     # 2026-10-21 (user, decision #2): parked -- "every HAC t below 1, none significant" asserted on the lag-12 t with 1.96.
     # "None significant" is asserted below (\rhrPoolVsCloseRetSig == 0, fixed-b p); "below 1" is no longer in the text,
     # so it is reported. Was: assert max(t2_t) < 1 and max(abs(x) for x in t2_t) < Z95, (t2_t)
@@ -2778,16 +2650,13 @@ def main() -> None:
     for b, k in (("all_features", pa), ("baseline", pb0)):
         near(lv[k]["qlike"], float(sc.loc[b, "qlike"]), 1e-9)
         near_t(sharpe_all(by[k]["ret_mid"]), float(sc.loc[b, "sharpe_mid"]), 1e-6)
-        near_t(
-            sharpe_all(by[k]["ret_crossed"]), float(sc.loc[b, "sharpe_crossed"]), 1e-6
-        )
+        near_t(sharpe_all(by[k]["ret_crossed"]), float(sc.loc[b, "sharpe_crossed"]), 1e-6)
     near(T1[("pooled", NN_NAME)]["pct"], -3.0, 0.05)  # was -2.7 (trimmed target)
     near(T1[("pooled", NN_NAME)]["p"], 0.47, 0.005)  # was 0.52
     near(T2[NN_NAME]["all_features"]["pct"], 18.1, 0.05)  # was 18.2
     near(T2[NN_NAME]["baseline"]["pct"], 17.0, 0.05)  # was 16.8
     assert not gate_866 or (
-        T2[NN_NAME]["all_features"]["p"] < 1e-4 * 1.5
-        and T2[NN_NAME]["baseline"]["p"] < 2e-3  # was < 1.5e-3
+        T2[NN_NAME]["all_features"]["p"] < 1e-4 * 1.5 and T2[NN_NAME]["baseline"]["p"] < 2e-3  # was < 1.5e-3
     )
     cn = pd.read_csv(NN_POOLED / "at1600_contrasts.csv").set_index(["model", "vs"])
     who = "pooled ridge-init QLIKE (MinGRU) ({})"
@@ -2829,9 +2698,7 @@ def main() -> None:
         *PL13_KEY,
     ]
     # assert set(extra) == set(PT13_KEY) and not set(extra) & set(s["key"]), extra  # 2026-10-22 (user, E34): + PL13_KEY
-    assert set(extra) == set(PT13_KEY) | set(PL13_KEY) and not set(extra) & set(
-        s["key"]
-    ), extra
+    assert set(extra) == set(PT13_KEY) | set(PL13_KEY) and not set(extra) & set(s["key"]), extra
     # 2026-10-23 (final_run.py PENDING): a pending arm is not ranked (T3 / T3 full print it unranked, \rhPending{})
     extra = [k for k in extra if k not in POOL_PENDING]
     keys = list(s["key"]) + extra
@@ -2873,9 +2740,7 @@ def main() -> None:
     # (the OLS's 866-day rank of record, 8, was among the 112-forecast set's: reported under --span mt866)
     assert len(rank) == 106 - len(POOL_PENDING), len(rank)
     if gate_866:
-        print(
-            f"E32 mt866: the OLS ranks {int(rank.loc[OLS, 'rank'])} (was 8 with the 112-forecast set)"
-        )
+        print(f"E32 mt866: the OLS ranks {int(rank.loc[OLS, 'rank'])} (was 8 with the 112-forecast set)")
     ms = rank[rank["in_set"] & (rank.index != OLS)]
     n_set, n_lower3, n_lower3_sig, n_worse_sig = (
         len(ms),
@@ -2956,12 +2821,7 @@ def main() -> None:
     #     if k
     #     not in ("subpt_ridge_baseline", "subpt_lasso_baseline", "subpt_enet_baseline")
     # ]
-    head = [
-        k
-        for k in head
-        if k
-        not in ("subpt_ridge_baseline", "subpt_lasso_baseline", "subpt_enet_baseline")
-    ]
+    head = [k for k in head if k not in ("subpt_ridge_baseline", "subpt_lasso_baseline", "subpt_enet_baseline")]
     assert len(set(head)) == len(head)
     # 2026-10-23 (final_run.py PENDING): the pending headline rows, printed unranked in T3 (and T3 full)
     head_pending = tuple(k for k in head if k in POOL_PENDING)
@@ -2980,30 +2840,16 @@ def main() -> None:
     # 2026-10-22 (user, E34): no pooled tree is a master-table frame; the master table's lgbm / xgb are the earlier
     # draft's trees (T3 full, Panel B, "Earlier draft, no FOMC") and no T1 / T2 row carries tnote a
     # 2026-10-23 (final_run.py PENDING): the finished arms (a pending one has no frame). Was: for k in PT13_KEY
-    assert not any(by[k] is by[m_] for k in PT13_DONE for m_ in s["key"]), (
-        "E34: a pooled tree aliases a master row"
-    )
-    assert all(
-        describe_key(m_)["spec"].startswith("Earlier draft") for m_ in EARLIER_TREES
-    ), EARLIER_TREES
+    assert not any(by[k] is by[m_] for k in PT13_DONE for m_ in s["key"]), "E34: a pooled tree aliases a master row"
+    assert all(describe_key(m_)["spec"].startswith("Earlier draft") for m_ in EARLIER_TREES), EARLIER_TREES
     assert all(m_ in set(s["key"]) for m_ in EARLIER_TREES) and not EARLIER_POOLED_FULL
     assert not set(head) & set(EARLIER_TREES), head
-    sub3 = rank.loc[
-        head
-    ]  # T3: the closing-interval rows rank above the pooled intraday rows (panels keep the order)
-    t3_split = bool(
-        sub3.loc[sub3["fit"] == "per-bar", "rank"].max()
-        < sub3.loc[sub3["fit"] == "pooled", "rank"].min()
-    )
+    sub3 = rank.loc[head]  # T3: the closing-interval rows rank above the pooled intraday rows (panels keep the order)
+    t3_split = bool(sub3.loc[sub3["fit"] == "per-bar", "rank"].max() < sub3.loc[sub3["fit"] == "pooled", "rank"].min())
     assert not gate_866 or t3_split  # 2026-10-15: the 866-day ordering of record
     if not t3_split:
-        print(
-            "T3 (parked): on this span an intraday headline row ranks above a closing-interval one"
-        )
-    assert (
-        set(rank["panel"]) == {"A", "B", "C"}
-        and (rank.loc[rank["panel"] == "A", "fit"] == "per-bar").all()
-    )
+        print("T3 (parked): on this span an intraday headline row ranks above a closing-interval one")
+    assert set(rank["panel"]) == {"A", "B", "C"} and (rank.loc[rank["panel"] == "A", "fit"] == "per-bar").all()
 
     # ---- figures ----
     style()
@@ -3036,9 +2882,7 @@ def main() -> None:
     assert not gate_866 or all(0.85 <= x / 100 <= 0.925 for x in se_top5), (
         se_top5
     )  # outline: five March 2020 days carry 85-92 % (83-91 % on the trimmed target)
-    for k, *_ in [
-        (OLS,)
-    ] + best:  # the five largest squared errors of each F5 forecast fall in March 2020
+    for k, *_ in [(OLS,)] + best:  # the five largest squared errors of each F5 forecast fall in March 2020
         assert all(d.startswith("2020-03") for d in f5[f"{k}_se_top5_days"]), (
             k,
             f5[f"{k}_se_top5_days"],
@@ -3047,12 +2891,8 @@ def main() -> None:
 
     # ---- tables ----
     GEN.mkdir(exist_ok=True)
-    (GEN / "rehaul_results_t1_axis1.tex").write_text(
-        table_t1(t1), encoding="utf-8", newline="\n"
-    )
-    (GEN / "rehaul_results_t2_pooled.tex").write_text(
-        table_t2(t2), encoding="utf-8", newline="\n"
-    )
+    (GEN / "rehaul_results_t1_axis1.tex").write_text(table_t1(t1), encoding="utf-8", newline="\n")
+    (GEN / "rehaul_results_t2_pooled.tex").write_text(table_t2(t2), encoding="utf-8", newline="\n")
     # 2026-10-23 (final_run.py PENDING): + the pending rows (unranked). Was: table_t3(rank, head), table_t3_full(rank)
     (GEN / "rehaul_results_t3_ranking.tex").write_text(
         table_t3(rank, head, head_pending), encoding="utf-8", newline="\n"
@@ -3092,42 +2932,24 @@ def main() -> None:
         # } == {"Lasso"}
         assert not {x for x in sig_t1 if x[0] == "per-bar"}, sig_t1
         claim34(
-            {n for f_, n in sig_t1 if f_ == "pooled" and n not in tree_names34}
-            == {"Elastic net"},
+            {n for f_, n in sig_t1 if f_ == "pooled" and n not in tree_names34} == {"Elastic net"},
             "\\rhrAfPoolLowerSig (linear part)",
             str(sorted(sig_t1)),
             "the pooled elastic net is the one linear class whose full-set QLIKE reduction is significant",
         )
-        assert all(r["pct"] < 0 for r in t1 if r["fit"] == "per-bar"), (
-            "6.3: Full lowers QLIKE (closing interval)"
-        )
+        assert all(r["pct"] < 0 for r in t1 if r["fit"] == "per-bar"), "6.3: Full lowers QLIKE (closing interval)"
         claim34(
             all(r["pct"] < 0 for r in t1_done),
             "\\rhrAf<Est>PoolPct",
-            ", ".join(
-                f"{r['name']} {r['pct']:+.1f}" for r in t1_done if r["fit"] == "pooled"
-            ),
+            ", ".join(f"{r['name']} {r['pct']:+.1f}" for r in t1_done if r["fit"] == "pooled"),
             "6.3: the full predictor set lowers QLIKE in every pooled class (abstract, 01_introduction, 06_results, "
             "09_conclusion)",
         )
-        assert all(
-            r[b]["pct"] > 0 for r in t2_done for b in ("baseline", "all_features")
-        ), "6.4: pooled > closing"
+        assert all(r[b]["pct"] > 0 for r in t2_done for b in ("baseline", "all_features")), "6.4: pooled > closing"
         claim34(
-            {
-                r["name"]
-                for r in t2_done
-                if r["family"] == LIN and r["all_features"]["p"] < SIG
-            }
-            == {"Lasso"},
+            {r["name"] for r in t2_done if r["family"] == LIN and r["all_features"]["p"] < SIG} == {"Lasso"},
             "T2 linear, full set, p < 0.05",
-            str(
-                sorted(
-                    r["name"]
-                    for r in t2_done
-                    if r["family"] == LIN and r["all_features"]["p"] < SIG
-                )
-            ),
+            str(sorted(r["name"] for r in t2_done if r["family"] == LIN and r["all_features"]["p"] < SIG)),
             "6.4: on the full predictor set only the pooled lasso is significantly less accurate than its "
             "closing-interval counterpart",
         )
@@ -3144,20 +2966,24 @@ def main() -> None:
             "6.4: every HAR-benchmark difference significant (linear)"
         )
         top4 = set(rank.index[:4])
-        assert top4 == {
+        # 2026-10-26 (integration plan D9): with the rebuilt CI-HAR (QLIKE 0.1033 -> 0.1025 on T_close) the benchmark
+        # itself ranks among the four most accurate, in place of the per-bar XGBoost; the claim of 6.5 (closing-interval
+        # models only, D3: the final appendix section) is now: the four most accurate are closing-interval forecasts,
+        # none significantly better than the CI-HAR. Was: assert top4 == {"subpt_lasso_all_features",
+        # "subpt_enet_all_features", "subpt_ridge_all_features", "subtree_daily_all_features_xgb"}, and
+        # assert all(rank.loc[k, "p"] >= SIG for k in top4)
+        assert all(k.startswith("sub") for k in top4), top4  # 6.5: the four most accurate are closing-interval ...
+        assert all(
+            rank.loc[k, "p"] >= SIG for k in top4 if k != OLS
+        )  # ... none significantly better than the benchmark
+        if top4 != {
             "subpt_lasso_all_features",
             "subpt_enet_all_features",
             "subpt_ridge_all_features",
             "subtree_daily_all_features_xgb",
-        }, (
-            top4
-        )  # 6.5: the four most accurate, each closing-interval on the full set ...
-        assert all(
-            rank.loc[k, "p"] >= SIG for k in top4
-        )  # ... none significantly better than the benchmark
-        assert lasso_mse_ex_pct < 0, (
-            "6.3: outside Feb-Apr 2020 the lasso (full) has the lower MSE"
-        )
+        }:
+            print(f"CLAIM CHANGED (6.5, D9): the four most accurate closing-half-hour forecasts are now {sorted(top4)}")
+        assert lasso_mse_ex_pct < 0, "6.3: outside Feb-Apr 2020 the lasso (full) has the lower MSE"
         # 2026-10-22 (user, E34): parked -- a rank of record of the base-2 trees (the prose's "least accurate pooled
         # specifications" was parked on 2026-10-17, new-notes 13); reported. Was:
         # assert (
@@ -3166,10 +2992,7 @@ def main() -> None:
         #     == 2
         # ), "6.5: the pooled trees on HAR are among the least accurate"
         last3 = list(rank.index[-3:])
-        if (
-            last3.count("pooltree_lgbm_baseline") + last3.count("pooltree_rf_baseline")
-            != 2
-        ):
+        if last3.count("pooltree_lgbm_baseline") + last3.count("pooltree_rf_baseline") != 2:
             print(
                 f"E34 CHANGED: the three least accurate forecasts {last3} (was two of them the pooled LightGBM and "
                 "random forest on HAR)"
@@ -3192,26 +3015,19 @@ def main() -> None:
     # tree_n = [n for n, fam, *_ in FAMILY_ROWS if fam == TREE]
     # assert len(pool_keys) == 12 and len(lin_n) == 3 and len(tree_n) == 3
     # t1c = {n: T1[("per-bar", n)] for n in lin_n + tree_n}
-    fam_done = [
-        (n, fam, pb, pool)
-        for n, fam, pb, pool in FAMILY_ROWS
-        if not set(pool) & POOL_PENDING
-    ]
-    pool_keys = [
-        k for *_, pool in fam_done for k in pool
-    ]  # T1 Panel B: 6 classes x (HAR, Full), the finished ones
+    fam_done = [(n, fam, pb, pool) for n, fam, pb, pool in FAMILY_ROWS if not set(pool) & POOL_PENDING]
+    pool_keys = [k for *_, pool in fam_done for k in pool]  # T1 Panel B: 6 classes x (HAR, Full), the finished ones
     pool_full = [pool[1] for *_, pool in fam_done]
     pool_har = [pool[0] for *_, pool in fam_done]
+    # 2026-10-26 (integration, audit results-12): the distinct pooled forecasts -- the HAR-set lasso and elastic net
+    # coincide with the HAR-set ridge (= the pooled OLS), so they are left out
+    pool_distinct = [k for k in pool_keys if not (k.endswith("_baseline") and ("_lasso_" in k or "_enet_" in k))]
     lin_all = [n for n, fam, *_ in FAMILY_ROWS if fam == LIN]
     tree_all = [n for n, fam, *_ in FAMILY_ROWS if fam == TREE]
     lin_n = [n for n, fam, *_ in fam_done if fam == LIN]
     tree_n = [n for n, fam, *_ in fam_done if fam == TREE]
     pool_of = {n: pool for n, _, _, pool in FAMILY_ROWS}
-    assert (
-        len(FAMILY_ROWS) * 2 == fr.POOL_N_ALL
-        and len(lin_all) == 3
-        and len(tree_all) == 3
-    )
+    assert len(FAMILY_ROWS) * 2 == fr.POOL_N_ALL and len(lin_all) == 3 and len(tree_all) == 3
     assert len(pool_keys) == fr.pool_n() == 2 * len(lin_n + tree_n), (
         pool_keys,
         fr.pool_n(),
@@ -3246,9 +3062,7 @@ def main() -> None:
             "tail": float(d.sum() - d.nlargest(TOP_DAYS).sum()),
         }
 
-    vs_ms = {
-        k: vs_short(k) for k in s["key"]
-    }  # gate: the model set reproduces its macros of record
+    vs_ms = {k: vs_short(k) for k in s["key"]}  # gate: the model set reproduces its macros of record
     # 2026-10-17 (user, E17): 94 of 112 model-set forecasts have dsh > 0 on the 614 post-warmup days (was 112 on 866 days)
     # assert sum(v["dsh"] > 0 for v in vs_ms.values()) == 94  # \rheVsShortAbove
     # 2026-10-18 (user, new-notes 15): soft check (count under the per-year ratio)
@@ -3273,9 +3087,7 @@ def main() -> None:
     # 2026-10-18 (user, new-notes 15): fixed-factor values of record gated with sharpe_252; per-year printed
     near_t(sharpe_252(by[en]["ret_mid"]), 1.93, 5e-3)
     near_t(sharpe_252(by[en]["ret_crossed"]), 1.56, 5e-3)
-    print(
-        f"NN15 value: enet sharpe {lv[en]['sharpe']:.4f} / crossed {lv[en]['sharpe_x']:.4f} (was 1.93 / 1.56)"
-    )
+    print(f"NN15 value: enet sharpe {lv[en]['sharpe']:.4f} / crossed {lv[en]['sharpe_x']:.4f} (was 1.93 / 1.56)")
     near_t(vs_ms[en]["t"], 2.56, 5e-3)
     vs_sh = {
         k: vs_short(k)
@@ -3287,14 +3099,10 @@ def main() -> None:
     pool_sig_short = {k for k in pool_keys if vs_sh[k]["t"] > 0 and vs_sh[k]["p"] < SIG}
 
     # sizing: the GUI's scorer on the gap plain - iv_var, scored after the 252-day warm-up (= make_rehaul_economics.py)
-    qbook = pd.read_parquet(
-        QUOTES, columns=["R", "exit", "bid_c", "bid_p", "ask_c", "ask_p"]
-    )
+    qbook = pd.read_parquet(QUOTES, columns=["R", "exit", "bid_c", "bid_p", "ask_c", "ask_p"])
     qbook.index = pd.to_datetime(qbook.index).normalize()
     qbook = qbook.reindex(ref_ix)
-    assert np.allclose(
-        qbook["R"].to_numpy(float), r_book.to_numpy(float), rtol=1e-12, atol=1e-15
-    )
+    assert np.allclose(qbook["R"].to_numpy(float), r_book.to_numpy(float), rtol=1e-12, atol=1e-15)
 
     def sizing(k: str) -> dict:
         f = by[k]
@@ -3310,9 +3118,7 @@ def main() -> None:
             sharpe_fn=lambda r: float(hi.d6_sharpe(r, dates=ref_ix[WARMUP:])["sharpe"]),
         )
 
-    sz_ms = {
-        k: sizing(k) for k in s["key"]
-    }  # gate: \rheSzSignMed, \rheSzClipMed, \rheSzLfssMed, \rheSzRankMed
+    sz_ms = {k: sizing(k) for k in s["key"]}  # gate: \rheSzSignMed, \rheSzClipMed, \rheSzLfssMed, \rheSzRankMed
     meds_ms = tuple(
         round(float(np.median([v[r]["sharpe_mid"] for v in sz_ms.values()])), 2)
         for r in ("sign", "clip", "lfss", "rank")
@@ -3322,9 +3128,7 @@ def main() -> None:
     #     sum(v["clip"]["d_vs_sign"] > 0 for v in sz_ms.values()) == 98
     # )  # \rheSzClipBeats
     # 2026-10-18 (user, new-notes 15): sizing medians/counts are per-year now; reported, not asserted
-    print(
-        f"NN15 value: sizing medians sign/clip/lfss/rank {meds_ms} (was (0.92, 1.34, 1.12, 1.34))"
-    )
+    print(f"NN15 value: sizing medians sign/clip/lfss/rank {meds_ms} (was (0.92, 1.34, 1.12, 1.34))")
     soft(
         sum(v["clip"]["d_vs_sign"] > 0 for v in sz_ms.values()) == 98,
         f"clip beats sign count {sum(v['clip']['d_vs_sign'] > 0 for v in sz_ms.values())} (was 98, \\rheSzClipBeats)",
@@ -3341,12 +3145,8 @@ def main() -> None:
         se_ = (a_["rv_unclipped"] - a_["plain"]) ** 2
         top_ = se_.nlargest(5)
         se_pool.append(100.0 * float(top_.sum() / se_.sum()))
-        ql_pool.append(
-            100.0 * float(a_["qlike_raw"].loc[top_.index].sum() / a_["qlike_raw"].sum())
-        )
-        assert SPAN != "rolling" or all(
-            str(d.date()).startswith("2020-03") for d in top_.index
-        ), (k, top_.index)
+        ql_pool.append(100.0 * float(a_["qlike_raw"].loc[top_.index].sum() / a_["qlike_raw"].sum()))
+        assert SPAN != "rolling" or all(str(d.date()).startswith("2020-03") for d in top_.index), (k, top_.index)
 
     # the pooled forecasts against the benchmark forecast (the closing-interval OLS on HAR), and their QLIKE levels
     vb_pool = {k: pair(by[k], by[OLS]) for k in pool_keys}
@@ -3360,14 +3160,10 @@ def main() -> None:
     vb_har = [vb_pool[k]["pct"] for k in pool_har]
     sh_full = [lv[k]["sharpe"] for k in pool_full]
     sh_har = [lv[k]["sharpe"] for k in pool_har]
-    shx_full = [
-        lv[k]["sharpe_x"] for k in pool_full
-    ]  # 2026-10-21 (user, N15c): \rhrPoolShX{Har,Full}{Min,Max}
+    shx_full = [lv[k]["sharpe_x"] for k in pool_full]  # 2026-10-21 (user, N15c): \rhrPoolShX{Har,Full}{Min,Max}
     shx_har = [lv[k]["sharpe_x"] for k in pool_har]
     dsh_pool = [t1p[n]["dsh"] for n in lin_n + tree_n]
-    if (
-        SPAN == "rolling"
-    ):  # the prose's claims (06_results.tex, 07_economics.tex), asserted
+    if SPAN == "rolling":  # the prose's claims (06_results.tex, 07_economics.tex), asserted
         # 5.3: the full predictor set lowers QLIKE in every pooled class; significant for the trees and the enet; the
         # trees' reductions are the largest; the squared error is mixed, never significant
         # assert all(r["pct"] < 0 for r in t1p.values())  # 2026-10-22 (user, E34: one design for the 12 pooled forecasts): parked -- reported (claim34) above
@@ -3382,8 +3178,7 @@ def main() -> None:
         # )
         # assert {n for n in lin_n if t1p[n]["p"] < SIG} == {"Elastic net"}  # 2026-10-22 (user, E34: one design for the 12 pooled forecasts): parked -- reported (claim34) above
         claim34(
-            min(abs(t1p[n]["pct"]) for n in tree_n)
-            > max(abs(t1p[n]["pct"]) for n in lin_n),
+            min(abs(t1p[n]["pct"]) for n in tree_n) > max(abs(t1p[n]["pct"]) for n in lin_n),
             "\\rhrAf{Lgbm,Xgb,Rf}PoolPct vs \\rhrAf{Ridge,Lasso,Enet}PoolPct",
             ", ".join(f"{n} {t1p[n]['pct']:+.1f}" for n in tree_n + lin_n),
             "06_results.tex:343 'Regarding the tree ensembles, we observe the largest relative improvements', "
@@ -3399,8 +3194,7 @@ def main() -> None:
         #     pool_of[n][1] for n in lin_n
         # }
         claim34(
-            set(sorted(pool_keys, key=lambda k: qv[k])[:3])
-            == {pool_of[n][1] for n in lin_n},
+            set(sorted(pool_keys, key=lambda k: qv[k])[:3]) == {pool_of[n][1] for n in lin_n},
             "pooled QLIKE order",
             str(sorted(pool_keys, key=lambda k: qv[k])[:3]),
             "5.5: the three most accurate pooled forecasts are the linear models on the full predictor set",
@@ -3452,10 +3246,7 @@ def main() -> None:
         )
         assert all(vb_pool[pool_of[n][0]]["p"] < 0.01 for n in lin_n)
         claim34(
-            all(
-                vb_pool[pool_of[n][1]]["pct"] < vb_pool[pool_of[n][0]]["pct"]
-                for n in lin_n + tree_n
-            ),
+            all(vb_pool[pool_of[n][1]]["pct"] < vb_pool[pool_of[n][0]]["pct"] for n in lin_n + tree_n),
             "\\rhrVsBm<Est>Pool{Har,Full}Pct",
             ", ".join(
                 f"{n} {vb_pool[pool_of[n][0]]['pct']:+.1f} -> {vb_pool[pool_of[n][1]]['pct']:+.1f}"
@@ -3464,9 +3255,7 @@ def main() -> None:
             "5.5 / abstract / 01_introduction: the full predictor set narrows the gap to the benchmark in every class",
         )
         # final subsection: the full predictor set lowers QLIKE in every closing-interval class, none at 5 %
-        assert all(r["pct"] < 0 for r in t1c.values()) and not any(
-            r["p"] < SIG for r in t1c.values()
-        )
+        assert all(r["pct"] < 0 for r in t1c.values()) and not any(r["p"] < SIG for r in t1c.values())
     # 6.3 (trade statistics, 614 post-warmup days for Sharpe, E17; 866 days for HAC t and tail): every pooled sign
     # strategy above the short straddle, the significant gains are the three trees on the full predictor set; on the
     # post-warmup days the three highest pooled Sharpe ratios are the linear models on the full predictor set (elastic
@@ -3520,9 +3309,7 @@ def main() -> None:
     t2_rows = [r for r in T2.values() if r["family"] != NN and not r.get("pending")]
     # 2026-10-23 (final_run.py PENDING): the finished classes. Was: assert len(t2_rows) == 6, len(t2_rows)
     assert len(t2_rows) == len(lin_n + tree_n), len(t2_rows)
-    pool_vs_close_ret_sig = sum(
-        r[b]["p_t"] < SIG for r in t2_rows for b in ("baseline", "all_features")
-    )
+    pool_vs_close_ret_sig = sum(r[b]["p_t"] < SIG for r in t2_rows for b in ("baseline", "all_features"))
     # 2026-10-21 (user, decision #2): "HAC p" -> "fixed-b p" in the printed line
     print(
         f"pooled Full vs HAR, fixed-b p < 0.05: {af_pool_diff_sig} of {len(t1p)}; pooled vs closing-interval: "
@@ -3557,11 +3344,7 @@ def main() -> None:
                 (
                     "Panel A: Pooled intraday model minus short-straddle benchmark",
                     f"{n}, {set_name[i]}",
-                    *(
-                        (None, None, None)
-                        if n in pend_n
-                        else (by[k_]["ret_mid"], short_mid, vs_sh[k_]["dsh"])
-                    ),
+                    *((None, None, None) if n in pend_n else (by[k_]["ret_mid"], short_mid, vs_sh[k_]["dsh"])),
                 )
             )
     for n in lin_all + tree_all:
@@ -3638,14 +3421,8 @@ def main() -> None:
 
     # the table's fixed-b column is the test behind the text's counts
     for r_, (_, _, a_, b_, _) in zip(rob, rob_specs):
-        assert (
-            r_.get("pending")
-            or b_ is None
-            or abs(r_["t"] - hac_t(a_ - b_)["t"]) < 1e-12
-        )
-    assert sum(r_["p"] < SIG for r_ in rob_panel("Panel A") if r_["t"] > 0) == len(
-        pool_sig_short
-    )
+        assert r_.get("pending") or b_ is None or abs(r_["t"] - hac_t(a_ - b_)["t"]) < 1e-12
+    assert sum(r_["p"] < SIG for r_ in rob_panel("Panel A") if r_["t"] > 0) == len(pool_sig_short)
     assert sum(r_["p"] < SIG for r_ in rob_panel("Panel B")) == af_pool_diff_sig
     assert sum(r_["p"] < SIG for r_ in rob_panel("Panel C")) == pool_vs_close_ret_sig
     rob_pairs = [r_ for r_ in rob_done if r_["dsh"] is not None]
@@ -3666,14 +3443,9 @@ def main() -> None:
         print(
             f"  {r_['panel'][:8]} {r_['label']:<22} mean {r_['mean']:+.3f}% t5 {r_['t5']:+.2f} t12 {r_['t12']:+.2f} "
             f"t {r_['t']:+.2f} p_fb {r_['p']:.4f} boot {r_.get('bt', float('nan')):.4f} LW "
-            + " ".join(
-                f"{r_.get(f'lw{b}', float('nan')):.4f}"
-                for b in (hi.LW_BLOCK, *hi.LW_BLOCK_ALT)
-            )
+            + " ".join(f"{r_.get(f'lw{b}', float('nan')):.4f}" for b in (hi.LW_BLOCK, *hi.LW_BLOCK_ALT))
         )
-    (GEN / "rehaul_app_hac_robust.tex").write_text(
-        table_hac_robust(rob), encoding="utf-8", newline="\n"
-    )
+    (GEN / "rehaul_app_hac_robust.tex").write_text(table_hac_robust(rob), encoding="utf-8", newline="\n")
     print("wrote generated/rehaul_app_hac_robust.tex")
     # assert all(vs_sh[k]["tail"] < 0 for k in pool_keys)  # 2026-10-22 (user, E34: one design for the 12 pooled forecasts): parked -- reported (the text prints \\rhrPoolTailNeg)
     claim34(
@@ -3692,15 +3464,12 @@ def main() -> None:
     # 2026-10-18 (user, new-notes 15): soft checks. Was: assert lv["subpt_enet_all_features"]["sharpe"] > max(lv[k]["sharpe"] for k in pool_keys)
     # assert max(s["key"], key=lambda k: lv[k]["sharpe"]) == "subpt_enet_all_features"
     soft(
-        lv["subpt_enet_all_features"]["sharpe"]
-        > max(lv[k]["sharpe"] for k in pool_keys),
+        lv["subpt_enet_all_features"]["sharpe"] > max(lv[k]["sharpe"] for k in pool_keys),
         "closing enet beats every pooled Sharpe",
     )
     soft(
         max(s["key"], key=lambda k: lv[k]["sharpe"]) == "subpt_enet_all_features",
-        f"model-set max Sharpe is the closing enet (got {
-            max(s['key'], key=lambda k: lv[k]['sharpe'])
-        })",
+        f"model-set max Sharpe is the closing enet (got {max(s['key'], key=lambda k: lv[k]['sharpe'])})",
     )
 
     # ---- macros for the captions ----
@@ -3801,9 +3570,7 @@ def main() -> None:
     # so the text can quote the actual-RV values; every one is computed above
     # 2026-10-22 (user, E34): parked -- the master table's 48-interval pooled ridge. Was:
     # rb = pair(by["subpt_ridge_baseline"], by["poolpt_ridge_baseline"])
-    rb = pair(
-        by["subpt_ridge_baseline"], by["poolpt13_ridge_baseline"]
-    )  # per-bar minus pooled, HAR + cal.
+    rb = pair(by["subpt_ridge_baseline"], by["poolpt13_ridge_baseline"])  # per-bar minus pooled, HAR + cal.
     lin_t2 = [T2[n]["baseline"] for n in ("Ridge", "Lasso", "Elastic net")]
     lin_t2a = [T2[n]["all_features"] for n in ("Ridge", "Lasso", "Elastic net")]
     # 2026-10-23 (final_run.py PENDING): the finished tree classes. Was: for n in ("LightGBM", "XGBoost",
@@ -3935,10 +3702,7 @@ def main() -> None:
                 str(hi.old_lag(N_PW)),
                 "robustness table: the previous lag floor(1.5 T^(1/3)), T = 614",
             ),
-            **{
-                k_: (str(v_), f"robustness table: {k_}")
-                for k_, v_ in rob_counts.items()
-            },
+            **{k_: (str(v_), f"robustness table: {k_}") for k_, v_ in rob_counts.items()},
         }
     )
     tok = {
@@ -3958,9 +3722,7 @@ def main() -> None:
             return {
                 f"{pre}{s_}": (
                     PT,
-                    f"{what}: QLIKE % change, PENDING (no final forecasts)"
-                    if s_ == "Pct"
-                    else "...",
+                    f"{what}: QLIKE % change, PENDING (no final forecasts)" if s_ == "Pct" else "...",
                 )
                 for s_ in ("Pct", "Dm", "Pval", "Stars")
             }
@@ -3983,9 +3745,7 @@ def main() -> None:
             for i, b in enumerate(("baseline", "all_features")):
                 k = ks[i]
                 pre = f"{mt}{scope}{xtok[b]}"
-                if (
-                    k in POOL_PENDING
-                ):  # 2026-10-23 (final_run.py PENDING): no frame, every macro \rhPending{}
+                if k in POOL_PENDING:  # 2026-10-23 (final_run.py PENDING): no frame, every macro \rhPending{}
                     m_q[f"Q{pre}"] = (
                         PT,
                         f"mean QLIKE, {k}: PENDING (no final forecasts)",
@@ -4008,10 +3768,7 @@ def main() -> None:
                     assert k not in rank.index, k
                 else:
                     rk = rank.loc[k]  # = the T3 rows
-                    assert (
-                        abs(vb["pct"] - rk["pct"]) < 1e-12
-                        and abs(vb["dm"] - rk["dm"]) < 1e-12
-                    ), k
+                    assert abs(vb["pct"] - rk["pct"]) < 1e-12 and abs(vb["dm"] - rk["dm"]) < 1e-12, k
                 m_q[f"Q{pre}"] = (q4(lv[k]["qlike"]), f"mean QLIKE, {k}")
                 m_bm.update(
                     trio(
@@ -4021,18 +3778,12 @@ def main() -> None:
                     )
                 )
         for scope, fit in (("Close", "per-bar"), ("Pool", "pooled")):
-            m_af.update(
-                trio(
-                    f"Af{mt}{scope}", T1[(fit, name)], f"T1, {fit} {name}: Full vs HAR"
-                )
-            )
+            m_af.update(trio(f"Af{mt}{scope}", T1[(fit, name)], f"T1, {fit} {name}: Full vs HAR"))
         for b in ("baseline", "all_features"):
             m_pc.update(
                 trio(
                     f"PoolVsClose{mt}{xtok[b]}",
-                    T2[name].get(
-                        b
-                    ),  # 2026-10-23 (PENDING): None for a pending row. Was: T2[name][b]
+                    T2[name].get(b),  # 2026-10-23 (PENDING): None for a pending row. Was: T2[name][b]
                     f"T2, {name} on {xtok[b]}: pooled vs per-bar",
                 )
             )
@@ -4045,9 +3796,7 @@ def main() -> None:
             for i, b in enumerate(("baseline", "all_features")):
                 k = ks[i]
                 pre = f"{mt}{scope}{xtok[b]}"
-                if (
-                    k in POOL_PENDING
-                ):  # 2026-10-23 (final_run.py PENDING): no frame, every macro \rhPending{}
+                if k in POOL_PENDING:  # 2026-10-23 (final_run.py PENDING): no frame, every macro \rhPending{}
                     m_sh[f"Sh{pre}"] = (
                         PT,
                         f"sign-strategy Sharpe ratio, mid-quotes, {k}: PENDING (no final forecasts)",
@@ -4091,15 +3840,12 @@ def main() -> None:
                 "... HAC t of the daily mid-return differential",
             )
     # 2026-10-23 (final_run.py PENDING): the comment of a count over the pooled forecasts / classes when an arm is pending
-    PEND_NOTE = (
-        f" -- finished only ({fr.pending_text()} pending)" if POOL_PENDING else ""
-    )
+    PEND_NOTE = f" -- finished only ({fr.pending_text()} pending)" if POOL_PENDING else ""
     # 2026-10-15 (user, restructure): pooled-only aggregates (asserted above) and the closing-interval T1 summary
     m_pool = {
         "PoolN": (
             str(len(pool_keys)),
-            "intraday forecasts (T1 Panel B: 6 classes x HAR, Full)"
-            + PEND_NOTE,  # 2026-10-23: + PEND_NOTE
+            "intraday forecasts (T1 Panel B: 6 classes x HAR, Full)" + PEND_NOTE,  # 2026-10-23: + PEND_NOTE
         ),
         "AfPoolPairs": (
             str(len(t1p)),
@@ -4223,13 +3969,7 @@ def main() -> None:
         # (06_results 5.5, 07_economics last-30, Appendix), on the DM p the matching ...Pval macros print (asserted
         # below)
         "VsBmPoolTreeFullSig": (
-            str(
-                sum(
-                    vb_pool[pool_of[n][1]]["pct"] > 0
-                    and vb_pool[pool_of[n][1]]["p"] < SIG
-                    for n in tree_n
-                )
-            ),
+            str(sum(vb_pool[pool_of[n][1]]["pct"] > 0 and vb_pool[pool_of[n][1]]["p"] < SIG for n in tree_n)),
             f"pooled trees (of {len(tree_n)}) on Full: excess QLIKE over the benchmark forecast, p < 0.05 (rhrVsBm<M>PoolFullPval)",
         ),
         "VsBmPoolHarSig": (
@@ -4237,9 +3977,7 @@ def main() -> None:
             f"pooled models (of {len(pool_har)}) on HAR: excess QLIKE over the benchmark forecast, p < 0.05 (rhrVsBm<M>PoolHarPval)",
         ),
         "VsBmPoolHarSigOne": (
-            str(
-                sum(vb_pool[k]["pct"] > 0 and vb_pool[k]["p"] < 0.01 for k in pool_har)
-            ),
+            str(sum(vb_pool[k]["pct"] > 0 and vb_pool[k]["p"] < 0.01 for k in pool_har)),
             "... and p < 0.01",
         ),
         "TreePoolVsCloseHarSig": (
@@ -4257,22 +3995,11 @@ def main() -> None:
             f"linear classes (of {len(lin_n)}) whose pooled-minus-closing-interval QLIKE difference on Full (T2) has DM p < 0.05",
         ),
         "VsBmPoolLinFullSig": (
-            str(
-                sum(
-                    vb_pool[pool_of[n][1]]["pct"] > 0
-                    and vb_pool[pool_of[n][1]]["p"] < SIG
-                    for n in lin_n
-                )
-            ),
+            str(sum(vb_pool[pool_of[n][1]]["pct"] > 0 and vb_pool[pool_of[n][1]]["p"] < SIG for n in lin_n)),
             f"pooled linear models (of {len(lin_n)}) on Full: excess QLIKE over the benchmark forecast, p < 0.05 (rhrVsBm<M>PoolFullPval)",
         ),
         "VsBmPoolNarrow": (
-            str(
-                sum(
-                    vb_pool[pool_of[n][1]]["pct"] < vb_pool[pool_of[n][0]]["pct"]
-                    for n in lin_n + tree_n
-                )
-            ),
+            str(sum(vb_pool[pool_of[n][1]]["pct"] < vb_pool[pool_of[n][0]]["pct"] for n in lin_n + tree_n)),
             f"pooled classes (of {len(lin_n + tree_n)}) whose excess QLIKE over the benchmark forecast is smaller on Full than on HAR",
         ),
         "PoolShortAbove": (
@@ -4337,6 +4064,29 @@ def main() -> None:
             str(sum(vs_sh[k]["tail"] < 0 for k in pool_keys)),
             "pooled forecasts whose gain over the short straddle is < 0 without their 10 best days",
         ),
+        # 2026-10-26 (integration, ECON; audit results-12): the same statistics over the DISTINCT pooled forecasts (the
+        # HAR-set ridge, lasso and elastic net coincide with the pooled OLS: the ridge's is kept)
+        "PoolNDistinct": (str(len(pool_distinct)), "distinct pooled forecasts (HAR-set linear counted once)"),
+        "PoolSzSignMedDistinct": (
+            f"{float(np.median([sz_pool[k]['sign']['sharpe_mid'] for k in pool_distinct])):.2f}",
+            "sizing sign: median Sharpe mid over the distinct pooled forecasts, 614 days",
+        ),
+        "PoolSzClipMedDistinct": (
+            f"{float(np.median([sz_pool[k]['clip']['sharpe_mid'] for k in pool_distinct])):.2f}",
+            "sizing robust clip: median over the distinct pooled forecasts",
+        ),
+        "PoolSzRankMedDistinct": (
+            f"{float(np.median([sz_pool[k]['rank']['sharpe_mid'] for k in pool_distinct])):.2f}",
+            "sizing rank of |gap|: median over the distinct pooled forecasts",
+        ),
+        "PoolSzClipBeatsDistinct": (
+            str(sum(sz_pool[k]["clip"]["d_vs_sign"] > 0 for k in pool_distinct)),
+            "distinct pooled forecasts with clip Sharpe mid above sign",
+        ),
+        "PoolTailNegDistinct": (
+            str(sum(vs_sh[k]["tail"] < 0 for k in pool_distinct)),
+            "distinct pooled forecasts whose gain over the short straddle is < 0 without their 10 best days",
+        ),
     }
     # 2026-10-23 (final_run.py PENDING): companion macros of the pooled counts (module docstring, PENDING); with nothing
     # pending the Done / All counts agree and the text macros are empty
@@ -4365,11 +4115,7 @@ def main() -> None:
             "the pending pooled classes as text; empty when none is pending",
         ),
         "PoolPendingParen": (
-            (
-                f" ({ptxt} {'is' if len(fr.PENDING_TREES) == 1 else 'are'} pending)"
-                if ptxt
-                else ""
-            ),
+            (f" ({ptxt} {'is' if len(fr.PENDING_TREES) == 1 else 'are'} pending)" if ptxt else ""),
             "a parenthetical naming the pending classes, with its leading space; empty when none is pending",
         ),
         "AfPoolPairsAll": (
@@ -4439,18 +4185,12 @@ def main() -> None:
             SIG,
         ),
         "VsBmPoolHarSig": (
-            [
-                (f"VsBm{tok[n]}PoolHarPval", vb_pool[pool_of[n][0]])
-                for n in lin_n + tree_n
-            ],
+            [(f"VsBm{tok[n]}PoolHarPval", vb_pool[pool_of[n][0]]) for n in lin_n + tree_n],
             1,
             SIG,
         ),
         "VsBmPoolHarSigOne": (
-            [
-                (f"VsBm{tok[n]}PoolHarPval", vb_pool[pool_of[n][0]])
-                for n in lin_n + tree_n
-            ],
+            [(f"VsBm{tok[n]}PoolHarPval", vb_pool[pool_of[n][0]]) for n in lin_n + tree_n],
             1,
             0.01,
         ),
@@ -4512,18 +4252,12 @@ def main() -> None:
         "% Pct = 100 (Lbar_A / Lbar_B - 1), 1 decimal, negative favors A (the first-named forecast); Dm: 2 decimals;",
         "% Pval: the whole statement, $p = 0.18$ or $p < 0.001$; Stars: superscript stars, empty if not significant.",
     ]
-    if any(
-        v == PT for v, _ in nums.values()
-    ):  # 2026-10-23 (final_run.py PENDING): \rhPending's definition first
+    if any(v == PT for v, _ in nums.values()):  # 2026-10-23 (final_run.py PENDING): \rhPending's definition first
         lines.append(fr.PENDING_DEF)
     for k, (v, c) in nums.items():
         lines.append(f"\\providecommand{{\\rhr{k}}}{{{v}}}  % {c}")
-    (GEN / "rehaul_results_numbers.tex").write_text(
-        "\n".join(lines) + "\n", encoding="utf-8", newline="\n"
-    )
-    print(
-        f"wrote {fr.rel(GEN / 'rehaul_results_numbers.tex')} ({len(nums)} macros)"
-    )  # 2026-10-23: was generated/...
+    (GEN / "rehaul_results_numbers.tex").write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
+    print(f"wrote {fr.rel(GEN / 'rehaul_results_numbers.tex')} ({len(nums)} macros)")  # 2026-10-23: was generated/...
     for k, (v, c) in nums.items():
         print(f"  {k:16s} {v:28s} {c}")
 

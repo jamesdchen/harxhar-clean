@@ -151,7 +151,9 @@ FULL = [em.key(e, "all_features") for e in EST]
 HAR = [em.key(e, "baseline") for e in EST]
 HAR4 = [em.key("ridge", "baseline")] + [em.key(e, "baseline") for e in TREES]
 ROWS = FULL + HAR + [CI, SHORT]
-TAB_ROWS = FULL + [CI, SHORT]
+# 2026-10-26 (integration plan D2/D3): the CI-HAR column leaves the table (closing-interval models: final appendix
+# section); its statistics stay in the macros. Was: TAB_ROWS = FULL + [CI, SHORT]
+TAB_ROWS = FULL + [SHORT]
 PRICES = (("mid", ""), ("x", "X"))
 WORDS = em.WORDS
 
@@ -844,8 +846,9 @@ def numbers(R: dict, mk: dict, drop: np.ndarray, top: pd.Timestamp, pw: pd.Datet
 
 
 def table_tex(R: dict) -> str:
-    ncol = 9
-    heads = [dc.HEAD_TEX[e] for e in EST] + ["\\makecell[r]{Closing\\\\HAR}", "\\makecell[r]{Short\\\\straddle}"]
+    # 2026-10-26 (D2/D3): parked -- the "Closing HAR" column. Was: ncol = 9, heads + "\\makecell[r]{Closing\\\\HAR}"
+    ncol = 8
+    heads = [dc.HEAD_TEX[e] for e in EST] + ["\\makecell[r]{Short\\\\straddle}"]
     star = "--$^{\\phantom{***}}$"
 
     def V(k: str, col: str, part: str, field: str) -> float:
@@ -922,8 +925,8 @@ def table_tex(R: dict) -> str:
         "\\begin{threeparttable}\n"
         "\\caption{Market exposure and allocation with the market}\n"
         "\\label{tab:rh_econ_beta}\n"
-        "\\begin{tabular}{@{}lrrrrrrrr@{}}\n\\toprule\n"
-        " & \\multicolumn{6}{c}{Pooled intraday, full predictor set} & & \\\\\n\\cmidrule(lr){2-7}\n"
+        "\\begin{tabular}{@{}lrrrrrrr@{}}\n\\toprule\n"
+        " & \\multicolumn{6}{c}{Pooled intraday, full predictor set} & \\\\\n\\cmidrule(lr){2-7}\n"
         " & " + " & ".join(heads) + " \\\\\n\\midrule\n" + b + "\\bottomrule\n\\end{tabular}\n"
         "\\begin{tablenotes}[flushleft]\n\\footnotesize\n"
         "\\item \\textit{Notes:} Daily return of the sign strategy (\\% of the premium, an excess return), "
@@ -997,11 +1000,13 @@ def draft_claims(R: dict, top: pd.Timestamp) -> None:
     def v(k: str, part: str, f: str, col: str = "mid") -> float:
         return R[(k, col)][part][f]
 
-    rows4 = FULL + HAR4 + [CI, SHORT]
+    # 2026-10-26 (D2/D3): the CI-HAR leaves the main-text claims (its GRS claim is reported only, below). Was:
+    # rows4 = FULL + HAR4 + [CI, SHORT], "no beta is significant (full set, HAR set, CI-HAR, short; ...)"
+    rows4 = FULL + HAR4 + [SHORT]
     claims = [
         (
             all(v(k, "exp", "beta_p", c) >= 0.05 for k in rows4 for c in ("mid", "x")),
-            "no beta is significant (full set, HAR set, CI-HAR, short; mid and bid/ask)",
+            "no beta is significant (full set, HAR set, short; mid and bid/ask)",
         ),
         (all(v(k, "exp", "down_p") >= 0.05 for k in FULL), "none of the six down-day differences is significant"),
         (all(v(k, "exp", "worst_mean") < 0 for k in FULL), "every full-set strategy loses on worst-decile days"),
@@ -1050,9 +1055,10 @@ def draft_claims(R: dict, top: pd.Timestamp) -> None:
             "without the best days the short straddle's alpha rises above the full-set strategies'",
         ),
     ]
-    bad = [c for ok, c in claims if not ok]
+    reported = {"GRS rejects for CI-HAR, not for the short"}  # 2026-10-26 (D2/D3): reported, not asserted
+    bad = [c for ok, c in claims if not ok and c not in reported]
     for ok, c in claims:
-        print(f"  draft claim {'holds' if ok else 'FAILS'}: {c}")
+        print(f"  draft claim {'holds' if ok else 'FAILS'}{' (reported only)' if c in reported else ''}: {c}")
     assert not bad, f"DRAFT CLAIMS no longer hold: {bad}"
 
 

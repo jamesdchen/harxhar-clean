@@ -10,15 +10,13 @@
 % 2026-10-23 (user, RR / E19): supporting floats of the pooled variable importance on the final runs
 % (writeup/make_rehaul_fi_pooled.py; the main ones are in 08_feature_importance_floats.tex). The closing-interval floats
 % of the 15 October measures pass below stay parked.
-% The linear models across training windows: the dense-and-weak test (P1, P2) of results/fi_by_window_2014start_2026-10-22
-\input{generated/rehaul_fip_window}
-% 2026-10-23 (coordinator, tree learning curve): added -- the tree ensembles across training windows, the full set's
-% gap over the HAR benchmark and its extra gain between windows (writeup/make_rehaul_fip_lc.py, \rhlc... macros)
-\input{generated/rehaul_fip_lc_table}
-% SHAP interactions in LightGBM and XGBoost: shares by class, the largest pairs with a non-standard series
-\input{generated/rehaul_fip_inter}
-% Response shapes of the leading non-standard series (mean SHAP by decile of the dominant predictor)
-\input{generated/rehaul_fip_fig_shapes}
+% 2026-10-26 (integration, JFEc): every live float of this file moved with its text to the online appendix,
+% rehaul/A_fi.tex (Section sec:rh_fi keeps three floats, in 08_feature_importance_floats.tex). The file stays \input by
+% paper_rehaul.tex and now holds only parked lines.
+% 2026-10-26 (integration, JFEc): moved -- \input{generated/rehaul_fip_window} (tab:rh_fip_window, the P1/P2 window test) -> rehaul/A_fi.tex, app:rh_fi_window.
+% 2026-10-26 (integration, JFEc): moved -- \input{generated/rehaul_fip_lc_table} (tab:rh_fip_lc, the trees across windows) -> rehaul/A_fi.tex, app:rh_fi_window.
+% 2026-10-26 (integration, JFEc): moved -- \input{generated/rehaul_fip_inter} (tab:rh_fip_inter) -> rehaul/A_fi.tex, app:rh_fi_shapes.
+% 2026-10-26 (integration, JFEc): moved -- \input{generated/rehaul_fip_fig_shapes} (fig:rh_fip_shapes) -> rehaul/A_fi.tex, app:rh_fi_shapes.
 
 % 2026-10-15 (consolidation): comments updated to the section's terms (predictor groups, the probe benchmark, K_A).
 % Two panels (linear models, tree ensembles): the five leading predictor groups per model by its aggregate measure,

@@ -10,42 +10,42 @@
 \label{tab:rh_mcs}
 \begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lrrrrrr@{}}
 \toprule
- & \multicolumn{2}{c}{Every bar, 2014--2024} & \multicolumn{2}{c}{16:00 bar, 2014--2024} & \multicolumn{2}{c}{16:00 bar, $\mathcal T_{\mathrm{oos}}$} \\
+ & \multicolumn{2}{c}{Every bar, 2014--2024} & \multicolumn{2}{c}{16:00 bar, 2014--2024} & \multicolumn{2}{c}{16:00 bar, $\mathcal T_{\mathrm{close}}$} \\
 \cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}
 Forecast & $T_{\max}$ & $T_R$ & $T_{\max}$ & $T_R$ & $T_{\max}$ & $T_R$ \\
 \midrule
 \multicolumn{7}{@{}l}{\textit{Panel A: QLIKE}} \\
 \addlinespace[2pt]
-Linear, HAR$^{a}$ & \ensuremath{<}0.001 & \ensuremath{<}0.001 & \textit{0.126} & \ensuremath{<}0.001 & 0.052 & 0.061 \\
-Ridge, Full & \ensuremath{<}0.001 & \ensuremath{<}0.001 & \textit{0.159} & 0.015 & 0.011 & 0.008 \\
-Lasso, Full & \ensuremath{<}0.001 & \ensuremath{<}0.001 & \textit{0.126} & 0.011 & 0.011 & 0.011 \\
-Elastic net, Full & \ensuremath{<}0.001 & \ensuremath{<}0.001 & \textit{0.246} & 0.030 & 0.036 & 0.016 \\
-LightGBM, HAR & \ensuremath{<}0.001 & \ensuremath{<}0.001 & \textit{0.246} & \textit{0.103} & \textit{0.246} & \textit{0.116} \\
-LightGBM, Full & \textbf{1.000} & \textbf{1.000} & \textit{0.246} & \textit{0.159} & \textit{0.246} & \textit{0.138} \\
-XGBoost, HAR & \ensuremath{<}0.001 & \ensuremath{<}0.001 & \textit{0.246} & \textit{0.103} & \textit{0.246} & \textit{0.116} \\
-XGBoost, Full & 0.003 & 0.003 & \textbf{1.000} & \textbf{1.000} & \textbf{0.256} & \textbf{0.256} \\
-Random forest, HAR & \ensuremath{<}0.001 & \ensuremath{<}0.001 & \textit{0.159} & \ensuremath{<}0.001 & 0.052 & 0.052 \\
-Random forest, Full & \ensuremath{<}0.001 & \ensuremath{<}0.001 & \textit{0.182} & \ensuremath{<}0.001 & \textit{0.129} & 0.016 \\
+Linear, HAR$^{a}$ & \ensuremath{<}0.001 & \ensuremath{<}0.001 & \textit{0.126} & \ensuremath{<}0.001 & 0.040 & 0.033 \\
+Ridge, Full & \ensuremath{<}0.001 & \ensuremath{<}0.001 & \textit{0.159} & 0.015 & 0.012 & 0.009 \\
+Lasso, Full & \ensuremath{<}0.001 & \ensuremath{<}0.001 & \textit{0.126} & 0.011 & 0.012 & 0.011 \\
+Elastic net, Full & \ensuremath{<}0.001 & \ensuremath{<}0.001 & \textit{0.246} & 0.030 & 0.035 & 0.016 \\
+LightGBM, HAR & \ensuremath{<}0.001 & \ensuremath{<}0.001 & \textit{0.246} & \textit{0.103} & \textit{0.156} & 0.033 \\
+LightGBM, Full & \textbf{1.000} & \textbf{1.000} & \textit{0.246} & \textit{0.159} & \textit{0.156} & \textit{0.138} \\
+XGBoost, HAR & \ensuremath{<}0.001 & \ensuremath{<}0.001 & \textit{0.246} & \textit{0.103} & \textit{0.156} & 0.033 \\
+XGBoost, Full & 0.003 & 0.003 & \textbf{1.000} & \textbf{1.000} & \textit{0.196} & \textit{0.196} \\
+Random forest, HAR & \ensuremath{<}0.001 & \ensuremath{<}0.001 & \textit{0.159} & \ensuremath{<}0.001 & 0.040 & 0.019 \\
+Random forest, Full & \ensuremath{<}0.001 & \ensuremath{<}0.001 & \textit{0.182} & \ensuremath{<}0.001 & \textit{0.127} & 0.016 \\
 Closing-interval HAR benchmark$^{b}$ & -- & -- & -- & -- & \textbf{1.000} & \textbf{1.000} \\
 \addlinespace[4pt]
 \multicolumn{7}{@{}l}{\textit{Panel B: Squared error}} \\
 \addlinespace[2pt]
-Linear, HAR$^{a}$ & \textbf{1.000} & \textbf{1.000} & \textbf{0.572} & \textbf{0.653} & \textbf{0.537} & \textbf{0.613} \\
-Ridge, Full & \textbf{0.489} & \textbf{0.415} & \textbf{0.437} & \textbf{0.653} & \textbf{0.446} & \textbf{0.613} \\
-Lasso, Full & \textbf{0.334} & \textbf{0.415} & \textbf{0.371} & \textbf{0.653} & \textbf{0.383} & \textbf{0.613} \\
-Elastic net, Full & \textbf{0.422} & \textbf{0.415} & \textbf{0.488} & \textbf{0.653} & \textbf{0.496} & \textbf{0.613} \\
-LightGBM, HAR & \textbf{0.489} & \textbf{0.310} & \textbf{0.572} & \textbf{0.369} & \textbf{0.537} & \textbf{0.561} \\
-LightGBM, Full & \textbf{0.489} & \textbf{0.415} & \textbf{0.488} & \textbf{0.653} & \textbf{0.537} & \textbf{0.613} \\
-XGBoost, HAR & \textbf{0.489} & \textbf{0.415} & \textbf{0.572} & \textbf{0.653} & \textbf{0.537} & \textbf{0.613} \\
-XGBoost, Full & \textbf{0.489} & \textbf{0.415} & \textbf{0.488} & \textbf{0.653} & \textbf{0.537} & \textbf{0.613} \\
+Linear, HAR$^{a}$ & \textbf{1.000} & \textbf{1.000} & \textbf{0.572} & \textbf{0.653} & \textbf{0.549} & \textbf{0.613} \\
+Ridge, Full & \textbf{0.489} & \textbf{0.415} & \textbf{0.437} & \textbf{0.653} & \textbf{0.449} & \textbf{0.613} \\
+Lasso, Full & \textbf{0.334} & \textbf{0.415} & \textbf{0.371} & \textbf{0.653} & \textbf{0.389} & \textbf{0.613} \\
+Elastic net, Full & \textbf{0.422} & \textbf{0.415} & \textbf{0.488} & \textbf{0.653} & \textbf{0.502} & \textbf{0.613} \\
+LightGBM, HAR & \textbf{0.489} & \textbf{0.310} & \textbf{0.572} & \textbf{0.369} & \textbf{0.549} & \textbf{0.579} \\
+LightGBM, Full & \textbf{0.489} & \textbf{0.415} & \textbf{0.488} & \textbf{0.653} & \textbf{0.549} & \textbf{0.613} \\
+XGBoost, HAR & \textbf{0.489} & \textbf{0.415} & \textbf{0.572} & \textbf{0.653} & \textbf{0.549} & \textbf{0.613} \\
+XGBoost, Full & \textbf{0.489} & \textbf{0.415} & \textbf{0.488} & \textbf{0.653} & \textbf{0.549} & \textbf{0.613} \\
 Random forest, HAR & \textbf{0.489} & \textbf{0.310} & \textbf{1.000} & \textbf{1.000} & \textbf{1.000} & \textbf{1.000} \\
-Random forest, Full & \textbf{0.489} & \textbf{0.415} & \textbf{0.558} & \textbf{0.653} & \textbf{0.537} & \textbf{0.613} \\
-Closing-interval HAR benchmark$^{b}$ & -- & -- & -- & -- & \textbf{0.537} & \textbf{0.572} \\
+Random forest, Full & \textbf{0.489} & \textbf{0.415} & \textbf{0.558} & \textbf{0.653} & \textbf{0.549} & \textbf{0.613} \\
+Closing-interval HAR benchmark$^{b}$ & -- & -- & -- & -- & \textbf{0.549} & \textbf{0.579} \\
 \bottomrule
 \end{tabular*}
 \begin{tablenotes}[flushleft]
 \footnotesize
-\item \textit{Notes:} MCS $p$-values \citep{HansenLundeNason2011} of the pooled intraday forecasts of Table~\ref{tab:rh_oos} and, on $\mathcal T_{\mathrm{oos}}$, of the closing-interval HAR benchmark. A forecast is in the 90\% (75\%) model confidence set when its $p$-value is at least 0.10 (0.25); \textbf{bold}: in the 75\% set, \textit{italic}: in the 90\% set only. $T_{\max}$ and $T_R$: the two statistics of the elimination rule. Losses are daily (on every bar, the mean loss of the day's \rhorNBars{} bars), so the bootstrap resamples trading days: the \rhmcsDaysAll{} days from \rhorSpanStart{} to \rhorSpanEnd{} in the first four columns and the \rhmcsDaysOos{} days of $\mathcal T_{\mathrm{oos}}$ in the last two. Circular moving-block bootstrap, blocks of \rhmcsBlock{} trading days, \rhmcsB{} replications, seed \rhmcsSeed; the same resamples at every elimination step. $^{a}$The pooled ridge, lasso and elastic net on the HAR benchmark reproduce the pooled OLS (their penalties are numerically zero), so they enter as one model, the OLS forecast. $^{b}$The closing-interval HAR benchmark has forecasts from \rhmcsChStart{} only, so it is not in the 2014--2024 sets.
+\item \textit{Notes:} MCS $p$-values \citep{HansenLundeNason2011} of the pooled intraday forecasts of Table~\ref{tab:rh_oos} and, on $\mathcal T_{\mathrm{close}}$, of the closing-interval HAR benchmark. A forecast is in the 90\% (75\%) model confidence set when its $p$-value is at least 0.10 (0.25); \textbf{bold}: in the 75\% set, \textit{italic}: in the 90\% set only. $T_{\max}$ and $T_R$: the two statistics of the elimination rule. Losses are daily (on every bar, the mean loss of the day's \rhorNBars{} bars), so the bootstrap resamples trading days: the \rhmcsDaysAll{} days from \rhorSpanStart{} to \rhorSpanEnd{} in the first four columns and the \rhmcsDaysOos{} days of $\mathcal T_{\mathrm{close}}$ in the last two. Circular moving-block bootstrap, blocks of \rhmcsBlock{} trading days, \rhmcsB{} replications, seed \rhmcsSeed; the same resamples at every elimination step. $^{a}$The pooled ridge, lasso and elastic net on the HAR benchmark reproduce the pooled OLS (their penalties are numerically zero), so they enter as one model, the OLS forecast. $^{b}$The closing-interval HAR benchmark has forecasts from \rhmcsChStart{} only, so it is not in the 2014--2024 sets.
 \end{tablenotes}
 \end{threeparttable}
 \end{table}
@@ -70,13 +70,13 @@ Every bar, 2014--2024 & \ensuremath{<}0.001 & \textbf{\ensuremath{<}0.001} & \te
  &  & (\ensuremath{<}0.001) & (\ensuremath{<}0.001) & (\ensuremath{<}0.001) & (\ensuremath{<}0.001) & (\ensuremath{<}0.001) & (\ensuremath{<}0.001) \\
 16:00 bar, 2014--2024 & 0.033 & 0.675 & 0.842 & 0.499 & 0.072 & \textbf{0.033} & 0.302 \\
  &  & (0.646) & (0.842) & (0.437) & (0.034) & (0.013) & (0.177) \\
-16:00 bar, $\mathcal T_{\mathrm{oos}}$ & 0.380 & 0.987 & 0.987 & 0.973 & 0.581 & 0.415 & 0.599 \\
+16:00 bar, $\mathcal T_{\mathrm{close}}$ & 0.380 & 0.987 & 0.987 & 0.973 & 0.581 & 0.415 & 0.599 \\
  &  & (0.984) & (0.986) & (0.961) & (0.345) & (0.219) & (0.402) \\
 \addlinespace[4pt]
 \multicolumn{8}{@{}l}{\textit{Panel B: QLIKE, full predictor set against the closing-interval HAR benchmark}} \\
 \addlinespace[2pt]
-16:00 bar, $\mathcal T_{\mathrm{oos}}$ & 0.529 & 1.000 & 1.000 & 0.999 & 0.972 & 0.959 & 0.995 \\
- &  & (0.999) & (0.999) & (0.999) & (0.905) & (0.867) & (0.974) \\
+16:00 bar, $\mathcal T_{\mathrm{close}}$ & 0.528 & 1.000 & 1.000 & 1.000 & 0.981 & 0.971 & 0.996 \\
+ &  & (0.999) & (0.999) & (0.999) & (0.927) & (0.899) & (0.979) \\
 \addlinespace[4pt]
 \multicolumn{8}{@{}l}{\textit{Panel C: sign strategies against the unconditional short straddle}} \\
 \addlinespace[2pt]

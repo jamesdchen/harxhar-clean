@@ -1,0 +1,671 @@
+% A_econ.tex -- online appendix: details of the economic application (Section~\ref{sec:rh_econ}), moved out of
+% rehaul/07_economics.tex in the integration pass of 2026-10-26 (writeup/INTEGRATION_SPEC_2026-10-26.md, JFEc page
+% budget; plan D2, D6, D10). Owner: ECON. The pre-integration text of every item is parked verbatim at the end of
+% 07_economics.tex; this file holds it lightly edited, plus the two drafts it absorbs
+% (drafts/2026-10-25_econ_decomp.tex -> app:rh_econ_decomp, drafts/2026-10-26_econ_beta.tex -> app:rh_econ_beta) and
+% the break-even part of drafts/2026-10-25_econ_main.tex (app:rh_econ_breakeven).
+% Wiring (APPENDIX): this file holds \subsection's only; \input it under an appendix \section of its own (suggested:
+% \section{Economic application: details}\label{app:rh_econ}). Main-text references point at the subsection labels.
+% Floats \input here: generated/rehaul_econ_decomp_{longshort,quintiles,bestdays,riskreg}.tex and
+% generated/rehaul_econ_beta_{table,fig}.tex. Floats cited here but \input elsewhere (10_appendix.tex):
+% tab:rh_econ_sharpe_defs and tab:rh_pooled_shift_compounding (app:rh_robust_trade), tab:rh_robust_w3500
+% (app:rh_robust_stat). Macro files the preamble must load (FRONT): generated/rehaul_econ_main_numbers,
+% generated/rehaul_econ_decomp_numbers, generated/rehaul_econ_beta_numbers (each float also loads its own file if
+% undefined, but the prose needs them).
+% The closing-interval HAR (CI-HAR) strategy is not reported here (plan D2/D3): its sentences in the drafts are parked
+% below; the closing-interval appendix (APPENDIX) owns it.
+
+\subsection{The straddle: sample, quotes and execution}
+\label{app:rh_econ_details}
+\begin{itemize}
+% 2026-10-26 (integration, JFEc): moved here from 07_economics.tex (The straddle strategy, Option-trading sample;
+% moved there on 2026-10-22 from 03_data.tex, "Estimation and evaluation samples").
+\item \textbf{Option-trading sample.} The strategy of Section~\ref{sec:rh_econ_strategy} trades on the subsample
+  $\mathcal T_{\mathrm{opt}} \subset \mathcal T_{\mathrm{oos}}$ (Section~\ref{sec:rh_exp_setup}) of trading days with
+  a same-day SPXW expiration:
+  \[
+    T_{\mathrm{opt}} = \cmNdays \text{ trading days} = \rhdmExpirationsOos \text{ SPXW expirations}
+      - \rhdmEarlyCloses \text{ early-close days}.
+  \]
+  The \rhdmHeldOutExpirations{} subsequent SPXW expiration dates (\rhdmHeldOut{} full trading days) are held out from
+  the present analysis. The \rhoosNonOptDays{} days of $\mathcal T_{\mathrm{oos}}$ without a same-day SPXW expiration
+  enter the statistical accuracy evaluation only.
+% 2026-10-26 (integration, JFEc): moved here from 07_economics.tex (Position item). Code pointers (2026-10-23, E18):
+% the scored straddle frame (notebooks/_write_0dte_nb.py -> results/atm_straddle_0dte_1530/daily_blk2.parquet, read by
+% experiments/master_table_close.py and writeup/make_rehaul_economics.py) picks K_C and K_P among the 15:30 contracts
+% with a positive mid-quote and drops a day without both legs (run log 2026-10-07: 0 of 1,279 days). The outage rule
+% (atm_straddle_lib.pick_nearest_otm_guarded: ATM_MAX_STRIKE_GAP = 10 points, ATM_MIN_LIVE = 10 contracts) is applied
+% by notebooks/_write_0dte_experimental_nb.py, whose frame is gated day for day against the scored frame; it drops no
+% 15:30 chain (rechecked 2026-10-23 on data/spxw_chain.parquet). The two thresholds are code constants with no macro.
+\item \textbf{Quote screen.} Every 15:30 chain in $\mathcal T_{\mathrm{opt}}$ has a call at or above and a put at or
+  below $S_t$ with a positive mid-quote. We also screen each chain for a quote outage, that is, fewer than 10
+  contracts with a positive mid-quote or a wider strike more than 10 index points from $S_t$ (more than one strike
+  missing near the money); no chain in the sample fails this screen, so no day is dropped for want of quotes;
+  early-close days are already outside $\mathcal T_{\mathrm{opt}}$.
+% 2026-10-26 (integration, JFEc): moved here from 07_economics.tex (Entry prices). Code: atm_straddle_lib.py:1725-1741
+% (settle_package); R = exit / entry - 1 (notebooks/_write_0dte_nb.py:452).
+\item \textbf{Entry prices and payoff.} From the legs' bid quotes $b$ and ask quotes $a$ at 15:30 ET, the package
+  mid-quote $P_t$, bid $P^{b}_t$ and ask $P^{a}_t$ are
+  \[
+  P_t = \tfrac12\bigl(b^C_t + a^C_t\bigr) + \tfrac12\bigl(b^P_t + a^P_t\bigr),
+  \qquad
+  P^{b}_t = b^C_t + b^P_t, \qquad P^{a}_t = a^C_t + a^P_t ,
+  \]
+  and the package pays $X_t = \bigl(S^{\mathrm{close}}_t - K_C\bigr)^+ + \bigl(K_P - S^{\mathrm{close}}_t\bigr)^+$ at
+  the official S\&P~500 close, so that $R_t = X_t/P_t - 1$.
+% 2026-10-26 (integration, JFEc): moved here from 07_economics.tex (Implied variance). Code pointers (2026-10-23,
+% E18): notebooks/_write_0dte_nb.py, iv_hourly_15_30: a leg on a node of the vendor's bisection bracket
+% (atm_straddle_lib.censor_vendor_iv / IV_VENDOR_NODES) makes the day "capped"; on a capped day
+% atm_straddle_lib.bsm_invert_package_vol(S, K_c, K_p, entry mid, hours_remaining=0.5) inverts the Black-76 price with
+% r = 0 on the level S by bisection for the total volatility over the half hour. Run log 2026-10-07: 5 capped days
+% (2020-03-13, -16, -18, -20, -23), all recovered; they are days 31-35 of the 866 days of T_opt, inside the warmup.
+\item \textbf{Implied volatility on failed solves.} The vendor solves each leg's implied volatility by bisection
+  and, when the bisection does not converge, reports a node of its bracket instead of a volatility. On the
+  \cmCensIvDays{} days of $\mathcal T_{\mathrm{opt}}$ on which a leg carries such a node, we recover $\mathrm{IV}_t$
+  from the package instead: $\mathrm{IV}_t = \sigma$, the volatility over the remaining half hour at which the
+  Black--Scholes value of the package, with a zero interest rate and no dividends, equals its mid-quote
+  \citep{BlackScholes1973},
+  \[
+    P_t = S_t\,\Phi(d_C) - K_C\,\Phi(d_C - \sigma) + K_P\,\Phi(\sigma - d_P) - S_t\,\Phi(-d_P),
+  \]
+  where $d_j = \bigl(\ln(S_t/K_j) + \sigma^2/2\bigr)/\sigma$ for $j \in \{C, P\}$ and $\Phi$ is the standard normal
+  distribution function. All of these days lie within the first \rheSzWarmup{} days of $\mathcal T_{\mathrm{opt}}$,
+  which only initialize the sizing rules, so none of them is a scored day.
+% 2026-10-26 (integration, JFEc): moved here from 07_economics.tex (Execution). Code: master_table_close.py:1168-1183
+% (q = +-1); rows.py:1020-1025 (sized q); atm_straddle_lib.py:1325-1344.
+\item \textbf{Execution at quoted prices.} At mid-quotes the strategy return is $r_t = q_t R_t$. At quoted bid and
+  ask prices, buying the straddle pays the ask $P^{a}_t$ and selling receives the bid $P^{b}_t$; because settlement
+  is in cash at expiration, the spread is incurred at entry only:
+  \[
+  r^{\mathrm{ba}}_t =
+  \begin{cases}
+  |q_t|\,\bigl(X_t/P^{a}_t - 1\bigr), & q_t > 0,\\
+  |q_t|\,\bigl(1 - X_t/P^{b}_t\bigr), & q_t < 0.
+  \end{cases}
+  \]
+\end{itemize}
+
+\subsection{The Sharpe ratio: annualization, alternatives and subsamples}
+\label{app:rh_econ_sharpe}
+% 2026-10-26 (coordinator, JFEc page budget): moved here from rehaul/07_economics_floats.tex.
+\input{generated/rehaul_econ_byyear_fig}
+\begin{itemize}
+% 2026-10-26 (integration, JFEc): moved here from 07_economics.tex (Performance measures, Annualized Sharpe ratio).
+\item \textbf{Annualization.} In the Sharpe ratio $\SR$ of Section~\ref{sec:rh_econ_measures}, $A_y = N_y/c_y$ is
+  \rheDSixAOne, \rheDSixATwo, \rheDSixAThree{} and \rheDSixAFour{} for \rheDSixYearOne{} to \rheDSixYearFour{}
+  ($N_y = \rheDSixNOne$, \rheDSixNTwo, \rheDSixNThree, \rheDSixNFour; $c_y = \rheDSixCovOne$, \rheDSixCovTwo,
+  \rheDSixCovThree, \rheDSixCovFour), where $c_y$ runs from the later of 1 January and the sample's first day to the
+  earlier of 31 December and its last day. Equal weights also keep a year with many option days from dominating the
+  average if the strategy's performance changes over the sample.
+% 2026-10-26 (integration, JFEc): note D6 resolved (decision of 2026-10-22) and parked; its disclosure is now the item
+% below. Was: "\editc{orange}{D6}{Decision (user, 2026-10-22): the Sharpe ratio is the definition above (D6): for each
+% calendar year $y$ of the post-warmup sample, $\SR_y = \sqrt{A_y}\,\bar r_y/\mathrm{sd}_y(r)$ with $A_y = N_y/c_y$ the
+% year's option days per calendar year, and $\SR$ the equal-weight mean of the $\SR_y$; every statement about a Sharpe
+% ratio difference uses the paired block-bootstrap test of Appendix~\ref{sec:rh_methods_tests}, which resamples D6
+% itself.\\Disclosure: this definition was adopted after the results under the previous one (the per-year ratio with
+% $\sqrt{N_y}$, $N_y$-weighted, of 2026-10-18) had been seen. That ratio (D1) and the ratio of the pooled daily returns
+% scaled by $\sqrt{252}$ (D2), with the \citet{LedoitWolf2008} test of the pooled ratios, are reported in
+% Table~\ref{tab:rh_econ_sharpe_defs}, together with D6 before and from \rheSplitDate.}"
+\item \textbf{When the definition was chosen.} We adopted $\SR$ after the results under a previous definition had
+  been seen: the per-year ratio with $\sqrt{N_y}$ in place of $\sqrt{A_y}$, the years weighted by $N_y$.
+  Table~\ref{tab:rh_econ_sharpe_defs} therefore repeats the comparison of the full predictor set with the HAR
+  benchmark set under that ratio and under the ratio of the mean to the standard deviation of all \rheSzDays{} daily
+  returns, scaled by $\sqrt{252}$, with the \citet{LedoitWolf2008} test of equal pooled ratios; the latter rejects at
+  the 5\% level in \rheDefLWSig{} of the \rheDefN{} classes. Under the two
+  alternatives the short straddle's mid-quote ratio is \rhemShDOneShort{} and \rhemShDTwoShort{} rather than
+  \rheShortSh.
+% 2026-10-26 (integration, JFEc): moved here from 07_economics.tex (Robustness checks, Subsample stability).
+\item \textbf{Subsamples.} Table~\ref{tab:rh_econ_sharpe_defs} also computes $\SR$ separately on the post-warmup
+  days before and from \rheSplitDate, when CBOE expanded SPXW expirations to all five weekdays.
+\end{itemize}
+
+% 2026-10-26 (integration, JFEc): moved here from 07_economics.tex (Trading strategies: the robust clip and the
+% percentile rank; Sizing sample; Results: Position sizing). Code: the rank uses <= (rows.py:1044); rules at
+% rows.py:88-134, 1028-1062. The full long, scaled short rule stays parked (2026-10-18, N11; \rheSzLfssMed unused).
+\subsection{Position sizing}
+\label{app:rh_econ_sizing}
+% 2026-10-26 (integration, coordinator: bullet structure): the lead sentence and the two rules recast as one
+% bold-lead item with sub-items, content kept.
+\begin{itemize}
+\item \textbf{Sized rules.} Besides the sign strategy of Section~\ref{sec:rh_econ_strategy}, two rules scale the
+  position by the size of the variance gap.
+  \begin{itemize}
+  \item \emph{Robust clip:} $q_t = \clip\bigl((\hat\sigma^2_t - \mathrm{IV}_t^2)/\mathrm{MAD}_t, -1, 1\bigr)$, where
+    $\mathrm{MAD}_t = \operatorname{median}_{t'<t}\bigl|\hat\sigma^2_{t'} - \mathrm{IV}_{t'}^2\bigr|$ is the expanding
+    median absolute variance gap over earlier days $t' < t$ in $\mathcal T_{\mathrm{opt}}$.
+  \item \emph{Percentile rank:} the sign of the gap scaled by the empirical percentile rank of its magnitude across
+    the $t - 1$ preceding days $t' < t$ in $\mathcal T_{\mathrm{opt}}$:
+    \[
+      q_t = \sign\bigl(\hat\sigma^2_t - \mathrm{IV}_t^2\bigr)\cdot\frac{1}{t-1}\sum_{t'<t}
+        \mathbf{1}\bigl\{|\hat\sigma^2_{t'} - \mathrm{IV}_{t'}^2| \le |\hat\sigma^2_t - \mathrm{IV}_t^2|\bigr\}.
+    \]
+  \end{itemize}
+\item \textbf{Sizing sample.} Every position $q_t$ uses days $t' < t$ only. The first \rheSzWarmup{} days of
+  $\mathcal T_{\mathrm{opt}}$ initialize $\mathrm{MAD}_t$, and every rule, the sign strategy included, is evaluated
+  on the remaining \rheSzDays{} post-warmup days.
+% 2026-10-26 (integration, JFEc; audit results-12): the twelve forecasts count the identical HAR-set linear forecast
+% three times; flagged in the text. The medians and counts over the distinct forecasts need new macros (NUMBERS).
+\item \textbf{Results.} Across the \rhrPoolN{} pooled forecasts, in which the identical HAR-set ridge, lasso and
+  elastic-net forecast is counted three times (Table~\ref{tab:rh_econ_main}, note b), the median mid-quote Sharpe
+  ratio is \rhrPoolSzSignMed{} under the sign strategy, \rhrPoolSzClipMed{} under the robust clip and
+  \rhrPoolSzRankMed{} under the percentile rank. In point estimates the robust clip beats the sign strategy
+  ($\SR^{\mathrm{clip}} > \SR^{\mathrm{sign}}$) for \rhrPoolSzClipBeats{} of the \rhrPoolN{} forecasts.
+\end{itemize}
+
+% 2026-10-26 (integration, JFEc): moved here from 07_economics.tex (Performance measures: Compounding and the drawdown
+% item; Robustness checks: Compounded wealth). Code: experiments/close_compounding_headline.py:140-153 (wealth_stats);
+% the pooled values from writeup/make_rehaul_pooled_extras.py (\rhpc...). Ruin bound f < 1/|min_t r_t|.
+\subsection{Compounded wealth}
+\label{app:rh_econ_compounding}
+\begin{itemize}
+\item \textbf{Definition.} From initial capital $V_0 = 1$, a fixed fraction $f = \rhappCompF\%$ of current wealth
+  is allocated to the straddle premium each day, which gives the terminal portfolio value and the annualized log
+  growth rate
+  \[
+  V = \prod_{t \in \mathcal T_{\mathrm{opt}}^{+}}\bigl(1 + f\,r_t\bigr),
+  \qquad
+  G = \frac{252}{\rheSzDays}\sum_{t \in \mathcal T_{\mathrm{opt}}^{+}}\log\bigl(1 + f\,r_t\bigr).
+  \]
+  At quoted bid/ask prices $r^{\mathrm{ba}}_t$ replaces $r_t$. The maximum drawdown is
+  $\max_t\bigl(1 - V_t/\max_{t'\le t}V_{t'}\bigr)$, with $V_t$ the portfolio value at the end of day $t$.
+% 2026-10-26 (integration, JFEc; audit results-16): the short straddle's values are not in
+% Table tab:rh_pooled_shift_compounding, so the citation now covers the pooled forecasts only (a short-straddle row
+% is requested from NUMBERS). Was: "... against \rhpcAW{} and \rhpcAWX{} for the unconditional short straddle, with
+% maximum drawdowns reaching up to \rhpcDDMaxMid\% and \rhpcDDMaxX\%, respectively (\rhpcADDMid\% and \rhpcADDX\% for
+% the unconditional short straddle; Table~\ref{tab:rh_pooled_shift_compounding});"
+\item \textbf{Results.} Across the \rhpsNfc{} pooled forecasts (the HAR-set linear forecast counted three times),
+  compounding at $f = \rhappCompF\%$ over the \rhpcNdays{} post-warmup days yields a median terminal value $V$ of
+  \rhpcWMedMid{} at mid-quotes (\rhpcWLoMid{} to \rhpcWHiMid) and \rhpcWMedX{} at quoted bid/ask prices (\rhpcWLoX{}
+  to \rhpcWHiX), with maximum drawdowns of up to \rhpcDDMaxMid\% and \rhpcDDMaxX\%
+  (Table~\ref{tab:rh_pooled_shift_compounding}). The unconditional short straddle ends at $V = \rhpcAW$ and
+  \rhpcAWX, with maximum drawdowns of \rhpcADDMid\% and \rhpcADDX\%.
+\end{itemize}
+
+% 2026-10-26 (integration, JFEc): moved here from 07_economics.tex (Robustness checks, Interval-shift test). Code:
+% writeup/make_rehaul_pooled_extras.py (\rhps...); the shifted row is placed as yhat_{c+j}^2 s^2_c.
+\subsection{Interval-shift test}
+\label{app:rh_econ_shift}
+% 2026-10-26 (integration, coordinator: bullet structure): the subsection's prose recast as bold-lead items, content
+% kept.
+\begin{itemize}
+\item \textbf{The shifted sign rule.} We replace $\hat y_{t,c}$ in the sign rule by the forecast $\hat y_{t,c+j}$ from
+  $j$ half-hour bars away,
+  \[
+    q_t = \sign\bigl(\hat y_{t,c+j}^{\,2}\, s^2_{t,c} - \mathrm{IV}_t^2\bigr), \qquad j = \rhpsJMin, \dots, \rhpsJMax,
+  \]
+  ($j < 0$ earlier on day $t$; $j > 0$ on day $t+1$, not known at the 15:30 origin, a placebo).
+\item \textbf{Across offsets.} The median Sharpe ratio across the \rhpsNfc{} pooled forecasts (\rhpsNdays{}
+  post-warmup days on which every shifted forecast exists; \rhpsZeroMed{} at $j = 0$) ranges from \rhpsMedLo{} to
+  \rhpsMedHi{} across $j$ (a half-range of $\pm\rhpsHalf$), against the $\pm\rhpsNoiseBand$ 95\% sampling band of the
+  Sharpe ratio under i.i.d.\ returns (Table~\ref{tab:rh_pooled_shift_compounding}).
+% 2026-10-26 (integration, JFEc; audit results-15): parked -- "lowers the median, by" described the median of the
+% per-forecast changes as the change of the median. Was: "Every earlier bar ($j < 0$) lowers the median, by
+% \rhpsSameDeltaLo{} to \rhpsSameDeltaHi{} against $j = 0$, and at each earlier bar between \rhpsStaleNBelowMin{} and
+% \rhpsStaleNBelowMax{} of the \rhpsNfc{} forecasts have a lower Sharpe ratio than at $j = 0$;"
+\item \textbf{Earlier bars.} At the earlier bars ($j < 0$) the median across forecasts of the change in each
+  forecast's Sharpe ratio against $j = 0$ runs from \rhpsSameDeltaLo{} to \rhpsSameDeltaHi, and at each earlier bar
+  between \rhpsStaleNBelowMin{} and \rhpsStaleNBelowMax{} of the \rhpsNfc{} forecasts have a lower Sharpe ratio than
+  at $j = 0$.
+\end{itemize}
+% 2026-10-26 (integration, JFEc): note E26b parked here as an open decision (James); it is already listed in
+% rehaul/99_author_notes.tex ("Open decisions for James": the pooled interval-shift test), whose reference should now
+% point to app:rh_econ_shift (FRONT). Was: "\editc{orange}{E26b}{Decision: to decide (James).\\Open choices for the
+% interval-shift test: (i) the days: every $j$ on the \rhpsNdays{} days on which every shifted forecast exists (above;
+% the original test's rule, which drops the last option day, \rhoosSpanEnd, as it has no next session; median Sharpe
+% ratio at $j = 0$: \rhpsZeroMed), or only $j \le 0$ on all \rhpsPwNdays{} post-warmup days of the printed Sharpe
+% ratios (median at $j = 0$: \rhpsPwZeroMed, range \rhpsPwMedLo{} to \rhpsPwMedHi, half-range $\pm\rhpsPwHalf$); (ii)
+% the sampling band: $1.96\sqrt{\sum_y A_y/N_y}/K$ over the $K$ calendar years, the i.i.d.\ band of the Sharpe ratio
+% of note D6 at $\SR = 0$, in place of the original $1.96\sqrt{252/n}$ (writeup/make\_rehaul\_pooled\_extras.py);
+% (iii) how to read the pattern for $j < 0$. The earlier reading (``well within'' the band, ``consistent with
+% sampling variation'') is parked.}"
+
+% 2026-10-26 (integration, JFEc): added from drafts/2026-10-25_econ_main.tex (Execution costs and break-even spreads);
+% the closing-interval HAR item is parked (plan D2). Was (its second sub-item): "For the closing-interval HAR forecast
+% the two factors are \rhemBeMeanCiHar{} and \rhemBeShCiHar{} (\rhemBeMeanPctCiHar\% and \rhemBeShPctCiHar\% of the
+% premium); for the \rhemHarDistinctWord{} distinct HAR-set forecasts the Sharpe-ratio factor runs from
+% \rhemBeShHarMin{} to \rhemBeShHarMax." "Trading at quoted bid/ask prices lowers every strategy's Sharpe ratio" is
+% asserted in make_rehaul_econ_main.py (DRAFT CLAIMS).
+\subsection{Execution costs and break-even spreads}
+\label{app:rh_econ_breakeven}
+% 2026-10-26 (integration, coordinator: bullet structure): the lead prose recast as two bold-lead items, the three
+% results as sub-items of the second; content kept.
+\begin{itemize}
+\item \textbf{Quoted spreads.} Trading at quoted bid/ask prices rather than mid-quotes lowers every strategy's Sharpe
+  ratio (Table~\ref{tab:rh_econ_main}). The median quoted half-spread of the straddle is \rhemHalfSpreadMed\% of the
+  premium on the \rheSzDays{} post-warmup days (\rhemHalfSpreadMedAll\% on all \cmNdays{} days of
+  $\mathcal T_{\mathrm{opt}}$).
+\item \textbf{Break-even spreads.} We scale every day's quoted half-spread $h_t = (P^{a}_t - P^{b}_t)/2$ by a common
+  factor $k$, so that a purchase pays $P_t + k h_t$ and a sale receives $P_t - k h_t$ ($k = 0$: mid-quotes; $k = 1$:
+  quoted bid/ask prices), and find the factor at which the mean daily return or the Sharpe ratio reaches zero; in
+  percent of the premium, the break-even half-spread is $k$ times the median quoted half-spread.
+  \begin{itemize}
+  \item For the six full-set forecasts the mean daily return stays positive up to $k = \rhemBeMeanFullMin$ to
+    $\rhemBeMeanFullMax$ (\rhemBeMeanFullMinPct\% to \rhemBeMeanFullMaxPct\% of the premium) and the Sharpe ratio up
+    to $k = \rhemBeShFullMin$ to $\rhemBeShFullMax$ (\rhemBeShFullMinPct\% to \rhemBeShFullMaxPct\%).
+  \item For the benchmark forecast the two factors are \rhemBeMeanRidgeHar{} and \rhemBeShRidgeHar{}
+    (\rhemBeMeanPctRidgeHar\% and \rhemBeShPctRidgeHar\% of the premium); for the \rhemHarDistinctWord{} distinct
+    HAR-set forecasts the Sharpe-ratio factor runs from \rhemBeShHarMin{} to \rhemBeShHarMax.
+  \item The mean daily return of the short straddle reaches zero at $k = \rhemBeMeanShort$, inside the quoted
+    spread, and its Sharpe ratio is negative at mid-quotes already.
+  \end{itemize}
+\end{itemize}
+
+% 2026-10-26 (integration, JFEc): moved here from 07_economics.tex (Performance measures: Elementary score and
+% Decision-threshold property; Results: Statistical accuracy versus economic value). Code:
+% experiments/close_murphy_splits_headline.py:227-230, called as elementary(plain / iv_var, target / iv_var, 1.0);
+% the pooled correlations from make_rehaul_economics.py (pooled_rank_series, \rheRankCorr...Pool).
+\subsection{Forecast loss and economic value}
+\label{app:rh_econ_rankcorr}
+\begin{itemize}
+\item \textbf{Elementary score.} To measure forecast accuracy at the decision threshold $\mathrm{IV}_t^2$, we
+  evaluate the elementary score of \citet{Ehm2016} normalized by implied variance,
+  \[
+  \mathrm{ES}_{1,t} = \Bigl|\frac{\RV_t}{\mathrm{IV}_t^2} - 1\Bigr|\;
+    \mathbf{1}\bigl\{\min(\hat\sigma^2_t, \RV_t) \le \mathrm{IV}_t^2 < \max(\hat\sigma^2_t, \RV_t)\bigr\},
+  \]
+  and denote its mean over the post-warmup days $\mathcal T_{\mathrm{opt}}^{+}$ by $\overline{\mathrm{ES}}_1$.
+  $\mathrm{ES}_{1,t}$ is positive if and only if the forecast $\hat\sigma^2_t$ and the realization $\RV_t$ fall on
+  opposite sides of the implied variance, that is, precisely when the sign strategy takes the wrong side.
+% 2026-10-26 (integration, JFEc; audit results-12, results-13): the two caveats added -- the mean QLIKE covers all
+% T_opt days incl. the warm-up (make_rehaul_economics.py ~3046-3049: ql_p over N_OPT, es_p over iloc[WARMUP:]), and
+% the twelve points hold a three-way tie. Regenerating \rheRankCorrQPool* on the post-warmup days and over the
+% distinct forecasts is requested from NUMBERS.
+\item \textbf{Rank correlations.} Across the \rhrPoolN{} pooled forecasts, the rank correlation of the Sharpe ratio is
+  positive with average QLIKE loss, \rheRankCorrQPool, and negative with $\overline{\mathrm{ES}}_1$, the loss at the
+  implied-variance threshold, \rheRankCorrESPool. With the per-year ratio scaled by $\sqrt{N_y}$ and weighted by
+  $N_y$ in place of $\SR$, the two correlations are \rheRankCorrQPoolDOne{} and \rheRankCorrESPoolDOne; with the ratio
+  of the pooled daily returns scaled by $\sqrt{252}$, they are \rheRankCorrQPoolDTwo{} and \rheRankCorrESPoolDTwo.
+  Their signs are the same under all three definitions. Two caveats: the mean QLIKE loss is taken over all \cmNdays{}
+  days of $\mathcal T_{\mathrm{opt}}$, the \rheSzWarmup{} warm-up days included, while $\overline{\mathrm{ES}}_1$ and
+  the Sharpe ratio are on the \rheSzDays{} post-warmup days; and the \rhrPoolN{} forecasts count the identical
+  HAR-set ridge, lasso and elastic-net forecast three times, a three-way tie in both rankings.
+\end{itemize}
+
+% 2026-10-26 (integration, JFEc): moved here from 07_economics.tex (Robustness checks, Window length). Macros
+% \rhrb... from writeup/make_rehaul_robust_window.py (\rhrbMaxAbsDSRMid = \rhrbDSRRfHarMid: the forest on the HAR
+% benchmark moves most).
+\subsection{A longer estimation window}
+\label{app:rh_econ_robust}
+% 2026-10-26 (integration, coordinator: bullet structure): the prose recast as a bold-lead item with sub-items.
+\begin{itemize}
+\item \textbf{Window of \rhrbWinLong{} trading days.} With a rolling window of \rhrbWinLong{} trading days in place of
+  \rhrbWinMain{} (Table~\ref{tab:rh_robust_w3500}):
+  \begin{itemize}
+  \item the full predictor set raises the mid-quote Sharpe ratio in \rhrbNDSRFPosMidLong{} of the
+    \rhrbNModelsLong{} model classes, \rhrbNDSRFSigMidLong{} of them significantly at the 5\% level;
+  \item no pooled forecast's Sharpe ratio differs significantly between the two windows (\rhrbNSRSigMid{} of
+    \rhrbNArms), and the random forest on the HAR benchmark set moves most, from \rhrbSRRfHarMidMain{} to
+    \rhrbSRRfHarMidLong{} (\rhrbPSRRfHarMid).
+  \end{itemize}
+\end{itemize}
+
+% 2026-10-26 (integration, JFEc): added from drafts/2026-10-25_econ_decomp.tex (generator
+% writeup/make_rehaul_econ_decomp.py, \rhed... macros), lightly edited: "HAR twin" -> the HAR-set forecast of the same
+% class; the worthless-expiry item now carries the share that the parked "Concentration of economic gains" item of
+% 07_economics.tex printed (without its "settlement pinning" gloss: audit numbers-1, results-6, correctness-8).
+\subsection{Where the profits come from}
+\label{app:rh_econ_decomp}
+\begin{itemize}
+\item \textbf{A short straddle that turns long on a fifth of the days.} The sign strategies of the six pooled
+  forecasts on the full predictor set hold a long straddle on \rhedLongNMin{} to \rhedLongNMax{} of the \rheSzDays{}
+  post-warmup days (\rhedLongPctMin--\rhedLongPctMax\%; Table~\ref{tab:rh_econ_longshort}). Because
+  \[
+    r_t = q_t R_t = -R_t + 2R_t\,\mathbf{1}\{q_t = +1\},
+  \]
+  each strategy's return is that of the unconditional short straddle plus a gain $\Delta_t = 2R_t\mathbf{1}\{q_t = +1\}$
+  over it, and that gain is earned on the long days only.
+  \begin{itemize}
+  \item The unconditional short straddle earns \rhedUncShortMean\% of the premium a day at mid-quotes; the gain on the
+    long days adds \rhedGainMin--\rhedGainMax\%, which is \rhedGainShareMin--\rhedGainShareMax\% of the strategies'
+    mean daily return of \rhedMeanMin--\rhedMeanMax\%.
+  \item On its long days the straddle returns \rhedLongMidMin--\rhedLongMidMax\% of the premium on average at
+    mid-quotes and \rhedLongBaMin--\rhedLongBaMax\% bought at the ask. On the remaining days the short straddle earns
+    \rhedShortMidMin--\rhedShortMidMax\% at mid-quotes, against \rhedUncShortMean\% on all days: the long days are the
+    days on which the short straddle loses.
+  \item The long days account for \rhedLongShareMin--\rhedLongShareMax\% of the summed mid-quote return
+    (\rhedLongShareXMin--\rhedLongShareXMax\% at quoted bid/ask prices). On the HAR benchmark set the same model
+    classes go long on \rhedHarLongNMin{} to \rhedHarLongNMax{} days, on which the straddle returns only
+    \rhedHarLongMidMin--\rhedHarLongMidMax\% (gain over the short straddle \rhedHarGainMin--\rhedHarGainMax\% a day).
+  \end{itemize}
+\item \textbf{No better call of the premium's sign, but the large moves.} The position has the sign of
+  $\RV_t - \mathrm{IV}_t^2$ on \rhedHitMin--\rhedHitMax\% of the days, against \rhedUncShortHit\% for the
+  unconditional short straddle, so the forecasts are no better than always selling at calling the sign of the
+  realized premium. What they add is in the long days: realized variance exceeds implied variance on
+  \rhedLongHitMin--\rhedLongHitMax\% of them, against \rhedUncRVAboveIV\% of all days, yet the long straddle has a
+  positive return on only \rhedLongPosMin--\rhedLongPosMax\% of its long days, so its mean return on those days comes
+  from a few large moves.
+\item \textbf{Forecast quintiles} (Table~\ref{tab:rh_econ_quintiles}). Sorted by the forecast variance gap
+  $\log(\hat\sigma^2_t/\mathrm{IV}_t^2)$, the mean ratio of realized to implied variance rises from quintile to
+  quintile for \rhedQMonoN{} of the \rhedNFull{} full-set forecasts, from \rhedQOneRVIV{} in the lowest to \rhedQFiveRVIV{} in the
+  highest (mean of the six), and for \rhedHarQMonoN{} of the six HAR-set forecasts (\rhedHarQOneRVIV{} to
+  \rhedHarQFiveRVIV): the forecasts rank the closing half hours by their realized variance relative to the implied.
+  \begin{itemize}
+  \item The return of a long straddle is negative in each of the four lower quintiles (\rhedQLowRMin{} to
+    \rhedQLowRMax\% on average) and \rhedQFiveR\% in the highest, where \rhedQFiveLong\% of the days are long days;
+    for the HAR-set forecasts it is \rhedHarQFiveR\%. The sign rule's threshold, $\hat\sigma^2_t =
+    \mathrm{IV}_t^2$, falls between the fourth quintile (forecast ratio \rhedQFourFc) and the fifth
+    (\rhedQFiveFc).
+  \item The highest quintile earns \rhedQFiveShare\% of the summed mid-quote return of the six full-set strategies
+    (\rhedQFiveShareRngMin--\rhedQFiveShareRngMax\% across them), against \rhedHarQFiveShare\% for the HAR benchmark
+    set. Across the four lower quintiles, where the strategies are short, the return is not monotone in the forecast.
+  \end{itemize}
+\item \textbf{About ten days carry the gain over the short straddle} (Table~\ref{tab:rh_econ_bestdays}). The six
+  full-set forecasts share \rhedBestAllSix{} of their ten best days and \rhedWorstAllSix{} of their ten worst; the
+  best days are long straddles on large closing moves, the worst are short straddles on large closing moves.
+  \begin{itemize}
+  \item Without each forecast's ten best days, the Sharpe ratio gain over the unconditional short straddle falls from
+    \rhedDShortAllMin--\rhedDShortAllMax{} to \rhedDShortExBestMin{} to \rhedDShortExBestMax{} (negative for
+    \rhedDShortExBestNeg{} of the \rhedNFull); the ten days earn \rhedBestShareMin--\rhedBestShareMax\% of the summed return
+    gain over the short straddle, so the other long days lose on balance.
+  \item The largest, \rhedTopDate, returned \rhedTopR\% of the premium on a closing-half-hour move of
+    \rhedTopMove\% (realized variance \rhedTopRVIV{} times the implied), \rhedTopShareMin--\rhedTopShareMax\% of each
+    full-set strategy's summed return.
+  \item Against the HAR-set forecast of the same class the gain is less concentrated: without the forecast's ten best
+    days the Sharpe ratio gain falls from \rhedDHarAllMin--\rhedDHarAllMax{} to \rhedDHarExBestMin--\rhedDHarExBestMax,
+    and those days carry \rhedHarBestShareMin--\rhedHarBestShareMax\% of the summed return gain over it.
+  \end{itemize}
+\item \textbf{The days are not scheduled announcements.} Of the \rhedBestUnion{} days in the union of the six
+  forecasts' best days, \rhedBestFomcN{} is an FOMC statement day and \rhedBestNoTagN{} carry no tag in our event
+  calendar, \rhedBestAfterRelN{} of them after \rhedRelEndText, when its macro-release dates end (its FOMC dates are
+  complete).
+  \begin{itemize}
+  \item On the \rhedFomcN{} FOMC statement days the closing straddle returns \rhedFomcR\% on average
+    ($t = \rhedFomcRT$, the days treated as independent); the full-set forecasts are long on \rhedFomcLong\% of them
+    and earn \rhedFomcStrat\% a day, against \rhedFomcOtherStrat\% on the other days.
+  \item On the \rhedMeN{} month ends the straddle returns \rhedMeR\% ($t = \rhedMeRT$) and the squared closing move
+    averages \rhedMeMoveSqIV{} times the implied variance; the forecasts are long on \rhedMeLong\% of them, earn
+    \rhedMeStrat\% a day, and \rhedMeShare\% of their summed return comes from these days (\rhedWorstMeN{} of the
+    worst days are month ends).
+  \item On the \rhedOpexN{} monthly SPX expirations the straddle returns \rhedOpexR\% ($t = \rhedOpexRT$); the
+    forecasts are long on \rhedOpexLong\% of them and earn \rhedOpexShare\% of their summed return there, a gain the
+    unconditional short straddle shares.
+  \end{itemize}
+\item \textbf{Calibration and the short tilt} (Table~\ref{tab:rh_econ_longshort}, Panel D). In levels the full-set
+  forecasts are close to unbiased on the option days (mean forecast over mean realized variance
+  \rhedCalLevelMin--\rhedCalLevelMax), but in ratios they are low: the mean of $\RV_t/\hat\sigma^2_t$, the scale that
+  minimizes mean QLIKE, is \rhedCalScaleMin--\rhedCalScaleMax, the downward bias of squaring a level forecast
+  (Section~\ref{sec:rh_methods_setup}).
+  \begin{itemize}
+  \item Multiplying each forecast by a causal estimate of that scale, the mean of $\RV_{t'}/\hat\sigma^2_{t'}$ over the
+    earlier option days $t' < t$, changes \rhedBcFlipMin{} to \rhedBcFlipMax{} positions, all from short to long.
+    The straddle's mean return on the changed days is \rhedBcFlipRMin{} to \rhedBcFlipRMax\%, and the Sharpe ratio
+    falls to \rhedBcShMin--\rhedBcShMax{} at mid-quotes and \rhedBcShXMin--\rhedBcShXMax{} at quoted bid/ask prices
+    (below the uncorrected ratio for \rhedBcShDownN{} of the six; the correction raises it for \rhedHarBcShUpN{} of
+    the six HAR-set forecasts). This is a diagnostic, not a strategy of the paper.
+  \item A reading consistent with this: a straddle pays the absolute move of the index, so a long position is
+    profitable when the expected realized volatility, not variance, exceeds the implied volatility. The sign rule
+    $\hat\sigma^2_t > \mathrm{IV}_t^2$ is the same as $\hat y_t\, s_{t,c} > \mathrm{IV}_t$, a comparison of the level
+    forecast with the implied volatility, which the uncorrected forecast makes.
+  \item The forecast target and the straddle's settlement differ: $\RV_t$, the realized variance of the futures from
+    one-minute returns, averages \rhedUncRVIVMean{} of the implied variance (median \rhedUncRVIVMed), while the squared
+    log move of the cash index from $S_t$ to $S^{\mathrm{close}}_t$ averages \rhedMoveSqIV{} of it, and
+    \rhedMoveSqRV{} times the mean of $\RV_t$. Measured on the move that settles the straddle, the implied variance
+    carries no premium on average in our sample, which agrees with the short straddle's Sharpe ratio of
+    \rheShortSh.
+  \end{itemize}
+% 2026-10-26 (integration, JFEc; audit numbers-1, results-6, correctness-8): the worthless-expiry share of the parked
+% "Concentration of economic gains" item (07_economics.tex) placed here, its "settlement pinning" gloss dropped; the
+% share is over the \rhrPoolN{} pooled forecasts (the HAR-set linear forecast counted three times).
+\item \textbf{Worthless expiries are not pinning.} $R_t = -1$ exactly when the close settles between the two strikes,
+  $K_P \le S^{\mathrm{close}}_t \le K_C$; on \rhedGapFiveN{} of the \rheSzDays{} days the two strikes are 5 index
+  points apart, against a median one-standard-deviation implied move over the half hour of \rhedMoveSdPts{} points.
+  \begin{itemize}
+  \item The straddle expires worthless on \rhedWorthN{} days (\rhedWorthPct\%). A normal half-hour log move with the
+    implied volatility $\mathrm{IV}_t$ predicts \rhedWorthExpIV{} such days (\rhedWorthExpIVPct\%; the difference is
+    \rhedWorthZ{} standard deviations), the empirical distribution of the earlier days' moves scaled by
+    $\mathrm{IV}_t$ predicts \rhedWorthExpEmp, and the close is uniformly placed between adjacent strikes (mean
+    distance to the nearest strike \rhedStrikeDist{} points, \rhedStrikeDistUnif{} under a uniform;
+    Kolmogorov--Smirnov $D = \rhedKsD$, 5\% critical value \rhedKsCV).
+  \item The full-set forecasts are short on \rhedWorthShortMin--\rhedWorthShortMax{} of these days, on which the short
+    straddle keeps its whole premium; these days supply \rhePoolWorthlessShareMed\% of the positive returns of the
+    median pooled forecast (\rhePoolWorthlessShareMin--\rhePoolWorthlessShareMax\% across the \rhrPoolN{} pooled
+    forecasts).
+  \item Monthly SPX expirations are the exception: \rhedWorthOpexN{} of the \rhedOpexN{} expire worthless against
+    \rhedWorthOpexExp{} expected ($\rhedWorthOpexZ$ standard deviations), and the squared closing move averages
+    \rhedOpexMoveSqIV{} of the implied variance. Outside them the share is \rhedWorthOtherPct\% against
+    \rhedWorthOtherExpPct\% expected.
+  \end{itemize}
+\item \textbf{Risk exposures} (Table~\ref{tab:rh_econ_riskreg}; $t$-statistics with Newey--West standard errors at
+  bandwidth $S = \rheHACS$ and fixed-$b$ critical values, Appendix~\ref{sec:rh_methods_tests}).
+  \begin{itemize}
+  \item On the short-straddle return the full-set strategies load \rhedRegBetaShortMin--\rhedRegBetaShortMax{}
+    ($t$ from \rhedRegBetaShortTMin{} to \rhedRegBetaShortTMax; $R^2$ \rhedRegRsqAMin--\rhedRegRsqAMax), with
+    $\alpha = \rhedRegAlphaAMin$--\rhedRegAlphaAMax\% of the premium a day at mid-quotes (fixed-$b$ $p$ from
+    \rhedRegAlphaAPMin{} to \rhedRegAlphaAPMax) and \rhedRegAlphaAXMin--\rhedRegAlphaAXMax\% at quoted bid/ask prices
+    ($p$ from \rhedRegAlphaAXPMin{} to \rhedRegAlphaAXPMax). The equal-weight mean of the six returns has
+    $\alpha = \rhedRegAvgAlphaA\%$ ($p = \rhedRegAvgAlphaAP$) at mid-quotes and $\rhedRegAvgAlphaAX\%$
+    ($p = \rhedRegAvgAlphaAXP$) at quoted bid/ask prices.
+  \item They are short volatility, less so than the short straddle: a basis point of absolute S\&P~500 move over the
+    closing half hour changes their return by \rhedRegBetaAbsMin{} to \rhedRegBetaAbsMax\% of the premium ($t$ from
+    \rhedRegBetaAbsTMin{} to \rhedRegBetaAbsTMax); for their mean return the coefficient, \rhedRegAvgBetaAbs\%, is
+    \rhedRegAbsRatio\% of the short straddle's \rhedRegShortBetaAbs\%. The sign of the move does not matter
+    (coefficients \rhedRegBetaMoveMin{} to \rhedRegBetaMoveMax).
+  \item The S\&P~500 daily return and the change in the VIX explain none of their return ($R^2$
+    \rhedRegRsqCMax), and with all regressors $\alpha$ is \rhedRegAlphaDMin--\rhedRegAlphaDMax\% at mid-quotes and
+    \rhedRegAlphaDXMin--\rhedRegAlphaDXMax\% at quoted bid/ask prices.
+  \item Without each forecast's ten best days, $\alpha$ on the short straddle is \rhedRegAlphaAExBestMin{} to
+    \rhedRegAlphaAExBestMax\% ($p \ge \rhedRegAlphaAExBestPMin$). The standard errors allow for serial correlation,
+    not for a return distribution whose mean rests on ten days. The HAR-set strategies have
+    $\alpha = \rhedHarRegAlphaAMin$--\rhedHarRegAlphaAMax\% ($p \ge \rhedHarRegAlphaAPMin$).
+  \end{itemize}
+% 2026-10-26 (integration, coordinator: bullet structure): the closing paragraph of the draft recast as a bold-lead
+% item with sub-items, content kept.
+\item \textbf{Summary: where the profits come from.} The strategy is a short straddle on most days, and the short
+  straddle by itself earns nothing detectable in our sample (\rheShortSh{} at mid-quotes, \rheShortShX{} at quoted
+  bid/ask prices).
+  \begin{itemize}
+  \item The profit comes from the days on which the full-set forecasts switch to a long straddle: these are the
+    closing half hours that the forecasts rank highest in realized relative to implied variance, the ranking is
+    monotone across the forecast quintiles, and on these days the straddle earns \rhedLongMidMin--\rhedLongMidMax\%
+    of its premium on average (\rhedQFiveR\% in the top forecast quintile, against \rhedHarQFiveR\% on the HAR
+    benchmark set).
+  \item The strategy is not a disguised short-volatility position: it has less than half of the short straddle's
+    exposure to the size of the closing move, almost none to its return, and none to the market or the VIX.
+  \item But the payoff of the ranking is concentrated in about ten days with closing moves several times the
+    implied, the same days for all six forecasts, and only \rhedBestFomcN{} of the \rhedBestUnion{} an FOMC statement
+    day; without them the gain over the short straddle and the regression $\alpha$ disappear.
+  \item The forecasts thus time the sign of the closing-half-hour variance premium in a narrow sense, by stepping out
+    of the short straddle on a minority of days, and in this sample of \rheSzDays{} days that timing paid through a
+    handful of large closing moves that they anticipated, not through a steady premium.
+  \end{itemize}
+\end{itemize}
+
+\input{generated/rehaul_econ_decomp_longshort}
+\input{generated/rehaul_econ_decomp_quintiles}
+\input{generated/rehaul_econ_decomp_bestdays}
+\input{generated/rehaul_econ_decomp_riskreg}
+
+% 2026-10-26 (integration, JFEc; D10): added from drafts/2026-10-26_econ_beta.tex (generator
+% writeup/make_rehaul_econ_beta.py, \rheb... macros; pre-registration results/econ_beta_2026-10-26/RULE.txt). The
+% closing-interval HAR strategy's sentences are parked (plan D2/D3); PENDING (NUMBERS): drop its "Closing HAR" column
+% from Table tab:rh_econ_beta and its claim from the generator's DRAFT CLAIMS ("GRS rejects for CI-HAR"). Bib entries
+% TreynorMazuy1966 and GibbonsRossShanken1989 are in writeup/references.bib.
+\subsection{Market exposure and allocation with the market}
+\label{app:rh_econ_beta}
+% 2026-10-26 (integration, coordinator: bullet structure): the lead prose recast as the first bold-lead item.
+\begin{itemize}
+\item \textbf{Question.} The sign strategy of Section~\ref{sec:rh_econ} holds one straddle over the last half hour of
+  the session. We ask whether its returns are a disguised position in the stock market, and what an investor who holds
+  the S\&P~500 gains by adding the strategy. The specification below was fixed before any of these statistics was
+  computed.
+\item \textbf{Returns.} The strategy's daily return $r^{s}_t$ (in percent of the premium, at mid-quotes unless noted)
+  is treated as an excess return, as in Section~\ref{sec:rh_econ_measures}. The market return $r^{m}_t$ is the
+  S\&P~500 close-to-close return of option day $t$, from the previous trading day's close, minus the return of the
+  three-month Treasury bill (FRED series DTB3, actual/360). It is a price return: the market's mean excess return
+  omits the dividend yield, which leaves the regression slopes and residuals unchanged. We also use $r^{30}_t$, the
+  index's own return from 15:30 ET to the close, the window of the trade.
+  \begin{itemize}
+  \item Over the \rhebNDays{} post-warmup days the market's excess return averages \rhebMktMean\% a day with a
+    standard deviation of \rhebMktSd\%, a Sharpe ratio of \rhebSRm{} (\rhebSRmAll{} over all \rhebNAll{} trading days
+    of the same span). Under the paper's ratio $\SR$ of Section~\ref{sec:rh_econ_measures}, which gives each calendar
+    year, including the partial first and last ones, the same weight, it is \rhebSRmDSix.
+  \item The decomposition of the maximum Sharpe ratio below holds for the ratio of the pooled daily returns, so every
+    Sharpe ratio in this subsection is $\sqrt{252}$ times the ratio of the mean to the standard deviation of the daily
+    returns unless it is marked as $\SR$. All $t$-statistics use Newey--West standard errors with bandwidth
+    $S = \rheHACS$ and fixed-$b$ critical values (Appendix~\ref{sec:rh_methods_tests}).
+  \end{itemize}
+% Parked (plan D2): in the next item, after "($R^2$ at most \rhebRsqFullMax).", Was: "The closing-interval HAR strategy
+% ($\beta = \rhebBetaCiHar$, $t = \rhebBetaTCiHar$) and the short straddle ($\beta = \rhebBetaShort$, $t =
+% \rhebBetaTShort$) are no different, nor are the \rhebNHarDistinctWord{} distinct HAR-set forecasts ($\beta$ from
+% \rhebBetaHarMin{} to \rhebBetaHarMax)."
+\item \textbf{No market beta} (Table~\ref{tab:rh_econ_beta}, Panel A). The correlation of the six full-set strategies
+  with the market is \rhebCorrFullMin{} to \rhebCorrFullMax, and their CAPM betas are \rhebBetaFullMin{} to
+  \rhebBetaFullMax{} percent of the premium per percent of market return ($t$ from \rhebBetaTFullMin{} to
+  \rhebBetaTFullMax); none of the six is significant at the 5\% level, at mid-quotes or at quoted bid/ask prices
+  ($R^2$ at most \rhebRsqFullMax). The short straddle ($\beta = \rhebBetaShort$, $t = \rhebBetaTShort$) is no
+  different, nor are the \rhebNHarDistinctWord{} distinct HAR-set forecasts ($\beta$ from \rhebBetaHarMin{} to
+  \rhebBetaHarMax).
+  \begin{itemize}
+  \item On the \rhebNDown{} days on which the market falls, the full-set strategies earn \rhebDownMeanFullMin{} to
+    \rhebDownMeanFullMax\% of the premium, against \rhebDownRestFullMin{} to \rhebDownRestFullMax\% on the other days;
+    none of the six differences is significant.
+  \item On the \rhebNWorst{} days with the lowest market return (at most \rhebWorstCut\%) every full-set strategy
+    has a negative mean return, \rhebWorstMeanFullMin{} to \rhebWorstMeanFullMax\% of the premium, against
+    \rhebWorstRestFullMin{} to \rhebWorstRestFullMax\% on the other days ($t$ of the difference from
+    \rhebWorstDiffTFullMin{} to \rhebWorstDiffTFullMax; significant at the 5\% level for \rhebWorstSigFullWord{} of
+    the six). The short straddle returns \rhebWorstMeanShort\% on these days ($t = \rhebWorstDiffTShort$). The
+    strategy has no linear exposure to the market, but like the short straddle it mostly is, it loses on the market's
+    worst days.
+  \end{itemize}
+\item \textbf{The convexity is in the trading window, not in the daily return.} In the regression of $r^{s}_t$ on
+  $r^{m}_t$ and $(r^{m}_t)^2$ \citep{TreynorMazuy1966}, the coefficient $\gamma$ on the squared market return is
+  \rhebTmGammaFullMin{} to \rhebTmGammaFullMax{} for the full-set strategies ($t$ from \rhebTmGammaTFullMin{} to
+  \rhebTmGammaTFullMax; none significant), and on the strategies' own long days
+  \rhebTmGammaLongFullMin{} to \rhebTmGammaLongFullMax{} ($t$ at most \rhebTmGammaLongTFullMax).
+  \begin{itemize}
+  \item Against the index's return over the trade's own half hour the straddle's payoff shows. On their long days
+    every full-set strategy loads positively on $(r^{30}_t)^2$, $\gamma$ from \rhebThirtyTmGammaLongFullMin{} to
+    \rhebThirtyTmGammaLongFullMax{} ($t$ from \rhebThirtyTmGammaLongTFullMin{} to \rhebThirtyTmGammaLongTFullMax),
+    and on their short days negatively, \rhebThirtyTmGammaShortFullMin{} to \rhebThirtyTmGammaShortFullMax{} ($t$
+    from \rhebThirtyTmGammaShortTFullMin{} to \rhebThirtyTmGammaShortTFullMax; percent of the premium per squared
+    percent of index return). These $t$-statistics are descriptive: the long and short days are not consecutive.
+  \item Over all days the full-set strategies are short the squared half-hour move, $\gamma$ from
+    \rhebThirtyTmGammaFullMin{} to \rhebThirtyTmGammaFullMax{} ($t$ from \rhebThirtyTmGammaTFullMin{} to
+    \rhebThirtyTmGammaTFullMax), against \rhebThirtyTmGammaShort{} ($t = \rhebThirtyTmGammaTShort$) for the short
+    straddle, and they carry no slope on its sign ($\beta$ on $r^{30}_t$ with $t$ at most
+    \rhebThirtyBetaTFullMax).
+  \end{itemize}
+% Parked (plan D2): the sub-item's first sentence, Was: "The closing-interval HAR strategy has $\alpha =
+% \rhebAlphaCiHar\%$ ($t = \rhebAlphaTCiHar$) and an appraisal ratio of \rhebARCiHar; the short straddle $\alpha =
+% \rhebAlphaShort\%$ ($t = \rhebAlphaTShort$)."
+\item \textbf{Alpha} (Panel B). The CAPM intercept of the full-set strategies is \rhebAlphaFullMin{} to
+  \rhebAlphaFullMax\% of the premium a day ($t$ from \rhebAlphaTFullMin{} to \rhebAlphaTFullMax, fixed-$b$ $p$ at most
+  \rhebAlphaPFullMax), with appraisal ratios $\alpha/\sigma_\varepsilon$ of \rhebARFullMin{} to \rhebARFullMax{}
+  (annualized by $\sqrt{252}$). With a beta near zero, $\alpha$ is close to the mean return and the appraisal ratio
+  to the strategy's own Sharpe ratio (\rhebSRsFullMin{} to \rhebSRsFullMax).
+  \begin{itemize}
+  \item The short straddle has $\alpha = \rhebAlphaShort\%$ ($t = \rhebAlphaTShort$). For the
+    \rhebNHarDistinctWord{} distinct HAR-set forecasts $\alpha$ is \rhebAlphaHarMin{} to \rhebAlphaHarMax\% ($t$ at
+    most \rhebAlphaTHarMax; none significant).
+  \end{itemize}
+% Parked (plan D2): in the next item, Was: "... ($p$ from \rhebGrsPFullMin{} to \rhebGrsPFullMax), and for the
+% closing-interval HAR strategy ($p = \rhebGrsPCiHar$), but not for the short straddle ($p = \rhebGrsPShort$)."
+\item \textbf{Maximum Sharpe ratio of the market and the strategy.} The tangency portfolio of the two reaches
+  $(\SR_m^2 + (\alpha/\sigma_\varepsilon)^2)^{1/2}$, \rhebSRmaxFullMin{} to \rhebSRmaxFullMax{} for the full-set
+  strategies against \rhebSRm{} for the market alone. Its gain over the market is significant exactly when $\alpha$
+  is: the one-asset test of \citet{GibbonsRossShanken1989} rejects $\alpha = 0$ for \rhebGrsSigFullWord{} of the six at
+  the 5\% level ($p$ from \rhebGrsPFullMin{} to \rhebGrsPFullMax), but not for the short straddle
+  ($p = \rhebGrsPShort$).
+  \begin{itemize}
+  \item In the tangency portfolio the strategy carries \rhebTanShareFullMin{} to \rhebTanShareFullMax\% of the
+    volatility. The market's Sharpe ratio over the sample is low, so the in-sample optimum is almost the strategy
+    alone; the strategy's leverage is arbitrary, so this share, not a dollar weight, is the allocation.
+  \item The paired block bootstrap of the gain, with the weights re-estimated in each resample, gives $p$ from
+    \rhebDSRmaxPFullMin{} to \rhebDSRmaxPFullMax{} (95\% intervals with lower ends from \rhebDSRmaxLoFullMin{} to
+    \rhebDSRmaxLoFullMax). The gain cannot be negative, so this test rejects in one tail only and its $p$ lies below
+    the GRS $p$: for the \rhebNHarDistinctWord{} distinct HAR-set forecasts it is below 5\% for
+    \rhebBootSigHarWord{} and the GRS $p$ for none. The GRS test and the $t$-statistic of $\alpha$ are the tests of
+    record.
+  \end{itemize}
+% Parked (plan D2): the last sub-item of the next item, Was: "\item With the closing-interval HAR strategy the two
+% rules reach \rhebRtMvCiHar{} ($p = \rhebRtMvPCiHar$) and \rhebRtIvCiHar{} ($p = \rhebRtIvPCiHar$), with the short
+% straddle \rhebRtMvShort{} and \rhebRtIvShort{}."
+\item \textbf{Real-time allocation} (Panel C, Figure~\ref{fig:rh_econ_beta_cum}). Each day the weights of the market
+  and the strategy are set from the earlier post-warmup days only. After a burn-in of \rhebNBurn{} days the
+  combinations are evaluated on the \rhebNRt{} days from \rhebRtFirst, over which the market alone has a Sharpe ratio
+  of \rhebSRmRt{} ($\SR = \rhebSRmRtDSix$). The largest of the strategies' best days, \rhebTopDate, falls in the
+  burn-in: it moves the estimated weights but not the evaluation.
+  \begin{itemize}
+  \item Mean--variance weights (expanding window, no short positions, neither leg above \rhebCap\% of the estimated
+    portfolio volatility) reach Sharpe ratios of \rhebRtMvFullMin{} to \rhebRtMvFullMax{} with the full-set
+    strategies. The estimated means put the strategy at the cap on every evaluation day, which amounts to a median of
+    \rhebRtMvWsFullMin{} to \rhebRtMvWsFullMax\% of capital in straddle premium; the rule is in effect a fixed split of
+    the risk at the cap. The gain over the market is significant at the 5\% level for none of the six (bootstrap $p$
+    from \rhebRtMvPFullMin{} to \rhebRtMvPFullMax; with $\SR$, \rhebRtMvDSixFullMin{} to \rhebRtMvDSixFullMax{} and
+    $p$ from \rhebRtMvDSixPFullMin{} to \rhebRtMvDSixPFullMax).
+  \item Inverse-volatility weights over the trailing \rhebNTrail{} days, which estimate no means and split the risk
+    equally (a median of at most \rhebRtIvWsFullMax\% of capital in premium), reach \rhebRtIvFullMin{} to
+    \rhebRtIvFullMax; the gain is significant for \rhebRtIvSigFullWord{} of the six ($p$ from \rhebRtIvPFullMin{} to
+    \rhebRtIvPFullMax; with $\SR$, for \rhebRtIvDSixSigFullWord).
+  \item With the short straddle the two rules reach \rhebRtMvShort{} and \rhebRtIvShort.
+  \end{itemize}
+\item \textbf{Quoted bid/ask prices} (Panel D). The betas are as at mid-quotes (\rhebBetaFullXMin{} to
+  \rhebBetaFullXMax, none significant). The intercept falls to \rhebAlphaFullXMin{} to \rhebAlphaFullXMax\% a day ($t$
+  from \rhebAlphaTFullXMin{} to \rhebAlphaTFullXMax), the GRS test rejects for \rhebGrsSigFullXWord{} of the six ($p$
+  up to \rhebGrsPFullXMax), and the maximum Sharpe ratio is \rhebSRmaxFullXMin{} to \rhebSRmaxFullXMax. In real time
+  the mean--variance combinations reach \rhebRtMvFullXMin{} to \rhebRtMvFullXMax{} and the inverse-volatility ones
+  \rhebRtIvFullXMin{} to \rhebRtIvFullXMax, and none is significantly above the market ($p$ at least
+  \rhebRtMvPFullXMin{} and \rhebRtIvPFullXMin).
+\item \textbf{Without the days that carry the gain} (Panel E). We remove the \rhebNBest{} days in the union of the six
+  full-set forecasts' best days (Table~\ref{tab:rh_econ_bestdays}) from every series, the market's included. The
+  selection uses the strategies' realized returns, so this is a stress test against them.
+  \begin{itemize}
+  \item The betas stay near zero (\rhebExBetaFullMin{} to \rhebExBetaFullMax, $t$ at most \rhebExBetaTFullMax). The
+    intercept falls to \rhebExAlphaFullMin{} to \rhebExAlphaFullMax\% a day ($t$ from \rhebExAlphaTFullMin{} to
+    \rhebExAlphaTFullMax), the maximum Sharpe ratio to \rhebExSRmaxFullMin{} to \rhebExSRmaxFullMax{} against
+    \rhebSRmEx{} for the market, and the GRS test rejects for \rhebExGrsSigFullWord{} of the six ($p$ from
+    \rhebExGrsPFullMin{} to \rhebExGrsPFullMax; at quoted bid/ask prices the $t$-test of $\alpha$ rejects for
+    \rhebExAlphaSigFullXWord).
+  \item The removed days are the short straddle's largest losses, so its intercept rises, to \rhebExAlphaShort\% a day
+    ($t = \rhebExAlphaTShort$), above that of the full-set strategies. What remains of their $\alpha$ is the premium
+    the short straddle earns on ordinary days, in line with Table~\ref{tab:rh_econ_bestdays}.
+  \item In real time no combination is significantly above the market (mean--variance \rhebExRtMvFullMin{} to
+    \rhebExRtMvFullMax, inverse volatility \rhebExRtIvFullMin{} to \rhebExRtIvFullMax, against \rhebSRmExRt).
+  \end{itemize}
+\item \textbf{Caveats.} The sample is short, \rheSzDays{} option days with one bear market, and the market's Sharpe
+  ratio over it is low, which makes the tangency portfolio almost all strategy. The strategies' gains over the short
+  straddle rest on the \rhebNBest{} days with large closing moves; the $t$-statistics allow for serial correlation, not
+  for a mean carried by a few days. Bid/ask prices lower every number. The market return omits dividends. The
+  strategies are tested without a correction for multiple testing.
+% 2026-10-26 (integration, coordinator: bullet structure): the closing paragraph of the draft recast as a bold-lead
+% item with sub-items, content kept.
+\item \textbf{Summary: market exposure and allocation.} The sign strategy is not a disguised position in the market.
+  \begin{itemize}
+  \item Its betas are near zero and insignificant, and the convexity of the straddle shows in the trade's half hour,
+    not in the daily market return.
+  \item Its intercept is significant, so in this sample a holder of the S\&P~500 would have given almost all of the
+    risk budget to the strategy.
+  \item In real time, the combinations reach Sharpe ratios of \rhebRtIvFullMin{} to \rhebRtMvFullMax{} at mid-quotes
+    against \rhebSRmRt{} for the market, but over \rhebNRt{} days that gain is not statistically significant for the
+    mean--variance weights, significant for \rhebRtIvSigFullWord{} of the six inverse-volatility combinations, and
+    for none at quoted bid/ask prices or without the \rhebNBest{} days that carry the strategies' gain over the short
+    straddle.
+  \end{itemize}
+\end{itemize}
+
+\input{generated/rehaul_econ_beta_table}
+\input{generated/rehaul_econ_beta_fig}
+
+% 2026-10-26 (integration, JFEc): moved here from 07_economics.tex (Results, Relation to intraday option-return
+% prediction; added there 2026-10-25: a moderate comparison with Maisch, Zhang, Ulrich and Zimmer, SSRN 7269778;
+% qualitative only, so no number of theirs is printed). The comparison in the conclusion stays with FRONT.
+\subsection{Relation to intraday option-return prediction}
+\label{app:rh_econ_maisch}
+% 2026-10-26 (integration, coordinator: bullet structure): the prose recast as bold-lead items with sub-items,
+% content kept.
+\begin{itemize}
+\item \textbf{Their design.} \citet{MaischZhangUlrichZimmer2026} also trade S\&P~500 index options on half-hourly
+  machine-learning forecasts, but they forecast the delta-hedged return of each contract from its characteristics
+  and sort the contracts into decile long--short portfolios every half hour. Their portfolio returns are computed at
+  mid-quotes, and they note that trading each option at its quoted bid and ask prices would erase a large share of
+  the profits.
+\item \textbf{How ours differs.} Our test differs in three respects:
+  \begin{itemize}
+  \item the forecast is the variance of the underlying over the closing half hour, set against the straddle's
+    implied variance;
+  \item the position is a single at-the-money 0DTE straddle a day, entered at 15:30 and held to expiration;
+  \item its Sharpe ratios are reported at quoted bid/ask prices as well as at mid-quotes.
+  \end{itemize}
+\item \textbf{Comparability.} Because the two designs differ in horizon, position, and sample period, their Sharpe
+  ratios are not directly comparable.
+\end{itemize}

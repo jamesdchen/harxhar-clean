@@ -54,7 +54,7 @@ OUTPUTS
   writeup/generated/rehaul_econ_e4_sizing.tex      Table E4  (tab:rh_econ_sizing)
   writeup/generated/rehaul_econ_fig_cumpnl.tex     float for figures/rehaul_econ_cumpnl.pdf  (fig:rh_econ_cumpnl)
   writeup/generated/rehaul_econ_fig_sizing.tex     float for figures/rehaul_econ_sizing.pdf  (fig:rh_econ_sizing)
-  writeup/generated/rehaul_econ_fig_byyear.tex     float for figures/rehaul_econ_byyear.pdf  (fig:rh_econ_byyear)
+  writeup/generated/rehaul_econ_fig_byyear.tex     float for figures/rehaul_econ_byyear.pdf  (fig:rh_econ_byyear_modelset; 2026-10-26: was fig:rh_econ_byyear)
   writeup/generated/rehaul_econ_numbers.tex        \\rhe... macros for the section's prose (not \\input by the floats)
   writeup/generated/rehaul_econ_sharpe_defs.tex    2026-10-22 (user, D6): robustness table of the Sharpe-ratio
                                                    definitions (tab:rh_econ_sharpe_defs)
@@ -191,7 +191,9 @@ TREE_EST = (("lgbm", "LightGBM"), ("xgb", "XGBoost"), ("rf", "Random forest"))
 # INTERIM_TREES = {"rf"}  # full-set pooled forest: interim 16:00 table
 TREE_MARK = {"lgbm": "a", "xgb": "a", "rf": "a"}
 INTERIM_TREES: set[str] = set()
-POOL_LIN_MARK = "a"  # 2026-10-22 (user, E34): E1 note a now describes every pooled row (one design), the linear ones too
+POOL_LIN_MARK = (
+    "a"  # 2026-10-22 (user, E34): E1 note a now describes every pooled row (one design), the linear ones too
+)
 # 2026-10-22 (user, E34): parked -- "30-minute grid" (the 48-interval grid of the earlier pooled linear rows); every
 # pooled row is now on the 13 regular-hours bars. Was: PANEL_POOL = "Pooled intraday models (30-minute grid)"
 PANEL_POOL = r"Pooled intraday models (\rhePoolNBars{} regular-hours intervals)"
@@ -225,9 +227,7 @@ FAM_LABEL = {
     "pooled": "Intraday",
     "short": "Short straddle",  # 2026-10-15 (consolidation): was "Always short" (guide section 6b)
 }
-TOP_DAYS = (
-    10  # the tail check: each forecast's 10 days of largest gain over always short
-)
+TOP_DAYS = 10  # the tail check: each forecast's 10 days of largest gain over always short
 GRID = "#d9d9d9"
 INK2 = "#52514e"
 
@@ -309,11 +309,7 @@ def sharpe_days_d1(x, dates=None) -> float:
     """2026-10-22 (user, D6): the per-year ratio of new-notes 15 (asl.sharpe_ann_by_year, N_y-weighted SR_y =
     mean_y / sd_y * sqrt(N_y)), the paper's ratio from 2026-10-18 to 2026-10-22: robustness table only ("D1")."""
     x = np.asarray(x, dtype=float)
-    return float(
-        asl.sharpe_ann_by_year(x, dates=_days_of(x, dates), combine="weighted")[
-            "sharpe"
-        ]
-    )
+    return float(asl.sharpe_ann_by_year(x, dates=_days_of(x, dates), combine="weighted")["sharpe"])
 
 
 def sharpe_days_252(x) -> float:
@@ -363,9 +359,7 @@ def hac_p(t: float) -> float:
 LW_CACHE: dict[tuple, float] = {}
 
 
-def lw_p(
-    series, key_a: str, key_b: str, col: str = "mid", block: int = hi.LW_BLOCK
-) -> float:
+def lw_p(series, key_a: str, key_b: str, col: str = "mid", block: int = hi.LW_BLOCK) -> float:
     """Ledoit-Wolf (2008) p of equal Sharpe ratios, forecast key_a against key_b, on the 614 post-warmup days."""
     k = (key_a, key_b, col, block)
     if k not in LW_CACHE:
@@ -430,9 +424,7 @@ def load():
     daily = daily[daily["key"].isin(model_set)].copy()
     daily["day"] = pd.to_datetime(daily["day"]).dt.normalize()
 
-    quotes = pd.read_parquet(
-        gui._QUOTE_BOOK, columns=["R", "exit", "bid_c", "bid_p", "ask_c", "ask_p"]
-    )
+    quotes = pd.read_parquet(gui._QUOTE_BOOK, columns=["R", "exit", "bid_c", "bid_p", "ask_c", "ask_p"])
     quotes.index = pd.to_datetime(quotes.index).normalize().astype("datetime64[ns]")
     book = pd.DataFrame(
         {
@@ -457,9 +449,7 @@ def load():
         assert np.allclose(cx, g["ret_crossed"], rtol=0, atol=1e-10), key
         f_s = (g["plain"] / g["iv_var"]).to_numpy(float)
         y_s = (g["rv_unclipped"] / g["iv_var"]).to_numpy(float)
-        es1 = np.abs(y_s - 1.0) * (
-            (np.minimum(f_s, y_s) <= 1.0) & (1.0 < np.maximum(f_s, y_s))
-        )
+        es1 = np.abs(y_s - 1.0) * ((np.minimum(f_s, y_s) <= 1.0) & (1.0 < np.maximum(f_s, y_s)))
         series[key] = pd.DataFrame(
             {
                 "q": g["q"],
@@ -601,12 +591,8 @@ def add_pooled_linear(series, fam) -> dict:
             ), key
             p0 = m["plain"].to_numpy(float)
             r0 = rv / p0
-            assert np.array_equal(
-                g["q"].to_numpy(float), np.where(p0 > iv, 1.0, -1.0)
-            ), key
-            assert np.allclose(g["s"].to_numpy(float), p0 - iv, rtol=1e-12, atol=0.0), (
-                key
-            )
+            assert np.array_equal(g["q"].to_numpy(float), np.where(p0 > iv, 1.0, -1.0)), key
+            assert np.allclose(g["s"].to_numpy(float), p0 - iv, rtol=1e-12, atol=0.0), key
             assert np.allclose(
                 g["qlike"].to_numpy(float),
                 r0 - np.log(r0) - 1.0,
@@ -628,13 +614,10 @@ def add_pooled_linear(series, fam) -> dict:
                 {
                     "q": q,
                     "mid": q * b["R"].to_numpy(float),
-                    "x": gui._crossed_return(
-                        q, b["ex"].to_numpy(), b["bid"].to_numpy(), b["ask"].to_numpy()
-                    ),
+                    "x": gui._crossed_return(q, b["ex"].to_numpy(), b["bid"].to_numpy(), b["ask"].to_numpy()),
                     "s": p - iv,
                     "qlike": ratio - np.log(ratio) - 1.0,
-                    "es1": np.abs(y_s - 1.0)
-                    * ((np.minimum(f_s, y_s) <= 1.0) & (1.0 < np.maximum(f_s, y_s))),
+                    "es1": np.abs(y_s - 1.0) * ((np.minimum(f_s, y_s) <= 1.0) & (1.0 < np.maximum(f_s, y_s))),
                     "R": b["R"].to_numpy(float),
                     "ex": b["ex"].to_numpy(float),
                     "bid": b["bid"].to_numpy(float),
@@ -678,24 +661,16 @@ def add_pooled_trees(series, fam) -> dict:
     #     p = pl.reindex(days).to_numpy(float)
     #     assert np.isfinite(p).all() and (p > 0).all(), (est, int((~np.isfinite(p)).sum()))
     for est, _ in TREE_EST:
-        if pt13.is_pending(
-            est
-        ):  # 2026-10-23 (final_run.py PENDING): not read; its rows print \rhPending{}
-            print(
-                f"pooled tree pooltree_{est}_all_features: PENDING (no final forecasts)"
-            )
+        if pt13.is_pending(est):  # 2026-10-23 (final_run.py PENDING): not read; its rows print \rhPending{}
+            print(f"pooled tree pooltree_{est}_all_features: PENDING (no final forecasts)")
             continue
         p = tree_16(est, "all_features", days, rv)
         q = np.where(p > iv, 1.0, -1.0)
         mid = q * b["R"].to_numpy(float)
-        x = gui._crossed_return(
-            q, b["ex"].to_numpy(), b["bid"].to_numpy(), b["ask"].to_numpy()
-        )
+        x = gui._crossed_return(q, b["ex"].to_numpy(), b["bid"].to_numpy(), b["ask"].to_numpy())
         ratio = rv / p
         f_s, y_s = p / iv, rv / iv
-        es1 = np.abs(y_s - 1.0) * (
-            (np.minimum(f_s, y_s) <= 1.0) & (1.0 < np.maximum(f_s, y_s))
-        )
+        es1 = np.abs(y_s - 1.0) * ((np.minimum(f_s, y_s) <= 1.0) & (1.0 < np.maximum(f_s, y_s)))
         key = f"pooltree_{est}_all_features"
         series[key] = pd.DataFrame(
             {
@@ -731,9 +706,7 @@ def add_pooled_trees(series, fam) -> dict:
         #     assert np.allclose(m["ret_crossed"].to_numpy(float), x, rtol=0, atol=1e-10), key
         # assert round(sharpe_days_252(mid[WARMUP:]) + 0.0, 2) == POOLTREE_SR[est], (key, sharpe_days_252(mid[WARMUP:]))
         # print(f"pooled tree {key}: 866-day SR {got:.4f} = {POOLTREE_LEVELS[est]}/levels.csv; printed SR {sharpe(mid):.2f}")
-        print(
-            f"pooled tree {key} (base 5, pt13): printed SR {sharpe(mid):.2f} mid, {sharpe(x):.2f} bid/ask"
-        )
+        print(f"pooled tree {key} (base 5, pt13): printed SR {sharpe(mid):.2f} mid, {sharpe(x):.2f} bid/ask")
         out[est] = key
     return out
 
@@ -768,12 +741,7 @@ def pooled_rank_series(series) -> dict:
     # 2026-10-23 (final_run.py PENDING): the finished trees only (a pending arm is not read). Was: for e in ("lgbm",
     # "xgb", "rf") in both loops below
     done = [e for e in ("lgbm", "xgb", "rf") if not pt13.is_pending(e)]
-    out.update(
-        {
-            f"pooltree_{e}_all_features": series[f"pooltree_{e}_all_features"]
-            for e in done
-        }
-    )
+    out.update({f"pooltree_{e}_all_features": series[f"pooltree_{e}_all_features"] for e in done})
     for est in done:
         # 2026-10-22 (user, E34): parked -- the base-2 HAR-benchmark trees. Was:
         # pl = plain_16(POOLTREE_DIR / f"yhat_pooltree_{est}_baseline.parquet")
@@ -788,8 +756,7 @@ def pooled_rank_series(series) -> dict:
             {
                 "mid": q * b["R"].to_numpy(float),
                 "qlike": ratio - np.log(ratio) - 1.0,
-                "es1": np.abs(y_s - 1.0)
-                * ((np.minimum(f_s, y_s) <= 1.0) & (1.0 < np.maximum(f_s, y_s))),
+                "es1": np.abs(y_s - 1.0) * ((np.minimum(f_s, y_s) <= 1.0) & (1.0 < np.maximum(f_s, y_s))),
             },
             index=days,
         )
@@ -902,11 +869,7 @@ def tree_est(key: str) -> str:
 
 
 def best_tree(series, fam, model_set, est) -> str:
-    cands = [
-        k
-        for k in model_set
-        if fam[k] == "tree" and "_all_features" in k and tree_est(k) == est
-    ]
+    cands = [k for k in model_set if fam[k] == "tree" and "_all_features" in k and tree_est(k) == est]
     return max(cands, key=lambda k: sharpe(series[k]["mid"]))
 
 
@@ -945,19 +908,13 @@ def tree_spec(key: str) -> str:
     # hyperparameters, random search) and "re-tuned daily" (Optuna, TUNE_PER = 1)
     if key.startswith("subtree_daily_"):
         return "fixed hyperparameters, re-estimated every trading session"
-    if key.startswith("subtree_tuned_daily_") or key.startswith(
-        "subtree_tunedq_daily_"
-    ):
+    if key.startswith("subtree_tuned_daily_") or key.startswith("subtree_tunedq_daily_"):
         return f"random search, re-estimated every trading session, selected on {loss}"
     if key.startswith("subtree_tuned") and "optuna" not in key:
         return f"random search, re-estimated every 10 trading days, selected on {loss}"
     if key.startswith("subtree_optuna"):
         tp = key.split("_tp")[1].split("_")[0]
-        k = (
-            key.split("_k")[1].split("_")[0]
-            if "_k" in key.split("_tp")[1][:8]
-            else "50"
-        )
+        k = key.split("_k")[1].split("_")[0] if "_k" in key.split("_tp")[1][:8] else "50"
         every = "every trading session" if tp == "1" else f"every {tp} trading days"
         return f"Optuna search ({k} trials), re-tuned {every}, selected on {loss}"
     if key.startswith("subtree_"):
@@ -1003,11 +960,7 @@ def with_pending_def(text: str) -> str:
 def pending_row(label: str, n_cells: int, end: str = "\\\\") -> str:
     """2026-10-23 (final_run.py PENDING): the row of a pending arm: every cell \\rhPending{}, the row marked with
     final_run.ROW_MARK (writeup/tests/check_pending.py)."""
-    return (
-        f"{label} & "
-        + " & ".join([fr.PENDING_TEX] * n_cells)
-        + f" {end} {fr.ROW_MARK}\n"
-    )
+    return f"{label} & " + " & ".join([fr.PENDING_TEX] * n_cells) + f" {end} {fr.ROW_MARK}\n"
 
 
 def pending_note() -> str:
@@ -1019,13 +972,9 @@ def pending_note() -> str:
 
 
 def write(path: Path, text: str) -> None:
-    text = with_pending_def(
-        text
-    )  # 2026-10-23 (final_run.py PENDING); unchanged when nothing is pending
+    text = with_pending_def(text)  # 2026-10-23 (final_run.py PENDING); unchanged when nothing is pending
     path.write_text(text, encoding="utf-8", newline="\n")
-    print(
-        "wrote", fr.rel(path)
-    )  # 2026-10-23: a test run writes outside the repository. Was: path.relative_to(ROOT)
+    print("wrote", fr.rel(path))  # 2026-10-23: a test run writes outside the repository. Was: path.relative_to(ROOT)
 
 
 HEADER = "% AUTO-GENERATED by writeup/make_rehaul_economics.py -- do not edit; re-run the script.\n"
@@ -1058,12 +1007,8 @@ HEADER = "% AUTO-GENERATED by writeup/make_rehaul_economics.py -- do not edit; r
 # in parentheses underneath; at most about 7 columns; Panel A/B; the guide's vocabulary; numbers in the notes are the
 # \rhe... macros of generated/rehaul_econ_numbers.tex, which every table \inputs if they are not yet defined.
 LEVELS = (0.10, 0.05, 0.01)
-STAR_NOTE = (
-    r"$^{*}$, $^{**}$ and $^{***}$ denote significance at the 10\%, 5\% and 1\% levels."
-)
-NUMBERS_GUARD = (
-    "\\ifdefined\\rheNdays\\else\\input{generated/rehaul_econ_numbers}\\fi\n"
-)
+STAR_NOTE = r"$^{*}$, $^{**}$ and $^{***}$ denote significance at the 10\%, 5\% and 1\% levels."
+NUMBERS_GUARD = "\\ifdefined\\rheNdays\\else\\input{generated/rehaul_econ_numbers}\\fi\n"
 # 2026-10-15 (consolidation): the Newey-West lag is q_NW (q_t is the position; NOTATION_GUIDE section 6b).
 # 2026-10-21 (user, decision #2): parked -- the lag-12 HAC t under each dSharpe. Was:
 # HAC_NOTE = (
@@ -1097,9 +1042,7 @@ def p_digits(p: float) -> str:
     """2026-10-21 (user): the bare digits of a two-sided p for "$p = ...$" in prose (\\rheEnetP); 2 decimals from
     0.10, else 3, 4 when a cut would blur (make_rehaul_results.mpval's rule). Below 0.001 the digits would read 0.000,
     so that case stops the run: the sentence then needs "$p < 0.001$" instead."""
-    assert np.isfinite(p) and 0.001 <= p <= 1.0, (
-        f"p = {p}: print p < 0.001 in the sentence instead"
-    )
+    assert np.isfinite(p) and 0.001 <= p <= 1.0, f"p = {p}: print p < 0.001 in the sentence instead"
     s = f"{p:.2f}" if p >= 0.10 else f"{p:.3f}"
     if s in ("0.10", "0.100", "0.050", "0.010"):  # keep the 10 / 5 / 1 % cuts visible
         s = f"{p:.4f}"
@@ -1274,11 +1217,7 @@ def float_head(label: str, what: str) -> str:
 def tree_specs(fam, model_set) -> int:
     """Specifications per tree estimator on the full predictor set in the model set (equal across estimators)."""
     n_trees = {
-        e: sum(
-            1
-            for k in model_set
-            if fam[k] == "tree" and "_all_features" in k and tree_est(k) == e
-        )
+        e: sum(1 for k in model_set if fam[k] == "tree" and "_all_features" in k and tree_est(k) == e)
         for e, _ in TREE_EST
     }
     assert len(set(n_trees.values())) == 1, n_trees
@@ -1331,9 +1270,7 @@ def table_e1(series, fam, model_set, trees) -> tuple[str, dict]:
             under.append(pbrack(p_bt))
         return rows2(label, top, under)
 
-    tree_specs(
-        fam, model_set
-    )  # asserts the estimators have equally many specifications
+    tree_specs(fam, model_set)  # asserts the estimators have equally many specifications
     # 2026-10-17 (user): parked -- Panel A closing-interval (OLS, linear, closing trees), Panel B intraday (linear).
     # Now Panel A = the pooled intraday models, trees included; Panel B = the closing-interval models. Was:
     # body = row(SHORT_LABEL, SHORT)
@@ -1528,11 +1465,7 @@ configuration per method, not re-tuned (Appendix~\ref{{sec:rh_exp_schemes}}). No
 
 
 def table_e2(series, fam, model_set) -> tuple[str, dict]:
-    pairs = [
-        (k, k.replace("_baseline", "_all_features"))
-        for k in model_set
-        if "_baseline" in k
-    ]
+    pairs = [(k, k.replace("_baseline", "_all_features")) for k in model_set if "_baseline" in k]
     pairs = [(b, a) for b, a in pairs if a in series]
     ps = {b: pair_stats(series, b, a) for b, a in pairs}
     # 2026-10-15 (user): NN content parked for now -- the MinGRU pair is off the table (console summary only)
@@ -1571,9 +1504,7 @@ def table_e2(series, fam, model_set) -> tuple[str, dict]:
 
     tree_keys = [b for b in ps if fam[b] == "tree"]
     n_each = {e: sum(tree_est(b) == e for b in tree_keys) for e, _ in TREE_EST}
-    assert len(set(n_each.values())) == 1, (
-        n_each
-    )  # the notes give one count per estimator
+    assert len(set(n_each.values())) == 1, n_each  # the notes give one count per estimator
     body = panel_head("Panel A: Closing-interval models", 5, first=True)
     for e in ("enet", "lasso", "ridge"):
         body += row(EST_NAME[e], ps[f"subpt_{e}_baseline"])
@@ -1587,27 +1518,31 @@ def table_e2(series, fam, model_set) -> tuple[str, dict]:
     # The pooled rows are the 13-bar rerun on the trees' design (poolpt13_*), outside the model set (its summary row
     # below keeps the master rows).
     ps13 = {
-        f"poolpt13_{e}_baseline": pair_stats(
-            series, f"poolpt13_{e}_baseline", f"poolpt13_{e}_all_features"
-        )
+        f"poolpt13_{e}_baseline": pair_stats(series, f"poolpt13_{e}_baseline", f"poolpt13_{e}_all_features")
         for e in ("enet", "lasso", "ridge")
     }
     for e in ("enet", "lasso", "ridge"):
         body += row(EST_NAME[e], ps13[f"poolpt13_{e}_baseline"])
     body += panel_head("Panel C: Medians across pairs", 5)
     for e, name in TREE_EST:
-        body += summary(
-            f"{name} (\\rheTreePairsEach)", [b for b in tree_keys if tree_est(b) == e]
-        )
+        body += summary(f"{name} (\\rheTreePairsEach)", [b for b in tree_keys if tree_est(b) == e])
     body += summary(r"All trees (\rheTreePairs)", tree_keys)
     body += summary(r"Model set (\rhePairs)", list(ps))
 
-    for e in (
-        "enet",
-        "lasso",
-        "ridge",
-    ):  # the note says the HAR-benchmark closing-interval fits trade as the OLS
-        assert (series[f"subpt_{e}_baseline"]["q"] == series[OLS]["q"]).all(), e
+    # 2026-10-26 (integration plan D9): the CI-HAR (OLS) is the rebuild under the current data chain, whose B leaves
+    # the early closes' post-close bars out, while the closing-interval penalized HAR fits keep the old B; they no
+    # longer trade as the OLS on every day, so the note counts the days. Was: for e in ("enet", "lasso", "ridge"):
+    # assert (series[f"subpt_{e}_baseline"]["q"] == series[OLS]["q"]).all(), e
+    n_q_diff = max(
+        int((series[f"subpt_{e}_baseline"]["q"] != series[OLS]["q"]).sum()) for e in ("enet", "lasso", "ridge")
+    )
+    same_pos_note = (
+        "On the HAR benchmark the three closing-interval linear models hold the same position as the closing-interval "
+        "OLS on every day, so they share its $\\SR$."
+        if n_q_diff == 0
+        else "On the HAR benchmark the three closing-interval linear models hold the same position as one another; "
+        f"they differ from the closing-interval OLS, rebuilt under the current data rules, on at most {n_q_diff} days."
+    )
     v = pd.DataFrame(ps.values())
     info = {
         "n": len(v),
@@ -1658,9 +1593,7 @@ def table_e2(series, fam, model_set) -> tuple[str, dict]:
 \item \textit{{Notes:}} Each pair is one model estimated on the HAR benchmark and on the full predictor set, with
 everything else unchanged, over the out-of-sample period ($T_{{\mathrm{{oos}}}} = \rheNdays$ trading days). $\SR$ is the
 annualized Sharpe ratio of the sign strategy; $\Delta\SR$ is the full-set minus the HAR-benchmark $\SR$, at
-mid-quotes and at quoted bid/ask prices, with the {HAC_NOTE}. On the HAR benchmark the three
-closing-interval linear models hold the same position as the closing-interval OLS on every day, so they share its
-$\SR$. Panel C gives medians across the closing-interval tree pairs (every hyperparameter specification in the model
+mid-quotes and at quoted bid/ask prices, with the {HAC_NOTE}. {same_pos_note} Panel C gives medians across the closing-interval tree pairs (every hyperparameter specification in the model
 set) and across all pairs of the \rheModelSetN{{}} forecasts of the model set, with the number of pairs whose
 Sharpe ratio difference is significantly positive at the 5\% level in brackets ({neg_clause}). {STAR_NOTE}
 \end{{tablenotes}}
@@ -1757,9 +1690,7 @@ def table_e3(series) -> tuple[str, list]:
             dmr = dm_test(p["qlike"].to_numpy(float), b["qlike"].to_numpy(float))
             dm = dmr["dm"]
             top = [
-                cell(
-                    s["sh_a"], starred=False
-                ),  # pooled intraday (the "new" leg of the pair)
+                cell(s["sh_a"], starred=False),  # pooled intraday (the "new" leg of the pair)
                 cell(s["sh_b"], starred=False),  # closing interval
                 # 2026-10-21 (user, decision #2): Ledoit-Wolf p on dSharpe (was n_stars / tstat of the HAC t)
                 # 2026-10-22 (user, D6): parked -- the Ledoit-Wolf p (lw_mid, lw_x); now the D6 bootstrap p
@@ -1769,9 +1700,7 @@ def table_e3(series) -> tuple[str, list]:
             ]
             under = ["", "", pbrack(s["bt_mid"]), pbrack(s["bt_x"]), tstat(dm)]
             body += rows2(EST_NAME[e], top, under)
-            rows_.append(
-                dict(est=e, set=set_, **s, dq=dq, dm=dm, dm_lag=dmr["hac_lag"])
-            )
+            rows_.append(dict(est=e, set=set_, **s, dq=dq, dm=dm, dm_lag=dmr["hac_lag"]))
     assert len({r["dm_lag"] for r in rows_}) == 1, rows_  # one lag in the notes
     tex = (
         float_head("Table E3", "closing-interval against intraday linear models")
@@ -1948,22 +1877,10 @@ def table_e4(series, model_set, trees) -> tuple[str, dict]:
 
     ms = {r: [sz[k][r] for k in model_set] for r, _ in RULES}
     med_mid = {r: float(np.median([v["sharpe_mid"] for v in ms[r]])) for r, _ in RULES}
-    med_x = {
-        r: float(np.median([v["sharpe_crossed"] for v in ms[r]])) for r, _ in RULES
-    }
-    beat_mid = {
-        r: int(sum(v["d_vs_sign"] > 0 for v in ms[r])) for r, _ in RULES if r != "sign"
-    }
-    beat_x = {
-        r: int(sum(v["d_vs_sign_x"] > 0 for v in ms[r]))
-        for r, _ in RULES
-        if r != "sign"
-    }
-    med_gain = {
-        r: float(np.median([v["d_vs_sign"] for v in ms[r]]))
-        for r, _ in RULES
-        if r != "sign"
-    }
+    med_x = {r: float(np.median([v["sharpe_crossed"] for v in ms[r]])) for r, _ in RULES}
+    beat_mid = {r: int(sum(v["d_vs_sign"] > 0 for v in ms[r])) for r, _ in RULES if r != "sign"}
+    beat_x = {r: int(sum(v["d_vs_sign_x"] > 0 for v in ms[r])) for r, _ in RULES if r != "sign"}
+    med_gain = {r: float(np.median([v["d_vs_sign"] for v in ms[r]])) for r, _ in RULES if r != "sign"}
     n = len(model_set)
 
     def block(field: str, short_v: float, med: dict, beat: dict) -> str:
@@ -1971,10 +1888,7 @@ def table_e4(series, model_set, trees) -> tuple[str, dict]:
             cells = [cell(sz[key][r][field], starred=False) for r, _ in RULES]
             return f"\\quad {label} & " + " & ".join(cells) + " \\\\\n"
 
-        out = (
-            rf"{SHORT_LABEL} & \multicolumn{{4}}{{c}}{{{cell(short_v, starred=False)} under every rule}} \\"
-            + "\n"
-        )
+        out = rf"{SHORT_LABEL} & \multicolumn{{4}}{{c}}{{{cell(short_v, starred=False)} under every rule}} \\" + "\n"
         # 2026-10-17 (user): parked -- closing trees under "Closing-interval models"; the tree rows are now the pooled
         # intraday trees, listed with the intraday models (first, as in Table E1). Was:
         # out += sub_head("Closing-interval models", 5)
@@ -2001,11 +1915,7 @@ def table_e4(series, model_set, trees) -> tuple[str, dict]:
         for k in reversed(PERBAR_ALL):
             out += row(EST_NAME[k.split("_")[1]], k)
         out += "\\addlinespace[2pt]\n"
-        out += (
-            r"Model set, median & "
-            + " & ".join(cell(med[r], starred=False) for r, _ in RULES)
-            + " \\\\\n"
-        )
+        out += r"Model set, median & " + " & ".join(cell(med[r], starred=False) for r, _ in RULES) + " \\\\\n"
         out += (
             r"Model set, number above sign & -- & "
             + " & ".join(f"{beat[r]}" for r, _ in RULES if r != "sign")
@@ -2081,9 +1991,7 @@ def table_sharpe_defs(dfd: pd.DataFrame) -> str:
     post-warmup days): D6 with its bootstrap p, D1, D2 with the Ledoit-Wolf p, and D6 on each side of 16 May 2022."""
     body = ""
     for _, r in dfd.iterrows():
-        if r[
-            "pending"
-        ]:  # 2026-10-23 (final_run.py PENDING): a pending class prints \rhPending{} in its five cells
+        if r["pending"]:  # 2026-10-23 (final_run.py PENDING): a pending class prints \rhPending{} in its five cells
             body += pending_row(r["name"], 5, "\\\\[2pt]")
             continue
         top = [
@@ -2135,9 +2043,7 @@ every weekday, and on the \rheSplitPostN{{}} days from that date, each subsample
 
 
 # ============================================================================= figures
-PREVIEW_DIR: Path | None = (
-    None  # --preview DIR: also write PNG previews there (never into writeup/figures)
-)
+PREVIEW_DIR: Path | None = None  # --preview DIR: also write PNG previews there (never into writeup/figures)
 
 
 def _preview(fig, stem: str) -> None:
@@ -2189,9 +2095,7 @@ def fig_cumpnl(series, key4: dict) -> dict:
 
     days = series[SHORT].index
     short = series[SHORT]["mid"]
-    fig, (ax1, ax2) = plt.subplots(
-        2, 1, figsize=(FIG_W, 4.4), sharex=True, layout="constrained"
-    )
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(FIG_W, 4.4), sharex=True, layout="constrained")
     for ax in (ax1, ax2):
         ax.axhline(0, color=GRID, lw=0.8, zorder=0)
         _style(ax)
@@ -2244,9 +2148,7 @@ def fig_cumpnl(series, key4: dict) -> dict:
     ax2.xaxis.set_major_locator(mdates.YearLocator())
     ax2.xaxis.set_major_formatter(mdates.DateFormatter("%Y"))
     ax2.set_xlim(days[0] - pd.Timedelta(days=10), days[-1] + pd.Timedelta(days=10))
-    handles = [legend_handle(f, marker=f != "short") for f in key4] + [
-        legend_handle("short", marker=False)
-    ]
+    handles = [legend_handle(f, marker=f != "short") for f in key4] + [legend_handle("short", marker=False)]
     labels = [lab for _, (_, lab) in key4.items()] + [SHORT_LABEL]
     # 2026-10-15 (table legibility): one row of five no longer fits the longer model-class labels; three columns,
     # read row by row (matplotlib fills legends by column, so interleave)
@@ -2287,9 +2189,7 @@ def fig_cumpnl(series, key4: dict) -> dict:
     return info
 
 
-def fig_sizing(
-    series, fam, model_set, sz: dict, short_mid: float, short_x: float, med_mid, med_x
-) -> None:
+def fig_sizing(series, fam, model_set, sz: dict, short_mid: float, short_x: float, med_mid, med_x) -> None:
     from matplotlib.lines import Line2D
 
     rule_names = [
@@ -2298,9 +2198,7 @@ def fig_sizing(
         "Full long,\nscaled short",
         "Rank of $|s|$",
     ]
-    fig, axes = plt.subplots(
-        1, 2, figsize=(FIG_W, 2.9), sharey=True, layout="constrained"
-    )
+    fig, axes = plt.subplots(1, 2, figsize=(FIG_W, 2.9), sharey=True, layout="constrained")
     rng = np.random.default_rng(20261015)
     jit = {k: rng.uniform(-0.26, 0.26) for k in model_set}
     order = [
@@ -2534,12 +2432,8 @@ def main() -> None:
     # trees = {est: f"subtree_daily_all_features_{est}" for est, _ in TREE_EST}
     # assert all(k in model_set and k in series for k in trees.values()), trees
     trees = add_pooled_trees(series, fam)
-    close_fixed = {
-        est: f"subtree_daily_all_features_{est}" for est, _ in TREE_EST
-    }  # for \\rheLgbmCloseFixedSh
-    assert all(k in model_set and k in series for k in close_fixed.values()), (
-        close_fixed
-    )
+    close_fixed = {est: f"subtree_daily_all_features_{est}" for est, _ in TREE_EST}  # for \\rheLgbmCloseFixedSh
+    assert all(k in model_set and k in series for k in close_fixed.values()), close_fixed
     e1, st = table_e1(series, fam, model_set, trees)
     e2, e2i = table_e2(series, fam, model_set)
     e3, e3r = table_e3(series)
@@ -2559,10 +2453,7 @@ def main() -> None:
     #     r2(st["subpt_enet_all_features"]["sh_x"]),
     # ) == (1.93, 1.56)
     def soft(got, was, what):
-        print(
-            ("NN15 holds: " if got == was else "NN15 CHANGED: ")
-            + f"{what} {got} (was {was})"
-        )
+        print(("NN15 holds: " if got == was else "NN15 CHANGED: ") + f"{what} {got} (was {was})")
 
     soft(
         (r2(st[SHORT]["sh_mid"]), r2(st[SHORT]["sh_x"])),
@@ -2618,10 +2509,7 @@ def main() -> None:
     )
     # 2026-10-21 (user): of those, the forecasts on the full predictor set (\rheSigVsShortFull; Section 7 and Appendix F
     # print both counts, no longer "all ... use the full predictor set")
-    sig_vs_short_full = sum(
-        gain_sig(k) and re.search(r"_all_features(?=_|$)", k) is not None
-        for k in model_set
-    )
+    sig_vs_short_full = sum(gain_sig(k) and re.search(r"_all_features(?=_|$)", k) is not None for k in model_set)
     assert sig_vs_short_full <= sig_vs_short, (sig_vs_short_full, sig_vs_short)
     print(
         f"model-set forecasts with a significant mean gain over short on the full predictor set: {sig_vs_short_full} of {sig_vs_short}"
@@ -2640,9 +2528,7 @@ def main() -> None:
     # }
     # 2026-10-23 (final_run.py PENDING): the figures' tree is the intraday LightGBM, which final_run never makes pending
     # (PENDING_TREES holds the forest only); stop rather than draw another model under its label
-    assert "lgbm" in trees, (
-        "the figures' intraday LightGBM is pending: final_run.PENDING_TREES lists the forest only"
-    )
+    assert "lgbm" in trees, "the figures' intraday LightGBM is pending: final_run.PENDING_TREES lists the forest only"
     key4 = {
         "linear": ("subpt_enet_all_features", "Closing-interval elastic net"),
         # "tree": (trees["lgbm"], "Closing-interval LightGBM"),  # 2026-10-17 (user): parked -- now the pooled tree
@@ -2656,12 +2542,8 @@ def main() -> None:
     # if sharpe(series[trees["xgb"]]["mid"]) > sharpe(series[trees["lgbm"]]["mid"]):
     #     raise ValueError("the best tree is not the LightGBM: relabel key4['tree']")
     # 2026-10-23 (final_run.py PENDING): over the finished trees. Was: sharpe(series[trees["xgb"]]["mid"]) > ...
-    if max(sharpe(series[k]["mid"]) for k in trees.values()) > sharpe(
-        series[trees["lgbm"]]["mid"]
-    ):
-        print(
-            "NN15 CHANGED: the best pooled tree is not the LightGBM (figure keeps key4['tree'] = LightGBM)"
-        )
+    if max(sharpe(series[k]["mid"]) for k in trees.values()) > sharpe(series[trees["lgbm"]]["mid"]):
+        print("NN15 CHANGED: the best pooled tree is not the LightGBM (figure keeps key4['tree'] = LightGBM)")
     cum = fig_cumpnl(series, key4)
     # 2026-10-15 (user): NN content parked for now -- the MinGRU is off the figure; its gain over the short straddle
     # (\rheGainNN, \rheGainExNN: kept defined, unused) as fig_cumpnl computes it
@@ -2786,7 +2668,9 @@ robust clip is above the sign strategy for {e4i["beat_mid"]["clip"]} of the {e4i
 Figure~\ref{{fig:rh_econ_cumpnl}} and the short-straddle benchmark (2020 to 2024: {", ".join(num(v) for v in ys)}); 2024 runs from
 January to April. Each year's ratio is $\SR_y$ of Section~\ref{{sec:rh_econ_measures}}, annualized by the square root of $A_y$, that year's option days per calendar year. Grey: the interquartile range
 and median of the {len(model_set)} forecasts of the model set (median {", ".join(num(v) for v in yrs["set_med"])}).}}
-\label{{fig:rh_econ_byyear}}
+% 2026-10-26 (integration, APPENDIX): label retired -- fig:rh_econ_byyear is the figure of make_rehaul_econ_main.py
+% (generated/rehaul_econ_byyear_fig.tex). Was: the label fig:rh_econ_byyear
+\label{{fig:rh_econ_byyear_modelset}}
 \end{{figure}}
 """
     )
@@ -2798,16 +2682,9 @@ and median of the {len(model_set)} forecasts of the model set (median {", ".join
     def m2(x: float, plus: bool = False) -> str:
         v = round(float(x), 2) + 0.0
         s = f"{abs(v):.2f}"
-        return (
-            r"\ensuremath{-}"
-            if v < 0
-            else (r"\ensuremath{+}" if plus and v > 0 else "")
-        ) + s
+        return (r"\ensuremath{-}" if v < 0 else (r"\ensuremath{+}" if plus and v > 0 else "")) + s
 
-    nums = (
-        HEADER
-        + "% \\rhe... macros for writeup/rehaul/07_economics.tex; values as in the rehaul_econ_* floats.\n"
-    )
+    nums = HEADER + "% \\rhe... macros for writeup/rehaul/07_economics.tex; values as in the rehaul_econ_* floats.\n"
     # 2026-10-18 (user, second-list N2): parked -- the comment said 866 days; trade_stats' Sharpe is on the post-warmup
     # days t > WARMUP (= \rheSzDays, 614; the same 0.77 as \rheSzShort). Was: "always short, Sharpe mid, 866 days"
     nums += mac(
@@ -2828,9 +2705,7 @@ and median of the {len(model_set)} forecasts of the model set (median {", ".join
         f"short straddle mean: fixed-b p = {short_p:.4f} < 0.05: reword 'indistinguishable from zero'"
     )
     nums += mac("rheShortP", p_digits(short_p), "... its two-sided fixed-b p")
-    nums += mac(
-        "rheShortHit", f"{100 * st[SHORT]['hit']:.1f}", "always short, hit rate %"
-    )
+    nums += mac("rheShortHit", f"{100 * st[SHORT]['hit']:.1f}", "always short, hit rate %")
     nums += mac(
         "rheEnetSh",
         m2(st["subpt_enet_all_features"]["sh_mid"]),
@@ -2853,9 +2728,7 @@ and median of the {len(model_set)} forecasts of the model set (median {", ".join
     # nn_st (the MinGRU is off E1): same values as st[NN_ALL] before
     # nums += mac("rheNNSh", m2(st[NN_ALL]["sh_mid"]), "MinGRU all features, Sharpe mid")
     # nums += mac("rheNNShX", m2(st[NN_ALL]["sh_x"]), "... crossed")
-    nums += mac(
-        "rheNNSh", m2(nn_st["sh_mid"]), "MinGRU all features, Sharpe mid (parked)"
-    )
+    nums += mac("rheNNSh", m2(nn_st["sh_mid"]), "MinGRU all features, Sharpe mid (parked)")
     nums += mac("rheNNShX", m2(nn_st["sh_x"]), "... crossed")
     nums += mac("rheNNBaseSh", m2(nb["sh_mid"]), "MinGRU HAR + calendar, Sharpe mid")
     nums += mac("rheNNBaseShX", m2(nb["sh_x"]), "... crossed")
@@ -2869,9 +2742,7 @@ and median of the {len(model_set)} forecasts of the model set (median {", ".join
         str(sig_vs_short_full),
         "... of which on the full predictor set (all_features)",
     )
-    nums += mac(
-        "rhePairs", str(e2i["n"]), "HAR + cal. -> all features pairs in the model set"
-    )
+    nums += mac("rhePairs", str(e2i["n"]), "HAR + cal. -> all features pairs in the model set")
     nums += mac("rhePairsUp", str(e2i["up"]), "... Sharpe mid higher with all features")
     # 2026-10-21 (user, decision #2): Ledoit-Wolf. Was: mac("rhePairsSig", str(e2i["sig"]), "... HAC t > 1.96")
     # 2026-10-22 (user, D6): the D6 bootstrap. Was: "... Sharpe mid higher and Ledoit-Wolf p < 0.05" (and "lower")
@@ -2956,10 +2827,7 @@ and median of the {len(model_set)} forecasts of the model set (median {", ".join
     # af_enet_lasso_sig = sum(
     #     e2i["pairs"][k]["lw_mid"] < 0.05 for k in ("subpt_enet_baseline", "subpt_lasso_baseline")
     # )
-    af_enet_lasso_sig = sum(
-        e2i["pairs"][k]["bt_mid"] < 0.05
-        for k in ("subpt_enet_baseline", "subpt_lasso_baseline")
-    )
+    af_enet_lasso_sig = sum(e2i["pairs"][k]["bt_mid"] < 0.05 for k in ("subpt_enet_baseline", "subpt_lasso_baseline"))
     print(
         "closing-interval enet / lasso, full vs HAR, D6 bootstrap p / Ledoit-Wolf p:",
         [
@@ -3007,9 +2875,7 @@ and median of the {len(model_set)} forecasts of the model set (median {", ".join
     sh_ms = pd.Series({k: sharpe(series[k]["mid"]) for k in model_set})
     ql_ms = pd.Series({k: float(series[k]["qlike"].mean()) for k in model_set})
     # 2026-10-20 (user, third-list 2): mean ES_1 on the post-warmup days. Was: float(series[k]["es1"].mean())
-    es_ms = pd.Series(
-        {k: float(series[k]["es1"].iloc[WARMUP:].mean()) for k in model_set}
-    )
+    es_ms = pd.Series({k: float(series[k]["es1"].iloc[WARMUP:].mean()) for k in model_set})
     rho_q = float(ql_ms.rank().corr(sh_ms.rank()))
     rho_es = float(es_ms.rank().corr(sh_ms.rank()))
     nums += mac(
@@ -3044,9 +2910,11 @@ and median of the {len(model_set)} forecasts of the model set (median {", ".join
     # are unchanged).
     pser = pooled_rank_series(series)
     sh_p = pd.Series({k: sharpe(v["mid"]) for k, v in pser.items()})
-    ql_p = pd.Series({k: float(v["qlike"].mean()) for k, v in pser.items()})
-    # 2026-10-20 (user, third-list 2): post-warmup ES_1. Was: float(v["es1"].mean())
+    # 2026-10-26 (integration, ECON; audit results-13): mean QLIKE on the post-warmup days, the days of ES_1 and of the
+    # Sharpe ratio. Was: float(v["qlike"].mean()) (all N_OPT days)
     assert all(len(v) == N_OPT for v in pser.values())
+    ql_p = pd.Series({k: float(v["qlike"].iloc[WARMUP:].mean()) for k, v in pser.items()})
+    # 2026-10-20 (user, third-list 2): post-warmup ES_1. Was: float(v["es1"].mean())
     es_p = pd.Series({k: float(v["es1"].iloc[WARMUP:].mean()) for k, v in pser.items()})
     # 2026-10-22 (user, E34): parked -- the base-2 trees' Sharpe ratios of record; the full-set rows of pser are the
     # series of add_pooled_trees (asserted). Was:
@@ -3070,6 +2938,26 @@ and median of the {len(model_set)} forecasts of the model set (median {", ".join
         "rheRankCorrESPool",
         m2(float(es_p.rank().corr(sh_p.rank()))),
         f"Spearman rank correlation of mean ES_1 with post-warmup Sharpe mid across the {n_pool} pooled intraday forecasts",
+    )
+    # 2026-10-26 (integration, ECON; audit results-12): the same correlations over the DISTINCT pooled forecasts (the
+    # HAR-set ridge, lasso and elastic net coincide with the pooled OLS: one of them is kept, the ridge's)
+    dup = [k for k in pser if k.endswith("_baseline") and ("_lasso_" in k or "_enet_" in k)]
+    keep = [k for k in pser if k not in dup]
+    nums += mac(
+        "rheRankCorrQPoolDistinct",
+        m2(float(ql_p[keep].rank().corr(sh_p[keep].rank()))),
+        f"Spearman of mean QLIKE with post-warmup Sharpe mid across the {len(keep)} distinct pooled forecasts",
+    )
+    nums += mac(
+        "rheRankCorrESPoolDistinct",
+        m2(float(es_p[keep].rank().corr(sh_p[keep].rank()))),
+        f"Spearman of mean ES_1 with post-warmup Sharpe mid across the {len(keep)} distinct pooled forecasts",
+    )
+    nums += mac("rhePoolNDistinct", str(len(keep)), "distinct pooled intraday forecasts (HAR-set linear counted once)")
+    nums += mac(
+        "rhePoolShMedDistinct",
+        m2(float(sh_p[keep].median())),
+        "median post-warmup Sharpe mid over the distinct pooled forecasts",
     )
     # 2026-10-23 (final_run.py PENDING): how many pooled forecasts the statistics above and below run over (the finished
     # ones; = \rhrPoolN of make_rehaul_results.py) and how many the paper counts (= \rhrPoolNAll)
@@ -3142,11 +3030,7 @@ and median of the {len(model_set)} forecasts of the model set (median {", ".join
     # 2026-10-15 (table legibility): the numbers the table notes and the figure caption used to type, as macros
     def mdp(x: float, dp: int, plus: bool = False) -> str:
         v = round(float(x), dp) + 0.0
-        sgn = (
-            r"\ensuremath{-}"
-            if v < 0
-            else (r"\ensuremath{+}" if plus and v > 0 else "")
-        )
+        sgn = r"\ensuremath{-}" if v < 0 else (r"\ensuremath{+}" if plus and v > 0 else "")
         return sgn + f"{abs(v):.{dp}f}"
 
     # 2026-10-18 (user, new-notes 19): the May 2022 subsample split of the 15:30 sign strategy on the \rhrPoolN pooled
@@ -3158,19 +3042,13 @@ and median of the {len(model_set)} forecasts of the model set (median {", ".join
     SPLIT = pd.Timestamp("2022-05-16")
     pdays = series[SHORT].index[WARMUP:]
     pre_m = np.asarray(pdays < SPLIT)
-    assert (
-        len(pdays) == 614 and pd.Timestamp(pdays[0]).date().isoformat() == "2021-08-11"
-    ), (len(pdays), pdays[0])
+    assert len(pdays) == 614 and pd.Timestamp(pdays[0]).date().isoformat() == "2021-08-11", (len(pdays), pdays[0])
     assert int(pre_m.sum()) == 125 and int((~pre_m).sum()) == 489, (
         int(pre_m.sum()),
         int((~pre_m).sum()),
     )
-    assert pd.Timestamp(pdays[pre_m][-1]).date().isoformat() == "2022-05-13", pdays[
-        pre_m
-    ][-1]
-    assert pd.Timestamp(pdays[~pre_m][0]).date().isoformat() == "2022-05-16", pdays[
-        ~pre_m
-    ][0]
+    assert pd.Timestamp(pdays[pre_m][-1]).date().isoformat() == "2022-05-13", pdays[pre_m][-1]
+    assert pd.Timestamp(pdays[~pre_m][0]).date().isoformat() == "2022-05-16", pdays[~pre_m][0]
     side_days = {"Pre": pdays[pre_m], "Post": pdays[~pre_m]}
     want_ny = {"Pre": {2021: 64, 2022: 61}, "Post": {2022: 158, 2023: 248, 2024: 83}}
 
@@ -3181,9 +3059,7 @@ and median of the {len(model_set)} forecasts of the model set (median {", ".join
     def split_sr(r, side: str) -> float:
         m = pre_m if side == "Pre" else ~pre_m
         out = hi.d6_sharpe(np.asarray(r, float)[WARMUP:][m], dates=side_days[side])
-        assert {int(y): int(v[0]) for y, v in out["by_year"].items()} == want_ny[
-            side
-        ], (side, out["by_year"])
+        assert {int(y): int(v[0]) for y, v in out["by_year"].items()} == want_ny[side], (side, out["by_year"])
         return float(out["sharpe"])
 
     bS = series[OLS]
@@ -3207,17 +3083,11 @@ and median of the {len(model_set)} forecasts of the model set (median {", ".join
         # pl.index = pl.index.astype(bS.index.dtype)
         # q = np.where(pl.reindex(bS.index).to_numpy(float) > IV_S, 1.0, -1.0)
         RV_S = _ref.reindex(bS.index)["rv_unclipped"].to_numpy(float)
-        q = np.where(
-            tree_16(k.split("_")[1], "baseline", bS.index, RV_S) > IV_S, 1.0, -1.0
-        )
+        q = np.where(tree_16(k.split("_")[1], "baseline", bS.index, RV_S) > IV_S, 1.0, -1.0)
         assert np.array_equal(q * R_S, v["mid"].to_numpy(float)), k
-        return gui._crossed_return(
-            q, bS["ex"].to_numpy(), bS["bid"].to_numpy(), bS["ask"].to_numpy()
-        )
+        return gui._crossed_return(q, bS["ex"].to_numpy(), bS["bid"].to_numpy(), bS["ask"].to_numpy())
 
-    assert len(pser) == n_pool == fr.pool_n(), len(
-        pser
-    )  # 2026-10-23 (final_run.py PENDING). Was: == 12
+    assert len(pser) == n_pool == fr.pool_n(), len(pser)  # 2026-10-23 (final_run.py PENDING). Was: == 12
     split_rows = []
     for k, v in pser.items():
         mid, x = v["mid"].to_numpy(float), crossed_of(k, v)
@@ -3281,12 +3151,8 @@ and median of the {len(model_set)} forecasts of the model set (median {", ".join
                 mdp(c.median(), 2),
                 "median Sharpe ratio " + what,
             )
-            nums += mac(
-                f"rheSplit{side}Min{f}", mdp(c.min(), 2), "lowest Sharpe ratio " + what
-            )
-            nums += mac(
-                f"rheSplit{side}Max{f}", mdp(c.max(), 2), "highest Sharpe ratio " + what
-            )
+            nums += mac(f"rheSplit{side}Min{f}", mdp(c.min(), 2), "lowest Sharpe ratio " + what)
+            nums += mac(f"rheSplit{side}Max{f}", mdp(c.max(), 2), "highest Sharpe ratio " + what)
             nums += mac(
                 f"rheSplit{side}Pos{f}",
                 str(int((c > 0).sum())),
@@ -3296,9 +3162,7 @@ and median of the {len(model_set)} forecasts of the model set (median {", ".join
                 f"rheSplit{side}Short{f}",
                 mdp(shS[side + f], 2),
                 "always-short straddle Sharpe ratio "
-                + what.split(f", {n_pool} pooled")[
-                    0
-                ]  # 2026-10-23: was what.split(", 12")[0]
+                + what.split(f", {n_pool} pooled")[0]  # 2026-10-23: was what.split(", 12")[0]
                 + ", D6 SR",
             )
 
@@ -3345,21 +3209,14 @@ and median of the {len(model_set)} forecasts of the model set (median {", ".join
         assert abs(bt_["delta"] - row_["d6"]) < 1e-10, (k, bt_["delta"], row_["d6"])
         def_rows.append(row_)
     dfd = pd.DataFrame(def_rows).set_index("tok")
-    dfd_done = dfd[
-        ~dfd["pending"]
-    ]  # 2026-10-23 (final_run.py PENDING): the finished classes, every statistic below
-    print(
-        "D6 robustness of the Sharpe-ratio definition (full minus HAR, mid, 614 days):\n"
-        + dfd.round(4).to_string()
-    )
+    dfd_done = dfd[~dfd["pending"]]  # 2026-10-23 (final_run.py PENDING): the finished classes, every statistic below
+    print("D6 robustness of the Sharpe-ratio definition (full minus HAR, mid, 614 days):\n" + dfd.round(4).to_string())
 
     def p_mac(p: float) -> str:
         return p_digits(p) if p >= 0.001 else r"\ensuremath{<}0.001"
 
     for tok_, r_ in dfd.iterrows():
-        if r_[
-            "pending"
-        ]:  # 2026-10-23 (final_run.py PENDING): every macro of a pending class is \rhPending{}
+        if r_["pending"]:  # 2026-10-23 (final_run.py PENDING): every macro of a pending class is \rhPending{}
             for stem_ in ("DSix", "BootP", "DOne", "DTwo", "LWP", "Pre", "Post"):
                 nums += mac(
                     f"rheDef{stem_}{tok_}",
@@ -3372,9 +3229,7 @@ and median of the {len(model_set)} forecasts of the model set (median {", ".join
             m2(r_["d6"], plus=True),
             f"pooled {r_['name']}: D6 Sharpe mid, full minus HAR (614 days)",
         )
-        nums += mac(
-            f"rheDefBootP{tok_}", p_mac(r_["bt"]), "... its D6 bootstrap p (two-sided)"
-        )
+        nums += mac(f"rheDefBootP{tok_}", p_mac(r_["bt"]), "... its D6 bootstrap p (two-sided)")
         nums += mac(
             f"rheDefDOne{tok_}",
             m2(r_["d1"], plus=True),
@@ -3408,11 +3263,7 @@ and median of the {len(model_set)} forecasts of the model set (median {", ".join
         "rheDefN",
         str(n_def),
         "pooled classes in the Sharpe-definition robustness table"
-        + (
-            ""
-            if n_def == len(dfd)
-            else " with a finished final run (rheDefNAll with the pending ones)"
-        ),
+        + ("" if n_def == len(dfd) else " with a finished final run (rheDefNAll with the pending ones)"),
     )
     nums += mac(
         "rheDefNAll",
@@ -3455,15 +3306,9 @@ and median of the {len(model_set)} forecasts of the model set (median {", ".join
 
     days = series[SHORT].index
     assert len(days) == 866 and len({r["dm_lag"] for r in e3r}) == 1
-    nums += mac(
-        "rheNdays", str(len(days)), "T_oos: trading days of the out-of-sample period"
-    )
-    nums += mac(
-        "rheSampleStart", f"{days[0].day} {days[0]:%B %Y}", "first out-of-sample day"
-    )
-    nums += mac(
-        "rheSampleEnd", f"{days[-1].day} {days[-1]:%B %Y}", "last out-of-sample day"
-    )
+    nums += mac("rheNdays", str(len(days)), "T_oos: trading days of the out-of-sample period")
+    nums += mac("rheSampleStart", f"{days[0].day} {days[0]:%B %Y}", "first out-of-sample day")
+    nums += mac("rheSampleEnd", f"{days[-1].day} {days[-1]:%B %Y}", "last out-of-sample day")
     # 2026-10-21 (user, decision #2): parked -- \rheHACLag (12, floor(1.5 T^(1/3))). Was:
     # nums += mac("rheHACLag", str(HAC_LAG), "Newey-West lag q of every HAC t (floor(1.5 T^(1/3)))")
     hac_cv = hi.fixedb_cv(HAC_B)
@@ -3485,27 +3330,17 @@ and median of the {len(model_set)} forecasts of the model set (median {", ".join
         f"{hac_cv:.2f}",
         "two-sided 5 % fixed-b critical value at b = S/T (simulated)",
     )
-    nums += mac(
-        "rheLWBlock", str(hi.LW_BLOCK), "block length of the Ledoit-Wolf bootstrap"
-    )
-    nums += mac(
-        "rheLWBlockLo", str(hi.LW_BLOCK_ALT[0]), "... sensitivity: shorter block"
-    )
-    nums += mac(
-        "rheLWBlockHi", str(hi.LW_BLOCK_ALT[1]), "... sensitivity: longer block"
-    )
-    nums += mac(
-        "rheLWBoot", f"{hi.LW_BOOT:,}".replace(",", "{,}"), "bootstrap resamples"
-    )
+    nums += mac("rheLWBlock", str(hi.LW_BLOCK), "block length of the Ledoit-Wolf bootstrap")
+    nums += mac("rheLWBlockLo", str(hi.LW_BLOCK_ALT[0]), "... sensitivity: shorter block")
+    nums += mac("rheLWBlockHi", str(hi.LW_BLOCK_ALT[1]), "... sensitivity: longer block")
+    nums += mac("rheLWBoot", f"{hi.LW_BOOT:,}".replace(",", "{,}"), "bootstrap resamples")
     # 2026-10-22 (user, D6): the bootstrap of the D6 Sharpe-ratio difference (hac_inference.d6_diff_test)
     nums += mac(
         "rheBootBlock",
         str(hi.LW_BLOCK),
         "block length of the D6 bootstrap (= the Ledoit-Wolf block)",
     )
-    nums += mac(
-        "rheBootN", f"{hi.LW_BOOT:,}".replace(",", "{,}"), "D6 bootstrap resamples"
-    )
+    nums += mac("rheBootN", f"{hi.LW_BOOT:,}".replace(",", "{,}"), "D6 bootstrap resamples")
     _yy = hi.d6_years(pw_days())
     assert _yy["N"] == {2021: 64, 2022: 219, 2023: 248, 2024: 83}, _yy["N"]
     for y_, nm_ in zip(sorted(_yy["A"]), ("One", "Two", "Three", "Four")):
@@ -3514,9 +3349,7 @@ and median of the {len(model_set)} forecasts of the model set (median {", ".join
             str(y_),
             f"D6: calendar year {nm_} of the 614 post-warmup days",
         )
-        nums += mac(
-            f"rheDSixN{nm_}", str(_yy["N"][y_]), "... N_y, its post-warmup option days"
-        )
+        nums += mac(f"rheDSixN{nm_}", str(_yy["N"][y_]), "... N_y, its post-warmup option days")
         nums += mac(
             f"rheDSixCov{nm_}",
             f"{_yy['coverage'][y_]:.3f}",
@@ -3589,15 +3422,11 @@ and median of the {len(model_set)} forecasts of the model set (median {", ".join
         f"{lm['span'][0].day} {lm['span'][0]:%B %Y}",
         "pooled intraday models: first evaluation day of the rolling-window walk",
     )
-    nums += mac(
-        "rheTreePairs", str(e2i["n_tree"]), "HAR -> full-set tree pairs (E2 Panel C)"
-    )
+    nums += mac("rheTreePairs", str(e2i["n_tree"]), "HAR -> full-set tree pairs (E2 Panel C)")
     nums += mac("rheTreePairsEach", str(e2i["n_tree_each"]), "... per estimator")
     nums += mac("rheSzWarmup", str(WARMUP), "sizing: days that only build the scale")
     nums += mac("rheSzDays", str(e4i["n_days"]), "sizing: days scored")
-    nums += mac(
-        "rheTopDays", str(TOP_DAYS), "the tail check: days of largest gain dropped"
-    )
+    nums += mac("rheTopDays", str(TOP_DAYS), "the tail check: days of largest gain dropped")
     nums += mac(
         "rheTopRMin",
         f"{min_r:.2f}",
@@ -3606,9 +3435,7 @@ and median of the {len(model_set)} forecasts of the model set (median {", ".join
     )
     # 2026-10-15 (user): NN content parked for now -- \rheGainNN / \rheGainExNN stay defined (unused), from cum[NN_ALL]
     keys4 = {f: key for f, (key, _) in key4.items()} | {"nn": NN_ALL}
-    names4 = {f: lab for f, (_, lab) in key4.items()} | {
-        "nn": "Closing-interval MinGRU (parked)"
-    }
+    names4 = {f: lab for f, (_, lab) in key4.items()} | {"nn": "Closing-interval MinGRU (parked)"}
     for f, nm in (
         ("linear", "Enet"),
         ("tree", "Lgbm"),
@@ -3664,17 +3491,13 @@ and median of the {len(model_set)} forecasts of the model set (median {", ".join
     )
     for est in ("enet", "lasso", "ridge"):
         for pre in ("subpt", "poolpt", "poolpt13"):
-            p = (e2i["pairs13"] if pre == "poolpt13" else e2i["pairs"])[
-                f"{pre}_{est}_baseline"
-            ]
+            p = (e2i["pairs13"] if pre == "poolpt13" else e2i["pairs"])[f"{pre}_{est}_baseline"]
             print(
                 f"  {pre} {est}: {p['sh_b']:.2f} -> {p['sh_a']:.2f} d {p['d_mid']:+.2f} (t {p['t_mid']:.2f}) "
                 f"x {p['d_x']:+.2f} (t {p['t_x']:.2f})"
             )
     p = e2i["nn"]
-    print(
-        f"  MinGRU: {p['sh_b']:.2f} -> {p['sh_a']:.2f} d {p['d_mid']:+.2f} (t {p['t_mid']:.2f})"
-    )
+    print(f"  MinGRU: {p['sh_b']:.2f} -> {p['sh_a']:.2f} d {p['d_mid']:+.2f} (t {p['t_mid']:.2f})")
     print("E3:")
     for r in e3r:
         print(
@@ -3704,10 +3527,7 @@ and median of the {len(model_set)} forecasts of the model set (median {", ".join
     )
     print(
         "by year:",
-        {
-            k: [round(x, 2) for x in v] if isinstance(v, list) else v
-            for k, v in yrs.items()
-        },
+        {k: [round(x, 2) for x in v] if isinstance(v, list) else v for k, v in yrs.items()},
     )
 
 

@@ -15,18 +15,21 @@
 % 2026-10-23 (user, RR / E19): the pooled variable importance on the final runs (W = 3,000), writeup/make_rehaul_fi_pooled.py
 % from results/tree_shap_w3000_2014start_2026-10-23 and results/fi_by_window_2014start_2026-10-22. Each generated float
 % loads generated/rehaul_fip_numbers.tex (guarded) for its notes. The parked closing-interval floats follow.
+% 2026-10-26 (integration, JFEc): the main-text floats of Section sec:rh_fi are three: the shares table (what the models use), the
+% feature-count ladder (fig:rh_ladder, generated/rehaul_ladder_fig.tex, written by NUMBERS from results/ladder_2026-10-26;
+% pre-patch FOMC design) and the late-starting series by year. The other pooled floats moved with their text to the
+% online appendix, rehaul/A_fi.tex.
 % Shares by category and class, trees (mean |SHAP|) beside the linear models (|gamma|), D with intervals, concentration
 \input{generated/rehaul_fip_shares}
-% The leading non-standard series: share, rank (trees, ridge), response shape, interaction fraction
-\input{generated/rehaul_fip_nonstd}
-% The 46 exogenous series ranked, trees vs ridge
-\input{generated/rehaul_fip_fig_rank}
-% Over time: non-standard share by year (trees, linear models) and the leading series by year (LightGBM, ridge)
-\input{generated/rehaul_fip_fig_time}
+% 2026-10-26 (integration, JFEc): moved -- \input{generated/rehaul_fip_nonstd} (tab:rh_fip_nonstd) -> rehaul/A_fi.tex, app:rh_fi_rank.
+% 2026-10-26 (integration, JFEc): moved -- \input{generated/rehaul_fip_fig_rank} (fig:rh_fip_rank) -> rehaul/A_fi.tex, app:rh_fi_rank.
+% 2026-10-26 (integration, JFEc): moved -- \input{generated/rehaul_fip_fig_time} (fig:rh_fip_time) -> rehaul/A_fi.tex, app:rh_fi_rank.
+% 2026-10-26 (integration, JFEc): added -- the feature-count ladder, QLIKE against the number of exogenous series k, each model and the HAR
+% benchmark and full-set lines (label fig:rh_ladder; NUMBERS builds the file).
+\input{generated/rehaul_ladder_fig}
 % 2026-10-26 (user): the late-starting series by year, live years shaded (writeup/make_rehaul_fi_live.py).
-\input{generated/rehaul_fi_live_fig}
-% Conditional: by bar of the day, FOMC statement days, VIX tercile
-\input{generated/rehaul_fip_fig_cond}
+% 2026-10-26 (coordinator, JFEc page budget): moved -- \input{generated/rehaul_fi_live_fig} (fig:rh_fi_live) -> rehaul/A_fi.tex, app:rh_fi_rank.
+% 2026-10-26 (integration, JFEc): moved -- \input{generated/rehaul_fip_fig_cond} (fig:rh_fip_cond) -> rehaul/A_fi.tex, app:rh_fi_cond.
 
 % Source: results/feature_importance_1530_dedup/fig_ranked_all_features.png (raster)
 % 2026-10-15 (user): parked -- non-standard figure; focus on legible tables

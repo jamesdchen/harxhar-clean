@@ -440,7 +440,10 @@ def run_gates(D: dict, A16: pd.DataFrame, ABar: pd.DataFrame) -> None:
         cells = row[0:3] if s == "baseline" else row[3:6]
         want = [oos.fmt(r.mse * 10.0**MSE_EXP, 2), f"{r.qlike:.4f}", oos.fmt(r.r2_oos_pct, 1)]
         gate("T1 printed", f"{e} {s}", want, cells)
-        for tag in ("A", "B"):
+        # 2026-10-26 (integration, audit numbers-14): Table 1's subperiod B now starts on 2 January 2020 (1,083 days, so
+        # A and B cover every evaluation day), while this table's T_close keeps the 1,082 days from 3 January 2020;
+        # only subperiod A is the same span here. Was: for tag in ("A", "B"):
+        for tag in ("A",):
             sp = "Pre" if tag == "A" else "Oos"
             rs = ABar[(ABar.model == e) & (ABar.set == s) & (ABar.span == sp)].iloc[0]
             ms = sub[(sub.model == e) & (sub.set == s) & (sub.tag == tag) & sub.against.isna()].iloc[0]
@@ -937,11 +940,14 @@ def write_macros(
     M.add("rhcaNCiLowerSigBm", str(int(((ci.gap < 0) & (ci.gap_p < SIG)).sum())), "... significantly")
     M.add("rhcaNCi", str(len(ci)), "closing-interval models other than the benchmark")
     ci_har = ci[(ci.set == "baseline") & ci.model.isin(LIN)]
-    bound = 0.01
+    # 2026-10-26 (integration plan D9): the rebuilt CI-HAR's B leaves the early closes' post-close bars out, the
+    # closing-interval HAR-set ridge / lasso / elastic net keep the old B, so they now sit about 0.7 % from it; the
+    # bound is the largest gap rounded up to 0.1 %. Was: bound = 0.01 (asserted), printed with two decimals
+    bound = float(np.ceil(10.0 * ci_har.gap.abs().max()) / 10.0)
     assert (ci_har.gap.abs() < bound).all(), ci_har.gap
     M.add(
         "rhcaCiHarGapBound",
-        f"{bound:.2f}",
+        f"{bound:.1f}",
         "|QLIKE %| of the closing-interval HAR-set linear models vs the benchmark is below",
     )
     # calibration aggregates (Oos and Pre, every bar and 16:00)
@@ -1233,13 +1239,16 @@ def write_accuracy_table(A16: pd.DataFrame) -> None:
     head("Panel A: \\rhcaStartSpan{} to \\rhcaEndSpan{} ($\\rhcaNdaysSpan$ days), pooled intraday models", first=True)
     block("pool", "Span", EST)
     head(
-        "Panel B: $\\mathcal T_{\\mathrm{oos}}$, \\rhcaStartOos{} to \\rhcaEndOos{} ($\\rhcaNdaysOos$ days), pooled intraday models"
+        "Panel B: $\\mathcal T_{\\mathrm{close}}$, \\rhcaStartOos{} to \\rhcaEndOos{} ($\\rhcaNdaysOos$ days), pooled intraday models"
     )
     block("pool", "Oos", EST)
-    head("Panel B, continued: models trained on the closing half hour (Appendix~\\ref{sec:rh_econ_last30})")
+    # 2026-10-26 (integration, APPENDIX; D3): the closing-interval models of the old master-table set leave the table
+    # (the closing-interval models are the three-way CLOSE arm, Table tab:rh_train_arms); the rebuilt CI-HAR stays as
+    # the benchmark row. Was: head("Panel B, continued: models trained on the closing half hour (Appendix~\\ref{
+    # sec:rh_econ_last30})"), the OLS row, block("close", "Oos", EST)
+    head("Panel B, continued: the closing-interval HAR benchmark")
     r = A16[(A16.scheme == "close") & (A16.model == "ols")].iloc[0]
     body.append(" & ".join(["OLS$^{a}$", "HAR"] + row_cells(r, True)) + " \\\\")
-    block("close", "Oos", EST)
     lines = [
         HEAD,
         "% tab:rh_close_accuracy: the forecast of the closing half hour (16:00 bar) of the 12 pooled forecasts on Table 1's",
@@ -1267,8 +1276,10 @@ def write_accuracy_table(A16: pd.DataFrame) -> None:
             "\\item \\textit{Notes:} The 15:30 forecast of the closing half hour (the 16:00 bar) of the pooled models of "
             "Table~\\ref{tab:rh_oos}, scored against the actual realized variance $\\RV_t$ of the closing half hour, one "
             "forecast a day. Panel~A: the $\\rhcaNdaysSpan$ evaluation days of Table~\\ref{tab:rh_oos}; Panel~B: "
-            "$\\mathcal T_{\\mathrm{oos}}$, the days of Section~\\ref{sec:rh_results_predictors}, with the models trained on "
-            "the closing half hour only (Table~\\ref{tab:rh_oos_last30}). HAR: HAR benchmark; Full: full predictor set; "
+            # 2026-10-26 (integration, APPENDIX): T_close; the closing-interval models are in tab:rh_train_arms. Was:
+            # "... with the models trained on the closing half hour only (Table~\\ref{tab:rh_oos_last30})."
+            "$\\mathcal T_{\\mathrm{close}}$, the \\rhcaNdaysOos{} trading days from \\rhcaStartOos{} to \\rhcaEndOos; "
+            "models trained on the closing half hour only are in Table~\\ref{tab:rh_train_arms}. HAR: HAR benchmark; Full: full predictor set; "
             "on the HAR benchmark the pooled ridge, lasso and elastic net reproduce the OLS forecast "
             "(Section~\\ref{sec:rh_exp_setup}). MSE in units of $10^{-\\rhcaMseExp}$. $R^2_{\\mathrm{OOS}}$ against the "
             "historical mean of the closing-half-hour realized variance from \\rhoosBenchStart{} \\citep{CampbellThompson2008}. "
@@ -1284,7 +1295,7 @@ def write_accuracy_table(A16: pd.DataFrame) -> None:
             "the panels because the two halves of Panel~A's span disagree: on \\rhcaYearsPre{} the full set lowers their "
             "closing-half-hour QLIKE ($\\Delta\\% = \\rhcaPctRidgeClosePre$, \\rhcaPctLassoClosePre{} and "
             "\\rhcaPctEnetClosePre{} for ridge, lasso and elastic net; $\\DM = \\rhcaDmRidgeClosePre$, "
-            "\\rhcaDmLassoClosePre{} and \\rhcaDmEnetClosePre), on $\\mathcal T_{\\mathrm{oos}}$ it raises it, and over "
+            "\\rhcaDmLassoClosePre{} and \\rhcaDmEnetClosePre), on $\\mathcal T_{\\mathrm{close}}$ it raises it, and over "
             "the whole span the two offset."
         ),
         "\\end{tablenotes}",
@@ -1316,9 +1327,9 @@ def write_calibration_table(CAL: pd.DataFrame) -> None:
     body: list[str] = []
     panels = [
         ("Bar", "Pre", "Panel A: every bar, \\rhcaYearsPre"),
-        ("Bar", "Oos", "Panel B: every bar, \\rhcaYearsOos{} ($\\mathcal T_{\\mathrm{oos}}$)"),
+        ("Bar", "Oos", "Panel B: every bar, \\rhcaYearsOos{} ($\\mathcal T_{\\mathrm{close}}$)"),
         ("Close", "Pre", "Panel C: closing half hour (16:00 bar), \\rhcaYearsPre"),
-        ("Close", "Oos", "Panel D: closing half hour (16:00 bar), \\rhcaYearsOos{} ($\\mathcal T_{\\mathrm{oos}}$)"),
+        ("Close", "Oos", "Panel D: closing half hour (16:00 bar), \\rhcaYearsOos{} ($\\mathcal T_{\\mathrm{close}}$)"),
     ]
     for j, (sample, tag, title) in enumerate(panels):
         body += ([] if j == 0 else ["\\addlinespace[4pt]"]) + [
@@ -1365,7 +1376,7 @@ def write_calibration_table(CAL: pd.DataFrame) -> None:
             "\\item \\textit{Notes:} The forecasts of Table~\\ref{tab:rh_oos} (HAR: HAR benchmark; Full: full predictor "
             "set), scored against the actual realized variance on every bar (Panels~A and B, the bars of "
             "Table~\\ref{tab:rh_oos}) and on the 16:00 bar (Panels~C and D, one forecast a day); \\rhcaYearsPre{} runs from "
-            "\\rhcaStartPre{} ($\\rhcaNdaysPre$ days) and \\rhcaYearsOos{} is $\\mathcal T_{\\mathrm{oos}}$ "
+            "\\rhcaStartPre{} ($\\rhcaNdaysPre$ days) and \\rhcaYearsOos{} is $\\mathcal T_{\\mathrm{close}}$ "
             "($\\rhcaNdaysOos$ days). $\\overline{r}$: the mean of $r_t = \\RV_t/\\hat\\sigma^2_t$; "
             "$\\overline{\\RV}/\\overline{\\hat\\sigma^2}$: the ratio of the means; Under: the share of forecasts below the "
             "realized variance; MAE and the levels intercept $a$ in units of $10^{-\\rhcaUnitExp}$. Levels and Logs: "
@@ -1499,7 +1510,7 @@ def write_figure(DEC: pd.DataFrame) -> None:
             "at the decile's mean forecast (horizontal axis), for the pooled elastic net and LightGBM on the HAR "
             "benchmark (open markers, dashed) and on the full predictor set (filled markers, solid); log scales. Top: "
             "every bar of Table~\\ref{tab:rh_oos}; bottom: the 16:00 bar (the forecast of the closing half hour). Left: "
-            "\\rhcaYearsPre{} ($\\rhcaNdaysPre$ days); right: \\rhcaYearsOos{} ($\\mathcal T_{\\mathrm{oos}}$, "
+            "\\rhcaYearsPre{} ($\\rhcaNdaysPre$ days); right: \\rhcaYearsOos{} ($\\mathcal T_{\\mathrm{close}}$, "
             "$\\rhcaNdaysOos$ days). On every bar in \\rhcaYearsOos, the ratio of the full-set elastic net falls from "
             "\\rhcaBotDecRatioEnetFullBarOos{} in the bottom decile to \\rhcaTopDecRatioEnetFullBarOos{} in the top "
             "decile (HAR benchmark: \\rhcaBotDecRatioEnetHarBarOos{} and \\rhcaTopDecRatioEnetHarBarOos), and the top "

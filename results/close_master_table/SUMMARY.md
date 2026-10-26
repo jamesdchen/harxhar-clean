@@ -1,12 +1,13 @@
 # Master table for the closing strategy (A4) — summary
 
-Written by `experiments/master_table_close.py --arm-root linear_subsection_dedup` on 2026-10-18 17:26; every number below is read from
+Written by `experiments/master_table_close.py --arm-root linear_subsection_dedup` on 2026-10-26 15:07; every number below is read from
 `master_table.csv` (and `before_after.csv`, `recal_vs_plain.csv`) of the same run. Full table: `writeup/master_table_close.pdf`; tex: `writeup/generated/table_master_close.tex`. Every forecast is the plain back-transform f²·B; every number is a point estimate.
 
 ## Provenance: design, window mask, CPU class
 
 - **Arm root:** `results/linear_subsection_dedup/` (de-duplicated design (16:00 campaign)); it supplies the arm-only rows, the per-bar OLS incumbent, the arm files the per-bar linear and VIX-only tables are gated against, and the common 16:00 target; its 16:00 target equals the default root's bit for bit (1469 rows, 0 differ; gate passed).
 - **Forecast tables:** every `results/spxw_pnl/yhat_*.parquet` on disk at run time (glob). After the 16:00 campaign (`writeup/CAMPAIGN_16H_2026-09-29.md`) the per-bar tables are the de-duplicated design (the 12 HAR x open/close session-edge columns dropped from the per-bar design; the pooled 48-bar models keep them); every tree and LSTM fit uses the per-window mask (`src/models/window_mask.py`: drop columns constant on the fit's training window and exact copies of an earlier kept column) and ran pinned to one CPU class (CARC epyc-7513), because tree and LSTM numbers depend on the CPU class (agent D's finding).
+- **Closing-interval HAR (`sub_ols_baseline`), 2026-10-26 (integration plan D9):** read from its rebuild under the current data chain, `results/ci_har_rebuild_2026-10-26/results_bar1600.csv` (RULE.txt next to it), not from the arm root's incumbent_ols arm. It is scored on its own scale (plain = f^2 x its own B, the pooled design's regular-bar B); its two scale gates against TARGET_ARM are reported, not asserted.
 
 | family | forecasts (A / B) | design | window mask | refit | tuning | CPU class | vs the pre-campaign table |
 |---|---:|---|---|---|---|---|---|
@@ -78,14 +79,14 @@ Why this one:
   | intraday-sequence LSTM, QLIKE-selected [live_feasible] | 0.1091 | -9.5 | -0.64 | 1.46 / 0.97 | -0.33 | -0.34 | -0.77 | 82.1 % |
 
 - Over all 294 other table-A forecasts (point estimates): 30 trade better than the headline at the mid fill (31 crossed), 2 of them with the HAC t of the daily mid-return difference significant at 5 %; 264 trade worse (30 significant); 282 have a lower QLIKE (0 with DM p < 0.05), 12 a higher one (3 with DM p < 0.05).
-- Against the reference, 148 of 294 table-A forecasts have a higher mid-fill Sharpe (147 at the crossed fill); 4 of them with the HAC t of the daily mid-return difference significant at 5 %. Against always short, 293 (mid) and 293 (crossed) of 295 have a higher Sharpe; 109 with a significant HAC t (mid).
+- Against the reference, 147 of 294 table-A forecasts have a higher mid-fill Sharpe (146 at the crossed fill); 4 of them with the HAC t of the daily mid-return difference significant at 5 %. Against always short, 293 (mid) and 293 (crossed) of 295 have a higher Sharpe; 109 with a significant HAC t (mid).
 - On forecast accuracy alone the best live-feasible forecast is per-bar LightGBM, daily refit [live_feasible] (QLIKE 0.0933, Sharpe 1.61 / 1.12); a QLIKE-first choice would take it. The trade does not rank forecasts the way QLIKE does (section b), which is why the headline names the scorer AND the trade numbers.
 
 ## Scorer change: recalibrated -> plain (2026-10-06)
 
 The recalibration was removed on 2026-10-06 (user decision): every number in this file uses the plain forecast f²·B. `recal_vs_plain.csv` records, per forecast on its own scored days, the parked recalibrated forecast (`pred_clock` = (f² + s)·B, diagnostic) against the plain one. Over the 286 table-A forecasts (check rows and exact duplicates left out, 866 days):
-- QLIKE, plain minus recalibrated: median -4.8 (-8.0 .. +38.4) %; Sharpe mid median -0.04 (-0.99 .. +0.71), crossed median -0.06 (-1.01 .. +0.70); buy share median -9.6 (-12.5 .. -6.9) percentage points.
-- Positions changed: median 83 (60 .. 108) of 866 days; buy -> sell 23527, sell -> buy 0 over all of them (s·B ≥ 0, so removing it can only lower a forecast: mean s·B / f²·B median 0.08 (0.08 .. 0.18)).
+- QLIKE, plain minus recalibrated: median -4.9 (-8.0 .. +38.4) %; Sharpe mid median -0.04 (-0.99 .. +0.71), crossed median -0.06 (-1.01 .. +0.70); buy share median -9.6 (-12.5 .. -6.9) percentage points.
+- Positions changed: median 83 (60 .. 108) of 866 days; buy -> sell 23521, sell -> buy 0 over all of them (s·B ≥ 0, so removing it can only lower a forecast: mean s·B / f²·B median 0.08 (0.08 .. 0.18)).
 - **Headline** (`sub_ridge_live_feasible`): QLIKE 0.1005 -> 0.1184; Sharpe mid 1.90 -> 1.79, crossed 1.44 -> 1.31; buys 40.2 % -> 31.1 %; positions changed on 79 days.
 - **Reference** (`blk2`): QLIKE 0.1058 -> 0.1068; Sharpe mid 1.00 -> 1.28, crossed 0.53 -> 0.80; buys 36.0 % -> 27.0 %; positions changed on 78 days.
 - Largest Sharpe (mid) falls: Optuna per-bar random forest, TUNE_PER 1, best of 25 [all_features] 1.56 -> 0.57; per-bar lasso [vix_rvol] 1.63 -> 0.79; per-bar XGBoost, daily refit [all_features] 1.87 -> 1.12. Largest rises: per-bar elastic net [all_features] 1.33 -> 2.04; per-bar ridge [free_vix_only] 1.83 -> 2.49; per-bar ridge [live_vix_only] 1.86 -> 2.53.
@@ -100,7 +101,7 @@ Before = the pre-campaign master table (commit 6177b74; snapshot `results/spxw_p
 | family | keys in both | what changed | QLIKE % change, median (min .. max) | ΔSharpe mid, median (min .. max) | ΔSharpe crossed, median (min .. max) | HAC t significant, up / down | positions changed, median (max) |
 |---|---:|---|---|---|---|---|---|
 | paper | 9 | nothing; nothing (the campaign did not re-run it | +0.00 (+0.00 .. +0.00) | +0.00 (+0.00 .. +0.00) | +0.00 (+0.00 .. +0.00) | 0 / 0 | 0 (0) |
-| per-bar linear | 10 | design de-dup (the mask had already dropped the session-edge columns: float path only) | +0.00 (-0.00 .. +0.04) | +0.00 (+0.00 .. +0.00) | +0.00 (+0.00 .. +0.00) | 0 / 0 | 0 (0) |
+| per-bar linear | 10 | design de-dup (the mask had already dropped the session-edge columns: float path only) | +0.00 (-0.00 .. +0.04) | +0.00 (-0.31 .. +0.00) | +0.00 (-0.31 .. +0.00) | 0 / 0 | 0 (32) |
 | pooled twin | 9 | nothing | +0.00 (+0.00 .. +0.00) | +0.00 (+0.00 .. +0.00) | +0.00 (+0.00 .. +0.00) | 0 / 0 | 0 (0) |
 | VIX-only family | 21 | design de-dup (the mask had already dropped the session-edge columns: float path only) | +0.00 (-0.03 .. +0.05) | +0.00 (-0.01 .. +0.00) | +0.00 (-0.01 .. +0.00) | 0 / 0 | 0 (1) |
 | per-bar tree (untuned) | 9 | design de-dup + per-window mask + CPU-class pinning (refit cadence unchanged, every 10) | +0.71 (-1.80 .. +1.58) | -0.10 (-0.62 .. +0.05) | -0.10 (-0.62 .. +0.05) | 0 / 2 | 37 (61) |
@@ -118,7 +119,7 @@ Keys whose own mid-fill return moved with the HAC t significant at 5 % (Sharpe b
 ## (b) QLIKE vs Sharpe across models
 
 - **paper** (9): QLIKE 0.1078 .. 0.1270, Sharpe mid 0.43 .. 1.50; best QLIKE lasso (fixed 1e-4), earlier panel [on disk, unused by the paper] (0.1078, Sharpe 1.36); best Sharpe lasso (causally tuned) (1.50, QLIKE 0.1115).
-- **per-bar linear** (22): QLIKE 0.0931 .. 0.1206, Sharpe mid 1.23 .. 2.11; best QLIKE per-bar lasso [all_features], pre-tuned (0.0931, Sharpe 1.88); best Sharpe per-bar ridge [lean_vol_vix] (2.11, QLIKE 0.0985).
+- **per-bar linear** (22): QLIKE 0.0931 .. 0.1206, Sharpe mid 1.06 .. 2.11; best QLIKE per-bar lasso [all_features], pre-tuned (0.0931, Sharpe 1.88); best Sharpe per-bar ridge [lean_vol_vix] (2.11, QLIKE 0.0985).
 - **pooled twin** (21): QLIKE 0.1019 .. 0.1098, Sharpe mid 0.69 .. 1.50; best QLIKE pooled elastic net [all_features], same spec (0.1019, Sharpe 1.15); best Sharpe pooled elastic net [all_features], pre-tuned (1.50, QLIKE 0.1040).
 - **VIX-only family** (21): QLIKE 0.0944 .. 0.1431, Sharpe mid 0.74 .. 2.53; best QLIKE per-bar lasso [vix_rvol] (0.0944, Sharpe 0.79); best Sharpe per-bar ridge [live_vix_only] (2.53, QLIKE 0.1201).
 - **per-bar tree (untuned)** (15): QLIKE 0.0943 .. 0.1018, Sharpe mid 0.73 .. 1.78; best QLIKE per-bar XGBoost [lean_vol_vix] (0.0943, Sharpe 1.78); best Sharpe per-bar XGBoost [lean_vol_vix] (1.78, QLIKE 0.0943).
@@ -144,8 +145,8 @@ Rank correlation across table-A forecasts (check rows and exact duplicates exclu
 
 | set | forecasts | QLIKE | Sharpe | Spearman |
 |---|---:|---|---|---:|
-| all table-A forecasts | 295 | plain | mid | -0.29 |
-| all table-A forecasts | 295 | plain | crossed | -0.29 |
+| all table-A forecasts | 295 | plain | mid | -0.28 |
+| all table-A forecasts | 295 | plain | crossed | -0.28 |
 | per-bar forecasts (linear, VIX-only, trees, tuned, LSTM, bucket studies) | 265 | plain | mid | -0.28 |
 | per-bar forecasts (linear, VIX-only, trees, tuned, LSTM, bucket studies) | 265 | plain | crossed | -0.28 |
 | per-bar linear + VIX-only family | 43 | plain | mid | +0.45 |
@@ -155,7 +156,7 @@ Rank correlation across table-A forecasts (check rows and exact duplicates exclu
 | 48-bar forecasts (paper + pooled twins) | 30 | plain | mid | -0.42 |
 | 48-bar forecasts (paper + pooled twins) | 30 | plain | crossed | -0.44 |
 
-Reading: across all of table A the rank correlation of QLIKE with Sharpe is -0.29. The 30 forecasts fitted on all 48 bars have median QLIKE 0.1074 and median Sharpe 1.23; the 265 per-bar forecasts median QLIKE 0.1005 and median Sharpe 1.31; among the per-bar forecasts alone it is -0.28; 25 per-bar forecasts sit in the worst quarter on both counts (per-bar ridge [live_feasible], HAR ladder intra; per-bar lasso [live_feasible], HAR ladder intra; per-bar elastic net [live_feasible], HAR ladder intra; per-bar LSTM [all_features]; per-bar LSTM, QLIKE-selected [all_features]; tuned per-bar XGBoost, daily refit [baseline], MSE-selected; ...); within the per-bar linear and VIX-only family (QLIKE 0.0931 .. 0.1431, Sharpe 0.74 .. 2.53) it is +0.45.
+Reading: across all of table A the rank correlation of QLIKE with Sharpe is -0.28. The 30 forecasts fitted on all 48 bars have median QLIKE 0.1074 and median Sharpe 1.23; the 265 per-bar forecasts median QLIKE 0.1005 and median Sharpe 1.30; among the per-bar forecasts alone it is -0.28; 25 per-bar forecasts sit in the worst quarter on both counts (per-bar ridge [live_feasible], HAR ladder intra; per-bar lasso [live_feasible], HAR ladder intra; per-bar elastic net [live_feasible], HAR ladder intra; per-bar LSTM [all_features]; per-bar LSTM, QLIKE-selected [all_features]; tuned per-bar XGBoost, daily refit [baseline], MSE-selected; ...); within the per-bar linear and VIX-only family (QLIKE 0.0931 .. 0.1431, Sharpe 0.74 .. 2.53) it is +0.45.
 
 ## (c) Extreme back-transform values
 
@@ -169,9 +170,9 @@ Reading: across all of table A the rank correlation of QLIKE with Sharpe is -0.2
 
 ## Gates
 
-1877 gates checked, 0 failed (`master_table_gates.csv`, column `asserted`). Among them: every arm file's 16:00 target equals the common target and the common target of `linear_subsection_dedup` equals `linear_subsection`'s bit for bit; every table's baseline equals its B, its rv_raw the production table's, and its 16:00 stamps the target's; every arm file's plain forecast equals the research reader's f²·B on the trade days; every per-bar linear and VIX-only table equals its arm file; every row's trade aggregates equal `trade_1530`'s on the plain forecast; every row of `master_table_daily.parquet` has q = sign(plain - iv_var) and the daily frame reproduces every row's Sharpe, QLIKE and buys; no table falls into 'other table'; the paper's always-short row is reproduced; the families the campaign did not touch equal the pre-campaign table under the plain scorer; stored plain numbers (16:00 campaign, plain forecast: 45; paper: 2; pre-campaign master table (plain): 17).
+1875 gates checked, 0 failed (`master_table_gates.csv`, column `asserted`). Among them: every arm file's 16:00 target equals the common target and the common target of `linear_subsection_dedup` equals `linear_subsection`'s bit for bit; every table's baseline equals its B, its rv_raw the production table's, and its 16:00 stamps the target's; every arm file's plain forecast equals the research reader's f²·B on the trade days; every per-bar linear and VIX-only table equals its arm file; every row's trade aggregates equal `trade_1530`'s on the plain forecast; every row of `master_table_daily.parquet` has q = sign(plain - iv_var) and the daily frame reproduces every row's Sharpe, QLIKE and buys; no table falls into 'other table'; the paper's always-short row is reproduced; the families the campaign did not touch equal the pre-campaign table under the plain scorer; stored plain numbers (16:00 campaign, plain forecast: 45; paper: 2; pre-campaign master table (plain): 17).
 
-Reported, not asserted (2000): stored numbers written with the recalibrated forecast (compared with the same quantity recomputed here from the diagnostic `pred_clock`) or on another design — : 0 of 1 agree to 1e-09; 16:00 campaign, plain forecast: 0 of 36 agree to 1e-09; 16:00 campaign, recalibrated scorer: 530 of 770 agree to 1e-09; committed recalibrated master table (2026-09-30): 756 of 1000 agree to 1e-09; pre-campaign design: 166 of 192 agree to 1e-09; pre-campaign master table (plain): 1 of 1 agree to 1e-09. A difference there is a design change or an input that changed since the stored number was written, not a failure.
+Reported, not asserted (2002): stored numbers written with the recalibrated forecast (compared with the same quantity recomputed here from the diagnostic `pred_clock`) or on another design — : 0 of 3 agree to 1e-09; 16:00 campaign, plain forecast: 0 of 36 agree to 1e-09; 16:00 campaign, recalibrated scorer: 528 of 770 agree to 1e-09; committed recalibrated master table (2026-09-30): 752 of 1000 agree to 1e-09; pre-campaign design: 160 of 192 agree to 1e-09; pre-campaign master table (plain): 1 of 1 agree to 1e-09. A difference there is a design change or an input that changed since the stored number was written, not a failure.
 
 ## Top of table A by sign(s) Sharpe (mid)
 

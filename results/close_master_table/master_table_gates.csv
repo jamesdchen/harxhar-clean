@@ -852,8 +852,8 @@ baseline equals the target's B,lgbm,1469,9.603429163007604e-13,1e-09,True,True,
 table 16:00 stamps = the target's on the arm span (missing + extra),xgb,1469,0.0,0.0,True,True,
 table rv_raw equals the production rv_raw (16:00),xgb,1469,0.0,1e-09,True,True,
 baseline equals the target's B,xgb,1469,9.603429163007604e-13,1e-09,True,True,
-baseline equals the target's B,sub_ols_baseline,1469,0.0,1e-09,True,True,
-arm target equals TARGET_ARM,sub_ols_baseline,1469,0.0,1e-09,True,True,
+"baseline equals the target's B (rebuilt CI-HAR, own B: reported, not asserted)",sub_ols_baseline,1460,0.2939836634730102,1e-09,False,False,
+"arm target equals TARGET_ARM (rebuilt CI-HAR, own target: reported, not asserted)",sub_ols_baseline,1460,0.2914091998197388,1e-09,False,False,
 plain forecast equals the research reader's pred_adj^2 x baseline (trade days),sub_ols_baseline,866,0.0,1e-12,True,True,
 baseline equals the target's B,sub_ridge_mfiv_only_tw500,1469,0.0,1e-09,True,True,
 arm target equals TARGET_ARM,sub_ridge_mfiv_only_tw500,1469,0.0,1e-09,True,True,
@@ -1377,8 +1377,8 @@ trees_trade_1530.csv Sharpe_mid (recalibrated; vs the diagnostic pred_clock),sub
 trees_trade_1530.csv Sharpe_crossed (recalibrated; vs the diagnostic pred_clock),sub_ridge_all_features,866,0.0,1e-09,True,False,pre-campaign design
 trees_trade_1530.csv Sharpe_mid (recalibrated; vs the diagnostic pred_clock),subtree_lgbm_baseline,866,0.07552159600424824,1e-09,False,False,pre-campaign design
 trees_trade_1530.csv Sharpe_crossed (recalibrated; vs the diagnostic pred_clock),subtree_lgbm_baseline,866,0.07666694366010063,1e-09,False,False,pre-campaign design
-trees_trade_1530.csv Sharpe_mid (recalibrated; vs the diagnostic pred_clock),sub_ols_baseline,866,0.0,1e-09,True,False,pre-campaign design
-trees_trade_1530.csv Sharpe_crossed (recalibrated; vs the diagnostic pred_clock),sub_ols_baseline,866,0.0,1e-09,True,False,pre-campaign design
+trees_trade_1530.csv Sharpe_mid (recalibrated; vs the diagnostic pred_clock),sub_ols_baseline,866,0.01256604638682246,1e-09,False,False,pre-campaign design
+trees_trade_1530.csv Sharpe_crossed (recalibrated; vs the diagnostic pred_clock),sub_ols_baseline,866,0.009545841585657189,1e-09,False,False,pre-campaign design
 trees_trade_1530.csv Sharpe_mid (recalibrated; vs the diagnostic pred_clock),sub_lasso_baseline,866,2.220446049250313e-16,1e-09,True,False,pre-campaign design
 trees_trade_1530.csv Sharpe_crossed (recalibrated; vs the diagnostic pred_clock),sub_lasso_baseline,866,0.0,1e-09,True,False,pre-campaign design
 trees_trade_1530.csv Sharpe_mid (recalibrated; vs the diagnostic pred_clock),sub_enet_baseline,866,0.0,1e-09,True,False,pre-campaign design
@@ -1387,8 +1387,8 @@ trees_trade_1530.csv Sharpe_mid (recalibrated; vs the diagnostic pred_clock),sub
 trees_trade_1530.csv Sharpe_crossed (recalibrated; vs the diagnostic pred_clock),sub_ridge_baseline,866,0.0,1e-09,True,False,pre-campaign design
 trees_trade_1530.csv Sharpe_mid (recalibrated; vs the diagnostic pred_clock),subtree_rf_baseline,866,0.32473113963545763,1e-09,False,False,pre-campaign design
 trees_trade_1530.csv Sharpe_crossed (recalibrated; vs the diagnostic pred_clock),subtree_rf_baseline,866,0.3187717538377342,1e-09,False,False,pre-campaign design
-trees_trade_1530.csv Sharpe_mid (recalibrated; vs the diagnostic pred_clock),sub_ols_baseline,866,0.0,1e-09,True,False,pre-campaign design
-trees_trade_1530.csv Sharpe_crossed (recalibrated; vs the diagnostic pred_clock),sub_ols_baseline,866,0.0,1e-09,True,False,pre-campaign design
+trees_trade_1530.csv Sharpe_mid (recalibrated; vs the diagnostic pred_clock),sub_ols_baseline,866,0.01256604638682246,1e-09,False,False,pre-campaign design
+trees_trade_1530.csv Sharpe_crossed (recalibrated; vs the diagnostic pred_clock),sub_ols_baseline,866,0.009545841585657189,1e-09,False,False,pre-campaign design
 trees_trade_1530.csv Sharpe_mid (recalibrated; vs the diagnostic pred_clock),sub_lasso_baseline,866,2.220446049250313e-16,1e-09,True,False,pre-campaign design
 trees_trade_1530.csv Sharpe_crossed (recalibrated; vs the diagnostic pred_clock),sub_lasso_baseline,866,0.0,1e-09,True,False,pre-campaign design
 trees_trade_1530.csv Sharpe_mid (recalibrated; vs the diagnostic pred_clock),sub_enet_baseline,866,0.0,1e-09,True,False,pre-campaign design
@@ -1397,8 +1397,8 @@ trees_trade_1530.csv Sharpe_mid (recalibrated; vs the diagnostic pred_clock),sub
 trees_trade_1530.csv Sharpe_crossed (recalibrated; vs the diagnostic pred_clock),sub_ridge_baseline,866,0.0,1e-09,True,False,pre-campaign design
 trees_trade_1530.csv Sharpe_mid (recalibrated; vs the diagnostic pred_clock),subtree_xgb_baseline,866,0.01729608972013108,1e-09,False,False,pre-campaign design
 trees_trade_1530.csv Sharpe_crossed (recalibrated; vs the diagnostic pred_clock),subtree_xgb_baseline,866,0.0152241329875904,1e-09,False,False,pre-campaign design
-trees_trade_1530.csv Sharpe_mid (recalibrated; vs the diagnostic pred_clock),sub_ols_baseline,866,0.0,1e-09,True,False,pre-campaign design
-trees_trade_1530.csv Sharpe_crossed (recalibrated; vs the diagnostic pred_clock),sub_ols_baseline,866,0.0,1e-09,True,False,pre-campaign design
+trees_trade_1530.csv Sharpe_mid (recalibrated; vs the diagnostic pred_clock),sub_ols_baseline,866,0.01256604638682246,1e-09,False,False,pre-campaign design
+trees_trade_1530.csv Sharpe_crossed (recalibrated; vs the diagnostic pred_clock),sub_ols_baseline,866,0.009545841585657189,1e-09,False,False,pre-campaign design
 trees_trade_1530.csv Sharpe_mid (recalibrated; vs the diagnostic pred_clock),sub_lasso_baseline,866,2.220446049250313e-16,1e-09,True,False,pre-campaign design
 trees_trade_1530.csv Sharpe_crossed (recalibrated; vs the diagnostic pred_clock),sub_lasso_baseline,866,0.0,1e-09,True,False,pre-campaign design
 trees_trade_1530.csv Sharpe_mid (recalibrated; vs the diagnostic pred_clock),sub_enet_baseline,866,0.0,1e-09,True,False,pre-campaign design
@@ -1689,8 +1689,8 @@ paper always-short mean,always_short,866,1.3877787807814457e-17,1e-09,True,True,
 "change_by_arm.csv Sharpe_crossed_new (recalibrated, every trade day the arm covers)",sub_lasso_baseline,866,0.0,1e-09,True,False,"16:00 campaign, recalibrated scorer"
 "change_by_arm.csv Sharpe_mid_new (recalibrated, every trade day the arm covers)",sub_lasso_live_feasible,866,0.0,1e-09,True,False,"16:00 campaign, recalibrated scorer"
 "change_by_arm.csv Sharpe_crossed_new (recalibrated, every trade day the arm covers)",sub_lasso_live_feasible,866,0.0,1e-09,True,False,"16:00 campaign, recalibrated scorer"
-"change_by_arm.csv Sharpe_mid_new (recalibrated, every trade day the arm covers)",sub_ols_baseline,866,0.0,1e-09,True,False,"16:00 campaign, recalibrated scorer"
-"change_by_arm.csv Sharpe_crossed_new (recalibrated, every trade day the arm covers)",sub_ols_baseline,866,0.0,1e-09,True,False,"16:00 campaign, recalibrated scorer"
+"change_by_arm.csv Sharpe_mid_new (recalibrated, every trade day the arm covers)",sub_ols_baseline,866,0.01256604638682246,1e-09,False,False,"16:00 campaign, recalibrated scorer"
+"change_by_arm.csv Sharpe_crossed_new (recalibrated, every trade day the arm covers)",sub_ols_baseline,866,0.009545841585657189,1e-09,False,False,"16:00 campaign, recalibrated scorer"
 "change_by_arm.csv Sharpe_mid_new (recalibrated, every trade day the arm covers)",sub_ridge_all_features,866,0.0,1e-09,True,False,"16:00 campaign, recalibrated scorer"
 "change_by_arm.csv Sharpe_crossed_new (recalibrated, every trade day the arm covers)",sub_ridge_all_features,866,0.0,1e-09,True,False,"16:00 campaign, recalibrated scorer"
 "change_by_arm.csv Sharpe_mid_new (recalibrated, every trade day the arm covers)",sub_ridge_baseline,866,0.0,1e-09,True,False,"16:00 campaign, recalibrated scorer"
@@ -2460,10 +2460,10 @@ recal_2026-09-30/master_table.csv qlike_raw (plain) = this run's qlike_raw_trimm
 recal_2026-09-30/master_table.csv qlike_recal (recalibrated) = the diagnostic,sub_enet_all_features,866,0.0,1e-09,True,False,committed recalibrated master table (2026-09-30)
 recal_2026-09-30/master_table.csv Sharpe_mid (recalibrated) = the diagnostic,sub_enet_all_features,866,0.0,1e-09,True,False,committed recalibrated master table (2026-09-30)
 recal_2026-09-30/master_table.csv Sharpe_crossed (recalibrated) = the diagnostic,sub_enet_all_features,866,0.0,1e-09,True,False,committed recalibrated master table (2026-09-30)
-recal_2026-09-30/master_table.csv qlike_raw (plain) = this run's qlike_raw_trimmed,sub_ols_baseline,866,0.0,1e-09,True,False,committed recalibrated master table (2026-09-30)
-recal_2026-09-30/master_table.csv qlike_recal (recalibrated) = the diagnostic,sub_ols_baseline,866,0.0,1e-09,True,False,committed recalibrated master table (2026-09-30)
-recal_2026-09-30/master_table.csv Sharpe_mid (recalibrated) = the diagnostic,sub_ols_baseline,866,0.0,1e-09,True,False,committed recalibrated master table (2026-09-30)
-recal_2026-09-30/master_table.csv Sharpe_crossed (recalibrated) = the diagnostic,sub_ols_baseline,866,0.0,1e-09,True,False,committed recalibrated master table (2026-09-30)
+recal_2026-09-30/master_table.csv qlike_raw (plain) = this run's qlike_raw_trimmed,sub_ols_baseline,866,0.00021775206173936523,1e-09,False,False,committed recalibrated master table (2026-09-30)
+recal_2026-09-30/master_table.csv qlike_recal (recalibrated) = the diagnostic,sub_ols_baseline,866,0.0023424736283930853,1e-09,False,False,committed recalibrated master table (2026-09-30)
+recal_2026-09-30/master_table.csv Sharpe_mid (recalibrated) = the diagnostic,sub_ols_baseline,866,0.01256604638682246,1e-09,False,False,committed recalibrated master table (2026-09-30)
+recal_2026-09-30/master_table.csv Sharpe_crossed (recalibrated) = the diagnostic,sub_ols_baseline,866,0.009545841585657189,1e-09,False,False,committed recalibrated master table (2026-09-30)
 recal_2026-09-30/master_table.csv qlike_raw (plain) = this run's qlike_raw_trimmed,sub_enet_baseline,866,0.0,1e-09,True,False,committed recalibrated master table (2026-09-30)
 recal_2026-09-30/master_table.csv qlike_recal (recalibrated) = the diagnostic,sub_enet_baseline,866,0.0,1e-09,True,False,committed recalibrated master table (2026-09-30)
 recal_2026-09-30/master_table.csv Sharpe_mid (recalibrated) = the diagnostic,sub_enet_baseline,866,0.0,1e-09,True,False,committed recalibrated master table (2026-09-30)
@@ -3746,10 +3746,10 @@ before/after: the pre-campaign daily frame's plain QLIKE (trimmed target) reprod
 before/after: the pre-campaign daily frame's plain QLIKE (trimmed target) reproduces the pre-campaign table's qlike_raw,sub_ridge_live_feasible,866,0.0,1e-12,True,True,
 before/after: the pre-campaign daily frame's plain QLIKE (trimmed target) reproduces the pre-campaign table's qlike_raw,sub_ridge_all_features,866,0.0,1e-12,True,True,
 before/after: the pre-campaign daily frame's plain QLIKE (trimmed target) reproduces the pre-campaign table's qlike_raw,sub_enet_live_feasible,866,0.0,1e-12,True,True,
-before/after: the pre-campaign daily frame's plain QLIKE (trimmed target) reproduces the pre-campaign table's qlike_raw,sub_ols_baseline,866,0.0,1e-12,True,True,
 before/after: the pre-campaign daily frame's plain QLIKE (trimmed target) reproduces the pre-campaign table's qlike_raw,sub_ridge_baseline,866,0.0,1e-12,True,True,
 before/after: the pre-campaign daily frame's plain QLIKE (trimmed target) reproduces the pre-campaign table's qlike_raw,sub_lasso_baseline,866,0.0,1e-12,True,True,
 before/after: the pre-campaign daily frame's plain QLIKE (trimmed target) reproduces the pre-campaign table's qlike_raw,sub_enet_baseline,866,0.0,1e-12,True,True,
+before/after: the pre-campaign daily frame's plain QLIKE (trimmed target) reproduces the pre-campaign table's qlike_raw,sub_ols_baseline,866,0.0,1e-12,True,True,
 before/after: the pre-campaign daily frame's plain QLIKE (trimmed target) reproduces the pre-campaign table's qlike_raw,pool_ridge_all_features,866,0.0,1e-12,True,True,
 "untouched by the campaign: equals the pre-campaign table under the plain scorer (plain rel, Sharpe, QLIKE)",pool_ridge_all_features,866,0.0,0.0,True,True,pre-campaign master table (plain)
 before/after: the pre-campaign daily frame's plain QLIKE (trimmed target) reproduces the pre-campaign table's qlike_raw,pool_lasso_live_feasible,866,0.0,1e-12,True,True,

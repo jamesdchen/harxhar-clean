@@ -26,7 +26,7 @@ All three & Penalty weight on the HAR benchmark, $\underline\omega$ & fixed & 1 
 LightGBM & Leaves per tree, $J$ & [15, 255] (log) & \multicolumn{2}{c}{20} \\
  & Learning rate, $\eta$ & [0.01, 0.3] (log) & \multicolumn{2}{c}{0.013} \\
  & Boosting rounds, $B$ & [50, 500] & \multicolumn{2}{c}{392} \\
- & Minimum leaf size, $n_{\min}$ & [20, 500] (log) & \multicolumn{2}{c}{98 (8)} \\
+ & Minimum leaf size, $n_{\min}$ & [20, 500] (log) & \multicolumn{2}{c}{98} \\
  & Share of predictors per tree & [0.5, 1] & \multicolumn{2}{c}{0.70} \\
  & Share of observations per tree & [0.5, 1] & \multicolumn{2}{c}{0.56} \\
  & $L_1$ penalty on leaf weights, $\lambda_1^{\mathrm{tree}}$ & $[10^{-8}, 10]$ (log) & \multicolumn{2}{c}{$10^{-8}$} \\
@@ -35,7 +35,7 @@ LightGBM & Leaves per tree, $J$ & [15, 255] (log) & \multicolumn{2}{c}{20} \\
 XGBoost & Maximum depth & [3, 10] & \multicolumn{2}{c}{5} \\
  & Learning rate, $\eta$ & [0.01, 0.3] (log) & \multicolumn{2}{c}{0.0123} \\
  & Boosting rounds, $B$ & [50, 500] & \multicolumn{2}{c}{367} \\
- & Minimum leaf size, $n_{\min}$ & [1, 100] (log) & \multicolumn{2}{c}{50.2 (4.18)} \\
+ & Minimum leaf size, $n_{\min}$ & [1, 100] (log) & \multicolumn{2}{c}{50.2} \\
  & Share of observations per tree & [0.5, 1] & \multicolumn{2}{c}{0.66} \\
  & Share of predictors per tree & [0.5, 1] & \multicolumn{2}{c}{0.65} \\
  & $L_1$ penalty on leaf weights, $\lambda_1^{\mathrm{tree}}$ & $[10^{-8}, 10]$ (log) & \multicolumn{2}{c}{0.0215} \\
@@ -46,12 +46,12 @@ Random forest & Number of trees, $N$ & [50, 500] & \multicolumn{2}{c}{485} \\
  & Maximum depth & [2, 32] (log) & \multicolumn{2}{c}{20} \\
  & Share of predictors per split & [0.02, 1] (log) & \multicolumn{2}{c}{0.90} \\
  & Bootstrap sample share & [0.05, 1] (log) & \multicolumn{2}{c}{0.41} \\
- & Minimum leaf size, $n_{\min}$ & [1, 1000] (log) & \multicolumn{2}{c}{12 (1)} \\
+ & Minimum leaf size, $n_{\min}$ & [1, 1000] (log) & \multicolumn{2}{c}{12} \\
 \bottomrule
 \end{tabular}
 \begin{tablenotes}[flushleft]
 \footnotesize
-\item \textit{Notes:} Panel A: Section~\ref{sec:rh_methods_models} states the scale of $\lambda$. One grid value per decade (grid size in parentheses), selected by mean validation MSE over the 4 folds of the pre-sample (Table~\ref{tab:rh_dm_samples}). The selected penalty is then held fixed at every forecast origin, with no re-tuning. Panel B: the best trial of an Optuna search on the intraday pre-sample (\rhdmPooledWindow-interval window; random forest: trial \rhdmRfTrial{} of \cmTreeProvRfTrials), ranked by MSE and then held fixed for both predictor sets; (log): searched on a logarithmic scale. $n_{\min}$ was selected on \rhdmPooledWindow{} intervals and is rescaled to the \cmPtFitWin-day window (rescaled value in parentheses). Implementations: LightGBM \citep{Ke2017} with bagging at every round, XGBoost \citep{Chen2016} with histogram-based split finding and the random forest of Intel's oneDAL library (through the Intel Extension for Scikit-learn) with bootstrap samples and histogram-based split finding (256 bins); random seeds are fixed.
+\item \textit{Notes:} Panel A: Section~\ref{sec:rh_methods_models} states the scale of $\lambda$. One grid value per decade (grid size in parentheses), selected by mean validation MSE over the 4 folds of the pre-sample (Table~\ref{tab:rh_dm_samples}). The selected penalty is then held fixed at every forecast origin, with no re-tuning. Panel B: the best trial of an Optuna search on the intraday pre-sample (\rhdmPooledWindow-interval window; random forest: trial \rhdmRfTrial{} of \cmTreeProvRfTrials), ranked by MSE and then held fixed for both predictor sets; (log): searched on a logarithmic scale. $n_{\min}$ was selected on \rhdmPooledWindow{} intervals and is used unchanged on the final design's window of \rhorWindowBars{} bars (Appendix~\ref{app:rh_tuning}). Implementations: LightGBM \citep{Ke2017} with bagging at every round, XGBoost \citep{Chen2016} with histogram-based split finding and the random forest of Intel's oneDAL library (through the Intel Extension for Scikit-learn) with bootstrap samples and histogram-based split finding (256 bins); random seeds are fixed.
 \end{tablenotes}
 \end{threeparttable}
 \end{table}

@@ -1,0 +1,219 @@
+% A_robustness.tex -- online appendix: robustness of the main design (2026-10-26, integration pass for JFEc; APPENDIX
+% agent). \input inside \section{Robustness} (label app:rh_robust_stat) of rehaul/10_appendix.tex; \subsection's only.
+% Bullets only (author, 2026-10-26). House rules: every number from a generated macro; replaced text is parked in dated
+% comments where it was removed.
+% Contents and sources:
+%   - Estimation window (app:rh_robust_window): decision D8 and audit correctness-2 (W was fixed after out-of-sample
+%     scoring of six windows, results/window_sweep_2014start_2026-10-22/part2, commits d8050a1 and a334d0f) and
+%     correctness-3 (late-start columns in the tuning fold). The item "Estimation window" of the former section
+%     "Robustness of the statistical results" (10_appendix.tex) moved here, with Table tab:rh_robust_w3500 (\rhrb...,
+%     writeup/make_rehaul_robust_window.py). The every-window table of the linear models is not generated yet: it is
+%     \input when generated/rehaul_window_sweep_table.tex exists (label tab:rh_window_sweep, requested from NUMBERS).
+%   - Training sample (app:rh_robust_train): decision D5, drafts/2026-10-26_train_arms.tex (\rhta...,
+%     writeup/make_rehaul_train_arms.py), less its CLOSE results, which are in the final section (rehaul/A_closing.tex,
+%     sec:rh_econ_last30; D3). The table tab:rh_train_arms (Panels A-F) is \input here.
+%   - NYSE-holiday sessions (app:rh_robust_holiday): decision D15, results/fomcfix_2026-10-26 (RULE.txt addendum A, the
+%     linear 2 x 2 of FOMC fixes and holiday sessions); generated/rehaul_holiday_table.tex from NUMBERS (label
+%     tab:rh_holiday requested), \input when it exists.
+%   - The tuning disclosure (D14) is rehaul/A_methods.tex, app:rh_tuning, with Table tab:rh_tuning (METHODS agent);
+%     the section Robustness points there, and this file does not \input the tuning table again.
+% FOMC fixes (D13): the window sweep, the robustness window and the training-sample arms ran on the design before the
+% FOMC fixes; the text marks them so (DATA relay: app:rh_dp_fomc says the pre-patch arms are marked where reported).
+\ifdefined\rhtaNdays\else\input{generated/rehaul_train_arms_numbers}\fi
+\ifdefined\rhrbWinMain\else\input{generated/rehaul_robust_w3500_numbers}\fi
+\ifdefined\rhholNSessions\else\IfFileExists{generated/rehaul_holiday_numbers.tex}{\input{generated/rehaul_holiday_numbers}}{}\fi
+\providecommand{\rhPending}{\textit{pending}}
+% Window-sweep macros, not generated yet (NUMBERS: from results/window_sweep_2014start_2026-10-22/part2 and
+% latestart/latestart_spans.txt). Stop-gaps at the values of the sweep's design (part2/tables.txt: windows 1,000,
+% 1,500, ..., 3,500 trading days; latestart_spans.txt, fold-3 validation year: some late-start columns live at
+% W = 1,000, none at W >= 2,000); \providecommand, so a generated macro wins once it exists.
+\providecommand{\rhwsNWin}{six}  % windows scored out of sample
+\providecommand{\rhwsWinMin}{1{,}000}  % shortest window, trading days
+\providecommand{\rhwsWinMax}{3{,}500}  % longest window, trading days
+\providecommand{\rhwsLateNoneFrom}{2{,}000}  % shortest window at which no late-start column is live in the fold
+
+\subsection{Estimation window}
+\label{app:rh_robust_window}
+\begin{itemize}
+\item \textbf{How the window was chosen.} The rolling window of the main design, $W = \rhrbWinMain$ trading days
+  ($\rhrbWinMainBars$ bars), was fixed after the pooled linear models had been estimated and scored out of sample,
+  over the evaluation span $\mathcal T_{\mathrm{oos}}$ of Table~\ref{tab:rh_oos}, at \rhwsNWin{} windows from
+  \rhwsWinMin{} to \rhwsWinMax{} trading days, on the design before the FOMC fixes of
+  Appendix~\ref{app:rh_dp_fomc}. The window is therefore not a pre-sample choice, and the items below report the
+  windows that were scored.
+  \begin{itemize}
+  \item The pre-sample learning curve, on the fold on which the linear penalties are chosen
+    (Appendix~\ref{app:rh_methods_splits}), scores every regular-hours bar, has no separate measure for the 16:00
+    bar, and its validation MSE does not single out the main window.
+  \item In that fold, some of the late-starting series (Appendix~\ref{app:rh_tuning}) are live, wholly or in part,
+    at a window of \rhwsWinMin{} trading days, but none is live at a window of \rhwsLateNoneFrom{} trading days or
+    more, so the learning curve compares different effective predictor sets.
+  \end{itemize}
+\IfFileExists{generated/rehaul_window_sweep_table.tex}{%
+\item \textbf{Every window, penalized linear models.} Table~\ref{tab:rh_window_sweep} reports, at each window, the
+  change in QLIKE from the full predictor set against the HAR benchmark, on every bar and on the 16:00 bar.
+\input{generated/rehaul_window_sweep_table}}{%
+\item \textbf{Every window, penalized linear models.} The forecasts and scores at every window are in the
+  replication package.}
+% 2026-10-26 (integration, JFEc): moved here from the item "Estimation window" of 10_appendix.tex (section Robustness
+% of the statistical results), split into sub-items; the pre-patch design marked (D13), and the 16:00 counts at the
+% two windows added (audit correctness-2: the 16:00 comparisons are window-sensitive). The 2026-10-23 check of that
+% item still holds: the \rhrbNSigBar every-bar and \rhrbNSigClose 16:00 arms whose QLIKE differs between the windows
+% at 5% are ridge, lasso and elastic net; the largest Sharpe-ratio change at mid-quotes is the random forest's on the
+% HAR benchmark.
+\item \textbf{A longer window, every model.} Table~\ref{tab:rh_robust_w3500} refits the models of
+  Table~\ref{tab:rh_oos} on a rolling window of \rhrbWinLong{} trading days ($W = \rhrbWinLongBars$ bars) instead
+  of \rhrbWinMain, with the same first evaluation day, the same frozen hyperparameters and a refit at every bar, on
+  the design before the FOMC fixes.
+  \begin{itemize}
+  \item \emph{Every bar.} The full predictor set is significantly more accurate than the HAR benchmark for
+    \rhrbNFullLowerSigBarLong{} of the \rhrbNModelsLong{} model classes (\rhrbNFullLowerSigBarMain{} of
+    \rhrbNModelsMain{} at \rhrbWinMain{} days). Mean QLIKE moves by at most \rhrbMaxAbsPctBar\% on every bar and
+    \rhrbMaxAbsPctClose\% on the 16:00 bar; the \rhrbNSigBar{} forecasts whose every-bar QLIKE differs significantly
+    between the windows, and the \rhrbNSigClose{} at 16:00, are all linear models.
+  \item \emph{The 16:00 bar is sensitive to the window.} There the full predictor set is significantly more accurate
+    than the HAR benchmark for \rhrbNFullLowerSigCloseLong{} of the \rhrbNModelsLong{} classes at \rhrbWinLong{}
+    days and for \rhrbNFullLowerSigCloseMain{} at \rhrbWinMain{} days.
+  \item \emph{Sharpe ratio.} It changes significantly between the windows for \rhrbNSRSigMid{} of the \rhrbNArms{}
+    forecasts at mid-quotes and \rhrbNSRSigBa{} at quoted bid and ask prices; the largest change at mid-quotes is
+    that of the random forest on the HAR benchmark, \rhrbDSRRfHarMid{} (\rhrbPSRRfHarMid).
+  \end{itemize}
+\input{generated/rehaul_robust_w3500_table}
+\item \textbf{Models trained on the closing half hour.} Panel~F of Table~\ref{tab:rh_train_arms_cont} re-estimates
+  them on windows of \rhtaWsMin{} to \rhtaWsMax{} closes (Appendix~\ref{sec:rh_econ_last30}).
+\end{itemize}
+
+% Moved from drafts/2026-10-26_train_arms.tex (subsection "Training sample", label app:rh_robust_train), lightly edited:
+% the CLOSE results (Panels A, C, D and E for CLOSE; Panel F) are in rehaul/A_closing.tex (D3), and the pre-patch
+% design is marked (D13). Every class name, direction and "all / every / none" below is asserted by
+% writeup/make_rehaul_train_arms.py (claims()).
+\subsection{Training sample}
+\label{app:rh_robust_train}
+\begin{itemize}
+\item \textbf{Main design.} Every pooled model of Table~\ref{tab:rh_oos} (ridge regression, the lasso, the elastic
+  net, LightGBM, XGBoost and the random forest, each on the HAR benchmark and on the full predictor set) is estimated
+  on the \rhtaNBarsDay{} regular-hours bars of each day, $\mathcal I = \mathcal I_{\mathrm{rh}}$ (bar ends 10:00 to
+  16:00~ET), over a rolling window of \rhtaWinDays{} trading days (\rhtaRowsRth{} bars), with its predictors
+  computed on the full grid of \rhtaNIntervals{} half-hour intervals, overnight included
+  (Appendix~\ref{sec:rh_exp_schemes}). Estimation on the regular session follows the intraday volatility
+  forecasting literature \citep{EngleSokalska2012,ZhangZhangCucuringuQian2024}. Below, this sample is RTH13.
+\item \textbf{A pre-registered comparison.} Before any model was estimated on the other samples, a written rule (one
+  for the linear models, one for the trees) fixed two other training samples, the models, their tuning and the tests:
+  \begin{itemize}
+  \item ALL48: all \rhtaNIntervals{} half-hour intervals of the futures' day, overnight, weekend and holiday
+    intervals and early-close sessions included, over the same \rhtaWinDays-day window (\rhtaRowsAll{} rows);
+  \item CLOSE: the closing half hour alone (the 16:00 rows of the main design), over \rhtaRowsCl{} closes; its
+    results are in Appendix~\ref{sec:rh_econ_last30}.
+  \end{itemize}
+  Everything else is the main design's: the predictors, the frozen tree configurations, a refit at every training
+  row, and the rule that chooses the linear penalties, applied to each sample's own pre-sample rows (validation year
+  \rhtaValYear). Every sample is scored on the same \rhtaNdays{} trading days from \rhtaStart{} to \rhtaEnd, on the
+  16:00 bar and on every regular-hours bar. The linear rule also fixed secondary samples for the penalized linear
+  models (a natively built CLOSE, and penalties chosen on the 16:00 validation rows, ALL48@16 and RTH13@16). Samples
+  with equal numbers of training rows were added before their models were estimated (for the linear models by a
+  dated addendum to the rule).
+\item \textbf{Design and table.} The comparison ran on the design before the FOMC fixes of
+  Appendix~\ref{app:rh_dp_fomc}; its RTH13 rows are the forecasts of Table~\ref{tab:rh_oos} on that design.
+  Table~\ref{tab:rh_train_arms} reports every comparison.
+\item \textbf{The closing half hour.} Trained on all \rhtaNIntervals{} intervals, the full predictor set gains more
+  over the HAR benchmark at 16:00 than in the main design (Table~\ref{tab:rh_train_arms}, Panel~A).
+  \begin{itemize}
+  \item ALL48: the change in 16:00 QLIKE is $\Delta\% = \rhtaTreePctAllCloseMin$ to $\rhtaTreePctAllCloseMax$ for the
+    three tree ensembles, each with $p < 0.001$, and $\Delta\% = \rhtaLinPctAllCloseMin$ to $\rhtaLinPctAllCloseMax$
+    for the penalized linear models, none significant at the 10\% level (the smallest, \rhtaLinAllClosePMin).
+  \item RTH13: $\Delta\% = \rhtaPctRthCloseMin$ to $\rhtaPctRthCloseMax$, significant at the 5\% level for XGBoost
+    only ($\Delta\% = \rhtaPctXgbRthClose$, \rhtaPXgbRthClose). Choosing the linear penalties on the 16:00 validation
+    rows leaves every linear change insignificant at the 10\% level, in ALL48@16 and in RTH13@16, although in RTH13
+    it lowers the 16:00 loss of the lasso's full-set forecast ($\Delta\% = \rhtaXPctLassoRthCtVsRthClose$,
+    \rhtaXPLassoRthCtVsRthClose; Panel~C), whose HAR benchmark changes with it.
+  \item A full-versus-HAR change compares two forecasts trained on the same sample, so it also moves with the HAR
+    benchmark. Compared directly (Panel~C), the full-set forecasts trained on ALL48 have a lower 16:00 loss than
+    those trained on RTH13 in all six classes ($\Delta\% = \rhtaAllVsRthClosePctMin$ to
+    $\rhtaAllVsRthClosePctMax$), significantly at the 5\% level in \rhtaNAllVsRthCloseSig.
+  \end{itemize}
+\item \textbf{The average regular-hours bar.} On every bar, RTH13 is the most accurate sample: no other sample
+  gives the full predictor set a lower every-bar loss in any class (Panels~C and~D test the pre-registered pairs).
+  \begin{itemize}
+  \item The full-set forecasts trained on ALL48 have a higher every-bar QLIKE than those trained on RTH13 in all six
+    classes ($\Delta\% = \rhtaAllVsRthBarPctMin$ to $\rhtaAllVsRthBarPctMax$), each significant at the 1\% level
+    (the largest, \rhtaAllVsRthBarPMax).
+  \item The full predictor set lowers the every-bar loss significantly in every class under both samples, and by more
+    under RTH13 in all six: $\Delta\% = \rhtaLinPctRthBarMin$ to $\rhtaLinPctRthBarMax$ for the penalized linear models
+    and $\rhtaTreePctRthBarMin$ to $\rhtaTreePctRthBarMax$ for the tree ensembles, against $\rhtaLinPctAllBarMin$ to
+    $\rhtaLinPctAllBarMax$ and $\rhtaTreePctAllBarMin$ to $\rhtaTreePctAllBarMax$ under ALL48.
+  \end{itemize}
+\item \textbf{Data volume.} At equal calendar the samples differ in their numbers of training rows (\rhtaRowsAll{}
+  for ALL48, \rhtaRowsRth{} for RTH13). The equal-row samples (Panel~D) hold the number of rows fixed and change the
+  span and recency of the window instead.
+  \begin{itemize}
+  \item With \rhtaRowsLarge{} rows, as many as RTH13, ALL48-39k has a significantly lower 16:00 loss than RTH13 in
+    \rhtaNAllThirtyNineKVsRthCloseSig{} classes, the lasso and the random forest
+    ($\Delta\% = \rhtaAllThirtyNineKVsRthClosePctMin$ to $\rhtaAllThirtyNineKVsRthClosePctMax$ across the six),
+    against \rhtaNAllVsRthCloseSig{} for ALL48 with all its rows, and in every class its 16:00 loss relative to
+    RTH13's is higher than ALL48's. Cutting ALL48 from \rhtaRowsAll{} to \rhtaRowsLarge{} rows raises its 16:00 loss
+    in all six classes ($\Delta\% = \rhtaAllThirtyNineKVsAllClosePctMin$ to $\rhtaAllThirtyNineKVsAllClosePctMax$),
+    significantly at the 5\% level in \rhtaNAllThirtyNineKVsAllCloseSig. Much of ALL48's advantage at 16:00 thus
+    goes with its larger number of rows. On every bar, ALL48-39k remains less accurate than RTH13 in all six classes
+    ($\Delta\% = \rhtaAllThirtyNineKVsRthBarPctMin$ to $\rhtaAllThirtyNineKVsRthBarPctMax$, each with $p < 0.001$).
+  \item With \rhtaRowsSmall{} rows, ALL48-3k has a lower 16:00 loss than RTH13-3k in all six classes
+    ($\Delta\% = \rhtaAllThreeKVsRthThreeKClosePctMin$ to $\rhtaAllThreeKVsRthThreeKClosePctMax$, significantly at the
+    5\% level in \rhtaNAllThreeKVsRthThreeKCloseSig) and a higher every-bar loss in all six
+    ($\Delta\% = \rhtaAllThreeKVsRthThreeKBarPctMin$ to $\rhtaAllThreeKVsRthThreeKBarPctMax$, each with
+    $p < 0.001$), the same pattern as at equal calendar; the two windows span about \rhtaSpanAllSmall{} and
+    \rhtaSpanRthSmall{} trading days.
+  \item Fewer rows also cost accuracy within the main sample: RTH13-3k has a higher loss than RTH13 at 16:00
+    ($\Delta\% = \rhtaRthThreeKVsRthClosePctMin$ to $\rhtaRthThreeKVsRthClosePctMax$) and on every bar
+    ($\Delta\% = \rhtaRthThreeKVsRthBarPctMin$ to $\rhtaRthThreeKVsRthBarPctMax$), each significant at the 1\% level.
+  \end{itemize}
+\item \textbf{The trade.} The Sharpe ratio $\SR$ of the full-set sign strategy (Section~\ref{sec:rh_econ_measures};
+  Panel~E) lies between \rhtaShFullRthMin{} and \rhtaShFullRthMax{} under RTH13 and between \rhtaShFullAllMin{} and
+  \rhtaShFullAllMax{} under ALL48. None of the \rhtaNDShTests{} differences in $\SR$ between the full-set strategies
+  of ALL48 or CLOSE and those of RTH13 is significant at the 5\% level (the smallest, \rhtaDShPMin). For the tree
+  ensembles, the full-set strategy's gain over the HAR benchmark's is significant at the 5\% level in
+  \rhtaNTreeShSigRth{} of the three classes under RTH13 and \rhtaNTreeShSigAll{} under ALL48.
+\item \textbf{Caveats.} The tree configurations were chosen on an earlier design (Appendix~\ref{app:rh_tuning}) and,
+  by the rule, are not re-tuned; with \rhtaRowsSmall{} rows (ALL48-3k, RTH13-3k) or \rhtaRowsAll{} (ALL48) their
+  sample-size parameters may not suit the window. The linear penalties are re-chosen in every sample. ALL48 differs
+  from RTH13 in more than its rows: it adds the overnight indicator, keeps the early-close sessions, and computes its
+  rolling scaling on its own rows.
+\item \textbf{The main design is unchanged.} RTH13 was chosen before the comparison, following the literature cited
+  above, and it is the sample under which the full predictor set is most accurate on the average regular-hours bar,
+  the score of Table~\ref{tab:rh_oos}. At the 16:00 bar, training on all \rhtaNIntervals{} intervals or on the close
+  alone gives the full predictor set a larger gain over the HAR benchmark in every class
+  (Appendix~\ref{sec:rh_econ_last30} for the close), a gain significant for the tree ensembles under ALL48 and for
+  every class under CLOSE. The closing-bar results of Sections~\ref{sec:rh_results} and~\ref{sec:rh_econ} are those
+  of models estimated for the regular session as a whole, not for its last half hour.
+\end{itemize}
+\input{generated/rehaul_train_arms_table}
+
+% Decision D15 (author, 2026-10-26): keep the NYSE-holiday sessions in the design and disclose them, with the measured
+% linear 2 x 2 (FOMC fixes x holiday sessions; results/fomcfix_2026-10-26, RULE.txt addendum A, cells A-D) as
+% robustness. NOTE FOR OFFICIAL PUBLICATION (plan D15): rerun every model with DROP_HOLIDAY_SESSIONS on before the
+% final version.
+\subsection{NYSE-holiday sessions}
+\label{app:rh_robust_holiday}
+\begin{itemize}
+\IfFileExists{generated/rehaul_holiday_table.tex}{%
+\item \textbf{The sessions.} On full NYSE holidays the E-mini trades a shortened session whose last regular-hours
+  bar ends at about \rhholLastBar~ET. The \rhholNSessions{} such sessions of the evaluation span have \rhholNBars{}
+  regular-hours bars. They are rows of the estimation sample and enter the target's diurnal factor, but they are not
+  scored, since Table~\ref{tab:rh_oos} scores the bars of NYSE trading days: each pooled model has \rhholNForecast{}
+  forecasts and \rhholNScored{} scored bars (Appendix~\ref{app:rh_dp_sessions}). The main design keeps them.
+\item \textbf{The sessions dropped.} Table~\ref{tab:rh_holiday} re-estimates the penalized linear models of
+  Table~\ref{tab:rh_oos} with the holiday sessions dropped from the estimation rows and from the diurnal factor,
+  every trailing average still computed on the full grid and every penalty frozen, with and without the FOMC fixes
+  of Appendix~\ref{app:rh_dp_fomc}; every variant is scored on the same bars.
+  \begin{itemize}
+  \item With the FOMC fixes, dropping the sessions moves the full predictor set's change in every-bar QLIKE against
+    the HAR benchmark by \rhholEffDBBarPpRng{} percentage points, and its change at 16:00 by
+    \rhholEffDBClosePpRng{} (without the fixes, \rhholEffCABarPpRng{} and \rhholEffCAClosePpRng).
+  \item The Sharpe ratio of the full-set sign strategy moves by \rhholEffDBShFullRng.
+  \end{itemize}
+\input{generated/rehaul_holiday_table}}{%
+\item \textbf{The sessions.} On full NYSE holidays the E-mini trades a shortened session that ends at about
+  13:00~ET. Its regular-hours bars are rows of the estimation sample and enter the target's diurnal factor, but they
+  are not scored, since Table~\ref{tab:rh_oos} scores the bars of NYSE trading days
+  (Appendix~\ref{app:rh_dp_sessions}). The main design keeps them.
+\item \textbf{The sessions dropped.} The pooled linear models re-estimated without the holiday sessions are in the
+  replication package.}
+\end{itemize}
