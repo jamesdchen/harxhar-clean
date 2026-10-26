@@ -1,0 +1,20 @@
+{
+ "loading.NULL_INVALID_PRINTS": true,
+ "loading.FOMC_CALENDAR_FIX": true,
+ "loading.SPLICE_VIX_FREE_FEED": true,
+ "target.SIGN_BY_NAME": true,
+ "target.FOMC_FLAGS_IDENTITY": true,
+ "target.CAUSAL_SD_FLOOR": true,
+ "target.CAUSAL_ASINH_ROUTING": true,
+ "executor.APPLY_FFILL_LIMIT": true,
+ "executor.ACTIVE_FROM_OBSERVED": true,
+ "executor.CAUSAL_MODE_INFLATION": true,
+ "executor.CAUSAL_NEUTRAL_FILL": true,
+ "executor.CAUSAL_GUARD_MODE": true,
+ "executor.B_REGULAR_BARS_ONLY": false,
+ "executor.DROP_EARLY_CLOSE_SESSIONS": false,
+ "executor.ERODE_IN_BARS": true,
+ "executor.BURNIN_IN_BAR_SPACE": false,
+ "executor.LATE_START_WARMUP": true,
+ "executor.UNOBSERVED_NEUTRAL": true
+}

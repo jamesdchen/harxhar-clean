@@ -1,0 +1,183 @@
+% 2026-10-25 draft: where the straddle strategy's profits come from (Section 7). Not \input by paper_rehaul.tex.
+% Numbers: every number is a macro -- \rhed... from writeup/generated/rehaul_econ_decomp_numbers.tex (generator
+% writeup/make_rehaul_econ_decomp.py, run with REHAUL_FINAL_RUN=1), the others from the number files the preamble of
+% paper_rehaul.tex already loads (\rheSzDays, \rheShortSh, \rheShortShX, \rheHACS, \rhePoolWorthlessShareMed, ...).
+% To place it: add \input{generated/rehaul_econ_decomp_numbers} to the preamble of paper_rehaul.tex, put the
+% subsection below after "Results" (sec:rh_econ_results) in writeup/rehaul/07_economics.tex, and add the four floats
+% to writeup/rehaul/07_economics_floats.tex:
+%   \input{generated/rehaul_econ_decomp_longshort}    % tab:rh_econ_longshort
+%   \input{generated/rehaul_econ_decomp_quintiles}    % tab:rh_econ_quintiles
+%   \input{generated/rehaul_econ_decomp_bestdays}     % tab:rh_econ_bestdays
+%   \input{generated/rehaul_econ_decomp_riskreg}      % tab:rh_econ_riskreg
+% Text elsewhere that this draft contradicts or qualifies (not edited here):
+%   07_economics.tex, Results, "Concentration of economic gains": "($R_t = -1$, corresponding to settlement pinning
+%     near the strike; ...)". The close settles between the two strikes about as often as the implied distribution
+%     predicts (item "Worthless expiries" below); proposed: "($R_t = -1$: the close settles between the two strikes;
+%     ...)".
+%   09_conclusion.tex, Maisch comparison: "ours come from timing the variance premium of the closing half hour" (parked
+%     2026-10-25). Supported only in a narrow sense: the gain over the short straddle is earned on the long days the
+%     forecast picks, and in this sample almost all of it on about ten of them (closing paragraph below).
+%   05_methods.tex, Back-transformation: "a downward Jensen inequality bias that we leave uncorrected". It is there in
+%     ratio terms and tilts the sign rule short, but a causal correction lowers every full-set Sharpe ratio (item
+%     "Calibration" below); the text may say so.
+%   07_economics.tex, Results, "Unconditional short-straddle benchmark": "earns no statistically detectable variance
+%     risk premium". Consistent; note that the forecast target RV_t (ES futures, one-minute returns) averages
+%     \rhedUncRVIVMean{} of IV_t^2 while the squared half-hour move of the cash index that settles the straddle
+%     averages \rhedMoveSqIV{} of it (item "Calibration" below).
+
+\subsection{Where the profits come from}
+\begin{itemize}
+\item \textbf{A short straddle that turns long on a fifth of the days.} The sign strategies of the six pooled intraday
+  forecasts on the full predictor set hold a long straddle on \rhedLongNMin{} to \rhedLongNMax{} of the \rheSzDays{}
+  post-warmup days (\rhedLongPctMin--\rhedLongPctMax\%; Table~\ref{tab:rh_econ_longshort}). Because
+  \[
+    r_t = q_t R_t = -R_t + 2R_t\,\mathbf{1}\{q_t = +1\},
+  \]
+  each strategy's return is that of the unconditional short straddle plus a gain $\Delta_t = 2R_t\mathbf{1}\{q_t = +1\}$
+  over it, and that gain is earned on the long days only.
+  \begin{itemize}
+  \item The unconditional short straddle earns \rhedUncShortMean\% of the premium a day at mid-quotes; the gain on the
+    long days adds \rhedGainMin--\rhedGainMax\%, which is \rhedGainShareMin--\rhedGainShareMax\% of the strategies'
+    mean daily return of \rhedMeanMin--\rhedMeanMax\%.
+  \item On its long days the straddle returns \rhedLongMidMin--\rhedLongMidMax\% of the premium on average at
+    mid-quotes and \rhedLongBaMin--\rhedLongBaMax\% bought at the ask. On the remaining days the short straddle earns
+    \rhedShortMidMin--\rhedShortMidMax\% at mid-quotes, against \rhedUncShortMean\% on all days: the long days are the
+    days on which the short straddle loses.
+  \item The long days account for \rhedLongShareMin--\rhedLongShareMax\% of the summed mid-quote return
+    (\rhedLongShareXMin--\rhedLongShareXMax\% at quoted bid/ask prices). On the HAR benchmark the same model classes go
+    long on \rhedHarLongNMin{} to \rhedHarLongNMax{} days, on which the straddle returns only
+    \rhedHarLongMidMin--\rhedHarLongMidMax\% (gain over the short straddle \rhedHarGainMin--\rhedHarGainMax\% a day).
+  \end{itemize}
+\item \textbf{No better call of the premium's sign, but the large moves.} The position has the sign of $\RV_t - \mathrm{IV}_t^2$ on \rhedHitMin--\rhedHitMax\% of the days, against
+  \rhedUncShortHit\% for the unconditional short straddle, so the forecasts are no better than always selling at
+  calling the sign of the realized premium. What they add is in the long days: realized variance exceeds implied
+  variance on \rhedLongHitMin--\rhedLongHitMax\% of them, against \rhedUncRVAboveIV\% of all days, yet the long
+  straddle has a positive return on only \rhedLongPosMin--\rhedLongPosMax\% of its long days, so its mean return on
+  those days comes from a few large moves.
+\item \textbf{Forecast quintiles} (Table~\ref{tab:rh_econ_quintiles}). Sorted by the forecast variance gap
+  $\log(\hat\sigma^2_t/\mathrm{IV}_t^2)$, the mean ratio of realized to implied variance rises from quintile to
+  quintile for all \rhedQMonoN{} full-set forecasts, from \rhedQOneRVIV{} in the lowest to \rhedQFiveRVIV{} in the
+  highest (mean of the six), and for \rhedHarQMonoN{} of the six HAR-benchmark forecasts (\rhedHarQOneRVIV{} to
+  \rhedHarQFiveRVIV): the forecasts rank the closing half hours by their realized variance relative to the implied.
+  \begin{itemize}
+  \item The return of a long straddle is negative in each of the four lower quintiles (\rhedQLowRMin{} to
+    \rhedQLowRMax\% on average) and \rhedQFiveR\% in the highest, where \rhedQFiveLong\% of the days are long days;
+    for the HAR-benchmark forecasts it is \rhedHarQFiveR\%. The sign rule's threshold, $\hat\sigma^2_t =
+    \mathrm{IV}_t^2$, falls between the fourth quintile (forecast ratio \rhedQFourFc) and the fifth
+    (\rhedQFiveFc).
+  \item The highest quintile earns \rhedQFiveShare\% of the summed mid-quote return of the six full-set strategies
+    (\rhedQFiveShareRngMin--\rhedQFiveShareRngMax\% across them), against \rhedHarQFiveShare\% for the HAR benchmark.
+    Across the four lower quintiles, where the strategies are short, the return is not monotone in the forecast.
+  \end{itemize}
+\item \textbf{About ten days carry the gain over the short straddle} (Table~\ref{tab:rh_econ_bestdays}). The six
+  full-set forecasts share \rhedBestAllSix{} of their ten best days and \rhedWorstAllSix{} of their ten worst; the
+  best days are long straddles on large closing moves, the worst are short straddles on large closing moves.
+  \begin{itemize}
+  \item Without each forecast's ten best days, the Sharpe ratio gain over the unconditional short straddle falls from
+    \rhedDShortAllMin--\rhedDShortAllMax{} to \rhedDShortExBestMin{} to \rhedDShortExBestMax{} (negative for
+    \rhedDShortExBestNeg{} of the six); the ten days earn \rhedBestShareMin--\rhedBestShareMax\% of the summed return
+    gain over the short straddle, so the other long days lose on balance.
+  \item The largest, \rhedTopDate, returned \rhedTopR\% of the premium on a closing-half-hour move of
+    \rhedTopMove\% (realized variance \rhedTopRVIV{} times the implied), \rhedTopShareMin--\rhedTopShareMax\% of each
+    full-set strategy's summed return.
+  \item Against the HAR twin the gain is less concentrated: without the forecast's ten best days the Sharpe ratio gain
+    falls from \rhedDHarAllMin--\rhedDHarAllMax{} to \rhedDHarExBestMin--\rhedDHarExBestMax, and those days carry
+    \rhedHarBestShareMin--\rhedHarBestShareMax\% of the summed return gain over the twin.
+  \end{itemize}
+\item \textbf{The days are not scheduled announcements.} Of the \rhedBestUnion{} days in the union of the six
+  forecasts' best days, \rhedBestFomcN{} is an FOMC statement day and \rhedBestNoTagN{} carry no tag in our event
+  calendar, \rhedBestAfterRelN{} of them after \rhedRelEndText, when its macro-release dates end (its FOMC dates are
+  complete).
+  \begin{itemize}
+  \item On the \rhedFomcN{} FOMC statement days the closing straddle returns \rhedFomcR\% on average
+    ($t = \rhedFomcRT$, the days treated as independent); the full-set forecasts are long on \rhedFomcLong\% of them
+    and earn \rhedFomcStrat\% a day, against \rhedFomcOtherStrat\% on the other days.
+  \item On the \rhedMeN{} month ends the straddle returns \rhedMeR\% ($t = \rhedMeRT$) and the squared closing move
+    averages \rhedMeMoveSqIV{} times the implied variance; the forecasts are long on \rhedMeLong\% of them, earn
+    \rhedMeStrat\% a day, and \rhedMeShare\% of their summed return comes from these days (\rhedWorstMeN{} of the worst days
+    are month ends).
+  \item On the \rhedOpexN{} monthly SPX expirations the straddle returns \rhedOpexR\% ($t = \rhedOpexRT$); the
+    forecasts are long on \rhedOpexLong\% of them and earn \rhedOpexShare\% of their summed return there, a gain the
+    unconditional short straddle shares.
+  \end{itemize}
+\item \textbf{Calibration and the short tilt} (Table~\ref{tab:rh_econ_longshort}, Panel D). In levels the full-set
+  forecasts are close to unbiased on the option days (mean forecast over mean realized variance
+  \rhedCalLevelMin--\rhedCalLevelMax), but in ratios they are low: the mean of $\RV_t/\hat\sigma^2_t$, the scale that
+  minimizes mean QLIKE, is \rhedCalScaleMin--\rhedCalScaleMax, the downward bias of squaring a level forecast
+  (Section~\ref{sec:rh_methods_setup}).
+  \begin{itemize}
+  \item Multiplying each forecast by a causal estimate of that scale, the mean of $\RV_{t'}/\hat\sigma^2_{t'}$ over the
+    earlier option days $t' < t$, changes \rhedBcFlipMin{} to \rhedBcFlipMax{} positions, all from short to long.
+    The straddle's mean return on the changed days is \rhedBcFlipRMin{} to \rhedBcFlipRMax\%, and the Sharpe ratio
+    falls to \rhedBcShMin--\rhedBcShMax{} at mid-quotes and \rhedBcShXMin--\rhedBcShXMax{} at quoted bid/ask prices
+    (below the uncorrected ratio for \rhedBcShDownN{} of the six; the correction raises it for \rhedHarBcShUpN{} of
+    the six HAR-benchmark forecasts). This is a
+    diagnostic, not a strategy of the paper.
+  \item A reading consistent with this: a straddle pays the absolute move of the index, so a long position is
+    profitable when the expected realized volatility, not variance, exceeds the implied volatility. The sign rule
+    $\hat\sigma^2_t > \mathrm{IV}_t^2$ is the same as $\hat y_t\, s_{t,c} > \mathrm{IV}_t$, a comparison of the level
+    forecast with the implied volatility, which the uncorrected forecast makes.
+  \item The forecast target and the straddle's settlement differ: $\RV_t$, the realized variance of the futures from
+    one-minute returns, averages \rhedUncRVIVMean{} of the implied variance (median \rhedUncRVIVMed), while the squared
+    log move of the cash index from $S_t$ to $S^{\mathrm{close}}_t$ averages \rhedMoveSqIV{} of it, and
+    \rhedMoveSqRV{} times the mean of $\RV_t$. Measured on the move that settles the straddle, the implied variance
+    carries no premium on average in our sample, which agrees with the short straddle's Sharpe ratio of
+    \rheShortSh.
+  \end{itemize}
+\item \textbf{Worthless expiries are not pinning.} $R_t = -1$ exactly when the close settles between the two strikes,
+  $K_P \le S^{\mathrm{close}}_t \le K_C$; on \rhedGapFiveN{} of the \rheSzDays{} days the two strikes are 5 index points
+  apart, against a median one-standard-deviation implied move over the half hour of \rhedMoveSdPts{} points.
+  \begin{itemize}
+  \item The straddle expires worthless on \rhedWorthN{} days (\rhedWorthPct\%). A normal half-hour log move with the
+    implied volatility $\mathrm{IV}_t$ predicts \rhedWorthExpIV{} such days (\rhedWorthExpIVPct\%; the difference is
+    \rhedWorthZ{} standard deviations), the empirical distribution of the earlier days' moves scaled by
+    $\mathrm{IV}_t$ predicts \rhedWorthExpEmp, and the close is uniformly placed between adjacent strikes (mean distance
+    to the nearest strike \rhedStrikeDist{} points, \rhedStrikeDistUnif{} under a uniform; Kolmogorov--Smirnov
+    $D = \rhedKsD$, 5\% critical value \rhedKsCV).
+  \item The full-set forecasts are short on \rhedWorthShortMin--\rhedWorthShortMax{} of these days, on which the short
+    straddle keeps its whole premium; these days supply \rhePoolWorthlessShareMed\% of the positive returns of the
+    median pooled forecast (Section~\ref{sec:rh_econ_results}).
+  \item Monthly SPX expirations are the exception: \rhedWorthOpexN{} of the \rhedOpexN{} expire worthless against
+    \rhedWorthOpexExp{} expected ($\rhedWorthOpexZ$ standard deviations), and the squared closing move averages
+    \rhedOpexMoveSqIV{} of the implied variance. Outside them the share is \rhedWorthOtherPct\% against
+    \rhedWorthOtherExpPct\% expected.
+  \end{itemize}
+\item \textbf{Risk exposures} (Table~\ref{tab:rh_econ_riskreg}; $t$-statistics with Newey--West standard errors at
+  bandwidth $S = \rheHACS$ and fixed-$b$ critical values, Section~\ref{sec:rh_methods_tests}).
+  \begin{itemize}
+  \item On the short-straddle return the full-set strategies load \rhedRegBetaShortMin--\rhedRegBetaShortMax{}
+    ($t$ from \rhedRegBetaShortTMin{} to \rhedRegBetaShortTMax; $R^2$ \rhedRegRsqAMin--\rhedRegRsqAMax), with
+    $\alpha = \rhedRegAlphaAMin$--\rhedRegAlphaAMax\% of the premium a day at mid-quotes (fixed-$b$ $p$ from
+    \rhedRegAlphaAPMin{} to \rhedRegAlphaAPMax) and \rhedRegAlphaAXMin--\rhedRegAlphaAXMax\% at quoted bid/ask prices
+    ($p$ from \rhedRegAlphaAXPMin{} to \rhedRegAlphaAXPMax). The equal-weight mean of the six returns has $\alpha = \rhedRegAvgAlphaA\%$
+    ($p = \rhedRegAvgAlphaAP$) at mid-quotes and $\rhedRegAvgAlphaAX\%$ ($p = \rhedRegAvgAlphaAXP$) at quoted
+    bid/ask prices.
+  \item They are short volatility, less so than the short straddle: a basis point of absolute S\&P~500 move over the
+    closing half hour changes their return by \rhedRegBetaAbsMin{} to \rhedRegBetaAbsMax\% of the premium ($t$ from
+    \rhedRegBetaAbsTMin{} to \rhedRegBetaAbsTMax); for their mean return the coefficient, \rhedRegAvgBetaAbs\%, is
+    \rhedRegAbsRatio\% of the short straddle's \rhedRegShortBetaAbs\%. The sign of the move does not matter
+    (coefficients \rhedRegBetaMoveMin{} to \rhedRegBetaMoveMax).
+  \item The S\&P~500 daily return and the change in the VIX explain none of their return ($R^2$
+    \rhedRegRsqCMax), and with all regressors $\alpha$ is \rhedRegAlphaDMin--\rhedRegAlphaDMax\% at mid-quotes and
+    \rhedRegAlphaDXMin--\rhedRegAlphaDXMax\% at quoted bid/ask prices.
+  \item Without each forecast's ten best days, $\alpha$ on the short straddle is \rhedRegAlphaAExBestMin{} to
+    \rhedRegAlphaAExBestMax\% ($p \ge \rhedRegAlphaAExBestPMin$). The standard errors allow for serial correlation, not
+    for a return distribution whose mean rests on ten days. The HAR-benchmark strategies have
+    $\alpha = \rhedHarRegAlphaAMin$--\rhedHarRegAlphaAMax\% ($p \ge \rhedHarRegAlphaAPMin$).
+  \end{itemize}
+\end{itemize}
+
+\paragraph{Where the profits come from.} The strategy is a short straddle on most days, and the short straddle
+by itself earns nothing detectable in our sample (\rheShortSh{} at mid-quotes, \rheShortShX{} at quoted bid/ask
+prices). The profit comes from the days on which the full-set forecasts switch to a long straddle: these are the
+closing half hours that the forecasts rank highest in realized relative to implied variance, the ranking is monotone
+across the forecast quintiles, and on these days the straddle earns \rhedLongMidMin--\rhedLongMidMax\% of its premium
+on average (\rhedQFiveR\% in the top forecast quintile, against \rhedHarQFiveR\% on the HAR benchmark). The strategy is not a disguised short-volatility
+position: it has less than half of the short straddle's exposure to the size of the closing move, almost none to its
+return, and none to the market or the VIX. But the payoff of the ranking is concentrated in about ten days with closing
+moves several times the implied, the same days for all six forecasts, and only \rhedBestFomcN{} of the \rhedBestUnion{} an FOMC
+statement day;
+without them the gain over the short straddle and the regression $\alpha$ disappear. The forecasts thus time the sign
+of the closing-half-hour variance premium in a narrow sense, by stepping out of the short straddle on a minority of
+days, and in this sample of \rheSzDays{} days that timing paid through a handful of large closing moves that they
+anticipated, not through a steady premium.

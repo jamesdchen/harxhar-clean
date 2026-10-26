@@ -1,0 +1,137 @@
+% 2026-10-25 DRAFT for Section 6 (sec:rh_results): the closing-half-hour accuracy table on both evaluation spans and
+% the calibration diagnostics promised by note E33 (05_methods.tex), which explain why the full predictor set lowers
+% QLIKE but raises the MSE.
+% Generator: writeup/make_rehaul_close_accuracy.py (run from the repository root; it sets REHAUL_FINAL_RUN=1 and, before
+% writing, reproduces Table 1 (cells, metrics.csv, subperiods.csv, \rhorDm...B), the closing-half-hour numbers of
+% Section 6 (\rhrQ..., \rhrAf...Pool..., \rhrVsBm...Pool..., \rhrOlsQ), the 16:00 cells of Table tab:rh_robust_w3500
+% at W = 3,000 and Table tab:rh_oos_last30 (cells, \rhrAf...Close...): 278 checks).
+% Files:   generated/rehaul_close_accuracy_numbers.tex  (\rhca... macros; macro-only; no name collides with a macro of
+%                                                       another writeup/generated/*.tex file, checked by the generator)
+%          generated/rehaul_close_accuracy_table.tex    (Table tab:rh_close_accuracy)
+%          generated/rehaul_calibration_table.tex       (Table tab:rh_calibration)
+%          generated/rehaul_calibration_fig.tex         (Figure fig:rh_calibration, generated/rehaul_calibration.pdf)
+% To use:  \input{generated/rehaul_close_accuracy_numbers} in the preamble of paper_rehaul.tex (each float also loads it
+%          when it is undefined); \input the three floats in rehaul/06_results_floats.tex; the items below go at the end
+%          of sec:rh_results_predictors (after "Robustness to the window length"), or as a subsection of their own.
+% Every number below is a macro (\rhca..., or an existing \rhor... / \rhr... macro); nothing is typed. The class
+% names, directions and the words "all", "every" and "none" below are asserted in make_rehaul_close_accuracy.py
+% (claims()), so a rerun whose data no longer bear them out stops.
+% Note E33 (05_methods.tex) can be closed with these items: MAE and the calibration diagnostics are computed for the
+% forecasts of Table 1 (Table tab:rh_calibration); the parked Methods bullets on MAE and calibration can return.
+
+\begin{itemize}
+\item \textbf{The closing half hour on both evaluation spans.} Table~\ref{tab:rh_close_accuracy} reports the 15:30
+  forecast of the closing half hour from the pooled models of Table~\ref{tab:rh_oos} on the \rhcaNdaysSpan{} trading days
+  from \rhcaStartSpan{} to \rhcaEndSpan{} (Panel~A) and on $\mathcal T_{\mathrm{oos}}$ (Panel~B), with the models trained
+  on the closing half hour only (Appendix~\ref{sec:rh_econ_last30}) on $\mathcal T_{\mathrm{oos}}$, where they have
+  forecasts.
+  \begin{itemize}
+  \item From \rhcaStartSpan{} to \rhcaEndSpan, the full predictor set lowers the average QLIKE loss of the closing half
+    hour in \rhcaNLowerCloseSpan{} of the \rhorAfPairs{} model classes, the three tree ensembles
+    ($\Delta\% = \rhcaTreePctCloseSpanMin$ to $\rhcaTreePctCloseSpanMax$) and the elastic net
+    ($\Delta\% = \rhcaPctEnetCloseSpan$), and the reduction is statistically significant at the 5\% level for XGBoost
+    only ($\Delta\% = \rhcaPctXgbCloseSpan$, $\DM = \rhcaDmXgbCloseSpan$, \rhcaPXgbCloseSpan). It raises the loss of
+    ridge regression ($\Delta\% = \rhcaPctRidgeCloseSpan$, $\DM = \rhcaDmRidgeCloseSpan$) and the lasso
+    ($\Delta\% = \rhcaPctLassoCloseSpan$, $\DM = \rhcaDmLassoCloseSpan$), neither significantly.
+  \item On $\mathcal T_{\mathrm{oos}}$ the same comparison gives the numbers of
+    Section~\ref{sec:rh_results_predictors}: lower losses for the tree ensembles ($\Delta\% = \rhcaTreePctCloseOosMin$ to
+    $\rhcaTreePctCloseOosMax$, none significant) and higher losses for the penalized linear models
+    ($\Delta\% = \rhcaLinPctCloseOosMin$ to $\rhcaLinPctCloseOosMax$, significant at the 5\% level for ridge regression
+    and the lasso).
+  \item The penalized linear models differ between the two spans because their full-set change has opposite signs on
+    the two halves of the longer span. On \rhcaYearsPre{} the full predictor set lowers their closing-half-hour loss ($\Delta\% = \rhcaPctRidgeClosePre$,
+    \rhcaPctLassoClosePre{} and \rhcaPctEnetClosePre{} for ridge regression, the lasso and the elastic net;
+    $\DM = \rhcaDmRidgeClosePre$, \rhcaDmLassoClosePre{} and \rhcaDmEnetClosePre), and in \rhcaYrsDownRidgeClosePre,
+    \rhcaYrsDownLassoClosePre{} and \rhcaYrsDownEnetClosePre{} of the \rhcaNYrsPre{} calendar years. On
+    $\mathcal T_{\mathrm{oos}}$ it raises their loss in \rhcaYrsUpRidgeCloseOos{} of the \rhcaNYrsOos{} calendar years,
+    most in \rhcaWorstYrRidgeCloseOos{} ($\Delta\% = \rhcaWorstYrPctRidgeCloseOos$ for ridge regression). Over the whole
+    span the two halves offset, and no linear change is significant.
+  \item Against the closing-interval HAR benchmark, which has no forecast before \rhcaCloseFirst, every pooled forecast
+    has the higher loss on $\mathcal T_{\mathrm{oos}}$ (Section~\ref{sec:rh_results_classes}). The models trained on the
+    closing half hour come closer: the closing-interval lasso on the full predictor set has the lowest loss of
+    Table~\ref{tab:rh_close_accuracy} ($\Delta\% = \rhcaGapCiLassoFullCloseOos$ against the benchmark,
+    $\DM = \rhcaGapDmCiLassoFullCloseOos$, \rhcaGapPCiLassoFullCloseOos).
+  \end{itemize}
+
+\item \textbf{QLIKE and squared-error loss disagree.} On every bar the full predictor set lowers the average QLIKE loss
+  in all \rhorAfPairs{} classes (Table~\ref{tab:rh_oos}) but raises the MSE in all of them
+  ($\rhcaLinMsePctBarSpanMin$ to $\rhcaLinMsePctBarSpanMax\%$ for the penalized linear models, $\rhcaTreeMsePctBarSpanMin$
+  to $\rhcaTreeMsePctBarSpanMax\%$ for the tree ensembles) and lowers $R^2_{\mathrm{OOS}}$; at 16:00 the MSE rises in
+  \rhcaNMseHigherCloseSpan{} of the classes, none significantly. Table~\ref{tab:rh_calibration} and
+  Figure~\ref{fig:rh_calibration} locate the disagreement. They report Mincer--Zarnowitz regressions of the realized
+  variance on the forecast, in levels and in logs \citep{MincerZarnowitz1969}, with Newey--West standard errors, and
+  two exact decompositions of the losses: the MSE into a bias, a slope and a disturbance term,
+  \[
+    \mathrm{MSE} = \bigl(\overline{\RV} - \overline{\hat\sigma^2}\bigr)^2 + (1 - b)^2\,\Var\bigl(\hat\sigma^2\bigr)
+      + \bigl(1 - R^2_{\mathrm{MZ}}\bigr)\Var(\RV),
+  \]
+  with $b$ and $R^2_{\mathrm{MZ}}$ the slope and $R^2$ of the levels regression, and the average QLIKE loss into a level
+  and a dispersion term,
+  \[
+    \overline{\QLIKE} = \bigl(\bar r - 1 - \ln\bar r\bigr) + \bigl(\ln\bar r - \overline{\ln r}\bigr),
+    \qquad r_t = \RV_t/\hat\sigma^2_t ,
+  \]
+  where the first term vanishes when $\bar r = 1$ and is what a constant rescaling of the forecast can remove, and the
+  second is unchanged by such a rescaling.
+  \begin{itemize}
+  \item \textbf{Not a level bias.} The bias term is at most \rhcaAllShBiasBarOosMax\% of the MSE of any pooled forecast
+    on every bar of $\mathcal T_{\mathrm{oos}}$, and the ratio of mean realized to mean forecast variance lies between
+    \rhcaAllRmBarOosMin{} and \rhcaAllRmBarOosMax.
+  \item \textbf{Not before 2020.} On \rhcaYearsPre{} the full predictor set has the lower MSE on every bar in all
+    \rhorAfPairs{} classes ($\rhcaLinMsePctBarPreMin$ to $\rhcaLinMsePctBarPreMax\%$ for the linear models) and at
+    16:00, and the lower MAE in all of them; the levels slope of the linear models on the full set is
+    \rhcaLinFullMzBBarPreRng, not significantly different from one.
+  \item \textbf{Scale on $\mathcal T_{\mathrm{oos}}$.} On every bar of $\mathcal T_{\mathrm{oos}}$ the full-set forecasts move
+    too much in levels: the slope is \rhcaLinFullMzBBarOosRng{} for the penalized linear models
+    and \rhcaTreeFullMzBBarOosRng{} for the tree ensembles, each significantly below one,
+    against \rhcaLinHarMzBBarOos{} and \rhcaTreeHarMzBBarOosRng{} on the HAR benchmark. The
+    slope term is \rhcaLinFullShSlopeBarOosRng\% of the linear models' full-set MSE and
+    \rhcaTreeFullShSlopeBarOosRng\% of the trees', against at most
+    \rhcaAllHarShSlopeBarOosMax\% on the HAR benchmark, and over-predictions carry
+    \rhcaLinFullOverSeBarOosRng\% of the linear models' full-set squared error
+    (\rhcaAllHarOverSeBarOosRng\% on the HAR benchmark). By forecast decile
+    (Figure~\ref{fig:rh_calibration}), the full-set elastic net under-predicts in its bottom decile and over-predicts
+    in its top decile, which carries \rhcaTopDecSeEnetFullBarOos\% of its squared error.
+  \item \textbf{A handful of days in the COVID-19 crash.} The \rhcaTopDays{} days with the largest excess squared error
+    of the full set, all between \rhcaTopFirstBarOos{} and \rhcaTopLastBarOos, carry
+    \rhcaLinTopShareBarOosRng\% of the full set's excess squared error on every bar of
+    $\mathcal T_{\mathrm{oos}}$ for the penalized linear models and
+    \rhcaTreeTopShareBarOosRng\% for the tree ensembles. The largest full-set forecast of the
+    elastic net, for the bar ending at \rhcaMaxFcClock{} ET on \rhcaMaxFcDate, is
+    $\rhcaMaxFcEnet \times 10^{-\rhcaUnitExp}$, \rhcaMaxFcRatioEnet{} times the realized variance of that bar
+    ($\rhcaMaxFcRvEnet \times 10^{-\rhcaUnitExp}$; HAR benchmark $\rhcaMaxFcHarEnet \times 10^{-\rhcaUnitExp}$). Without
+    the days from \rhcaCrashStart{} to \rhcaCrashEnd, the full predictor set has the lower every-bar MSE on
+    $\mathcal T_{\mathrm{oos}}$ in all \rhorAfPairs{} classes ($\rhcaLinMsePctBarOosExCrashMin$ to
+    $\rhcaLinMsePctBarOosExCrashMax\%$ for the linear models, $\rhcaTreeMsePctBarOosExCrashMin$ to
+    $\rhcaTreeMsePctBarOosExCrashMax\%$ for the trees) and the lower MAE, each statistically significant at the 5\%
+    level.
+  \item \textbf{Calibrated in logs.} QLIKE behaves like a loss on $\ln r_t$: it weights an error by its size relative
+    to the forecast and grows only logarithmically in over-prediction, so the bars of the crash, which dominate the
+    squared error, weigh little in it. In logs the full-set forecasts are well scaled (slope
+    \rhcaLinFullMzlBBarOosRng{} for the linear models on every bar of
+    $\mathcal T_{\mathrm{oos}}$) and more informative than the HAR benchmark of the same class in both periods ($R^2$ of
+    \rhcaLinFullMzlRsqBarOosRng{} for the linear models and
+    \rhcaTreeFullMzlRsqBarOosRng{} for the trees, against
+    \rhcaAllHarMzlRsqBarOosRng).
+  \end{itemize}
+
+\item \textbf{The linear models at the closing half hour after 2020: a level shift.} At 16:00 on
+  $\mathcal T_{\mathrm{oos}}$, the full-set forecasts of the penalized linear models lie below the HAR benchmark's (a
+  median log ratio of \rhcaLinMedLogRatioCloseOosMin{} to \rhcaLinMedLogRatioCloseOosMax\%, against
+  \rhcaLinMedLogRatioClosePreMin{} to \rhcaLinMedLogRatioClosePreMax\% on \rhcaYearsPre), they fall short of the realized
+  variance more often (\rhcaLinFullUnderCloseOosRng\% of days, against
+  \rhcaLinHarUnderCloseOos\%), and $\bar r$ rises from \rhcaLinHarMrCloseOos{} to
+  \rhcaLinFullMrCloseOosRng. QLIKE penalizes under-prediction more than over-prediction, and
+  the level term of the decomposition above accounts for \rhcaLinQlShareCloseOosRng\% of
+  their increase in QLIKE (from \rhcaLinHarQlCloseOos{} to \rhcaLinFullQlCloseOosRng), while
+  the dispersion term rises less (from \rhcaLinHarQdCloseOos{} to
+  \rhcaLinFullQdCloseOosRng). Most of the linear models' added closing-half-hour loss is
+  thus one that a constant rescaling of their forecasts would remove.
+  \begin{itemize}
+  \item The tree ensembles' full-set forecasts of the closing half hour are also lower and their level term also rises
+    (from \rhcaTreeHarQlCloseOosRng{} to
+    \rhcaTreeFullQlCloseOosRng), but their dispersion term falls by more (from
+    \rhcaTreeHarQdCloseOosRng{} to \rhcaTreeFullQdCloseOosRng), so
+    their QLIKE falls.
+  \end{itemize}
+\end{itemize}

@@ -1,0 +1,153 @@
+PRE-REGISTRATION: market exposure of the 0DTE straddle strategy and its optimal allocation with the market
+=========================================================================================================
+Written 2026-10-26T02:30Z (2026-10-25 19:30 PDT), BEFORE any statistic on strategy-vs-market data was computed.
+Repository HEAD at writing: e235754 (branch insurance-selling-2026-09-19-e34).
+Generator: writeup/make_rehaul_econ_beta.py (its docstring mirrors this file).
+This file is not changed after results are seen. Any deviation goes into a dated ADDENDUM at the end, with the reason.
+
+What had been looked at before writing (no strategy-vs-market statistic among them): the schemas of
+data/spy_and_sentiment.parquet (stocktwits columns only, no prices), data/spxw_spot.parquet (SPX prints at 14
+half-hourly times; its 16:00 print is missing on 124 of the 858 trading days 2021-01-04..2024-05-31 and differs from
+the official close by a median 0.8 bp, max 12 bp), the cached ^GSPC daily closes
+results/atm_straddle_0dte_1530/cache/gspc_close_2019-12-27_2026-01-07.parquet (all NYSE trading days, exactly the 32
+weekday holidays missing in 2021-01..2024-05; make_rehaul_econ_decomp.py asserts it equals the quote book's settlement
+close S^close_t on all 866 option days), and the DTB3 file (gaps on bond-market holidays). Known from the 2026-10-25
+drafts (writeup/drafts/2026-10-25_econ_*.tex): the decomposition's regression of the strategy returns on the S&P 500
+close-to-close LOG return jointly with the VIX change (R^2 0.00, no significant coefficient), the strategies' Sharpe
+ratios and their concentration on about ten days.
+
+1. SAMPLE
+   The 614 post-warmup option days of Section 7 (me.pw_days(): option days t > 252, 2021-08-11 .. 2024-04-30).
+
+2. STRATEGIES (14 series, nothing re-implemented)
+   The six pooled full-set forecasts (ridge, lasso, elastic net, LightGBM, XGBoost, random forest), their six
+   HAR-benchmark-set twins (the three linear ones coincide: four distinct), the closing-interval OLS HAR forecast
+   (CI-HAR, master-table key sub_ols_baseline), and the unconditional short straddle. Built exactly as
+   writeup/make_rehaul_econ_main.py builds them: me.load(), me.gate_against_master, me.add_pooled_linear,
+   me.add_pooled_trees, make_rehaul_econ_main.add_har_trees. Daily return r^s_t = q_t R_t at mid-quotes ("mid") and
+   master_table_gui.rows._crossed_return at quoted bid/ask prices ("bid/ask"), as fractions of the premium.
+   The 30-minute strategy return is treated as an excess return (no risk-free deduction), as Section 7 does.
+   Gate (the run stops on a mismatch): every strategy's D6 Sharpe ratio, mid and bid/ask, reproduces
+   \rhemSh<tag> / \rhemShX<tag> of writeup/generated/rehaul_econ_main_numbers.tex.
+
+3. MARKET
+   Primary: r^m_t = C_t / C_{t-1} - 1 - rf_t, the S&P 500 (^GSPC) close-to-close PRICE return of option day t
+   (C_{t-1} the close of the previous NYSE trading day) in excess of the T-bill return. Source: the cached ^GSPC closes
+   above (asserted equal to S^close_t on all 866 option days). No dividends: the repository has no SPY or total-return
+   series (data/spy_and_sentiment.parquet carries no prices), so the market return is a price return and the market's
+   mean excess return is understated by the dividend yield (about 1.5 % a year); the strategies' betas and the
+   regression residuals are unaffected by a constant shift of r^m.
+   Risk-free: FRED DTB3 (3-month Treasury bill, secondary market, discount basis, percent a year), downloaded
+   2026-10-26T02:21Z from https://fred.stlouisfed.org/graph/fredgraph.csv?id=DTB3 (HTTP Last-Modified
+   Fri, 23 Oct 2026 20:17:46 GMT), saved verbatim as data/fred_dtb3.csv (18,994 observations 1954-01-04 .. 2026-10-22,
+   sha256 3437358abeac96f2417ec10d173e985b8aa831d09dee78debdafa52f016f21c8). Missing values (bond-market holidays)
+   are carried forward from the last observation. rf_t = DTB3_{t-1} / 100 * d_t / 360, with DTB3_{t-1} the rate on the
+   previous trading day (known when the holding period starts) and d_t the calendar days from t-1 to t (actual/360).
+   Secondary window: r^30_t = S^close_t / S_t - 1, the index's own 15:30-16:00 return (the trade's window; S_t the
+   chain's 15:30 underlying print of the quote book), no risk-free deduction (30 minutes). Used for the exposure
+   statistics (correlation, beta, Treynor-Mazuy, down-day means) and the CAPM alpha only; not for the allocations.
+   Descriptive check: the market's standard Sharpe ratio on ALL NYSE trading days of the span 2021-08-11..2024-04-30
+   against that on the 614 option days.
+
+4. EXPOSURE (each strategy; mid and bid/ask; each market window)
+   - Pearson correlation of r^s and r^m.
+   - OLS beta of r^s on [1, r^m]. t-statistic: HAC (Bartlett kernel, bandwidth S = ceil(1.3 T^(1/2)) = 33 at T = 614,
+     autocovariances over T), two-sided fixed-b p at b = S/T: make_rehaul_econ_decomp.hac_ols, the regression form of
+     the paper's nw_t / hac_p (its intercept-only case is the paper's mean test).
+   - Treynor-Mazuy: r^s = a + b r^m + c (r^m)^2 + e; c and b with the same HAC t / fixed-b p. Also run separately on the
+     strategy's long days (q_t = +1) and short days (q_t = -1) (positions are known before the window): long-gamma days
+     are expected to load positively on (r^m)^2, short days negatively; the expectation is stated, not tested for.
+   - Mean strategy return on market-down days (r^m_t < 0) and on the other days; on the worst-decile market days
+     (r^m_t <= the 10 % sample quantile of r^m over the sample, numpy linear interpolation) and on the other days. The
+     difference of each pair: the slope of r^s on [1, indicator] with the same HAC t / fixed-b p.
+   Decision statement: "the strategy is exposed to market beta" iff the beta on r^m is significant at the 5 % level
+   (two-sided fixed-b p < 0.05). Counts over the six full-set forecasts are reported; no multiplicity adjustment.
+
+5. ALPHA AND SPANNING (primary window; mid and bid/ask)
+   - CAPM alpha and beta from the OLS above; alpha's HAC t and fixed-b p. Alpha reported per day in % of the premium
+     and annualized as 252 x the daily alpha.
+   - sigma_eps^2 = var(r^s) - beta^2 var(r^m) (divisor T-1, = SSR/(T-1)); appraisal ratio AR = alpha / sigma_eps x
+     sqrt(252).
+   - SR_m = mean(r^m)/sd(r^m) x sqrt(252), SR_s likewise (divisor T-1): the STANDARD annualized Sharpe ratio.
+   - Maximum Sharpe ratio of the market and the strategy (in-sample tangency, short sales allowed):
+     SR_max = sqrt(SR_m^2 + AR^2); asserted equal to the Sharpe ratio of the tangency portfolio w ~ Sigma^-1 mu built
+     from the same moments. Improvement Delta = SR_max - |SR_m| (>= 0 by construction).
+   - One-asset GRS test of alpha = 0 (Gibbons-Ross-Shanken 1989, N = 1, L = 1): W = T alpha^2 / s_eps^2 /
+     (1 + mean(r^m)^2 / var_MLE(r^m)), s_eps^2 = SSR/(T-2), p from F(1, T-2); W equals the squared i.i.d. OLS t of
+     alpha (asserted). The improvement is significant iff alpha is: both the GRS p (i.i.d. errors) and the HAC fixed-b p
+     of alpha are reported.
+   - Bootstrap of Delta: the paper's paired circular block bootstrap (resample indices hac_inference._boot_index:
+     block hi.LW_BLOCK = 10, hi.LW_BOOT = 4,999 resamples, seed hi.D6_SEED = 20261022), resampling the pairs
+     (r^m_t, r^s_t); in each resample SR_m, AR and Delta are re-estimated (the tangency weights are re-estimated, so
+     the in-sample selection is part of the resampled statistic). 95 % percentile interval of Delta*; p = share of
+     |Delta* - Delta| >= |Delta| (the convention of hac_inference.d6_diff_test). Because Delta >= 0 by construction,
+     this p is a descriptive companion to the GRS and HAC tests of alpha, which are the tests of record.
+   - Tangency weights in risk terms: each leg's Euler contribution to the tangency portfolio's volatility,
+     RC_i = w_i (Sigma w)_i / (w' Sigma w), summing to one (at the tangency RC_i equals the leg's share of the
+     portfolio's expected excess return). Reported: the strategy's share in %.
+   - D6 (the paper's Sharpe ratio, hac_inference.d6_sharpe on the 614 dates) of the market and of the in-sample
+     tangency portfolio with its weights fixed: descriptive only (no test; the weights are in-sample).
+
+6. REAL-TIME ALLOCATION (mid and bid/ask)
+   - Burn-in: the first 126 post-warmup days. Evaluation: post-warmup days 127..614 (488 days), the same days for the
+     market alone and both rules.
+   - Weights are dollar weights on the two excess returns, w_m,t + w_s,t = 1, w >= 0 (no short positions in either
+     leg), set from data strictly before day t; portfolio r^p_t = w_m,t r^m_t + w_s,t r^s_t. A rule is described by
+     the volatility weights v_i = w_i sigma_i, theta = v_s / (v_m + v_s) in [0, 1]; given theta and the volatilities,
+     w_i ~ v_i / sigma_i normalized to sum to one.
+   - Mean-variance rule: expanding window of all post-warmup days before t (126 at the first evaluation day); means,
+     standard deviations and correlation of (r^m, r^s) with divisor n-1; theta_t = the point of the grid
+     {0, 0.001, ..., 1} that maximizes the estimated Sharpe ratio of the combination among the points at which neither
+     leg's Euler share of the estimated portfolio volatility exceeds 90 % (cap c = 0.9; ties: the smallest theta). This
+     is the long-only tangency clipped to the cap.
+   - Inverse-volatility rule (no estimation of means): theta_t = 1/2, i.e. w_i ~ 1 / sigma_i with sigma_i the sample
+     standard deviations of the trailing 63 post-warmup days before t.
+   - Comparison: standard Sharpe ratio (sqrt(252)) and D6 (hac_inference.d6_sharpe on the 488 dates, span = their
+     first and last day) of each combination against the market alone on the same days. Tests: D6 difference by
+     hac_inference.d6_diff_test (paired circular block bootstrap, block 10, 4,999 resamples, seed D6_SEED); standard
+     difference by the same paired resample indices (hi._boot_index(488, 10, 4999, D6_SEED)) with the statistic
+     sqrt(252) mean/sd, p = share of |Delta* - Delta| >= |Delta|. The weights are held at their real-time values in the
+     resamples.
+   - Decision statement: the real-time combination "beats the market" iff its Sharpe ratio difference is positive with
+     bootstrap p < 0.05; counts over the six full-set forecasts are reported.
+
+7. ROBUSTNESS
+   (a) Bid/ask: every statistic of 4-6 at quoted bid/ask prices (estimation and evaluation on bid/ask returns).
+   (b) Without the days that carry the gain: the union of the six full-set forecasts' ten best days by mid return over
+       the 614 days (the rule of make_rehaul_econ_decomp.py, statistic 4; gated against \rhedBestUnion = 11 and
+       \rhedTopDate = 22 November 2021). These days are removed from every series (strategies and market) and the
+       statistics of 4-6 are recomputed on the remaining days (the real-time rules rerun on them, burn-in 126; D6 with
+       the full span held fixed). This selection uses the full-set strategies' realized returns, so it is a stress
+       test biased against them, not an out-of-sample check.
+   (c) Secondary market window (3): exposure and CAPM alpha against r^30.
+
+8. REPORTING
+   Every Sharpe ratio is labelled as standard (sqrt(252), pooled daily moments) or D6. Significance: 5 % two-sided
+   unless stated. The table shows the six full-set forecasts, CI-HAR and the short straddle; the HAR-set twins appear
+   in the macros (each, and their range). Optional figure: cumulative excess return over the 488 evaluation days of
+   the market alone and of the real-time combinations with the full-set LightGBM strategy at mid, each series scaled
+   ex post to the market's standard deviation over those days (display only).
+   Caveats to state: 614 days, 2021-08..2024-04, one market regime sample; gains concentrated on about ten days;
+   bid/ask lowers every number; market return without dividends; 14 strategies without multiplicity adjustment.
+
+ADDENDUM 2026-10-26 (written after the first full run, 2026-10-26 ~03:10Z; nothing above is changed)
+---------------------------------------------------------------------------------------------------
+No deviation from the registered specification: every statistic of sections 2-7 is computed as written.
+Implementation notes:
+  - scipy.stats does not import in the repository's Python (numpy 2.4 ABI against scipy 1.11), so the F(1, T-2) p of
+    the GRS test is computed from the regularized incomplete beta function (continued fraction, Numerical Recipes
+    6.4), checked in the script against a numerical integral of the t density and the normal limit.
+  - The long-day / short-day Treynor-Mazuy regressions report the HAC t only (section 4: "stated, not tested"), so no
+    fixed-b limit is simulated for their subsample sizes.
+Added after the results were seen (descriptive, outside the registered statistics; macros only):
+  - the real-time mean-variance rule's median Euler share of the strategy, the share of evaluation days at which the
+    90 % cap binds, and the median dollar weight of the strategy under both rules. Reason: the first run showed the
+    cap binding on every evaluation day for the full-set strategies, so the rule is in effect a fixed 90/10 risk
+    split; the draft must say so.
+  - the CAPM R^2 range and the range of the bootstrap 95 % intervals over the six full-set forecasts.
+Observation recorded (not a change): the bootstrap p of Delta = SR_max - |SR_m| lies below the GRS p for every
+strategy (Delta >= 0, so the test rejects in one tail only); as registered, the GRS test and the HAC t of alpha are
+the tests of record.
+Timing (filesystem times, recorded 2026-10-26): RULE.txt was created 2026-10-25 19:24:25 PDT (2026-10-26T02:24:25Z); the
+header's "02:30Z" is approximate. The first run that computed any strategy-vs-market statistic started 19:31:11 PDT
+(02:31:11Z). The ADDENDUM above was appended at 19:40 PDT, after that run.

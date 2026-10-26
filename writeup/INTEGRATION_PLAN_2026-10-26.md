@@ -3,6 +3,32 @@
 One pass over the paper after the tree ablations land. House rules apply: numbers only via generated macros, replaced
 text parked in dated comments, Overleaf push with `--check` after the commit.
 
+## Target journal and page budget (author, 2026-10-26: "set the budget for jfec")
+
+Journal of Financial Econometrics: submissions "should typically not exceed 40 double-spaced pages"; abstract at most
+100 words; replication files required. In this template (single-spaced, 1-inch margins) that is about 22-24 pages of
+main text including tables and figures, references excluded; everything else goes to an online appendix.
+
+| Part | Now (pp.) | Budget (pp.) | Main-text content |
+|---|---|---|---|
+| Title + abstract | 1 | 1 | Abstract <= 100 words; no editorial notes |
+| 1 Introduction | 2 | 2.5 | Every-bar question; 3 numbered contributions with effect sizes; the application in 2 sentences |
+| 2 Related work | 3 | 1.5 | RV lineage, pooled intraday forecasting (regular session + overnight predictors), ML for RV, alternative data, economic evaluation incl. Maisch et al.; reading lists cut |
+| 3 Data | 4 | 1.5 | Sources, sample, target; details to Appendix |
+| 4 Predictors | 5 | 2 | Groups, HAR ladder on the full grid, late-start rule in one bullet; construction steps to Appendix |
+| 5 Methods | 5 | 2.5 | Design (RTH13 pooled, W, refits), models, benchmark (RTH13 OLS-HAR), losses and tests |
+| 6 Results | 9 (incl. VI 6) | 4 | Table 1; ablations / augmented-HAR table; window pointer; MSE clause |
+| 7 Variable importance | (in 6) | 3 | SHAP shares (1 table or figure), feature-count ladder (1 figure), live-window bullet, use vs accuracy |
+| 8 Economic application | 15 | 3 | Main table + by-year figure; profits from long days / few days; beta in 1 bullet |
+| 9 Conclusion | 2 | 1 | |
+| Total main text | ~46 | ~22 | |
+
+Online appendix: implementation details, data and predictor construction, tuning disclosure (D14), holiday
+disclosure (D15), robustness (windows, training arms, CI-HAR and closing-interval section, MCS/SPA/StepM), economics
+details (sizing, compounding, shift test, Sharpe definitions, break-evens, beta and allocation, profit decomposition),
+VI details (shapes, interactions, conditional, scaling grid), statistical tests. Reproducibility appendix (9 pp) becomes
+a replication-package README with a half-page pointer.
+
 ## Decisions (author)
 
 | # | Decision | Consequence for the text |

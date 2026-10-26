@@ -1,0 +1,9 @@
+check,rows_a,rows_b,same_dates,bitequal_horizon,maxabs_horizon,maxrel_horizon,bitequal_true_adj,maxabs_true_adj,maxrel_true_adj,bitequal_pred_adj,maxabs_pred_adj,maxrel_pred_adj,bitequal_true_raw,maxabs_true_raw,maxrel_true_raw,bitequal_pred_raw,maxabs_pred_raw,maxrel_pred_raw,pass,common_dates
+GATE old-rules rebuild == old file (bit for bit),1469,1469,True,True,0.0,0.0,True,0.0,0.0,False,3.552713678800501e-15,2.886579864025407e-15,True,0.0,0.0,False,2.439454888092385e-19,4.440892098500626e-15,False,
+NO-OP flags-on-except-three == old-rules rebuild,1469,1469,True,True,0.0,0.0,True,0.0,0.0,True,0.0,0.0,True,0.0,0.0,True,0.0,0.0,True,
+three-on == all-on (new),4462,4462,True,True,0.0,0.0,True,0.0,0.0,True,0.0,0.0,True,0.0,0.0,True,0.0,0.0,True,
+"KERNEL old rules, Sandybridge vs default OpenBLAS kernel",1469,1469,True,True,0.0,0.0,True,0.0,0.0,False,1.7319479184152442e-14,1.099120794378905e-14,True,0.0,0.0,False,1.0001765041178778e-16,3.5293989952833726e-13,False,
+"KERNEL old rules, Sandybridge kernel vs old file",1469,1469,True,True,0.0,0.0,True,0.0,0.0,False,1.687538997430238e-14,1.0325074129013956e-14,True,0.0,0.0,False,1.0001765041178778e-16,3.5293989952833726e-13,False,
+new vs old file (information),4462,1469,False,,,,False,0.1413713194347237,0.09155613957556719,False,0.341532162806633,0.18528650471417718,False,1.800491468911869e-06,0.2914091998197388,False,1.873436405920001e-05,0.2605680521164393,False,1460.0
+b vs old file (information),1469,1469,True,True,0.0,0.0,False,0.1413713194347237,0.09155613957556719,False,0.1399144367554057,0.12988132196109314,False,1.800491468911869e-06,0.2914091998197388,False,1.7274054812000273e-06,0.17669999253221724,False,
+b_ec vs old file (information),1441,1469,False,,,,False,0.1413713194347237,0.09155613957556719,False,0.14168223308424932,0.1271780155493475,False,1.800491468911869e-06,0.2914091998197388,False,5.478406639700025e-06,0.1957021872798228,False,1441.0

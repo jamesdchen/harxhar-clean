@@ -1,0 +1,25 @@
+[ok] rhrNSet old reproduces the printed count: 93
+[ok] rhrNLower old reproduces the printed count: 7
+[ok] rhrNLowerSig old reproduces the printed count: 2
+[ok] rhrNWorseSig old reproduces the printed count: 49
+[ok] rhrSETopFiveOls old reproduces the printed share: 76.52
+which                                           old        new
+rhrNSet                                   93.000000  93.000000
+rhrNLower                                  7.000000   2.000000
+rhrNLowerSig                               2.000000   0.000000
+rhrNWorseSig                              49.000000  62.000000
+rhrSETopFiveOls                           76.519866  75.923829
+lasso_full_mse_pct_vs_ci_ex_feb_apr_2020  -4.412911  -2.279952
+lower than the new CI-HAR:
+                     key   old_pct    old_dm    old_p   new_pct    new_dm    new_p
+ subpt_enet_all_features -1.790013 -0.554355 0.579336 -1.067058 -0.319521 0.749332
+subpt_lasso_all_features -3.961980 -1.910571 0.056060 -3.255013 -1.443918 0.148762
+lower than the old CI-HAR:
+                           key   old_pct    old_dm    old_p   new_pct    new_dm    new_p
+       subpt_enet_all_features -1.790013 -0.554355 0.579336 -1.067058 -0.319521 0.749332
+      subpt_lasso_all_features -3.961980 -1.910571 0.056060 -3.255013 -1.443918 0.148762
+      subpt_ridge_all_features -0.145513 -0.037842 0.969814  0.589549  0.146539 0.883496
+           subpt_enet_baseline -0.000736 -2.460697 0.013867  0.735392  0.863191 0.388032
+          subpt_lasso_baseline -0.001396 -2.598015 0.009376  0.734727  0.862418 0.388458
+          subpt_ridge_baseline -0.000378 -0.960611 0.336748  0.735752  0.863664 0.387773
+subtree_daily_all_features_xgb -0.116138 -0.041974 0.966519  0.619140  0.212838 0.831453

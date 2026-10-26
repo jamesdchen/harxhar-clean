@@ -1,0 +1,177 @@
+% 2026-10-26 DRAFT appendix subsection: market exposure of the sign strategy and its allocation with the market.
+% Not \input by paper_rehaul.tex.
+% Pre-registration: results/econ_beta_2026-10-26/RULE.txt (written 2026-10-26T02:30Z, before any strategy-vs-market
+%   statistic was computed; its ADDENDUM lists what was added after the results were seen -- descriptive only).
+% Generator: writeup/make_rehaul_econ_beta.py (run from the repository root with /c/Users/james/miniconda3/python.exe;
+%   it sets REHAUL_FINAL_RUN=1, gates the 14 strategies' Sharpe ratios against \rhemSh<tag> / \rhemShX<tag> and the
+%   best-day union against \rhedBestUnion / \rhedTopDate before writing).
+% Files:   generated/rehaul_econ_beta_numbers.tex  (\rheb... macros; macro-only; no name collides with a macro of
+%                                                    another writeup/generated/*.tex file, checked by the generator)
+%          generated/rehaul_econ_beta_table.tex    (Table tab:rh_econ_beta)
+%          generated/rehaul_econ_beta_fig.tex      (Figure fig:rh_econ_beta_cum, generated/rehaul_econ_beta_cum.pdf)
+% To use:  \input{generated/rehaul_econ_beta_numbers} in the preamble of paper_rehaul.tex; put the subsection below in
+%          writeup/rehaul/10_appendix.tex, section "Robustness of the trade" (app:rh_robust_trade); \input the two
+%          floats in rehaul/10_appendix_floats.tex. It cites Table tab:rh_econ_bestdays
+%          (generated/rehaul_econ_decomp_bestdays.tex, the 2026-10-25 decomposition draft) and \rheHACS
+%          (rehaul_econ_numbers.tex, already loaded).
+% BibTeX entries to add to writeup/references.bib (not edited here; the table note and this draft cite them):
+%   @article{TreynorMazuy1966,
+%     author  = {Treynor, Jack L. and Mazuy, Kay K.},
+%     title   = {Can Mutual Funds Outguess the Market?},
+%     journal = {Harvard Business Review}, volume = {44}, number = {4}, pages = {131--136}, year = {1966}}
+%   @article{GibbonsRossShanken1989,
+%     author  = {Gibbons, Michael R. and Ross, Stephen A. and Shanken, Jay},
+%     title   = {A Test of the Efficiency of a Given Portfolio},
+%     journal = {Econometrica}, volume = {57}, number = {5}, pages = {1121--1152}, year = {1989}}
+% Every number below is a macro (\rheb..., or \rheSzDays / \rheHACS); nothing is typed. The words "none", "all",
+% "every" and the signs stated in words are asserted in make_rehaul_econ_beta.py (DRAFT CLAIMS), so a rerun whose
+% data no longer bear them out stops.
+
+\subsection{Market exposure and allocation with the market}
+\label{app:rh_econ_beta}
+The sign strategy of Section~\ref{sec:rh_econ} holds one straddle over the last half hour of the session. We ask
+whether its returns are a disguised position in the stock market, and what an investor who holds the S\&P~500 gains
+by adding the strategy. The specification below was fixed before any of these statistics was computed.
+\begin{itemize}
+\item \textbf{Returns.} The strategy's daily return $r^{s}_t$ (in percent of the premium, at mid-quotes unless noted)
+  is treated as an excess return, as in Section~\ref{sec:rh_econ_measures}. The market return $r^{m}_t$ is the
+  S\&P~500 close-to-close return of option day $t$, from the previous trading day's close, minus the return of the
+  three-month Treasury bill (FRED series DTB3, actual/360). It is a price return: the repository has no total-return
+  series, so the market's mean excess return omits the dividend yield, which leaves the regression slopes and
+  residuals unchanged. We also use $r^{30}_t$, the index's own return from 15:30 ET to the close, the window of the
+  trade.
+  \begin{itemize}
+  \item Over the \rhebNDays{} post-warmup days the market's excess return averages \rhebMktMean\% a day with a
+    standard deviation of \rhebMktSd\%, a Sharpe ratio of \rhebSRm{} (\rhebSRmAll{} over all \rhebNAll{} trading days
+    of the same span). Under the paper's ratio $\SR$ of Section~\ref{sec:rh_econ_measures}, which gives each calendar
+    year, including the partial first and last ones, the same weight, it is \rhebSRmDSix.
+  \item The decomposition of the maximum Sharpe ratio below holds for the ratio of the pooled daily returns, so every
+    Sharpe ratio in this appendix is $\sqrt{252}$ times the ratio of the mean to the standard deviation of the daily
+    returns unless it is marked as $\SR$. All $t$-statistics use Newey--West standard errors with bandwidth
+    $S = \rheHACS$ and fixed-$b$ critical values (Section~\ref{sec:rh_methods_tests}).
+  \end{itemize}
+\item \textbf{No market beta} (Table~\ref{tab:rh_econ_beta}, Panel A). The correlation of the six full-set strategies
+  with the market is \rhebCorrFullMin{} to \rhebCorrFullMax, and their CAPM betas are \rhebBetaFullMin{} to
+  \rhebBetaFullMax{} percent of the premium per percent of market return ($t$ from \rhebBetaTFullMin{} to
+  \rhebBetaTFullMax); none of the six is significant at the 5\% level, at mid-quotes or at quoted bid/ask prices
+  ($R^2$ at most \rhebRsqFullMax). The closing-interval HAR strategy ($\beta = \rhebBetaCiHar$,
+  $t = \rhebBetaTCiHar$) and the short straddle ($\beta = \rhebBetaShort$, $t = \rhebBetaTShort$) are no different,
+  nor are the \rhebNHarDistinctWord{} distinct HAR-set forecasts ($\beta$ from \rhebBetaHarMin{} to
+  \rhebBetaHarMax).
+  \begin{itemize}
+  \item On the \rhebNDown{} days on which the market falls, the full-set strategies earn \rhebDownMeanFullMin{} to
+    \rhebDownMeanFullMax\% of the premium, against \rhebDownRestFullMin{} to \rhebDownRestFullMax\% on the other days;
+    none of the six differences is significant.
+  \item On the \rhebNWorst{} days with the lowest market return (at most \rhebWorstCut\%) every full-set strategy
+    has a negative mean return, \rhebWorstMeanFullMin{} to \rhebWorstMeanFullMax\% of the premium, against
+    \rhebWorstRestFullMin{} to \rhebWorstRestFullMax\% on the other days ($t$ of the difference from
+    \rhebWorstDiffTFullMin{} to \rhebWorstDiffTFullMax; significant at the 5\% level for \rhebWorstSigFullWord{} of
+    the six). The short straddle returns \rhebWorstMeanShort\% on these days ($t = \rhebWorstDiffTShort$). The
+    strategy has no linear exposure to the market, but like the short straddle it mostly is, it loses on the market's
+    worst days.
+  \end{itemize}
+\item \textbf{The convexity is in the trading window, not in the daily return.} In the regression of $r^{s}_t$ on
+  $r^{m}_t$ and $(r^{m}_t)^2$ \citep{TreynorMazuy1966}, the coefficient $\gamma$ on the squared market return is
+  \rhebTmGammaFullMin{} to \rhebTmGammaFullMax{} for the full-set strategies ($t$ from \rhebTmGammaTFullMin{} to
+  \rhebTmGammaTFullMax; none significant), and on the strategies' own long days
+  \rhebTmGammaLongFullMin{} to \rhebTmGammaLongFullMax{} ($t$ at most \rhebTmGammaLongTFullMax).
+  \begin{itemize}
+  \item Against the index's return over the trade's own half hour the straddle's payoff shows. On their long days
+    every full-set strategy loads positively on $(r^{30}_t)^2$, $\gamma$ from \rhebThirtyTmGammaLongFullMin{} to
+    \rhebThirtyTmGammaLongFullMax{} ($t$ from \rhebThirtyTmGammaLongTFullMin{} to \rhebThirtyTmGammaLongTFullMax),
+    and on their short days negatively, \rhebThirtyTmGammaShortFullMin{} to \rhebThirtyTmGammaShortFullMax{} ($t$
+    from \rhebThirtyTmGammaShortTFullMin{} to \rhebThirtyTmGammaShortTFullMax; percent of the premium per squared
+    percent of index return). These $t$-statistics are descriptive: the long and short days are not consecutive.
+  \item Over all days the full-set strategies are short the squared half-hour move, $\gamma$ from
+    \rhebThirtyTmGammaFullMin{} to \rhebThirtyTmGammaFullMax{} ($t$ from \rhebThirtyTmGammaTFullMin{} to
+    \rhebThirtyTmGammaTFullMax), against \rhebThirtyTmGammaShort{} ($t = \rhebThirtyTmGammaTShort$) for the short
+    straddle, and they carry no slope on its sign ($\beta$ on $r^{30}_t$ with $t$ at most
+    \rhebThirtyBetaTFullMax).
+  \end{itemize}
+\item \textbf{Alpha} (Panel B). The CAPM intercept of the full-set strategies is \rhebAlphaFullMin{} to
+  \rhebAlphaFullMax\% of the premium a day ($t$ from \rhebAlphaTFullMin{} to \rhebAlphaTFullMax, fixed-$b$ $p$ at most
+  \rhebAlphaPFullMax), with appraisal ratios $\alpha/\sigma_\varepsilon$ of \rhebARFullMin{} to \rhebARFullMax{}
+  (annualized by $\sqrt{252}$). With a beta near zero, $\alpha$ is close to the mean return and the appraisal ratio
+  to the strategy's own Sharpe ratio (\rhebSRsFullMin{} to \rhebSRsFullMax).
+  \begin{itemize}
+  \item The closing-interval HAR strategy has $\alpha = \rhebAlphaCiHar\%$ ($t = \rhebAlphaTCiHar$) and an appraisal
+    ratio of \rhebARCiHar; the short straddle $\alpha = \rhebAlphaShort\%$ ($t = \rhebAlphaTShort$). For the
+    \rhebNHarDistinctWord{} distinct HAR-set forecasts $\alpha$ is \rhebAlphaHarMin{} to \rhebAlphaHarMax\% ($t$ at
+    most \rhebAlphaTHarMax; none significant).
+  \end{itemize}
+\item \textbf{Maximum Sharpe ratio of the market and the strategy.} The tangency portfolio of the two reaches
+  $(\SR_m^2 + (\alpha/\sigma_\varepsilon)^2)^{1/2}$, \rhebSRmaxFullMin{} to \rhebSRmaxFullMax{} for the full-set
+  strategies against \rhebSRm{} for the market alone. Its gain over the market is significant exactly when $\alpha$
+  is: the one-asset test of \citet{GibbonsRossShanken1989} rejects $\alpha = 0$ for \rhebGrsSigFullWord{} of the six at
+  the 5\% level ($p$ from \rhebGrsPFullMin{} to \rhebGrsPFullMax), and for the closing-interval HAR strategy
+  ($p = \rhebGrsPCiHar$), but not for the short straddle ($p = \rhebGrsPShort$).
+  \begin{itemize}
+  \item In the tangency portfolio the strategy carries \rhebTanShareFullMin{} to \rhebTanShareFullMax\% of the
+    volatility. The market's Sharpe ratio over the sample is low, so the in-sample optimum is almost the strategy
+    alone; the strategy's leverage is arbitrary, so this share, not a dollar weight, is the allocation.
+  \item The paired block bootstrap of the gain, with the weights re-estimated in each resample, gives $p$ from
+    \rhebDSRmaxPFullMin{} to \rhebDSRmaxPFullMax{} (95\% intervals with lower ends from \rhebDSRmaxLoFullMin{} to
+    \rhebDSRmaxLoFullMax). The gain cannot be negative, so this test rejects in one tail only and its $p$ lies below
+    the GRS $p$: for the \rhebNHarDistinctWord{} distinct HAR-set forecasts it is below 5\% for
+    \rhebBootSigHarWord{} and the GRS $p$ for none. The GRS test and the $t$-statistic of $\alpha$ are the tests of
+    record.
+  \end{itemize}
+\item \textbf{Real-time allocation} (Panel C, Figure~\ref{fig:rh_econ_beta_cum}). Each day the weights of the market
+  and the strategy are set from the earlier post-warmup days only. After a burn-in of \rhebNBurn{} days the
+  combinations are evaluated on the \rhebNRt{} days from \rhebRtFirst, over which the market alone has a Sharpe ratio
+  of \rhebSRmRt{} ($\SR = \rhebSRmRtDSix$). The largest of the strategies' best days, \rhebTopDate, falls in the
+  burn-in: it moves the estimated weights but not the evaluation.
+  \begin{itemize}
+  \item Mean--variance weights (expanding window, no short positions, neither leg above \rhebCap\% of the estimated
+    portfolio volatility) reach Sharpe ratios of \rhebRtMvFullMin{} to \rhebRtMvFullMax{} with the full-set
+    strategies. The estimated means put the strategy at the cap on every evaluation day, which amounts to a median of
+    \rhebRtMvWsFullMin{} to \rhebRtMvWsFullMax\% of capital in straddle premium; the rule is in effect a fixed split of
+    the risk at the cap. The gain over the market is
+    significant at the 5\% level for none of the six (bootstrap $p$ from \rhebRtMvPFullMin{} to
+    \rhebRtMvPFullMax; with $\SR$, \rhebRtMvDSixFullMin{} to \rhebRtMvDSixFullMax{} and $p$ from
+    \rhebRtMvDSixPFullMin{} to \rhebRtMvDSixPFullMax).
+  \item Inverse-volatility weights over the trailing \rhebNTrail{} days, which estimate no means and split the risk
+    equally (a median of at most \rhebRtIvWsFullMax\% of capital in premium), reach \rhebRtIvFullMin{} to
+    \rhebRtIvFullMax; the gain is significant for \rhebRtIvSigFullWord{} of the six ($p$ from \rhebRtIvPFullMin{} to
+    \rhebRtIvPFullMax; with $\SR$, for \rhebRtIvDSixSigFullWord).
+  \item With the closing-interval HAR strategy the two rules reach \rhebRtMvCiHar{} ($p = \rhebRtMvPCiHar$) and
+    \rhebRtIvCiHar{} ($p = \rhebRtIvPCiHar$), with the short straddle \rhebRtMvShort{} and \rhebRtIvShort{}.
+  \end{itemize}
+\item \textbf{Quoted bid/ask prices} (Panel D). The betas are as at mid-quotes (\rhebBetaFullXMin{} to
+  \rhebBetaFullXMax, none significant). The intercept falls to \rhebAlphaFullXMin{} to \rhebAlphaFullXMax\% a day ($t$ from
+  \rhebAlphaTFullXMin{} to \rhebAlphaTFullXMax), the GRS test rejects for \rhebGrsSigFullXWord{} of the six ($p$ up to
+  \rhebGrsPFullXMax), and the maximum Sharpe ratio is \rhebSRmaxFullXMin{} to \rhebSRmaxFullXMax. In real time the
+  mean--variance combinations reach \rhebRtMvFullXMin{} to \rhebRtMvFullXMax{} and the inverse-volatility ones
+  \rhebRtIvFullXMin{} to \rhebRtIvFullXMax, and none is significantly above the market ($p$ at least
+  \rhebRtMvPFullXMin{} and \rhebRtIvPFullXMin).
+\item \textbf{Without the days that carry the gain} (Panel E). We remove the \rhebNBest{} days in the union of the six
+  full-set forecasts' best days (Table~\ref{tab:rh_econ_bestdays}) from every series, the market's included. The
+  selection uses the strategies' realized returns, so this is a stress test against them.
+  \begin{itemize}
+  \item The betas stay near zero (\rhebExBetaFullMin{} to \rhebExBetaFullMax, $t$ at most \rhebExBetaTFullMax). The
+    intercept falls to \rhebExAlphaFullMin{} to \rhebExAlphaFullMax\% a day ($t$ from \rhebExAlphaTFullMin{} to
+    \rhebExAlphaTFullMax), the maximum Sharpe ratio to \rhebExSRmaxFullMin{} to \rhebExSRmaxFullMax{} against
+    \rhebSRmEx{} for the market, and the GRS test rejects for \rhebExGrsSigFullWord{} of the six ($p$ from
+    \rhebExGrsPFullMin{} to \rhebExGrsPFullMax; at quoted bid/ask prices the $t$-test of $\alpha$ rejects for
+    \rhebExAlphaSigFullXWord).
+  \item The removed days are the short straddle's largest losses, so its intercept rises, to \rhebExAlphaShort\% a day
+    ($t = \rhebExAlphaTShort$), above that of the full-set strategies. What remains of their $\alpha$ is the premium
+    the short straddle earns on ordinary days, in line with Table~\ref{tab:rh_econ_bestdays}.
+  \item In real time no combination is significantly above the market (mean--variance \rhebExRtMvFullMin{} to
+    \rhebExRtMvFullMax, inverse volatility \rhebExRtIvFullMin{} to \rhebExRtIvFullMax, against \rhebSRmExRt).
+  \end{itemize}
+\item \textbf{Caveats.} The sample is short, \rheSzDays{} option days with one bear market, and the market's Sharpe
+  ratio over it is low, which makes the tangency portfolio almost all strategy. The strategies' gains over the short
+  straddle rest on the \rhebNBest{} days with large closing moves; the $t$-statistics allow for serial correlation, not
+  for a mean carried by a few days. Bid/ask prices lower every number. The market return omits dividends. The
+  strategies are tested without a correction for multiple testing.
+\end{itemize}
+
+\paragraph{Market exposure and allocation.} The sign strategy is not a disguised position in the market: its betas
+are near zero and insignificant, and the convexity of the straddle shows in the trade's half hour, not in the daily
+market return. Its intercept is significant, so in this sample a holder of the S\&P~500 would have given almost all of
+the risk budget to the strategy. In real time, the combinations reach Sharpe ratios of \rhebRtIvFullMin{} to
+\rhebRtMvFullMax{} at mid-quotes against \rhebSRmRt{} for the market, but over \rhebNRt{} days that gain is not
+statistically significant for the mean--variance weights, significant for \rhebRtIvSigFullWord{} of the six
+inverse-volatility combinations, and for none at quoted
+bid/ask prices or without the \rhebNBest{} days that carry the strategies' gain over the short straddle.

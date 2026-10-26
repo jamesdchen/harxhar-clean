@@ -1,0 +1,96 @@
+CI-HAR rebuild under the current data chain -- PRE-REGISTERED RULE
+Written 2026-10-25 22:49 PDT (2026-10-26T05:49Z), before any forecast, score or design of this rebuild was computed.
+Source of the task: coordinator, after audit_2026-10-25 findings correctness-6 and fidelity-5.
+
+OLD FILE (the current CI-HAR, master key sub_ols_baseline)
+  results/linear_subsection_dedup/baseline/bar1600/reclasso/tw2000/causal_tune_linear/incumbent_ols/results_bar1600.csv
+  (dated 2026-09-29, Hoffman2 dedup fleet, cluster/linear_dedup_canary.sh -> cluster/linear_dedup_pack.sh ->
+  specs/causal_tune_linear.py, OLS-incumbent block; 1,469 rows 2018-06-25 .. 2024-04-30).
+
+1. MODEL (unchanged from the old file; the "same model")
+  - specs/causal_tune_linear.py's incumbent call, reproduced verbatim: run_executor(method_name="ols_incumbent",
+    fit_predict=src.models.ridge.fit_predict_ridge, hyperparams={alpha: 0.0, _refit_frequency: 1, _incremental: True},
+    data_path="data", horizon=1, train_window=2000 (sessions), start=0, end=-1, halo=0,
+    exog_cols=get_bucket("baseline") = [], segment="bar1600", lag_scope="global", har_lags=None
+    (production ladder 1, 5, 25, 125, 625, 3125), add_calendar=True, target_use_diurnal=True,
+    target_winsor_window=240, dropna_with_exog=False, overnight_fill=True, impute_indicate=True,
+    diurnal_mode="divide", prescale=True, seed=42).
+  - OLS refitted every session (rank-1 rolling least squares), window 2,000 closing-interval rows.
+  - HAR benchmark set = 22 columns: har_ma_{1,5,25,125,625,3125} of the target, DOW_0..DOW_4, hour, is_overnight,
+    is_open, is_close (add_calendar_features), is_opex, is_opex_week, is_quad_witch, is_rebalance_close, is_month_end,
+    is_quarter_end, days_to_opex (add_expiry_features); no session-edge products (session_edge=False for a per-bar
+    segment). Checked against the old file's results_bar1600_feature_health.csv (22 rows, same names).
+  - FOMC CHECK: the set has NO FOMC column. exog_cols is empty (SUBGROUPS["baseline"] = []), the calendar and expiry
+    extractors build no FOMC column, so fomc_release / fomc_day / fomc_*_inv never reach the design or the target.
+    The FOMC patch cannot touch the CI-HAR. (If the rebuilt design's column list shows any fomc column: STOP.)
+  - Model-column switches of the pooled final design are NOT applied (they change the predictor set, i.e. the model,
+    not the data): DROP_ACTIVITY_MA, CALENDAR_THROUGH_OVERNIGHT, DROP_OVERNIGHT_INDICATOR stay False, as in the old
+    file. LEAN_GLOBAL_LAGS stays False (value-identical by construction; a memory option).
+
+2. DATA CHAIN (new): src/ at HEAD with every data-fix flag at its current default (True), i.e. the chain the pooled
+   final design is built on, wherever a rule reaches a target-only per-bar design:
+  BITE (expected to change the forecasts):
+   a. B_REGULAR_BARS_ONLY (executor.py): the target's diurnal factor B = trailing mean of the last 20 REGULAR in-slot
+      bars; the early closes' post-13:00 bars (13:30..17:00 ET) leave B. Moves B, hence adj_RV = sqrt(RV/B)
+      (winsorized), hence every har_ma_k (averages of adj_RV on the full bar grid), the target, and the raw-space
+      reconstruction pred_raw / true_raw for 20 sessions after each early close. Old file: off.
+   b. DROP_EARLY_CLOSE_SESSIONS (executor.py): the 16:00 rows of the NYSE early-close sessions (post-close futures bars)
+      leave the per-bar design: no training row, no forecast row on those days. Old file: off (9 forecast rows on
+      early-close days; their 16:00 rows were training rows).
+   c. BURNIN_IN_BAR_SPACE (executor.py): the 3,125-bar HAR burn-in is dropped on the full bar grid before slicing to
+      16:00, not 3,125 rows of the 16:00 slice. The 16:00 design starts 1998-06 instead of 2010-07, so the first
+      forecast (after the 2,000-row window) moves from 2018-06-25 to about 2006; the window at any date is still the
+      trailing 2,000 design rows. Old file: off. (Applies to per-bar global-lag designs only; the pooled design drops
+      its burn-in in bar space by construction.)
+  NO-OP on this design by code path (switched with the rest; the decomposition run checks that they change nothing):
+   NULL_INVALID_PRINTS (RV exempt), SIGN_BY_NAME (RV unsigned either way), CAUSAL_SD_FLOOR and CAUSAL_ASINH_ROUTING
+   (signed branch only), FOMC_FLAGS_IDENTITY, FOMC_CALENDAR_FIX, EXCLUDE_FOMC_RELEASE, SPLICE_VIX_FREE_FEED (exogenous
+   columns only), APPLY_FFILL_LIMIT, ACTIVE_FROM_OBSERVED, CAUSAL_MODE_INFLATION, CAUSAL_NEUTRAL_FILL (exog branch of
+   load_and_transform only), CAUSAL_GUARD_MODE, ERODE_IN_BARS (scale guards act on adj_<c>_ma_<k> exog columns only;
+   HAR and calendar columns are untouched, so ref_iqr is None), LATE_START_WARMUP, UNOBSERVED_NEUTRAL (adj_<c>_ma_<k>
+   exog columns only).
+  NOT A RULE OF THE CI-HAR: the fidelity-5 exogenous-data list (domain rule on exog, VIX splice, FOMC ends, fill cap,
+   imputation median, zero rules) -- the HAR benchmark set has no exogenous series, so none of them reaches it.
+
+3. GATE (before the new build is used): the same call with the old rules switched back on -- every flag above False
+   (the live PINNED_AUDIT_FLAGS 14 + NULL_INVALID_PRINTS, SIGN_BY_NAME, LATE_START_WARMUP, UNOBSERVED_NEUTRAL;
+   EXCLUDE_FOMC_RELEASE is import-time and exog-only) -- must reproduce the old file bit for bit (all six columns,
+   every row). Any difference is reported with its size and cause; the new file is not used if it is unexplained.
+   Decomposition: also run (i) B only, (ii) B + DROP_EARLY_CLOSE, (iii) all current flags; and (iv) all current flags
+   except the three biting ones must equal the gate run (the no-op claim).
+
+4. OUTPUT: results/ci_har_rebuild_2026-10-26/results_bar1600.csv (new file; the old file is not touched), columns
+   date,horizon,true_adj,pred_adj,true_raw,pred_raw, the executor's own output (every forecast row from the first
+   after the 2,000-row window to 2024-04-30). Logs, gate table and comparison tables next to it.
+
+5. MEASUREMENT (old vs new; scoring exactly as experiments/rolling_eval_2026_10_15.py: plain forecast
+   sigma2 = pred_adj^2 * B, B = true_raw / true_adj^2; truth = the actual 16:00 RV of data/core_stats.parquet;
+   early-close days and non-positive truth dropped; QLIKE = r - log r - 1, r = RV / sigma2; MSE = mean (RV - sigma2)^2):
+   - closing-bar QLIKE and MSE on 2018-06-25..2024-04-30, on 2020-01-03..2024-04-30 (the 866 master days), and on
+     2014-01-01..2024-04-30 (new file only; the old file starts 2018-06-25), each on the days both have and on each
+     file's own days;
+   - the full-vs-CI-HAR and HAR-vs-CI-HAR DM statistics as the paper (Section 6) and today's drafts compute them,
+     recomputed with the new CI-HAR, same code, same days;
+   - the CI-HAR sign strategy's D6 Sharpe ratio at mid and at bid/ask, through the paper's own economics code
+     (writeup/make_rehaul_economics.py / make_rehaul_econ_main.py), old vs new;
+   - the 174 days on which the old B differs from the pooled B (correctness-6): count of those days on which the new B
+     equals the pooled B, and the QLIKE change on them.
+   Conclusions are judged against the paper's and drafts' stated claims, not re-tuned.
+
+ADDENDUM 2026-10-25 23:25 PDT (2026-10-26T06:25Z) -- written before any Hoffman2 job (coordinator follow-up, author
+approved).
+  Observed on the laptop (13th Gen Intel Core i7-1355U, numpy 2.2.6 with OpenBLAS 0.3.29): the old-rules rebuild
+  equals the old file bit for bit in stamps, horizon, true_adj and true_raw; pred_adj / pred_raw differ by at most
+  3.6e-15 absolute / 4.4e-15 relative on 1,226 of 1,469 rows (gates.csv); forcing OpenBLAS's Sandybridge kernel moves
+  the laptop's own forecasts by up to 1.7e-14 (runs/old_sandybridge).
+  GATE CLOSURE TEST: re-run the OLD-rules variant (experiments/ci_har_rebuild_2026_10_26.py --variant old; the
+  identical code, src/ at HEAD with every data flag off, the same data/*.parquet by md5) on a Hoffman2 Intel Xeon node,
+  the CPU family that produced the old file (canary node n6408, 2026-09-29), in the conda env the old file was built in
+  (hpc-pi, /u/local/apps/anaconda3/2023.03), one core, BLAS threads 1 (as cluster/linear_dedup_pack.sh). Compare it
+  with the old file bit for bit, every column, all 1,469 rows.
+    - bit-identical in pred_adj and pred_raw (and the rest): the gate is closed.
+    - otherwise: report the max difference, the node's CPU model and the BLAS numpy uses, and stop (no further chase).
+  CPU CHECK OF THE NEW FILE: run the NEW-rules variant (--variant new) in the same job on the same node and report its
+  max absolute and relative difference from results/ci_har_rebuild_2026-10-26/results_bar1600.csv (the laptop file),
+  per column, and whether any value differs at the precision the paper prints (QLIKE 4 dp, Sharpe 2 dp, DM 2 dp).
+  Nothing in the laptop file is replaced by the cluster run; its outputs go to runs_hoffman2/<variant>/.

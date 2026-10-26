@@ -1,0 +1,17 @@
+load_raw_data: skipping non-bar-keyed parquet(s): spxw_chain.parquet, spxw_spot.parquet
+==================== OLS_INCUMBENT SEGMENT: BAR1600 ====================
+Window: 2000 periods (2000 days)
+[feature-health/results_bar1600] 22 cols: 7 ok / 15 warn / 0 FAIL
+[feature-health/results_bar1600]   warn DOW_0                                    max|z|     1.0  era   1.00  modal 0.813
+[feature-health/results_bar1600]   warn DOW_1                                    max|z|     1.0  era   1.00  modal 0.794
+[feature-health/results_bar1600]   warn DOW_2                                    max|z|     1.0  era   1.00  modal 0.794
+[feature-health/results_bar1600]   warn DOW_3                                    max|z|     1.0  era   1.00  modal 0.797
+[feature-health/results_bar1600]   warn DOW_4                                    max|z|     1.0  era   1.00  modal 0.802
+[feature-health/results_bar1600]   warn is_opex                                  max|z|     1.0  era   1.00  modal 0.952
+[feature-health/results_bar1600]   warn is_opex_week                             max|z|     1.0  era   1.00  modal 0.765
+[feature-health/results_bar1600]   warn is_quad_witch                            max|z|     1.0  era   1.00  modal 0.984
+[feature-health/results_bar1600]   warn is_rebalance_close                       max|z|     1.0  era   1.00  modal 0.984
+[feature-health/results_bar1600]   warn is_month_end                             max|z|     1.0  era   1.00  modal 0.959
+[feature-health/results_bar1600] wrote C:\Users\james\CC Allowed\harxhar-0dte-professor\results\ci_har_rebuild_2026-10-26\runs\b_ec\results_bar1600_feature_health.csv
+Saved 1441 rows -> C:\Users\james\CC Allowed\harxhar-0dte-professor\results\ci_har_rebuild_2026-10-26\runs\b_ec\results_bar1600.csv
+[b_ec] design columns (22): ['DOW_0', 'DOW_1', 'DOW_2', 'DOW_3', 'DOW_4', 'is_opex', 'is_opex_week', 'is_quad_witch', 'is_rebalance_close', 'is_month_end', 'is_quarter_end', 'hour', 'is_overnight', 'is_open', 'is_close', 'har_ma_25', 'har_ma_125', 'har_ma_1', 'har_ma_5', 'har_ma_625', 'har_ma_3125', 'days_to_opex']

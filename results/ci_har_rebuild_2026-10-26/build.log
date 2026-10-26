@@ -1,0 +1,19 @@
+[old] exists, skipped
+[new] exists, skipped
+[b] exists, skipped
+[b_ec] exists, skipped
+[three] exists, skipped
+[noop] exists, skipped
+[old_sandybridge] done
+                                                   check  rows_a  rows_b  same_dates  pass
+        GATE old-rules rebuild == old file (bit for bit)    1469    1469        True False
+        NO-OP flags-on-except-three == old-rules rebuild    1469    1469        True  True
+                                three-on == all-on (new)    4462    4462        True  True
+KERNEL old rules, Sandybridge vs default OpenBLAS kernel    1469    1469        True False
+        KERNEL old rules, Sandybridge kernel vs old file    1469    1469        True False
+                           new vs old file (information)    4462    1469       False False
+                             b vs old file (information)    1469    1469        True False
+                          b_ec vs old file (information)    1441    1469       False False
+gate: stamps and target bit for bit True; forecasts bit for bit False, max rel 4.44e-15 (this machine under another BLAS kernel: 3.53e-13; bound 1e-13) -> PASS
+no-op check PASS
+wrote C:\Users\james\CC Allowed\harxhar-0dte-professor\results\ci_har_rebuild_2026-10-26\results_bar1600.csv

@@ -1,0 +1,144 @@
+% 2026-10-26 DRAFT for the appendix (app:rh_robust_stat, "Robustness of the statistical results"): the pre-registered
+% comparison of training samples, which discloses how the results change when the pooled models are trained on all 48
+% half-hour intervals or on the closing half hour alone instead of the regular-hours bars of the main design.
+% Generator: writeup/make_rehaul_train_arms.py (reads the pushed result branches with git show, pinned commits:
+% insurance-selling-2026-09-19-e34-train3way 0106ccb (linear), -train3way-trees 3501ab7 (trees; the Hoffman2 pieces of
+% -train3way-trees-h2 merged there), -closeonly-wsweep f4abb69 (the window of CLOSE); before writing it checks that the
+% RTH13 rows are the main design -- the score files of results/window_sweep_2014start_2026-10-22/part2,
+% results/pooled_trees_final_2014start_w3000 and results/pooled_rf_skx_2014start_w3000 to 1e-12, Table 1's cells and
+% \rhorDm...B, the \rhrb...Main, \rhca...CloseSpan and \rhem... macros at their printed precision -- and the numbers
+% reported to the author, and that the branches agree with one another: 593 checks).
+% Files:   generated/rehaul_train_arms_numbers.tex  (\rhta... macros; macro-only; no name collides with a macro of
+%                                                   another writeup/generated/*.tex file, checked by the generator)
+%          generated/rehaul_train_arms_table.tex    (Table tab:rh_train_arms, Panels A-C, and its continuation
+%                                                   tab:rh_train_arms_cont, Panels D-F, one table number via
+%                                                   \ContinuedFloat of the caption package)
+% To use:  \input{generated/rehaul_train_arms_numbers} in the preamble of paper_rehaul.tex (the table also loads it
+%          when it is undefined); the subsection below goes into app:rh_robust_stat after the "Estimation window" item
+%          (or its items become items of that list), with \input{generated/rehaul_train_arms_table}.
+% Every number below is a macro (\rhta..., defined in generated/rehaul_train_arms_numbers.tex); nothing is typed. The
+% class names, directions, counts and the words "all", "every", "none" and "each" are asserted in
+% make_rehaul_train_arms.py (claims()), so a rerun whose data no longer bear them out stops.
+% Wording: neutral; the comparison is disclosed, the main design is unchanged. Sample names (RTH13, ALL48, CLOSE and the
+% secondary / equal-row names) are those of the table.
+
+\subsection{Training sample}
+\label{app:rh_robust_train}
+\begin{itemize}
+\item \textbf{Main design.} Every pooled model of Table~\ref{tab:rh_oos} (ridge regression, the lasso, the elastic
+  net, LightGBM, XGBoost and the random forest, each on the HAR benchmark and on the full predictor set) is estimated
+  on the \rhtaNBarsDay{} regular-hours bars of each day, $\mathcal I = \mathcal I_{\mathrm{rh}}$ (bar ends 10:00 to
+  16:00~ET), over a rolling window of \rhtaWinDays{} trading days (\rhtaRowsRth{} bars), with its predictors
+  computed on the full grid of \rhtaNIntervals{} half-hour intervals, overnight included
+  (Appendix~\ref{sec:rh_exp_schemes}). Estimation on the regular session follows the intraday volatility
+  forecasting literature \citep{EngleSokalska2012,ZhangZhangCucuringuQian2024}. Below, this sample is RTH13.
+\item \textbf{A pre-registered comparison.} Before any model was estimated on the other samples, a written rule (one
+  for the linear models, one for the trees) fixed two other training samples, the models, their tuning and the tests:
+  \begin{itemize}
+  \item ALL48: all \rhtaNIntervals{} half-hour intervals of the futures' day, overnight, weekend and holiday
+    intervals and early-close sessions included, over the same \rhtaWinDays-day window (\rhtaRowsAll{} rows);
+  \item CLOSE: the closing half hour alone (the 16:00 rows of the main design), over \rhtaRowsCl{} closes.
+  \end{itemize}
+  Everything else is the main design's: the predictors, the frozen tree configurations, a refit at every training
+  row, and the rule that chooses the linear penalties, applied to each sample's own pre-sample rows (validation year
+  \rhtaValYear). Every sample is scored on the same \rhtaNdays{} trading days from \rhtaStart{} to \rhtaEnd, on the
+  16:00 bar and on every regular-hours bar. The linear rule also fixed three secondary samples for the penalized
+  linear models (a natively built CLOSE, CLOSE-nat, and penalties chosen on the 16:00 validation rows, ALL48@16 and
+  RTH13@16). Samples with equal numbers of training rows were added before their models were estimated (for the
+  linear models by a dated addendum to the rule). Table~\ref{tab:rh_train_arms} reports every comparison; its RTH13
+  rows are the forecasts of Table~\ref{tab:rh_oos}.
+\item \textbf{The closing half hour.} Trained on all \rhtaNIntervals{} intervals or on the close alone, the full
+  predictor set gains more over the HAR benchmark at 16:00 than in the main design
+  (Table~\ref{tab:rh_train_arms}, Panel~A).
+  \begin{itemize}
+  \item ALL48: the change in 16:00 QLIKE is $\Delta\% = \rhtaTreePctAllCloseMin$ to $\rhtaTreePctAllCloseMax$ for the
+    three tree ensembles, each with $p < 0.001$, and $\Delta\% = \rhtaLinPctAllCloseMin$ to $\rhtaLinPctAllCloseMax$
+    for the penalized linear models, none significant at the 10\% level (the smallest, \rhtaLinAllClosePMin).
+  \item CLOSE: $\Delta\% = \rhtaLinPctClCloseMin$ to $\rhtaLinPctClCloseMax$ for the penalized linear models and
+    $\rhtaTreePctClCloseMin$ to $\rhtaTreePctClCloseMax$ for the tree ensembles, each with $p < 0.001$. The natively
+    built design gives the same result for the linear models ($\Delta\% = \rhtaLinPctClNatCloseMin$ to
+    $\rhtaLinPctClNatCloseMax$, each with $p < 0.001$).
+  \item RTH13: $\Delta\% = \rhtaPctRthCloseMin$ to $\rhtaPctRthCloseMax$, significant at the 5\% level for XGBoost
+    only ($\Delta\% = \rhtaPctXgbRthClose$, \rhtaPXgbRthClose). Choosing the linear penalties on the 16:00 validation
+    rows leaves every linear change insignificant at the 10\% level, in ALL48@16 and in RTH13@16, although in RTH13
+    it lowers the 16:00 loss of the lasso's full-set forecast ($\Delta\% = \rhtaXPctLassoRthCtVsRthClose$,
+    \rhtaXPLassoRthCtVsRthClose; Panel~C), whose HAR benchmark changes with it.
+  \item A full-versus-HAR change compares two forecasts trained on the same sample, so it also moves with the HAR
+    benchmark. Compared directly (Panel~C), the full-set forecasts trained on ALL48 have a lower 16:00 loss than
+    those trained on RTH13 in all six classes ($\Delta\% = \rhtaAllVsRthClosePctMin$ to
+    $\rhtaAllVsRthClosePctMax$), significantly at the 5\% level in \rhtaNAllVsRthCloseSig. Trained on CLOSE, they
+    have a lower 16:00 loss than RTH13's for the penalized linear models ($\Delta\% = \rhtaLinClVsRthClosePctMin$ to
+    $\rhtaLinClVsRthClosePctMax$, each with $p < 0.001$) but not significantly for the tree ensembles
+    ($\Delta\% = \rhtaTreeClVsRthClosePctMin$ to $\rhtaTreeClVsRthClosePctMax$; the smallest, \rhtaTreeClVsRthClosePMin).
+    For the trees, training on the close alone raises the 16:00 loss of the HAR benchmark (for LightGBM from
+    \rhtaQHarLgbmRthClose{} to \rhtaQHarLgbmClClose), and their larger full-versus-HAR change under CLOSE reflects
+    it.
+  \end{itemize}
+\item \textbf{The average regular-hours bar.} On every bar, RTH13 is the most accurate sample: no other sample
+  gives the full predictor set a lower every-bar loss in any class (Panels~C and~D test the pre-registered pairs).
+  \begin{itemize}
+  \item The full-set forecasts trained on ALL48 have a higher every-bar QLIKE than those trained on RTH13 in all six
+    classes ($\Delta\% = \rhtaAllVsRthBarPctMin$ to $\rhtaAllVsRthBarPctMax$), each significant at the 1\% level
+    (the largest, \rhtaAllVsRthBarPMax).
+  \item The full predictor set lowers the every-bar loss significantly in every class under both samples, and by more
+    under RTH13 in all six: $\Delta\% = \rhtaLinPctRthBarMin$ to $\rhtaLinPctRthBarMax$ for the penalized linear models
+    and $\rhtaTreePctRthBarMin$ to $\rhtaTreePctRthBarMax$ for the tree ensembles, against $\rhtaLinPctAllBarMin$ to
+    $\rhtaLinPctAllBarMax$ and $\rhtaTreePctAllBarMin$ to $\rhtaTreePctAllBarMax$ under ALL48.
+  \item CLOSE forecasts the 16:00 bar only and has no every-bar score.
+  \end{itemize}
+\item \textbf{Data volume.} At equal calendar the three samples differ in their numbers of training rows
+  (\rhtaRowsAll, \rhtaRowsRth{} and \rhtaRowsCl). The equal-row samples (Panel~D) hold the number of rows fixed and
+  change the span and recency of the window instead.
+  \begin{itemize}
+  \item With \rhtaRowsLarge{} rows, as many as RTH13, ALL48-39k has a significantly lower 16:00 loss than RTH13 in
+    \rhtaNAllThirtyNineKVsRthCloseSig{} classes, the lasso and the random forest
+    ($\Delta\% = \rhtaAllThirtyNineKVsRthClosePctMin$ to $\rhtaAllThirtyNineKVsRthClosePctMax$ across the six),
+    against \rhtaNAllVsRthCloseSig{} for ALL48 with all its rows, and in every class its 16:00 loss relative to
+    RTH13's is higher than ALL48's. Cutting ALL48 from \rhtaRowsAll{} to \rhtaRowsLarge{} rows raises its 16:00 loss in all six
+    classes ($\Delta\% = \rhtaAllThirtyNineKVsAllClosePctMin$ to $\rhtaAllThirtyNineKVsAllClosePctMax$),
+    significantly at the 5\% level in \rhtaNAllThirtyNineKVsAllCloseSig. Much of ALL48's advantage at 16:00 thus goes
+    with its larger number of rows. On every bar, ALL48-39k remains less accurate than RTH13 in all six classes
+    ($\Delta\% = \rhtaAllThirtyNineKVsRthBarPctMin$ to $\rhtaAllThirtyNineKVsRthBarPctMax$, each with $p < 0.001$).
+  \item With \rhtaRowsSmall{} rows, ALL48-3k has a lower 16:00 loss than RTH13-3k in all six classes
+    ($\Delta\% = \rhtaAllThreeKVsRthThreeKClosePctMin$ to $\rhtaAllThreeKVsRthThreeKClosePctMax$, significantly at the
+    5\% level in \rhtaNAllThreeKVsRthThreeKCloseSig) and a higher every-bar loss in all six
+    ($\Delta\% = \rhtaAllThreeKVsRthThreeKBarPctMin$ to $\rhtaAllThreeKVsRthThreeKBarPctMax$, each with
+    $p < 0.001$), the same pattern as at equal calendar; the two windows span about \rhtaSpanAllSmall{} and
+    \rhtaSpanRthSmall{} trading days.
+  \item CLOSE, also with \rhtaRowsCl{} rows, has a lower 16:00 loss than RTH13-3k in all six classes
+    ($\Delta\% = \rhtaClVsRthThreeKClosePctMin$ to $\rhtaClVsRthThreeKClosePctMax$; the largest,
+    \rhtaClVsRthThreeKClosePMax). Its window spans about \rhtaSpanClSmall{} years against about
+    \rhtaSpanRthSmall{} trading days, so this comparison does not separate the choice of intervals from the span of
+    the window.
+  \item Fewer rows also cost accuracy within the main sample: RTH13-3k has a higher loss than RTH13 at 16:00
+    ($\Delta\% = \rhtaRthThreeKVsRthClosePctMin$ to $\rhtaRthThreeKVsRthClosePctMax$) and on every bar
+    ($\Delta\% = \rhtaRthThreeKVsRthBarPctMin$ to $\rhtaRthThreeKVsRthBarPctMax$), each significant at the 1\% level.
+  \end{itemize}
+\item \textbf{The trade.} The Sharpe ratio $\SR$ of the full-set sign strategy (Section~\ref{sec:rh_econ_measures};
+  Panel~E) lies between \rhtaShFullRthMin{} and \rhtaShFullRthMax{} under RTH13, \rhtaShFullAllMin{} and
+  \rhtaShFullAllMax{} under ALL48, and \rhtaShFullClMin{} and \rhtaShFullClMax{} under CLOSE. None of the
+  \rhtaNDShTests{} differences in $\SR$ between the full-set strategies of ALL48 or CLOSE and those of RTH13 is
+  significant at the 5\% level (the smallest, \rhtaDShPMin). For the tree ensembles, the full-set strategy's gain over
+  the HAR benchmark's is significant at the 5\% level in \rhtaNTreeShSigRth{} of the three classes under RTH13,
+  \rhtaNTreeShSigAll{} under ALL48 and \rhtaNTreeShSigCl{} under CLOSE, where the trees' HAR benchmark strategies
+  have $\SR$ from \rhtaShTreeHarClMin{} to \rhtaShTreeHarClMax.
+\item \textbf{The window of CLOSE.} A follow-up run, specified in its own written rule before it was estimated,
+  re-estimated CLOSE on windows of \rhtaWsMin{} to \rhtaWsMax{} closes (Panel~F). The full predictor set has the
+  lower 16:00 loss in all \rhtaWsNCells{} window and class pairs ($\Delta\% = \rhtaWsLinPctMin$ to
+  $\rhtaWsLinPctMax$ for the penalized linear models, $\rhtaWsTreePctMin$ to $\rhtaWsTreePctMax$ for the tree
+  ensembles), significantly at the 5\% level in \rhtaWsNSig{} of them and in every class from \rhtaWsSigFrom{} closes
+  on.
+\item \textbf{Caveats.} The tree configurations were chosen on the pooled regular-hours bars and, by the rule, are
+  not re-tuned; with \rhtaRowsCl{} rows (CLOSE, ALL48-3k, RTH13-3k) or \rhtaRowsAll{} (ALL48) their sample-size
+  parameters may not suit the window. The linear penalties are re-chosen in every sample. ALL48 differs from RTH13 in
+  more than its rows: it adds the overnight indicator, keeps the early-close sessions, and computes its rolling
+  scaling on its own rows.
+\item \textbf{The main design is unchanged.} RTH13 was chosen before the comparison, following the literature cited
+  above, and it is the sample under which the full predictor set is most accurate on the average regular-hours bar,
+  the score of Table~\ref{tab:rh_oos}. At the 16:00 bar, training on all \rhtaNIntervals{} intervals or on the close
+  alone gives the full predictor set a larger gain over the HAR benchmark in every class, a gain significant for the
+  tree ensembles under ALL48 and for every class under CLOSE (above). The closing-bar results of
+  Sections~\ref{sec:rh_results} and~\ref{sec:rh_econ} are those of models estimated for the regular session as a
+  whole, not for its last half hour.
+\end{itemize}
+\input{generated/rehaul_train_arms_table}

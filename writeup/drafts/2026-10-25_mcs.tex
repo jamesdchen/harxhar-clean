@@ -1,0 +1,214 @@
+% 2026-10-25 DRAFT (note E14): the model confidence set, the test of superior predictive ability (SPA) and StepM for
+% the pooled intraday forecasts and their sign strategies.
+% Generator: writeup/make_rehaul_mcs.py (REHAUL_FINAL_RUN=1; before computing anything it reproduces Table 1's every-bar
+% QLIKE (results/oos_final_2014start/table1_w3000/metrics.csv to 1e-12, and the printed cells) and its DM statistics,
+% the closing-half-hour QLIKE and DM numbers of Section 6 (\rhrQ<M>Pool<X>, \rhrOlsQ, \rhrAf<M>PoolDm), the sign-strategy
+% Sharpe ratios of the 12 pooled forecasts at mid-quotes and bid/ask (\rhrShEnetPoolFull = 1.94 among them) and of the
+% short straddle, and the paper's D6 bootstrap p-values of the six Full-minus-HAR Sharpe differences; it checks its MCS
+% against src/evaluation/model_confidence_set.py, its SPA against experiments/close_kfull_testlib.spa_rc and its StepM
+% against experiments/feature_mcs_spa.stepm).
+% Files:   generated/rehaul_mcs_numbers.tex  (\rhmcs... macros; macro-only; no name collides with a macro of another
+%                                             writeup/generated/*.tex file, checked by the generator)
+%          generated/rehaul_mcs_table.tex    (Tables tab:rh_mcs and tab:rh_mcs_spa, the two new labels used below)
+%          results/rehaul_mcs_2026-10-25/    (every model, elimination step, family and block length, as CSV)
+% To use:  \input{generated/rehaul_mcs_numbers} in the preamble of paper_rehaul.tex; \input{generated/rehaul_mcs_table}
+%          in rehaul/10_appendix_floats.tex (or 06_results_floats.tex). Part A replaces the item "Multiple-comparison
+%          procedures" of rehaul/10_statistical_tests.tex and closes note E14; Part B goes at the end of
+%          sec:rh_results_classes (06_results.tex); Part C after the item "Full predictor set versus the HAR benchmark"
+%          of sec:rh_econ_results (07_economics.tex); Part D lists the sentences of the current text that the
+%          procedures qualify.
+% Every number below is a macro (\rhmcs..., or an existing \rhr... / \rhe... / \rhor... macro); only the levels (5%,
+% 90%, 75%) are typed, as elsewhere in the paper. The words "only", "alone", "all", "every", "none", "no" and the lists
+% of forecasts that do or do not survive are asserted in make_rehaul_mcs.py (draft_claims), so a rerun whose data no
+% longer bear them out stops.
+
+% =====================================================================================================================
+% Part A. Appendix sec:rh_methods_tests (10_statistical_tests.tex): replaces the item "Multiple-comparison procedures"
+% and its note E14.
+% =====================================================================================================================
+\item \textbf{Multiple-comparison procedures.} Each test above compares two forecasts, or two strategies, at a time,
+  and Sections~\ref{sec:rh_results} and~\ref{sec:rh_econ} make many such comparisons. Three procedures account for
+  their number; Tables~\ref{tab:rh_mcs} and~\ref{tab:rh_mcs_spa} report them.
+  \begin{itemize}
+  \item \emph{Model confidence set} \citep{HansenLundeNason2011}. Starting from a set $\mathcal M$ of forecasts with
+    daily losses $L_{i,t}$, each step tests the equal predictive ability of the forecasts in $\mathcal M$ and, if it
+    rejects, removes one of them. With $\bar d_{ij}$ the average of $L_{i,t} - L_{j,t}$ over $\mathcal O$ and
+    $\bar d_{i\cdot}$ the average loss of forecast $i$ minus the average over $\mathcal M$, the two statistics are
+    \[
+      T_{\max} = \max_{i \in \mathcal M} t_{i\cdot}, \quad
+      t_{i\cdot} = \frac{\bar d_{i\cdot}}{\sqrt{\widehat{\mathrm{var}}(\bar d_{i\cdot})}},
+      \qquad
+      T_R = \max_{i, j \in \mathcal M} |t_{ij}|, \quad
+      t_{ij} = \frac{\bar d_{ij}}{\sqrt{\widehat{\mathrm{var}}(\bar d_{ij})}},
+    \]
+    and their elimination rules remove $\arg\max_i t_{i\cdot}$ and $\arg\max_i \max_j t_{ij}$, respectively. The
+    variances and the null distributions of $T_{\max}$ and $T_R$ come from the bootstrap below, with the statistics
+    recentred at their sample values. The elimination continues to the last forecast, so every forecast has an MCS
+    $p$-value: the largest step $p$-value up to its removal, and one for the last forecast. The $(1-\alpha)$ model
+    confidence set holds the forecasts whose $p$-value is at least $\alpha$; we report the 90\% and 75\% sets.
+  \item \emph{Superior predictive ability} \citep{Hansen2005}. For a family of $K$ comparisons with daily
+    differentials $d_{k,t}$, positive when the alternative $k$ is better than its comparison (the loss of the
+    comparison minus that of the alternative, or the return of the alternative minus that of the comparison), the
+    test of $H_0\colon \max_k \E[d_{k,t}] \le 0$ uses $T^{\mathrm{SPA}} = \max\bigl(0, \max_k \bar d_k/\hat\sigma_k\bigr)$,
+    with $\hat\sigma_k$ the bootstrap standard deviation of $\bar d_k$. We report its consistent $p$-value.
+  \item \emph{StepM} \citep{RomanoWolf2005}. The studentized step-down procedure tests the $K$ hypotheses
+    $H_k\colon \E[d_{k,t}] \le 0$ and controls the familywise error rate, the probability of rejecting at least one
+    true $H_k$. With $t_k = \bar d_k/\hat\sigma_k$ ordered as $t_{(1)} \ge \dots \ge t_{(K)}$ and
+    $Z^{*}_k = (\bar d^{*}_k - \bar d_k)/\hat\sigma_k$ in a bootstrap sample, the adjusted $p$-value of the $j$-th
+    hypothesis is
+    \[
+      \tilde p_{(j)} = \max_{i \le j} \Pr\nolimits^{*}\Bigl(\max_{l \ge i} Z^{*}_{(l)} \ge t_{(i)}\Bigr),
+    \]
+    and StepM at level $\alpha$ rejects the $H_k$ with $\tilde p_k < \alpha$. The two-sided version, for
+    $H_k\colon \E[d_{k,t}] = 0$, replaces $t_k$ and $Z^{*}_k$ by their absolute values. Beside each adjusted $p$-value
+    we report the bootstrap $p$-value of the comparison alone, $\Pr^{*}(Z^{*}_k \ge t_k)$.
+  \item \emph{Sharpe ratios.} For a difference of the Sharpe ratios of Section~\ref{sec:rh_econ_measures},
+    $\Delta\SR_k$ takes the place of $\bar d_k$ and $\Delta\SR^{*}_k$, computed in each bootstrap sample as in the
+    test of equal Sharpe ratios above, the place of $\bar d^{*}_k$. For a single comparison the two-sided bootstrap
+    $p$-value is then the $p$-value of that test.
+  \item \emph{Bootstrap.} The three procedures resample trading days with the circular moving-block bootstrap: blocks
+    of \rhmcsBlock{} consecutive days, \rhmcsB{} samples, the same samples for every forecast of a comparison and at
+    every elimination step. The forecast losses use seed \rhmcsSeed; the strategy returns use the samples of the test
+    of equal Sharpe ratios above (seed \rhmcsSeedEcon). The block length is fixed rather than calibrated; we also
+    report the results at block lengths \rhmcsBlockLo{} and \rhmcsBlockHi.
+  \item \emph{Losses and forecasts.} The losses are daily: for the forecasts of every regular-hours bar, the average
+    loss of the day's \rhorNBars{} bars, as in the Diebold--Mariano tests of Table~\ref{tab:rh_oos}, so the bootstrap
+    resamples days. The pooled ridge regression, lasso and elastic net on the HAR benchmark reproduce the pooled OLS
+    (their penalties are numerically zero; Section~\ref{sec:rh_exp_setup}): their daily every-bar losses differ from
+    those of the OLS by at most $\rhmcsLinGap$ in relative terms, so they enter the model confidence set as one
+    forecast, the OLS. The set therefore holds \rhmcsNModelsWord{} distinct pooled forecasts, and
+    \rhmcsNModelsBenchWord{} with the closing-interval HAR benchmark, which has forecasts from \rhmcsChStart{} only
+    and so enters the sets on $\mathcal T_{\mathrm{oos}}$.
+  \end{itemize}
+
+% =====================================================================================================================
+% Part B. Section 6 (06_results.tex), a new item at the end of sec:rh_results_classes.
+% =====================================================================================================================
+\item \textbf{Multiple comparisons.} The tests above compare two forecasts at a time. The model confidence set
+  (Table~\ref{tab:rh_mcs}) and the SPA and StepM tests of the full predictor set (Table~\ref{tab:rh_mcs_spa},
+  Panels~A and~B) account for the number of comparisons (Appendix~\ref{sec:rh_methods_tests}).
+  \begin{itemize}
+  \item \emph{Every bar.} Under QLIKE, the 90\% model confidence set holds a single forecast,
+    \rhmcsBarQlikeTmaxSetNinety, under both statistics and at block lengths \rhmcsBlockLo, \rhmcsBlock{} and
+    \rhmcsBlockHi; the next forecast, XGBoost on the full predictor set, has an MCS $p$-value of
+    \rhmcsBarQlikeTmaxPXgbFull, and no forecast on the HAR benchmark is in the set. The reductions in QLIKE from the
+    full predictor set survive the adjustment in all \rhorAfPairs{} model classes: the SPA $p$-value is
+    \rhmcsBarQAfSpaC, and StepM rejects all \rhmcsNAlt{} hypotheses, with every adjusted $p$-value \rhmcsBarQAfPMax{}
+    (and all \rhmcsNAlt{} rejections, one- and two-sided, at the three block lengths). Under squared error, by
+    contrast, the 75\% set
+    holds all \rhmcsBarMseTmaxNSevenFive{} forecasts, and StepM rejects none of the \rhmcsNAlt{} hypotheses (SPA
+    $p$-value \rhmcsBarMAfSpaC).
+  \item \emph{The closing half hour, \rhorSpanStart{} to \rhorSpanEnd.} On the \rhmcsDaysAll{} days of
+    Table~\ref{tab:rh_oos}, the forecasts of the closing half hour are hard to tell apart: under $T_{\max}$ the 90\%
+    set holds all \rhmcsAllQlikeTmaxNNinety{} pooled forecasts, and under $T_R$ it holds \rhmcsAllQlikeTrangeSetNinety;
+    the 75\% set holds \rhmcsAllQlikeTmaxSetSevenFive{} alone under both statistics. Against the HAR benchmark of the
+    same class, the SPA $p$-value is \rhmcsAllQAfSpaC, and StepM rejects for \rhmcsAllQAfRej{} alone (adjusted
+    $p$-value \rhmcsAllQAfPXgb; LightGBM \rhmcsAllQAfPLgbm), and for no class in the two-sided test (smallest adjusted
+    $p$-value \rhmcsAllQAfPTwoMin).
+  \item \emph{The closing half hour on $\mathcal T_{\mathrm{oos}}$.} The closing-interval HAR benchmark is the last
+    forecast left under both statistics (MCS $p$-value one). Under $T_R$ the 90\% set holds
+    \rhmcsOosQlikeTrangeSetNinety; under $T_{\max}$ it also holds the random forest on the full predictor set (MCS
+    $p$-value \rhmcsOosQlikeTmaxPRfFull, against \rhmcsOosQlikeTrangePRfFull{} under $T_R$). No linear forecast is in
+    it: every forecast left out has an MCS $p$-value of at most \rhmcsOosQlikeTmaxPMaxOutNinety{} under $T_{\max}$ and
+    \rhmcsOosQlikeTrangePMaxOutNinety{} under $T_R$. The 75\% set holds \rhmcsOosQlikeTmaxSetSevenFive{} under both
+    statistics, and \rhmcsOosQlikeTmaxSetSevenFiveHi{} alone with blocks of \rhmcsBlockHi{} days.
+    \begin{itemize}
+    \item Against the HAR benchmark of the same class, no full-set forecast is more accurate after the adjustment
+      (SPA $p$-value \rhmcsOosQAfSpaC; smallest StepM-adjusted $p$-value \rhmcsOosQAfPMin), in line with the
+      Diebold--Mariano tests above. Of the increases in loss that are significant in those tests, those of ridge
+      regression and the lasso, the lasso's survives the two-sided StepM (adjusted $p$-value \rhmcsOosQAfPTwoLasso)
+      and that of ridge regression does not (\rhmcsOosQAfPTwoRidge).
+    \item No full-set forecast is more accurate than the closing-interval HAR benchmark (SPA $p$-value
+      \rhmcsOosQBmSpaC). Testing all \rhmcsNModelsWord{} distinct pooled forecasts against the benchmark at once, the
+      two-sided StepM confirms a higher loss for \rhmcsOosQBmAllRejTwo, but not for LightGBM on the HAR benchmark
+      (adjusted $p$-value \rhmcsOosQBmAllPTwoLgbmHar), XGBoost on the HAR benchmark (\rhmcsOosQBmAllPTwoXgbHar) or
+      the random forest on the full predictor set (\rhmcsOosQBmAllPTwoRfFull), each significant in the pairwise test
+      above.
+    \item On the \rhmcsDaysCh{} days from \rhmcsChStart{} to \rhorSpanEnd{} on which the benchmark has forecasts, it
+      is again the last forecast left, and the 90\% set under $T_R$ holds \rhmcsChQlikeTrangeSetNinety.
+    \item Under squared error, every forecast is in the 75\% sets of the closing half hour
+      (\rhmcsOosMseTmaxNSevenFive{} of \rhmcsNModelsBench{} on $\mathcal T_{\mathrm{oos}}$), and StepM rejects no
+      hypothesis.
+    \end{itemize}
+  \end{itemize}
+
+% =====================================================================================================================
+% Part C. Section 7 (07_economics.tex), a new item after "Full predictor set versus the HAR benchmark" in
+% sec:rh_econ_results.
+% =====================================================================================================================
+\item \textbf{Multiple comparisons of the strategies.} Table~\ref{tab:rh_mcs_spa} (Panels~C and~D) tests the
+  \rhmcsNAlt{} sign strategies on the full predictor set jointly, on the \rheSzDays{} post-warmup days, against the
+  alternative that the strategy is better, unless stated otherwise (Appendix~\ref{sec:rh_methods_tests}).
+  \begin{itemize}
+  \item \emph{Against the unconditional short straddle.} The Sharpe ratio gain survives the adjustment for every
+    full-set strategy: the SPA $p$-value is \rhmcsMidShortSrSpaC{} at mid-quotes and \rhmcsBaShortSrSpaC{} at quoted
+    bid/ask prices, and StepM rejects all \rhmcsNAlt{} hypotheses, one- and two-sided, at both prices and block
+    lengths \rhmcsBlockLo, \rhmcsBlock{} and \rhmcsBlockHi{} (two-sided adjusted $p$-values at most
+    \rhmcsMidShortSrPTwoMax{} at mid-quotes and \rhmcsBaShortSrPTwoMax{} at bid/ask). For the mean daily return
+    differential the SPA $p$-value is \rhmcsMidShortMeanSpaC; StepM rejects \rhmcsMidShortMeanNRej{} of the
+    \rhmcsNAlt{} hypotheses, all but XGBoost's (adjusted $p$-value \rhmcsMidShortMeanPXgb, at the level;
+    \rhmcsMidShortMeanNRejLo{} and \rhmcsMidShortMeanNRejHi{} rejections with blocks of \rhmcsBlockLo{} and
+    \rhmcsBlockHi{} days), and in the two-sided test those of the elastic net and the random forest
+    (\rhmcsMidShortMeanPTwoEnet{} and \rhmcsMidShortMeanPTwoRf; \rhmcsMidShortMeanNRejTwoLo{} and
+    \rhmcsMidShortMeanNRejTwoHi{} rejections with blocks of \rhmcsBlockLo{} and \rhmcsBlockHi{} days). These bootstrap
+    tests reject more often than the fixed-$b$ test of the mean (Section~\ref{sec:rh_econ_measures}), which finds a
+    significant gain for \rhrPoolShortSig{} of the \rhrPoolN{} pooled forecasts. The difference lies in the test, not
+    in the adjustment: before any adjustment, the two-sided bootstrap $p$-value of the comparison alone is
+    \rhmcsMidShortMeanRawTwoRf{} for the random forest and \rhmcsMidShortMeanRawTwoEnet{} for the elastic net, whose
+    fixed-$b$ $t$-statistics are \rhrVsShortRfPoolFullT{} and \rhrVsShortEnetPoolFullT{} against a 5\% critical value
+    of \rheHACCV. The bootstrap estimates the variance of the mean from blocks of \rhmcsBlock{} days and treats it as
+    known, while the fixed-$b$ test uses a bandwidth of \rheHACS{} days and critical values that allow for the error
+    of the variance estimate.
+  \item \emph{Against the HAR-benchmark strategy of the same class.} The Sharpe ratio gain survives the adjustment
+    for the random forest alone: SPA $p$-value \rhmcsMidTwinSrSpaC, StepM-adjusted $p$-value \rhmcsMidTwinSrPRf{}
+    (two-sided \rhmcsMidTwinSrPTwoRf, against \rhmcsTwinTwoSidedPRf{} for the comparison alone), with the same
+    conclusion at quoted bid/ask prices (two-sided \rhmcsBaTwinSrPTwoRf). It is the one significant Sharpe ratio gain
+    of the item above; the next smallest single-test $p$-value, LightGBM's \rhmcsTwinTwoSidedPLgbm, becomes
+    \rhmcsMidTwinSrPTwoLgbm{} after the adjustment. With blocks of \rhmcsBlockLo{} and \rhmcsBlockHi{} days the
+    random forest's two-sided adjusted $p$-value is \rhmcsMidTwinSrPTwoMinLo{} and \rhmcsMidTwinSrPTwoMinHi{}
+    (one-sided \rhmcsMidTwinSrPMinLo{} and \rhmcsMidTwinSrPMinHi). For the mean daily return differential, StepM
+    rejects for \rhmcsMidTwinMeanRej{} (adjusted $p$-values \rhmcsMidTwinMeanPLgbm{} and \rhmcsMidTwinMeanPRf), and in
+    the two-sided test for the random forest alone (\rhmcsMidTwinMeanPTwoRf; \rhmcsMidTwinMeanPTwoMinLo{} and
+    \rhmcsMidTwinMeanPTwoMinHi{} with blocks of \rhmcsBlockLo{} and \rhmcsBlockHi{} days).
+  \end{itemize}
+
+% =====================================================================================================================
+% Part D. Sentences of the current text that the procedures qualify (suggestions; none of them is edited here).
+% =====================================================================================================================
+% D1  Introduction ("Main findings", first item) and Section 6 (sec:rh_results_predictors, the penalized linear models):
+%     "raises it for the three penalized linear models, significantly so for ridge regression and the lasso" / "at the
+%     5% level the increase is statistically significant for ridge regression and the lasso". After the two-sided
+%     StepM over the six classes only the lasso's increase survives (\rhmcsOosQAfPTwoLasso; ridge \rhmcsOosQAfPTwoRidge).
+%     Suggested: "..., significantly so for the lasso, and for ridge regression before the adjustment for the six
+%     comparisons (Table~\ref{tab:rh_mcs_spa})".
+% D2  Section 6 (sec:rh_results_classes, "Under the HAR benchmark ... significant at the 5% level for \rhrVsBmPoolHarSig
+%     of the \rhrAfPoolPairs models and at the 1% level for \rhrVsBmPoolHarSigOne"): with the ten distinct pooled
+%     forecasts tested against the benchmark at once, the higher loss of LightGBM and XGBoost on the HAR benchmark does
+%     not survive (\rhmcsOosQBmAllPTwoLgbmHar, \rhmcsOosQBmAllPTwoXgbHar), and both stay in the 90% model confidence
+%     set with the benchmark. The linear HAR forecasts (\rhmcsOosQBmAllPTwoLinHar) and the random forest on the HAR
+%     benchmark (\rhmcsOosQBmAllPTwoRfHar) survive.
+% D3  Introduction, Section 6 and Conclusion ("on the full predictor set the gap is statistically significant at the
+%     5% level for \rhrVsBmPoolLinFullSig of the three penalized linear models and for \rhrVsBmPoolTreeFullSig of the
+%     three tree ensembles"): the linear models' gap survives the adjustment; the one tree ensemble's (the random
+%     forest, pairwise \rhrVsBmRfPoolFullPval) does not (\rhmcsOosQBmAllPTwoRfFull), and it stays in the 90% set under
+%     T_max (MCS p-value \rhmcsOosQlikeTmaxPRfFull; under T_R \rhmcsOosQlikeTrangePRfFull).
+% D4  Abstract, Introduction, Section 6, Conclusion ("every intraday specification remains less accurate under QLIKE
+%     than" the closing-interval benchmark): true of the average losses, and the benchmark is the last forecast left in
+%     the model confidence set; but the boosted trees on both predictor sets are in its 90% set (and XGBoost on the full
+%     set in its 75% set), so "less accurate" should stay a statement about point estimates.
+% D5  Section 7 (sec:rh_econ_results, "the mean return gain over the short-straddle benchmark is statistically
+%     significant at the 5% level in \rhrPoolShortSig of the \rhrPoolN specifications") and the Conclusion (comparison
+%     with Maisch et al.: "its gain over that benchmark is statistically significant in \rhrPoolShortSig of the
+%     \rhrPoolN pooled forecasts"): the Conclusion should say "its mean return gain"; the Sharpe ratio gain over the
+%     short straddle, which the paper reports only in point estimates, is significant for all six full-set strategies
+%     under the paper's own D6 bootstrap, after the StepM adjustment (Part C). The mean-return results differ by test
+%     (fixed-b against the block bootstrap), not by the adjustment (Part C).
+% D6  Abstract, Introduction, Section 7, Conclusion ("the gain is statistically significant at the 5% level in
+%     \rhrAfPoolShHigherSig of them"): survives the adjustment for the six classes (the random forest, Part C), one-sided
+%     at the three block lengths and two-sided at \rhmcsBlockLo{} and \rhmcsBlock{} days (\rhmcsMidTwinSrPTwoMinHi{}
+%     with blocks of \rhmcsBlockHi{} days).
+% D7  Every-bar claims (Abstract, Introduction, Section 6, Conclusion: the full predictor set lowers QLIKE in all six
+%     classes, each significantly): survive (Part B).
+% D8  Appendix sec:rh_methods_tests, item "Reporting convention" ("All main tables report point estimates ...
+%     without bootstrap confidence intervals"): still true of the main tables; add "Tables~\ref{tab:rh_mcs}
+%     and~\ref{tab:rh_mcs_spa} report the multiple-comparison procedures."

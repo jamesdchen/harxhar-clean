@@ -1,0 +1,112 @@
+% 2026-10-25 DRAFT for Section 7 (sec:rh_econ_results): the main economics table, the closing-interval HAR forecast's
+% own Sharpe ratio, the Sharpe ratio by calendar year and the break-even spreads.
+% Generator: writeup/make_rehaul_econ_main.py (run from the repository root; it sets REHAUL_FINAL_RUN=1 and gates its
+% inputs against the printed \rhr... / \rhe... macros and Table tab:rh_app_hac_robust before writing).
+% Files:   generated/rehaul_econ_main_numbers.tex  (\rhem... macros; macro-only; no name collides with any macro of
+%                                                    another writeup/generated/*.tex file, checked 2026-10-25)
+%          generated/rehaul_econ_main_table.tex    (Table tab:rh_econ_main)
+%          generated/rehaul_econ_byyear_fig.tex    (Figure fig:rh_econ_byyear, generated/rehaul_econ_byyear.pdf)
+% To use:  \input{generated/rehaul_econ_main_numbers} in the preamble of paper_rehaul.tex; \input the two floats in
+%          rehaul/07_economics_floats.tex. The parked float generated/rehaul_econ_fig_byyear.tex (make_rehaul_economics.py)
+%          carries the same label fig:rh_econ_byyear and must stay parked.
+% Every number below is a macro (\rhem..., or an existing \rhr... / \rhe... / \cm... macro); nothing is typed. The
+% words "none", "all" and "every" below are asserted in make_rehaul_econ_main.py (DRAFT CLAIMS), so a rerun whose
+% data no longer bear them out stops.
+%
+% Suggested edit to the Transaction-costs item of sec:rh_econ_strategy: \cmSvCostStraddle is the median over all
+% \cmNdays{} option days; on the \rheSzDays{} post-warmup days on which every Sharpe ratio is computed the median is
+% \rhemHalfSpreadMed. Proposed wording:
+%   "Executing at the quoted bid or ask rather than the mid-quote costs a median half-spread of \rhemHalfSpreadMed\% of
+%    the straddle premium on the \rheSzDays{} post-warmup days (\cmSvCostStraddle\% over all \cmNdays{} days of
+%    $\mathcal T_{\mathrm{opt}}$). No additional commissions or exchange fees are deducted."
+
+\begin{itemize}
+\item \textbf{Main comparison.} Table~\ref{tab:rh_econ_main} reports the sign strategy of the \rhrPoolN{} pooled
+  intraday forecasts, of the closing-interval HAR forecast (the HAR benchmark of Section~\ref{sec:rh_results}: the OLS
+  on the HAR benchmark set, estimated on the closing interval only), and of the unconditional short straddle, over the
+  \rheSzDays{} post-warmup days of $\mathcal T_{\mathrm{opt}}$, at mid-quotes and at quoted bid/ask prices.
+  \begin{itemize}
+  \item On the HAR benchmark set, the pooled ridge, lasso and elastic net produce the same forecast: their selected
+    penalties are close to zero, and the three forecasts equal the pooled OLS up to a relative difference of
+    \rhemHarLinMaxRelDiff{} over \rhemHarLinNRows{} forecasts, so their positions agree on every day. The six
+    HAR-set rows therefore hold \rhemHarDistinctWord{} distinct forecasts, and the three linear comparisons of the
+    full predictor set with the HAR benchmark set share one comparator.
+  \end{itemize}
+\item \textbf{Closing-interval HAR forecast.} Its Sharpe ratio is \rhemShCiHar{} at mid-quotes and \rhemShXCiHar{} at
+  quoted bid/ask prices, with mean daily returns of \rhemMeanCiHar\% and \rhemMeanXCiHar\% of the premium.
+  \begin{itemize}
+  \item Its Sharpe ratio exceeds that of the short straddle by \rhemDShCiHarVsShort{} (bootstrap
+    $p = \rhemPDShCiHarVsShort$); the $t$-statistic of its mean daily return differential is \rhemTCiHarVsShort{}
+    (fixed-$b$ $p = \rhemPTCiHarVsShort$).
+  \end{itemize}
+\item \textbf{Full predictor set against the short straddle.} The six pooled forecasts on the full predictor set reach
+  Sharpe ratios of \rhrPoolShFullMin{} to \rhrPoolShFullMax{} at mid-quotes and \rhrPoolShXFullMin{} to
+  \rhrPoolShXFullMax{} at quoted bid/ask prices, against \rheShortSh{} and \rheShortShX{} for the short straddle.
+  \begin{itemize}
+  \item The Sharpe ratio gain over the short straddle is significant at the 5\% level for \rhemFullVsShortSigWord{}
+    of the six at mid-quotes and \rhemFullVsShortSigXWord{} at quoted bid/ask prices (bootstrap test).
+  \item The mean daily return differential is significant at the 5\% level for \rhemFullTVsShortSigWord{} of the six
+    at mid-quotes and \rhemFullTXVsShortSigWord{} at quoted bid/ask prices (fixed-$b$ test,
+    Section~\ref{sec:rh_methods_tests}).
+  \end{itemize}
+\item \textbf{Full predictor set against the closing-interval HAR forecast.} In each of the six
+  model classes the pooled forecast on the full predictor set has a higher mid-quote Sharpe ratio than the
+  closing-interval HAR forecast, by \rhemFullVsCiHarMin{} to \rhemFullVsCiHarMax{} (median \rhemFullVsCiHarMed).
+  \begin{itemize}
+  \item None of these differences is significant at the 5\% level, at mid-quotes (bootstrap $p$-values from
+    \rhemFullVsCiHarPMin{} to \rhemFullVsCiHarPMax) or at quoted bid/ask prices.
+  \item The ranking depends on the definition of the Sharpe ratio. With the per-year ratio scaled by $\sqrt{N_y}$ and
+    weighted by $N_y$ (Table~\ref{tab:rh_econ_sharpe_defs}), the closing-interval HAR forecast's ratio is
+    \rhemShDOneCiHar{} and \rhemFullAboveCiHarDOneWord{} of the six full-set forecasts exceed it; with the ratio of
+    the pooled daily returns scaled by $\sqrt{252}$, it is \rhemShDTwoCiHar{} and \rhemFullAboveCiHarDTwoWord{} of
+    the six exceed it.
+  \end{itemize}
+\item \textbf{HAR benchmark set in the pooled scheme.} The \rhemHarDistinctWord{} distinct pooled forecasts on the HAR
+  benchmark set reach Sharpe ratios of \rhrPoolShHarMin{} to \rhrPoolShHarMax{} at mid-quotes.
+  \begin{itemize}
+  \item All \rhemHarDistinctWord{} have a lower Sharpe ratio than the closing-interval HAR forecast,
+    \rhemHarVsCiHarSigWord{} of them significantly at the 5\% level (bootstrap test), and none has a Sharpe ratio
+    significantly above the short straddle's.
+  \item The gain of the full predictor set within each pooled model class (\rhemFullVsHarSigWord{} of the six
+    significant at the 5\% level) is therefore measured against pooled forecasts that trade below the
+    closing-interval HAR forecast.
+  \end{itemize}
+\item \textbf{Execution costs and break-even spreads.} Trading at quoted bid/ask prices rather than mid-quotes lowers
+  every strategy's Sharpe ratio (Table~\ref{tab:rh_econ_main}). The median quoted half-spread of the straddle is
+  \rhemHalfSpreadMed\% of the premium on the \rheSzDays{} post-warmup days (\rhemHalfSpreadMedAll\% on all
+  \cmNdays{} days of $\mathcal T_{\mathrm{opt}}$). We scale every day's quoted half-spread
+  $h_t = (P^{a}_t - P^{b}_t)/2$ by a common factor $k$, so that a purchase pays $P_t + k h_t$ and a sale receives
+  $P_t - k h_t$ ($k = 0$: mid-quotes; $k = 1$: quoted bid/ask prices), and find the factor at which the mean daily
+  return or the Sharpe ratio reaches zero; in percent of the premium, the break-even half-spread is $k$ times the
+  median quoted half-spread.
+  \begin{itemize}
+  \item For the six full-set forecasts the mean daily return stays positive up to $k = \rhemBeMeanFullMin$ to
+    $\rhemBeMeanFullMax$ (\rhemBeMeanFullMinPct\% to \rhemBeMeanFullMaxPct\% of the premium) and the Sharpe ratio up
+    to $k = \rhemBeShFullMin$ to $\rhemBeShFullMax$ (\rhemBeShFullMinPct\% to \rhemBeShFullMaxPct\%).
+  \item For the closing-interval HAR forecast the two factors are \rhemBeMeanCiHar{} and \rhemBeShCiHar{}
+    (\rhemBeMeanPctCiHar\% and \rhemBeShPctCiHar\% of the premium); for the \rhemHarDistinctWord{} distinct HAR-set
+    forecasts the Sharpe-ratio factor runs from \rhemBeShHarMin{} to \rhemBeShHarMax.
+  \item The mean daily return of the short straddle reaches zero at $k = \rhemBeMeanShort$, inside the quoted
+    spread, and its Sharpe ratio is negative at mid-quotes already.
+  \end{itemize}
+\item \textbf{Sharpe ratio by calendar year.} Figure~\ref{fig:rh_econ_byyear} plots the terms $\SR_y$ whose simple
+  mean is $\SR$ (Section~\ref{sec:rh_econ_measures}), for \rhemYearOne{} to \rhemYearFour{}.
+  \begin{itemize}
+  \item Every full-set forecast has a positive $\SR_y$ in every year; the median over the six is \rhemByYearFullMedOne, \rhemByYearFullMedTwo, \rhemByYearFullMedThree{} and
+    \rhemByYearFullMedFour{} in \rhemYearOne{} to \rhemYearFour, against \rhemByYearHarMedOne,
+    \rhemByYearHarMedTwo, \rhemByYearHarMedThree{} and \rhemByYearHarMedFour{} for the median of the
+    \rhemHarDistinctWord{} distinct HAR-set forecasts.
+  \item The closing-interval HAR forecast's $\SR_y$ is \rhemByYearCiHarOne, \rhemByYearCiHarTwo,
+    \rhemByYearCiHarThree{} and \rhemByYearCiHarFour; the median full-set forecast exceeds it in
+    \rhemYearsFullMedAboveCiHarWord{} of the \rhemNYearsWord{} years, and it exceeds every full-set forecast in
+    \rhemYearsCiHarAboveAllFullWord{} of them.
+  \item The short straddle's $\SR_y$ is \rhemByYearShortOne, \rhemByYearShortTwo, \rhemByYearShortThree{} and
+    \rhemByYearShortFour, negative in \rhemYearsShortNegWord{} of the \rhemNYearsWord{} years; the median full-set
+    forecast exceeds it in \rhemYearsFullMedAboveShortWord{} of them.
+  \item The first and the last year are partial: together they hold \rhemNPartialDays{} of the \rheSzDays{}
+    post-warmup days (\rhemPartialDaysPct\%) but two of the \rhemNYearsWord{} equally weighted terms of $\SR$. Under
+    the alternative definitions of Table~\ref{tab:rh_econ_sharpe_defs}, which weight the years by their days or pool
+    them, the short straddle's mid-quote Sharpe ratio is \rhemShDOneShort{} and \rhemShDTwoShort{} rather than
+    \rheShortSh.
+  \end{itemize}
+\end{itemize}

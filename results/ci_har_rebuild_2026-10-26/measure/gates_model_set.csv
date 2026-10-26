@@ -1,0 +1,6 @@
+gate,pass,detail
+rhrNSet old reproduces the printed count,True,93
+rhrNLower old reproduces the printed count,True,7
+rhrNLowerSig old reproduces the printed count,True,2
+rhrNWorseSig old reproduces the printed count,True,49
+rhrSETopFiveOls old reproduces the printed share,True,76.52

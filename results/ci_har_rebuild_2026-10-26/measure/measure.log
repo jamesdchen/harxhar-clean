@@ -1,0 +1,231 @@
+[ok] ci_scored(old file) == rolling.scored(sub_ols_baseline): 1460 days
+rows on early-close days: old file 9, new file 0
+new file: 4462 rows 2006-06-14 16:00:00 .. 2024-04-30 16:00:00; scored days 4462
+[ok] old QLIKE / MSE on common == rolling_eval metrics.csv: 0.103259382000 / 4.152582e-10
+[ok] old QLIKE / MSE on mt866 == rolling_eval metrics.csv: 0.096677595403 / 3.814314e-10
+[ok] rhrOlsQ reproduced: 0.1033
+                     span variant    n    qlike  mse_e10  dm_qlike_vs_old  median_abs_log_plain_vs_old  max_abs_log_plain_vs_old  days_B_differs_from_old
+   2018-06-25..2024-04-30     old 1441 0.123769 3.185497              NaN                     0.000000                  0.000000                        0
+   2018-06-25..2024-04-30       b 1441 0.122858 3.192511        -1.472474                     0.002702                  0.159913                      161
+   2018-06-25..2024-04-30    b_ec 1441 0.122334 3.186241        -2.087001                     0.005756                  0.177705                      161
+   2018-06-25..2024-04-30     new 1441 0.119989 3.303094        -2.073754                     0.024511                  0.339969                      161
+T_oos common span (1,082)     old 1082 0.103259 4.152582              NaN                     0.000000                  0.000000                        0
+T_oos common span (1,082)       b 1082 0.102691 4.162052        -1.219994                     0.002579                  0.159913                      113
+T_oos common span (1,082)    b_ec 1082 0.102388 4.154102        -1.705231                     0.005011                  0.177705                      113
+T_oos common span (1,082)     new 1082 0.102505 4.308961        -0.864040                     0.019001                  0.241039                      113
+          master 866 days     old  866 0.096678 3.814314              NaN                     0.000000                  0.000000                        0
+          master 866 days       b  866 0.096414 3.822026        -1.186144                     0.002544                  0.148387                       94
+          master 866 days    b_ec  866 0.096217 3.804463        -1.911260                     0.005016                  0.148482                       94
+          master 866 days     new  866 0.096680 3.999179         0.004938                     0.017819                  0.175326                       94
+[ok] rhrVsBmRidgeCloseHar old reproduces the printed Pct / Dm: -0.000 / -0.961 vs printed 0.0 / -0.96
+[ok] rhrVsBmRidgeCloseFull old reproduces the printed Pct / Dm: -0.146 / -0.038 vs printed -0.1 / -0.04
+[ok] rhrVsBmRidgePoolHar old reproduces the printed Pct / Dm: 10.077 / 2.613 vs printed 10.1 / 2.61
+[ok] rhrVsBmRidgePoolFull old reproduces the printed Pct / Dm: 22.021 / 3.613 vs printed 22.0 / 3.61
+[ok] rhrVsBmLassoCloseHar old reproduces the printed Pct / Dm: -0.001 / -2.598 vs printed 0.0 / -2.6
+[ok] rhrVsBmLassoCloseFull old reproduces the printed Pct / Dm: -3.962 / -1.911 vs printed -4.0 / -1.91
+[ok] rhrVsBmLassoPoolHar old reproduces the printed Pct / Dm: 10.077 / 2.613 vs printed 10.1 / 2.61
+[ok] rhrVsBmLassoPoolFull old reproduces the printed Pct / Dm: 25.965 / 3.655 vs printed 26.0 / 3.66
+[ok] rhrVsBmEnetCloseHar old reproduces the printed Pct / Dm: -0.001 / -2.461 vs printed 0.0 / -2.46
+[ok] rhrVsBmEnetCloseFull old reproduces the printed Pct / Dm: -1.790 / -0.554 vs printed -1.8 / -0.55
+[ok] rhrVsBmEnetPoolHar old reproduces the printed Pct / Dm: 10.077 / 2.613 vs printed 10.1 / 2.61
+[ok] rhrVsBmEnetPoolFull old reproduces the printed Pct / Dm: 19.464 / 3.337 vs printed 19.5 / 3.34
+[ok] rhrVsBmLgbmCloseHar old reproduces the printed Pct / Dm: 5.917 / 2.701 vs printed 5.9 / 2.7
+[ok] rhrVsBmLgbmCloseFull old reproduces the printed Pct / Dm: 1.545 / 0.511 vs printed 1.5 / 0.51
+[ok] rhrVsBmLgbmPoolHar old reproduces the printed Pct / Dm: 6.646 / 2.158 vs printed 6.6 / 2.16
+[ok] rhrVsBmLgbmPoolFull old reproduces the printed Pct / Dm: 5.490 / 1.345 vs printed 5.5 / 1.34
+[ok] rhrVsBmXgbCloseHar old reproduces the printed Pct / Dm: 4.185 / 2.090 vs printed 4.2 / 2.09
+[ok] rhrVsBmXgbCloseFull old reproduces the printed Pct / Dm: -0.116 / -0.042 vs printed -0.1 / -0.04
+[ok] rhrVsBmXgbPoolHar old reproduces the printed Pct / Dm: 6.681 / 2.233 vs printed 6.7 / 2.23
+[ok] rhrVsBmXgbPoolFull old reproduces the printed Pct / Dm: 4.477 / 1.139 vs printed 4.5 / 1.14
+[ok] rhrVsBmRfCloseHar old reproduces the printed Pct / Dm: 3.466 / 1.700 vs printed 3.5 / 1.7
+[ok] rhrVsBmRfCloseFull old reproduces the printed Pct / Dm: 2.630 / 0.862 vs printed 2.6 / 0.86
+[ok] rhrVsBmRfPoolHar old reproduces the printed Pct / Dm: 9.578 / 2.777 vs printed 9.6 / 2.78
+[ok] rhrVsBmRfPoolFull old reproduces the printed Pct / Dm: 8.801 / 2.059 vs printed 8.8 / 2.06
+[ok] rhrVsBmPoolLinFullSig old reproduces the printed count: 3
+[ok] rhrVsBmPoolTreeFullSig old reproduces the printed count: 1
+[ok] rhrVsBmPoolHarSig old reproduces the printed count: 6
+[ok] rhrVsBmPoolHarSigOne old reproduces the printed count: 4
+[ok] rhrVsBmPoolNarrow old reproduces the printed count: 3
+[ok] rhrVsBmPoolLinFullPctMin old reproduces the printed range: 19.464090141171987
+[ok] rhrVsBmPoolLinFullPctMax old reproduces the printed range: 25.96531847831802
+[ok] rhrVsBmPoolTreeFullPctMin old reproduces the printed range: 4.476907149867326
+[ok] rhrVsBmPoolTreeFullPctMax old reproduces the printed range: 8.800618532589532
+[ok] rhrVsBmPoolHarPctMin old reproduces the printed range: 6.645731044392611
+[ok] rhrVsBmPoolHarPctMax old reproduces the printed range: 10.076840330431258
+[ok] correctness-6 reproduced: old B differs from the pooled B on 174 of 1,460 days, ratio min 0.773: 174 of 1460, min ratio 0.7728
+E34 pooled linear poolpt13_enet_baseline (13 bars, w1000, pl13) for poolpt_enet_baseline: SR mid 0.72 -> 0.98, bid/ask 0.36 -> 0.62, long days 232 -> 205 of 866
+E34 pooled linear poolpt13_enet_all_features (13 bars, w1000, pl13) for poolpt_enet_all_features: SR mid 2.07 -> 1.94, bid/ask 1.73 -> 1.58, long days 237 -> 165 of 866
+E34 pooled linear poolpt13_lasso_baseline (13 bars, w1000, pl13) for poolpt_lasso_baseline: SR mid 0.69 -> 0.98, bid/ask 0.34 -> 0.62, long days 227 -> 205 of 866
+E34 pooled linear poolpt13_lasso_all_features (13 bars, w1000, pl13) for poolpt_lasso_all_features: SR mid 1.29 -> 1.72, bid/ask 0.93 -> 1.36, long days 205 -> 163 of 866
+E34 pooled linear poolpt13_ridge_baseline (13 bars, w1000, pl13) for poolpt_ridge_baseline: SR mid 0.74 -> 0.98, bid/ask 0.38 -> 0.62, long days 231 -> 205 of 866
+E34 pooled linear poolpt13_ridge_all_features (13 bars, w1000, pl13) for poolpt_ridge_all_features: SR mid 1.86 -> 1.85, bid/ask 1.50 -> 1.49, long days 235 -> 169 of 866
+pooled tree pooltree_lgbm_all_features (base 5, pt13): printed SR 1.75 mid, 1.40 bid/ask
+pooled tree pooltree_xgb_all_features (base 5, pt13): printed SR 1.67 mid, 1.31 bid/ask
+pooled tree pooltree_rf_all_features (base 5, pt13): printed SR 1.96 mid, 1.60 bid/ask
+[ok] old file plain == master table plain on the 866 days: max rel 0.00e+00
+[ok] old file's trade == the master table's (q, mid, bid/ask) on the 866 days: q equal on 866 of 866
+[ok] rhrOlsSharpe old reproduces the printed value: 1.4719507570925203
+[ok] rhemShCiHar old reproduces the printed value: 1.4719507570925203
+[ok] rhemShXCiHar old reproduces the printed value: 1.1164578669932759
+[ok] rhemDShCiHarVsShort old reproduces the printed value: 1.5886572208353271
+[ok] rhemPDShCiHarVsShort old reproduces the printed value: 0.04740948189637927
+[ok] rhemFullVsCiHarMin old reproduces the printed value: 0.19449582343187766
+[ok] rhemFullVsCiHarMed old reproduces the printed value: 0.32513930934555013
+[ok] rhemFullVsCiHarMax old reproduces the printed value: 0.4845029989208123
+[ok] rhemHarVsCiHarNeg old reproduces the printed value: 4
+[ok] rhemHarVsCiHarSig old reproduces the printed value: 2
+                        span file days    n      first       last    qlike  mse_e10  r2_oos_pct
+      2018-06-25..2024-04-30  old  own 1460 2018-06-25 2024-04-30 0.122923 3.144208   78.144600
+      2018-06-25..2024-04-30  old both 1460 2018-06-25 2024-04-30 0.122923 3.144208   78.144600
+      2018-06-25..2024-04-30  new  own 1460 2018-06-25 2024-04-30 0.119427 3.260317   77.337529
+      2018-06-25..2024-04-30  new both 1460 2018-06-25 2024-04-30 0.119427 3.260317   77.337529
+T_oos 2020-01-03..2024-04-30  old  own 1082 2020-01-03 2024-04-30 0.103259 4.152582   78.211131
+T_oos 2020-01-03..2024-04-30  old both 1082 2020-01-03 2024-04-30 0.103259 4.152582   78.211131
+T_oos 2020-01-03..2024-04-30  new  own 1082 2020-01-03 2024-04-30 0.102505 4.308961   77.390603
+T_oos 2020-01-03..2024-04-30  new both 1082 2020-01-03 2024-04-30 0.102505 4.308961   77.390603
+      2014-01-02..2024-04-30  old  own 1460 2018-06-25 2024-04-30 0.122923 3.144208   78.144600
+      2014-01-02..2024-04-30  old both 1460 2018-06-25 2024-04-30 0.122923 3.144208   78.144600
+      2014-01-02..2024-04-30  new  own 2579 2014-01-02 2024-04-30 0.116246 2.000827   77.040770
+      2014-01-02..2024-04-30  new both 1460 2018-06-25 2024-04-30 0.119427 3.260317   77.337529
+      2014-01-02..2019-12-31  old  own  377 2018-06-25 2019-12-31 0.179671 0.258486   74.519175
+      2014-01-02..2019-12-31  old both  377 2018-06-25 2019-12-31 0.179671 0.258486   74.519175
+      2014-01-02..2019-12-31  new  own 1496 2014-01-02 2019-12-31 0.126260 0.332779   73.140419
+      2014-01-02..2019-12-31  new both  377 2018-06-25 2019-12-31 0.168304 0.259327   74.436257
+   T_oos common span (1,082)  old  own 1082 2020-01-03 2024-04-30 0.103259 4.152582   78.211131
+   T_oos common span (1,082)  old both 1082 2020-01-03 2024-04-30 0.103259 4.152582   78.211131
+   T_oos common span (1,082)  new  own 1082 2020-01-03 2024-04-30 0.102505 4.308961   77.390603
+   T_oos common span (1,082)  new both 1082 2020-01-03 2024-04-30 0.102505 4.308961   77.390603
+             master 866 days  old  own  866 2020-01-03 2024-04-30 0.096678 3.814314   77.695406
+             master 866 days  old both  866 2020-01-03 2024-04-30 0.096678 3.814314   77.695406
+             master 866 days  new  own  866 2020-01-03 2024-04-30 0.096680 3.999179   76.614391
+             master 866 days  new both  866 2020-01-03 2024-04-30 0.096680 3.999179   76.614391
+                        span    n  dm_qlike  dm_qlike_p  dm_qlike_mean_diff    dm_se  dm_se_p  dm_T  dm_hac_lag
+      2018-06-25..2024-04-30 1460 -2.003066    0.045170           -0.003497 1.594063 0.110922  1460           7
+T_oos 2020-01-03..2024-04-30 1082 -0.864040    0.387566           -0.000755 1.616957 0.105888  1082           6
+      2014-01-02..2024-04-30 1460 -2.003066    0.045170           -0.003497 1.594063 0.110922  1460           7
+      2014-01-02..2019-12-31  377 -1.828541    0.067468           -0.011367 0.119543 0.904845   377           5
+   T_oos common span (1,082) 1082 -0.864040    0.387566           -0.000755 1.616957 0.105888  1082           6
+             master 866 days  866  0.004938    0.996060            0.000003 1.542612 0.122925   866           6
+                            key   old_pct    old_dm    old_p   new_pct    new_dm    new_p
+           subpt_ridge_baseline -0.000378 -0.960611 0.336748  0.735752  0.863664 0.387773
+       subpt_ridge_all_features -0.145513 -0.037842 0.969814  0.589549  0.146539 0.883496
+        poolpt13_ridge_baseline 10.076840  2.613140 0.008971 10.887152  2.843690 0.004459
+    poolpt13_ridge_all_features 22.020940  3.612976 0.000303 22.919176  3.634470 0.000279
+           subpt_lasso_baseline -0.001396 -2.598015 0.009376  0.734727  0.862418 0.388458
+       subpt_lasso_all_features -3.961980 -1.910571 0.056060 -3.255013 -1.443918 0.148762
+        poolpt13_lasso_baseline 10.076833  2.613138 0.008972 10.887145  2.843689 0.004459
+    poolpt13_lasso_all_features 25.965318  3.655453 0.000257 26.892590  3.678867 0.000234
+            subpt_enet_baseline -0.000736 -2.460697 0.013867  0.735392  0.863191 0.388032
+        subpt_enet_all_features -1.790013 -0.554355 0.579336 -1.067058 -0.319521 0.749332
+         poolpt13_enet_baseline 10.076802  2.613132 0.008972 10.887113  2.843683 0.004460
+     poolpt13_enet_all_features 19.464090  3.337263 0.000846 20.343504  3.355759 0.000791
+    subtree_daily_baseline_lgbm  5.916933  2.701335 0.006906  6.696622  3.033717 0.002416
+subtree_daily_all_features_lgbm  1.545317  0.511277 0.609157  2.292825  0.718527 0.472432
+         pooltree_lgbm_baseline  6.645731  2.157822 0.030942  7.430785  2.602408 0.009257
+     pooltree_lgbm_all_features  5.490242  1.344809 0.178687  6.266791  1.486292 0.137202
+     subtree_daily_baseline_xgb  4.185279  2.089737 0.036641  4.952221  2.452602 0.014183
+ subtree_daily_all_features_xgb -0.116138 -0.041974 0.966519  0.619140  0.212838 0.831453
+          pooltree_xgb_baseline  6.680723  2.233267 0.025531  7.466034  2.702258 0.006887
+      pooltree_xgb_all_features  4.476907  1.138561 0.254886  5.245996  1.296290 0.194875
+      subtree_daily_baseline_rf  3.466098  1.700086 0.089115  4.227746  2.281928 0.022494
+  subtree_daily_all_features_rf  2.630342  0.862144 0.388608  3.385838  1.110850 0.266633
+           pooltree_rf_baseline  9.577704  2.777154 0.005484 10.384342  3.119087 0.001814
+       pooltree_rf_all_features  8.800619  2.058686 0.039524  9.601536  2.131170 0.033075
+                                   0          1
+which                            old        new
+rhrVsBmPoolLinFullPctMin    19.46409  20.343504
+rhrVsBmPoolLinFullPctMax   25.965318   26.89259
+rhrVsBmPoolTreeFullPctMin   4.476907   5.245996
+rhrVsBmPoolTreeFullPctMax   8.800619   9.601536
+rhrVsBmPoolHarPctMin        6.645731   7.430785
+rhrVsBmPoolHarPctMax        10.07684  10.887152
+rhrVsBmPoolLinFullSig              3          3
+rhrVsBmPoolTreeFullSig             1          1
+rhrVsBmPoolHarSig                  6          6
+rhrVsBmPoolHarSigOne               4          6
+rhrVsBmPoolNarrow                  3          3
+full_dm_min                 1.138561    1.29629
+full_dm_max                 3.655453   3.678867
+har_dm_min                  2.157822   2.602408
+har_dm_max                  2.777154   3.119087
+rhrVsBmRfPoolFullPval       0.039524   0.033075
+                       0         1
+which                old       new
+sh_mid          1.471951  0.985078
+sh_x            1.116458  0.627164
+mean_mid_pct   11.622246  8.341922
+mean_x_pct      9.005152  5.726511
+dsh_short       1.588657  1.101784
+p_short         0.047409  0.195439
+dsh_short_x     1.575867  1.086574
+p_short_x       0.045809  0.195639
+t_short         1.746808  1.139278
+sh_d1           1.564595  1.203616
+sh_d2           1.635459  1.170845
+be_mean         4.284906  3.128516
+be_sh           4.015355  2.712696
+long_days_614        184       198
+long_days_866        242       268
+sr_2021         1.043289  0.121127
+sr_2022         2.098641  1.672135
+sr_2023         1.638849  1.325697
+sr_2024         1.107023  0.821352
+{
+ "early_close_rows": {
+  "old": 9,
+  "new": 0
+ },
+ "b_days": {
+  "n_days_old_B_ne_pool": 174,
+  "n_common_old_pool": 1460,
+  "of_those_new_B_eq_pool": 174,
+  "max_abs_rel_new_vs_pool_on_those": 5.551115123125783e-16,
+  "n_days_new_B_ne_pool_all": 0,
+  "n_common_new_pool": 2582,
+  "max_abs_rel_new_vs_pool_all": 9.603429163007604e-13,
+  "qlike_old_on_174": 0.18141937253509371,
+  "qlike_new_on_174": 0.16315619329247386,
+  "n_174_in_T_oos": 113,
+  "qlike_old_on_174_T_oos": 0.13635286614830586,
+  "qlike_new_on_174_T_oos": 0.12852313779324218
+ },
+ "strategy": {
+  "old": {
+   "FullVsCiHarMin": 0.19449582343187766,
+   "FullVsCiHarMed": 0.32513930934555013,
+   "FullVsCiHarMax": 0.4845029989208123,
+   "FullVsCiHarPMin": 0.34386877375475094,
+   "FullVsCiHarPMax": 0.6917383476695339,
+   "FullVsCiHarPos": 6,
+   "FullVsCiHarSig": 0,
+   "FullVsCiHarPosX": 6,
+   "FullVsCiHarSigX": 0,
+   "HarVsCiHarNeg": 4,
+   "HarVsCiHarSig": 2,
+   "claim_every_full_above_ci": true,
+   "claim_no_full_minus_ci_significant": true,
+   "claim_all_four_har_below_ci": true,
+   "q_changed_days_866": 0,
+   "q_changed_days_614": 0
+  },
+  "new": {
+   "FullVsCiHarMin": 0.6813689221569197,
+   "FullVsCiHarMed": 0.8120124080705922,
+   "FullVsCiHarMax": 0.9713760976458543,
+   "FullVsCiHarPMin": 0.10682136427285457,
+   "FullVsCiHarPMax": 0.22104420884176834,
+   "FullVsCiHarPos": 6,
+   "FullVsCiHarSig": 0,
+   "FullVsCiHarPosX": 6,
+   "FullVsCiHarSigX": 0,
+   "HarVsCiHarNeg": 4,
+   "HarVsCiHarSig": 0,
+   "claim_every_full_above_ci": true,
+   "claim_no_full_minus_ci_significant": true,
+   "claim_all_four_har_below_ci": true,
+   "q_changed_days_866": 32,
+   "q_changed_days_614": 18
+  }
+ }
+}
+all 52 gates pass
