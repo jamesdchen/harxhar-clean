@@ -1108,6 +1108,450 @@
 \newcommand{\rhabXgbHarCloseMse}{1.73}  % MSE x 1e10 xgb har c16
 \newcommand{\rhabXgbHarCloseLateQlike}{0.1102}  % QLIKE xgb har c16_2020
 \newcommand{\rhabXgbHarCloseLateMse}{3.62}  % MSE x 1e10 xgb har c16_2020
+\newcommand{\rhabRidgeFullLiveSentQlike}{0.1833}  % QLIKE ridge full live_sent (subsample)
+\newcommand{\rhabRidgeFullLiveSentPct}{$-$1.9}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabRidgeFullLiveSentDm}{$-$0.98}  % DM vs the reference arm (subsample)
+\newcommand{\rhabRidgeFullLiveSentP}{0.327}  % p-value
+\newcommand{\rhabRidgeLoSentLiveSentQlike}{0.1842}  % QLIKE ridge lo_sent live_sent (subsample)
+\newcommand{\rhabRidgeLoSentLiveSentPct}{0.5}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabRidgeLoSentLiveSentDm}{0.71}  % DM vs the reference arm (subsample)
+\newcommand{\rhabRidgeLoSentLiveSentP}{0.477}  % p-value
+\newcommand{\rhabRidgeAddSentLiveSentQlike}{0.1846}  % QLIKE ridge add_sent live_sent (subsample)
+\newcommand{\rhabRidgeAddSentLiveSentPct}{$-$1.2}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabRidgeAddSentLiveSentDm}{$-$1.18}  % DM vs the reference arm (subsample)
+\newcommand{\rhabRidgeAddSentLiveSentP}{0.238}  % p-value
+\newcommand{\rhabRidgeHarLiveSentQlike}{0.1868}  % QLIKE ridge har live_sent (subsample)
+\newcommand{\rhabLassoFullLiveSentQlike}{0.1780}  % QLIKE lasso full live_sent (subsample)
+\newcommand{\rhabLassoFullLiveSentPct}{$-$4.7}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabLassoFullLiveSentDm}{$-$1.83}  % DM vs the reference arm (subsample)
+\newcommand{\rhabLassoFullLiveSentP}{0.068}  % p-value
+\newcommand{\rhabLassoLoSentLiveSentQlike}{0.1786}  % QLIKE lasso lo_sent live_sent (subsample)
+\newcommand{\rhabLassoLoSentLiveSentPct}{0.3}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabLassoLoSentLiveSentDm}{0.41}  % DM vs the reference arm (subsample)
+\newcommand{\rhabLassoLoSentLiveSentP}{0.685}  % p-value
+\newcommand{\rhabLassoAddSentLiveSentQlike}{0.1850}  % QLIKE lasso add_sent live_sent (subsample)
+\newcommand{\rhabLassoAddSentLiveSentPct}{$-$1.0}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabLassoAddSentLiveSentDm}{$-$0.96}  % DM vs the reference arm (subsample)
+\newcommand{\rhabLassoAddSentLiveSentP}{0.339}  % p-value
+\newcommand{\rhabLassoHarLiveSentQlike}{0.1868}  % QLIKE lasso har live_sent (subsample)
+\newcommand{\rhabEnetFullLiveSentQlike}{0.1818}  % QLIKE enet full live_sent (subsample)
+\newcommand{\rhabEnetFullLiveSentPct}{$-$2.7}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabEnetFullLiveSentDm}{$-$1.55}  % DM vs the reference arm (subsample)
+\newcommand{\rhabEnetFullLiveSentP}{0.121}  % p-value
+\newcommand{\rhabEnetLoSentLiveSentQlike}{0.1833}  % QLIKE enet lo_sent live_sent (subsample)
+\newcommand{\rhabEnetLoSentLiveSentPct}{0.8}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabEnetLoSentLiveSentDm}{1.43}  % DM vs the reference arm (subsample)
+\newcommand{\rhabEnetLoSentLiveSentP}{0.154}  % p-value
+\newcommand{\rhabEnetAddSentLiveSentQlike}{0.1845}  % QLIKE enet add_sent live_sent (subsample)
+\newcommand{\rhabEnetAddSentLiveSentPct}{$-$1.3}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabEnetAddSentLiveSentDm}{$-$1.48}  % DM vs the reference arm (subsample)
+\newcommand{\rhabEnetAddSentLiveSentP}{0.139}  % p-value
+\newcommand{\rhabEnetHarLiveSentQlike}{0.1868}  % QLIKE enet har live_sent (subsample)
+\newcommand{\rhabLgbmFullLiveSentQlike}{0.1564}  % QLIKE lgbm full live_sent (subsample)
+\newcommand{\rhabLgbmFullLiveSentPct}{$-$13.8}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabLgbmFullLiveSentDm}{$-$3.76}  % DM vs the reference arm (subsample)
+\newcommand{\rhabLgbmFullLiveSentP}{\ensuremath{<}0.001}  % p-value
+\newcommand{\rhabLgbmHarLiveSentQlike}{0.1814}  % QLIKE lgbm har live_sent (subsample)
+\newcommand{\rhabXgbFullLiveSentQlike}{0.1559}  % QLIKE xgb full live_sent (subsample)
+\newcommand{\rhabXgbFullLiveSentPct}{$-$15.6}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabXgbFullLiveSentDm}{$-$3.69}  % DM vs the reference arm (subsample)
+\newcommand{\rhabXgbFullLiveSentP}{\ensuremath{<}0.001}  % p-value
+\newcommand{\rhabXgbHarLiveSentQlike}{0.1846}  % QLIKE xgb har live_sent (subsample)
+\newcommand{\rhabRfFullLiveSentQlike}{0.1676}  % QLIKE rf full live_sent (subsample)
+\newcommand{\rhabRfFullLiveSentPct}{$-$10.8}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabRfFullLiveSentDm}{$-$4.09}  % DM vs the reference arm (subsample)
+\newcommand{\rhabRfFullLiveSentP}{\ensuremath{<}0.001}  % p-value
+\newcommand{\rhabRfHarLiveSentQlike}{0.1878}  % QLIKE rf har live_sent (subsample)
+\newcommand{\rhabRidgeFullLiveSentCloseQlike}{0.1222}  % QLIKE ridge full live16_sent (subsample)
+\newcommand{\rhabRidgeFullLiveSentClosePct}{12.8}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabRidgeFullLiveSentCloseDm}{2.03}  % DM vs the reference arm (subsample)
+\newcommand{\rhabRidgeFullLiveSentCloseP}{0.042}  % p-value
+\newcommand{\rhabRidgeLoSentLiveSentCloseQlike}{0.1141}  % QLIKE ridge lo_sent live16_sent (subsample)
+\newcommand{\rhabRidgeLoSentLiveSentClosePct}{$-$6.6}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabRidgeLoSentLiveSentCloseDm}{$-$3.48}  % DM vs the reference arm (subsample)
+\newcommand{\rhabRidgeLoSentLiveSentCloseP}{\ensuremath{<}0.001}  % p-value
+\newcommand{\rhabRidgeAddSentLiveSentCloseQlike}{0.1188}  % QLIKE ridge add_sent live16_sent (subsample)
+\newcommand{\rhabRidgeAddSentLiveSentClosePct}{9.7}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabRidgeAddSentLiveSentCloseDm}{2.63}  % DM vs the reference arm (subsample)
+\newcommand{\rhabRidgeAddSentLiveSentCloseP}{0.009}  % p-value
+\newcommand{\rhabRidgeHarLiveSentCloseQlike}{0.1083}  % QLIKE ridge har live16_sent (subsample)
+\newcommand{\rhabLassoFullLiveSentCloseQlike}{0.1234}  % QLIKE lasso full live16_sent (subsample)
+\newcommand{\rhabLassoFullLiveSentClosePct}{13.9}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabLassoFullLiveSentCloseDm}{2.17}  % DM vs the reference arm (subsample)
+\newcommand{\rhabLassoFullLiveSentCloseP}{0.030}  % p-value
+\newcommand{\rhabLassoLoSentLiveSentCloseQlike}{0.1155}  % QLIKE lasso lo_sent live16_sent (subsample)
+\newcommand{\rhabLassoLoSentLiveSentClosePct}{$-$6.3}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabLassoLoSentLiveSentCloseDm}{$-$2.92}  % DM vs the reference arm (subsample)
+\newcommand{\rhabLassoLoSentLiveSentCloseP}{0.003}  % p-value
+\newcommand{\rhabLassoAddSentLiveSentCloseQlike}{0.1195}  % QLIKE lasso add_sent live16_sent (subsample)
+\newcommand{\rhabLassoAddSentLiveSentClosePct}{10.3}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabLassoAddSentLiveSentCloseDm}{2.76}  % DM vs the reference arm (subsample)
+\newcommand{\rhabLassoAddSentLiveSentCloseP}{0.006}  % p-value
+\newcommand{\rhabLassoHarLiveSentCloseQlike}{0.1083}  % QLIKE lasso har live16_sent (subsample)
+\newcommand{\rhabEnetFullLiveSentCloseQlike}{0.1171}  % QLIKE enet full live16_sent (subsample)
+\newcommand{\rhabEnetFullLiveSentClosePct}{8.1}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabEnetFullLiveSentCloseDm}{1.35}  % DM vs the reference arm (subsample)
+\newcommand{\rhabEnetFullLiveSentCloseP}{0.176}  % p-value
+\newcommand{\rhabEnetLoSentLiveSentCloseQlike}{0.1134}  % QLIKE enet lo_sent live16_sent (subsample)
+\newcommand{\rhabEnetLoSentLiveSentClosePct}{$-$3.2}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabEnetLoSentLiveSentCloseDm}{$-$2.23}  % DM vs the reference arm (subsample)
+\newcommand{\rhabEnetLoSentLiveSentCloseP}{0.026}  % p-value
+\newcommand{\rhabEnetAddSentLiveSentCloseQlike}{0.1156}  % QLIKE enet add_sent live16_sent (subsample)
+\newcommand{\rhabEnetAddSentLiveSentClosePct}{6.7}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabEnetAddSentLiveSentCloseDm}{1.91}  % DM vs the reference arm (subsample)
+\newcommand{\rhabEnetAddSentLiveSentCloseP}{0.056}  % p-value
+\newcommand{\rhabEnetHarLiveSentCloseQlike}{0.1083}  % QLIKE enet har live16_sent (subsample)
+\newcommand{\rhabLgbmFullLiveSentCloseQlike}{0.0995}  % QLIKE lgbm full live16_sent (subsample)
+\newcommand{\rhabLgbmFullLiveSentClosePct}{$-$2.5}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabLgbmFullLiveSentCloseDm}{$-$0.57}  % DM vs the reference arm (subsample)
+\newcommand{\rhabLgbmFullLiveSentCloseP}{0.565}  % p-value
+\newcommand{\rhabLgbmHarLiveSentCloseQlike}{0.1021}  % QLIKE lgbm har live16_sent (subsample)
+\newcommand{\rhabXgbFullLiveSentCloseQlike}{0.0997}  % QLIKE xgb full live16_sent (subsample)
+\newcommand{\rhabXgbFullLiveSentClosePct}{$-$2.8}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabXgbFullLiveSentCloseDm}{$-$0.61}  % DM vs the reference arm (subsample)
+\newcommand{\rhabXgbFullLiveSentCloseP}{0.541}  % p-value
+\newcommand{\rhabXgbHarLiveSentCloseQlike}{0.1025}  % QLIKE xgb har live16_sent (subsample)
+\newcommand{\rhabRfFullLiveSentCloseQlike}{0.1026}  % QLIKE rf full live16_sent (subsample)
+\newcommand{\rhabRfFullLiveSentClosePct}{$-$2.6}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabRfFullLiveSentCloseDm}{$-$0.65}  % DM vs the reference arm (subsample)
+\newcommand{\rhabRfFullLiveSentCloseP}{0.513}  % p-value
+\newcommand{\rhabRfHarLiveSentCloseQlike}{0.1053}  % QLIKE rf har live16_sent (subsample)
+\newcommand{\rhabRidgeFullLiveIvQlike}{0.1940}  % QLIKE ridge full live_iv (subsample)
+\newcommand{\rhabRidgeFullLiveIvPct}{$-$4.7}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabRidgeFullLiveIvDm}{$-$3.62}  % DM vs the reference arm (subsample)
+\newcommand{\rhabRidgeFullLiveIvP}{\ensuremath{<}0.001}  % p-value
+\newcommand{\rhabRidgeLoIvLiveIvQlike}{0.1942}  % QLIKE ridge lo_iv live_iv (subsample)
+\newcommand{\rhabRidgeLoIvLiveIvPct}{0.1}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabRidgeLoIvLiveIvDm}{0.25}  % DM vs the reference arm (subsample)
+\newcommand{\rhabRidgeLoIvLiveIvP}{0.806}  % p-value
+\newcommand{\rhabRidgeAddIvLiveIvQlike}{0.2037}  % QLIKE ridge add_iv live_iv (subsample)
+\newcommand{\rhabRidgeAddIvLiveIvPct}{0.0}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabRidgeAddIvLiveIvDm}{0.02}  % DM vs the reference arm (subsample)
+\newcommand{\rhabRidgeAddIvLiveIvP}{0.986}  % p-value
+\newcommand{\rhabRidgeHarLiveIvQlike}{0.2037}  % QLIKE ridge har live_iv (subsample)
+\newcommand{\rhabLassoFullLiveIvQlike}{0.1924}  % QLIKE lasso full live_iv (subsample)
+\newcommand{\rhabLassoFullLiveIvPct}{$-$5.5}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabLassoFullLiveIvDm}{$-$2.98}  % DM vs the reference arm (subsample)
+\newcommand{\rhabLassoFullLiveIvP}{0.003}  % p-value
+\newcommand{\rhabLassoLoIvLiveIvQlike}{0.1931}  % QLIKE lasso lo_iv live_iv (subsample)
+\newcommand{\rhabLassoLoIvLiveIvPct}{0.4}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabLassoLoIvLiveIvDm}{0.47}  % DM vs the reference arm (subsample)
+\newcommand{\rhabLassoLoIvLiveIvP}{0.641}  % p-value
+\newcommand{\rhabLassoAddIvLiveIvQlike}{0.2019}  % QLIKE lasso add_iv live_iv (subsample)
+\newcommand{\rhabLassoAddIvLiveIvPct}{$-$0.9}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabLassoAddIvLiveIvDm}{$-$1.39}  % DM vs the reference arm (subsample)
+\newcommand{\rhabLassoAddIvLiveIvP}{0.165}  % p-value
+\newcommand{\rhabLassoHarLiveIvQlike}{0.2037}  % QLIKE lasso har live_iv (subsample)
+\newcommand{\rhabEnetFullLiveIvQlike}{0.1921}  % QLIKE enet full live_iv (subsample)
+\newcommand{\rhabEnetFullLiveIvPct}{$-$5.7}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabEnetFullLiveIvDm}{$-$4.87}  % DM vs the reference arm (subsample)
+\newcommand{\rhabEnetFullLiveIvP}{\ensuremath{<}0.001}  % p-value
+\newcommand{\rhabEnetLoIvLiveIvQlike}{0.1924}  % QLIKE enet lo_iv live_iv (subsample)
+\newcommand{\rhabEnetLoIvLiveIvPct}{0.1}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabEnetLoIvLiveIvDm}{0.23}  % DM vs the reference arm (subsample)
+\newcommand{\rhabEnetLoIvLiveIvP}{0.816}  % p-value
+\newcommand{\rhabEnetAddIvLiveIvQlike}{0.2033}  % QLIKE enet add_iv live_iv (subsample)
+\newcommand{\rhabEnetAddIvLiveIvPct}{$-$0.2}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabEnetAddIvLiveIvDm}{$-$0.36}  % DM vs the reference arm (subsample)
+\newcommand{\rhabEnetAddIvLiveIvP}{0.722}  % p-value
+\newcommand{\rhabEnetHarLiveIvQlike}{0.2037}  % QLIKE enet har live_iv (subsample)
+\newcommand{\rhabLgbmFullLiveIvQlike}{0.1739}  % QLIKE lgbm full live_iv (subsample)
+\newcommand{\rhabLgbmFullLiveIvPct}{$-$13.3}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabLgbmFullLiveIvDm}{$-$7.31}  % DM vs the reference arm (subsample)
+\newcommand{\rhabLgbmFullLiveIvP}{\ensuremath{<}0.001}  % p-value
+\newcommand{\rhabLgbmHarLiveIvQlike}{0.2006}  % QLIKE lgbm har live_iv (subsample)
+\newcommand{\rhabXgbFullLiveIvQlike}{0.1739}  % QLIKE xgb full live_iv (subsample)
+\newcommand{\rhabXgbFullLiveIvPct}{$-$14.1}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabXgbFullLiveIvDm}{$-$7.16}  % DM vs the reference arm (subsample)
+\newcommand{\rhabXgbFullLiveIvP}{\ensuremath{<}0.001}  % p-value
+\newcommand{\rhabXgbHarLiveIvQlike}{0.2024}  % QLIKE xgb har live_iv (subsample)
+\newcommand{\rhabRfFullLiveIvQlike}{0.1818}  % QLIKE rf full live_iv (subsample)
+\newcommand{\rhabRfFullLiveIvPct}{$-$10.4}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabRfFullLiveIvDm}{$-$7.47}  % DM vs the reference arm (subsample)
+\newcommand{\rhabRfFullLiveIvP}{\ensuremath{<}0.001}  % p-value
+\newcommand{\rhabRfHarLiveIvQlike}{0.2029}  % QLIKE rf har live_iv (subsample)
+\newcommand{\rhabRidgeFullLiveIvCloseQlike}{0.1380}  % QLIKE ridge full live16_iv (subsample)
+\newcommand{\rhabRidgeFullLiveIvClosePct}{6.0}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabRidgeFullLiveIvCloseDm}{1.50}  % DM vs the reference arm (subsample)
+\newcommand{\rhabRidgeFullLiveIvCloseP}{0.134}  % p-value
+\newcommand{\rhabRidgeLoIvLiveIvCloseQlike}{0.1355}  % QLIKE ridge lo_iv live16_iv (subsample)
+\newcommand{\rhabRidgeLoIvLiveIvClosePct}{$-$1.8}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabRidgeLoIvLiveIvCloseDm}{$-$1.22}  % DM vs the reference arm (subsample)
+\newcommand{\rhabRidgeLoIvLiveIvCloseP}{0.222}  % p-value
+\newcommand{\rhabRidgeAddIvLiveIvCloseQlike}{0.1306}  % QLIKE ridge add_iv live16_iv (subsample)
+\newcommand{\rhabRidgeAddIvLiveIvClosePct}{0.3}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabRidgeAddIvLiveIvCloseDm}{0.19}  % DM vs the reference arm (subsample)
+\newcommand{\rhabRidgeAddIvLiveIvCloseP}{0.853}  % p-value
+\newcommand{\rhabRidgeHarLiveIvCloseQlike}{0.1302}  % QLIKE ridge har live16_iv (subsample)
+\newcommand{\rhabLassoFullLiveIvCloseQlike}{0.1425}  % QLIKE lasso full live16_iv (subsample)
+\newcommand{\rhabLassoFullLiveIvClosePct}{9.4}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabLassoFullLiveIvCloseDm}{1.93}  % DM vs the reference arm (subsample)
+\newcommand{\rhabLassoFullLiveIvCloseP}{0.054}  % p-value
+\newcommand{\rhabLassoLoIvLiveIvCloseQlike}{0.1378}  % QLIKE lasso lo_iv live16_iv (subsample)
+\newcommand{\rhabLassoLoIvLiveIvClosePct}{$-$3.3}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabLassoLoIvLiveIvCloseDm}{$-$1.78}  % DM vs the reference arm (subsample)
+\newcommand{\rhabLassoLoIvLiveIvCloseP}{0.075}  % p-value
+\newcommand{\rhabLassoAddIvLiveIvCloseQlike}{0.1300}  % QLIKE lasso add_iv live16_iv (subsample)
+\newcommand{\rhabLassoAddIvLiveIvClosePct}{$-$0.1}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabLassoAddIvLiveIvCloseDm}{$-$0.08}  % DM vs the reference arm (subsample)
+\newcommand{\rhabLassoAddIvLiveIvCloseP}{0.940}  % p-value
+\newcommand{\rhabLassoHarLiveIvCloseQlike}{0.1302}  % QLIKE lasso har live16_iv (subsample)
+\newcommand{\rhabEnetFullLiveIvCloseQlike}{0.1355}  % QLIKE enet full live16_iv (subsample)
+\newcommand{\rhabEnetFullLiveIvClosePct}{4.1}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabEnetFullLiveIvCloseDm}{1.12}  % DM vs the reference arm (subsample)
+\newcommand{\rhabEnetFullLiveIvCloseP}{0.262}  % p-value
+\newcommand{\rhabEnetLoIvLiveIvCloseQlike}{0.1321}  % QLIKE enet lo_iv live16_iv (subsample)
+\newcommand{\rhabEnetLoIvLiveIvClosePct}{$-$2.5}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabEnetLoIvLiveIvCloseDm}{$-$1.58}  % DM vs the reference arm (subsample)
+\newcommand{\rhabEnetLoIvLiveIvCloseP}{0.115}  % p-value
+\newcommand{\rhabEnetAddIvLiveIvCloseQlike}{0.1308}  % QLIKE enet add_iv live16_iv (subsample)
+\newcommand{\rhabEnetAddIvLiveIvClosePct}{0.5}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabEnetAddIvLiveIvCloseDm}{0.31}  % DM vs the reference arm (subsample)
+\newcommand{\rhabEnetAddIvLiveIvCloseP}{0.756}  % p-value
+\newcommand{\rhabEnetHarLiveIvCloseQlike}{0.1302}  % QLIKE enet har live16_iv (subsample)
+\newcommand{\rhabLgbmFullLiveIvCloseQlike}{0.1242}  % QLIKE lgbm full live16_iv (subsample)
+\newcommand{\rhabLgbmFullLiveIvClosePct}{$-$1.6}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabLgbmFullLiveIvCloseDm}{$-$0.74}  % DM vs the reference arm (subsample)
+\newcommand{\rhabLgbmFullLiveIvCloseP}{0.461}  % p-value
+\newcommand{\rhabLgbmHarLiveIvCloseQlike}{0.1263}  % QLIKE lgbm har live16_iv (subsample)
+\newcommand{\rhabXgbFullLiveIvCloseQlike}{0.1234}  % QLIKE xgb full live16_iv (subsample)
+\newcommand{\rhabXgbFullLiveIvClosePct}{$-$2.3}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabXgbFullLiveIvCloseDm}{$-$1.01}  % DM vs the reference arm (subsample)
+\newcommand{\rhabXgbFullLiveIvCloseP}{0.312}  % p-value
+\newcommand{\rhabXgbHarLiveIvCloseQlike}{0.1263}  % QLIKE xgb har live16_iv (subsample)
+\newcommand{\rhabRfFullLiveIvCloseQlike}{0.1304}  % QLIKE rf full live16_iv (subsample)
+\newcommand{\rhabRfFullLiveIvClosePct}{$-$0.4}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabRfFullLiveIvCloseDm}{$-$0.16}  % DM vs the reference arm (subsample)
+\newcommand{\rhabRfFullLiveIvCloseP}{0.870}  % p-value
+\newcommand{\rhabRfHarLiveIvCloseQlike}{0.1309}  % QLIKE rf har live16_iv (subsample)
+\newcommand{\rhabRidgeFullLiveIvbQlike}{0.1757}  % QLIKE ridge full live_ivb (subsample)
+\newcommand{\rhabRidgeFullLiveIvbPct}{$-$3.6}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabRidgeFullLiveIvbDm}{$-$2.12}  % DM vs the reference arm (subsample)
+\newcommand{\rhabRidgeFullLiveIvbP}{0.034}  % p-value
+\newcommand{\rhabRidgeLoIvLiveIvbQlike}{0.1746}  % QLIKE ridge lo_iv live_ivb (subsample)
+\newcommand{\rhabRidgeLoIvLiveIvbPct}{$-$0.6}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabRidgeLoIvLiveIvbDm}{$-$0.79}  % DM vs the reference arm (subsample)
+\newcommand{\rhabRidgeLoIvLiveIvbP}{0.431}  % p-value
+\newcommand{\rhabRidgeAddIvLiveIvbQlike}{0.1850}  % QLIKE ridge add_iv live_ivb (subsample)
+\newcommand{\rhabRidgeAddIvLiveIvbPct}{1.4}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabRidgeAddIvLiveIvbDm}{1.50}  % DM vs the reference arm (subsample)
+\newcommand{\rhabRidgeAddIvLiveIvbP}{0.134}  % p-value
+\newcommand{\rhabRidgeHarLiveIvbQlike}{0.1824}  % QLIKE ridge har live_ivb (subsample)
+\newcommand{\rhabLassoFullLiveIvbQlike}{0.1718}  % QLIKE lasso full live_ivb (subsample)
+\newcommand{\rhabLassoFullLiveIvbPct}{$-$5.8}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabLassoFullLiveIvbDm}{$-$2.58}  % DM vs the reference arm (subsample)
+\newcommand{\rhabLassoFullLiveIvbP}{0.010}  % p-value
+\newcommand{\rhabLassoLoIvLiveIvbQlike}{0.1700}  % QLIKE lasso lo_iv live_ivb (subsample)
+\newcommand{\rhabLassoLoIvLiveIvbPct}{$-$1.0}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabLassoLoIvLiveIvbDm}{$-$0.96}  % DM vs the reference arm (subsample)
+\newcommand{\rhabLassoLoIvLiveIvbP}{0.339}  % p-value
+\newcommand{\rhabLassoAddIvLiveIvbQlike}{0.1844}  % QLIKE lasso add_iv live_ivb (subsample)
+\newcommand{\rhabLassoAddIvLiveIvbPct}{1.1}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabLassoAddIvLiveIvbDm}{1.04}  % DM vs the reference arm (subsample)
+\newcommand{\rhabLassoAddIvLiveIvbP}{0.300}  % p-value
+\newcommand{\rhabLassoHarLiveIvbQlike}{0.1824}  % QLIKE lasso har live_ivb (subsample)
+\newcommand{\rhabEnetFullLiveIvbQlike}{0.1745}  % QLIKE enet full live_ivb (subsample)
+\newcommand{\rhabEnetFullLiveIvbPct}{$-$4.3}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabEnetFullLiveIvbDm}{$-$2.67}  % DM vs the reference arm (subsample)
+\newcommand{\rhabEnetFullLiveIvbP}{0.008}  % p-value
+\newcommand{\rhabEnetLoIvLiveIvbQlike}{0.1732}  % QLIKE enet lo_iv live_ivb (subsample)
+\newcommand{\rhabEnetLoIvLiveIvbPct}{$-$0.7}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabEnetLoIvLiveIvbDm}{$-$0.88}  % DM vs the reference arm (subsample)
+\newcommand{\rhabEnetLoIvLiveIvbP}{0.377}  % p-value
+\newcommand{\rhabEnetAddIvLiveIvbQlike}{0.1844}  % QLIKE enet add_iv live_ivb (subsample)
+\newcommand{\rhabEnetAddIvLiveIvbPct}{1.1}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabEnetAddIvLiveIvbDm}{1.30}  % DM vs the reference arm (subsample)
+\newcommand{\rhabEnetAddIvLiveIvbP}{0.195}  % p-value
+\newcommand{\rhabEnetHarLiveIvbQlike}{0.1824}  % QLIKE enet har live_ivb (subsample)
+\newcommand{\rhabLgbmFullLiveIvbQlike}{0.1518}  % QLIKE lgbm full live_ivb (subsample)
+\newcommand{\rhabLgbmFullLiveIvbPct}{$-$14.6}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabLgbmFullLiveIvbDm}{$-$5.14}  % DM vs the reference arm (subsample)
+\newcommand{\rhabLgbmFullLiveIvbP}{\ensuremath{<}0.001}  % p-value
+\newcommand{\rhabLgbmHarLiveIvbQlike}{0.1778}  % QLIKE lgbm har live_ivb (subsample)
+\newcommand{\rhabXgbFullLiveIvbQlike}{0.1511}  % QLIKE xgb full live_ivb (subsample)
+\newcommand{\rhabXgbFullLiveIvbPct}{$-$16.3}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabXgbFullLiveIvbDm}{$-$4.98}  % DM vs the reference arm (subsample)
+\newcommand{\rhabXgbFullLiveIvbP}{\ensuremath{<}0.001}  % p-value
+\newcommand{\rhabXgbHarLiveIvbQlike}{0.1805}  % QLIKE xgb har live_ivb (subsample)
+\newcommand{\rhabRfFullLiveIvbQlike}{0.1621}  % QLIKE rf full live_ivb (subsample)
+\newcommand{\rhabRfFullLiveIvbPct}{$-$11.3}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabRfFullLiveIvbDm}{$-$5.43}  % DM vs the reference arm (subsample)
+\newcommand{\rhabRfFullLiveIvbP}{\ensuremath{<}0.001}  % p-value
+\newcommand{\rhabRfHarLiveIvbQlike}{0.1829}  % QLIKE rf har live_ivb (subsample)
+\newcommand{\rhabRidgeFullLiveIvbCloseQlike}{0.1180}  % QLIKE ridge full live16_ivb (subsample)
+\newcommand{\rhabRidgeFullLiveIvbClosePct}{15.1}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabRidgeFullLiveIvbCloseDm}{2.54}  % DM vs the reference arm (subsample)
+\newcommand{\rhabRidgeFullLiveIvbCloseP}{0.011}  % p-value
+\newcommand{\rhabRidgeLoIvLiveIvbCloseQlike}{0.1123}  % QLIKE ridge lo_iv live16_ivb (subsample)
+\newcommand{\rhabRidgeLoIvLiveIvbClosePct}{$-$4.9}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabRidgeLoIvLiveIvbCloseDm}{$-$1.73}  % DM vs the reference arm (subsample)
+\newcommand{\rhabRidgeLoIvLiveIvbCloseP}{0.083}  % p-value
+\newcommand{\rhabRidgeAddIvLiveIvbCloseQlike}{0.1073}  % QLIKE ridge add_iv live16_ivb (subsample)
+\newcommand{\rhabRidgeAddIvLiveIvbClosePct}{4.6}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabRidgeAddIvLiveIvbCloseDm}{1.47}  % DM vs the reference arm (subsample)
+\newcommand{\rhabRidgeAddIvLiveIvbCloseP}{0.142}  % p-value
+\newcommand{\rhabRidgeHarLiveIvbCloseQlike}{0.1026}  % QLIKE ridge har live16_ivb (subsample)
+\newcommand{\rhabLassoFullLiveIvbCloseQlike}{0.1202}  % QLIKE lasso full live16_ivb (subsample)
+\newcommand{\rhabLassoFullLiveIvbClosePct}{17.2}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabLassoFullLiveIvbCloseDm}{2.74}  % DM vs the reference arm (subsample)
+\newcommand{\rhabLassoFullLiveIvbCloseP}{0.006}  % p-value
+\newcommand{\rhabLassoLoIvLiveIvbCloseQlike}{0.1120}  % QLIKE lasso lo_iv live16_ivb (subsample)
+\newcommand{\rhabLassoLoIvLiveIvbClosePct}{$-$6.8}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabLassoLoIvLiveIvbCloseDm}{$-$2.01}  % DM vs the reference arm (subsample)
+\newcommand{\rhabLassoLoIvLiveIvbCloseP}{0.044}  % p-value
+\newcommand{\rhabLassoAddIvLiveIvbCloseQlike}{0.1066}  % QLIKE lasso add_iv live16_ivb (subsample)
+\newcommand{\rhabLassoAddIvLiveIvbClosePct}{3.9}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabLassoAddIvLiveIvbCloseDm}{1.22}  % DM vs the reference arm (subsample)
+\newcommand{\rhabLassoAddIvLiveIvbCloseP}{0.221}  % p-value
+\newcommand{\rhabLassoHarLiveIvbCloseQlike}{0.1026}  % QLIKE lasso har live16_ivb (subsample)
+\newcommand{\rhabEnetFullLiveIvbCloseQlike}{0.1147}  % QLIKE enet full live16_ivb (subsample)
+\newcommand{\rhabEnetFullLiveIvbClosePct}{11.8}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabEnetFullLiveIvbCloseDm}{2.03}  % DM vs the reference arm (subsample)
+\newcommand{\rhabEnetFullLiveIvbCloseP}{0.043}  % p-value
+\newcommand{\rhabEnetLoIvLiveIvbCloseQlike}{0.1073}  % QLIKE enet lo_iv live16_ivb (subsample)
+\newcommand{\rhabEnetLoIvLiveIvbClosePct}{$-$6.5}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabEnetLoIvLiveIvbCloseDm}{$-$2.14}  % DM vs the reference arm (subsample)
+\newcommand{\rhabEnetLoIvLiveIvbCloseP}{0.033}  % p-value
+\newcommand{\rhabEnetAddIvLiveIvbCloseQlike}{0.1076}  % QLIKE enet add_iv live16_ivb (subsample)
+\newcommand{\rhabEnetAddIvLiveIvbClosePct}{4.9}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabEnetAddIvLiveIvbCloseDm}{1.60}  % DM vs the reference arm (subsample)
+\newcommand{\rhabEnetAddIvLiveIvbCloseP}{0.110}  % p-value
+\newcommand{\rhabEnetHarLiveIvbCloseQlike}{0.1026}  % QLIKE enet har live16_ivb (subsample)
+\newcommand{\rhabLgbmFullLiveIvbCloseQlike}{0.0964}  % QLIKE lgbm full live16_ivb (subsample)
+\newcommand{\rhabLgbmFullLiveIvbClosePct}{$-$1.0}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabLgbmFullLiveIvbCloseDm}{$-$0.29}  % DM vs the reference arm (subsample)
+\newcommand{\rhabLgbmFullLiveIvbCloseP}{0.775}  % p-value
+\newcommand{\rhabLgbmHarLiveIvbCloseQlike}{0.0974}  % QLIKE lgbm har live16_ivb (subsample)
+\newcommand{\rhabXgbFullLiveIvbCloseQlike}{0.0962}  % QLIKE xgb full live16_ivb (subsample)
+\newcommand{\rhabXgbFullLiveIvbClosePct}{$-$1.5}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabXgbFullLiveIvbCloseDm}{$-$0.40}  % DM vs the reference arm (subsample)
+\newcommand{\rhabXgbFullLiveIvbCloseP}{0.689}  % p-value
+\newcommand{\rhabXgbHarLiveIvbCloseQlike}{0.0976}  % QLIKE xgb har live16_ivb (subsample)
+\newcommand{\rhabRfFullLiveIvbCloseQlike}{0.1005}  % QLIKE rf full live16_ivb (subsample)
+\newcommand{\rhabRfFullLiveIvbClosePct}{0.2}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabRfFullLiveIvbCloseDm}{0.05}  % DM vs the reference arm (subsample)
+\newcommand{\rhabRfFullLiveIvbCloseP}{0.958}  % p-value
+\newcommand{\rhabRfHarLiveIvbCloseQlike}{0.1003}  % QLIKE rf har live16_ivb (subsample)
+\newcommand{\rhabRidgeFullLiveVdQlike}{0.1942}  % QLIKE ridge full live_vd (subsample)
+\newcommand{\rhabRidgeFullLiveVdPct}{4.2}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabRidgeFullLiveVdDm}{1.33}  % DM vs the reference arm (subsample)
+\newcommand{\rhabRidgeFullLiveVdP}{0.183}  % p-value
+\newcommand{\rhabRidgeLoVdLiveVdQlike}{0.1887}  % QLIKE ridge lo_vd live_vd (subsample)
+\newcommand{\rhabRidgeLoVdLiveVdPct}{$-$2.8}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabRidgeLoVdLiveVdDm}{$-$3.17}  % DM vs the reference arm (subsample)
+\newcommand{\rhabRidgeLoVdLiveVdP}{0.002}  % p-value
+\newcommand{\rhabRidgeAddVdLiveVdQlike}{0.1944}  % QLIKE ridge add_vd live_vd (subsample)
+\newcommand{\rhabRidgeAddVdLiveVdPct}{4.3}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabRidgeAddVdLiveVdDm}{2.52}  % DM vs the reference arm (subsample)
+\newcommand{\rhabRidgeAddVdLiveVdP}{0.012}  % p-value
+\newcommand{\rhabRidgeHarLiveVdQlike}{0.1864}  % QLIKE ridge har live_vd (subsample)
+\newcommand{\rhabLassoFullLiveVdQlike}{0.1898}  % QLIKE lasso full live_vd (subsample)
+\newcommand{\rhabLassoFullLiveVdPct}{1.9}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabLassoFullLiveVdDm}{0.45}  % DM vs the reference arm (subsample)
+\newcommand{\rhabLassoFullLiveVdP}{0.651}  % p-value
+\newcommand{\rhabLassoLoVdLiveVdQlike}{0.1846}  % QLIKE lasso lo_vd live_vd (subsample)
+\newcommand{\rhabLassoLoVdLiveVdPct}{$-$2.7}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabLassoLoVdLiveVdDm}{$-$2.51}  % DM vs the reference arm (subsample)
+\newcommand{\rhabLassoLoVdLiveVdP}{0.012}  % p-value
+\newcommand{\rhabLassoAddVdLiveVdQlike}{0.1941}  % QLIKE lasso add_vd live_vd (subsample)
+\newcommand{\rhabLassoAddVdLiveVdPct}{4.2}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabLassoAddVdLiveVdDm}{2.49}  % DM vs the reference arm (subsample)
+\newcommand{\rhabLassoAddVdLiveVdP}{0.013}  % p-value
+\newcommand{\rhabLassoHarLiveVdQlike}{0.1864}  % QLIKE lasso har live_vd (subsample)
+\newcommand{\rhabEnetFullLiveVdQlike}{0.1908}  % QLIKE enet full live_vd (subsample)
+\newcommand{\rhabEnetFullLiveVdPct}{2.4}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabEnetFullLiveVdDm}{0.85}  % DM vs the reference arm (subsample)
+\newcommand{\rhabEnetFullLiveVdP}{0.397}  % p-value
+\newcommand{\rhabEnetLoVdLiveVdQlike}{0.1869}  % QLIKE enet lo_vd live_vd (subsample)
+\newcommand{\rhabEnetLoVdLiveVdPct}{$-$2.1}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabEnetLoVdLiveVdDm}{$-$3.47}  % DM vs the reference arm (subsample)
+\newcommand{\rhabEnetLoVdLiveVdP}{\ensuremath{<}0.001}  % p-value
+\newcommand{\rhabEnetAddVdLiveVdQlike}{0.1916}  % QLIKE enet add_vd live_vd (subsample)
+\newcommand{\rhabEnetAddVdLiveVdPct}{2.8}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabEnetAddVdLiveVdDm}{2.20}  % DM vs the reference arm (subsample)
+\newcommand{\rhabEnetAddVdLiveVdP}{0.028}  % p-value
+\newcommand{\rhabEnetHarLiveVdQlike}{0.1864}  % QLIKE enet har live_vd (subsample)
+\newcommand{\rhabLgbmFullLiveVdQlike}{0.1612}  % QLIKE lgbm full live_vd (subsample)
+\newcommand{\rhabLgbmFullLiveVdPct}{$-$10.9}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabLgbmFullLiveVdDm}{$-$2.01}  % DM vs the reference arm (subsample)
+\newcommand{\rhabLgbmFullLiveVdP}{0.044}  % p-value
+\newcommand{\rhabLgbmHarLiveVdQlike}{0.1809}  % QLIKE lgbm har live_vd (subsample)
+\newcommand{\rhabXgbFullLiveVdQlike}{0.1616}  % QLIKE xgb full live_vd (subsample)
+\newcommand{\rhabXgbFullLiveVdPct}{$-$12.1}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabXgbFullLiveVdDm}{$-$2.10}  % DM vs the reference arm (subsample)
+\newcommand{\rhabXgbFullLiveVdP}{0.036}  % p-value
+\newcommand{\rhabXgbHarLiveVdQlike}{0.1839}  % QLIKE xgb har live_vd (subsample)
+\newcommand{\rhabRfFullLiveVdQlike}{0.1704}  % QLIKE rf full live_vd (subsample)
+\newcommand{\rhabRfFullLiveVdPct}{$-$9.1}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabRfFullLiveVdDm}{$-$2.40}  % DM vs the reference arm (subsample)
+\newcommand{\rhabRfFullLiveVdP}{0.016}  % p-value
+\newcommand{\rhabRfHarLiveVdQlike}{0.1874}  % QLIKE rf har live_vd (subsample)
+\newcommand{\rhabRidgeFullLiveVdCloseQlike}{0.1269}  % QLIKE ridge full live16_vd (subsample)
+\newcommand{\rhabRidgeFullLiveVdClosePct}{45.8}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabRidgeFullLiveVdCloseDm}{3.73}  % DM vs the reference arm (subsample)
+\newcommand{\rhabRidgeFullLiveVdCloseP}{\ensuremath{<}0.001}  % p-value
+\newcommand{\rhabRidgeLoVdLiveVdCloseQlike}{0.1048}  % QLIKE ridge lo_vd live16_vd (subsample)
+\newcommand{\rhabRidgeLoVdLiveVdClosePct}{$-$17.4}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabRidgeLoVdLiveVdCloseDm}{$-$4.97}  % DM vs the reference arm (subsample)
+\newcommand{\rhabRidgeLoVdLiveVdCloseP}{\ensuremath{<}0.001}  % p-value
+\newcommand{\rhabRidgeAddVdLiveVdCloseQlike}{0.1018}  % QLIKE ridge add_vd live16_vd (subsample)
+\newcommand{\rhabRidgeAddVdLiveVdClosePct}{17.0}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabRidgeAddVdLiveVdCloseDm}{3.66}  % DM vs the reference arm (subsample)
+\newcommand{\rhabRidgeAddVdLiveVdCloseP}{\ensuremath{<}0.001}  % p-value
+\newcommand{\rhabRidgeHarLiveVdCloseQlike}{0.0870}  % QLIKE ridge har live16_vd (subsample)
+\newcommand{\rhabLassoFullLiveVdCloseQlike}{0.1271}  % QLIKE lasso full live16_vd (subsample)
+\newcommand{\rhabLassoFullLiveVdClosePct}{46.0}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabLassoFullLiveVdCloseDm}{3.87}  % DM vs the reference arm (subsample)
+\newcommand{\rhabLassoFullLiveVdCloseP}{\ensuremath{<}0.001}  % p-value
+\newcommand{\rhabLassoLoVdLiveVdCloseQlike}{0.1097}  % QLIKE lasso lo_vd live16_vd (subsample)
+\newcommand{\rhabLassoLoVdLiveVdClosePct}{$-$13.7}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabLassoLoVdLiveVdCloseDm}{$-$4.18}  % DM vs the reference arm (subsample)
+\newcommand{\rhabLassoLoVdLiveVdCloseP}{\ensuremath{<}0.001}  % p-value
+\newcommand{\rhabLassoAddVdLiveVdCloseQlike}{0.1018}  % QLIKE lasso add_vd live16_vd (subsample)
+\newcommand{\rhabLassoAddVdLiveVdClosePct}{17.0}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabLassoAddVdLiveVdCloseDm}{3.75}  % DM vs the reference arm (subsample)
+\newcommand{\rhabLassoAddVdLiveVdCloseP}{\ensuremath{<}0.001}  % p-value
+\newcommand{\rhabLassoHarLiveVdCloseQlike}{0.0870}  % QLIKE lasso har live16_vd (subsample)
+\newcommand{\rhabEnetFullLiveVdCloseQlike}{0.1227}  % QLIKE enet full live16_vd (subsample)
+\newcommand{\rhabEnetFullLiveVdClosePct}{41.0}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabEnetFullLiveVdCloseDm}{3.59}  % DM vs the reference arm (subsample)
+\newcommand{\rhabEnetFullLiveVdCloseP}{\ensuremath{<}0.001}  % p-value
+\newcommand{\rhabEnetLoVdLiveVdCloseQlike}{0.1029}  % QLIKE enet lo_vd live16_vd (subsample)
+\newcommand{\rhabEnetLoVdLiveVdClosePct}{$-$16.2}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabEnetLoVdLiveVdCloseDm}{$-$4.00}  % DM vs the reference arm (subsample)
+\newcommand{\rhabEnetLoVdLiveVdCloseP}{\ensuremath{<}0.001}  % p-value
+\newcommand{\rhabEnetAddVdLiveVdCloseQlike}{0.1005}  % QLIKE enet add_vd live16_vd (subsample)
+\newcommand{\rhabEnetAddVdLiveVdClosePct}{15.5}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabEnetAddVdLiveVdCloseDm}{3.55}  % DM vs the reference arm (subsample)
+\newcommand{\rhabEnetAddVdLiveVdCloseP}{\ensuremath{<}0.001}  % p-value
+\newcommand{\rhabEnetHarLiveVdCloseQlike}{0.0870}  % QLIKE enet har live16_vd (subsample)
+\newcommand{\rhabLgbmFullLiveVdCloseQlike}{0.0802}  % QLIKE lgbm full live16_vd (subsample)
+\newcommand{\rhabLgbmFullLiveVdClosePct}{$-$1.5}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabLgbmFullLiveVdCloseDm}{$-$0.29}  % DM vs the reference arm (subsample)
+\newcommand{\rhabLgbmFullLiveVdCloseP}{0.769}  % p-value
+\newcommand{\rhabLgbmHarLiveVdCloseQlike}{0.0814}  % QLIKE lgbm har live16_vd (subsample)
+\newcommand{\rhabXgbFullLiveVdCloseQlike}{0.0785}  % QLIKE xgb full live16_vd (subsample)
+\newcommand{\rhabXgbFullLiveVdClosePct}{$-$4.3}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabXgbFullLiveVdCloseDm}{$-$0.89}  % DM vs the reference arm (subsample)
+\newcommand{\rhabXgbFullLiveVdCloseP}{0.375}  % p-value
+\newcommand{\rhabXgbHarLiveVdCloseQlike}{0.0820}  % QLIKE xgb har live16_vd (subsample)
+\newcommand{\rhabRfFullLiveVdCloseQlike}{0.0822}  % QLIKE rf full live16_vd (subsample)
+\newcommand{\rhabRfFullLiveVdClosePct}{$-$1.0}  % QLIKE change % vs the reference (subsample)
+\newcommand{\rhabRfFullLiveVdCloseDm}{$-$0.21}  % DM vs the reference arm (subsample)
+\newcommand{\rhabRfFullLiveVdCloseP}{0.833}  % p-value
+\newcommand{\rhabRfHarLiveVdCloseQlike}{0.0831}  % QLIKE rf har live16_vd (subsample)
+\newcommand{\rhabLiveSentStart}{19~April 2022}  % first bar of the live window sent
+\newcommand{\rhabLiveSentEnd}{30~April 2024}  % last bar of the live window sent
+\newcommand{\rhabLiveSentDays}{508}  % trading days of the live window sent
+\newcommand{\rhabLiveIvStart}{19~April 2018}  % first bar of the live window iv
+\newcommand{\rhabLiveIvEnd}{30~April 2024}  % last bar of the live window iv
+\newcommand{\rhabLiveIvDays}{1{,}506}  % trading days of the live window iv
+\newcommand{\rhabLiveIvbStart}{6~July 2021}  % first bar of the live window ivb
+\newcommand{\rhabLiveIvbEnd}{30~April 2024}  % last bar of the live window ivb
+\newcommand{\rhabLiveIvbDays}{706}  % trading days of the live window ivb
+\newcommand{\rhabLiveVdStart}{16~November 2022}  % first bar of the live window vd
+\newcommand{\rhabLiveVdEnd}{31~August 2023}  % last bar of the live window vd
+\newcommand{\rhabLiveVdDays}{196}  % trading days of the live window vd
 \newcommand{\rhabRidgeFullVsOlsAddRmAllDm}{$-$4.70}  % DM ridge full vs OLS add_rm
 \newcommand{\rhabRidgeFullVsOlsAddRmAllP}{\ensuremath{<}0.001}  % p-value
 \newcommand{\rhabRidgeFullVsOlsAddRmCloseDm}{1.16}  % DM ridge full vs OLS add_rm

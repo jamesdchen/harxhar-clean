@@ -53,6 +53,18 @@ ARM_TEX = {"full": "Full", "har": "Har", "shar": "Shar", "harq": "Harq", "lhar":
 ARM_TEX.update({f"lo_{g}": f"Lo{t}" for g, t in G_TEX.items()})
 ARM_TEX.update({f"add_{g}": f"Add{t}" for g, t in G_TEX.items()})
 SPAN_TEX = {"all": "All", "c16": "Close", "c16_2020": "CloseLate"}
+# 2026-10-26 (coordinator): live-window subsamples of the late groups (experiments/ablate_score.py LIVE): span ->
+# (macro tag, group, row label); the macros of these spans cover the group's own arms and the full set only
+LIVE_TEX = {
+    "live_sent": ("LiveSent", "sent", "Sentiment, all three series live"),
+    "live16_sent": ("LiveSentClose", "sent", ""),
+    "live_iv": ("LiveIv", "iv", "Implied volatility, VIX live"),
+    "live16_iv": ("LiveIvClose", "iv", ""),
+    "live_ivb": ("LiveIvb", "iv", "Implied volatility, VIX and VIX3M live"),
+    "live16_ivb": ("LiveIvbClose", "iv", ""),
+    "live_vd": ("LiveVd", "vd", "Volatility demand, live until the feed stops"),
+    "live16_vd": ("LiveVdClose", "vd", ""),
+}
 WORDS = {0: "none", 1: "one", 2: "two", 3: "three", 4: "four", 5: "five", 6: "six", 7: "seven", 8: "eight"}
 SERIES_TEX = {
     "stocktwits_attention": "Attn",
@@ -131,6 +143,25 @@ def main() -> int:
             if r is not None:
                 lines.append(mac(f"{nm}Dm", fmt(r["dm"], 2), "DM vs the reference arm"))
                 lines.append(mac(f"{nm}P", fmt_p(r["p"]), "p-value"))
+    for sp, (st, g, _lab) in LIVE_TEX.items():  # live windows: the group's own arms and the full set
+        for c in CLS[1:]:
+            for a in ("full", f"lo_{g}", f"add_{g}", "har"):
+                if (c, a, sp) not in q.index:
+                    continue
+                nm = f"{CLS_TEX[c]}{ARM_TEX[a]}{st}"
+                lines.append(mac(f"{nm}Qlike", fmt(q.loc[(c, a, sp), "qlike"], 4), f"QLIKE {c} {a} {sp} (subsample)"))
+                if a == "har":
+                    continue
+                lines.append(mac(f"{nm}Pct", fmt(pct(c, a, sp), 1), "QLIKE change % vs the reference (subsample)"))
+                r = dmref(c, a, sp)
+                if r is not None:
+                    lines.append(mac(f"{nm}Dm", fmt(r["dm"], 2), "DM vs the reference arm (subsample)"))
+                    lines.append(mac(f"{nm}P", fmt_p(r["p"]), "p-value"))
+    for key, w in checks.get("live_windows", {}).items():
+        t = LIVE_TEX[f"live_{key}"][0]
+        lines.append(mac(f"{t}Start", date_tex(w["start"]), f"first bar of the live window {key}"))
+        lines.append(mac(f"{t}End", date_tex(w["end"]), f"last bar of the live window {key}"))
+        lines.append(mac(f"{t}Days", f"{w['days']:,}".replace(",", "{,}"), f"trading days of the live window {key}"))
     for c in CLS[1:]:
         for b in ("add_rm", "shar", "harq", "lhar", "sharql", "har"):
             for sp, st in SPAN_TEX.items():
@@ -188,12 +219,12 @@ def main() -> int:
     return 0
 
 
-def cell(q, dq, c: str, a: str, have: set) -> str:
-    if (c, a) not in have:
+def cell(q, dq, c: str, a: str, have: set, sp: str = "all") -> str:
+    if (c, a) not in have or (c, a, sp) not in q.index:
         return "--"
     r = "full" if a.startswith("lo_") else "har"
-    p = 100.0 * (q.loc[(c, a, "all"), "qlike"] / q.loc[(c, r, "all"), "qlike"] - 1.0)
-    k = (c, a, c, r, "all")
+    p = 100.0 * (q.loc[(c, a, sp), "qlike"] / q.loc[(c, r, sp), "qlike"] - 1.0)
+    k = (c, a, c, r, sp)
     if k not in dq.index:
         return fmt(p, 1)
     return f"{fmt(p, 1)} ({fmt(dq.loc[k, 'dm'], 1)})"
@@ -240,6 +271,17 @@ def table(M: pd.DataFrame, D: pd.DataFrame, have: set) -> str:
         f"\\multicolumn{{{len(cols) + 1}}}{{@{{}}l}}{{\\textit{{D. Full set, against the HAR benchmark (Table~\\ref{{tab:rh_oos}})}}}} \\\\",
     ]
     out.append("All features & " + " & ".join(cell(q, dq, c, "full", have) for c in cols) + " \\\\")
+    if any(sp in set(M["span"]) for sp in LIVE_TEX):
+        out += [
+            "\\addlinespace[4pt]",
+            f"\\multicolumn{{{len(cols) + 1}}}{{@{{}}l}}{{\\textit{{E. Late-starting groups on the bars on which they are live"
+            " (subsamples): group added to the HAR benchmark / removed from the full set}} \\\\",
+        ]
+        for sp, (_t, g, lab) in LIVE_TEX.items():
+            if not lab or sp not in set(M["span"]):
+                continue
+            out.append(f"{lab}, added & " + " & ".join(cell(q, dq, c, f"add_{g}", have, sp) for c in cols) + " \\\\")
+            out.append(f"{lab}, removed & " + " & ".join(cell(q, dq, c, f"lo_{g}", have, sp) for c in cols) + " \\\\")
     out += [
         "\\bottomrule",
         "\\end{tabular*}",
@@ -256,7 +298,12 @@ def table(M: pd.DataFrame, D: pd.DataFrame, have: set) -> str:
         " fold for the full set; one configuration per tree method).  The random forest is run for Panel B and for the"
         " realized-moment group of Panel A only.  Series that start after the data enter as zero until the rolling"
         " window holds 3,000 days of their history (Section~\\ref{sec:rh_predictors}), so the implied-volatility,"
-        " sentiment and volatility-demand rows measure those series only from the dates in the text.",
+        " sentiment and volatility-demand rows of Panels A and B measure those series only from the dates in the text."
+        " Panel E scores the same forecasts on the bars on which the group's value averages are live (all three StockTwits"
+        " series from \\rhabLiveSentStart{}; the VIX from \\rhabLiveIvStart{}; the VIX and VIX3M from"
+        " \\rhabLiveIvbStart{}; the volatility-demand series from \\rhabLiveVdStart{} until their feed stops on"
+        " \\rhabLiveVdEnd{}), subsamples of \\rhabLiveSentDays{}, \\rhabLiveIvDays{}, \\rhabLiveIvbDays{} and"
+        " \\rhabLiveVdDays{} trading days.",
         "\\end{tablenotes}",
         "\\end{threeparttable}",
         "\\end{table}",

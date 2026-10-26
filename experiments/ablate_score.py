@@ -52,6 +52,25 @@ TREES = ("lgbm", "xgb", "rf")
 CLASSES = ("ols", *LINEAR, *TREES)
 EST_OF = {"lgbm": "lgbm", "xgb": "xgb", "rf": "rf_skx"}
 OLS_BENCH = ("add_rm", "shar", "harq", "lhar", "sharql")
+# 2026-10-26 (coordinator): live-window subsamples of the late-starting groups -- the bars from the date on which the
+# listed series' k = 1 value averages are all live (latestart/latestart_w3000.csv "live_from") to the end of the span,
+# or (end_at_last) to the last print of the series (volatility demand stops on 2023-08-31); key -> (series, group,
+# end_at_last).  Spans live_<key> (every bar; DM on daily averages) and live16_<key> (the 16:00 bar).
+LIVE = {
+    "sent": (["stocktwits_attention", "stocktwits_sentiment", "stocktwits_sentcount"], "sent", False),
+    "iv": (["vix"], "iv", False),
+    "ivb": (["vix", "vix3m"], "iv", False),
+    "vd": (
+        [
+            "voldemand_spx_open_and_close",
+            "voldemand_spx_open_only",
+            "voldemand_all_open_and_close",
+            "voldemand_all_open_only",
+        ],
+        "vd",
+        True,
+    ),
+}
 
 
 def say(msg: str) -> None:
@@ -151,6 +170,20 @@ def main() -> int:
         len(spans["c16"]),
         len(spans["c16_2020"]),
     )
+    ls_p = res / "latestart" / "latestart_w3000.csv"
+    if ls_p.is_file():
+        LS = pd.read_csv(ls_p)
+        k1 = LS[LS["k"] == 1].set_index("series")
+        checks["live_windows"] = {}
+        for key, (ser, _g, end_last) in LIVE.items():
+            start = max(pd.Timestamp(k1.loc[s_, "live_from"]) for s_ in ser)
+            end = min(pd.Timestamp(k1.loc[s_, "last_print"]) for s_ in ser) if end_last else LAST + pd.Timedelta(days=1)
+            ix = idx[(idx >= start) & (idx <= end)]
+            spans[f"live_{key}"] = ix
+            spans[f"live16_{key}"] = ix[(ix.hour == 16) & (ix.minute == 0)]
+            checks["live_windows"][key] = dict(
+                start=str(start), end=str(min(end, idx[-1])), bars=len(ix), days=int(ix.normalize().nunique())
+            )
     L: dict = {}
     met = []
     for k, f in sorted(panel.items()):
@@ -174,7 +207,8 @@ def main() -> int:
         out = []
         for li, lname in ((0, "qlike"), (1, "mse")):
             x1, x2, ix = L[(k1, sp)][li], L[(k2, sp)][li], L[(k1, sp)][2]
-            r = dm_test(daily(x1, ix), daily(x2, ix)) if sp == "all" else dm_test(x1, x2)
+            every_bar = sp == "all" or sp.startswith("live_")
+            r = dm_test(daily(x1, ix), daily(x2, ix)) if every_bar else dm_test(x1, x2)
             out.append(
                 dict(
                     cls=k1[0],
@@ -195,6 +229,15 @@ def main() -> int:
     rows = []
     for c, arm in sorted(panel):
         for sp in spans:
+            if sp.startswith("live"):  # the late group's own arms only (and the full set against HAR)
+                g = LIVE[sp.split("_", 1)[1]][1]
+                if c == "ols":
+                    continue
+                if arm == f"lo_{g}":
+                    rows += dm((c, arm), (c, "full"), sp)
+                elif arm in (f"add_{g}", "full"):
+                    rows += dm((c, arm), (c, "har"), sp)
+                continue
             if c == "ols":
                 if arm != "har":
                     rows += dm((c, arm), ("ols", "har"), sp)

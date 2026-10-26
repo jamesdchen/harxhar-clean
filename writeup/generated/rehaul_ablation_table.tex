@@ -39,11 +39,21 @@ SHAR + HARQ + LHAR & $-$2.7 ($-$6.5) & $-$2.8 ($-$6.8) & $-$2.8 ($-$6.6) & $-$2.
 \addlinespace[4pt]
 \multicolumn{8}{@{}l}{\textit{D. Full set, against the HAR benchmark (Table~\ref{tab:rh_oos})}} \\
 All features & -- & $-$5.4 ($-$5.6) & $-$6.2 ($-$4.7) & $-$6.0 ($-$7.0) & $-$14.0 ($-$10.3) & $-$13.8 ($-$9.9) & $-$11.1 ($-$9.9) \\
+\addlinespace[4pt]
+\multicolumn{8}{@{}l}{\textit{E. Late-starting groups on the bars on which they are live (subsamples): group added to the HAR benchmark / removed from the full set}} \\
+Sentiment, all three series live, added & -- & $-$1.2 ($-$1.2) & $-$1.0 ($-$1.0) & $-$1.3 ($-$1.5) & -- & -- & -- \\
+Sentiment, all three series live, removed & -- & 0.5 (0.7) & 0.3 (0.4) & 0.8 (1.4) & -- & -- & -- \\
+Implied volatility, VIX live, added & -- & 0.0 (0.0) & $-$0.9 ($-$1.4) & $-$0.2 ($-$0.4) & -- & -- & -- \\
+Implied volatility, VIX live, removed & -- & 0.1 (0.2) & 0.4 (0.5) & 0.1 (0.2) & -- & -- & -- \\
+Implied volatility, VIX and VIX3M live, added & -- & 1.4 (1.5) & 1.1 (1.0) & 1.1 (1.3) & -- & -- & -- \\
+Implied volatility, VIX and VIX3M live, removed & -- & $-$0.6 ($-$0.8) & $-$1.0 ($-$1.0) & $-$0.7 ($-$0.9) & -- & -- & -- \\
+Volatility demand, live until the feed stops, added & -- & 4.3 (2.5) & 4.2 (2.5) & 2.8 (2.2) & -- & -- & -- \\
+Volatility demand, live until the feed stops, removed & -- & $-$2.8 ($-$3.2) & $-$2.7 ($-$2.5) & $-$2.1 ($-$3.5) & -- & -- & -- \\
 \bottomrule
 \end{tabular*}
 \begin{tablenotes}[flushleft]
 \footnotesize
-\item \textit{Notes:} Each cell is the percentage change in QLIKE of a pooled intraday forecast against its reference, with the Diebold--Mariano statistic of the difference in parentheses (negative: the arm has the lower loss); every bar of Table~\ref{tab:rh_oos} is scored (2014--2024) and the test runs on daily average QLIKE. Panel A removes one predictor group (its series' trailing averages and availability shares) from the full set; Panel B adds one group to the HAR benchmark; Panel C adds the semivariances RS$^{+}$ and RS$^{-}$ of the last half hour (SHAR), the HARQ interaction of realized variance with the square root of realized quarticity, and the negative half-hour returns at every HAR horizon (LHAR), all from the same E-mini one-minute data. Every model keeps the full set's frozen hyperparameters (the linear penalties chosen on the 2013 pre-sample fold for the full set; one configuration per tree method).  The random forest is run for Panel B and for the realized-moment group of Panel A only.  Series that start after the data enter as zero until the rolling window holds 3,000 days of their history (Section~\ref{sec:rh_predictors}), so the implied-volatility, sentiment and volatility-demand rows measure those series only from the dates in the text.
+\item \textit{Notes:} Each cell is the percentage change in QLIKE of a pooled intraday forecast against its reference, with the Diebold--Mariano statistic of the difference in parentheses (negative: the arm has the lower loss); every bar of Table~\ref{tab:rh_oos} is scored (2014--2024) and the test runs on daily average QLIKE. Panel A removes one predictor group (its series' trailing averages and availability shares) from the full set; Panel B adds one group to the HAR benchmark; Panel C adds the semivariances RS$^{+}$ and RS$^{-}$ of the last half hour (SHAR), the HARQ interaction of realized variance with the square root of realized quarticity, and the negative half-hour returns at every HAR horizon (LHAR), all from the same E-mini one-minute data. Every model keeps the full set's frozen hyperparameters (the linear penalties chosen on the 2013 pre-sample fold for the full set; one configuration per tree method).  The random forest is run for Panel B and for the realized-moment group of Panel A only.  Series that start after the data enter as zero until the rolling window holds 3,000 days of their history (Section~\ref{sec:rh_predictors}), so the implied-volatility, sentiment and volatility-demand rows of Panels A and B measure those series only from the dates in the text. Panel E scores the same forecasts on the bars on which the group's value averages are live (all three StockTwits series from \rhabLiveSentStart{}; the VIX from \rhabLiveIvStart{}; the VIX and VIX3M from \rhabLiveIvbStart{}; the volatility-demand series from \rhabLiveVdStart{} until their feed stops on \rhabLiveVdEnd{}), subsamples of \rhabLiveSentDays{}, \rhabLiveIvDays{}, \rhabLiveIvbDays{} and \rhabLiveVdDays{} trading days.
 \end{tablenotes}
 \end{threeparttable}
 \end{table}
