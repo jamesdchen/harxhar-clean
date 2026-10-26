@@ -519,3 +519,8 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   Remainders pieces/rem/v2w_baseline.000.rem10260005.txt (47 refits) 13457679 (gpu, 76 min) and .001.rem10260005.txt
   (29) 13457680 (gpu, 65 min). gpu top-up 13457681-86 (HAR 034.p01-p04, 035.p00-p01). gpu 94 (36 running P100, 58
   pending), debug 4. No other FAILED.
+- 2026-10-26 00:35 PDT: 11 more old-script HAR originals ended FAILED 143 (13380582-92 = files 002-012, ~35:50 each;
+  expected, pre-15:32 bug). From their partial copies 3,094-3,128 of 3,145 (006: 3,150) refits each are done;
+  remainders pieces/rem/v2w_baseline.<002-012>.rem10260035.txt (17-56 refits): 13457950 (002, debug 53 min),
+  13457951-60 (gpu, 53-88 min by the wave formula). gpu top-up 13457961-72 (HAR 035.p02-037.p03). gpu 99 but only 23
+  running P100 (76 pending): the 13 P100s the originals freed went to other users first. debug 5 (1 running).
