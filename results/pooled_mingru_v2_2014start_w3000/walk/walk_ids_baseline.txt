@@ -239,3 +239,4 @@ pieces/dbg/v2w_baseline.053.p03.g07.txt 13452412 debug 60 P100 debug piece of pi
 pieces/dbg/v2w_baseline.053.p03.g08.txt 13454206 debug 60 P100 debug piece of pieces/v2w_baseline.053.p03.txt (ADDENDUM 3b)
 pieces/v2w_baseline.033.p03.txt 13454207 gpu 608 P100 piece (top-up, cpu 2 / 8G)
 pieces/dbg/v2w_baseline.053.p04.g00.txt 13455341 debug 60 P100 debug piece of pieces/v2w_baseline.053.p04.txt (ADDENDUM 3b)
+pieces/dbg/v2w_baseline.053.p04.g01.txt 13455771 debug 60 P100 debug piece of pieces/v2w_baseline.053.p04.txt (ADDENDUM 3b)
