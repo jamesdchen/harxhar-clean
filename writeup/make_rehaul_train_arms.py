@@ -545,10 +545,12 @@ def printed(x: float, s: str) -> bool:
 
 
 def _fomcfix() -> bool:
-    """2026-10-26: the paper's numbers come from the FOMC-patched final runs (final_run.py's REHAUL_FOMCFIX switch)."""
+    """2026-10-26: the paper's numbers come from the FOMC-patched final runs (final_run.py's REHAUL_FOMCFIX switch).
+    Since the D13 regeneration the patched runs are final_run's default (REHAUL_FOMCFIX=0 opts out), so the printed
+    Table 1 is the patched one unless REHAUL_FOMCFIX is explicitly off. Was: on only with REHAUL_FOMCFIX=1."""
     import os
 
-    return os.environ.get("REHAUL_FOMCFIX", "").strip().lower() in {"1", "true", "yes", "on"}
+    return os.environ.get("REHAUL_FOMCFIX", "").strip().lower() not in {"0", "false", "no", "off"}
 
 
 def run_gates(D: dict) -> None:

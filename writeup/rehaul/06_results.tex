@@ -96,11 +96,14 @@
 \item \textbf{Against the primary benchmark.} The full predictor set lowers the average QLIKE loss of every model
   class below that of the OLS on the HAR benchmark set.
   \begin{itemize}
-  \item Penalized linear models, whose HAR-set forecast is the benchmark: \rhabRidgeFullAllPct\% (ridge regression),
-    \rhabLassoFullAllPct\% (lasso) and \rhabEnetFullAllPct\% (elastic net), with $\DM={}$\rhorDmRidgeB,
+  % 2026-10-26 (coordinator, D13): the percentages and the tree DMs now come from the patched Table 1
+  % (rehaul_oos_vs_ols_numbers); were the pre-patch ablation macros \rhabRidgeFullAllPct, \rhabLassoFullAllPct,
+  % \rhabEnetFullAllPct and \rhabLgbmFullVsOlsHarAllDm, \rhabXgbFullVsOlsHarAllDm, \rhabRfFullVsOlsHarAllDm.
+  \item Penalized linear models, whose HAR-set forecast is the benchmark: \rhorVsOlsPctRidgeFull\% (ridge regression),
+    \rhorVsOlsPctLassoFull\% (lasso) and \rhorVsOlsPctEnetFull\% (elastic net), with $\DM={}$\rhorDmRidgeB,
     \rhorDmLassoB{} and \rhorDmEnetB.
-  \item Tree ensembles: \rhorVsOlsRedTreeRng{}\%, with $\DM={}$\rhabLgbmFullVsOlsHarAllDm,
-    \rhabXgbFullVsOlsHarAllDm{} and \rhabRfFullVsOlsHarAllDm{} for LightGBM, XGBoost and the random forest.
+  \item Tree ensembles: \rhorVsOlsRedTreeRng{}\%, with $\DM={}$\rhorVsOlsDmLgbmFull,
+    \rhorVsOlsDmXgbFull{} and \rhorVsOlsDmRfFull{} for LightGBM, XGBoost and the random forest.
   \item The reduction is significant for \rhorVsOlsLowerSig{} of the \rhorAfPairs{} full-set forecasts.
   \item On the HAR benchmark set alone the tree ensembles stay within \rhorVsOlsPctTreeHarMaxAbs{}\% of the
     benchmark, so the trees' gain comes from the added predictors rather than from a nonlinear use of the HAR terms.

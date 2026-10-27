@@ -56,8 +56,8 @@ plain = pred_adj^2 B (w1000),0.0,1e-12,242796,True
 "16:00 realized variance = the OLS row's rv_unclipped (self-check C, xgb baseline)",0.0,1e-12,866,True
 "self-check C: the printed pooled Sharpe ratios (D6, 614 days) reproduced",0.0,0.0,24,True
 plain = pred_adj^2 B (w3000),0.0,1e-12,203982,True
-plain = pred_adj^2 B (pooled_trees_final_2014start_w3000),0.0,1e-12,135880,True
-plain = pred_adj^2 B (pooled_rf_skx_2014start_w3000),0.0,1e-12,67940,True
+plain = pred_adj^2 B (pooled_trees_final_2014start_fomcfix_w3000),0.0,1e-12,135880,True
+plain = pred_adj^2 B (pooled_rf_skx_2014start_fomcfix_w3000),0.0,1e-12,67940,True
 j = 0 placed = the plain 16:00 forecast (final enet all_features),0.0,1e-09,866,True
 16:00 realized variance = the OLS row's rv_unclipped (final enet all_features),0.0,1e-12,866,True
 j = 0 placed = the plain 16:00 forecast (final enet baseline),0.0,1e-09,866,True

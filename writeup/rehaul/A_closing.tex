@@ -179,17 +179,20 @@
 \item \textbf{On $\mathcal T_{\mathrm{oos}}$.} The full predictor set lowers the average QLIKE loss of the closing
   half hour in \rhcaNLowerCloseSpan{} of the \rhorAfPairs{} model classes.
   \begin{itemize}
+  % 2026-10-26 (coordinator, D13): on the FOMC-patched design the elastic net's change is positive (NUMBERS report).
+  % Was: "... for the three tree ensembles (...) and the elastic net ($\Delta\% = \rhcaPctEnetCloseSpan$); ..." and
+  % "It raises the loss of ridge regression (...) and the lasso (...), neither significantly."
   \item It lowers it for the three tree ensembles ($\Delta\% = \rhcaTreePctCloseSpanMin$ to
-    $\rhcaTreePctCloseSpanMax$) and the elastic net ($\Delta\% = \rhcaPctEnetCloseSpan$); the reduction is
-    statistically significant at the 5\% level for XGBoost only ($\Delta\% = \rhcaPctXgbCloseSpan$,
-    $\DM = \rhcaDmXgbCloseSpan$, \rhcaPXgbCloseSpan).
-  \item It raises the loss of ridge regression ($\Delta\% = \rhcaPctRidgeCloseSpan$, $\DM = \rhcaDmRidgeCloseSpan$)
-    and the lasso ($\Delta\% = \rhcaPctLassoCloseSpan$, $\DM = \rhcaDmLassoCloseSpan$), neither significantly.
+    $\rhcaTreePctCloseSpanMax$); the reduction is statistically significant at the 5\% level for XGBoost only
+    ($\Delta\% = \rhcaPctXgbCloseSpan$, $\DM = \rhcaDmXgbCloseSpan$, \rhcaPXgbCloseSpan).
+  \item It raises the loss of ridge regression ($\Delta\% = \rhcaPctRidgeCloseSpan$, $\DM = \rhcaDmRidgeCloseSpan$),
+    the lasso ($\Delta\% = \rhcaPctLassoCloseSpan$, $\DM = \rhcaDmLassoCloseSpan$) and the elastic net
+    ($\Delta\% = \rhcaPctEnetCloseSpan$), none significantly.
   \end{itemize}
 \item \textbf{On $\mathcal T_{\mathrm{close}}$.} The same comparison gives lower losses for the tree ensembles
   ($\Delta\% = \rhcaTreePctCloseOosMin$ to $\rhcaTreePctCloseOosMax$, none significant) and higher losses for the
   penalized linear models ($\Delta\% = \rhcaLinPctCloseOosMin$ to $\rhcaLinPctCloseOosMax$, significant at the 5\%
-  level for ridge regression and the lasso).
+  level for all three). % 2026-10-26 (coordinator, D13): was "for ridge regression and the lasso" (elastic net now p = 0.036)
 \item \textbf{Why the linear models differ between the spans.} Their full-set change has opposite signs on the two
   halves of $\mathcal T_{\mathrm{oos}}$.
   \begin{itemize}
@@ -231,7 +234,7 @@
 \item \textbf{The closing half hour on $\mathcal T_{\mathrm{oos}}$.} The forecasts are hard to tell apart.
   \begin{itemize}
   \item Under $T_{\max}$ the 90\% set holds \rhmcsAllQlikeTmaxNNinety{} of the \rhmcsNModels{} pooled forecasts,
-    under $T_R$ \rhmcsAllQlikeTrangeSetNinety; the 75\% set holds \rhmcsAllQlikeTmaxSetSevenFive{} alone.
+    under $T_R$ \rhmcsAllQlikeTrangeSetNinety; the 75\% set holds \rhmcsAllQlikeTmaxSetSevenFive. % 2026-10-26 (coordinator, D13): "alone" dropped (two forecasts now)
   \item Against the HAR benchmark of the same class, the SPA $p$-value is \rhmcsAllQAfSpaC; StepM rejects for
     \rhmcsAllQAfRej, and the two-sided StepM for \rhmcsAllQAfRejTwo.
   \end{itemize}

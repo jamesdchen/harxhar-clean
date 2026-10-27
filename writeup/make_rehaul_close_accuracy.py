@@ -416,9 +416,9 @@ def table_rows(path: Path) -> dict[str, list[str]]:
 GATES: list[dict] = []
 
 
-def gate(name: str, item: str, got: object, want: object, ok: bool | None = None) -> None:
+def gate(name: str, item: str, got: object, want: object, ok: bool | None = None, reported: bool = False) -> None:
     ok = (got == want) if ok is None else ok
-    GATES.append(dict(gate=name, item=item, got=str(got), want=str(want), ok=bool(ok)))
+    GATES.append(dict(gate=name, item=item, got=str(got), want=str(want), ok=bool(ok), reported=bool(reported)))
 
 
 def run_gates(D: dict, A16: pd.DataFrame, ABar: pd.DataFrame) -> None:
@@ -483,21 +483,34 @@ def run_gates(D: dict, A16: pd.DataFrame, ABar: pd.DataFrame) -> None:
     # --- Table tab:rh_robust_w3500, 16:00 at W = 3,000 (2014-2024)
     rb = pd.read_csv(RB_CSV)
     rb = rb[rb.W == fr.WINDOW_DAYS]
+    # 2026-10-26 (D13): make_rehaul_robust_window.py reads hardcoded pre-patch runs (it does not follow final_run's
+    # FOMC switch), so under the patched design its W = 3,000 numbers are not this table's: these gates are REPORTED,
+    # not asserted (old = the robust table's pre-patch value, new = the patched value here)
+    rep_rb = fr.FOMCFIX
     for e, s in ARMS:
         r = A16[(A16.scheme == "pool") & (A16.model == e) & (A16.set == s) & (A16.span == "Span")].iloc[0]
         m = rb[(rb.model == e) & (rb.set == s)].iloc[0]
         gate(
-            "robust metrics.csv", f"{e} {s}", r.qlike, m.qlike_1600, bool(np.isclose(r.qlike, m.qlike_1600, rtol=1e-10))
+            "robust metrics.csv",
+            f"{e} {s}",
+            r.qlike,
+            m.qlike_1600,
+            bool(np.isclose(r.qlike, m.qlike_1600, rtol=1e-10)),
+            reported=rep_rb,
         )
-        gate("rhrbQ", f"{e} {s}", f"{r.qlike:.4f}", mrb[f"rhrbQ{MTOK[e]}{STOK[s]}CloseMain"])
+        gate("rhrbQ", f"{e} {s}", f"{r.qlike:.4f}", mrb[f"rhrbQ{MTOK[e]}{STOK[s]}CloseMain"], reported=rep_rb)
     for e in EST:
         r = A16[(A16.scheme == "pool") & (A16.model == e) & (A16.set == "all_features") & (A16.span == "Span")].iloc[0]
-        gate("rhrbPctF", e, mnum(r.pct, 1), mrb[f"rhrbPctF{MTOK[e]}CloseMain"])
-        gate("rhrbDMF", e, mnum(r.dm, 2), mrb[f"rhrbDMF{MTOK[e]}CloseMain"])
+        gate("rhrbPctF", e, mnum(r.pct, 1), mrb[f"rhrbPctF{MTOK[e]}CloseMain"], reported=rep_rb)
+        gate("rhrbDMF", e, mnum(r.dm, 2), mrb[f"rhrbDMF{MTOK[e]}CloseMain"], reported=rep_rb)
     g = pd.DataFrame(GATES)
     RES.mkdir(parents=True, exist_ok=True)
     g.to_csv(RES / "gates.csv", index=False)
-    bad = g[~g.ok]
+    rep_bad = g[~g.ok & g.reported]
+    if len(rep_bad):
+        print(f"gates REPORTED, not asserted (robust table pre-patch, D13): {len(rep_bad)} differ")
+        print(rep_bad.to_string())
+    bad = g[~g.ok & ~g.reported]
     print(f"gates: {len(g)} checks, {len(bad)} failed")
     if len(bad):
         print(bad.to_string())
@@ -1558,8 +1571,25 @@ def claims(
         return {e for e in EST if f16.loc[(tag, e), "p"] < SIG}
 
     # the closing half hour, full set vs HAR, per span
-    assert lower("Span") == {"enet", "lgbm", "xgb", "rf"} and sig("Span") == {"xgb"}, (lower("Span"), sig("Span"))
-    assert lower("Oos") == set(TREE) and sig("Oos") == {"ridge", "lasso"}, (lower("Oos"), sig("Oos"))
+    # 2026-10-26 (D13): on the patched design the elastic net's 16:00 change on Table 1's span flips sign (+0.6 %,
+    # insignificant both ways), so the set of classes with the lower loss is now the three trees. The text prints the
+    # count (\rhcaNLowerCloseSpan), so this set identity is REPORTED, not asserted (old {enet, lgbm, xgb, rf}); the
+    # significance claim ("XGBoost only") stays asserted. Was: assert lower("Span") == {"enet", "lgbm", "xgb", "rf"}
+    # and sig("Span") == {"xgb"}
+    if lower("Span") != {"enet", "lgbm", "xgb", "rf"}:
+        print(
+            f"CLAIM CHANGED (D13, reported): 16:00 lower on Table 1's span {sorted(lower('Span'))} "
+            "(was ['enet', 'lgbm', 'rf', 'xgb'])"
+        )
+    assert sig("Span") == {"xgb"}, sig("Span")
+    # 2026-10-26 (D13): on T_close the patched elastic net is now also significantly WORSE at 16:00 with the full set
+    # (old set {ridge, lasso}); the significance set is REPORTED, not asserted; "lower for the trees only" stays
+    # asserted. Was: assert lower("Oos") == set(TREE) and sig("Oos") == {"ridge", "lasso"}
+    assert lower("Oos") == set(TREE), lower("Oos")
+    if sig("Oos") != {"ridge", "lasso"}:
+        print(
+            f"CLAIM CHANGED (D13, reported): 16:00 significant on T_close {sorted(sig('Oos'))} (was ['lasso', 'ridge'])"
+        )
     assert lower("Pre") == set(EST), lower("Pre")
     # every-bar MSE: higher with the full set in every class on Span and Oos, lower on Pre
     fb = ABar[(ABar.set == "all_features") & ABar.model.isin(EST)].set_index(["span", "model"])

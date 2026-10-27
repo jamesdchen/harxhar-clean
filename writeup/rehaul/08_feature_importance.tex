@@ -160,8 +160,11 @@
     \rhldLinPTenVsWalkMax{}).
   \item Ridge against lasso: a dense and weak signal favors the ridge, which keeps and shrinks every series, over the
     lasso, which selects \citep[see][]{GiannoneLenzaPrimiceri2021}. In Table~\ref{tab:rh_oos} the full set changes
-    QLIKE relative to the HAR benchmark by \rhabLassoFullAllPct\% in the lasso and \rhabRidgeFullAllPct\% in the ridge
-    (lasso against ridge: DM $= \rhldDmLassoRidge{}$, $p = \rhldPLassoRidge{}$).
+    QLIKE relative to the HAR benchmark by \rhorVsOlsPctLassoFull\% in the lasso and \rhorVsOlsPctRidgeFull\% in the
+    ridge (lasso against ridge: DM $= \rhldDmLassoRidge{}$, $p = \rhldPLassoRidge{}$).
+    % 2026-10-26 (coordinator, D13): percentages from the patched Table 1; were \rhabLassoFullAllPct, \rhabRidgeFullAllPct.
+    % PENDING the author's framing decision (event vs ordinary days): on non-FOMC days ridge and elastic net beat the
+    % lasso (exploratory rescoring, 26 Oct), so this bullet may be split by day type.
   \end{itemize}
   The exogenous signal is concentrated, not dense and weak, in both model classes. Across windows of \rhcxWOne{} to
   \rhcxWLong{} trading days the best number of series rises with the window, as a dense and weak signal predicts,

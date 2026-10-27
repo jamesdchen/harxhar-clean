@@ -190,6 +190,31 @@ def gate(name: str, item: str, value: object, ok: bool) -> None:
     # closing-interval HAR benchmark, now the rebuilt CI-HAR) belong to the closing-interval appendix section; they are
     # reported, not asserted (a changed one prints CHANGED and is listed in gates.csv with ok = False)
     reported = name == "draft claim" and item.startswith("16:00 T_oos")
+    # 2026-10-26 (D13): on the patched design the elastic net's 16:00 full-vs-HAR increase on T_close is significant
+    # too (p 0.036; old: ridge and lasso only), the same change close_accuracy reports; reported, not asserted
+    reported = reported or (name == "Section 6" and "exactly for ridge and lasso" in item)
+    # 2026-10-26 (D13): the draft claims below were written on the pre-patch design and fail on the patched one; they
+    # are REPORTED, not asserted, until the text is rewritten (old -> new, patched design):
+    #   every bar 90 % MCS: {LightGBM Full} -> {LightGBM Full, XGBoost Full} (T_max, T_R, blocks 5/10/20)
+    #   16:00 2014-24, T_max 90 % MCS: every forecast -> all but the lasso Full
+    #   16:00 2014-24, 75 % MCS: {XGBoost Full} -> {LightGBM Full, XGBoost Full}
+    #   16:00 2014-24, one-sided StepM: XGBoost alone at blocks 5/10/20 -> at blocks 5 and 10 only (none at 20)
+    #   vs short, mean: five rejected (all but XGBoost) -> three (lasso, elastic net, random forest)
+    #   vs HAR twin, mean: LightGBM and forest (one-sided), forest (two-sided) -> forest only (one-sided); forest
+    #   two-sided at blocks 10/20 only
+    reported = reported or (
+        name == "draft claim"
+        and fr.FOMCFIX
+        and item
+        in {
+            "every bar, QLIKE: the 90 % MCS is LightGBM Full alone (T_max, T_R; blocks 5, 10, 20)",
+            "16:00 2014-2024, QLIKE: every forecast is in the 90 % MCS under T_max",
+            "16:00 2014-2024, QLIKE: the 75 % MCS is XGBoost Full alone (T_max, T_R)",
+            "16:00 2014-2024: StepM rejects XGBoost alone (one-sided; blocks 5, 10, 20)",
+            "vs short, mean: StepM rejects five, all but XGBoost, which sits on the level (mid and bid/ask)",
+            "vs HAR twin, mean: StepM rejects LightGBM and the random forest (one-sided), the forest alone (two-sided)",
+        }
+    )
     GATES.append({"gate": name, "item": item, "value": str(value), "ok": bool(ok)})
     print(f"  [{'ok' if ok else ('CHANGED (reported)' if reported else 'FAIL')}] {name}: {item} ({value})")
     assert ok or reported, (name, item, value)

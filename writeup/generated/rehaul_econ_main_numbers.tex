@@ -4,41 +4,41 @@
 % Row stems: <Est><Set> (Est = Ridge, Lasso, Enet, Lgbm, Xgb, Rf; Set = Full, Har: the pooled intraday
 % forecasts of the final rerun), CiHar (the closing-interval OLS on the HAR benchmark set), Short (q = -1).
 % ---- per row: Sharpe ratio (D6), mean daily return (% of premium), at mid and at quoted bid/ask
-\providecommand{\rhemShRidgeFull}{}\renewcommand{\rhemShRidgeFull}{1.85}  % poolpt13_ridge_all_features: SR, mid
-\providecommand{\rhemShXRidgeFull}{}\renewcommand{\rhemShXRidgeFull}{1.49}  % ... at quoted bid/ask
-\providecommand{\rhemMeanRidgeFull}{}\renewcommand{\rhemMeanRidgeFull}{13.3}  % ... mean daily return, %, mid
-\providecommand{\rhemMeanXRidgeFull}{}\renewcommand{\rhemMeanXRidgeFull}{10.6}  % ... mean daily return, %, bid/ask
-\providecommand{\rhemShDOneRidgeFull}{}\renewcommand{\rhemShDOneRidgeFull}{1.60}  % ... SR mid, per-year sqrt(N_y), N_y-weighted (tab:rh_econ_sharpe_defs)
-\providecommand{\rhemShDTwoRidgeFull}{}\renewcommand{\rhemShDTwoRidgeFull}{1.87}  % ... SR mid, pooled daily returns, sqrt(252)
-\providecommand{\rhemShLassoFull}{}\renewcommand{\rhemShLassoFull}{1.72}  % poolpt13_lasso_all_features: SR, mid
-\providecommand{\rhemShXLassoFull}{}\renewcommand{\rhemShXLassoFull}{1.36}  % ... at quoted bid/ask
-\providecommand{\rhemMeanLassoFull}{}\renewcommand{\rhemMeanLassoFull}{12.9}  % ... mean daily return, %, mid
+\providecommand{\rhemShRidgeFull}{}\renewcommand{\rhemShRidgeFull}{1.75}  % poolpt13_ridge_all_features: SR, mid
+\providecommand{\rhemShXRidgeFull}{}\renewcommand{\rhemShXRidgeFull}{1.40}  % ... at quoted bid/ask
+\providecommand{\rhemMeanRidgeFull}{}\renewcommand{\rhemMeanRidgeFull}{12.3}  % ... mean daily return, %, mid
+\providecommand{\rhemMeanXRidgeFull}{}\renewcommand{\rhemMeanXRidgeFull}{9.7}  % ... mean daily return, %, bid/ask
+\providecommand{\rhemShDOneRidgeFull}{}\renewcommand{\rhemShDOneRidgeFull}{1.44}  % ... SR mid, per-year sqrt(N_y), N_y-weighted (tab:rh_econ_sharpe_defs)
+\providecommand{\rhemShDTwoRidgeFull}{}\renewcommand{\rhemShDTwoRidgeFull}{1.74}  % ... SR mid, pooled daily returns, sqrt(252)
+\providecommand{\rhemShLassoFull}{}\renewcommand{\rhemShLassoFull}{1.75}  % poolpt13_lasso_all_features: SR, mid
+\providecommand{\rhemShXLassoFull}{}\renewcommand{\rhemShXLassoFull}{1.40}  % ... at quoted bid/ask
+\providecommand{\rhemMeanLassoFull}{}\renewcommand{\rhemMeanLassoFull}{13.0}  % ... mean daily return, %, mid
 \providecommand{\rhemMeanXLassoFull}{}\renewcommand{\rhemMeanXLassoFull}{10.3}  % ... mean daily return, %, bid/ask
-\providecommand{\rhemShDOneLassoFull}{}\renewcommand{\rhemShDOneLassoFull}{1.64}  % ... SR mid, per-year sqrt(N_y), N_y-weighted (tab:rh_econ_sharpe_defs)
-\providecommand{\rhemShDTwoLassoFull}{}\renewcommand{\rhemShDTwoLassoFull}{1.82}  % ... SR mid, pooled daily returns, sqrt(252)
-\providecommand{\rhemShEnetFull}{}\renewcommand{\rhemShEnetFull}{1.94}  % poolpt13_enet_all_features: SR, mid
-\providecommand{\rhemShXEnetFull}{}\renewcommand{\rhemShXEnetFull}{1.58}  % ... at quoted bid/ask
+\providecommand{\rhemShDOneLassoFull}{}\renewcommand{\rhemShDOneLassoFull}{1.62}  % ... SR mid, per-year sqrt(N_y), N_y-weighted (tab:rh_econ_sharpe_defs)
+\providecommand{\rhemShDTwoLassoFull}{}\renewcommand{\rhemShDTwoLassoFull}{1.83}  % ... SR mid, pooled daily returns, sqrt(252)
+\providecommand{\rhemShEnetFull}{}\renewcommand{\rhemShEnetFull}{1.95}  % poolpt13_enet_all_features: SR, mid
+\providecommand{\rhemShXEnetFull}{}\renewcommand{\rhemShXEnetFull}{1.59}  % ... at quoted bid/ask
 \providecommand{\rhemMeanEnetFull}{}\renewcommand{\rhemMeanEnetFull}{13.9}  % ... mean daily return, %, mid
 \providecommand{\rhemMeanXEnetFull}{}\renewcommand{\rhemMeanXEnetFull}{11.3}  % ... mean daily return, %, bid/ask
-\providecommand{\rhemShDOneEnetFull}{}\renewcommand{\rhemShDOneEnetFull}{1.66}  % ... SR mid, per-year sqrt(N_y), N_y-weighted (tab:rh_econ_sharpe_defs)
+\providecommand{\rhemShDOneEnetFull}{}\renewcommand{\rhemShDOneEnetFull}{1.67}  % ... SR mid, per-year sqrt(N_y), N_y-weighted (tab:rh_econ_sharpe_defs)
 \providecommand{\rhemShDTwoEnetFull}{}\renewcommand{\rhemShDTwoEnetFull}{1.96}  % ... SR mid, pooled daily returns, sqrt(252)
-\providecommand{\rhemShLgbmFull}{}\renewcommand{\rhemShLgbmFull}{1.75}  % pooltree_lgbm_all_features: SR, mid
-\providecommand{\rhemShXLgbmFull}{}\renewcommand{\rhemShXLgbmFull}{1.40}  % ... at quoted bid/ask
-\providecommand{\rhemMeanLgbmFull}{}\renewcommand{\rhemMeanLgbmFull}{11.9}  % ... mean daily return, %, mid
-\providecommand{\rhemMeanXLgbmFull}{}\renewcommand{\rhemMeanXLgbmFull}{9.3}  % ... mean daily return, %, bid/ask
-\providecommand{\rhemShDOneLgbmFull}{}\renewcommand{\rhemShDOneLgbmFull}{1.33}  % ... SR mid, per-year sqrt(N_y), N_y-weighted (tab:rh_econ_sharpe_defs)
-\providecommand{\rhemShDTwoLgbmFull}{}\renewcommand{\rhemShDTwoLgbmFull}{1.68}  % ... SR mid, pooled daily returns, sqrt(252)
-\providecommand{\rhemShXgbFull}{}\renewcommand{\rhemShXgbFull}{1.67}  % pooltree_xgb_all_features: SR, mid
-\providecommand{\rhemShXXgbFull}{}\renewcommand{\rhemShXXgbFull}{1.31}  % ... at quoted bid/ask
-\providecommand{\rhemMeanXgbFull}{}\renewcommand{\rhemMeanXgbFull}{11.1}  % ... mean daily return, %, mid
-\providecommand{\rhemMeanXXgbFull}{}\renewcommand{\rhemMeanXXgbFull}{8.4}  % ... mean daily return, %, bid/ask
-\providecommand{\rhemShDOneXgbFull}{}\renewcommand{\rhemShDOneXgbFull}{1.22}  % ... SR mid, per-year sqrt(N_y), N_y-weighted (tab:rh_econ_sharpe_defs)
-\providecommand{\rhemShDTwoXgbFull}{}\renewcommand{\rhemShDTwoXgbFull}{1.56}  % ... SR mid, pooled daily returns, sqrt(252)
-\providecommand{\rhemShRfFull}{}\renewcommand{\rhemShRfFull}{1.96}  % pooltree_rf_all_features: SR, mid
-\providecommand{\rhemShXRfFull}{}\renewcommand{\rhemShXRfFull}{1.60}  % ... at quoted bid/ask
+\providecommand{\rhemShLgbmFull}{}\renewcommand{\rhemShLgbmFull}{1.67}  % pooltree_lgbm_all_features: SR, mid
+\providecommand{\rhemShXLgbmFull}{}\renewcommand{\rhemShXLgbmFull}{1.31}  % ... at quoted bid/ask
+\providecommand{\rhemMeanLgbmFull}{}\renewcommand{\rhemMeanLgbmFull}{11.5}  % ... mean daily return, %, mid
+\providecommand{\rhemMeanXLgbmFull}{}\renewcommand{\rhemMeanXLgbmFull}{8.9}  % ... mean daily return, %, bid/ask
+\providecommand{\rhemShDOneLgbmFull}{}\renewcommand{\rhemShDOneLgbmFull}{1.32}  % ... SR mid, per-year sqrt(N_y), N_y-weighted (tab:rh_econ_sharpe_defs)
+\providecommand{\rhemShDTwoLgbmFull}{}\renewcommand{\rhemShDTwoLgbmFull}{1.62}  % ... SR mid, pooled daily returns, sqrt(252)
+\providecommand{\rhemShXgbFull}{}\renewcommand{\rhemShXgbFull}{1.71}  % pooltree_xgb_all_features: SR, mid
+\providecommand{\rhemShXXgbFull}{}\renewcommand{\rhemShXXgbFull}{1.36}  % ... at quoted bid/ask
+\providecommand{\rhemMeanXgbFull}{}\renewcommand{\rhemMeanXgbFull}{11.6}  % ... mean daily return, %, mid
+\providecommand{\rhemMeanXXgbFull}{}\renewcommand{\rhemMeanXXgbFull}{9.0}  % ... mean daily return, %, bid/ask
+\providecommand{\rhemShDOneXgbFull}{}\renewcommand{\rhemShDOneXgbFull}{1.29}  % ... SR mid, per-year sqrt(N_y), N_y-weighted (tab:rh_econ_sharpe_defs)
+\providecommand{\rhemShDTwoXgbFull}{}\renewcommand{\rhemShDTwoXgbFull}{1.63}  % ... SR mid, pooled daily returns, sqrt(252)
+\providecommand{\rhemShRfFull}{}\renewcommand{\rhemShRfFull}{1.99}  % pooltree_rf_all_features: SR, mid
+\providecommand{\rhemShXRfFull}{}\renewcommand{\rhemShXRfFull}{1.63}  % ... at quoted bid/ask
 \providecommand{\rhemMeanRfFull}{}\renewcommand{\rhemMeanRfFull}{14.1}  % ... mean daily return, %, mid
-\providecommand{\rhemMeanXRfFull}{}\renewcommand{\rhemMeanXRfFull}{11.5}  % ... mean daily return, %, bid/ask
-\providecommand{\rhemShDOneRfFull}{}\renewcommand{\rhemShDOneRfFull}{1.65}  % ... SR mid, per-year sqrt(N_y), N_y-weighted (tab:rh_econ_sharpe_defs)
+\providecommand{\rhemMeanXRfFull}{}\renewcommand{\rhemMeanXRfFull}{11.4}  % ... mean daily return, %, bid/ask
+\providecommand{\rhemShDOneRfFull}{}\renewcommand{\rhemShDOneRfFull}{1.63}  % ... SR mid, per-year sqrt(N_y), N_y-weighted (tab:rh_econ_sharpe_defs)
 \providecommand{\rhemShDTwoRfFull}{}\renewcommand{\rhemShDTwoRfFull}{1.99}  % ... SR mid, pooled daily returns, sqrt(252)
 \providecommand{\rhemShRidgeHar}{}\renewcommand{\rhemShRidgeHar}{0.98}  % poolpt13_ridge_baseline: SR, mid
 \providecommand{\rhemShXRidgeHar}{}\renewcommand{\rhemShXRidgeHar}{0.62}  % ... at quoted bid/ask
@@ -89,54 +89,54 @@
 \providecommand{\rhemShDOneShort}{}\renewcommand{\rhemShDOneShort}{0.77}  % ... SR mid, per-year sqrt(N_y), N_y-weighted (tab:rh_econ_sharpe_defs)
 \providecommand{\rhemShDTwoShort}{}\renewcommand{\rhemShDTwoShort}{0.34}  % ... SR mid, pooled daily returns, sqrt(252)
 % ---- against the short straddle: Delta SR with its bootstrap p; fixed-b t (and p) of the mean differential
-\providecommand{\rhemDShRidgeFullVsShort}{}\renewcommand{\rhemDShRidgeFullVsShort}{1.96}  % poolpt13_ridge_all_features minus the short straddle: Delta SR, mid
-\providecommand{\rhemPDShRidgeFullVsShort}{}\renewcommand{\rhemPDShRidgeFullVsShort}{0.004}  % ... its bootstrap p
-\providecommand{\rhemDShXRidgeFullVsShort}{}\renewcommand{\rhemDShXRidgeFullVsShort}{1.95}  % ... Delta SR at bid/ask
-\providecommand{\rhemPDShXRidgeFullVsShort}{}\renewcommand{\rhemPDShXRidgeFullVsShort}{0.004}  % ... its bootstrap p
-\providecommand{\rhemTRidgeFullVsShort}{}\renewcommand{\rhemTRidgeFullVsShort}{1.89}  % ... fixed-b t of the mean mid return differential (S = 33)
-\providecommand{\rhemPTRidgeFullVsShort}{}\renewcommand{\rhemPTRidgeFullVsShort}{0.076}  % ... its fixed-b p
-\providecommand{\rhemTXRidgeFullVsShort}{}\renewcommand{\rhemTXRidgeFullVsShort}{1.90}  % ... fixed-b t of the mean bid/ask return differential
-\providecommand{\rhemPTXRidgeFullVsShort}{}\renewcommand{\rhemPTXRidgeFullVsShort}{0.075}  % ... its fixed-b p
-\providecommand{\rhemDShLassoFullVsShort}{}\renewcommand{\rhemDShLassoFullVsShort}{1.84}  % poolpt13_lasso_all_features minus the short straddle: Delta SR, mid
-\providecommand{\rhemPDShLassoFullVsShort}{}\renewcommand{\rhemPDShLassoFullVsShort}{0.010}  % ... its bootstrap p
-\providecommand{\rhemDShXLassoFullVsShort}{}\renewcommand{\rhemDShXLassoFullVsShort}{1.82}  % ... Delta SR at bid/ask
+\providecommand{\rhemDShRidgeFullVsShort}{}\renewcommand{\rhemDShRidgeFullVsShort}{1.87}  % poolpt13_ridge_all_features minus the short straddle: Delta SR, mid
+\providecommand{\rhemPDShRidgeFullVsShort}{}\renewcommand{\rhemPDShRidgeFullVsShort}{0.007}  % ... its bootstrap p
+\providecommand{\rhemDShXRidgeFullVsShort}{}\renewcommand{\rhemDShXRidgeFullVsShort}{1.86}  % ... Delta SR at bid/ask
+\providecommand{\rhemPDShXRidgeFullVsShort}{}\renewcommand{\rhemPDShXRidgeFullVsShort}{0.007}  % ... its bootstrap p
+\providecommand{\rhemTRidgeFullVsShort}{}\renewcommand{\rhemTRidgeFullVsShort}{1.70}  % ... fixed-b t of the mean mid return differential (S = 33)
+\providecommand{\rhemPTRidgeFullVsShort}{}\renewcommand{\rhemPTRidgeFullVsShort}{0.110}  % ... its fixed-b p
+\providecommand{\rhemTXRidgeFullVsShort}{}\renewcommand{\rhemTXRidgeFullVsShort}{1.70}  % ... fixed-b t of the mean bid/ask return differential
+\providecommand{\rhemPTXRidgeFullVsShort}{}\renewcommand{\rhemPTXRidgeFullVsShort}{0.109}  % ... its fixed-b p
+\providecommand{\rhemDShLassoFullVsShort}{}\renewcommand{\rhemDShLassoFullVsShort}{1.87}  % poolpt13_lasso_all_features minus the short straddle: Delta SR, mid
+\providecommand{\rhemPDShLassoFullVsShort}{}\renewcommand{\rhemPDShLassoFullVsShort}{0.009}  % ... its bootstrap p
+\providecommand{\rhemDShXLassoFullVsShort}{}\renewcommand{\rhemDShXLassoFullVsShort}{1.85}  % ... Delta SR at bid/ask
 \providecommand{\rhemPDShXLassoFullVsShort}{}\renewcommand{\rhemPDShXLassoFullVsShort}{0.009}  % ... its bootstrap p
-\providecommand{\rhemTLassoFullVsShort}{}\renewcommand{\rhemTLassoFullVsShort}{1.97}  % ... fixed-b t of the mean mid return differential (S = 33)
-\providecommand{\rhemPTLassoFullVsShort}{}\renewcommand{\rhemPTLassoFullVsShort}{0.066}  % ... its fixed-b p
-\providecommand{\rhemTXLassoFullVsShort}{}\renewcommand{\rhemTXLassoFullVsShort}{1.97}  % ... fixed-b t of the mean bid/ask return differential
-\providecommand{\rhemPTXLassoFullVsShort}{}\renewcommand{\rhemPTXLassoFullVsShort}{0.065}  % ... its fixed-b p
-\providecommand{\rhemDShEnetFullVsShort}{}\renewcommand{\rhemDShEnetFullVsShort}{2.06}  % poolpt13_enet_all_features minus the short straddle: Delta SR, mid
+\providecommand{\rhemTLassoFullVsShort}{}\renewcommand{\rhemTLassoFullVsShort}{1.93}  % ... fixed-b t of the mean mid return differential (S = 33)
+\providecommand{\rhemPTLassoFullVsShort}{}\renewcommand{\rhemPTLassoFullVsShort}{0.071}  % ... its fixed-b p
+\providecommand{\rhemTXLassoFullVsShort}{}\renewcommand{\rhemTXLassoFullVsShort}{1.93}  % ... fixed-b t of the mean bid/ask return differential
+\providecommand{\rhemPTXLassoFullVsShort}{}\renewcommand{\rhemPTXLassoFullVsShort}{0.070}  % ... its fixed-b p
+\providecommand{\rhemDShEnetFullVsShort}{}\renewcommand{\rhemDShEnetFullVsShort}{2.07}  % poolpt13_enet_all_features minus the short straddle: Delta SR, mid
 \providecommand{\rhemPDShEnetFullVsShort}{}\renewcommand{\rhemPDShEnetFullVsShort}{0.003}  % ... its bootstrap p
-\providecommand{\rhemDShXEnetFullVsShort}{}\renewcommand{\rhemDShXEnetFullVsShort}{2.04}  % ... Delta SR at bid/ask
+\providecommand{\rhemDShXEnetFullVsShort}{}\renewcommand{\rhemDShXEnetFullVsShort}{2.05}  % ... Delta SR at bid/ask
 \providecommand{\rhemPDShXEnetFullVsShort}{}\renewcommand{\rhemPDShXEnetFullVsShort}{0.003}  % ... its bootstrap p
-\providecommand{\rhemTEnetFullVsShort}{}\renewcommand{\rhemTEnetFullVsShort}{1.94}  % ... fixed-b t of the mean mid return differential (S = 33)
-\providecommand{\rhemPTEnetFullVsShort}{}\renewcommand{\rhemPTEnetFullVsShort}{0.069}  % ... its fixed-b p
+\providecommand{\rhemTEnetFullVsShort}{}\renewcommand{\rhemTEnetFullVsShort}{1.95}  % ... fixed-b t of the mean mid return differential (S = 33)
+\providecommand{\rhemPTEnetFullVsShort}{}\renewcommand{\rhemPTEnetFullVsShort}{0.068}  % ... its fixed-b p
 \providecommand{\rhemTXEnetFullVsShort}{}\renewcommand{\rhemTXEnetFullVsShort}{1.95}  % ... fixed-b t of the mean bid/ask return differential
 \providecommand{\rhemPTXEnetFullVsShort}{}\renewcommand{\rhemPTXEnetFullVsShort}{0.068}  % ... its fixed-b p
-\providecommand{\rhemDShLgbmFullVsShort}{}\renewcommand{\rhemDShLgbmFullVsShort}{1.87}  % pooltree_lgbm_all_features minus the short straddle: Delta SR, mid
-\providecommand{\rhemPDShLgbmFullVsShort}{}\renewcommand{\rhemPDShLgbmFullVsShort}{0.004}  % ... its bootstrap p
-\providecommand{\rhemDShXLgbmFullVsShort}{}\renewcommand{\rhemDShXLgbmFullVsShort}{1.86}  % ... Delta SR at bid/ask
-\providecommand{\rhemPDShXLgbmFullVsShort}{}\renewcommand{\rhemPDShXLgbmFullVsShort}{0.003}  % ... its bootstrap p
-\providecommand{\rhemTLgbmFullVsShort}{}\renewcommand{\rhemTLgbmFullVsShort}{1.69}  % ... fixed-b t of the mean mid return differential (S = 33)
-\providecommand{\rhemPTLgbmFullVsShort}{}\renewcommand{\rhemPTLgbmFullVsShort}{0.112}  % ... its fixed-b p
+\providecommand{\rhemDShLgbmFullVsShort}{}\renewcommand{\rhemDShLgbmFullVsShort}{1.78}  % pooltree_lgbm_all_features minus the short straddle: Delta SR, mid
+\providecommand{\rhemPDShLgbmFullVsShort}{}\renewcommand{\rhemPDShLgbmFullVsShort}{0.006}  % ... its bootstrap p
+\providecommand{\rhemDShXLgbmFullVsShort}{}\renewcommand{\rhemDShXLgbmFullVsShort}{1.77}  % ... Delta SR at bid/ask
+\providecommand{\rhemPDShXLgbmFullVsShort}{}\renewcommand{\rhemPDShXLgbmFullVsShort}{0.007}  % ... its bootstrap p
+\providecommand{\rhemTLgbmFullVsShort}{}\renewcommand{\rhemTLgbmFullVsShort}{1.68}  % ... fixed-b t of the mean mid return differential (S = 33)
+\providecommand{\rhemPTLgbmFullVsShort}{}\renewcommand{\rhemPTLgbmFullVsShort}{0.113}  % ... its fixed-b p
 \providecommand{\rhemTXLgbmFullVsShort}{}\renewcommand{\rhemTXLgbmFullVsShort}{1.69}  % ... fixed-b t of the mean bid/ask return differential
-\providecommand{\rhemPTXLgbmFullVsShort}{}\renewcommand{\rhemPTXLgbmFullVsShort}{0.111}  % ... its fixed-b p
-\providecommand{\rhemDShXgbFullVsShort}{}\renewcommand{\rhemDShXgbFullVsShort}{1.78}  % pooltree_xgb_all_features minus the short straddle: Delta SR, mid
-\providecommand{\rhemPDShXgbFullVsShort}{}\renewcommand{\rhemPDShXgbFullVsShort}{0.006}  % ... its bootstrap p
-\providecommand{\rhemDShXXgbFullVsShort}{}\renewcommand{\rhemDShXXgbFullVsShort}{1.77}  % ... Delta SR at bid/ask
-\providecommand{\rhemPDShXXgbFullVsShort}{}\renewcommand{\rhemPDShXXgbFullVsShort}{0.007}  % ... its bootstrap p
-\providecommand{\rhemTXgbFullVsShort}{}\renewcommand{\rhemTXgbFullVsShort}{1.51}  % ... fixed-b t of the mean mid return differential (S = 33)
-\providecommand{\rhemPTXgbFullVsShort}{}\renewcommand{\rhemPTXgbFullVsShort}{0.153}  % ... its fixed-b p
-\providecommand{\rhemTXXgbFullVsShort}{}\renewcommand{\rhemTXXgbFullVsShort}{1.51}  % ... fixed-b t of the mean bid/ask return differential
-\providecommand{\rhemPTXXgbFullVsShort}{}\renewcommand{\rhemPTXXgbFullVsShort}{0.151}  % ... its fixed-b p
-\providecommand{\rhemDShRfFullVsShort}{}\renewcommand{\rhemDShRfFullVsShort}{2.07}  % pooltree_rf_all_features minus the short straddle: Delta SR, mid
-\providecommand{\rhemPDShRfFullVsShort}{}\renewcommand{\rhemPDShRfFullVsShort}{0.002}  % ... its bootstrap p
-\providecommand{\rhemDShXRfFullVsShort}{}\renewcommand{\rhemDShXRfFullVsShort}{2.06}  % ... Delta SR at bid/ask
-\providecommand{\rhemPDShXRfFullVsShort}{}\renewcommand{\rhemPDShXRfFullVsShort}{0.002}  % ... its bootstrap p
-\providecommand{\rhemTRfFullVsShort}{}\renewcommand{\rhemTRfFullVsShort}{2.17}  % ... fixed-b t of the mean mid return differential (S = 33)
-\providecommand{\rhemPTRfFullVsShort}{}\renewcommand{\rhemPTRfFullVsShort}{0.043}  % ... its fixed-b p
-\providecommand{\rhemTXRfFullVsShort}{}\renewcommand{\rhemTXRfFullVsShort}{2.18}  % ... fixed-b t of the mean bid/ask return differential
-\providecommand{\rhemPTXRfFullVsShort}{}\renewcommand{\rhemPTXRfFullVsShort}{0.043}  % ... its fixed-b p
+\providecommand{\rhemPTXLgbmFullVsShort}{}\renewcommand{\rhemPTXLgbmFullVsShort}{0.112}  % ... its fixed-b p
+\providecommand{\rhemDShXgbFullVsShort}{}\renewcommand{\rhemDShXgbFullVsShort}{1.83}  % pooltree_xgb_all_features minus the short straddle: Delta SR, mid
+\providecommand{\rhemPDShXgbFullVsShort}{}\renewcommand{\rhemPDShXgbFullVsShort}{0.004}  % ... its bootstrap p
+\providecommand{\rhemDShXXgbFullVsShort}{}\renewcommand{\rhemDShXXgbFullVsShort}{1.82}  % ... Delta SR at bid/ask
+\providecommand{\rhemPDShXXgbFullVsShort}{}\renewcommand{\rhemPDShXXgbFullVsShort}{0.005}  % ... its bootstrap p
+\providecommand{\rhemTXgbFullVsShort}{}\renewcommand{\rhemTXgbFullVsShort}{1.61}  % ... fixed-b t of the mean mid return differential (S = 33)
+\providecommand{\rhemPTXgbFullVsShort}{}\renewcommand{\rhemPTXgbFullVsShort}{0.127}  % ... its fixed-b p
+\providecommand{\rhemTXXgbFullVsShort}{}\renewcommand{\rhemTXXgbFullVsShort}{1.62}  % ... fixed-b t of the mean bid/ask return differential
+\providecommand{\rhemPTXXgbFullVsShort}{}\renewcommand{\rhemPTXXgbFullVsShort}{0.126}  % ... its fixed-b p
+\providecommand{\rhemDShRfFullVsShort}{}\renewcommand{\rhemDShRfFullVsShort}{2.10}  % pooltree_rf_all_features minus the short straddle: Delta SR, mid
+\providecommand{\rhemPDShRfFullVsShort}{}\renewcommand{\rhemPDShRfFullVsShort}{0.001}  % ... its bootstrap p
+\providecommand{\rhemDShXRfFullVsShort}{}\renewcommand{\rhemDShXRfFullVsShort}{2.09}  % ... Delta SR at bid/ask
+\providecommand{\rhemPDShXRfFullVsShort}{}\renewcommand{\rhemPDShXRfFullVsShort}{0.001}  % ... its bootstrap p
+\providecommand{\rhemTRfFullVsShort}{}\renewcommand{\rhemTRfFullVsShort}{2.14}  % ... fixed-b t of the mean mid return differential (S = 33)
+\providecommand{\rhemPTRfFullVsShort}{}\renewcommand{\rhemPTRfFullVsShort}{0.046}  % ... its fixed-b p
+\providecommand{\rhemTXRfFullVsShort}{}\renewcommand{\rhemTXRfFullVsShort}{2.15}  % ... fixed-b t of the mean bid/ask return differential
+\providecommand{\rhemPTXRfFullVsShort}{}\renewcommand{\rhemPTXRfFullVsShort}{0.046}  % ... its fixed-b p
 \providecommand{\rhemDShRidgeHarVsShort}{}\renewcommand{\rhemDShRidgeHarVsShort}{1.10}  % poolpt13_ridge_baseline minus the short straddle: Delta SR, mid
 \providecommand{\rhemPDShRidgeHarVsShort}{}\renewcommand{\rhemPDShRidgeHarVsShort}{0.178}  % ... its bootstrap p
 \providecommand{\rhemDShXRidgeHarVsShort}{}\renewcommand{\rhemDShXRidgeHarVsShort}{1.08}  % ... Delta SR at bid/ask
@@ -194,66 +194,66 @@
 \providecommand{\rhemTXCiHarVsShort}{}\renewcommand{\rhemTXCiHarVsShort}{1.15}  % ... fixed-b t of the mean bid/ask return differential
 \providecommand{\rhemPTXCiHarVsShort}{}\renewcommand{\rhemPTXCiHarVsShort}{0.273}  % ... its fixed-b p
 % ---- Full minus its own HAR row (same model class); every pooled row minus CI-HAR
-\providecommand{\rhemDShRidgeFullVsHar}{}\renewcommand{\rhemDShRidgeFullVsHar}{0.86}  % ridge: Full minus HAR, Delta SR, mid
-\providecommand{\rhemPDShRidgeFullVsHar}{}\renewcommand{\rhemPDShRidgeFullVsHar}{0.161}  % ... its bootstrap p
-\providecommand{\rhemDShXRidgeFullVsHar}{}\renewcommand{\rhemDShXRidgeFullVsHar}{0.87}  % ... Delta SR at bid/ask
-\providecommand{\rhemPDShXRidgeFullVsHar}{}\renewcommand{\rhemPDShXRidgeFullVsHar}{0.152}  % ... its bootstrap p
-\providecommand{\rhemDShLassoFullVsHar}{}\renewcommand{\rhemDShLassoFullVsHar}{0.74}  % lasso: Full minus HAR, Delta SR, mid
-\providecommand{\rhemPDShLassoFullVsHar}{}\renewcommand{\rhemPDShLassoFullVsHar}{0.227}  % ... its bootstrap p
-\providecommand{\rhemDShXLassoFullVsHar}{}\renewcommand{\rhemDShXLassoFullVsHar}{0.74}  % ... Delta SR at bid/ask
-\providecommand{\rhemPDShXLassoFullVsHar}{}\renewcommand{\rhemPDShXLassoFullVsHar}{0.222}  % ... its bootstrap p
-\providecommand{\rhemDShEnetFullVsHar}{}\renewcommand{\rhemDShEnetFullVsHar}{0.96}  % enet: Full minus HAR, Delta SR, mid
-\providecommand{\rhemPDShEnetFullVsHar}{}\renewcommand{\rhemPDShEnetFullVsHar}{0.135}  % ... its bootstrap p
-\providecommand{\rhemDShXEnetFullVsHar}{}\renewcommand{\rhemDShXEnetFullVsHar}{0.96}  % ... Delta SR at bid/ask
-\providecommand{\rhemPDShXEnetFullVsHar}{}\renewcommand{\rhemPDShXEnetFullVsHar}{0.131}  % ... its bootstrap p
-\providecommand{\rhemDShLgbmFullVsHar}{}\renewcommand{\rhemDShLgbmFullVsHar}{1.14}  % lgbm: Full minus HAR, Delta SR, mid
-\providecommand{\rhemPDShLgbmFullVsHar}{}\renewcommand{\rhemPDShLgbmFullVsHar}{0.051}  % ... its bootstrap p
-\providecommand{\rhemDShXLgbmFullVsHar}{}\renewcommand{\rhemDShXLgbmFullVsHar}{1.15}  % ... Delta SR at bid/ask
-\providecommand{\rhemPDShXLgbmFullVsHar}{}\renewcommand{\rhemPDShXLgbmFullVsHar}{0.048}  % ... its bootstrap p
-\providecommand{\rhemDShXgbFullVsHar}{}\renewcommand{\rhemDShXgbFullVsHar}{0.76}  % xgb: Full minus HAR, Delta SR, mid
-\providecommand{\rhemPDShXgbFullVsHar}{}\renewcommand{\rhemPDShXgbFullVsHar}{0.141}  % ... its bootstrap p
-\providecommand{\rhemDShXXgbFullVsHar}{}\renewcommand{\rhemDShXXgbFullVsHar}{0.76}  % ... Delta SR at bid/ask
-\providecommand{\rhemPDShXXgbFullVsHar}{}\renewcommand{\rhemPDShXXgbFullVsHar}{0.138}  % ... its bootstrap p
-\providecommand{\rhemDShRfFullVsHar}{}\renewcommand{\rhemDShRfFullVsHar}{1.95}  % rf: Full minus HAR, Delta SR, mid
+\providecommand{\rhemDShRidgeFullVsHar}{}\renewcommand{\rhemDShRidgeFullVsHar}{0.77}  % ridge: Full minus HAR, Delta SR, mid
+\providecommand{\rhemPDShRidgeFullVsHar}{}\renewcommand{\rhemPDShRidgeFullVsHar}{0.217}  % ... its bootstrap p
+\providecommand{\rhemDShXRidgeFullVsHar}{}\renewcommand{\rhemDShXRidgeFullVsHar}{0.78}  % ... Delta SR at bid/ask
+\providecommand{\rhemPDShXRidgeFullVsHar}{}\renewcommand{\rhemPDShXRidgeFullVsHar}{0.207}  % ... its bootstrap p
+\providecommand{\rhemDShLassoFullVsHar}{}\renewcommand{\rhemDShLassoFullVsHar}{0.77}  % lasso: Full minus HAR, Delta SR, mid
+\providecommand{\rhemPDShLassoFullVsHar}{}\renewcommand{\rhemPDShLassoFullVsHar}{0.206}  % ... its bootstrap p
+\providecommand{\rhemDShXLassoFullVsHar}{}\renewcommand{\rhemDShXLassoFullVsHar}{0.77}  % ... Delta SR at bid/ask
+\providecommand{\rhemPDShXLassoFullVsHar}{}\renewcommand{\rhemPDShXLassoFullVsHar}{0.202}  % ... its bootstrap p
+\providecommand{\rhemDShEnetFullVsHar}{}\renewcommand{\rhemDShEnetFullVsHar}{0.97}  % enet: Full minus HAR, Delta SR, mid
+\providecommand{\rhemPDShEnetFullVsHar}{}\renewcommand{\rhemPDShEnetFullVsHar}{0.132}  % ... its bootstrap p
+\providecommand{\rhemDShXEnetFullVsHar}{}\renewcommand{\rhemDShXEnetFullVsHar}{0.97}  % ... Delta SR at bid/ask
+\providecommand{\rhemPDShXEnetFullVsHar}{}\renewcommand{\rhemPDShXEnetFullVsHar}{0.128}  % ... its bootstrap p
+\providecommand{\rhemDShLgbmFullVsHar}{}\renewcommand{\rhemDShLgbmFullVsHar}{1.06}  % lgbm: Full minus HAR, Delta SR, mid
+\providecommand{\rhemPDShLgbmFullVsHar}{}\renewcommand{\rhemPDShLgbmFullVsHar}{0.063}  % ... its bootstrap p
+\providecommand{\rhemDShXLgbmFullVsHar}{}\renewcommand{\rhemDShXLgbmFullVsHar}{1.06}  % ... Delta SR at bid/ask
+\providecommand{\rhemPDShXLgbmFullVsHar}{}\renewcommand{\rhemPDShXLgbmFullVsHar}{0.061}  % ... its bootstrap p
+\providecommand{\rhemDShXgbFullVsHar}{}\renewcommand{\rhemDShXgbFullVsHar}{0.81}  % xgb: Full minus HAR, Delta SR, mid
+\providecommand{\rhemPDShXgbFullVsHar}{}\renewcommand{\rhemPDShXgbFullVsHar}{0.116}  % ... its bootstrap p
+\providecommand{\rhemDShXXgbFullVsHar}{}\renewcommand{\rhemDShXXgbFullVsHar}{0.81}  % ... Delta SR at bid/ask
+\providecommand{\rhemPDShXXgbFullVsHar}{}\renewcommand{\rhemPDShXXgbFullVsHar}{0.114}  % ... its bootstrap p
+\providecommand{\rhemDShRfFullVsHar}{}\renewcommand{\rhemDShRfFullVsHar}{1.98}  % rf: Full minus HAR, Delta SR, mid
 \providecommand{\rhemPDShRfFullVsHar}{}\renewcommand{\rhemPDShRfFullVsHar}{0.007}  % ... its bootstrap p
-\providecommand{\rhemDShXRfFullVsHar}{}\renewcommand{\rhemDShXRfFullVsHar}{1.93}  % ... Delta SR at bid/ask
+\providecommand{\rhemDShXRfFullVsHar}{}\renewcommand{\rhemDShXRfFullVsHar}{1.96}  % ... Delta SR at bid/ask
 \providecommand{\rhemPDShXRfFullVsHar}{}\renewcommand{\rhemPDShXRfFullVsHar}{0.007}  % ... its bootstrap p
-\providecommand{\rhemDShRidgeFullVsCiHar}{}\renewcommand{\rhemDShRidgeFullVsCiHar}{0.86}  % poolpt13_ridge_all_features minus CI-HAR: Delta SR, mid
-\providecommand{\rhemPDShRidgeFullVsCiHar}{}\renewcommand{\rhemPDShRidgeFullVsCiHar}{0.140}  % ... its bootstrap p
-\providecommand{\rhemDShXRidgeFullVsCiHar}{}\renewcommand{\rhemDShXRidgeFullVsCiHar}{0.86}  % ... Delta SR at bid/ask
-\providecommand{\rhemPDShXRidgeFullVsCiHar}{}\renewcommand{\rhemPDShXRidgeFullVsCiHar}{0.136}  % ... its bootstrap p
-\providecommand{\rhemTRidgeFullVsCiHar}{}\renewcommand{\rhemTRidgeFullVsCiHar}{1.30}  % ... fixed-b t of the mean mid return differential
-\providecommand{\rhemPTRidgeFullVsCiHar}{}\renewcommand{\rhemPTRidgeFullVsCiHar}{0.215}  % ... its fixed-b p
-\providecommand{\rhemDShLassoFullVsCiHar}{}\renewcommand{\rhemDShLassoFullVsCiHar}{0.74}  % poolpt13_lasso_all_features minus CI-HAR: Delta SR, mid
-\providecommand{\rhemPDShLassoFullVsCiHar}{}\renewcommand{\rhemPDShLassoFullVsCiHar}{0.221}  % ... its bootstrap p
-\providecommand{\rhemDShXLassoFullVsCiHar}{}\renewcommand{\rhemDShXLassoFullVsCiHar}{0.74}  % ... Delta SR at bid/ask
-\providecommand{\rhemPDShXLassoFullVsCiHar}{}\renewcommand{\rhemPDShXLassoFullVsCiHar}{0.219}  % ... its bootstrap p
-\providecommand{\rhemTLassoFullVsCiHar}{}\renewcommand{\rhemTLassoFullVsCiHar}{1.18}  % ... fixed-b t of the mean mid return differential
-\providecommand{\rhemPTLassoFullVsCiHar}{}\renewcommand{\rhemPTLassoFullVsCiHar}{0.260}  % ... its fixed-b p
-\providecommand{\rhemDShEnetFullVsCiHar}{}\renewcommand{\rhemDShEnetFullVsCiHar}{0.95}  % poolpt13_enet_all_features minus CI-HAR: Delta SR, mid
-\providecommand{\rhemPDShEnetFullVsCiHar}{}\renewcommand{\rhemPDShEnetFullVsCiHar}{0.114}  % ... its bootstrap p
-\providecommand{\rhemDShXEnetFullVsCiHar}{}\renewcommand{\rhemDShXEnetFullVsCiHar}{0.96}  % ... Delta SR at bid/ask
-\providecommand{\rhemPDShXEnetFullVsCiHar}{}\renewcommand{\rhemPDShXEnetFullVsCiHar}{0.111}  % ... its bootstrap p
-\providecommand{\rhemTEnetFullVsCiHar}{}\renewcommand{\rhemTEnetFullVsCiHar}{1.44}  % ... fixed-b t of the mean mid return differential
-\providecommand{\rhemPTEnetFullVsCiHar}{}\renewcommand{\rhemPTEnetFullVsCiHar}{0.171}  % ... its fixed-b p
-\providecommand{\rhemDShLgbmFullVsCiHar}{}\renewcommand{\rhemDShLgbmFullVsCiHar}{0.76}  % pooltree_lgbm_all_features minus CI-HAR: Delta SR, mid
-\providecommand{\rhemPDShLgbmFullVsCiHar}{}\renewcommand{\rhemPDShLgbmFullVsCiHar}{0.155}  % ... its bootstrap p
-\providecommand{\rhemDShXLgbmFullVsCiHar}{}\renewcommand{\rhemDShXLgbmFullVsCiHar}{0.77}  % ... Delta SR at bid/ask
-\providecommand{\rhemPDShXLgbmFullVsCiHar}{}\renewcommand{\rhemPDShXLgbmFullVsCiHar}{0.147}  % ... its bootstrap p
-\providecommand{\rhemTLgbmFullVsCiHar}{}\renewcommand{\rhemTLgbmFullVsCiHar}{0.99}  % ... fixed-b t of the mean mid return differential
-\providecommand{\rhemPTLgbmFullVsCiHar}{}\renewcommand{\rhemPTLgbmFullVsCiHar}{0.343}  % ... its fixed-b p
-\providecommand{\rhemDShXgbFullVsCiHar}{}\renewcommand{\rhemDShXgbFullVsCiHar}{0.68}  % pooltree_xgb_all_features minus CI-HAR: Delta SR, mid
-\providecommand{\rhemPDShXgbFullVsCiHar}{}\renewcommand{\rhemPDShXgbFullVsCiHar}{0.220}  % ... its bootstrap p
-\providecommand{\rhemDShXXgbFullVsCiHar}{}\renewcommand{\rhemDShXXgbFullVsCiHar}{0.69}  % ... Delta SR at bid/ask
-\providecommand{\rhemPDShXXgbFullVsCiHar}{}\renewcommand{\rhemPDShXXgbFullVsCiHar}{0.215}  % ... its bootstrap p
-\providecommand{\rhemTXgbFullVsCiHar}{}\renewcommand{\rhemTXgbFullVsCiHar}{0.72}  % ... fixed-b t of the mean mid return differential
-\providecommand{\rhemPTXgbFullVsCiHar}{}\renewcommand{\rhemPTXgbFullVsCiHar}{0.490}  % ... its fixed-b p
-\providecommand{\rhemDShRfFullVsCiHar}{}\renewcommand{\rhemDShRfFullVsCiHar}{0.97}  % pooltree_rf_all_features minus CI-HAR: Delta SR, mid
-\providecommand{\rhemPDShRfFullVsCiHar}{}\renewcommand{\rhemPDShRfFullVsCiHar}{0.107}  % ... its bootstrap p
-\providecommand{\rhemDShXRfFullVsCiHar}{}\renewcommand{\rhemDShXRfFullVsCiHar}{0.97}  % ... Delta SR at bid/ask
-\providecommand{\rhemPDShXRfFullVsCiHar}{}\renewcommand{\rhemPDShXRfFullVsCiHar}{0.103}  % ... its bootstrap p
-\providecommand{\rhemTRfFullVsCiHar}{}\renewcommand{\rhemTRfFullVsCiHar}{1.72}  % ... fixed-b t of the mean mid return differential
-\providecommand{\rhemPTRfFullVsCiHar}{}\renewcommand{\rhemPTRfFullVsCiHar}{0.104}  % ... its fixed-b p
+\providecommand{\rhemDShRidgeFullVsCiHar}{}\renewcommand{\rhemDShRidgeFullVsCiHar}{0.77}  % poolpt13_ridge_all_features minus CI-HAR: Delta SR, mid
+\providecommand{\rhemPDShRidgeFullVsCiHar}{}\renewcommand{\rhemPDShRidgeFullVsCiHar}{0.198}  % ... its bootstrap p
+\providecommand{\rhemDShXRidgeFullVsCiHar}{}\renewcommand{\rhemDShXRidgeFullVsCiHar}{0.77}  % ... Delta SR at bid/ask
+\providecommand{\rhemPDShXRidgeFullVsCiHar}{}\renewcommand{\rhemPDShXRidgeFullVsCiHar}{0.191}  % ... its bootstrap p
+\providecommand{\rhemTRidgeFullVsCiHar}{}\renewcommand{\rhemTRidgeFullVsCiHar}{0.98}  % ... fixed-b t of the mean mid return differential
+\providecommand{\rhemPTRidgeFullVsCiHar}{}\renewcommand{\rhemPTRidgeFullVsCiHar}{0.347}  % ... its fixed-b p
+\providecommand{\rhemDShLassoFullVsCiHar}{}\renewcommand{\rhemDShLassoFullVsCiHar}{0.77}  % poolpt13_lasso_all_features minus CI-HAR: Delta SR, mid
+\providecommand{\rhemPDShLassoFullVsCiHar}{}\renewcommand{\rhemPDShLassoFullVsCiHar}{0.200}  % ... its bootstrap p
+\providecommand{\rhemDShXLassoFullVsCiHar}{}\renewcommand{\rhemDShXLassoFullVsCiHar}{0.77}  % ... Delta SR at bid/ask
+\providecommand{\rhemPDShXLassoFullVsCiHar}{}\renewcommand{\rhemPDShXLassoFullVsCiHar}{0.199}  % ... its bootstrap p
+\providecommand{\rhemTLassoFullVsCiHar}{}\renewcommand{\rhemTLassoFullVsCiHar}{1.21}  % ... fixed-b t of the mean mid return differential
+\providecommand{\rhemPTLassoFullVsCiHar}{}\renewcommand{\rhemPTLassoFullVsCiHar}{0.250}  % ... its fixed-b p
+\providecommand{\rhemDShEnetFullVsCiHar}{}\renewcommand{\rhemDShEnetFullVsCiHar}{0.97}  % poolpt13_enet_all_features minus CI-HAR: Delta SR, mid
+\providecommand{\rhemPDShEnetFullVsCiHar}{}\renewcommand{\rhemPDShEnetFullVsCiHar}{0.109}  % ... its bootstrap p
+\providecommand{\rhemDShXEnetFullVsCiHar}{}\renewcommand{\rhemDShXEnetFullVsCiHar}{0.97}  % ... Delta SR at bid/ask
+\providecommand{\rhemPDShXEnetFullVsCiHar}{}\renewcommand{\rhemPDShXEnetFullVsCiHar}{0.107}  % ... its bootstrap p
+\providecommand{\rhemTEnetFullVsCiHar}{}\renewcommand{\rhemTEnetFullVsCiHar}{1.42}  % ... fixed-b t of the mean mid return differential
+\providecommand{\rhemPTEnetFullVsCiHar}{}\renewcommand{\rhemPTEnetFullVsCiHar}{0.177}  % ... its fixed-b p
+\providecommand{\rhemDShLgbmFullVsCiHar}{}\renewcommand{\rhemDShLgbmFullVsCiHar}{0.68}  % pooltree_lgbm_all_features minus CI-HAR: Delta SR, mid
+\providecommand{\rhemPDShLgbmFullVsCiHar}{}\renewcommand{\rhemPDShLgbmFullVsCiHar}{0.216}  % ... its bootstrap p
+\providecommand{\rhemDShXLgbmFullVsCiHar}{}\renewcommand{\rhemDShXLgbmFullVsCiHar}{0.68}  % ... Delta SR at bid/ask
+\providecommand{\rhemPDShXLgbmFullVsCiHar}{}\renewcommand{\rhemPDShXLgbmFullVsCiHar}{0.209}  % ... its bootstrap p
+\providecommand{\rhemTLgbmFullVsCiHar}{}\renewcommand{\rhemTLgbmFullVsCiHar}{0.90}  % ... fixed-b t of the mean mid return differential
+\providecommand{\rhemPTLgbmFullVsCiHar}{}\renewcommand{\rhemPTLgbmFullVsCiHar}{0.388}  % ... its fixed-b p
+\providecommand{\rhemDShXgbFullVsCiHar}{}\renewcommand{\rhemDShXgbFullVsCiHar}{0.73}  % pooltree_xgb_all_features minus CI-HAR: Delta SR, mid
+\providecommand{\rhemPDShXgbFullVsCiHar}{}\renewcommand{\rhemPDShXgbFullVsCiHar}{0.189}  % ... its bootstrap p
+\providecommand{\rhemDShXXgbFullVsCiHar}{}\renewcommand{\rhemDShXXgbFullVsCiHar}{0.73}  % ... Delta SR at bid/ask
+\providecommand{\rhemPDShXXgbFullVsCiHar}{}\renewcommand{\rhemPDShXXgbFullVsCiHar}{0.184}  % ... its bootstrap p
+\providecommand{\rhemTXgbFullVsCiHar}{}\renewcommand{\rhemTXgbFullVsCiHar}{0.88}  % ... fixed-b t of the mean mid return differential
+\providecommand{\rhemPTXgbFullVsCiHar}{}\renewcommand{\rhemPTXgbFullVsCiHar}{0.398}  % ... its fixed-b p
+\providecommand{\rhemDShRfFullVsCiHar}{}\renewcommand{\rhemDShRfFullVsCiHar}{1.00}  % pooltree_rf_all_features minus CI-HAR: Delta SR, mid
+\providecommand{\rhemPDShRfFullVsCiHar}{}\renewcommand{\rhemPDShRfFullVsCiHar}{0.097}  % ... its bootstrap p
+\providecommand{\rhemDShXRfFullVsCiHar}{}\renewcommand{\rhemDShXRfFullVsCiHar}{1.01}  % ... Delta SR at bid/ask
+\providecommand{\rhemPDShXRfFullVsCiHar}{}\renewcommand{\rhemPDShXRfFullVsCiHar}{0.093}  % ... its bootstrap p
+\providecommand{\rhemTRfFullVsCiHar}{}\renewcommand{\rhemTRfFullVsCiHar}{1.69}  % ... fixed-b t of the mean mid return differential
+\providecommand{\rhemPTRfFullVsCiHar}{}\renewcommand{\rhemPTRfFullVsCiHar}{0.111}  % ... its fixed-b p
 \providecommand{\rhemDShRidgeHarVsCiHar}{}\renewcommand{\rhemDShRidgeHarVsCiHar}{0.00}  % poolpt13_ridge_baseline minus CI-HAR: Delta SR, mid
 \providecommand{\rhemPDShRidgeHarVsCiHar}{}\renewcommand{\rhemPDShRidgeHarVsCiHar}{0.996}  % ... its bootstrap p
 \providecommand{\rhemDShXRidgeHarVsCiHar}{}\renewcommand{\rhemDShXRidgeHarVsCiHar}{\ensuremath{-}0.01}  % ... Delta SR at bid/ask
@@ -296,35 +296,35 @@
 \providecommand{\rhemMeanOlsHar}{}\renewcommand{\rhemMeanOlsHar}{7.2}  % ... mean daily return, %, mid
 \providecommand{\rhemDShOlsHarVsShort}{}\renewcommand{\rhemDShOlsHarVsShort}{1.10}  % ... minus the short straddle: Delta SR, mid
 \providecommand{\rhemPDShOlsHarVsShort}{}\renewcommand{\rhemPDShOlsHarVsShort}{0.178}  % ... its bootstrap p
-\providecommand{\rhemDShRidgeFullVsOls}{}\renewcommand{\rhemDShRidgeFullVsOls}{0.86}  % ridge: Full minus OLS-HAR, Delta SR, mid
-\providecommand{\rhemPDShRidgeFullVsOls}{}\renewcommand{\rhemPDShRidgeFullVsOls}{0.161}  % ... its bootstrap p
-\providecommand{\rhemDShXRidgeFullVsOls}{}\renewcommand{\rhemDShXRidgeFullVsOls}{0.87}  % ... Delta SR at bid/ask
-\providecommand{\rhemPDShXRidgeFullVsOls}{}\renewcommand{\rhemPDShXRidgeFullVsOls}{0.152}  % ... its bootstrap p
-\providecommand{\rhemDShLassoFullVsOls}{}\renewcommand{\rhemDShLassoFullVsOls}{0.74}  % lasso: Full minus OLS-HAR, Delta SR, mid
-\providecommand{\rhemPDShLassoFullVsOls}{}\renewcommand{\rhemPDShLassoFullVsOls}{0.227}  % ... its bootstrap p
-\providecommand{\rhemDShXLassoFullVsOls}{}\renewcommand{\rhemDShXLassoFullVsOls}{0.74}  % ... Delta SR at bid/ask
-\providecommand{\rhemPDShXLassoFullVsOls}{}\renewcommand{\rhemPDShXLassoFullVsOls}{0.222}  % ... its bootstrap p
-\providecommand{\rhemDShEnetFullVsOls}{}\renewcommand{\rhemDShEnetFullVsOls}{0.96}  % enet: Full minus OLS-HAR, Delta SR, mid
-\providecommand{\rhemPDShEnetFullVsOls}{}\renewcommand{\rhemPDShEnetFullVsOls}{0.135}  % ... its bootstrap p
-\providecommand{\rhemDShXEnetFullVsOls}{}\renewcommand{\rhemDShXEnetFullVsOls}{0.96}  % ... Delta SR at bid/ask
-\providecommand{\rhemPDShXEnetFullVsOls}{}\renewcommand{\rhemPDShXEnetFullVsOls}{0.131}  % ... its bootstrap p
-\providecommand{\rhemDShLgbmFullVsOls}{}\renewcommand{\rhemDShLgbmFullVsOls}{0.77}  % lgbm: Full minus OLS-HAR, Delta SR, mid
-\providecommand{\rhemPDShLgbmFullVsOls}{}\renewcommand{\rhemPDShLgbmFullVsOls}{0.184}  % ... its bootstrap p
-\providecommand{\rhemDShXLgbmFullVsOls}{}\renewcommand{\rhemDShXLgbmFullVsOls}{0.78}  % ... Delta SR at bid/ask
-\providecommand{\rhemPDShXLgbmFullVsOls}{}\renewcommand{\rhemPDShXLgbmFullVsOls}{0.173}  % ... its bootstrap p
-\providecommand{\rhemDShXgbFullVsOls}{}\renewcommand{\rhemDShXgbFullVsOls}{0.68}  % xgb: Full minus OLS-HAR, Delta SR, mid
-\providecommand{\rhemPDShXgbFullVsOls}{}\renewcommand{\rhemPDShXgbFullVsOls}{0.228}  % ... its bootstrap p
-\providecommand{\rhemDShXXgbFullVsOls}{}\renewcommand{\rhemDShXXgbFullVsOls}{0.69}  % ... Delta SR at bid/ask
-\providecommand{\rhemPDShXXgbFullVsOls}{}\renewcommand{\rhemPDShXXgbFullVsOls}{0.222}  % ... its bootstrap p
-\providecommand{\rhemDShRfFullVsOls}{}\renewcommand{\rhemDShRfFullVsOls}{0.97}  % rf: Full minus OLS-HAR, Delta SR, mid
-\providecommand{\rhemPDShRfFullVsOls}{}\renewcommand{\rhemPDShRfFullVsOls}{0.136}  % ... its bootstrap p
-\providecommand{\rhemDShXRfFullVsOls}{}\renewcommand{\rhemDShXRfFullVsOls}{0.98}  % ... Delta SR at bid/ask
-\providecommand{\rhemPDShXRfFullVsOls}{}\renewcommand{\rhemPDShXRfFullVsOls}{0.131}  % ... its bootstrap p
+\providecommand{\rhemDShRidgeFullVsOls}{}\renewcommand{\rhemDShRidgeFullVsOls}{0.77}  % ridge: Full minus OLS-HAR, Delta SR, mid
+\providecommand{\rhemPDShRidgeFullVsOls}{}\renewcommand{\rhemPDShRidgeFullVsOls}{0.217}  % ... its bootstrap p
+\providecommand{\rhemDShXRidgeFullVsOls}{}\renewcommand{\rhemDShXRidgeFullVsOls}{0.78}  % ... Delta SR at bid/ask
+\providecommand{\rhemPDShXRidgeFullVsOls}{}\renewcommand{\rhemPDShXRidgeFullVsOls}{0.207}  % ... its bootstrap p
+\providecommand{\rhemDShLassoFullVsOls}{}\renewcommand{\rhemDShLassoFullVsOls}{0.77}  % lasso: Full minus OLS-HAR, Delta SR, mid
+\providecommand{\rhemPDShLassoFullVsOls}{}\renewcommand{\rhemPDShLassoFullVsOls}{0.206}  % ... its bootstrap p
+\providecommand{\rhemDShXLassoFullVsOls}{}\renewcommand{\rhemDShXLassoFullVsOls}{0.77}  % ... Delta SR at bid/ask
+\providecommand{\rhemPDShXLassoFullVsOls}{}\renewcommand{\rhemPDShXLassoFullVsOls}{0.202}  % ... its bootstrap p
+\providecommand{\rhemDShEnetFullVsOls}{}\renewcommand{\rhemDShEnetFullVsOls}{0.97}  % enet: Full minus OLS-HAR, Delta SR, mid
+\providecommand{\rhemPDShEnetFullVsOls}{}\renewcommand{\rhemPDShEnetFullVsOls}{0.132}  % ... its bootstrap p
+\providecommand{\rhemDShXEnetFullVsOls}{}\renewcommand{\rhemDShXEnetFullVsOls}{0.97}  % ... Delta SR at bid/ask
+\providecommand{\rhemPDShXEnetFullVsOls}{}\renewcommand{\rhemPDShXEnetFullVsOls}{0.128}  % ... its bootstrap p
+\providecommand{\rhemDShLgbmFullVsOls}{}\renewcommand{\rhemDShLgbmFullVsOls}{0.68}  % lgbm: Full minus OLS-HAR, Delta SR, mid
+\providecommand{\rhemPDShLgbmFullVsOls}{}\renewcommand{\rhemPDShLgbmFullVsOls}{0.232}  % ... its bootstrap p
+\providecommand{\rhemDShXLgbmFullVsOls}{}\renewcommand{\rhemDShXLgbmFullVsOls}{0.69}  % ... Delta SR at bid/ask
+\providecommand{\rhemPDShXLgbmFullVsOls}{}\renewcommand{\rhemPDShXLgbmFullVsOls}{0.226}  % ... its bootstrap p
+\providecommand{\rhemDShXgbFullVsOls}{}\renewcommand{\rhemDShXgbFullVsOls}{0.73}  % xgb: Full minus OLS-HAR, Delta SR, mid
+\providecommand{\rhemPDShXgbFullVsOls}{}\renewcommand{\rhemPDShXgbFullVsOls}{0.201}  % ... its bootstrap p
+\providecommand{\rhemDShXXgbFullVsOls}{}\renewcommand{\rhemDShXXgbFullVsOls}{0.74}  % ... Delta SR at bid/ask
+\providecommand{\rhemPDShXXgbFullVsOls}{}\renewcommand{\rhemPDShXXgbFullVsOls}{0.193}  % ... its bootstrap p
+\providecommand{\rhemDShRfFullVsOls}{}\renewcommand{\rhemDShRfFullVsOls}{1.01}  % rf: Full minus OLS-HAR, Delta SR, mid
+\providecommand{\rhemPDShRfFullVsOls}{}\renewcommand{\rhemPDShRfFullVsOls}{0.125}  % ... its bootstrap p
+\providecommand{\rhemDShXRfFullVsOls}{}\renewcommand{\rhemDShXRfFullVsOls}{1.01}  % ... Delta SR at bid/ask
+\providecommand{\rhemPDShXRfFullVsOls}{}\renewcommand{\rhemPDShXRfFullVsOls}{0.120}  % ... its bootstrap p
 \providecommand{\rhemFullVsOlsMin}{}\renewcommand{\rhemFullVsOlsMin}{0.68}  % Full minus OLS-HAR, Delta SR mid: min over the six
-\providecommand{\rhemFullVsOlsMax}{}\renewcommand{\rhemFullVsOlsMax}{0.97}  % ... max
-\providecommand{\rhemFullVsOlsMed}{}\renewcommand{\rhemFullVsOlsMed}{0.81}  % ... median
-\providecommand{\rhemFullVsOlsPMin}{}\renewcommand{\rhemFullVsOlsPMin}{0.135}  % ... smallest bootstrap p
-\providecommand{\rhemFullVsOlsPMax}{}\renewcommand{\rhemFullVsOlsPMax}{0.228}  % ... largest bootstrap p
+\providecommand{\rhemFullVsOlsMax}{}\renewcommand{\rhemFullVsOlsMax}{1.01}  % ... max
+\providecommand{\rhemFullVsOlsMed}{}\renewcommand{\rhemFullVsOlsMed}{0.77}  % ... median
+\providecommand{\rhemFullVsOlsPMin}{}\renewcommand{\rhemFullVsOlsPMin}{0.125}  % ... smallest bootstrap p
+\providecommand{\rhemFullVsOlsPMax}{}\renewcommand{\rhemFullVsOlsPMax}{0.232}  % ... largest bootstrap p
 \providecommand{\rhemFullVsOlsPos}{}\renewcommand{\rhemFullVsOlsPos}{6}  % ... Delta SR > 0, mid
 \providecommand{\rhemFullVsOlsSig}{}\renewcommand{\rhemFullVsOlsSig}{0}  % ... significantly positive (bootstrap, 5 %), mid
 \providecommand{\rhemFullVsOlsSigWord}{}\renewcommand{\rhemFullVsOlsSigWord}{zero}  % ... in words
@@ -363,12 +363,12 @@
 \providecommand{\rhemHarVsCiHarSig}{}\renewcommand{\rhemHarVsCiHarSig}{0}  % ... significant (bootstrap)
 \providecommand{\rhemHarVsCiHarSigWord}{}\renewcommand{\rhemHarVsCiHarSigWord}{zero}  % ... in words
 \providecommand{\rhemFullVsCiHarMin}{}\renewcommand{\rhemFullVsCiHarMin}{0.68}  % Full minus CI-HAR, Delta SR mid: min over the six
-\providecommand{\rhemFullVsCiHarMax}{}\renewcommand{\rhemFullVsCiHarMax}{0.97}  % ... max
-\providecommand{\rhemFullVsCiHarMed}{}\renewcommand{\rhemFullVsCiHarMed}{0.81}  % ... median
-\providecommand{\rhemFullVsCiHarPMin}{}\renewcommand{\rhemFullVsCiHarPMin}{0.107}  % ... smallest bootstrap p
-\providecommand{\rhemFullVsCiHarPMax}{}\renewcommand{\rhemFullVsCiHarPMax}{0.221}  % ... largest bootstrap p
-\providecommand{\rhemFullShMed}{}\renewcommand{\rhemFullShMed}{1.80}  % median SR mid over the 6 distinct Full forecasts
-\providecommand{\rhemFullShXMed}{}\renewcommand{\rhemFullShXMed}{1.44}  % ... at bid/ask
+\providecommand{\rhemFullVsCiHarMax}{}\renewcommand{\rhemFullVsCiHarMax}{1.00}  % ... max
+\providecommand{\rhemFullVsCiHarMed}{}\renewcommand{\rhemFullVsCiHarMed}{0.77}  % ... median
+\providecommand{\rhemFullVsCiHarPMin}{}\renewcommand{\rhemFullVsCiHarPMin}{0.097}  % ... smallest bootstrap p
+\providecommand{\rhemFullVsCiHarPMax}{}\renewcommand{\rhemFullVsCiHarPMax}{0.216}  % ... largest bootstrap p
+\providecommand{\rhemFullShMed}{}\renewcommand{\rhemFullShMed}{1.75}  % median SR mid over the 6 distinct Full forecasts
+\providecommand{\rhemFullShXMed}{}\renewcommand{\rhemFullShXMed}{1.40}  % ... at bid/ask
 \providecommand{\rhemHarShMed}{}\renewcommand{\rhemHarShMed}{0.76}  % median SR mid over the 4 distinct Har forecasts
 \providecommand{\rhemHarShXMed}{}\renewcommand{\rhemHarShXMed}{0.40}  % ... at bid/ask
 % ---- the pooled linear HAR forecasts coincide (penalties near zero; they are the pooled OLS)
@@ -382,30 +382,30 @@
 \providecommand{\rhemHalfSpreadMed}{}\renewcommand{\rhemHalfSpreadMed}{2.5}  % median quoted half-spread, % of premium, 614 post-warmup days
 \providecommand{\rhemHalfSpreadMedAll}{}\renewcommand{\rhemHalfSpreadMedAll}{2.9}  % ... on all 866 option days (= \cmSvCostStraddle)
 \providecommand{\rhemHalfSpreadMeanPw}{}\renewcommand{\rhemHalfSpreadMeanPw}{2.7}  % ... mean, 614 post-warmup days
-\providecommand{\rhemBeMeanRidgeFull}{}\renewcommand{\rhemBeMeanRidgeFull}{4.75}  % poolpt13_ridge_all_features: k* at which the mean daily return is zero
-\providecommand{\rhemBeMeanPctRidgeFull}{}\renewcommand{\rhemBeMeanPctRidgeFull}{12.0}  % ... in % of premium
-\providecommand{\rhemBeShRidgeFull}{}\renewcommand{\rhemBeShRidgeFull}{4.93}  % poolpt13_ridge_all_features: k* at which SR is zero
-\providecommand{\rhemBeShPctRidgeFull}{}\renewcommand{\rhemBeShPctRidgeFull}{12.4}  % ... in % of premium
-\providecommand{\rhemBeMeanLassoFull}{}\renewcommand{\rhemBeMeanLassoFull}{4.62}  % poolpt13_lasso_all_features: k* at which the mean daily return is zero
-\providecommand{\rhemBeMeanPctLassoFull}{}\renewcommand{\rhemBeMeanPctLassoFull}{11.6}  % ... in % of premium
-\providecommand{\rhemBeShLassoFull}{}\renewcommand{\rhemBeShLassoFull}{4.59}  % poolpt13_lasso_all_features: k* at which SR is zero
-\providecommand{\rhemBeShPctLassoFull}{}\renewcommand{\rhemBeShPctLassoFull}{11.6}  % ... in % of premium
-\providecommand{\rhemBeMeanEnetFull}{}\renewcommand{\rhemBeMeanEnetFull}{4.95}  % poolpt13_enet_all_features: k* at which the mean daily return is zero
-\providecommand{\rhemBeMeanPctEnetFull}{}\renewcommand{\rhemBeMeanPctEnetFull}{12.5}  % ... in % of premium
-\providecommand{\rhemBeShEnetFull}{}\renewcommand{\rhemBeShEnetFull}{5.15}  % poolpt13_enet_all_features: k* at which SR is zero
+\providecommand{\rhemBeMeanRidgeFull}{}\renewcommand{\rhemBeMeanRidgeFull}{4.43}  % poolpt13_ridge_all_features: k* at which the mean daily return is zero
+\providecommand{\rhemBeMeanPctRidgeFull}{}\renewcommand{\rhemBeMeanPctRidgeFull}{11.2}  % ... in % of premium
+\providecommand{\rhemBeShRidgeFull}{}\renewcommand{\rhemBeShRidgeFull}{4.72}  % poolpt13_ridge_all_features: k* at which SR is zero
+\providecommand{\rhemBeShPctRidgeFull}{}\renewcommand{\rhemBeShPctRidgeFull}{11.9}  % ... in % of premium
+\providecommand{\rhemBeMeanLassoFull}{}\renewcommand{\rhemBeMeanLassoFull}{4.63}  % poolpt13_lasso_all_features: k* at which the mean daily return is zero
+\providecommand{\rhemBeMeanPctLassoFull}{}\renewcommand{\rhemBeMeanPctLassoFull}{11.7}  % ... in % of premium
+\providecommand{\rhemBeShLassoFull}{}\renewcommand{\rhemBeShLassoFull}{4.67}  % poolpt13_lasso_all_features: k* at which SR is zero
+\providecommand{\rhemBeShPctLassoFull}{}\renewcommand{\rhemBeShPctLassoFull}{11.8}  % ... in % of premium
+\providecommand{\rhemBeMeanEnetFull}{}\renewcommand{\rhemBeMeanEnetFull}{4.94}  % poolpt13_enet_all_features: k* at which the mean daily return is zero
+\providecommand{\rhemBeMeanPctEnetFull}{}\renewcommand{\rhemBeMeanPctEnetFull}{12.4}  % ... in % of premium
+\providecommand{\rhemBeShEnetFull}{}\renewcommand{\rhemBeShEnetFull}{5.17}  % poolpt13_enet_all_features: k* at which SR is zero
 \providecommand{\rhemBeShPctEnetFull}{}\renewcommand{\rhemBeShPctEnetFull}{13.0}  % ... in % of premium
-\providecommand{\rhemBeMeanLgbmFull}{}\renewcommand{\rhemBeMeanLgbmFull}{4.34}  % pooltree_lgbm_all_features: k* at which the mean daily return is zero
-\providecommand{\rhemBeMeanPctLgbmFull}{}\renewcommand{\rhemBeMeanPctLgbmFull}{10.9}  % ... in % of premium
-\providecommand{\rhemBeShLgbmFull}{}\renewcommand{\rhemBeShLgbmFull}{4.78}  % pooltree_lgbm_all_features: k* at which SR is zero
-\providecommand{\rhemBeShPctLgbmFull}{}\renewcommand{\rhemBeShPctLgbmFull}{12.0}  % ... in % of premium
-\providecommand{\rhemBeMeanXgbFull}{}\renewcommand{\rhemBeMeanXgbFull}{4.04}  % pooltree_xgb_all_features: k* at which the mean daily return is zero
-\providecommand{\rhemBeMeanPctXgbFull}{}\renewcommand{\rhemBeMeanPctXgbFull}{10.2}  % ... in % of premium
-\providecommand{\rhemBeShXgbFull}{}\renewcommand{\rhemBeShXgbFull}{4.53}  % pooltree_xgb_all_features: k* at which SR is zero
-\providecommand{\rhemBeShPctXgbFull}{}\renewcommand{\rhemBeShPctXgbFull}{11.4}  % ... in % of premium
-\providecommand{\rhemBeMeanRfFull}{}\renewcommand{\rhemBeMeanRfFull}{5.01}  % pooltree_rf_all_features: k* at which the mean daily return is zero
+\providecommand{\rhemBeMeanLgbmFull}{}\renewcommand{\rhemBeMeanLgbmFull}{4.19}  % pooltree_lgbm_all_features: k* at which the mean daily return is zero
+\providecommand{\rhemBeMeanPctLgbmFull}{}\renewcommand{\rhemBeMeanPctLgbmFull}{10.6}  % ... in % of premium
+\providecommand{\rhemBeShLgbmFull}{}\renewcommand{\rhemBeShLgbmFull}{4.50}  % pooltree_lgbm_all_features: k* at which SR is zero
+\providecommand{\rhemBeShPctLgbmFull}{}\renewcommand{\rhemBeShPctLgbmFull}{11.4}  % ... in % of premium
+\providecommand{\rhemBeMeanXgbFull}{}\renewcommand{\rhemBeMeanXgbFull}{4.21}  % pooltree_xgb_all_features: k* at which the mean daily return is zero
+\providecommand{\rhemBeMeanPctXgbFull}{}\renewcommand{\rhemBeMeanPctXgbFull}{10.6}  % ... in % of premium
+\providecommand{\rhemBeShXgbFull}{}\renewcommand{\rhemBeShXgbFull}{4.64}  % pooltree_xgb_all_features: k* at which SR is zero
+\providecommand{\rhemBeShPctXgbFull}{}\renewcommand{\rhemBeShPctXgbFull}{11.7}  % ... in % of premium
+\providecommand{\rhemBeMeanRfFull}{}\renewcommand{\rhemBeMeanRfFull}{5.00}  % pooltree_rf_all_features: k* at which the mean daily return is zero
 \providecommand{\rhemBeMeanPctRfFull}{}\renewcommand{\rhemBeMeanPctRfFull}{12.6}  % ... in % of premium
-\providecommand{\rhemBeShRfFull}{}\renewcommand{\rhemBeShRfFull}{5.21}  % pooltree_rf_all_features: k* at which SR is zero
-\providecommand{\rhemBeShPctRfFull}{}\renewcommand{\rhemBeShPctRfFull}{13.1}  % ... in % of premium
+\providecommand{\rhemBeShRfFull}{}\renewcommand{\rhemBeShRfFull}{5.29}  % pooltree_rf_all_features: k* at which SR is zero
+\providecommand{\rhemBeShPctRfFull}{}\renewcommand{\rhemBeShPctRfFull}{13.3}  % ... in % of premium
 \providecommand{\rhemBeMeanRidgeHar}{}\renewcommand{\rhemBeMeanRidgeHar}{2.67}  % poolpt13_ridge_baseline: k* at which the mean daily return is zero
 \providecommand{\rhemBeMeanPctRidgeHar}{}\renewcommand{\rhemBeMeanPctRidgeHar}{6.7}  % ... in % of premium
 \providecommand{\rhemBeShRidgeHar}{}\renewcommand{\rhemBeShRidgeHar}{2.68}  % poolpt13_ridge_baseline: k* at which SR is zero
@@ -438,16 +438,16 @@
 \providecommand{\rhemBeMeanPctShort}{}\renewcommand{\rhemBeMeanPctShort}{2.3}  % ... in % of premium
 \providecommand{\rhemBeShShort}{}\renewcommand{\rhemBeShShort}{--}  % always_short: k* at which SR is zero
 \providecommand{\rhemBeShPctShort}{}\renewcommand{\rhemBeShPctShort}{--}  % ... in % of premium
-\providecommand{\rhemBeMeanFullMin}{}\renewcommand{\rhemBeMeanFullMin}{4.04}  % k* (mean): min over the distinct Full forecasts with one
-\providecommand{\rhemBeMeanFullMax}{}\renewcommand{\rhemBeMeanFullMax}{5.01}  % ... max
-\providecommand{\rhemBeMeanFullMed}{}\renewcommand{\rhemBeMeanFullMed}{4.68}  % ... median
-\providecommand{\rhemBeMeanFullMinPct}{}\renewcommand{\rhemBeMeanFullMinPct}{10.2}  % ... min, % of premium
+\providecommand{\rhemBeMeanFullMin}{}\renewcommand{\rhemBeMeanFullMin}{4.19}  % k* (mean): min over the distinct Full forecasts with one
+\providecommand{\rhemBeMeanFullMax}{}\renewcommand{\rhemBeMeanFullMax}{5.00}  % ... max
+\providecommand{\rhemBeMeanFullMed}{}\renewcommand{\rhemBeMeanFullMed}{4.53}  % ... median
+\providecommand{\rhemBeMeanFullMinPct}{}\renewcommand{\rhemBeMeanFullMinPct}{10.6}  % ... min, % of premium
 \providecommand{\rhemBeMeanFullMaxPct}{}\renewcommand{\rhemBeMeanFullMaxPct}{12.6}  % ... max, % of premium
-\providecommand{\rhemBeShFullMin}{}\renewcommand{\rhemBeShFullMin}{4.53}  % k* (sh): min over the distinct Full forecasts with one
-\providecommand{\rhemBeShFullMax}{}\renewcommand{\rhemBeShFullMax}{5.21}  % ... max
-\providecommand{\rhemBeShFullMed}{}\renewcommand{\rhemBeShFullMed}{4.85}  % ... median
+\providecommand{\rhemBeShFullMin}{}\renewcommand{\rhemBeShFullMin}{4.50}  % k* (sh): min over the distinct Full forecasts with one
+\providecommand{\rhemBeShFullMax}{}\renewcommand{\rhemBeShFullMax}{5.29}  % ... max
+\providecommand{\rhemBeShFullMed}{}\renewcommand{\rhemBeShFullMed}{4.70}  % ... median
 \providecommand{\rhemBeShFullMinPct}{}\renewcommand{\rhemBeShFullMinPct}{11.4}  % ... min, % of premium
-\providecommand{\rhemBeShFullMaxPct}{}\renewcommand{\rhemBeShFullMaxPct}{13.1}  % ... max, % of premium
+\providecommand{\rhemBeShFullMaxPct}{}\renewcommand{\rhemBeShFullMaxPct}{13.3}  % ... max, % of premium
 \providecommand{\rhemBeMeanHarMin}{}\renewcommand{\rhemBeMeanHarMin}{0.91}  % k* (mean): min over the distinct Har forecasts with one
 \providecommand{\rhemBeMeanHarMax}{}\renewcommand{\rhemBeMeanHarMax}{2.78}  % ... max
 \providecommand{\rhemBeMeanHarMed}{}\renewcommand{\rhemBeMeanHarMed}{2.27}  % ... median
@@ -461,8 +461,8 @@
 % ---- by calendar year (mid): SR_y of the D6 Sharpe ratio; years One.. as \rheDSixYearOne..
 \providecommand{\rhemYearOne}{}\renewcommand{\rhemYearOne}{2021}  % calendar year One of the post-warmup days
 \providecommand{\rhemNyOne}{}\renewcommand{\rhemNyOne}{64}  % ... N_y
-\providecommand{\rhemByYearFullMedOne}{}\renewcommand{\rhemByYearFullMedOne}{1.60}  % 2021: median SR_y of the six Full forecasts
-\providecommand{\rhemByYearFullMinOne}{}\renewcommand{\rhemByYearFullMinOne}{1.32}  % ... min
+\providecommand{\rhemByYearFullMedOne}{}\renewcommand{\rhemByYearFullMedOne}{1.47}  % 2021: median SR_y of the six Full forecasts
+\providecommand{\rhemByYearFullMinOne}{}\renewcommand{\rhemByYearFullMinOne}{1.24}  % ... min
 \providecommand{\rhemByYearFullMaxOne}{}\renewcommand{\rhemByYearFullMaxOne}{2.00}  % ... max
 \providecommand{\rhemByYearHarMedOne}{}\renewcommand{\rhemByYearHarMedOne}{0.12}  % 2021: median SR_y of the four distinct HAR forecasts
 \providecommand{\rhemByYearHarMinOne}{}\renewcommand{\rhemByYearHarMinOne}{\ensuremath{-}1.91}  % ... min
@@ -471,9 +471,9 @@
 \providecommand{\rhemByYearShortOne}{}\renewcommand{\rhemByYearShortOne}{\ensuremath{-}1.10}  % 2021: SR_y of the short straddle
 \providecommand{\rhemYearTwo}{}\renewcommand{\rhemYearTwo}{2022}  % calendar year Two of the post-warmup days
 \providecommand{\rhemNyTwo}{}\renewcommand{\rhemNyTwo}{219}  % ... N_y
-\providecommand{\rhemByYearFullMedTwo}{}\renewcommand{\rhemByYearFullMedTwo}{1.51}  % 2022: median SR_y of the six Full forecasts
+\providecommand{\rhemByYearFullMedTwo}{}\renewcommand{\rhemByYearFullMedTwo}{1.45}  % 2022: median SR_y of the six Full forecasts
 \providecommand{\rhemByYearFullMinTwo}{}\renewcommand{\rhemByYearFullMinTwo}{0.96}  % ... min
-\providecommand{\rhemByYearFullMaxTwo}{}\renewcommand{\rhemByYearFullMaxTwo}{1.91}  % ... max
+\providecommand{\rhemByYearFullMaxTwo}{}\renewcommand{\rhemByYearFullMaxTwo}{1.86}  % ... max
 \providecommand{\rhemByYearHarMedTwo}{}\renewcommand{\rhemByYearHarMedTwo}{1.16}  % 2022: median SR_y of the four distinct HAR forecasts
 \providecommand{\rhemByYearHarMinTwo}{}\renewcommand{\rhemByYearHarMinTwo}{1.04}  % ... min
 \providecommand{\rhemByYearHarMaxTwo}{}\renewcommand{\rhemByYearHarMaxTwo}{1.74}  % ... max
@@ -481,9 +481,9 @@
 \providecommand{\rhemByYearShortTwo}{}\renewcommand{\rhemByYearShortTwo}{1.81}  % 2022: SR_y of the short straddle
 \providecommand{\rhemYearThree}{}\renewcommand{\rhemYearThree}{2023}  % calendar year Three of the post-warmup days
 \providecommand{\rhemNyThree}{}\renewcommand{\rhemNyThree}{248}  % ... N_y
-\providecommand{\rhemByYearFullMedThree}{}\renewcommand{\rhemByYearFullMedThree}{1.77}  % 2023: median SR_y of the six Full forecasts
-\providecommand{\rhemByYearFullMinThree}{}\renewcommand{\rhemByYearFullMinThree}{1.37}  % ... min
-\providecommand{\rhemByYearFullMaxThree}{}\renewcommand{\rhemByYearFullMaxThree}{2.03}  % ... max
+\providecommand{\rhemByYearFullMedThree}{}\renewcommand{\rhemByYearFullMedThree}{1.66}  % 2023: median SR_y of the six Full forecasts
+\providecommand{\rhemByYearFullMinThree}{}\renewcommand{\rhemByYearFullMinThree}{1.55}  % ... min
+\providecommand{\rhemByYearFullMaxThree}{}\renewcommand{\rhemByYearFullMaxThree}{1.94}  % ... max
 \providecommand{\rhemByYearHarMedThree}{}\renewcommand{\rhemByYearHarMedThree}{0.77}  % 2023: median SR_y of the four distinct HAR forecasts
 \providecommand{\rhemByYearHarMinThree}{}\renewcommand{\rhemByYearHarMinThree}{0.64}  % ... min
 \providecommand{\rhemByYearHarMaxThree}{}\renewcommand{\rhemByYearHarMaxThree}{1.30}  % ... max
@@ -491,9 +491,9 @@
 \providecommand{\rhemByYearShortThree}{}\renewcommand{\rhemByYearShortThree}{0.88}  % 2023: SR_y of the short straddle
 \providecommand{\rhemYearFour}{}\renewcommand{\rhemYearFour}{2024}  % calendar year Four of the post-warmup days
 \providecommand{\rhemNyFour}{}\renewcommand{\rhemNyFour}{83}  % ... N_y
-\providecommand{\rhemByYearFullMedFour}{}\renewcommand{\rhemByYearFullMedFour}{2.41}  % 2024: median SR_y of the six Full forecasts
-\providecommand{\rhemByYearFullMinFour}{}\renewcommand{\rhemByYearFullMinFour}{1.78}  % ... min
-\providecommand{\rhemByYearFullMaxFour}{}\renewcommand{\rhemByYearFullMaxFour}{3.02}  % ... max
+\providecommand{\rhemByYearFullMedFour}{}\renewcommand{\rhemByYearFullMedFour}{2.63}  % 2024: median SR_y of the six Full forecasts
+\providecommand{\rhemByYearFullMinFour}{}\renewcommand{\rhemByYearFullMinFour}{2.00}  % ... min
+\providecommand{\rhemByYearFullMaxFour}{}\renewcommand{\rhemByYearFullMaxFour}{2.99}  % ... max
 \providecommand{\rhemByYearHarMedFour}{}\renewcommand{\rhemByYearHarMedFour}{0.87}  % 2024: median SR_y of the four distinct HAR forecasts
 \providecommand{\rhemByYearHarMinFour}{}\renewcommand{\rhemByYearHarMinFour}{\ensuremath{-}0.18}  % ... min
 \providecommand{\rhemByYearHarMaxFour}{}\renewcommand{\rhemByYearHarMaxFour}{1.29}  % ... max

@@ -42,18 +42,18 @@
 \providecommand{\rheVsShortAbove}{}\renewcommand{\rheVsShortAbove}{88}  % model-set forecasts with post-warmup Sharpe mid above always short
 \providecommand{\rheRankCorrQ}{}\renewcommand{\rheRankCorrQ}{\ensuremath{-}0.04}  % Spearman rank correlation of mean QLIKE with post-warmup Sharpe mid across the model set
 \providecommand{\rheRankCorrES}{}\renewcommand{\rheRankCorrES}{\ensuremath{-}0.65}  % Spearman rank correlation of mean ES_1 with post-warmup Sharpe mid across the model set
-\providecommand{\rheRankCorrQPool}{}\renewcommand{\rheRankCorrQPool}{0.25}  % Spearman rank correlation of mean QLIKE with post-warmup Sharpe mid across the 12 pooled intraday forecasts
-\providecommand{\rheRankCorrESPool}{}\renewcommand{\rheRankCorrESPool}{\ensuremath{-}0.45}  % Spearman rank correlation of mean ES_1 with post-warmup Sharpe mid across the 12 pooled intraday forecasts
-\providecommand{\rheRankCorrQPoolDistinct}{}\renewcommand{\rheRankCorrQPoolDistinct}{0.25}  % Spearman of mean QLIKE with post-warmup Sharpe mid across the 10 distinct pooled forecasts
-\providecommand{\rheRankCorrESPoolDistinct}{}\renewcommand{\rheRankCorrESPoolDistinct}{\ensuremath{-}0.43}  % Spearman of mean ES_1 with post-warmup Sharpe mid across the 10 distinct pooled forecasts
+\providecommand{\rheRankCorrQPool}{}\renewcommand{\rheRankCorrQPool}{0.34}  % Spearman rank correlation of mean QLIKE with post-warmup Sharpe mid across the 12 pooled intraday forecasts
+\providecommand{\rheRankCorrESPool}{}\renewcommand{\rheRankCorrESPool}{\ensuremath{-}0.48}  % Spearman rank correlation of mean ES_1 with post-warmup Sharpe mid across the 12 pooled intraday forecasts
+\providecommand{\rheRankCorrQPoolDistinct}{}\renewcommand{\rheRankCorrQPoolDistinct}{0.37}  % Spearman of mean QLIKE with post-warmup Sharpe mid across the 10 distinct pooled forecasts
+\providecommand{\rheRankCorrESPoolDistinct}{}\renewcommand{\rheRankCorrESPoolDistinct}{\ensuremath{-}0.45}  % Spearman of mean ES_1 with post-warmup Sharpe mid across the 10 distinct pooled forecasts
 \providecommand{\rhePoolNDistinct}{}\renewcommand{\rhePoolNDistinct}{10}  % distinct pooled intraday forecasts (HAR-set linear counted once)
 \providecommand{\rhePoolShMedDistinct}{}\renewcommand{\rhePoolShMedDistinct}{1.69}  % median post-warmup Sharpe mid over the distinct pooled forecasts
 \providecommand{\rhePoolNDone}{}\renewcommand{\rhePoolNDone}{12}  % pooled intraday forecasts behind rheRankCorr...Pool, rhePoolWorthlessShare... and rheSplit... (finished final runs; = rhrPoolN)
 \providecommand{\rhePoolNAll}{}\renewcommand{\rhePoolNAll}{12}  % pooled intraday forecasts the paper counts, pending ones included (= rhrPoolNAll)
 \providecommand{\rheRankCorrQPoolDOne}{}\renewcommand{\rheRankCorrQPoolDOne}{0.37}  % ... as rheRankCorrQPool, with the DOne Sharpe ratio (robustness)
-\providecommand{\rheRankCorrESPoolDOne}{}\renewcommand{\rheRankCorrESPoolDOne}{\ensuremath{-}0.35}  % ... as rheRankCorrESPool, with the DOne Sharpe ratio (robustness)
-\providecommand{\rheRankCorrQPoolDTwo}{}\renewcommand{\rheRankCorrQPoolDTwo}{0.25}  % ... as rheRankCorrQPool, with the DTwo Sharpe ratio (robustness)
-\providecommand{\rheRankCorrESPoolDTwo}{}\renewcommand{\rheRankCorrESPoolDTwo}{\ensuremath{-}0.34}  % ... as rheRankCorrESPool, with the DTwo Sharpe ratio (robustness)
+\providecommand{\rheRankCorrESPoolDOne}{}\renewcommand{\rheRankCorrESPoolDOne}{\ensuremath{-}0.48}  % ... as rheRankCorrESPool, with the DOne Sharpe ratio (robustness)
+\providecommand{\rheRankCorrQPoolDTwo}{}\renewcommand{\rheRankCorrQPoolDTwo}{0.26}  % ... as rheRankCorrQPool, with the DTwo Sharpe ratio (robustness)
+\providecommand{\rheRankCorrESPoolDTwo}{}\renewcommand{\rheRankCorrESPoolDTwo}{\ensuremath{-}0.42}  % ... as rheRankCorrESPool, with the DTwo Sharpe ratio (robustness)
 \providecommand{\rheWorthlessDays}{}\renewcommand{\rheWorthlessDays}{137}  % post-warmup option days with R_t = -1 (straddle expires worthless)
 \providecommand{\rhePoolWorthlessShareMed}{}\renewcommand{\rhePoolWorthlessShareMed}{37}  % median % of positive mid return from R_t = -1 days, 12 pooled intraday forecasts, 614 days
 \providecommand{\rhePoolWorthlessShareMin}{}\renewcommand{\rhePoolWorthlessShareMin}{34}  % lowest % of positive mid return from R_t = -1 days, 12 pooled intraday forecasts, 614 days
@@ -72,75 +72,75 @@
 \providecommand{\rheSplitPreMaxX}{}\renewcommand{\rheSplitPreMaxX}{1.62}  % highest Sharpe ratio before the split, crossed fills, 12 pooled intraday forecasts, D6 SR
 \providecommand{\rheSplitPrePosX}{}\renewcommand{\rheSplitPrePosX}{11}  % forecasts with a positive Sharpe ratio before the split, crossed fills, 12 pooled intraday forecasts, D6 SR
 \providecommand{\rheSplitPreShortX}{}\renewcommand{\rheSplitPreShortX}{\ensuremath{-}1.06}  % always-short straddle Sharpe ratio before the split, crossed fills, D6 SR
-\providecommand{\rheSplitPostMed}{}\renewcommand{\rheSplitPostMed}{1.36}  % median Sharpe ratio from the split, mid-quote fills, 12 pooled intraday forecasts, D6 SR
+\providecommand{\rheSplitPostMed}{}\renewcommand{\rheSplitPostMed}{1.42}  % median Sharpe ratio from the split, mid-quote fills, 12 pooled intraday forecasts, D6 SR
 \providecommand{\rheSplitPostMin}{}\renewcommand{\rheSplitPostMin}{0.64}  % lowest Sharpe ratio from the split, mid-quote fills, 12 pooled intraday forecasts, D6 SR
-\providecommand{\rheSplitPostMax}{}\renewcommand{\rheSplitPostMax}{2.01}  % highest Sharpe ratio from the split, mid-quote fills, 12 pooled intraday forecasts, D6 SR
+\providecommand{\rheSplitPostMax}{}\renewcommand{\rheSplitPostMax}{2.05}  % highest Sharpe ratio from the split, mid-quote fills, 12 pooled intraday forecasts, D6 SR
 \providecommand{\rheSplitPostPos}{}\renewcommand{\rheSplitPostPos}{12}  % forecasts with a positive Sharpe ratio from the split, mid-quote fills, 12 pooled intraday forecasts, D6 SR
 \providecommand{\rheSplitPostShort}{}\renewcommand{\rheSplitPostShort}{0.52}  % always-short straddle Sharpe ratio from the split, mid-quote fills, D6 SR
-\providecommand{\rheSplitPostMedX}{}\renewcommand{\rheSplitPostMedX}{1.00}  % median Sharpe ratio from the split, crossed fills, 12 pooled intraday forecasts, D6 SR
+\providecommand{\rheSplitPostMedX}{}\renewcommand{\rheSplitPostMedX}{1.05}  % median Sharpe ratio from the split, crossed fills, 12 pooled intraday forecasts, D6 SR
 \providecommand{\rheSplitPostMinX}{}\renewcommand{\rheSplitPostMinX}{0.28}  % lowest Sharpe ratio from the split, crossed fills, 12 pooled intraday forecasts, D6 SR
-\providecommand{\rheSplitPostMaxX}{}\renewcommand{\rheSplitPostMaxX}{1.64}  % highest Sharpe ratio from the split, crossed fills, 12 pooled intraday forecasts, D6 SR
+\providecommand{\rheSplitPostMaxX}{}\renewcommand{\rheSplitPostMaxX}{1.67}  % highest Sharpe ratio from the split, crossed fills, 12 pooled intraday forecasts, D6 SR
 \providecommand{\rheSplitPostPosX}{}\renewcommand{\rheSplitPostPosX}{12}  % forecasts with a positive Sharpe ratio from the split, crossed fills, 12 pooled intraday forecasts, D6 SR
 \providecommand{\rheSplitPostShortX}{}\renewcommand{\rheSplitPostShortX}{0.15}  % always-short straddle Sharpe ratio from the split, crossed fills, D6 SR
-\providecommand{\rheDefDSixRidge}{}\renewcommand{\rheDefDSixRidge}{\ensuremath{+}0.86}  % pooled Ridge: D6 Sharpe mid, full minus HAR (614 days)
-\providecommand{\rheDefBootPRidge}{}\renewcommand{\rheDefBootPRidge}{0.16}  % ... its D6 bootstrap p (two-sided)
-\providecommand{\rheDefDOneRidge}{}\renewcommand{\rheDefDOneRidge}{\ensuremath{+}0.61}  % ... D1 (per-year, N_y-weighted sqrt(N_y)) Sharpe mid change
-\providecommand{\rheDefDTwoRidge}{}\renewcommand{\rheDefDTwoRidge}{\ensuremath{+}0.86}  % ... D2 (pooled, mean / sd x sqrt(252)) Sharpe mid change
-\providecommand{\rheDefLWPRidge}{}\renewcommand{\rheDefLWPRidge}{0.11}  % ... Ledoit-Wolf p (equal Sharpe ratios of the daily returns)
-\providecommand{\rheDefPreRidge}{}\renewcommand{\rheDefPreRidge}{\ensuremath{+}0.23}  % ... D6 change before 16 May 2022 (125 days)
-\providecommand{\rheDefPostRidge}{}\renewcommand{\rheDefPostRidge}{\ensuremath{+}0.81}  % ... D6 change from 16 May 2022 (489 days)
-\providecommand{\rheDefDSixLasso}{}\renewcommand{\rheDefDSixLasso}{\ensuremath{+}0.74}  % pooled Lasso: D6 Sharpe mid, full minus HAR (614 days)
-\providecommand{\rheDefBootPLasso}{}\renewcommand{\rheDefBootPLasso}{0.23}  % ... its D6 bootstrap p (two-sided)
-\providecommand{\rheDefDOneLasso}{}\renewcommand{\rheDefDOneLasso}{\ensuremath{+}0.64}  % ... D1 (per-year, N_y-weighted sqrt(N_y)) Sharpe mid change
-\providecommand{\rheDefDTwoLasso}{}\renewcommand{\rheDefDTwoLasso}{\ensuremath{+}0.81}  % ... D2 (pooled, mean / sd x sqrt(252)) Sharpe mid change
+\providecommand{\rheDefDSixRidge}{}\renewcommand{\rheDefDSixRidge}{\ensuremath{+}0.77}  % pooled Ridge: D6 Sharpe mid, full minus HAR (614 days)
+\providecommand{\rheDefBootPRidge}{}\renewcommand{\rheDefBootPRidge}{0.22}  % ... its D6 bootstrap p (two-sided)
+\providecommand{\rheDefDOneRidge}{}\renewcommand{\rheDefDOneRidge}{\ensuremath{+}0.44}  % ... D1 (per-year, N_y-weighted sqrt(N_y)) Sharpe mid change
+\providecommand{\rheDefDTwoRidge}{}\renewcommand{\rheDefDTwoRidge}{\ensuremath{+}0.73}  % ... D2 (pooled, mean / sd x sqrt(252)) Sharpe mid change
+\providecommand{\rheDefLWPRidge}{}\renewcommand{\rheDefLWPRidge}{0.17}  % ... Ledoit-Wolf p (equal Sharpe ratios of the daily returns)
+\providecommand{\rheDefPreRidge}{}\renewcommand{\rheDefPreRidge}{\ensuremath{+}0.04}  % ... D6 change before 16 May 2022 (125 days)
+\providecommand{\rheDefPostRidge}{}\renewcommand{\rheDefPostRidge}{\ensuremath{+}0.67}  % ... D6 change from 16 May 2022 (489 days)
+\providecommand{\rheDefDSixLasso}{}\renewcommand{\rheDefDSixLasso}{\ensuremath{+}0.77}  % pooled Lasso: D6 Sharpe mid, full minus HAR (614 days)
+\providecommand{\rheDefBootPLasso}{}\renewcommand{\rheDefBootPLasso}{0.21}  % ... its D6 bootstrap p (two-sided)
+\providecommand{\rheDefDOneLasso}{}\renewcommand{\rheDefDOneLasso}{\ensuremath{+}0.62}  % ... D1 (per-year, N_y-weighted sqrt(N_y)) Sharpe mid change
+\providecommand{\rheDefDTwoLasso}{}\renewcommand{\rheDefDTwoLasso}{\ensuremath{+}0.82}  % ... D2 (pooled, mean / sd x sqrt(252)) Sharpe mid change
 \providecommand{\rheDefLWPLasso}{}\renewcommand{\rheDefLWPLasso}{0.12}  % ... Ledoit-Wolf p (equal Sharpe ratios of the daily returns)
 \providecommand{\rheDefPreLasso}{}\renewcommand{\rheDefPreLasso}{\ensuremath{+}0.17}  % ... D6 change before 16 May 2022 (125 days)
-\providecommand{\rheDefPostLasso}{}\renewcommand{\rheDefPostLasso}{\ensuremath{+}0.74}  % ... D6 change from 16 May 2022 (489 days)
-\providecommand{\rheDefDSixEnet}{}\renewcommand{\rheDefDSixEnet}{\ensuremath{+}0.96}  % pooled Elastic net: D6 Sharpe mid, full minus HAR (614 days)
+\providecommand{\rheDefPostLasso}{}\renewcommand{\rheDefPostLasso}{\ensuremath{+}0.77}  % ... D6 change from 16 May 2022 (489 days)
+\providecommand{\rheDefDSixEnet}{}\renewcommand{\rheDefDSixEnet}{\ensuremath{+}0.97}  % pooled Elastic net: D6 Sharpe mid, full minus HAR (614 days)
 \providecommand{\rheDefBootPEnet}{}\renewcommand{\rheDefBootPEnet}{0.13}  % ... its D6 bootstrap p (two-sided)
-\providecommand{\rheDefDOneEnet}{}\renewcommand{\rheDefDOneEnet}{\ensuremath{+}0.66}  % ... D1 (per-year, N_y-weighted sqrt(N_y)) Sharpe mid change
+\providecommand{\rheDefDOneEnet}{}\renewcommand{\rheDefDOneEnet}{\ensuremath{+}0.67}  % ... D1 (per-year, N_y-weighted sqrt(N_y)) Sharpe mid change
 \providecommand{\rheDefDTwoEnet}{}\renewcommand{\rheDefDTwoEnet}{\ensuremath{+}0.95}  % ... D2 (pooled, mean / sd x sqrt(252)) Sharpe mid change
-\providecommand{\rheDefLWPEnet}{}\renewcommand{\rheDefLWPEnet}{0.077}  % ... Ledoit-Wolf p (equal Sharpe ratios of the daily returns)
+\providecommand{\rheDefLWPEnet}{}\renewcommand{\rheDefLWPEnet}{0.074}  % ... Ledoit-Wolf p (equal Sharpe ratios of the daily returns)
 \providecommand{\rheDefPreEnet}{}\renewcommand{\rheDefPreEnet}{\ensuremath{+}0.24}  % ... D6 change before 16 May 2022 (125 days)
-\providecommand{\rheDefPostEnet}{}\renewcommand{\rheDefPostEnet}{\ensuremath{+}0.93}  % ... D6 change from 16 May 2022 (489 days)
-\providecommand{\rheDefDSixLgbm}{}\renewcommand{\rheDefDSixLgbm}{\ensuremath{+}1.14}  % pooled LightGBM: D6 Sharpe mid, full minus HAR (614 days)
-\providecommand{\rheDefBootPLgbm}{}\renewcommand{\rheDefBootPLgbm}{0.051}  % ... its D6 bootstrap p (two-sided)
-\providecommand{\rheDefDOneLgbm}{}\renewcommand{\rheDefDOneLgbm}{\ensuremath{+}0.63}  % ... D1 (per-year, N_y-weighted sqrt(N_y)) Sharpe mid change
-\providecommand{\rheDefDTwoLgbm}{}\renewcommand{\rheDefDTwoLgbm}{\ensuremath{+}0.99}  % ... D2 (pooled, mean / sd x sqrt(252)) Sharpe mid change
-\providecommand{\rheDefLWPLgbm}{}\renewcommand{\rheDefLWPLgbm}{0.040}  % ... Ledoit-Wolf p (equal Sharpe ratios of the daily returns)
-\providecommand{\rheDefPreLgbm}{}\renewcommand{\rheDefPreLgbm}{\ensuremath{+}0.83}  % ... D6 change before 16 May 2022 (125 days)
-\providecommand{\rheDefPostLgbm}{}\renewcommand{\rheDefPostLgbm}{\ensuremath{+}0.97}  % ... D6 change from 16 May 2022 (489 days)
-\providecommand{\rheDefDSixXgb}{}\renewcommand{\rheDefDSixXgb}{\ensuremath{+}0.76}  % pooled XGBoost: D6 Sharpe mid, full minus HAR (614 days)
-\providecommand{\rheDefBootPXgb}{}\renewcommand{\rheDefBootPXgb}{0.14}  % ... its D6 bootstrap p (two-sided)
-\providecommand{\rheDefDOneXgb}{}\renewcommand{\rheDefDOneXgb}{\ensuremath{+}0.22}  % ... D1 (per-year, N_y-weighted sqrt(N_y)) Sharpe mid change
-\providecommand{\rheDefDTwoXgb}{}\renewcommand{\rheDefDTwoXgb}{\ensuremath{+}0.52}  % ... D2 (pooled, mean / sd x sqrt(252)) Sharpe mid change
-\providecommand{\rheDefLWPXgb}{}\renewcommand{\rheDefLWPXgb}{0.27}  % ... Ledoit-Wolf p (equal Sharpe ratios of the daily returns)
-\providecommand{\rheDefPreXgb}{}\renewcommand{\rheDefPreXgb}{\ensuremath{+}0.50}  % ... D6 change before 16 May 2022 (125 days)
-\providecommand{\rheDefPostXgb}{}\renewcommand{\rheDefPostXgb}{\ensuremath{+}0.63}  % ... D6 change from 16 May 2022 (489 days)
-\providecommand{\rheDefDSixRf}{}\renewcommand{\rheDefDSixRf}{\ensuremath{+}1.95}  % pooled Random forest: D6 Sharpe mid, full minus HAR (614 days)
+\providecommand{\rheDefPostEnet}{}\renewcommand{\rheDefPostEnet}{\ensuremath{+}0.97}  % ... D6 change from 16 May 2022 (489 days)
+\providecommand{\rheDefDSixLgbm}{}\renewcommand{\rheDefDSixLgbm}{\ensuremath{+}1.06}  % pooled LightGBM: D6 Sharpe mid, full minus HAR (614 days)
+\providecommand{\rheDefBootPLgbm}{}\renewcommand{\rheDefBootPLgbm}{0.063}  % ... its D6 bootstrap p (two-sided)
+\providecommand{\rheDefDOneLgbm}{}\renewcommand{\rheDefDOneLgbm}{\ensuremath{+}0.62}  % ... D1 (per-year, N_y-weighted sqrt(N_y)) Sharpe mid change
+\providecommand{\rheDefDTwoLgbm}{}\renewcommand{\rheDefDTwoLgbm}{\ensuremath{+}0.93}  % ... D2 (pooled, mean / sd x sqrt(252)) Sharpe mid change
+\providecommand{\rheDefLWPLgbm}{}\renewcommand{\rheDefLWPLgbm}{0.0496}  % ... Ledoit-Wolf p (equal Sharpe ratios of the daily returns)
+\providecommand{\rheDefPreLgbm}{}\renewcommand{\rheDefPreLgbm}{\ensuremath{+}0.41}  % ... D6 change before 16 May 2022 (125 days)
+\providecommand{\rheDefPostLgbm}{}\renewcommand{\rheDefPostLgbm}{\ensuremath{+}1.09}  % ... D6 change from 16 May 2022 (489 days)
+\providecommand{\rheDefDSixXgb}{}\renewcommand{\rheDefDSixXgb}{\ensuremath{+}0.81}  % pooled XGBoost: D6 Sharpe mid, full minus HAR (614 days)
+\providecommand{\rheDefBootPXgb}{}\renewcommand{\rheDefBootPXgb}{0.12}  % ... its D6 bootstrap p (two-sided)
+\providecommand{\rheDefDOneXgb}{}\renewcommand{\rheDefDOneXgb}{\ensuremath{+}0.30}  % ... D1 (per-year, N_y-weighted sqrt(N_y)) Sharpe mid change
+\providecommand{\rheDefDTwoXgb}{}\renewcommand{\rheDefDTwoXgb}{\ensuremath{+}0.60}  % ... D2 (pooled, mean / sd x sqrt(252)) Sharpe mid change
+\providecommand{\rheDefLWPXgb}{}\renewcommand{\rheDefLWPXgb}{0.20}  % ... Ledoit-Wolf p (equal Sharpe ratios of the daily returns)
+\providecommand{\rheDefPreXgb}{}\renewcommand{\rheDefPreXgb}{\ensuremath{+}0.52}  % ... D6 change before 16 May 2022 (125 days)
+\providecommand{\rheDefPostXgb}{}\renewcommand{\rheDefPostXgb}{\ensuremath{+}0.68}  % ... D6 change from 16 May 2022 (489 days)
+\providecommand{\rheDefDSixRf}{}\renewcommand{\rheDefDSixRf}{\ensuremath{+}1.98}  % pooled Random forest: D6 Sharpe mid, full minus HAR (614 days)
 \providecommand{\rheDefBootPRf}{}\renewcommand{\rheDefBootPRf}{0.007}  % ... its D6 bootstrap p (two-sided)
-\providecommand{\rheDefDOneRf}{}\renewcommand{\rheDefDOneRf}{\ensuremath{+}1.00}  % ... D1 (per-year, N_y-weighted sqrt(N_y)) Sharpe mid change
+\providecommand{\rheDefDOneRf}{}\renewcommand{\rheDefDOneRf}{\ensuremath{+}0.97}  % ... D1 (per-year, N_y-weighted sqrt(N_y)) Sharpe mid change
 \providecommand{\rheDefDTwoRf}{}\renewcommand{\rheDefDTwoRf}{\ensuremath{+}1.65}  % ... D2 (pooled, mean / sd x sqrt(252)) Sharpe mid change
 \providecommand{\rheDefLWPRf}{}\renewcommand{\rheDefLWPRf}{0.020}  % ... Ledoit-Wolf p (equal Sharpe ratios of the daily returns)
 \providecommand{\rheDefPreRf}{}\renewcommand{\rheDefPreRf}{\ensuremath{+}2.27}  % ... D6 change before 16 May 2022 (125 days)
-\providecommand{\rheDefPostRf}{}\renewcommand{\rheDefPostRf}{\ensuremath{+}1.24}  % ... D6 change from 16 May 2022 (489 days)
+\providecommand{\rheDefPostRf}{}\renewcommand{\rheDefPostRf}{\ensuremath{+}1.28}  % ... D6 change from 16 May 2022 (489 days)
 \providecommand{\rheDefN}{}\renewcommand{\rheDefN}{6}  % pooled classes in the Sharpe-definition robustness table
 \providecommand{\rheDefNAll}{}\renewcommand{\rheDefNAll}{6}  % pooled classes of the Sharpe-definition table, pending ones included (rheDefN: the finished ones)
 \providecommand{\rheDefDSixPos}{}\renewcommand{\rheDefDSixPos}{6}  % pooled classes (of 6) with DSix Sharpe change > 0
-\providecommand{\rheDefDSixMin}{}\renewcommand{\rheDefDSixMin}{\ensuremath{+}0.74}  % ... DSix change: min
-\providecommand{\rheDefDSixMax}{}\renewcommand{\rheDefDSixMax}{\ensuremath{+}1.95}  % ... DSix change: max
+\providecommand{\rheDefDSixMin}{}\renewcommand{\rheDefDSixMin}{\ensuremath{+}0.77}  % ... DSix change: min
+\providecommand{\rheDefDSixMax}{}\renewcommand{\rheDefDSixMax}{\ensuremath{+}1.98}  % ... DSix change: max
 \providecommand{\rheDefDOnePos}{}\renewcommand{\rheDefDOnePos}{6}  % pooled classes (of 6) with DOne Sharpe change > 0
-\providecommand{\rheDefDOneMin}{}\renewcommand{\rheDefDOneMin}{\ensuremath{+}0.22}  % ... DOne change: min
-\providecommand{\rheDefDOneMax}{}\renewcommand{\rheDefDOneMax}{\ensuremath{+}1.00}  % ... DOne change: max
+\providecommand{\rheDefDOneMin}{}\renewcommand{\rheDefDOneMin}{\ensuremath{+}0.30}  % ... DOne change: min
+\providecommand{\rheDefDOneMax}{}\renewcommand{\rheDefDOneMax}{\ensuremath{+}0.97}  % ... DOne change: max
 \providecommand{\rheDefDTwoPos}{}\renewcommand{\rheDefDTwoPos}{6}  % pooled classes (of 6) with DTwo Sharpe change > 0
-\providecommand{\rheDefDTwoMin}{}\renewcommand{\rheDefDTwoMin}{\ensuremath{+}0.52}  % ... DTwo change: min
+\providecommand{\rheDefDTwoMin}{}\renewcommand{\rheDefDTwoMin}{\ensuremath{+}0.60}  % ... DTwo change: min
 \providecommand{\rheDefDTwoMax}{}\renewcommand{\rheDefDTwoMax}{\ensuremath{+}1.65}  % ... DTwo change: max
 \providecommand{\rheDefPrePos}{}\renewcommand{\rheDefPrePos}{6}  % pooled classes (of 6) with Pre Sharpe change > 0
-\providecommand{\rheDefPreMin}{}\renewcommand{\rheDefPreMin}{\ensuremath{+}0.17}  % ... Pre change: min
+\providecommand{\rheDefPreMin}{}\renewcommand{\rheDefPreMin}{\ensuremath{+}0.04}  % ... Pre change: min
 \providecommand{\rheDefPreMax}{}\renewcommand{\rheDefPreMax}{\ensuremath{+}2.27}  % ... Pre change: max
 \providecommand{\rheDefPostPos}{}\renewcommand{\rheDefPostPos}{6}  % pooled classes (of 6) with Post Sharpe change > 0
-\providecommand{\rheDefPostMin}{}\renewcommand{\rheDefPostMin}{\ensuremath{+}0.63}  % ... Post change: min
-\providecommand{\rheDefPostMax}{}\renewcommand{\rheDefPostMax}{\ensuremath{+}1.24}  % ... Post change: max
+\providecommand{\rheDefPostMin}{}\renewcommand{\rheDefPostMin}{\ensuremath{+}0.67}  % ... Post change: min
+\providecommand{\rheDefPostMax}{}\renewcommand{\rheDefPostMax}{\ensuremath{+}1.28}  % ... Post change: max
 \providecommand{\rheDefBootSig}{}\renewcommand{\rheDefBootSig}{1}  % pooled classes (of 6) with D6 bootstrap p < 0.05
 \providecommand{\rheDefLWSig}{}\renewcommand{\rheDefLWSig}{2}  % pooled classes (of 6) with Ledoit-Wolf p < 0.05
 \providecommand{\rheNdays}{}\renewcommand{\rheNdays}{866}  % T_oos: trading days of the out-of-sample period
@@ -189,9 +189,9 @@
 \providecommand{\rheTopRMin}{}\renewcommand{\rheTopRMin}{2.77}  % smallest straddle return R_t among the 3 models' top days (MinGRU parked)
 \providecommand{\rheGainEnet}{}\renewcommand{\rheGainEnet}{\ensuremath{+}104.7}  % Closing-interval elastic net: cumulative gain over always short, premia
 \providecommand{\rheGainExEnet}{}\renewcommand{\rheGainExEnet}{\ensuremath{+}15.6}  % ... without its 10 best days
-\providecommand{\rheGainLgbm}{}\renewcommand{\rheGainLgbm}{\ensuremath{+}64.5}  % Intraday LightGBM: cumulative gain over always short, premia
-\providecommand{\rheGainExLgbm}{}\renewcommand{\rheGainExLgbm}{\ensuremath{-}15.9}  % ... without its 10 best days
+\providecommand{\rheGainLgbm}{}\renewcommand{\rheGainLgbm}{\ensuremath{+}57.2}  % Intraday LightGBM: cumulative gain over always short, premia
+\providecommand{\rheGainExLgbm}{}\renewcommand{\rheGainExLgbm}{\ensuremath{-}23.2}  % ... without its 10 best days
 \providecommand{\rheGainNN}{}\renewcommand{\rheGainNN}{\ensuremath{+}81.1}  % Closing-interval MinGRU (parked): cumulative gain over always short, premia
 \providecommand{\rheGainExNN}{}\renewcommand{\rheGainExNN}{\ensuremath{-}6.2}  % ... without its 10 best days
-\providecommand{\rheGainPoolEnet}{}\renewcommand{\rheGainPoolEnet}{\ensuremath{+}89.2}  % Intraday elastic net: cumulative gain over always short, premia
-\providecommand{\rheGainExPoolEnet}{}\renewcommand{\rheGainExPoolEnet}{\ensuremath{+}8.8}  % ... without its 10 best days
+\providecommand{\rheGainPoolEnet}{}\renewcommand{\rheGainPoolEnet}{\ensuremath{+}83.7}  % Intraday elastic net: cumulative gain over always short, premia
+\providecommand{\rheGainExPoolEnet}{}\renewcommand{\rheGainExPoolEnet}{\ensuremath{+}3.2}  % ... without its 10 best days

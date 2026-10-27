@@ -16,31 +16,31 @@ Forecast & $T_{\max}$ & $T_R$ & $T_{\max}$ & $T_R$ & $T_{\max}$ & $T_R$ \\
 \midrule
 \multicolumn{7}{@{}l}{\textit{Panel A: QLIKE}} \\
 \addlinespace[2pt]
-Linear, HAR$^{a}$ & \ensuremath{<}0.001 & \ensuremath{<}0.001 & \textit{0.126} & \ensuremath{<}0.001 & 0.040 & 0.033 \\
-Ridge, Full & \ensuremath{<}0.001 & \ensuremath{<}0.001 & \textit{0.159} & 0.015 & 0.012 & 0.009 \\
-Lasso, Full & \ensuremath{<}0.001 & \ensuremath{<}0.001 & \textit{0.126} & 0.011 & 0.012 & 0.011 \\
-Elastic net, Full & \ensuremath{<}0.001 & \ensuremath{<}0.001 & \textit{0.246} & 0.030 & 0.035 & 0.016 \\
-LightGBM, HAR & \ensuremath{<}0.001 & \ensuremath{<}0.001 & \textit{0.246} & \textit{0.103} & \textit{0.156} & 0.033 \\
-LightGBM, Full & \textbf{1.000} & \textbf{1.000} & \textit{0.246} & \textit{0.159} & \textit{0.156} & \textit{0.138} \\
-XGBoost, HAR & \ensuremath{<}0.001 & \ensuremath{<}0.001 & \textit{0.246} & \textit{0.103} & \textit{0.156} & 0.033 \\
-XGBoost, Full & 0.003 & 0.003 & \textbf{1.000} & \textbf{1.000} & \textit{0.196} & \textit{0.196} \\
-Random forest, HAR & \ensuremath{<}0.001 & \ensuremath{<}0.001 & \textit{0.159} & \ensuremath{<}0.001 & 0.040 & 0.019 \\
-Random forest, Full & \ensuremath{<}0.001 & \ensuremath{<}0.001 & \textit{0.182} & \ensuremath{<}0.001 & \textit{0.127} & 0.016 \\
+Linear, HAR$^{a}$ & \ensuremath{<}0.001 & \ensuremath{<}0.001 & \textit{0.189} & \ensuremath{<}0.001 & 0.043 & 0.034 \\
+Ridge, Full & \ensuremath{<}0.001 & \ensuremath{<}0.001 & \textit{0.189} & 0.008 & 0.008 & 0.007 \\
+Lasso, Full & \ensuremath{<}0.001 & \ensuremath{<}0.001 & 0.071 & 0.006 & 0.008 & 0.008 \\
+Elastic net, Full & \ensuremath{<}0.001 & \ensuremath{<}0.001 & \textit{0.189} & 0.010 & 0.024 & 0.013 \\
+LightGBM, HAR & \ensuremath{<}0.001 & \ensuremath{<}0.001 & \textit{0.189} & \textit{0.140} & \textit{0.159} & 0.034 \\
+LightGBM, Full & \textbf{1.000} & \textbf{1.000} & \textbf{0.287} & \textbf{0.287} & \textit{0.183} & \textbf{0.292} \\
+XGBoost, HAR & \ensuremath{<}0.001 & \ensuremath{<}0.001 & \textit{0.189} & \textit{0.140} & \textit{0.159} & 0.034 \\
+XGBoost, Full & \textbf{0.694} & \textbf{0.694} & \textbf{1.000} & \textbf{1.000} & \textit{0.183} & \textbf{0.292} \\
+Random forest, HAR & \ensuremath{<}0.001 & \ensuremath{<}0.001 & \textit{0.189} & 0.001 & 0.043 & 0.025 \\
+Random forest, Full & \ensuremath{<}0.001 & \ensuremath{<}0.001 & \textit{0.189} & \ensuremath{<}0.001 & \textit{0.135} & 0.025 \\
 Closing-interval HAR benchmark$^{b}$ & -- & -- & -- & -- & \textbf{1.000} & \textbf{1.000} \\
 \addlinespace[4pt]
 \multicolumn{7}{@{}l}{\textit{Panel B: Squared error}} \\
 \addlinespace[2pt]
-Linear, HAR$^{a}$ & \textbf{1.000} & \textbf{1.000} & \textbf{0.572} & \textbf{0.653} & \textbf{0.549} & \textbf{0.613} \\
-Ridge, Full & \textbf{0.489} & \textbf{0.415} & \textbf{0.437} & \textbf{0.653} & \textbf{0.449} & \textbf{0.613} \\
-Lasso, Full & \textbf{0.334} & \textbf{0.415} & \textbf{0.371} & \textbf{0.653} & \textbf{0.389} & \textbf{0.613} \\
-Elastic net, Full & \textbf{0.422} & \textbf{0.415} & \textbf{0.488} & \textbf{0.653} & \textbf{0.502} & \textbf{0.613} \\
-LightGBM, HAR & \textbf{0.489} & \textbf{0.310} & \textbf{0.572} & \textbf{0.369} & \textbf{0.549} & \textbf{0.579} \\
-LightGBM, Full & \textbf{0.489} & \textbf{0.415} & \textbf{0.488} & \textbf{0.653} & \textbf{0.549} & \textbf{0.613} \\
-XGBoost, HAR & \textbf{0.489} & \textbf{0.415} & \textbf{0.572} & \textbf{0.653} & \textbf{0.549} & \textbf{0.613} \\
-XGBoost, Full & \textbf{0.489} & \textbf{0.415} & \textbf{0.488} & \textbf{0.653} & \textbf{0.549} & \textbf{0.613} \\
-Random forest, HAR & \textbf{0.489} & \textbf{0.310} & \textbf{1.000} & \textbf{1.000} & \textbf{1.000} & \textbf{1.000} \\
-Random forest, Full & \textbf{0.489} & \textbf{0.415} & \textbf{0.558} & \textbf{0.653} & \textbf{0.549} & \textbf{0.613} \\
-Closing-interval HAR benchmark$^{b}$ & -- & -- & -- & -- & \textbf{0.549} & \textbf{0.579} \\
+Linear, HAR$^{a}$ & \textbf{1.000} & \textbf{1.000} & \textbf{0.588} & \textbf{0.602} & \textbf{0.557} & \textbf{0.561} \\
+Ridge, Full & \textbf{0.486} & \textbf{0.424} & \textbf{0.433} & \textbf{0.602} & \textbf{0.444} & \textbf{0.559} \\
+Lasso, Full & \textbf{0.320} & \textbf{0.424} & \textbf{0.377} & \textbf{0.602} & \textbf{0.393} & \textbf{0.559} \\
+Elastic net, Full & \textbf{0.427} & \textbf{0.424} & \textbf{0.484} & \textbf{0.602} & \textbf{0.495} & \textbf{0.561} \\
+LightGBM, HAR & \textbf{0.486} & \textbf{0.314} & \textbf{0.588} & \textbf{0.345} & \textbf{0.557} & \textbf{0.559} \\
+LightGBM, Full & \textbf{0.486} & \textbf{0.424} & \textbf{0.484} & \textbf{0.602} & \textbf{0.544} & \textbf{0.561} \\
+XGBoost, HAR & \textbf{0.486} & \textbf{0.424} & \textbf{0.588} & \textbf{0.602} & \textbf{0.557} & \textbf{0.561} \\
+XGBoost, Full & \textbf{0.486} & \textbf{0.424} & \textbf{0.484} & \textbf{0.602} & \textbf{0.557} & \textbf{0.561} \\
+Random forest, HAR & \textbf{0.486} & \textbf{0.314} & \textbf{1.000} & \textbf{1.000} & \textbf{1.000} & \textbf{1.000} \\
+Random forest, Full & \textbf{0.486} & \textbf{0.424} & \textbf{0.588} & \textbf{0.602} & \textbf{0.557} & \textbf{0.561} \\
+Closing-interval HAR benchmark$^{b}$ & -- & -- & -- & -- & \textbf{0.557} & \textbf{0.559} \\
 \bottomrule
 \end{tabular*}
 \begin{tablenotes}[flushleft]
@@ -68,37 +68,37 @@ Comparison & $p$ & Ridge & Lasso & Elastic net & LightGBM & XGBoost & Random for
 \addlinespace[2pt]
 Every bar, 2014--2024 & \ensuremath{<}0.001 & \textbf{\ensuremath{<}0.001} & \textbf{\ensuremath{<}0.001} & \textbf{\ensuremath{<}0.001} & \textbf{\ensuremath{<}0.001} & \textbf{\ensuremath{<}0.001} & \textbf{\ensuremath{<}0.001} \\
  &  & (\ensuremath{<}0.001) & (\ensuremath{<}0.001) & (\ensuremath{<}0.001) & (\ensuremath{<}0.001) & (\ensuremath{<}0.001) & (\ensuremath{<}0.001) \\
-16:00 bar, 2014--2024 & 0.033 & 0.675 & 0.842 & 0.499 & 0.072 & \textbf{0.033} & 0.302 \\
- &  & (0.646) & (0.842) & (0.437) & (0.034) & (0.013) & (0.177) \\
-16:00 bar, $\mathcal T_{\mathrm{close}}$ & 0.380 & 0.987 & 0.987 & 0.973 & 0.581 & 0.415 & 0.599 \\
- &  & (0.984) & (0.986) & (0.961) & (0.345) & (0.219) & (0.402) \\
+16:00 bar, 2014--2024 & 0.045 & 0.783 & 0.902 & 0.674 & 0.081 & \textbf{0.045} & 0.257 \\
+ &  & (0.757) & (0.902) & (0.620) & (0.037) & (0.020) & (0.150) \\
+16:00 bar, $\mathcal T_{\mathrm{close}}$ & 0.343 & 0.991 & 0.991 & 0.981 & 0.532 & 0.476 & 0.586 \\
+ &  & (0.988) & (0.991) & (0.973) & (0.309) & (0.265) & (0.397) \\
 \addlinespace[4pt]
 \multicolumn{8}{@{}l}{\textit{Panel B: QLIKE, full predictor set against the closing-interval HAR benchmark}} \\
 \addlinespace[2pt]
-16:00 bar, $\mathcal T_{\mathrm{close}}$ & 0.528 & 1.000 & 1.000 & 1.000 & 0.981 & 0.971 & 0.996 \\
- &  & (0.999) & (0.999) & (0.999) & (0.927) & (0.899) & (0.979) \\
+16:00 bar, $\mathcal T_{\mathrm{close}}$ & 0.532 & 1.000 & 1.000 & 0.999 & 0.977 & 0.977 & 0.996 \\
+ &  & (1.000) & (1.000) & (0.999) & (0.919) & (0.916) & (0.979) \\
 \addlinespace[4pt]
 \multicolumn{8}{@{}l}{\textit{Panel C: sign strategies against the unconditional short straddle}} \\
 \addlinespace[2pt]
-Mean return, mid-quotes & 0.024 & \textbf{0.035} & \textbf{0.035} & \textbf{0.030} & \textbf{0.043} & 0.050 & \textbf{0.024} \\
- &  & (0.023) & (0.025) & (0.020) & (0.038) & (0.050) & (0.014) \\
-Mean return, bid/ask & 0.024 & \textbf{0.034} & \textbf{0.034} & \textbf{0.029} & \textbf{0.042} & 0.050 & \textbf{0.024} \\
- &  & (0.023) & (0.024) & (0.019) & (0.038) & (0.050) & (0.014) \\
-Sharpe ratio, mid-quotes & 0.002 & \textbf{0.002} & \textbf{0.003} & \textbf{0.002} & \textbf{0.002} & \textbf{0.003} & \textbf{0.002} \\
- &  & (\ensuremath{<}0.001) & (0.003) & (0.002) & (\ensuremath{<}0.001) & (0.002) & (0.001) \\
-Sharpe ratio, bid/ask & 0.002 & \textbf{0.003} & \textbf{0.004} & \textbf{0.003} & \textbf{0.002} & \textbf{0.004} & \textbf{0.002} \\
- &  & (\ensuremath{<}0.001) & (0.003) & (0.002) & (0.001) & (0.003) & (0.001) \\
+Mean return, mid-quotes & 0.026 & 0.051 & \textbf{0.038} & \textbf{0.031} & 0.051 & 0.051 & \textbf{0.026} \\
+ &  & (0.037) & (0.025) & (0.020) & (0.041) & (0.039) & (0.015) \\
+Mean return, bid/ask & 0.025 & 0.050 & \textbf{0.037} & \textbf{0.031} & 0.050 & 0.050 & \textbf{0.025} \\
+ &  & (0.036) & (0.025) & (0.020) & (0.041) & (0.038) & (0.015) \\
+Sharpe ratio, mid-quotes & 0.002 & \textbf{0.003} & \textbf{0.003} & \textbf{0.002} & \textbf{0.003} & \textbf{0.003} & \textbf{0.002} \\
+ &  & (0.002) & (0.002) & (0.002) & (0.002) & (0.002) & (0.001) \\
+Sharpe ratio, bid/ask & 0.002 & \textbf{0.003} & \textbf{0.004} & \textbf{0.003} & \textbf{0.004} & \textbf{0.003} & \textbf{0.002} \\
+ &  & (0.002) & (0.003) & (0.002) & (0.002) & (0.002) & (0.001) \\
 \addlinespace[4pt]
 \multicolumn{8}{@{}l}{\textit{Panel D: sign strategies against the HAR-benchmark strategy of the same class}} \\
 \addlinespace[2pt]
-Mean return, mid-quotes & 0.026 & 0.087 & 0.093 & 0.072 & \textbf{0.048} & 0.138 & \textbf{0.026} \\
- &  & (0.049) & (0.059) & (0.037) & (0.021) & (0.138) & (0.012) \\
-Mean return, bid/ask & 0.026 & 0.087 & 0.093 & 0.073 & \textbf{0.048} & 0.138 & \textbf{0.026} \\
- &  & (0.049) & (0.059) & (0.037) & (0.021) & (0.138) & (0.012) \\
-Sharpe ratio, mid-quotes & 0.022 & 0.175 & 0.175 & 0.175 & 0.096 & 0.175 & \textbf{0.022} \\
- &  & (0.118) & (0.150) & (0.101) & (0.047) & (0.100) & (0.003) \\
-Sharpe ratio, bid/ask & 0.022 & 0.169 & 0.169 & 0.169 & 0.088 & 0.169 & \textbf{0.022} \\
- &  & (0.110) & (0.145) & (0.097) & (0.044) & (0.097) & (0.003) \\
+Mean return, mid-quotes & 0.027 & 0.131 & 0.106 & 0.069 & 0.060 & 0.131 & \textbf{0.027} \\
+ &  & (0.082) & (0.063) & (0.036) & (0.025) & (0.101) & (0.013) \\
+Mean return, bid/ask & 0.028 & 0.131 & 0.106 & 0.069 & 0.061 & 0.131 & \textbf{0.028} \\
+ &  & (0.083) & (0.063) & (0.036) & (0.025) & (0.103) & (0.013) \\
+Sharpe ratio, mid-quotes & 0.020 & 0.164 & 0.164 & 0.162 & 0.107 & 0.162 & \textbf{0.020} \\
+ &  & (0.147) & (0.138) & (0.100) & (0.050) & (0.087) & (0.003) \\
+Sharpe ratio, bid/ask & 0.020 & 0.158 & 0.158 & 0.157 & 0.102 & 0.157 & \textbf{0.020} \\
+ &  & (0.140) & (0.134) & (0.096) & (0.048) & (0.084) & (0.003) \\
 \bottomrule
 \end{tabular*}
 \begin{tablenotes}[flushleft]

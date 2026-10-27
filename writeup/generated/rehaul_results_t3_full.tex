@@ -56,13 +56,13 @@ Rank & Model & Specification & Predictors & QLIKE & $\Delta$ (\%) & $\DM$ \\
 28 & XGBoost & Random search (MSE), daily & Full & 0.1078 & $5.1^{\phantom{***}}$ & $(1.39)$ \\
 29 & XGBoost & Random search (QLIKE), daily & Full & 0.1078 & $5.2^{\phantom{***}}$ & $(1.41)$ \\
 30 & Random forest & Optuna (MSE), daily, 10 trials & HAR & 0.1078 & $5.2^{***}$ & $(2.67)$ \\
-33 & Random forest & Optuna (MSE), 25 d, 50 trials & HAR & 0.1080 & $5.4^{***}$ & $(2.62)$ \\
-34 & Random forest & Optuna (MSE), 25 d, 25 trials & Full & 0.1082 & $5.5^{*\phantom{**}}$ & $(1.74)$ \\
-35 & XGBoost & Optuna (MSE), 5 d, 50 trials & HAR & 0.1082 & $5.6^{**\phantom{*}}$ & $(2.57)$ \\
+32 & Random forest & Optuna (MSE), 25 d, 50 trials & HAR & 0.1080 & $5.4^{***}$ & $(2.62)$ \\
+33 & Random forest & Optuna (MSE), 25 d, 25 trials & Full & 0.1082 & $5.5^{*\phantom{**}}$ & $(1.74)$ \\
+34 & XGBoost & Optuna (MSE), 5 d, 50 trials & HAR & 0.1082 & $5.6^{**\phantom{*}}$ & $(2.57)$ \\
 36 & XGBoost & Optuna (MSE), daily, 10 trials & HAR & 0.1085 & $5.9^{**\phantom{*}}$ & $(2.57)$ \\
 38 & LightGBM & Optuna (MSE), 250 d, 50 trials & Full & 0.1086 & $5.9^{\phantom{***}}$ & $(1.44)$ \\
-39 & Random forest & Optuna (MSE), 25 d, 10 trials & HAR & 0.1088 & $6.1^{**\phantom{*}}$ & $(2.52)$ \\
-40 & XGBoost & Optuna (MSE), daily, 50 trials & Full & 0.1089 & $6.2^{*\phantom{**}}$ & $(1.88)$ \\
+40 & Random forest & Optuna (MSE), 25 d, 10 trials & HAR & 0.1088 & $6.1^{**\phantom{*}}$ & $(2.52)$ \\
+41 & XGBoost & Optuna (MSE), daily, 50 trials & Full & 0.1089 & $6.2^{*\phantom{**}}$ & $(1.88)$ \\
 42 & Random forest & Optuna (MSE), 250 d, 50 trials & Full & 0.1090 & $6.3^{**\phantom{*}}$ & $(2.00)$ \\
 43 & Random forest & Optuna (QLIKE), 25 d, 50 trials & Full & 0.1091 & $6.4^{*\phantom{**}}$ & $(1.89)$ \\
 44 & XGBoost & Optuna (MSE), 25 d, 50 trials & HAR & 0.1091 & $6.4^{***}$ & $(2.70)$ \\
@@ -109,13 +109,13 @@ Rank & Model & Specification & Predictors & QLIKE & $\Delta$ (\%) & $\DM$ \\
 \multicolumn{7}{@{}l}{\textit{Panel B: Intraday models}} \\
 \addlinespace[2pt]
 31 & Elastic net & All \rhdmNIntervals{} intervals & Full & 0.1078 & $5.2^{\phantom{***}}$ & $(1.40)$ \\
-32 & XGBoost$^{\ddagger}$ & -- & Full & 0.1079 & $5.2^{\phantom{***}}$ & $(1.30)$ \\
+35 & XGBoost$^{\ddagger}$ & -- & Full & 0.1083 & $5.7^{\phantom{***}}$ & $(1.40)$ \\
 37 & Ridge & All \rhdmNIntervals{} intervals & Full & 0.1086 & $5.9^{\phantom{***}}$ & $(1.60)$ \\
-41 & LightGBM$^{\ddagger}$ & -- & Full & 0.1089 & $6.3^{\phantom{***}}$ & $(1.49)$ \\
+39 & LightGBM$^{\ddagger}$ & -- & Full & 0.1086 & $6.0^{\phantom{***}}$ & $(1.41)$ \\
 54 & LightGBM$^{\ddagger}$ & -- & HAR & 0.1101 & $7.4^{***}$ & $(2.60)$ \\
 55 & Lasso & All \rhdmNIntervals{} intervals & Full & 0.1101 & $7.5^{*\phantom{**}}$ & $(1.85)$ \\
 56 & XGBoost$^{\ddagger}$ & -- & HAR & 0.1102 & $7.5^{***}$ & $(2.70)$ \\
-75 & Random forest$^{\ddagger}$ & -- & Full & 0.1123 & $9.6^{**\phantom{*}}$ & $(2.13)$ \\
+74 & Random forest$^{\ddagger}$ & -- & Full & 0.1123 & $9.6^{**\phantom{*}}$ & $(2.13)$ \\
 77 & XGBoost & Earlier draft, no FOMC & Full & 0.1126 & $9.8^{**\phantom{*}}$ & $(2.24)$ \\
 80 & LightGBM & Earlier draft, no FOMC & Full & 0.1128 & $10.0^{**\phantom{*}}$ & $(2.22)$ \\
 82 & Random forest$^{\ddagger}$ & -- & HAR & 0.1131 & $10.4^{***}$ & $(3.12)$ \\
@@ -125,14 +125,14 @@ Rank & Model & Specification & Predictors & QLIKE & $\Delta$ (\%) & $\DM$ \\
 89 & Ridge$^{\ddagger}$ & -- & HAR & 0.1137 & $10.9^{***}$ & $(2.84)$ \\
 92 & Elastic net & All \rhdmNIntervals{} intervals & HAR & 0.1142 & $11.4^{***}$ & $(3.69)$ \\
 94 & Ridge & All \rhdmNIntervals{} intervals & HAR & 0.1143 & $11.5^{***}$ & $(3.61)$ \\
-103 & Elastic net$^{\ddagger}$ & -- & Full & 0.1234 & $20.3^{***}$ & $(3.36)$ \\
-104 & Ridge$^{\ddagger}$ & -- & Full & 0.1260 & $22.9^{***}$ & $(3.63)$ \\
-106 & Lasso$^{\ddagger}$ & -- & Full & 0.1301 & $26.9^{***}$ & $(3.68)$ \\
+103 & Elastic net$^{\ddagger}$ & -- & Full & 0.1245 & $21.4^{***}$ & $(3.48)$ \\
+104 & Ridge$^{\ddagger}$ & -- & Full & 0.1269 & $23.8^{***}$ & $(3.72)$ \\
+106 & Lasso$^{\ddagger}$ & -- & Full & 0.1309 & $27.7^{***}$ & $(3.80)$ \\
 \addlinespace[4pt]
 \multicolumn{7}{@{}l}{\textit{Panel C: Intraday models, earlier draft's specification}} \\
 \addlinespace[2pt]
 69 & Lasso & Fixed penalty, no FOMC & Full & 0.1116 & $8.9^{**\phantom{*}}$ & $(2.09)$ \\
-74 & Ridge & Block penalty, no FOMC & Full & 0.1123 & $9.6^{**\phantom{*}}$ & $(2.20)$ \\
+75 & Ridge & Block penalty, no FOMC & Full & 0.1123 & $9.6^{**\phantom{*}}$ & $(2.20)$ \\
 91 & Ridge & Block penalty & Full & 0.1140 & $11.3^{**\phantom{*}}$ & $(2.50)$ \\
 93 & Lasso & Fixed penalty & Full & 0.1143 & $11.5^{***}$ & $(2.58)$ \\
 97 & Lasso & Re-tuned penalty, no FOMC & Full & 0.1158 & $13.0^{***}$ & $(2.69)$ \\
