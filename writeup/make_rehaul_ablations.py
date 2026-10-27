@@ -285,7 +285,7 @@ DESIGN_TXT = (
     " patched design (the trees' add arms other than FOMC and the removal of FOMC hold no FOMC column, so their"
     " forecasts are the same on both designs)."
     if FIXED
-    else "Design before the FOMC patch (the scheduled 18 March 2020 meeting missing, the proximity ramps not"
+    else "Design before the FOMC patch (the scheduled 18 March 2020 meeting missing, the proximity ramps"
     " winsorized): the FOMC rows are preliminary."
 )
 
@@ -366,7 +366,8 @@ def table(M: pd.DataFrame, D: pd.DataFrame, have: set) -> str:
         " realized moments (RM, Panel B's first row) and plus the FOMC calendar (Panel B's last row)."
         " Every model keeps the full set's frozen hyperparameters (the linear penalties chosen on the 2013 pre-sample"
         " fold for the full set; one configuration per tree method).  The random forest is run for Panel B and for the"
-        " realized-moment group of Panel A only.  Series that start after the data enter as zero until the rolling"
+        + (" realized-moment and FOMC groups" if ("rf", "lo_fomc") in have else " realized-moment group")
+        + " of Panel A only.  Series that start after the data enter as zero until the rolling"
         " window holds 3,000 days of their history (Section~\\ref{sec:rh_predictors}), so the implied-volatility,"
         " sentiment and volatility-demand rows of Panels A and B measure those series only from the dates in the text."
         " Panel E scores the same forecasts on the bars on which the group's value averages are live (all three StockTwits"

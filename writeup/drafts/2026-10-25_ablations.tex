@@ -3,8 +3,9 @@
 % (writeup/generated/rehaul_ablation_table.tex), both from writeup/make_rehaul_ablations.py on
 % results/ablations_2014start_w3000 (RULE.txt, STATUS.md).  To use: \input{generated/rehaul_ablation_numbers} in the
 % preamble, the table in 06_results_floats.tex, this text in Section~\ref{sec:rh_results_predictors}.
-% Results: 2026-10-26, every tree and linear arm finished (STATUS.md).  PRE-PATCH FOMC DESIGN: the FOMC rows are
-% preliminary (the 18 March 2020 meeting and the winsorized proximity ramps of the pending patch change them).
+% Results: 2026-10-26, on the FOMC-patched design (fomcfix cell B; RULE.txt addendum D): every linear arm and the
+% trees' FOMC arms walked on it; the trees' removals of the other groups (dagger in the table) on the pre-patch design,
+% against the pre-patch full set.  The forest's removal of the FOMC calendar (addendum E) is running.
 % Two references are not in writeup/references.bib yet (BollerslevPattonQuaedvlieg2016 is):
 % @article{PattonSheppard2015,
 %   title={Good volatility, bad volatility: signed jumps and the persistence of volatility},
@@ -31,7 +32,10 @@ contributes given everything else; the second what it contributes on its own.  H
 set: the linear penalties chosen on the 2013 pre-sample fold for the full predictor set (with the HAR block
 penalized at one hundredth of the rate of the exogenous columns), and the single frozen configuration of each tree
 method.  The random forest, the most expensive class, is fitted for the eight additions and for the removal of the
-realized moments.  Panel~D of Table~\ref{tab:rh_ablation} restates the full-set row of Table~\ref{tab:rh_oos}.
+realized moments.  Panel~D of Table~\ref{tab:rh_ablation} restates the full-set row of Table~\ref{tab:rh_oos}.  The
+design is the final one, with the corrected FOMC calendar; the trees' removals of the groups other than the FOMC
+calendar were fitted before that correction and are compared with the full set fitted on the same uncorrected design
+(marked in the table).
 
 \paragraph{Augmented HAR benchmarks.}  The first group, the futures' own realized moments, is the natural
 ``augmented HAR'': it adds the return, absolute variation, skewness, quarticity, positive semivariance, bipower
@@ -51,7 +55,7 @@ data, and a series enters as zero until the rolling window holds 3,000 trading d
 (Section~\ref{sec:rh_predictors}).  In the evaluation sample this rule binds for most of the span: the VIX enters on
 \rhabLiveVixFromKone{} (its longest average on \rhabLiveVixFromKlast{}), VIX3M on \rhabLiveVixthreemFromKone{},
 StockTwits attention on \rhabLiveAttnFromKone{} and the other StockTwits series on \rhabLiveSentFromKone{}, the
-volatility-demand series on \rhabLiveVdSpxOcFromKone{} (and their feed stops on \rhabLiveVdSpxOcLast{}... [check]),
+volatility-demand series on \rhabLiveVdSpxOcFromKone{} (their feed stops on \rhabLiveVdSpxOcLast{}),
 and VVIX on \rhabLiveVvixFromKone{}.  Before those dates the groups contribute only their availability shares, so
 the ablation rows of these groups measure the series over the later part of the sample only.
 
@@ -60,13 +64,19 @@ against its own HAR benchmark plus the futures' realized moments.  Over every ba
 all \rhabNClassesBeatAddRm{} classes: by \rhabLgbmFullVsAddRmAllPct\% for LightGBM ($\DM = \rhabLgbmFullVsAddRmAllDm$),
 \rhabXgbFullVsAddRmAllPct\% for XGBoost and \rhabRfFullVsAddRmAllPct\% for the random forest, and by
 \rhabRidgeFullVsAddRmAllPct\% to \rhabLassoFullVsAddRmAllPct\% for the penalized linear models
-($\DM = \rhabRidgeFullVsAddRmAllDm$ to $\rhabEnetFullVsAddRmAllDm$).  The classical extensions estimated by OLS gain little
+($\DM = \rhabRidgeFullVsAddRmAllDm$ to $\rhabLassoFullVsAddRmAllDm$).  It also beats the HAR benchmark plus the FOMC
+calendar, the strongest single addition for the trees (Panel~B): by \rhabLgbmFullVsAddFomcAllPct\% for LightGBM
+($\DM = \rhabLgbmFullVsAddFomcAllDm$), \rhabXgbFullVsAddFomcAllPct\% for XGBoost and \rhabRfFullVsAddFomcAllPct\% for the
+forest ($\DM = \rhabRfFullVsAddFomcAllDm$), and by \rhabRidgeFullVsAddFomcAllPct\% to \rhabEnetFullVsAddFomcAllPct\% for
+the linear models ($\DM = \rhabLassoFullVsAddFomcAllDm$ to $\rhabEnetFullVsAddFomcAllDm$).  The classical extensions estimated by OLS gain little
 over the HAR benchmark: \rhabOlsSharAllPct\% for SHAR, \rhabOlsHarqAllPct\% for HARQ, \rhabOlsLharAllPct\% for LHAR and
 \rhabOlsSharqlAllPct\% for the three together (Panel~C); every class's full set beats the last of these
 ($\DM = \rhabLgbmFullVsOlsSharqlAllDm$ for LightGBM, $\rhabEnetFullVsOlsSharqlAllDm$ for the elastic net).  At the closing
-half hour the picture differs: the trees' full sets are no better than their own HAR plus realized moments
-(\rhabLgbmFullVsAddRmClosePct\% for LightGBM, \rhabRfFullVsAddRmClosePct\% for the forest, $\DM =
-\rhabRfFullVsAddRmCloseDm$), and the linear full sets are worse.
+half hour the picture differs: the trees' full sets lose to their own HAR plus realized moments
+(\rhabLgbmFullVsAddRmClosePct\% for LightGBM, $\DM = \rhabLgbmFullVsAddRmCloseDm$; \rhabXgbFullVsAddRmClosePct\% for
+XGBoost and \rhabRfFullVsAddRmClosePct\% for the forest, $\DM = \rhabXgbFullVsAddRmCloseDm$ and
+$\rhabRfFullVsAddRmCloseDm$), and the linear full sets lose more (\rhabEnetFullVsAddRmClosePct\% to
+\rhabLassoFullVsAddRmClosePct\%).
 
 \paragraph{Two groups carry it.}  Removing a group from the full set (Panel~A) costs little except for two groups: the
 FOMC calendar (\rhabLgbmLoFomcAllPct\% for LightGBM, \rhabXgbLoFomcAllPct\% for XGBoost, \rhabRidgeLoFomcAllPct\% to
@@ -76,8 +86,7 @@ No other group's removal changes QLIKE by more than a few tenths of a percent.  
 (Panel~B), the FOMC calendar gives most of the trees' gain (\rhabLgbmAddFomcAllPct\% for LightGBM against
 \rhabLgbmFullAllPct\% for the full set), the realized moments about \rhabXgbAddRmAllPct\% (XGBoost), and the liquidity
 and constituent-market groups gains of the same order (\rhabXgbAddVwAllPct\% for the value-weighted market) that
-disappear once the rest of the set is present: their information overlaps with the futures' moments.  The FOMC
-numbers are from the design before the pending calendar patch and are preliminary.
+disappear once the rest of the set is present: their information overlaps with the futures' moments.
 
 \paragraph{Alternative data on its live window.}  Panel~E scores the late-starting groups only on the bars on which
 their value averages are live.  There the gains are small: about one percent for the trees from the VIX
