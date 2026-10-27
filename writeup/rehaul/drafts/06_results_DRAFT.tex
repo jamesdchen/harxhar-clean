@@ -1,13 +1,12 @@
-% 06_results_DRAFT.tex -- DRAFT of 26 October 2026 (coordinator), for the author's review; NOT input by paper_rehaul.tex.
-% Section 6 restructured around the two channels of the pooled gain (author, 26 Oct: the pooled every-bar story is
-% the story; the gain splits into FOMC statement days and ordinary days; tests and reading rules fixed in
-% results/channels_2026-10-26/RULE.txt). Section 6 keeps accuracy; which predictors carry each channel moves to
-% Section 7 (drafts/08_predictors_DRAFT.tex). Bullet map: drafts/MAP_06_07.md.
-% \rhPending{name} marks a number the CHANNELS generator (writeup/make_rehaul_channels.py, macros \rhch...) or the
-% FACTOR generator (writeup/make_rehaul_factor.py, \rhfa...) will supply; the names are placeholders until they report.
+% 06_results_DRAFT.tex -- DRAFT v2 of 26 October 2026 (coordinator), for the author's review; NOT input by
+% paper_rehaul.tex. v1 (b81283d) split the gain into FOMC statement days and ordinary days (D17); v2 adds the
+% author's reference of D18: what the exogenous series add once the HAR benchmark, the futures' realized moments and the
+% FOMC calendar are accounted for ("those are well studied"). No 16:00-bar results (D16). Bullet map: drafts/MAP_06_07.md.
+% \rhPending{name}: a number still to come -- the HAR + RM + FOMC arm (ablation agent, make_rehaul_ablations.py,
+% \rhab...FullVsAddRmFomc...) and the range macros listed in the map (make_rehaul_channels.py, \rhch...).
 \ifdefined\rhabNClassesBeatAddRm\else\input{generated/rehaul_ablation_numbers}\fi
-\ifdefined\rhcaNdaysSpan\else\input{generated/rehaul_close_accuracy_numbers}\fi
 \ifdefined\rhmcsNModels\else\input{generated/rehaul_mcs_numbers}\fi
+\ifdefined\rhchNEventDays\else\input{generated/rehaul_channels_numbers}\fi
 
 \section{Results}
 \label{sec:rh_results}
@@ -16,10 +15,11 @@
 \item \textbf{Design, benchmark and outline.} Every forecast follows the design, spans and tests of
   Sections~\ref{sec:rh_methods_setup} and~\ref{sec:rh_results_eval}: every bar of $\mathcal T_{\mathrm{oos}}$ is
   scored, and the primary benchmark is the OLS on the HAR benchmark set, the OLS row of Table~\ref{tab:rh_oos}, which
-  the HAR-set penalized models reproduce. We report accuracy on every bar (Section~\ref{sec:rh_results_oos}), split
-  the gain into the days with a scheduled FOMC statement and all other days (Section~\ref{sec:rh_results_channels}),
-  compare the full set with augmented HAR models (Section~\ref{sec:rh_results_bench}) and check robustness
-  (Section~\ref{sec:rh_results_robust}). Section~\ref{sec:rh_fi} asks which predictors carry each part of the gain.
+  the HAR-set penalized models reproduce. We report accuracy on every bar (Section~\ref{sec:rh_results_oos}), locate
+  the gain on the days with a scheduled FOMC statement and on all other days (Section~\ref{sec:rh_results_channels}),
+  measure what the exogenous series add once the HAR benchmark, the futures' realized moments and the FOMC calendar
+  are accounted for (Section~\ref{sec:rh_results_beyond}) and check robustness (Section~\ref{sec:rh_results_robust}).
+  Section~\ref{sec:rh_fi} asks which predictors carry each part of the gain.
 \end{itemize}
 
 \subsection{Accuracy on every bar}
@@ -45,7 +45,7 @@
   predictors add to a given model $m$: the full set has the lower loss in \rhorAfLower{} of the \rhorAfPairs{}
   classes, \rhorAfLowerSig{} of them significantly, and the tree ensembles gain more from the same predictors than the
   linear models (\rhabLgbmFullAllPct\% for LightGBM, \rhabXgbFullAllPct\% for XGBoost and \rhabRfFullAllPct\% for the
-  random forest; $\DM={}$\rhorDmLgbmB, \rhorDmXgbB{} and \rhorDmRfB). % the \rhab percentages become patched when the ablation generator reruns (D13)
+  random forest; $\DM={}$\rhorDmLgbmB, \rhorDmXgbB{} and \rhorDmRfB).
 \item \textbf{Squared-error loss.} Under squared error the comparison reverses: on every bar the full set raises the
   MSE in all \rhorAfPairs{} classes and lowers $R^2_{\mathrm{OOS}}$ (Table~\ref{tab:rh_oos}). A handful of days in the
   COVID-19 crash account for the difference (Appendix~\ref{app:rh_results_calib}).
@@ -56,70 +56,67 @@
     bars weigh little in it; robust to noise in the realized-variance proxy \citep{Patton2011}, it remains the
     primary loss.
   \end{itemize}
-  % DRAFT: the sub-bullets of the current text with their numbers (MSE ranges, the 92--101% shares, the level/scale
-  % check) move to Appendix app:rh_results_calib, which already reports them.
 \end{itemize}
 
-\subsection{Two channels: FOMC statement days and ordinary days}
+\subsection{Where the gain comes from: FOMC statement days and ordinary days}
 \label{sec:rh_results_channels}
 \begin{itemize}
 \item \textbf{Day types.} The Federal Reserve publishes its meeting calendar in advance, so whether a day carries a
   scheduled FOMC statement is known before every forecast of that day. We split $\mathcal T_{\mathrm{oos}}$ into the
-  \rhPending{rhchNEventDays} statement days and the \rhPending{rhchNOrdDays} other days, the ordinary days, and score
-  each part with the tests of Table~\ref{tab:rh_oos}. The split is set by the calendar, not by the losses, and every
-  class and predictor group is reported under it (Appendix~\rhPending{app:rh_channels}).
-\item \textbf{Where the gain comes from} (Figure~\ref{fig:rh_channels}).
+  \rhchNEventDays{} statement days and the \rhchNOrdDays{} other days, the ordinary days, and score each part with the
+  tests of Table~\ref{tab:rh_oos}. The split is set by the calendar, not by the losses, and every class and predictor
+  group is reported under it (Appendix~\rhPending{app:rh_channels}).
+\item \textbf{The statement afternoons} (Figure~\ref{fig:rh_channels}).
   \begin{itemize}
-  \item The bars from 14:30 to 16:00~ET of the statement days, \rhPending{rhchEventPmBarShare}\% of the scored bars,
-    carry \rhPending{rhchEventPmGainShareLinRng}\% of the full set's every-bar QLIKE gain in the penalized linear
-    models and \rhPending{rhchEventPmGainShareTreeRng}\% in the tree ensembles.
+  \item The bars from 14:30 to 16:00~ET of the statement days, \rhchEventPmBarPct\% of the scored bars, carry
+    \rhchLinShareEventPmMin--\rhchLinShareEventPmMax\% of the full set's every-bar QLIKE gain in the penalized linear
+    models and \rhchTreeShareEventPmMin--\rhchTreeShareEventPmMax\% in the tree ensembles.
   \item The statement is released at 14:00~ET. The HAR benchmark, which knows the weekday and the bar but not the
-    calendar, cannot anticipate the rise in variance that follows, and QLIKE penalizes under-prediction heavily, so a
-    few hundred bars move the average.
+    calendar, cannot anticipate the rise in variance that follows, and QLIKE penalizes such under-prediction heavily,
+    so a few hundred bars move the average; the largest differential is at the 14:30 bar.
   \item On ordinary days the cumulative loss differential declines steadily, without the jumps of the statement days
-    (Figure~\ref{fig:rh_channels}, panel a).
+    (Figure~\ref{fig:rh_channels}).
   \end{itemize}
-\item \textbf{What the other predictors add beyond the FOMC calendar} (Table~\ref{tab:rh_channels_corr}). Three
-  corrections ask the same question in different ways.
+\item \textbf{The gain does not depend on the FOMC calendar} (Table~\ref{tab:rh_channels_corr}). Three corrections ask
+  what the other predictors add beyond the calendar: the full set against HAR\,+\,FOMC, the HAR benchmark set with the
+  FOMC series added; the full set refitted without the FOMC series against the HAR benchmark; and the full set against
+  the HAR benchmark on ordinary days alone.
   \begin{itemize}
-  \item Against HAR\,+\,FOMC, the HAR benchmark set with the FOMC series added, the full set lowers the every-bar loss
-    by \rhPending{rhchVsHarFomcLinRng}\% in the penalized linear models and \rhPending{rhchVsHarFomcTreeRng}\% in the
-    tree ensembles, significantly in \rhPending{rhchVsHarFomcNSig} of the \rhorAfPairs{} classes.
-  \item Refitted without the FOMC series, the full set lowers the every-bar loss relative to the HAR benchmark by
-    \rhPending{rhchNoFomcLinRng}\% and \rhPending{rhchNoFomcTreeRng}\%.
-  \item On ordinary days alone, its loss lies \rhPending{rhchOrdLinRng}\% (linear) and \rhPending{rhchOrdTreeRng}\%
-    (trees) below the HAR benchmark's, significantly in \rhPending{rhchOrdNSig} of the \rhorAfPairs{} classes.
-  \item The three agree within two percentage points in \rhPending{rhchNAgree} of the \rhorAfPairs{} classes. The
-    pooled gain does not depend on the FOMC calendar; the calendar adds an event component on top of it, concentrated
-    on the statement afternoons.
+  \item They lower the loss by \rhPending{rhchCorrLinRng}\% in the penalized linear models and
+    \rhPending{rhchCorrTreeRng}\% in the tree ensembles, each significantly, and agree within \rhchAgreePp{}
+    percentage points in each of the \rhchNCorrAgree{} classes in which all three were run.
+  \item The FOMC calendar thus adds an event component of its own, concentrated on the statement afternoons, to a
+    gain that is present without it.
   \end{itemize}
-  % DRAFT: the last sentence holds only if rhchOrdNSig and the no-FOMC significance are 6 of 6 (pre-patch
-  % exploratory: yes); reword from the RULE item-1 reading if not.
 \end{itemize}
 
-\subsection{Augmented HAR benchmarks}
+\subsection{Beyond the HAR, the realized moments and the FOMC calendar}
+\label{sec:rh_results_beyond}
 \label{sec:rh_results_bench}
 \begin{itemize}
-\item \textbf{Design} (Table~\ref{tab:rh_ablation}, Panels~B--D; Appendix~\ref{app:rh_results_ablation}). The design
-  of Table~\ref{tab:rh_oos}, including the full set's frozen hyperparameters, with only the columns changed. Panel~C
-  fits by OLS the semivariance HAR of \citet{PattonSheppard2015}, the HARQ model of
-  \citet{BollerslevPattonQuaedvlieg2016} and the leverage HAR of \citet{CorsiReno2012}, built from the same one-minute
-  E-mini returns as the target.
-\item \textbf{The gain survives an augmented HAR.} The futures' realized moments, computed from the same one-minute
-  returns that define the target, are the natural augmented HAR.
-  \begin{itemize}
-  \item Added to the HAR benchmark set they lower the loss in every class (Panel~B, first row;
-    \rhabOlsAddRmAllPct\% for the OLS).
-  \item Yet the full set is significantly more accurate than the same class's HAR benchmark set plus realized moments
-    in \rhabNClassesBeatAddRm{} of the \rhabNClassesAddRm{} classes, by \rhabRidgeFullVsAddRmAllPct\% to
-    \rhabLassoFullVsAddRmAllPct\% for the linear models and by \rhabRfFullVsAddRmAllPct\% to
-    \rhabLgbmFullVsAddRmAllPct\% for the trees (Panel~D). % RECHECK (D13) after the ablation rerun: endpoints by class
-  \item The classical extensions gain little over the benchmark: \rhabOlsSharAllPct\% for the semivariance HAR,
-    \rhabOlsHarqAllPct\% for HARQ, \rhabOlsLharAllPct\% for the leverage HAR and \rhabOlsSharqlAllPct\% for the three
-    together (Panel~C), and every class's full set is significantly more accurate than the last of these ($\DM$ from
-    \rhabLassoFullVsOlsSharqlAllDm{} for the lasso to \rhabLgbmFullVsOlsSharqlAllDm{} for LightGBM).
-  \item The exogenous predictors thus carry information that richer functions of the futures' own returns do not.
-  \end{itemize}
+\item \textbf{The reference.} Three kinds of predictors are well studied: the HAR terms; the futures' realized moments,
+  computed from the same one-minute returns that define the target, the natural augmented HAR
+  \citep[e.g.][]{PattonSheppard2015,BollerslevPattonQuaedvlieg2016,CorsiReno2012}; and the calendar of scheduled
+  announcements. We ask what the other exogenous series, the constituents' trading, liquidity and order flow,
+  option-implied volatility and the alternative data, add once all three are in the model. The comparison uses
+  HAR\,+\,RM\,+\,FOMC, the HAR benchmark set with the realized moments and the FOMC series added, fitted with the
+  design and frozen hyperparameters of Table~\ref{tab:rh_oos} (Table~\ref{tab:rh_ablation}, Panel~D;
+  Appendix~\ref{app:rh_results_ablation}).
+\item \textbf{The realized moments are a strong augmentation.} Added to the HAR benchmark set they lower the loss in
+  every class (\rhabOlsAddRmAllPct\% for the OLS on every bar), and by more on ordinary days, whereas the semivariance,
+  realized-quarticity and leverage extensions of the HAR model, estimated together by OLS, change the benchmark's loss
+  by only \rhabOlsSharqlAllPct\% (Panel~C).
+\item \textbf{What the other exogenous series add.} Against HAR\,+\,RM\,+\,FOMC the full set changes the every-bar
+  loss by \rhPending{rhabLinFullVsAddRmFomcAllRng}\% in the penalized linear models and by
+  \rhPending{rhabTreeFullVsAddRmFomcAllRng}\% in the tree ensembles, and the ordinary-day loss by
+  \rhPending{rhabLinFullVsAddRmFomcOrdRng}\% and \rhPending{rhabTreeFullVsAddRmFomcOrdRng}\%; the difference is
+  significant for \rhPending{rhabFullVsAddRmFomcNSig} of the \rhorAfPairs{} classes.
+  % DRAFT: interim reading from the HAR + RM arm on ordinary days (not pre-registered; channels CSV): linear
+  % \rhchXLinOrdFullVsRmPctMin to \rhchXLinOrdFullVsRmPctMax % (significant in \rhchXLinOrdFullVsRmNSig of 3), trees
+  % \rhchXTreeOrdFullVsRmPctMin to \rhchXTreeOrdFullVsRmPctMax % (significant in \rhchXTreeOrdFullVsRmNSig of 3).
+\item \textbf{In sum.} Beyond the well-studied predictors, the exogenous series improve the tree ensembles' forecasts
+  modestly and significantly and the penalized linear models' not at all.
+  % DRAFT: this sentence holds if the HAR + RM + FOMC arm confirms the interim reading above; reword otherwise.
 \end{itemize}
 
 \subsection{Robustness}
@@ -139,5 +136,3 @@
   $p$-value \rhmcsBarQAfSpaC; \citealp{Hansen2005}), against \rhmcsBarMAfNRejWord{} under squared error
   (Tables~\ref{tab:rh_mcs} and~\ref{tab:rh_mcs_spa}).
 \end{itemize}
-% DRAFT (author, 26 Oct: no 16:00-bar results in the main text): the subsection "The closing half hour" and its
-% realized-moments bullet are in Appendix app:rh_closing; the 16:00 window range is in app:rh_robust_window.
