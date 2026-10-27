@@ -24,7 +24,7 @@ Scored set: Table 1's 33,527 bars on 2,579 days (13 a day); EVENT = 81 scheduled
 | feature-count ladder | worktree `results/ladder_2026-10-26/fomcfix/forecasts_wide.parquet` | patched | ok | item 3 (iii) |
 | ladder scores | worktree `results/ladder_2026-10-26/fomcfix/scores.csv` | patched | ok | gate (ladder QLIKE) |
 
-Arms pending: rf|lo_fomc.  Arms not run (by the ablation RULE): rf|lo_ew, rf|lo_iv, rf|lo_liq, rf|lo_sent, rf|lo_vd, rf|lo_vw.
+Arms pending: none.  Arms not run (by the ablation RULE): rf|lo_ew, rf|lo_fomc, rf|lo_iv, rf|lo_liq, rf|lo_sent, rf|lo_vd, rf|lo_vw.
 
 ## Gates (all PASS, asserted before any day split)
 
@@ -46,7 +46,7 @@ Arms pending: rf|lo_fomc.  Arms not run (by the ablation RULE): rf|lo_ew, rf|lo_
 | Elastic net | -6.69 (-7.36, p <0.001) | -3.74 (-4.89, p <0.001) | -3.84 (-5.00, p <0.001) | -3.97 (-4.73, p <0.001) | 0.24 | AGREE |
 | LightGBM | -14.11 (-10.26, p <0.001) | -5.44 (-11.63, p <0.001) | -5.29 (-9.62, p <0.001) | -6.04 (-10.70, p <0.001) | 0.75 | AGREE |
 | XGBoost | -14.60 (-9.94, p <0.001) | -5.66 (-12.60, p <0.001) | -5.76 (-10.81, p <0.001) | -6.11 (-10.42, p <0.001) | 0.44 | AGREE |
-| Random forest | -11.31 (-9.74, p <0.001) | -3.97 (-9.06, p <0.001) | PENDING | -5.31 (-11.16, p <0.001) | 1.34 | PENDING |
+| Random forest | -11.31 (-9.74, p <0.001) | -3.97 (-9.06, p <0.001) | not run | -5.31 (-11.16, p <0.001) | 1.34 | N/A |
 
 MSE (same comparisons, % change, p): Ridge (a) +100.8 (p 0.258), (b) +102.3 (p 0.258), (c) +110.2 (p 0.258); Lasso (a) +114.4 (p 0.243), (b) +115.3 (p 0.245), (c) +126.0 (p 0.243); Elastic net (a) +117.8 (p 0.261), (b) +117.8 (p 0.259), (c) +128.9 (p 0.260); LightGBM (a) +19.4 (p 0.276), (b) +21.6 (p 0.269), (c) +22.8 (p 0.275); XGBoost (a) +15.4 (p 0.282), (b) +17.9 (p 0.268), (c) +18.9 (p 0.268); Random forest (a) +11.3 (p 0.255), (c) +12.4 (p 0.247)
 
@@ -100,7 +100,7 @@ Per class and day type: J = joint gain (HAR loss - full loss); top = the group w
 | event | Elastic net | 198.87 | -22.61 (p <0.001) | FOMC (103 %) | 0.74 | fomc (of 8 run) | yes / no | CONCENTRATED | CONCENTRATED |
 | event | LightGBM | 533.60 | -62.28 (p <0.001) | FOMC (101 %) | 1.05 | vd fomc (of 8 run) | yes / no | CONCENTRATED | CONCENTRATED |
 | event | XGBoost | 564.48 | -63.92 (p <0.001) | FOMC (100 %) | 1.05 | fomc (of 8 run) | yes / no | CONCENTRATED | CONCENTRATED |
-| event | Random forest | 410.23 | -44.80 (p <0.001) | FOMC (108 %) | 0.86 | - (of 1 run) | ? / no | PENDING | PENDING |
+| event | Random forest | 410.23 | -44.80 (p <0.001) | FOMC (108 %) | 0.86 | - (of 1 run) | ? / no | INCOMPLETE | INCOMPLETE |
 | event | **linear** | | | | | | | **CONCENTRATED** | **CONCENTRATED** |
 | event | **trees** | | | | | | | **CONCENTRATED** | **CONCENTRATED** |
 | ord | Ridge | 5.41 | -3.24 (p <0.001) | Realized moments (118 %) | 1.79 | rm (of 8 run) | yes / yes | CONCENTRATED | REDUNDANT |

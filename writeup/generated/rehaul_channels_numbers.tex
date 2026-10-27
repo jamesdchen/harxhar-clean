@@ -134,21 +134,21 @@
 \providecommand{\rhchRfCorrAP}{}\renewcommand{\rhchRfCorrAP}{\ensuremath{<}0.001}  % rf: full vs HAR+FOMC, every bar: DM p
 \providecommand{\rhchRfCorrAMsePct}{}\renewcommand{\rhchRfCorrAMsePct}{11.3}  % rf: full vs HAR+FOMC, every bar: % MSE change
 \providecommand{\rhchRfCorrAMseP}{}\renewcommand{\rhchRfCorrAMseP}{0.255}  % rf: full vs HAR+FOMC, every bar: DM p on MSE
-\providecommand{\rhchRfCorrBPct}{}\renewcommand{\rhchRfCorrBPct}{\rhPending{}}  % rf: full without FOMC vs HAR, every bar: pending
-\providecommand{\rhchRfCorrBDm}{}\renewcommand{\rhchRfCorrBDm}{\rhPending{}}  % rf: full without FOMC vs HAR, every bar: pending
-\providecommand{\rhchRfCorrBP}{}\renewcommand{\rhchRfCorrBP}{\rhPending{}}  % rf: full without FOMC vs HAR, every bar: pending
-\providecommand{\rhchRfCorrBMsePct}{}\renewcommand{\rhchRfCorrBMsePct}{\rhPending{}}  % rf: full without FOMC vs HAR, every bar: pending
-\providecommand{\rhchRfCorrBMseP}{}\renewcommand{\rhchRfCorrBMseP}{\rhPending{}}  % rf: full without FOMC vs HAR, every bar: pending
+\providecommand{\rhchRfCorrBPct}{}\renewcommand{\rhchRfCorrBPct}{--}  % rf: full without FOMC vs HAR, every bar: not run
+\providecommand{\rhchRfCorrBDm}{}\renewcommand{\rhchRfCorrBDm}{--}  % rf: full without FOMC vs HAR, every bar: not run
+\providecommand{\rhchRfCorrBP}{}\renewcommand{\rhchRfCorrBP}{--}  % rf: full without FOMC vs HAR, every bar: not run
+\providecommand{\rhchRfCorrBMsePct}{}\renewcommand{\rhchRfCorrBMsePct}{--}  % rf: full without FOMC vs HAR, every bar: not run
+\providecommand{\rhchRfCorrBMseP}{}\renewcommand{\rhchRfCorrBMseP}{--}  % rf: full without FOMC vs HAR, every bar: not run
 \providecommand{\rhchRfCorrCPct}{}\renewcommand{\rhchRfCorrCPct}{$-$5.3}  % rf: full vs HAR, ORDINARY days: % QLIKE change
 \providecommand{\rhchRfCorrCDm}{}\renewcommand{\rhchRfCorrCDm}{$-$11.16}  % rf: full vs HAR, ORDINARY days: DM
 \providecommand{\rhchRfCorrCP}{}\renewcommand{\rhchRfCorrCP}{\ensuremath{<}0.001}  % rf: full vs HAR, ORDINARY days: DM p
 \providecommand{\rhchRfCorrCMsePct}{}\renewcommand{\rhchRfCorrCMsePct}{12.4}  % rf: full vs HAR, ORDINARY days: % MSE change
 \providecommand{\rhchRfCorrCMseP}{}\renewcommand{\rhchRfCorrCMseP}{0.247}  % rf: full vs HAR, ORDINARY days: DM p on MSE
-\providecommand{\rhchRfCorrAgree}{}\renewcommand{\rhchRfCorrAgree}{\rhPending{}}  % rf: the three corrections within 2.0 pp?
-\providecommand{\rhchRfCorrSpread}{}\renewcommand{\rhchRfCorrSpread}{\rhPending{}}  % rf: max - min of the three (pp)
+\providecommand{\rhchRfCorrAgree}{}\renewcommand{\rhchRfCorrAgree}{--}  % rf: the three corrections within 2.0 pp?
+\providecommand{\rhchRfCorrSpread}{}\renewcommand{\rhchRfCorrSpread}{1.3}  % rf: max - min of the three (pp)
 \providecommand{\rhchNCorrAgree}{}\renewcommand{\rhchNCorrAgree}{5}  % classes whose corrections agree
 \providecommand{\rhchNCorrDisagree}{}\renewcommand{\rhchNCorrDisagree}{0}  % classes whose corrections disagree
-\providecommand{\rhchNCorrPending}{}\renewcommand{\rhchNCorrPending}{1}  % classes with a correction pending
+\providecommand{\rhchNCorrPending}{}\renewcommand{\rhchNCorrPending}{0}  % classes with a correction pending
 \providecommand{\rhchRidgeShareEvent}{}\renewcommand{\rhchRidgeShareEvent}{54}  % ridge: % of the every-bar gain on EVENT days
 \providecommand{\rhchRidgeShareEventPm}{}\renewcommand{\rhchRidgeShareEventPm}{56}  % ridge: % of the gain on EVENT days 14:30-16:00
 \providecommand{\rhchRidgeEventPeakBar}{}\renewcommand{\rhchRidgeEventPeakBar}{14:30}  % ridge: event: bar end with the most negative mean diff
@@ -838,8 +838,6 @@
 \providecommand{\rhchRfBarAddVdP}{}\renewcommand{\rhchRfBarAddVdP}{\ensuremath{<}0.001}  % rf all add_vd: DM p
 \providecommand{\rhchRfBarAddFomcPct}{}\renewcommand{\rhchRfBarAddFomcPct}{$-$7.6}  % rf all add_fomc vs rf|har: %
 \providecommand{\rhchRfBarAddFomcP}{}\renewcommand{\rhchRfBarAddFomcP}{\ensuremath{<}0.001}  % rf all add_fomc: DM p
-\providecommand{\rhchRfBarLoFomcPct}{}\renewcommand{\rhchRfBarLoFomcPct}{\rhPending{}}  % rf all lo_fomc: pending
-\providecommand{\rhchRfBarLoFomcP}{}\renewcommand{\rhchRfBarLoFomcP}{\rhPending{}}  % rf all lo_fomc: pending
 \providecommand{\rhchRfEventJointPct}{}\renewcommand{\rhchRfEventJointPct}{$-$44.8}  % rf event: full vs HAR, % QLIKE change
 \providecommand{\rhchRfEventJointDm}{}\renewcommand{\rhchRfEventJointDm}{$-$8.56}  % rf event: full vs HAR, DM
 \providecommand{\rhchRfEventJointP}{}\renewcommand{\rhchRfEventJointP}{\ensuremath{<}0.001}  % rf event: full vs HAR, DM p
@@ -861,16 +859,14 @@
 \providecommand{\rhchRfEventAddVdP}{}\renewcommand{\rhchRfEventAddVdP}{0.046}  % rf event add_vd: DM p
 \providecommand{\rhchRfEventAddFomcPct}{}\renewcommand{\rhchRfEventAddFomcPct}{$-$48.5}  % rf event add_fomc vs rf|har: %
 \providecommand{\rhchRfEventAddFomcP}{}\renewcommand{\rhchRfEventAddFomcP}{\ensuremath{<}0.001}  % rf event add_fomc: DM p
-\providecommand{\rhchRfEventLoFomcPct}{}\renewcommand{\rhchRfEventLoFomcPct}{\rhPending{}}  % rf event lo_fomc: pending
-\providecommand{\rhchRfEventLoFomcP}{}\renewcommand{\rhchRfEventLoFomcP}{\rhPending{}}  % rf event lo_fomc: pending
-\providecommand{\rhchRfEventReading}{}\renewcommand{\rhchRfEventReading}{\rhPending{}}  % rf event: item 3 reading
-\providecommand{\rhchRfEventTopAddShare}{}\renewcommand{\rhchRfEventTopAddShare}{\rhPending{}}  % rf event: largest add-alone gain, % of the joint gain (fomc)
+\providecommand{\rhchRfEventReading}{}\renewcommand{\rhchRfEventReading}{n/a}  % rf event: item 3 reading
+\providecommand{\rhchRfEventTopAddShare}{}\renewcommand{\rhchRfEventTopAddShare}{108}  % rf event: largest add-alone gain, % of the joint gain (fomc)
 \providecommand{\rhchRfEventSumAddRatio}{}\renewcommand{\rhchRfEventSumAddRatio}{0.86}  % rf event: add-alone gains summed over groups / joint gain
 \providecommand{\rhchRfEventNLoSig}{}\renewcommand{\rhchRfEventNLoSig}{0}  % rf event: significant leave-one-outs
 \providecommand{\rhchRfEventNLoRun}{}\renewcommand{\rhchRfEventNLoRun}{1}  % rf event: leave-one-outs available (of 8)
 \providecommand{\rhchRfEventConcTest}{}\renewcommand{\rhchRfEventConcTest}{\rhPending{}}  % rf event: the CONC definition on its own (pending: undetermined)
 \providecommand{\rhchRfEventRedTest}{}\renewcommand{\rhchRfEventRedTest}{no}  % rf event: the RED definition on its own (pending: undetermined)
-\providecommand{\rhchRfEventReadingRedFirst}{}\renewcommand{\rhchRfEventReadingRedFirst}{\rhPending{}}  % rf event: reading with REDUNDANT tested before CONCENTRATED (the RULE tests CONCENTRATED first)
+\providecommand{\rhchRfEventReadingRedFirst}{}\renewcommand{\rhchRfEventReadingRedFirst}{n/a}  % rf event: reading with REDUNDANT tested before CONCENTRATED (the RULE tests CONCENTRATED first)
 \providecommand{\rhchRfOrdJointPct}{}\renewcommand{\rhchRfOrdJointPct}{$-$5.3}  % rf ord: full vs HAR, % QLIKE change
 \providecommand{\rhchRfOrdJointDm}{}\renewcommand{\rhchRfOrdJointDm}{$-$11.16}  % rf ord: full vs HAR, DM
 \providecommand{\rhchRfOrdJointP}{}\renewcommand{\rhchRfOrdJointP}{\ensuremath{<}0.001}  % rf ord: full vs HAR, DM p
@@ -892,8 +888,6 @@
 \providecommand{\rhchRfOrdAddVdP}{}\renewcommand{\rhchRfOrdAddVdP}{\ensuremath{<}0.001}  % rf ord add_vd: DM p
 \providecommand{\rhchRfOrdAddFomcPct}{}\renewcommand{\rhchRfOrdAddFomcPct}{$-$0.3}  % rf ord add_fomc vs rf|har: %
 \providecommand{\rhchRfOrdAddFomcP}{}\renewcommand{\rhchRfOrdAddFomcP}{0.141}  % rf ord add_fomc: DM p
-\providecommand{\rhchRfOrdLoFomcPct}{}\renewcommand{\rhchRfOrdLoFomcPct}{\rhPending{}}  % rf ord lo_fomc: pending
-\providecommand{\rhchRfOrdLoFomcP}{}\renewcommand{\rhchRfOrdLoFomcP}{\rhPending{}}  % rf ord lo_fomc: pending
 \providecommand{\rhchRfOrdReading}{}\renewcommand{\rhchRfOrdReading}{concentrated}  % rf ord: item 3 reading
 \providecommand{\rhchRfOrdTopAddShare}{}\renewcommand{\rhchRfOrdTopAddShare}{88}  % rf ord: largest add-alone gain, % of the joint gain (rm)
 \providecommand{\rhchRfOrdSumAddRatio}{}\renewcommand{\rhchRfOrdSumAddRatio}{3.07}  % rf ord: add-alone gains summed over groups / joint gain

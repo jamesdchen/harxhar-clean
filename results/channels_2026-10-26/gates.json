@@ -100,11 +100,10 @@
   "xgb|lo_vd",
   "xgb|lo_vw"
  ],
- "arms_pending": [
-  "rf|lo_fomc"
- ],
+ "arms_pending": [],
  "arms_not_run": [
   "rf|lo_ew",
+  "rf|lo_fomc",
   "rf|lo_iv",
   "rf|lo_liq",
   "rf|lo_sent",
