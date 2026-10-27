@@ -109,3 +109,5 @@ the old run (read-only): `/home1/jc_905/pmf35/data` (design copies, fold-3 ridge
 - 2026-10-26 16:43 PDT: W 3,500 top-up behind the W 3,000 queue (nice 100): HAR 13471944-45 (003.p00-p01, cpu 2 / 8G).
   Full W 3,500 P100 pieces not yet submitted: the guard skipped 000.p00-p01 because walk_ids_all_features.txt still
   holds their cancelled L40S / A40 lines; the next session matches P100 lines only.
+- 2026-10-26 17:14 PDT: first full W 3,500 P100 pieces 13473343 / 13473345 (000.p00 / 000.p01, nice 100, 509 min, cpu 2
+  / 16G); HAR W 3,500 13473344 (003.p02). gpu 99 (32 running P100, 67 pending). No FAILED since 16:40.

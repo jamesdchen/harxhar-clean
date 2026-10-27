@@ -41,3 +41,4 @@ pieces/v2w_all_features.005.p03.txt 13466531 gpu 589 P100 piece (ADDENDUM 3e: fi
 pieces/v2w_all_features.005.p04.txt 13466532 gpu 588 P100 piece (ADDENDUM 3e: file 005 piece in the gpu partition, its debug pieces withdrawn)
 pieces/dbgp/v2w_all_features.005.p02.g02.txt 13466549 debug 52 P100 debug piece of pieces/v2w_all_features.005.p02.txt (ADDENDUM 3e)
 pieces/dbgp/v2w_all_features.005.p02.g03.txt 13466550 debug 52 P100 debug piece of pieces/v2w_all_features.005.p02.txt (ADDENDUM 3e)
+pieces/dbgp/v2w_all_features.005.p02.g04.txt 13473346 debug 52 P100 debug piece of pieces/v2w_all_features.005.p02.txt (ADDENDUM 3e)

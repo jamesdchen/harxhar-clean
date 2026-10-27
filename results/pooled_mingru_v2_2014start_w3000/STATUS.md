@@ -548,3 +548,4 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   pending); debug 5 of ours, none running (other users hold the debug P100s). No FAILED since 13:30.
 - 2026-10-26 16:43 PDT: gpu top-up 13471931-43: the last 13 HAR W 3,000 pieces (050.p02-052.p04): every W 3,000 gpu
   piece is now submitted. Debug 13471946 (053.p04.g06). gpu 99 (26 running P100, 73 pending). No FAILED since 14:10.
+- 2026-10-26 17:14 PDT: debug 13473346 (dbgp 005.p02.g04). gpu 99 (32 running P100). No FAILED since 16:40.

@@ -14,3 +14,5 @@ pieces/v2w_all_features.000.p00.txt 13385646 gpu 375 A40 resubmitted (fixed sbat
 pieces/v2w_all_features.000.p01.txt 13385647 gpu 375 A40 resubmitted (fixed sbatch)
 pieces/v2w_all_features.000.p02.txt 13385648 gpu 375 A40 resubmitted (fixed sbatch)
 pieces/v2w_all_features.001.p00.txt 13385649 gpu 375 A40 resubmitted (fixed sbatch)
+pieces/v2w_all_features.000.p00.txt 13473343 gpu 509 P100 piece, nice 100 (ADDENDUM 3d / 3g re-pin, cpu 2 / 16G)
+pieces/v2w_all_features.000.p01.txt 13473345 gpu 509 P100 piece, nice 100 (ADDENDUM 3d / 3g re-pin, cpu 2 / 16G)
