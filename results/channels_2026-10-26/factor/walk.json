@@ -49,9 +49,9 @@
   "pls2": 13,
   "pls3": 14
  },
- "wall_sec": 169.8,
- "cpu_sec": 164.4,
- "map_sec": 26.2,
+ "wall_sec": 83.8,
+ "cpu_sec": 82.4,
+ "map_sec": 14.2,
  "host": "DESKTOP-CGOV4RD",
  "python": "3.12.0",
  "numpy": "2.2.6",
