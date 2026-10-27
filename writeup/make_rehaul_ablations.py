@@ -252,6 +252,10 @@ def main() -> int:
                 lines.append(
                     mac(f"Live{s}SharePct", fmt(100 * r["share_live_max"], 0), "% of evaluation bars live, k = 1")
                 )
+    names = [ln.split("}", 1)[0] for ln in lines if ln.startswith("\\newcommand")]
+    assert len(names) > 100, len(names)
+    dup = sorted({n for n in names if names.count(n) > 1})
+    assert not dup, f"macros defined twice: {dup[:5]}"
     GEN.mkdir(parents=True, exist_ok=True)
     OUT_NUM.write_text("\n".join(lines) + "\n", encoding="utf-8")
     OUT_TAB.write_text(table(M, D, have), encoding="utf-8")
@@ -282,7 +286,7 @@ def combo_macros(q, dq, checks: dict) -> list[str]:
     for c in CLS:
         t = CLS_TEX[c]
         for sp, st in COMBO_SPAN_TEX.items():
-            if (c, COMBO, sp) in q.index:
+            if sp in ("ord", "ev") and (c, COMBO, sp) in q.index:  # all / 16:00 spans: the general loop's
                 out.append(
                     mac(f"{t}AddRmFomc{st}Qlike", fmt(q.loc[(c, COMBO, sp), "qlike"], 4), f"QLIKE {c} {COMBO} {sp}")
                 )
@@ -376,15 +380,12 @@ def table(M: pd.DataFrame, D: pd.DataFrame, have: set) -> str:
         f"\\multicolumn{{{len(cols) + 1}}}{{@{{}}l}}{{\\textit{{D. Full set, against the HAR benchmark (Table~\\ref{{tab:rh_oos}})}}}} \\\\",
     ]
     out.append("All features & " + " & ".join(cell(q, dq, c, "full", have) for c in cols) + " \\\\")
-    out.append(
-        "All features vs HAR + RM & " + " & ".join(full_vs_add(q, dq, c, have, "add_rm") for c in cols) + " \\\\"
-    )
-    out.append(
-        "All features vs HAR + FOMC & " + " & ".join(full_vs_add(q, dq, c, have, "add_fomc") for c in cols) + " \\\\"
-    )
+    # the full set against the class's own HAR + RM / + FOMC / (addendum F) + RM + FOMC
+    out.append("\\quad vs HAR + RM & " + " & ".join(full_vs_add(q, dq, c, have, "add_rm") for c in cols) + " \\\\")
+    out.append("\\quad vs HAR + FOMC & " + " & ".join(full_vs_add(q, dq, c, have, "add_fomc") for c in cols) + " \\\\")
     if any(a == COMBO for _c, a in have):  # addendum F
         out.append(
-            "All features vs HAR + RM + FOMC\\textsuperscript{*} & "
+            "\\quad vs HAR + RM + FOMC\\textsuperscript{*} & "
             + " & ".join(full_vs_add(q, dq, c, have, COMBO) for c in cols)
             + " \\\\"
         )
