@@ -131,3 +131,12 @@ Expected: tree pieces 2.2-3.1 h on Gold 6240, so the trees finish ~22:30-23:00; 
 | 03:35 | scored --design fix: 159 forecasts, checks PASS; tab:rh_ablation_beyond (writeup/generated/rehaul_ablation_beyond_table.tex) and the \rhab beyond macros (the overlap ratio only where the full set's change against the base is significant); compile-tested |
 | (27 Oct) | coordinator: the Hoffman2 leave-one-out campaign was proposed and cancelled before anything was launched (one read-only poll, 12:08) |
 | (27 Oct) | coordinator (author approved): the within-block ladder (results/beyond_trees_2026-10-27/RULE.txt, 7bd70bb cherry-picked); RULE.txt addendum I: rankings recorded, 10 rungs, BASE gate per CPU model, 94 pieces, projection 1,427 CPU-hours (<= ~1,800) |
+| 12:31 | addendum I submitted (code f7d71b2 installed, code/COMMIT; jobids.txt slurm21 / uge8): BASE gates 518246 (Gold 6442Y), 518251 (Xeon 6736P), 518254 (Gold 6240) running, UGE 15308728 (Gold 6140) queued; pools, each after its model's gate (afterok / hold_jid): 518247-518250 (6442Y, 4 x 6 workers), 518252-518253 (6736P, 2 x 9), 518255-518262 (6240, 8 x 4), UGE 15308729 (25 x 1); 94 pieces; expected ~15:00-15:30 |
+
+## State at 12:35 PDT, 27 October: addendum I (the ladder) running
+
+**Steps to finish** (B=/u/scratch/j/jamesdc1/abl; Slurm on hoffman2.oarc.ucla.edu):
+1. Gates: `cat $B/gate/rb/*/gatebase.json` (pass per model; a failed model's pools never start); then `ls -d $B/runs/claims_trees_ladder/*/done | wc -l` (94), no `failed`.
+2. `sbatch --parsable -p campus --qos=campus24 -C intel-gold-6240 -c 1 --mem=16G -t 1:00:00 -J abl_mlad -o $B/logs/mlad.%j.log $B/code/cluster/ablate/merge_ladder.sh`
+3. Fetch only runs/trees_ladder/trees_wide.parquet -> forecasts/trees_wide_ladder.parquet, runs/trees_ladder/forecasts/*.json -> runs/tree_merge_ladder/, gate/rb/*/gatebase.json -> gate/rb/.
+4. `python experiments/ablate_score.py --design fix`; `python writeup/make_rehaul_ablations.py`; `python writeup/make_rehaul_beyond_ladder.py` (tab:rh_beyond_ladder, \rhbyL macros, the section 2 readings); compile-test; commit; push; report.
