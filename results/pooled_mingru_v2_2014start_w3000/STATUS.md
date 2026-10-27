@@ -554,3 +554,4 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
 - 2026-10-26 19:28 PDT: debug 13476376 (053.p04.g08: the last HAR 053 debug piece), 13476377 (dbgp 005.p02.g06). gpu 99 (36 running P100, 63 pending). No FAILED since 18:20.
 - 2026-10-26 20:14 PDT: debug 13476923 (dbgp 005.p02.g07). gpu 99 (36 running P100, 63 pending). No FAILED since 19:20.
 - 2026-10-26 20:57 PDT: debug 13478025 (dbgp 005.p02.g08). gpu 99 (36 running P100). No FAILED since 20:10.
+- 2026-10-26 21:38 PDT: debug 13478610 (dbgp 005.p02.g09). gpu 99 (35 running P100). No FAILED since 20:50.
