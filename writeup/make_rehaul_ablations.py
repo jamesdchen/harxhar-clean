@@ -66,6 +66,11 @@ ARM_TEX = {
 }
 ARM_TEX.update({f"lo_{g}": f"Lo{t}" for g, t in G_TEX.items()})
 ARM_TEX.update({f"add_{g}": f"Add{t}" for g, t in G_TEX.items()})
+# 2026-10-26 addendum F (requested by the author on 26 October, after the channel results; not pre-registered): HAR +
+# realized moments + FOMC, scored on every bar and on ORDINARY / EVENT days (results/channels_2026-10-26/RULE.txt)
+COMBO = "add_rm_fomc"
+ARM_TEX[COMBO] = "AddRmFomc"
+COMBO_SPAN_TEX = {"all": "All", "ord": "Ord", "ev": "Ev", "c16": "Close", "c16_2020": "CloseLate"}
 SPAN_TEX = {"all": "All", "c16": "Close", "c16_2020": "CloseLate"}
 # 2026-10-26 (coordinator): live-window subsamples of the late groups (experiments/ablate_score.py LIVE): span ->
 # (macro tag, group, row label); the macros of these spans cover the group's own arms and the full set only
@@ -195,6 +200,7 @@ def main() -> int:
                     lines.append(mac(f"{nm}Pct", fmt(pc, 1), f"QLIKE change % {c} full vs own {ga}"))
                     lines.append(mac(f"{nm}Dm", fmt(-dq.loc[k, "dm"], 2), f"DM full vs own {ga}"))
                     lines.append(mac(f"{nm}P", fmt_p(dq.loc[k, "p"]), "p-value"))
+    lines += combo_macros(q, dq, checks)
     for c in CLS[1:]:
         for b in ("add_rm", "shar", "harq", "lhar", "sharql", "har"):
             for sp, st in SPAN_TEX.items():
@@ -251,6 +257,45 @@ def main() -> int:
     OUT_TAB.write_text(table(M, D, have), encoding="utf-8")
     print(f"wrote {OUT_NUM.name} ({len(lines)} lines) and {OUT_TAB.name}")
     return 0
+
+
+def combo_macros(q, dq, checks: dict) -> list[str]:
+    """Addendum F: add_rm_fomc against the full set (sign flipped: the full set's change), the class's HAR and the OLS
+    HAR; the full set against the OLS add_rm_fomc; every bar, ORDINARY and EVENT days, the 16:00 spans."""
+    out: list[str] = []
+    lab = "add_rm_fomc (requested by the author after the channel results; not pre-registered)"
+    dt = checks.get("day_types")
+    if dt:
+        out.append(mac("NEventDays", str(dt["event_days"]), "EVENT days: scheduled FOMC statement days scored"))
+        out.append(mac("NOrdinaryDays", f"{dt['ordinary_days']:,}".replace(",", "{,}"), "ORDINARY days scored"))
+
+    def put(nm: str, a: tuple, b: tuple, sp: str, flip: bool, what: str) -> None:
+        # a against b: QLIKE change of a vs b in %, DM of a vs b (flip: the stored test is b vs a)
+        k = (*b, *a, sp) if flip else (*a, *b, sp)
+        if (*a, sp) not in q.index or (*b, sp) not in q.index or k not in dq.index:
+            return
+        pc = 100.0 * (q.loc[(*a, sp), "qlike"] / q.loc[(*b, sp), "qlike"] - 1.0)
+        out.append(mac(f"{nm}Pct", fmt(pc, 1), f"QLIKE change % {what}, {sp}; {lab}"))
+        out.append(mac(f"{nm}Dm", fmt(-dq.loc[k, "dm"] if flip else dq.loc[k, "dm"], 2), f"DM {what}"))
+        out.append(mac(f"{nm}P", fmt_p(dq.loc[k, "p"]), "p-value"))
+
+    for c in CLS:
+        t = CLS_TEX[c]
+        for sp, st in COMBO_SPAN_TEX.items():
+            if (c, COMBO, sp) in q.index:
+                out.append(
+                    mac(f"{t}AddRmFomc{st}Qlike", fmt(q.loc[(c, COMBO, sp), "qlike"], 4), f"QLIKE {c} {COMBO} {sp}")
+                )
+            if c == "ols":
+                put(f"OlsAddRmFomcVsHar{st}", ("ols", COMBO), ("ols", "har"), sp, False, "OLS add_rm_fomc vs OLS HAR")
+                continue
+            put(f"{t}FullVsAddRmFomc{st}", (c, "full"), (c, COMBO), sp, True, f"{c} full vs own add_rm_fomc")
+            put(f"{t}AddRmFomcVsHar{st}", (c, COMBO), (c, "har"), sp, False, f"{c} add_rm_fomc vs own HAR")
+            put(f"{t}AddRmFomcVsOlsHar{st}", (c, COMBO), ("ols", "har"), sp, False, f"{c} add_rm_fomc vs OLS HAR")
+            put(f"{t}FullVsOlsAddRmFomc{st}", (c, "full"), ("ols", COMBO), sp, False, f"{c} full vs OLS add_rm_fomc")
+            if sp in ("ord", "ev"):  # context: the full set against its own HAR on the same days
+                put(f"{t}FullVsHar{st}", (c, "full"), (c, "har"), sp, False, f"{c} full vs own HAR")
+    return out
 
 
 def cell(q, dq, c: str, a: str, have: set, sp: str = "all") -> str:
@@ -337,6 +382,12 @@ def table(M: pd.DataFrame, D: pd.DataFrame, have: set) -> str:
     out.append(
         "All features vs HAR + FOMC & " + " & ".join(full_vs_add(q, dq, c, have, "add_fomc") for c in cols) + " \\\\"
     )
+    if any(a == COMBO for _c, a in have):  # addendum F
+        out.append(
+            "All features vs HAR + RM + FOMC\\textsuperscript{*} & "
+            + " & ".join(full_vs_add(q, dq, c, have, COMBO) for c in cols)
+            + " \\\\"
+        )
     if any(sp in set(M["span"]) for sp in LIVE_TEX):
         out += [
             "\\addlinespace[4pt]",
@@ -363,8 +414,14 @@ def table(M: pd.DataFrame, D: pd.DataFrame, have: set) -> str:
         " last half hour (SHAR), the HARQ interaction of realized variance with the square root of realized quarticity,"
         " and the negative half-hour returns at every HAR horizon (LHAR), all from the same E-mini one-minute data."
         " The last rows of Panel D set the full set against the same class's HAR benchmark plus the futures'"
-        " realized moments (RM, Panel B's first row) and plus the FOMC calendar (Panel B's last row)."
-        " Every model keeps the full set's frozen hyperparameters (the linear penalties chosen on the 2013 pre-sample"
+        " realized moments (RM, Panel B's first row) and plus the FOMC calendar (Panel B's last row)"
+        + (
+            ", and plus both (\\textsuperscript{*}requested by the author after the results by day type, not part of"
+            " the pre-specified design; 132 columns, every class at its frozen hyperparameters)."
+            if any(a == COMBO for _c, a in have)
+            else "."
+        )
+        + " Every model keeps the full set's frozen hyperparameters (the linear penalties chosen on the 2013 pre-sample"
         " fold for the full set; one configuration per tree method).  The random forest is run for Panel B and for the"
         + (" realized-moment and FOMC groups" if ("rf", "lo_fomc") in have else " realized-moment group")
         + " of Panel A only.  Series that start after the data enter as zero until the rolling"
