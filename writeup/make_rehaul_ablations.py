@@ -32,7 +32,13 @@ REPO = ROOT.parent
 sys.path.insert(0, str(REPO / "experiments"))
 import ablate_arms as AA  # noqa: E402
 
-RES = REPO / "results" / "ablations_2014start_w3000" / "scores"
+# 2026-10-26 addendum D: the FOMC-patched panel (scores_fomcfix/) when it exists, else the pre-patch scores/
+RES_PRE = REPO / "results" / "ablations_2014start_w3000" / "scores"
+RES_FIX = REPO / "results" / "ablations_2014start_w3000" / "scores_fomcfix"
+FIXED = (RES_FIX / "checks.json").is_file()
+RES = RES_FIX if FIXED else RES_PRE
+# the trees' lo_<g> arms for g != fomc stay on the pre-patch design and are compared with the pre-patch full set
+PRE_TREE = tuple(f"lo_{g}" for g in ("rm", "liq", "ew", "vw", "sent", "iv", "vd"))
 GEN = ROOT / "generated"
 OUT_NUM = GEN / "rehaul_ablation_numbers.tex"
 OUT_TAB = GEN / "rehaul_ablation_table.tex"
@@ -49,7 +55,15 @@ CLS_NAME = {
     "rf": "Forest",
 }
 G_TEX = {"rm": "Rm", "liq": "Liq", "ew": "Ew", "vw": "Vw", "sent": "Sent", "iv": "Iv", "vd": "Vd", "fomc": "Fomc"}
-ARM_TEX = {"full": "Full", "har": "Har", "shar": "Shar", "harq": "Harq", "lhar": "Lhar", "sharql": "Sharql"}
+ARM_TEX = {
+    "full": "Full",
+    "full_pre": "FullPre",
+    "har": "Har",
+    "shar": "Shar",
+    "harq": "Harq",
+    "lhar": "Lhar",
+    "sharql": "Sharql",
+}
 ARM_TEX.update({f"lo_{g}": f"Lo{t}" for g, t in G_TEX.items()})
 ARM_TEX.update({f"add_{g}": f"Add{t}" for g, t in G_TEX.items()})
 SPAN_TEX = {"all": "All", "c16": "Close", "c16_2020": "CloseLate"}
@@ -80,8 +94,14 @@ SERIES_TEX = {
 }
 
 
-def ref_arm(arm: str) -> str:
-    return "full" if arm.startswith("lo_") else "har"
+def ref_arm(arm: str, c: str = "", have: set | None = None) -> str:
+    """The arm's reference: lo_*: the full set (the pre-patch one for the trees' PRE_TREE arms on the patched panel);
+    everything else, the full set included: the HAR benchmark."""
+    if not arm.startswith("lo_"):
+        return "har"
+    if have is not None and arm in PRE_TREE and (c, "full_pre") in have:
+        return "full_pre"
+    return "full"
 
 
 def fmt(x: float, dp: int) -> str:
@@ -115,15 +135,19 @@ def main() -> int:
     have = set(zip(M["cls"], M["arm"]))
     q = M.set_index(["cls", "arm", "span"])
     dq = D[D["loss"] == "qlike"].set_index(["cls", "arm", "vs_cls", "vs_arm", "span"])
-    lines = [HEAD, "% results/ablations_2014start_w3000 (RULE.txt): column-subset arms of the final 13-bar design,"]
+    lines = [
+        HEAD,
+        f"% {RES.relative_to(REPO).as_posix()} ({'FOMC-patched panel, RULE.txt addendum D' if FIXED else 'pre-patch'})",
+    ]
+    lines.append("% results/ablations_2014start_w3000 (RULE.txt): column-subset arms of the final 13-bar design,")
     lines.append("% frozen hyperparameters, every bar scored as Table 1; DM on daily (average) QLIKE.")
 
     def pct(c: str, a: str, sp: str) -> float:
-        r = ref_arm(a) if a != "full" else "har"
+        r = ref_arm(a, c, have)
         return 100.0 * (q.loc[(c, a, sp), "qlike"] / q.loc[(c, r, sp), "qlike"] - 1.0)
 
     def dmref(c: str, a: str, sp: str) -> pd.Series | None:
-        r = ref_arm(a) if a != "full" else "har"
+        r = ref_arm(a, c, have)
         k = (c, a, c, r, sp)
         return dq.loc[k] if k in dq.index else None
 
@@ -136,9 +160,7 @@ def main() -> int:
             lines.append(mac(f"{nm}Mse", fmt(q.loc[(c, a, sp), "mse"] * 1e10, 2), f"MSE x 1e10 {c} {a} {sp}"))
             if a == "har":
                 continue
-            lines.append(
-                mac(f"{nm}Pct", fmt(pct(c, a, sp), 1), f"QLIKE change % vs {ref_arm(a) if a != 'full' else 'har'}")
-            )
+            lines.append(mac(f"{nm}Pct", fmt(pct(c, a, sp), 1), f"QLIKE change % vs {ref_arm(a, c, have)}"))
             r = dmref(c, a, sp)
             if r is not None:
                 lines.append(mac(f"{nm}Dm", fmt(r["dm"], 2), "DM vs the reference arm"))
@@ -162,15 +184,17 @@ def main() -> int:
         lines.append(mac(f"{t}Start", date_tex(w["start"]), f"first bar of the live window {key}"))
         lines.append(mac(f"{t}End", date_tex(w["end"]), f"last bar of the live window {key}"))
         lines.append(mac(f"{t}Days", f"{w['days']:,}".replace(",", "{,}"), f"trading days of the live window {key}"))
-    for c in CLS[1:]:  # the full set against the class's own HAR + realized moments (sign of the stored test flipped)
-        for sp, st in SPAN_TEX.items():
-            k = (c, "add_rm", c, "full", sp)
-            if k in dq.index:
-                nm = f"{CLS_TEX[c]}FullVsAddRm{st}"
-                pc = 100.0 * (q.loc[(c, "full", sp), "qlike"] / q.loc[(c, "add_rm", sp), "qlike"] - 1.0)
-                lines.append(mac(f"{nm}Pct", fmt(pc, 1), f"QLIKE change % {c} full vs own add_rm"))
-                lines.append(mac(f"{nm}Dm", fmt(-dq.loc[k, "dm"], 2), "DM full vs own add_rm"))
-                lines.append(mac(f"{nm}P", fmt_p(dq.loc[k, "p"]), "p-value"))
+    # the full set against the class's own HAR + realized moments / HAR + FOMC (sign of the stored test flipped)
+    for c in CLS[1:]:
+        for ga, gt in (("add_rm", "AddRm"), ("add_fomc", "AddFomc")):
+            for sp, st in SPAN_TEX.items():
+                k = (c, ga, c, "full", sp)
+                if k in dq.index:
+                    nm = f"{CLS_TEX[c]}FullVs{gt}{st}"
+                    pc = 100.0 * (q.loc[(c, "full", sp), "qlike"] / q.loc[(c, ga, sp), "qlike"] - 1.0)
+                    lines.append(mac(f"{nm}Pct", fmt(pc, 1), f"QLIKE change % {c} full vs own {ga}"))
+                    lines.append(mac(f"{nm}Dm", fmt(-dq.loc[k, "dm"], 2), f"DM full vs own {ga}"))
+                    lines.append(mac(f"{nm}P", fmt_p(dq.loc[k, "p"]), "p-value"))
     for c in CLS[1:]:
         for b in ("add_rm", "shar", "harq", "lhar", "sharql", "har"):
             for sp, st in SPAN_TEX.items():
@@ -255,21 +279,38 @@ def main() -> int:
 def cell(q, dq, c: str, a: str, have: set, sp: str = "all") -> str:
     if (c, a) not in have or (c, a, sp) not in q.index:
         return "--"
-    r = "full" if a.startswith("lo_") else "har"
+    r = ref_arm(a, c, have)
+    if (c, r, sp) not in q.index:
+        return "--"
     p = 100.0 * (q.loc[(c, a, sp), "qlike"] / q.loc[(c, r, sp), "qlike"] - 1.0)
     k = (c, a, c, r, sp)
+    mark = "\\textsuperscript{\\dag}" if r == "full_pre" else ""
     if k not in dq.index:
-        return fmt(p, 1)
-    return f"{fmt(p, 1)} ({fmt(dq.loc[k, 'dm'], 1)})"
+        return fmt(p, 1) + mark
+    return f"{fmt(p, 1)} ({fmt(dq.loc[k, 'dm'], 1)}){mark}"
 
 
-def full_vs_addrm(q, dq, c: str, have: set, sp: str = "all") -> str:
-    """The class's full set against its own HAR + realized moments (the stored test is add_rm vs full: sign flipped)."""
-    k = (c, "add_rm", c, "full", sp)
-    if (c, "full") not in have or (c, "add_rm") not in have or k not in dq.index:
+def full_vs_add(q, dq, c: str, have: set, ga: str = "add_rm", sp: str = "all") -> str:
+    """The class's full set against its own HAR + a group (add_rm, add_fomc; the stored test is add vs full: sign
+    flipped)."""
+    k = (c, ga, c, "full", sp)
+    if (c, "full") not in have or (c, ga) not in have or k not in dq.index:
         return "--"
-    p = 100.0 * (q.loc[(c, "full", sp), "qlike"] / q.loc[(c, "add_rm", sp), "qlike"] - 1.0)
+    p = 100.0 * (q.loc[(c, "full", sp), "qlike"] / q.loc[(c, ga, sp), "qlike"] - 1.0)
     return f"{fmt(p, 1)} ({fmt(-dq.loc[k, 'dm'], 1)})"
+
+
+NOTE_DESIGN = ""
+DESIGN_TXT = (
+    "FOMC-patched design (the scheduled 18 March 2020 meeting added, the proximity ramps not winsorized); every linear"
+    " arm and the trees' FOMC arms are walked on it.  Cells marked \\dag{} (the trees' Panel A rows other than"
+    " FOMC) are on the pre-patch FOMC design, against the pre-patch full set: only the FOMC group is rerun on the"
+    " patched design (the trees' add arms other than FOMC and the removal of FOMC hold no FOMC column, so their"
+    " forecasts are the same on both designs)."
+    if FIXED
+    else "Design before the FOMC patch (the scheduled 18 March 2020 meeting missing, the proximity ramps"
+    " winsorized): the FOMC rows are preliminary."
+)
 
 
 def table(M: pd.DataFrame, D: pd.DataFrame, have: set) -> str:
@@ -313,7 +354,12 @@ def table(M: pd.DataFrame, D: pd.DataFrame, have: set) -> str:
         f"\\multicolumn{{{len(cols) + 1}}}{{@{{}}l}}{{\\textit{{D. Full set, against the HAR benchmark (Table~\\ref{{tab:rh_oos}})}}}} \\\\",
     ]
     out.append("All features & " + " & ".join(cell(q, dq, c, "full", have) for c in cols) + " \\\\")
-    out.append("All features vs HAR + RM & " + " & ".join(full_vs_addrm(q, dq, c, have) for c in cols) + " \\\\")
+    out.append(
+        "All features vs HAR + RM & " + " & ".join(full_vs_add(q, dq, c, have, "add_rm") for c in cols) + " \\\\"
+    )
+    out.append(
+        "All features vs HAR + FOMC & " + " & ".join(full_vs_add(q, dq, c, have, "add_fomc") for c in cols) + " \\\\"
+    )
     if any(sp in set(M["span"]) for sp in LIVE_TEX):
         out += [
             "\\addlinespace[4pt]",
@@ -329,19 +375,22 @@ def table(M: pd.DataFrame, D: pd.DataFrame, have: set) -> str:
         "\\end{tabular*}",
         "\\begin{tablenotes}[flushleft]",
         "\\footnotesize",
-        "\\item \\textit{Notes:} Design before the FOMC patch (the scheduled 18 March 2020 meeting missing,"
-        " the proximity ramps not winsorized): the FOMC rows are preliminary. Each cell is the percentage change in QLIKE of a pooled intraday forecast against its"
+        NOTE_DESIGN
+        + "\\item \\textit{Notes:} "
+        + DESIGN_TXT
+        + " Each cell is the percentage change in QLIKE of a pooled intraday forecast against its"
         " reference, with the Diebold--Mariano statistic of the difference in parentheses (negative: the arm has the lower"
         " loss); every bar of Table~\\ref{tab:rh_oos} is scored (2014--2024) and the test runs on daily average QLIKE."
         " Panel A removes one predictor group (its series' trailing averages and availability shares) from the full"
         " set; Panel B adds one group to the HAR benchmark; Panel C adds the semivariances RS$^{+}$ and RS$^{-}$ of the"
         " last half hour (SHAR), the HARQ interaction of realized variance with the square root of realized quarticity,"
         " and the negative half-hour returns at every HAR horizon (LHAR), all from the same E-mini one-minute data."
-        " The last row of Panel D (HAR + RM) sets the full set against the same class's HAR benchmark plus the"
-        " futures' realized moments (Panel B's first row)."
+        " The last rows of Panel D set the full set against the same class's HAR benchmark plus the futures'"
+        " realized moments (RM, Panel B's first row) and plus the FOMC calendar (Panel B's last row)."
         " Every model keeps the full set's frozen hyperparameters (the linear penalties chosen on the 2013 pre-sample"
         " fold for the full set; one configuration per tree method).  The random forest is run for Panel B and for the"
-        " realized-moment group of Panel A only.  Series that start after the data enter as zero until the rolling"
+        + (" realized-moment and FOMC groups" if ("rf", "lo_fomc") in have else " realized-moment group")
+        + " of Panel A only.  Series that start after the data enter as zero until the rolling"
         " window holds 3,000 days of their history (Section~\\ref{sec:rh_predictors}), so the implied-volatility,"
         " sentiment and volatility-demand rows of Panels A and B measure those series only from the dates in the text."
         " Panel E scores the same forecasts on the bars on which the group's value averages are live (all three StockTwits"

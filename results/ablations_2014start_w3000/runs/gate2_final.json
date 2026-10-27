@@ -46,6 +46,9 @@
     ],
     "s6442y": [
      "Intel(R) Xeon(R) Gold 6442Y"
+    ],
+    "u6140": [
+     "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
     ]
    },
    "identical": false,

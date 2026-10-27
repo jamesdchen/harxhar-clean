@@ -205,3 +205,82 @@ ADDENDUM C, 2026-10-25 23:05 PDT (06:05 UTC Oct 26), before the jobs it affects:
    campus Xeon 6736P (9 workers) and Gold 6442Y (6 workers) jobs queued to fill the 16-node / 1,024-CPU cap as the old
    jobs end, and a UGE Gold 6140 array (LightGBM / XGBoost) queued behind the 200-slot cap; the same task file, claims,
    gates and checks.
+
+ADDENDUM D, 2026-10-26 15:05 PDT (22:05 UTC), before any job it affects: THE ABLATIONS ON THE FOMC-PATCHED DESIGN
+   The author adopted the FOMC-patched design (branch insurance-selling-2026-09-19-e34-fomcfix, cell B of its
+   results/fomcfix_2026-10-26/RULE.txt: FOMC_SCHEDULE_2020_FIX and FOMC_PROXIMITY_NO_WINSOR on).  Its full-set cache
+   (CARC /home1/jc_905/fomcfix_lin/runs/B/_work/design_all_features; X md5 725eb201044783d3cdc62501307dcc3a, y / b_oos /
+   dates_oos md5 = the final design's) differs from the final cache only in the 12 value averages
+   adj_fomc_{until,since}_inv_ma_k (its gate G3); its baseline cache is md5-equal to the final one.  That branch is merged
+   into this one (7abfaea: its runner changes -- the FOMC flags reachable through --ex-flag, model_factory's optional
+   config file / seed -- keep every default; its gates L and T1 show the defaults reproduce the final walks).
+   Coordinator (2026-10-26 ~14:45 PDT): rerun on the patched design (1) every linear ablation arm, (2) the FOMC tree arms
+   (add_fomc for LightGBM, XGBoost, the forest; lo_fomc for LightGBM, XGBoost; cap ~900 CPU-hours); the templates'
+   full-set rows from the patched walks (fomcfix: linear forecasts/lin_B.parquet, LightGBM / XGBoost
+   forecasts/forecasts_gb.parquet, the forest when its merge exists); every other tree arm stays pre-patch, labelled.
+   (a) Transfer: the cell-B full cache (X, y, b_oos, dates_oos, design.json) CARC -> laptop pipe -> Hoffman2
+       /u/scratch/j/jamesdc1/abl/designs_fix/full (one read-only CARC session, tar to stdout), md5-checked on arrival.
+   (b) Gate F0 (Hoffman2, ablate_design.py checkfix): the copy's X md5 = 725eb201...; y, b_oos, dates_oos bytes = the
+       final cache's; names equal; every column bit-identical to the final cache except exactly the 12 FOMC value
+       averages (which must differ).
+   (c) Linear: the 21 arm caches rebuilt from the patched full cache (classical arms: HAR, calendar, RS+ from it, the new
+       series from abl_new, unchanged); all 135 walks of tasks/linear.txt with the final run's arguments plus
+       --ex-flag FOMC_SCHEDULE_2020_FIX=1 --ex-flag FOMC_PROXIMITY_NO_WINSOR=1 --ex-flag DROP_HOLIDAY_SESSIONS=0 (the
+       cell-B config the caches record), on Gold 6240 (gate L's model).  Gate LF: the 10 full-set walks reproduce
+       fomcfix's lin_B.parquet (pred_adj, true_adj) bit for bit and the 4 HAR walks w3000's.  Check: every arm without
+       a FOMC column (lo_fomc, add_<g> for g != fomc, the classical arms) reproduces its pre-patch walk bit for bit.
+   (d) Trees: add_fomc for LightGBM, XGBoost and the forest on the patched cache (the same piece partition, models,
+       gated CPU models and claim pool as before; task file tasks/trees_fomcfix.txt).  lo_fomc is NOT re-walked: it has
+       no FOMC column, and its 528 columns are bit-identical in both caches (gate F0), so its pre-patch forecasts are its
+       patched-design forecasts bit for bit (a walk would reproduce them and cost ~600 CPU-hours); what changes for
+       lo_fomc is its reference, the patched full set.  The same holds for every add_<g>, g != fomc (no FOMC column).
+       Gate FT (Gold 6240): the patched full set's first and last 10 origins (LightGBM, XGBoost) reproduce fomcfix's
+       forecasts_gb.parquet (CARC EPYC) text-identically.  Projected cost: LightGBM ~53, XGBoost ~42, forest ~160
+       CPU-hours (EPYC speed) + gates ~10.
+   (e) Scoring (laptop): a patched panel (scores_fomcfix/): the templates' full-set rows from the patched walks (HAR and
+       OLS rows unchanged); every linear arm patched; trees add_fomc patched, lo_fomc and add_<g> (design-invariant)
+       from the pre-patch walks; the trees' lo_<g>, g != fomc (they hold the pre-patch FOMC columns) stay pre-patch and
+       are compared with the pre-patch full set, marked in the table ("pre-patch FOMC design; only the FOMC group is
+       rerun on the patched design").  New explicit comparison: the full set against HAR + FOMC (add_fomc), every class,
+       every bar and 16:00.  Checks: the HAR / OLS rows reproduce Table 1; the patched full rows reproduce fomcfix's
+       scores_linear (cell B) to 1e-12.  The pre-patch scores stay in scores/.
+
+ADDENDUM E, 2026-10-26 17:30 PDT (2026-10-27 00:30 UTC), before any job it affects: THE FOREST'S lo_fomc
+   Coordinator (author's request, ~17:15 PDT): add the forest's lo_fomc arm (rf_skx, the full set without the FOMC
+   group), the one class missing from the with / without FOMC comparison; budget about lo_rm's; report before
+   submitting if the projection exceeds 2,500 CPU-hours.
+   (a) The arm: rf400_rf_opt_00 on oneDAL, frozen, seed 42, 8 threads, W = 39,000 rows, refit at every one of the
+       33,970 bars (2014-01-02 .. 2024-04-30), the 528 columns of lo_fomc.  It holds no FOMC column, and gate F0 found
+       those 528 columns bit-identical in the pre-patch and the FOMC-patched caches, so one walk serves both designs;
+       it reads the pre-patch cache (designs/full).  experiments/ablate_arms.py RF_ARMS gains lo_fomc.
+   (b) Pieces: tasks/trees_rf_lofomc.txt, 101 lines of about 3 hours at EPYC speed (the rule of section 6), resumable;
+       the claim pool pool3.sh (claims runs/claims_rf_lofomc, output runs/trees_lofomc); a piece resumes only on the
+       CPU model that began it (same-model take-over, and the forest's one-family guard).  CPU models: the forest's
+       T1-gated ones (Slurm Gold 6240, Gold 6442Y, Xeon 6736P); forest pieces of one arm may come from several gated
+       models, each piece from one (as every other forest arm here; differences across models <= 1.8e-15 relative,
+       gate2_final.json).
+   (c) Projection from the measured forest lo_rm (480 columns): 1,991.8 CPU-hours over 33,970 refits (Xeon 6736P
+       25.7 s a refit at 8 threads, Gold 6240 29.8, Gold 6442Y 18.4); scaled by 528 / 480: about 2,190 CPU-hours on
+       the same model mix, 2,474 if every piece ran on Gold 6240.  Within the 2,500 cap: no stop before submission.
+   (d) Item 3 of the request: the patched-design queue (addendum D) never held a lo_fomc line -- by addendum D (d) the
+       LightGBM / XGBoost lo_fomc walks are design-invariant (gate F0) and were not re-walked; nothing to drop.
+   (e) Merge: experiments/ablate_widen.py on runs/trees_lofomc (T2 over the gate dirs, complete piece set, true_adj /
+       B = the templates'); scored by ablate_score.py on Table 1's 33,527 bars in both panels (pre-patch and patched).
+   (f) 2026-10-26 17:27 PDT, after submission (jobids.txt slurm10 / slurm11 / uge4): of the first 14 pool jobs only the
+       two on Gold 6240 started; Slurm put the 6736P / 6442Y ones at 21:12 .. 06:28.  Those 12 were cancelled before
+       they started (sacct: Start None) and replaced by 9 more on idle Gold 6240 nodes (4 workers each): 44 workers,
+       every piece so far on Gold 6240.  UGE Gold 6140: the forest's T1 (tgate.sh PHASE=B, gate/u6140, the same
+       section-5 test as the other models) and a pool held on it (22 x 8 slots); its pieces count only if
+       gate/u6140/passed_rf_skx is written -- otherwise its workers find no eligible line and exit.  Projection
+       unchanged (Gold 6240: 2,474 CPU-hours, under the cap).
+   (g) 2026-10-26 18:00 PDT: the projection of (c) was wrong.  Measured at 17:59 on 52 pieces (1,890 refits): 47.1 s
+       a refit at 8 threads on Gold 6240 (44 .. 51), against lo_rm's ~28 there.  lo_rm drops the 48 continuous
+       realized-moment columns (the costly ones for the splitter); lo_fomc drops 36 near-discrete calendar columns, so
+       it costs about the full forest, not lo_rm.  Implied: ~3,550 CPU-hours all on Gold 6240, over the 2,500 cap.
+       Reported to the coordinator at 18:00 with options; the Gold 6140 pool (UGE 15293203, not started) put on a
+       user hold.  Until a decision the 13 Gold 6240 pools run inside the 2,500 CPU-hours already allowed; with no
+       decision by then they are cancelled before the cap (~23:15), every piece resumable from its checkpoint.
+   (h) Item 3 checked (tmp/md5_lofomc_pure_20261026.py, read only, on the login node): X restricted to the 528
+       lo_fomc columns has md5 774b1fc12acbe570a60a7d926cd909ca in designs/full (pre-patch, X md5 374bea97...) and
+       designs_fix/full (patched, X md5 725eb201...); names, y, b_oos and dates equal; the 36 dropped columns are
+       the FOMC group's (3 series x 6 value + 6 availability averages).

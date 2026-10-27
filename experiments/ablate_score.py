@@ -96,8 +96,22 @@ def evaluation_days(rv: pd.Series) -> pd.DatetimeIndex:
     return days
 
 
-def load_panel(res: Path) -> tuple[dict[tuple[str, str], pd.Series], pd.Series]:
-    """(class, arm) -> plain forecast indexed by bar end; and B of the bars (from the templates)."""
+FIX = ROOT / "results" / "fomcfix_2026-10-26" / "forecasts"
+RF_FIX = ROOT / "results" / "pooled_rf_skx_2014start_fomcfix_w3000" / "forecasts.parquet"
+# 2026-10-26 addendum D: on the FOMC-patched design, the trees' lo_<g> arms for g != fomc hold the pre-patch FOMC
+# columns and stay pre-patch; they are compared with the pre-patch full set (key "full_pre")
+PRE_TREE = tuple(f"lo_{g}" for g in ("rm", "liq", "ew", "vw", "sent", "iv", "vd"))
+
+
+def ref_full(design: str, cls: str, arm: str) -> str:
+    return "full_pre" if design == "fix" and cls in TREES and arm in PRE_TREE else "full"
+
+
+def load_panel(res: Path, design: str = "pre", rf_fix: str = "") -> tuple[dict[tuple[str, str], pd.Series], pd.Series]:
+    """(class, arm) -> plain forecast indexed by bar end; and B of the bars (from the templates).  design "fix"
+    (addendum D): the full-set rows from the patched walks (fomcfix lin_B, forecasts_gb, rf_fix if given), the linear
+    ablations from linear_wide_fix.parquet, the trees' add_fomc from trees_wide_fix.parquet, the pre-patch tree full
+    sets kept as "full_pre"."""
     out: dict[tuple[str, str], pd.Series] = {}
     lt = pd.read_parquet(LIN_T, columns=["model", "predictor_set", "date", "pred_adj", "B", "plain"])
     for (m, s), f in lt.groupby(["model", "predictor_set"]):
@@ -109,8 +123,35 @@ def load_panel(res: Path) -> tuple[dict[tuple[str, str], pd.Series], pd.Series]:
     B = tt[(tt["model"] == "lgbm") & (tt["predictor_set"] == "all_features")].set_index("date")["B"]
     lb = lt[(lt["model"] == "ridge") & (lt["predictor_set"] == "all_features")].set_index("date")["B"]
     assert np.array_equal(lb.reindex(B.index).to_numpy(), B.to_numpy()), "linear and tree templates' B"
+    if design == "fix":
+        for c in TREES:
+            out[(c, "full_pre")] = out[(c, "full")]
+        del out[("rf", "full")]  # the forest's patched full set only when given
+        lf = pd.read_parquet(FIX / "lin_B.parquet")
+        for m, f in lf.groupby("model"):
+            assert (f["predictor_set"] == "all_features").all()
+            out[(m, "full")] = pd.Series(
+                f["pred_adj"].to_numpy() ** 2 * f["B"].to_numpy(), index=pd.DatetimeIndex(f["date"])
+            )
+        gb = pd.read_parquet(FIX / "forecasts_gb.parquet")
+        for m, f in gb.groupby("model"):
+            out[(m, "full")] = pd.Series(f["plain"].to_numpy(), index=pd.DatetimeIndex(f["date"]))
+        if rf_fix:
+            rf = pd.read_parquet(rf_fix)
+            rf = rf[(rf["model"] == "rf_skx") & (rf["predictor_set"] == "all_features")]
+            assert len(rf) == 33970, len(rf)
+            out[("rf", "full")] = pd.Series(rf["plain"].to_numpy(), index=pd.DatetimeIndex(rf["date"]))
+    # addendum E: the forest's lo_fomc (design-invariant, gate F0) in its own file, read in both designs
+    names: tuple[str, ...] = ("linear_wide.parquet", "trees_wide.parquet", "trees_wide_rflofomc.parquet")
+    if design == "fix":
+        names = (
+            "linear_wide_fix.parquet",
+            "trees_wide.parquet",
+            "trees_wide_fix.parquet",
+            "trees_wide_rflofomc.parquet",
+        )
     # the merged ablation forecasts, compact: one column of pred_adj per "<class>|<arm>" (2014-01-02 on)
-    for name in ("linear_wide.parquet", "trees_wide.parquet"):
+    for name in names:
         p = res / "forecasts" / name
         if not p.is_file():
             continue
@@ -121,6 +162,8 @@ def load_panel(res: Path) -> tuple[dict[tuple[str, str], pd.Series], pd.Series]:
         for col in w.columns[1:]:
             cls, arm = col.split("|")
             cls = {"rf_skx": "rf"}.get(cls, cls)
+            if design == "fix" and name == "trees_wide.parquet" and arm == "add_fomc":
+                continue  # the patched add_fomc comes from trees_wide_fix.parquet
             assert (cls, arm) not in out, (cls, arm)
             out[(cls, arm)] = pd.Series(w[col].to_numpy() ** 2 * b, index=d)
     return out, B
@@ -150,12 +193,18 @@ def daily(x: np.ndarray, idx: pd.DatetimeIndex) -> np.ndarray:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--res", default=str(ROOT / "results" / "ablations_2014start_w3000"))
+    ap.add_argument("--design", default="pre", choices=("pre", "fix"), help="fix: the FOMC-patched panel (addendum D)")
+    ap.add_argument(
+        "--rf-fix",
+        default=str(RF_FIX) if RF_FIX.is_file() else "",
+        help="the forest's patched full-set forecasts (fomcfix ed43a18; default: that run's file when present)",
+    )
     a = ap.parse_args()
     res = Path(a.res)
     rv = core_rv()
     days = evaluation_days(rv)
-    panel, _ = load_panel(res)
-    templ = {k: v for k, v in panel.items() if k[1] in ("full", "har")}
+    panel, _ = load_panel(res, a.design, a.rf_fix)
+    templ = {k: v for k, v in panel.items() if k[1] in ("full", "har", "full_pre")}
     idx_t = scored(templ, rv, days)
     idx = scored(panel, rv, days)
     checks: dict = {"n_bars_templates": len(idx_t), "n_bars_all": len(idx), "fail": []}
@@ -233,17 +282,18 @@ def main() -> int:
                 g = LIVE[sp.split("_", 1)[1]][1]
                 if c == "ols":
                     continue
-                if arm == f"lo_{g}":
-                    rows += dm((c, arm), (c, "full"), sp)
-                elif arm in (f"add_{g}", "full"):
+                if arm == f"lo_{g}" and (c, ref_full(a.design, c, arm)) in panel:
+                    rows += dm((c, arm), (c, ref_full(a.design, c, arm)), sp)
+                elif arm in (f"add_{g}", "full", "full_pre"):
                     rows += dm((c, arm), (c, "har"), sp)
                 continue
             if c == "ols":
                 if arm != "har":
                     rows += dm((c, arm), ("ols", "har"), sp)
                 continue
-            if arm != "full":
-                rows += dm((c, arm), (c, "full"), sp)
+            rf_ = ref_full(a.design, c, arm)
+            if arm not in ("full", "full_pre") and (c, rf_) in panel:
+                rows += dm((c, arm), (c, rf_), sp)
             if arm != "har":
                 rows += dm((c, arm), (c, "har"), sp)
             if arm == "full":
@@ -256,6 +306,10 @@ def main() -> int:
     d1 = pd.read_csv(TABLE1 / "dm.csv")
     for _, r in t1.iterrows():
         k = (r["model"], SET_ARM[r["set"]])
+        if a.design == "fix" and k[1] == "full":  # the pre-patch full rows: kept as full_pre for the trees only
+            if k[0] not in TREES:
+                continue
+            k = (k[0], "full_pre")
         mine = M[(M.cls == k[0]) & (M.arm == k[1])].set_index("span")
         for col, sp, ref in (
             ("qlike", "all", r["qlike"]),
@@ -268,9 +322,11 @@ def main() -> int:
         if int(mine.loc["all", "n_bars"]) != int(r["n_intervals"]):
             checks["fail"].append(f"Table 1 {k}: bars {int(mine.loc['all', 'n_bars'])} vs {int(r['n_intervals'])}")
     for _, r in d1[(d1["comparison"] == "all features vs HAR benchmark") & (d1["loss"] == "qlike")].iterrows():
+        if a.design == "fix" and r["model"] not in TREES:
+            continue
         mine = D[
             (D.cls == r["model"])
-            & (D.arm == "full")
+            & (D.arm == ("full_pre" if a.design == "fix" else "full"))
             & (D.vs_cls == r["model"])
             & (D.vs_arm == "har")
             & (D.span == "all")
@@ -278,9 +334,25 @@ def main() -> int:
         ]
         if len(mine) != 1 or not np.isclose(float(mine["dm"].iloc[0]), r["dm"], rtol=1e-9, atol=0):
             checks["fail"].append(f"Table 1 DM {r['model']}: {mine['dm'].tolist()} vs {r['dm']}")
+    if a.design == "fix":  # the patched linear full rows reproduce fomcfix's cell-B scores
+        fm = pd.read_csv(ROOT / "results" / "fomcfix_2026-10-26" / "scores_linear" / "metrics.csv")
+        fm = fm[(fm["cell"] == "B") & (fm["set"] == "all_features")]
+        for _, r in fm.iterrows():
+            mine = M[(M.cls == r["model"]) & (M.arm == "full")].set_index("span")
+            for col, sp, ref in (
+                ("qlike", "all", r["qlike_bar"]),
+                ("mse", "all", r["mse_bar_e10"] * 1e-10),
+                ("qlike", "c16", r["qlike_16"]),
+                ("qlike", "c16_2020", r["qlike_16_2020"]),
+            ):
+                v = float(mine.loc[sp, col])
+                if not np.isclose(v, ref, rtol=1e-12, atol=0):
+                    checks["fail"].append(f"fomcfix B {r['model']} {col} {sp}: {v} vs {ref}")
+        checks["design"] = "fix: FOMC-patched (fomcfix cell B); trees' lo_<g> (g != fomc) pre-patch vs full_pre"
+        checks["rf_full_fix"] = bool(a.rf_fix)
     checks["pass"] = not checks["fail"]
     checks["arms"] = sorted(f"{c}/{a_}" for c, a_ in panel)
-    out = res / "scores"
+    out = res / ("scores_fomcfix" if a.design == "fix" else "scores")
     out.mkdir(parents=True, exist_ok=True)
     M.to_csv(out / "metrics.csv", index=False)
     D.to_csv(out / "dm.csv", index=False)

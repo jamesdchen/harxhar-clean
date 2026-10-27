@@ -1,0 +1,38 @@
+{
+ "old": "/u/scratch/j/jamesdc1/abl/designs/full",
+ "new": "/u/scratch/j/jamesdc1/abl/designs_fix/full",
+ "fail": [],
+ "x_md5": "725eb201044783d3cdc62501307dcc3a",
+ "config_new": {
+  "sample": "rth13",
+  "periods_per_day": 13,
+  "window": 39000,
+  "har_base": "5",
+  "drop_fomc": false,
+  "ex_flags": {
+   "DROP_ACTIVITY_MA": true,
+   "CALENDAR_THROUGH_OVERNIGHT": true,
+   "DROP_OVERNIGHT_INDICATOR": true,
+   "LEAN_GLOBAL_LAGS": true,
+   "LATE_START_WARMUP": true,
+   "FOMC_SCHEDULE_2020_FIX": true,
+   "FOMC_PROXIMITY_NO_WINSOR": true,
+   "DROP_HOLIDAY_SESSIONS": false
+  }
+ },
+ "differing_columns": [
+  "adj_fomc_until_inv_ma_1",
+  "adj_fomc_until_inv_ma_5",
+  "adj_fomc_until_inv_ma_25",
+  "adj_fomc_until_inv_ma_125",
+  "adj_fomc_until_inv_ma_625",
+  "adj_fomc_until_inv_ma_3125",
+  "adj_fomc_since_inv_ma_1",
+  "adj_fomc_since_inv_ma_5",
+  "adj_fomc_since_inv_ma_25",
+  "adj_fomc_since_inv_ma_125",
+  "adj_fomc_since_inv_ma_625",
+  "adj_fomc_since_inv_ma_3125"
+ ],
+ "pass": true
+}
