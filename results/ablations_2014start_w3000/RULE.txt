@@ -266,7 +266,7 @@ ADDENDUM E, 2026-10-26 17:30 PDT (2026-10-27 00:30 UTC), before any job it affec
        LightGBM / XGBoost lo_fomc walks are design-invariant (gate F0) and were not re-walked; nothing to drop.
    (e) Merge: experiments/ablate_widen.py on runs/trees_lofomc (T2 over the gate dirs, complete piece set, true_adj /
        B = the templates'); scored by ablate_score.py on Table 1's 33,527 bars in both panels (pre-patch and patched).
-   (f) 2026-10-26 17:35 PDT, after submission (jobids.txt slurm10 / slurm11 / uge4): of the first 14 pool jobs only the
+   (f) 2026-10-26 17:27 PDT, after submission (jobids.txt slurm10 / slurm11 / uge4): of the first 14 pool jobs only the
        two on Gold 6240 started; Slurm put the 6736P / 6442Y ones at 21:12 .. 06:28.  Those 12 were cancelled before
        they started (sacct: Start None) and replaced by 9 more on idle Gold 6240 nodes (4 workers each): 44 workers,
        every piece so far on Gold 6240.  UGE Gold 6140: the forest's T1 (tgate.sh PHASE=B, gate/u6140, the same

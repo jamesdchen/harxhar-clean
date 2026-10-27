@@ -135,7 +135,10 @@ def main() -> int:
     have = set(zip(M["cls"], M["arm"]))
     q = M.set_index(["cls", "arm", "span"])
     dq = D[D["loss"] == "qlike"].set_index(["cls", "arm", "vs_cls", "vs_arm", "span"])
-    lines = [HEAD, f"% {RES.relative_to(REPO)} ({'FOMC-patched panel, RULE.txt addendum D' if FIXED else 'pre-patch'})"]
+    lines = [
+        HEAD,
+        f"% {RES.relative_to(REPO).as_posix()} ({'FOMC-patched panel, RULE.txt addendum D' if FIXED else 'pre-patch'})",
+    ]
     lines.append("% results/ablations_2014start_w3000 (RULE.txt): column-subset arms of the final 13-bar design,")
     lines.append("% frozen hyperparameters, every bar scored as Table 1; DM on daily (average) QLIKE.")
 

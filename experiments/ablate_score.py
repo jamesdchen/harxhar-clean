@@ -140,9 +140,15 @@ def load_panel(res: Path, design: str = "pre", rf_fix: str = "") -> tuple[dict[t
             rf = rf[(rf["model"] == "rf_skx") & (rf["predictor_set"] == "all_features")]
             assert len(rf) == 33970, len(rf)
             out[("rf", "full")] = pd.Series(rf["plain"].to_numpy(), index=pd.DatetimeIndex(rf["date"]))
-    names: tuple[str, ...] = ("linear_wide.parquet", "trees_wide.parquet")
+    # addendum E: the forest's lo_fomc (design-invariant, gate F0) in its own file, read in both designs
+    names: tuple[str, ...] = ("linear_wide.parquet", "trees_wide.parquet", "trees_wide_rflofomc.parquet")
     if design == "fix":
-        names = ("linear_wide_fix.parquet", "trees_wide.parquet", "trees_wide_fix.parquet")
+        names = (
+            "linear_wide_fix.parquet",
+            "trees_wide.parquet",
+            "trees_wide_fix.parquet",
+            "trees_wide_rflofomc.parquet",
+        )
     # the merged ablation forecasts, compact: one column of pred_adj per "<class>|<arm>" (2014-01-02 on)
     for name in names:
         p = res / "forecasts" / name
