@@ -97,6 +97,7 @@ def evaluation_days(rv: pd.Series) -> pd.DatetimeIndex:
 
 
 FIX = ROOT / "results" / "fomcfix_2026-10-26" / "forecasts"
+RF_FIX = ROOT / "results" / "pooled_rf_skx_2014start_fomcfix_w3000" / "forecasts.parquet"
 # 2026-10-26 addendum D: on the FOMC-patched design, the trees' lo_<g> arms for g != fomc hold the pre-patch FOMC
 # columns and stay pre-patch; they are compared with the pre-patch full set (key "full_pre")
 PRE_TREE = tuple(f"lo_{g}" for g in ("rm", "liq", "ew", "vw", "sent", "iv", "vd"))
@@ -193,7 +194,11 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--res", default=str(ROOT / "results" / "ablations_2014start_w3000"))
     ap.add_argument("--design", default="pre", choices=("pre", "fix"), help="fix: the FOMC-patched panel (addendum D)")
-    ap.add_argument("--rf-fix", default="", help="the forest's patched full-set forecasts (fomcfix), when available")
+    ap.add_argument(
+        "--rf-fix",
+        default=str(RF_FIX) if RF_FIX.is_file() else "",
+        help="the forest's patched full-set forecasts (fomcfix ed43a18; default: that run's file when present)",
+    )
     a = ap.parse_args()
     res = Path(a.res)
     rv = core_rv()
