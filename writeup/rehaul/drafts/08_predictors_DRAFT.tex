@@ -90,7 +90,8 @@
 \label{sec:rh_fi_rest}
 \begin{itemize}
 \item \textbf{A modest gain for the trees.} Beyond the HAR terms, the realized moments and the FOMC calendar, the
-  exogenous series lower the trees' ordinary-day loss by \rhPending{rhabTreeFullVsAddRmFomcOrdRng}\% and leave the
+  exogenous series lower the ordinary-day loss of LightGBM, XGBoost and the random forest by
+  \rhabLgbmFullVsAddRmFomcOrdPct, \rhabXgbFullVsAddRmFomcOrdPct{} and \rhabRfFullVsAddRmFomcOrdPct\% and leave the
   linear models' unchanged (Section~\ref{sec:rh_results_beyond}).
 \item \textbf{Spread across groups, used nonlinearly.} No single remaining group is indispensable: removing any one of
   the constituents' moments, liquidity or order flow from the full set changes the trees' loss by at most

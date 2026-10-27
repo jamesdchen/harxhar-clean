@@ -106,17 +106,25 @@
   every class (\rhabOlsAddRmAllPct\% for the OLS on every bar), and by more on ordinary days, whereas the semivariance,
   realized-quarticity and leverage extensions of the HAR model, estimated together by OLS, change the benchmark's loss
   by only \rhabOlsSharqlAllPct\% (Panel~C).
-\item \textbf{What the other exogenous series add.} Against HAR\,+\,RM\,+\,FOMC the full set changes the every-bar
-  loss by \rhPending{rhabLinFullVsAddRmFomcAllRng}\% in the penalized linear models and by
-  \rhPending{rhabTreeFullVsAddRmFomcAllRng}\% in the tree ensembles, and the ordinary-day loss by
-  \rhPending{rhabLinFullVsAddRmFomcOrdRng}\% and \rhPending{rhabTreeFullVsAddRmFomcOrdRng}\%; the difference is
-  significant for \rhPending{rhabFullVsAddRmFomcNSig} of the \rhorAfPairs{} classes.
-  % DRAFT: interim reading from the HAR + RM arm on ordinary days (not pre-registered; channels CSV): linear
-  % \rhchXLinOrdFullVsRmPctMin to \rhchXLinOrdFullVsRmPctMax % (significant in \rhchXLinOrdFullVsRmNSig of 3), trees
-  % \rhchXTreeOrdFullVsRmPctMin to \rhchXTreeOrdFullVsRmPctMax % (significant in \rhchXTreeOrdFullVsRmNSig of 3).
-\item \textbf{In sum.} Beyond the well-studied predictors, the exogenous series improve the tree ensembles' forecasts
-  modestly and significantly and the penalized linear models' not at all.
-  % DRAFT: this sentence holds if the HAR + RM + FOMC arm confirms the interim reading above; reword otherwise.
+\item \textbf{What the other exogenous series add} (Table~\ref{tab:rh_ablation}, Panel~D).
+  \begin{itemize}
+  \item Penalized linear models: against HAR\,+\,RM\,+\,FOMC the full set changes the every-bar loss by
+    \rhabRidgeFullVsAddRmFomcAllPct, \rhabLassoFullVsAddRmFomcAllPct{} and \rhabEnetFullVsAddRmFomcAllPct\% in the
+    ridge, lasso and elastic net ($\DM={}$\rhabRidgeFullVsAddRmFomcAllDm, \rhabLassoFullVsAddRmFomcAllDm{} and
+    \rhabEnetFullVsAddRmFomcAllDm), none significantly.
+  \item Tree ensembles: by \rhabLgbmFullVsAddRmFomcAllPct, \rhabXgbFullVsAddRmFomcAllPct{} and
+    \rhabRfFullVsAddRmFomcAllPct\% in LightGBM, XGBoost and the random forest ($\DM={}$\rhabLgbmFullVsAddRmFomcAllDm,
+    \rhabXgbFullVsAddRmFomcAllDm{} and \rhabRfFullVsAddRmFomcAllDm), and on ordinary days by
+    \rhabLgbmFullVsAddRmFomcOrdPct, \rhabXgbFullVsAddRmFomcOrdPct{} and \rhabRfFullVsAddRmFomcOrdPct\%
+    ($p = \rhabLgbmFullVsAddRmFomcOrdP$, \rhabXgbFullVsAddRmFomcOrdP{} and \rhabRfFullVsAddRmFomcOrdP).
+  \item The well-studied predictors thus account for nearly all of the gain of Table~\ref{tab:rh_oos}: HAR\,+\,RM\,+\,FOMC
+    alone lowers the every-bar loss below the HAR benchmark's by \rhabRidgeAddRmFomcVsHarAllPct\% (ridge) to
+    \rhabXgbAddRmFomcVsHarAllPct\% (XGBoost).
+  \end{itemize}
+  % 2026-10-26: requested by the author after the channel results; not pre-registered (ablation RULE addendum F).
+\item \textbf{In sum.} Beyond the well-studied predictors, the other exogenous series improve the gradient-boosted
+  trees' forecasts modestly and significantly, almost all of it on ordinary days, the random forest's marginally, and
+  the penalized linear models' not at all.
 \end{itemize}
 
 \subsection{Robustness}
