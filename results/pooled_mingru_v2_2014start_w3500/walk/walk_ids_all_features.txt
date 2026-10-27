@@ -24,3 +24,5 @@ pieces/v2w_all_features.002.p00.txt 13478024 gpu 509 P100 piece, nice 100 (ADDEN
 pieces/v2w_all_features.002.p01.txt 13478604 gpu 509 P100 piece, nice 100 (ADDENDUM 3d / 3g re-pin, cpu 2 / 16G)
 pieces/v2w_all_features.002.p02.txt 13478606 gpu 509 P100 piece, nice 100 (ADDENDUM 3d / 3g re-pin, cpu 2 / 16G)
 pieces/v2w_all_features.003.p00.txt 13478608 gpu 509 P100 piece, nice 100 (ADDENDUM 3d / 3g re-pin, cpu 2 / 16G)
+pieces/v2w_all_features.003.p01.txt 13481127 gpu 509 P100 piece, nice 100 (ADDENDUM 3d / 3g re-pin, cpu 2 / 16G)
+pieces/v2w_all_features.003.p02.txt 13481129 gpu 509 P100 piece, nice 100 (ADDENDUM 3d / 3g re-pin, cpu 2 / 16G)
