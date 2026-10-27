@@ -113,3 +113,4 @@ the old run (read-only): `/home1/jc_905/pmf35/data` (design copies, fold-3 ridge
   / 16G); HAR W 3,500 13473344 (003.p02). gpu 99 (32 running P100, 67 pending). No FAILED since 16:40.
 - 2026-10-26 17:45 PDT: W 3,500 top-up (nice 100): HAR 13474336 / 13474338 (003.p03 / p04), full 13474337 (000.p02).
   gpu 99 (34 running P100, 65 pending). No FAILED since 17:10.
+- 2026-10-26 18:26 PDT: full W 3,500 13475516 (001.p00, nice 100). gpu 99 (36 running P100, 63 pending). No FAILED.

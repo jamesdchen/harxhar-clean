@@ -550,3 +550,4 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   piece is now submitted. Debug 13471946 (053.p04.g06). gpu 99 (26 running P100, 73 pending). No FAILED since 14:10.
 - 2026-10-26 17:14 PDT: debug 13473346 (dbgp 005.p02.g04). gpu 99 (32 running P100). No FAILED since 16:40.
 - 2026-10-26 17:45 PDT: debug 13474339 (053.p04.g07). gpu 99 (34 running P100). No FAILED since 17:10.
+- 2026-10-26 18:26 PDT: debug 13475517 (dbgp 005.p02.g05). gpu 99 (36 running P100). No FAILED since 17:40.
