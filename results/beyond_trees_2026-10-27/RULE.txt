@@ -47,3 +47,63 @@ reading rules below are fixed before either run is scored.
 - Projections before submission: factor test <= 2,500 CPU-h, ladder <= 2,000 CPU-h; above either, report and wait.
 - Outputs: one appendix table per run (labels tab:rh_beyond_factor, tab:rh_beyond_ladder), \rhby... macros, the
   readings applied mechanically, labelled "requested by the author after the beyond-base results; not pre-registered".
+
+ADDENDUM 1 (CARC section: the factor test), 2026-10-27 12:35 PDT (19:35 UTC), before any job of the factor test
+Written by the CARC runner agent; branch insurance-selling-2026-09-19-e34-beyondfactor (from 7bd70bb), worktree
+C:\Users\james\AppData\Local\Temp\robustfix_wt; committed and pushed before the first submission.  Sections 0, 1 and 3
+above are followed as written; this addendum fixes how.
+(a) Runner: experiments/beyond_factor_trees.py.  Model code = experiments/ablate_trees.py model() (the frozen configs
+    via pooled_trees_rerun_13.model_factory, seed 42, 8 threads, LightGBM deterministic=True and force_col_wise=True as
+    the BASE arm) and pooled_trees_rerun_13.fit_predict; the BASE columns are ablate_arms.arm_names("add_rm_fomc") in the
+    cache's order (132), the k component scores appended after them; refit at every one of the 33,970 bars
+    (2014-01-02 10:00 .. 2024-04-30 16:00) on the W = 39,000 rows before it.  Arms: pca1, pca2, pca3, pca5, pca10, pls1,
+    pls3 for LightGBM and XGBoost (14 walks); the arm "base" (k = 0) is run only for the gates.
+(b) Block: the value averages adj_<s>_ma_<k> of the 36 series of ew, vw, liq, iv, sent, vd (216 columns).  Map, once a
+    trading day, from the design rows [t0 - W, t0), t0 = the day's first bar (computed directly on the materialized
+    window, not by rolling sums): m, s (ddof 0); active = s > 1e-12 and the series' k = 1 column has >= 250 rows off its
+    window mode (pool_linear_pretune.col_mode's count); eigenvectors of the active columns' correlation matrix
+    (np.linalg.eigh, descending; each signed to a non-negative sum: factor_har's convention); SIMPLS (factor_har.simpls)
+    of the standardized active block against the window's target (y - its window mean), 3 components.  Scores
+    f = (z - m) P, P = diag(1/s) [V_10 | R_3] on the active rows.  The maps are computed once for the 2,643 forecast days
+    (mode maps; one job) and stored (maps.npz, md5 recorded in every piece); the walks compute the scores column by
+    column with elementwise numpy operations in a fixed order (no BLAS reduction), so the scores do not depend on the
+    CPU model.
+(c) Design: CARC /home1/jc_905/fomcfix_lin/runs/B/_work/design_all_features (Table 1's patched design; X md5
+    725eb201044783d3cdc62501307dcc3a = the Hoffman2 designs_fix/full that BASE ran on, ablation addendum D).
+    BASE forecasts: results/ablations_2014start_w3000/forecasts/trees_wide_rmfomc.parquet (lgbm|add_rm_fomc,
+    xgb|add_rm_fomc); FULL: results/pooled_trees_final_2014start_fomcfix_w3000/forecasts.parquet (all_features).
+    Neither is rerun.  Environment: /home1/jc_905/trees_final/venv_skx (lightgbm 4.6.0, xgboost 3.2.0; the fomcfix
+    trees' T1-gated environment).
+(d) Gates, before any walk:
+    GM  (maps): on 8 spread days the stored map's scores (window rows and the day's first bar, all 13 components)
+        against a direct computation on the materialized window (the entry rule from scratch; np.linalg.svd for PCA;
+        NIPALS PLS1), each normalized to unit window variance and signed alike: max |difference| <= 1e-8 per component
+        and the same active set.  A component whose eigenvalue is nearly tied with the next (gap reported) and that
+        misses 1e-8 is reported, not passed silently; the coordinator decides.
+    GB  (BASE reproduction, per CPU model): the arm base on 6 spread origins (2014-01-02 10:00, 2016-08-03 12:30,
+        2018-12-20 15:00, 2020-03-16 11:00, 2022-06-15 14:30, 2024-04-30 16:00) reproduces lgbm|add_rm_fomc and
+        xgb|add_rm_fomc text-identically (repr), with true_adj and B equal to FULL's rows.
+    T2  every (class, arm)'s 6 gate origins bit-identical across the CPU models that pass GB for that class.
+    CPU models tried: AMD EPYC 7513 and 7542 (partition main), Intel Xeon 4116 (main, oneweek), Xeon E5-2640 v4
+    (oneweek); one gate job (8 CPUs) per model.  A model enters a class only after GB and T2 for that class; pieces
+    are claimed by Slurm with --constraint limited to the passed models, partitions main and oneweek (no GPU, debug or
+    largemem partition).  A piece resumed on another passed model is acceptable only because T2 holds (the merge
+    asserts T2 whenever an arm's pieces come from more than one model).
+(e) Budget (section 3): the projection = 33,970 refits x the slowest passed model's seconds a refit (gate pieces,
+    score time excluded) x 8 threads x 1.15, summed over the 14 walks.  Submitted if <= 2,500 CPU-hours; otherwise the
+    projection is reported and nothing is submitted.  Pieces: day blocks of about 3 hours at the slowest passed model,
+    checkpoints every 300 s, resumable.
+(f) Scoring (experiments/beyond_factor_score.py, laptop): plain = pred_adj^2 B (B of FULL's rows) against the bar's
+    actual RV (data/core_stats.parquet sumret2); Table 1's 33,527 bars (ablate_score.evaluation_days / scored,
+    asserted); days every bar / ORDINARY (the 81 scheduled FOMC statement days removed, ablate_score.event_days) /
+    EVENT; QLIKE; Diebold-Mariano (src/evaluation/diebold_mariano.dm_test, HLN) on daily mean QLIKE with hac_lag = 8 on
+    every span (as section 0 says; the automatic lag is 8 on every bar and ORDINARY, 3 on EVENT); per model and span:
+    QLIKE, % against BASE, DM against BASE and against FULL, R = (L_BASE - L_arm) / (L_BASE - L_FULL).
+    Reading (section 1, ORDINARY, per model, applied in this order): SHARED COMPONENT if some arm of pca1, pca2, pca3,
+    pls1, pls3 has R >= 0.75 and is not significantly worse than FULL (not: DM(arm vs FULL) > 0 with p < 0.05);
+    else DENSE BEYOND A FEW COMPONENTS if R(pca10) < 0.5 and FULL beats pca10 significantly (DM(FULL vs pca10) < 0
+    with p < 0.05); else INTERMEDIATE.  The two models' readings and "agree" / "split".
+(g) Outputs: results/beyond_trees_2026-10-27/factor/ (maps.json, gate JSONs, projection, compact forecasts, scores,
+    reading.json); writeup/make_rehaul_beyond_factor.py -> writeup/generated/rehaul_beyond_factor_table.tex
+    (tab:rh_beyond_factor) and rehaul_beyond_factor_numbers.tex (\rhbyF... macros), every one labelled "requested by
+    the author after the beyond-base results; not pre-registered".  No section file and no other generator is edited.
