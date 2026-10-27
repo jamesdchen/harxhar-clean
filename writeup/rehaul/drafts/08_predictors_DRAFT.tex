@@ -1,0 +1,125 @@
+% 08_predictors_DRAFT.tex -- DRAFT of 26 October 2026 (coordinator), for the author's review; NOT input by
+% paper_rehaul.tex. Section 7 (file 08) restructured by channel: which predictors carry the event channel (FOMC
+% statement days) and the ordinary-day channel, and whether each channel's signal is concentrated or spread across
+% correlated proxies (RULE results/channels_2026-10-26/RULE.txt, items 3-4). It absorbs the predictor content of
+% Section 6 ("Which predictors carry the gain?"); attribution (Table rh_fip_shares) and the ladder figure move to the
+% appendix to hold the page budget. Bullet map: drafts/MAP_06_07.md. \rhPending{name}: see drafts/06_results_DRAFT.tex.
+\ifdefined\rhfipNOrigins\else\input{generated/rehaul_fip_numbers}\fi
+\ifdefined\rhabLgbmFullAllPct\else\input{generated/rehaul_ablation_numbers}\fi
+\ifdefined\rhcxWMain\else\input{generated/rehaul_complexity_numbers}\fi
+
+\section{Which predictors carry the gain?}
+\label{sec:rh_fi}
+\label{sec:rh_results_ablation}
+\begin{itemize}
+\item \textbf{Questions and evidence.} Section~\ref{sec:rh_results_channels} splits the gain into an event channel,
+  the scheduled FOMC statement days, and an ordinary-day channel. For each channel we ask which predictor groups carry
+  it and whether its signal sits in a few series or is spread across many, with three kinds of evidence.
+  \begin{itemize}
+  \item Accuracy: the predictor-group ablations of Table~\ref{tab:rh_ablation}, with the design and frozen
+    hyperparameters of Table~\ref{tab:rh_oos}: each of the \rhfiNBuckets{} groups added alone to the HAR benchmark set,
+    and each removed from the full set, scored on each day type (Table~\ref{tab:rh_channels_abl}).
+  \item Concentration: the lasso, which selects, against the ridge and the elastic net, which keep and shrink every
+    series \citep[see][]{GiannoneLenzaPrimiceri2021}; the feature-count ladder of
+    \citet{MaischZhangUlrichZimmer2026} (Table~\ref{tab:rh_channels_sparse}); and a factor-augmented HAR
+    \citep{StockWatson2002} on ordinary days (Table~\ref{tab:rh_factor}).
+  \item Use: each model's attribution, its TreeSHAP shares \citep{lundberg2020local} or standardized coefficient
+    shares (Appendix~\ref{app:rh_fi_compute}). A share measures how much a series moves the forecast, not how much it
+    improves it.
+  \end{itemize}
+\item \textbf{Reading.} Fixed before the day types were scored: a channel is concentrated when one group added alone
+  recovers at least three-quarters of the channel's gain and its removal raises the loss significantly; it is spread
+  across correlated proxies when the groups' separate gains sum to at least one and a half times the joint gain and
+  the removal of at most one group raises the loss significantly.
+\end{itemize}
+
+\subsection{The event channel: one series}
+\label{sec:rh_fi_event}
+\begin{itemize}
+\item \textbf{The FOMC calendar carries it} (Table~\ref{tab:rh_channels_abl}). On statement days, the FOMC series
+  added alone to the HAR benchmark set lower the loss by \rhPending{rhchEvAddFomcLinRng}\% (linear) and
+  \rhPending{rhchEvAddFomcTreeRng}\% (trees), \rhPending{rhchEvFomcShareRng}\% of the channel's gain, and removing
+  them from the full set raises it by \rhPending{rhchEvLoFomcRng}\%. No other group comes close.
+\item \textbf{The lasso wins.} On statement days the lasso's full-set loss lies \rhPending{rhchEvLassoVsRidgePct}\%
+  below the ridge's ($\DM={}$\rhPending{rhchEvLassoVsRidgeDm}), as a sparse signal predicts, and the lasso's
+  top-ranked series, \rhldLassoTopOne, is the proximity to the next statement.
+\item \textbf{The models use it on few bars.} Over the span the FOMC calendar holds only
+  \rhfipFomcBucketMin--\rhfipFomcBucketMax\% of the trees' attribution; on statement days \rhfipFomcUntil{} holds
+  \rhfipLgbmUntilFomc\% of LightGBM's, on other days \rhfipLgbmUntilOther\% (Appendix~\ref{app:rh_fi_cond}).
+\item \textbf{A cost on ordinary days for the linear models.} A linear term in the FOMC series also moves the
+  forecasts of ordinary days: added alone, the series raise the ordinary-day loss of the penalized linear models by
+  \rhPending{rhchOrdAddFomcLinRng}\%, while the trees, which can confine the series' effect to the statement bars,
+  pay no such cost (\rhPending{rhchOrdAddFomcTreeRng}\%).
+\end{itemize}
+
+\subsection{The ordinary-day channel: correlated proxies of a shared volatility signal}
+\label{sec:rh_fi_ordinary}
+\begin{itemize}
+\item \textbf{The groups substitute for one another} (Table~\ref{tab:rh_channels_abl}).
+  \begin{itemize}
+  \item Added alone, the futures' realized moments lower the ordinary-day loss by \rhPending{rhchOrdAddRmLinRng}\%
+    (linear) and \rhPending{rhchOrdAddRmTreeRng}\% (trees), close to the channel's whole gain; the constituents'
+    realized moments, the liquidity measures and the order flow each lower the trees' loss by
+    \rhPending{rhchOrdAddOtherTreeRng}\% on their own.
+  \item Summed over groups, the separate gains are \rhPending{rhchOrdSumRatioRng} times the joint gain.
+  \item Removing any one group but the futures' realized moments changes the loss by at most
+    \rhPending{rhchOrdLoOtherMaxAbs}\%, \rhPending{rhchOrdLoOtherNSig}; removing the realized moments raises it by
+    \rhPending{rhchOrdLoRmRng}\%.
+  \end{itemize}
+\item \textbf{The ridge and the elastic net beat the lasso.} On ordinary days the ridge's full-set loss lies
+  \rhPending{rhchOrdRidgeVsLassoPct}\% and the elastic net's \rhPending{rhchOrdEnetVsLassoPct}\% below the lasso's
+  ($\DM={}$\rhPending{rhchOrdRidgeVsLassoDm} and \rhPending{rhchOrdEnetVsLassoDm}): a signal spread over correlated
+  predictors favors methods that average them over one that picks among them.
+\item \textbf{A few factors recover it} (Table~\ref{tab:rh_factor}). We add to the HAR benchmark set the first $k$
+  principal components of the value averages of every non-FOMC exogenous series, standardized and re-estimated each
+  day in the rolling window, and fit by OLS at every bar, as Table~\ref{tab:rh_oos}'s benchmark.
+  \begin{itemize}
+  \item With $k = \rhPending{rhfaKStar}$ components the factor-augmented HAR recovers \rhPending{rhfaRStar}\% of the
+    full set's ordinary-day gain (\rhPending{rhfaRStarVsFullDm}); partial least squares, which picks the components
+    by their covariance with the target \citep{KellyPruitt2015}, recovers \rhPending{rhfaRPlsStar}\% with
+    \rhPending{rhfaKPlsStar}.
+  \item The first component, \rhPending{rhfaPcOneVarShare}\% of the block's variance, loads mostly on
+    \rhPending{rhfaPcOneTopGroups}: a common measure of market activity and volatility.
+  \item Reading: \rhPending{rhfaReading}.
+  \end{itemize}
+\item \textbf{How many series} (Table~\ref{tab:rh_channels_sparse}). On the feature-count ladder, whose rung $k$ refits
+  each model on its top $k$ exogenous series, ranked before the span, the ordinary-day gain accumulates over
+  \rhPending{rhchOrdLadderDesc}, while on statement days the rung that adds the FOMC series carries it
+  (\rhPending{rhchEvLadderDesc}).
+\end{itemize}
+
+\subsection{Alternative data}
+\label{sec:rh_fi_alt}
+\begin{itemize}
+\item \textbf{No incremental gain in either channel.} Removing the StockTwits, volatility-demand or implied-volatility
+  groups from the full set changes the loss by at most \rhPending{rhchAltLoMaxAbs}\% on either day type, and added
+  alone to the HAR benchmark set they raise the linear models' loss (Table~\ref{tab:rh_channels_abl}).
+\item \textbf{On their live windows.} These series start after the data and enter as zero until the rolling window
+  holds \rhorWindowDays{} trading days of their history (Section~\ref{sec:rh_predictors}), so over most of the span
+  the models see them through their availability shares. Scored only on the bars on which their values are live
+  (Table~\ref{tab:rh_ablation}, Panel~E), the gains remain small: the StockTwits series change no class's loss
+  significantly from \rhabLiveSentStart, and the volatility-demand series raise the penalized linear models' loss
+  between \rhabLiveVdStart{} and \rhabLiveVdEnd{} (\rhabRidgeAddVdLiveVdPct\% for ridge regression).
+\item \textbf{Used more while live, without a gain.} In the full years in which their values are live, the trees'
+  yearly attribution shares rise: StockTwits from \rhfilStwPreMin--\rhfilStwPreMax\% to
+  \rhfilStwLiveMin--\rhfilStwLiveMax\%, volatility demand from \rhfilVdPreMin--\rhfilVdPreMax\% to
+  \rhfilVdLiveMin--\rhfilVdLiveMax\% (Figure~\ref{fig:rh_fi_live}). The use buys no measurable accuracy.
+\end{itemize}
+
+\subsection{Use is not accuracy}
+\label{sec:rh_fi_use}
+\begin{itemize}
+\item \textbf{Attribution ranks the channels the wrong way round.} The trees attribute
+  \rhfipHarMin--\rhfipHarMax\% of their forecasts to the HAR components and \rhfipMomMin--\rhfipMomMax\% to the
+  futures' realized moments, and only \rhfipFomcBucketMin--\rhfipFomcBucketMax\% to the FOMC calendar, which carries
+  the event channel; the realized moments, second in attribution, cost only \rhabLgbmLoRmAllPct\% to
+  \rhabXgbLoRmAllPct\% when removed, because their information is shared with other groups
+  (Appendix~\ref{app:rh_fi_rank}, Table~\ref{tab:rh_fip_shares}). What a series adds to accuracy is measured by the
+  ablations, not by its share.
+\item \textbf{In short.} The pooled gain has two channels with different structures. On statement days it is
+  concentrated: one group, the FOMC calendar, carries it, the lasso wins, and the models use the calendar on few bars.
+  On ordinary days it is spread over correlated measures of one volatility signal from the futures and the index
+  constituents: each recovers much of the gain alone, none but the futures' realized moments is needed given the
+  others, the ridge and the elastic net beat the lasso, and \rhPending{rhfaInShort}. The alternative data add no
+  measurable accuracy in either channel.
+\end{itemize}
