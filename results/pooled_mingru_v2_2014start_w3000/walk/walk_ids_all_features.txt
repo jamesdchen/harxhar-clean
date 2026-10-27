@@ -51,3 +51,4 @@ pieces/dbgp/v2w_all_features.005.p00.g06.txt 13479330 debug 52 P100 debug piece 
 pieces/dbgp/v2w_all_features.005.p00.g07.txt 13479905 debug 52 P100 debug piece of pieces/v2w_all_features.005.p00.txt (ADDENDUM 3e)
 pieces/dbgp/v2w_all_features.005.p00.g08.txt 13479906 debug 52 P100 debug piece of pieces/v2w_all_features.005.p00.txt (ADDENDUM 3e)
 pieces/dbgp/v2w_all_features.005.p00.g09.txt 13481135 debug 52 P100 debug piece of pieces/v2w_all_features.005.p00.txt (ADDENDUM 3e)
+pieces/dbgp/v2w_all_features.005.p01.g06.txt 13481748 debug 52 P100 debug piece of pieces/v2w_all_features.005.p01.txt (ADDENDUM 3e)

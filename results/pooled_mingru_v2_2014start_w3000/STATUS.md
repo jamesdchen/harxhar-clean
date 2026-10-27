@@ -558,3 +558,7 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
 - 2026-10-26 22:24 PDT: debug 13479330 (dbgp 005.p00.g06). gpu 99 (36 running P100, 63 pending). No FAILED since 21:30.
 - 2026-10-26 22:57 PDT: debug 13479905-06 (dbgp 005.p00.g07-g08). gpu 99 (36 running P100, 63 pending). No FAILED since 22:20.
 - 2026-10-26 23:59 PDT: debug 13481135 (dbgp 005.p00.g09). gpu 99 (29 running P100: dipped from 36). No FAILED since 22:50.
+- 2026-10-27 00:40 PDT: debug 13481748 (dbgp 005.p01.g06); 3 debug pieces left (005.p01.g07-g09). Refits done: HAR
+  140,772 / 169,850, full (P100) 154,399. gpu 97 (24 running P100, 73 pending, all pending for Priority: others'
+  P100-accepting jobs up to 6,376 vs our 3,545). Remaining ~620 P100 GPU-h (HAR W 3,000 332, full W 3,000 19, HAR
+  W 3,500 196, full W 3,500 72): ~26 h at 24 GPUs, ~17 h at 36. No FAILED since 23:50.
