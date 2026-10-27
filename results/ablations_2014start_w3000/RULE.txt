@@ -273,3 +273,14 @@ ADDENDUM E, 2026-10-26 17:30 PDT (2026-10-27 00:30 UTC), before any job it affec
        section-5 test as the other models) and a pool held on it (22 x 8 slots); its pieces count only if
        gate/u6140/passed_rf_skx is written -- otherwise its workers find no eligible line and exit.  Projection
        unchanged (Gold 6240: 2,474 CPU-hours, under the cap).
+   (g) 2026-10-26 18:00 PDT: the projection of (c) was wrong.  Measured at 17:59 on 52 pieces (1,890 refits): 47.1 s
+       a refit at 8 threads on Gold 6240 (44 .. 51), against lo_rm's ~28 there.  lo_rm drops the 48 continuous
+       realized-moment columns (the costly ones for the splitter); lo_fomc drops 36 near-discrete calendar columns, so
+       it costs about the full forest, not lo_rm.  Implied: ~3,550 CPU-hours all on Gold 6240, over the 2,500 cap.
+       Reported to the coordinator at 18:00 with options; the Gold 6140 pool (UGE 15293203, not started) put on a
+       user hold.  Until a decision the 13 Gold 6240 pools run inside the 2,500 CPU-hours already allowed; with no
+       decision by then they are cancelled before the cap (~23:15), every piece resumable from its checkpoint.
+   (h) Item 3 checked (tmp/md5_lofomc_pure_20261026.py, read only, on the login node): X restricted to the 528
+       lo_fomc columns has md5 774b1fc12acbe570a60a7d926cd909ca in designs/full (pre-patch, X md5 374bea97...) and
+       designs_fix/full (patched, X md5 725eb201...); names, y, b_oos and dates equal; the 36 dropped columns are
+       the FOMC group's (3 series x 6 value + 6 availability averages).
