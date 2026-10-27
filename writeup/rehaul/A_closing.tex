@@ -54,6 +54,12 @@
   Table~\ref{tab:rh_oos} re-estimated on the closing half hour (the CLOSE sample). It also reports the accuracy of
   the pooled models' closing half hour on both evaluation spans and the multiple-comparison procedures, whose sets
   of the closing half hour include the closing-interval HAR benchmark.
+\item \textbf{Spans.} Results for the closing half hour score its bar alone. Comparisons that involve the
+  closing-interval models, whose forecasts start later, use the subset
+  $\mathcal T_{\mathrm{close}} \subset \mathcal T_{\mathrm{oos}}$ of the $T_{\mathrm{close}} = \rhoosDays$ days from
+  \rhoosSpanStart{} to \rhoosSpanEnd{} on which all of them exist, with a Newey--West lag of $\rhoosDMLag$; the
+  option days of the application lie in it (Section~\ref{sec:rh_econ_strategy}).
+  % 2026-10-26 (coordinator; author: no 16:00-bar results in the main text): moved here from Section 5 (Evaluation spans).
 \item \textbf{Not reported.} The closing-interval linear models and tree ensembles of earlier drafts, a separate
   model set fitted under the earlier data rules with its own window, predictor set and tuning, are not reported;
   the CLOSE sample replaces them.
@@ -189,6 +195,15 @@
     the lasso ($\Delta\% = \rhcaPctLassoCloseSpan$, $\DM = \rhcaDmLassoCloseSpan$) and the elastic net
     ($\Delta\% = \rhcaPctEnetCloseSpan$), none significantly.
   \end{itemize}
+\item \textbf{Against the OLS benchmark at 16:00.} The full-set LightGBM and XGBoost forecasts are significantly
+  more accurate than the OLS on the HAR benchmark set at 16:00 as well ($\DM={}$\rhorVsOlsDmLgbmFullClose{} and
+  \rhorVsOlsDmXgbFullClose).
+\item \textbf{The realized moments account for the trees' gain at 16:00.} Added to the HAR benchmark set they
+  change the trees' 16:00 loss by \rhabLgbmAddRmClosePct\% to \rhabXgbAddRmClosePct\% ($\DM={}$\rhabLgbmAddRmCloseDm{}
+  or larger in absolute value), and the full set is significantly more accurate than the same class's HAR benchmark
+  set plus realized moments in \rhabNClassesBeatAddRmClose{} of the \rhabNClassesAddRm{} classes (its loss relative
+  to that benchmark: \rhabLgbmFullVsAddRmClosePct\% for LightGBM, \rhabXgbFullVsAddRmClosePct\% for XGBoost).
+  % 2026-10-26 (coordinator; author: no 16:00-bar results in the main text): the two bullets above moved here from Section 6 (subsection "The closing half hour").
 \item \textbf{On $\mathcal T_{\mathrm{close}}$.} The same comparison gives lower losses for the tree ensembles
   ($\Delta\% = \rhcaTreePctCloseOosMin$ to $\rhcaTreePctCloseOosMax$, none significant) and higher losses for the
   penalized linear models ($\Delta\% = \rhcaLinPctCloseOosMin$ to $\rhcaLinPctCloseOosMax$, significant at the 5\%

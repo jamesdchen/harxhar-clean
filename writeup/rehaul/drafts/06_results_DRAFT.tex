@@ -124,7 +124,6 @@
 
 \subsection{Robustness}
 \label{sec:rh_results_robust}
-\label{sec:rh_results_close}
 \begin{itemize}
 \item \textbf{Estimation window.} The window length $W$ of \rhorWindowDays{} trading days was chosen after the
   \rhwsNWinWord{} candidate windows from \rhwsWinMin{} to \rhrbWinLong{} trading days had been scored out of sample on
@@ -139,11 +138,6 @@
   equal accuracy of the full and HAR benchmark sets in \rhmcsBarQAfNRej{} of the \rhmcsNAlt{} classes (SPA
   $p$-value \rhmcsBarQAfSpaC; \citealp{Hansen2005}), against \rhmcsBarMAfNRejWord{} under squared error
   (Tables~\ref{tab:rh_mcs} and~\ref{tab:rh_mcs_spa}).
-\item \textbf{The bar the application trades.} The application of Section~\ref{sec:rh_econ} trades on the forecast of
-  the 16:00 bar, and on that bar alone the gain shrinks: over $\mathcal T_{\mathrm{oos}}$ the full set lowers the
-  16:00 loss in \rhcaNLowerCloseSpan{} of the \rhorAfPairs{} classes, significantly for XGBoost only, while the
-  full-set LightGBM and XGBoost forecasts beat the OLS on the HAR benchmark set at 16:00 as well
-  ($\DM={}$\rhorVsOlsDmLgbmFullClose{} and \rhorVsOlsDmXgbFullClose). Appendix~\ref{app:rh_closing} reports the
-  closing half hour in full, with models trained on it alone.
 \end{itemize}
-% DRAFT: the current subsection "The closing half hour" (its realized-moments bullet) moves to Appendix app:rh_closing.
+% DRAFT (author, 26 Oct: no 16:00-bar results in the main text): the subsection "The closing half hour" and its
+% realized-moments bullet are in Appendix app:rh_closing; the 16:00 window range is in app:rh_robust_window.

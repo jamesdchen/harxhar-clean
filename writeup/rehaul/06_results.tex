@@ -74,8 +74,7 @@
   scored, and the primary benchmark is the OLS on the HAR benchmark set, the OLS row of Table~\ref{tab:rh_oos}, which
   the HAR-set penalized models reproduce. The window length was fixed after out-of-sample scoring
   (Section~\ref{sec:rh_results_robust}). We report accuracy on every bar (Section~\ref{sec:rh_results_oos}), the
-  predictor groups that carry the gain (Section~\ref{sec:rh_results_ablation}), the closing half hour
-  (Section~\ref{sec:rh_results_close}) and robustness (Section~\ref{sec:rh_results_robust});
+  predictor groups that carry the gain (Section~\ref{sec:rh_results_ablation}) and robustness (Section~\ref{sec:rh_results_robust});
   Section~\ref{sec:rh_fi} asks which series the models use.
 \end{itemize}
 
@@ -203,27 +202,28 @@
   \end{itemize}
 \end{itemize}
 
-\subsection{The closing half hour}
-\label{sec:rh_results_close}
+% 2026-10-26 (coordinator; author: no 16:00-bar results in the main text): subsection moved to Appendix app:rh_closing (subsection app:rh_closing_accuracy). Was:
+% \subsection{The closing half hour}
+% \label{sec:rh_results_close}
 % RECHECK (D13): "significantly for XGBoost only"; the two boosted trees against the OLS.
-\begin{itemize}
-\item \textbf{A smaller gain at 16:00.} The application of Section~\ref{sec:rh_econ} trades on the forecast of the
-  closing half hour, the 16:00 bar, and on that bar alone the gain of the full set shrinks.
-  \begin{itemize}
-  \item Over $\mathcal T_{\mathrm{oos}}$ the full set lowers the closing-half-hour loss relative to the same class's
-    HAR-set forecast in \rhcaNLowerCloseSpan{} of the \rhorAfPairs{} classes, significantly for XGBoost only
-    ($\Delta\% = \rhcaPctXgbCloseSpan$, \rhcaPXgbCloseSpan).
-  \item Against the OLS on the HAR benchmark set, the full-set LightGBM and XGBoost forecasts are significantly more
-    accurate at 16:00 as well ($\DM={}$\rhabLgbmFullVsOlsHarCloseDm{} and \rhabXgbFullVsOlsHarCloseDm).
-  \end{itemize}
-\item \textbf{The realized moments account for it.} Added to the HAR benchmark set they change the trees' 16:00 loss
-  by \rhabLgbmAddRmClosePct\% to \rhabXgbAddRmClosePct\% ($\DM={}$\rhabLgbmAddRmCloseDm{} or larger in absolute
-  value), and the full set is significantly more accurate than the same class's HAR benchmark set plus realized moments
-  in \rhabNClassesBeatAddRmClose{} of the \rhabNClassesAddRm{} classes (its loss relative to that benchmark:
-  \rhabLgbmFullVsAddRmClosePct\% for LightGBM, \rhabXgbFullVsAddRmClosePct\% for XGBoost).
-\item \textbf{Closing-interval models.} Appendix~\ref{app:rh_closing} reports the closing half hour in full, on both
-  evaluation spans and with models trained on the closing half hour alone.
-\end{itemize}
+% \begin{itemize}
+% \item \textbf{A smaller gain at 16:00.} The application of Section~\ref{sec:rh_econ} trades on the forecast of the
+%   closing half hour, the 16:00 bar, and on that bar alone the gain of the full set shrinks.
+%   \begin{itemize}
+%   \item Over $\mathcal T_{\mathrm{oos}}$ the full set lowers the closing-half-hour loss relative to the same class's
+%     HAR-set forecast in \rhcaNLowerCloseSpan{} of the \rhorAfPairs{} classes, significantly for XGBoost only
+%     ($\Delta\% = \rhcaPctXgbCloseSpan$, \rhcaPXgbCloseSpan).
+%   \item Against the OLS on the HAR benchmark set, the full-set LightGBM and XGBoost forecasts are significantly more
+%     accurate at 16:00 as well ($\DM={}$\rhabLgbmFullVsOlsHarCloseDm{} and \rhabXgbFullVsOlsHarCloseDm).
+%   \end{itemize}
+% \item \textbf{The realized moments account for it.} Added to the HAR benchmark set they change the trees' 16:00 loss
+%   by \rhabLgbmAddRmClosePct\% to \rhabXgbAddRmClosePct\% ($\DM={}$\rhabLgbmAddRmCloseDm{} or larger in absolute
+%   value), and the full set is significantly more accurate than the same class's HAR benchmark set plus realized moments
+%   in \rhabNClassesBeatAddRmClose{} of the \rhabNClassesAddRm{} classes (its loss relative to that benchmark:
+%   \rhabLgbmFullVsAddRmClosePct\% for LightGBM, \rhabXgbFullVsAddRmClosePct\% for XGBoost).
+% \item \textbf{Closing-interval models.} Appendix~\ref{app:rh_closing} reports the closing half hour in full, on both
+%   evaluation spans and with models trained on the closing half hour alone.
+% \end{itemize}
 
 \subsection{Robustness}
 \label{sec:rh_results_robust}
@@ -238,8 +238,9 @@
     \rhwsEnetBarPctMax{}\%, significant at each, and with a window of \rhrbWinLong{} days the full set
     remains significantly more accurate on every bar in \rhrbNFullLowerSigBarLong{} of the \rhrbNModelsLong{} classes
     (Table~\ref{tab:rh_robust_w3500}).
-  \item The 16:00 bar: comparisons are window-sensitive; the same elastic-net change at 16:00 ranges from
-    \rhwsEnetClosePctMin{}\% to \rhwsEnetClosePctMax{}\% across the windows.
+% 2026-10-26 (coordinator; author: no 16:00-bar results in the main text): moved to Appendix app:rh_robust_window. Was:
+%   \item The 16:00 bar: comparisons are window-sensitive; the same elastic-net change at 16:00 ranges from
+%     \rhwsEnetClosePctMin{}\% to \rhwsEnetClosePctMax{}\% across the windows.
   \end{itemize}
 \item \textbf{Multiple comparisons.} Adjusting for the number of comparisons leaves the every-bar result intact: under
   QLIKE the 90\% model confidence set \citep{HansenLundeNason2011} holds \rhmcsBarQlikeTmaxNNinety{} of the

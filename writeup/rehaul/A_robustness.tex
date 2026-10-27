@@ -57,7 +57,10 @@
 % |   replication package.
 %
 \item \textbf{Every window, penalized linear models.} Table~\ref{tab:rh_window_sweep} reports, at each window, the
-  change in QLIKE from the full predictor set against the HAR benchmark, on every bar and on the 16:00 bar.
+  change in QLIKE from the full predictor set against the HAR benchmark, on every bar and on the 16:00 bar. Every bar:
+  the elastic net's change lies between \rhwsEnetBarPctMin\% and \rhwsEnetBarPctMax\%, significant at each window.
+  The 16:00 bar: comparisons are window-sensitive, and the same change ranges from \rhwsEnetClosePctMin\% to
+  \rhwsEnetClosePctMax\%. % 2026-10-26 (coordinator): the 16:00 range moved here from Section 6 (author: no 16:00-bar results in the main text)
 \input{generated/rehaul_window_sweep_table}
 % 2026-10-26 (integration, JFEc): moved here from the item "Estimation window" of 10_appendix.tex (section Robustness
 % of the statistical results), split into sub-items; the pre-patch design marked (D13), and the 16:00 counts at the

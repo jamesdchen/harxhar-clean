@@ -126,11 +126,13 @@
 \item \textbf{Evaluation spans.} All forecasts are out of sample. The main evaluation runs over
   $\mathcal T_{\mathrm{oos}}$, the $T_{\mathrm{oos}} = |\mathcal T_{\mathrm{oos}}| = \rhorDays$ NYSE trading days
   from \rhorSpanStart{} to \rhorSpanEnd{} (\rhorEarlyCloses{} early-close sessions excluded), and scores every
-  regular-hours bar of these days, \rhorNIntB{} bars; results for the closing half hour score its bar alone.
-  Comparisons that involve the closing-interval models of Appendix~\ref{app:rh_closing}, whose forecasts start later,
-  use the subset $\mathcal T_{\mathrm{close}} \subset \mathcal T_{\mathrm{oos}}$ of the
-  $T_{\mathrm{close}} = \rhoosDays$ days from \rhoosSpanStart{} to \rhoosSpanEnd{} on which all of them exist; the
-  option days of the application lie in it (Section~\ref{sec:rh_econ_strategy}).
+  regular-hours bar of these days, \rhorNIntB{} bars.
+  % 2026-10-26 (coordinator; author: no 16:00-bar results in the main text): the closing half hour and the span T_close moved to Appendix app:rh_closing. Was:
+%   regular-hours bar of these days, \rhorNIntB{} bars; results for the closing half hour score its bar alone.
+%   Comparisons that involve the closing-interval models of Appendix~\ref{app:rh_closing}, whose forecasts start later,
+%   use the subset $\mathcal T_{\mathrm{close}} \subset \mathcal T_{\mathrm{oos}}$ of the
+%   $T_{\mathrm{close}} = \rhoosDays$ days from \rhoosSpanStart{} to \rhoosSpanEnd{} on which all of them exist; the
+%   option days of the application lie in it (Section~\ref{sec:rh_econ_strategy}).
 \end{itemize}
 
 \subsection{Models}
@@ -184,8 +186,10 @@
   $(\RV_{t,i} - \hat\sigma^2_{t,i})^2$, which we also report, it ranks forecasts consistently when the realized
   variance is a noisy proxy \citep{Patton2011}; unlike the squared error, it depends on the forecast only through the
   ratio $\RV_{t,i}/\hat\sigma^2_{t,i}$, so a few of the largest realizations cannot dominate it. $\overline{\QLIKE}$
-  ($\bar L$) and the MSE average the interval losses over a scored set $\mathcal S$, every bar or the closing bar of
-  the days of a span, and the daily loss $L_t$ averages $L_{t,i}$ over the bars of day $t$ in $\mathcal S$.
+  ($\bar L$) and the MSE average the interval losses over a scored set $\mathcal S$, the bars of the days of a span,
+  and the daily loss $L_t$ averages $L_{t,i}$ over the bars of day $t$ in $\mathcal S$.
+  % 2026-10-26 (coordinator; author: no 16:00-bar results in the main text): was "a scored set S, every bar or the
+  % closing bar of the days of a span" (the closing bar alone is scored in Appendix app:rh_closing).
 \item \textbf{Relative loss and out-of-sample $R^2$.} A forecast $A$ is compared with a reference $B$, the benchmark
   unless noted otherwise, by $\Delta\% = 100\,(\bar L^{A}/\bar L^{B} - 1)$. Following \citet{CampbellThompson2008},
   \[
@@ -197,8 +201,8 @@
 \item \textbf{Tests.} Two forecasts are compared by the \citet{DieboldMariano1995} test on the daily loss differential
   $d_t = L^{A}_t - L^{B}_t$, with the small-sample correction of \citet{HarveyLeybourneNewbold1997} and a
   \citet{NeweyWest1987} long-run variance with lag $q_{\mathrm{NW}} = \lfloor 4\,(T/100)^{2/9} \rfloor$ on a span of
-  $T$ days: $q_{\mathrm{NW}} = \rhorHacLag$ on $\mathcal T_{\mathrm{oos}}$ and $\rhoosDMLag$ on
-  $\mathcal T_{\mathrm{close}}$. $\DM < 0$ favours $A$, and ``significant'' means significant at the 5\% level. We test
+  $T$ days: $q_{\mathrm{NW}} = \rhorHacLag$ on $\mathcal T_{\mathrm{oos}}$. $\DM < 0$ favours $A$, % 2026-10-26 (coordinator; author: no 16:00-bar results in the main text): was "... on T_oos and \rhoosDMLag on T_close" (Appendix app:rh_closing)
+  and ``significant'' means significant at the 5\% level. We test
   every forecast against the benchmark $f_{\mathrm{OLS},\mathrm{HAR},\mathcal I_{\mathrm{rh}}}$ and, within each class
   $m$, $f_{m,\mathrm{Full},\mathcal I_{\mathrm{rh}}}$ against $f_{m,\mathrm{HAR},\mathcal I_{\mathrm{rh}}}$, the
   paired measure of what the exogenous predictors add. The model confidence set \citep{HansenLundeNason2011}, the
