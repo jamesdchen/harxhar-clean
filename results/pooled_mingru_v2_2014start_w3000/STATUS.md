@@ -562,3 +562,4 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   140,772 / 169,850, full (P100) 154,399. gpu 97 (24 running P100, 73 pending, all pending for Priority: others'
   P100-accepting jobs up to 6,376 vs our 3,545). Remaining ~620 P100 GPU-h (HAR W 3,000 332, full W 3,000 19, HAR
   W 3,500 196, full W 3,500 72): ~26 h at 24 GPUs, ~17 h at 36. No FAILED since 23:50.
+- 2026-10-27 01:20 PDT: debug 13482389-90 (dbgp 005.p01.g07-g08; one debug piece left, 005.p01.g09). gpu 92 (23 running P100, 69 pending). No FAILED since 00:35.
