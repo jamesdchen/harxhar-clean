@@ -1,0 +1,149 @@
+{
+ "w1000/lgbm": {
+  "walk": "none at this window",
+  "pass": true,
+  "GP_compared": 5,
+  "GP_bit_equal": 5,
+  "GP_differ": []
+ },
+ "w1000/xgb": {
+  "walk": "none at this window",
+  "pass": true,
+  "GP_compared": 4,
+  "GP_bit_equal": 4,
+  "GP_differ": []
+ },
+ "w1000/ridge": {
+  "walk": "none at this window",
+  "pass": true,
+  "GP_compared": 4,
+  "GP_bit_equal": 4,
+  "GP_differ": []
+ },
+ "w1000/lasso": {
+  "walk": "none at this window",
+  "pass": true,
+  "GP_compared": 1,
+  "GP_bit_equal": 1,
+  "GP_differ": []
+ },
+ "w1000/enet": {
+  "walk": "none at this window",
+  "pass": true,
+  "GP_compared": 4,
+  "GP_bit_equal": 4,
+  "GP_differ": []
+ },
+ "w2000/lgbm": {
+  "walk": "none at this window",
+  "pass": true,
+  "GP_compared": 4,
+  "GP_bit_equal": 4,
+  "GP_differ": []
+ },
+ "w2000/xgb": {
+  "walk": "none at this window",
+  "pass": true,
+  "GP_compared": 4,
+  "GP_bit_equal": 4,
+  "GP_differ": []
+ },
+ "w2000/ridge": {
+  "walk": "none at this window",
+  "pass": true,
+  "GP_compared": 1,
+  "GP_bit_equal": 1,
+  "GP_differ": []
+ },
+ "w2000/lasso": {
+  "walk": "none at this window",
+  "pass": true,
+  "GP_compared": 1,
+  "GP_bit_equal": 1,
+  "GP_differ": []
+ },
+ "w2000/enet": {
+  "walk": "none at this window",
+  "pass": true,
+  "GP_compared": 1,
+  "GP_bit_equal": 1,
+  "GP_differ": []
+ },
+ "w3000/lgbm": {
+  "origin_bit_equal": 126,
+  "n": 126,
+  "maxabs": 0.0,
+  "pass": true,
+  "GP_compared": 4,
+  "GP_bit_equal": 4,
+  "GP_differ": []
+ },
+ "w3000/xgb": {
+  "origin_bit_equal": 126,
+  "n": 126,
+  "maxabs": 0.0,
+  "pass": true,
+  "GP_compared": 4,
+  "GP_bit_equal": 4,
+  "GP_differ": []
+ },
+ "w3000/ridge": {
+  "rows": 15483,
+  "maxabs": 4.440892098500626e-16,
+  "pass": true,
+  "GP_compared": 1,
+  "GP_bit_equal": 1,
+  "GP_differ": []
+ },
+ "w3000/lasso": {
+  "rows": 15483,
+  "maxabs": 4.440892098500626e-16,
+  "pass": true,
+  "GP_compared": 1,
+  "GP_bit_equal": 1,
+  "GP_differ": []
+ },
+ "w3000/enet": {
+  "rows": 15483,
+  "maxabs": 4.440892098500626e-16,
+  "pass": true,
+  "GP_compared": 1,
+  "GP_bit_equal": 1,
+  "GP_differ": []
+ },
+ "w3500/lgbm": {
+  "walk": "none at this window",
+  "pass": true,
+  "GP_compared": 4,
+  "GP_bit_equal": 4,
+  "GP_differ": []
+ },
+ "w3500/xgb": {
+  "walk": "none at this window",
+  "pass": true,
+  "GP_compared": 4,
+  "GP_bit_equal": 4,
+  "GP_differ": []
+ },
+ "w3500/ridge": {
+  "walk": "none at this window",
+  "pass": true,
+  "GP_compared": 1,
+  "GP_bit_equal": 1,
+  "GP_differ": []
+ },
+ "w3500/lasso": {
+  "walk": "none at this window",
+  "pass": true,
+  "GP_compared": 1,
+  "GP_bit_equal": 1,
+  "GP_differ": []
+ },
+ "w3500/enet": {
+  "walk": "none at this window",
+  "pass": true,
+  "GP_compared": 1,
+  "GP_bit_equal": 1,
+  "GP_differ": []
+ }
+}

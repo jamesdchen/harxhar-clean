@@ -1,0 +1,6 @@
+lff task 6 on b05-06.hpc.usc.edu [AMD EPYC 7513 32-Core Processor] Mon Oct 26 16:51:01 PDT 2026
+line: linear rank-linear 2000
+[16:51:21] W 2000 rank ridge: top 10 ['fomc_until_inv', 'fomc_since_inv', 'sumret', 'sumabsret', 'fomc_day', 'effspread_vwstock', 'sumautocov', 'sumabsret_vwstock', 'spread_vwstock', 'effspread_ewstock']
+[16:51:21] W 2000 rank lasso: top 10 ['fomc_until_inv', 'fomc_since_inv', 'sumabsret', 'fomc_day', 'sumret', 'turnover_ewstock', 'sumbipow', 'effspread_vwstock', 'sumabsret_vwstock', 'effspread_ewstock']
+[16:51:21] W 2000 rank enet: top 10 ['fomc_until_inv', 'fomc_since_inv', 'sumabsret', 'sumret', 'sumabsret_vwstock', 'fomc_day', 'sumautocov', 'sumret4', 'effspread_vwstock', 'sumret3']
+lff task 6 done Mon Oct 26 16:51:21 PDT 2026

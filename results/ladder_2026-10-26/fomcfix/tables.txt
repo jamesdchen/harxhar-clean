@@ -9,6 +9,14 @@ QLIKE by rung, span all (P = primary, pre-sample ranking; S = secondary, look-ah
   Lasso            0.17798   0.17352   0.17178   0.17708   0.18215   0.18152   0.18934
   Elastic net      0.17940   0.17739   0.17640   0.17953   0.18362   0.18388   0.18934
   Random forest    0.17018   0.17006   0.17057   0.18231   0.18181   0.18913   0.19028
+  ranking S
+  model               k=46      k=20      k=10       k=5       k=3       k=1       k=0
+  LightGBM         0.16273   0.16289   0.16303   0.17954   0.18010   0.18738   0.18827
+  XGBoost          0.16347   0.16326   0.16368   0.18053   0.18078   0.18815   0.18920
+  Ridge            0.18249   0.17920   0.17689   0.18149   0.18147   0.18548   0.18935
+  Lasso            0.17798   0.17230   0.17230   0.18086   0.18215   0.18152   0.18934
+  Elastic net      0.17940   0.17845   0.17652   0.18002   0.17986   0.18388   0.18934
+  Random forest    0.17018   0.16986   0.16899   0.18106   0.18181   0.18913   0.19028
 
 QLIKE by rung, span c16 (P = primary, pre-sample ranking; S = secondary, look-ahead)
   ranking P
@@ -19,6 +27,14 @@ QLIKE by rung, span c16 (P = primary, pre-sample ranking; S = secondary, look-ah
   Lasso            0.13657   0.12473   0.12504   0.13107   0.12901   0.12928   0.12691
   Elastic net      0.12998   0.12607   0.12259   0.12687   0.12838   0.12817   0.12691
   Random forest    0.12431   0.12399   0.12331   0.12181   0.12040   0.12578   0.12782
+  ranking S
+  model               k=46      k=20      k=10       k=5       k=3       k=1       k=0
+  LightGBM         0.12112   0.12101   0.12134   0.12029   0.11953   0.12371   0.12420
+  XGBoost          0.12111   0.12042   0.12157   0.11935   0.11978   0.12368   0.12415
+  Ridge            0.13284   0.12619   0.12428   0.12694   0.12574   0.12811   0.12691
+  Lasso            0.13657   0.12817   0.12591   0.12867   0.12901   0.12928   0.12691
+  Elastic net      0.12998   0.12690   0.12399   0.12917   0.12598   0.12817   0.12691
+  Random forest    0.12431   0.12378   0.12229   0.12174   0.12040   0.12578   0.12782
 
 QLIKE by rung, span c16_2020 (P = primary, pre-sample ranking; S = secondary, look-ahead)
   ranking P
@@ -29,6 +45,14 @@ QLIKE by rung, span c16_2020 (P = primary, pre-sample ranking; S = secondary, lo
   Lasso            0.14034   0.11533   0.11673   0.12093   0.11624   0.11376   0.11376
   Elastic net      0.12900   0.12054   0.11338   0.11638   0.11517   0.11399   0.11376
   Random forest    0.11070   0.11030   0.11088   0.10839   0.10815   0.11281   0.11376
+  ranking S
+  model               k=46      k=20      k=10       k=5       k=3       k=1       k=0
+  LightGBM         0.10934   0.10869   0.10879   0.10889   0.10697   0.11068   0.11032
+  XGBoost          0.10929   0.10876   0.10993   0.10885   0.10783   0.11088   0.11042
+  Ridge            0.13451   0.11952   0.11568   0.11806   0.11539   0.11436   0.11376
+  Lasso            0.14034   0.12089   0.11643   0.11242   0.11624   0.11376   0.11376
+  Elastic net      0.12900   0.12164   0.11634   0.11993   0.11535   0.11399   0.11376
+  Random forest    0.11070   0.11036   0.10944   0.10909   0.10815   0.11281   0.11376
 
 Retained % of the full set's QLIKE gain over the model's own HAR rung, and DM p vs full (span all)
   ranking P
@@ -38,19 +62,38 @@ Retained % of the full set's QLIKE gain over the model's own HAR rung, and DM p 
   Lasso          k20:  139.3% (p 0.030) k10:  154.6% (p 0.001) k5:  107.9% (p 0.751) k3:   63.3% (p 0.070) k1:   68.9% (p 0.157)
   Elastic net    k20:  120.2% (p 0.007) k10:  130.1% (p 0.008) k5:   98.7% (p 0.911) k3:   57.6% (p 0.012) k1:   55.0% (p 0.015)
   Random forest  k20:  100.6% (p 0.477) k10:   98.1% (p 0.273) k5:   39.6% (p 0.000) k3:   42.1% (p 0.000) k1:    5.7% (p 0.000)
+  ranking S
+  LightGBM       k20:   99.4% (p 0.310) k10:   98.8% (p 0.172) k5:   34.2% (p 0.000) k3:   32.0% (p 0.000) k1:    3.5% (p 0.000)
+  XGBoost        k20:  100.8% (p 0.445) k10:   99.2% (p 0.396) k5:   33.7% (p 0.000) k3:   32.7% (p 0.000) k1:    4.1% (p 0.000)
+  Ridge          k20:  148.0% (p 0.000) k10:  181.7% (p 0.000) k5:  114.6% (p 0.482) k3:  115.0% (p 0.496) k1:   56.5% (p 0.141)
+  Lasso          k20:  150.1% (p 0.000) k10:  150.0% (p 0.001) k5:   74.7% (p 0.202) k3:   63.3% (p 0.070) k1:   68.9% (p 0.157)
+  Elastic net    k20:  109.6% (p 0.116) k10:  129.0% (p 0.001) k5:   93.8% (p 0.594) k3:   95.3% (p 0.701) k1:   55.0% (p 0.015)
+  Random forest  k20:  101.6% (p 0.025) k10:  105.9% (p 0.000) k5:   45.9% (p 0.000) k3:   42.1% (p 0.000) k1:    5.7% (p 0.000)
 
- model ranking span  qlike_full  qlike_har  gain_full_vs_har  k50  k75  k90           verdict rungs_below_full        R1         R3         R5        R10        R20  p20_vs_full  p10_vs_full   p5_vs_full  dm20_vs_full  dm10_vs_full  dm5_vs_full
-  lgbm primary  all    0.162734   0.188265          0.025531   10   10   10      INTERMEDIATE                   3.476441  33.620508  34.185317  95.083924  96.263040     0.001373     0.001584 3.548923e-13      3.200341      3.158806     7.271738
-  lgbm primary  c16    0.121118   0.124195          0.003077    3    3    3      CONCENTRATED              3 5 15.907021 141.475400 126.798584  84.898456  87.884272     0.328843     0.320864 2.143859e-01      0.976447      0.992685    -1.241595
-   xgb primary  all    0.163466   0.189197          0.025730   10   10   10      INTERMEDIATE                   4.076444  27.077127  36.386276  97.813916  99.446395     0.610726     0.106760 1.373539e-10      0.509037      1.612927     6.418799
-   xgb primary  c16    0.121109   0.124147          0.003039    5    5    5      CONCENTRATED             5 20 15.527780  42.532371 125.285929  76.768866 119.374209     0.156642     0.158288 3.136943e-01     -1.416456      1.410853    -1.007501
- ridge primary  all    0.182492   0.189350          0.006857    1    3    5      CONCENTRATED          5 10 20 56.482056  83.856895 144.902065 188.383638 171.173163     0.000304     0.000008 3.107847e-02     -3.611857     -4.464082    -2.156066
- ridge primary  c16    0.132842   0.126909         -0.005933   46   46   46 NO GAIN TO RETAIN      1 3 5 10 20       NaN        NaN        NaN        NaN        NaN     0.003250     0.001359 6.503584e-02     -2.943079     -3.203217    -1.845012
- lasso primary  all    0.177985   0.189342          0.011358    1    5    5      CONCENTRATED          5 10 20 68.911485  63.316026 107.924279 154.595615 139.331321     0.030091     0.001400 7.512009e-01     -2.168885     -3.194667    -0.317056
- lasso primary  c16    0.136568   0.126911         -0.009657   46   46   46 NO GAIN TO RETAIN      1 3 5 10 20       NaN        NaN        NaN        NaN        NaN     0.002720     0.005064 2.478127e-01     -2.997734     -2.802936    -1.155678
-  enet primary  all    0.179398   0.189343          0.009946    1    5    5      CONCENTRATED            10 20 54.976862  57.571200  98.694377 130.123039 120.223366     0.007031     0.007679 9.107484e-01     -2.695378     -2.665888     0.112095
-  enet primary  c16    0.129978   0.126908         -0.003070   46   46   46 NO GAIN TO RETAIN      1 3 5 10 20       NaN        NaN        NaN        NaN        NaN     0.014442     0.002685 2.738821e-01     -2.446070     -3.001618    -1.094166
-rf_skx primary  all    0.170178   0.190282          0.020103   10   10   10      INTERMEDIATE               20  5.706181  42.144330  39.649924  98.073413 100.588177     0.477386     0.272691 7.360967e-10     -0.710513      1.096887     6.158128
-rf_skx primary  c16    0.124313   0.127820          0.003507    1    3    3      CONCENTRATED        3 5 10 20 58.018976 211.657531 171.421752 128.458715 109.270251     0.357933     0.050383 3.611514e-03     -0.919312     -1.956695    -2.910240
+ model                ranking span  qlike_full  qlike_har  gain_full_vs_har  k50  k75  k90           verdict rungs_below_full        R1         R3         R5        R10        R20  p20_vs_full  p10_vs_full   p5_vs_full  dm20_vs_full  dm10_vs_full  dm5_vs_full
+  lgbm                primary  all    0.162734   0.188265          0.025531   10   10   10      INTERMEDIATE                   3.476441  33.620508  34.185317  95.083924  96.263040     0.001373     0.001584 3.548923e-13      3.200341      3.158806     7.271738
+  lgbm                primary  c16    0.121118   0.124195          0.003077    3    3    3      CONCENTRATED              3 5 15.907021 141.475400 126.798584  84.898456  87.884272     0.328843     0.320864 2.143859e-01      0.976447      0.992685    -1.241595
+  lgbm secondary (look-ahead)  all    0.162734   0.188265          0.025531   10   10   10      INTERMEDIATE                   3.476441  31.963396  34.185317  98.842126  99.384639     0.310080     0.171506 3.548923e-13      1.015054      1.367381     7.271738
+  lgbm secondary (look-ahead)  c16    0.121118   0.124195          0.003077    3    3    3      CONCENTRATED           3 5 20 15.907021 151.741103 126.798584  92.758112 103.617116     0.776878     0.620832 2.143859e-01     -0.283390      0.494672    -1.241595
+   xgb                primary  all    0.163466   0.189197          0.025730   10   10   10      INTERMEDIATE                   4.076444  27.077127  36.386276  97.813916  99.446395     0.610726     0.106760 1.373539e-10      0.509037      1.612927     6.418799
+   xgb                primary  c16    0.121109   0.124147          0.003039    5    5    5      CONCENTRATED             5 20 15.527780  42.532371 125.285929  76.768866 119.374209     0.156642     0.158288 3.136943e-01     -1.416456      1.410853    -1.007501
+   xgb secondary (look-ahead)  all    0.163466   0.189197          0.025730   10   10   10      INTERMEDIATE               20  4.076444  32.700085  33.685888  99.166118 100.814102     0.445048     0.396481 1.313298e-11     -0.763697      0.847923     6.767166
+   xgb secondary (look-ahead)  c16    0.121109   0.124147          0.003039    3    3    3      CONCENTRATED           3 5 20 15.527780 143.679687 158.029343  84.730502 122.739236     0.051944     0.340678 1.548240e-02     -1.943596      0.952827    -2.420894
+ ridge                primary  all    0.182492   0.189350          0.006857    1    3    5      CONCENTRATED          5 10 20 56.482056  83.856895 144.902065 188.383638 171.173163     0.000304     0.000008 3.107847e-02     -3.611857     -4.464082    -2.156066
+ ridge                primary  c16    0.132842   0.126909         -0.005933   46   46   46 NO GAIN TO RETAIN      1 3 5 10 20       NaN        NaN        NaN        NaN        NaN     0.003250     0.001359 6.503584e-02     -2.943079     -3.203217    -1.845012
+ ridge secondary (look-ahead)  all    0.182492   0.189350          0.006857    1    3    3      CONCENTRATED        3 5 10 20 56.482056 114.960904 114.586445 181.683331 148.021932     0.000437     0.000002 4.819661e-01     -3.516476     -4.798644    -0.703144
+ ridge secondary (look-ahead)  c16    0.132842   0.126909         -0.005933   46   46   46 NO GAIN TO RETAIN      1 3 5 10 20       NaN        NaN        NaN        NaN        NaN     0.000504     0.000630 4.264380e-02     -3.478692     -3.418481    -2.027182
+ lasso                primary  all    0.177985   0.189342          0.011358    1    5    5      CONCENTRATED          5 10 20 68.911485  63.316026 107.924279 154.595615 139.331321     0.030091     0.001400 7.512009e-01     -2.168885     -3.194667    -0.317056
+ lasso                primary  c16    0.136568   0.126911         -0.009657   46   46   46 NO GAIN TO RETAIN      1 3 5 10 20       NaN        NaN        NaN        NaN        NaN     0.002720     0.005064 2.478127e-01     -2.997734     -2.802936    -1.155678
+ lasso secondary (look-ahead)  all    0.177985   0.189342          0.011358    1   10   10      INTERMEDIATE            10 20 68.911485  63.316026  74.684195 150.028262 150.058887     0.000409     0.001076 2.015935e-01     -3.534448     -3.269845     1.277025
+ lasso secondary (look-ahead)  c16    0.136568   0.126911         -0.009657   46   46   46 NO GAIN TO RETAIN      1 3 5 10 20       NaN        NaN        NaN        NaN        NaN     0.007250     0.003701 9.819133e-02     -2.685157     -2.902547    -1.653686
+  enet                primary  all    0.179398   0.189343          0.009946    1    5    5      CONCENTRATED            10 20 54.976862  57.571200  98.694377 130.123039 120.223366     0.007031     0.007679 9.107484e-01     -2.695378     -2.665888     0.112095
+  enet                primary  c16    0.129978   0.126908         -0.003070   46   46   46 NO GAIN TO RETAIN      1 3 5 10 20       NaN        NaN        NaN        NaN        NaN     0.014442     0.002685 2.738821e-01     -2.446070     -3.001618    -1.094166
+  enet secondary (look-ahead)  all    0.179398   0.189343          0.009946    1    3    3      CONCENTRATED            10 20 54.976862  95.327310  93.787041 128.951513 109.556502     0.115933     0.000505 5.943327e-01     -1.572078     -3.478012     0.532568
+  enet secondary (look-ahead)  c16    0.129978   0.126908         -0.003070   46   46   46 NO GAIN TO RETAIN      1 3 5 10 20       NaN        NaN        NaN        NaN        NaN     0.012785     0.001673 7.318546e-01     -2.489690     -3.142939    -0.342659
+rf_skx                primary  all    0.170178   0.190282          0.020103   10   10   10      INTERMEDIATE               20  5.706181  42.144330  39.649924  98.073413 100.588177     0.477386     0.272691 7.360967e-10     -0.710513      1.096887     6.158128
+rf_skx                primary  c16    0.124313   0.127820          0.003507    1    3    3      CONCENTRATED        3 5 10 20 58.018976 211.657531 171.421752 128.458715 109.270251     0.357933     0.050383 3.611514e-03     -0.919312     -1.956695    -2.910240
+rf_skx secondary (look-ahead)  all    0.170178   0.190282          0.020103   10   10   10      INTERMEDIATE            10 20  5.706181  42.144330  45.890470 105.897716 101.567658     0.024797     0.000051 1.418990e-08     -2.244549     -4.050813     5.671081
+rf_skx secondary (look-ahead)  c16    0.124313   0.127820          0.003507    1    3    3      CONCENTRATED        3 5 10 20 58.018976 211.657531 173.285052 157.681276 115.268947     0.107349     0.000432 5.021799e-04     -1.610224     -3.519710    -3.479591
 
-Gates: {"lgbm": {"GT_origin_bit_equal": 126, "GT_origin_n": 126, "GT_origin_maxabs": 0.0, "GT_origin_walk_missing": 0, "GT_block_first_equals_p0": true, "GT_block_vs_shap_equal": 0, "GT_block_vs_shap_n": 0, "cpus": ["AMD EPYC 7513 32-Core Processor", "AMD EPYC 7542 32-Core Processor"], "pass": true, "GP_compared": 4, "GP_bit_equal": 4, "GP_differ": []}, "xgb": {"GT_origin_bit_equal": 126, "GT_origin_n": 126, "GT_origin_maxabs": 0.0, "GT_origin_walk_missing": 0, "GT_block_first_equals_p0": true, "GT_block_vs_shap_equal": 0, "GT_block_vs_shap_n": 0, "cpus": ["AMD EPYC 7513 32-Core Processor", "AMD EPYC 7542 32-Core Processor"], "pass": true, "GP_compared": 4, "GP_bit_equal": 4, "GP_differ": []}, "ridge": {"GL1_rows": 15483, "GL1_maxabs": 4.440892098500626e-16, "GL1_pass": true, "reseeds": {"full": [0, 0, 0], "har": [0, 0, 0], "P20": [0, 0, 0], "P10": [0, 0, 0], "P5": [0, 0, 0], "P3": [0, 0, 0], "P1": [0, 0, 0]}, "pass": true, "GP_compared": 1, "GP_bit_equal": 1, "GP_differ": []}, "lasso": {"GL1_rows": 15483, "GL1_maxabs": 4.440892098500626e-16, "GL1_pass": true, "reseeds": {"full": [166, 5, 0], "har": [0, 0, 0], "P20": [28, 1, 0], "P10": [10, 0, 0], "P5": [7, 0, 0], "P3": [5, 0, 0], "P1": [1, 0, 0]}, "pass": true, "GP_compared": 1, "GP_bit_equal": 1, "GP_differ": []}, "enet": {"GL1_rows": 15483, "GL1_maxabs": 4.440892098500626e-16, "GL1_pass": true, "reseeds": {"full": [12, 5, 0], "har": [0, 0, 0], "P20": [3, 0, 0], "P10": [0, 0, 0], "P5": [0, 0, 0], "P3": [0, 0, 0], "P1": [0, 0, 0]}, "pass": true, "GP_compared": 1, "GP_bit_equal": 1, "GP_differ": []}, "rf_skx": {"GT_origin_bit_equal": 126, "GT_origin_n": 126, "GT_origin_maxabs": 0.0, "GT_origin_walk_missing": 0, "GT_block_first_equals_p0": true, "GT_block_vs_shap_equal": 0, "GT_block_vs_shap_n": 0, "cpus": ["AMD EPYC 7513 32-Core Processor", "AMD EPYC 7542 32-Core Processor"], "pass": true, "GP_compared": 4, "GP_bit_equal": 4, "GP_differ": []}}
+Gates: {"lgbm": {"GT_origin_bit_equal": 126, "GT_origin_n": 126, "GT_origin_maxabs": 0.0, "GT_origin_walk_missing": 0, "GT_block_first_equals_p0": true, "GT_block_vs_shap_equal": 0, "GT_block_vs_shap_n": 0, "cpus": ["AMD EPYC 7513 32-Core Processor"], "pass": false, "GP_compared": 5, "GP_bit_equal": 4, "GP_differ": ["S3: max |diff| 1.1e-13 on 154 rows"]}, "xgb": {"GT_origin_bit_equal": 126, "GT_origin_n": 126, "GT_origin_maxabs": 0.0, "GT_origin_walk_missing": 0, "GT_block_first_equals_p0": true, "GT_block_vs_shap_equal": 0, "GT_block_vs_shap_n": 0, "cpus": ["AMD EPYC 7513 32-Core Processor"], "pass": true, "GP_compared": 6, "GP_bit_equal": 6, "GP_differ": []}, "ridge": {"GL1_rows": 15483, "GL1_maxabs": 4.440892098500626e-16, "GL1_pass": true, "reseeds": {"full": [0, 0, 0], "har": [0, 0, 0], "P20": [0, 0, 0], "P10": [0, 0, 0], "P5": [0, 0, 0], "P3": [0, 0, 0], "P1": [0, 0, 0], "S20": [0, 0, 0], "S10": [0, 0, 0], "S5": [0, 0, 0], "S3": [0, 0, 0]}, "pass": true, "GP_compared": 1, "GP_bit_equal": 1, "GP_differ": []}, "lasso": {"GL1_rows": 15483, "GL1_maxabs": 4.440892098500626e-16, "GL1_pass": true, "reseeds": {"full": [166, 5, 0], "har": [0, 0, 0], "P20": [28, 1, 0], "P10": [10, 0, 0], "P5": [7, 0, 0], "P3": [5, 0, 0], "P1": [1, 0, 0], "S20": [49, 0, 0], "S10": [14, 0, 0], "S5": [5, 0, 0]}, "pass": true, "GP_compared": 1, "GP_bit_equal": 1, "GP_differ": []}, "enet": {"GL1_rows": 15483, "GL1_maxabs": 4.440892098500626e-16, "GL1_pass": true, "reseeds": {"full": [12, 5, 0], "har": [0, 0, 0], "P20": [3, 0, 0], "P10": [0, 0, 0], "P5": [0, 0, 0], "P3": [0, 0, 0], "P1": [0, 0, 0], "S20": [6, 1, 0], "S10": [2, 0, 0], "S5": [2, 0, 0], "S3": [0, 0, 0]}, "pass": true, "GP_compared": 1, "GP_bit_equal": 1, "GP_differ": []}, "rf_skx": {"GT_origin_bit_equal": 126, "GT_origin_n": 126, "GT_origin_maxabs": 0.0, "GT_origin_walk_missing": 0, "GT_block_first_equals_p0": true, "GT_block_vs_shap_equal": 0, "GT_block_vs_shap_n": 0, "cpus": ["AMD EPYC 7513 32-Core Processor"], "pass": true, "GP_compared": 5, "GP_bit_equal": 5, "GP_differ": []}}

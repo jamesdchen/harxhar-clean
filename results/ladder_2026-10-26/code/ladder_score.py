@@ -276,7 +276,9 @@ def main() -> int:
                 if np.array_equal(pr[rid], twin):
                     n_eq += 1
                 else:
-                    bad.append(rid)
+                    bad.append(
+                        f"{rid}: max |diff| {np.nanmax(np.abs(pr[rid] - twin)):.1e} on {int((pr[rid] != twin).sum())} rows"
+                    )
             gates[m].update(GP_compared=n_cmp, GP_bit_equal=n_eq, GP_differ=bad)
             gates[m]["pass"] = bool(gates[m]["pass"] and not bad)
         sets_of[m] = sets

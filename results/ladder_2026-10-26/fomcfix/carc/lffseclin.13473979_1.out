@@ -1,0 +1,10 @@
+lff task 1 on b22-05.hpc.usc.edu [AMD EPYC 7542 32-Core Processor] Mon Oct 26 17:48:22 PDT 2026
+line: linear run-linear 3000 ridge 1
+[17:48:24] W 3000 ridge alpha 1000.0: sets ['full', 'har', 'P20', 'P10', 'P5', 'P3', 'P1', 'S20', 'S10', 'S5', 'S3']; 504 jobs, 8 workers
+[17:48:44] 100/504 jobs, 20s (last S20 k=100 1.0s)
+[17:48:53] 200/504 jobs, 29s (last S10 k=74 0.5s)
+[17:48:58] 300/504 jobs, 34s (last S5 k=49 0.2s)
+[17:49:02] 400/504 jobs, 37s (last S3 k=21 0.2s)
+[17:49:04] 500/504 jobs, 40s (last S3 k=121 0.2s)
+[17:49:04] 504/504 jobs, 40s (last S3 k=125 0.2s)
+lff task 1 done Mon Oct 26 17:49:04 PDT 2026

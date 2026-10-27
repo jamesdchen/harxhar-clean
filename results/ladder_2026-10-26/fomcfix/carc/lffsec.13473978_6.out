@@ -1,0 +1,214 @@
+lff task 6 on a04-05.hpc.usc.edu [AMD EPYC 7513 32-Core Processor] Mon Oct 26 17:38:54 PDT 2026
+line: trees run-trees 3000 rf_skx 2/6 1
+[17:39:00] W 3000 rf_skx rf400_rf_opt_00: sets ['full', 'har', 'P20', 'P10', 'P5', 'P3', 'P1', 'S20', 'S10', 'S5']; origins 21..41; design /home1/jc_905/fomcfix_lin/runs/B/_work/design_all_features
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[17:39:25] W 3000 rf_skx k= 21: S20 12.6s S10 5.8s S5 3.4s
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[17:39:46] W 3000 rf_skx k= 22: S20 12.0s S10 5.8s S5 3.4s
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[17:40:07] W 3000 rf_skx k= 23: S20 12.0s S10 5.8s S5 3.4s
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[17:40:29] W 3000 rf_skx k= 24: S20 12.0s S10 5.8s S5 3.4s
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[17:40:50] W 3000 rf_skx k= 25: S20 12.0s S10 5.8s S5 3.4s
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[17:41:11] W 3000 rf_skx k= 26: S20 12.0s S10 5.8s S5 3.4s
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[17:41:32] W 3000 rf_skx k= 27: S20 11.9s S10 5.7s S5 3.4s
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[17:41:53] W 3000 rf_skx k= 28: S20 11.9s S10 5.7s S5 3.4s
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[17:42:14] W 3000 rf_skx k= 29: S20 11.8s S10 5.7s S5 3.4s
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[17:42:35] W 3000 rf_skx k= 30: S20 11.9s S10 5.8s S5 3.4s
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[17:42:56] W 3000 rf_skx k= 31: S20 11.8s S10 5.7s S5 3.4s
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[17:43:17] W 3000 rf_skx k= 32: S20 12.0s S10 5.9s S5 3.5s
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[17:43:39] W 3000 rf_skx k= 33: S20 12.2s S10 5.9s S5 3.5s
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[17:44:01] W 3000 rf_skx k= 34: S20 12.2s S10 5.9s S5 3.5s
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[17:44:22] W 3000 rf_skx k= 35: S20 12.2s S10 5.9s S5 3.4s
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[17:44:44] W 3000 rf_skx k= 36: S20 12.2s S10 5.9s S5 3.4s
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[17:45:05] W 3000 rf_skx k= 37: S20 12.2s S10 5.8s S5 3.5s
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[17:45:27] W 3000 rf_skx k= 38: S20 12.1s S10 5.8s S5 3.5s
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[17:45:48] W 3000 rf_skx k= 39: S20 12.2s S10 5.8s S5 3.5s
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[17:46:10] W 3000 rf_skx k= 40: S20 12.3s S10 5.9s S5 3.4s
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[17:46:32] W 3000 rf_skx k= 41: S20 12.2s S10 5.8s S5 3.4s
+lff task 6 done Mon Oct 26 17:46:32 PDT 2026

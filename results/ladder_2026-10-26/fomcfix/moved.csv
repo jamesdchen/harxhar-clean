@@ -1,271 +1,691 @@
-what,model,span,k,pre,post,delta,retained_pre,retained_post,series_pre,series_post
-ladder,lgbm,all,46.0,0.1627935676630549,0.1627337554962604,-5.981216679448731e-05,100.0,100.0,(all 46),(all 46)
-ladder,lgbm,c16,46.0,0.1211832246835894,0.1211177909161008,-6.543376748860408e-05,100.0,100.0,(all 46),(all 46)
-ladder,lgbm,c16_2020,46.0,0.1092045115620156,0.1093417330660152,0.00013722150399959887,100.0,100.0,(all 46),(all 46)
-ladder,lgbm,all,0.0,0.1882651634377483,0.1882651634377483,0.0,0.0,0.0,,
-ladder,lgbm,c16,0.0,0.1241952117690557,0.1241952117690557,0.0,0.0,0.0,,
-ladder,lgbm,c16_2020,0.0,0.1103152245036676,0.1103152245036676,0.0,0.0,0.0,,
-ladder,lgbm,all,20.0,0.1638036930665443,0.163687854008766,-0.00011583905777828862,96.03430655690202,96.26303995967562,sumabsret sumret sumabsret_vwstock sumautocov sumabsret_ewstock effspread_vwstock fomc_until_inv sumret3 vix sumret3_vwstock sumret3_ewstock spread_vwstock spread_ewstock effspread_ewstock sumvolume ofi_ewstock sumret2_ewstock sumbipow_ewstock stocktwits_sentiment sumpret2,sumabsret sumret sumabsret_vwstock sumabsret_ewstock sumautocov effspread_vwstock fomc_until_inv sumret3 vix sumret3_vwstock stocktwits_sentiment sumret3_ewstock spread_vwstock effspread_ewstock spread_ewstock sumvolume ofi_ewstock sumret4 sumret2_ewstock sumret2_vwstock
-ladder,lgbm,c16,20.0,0.121888512122254,0.1214906428660845,-0.0003978692561694974,76.58398198093863,87.8842716742604,sumabsret sumret sumabsret_vwstock sumautocov sumabsret_ewstock effspread_vwstock fomc_until_inv sumret3 vix sumret3_vwstock sumret3_ewstock spread_vwstock spread_ewstock effspread_ewstock sumvolume ofi_ewstock sumret2_ewstock sumbipow_ewstock stocktwits_sentiment sumpret2,sumabsret sumret sumabsret_vwstock sumabsret_ewstock sumautocov effspread_vwstock fomc_until_inv sumret3 vix sumret3_vwstock stocktwits_sentiment sumret3_ewstock spread_vwstock effspread_ewstock spread_ewstock sumvolume ofi_ewstock sumret4 sumret2_ewstock sumret2_vwstock
-ladder,lgbm,c16_2020,20.0,0.109347217317889,0.1087406719979712,-0.0006065453199178006,87.15187781451571,161.74282020327271,sumabsret sumret sumabsret_vwstock sumautocov sumabsret_ewstock effspread_vwstock fomc_until_inv sumret3 vix sumret3_vwstock sumret3_ewstock spread_vwstock spread_ewstock effspread_ewstock sumvolume ofi_ewstock sumret2_ewstock sumbipow_ewstock stocktwits_sentiment sumpret2,sumabsret sumret sumabsret_vwstock sumabsret_ewstock sumautocov effspread_vwstock fomc_until_inv sumret3 vix sumret3_vwstock stocktwits_sentiment sumret3_ewstock spread_vwstock effspread_ewstock spread_ewstock sumvolume ofi_ewstock sumret4 sumret2_ewstock sumret2_vwstock
-ladder,lgbm,all,10.0,0.1641813546524634,0.1639888989230862,-0.0001924557293771778,94.5516291885122,95.08392396650288,sumabsret sumret sumabsret_vwstock sumautocov sumabsret_ewstock effspread_vwstock fomc_until_inv sumret3 vix sumret3_vwstock,sumabsret sumret sumabsret_vwstock sumabsret_ewstock sumautocov effspread_vwstock fomc_until_inv sumret3 vix sumret3_vwstock
-ladder,lgbm,c16,10.0,0.1216270858574247,0.1215825289931435,-4.455686428120331e-05,85.2635100602838,84.89845558184129,sumabsret sumret sumabsret_vwstock sumautocov sumabsret_ewstock effspread_vwstock fomc_until_inv sumret3 vix sumret3_vwstock,sumabsret sumret sumabsret_vwstock sumabsret_ewstock sumautocov effspread_vwstock fomc_until_inv sumret3 vix sumret3_vwstock
-ladder,lgbm,c16_2020,10.0,0.1094315376493254,0.1091882119615682,-0.00024332568775720098,79.56032753412367,115.77015457035256,sumabsret sumret sumabsret_vwstock sumautocov sumabsret_ewstock effspread_vwstock fomc_until_inv sumret3 vix sumret3_vwstock,sumabsret sumret sumabsret_vwstock sumabsret_ewstock sumautocov effspread_vwstock fomc_until_inv sumret3 vix sumret3_vwstock
-ladder,lgbm,all,5.0,0.1795371705848292,0.1795371705848292,0.0,34.26559109261043,34.185317444778704,sumabsret sumret sumabsret_vwstock sumautocov sumabsret_ewstock,sumabsret sumret sumabsret_vwstock sumabsret_ewstock sumautocov
-ladder,lgbm,c16,5.0,0.1202930856980532,0.1202930856980532,0.0,129.55321388432816,126.79858418635531,sumabsret sumret sumabsret_vwstock sumautocov sumabsret_ewstock,sumabsret sumret sumabsret_vwstock sumabsret_ewstock sumautocov
-ladder,lgbm,c16_2020,5.0,0.1088851252687022,0.1088851252687022,0.0,128.75507085011208,146.9041410794603,sumabsret sumret sumabsret_vwstock sumautocov sumabsret_ewstock,sumabsret sumret sumabsret_vwstock sumabsret_ewstock sumautocov
-ladder,lgbm,all,3.0,0.1796813743682964,0.1796813743682964,0.0,33.69945544589739,33.620508078222535,sumabsret sumret sumabsret_vwstock,sumabsret sumret sumabsret_vwstock
-ladder,lgbm,c16,3.0,0.119841418306505,0.119841418306505,0.0,144.5488755100912,141.4754000373469,sumabsret sumret sumabsret_vwstock,sumabsret sumret sumabsret_vwstock
-ladder,lgbm,c16_2020,3.0,0.1072992439778642,0.1072992439778642,0.0,271.53555277005745,309.81068853325894,sumabsret sumret sumabsret_vwstock,sumabsret sumret sumabsret_vwstock
-ladder,lgbm,all,1.0,0.1873775791520428,0.1873775791520428,0.0,3.4846041589092165,3.4764408125852264,sumabsret,sumabsret
-ladder,lgbm,c16,1.0,0.1237056857902914,0.1237056857902914,0.0,16.25259222147384,15.907020916370692,sumabsret,sumabsret
-ladder,lgbm,c16_2020,1.0,0.1106781255388203,0.1106781255388203,0.0,-32.67280154428109,-37.27829759116707,sumabsret,sumabsret
-ladder,xgb,all,46.0,0.1645963186392124,0.1634662701324705,-0.001130048506741893,100.0,100.0,(all 46),(all 46)
-ladder,xgb,c16,46.0,0.1210831563753403,0.121108611750405,2.5455375064709074e-05,100.0,100.0,(all 46),(all 46)
-ladder,xgb,c16_2020,46.0,0.1094245185893774,0.1092861246015965,-0.00013839398778091316,100.0,100.0,(all 46),(all 46)
-ladder,xgb,all,0.0,0.1891967092252577,0.1891967092252577,0.0,0.0,0.0,,
-ladder,xgb,c16,0.0,0.1241473497902637,0.1241473497902637,0.0,0.0,0.0,,
-ladder,xgb,c16_2020,0.0,0.1104194488511197,0.1104194488511197,0.0,0.0,0.0,,
-ladder,xgb,all,20.0,0.1648236982423468,0.1636087151671106,-0.001214983075236209,99.07570734562488,99.44639485503392,sumabsret stocktwits_sentiment sumabsret_vwstock sumret effspread_vwstock sumabsret_ewstock sumautocov sumret3 vix fomc_until_inv sumret3_vwstock stocktwits_sentcount sumret3_ewstock spread_vwstock spread_ewstock sumvolume effspread_ewstock ofi_ewstock sumpret2 sellturnover_ewstock,sumabsret stocktwits_sentiment sumabsret_vwstock sumret effspread_vwstock sumabsret_ewstock sumautocov fomc_until_inv vix sumret3 sumret3_vwstock sumret3_ewstock stocktwits_sentcount spread_vwstock spread_ewstock effspread_ewstock sumvolume sellturnover_ewstock ofi_ewstock sumpret2
-ladder,xgb,c16,20.0,0.1206861003960523,0.1205198802853423,-0.0001662201107100053,112.95792809142584,119.37420920593776,sumabsret stocktwits_sentiment sumabsret_vwstock sumret effspread_vwstock sumabsret_ewstock sumautocov sumret3 vix fomc_until_inv sumret3_vwstock stocktwits_sentcount sumret3_ewstock spread_vwstock spread_ewstock sumvolume effspread_ewstock ofi_ewstock sumpret2 sellturnover_ewstock,sumabsret stocktwits_sentiment sumabsret_vwstock sumret effspread_vwstock sumabsret_ewstock sumautocov fomc_until_inv vix sumret3 sumret3_vwstock sumret3_ewstock stocktwits_sentcount spread_vwstock spread_ewstock effspread_ewstock sumvolume sellturnover_ewstock ofi_ewstock sumpret2
-ladder,xgb,c16_2020,20.0,0.1091496144056875,0.1088181645992604,-0.0003314498064271032,127.63049776055746,141.2909193933602,sumabsret stocktwits_sentiment sumabsret_vwstock sumret effspread_vwstock sumabsret_ewstock sumautocov sumret3 vix fomc_until_inv sumret3_vwstock stocktwits_sentcount sumret3_ewstock spread_vwstock spread_ewstock sumvolume effspread_ewstock ofi_ewstock sumpret2 sellturnover_ewstock,sumabsret stocktwits_sentiment sumabsret_vwstock sumret effspread_vwstock sumabsret_ewstock sumautocov fomc_until_inv vix sumret3 sumret3_vwstock sumret3_ewstock stocktwits_sentcount spread_vwstock spread_ewstock effspread_ewstock sumvolume sellturnover_ewstock ofi_ewstock sumpret2
-ladder,xgb,all,10.0,0.1653509123360264,0.1640287591476775,-0.0013221531883488846,96.93259465058225,97.81391598806944,sumabsret stocktwits_sentiment sumabsret_vwstock sumret effspread_vwstock sumabsret_ewstock sumautocov sumret3 vix fomc_until_inv,sumabsret stocktwits_sentiment sumabsret_vwstock sumret effspread_vwstock sumabsret_ewstock sumautocov fomc_until_inv vix sumret3
-ladder,xgb,c16,10.0,0.1219108202235556,0.121814545065064,-9.627515849158774e-05,72.98917737423596,76.76886571335072,sumabsret stocktwits_sentiment sumabsret_vwstock sumret effspread_vwstock sumabsret_ewstock sumautocov sumret3 vix fomc_until_inv,sumabsret stocktwits_sentiment sumabsret_vwstock sumret effspread_vwstock sumabsret_ewstock sumautocov fomc_until_inv vix sumret3
-ladder,xgb,c16_2020,10.0,0.1111531100111744,0.1110905903703046,-6.251964086979866e-05,-73.73995829313533,-59.21884398636888,sumabsret stocktwits_sentiment sumabsret_vwstock sumret effspread_vwstock sumabsret_ewstock sumautocov sumret3 vix fomc_until_inv,sumabsret stocktwits_sentiment sumabsret_vwstock sumret effspread_vwstock sumabsret_ewstock sumautocov fomc_until_inv vix sumret3
-ladder,xgb,all,5.0,0.1798343607647539,0.1798343607647539,0.0,38.05772281442815,36.38627551882038,sumabsret stocktwits_sentiment sumabsret_vwstock sumret effspread_vwstock,sumabsret stocktwits_sentiment sumabsret_vwstock sumret effspread_vwstock
-ladder,xgb,c16,5.0,0.1203402385995194,0.1203402385995194,0.0,124.2451332282974,125.28592925112096,sumabsret stocktwits_sentiment sumabsret_vwstock sumret effspread_vwstock,sumabsret stocktwits_sentiment sumabsret_vwstock sumret effspread_vwstock
-ladder,xgb,c16_2020,5.0,0.1079536286016891,0.1079536286016891,0.0,247.83850127468853,217.5741188338552,sumabsret stocktwits_sentiment sumabsret_vwstock sumret effspread_vwstock,sumabsret stocktwits_sentiment sumabsret_vwstock sumret effspread_vwstock
-ladder,xgb,all,3.0,0.1822296455791895,0.1822296455791895,0.0,28.320947269919657,27.077126903835868,sumabsret stocktwits_sentiment sumabsret_vwstock,sumabsret stocktwits_sentiment sumabsret_vwstock
-ladder,xgb,c16,3.0,0.1228549024666424,0.1228549024666424,0.0,42.17903861181694,42.53237056529504,sumabsret stocktwits_sentiment sumabsret_vwstock,sumabsret stocktwits_sentiment sumabsret_vwstock
-ladder,xgb,c16_2020,3.0,0.1088469774664434,0.1088469774664434,0.0,158.04840250034454,138.74858720598172,sumabsret stocktwits_sentiment sumabsret_vwstock,sumabsret stocktwits_sentiment sumabsret_vwstock
-ladder,xgb,all,1.0,0.1881478222343995,0.1881478222343995,0.0,4.263700558693988,4.076444195436,sumabsret,sumabsret
-ladder,xgb,c16,1.0,0.1236755012212422,0.1236755012212422,0.0,15.398785426644574,15.527780375677432,sumabsret,sumabsret
-ladder,xgb,c16_2020,1.0,0.1108753658454161,0.1108753658454161,0.0,-45.82401519257689,-40.22829251982871,sumabsret,sumabsret
-ladder,ridge,all,46.0,0.183939101099309,0.1824924853923527,-0.0014466157069563113,100.0,100.0,(all 46),(all 46)
-ladder,ridge,c16,46.0,0.1316612880508429,0.1328415823796731,0.0011802943288302115,,,(all 46),(all 46)
-ladder,ridge,c16_2020,46.0,0.1338588390954518,0.1345112283077822,0.0006523892123304065,,,(all 46),(all 46)
-ladder,ridge,all,0.0,0.1893497069255777,0.1893497069255777,0.0,0.0,0.0,,
-ladder,ridge,c16,0.0,0.1269086752627581,0.1269086752627581,0.0,,,,
-ladder,ridge,c16_2020,0.0,0.113761098590293,0.113761098590293,0.0,,,,
-ladder,ridge,all,20.0,0.1785411422892165,0.1776119839313029,-0.0009291583579136009,199.7662550815511,171.17316302824045,fomc_day sumabsret fomc_until_inv sumret sumabsret_vwstock sumautocov turnover_ewstock sumret4 spread_vwstock buyturnover_vwstock sellturnover_vwstock sumret3 sumret2_ewstock fomc_since_inv sumret2_vwstock sumbipow sumret3_vwstock sellturnover_ewstock buyturnover_ewstock sumvolume,fomc_until_inv fomc_since_inv sumabsret fomc_day sumret sumabsret_vwstock sumautocov turnover_ewstock sumret4 sellturnover_vwstock spread_vwstock buyturnover_vwstock sumret3 sumret2_vwstock sumret3_vwstock sumret2_ewstock sumbipow sumvolume buyturnover_ewstock sellturnover_ewstock
-ladder,ridge,c16,20.0,0.1232438184241366,0.1246073974428235,0.001363579018686889,,,fomc_day sumabsret fomc_until_inv sumret sumabsret_vwstock sumautocov turnover_ewstock sumret4 spread_vwstock buyturnover_vwstock sellturnover_vwstock sumret3 sumret2_ewstock fomc_since_inv sumret2_vwstock sumbipow sumret3_vwstock sellturnover_ewstock buyturnover_ewstock sumvolume,fomc_until_inv fomc_since_inv sumabsret fomc_day sumret sumabsret_vwstock sumautocov turnover_ewstock sumret4 sellturnover_vwstock spread_vwstock buyturnover_vwstock sumret3 sumret2_vwstock sumret3_vwstock sumret2_ewstock sumbipow sumvolume buyturnover_ewstock sellturnover_ewstock
-ladder,ridge,c16_2020,20.0,0.1150700720351907,0.1164319347067206,0.0013618626715298926,,,fomc_day sumabsret fomc_until_inv sumret sumabsret_vwstock sumautocov turnover_ewstock sumret4 spread_vwstock buyturnover_vwstock sellturnover_vwstock sumret3 sumret2_ewstock fomc_since_inv sumret2_vwstock sumbipow sumret3_vwstock sellturnover_ewstock buyturnover_ewstock sumvolume,fomc_until_inv fomc_since_inv sumabsret fomc_day sumret sumabsret_vwstock sumautocov turnover_ewstock sumret4 sellturnover_vwstock spread_vwstock buyturnover_vwstock sumret3 sumret2_vwstock sumret3_vwstock sumret2_ewstock sumbipow sumvolume buyturnover_ewstock sellturnover_ewstock
-ladder,ridge,all,10.0,0.1776376083292724,0.1764318235332295,-0.0012057847960428858,216.46556730195644,188.3836380341193,fomc_day sumabsret fomc_until_inv sumret sumabsret_vwstock sumautocov turnover_ewstock sumret4 spread_vwstock buyturnover_vwstock,fomc_until_inv fomc_since_inv sumabsret fomc_day sumret sumabsret_vwstock sumautocov turnover_ewstock sumret4 sellturnover_vwstock
-ladder,ridge,c16,10.0,0.1222124443027203,0.1233277514395236,0.0011153071368033007,,,fomc_day sumabsret fomc_until_inv sumret sumabsret_vwstock sumautocov turnover_ewstock sumret4 spread_vwstock buyturnover_vwstock,fomc_until_inv fomc_since_inv sumabsret fomc_day sumret sumabsret_vwstock sumautocov turnover_ewstock sumret4 sellturnover_vwstock
-ladder,ridge,c16_2020,10.0,0.1144034646615388,0.1152046109943771,0.0008011463328382873,,,fomc_day sumabsret fomc_until_inv sumret sumabsret_vwstock sumautocov turnover_ewstock sumret4 spread_vwstock buyturnover_vwstock,fomc_until_inv fomc_since_inv sumabsret fomc_day sumret sumabsret_vwstock sumautocov turnover_ewstock sumret4 sellturnover_vwstock
-ladder,ridge,all,5.0,0.1779299297889224,0.1794134513282282,0.0014835215393058099,211.06281816375943,144.90206491369565,fomc_day sumabsret fomc_until_inv sumret sumabsret_vwstock,fomc_until_inv fomc_since_inv sumabsret fomc_day sumret
-ladder,ridge,c16,5.0,0.1218158072859101,0.1267289598995155,0.004913152613605393,,,fomc_day sumabsret fomc_until_inv sumret sumabsret_vwstock,fomc_until_inv fomc_since_inv sumabsret fomc_day sumret
-ladder,ridge,c16_2020,5.0,0.1105957150629527,0.1159987816994396,0.005403066636486903,,,fomc_day sumabsret fomc_until_inv sumret sumabsret_vwstock,fomc_until_inv fomc_since_inv sumabsret fomc_day sumret
-ladder,ridge,all,3.0,0.184277232861477,0.1835994538361115,-0.0006777790253655047,93.75057483348036,83.8568954146332,fomc_day sumabsret fomc_until_inv,fomc_until_inv fomc_since_inv sumabsret
-ladder,ridge,c16,3.0,0.1269670846736105,0.1280727117229014,0.0011056270492909026,,,fomc_day sumabsret fomc_until_inv,fomc_until_inv fomc_since_inv sumabsret
-ladder,ridge,c16_2020,3.0,0.1138600735969514,0.1147603389055764,0.0009002653086249979,,,fomc_day sumabsret fomc_until_inv,fomc_until_inv fomc_since_inv sumabsret
-ladder,ridge,all,1.0,0.1855491178561937,0.1854766072245801,-7.251063161362037e-05,70.2433182423303,56.48205592062913,fomc_day,fomc_until_inv
-ladder,ridge,c16,1.0,0.1277235965341778,0.12810926268813,0.00038566615395219106,,,fomc_day,fomc_until_inv
-ladder,ridge,c16_2020,1.0,0.114723209133294,0.1143629744959763,-0.00036023463731769956,,,fomc_day,fomc_until_inv
-ladder,lasso,all,46.0,0.1835296623136244,0.1779847941451086,-0.005544868168515793,100.0,100.0,(all 46),(all 46)
-ladder,lasso,c16,46.0,0.1355399902959197,0.1365676605758352,0.001027670279915488,,,(all 46),(all 46)
-ladder,lasso,c16_2020,46.0,0.1399157599958672,0.1403355688580786,0.0004198088622114071,,,(all 46),(all 46)
-ladder,lasso,all,0.0,0.1893424167671739,0.1893424167671739,0.0,0.0,0.0,,
-ladder,lasso,c16,0.0,0.1269108626377519,0.1269108626377519,0.0,,,,
-ladder,lasso,c16_2020,0.0,0.1137641526349423,0.1137641526349423,0.0,,,,
-ladder,lasso,all,20.0,0.1766066453506653,0.1735176910979432,-0.003088954252722098,219.1004543247403,139.3313213144348,fomc_until_inv fomc_day fomc_since_inv sumabsret sumret turnover_ewstock sumabsret_vwstock buyturnover_ewstock sumbipow sumret4 sumautocov sellturnover_vwstock sumret2_ewstock spread_vwstock sumret3 sumvolume sellturnover_ewstock sumbipow_vwstock sumret2_vwstock buyturnover_vwstock,fomc_until_inv fomc_since_inv sumabsret fomc_day sumret turnover_ewstock sumabsret_vwstock buyturnover_ewstock sumret4 sumautocov sumbipow sellturnover_vwstock sumret3 sumret2_ewstock spread_vwstock sumret2_vwstock sumvolume sumbipow_vwstock sumret3_vwstock vvix
-ladder,lasso,c16,20.0,0.1240503516354297,0.1247309178237044,0.000680566188274695,,,fomc_until_inv fomc_day fomc_since_inv sumabsret sumret turnover_ewstock sumabsret_vwstock buyturnover_ewstock sumbipow sumret4 sumautocov sellturnover_vwstock sumret2_ewstock spread_vwstock sumret3 sumvolume sellturnover_ewstock sumbipow_vwstock sumret2_vwstock buyturnover_vwstock,fomc_until_inv fomc_since_inv sumabsret fomc_day sumret turnover_ewstock sumabsret_vwstock buyturnover_ewstock sumret4 sumautocov sumbipow sellturnover_vwstock sumret3 sumret2_ewstock spread_vwstock sumret2_vwstock sumvolume sumbipow_vwstock sumret3_vwstock vvix
-ladder,lasso,c16_2020,20.0,0.1165696875391801,0.1153307301196766,-0.0012389574195035002,,,fomc_until_inv fomc_day fomc_since_inv sumabsret sumret turnover_ewstock sumabsret_vwstock buyturnover_ewstock sumbipow sumret4 sumautocov sellturnover_vwstock sumret2_ewstock spread_vwstock sumret3 sumvolume sellturnover_ewstock sumbipow_vwstock sumret2_vwstock buyturnover_vwstock,fomc_until_inv fomc_since_inv sumabsret fomc_day sumret turnover_ewstock sumabsret_vwstock buyturnover_ewstock sumret4 sumautocov sumbipow sellturnover_vwstock sumret3 sumret2_ewstock spread_vwstock sumret2_vwstock sumvolume sumbipow_vwstock sumret3_vwstock vvix
-ladder,lasso,all,10.0,0.175923340168552,0.1717840302127788,-0.0041393099557731905,230.85572779403293,154.5956151094782,fomc_until_inv fomc_day fomc_since_inv sumabsret sumret turnover_ewstock sumabsret_vwstock buyturnover_ewstock sumbipow sumret4,fomc_until_inv fomc_since_inv sumabsret fomc_day sumret turnover_ewstock sumabsret_vwstock buyturnover_ewstock sumret4 sumautocov
-ladder,lasso,c16,10.0,0.1241839951192928,0.1250393894896649,0.0008553943703720895,,,fomc_until_inv fomc_day fomc_since_inv sumabsret sumret turnover_ewstock sumabsret_vwstock buyturnover_ewstock sumbipow sumret4,fomc_until_inv fomc_since_inv sumabsret fomc_day sumret turnover_ewstock sumabsret_vwstock buyturnover_ewstock sumret4 sumautocov
-ladder,lasso,c16_2020,10.0,0.1153184659569202,0.1167288659511344,0.0014103999942141898,,,fomc_until_inv fomc_day fomc_since_inv sumabsret sumret turnover_ewstock sumabsret_vwstock buyturnover_ewstock sumbipow sumret4,fomc_until_inv fomc_since_inv sumabsret fomc_day sumret turnover_ewstock sumabsret_vwstock buyturnover_ewstock sumret4 sumautocov
-ladder,lasso,all,5.0,0.1782956740993486,0.1770847844854764,-0.0012108896138721958,190.04316724714892,107.92427860636722,fomc_until_inv fomc_day fomc_since_inv sumabsret sumret,fomc_until_inv fomc_since_inv sumabsret fomc_day sumret
-ladder,lasso,c16,5.0,0.1277224003900675,0.1310685708959209,0.0033461705058533964,,,fomc_until_inv fomc_day fomc_since_inv sumabsret sumret,fomc_until_inv fomc_since_inv sumabsret fomc_day sumret
-ladder,lasso,c16_2020,5.0,0.1158166127037359,0.1209268886710591,0.005110275967323191,,,fomc_until_inv fomc_day fomc_since_inv sumabsret sumret,fomc_until_inv fomc_since_inv sumabsret fomc_day sumret
-ladder,lasso,all,3.0,0.1822686005075992,0.1821512215072437,-0.0001173790003554942,121.69473725584878,63.31602571439012,fomc_until_inv fomc_day fomc_since_inv,fomc_until_inv fomc_since_inv sumabsret
-ladder,lasso,c16,3.0,0.1300579987496561,0.1290113761814783,-0.0010466225681778074,,,fomc_until_inv fomc_day fomc_since_inv,fomc_until_inv fomc_since_inv sumabsret
-ladder,lasso,c16_2020,3.0,0.114696006638145,0.116241231764768,0.001545225126623001,,,fomc_until_inv fomc_day fomc_since_inv,fomc_until_inv fomc_since_inv sumabsret
-ladder,lasso,all,1.0,0.1832629507990276,0.1815157103135228,-0.001747240485504814,104.58838433187024,68.91148538819766,fomc_until_inv,fomc_until_inv
-ladder,lasso,c16,1.0,0.1286775249446415,0.1292767712043063,0.0005992462596648152,,,fomc_until_inv,fomc_until_inv
-ladder,lasso,c16_2020,1.0,0.1140686816801549,0.1137609793762585,-0.0003077023038964011,,,fomc_until_inv,fomc_until_inv
-ladder,enet,all,46.0,0.1805395151939426,0.1793978332969757,-0.0011416818969668951,100.0,100.0,(all 46),(all 46)
-ladder,enet,c16,46.0,0.1285905345746376,0.1299779078335166,0.0013873732588789989,,,(all 46),(all 46)
-ladder,enet,c16_2020,46.0,0.1279234267557289,0.1289975689223231,0.0010741421665942108,,,(all 46),(all 46)
-ladder,enet,all,0.0,0.1893434561640067,0.1893434561640067,0.0,0.0,0.0,,
-ladder,enet,c16,0.0,0.126907528982532,0.126907528982532,0.0,,,,
-ladder,enet,c16_2020,0.0,0.1137608767740192,0.1137608767740192,0.0,,,,
-ladder,enet,all,20.0,0.1783755976369521,0.1773864935776677,-0.0009891040592844014,124.57896485617464,120.22336605961046,sumabsret fomc_day sumret sumabsret_vwstock fomc_until_inv sumautocov sumret4 sumret2_ewstock sumret3_vwstock sumret3 sumvolume spread_vwstock sellturnover_vwstock buyturnover_vwstock vix ofi_ewstock numobs sumret3_ewstock turnover_vwstock effspread_vwstock,fomc_until_inv fomc_since_inv sumabsret sumret fomc_day sumabsret_vwstock sumautocov sumret4 sumret2_ewstock sumret3_vwstock sumret3 sumvolume spread_vwstock sellturnover_vwstock buyturnover_vwstock ofi_ewstock vix numobs sumret2_vwstock sumret3_ewstock
-ladder,enet,c16,20.0,0.1244970087698767,0.1260712954567946,0.0015742866869179056,,,sumabsret fomc_day sumret sumabsret_vwstock fomc_until_inv sumautocov sumret4 sumret2_ewstock sumret3_vwstock sumret3 sumvolume spread_vwstock sellturnover_vwstock buyturnover_vwstock vix ofi_ewstock numobs sumret3_ewstock turnover_vwstock effspread_vwstock,fomc_until_inv fomc_since_inv sumabsret sumret fomc_day sumabsret_vwstock sumautocov sumret4 sumret2_ewstock sumret3_vwstock sumret3 sumvolume spread_vwstock sellturnover_vwstock buyturnover_vwstock ofi_ewstock vix numobs sumret2_vwstock sumret3_ewstock
-ladder,enet,c16_2020,20.0,0.1178042219426819,0.1205388566056544,0.002734634662972496,,,sumabsret fomc_day sumret sumabsret_vwstock fomc_until_inv sumautocov sumret4 sumret2_ewstock sumret3_vwstock sumret3 sumvolume spread_vwstock sellturnover_vwstock buyturnover_vwstock vix ofi_ewstock numobs sumret3_ewstock turnover_vwstock effspread_vwstock,fomc_until_inv fomc_since_inv sumabsret sumret fomc_day sumabsret_vwstock sumautocov sumret4 sumret2_ewstock sumret3_vwstock sumret3 sumvolume spread_vwstock sellturnover_vwstock buyturnover_vwstock ofi_ewstock vix numobs sumret2_vwstock sumret3_ewstock
-ladder,enet,all,10.0,0.177567366439538,0.1764019094288241,-0.0011654570107138829,133.75929898338336,130.12303913194648,sumabsret fomc_day sumret sumabsret_vwstock fomc_until_inv sumautocov sumret4 sumret2_ewstock sumret3_vwstock sumret3,fomc_until_inv fomc_since_inv sumabsret sumret fomc_day sumabsret_vwstock sumautocov sumret4 sumret2_ewstock sumret3_vwstock
-ladder,enet,c16,10.0,0.1213547668227365,0.1225917328252409,0.0012369660025043916,,,sumabsret fomc_day sumret sumabsret_vwstock fomc_until_inv sumautocov sumret4 sumret2_ewstock sumret3_vwstock sumret3,fomc_until_inv fomc_since_inv sumabsret sumret fomc_day sumabsret_vwstock sumautocov sumret4 sumret2_ewstock sumret3_vwstock
-ladder,enet,c16_2020,10.0,0.1126672979605181,0.1133798489683547,0.0007125510078365982,,,sumabsret fomc_day sumret sumabsret_vwstock fomc_until_inv sumautocov sumret4 sumret2_ewstock sumret3_vwstock sumret3,fomc_until_inv fomc_since_inv sumabsret sumret fomc_day sumabsret_vwstock sumautocov sumret4 sumret2_ewstock sumret3_vwstock
-ladder,enet,all,5.0,0.1777624836776781,0.1795276856692939,0.0017652019916157835,131.5430501602315,98.69437667148388,sumabsret fomc_day sumret sumabsret_vwstock fomc_until_inv,fomc_until_inv fomc_since_inv sumabsret sumret fomc_day
-ladder,enet,c16,5.0,0.1217898240229055,0.1268722017639657,0.0050823777410601845,,,sumabsret fomc_day sumret sumabsret_vwstock fomc_until_inv,fomc_until_inv fomc_since_inv sumabsret sumret fomc_day
-ladder,enet,c16_2020,5.0,0.1108548481441485,0.1163798882575803,0.005525040113431801,,,sumabsret fomc_day sumret sumabsret_vwstock fomc_until_inv,fomc_until_inv fomc_since_inv sumabsret sumret fomc_day
-ladder,enet,all,3.0,0.1813629020100056,0.1836176417361655,0.002254739726159888,90.64752002696478,57.571199957941324,sumabsret fomc_day sumret,fomc_until_inv fomc_since_inv sumabsret
-ladder,enet,c16,3.0,0.1251026019929194,0.1283761798652514,0.003273577872332012,,,sumabsret fomc_day sumret,fomc_until_inv fomc_since_inv sumabsret
-ladder,enet,c16_2020,3.0,0.1155650461064409,0.1151664027251497,-0.00039864338129119714,,,sumabsret fomc_day sumret,fomc_until_inv fomc_since_inv sumabsret
-ladder,enet,all,1.0,0.1895072556437061,0.1838756648356591,-0.00563159080804701,-1.860524511197928,54.97686169533807,sumabsret,fomc_until_inv
-ladder,enet,c16,1.0,0.1267834106661255,0.128169695849418,0.0013862851832925072,,,sumabsret,fomc_until_inv
-ladder,enet,c16_2020,1.0,0.1142624199820926,0.1139873554242927,-0.0002750645577999089,,,sumabsret,fomc_until_inv
-ladder,rf_skx,all,46.0,0.1706680302050167,0.1701784205912603,-0.0004896096137564088,100.0,100.0,(all 46),(all 46)
-ladder,rf_skx,c16,46.0,0.12415293605117,0.1243127043019572,0.00015976825078720114,100.0,100.0,(all 46),(all 46)
-ladder,rf_skx,c16_2020,46.0,0.1104294878473348,0.1107018721901807,0.0002723843428458911,100.0,100.0,(all 46),(all 46)
-ladder,rf_skx,all,0.0,0.1902815527758085,0.1902815527758085,0.0,0.0,0.0,,
-ladder,rf_skx,c16,0.0,0.1278195387012341,0.1278195387012341,0.0,0.0,0.0,,
-ladder,rf_skx,c16_2020,0.0,0.1137560929905828,0.1137560929905828,0.0,0.0,0.0,,
-ladder,rf_skx,all,20.0,0.1706486305452392,0.1700601786172395,-0.0005884519279997225,100.09890961558548,100.58817687181929,sumabsret sumabsret_vwstock sumret sumabsret_ewstock effspread_vwstock sumret3 sumautocov fomc_until_inv sumret3_vwstock sumret3_ewstock spread_vwstock effspread_ewstock vix sumvolume spread_ewstock sumret2_vwstock sellturnover_ewstock stocktwits_sentcount sellturnover_vwstock stocktwits_sentiment,sumabsret sumabsret_vwstock sumret sumabsret_ewstock effspread_vwstock sumret3 fomc_until_inv sumautocov sumret3_vwstock sumret3_ewstock spread_vwstock effspread_ewstock sumvolume vix spread_ewstock stocktwits_sentcount sumret2_vwstock sellturnover_ewstock sellturnover_vwstock ofi_ewstock
-ladder,rf_skx,c16,20.0,0.1238353469594964,0.1239876119440596,0.00015226498456320792,108.6616719067742,109.2702511976241,sumabsret sumabsret_vwstock sumret sumabsret_ewstock effspread_vwstock sumret3 sumautocov fomc_until_inv sumret3_vwstock sumret3_ewstock spread_vwstock effspread_ewstock vix sumvolume spread_ewstock sumret2_vwstock sellturnover_ewstock stocktwits_sentcount sellturnover_vwstock stocktwits_sentiment,sumabsret sumabsret_vwstock sumret sumabsret_ewstock effspread_vwstock sumret3 fomc_until_inv sumautocov sumret3_vwstock sumret3_ewstock spread_vwstock effspread_ewstock sumvolume vix spread_ewstock stocktwits_sentcount sumret2_vwstock sellturnover_ewstock sellturnover_vwstock ofi_ewstock
-ladder,rf_skx,c16_2020,20.0,0.1104961920636298,0.1103008284186743,-0.00019536364495550962,97.99482615391418,113.1308048014585,sumabsret sumabsret_vwstock sumret sumabsret_ewstock effspread_vwstock sumret3 sumautocov fomc_until_inv sumret3_vwstock sumret3_ewstock spread_vwstock effspread_ewstock vix sumvolume spread_ewstock sumret2_vwstock sellturnover_ewstock stocktwits_sentcount sellturnover_vwstock stocktwits_sentiment,sumabsret sumabsret_vwstock sumret sumabsret_ewstock effspread_vwstock sumret3 fomc_until_inv sumautocov sumret3_vwstock sumret3_ewstock spread_vwstock effspread_ewstock sumvolume vix spread_ewstock stocktwits_sentcount sumret2_vwstock sellturnover_ewstock sellturnover_vwstock ofi_ewstock
-ladder,rf_skx,all,10.0,0.1710478960356772,0.1705657249360047,-0.00048217109967249594,98.06324524679655,98.0734129329256,sumabsret sumabsret_vwstock sumret sumabsret_ewstock effspread_vwstock sumret3 sumautocov fomc_until_inv sumret3_vwstock sumret3_ewstock,sumabsret sumabsret_vwstock sumret sumabsret_ewstock effspread_vwstock sumret3 fomc_until_inv sumautocov sumret3_vwstock sumret3_ewstock
-ladder,rf_skx,c16,10.0,0.1232207779461415,0.123314704304713,9.39263585715e-05,125.42293763444157,128.45871471575796,sumabsret sumabsret_vwstock sumret sumabsret_ewstock effspread_vwstock sumret3 sumautocov fomc_until_inv sumret3_vwstock sumret3_ewstock,sumabsret sumabsret_vwstock sumret sumabsret_ewstock effspread_vwstock sumret3 fomc_until_inv sumautocov sumret3_vwstock sumret3_ewstock
-ladder,rf_skx,c16_2020,10.0,0.1107393285748195,0.1108755220846359,0.0001361935098164041,90.6859782227677,94.31442892300498,sumabsret sumabsret_vwstock sumret sumabsret_ewstock effspread_vwstock sumret3 sumautocov fomc_until_inv sumret3_vwstock sumret3_ewstock,sumabsret sumabsret_vwstock sumret sumabsret_ewstock effspread_vwstock sumret3 fomc_until_inv sumautocov sumret3_vwstock sumret3_ewstock
-ladder,rf_skx,all,5.0,0.1823106760437709,0.1823106760437709,0.0,40.639699999161685,39.64992449367793,sumabsret sumabsret_vwstock sumret sumabsret_ewstock effspread_vwstock,sumabsret sumabsret_vwstock sumret sumabsret_ewstock effspread_vwstock
-ladder,rf_skx,c16,5.0,0.1218080617468262,0.1218080617468262,0.0,163.95223393794402,171.42175164152266,sumabsret sumabsret_vwstock sumret sumabsret_ewstock effspread_vwstock,sumabsret sumabsret_vwstock sumret sumabsret_ewstock effspread_vwstock
-ladder,rf_skx,c16_2020,5.0,0.1083904133001263,0.1083904133001263,0.0,161.29595967670429,175.68080505999976,sumabsret sumabsret_vwstock sumret sumabsret_ewstock effspread_vwstock,sumabsret sumabsret_vwstock sumret sumabsret_ewstock effspread_vwstock
-ladder,rf_skx,all,3.0,0.1818092223335104,0.1818092223335104,0.0,43.196373378207134,42.14433036862876,sumabsret sumabsret_vwstock sumret,sumabsret sumabsret_vwstock sumret
-ladder,rf_skx,c16,3.0,0.1203970596110611,0.1203970596110611,0.0,202.43478223753857,211.65753055529387,sumabsret sumabsret_vwstock sumret,sumabsret sumabsret_vwstock sumret
-ladder,rf_skx,c16_2020,3.0,0.1081501157315667,0.1081501157315667,0.0,168.5194670727454,183.54852597028767,sumabsret sumabsret_vwstock sumret,sumabsret sumabsret_vwstock sumret
-ladder,rf_skx,all,1.0,0.189134431591918,0.189134431591918,0.0,5.848623977412372,5.70618137193676,sumabsret,sumabsret
-ladder,rf_skx,c16,1.0,0.1257849093023938,0.1257849093023938,0.0,55.49086151467082,58.01897572522529,sumabsret,sumabsret
-ladder,rf_skx,c16_2020,1.0,0.1128071513057049,0.1128071513057049,0.0,28.52582870569828,31.06984553156491,sumabsret,sumabsret
-shap_m1,lgbm,har_ma,,0.5161546274668316,0.516620906440627,0.0004662789737953643,,,,
-shap_m1,lgbm,calendar,,0.009468181728288,0.0093880987654344,-8.008296285359935e-05,,,,
-shap_m1,lgbm,sumret,,0.0759362377658943,0.0761258016096161,0.00018956384372180446,,,,
-shap_m1,lgbm,sumabsret,,0.0964170147186425,0.0962147360531821,-0.0002022786654603953,,,,
-shap_m1,lgbm,sumret3,,0.0110731138156093,0.0111514054515523,7.829163594300081e-05,,,,
-shap_m1,lgbm,sumret4,,0.0057896552942504,0.0054909795902663,-0.00029867570398410016,,,,
-shap_m1,lgbm,sumpret2,,0.0043375840963023,0.0043358840248094,-1.7000714928995866e-06,,,,
-shap_m1,lgbm,sumbipow,,0.003687898812127,0.0036690574315178,-1.8841380609199883e-05,,,,
-shap_m1,lgbm,sumautocov,,0.0259379503770306,0.0259804165761202,4.246619908960039e-05,,,,
-shap_m1,lgbm,sumvolume,,0.0179605252408388,0.0180431327156267,8.260747478790187e-05,,,,
-shap_m1,lgbm,numobs,,0.0019451760169391,0.0018621859378601,-8.299007907899988e-05,,,,
-shap_m1,lgbm,turnover_ewstock,,0.0018065071466802,0.0017786222962494,-2.7884850430800155e-05,,,,
-shap_m1,lgbm,buyturnover_ewstock,,0.0017726883128582,0.0017623568863667,-1.0331426491500028e-05,,,,
-shap_m1,lgbm,sellturnover_ewstock,,0.0038196013846718,0.0037220053752656,-9.759600940620035e-05,,,,
-shap_m1,lgbm,effspread_ewstock,,0.0068316371076678,0.0068397356234377,8.098515769900533e-06,,,,
-shap_m1,lgbm,spread_ewstock,,0.0042350426205059,0.0042221789631897,-1.2863657316199845e-05,,,,
-shap_m1,lgbm,turnover_vwstock,,0.0020522494573903,0.0020441794153209,-8.070042069399826e-06,,,,
-shap_m1,lgbm,buyturnover_vwstock,,0.0021763461939006,0.0021930628916986,1.671669779799989e-05,,,,
-shap_m1,lgbm,sellturnover_vwstock,,0.0071771993209743,0.007048745402642,-0.0001284539183322997,,,,
-shap_m1,lgbm,effspread_vwstock,,0.0125561734795795,0.0124775019208727,-7.867155870680022e-05,,,,
-shap_m1,lgbm,spread_vwstock,,0.0051858549836953,0.0051111477914072,-7.470719228809975e-05,,,,
-shap_m1,lgbm,ofi_ewstock,,0.0024382602390693,0.0025196063631409,8.134612407159972e-05,,,,
-shap_m1,lgbm,ofi_vwstock,,0.0180175525839431,0.018021500211754,3.9476278108976914e-06,,,,
-shap_m1,lgbm,sumret2_ewstock,,0.0038584618894969,0.0039441522325423,8.569034304540006e-05,,,,
-shap_m1,lgbm,sumret3_ewstock,,0.0071174896648149,0.0071573959202013,3.990625538640054e-05,,,,
-shap_m1,lgbm,sumret4_ewstock,,0.0015715489695015,0.0015111636559459,-6.038531355559993e-05,,,,
-shap_m1,lgbm,sumabsret_ewstock,,0.0393403791688129,0.0390847557831741,-0.0002556233856388021,,,,
-shap_m1,lgbm,sumbipow_ewstock,,0.00150949586394,0.0014880816665559,-2.141419738410015e-05,,,,
-shap_m1,lgbm,sumpret2_ewstock,,0.0021754863153782,0.0022312950548175,5.5808739439299794e-05,,,,
-shap_m1,lgbm,sumret2_vwstock,,0.0016479923113798,0.0017082046243314,6.021231295159999e-05,,,,
-shap_m1,lgbm,sumret3_vwstock,,0.0089684878317102,0.0088412830471149,-0.000127204784595299,,,,
-shap_m1,lgbm,sumret4_vwstock,,0.0016195688242488,0.0015634550694683,-5.6113754780499816e-05,,,,
-shap_m1,lgbm,sumabsret_vwstock,,0.0348266811547534,0.0348151300428023,-1.1551111951099702e-05,,,,
-shap_m1,lgbm,sumbipow_vwstock,,0.0012859614273868,0.0012859070896179,-5.433776889985503e-08,,,,
-shap_m1,lgbm,sumpret2_vwstock,,0.0027138098632806,0.0027461208382031,3.231097492250017e-05,,,,
-shap_m1,lgbm,stocktwits_attention,,0.0013523956315911,0.0013871169343605,3.472130276940019e-05,,,,
-shap_m1,lgbm,stocktwits_sentiment,,0.0045321522603335,0.0044634554202988,-6.869684003469982e-05,,,,
-shap_m1,lgbm,stocktwits_sentcount,,0.0018807467962834,0.0018764895281163,-4.2572681670999864e-06,,,,
-shap_m1,lgbm,vix,,0.0134843575160343,0.0135870591261482,0.00010270161011390055,,,,
-shap_m1,lgbm,vvix,,0.0028793159972314,0.0029166402418022,3.732424457080028e-05,,,,
-shap_m1,lgbm,vix3m,,0.006664407534897,0.0066908125906032,2.6405055706200248e-05,,,,
-shap_m1,lgbm,voldemand_spx_open_and_close,,0.0016214462083336,0.0016859021580144,6.445594968079987e-05,,,,
-shap_m1,lgbm,voldemand_spx_open_only,,0.0006150443551547,0.000598002205138,-1.70421500166999e-05,,,,
-shap_m1,lgbm,voldemand_all_open_and_close,,0.0002180475084357,0.0001858021104264,-3.22453980093e-05,,,,
-shap_m1,lgbm,voldemand_all_open_only,,0.0001570084205548,0.0001669265078654,9.918087310600002e-06,,,,
-shap_m1,lgbm,fomc_day,,0.0012395017439926,0.001225268849574,-1.4232894418600038e-05,,,,
-shap_m1,lgbm,fomc_until_inv,,0.0201350675766433,0.0204568805717754,0.0003218129951321029,,,,
-shap_m1,lgbm,fomc_since_inv,,0.0018080670021176,0.0017594509931421,-4.861600897549984e-05,,,,
-shap_m1,xgb,har_ma,,0.5189352056043528,0.51975900441089,0.0008237988065371571,,,,
-shap_m1,xgb,calendar,,0.0094637893998691,0.0093477604732302,-0.00011602892663889995,,,,
-shap_m1,xgb,sumret,,0.0747072384925004,0.074878452179525,0.00017121368702460726,,,,
-shap_m1,xgb,sumabsret,,0.1167382315512584,0.1164742568684968,-0.0002639746827615974,,,,
-shap_m1,xgb,sumret3,,0.0104219019734947,0.0103936276519211,-2.827432157360109e-05,,,,
-shap_m1,xgb,sumret4,,0.0044462696647786,0.0044594569032903,1.3187238511699548e-05,,,,
-shap_m1,xgb,sumpret2,,0.0036556252892756,0.0035765108004627,-7.911448881290023e-05,,,,
-shap_m1,xgb,sumbipow,,0.0028623398395812,0.002838270879825,-2.406895975619978e-05,,,,
-shap_m1,xgb,sumautocov,,0.0231256376318364,0.0229903280491981,-0.00013530958263829884,,,,
-shap_m1,xgb,sumvolume,,0.0157237663199219,0.0157348955407221,1.1129220800199652e-05,,,,
-shap_m1,xgb,numobs,,0.0014256596446339,0.00138918616588,-3.6473478753899996e-05,,,,
-shap_m1,xgb,turnover_ewstock,,0.0015125831214583,0.0014483015482054,-6.428157325290003e-05,,,,
-shap_m1,xgb,buyturnover_ewstock,,0.0012748123813753,0.0012483014773238,-2.65109040515001e-05,,,,
-shap_m1,xgb,sellturnover_ewstock,,0.0035805516941732,0.0036162041937546,3.5652499581400286e-05,,,,
-shap_m1,xgb,effspread_ewstock,,0.005700936228353,0.0058299779577872,0.00012904172943420042,,,,
-shap_m1,xgb,spread_ewstock,,0.0029933795059254,0.0029029768533069,-9.040265261850032e-05,,,,
-shap_m1,xgb,turnover_vwstock,,0.0016999605401354,0.0016840920488841,-1.58684912513001e-05,,,,
-shap_m1,xgb,buyturnover_vwstock,,0.0016826412790346,0.0016247253532237,-5.791592581090013e-05,,,,
-shap_m1,xgb,sellturnover_vwstock,,0.0072101914578332,0.0072677244897725,5.75330319393004e-05,,,,
-shap_m1,xgb,effspread_vwstock,,0.012463535590758,0.0123382776742148,-0.00012525791654319912,,,,
-shap_m1,xgb,spread_vwstock,,0.0049989265339021,0.0049470323654167,-5.1894168485400356e-05,,,,
-shap_m1,xgb,ofi_ewstock,,0.0023763507323353,0.0023470531543622,-2.9297577973100113e-05,,,,
-shap_m1,xgb,ofi_vwstock,,0.0169061404675827,0.0170401862791342,0.00013404581155150239,,,,
-shap_m1,xgb,sumret2_ewstock,,0.0028720217906399,0.002888594470586,1.6572679946099712e-05,,,,
-shap_m1,xgb,sumret3_ewstock,,0.0062546741446127,0.00617214777505,-8.252636956270019e-05,,,,
-shap_m1,xgb,sumret4_ewstock,,0.0013103254774043,0.0013231633911735,1.2837913769199981e-05,,,,
-shap_m1,xgb,sumabsret_ewstock,,0.0382655290760341,0.0378209132516952,-0.00044461582433890506,,,,
-shap_m1,xgb,sumbipow_ewstock,,0.0010588578358382,0.001128688930054,6.983109421580011e-05,,,,
-shap_m1,xgb,sumpret2_ewstock,,0.0015571568984699,0.0014948748122053,-6.228208626459994e-05,,,,
-shap_m1,xgb,sumret2_vwstock,,0.0014771703729724,0.00150124171523,2.407134225759994e-05,,,,
-shap_m1,xgb,sumret3_vwstock,,0.008605853721019,0.0087071745968883,0.00010132087586930093,,,,
-shap_m1,xgb,sumret4_vwstock,,0.001194600588399,0.0012357520277828,4.115143938380008e-05,,,,
-shap_m1,xgb,sumabsret_vwstock,,0.0390998752605707,0.038944216597064,-0.00015565866350670393,,,,
-shap_m1,xgb,sumbipow_vwstock,,0.0009948202231087,0.000951414443295,-4.340577981369988e-05,,,,
-shap_m1,xgb,sumpret2_vwstock,,0.0017267112537114,0.0017358234614071,9.112207695700187e-06,,,,
-shap_m1,xgb,stocktwits_attention,,0.0010423645264715,0.0010061021007238,-3.626242574769991e-05,,,,
-shap_m1,xgb,stocktwits_sentiment,,0.004272137013476,0.0042340408500334,-3.8096163442600216e-05,,,,
-shap_m1,xgb,stocktwits_sentcount,,0.0018725200184806,0.0018773623995228,4.84238104220009e-06,,,,
-shap_m1,xgb,vix,,0.0124716469664535,0.0126242244229219,0.0001525774564684005,,,,
-shap_m1,xgb,vvix,,0.0021383617503577,0.0022084052334254,7.004348306770009e-05,,,,
-shap_m1,xgb,vix3m,,0.0054541031497505,0.0055855657834771,0.00013146263372659957,,,,
-shap_m1,xgb,voldemand_spx_open_and_close,,0.0012855764055875,0.0012767303545614,-8.846051026100083e-06,,,,
-shap_m1,xgb,voldemand_spx_open_only,,0.0005044950841647,0.0004902379774436,-1.4257106721099998e-05,,,,
-shap_m1,xgb,voldemand_all_open_and_close,,0.000193681328057,0.0001978739416758,4.192613618799981e-06,,,,
-shap_m1,xgb,voldemand_all_open_only,,8.794333351199385e-05,9.530416680153926e-05,7.360833289545409e-06,,,,
-shap_m1,xgb,fomc_day,,0.0012578575458654,0.0011756081067441,-8.224943912130004e-05,,,,
-shap_m1,xgb,fomc_until_inv,,0.0200773448007195,0.0201925066876229,0.00011516188690339699,,,,
-shap_m1,xgb,fomc_since_inv,,0.0010186964899521,0.0009954291837856,-2.326730616650013e-05,,,,
-shap_m1,rf_skx,har_ma,,0.5763313412526916,0.5762707432075186,-6.059804517299927e-05,,,,
-shap_m1,rf_skx,calendar,,0.0026885159584582,0.0026889826101104,4.666516522002645e-07,,,,
-shap_m1,rf_skx,sumret,,0.0460377003115055,0.0460775271098435,3.9826798337999625e-05,,,,
-shap_m1,rf_skx,sumabsret,,0.1231001741231114,0.1230740522703726,-2.612185273880019e-05,,,,
-shap_m1,rf_skx,sumret3,,0.0123680803022648,0.0123790045899676,1.0924287702799781e-05,,,,
-shap_m1,rf_skx,sumret4,,0.0041461556905364,0.0041345353696507,-1.1620320885700336e-05,,,,
-shap_m1,rf_skx,sumpret2,,0.0048974680837016,0.0048884125157643,-9.05556793729962e-06,,,,
-shap_m1,rf_skx,sumbipow,,0.0032659240450978,0.0032614095779737,-4.514467124099985e-06,,,,
-shap_m1,rf_skx,sumautocov,,0.013699075669902,0.0136720912703225,-2.6984399579500426e-05,,,,
-shap_m1,rf_skx,sumvolume,,0.0132916788069142,0.0133216114011872,2.9932594273000476e-05,,,,
-shap_m1,rf_skx,numobs,,0.0047348066368517,0.0047466322392992,1.1825602447499903e-05,,,,
-shap_m1,rf_skx,turnover_ewstock,,0.0028855676050095,0.0028711930258896,-1.4374579119899762e-05,,,,
-shap_m1,rf_skx,buyturnover_ewstock,,0.002915832438767,0.0029275188627782,1.1686424011200184e-05,,,,
-shap_m1,rf_skx,sellturnover_ewstock,,0.005524269535606,0.0055316458817372,7.376346131200001e-06,,,,
-shap_m1,rf_skx,effspread_ewstock,,0.0069697250922272,0.0069429531689308,-2.677192329640036e-05,,,,
-shap_m1,rf_skx,spread_ewstock,,0.0055797664357876,0.0055706784504753,-9.087985312300137e-06,,,,
-shap_m1,rf_skx,turnover_vwstock,,0.0027988676728874,0.0027976897807613,-1.1778921260997659e-06,,,,
-shap_m1,rf_skx,buyturnover_vwstock,,0.0030304834362716,0.0030233443301226,-7.139106148999937e-06,,,,
-shap_m1,rf_skx,sellturnover_vwstock,,0.0069215610005822,0.0069129693721246,-8.59162845759983e-06,,,,
-shap_m1,rf_skx,effspread_vwstock,,0.0127165786043848,0.0126947831843647,-2.1795420020100098e-05,,,,
-shap_m1,rf_skx,spread_vwstock,,0.0062512905493596,0.0062333301534258,-1.796039593379966e-05,,,,
-shap_m1,rf_skx,ofi_ewstock,,0.0062509242607154,0.0062391285132879,-1.1795747427500308e-05,,,,
-shap_m1,rf_skx,ofi_vwstock,,0.0140428288891849,0.0140266898836078,-1.613900557709963e-05,,,,
-shap_m1,rf_skx,sumret2_ewstock,,0.0026198768441673,0.002619808112161,-6.873200629996246e-08,,,,
-shap_m1,rf_skx,sumret3_ewstock,,0.0082819988299467,0.0082679294945646,-1.4069335382100798e-05,,,,
-shap_m1,rf_skx,sumret4_ewstock,,0.0018594833524654,0.0018509674163138,-8.515936151599988e-06,,,,
-shap_m1,rf_skx,sumabsret_ewstock,,0.019193058553399,0.0191011496944432,-9.19088589558005e-05,,,,
-shap_m1,rf_skx,sumbipow_ewstock,,0.0030562500143982,0.0030533781158081,-2.871898590100109e-06,,,,
-shap_m1,rf_skx,sumpret2_ewstock,,0.0033306256979669,0.0033290347031955,-1.5909947713999006e-06,,,,
-shap_m1,rf_skx,sumret2_vwstock,,0.0026043754118959,0.002601391987188,-2.983424707900164e-06,,,,
-shap_m1,rf_skx,sumret3_vwstock,,0.0106112988620159,0.0105975865571536,-1.3712304862299393e-05,,,,
-shap_m1,rf_skx,sumret4_vwstock,,0.0019792271033219,0.0019743862656002,-4.8408377217000476e-06,,,,
-shap_m1,rf_skx,sumabsret_vwstock,,0.0236179292559275,0.0235600689016047,-5.786035432280012e-05,,,,
-shap_m1,rf_skx,sumbipow_vwstock,,0.0026595846922275,0.0026649035439069,5.3188516793999975e-06,,,,
-shap_m1,rf_skx,sumpret2_vwstock,,0.0033971258142469,0.0033988780761544,1.7522619075002917e-06,,,,
-shap_m1,rf_skx,stocktwits_attention,,0.0010199499562416,0.0010304878417501,1.0537885508499992e-05,,,,
-shap_m1,rf_skx,stocktwits_sentiment,,0.0024770583727632,0.0024450722729032,-3.198609985999995e-05,,,,
-shap_m1,rf_skx,stocktwits_sentcount,,0.0025099696376234,0.0025238014974191,1.3831859795699654e-05,,,,
-shap_m1,rf_skx,vix,,0.0091345910117986,0.009184920335648,5.032932384940042e-05,,,,
-shap_m1,rf_skx,vvix,,0.002577806813639,0.0025758565895541,-1.95022408490007e-06,,,,
-shap_m1,rf_skx,vix3m,,0.0027146524787107,0.0027105008023408,-4.151676369900173e-06,,,,
-shap_m1,rf_skx,voldemand_spx_open_and_close,,0.000609986952463,0.0006129508800073,2.9639275442999713e-06,,,,
-shap_m1,rf_skx,voldemand_spx_open_only,,0.0006031064605649,0.0006089861255544,5.879664989500073e-06,,,,
-shap_m1,rf_skx,voldemand_all_open_and_close,,0.0006248064562968,0.0006197863320801,-5.02012421670008e-06,,,,
-shap_m1,rf_skx,voldemand_all_open_only,,0.000612068700038,0.0005937347111812,-1.833398885679998e-05,,,,
-shap_m1,rf_skx,fomc_day,,0.0010063534597582,0.0009343243372713,-7.20291224869e-05,,,,
-shap_m1,rf_skx,fomc_until_inv,,0.0105010113055897,0.0107848204839676,0.0002838091783778987,,,,
-shap_m1,rf_skx,fomc_since_inv,,0.0019491875607132,0.0020683481527099,0.00011916059199670002,,,,
+what,model,span,k,pre,post,delta,retained_pre,retained_post,series_pre,series_post,wdays
+ladder,lgbm,all,46.0,0.1627935676630549,0.1627337554962604,-5.981216679448731e-05,100.0,100.0,(all 46),(all 46),
+ladder,lgbm,c16,46.0,0.1211832246835894,0.1211177909161008,-6.543376748860408e-05,100.0,100.0,(all 46),(all 46),
+ladder,lgbm,c16_2020,46.0,0.1092045115620156,0.1093417330660152,0.00013722150399959887,100.0,100.0,(all 46),(all 46),
+ladder,lgbm,all,0.0,0.1882651634377483,0.1882651634377483,0.0,0.0,0.0,,,
+ladder,lgbm,c16,0.0,0.1241952117690557,0.1241952117690557,0.0,0.0,0.0,,,
+ladder,lgbm,c16_2020,0.0,0.1103152245036676,0.1103152245036676,0.0,0.0,0.0,,,
+ladder,lgbm,all,20.0,0.1638036930665443,0.163687854008766,-0.00011583905777828862,96.03430655690202,96.26303995967562,sumabsret sumret sumabsret_vwstock sumautocov sumabsret_ewstock effspread_vwstock fomc_until_inv sumret3 vix sumret3_vwstock sumret3_ewstock spread_vwstock spread_ewstock effspread_ewstock sumvolume ofi_ewstock sumret2_ewstock sumbipow_ewstock stocktwits_sentiment sumpret2,sumabsret sumret sumabsret_vwstock sumabsret_ewstock sumautocov effspread_vwstock fomc_until_inv sumret3 vix sumret3_vwstock stocktwits_sentiment sumret3_ewstock spread_vwstock effspread_ewstock spread_ewstock sumvolume ofi_ewstock sumret4 sumret2_ewstock sumret2_vwstock,
+ladder,lgbm,c16,20.0,0.121888512122254,0.1214906428660845,-0.0003978692561694974,76.58398198093863,87.8842716742604,sumabsret sumret sumabsret_vwstock sumautocov sumabsret_ewstock effspread_vwstock fomc_until_inv sumret3 vix sumret3_vwstock sumret3_ewstock spread_vwstock spread_ewstock effspread_ewstock sumvolume ofi_ewstock sumret2_ewstock sumbipow_ewstock stocktwits_sentiment sumpret2,sumabsret sumret sumabsret_vwstock sumabsret_ewstock sumautocov effspread_vwstock fomc_until_inv sumret3 vix sumret3_vwstock stocktwits_sentiment sumret3_ewstock spread_vwstock effspread_ewstock spread_ewstock sumvolume ofi_ewstock sumret4 sumret2_ewstock sumret2_vwstock,
+ladder,lgbm,c16_2020,20.0,0.109347217317889,0.1087406719979712,-0.0006065453199178006,87.15187781451571,161.74282020327271,sumabsret sumret sumabsret_vwstock sumautocov sumabsret_ewstock effspread_vwstock fomc_until_inv sumret3 vix sumret3_vwstock sumret3_ewstock spread_vwstock spread_ewstock effspread_ewstock sumvolume ofi_ewstock sumret2_ewstock sumbipow_ewstock stocktwits_sentiment sumpret2,sumabsret sumret sumabsret_vwstock sumabsret_ewstock sumautocov effspread_vwstock fomc_until_inv sumret3 vix sumret3_vwstock stocktwits_sentiment sumret3_ewstock spread_vwstock effspread_ewstock spread_ewstock sumvolume ofi_ewstock sumret4 sumret2_ewstock sumret2_vwstock,
+ladder,lgbm,all,10.0,0.1641813546524634,0.1639888989230862,-0.0001924557293771778,94.5516291885122,95.08392396650288,sumabsret sumret sumabsret_vwstock sumautocov sumabsret_ewstock effspread_vwstock fomc_until_inv sumret3 vix sumret3_vwstock,sumabsret sumret sumabsret_vwstock sumabsret_ewstock sumautocov effspread_vwstock fomc_until_inv sumret3 vix sumret3_vwstock,
+ladder,lgbm,c16,10.0,0.1216270858574247,0.1215825289931435,-4.455686428120331e-05,85.2635100602838,84.89845558184129,sumabsret sumret sumabsret_vwstock sumautocov sumabsret_ewstock effspread_vwstock fomc_until_inv sumret3 vix sumret3_vwstock,sumabsret sumret sumabsret_vwstock sumabsret_ewstock sumautocov effspread_vwstock fomc_until_inv sumret3 vix sumret3_vwstock,
+ladder,lgbm,c16_2020,10.0,0.1094315376493254,0.1091882119615682,-0.00024332568775720098,79.56032753412367,115.77015457035256,sumabsret sumret sumabsret_vwstock sumautocov sumabsret_ewstock effspread_vwstock fomc_until_inv sumret3 vix sumret3_vwstock,sumabsret sumret sumabsret_vwstock sumabsret_ewstock sumautocov effspread_vwstock fomc_until_inv sumret3 vix sumret3_vwstock,
+ladder,lgbm,all,5.0,0.1795371705848292,0.1795371705848292,0.0,34.26559109261043,34.185317444778704,sumabsret sumret sumabsret_vwstock sumautocov sumabsret_ewstock,sumabsret sumret sumabsret_vwstock sumabsret_ewstock sumautocov,
+ladder,lgbm,c16,5.0,0.1202930856980532,0.1202930856980532,0.0,129.55321388432816,126.79858418635531,sumabsret sumret sumabsret_vwstock sumautocov sumabsret_ewstock,sumabsret sumret sumabsret_vwstock sumabsret_ewstock sumautocov,
+ladder,lgbm,c16_2020,5.0,0.1088851252687022,0.1088851252687022,0.0,128.75507085011208,146.9041410794603,sumabsret sumret sumabsret_vwstock sumautocov sumabsret_ewstock,sumabsret sumret sumabsret_vwstock sumabsret_ewstock sumautocov,
+ladder,lgbm,all,3.0,0.1796813743682964,0.1796813743682964,0.0,33.69945544589739,33.620508078222535,sumabsret sumret sumabsret_vwstock,sumabsret sumret sumabsret_vwstock,
+ladder,lgbm,c16,3.0,0.119841418306505,0.119841418306505,0.0,144.5488755100912,141.4754000373469,sumabsret sumret sumabsret_vwstock,sumabsret sumret sumabsret_vwstock,
+ladder,lgbm,c16_2020,3.0,0.1072992439778642,0.1072992439778642,0.0,271.53555277005745,309.81068853325894,sumabsret sumret sumabsret_vwstock,sumabsret sumret sumabsret_vwstock,
+ladder,lgbm,all,1.0,0.1873775791520428,0.1873775791520428,0.0,3.4846041589092165,3.4764408125852264,sumabsret,sumabsret,
+ladder,lgbm,c16,1.0,0.1237056857902914,0.1237056857902914,0.0,16.25259222147384,15.907020916370692,sumabsret,sumabsret,
+ladder,lgbm,c16_2020,1.0,0.1106781255388203,0.1106781255388203,0.0,-32.67280154428109,-37.27829759116707,sumabsret,sumabsret,
+ladder,xgb,all,46.0,0.1645963186392124,0.1634662701324705,-0.001130048506741893,100.0,100.0,(all 46),(all 46),
+ladder,xgb,c16,46.0,0.1210831563753403,0.121108611750405,2.5455375064709074e-05,100.0,100.0,(all 46),(all 46),
+ladder,xgb,c16_2020,46.0,0.1094245185893774,0.1092861246015965,-0.00013839398778091316,100.0,100.0,(all 46),(all 46),
+ladder,xgb,all,0.0,0.1891967092252577,0.1891967092252577,0.0,0.0,0.0,,,
+ladder,xgb,c16,0.0,0.1241473497902637,0.1241473497902637,0.0,0.0,0.0,,,
+ladder,xgb,c16_2020,0.0,0.1104194488511197,0.1104194488511197,0.0,0.0,0.0,,,
+ladder,xgb,all,20.0,0.1648236982423468,0.1636087151671106,-0.001214983075236209,99.07570734562488,99.44639485503392,sumabsret stocktwits_sentiment sumabsret_vwstock sumret effspread_vwstock sumabsret_ewstock sumautocov sumret3 vix fomc_until_inv sumret3_vwstock stocktwits_sentcount sumret3_ewstock spread_vwstock spread_ewstock sumvolume effspread_ewstock ofi_ewstock sumpret2 sellturnover_ewstock,sumabsret stocktwits_sentiment sumabsret_vwstock sumret effspread_vwstock sumabsret_ewstock sumautocov fomc_until_inv vix sumret3 sumret3_vwstock sumret3_ewstock stocktwits_sentcount spread_vwstock spread_ewstock effspread_ewstock sumvolume sellturnover_ewstock ofi_ewstock sumpret2,
+ladder,xgb,c16,20.0,0.1206861003960523,0.1205198802853423,-0.0001662201107100053,112.95792809142584,119.37420920593776,sumabsret stocktwits_sentiment sumabsret_vwstock sumret effspread_vwstock sumabsret_ewstock sumautocov sumret3 vix fomc_until_inv sumret3_vwstock stocktwits_sentcount sumret3_ewstock spread_vwstock spread_ewstock sumvolume effspread_ewstock ofi_ewstock sumpret2 sellturnover_ewstock,sumabsret stocktwits_sentiment sumabsret_vwstock sumret effspread_vwstock sumabsret_ewstock sumautocov fomc_until_inv vix sumret3 sumret3_vwstock sumret3_ewstock stocktwits_sentcount spread_vwstock spread_ewstock effspread_ewstock sumvolume sellturnover_ewstock ofi_ewstock sumpret2,
+ladder,xgb,c16_2020,20.0,0.1091496144056875,0.1088181645992604,-0.0003314498064271032,127.63049776055746,141.2909193933602,sumabsret stocktwits_sentiment sumabsret_vwstock sumret effspread_vwstock sumabsret_ewstock sumautocov sumret3 vix fomc_until_inv sumret3_vwstock stocktwits_sentcount sumret3_ewstock spread_vwstock spread_ewstock sumvolume effspread_ewstock ofi_ewstock sumpret2 sellturnover_ewstock,sumabsret stocktwits_sentiment sumabsret_vwstock sumret effspread_vwstock sumabsret_ewstock sumautocov fomc_until_inv vix sumret3 sumret3_vwstock sumret3_ewstock stocktwits_sentcount spread_vwstock spread_ewstock effspread_ewstock sumvolume sellturnover_ewstock ofi_ewstock sumpret2,
+ladder,xgb,all,10.0,0.1653509123360264,0.1640287591476775,-0.0013221531883488846,96.93259465058225,97.81391598806944,sumabsret stocktwits_sentiment sumabsret_vwstock sumret effspread_vwstock sumabsret_ewstock sumautocov sumret3 vix fomc_until_inv,sumabsret stocktwits_sentiment sumabsret_vwstock sumret effspread_vwstock sumabsret_ewstock sumautocov fomc_until_inv vix sumret3,
+ladder,xgb,c16,10.0,0.1219108202235556,0.121814545065064,-9.627515849158774e-05,72.98917737423596,76.76886571335072,sumabsret stocktwits_sentiment sumabsret_vwstock sumret effspread_vwstock sumabsret_ewstock sumautocov sumret3 vix fomc_until_inv,sumabsret stocktwits_sentiment sumabsret_vwstock sumret effspread_vwstock sumabsret_ewstock sumautocov fomc_until_inv vix sumret3,
+ladder,xgb,c16_2020,10.0,0.1111531100111744,0.1110905903703046,-6.251964086979866e-05,-73.73995829313533,-59.21884398636888,sumabsret stocktwits_sentiment sumabsret_vwstock sumret effspread_vwstock sumabsret_ewstock sumautocov sumret3 vix fomc_until_inv,sumabsret stocktwits_sentiment sumabsret_vwstock sumret effspread_vwstock sumabsret_ewstock sumautocov fomc_until_inv vix sumret3,
+ladder,xgb,all,5.0,0.1798343607647539,0.1798343607647539,0.0,38.05772281442815,36.38627551882038,sumabsret stocktwits_sentiment sumabsret_vwstock sumret effspread_vwstock,sumabsret stocktwits_sentiment sumabsret_vwstock sumret effspread_vwstock,
+ladder,xgb,c16,5.0,0.1203402385995194,0.1203402385995194,0.0,124.2451332282974,125.28592925112096,sumabsret stocktwits_sentiment sumabsret_vwstock sumret effspread_vwstock,sumabsret stocktwits_sentiment sumabsret_vwstock sumret effspread_vwstock,
+ladder,xgb,c16_2020,5.0,0.1079536286016891,0.1079536286016891,0.0,247.83850127468853,217.5741188338552,sumabsret stocktwits_sentiment sumabsret_vwstock sumret effspread_vwstock,sumabsret stocktwits_sentiment sumabsret_vwstock sumret effspread_vwstock,
+ladder,xgb,all,3.0,0.1822296455791895,0.1822296455791895,0.0,28.320947269919657,27.077126903835868,sumabsret stocktwits_sentiment sumabsret_vwstock,sumabsret stocktwits_sentiment sumabsret_vwstock,
+ladder,xgb,c16,3.0,0.1228549024666424,0.1228549024666424,0.0,42.17903861181694,42.53237056529504,sumabsret stocktwits_sentiment sumabsret_vwstock,sumabsret stocktwits_sentiment sumabsret_vwstock,
+ladder,xgb,c16_2020,3.0,0.1088469774664434,0.1088469774664434,0.0,158.04840250034454,138.74858720598172,sumabsret stocktwits_sentiment sumabsret_vwstock,sumabsret stocktwits_sentiment sumabsret_vwstock,
+ladder,xgb,all,1.0,0.1881478222343995,0.1881478222343995,0.0,4.263700558693988,4.076444195436,sumabsret,sumabsret,
+ladder,xgb,c16,1.0,0.1236755012212422,0.1236755012212422,0.0,15.398785426644574,15.527780375677432,sumabsret,sumabsret,
+ladder,xgb,c16_2020,1.0,0.1108753658454161,0.1108753658454161,0.0,-45.82401519257689,-40.22829251982871,sumabsret,sumabsret,
+ladder,ridge,all,46.0,0.183939101099309,0.1824924853923527,-0.0014466157069563113,100.0,100.0,(all 46),(all 46),
+ladder,ridge,c16,46.0,0.1316612880508429,0.1328415823796731,0.0011802943288302115,,,(all 46),(all 46),
+ladder,ridge,c16_2020,46.0,0.1338588390954518,0.1345112283077822,0.0006523892123304065,,,(all 46),(all 46),
+ladder,ridge,all,0.0,0.1893497069255777,0.1893497069255777,0.0,0.0,0.0,,,
+ladder,ridge,c16,0.0,0.1269086752627581,0.1269086752627581,0.0,,,,,
+ladder,ridge,c16_2020,0.0,0.113761098590293,0.113761098590293,0.0,,,,,
+ladder,ridge,all,20.0,0.1785411422892165,0.1776119839313029,-0.0009291583579136009,199.7662550815511,171.17316302824045,fomc_day sumabsret fomc_until_inv sumret sumabsret_vwstock sumautocov turnover_ewstock sumret4 spread_vwstock buyturnover_vwstock sellturnover_vwstock sumret3 sumret2_ewstock fomc_since_inv sumret2_vwstock sumbipow sumret3_vwstock sellturnover_ewstock buyturnover_ewstock sumvolume,fomc_until_inv fomc_since_inv sumabsret fomc_day sumret sumabsret_vwstock sumautocov turnover_ewstock sumret4 sellturnover_vwstock spread_vwstock buyturnover_vwstock sumret3 sumret2_vwstock sumret3_vwstock sumret2_ewstock sumbipow sumvolume buyturnover_ewstock sellturnover_ewstock,
+ladder,ridge,c16,20.0,0.1232438184241366,0.1246073974428235,0.001363579018686889,,,fomc_day sumabsret fomc_until_inv sumret sumabsret_vwstock sumautocov turnover_ewstock sumret4 spread_vwstock buyturnover_vwstock sellturnover_vwstock sumret3 sumret2_ewstock fomc_since_inv sumret2_vwstock sumbipow sumret3_vwstock sellturnover_ewstock buyturnover_ewstock sumvolume,fomc_until_inv fomc_since_inv sumabsret fomc_day sumret sumabsret_vwstock sumautocov turnover_ewstock sumret4 sellturnover_vwstock spread_vwstock buyturnover_vwstock sumret3 sumret2_vwstock sumret3_vwstock sumret2_ewstock sumbipow sumvolume buyturnover_ewstock sellturnover_ewstock,
+ladder,ridge,c16_2020,20.0,0.1150700720351907,0.1164319347067206,0.0013618626715298926,,,fomc_day sumabsret fomc_until_inv sumret sumabsret_vwstock sumautocov turnover_ewstock sumret4 spread_vwstock buyturnover_vwstock sellturnover_vwstock sumret3 sumret2_ewstock fomc_since_inv sumret2_vwstock sumbipow sumret3_vwstock sellturnover_ewstock buyturnover_ewstock sumvolume,fomc_until_inv fomc_since_inv sumabsret fomc_day sumret sumabsret_vwstock sumautocov turnover_ewstock sumret4 sellturnover_vwstock spread_vwstock buyturnover_vwstock sumret3 sumret2_vwstock sumret3_vwstock sumret2_ewstock sumbipow sumvolume buyturnover_ewstock sellturnover_ewstock,
+ladder,ridge,all,10.0,0.1776376083292724,0.1764318235332295,-0.0012057847960428858,216.46556730195644,188.3836380341193,fomc_day sumabsret fomc_until_inv sumret sumabsret_vwstock sumautocov turnover_ewstock sumret4 spread_vwstock buyturnover_vwstock,fomc_until_inv fomc_since_inv sumabsret fomc_day sumret sumabsret_vwstock sumautocov turnover_ewstock sumret4 sellturnover_vwstock,
+ladder,ridge,c16,10.0,0.1222124443027203,0.1233277514395236,0.0011153071368033007,,,fomc_day sumabsret fomc_until_inv sumret sumabsret_vwstock sumautocov turnover_ewstock sumret4 spread_vwstock buyturnover_vwstock,fomc_until_inv fomc_since_inv sumabsret fomc_day sumret sumabsret_vwstock sumautocov turnover_ewstock sumret4 sellturnover_vwstock,
+ladder,ridge,c16_2020,10.0,0.1144034646615388,0.1152046109943771,0.0008011463328382873,,,fomc_day sumabsret fomc_until_inv sumret sumabsret_vwstock sumautocov turnover_ewstock sumret4 spread_vwstock buyturnover_vwstock,fomc_until_inv fomc_since_inv sumabsret fomc_day sumret sumabsret_vwstock sumautocov turnover_ewstock sumret4 sellturnover_vwstock,
+ladder,ridge,all,5.0,0.1779299297889224,0.1794134513282282,0.0014835215393058099,211.06281816375943,144.90206491369565,fomc_day sumabsret fomc_until_inv sumret sumabsret_vwstock,fomc_until_inv fomc_since_inv sumabsret fomc_day sumret,
+ladder,ridge,c16,5.0,0.1218158072859101,0.1267289598995155,0.004913152613605393,,,fomc_day sumabsret fomc_until_inv sumret sumabsret_vwstock,fomc_until_inv fomc_since_inv sumabsret fomc_day sumret,
+ladder,ridge,c16_2020,5.0,0.1105957150629527,0.1159987816994396,0.005403066636486903,,,fomc_day sumabsret fomc_until_inv sumret sumabsret_vwstock,fomc_until_inv fomc_since_inv sumabsret fomc_day sumret,
+ladder,ridge,all,3.0,0.184277232861477,0.1835994538361115,-0.0006777790253655047,93.75057483348036,83.8568954146332,fomc_day sumabsret fomc_until_inv,fomc_until_inv fomc_since_inv sumabsret,
+ladder,ridge,c16,3.0,0.1269670846736105,0.1280727117229014,0.0011056270492909026,,,fomc_day sumabsret fomc_until_inv,fomc_until_inv fomc_since_inv sumabsret,
+ladder,ridge,c16_2020,3.0,0.1138600735969514,0.1147603389055764,0.0009002653086249979,,,fomc_day sumabsret fomc_until_inv,fomc_until_inv fomc_since_inv sumabsret,
+ladder,ridge,all,1.0,0.1855491178561937,0.1854766072245801,-7.251063161362037e-05,70.2433182423303,56.48205592062913,fomc_day,fomc_until_inv,
+ladder,ridge,c16,1.0,0.1277235965341778,0.12810926268813,0.00038566615395219106,,,fomc_day,fomc_until_inv,
+ladder,ridge,c16_2020,1.0,0.114723209133294,0.1143629744959763,-0.00036023463731769956,,,fomc_day,fomc_until_inv,
+ladder,lasso,all,46.0,0.1835296623136244,0.1779847941451086,-0.005544868168515793,100.0,100.0,(all 46),(all 46),
+ladder,lasso,c16,46.0,0.1355399902959197,0.1365676605758352,0.001027670279915488,,,(all 46),(all 46),
+ladder,lasso,c16_2020,46.0,0.1399157599958672,0.1403355688580786,0.0004198088622114071,,,(all 46),(all 46),
+ladder,lasso,all,0.0,0.1893424167671739,0.1893424167671739,0.0,0.0,0.0,,,
+ladder,lasso,c16,0.0,0.1269108626377519,0.1269108626377519,0.0,,,,,
+ladder,lasso,c16_2020,0.0,0.1137641526349423,0.1137641526349423,0.0,,,,,
+ladder,lasso,all,20.0,0.1766066453506653,0.1735176910979432,-0.003088954252722098,219.1004543247403,139.3313213144348,fomc_until_inv fomc_day fomc_since_inv sumabsret sumret turnover_ewstock sumabsret_vwstock buyturnover_ewstock sumbipow sumret4 sumautocov sellturnover_vwstock sumret2_ewstock spread_vwstock sumret3 sumvolume sellturnover_ewstock sumbipow_vwstock sumret2_vwstock buyturnover_vwstock,fomc_until_inv fomc_since_inv sumabsret fomc_day sumret turnover_ewstock sumabsret_vwstock buyturnover_ewstock sumret4 sumautocov sumbipow sellturnover_vwstock sumret3 sumret2_ewstock spread_vwstock sumret2_vwstock sumvolume sumbipow_vwstock sumret3_vwstock vvix,
+ladder,lasso,c16,20.0,0.1240503516354297,0.1247309178237044,0.000680566188274695,,,fomc_until_inv fomc_day fomc_since_inv sumabsret sumret turnover_ewstock sumabsret_vwstock buyturnover_ewstock sumbipow sumret4 sumautocov sellturnover_vwstock sumret2_ewstock spread_vwstock sumret3 sumvolume sellturnover_ewstock sumbipow_vwstock sumret2_vwstock buyturnover_vwstock,fomc_until_inv fomc_since_inv sumabsret fomc_day sumret turnover_ewstock sumabsret_vwstock buyturnover_ewstock sumret4 sumautocov sumbipow sellturnover_vwstock sumret3 sumret2_ewstock spread_vwstock sumret2_vwstock sumvolume sumbipow_vwstock sumret3_vwstock vvix,
+ladder,lasso,c16_2020,20.0,0.1165696875391801,0.1153307301196766,-0.0012389574195035002,,,fomc_until_inv fomc_day fomc_since_inv sumabsret sumret turnover_ewstock sumabsret_vwstock buyturnover_ewstock sumbipow sumret4 sumautocov sellturnover_vwstock sumret2_ewstock spread_vwstock sumret3 sumvolume sellturnover_ewstock sumbipow_vwstock sumret2_vwstock buyturnover_vwstock,fomc_until_inv fomc_since_inv sumabsret fomc_day sumret turnover_ewstock sumabsret_vwstock buyturnover_ewstock sumret4 sumautocov sumbipow sellturnover_vwstock sumret3 sumret2_ewstock spread_vwstock sumret2_vwstock sumvolume sumbipow_vwstock sumret3_vwstock vvix,
+ladder,lasso,all,10.0,0.175923340168552,0.1717840302127788,-0.0041393099557731905,230.85572779403293,154.5956151094782,fomc_until_inv fomc_day fomc_since_inv sumabsret sumret turnover_ewstock sumabsret_vwstock buyturnover_ewstock sumbipow sumret4,fomc_until_inv fomc_since_inv sumabsret fomc_day sumret turnover_ewstock sumabsret_vwstock buyturnover_ewstock sumret4 sumautocov,
+ladder,lasso,c16,10.0,0.1241839951192928,0.1250393894896649,0.0008553943703720895,,,fomc_until_inv fomc_day fomc_since_inv sumabsret sumret turnover_ewstock sumabsret_vwstock buyturnover_ewstock sumbipow sumret4,fomc_until_inv fomc_since_inv sumabsret fomc_day sumret turnover_ewstock sumabsret_vwstock buyturnover_ewstock sumret4 sumautocov,
+ladder,lasso,c16_2020,10.0,0.1153184659569202,0.1167288659511344,0.0014103999942141898,,,fomc_until_inv fomc_day fomc_since_inv sumabsret sumret turnover_ewstock sumabsret_vwstock buyturnover_ewstock sumbipow sumret4,fomc_until_inv fomc_since_inv sumabsret fomc_day sumret turnover_ewstock sumabsret_vwstock buyturnover_ewstock sumret4 sumautocov,
+ladder,lasso,all,5.0,0.1782956740993486,0.1770847844854764,-0.0012108896138721958,190.04316724714892,107.92427860636722,fomc_until_inv fomc_day fomc_since_inv sumabsret sumret,fomc_until_inv fomc_since_inv sumabsret fomc_day sumret,
+ladder,lasso,c16,5.0,0.1277224003900675,0.1310685708959209,0.0033461705058533964,,,fomc_until_inv fomc_day fomc_since_inv sumabsret sumret,fomc_until_inv fomc_since_inv sumabsret fomc_day sumret,
+ladder,lasso,c16_2020,5.0,0.1158166127037359,0.1209268886710591,0.005110275967323191,,,fomc_until_inv fomc_day fomc_since_inv sumabsret sumret,fomc_until_inv fomc_since_inv sumabsret fomc_day sumret,
+ladder,lasso,all,3.0,0.1822686005075992,0.1821512215072437,-0.0001173790003554942,121.69473725584878,63.31602571439012,fomc_until_inv fomc_day fomc_since_inv,fomc_until_inv fomc_since_inv sumabsret,
+ladder,lasso,c16,3.0,0.1300579987496561,0.1290113761814783,-0.0010466225681778074,,,fomc_until_inv fomc_day fomc_since_inv,fomc_until_inv fomc_since_inv sumabsret,
+ladder,lasso,c16_2020,3.0,0.114696006638145,0.116241231764768,0.001545225126623001,,,fomc_until_inv fomc_day fomc_since_inv,fomc_until_inv fomc_since_inv sumabsret,
+ladder,lasso,all,1.0,0.1832629507990276,0.1815157103135228,-0.001747240485504814,104.58838433187024,68.91148538819766,fomc_until_inv,fomc_until_inv,
+ladder,lasso,c16,1.0,0.1286775249446415,0.1292767712043063,0.0005992462596648152,,,fomc_until_inv,fomc_until_inv,
+ladder,lasso,c16_2020,1.0,0.1140686816801549,0.1137609793762585,-0.0003077023038964011,,,fomc_until_inv,fomc_until_inv,
+ladder,enet,all,46.0,0.1805395151939426,0.1793978332969757,-0.0011416818969668951,100.0,100.0,(all 46),(all 46),
+ladder,enet,c16,46.0,0.1285905345746376,0.1299779078335166,0.0013873732588789989,,,(all 46),(all 46),
+ladder,enet,c16_2020,46.0,0.1279234267557289,0.1289975689223231,0.0010741421665942108,,,(all 46),(all 46),
+ladder,enet,all,0.0,0.1893434561640067,0.1893434561640067,0.0,0.0,0.0,,,
+ladder,enet,c16,0.0,0.126907528982532,0.126907528982532,0.0,,,,,
+ladder,enet,c16_2020,0.0,0.1137608767740192,0.1137608767740192,0.0,,,,,
+ladder,enet,all,20.0,0.1783755976369521,0.1773864935776677,-0.0009891040592844014,124.57896485617464,120.22336605961046,sumabsret fomc_day sumret sumabsret_vwstock fomc_until_inv sumautocov sumret4 sumret2_ewstock sumret3_vwstock sumret3 sumvolume spread_vwstock sellturnover_vwstock buyturnover_vwstock vix ofi_ewstock numobs sumret3_ewstock turnover_vwstock effspread_vwstock,fomc_until_inv fomc_since_inv sumabsret sumret fomc_day sumabsret_vwstock sumautocov sumret4 sumret2_ewstock sumret3_vwstock sumret3 sumvolume spread_vwstock sellturnover_vwstock buyturnover_vwstock ofi_ewstock vix numobs sumret2_vwstock sumret3_ewstock,
+ladder,enet,c16,20.0,0.1244970087698767,0.1260712954567946,0.0015742866869179056,,,sumabsret fomc_day sumret sumabsret_vwstock fomc_until_inv sumautocov sumret4 sumret2_ewstock sumret3_vwstock sumret3 sumvolume spread_vwstock sellturnover_vwstock buyturnover_vwstock vix ofi_ewstock numobs sumret3_ewstock turnover_vwstock effspread_vwstock,fomc_until_inv fomc_since_inv sumabsret sumret fomc_day sumabsret_vwstock sumautocov sumret4 sumret2_ewstock sumret3_vwstock sumret3 sumvolume spread_vwstock sellturnover_vwstock buyturnover_vwstock ofi_ewstock vix numobs sumret2_vwstock sumret3_ewstock,
+ladder,enet,c16_2020,20.0,0.1178042219426819,0.1205388566056544,0.002734634662972496,,,sumabsret fomc_day sumret sumabsret_vwstock fomc_until_inv sumautocov sumret4 sumret2_ewstock sumret3_vwstock sumret3 sumvolume spread_vwstock sellturnover_vwstock buyturnover_vwstock vix ofi_ewstock numobs sumret3_ewstock turnover_vwstock effspread_vwstock,fomc_until_inv fomc_since_inv sumabsret sumret fomc_day sumabsret_vwstock sumautocov sumret4 sumret2_ewstock sumret3_vwstock sumret3 sumvolume spread_vwstock sellturnover_vwstock buyturnover_vwstock ofi_ewstock vix numobs sumret2_vwstock sumret3_ewstock,
+ladder,enet,all,10.0,0.177567366439538,0.1764019094288241,-0.0011654570107138829,133.75929898338336,130.12303913194648,sumabsret fomc_day sumret sumabsret_vwstock fomc_until_inv sumautocov sumret4 sumret2_ewstock sumret3_vwstock sumret3,fomc_until_inv fomc_since_inv sumabsret sumret fomc_day sumabsret_vwstock sumautocov sumret4 sumret2_ewstock sumret3_vwstock,
+ladder,enet,c16,10.0,0.1213547668227365,0.1225917328252409,0.0012369660025043916,,,sumabsret fomc_day sumret sumabsret_vwstock fomc_until_inv sumautocov sumret4 sumret2_ewstock sumret3_vwstock sumret3,fomc_until_inv fomc_since_inv sumabsret sumret fomc_day sumabsret_vwstock sumautocov sumret4 sumret2_ewstock sumret3_vwstock,
+ladder,enet,c16_2020,10.0,0.1126672979605181,0.1133798489683547,0.0007125510078365982,,,sumabsret fomc_day sumret sumabsret_vwstock fomc_until_inv sumautocov sumret4 sumret2_ewstock sumret3_vwstock sumret3,fomc_until_inv fomc_since_inv sumabsret sumret fomc_day sumabsret_vwstock sumautocov sumret4 sumret2_ewstock sumret3_vwstock,
+ladder,enet,all,5.0,0.1777624836776781,0.1795276856692939,0.0017652019916157835,131.5430501602315,98.69437667148388,sumabsret fomc_day sumret sumabsret_vwstock fomc_until_inv,fomc_until_inv fomc_since_inv sumabsret sumret fomc_day,
+ladder,enet,c16,5.0,0.1217898240229055,0.1268722017639657,0.0050823777410601845,,,sumabsret fomc_day sumret sumabsret_vwstock fomc_until_inv,fomc_until_inv fomc_since_inv sumabsret sumret fomc_day,
+ladder,enet,c16_2020,5.0,0.1108548481441485,0.1163798882575803,0.005525040113431801,,,sumabsret fomc_day sumret sumabsret_vwstock fomc_until_inv,fomc_until_inv fomc_since_inv sumabsret sumret fomc_day,
+ladder,enet,all,3.0,0.1813629020100056,0.1836176417361655,0.002254739726159888,90.64752002696478,57.571199957941324,sumabsret fomc_day sumret,fomc_until_inv fomc_since_inv sumabsret,
+ladder,enet,c16,3.0,0.1251026019929194,0.1283761798652514,0.003273577872332012,,,sumabsret fomc_day sumret,fomc_until_inv fomc_since_inv sumabsret,
+ladder,enet,c16_2020,3.0,0.1155650461064409,0.1151664027251497,-0.00039864338129119714,,,sumabsret fomc_day sumret,fomc_until_inv fomc_since_inv sumabsret,
+ladder,enet,all,1.0,0.1895072556437061,0.1838756648356591,-0.00563159080804701,-1.860524511197928,54.97686169533807,sumabsret,fomc_until_inv,
+ladder,enet,c16,1.0,0.1267834106661255,0.128169695849418,0.0013862851832925072,,,sumabsret,fomc_until_inv,
+ladder,enet,c16_2020,1.0,0.1142624199820926,0.1139873554242927,-0.0002750645577999089,,,sumabsret,fomc_until_inv,
+ladder,rf_skx,all,46.0,0.1706680302050167,0.1701784205912603,-0.0004896096137564088,100.0,100.0,(all 46),(all 46),
+ladder,rf_skx,c16,46.0,0.12415293605117,0.1243127043019572,0.00015976825078720114,100.0,100.0,(all 46),(all 46),
+ladder,rf_skx,c16_2020,46.0,0.1104294878473348,0.1107018721901807,0.0002723843428458911,100.0,100.0,(all 46),(all 46),
+ladder,rf_skx,all,0.0,0.1902815527758085,0.1902815527758085,0.0,0.0,0.0,,,
+ladder,rf_skx,c16,0.0,0.1278195387012341,0.1278195387012341,0.0,0.0,0.0,,,
+ladder,rf_skx,c16_2020,0.0,0.1137560929905828,0.1137560929905828,0.0,0.0,0.0,,,
+ladder,rf_skx,all,20.0,0.1706486305452392,0.1700601786172395,-0.0005884519279997225,100.09890961558548,100.58817687181929,sumabsret sumabsret_vwstock sumret sumabsret_ewstock effspread_vwstock sumret3 sumautocov fomc_until_inv sumret3_vwstock sumret3_ewstock spread_vwstock effspread_ewstock vix sumvolume spread_ewstock sumret2_vwstock sellturnover_ewstock stocktwits_sentcount sellturnover_vwstock stocktwits_sentiment,sumabsret sumabsret_vwstock sumret sumabsret_ewstock effspread_vwstock sumret3 fomc_until_inv sumautocov sumret3_vwstock sumret3_ewstock spread_vwstock effspread_ewstock sumvolume vix spread_ewstock stocktwits_sentcount sumret2_vwstock sellturnover_ewstock sellturnover_vwstock ofi_ewstock,
+ladder,rf_skx,c16,20.0,0.1238353469594964,0.1239876119440596,0.00015226498456320792,108.6616719067742,109.2702511976241,sumabsret sumabsret_vwstock sumret sumabsret_ewstock effspread_vwstock sumret3 sumautocov fomc_until_inv sumret3_vwstock sumret3_ewstock spread_vwstock effspread_ewstock vix sumvolume spread_ewstock sumret2_vwstock sellturnover_ewstock stocktwits_sentcount sellturnover_vwstock stocktwits_sentiment,sumabsret sumabsret_vwstock sumret sumabsret_ewstock effspread_vwstock sumret3 fomc_until_inv sumautocov sumret3_vwstock sumret3_ewstock spread_vwstock effspread_ewstock sumvolume vix spread_ewstock stocktwits_sentcount sumret2_vwstock sellturnover_ewstock sellturnover_vwstock ofi_ewstock,
+ladder,rf_skx,c16_2020,20.0,0.1104961920636298,0.1103008284186743,-0.00019536364495550962,97.99482615391418,113.1308048014585,sumabsret sumabsret_vwstock sumret sumabsret_ewstock effspread_vwstock sumret3 sumautocov fomc_until_inv sumret3_vwstock sumret3_ewstock spread_vwstock effspread_ewstock vix sumvolume spread_ewstock sumret2_vwstock sellturnover_ewstock stocktwits_sentcount sellturnover_vwstock stocktwits_sentiment,sumabsret sumabsret_vwstock sumret sumabsret_ewstock effspread_vwstock sumret3 fomc_until_inv sumautocov sumret3_vwstock sumret3_ewstock spread_vwstock effspread_ewstock sumvolume vix spread_ewstock stocktwits_sentcount sumret2_vwstock sellturnover_ewstock sellturnover_vwstock ofi_ewstock,
+ladder,rf_skx,all,10.0,0.1710478960356772,0.1705657249360047,-0.00048217109967249594,98.06324524679655,98.0734129329256,sumabsret sumabsret_vwstock sumret sumabsret_ewstock effspread_vwstock sumret3 sumautocov fomc_until_inv sumret3_vwstock sumret3_ewstock,sumabsret sumabsret_vwstock sumret sumabsret_ewstock effspread_vwstock sumret3 fomc_until_inv sumautocov sumret3_vwstock sumret3_ewstock,
+ladder,rf_skx,c16,10.0,0.1232207779461415,0.123314704304713,9.39263585715e-05,125.42293763444157,128.45871471575796,sumabsret sumabsret_vwstock sumret sumabsret_ewstock effspread_vwstock sumret3 sumautocov fomc_until_inv sumret3_vwstock sumret3_ewstock,sumabsret sumabsret_vwstock sumret sumabsret_ewstock effspread_vwstock sumret3 fomc_until_inv sumautocov sumret3_vwstock sumret3_ewstock,
+ladder,rf_skx,c16_2020,10.0,0.1107393285748195,0.1108755220846359,0.0001361935098164041,90.6859782227677,94.31442892300498,sumabsret sumabsret_vwstock sumret sumabsret_ewstock effspread_vwstock sumret3 sumautocov fomc_until_inv sumret3_vwstock sumret3_ewstock,sumabsret sumabsret_vwstock sumret sumabsret_ewstock effspread_vwstock sumret3 fomc_until_inv sumautocov sumret3_vwstock sumret3_ewstock,
+ladder,rf_skx,all,5.0,0.1823106760437709,0.1823106760437709,0.0,40.639699999161685,39.64992449367793,sumabsret sumabsret_vwstock sumret sumabsret_ewstock effspread_vwstock,sumabsret sumabsret_vwstock sumret sumabsret_ewstock effspread_vwstock,
+ladder,rf_skx,c16,5.0,0.1218080617468262,0.1218080617468262,0.0,163.95223393794402,171.42175164152266,sumabsret sumabsret_vwstock sumret sumabsret_ewstock effspread_vwstock,sumabsret sumabsret_vwstock sumret sumabsret_ewstock effspread_vwstock,
+ladder,rf_skx,c16_2020,5.0,0.1083904133001263,0.1083904133001263,0.0,161.29595967670429,175.68080505999976,sumabsret sumabsret_vwstock sumret sumabsret_ewstock effspread_vwstock,sumabsret sumabsret_vwstock sumret sumabsret_ewstock effspread_vwstock,
+ladder,rf_skx,all,3.0,0.1818092223335104,0.1818092223335104,0.0,43.196373378207134,42.14433036862876,sumabsret sumabsret_vwstock sumret,sumabsret sumabsret_vwstock sumret,
+ladder,rf_skx,c16,3.0,0.1203970596110611,0.1203970596110611,0.0,202.43478223753857,211.65753055529387,sumabsret sumabsret_vwstock sumret,sumabsret sumabsret_vwstock sumret,
+ladder,rf_skx,c16_2020,3.0,0.1081501157315667,0.1081501157315667,0.0,168.5194670727454,183.54852597028767,sumabsret sumabsret_vwstock sumret,sumabsret sumabsret_vwstock sumret,
+ladder,rf_skx,all,1.0,0.189134431591918,0.189134431591918,0.0,5.848623977412372,5.70618137193676,sumabsret,sumabsret,
+ladder,rf_skx,c16,1.0,0.1257849093023938,0.1257849093023938,0.0,55.49086151467082,58.01897572522529,sumabsret,sumabsret,
+ladder,rf_skx,c16_2020,1.0,0.1128071513057049,0.1128071513057049,0.0,28.52582870569828,31.06984553156491,sumabsret,sumabsret,
+grid,enet,all,0.0,0.0,0.0,0.0,,,,,1000.0
+grid,enet,all,1.0,0.0039207930366511,0.0039207930366511,0.0,,,,,1000.0
+grid,enet,all,3.0,0.0067187572195689,0.0067187572195689,0.0,,,,,1000.0
+grid,enet,all,5.0,0.0069754066720583,0.0069754066720583,0.0,,,,,1000.0
+grid,enet,all,10.0,0.010720532252525,0.0109476588054028,0.0002271265528778002,,,,,1000.0
+grid,enet,all,20.0,0.0110062656235581,0.011038543485275,3.227786171689992e-05,,,,,1000.0
+grid,enet,all,46.0,0.0112174245985172,0.0113122260986522,9.480150013499965e-05,,,,,1000.0
+grid,enet,all,0.0,0.0,0.0,0.0,,,,,2000.0
+grid,enet,all,1.0,0.0040364579110585,0.0057168229627218,0.0016803650516633,,,,,2000.0
+grid,enet,all,3.0,0.0055492460995205,0.004575616508776,-0.0009736295907445004,,,,,2000.0
+grid,enet,all,5.0,0.0105686101399226,0.0107379793123577,0.0001693691724351,,,,,2000.0
+grid,enet,all,10.0,0.0111061473644316,0.0121765537600463,0.0010704063956147002,,,,,2000.0
+grid,enet,all,20.0,0.0105133530674687,0.0115266359696218,0.0010132829021530995,,,,,2000.0
+grid,enet,all,46.0,0.0081354899177064,0.0091155818451899,0.0009800919274835004,,,,,2000.0
+grid,enet,all,0.0,0.0,0.0,0.0,,,,,3000.0
+grid,enet,all,1.0,-0.0001637994796994,0.0054677913283475,0.0056315908080469,,,,,3000.0
+grid,enet,all,3.0,0.007980554154001,0.0057258144278411,-0.0022547397261599,,,,,3000.0
+grid,enet,all,5.0,0.0115809724863285,0.0098157704947128,-0.0017652019916157002,,,,,3000.0
+grid,enet,all,10.0,0.0117760897244686,0.0129415467351825,0.0011654570107139002,,,,,3000.0
+grid,enet,all,20.0,0.0109678585270545,0.0119569625863389,0.0009891040592844014,,,,,3000.0
+grid,enet,all,46.0,0.008803940970064,0.0099456228670309,0.0011416818969669004,,,,,3000.0
+grid,enet,all,0.0,0.0,0.0,0.0,,,,,3500.0
+grid,enet,all,1.0,0.0038802680362624,0.0054008892845012,0.0015206212482388004,,,,,3500.0
+grid,enet,all,3.0,0.0084170753609339,0.0059590207626611,-0.0024580545982728005,,,,,3500.0
+grid,enet,all,5.0,0.0118677929603489,0.0103207207997202,-0.0015470721606286996,,,,,3500.0
+grid,enet,all,10.0,0.0122549737156942,0.0136842520399275,0.001429278324233299,,,,,3500.0
+grid,enet,all,20.0,0.0120413033496954,0.0131625257009465,0.0011212223512510992,,,,,3500.0
+grid,enet,all,46.0,0.0120767099023502,0.0132188074184222,0.001142097516072001,,,,,3500.0
+grid,enet,c16,0.0,0.0,0.0,0.0,,,,,1000.0
+grid,enet,c16,1.0,0.0024734012895555,0.0024734012895555,0.0,,,,,1000.0
+grid,enet,c16,3.0,0.0041932043269683,0.0041932043269683,0.0,,,,,1000.0
+grid,enet,c16,5.0,0.0044553099089815,0.0044553099089815,0.0,,,,,1000.0
+grid,enet,c16,10.0,0.0049662615788808,0.0048420292527185,-0.0001242323261622996,,,,,1000.0
+grid,enet,c16,20.0,0.005198004288686,0.0050471215327503,-0.0001508827559356992,,,,,1000.0
+grid,enet,c16,46.0,0.0058700410553372,0.0055379821757838,-0.00033205887955340026,,,,,1000.0
+grid,enet,c16,0.0,0.0,0.0,0.0,,,,,2000.0
+grid,enet,c16,1.0,-0.0007745726210879,-0.0011008434253825,-0.00032627080429460003,,,,,2000.0
+grid,enet,c16,3.0,0.0003453361436836,-0.0018828477708557,-0.0022281839145393,,,,,2000.0
+grid,enet,c16,5.0,0.0048239832158209,0.0036289905665504,-0.0011949926492705,,,,,2000.0
+grid,enet,c16,10.0,0.0058612421594754,0.0046393767291976,-0.0012218654302778003,,,,,2000.0
+grid,enet,c16,20.0,0.0023441342218784,0.0011416536535036,-0.0012024805683748,,,,,2000.0
+grid,enet,c16,46.0,-0.0048912467106717,-0.0062825552882754,-0.0013913085776037,,,,,2000.0
+grid,enet,c16,0.0,0.0,0.0,0.0,,,,,3000.0
+grid,enet,c16,1.0,0.0001241183164064,-0.001262166866886,-0.0013862851832924,,,,,3000.0
+grid,enet,c16,3.0,0.0018049269896126,-0.0014686508827193,-0.0032735778723319,,,,,3000.0
+grid,enet,c16,5.0,0.0051177049596265,3.532721856636112e-05,-0.0050823777410601385,,,,,3000.0
+grid,enet,c16,10.0,0.0055527621597955,0.004315796157291,-0.0012369660025045,,,,,3000.0
+grid,enet,c16,20.0,0.0024105202126553,0.0008362335257373,-0.0015742866869179997,,,,,3000.0
+grid,enet,c16,46.0,-0.0016830055921055,-0.0030703788509846,-0.0013873732588791,,,,,3000.0
+grid,enet,c16,0.0,0.0,0.0,0.0,,,,,3500.0
+grid,enet,c16,1.0,-0.000902695866859,-0.0010666626090263,-0.00016396674216730004,,,,,3500.0
+grid,enet,c16,3.0,0.0022444640327061,-0.0011498850403647,-0.0033943490730708,,,,,3500.0
+grid,enet,c16,5.0,0.0054147267165625,0.0003134538979029,-0.005101272818659601,,,,,3500.0
+grid,enet,c16,10.0,0.0050390711917873,0.0043018639774241,-0.0007372072143631992,,,,,3500.0
+grid,enet,c16,20.0,0.0048874824665882,0.0035911996943756,-0.0012962827722125996,,,,,3500.0
+grid,enet,c16,46.0,0.0048295918940018,0.0033748594626854,-0.0014547324313164,,,,,3500.0
+grid,enet,c16_2020,0.0,0.0,0.0,0.0,,,,,1000.0
+grid,enet,c16_2020,1.0,-0.0001387445848316,-0.0001387445848316,0.0,,,,,1000.0
+grid,enet,c16_2020,3.0,-9.771413395549822e-05,-9.771413395549822e-05,0.0,,,,,1000.0
+grid,enet,c16_2020,5.0,3.635065216632538e-05,3.635065216632538e-05,0.0,,,,,1000.0
+grid,enet,c16_2020,10.0,0.0017144099766676,0.0011459057202551,-0.0005685042564125,,,,,1000.0
+grid,enet,c16_2020,20.0,0.0025435642666994,0.0021169650213131,-0.0004265992453863,,,,,1000.0
+grid,enet,c16_2020,46.0,0.0040404284061099,0.0032536272174525,-0.0007868011886573998,,,,,1000.0
+grid,enet,c16_2020,0.0,0.0,0.0,0.0,,,,,2000.0
+grid,enet,c16_2020,1.0,-0.0013798255866486,-0.0003563728411124,0.0010234527455362,,,,,2000.0
+grid,enet,c16_2020,3.0,-0.0053665456637675,-0.0026715170469514,0.0026950286168161,,,,,2000.0
+grid,enet,c16_2020,5.0,0.001491980730465,6.796058181571252e-05,-0.0014240201486492876,,,,,2000.0
+grid,enet,c16_2020,10.0,0.0003624476600354,-0.0006788478187515,-0.0010412954787869,,,,,2000.0
+grid,enet,c16_2020,20.0,-0.0040577804557266,-0.0046343596582826,-0.0005765792025559996,,,,,2000.0
+grid,enet,c16_2020,46.0,-0.0070852653485742,-0.0078388729593894,-0.0007536076108151995,,,,,2000.0
+grid,enet,c16_2020,0.0,0.0,0.0,0.0,,,,,3000.0
+grid,enet,c16_2020,1.0,-0.0005015432080733,-0.0002264786502734,0.0002750645577999,,,,,3000.0
+grid,enet,c16_2020,3.0,-0.0018041693324216,-0.0014055259511304,0.00039864338129119996,,,,,3000.0
+grid,enet,c16_2020,5.0,0.0029060286298706,-0.002619011483561,-0.005525040113431599,,,,,3000.0
+grid,enet,c16_2020,10.0,0.001093578813501,0.0003810278056644,-0.0007125510078366001,,,,,3000.0
+grid,enet,c16_2020,20.0,-0.0040433451686626,-0.0067779798316352,-0.0027346346629726,,,,,3000.0
+grid,enet,c16_2020,46.0,-0.0141625499817096,-0.0152366921483038,-0.0010741421665941987,,,,,3000.0
+grid,enet,c16_2020,0.0,0.0,0.0,0.0,,,,,3500.0
+grid,enet,c16_2020,1.0,-0.0010374596523964,-0.0002897310896119,0.0007477285627845,,,,,3500.0
+grid,enet,c16_2020,3.0,-0.0009309225609984,-0.0011330448392643,-0.0002021222782658999,,,,,3500.0
+grid,enet,c16_2020,5.0,0.0034984630423873,-0.0017389524113867,-0.005237415453774,,,,,3500.0
+grid,enet,c16_2020,10.0,0.0009452456477525,0.0006151633469326,-0.0003300823008199,,,,,3500.0
+grid,enet,c16_2020,20.0,-0.0012729656091408,-0.0020671601832003,-0.0007941945740595003,,,,,3500.0
+grid,enet,c16_2020,46.0,-0.0008639308060994,-0.0019330225550708,-0.0010690917489714,,,,,3500.0
+grid,lasso,all,0.0,0.0,0.0,0.0,,,,,1000.0
+grid,lasso,all,1.0,0.0033581249698695,0.0038098588267776,0.0004517338569081002,,,,,1000.0
+grid,lasso,all,3.0,0.006426735282049,0.0067550877991876,0.0003283525171385998,,,,,1000.0
+grid,lasso,all,5.0,0.0055529577419982,0.0111949045190399,0.0056419467770417,,,,,1000.0
+grid,lasso,all,10.0,0.0042139185202348,-0.0518778788365654,-0.0560917973568002,,,,,1000.0
+grid,lasso,all,20.0,0.0099662542799978,0.0101111170027746,0.0001448627227767993,,,,,1000.0
+grid,lasso,all,46.0,0.0082586741750297,0.0093473006927318,0.0010886265177021005,,,,,1000.0
+grid,lasso,all,0.0,0.0,0.0,0.0,,,,,2000.0
+grid,lasso,all,1.0,0.0064683537430743,0.0080766012083963,0.0016082474653219998,,,,,2000.0
+grid,lasso,all,3.0,0.0074902308627172,0.0056077769895795,-0.0018824538731377002,,,,,2000.0
+grid,lasso,all,5.0,0.0087772044035737,-8.35934623703241,-8.368123441435984,,,,,2000.0
+grid,lasso,all,10.0,0.0114971418396774,0.0143052170596473,0.0028080752199699,,,,,2000.0
+grid,lasso,all,20.0,0.0098039924612941,0.01290086048357,0.0030968680222759008,,,,,2000.0
+grid,lasso,all,46.0,0.0043732792202935,0.00869628983589,0.0043230106155965,,,,,2000.0
+grid,lasso,all,0.0,0.0,0.0,0.0,,,,,3000.0
+grid,lasso,all,1.0,0.0060794659681463,0.0078267064536511,0.0017472404855048002,,,,,3000.0
+grid,lasso,all,3.0,0.0070738162595747,0.0071911952599302,0.0001173790003554994,,,,,3000.0
+grid,lasso,all,5.0,0.0110467426678252,0.0122576322816975,0.0012108896138723,,,,,3000.0
+grid,lasso,all,10.0,0.0134190765986219,0.017558386554395,0.0041393099557731,,,,,3000.0
+grid,lasso,all,20.0,0.0127357714165086,0.0158247256692307,0.0030889542527221,,,,,3000.0
+grid,lasso,all,46.0,0.0058127544535495,0.0113576226220653,0.0055448681685158,,,,,3000.0
+grid,lasso,all,0.0,0.0,0.0,0.0,,,,,3500.0
+grid,lasso,all,1.0,0.0061846344802596,0.0080089871541476,0.0018243526738879997,,,,,3500.0
+grid,lasso,all,3.0,0.0069381696022536,0.0109908361908148,0.0040526665885612,,,,,3500.0
+grid,lasso,all,5.0,0.0066566835538504,0.0102462788152585,0.003589595261408101,,,,,3500.0
+grid,lasso,all,10.0,0.0147641473716799,0.0183223838200334,0.0035582364483534995,,,,,3500.0
+grid,lasso,all,20.0,0.0142683951059942,0.0181614252090291,0.0038930301030349022,,,,,3500.0
+grid,lasso,all,46.0,0.0133378724180706,0.0175093688301178,0.004171496412047199,,,,,3500.0
+grid,lasso,c16,0.0,0.0,0.0,0.0,,,,,1000.0
+grid,lasso,c16,1.0,0.0015345423240933,-0.0018244780839129,-0.0033590204080062,,,,,1000.0
+grid,lasso,c16,3.0,0.0031727601209037,-0.0006613273658868,-0.0038340874867905,,,,,1000.0
+grid,lasso,c16,5.0,-0.0017697001449251,0.0013468515692636,0.0031165517141887,,,,,1000.0
+grid,lasso,c16,10.0,0.0026764292473449,-0.0024971729462662,-0.0051736021936111005,,,,,1000.0
+grid,lasso,c16,20.0,0.0038206089300924,0.002542569812577,-0.0012780391175153997,,,,,1000.0
+grid,lasso,c16,46.0,0.0043286230178528,0.0032521699585793,-0.0010764530592735,,,,,1000.0
+grid,lasso,c16,0.0,0.0,0.0,0.0,,,,,2000.0
+grid,lasso,c16,1.0,-0.0011977963831624,-0.0018234778684157,-0.0006256814852533001,,,,,2000.0
+grid,lasso,c16,3.0,-0.0019980758303325,-0.0025882652903777,-0.0005901894600451999,,,,,2000.0
+grid,lasso,c16,5.0,-0.0011147929678886,-0.0072918395603633,-0.0061770465924747,,,,,2000.0
+grid,lasso,c16,10.0,0.0016857024962016,-0.0002892746353861,-0.0019749771315877,,,,,2000.0
+grid,lasso,c16,20.0,0.0010774530801237,-0.0006625008453499,-0.0017399539254736,,,,,2000.0
+grid,lasso,c16,46.0,-0.0177069238921903,-0.0199558736441307,-0.002248949751940399,,,,,2000.0
+grid,lasso,c16,0.0,0.0,0.0,0.0,,,,,3000.0
+grid,lasso,c16,1.0,-0.0017666623068896,-0.0023659085665544,-0.0005992462596648002,,,,,3000.0
+grid,lasso,c16,3.0,-0.0031471361119042,-0.0021005135437263,0.0010466225681778998,,,,,3000.0
+grid,lasso,c16,5.0,-0.0008115377523155,-0.004157708258169,-0.0033461705058534996,,,,,3000.0
+grid,lasso,c16,10.0,0.0027268675184591,0.0018714731480869,-0.0008553943703721999,,,,,3000.0
+grid,lasso,c16,20.0,0.0028605110023221,0.0021799448140474,-0.0006805661882747002,,,,,3000.0
+grid,lasso,c16,46.0,-0.0086291276581678,-0.0096567979380833,-0.0010276702799155001,,,,,3000.0
+grid,lasso,c16,0.0,0.0,0.0,0.0,,,,,3500.0
+grid,lasso,c16,1.0,-0.0013294963580325,-0.0018209828919629,-0.0004914865339304001,,,,,3500.0
+grid,lasso,c16,3.0,-0.0036581552762268,-0.0047947957797947,-0.0011366405035679004,,,,,3500.0
+grid,lasso,c16,5.0,-0.0030718216781018,-0.004427194860729,-0.0013553731826271998,,,,,3500.0
+grid,lasso,c16,10.0,0.0041267585125344,0.0014667607250533,-0.0026599977874810997,,,,,3500.0
+grid,lasso,c16,20.0,0.0037315489591343,0.0022861287501917,-0.0014454202089426,,,,,3500.0
+grid,lasso,c16,46.0,0.002784523207535,0.00119439525117,-0.0015901279563650002,,,,,3500.0
+grid,lasso,c16_2020,0.0,0.0,0.0,0.0,,,,,1000.0
+grid,lasso,c16_2020,1.0,-0.0012907672625179,-0.0025672735434353,-0.0012765062809174,,,,,1000.0
+grid,lasso,c16_2020,3.0,0.0004487329266852,-0.0045275921549979,-0.004976325081683101,,,,,1000.0
+grid,lasso,c16_2020,5.0,-0.0085533420948435,-0.0029342104556508,0.0056191316391927,,,,,1000.0
+grid,lasso,c16_2020,10.0,-0.0034863497341089,-0.0097994549113919,-0.006313105177283,,,,,1000.0
+grid,lasso,c16_2020,20.0,-0.0031005671792691,-0.005105170196227,-0.0020046030169579,,,,,1000.0
+grid,lasso,c16_2020,46.0,0.0008675229377743,-0.0005757038422152,-0.0014432267799895,,,,,1000.0
+grid,lasso,c16_2020,0.0,0.0,0.0,0.0,,,,,2000.0
+grid,lasso,c16_2020,1.0,-0.0001658648400274,7.33609080913189e-05,0.0002392257481187189,,,,,2000.0
+grid,lasso,c16_2020,3.0,-0.000891915067512,-0.0042143918102801,-0.0033224767427680996,,,,,2000.0
+grid,lasso,c16_2020,5.0,-0.0052890228461532,-0.0181622329497876,-0.0128732101036344,,,,,2000.0
+grid,lasso,c16_2020,10.0,-0.0014250008123389,-0.0042404266609781,-0.0028154258486391996,,,,,2000.0
+grid,lasso,c16_2020,20.0,-0.0019645009754028,-0.0040661319254028,-0.0021016309500000003,,,,,2000.0
+grid,lasso,c16_2020,46.0,-0.0171385601476109,-0.0181853701249997,-0.001046809977388801,,,,,2000.0
+grid,lasso,c16_2020,0.0,0.0,0.0,0.0,,,,,3000.0
+grid,lasso,c16_2020,1.0,-0.0003045290452126,3.173258683722424e-06,0.0003077023038963224,,,,,3000.0
+grid,lasso,c16_2020,3.0,-0.0009318540032026,-0.0024770791298257,-0.0015452251266231001,,,,,3000.0
+grid,lasso,c16_2020,5.0,-0.0020524600687936,-0.0071627360361168,-0.0051102759673232,,,,,3000.0
+grid,lasso,c16_2020,10.0,-0.0015543133219779,-0.002964713316192,-0.0014103999942141,,,,,3000.0
+grid,lasso,c16_2020,20.0,-0.0028055349042378,-0.0015665774847343,0.0012389574195034998,,,,,3000.0
+grid,lasso,c16_2020,46.0,-0.0261516073609248,-0.0265714162231362,-0.0004198088622114002,,,,,3000.0
+grid,lasso,c16_2020,0.0,0.0,0.0,0.0,,,,,3500.0
+grid,lasso,c16_2020,1.0,-0.0003867423474712,-6.164035700086112e-05,0.0003251019904703389,,,,,3500.0
+grid,lasso,c16_2020,3.0,-0.0018289117203328,-0.0021900870521865,-0.00036117533185370016,,,,,3500.0
+grid,lasso,c16_2020,5.0,-0.0028468999706389,-0.0039558708991736,-0.0011089709285347004,,,,,3500.0
+grid,lasso,c16_2020,10.0,0.000329671566544,-0.0023347161056368,-0.0026643876721807996,,,,,3500.0
+grid,lasso,c16_2020,20.0,0.0003093640682634,-0.0008722602348814,-0.0011816243031447999,,,,,3500.0
+grid,lasso,c16_2020,46.0,-0.0015086649126186,-0.0024780857391932,-0.0009694208265745997,,,,,3500.0
+grid,lgbm,all,0.0,0.0,0.0,0.0,,,,,1000.0
+grid,lgbm,all,1.0,-0.0009157052329376,-0.0009157052329376,0.0,,,,,1000.0
+grid,lgbm,all,3.0,0.0034461825735128,0.0034461825735128,0.0,,,,,1000.0
+grid,lgbm,all,5.0,0.006056885566563,0.006056885566563,0.0,,,,,1000.0
+grid,lgbm,all,10.0,0.0060037937526565,0.0060037937526565,0.0,,,,,1000.0
+grid,lgbm,all,20.0,0.0152657901265469,0.0158133623595624,0.0005475722330155024,,,,,1000.0
+grid,lgbm,all,46.0,0.0158475645262504,0.01567311570887,-0.00017444881738040013,,,,,1000.0
+grid,lgbm,all,0.0,0.0,0.0,0.0,,,,,2000.0
+grid,lgbm,all,1.0,0.0002530669340897,0.0002530669340897,0.0,,,,,2000.0
+grid,lgbm,all,3.0,0.0052233162869105,0.0052233162869105,0.0,,,,,2000.0
+grid,lgbm,all,5.0,0.00720741166119,0.00720741166119,0.0,,,,,2000.0
+grid,lgbm,all,10.0,0.022205390561217,0.0223246382039006,0.00011924764268360019,,,,,2000.0
+grid,lgbm,all,20.0,0.0230506607940278,0.023260730023248,0.00021006922922020208,,,,,2000.0
+grid,lgbm,all,46.0,0.0230784620376353,0.0232289509765524,0.00015048893891710102,,,,,2000.0
+grid,lgbm,all,0.0,0.0,0.0,0.0,,,,,3000.0
+grid,lgbm,all,1.0,0.0008875842857055,0.0008875842857055,0.0,,,,,3000.0
+grid,lgbm,all,3.0,0.0085837890694518,0.0085837890694518,0.0,,,,,3000.0
+grid,lgbm,all,5.0,0.008727992852919,0.008727992852919,0.0,,,,,3000.0
+grid,lgbm,all,10.0,0.0240838087852848,0.024276264514662,0.00019245572937719863,,,,,3000.0
+grid,lgbm,all,20.0,0.0244614703712039,0.0245773094289823,0.00011583905777839965,,,,,3000.0
+grid,lgbm,all,46.0,0.0254715957746934,0.0255314079414879,5.981216679450119e-05,,,,,3000.0
+grid,lgbm,all,0.0,0.0,0.0,0.0,,,,,3500.0
+grid,lgbm,all,1.0,0.0004223355842776,0.0004223355842776,0.0,,,,,3500.0
+grid,lgbm,all,3.0,0.0082153672600979,0.0082153672600979,0.0,,,,,3500.0
+grid,lgbm,all,5.0,0.00778309832809,0.00778309832809,0.0,,,,,3500.0
+grid,lgbm,all,10.0,0.0246747361487923,0.0238272887090402,-0.0008474474397521005,,,,,3500.0
+grid,lgbm,all,20.0,0.0248125757518216,0.0241414690815116,-0.0006711066703100031,,,,,3500.0
+grid,lgbm,all,46.0,0.0252133419340532,0.0245044413022753,-0.0007089006317778992,,,,,3500.0
+grid,lgbm,c16,0.0,0.0,0.0,0.0,,,,,1000.0
+grid,lgbm,c16,1.0,-0.0019500499109617,-0.0019500499109617,0.0,,,,,1000.0
+grid,lgbm,c16,3.0,0.0014497519077933,0.0014497519077933,0.0,,,,,1000.0
+grid,lgbm,c16,5.0,0.0037685748814693,0.0037685748814693,0.0,,,,,1000.0
+grid,lgbm,c16,10.0,0.0027717532747622,0.0027717532747622,0.0,,,,,1000.0
+grid,lgbm,c16,20.0,0.0012239265203276,0.0015994185771697,0.0003754920568421001,,,,,1000.0
+grid,lgbm,c16,46.0,0.0016191721864382,0.0011422037199198,-0.0004769684665184,,,,,1000.0
+grid,lgbm,c16,0.0,0.0,0.0,0.0,,,,,2000.0
+grid,lgbm,c16,1.0,-0.0005867006671431,-0.0005867006671431,0.0,,,,,2000.0
+grid,lgbm,c16,3.0,0.0019540737962853,0.0019540737962853,0.0,,,,,2000.0
+grid,lgbm,c16,5.0,0.0024461591087402,0.0024461591087402,0.0,,,,,2000.0
+grid,lgbm,c16,10.0,0.0006197455356233,0.0009594593689885,0.00033971383336519993,,,,,2000.0
+grid,lgbm,c16,20.0,0.0011991887524581,0.0012944986882586,9.530993580049983e-05,,,,,2000.0
+grid,lgbm,c16,46.0,0.0004479207781008,0.000724601871762,0.0002766810936612,,,,,2000.0
+grid,lgbm,c16,0.0,0.0,0.0,0.0,,,,,3000.0
+grid,lgbm,c16,1.0,0.0004895259787642,0.0004895259787642,0.0,,,,,3000.0
+grid,lgbm,c16,3.0,0.0043537934625506,0.0043537934625506,0.0,,,,,3000.0
+grid,lgbm,c16,5.0,0.0039021260710024,0.0039021260710024,0.0,,,,,3000.0
+grid,lgbm,c16,10.0,0.0025681259116309,0.0026126827759122,4.455686428129959e-05,,,,,3000.0
+grid,lgbm,c16,20.0,0.0023066996468016,0.0027045689029711,0.0003978692561695,,,,,3000.0
+grid,lgbm,c16,46.0,0.0030119870854662,0.0030774208529548,6.543376748860017e-05,,,,,3000.0
+grid,lgbm,c16,0.0,0.0,0.0,0.0,,,,,3500.0
+grid,lgbm,c16,1.0,0.0001749158393368,0.0001749158393368,0.0,,,,,3500.0
+grid,lgbm,c16,3.0,0.0036254073783001,0.0036254073783001,0.0,,,,,3500.0
+grid,lgbm,c16,5.0,0.0023817294771539,0.0023817294771539,0.0,,,,,3500.0
+grid,lgbm,c16,10.0,0.0023153421765475,0.0022280794667425,-8.726270980499978e-05,,,,,3500.0
+grid,lgbm,c16,20.0,0.0017583991467982,0.0027132996153744,0.0009549004685762,,,,,3500.0
+grid,lgbm,c16,46.0,0.002142290211933,0.0023335690964805,0.00019127888454749994,,,,,3500.0
+grid,lgbm,c16_2020,0.0,0.0,0.0,0.0,,,,,1000.0
+grid,lgbm,c16_2020,1.0,-0.0027046457057091,-0.0027046457057091,0.0,,,,,1000.0
+grid,lgbm,c16_2020,3.0,0.0029855402063139,0.0029855402063139,0.0,,,,,1000.0
+grid,lgbm,c16_2020,5.0,0.0034854735114223,0.0034854735114223,0.0,,,,,1000.0
+grid,lgbm,c16_2020,10.0,0.0031095324256586,0.0031095324256586,0.0,,,,,1000.0
+grid,lgbm,c16_2020,20.0,0.001370876614379,0.0007301271704391,-0.0006407494439399,,,,,1000.0
+grid,lgbm,c16_2020,46.0,0.0011308563817432,0.0008309479840081,-0.00029990839773509994,,,,,1000.0
+grid,lgbm,c16_2020,0.0,0.0,0.0,0.0,,,,,2000.0
+grid,lgbm,c16_2020,1.0,0.0001382316182775,0.0001382316182775,0.0,,,,,2000.0
+grid,lgbm,c16_2020,3.0,0.0027347350268031,0.0027347350268031,0.0,,,,,2000.0
+grid,lgbm,c16_2020,5.0,0.0019335806795926,0.0019335806795926,0.0,,,,,2000.0
+grid,lgbm,c16_2020,10.0,-0.0004638403436434,-7.56321773299623e-05,0.0003882081663134377,,,,,2000.0
+grid,lgbm,c16_2020,20.0,0.0003502647252581,0.0010872148774093,0.0007369501521512,,,,,2000.0
+grid,lgbm,c16_2020,46.0,-0.0010423954624974,-0.0006456198994173,0.00039677556308009994,,,,,2000.0
+grid,lgbm,c16_2020,0.0,0.0,0.0,0.0,,,,,3000.0
+grid,lgbm,c16_2020,1.0,-0.0003629010351526,-0.0003629010351526,0.0,,,,,3000.0
+grid,lgbm,c16_2020,3.0,0.0030159805258034,0.0030159805258034,0.0,,,,,3000.0
+grid,lgbm,c16_2020,5.0,0.0014300992349654,0.0014300992349654,0.0,,,,,3000.0
+grid,lgbm,c16_2020,10.0,0.0008836868543422,0.0011270125420994,0.0002433256877572,,,,,3000.0
+grid,lgbm,c16_2020,20.0,0.0009680071857785,0.0015745525056964,0.0006065453199179,,,,,3000.0
+grid,lgbm,c16_2020,46.0,0.001110712941652,0.0009734914376524,-0.00013722150399959985,,,,,3000.0
+grid,lgbm,c16_2020,0.0,0.0,0.0,0.0,,,,,3500.0
+grid,lgbm,c16_2020,1.0,0.0003232494153657,0.0003232494153657,0.0,,,,,3500.0
+grid,lgbm,c16_2020,3.0,0.0027537683019666,0.0027537683019666,0.0,,,,,3500.0
+grid,lgbm,c16_2020,5.0,0.0006171838015809,0.0006171838015809,0.0,,,,,3500.0
+grid,lgbm,c16_2020,10.0,0.0011756509757783,0.0011259748734552,-4.96761023231001e-05,,,,,3500.0
+grid,lgbm,c16_2020,20.0,0.001067568653486,0.0015816049575167,0.0005140363040307,,,,,3500.0
+grid,lgbm,c16_2020,46.0,0.0009589049065039,0.0008249516391156,-0.0001339532673883,,,,,3500.0
+grid,ridge,all,0.0,0.0,0.0,0.0,,,,,1000.0
+grid,ridge,all,1.0,0.0042286030794198,0.0042286030794198,0.0,,,,,1000.0
+grid,ridge,all,3.0,0.0061226571008206,0.0061226571008206,0.0,,,,,1000.0
+grid,ridge,all,5.0,0.0057812674808232,0.0057812674808232,0.0,,,,,1000.0
+grid,ridge,all,10.0,0.0062641792511317,0.0088913853028047,0.002627206051672999,,,,,1000.0
+grid,ridge,all,20.0,0.0092421893356356,0.008461483747488,-0.0007807055881475997,,,,,1000.0
+grid,ridge,all,46.0,0.0098230850629098,0.0101016941837803,0.0002786091208705002,,,,,1000.0
+grid,ridge,all,0.0,0.0,0.0,0.0,,,,,2000.0
+grid,ridge,all,1.0,0.0023973628039768,0.0038451370214309,0.0014477742174540996,,,,,2000.0
+grid,ridge,all,3.0,0.0090942925134545,0.0095164490779914,0.0004221565645368998,,,,,2000.0
+grid,ridge,all,5.0,0.0103008247167775,0.0073929208284427,-0.0029079038883348006,,,,,2000.0
+grid,ridge,all,10.0,0.0085848637662733,0.0094614256062922,0.0008765618400188996,,,,,2000.0
+grid,ridge,all,20.0,0.0097932955806207,0.0106042842404067,0.0008109886597860005,,,,,2000.0
+grid,ridge,all,46.0,0.0068443970364832,0.0076393324903082,0.0007949354538250002,,,,,2000.0
+grid,ridge,all,0.0,0.0,0.0,0.0,,,,,3000.0
+grid,ridge,all,1.0,0.0038005890693839,0.0038730997009975,7.251063161359999e-05,,,,,3000.0
+grid,ridge,all,3.0,0.0050724740641006,0.0057502530894661,0.0006777790253654995,,,,,3000.0
+grid,ridge,all,5.0,0.0114197771366552,0.0099362555973495,-0.0014835215393057006,,,,,3000.0
+grid,ridge,all,10.0,0.0117120985963052,0.0129178833923481,0.0012057847960428997,,,,,3000.0
+grid,ridge,all,20.0,0.0108085646363612,0.0117377229942747,0.0009291583579135003,,,,,3000.0
+grid,ridge,all,46.0,0.0054106058262687,0.0068572215332249,0.0014466157069562002,,,,,3000.0
+grid,ridge,all,0.0,0.0,0.0,0.0,,,,,3500.0
+grid,ridge,all,1.0,0.0025095484962316,0.0040644676050922,0.0015549191088605999,,,,,3500.0
+grid,ridge,all,3.0,0.0053948053778813,0.0059460680476213,0.0005512626697399998,,,,,3500.0
+grid,ridge,all,5.0,0.0088732506936699,0.0102140912989387,0.0013408406052687998,,,,,3500.0
+grid,ridge,all,10.0,0.0125285760631938,0.0135208743980365,0.0009922983348426995,,,,,3500.0
+grid,ridge,all,20.0,0.0119022641846381,0.012712030678315,0.0008097664936769014,,,,,3500.0
+grid,ridge,all,46.0,0.0111486789653415,0.0121790258602767,0.0010303468949352003,,,,,3500.0
+grid,ridge,c16,0.0,0.0,0.0,0.0,,,,,1000.0
+grid,ridge,c16,1.0,0.0030782327846433,0.0030782327846433,0.0,,,,,1000.0
+grid,ridge,c16,3.0,0.0050310560887905,0.0050310560887905,0.0,,,,,1000.0
+grid,ridge,c16,5.0,0.0049235420063282,0.0049235420063282,0.0,,,,,1000.0
+grid,ridge,c16,10.0,0.0053641145174705,0.0044473023792399,-0.0009168121382306001,,,,,1000.0
+grid,ridge,c16,20.0,0.0035592099211033,0.0032136911226925,-0.0003455187984108001,,,,,1000.0
+grid,ridge,c16,46.0,0.0041361304116494,0.0039472435796586,-0.00018888683199080013,,,,,1000.0
+grid,ridge,c16,0.0,0.0,0.0,0.0,,,,,2000.0
+grid,ridge,c16,1.0,-0.0013379302224107,-0.0011953011931193,0.00014262902929140005,,,,,2000.0
+grid,ridge,c16,3.0,0.001499596384332,3.93037444216815e-05,-0.0014602926399103185,,,,,2000.0
+grid,ridge,c16,5.0,0.0046175725048358,-0.0014765928882022,-0.006094165393038,,,,,2000.0
+grid,ridge,c16,10.0,0.003829310752821,0.0020526714084266,-0.0017766393443943997,,,,,2000.0
+grid,ridge,c16,20.0,0.0029054818312148,0.0022310999328359,-0.0006743818983788999,,,,,2000.0
+grid,ridge,c16,46.0,-0.008479452146505,-0.0099673900507886,-0.001487937904283601,,,,,2000.0
+grid,ridge,c16,0.0,0.0,0.0,0.0,,,,,3000.0
+grid,ridge,c16,1.0,-0.0008149212714196,-0.0012005874253718,-0.00038566615395219995,,,,,3000.0
+grid,ridge,c16,3.0,-5.8409410852389154e-05,-0.0011640364601432,-0.0011056270492908109,,,,,3000.0
+grid,ridge,c16,5.0,0.005092867976848,0.0001797153632426,-0.0049131526136054005,,,,,3000.0
+grid,ridge,c16,10.0,0.0046962309600378,0.0035809238232344,-0.0011153071368034,,,,,3000.0
+grid,ridge,c16,20.0,0.0036648568386214,0.0023012778199345,-0.0013635790186868999,,,,,3000.0
+grid,ridge,c16,46.0,-0.0047526127880847,-0.0059329071169149,-0.0011802943288302002,,,,,3000.0
+grid,ridge,c16,0.0,0.0,0.0,0.0,,,,,3500.0
+grid,ridge,c16,1.0,-0.0012599472142413,-0.0011634369547238,9.651025951750011e-05,,,,,3500.0
+grid,ridge,c16,3.0,8.357289329904982e-05,-0.0010961028990522,-0.0011796757923512498,,,,,3500.0
+grid,ridge,c16,5.0,0.0008779549129304,-1.031692659081429e-07,-0.0008780580821963082,,,,,3500.0
+grid,ridge,c16,10.0,0.0050951651220041,0.003942516773638,-0.0011526483483661,,,,,3500.0
+grid,ridge,c16,20.0,0.0043151093208982,0.0030275595112349,-0.0012875498096632998,,,,,3500.0
+grid,ridge,c16,46.0,0.004249246086007,0.0027719001894564,-0.0014773458965506,,,,,3500.0
+grid,ridge,c16_2020,0.0,0.0,0.0,0.0,,,,,1000.0
+grid,ridge,c16_2020,1.0,0.0016646412309113,0.0016646412309113,0.0,,,,,1000.0
+grid,ridge,c16_2020,3.0,0.0025056713680167,0.0025056713680167,0.0,,,,,1000.0
+grid,ridge,c16_2020,5.0,0.0008303540008718,0.0008303540008718,0.0,,,,,1000.0
+grid,ridge,c16_2020,10.0,0.001068952240325,-0.000703402824777,-0.001772355065102,,,,,1000.0
+grid,ridge,c16_2020,20.0,-0.0024011430728872,-0.0027866131468224,-0.00038547007393520015,,,,,1000.0
+grid,ridge,c16_2020,46.0,0.0012927602994633,0.0009852269448769,-0.0003075333545864,,,,,1000.0
+grid,ridge,c16_2020,0.0,0.0,0.0,0.0,,,,,2000.0
+grid,ridge,c16_2020,1.0,-0.0019469169411215,-0.0010629919958487,0.0008839249452728,,,,,2000.0
+grid,ridge,c16_2020,3.0,-0.0011346816454329,-0.0026193512132948,-0.0014846695678619,,,,,2000.0
+grid,ridge,c16_2020,5.0,0.0013392482485426,-0.0069182847701376,-0.0082575330186802,,,,,2000.0
+grid,ridge,c16_2020,10.0,-0.0001424192227656,-0.0017503113235469,-0.0016078921007813,,,,,2000.0
+grid,ridge,c16_2020,20.0,-0.0022892270175076,-0.0025013411224631,-0.0002121141049554998,,,,,2000.0
+grid,ridge,c16_2020,46.0,-0.0080150999831809,-0.0091851824323421,-0.001170082449161199,,,,,2000.0
+grid,ridge,c16_2020,0.0,0.0,0.0,0.0,,,,,3000.0
+grid,ridge,c16_2020,1.0,-0.0009621105430009,-0.0006018759056832,0.0003602346373177,,,,,3000.0
+grid,ridge,c16_2020,3.0,-9.897500665845271e-05,-0.0009992403152834,-0.0009002653086249473,,,,,3000.0
+grid,ridge,c16_2020,5.0,0.0031653835273403,-0.0022376831091466,-0.005403066636486899,,,,,3000.0
+grid,ridge,c16_2020,10.0,-0.0006423660712458,-0.0014435124040841,-0.0008011463328383001,,,,,3000.0
+grid,ridge,c16_2020,20.0,-0.0013089734448977,-0.0026708361164276,-0.0013618626715299,,,,,3000.0
+grid,ridge,c16_2020,46.0,-0.0200977405051588,-0.0207501297174892,-0.0006523892123303995,,,,,3000.0
+grid,ridge,c16_2020,0.0,0.0,0.0,0.0,,,,,3500.0
+grid,ridge,c16_2020,1.0,-0.0014367815889349,-0.0006074697694674,0.0008293118194675,,,,,3500.0
+grid,ridge,c16_2020,3.0,-0.0003463634937011,-0.0011699392377586,-0.0008235757440575,,,,,3500.0
+grid,ridge,c16_2020,5.0,-0.0024808781166652,-0.0024521277818405,2.875033482469978e-05,,,,,3500.0
+grid,ridge,c16_2020,10.0,0.0003363625735889,-0.000582606724952,-0.0009189692985409,,,,,3500.0
+grid,ridge,c16_2020,20.0,0.0003582630759703,-0.0013837189460852,-0.0017419820220554998,,,,,3500.0
+grid,ridge,c16_2020,46.0,-0.000203664001005,-0.001382866051696,-0.001179202050691,,,,,3500.0
+grid,xgb,all,0.0,0.0,0.0,0.0,,,,,1000.0
+grid,xgb,all,1.0,-0.0009493847029036,-0.0009493847029036,0.0,,,,,1000.0
+grid,xgb,all,3.0,0.0018530019688977,0.0018530019688977,0.0,,,,,1000.0
+grid,xgb,all,5.0,0.0064552284701997,0.0064552284701997,0.0,,,,,1000.0
+grid,xgb,all,10.0,0.0203269845038522,0.0208005975538624,0.00047361305001020204,,,,,1000.0
+grid,xgb,all,20.0,0.0205939738529283,0.0211413360883928,0.0005473622354645012,,,,,1000.0
+grid,xgb,all,46.0,0.0203859508677617,0.0208476026763293,0.0004616518085676022,,,,,1000.0
+grid,xgb,all,0.0,0.0,0.0,0.0,,,,,2000.0
+grid,xgb,all,1.0,0.0003622578374203,0.0003622578374203,0.0,,,,,2000.0
+grid,xgb,all,3.0,0.0052131532334243,0.0052131532334243,0.0,,,,,2000.0
+grid,xgb,all,5.0,0.0084423970884098,0.0084423970884098,0.0,,,,,2000.0
+grid,xgb,all,10.0,0.022280256201154,0.0227818592736541,0.0005016030725000994,,,,,2000.0
+grid,xgb,all,20.0,0.0228942376164207,0.023346411946066,0.00045217432964530027,,,,,2000.0
+grid,xgb,all,46.0,0.0228702870086543,0.0232343063255446,0.00036401931689030234,,,,,2000.0
+grid,xgb,all,0.0,0.0,0.0,0.0,,,,,3000.0
+grid,xgb,all,1.0,0.0010488869908581,0.0010488869908581,0.0,,,,,3000.0
+grid,xgb,all,3.0,0.0069670636460681,0.0069670636460681,0.0,,,,,3000.0
+grid,xgb,all,5.0,0.0093623484605037,0.0093623484605037,0.0,,,,,3000.0
+grid,xgb,all,10.0,0.0238457968892312,0.0251679500775801,0.0013221531883488985,,,,,3000.0
+grid,xgb,all,20.0,0.0243730109829108,0.0255879940581471,0.0012149830752363026,,,,,3000.0
+grid,xgb,all,46.0,0.0246003905860452,0.0257304390927871,0.0011300485067419,,,,,3000.0
+grid,xgb,all,0.0,0.0,0.0,0.0,,,,,3500.0
+grid,xgb,all,1.0,0.0011453485173389,0.0011453485173389,0.0,,,,,3500.0
+grid,xgb,all,3.0,0.0085187748076302,0.0085187748076302,0.0,,,,,3500.0
+grid,xgb,all,5.0,0.0082259951298636,0.0082259951298636,0.0,,,,,3500.0
+grid,xgb,all,10.0,0.0240356206142469,0.0239071093714096,-0.00012851124283730017,,,,,3500.0
+grid,xgb,all,20.0,0.02401300152728,0.0239232305059005,-8.977102137950124e-05,,,,,3500.0
+grid,xgb,all,46.0,0.0243713965789472,0.0242504041548957,-0.0001209924240514991,,,,,3500.0
+grid,xgb,c16,0.0,0.0,0.0,0.0,,,,,1000.0
+grid,xgb,c16,1.0,-0.0019096311443013,-0.0019096311443013,0.0,,,,,1000.0
+grid,xgb,c16,3.0,-0.0017907122814477,-0.0017907122814477,0.0,,,,,1000.0
+grid,xgb,c16,5.0,0.0020074056432582,0.0020074056432582,0.0,,,,,1000.0
+grid,xgb,c16,10.0,-0.0001926885404541,0.0003377404477789,0.000530428988233,,,,,1000.0
+grid,xgb,c16,20.0,0.0001890650586378,0.0007725232730358,0.000583458214398,,,,,1000.0
+grid,xgb,c16,46.0,0.0002485127703438,0.0008641905644342,0.0006156777940904,,,,,1000.0
+grid,xgb,c16,0.0,0.0,0.0,0.0,,,,,2000.0
+grid,xgb,c16,1.0,-0.0006639399381073,-0.0006639399381073,0.0,,,,,2000.0
+grid,xgb,c16,3.0,0.0014234553785271,0.0014234553785271,0.0,,,,,2000.0
+grid,xgb,c16,5.0,0.0020810993101303,0.0020810993101303,0.0,,,,,2000.0
+grid,xgb,c16,10.0,0.0012990819951751,0.0014175447932307,0.00011846279805560007,,,,,2000.0
+grid,xgb,c16,20.0,0.0019028993076855,0.0019822349571045,7.933564941900017e-05,,,,,2000.0
+grid,xgb,c16,46.0,0.0015947776109346,0.0014157996469058,-0.00017897796402880002,,,,,2000.0
+grid,xgb,c16,0.0,0.0,0.0,0.0,,,,,3000.0
+grid,xgb,c16,1.0,0.0004718485690214,0.0004718485690214,0.0,,,,,3000.0
+grid,xgb,c16,3.0,0.0012924473236212,0.0012924473236212,0.0,,,,,3000.0
+grid,xgb,c16,5.0,0.0038071111907442,0.0038071111907442,0.0,,,,,3000.0
+grid,xgb,c16,10.0,0.002236529566708,0.0023328047251996,9.627515849159989e-05,,,,,3000.0
+grid,xgb,c16,20.0,0.0034612493942113,0.0036274695049213,0.0001662201107100001,,,,,3000.0
+grid,xgb,c16,46.0,0.0030641934149233,0.0030387380398586,-2.5455375064699966e-05,,,,,3000.0
+grid,xgb,c16,0.0,0.0,0.0,0.0,,,,,3500.0
+grid,xgb,c16,1.0,0.0011293880452072,0.0011293880452072,0.0,,,,,3500.0
+grid,xgb,c16,3.0,0.0043398004121383,0.0043398004121383,0.0,,,,,3500.0
+grid,xgb,c16,5.0,0.0042198037825717,0.0042198037825717,0.0,,,,,3500.0
+grid,xgb,c16,10.0,0.0030909674759184,0.0030220953408664,-6.887213505200017e-05,,,,,3500.0
+grid,xgb,c16,20.0,0.0030590213532116,0.0029503156495478,-0.00010870570366380014,,,,,3500.0
+grid,xgb,c16,46.0,0.0030425590088983,0.0030062813106689,-3.62776982294e-05,,,,,3500.0
+grid,xgb,c16_2020,0.0,0.0,0.0,0.0,,,,,1000.0
+grid,xgb,c16_2020,1.0,-0.0017308950107719,-0.0017308950107719,0.0,,,,,1000.0
+grid,xgb,c16_2020,3.0,0.0010157297717665,0.0010157297717665,0.0,,,,,1000.0
+grid,xgb,c16_2020,5.0,0.0039594753688238,0.0039594753688238,0.0,,,,,1000.0
+grid,xgb,c16_2020,10.0,0.0002002683920831,0.0011620329480437,0.0009617645559606001,,,,,1000.0
+grid,xgb,c16_2020,20.0,0.0012753660556865,0.0023904207091837,0.0011150546534972,,,,,1000.0
+grid,xgb,c16_2020,46.0,0.0011421163540947,0.0021709009987444,0.0010287846446497,,,,,1000.0
+grid,xgb,c16_2020,0.0,0.0,0.0,0.0,,,,,2000.0
+grid,xgb,c16_2020,1.0,-0.0009813948363588,-0.0009813948363588,0.0,,,,,2000.0
+grid,xgb,c16_2020,3.0,-0.0002919399027272,-0.0002919399027272,0.0,,,,,2000.0
+grid,xgb,c16_2020,5.0,0.0008981136825405,0.0008981136825405,0.0,,,,,2000.0
+grid,xgb,c16_2020,10.0,-0.0011494873073501,-0.001092002781904,5.748452544610005e-05,,,,,2000.0
+grid,xgb,c16_2020,20.0,-0.0005770114185397,-0.0005792079820926,-2.196563552900083e-06,,,,,2000.0
+grid,xgb,c16_2020,46.0,-0.0008866564859036,-0.0007617044708718,0.00012495201503180003,,,,,2000.0
+grid,xgb,c16_2020,0.0,0.0,0.0,0.0,,,,,3000.0
+grid,xgb,c16_2020,1.0,-0.0004559169942963,-0.0004559169942963,0.0,,,,,3000.0
+grid,xgb,c16_2020,3.0,0.0015724713846763,0.0015724713846763,0.0,,,,,3000.0
+grid,xgb,c16_2020,5.0,0.0024658202494306,0.0024658202494306,0.0,,,,,3000.0
+grid,xgb,c16_2020,10.0,-0.0007336611600546,-0.0006711415191848,6.251964086980007e-05,,,,,3000.0
+grid,xgb,c16_2020,20.0,0.0012698344454322,0.0016012842518593,0.00033144980642709995,,,,,3000.0
+grid,xgb,c16_2020,46.0,0.0009949302617423,0.0011333242495232,0.00013839398778090015,,,,,3000.0
+grid,xgb,c16_2020,0.0,0.0,0.0,0.0,,,,,3500.0
+grid,xgb,c16_2020,1.0,0.0007920262030807,0.0007920262030807,0.0,,,,,3500.0
+grid,xgb,c16_2020,3.0,0.0034726727170738,0.0034726727170738,0.0,,,,,3500.0
+grid,xgb,c16_2020,5.0,0.0036381642561152,0.0036381642561152,0.0,,,,,3500.0
+grid,xgb,c16_2020,10.0,0.0015272352180702,0.0014665912134496,-6.0644004620600015e-05,,,,,3500.0
+grid,xgb,c16_2020,20.0,0.002687673304277,0.0018634895994448,-0.0008241837048322,,,,,3500.0
+grid,xgb,c16_2020,46.0,0.0019093369247612,0.0019431490576701,3.381213290889985e-05,,,,,3500.0
+shap_m1,lgbm,har_ma,,0.5161546274668316,0.516620906440627,0.0004662789737953643,,,,,
+shap_m1,lgbm,calendar,,0.009468181728288,0.0093880987654344,-8.008296285359935e-05,,,,,
+shap_m1,lgbm,sumret,,0.0759362377658943,0.0761258016096161,0.00018956384372180446,,,,,
+shap_m1,lgbm,sumabsret,,0.0964170147186425,0.0962147360531821,-0.0002022786654603953,,,,,
+shap_m1,lgbm,sumret3,,0.0110731138156093,0.0111514054515523,7.829163594300081e-05,,,,,
+shap_m1,lgbm,sumret4,,0.0057896552942504,0.0054909795902663,-0.00029867570398410016,,,,,
+shap_m1,lgbm,sumpret2,,0.0043375840963023,0.0043358840248094,-1.7000714928995866e-06,,,,,
+shap_m1,lgbm,sumbipow,,0.003687898812127,0.0036690574315178,-1.8841380609199883e-05,,,,,
+shap_m1,lgbm,sumautocov,,0.0259379503770306,0.0259804165761202,4.246619908960039e-05,,,,,
+shap_m1,lgbm,sumvolume,,0.0179605252408388,0.0180431327156267,8.260747478790187e-05,,,,,
+shap_m1,lgbm,numobs,,0.0019451760169391,0.0018621859378601,-8.299007907899988e-05,,,,,
+shap_m1,lgbm,turnover_ewstock,,0.0018065071466802,0.0017786222962494,-2.7884850430800155e-05,,,,,
+shap_m1,lgbm,buyturnover_ewstock,,0.0017726883128582,0.0017623568863667,-1.0331426491500028e-05,,,,,
+shap_m1,lgbm,sellturnover_ewstock,,0.0038196013846718,0.0037220053752656,-9.759600940620035e-05,,,,,
+shap_m1,lgbm,effspread_ewstock,,0.0068316371076678,0.0068397356234377,8.098515769900533e-06,,,,,
+shap_m1,lgbm,spread_ewstock,,0.0042350426205059,0.0042221789631897,-1.2863657316199845e-05,,,,,
+shap_m1,lgbm,turnover_vwstock,,0.0020522494573903,0.0020441794153209,-8.070042069399826e-06,,,,,
+shap_m1,lgbm,buyturnover_vwstock,,0.0021763461939006,0.0021930628916986,1.671669779799989e-05,,,,,
+shap_m1,lgbm,sellturnover_vwstock,,0.0071771993209743,0.007048745402642,-0.0001284539183322997,,,,,
+shap_m1,lgbm,effspread_vwstock,,0.0125561734795795,0.0124775019208727,-7.867155870680022e-05,,,,,
+shap_m1,lgbm,spread_vwstock,,0.0051858549836953,0.0051111477914072,-7.470719228809975e-05,,,,,
+shap_m1,lgbm,ofi_ewstock,,0.0024382602390693,0.0025196063631409,8.134612407159972e-05,,,,,
+shap_m1,lgbm,ofi_vwstock,,0.0180175525839431,0.018021500211754,3.9476278108976914e-06,,,,,
+shap_m1,lgbm,sumret2_ewstock,,0.0038584618894969,0.0039441522325423,8.569034304540006e-05,,,,,
+shap_m1,lgbm,sumret3_ewstock,,0.0071174896648149,0.0071573959202013,3.990625538640054e-05,,,,,
+shap_m1,lgbm,sumret4_ewstock,,0.0015715489695015,0.0015111636559459,-6.038531355559993e-05,,,,,
+shap_m1,lgbm,sumabsret_ewstock,,0.0393403791688129,0.0390847557831741,-0.0002556233856388021,,,,,
+shap_m1,lgbm,sumbipow_ewstock,,0.00150949586394,0.0014880816665559,-2.141419738410015e-05,,,,,
+shap_m1,lgbm,sumpret2_ewstock,,0.0021754863153782,0.0022312950548175,5.5808739439299794e-05,,,,,
+shap_m1,lgbm,sumret2_vwstock,,0.0016479923113798,0.0017082046243314,6.021231295159999e-05,,,,,
+shap_m1,lgbm,sumret3_vwstock,,0.0089684878317102,0.0088412830471149,-0.000127204784595299,,,,,
+shap_m1,lgbm,sumret4_vwstock,,0.0016195688242488,0.0015634550694683,-5.6113754780499816e-05,,,,,
+shap_m1,lgbm,sumabsret_vwstock,,0.0348266811547534,0.0348151300428023,-1.1551111951099702e-05,,,,,
+shap_m1,lgbm,sumbipow_vwstock,,0.0012859614273868,0.0012859070896179,-5.433776889985503e-08,,,,,
+shap_m1,lgbm,sumpret2_vwstock,,0.0027138098632806,0.0027461208382031,3.231097492250017e-05,,,,,
+shap_m1,lgbm,stocktwits_attention,,0.0013523956315911,0.0013871169343605,3.472130276940019e-05,,,,,
+shap_m1,lgbm,stocktwits_sentiment,,0.0045321522603335,0.0044634554202988,-6.869684003469982e-05,,,,,
+shap_m1,lgbm,stocktwits_sentcount,,0.0018807467962834,0.0018764895281163,-4.2572681670999864e-06,,,,,
+shap_m1,lgbm,vix,,0.0134843575160343,0.0135870591261482,0.00010270161011390055,,,,,
+shap_m1,lgbm,vvix,,0.0028793159972314,0.0029166402418022,3.732424457080028e-05,,,,,
+shap_m1,lgbm,vix3m,,0.006664407534897,0.0066908125906032,2.6405055706200248e-05,,,,,
+shap_m1,lgbm,voldemand_spx_open_and_close,,0.0016214462083336,0.0016859021580144,6.445594968079987e-05,,,,,
+shap_m1,lgbm,voldemand_spx_open_only,,0.0006150443551547,0.000598002205138,-1.70421500166999e-05,,,,,
+shap_m1,lgbm,voldemand_all_open_and_close,,0.0002180475084357,0.0001858021104264,-3.22453980093e-05,,,,,
+shap_m1,lgbm,voldemand_all_open_only,,0.0001570084205548,0.0001669265078654,9.918087310600002e-06,,,,,
+shap_m1,lgbm,fomc_day,,0.0012395017439926,0.001225268849574,-1.4232894418600038e-05,,,,,
+shap_m1,lgbm,fomc_until_inv,,0.0201350675766433,0.0204568805717754,0.0003218129951321029,,,,,
+shap_m1,lgbm,fomc_since_inv,,0.0018080670021176,0.0017594509931421,-4.861600897549984e-05,,,,,
+shap_m1,xgb,har_ma,,0.5189352056043528,0.51975900441089,0.0008237988065371571,,,,,
+shap_m1,xgb,calendar,,0.0094637893998691,0.0093477604732302,-0.00011602892663889995,,,,,
+shap_m1,xgb,sumret,,0.0747072384925004,0.074878452179525,0.00017121368702460726,,,,,
+shap_m1,xgb,sumabsret,,0.1167382315512584,0.1164742568684968,-0.0002639746827615974,,,,,
+shap_m1,xgb,sumret3,,0.0104219019734947,0.0103936276519211,-2.827432157360109e-05,,,,,
+shap_m1,xgb,sumret4,,0.0044462696647786,0.0044594569032903,1.3187238511699548e-05,,,,,
+shap_m1,xgb,sumpret2,,0.0036556252892756,0.0035765108004627,-7.911448881290023e-05,,,,,
+shap_m1,xgb,sumbipow,,0.0028623398395812,0.002838270879825,-2.406895975619978e-05,,,,,
+shap_m1,xgb,sumautocov,,0.0231256376318364,0.0229903280491981,-0.00013530958263829884,,,,,
+shap_m1,xgb,sumvolume,,0.0157237663199219,0.0157348955407221,1.1129220800199652e-05,,,,,
+shap_m1,xgb,numobs,,0.0014256596446339,0.00138918616588,-3.6473478753899996e-05,,,,,
+shap_m1,xgb,turnover_ewstock,,0.0015125831214583,0.0014483015482054,-6.428157325290003e-05,,,,,
+shap_m1,xgb,buyturnover_ewstock,,0.0012748123813753,0.0012483014773238,-2.65109040515001e-05,,,,,
+shap_m1,xgb,sellturnover_ewstock,,0.0035805516941732,0.0036162041937546,3.5652499581400286e-05,,,,,
+shap_m1,xgb,effspread_ewstock,,0.005700936228353,0.0058299779577872,0.00012904172943420042,,,,,
+shap_m1,xgb,spread_ewstock,,0.0029933795059254,0.0029029768533069,-9.040265261850032e-05,,,,,
+shap_m1,xgb,turnover_vwstock,,0.0016999605401354,0.0016840920488841,-1.58684912513001e-05,,,,,
+shap_m1,xgb,buyturnover_vwstock,,0.0016826412790346,0.0016247253532237,-5.791592581090013e-05,,,,,
+shap_m1,xgb,sellturnover_vwstock,,0.0072101914578332,0.0072677244897725,5.75330319393004e-05,,,,,
+shap_m1,xgb,effspread_vwstock,,0.012463535590758,0.0123382776742148,-0.00012525791654319912,,,,,
+shap_m1,xgb,spread_vwstock,,0.0049989265339021,0.0049470323654167,-5.1894168485400356e-05,,,,,
+shap_m1,xgb,ofi_ewstock,,0.0023763507323353,0.0023470531543622,-2.9297577973100113e-05,,,,,
+shap_m1,xgb,ofi_vwstock,,0.0169061404675827,0.0170401862791342,0.00013404581155150239,,,,,
+shap_m1,xgb,sumret2_ewstock,,0.0028720217906399,0.002888594470586,1.6572679946099712e-05,,,,,
+shap_m1,xgb,sumret3_ewstock,,0.0062546741446127,0.00617214777505,-8.252636956270019e-05,,,,,
+shap_m1,xgb,sumret4_ewstock,,0.0013103254774043,0.0013231633911735,1.2837913769199981e-05,,,,,
+shap_m1,xgb,sumabsret_ewstock,,0.0382655290760341,0.0378209132516952,-0.00044461582433890506,,,,,
+shap_m1,xgb,sumbipow_ewstock,,0.0010588578358382,0.001128688930054,6.983109421580011e-05,,,,,
+shap_m1,xgb,sumpret2_ewstock,,0.0015571568984699,0.0014948748122053,-6.228208626459994e-05,,,,,
+shap_m1,xgb,sumret2_vwstock,,0.0014771703729724,0.00150124171523,2.407134225759994e-05,,,,,
+shap_m1,xgb,sumret3_vwstock,,0.008605853721019,0.0087071745968883,0.00010132087586930093,,,,,
+shap_m1,xgb,sumret4_vwstock,,0.001194600588399,0.0012357520277828,4.115143938380008e-05,,,,,
+shap_m1,xgb,sumabsret_vwstock,,0.0390998752605707,0.038944216597064,-0.00015565866350670393,,,,,
+shap_m1,xgb,sumbipow_vwstock,,0.0009948202231087,0.000951414443295,-4.340577981369988e-05,,,,,
+shap_m1,xgb,sumpret2_vwstock,,0.0017267112537114,0.0017358234614071,9.112207695700187e-06,,,,,
+shap_m1,xgb,stocktwits_attention,,0.0010423645264715,0.0010061021007238,-3.626242574769991e-05,,,,,
+shap_m1,xgb,stocktwits_sentiment,,0.004272137013476,0.0042340408500334,-3.8096163442600216e-05,,,,,
+shap_m1,xgb,stocktwits_sentcount,,0.0018725200184806,0.0018773623995228,4.84238104220009e-06,,,,,
+shap_m1,xgb,vix,,0.0124716469664535,0.0126242244229219,0.0001525774564684005,,,,,
+shap_m1,xgb,vvix,,0.0021383617503577,0.0022084052334254,7.004348306770009e-05,,,,,
+shap_m1,xgb,vix3m,,0.0054541031497505,0.0055855657834771,0.00013146263372659957,,,,,
+shap_m1,xgb,voldemand_spx_open_and_close,,0.0012855764055875,0.0012767303545614,-8.846051026100083e-06,,,,,
+shap_m1,xgb,voldemand_spx_open_only,,0.0005044950841647,0.0004902379774436,-1.4257106721099998e-05,,,,,
+shap_m1,xgb,voldemand_all_open_and_close,,0.000193681328057,0.0001978739416758,4.192613618799981e-06,,,,,
+shap_m1,xgb,voldemand_all_open_only,,8.794333351199385e-05,9.530416680153926e-05,7.360833289545409e-06,,,,,
+shap_m1,xgb,fomc_day,,0.0012578575458654,0.0011756081067441,-8.224943912130004e-05,,,,,
+shap_m1,xgb,fomc_until_inv,,0.0200773448007195,0.0201925066876229,0.00011516188690339699,,,,,
+shap_m1,xgb,fomc_since_inv,,0.0010186964899521,0.0009954291837856,-2.326730616650013e-05,,,,,
+shap_m1,rf_skx,har_ma,,0.5763313412526916,0.5762707432075186,-6.059804517299927e-05,,,,,
+shap_m1,rf_skx,calendar,,0.0026885159584582,0.0026889826101104,4.666516522002645e-07,,,,,
+shap_m1,rf_skx,sumret,,0.0460377003115055,0.0460775271098435,3.9826798337999625e-05,,,,,
+shap_m1,rf_skx,sumabsret,,0.1231001741231114,0.1230740522703726,-2.612185273880019e-05,,,,,
+shap_m1,rf_skx,sumret3,,0.0123680803022648,0.0123790045899676,1.0924287702799781e-05,,,,,
+shap_m1,rf_skx,sumret4,,0.0041461556905364,0.0041345353696507,-1.1620320885700336e-05,,,,,
+shap_m1,rf_skx,sumpret2,,0.0048974680837016,0.0048884125157643,-9.05556793729962e-06,,,,,
+shap_m1,rf_skx,sumbipow,,0.0032659240450978,0.0032614095779737,-4.514467124099985e-06,,,,,
+shap_m1,rf_skx,sumautocov,,0.013699075669902,0.0136720912703225,-2.6984399579500426e-05,,,,,
+shap_m1,rf_skx,sumvolume,,0.0132916788069142,0.0133216114011872,2.9932594273000476e-05,,,,,
+shap_m1,rf_skx,numobs,,0.0047348066368517,0.0047466322392992,1.1825602447499903e-05,,,,,
+shap_m1,rf_skx,turnover_ewstock,,0.0028855676050095,0.0028711930258896,-1.4374579119899762e-05,,,,,
+shap_m1,rf_skx,buyturnover_ewstock,,0.002915832438767,0.0029275188627782,1.1686424011200184e-05,,,,,
+shap_m1,rf_skx,sellturnover_ewstock,,0.005524269535606,0.0055316458817372,7.376346131200001e-06,,,,,
+shap_m1,rf_skx,effspread_ewstock,,0.0069697250922272,0.0069429531689308,-2.677192329640036e-05,,,,,
+shap_m1,rf_skx,spread_ewstock,,0.0055797664357876,0.0055706784504753,-9.087985312300137e-06,,,,,
+shap_m1,rf_skx,turnover_vwstock,,0.0027988676728874,0.0027976897807613,-1.1778921260997659e-06,,,,,
+shap_m1,rf_skx,buyturnover_vwstock,,0.0030304834362716,0.0030233443301226,-7.139106148999937e-06,,,,,
+shap_m1,rf_skx,sellturnover_vwstock,,0.0069215610005822,0.0069129693721246,-8.59162845759983e-06,,,,,
+shap_m1,rf_skx,effspread_vwstock,,0.0127165786043848,0.0126947831843647,-2.1795420020100098e-05,,,,,
+shap_m1,rf_skx,spread_vwstock,,0.0062512905493596,0.0062333301534258,-1.796039593379966e-05,,,,,
+shap_m1,rf_skx,ofi_ewstock,,0.0062509242607154,0.0062391285132879,-1.1795747427500308e-05,,,,,
+shap_m1,rf_skx,ofi_vwstock,,0.0140428288891849,0.0140266898836078,-1.613900557709963e-05,,,,,
+shap_m1,rf_skx,sumret2_ewstock,,0.0026198768441673,0.002619808112161,-6.873200629996246e-08,,,,,
+shap_m1,rf_skx,sumret3_ewstock,,0.0082819988299467,0.0082679294945646,-1.4069335382100798e-05,,,,,
+shap_m1,rf_skx,sumret4_ewstock,,0.0018594833524654,0.0018509674163138,-8.515936151599988e-06,,,,,
+shap_m1,rf_skx,sumabsret_ewstock,,0.019193058553399,0.0191011496944432,-9.19088589558005e-05,,,,,
+shap_m1,rf_skx,sumbipow_ewstock,,0.0030562500143982,0.0030533781158081,-2.871898590100109e-06,,,,,
+shap_m1,rf_skx,sumpret2_ewstock,,0.0033306256979669,0.0033290347031955,-1.5909947713999006e-06,,,,,
+shap_m1,rf_skx,sumret2_vwstock,,0.0026043754118959,0.002601391987188,-2.983424707900164e-06,,,,,
+shap_m1,rf_skx,sumret3_vwstock,,0.0106112988620159,0.0105975865571536,-1.3712304862299393e-05,,,,,
+shap_m1,rf_skx,sumret4_vwstock,,0.0019792271033219,0.0019743862656002,-4.8408377217000476e-06,,,,,
+shap_m1,rf_skx,sumabsret_vwstock,,0.0236179292559275,0.0235600689016047,-5.786035432280012e-05,,,,,
+shap_m1,rf_skx,sumbipow_vwstock,,0.0026595846922275,0.0026649035439069,5.3188516793999975e-06,,,,,
+shap_m1,rf_skx,sumpret2_vwstock,,0.0033971258142469,0.0033988780761544,1.7522619075002917e-06,,,,,
+shap_m1,rf_skx,stocktwits_attention,,0.0010199499562416,0.0010304878417501,1.0537885508499992e-05,,,,,
+shap_m1,rf_skx,stocktwits_sentiment,,0.0024770583727632,0.0024450722729032,-3.198609985999995e-05,,,,,
+shap_m1,rf_skx,stocktwits_sentcount,,0.0025099696376234,0.0025238014974191,1.3831859795699654e-05,,,,,
+shap_m1,rf_skx,vix,,0.0091345910117986,0.009184920335648,5.032932384940042e-05,,,,,
+shap_m1,rf_skx,vvix,,0.002577806813639,0.0025758565895541,-1.95022408490007e-06,,,,,
+shap_m1,rf_skx,vix3m,,0.0027146524787107,0.0027105008023408,-4.151676369900173e-06,,,,,
+shap_m1,rf_skx,voldemand_spx_open_and_close,,0.000609986952463,0.0006129508800073,2.9639275442999713e-06,,,,,
+shap_m1,rf_skx,voldemand_spx_open_only,,0.0006031064605649,0.0006089861255544,5.879664989500073e-06,,,,,
+shap_m1,rf_skx,voldemand_all_open_and_close,,0.0006248064562968,0.0006197863320801,-5.02012421670008e-06,,,,,
+shap_m1,rf_skx,voldemand_all_open_only,,0.000612068700038,0.0005937347111812,-1.833398885679998e-05,,,,,
+shap_m1,rf_skx,fomc_day,,0.0010063534597582,0.0009343243372713,-7.20291224869e-05,,,,,
+shap_m1,rf_skx,fomc_until_inv,,0.0105010113055897,0.0107848204839676,0.0002838091783778987,,,,,
+shap_m1,rf_skx,fomc_since_inv,,0.0019491875607132,0.0020683481527099,0.00011916059199670002,,,,,

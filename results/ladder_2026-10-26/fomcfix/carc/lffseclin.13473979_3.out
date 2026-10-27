@@ -1,0 +1,10 @@
+lff task 3 on b22-31.hpc.usc.edu [AMD EPYC 7542 32-Core Processor] Mon Oct 26 17:48:56 PDT 2026
+line: linear run-linear 3000 enet 1
+[17:49:00] W 3000 enet alpha 0.001: sets ['full', 'har', 'P20', 'P10', 'P5', 'P3', 'P1', 'S20', 'S10', 'S5', 'S3']; 504 jobs, 8 workers
+[17:49:27] 100/504 jobs, 27s (last S20 k=101 1.5s)
+[17:49:39] 200/504 jobs, 39s (last S10 k=73 0.8s)
+[17:49:46] 300/504 jobs, 46s (last S5 k=47 0.4s)
+[17:49:50] 400/504 jobs, 50s (last S3 k=21 0.3s)
+[17:49:53] 500/504 jobs, 53s (last S3 k=121 0.3s)
+[17:49:53] 504/504 jobs, 53s (last S3 k=124 0.3s)
+lff task 3 done Mon Oct 26 17:49:53 PDT 2026

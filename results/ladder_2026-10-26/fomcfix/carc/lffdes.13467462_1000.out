@@ -1,0 +1,14 @@
+design W 1000 on b22-18.hpc.usc.edu [ AMD EPYC 7542 32-Core Processor] Mon Oct 26 16:26:28 PDT 2026
+[16:26:53] done logs/design_baseline.log in 23 s
+[16:29:47] done logs/design_all_features.log in 198 s
+[16:29:48] host b22-18.hpc.usc.edu, numpy 1.26.4
+total 82420
+drwxr-xr-x 3 jc_905 jc_905         8 Oct 26 16:29 .
+drwxr-xr-x 5 jc_905 jc_905         5 Oct 26 16:26 ..
+-rw-r--r-- 1 jc_905 jc_905 382378592 Oct 26 16:29 X.npy
+-rw-r--r-- 1 jc_905 jc_905    574104 Oct 26 16:29 b_oos.npy
+-rw-r--r-- 1 jc_905 jc_905   1434945 Oct 26 16:29 dates_oos.csv
+-rw-r--r-- 1 jc_905 jc_905     17957 Oct 26 16:29 design.json
+drwxr-xr-x 2 jc_905 jc_905         4 Oct 26 16:29 dummy
+-rw-r--r-- 1 jc_905 jc_905    678104 Oct 26 16:29 y.npy
+design W 1000 done Mon Oct 26 16:29:48 PDT 2026

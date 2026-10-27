@@ -1,0 +1,13 @@
+lff task 3 on b09-15.hpc.usc.edu [AMD EPYC 7513 32-Core Processor] Mon Oct 26 17:09:54 PDT 2026
+line: linear run-linear 3000 enet 0
+[17:09:57] W 3000 enet alpha 0.001: sets ['full', 'har', 'P20', 'P10', 'P5', 'P3', 'P1']; 882 jobs, 16 workers
+[17:10:41] 100/882 jobs, 44s (last full k=101 4.7s)
+[17:10:48] 200/882 jobs, 50s (last har k=84 0.1s)
+[17:10:55] 300/882 jobs, 58s (last P20 k=49 1.2s)
+[17:11:04] 400/882 jobs, 66s (last P10 k=25 0.6s)
+[17:11:08] 500/882 jobs, 71s (last P5 k=1 0.3s)
+[17:11:10] 600/882 jobs, 73s (last P5 k=95 0.4s)
+[17:11:12] 700/882 jobs, 75s (last P3 k=68 0.2s)
+[17:11:13] 800/882 jobs, 76s (last P1 k=49 0.1s)
+[17:11:14] 882/882 jobs, 76s (last P1 k=124 0.1s)
+lff task 3 done Mon Oct 26 17:11:14 PDT 2026

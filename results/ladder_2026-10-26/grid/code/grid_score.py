@@ -309,6 +309,26 @@ def main() -> int:
     return 0
 
 
+FLOOR = (
+    -6.0
+)  # gain x 1e3 below which a point is drawn at the axis floor and labelled (off-scale held-forecast blow-ups)
+
+
+def clipped(ax, x, y, color):
+    """Plot y clipped at FLOOR; mark and label the clipped points."""
+    import numpy as np
+
+    y = np.asarray(y, dtype=float)
+    x = np.asarray(x, dtype=float)
+    low = y < FLOOR
+    for xi, yi in zip(x[low], y[low]):
+        ax.plot([xi], [FLOOR], marker="v", ms=6, color=color, zorder=4)
+        ax.annotate(
+            f"{yi:,.0f}", (xi, FLOOR), textcoords="offset points", xytext=(0, 6), ha="center", fontsize=6, color=color
+        )
+    return np.where(low, FLOOR, y)
+
+
 def figures(S: pd.DataFrame) -> None:
     import matplotlib
 
@@ -337,7 +357,7 @@ def figures(S: pd.DataFrame) -> None:
                     g = S[(S.model == m) & (S.span == sp) & (S.wdays == wd)].sort_values("k")
                     ax.plot(
                         g[xcol],
-                        g["gain"] * 1e3,
+                        clipped(ax, g[xcol], g["gain"] * 1e3, WCOL[wd]),
                         color=WCOL[wd],
                         lw=2,
                         marker="o",
@@ -380,7 +400,7 @@ def figures(S: pd.DataFrame) -> None:
                 g = S[(S.model == m) & (S.span == sp) & (S.k == k)].sort_values("wdays")
                 ax.plot(
                     g["T"],
-                    g["gain"] * 1e3,
+                    clipped(ax, g["T"], g["gain"] * 1e3, KCOL[k]),
                     color=KCOL[k],
                     lw=2,
                     marker="o",

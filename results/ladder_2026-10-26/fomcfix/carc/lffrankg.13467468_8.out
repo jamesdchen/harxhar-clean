@@ -1,0 +1,4 @@
+lff task 8 on b05-06.hpc.usc.edu [AMD EPYC 7513 32-Core Processor] Mon Oct 26 16:51:35 PDT 2026
+line: trees rank-trees 3500 xgb
+[16:51:49] W 3500 rank xgb: additivity 1.8e-06 True; top 10 ['sumabsret', 'sumabsret_vwstock', 'sumret', 'effspread_vwstock', 'sumabsret_ewstock', 'sumautocov', 'vix', 'fomc_until_inv', 'sumret3', 'stocktwits_sentiment']
+lff task 8 done Mon Oct 26 16:51:49 PDT 2026

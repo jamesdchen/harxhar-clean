@@ -1,0 +1,46 @@
+lff task 6 on b04-04.hpc.usc.edu [AMD EPYC 7513 32-Core Processor] Mon Oct 26 16:09:10 PDT 2026
+line: trees run-trees 3000 xgb 3/3 0
+[16:09:12] W 3000 xgb xgb_opt_00: sets ['full', 'har', 'P20', 'P10', 'P5', 'P3', 'P1']; origins 84..125; design /home1/jc_905/fomcfix_lin/runs/B/_work/design_all_features
+[16:12:24] W 3000 xgb k= 84: full 89.7s har 94.7s P20 3.2s P10 1.6s P5 1.0s P3 0.8s P1 0.6s
+[16:12:39] W 3000 xgb k= 85: full 7.1s har 0.4s P20 3.4s P10 1.6s P5 1.1s P3 0.8s P1 0.6s
+[16:12:54] W 3000 xgb k= 86: full 7.0s har 0.4s P20 3.5s P10 1.7s P5 1.0s P3 0.8s P1 0.6s
+[16:13:08] W 3000 xgb k= 87: full 6.3s har 0.4s P20 3.3s P10 1.7s P5 1.1s P3 0.8s P1 0.5s
+[16:13:22] W 3000 xgb k= 88: full 6.4s har 0.4s P20 3.1s P10 1.6s P5 1.0s P3 0.7s P1 0.5s
+[16:13:36] W 3000 xgb k= 89: full 6.4s har 0.4s P20 3.3s P10 1.5s P5 1.0s P3 0.8s P1 0.6s
+[16:15:23] W 3000 xgb k= 90: full 99.6s har 0.4s P20 3.3s P10 1.6s P5 1.0s P3 0.7s P1 0.6s
+[16:15:37] W 3000 xgb k= 91: full 6.1s har 0.5s P20 3.5s P10 1.7s P5 1.0s P3 0.8s P1 0.5s
+[16:15:52] W 3000 xgb k= 92: full 6.8s har 0.5s P20 3.4s P10 1.6s P5 1.1s P3 0.7s P1 0.6s
+[16:16:06] W 3000 xgb k= 93: full 6.2s har 0.4s P20 3.5s P10 1.6s P5 1.1s P3 0.8s P1 0.6s
+[16:16:20] W 3000 xgb k= 94: full 6.0s har 0.4s P20 3.5s P10 1.6s P5 1.0s P3 0.8s P1 0.6s
+[16:16:53] W 3000 xgb k= 95: full 23.8s har 0.4s P20 3.3s P10 2.3s P5 1.0s P3 0.8s P1 0.5s
+[16:17:07] W 3000 xgb k= 96: full 6.6s har 0.4s P20 3.2s P10 1.7s P5 1.1s P3 0.8s P1 0.6s
+[16:17:24] W 3000 xgb k= 97: full 8.3s har 0.5s P20 3.4s P10 1.7s P5 1.0s P3 0.8s P1 0.6s
+[16:17:37] W 3000 xgb k= 98: full 6.3s har 0.5s P20 3.1s P10 1.6s P5 1.1s P3 0.8s P1 0.5s
+[16:17:52] W 3000 xgb k= 99: full 6.3s har 0.4s P20 3.3s P10 1.5s P5 1.1s P3 0.8s P1 0.5s
+[16:18:06] W 3000 xgb k=100: full 6.0s har 0.5s P20 3.4s P10 1.6s P5 1.1s P3 1.1s P1 0.6s
+[16:18:38] W 3000 xgb k=101: full 24.3s har 0.5s P20 3.4s P10 1.6s P5 1.0s P3 0.8s P1 0.6s
+[16:18:53] W 3000 xgb k=102: full 6.3s har 0.4s P20 3.6s P10 1.7s P5 1.1s P3 0.8s P1 0.5s
+[16:19:08] W 3000 xgb k=103: full 7.7s har 0.4s P20 3.3s P10 1.8s P5 1.1s P3 0.7s P1 0.5s
+[16:19:23] W 3000 xgb k=104: full 6.9s har 0.4s P20 3.6s P10 1.6s P5 1.2s P3 0.7s P1 0.5s
+[16:19:38] W 3000 xgb k=105: full 6.9s har 0.4s P20 3.3s P10 1.7s P5 1.1s P3 0.8s P1 0.5s
+[16:19:52] W 3000 xgb k=106: full 6.3s har 0.4s P20 3.3s P10 1.6s P5 1.0s P3 0.7s P1 0.6s
+[16:20:07] W 3000 xgb k=107: full 6.7s har 0.4s P20 3.5s P10 1.7s P5 1.0s P3 0.8s P1 0.5s
+[16:20:21] W 3000 xgb k=108: full 6.6s har 0.4s P20 3.2s P10 1.6s P5 1.1s P3 0.8s P1 0.6s
+[16:20:35] W 3000 xgb k=109: full 6.2s har 0.4s P20 3.2s P10 1.6s P5 1.1s P3 0.8s P1 0.5s
+[16:20:50] W 3000 xgb k=110: full 6.5s har 0.4s P20 3.2s P10 1.9s P5 1.1s P3 0.8s P1 0.6s
+[16:21:04] W 3000 xgb k=111: full 6.4s har 0.4s P20 3.5s P10 1.7s P5 1.1s P3 0.8s P1 0.6s
+[16:21:19] W 3000 xgb k=112: full 6.5s har 0.4s P20 3.6s P10 1.8s P5 1.1s P3 0.8s P1 0.6s
+[16:21:33] W 3000 xgb k=113: full 6.3s har 0.4s P20 3.3s P10 1.6s P5 1.0s P3 0.8s P1 0.5s
+[16:21:47] W 3000 xgb k=114: full 6.2s har 0.4s P20 3.3s P10 1.6s P5 1.1s P3 0.8s P1 0.5s
+[16:22:14] W 3000 xgb k=115: full 17.2s har 0.4s P20 3.5s P10 2.5s P5 1.1s P3 0.9s P1 0.6s
+[16:22:28] W 3000 xgb k=116: full 6.6s har 0.4s P20 3.1s P10 1.8s P5 1.3s P3 0.8s P1 0.6s
+[16:22:43] W 3000 xgb k=117: full 7.0s har 0.4s P20 3.1s P10 1.6s P5 1.4s P3 0.8s P1 0.5s
+[16:22:58] W 3000 xgb k=118: full 6.9s har 0.4s P20 3.1s P10 1.7s P5 1.0s P3 0.8s P1 0.6s
+[16:23:12] W 3000 xgb k=119: full 6.8s har 0.4s P20 3.2s P10 1.6s P5 1.0s P3 0.8s P1 0.5s
+[16:24:01] W 3000 xgb k=120: full 40.4s har 0.4s P20 3.8s P10 1.6s P5 1.0s P3 0.7s P1 0.5s
+[16:24:15] W 3000 xgb k=121: full 6.6s har 0.5s P20 3.1s P10 1.6s P5 1.0s P3 0.7s P1 0.5s
+[16:24:30] W 3000 xgb k=122: full 6.5s har 0.4s P20 3.1s P10 1.5s P5 1.0s P3 1.3s P1 0.7s
+[16:24:44] W 3000 xgb k=123: full 6.8s har 0.4s P20 3.5s P10 1.7s P5 1.0s P3 0.7s P1 0.5s
+[16:24:59] W 3000 xgb k=124: full 6.6s har 0.4s P20 3.6s P10 1.6s P5 1.0s P3 0.7s P1 0.5s
+[16:25:13] W 3000 xgb k=125: full 6.6s har 0.4s P20 3.2s P10 1.5s P5 1.1s P3 0.7s P1 0.5s
+lff task 6 done Mon Oct 26 16:25:13 PDT 2026

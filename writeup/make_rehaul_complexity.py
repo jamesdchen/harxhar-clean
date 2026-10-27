@@ -199,6 +199,26 @@ def main() -> None:
     print(f"wrote {len(M)} macros, floats, figures ({GRID.relative_to(ROOT).as_posix()}, tag '{TAG}')")
 
 
+FLOOR = (
+    -6.0
+)  # gain x 1e3 below which a point is drawn at the axis floor and labelled (off-scale held-forecast blow-ups)
+
+
+def clipped(ax, x, y, color):
+    """Plot y clipped at FLOOR; mark and label the clipped points."""
+    import numpy as np
+
+    y = np.asarray(y, dtype=float)
+    x = np.asarray(x, dtype=float)
+    low = y < FLOOR
+    for xi, yi in zip(x[low], y[low]):
+        ax.plot([xi], [FLOOR], marker="v", ms=6, color=color, zorder=4)
+        ax.annotate(
+            f"{yi:,.0f}", (xi, FLOOR), textcoords="offset points", xytext=(0, 6), ha="center", fontsize=6, color=color
+        )
+    return np.where(low, FLOOR, y)
+
+
 def figures(S: pd.DataFrame) -> None:
     import matplotlib
 
@@ -226,7 +246,15 @@ def figures(S: pd.DataFrame) -> None:
             ax = axes[i, j]
             for w in WS:
                 g = S[(S.model == m) & (S.span == sp) & (S.wdays == w)].sort_values("k")
-                ax.plot(g["P"], g["gain"] * 1e3, color=WCOL[w], lw=1.6, marker="o", ms=3, label=f"$W$ = {w:,}")
+                ax.plot(
+                    g["P"],
+                    clipped(ax, g["P"], g["gain"] * 1e3, WCOL[w]),
+                    color=WCOL[w],
+                    lw=1.6,
+                    marker="o",
+                    ms=3,
+                    label=f"$W$ = {w:,}",
+                )
             ax.set_xscale("log")
             ax.set_xticks([12, 24, 48, 72, 132, 252, 564])
             ax.set_xticklabels(["12", "24", "48", "72", "132", "252", "564"])
@@ -249,7 +277,15 @@ def figures(S: pd.DataFrame) -> None:
         ax = axes[0, j]
         for k in KS[1:]:
             g = S[(S.model == m) & (S.span == "all") & (S.k == k)].sort_values("wdays")
-            ax.plot(g["T"] / 1000, g["gain"] * 1e3, color=KCOL[k], lw=1.6, marker="o", ms=3, label=f"$k$ = {k}")
+            ax.plot(
+                g["T"] / 1000,
+                clipped(ax, g["T"] / 1000, g["gain"] * 1e3, KCOL[k]),
+                color=KCOL[k],
+                lw=1.6,
+                marker="o",
+                ms=3,
+                label=f"$k$ = {k}",
+            )
         style(ax)
         ax.set_title(TITLE[m], fontsize=9, color=INK)
         ax.set_xlabel(r"$T$ (thousand bars)", fontsize=8, color=INK2)

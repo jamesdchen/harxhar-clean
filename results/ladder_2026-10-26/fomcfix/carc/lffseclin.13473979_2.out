@@ -1,0 +1,8 @@
+lff task 2 on b22-15.hpc.usc.edu [AMD EPYC 7542 32-Core Processor] Mon Oct 26 17:48:22 PDT 2026
+line: linear run-linear 3000 lasso 1
+[17:48:23] W 3000 lasso alpha 0.0001: sets ['full', 'har', 'P20', 'P10', 'P5', 'P3', 'P1', 'S20', 'S10', 'S5']; 378 jobs, 8 workers
+[17:49:43] 100/378 jobs, 80s (last S20 k=100 4.4s)
+[17:50:22] 200/378 jobs, 119s (last S10 k=72 1.9s)
+[17:50:39] 300/378 jobs, 136s (last S5 k=49 0.5s)
+[17:50:46] 378/378 jobs, 143s (last S5 k=124 0.7s)
+lff task 2 done Mon Oct 26 17:50:46 PDT 2026

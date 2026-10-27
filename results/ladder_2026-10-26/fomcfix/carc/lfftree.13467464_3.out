@@ -1,0 +1,46 @@
+lff task 3 on b10-01.hpc.usc.edu [AMD EPYC 7513 32-Core Processor] Mon Oct 26 16:05:23 PDT 2026
+line: trees run-trees 3000 lgbm 3/3 0
+[16:05:27] W 3000 lgbm lgbm_opt_00: sets ['full', 'har', 'P20', 'P10', 'P5', 'P3', 'P1']; origins 84..125; design /home1/jc_905/fomcfix_lin/runs/B/_work/design_all_features
+[16:05:38] W 3000 lgbm k= 84: full 3.7s har 0.5s P20 1.8s P10 1.1s P5 0.7s P3 0.6s P1 0.5s
+[16:05:47] W 3000 lgbm k= 85: full 3.1s har 0.5s P20 1.7s P10 1.2s P5 0.7s P3 0.6s P1 0.5s
+[16:05:55] W 3000 lgbm k= 86: full 3.1s har 0.4s P20 1.7s P10 1.1s P5 0.7s P3 0.6s P1 0.6s
+[16:06:04] W 3000 lgbm k= 87: full 3.1s har 0.5s P20 1.7s P10 1.1s P5 0.7s P3 0.6s P1 0.6s
+[16:06:12] W 3000 lgbm k= 88: full 3.1s har 0.5s P20 1.7s P10 1.1s P5 0.7s P3 0.6s P1 0.6s
+[16:06:21] W 3000 lgbm k= 89: full 3.1s har 0.5s P20 1.7s P10 1.1s P5 0.8s P3 0.6s P1 0.6s
+[16:06:29] W 3000 lgbm k= 90: full 3.1s har 0.5s P20 1.7s P10 1.1s P5 0.7s P3 0.6s P1 0.6s
+[16:06:38] W 3000 lgbm k= 91: full 3.1s har 0.5s P20 1.7s P10 1.1s P5 0.7s P3 0.6s P1 0.5s
+[16:06:46] W 3000 lgbm k= 92: full 3.0s har 0.4s P20 1.7s P10 1.1s P5 0.7s P3 0.6s P1 0.6s
+[16:06:54] W 3000 lgbm k= 93: full 3.1s har 0.4s P20 1.7s P10 1.1s P5 0.7s P3 0.6s P1 0.6s
+[16:07:03] W 3000 lgbm k= 94: full 3.1s har 0.4s P20 1.7s P10 1.1s P5 0.7s P3 0.6s P1 0.5s
+[16:07:11] W 3000 lgbm k= 95: full 3.1s har 0.4s P20 1.7s P10 1.1s P5 0.7s P3 0.6s P1 0.5s
+[16:07:19] W 3000 lgbm k= 96: full 3.0s har 0.5s P20 1.7s P10 1.2s P5 0.7s P3 0.6s P1 0.6s
+[16:07:28] W 3000 lgbm k= 97: full 3.2s har 0.5s P20 1.7s P10 1.1s P5 0.7s P3 0.6s P1 0.5s
+[16:07:36] W 3000 lgbm k= 98: full 3.1s har 0.5s P20 1.7s P10 1.1s P5 0.7s P3 0.6s P1 0.5s
+[16:07:44] W 3000 lgbm k= 99: full 3.1s har 0.5s P20 1.7s P10 1.1s P5 0.7s P3 0.6s P1 0.6s
+[16:07:53] W 3000 lgbm k=100: full 3.1s har 0.5s P20 1.7s P10 1.1s P5 0.7s P3 0.6s P1 0.6s
+[16:08:01] W 3000 lgbm k=101: full 3.2s har 0.4s P20 1.7s P10 1.1s P5 0.7s P3 0.6s P1 0.6s
+[16:08:10] W 3000 lgbm k=102: full 3.2s har 0.5s P20 1.7s P10 1.1s P5 0.7s P3 0.6s P1 0.5s
+[16:08:18] W 3000 lgbm k=103: full 3.2s har 0.5s P20 1.7s P10 1.1s P5 0.7s P3 0.6s P1 0.5s
+[16:08:27] W 3000 lgbm k=104: full 3.2s har 0.4s P20 1.7s P10 1.1s P5 0.7s P3 0.6s P1 0.6s
+[16:08:35] W 3000 lgbm k=105: full 3.3s har 0.5s P20 1.8s P10 1.1s P5 0.7s P3 0.6s P1 0.6s
+[16:08:44] W 3000 lgbm k=106: full 3.2s har 0.4s P20 1.8s P10 1.2s P5 0.7s P3 0.6s P1 0.5s
+[16:08:52] W 3000 lgbm k=107: full 3.2s har 0.5s P20 1.8s P10 1.1s P5 0.7s P3 0.6s P1 0.5s
+[16:09:01] W 3000 lgbm k=108: full 3.2s har 0.4s P20 1.7s P10 1.1s P5 0.7s P3 0.6s P1 0.6s
+[16:09:09] W 3000 lgbm k=109: full 3.3s har 0.4s P20 1.8s P10 1.1s P5 0.7s P3 0.6s P1 0.6s
+[16:09:18] W 3000 lgbm k=110: full 3.3s har 0.5s P20 1.7s P10 1.1s P5 0.7s P3 0.6s P1 0.5s
+[16:09:26] W 3000 lgbm k=111: full 3.3s har 0.4s P20 1.7s P10 1.1s P5 0.7s P3 0.6s P1 0.6s
+[16:09:35] W 3000 lgbm k=112: full 3.3s har 0.4s P20 1.7s P10 1.0s P5 0.7s P3 0.6s P1 0.6s
+[16:09:44] W 3000 lgbm k=113: full 3.4s har 0.5s P20 1.8s P10 1.0s P5 0.7s P3 0.6s P1 0.6s
+[16:09:52] W 3000 lgbm k=114: full 3.3s har 0.4s P20 1.7s P10 1.0s P5 0.7s P3 0.6s P1 0.5s
+[16:10:00] W 3000 lgbm k=115: full 3.4s har 0.4s P20 1.7s P10 1.0s P5 0.7s P3 0.6s P1 0.5s
+[16:10:09] W 3000 lgbm k=116: full 3.3s har 0.4s P20 1.8s P10 1.0s P5 0.7s P3 0.6s P1 0.5s
+[16:10:17] W 3000 lgbm k=117: full 3.4s har 0.4s P20 1.8s P10 1.0s P5 0.7s P3 0.6s P1 0.5s
+[16:10:26] W 3000 lgbm k=118: full 3.4s har 0.4s P20 1.7s P10 1.0s P5 0.7s P3 0.6s P1 0.5s
+[16:10:34] W 3000 lgbm k=119: full 3.4s har 0.4s P20 1.7s P10 1.0s P5 0.7s P3 0.6s P1 0.5s
+[16:10:43] W 3000 lgbm k=120: full 3.4s har 0.4s P20 1.8s P10 1.0s P5 0.7s P3 0.6s P1 0.5s
+[16:10:51] W 3000 lgbm k=121: full 3.4s har 0.5s P20 1.7s P10 1.0s P5 0.7s P3 0.6s P1 0.5s
+[16:11:00] W 3000 lgbm k=122: full 3.4s har 0.4s P20 1.8s P10 1.0s P5 0.7s P3 0.6s P1 0.5s
+[16:11:09] W 3000 lgbm k=123: full 4.1s har 0.5s P20 1.8s P10 1.0s P5 0.7s P3 0.6s P1 0.5s
+[16:11:18] W 3000 lgbm k=124: full 3.7s har 0.5s P20 2.1s P10 1.2s P5 0.7s P3 0.6s P1 0.5s
+[16:11:27] W 3000 lgbm k=125: full 3.5s har 0.5s P20 1.8s P10 1.0s P5 0.8s P3 0.6s P1 0.5s
+lff task 3 done Mon Oct 26 16:11:27 PDT 2026

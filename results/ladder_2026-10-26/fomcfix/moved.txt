@@ -16,16 +16,28 @@ LADDER (W = 3,000, primary ranking): QLIKE pre -> post (x 1e3 change), retained 
   readings (k90, verdict) pre -> post
     lgbm    primary                  all  k90 10 -> 10; INTERMEDIATE -> INTERMEDIATE
     lgbm    primary                  c16  k90 3 -> 3; CONCENTRATED -> CONCENTRATED
+    lgbm    secondary (look-ahead)   all  k90 10 -> 10; INTERMEDIATE -> INTERMEDIATE
+    lgbm    secondary (look-ahead)   c16  k90 3 -> 3; CONCENTRATED -> CONCENTRATED
     xgb     primary                  all  k90 10 -> 10; INTERMEDIATE -> INTERMEDIATE
     xgb     primary                  c16  k90 5 -> 5; CONCENTRATED -> CONCENTRATED
+    xgb     secondary (look-ahead)   all  k90 10 -> 10; INTERMEDIATE -> INTERMEDIATE
+    xgb     secondary (look-ahead)   c16  k90 3 -> 3; CONCENTRATED -> CONCENTRATED
     ridge   primary                  all  k90 3 -> 5; CONCENTRATED -> CONCENTRATED
     ridge   primary                  c16  k90 46 -> 46; NO GAIN TO RETAIN -> NO GAIN TO RETAIN
+    ridge   secondary (look-ahead)   all  k90 3 -> 3; CONCENTRATED -> CONCENTRATED
+    ridge   secondary (look-ahead)   c16  k90 46 -> 46; NO GAIN TO RETAIN -> NO GAIN TO RETAIN
     lasso   primary                  all  k90 1 -> 5; CONCENTRATED -> CONCENTRATED
     lasso   primary                  c16  k90 46 -> 46; NO GAIN TO RETAIN -> NO GAIN TO RETAIN
+    lasso   secondary (look-ahead)   all  k90 1 -> 10; CONCENTRATED -> INTERMEDIATE
+    lasso   secondary (look-ahead)   c16  k90 46 -> 46; NO GAIN TO RETAIN -> NO GAIN TO RETAIN
     enet    primary                  all  k90 3 -> 5; CONCENTRATED -> CONCENTRATED
     enet    primary                  c16  k90 46 -> 46; NO GAIN TO RETAIN -> NO GAIN TO RETAIN
+    enet    secondary (look-ahead)   all  k90 3 -> 3; CONCENTRATED -> CONCENTRATED
+    enet    secondary (look-ahead)   c16  k90 46 -> 46; NO GAIN TO RETAIN -> NO GAIN TO RETAIN
     rf_skx  primary                  all  k90 10 -> 10; INTERMEDIATE -> INTERMEDIATE
     rf_skx  primary                  c16  k90 3 -> 3; CONCENTRATED -> CONCENTRATED
+    rf_skx  secondary (look-ahead)   all  k90 20 -> 10; INTERMEDIATE -> INTERMEDIATE
+    rf_skx  secondary (look-ahead)   c16  k90 3 -> 3; CONCENTRATED -> CONCENTRATED
   primary top 5 pre | post
     lgbm    sumabsret, sumret, sumabsret_vwstock, sumautocov, sumabsret_ewstock | sumabsret, sumret, sumabsret_vwstock, sumabsret_ewstock, sumautocov
     xgb     sumabsret, stocktwits_sentiment, sumabsret_vwstock, sumret, effspread_vwstock | sumabsret, stocktwits_sentiment, sumabsret_vwstock, sumret, effspread_vwstock
@@ -33,6 +45,18 @@ LADDER (W = 3,000, primary ranking): QLIKE pre -> post (x 1e3 change), retained 
     lasso   fomc_until_inv, fomc_day, fomc_since_inv, sumabsret, sumret | fomc_until_inv, fomc_since_inv, sumabsret, fomc_day, sumret
     enet    sumabsret, fomc_day, sumret, sumabsret_vwstock, fomc_until_inv | fomc_until_inv, fomc_since_inv, sumabsret, sumret, fomc_day
     rf_skx  sumabsret, sumabsret_vwstock, sumret, sumabsret_ewstock, effspread_vwstock | sumabsret, sumabsret_vwstock, sumret, sumabsret_ewstock, effspread_vwstock
+
+GRID: best k by window (W 1,000 / 2,000 / 3,000 / 3,500) pre -> post; full-set gain x 1e3 pre -> post
+  lgbm   all  k* 46 46 46 46 (FLAT) -> 20 20 46 46 (RISES); full gain 15.8 23.1 25.5 25.2 -> 15.7 23.2 25.5 24.5
+  lgbm   c16  k* 5 5 3 3 (FALLS) -> 5 5 3 3 (FALLS); full gain 1.6 0.5 3.0 2.1 -> 1.1 0.7 3.1 2.3
+  xgb    all  k* 20 20 46 46 (RISES) -> 20 20 46 46 (RISES); full gain 20.4 22.9 24.6 24.4 -> 20.9 23.2 25.7 24.2
+  xgb    c16  k* 5 5 5 3 (FALLS) -> 5 5 5 3 (FALLS); full gain 0.2 1.6 3.1 3.0 -> 0.9 1.4 3.0 3.0
+  ridge  all  k* 46 5 10 10 (MIXED) -> 46 20 10 10 (FALLS); full gain 9.8 6.8 5.4 11.2 -> 10.1 7.6 6.9 12.2
+  ridge  c16  k* 10 5 5 10 (MIXED) -> 3 20 10 10 (MIXED); full gain 4.1 -8.5 -4.8 4.2 -> 4.0 -10.0 -5.9 2.8
+  lasso  all  k* 20 10 10 10 (FALLS) -> 5 10 10 10 (RISES); full gain 8.3 4.4 5.8 13.3 -> 9.4 8.7 11.4 17.5
+  lasso  c16  k* 46 10 20 10 (MIXED) -> 46 0 20 20 (MIXED); full gain 4.3 -17.7 -8.6 2.8 -> 3.2 -20.0 -9.7 1.2
+  enet   all  k* 46 10 10 10 (FALLS) -> 46 10 10 10 (FALLS); full gain 11.2 8.1 8.8 12.1 -> 11.3 9.1 10.0 13.2
+  enet   c16  k* 46 10 10 5 (FALLS) -> 46 10 10 10 (FALLS); full gain 5.9 -4.9 -1.7 4.8 -> 5.5 -6.3 -3.1 3.4
 
 TREE SHAP M1: share of total mean |SHAP| (%), pre -> post, the FOMC series and the largest moves
   lgbm    fomc_day 0.12 -> 0.12; fomc_until_inv 2.01 -> 2.05; fomc_since_inv 0.18 -> 0.18
