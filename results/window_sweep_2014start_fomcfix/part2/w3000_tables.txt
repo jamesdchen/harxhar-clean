@@ -1,0 +1,49 @@
+loaded: 7 s; 2579 history days in 2014-01-02 .. 2024-04-30
+E34 pooled linear poolpt13_enet_baseline (13 bars, w1000, pl13) for poolpt_enet_baseline: SR mid 0.72 -> 0.98, bid/ask 0.36 -> 0.62, long days 232 -> 205 of 866
+E34 pooled linear poolpt13_enet_all_features (13 bars, w1000, pl13) for poolpt_enet_all_features: SR mid 2.07 -> 1.95, bid/ask 1.73 -> 1.59, long days 237 -> 164 of 866
+E34 pooled linear poolpt13_lasso_baseline (13 bars, w1000, pl13) for poolpt_lasso_baseline: SR mid 0.69 -> 0.98, bid/ask 0.34 -> 0.62, long days 227 -> 205 of 866
+E34 pooled linear poolpt13_lasso_all_features (13 bars, w1000, pl13) for poolpt_lasso_all_features: SR mid 1.29 -> 1.75, bid/ask 0.93 -> 1.40, long days 205 -> 164 of 866
+E34 pooled linear poolpt13_ridge_baseline (13 bars, w1000, pl13) for poolpt_ridge_baseline: SR mid 0.74 -> 0.98, bid/ask 0.38 -> 0.62, long days 231 -> 205 of 866
+E34 pooled linear poolpt13_ridge_all_features (13 bars, w1000, pl13) for poolpt_ridge_all_features: SR mid 1.86 -> 1.75, bid/ask 1.50 -> 1.40, long days 235 -> 169 of 866
+W=3000: scored (204 s)
+common: 2579 days (16:00), 33527 intervals on 2579 days (every bar)
+
+Elastic net: QLIKE 2014-01-02 .. 2024-04-30 (2579 days; every bar 33527 intervals)
+| set | W | 16:00 QLIKE | Δ% step (DM p) | Δ% vs first W (DM p) | every-bar QLIKE | Δ% step (DM p) | Δ% vs first W (DM p) |
+|---|---|---|---|---|---|---|---|
+| HAR | 3,000 | 0.12687 | — | — | 0.18927 | — | — |
+| full | 3,000 | 0.12764 | — | — | 0.17660 | — | — |
+| full vs HAR | W | 16:00 gap % (DM p) | every-bar gap % (DM p) |
+| gap | 3,000 | +0.60 (0.807) | -6.69 (0.000) |
+
+Elastic net: sign strategy, 614 post-warmup option days (2021-08 .. 2024-04)
+| W | D6 HAR | D6 full | ΔD6 (boot p) | ΔD6 b/a (boot p) | ΔD1 (LW p) | ΔSR614 | LLSW t (p) | long HAR / full |
+|---|---|---|---|---|---|---|---|---|
+| 3,000 | 0.98 | 1.95 | +0.97 (0.132) | +0.97 (0.128) | +0.67 (0.074) | +0.95 | 1.67 (0.115) | 0.244 / 0.191 |
+
+Lasso: QLIKE 2014-01-02 .. 2024-04-30 (2579 days; every bar 33527 intervals)
+| set | W | 16:00 QLIKE | Δ% step (DM p) | Δ% vs first W (DM p) | every-bar QLIKE | Δ% step (DM p) | Δ% vs first W (DM p) |
+|---|---|---|---|---|---|---|---|
+| HAR | 3,000 | 0.12687 | — | — | 0.18927 | — | — |
+| full | 3,000 | 0.13225 | — | — | 0.17230 | — | — |
+| full vs HAR | W | 16:00 gap % (DM p) | every-bar gap % (DM p) |
+| gap | 3,000 | +4.24 (0.178) | -8.97 (0.000) |
+
+Lasso: sign strategy, 614 post-warmup option days (2021-08 .. 2024-04)
+| W | D6 HAR | D6 full | ΔD6 (boot p) | ΔD6 b/a (boot p) | ΔD1 (LW p) | ΔSR614 | LLSW t (p) | long HAR / full |
+|---|---|---|---|---|---|---|---|---|
+| 3,000 | 0.98 | 1.75 | +0.77 (0.206) | +0.77 (0.202) | +0.62 (0.120) | +0.82 | 1.59 (0.132) | 0.244 / 0.197 |
+
+Ridge: QLIKE 2014-01-02 .. 2024-04-30 (2579 days; every bar 33527 intervals)
+| set | W | 16:00 QLIKE | Δ% step (DM p) | Δ% vs first W (DM p) | every-bar QLIKE | Δ% step (DM p) | Δ% vs first W (DM p) |
+|---|---|---|---|---|---|---|---|
+| HAR | 3,000 | 0.12687 | — | — | 0.18927 | — | — |
+| full | 3,000 | 0.12913 | — | — | 0.17783 | — | — |
+| full vs HAR | W | 16:00 gap % (DM p) | every-bar gap % (DM p) |
+| gap | 3,000 | +1.78 (0.500) | -6.04 (0.000) |
+
+Ridge: sign strategy, 614 post-warmup option days (2021-08 .. 2024-04)
+| W | D6 HAR | D6 full | ΔD6 (boot p) | ΔD6 b/a (boot p) | ΔD1 (LW p) | ΔSR614 | LLSW t (p) | long HAR / full |
+|---|---|---|---|---|---|---|---|---|
+| 3,000 | 0.98 | 1.75 | +0.77 (0.217) | +0.78 (0.207) | +0.44 (0.171) | +0.73 | 1.32 (0.209) | 0.244 / 0.200 |
+done in 204 s

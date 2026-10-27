@@ -1,0 +1,108 @@
+{
+ "code_commit": "6419310 (walks, designs of the /home1 staging; the patches of ca5a775)",
+ "branch": "insurance-selling-2026-09-19-e34-fomcfix",
+ "code_note": "the final design of results/window_sweep_2014start_2026-10-22/w3000 with the two FOMC patches of results/fomcfix_2026-10-26/RULE.txt (src/data/loading.py FOMC_SCHEDULE_2020_FIX, src/features/transforms/target.py FOMC_PROXIMITY_NO_WINSOR; both on, recorded as --ex-flag) = cell B; holiday sessions kept (DROP_HOLIDAY_SESSIONS=0).  The HAR benchmark design is md5-identical to w3000's (gate G3), so the baseline and OLS rows are w3000's walks (gate L: re-walked bit for bit); the full set re-walked on the patched design with w3000's frozen penalties (= the patched design's own fold-3 selection, frozen_penalties.json here, results/fomcfix_2026-10-26/runs annual/y2014).",
+ "first_day": "2014-01-02",
+ "cluster": "CARC Discovery (USC), Slurm account pollok_1603, partition main, --constraint epyc-7513|epyc-7542; staging /home1/jc_905/fomcfix_lin (RULE.txt addendum C)",
+ "window_days": 3000,
+ "first_fold": 3,
+ "environment": {
+  "python": "3.12.3 (uv)",
+  "numpy": "1.26.4 (OpenBLAS 0.3.23.dev)",
+  "numba": "0.68.0",
+  "pandas": "2.3.3",
+  "scipy": "1.17.1",
+  "OPENBLAS_CORETYPE": "Prescott (run B's kernel on the laptop)",
+  "NPY_DISABLE_CPU_FEATURES": "AVX512 targets where the node has them (none on EPYC)",
+  "threads": "1 per runner process (the orchestrator's run())",
+  "venv": "/home1/jc_905/fomcfix_lin/venv (byte copy of /scratch1/jc_905/wsweep/venv, md5-checked)"
+ },
+ "runner_cfg": [
+  "--sample",
+  "rth13",
+  "--har-base",
+  "5",
+  "--ex-flag",
+  "DROP_ACTIVITY_MA=1",
+  "--ex-flag",
+  "CALENDAR_THROUGH_OVERNIGHT=1",
+  "--ex-flag",
+  "DROP_OVERNIGHT_INDICATOR=1",
+  "--ex-flag",
+  "LEAN_GLOBAL_LAGS=1",
+  "--window-days",
+  "3000",
+  "--ex-flag",
+  "LATE_START_WARMUP=1",
+  "--ex-flag",
+  "FOMC_SCHEDULE_2020_FIX=1",
+  "--ex-flag",
+  "FOMC_PROXIMITY_NO_WINSOR=1",
+  "--ex-flag",
+  "DROP_HOLIDAY_SESSIONS=0"
+ ],
+ "folds": [
+  {
+   "fit": [
+    8202,
+    47202
+   ],
+   "val": [
+    47527,
+    50777
+   ],
+   "val_first": "2013-01-02 15:30:00",
+   "val_last": "2013-12-31 16:00:00",
+   "fold": 3
+  }
+ ],
+ "rule": "one penalty a model, the lowest mean validation MSE (adjusted scale, all 13 bars) over pre-sample folds 3 .. 3 of 4; frozen over the evaluation span",
+ "stages": {
+  "design": {
+   "wall_sec": 298,
+   "nodes": [
+    {
+     "stage": "design",
+     "host": "a02-18.hpc.usc.edu",
+     "cpu": "AMD EPYC 7513 32-Core Processor",
+     "slurm_job": "13457893",
+     "start": "Mon Oct 26 00:57 PDT 2026"
+    }
+   ]
+  },
+  "walk": {
+   "tasks": 10,
+   "slurm_job": "13458195 (full set, 10 tasks); baseline + OLS: cell A walks 13458194",
+   "max_task_wall_sec": 649,
+   "sum_task_sec": 3545,
+   "nodes": [
+    "a02-02.hpc.usc.edu",
+    "a04-02.hpc.usc.edu",
+    "b04-17.hpc.usc.edu",
+    "b10-05.hpc.usc.edu",
+    "b10-21.hpc.usc.edu",
+    "b22-02.hpc.usc.edu",
+    "b22-03.hpc.usc.edu",
+    "b22-29.hpc.usc.edu"
+   ]
+  },
+  "score": {
+   "host": "discovery2.hpc.usc.edu (login node)",
+   "note": "pooled_linear_rerun_2026_10_19_13.py score, 2026-10-26 14:50 PDT"
+  }
+ },
+ "design_log_scale_lines": {
+  "baseline": [],
+  "all_features": [
+   "[scale] late-start warm-up: 61 columns, 4696970 values set to 0 (window 39000 rows)",
+   "[scale] unobserved-neutral: 134 columns, 2492143 values set to 0 (2384585 were 0 already)"
+  ]
+ },
+ "fomcfix": {
+  "rule": "results/fomcfix_2026-10-26/RULE.txt",
+  "cell": "B",
+  "gates": "results/fomcfix_2026-10-26/gates (G1, G2, G3, G3b, L, S)",
+  "scores": "results/fomcfix_2026-10-26/scores_linear"
+ },
+ "penalties_note": "frozen_penalties.json and pretune_mse.csv: the pretune + select of the final run (fold 3, validation 2013) on this patched design (CARC /home1/jc_905/fomcfix_lin/runs/annual/y2014, jobs 13458199); the same six penalties as results/window_sweep_2014start_2026-10-22/w3000/frozen_penalties.json, whose copy the walks read; the full-set validation MSEs are 0.3-1.0 % lower on the patched design"
+}

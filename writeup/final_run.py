@@ -113,6 +113,26 @@ VAL_YEAR = 2013  # fold 3's validation year (2013-01-02 15:30 .. 2013-12-31 16:0
 SUB_A = (FIRST_DAY, pd.Timestamp("2019-12-31"))
 SUB_B = (pd.Timestamp("2020-01-03"), LAST_DAY)
 
+# ---------------------------------------------------------------------------------------------- the FOMC-patched runs
+# 2026-10-26 (author: the FOMC-patched design adopted; results/fomcfix_2026-10-26/INTEGRATION.md): REHAUL_FOMCFIX=1
+# (with REHAUL_FINAL_RUN=1, W = 3,000 only) points the three final inputs at the runs on the patched design, cell B of
+# results/fomcfix_2026-10-26/RULE.txt (FOMC_SCHEDULE_2020_FIX and FOMC_PROXIMITY_NO_WINSOR on, holiday sessions kept):
+# FOMCFIX_RUNS below.  It sets REHAUL_LINEAR_RUN / REHAUL_TREES_RUN / REHAUL_RF_RUN where they are unset, so every reader
+# of those variables (and make_rehaul_robust_window.py's path check) sees the patched runs.  Off (default): as before.
+FOMCFIX: bool = _on("REHAUL_FOMCFIX")
+FOMCFIX_RUNS = {
+    "REHAUL_LINEAR_RUN": RESULTS / "window_sweep_2014start_fomcfix" / "w3000",
+    "REHAUL_TREES_RUN": RESULTS / "pooled_trees_final_2014start_fomcfix_w3000",
+    "REHAUL_RF_RUN": RESULTS / "pooled_rf_skx_2014start_fomcfix_w3000",
+}
+if FOMCFIX:
+    assert FINAL, "REHAUL_FOMCFIX=1 needs REHAUL_FINAL_RUN=1"
+    assert WINDOW_DAYS == 3000, (
+        f"REHAUL_FOMCFIX=1: the patched runs exist for W = 3,000 only (REHAUL_FINAL_WINDOW={WINDOW_DAYS})"
+    )
+    for _k, _v in FOMCFIX_RUNS.items():
+        os.environ.setdefault(_k, str(_v))
+
 # ---------------------------------------------------------------------------------------------- inputs
 LINEAR_RUN = _path(
     "REHAUL_LINEAR_RUN",

@@ -1,0 +1,71 @@
+{
+ "run": "fomcfix cell B (results/fomcfix_2026-10-26/RULE.txt section 6)",
+ "branch": "insurance-selling-2026-09-19-e34-fomcfix",
+ "runner": "experiments/pooled_trees_rerun_13.py walk through results/fomcfix_2026-10-26/code/tree_task.sh",
+ "runner_commit": "ca5a775 (code tree /home1/jc_905/fomcfix_trees/code; T1 gate PASS)",
+ "repo_commit_at_submission": "6419310",
+ "runner_note": "full set re-walked on the FOMC-patched design (cell B); HAR benchmark rows are the template run's",
+ "cluster": "CARC Discovery (USC), Slurm account pollok_1603, partition main, --constraint epyc-7513|epyc-7542",
+ "environment": {
+  "python_bin": "/home1/jc_905/trees_final/venv_skx/bin/python",
+  "python": "3.12.15",
+  "numpy": "1.26.4",
+  "pandas": "2.3.3",
+  "scipy": "1.17.1",
+  "sklearn": "1.9.1",
+  "lightgbm": "4.6.0",
+  "xgboost": "3.2.0",
+  "pyarrow": "19.0.1"
+ },
+ "design": {
+  "source": "/home1/jc_905/fomcfix_lin/runs/B/_work/design_{baseline,all_features} (read in place, RULE.txt addendum C)",
+  "gates": "results/fomcfix_2026-10-26/gates/G3.json (md5 of the patched caches)"
+ },
+ "window_days": 3000,
+ "window_rows": 39000,
+ "span": [
+  "2014-01-02",
+  "2024-04-30"
+ ],
+ "refit": "bar",
+ "first_row": "2014-01-02 10:00:00",
+ "bars_per_arm": 33970,
+ "days": 2643,
+ "configs": {
+  "lgbm": {
+   "name": "lgbm_opt_00",
+   "sha": "abab811bd4b6",
+   "file": "cluster/pooltree_lgbm_config.json",
+   "file_sha256": "1349f96a9ae69198db9f754c07993c729fe02b6c5a0a45c66d0ce4dae3e80d0d"
+  },
+  "xgb": {
+   "name": "xgb_opt_00",
+   "sha": "88bec9f385c7",
+   "file": "cluster/xgbtop_xgb_config.json",
+   "file_sha256": "961ca7096386aba2aad9fa54a50a7be5c9a711b4399fa80b49c8ec6f6854f3dc"
+  }
+ },
+ "pieces": {
+  "lgbm/all_features": 14,
+  "xgb/all_features": 29,
+  "lgbm/baseline": "template 3",
+  "xgb/baseline": "template 4"
+ },
+ "task_rule": "experiments/pooled_trees_rerun_13.py tasks --refits bar --target-hours 3 on the CARC time probe (timing/sec_refit.csv, 3 refits at the first 2014-01-02 rows, 8 threads), arms cheapest first (the printed run's rule)",
+ "slurm_arrays": [
+  "13458387 (lgbm full)",
+  "13458388 (xgb full)"
+ ],
+ "merge_job": "login node, 2026-10-26 13:02 PDT",
+ "sacct": {
+  "note": "full set only; allocated CPU-h from sacct",
+  "lgbm/all_features": 247.0,
+  "xgb/all_features": 379.7
+ },
+ "cpu_h_by_arm": {
+  "lgbm/all_features": 247.0,
+  "xgb/all_features": 379.7,
+  "lgbm/baseline": "template",
+  "xgb/baseline": "template"
+ }
+}
