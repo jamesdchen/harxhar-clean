@@ -1,0 +1,44 @@
+{
+ "dir": "/home1/jc_905/beyond_trees/runs/gate/e7542",
+ "classes": {
+  "lgbm": {
+   "origins": [
+    "2014-01-02 10:00:00",
+    "2016-08-03 12:30:00",
+    "2018-12-20 15:00:00",
+    "2020-03-16 11:00:00",
+    "2022-06-15 14:30:00",
+    "2024-04-30 16:00:00"
+   ],
+   "text_identical": 6,
+   "rows": 6,
+   "max_abs": 0.0,
+   "side_equal": true,
+   "cpus": [
+    "AMD EPYC 7542 32-Core Processor"
+   ],
+   "pass_": true
+  },
+  "xgb": {
+   "origins": [
+    "2014-01-02 10:00:00",
+    "2016-08-03 12:30:00",
+    "2018-12-20 15:00:00",
+    "2020-03-16 11:00:00",
+    "2022-06-15 14:30:00",
+    "2024-04-30 16:00:00"
+   ],
+   "text_identical": 6,
+   "rows": 6,
+   "max_abs": 0.0,
+   "side_equal": true,
+   "cpus": [
+    "AMD EPYC 7542 32-Core Processor"
+   ],
+   "pass_": true
+  }
+ },
+ "fail": [],
+ "cpu": "AMD EPYC 7542 32-Core Processor",
+ "pass": true
+}

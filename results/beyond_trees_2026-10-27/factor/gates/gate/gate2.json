@@ -1,0 +1,300 @@
+{
+ "dirs": [
+  "/home1/jc_905/beyond_trees/runs/gate/e7513",
+  "/home1/jc_905/beyond_trees/runs/gate/e7542",
+  "/home1/jc_905/beyond_trees/runs/gate/x4116",
+  "/home1/jc_905/beyond_trees/runs/gate/x2640"
+ ],
+ "pairs": {
+  "lgbm|base": {
+   "models": {
+    "e7513": [
+     "AMD EPYC 7513 32-Core Processor"
+    ],
+    "e7542": [
+     "AMD EPYC 7542 32-Core Processor"
+    ],
+    "x4116": [
+     "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+    ],
+    "x2640": [
+     "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz"
+    ]
+   },
+   "identical": true,
+   "max_abs": 0.0
+  },
+  "lgbm|pca1": {
+   "models": {
+    "e7513": [
+     "AMD EPYC 7513 32-Core Processor"
+    ],
+    "e7542": [
+     "AMD EPYC 7542 32-Core Processor"
+    ],
+    "x4116": [
+     "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+    ],
+    "x2640": [
+     "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz"
+    ]
+   },
+   "identical": true,
+   "max_abs": 0.0
+  },
+  "lgbm|pca2": {
+   "models": {
+    "e7513": [
+     "AMD EPYC 7513 32-Core Processor"
+    ],
+    "e7542": [
+     "AMD EPYC 7542 32-Core Processor"
+    ],
+    "x4116": [
+     "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+    ],
+    "x2640": [
+     "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz"
+    ]
+   },
+   "identical": true,
+   "max_abs": 0.0
+  },
+  "lgbm|pca3": {
+   "models": {
+    "e7513": [
+     "AMD EPYC 7513 32-Core Processor"
+    ],
+    "e7542": [
+     "AMD EPYC 7542 32-Core Processor"
+    ],
+    "x4116": [
+     "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+    ],
+    "x2640": [
+     "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz"
+    ]
+   },
+   "identical": true,
+   "max_abs": 0.0
+  },
+  "lgbm|pca5": {
+   "models": {
+    "e7513": [
+     "AMD EPYC 7513 32-Core Processor"
+    ],
+    "e7542": [
+     "AMD EPYC 7542 32-Core Processor"
+    ],
+    "x4116": [
+     "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+    ],
+    "x2640": [
+     "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz"
+    ]
+   },
+   "identical": true,
+   "max_abs": 0.0
+  },
+  "lgbm|pca10": {
+   "models": {
+    "e7513": [
+     "AMD EPYC 7513 32-Core Processor"
+    ],
+    "e7542": [
+     "AMD EPYC 7542 32-Core Processor"
+    ],
+    "x4116": [
+     "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+    ],
+    "x2640": [
+     "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz"
+    ]
+   },
+   "identical": true,
+   "max_abs": 0.0
+  },
+  "lgbm|pls1": {
+   "models": {
+    "e7513": [
+     "AMD EPYC 7513 32-Core Processor"
+    ],
+    "e7542": [
+     "AMD EPYC 7542 32-Core Processor"
+    ],
+    "x4116": [
+     "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+    ],
+    "x2640": [
+     "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz"
+    ]
+   },
+   "identical": true,
+   "max_abs": 0.0
+  },
+  "lgbm|pls3": {
+   "models": {
+    "e7513": [
+     "AMD EPYC 7513 32-Core Processor"
+    ],
+    "e7542": [
+     "AMD EPYC 7542 32-Core Processor"
+    ],
+    "x4116": [
+     "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+    ],
+    "x2640": [
+     "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz"
+    ]
+   },
+   "identical": true,
+   "max_abs": 0.0
+  },
+  "xgb|base": {
+   "models": {
+    "e7513": [
+     "AMD EPYC 7513 32-Core Processor"
+    ],
+    "e7542": [
+     "AMD EPYC 7542 32-Core Processor"
+    ],
+    "x4116": [
+     "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+    ],
+    "x2640": [
+     "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz"
+    ]
+   },
+   "identical": true,
+   "max_abs": 0.0
+  },
+  "xgb|pca1": {
+   "models": {
+    "e7513": [
+     "AMD EPYC 7513 32-Core Processor"
+    ],
+    "e7542": [
+     "AMD EPYC 7542 32-Core Processor"
+    ],
+    "x4116": [
+     "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+    ],
+    "x2640": [
+     "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz"
+    ]
+   },
+   "identical": true,
+   "max_abs": 0.0
+  },
+  "xgb|pca2": {
+   "models": {
+    "e7513": [
+     "AMD EPYC 7513 32-Core Processor"
+    ],
+    "e7542": [
+     "AMD EPYC 7542 32-Core Processor"
+    ],
+    "x4116": [
+     "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+    ],
+    "x2640": [
+     "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz"
+    ]
+   },
+   "identical": true,
+   "max_abs": 0.0
+  },
+  "xgb|pca3": {
+   "models": {
+    "e7513": [
+     "AMD EPYC 7513 32-Core Processor"
+    ],
+    "e7542": [
+     "AMD EPYC 7542 32-Core Processor"
+    ],
+    "x4116": [
+     "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+    ],
+    "x2640": [
+     "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz"
+    ]
+   },
+   "identical": true,
+   "max_abs": 0.0
+  },
+  "xgb|pca5": {
+   "models": {
+    "e7513": [
+     "AMD EPYC 7513 32-Core Processor"
+    ],
+    "e7542": [
+     "AMD EPYC 7542 32-Core Processor"
+    ],
+    "x4116": [
+     "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+    ],
+    "x2640": [
+     "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz"
+    ]
+   },
+   "identical": true,
+   "max_abs": 0.0
+  },
+  "xgb|pca10": {
+   "models": {
+    "e7513": [
+     "AMD EPYC 7513 32-Core Processor"
+    ],
+    "e7542": [
+     "AMD EPYC 7542 32-Core Processor"
+    ],
+    "x4116": [
+     "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+    ],
+    "x2640": [
+     "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz"
+    ]
+   },
+   "identical": true,
+   "max_abs": 0.0
+  },
+  "xgb|pls1": {
+   "models": {
+    "e7513": [
+     "AMD EPYC 7513 32-Core Processor"
+    ],
+    "e7542": [
+     "AMD EPYC 7542 32-Core Processor"
+    ],
+    "x4116": [
+     "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+    ],
+    "x2640": [
+     "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz"
+    ]
+   },
+   "identical": true,
+   "max_abs": 0.0
+  },
+  "xgb|pls3": {
+   "models": {
+    "e7513": [
+     "AMD EPYC 7513 32-Core Processor"
+    ],
+    "e7542": [
+     "AMD EPYC 7542 32-Core Processor"
+    ],
+    "x4116": [
+     "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+    ],
+    "x2640": [
+     "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz"
+    ]
+   },
+   "identical": true,
+   "max_abs": 0.0
+  }
+ },
+ "fail": [],
+ "pass": true
+}
