@@ -164,6 +164,8 @@ def main() -> int:
         return dq.loc[k] if k in dq.index else None
 
     for c, a in sorted(have):
+        if a not in ARM_TEX:  # addendum I: the ladder's rungs have their own generator (make_rehaul_beyond_ladder.py)
+            continue
         for sp, st in SPAN_TEX.items():
             if (c, a, sp) not in q.index:
                 continue

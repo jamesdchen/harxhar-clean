@@ -357,3 +357,44 @@ ADDENDUM G, 2026-10-26 23:40 PDT (2026-10-27 06:40 UTC), before any job it affec
        trees).  Outputs: tab:rh_ablation_beyond (writeup/generated/rehaul_ablation_beyond_table.tex), macros
        \rhab<Cls>AddRmFomc<G>{All,Ord,Ev}{Pct,Dm,P}, \rhab<Cls>FullVsAddRmFomc<G>{...}, \rhab<Cls>Beyond{Sum,Full}{...}Pct,
        \rhab<Cls>BeyondRatio{All,Ord,Ev}; every one labelled as requested after the HAR+RM+FOMC results.
+
+ADDENDUM I, 2026-10-27 (written before any job it affects): THE WITHIN-BLOCK LADDER BEYOND HAR + RM + FOMC
+   REQUESTED BY THE AUTHOR AFTER THE BEYOND-BASE RESULTS ("I approve the 2 tree runs"); NOT PRE-REGISTERED.  The design,
+   the gates and the reading are those of results/beyond_trees_2026-10-27/RULE.txt sections 0, 2 and 3 (coordinator,
+   commit 7bd70bb, cherry-picked here as c6d90d7); this addendum records how this run implements them.
+   (a) Ranking: each model's own patched primary ladder ranking, results/ladder_2026-10-26/fomcfix/rank_primary.csv
+       (paper branch, git blob 53d057dab6f040dacb17f9dedc8febf6c6be76cd; the 2013 pre-span fit, w3000), restricted to the
+       36 series of ew, vw, liq, iv, sent, vd, in that order; no new ranking.  The restricted top 20 (ablate_arms.LADDER,
+       checked against the csv by ablate_arms.check_ladder):
+       LightGBM: 1 sumabsret_vwstock, 2 sumabsret_ewstock, 3 effspread_vwstock, 4 vix, 5 sumret3_vwstock,
+         6 stocktwits_sentiment, 7 sumret3_ewstock, 8 spread_vwstock, 9 effspread_ewstock, 10 spread_ewstock,
+         11 sumvolume, 12 ofi_ewstock, 13 sumret2_ewstock, 14 sumret2_vwstock, 15 sumbipow_ewstock,
+         16 sellturnover_ewstock, 17 ofi_vwstock, 18 stocktwits_sentcount, 19 sellturnover_vwstock, 20 buyturnover_vwstock.
+       XGBoost: 1 stocktwits_sentiment, 2 sumabsret_vwstock, 3 effspread_vwstock, 4 sumabsret_ewstock, 5 vix,
+         6 sumret3_vwstock, 7 sumret3_ewstock, 8 stocktwits_sentcount, 9 spread_vwstock, 10 spread_ewstock,
+         11 effspread_ewstock, 12 sumvolume, 13 sellturnover_ewstock, 14 ofi_ewstock, 15 sumret2_ewstock,
+         16 sumret2_vwstock, 17 sellturnover_vwstock, 18 ofi_vwstock, 19 sumbipow_ewstock, 20 buyturnover_vwstock.
+   (b) Rungs: brung_<model>_<k> = BASE (add_rm_fomc: HAR set + realized moments + FOMC, 132 columns) + all 12 columns of
+       the model's top-k series, k in {1, 3, 5, 10, 20} (144, 168, 192, 252, 372 columns, design order), column subsets
+       of designs_fix/full (the FOMC-patched cache, X md5 725eb201...); LightGBM and XGBoost at their frozen
+       configurations (8 threads), W = 3,000 days, refit at every bar, 2014-01-02 .. 2024-04-30.  k = 0 is BASE (addendum
+       F), k = all is FULL (Table 1's patched full set); neither is rerun.
+   (c) Gates: T1 (gate/*/passed_<est>) on every CPU model used, as before; the BASE reproduction gate of the new RULE
+       section 0 on every CPU model used (cluster/ablate/gatebase.sh): the runner on the BASE arm at 7 origins spread
+       over the span (ablate_trees.py walk --spread 7), both models, text-identical to the merged BASE forecasts with equal
+       true_adj and B (ablate_trees.py gatebase) -> gate/rb/<model>/passed_<est>; the pools (cluster/ablate/pool4.sh =
+       pool3.sh + REQGATE=gate/rb) start only after their model's gate job (Slurm afterok) and take a line only if the
+       node's CPU model passed it; T2 at the merge (bit-identity across the CPU models of an arm's pieces).
+   (d) Pieces: tasks/trees_ladder.txt, 94 resumable pieces of <= 2 h at the cost model's speed (XGBoost 53, LightGBM 41;
+       the largest rungs first); claims runs/claims_trees_ladder, output runs/trees_ladder.  Models, fastest first:
+       Slurm Gold 6442Y (4 jobs x 6 workers), Xeon 6736P (2 x 9), Gold 6240 (8 x 4), UGE Gold 6140 (25 x 1, 8 slots).
+   (e) Projection: the cost model of section 6: 1,427 CPU-hours (XGBoost 824, LightGBM 603).  Measured against it:
+       add_rm_fomc on Gold 6240 1.02 x (LightGBM) and 0.90 x (XGBoost), the leave-out arms 0.75-1.04 x; Gold 6442Y is
+       ~0.8 x Gold 6240, UGE Gold 6140 ~1.1 x.  With the allocation tails: <= ~1,800 CPU-hours, within the 2,000 of the
+       new RULE section 3: submitted without a stop.
+   (f) Scoring and outputs: experiments/ablate_score.py --design fix (the rungs against BASE and FULL; every bar, ORDINARY,
+       EVENT days); writeup/make_rehaul_beyond_ladder.py: R = (L_BASE - L_k) / (L_BASE - L_FULL) per rung, model and day
+       type, the section 2 reading applied mechanically (ORDINARY days: CONCENTRATED if R(5) >= 0.75, DENSE if
+       R(20) < 0.75, else INTERMEDIATE), tab:rh_beyond_ladder (writeup/generated/rehaul_beyond_ladder_table.tex) and the
+       \rhbyL... macros (rehaul_beyond_ladder_numbers.tex), labelled "requested by the author after the beyond-base
+       results; not pre-registered".

@@ -174,6 +174,7 @@ def load_panel(res: Path, design: str = "pre", rf_fix: str = "") -> tuple[dict[t
             "trees_wide_rmfomc.parquet",
             "linear_wide_beyond.parquet",  # addendum G
             "trees_wide_beyond.parquet",
+            "trees_wide_ladder.parquet",  # addendum I
         )
     # the merged ablation forecasts, compact: one column of pred_adj per "<class>|<arm>" (2014-01-02 on)
     for name in names:
@@ -335,7 +336,8 @@ def main() -> int:
                 rows += dm((c, arm), (c, "har"), sp)
             if arm == COMBO and ("ols", "har") in panel:  # addendum F: against the OLS on the HAR set (Table 1's D2)
                 rows += dm((c, arm), ("ols", "har"), sp)
-            if arm.startswith(COMBO + "_") and (c, COMBO) in panel:  # addendum G: base + g against the base
+            if (arm.startswith(COMBO + "_") or arm.startswith("brung_")) and (c, COMBO) in panel:
+                # addendum G: base + g against the base; addendum I: the ladder's rungs against the base
                 rows += dm((c, arm), (c, COMBO), sp)
             if arm == "full":
                 for b in (*OLS_BENCH, "har"):

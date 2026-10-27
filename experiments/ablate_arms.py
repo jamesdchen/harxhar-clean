@@ -80,6 +80,78 @@ COMBO = ["add_rm_fomc"]
 BEYOND_GROUPS = ("ew", "vw", "liq", "iv", "sent", "vd")
 BEYOND = [f"add_rm_fomc_{g}" for g in BEYOND_GROUPS]
 COMBO += BEYOND
+# 2026-10-27 addendum I (results/beyond_trees_2026-10-27/RULE.txt section 2; requested by the author after the
+# beyond-base results, not pre-registered): the within-block ladder.  Rung brung_<est>_<k> = BASE (add_rm_fomc) + the top
+# k series of the remaining block (ew, vw, liq, iv, sent, vd) in the model's own patched primary ladder ranking
+# (results/ladder_2026-10-26/fomcfix/rank_primary.csv, git blob 53d057da; the 2013 pre-span fit), all 12 columns of
+# each series.  The restricted top 20, in order (checked against the csv by check_ladder):
+LADDER = {
+    "lgbm": [
+        "sumabsret_vwstock",
+        "sumabsret_ewstock",
+        "effspread_vwstock",
+        "vix",
+        "sumret3_vwstock",
+        "stocktwits_sentiment",
+        "sumret3_ewstock",
+        "spread_vwstock",
+        "effspread_ewstock",
+        "spread_ewstock",
+        "sumvolume",
+        "ofi_ewstock",
+        "sumret2_ewstock",
+        "sumret2_vwstock",
+        "sumbipow_ewstock",
+        "sellturnover_ewstock",
+        "ofi_vwstock",
+        "stocktwits_sentcount",
+        "sellturnover_vwstock",
+        "buyturnover_vwstock",
+    ],
+    "xgb": [
+        "stocktwits_sentiment",
+        "sumabsret_vwstock",
+        "effspread_vwstock",
+        "sumabsret_ewstock",
+        "vix",
+        "sumret3_vwstock",
+        "sumret3_ewstock",
+        "stocktwits_sentcount",
+        "spread_vwstock",
+        "spread_ewstock",
+        "effspread_ewstock",
+        "sumvolume",
+        "sellturnover_ewstock",
+        "ofi_ewstock",
+        "sumret2_ewstock",
+        "sumret2_vwstock",
+        "sellturnover_vwstock",
+        "ofi_vwstock",
+        "sumbipow_ewstock",
+        "buyturnover_vwstock",
+    ],
+}
+LADDER_K = (1, 3, 5, 10, 20)
+RUNGS = {est: [f"brung_{est}_{k}" for k in LADDER_K] for est in LADDER}
+
+
+def rung_parts(arm: str) -> tuple[str, int]:
+    _b, est, k = arm.split("_")
+    assert _b == "brung" and est in LADDER and int(k) in LADDER_K, arm
+    return est, int(k)
+
+
+def check_ladder(csv: str) -> None:
+    """LADDER = the csv's primary ranking per model restricted to the remaining block, first 20, in rank order."""
+    import pandas as pd
+
+    r = pd.read_csv(csv)
+    gs = group_series()
+    rem = {s for g in BEYOND_GROUPS for s in gs[g]}
+    for est, top in LADDER.items():
+        f = r[(r["model"] == est) & (r["ranking"] == "primary")].sort_values("rank")
+        assert len(f) == 46 and f["rank"].is_unique, (est, len(f))
+        assert list(f[f["series"].isin(rem)]["series"].head(20)) == top, est
 
 
 def add_groups(arm: str) -> list[str]:
@@ -125,6 +197,13 @@ def arm_names(arm: str, names: list[str], gs: dict[str, list[str]] | None = None
         assert len(out) == len(want), (arm, sorted(want - set(out)))
         return out
     gs = gs or group_series()
+    if arm.startswith("brung_"):  # addendum I: BASE + the top-k remaining-block series of the model's ranking
+        est, k = rung_parts(arm)
+        keep = set(HAR12).union(
+            group_cols("rm", gs), group_cols("fomc", gs), *(series_cols(s) for s in LADDER[est][:k])
+        )
+        assert keep <= set(names), arm
+        return [n for n in names if n in keep]
     if arm == "full":
         out = list(names)
     elif arm == "har":
@@ -164,5 +243,7 @@ def n_cols(arm: str) -> int:
         return 12 + len(CLASSICAL[arm])
     if arm.startswith("add_"):
         return 12 + 12 * sum(N_SERIES[g] for g in add_groups(arm))
+    if arm.startswith("brung_"):
+        return 12 + 12 * (N_SERIES["rm"] + N_SERIES["fomc"] + rung_parts(arm)[1])
     g = arm.split("_", 1)[1]
     return 564 - 12 * N_SERIES[g]
