@@ -361,8 +361,17 @@ def beyond_macros(q, dq) -> list[str]:
             if o is not None:
                 out.append(mac(f"{t}BeyondSum{st}Pct", fmt(o[0], 1), f"sum of the six base + g changes, {sp}"))
                 out.append(mac(f"{t}BeyondFull{st}Pct", fmt(o[1], 1), f"full vs base, {sp}"))
-                if c not in LIN:  # the linear full sets gain ~nothing against the base: no meaningful ratio
-                    out.append(mac(f"{t}BeyondRatio{st}", f"{o[2]:.2f}", "(iii) sum of the six / full vs base"))
+                # (iii) only where the full set's change against the base is significant (DM p < 0.05): the linear
+                # full sets and the trees' EVENT days gain about nothing against the base, so the ratio means nothing
+                kf = (c, COMBO, c, "full", sp)
+                sig = kf in dq.index and dq.loc[kf, "p"] < 0.05
+                out.append(
+                    mac(
+                        f"{t}BeyondRatio{st}",
+                        f"{o[2]:.2f}" if sig else "--",
+                        "(iii) sum of the six / full vs base" + ("" if sig else " (full vs base not significant)"),
+                    )
+                )
     return out
 
 
