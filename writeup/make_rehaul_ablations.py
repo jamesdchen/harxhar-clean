@@ -71,6 +71,11 @@ ARM_TEX.update({f"add_{g}": f"Add{t}" for g, t in G_TEX.items()})
 COMBO = "add_rm_fomc"
 ARM_TEX[COMBO] = "AddRmFomc"
 COMBO_SPAN_TEX = {"all": "All", "ord": "Ord", "ev": "Ev", "c16": "Close", "c16_2020": "CloseLate"}
+# 2026-10-26 addendum G (requested by the author after the HAR + RM + FOMC results; not pre-registered): the base
+# add_rm_fomc plus each remaining group g; macros \rhab<Cls>AddRmFomc<G>{All,Ord,Ev}{Pct,Dm,P} are against the base
+BEYOND = {f"{COMBO}_{g}": g for g in AA.BEYOND_GROUPS}
+ARM_TEX.update({a: f"AddRmFomc{G_TEX[g]}" for a, g in BEYOND.items()})
+OUT_BEYOND = GEN / "rehaul_ablation_beyond_table.tex"
 SPAN_TEX = {"all": "All", "c16": "Close", "c16_2020": "CloseLate"}
 # 2026-10-26 (coordinator): live-window subsamples of the late groups (experiments/ablate_score.py LIVE): span ->
 # (macro tag, group, row label); the macros of these spans cover the group's own arms and the full set only
@@ -102,6 +107,8 @@ SERIES_TEX = {
 def ref_arm(arm: str, c: str = "", have: set | None = None) -> str:
     """The arm's reference: lo_*: the full set (the pre-patch one for the trees' PRE_TREE arms on the patched panel);
     everything else, the full set included: the HAR benchmark."""
+    if arm in BEYOND:  # addendum G: against the base HAR + RM + FOMC
+        return COMBO
     if not arm.startswith("lo_"):
         return "har"
     if have is not None and arm in PRE_TREE and (c, "full_pre") in have:
@@ -201,6 +208,7 @@ def main() -> int:
                     lines.append(mac(f"{nm}Dm", fmt(-dq.loc[k, "dm"], 2), f"DM full vs own {ga}"))
                     lines.append(mac(f"{nm}P", fmt_p(dq.loc[k, "p"]), "p-value"))
     lines += combo_macros(q, dq, checks)
+    lines += beyond_macros(q, dq)
     for c in CLS[1:]:
         for b in ("add_rm", "shar", "harq", "lhar", "sharql", "har"):
             for sp, st in SPAN_TEX.items():
@@ -282,6 +290,8 @@ def main() -> int:
     GEN.mkdir(parents=True, exist_ok=True)
     OUT_NUM.write_text("\n".join(lines) + "\n", encoding="utf-8")
     OUT_TAB.write_text(table(M, D, have), encoding="utf-8")
+    if any(a in BEYOND for _c, a in have):
+        OUT_BEYOND.write_text(beyond_table(q, dq, have), encoding="utf-8")
     print(f"wrote {OUT_NUM.name} ({len(lines)} lines) and {OUT_TAB.name}")
     return 0
 
@@ -323,6 +333,159 @@ def combo_macros(q, dq, checks: dict) -> list[str]:
             if sp in ("ord", "ev"):  # context: the full set against its own HAR on the same days
                 put(f"{t}FullVsHar{st}", (c, "full"), (c, "har"), sp, False, f"{c} full vs own HAR")
     return out
+
+
+BEYOND_CLS = ("ridge", "lasso", "enet", "lgbm", "xgb")
+LIN = ("ridge", "lasso", "enet")
+
+
+def gain(q, c: str, a: str, b: str, sp: str) -> float:
+    """QLIKE change of arm a against arm b, % of b's QLIKE (negative: a lower)."""
+    return 100.0 * (q.loc[(c, a, sp), "qlike"] / q.loc[(c, b, sp), "qlike"] - 1.0)
+
+
+def overlap(q, c: str, sp: str) -> tuple[float, float, float] | None:
+    """(iii): the sum of the six (base + g vs base) changes, the full set's change against the base, their ratio."""
+    if any((c, a, sp) not in q.index for a in (*BEYOND, COMBO, "full")):
+        return None
+    s = sum(gain(q, c, a, COMBO, sp) for a in BEYOND)
+    f = gain(q, c, "full", COMBO, sp)
+    return s, f, s / f
+
+
+def beyond_macros(q, dq) -> list[str]:
+    """Addendum G: (i) base + g vs the base on ORDINARY / EVENT days (every bar and 16:00: the general loop, whose
+    reference for these arms is the base); (ii) the full set vs base + g; (iii) the overlap ratio."""
+    out: list[str] = []
+    lab = "requested by the author after the HAR + RM + FOMC results; not pre-registered"
+    for c in BEYOND_CLS:
+        t = CLS_TEX[c]
+        for a in BEYOND:
+            nm = f"{t}{ARM_TEX[a]}"
+            for sp, st in COMBO_SPAN_TEX.items():
+                if (c, a, sp) not in q.index:
+                    continue
+                if sp in ("ord", "ev"):
+                    out.append(mac(f"{nm}{st}Qlike", fmt(q.loc[(c, a, sp), "qlike"], 4), f"QLIKE {c} {a} {sp}"))
+                    k = (c, a, c, COMBO, sp)
+                    if k in dq.index:
+                        out.append(mac(f"{nm}{st}Pct", fmt(gain(q, c, a, COMBO, sp), 1), f"% vs base, {lab}"))
+                        out.append(mac(f"{nm}{st}Dm", fmt(dq.loc[k, "dm"], 2), "DM vs the base add_rm_fomc"))
+                        out.append(mac(f"{nm}{st}P", fmt_p(dq.loc[k, "p"]), "p-value"))
+                k2 = (c, a, c, "full", sp)  # (ii) the full set vs base + g (stored as base + g vs full: flipped)
+                if k2 in dq.index and (c, "full", sp) in q.index:
+                    out.append(
+                        mac(f"{t}FullVs{ARM_TEX[a]}{st}Pct", fmt(gain(q, c, "full", a, sp), 1), f"% full vs {a}")
+                    )
+                    out.append(mac(f"{t}FullVs{ARM_TEX[a]}{st}Dm", fmt(-dq.loc[k2, "dm"], 2), f"DM full vs {a}"))
+                    out.append(mac(f"{t}FullVs{ARM_TEX[a]}{st}P", fmt_p(dq.loc[k2, "p"]), "p-value"))
+        for sp, st in (("all", "All"), ("ord", "Ord"), ("ev", "Ev")):
+            o = overlap(q, c, sp)
+            if o is not None:
+                out.append(mac(f"{t}BeyondSum{st}Pct", fmt(o[0], 1), f"sum of the six base + g changes, {sp}"))
+                out.append(mac(f"{t}BeyondFull{st}Pct", fmt(o[1], 1), f"full vs base, {sp}"))
+                # (iii) only where the full set's change against the base is significant (DM p < 0.05): the linear
+                # full sets and the trees' EVENT days gain about nothing against the base, so the ratio means nothing
+                kf = (c, COMBO, c, "full", sp)
+                sig = kf in dq.index and dq.loc[kf, "p"] < 0.05
+                out.append(
+                    mac(
+                        f"{t}BeyondRatio{st}",
+                        f"{o[2]:.2f}" if sig else "--",
+                        "(iii) sum of the six / full vs base" + ("" if sig else " (full vs base not significant)"),
+                    )
+                )
+    return out
+
+
+def beyond_table(q, dq, have: set) -> str:
+    """tab:rh_ablation_beyond: base + g against the base, the full set against base + g, and the overlap."""
+    spans = (("all", "Every bar"), ("ord", "Ordinary days"))
+    cols = [(sp, c) for sp, _l in spans for c in ("lin", "lgbm", "xgb")]
+
+    def one(c: str, a: str, b: str, sp: str, flip: bool) -> str:
+        k = (c, b, c, a, sp) if flip else (c, a, c, b, sp)
+        if (c, a, sp) not in q.index or (c, b, sp) not in q.index or k not in dq.index:
+            return "--"
+        dm = -dq.loc[k, "dm"] if flip else dq.loc[k, "dm"]
+        return f"{fmt(gain(q, c, a, b, sp), 1)} ({fmt(dm, 1)})"
+
+    def rng(a: str, b: str, sp: str) -> str:
+        v = [gain(q, c, a, b, sp) for c in LIN if (c, a, sp) in q.index and (c, b, sp) in q.index]
+        if not v:
+            return "--"
+        lo, hi = min(v), max(v)
+        return fmt(lo, 1) if fmt(lo, 1) == fmt(hi, 1) else f"{fmt(lo, 1)} to {fmt(hi, 1)}"
+
+    def row(label: str, a: str, b: str, flip: bool = False) -> str:
+        cells = []
+        for sp, c in cols:
+            cells.append(rng(a, b, sp) if c == "lin" else one(c, a, b, sp, flip))
+        return f"{label} & " + " & ".join(cells) + " \\\\"
+
+    out = [
+        HEAD,
+        "% tab:rh_ablation_beyond (RULE.txt addendum G; requested by the author after the HAR + RM + FOMC results).",
+        "\\begin{table}[htbp]",
+        "\\centering",
+        "\\scriptsize",
+        "\\setlength{\\tabcolsep}{2pt}",
+        "\\begin{threeparttable}",
+        "\\caption{Beyond HAR, realized moments and the FOMC calendar: change in QLIKE (\\%)}",
+        "\\label{tab:rh_ablation_beyond}",
+        "\\begin{tabular*}{\\linewidth}{@{\\extracolsep{\\fill}}lrrrrrr@{}}",
+        "\\toprule",
+        " & \\multicolumn{3}{c}{Every bar} & \\multicolumn{3}{c}{Ordinary days} \\\\",
+        "\\cmidrule(lr){2-4}\\cmidrule(l){5-7}",
+        " & Linear & LightGBM & XGBoost & Linear & LightGBM & XGBoost \\\\",
+        "\\midrule",
+        "\\multicolumn{7}{@{}l}{\\textit{A. HAR + RM + FOMC plus the group, against HAR + RM + FOMC}} \\\\",
+    ]
+    for a, g in BEYOND.items():
+        out.append(row(AA.GROUP_LABEL[g], a, COMBO))
+    out.append(row("All six (the full set)", "full", COMBO, flip=True))
+    sums = []
+    for sp, c in cols:
+        if c == "lin":
+            v = [overlap(q, x, sp) for x in LIN]
+            v2 = [x for x in v if x is not None]
+            sums.append(
+                "--"
+                if not v2
+                else (lambda lo, hi: lo if lo == hi else f"{lo} to {hi}")(
+                    fmt(min(x[0] for x in v2), 1), fmt(max(x[0] for x in v2), 1)
+                )
+            )
+        else:
+            o = overlap(q, c, sp)
+            sums.append("--" if o is None else f"{fmt(o[0], 1)} [{o[2]:.2f}]")
+    out.append("Sum of the six rows [ratio to the full set] & " + " & ".join(sums) + " \\\\")
+    out += [
+        "\\addlinespace[4pt]",
+        "\\multicolumn{7}{@{}l}{\\textit{B. Full set against HAR + RM + FOMC plus the group}} \\\\",
+    ]
+    for a, g in BEYOND.items():
+        out.append(row(AA.GROUP_LABEL[g], "full", a, flip=True))
+    out += [
+        "\\bottomrule",
+        "\\end{tabular*}",
+        "\\begin{tablenotes}[flushleft]",
+        "\\footnotesize",
+        "\\item \\textit{Notes:} Requested by the author after the results against HAR + RM + FOMC (Table~\\ref{tab:rh_ablation},"
+        " Panel~D), not part of the pre-specified design.  Base: the HAR benchmark set plus the futures' realized moments"
+        " (RM) and the FOMC calendar (132 columns); each row of Panel~A adds one remaining group to it, Panel~B sets"
+        " the full set against that model.  Every model keeps the full set's frozen hyperparameters (FOMC-patched"
+        " design); the random forest is not run.  Cells: percentage change in QLIKE with the Diebold--Mariano"
+        " statistic in parentheses (negative: the first model has the lower loss; daily average QLIKE); Linear: the"
+        " range over ridge, lasso and elastic net.  Ordinary days exclude the \\rhabNEventDays{} scheduled FOMC"
+        " statement days.  The bracket (trees) is the sum of the six Panel~A changes divided by the full set's change:"
+        " above one, the groups' gains overlap; below one, they complement each other (the linear full sets gain about"
+        " nothing against the base, so no ratio is shown for them).",
+        "\\end{tablenotes}",
+        "\\end{threeparttable}",
+        "\\end{table}",
+    ]
+    return "\n".join(out) + "\n"
 
 
 def cell(q, dq, c: str, a: str, have: set, sp: str = "all") -> str:

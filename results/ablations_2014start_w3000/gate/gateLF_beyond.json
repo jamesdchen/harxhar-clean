@@ -1,0 +1,79 @@
+{
+ "checks": [
+  {
+   "arm": "full",
+   "model": "ridge",
+   "set": "all_features",
+   "rows": 33997,
+   "dates_equal": true,
+   "pred_adj_bit_identical": true,
+   "true_adj_equal": true,
+   "max_abs_diff": 0.0
+  },
+  {
+   "arm": "full",
+   "model": "lasso",
+   "set": "all_features",
+   "rows": 33997,
+   "dates_equal": true,
+   "pred_adj_bit_identical": true,
+   "true_adj_equal": true,
+   "max_abs_diff": 0.0
+  },
+  {
+   "arm": "full",
+   "model": "enet",
+   "set": "all_features",
+   "rows": 33997,
+   "dates_equal": true,
+   "pred_adj_bit_identical": true,
+   "true_adj_equal": true,
+   "max_abs_diff": 0.0
+  },
+  {
+   "arm": "har_sub",
+   "model": "ridge",
+   "set": "baseline",
+   "rows": 33997,
+   "dates_equal": true,
+   "pred_adj_bit_identical": true,
+   "true_adj_equal": true,
+   "max_abs_diff": 0.0
+  },
+  {
+   "arm": "har_sub",
+   "model": "lasso",
+   "set": "baseline",
+   "rows": 33997,
+   "dates_equal": true,
+   "pred_adj_bit_identical": true,
+   "true_adj_equal": true,
+   "max_abs_diff": 0.0
+  },
+  {
+   "arm": "har_sub",
+   "model": "enet",
+   "set": "baseline",
+   "rows": 33997,
+   "dates_equal": true,
+   "pred_adj_bit_identical": true,
+   "true_adj_equal": true,
+   "max_abs_diff": 0.0
+  },
+  {
+   "arm": "har_sub",
+   "model": "ols",
+   "set": "baseline",
+   "rows": 33997,
+   "dates_equal": true,
+   "pred_adj_bit_identical": true,
+   "true_adj_equal": true,
+   "max_abs_diff": 0.0
+  }
+ ],
+ "fail": [],
+ "host": "n1801",
+ "cpu": "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz",
+ "numpy": "1.26.4",
+ "pass": true
+}

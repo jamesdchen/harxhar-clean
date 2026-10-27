@@ -1,0 +1,26 @@
+{
+ "arm": "add_rm_fomc_sent",
+ "est": "lgbm",
+ "n_pieces": 5,
+ "rows": 33970,
+ "cpus": [
+  "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+ ],
+ "piece_cpus": {
+  "add_rm_fomc_sent_lgbm_1of5.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "add_rm_fomc_sent_lgbm_2of5.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "add_rm_fomc_sent_lgbm_3of5.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "add_rm_fomc_sent_lgbm_4of5.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "add_rm_fomc_sent_lgbm_5of5.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ]
+ }
+}

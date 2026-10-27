@@ -1,0 +1,26 @@
+{
+ "arm": "add_rm_fomc_vw",
+ "est": "lgbm",
+ "n_pieces": 5,
+ "rows": 33970,
+ "cpus": [
+  "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+ ],
+ "piece_cpus": {
+  "add_rm_fomc_vw_lgbm_1of5.parquet": [
+   "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+  ],
+  "add_rm_fomc_vw_lgbm_2of5.parquet": [
+   "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+  ],
+  "add_rm_fomc_vw_lgbm_3of5.parquet": [
+   "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+  ],
+  "add_rm_fomc_vw_lgbm_4of5.parquet": [
+   "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+  ],
+  "add_rm_fomc_vw_lgbm_5of5.parquet": [
+   "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+  ]
+ }
+}

@@ -324,3 +324,36 @@ ADDENDUM F, 2026-10-26 19:15 PDT (2026-10-27 02:15 UTC), before any job it affec
        the class's HAR; add_rm_fomc vs the OLS on the HAR set; the full set vs the OLS add_rm_fomc.  Outputs: Panel D
        row "vs HAR + RM + FOMC" of tab:rh_ablation and \rhab<Cls>FullVsAddRmFomc{All,Ord,Ev}{Pct,Dm,P} and the
        other pairs' macros, every one labelled as requested by the author after the channel results.
+
+ADDENDUM G, 2026-10-26 23:40 PDT (2026-10-27 06:40 UTC), before any job it affects: BEYOND HAR + RM + FOMC
+   REQUESTED BY THE AUTHOR ON 26 OCTOBER AFTER THE HAR+RM+FOMC RESULTS; NOT PRE-REGISTERED.
+   Question: which remaining groups give the gradient-boosted trees' 1.6-1.8 % beyond HAR + RM + FOMC (addendum F)?
+   (a) Arms add_rm_fomc_<g> = the base add_rm_fomc (HAR + realized moments + FOMC, 132 columns) + group g, for the six
+       remaining groups g = ew (6 series: the constituents' equal-weighted return moments), vw (6, value-weighted),
+       liq (14: E-mini volume and trade count, the constituents' turnover, buy / sell turnover, effective and quoted
+       spreads, and the constituents' order-flow imbalance ofi_ewstock / ofi_vwstock), iv (3: VIX, VVIX, VIX3M), sent
+       (3: StockTwits), vd (4: volatility demand): 204, 204, 300, 168, 168, 180 columns.  Membership as
+       experiments/ablate_arms.py (src/data/loading.py SUBGROUPS): the constituents' order flow sits in liq, not in
+       ew / vw; the 8 groups are all there are (rm, fomc in the base + these six).  FOMC-patched design (designs_fix),
+       W = 3,000 days, refit at every bar, 2014-01-02 .. 2024-04-30.
+   (b) Classes: LightGBM and XGBoost at their frozen configurations (8 threads); ridge, lasso, elastic net under the
+       add-arm convention (the full set's frozen penalty, r = 0.01 on the HAR block).  No random forest (cost), no OLS.
+   (c) Linear: designs_fix/lin/add_rm_fomc_<g> by ablate_design.py subsets --arms (prep_beyond.sh);
+       tasks/linear_beyond.txt = gate L's 14 walks (run again: gate LF -> gate/gateLF_beyond.json) + 18 walks, one
+       chunk each; pool3.sh KIND=lin LSKIP=0 on Gold 6240 (the linear-gated model), root runs/lin_beyond;
+       merge_beyond.sh WHAT=lin -> forecasts_linear.parquet and the compact linear_wide.parquet.
+   (d) Trees: tasks/trees_beyond.txt, 73 resumable pieces of <= 3 h at EPYC speed (XGBoost 41, LightGBM 32; biggest arms
+       first); pool3.sh KIND=trees on designs_fix/full, claims runs/claims_trees_beyond, output runs/trees_beyond;
+       eligible models = passed T1 (gate/*/passed_<est>): Slurm Gold 6240 and UGE Gold 6140 (earliest start); a piece
+       resumes only on the model that began it; merge_beyond.sh WHAT=trees (T2: LightGBM / XGBoost bit-identical
+       across the gated models, required when an arm's pieces come from more than one model).
+   (e) Projection: the cost model of section 6 (linear in the column count, calibrated on the full and HAR sets):
+       1,579 CPU-hours (XGBoost 905, LightGBM 675); the measured arms ran up to 1.16 x it (add_liq) and add_rm_fomc at
+       1.0 x (Gold 6240): <= ~1,830, with the allocation tails <= ~2,000; linear ~30.  Within the 2,500 allowed without
+       asking: submitted without a stop.
+   (f) Scoring (ablate_score.py --design fix, Table 1's 33,527 bars, DM with the HLN correction on daily average QLIKE,
+       HAC lag 8; every bar, ORDINARY and EVENT days as addendum F), every class: (i) base + g vs base; (ii) the full set
+       vs base + g; (iii) the sum of the six (i) changes against the full set's change vs the base (the overlap ratio,
+       trees).  Outputs: tab:rh_ablation_beyond (writeup/generated/rehaul_ablation_beyond_table.tex), macros
+       \rhab<Cls>AddRmFomc<G>{All,Ord,Ev}{Pct,Dm,P}, \rhab<Cls>FullVsAddRmFomc<G>{...}, \rhab<Cls>Beyond{Sum,Full}{...}Pct,
+       \rhab<Cls>BeyondRatio{All,Ord,Ev}; every one labelled as requested after the HAR+RM+FOMC results.

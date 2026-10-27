@@ -75,6 +75,11 @@ RF_ARMS = ADD + ["lo_rm", "lo_fomc"]  # 2026-10-26 addendum E: + lo_fomc
 # (ridge / lasso / elastic net, OLS, the three trees), on the FOMC-patched design.  Kept out of the lists above, so the
 # task files those generate stay as they were.
 COMBO = ["add_rm_fomc"]
+# 2026-10-26 addendum G (requested by the author after the HAR + RM + FOMC results; not pre-registered): the base
+# add_rm_fomc plus each remaining group -- which groups give the trees' gain beyond HAR + RM + FOMC
+BEYOND_GROUPS = ("ew", "vw", "liq", "iv", "sent", "vd")
+BEYOND = [f"add_rm_fomc_{g}" for g in BEYOND_GROUPS]
+COMBO += BEYOND
 
 
 def add_groups(arm: str) -> list[str]:
