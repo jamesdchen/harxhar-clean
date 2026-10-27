@@ -1,0 +1,16 @@
+input,path,source,design,status,used_for
+"Table 1 linear (full, HAR, OLS)",results/window_sweep_2014start_fomcfix/w3000/forecasts.parquet,worktree,patched,ok,"full / HAR rows, every item"
+"Table 1 LightGBM, XGBoost",results/pooled_trees_final_2014start_fomcfix_w3000/forecasts.parquet,worktree,patched,ok,"full / HAR rows, every item"
+Table 1 random forest,results/pooled_rf_skx_2014start_fomcfix_w3000/forecasts.parquet,worktree,patched,ok,"full / HAR rows, every item"
+pre-patch linear full set,results/window_sweep_2014start_2026-10-22/w3000/forecasts.parquet,worktree,pre-patch,ok,gate (linear_wide_fix invariance) / fallback
+pre-patch trees full set,results/pooled_trees_final_2014start_w3000/forecasts.parquet,worktree,pre-patch,ok,reference of the trees' pre-patch lo_<g>
+pre-patch forest full set,results/pooled_rf_skx_2014start_w3000/forecasts.parquet,worktree,pre-patch,ok,reference of the forest's pre-patch lo_rm
+linear ablation arms (patched),results/ablations_2014start_w3000/forecasts/linear_wide_fix.parquet,worktree,patched (FOMC arms) / invariant,ok,"items 1 (a), (b), 3 (ii)"
+linear ablation arms (pre-patch),results/ablations_2014start_w3000/forecasts/linear_wide.parquet,worktree,pre-patch,ok,gate (invariance); fallback
+tree ablation arms,results/ablations_2014start_w3000/forecasts/trees_wide.parquet,worktree,"invariant (add_g, g!=fomc; lo_fomc) / pre-patch (lo_g, g!=fomc)",ok,"1 (b), 3 (ii)"
+tree add_fomc (patched),results/ablations_2014start_w3000/forecasts/trees_wide_fix.parquet,worktree,patched,ok,"items 1 (a), 3 (ii)"
+forest lo_fomc,,,,PENDING,"items 1 (b), 3 (ii)"
+"ablation scores, pre-patch",results/ablations_2014start_w3000/scores/metrics.csv,worktree,pre-patch,ok,gate (arm QLIKE)
+"ablation scores, patched",results/ablations_2014start_w3000/scores_fomcfix/metrics.csv,worktree,patched,ok,gate (arm QLIKE)
+feature-count ladder,results/ladder_2026-10-26/fomcfix/forecasts_wide.parquet,worktree,patched,ok,item 3 (iii)
+ladder scores,results/ladder_2026-10-26/fomcfix/scores.csv,worktree,patched,ok,gate (ladder QLIKE)

@@ -1,0 +1,59 @@
+{
+ "entry": "table1",
+ "design": "C:\\Users\\james\\AppData\\Local\\Temp\\claude\\C--Users-james-CC-Allowed-harxhar-0dte-professor\\bd4224e0-12aa-4614-b6a6-3fe50535ade1\\scratchpad\\fa\\design_parts",
+ "design_shape": [
+  84747,
+  270
+ ],
+ "walk_start_row": 50750,
+ "first": "2013-12-27 16:00:00",
+ "last": "2024-04-30 16:00:00",
+ "bars": 33997,
+ "maps": 2646,
+ "block_columns": 258,
+ "block_series": 43,
+ "models": [
+  "k0",
+  "pca1",
+  "pca2",
+  "pca3",
+  "pca5",
+  "pca10",
+  "pca20",
+  "pls1",
+  "pls2",
+  "pls3"
+ ],
+ "rank_11_plus_k_every_bar": true,
+ "min_rank": {
+  "k0": 11,
+  "pca1": 12,
+  "pca2": 13,
+  "pca3": 14,
+  "pca5": 16,
+  "pca10": 21,
+  "pca20": 31,
+  "pls1": 12,
+  "pls2": 13,
+  "pls3": 14
+ },
+ "max_rank": {
+  "k0": 11,
+  "pca1": 12,
+  "pca2": 13,
+  "pca3": 14,
+  "pca5": 16,
+  "pca10": 21,
+  "pca20": 31,
+  "pls1": 12,
+  "pls2": 13,
+  "pls3": 14
+ },
+ "wall_sec": 169.8,
+ "cpu_sec": 164.4,
+ "map_sec": 26.2,
+ "host": "DESKTOP-CGOV4RD",
+ "python": "3.12.0",
+ "numpy": "2.2.6",
+ "threads": "1 (OMP / OpenBLAS / MKL_NUM_THREADS=1)"
+}
