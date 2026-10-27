@@ -1,0 +1,49 @@
+RULE: is the trees' gain beyond HAR + realized moments + FOMC a shared component, concentrated, or dense?
+Written 2026-10-27 by the coordinator at the author's request ("I approve the 2 tree runs"), committed before any job.
+
+DISCLOSURE. Requested after the "beyond HAR + RM + FOMC" results (ablation RULE addenda F and G) had been seen: beyond
+the base, LightGBM and XGBoost gain 1.6% and 1.8% (every bar), the linear models nothing; the six remaining groups'
+separate gains sum to 2.5-2.9 times the trees' joint gain. Not pre-registered in that sense; the designs and the
+reading rules below are fixed before either run is scored.
+
+0. COMMON
+- Design: Table 1's (13 regular-hours bars pooled, base-5 HAR on the 48-interval grid, W = 3,000 days, FOMC-patched
+  design D13), forecasts 2 January 2014 to 30 April 2024, refit at every bar, frozen configurations. Classes: LightGBM
+  and XGBoost only.
+- BASE = the add_rm_fomc arm (HAR set + the futures' realized moments + the FOMC group; ablation addendum F).
+  FULL = Table 1's patched full set. The two exist and are not rerun.
+- REMAINING BLOCK = every series of the groups ew, vw, liq, iv, sent, vd (the six groups outside the base; liq holds the
+  constituents' order flow and turnover; ablation addendum G (a)).
+- Scoring: QLIKE on the bar's actual RV (plain = pred_adj^2 * B), Table 1's 33,527 bars; DM with HLN on daily means,
+  lag 8. Days: every bar; ORDINARY (the 81 scheduled FOMC statement days removed, channels RULE section 0; primary,
+  since the trees' beyond-base gain is almost all on ordinary days); EVENT reported.
+- Recovery R = (L_BASE - L_arm) / (L_BASE - L_FULL), per model and day type.
+- Accuracy gates before scaling: each runner reproduces the BASE arm's forecasts bit for bit (LightGBM, XGBoost) on at
+  least 5 spread origins with the added columns switched off; pieces checkpointed; T2 (bit-identity across the CPU
+  models used) as in the ablation runs.
+
+1. FACTOR TEST (CARC)
+- Components of the value averages (every horizon) of the remaining block's series; no availability averages. Each
+  column standardized within the estimation window, with the active-column rule of the linear factor test
+  (results/channels_2026-10-26/factor, entry rule: s.d. > 1e-12 and at least 250 rows off the window mode in the
+  series' k = 1 column). Loadings recomputed once a trading day from the window ending at the previous bar and held for
+  that day's bars; every training row's scores computed with that day's loadings.
+- Arms: BASE + the first k principal components, k in {1, 2, 3, 5, 10}; BASE + the first k partial-least-squares
+  components against the target in the window, k in {1, 3}.
+- Reading, ORDINARY days, per model:
+  SHARED COMPONENT if some k <= 3 (PCA or PLS) has R >= 0.75 and its loss is not significantly above FULL's;
+  DENSE BEYOND A FEW COMPONENTS if R(PCA 10) < 0.5 and FULL beats BASE + 10 components significantly;
+  otherwise INTERMEDIATE. The two models' readings are reported separately and as "agree" / "split".
+
+2. WITHIN-BLOCK LADDER (Hoffman2)
+- Ranking: each model's own patched primary ladder ranking (results/ladder_2026-10-26/fomcfix; fit explained on 2013,
+  before the span) restricted to the remaining block's series, in that order. No new ranking.
+- Rungs: BASE + the top-k remaining series (all their columns, value and availability averages, as the ladder's
+  rungs), k in {1, 3, 5, 10, 20}; k = 0 is BASE, k = all is FULL.
+- Reading, ORDINARY days, per model:
+  CONCENTRATED if R(k = 5) >= 0.75; DENSE if R(k = 20) < 0.75; otherwise INTERMEDIATE.
+
+3. BUDGET AND REPORTING
+- Projections before submission: factor test <= 2,500 CPU-h, ladder <= 2,000 CPU-h; above either, report and wait.
+- Outputs: one appendix table per run (labels tab:rh_beyond_factor, tab:rh_beyond_ladder), \rhby... macros, the
+  readings applied mechanically, labelled "requested by the author after the beyond-base results; not pre-registered".
