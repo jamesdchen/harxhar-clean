@@ -1,0 +1,3 @@
+linear run-linear 3000 ridge 0
+linear run-linear 3000 lasso 0
+linear run-linear 3000 enet 0

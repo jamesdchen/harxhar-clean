@@ -1,20 +1,20 @@
-"""Draft (2026-10-26): the window x feature-count grid framed as "complexity" (Kelly, Malamud and Zhou 2024) or as plain
-data-and-feature scaling.  Not cited by the paper yet; the draft is writeup/drafts/2026-10-26_complexity.tex.
+"""Draft (2026-10-26): the window x feature-count grid as data-and-feature scaling (the scaling framing; the author
+dropped the "complexity" framing of Kelly, Malamud and Zhou 2024).  Not cited by the paper yet; the draft is
+writeup/drafts/2026-10-26_complexity.tex.
 
-READS    results/ladder_2026-10-26/grid/: scores.csv, readings.csv, gates.json, ranks.csv (written by
-         results/ladder_2026-10-26/grid/code/grid_score.py from the CARC grid and the W = 3,000 ladder; rule:
-         results/ladder_2026-10-26/RULE.txt ADDENDUM 1).  Every number below is read from those files, none is recomputed
+READS    --grid DIR (default results/ladder_2026-10-26/fomcfix/grid, the FOMC-PATCHED grid of RULE.txt ADDENDUM 3;
+         results/ladder_2026-10-26/grid is the pre-patch one): scores.csv, readings.csv, gates.json (written by
+         results/ladder_2026-10-26/grid/code/grid_score.py).  Every number is read from those files, none is recomputed
          from forecasts here.
 DESIGN   windows W = 1,000 / 2,000 / 3,000 / 3,500 trading days (T = 13 W rows); rungs k = 0, 1, 3, 5, 10, 20, 46 exogenous
-         series (P = 12 + 12 k predictors, c = P / T); LightGBM, XGBoost, ridge, lasso, elastic net; monthly refits at
-         126 origins, held 21 sessions; gain = QLIKE of the same window's k = 0 rung minus the rung's, on Table 1's
-         33,527 bars (every bar) and the 16:00 bar; DM HLN (lag 8) against k = 0.
-WRITES   writeup/generated/rehaul_complexity_numbers.tex   \\rhcx... macros
-         writeup/generated/rehaul_complexity_floats.tex    fig:rh_cx_complexity, fig:rh_cx_scaling
-         writeup/figures/rehaul_complexity_features.pdf (2026-10-26, framing B; was rehaul_complexity_c.pdf),
-         rehaul_complexity_scaling.pdf
+         series (P = 12 + 12 k predictors); LightGBM, XGBoost, ridge, lasso, elastic net; monthly refits at 126 origins,
+         held 21 sessions; gain = QLIKE of the same window's k = 0 rung minus the rung's, on Table 1's 33,527 bars (every
+         bar) and the 16:00 bar; DM HLN (lag 8) against k = 0.
+WRITES   writeup/generated/rehaul_complexity_numbers<tag>.tex   \rhcx... macros (tag "" = patched, "_prepatch")
+         writeup/generated/rehaul_complexity_floats<tag>.tex    fig:rh_cx_features, fig:rh_cx_data
+         writeup/figures/rehaul_complexity_features<tag>.pdf, rehaul_complexity_data<tag>.pdf
 
-Run:  python writeup/make_rehaul_complexity.py     (from the repository root)
+Run:  python writeup/make_rehaul_complexity.py [--grid results/ladder_2026-10-26/grid --tag _prepatch]   (repo root)
 """
 
 from __future__ import annotations
@@ -27,7 +27,16 @@ import pandas as pd
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
-GRID = ROOT / "results" / "ladder_2026-10-26" / "grid"
+GRID = ROOT / "results" / "ladder_2026-10-26" / "fomcfix" / "grid"  # the FOMC-patched grid (RULE.txt addendum 3)
+TAG = ""
+LABEL = {
+    "": "PATCHED design: the FOMC fix adopted (FOMC_SCHEDULE_2020_FIX, FOMC_PROXIMITY_NO_WINSOR; RULE.txt ADDENDUM 3).",
+    "_prepatch": "PRE-PATCH design: the FOMC calendar features before the fix (RULE.txt ADDENDUM 2).",
+}
+CAPTION = {
+    "": "FOMC-patched design.",
+    "_prepatch": "Pre-patch design: the FOMC calendar features before the fix.",
+}
 GEN = HERE / "generated"
 FIG = HERE / "figures"
 WS = (1000, 2000, 3000, 3500)
@@ -97,7 +106,7 @@ def main() -> None:
         )
         for m in ("ridge", "lasso", "enet"):
             e = int(round(np.log10(float(fz[m]["all_features"]))))
-            add(f"Pen{MTAG[m]}{WTAG[w]}", f"\\ensuremath{{10^{{{e}}}}}", f"{m} frozen penalty at W {w} (all_features)")
+            add(f"Pen{MTAG[m]}{WTAG[w]}", f"\ensuremath{{10^{{{e}}}}}", f"{m} frozen penalty at W {w} (all_features)")
 
     for m in MODELS:
         for sp in ("all", "c16"):
@@ -150,43 +159,64 @@ def main() -> None:
     GEN.mkdir(parents=True, exist_ok=True)
     lines = [
         HEAD,
-        "% \\rhcx... macros of the draft complexity / scaling subsection (writeup/drafts/2026-10-26_complexity.tex): the",
-        "% window x feature-count grid of results/ladder_2026-10-26/grid (RULE.txt ADDENDUM 1).  Names: Gain<Model><Span>",
+        "% \\rhcx... macros of the draft scaling subsection (writeup/drafts/2026-10-26_complexity.tex): the window x",
+        f"% feature-count grid of {GRID.relative_to(ROOT).as_posix()} (RULE.txt ADDENDA 1 and 3).  Names: Gain<Model><Span>",
         "% <W><k> (QLIKE gain over the same window's k = 0 rung, x 10^3), Kstar / Kninety (best k, k at 90 % of the full",
         "% set's gain), ...Read (the reading across windows), Model Lgbm Xgb Ridge Lasso Enet, Span Bar (every bar) / Close",
         "% (16:00), W One Two Main Long, k One Three Five Ten Twenty Full.",
-        "% PRE-PATCH design: the FOMC calendar features before the pending FOMC fix (RULE.txt ADDENDUM 2).",
+        f"% {LABEL[TAG]}",
     ]
+    if TAG:
+        lines.append(
+            "% A record of the pre-patch run: same macro names as rehaul_complexity_numbers.tex; never input both."
+        )
     for name, value, note in M:
         lines.append(f"\\providecommand{{\\{name}}}{{}}\\renewcommand{{\\{name}}}{{{value}}}  % {note}")
-    (GEN / "rehaul_complexity_numbers.tex").write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
+    (GEN / f"rehaul_complexity_numbers{TAG}.tex").write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
     figures(S)
+    cap = CAPTION[TAG]
     floats = rf"""{HEAD}
-% Floats of the draft complexity / scaling subsection (writeup/drafts/2026-10-26_complexity.tex).
+% Floats of the draft scaling subsection (writeup/drafts/2026-10-26_complexity.tex). {LABEL[TAG]}
 \begin{{figure}}[tbp]
   \centering
-  \includegraphics[width=\linewidth]{{figures/rehaul_complexity_features.pdf}}
-  % 2026-10-26 (integration, VI; framing B): parked -- the complexity framing (gain against c = P/T on a log axis,
-  % figures/rehaul_complexity_c.pdf). Was: "Gain over the HAR benchmark set against complexity $c = P/T$. ... $c \le
-  % \rhcxCMax$ throughout."
-  \caption{{Feature scaling: the gain over the HAR benchmark set against the number of exogenous series $k$ at a fixed
-    window. Each panel is one model; each line one rolling window ($W = \rhcxWOne$, \rhcxWTwo, \rhcxWMain{{}} and
-    \rhcxWLong{{}} trading days, $T = 13W$ bars), its points the rungs $k = 0, 1, 3, 5, 10, 20, 46$ exogenous series
-    ($P = 12 + 12k$ predictors). Gain: QLIKE of the same window's $k = 0$ rung minus the rung's, $\times 10^3$, on the
-    \rhcxNBars{{}} scored bars (top) and the 16:00 bar (bottom). Monthly refits at \rhcxNOrigins{{}} origins.
-    Pre-patch design: the FOMC calendar features before the fix.}}
-  \label{{fig:rh_cx_complexity}}
+  \includegraphics[width=\linewidth]{{figures/rehaul_complexity_features{TAG}.pdf}}
+  \caption{{Feature scaling: the gain over the HAR benchmark set against the number of predictors $P = 12 + 12k$
+    ($k = 0, 1, 3, 5, 10, 20, 46$ exogenous series), one line per rolling window ($W = \rhcxWOne$, \rhcxWTwo,
+    \rhcxWMain{{}} and \rhcxWLong{{}} trading days, $T = 13W$ bars), one panel per model. Gain: QLIKE of the same
+    window's $k = 0$ rung minus the rung's, $\times 10^3$, on the \rhcxNBars{{}} scored bars (top) and the 16:00 bar
+    (bottom). Monthly refits at \rhcxNOrigins{{}} origins. {cap}}}
+  \label{{fig:rh_cx_features}}
 \end{{figure}}
 \begin{{figure}}[tbp]
   \centering
-  \includegraphics[width=\linewidth]{{figures/rehaul_complexity_scaling.pdf}}
+  \includegraphics[width=\linewidth]{{figures/rehaul_complexity_data{TAG}.pdf}}
   \caption{{Data scaling: the gain over the same window's $k = 0$ rung against the window length $T$ at a fixed number
-    of exogenous series $k$ (every bar). Same runs (pre-patch design) as Figure~\ref{{fig:rh_cx_complexity}}.}}
-  \label{{fig:rh_cx_scaling}}
+    of exogenous series $k$ (every bar). Same runs as Figure~\ref{{fig:rh_cx_features}}. {cap}}}
+  \label{{fig:rh_cx_data}}
 \end{{figure}}
 """
-    (GEN / "rehaul_complexity_floats.tex").write_text(floats, encoding="utf-8", newline="\n")
-    print(f"wrote {len(M)} macros, floats, figures")
+    (GEN / f"rehaul_complexity_floats{TAG}.tex").write_text(floats, encoding="utf-8", newline="\n")
+    print(f"wrote {len(M)} macros, floats, figures ({GRID.relative_to(ROOT).as_posix()}, tag '{TAG}')")
+
+
+FLOOR = (
+    -6.0
+)  # gain x 1e3 below which a point is drawn at the axis floor and labelled (off-scale held-forecast blow-ups)
+
+
+def clipped(ax, x, y, color):
+    """Plot y clipped at FLOOR; mark and label the clipped points."""
+    import numpy as np
+
+    y = np.asarray(y, dtype=float)
+    x = np.asarray(x, dtype=float)
+    low = y < FLOOR
+    for xi, yi in zip(x[low], y[low]):
+        ax.plot([xi], [FLOOR], marker="v", ms=6, color=color, zorder=4)
+        ax.annotate(
+            f"{yi:,.0f}", (xi, FLOOR), textcoords="offset points", xytext=(0, 6), ha="center", fontsize=6, color=color
+        )
+    return np.where(low, FLOOR, y)
 
 
 def figures(S: pd.DataFrame) -> None:
@@ -198,6 +228,7 @@ def figures(S: pd.DataFrame) -> None:
     INK, INK2, GRIDC = "#0b0b0b", "#52514e", "#e4e3df"
     WCOL = {1000: "#9ec5f0", 2000: "#5c9ee6", 3000: "#2a78d6", 3500: "#0d3f80"}
     KCOL = {1: "#c6dbf5", 3: "#9ec5f0", 5: "#6ea8e8", 10: "#3f8ade", 20: "#1f62b8", 46: "#0d3f80"}
+    TITLE = {"lgbm": "LightGBM", "xgb": "XGBoost", "ridge": "Ridge", "lasso": "Lasso", "enet": "Elastic net"}
     FIG.mkdir(parents=True, exist_ok=True)
 
     def style(ax) -> None:
@@ -215,28 +246,30 @@ def figures(S: pd.DataFrame) -> None:
             ax = axes[i, j]
             for w in WS:
                 g = S[(S.model == m) & (S.span == sp) & (S.wdays == w)].sort_values("k")
-                # 2026-10-26 (framing B, feature scaling): the rungs on an even axis. Was: ax.plot(g["c"], ...) with
-                # ax.set_xscale("log") (gain against c = P/T)
-                xk = [KS.index(int(k)) for k in g["k"]]
-                ax.plot(xk, g["gain"] * 1e3, color=WCOL[w], lw=1.6, marker="o", ms=3, label=f"$W$ = {w:,}")
-            ax.set_xticks(range(len(KS)), [str(k) for k in KS])
+                ax.plot(
+                    g["P"],
+                    clipped(ax, g["P"], g["gain"] * 1e3, WCOL[w]),
+                    color=WCOL[w],
+                    lw=1.6,
+                    marker="o",
+                    ms=3,
+                    label=f"$W$ = {w:,}",
+                )
+            ax.set_xscale("log")
+            ax.set_xticks([12, 24, 48, 72, 132, 252, 564])
+            ax.set_xticklabels(["12", "24", "48", "72", "132", "252", "564"])
+            ax.minorticks_off()
             style(ax)
             if i == 0:
-                ax.set_title(
-                    {"lgbm": "LightGBM", "xgb": "XGBoost", "ridge": "Ridge", "lasso": "Lasso", "enet": "Elastic net"}[
-                        m
-                    ],
-                    fontsize=9,
-                    color=INK,
-                )
+                ax.set_title(TITLE[m], fontsize=9, color=INK)
             if j == 0:
                 ax.set_ylabel(("every bar" if sp == "all" else "16:00") + r", gain $\times 10^3$", fontsize=8)
             if i == 1:
-                ax.set_xlabel("exogenous series $k$", fontsize=8, color=INK2)  # was: $c = P/T$
+                ax.set_xlabel(r"predictors $P$ (log scale)", fontsize=8, color=INK2)
     h, lb = axes[0, 0].get_legend_handles_labels()
     fig.legend(h, lb, loc="upper center", ncol=4, frameon=False, fontsize=8)
     fig.tight_layout(rect=(0, 0, 1, 0.93))
-    fig.savefig(FIG / "rehaul_complexity_features.pdf")  # 2026-10-26 (framing B). Was: rehaul_complexity_c.pdf
+    fig.savefig(FIG / f"rehaul_complexity_features{TAG}.pdf")
     plt.close(fig)
 
     fig, axes = plt.subplots(1, len(MODELS), figsize=(11.0, 2.6), squeeze=False)
@@ -244,22 +277,33 @@ def figures(S: pd.DataFrame) -> None:
         ax = axes[0, j]
         for k in KS[1:]:
             g = S[(S.model == m) & (S.span == "all") & (S.k == k)].sort_values("wdays")
-            ax.plot(g["T"] / 1000, g["gain"] * 1e3, color=KCOL[k], lw=1.6, marker="o", ms=3, label=f"$k$ = {k}")
+            ax.plot(
+                g["T"] / 1000,
+                clipped(ax, g["T"] / 1000, g["gain"] * 1e3, KCOL[k]),
+                color=KCOL[k],
+                lw=1.6,
+                marker="o",
+                ms=3,
+                label=f"$k$ = {k}",
+            )
         style(ax)
-        ax.set_title(
-            {"lgbm": "LightGBM", "xgb": "XGBoost", "ridge": "Ridge", "lasso": "Lasso", "enet": "Elastic net"}[m],
-            fontsize=9,
-            color=INK,
-        )
+        ax.set_title(TITLE[m], fontsize=9, color=INK)
         ax.set_xlabel(r"$T$ (thousand bars)", fontsize=8, color=INK2)
         if j == 0:
             ax.set_ylabel(r"gain $\times 10^3$", fontsize=8)
     h, lb = axes[0, 0].get_legend_handles_labels()
     fig.legend(h, lb, loc="upper center", ncol=6, frameon=False, fontsize=8)
     fig.tight_layout(rect=(0, 0, 1, 0.86))
-    fig.savefig(FIG / "rehaul_complexity_scaling.pdf")
+    fig.savefig(FIG / f"rehaul_complexity_data{TAG}.pdf")
     plt.close(fig)
 
 
 if __name__ == "__main__":
+    import argparse
+
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--grid", default=str(GRID), help="the grid results directory (default: the patched grid)")
+    ap.add_argument("--tag", default="", help="'' (patched, the names the draft inputs) or '_prepatch'")
+    a = ap.parse_args()
+    GRID, TAG = Path(a.grid).resolve(), a.tag
     main()

@@ -1,0 +1,10 @@
+trees run-trees 3000 lgbm 1/2 1
+trees run-trees 3000 lgbm 2/2 1
+trees run-trees 3000 xgb 1/2 1
+trees run-trees 3000 xgb 2/2 1
+trees run-trees 3000 rf_skx 1/6 1
+trees run-trees 3000 rf_skx 2/6 1
+trees run-trees 3000 rf_skx 3/6 1
+trees run-trees 3000 rf_skx 4/6 1
+trees run-trees 3000 rf_skx 5/6 1
+trees run-trees 3000 rf_skx 6/6 1

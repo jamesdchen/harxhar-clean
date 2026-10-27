@@ -1,19 +1,19 @@
 % writeup/drafts/2026-10-26_complexity.tex -- DRAFT (2026-10-26), not \input by paper_rehaul.tex.
-% The window x feature-count grid (results/ladder_2026-10-26/grid; rule: results/ladder_2026-10-26/RULE.txt ADDENDUM 1)
-% framed two ways, so the author can choose: (A) "complexity" in the sense of KellyMalamudZhou2024, (B) plain data and
-% feature scaling.  Every number is a \rhcx... macro of generated/rehaul_complexity_numbers.tex (writeup/
-% make_rehaul_complexity.py); the floats are generated/rehaul_complexity_floats.tex (fig:rh_cx_complexity,
-% fig:rh_cx_scaling).  To try it in the paper: \input{generated/rehaul_complexity_numbers} with the other macro files,
+% The window x feature-count grid (results/ladder_2026-10-26/fomcfix/grid on the FOMC-PATCHED design; rule:
+% results/ladder_2026-10-26/RULE.txt ADDENDA 1 and 3) as data-and-feature scaling.  The author kept the scaling framing;
+% the "complexity" framing of KellyMalamudZhou2024 is not used (its earlier pre-patch version: git history of this file,
+% commit bc1280a).  Every number is a \rhcx... macro of generated/rehaul_complexity_numbers.tex (writeup/
+% make_rehaul_complexity.py); the floats are generated/rehaul_complexity_floats.tex (fig:rh_cx_features,
+% fig:rh_cx_data).  To try it in the paper: \input{generated/rehaul_complexity_numbers} with the other macro files,
 % \input{drafts/2026-10-26_complexity} where the subsection should go (e.g. after the dense-and-weak item of
-% rehaul/08_feature_importance.tex), \input{generated/rehaul_complexity_floats} after the section.  The bib entry
-% KellyMalamudZhou2024 is in writeup/references.bib on insurance-selling-2026-09-19-e34 (2f0353a).
-% PRE-PATCH design: the FOMC calendar features before the pending FOMC fix (RULE.txt ADDENDUM 2); to be rerun.
+% rehaul/08_feature_importance.tex), \input{generated/rehaul_complexity_floats} after the section.
+% The pre-patch run's macros and floats are generated/rehaul_complexity_{numbers,floats}_prepatch.tex (same macro
+% names: never input both).
 
 \subsection{Window length, number of series and the exogenous gain (draft)}
 \label{sec:rh_cx}
-\editc{orange}{CX}{Draft for the author (2026-10-26): keep framing A, framing B or neither; the two items below
-describe the same runs. Pre-patch design (the FOMC calendar features before the fix), monthly refits; to be rerun on the
-patched design if kept.}
+\editc{orange}{CX}{Draft for the author (2026-10-26): the scaling reading of the window $\times$ number-of-series grid,
+on the FOMC-patched design, monthly refits.}
 \begin{itemize}
 \item \textbf{Question.} Does the gain from the exogenous series grow with the number of series a model sees and with
   the length of its training window, and does the number of series worth keeping grow with the window? If the
@@ -24,7 +24,7 @@ patched design if kept.}
   \item A grid of rolling windows $W = \rhcxWOne$, \rhcxWTwo, \rhcxWMain{} and \rhcxWLong{} trading days ($T = 13W$,
     from \rhcxTOne{} to \rhcxTLong{} bars) and of rungs $k = 0, 1, 3, 5, 10, 20, \rhcxNSeries$: each rung keeps the
     \rhcxPHar{} columns of the HAR benchmark set and all columns of the top $k$ exogenous series, so it has
-    $P = 12 + 12k$ predictors (\rhcxPFull{} for the full set) and complexity $c = P/T$.
+    $P = 12 + 12k$ predictors (\rhcxPFull{} for the full set).
   \item The series are ranked separately at each window and for each model, by one fit before the evaluation span
     (origin 2 January 2013, explained on 2013: mean absolute SHAP value for the trees, $\sum |\beta|\,\mathrm{s.d.}$
     for the linear models). This is the first-training-window ranking of \citet{MaischZhangUlrichZimmer2026}.
@@ -32,90 +32,71 @@ patched design if kept.}
     $T$); ridge, lasso and elastic net on each window's own frozen penalty (ridge \rhcxPenRidgeOne{} at $W =
     \rhcxWOne$, \rhcxPenRidgeMain{} at the other windows; lasso \rhcxPenLassoOne{} and \rhcxPenLassoMain; elastic net
     \rhcxPenEnetOne{} and \rhcxPenEnetMain).
-  \item Each rung is refitted at the \rhcxNOrigins{} monthly origins of Section~\ref{sec:rh_fi} and held for
-    the next 21 sessions. The full rung equals the every-bar walk at every origin (\rhcxNGatesPass{} of \rhcxNGates{}
+  \item Each rung is refitted at the \rhcxNOrigins{} monthly origins of Section~\ref{sec:rh_fi} and held for the next
+    21 sessions. At $W = \rhcxWMain$ the full rung equals the every-bar walk at every origin; at every window a rung
+    without the FOMC proximity series equals its pre-patch twin bit for bit (\rhcxNGatesPass{} of \rhcxNGates{}
     window--model gates).
   \item Gain $G(W, k)$: the QLIKE of the same window's $k = 0$ rung minus the rung's, $\times 10^3$, on the
     \rhcxNBars{} scored bars of Table~\ref{tab:rh_oos} and on the 16:00 bar; Diebold--Mariano tests against $k = 0$
-    (HLN, Newey--West lag \rhcxHacLag). Figures~\ref{fig:rh_cx_complexity} and~\ref{fig:rh_cx_scaling}.
+    (HLN, Newey--West lag \rhcxHacLag). Figures~\ref{fig:rh_cx_features} and~\ref{fig:rh_cx_data}.
   \end{itemize}
-
-\item \textbf{Framing A: complexity in the sense of \citet{KellyMalamudZhou2024}.}
+\item \textbf{Feature scaling (fixed window).}
   \begin{itemize}
-  \item Their claim: in return prediction, a ridge regression on many random nonlinear features beats a simple model
-    out of sample, and keeps improving as complexity $c = P/T$ grows, beyond $c = 1$ toward the ridgeless limit. Our
-    grid covers only the low end of that axis: $c$ runs from \rhcxCMin{} to \rhcxCMax{} (\rhcxCMaxMain{} for the
-    full set at $W = \rhcxWMain$).
-  \item Within a window (higher $c$ through more series), the trees behave as the complexity view predicts. Their
-    gain rises with $c$, and the full set is the best rung in \rhcxNFullBestTreesBar{} of 8 window--tree cells on
-    every bar (LightGBM \rhcxFullBestLgbmBar{} of 4, XGBoost \rhcxFullBestXgbBar{} of 4). The linear models do not:
-    their gain peaks at 5 to 10 series and falls toward the full set, which is the best rung in
-    \rhcxNFullBestLinearBar{} of 12 cells (ridge at $W = \rhcxWMain$: \rhcxGainRidgeBarMainTen{} at $k = 10$,
-    \rhcxGainRidgeBarMainFull{} for the full set).
-  \item Across windows at a fixed $P$ (lower $c$ through a longer window), the gain rises, the opposite of what $c$
-    alone would order. For example, LightGBM's full set gains \rhcxGainLgbmBarOneFull{} at $W = \rhcxWOne$ ($c =
-    \rhcxCMax$) and \rhcxGainLgbmBarMainFull{} at \rhcxWMain. So $c$ is not a sufficient statistic here: at these
-    values the ordinary estimation-error effect of $T$ dominates.
-  \item At the 16:00 bar, the trees' full set is the best rung in \rhcxNFullBestTreesClose{} of 8 window--tree cells,
-    the linear models' in \rhcxNFullBestLinearClose{} of 12.
+  \item Trees: LightGBM at $W = \rhcxWMain$ gains \rhcxGainLgbmBarMainFive{} with 5 series, \rhcxGainLgbmBarMainTen{}
+    with 10 and \rhcxGainLgbmBarMainFull{} with all \rhcxNSeries; XGBoost \rhcxGainXgbBarMainFive,
+    \rhcxGainXgbBarMainTen{} and \rhcxGainXgbBarMainFull. The full set is the best rung in \rhcxNFullBestTreesBar{} of 8
+    window--tree cells on every bar.
+  \item Linear models: ridge at $W = \rhcxWMain$ gains \rhcxGainRidgeBarMainFive, \rhcxGainRidgeBarMainTen{} and
+    \rhcxGainRidgeBarMainFull{} (5, 10 and all series); lasso \rhcxGainLassoBarMainFive, \rhcxGainLassoBarMainTen{}
+    and \rhcxGainLassoBarMainFull; elastic net \rhcxGainEnetBarMainFive, \rhcxGainEnetBarMainTen{} and
+    \rhcxGainEnetBarMainFull. The full set is the best rung in \rhcxNFullBestLinearBar{} of 12 window--linear cells.
   \end{itemize}
-
-\item \textbf{Framing B: data scaling and feature scaling.}
+\item \textbf{Data scaling (fixed number of series).}
   \begin{itemize}
-  \item Feature scaling (fixed $T$). The trees' gain rises with the number of series and saturates by 10 to 20 series
-    (LightGBM at $W = \rhcxWMain$: \rhcxGainLgbmBarMainFive{} at $k = 5$, \rhcxGainLgbmBarMainTen{} at $k = 10$,
-    \rhcxGainLgbmBarMainFull{} for the full set). The linear models' gain is hump-shaped in the number of series
-    (ridge: \rhcxGainRidgeBarMainFive, \rhcxGainRidgeBarMainTen{} and \rhcxGainRidgeBarMainFull).
-  \item Data scaling (fixed $k$). The trees gain most from the first doubling of the window. LightGBM at $k = 10$:
-    \rhcxGainLgbmBarOneTen{} at $W = \rhcxWOne$, \rhcxGainLgbmBarTwoTen{} at \rhcxWTwo, \rhcxGainLgbmBarLongTen{} at
-    \rhcxWLong. Its full set: \rhcxGainLgbmBarOneFull, \rhcxGainLgbmBarTwoFull, \rhcxGainLgbmBarMainFull,
-    \rhcxGainLgbmBarLongFull. The linear models' gain at $k = 10$ also rises with the window (ridge
-    \rhcxGainRidgeBarOneTen{} to \rhcxGainRidgeBarLongTen). Their full set does not change monotonically with the
-    window (ridge \rhcxGainRidgeBarOneFull, \rhcxGainRidgeBarTwoFull, \rhcxGainRidgeBarMainFull,
-    \rhcxGainRidgeBarLongFull).
-  \item Does the best number of series rise with the window? On every bar it \rhcxKstarReadXgbBar{} for XGBoost
-    ($k^\ast = \rhcxKstarXgbBarOne$, \rhcxKstarXgbBarTwo, \rhcxKstarXgbBarMain, \rhcxKstarXgbBarLong{} at the four
-    windows). It \rhcxKstarReadLgbmBar{} for LightGBM (the full set, $k^\ast = \rhcxKstarLgbmBarOne$, at every
-    window). It \rhcxKstarReadLassoBar{} for the lasso ($\rhcxKstarLassoBarOne$, \rhcxKstarLassoBarTwo,
-    \rhcxKstarLassoBarMain, \rhcxKstarLassoBarLong) and \rhcxKstarReadEnetBar{} for the elastic net
-    ($\rhcxKstarEnetBarOne$, \rhcxKstarEnetBarTwo, \rhcxKstarEnetBarMain, \rhcxKstarEnetBarLong). It
-    \rhcxKstarReadRidgeBar{} for ridge ($\rhcxKstarRidgeBarOne$, \rhcxKstarRidgeBarTwo, \rhcxKstarRidgeBarMain,
-    \rhcxKstarRidgeBarLong).
-    \begin{itemize}
-    \item At the 16:00 bar, the best number of series rises with the window for \rhcxWhoKstarRisesClose{} of the
-      models. It falls for \rhcxWhoKstarFallsClose{} and is not monotone for \rhcxWhoKstarMixedClose.
-    \item The dense-and-weak prediction (a best number of series that rises with the window) therefore holds on
-      every bar for \rhcxWhoKstarRisesBar{} and at the 16:00 bar for \rhcxWhoKstarRisesClose. For the linear models
-      the best number of series is largest at the shortest window, where the tenfold larger penalty favours the full
-      set, and smaller after it.
-    \end{itemize}
+  \item LightGBM with 10 series: \rhcxGainLgbmBarOneTen{} at $W = \rhcxWOne$, \rhcxGainLgbmBarTwoTen{} at \rhcxWTwo,
+    \rhcxGainLgbmBarMainTen{} at \rhcxWMain{} and \rhcxGainLgbmBarLongTen{} at \rhcxWLong; with all series
+    \rhcxGainLgbmBarOneFull, \rhcxGainLgbmBarTwoFull, \rhcxGainLgbmBarMainFull{} and \rhcxGainLgbmBarLongFull.
+  \item Ridge with 10 series: \rhcxGainRidgeBarOneTen, \rhcxGainRidgeBarTwoTen, \rhcxGainRidgeBarMainTen{} and
+    \rhcxGainRidgeBarLongTen; with all series \rhcxGainRidgeBarOneFull, \rhcxGainRidgeBarTwoFull,
+    \rhcxGainRidgeBarMainFull{} and \rhcxGainRidgeBarLongFull.
   \end{itemize}
-
+\item \textbf{Does the best number of series rise with the window?} On every bar the rung with the lowest QLIKE at
+  $W = \rhcxWOne$, \rhcxWTwo, \rhcxWMain{} and \rhcxWLong{} has $k^\ast = \rhcxKstarLgbmBarOne$, \rhcxKstarLgbmBarTwo,
+  \rhcxKstarLgbmBarMain, \rhcxKstarLgbmBarLong{} series for LightGBM (it \rhcxKstarReadLgbmBar), \rhcxKstarXgbBarOne,
+  \rhcxKstarXgbBarTwo, \rhcxKstarXgbBarMain, \rhcxKstarXgbBarLong{} for XGBoost (\rhcxKstarReadXgbBar),
+  \rhcxKstarRidgeBarOne, \rhcxKstarRidgeBarTwo, \rhcxKstarRidgeBarMain, \rhcxKstarRidgeBarLong{} for ridge
+  (\rhcxKstarReadRidgeBar), \rhcxKstarLassoBarOne, \rhcxKstarLassoBarTwo, \rhcxKstarLassoBarMain,
+  \rhcxKstarLassoBarLong{} for the lasso (\rhcxKstarReadLassoBar) and \rhcxKstarEnetBarOne, \rhcxKstarEnetBarTwo,
+  \rhcxKstarEnetBarMain, \rhcxKstarEnetBarLong{} for the elastic net (\rhcxKstarReadEnetBar).
+  \begin{itemize}
+  \item The dense-and-weak prediction, a best number of series that rises with the window, holds on every bar for
+    \rhcxWhoKstarRisesBar{} and at the 16:00 bar for \rhcxWhoKstarRisesClose.
+  \end{itemize}
 \item \textbf{Caveats.}
   \begin{itemize}
-  \item Our $c$ is far below one (at most \rhcxCMax), while \citet{KellyMalamudZhou2024} study $c > 1$ with ridge on
-    random features; the grid has no random-feature expansion and cannot reach their regime.
-  \item For the trees the effective complexity is not $P/T$: the depth, the number of leaves and of trees and the
-    column sampling set it. The minimum leaf sizes are not rescaled with $T$, so a shorter window also means
-    relatively larger leaves.
+  \item Two lasso cells are dominated by a few held forecasts near zero. At $W = \rhcxWTwo$ with 5 series
+    (\rhcxGainLassoBarTwoFive) the five series are the same as before the patch, so the patched FOMC proximity columns
+    alone cause it; the forecasts come from the origin of 3 March 2020, inside the period the FOMC fix rewrites. At
+    $W = \rhcxWOne$ with 10 series (\rhcxGainLassoBarOneTen) they come from the origin of 30 June 2014. The lasso's best
+    number of series at $W = \rhcxWOne$ (\rhcxKstarLassoBarOne) and its rise across windows reflect these blow-ups, not
+    a preference.
   \item The window length is confounded with regime averaging: a longer window averages over more regimes. The
     linear penalties also change with the window (tenfold at $W = \rhcxWOne$), and the rankings are refitted at each
     window, so the series behind a given $k$ differ across windows.
+  \item The trees' minimum leaf sizes are not rescaled with $T$, so a shorter window also means relatively larger
+    leaves.
   \item Monthly refits held for 21 sessions, not the every-bar walks of Table~\ref{tab:rh_oos}. Holding a fit costs
     the full linear set most.
-  \item The design is pre-patch: the FOMC calendar features precede the pending fix, and they are among the
-    top-ranked series of the linear models.
   \item Four windows with no intervals: descriptive.
   \end{itemize}
 \end{itemize}
 
 % ---------------------------------------------------------------------------------------------------------------------
-% PROPOSED ADDITION to rehaul/02_related_work.tex, bullet "Shrinkage with many weak signals" (one sentence, after
-% "... bears directly on the dense-versus-sparse question."; not applied):
+% OPTIONAL related-work sentence (only if the paper mentions complexity at all; the author dropped that framing), for
+% rehaul/02_related_work.tex, bullet "Shrinkage with many weak signals", after "... bears directly on the
+% dense-versus-sparse question." (not applied):
 %
 %   \citet{KellyMalamudZhou2024} argue against parsimony in return prediction: a ridge regression on many more
 %   random nonlinear features than observations (complexity $c = P/T > 1$) predicts better out of sample than simple
 %   models, and its market-timing value rises with complexity even where the out-of-sample $R^2$ is poor.
-%
-% and, in the "See ..." list, ", \citet{KellyMalamudZhou2024} on the virtue of complexity in return prediction".
 % ---------------------------------------------------------------------------------------------------------------------

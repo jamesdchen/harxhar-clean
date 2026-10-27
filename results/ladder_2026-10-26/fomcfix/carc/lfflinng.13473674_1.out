@@ -1,0 +1,13 @@
+lff task 1 on a04-17.hpc.usc.edu [AMD EPYC 7513 32-Core Processor] Mon Oct 26 17:29:59 PDT 2026
+line: linear run-linear 1000 ridge 0
+[17:30:02] W 1000 ridge alpha 10000.0: sets ['full', 'har', 'P20', 'P10', 'P5', 'P3', 'P1']; 882 jobs, 8 workers
+[17:30:22] 100/882 jobs, 20s (last full k=97 1.5s)
+[17:30:26] 200/882 jobs, 24s (last har k=76 0.0s)
+[17:30:29] 300/882 jobs, 27s (last P20 k=49 0.3s)
+[17:30:33] 400/882 jobs, 31s (last P10 k=22 0.2s)
+[17:30:35] 500/882 jobs, 33s (last P10 k=121 0.2s)
+[17:30:36] 600/882 jobs, 34s (last P5 k=99 0.1s)
+[17:30:37] 700/882 jobs, 35s (last P3 k=69 0.1s)
+[17:30:38] 800/882 jobs, 36s (last P1 k=44 0.0s)
+[17:30:39] 882/882 jobs, 37s (last P1 k=124 0.1s)
+lff task 1 done Mon Oct 26 17:30:39 PDT 2026

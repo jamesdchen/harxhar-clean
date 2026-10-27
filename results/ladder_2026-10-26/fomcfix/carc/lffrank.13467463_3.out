@@ -1,0 +1,6 @@
+lff task 3 on b04-04.hpc.usc.edu [AMD EPYC 7513 32-Core Processor] Mon Oct 26 14:59:12 PDT 2026
+line: trees rank-trees 3000 rf_skx
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.fit: running accelerated version on CPU
+INFO:sklearnex: sklearn.ensemble.RandomForestRegressor.predict: running accelerated version on CPU
+[15:00:55] W 3000 rank rf_skx: additivity 1.7e-14 True; top 10 ['sumabsret', 'sumabsret_vwstock', 'sumret', 'sumabsret_ewstock', 'effspread_vwstock', 'sumret3', 'fomc_until_inv', 'sumautocov', 'sumret3_vwstock', 'sumret3_ewstock']
+lff task 3 done Mon Oct 26 15:00:55 PDT 2026

@@ -6,7 +6,7 @@
 % writeup/drafts/2026-10-26_complexity.tex only: data and feature scaling; the complexity framing in the sense of
 % KellyMalamudZhou2024 is not used, per the spec). Floats moved with their text: tab:rh_fip_nonstd, fig:rh_fip_rank,
 % fig:rh_fip_time, fig:rh_fip_cond (from 08_feature_importance_floats.tex); tab:rh_fip_window, tab:rh_fip_lc,
-% tab:rh_fip_inter, fig:rh_fip_shapes (from 08b_fi_measures_floats.tex); fig:rh_cx_complexity, fig:rh_cx_scaling
+% tab:rh_fip_inter, fig:rh_fip_shapes (from 08b_fi_measures_floats.tex); fig:rh_cx_features, fig:rh_cx_data
 % (generated/rehaul_complexity_floats.tex). Macros: \rhfip... (generated/rehaul_fip_numbers.tex), \rhlc...
 % (generated/rehaul_fip_lc_numbers.tex), \rhcx... (generated/rehaul_complexity_numbers.tex), \rhor...
 % (generated/rehaul_oos_rerun_numbers.tex); all loaded in the preamble of paper_rehaul.tex (FRONT adds
@@ -306,14 +306,14 @@
     (\rhcxNGatesPass{} of \rhcxNGates{} window--model gates).
   \item Gain $G(W, k)$: the QLIKE of the same window's $k = 0$ rung minus the rung's, $\times 10^3$, on the
     \rhcxNBars{} scored bars of Table~\ref{tab:rh_oos} and on the 16:00 bar; Diebold--Mariano tests against $k = 0$
-    (HLN, Newey--West lag \rhcxHacLag). Figures~\ref{fig:rh_cx_complexity} and~\ref{fig:rh_cx_scaling}.
+    (HLN, Newey--West lag \rhcxHacLag). Figures~\ref{fig:rh_cx_features} and~\ref{fig:rh_cx_data}.
   \end{itemize}
 \item \textbf{Feature scaling} (fixed $T$). At the main window the trees' gain rises with the number of series and
   is nearly complete at 10 (LightGBM at $W = \rhcxWMain$: \rhcxGainLgbmBarMainFive{} at $k = 5$,
   \rhcxGainLgbmBarMainTen{} at $k = 10$, \rhcxGainLgbmBarMainFull{} for the full set). The linear models' gain is
   hump-shaped in the number of series (ridge: \rhcxGainRidgeBarMainFive, \rhcxGainRidgeBarMainTen{} and
   \rhcxGainRidgeBarMainFull).
-\item \textbf{Data scaling} (fixed $k$; Figure~\ref{fig:rh_cx_scaling}). The trees gain most from the first doubling
+\item \textbf{Data scaling} (fixed $k$; Figure~\ref{fig:rh_cx_data}). The trees gain most from the first doubling
   of the window. LightGBM at $k = 10$: \rhcxGainLgbmBarOneTen{} at $W = \rhcxWOne$, \rhcxGainLgbmBarTwoTen{} at
   \rhcxWTwo, \rhcxGainLgbmBarLongTen{} at \rhcxWLong; its full set: \rhcxGainLgbmBarOneFull, \rhcxGainLgbmBarTwoFull,
   \rhcxGainLgbmBarMainFull, \rhcxGainLgbmBarLongFull. At the shortest window LightGBM's top ten keep much less of its

@@ -1,0 +1,6 @@
+lff task 9 on b09-06.hpc.usc.edu [AMD EPYC 7513 32-Core Processor] Mon Oct 26 16:51:34 PDT 2026
+line: linear rank-linear 3500
+[16:51:55] W 3500 rank ridge: top 10 ['fomc_until_inv', 'fomc_since_inv', 'sumabsret', 'fomc_day', 'sumret', 'turnover_ewstock', 'sumabsret_vwstock', 'buyturnover_vwstock', 'sumautocov', 'sumret4']
+[16:51:55] W 3500 rank lasso: top 10 ['fomc_until_inv', 'fomc_since_inv', 'fomc_day', 'sumabsret', 'turnover_ewstock', 'sumret', 'sumbipow', 'sumret4', 'sumabsret_vwstock', 'sumpret2']
+[16:51:55] W 3500 rank enet: top 10 ['fomc_until_inv', 'fomc_since_inv', 'sumabsret', 'sumret', 'fomc_day', 'sumabsret_vwstock', 'sumautocov', 'sumret4', 'sumvolume', 'sumret2_ewstock']
+lff task 9 done Mon Oct 26 16:51:55 PDT 2026

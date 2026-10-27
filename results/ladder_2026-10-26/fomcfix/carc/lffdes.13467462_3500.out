@@ -1,0 +1,14 @@
+design W 3500 on b22-28.hpc.usc.edu [ AMD EPYC 7542 32-Core Processor] Mon Oct 26 16:43:17 PDT 2026
+[16:43:32] done logs/design_baseline.log in 14 s
+[16:49:03] done logs/design_all_features.log in 345 s
+[16:49:03] host b22-28.hpc.usc.edu, numpy 1.26.4
+total 4
+drwxr-xr-x 3 jc_905 jc_905         8 Oct 26 16:49 .
+drwxr-xr-x 5 jc_905 jc_905         5 Oct 26 16:43 ..
+-rw-r--r-- 1 jc_905 jc_905 382378592 Oct 26 16:49 X.npy
+-rw-r--r-- 1 jc_905 jc_905    314104 Oct 26 16:49 b_oos.npy
+-rw-r--r-- 1 jc_905 jc_905    784945 Oct 26 16:49 dates_oos.csv
+-rw-r--r-- 1 jc_905 jc_905     17957 Oct 26 16:49 design.json
+drwxr-xr-x 2 jc_905 jc_905         4 Oct 26 16:49 dummy
+-rw-r--r-- 1 jc_905 jc_905    678104 Oct 26 16:49 y.npy
+design W 3500 done Mon Oct 26 16:49:03 PDT 2026

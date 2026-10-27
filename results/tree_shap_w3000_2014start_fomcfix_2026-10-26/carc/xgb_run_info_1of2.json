@@ -1,0 +1,28 @@
+{
+ "est": "xgb",
+ "config": "xgb_opt_00",
+ "sha": "88bec9f385c7",
+ "threads": 8,
+ "shap_threads": 16,
+ "procs": 1,
+ "part": "1/2",
+ "runner_sha": "3cbb85f",
+ "runner_src_sha256": "c2a5b45724f8ef1105484e8d7db41c974766b36cc8daa29b581905d2af2bbad8",
+ "versions": {
+  "python": "3.12.15",
+  "numpy": "1.26.4",
+  "pandas": "2.3.3",
+  "scipy": "1.17.1",
+  "sklearn": "1.9.1",
+  "lightgbm": "4.6.0",
+  "xgboost": "3.2.0",
+  "pyarrow": "19.0.1",
+  "sklearnex": "2026.2.0",
+  "daal": "2026.2.0"
+ },
+ "shap": "0.49.1",
+ "cpu": "AMD EPYC 7513 32-Core Processor",
+ "host": "a04-17.hpc.usc.edu",
+ "slurm": "13467480",
+ "task": "3"
+}

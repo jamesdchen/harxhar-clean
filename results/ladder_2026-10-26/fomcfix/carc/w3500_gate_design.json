@@ -1,0 +1,42 @@
+{
+ "wdays": 3500,
+ "patched": "/home1/jc_905/ladder_fomcfix/designs/w3500/_work/design_all_features",
+ "prepatch": "/scratch1/jc_905/fi_window/w3500/design_all_features",
+ "md5_y.npy": [
+  "996504f16da7982d64656d1ba0d9722a",
+  "996504f16da7982d64656d1ba0d9722a"
+ ],
+ "md5_b_oos.npy": [
+  "c0dd76634e8d421a3e343138c3b47171",
+  "c0dd76634e8d421a3e343138c3b47171"
+ ],
+ "md5_dates_oos.csv": [
+  "f756e6bc11bdf951f5d58927b517690a",
+  "f756e6bc11bdf951f5d58927b517690a"
+ ],
+ "md5_X.npy": [
+  "6f5ab0232cfb43905f14380c0b8df8b7",
+  "118dbe77b10791077f0d5675a8640b5a"
+ ],
+ "names_equal": true,
+ "X_shape": [
+  84747,
+  564
+ ],
+ "differing_columns": [
+  "adj_fomc_until_inv_ma_1",
+  "adj_fomc_until_inv_ma_5",
+  "adj_fomc_until_inv_ma_25",
+  "adj_fomc_until_inv_ma_125",
+  "adj_fomc_until_inv_ma_625",
+  "adj_fomc_until_inv_ma_3125",
+  "adj_fomc_since_inv_ma_1",
+  "adj_fomc_since_inv_ma_5",
+  "adj_fomc_since_inv_ma_25",
+  "adj_fomc_since_inv_ma_125",
+  "adj_fomc_since_inv_ma_625",
+  "adj_fomc_since_inv_ma_3125"
+ ],
+ "differing_outside_allowed": [],
+ "pass": true
+}

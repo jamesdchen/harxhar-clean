@@ -1,0 +1,245 @@
+{
+ "lgbm": {
+  "GT_origin_bit_equal": 126,
+  "GT_origin_n": 126,
+  "GT_origin_maxabs": 0.0,
+  "GT_origin_walk_missing": 0,
+  "GT_block_first_equals_p0": true,
+  "GT_block_vs_shap_equal": 0,
+  "GT_block_vs_shap_n": 0,
+  "cpus": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "pass": false,
+  "GP_compared": 5,
+  "GP_bit_equal": 4,
+  "GP_differ": [
+   "S3: max |diff| 1.1e-13 on 154 rows"
+  ]
+ },
+ "xgb": {
+  "GT_origin_bit_equal": 126,
+  "GT_origin_n": 126,
+  "GT_origin_maxabs": 0.0,
+  "GT_origin_walk_missing": 0,
+  "GT_block_first_equals_p0": true,
+  "GT_block_vs_shap_equal": 0,
+  "GT_block_vs_shap_n": 0,
+  "cpus": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "pass": true,
+  "GP_compared": 6,
+  "GP_bit_equal": 6,
+  "GP_differ": []
+ },
+ "ridge": {
+  "GL1_rows": 15483,
+  "GL1_maxabs": 4.440892098500626e-16,
+  "GL1_pass": true,
+  "reseeds": {
+   "full": [
+    0,
+    0,
+    0
+   ],
+   "har": [
+    0,
+    0,
+    0
+   ],
+   "P20": [
+    0,
+    0,
+    0
+   ],
+   "P10": [
+    0,
+    0,
+    0
+   ],
+   "P5": [
+    0,
+    0,
+    0
+   ],
+   "P3": [
+    0,
+    0,
+    0
+   ],
+   "P1": [
+    0,
+    0,
+    0
+   ],
+   "S20": [
+    0,
+    0,
+    0
+   ],
+   "S10": [
+    0,
+    0,
+    0
+   ],
+   "S5": [
+    0,
+    0,
+    0
+   ],
+   "S3": [
+    0,
+    0,
+    0
+   ]
+  },
+  "pass": true,
+  "GP_compared": 1,
+  "GP_bit_equal": 1,
+  "GP_differ": []
+ },
+ "lasso": {
+  "GL1_rows": 15483,
+  "GL1_maxabs": 4.440892098500626e-16,
+  "GL1_pass": true,
+  "reseeds": {
+   "full": [
+    166,
+    5,
+    0
+   ],
+   "har": [
+    0,
+    0,
+    0
+   ],
+   "P20": [
+    28,
+    1,
+    0
+   ],
+   "P10": [
+    10,
+    0,
+    0
+   ],
+   "P5": [
+    7,
+    0,
+    0
+   ],
+   "P3": [
+    5,
+    0,
+    0
+   ],
+   "P1": [
+    1,
+    0,
+    0
+   ],
+   "S20": [
+    49,
+    0,
+    0
+   ],
+   "S10": [
+    14,
+    0,
+    0
+   ],
+   "S5": [
+    5,
+    0,
+    0
+   ]
+  },
+  "pass": true,
+  "GP_compared": 1,
+  "GP_bit_equal": 1,
+  "GP_differ": []
+ },
+ "enet": {
+  "GL1_rows": 15483,
+  "GL1_maxabs": 4.440892098500626e-16,
+  "GL1_pass": true,
+  "reseeds": {
+   "full": [
+    12,
+    5,
+    0
+   ],
+   "har": [
+    0,
+    0,
+    0
+   ],
+   "P20": [
+    3,
+    0,
+    0
+   ],
+   "P10": [
+    0,
+    0,
+    0
+   ],
+   "P5": [
+    0,
+    0,
+    0
+   ],
+   "P3": [
+    0,
+    0,
+    0
+   ],
+   "P1": [
+    0,
+    0,
+    0
+   ],
+   "S20": [
+    6,
+    1,
+    0
+   ],
+   "S10": [
+    2,
+    0,
+    0
+   ],
+   "S5": [
+    2,
+    0,
+    0
+   ],
+   "S3": [
+    0,
+    0,
+    0
+   ]
+  },
+  "pass": true,
+  "GP_compared": 1,
+  "GP_bit_equal": 1,
+  "GP_differ": []
+ },
+ "rf_skx": {
+  "GT_origin_bit_equal": 126,
+  "GT_origin_n": 126,
+  "GT_origin_maxabs": 0.0,
+  "GT_origin_walk_missing": 0,
+  "GT_block_first_equals_p0": true,
+  "GT_block_vs_shap_equal": 0,
+  "GT_block_vs_shap_n": 0,
+  "cpus": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "pass": true,
+  "GP_compared": 5,
+  "GP_bit_equal": 5,
+  "GP_differ": []
+ }
+}

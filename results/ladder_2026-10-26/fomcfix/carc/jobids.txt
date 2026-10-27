@@ -1,0 +1,4 @@
+2026-10-26_14:58:05 design 13467462 rank3000 13467463 trees3000 13467464 linear3000 13467465 gate3000 13467466 gategrid 13467467 rankgrid 13467468 treesgrid 13467469 lineargrid 13467470 shap 13467471
+2026-10-26_16:31:10 linear3000 resubmitted 13471673 (16 CPUs, 48G, 1 h; 13467465 cancelled unstarted); time limits of 13467462-71 shortened 16:01 (scontrol)
+2026-10-26_17:29:23 lineargrid resubmitted 13473674 (8 CPUs, 32G, 1 h; 13467470 cancelled unstarted)
+2026-10-26_17:33:28 secondary pass trees 13473978 linear 13473979

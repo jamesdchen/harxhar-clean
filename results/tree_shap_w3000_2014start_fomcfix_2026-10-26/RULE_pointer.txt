@@ -1,0 +1,17 @@
+tree_shap_w3000_2014start_fomcfix_2026-10-26 -- the tree SHAP study on the FOMC-PATCHED design.
+
+Rule: results/tree_shap_w3000_2014start_2026-10-23/RULE_shap.txt, unchanged (models, origins, SHAP variant, classes,
+measures M1-M5, bootstrap), with results/ladder_2026-10-26/RULE.txt ADDENDUM 3 (4) (committed c4abf6f, 14:51 PDT
+2026-10-26, before any job): design = fomcfix cell B (/home1/jc_905/fomcfix_lin/runs/B, flags FOMC_SCHEDULE_2020_FIX and
+FOMC_PROXIMITY_NO_WINSOR); all three models on CARC (EPYC 7513 / 7542); M2's linear reference = the patched linear
+walks' gamma at the 126 origins (inputs/fiw_gamma_fomcfix.npz, from the ladder's patched full-set replays, gated to the
+cell-B linear walks to <= 4.4e-16, results/ladder_2026-10-26/fomcfix/gates.json); the gate's walk rows
+(inputs/walk_origin_rows.csv) = the patched every-bar walks (LightGBM / XGBoost: fomcfix forecasts_gb.parquet; the
+forest: the origin rows of its 87 pieces on CARC, all 126 present).
+
+Code: code/ = the pre-patch study's shap_common.py, shap_run.py, export_x.py, shap_figs.py unchanged; shap_reduce.py
+changed only where marked "2026-10-26" (the linear reference file; the pre-patch fiw_variables check dropped);
+carc_job.sbatch / tasks.txt for this run (CARC array 13467471, 7 tasks).  Laptop reduction: conda env 285J (numpy
+2.2.6, scipy 1.15.3, pandas 2.3.0, matplotlib 3.10.7); the pre-patch study's venv (numpy 1.26.4) no longer exists.
+Gate (gate.txt): LightGBM, XGBoost and the forest each bit-equal to the patched walk at 126 / 126 origins; additivity,
+interaction sums, repeats and oneDAL-vs-trees as RULE_shap.  carc/: Slurm logs, sacct, run_info.

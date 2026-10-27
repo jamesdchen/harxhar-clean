@@ -1,0 +1,379 @@
+est,run_dir,piece,date,pred_adj_hex,pred_adj,fit_row
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2014-01-02 10:00:00,0x1.e78832b9ebaddp-1,0.9522109844163783,11777
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2014-01-31 10:00:00,0x1.9cecdc613e1b5p+0,1.6129892098816587,12041
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2014-03-03 10:00:00,0x1.46a6ef7f5810bp+0,1.2759847341440629,12305
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2014-04-01 10:00:00,0x1.50a79cc362d79p-1,0.6575287807949471,12578
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2014-05-01 10:00:00,0x1.63360216ae057p-1,0.693771424549605,12851
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2014-05-30 10:00:00,0x1.8a9f7c34e3dd9p-1,0.7707480253756628,13118
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2014-06-30 10:00:00,0x1.ac3ab0d1622b4p-1,0.8363852744669971,13391
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2014-07-30 10:00:00,0x1.19619c331f0c2p+0,1.0991456627662477,13658
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2014-08-28 10:00:00,0x1.aa8b47b1109f9p-1,0.8330938724178046,13931
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2014-09-26 10:00:00,0x1.781d3efc19b3fp+0,1.4691962590674874,14198
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2014-10-27 10:00:00,0x1.ba546d94220dbp-1,0.8639253848387186,14471
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2014-11-25 10:00:00,0x1.7ade34482bda6p-1,0.7399765337085469,14744
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2014-12-29 10:00:00,0x1.5c847f27b99b4p-1,0.6806983695976698,15011
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2015-01-28 10:00:00,0x1.9bd0f6a1a3231p-1,0.8043286392508603,15278
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2015-02-26 10:00:00,0x1.754ef7e52ee54p-1,0.7291181056275016,15545
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2015-03-27 10:00:00,0x1.30411f3bbcfa3p+0,1.1884936829419324,15818
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2015-04-28 10:00:00,0x1.0079e32065ec8p+0,1.0018598512742063,16091
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2015-05-27 10:00:00,0x1.95a9e709ca006p-1,0.7923118781518503,16358
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2015-06-25 10:00:00,0x1.bd934a2359273p-1,0.8702643554830288,16631
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2015-07-24 10:00:00,0x1.cdd875f53bbadp-1,0.9020420896393851,16898
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2015-08-24 10:00:00,0x1.5eb46b4fa82aep+1,2.7398809565496185,17171
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2015-09-22 10:00:00,0x1.a00242fe3c3ebp-1,0.812517255339228,17438
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2015-10-21 10:00:00,0x1.481bb16b70029p-1,0.6408362811707821,17711
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2015-11-19 10:00:00,0x1.ff590934704c9p-1,0.9987261654388472,17984
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2015-12-21 10:00:00,0x1.c1be6681f83d5p-1,0.8784057649282838,18251
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2016-01-22 10:00:00,0x1.e623039eb6181p-1,0.9494858866919885,18518
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2016-02-22 10:00:00,0x1.233d5011a5ce7p-1,0.5688271543066578,18785
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2016-03-22 10:00:00,0x1.cb4a1f24ae46cp-1,0.8970498783375098,19058
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2016-04-21 10:00:00,0x1.1559510a3a14ep+0,1.0833941125839206,19331
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2016-05-20 10:00:00,0x1.0013b4ea4265dp+0,1.000300700371006,19604
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2016-06-20 10:00:00,0x1.0dd2be70cc23bp+0,1.0539969468483281,19871
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2016-07-19 10:00:00,0x1.401841efc64edp-1,0.6251850705331471,20138
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2016-08-17 10:00:00,0x1.ab4b5cb038713p-1,0.834559341918267,20411
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2016-09-15 10:00:00,0x1.b96e3310cfc96p+0,1.7243377605480297,20678
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2016-10-14 10:00:00,0x1.dc10a268d4afap-1,0.9298144104926387,20951
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2016-11-14 10:00:00,0x1.0201538dfa5f5p+0,1.007832739031412,21224
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2016-12-14 10:00:00,0x1.b07c84d29c8c8p-1,0.8447000033468379,21491
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2017-01-16 10:00:00,0x1.80b4d6c7feb21p-1,0.7513796919950871,21764
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2017-02-14 10:00:00,0x1.b1504acec854bp-1,0.8463157060070129,22031
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2017-03-15 10:00:00,0x1.8f50b1bdcf9c2p-1,0.7799125236704685,22298
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2017-04-13 10:00:00,0x1.fc5a59d8804dep-1,0.9928768231185605,22571
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2017-05-15 10:00:00,0x1.a208236997b4ep-1,0.8164683405301305,22844
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2017-06-13 10:00:00,0x1.8ec8debaf82f3p-1,0.7788762667879311,23111
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2017-07-13 10:00:00,0x1.c0298b99f8f6cp-1,0.875316965623353,23378
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2017-08-11 10:00:00,0x1.bac3e45a56078p+0,1.7295515747591974,23651
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2017-09-11 10:00:00,0x1.85cba4a3baccfp-1,0.7613192987313598,23918
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2017-10-10 10:00:00,0x1.c8d81e930a7e0p-1,0.8922738604062452,24191
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2017-11-08 10:00:00,0x1.c9b42478c0996p-1,0.8939525029566535,24464
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2017-12-08 10:00:00,0x1.c7fa176e4901cp-1,0.8905799219251125,24731
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2018-01-10 10:00:00,0x1.3d1617809938dp+0,1.2386183442078817,25004
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2018-02-08 10:00:00,0x1.1234708f0b2c3p+0,1.0711126660564083,25271
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2018-03-09 10:00:00,0x1.99d967c9db8f3p-1,0.8004867967518109,25538
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2018-04-10 10:00:00,0x1.b540b4a011487p-1,0.8540092893023407,25811
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2018-05-09 10:00:00,0x1.781861b638d90p-1,0.7345610175074615,26084
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2018-06-07 10:00:00,0x1.8f947154c20afp-1,0.7804294029201823,26351
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2018-07-09 10:00:00,0x1.21d475000fcdap-1,0.5660740435195308,26618
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2018-08-07 10:00:00,0x1.104592822fb68p-1,0.531780794517414,26891
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2018-09-05 10:00:00,0x1.150c292a2c6f3p+0,1.0822168090784856,27159
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2018-10-04 10:00:00,0x1.eaefdb66e8bf5p-1,0.9588612139817757,27432
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2018-11-02 10:00:00,0x1.353a682f762b3p+0,1.2079224696991957,27705
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2018-12-04 10:00:00,0x1.7a89ec8256b86p-1,0.7393335255722924,27972
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2019-01-08 10:00:00,0x1.3d0dd1916981ap-1,0.6192460527424857,28245
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2019-02-06 10:00:00,0x1.574f146aa88bap-1,0.6705252056310862,28512
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2019-03-07 10:00:00,0x1.38aa6f4ff0a19p+0,1.2213506288686686,28779
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2019-04-05 10:00:00,0x1.979b8ec18b42bp-1,0.7961086856136083,29052
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2019-05-07 10:00:00,0x1.f74e6b08232d2p+0,1.9660403151385037,29325
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2019-06-05 10:00:00,0x1.afaab3928957ep-1,0.8430992237451134,29592
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2019-07-05 10:00:00,0x1.3c6561c1dc23ep+0,1.2359219644823862,29859
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2019-08-05 10:00:00,0x1.a0af8454a745ep+0,1.6276781756089558,30132
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2019-09-03 10:00:00,0x1.aedb22903fd95p-1,0.8415156174741464,30399
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2019-10-02 10:00:00,0x1.329e11bdbbbbfp+0,1.197724446126571,30672
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2019-10-31 10:00:00,0x1.c5ae9ed37ebd1p-1,0.8860978730366417,30945
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2019-12-02 10:00:00,0x1.044c06f02b82ep+0,1.0167850815155464,31212
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2020-01-03 10:00:00,0x1.91bccf2f79156p+0,1.5692872515583836,31485
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2020-02-03 10:00:00,0x1.669864a54091ap+0,1.4007628348777588,31752
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2020-03-03 10:00:00,0x1.91683aec99c06p+0,1.567996676219765,32019
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2020-04-01 10:00:00,0x1.6489d48904ddfp-1,0.6963640610942398,32292
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2020-05-01 10:00:00,0x1.37e892b023d96p-1,0.6091962661757175,32565
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2020-06-01 10:00:00,0x1.03f1368d4f152p+0,1.0153993697159263,32832
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2020-06-30 10:00:00,0x1.c4d04f4b1542ep-1,0.8844017771867863,33105
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2020-07-29 10:00:00,0x1.73476f41d56c6p-1,0.7251543777335534,33372
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2020-08-27 10:00:00,0x1.05f6ea6840196p+0,1.0232988838689372,33645
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2020-09-25 10:00:00,0x1.22ae8fbb360eap+0,1.135476096349573,33912
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2020-10-26 10:00:00,0x1.615d7a714f86cp-1,0.6901663077658333,34185
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2020-11-24 10:00:00,0x1.0521e45944898p-1,0.5100242003411664,34458
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2020-12-28 10:00:00,0x1.4c3822b9bc675p-1,0.6488657809952217,34725
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2021-01-27 10:00:00,0x1.9cd2efc0912b2p+0,1.6125936360487398,34992
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2021-02-25 10:00:00,0x1.232949e602317p+0,1.1373487650436738,35259
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2021-03-26 10:00:00,0x1.311f9ccced103p-1,0.5959443092492908,35532
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2021-04-27 10:00:00,0x1.7daa415d6da6cp-1,0.7454395700977563,35805
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2021-05-26 10:00:00,0x1.637dd0b88a616p-1,0.6943192696828102,36078
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2021-06-24 10:00:00,0x1.4925879bbd88dp-1,0.6428644540417437,36345
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2021-07-23 10:00:00,0x1.5c7e69677323cp-1,0.6806519449979258,36612
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2021-08-23 10:00:00,0x1.8c37bd36f99dfp-1,0.77386275573809,36885
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2021-09-21 10:00:00,0x1.8d04f62f97424p+0,1.550856958979474,37152
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2021-10-20 10:00:00,0x1.3bffd717ed51bp-1,0.6171862808902547,37425
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2021-11-18 10:00:00,0x1.b0f4f59c19f4fp-1,0.845618892007204,37698
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2021-12-20 10:00:00,0x1.26e4a43fee664p+0,1.1519262939531467,37965
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2022-01-19 10:00:00,0x1.47e936d61fb68p+0,1.2809023163569808,38232
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2022-02-17 10:00:00,0x1.dba8ba4d6d209p-1,0.9290216655268192,38505
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2022-03-18 10:00:00,0x1.7eb20b1f272f1p-1,0.7474521136788025,38772
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2022-04-19 10:00:00,0x1.263fc1903a92bp+0,1.1494103409882637,39045
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2022-05-18 10:00:00,0x1.81c76f5259b50p-1,0.7534746921563542,39318
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2022-06-16 10:00:00,0x1.46d09c50aa808p+0,1.276620645231107,39585
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2022-07-15 10:00:00,0x1.095337fec9400p+0,1.0364260670696694,39846
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2022-08-15 10:00:00,0x1.487215d402dafp-1,0.6414954015066793,40119
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2022-09-13 10:00:00,0x1.713e7da9406c5p+0,1.4423597849094432,40386
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2022-10-12 10:00:00,0x1.21a9cb66c21fap+0,1.1314971090197319,40659
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2022-11-10 10:00:00,0x1.f74acf050b67dp-1,0.98299261986331,40932
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2022-12-12 10:00:00,0x1.a18ca0e3cd437p-1,0.8155260351255781,41199
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2023-01-12 10:00:00,0x1.7acaf027d1ad2p+0,1.4796590897764657,41472
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2023-02-10 10:00:00,0x1.e2ffe28eb7eeap-1,0.9433584975449467,41739
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2023-03-13 10:00:00,0x1.75fc4202b3630p+1,2.9217607987582355,42006
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2023-04-12 10:00:00,0x1.a780b28f83772p-1,0.8271537590205595,42279
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2023-05-11 10:00:00,0x1.595ad46d6faadp+0,1.3490422026804183,42552
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2023-06-09 10:00:00,0x1.7e0fdace07c04p-1,0.7462147118093303,42819
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2023-07-11 10:00:00,0x1.b33a2c200c753p-1,0.850053194915953,43080
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2023-08-09 10:00:00,0x1.1f9cccc03dc4ep+0,1.1234863252009464,43353
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2023-09-07 10:00:00,0x1.06ab7c2d8e3d7p+0,1.0260541545123851,43620
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2023-10-06 10:00:00,0x1.a795698f106aep+0,1.6546236013677276,43893
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2023-11-06 10:00:00,0x1.484c9a0918ffdp-1,0.641209424601129,44166
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2023-12-06 10:00:00,0x1.e35e3eed36c76p-1,0.9440784134452673,44433
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2024-01-08 10:00:00,0x1.042f52f2566dfp+0,1.016347107090432,44706
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2024-02-06 10:00:00,0x1.840525661b195p-1,0.7578517615452706,44973
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2024-03-06 10:00:00,0x1.d9922774c54d0p-1,0.924943192486035,45240
+lgbm,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2024-04-05 10:00:00,0x1.48c4cbcdf6f6ap+0,1.2842528703540332,45513
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2014-01-02 10:00:00,0x1.ecfeba0000000p-1,0.9628809094429016,11777
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2014-01-31 10:00:00,0x1.9de7aa0000000p+0,1.6168161630630493,12041
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2014-03-03 10:00:00,0x1.45411c0000000p+0,1.2705247402191162,12305
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2014-04-01 10:00:00,0x1.4f53a00000000p-1,0.6549348831176758,12578
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2014-05-01 10:00:00,0x1.5bb6fc0000000p-1,0.6791304349899292,12851
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2014-05-30 10:00:00,0x1.8f04480000000p-1,0.7793295383453369,13118
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2014-06-30 10:00:00,0x1.a433680000000p-1,0.8207046985626221,13391
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2014-07-30 10:00:00,0x1.13b3ae0000000p+0,1.0769604444503784,13658
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2014-08-28 10:00:00,0x1.b166de0000000p-1,0.8464879393577576,13931
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2014-09-26 10:00:00,0x1.6c0ecc0000000p+0,1.4221007823944092,14198
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2014-10-27 10:00:00,0x1.ba407a0000000p-1,0.8637731671333313,14471
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2014-11-25 10:00:00,0x1.777a600000000p-1,0.7333555221557617,14744
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2014-12-29 10:00:00,0x1.5bd4da0000000p-1,0.6793583035469055,15011
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2015-01-28 10:00:00,0x1.a211ce0000000p-1,0.8165420889854431,15278
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2015-02-26 10:00:00,0x1.79fd780000000p-1,0.7382619380950928,15545
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2015-03-27 10:00:00,0x1.2bbf200000000p+0,1.1708850860595703,15818
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2015-04-28 10:00:00,0x1.fcd15c0000000p-1,0.9937847852706909,16091
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2015-05-27 10:00:00,0x1.9d4dea0000000p-1,0.807235062122345,16358
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2015-06-25 10:00:00,0x1.c4d3700000000p-1,0.8844256401062012,16631
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2015-07-24 10:00:00,0x1.cef7320000000p-1,0.9042297005653381,16898
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2015-08-24 10:00:00,0x1.7dc7680000000p+1,2.9826478958129883,17171
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2015-09-22 10:00:00,0x1.a6f36e0000000p-1,0.8260759711265564,17438
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2015-10-21 10:00:00,0x1.5096600000000p-1,0.6573972702026367,17711
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2015-11-19 10:00:00,0x1.fdb8f20000000p-1,0.9955516457557678,17984
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2015-12-21 10:00:00,0x1.ba9dec0000000p-1,0.8644860982894897,18251
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2016-01-22 10:00:00,0x1.f615be0000000p-1,0.9806346297264099,18518
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2016-02-22 10:00:00,0x1.265a7e0000000p-1,0.5749091506004333,18785
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2016-03-22 10:00:00,0x1.cef9c40000000p-1,0.9042493104934692,19058
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2016-04-21 10:00:00,0x1.11a6160000000p+0,1.06894052028656,19331
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2016-05-20 10:00:00,0x1.019bbc0000000p+0,1.0062825679779053,19604
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2016-06-20 10:00:00,0x1.0b1f940000000p+0,1.0434505939483643,19871
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2016-07-19 10:00:00,0x1.42b97c0000000p-1,0.6303213834762573,20138
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2016-08-17 10:00:00,0x1.a70c8e0000000p-1,0.826267659664154,20411
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2016-09-15 10:00:00,0x1.a673f00000000p+0,1.6502065658569336,20678
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2016-10-14 10:00:00,0x1.e05dac0000000p-1,0.9382146596908569,20951
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2016-11-14 10:00:00,0x1.fb2d4c0000000p-1,0.9905799627304077,21224
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2016-12-14 10:00:00,0x1.b4a2da0000000p-1,0.852804958820343,21491
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2017-01-16 10:00:00,0x1.894b260000000p-1,0.7681514620780945,21764
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2017-02-14 10:00:00,0x1.ae18240000000p-1,0.840027928352356,22031
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2017-03-15 10:00:00,0x1.9678de0000000p-1,0.7938908934593201,22298
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2017-04-13 10:00:00,0x1.fb351c0000000p-1,0.9906395673751831,22571
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2017-05-15 10:00:00,0x1.a50d5a0000000p-1,0.8223674893379211,22844
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2017-06-13 10:00:00,0x1.8cdc140000000p-1,0.7751165628433228,23111
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2017-07-13 10:00:00,0x1.c1b8360000000p-1,0.8783585429191589,23378
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2017-08-11 10:00:00,0x1.c33d1c0000000p+0,1.7626512050628662,23651
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2017-09-11 10:00:00,0x1.8ce8300000000p-1,0.7752089500427246,23918
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2017-10-10 10:00:00,0x1.c913080000000p-1,0.8927233219146729,24191
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2017-11-08 10:00:00,0x1.ca82320000000p-1,0.8955245614051819,24464
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2017-12-08 10:00:00,0x1.cc36c80000000p-1,0.898855447769165,24731
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2018-01-10 10:00:00,0x1.39cb880000000p+0,1.225761890411377,25004
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2018-02-08 10:00:00,0x1.191f080000000p+0,1.0981297492980957,25271
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2018-03-09 10:00:00,0x1.9f74ec0000000p-1,0.8114389181137085,25538
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2018-04-10 10:00:00,0x1.b9cb1e0000000p-1,0.8628777861595154,25811
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2018-05-09 10:00:00,0x1.7649200000000p-1,0.7310266494750977,26084
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2018-06-07 10:00:00,0x1.91804c0000000p-1,0.7841819524765015,26351
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2018-07-09 10:00:00,0x1.1eb4a00000000p-1,0.559971809387207,26618
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2018-08-07 10:00:00,0x1.12ec740000000p-1,0.536960244178772,26891
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2018-09-05 10:00:00,0x1.16f8f00000000p+0,1.089735984802246,27159
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2018-10-04 10:00:00,0x1.f063880000000p-1,0.9695093631744385,27432
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2018-11-02 10:00:00,0x1.3504a60000000p+0,1.2071021795272827,27705
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2018-12-04 10:00:00,0x1.7c05360000000p-1,0.7422272562980652,27972
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2019-01-08 10:00:00,0x1.3514380000000p-1,0.6036698818206787,28245
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2019-02-06 10:00:00,0x1.57a9080000000p-1,0.6712114810943604,28512
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2019-03-07 10:00:00,0x1.3782fa0000000p+0,1.2168422937393188,28779
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2019-04-05 10:00:00,0x1.8f26320000000p-1,0.7795882821083069,29052
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2019-05-07 10:00:00,0x1.ddd98a0000000p+0,1.8666006326675415,29325
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2019-06-05 10:00:00,0x1.b585260000000p-1,0.854531466960907,29592
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2019-07-05 10:00:00,0x1.4245b60000000p+0,1.2588762044906616,29859
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2019-08-05 10:00:00,0x1.8aa2cc0000000p+0,1.5415465831756592,30132
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2019-09-03 10:00:00,0x1.b10fb40000000p-1,0.8458229303359985,30399
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2019-10-02 10:00:00,0x1.2e4a120000000p+0,1.180817723274231,30672
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2019-10-31 10:00:00,0x1.c646c00000000p-1,0.8872585296630859,30945
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2019-12-02 10:00:00,0x1.0352080000000p+0,1.0129704475402832,31212
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2020-01-03 10:00:00,0x1.82057a0000000p+0,1.507896065711975,31485
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2020-02-03 10:00:00,0x1.5a11b00000000p+0,1.351832389831543,31752
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2020-03-03 10:00:00,0x1.a8dbca0000000p+0,1.6596037149429321,32019
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2020-04-01 10:00:00,0x1.6cc5bc0000000p-1,0.7124460935592651,32292
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2020-05-01 10:00:00,0x1.3de4ee0000000p-1,0.6208872199058533,32565
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2020-06-01 10:00:00,0x1.01a51c0000000p+0,1.0064256191253662,32832
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2020-06-30 10:00:00,0x1.c5331e0000000p-1,0.8851556181907654,33105
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2020-07-29 10:00:00,0x1.72f5720000000p-1,0.7245288491249084,33372
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2020-08-27 10:00:00,0x1.052f1a0000000p+0,1.0202499628067017,33645
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2020-09-25 10:00:00,0x1.27ca800000000p+0,1.1554336547851562,33912
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2020-10-26 10:00:00,0x1.63b71c0000000p-1,0.6947563886642456,34185
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2020-11-24 10:00:00,0x1.f564760000000p-2,0.4896410405635834,34458
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2020-12-28 10:00:00,0x1.4c432e0000000p-1,0.6489500403404236,34725
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2021-01-27 10:00:00,0x1.99c36c0000000p+0,1.6006381511688232,34992
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2021-02-25 10:00:00,0x1.169a780000000p+0,1.088294506072998,35259
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2021-03-26 10:00:00,0x1.33a3ae0000000p-1,0.6008581519126892,35532
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2021-04-27 10:00:00,0x1.8139540000000p-1,0.7523905038833618,35805
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2021-05-26 10:00:00,0x1.6317a40000000p-1,0.6935397386550903,36078
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2021-06-24 10:00:00,0x1.4f2f9a0000000p-1,0.6546600461006165,36345
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2021-07-23 10:00:00,0x1.6951820000000p-1,0.7056999802589417,36612
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2021-08-23 10:00:00,0x1.8cbb1c0000000p-1,0.7748650312423706,36885
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2021-09-21 10:00:00,0x1.8569fc0000000p+0,1.521148443222046,37152
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2021-10-20 10:00:00,0x1.3ac5bc0000000p-1,0.6147898435592651,37425
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2021-11-18 10:00:00,0x1.a1033a0000000p-1,0.8144777417182922,37698
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2021-12-20 10:00:00,0x1.2501400000000p+0,1.1445503234863281,37965
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2022-01-19 10:00:00,0x1.431d900000000p+0,1.2621698379516602,38232
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2022-02-17 10:00:00,0x1.dd8ba00000000p-1,0.9327058792114258,38505
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2022-03-18 10:00:00,0x1.7afe800000000p-1,0.7402229309082031,38772
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2022-04-19 10:00:00,0x1.22a8de0000000p+0,1.1353892087936401,39045
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2022-05-18 10:00:00,0x1.8254400000000p-1,0.7545490264892578,39318
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2022-06-16 10:00:00,0x1.4595620000000p+0,1.2718106508255005,39585
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2022-07-15 10:00:00,0x1.0e76be0000000p+0,1.0564993619918823,39846
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2022-08-15 10:00:00,0x1.4642120000000p-1,0.6372228264808655,40119
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2022-09-13 10:00:00,0x1.65a8d60000000p+0,1.397107481956482,40386
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2022-10-12 10:00:00,0x1.21bda60000000p+0,1.1318000555038452,40659
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2022-11-10 10:00:00,0x1.e5baf40000000p-1,0.9486919641494751,40932
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2022-12-12 10:00:00,0x1.95e28e0000000p-1,0.7927441000938416,41199
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2023-01-12 10:00:00,0x1.776ce20000000p+0,1.4665051698684692,41472
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2023-02-10 10:00:00,0x1.e249bc0000000p-1,0.9419687986373901,41739
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2023-03-13 10:00:00,0x1.684dda0000000p+1,2.814875841140747,42006
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2023-04-12 10:00:00,0x1.af6f940000000p-1,0.8426481485366821,42279
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2023-05-11 10:00:00,0x1.5e83d80000000p+0,1.369199275970459,42552
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2023-06-09 10:00:00,0x1.7731ce0000000p-1,0.7328018546104431,42819
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2023-07-11 10:00:00,0x1.a84fd40000000p-1,0.8287340402603149,43080
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2023-08-09 10:00:00,0x1.14e8fe0000000p+0,1.081680178642273,43353
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2023-09-07 10:00:00,0x1.096fd00000000p+0,1.0368623733520508,43620
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2023-10-06 10:00:00,0x1.bc675a0000000p+0,1.7359520196914673,43893
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2023-11-06 10:00:00,0x1.4615b00000000p-1,0.6368842124938965,44166
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2023-12-06 10:00:00,0x1.dca9400000000p-1,0.9309787750244141,44433
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2024-01-08 10:00:00,0x1.0a8bea0000000p+0,1.041197419166565,44706
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2024-02-06 10:00:00,0x1.86c0880000000p-1,0.7631876468658447,44973
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2024-03-06 10:00:00,0x1.e20a880000000p-1,0.9414865970611572,45240
+xgb,/home1/jc_905/fomcfix_trees/runs/B/w3000,forecasts (merged),2024-04-05 10:00:00,0x1.4ff1fc0000000p+0,1.312286138534546,45513
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_10of87.parquet,2015-02-26 10:00:00,0x1.7043d32e900a4p-1,0.7192674631442242,15545
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_11of87.parquet,2015-03-27 10:00:00,0x1.28db2eb620e3cp+0,1.1595944590234373,15818
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_11of87.parquet,2015-04-28 10:00:00,0x1.01588db5503acp+0,1.0052574699077281,16091
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_12of87.parquet,2015-05-27 10:00:00,0x1.929c20189826fp-1,0.7863473920843499,16358
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_13of87.parquet,2015-06-25 10:00:00,0x1.c06b642c76eb8p-1,0.8758193306234352,16631
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_13of87.parquet,2015-07-24 10:00:00,0x1.d49f216db5501p-1,0.9152765699788291,16898
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_14of87.parquet,2015-08-24 10:00:00,0x1.74daa2d226bb1p+1,2.9129222417954783,17171
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_15of87.parquet,2015-09-22 10:00:00,0x1.b9e9489b4bd94p-1,0.86310793777186,17438
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_15of87.parquet,2015-10-21 10:00:00,0x1.5ac94d556ca2dp-1,0.6773170630243094,17711
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_16of87.parquet,2015-11-19 10:00:00,0x1.00e871f2bf43ep+0,1.00354683090633,17984
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_17of87.parquet,2015-12-21 10:00:00,0x1.ba81ea252687ap-1,0.8642724199628582,18251
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_17of87.parquet,2016-01-22 10:00:00,0x1.f3973992d3f18p-1,0.9757631293996125,18518
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_18of87.parquet,2016-02-22 10:00:00,0x1.110e13de47b71p-1,0.5333105286443766,18785
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_19of87.parquet,2016-03-22 10:00:00,0x1.ba0d04277e22ep-1,0.8633805559357535,19058
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_19of87.parquet,2016-04-21 10:00:00,0x1.17b2ee733cc12p+0,1.0925740271893614,19331
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_1of87.parquet,2014-01-02 10:00:00,0x1.099f4257944bfp+0,1.0375863517586337,11777
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_1of87.parquet,2014-01-31 10:00:00,0x1.a6206b4ddb830p+0,1.6489321770745953,12041
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_20of87.parquet,2016-05-20 10:00:00,0x1.f279bcd554383p-1,0.9735850344096523,19604
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_21of87.parquet,2016-06-20 10:00:00,0x1.1739b46e63123p+0,1.0907242555140975,19871
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_22of87.parquet,2016-07-19 10:00:00,0x1.370290e98ba7ap-1,0.607441452511764,20138
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_22of87.parquet,2016-08-17 10:00:00,0x1.adaf848670190p-1,0.8392297186001532,20411
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_23of87.parquet,2016-09-15 10:00:00,0x1.adb792364e848p+0,1.6785823233208408,20678
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_24of87.parquet,2016-10-14 10:00:00,0x1.e845c8332e20cp-1,0.9536573946452918,20951
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_24of87.parquet,2016-11-14 10:00:00,0x1.0a5e1acbf0e9cp+0,1.040498423376369,21224
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_25of87.parquet,2016-12-14 10:00:00,0x1.b9852297146c0p-1,0.8623438653396178,21491
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_26of87.parquet,2017-01-16 10:00:00,0x1.ac33668397c75p-1,0.8363296542774054,21764
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_26of87.parquet,2017-02-14 10:00:00,0x1.be800489438cdp-1,0.8720704476889068,22031
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_27of87.parquet,2017-03-15 10:00:00,0x1.aeb0f7fa223bfp-1,0.8411939137305281,22298
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_28of87.parquet,2017-04-13 10:00:00,0x1.edf5b7f402f5bp-1,0.9647653088918376,22571
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_28of87.parquet,2017-05-15 10:00:00,0x1.a6531efb3a273p-1,0.8248529130624561,22844
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_29of87.parquet,2017-06-13 10:00:00,0x1.749ad02e5f08ap-1,0.7277436310391903,23111
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_2of87.parquet,2014-03-03 10:00:00,0x1.49621fad15f5fp+0,1.2866534993717875,12305
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_30of87.parquet,2017-07-13 10:00:00,0x1.d1b2a06997447p-1,0.9095659378905417,23378
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_30of87.parquet,2017-08-11 10:00:00,0x1.cc78a90fb8633p+0,1.798716131532626,23651
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_31of87.parquet,2017-09-11 10:00:00,0x1.7661c207833b6p-1,0.7312145837946591,23918
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_32of87.parquet,2017-10-10 10:00:00,0x1.c30cbb221e9c7p-1,0.8809565047407028,24191
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_32of87.parquet,2017-11-08 10:00:00,0x1.c62db41c79f53p-1,0.887067440487025,24464
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_33of87.parquet,2017-12-08 10:00:00,0x1.b8eab55e93dc8p-1,0.8611656835509445,24731
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_34of87.parquet,2018-01-10 10:00:00,0x1.417493a6b9b37p+0,1.2556850702328128,25004
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_34of87.parquet,2018-02-08 10:00:00,0x1.1ca99c03bf409p+0,1.1119630345485823,25271
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_35of87.parquet,2018-03-09 10:00:00,0x1.984c4cedeaa26p-1,0.797457126658007,25538
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_36of87.parquet,2018-04-10 10:00:00,0x1.b5c964b9ca5a1p-1,0.8550521351618735,25811
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_37of87.parquet,2018-05-09 10:00:00,0x1.738134795aed8p-1,0.7255951307428985,26084
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_37of87.parquet,2018-06-07 10:00:00,0x1.7cb1b30e6dbf7p-1,0.7435432391274607,26351
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_38of87.parquet,2018-07-09 10:00:00,0x1.196ac6786ff22p-1,0.5496427557008909,26618
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_39of87.parquet,2018-08-07 10:00:00,0x1.121a014fd42b7p-1,0.5353546533534289,26891
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_39of87.parquet,2018-09-05 10:00:00,0x1.12393379006e3p+0,1.0711853189863454,27159
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_3of87.parquet,2014-04-01 10:00:00,0x1.4fa284dfea7e5p-1,0.6555367968878697,12578
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_3of87.parquet,2014-05-01 10:00:00,0x1.46bba70323b6dp-1,0.6381504241306694,12851
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_40of87.parquet,2018-10-04 10:00:00,0x1.e1b463478b64bp-1,0.940829374774418,27432
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_41of87.parquet,2018-11-02 10:00:00,0x1.4394286d10c74p+0,1.263979460360841,27705
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_41of87.parquet,2018-12-04 10:00:00,0x1.78fa778938745p-1,0.7362859110837482,27972
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_42of87.parquet,2019-01-08 10:00:00,0x1.3d976fa338670p-1,0.6202959906333501,28245
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_43of87.parquet,2019-02-06 10:00:00,0x1.54a6ba1211df2p-1,0.6653345248277545,28512
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_44of87.parquet,2019-03-07 10:00:00,0x1.41c67ff1b3cf5p+0,1.2569351162999827,28779
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_44of87.parquet,2019-04-05 10:00:00,0x1.8f0fcadfacb28p-1,0.7794173620262415,29052
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_45of87.parquet,2019-05-07 10:00:00,0x1.cffb65ca44371p+0,1.812429773217641,29325
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_46of87.parquet,2019-06-05 10:00:00,0x1.b0c2f6036a494p-1,0.8452374343079492,29592
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_46of87.parquet,2019-07-05 10:00:00,0x1.51aed7759d3e4p+0,1.3190741216796988,29859
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_47of87.parquet,2019-08-05 10:00:00,0x1.73d346a95897ep+0,1.4524425662462757,30132
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_48of87.parquet,2019-09-03 10:00:00,0x1.ab8fe2c1c5bf8p-1,0.8350821363009109,30399
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_48of87.parquet,2019-10-02 10:00:00,0x1.312ece10bd51dp+0,1.1921204367511742,30672
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_49of87.parquet,2019-10-31 10:00:00,0x1.db2af2c8f4edcp-1,0.9280620451267754,30945
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_4of87.parquet,2014-05-30 10:00:00,0x1.8dc06f79adf4fp-1,0.7768587909731454,13118
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_50of87.parquet,2019-12-02 10:00:00,0x1.056ffe20e6944p+0,1.0212401228260015,31212
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_51of87.parquet,2020-01-03 10:00:00,0x1.7fb0da9b178cbp+0,1.498792326797729,31485
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_51of87.parquet,2020-02-03 10:00:00,0x1.5af42fa7fbb04p+0,1.3552884850611813,31752
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_52of87.parquet,2020-03-03 10:00:00,0x1.c6db0c3550f53p+0,1.7767799024740796,32019
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_53of87.parquet,2020-04-01 10:00:00,0x1.58c8f39b2705ap-1,0.6734081389327102,32292
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_53of87.parquet,2020-05-01 10:00:00,0x1.50e4c56129d10p-1,0.6579953843219375,32565
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_54of87.parquet,2020-06-01 10:00:00,0x1.fd6ba0948670ap-1,0.9949617558770296,32832
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_55of87.parquet,2020-06-30 10:00:00,0x1.c81f070a882b2p-1,0.8908617210728009,33105
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_55of87.parquet,2020-07-29 10:00:00,0x1.750640df1e7b8p-1,0.7285633346902989,33372
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_56of87.parquet,2020-08-27 10:00:00,0x1.1a7cb4ba6ecd1p+0,1.1034653620870822,33645
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_57of87.parquet,2020-09-25 10:00:00,0x1.1495c6f7a79e1p+0,1.0804104189515942,33912
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_58of87.parquet,2020-10-26 10:00:00,0x1.5083dd0d61786p-1,0.6572560385545649,34185
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_58of87.parquet,2020-11-24 10:00:00,0x1.b90a52ce70da5p-2,0.43070344338431205,34458
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_59of87.parquet,2020-12-28 10:00:00,0x1.496fb7bd873f9p-1,0.6434304636819653,34725
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_5of87.parquet,2014-06-30 10:00:00,0x1.991287f8a1beep-1,0.798969506359638,13391
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_5of87.parquet,2014-07-30 10:00:00,0x1.260c514cd3896p+0,1.1486254513324972,13658
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_60of87.parquet,2021-01-27 10:00:00,0x1.acdbf36eaf4d6p+0,1.6752311845041752,34992
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_60of87.parquet,2021-02-25 10:00:00,0x1.0e94d0e53d360p+0,1.0569582519212517,35259
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_61of87.parquet,2021-03-26 10:00:00,0x1.300b2a5b43248p-1,0.5938351856617112,35532
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_62of87.parquet,2021-04-27 10:00:00,0x1.73bafcd1ed5a7p-1,0.7260359770067922,35805
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_62of87.parquet,2021-05-26 10:00:00,0x1.553fcda2c2b0fp-1,0.6665024052793757,36078
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_63of87.parquet,2021-06-24 10:00:00,0x1.531f4db9fba31p-1,0.6623482026605584,36345
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_64of87.parquet,2021-07-23 10:00:00,0x1.580f8927543a1p-1,0.6719935284146353,36612
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_65of87.parquet,2021-08-23 10:00:00,0x1.806e35f75f60ep-1,0.7508408417194816,36885
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_65of87.parquet,2021-09-21 10:00:00,0x1.8c5dcd517a3c5p+0,1.5483063053054462,37152
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_66of87.parquet,2021-10-20 10:00:00,0x1.27a975c3eeff7p-1,0.577464752357172,37425
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_67of87.parquet,2021-11-18 10:00:00,0x1.977d53791158ep-1,0.795878037003307,37698
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_67of87.parquet,2021-12-20 10:00:00,0x1.17d96ddffedadp+0,1.0931614562858656,37965
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_68of87.parquet,2022-01-19 10:00:00,0x1.41cf814d72c0ep+0,1.2570725263674407,38232
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_69of87.parquet,2022-02-17 10:00:00,0x1.dd6f97f9eed42p-1,0.9324920170396711,38505
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_69of87.parquet,2022-03-18 10:00:00,0x1.922c0a112f576p-1,0.7854922433831877,38772
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_6of87.parquet,2014-08-28 10:00:00,0x1.ba0ff6f6faad7p-1,0.8634030510414402,13931
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_70of87.parquet,2022-04-19 10:00:00,0x1.27c3c7d505bb0p+0,1.1553311247896367,39045
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_71of87.parquet,2022-05-18 10:00:00,0x1.79d6500af598ap-1,0.737963200891316,39318
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_72of87.parquet,2022-06-16 10:00:00,0x1.4c17a4cd7e91dp+0,1.297235775155577,39585
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_72of87.parquet,2022-07-15 10:00:00,0x1.0edc44f0838ecp+0,1.0580485427086002,39846
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_73of87.parquet,2022-08-15 10:00:00,0x1.54528366dbd32p-1,0.6646920264301228,40119
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_74of87.parquet,2022-09-13 10:00:00,0x1.7086499e60f9ep+0,1.4395490657488845,40386
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_74of87.parquet,2022-10-12 10:00:00,0x1.11c3e0def5096p+0,1.0693951172188796,40659
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_75of87.parquet,2022-11-10 10:00:00,0x1.ef896a2986b01p-1,0.9678452659312314,40932
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_76of87.parquet,2022-12-12 10:00:00,0x1.8fd58d0fbca2dp-1,0.7809261399946245,41199
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_76of87.parquet,2023-01-12 10:00:00,0x1.830172b67379bp+0,1.5117408461987683,41472
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_77of87.parquet,2023-02-10 10:00:00,0x1.d638d22f6580dp-1,0.9184022600991298,41739
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_78of87.parquet,2023-03-13 10:00:00,0x1.59694aed7b737p+1,2.698525777776833,42006
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_79of87.parquet,2023-04-12 10:00:00,0x1.b24b8208d9e47p-1,0.8482323299221627,42279
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_79of87.parquet,2023-05-11 10:00:00,0x1.59d1dfafa5acbp+0,1.3508586696458902,42552
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_7of87.parquet,2014-09-26 10:00:00,0x1.85becd19f9649p+0,1.5224426449216415,14198
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_7of87.parquet,2014-10-27 10:00:00,0x1.b74c27bebb349p-1,0.8580028934789904,14471
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_80of87.parquet,2023-06-09 10:00:00,0x1.76bf62aacabd3p-1,0.7319289048658625,42819
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_81of87.parquet,2023-07-11 10:00:00,0x1.ab8c86cb47eddp-1,0.8350565074105948,43080
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_81of87.parquet,2023-08-09 10:00:00,0x1.112d23dd21aadp+0,1.067095033156572,43353
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_82of87.parquet,2023-09-07 10:00:00,0x1.fabf68628be41p-1,0.9897415752693136,43620
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_83of87.parquet,2023-10-06 10:00:00,0x1.c3eff448f1cc7p+0,1.7653801611029836,43893
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_83of87.parquet,2023-11-06 10:00:00,0x1.46beab5a4a099p-1,0.638173441669113,44166
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_84of87.parquet,2023-12-06 10:00:00,0x1.df115a46f52e4p-1,0.9356792651766139,44433
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_85of87.parquet,2024-01-08 10:00:00,0x1.0b9fde82be96bp+0,1.0454081601334007,44706
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_86of87.parquet,2024-02-06 10:00:00,0x1.830165b57317ep-1,0.755870035552604,44973
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_86of87.parquet,2024-03-06 10:00:00,0x1.fc61c4a1b7660p-1,0.992933411350986,45240
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_87of87.parquet,2024-04-05 10:00:00,0x1.4a76a37ecd9e0p+0,1.2908727821901422,45513
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_8of87.parquet,2014-11-25 10:00:00,0x1.74fedc4e1aa26p-1,0.7285069318143698,14744
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_9of87.parquet,2014-12-29 10:00:00,0x1.614e2affb5936p-1,0.6900494992394559,15011
+rf_skx,/home1/jc_905/fomcfix_trees/runs/B/w3000,rf_skx_all_features_bar_2014-01-02_2024-04-30_9of87.parquet,2015-01-28 10:00:00,0x1.b42cd3534cf91p-1,0.8519044913468737,15278

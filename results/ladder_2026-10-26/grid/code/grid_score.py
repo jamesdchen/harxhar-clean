@@ -43,6 +43,9 @@ TREE_T = {
     3500: ROOT / "results" / "pooled_trees_final_2014start_w3500" / "forecasts.parquet",
 }
 
+LABEL = "PRE-PATCH design: the FOMC calendar features are those before the pending FOMC fix."
+LABEL_SHORT = "PRE-PATCH design (FOMC features before the pending fix)."
+
 
 def say(msg: str) -> None:
     print(msg, flush=True)
@@ -58,13 +61,13 @@ def origins_w(dd: pd.DatetimeIndex, wd: int) -> pd.DataFrame:
     return o
 
 
-def load_cell(work: Path, wd: int, m: str, o: pd.DataFrame) -> tuple[dict[int, np.ndarray], dict, dict]:
+def load_cell(work: Path, wd: int, m: str, o: pd.DataFrame, tag: str = "") -> tuple[dict[int, np.ndarray], dict, dict]:
     """{k: pred_adj over the 33,970 rows}, the sets file, and gate inputs."""
     out: dict[int, np.ndarray] = {}
     if m in ("lgbm", "xgb"):
         d = work / "trees" / m
         sets: dict = {}
-        for f in sorted(d.glob("sets_part*.json")):
+        for f in sorted(d.glob(f"sets_{tag}_part*.json" if tag else "sets_part*.json")):
             s = json.loads(f.read_text())
             sets = s if not sets else sets
             assert s["sets"] == sets["sets"] or wd == 3000, f
@@ -80,7 +83,7 @@ def load_cell(work: Path, wd: int, m: str, o: pd.DataFrame) -> tuple[dict[int, n
             out[k] = np.concatenate(parts[rid])
         return out, sets, {"p0_full": np.array(p0)}
     d = work / "linear" / m
-    sets = json.loads((d / "sets.json").read_text())
+    sets = json.loads((d / (f"sets_{tag}.json" if tag else "sets.json")).read_text())
     rep, gs = [], []
     for k, rid in RID.items():
         fitted = sets["alias"][rid]
@@ -99,7 +102,21 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--work-grid", required=True)
     ap.add_argument("--work-ladder", required=True)
+    # 2026-10-26 (RULE.txt addendum 3, the FOMC-patched rerun; every default = the pre-patch run unchanged)
+    ap.add_argument("--sets-tag", default="", help="pri: the patched runner's sets files")
+    ap.add_argument("--out", default="")
+    ap.add_argument("--walk-lin-main", default="", help="patched linear walks (W = 3,000) for GL1")
+    ap.add_argument("--walk-trees-main", default="", help="patched tree walks (W = 3,000) for GT")
+    ap.add_argument("--prepatch-grid", default="", help="pre-patch grid work (W 1,000 / 2,000 / 3,500) for gate GP")
+    ap.add_argument("--prepatch-ladder", default="", help="pre-patch ladder work (W = 3,000) for gate GP")
     a = ap.parse_args()
+    global GRID, LABEL, LABEL_SHORT
+    if a.out:
+        GRID = Path(a.out)
+        GRID.mkdir(parents=True, exist_ok=True)
+    patched = bool(a.sets_tag)
+    if patched:
+        LABEL = LABEL_SHORT = "PATCHED design (FOMC fix adopted: FOMC_SCHEDULE_2020_FIX, FOMC_PROXIMITY_NO_WINSOR)."
     rv = LS.core_rv()
     days = LS.evaluation_days(rv)
     panel: dict[tuple[int, str, int], pd.Series] = {}
@@ -121,10 +138,14 @@ def main() -> int:
         nm = list(json.loads((work / "design.json").read_text())["names"])
         tie = C.series_list(nm)
         for m in MODELS:
-            pr, sets, gi = load_cell(work, wd, m, o)
+            pr, sets, gi = load_cell(work, wd, m, o, a.sets_tag)
             gg: dict = {}
-            if m in ("lgbm", "xgb"):
-                walk = tt[(tt.model == m) & (tt.predictor_set == "all_features")].set_index("date")["pred_adj"]
+            if patched and not (wd == 3000):  # no patched walk at this window: gate D (design) and GP only
+                gg = {"walk": "none at this window", "pass": True}
+                fam = m if m in ("lgbm", "xgb") else "linear"
+            elif m in ("lgbm", "xgb"):
+                src = pd.read_parquet(a.walk_trees_main) if patched else tt
+                walk = src[(src.model == m) & (src.predictor_set == "all_features")].set_index("date")["pred_adj"]
                 ref = walk.reindex(pd.DatetimeIndex(o["origin"])).to_numpy()
                 gg = dict(
                     origin_bit_equal=int((gi["p0_full"] == ref).sum()),
@@ -134,13 +155,30 @@ def main() -> int:
                 gg["pass"] = gg["origin_bit_equal"] == 126
                 fam = m
             else:
-                walk = lt[(lt.model == m) & (lt.predictor_set == "all_features")].set_index("date")["pred_adj"]
+                src = pd.read_parquet(a.walk_lin_main) if patched else lt
+                walk = src[(src.model == m) & (src.predictor_set == "all_features")].set_index("date")["pred_adj"]
                 mx, n = 0.0, 0
                 for g0, rep, i in zip(gi["g"], gi["replay"], o["oos_row"]):
                     w_ = walk.reindex(dd[g0 : int(i) + 1]).to_numpy()
                     mx, n = max(mx, float(np.abs(rep - w_).max())), n + len(rep)
                 gg = dict(rows=n, maxabs=mx, **{"pass": bool(mx <= 1e-12)})
                 fam = "linear"
+            if patched:  # gate GP: rungs without the FOMC proximity series = their pre-patch twins, bit for bit
+                pw = Path(a.prepatch_ladder) if wd == 3000 else Path(a.prepatch_grid) / f"w{wd}"
+                ppr, psets, _ = load_cell(pw, wd, m, o)
+                twin = {frozenset(psets["sets"][RID[k]]): k for k in KS if k != 46}
+                n_cmp, n_eq, bad = 0, 0, []
+                for k in KS:
+                    ss = frozenset(sets["sets"][RID[k]])
+                    if k == 46 or ss & {"fomc_until_inv", "fomc_since_inv"} or ss not in twin:
+                        continue
+                    n_cmp += 1
+                    if np.array_equal(pr[k], ppr[twin[ss]]):
+                        n_eq += 1
+                    else:
+                        bad.append(k)
+                gg.update(GP_compared=n_cmp, GP_bit_equal=n_eq, GP_differ=bad)
+                gg["pass"] = bool(gg["pass"] and not bad)
             gates[f"w{wd}/{m}"] = gg
             imp = json.loads((work / f"rank_{fam}.json").read_text())["importance"][m]
             for r_, s in enumerate(C.order_from_importance(imp, tie), 1):
@@ -249,7 +287,7 @@ def main() -> int:
             )
     R = pd.DataFrame(rd)
     R.to_csv(GRID / "readings.csv", index=False)
-    lines = ["PRE-PATCH design: the FOMC calendar features are those before the pending FOMC fix.", ""]
+    lines = [LABEL, ""]
     for sp in ("all", "c16"):
         lines.append(f"QLIKE gain over the same window's k = 0 rung (x 1e3), span {sp}; * p < 0.05 vs k = 0")
         for m in MODELS:
@@ -269,6 +307,26 @@ def main() -> int:
     say("\n".join(lines))
     figures(S)
     return 0
+
+
+FLOOR = (
+    -6.0
+)  # gain x 1e3 below which a point is drawn at the axis floor and labelled (off-scale held-forecast blow-ups)
+
+
+def clipped(ax, x, y, color):
+    """Plot y clipped at FLOOR; mark and label the clipped points."""
+    import numpy as np
+
+    y = np.asarray(y, dtype=float)
+    x = np.asarray(x, dtype=float)
+    low = y < FLOOR
+    for xi, yi in zip(x[low], y[low]):
+        ax.plot([xi], [FLOOR], marker="v", ms=6, color=color, zorder=4)
+        ax.annotate(
+            f"{yi:,.0f}", (xi, FLOOR), textcoords="offset points", xytext=(0, 6), ha="center", fontsize=6, color=color
+        )
+    return np.where(low, FLOOR, y)
 
 
 def figures(S: pd.DataFrame) -> None:
@@ -299,7 +357,7 @@ def figures(S: pd.DataFrame) -> None:
                     g = S[(S.model == m) & (S.span == sp) & (S.wdays == wd)].sort_values("k")
                     ax.plot(
                         g[xcol],
-                        g["gain"] * 1e3,
+                        clipped(ax, g[xcol], g["gain"] * 1e3, WCOL[wd]),
                         color=WCOL[wd],
                         lw=2,
                         marker="o",
@@ -321,7 +379,7 @@ def figures(S: pd.DataFrame) -> None:
         fig.text(
             0.5,
             0.005,
-            "PRE-PATCH design (FOMC features before the pending fix). Gain = QLIKE of the same window's k = 0 rung (12 HAR-benchmark columns) minus the rung's; "
+            LABEL_SHORT + " Gain = QLIKE of the same window's k = 0 rung (12 HAR-benchmark columns) minus the rung's; "
             "rungs k = 0, 1, 3, 5, 10, 20, 46 series joined within a window. Monthly refits, 33,527 bars.",
             ha="center",
             fontsize=7.5,
@@ -342,7 +400,7 @@ def figures(S: pd.DataFrame) -> None:
                 g = S[(S.model == m) & (S.span == sp) & (S.k == k)].sort_values("wdays")
                 ax.plot(
                     g["T"],
-                    g["gain"] * 1e3,
+                    clipped(ax, g["T"], g["gain"] * 1e3, KCOL[k]),
                     color=KCOL[k],
                     lw=2,
                     marker="o",
@@ -365,7 +423,7 @@ def figures(S: pd.DataFrame) -> None:
     fig.text(
         0.5,
         0.005,
-        "PRE-PATCH design. Gain over the same window's k = 0 rung at fixed k; W = 1,000 / 2,000 / 3,000 / 3,500 days.",
+        LABEL_SHORT + " Gain over the same window's k = 0 rung at fixed k; W = 1,000 / 2,000 / 3,000 / 3,500 days.",
         ha="center",
         fontsize=7.5,
         color=INK2,

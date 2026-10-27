@@ -1,0 +1,13 @@
+lff task 2 on b05-03.hpc.usc.edu [AMD EPYC 7513 32-Core Processor] Mon Oct 26 17:29:59 PDT 2026
+line: linear run-linear 1000 lasso 0
+[17:30:01] W 1000 lasso alpha 0.001: sets ['full', 'har', 'P20', 'P10', 'P5', 'P3', 'P1']; 882 jobs, 8 workers
+[17:31:46] 100/882 jobs, 105s (last full k=98 8.6s)
+[17:32:06] 200/882 jobs, 125s (last har k=77 0.0s)
+[17:32:18] 300/882 jobs, 137s (last P20 k=49 1.3s)
+[17:32:33] 400/882 jobs, 152s (last P10 k=24 0.4s)
+[17:32:39] 500/882 jobs, 158s (last P10 k=121 0.5s)
+[17:32:41] 600/882 jobs, 160s (last P5 k=95 0.2s)
+[17:32:43] 700/882 jobs, 162s (last P3 k=69 0.1s)
+[17:32:44] 800/882 jobs, 163s (last P1 k=43 0.1s)
+[17:32:44] 882/882 jobs, 163s (last P1 k=124 0.1s)
+lff task 2 done Mon Oct 26 17:32:45 PDT 2026
