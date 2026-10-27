@@ -69,7 +69,7 @@ TREE_ARMS = GROUP_ARMS
 LINEAR_ARMS = GROUP_ARMS + list(CLASSICAL)
 OLS_ARMS = ["add_rm"] + list(CLASSICAL)
 # the forest (RULE.txt section 3): the add arms and lo_rm, subject to the projection
-RF_ARMS = ADD + ["lo_rm"]
+RF_ARMS = ADD + ["lo_rm", "lo_fomc"]  # 2026-10-26 addendum E: + lo_fomc
 
 
 def group_series() -> dict[str, list[str]]:
