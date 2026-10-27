@@ -301,12 +301,16 @@ def cmd_gatebase(a) -> int:
             continue
         f = pd.read_parquet(p)
         m = json.loads(p.with_suffix(".json").read_text())
+        # 2026-10-27 fix: the merged BASE file holds date and pred_adj only (cmd_merge); true_adj and B are compared,
+        # as cmd_merge does, with the templates' all-features rows on the same dates
         t = pd.read_parquet(Path(a.base) / f"{est}_add_rm_fomc.parquet").set_index("date")
         t = t.reindex(pd.DatetimeIndex(f["date"]))
         x, y = f["pred_adj"].to_numpy(), t["pred_adj"].to_numpy()
         text = [repr(float(u)) == repr(float(v)) for u, v in zip(x, y)]
-        side = bool(np.array_equal(f["true_adj"].to_numpy(), t["true_adj"].to_numpy())) and bool(
-            np.array_equal(f["B"].to_numpy(), t["B"].to_numpy())
+        tf = template(est)
+        s = tf[tf["predictor_set"] == "all_features"].set_index("date").reindex(pd.DatetimeIndex(f["date"]))
+        side = bool(np.array_equal(f["true_adj"].to_numpy(), s["true_adj"].to_numpy())) and bool(
+            np.array_equal(f["B"].to_numpy(), s["B"].to_numpy())
         )
         ok = len(f) >= 5 and all(text) and side and len(m["cpus"]) == 1
         rec["classes"][est] = dict(
