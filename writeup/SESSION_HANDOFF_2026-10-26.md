@@ -6,8 +6,8 @@ Paper branch `insurance-selling-2026-09-19-e34`, everything committed and pushed
 ## Running on the clusters (they continue through the reboot)
 | What | Where | Owner agent | Expected |
 |---|---|---|---|
-| `add_rm_fomc` arm (HAR + realized moments + FOMC, patched design; 6 classes + OLS): prep 510532, linear pool 510533, tree pools 510534–510542 | CARC Slurm, Gold 6240 | ablation agent `ae451d694c9555caa` | trees ~22:30–23:00, then merge + scoring ~30 min; details and steps in `results/ablations_2014start_w3000/STATUS.md` (ablations branch) |
-| Forest `lo_fomc` | STOPPED 19:06 (678 CPU-h spent, 52/101 pieces begun, checkpoints kept on CARC, resumable on Gold 6240) | ablation agent | not needed (D18) |
+| `add_rm_fomc` arm (HAR + realized moments + FOMC, patched design; 6 classes + OLS): prep 510532, linear pool 510533 (waits on 510532), tree pools 510534–510542 | **Hoffman2** Slurm (campus), Gold 6240 | ablation agent `ae451d694c9555caa` | trees ~22:30–23:00, linear ~1 h after 510533 starts, then two merge jobs + scoring ~30–45 min. **First check `logs/prep_rmfomc.510532.log`: if prep failed, 510533 never starts.** Steps: `results/ablations_2014start_w3000/STATUS.md`, section "State at 19:21" (ablations branch, dfa59e0) |
+| Forest `lo_fomc` | STOPPED 19:06 (678 CPU-h spent, 52/101 pieces begun; checkpoints in Hoffman2 `/u/scratch/j/jamesdc1/abl/runs/trees_lofomc/pieces`, resumable on Gold 6240 only) | ablation agent | not needed (D18) |
 | MinGRU v2w | CARC | (earlier MinGRU agent) | the steward tracks it |
 
 ## After the reboot (`claude --resume`)
