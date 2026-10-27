@@ -111,3 +111,5 @@ the old run (read-only): `/home1/jc_905/pmf35/data` (design copies, fold-3 ridge
   holds their cancelled L40S / A40 lines; the next session matches P100 lines only.
 - 2026-10-26 17:14 PDT: first full W 3,500 P100 pieces 13473343 / 13473345 (000.p00 / 000.p01, nice 100, 509 min, cpu 2
   / 16G); HAR W 3,500 13473344 (003.p02). gpu 99 (32 running P100, 67 pending). No FAILED since 16:40.
+- 2026-10-26 17:45 PDT: W 3,500 top-up (nice 100): HAR 13474336 / 13474338 (003.p03 / p04), full 13474337 (000.p02).
+  gpu 99 (34 running P100, 65 pending). No FAILED since 17:10.
