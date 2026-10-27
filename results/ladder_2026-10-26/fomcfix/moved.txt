@@ -1,0 +1,120 @@
+LADDER (W = 3,000, primary ranking): QLIKE pre -> post (x 1e3 change), retained % pre -> post
+  span all
+    lgbm    k46 0.1627 (-0.06; R 100->100)  k20 0.1637 (-0.12; R 96->96)  k10 0.1640 (-0.19; R 95->95)  k5 0.1795 (+0.00; R 34->34)  k3 0.1797 (+0.00; R 34->34)  k1 0.1874 (+0.00; R 3->3)  k0 0.1883 (+0.00; R 0->0)
+    xgb     k46 0.1635 (-1.13; R 100->100)  k20 0.1636 (-1.21; R 99->99)  k10 0.1640 (-1.32; R 97->98)  k5 0.1798 (+0.00; R 38->36)  k3 0.1822 (+0.00; R 28->27)  k1 0.1881 (+0.00; R 4->4)  k0 0.1892 (+0.00; R 0->0)
+    ridge   k46 0.1825 (-1.45; R 100->100)  k20 0.1776 (-0.93; R 200->171)  k10 0.1764 (-1.21; R 216->188)  k5 0.1794 (+1.48; R 211->145)  k3 0.1836 (-0.68; R 94->84)  k1 0.1855 (-0.07; R 70->56)  k0 0.1893 (+0.00; R 0->0)
+    lasso   k46 0.1780 (-5.54; R 100->100)  k20 0.1735 (-3.09; R 219->139)  k10 0.1718 (-4.14; R 231->155)  k5 0.1771 (-1.21; R 190->108)  k3 0.1822 (-0.12; R 122->63)  k1 0.1815 (-1.75; R 105->69)  k0 0.1893 (+0.00; R 0->0)
+    enet    k46 0.1794 (-1.14; R 100->100)  k20 0.1774 (-0.99; R 125->120)  k10 0.1764 (-1.17; R 134->130)  k5 0.1795 (+1.77; R 132->99)  k3 0.1836 (+2.25; R 91->58)  k1 0.1839 (-5.63; R -2->55)  k0 0.1893 (+0.00; R 0->0)
+    rf_skx  k46 0.1702 (-0.49; R 100->100)  k20 0.1701 (-0.59; R 100->101)  k10 0.1706 (-0.48; R 98->98)  k5 0.1823 (+0.00; R 41->40)  k3 0.1818 (+0.00; R 43->42)  k1 0.1891 (+0.00; R 6->6)  k0 0.1903 (+0.00; R 0->0)
+  span c16
+    lgbm    k46 0.1211 (-0.07; R 100->100)  k20 0.1215 (-0.40; R 77->88)  k10 0.1216 (-0.04; R 85->85)  k5 0.1203 (+0.00; R 130->127)  k3 0.1198 (+0.00; R 145->141)  k1 0.1237 (+0.00; R 16->16)  k0 0.1242 (+0.00; R 0->0)
+    xgb     k46 0.1211 (+0.03; R 100->100)  k20 0.1205 (-0.17; R 113->119)  k10 0.1218 (-0.10; R 73->77)  k5 0.1203 (+0.00; R 124->125)  k3 0.1229 (+0.00; R 42->43)  k1 0.1237 (+0.00; R 15->16)  k0 0.1241 (+0.00; R 0->0)
+    ridge   k46 0.1328 (+1.18; R nan->nan)  k20 0.1246 (+1.36; R nan->nan)  k10 0.1233 (+1.12; R nan->nan)  k5 0.1267 (+4.91; R nan->nan)  k3 0.1281 (+1.11; R nan->nan)  k1 0.1281 (+0.39; R nan->nan)  k0 0.1269 (+0.00; R nan->nan)
+    lasso   k46 0.1366 (+1.03; R nan->nan)  k20 0.1247 (+0.68; R nan->nan)  k10 0.1250 (+0.86; R nan->nan)  k5 0.1311 (+3.35; R nan->nan)  k3 0.1290 (-1.05; R nan->nan)  k1 0.1293 (+0.60; R nan->nan)  k0 0.1269 (+0.00; R nan->nan)
+    enet    k46 0.1300 (+1.39; R nan->nan)  k20 0.1261 (+1.57; R nan->nan)  k10 0.1226 (+1.24; R nan->nan)  k5 0.1269 (+5.08; R nan->nan)  k3 0.1284 (+3.27; R nan->nan)  k1 0.1282 (+1.39; R nan->nan)  k0 0.1269 (+0.00; R nan->nan)
+    rf_skx  k46 0.1243 (+0.16; R 100->100)  k20 0.1240 (+0.15; R 109->109)  k10 0.1233 (+0.09; R 125->128)  k5 0.1218 (+0.00; R 164->171)  k3 0.1204 (+0.00; R 202->212)  k1 0.1258 (+0.00; R 55->58)  k0 0.1278 (+0.00; R 0->0)
+  readings (k90, verdict) pre -> post
+    lgbm    primary                  all  k90 10 -> 10; INTERMEDIATE -> INTERMEDIATE
+    lgbm    primary                  c16  k90 3 -> 3; CONCENTRATED -> CONCENTRATED
+    xgb     primary                  all  k90 10 -> 10; INTERMEDIATE -> INTERMEDIATE
+    xgb     primary                  c16  k90 5 -> 5; CONCENTRATED -> CONCENTRATED
+    ridge   primary                  all  k90 3 -> 5; CONCENTRATED -> CONCENTRATED
+    ridge   primary                  c16  k90 46 -> 46; NO GAIN TO RETAIN -> NO GAIN TO RETAIN
+    lasso   primary                  all  k90 1 -> 5; CONCENTRATED -> CONCENTRATED
+    lasso   primary                  c16  k90 46 -> 46; NO GAIN TO RETAIN -> NO GAIN TO RETAIN
+    enet    primary                  all  k90 3 -> 5; CONCENTRATED -> CONCENTRATED
+    enet    primary                  c16  k90 46 -> 46; NO GAIN TO RETAIN -> NO GAIN TO RETAIN
+    rf_skx  primary                  all  k90 10 -> 10; INTERMEDIATE -> INTERMEDIATE
+    rf_skx  primary                  c16  k90 3 -> 3; CONCENTRATED -> CONCENTRATED
+  primary top 5 pre | post
+    lgbm    sumabsret, sumret, sumabsret_vwstock, sumautocov, sumabsret_ewstock | sumabsret, sumret, sumabsret_vwstock, sumabsret_ewstock, sumautocov
+    xgb     sumabsret, stocktwits_sentiment, sumabsret_vwstock, sumret, effspread_vwstock | sumabsret, stocktwits_sentiment, sumabsret_vwstock, sumret, effspread_vwstock
+    ridge   fomc_day, sumabsret, fomc_until_inv, sumret, sumabsret_vwstock | fomc_until_inv, fomc_since_inv, sumabsret, fomc_day, sumret
+    lasso   fomc_until_inv, fomc_day, fomc_since_inv, sumabsret, sumret | fomc_until_inv, fomc_since_inv, sumabsret, fomc_day, sumret
+    enet    sumabsret, fomc_day, sumret, sumabsret_vwstock, fomc_until_inv | fomc_until_inv, fomc_since_inv, sumabsret, sumret, fomc_day
+    rf_skx  sumabsret, sumabsret_vwstock, sumret, sumabsret_ewstock, effspread_vwstock | sumabsret, sumabsret_vwstock, sumret, sumabsret_ewstock, effspread_vwstock
+
+TREE SHAP M1: share of total mean |SHAP| (%), pre -> post, the FOMC series and the largest moves
+  lgbm    fomc_day 0.12 -> 0.12; fomc_until_inv 2.01 -> 2.05; fomc_since_inv 0.18 -> 0.18
+          largest moves: har_ma +0.05 pp; fomc_until_inv +0.03 pp; sumret4 -0.03 pp; sumabsret_ewstock -0.03 pp
+  xgb     fomc_day 0.13 -> 0.12; fomc_until_inv 2.01 -> 2.02; fomc_since_inv 0.10 -> 0.10
+          largest moves: har_ma +0.08 pp; sumabsret_ewstock -0.04 pp; sumabsret -0.03 pp; sumret +0.02 pp
+  rf_skx  fomc_day 0.10 -> 0.09; fomc_until_inv 1.05 -> 1.08; fomc_since_inv 0.19 -> 0.21
+          largest moves: fomc_until_inv +0.03 pp; fomc_since_inv +0.01 pp; sumabsret_ewstock -0.01 pp; fomc_day -0.01 pp
+  classes (pre | post):
+       est                                 cls    share       lo       hi  share_exog  lo_exog  hi_exog
+      lgbm                        NON-STANDARD 0.217808 0.204306 0.233559    0.459144 0.442575 0.477167
+      lgbm                            STANDARD 0.782192 0.766441 0.795694    0.540856 0.522833 0.557425
+      lgbm NON-STANDARD incl. sumvolume/numobs 0.237713 0.226111 0.251574    0.501106 0.487082 0.516628
+       xgb                        NON-STANDARD 0.206023 0.192710 0.221595    0.436858 0.418436 0.456497
+       xgb                            STANDARD 0.793977 0.778405 0.807290    0.563142 0.543503 0.581564
+       xgb NON-STANDARD incl. sumvolume/numobs 0.223172 0.211613 0.236923    0.473222 0.457648 0.490041
+    rf_skx                        NON-STANDARD 0.186304 0.171644 0.202695    0.442549 0.421725 0.465277
+    rf_skx                            STANDARD 0.813696 0.797305 0.828356    0.557451 0.534723 0.578275
+    rf_skx NON-STANDARD incl. sumvolume/numobs 0.204331 0.190412 0.220308    0.485370 0.467589 0.503831
+       est                                 cls    share       lo       hi  share_exog  lo_exog  hi_exog
+      lgbm                        NON-STANDARD 0.217530 0.203619 0.233856    0.458933 0.442320 0.477232
+      lgbm                            STANDARD 0.782470 0.766144 0.796381    0.541067 0.522768 0.557680
+      lgbm NON-STANDARD incl. sumvolume/numobs 0.237436 0.225738 0.251542    0.500929 0.487485 0.516017
+       xgb                        NON-STANDARD 0.205534 0.192086 0.221516    0.436477 0.417754 0.456795
+       xgb                            STANDARD 0.794466 0.778484 0.807914    0.563523 0.543205 0.582246
+       xgb NON-STANDARD incl. sumvolume/numobs 0.222658 0.210957 0.236642    0.472842 0.457493 0.489712
+    rf_skx                        NON-STANDARD 0.186300 0.171578 0.202736    0.442476 0.421363 0.465142
+    rf_skx                            STANDARD 0.813700 0.797264 0.828422    0.557524 0.534858 0.578637
+    rf_skx NON-STANDARD incl. sumvolume/numobs 0.204368 0.190279 0.220287    0.485389 0.467227 0.503918
+  m2_nonstandard_D.csv pre:
+     est linear                                 denominator     tree  linear_share         D        lo        hi verdict
+    lgbm  ridge                          of exogenous total 0.459144      0.672784 -0.213639 -0.233865 -0.195760    LESS
+    lgbm  ridge         of all 48 (backbone in denominator) 0.217808      0.536872 -0.319065 -0.333392 -0.305227    LESS
+    lgbm  ridge of exogenous, sumvolume/numobs NON-STANDARD 0.501106      0.708207 -0.207101 -0.232313 -0.185680    LESS
+    lgbm  lasso                          of exogenous total 0.459144      0.738692 -0.279547 -0.303728 -0.259290    LESS
+    lgbm  lasso         of all 48 (backbone in denominator) 0.217808      0.656955 -0.439147 -0.456369 -0.424188    LESS
+    lgbm  lasso of exogenous, sumvolume/numobs NON-STANDARD 0.501106      0.757598 -0.256492 -0.288175 -0.231050    LESS
+    lgbm   enet                          of exogenous total 0.459144      0.560239 -0.101095 -0.116755 -0.086394    LESS
+    lgbm   enet         of all 48 (backbone in denominator) 0.217808      0.386533 -0.168725 -0.179550 -0.156246    LESS
+    lgbm   enet of exogenous, sumvolume/numobs NON-STANDARD 0.501106      0.588575 -0.087468 -0.104238 -0.072728    LESS
+     xgb  ridge                          of exogenous total 0.436858      0.672784 -0.235926 -0.255285 -0.217171    LESS
+     xgb  ridge         of all 48 (backbone in denominator) 0.206023      0.536872 -0.330850 -0.344602 -0.317282    LESS
+     xgb  ridge of exogenous, sumvolume/numobs NON-STANDARD 0.473222      0.708207 -0.234985 -0.258191 -0.214657    LESS
+  m2_nonstandard_D.csv post:
+     est linear                                 denominator     tree  linear_share         D        lo        hi verdict
+    lgbm  ridge                          of exogenous total 0.458933      0.687749 -0.228816 -0.248034 -0.211391    LESS
+    lgbm  ridge         of all 48 (backbone in denominator) 0.217530      0.555968 -0.338438 -0.352019 -0.325176    LESS
+    lgbm  ridge of exogenous, sumvolume/numobs NON-STANDARD 0.500929      0.721939 -0.221010 -0.245988 -0.199583    LESS
+    lgbm  lasso                          of exogenous total 0.458933      0.825335 -0.366401 -0.391493 -0.343565    LESS
+    lgbm  lasso         of all 48 (backbone in denominator) 0.217530      0.764501 -0.546971 -0.569140 -0.526725    LESS
+    lgbm  lasso of exogenous, sumvolume/numobs NON-STANDARD 0.500929      0.838206 -0.337277 -0.368745 -0.309162    LESS
+    lgbm   enet                          of exogenous total 0.458933      0.599621 -0.140688 -0.156692 -0.126647    LESS
+    lgbm   enet         of all 48 (backbone in denominator) 0.217530      0.428736 -0.211205 -0.218610 -0.203343    LESS
+    lgbm   enet of exogenous, sumvolume/numobs NON-STANDARD 0.500929      0.625739 -0.124810 -0.145041 -0.108152    LESS
+     xgb  ridge                          of exogenous total 0.436477      0.687749 -0.251272 -0.270321 -0.233015    LESS
+     xgb  ridge         of all 48 (backbone in denominator) 0.205534      0.555968 -0.350434 -0.364319 -0.337183    LESS
+     xgb  ridge of exogenous, sumvolume/numobs NON-STANDARD 0.472842      0.721939 -0.249097 -0.272300 -0.228849    LESS
+  m4_contrasts.csv pre:
+     est             contrast                       scope      diff        lo        hi             verdict
+    lgbm       VIX high - low                    of total -0.028927 -0.050745 -0.007438               lower
+    lgbm       VIX high - low                of exogenous -0.018919 -0.040988  0.002221 no clear difference
+    lgbm       VIX high - low        bucket fomc of total -0.002752 -0.007419  0.001983 no clear difference
+    lgbm       VIX high - low bucket implied_vol of total -0.000593 -0.006358  0.004246 no clear difference
+    lgbm       VIX high - low      bucket har_ma of total  0.048675  0.015458  0.080965              higher
+    lgbm       VIX high - low    bucket calendar of total -0.005537 -0.008075 -0.002931               lower
+    lgbm FOMC day - other day                    of total  0.207841  0.189732  0.225314              higher
+    lgbm FOMC day - other day                of exogenous  0.251846  0.228804  0.274530              higher
+    lgbm FOMC day - other day        bucket fomc of total  0.248176  0.233031  0.264340              higher
+    lgbm FOMC day - other day bucket implied_vol of total -0.010833 -0.013868 -0.008348               lower
+    lgbm FOMC day - other day      bucket har_ma of total -0.123803 -0.141220 -0.105460               lower
+    lgbm FOMC day - other day    bucket calendar of total -0.004627 -0.005933 -0.003452               lower
+  m4_contrasts.csv post:
+     est             contrast                       scope      diff        lo        hi             verdict
+    lgbm       VIX high - low                    of total -0.032217 -0.053434 -0.010673               lower
+    lgbm       VIX high - low                of exogenous -0.023452 -0.044843 -0.001912               lower
+    lgbm       VIX high - low        bucket fomc of total -0.005808 -0.010968 -0.000506               lower
+    lgbm       VIX high - low bucket implied_vol of total  0.000009 -0.005585  0.004708 no clear difference
+    lgbm       VIX high - low      bucket har_ma of total  0.051088  0.017948  0.083669              higher
+    lgbm       VIX high - low    bucket calendar of total -0.005467 -0.007950 -0.002927               lower
+    lgbm FOMC day - other day                    of total  0.216868  0.193319  0.240513              higher
+    lgbm FOMC day - other day                of exogenous  0.259676  0.233080  0.286668              higher
+    lgbm FOMC day - other day        bucket fomc of total  0.259947  0.238158  0.282368              higher
+    lgbm FOMC day - other day bucket implied_vol of total -0.011253 -0.014105 -0.008828               lower
+    lgbm FOMC day - other day      bucket har_ma of total -0.130266 -0.148045 -0.110112               lower
+    lgbm FOMC day - other day    bucket calendar of total -0.004750 -0.006165 -0.003514               lower
