@@ -102,10 +102,12 @@
   HAR\,+\,RM\,+\,FOMC, the HAR benchmark set with the realized moments and the FOMC series added, fitted with the
   design and frozen hyperparameters of Table~\ref{tab:rh_oos} (Table~\ref{tab:rh_ablation}, Panel~D;
   Appendix~\ref{app:rh_results_ablation}).
-\item \textbf{The realized moments are a strong augmentation.} Added to the HAR benchmark set they lower the loss in
-  every class (\rhabOlsAddRmAllPct\% for the OLS on every bar), and by more on ordinary days, whereas the semivariance,
-  realized-quarticity and leverage extensions of the HAR model, estimated together by OLS, change the benchmark's loss
-  by only \rhabOlsSharqlAllPct\% (Panel~C).
+\item \textbf{The realized moments as an augmentation.} Added to the HAR benchmark set they lower the every-bar loss in
+  every class (\rhabOlsAddRmAllPct\% for the OLS), by about as much as the semivariance, realized-quarticity and
+  leverage extensions of the HAR model estimated together by OLS (\rhabOlsSharqlAllPct\%; Panel~C), and by more on
+  ordinary days (Section~\ref{sec:rh_fi_ordinary}).
+  % 2026-10-26 (coordinator): was "a strong augmentation ... whereas the ... extensions change the loss by only ...";
+  % wrong for the OLS (RM -1.9% vs the extensions -2.7%).
 \item \textbf{What the other exogenous series add} (Table~\ref{tab:rh_ablation}, Panel~D).
   \begin{itemize}
   \item Penalized linear models: against HAR\,+\,RM\,+\,FOMC the full set changes the every-bar loss by
@@ -116,7 +118,7 @@
     \rhabRfFullVsAddRmFomcAllPct\% in LightGBM, XGBoost and the random forest ($\DM={}$\rhabLgbmFullVsAddRmFomcAllDm,
     \rhabXgbFullVsAddRmFomcAllDm{} and \rhabRfFullVsAddRmFomcAllDm), and on ordinary days by
     \rhabLgbmFullVsAddRmFomcOrdPct, \rhabXgbFullVsAddRmFomcOrdPct{} and \rhabRfFullVsAddRmFomcOrdPct\%
-    ($p = \rhabLgbmFullVsAddRmFomcOrdP$, \rhabXgbFullVsAddRmFomcOrdP{} and \rhabRfFullVsAddRmFomcOrdP).
+    ($p$-values \rhabLgbmFullVsAddRmFomcOrdP, \rhabXgbFullVsAddRmFomcOrdP{} and \rhabRfFullVsAddRmFomcOrdP).
   \item The well-studied predictors thus account for nearly all of the gain of Table~\ref{tab:rh_oos}: HAR\,+\,RM\,+\,FOMC
     alone lowers the every-bar loss below the HAR benchmark's by \rhabRidgeAddRmFomcVsHarAllPct\% (ridge) to
     \rhabXgbAddRmFomcVsHarAllPct\% (XGBoost).
