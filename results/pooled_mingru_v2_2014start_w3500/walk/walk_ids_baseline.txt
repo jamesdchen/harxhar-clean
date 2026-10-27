@@ -53,3 +53,6 @@ pieces/v2w_baseline.003.p01.txt 13471945 gpu 635 P100 piece, nice 100 (top-up, c
 pieces/v2w_baseline.003.p02.txt 13473344 gpu 635 P100 piece, nice 100 (top-up, cpu 2 / 8G)
 pieces/v2w_baseline.003.p03.txt 13474336 gpu 635 P100 piece, nice 100 (top-up, cpu 2 / 8G)
 pieces/v2w_baseline.003.p04.txt 13474338 gpu 635 P100 piece, nice 100 (top-up, cpu 2 / 8G)
+pieces/v2w_baseline.004.p00.txt 13478019 gpu 635 P100 piece, nice 100 (top-up, cpu 2 / 8G)
+pieces/v2w_baseline.004.p01.txt 13478021 gpu 635 P100 piece, nice 100 (top-up, cpu 2 / 8G)
+pieces/v2w_baseline.004.p02.txt 13478023 gpu 635 P100 piece, nice 100 (top-up, cpu 2 / 8G)
