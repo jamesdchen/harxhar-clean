@@ -51,7 +51,11 @@ LINEAR = ("ridge", "lasso", "enet")
 TREES = ("lgbm", "xgb", "rf")
 CLASSES = ("ols", *LINEAR, *TREES)
 EST_OF = {"lgbm": "lgbm", "xgb": "xgb", "rf": "rf_skx"}
-OLS_BENCH = ("add_rm", "shar", "harq", "lhar", "sharql")
+OLS_BENCH = ("add_rm", "shar", "harq", "lhar", "sharql", "add_rm_fomc")  # addendum F: + add_rm_fomc
+# 2026-10-26 addendum F (requested by the author on 26 October, after the channel results; not pre-registered):
+# HAR + realized moments + FOMC, every class, on the patched design; scored on every bar, ORDINARY and EVENT days
+COMBO = "add_rm_fomc"
+N_EVENT = 81  # results/channels_2026-10-26/RULE.txt section 0: the scheduled FOMC statement days of the span
 # 2026-10-26 (coordinator): live-window subsamples of the late-starting groups -- the bars from the date on which the
 # listed series' k = 1 value averages are all live (latestart/latestart_w3000.csv "live_from") to the end of the span,
 # or (end_at_last) to the last print of the series (volatility demand stops on 2023-08-31); key -> (series, group,
@@ -94,6 +98,23 @@ def evaluation_days(rv: pd.Series) -> pd.DatetimeIndex:
     days = days[(days >= FIRST) & (days <= LAST)]
     assert len(days) == N_DAYS and days[0] == FIRST and days[-1] == LAST, (len(days), days[0], days[-1])
     return days
+
+
+def event_days(days: pd.DatetimeIndex) -> pd.DatetimeIndex:
+    """EVENT days, results/channels_2026-10-26/RULE.txt section 0 (writeup/make_rehaul_channels.py statement_stamps):
+    the bars of data/releases.parquet 'fomc release' > 0, plus loading.FOMC_MISSING_STATEMENTS, minus
+    loading.UNSCHEDULED_FOMC_DAYS, on Table 1's scored days -- 81 (asserted)."""
+    from src.data import loading
+
+    rel = pd.read_parquet(ROOT / "data" / "releases.parquet", columns=["endbartime", loading.FOMC_RAW_COL])
+    t = pd.DatetimeIndex(pd.to_datetime(rel["endbartime"]))
+    raw = np.nan_to_num(pd.to_numeric(rel[loading.FOMC_RAW_COL], errors="coerce").to_numpy(float), nan=0.0)
+    st = t[raw > 0].append(pd.DatetimeIndex(pd.to_datetime(list(loading.FOMC_MISSING_STATEMENTS))))
+    st = st[~pd.DatetimeIndex(st.normalize()).isin(list(loading.UNSCHEDULED_FOMC_DAYS))]
+    ev = pd.DatetimeIndex(st.normalize()).unique()
+    ev = ev[ev.isin(days)].sort_values()
+    assert len(ev) == N_EVENT, len(ev)
+    return ev
 
 
 FIX = ROOT / "results" / "fomcfix_2026-10-26" / "forecasts"
@@ -149,6 +170,8 @@ def load_panel(res: Path, design: str = "pre", rf_fix: str = "") -> tuple[dict[t
             "trees_wide.parquet",
             "trees_wide_fix.parquet",
             "trees_wide_rflofomc.parquet",
+            "linear_wide_rmfomc.parquet",  # addendum F
+            "trees_wide_rmfomc.parquet",
         )
     # the merged ablation forecasts, compact: one column of pred_adj per "<class>|<arm>" (2014-01-02 on)
     for name in names:
@@ -215,6 +238,18 @@ def main() -> int:
         "c16": idx[(idx.hour == 16) & (idx.minute == 0)],
     }
     spans["c16_2020"] = spans["c16"][spans["c16"].normalize() >= SUB_FIRST]
+    if any(k[1] == COMBO for k in panel):  # addendum F: every bar of ORDINARY / EVENT days (DM on daily averages)
+        ev = event_days(days)
+        on_ev = pd.DatetimeIndex(idx.normalize()).isin(ev)
+        spans["ord"], spans["ev"] = idx[~on_ev], idx[on_ev]
+        checks["day_types"] = dict(
+            event_days=len(ev),
+            ordinary_days=int(pd.DatetimeIndex(spans["ord"].normalize()).nunique()),
+            event_bars=len(spans["ev"]),
+            ordinary_bars=len(spans["ord"]),
+            rule="results/channels_2026-10-26/RULE.txt section 0",
+            label="add_rm_fomc: requested by the author on 26 October, after the channel results; not pre-registered",
+        )
     assert len(spans["c16"]) == N_DAYS and len(spans["c16_2020"]) == SUB_DAYS, (
         len(spans["c16"]),
         len(spans["c16_2020"]),
@@ -256,7 +291,7 @@ def main() -> int:
         out = []
         for li, lname in ((0, "qlike"), (1, "mse")):
             x1, x2, ix = L[(k1, sp)][li], L[(k2, sp)][li], L[(k1, sp)][2]
-            every_bar = sp == "all" or sp.startswith("live_")
+            every_bar = sp in ("all", "ord", "ev") or sp.startswith("live_")
             r = dm_test(daily(x1, ix), daily(x2, ix)) if every_bar else dm_test(x1, x2)
             out.append(
                 dict(
@@ -296,6 +331,8 @@ def main() -> int:
                 rows += dm((c, arm), (c, rf_), sp)
             if arm != "har":
                 rows += dm((c, arm), (c, "har"), sp)
+            if arm == COMBO and ("ols", "har") in panel:  # addendum F: against the OLS on the HAR set (Table 1's D2)
+                rows += dm((c, arm), ("ols", "har"), sp)
             if arm == "full":
                 for b in (*OLS_BENCH, "har"):
                     if ("ols", b) in panel:
