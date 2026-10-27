@@ -1,0 +1,12 @@
+tree SHAP, W = 3,000, 2014 start: 126 origins, 33970 forecast rows, models ['lgbm', 'xgb', 'rf_skx']
+
+== GATE
+LightGBM       walk rows 126/126; bit-equal 126/126; max |diff| 0 (rel 0); fit rows equal True; additivity pass 126/126 (max 8.9e-15); interaction rows sum to SHAP: max 1.9e-15
+               repeat refits at k [0, 62, 125]: predictions equal [True, True, True], SHAP equal [True, True, True]
+               cpus: ['AMD EPYC 7513 32-Core Processor']
+XGBoost        walk rows 126/126; bit-equal 126/126; max |diff| 0 (rel 0); fit rows equal True; additivity pass 126/126 (max 3.7e-06); interaction rows sum to SHAP: max 3.4e-07
+               repeat refits at k [0, 62, 125]: predictions equal [True, True, True], SHAP equal [True, True, True]
+               cpus: ['AMD EPYC 7513 32-Core Processor']
+Random forest  walk rows 126/126; bit-equal 126/126; max |diff| 0 (rel 0); fit rows equal True; additivity pass 126/126 (max 5.1e-14); oneDAL vs estimators_ mean rel max 3e-15
+               repeat refits at k [0, 62, 125]: predictions equal [True, True, True], SHAP equal [True, True, True]
+               cpus: ['AMD EPYC 7513 32-Core Processor', 'AMD EPYC 7542 32-Core Processor']

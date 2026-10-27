@@ -265,7 +265,7 @@ def main() -> int:
                 pre_sets = json.loads(sorted((pw / "trees" / m).glob("sets_part*.json"))[0].read_text())
             else:
                 pre_sets = json.loads((pw / "linear" / m / "sets.json").read_text())
-            pre_of = {frozenset(pre_sets["sets"][r]): r for r in pre_sets["fitted"]}
+            pre_of = {frozenset(pre_sets["sets"][r]): r for r in pre_sets["fitted"] if r in pre_sets["sets"]}
             n_cmp, n_eq, bad = 0, 0, []
             for rid in sets["fitted"]:
                 ss = frozenset(sets["sets"][rid])
