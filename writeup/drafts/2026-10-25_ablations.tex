@@ -5,7 +5,9 @@
 % preamble, the table in 06_results_floats.tex, this text in Section~\ref{sec:rh_results_predictors}.
 % Results: 2026-10-26, on the FOMC-patched design (fomcfix cell B; RULE.txt addendum D): every linear arm and the
 % trees' FOMC arms walked on it; the trees' removals of the other groups (dagger in the table) on the pre-patch design,
-% against the pre-patch full set.  The forest's removal of the FOMC calendar (addendum E) is running.
+% against the pre-patch full set.  The forest's removal of the FOMC calendar (addendum E) was stopped by the author
+% (E (i)); the HAR + RM + FOMC arm (addendum F) was requested by the author on 26 October after the channel results and
+% is not pre-registered -- the paragraph on it below says so.
 % Two references are not in writeup/references.bib yet (BollerslevPattonQuaedvlieg2016 is):
 % @article{PattonSheppard2015,
 %   title={Good volatility, bad volatility: signed jumps and the persistence of volatility},
@@ -87,6 +89,22 @@ No other group's removal changes QLIKE by more than a few tenths of a percent.  
 \rhabLgbmFullAllPct\% for the full set), the realized moments about \rhabXgbAddRmAllPct\% (XGBoost), and the liquidity
 and constituent-market groups gains of the same order (\rhabXgbAddVwAllPct\% for the value-weighted market) that
 disappear once the rest of the set is present: their information overlaps with the futures' moments.
+
+\paragraph{Against HAR, realized moments and the FOMC calendar together.}  At the author's request after the results
+by day type, and so outside the pre-specified design, each class was also fitted on the HAR benchmark set plus both
+the futures' realized moments and the FOMC calendar (132 columns, the same frozen hyperparameters; the row marked * in
+Panel~D).  This model takes almost all of the full set's gain.  Over every bar the other 36 series improve on it
+by \rhabLgbmFullVsAddRmFomcAllPct\% for LightGBM ($\DM = \rhabLgbmFullVsAddRmFomcAllDm$) and
+\rhabXgbFullVsAddRmFomcAllPct\% for XGBoost ($\DM = \rhabXgbFullVsAddRmFomcAllDm$), by \rhabRfFullVsAddRmFomcAllPct\%
+for the forest ($p = \rhabRfFullVsAddRmFomcAllP$), and not at all for the penalized linear models
+(\rhabRidgeFullVsAddRmFomcAllPct\% for ridge to \rhabEnetFullVsAddRmFomcAllPct\% for the elastic net, $p \geq
+\rhabEnetFullVsAddRmFomcAllP$).  The trees' remainder falls on ordinary days (\rhabLgbmFullVsAddRmFomcOrdPct\% for
+LightGBM, $\DM = \rhabLgbmFullVsAddRmFomcOrdDm$; \rhabRfFullVsAddRmFomcOrdPct\% for the forest, $p =
+\rhabRfFullVsAddRmFomcOrdP$); on the \rhabNEventDays{} scheduled statement days no class's full set beats it except
+the lasso's (\rhabLassoFullVsAddRmFomcEvPct\%, $\DM = \rhabLassoFullVsAddRmFomcEvDm$).  Against the HAR benchmark the
+same model lowers QLIKE by \rhabRidgeAddRmFomcVsHarAllPct\% (ridge) to \rhabXgbAddRmFomcVsHarAllPct\% (XGBoost); fitted
+by OLS it lowers it by \rhabOlsAddRmFomcVsHarAllPct\% ($\DM = \rhabOlsAddRmFomcVsHarAllDm$), \rhabOlsAddRmFomcVsHarEvPct\%
+on statement days and an insignificant \rhabOlsAddRmFomcVsHarOrdPct\% on ordinary days ($p = \rhabOlsAddRmFomcVsHarOrdP$).
 
 \paragraph{Alternative data on its live window.}  Panel~E scores the late-starting groups only on the bars on which
 their value averages are live.  There the gains are small: about one percent for the trees from the VIX

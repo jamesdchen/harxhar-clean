@@ -8,6 +8,7 @@ An arm is a list of column names of a design cache:
   har       the HAR benchmark set (12 columns: har_ma_k, DOW_0 .. DOW_4, hour), the template
   lo_<g>    the full set without group g's columns (a series' 6 value and 6 availability averages)
   add_<g>   the HAR benchmark set plus group g's columns
+  add_<g1>_<g2>   the HAR benchmark set plus the columns of groups g1 and g2 (COMBO; 2026-10-26 addendum F: add_rm_fomc)
   shar, harq, lhar, sharql   classical HAR extensions (value averages of the new series of bucket abl_new)
 Column order: the cache's own order (har ladder, value ladders, availability ladders, calendar).
 """
@@ -70,6 +71,18 @@ LINEAR_ARMS = GROUP_ARMS + list(CLASSICAL)
 OLS_ARMS = ["add_rm"] + list(CLASSICAL)
 # the forest (RULE.txt section 3): the add arms and lo_rm, subject to the projection
 RF_ARMS = ADD + ["lo_rm", "lo_fomc"]  # 2026-10-26 addendum E: + lo_fomc
+# 2026-10-26 addendum F (the author's request after the channel results): HAR + realized moments + FOMC, every class
+# (ridge / lasso / elastic net, OLS, the three trees), on the FOMC-patched design.  Kept out of the lists above, so the
+# task files those generate stay as they were.
+COMBO = ["add_rm_fomc"]
+
+
+def add_groups(arm: str) -> list[str]:
+    """The groups of an add arm: add_rm -> [rm]; add_rm_fomc -> [rm, fomc] (group keys hold no underscore)."""
+    assert arm.startswith("add_"), arm
+    gs = arm[4:].split("_")
+    assert gs and all(g in GROUPS for g in gs) and len(set(gs)) == len(gs), arm
+    return gs
 
 
 def group_series() -> dict[str, list[str]]:
@@ -116,7 +129,7 @@ def arm_names(arm: str, names: list[str], gs: dict[str, list[str]] | None = None
         assert drop <= set(names), arm
         out = [n for n in names if n not in drop]
     elif arm.startswith("add_"):
-        keep = set(HAR12) | group_cols(arm[4:], gs)
+        keep = set(HAR12).union(*(group_cols(g, gs) for g in add_groups(arm)))
         assert keep <= set(names), arm
         out = [n for n in names if n in keep]
     else:
@@ -144,5 +157,7 @@ def n_cols(arm: str) -> int:
         return 12
     if arm in CLASSICAL:
         return 12 + len(CLASSICAL[arm])
+    if arm.startswith("add_"):
+        return 12 + 12 * sum(N_SERIES[g] for g in add_groups(arm))
     g = arm.split("_", 1)[1]
-    return 564 - 12 * N_SERIES[g] if arm.startswith("lo_") else 12 + 12 * N_SERIES[g]
+    return 564 - 12 * N_SERIES[g]

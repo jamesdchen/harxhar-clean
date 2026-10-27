@@ -83,3 +83,36 @@ pool_s6736p 499356-499358, pool_s6442y 499359-499360, pool_s6240 499361-499369; 
 | 18:00 | UGE 15293203 (the Gold 6140 pool, not started) on user hold; coordinator told, with options (continue on 6240 ~3,550; unstarted pieces to 6442Y / 6736P ~2,900-3,000; stop); default: run inside the allowed 2,500, cancel before the cap if no decision; addendum E (g), (h) |
 | 18:17 | merge 510041 (merge_fix.sh WHAT=trees): T2 over the four gate dirs (Gold 6140 now with the forest: max rel 1.79e-15, as before; runs/gate2_final.json), add_fomc merged for LightGBM (3 pieces, Xeon 6736P), XGBoost (3, 6736P + Gold 6240), forest (9, 6736P + Gold 6240), 33,970 rows each -> trees_wide.parquet (md5 79c8049a...) |
 | 18:36 | fetched -> forecasts/trees_wide_fix.parquet, runs/tree_merge_fix/; scored --design fix with the forest's patched full set (fomcfix ed43a18 results/pooled_rf_skx_2014start_fomcfix_w3000/forecasts.parquet, md5 4dff304d...): 122 forecasts on 33,527 bars, checks PASS (forest full vs HAR -11.3 %, DM -9.74 = fomcfix's); table / macros regenerated, draft on the patched panel, compile-tested |
+| 19:00 | coordinator (author's decision): stop the forest lo_fomc arm; new arm add_rm_fomc (HAR + RM + FOMC) on the patched design, every class |
+| 19:06 | forest lo_fomc STOPPED: 13 Slurm pools cancelled, UGE 15293203 deleted (never started); 678.1 allocated CPU-hours; 52 of 101 pieces begun, 0 finished, 6,322 of 33,970 refits checkpointed (kept, resumable on Gold 6240); RULE.txt addendum E (i) |
+| 19:15 | RULE.txt addendum F (add_rm_fomc; requested by the author after the channel results, not pre-registered): projection <= ~760 CPU-hours (forest <= 492 on Gold 6240) |
+| 19:14 | add_rm_fomc submitted (code fced823 installed on Hoffman2, code/COMMIT; jobids.txt slurm15), all on Hoffman2 Slurm campus (sbatch via hoffman2.oarc.ucla.edu), Gold 6240: prep 510532 (designs_fix/lin/add_rm_fomc; gone from the queue 40 s later -- check logs/prep_rmfomc.510532.log), linear pool 510533 (18 one-thread workers, tasks/linear_rmfomc.txt, after prep; PENDING on Priority at 19:15), tree pools 510534-510542 (9 x 4 workers, tasks/trees_rmfomc.txt: forest 25, XGBoost 5, LightGBM 4 pieces; RUNNING at 19:15 on n1807, n1808, n1810-n1812, n1815-n1818) |
+| 19:17 | generator for the new row / macros (407d874), dry-run on stand-in data passed (81 EVENT days; ORDINARY-day full vs HAR = channels item1 (c) exactly), stand-ins removed |
+
+## State at 19:21 PDT, 26 October (laptop reboot; cluster jobs keep running)
+
+**add_rm_fomc (RULE.txt addendum F), Hoffman2 Slurm campus, staging /u/scratch/j/jamesdc1/abl:**
+
+| job | what | state at 19:15 |
+|---|---|---|
+| 510532 | prep_rmfomc.sh: designs_fix/lin/add_rm_fomc | left the queue (check its log) |
+| 510533 | pool3.sh KIND=lin: 18 walks (gate L's 14 + ridge / lasso / enet / OLS add_rm_fomc) -> runs/lin_rmfomc, claims runs/claims_lin_rmfomc | pending (afterok:510532, Priority) |
+| 510534-510542 | pool3.sh KIND=trees: 34 pieces -> runs/trees_rmfomc, claims runs/claims_trees_rmfomc | running |
+
+Expected: tree pieces 2.2-3.1 h on Gold 6240, so the trees finish ~22:30-23:00; the linear walks ~1 h after 510533 starts.
+
+**Steps to finish** (B=/u/scratch/j/jamesdc1/abl; sbatch on hoffman2.oarc.ucla.edu; S="sbatch --parsable -p campus --qos=campus24"):
+1. Poll: `squeue -u jamesdc1`; `ls -d $B/runs/claims_lin_rmfomc/*/done | wc -l` (18 expected) and `ls -d $B/runs/claims_trees_rmfomc/*/done | wc -l` (34); no `failed`; `python3 $B/tmp/rate_rmfomc_20261026.py` (speed, if uploaded).
+2. Linear merge when 18 are done: `$S -C intel-gold-6240 -c 1 --mem=16G -t 1:00:00 -J abl_mlinrmf --export=ALL,WHAT=lin -o $B/logs/mlinrmf.%j.log $B/code/cluster/ablate/merge_rmfomc.sh` -> gate/gateLF_rmfomc.json (must PASS), runs/lin_rmfomc/linear_wide.parquet (4 columns ridge / lasso / enet / ols|add_rm_fomc).
+3. Tree merge when 34 are done: the same with `-J abl_mtrrmf --export=ALL,WHAT=trees -o $B/logs/mtrrmf.%j.log` -> runs/trees_rmfomc/trees_wide.parquet (lgbm / rf_skx / xgb|add_rm_fomc), runs/trees_rmfomc/forecasts/*.json.
+4. Fetch only the compact files (the laptop's C: is nearly full): runs/lin_rmfomc/linear_wide.parquet -> forecasts/linear_wide_rmfomc.parquet; runs/trees_rmfomc/trees_wide.parquet -> forecasts/trees_wide_rmfomc.parquet; gate/gateLF_rmfomc.json -> gate/; runs/trees_rmfomc/forecasts/*.json -> runs/tree_merge_rmfomc/.
+5. Score: `python experiments/ablate_score.py --design fix` (the forest's patched full set by default) -> scores_fomcfix/ (checks PASS; day_types: 81 EVENT days).
+6. Outputs: `python writeup/make_rehaul_ablations.py` (Panel D row "vs HAR + RM + FOMC", \rhab<Cls>FullVsAddRmFomc{All,Ord,Ev}{Pct,Dm,P}, AddRmFomcVsHar, AddRmFomcVsOlsHar, FullVsOlsAddRmFomc, OlsAddRmFomcVsHar, NEventDays); compile-test; a labelled sentence in writeup/drafts/2026-10-25_ablations.tex; STATUS; commit, push; report full vs HAR+RM+FOMC, HAR+RM+FOMC vs HAR, vs OLS-HAR (all / ORDINARY / EVENT).
+
+**Forest lo_fomc (stopped 19:06, addendum E (i)):** checkpoints in $B/runs/trees_lofomc/pieces/lo_fomc_rf_skx_<i>of101.{parquet,ckpt.json} (52 pieces, 6,322 refits, all Gold 6240), claims $B/runs/claims_rf_lofomc; resumable on Gold 6240 only (pool3.sh KIND=trees TASKS=tasks/trees_rf_lofomc.txt CL=$B/runs/claims_rf_lofomc TOUT=$B/runs/trees_lofomc TFULL=$B/designs/full; a stale claim is taken over by a worker on the same CPU model).  Not to be resumed without a new decision.
+| 19:48 | after the laptop reboot (read-only poll): prep 510532 COMPLETED (19:14:45, designs_fix/lin/add_rm_fomc, 132 columns); linear pool 510533 COMPLETED (19:15-19:31, 18 of 18 walks, 0 failed); tree pools 510534-510542 running, 34 of 34 pieces in progress, 0 failed: forest 6.66 s a refit (arm ~503 CPU-hours, pieces 2.5 h), LightGBM 1.16 (~88), XGBoost 1.27 (~96) on Gold 6240 -- total ~690 CPU-hours; trees expected ~22:00 |
+| 20:04 | linear merge 510755 (merge_rmfomc.sh WHAT=lin): gate LF again PASS (gate/gateLF_rmfomc.json: the 3 patched full-set walks = fomcfix lin_B, the 4 HAR walks = w3000, bit for bit, Gold 6240); 11 (arm, model) walks merged; compact linear_wide.parquet (4 add_rm_fomc walks x 33,970 bars, md5 aced5275...) |
+| 20:21 | fetched -> forecasts/linear_wide_rmfomc.parquet, gate/gateLF_rmfomc.json; trees 0 of 34 done (pieces ~45 % through), expected ~21:45-22:00 |
+| 22:23 | last tree piece done (510540): 34 of 34, 0 failed, 0 take-overs; measured forest 500 CPU-hours (6.62 s a refit), LightGBM 87, XGBoost 94, all Gold 6240 |
+| 22:24 | tree merge 512306 (merge_rmfomc.sh WHAT=trees): T2 as before (LightGBM / XGBoost bit-identical across models; forest 1.79e-15); add_rm_fomc merged for the three trees (4 / 5 / 25 pieces, Gold 6240 only, 33,970 rows each) -> trees_wide.parquet (md5 e1741bd4...); fetched -> forecasts/trees_wide_rmfomc.parquet, runs/tree_merge_rmfomc/ |
+| 22:30 | scored --design fix: 129 forecasts on 33,527 bars, checks PASS; day types 81 EVENT / 2,498 ORDINARY days (1,053 / 32,474 bars); tab:rh_ablation Panel D rows now "\quad vs HAR + RM / + FOMC / + RM + FOMC*" (the * row and note: requested by the author after the results by day type, not pre-specified); \rhab add_rm_fomc macros (generator asserts every macro unique); draft paragraph; compile-tested |

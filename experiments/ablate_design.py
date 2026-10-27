@@ -351,8 +351,11 @@ def cmd_subsets(a) -> int:
     fn = meta(full)["names"]
     nn = meta(new)["names"]
     recs = []
-    recs.append(write_subset(full, AA.arm_names("har", fn, gs), root / "har_sub", "har_sub", "baseline"))
-    for arm in AA.LINEAR_ARMS:
+    # 2026-10-26 addendum F: --arms builds only the listed arms (e.g. add_rm_fomc), the other caches left as they are
+    only = [x for x in a.arms.split(",") if x]
+    if not only or "har_sub" in only:
+        recs.append(write_subset(full, AA.arm_names("har", fn, gs), root / "har_sub", "har_sub", "baseline"))
+    for arm in [x for x in only if x != "har_sub"] or AA.LINEAR_ARMS:
         # 2026-10-25 addendum A (b): a classical arm takes every column the full cache has from it (HAR, calendar,
         # RS+) and only the new series from abl_new.  Was: every column of a classical arm from abl_new.
         cols = AA.arm_names(arm, nn if arm in AA.CLASSICAL else fn, gs)
@@ -360,7 +363,7 @@ def cmd_subsets(a) -> int:
         extra = new if arm in AA.CLASSICAL else None
         recs.append(write_subset(full, cols, root / arm, arm, "all_features", extra=extra))
         say(f"subset {arm}: {len(cols)} columns")
-    pd.DataFrame(recs).to_csv(root / "subsets.csv", index=False)
+    pd.DataFrame(recs).to_csv(root / ("subsets.csv" if not only else f"subsets_{'_'.join(only)}.csv"), index=False)
     return 0
 
 
@@ -445,6 +448,7 @@ def main() -> int:
     ap.add_argument("--out", default="")
     ap.add_argument("--data", default="data")
     ap.add_argument("--rule", default="")
+    ap.add_argument("--arms", default="", help="subsets: only these arms, comma-separated (addendum F)")
     a = ap.parse_args()
     os.chdir(ROOT)
     return {

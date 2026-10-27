@@ -146,7 +146,7 @@ def cmd_walk(a) -> int:
     F = Full(Path(a.full))
     arm, est = a.arm, a.est
     assert est in EST, est
-    assert arm in ("full", "har") or arm in arms_of(est), (arm, est)
+    assert arm in ("full", "har") or arm in arms_of(est) or arm in AA.COMBO, (arm, est)  # addendum F: + COMBO
     rows, tag = select(a, F)
     out = Path(a.out)
     path = piece_path(out, arm, est, tag)

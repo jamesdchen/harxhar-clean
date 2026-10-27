@@ -266,6 +266,14 @@ def cmd_merge(a) -> int:
     f = pd.concat(frames, ignore_index=True)
     Path(a.out).parent.mkdir(parents=True, exist_ok=True)
     f.to_parquet(a.out, index=False)
+    if a.wide:  # 2026-10-26 addendum F: the ablation walks (not gate L's full / har_sub), one pred_adj per model|arm
+        g = f[~f["arm"].isin(["full", "har_sub"]) & (f["date"] >= pd.Timestamp("2014-01-02"))]
+        w = g.pivot(index="date", columns=["model", "arm"], values="pred_adj").sort_index()
+        w.columns = [f"{m}|{x}" for m, x in w.columns]
+        w = w[sorted(w.columns)].reset_index()
+        assert len(w) == 33970 and w.notna().all().all(), (len(w), int(w.isna().sum().sum()))
+        w.to_parquet(a.wide, index=False)
+        say(f"compact: {w.shape[1] - 1} walks x {len(w)} bars -> {a.wide}")
     say(f"merged {len(frames)} (arm, model) walks, {len(f)} rows -> {a.out}; missing {len(missing)}: {missing[:5]}")
     return 0
 
@@ -281,6 +289,7 @@ def main() -> int:
     ap.add_argument("--out", default="")
     ap.add_argument("--cell", default="", help="extra design flags NAME=v,... (addendum D)")
     ap.add_argument("--ref-full", default="", help="gate: the full-set walks' reference parquet (addendum D)")
+    ap.add_argument("--wide", default="", help="merge: also the compact file of the ablation walks (addendum F)")
     a = ap.parse_args()
     return {"tasks": cmd_tasks, "walk1": cmd_walk1, "gate": cmd_gate, "merge": cmd_merge}[a.mode](a)
 
