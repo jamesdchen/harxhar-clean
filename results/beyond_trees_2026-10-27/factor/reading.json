@@ -1,0 +1,27 @@
+{
+ "label": "requested by the author after the beyond-base results; not pre-registered",
+ "span": "ordinary",
+ "models": {
+  "lgbm": {
+   "reading": "DENSE BEYOND A FEW COMPONENTS",
+   "shared_arms": [],
+   "best_short": "pls3",
+   "R_best_short": 0.32190109481632234,
+   "R_pca10": 0.348728668235155,
+   "full_beats_pca10": true,
+   "dm_full_vs_pca10": -4.658899046739539,
+   "p_full_vs_pca10": 3.1790505157252084e-06
+  },
+  "xgb": {
+   "reading": "DENSE BEYOND A FEW COMPONENTS",
+   "shared_arms": [],
+   "best_short": "pls3",
+   "R_best_short": 0.3567868486444399,
+   "R_pca10": 0.3739509610554506,
+   "full_beats_pca10": true,
+   "dm_full_vs_pca10": -4.95794782018918,
+   "p_full_vs_pca10": 7.124168993266883e-07
+  }
+ },
+ "agreement": "agree"
+}

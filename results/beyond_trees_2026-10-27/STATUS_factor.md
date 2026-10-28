@@ -1,0 +1,34 @@
+# Factor test (CARC): status
+
+| when (PDT) | job | what |
+|---|---|---|
+| 10-27 12:34 | 13498235 | maps (8 CPUs, EPYC 7513/7542) + gate GM on 8 days |
+| 10-27 12:34 | 13498236 | gate (GB, T2 inputs, timing) on EPYC 7513, after the maps |
+| 10-27 12:34 | 13498237 | gate on EPYC 7542 |
+| 10-27 12:34 | 13498238 | gate on Xeon 4116 (main, oneweek) |
+| 10-27 12:34 | 13498239 | gate on Xeon E5-2640 v4 (oneweek) |
+
+Staging: CARC /home1/jc_905/beyond_trees (code = git archive 75f547c; runs/factor maps, runs/gate/<model>).
+| 10-27 13:35 | 13499376 | walks, partition main (EPYC 7513 / 7542, Xeon 4116), task lines 1-35 (XGBoost + 4 LightGBM pieces), 8 CPUs, 10 h |
+| 10-27 13:35 | 13499377 | walks, partition oneweek (Xeon E5-2640 v4, Xeon 4116), task lines 36-51 (LightGBM), 8 CPUs, 10 h |
+
+## Gates (all PASS; factor/gates/)
+- maps (job 13498235, EPYC 7513, 6.9 min): 2,643 days; GM on 8 spread days: same active sets, max |difference| of the
+  normalized scores 1.8e-13 (all 13 components).
+- GB: the base arm reproduces lgbm|add_rm_fomc and xgb|add_rm_fomc text-identically on all 6 origins on EPYC 7513,
+  EPYC 7542, Xeon 4116 and Xeon E5-2640 v4 (gate1.json per model).
+- T2: every (class, arm) of the 16 gate pieces bit-identical across the four models (gate2.json).
+- Projection (project.json): 2,150 CPU-hours (slowest model's seconds a refit x 33,970 x 8 x 1.15) <= 2,500: submitted.
+- Submission note: a single 144-line array (2 h pieces) was refused by Slurm (QOSMaxSubmitJobPerUserLimit: the oneweek
+  QOS allows 50 submitted jobs / 208 CPUs a user); the task file was rewritten with 6 h pieces (51 lines, the same
+  rule, tasks_factor.txt) and split across the two partitions.
+
+## Done (10-27 20:25 PDT)
+- 13499376 / 13499377: 51 of 51 pieces COMPLETED, none failed.  Merge (CARC login node, beyond_factor_trees.py merge):
+  every arm a complete piece set, 33,970 rows, true_adj and B equal to FULL's rows; arms with pieces from several CPU
+  models accepted under T2 (gate2.json PASS).  factor/forecasts_wide.parquet (+ .json: pieces and CPU models per arm).
+- Scores and reading: factor/scores.csv, reading.json, tables.md (experiments/beyond_factor_score.py).  ORDINARY days:
+  LightGBM and XGBoost both DENSE BEYOND A FEW COMPONENTS (agree): best k <= 3 = PLS 3, R 0.32 / 0.36, significantly
+  worse than FULL; R(PCA 10) 0.35 / 0.37 < 0.5 and FULL beats BASE + 10 PCs (DM -4.66 / -4.96, p < 1e-5).
+- writeup/generated/rehaul_beyond_factor_table.tex (tab:rh_beyond_factor, 14 arms) and rehaul_beyond_factor_numbers.tex
+  (350 \rhbyF macros; no name shared with the linear version's \rhbyFL macros).

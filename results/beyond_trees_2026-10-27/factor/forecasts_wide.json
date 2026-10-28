@@ -1,0 +1,122 @@
+{
+ "lgbm|pca1": {
+  "pieces": 3,
+  "rows": 33970,
+  "cpus": [
+   "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz",
+   "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+  ],
+  "maps_md5": "351b253b07a3a2d2d43ac91ca7ab1467"
+ },
+ "lgbm|pca2": {
+  "pieces": 3,
+  "rows": 33970,
+  "cpus": [
+   "AMD EPYC 7513 32-Core Processor",
+   "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+  ],
+  "maps_md5": "351b253b07a3a2d2d43ac91ca7ab1467"
+ },
+ "lgbm|pca3": {
+  "pieces": 3,
+  "rows": 33970,
+  "cpus": [
+   "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+  ],
+  "maps_md5": "351b253b07a3a2d2d43ac91ca7ab1467"
+ },
+ "lgbm|pca5": {
+  "pieces": 3,
+  "rows": 33970,
+  "cpus": [
+   "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+  ],
+  "maps_md5": "351b253b07a3a2d2d43ac91ca7ab1467"
+ },
+ "lgbm|pca10": {
+  "pieces": 3,
+  "rows": 33970,
+  "cpus": [
+   "AMD EPYC 7513 32-Core Processor",
+   "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+  ],
+  "maps_md5": "351b253b07a3a2d2d43ac91ca7ab1467"
+ },
+ "lgbm|pls1": {
+  "pieces": 3,
+  "rows": 33970,
+  "cpus": [
+   "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz"
+  ],
+  "maps_md5": "351b253b07a3a2d2d43ac91ca7ab1467"
+ },
+ "lgbm|pls3": {
+  "pieces": 3,
+  "rows": 33970,
+  "cpus": [
+   "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+  ],
+  "maps_md5": "351b253b07a3a2d2d43ac91ca7ab1467"
+ },
+ "xgb|pca1": {
+  "pieces": 6,
+  "rows": 33970,
+  "cpus": [
+   "AMD EPYC 7513 32-Core Processor",
+   "AMD EPYC 7542 32-Core Processor",
+   "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+  ],
+  "maps_md5": "351b253b07a3a2d2d43ac91ca7ab1467"
+ },
+ "xgb|pca2": {
+  "pieces": 4,
+  "rows": 33970,
+  "cpus": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "maps_md5": "351b253b07a3a2d2d43ac91ca7ab1467"
+ },
+ "xgb|pca3": {
+  "pieces": 4,
+  "rows": 33970,
+  "cpus": [
+   "AMD EPYC 7513 32-Core Processor",
+   "AMD EPYC 7542 32-Core Processor",
+   "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+  ],
+  "maps_md5": "351b253b07a3a2d2d43ac91ca7ab1467"
+ },
+ "xgb|pca5": {
+  "pieces": 4,
+  "rows": 33970,
+  "cpus": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "maps_md5": "351b253b07a3a2d2d43ac91ca7ab1467"
+ },
+ "xgb|pca10": {
+  "pieces": 4,
+  "rows": 33970,
+  "cpus": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "maps_md5": "351b253b07a3a2d2d43ac91ca7ab1467"
+ },
+ "xgb|pls1": {
+  "pieces": 4,
+  "rows": 33970,
+  "cpus": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "maps_md5": "351b253b07a3a2d2d43ac91ca7ab1467"
+ },
+ "xgb|pls3": {
+  "pieces": 4,
+  "rows": 33970,
+  "cpus": [
+   "AMD EPYC 7513 32-Core Processor",
+   "Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz"
+  ],
+  "maps_md5": "351b253b07a3a2d2d43ac91ca7ab1467"
+ }
+}
