@@ -254,6 +254,7 @@ def main() -> int:
         mac("TreeFomcGainShareMin", fmt(min(tree_share), 0), "trees: add-FOMC change / full-set change, %, lowest")
     )
     lines.append(mac("TreeFomcGainShareMax", fmt(max(tree_share), 0), "trees: the same, highest"))
+    lines += consolidated_macros(q, dq, have)
     best = min(
         ("add_rm", "shar", "harq", "lhar", "sharql"),
         key=lambda b: q.loc[("ols", b, "all"), "qlike"] if ("ols", b, "all") in q.index else np.inf,
@@ -397,6 +398,66 @@ def beyond_macros(q, dq) -> list[str]:
                         "(iii) sum of the six / full vs base" + ("" if sig else " (full vs base not significant)"),
                     )
                 )
+    return out
+
+
+TREE = ("rf", "lgbm", "xgb")
+
+
+def consolidated_macros(q, dq, have: set) -> list[str]:
+    """2026-10-27 (author: consolidated Section 6.2), every bar: (1) the base share 100 (L_har - L_base) /
+    (L_har - L_full), base = HAR + RM + FOMC, L_har = the class's own HAR (the reference of \\rhab<C>FullAllPct and
+    \\rhab<C>AddRmFomcVsHarAllPct), by class and its ranges; (2) the smallest p-value of the linear full sets against
+    their own base; (3) Panel A of tab:rh_ablation: the ranges of the FOMC and RM removals over the classes with the
+    row, the smallest RM-removal DM, and the largest absolute change from removing any other group."""
+    sp = "all"
+    out = [
+        "% 2026-10-27 (author: consolidated Section 6.2), every bar.  <C>BaseShareAll = 100 (L_har - L_base) /",
+        "% (L_har - L_full), base = HAR + RM + FOMC, L_har = own HAR (the reference of <C>FullAllPct and",
+        "% <C>AddRmFomcVsHarAllPct; above 100: the full set worse than the base); PMin: over ridge, lasso, enet;",
+        "% Lo*: Panel A of tab:rh_ablation (removal vs the full set, as tabulated) over the classes with the row;",
+        "% LoOtherAllMaxAbs: the largest |% change| from removing any group other than RM and FOMC, any class.",
+    ]
+    share: dict[str, float] = {}
+    for c in CLS[1:]:
+        assert ref_arm("full", c, have) == "har", c  # combo_macros: AddRmFomcVsHar is against (c, "har") as well
+        lr, lb, lf = (q.loc[(c, a, sp), "qlike"] for a in ("har", COMBO, "full"))
+        share[c] = 100.0 * (lr - lb) / (lr - lf)
+        out.append(mac(f"{CLS_TEX[c]}BaseShareAll", fmt(share[c], 0), "% of the full set's gain over own HAR in base"))
+    for nm, cs in (("Lin", LIN), ("Tree", TREE), ("", tuple(share))):
+        v = [share[c] for c in cs]
+        out.append(mac(f"BaseShare{nm}Min", fmt(min(v), 0), f"lowest base share over {', '.join(cs)}"))
+        out.append(mac(f"BaseShare{nm}Max", fmt(max(v), 0), f"highest base share over {', '.join(cs)}"))
+    for s, st in (("all", "All"), ("ord", "Ord")):
+        ps = [dq.loc[(c, COMBO, c, "full", s), "p"] for c in LIN]
+        out.append(mac(f"LinFullVsAddRmFomc{st}PMin", fmt_p(min(ps)), f"smallest p, linear full vs own base, {s}"))
+
+    def panel_a(g: str) -> dict[str, tuple[float, float]]:
+        # (class -> (% change, DM)) of lo_g against its Panel A reference (ref_arm: full, or full_pre for PRE_TREE)
+        res = {}
+        for c in CLS:
+            a = f"lo_{g}"
+            r = ref_arm(a, c, have)
+            if (c, a) not in have or (c, a, sp) not in q.index or (c, r, sp) not in q.index:
+                continue
+            pc = 100.0 * (q.loc[(c, a, sp), "qlike"] / q.loc[(c, r, sp), "qlike"] - 1.0)
+            k = (c, a, c, r, sp)
+            res[c] = (pc, dq.loc[k, "dm"] if k in dq.index else np.nan)
+        return res
+
+    for g in ("fomc", "rm"):
+        pa = panel_a(g)
+        assert pa, g
+        pcs = [x[0] for x in pa.values()]
+        out.append(mac(f"Lo{G_TEX[g]}AllPctMin", fmt(min(pcs), 1), f"lowest Panel A {g} removal %, {', '.join(pa)}"))
+        out.append(mac(f"Lo{G_TEX[g]}AllPctMax", fmt(max(pcs), 1), f"highest Panel A {g} removal %, {', '.join(pa)}"))
+        if g == "rm":
+            dms = [x[1] for x in pa.values()]
+            assert not any(np.isnan(dms)), dms
+            out.append(mac("LoRmAllDmMin", fmt(min(dms), 2), f"smallest DM of the rm removals, {', '.join(pa)}"))
+    other = [abs(x[0]) for g in AA.GROUPS if g not in ("rm", "fomc") for x in panel_a(g).values()]
+    assert other
+    out.append(mac("LoOtherAllMaxAbs", fmt(max(other), 1), "largest |%| removing a group other than rm, fomc"))
     return out
 
 

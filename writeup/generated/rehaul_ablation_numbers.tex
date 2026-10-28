@@ -4417,8 +4417,33 @@
 \newcommand{\rhabNClassesAddRm}{six}  % classes with an add_rm arm
 \newcommand{\rhabNClassesBeatAddRm}{six}  % full set beats its own add_rm, DM p < 0.05
 \newcommand{\rhabNClassesBeatAddRmClose}{none}  % 16:00: full set beats its own add_rm, DM p < 0.05
-\newcommand{\rhabTreeFomcGainShareMin}{64}  % trees: add-FOMC change / full-set change, %, lowest
+\newcommand{\rhabTreeFomcGainShareMin}{65}  % trees: add-FOMC change / full-set change, %, lowest
 \newcommand{\rhabTreeFomcGainShareMax}{68}  % trees: the same, highest
+% 2026-10-27 (author: consolidated Section 6.2), every bar.  <C>BaseShareAll = 100 (L_har - L_base) /
+% (L_har - L_full), base = HAR + RM + FOMC, L_har = own HAR (the reference of <C>FullAllPct and
+% <C>AddRmFomcVsHarAllPct; above 100: the full set worse than the base); PMin: over ridge, lasso, enet;
+% Lo*: Panel A of tab:rh_ablation (removal vs the full set, as tabulated) over the classes with the row;
+% LoOtherAllMaxAbs: the largest |% change| from removing any group other than RM and FOMC, any class.
+\newcommand{\rhabRidgeBaseShareAll}{101}  % % of the full set's gain over own HAR in base
+\newcommand{\rhabLassoBaseShareAll}{94}  % % of the full set's gain over own HAR in base
+\newcommand{\rhabEnetBaseShareAll}{91}  % % of the full set's gain over own HAR in base
+\newcommand{\rhabLgbmBaseShareAll}{90}  % % of the full set's gain over own HAR in base
+\newcommand{\rhabXgbBaseShareAll}{89}  % % of the full set's gain over own HAR in base
+\newcommand{\rhabRfBaseShareAll}{96}  % % of the full set's gain over own HAR in base
+\newcommand{\rhabBaseShareLinMin}{91}  % lowest base share over ridge, lasso, enet
+\newcommand{\rhabBaseShareLinMax}{101}  % highest base share over ridge, lasso, enet
+\newcommand{\rhabBaseShareTreeMin}{89}  % lowest base share over rf, lgbm, xgb
+\newcommand{\rhabBaseShareTreeMax}{96}  % highest base share over rf, lgbm, xgb
+\newcommand{\rhabBaseShareMin}{89}  % lowest base share over ridge, lasso, enet, lgbm, xgb, rf
+\newcommand{\rhabBaseShareMax}{101}  % highest base share over ridge, lasso, enet, lgbm, xgb, rf
+\newcommand{\rhabLinFullVsAddRmFomcAllPMin}{0.161}  % smallest p, linear full vs own base, all
+\newcommand{\rhabLinFullVsAddRmFomcOrdPMin}{0.194}  % smallest p, linear full vs own base, ord
+\newcommand{\rhabLoFomcAllPctMin}{3.1}  % lowest Panel A fomc removal %, ridge, lasso, enet, lgbm, xgb
+\newcommand{\rhabLoFomcAllPctMax}{10.3}  % highest Panel A fomc removal %, ridge, lasso, enet, lgbm, xgb
+\newcommand{\rhabLoRmAllPctMin}{1.5}  % lowest Panel A rm removal %, ridge, lasso, enet, lgbm, xgb, rf
+\newcommand{\rhabLoRmAllPctMax}{2.0}  % highest Panel A rm removal %, ridge, lasso, enet, lgbm, xgb, rf
+\newcommand{\rhabLoRmAllDmMin}{2.58}  % smallest DM of the rm removals, ridge, lasso, enet, lgbm, xgb, rf
+\newcommand{\rhabLoOtherAllMaxAbs}{0.5}  % largest |%| removing a group other than rm, fomc
 \newcommand{\rhabBestOlsBench}{SHAR + HARQ + LHAR}  % lowest QLIKE OLS augmented HAR
 \newcommand{\rhabLiveAttnFirst}{23~March 2009}  % first print stocktwits_attention
 \newcommand{\rhabLiveAttnLast}{30~April 2024}  % last print stocktwits_attention

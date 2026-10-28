@@ -8,6 +8,10 @@
 % rehaul_close_accuracy_numbers (\rhca), rehaul_ablation_numbers (\rhab) and rehaul_mcs_numbers (\rhmcs) in the
 % preamble once FRONT adds them, else by the guarded loads below (also at the top of 06_results.tex).
 % Floats: Table tab:rh_calibration and Figure fig:rh_calibration (writeup/make_rehaul_close_accuracy.py).
+% 2026-10-27 (coordinator): also rehaul_beyond_ladder_numbers (\rhbyL) and rehaul_beyond_factor_numbers (\rhbyF), by
+% the guarded loads below (also at the top of Section 6.2), and Tables tab:rh_ablation_beyond
+% (writeup/make_rehaul_ablations.py), tab:rh_beyond_ladder (make_rehaul_beyond_ladder.py) and tab:rh_beyond_factor
+% (make_rehaul_beyond_factor.py) in Appendix app:rh_results_beyond.
 % Audit fixes made here (scratchpad audit_2026-10-25.md): results-1 / fidelity-6 (T_oos and T_close, one span per
 % symbol, and the lag of each), results-21 (no model-set clauses; one statement of the training scheme), numbers-12 (why
 % T_close starts in 2020), numbers-14 (the subperiod day counts), design-10 / fidelity-2 (the trees' configurations were
@@ -16,16 +20,21 @@
 \ifdefined\rhcaNdaysSpan\else\input{generated/rehaul_close_accuracy_numbers}\fi
 \ifdefined\rhabNClassesBeatAddRm\else\input{generated/rehaul_ablation_numbers}\fi
 \ifdefined\rhmcsNModels\else\input{generated/rehaul_mcs_numbers}\fi
+\ifdefined\rhbyLXgbReading\else\input{generated/rehaul_beyond_ladder_numbers}\fi
+\ifdefined\rhbyFXgbReading\else\input{generated/rehaul_beyond_factor_numbers}\fi
 
 \section{Additional results on forecast accuracy}
 \label{app:rh_results}
 % 2026-10-26 (integration, JFEc; coordinator, author requirement): bullet structure (nested itemize, bold-lead items),
 % as the paper was written before this pass; the prose of this pass converted item by item, content unchanged.
+% 2026-10-27 (coordinator): the follow-up tests beyond HAR + RM + FOMC (app:rh_results_beyond) added to the contents.
+% Was: "... the design of the ablations of Table~\ref{tab:rh_ablation}, and the comparison of the pooled models with
+% the closing-interval HAR benchmark."
 \begin{itemize}
 \item \textbf{Contents.} The details of Section~\ref{sec:rh_results}: the estimation sample and spans, the subperiods
   of Table~\ref{tab:rh_oos}, the calibration diagnostics behind the divergence of QLIKE and squared-error loss, the
-  design of the ablations of Table~\ref{tab:rh_ablation}, and the comparison of the pooled models with the
-  closing-interval HAR benchmark.
+  design of the ablations of Table~\ref{tab:rh_ablation}, the follow-up tests beyond HAR\,+\,RM\,+\,FOMC, and the
+  comparison of the pooled models with the closing-interval HAR benchmark.
 \end{itemize}
 
 % ---------------------------------------------------------------------------------------------------------------------
@@ -266,6 +275,58 @@
     their value averages are live.
   \end{itemize}
 \end{itemize}
+
+% ---------------------------------------------------------------------------------------------------------------------
+\subsection{Predictor-group ablations: beyond HAR, realized moments and the FOMC calendar}
+\label{app:rh_results_beyond}
+% 2026-10-27 (coordinator, author request): the follow-up tests beyond HAR + RM + FOMC, cited from Section 6.2
+% (sec:rh_results_ablation, "What remains"). Rules: results/ablations_2014start_w3000/RULE.txt addendum G
+% (tab:rh_ablation_beyond) and results/beyond_trees_2026-10-27/RULE.txt sections 1-2 (tab:rh_beyond_factor,
+% tab:rh_beyond_ladder), each written before its runs were scored. Backing of the words that are not macros:
+% "each remaining group ... lowers": \rhab{Lgbm,Xgb}AddRmFomc{Ew,Vw,Liq,Iv,Sent,Vd}{All,Ord}Pct all negative (Panel A);
+% "the groups overlap": \rhab{Lgbm,Xgb}BeyondRatioOrd > 1; "for both trees": \rhbyFAgreement = agree. No macro in a
+% loaded file for the base's column count (132; \rhbyFLNBase is in the unwired linear factor file) or for the factor
+% test's reading thresholds (RULE.txt section 1); the table notes print the count, not the thresholds.
+\begin{itemize}
+\item \textbf{Design.} Requested by the author after the results by day type and against HAR\,+\,RM\,+\,FOMC
+  (Table~\ref{tab:rh_ablation}, Panel~D), not part of the pre-specified design; the design and reading rule of each
+  test were fixed before it was scored (the table notes state the designs and the readings).
+  \begin{itemize}
+  \item Base: HAR\,+\,RM\,+\,FOMC, the HAR benchmark set with the futures' realized moments and the FOMC calendar. The
+    remaining groups are the equal- and value-weighted constituent markets, liquidity, implied volatility, sentiment
+    and volatility demand.
+  \item The FOMC-patched design of Table~\ref{tab:rh_ablation}, with the full set's frozen hyperparameters,
+    re-estimated at every bar.
+  \item Primary span: ordinary days, the trading days without a scheduled FOMC statement.
+  \end{itemize}
+\item \textbf{By group} (Table~\ref{tab:rh_ablation_beyond}). Each remaining group, added alone to the base, lowers the
+  loss of LightGBM and XGBoost (Panel~A). On ordinary days the six one-group gains sum to \rhabLgbmBeyondRatioOrd{}
+  (LightGBM) and \rhabXgbBeyondRatioOrd{} (XGBoost) times the full set's gain over the base (row ``Sum of the six
+  rows''): the groups overlap.
+\item \textbf{How many series} (Table~\ref{tab:rh_beyond_ladder}). Each tree is refitted on the base plus its own top
+  $k$ remaining series, ranked on its \rhldRankYear{} pre-sample fit. The top five recover shares of
+  \rhbyLLgbmKFiveOrdR{} (LightGBM) and \rhbyLXgbKFiveOrdR{} (XGBoost) of the full set's ordinary-day gain over the
+  base, and LightGBM's top series alone \rhbyLLgbmKOneOrdR. The reading fixed before scoring is ``\rhbyLXgbReading''
+  for XGBoost and ``\rhbyLLgbmReading'' for LightGBM.
+\item \textbf{Not a common factor} (Table~\ref{tab:rh_beyond_factor}). The six groups are replaced by a few components
+  of their series' value averages, with loadings re-estimated once a trading day on the rolling window. Three
+  partial-least-squares components recover \rhbyFLgbmPlsThreeOrdR{} (LightGBM) and \rhbyFXgbPlsThreeOrdR{} (XGBoost)
+  of the ordinary-day gain, ten principal components \rhbyFLgbmPcaTenOrdR{} and \rhbyFXgbPcaTenOrdR; the reading
+  fixed before scoring is ``\rhbyFLgbmReading'' for both trees. Together with the ladder: the remaining gain sits in a
+  few specific series, not in a few components common to the six groups, although the component block holds the
+  series' value averages only, whereas the ladder's rungs also carry their availability shares.
+\item \textbf{The linear models.} They have no gain beyond the base to decompose: against HAR\,+\,RM\,+\,FOMC the full
+  set changes the ordinary-day loss of the ridge, lasso and elastic net by \rhabRidgeFullVsAddRmFomcOrdPct,
+  \rhabLassoFullVsAddRmFomcOrdPct{} and \rhabEnetFullVsAddRmFomcOrdPct\%, none significantly
+  ($p \geq{}$\rhabLinFullVsAddRmFomcOrdPMin).
+\end{itemize}
+% 2026-10-27 (coordinator): the linear factor test (tab:rh_beyond_factor_lin, generated/rehaul_beyond_factor_lin_*.tex,
+% eddf391) is not wired: its R compares the penalized full set with OLS on the base, and that gap is mostly
+% penalization of the base columns, not the six groups (results/beyond_trees_2026-10-27/linear/ADDENDUM_pen_split.md,
+% d7e3b58).
+\input{generated/rehaul_ablation_beyond_table}
+\input{generated/rehaul_beyond_ladder_table}
+\input{generated/rehaul_beyond_factor_table}
 
 % ---------------------------------------------------------------------------------------------------------------------
 \subsection{Model classes and the closing-interval HAR benchmark}
