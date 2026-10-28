@@ -22,3 +22,13 @@ Staging: CARC /home1/jc_905/beyond_trees (code = git archive 75f547c; runs/facto
 - Submission note: a single 144-line array (2 h pieces) was refused by Slurm (QOSMaxSubmitJobPerUserLimit: the oneweek
   QOS allows 50 submitted jobs / 208 CPUs a user); the task file was rewritten with 6 h pieces (51 lines, the same
   rule, tasks_factor.txt) and split across the two partitions.
+
+## Done (10-27 20:25 PDT)
+- 13499376 / 13499377: 51 of 51 pieces COMPLETED, none failed.  Merge (CARC login node, beyond_factor_trees.py merge):
+  every arm a complete piece set, 33,970 rows, true_adj and B equal to FULL's rows; arms with pieces from several CPU
+  models accepted under T2 (gate2.json PASS).  factor/forecasts_wide.parquet (+ .json: pieces and CPU models per arm).
+- Scores and reading: factor/scores.csv, reading.json, tables.md (experiments/beyond_factor_score.py).  ORDINARY days:
+  LightGBM and XGBoost both DENSE BEYOND A FEW COMPONENTS (agree): best k <= 3 = PLS 3, R 0.32 / 0.36, significantly
+  worse than FULL; R(PCA 10) 0.35 / 0.37 < 0.5 and FULL beats BASE + 10 PCs (DM -4.66 / -4.96, p < 1e-5).
+- writeup/generated/rehaul_beyond_factor_table.tex (tab:rh_beyond_factor, 14 arms) and rehaul_beyond_factor_numbers.tex
+  (350 \rhbyF macros; no name shared with the linear version's \rhbyFL macros).
