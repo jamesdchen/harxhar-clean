@@ -36,18 +36,26 @@
 
 \subsection{Which predictors carry the gain?}
 \label{sec:rh_results_ablation}
+\ifdefined\rhbyLXgbReading\else\input{generated/rehaul_beyond_ladder_numbers}\fi
+\ifdefined\rhbyFXgbReading\else\input{generated/rehaul_beyond_factor_numbers}\fi
 \begin{itemize}
+\item \textbf{Two groups carry the gain.} The FOMC calendar and the futures' realized moments, added to the HAR
+  benchmark set, deliver at least \rhabBaseShareMin\% of every class's every-bar gain from the full set. What remains is
+  small, only the tree ensembles capture it, and a few series carry it. How much a model uses a series is a poor guide
+  to these gains (Section~\ref{sec:rh_fi}).
 \item \textbf{Design} (Table~\ref{tab:rh_ablation}; Appendix~\ref{app:rh_results_ablation}). The design of
   Table~\ref{tab:rh_oos}, including the full set's frozen hyperparameters, with only the columns changed:
-\item \textbf{The gain survives an augmented HAR.} The futures' realized moments, computed from the same one-minute
-  returns that define the target, are the natural augmented HAR.
-\item \textbf{Two groups carry it.} Removing a group from the full set (Panel~A) raises the loss materially for two
-  groups only; the removal of any other group changes the loss by less.
-\item \textbf{Alternative data on their live windows.} The implied-volatility, StockTwits and volatility-demand series
-  start after the data and enter as zero until the rolling window holds \rhorWindowDays{} trading days of their
-  history (Section~\ref{sec:rh_predictors}), so over most of the span the rows of Panels~A and~B measure these groups
-  through their availability shares. Panel~E scores them only on the bars on which their values are live, and the
-  gains remain small; Section~\ref{sec:rh_fi} turns to how much the models use these series.
+\item \textbf{Not an augmented HAR.} The futures' realized moments, computed from the same one-minute returns that
+  define the target, are the natural augmented HAR. Added to the HAR benchmark set they lower the loss in every class
+  (Panel~B; \rhabOlsAddRmAllPct\% for the OLS), by about as much as the three classical extensions estimated together
+  (\rhabOlsSharqlAllPct\%; Panel~C). Yet the full set is significantly more accurate than the HAR benchmark set plus
+  the realized moments in \rhabNClassesBeatAddRm{} of the \rhabNClassesAddRm{} classes (Panel~D).
+\item \textbf{The FOMC calendar and the realized moments} (Panels~A, B and~D).
+\item \textbf{What remains} (Panel~D, last row; Appendix~\ref{app:rh_results_beyond}).
+\item \textbf{Alternative data on their live windows} (Panel~E). The implied-volatility, StockTwits and
+  volatility-demand series start after the data and enter as zero until the rolling window holds \rhorWindowDays{}
+  trading days of their history (Section~\ref{sec:rh_predictors}), so over most of the span Panels~A and~B measure
+  them through their availability shares. On the bars on which their values are live the gains remain small:
 \end{itemize}
 
 
