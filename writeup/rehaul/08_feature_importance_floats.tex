@@ -19,8 +19,27 @@
 % feature-count ladder (fig:rh_ladder, generated/rehaul_ladder_fig.tex, written by NUMBERS from results/ladder_2026-10-26;
 % pre-patch FOMC design) and the late-starting series by year. The other pooled floats moved with their text to the
 % online appendix, rehaul/A_fi.tex.
+% 2026-10-28 (v2 of Sections 6-7, author approved preliminarily; drafts/MAP_06_07.md, "Floats and page budget"): the
+% main-text floats of Section 7 ("Which predictors carry the gain?", sec:rh_fi) are three tables, in the order the
+% section cites them: the predictor groups by day type (tab:rh_channels_abl) and the lasso against the dense
+% penalties with the feature-count ladder by day type (tab:rh_channels_sparse), both writeup/make_rehaul_channels.py
+% on results/channels_2026-10-26 (RULE.txt item 3), and the factor-augmented HAR (tab:rh_factor,
+% writeup/make_rehaul_factor.py, RULE.txt item 4). Each file loads its number file guarded
+% (generated/rehaul_channels_numbers.tex, \rhch...; generated/rehaul_factor_numbers.tex, \rhfa...); neither is in
+% the preamble of paper_rehaul.tex. The factor test's recovery figure (fig:rh_factor) is in the appendix
+% (rehaul/A_results.tex, app:rh_channels); the ablation table (tab:rh_ablation) stays in 06_results_floats.tex.
+% Was (2026-10-26): "the main-text floats of Section sec:rh_fi are three: the shares table (what the models use), the
+% feature-count ladder ... and the late-starting series by year."
+% 2026-10-28 (coordinator, v2): the three inputs moved into 08_feature_importance.tex, after the section's opening
+% bullets, so the tables print within Section 7 (input here, after the whole section, they landed after Section 8
+% began). Was:
+% \input{generated/rehaul_channels_ablation_table}
+% \input{generated/rehaul_channels_sparsity_table}
+% \input{generated/rehaul_factor_table}
 % Shares by category and class, trees (mean |SHAP|) beside the linear models (|gamma|), D with intervals, concentration
-\input{generated/rehaul_fip_shares}
+% 2026-10-28 (v2 of Sections 6-7, author approved preliminarily): moved to Appendix app:rh_fi_rank (rehaul/A_fi.tex),
+% with the text "What the models use"; Section 7 cites it from "Use is not accuracy" (sec:rh_fi_use). Was:
+% \input{generated/rehaul_fip_shares}
 % 2026-10-26 (integration, JFEc): moved -- \input{generated/rehaul_fip_nonstd} (tab:rh_fip_nonstd) -> rehaul/A_fi.tex, app:rh_fi_rank.
 % 2026-10-26 (integration, JFEc): moved -- \input{generated/rehaul_fip_fig_rank} (fig:rh_fip_rank) -> rehaul/A_fi.tex, app:rh_fi_rank.
 % 2026-10-26 (integration, JFEc): moved -- \input{generated/rehaul_fip_fig_time} (fig:rh_fip_time) -> rehaul/A_fi.tex, app:rh_fi_rank.

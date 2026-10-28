@@ -18,7 +18,7 @@ Scored set: Table 1's 33,527 bars on 2,579 days (13 a day); EVENT = 81 scheduled
 | linear ablation arms (pre-patch) | worktree `results/ablations_2014start_w3000/forecasts/linear_wide.parquet` | pre-patch | ok | gate (invariance); fallback |
 | tree ablation arms | worktree `results/ablations_2014start_w3000/forecasts/trees_wide.parquet` | invariant (add_g, g!=fomc; lo_fomc) / pre-patch (lo_g, g!=fomc) | ok | 1 (b), 3 (ii) |
 | tree add_fomc (patched) | worktree `results/ablations_2014start_w3000/forecasts/trees_wide_fix.parquet` | patched | ok | items 1 (a), 3 (ii) |
-| forest lo_fomc | -  | - | PENDING | items 1 (b), 3 (ii) |
+| forest lo_fomc | -  | - | NOT RUN (stopped, ablation addendum E (i)) | items 1 (b), 3 (ii) |
 | ablation scores, pre-patch | worktree `results/ablations_2014start_w3000/scores/metrics.csv` | pre-patch | ok | gate (arm QLIKE) |
 | ablation scores, patched | worktree `results/ablations_2014start_w3000/scores_fomcfix/metrics.csv` | patched | ok | gate (arm QLIKE) |
 | feature-count ladder | worktree `results/ladder_2026-10-26/fomcfix/forecasts_wide.parquet` | patched | ok | item 3 (iii) |
@@ -89,7 +89,7 @@ Figure: writeup/figures/rehaul_channels_cum.pdf (daily series: item2_daily_diff.
 | lasso vs ridge | -3.11 (-4.82, p <0.001) | -31.94 (-8.42, p <0.001) | +0.84 (+2.28, p 0.023) |
 | lasso vs enet | -2.44 (-3.49, p <0.001) | -31.76 (-7.69, p <0.001) | +1.60 (+3.35, p <0.001) |
 
-## Item 3 (ii): groups by channel; readings
+## Item 3 (ii): groups by day type; readings
 
 Per class and day type: J = joint gain (HAR loss - full loss); top = the group with the largest add-alone gain and its share of J; sum = add-alone gains summed / J; sig LO = groups whose leave-one-out raises the loss significantly (DM > 0, p < 0.05); conc / red = the CONCENTRATED and REDUNDANT definitions tested each on its own (yes / no / ? undetermined); reading = the RULE's order (CONCENTRATED first); red-first = the same tests with REDUNDANT first (the two definitions can both hold).
 
@@ -176,4 +176,4 @@ Every (class, day type, group) cell with % and DM, MSE alongside: item3ii_ablati
 - Readings: tests in the RULE's order (CONCENTRATED, then REDUNDANT, then MIXED); a class whose reading depends on a pending arm is PENDING; one that depends on an arm not run (the forest's lo_<g> other than rm and fomc) is INCOMPLETE and left out of the model-type vote ('the forest where its arms exist'); if the joint gain is not positive the reading is NO JOINT GAIN.  Model type: the reading held by a strict majority of the eligible classes (2 of 3, or both of LightGBM and XGBoost when the forest is out); SPLIT otherwise.
 - Item 1 agreement is decided before every correction is in when the two known ones already differ by more than 2 pp (then 'disagree'); a correction that is not run makes it n/a unless the other two already differ by more than 2 pp.
 
-Rerun when an input lands: `python writeup/make_rehaul_channels.py` (285J environment, repository root).  The patched tree add_fomc (trees_wide_fix.parquet) and the forest's lo_fomc (trees_wide_rflofomc.parquet) are read as soon as they are in this worktree or committed on the ablations branch.  If the forest's lo_fomc is dropped, run with REHAUL_CHANNELS_RF_LOFOMC_DROPPED=1 (its cells then read 'not run').  REHAUL_CHANNELS_NO_BRANCH=1 reads this worktree only.
+Rerun when an input lands: `python writeup/make_rehaul_channels.py` (285J environment, repository root).  The patched tree add_fomc (trees_wide_fix.parquet) and the forest's lo_fomc (trees_wide_rflofomc.parquet) are read as soon as they are in this worktree or committed on the ablations branch.  The forest's lo_fomc was stopped (ablation addendum E (i)); its cells read 'not run' by default (REHAUL_CHANNELS_RF_LOFOMC_DROPPED=0 restores the pending cells if it is resumed).  REHAUL_CHANNELS_NO_BRANCH=1 reads this worktree only.

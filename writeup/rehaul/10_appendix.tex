@@ -38,10 +38,20 @@
   (Appendix~\ref{app:rh_methods}): the estimators in full, the selection splits, and how the frozen
   hyperparameters were obtained, with checks of them.
 % 2026-10-26 (coordinator): unwrapped \IfFileExists{rehaul/A_results.tex} (the file exists; the flat Overleaf build has no rehaul/ directory, so the wrapper skipped its body there).
+% 2026-10-28 (v2 of Sections 6-7, author approved preliminarily): the two items below now list their subsections,
+% among them the new FOMC statement days and ordinary days (app:rh_channels) and the every-bar feature-count ladder
+% (app:rh_fi_ladder), both cited from Sections 6 and 7. Was: "\item \textbf{Additional results on forecast accuracy}
+% (Appendix~\ref{app:rh_results})." and "\item \textbf{Variable importance: details} (Appendix~\ref{app:rh_sec_fi})."
 \item \textbf{Additional results on forecast accuracy}
-  (Appendix~\ref{app:rh_results}).
+  (Appendix~\ref{app:rh_results}): samples and spans, subperiods, calibration and the squared-error loss, the design
+  of the predictor-group ablations, FOMC statement days and ordinary days, with the rule fixed before the day types
+  were scored (Appendix~\ref{app:rh_channels}), the tests beyond HAR\,+\,RM\,+\,FOMC, and the closing-interval HAR
+  benchmark.
 % 2026-10-26 (coordinator): unwrapped \IfFileExists{rehaul/A_fi.tex} (the file exists; the flat Overleaf build has no rehaul/ directory, so the wrapper skipped its body there).
-\item \textbf{Variable importance: details} (Appendix~\ref{app:rh_sec_fi}).
+\item \textbf{Variable importance: details} (Appendix~\ref{app:rh_sec_fi}): the construction and checks of the
+  attribution, the attribution shares and rankings, the conditional shares, the response shapes and interactions, the
+  window test, the feature-count ladder on every bar (Appendix~\ref{app:rh_fi_ladder}) and the grid of training
+  windows and numbers of series.
 \item \textbf{Economic application: details} (Appendix~\ref{app:rh_econ}): the straddle's sample, quotes and
   execution; the Sharpe ratio and its alternatives; position sizing, compounding and the interval-shift test;
   where the profits come from; market exposure.

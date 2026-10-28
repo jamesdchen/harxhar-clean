@@ -49,6 +49,11 @@ ADDITIONAL, NOT PRE-REGISTERED (coordinator, 2026-10-26, after the first scoring
 NAMES    \\rhch<Class><...>: Class Ridge Lasso Enet Lgbm Xgb Rf; day type Bar (every bar) / Event / Ord; group Rm Liq Ew Vw
          Sent Iv Vd Fomc; Corr{A,B,C} the three corrections of item 1; Pct = % QLIKE change, Dm, P; Lin / Tree the model
          types.  Choices where the RULE is silent: SUMMARY.md, section "Choices".
+PROSE    (2026-10-28, draft v2 of Sections 6-7, MAP_06_07.md "Numbers still needed"; prose_ranges) ranges and extremes
+         from the item 1 / 3 (ii) results: \\rhchCorr{Lin,Tree}Rng, \\rhchEvFomcShare{Lin,Tree}Rng, \\rhchEvLoFomcRng,
+         \\rhchEvOtherMaxShare, \\rhchOrdAddFomc{Lin,Tree}Rng, \\rhchOrdAddRmTreeRng, \\rhchOrdRmShareTreeRng,
+         \\rhchOrdAddOtherTreeRng, \\rhchOrdSumRatio{,Lin,Tree}Rng, \\rhchOrdLoOtherTreeMaxAbs, \\rhchAltLoMaxAbs;
+         magnitudes "a--b" where the sentence gives the direction (\\rhorVsOlsRedTreeRng), signed where it may straddle 0.
 """
 
 from __future__ import annotations
@@ -58,6 +63,7 @@ import json
 import os
 import subprocess
 import sys
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -85,9 +91,10 @@ PM_FROM = (14, 30)  # bar END stamps 14:30 .. 16:00
 BRANCH_ABL = "insurance-selling-2026-09-19-e34-ablations"
 BRANCH_LAD = "insurance-selling-2026-09-19-e34-ladder"
 NO_BRANCH = os.environ.get("REHAUL_CHANNELS_NO_BRANCH", "") == "1"
-# the forest's lo_fomc (ablation addendum E) is over its CPU cap and on hold (2026-10-26 18:00); set to 1 if it is
-# dropped: its cells then read "not run" (--) instead of pending, and the forest leaves the trees' vote where it decides
-RF_LOFOMC_DROPPED = os.environ.get("REHAUL_CHANNELS_RF_LOFOMC_DROPPED", "") == "1"
+# the forest's lo_fomc (ablation addendum E) was STOPPED by the author (2026-10-26 19:06, addendum E (i)): its cells read
+# "not run" (--) and the forest leaves the trees' vote where it decides.  Default since 2026-10-28 (the outputs of
+# a3779cf were made with the variable set to 1); REHAUL_CHANNELS_RF_LOFOMC_DROPPED=0 restores the pending cells.
+RF_LOFOMC_DROPPED = os.environ.get("REHAUL_CHANNELS_RF_LOFOMC_DROPPED", "1") == "1"
 
 LIN = ("ridge", "lasso", "enet")
 TREES = ("lgbm", "xgb", "rf")
@@ -290,6 +297,27 @@ def fmt(x: float, dp: int) -> str:
     return f"{'$-$' if v < 0 else ''}{abs(v):.{dp}f}"
 
 
+def sfmt(x: float, dp: int) -> str:
+    """fmt with an explicit $+$ on a positive value (a range that may straddle zero)."""
+    s = fmt(x, dp)
+    return s if s.startswith("$-$") or float(s) == 0 else f"$+${s}"
+
+
+def rng_txt(vals: list[float], dp: int, signed: bool = False) -> tuple[str, bool]:
+    """A range for the prose; the sentence gives the direction (as \\rhorVsOlsRedTreeRng): magnitudes "a--b" when the
+    values share one sign, else (or with signed=True) "a to b" with signs; one value when both ends print alike.
+    Returns (text, mixed): mixed = an unsigned range whose values have both signs (printed signed instead)."""
+    v = np.asarray(vals, float)
+    assert len(v) and np.isfinite(v).all(), vals
+    mixed = not ((v > 0).all() or (v < 0).all())
+    if signed or mixed:
+        lo, hi = sfmt(v.min(), dp), sfmt(v.max(), dp)
+        return (lo if lo == hi else f"{lo} to {hi}"), mixed and not signed
+    a = np.abs(v)
+    lo, hi = fmt(a.min(), dp), fmt(a.max(), dp)
+    return (lo if lo == hi else f"{lo}--{hi}"), False
+
+
 def fmt_p(p: float) -> str:
     return "\\ensuremath{<}0.001" if p < 0.001 else f"{p:.3f}"
 
@@ -434,14 +462,14 @@ def main() -> None:
     lad_gates = find(lad_dir + "gates.json", BRANCH_LAD)
     assert lad is not None and lad_sc is not None and lad_gates is not None
 
-    def note(name: str, s: Src | None, design: str, use: str) -> None:
+    def note(name: str, s: Src | None, design: str, use: str, missing: str = "PENDING") -> None:
         prov.append(
             dict(
                 input=name,
                 path=s.rel if s else "",
                 source=s.where if s else "",
                 design=design if s else "",
-                status="ok" if s else "PENDING",
+                status="ok" if s else missing,
                 used_for=use,
             )
         )
@@ -458,7 +486,13 @@ def main() -> None:
         "tree ablation arms", a_tree, "invariant (add_g, g!=fomc; lo_fomc) / pre-patch (lo_g, g!=fomc)", "1 (b), 3 (ii)"
     )
     note("tree add_fomc (patched)", a_tree_fix, "patched", "items 1 (a), 3 (ii)")
-    note("forest lo_fomc", a_rf_lofomc, "invariant", "items 1 (b), 3 (ii)")
+    note(
+        "forest lo_fomc",
+        a_rf_lofomc,
+        "invariant",
+        "items 1 (b), 3 (ii)",
+        "NOT RUN (stopped, ablation addendum E (i))" if RF_LOFOMC_DROPPED else "PENDING",
+    )
     note("ablation scores, pre-patch", a_sc_pre, "pre-patch", "gate (arm QLIKE)")
     note("ablation scores, patched", a_sc_fix, "patched", "gate (arm QLIKE)")
     note("feature-count ladder", lad, "patched" if lad_patched else "pre-patch", "item 3 (iii)")
@@ -1105,6 +1139,8 @@ def write_tex(S, C1, agree, SH, B2, P3, A4, RD, LD, gates, PROV, AVAIL, n_ev_bar
                     f"{t} {sp}: classes meeting the {lab} definition (of {len(cs)})",
                 )
 
+    prose_ranges(add, C1, A4, RD)
+
     # ADDITIONAL, NOT PRE-REGISTERED (coordinator, 2026-10-26): \rhchX...
     for c in CLASSES:
         for sp in SPANS:
@@ -1150,7 +1186,7 @@ def write_tex(S, C1, agree, SH, B2, P3, A4, RD, LD, gates, PROV, AVAIL, n_ev_bar
     assert len(set(names)) == len(names), "a macro name twice"
     lines = [
         HEAD,
-        "% \\rhch... macros: the two channels of the pooled gain (results/channels_2026-10-26/RULE.txt items 1-3):",
+        "% \\rhch... macros: the pooled gain by day type (results/channels_2026-10-26/RULE.txt items 1-3):",
         "% FOMC statement days (EVENT) and ordinary days, Table 1's scored bars, the FOMC-patched design of record;",
         "% DM (HLN) on daily average loss, lag 8.  Names in the generator's docstring.",
         "% \\rhchX... = ADDITIONAL, NOT PRE-REGISTERED (coordinator, 2026-10-26, after the first scoring): the full set",
@@ -1164,6 +1200,157 @@ def write_tex(S, C1, agree, SH, B2, P3, A4, RD, LD, gates, PROV, AVAIL, n_ev_bar
     table_corr(C1, agree)
     table_abl(A4, RD, n_ev_bars)
     table_sparse(P3, LD, gates)
+
+
+CONLIQ = ("ew", "vw", "liq")  # the constituents' moments (EW, VW) and liquidity (which holds the order-flow imbalance)
+REST = ("ew", "vw", "liq", "sent", "iv", "vd")  # the groups beyond HAR + RM + FOMC
+ALT = ("sent", "vd", "iv")  # the alternative data: StockTwits (sent), volatility demand, implied volatility
+
+
+def prose_ranges(add: Callable[[str, str, str], None], C1: pd.DataFrame, A4: pd.DataFrame, RD: pd.DataFrame) -> None:
+    """Ranges and extremes for the prose of draft v2 of Sections 6-7 (writeup/rehaul/drafts/MAP_06_07.md, "Numbers
+    still needed"), from the item 1 and item 3 (ii) results above; no new forecast.  % = % QLIKE change; share = an
+    add-alone QLIKE gain as % of the joint gain (full vs HAR) on the same day type.  Magnitudes "a--b" where the
+    sentence gives the direction (rng_txt); a mixed-sign range is printed signed and flagged in its comment."""
+
+    def av(c: str, sp: str, kind: str, g: str = "") -> pd.Series | None:
+        f = A4[(A4.cls == c) & (A4.span == sp) & (A4.kind == kind) & (A4.group == g)]
+        return f.iloc[0] if len(f) and f.iloc[0]["status"] == "ok" else None
+
+    def pct(c: str, sp: str, kind: str, g: str = "") -> float:
+        r = av(c, sp, kind, g)
+        assert r is not None, (c, sp, kind, g)
+        return float(r["pct_qlike"])
+
+    def share(c: str, sp: str, g: str) -> float:
+        a, j = av(c, sp, "add", g), av(c, sp, "joint")
+        assert a is not None and j is not None and j["gain"] > 0, (c, sp, g)
+        return 100.0 * float(a["gain"]) / float(j["gain"])
+
+    def prose(name: str, vals: list[float], dp: int, note: str, signed: bool = False, change: bool = True) -> None:
+        """change: the values are % changes (the comment says which way the printed magnitudes go)."""
+        txt, mixed = rng_txt(vals, dp, signed)
+        v = np.asarray(vals, float)
+        way = "" if signed or mixed or not change else (": increases" if (v > 0).all() else ": reductions")
+        if mixed:
+            say(f"NOTE {name}: values of both signs {np.round(v, 2).tolist()}; printed signed")
+        add(name, txt, note + way + (" [MIXED SIGNS: printed signed]" if mixed else ""))
+
+    def names(cs: tuple[str, ...] | list[str]) -> str:
+        return ", ".join(cs)
+
+    # item 1: the three corrections, by model type
+    corr = C1[(C1.role == "rule") & C1["corr"].isin(["a", "b", "c"])]
+    for grp, cs in (("Lin", LIN), ("Tree", TREES)):
+        f = corr[corr.cls.isin(cs)]
+        ok_ = f[f.status == "ok"]
+        miss = ", ".join(f"{r['cls']} ({r['corr']})" for _, r in f[f.status != "ok"].iterrows())
+        prose(
+            f"Corr{grp}Rng",
+            ok_["pct_qlike"].tolist(),
+            1,
+            f"item 1: % QLIKE change of corrections (a) full vs HAR+FOMC, (b) full w/o FOMC vs HAR, (c) full vs HAR on ORDINARY days, "
+            f"range over {names(cs)} x (a)-(c){'; not run: ' + miss if miss else ''}",
+        )
+    # EVENT days: the FOMC group
+    for grp, cs in (("Lin", LIN), ("Tree", TREES)):
+        prose(
+            f"EvFomcShare{grp}Rng",
+            [share(c, "event", "fomc") for c in cs],
+            0,
+            f"EVENT days: (HAR+FOMC vs HAR) gain as % of (full vs HAR) gain, range over {names(cs)}",
+            change=False,
+        )
+    have = [c for c in CLASSES if av(c, "event", "lo", "fomc") is not None]
+    prose(
+        "EvLoFomcRng",
+        [pct(c, "event", "lo", "fomc") for c in have],
+        1,
+        f"EVENT days: full without FOMC vs full, %, range over the classes with the arm: {names(have)} (not run: "
+        f"{names([c for c in CLASSES if c not in have]) or 'none'}); the arm holds no FOMC column, vs the patched full",
+    )
+    sh_ev, c_ev, g_ev = max((share(c, "event", g), c, g) for c in CLASSES for g in GROUPS if g != "fomc")
+    add(
+        "EvOtherMaxShare",
+        fmt(sh_ev, 0),
+        f"EVENT days: largest add-alone gain of a non-FOMC group, % of the joint gain, over 6 classes x 7 groups "
+        f"({c_ev}, {GNAME[g_ev]})",
+    )
+    # ORDINARY days: FOMC added alone
+    for grp, cs, sg in (("Lin", LIN, False), ("Tree", TREES, True)):
+        prose(
+            f"OrdAddFomc{grp}Rng",
+            [pct(c, "ord", "add", "fomc") for c in cs],
+            1,
+            f"ORDINARY days: HAR+FOMC vs HAR, %, range over {names(cs)}" + (" (signed)" if sg else ""),
+            signed=sg,
+        )
+    # ORDINARY days: the realized moments and the other groups, trees
+    prose(
+        "OrdAddRmTreeRng",
+        [pct(c, "ord", "add", "rm") for c in TREES],
+        1,
+        f"ORDINARY days: HAR+RM vs HAR, %, range over {names(TREES)}",
+    )
+    prose(
+        "OrdRmShareTreeRng",
+        [share(c, "ord", "rm") for c in TREES],
+        0,
+        f"ORDINARY days: (HAR+RM vs HAR) gain as % of (full vs HAR) gain, range over {names(TREES)}",
+        change=False,
+    )
+    prose(
+        "OrdAddOtherTreeRng",
+        [pct(c, "ord", "add", g) for c in TREES for g in CONLIQ],
+        1,
+        f"ORDINARY days: HAR+g vs HAR, %, g = Equal-weighted market, Value-weighted market (the constituents' moments) "
+        f"and Liquidity (holds the constituents' order-flow imbalance; there is no separate order-flow group), range "
+        f"over {names(TREES)} x the 3 groups",
+    )
+    rs = RD[(RD.level == "class") & (RD.span == "ord")].set_index("who")["ratio_sum"]
+    by_type: tuple[tuple[str, tuple[str, ...]], ...] = (("", CLASSES), ("Lin", LIN), ("Tree", TREES))
+    for grp, cls_ in by_type:
+        cs_ = [c for c in cls_ if np.isfinite(rs[c])]
+        prose(
+            f"OrdSumRatio{grp}Rng",
+            [float(rs[c]) for c in cs_],
+            1,
+            f"ORDINARY days: add-alone gains summed over the 8 groups / joint gain, range over {names(cs_)}",
+            change=False,
+        )
+    # leave-one-outs: the groups beyond HAR + RM + FOMC (trees, ORDINARY days) and the alternative data (both day types)
+    lo_ord: list[tuple[float, str, str, str, float]] = []  # (|%|, class, group, design, p)
+    for c in TREES:
+        for g in REST:
+            r = av(c, "ord", "lo", g)
+            if r is not None:
+                lo_ord.append((abs(float(r["pct_qlike"])), c, g, str(r["design"]), float(r["p_qlike"])))
+    x_ord = max(lo_ord)
+    pre = sorted({f"{x[1]} {x[2]}" for x in lo_ord if x[3] == "pre-patch"})
+    add(
+        "OrdLoOtherTreeMaxAbs",
+        fmt(x_ord[0], 1),
+        f"ORDINARY days: largest |full w/o g vs full| % over {names(sorted({x[1] for x in lo_ord}, key=CLASSES.index))} "
+        f"(the forest's arms not run), g = {names(REST)} (non-RM, non-FOMC) ({x_ord[1]} {x_ord[2]}, p {x_ord[4]:.3f})"
+        + (f"; PRE-PATCH arms vs the pre-patch full set: {len(pre)} of {len(lo_ord)}" if pre else ""),
+    )
+    lo_alt: list[tuple[float, str, str, str, str]] = []  # (|%|, class, day type, group, design)
+    for c in CLASSES:
+        for sp in ("event", "ord"):
+            for g in ALT:
+                r = av(c, sp, "lo", g)
+                if r is not None:
+                    lo_alt.append((abs(float(r["pct_qlike"])), c, sp, g, str(r["design"])))
+    x_alt = max(lo_alt)
+    n_pre = sum(x[4] == "pre-patch" for x in lo_alt)
+    add(
+        "AltLoMaxAbs",
+        fmt(x_alt[0], 1),
+        f"largest |full w/o g vs full| %, g = Sentiment (StockTwits), Volatility demand, Implied volatility, over "
+        f"{names(sorted({x[1] for x in lo_alt}, key=CLASSES.index))} and EVENT / ORDINARY days ({x_alt[1]} {x_alt[2]} "
+        f"{GNAME[x_alt[3]]}, {x_alt[4]})"
+        + (f"; PRE-PATCH arms (the trees'): {n_pre} of {len(lo_alt)}" if n_pre else ""),
+    )
 
 
 def rd_tex(r: str, short: bool = False) -> str:
@@ -1281,7 +1468,7 @@ def table_abl(A4: pd.DataFrame, RD: pd.DataFrame, n_ev_bars: int) -> None:
 \scriptsize
 \setlength{{\tabcolsep}}{{1.5pt}}
 \begin{{threeparttable}}
-\caption{{Predictor groups by channel: each group added alone to the HAR benchmark and left out of the full set, on
+\caption{{Predictor groups by day type: each group added alone to the HAR benchmark and left out of the full set, on
   FOMC statement days and on ordinary days (\% change in QLIKE)}}
 \label{{tab:rh_channels_abl}}
 \begin{{tabular*}}{{\linewidth}}{{@{{\extracolsep{{\fill}}}}lrrrrrrrrrrrr@{{}}}}
@@ -1343,7 +1530,7 @@ def table_sparse(P3: pd.DataFrame, LD: pd.DataFrame, gates: dict) -> None:
 \centering
 \footnotesize
 \setlength{{\tabcolsep}}{{2pt}}
-\caption{{Concentrated or spread, by channel: the lasso against the dense penalties, and the share of the full set's
+\caption{{Concentrated or spread, by day type: the lasso against the dense penalties, and the share of the full set's
   gain kept by the top $k$ series}}
 \label{{tab:rh_channels_sparse}}
 \begin{{tabular*}}{{\linewidth}}{{@{{\extracolsep{{\fill}}}}lrrr@{{}}}}
@@ -1621,7 +1808,7 @@ def summary(C1, agree, SH, B2, P3, A4, RD, RDl, RDp, LD, gates, prov, n_ev_bars,
         L.append(f"| lasso vs {b} | " + " | ".join(cells) + " |")
     L += [
         "",
-        "## Item 3 (ii): groups by channel; readings",
+        "## Item 3 (ii): groups by day type; readings",
         "",
         "Per class and day type: J = joint gain (HAR loss - full loss); top = the group with the largest add-alone "
         "gain and its share of J; sum = add-alone gains summed / J; sig LO = groups whose leave-one-out raises the "
@@ -1752,8 +1939,9 @@ def summary(C1, agree, SH, B2, P3, A4, RD, RDl, RDp, LD, gates, prov, n_ev_bars,
         "",
         "Rerun when an input lands: `python writeup/make_rehaul_channels.py` (285J environment, repository root).  "
         "The patched tree add_fomc (trees_wide_fix.parquet) and the forest's lo_fomc (trees_wide_rflofomc.parquet) "
-        "are read as soon as they are in this worktree or committed on the ablations branch.  If the forest's lo_fomc "
-        "is dropped, run with REHAUL_CHANNELS_RF_LOFOMC_DROPPED=1 (its cells then read 'not run').  "
+        "are read as soon as they are in this worktree or committed on the ablations branch.  The forest's lo_fomc was "
+        "stopped (ablation addendum E (i)); its cells read 'not run' by default (REHAUL_CHANNELS_RF_LOFOMC_DROPPED=0 "
+        "restores the pending cells if it is resumed).  "
         "REHAUL_CHANNELS_NO_BRANCH=1 reads this worktree only.",
         "",
     ]

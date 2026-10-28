@@ -1,3 +1,11 @@
+% 2026-10-28 (v2 of Sections 6-7, author approved preliminarily; drafts/MAP_06_07.md, "Floats and page budget"):
+% Section 6 (Results) holds four floats: Table 1 (tab:rh_oos); for Section 6.2 (sec:rh_results_channels) the figure
+% fig:rh_channels and the table tab:rh_channels_corr (writeup/make_rehaul_channels.py); and the ablation table
+% (tab:rh_ablation). The ablation table is input last because v2 cites it first in Section 7 (the reference arm
+% HAR + RM + FOMC, Panel D, and the questions and evidence), after Section 6.2 cites tab:rh_channels_corr; if Section
+% 6.1 comes to cite tab:rh_ablation, move its \input above the channel floats so the tables stay numbered in order of
+% first citation. Was: "Section 6 (Results) holds two floats, Table 1 (tab:rh_oos) and the ablation table
+% (tab:rh_ablation)."
 % 2026-10-26 (integration, JFEc): Section 6 (Results) holds two floats, Table 1 (tab:rh_oos) and the ablation table
 % (tab:rh_ablation). The calibration table and figure of the MSE/QLIKE discussion (tab:rh_calibration,
 % fig:rh_calibration) are in rehaul/A_results.tex; the MCS tables (tab:rh_mcs, tab:rh_mcs_spa) and the closing-bar
@@ -42,6 +50,16 @@
 % Section 6 names; the table notes still say "Newey--West lag 8" (literal; \rhorHacLag exists) and point to
 % Table tab:rh_oos_last30 (closing-interval models, now in Appendix app:rh_closing) -- for NUMBERS.
 \input{generated/rehaul_results_oos}
+
+% ---------------------------------------------------------------- Section 6.2: FOMC statement days and ordinary days
+% 2026-10-28 (v2 of Sections 6-7, author approved preliminarily): added -- the two floats of Section 6.2
+% (sec:rh_results_channels), generator writeup/make_rehaul_channels.py on results/channels_2026-10-26 (RULE.txt items 1
+% and 2): the cumulative QLIKE differential and the differential by bar of the day (fig:rh_channels, figures/
+% rehaul_channels_cum.pdf), and the three corrections (tab:rh_channels_corr). Each file loads
+% generated/rehaul_channels_numbers.tex (guarded; \rhch... macros), which is not in the preamble of paper_rehaul.tex.
+% The day split, its rule and the order of the analyses: Appendix app:rh_channels (rehaul/A_results.tex).
+\input{generated/rehaul_channels_fig}
+\input{generated/rehaul_channels_corrections_table}
 
 % ---------------------------------------------------------------- Ablations and augmented-HAR benchmarks
 % 2026-10-26 (integration, JFEc): added -- predictor-group ablations, the classical HAR extensions (SHAR, HARQ, LHAR)

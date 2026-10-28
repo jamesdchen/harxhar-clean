@@ -22,6 +22,11 @@
 \ifdefined\rhmcsNModels\else\input{generated/rehaul_mcs_numbers}\fi
 \ifdefined\rhbyLXgbReading\else\input{generated/rehaul_beyond_ladder_numbers}\fi
 \ifdefined\rhbyFXgbReading\else\input{generated/rehaul_beyond_factor_numbers}\fi
+% 2026-10-28 (v2 of Sections 6-7, author approved preliminarily): also rehaul_channels_numbers (\rhch...,
+% writeup/make_rehaul_channels.py) and rehaul_factor_numbers (\rhfa..., writeup/make_rehaul_factor.py), neither in the
+% preamble, for Appendix app:rh_channels and its figure fig:rh_factor.
+\ifdefined\rhchNEventDays\else\input{generated/rehaul_channels_numbers}\fi
+\ifdefined\rhfaReading\else\input{generated/rehaul_factor_numbers}\fi
 
 \section{Additional results on forecast accuracy}
 \label{app:rh_results}
@@ -30,11 +35,20 @@
 % 2026-10-27 (coordinator): the follow-up tests beyond HAR + RM + FOMC (app:rh_results_beyond) added to the contents.
 % Was: "... the design of the ablations of Table~\ref{tab:rh_ablation}, and the comparison of the pooled models with
 % the closing-interval HAR benchmark."
+% 2026-10-28 (v2 of Sections 6-7, author approved preliminarily): the split into FOMC statement days and ordinary days
+% (app:rh_channels) added to the contents; the ablations and the tests beyond HAR + RM + FOMC are now Section 7's, so
+% the opening names both sections. Was: "\item \textbf{Contents.} The details of Section~\ref{sec:rh_results}: the
+% estimation sample and spans, the subperiods of Table~\ref{tab:rh_oos}, the calibration diagnostics behind the
+% divergence of QLIKE and squared-error loss, the design of the ablations of Table~\ref{tab:rh_ablation}, the
+% follow-up tests beyond HAR\,+\,RM\,+\,FOMC, and the comparison of the pooled models with the closing-interval HAR
+% benchmark."
 \begin{itemize}
-\item \textbf{Contents.} The details of Section~\ref{sec:rh_results}: the estimation sample and spans, the subperiods
-  of Table~\ref{tab:rh_oos}, the calibration diagnostics behind the divergence of QLIKE and squared-error loss, the
-  design of the ablations of Table~\ref{tab:rh_ablation}, the follow-up tests beyond HAR\,+\,RM\,+\,FOMC, and the
-  comparison of the pooled models with the closing-interval HAR benchmark.
+\item \textbf{Contents.} The details of Section~\ref{sec:rh_results} and of the accuracy evidence of
+  Section~\ref{sec:rh_fi}: the estimation sample and spans, the subperiods of Table~\ref{tab:rh_oos}, the calibration
+  diagnostics behind the divergence of QLIKE and squared-error loss, the design of the ablations of
+  Table~\ref{tab:rh_ablation}, the split into FOMC statement days and ordinary days with the rule fixed before it was
+  scored, the follow-up tests beyond HAR\,+\,RM\,+\,FOMC, and the comparison of the pooled models with the
+  closing-interval HAR benchmark.
 \end{itemize}
 
 % ---------------------------------------------------------------------------------------------------------------------
@@ -275,6 +289,92 @@
     their value averages are live.
   \end{itemize}
 \end{itemize}
+
+% ---------------------------------------------------------------------------------------------------------------------
+% 2026-10-28 (v2 of Sections 6-7, author approved preliminarily; drafts/MAP_06_07.md, open point 4): added -- the day
+% split of Sections 6.2 (sec:rh_results_channels) and 7 (sec:rh_fi), its rule and the order of the analyses. Sources:
+% results/channels_2026-10-26/RULE.txt (committed in 86ee222 on 26 October 2026, before any day-type scoring of the
+% patched forecasts; its DISCLOSURE paragraph is paraphrased in "Order of the analyses", without its exploratory
+% numbers) and SUMMARY.md; results/channels_2026-10-26/factor/SUMMARY.md (RULE section 4); the ablation rule
+% results/ablations_2014start_w3000/RULE.txt, addenda E (i) (the forest's FOMC removal stopped), F (HAR + RM + FOMC),
+% G and I (beyond it; with results/beyond_trees_2026-10-27/RULE.txt). Backing of the words that are not macros: "no
+% other split is used for inference" and "every class and every predictor group is reported" = RULE section 0; the
+% reading thresholds "three-quarters", "more than one and a half times" and "at most one" = RULE item 3 (design
+% constants, in words as in Section 7; no macro holds them); the forest's place in the trees' reading = RULE item 3
+% ("the forest where its arms exist") and SUMMARY.md ("left out of the model-type vote"); "reports where each
+% definition holds" = the generator's REDUNDANT-first column (SUMMARY.md, item 3 ii; \rhch...NConcTest / NRedTest),
+% which is not in the RULE; k = 1, 2, 3, 5, 10, 20 (PCA), 1, 2, 3 (PLS), k <= 3 and R_10 = RULE item 4 design. The
+% coordinator's additional comparison against HAR + RM (\rhchX..., not pre-registered) is not reported in the paper.
+\subsection{FOMC statement days and ordinary days}
+\label{app:rh_channels}
+\begin{itemize}
+\item \textbf{Day types.} Sections~\ref{sec:rh_results_channels} and~\ref{sec:rh_fi} score the forecasts of
+  Table~\ref{tab:rh_oos} separately on two kinds of day. Statement days are the \rhchNEventDays{} days of
+  $\mathcal T_{\mathrm{oos}}$ with a scheduled FOMC statement, from the calendar of Appendix~\ref{app:rh_dp_fomc}
+  (unscheduled meetings excluded), with \rhchNEventBars{} of the \rhchNBars{} scored bars; ordinary days are the other
+  \rhchNOrdDays. The Federal Reserve publishes its meeting calendar in advance, so the type of a day is known before
+  every forecast of it. No other split is used for inference; the splits by bar of the day are descriptive. Loss,
+  benchmarks and tests are those of Table~\ref{tab:rh_oos}, with the Diebold--Mariano test on the daily average loss
+  over the days of the type (Newey--West lag \rhchHacLag{} on both types).
+\item \textbf{Order of the analyses.} The day split was introduced after the every-bar results of
+  Table~\ref{tab:rh_oos} and of the predictor-group ablations had been seen.
+  \begin{itemize}
+  \item Before the split was formalized, an exploratory rescoring by day type of the ablation forecasts on the design
+    before the FOMC fixes of Appendix~\ref{app:rh_dp_fomc} had shown the pattern reported in
+    Sections~\ref{sec:rh_results_channels} and~\ref{sec:rh_fi}: a large share of the every-bar gain on the afternoons
+    of the statement days; a gain on ordinary days in which the futures' realized moments are the largest single
+    group and the only one whose removal costs much; and the lasso ahead of the ridge and the elastic net on statement
+    days but behind them on ordinary days.
+  \item A written rule then fixed the day types, the tests, the readings below and their thresholds, and the factor
+    test, before any forecast on the fixed design was scored by day type. Every number the paper reports by day type
+    comes from the fixed design under that rule; the exploratory numbers are not reported. Every model class and every
+    predictor group is reported; none was dropped after scoring.
+  \end{itemize}
+\item \textbf{Readings} (Table~\ref{tab:rh_channels_abl}). On each day type, with the joint gain that of the full set
+  over the HAR benchmark on that day type, the gain is
+  \begin{itemize}
+  \item concentrated if one group, added alone to the HAR benchmark set, recovers at least three-quarters of the joint
+    gain and removing it from the full set raises the loss significantly;
+  \item spread across correlated proxies (redundant) if the groups' separate gains sum to more than one and a half
+    times the joint gain and removing at most one group raises the loss significantly;
+  \item mixed otherwise.
+  \end{itemize}
+  The penalized linear models are read by the majority of the ridge, lasso and elastic net, the trees by LightGBM and
+  XGBoost, with the random forest where its arms exist. The rule applies the two definitions in this order. Both can
+  hold, when one group carries the gain and the others repeat its information, so Section~\ref{sec:rh_fi} reports
+  where each holds. The three corrections of Table~\ref{tab:rh_channels_corr} agree for a class when they lie within
+  \rhchAgreePp{} percentage points of one another; a disagreement is reported, not resolved.
+\item \textbf{The factor test} (Table~\ref{tab:rh_factor}, Figure~\ref{fig:rh_factor}). Fixed by the same rule and
+  scored primarily on ordinary days: the OLS on the HAR benchmark set plus the first $k$ principal components
+  ($k = 1, 2, 3, 5, 10, 20$) or partial-least-squares components ($k = 1, 2, 3$) of the \rhfaNBlock{} value averages
+  of the \rhfaNSeries{} exogenous series outside the FOMC group, standardized in each window, the loadings recomputed
+  once a trading day and the regression at every bar, on the window of Table~\ref{tab:rh_oos}.
+  \begin{itemize}
+  \item With $k = 0$ it reproduces the OLS row of Table~\ref{tab:rh_oos} on every bar (largest relative difference
+    \rhfaGOneMaxRel). The share $R_k$ of the gain recovered is measured against the lower loss of the full-set ridge
+    and elastic net.
+  \item Reading: a shared factor if some $k \le 3$ has $R_k \ge \rhfaShareThreshold$ and a loss not significantly
+    above the full set's; dense beyond a few factors if $R_{10} < \rhfaDenseThreshold$ and the full set beats the
+    ten-component model significantly; intermediate otherwise. On ordinary days it is ``\rhfaReading''.
+  \end{itemize}
+\item \textbf{Tables and coverage.} Table~\ref{tab:rh_channels_abl} reports every group's change added alone and
+  removed, for every class on both day types, with the joint gain and the readings; Table~\ref{tab:rh_channels_sparse}
+  the lasso against the ridge and the elastic net and the feature-count ladder by day type;
+  Table~\ref{tab:rh_channels_corr} and Figure~\ref{fig:rh_channels} the three corrections and where the gain falls.
+  Two gaps are marked in the tables: the random forest is fitted for the additions and for removing the realized
+  moments only (Appendix~\ref{app:rh_results_ablation}), and the trees' removals other than that of the FOMC group are
+  on the design before the FOMC fixes, against the full set on that design.
+\item \textbf{Added after the rule.} Not pre-registered, each requested by the author after the results it follows and
+  specified in a dated addendum to the ablation rule, or in a rule of its own, before its forecasts were scored:
+  \begin{itemize}
+  \item the reference HAR\,+\,RM\,+\,FOMC, the HAR benchmark set with the futures' realized moments and the FOMC
+    calendar (Table~\ref{tab:rh_ablation}, Panel~D; Section~\ref{sec:rh_results_beyond}), after the results by day
+    type;
+  \item the tests beyond that reference (Appendix~\ref{app:rh_results_beyond}), after the results against it.
+  \end{itemize}
+\end{itemize}
+% Share of the full set's ordinary-day gain recovered by k components (writeup/make_rehaul_factor.py; RULE item 4)
+\input{generated/rehaul_factor_fig}
 
 % ---------------------------------------------------------------------------------------------------------------------
 \subsection{Predictor-group ablations: beyond HAR, realized moments and the FOMC calendar}

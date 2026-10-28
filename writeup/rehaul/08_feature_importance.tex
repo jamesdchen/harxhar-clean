@@ -58,8 +58,18 @@
 % 2026-10-26 (integration, JFEc): parked -- the subsection heading; Variable importance is now its own section,
 % after the results and before the economic application (FRONT wires the order in paper_rehaul.tex). Was:
 % "\subsection{Variable importance}"
-\section{Variable importance}
+\section{Which predictors carry the gain?}
 \label{sec:rh_fi}
+\label{sec:rh_results_ablation}
+% 2026-10-28 (author: v2 of Sections 6-7 approved preliminarily): the section is v2 (drafts/08_predictors_DRAFT.tex
+% and drafts/MAP_06_07.md, 26 Oct), opened by the consolidated statement of 27 Oct (formerly Section 6.2, whose text
+% is reused in the opening, Sections 7.2-7.4). Changes from the draft: Section 7.3 follows the follow-up tests of
+% 27 Oct (a few series carry the trees' remainder, not a factor; the draft's "spread across groups, used nonlinearly"
+% is retired); the redundancy bullet reports the counts of the RULE readings. The previous body is parked verbatim
+% after the section; the every-bar attribution, ladder and ridge-against-lasso bullets moved to Appendix A_fi.tex.
+% 2026-10-28 (author: v2 of Sections 6-7 approved preliminarily): section title (v2: attribution is one of three kinds of evidence). Was:
+% \section{Variable importance}
+% \label{sec:rh_fi}
 \ifdefined\rhfipNOrigins\else\input{generated/rehaul_fip_numbers}\fi
 % 2026-10-26 (integration, JFEc): the ablation macros (\rhab..., generated/rehaul_ablation_numbers.tex) and the
 % window x feature-count macros (\rhcx..., generated/rehaul_complexity_numbers.tex) are used below; FRONT loads both
@@ -105,104 +115,291 @@
 % Audit results-8 and results-20 (fixed in the first bullet): the explained bars include the NYSE-holiday sessions
 % that Table 1 does not score; the penalties come from the last pre-sample fold, the tree configurations from an
 % earlier development sample.
+\ifdefined\rhchNEventDays\else\input{generated/rehaul_channels_numbers}\fi
+\ifdefined\rhfaReading\else\input{generated/rehaul_factor_numbers}\fi
+\ifdefined\rhbyLXgbReading\else\input{generated/rehaul_beyond_ladder_numbers}\fi
+\ifdefined\rhbyFXgbReading\else\input{generated/rehaul_beyond_factor_numbers}\fi
 \begin{itemize}
-\item \textbf{Questions and measures.} Which predictors do the pooled models use, is the exogenous signal dense and
-  weak or concentrated, and does a series that moves the forecasts also make them more accurate? We explain the
-  full-set models of Table~\ref{tab:rh_oos} at \rhfipNOrigins{} monthly origins, \rhfipFirstOrigin{} to
-  \rhfipLastOrigin: each origin's refit is held for its block of \rhfipOriginEvery{} trading days, and the blocks
-  cover the \rhfipNRows{} bars of the span, including the shortened futures sessions on NYSE holidays, which
-  Table~\ref{tab:rh_oos} does not score (it scores \rhorNIntB). A group's share is $s_A$, its share of a tree
-  ensemble's mean absolute TreeSHAP value \citep{lundberg2020local}, or $S_A$, its share of a linear model's absolute
-  coefficients on the window-standardized predictors, $|\hat\beta_{k,j}|\,\mathrm{sd}_{k,j}$. Standard groups: the
-  HAR components, the calendar dummies, the futures' \rhfipNMom{} realized moments, the VIX and the futures' volume
-  and trade count; non-standard: the other \rhfipNNonStd{} series. Models are compared by their own shares, across
-  model types on the exogenous total; a share measures how much a series moves the forecast, not how much it
-  improves its accuracy. No explained bar lies in a tuning sample: the penalties were chosen on the last pre-sample
-  fold, ending \rhfipTuneLast, the tree configurations on an earlier development sample
-  (Appendix~\ref{app:rh_hyper}). Construction, intervals and checks: Appendix~\ref{app:rh_fi_compute}.
-\item \textbf{What the models use} (Table~\ref{tab:rh_fip_shares}). In the trees the HAR components carry
-  \rhfipHarMin--\rhfipHarMax\% of the attribution and the futures' realized moments \rhfipMomMin--\rhfipMomMax\%; the
-  leading exogenous series are the futures' own \rhfipTreeTopOne{} and \rhfipTreeTopTwo. The non-standard series hold
-  \rhfipLgbmNs, \rhfipXgbNs{} and \rhfipRfNs\% (LightGBM, XGBoost, random forest), most of it in five series:
-  \rhfipNsOne{} (\rhfipNsOneMin--\rhfipNsOneMax\%), \rhfipNsTwo{} (\rhfipNsTwoMin--\rhfipNsTwoMax\%), \rhfipNsThree{}
-  (\rhfipNsThreeMin--\rhfipNsThreeMax\%), \rhfipNsFour{} (\rhfipNsFourMin--\rhfipNsFourMax\%) and \rhfipNsFive{}
-  (\rhfipNsFiveMin--\rhfipNsFiveMax\%). The trees lean on them less than the linear models do: of the exogenous total
-  they hold \rhfipLgbmNsEx, \rhfipXgbNsEx{} and \rhfipRfNsEx\% in the trees against \rhfipRidgeNsEx, \rhfipLassoNsEx{}
-  and \rhfipEnetNsEx\% in the ridge, lasso and elastic net, the bootstrap interval of the difference lying below zero
-  in \rhfipNDLess{} of \rhfipNDAll{} comparisons, and the linear models rank the FOMC calendar near the top (the ridge
-  puts \rhfipFomcUntil{} at rank \rhfipRidgeRankFomcUntil{} of \rhfipNExog, the trees at
-  \rhfipTreeRankFomcUntilMin--\rhfipTreeRankFomcUntilMax). The trees' exogenous attribution is concentrated: its
-  effective number of series, $N_{\mathrm{eff}} = 1/\sum_A s_A^2$, is \rhfipLgbmNeff, \rhfipXgbNeff{} and
-  \rhfipRfNeff, against \rhfipRidgeNeff{} for the ridge, and \rhfipLgbmNHalf, \rhfipXgbNHalf{} and \rhfipRfNHalf{}
-  series hold half of it. Rankings over time, conditional shares, response shapes and interactions:
-  Appendices~\ref{app:rh_fi_rank}--\ref{app:rh_fi_shapes}.
-% 2026-10-26 (integration, JFEc): added -- the feature-count ladder (results/ladder_2026-10-26: RULE.txt sections 3, 5
-% and 6; tables.txt, readings.csv, posthoc_vs_walk.csv) and the ridge--lasso comparison replace the window test (P1/P2,
-% now Appendix app:rh_fi_window) as the main-text evidence on the dense-and-weak question.
-\item \textbf{How many series carry the gain} (Figure~\ref{fig:rh_ladder}). Following
-  \citet{MaischZhangUlrichZimmer2026}, we refit each model on its top $k$ exogenous series only, $k = 0$ (the HAR
-  benchmark set), 1, 3, 5, 10, 20 and \rhfipNExog{} (the full set), at the same origins and hyperparameters, and score
-  every rung on the \rhorNIntB{} bars of Table~\ref{tab:rh_oos}. Each model ranks the series once, by its own measure
-  on a fit explained on \rhorPenYears, before the span, so the ranking has no look-ahead. Rung $k$ retains
-  $R_k = (L_0 - L_k)/(L_0 - L_{\rhfipNExog})$ of the full set's QLIKE gain; the reading rule was fixed before scoring.
+\item \textbf{Two groups carry the gain.} The FOMC calendar and the futures' realized moments, added to the HAR
+  benchmark set, deliver at least \rhabBaseShareMin\% of every class's every-bar gain from the full set:
+  \rhabBaseShareTreeMin--\rhabBaseShareTreeMax\% in the tree ensembles and at least \rhabBaseShareLinMin\% in the
+  penalized linear models (Table~\ref{tab:rh_ablation}, Panel~D). The calendar carries the statement days
+  (Section~\ref{sec:rh_fi_event}), the realized moments the ordinary days (Section~\ref{sec:rh_fi_ordinary}). What
+  remains is small, only the tree ensembles capture it, and a few series carry it (Section~\ref{sec:rh_fi_rest}). How
+  much a model uses a series is a poor guide to these gains (Section~\ref{sec:rh_fi_use}).
+\item \textbf{Evidence.} Three kinds, each reported for every class and predictor group.
   \begin{itemize}
-  \item Trees: the top 10 series keep \rhldTreeRTenMin{}--\rhldTreeRTenMax{}\% of the gain, the top
-    5 only \rhldTreeRFiveMin{}--\rhldTreeRFiveMax{}\%; \rhfipFomcUntil{}, ranked
-    \rhldTreeRankFomcUntilMin{}--\rhldTreeRankFomcUntilMax{} by the trees, enters between the two
-    rungs. The other series add little (top 10 against the full set: DM $p = \rhldLgbmPTenFull{}$,
-    \rhldXgbPTenFull{} and \rhldRfPTenFull{}).
-  \item Linear models: with 5 or 10 series they keep \rhldLinRFiveMin{}--\rhldLinRFiveMax{}\% and
-    \rhldLinRTenMin{}--\rhldLinRTenMax{}\% of the gain, more than the full set (top 10 against the
-    full set: DM $p \le \rhldLinPTenFullMax{}$), and the lasso's single top series,
-    \rhldLassoTopOne{}, matches the full set. Part of the shortfall is the cost of holding a fit on
-    \rhfipNCols{} predictors for a month: re-estimated at every bar (Table~\ref{tab:rh_oos}), the full sets are as
-    accurate as the monthly top-10 rungs (post hoc; DM $p$ from \rhldLinPTenVsWalkMin{} to
-    \rhldLinPTenVsWalkMax{}).
-  \item Ridge against lasso: a dense and weak signal favors the ridge, which keeps and shrinks every series, over the
-    lasso, which selects \citep[see][]{GiannoneLenzaPrimiceri2021}. In Table~\ref{tab:rh_oos} the full set changes
-    QLIKE relative to the HAR benchmark by \rhorVsOlsPctLassoFull\% in the lasso and \rhorVsOlsPctRidgeFull\% in the
-    ridge (lasso against ridge: DM $= \rhldDmLassoRidge{}$, $p = \rhldPLassoRidge{}$).
-    % 2026-10-26 (coordinator, D13): percentages from the patched Table 1; were \rhabLassoFullAllPct, \rhabRidgeFullAllPct.
-    % PENDING the author's framing decision (event vs ordinary days): on non-FOMC days ridge and elastic net beat the
-    % lasso (exploratory rescoring, 26 Oct), so this bullet may be split by day type.
+  \item Accuracy: the predictor-group ablations of Table~\ref{tab:rh_ablation}, with the design of
+    Table~\ref{tab:rh_oos}, including the full set's frozen hyperparameters, and only the columns changed
+    (Appendix~\ref{app:rh_results_ablation}). Panel~A removes one of the \rhfiNBuckets{} predictor groups from the full
+    set and Panel~B adds one to the HAR benchmark set; Panel~C fits by OLS the semivariance HAR of
+    \citet{PattonSheppard2015}, the HARQ model of \citet{BollerslevPattonQuaedvlieg2016} and the leverage HAR of
+    \citet{CorsiReno2012}, built from the same one-minute E-mini returns as the target; Panel~D sets the full set
+    against the HAR benchmark set, alone and with the realized moments, the FOMC calendar or both added
+    (HAR\,+\,RM\,+\,FOMC); Panel~E scores the late-starting groups on the bars on which their values are live.
+    Table~\ref{tab:rh_channels_abl} scores the additions and removals on each day type.
+  \item Concentration: the lasso, which selects, against the ridge and the elastic net, which keep and shrink every
+    series \citep[see][]{GiannoneLenzaPrimiceri2021}; the feature-count ladder of
+    \citet{MaischZhangUlrichZimmer2026} (Table~\ref{tab:rh_channels_sparse}; Appendix~\ref{app:rh_fi_ladder}); and a
+    factor-augmented HAR \citep{StockWatson2002,KellyPruitt2015} on ordinary days (Table~\ref{tab:rh_factor}).
+  \item Use: each model's attribution, its TreeSHAP shares \citep{lundberg2020local} or standardized coefficient
+    shares (Appendices~\ref{app:rh_fi_compute} and~\ref{app:rh_fi_rank}). A share measures how much a series moves
+    the forecast, not how much it improves it.
   \end{itemize}
-  The exogenous signal is concentrated, not dense and weak, in both model classes. Across windows of \rhcxWOne{} to
-  \rhcxWLong{} trading days the best number of series rises with the window, as a dense and weak signal predicts,
-  only for \rhcxWhoKstarRisesBar{} (Appendix~\ref{app:rh_fi_scaling}); the window test of the earlier draft is in
-  Appendix~\ref{app:rh_fi_window}.
-% 2026-10-26 (integration, JFEc): the late-starting series, shortened from the bullet of 2026-10-26 (parked below);
-% the live-window ablation (Table tab:rh_ablation, Panel E) added in one sentence.
-\item \textbf{The late-starting series while live} (Figure~\ref{fig:rh_fi_live}). Under the late-start rule
-  (Section~\ref{sec:rh_predictors}) the trees see mostly the availability averages of StockTwits, VIX3M and
-  volatility demand, which record when a series prints, not what it prints. In the full years in which their values
-  are live, the yearly shares rise: StockTwits from \rhfilStwPreMin--\rhfilStwPreMax\% (\rhfilStwPreYears) to
-  \rhfilStwLiveMin--\rhfilStwLiveMax\% (\rhfilStwLiveYears), VIX3M from \rhfilVixThreePreMin--\rhfilVixThreePreMax\%
-  to \rhfilVixThreeLiveMin--\rhfilVixThreeLiveMax\%, volatility demand from \rhfilVdPreMin--\rhfilVdPreMax\% to
-  \rhfilVdLiveMin--\rhfilVdLiveMax\% (\rhfilVdLiveYears). The pooled shares thus understate their use, but the use
-  buys little accuracy: on its live window, adding StockTwits to the HAR benchmark changes the trees' QLIKE by
-  \rhabLgbmAddSentLiveSentPct, \rhabXgbAddSentLiveSentPct{} and \rhabRfAddSentLiveSentPct\%, none significantly
-  (Table~\ref{tab:rh_ablation}, Panel~E).
-% 2026-10-26 (integration, JFEc): added -- use against accuracy: the SHAP share of the FOMC calendar (Table
-% tab:rh_fip_shares, Panel A) against its ablations (Table tab:rh_ablation, Panels A and B; the forest's leave-out arm
-% for the FOMC calendar was not run). The gain-share ratio (add-FOMC change over full-set change, trees) is not in a
-% generated file yet: \rhPending{rhabTreeFomcGainShareMin/Max}.
-\item \textbf{Use is not accuracy.} The FOMC calendar holds \rhfipFomcBucketMin--\rhfipFomcBucketMax\% of the trees'
-  attribution (Table~\ref{tab:rh_fip_shares}) yet carries most of their accuracy gain (Table~\ref{tab:rh_ablation}):
-  added alone to the HAR benchmark it changes QLIKE by \rhabLgbmAddFomcAllPct, \rhabXgbAddFomcAllPct{} and
-  \rhabRfAddFomcAllPct\%, against \rhabLgbmFullAllPct, \rhabXgbFullAllPct{} and \rhabRfFullAllPct\% for the full set
-  (\rhabTreeFomcGainShareMin{}--\rhabTreeFomcGainShareMax{}\% of the gain), and removing it raises
-  LightGBM's and XGBoost's QLIKE by \rhabLgbmLoFomcAllPct{} and \rhabXgbLoFomcAllPct\%. It moves the forecast strongly
-  on few bars: on FOMC statement days \rhfipFomcUntil{} holds \rhfipLgbmUntilFomc\% of LightGBM's attribution, on
-  other days \rhfipLgbmUntilOther\% (Appendix~\ref{app:rh_fi_cond}). The futures' realized moments are the converse:
-  second in attribution, yet removing them raises the trees' QLIKE by only \rhabLgbmLoRmAllPct, \rhabXgbLoRmAllPct{}
-  and \rhabRfLoRmAllPct\%, as other predictors carry much of the same information. What a series adds to accuracy is
-  measured by the ablations (Section~\ref{sec:rh_results_ablation}), not by its share.
-\item \textbf{In short.} The trees rely on the HAR components and the futures' realized moments, and their exogenous
-  attribution is concentrated. The signal is not dense and weak: about 10 series carry the trees' gain and 5 to 10
-  the linear models', and the lasso is at least as accurate as the ridge. The alternative data are used more while
-  live, without a measurable gain, and the FOMC calendar carries most of the trees' gain on a small share of their
-  attribution.
+\item \textbf{Reading.} Fixed before the day types were scored (Appendix~\ref{app:rh_channels}). A part of the gain is
+  concentrated when one group added alone recovers at least three-quarters of it and its removal raises the loss
+  significantly; it is spread across correlated proxies when the groups' separate gains sum to more than one and a
+  half times the joint gain and the removal of at most one group raises the loss significantly. The two can hold at
+  once, when one group carries the gain and the others repeat its information; we report both.
+  % 2026-10-28 (coordinator): "at least one and a half times" -> "more than", as RULE.txt and the table notes.
 \end{itemize}
+% 2026-10-28 (coordinator, v2): Section 7's tables, input here (not in 08_feature_importance_floats.tex) so that they
+% print within the section.
+\input{generated/rehaul_channels_ablation_table}
+\input{generated/rehaul_channels_sparsity_table}
+\input{generated/rehaul_factor_table}
+
+\subsection{The FOMC calendar: one group, few bars}
+\label{sec:rh_fi_event}
+\begin{itemize}
+\item \textbf{It carries the statement days} (Tables~\ref{tab:rh_ablation} and~\ref{tab:rh_channels_abl}). On every
+  bar the FOMC series, added alone to the HAR benchmark set, deliver
+  \rhabTreeFomcGainShareMin--\rhabTreeFomcGainShareMax\% of the trees' gain, and removing them from the full set
+  raises the loss by \rhabLoFomcAllPctMin--\rhabLoFomcAllPctMax\%. On statement days they recover
+  \rhchEvFomcShareLinRng\% of the full set's gain in the linear models and \rhchEvFomcShareTreeRng\% in the trees, and
+  removing them raises the loss by \rhchEvLoFomcRng\%. The reading is concentrated for both model types; no other
+  group recovers more than \rhchEvOtherMaxShare\% of it.
+\item \textbf{The lasso wins.} On statement days the lasso's full-set loss differs from the ridge's by
+  \rhchLassoRidgeEventPct\% ($\DM={}$\rhchLassoRidgeEventDm) and from the elastic net's by \rhchLassoEnetEventPct\%
+  ($\DM={}$\rhchLassoEnetEventDm), as a signal in one series predicts; the lasso's top-ranked series, \rhldLassoTopOne,
+  is the proximity to the next statement.
+\item \textbf{The models use it on few bars.} Over the span the FOMC calendar holds only
+  \rhfipFomcBucketMin--\rhfipFomcBucketMax\% of the trees' attribution; on statement days \rhfipFomcUntil{} holds
+  \rhfipLgbmUntilFomc\% of LightGBM's, on other days \rhfipLgbmUntilOther\% (Appendix~\ref{app:rh_fi_cond}).
+\item \textbf{A cost on ordinary days for the linear models.} A linear term in the FOMC series also moves the forecasts
+  of ordinary days: added alone, the series raise the ordinary-day loss of the penalized linear models by
+  \rhchOrdAddFomcLinRng\%, while the trees, which can confine the series' effect to the statement bars, pay no such
+  cost (\rhchOrdAddFomcTreeRng\%).
+\end{itemize}
+
+\subsection{The futures' realized moments: the ordinary days}
+\label{sec:rh_fi_ordinary}
+\label{sec:rh_results_bench}
+\begin{itemize}
+\item \textbf{Not an augmented HAR} (Table~\ref{tab:rh_ablation}, Panels~B--D). The futures' realized moments,
+  computed from the same one-minute returns that define the target, are the natural augmented HAR. Added to the HAR
+  benchmark set they lower the every-bar loss in every class (\rhabOlsAddRmAllPct\% for the OLS), by about as much as
+  the three classical extensions estimated together (\rhabOlsSharqlAllPct\%; Panel~C). Yet the full set is
+  significantly more accurate than the HAR benchmark set plus the realized moments in \rhabNClassesBeatAddRm{} of the
+  \rhabNClassesAddRm{} classes (Panel~D).
+\item \textbf{They carry most of the ordinary-day gain} (Table~\ref{tab:rh_channels_abl}). Added alone to the HAR
+  benchmark set, the futures' realized moments lower the ordinary-day loss by \rhchRidgeOrdAddRmPct,
+  \rhchLassoOrdAddRmPct{} and \rhchEnetOrdAddRmPct\% in the ridge, lasso and elastic net, nearly all or more of the
+  full set's ordinary-day gain, and by \rhchOrdAddRmTreeRng\% in the trees, \rhchOrdRmShareTreeRng\% of theirs. Removing
+  them from the full set is the only removal that raises the ordinary-day loss significantly in every class; on every
+  bar it raises the loss by \rhabLoRmAllPctMin--\rhabLoRmAllPctMax\% ($\DM={}$\rhabLoRmAllDmMin{} or larger). The
+  reading is concentrated in all \rhchLinOrdNConcTest{} linear classes and all \rhchTreeOrdNConcTest{} trees.
+\item \textbf{The other groups repeat their information.} The constituents' realized moments and the liquidity
+  measures each lower the trees' ordinary-day loss on their own, by \rhchOrdAddOtherTreeRng\% (on every bar,
+  \rhabXgbAddVwAllPct\% for the value-weighted market and XGBoost), and the groups' separate gains sum to
+  \rhchOrdSumRatioTreeRng{} times the trees' joint gain, but removing any one of them from the full set changes the
+  gradient-boosted trees' ordinary-day loss by at most \rhchOrdLoOtherTreeMaxAbs\%, none significantly. The
+  redundancy reading holds in all \rhchLinOrdNRedTest{} linear classes and in XGBoost; it fails for LightGBM, which
+  has a second significant removal, and cannot be applied to the random forest, whose other removals were not run
+  (the trees' removals other than the FOMC calendar's are on the design before the FOMC fix;
+  Appendix~\ref{app:rh_channels}). The groups are largely correlated proxies of the volatility information that the
+  futures' own moments measure most directly.
+  % 2026-10-28 (coordinator; claim check on the patched numbers): was "... sum to \rhchOrdSumRatioRng{} times the joint
+  % gain, but removing any one of them from the full set costs little. The redundancy reading holds in
+  % \rhchLinOrdNRedTest{} of the three linear classes and \rhchTreeOrdNRedTest{} of the three trees: the groups are
+  % largely correlated proxies ..." (the tree count 1 of 3 read as a rejection for the forest, which was not tested).
+\item \textbf{Averaging beats selection on ordinary days.} On ordinary days the lasso's full-set loss lies
+  \rhchLassoRidgeOrdPct\% above the ridge's and \rhchLassoEnetOrdPct\% above the elastic net's
+  ($\DM={}$\rhchLassoRidgeOrdDm{} and \rhchLassoEnetOrdDm), the reverse of the statement days: the realized moments
+  enter as several correlated columns, which averaging uses better than selection.
+\item \textbf{Not a common factor of all the series} (Table~\ref{tab:rh_factor}). We add to the HAR benchmark set the
+  first $k$ principal components, or partial-least-squares components, of the value averages of the \rhfaNSeries{}
+  non-FOMC exogenous series, standardized and re-estimated each day in the rolling window, and fit by OLS at every bar.
+  With $k \le 3$ the factor-augmented HAR recovers none of the full set's ordinary-day gain (at best
+  $R_k = \rhfaBestSmallR$, \rhfaBestSmall), although the first three components hold \rhfaShareCumThree\% of the
+  series' variance, and ten components recover $R_{10} = \rhfaPcaTenOrdR$. The leading components largely repeat the
+  HAR terms; the gain sits in particular series, the realized moments, rather than in the series' common variation.
+  % The RULE's mechanical reading is "\rhfaReading" (R_10 < 0.5); the text gives the reason rather than the label.
+\end{itemize}
+
+\subsection{What remains}
+\label{sec:rh_fi_rest}
+\label{sec:rh_results_beyond}
+\begin{itemize}
+\item \textbf{Small, and only in the trees} (Table~\ref{tab:rh_ablation}, Panel~D, last row;
+  Appendix~\ref{app:rh_results_beyond}). Against HAR\,+\,RM\,+\,FOMC the full set changes the every-bar loss of the
+  ridge, lasso and elastic net by \rhabRidgeFullVsAddRmFomcAllPct, \rhabLassoFullVsAddRmFomcAllPct{} and
+  \rhabEnetFullVsAddRmFomcAllPct\%, none significantly ($p \geq{}$\rhabLinFullVsAddRmFomcAllPMin), and that of
+  LightGBM and XGBoost by \rhabLgbmFullVsAddRmFomcAllPct{} and \rhabXgbFullVsAddRmFomcAllPct\%
+  ($\DM={}$\rhabLgbmFullVsAddRmFomcAllDm{} and \rhabXgbFullVsAddRmFomcAllDm); the random forest's
+  \rhabRfFullVsAddRmFomcAllPct\% is not significant ($p$-value \rhabRfFullVsAddRmFomcAllP). On ordinary days the trees'
+  remainder is \rhabLgbmFullVsAddRmFomcOrdPct, \rhabXgbFullVsAddRmFomcOrdPct{} and \rhabRfFullVsAddRmFomcOrdPct\%.
+\item \textbf{In a few series, not a common factor.} No single remaining group is indispensable: removing any group
+  other than the FOMC calendar and the realized moments changes the every-bar loss by at most
+  \rhabLoOtherAllMaxAbs\%. Yet a few series carry the trees' remainder. In follow-up tests outside the pre-specified
+  design, scored on ordinary days, LightGBM and XGBoost refitted on HAR\,+\,RM\,+\,FOMC plus their own top five series
+  recover shares of \rhbyLLgbmKFiveOrdR{} and \rhbyLXgbKFiveOrdR{} of the remaining gain; ten principal components of
+  the six remaining groups recover \rhbyFLgbmPcaTenOrdR{} and \rhbyFXgbPcaTenOrdR. The gain sits in specific series,
+  not in a factor common to them, and the linear models do not capture it.
+\end{itemize}
+
+\subsection{Alternative data}
+\label{sec:rh_fi_alt}
+\begin{itemize}
+\item \textbf{Little incremental gain} (Table~\ref{tab:rh_channels_abl}). Removing the StockTwits, volatility-demand
+  or implied-volatility groups from the full set changes the loss by at most \rhchAltLoMaxAbs\% on either day type,
+  significantly in only a few cells, and added alone to the HAR benchmark set the volatility-demand series raise the
+  linear models' loss on both day types.
+  % 2026-10-28 (coordinator; claim check on the patched numbers): was "\textbf{No incremental gain.} Removing ... changes
+  % the loss by at most \rhchAltLoMaxAbs\% on either day type, and added alone to the HAR benchmark set they raise the
+  % linear models' loss" -- three removals are significant (volatility demand on statement days for the lasso and
+  % LightGBM, StockTwits on ordinary days for LightGBM), and added alone the implied volatility lowers the linear
+  % models' ordinary-day loss.
+\item \textbf{On their live windows} (Table~\ref{tab:rh_ablation}, Panel~E). These series start after the data and
+  enter as zero until the rolling window holds \rhorWindowDays{} trading days of their history
+  (Section~\ref{sec:rh_predictors}), so over most of the span Panels~A and~B measure them through their availability
+  shares. On the bars on which their values are live the gains remain small:
+  \begin{itemize}
+  \item Adding the VIX changes the loss of XGBoost by \rhabXgbAddIvLiveIvPct\% from \rhabLiveIvStart{}
+    ($\DM={}$\rhabXgbAddIvLiveIvDm).
+  \item The StockTwits series change no class's loss significantly from \rhabLiveSentStart{} (the largest change is
+    the elastic net's, \rhabEnetAddSentLiveSentPct\%).
+  \item The volatility-demand series raise the loss of the penalized linear models between \rhabLiveVdStart{} and
+    \rhabLiveVdEnd{} (\rhabRidgeAddVdLiveVdPct\% for ridge regression, $\DM={}$\rhabRidgeAddVdLiveVdDm).
+  \end{itemize}
+\item \textbf{Used more while live, without a gain} (Figure~\ref{fig:rh_fi_live}). Before their values are live the
+  trees see mostly the availability averages, which record when a series prints, not what it prints. In the full
+  years in which their values are live, the trees' yearly attribution shares rise: StockTwits from
+  \rhfilStwPreMin--\rhfilStwPreMax\% (\rhfilStwPreYears) to \rhfilStwLiveMin--\rhfilStwLiveMax\%
+  (\rhfilStwLiveYears), VIX3M from \rhfilVixThreePreMin--\rhfilVixThreePreMax\% to
+  \rhfilVixThreeLiveMin--\rhfilVixThreeLiveMax\%, volatility demand from \rhfilVdPreMin--\rhfilVdPreMax\% to
+  \rhfilVdLiveMin--\rhfilVdLiveMax\% (\rhfilVdLiveYears). The use buys little accuracy (Panel~E).
+\end{itemize}
+
+\subsection{Use is not accuracy}
+\label{sec:rh_fi_use}
+\begin{itemize}
+\item \textbf{Attribution ranks the parts the wrong way round.} The trees attribute \rhfipHarMin--\rhfipHarMax\% of
+  their forecasts to the HAR terms and \rhfipMomMin--\rhfipMomMax\% to the futures' realized moments, and only
+  \rhfipFomcBucketMin--\rhfipFomcBucketMax\% to the FOMC calendar (Appendix~\ref{app:rh_fi_rank}). Yet the calendar
+  carries most of their accuracy gain: added alone to the HAR benchmark set it changes QLIKE by
+  \rhabLgbmAddFomcAllPct, \rhabXgbAddFomcAllPct{} and \rhabRfAddFomcAllPct\%, against \rhabLgbmFullAllPct,
+  \rhabXgbFullAllPct{} and \rhabRfFullAllPct\% for the full set, by moving the forecast strongly on few bars
+  (Section~\ref{sec:rh_fi_event}). The realized moments are the converse: second in attribution, yet removing them
+  raises the trees' QLIKE by only \rhabLgbmLoRmAllPct, \rhabXgbLoRmAllPct{} and \rhabRfLoRmAllPct\%, as other
+  predictors carry much of the same information. What a series adds to accuracy is measured by the ablations, not by
+  its share.
+\item \textbf{In short.} Two groups carry the pooled gain: the FOMC calendar on the statement days, in one group and on
+  few bars, and the futures' realized moments on ordinary days, whose information the constituents' moments and the
+  liquidity measures largely repeat and a few common factors of all the series do not recover. What remains beyond
+  them and the HAR terms is small, only the trees capture it, and a few series carry it; the alternative data add
+  little. Attribution is a poor guide to all of this: the series a model uses most are not the ones that
+  make it more accurate.
+\end{itemize}
+% 2026-10-28 (author: v2 of Sections 6-7 approved preliminarily): the previous body of Section 7 (Variable importance). Questions and measures, What the models use, and How many series carry the gain (with Ridge against lasso and the window scaling) moved to Appendix rehaul/A_fi.tex; the late-starting series, Use is not accuracy and In short are rewritten in Sections 7.4 and 7.5. Was:
+% \begin{itemize}
+% \item \textbf{Questions and measures.} Which predictors do the pooled models use, is the exogenous signal dense and
+%   weak or concentrated, and does a series that moves the forecasts also make them more accurate? We explain the
+%   full-set models of Table~\ref{tab:rh_oos} at \rhfipNOrigins{} monthly origins, \rhfipFirstOrigin{} to
+%   \rhfipLastOrigin: each origin's refit is held for its block of \rhfipOriginEvery{} trading days, and the blocks
+%   cover the \rhfipNRows{} bars of the span, including the shortened futures sessions on NYSE holidays, which
+%   Table~\ref{tab:rh_oos} does not score (it scores \rhorNIntB). A group's share is $s_A$, its share of a tree
+%   ensemble's mean absolute TreeSHAP value \citep{lundberg2020local}, or $S_A$, its share of a linear model's absolute
+%   coefficients on the window-standardized predictors, $|\hat\beta_{k,j}|\,\mathrm{sd}_{k,j}$. Standard groups: the
+%   HAR components, the calendar dummies, the futures' \rhfipNMom{} realized moments, the VIX and the futures' volume
+%   and trade count; non-standard: the other \rhfipNNonStd{} series. Models are compared by their own shares, across
+%   model types on the exogenous total; a share measures how much a series moves the forecast, not how much it
+%   improves its accuracy. No explained bar lies in a tuning sample: the penalties were chosen on the last pre-sample
+%   fold, ending \rhfipTuneLast, the tree configurations on an earlier development sample
+%   (Appendix~\ref{app:rh_hyper}). Construction, intervals and checks: Appendix~\ref{app:rh_fi_compute}.
+% \item \textbf{What the models use} (Table~\ref{tab:rh_fip_shares}). In the trees the HAR components carry
+%   \rhfipHarMin--\rhfipHarMax\% of the attribution and the futures' realized moments \rhfipMomMin--\rhfipMomMax\%; the
+%   leading exogenous series are the futures' own \rhfipTreeTopOne{} and \rhfipTreeTopTwo. The non-standard series hold
+%   \rhfipLgbmNs, \rhfipXgbNs{} and \rhfipRfNs\% (LightGBM, XGBoost, random forest), most of it in five series:
+%   \rhfipNsOne{} (\rhfipNsOneMin--\rhfipNsOneMax\%), \rhfipNsTwo{} (\rhfipNsTwoMin--\rhfipNsTwoMax\%), \rhfipNsThree{}
+%   (\rhfipNsThreeMin--\rhfipNsThreeMax\%), \rhfipNsFour{} (\rhfipNsFourMin--\rhfipNsFourMax\%) and \rhfipNsFive{}
+%   (\rhfipNsFiveMin--\rhfipNsFiveMax\%). The trees lean on them less than the linear models do: of the exogenous total
+%   they hold \rhfipLgbmNsEx, \rhfipXgbNsEx{} and \rhfipRfNsEx\% in the trees against \rhfipRidgeNsEx, \rhfipLassoNsEx{}
+%   and \rhfipEnetNsEx\% in the ridge, lasso and elastic net, the bootstrap interval of the difference lying below zero
+%   in \rhfipNDLess{} of \rhfipNDAll{} comparisons, and the linear models rank the FOMC calendar near the top (the ridge
+%   puts \rhfipFomcUntil{} at rank \rhfipRidgeRankFomcUntil{} of \rhfipNExog, the trees at
+%   \rhfipTreeRankFomcUntilMin--\rhfipTreeRankFomcUntilMax). The trees' exogenous attribution is concentrated: its
+%   effective number of series, $N_{\mathrm{eff}} = 1/\sum_A s_A^2$, is \rhfipLgbmNeff, \rhfipXgbNeff{} and
+%   \rhfipRfNeff, against \rhfipRidgeNeff{} for the ridge, and \rhfipLgbmNHalf, \rhfipXgbNHalf{} and \rhfipRfNHalf{}
+%   series hold half of it. Rankings over time, conditional shares, response shapes and interactions:
+%   Appendices~\ref{app:rh_fi_rank}--\ref{app:rh_fi_shapes}.
+% % 2026-10-26 (integration, JFEc): added -- the feature-count ladder (results/ladder_2026-10-26: RULE.txt sections 3, 5
+% % and 6; tables.txt, readings.csv, posthoc_vs_walk.csv) and the ridge--lasso comparison replace the window test (P1/P2,
+% % now Appendix app:rh_fi_window) as the main-text evidence on the dense-and-weak question.
+% \item \textbf{How many series carry the gain} (Figure~\ref{fig:rh_ladder}). Following
+%   \citet{MaischZhangUlrichZimmer2026}, we refit each model on its top $k$ exogenous series only, $k = 0$ (the HAR
+%   benchmark set), 1, 3, 5, 10, 20 and \rhfipNExog{} (the full set), at the same origins and hyperparameters, and score
+%   every rung on the \rhorNIntB{} bars of Table~\ref{tab:rh_oos}. Each model ranks the series once, by its own measure
+%   on a fit explained on \rhorPenYears, before the span, so the ranking has no look-ahead. Rung $k$ retains
+%   $R_k = (L_0 - L_k)/(L_0 - L_{\rhfipNExog})$ of the full set's QLIKE gain; the reading rule was fixed before scoring.
+%   \begin{itemize}
+%   \item Trees: the top 10 series keep \rhldTreeRTenMin{}--\rhldTreeRTenMax{}\% of the gain, the top
+%     5 only \rhldTreeRFiveMin{}--\rhldTreeRFiveMax{}\%; \rhfipFomcUntil{}, ranked
+%     \rhldTreeRankFomcUntilMin{}--\rhldTreeRankFomcUntilMax{} by the trees, enters between the two
+%     rungs. The other series add little (top 10 against the full set: DM $p = \rhldLgbmPTenFull{}$,
+%     \rhldXgbPTenFull{} and \rhldRfPTenFull{}).
+%   \item Linear models: with 5 or 10 series they keep \rhldLinRFiveMin{}--\rhldLinRFiveMax{}\% and
+%     \rhldLinRTenMin{}--\rhldLinRTenMax{}\% of the gain, more than the full set (top 10 against the
+%     full set: DM $p \le \rhldLinPTenFullMax{}$), and the lasso's single top series,
+%     \rhldLassoTopOne{}, matches the full set. Part of the shortfall is the cost of holding a fit on
+%     \rhfipNCols{} predictors for a month: re-estimated at every bar (Table~\ref{tab:rh_oos}), the full sets are as
+%     accurate as the monthly top-10 rungs (post hoc; DM $p$ from \rhldLinPTenVsWalkMin{} to
+%     \rhldLinPTenVsWalkMax{}).
+%   \item Ridge against lasso: a dense and weak signal favors the ridge, which keeps and shrinks every series, over the
+%     lasso, which selects \citep[see][]{GiannoneLenzaPrimiceri2021}. In Table~\ref{tab:rh_oos} the full set changes
+%     QLIKE relative to the HAR benchmark by \rhorVsOlsPctLassoFull\% in the lasso and \rhorVsOlsPctRidgeFull\% in the
+%     ridge (lasso against ridge: DM $= \rhldDmLassoRidge{}$, $p = \rhldPLassoRidge{}$).
+%     % 2026-10-26 (coordinator, D13): percentages from the patched Table 1; were \rhabLassoFullAllPct, \rhabRidgeFullAllPct.
+%     % PENDING the author's framing decision (event vs ordinary days): on non-FOMC days ridge and elastic net beat the
+%     % lasso (exploratory rescoring, 26 Oct), so this bullet may be split by day type.
+%   \end{itemize}
+%   The exogenous signal is concentrated, not dense and weak, in both model classes. Across windows of \rhcxWOne{} to
+%   \rhcxWLong{} trading days the best number of series rises with the window, as a dense and weak signal predicts,
+%   only for \rhcxWhoKstarRisesBar{} (Appendix~\ref{app:rh_fi_scaling}); the window test of the earlier draft is in
+%   Appendix~\ref{app:rh_fi_window}.
+% % 2026-10-26 (integration, JFEc): the late-starting series, shortened from the bullet of 2026-10-26 (parked below);
+% % the live-window ablation (Table tab:rh_ablation, Panel E) added in one sentence.
+% \item \textbf{The late-starting series while live} (Figure~\ref{fig:rh_fi_live}). Under the late-start rule
+%   (Section~\ref{sec:rh_predictors}) the trees see mostly the availability averages of StockTwits, VIX3M and
+%   volatility demand, which record when a series prints, not what it prints. In the full years in which their values
+%   are live, the yearly shares rise: StockTwits from \rhfilStwPreMin--\rhfilStwPreMax\% (\rhfilStwPreYears) to
+%   \rhfilStwLiveMin--\rhfilStwLiveMax\% (\rhfilStwLiveYears), VIX3M from \rhfilVixThreePreMin--\rhfilVixThreePreMax\%
+%   to \rhfilVixThreeLiveMin--\rhfilVixThreeLiveMax\%, volatility demand from \rhfilVdPreMin--\rhfilVdPreMax\% to
+%   \rhfilVdLiveMin--\rhfilVdLiveMax\% (\rhfilVdLiveYears). The pooled shares thus understate their use, but the use
+%   buys little accuracy: on its live window, adding StockTwits to the HAR benchmark changes the trees' QLIKE by
+%   \rhabLgbmAddSentLiveSentPct, \rhabXgbAddSentLiveSentPct{} and \rhabRfAddSentLiveSentPct\%, none significantly
+%   (Table~\ref{tab:rh_ablation}, Panel~E).
+% % 2026-10-26 (integration, JFEc): added -- use against accuracy: the SHAP share of the FOMC calendar (Table
+% % tab:rh_fip_shares, Panel A) against its ablations (Table tab:rh_ablation, Panels A and B; the forest's leave-out arm
+% % for the FOMC calendar was not run). The gain-share ratio (add-FOMC change over full-set change, trees) is not in a
+% % generated file yet: \rhPending{rhabTreeFomcGainShareMin/Max}.
+% \item \textbf{Use is not accuracy.} The FOMC calendar holds \rhfipFomcBucketMin--\rhfipFomcBucketMax\% of the trees'
+%   attribution (Table~\ref{tab:rh_fip_shares}) yet carries most of their accuracy gain (Table~\ref{tab:rh_ablation}):
+%   added alone to the HAR benchmark it changes QLIKE by \rhabLgbmAddFomcAllPct, \rhabXgbAddFomcAllPct{} and
+%   \rhabRfAddFomcAllPct\%, against \rhabLgbmFullAllPct, \rhabXgbFullAllPct{} and \rhabRfFullAllPct\% for the full set
+%   (\rhabTreeFomcGainShareMin{}--\rhabTreeFomcGainShareMax{}\% of the gain), and removing it raises
+%   LightGBM's and XGBoost's QLIKE by \rhabLgbmLoFomcAllPct{} and \rhabXgbLoFomcAllPct\%. It moves the forecast strongly
+%   on few bars: on FOMC statement days \rhfipFomcUntil{} holds \rhfipLgbmUntilFomc\% of LightGBM's attribution, on
+%   other days \rhfipLgbmUntilOther\% (Appendix~\ref{app:rh_fi_cond}). The futures' realized moments are the converse:
+%   second in attribution, yet removing them raises the trees' QLIKE by only \rhabLgbmLoRmAllPct, \rhabXgbLoRmAllPct{}
+%   and \rhabRfLoRmAllPct\%, as other predictors carry much of the same information. What a series adds to accuracy is
+%   measured by the ablations (Section~\ref{sec:rh_results_ablation}), not by its share.
+% \item \textbf{In short.} The trees rely on the HAR components and the futures' realized moments, and their exogenous
+%   attribution is concentrated. The signal is not dense and weak: about 10 series carry the trees' gain and 5 to 10
+%   the linear models', and the lasso is at least as accurate as the ridge. The alternative data are used more while
+%   live, without a measurable gain, and the FOMC calendar carries most of the trees' gain on a small share of their
+%   attribution.
+% \end{itemize}
 % ---------------------------------------------------------------------------------------------------------------------
 % 2026-10-26 (integration, JFEc): parked -- the body of the Section 6.5 version (2026-10-23/26), replaced by the four-part section above.
 % Bullets moved to the online appendix are not repeated here; a pointer line names where each went. Was:

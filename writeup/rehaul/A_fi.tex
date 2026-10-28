@@ -13,6 +13,14 @@
 % rehaul_complexity_numbers). The file holds \subsection's only; APPENDIX wires it into the online appendix.
 % Design note: the SHAP values, the ladder and the grid are on the design before the FOMC patch (D13); to be rerun on
 % the patched design.
+% 2026-10-28 (v2 of Sections 6-7, author approved preliminarily; drafts/MAP_06_07.md): Section 7 ("Which predictors
+% carry the gain?", sec:rh_fi) is organized by day type, and three of its former bullets moved here, lightly edited:
+% "Questions and measures" (only its comparison convention was not here already: app:rh_fi_compute, item
+% Comparisons), "What the models use" with Table tab:rh_fip_shares (app:rh_fi_rank), and "How many series carry the
+% gain", the every-bar feature-count ladder, with Figure fig:rh_ladder (new subsection app:rh_fi_ladder, before
+% app:rh_fi_scaling). The pointers of this file that named Section sec:rh_fi for the ladder or the origins now name
+% app:rh_fi_ladder and app:rh_fi_compute. Macros: also \rhld... (generated/rehaul_ladder_numbers.tex and
+% rehaul_oos_vs_ols_numbers.tex, both in the preamble).
 \ifdefined\rhfipNOrigins\else\input{generated/rehaul_fip_numbers}\fi
 \ifdefined\rhlcWMain\else\input{generated/rehaul_fip_lc_numbers}\fi
 \ifdefined\rhcxWMain\else\input{generated/rehaul_complexity_numbers}\fi
@@ -60,6 +68,12 @@
   the calendar dummies, the futures' \rhfipNMom{} realized moments, the VIX, and the futures' volume and trade count.
   Non-standard: the other \rhfipNNonStd{} series (constituent liquidity, the equal- and value-weighted market
   moments, StockTwits sentiment, volatility demand, the FOMC calendar, VVIX and VIX3M).
+% 2026-10-28 (v2 of Sections 6-7, author approved preliminarily): added -- the comparison convention of the main-text
+% bullet "Questions and measures" (08_feature_importance.tex), the one part of it this subsection did not already state
+% (origins and blocks, the holiday sessions, the tuning samples, s_A, S_A and the classes are in the items above).
+\item \textbf{Comparisons.} Each model is described by its own shares; models of different types are compared on the
+  exogenous total, the exogenous series' shares of their sum. A share measures how much a series moves the forecast,
+  not how much it improves its accuracy.
 \item \textbf{Intervals.} \rhfipCiLevel\% moving-block bootstrap over the origins (blocks of \rhfipBootBlock{}
   origins, about a year; \rhfipBootB{} resamples), paired across models. They measure the variation over the span's
   origins, not the sampling error of one fit.
@@ -78,11 +92,37 @@
 % 2026-10-26 (integration, JFEc): moved from 08_feature_importance.tex: the rank-agreement part of "The ridge ranks the
 % series differently" (its FOMC-rank part stays in the main text) and "Over time"; the leading non-standard series
 % (Table tab:rh_fip_nonstd) and the ranking figure (fig:rh_fip_rank) moved with them.
-\subsection{Variable importance: rankings and their time profile}
+% 2026-10-28 (v2 of Sections 6-7, author approved preliminarily): retitled -- the subsection now opens with the
+% attribution shares ("What the models use" and Table tab:rh_fip_shares, moved from Section 7). Was:
+% "\subsection{Variable importance: rankings and their time profile}"
+\subsection{Variable importance: attribution shares, rankings and their time profile}
 \label{app:rh_fi_rank}
 % 2026-10-26 (coordinator, JFEc page budget): moved here from rehaul/08_feature_importance_floats.tex.
 \input{generated/rehaul_fi_live_fig}
 \begin{itemize}
+% 2026-10-28 (v2 of Sections 6-7, author approved preliminarily): moved from 08_feature_importance.tex ("What the
+% models use"), lightly edited: its closing pointer named this subsection; it now names the two that follow. Was: "...
+% series hold half of it. Rankings over time, conditional shares, response shapes and interactions:
+% Appendices~\ref{app:rh_fi_rank}--\ref{app:rh_fi_shapes}."
+\item \textbf{What the models use} (Table~\ref{tab:rh_fip_shares}). In the trees the HAR components carry
+  \rhfipHarMin--\rhfipHarMax\% of the attribution and the futures' realized moments \rhfipMomMin--\rhfipMomMax\%; the
+  leading exogenous series are the futures' own \rhfipTreeTopOne{} and \rhfipTreeTopTwo. The non-standard series hold
+  \rhfipLgbmNs, \rhfipXgbNs{} and \rhfipRfNs\% (LightGBM, XGBoost, random forest), most of it in five series:
+  \rhfipNsOne{} (\rhfipNsOneMin--\rhfipNsOneMax\%), \rhfipNsTwo{} (\rhfipNsTwoMin--\rhfipNsTwoMax\%), \rhfipNsThree{}
+  (\rhfipNsThreeMin--\rhfipNsThreeMax\%), \rhfipNsFour{} (\rhfipNsFourMin--\rhfipNsFourMax\%) and \rhfipNsFive{}
+  (\rhfipNsFiveMin--\rhfipNsFiveMax\%).
+  \begin{itemize}
+  \item The trees lean on them less than the linear models do: of the exogenous total they hold \rhfipLgbmNsEx,
+    \rhfipXgbNsEx{} and \rhfipRfNsEx\% in the trees against \rhfipRidgeNsEx, \rhfipLassoNsEx{} and \rhfipEnetNsEx\% in
+    the ridge, lasso and elastic net, the bootstrap interval of the difference lying below zero in \rhfipNDLess{} of
+    \rhfipNDAll{} comparisons, and the linear models rank the FOMC calendar near the top (the ridge puts
+    \rhfipFomcUntil{} at rank \rhfipRidgeRankFomcUntil{} of \rhfipNExog, the trees at
+    \rhfipTreeRankFomcUntilMin--\rhfipTreeRankFomcUntilMax).
+  \item The trees' exogenous attribution is concentrated: its effective number of series,
+    $N_{\mathrm{eff}} = 1/\sum_A s_A^2$, is \rhfipLgbmNeff, \rhfipXgbNeff{} and \rhfipRfNeff, against \rhfipRidgeNeff{}
+    for the ridge, and \rhfipLgbmNHalf, \rhfipXgbNHalf{} and \rhfipRfNHalf{} series hold half of it. Conditional
+    shares, response shapes and interactions: Appendices~\ref{app:rh_fi_cond} and~\ref{app:rh_fi_shapes}.
+  \end{itemize}
 \item \textbf{Rankings} (Figure~\ref{fig:rh_fip_rank}, Table~\ref{tab:rh_fip_nonstd}). The ridge ranks the series
   differently from the trees. Its largest exogenous series is \rhfipRidgeTopOne{} (\rhfipRidgeTopOneEx\% of its
   exogenous total), where \rhfipTreeTopOne{} leads in every tree (\rhfipLgbmTopOneEx, \rhfipXgbTopOneEx{} and
@@ -99,6 +139,9 @@
   (\rhfipRidgeNsExYearMin\%, against \rhfipRidgeNsExYearMax\% in \rhfipRidgeNsExYearMaxYr; linear models dated by
   the origin). Panels (b) and (c) show the leading series year by year.
 \end{itemize}
+% 2026-10-28 (v2 of Sections 6-7, author approved preliminarily): moved here from 08_feature_importance_floats.tex.
+% Shares by category and class, trees (mean |SHAP|) beside the linear models (|gamma|), D with intervals, concentration
+\input{generated/rehaul_fip_shares}
 % The leading non-standard series: share, rank (trees, ridge), response shape, interaction fraction
 \input{generated/rehaul_fip_nonstd}
 % The 46 exogenous series ranked, trees vs ridge
@@ -225,8 +268,12 @@
   \item So at a penalty held fixed across windows a longer window does not bring more series into the linear
     models, and at the tuned penalties it does for the elastic net, together with a smaller penalty. A falling count
     is also what a signal that changes over time would produce, since a longer window averages over more regimes.
-    The test does not separate these readings; Section~\ref{sec:rh_fi} relies instead on the feature-count ladder
-    and the ridge--lasso comparison.
+    The test does not separate these readings; the paper relies instead on the feature-count ladder
+    (Appendix~\ref{app:rh_fi_ladder}; by day type, Table~\ref{tab:rh_channels_sparse}) and the ridge--lasso
+    comparison (Section~\ref{sec:rh_fi}).
+    % 2026-10-28 (v2 of Sections 6-7, author approved preliminarily): the every-bar ladder left Section 7 for
+    % Appendix app:rh_fi_ladder. Was: "The test does not separate these readings; Section~\ref{sec:rh_fi} relies
+    % instead on the feature-count ladder and the ridge--lasso comparison."
   \end{itemize}
   % 2026-10-23 (coordinator, tree learning curve): added -- the tree ensembles across windows. Macros \rhlc...:
   % generated/rehaul_fip_lc_numbers.tex, written by writeup/make_rehaul_fip_lc.py, which recomputes every value from the
@@ -259,14 +306,75 @@
   \rhlcWOne{} to \rhlcWTwo{} days, $t = \rhlcTLgbmOneTwoClose$), and never for the forest. On every bar, then, the
   full set's advantage grows with the window until \rhlcWMain{} days and then stops, as a dense and weak signal
   would predict; a signal that needs more data to be fitted nonlinearly would do the same, and accuracy alone does
-  not say which series the longer window brings in. The feature-count ladder of Section~\ref{sec:rh_fi} and the grid
-  of Appendix~\ref{app:rh_fi_scaling} address that question.
+  not say which series the longer window brings in. The feature-count ladder (Appendix~\ref{app:rh_fi_ladder}) and
+  the grid of Appendix~\ref{app:rh_fi_scaling} address that question.
+  % 2026-10-28 (v2 of Sections 6-7, author approved preliminarily): the every-bar ladder left Section 7 for Appendix
+  % app:rh_fi_ladder. Was: "The feature-count ladder of Section~\ref{sec:rh_fi} and the grid of
+  % Appendix~\ref{app:rh_fi_scaling} address that question."
 \end{itemize}
 % The linear models across training windows: the dense-and-weak test (P1, P2) of results/fi_by_window_2014start_2026-10-22
 \input{generated/rehaul_fip_window}
 % The tree ensembles across training windows, the full set's gap over the HAR benchmark and its extra gain between
 % windows (writeup/make_rehaul_fip_lc.py, \rhlc... macros)
 \input{generated/rehaul_fip_lc_table}
+
+% ---------------------------------------------------------------------------------------------------------------------
+% 2026-10-28 (v2 of Sections 6-7, author approved preliminarily): moved from 08_feature_importance.tex ("How many
+% series carry the gain": the every-bar ladder, its Trees / Linear models / Ridge against lasso sub-bullets and the
+% closing sentences); Section 7 reports the ladder by day type (Table tab:rh_channels_sparse, Panel B) and points here.
+% Sources as there: results/ladder_2026-10-26 (RULE.txt sections 3, 5 and 6; tables.txt, readings.csv,
+% posthoc_vs_walk.csv); \rhld... macros (generated/rehaul_ladder_numbers.tex; \rhldDmLassoRidge and \rhldPLassoRidge
+% in generated/rehaul_oos_vs_ols_numbers.tex). Light edits: "at the same origins and hyperparameters" now points to
+% the origins of app:rh_fi_compute; a sentence on the design (the every-bar ladder is PRE-PATCH, D13; the ladder by day
+% type is on the patched design, \rhchLadderDesign); in "Ridge against lasso" a sentence on the reversal by day type
+% (Table tab:rh_channels_sparse, Panel A), which resolves the PENDING note parked below; the closing sentence says
+% "On every bar" and points to Section 7 for the day types; "the window test of the earlier draft" -> "the window
+% test". Was (closing sentences): "The exogenous signal is concentrated, not dense and weak, in both model classes.
+% Across windows ... only for \rhcxWhoKstarRisesBar{} (Appendix~\ref{app:rh_fi_scaling}); the window test of the
+% earlier draft is in Appendix~\ref{app:rh_fi_window}." Parked with it, the PENDING note of the ridge--lasso item
+% (2026-10-26, coordinator): "PENDING the author's framing decision (event vs ordinary days): on non-FOMC days ridge
+% and elastic net beat the lasso (exploratory rescoring, 26 Oct), so this bullet may be split by day type."
+\subsection{Variable importance: the feature-count ladder on every bar}
+\label{app:rh_fi_ladder}
+% 2026-10-28 (v2 of Sections 6-7, author approved preliminarily): moved here from the top of app:rh_fi_scaling, next to
+% the text that describes it.
+\input{generated/rehaul_ladder_fig}
+\begin{itemize}
+\item \textbf{How many series carry the gain} (Figure~\ref{fig:rh_ladder}). Following
+  \citet{MaischZhangUlrichZimmer2026}, we refit each model on its top $k$ exogenous series only, $k = 0$ (the HAR
+  benchmark set), 1, 3, 5, 10, 20 and \rhfipNExog{} (the full set), at the origins of Appendix~\ref{app:rh_fi_compute}
+  and with the frozen hyperparameters, and score every rung on the \rhorNIntB{} bars of Table~\ref{tab:rh_oos}. Each
+  model ranks the series once, by its own measure on a fit explained on \rhorPenYears, before the span, so the ranking
+  has no look-ahead. Rung $k$ retains $R_k = (L_0 - L_k)/(L_0 - L_{\rhfipNExog})$ of the full set's QLIKE gain; the
+  reading rule was fixed before scoring. The figure and the numbers below are on the design before the FOMC fixes of
+  Appendix~\ref{app:rh_dp_fomc}; the same ladder after the fixes, by day type, is Panel~B of
+  Table~\ref{tab:rh_channels_sparse}.
+  \begin{itemize}
+  \item Trees: the top 10 series keep \rhldTreeRTenMin{}--\rhldTreeRTenMax{}\% of the gain, the top
+    5 only \rhldTreeRFiveMin{}--\rhldTreeRFiveMax{}\%; \rhfipFomcUntil{}, ranked
+    \rhldTreeRankFomcUntilMin{}--\rhldTreeRankFomcUntilMax{} by the trees, enters between the two
+    rungs. The other series add little (top 10 against the full set: DM $p = \rhldLgbmPTenFull{}$,
+    \rhldXgbPTenFull{} and \rhldRfPTenFull{}).
+  \item Linear models: with 5 or 10 series they keep \rhldLinRFiveMin{}--\rhldLinRFiveMax{}\% and
+    \rhldLinRTenMin{}--\rhldLinRTenMax{}\% of the gain, more than the full set (top 10 against the
+    full set: DM $p \le \rhldLinPTenFullMax{}$), and the lasso's single top series,
+    \rhldLassoTopOne{}, matches the full set. Part of the shortfall is the cost of holding a fit on
+    \rhfipNCols{} predictors for a month: re-estimated at every bar (Table~\ref{tab:rh_oos}), the full sets are as
+    accurate as the monthly top-10 rungs (post hoc; DM $p$ from \rhldLinPTenVsWalkMin{} to
+    \rhldLinPTenVsWalkMax{}).
+  \item Ridge against lasso: a dense and weak signal favors the ridge, which keeps and shrinks every series, over the
+    lasso, which selects \citep[see][]{GiannoneLenzaPrimiceri2021}. In Table~\ref{tab:rh_oos} the full set changes
+    QLIKE relative to the HAR benchmark by \rhorVsOlsPctLassoFull\% in the lasso and \rhorVsOlsPctRidgeFull\% in the
+    ridge (lasso against ridge: DM $= \rhldDmLassoRidge{}$, $p = \rhldPLassoRidge{}$). By day type the order
+    reverses on ordinary days, where the ridge and the elastic net are the more accurate
+    (Table~\ref{tab:rh_channels_sparse}, Panel~A; Section~\ref{sec:rh_fi}).
+  \end{itemize}
+  On every bar, then, the exogenous signal is concentrated, not dense and weak, in both model classes;
+  Section~\ref{sec:rh_fi} separates the FOMC statement days from the ordinary days. Across windows of \rhcxWOne{} to
+  \rhcxWLong{} trading days the best number of series rises with the window, as a dense and weak signal predicts,
+  only for \rhcxWhoKstarRisesBar{} (Appendix~\ref{app:rh_fi_scaling}); the window test is in
+  Appendix~\ref{app:rh_fi_window}.
+\end{itemize}
 
 % ---------------------------------------------------------------------------------------------------------------------
 % 2026-10-26 (integration, JFEc): from writeup/drafts/2026-10-26_complexity.tex, framing B only (data and feature
@@ -281,7 +389,9 @@
 \label{app:rh_fi_scaling}
 % 2026-10-26 (coordinator): moved here from rehaul/08_feature_importance_floats.tex (its 16:00 panel; author: no
 % 16:00-bar results in the main text).
-\input{generated/rehaul_ladder_fig}
+% 2026-10-28 (v2 of Sections 6-7, author approved preliminarily): moved to the new subsection app:rh_fi_ladder, next to
+% the every-bar ladder text. Was:
+% \input{generated/rehaul_ladder_fig}
 \begin{itemize}
 \item \textbf{Question.} Does the gain from the exogenous series grow with the number of series a model sees and
   with the length of its training window, and does the number of series worth keeping grow with the window? If the
@@ -289,7 +399,9 @@
   themselves, so the best number of series would rise with the window.
 \item \textbf{Design.}
   \begin{itemize}
-  \item The feature-count ladder of Section~\ref{sec:rh_fi} at rolling windows of $W = \rhcxWOne$, \rhcxWTwo,
+  % 2026-10-28 (v2 of Sections 6-7, author approved preliminarily): the every-bar ladder left Section 7 for Appendix
+  % app:rh_fi_ladder. Was: "The feature-count ladder of Section~\ref{sec:rh_fi} at rolling windows ..."
+  \item The feature-count ladder of Appendix~\ref{app:rh_fi_ladder} at rolling windows of $W = \rhcxWOne$, \rhcxWTwo,
     \rhcxWMain{} and \rhcxWLong{} trading days ($T = \rhfipNBars\,W$, from \rhcxTOne{} to \rhcxTLong{} bars), with the rungs
     $k = 0, 1, 3, 5, 10, 20, \rhcxNSeries$: each rung keeps the \rhcxPHar{} columns of the HAR benchmark set and all
     columns of the top $k$ exogenous series, so it has $P = \rhcxPHar + \rhfipNPerSeries\,k$ predictors (\rhcxPFull{}
@@ -301,8 +413,10 @@
     $T$); ridge, lasso and elastic net on each window's own frozen penalty (ridge \rhcxPenRidgeOne{} at $W =
     \rhcxWOne$, \rhcxPenRidgeMain{} at the other windows; lasso \rhcxPenLassoOne{} and \rhcxPenLassoMain; elastic net
     \rhcxPenEnetOne{} and \rhcxPenEnetMain).
-  \item Each rung is refitted at the \rhcxNOrigins{} monthly origins of Section~\ref{sec:rh_fi} and held for the
-    next \rhfipOriginEvery{} trading days. The full rung equals the every-bar walk at every origin
+  % 2026-10-28 (v2 of Sections 6-7, author approved preliminarily): the origins are defined in Appendix
+  % app:rh_fi_compute, no longer in Section 7. Was: "... monthly origins of Section~\ref{sec:rh_fi} and held ..."
+  \item Each rung is refitted at the \rhcxNOrigins{} monthly origins of Appendix~\ref{app:rh_fi_compute} and held for
+    the next \rhfipOriginEvery{} trading days. The full rung equals the every-bar walk at every origin
     (\rhcxNGatesPass{} of \rhcxNGates{} window--model gates).
   \item Gain $G(W, k)$: the QLIKE of the same window's $k = 0$ rung minus the rung's, $\times 10^3$, on the
     \rhcxNBars{} scored bars of Table~\ref{tab:rh_oos} and on the 16:00 bar; Diebold--Mariano tests against $k = 0$
