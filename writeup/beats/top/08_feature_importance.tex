@@ -24,9 +24,9 @@
   half times the joint gain and the removal of at most one group raises the loss significantly. The two can hold at
   once, when one group carries the gain and the others repeat its information; we report both.
 \end{itemize}
-\input{beats/stubs/rehaul_channels_ablation_table}
-\input{beats/stubs/rehaul_channels_sparsity_table}
-\input{beats/stubs/rehaul_factor_table}
+\input{generated/rehaul_channels_ablation_table}
+\input{generated/rehaul_channels_sparsity_table}
+\input{generated/rehaul_factor_table}
 
 \subsection{The FOMC calendar: one group, few bars}
 \label{sec:rh_fi_event}
@@ -176,7 +176,7 @@
   selection count $K_A$, the ridge's coefficient shares $S_A$ and $S^{\mathrm{sd}}_A$, and the trees' mean SHAP rank
   $\bar r_A$. Under each column: Kendall's $W$ of the rankings across re-estimations, and the number of exogenous
   series with a predictor that beats the random probe.
-\input{beats/stubs/rehaul_fi_summary}
+\input{generated/rehaul_fi_summary}
 \item \textbf{Lasso, aggregate:} the selection count of a group and of a predictor, the number of the $K$
   re-estimations with a nonzero coefficient,
   \[
