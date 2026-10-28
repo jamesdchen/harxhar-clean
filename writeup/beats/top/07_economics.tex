@@ -50,22 +50,24 @@
 \subsection{Performance measures}
 \label{sec:rh_econ_measures}
 \begin{itemize}
-\item \textbf{Sharpe ratio.} With $\mathcal Y$ the \rheNYears{} calendar years of $\mathcal T_{\mathrm{opt}}^{+}$,
+\item \textbf{Sharpe ratio.} With $T = \rheSzDays$ the number of post-warmup days in $\mathcal T_{\mathrm{opt}}^{+}$
+  and $\mathcal Y$ their \rheNYears{} calendar years,
   \[
-    \SR = \frac{1}{|\mathcal Y|}\sum_{y \in \mathcal Y} \SR_y,
+    \SR = \sqrt{q}\;\frac{\bar r}{\mathrm{sd}(r)},
     \qquad
-    \SR_y = \sqrt{A_y}\;\frac{\bar r_y}{\mathrm{sd}_y(r)},
-    \qquad
-    A_y = \frac{N_y}{c_y},
+    q = \frac{T}{\sum_{y \in \mathcal Y} c_y},
   \]
-  where $\bar r_y$ and $\mathrm{sd}_y(r)$ are the mean and standard deviation (divisor $N_y - 1$) of the $N_y$ daily
-  returns of year $y$ and $c_y$ is the fraction of the calendar year that the sample covers, so that $A_y$ is the
-  year's number of option days per calendar year. Each year enters with equal weight at its own trading frequency
-  (SPXW expirations were listed on Mondays, Wednesdays and Fridays until spring 2022 and on every weekday from
-  \rheSplitDate). The risk-free return over the 30-minute holding period is negligible and omitted.
-  Appendix~\ref{app:rh_econ_sharpe} gives the alternative definitions and when this one was adopted.
+  where $\bar r$ and $\mathrm{sd}(r)$ are the mean and standard deviation (divisor $T - 1$) of the $T$ daily returns,
+  each day with weight $1/T$, and $c_y$ is the fraction of calendar year $y$ that the sample covers, so that
+  $q = \rheAnnDays$ is the average number of option days per calendar year (SPXW expirations were listed on Mondays,
+  Wednesdays and Fridays until spring 2022 and on every weekday from \rheSplitDate). The ratio of a single year,
+  $\SR_y = \sqrt{A_y}\,\bar r_y/\mathrm{sd}_y(r)$, takes the mean and standard deviation of the $N_y$ returns of year
+  $y$ and annualizes by that year's own number of option days per calendar year, $A_y = N_y/c_y$. The risk-free
+  return over the 30-minute holding period is negligible and omitted. Appendix~\ref{app:rh_econ_sharpe} gives the
+  alternative definitions and when this one was adopted.
 \item \textbf{Tests.} Every statement about a difference of Sharpe ratios, $\Delta\SR = \SR(r^A) - \SR(r^B)$, uses
-  a paired circular block bootstrap of $\Delta\SR$ itself (Appendix~\ref{sec:rh_methods_tests}). A statement about
+  the studentized circular block bootstrap test of \citet{LedoitWolf2008} (Appendix~\ref{sec:rh_methods_tests}).
+  A statement about
   a mean daily return, or about the mean of the return differential $\Delta_t = r^A_t - r^B_t$, uses the
   $t$-statistic with the Newey--West long-run variance at bandwidth $S = \rheHACS$ and fixed-$b$ critical values
   \citep{KieferVogelsang2005,LazarusLewisStockWatson2018}. The two tests answer different questions: a strategy can
@@ -76,30 +78,31 @@
 \label{sec:rh_econ_results}
 \begin{itemize}
 \item \textbf{Table and figure.} Table~\ref{tab:rh_econ_main} reports the sign strategies of the \rhrPoolN{} pooled
-  forecasts and the short straddle, and Figure~\ref{fig:rh_econ_byyear} plots the terms $\SR_y$ of their Sharpe
-  ratios by calendar year.
+  forecasts and the short straddle, and Figure~\ref{fig:rh_econ_byyear} plots their Sharpe ratios by calendar year,
+  $\SR_y$.
 \item \textbf{Passive selling earns nothing detectable.} The unconditional short straddle has $\SR = \rheShortSh$ at
-  mid-quotes and \rheShortShX{} at quoted bid/ask prices (\rhemShDOneShort{} and \rhemShDTwoShort{} at mid-quotes
-  under the two alternative definitions of Appendix~\ref{app:rh_econ_sharpe}, which weight the partial first and last
-  years by their days). Its mean daily return is not significantly different from zero ($t = \rheShortT$, fixed-$b$
-  $p = \rheShortP$), and it loses money in \rheShortLossYears{} of the \rheNYears{} calendar years.
+  mid-quotes and \rheShortShX{} at quoted bid/ask prices (\rhemShDSixShort{} and \rhemShDOneShort{} at mid-quotes
+  under the two alternative definitions of Appendix~\ref{app:rh_econ_sharpe}: the equal-weight mean of the $\SR_y$,
+  which gives the partial first and last years the weight of a full one, and the $N_y$-weighted per-year ratio). Its
+  mean daily return is not significantly different from zero ($t = \rheShortT$, fixed-$b$ $p = \rheShortP$), and it
+  loses money in \rheShortLossYears{} of the \rheNYears{} calendar years.
 \item \textbf{The benchmark forecast.} The sign strategy of the benchmark forecast reaches $\SR = \rhemShRidgeHar$ at
   mid-quotes and \rhemShXRidgeHar{} at quoted bid/ask prices. Its Sharpe ratio exceeds the short straddle's by
-  \rhemDShRidgeHarVsShort{} (bootstrap $p = \rhemPDShRidgeHarVsShort$), and none of the \rhemHarDistinctWord{} distinct
-  HAR-set forecasts has a Sharpe ratio significantly above the short straddle's.
+  \rhemDShRidgeHarVsShort{} (Ledoit--Wolf $p = \rhemPDShRidgeHarVsShort$), and none of the \rhemHarDistinctWord{}
+  distinct HAR-set forecasts has a Sharpe ratio significantly above the short straddle's.
 \item \textbf{The full predictor set beats passive selling.} The six pooled forecasts on the full predictor set reach
   $\SR = \rhrPoolShFullMin$ to \rhrPoolShFullMax{} at mid-quotes and \rhrPoolShXFullMin{} to \rhrPoolShXFullMax{} at
   quoted bid/ask prices. Their Sharpe ratio gain over the short straddle is significant at the 5\% level for
   \rhemFullVsShortSigWord{} of the six at mid-quotes and \rhemFullVsShortSigXWord{} at quoted bid/ask prices
-  (bootstrap test). The mean daily return differential over the short straddle, a different test, is significant for
-  \rhemFullTVsShortSigWord{} of the six (fixed-$b$).
+  (Ledoit--Wolf test). The mean daily return differential over the short straddle, a different test, is significant
+  for \rhemFullTVsShortSigWord{} of the six (fixed-$b$).
 \item \textbf{The gain over the HAR benchmark set.} Against the HAR-set forecast of the same model class, the full
   predictor set raises the mid-quote Sharpe ratio in \rhemFullVsHarPosWord{} of the six classes, by
   \rhrAfPoolDShMin{} to \rhrAfPoolDShMax, and the gain is significant at the 5\% level for \rhemFullVsHarSigWord{} of
-  the six (bootstrap test). For the three linear classes the comparator is the benchmark forecast itself; their
+  the six (Ledoit--Wolf test). For the three linear classes the comparator is the benchmark forecast itself; their
   gains, \rhemDShRidgeFullVsHar,
-  \rhemDShLassoFullVsHar{} and \rhemDShEnetFullVsHar{} for the ridge, lasso and elastic net, have bootstrap $p$-values
-  of \rhemPDShRidgeFullVsHar, \rhemPDShLassoFullVsHar{} and \rhemPDShEnetFullVsHar.
+  \rhemDShLassoFullVsHar{} and \rhemDShEnetFullVsHar{} for the ridge, lasso and elastic net, have Ledoit--Wolf
+  $p$-values of \rhemPDShRidgeFullVsHar, \rhemPDShLassoFullVsHar{} and \rhemPDShEnetFullVsHar.
 \item \textbf{By calendar year} (Figure~\ref{fig:rh_econ_byyear}). Every full-set forecast has a positive $\SR_y$ in
   every year, and their median exceeds the median of the \rhemHarDistinctWord{} distinct HAR-set forecasts in
   \rhemYearsFullMedAboveHarMedWord{} of the \rhemNYearsWord{} years; the short straddle's $\SR_y$ is negative in
@@ -110,7 +113,7 @@
   while every CAPM $\alpha$, \rhebAlphaFullMin--\rhebAlphaFullMax\% of the premium a day, is significant. Combined with
   the market in real time, they reach Sharpe ratios of the pooled daily returns of \rhebRtMvFullMin{} to
   \rhebRtMvFullMax{} against \rhebSRmRt{} for the market alone, but the gain is significant at the 5\% level for none
-  of the six mean--variance combinations and \rhebRtIvSigFullWord{} of the six inverse-volatility ones.
+  of the six mean--variance combinations or of the six inverse-volatility ones.
 \item \textbf{Further results} (Appendices~\ref{app:rh_econ_sharpe}--\ref{app:rh_econ_maisch}): alternative Sharpe
   ratios, position sizing, compounding, the interval-shift test, break-even spreads, forecast loss against the Sharpe
   ratio, a longer window, and the relation to intraday option-return prediction.

@@ -68,7 +68,7 @@
       in all \rhorAfPairs{} model classes, each reduction statistically significant at the 5\% level
       (Section~\ref{sec:rh_results_oos}).
     \item A richer volatility model built from the same one-minute futures returns does not deliver this gain
-      (Section~\ref{sec:rh_results_ablation}). The full set beats the HAR benchmark augmented with the futures' own
+      (Section~\ref{sec:rh_fi_ordinary}). The full set beats the HAR benchmark augmented with the futures' own
       realized moments significantly in \rhabNClassesBeatAddRm{} of the \rhabNClassesAddRm{} classes (QLIKE changes
       of \rhabLgbmFullVsAddRmAllPct\% for LightGBM and \rhabEnetFullVsAddRmAllPct\% for the elastic net), whereas the
       semivariance, realized-quarticity and leverage extensions of the HAR model
@@ -87,7 +87,7 @@
       raises LightGBM's loss by \rhabLgbmLoRmAllPct\%).
     \item Along a ladder of nested predictor sets ranked before the evaluation span, the \ladderTopK{}
       highest-ranked series retain \ladderTreeRetainRng{}\% of the trees' full-set gain, and the penalized
-      linear models do best with \ladderLinKstarRng{} series (Section~\ref{sec:rh_fi},
+      linear models do best with \ladderLinKstarRng{} series (Appendix~\ref{app:rh_fi_ladder},
       Figure~\ref{fig:rh_ladder}). On the dense-versus-sparse question, the exogenous signal sits in a few series
       rather than spreading thinly over many.
     \item The alternative data add little even on the bars on which their values are live: there StockTwits changes
@@ -123,8 +123,9 @@
     and none of them carries a significant market beta.
   \end{itemize}
 \item \textbf{Organization.} Sections~\ref{sec:rh_related} to~\ref{sec:rh_methods} cover the literature, the data,
-  the predictors and the methods; Section~\ref{sec:rh_results} reports accuracy and ablations,
-  Section~\ref{sec:rh_fi} variable importance and Section~\ref{sec:rh_econ} the application;
+  the predictors and the methods; Section~\ref{sec:rh_results} reports accuracy and where the gain falls, on FOMC
+  statement days and ordinary days, Section~\ref{sec:rh_fi} which predictors carry it and
+  Section~\ref{sec:rh_econ} the application;
   Section~\ref{sec:rh_conclusion} concludes. The online appendix holds the implementation details, the robustness
   checks and the models estimated on the closing half hour alone (Appendix~\ref{app:rh_closing}).
 \end{itemize}
