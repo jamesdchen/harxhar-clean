@@ -1,0 +1,35 @@
+{
+ "arm": "brung_xgb_3",
+ "est": "xgb",
+ "n_pieces": 8,
+ "rows": 33970,
+ "cpus": [
+  "Intel(R) Xeon(R) Gold 6442Y"
+ ],
+ "piece_cpus": {
+  "brung_xgb_3_xgb_1of8.parquet": [
+   "Intel(R) Xeon(R) Gold 6442Y"
+  ],
+  "brung_xgb_3_xgb_2of8.parquet": [
+   "Intel(R) Xeon(R) Gold 6442Y"
+  ],
+  "brung_xgb_3_xgb_3of8.parquet": [
+   "Intel(R) Xeon(R) Gold 6442Y"
+  ],
+  "brung_xgb_3_xgb_4of8.parquet": [
+   "Intel(R) Xeon(R) Gold 6442Y"
+  ],
+  "brung_xgb_3_xgb_5of8.parquet": [
+   "Intel(R) Xeon(R) Gold 6442Y"
+  ],
+  "brung_xgb_3_xgb_6of8.parquet": [
+   "Intel(R) Xeon(R) Gold 6442Y"
+  ],
+  "brung_xgb_3_xgb_7of8.parquet": [
+   "Intel(R) Xeon(R) Gold 6442Y"
+  ],
+  "brung_xgb_3_xgb_8of8.parquet": [
+   "Intel(R) Xeon(R) Gold 6442Y"
+  ]
+ }
+}

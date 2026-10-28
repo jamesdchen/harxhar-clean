@@ -130,6 +130,8 @@ def select(a, F: Full) -> tuple[np.ndarray, str]:
         return np.concatenate([o[: a.ends], o[-a.ends :]]), a.tag or f"ends{a.ends}"
     if a.first:
         return o[: a.first], a.tag or f"first{a.first}"
+    if a.spread:  # addendum I: n origins spread evenly over the span (first and last included)
+        return o[np.unique(np.linspace(0, len(o) - 1, a.spread).round().astype(int))], a.tag or f"spread{a.spread}"
     i, n = (int(v) for v in a.part.split("/"))
     assert 1 <= i <= n, a.part
     day = F.d[o].normalize()
@@ -146,7 +148,10 @@ def cmd_walk(a) -> int:
     F = Full(Path(a.full))
     arm, est = a.arm, a.est
     assert est in EST, est
-    assert arm in ("full", "har") or arm in arms_of(est) or arm in AA.COMBO, (arm, est)  # addendum F: + COMBO
+    assert arm in ("full", "har") or arm in arms_of(est) or arm in AA.COMBO or arm in AA.RUNGS.get(est, []), (
+        arm,
+        est,
+    )  # addendum F: + COMBO; addendum I: + the model's own ladder rungs
     rows, tag = select(a, F)
     out = Path(a.out)
     path = piece_path(out, arm, est, tag)
@@ -281,6 +286,50 @@ def template(est: str, gb: str = "") -> pd.DataFrame:
         g = g[(g["model"] == est) & (g["predictor_set"] == "all_features")]
         f = pd.concat([f[f["predictor_set"] != "all_features"], g], ignore_index=True)
     return f
+
+
+def cmd_gatebase(a) -> int:
+    """Addendum I accuracy gate (beyond_trees RULE section 0): on this CPU model the runner, on the BASE arm (the
+    added columns switched off), reproduces the merged BASE forecasts bit for bit (text-identical pred_adj, equal
+    true_adj and B) at the spread origins -> <out>/passed_<est> (the CPU model) for each class that passes."""
+    out = Path(a.out)
+    rec: dict = {"dir": str(out), "classes": {}, "fail": []}
+    for est in [e for e in a.est.split(",") if e]:
+        p = piece_path(out, "add_rm_fomc", est, f"spread{a.spread}")
+        if not (p.is_file() and p.with_suffix(".json").is_file()):
+            rec["fail"].append(f"{est}: no spread piece")
+            continue
+        f = pd.read_parquet(p)
+        m = json.loads(p.with_suffix(".json").read_text())
+        # 2026-10-27 fix: the merged BASE file holds date and pred_adj only (cmd_merge); true_adj and B are compared,
+        # as cmd_merge does, with the templates' all-features rows on the same dates
+        t = pd.read_parquet(Path(a.base) / f"{est}_add_rm_fomc.parquet").set_index("date")
+        t = t.reindex(pd.DatetimeIndex(f["date"]))
+        x, y = f["pred_adj"].to_numpy(), t["pred_adj"].to_numpy()
+        text = [repr(float(u)) == repr(float(v)) for u, v in zip(x, y)]
+        tf = template(est)
+        s = tf[tf["predictor_set"] == "all_features"].set_index("date").reindex(pd.DatetimeIndex(f["date"]))
+        side = bool(np.array_equal(f["true_adj"].to_numpy(), s["true_adj"].to_numpy())) and bool(
+            np.array_equal(f["B"].to_numpy(), s["B"].to_numpy())
+        )
+        ok = len(f) >= 5 and all(text) and side and len(m["cpus"]) == 1
+        rec["classes"][est] = dict(
+            pass_=ok,
+            rows=len(f),
+            text_identical=int(sum(text)),
+            side_equal=side,
+            cpus=m["cpus"],
+            sec_refit=m["wall_sec"] / max(1, m["refits"]),
+            dates=[str(d) for d in f["date"]],
+        )
+        if ok:
+            (out / f"passed_{est}").write_text(m["cpus"][0] + "\n")
+        else:
+            rec["fail"].append(f"{est}: {int(sum(text))} of {len(f)} text-identical, side {side}")
+    rec["pass"] = not rec["fail"]
+    (out / "gatebase.json").write_text(json.dumps(rec, indent=1))
+    say(f"gate BASE {out.name}: {'PASS' if rec['pass'] else 'FAIL'} {rec['fail']}")
+    return 0 if rec["pass"] else 3
 
 
 def cmd_gate1(a) -> int:
@@ -462,7 +511,9 @@ def cmd_merge(a) -> int:
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("mode", choices=("tasks", "walk", "gate1", "gate2", "project", "merge"))
+    ap.add_argument("mode", choices=("tasks", "walk", "gate1", "gate2", "project", "merge", "gatebase"))
+    ap.add_argument("--spread", type=int, default=0, help="walk: n origins spread over the span (addendum I)")
+    ap.add_argument("--base", default="", help="gatebase: the merged BASE forecasts dir (<est>_add_rm_fomc.parquet)")
     ap.add_argument("--arm", default="")
     ap.add_argument("--est", default="")
     ap.add_argument("--part", default="1/1")
@@ -480,6 +531,8 @@ def main() -> int:
     ap.add_argument("--cap", type=float, default=15000.0)
     ap.add_argument("--template-gb", default="", help="gate1: LightGBM / XGBoost full-set templates (addendum D)")
     a = ap.parse_args()
+    if a.mode == "gatebase":
+        return cmd_gatebase(a)
     return {
         "tasks": cmd_tasks,
         "walk": cmd_walk,

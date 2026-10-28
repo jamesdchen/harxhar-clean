@@ -1,0 +1,33 @@
+{
+ "arm": "brung_lgbm_5",
+ "est": "lgbm",
+ "n_pieces": 7,
+ "rows": 33970,
+ "cpus": [
+  "Intel(R) Xeon(R) 6736P",
+  "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+ ],
+ "piece_cpus": {
+  "brung_lgbm_5_lgbm_1of7.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "brung_lgbm_5_lgbm_2of7.parquet": [
+   "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+  ],
+  "brung_lgbm_5_lgbm_3of7.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "brung_lgbm_5_lgbm_4of7.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "brung_lgbm_5_lgbm_5of7.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "brung_lgbm_5_lgbm_6of7.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ],
+  "brung_lgbm_5_lgbm_7of7.parquet": [
+   "Intel(R) Xeon(R) 6736P"
+  ]
+ }
+}
