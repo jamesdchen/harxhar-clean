@@ -122,10 +122,16 @@ RF_FIX = ROOT / "results" / "pooled_rf_skx_2014start_fomcfix_w3000" / "forecasts
 # 2026-10-26 addendum D: on the FOMC-patched design, the trees' lo_<g> arms for g != fomc hold the pre-patch FOMC
 # columns and stay pre-patch; they are compared with the pre-patch full set (key "full_pre")
 PRE_TREE = tuple(f"lo_{g}" for g in ("rm", "liq", "ew", "vw", "sent", "iv", "vd"))
+# 2026-10-28 addendum J: LightGBM's and XGBoost's lo_<g>, g != fomc, walked on the patched design
+# (forecasts/trees_wide_lofix.parquet); when that file is there they replace the pre-patch ones and are compared with
+# the patched full set.  Filled by load_panel.
+PATCHED_LO: set[tuple[str, str]] = set()
+LOFIX = "trees_wide_lofix.parquet"
 
 
 def ref_full(design: str, cls: str, arm: str) -> str:
-    return "full_pre" if design == "fix" and cls in TREES and arm in PRE_TREE else "full"
+    pre = design == "fix" and cls in TREES and arm in PRE_TREE and (cls, arm) not in PATCHED_LO
+    return "full_pre" if pre else "full"
 
 
 def load_panel(res: Path, design: str = "pre", rf_fix: str = "") -> tuple[dict[tuple[str, str], pd.Series], pd.Series]:
@@ -175,7 +181,13 @@ def load_panel(res: Path, design: str = "pre", rf_fix: str = "") -> tuple[dict[t
             "linear_wide_beyond.parquet",  # addendum G
             "trees_wide_beyond.parquet",
             "trees_wide_ladder.parquet",  # addendum I
+            LOFIX,  # addendum J
         )
+        if (res / "forecasts" / LOFIX).is_file():
+            w = pd.read_parquet(res / "forecasts" / LOFIX, columns=None)
+            PATCHED_LO.update(tuple(col.split("|")) for col in w.columns[1:])  # type: ignore[misc]
+            assert all(c in ("lgbm", "xgb") and a in PRE_TREE for c, a in PATCHED_LO), sorted(PATCHED_LO)
+            del w
     # the merged ablation forecasts, compact: one column of pred_adj per "<class>|<arm>" (2014-01-02 on)
     for name in names:
         p = res / "forecasts" / name
@@ -190,6 +202,8 @@ def load_panel(res: Path, design: str = "pre", rf_fix: str = "") -> tuple[dict[t
             cls = {"rf_skx": "rf"}.get(cls, cls)
             if design == "fix" and name == "trees_wide.parquet" and arm == "add_fomc":
                 continue  # the patched add_fomc comes from trees_wide_fix.parquet
+            if design == "fix" and name == "trees_wide.parquet" and (cls, arm) in PATCHED_LO:
+                continue  # addendum J: the patched lo_<g> comes from trees_wide_lofix.parquet
             assert (cls, arm) not in out, (cls, arm)
             out[(cls, arm)] = pd.Series(w[col].to_numpy() ** 2 * b, index=d)
     return out, B
@@ -391,7 +405,9 @@ def main() -> int:
                 v = float(mine.loc[sp, col])
                 if not np.isclose(v, ref, rtol=1e-12, atol=0):
                     checks["fail"].append(f"fomcfix B {r['model']} {col} {sp}: {v} vs {ref}")
-        checks["design"] = "fix: FOMC-patched (fomcfix cell B); trees' lo_<g> (g != fomc) pre-patch vs full_pre"
+        checks["design"] = "fix: FOMC-patched (fomcfix cell B); trees' lo_<g> (g != fomc) pre-patch vs full_pre" + (
+            f"; addendum J: {len(PATCHED_LO)} boosted-tree lo_<g> patched vs full" if PATCHED_LO else ""
+        )
         checks["rf_full_fix"] = bool(a.rf_fix)
     checks["pass"] = not checks["fail"]
     checks["arms"] = sorted(f"{c}/{a_}" for c, a_ in panel)

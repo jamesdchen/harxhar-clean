@@ -111,9 +111,14 @@ def ref_arm(arm: str, c: str = "", have: set | None = None) -> str:
         return COMBO
     if not arm.startswith("lo_"):
         return "har"
-    if have is not None and arm in PRE_TREE and (c, "full_pre") in have:
+    if have is not None and arm in PRE_TREE and (c, "full_pre") in have and (c, arm) in PRE_REF:
         return "full_pre"
     return "full"
+
+
+# 2026-10-28 addendum J: the (class, lo_<g>) pairs the scorer tested against the pre-patch full set (filled by main from
+# dm.csv); once LightGBM's and XGBoost's patched lo_<g> are merged only the forest's lo_rm stays there.
+PRE_REF: set[tuple[str, str]] = set()
 
 
 def fmt(x: float, dp: int) -> str:
@@ -145,6 +150,7 @@ def main() -> int:
     checks = json.loads((RES / "checks.json").read_text())
     assert checks["pass"], checks["fail"]
     have = set(zip(M["cls"], M["arm"]))
+    PRE_REF.update(zip(D.loc[D["vs_arm"] == "full_pre", "cls"], D.loc[D["vs_arm"] == "full_pre", "arm"]))
     q = M.set_index(["cls", "arm", "span"])
     dq = D[D["loss"] == "qlike"].set_index(["cls", "arm", "vs_cls", "vs_arm", "span"])
     lines = [
@@ -588,6 +594,20 @@ DESIGN_TXT = (
 )
 
 
+def design_txt() -> str:
+    """The table note's design sentence; addendum J: once the boosted trees' removals are on the patched design, only
+    the forest's removal of the realized moments keeps the dagger."""
+    if not FIXED or any(c in ("lgbm", "xgb") for c, _ in PRE_REF):
+        return DESIGN_TXT
+    return (
+        "FOMC-patched design (the scheduled 18 March 2020 meeting added, the proximity ramps not winsorized); every"
+        " linear arm, the trees' FOMC arms and the gradient-boosted trees' removals are walked on it.  Cells marked"
+        " \\dag{} (the random forest's removal of the realized moments) are on the pre-patch FOMC design, against the"
+        " pre-patch full set; the forest's other removals were not run (the trees' add arms other than FOMC and the"
+        " removal of FOMC hold no FOMC column, so their forecasts are the same on both designs)."
+    )
+
+
 def table(M: pd.DataFrame, D: pd.DataFrame, have: set) -> str:
     q = M.set_index(["cls", "arm", "span"])
     dq = D[D["loss"] == "qlike"].set_index(["cls", "arm", "vs_cls", "vs_arm", "span"])
@@ -655,7 +675,7 @@ def table(M: pd.DataFrame, D: pd.DataFrame, have: set) -> str:
         "\\footnotesize",
         NOTE_DESIGN
         + "\\item \\textit{Notes:} "
-        + DESIGN_TXT
+        + design_txt()
         + " Each cell is the percentage change in QLIKE of a pooled intraday forecast against its"
         " reference, with the Diebold--Mariano statistic of the difference in parentheses (negative: the arm has the lower"
         " loss); every bar of Table~\\ref{tab:rh_oos} is scored (2014--2024) and the test runs on daily average QLIKE."

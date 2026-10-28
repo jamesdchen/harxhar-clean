@@ -450,6 +450,8 @@ def main() -> None:
     a_lin_pre = find(abl + "forecasts/linear_wide.parquet", BRANCH_ABL)
     a_tree = find(abl + "forecasts/trees_wide.parquet", BRANCH_ABL)
     a_tree_fix = find(abl + "forecasts/trees_wide_fix.parquet", BRANCH_ABL)
+    # 2026-10-28 ablation addendum J: LightGBM's and XGBoost's lo_<g>, g != fomc, on the patched design (when merged)
+    a_tree_lofix = find(abl + "forecasts/trees_wide_lofix.parquet", BRANCH_ABL)
     a_rf_lofomc = find(abl + "forecasts/trees_wide_rflofomc.parquet", BRANCH_ABL)
     a_sc_pre = find(abl + "scores/metrics.csv", BRANCH_ABL)
     a_sc_fix = find(abl + "scores_fomcfix/metrics.csv", BRANCH_ABL)
@@ -486,6 +488,8 @@ def main() -> None:
         "tree ablation arms", a_tree, "invariant (add_g, g!=fomc; lo_fomc) / pre-patch (lo_g, g!=fomc)", "1 (b), 3 (ii)"
     )
     note("tree add_fomc (patched)", a_tree_fix, "patched", "items 1 (a), 3 (ii)")
+    if a_tree_lofix is not None:
+        note("boosted trees' lo_g, g!=fomc (patched, addendum J)", a_tree_lofix, "patched", "1 (b), 3 (ii)")
     note(
         "forest lo_fomc",
         a_rf_lofomc,
@@ -634,6 +638,18 @@ def main() -> None:
     wt = a_tree.read_parquet()
     dt_ = pd.DatetimeIndex(wt["date"])
     wt.columns = ["date"] + [col.replace("rf_skx|", "rf|") for col in wt.columns[1:]]
+    if a_tree_lofix is not None:  # addendum J: the patched lo_<g> replace the pre-patch ones
+        wj = a_tree_lofix.read_parquet()
+        dj = pd.DatetimeIndex(wj["date"])
+        for col in wj.columns[1:]:
+            cl, arm = col.split("|")
+            assert cl in ("lgbm", "xgb") and arm.startswith("lo_") and arm != "lo_fomc", col
+            put((cl, arm), wj[col].to_numpy(float), dj, "patched")
+            REF[(cl, arm)] = (cl, "full")
+        done_j = {tuple(col.split("|")) for col in wj.columns[1:]}
+        del wj
+    else:
+        done_j = set()
     for c in TREES:
         for g in GROUPS:
             for kind in ("add", "lo"):
@@ -646,6 +662,8 @@ def main() -> None:
                         PROV[(c, "add_fomc_pre")] = "pre-patch"
                     AVAIL[(c, arm)] = "pending"
                     continue
+                if (c, arm) in done_j:
+                    continue  # addendum J: already put from the patched walks
                 if col not in wt.columns:
                     lofomc_wait = (c, arm) == ("rf", "lo_fomc") and not RF_LOFOMC_DROPPED
                     AVAIL[(c, arm)] = "pending" if lofomc_wait else "na"
