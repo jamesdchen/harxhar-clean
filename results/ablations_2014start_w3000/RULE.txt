@@ -398,3 +398,28 @@ ADDENDUM I, 2026-10-27 (written before any job it affects): THE WITHIN-BLOCK LAD
        R(20) < 0.75, else INTERMEDIATE), tab:rh_beyond_ladder (writeup/generated/rehaul_beyond_ladder_table.tex) and the
        \rhbyL... macros (rehaul_beyond_ladder_numbers.tex), labelled "requested by the author after the beyond-base
        results; not pre-registered".
+
+ADDENDUM J, 2026-10-28 16:45 PDT (23:45 UTC), before any job it affects: THE TREES' REMOVALS ON THE FOMC-PATCHED DESIGN
+   (Letter H was never used: the leave-one-out campaign of 27 October was cancelled before any addendum.)  Requested by
+   the author on 28 October ("do 1"), after the readings by day type: the gradient-boosted trees' removals lo_<g>,
+   g != fomc, kept pre-patch by addendum D (d) (each against the pre-patch full set), are walked on the patched design,
+   so that every tree reading uses one design.  Not pre-registered; the arms, models and pieces are those of sections
+   1-6 (only the design changes), and the pre-patch forecasts and readings stay in the record.
+   (a) Arms: lo_<g> for g = rm, liq, ew, vw, sent, iv, vd (the full set without group g; membership as
+       experiments/ablate_arms.py), LightGBM and XGBoost at their frozen configurations (8 threads), on
+       designs_fix/full (the patched full cache, gate F0: X md5 725eb201...), W = 3,000 days, refit at every bar,
+       2014-01-02 .. 2024-04-30.  No random forest (its removals other than lo_rm were never run; lo_fomc stays stopped).
+   (b) Pieces: tasks/trees_lofix.txt = the 171 lines of tasks/trees.txt for these 14 arms, verbatim (the same piece
+       partition; XGBoost first); pool3.sh KIND=trees, claims runs/claims_trees_lofix, output runs/trees_lofix,
+       TFULL designs_fix/full.  Eligible models = those that passed T1 (gate/*/passed_<est>): Slurm Gold 6240 (8 jobs x 4
+       workers), Gold 6442Y (4 x 6), Xeon 6736P (2 x 9), UGE Gold 6140 (25 x 1, 8 slots); a piece resumes only on the
+       model that began it.  Merge: cluster/ablate/merge_lofix.sh (ablate_widen.py; T2 bit-identity across the models
+       of an arm's pieces) -> runs/trees_lofix/trees_wide.parquet; fetched -> forecasts/trees_wide_lofix.parquet.
+   (c) Projection: the pieces' hours at the cost model's speed sum to 488 (XGBoost 294, LightGBM 194), x 8 threads =
+       3,905 CPU-hours; the pre-patch walks of the same arms ran at 3.4-4.7 s (XGBoost) and 2.1-3.0 s (LightGBM) a refit
+       on Gold 6240, ~2,900-4,100 CPU-hours.  Above the 2,500 allowed without asking: approved by the author (28 Oct).
+   (d) Scoring: experiments/ablate_score.py --design fix with these lo_<g> against the patched full set, replacing the
+       pre-patch pairs (the dagger cells of tab:rh_ablation and tab:rh_channels_abl); every bar, ORDINARY and EVENT
+       days; the readings of results/channels_2026-10-26/RULE.txt recomputed mechanically.  The report gives each
+       removal pre-patch -> patched (QLIKE change, DM, p) and every reading that changes, in particular the two
+       boosted trees' sentiment removals on ORDINARY days (pre-patch p 0.035 LightGBM, 0.051 XGBoost).
