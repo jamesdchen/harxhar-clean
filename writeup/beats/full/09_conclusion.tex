@@ -20,8 +20,11 @@
   carries most of the trees' gain and the futures' realized moments come second; the \ladderTopK{}
   highest-ranked series retain \ladderTreeRetainRng{}\% of it, and the linear models do best with
   \ladderLinKstarRng{} series. The signal sits in a few series rather than spreading thinly over many.
-\item \textbf{Alternative data add little, even when live.}
+\item \textbf{Beyond the two groups, a small gain in the boosted trees.}
   \begin{itemize}
+  \item The other \rhbyFLNSeries{} series change no penalized linear model's loss significantly and that of
+    LightGBM and XGBoost by \rhabLgbmFullVsAddRmFomcAllPct{} and \rhabXgbFullVsAddRmFomcAllPct\%, through a few
+    series from several groups rather than a factor common to them.
   \item Under our causal construction the StockTwits and volatility-demand series are live on
     \rhlvStSentEvLo--\rhlvStAttEvHi\% and \rhlvVdEvLo--\rhlvVdEvHi\% of the scored bars; on those bars they change the
     loss little, and volatility demand raises that of the linear models.
