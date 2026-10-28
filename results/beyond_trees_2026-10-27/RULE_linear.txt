@@ -1,0 +1,39 @@
+RULE: LINEAR factor test beyond HAR + realized moments + FOMC (author, 27 Oct: "run the linear factor test without the
+moments ... same design and pre-registered rules as the tree version, run locally"). Written 2026-10-27 by the
+coordinator, committed before any computation.
+
+DISCLOSURE. Requested after the beyond-base results (ablation addenda F, G), the tree factor test's design
+(RULE.txt sections 0-1, CARC addendum 1) and the within-block ladder's readings had been seen. Beyond the base the
+linear models gain nothing significant (full vs base, every bar: ridge +0.1%, lasso -0.6%, elastic net -0.6%, none
+significant). Not pre-registered in that sense; the design and reading below are fixed before scoring.
+
+DESIGN (as RULE.txt sections 0-1, linear)
+- Table 1's design (13 bars pooled, base-5 HAR on the 48-interval grid, W = 3,000 days = 39,000 rows, FOMC-patched
+  design D13), forecasts 2 January 2014 to 30 April 2024, OLS (min-norm, Table 1's walk) re-estimated at every bar.
+- BASE_LIN = OLS on the 132 columns of the add_rm_fomc arm (HAR set + the futures' realized moments + the FOMC group).
+- Components: exactly the tree version's construction (CARC addendum 1): the 216 value-average columns of the series of
+  ew, vw, liq, iv, sent, vd; standardized within the window with the linear factor test's active-column rule; loadings
+  recomputed once a trading day from the window ending at the bar before the day's first bar and held for that day;
+  PCA = eigenvectors of the window correlation matrix; PLS = SIMPLS against the window's target.
+- Arms: OLS on [BASE_LIN columns, first k scores], PCA k in {1, 2, 3, 5, 10}, PLS k in {1, 3}.
+- Gates before scoring: (G1) k = 0 reproduces the ablation's OLS add_rm_fomc forecasts to 1e-10 relative on every bar;
+  (G2) the Gram-route forecast equals a direct lstsq on materialized scores within 1e-8 on at least 5 spread days;
+  (G3) scored set = Table 1's 33,527 bars, 81 EVENT days / 2,498 ORDINARY days (channels RULE section 0).
+
+SCORING (RULE.txt section 0): QLIKE on the bar's actual RV (plain = pred_adj^2 * B); every bar, ORDINARY (primary),
+EVENT; DM with HLN on daily means, Newey-West lag 8 (src/evaluation/diebold_mariano.dm_test).
+- FULL_LIN = the lower ORDINARY-day QLIKE of the patched full-set ridge and elastic net (Table 1).
+- R = (L_BASE_LIN - L_arm) / (L_BASE_LIN - L_FULL_LIN), defined ONLY if FULL_LIN beats BASE_LIN significantly on
+  ORDINARY days (DM p < 0.05); otherwise R is reported as undefined.
+
+READING (ORDINARY days)
+- If R is defined: the tree version's rule (SHARED COMPONENT if some k <= 3, PCA or PLS, has R >= 0.75 and its loss is
+  not significantly above FULL_LIN's; DENSE BEYOND A FEW COMPONENTS if R(PCA 10) < 0.5 and FULL_LIN beats BASE_LIN + 10
+  components significantly; otherwise INTERMEDIATE).
+- If R is undefined: "NO LINEAR GAIN BEYOND THE BASE TO RECOVER", and in addition: "COMPONENTS ADD NOTHING" if no arm
+  beats BASE_LIN significantly after a Holm adjustment over the 7 arms (5% level), else "COMPONENTS ADD <arm list>".
+  Every arm's % change, DM, raw p and Holm-adjusted p are reported.
+
+OUTPUTS: results/beyond_trees_2026-10-27/linear/ (scores, gates, reading, SUMMARY.md), tab:rh_beyond_factor_lin and
+\rhbyFL... macros (writeup/make_rehaul_beyond_factor_lin.py), labelled "requested by the author after the beyond-base
+results; not pre-registered".
