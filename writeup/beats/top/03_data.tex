@@ -1,0 +1,31 @@
+\input{generated/rehaul_disclosure_numbers}
+
+\section{Data}
+\label{sec:rh_data}
+\begin{itemize}
+\item \textbf{E-mini futures and realized variance.} We obtain one-minute prices of the front-month E-mini S\&P~500
+  futures contract (the most actively traded contract), which trades nearly 24 hours a day, from 1998 through
+  \rhdsSampleEnd, and aggregate them on a grid of half-hour intervals. Trading days are indexed by $t = 1, \dots, T$
+  and the half-hour intervals of day $t$ by $i = 1, \dots, M$; every interval is stamped by its end in Eastern time,
+  and $i = c$ denotes the closing interval, 15:30--16:00~ET. With $r_{t,i,k}$ the one-minute log-price change of the
+  front-month contract in the $k$-th non-missing minute of interval $(t,i)$, $k = 1, \dots, N_{t,i}$
+  ($N_{t,i} \le 30$), the realized variance of the interval is \citep{AndersenBollerslevDieboldLabys2003}
+  \[
+    \RV_{t,i} = \sum_{k=1}^{N_{t,i}} r_{t,i,k}^2 ,
+  \]
+  which we forecast on every regular-hours interval, the bars ending 10:00 to 16:00~ET
+  (Section~\ref{sec:rh_methods_setup}).
+\item \textbf{Exogenous series.} The pooled models use \rhdmNSeriesPooled{} exogenous series in \bkNBuckets{} groups.
+  Appendix Table~\ref{tab:rh_dm_dictionary} defines each series, and Appendix~\ref{app:rh_dp_sources} gives the
+  sources and the construction.
+  Our data end on \rhdsSampleEnd. The file of the implied volatility indices ends on \rhdsVixVendorLast{} and is
+  extended with the hourly closes of a free feed; the FOMC release file ends with the statement of \rhdsFomcFileLast{}
+  and is completed with the \rhdsFomcAdded{} scheduled statements that follow; the volatility-demand feed ends on
+  \rhdsVdLast{} (Appendix~\ref{app:rh_dp_sources}).
+\item \textbf{Interval grid, sessions and cleaning.}
+\item \textbf{Samples.} Appendix Table~\ref{tab:rh_dm_samples} lists the samples. The estimation samples and the
+  evaluation span are set out in Section~\ref{sec:rh_exp_setup}, the option-trading sample in
+  Section~\ref{sec:rh_econ_strategy}, and the sample of the closing-interval models in
+  Appendix~\ref{app:rh_closing_sample}.
+\end{itemize}
+

@@ -1,0 +1,146 @@
+
+\section{Variable importance}
+\label{sec:rh_fi}
+\ifdefined\rhfipNOrigins\else\input{generated/rehaul_fip_numbers}\fi
+\ifdefined\rhabLgbmFullAllPct\else\input{generated/rehaul_ablation_numbers}\fi
+\ifdefined\rhcxWMain\else\input{generated/rehaul_complexity_numbers}\fi
+\begin{itemize}
+\item \textbf{Questions and measures.} Which predictors do the pooled models use, is the exogenous signal dense and
+  weak or concentrated, and does a series that moves the forecasts also make them more accurate? We explain the
+  full-set models of Table~\ref{tab:rh_oos} at \rhfipNOrigins{} monthly origins, \rhfipFirstOrigin{} to
+  \rhfipLastOrigin: each origin's refit is held for its block of \rhfipOriginEvery{} trading days, and the blocks
+  cover the \rhfipNRows{} bars of the span, including the shortened futures sessions on NYSE holidays, which
+  Table~\ref{tab:rh_oos} does not score (it scores \rhorNIntB). A group's share is $s_A$, its share of a tree
+  ensemble's mean absolute TreeSHAP value \citep{lundberg2020local}, or $S_A$, its share of a linear model's absolute
+  coefficients on the window-standardized predictors, $|\hat\beta_{k,j}|\,\mathrm{sd}_{k,j}$. Standard groups: the
+  HAR components, the calendar dummies, the futures' \rhfipNMom{} realized moments, the VIX and the futures' volume
+  and trade count; non-standard: the other \rhfipNNonStd{} series. Models are compared by their own shares, across
+  model types on the exogenous total; a share measures how much a series moves the forecast, not how much it
+  improves its accuracy. No explained bar lies in a tuning sample: the penalties were chosen on the last pre-sample
+  fold, ending \rhfipTuneLast, the tree configurations on an earlier development sample
+  (Appendix~\ref{app:rh_hyper}). Construction, intervals and checks: Appendix~\ref{app:rh_fi_compute}.
+\item \textbf{What the models use} (Table~\ref{tab:rh_fip_shares}). In the trees the HAR components carry
+  \rhfipHarMin--\rhfipHarMax\% of the attribution and the futures' realized moments \rhfipMomMin--\rhfipMomMax\%; the
+  leading exogenous series are the futures' own \rhfipTreeTopOne{} and \rhfipTreeTopTwo. The non-standard series hold
+  \rhfipLgbmNs, \rhfipXgbNs{} and \rhfipRfNs\% (LightGBM, XGBoost, random forest), most of it in five series:
+  \rhfipNsOne{} (\rhfipNsOneMin--\rhfipNsOneMax\%), \rhfipNsTwo{} (\rhfipNsTwoMin--\rhfipNsTwoMax\%), \rhfipNsThree{}
+  (\rhfipNsThreeMin--\rhfipNsThreeMax\%), \rhfipNsFour{} (\rhfipNsFourMin--\rhfipNsFourMax\%) and \rhfipNsFive{}
+  (\rhfipNsFiveMin--\rhfipNsFiveMax\%). The trees lean on them less than the linear models do: of the exogenous total
+  they hold \rhfipLgbmNsEx, \rhfipXgbNsEx{} and \rhfipRfNsEx\% in the trees against \rhfipRidgeNsEx, \rhfipLassoNsEx{}
+  and \rhfipEnetNsEx\% in the ridge, lasso and elastic net, the bootstrap interval of the difference lying below zero
+  in \rhfipNDLess{} of \rhfipNDAll{} comparisons, and the linear models rank the FOMC calendar near the top (the ridge
+  puts \rhfipFomcUntil{} at rank \rhfipRidgeRankFomcUntil{} of \rhfipNExog, the trees at
+  \rhfipTreeRankFomcUntilMin--\rhfipTreeRankFomcUntilMax). The trees' exogenous attribution is concentrated: its
+  effective number of series, $N_{\mathrm{eff}} = 1/\sum_A s_A^2$, is \rhfipLgbmNeff, \rhfipXgbNeff{} and
+  \rhfipRfNeff, against \rhfipRidgeNeff{} for the ridge, and \rhfipLgbmNHalf, \rhfipXgbNHalf{} and \rhfipRfNHalf{}
+  series hold half of it. Rankings over time, conditional shares, response shapes and interactions:
+  Appendices~\ref{app:rh_fi_rank}--\ref{app:rh_fi_shapes}.
+\item \textbf{How many series carry the gain} (Figure~\ref{fig:rh_ladder}). Following
+  \citet{MaischZhangUlrichZimmer2026}, we refit each model on its top $k$ exogenous series only, $k = 0$ (the HAR
+  benchmark set), 1, 3, 5, 10, 20 and \rhfipNExog{} (the full set), at the same origins and hyperparameters, and score
+  every rung on the \rhorNIntB{} bars of Table~\ref{tab:rh_oos}. Each model ranks the series once, by its own measure
+  on a fit explained on \rhorPenYears, before the span, so the ranking has no look-ahead. Rung $k$ retains
+  $R_k = (L_0 - L_k)/(L_0 - L_{\rhfipNExog})$ of the full set's QLIKE gain; the reading rule was fixed before scoring.
+  The exogenous signal is concentrated, not dense and weak, in both model classes. Across windows of \rhcxWOne{} to
+  \rhcxWLong{} trading days the best number of series rises with the window, as a dense and weak signal predicts,
+  only for \rhcxWhoKstarRisesBar{} (Appendix~\ref{app:rh_fi_scaling}); the window test of the earlier draft is in
+  Appendix~\ref{app:rh_fi_window}.
+\item \textbf{The late-starting series while live} (Figure~\ref{fig:rh_fi_live}). Under the late-start rule
+  (Section~\ref{sec:rh_predictors}) the trees see mostly the availability averages of StockTwits, VIX3M and
+  volatility demand, which record when a series prints, not what it prints. In the full years in which their values
+  are live, the yearly shares rise: StockTwits from \rhfilStwPreMin--\rhfilStwPreMax\% (\rhfilStwPreYears) to
+  \rhfilStwLiveMin--\rhfilStwLiveMax\% (\rhfilStwLiveYears), VIX3M from \rhfilVixThreePreMin--\rhfilVixThreePreMax\%
+  to \rhfilVixThreeLiveMin--\rhfilVixThreeLiveMax\%, volatility demand from \rhfilVdPreMin--\rhfilVdPreMax\% to
+  \rhfilVdLiveMin--\rhfilVdLiveMax\% (\rhfilVdLiveYears). The pooled shares thus understate their use, but the use
+  buys little accuracy: on its live window, adding StockTwits to the HAR benchmark changes the trees' QLIKE by
+  \rhabLgbmAddSentLiveSentPct, \rhabXgbAddSentLiveSentPct{} and \rhabRfAddSentLiveSentPct\%, none significantly
+  (Table~\ref{tab:rh_ablation}, Panel~E).
+\item \textbf{Use is not accuracy.} The FOMC calendar holds \rhfipFomcBucketMin--\rhfipFomcBucketMax\% of the trees'
+  attribution (Table~\ref{tab:rh_fip_shares}) yet carries most of their accuracy gain (Table~\ref{tab:rh_ablation}):
+  added alone to the HAR benchmark it changes QLIKE by \rhabLgbmAddFomcAllPct, \rhabXgbAddFomcAllPct{} and
+  \rhabRfAddFomcAllPct\%, against \rhabLgbmFullAllPct, \rhabXgbFullAllPct{} and \rhabRfFullAllPct\% for the full set
+  (\rhabTreeFomcGainShareMin{}--\rhabTreeFomcGainShareMax{}\% of the gain), and removing it raises
+  LightGBM's and XGBoost's QLIKE by \rhabLgbmLoFomcAllPct{} and \rhabXgbLoFomcAllPct\%. It moves the forecast strongly
+  on few bars: on FOMC statement days \rhfipFomcUntil{} holds \rhfipLgbmUntilFomc\% of LightGBM's attribution, on
+  other days \rhfipLgbmUntilOther\% (Appendix~\ref{app:rh_fi_cond}). The futures' realized moments are the converse:
+  second in attribution, yet removing them raises the trees' QLIKE by only \rhabLgbmLoRmAllPct, \rhabXgbLoRmAllPct{}
+  and \rhabRfLoRmAllPct\%, as other predictors carry much of the same information. What a series adds to accuracy is
+  measured by the ablations (Section~\ref{sec:rh_results_ablation}), not by its share.
+\item \textbf{In short.} The trees rely on the HAR components and the futures' realized moments, and their exogenous
+  attribution is concentrated. The signal is not dense and weak: about 10 series carry the trees' gain and 5 to 10
+  the linear models', and the lasso is at least as accurate as the ridge. The alternative data are used more while
+  live, without a measurable gain, and the FOMC calendar carries most of the trees' gain on a small share of their
+  attribution.
+\end{itemize}
+\iffalse
+\begin{itemize}
+\item \textbf{Models:} the closing-interval models of record on the full predictor set ($p = \rhfiP$), trained on
+  the last 30 minutes of each trading day (Section~\ref{sec:rh_econ_last30}), not on the intraday scheme.
+\item \textbf{Notation.}
+\item \textbf{Summary table:} Table~\ref{tab:rh_fi_summary} ranks the predictor groups model by model, as in the
+  variable-importance rankings of \citet{gu2020empirical}, each model by its own aggregate measure below: the lasso's
+  selection count $K_A$, the ridge's coefficient shares $S_A$ and $S^{\mathrm{sd}}_A$, and the trees' mean SHAP rank
+  $\bar r_A$. Under each column: Kendall's $W$ of the rankings across re-estimations, and the number of exogenous
+  series with a predictor that beats the random probe.
+\input{beats/stubs/rehaul_fi_summary}
+\item \textbf{Lasso, aggregate:} the selection count of a group and of a predictor, the number of the $K$
+  re-estimations with a nonzero coefficient,
+  \[
+    K_A = \sum_{k=1}^{K} \mathbf{1}\bigl\{\exists j \in A:\ \hat\beta_{k,j} \ne 0\bigr\}, \qquad
+    K_j = \sum_{k=1}^{K} \mathbf{1}\bigl\{\hat\beta_{k,j} \ne 0\bigr\};
+  \]
+  $K_A / K$ is the selection frequency, the share of estimation windows with a nonzero coefficient.
+\item \textbf{Lasso, time-varying:} the magnitude and the selection indicator of each group at each re-estimation,
+  \[
+    \lVert\hat{\bm\beta}_{k,A}\rVert_1 = \sum_{j \in A} \bigl|\hat\beta_{k,j}\bigr|, \qquad
+    \mathbf{1}\bigl\{\lVert\hat{\bm\beta}_{k,A}\rVert_1 > 0\bigr\}
+  \]
+  Rank stability across re-estimations: Kendall's coefficient of
+  concordance $W$ of the rankings by $\lVert\hat{\bm\beta}_{k,A}\rVert_1$ at each re-estimation ($W = 1$: the same
+  ranking at every re-estimation; formula below), $W = \rhfiLassoW$.
+\item \textbf{Ridge, aggregate:} the group's share of the absolute coefficient mass,
+  \[
+    S_A = \frac{\sum_{k} \sum_{j \in A} |\hat\beta_{k,j}|}{\sum_{k} \sum_{j=1}^{p} |\hat\beta_{k,j}|} .
+  \]
+\item \textbf{Ridge, time-varying:} the share at re-estimation $k$,
+  $S_{k,A} = \lVert\hat{\bm\beta}_{k,A}\rVert_1 / \sum_{A'} \lVert\hat{\bm\beta}_{k,A'}\rVert_1$, $A'$ over all groups
+  (mean rank by $\lVert\hat{\bm\beta}_{k,A}\rVert_1$); Kendall's
+  $W = \rhfiRidgeW$.
+\item \textbf{Trees, ranking at each re-estimation:} the group's mean absolute SHAP value on the out-of-sample block
+  of re-estimation $k$, then its rank,
+  \[
+    I_{k,A} = \frac{1}{|\mathcal O_k|} \sum_{t \in \mathcal O_k} |\phi_{t,A}|, \qquad
+    r_{k,A} = 1 + \#\{A' : I_{k,A'} > I_{k,A}\} \quad \text{(ties averaged)}.
+  \]
+\item \textbf{Trees, global ranking:} aggregate the $K$ rankings over time,
+  \[
+    \bar r_A = \frac{1}{K} \sum_{k=1}^{K} r_{k,A}, \qquad
+    \mathrm{BC}_A = \sum_{k=1}^{K} \max\bigl(0,\ 11 - r_{k,A}\bigr).
+  \]
+\item \textbf{Interaction effects, global:} the mean absolute SHAP interaction value of two groups over
+  $\mathcal O$,
+  \[
+    \phi_{t,AB} = \sum_{j \in A} \sum_{l \in B} \bigl(\phi_{t,jl} + \phi_{t,lj}\bigr), \qquad
+    \bar I_{AB} = \frac{1}{|\mathcal O|} \sum_{t \in \mathcal O} |\phi_{t,AB}|, \quad A \ne B;
+  \]
+  for two predictors, $|\phi_{t,jl} + \phi_{t,lj}|$, $j \ne l$.
+\item \textbf{Interaction effects, cross-check:} the $H$-statistic of \citet{FriedmanPopescu2008} on each model's top
+  \rhfiHTopSeries{} series pairs, from the partial dependence functions $\mathrm{PD}_S$, $S \in \{A, B, AB\}$,
+  $AB \equiv A \cup B$:
+  \[
+    H^2_{AB} = \frac{\sum_{t} \bigl[\mathrm{PD}_{AB}(\bm x_t) - \mathrm{PD}_A(\bm x_t) - \mathrm{PD}_B(\bm x_t)\bigr]^2}
+                    {\sum_{t} \mathrm{PD}_{AB}(\bm x_t)^2}, \qquad
+    \mathrm{PD}_S(\bm x) = \frac{1}{|\mathcal H_k|} \sum_{t' \in \mathcal H_k} \hat f_k\bigl(\bm x_S, \bm x_{t',-S}\bigr),
+  \]
+  $t \in \mathcal H_k$; each $\mathrm{PD}_S$ centered over $\mathcal H_k$.
+\item \textbf{Interaction effects, time-varying:} $\phi_{t,AB}$ on the out-of-sample block of each re-estimation,
+  ranked at each re-estimation and aggregated as the SHAP values are,
+  \[
+    I_{k,AB} = \frac{1}{|\mathcal O_k|} \sum_{t \in \mathcal O_k} |\phi_{t,AB}| \ \to\ r_{k,AB} \ \to\ \bar r_{AB},\ W .
+  \]
+\item \textbf{Known issues, reconciled:}
+\item \textbf{Compute} (one laptop, \rhfiWorkers{} processes):
+\end{itemize}
+\fi
+
+

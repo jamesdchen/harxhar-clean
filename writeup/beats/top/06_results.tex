@@ -1,0 +1,76 @@
+
+\ifdefined\rhabNClassesBeatAddRm\else\input{generated/rehaul_ablation_numbers}\fi
+\ifdefined\rhcaNdaysSpan\else\input{generated/rehaul_close_accuracy_numbers}\fi
+\ifdefined\rhmcsNModels\else\input{generated/rehaul_mcs_numbers}\fi
+
+\section{Results}
+\label{sec:rh_results}
+\label{sec:rh_exp_setup}
+\begin{itemize}
+\item \textbf{Design, benchmark and outline.} Every forecast follows the design, spans and tests of
+  Sections~\ref{sec:rh_methods_setup} and~\ref{sec:rh_results_eval}: every bar of $\mathcal T_{\mathrm{oos}}$ is
+  scored, and the primary benchmark is the OLS on the HAR benchmark set, the OLS row of Table~\ref{tab:rh_oos}, which
+  the HAR-set penalized models reproduce. The window length was fixed after out-of-sample scoring
+  (Section~\ref{sec:rh_results_robust}). We report accuracy on every bar (Section~\ref{sec:rh_results_oos}), the
+  predictor groups that carry the gain (Section~\ref{sec:rh_results_ablation}) and robustness (Section~\ref{sec:rh_results_robust});
+  Section~\ref{sec:rh_fi} asks which series the models use.
+\end{itemize}
+
+\subsection{Accuracy on every bar}
+\label{sec:rh_results_oos}
+\label{sec:rh_results_predictors}
+\begin{itemize}
+\item \textbf{Overview.} Table~\ref{tab:rh_oos} reports the MSE, the average QLIKE loss and $R^2_{\mathrm{OOS}}$ of
+  the six model classes on the HAR benchmark set and on the full predictor set.
+\item \textbf{Against the primary benchmark.} The full predictor set lowers the average QLIKE loss of every model
+  class below that of the OLS on the HAR benchmark set.
+\item \textbf{Within each class.} The paired comparison of $f_{m,\mathrm{Full},\mathcal I_{\mathrm{rh}}}$ with
+  $f_{m,\mathrm{HAR},\mathcal I_{\mathrm{rh}}}$ (Section~\ref{sec:rh_results_eval}; the DM column of
+  Table~\ref{tab:rh_oos}) isolates what the exogenous predictors add to a given model $m$.
+\item \textbf{Squared-error loss.} Under squared error the comparison reverses: on every bar the full set raises the
+  MSE in all \rhorAfPairs{} classes, by \rhcaLinMsePctBarSpanMin{} to \rhcaLinMsePctBarSpanMax\% for the penalized
+  linear models and by \rhcaTreeMsePctBarSpanMin{} to \rhcaTreeMsePctBarSpanMax\% for the tree ensembles, and lowers
+  $R^2_{\mathrm{OOS}}$ (Table~\ref{tab:rh_oos}). A handful of days in the COVID-19 crash account for the difference
+  (Appendix~\ref{app:rh_results_calib}).
+\end{itemize}
+
+\subsection{Which predictors carry the gain?}
+\label{sec:rh_results_ablation}
+\begin{itemize}
+\item \textbf{Design} (Table~\ref{tab:rh_ablation}; Appendix~\ref{app:rh_results_ablation}). The design of
+  Table~\ref{tab:rh_oos}, including the full set's frozen hyperparameters, with only the columns changed:
+\item \textbf{The gain survives an augmented HAR.} The futures' realized moments, computed from the same one-minute
+  returns that define the target, are the natural augmented HAR.
+\item \textbf{Two groups carry it.} Removing a group from the full set (Panel~A) raises the loss materially for two
+  groups only; the removal of any other group changes the loss by less.
+\item \textbf{Alternative data on their live windows.} The implied-volatility, StockTwits and volatility-demand series
+  start after the data and enter as zero until the rolling window holds \rhorWindowDays{} trading days of their
+  history (Section~\ref{sec:rh_predictors}), so over most of the span the rows of Panels~A and~B measure these groups
+  through their availability shares. Panel~E scores them only on the bars on which their values are live, and the
+  gains remain small; Section~\ref{sec:rh_fi} turns to how much the models use these series.
+\end{itemize}
+
+
+\subsection{Robustness}
+\label{sec:rh_results_robust}
+\begin{itemize}
+\item \textbf{Estimation window.} The window length $W$ of \rhorWindowDays{} trading days was chosen after the
+  \rhwsNWinWord{} candidate windows from \rhwsWinMin{} to \rhrbWinLong{} trading days had been
+  scored out of sample on $\mathcal T_{\mathrm{oos}}$; it is not a pre-sample choice. Appendix~\ref{app:rh_robust_window}
+  reports every window.
+\item \textbf{Multiple comparisons.} Adjusting for the number of comparisons leaves the every-bar result intact: under
+  QLIKE the 90\% model confidence set \citep{HansenLundeNason2011} holds \rhmcsBarQlikeTmaxNNinety{} of the
+  \rhmcsNModels{} distinct pooled forecasts (\rhmcsBarQlikeTmaxSetNinety), and StepM \citep{RomanoWolf2005} rejects
+  equal accuracy of the full and HAR benchmark sets in \rhmcsBarQAfNRej{} of the \rhmcsNAlt{} classes (SPA
+  $p$-value \rhmcsBarQAfSpaC; \citealp{Hansen2005}), against \rhmcsBarMAfNRejWord{} under squared error
+  (Tables~\ref{tab:rh_mcs} and~\ref{tab:rh_mcs_spa}).
+\end{itemize}
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,132 @@
+
+
+\section{Methods}
+\label{sec:rh_methods}
+
+\subsection{Forecasting design}
+\label{sec:rh_methods_setup}
+\begin{itemize}
+\item \textbf{Target.} We index days by $t$ and the 30-minute intervals of a day, overnight included, by
+  $i = 1, \dots, M$ (Section~\ref{sec:rh_data}). The regular-hours intervals, those ending 10:00 to 16:00~ET, form the
+  set $\mathcal I_{\mathrm{rh}}$ of \rhorNBars{} bars, and $c \in \mathcal I_{\mathrm{rh}}$ is the closing half hour,
+  15:30--16:00~ET. Following \citet{AndersenBollerslev1997}, we remove the diurnal pattern with the trailing mean
+  realized variance of the same interval of the day,
+  \[
+    s^2_{t,i} = \frac{1}{|\mathcal D_{t,i}|}\sum_{t' \in \mathcal D_{t,i}} \RV_{t',i},
+  \]
+  where $\mathcal D_{t,i}$ holds the last $n_{\mathrm{d}}$ days $t' < t$ with interval $i$, at least
+  $\underline n_{\mathrm{d}}$ of them, which every scored interval has; the intervals after the 13:00 close of NYSE
+  early-close sessions are left out of $\mathcal D_{t,i}$, those of the shortened futures sessions on NYSE holidays
+  are not (Section~\ref{sec:rh_data}). The regression target is the square root of the adjusted
+  realized variance, $y_{t,i} = (\RV_{t,i}/s^2_{t,i})^{1/2}$, winsorized at the lower and upper empirical quantiles
+  $\underline Q_{t,i}$ and $\overline Q_{t,i}$ of its preceding $n_{\mathrm{w}}$ values,
+  $\tilde y_{t,i} = \clip(y_{t,i}, \underline Q_{t,i}, \overline Q_{t,i})$ (window lengths and quantile levels:
+  Appendix~\ref{sec:rh_exp_samples}). A forecast $\hat y_{t,i}$ of $\tilde y_{t,i}$ becomes a variance forecast
+  without recalibration,
+  \[
+    \hat\sigma^2_{t,i} = \hat y_{t,i}^{\,2}\, s^2_{t,i},
+  \]
+  which leaves the downward Jensen bias of squaring uncorrected; it is scored against the unwinsorized $\RV_{t,i}$.
+  For the closing interval we write $\RV_t \equiv \RV_{t,c}$ and $\hat\sigma^2_t \equiv \hat\sigma^2_{t,c}$, with
+  $\mathcal F_t$ the information observed through 15:30~ET on day $t$ and
+  $\E_t[\cdot] \equiv \E[\,\cdot \mid \mathcal F_t]$.
+\item \textbf{Pooled estimation on the regular-hours bars.} Each model is estimated once for all regular-hours bars:
+  its estimation sample is $\mathcal I = \mathcal I_{\mathrm{rh}}$, one observation per bar, as in intraday
+  volatility forecasting \citep{EngleSokalska2012, ZhangZhangCucuringuQian2024}, while its predictors, the HAR
+  components and trailing averages of Section~\ref{sec:rh_predictors}, are computed on the full grid of $M$ intervals,
+  whose overnight intervals also carry information \citep{ChenYuZivot2012, StroudJohannes2014, TodorovaSoucek2014}.
+  We write $(t,i) \ominus j$ for
+  the $j$th observation of $\mathcal I$ before $(t,i)$; unlike the grid lag $(t, i-j)$ of Section~\ref{sec:rh_data}, it
+  skips the intervals outside $\mathcal I$. The forecast of interval $(t,i)$ is formed at the start of the interval,
+  from the information available then, by a model fitted on the rolling window
+  \[
+    \mathcal W_{t,i} = \{(t,i) \ominus j : j = 1, \dots, W\}, \qquad W = \rhorWindowBars ,
+  \]
+  the bars of about \rhorWindowDays{} trading days. Every model is refitted at every bar, by least squares on
+  $\tilde y$ over $\mathcal W_{t,i}$, the penalized regressions adding their penalty. NYSE early-close sessions are
+  not in the estimation sample; the shortened regular-hours sessions of NYSE holidays are, and they are forecast but
+  not scored (Section~\ref{sec:rh_data}).
+\item \textbf{Frozen hyperparameters.} Hyperparameters are chosen once, before the first forecast, and held fixed at
+  every bar of the evaluation, with no re-tuning. The linear penalties minimize the validation MSE of $\tilde y$ on
+  \rhorPenSample: each candidate is fitted on a full window of $W$ observations, which ends an embargo gap before the
+  validation year \citep{gu2020empirical}. Each tree ensemble keeps one configuration, transferred unchanged from an
+  Optuna search on an earlier design of this panel. Appendix~\ref{app:rh_tuning} discloses how both were obtained
+  (the late-starting series are still zero in the penalties' validation year) and checks them
+  (Table~\ref{tab:rh_tuning}).
+\item \textbf{Evaluation spans.} All forecasts are out of sample. The main evaluation runs over
+  $\mathcal T_{\mathrm{oos}}$, the $T_{\mathrm{oos}} = |\mathcal T_{\mathrm{oos}}| = \rhorDays$ NYSE trading days
+  from \rhorSpanStart{} to \rhorSpanEnd{} (\rhorEarlyCloses{} early-close sessions excluded), and scores every
+  regular-hours bar of these days, \rhorNIntB{} bars.
+\end{itemize}
+
+\subsection{Models}
+\label{sec:rh_methods_models}
+\begin{itemize}
+\item \textbf{Forecast labels.} We label a forecast $f_{m,\mathcal X,\mathcal I}$ by its model class $m$, its
+  predictor set $\mathcal X$ and its estimation sample $\mathcal I$; every forecast of the main text has
+  $\mathcal I = \mathcal I_{\mathrm{rh}}$.
+\item \textbf{Predictor sets.} The HAR set ($\mathcal X = \mathrm{HAR}$) holds the HAR components
+  $\bar y^{(k)}_{t,i}$, $k \in \mathcal K$, the means of $\tilde y$ over the $k$ grid intervals before $(t,i)$, and
+  the calendar vector $\bm D_{t,i}$ of five weekday dummies and the hour of the bar-end stamp, which enters as an
+  integer (Section~\ref{sec:rh_predictors}). The full set ($\mathcal X = \mathrm{Full}$),
+  $\bm x_{t,i} \in \mathbb R^{p}$ with $p = \rhorNColsAf$, adds for every exogenous series $u$ the trailing averages
+  $\bar u^{(k)}_{t,i}$ of its values and $\bar a^{(k)}_{t,i}$ of its availability indicator.
+\item \textbf{Primary benchmark: OLS on the HAR set.} Following \citet{Corsi2009}, the HAR model of interval $(t,i)$ is
+  \[
+    \hat y_{t,i} = \beta_0 + \sum_{k \in \mathcal K} \beta^{(k)}\, \bar y^{(k)}_{t,i} + \bm\delta^{\top} \bm D_{t,i} ,
+  \]
+  pooled over the regular-hours bars and fitted by OLS on $\mathcal W_{t,i}$. Its forecast
+  $f_{\mathrm{OLS},\mathrm{HAR},\mathcal I_{\mathrm{rh}}}$ is the primary benchmark. Every row is a weekday, so the
+  five weekday dummies sum to one and are collinear with the intercept; we take the minimum-norm least-squares
+  solution, whose fitted values and forecasts are those of any least-squares solution, for instance with one dummy
+  dropped.
+\item \textbf{Penalized linear regressions.} Ridge \citep{HoerlKennard1970}, the lasso \citep{Tibshirani1996} and the
+  elastic net \citep{ZouHastie2005}, which weights the two penalties equally, add an $\ell_2$, $\ell_1$ or mixed
+  penalty on $\bm\beta$ to the sum of squared errors over $\mathcal W_{t,i}$, as in the penalized HAR of
+  \citet{ZhangZhangCucuringuQian2024}. The penalty acts on the coefficients of the columns standardized within
+  $\mathcal W_{t,i}$, so that it does not depend on a column's spread \citep{FriedmanHastieTibshirani2010}; on the full
+  set the HAR-set columns carry the lighter weight $\omega_j = \rhfiBackbonePf$ against $\omega_j = 1$ for the other
+  predictors, and the intercept is not penalized. On the HAR set alone the selected penalties, \rhdmPlPenRidgeBase{}
+  (ridge), \rhdmPlPenLassoBase{} (lasso) and \rhdmPlPenEnetBase{} (elastic net), are negligible, and the three
+  forecasts coincide with the benchmark. Estimators, column screens and solvers: Appendix~\ref{app:rh_methods_linear}.
+\item \textbf{Tree ensembles.} To capture nonlinearities and interactions, we fit gradient-boosted regression trees on
+  the squared error \citep{Friedman2001}, with LightGBM \citep{Ke2017} and XGBoost \citep{Chen2016}, and a random
+  forest \citep{Breiman2001}, fitted with Intel's oneDAL engine. The trees use every column of their predictor set
+  (Appendix~\ref{app:rh_methods_trees}).
+\end{itemize}
+
+\subsection{Forecast evaluation and tests}
+\label{sec:rh_results_eval}
+\begin{itemize}
+\item \textbf{Losses.} The QLIKE loss \citep{Patton2011} of the forecast of a scored interval is
+  \[
+    L_{t,i} = \QLIKE\bigl(\RV_{t,i},\, \hat\sigma^2_{t,i}\bigr)
+      = \frac{\RV_{t,i}}{\hat\sigma^2_{t,i}} - \log\frac{\RV_{t,i}}{\hat\sigma^2_{t,i}} - 1
+      = \frac{y_{t,i}^2}{\hat y_{t,i}^{\,2}} - \log\frac{y_{t,i}^2}{\hat y_{t,i}^{\,2}} - 1 ,
+  \]
+  in which the diurnal factor cancels ($y_{t,i}$ unwinsorized). QLIKE is our primary loss. Like the squared error
+  $(\RV_{t,i} - \hat\sigma^2_{t,i})^2$, which we also report, it ranks forecasts consistently when the realized
+  variance is a noisy proxy \citep{Patton2011}; unlike the squared error, it depends on the forecast only through the
+  ratio $\RV_{t,i}/\hat\sigma^2_{t,i}$, so a few of the largest realizations cannot dominate it. $\overline{\QLIKE}$
+  ($\bar L$) and the MSE average the interval losses over a scored set $\mathcal S$, the bars of the days of a span,
+  and the daily loss $L_t$ averages $L_{t,i}$ over the bars of day $t$ in $\mathcal S$.
+\item \textbf{Relative loss and out-of-sample $R^2$.} A forecast $A$ is compared with a reference $B$, the benchmark
+  unless noted otherwise, by $\Delta\% = 100\,(\bar L^{A}/\bar L^{B} - 1)$. Following \citet{CampbellThompson2008},
+  \[
+    R^2_{\mathrm{OOS}} = 1 - \frac{\sum_{(t,i) \in \mathcal S} \bigl(\RV_{t,i} - \hat\sigma^2_{t,i}\bigr)^2}
+      {\sum_{(t,i) \in \mathcal S} \bigl(\RV_{t,i} - \overline{\RV}_{t-1,i}\bigr)^2},
+  \]
+  where $\overline{\RV}_{t-1,i}$ is the mean realized variance of interval $i$ over every earlier day from
+  \rhoosBenchStart.
+\item \textbf{Tests.} Two forecasts are compared by the \citet{DieboldMariano1995} test on the daily loss differential
+  $d_t = L^{A}_t - L^{B}_t$, with the small-sample correction of \citet{HarveyLeybourneNewbold1997} and a
+  \citet{NeweyWest1987} long-run variance with lag $q_{\mathrm{NW}} = \lfloor 4\,(T/100)^{2/9} \rfloor$ on a span of
+  $T$ days: $q_{\mathrm{NW}} = \rhorHacLag$ on $\mathcal T_{\mathrm{oos}}$. $\DM < 0$ favours $A$, % 2026-10-26 (coordinator; author: no 16:00-bar results in the main text): was "... on T_oos and \rhoosDMLag on T_close" (Appendix app:rh_closing)
+  and ``significant'' means significant at the 5\% level. We test
+  every forecast against the benchmark $f_{\mathrm{OLS},\mathrm{HAR},\mathcal I_{\mathrm{rh}}}$ and, within each class
+  $m$, $f_{m,\mathrm{Full},\mathcal I_{\mathrm{rh}}}$ against $f_{m,\mathrm{HAR},\mathcal I_{\mathrm{rh}}}$, the
+  paired measure of what the exogenous predictors add. The model confidence set \citep{HansenLundeNason2011}, the
+  test of superior predictive ability \citep{Hansen2005} and StepM \citep{RomanoWolf2005} account for the number of
+  comparisons. Appendix~\ref{sec:rh_methods_tests} gives every statistic in full.
+\end{itemize}
+

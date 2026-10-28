@@ -1,0 +1,70 @@
+
+\section{Related work}
+\label{sec:rh_related}
+\begin{itemize}
+\item \textbf{Realized variance and the HAR model.} Realized variance, the sum of squared high-frequency returns,
+  makes volatility observable and forecastable \citep{AndersenBollerslevDieboldLabys2003,
+  BarndorffNielsenShephard2002}, and the heterogeneous autoregressive (HAR) model of \citet{Corsi2009}, which
+  regresses next-day realized variance on its averages over the past day, week, and month, has become the benchmark
+  for forecasting it. Its extensions add jumps \citep{AndersenBollerslevDiebold2007}, signed semivariances
+  \citep{PattonSheppard2015}, leverage \citep{CorsiReno2012}, and the measurement error of realized variance
+  \citep{BollerslevPattonQuaedvlieg2016}, and the panel HAR of \citet{BollerslevHoodHussLebedev2018} estimates a
+  single pooled regression across a cross-section of assets. These are models of daily variance. We carry the HAR
+  structure to the intraday interval, pool it across the intervals of one index rather than across assets, and ask
+  how much a large set of exogenous predictors adds to it.
+\item \textbf{Pooled intraday forecasting and overnight information.} Intraday volatility follows a pronounced
+  U-shaped pattern across the trading session, and scaling intraday returns or realized variances by a diurnal
+  factor is standard practice \citep{AndersenBollerslev1997,TaylorXu1997}; \citet{AndersenSuTodorovZhang2024}
+  estimate this curve for the S\&P~500 futures around the clock and find that volatility outside U.S. trading hours
+  matters more in the later part of their sample. With this scaling, one model can be estimated across the intervals
+  of the regular session: \citet{EngleSokalska2012} estimate a multiplicative component GARCH model of intraday
+  volatility, with daily, diurnal, and stochastic intraday components, pooled across a large cross-section of
+  stocks, and \citet{ZhangZhangCucuringuQian2024} fit machine-learning models of realized volatility across all
+  intraday buckets of the day, with predictors built from realized volatility alone. Both leave the overnight return
+  out of estimation, and so do we (Section~\ref{sec:rh_methods}). Yet information from outside the session helps
+  forecast it: after-hours realized variance \citep{ChenYuZivot2012} and overnight information, including the
+  realized volatility of related assets that trade while the home market is closed \citep{TodorovaSoucek2014},
+  improve volatility forecasts, and for the S\&P~500 futures \citet{StroudJohannes2014} argue that deleting the
+  overnight returns removes important information. These studies forecast daily or session volatility; we carry the
+  idea to the intraday interval by computing our predictors over the futures' full intraday grid, overnight
+  intervals included (Section~\ref{sec:rh_predictors}).
+\item \textbf{Machine learning for realized volatility.} Applications of bagging, the lasso, boosting, random
+  forests, and neural networks to realized volatility \citep{HillebrandMedeiros2010,AudrinoKnaus2016,
+  MittnikRobinzonovSpindler2015,LuongDokuchaev2018,RahimikiaPoon2020} preceded the comparison of these methods with
+  the HAR model for daily realized volatility in \citet{christensen2023machine}, much as \citet{gu2020empirical}
+  compared linear, penalized, tree-based, and neural-network models for returns; \citet{BrancoRubesamZevallos2024}
+  find that nonlinear models rarely beat linear ones. Most of this work targets daily volatility; we compare
+  penalized linear models with tree ensembles on every regular-hours interval.
+\item \textbf{Dense or sparse signals.} In macroeconomic, microeconomic, and financial data, the posterior over
+  predictive models does not typically concentrate on a single sparse model \citep{GiannoneLenzaPrimiceri2021}, and
+  a characteristics-sparse stochastic discount factor cannot adequately summarize the cross-section of expected
+  stock returns \citep{KozakNagelSantosh2020}; \citet{ShenXiu2025} ask whether machine-learning methods can learn
+  weak signals. That our exogenous signal is dense and weak, spread thinly over many series, is a hypothesis we
+  test, not a premise: ridge regression suits a dense signal and the lasso a sparse one, and we compare penalized
+  linear models with tree ensembles across the number of exogenous series and the length of the training window
+  (Section~\ref{sec:rh_fi}). Unlike the complex models of \citet{KellyMalamudZhou2024}, which have more parameters
+  than observations, ours have far fewer predictors than training observations.
+\item \textbf{Alternative data.} Sentiment, attention, and news measures have mostly been used to forecast daily
+  realized volatility \citep{AudrinoSigristBallinari2020,CaporinPoli2017}; at the intraday horizon,
+  \citet{BehrendtSchmidt2018} relate Twitter sentiment and activity to the intraday volatility of individual stocks.
+  We ask what such data add to a pooled intraday model of the index's realized variance, next to the futures' own
+  realized moments, the trading of the index's constituents, implied volatility, and the FOMC calendar.
+\item \textbf{Economic evaluation of volatility forecasts and 0DTE options.} A long tradition ranks volatility
+  forecasts by the profits of trading options on them, buying (selling) straddles when the price implied by the
+  forecast exceeds (falls short of) the market price \citep{EngleHongKaneNoh1993,NohEngleKane1994,
+  BandiRussellYang2008}; statistical gains need not survive transaction costs
+  \citep{HarveyWhaley1992,ChanJhaKalimipalli2009}. Because the variance risk premium is positive on average
+  \citep{CarrWu2009,BollerslevTauchenZhou2009}, zero-beta at-the-money straddles and delta-hedged index options lose
+  money on average \citep{CovalShumway2001,BakshiKapadia2003}, which makes the unconditional short straddle the
+  natural benchmark for a strategy that trades straddles on a variance forecast. A recent literature studies the
+  pricing, trading, and volatility effects of zero-days-to-expiration (0DTE) options on the S\&P~500
+  \citep{BandiFusariReno2023,BeckmeyerBrangerGayda2023,DimErakerVilkov2024}, and \citet{ChongTodorov2026} ask
+  whether equity and 0DTE options markets agree about volatility and trade their disagreement. Nearest to our market
+  and bar length, \citet{MaischZhangUlrichZimmer2026} predict the half-hourly delta-hedged returns of S\&P~500 index
+  options from contract characteristics, Greeks, and option-implied measures of the index's return distribution,
+  and sort the contracts into long--short portfolios. Our forecasts belong to the realized volatility literature,
+  and options enter only as an application: one 0DTE at-the-money straddle a day through the closing half hour,
+  long or short as the forecast for that interval exceeds or falls short of the implied variance
+  (Section~\ref{sec:rh_econ}).
+\end{itemize}
+

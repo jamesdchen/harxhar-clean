@@ -8,6 +8,7 @@
 #
 #   bash writeup/overleaf_sync/overleaf_git.sh push [--first] [--check]   # flatten the source -> Overleaf
 #   bash writeup/overleaf_sync/overleaf_git.sh pull [--dry-run]           # Overleaf edits -> section files
+#   bash writeup/overleaf_sync/overleaf_git.sh push-beats [--check]       # review layers (HEAD only) -> Overleaf
 #
 # 2026-10-20 (user): the project already holds an earlier draft (main.tex, references.bib, sections/, ...), which stays
 # as it is. The flat paper is written as main2.tex, with its bibliography as references2.bib, and nothing else is
@@ -22,6 +23,14 @@
 #       harxhar-clean (push that commit yourself).
 # pull: pulls the Overleaf project and runs unflatten.py on its main2.tex (--dry-run: report only). Then rebuild the
 #       paper, and run `push` so Overleaf gets the regenerated main2.tex.
+# push-beats (2026-10-27, author: review the story in layers): flattens the two review layers that
+#       writeup/make_paper_beats.py generates and that are committed, writeup/paper_rehaul_beats.tex (main text, all
+#       bullets) and writeup/paper_rehaul_beats_top.tex (top-level bullets only), into beats.tex and beats_top.tex with
+#       referencesb.bib. It reads a temporary clean checkout of HEAD (writeup/ only), never the working tree, so
+#       uncommitted numbers cannot reach Overleaf. Each layer has its own map (map_beats.json, map_beats_top.json); it
+#       refuses if Overleaf's copy differs from its last flatten (the layers are for reading and comments; edits go
+#       to the sources) or if a target file is one of the project's own. main2.tex, references2.bib, map.json and the
+#       figures are not touched, and a layer that would copy a figure stops the push.
 #
 # Authentication: Overleaf's git user is "git" and the password is an Overleaf Git token (Account settings).
 #   * $OVERLEAF_GIT_TOKEN, else the OVERLEAF_GIT_TOKEN comment line above, is handed to git by a credential helper
@@ -61,8 +70,12 @@ checkout() {  # clone the project, or bring an existing clone up to date
 }
 
 same_as_last_flatten() {  # 0 if Overleaf's main2.tex equals the flat text recorded in map.json
-    [[ -f "$MAP" && -f "$DIR/$FLAT" ]] || return 1
-    python3 - "$MAP" "$DIR/$FLAT" <<'EOF'
+    same_flat "$MAP" "$DIR/$FLAT"
+}
+
+same_flat() {  # 0 if the file $2 equals the flat text recorded in the map $1
+    [[ -f "$1" && -f "$2" ]] || return 1
+    python3 - "$1" "$2" <<'EOF'
 import json, sys
 flat = json.load(open(sys.argv[1], encoding="utf-8"))["flat_text"].replace("\r\n", "\n")  # 2026-10-23: normalize both sides (Windows checkouts flatten with CRLF)
 cur = open(sys.argv[2], encoding="utf-8", newline="").read().lstrip("﻿").replace("\r\n", "\n")
@@ -115,6 +128,60 @@ push)
         echo "overleaf_git: committed map.json in harxhar-clean (push it with git push)"
     fi
     ;;
+push-beats)
+    check=()
+    for a in "$@"; do
+        case "$a" in
+            --check) check=(--check) ;;
+            *) die "unknown option $a" ;;
+        esac
+    done
+    layers=("paper_rehaul_beats:beats.tex:map_beats.json" "paper_rehaul_beats_top:beats_top.tex:map_beats_top.json")
+    checkout
+    for l in "${layers[@]}"; do
+        IFS=: read -r entry flat map <<< "$l"
+        git -C "$REPO" cat-file -e "HEAD:writeup/$entry.tex" 2>/dev/null \
+            || die "writeup/$entry.tex is not committed: run writeup/make_paper_beats.py on a clean checkout and commit its output"
+        if [[ -e "$DIR/$flat" ]] && ! same_flat "$SYNC/$map" "$DIR/$flat"; then
+            die "Overleaf's $flat differs from its last flatten ($map): it was edited there; move those edits to the sources first"
+        fi
+    done
+    for f in beats.tex beats_top.tex referencesb.bib; do  # never replace a file the project made itself
+        if git -C "$DIR" ls-files --error-unmatch -- "$f" >/dev/null 2>&1 \
+            && [[ "$(git -C "$DIR" log -1 --format=%s -- "$f")" != "Review layers from harxhar-clean "* ]]; then
+            die "$f is one of the project's own files; not overwriting it"
+        fi
+    done
+    tmp="$(mktemp -d)"
+    wt="$tmp/wt"
+    git -C "$REPO" worktree add -q --no-checkout --detach "$wt" HEAD
+    trap 'git -C "$REPO" worktree remove --force "$wt" >/dev/null 2>&1 || true' EXIT
+    git -C "$wt" sparse-checkout set --cone writeup
+    git -C "$wt" checkout -q --detach HEAD
+    files=(referencesb.bib)
+    for l in "${layers[@]}"; do
+        IFS=: read -r entry flat map <<< "$l"
+        python3 "$wt/writeup/overleaf_sync/flatten.py" --entry "$wt/writeup/$entry.tex" --out "$DIR" \
+            --map "$SYNC/$map" --name "$flat" --bib-suffix b --figures-out "$tmp/figs_$flat" ${check[@]+"${check[@]}"}
+        [[ ! -s "$tmp/figs_$flat" ]] || die "$flat would copy figures ($(tr '\n' ' ' < "$tmp/figs_$flat")); the review layers must not"
+        files+=("$flat")
+    done
+    sha="$(git -C "$REPO" rev-parse --short HEAD)"
+    git -C "$DIR" add -- "${files[@]}"   # only the review layers' files
+    if git -C "$DIR" diff --cached --quiet; then
+        echo "overleaf_git: Overleaf already has these review layers; nothing to push"
+    else
+        git -C "$DIR" commit -q -m "Review layers from harxhar-clean $sha (beats.tex, beats_top.tex, referencesb.bib)"
+        og -C "$DIR" push
+        echo "overleaf_git: pushed the review layers of $sha to Overleaf"
+    fi
+    maps=("$SYNC/map_beats.json" "$SYNC/map_beats_top.json")
+    git -C "$REPO" add -- "${maps[@]}"
+    if ! git -C "$REPO" diff --cached --quiet -- "${maps[@]}"; then
+        git -C "$REPO" commit -q -m "Overleaf sync: review-layer maps of the flatten of $sha pushed to Overleaf" -- "${maps[@]}"
+        echo "overleaf_git: committed the review-layer maps in harxhar-clean (push them with git push)"
+    fi
+    ;;
 pull)
     dry=()
     for a in "$@"; do
@@ -136,7 +203,7 @@ pull)
     exit $rc
     ;;
 *)
-    sed -n '9,10p' "${BASH_SOURCE[0]}"
+    sed -n '9,11p' "${BASH_SOURCE[0]}"
     exit 1
     ;;
 esac

@@ -1,0 +1,156 @@
+
+\ifdefined\rhabNClassesBeatAddRm\else\input{generated/rehaul_ablation_numbers}\fi
+\ifdefined\rhcaNdaysSpan\else\input{generated/rehaul_close_accuracy_numbers}\fi
+\ifdefined\rhmcsNModels\else\input{generated/rehaul_mcs_numbers}\fi
+
+\section{Results}
+\label{sec:rh_results}
+\label{sec:rh_exp_setup}
+\begin{itemize}
+\item \textbf{Design, benchmark and outline.} Every forecast follows the design, spans and tests of
+  Sections~\ref{sec:rh_methods_setup} and~\ref{sec:rh_results_eval}: every bar of $\mathcal T_{\mathrm{oos}}$ is
+  scored, and the primary benchmark is the OLS on the HAR benchmark set, the OLS row of Table~\ref{tab:rh_oos}, which
+  the HAR-set penalized models reproduce. The window length was fixed after out-of-sample scoring
+  (Section~\ref{sec:rh_results_robust}). We report accuracy on every bar (Section~\ref{sec:rh_results_oos}), the
+  predictor groups that carry the gain (Section~\ref{sec:rh_results_ablation}) and robustness (Section~\ref{sec:rh_results_robust});
+  Section~\ref{sec:rh_fi} asks which series the models use.
+\end{itemize}
+
+\subsection{Accuracy on every bar}
+\label{sec:rh_results_oos}
+\label{sec:rh_results_predictors}
+\begin{itemize}
+\item \textbf{Overview.} Table~\ref{tab:rh_oos} reports the MSE, the average QLIKE loss and $R^2_{\mathrm{OOS}}$ of
+  the six model classes on the HAR benchmark set and on the full predictor set.
+\item \textbf{Against the primary benchmark.} The full predictor set lowers the average QLIKE loss of every model
+  class below that of the OLS on the HAR benchmark set.
+  \begin{itemize}
+  \item Penalized linear models, whose HAR-set forecast is the benchmark: \rhorVsOlsPctRidgeFull\% (ridge regression),
+    \rhorVsOlsPctLassoFull\% (lasso) and \rhorVsOlsPctEnetFull\% (elastic net), with $\DM={}$\rhorDmRidgeB,
+    \rhorDmLassoB{} and \rhorDmEnetB.
+  \item Tree ensembles: \rhorVsOlsRedTreeRng{}\%, with $\DM={}$\rhorVsOlsDmLgbmFull,
+    \rhorVsOlsDmXgbFull{} and \rhorVsOlsDmRfFull{} for LightGBM, XGBoost and the random forest.
+  \item The reduction is significant for \rhorVsOlsLowerSig{} of the \rhorAfPairs{} full-set forecasts.
+  \item On the HAR benchmark set alone the tree ensembles stay within \rhorVsOlsPctTreeHarMaxAbs{}\% of the
+    benchmark, so the trees' gain comes from the added predictors rather than from a nonlinear use of the HAR terms.
+  \end{itemize}
+\item \textbf{Within each class.} The paired comparison of $f_{m,\mathrm{Full},\mathcal I_{\mathrm{rh}}}$ with
+  $f_{m,\mathrm{HAR},\mathcal I_{\mathrm{rh}}}$ (Section~\ref{sec:rh_results_eval}; the DM column of
+  Table~\ref{tab:rh_oos}) isolates what the exogenous predictors add to a given model $m$.
+  \begin{itemize}
+  \item The full set has the lower loss in \rhorAfLower{} of the \rhorAfPairs{} classes, \rhorAfLowerSig{} of them
+    significantly.
+  \item The tree ensembles gain more from the same predictors than the linear models: \rhabLgbmFullAllPct\% for
+    LightGBM, \rhabXgbFullAllPct\% for XGBoost and \rhabRfFullAllPct\% for the random forest ($\DM={}$\rhorDmLgbmB,
+    \rhorDmXgbB{} and \rhorDmRfB). % RECHECK (D13): "gain more ... than the linear models"
+  \end{itemize}
+\item \textbf{Squared-error loss.} Under squared error the comparison reverses: on every bar the full set raises the
+  MSE in all \rhorAfPairs{} classes, by \rhcaLinMsePctBarSpanMin{} to \rhcaLinMsePctBarSpanMax\% for the penalized
+  linear models and by \rhcaTreeMsePctBarSpanMin{} to \rhcaTreeMsePctBarSpanMax\% for the tree ensembles, and lowers
+  $R^2_{\mathrm{OOS}}$ (Table~\ref{tab:rh_oos}). A handful of days in the COVID-19 crash account for the difference
+  (Appendix~\ref{app:rh_results_calib}).
+  \begin{itemize}
+  \item On \rhcaYearsPre{} the full set has the lower every-bar MSE in all classes (\rhcaLinMsePctBarPreMin{} to
+    \rhcaLinMsePctBarPreMax\% for the linear models).
+  \item On \rhcaYearsOos{} the \rhcaTopDays{} days with the largest excess squared error of the full set, all between
+    \rhcaTopFirstBarOos{} and \rhcaTopLastBarOos, carry \rhcaLinTopShareBarOosRng\% of that excess for the linear
+    models and \rhcaTreeTopShareBarOosRng\% for the trees; without the days from \rhcaCrashStart{} to \rhcaCrashEnd,
+    the full set has the lower every-bar MSE on \rhcaYearsOos{} in all classes, each significantly.
+  \item The excess is not a level bias (the bias term is at most \rhcaAllShBiasBarOosMax\% of any forecast's MSE) but
+    one of scale: on \rhcaYearsOos{} the full-set forecasts move too much in levels.
+  \item QLIKE scores an error relative to the forecast and grows only logarithmically in over-prediction, so the crash
+    bars weigh little in it, and in logs the full-set forecasts are well scaled. QLIKE, which is robust to noise in
+    the realized-variance proxy \citep{Patton2011}, remains the primary loss.
+  \end{itemize}
+\end{itemize}
+
+\subsection{Which predictors carry the gain?}
+\label{sec:rh_results_ablation}
+\begin{itemize}
+\item \textbf{Design} (Table~\ref{tab:rh_ablation}; Appendix~\ref{app:rh_results_ablation}). The design of
+  Table~\ref{tab:rh_oos}, including the full set's frozen hyperparameters, with only the columns changed:
+  \begin{itemize}
+  \item Panel~A removes one of the \rhfiNBuckets{} predictor groups from the full set; Panel~B adds one to the HAR
+    benchmark set.
+  \item Panel~C fits by OLS the semivariance HAR of \citet{PattonSheppard2015}, the HARQ model of
+    \citet{BollerslevPattonQuaedvlieg2016} and the leverage HAR of \citet{CorsiReno2012}, built from the same
+    one-minute E-mini returns as the target.
+  \item Panel~D restates the full set; Panel~E scores the late-starting groups on the bars on which their values are
+    live.
+  \item The FOMC rows of Panels~A and~B are preliminary (table notes). % REMOVE this item once the FOMC arms are rerun on the patched design (D13)
+  \end{itemize}
+\item \textbf{The gain survives an augmented HAR.} The futures' realized moments, computed from the same one-minute
+  returns that define the target, are the natural augmented HAR.
+  \begin{itemize}
+  \item Added to the HAR benchmark set they lower the loss in every class (Panel~B, first row;
+    \rhabOlsAddRmAllPct\% for the OLS).
+  \item Yet the full set is significantly more accurate than the same class's HAR benchmark set plus realized moments
+    in \rhabNClassesBeatAddRm{} of the \rhabNClassesAddRm{} classes, by \rhabRidgeFullVsAddRmAllPct\% to
+    \rhabLassoFullVsAddRmAllPct\% for the linear models and by \rhabRfFullVsAddRmAllPct\% to
+    \rhabLgbmFullVsAddRmAllPct\% for the trees (Panel~D). % RECHECK (D13): range endpoints by class
+  \item The classical extensions gain little over the benchmark: \rhabOlsSharAllPct\% for the semivariance HAR,
+    \rhabOlsHarqAllPct\% for HARQ, \rhabOlsLharAllPct\% for the leverage HAR and \rhabOlsSharqlAllPct\% for the three
+    together (Panel~C), and every class's full set is significantly more accurate than the last of these ($\DM$ from
+    \rhabLassoFullVsOlsSharqlAllDm{} for the lasso to \rhabLgbmFullVsOlsSharqlAllDm{} for LightGBM). % RECHECK (D13): DM endpoints by class
+  \item The exogenous predictors thus carry information that richer functions of the futures' own returns do not.
+  \end{itemize}
+\item \textbf{Two groups carry it.} Removing a group from the full set (Panel~A) raises the loss materially for two
+  groups only; the removal of any other group changes the loss by less.
+  \begin{itemize}
+  \item The FOMC calendar: \rhabRidgeLoFomcAllPct\% to \rhabLassoLoFomcAllPct\% for the linear models,
+    \rhabXgbLoFomcAllPct\% and \rhabLgbmLoFomcAllPct\% for XGBoost and LightGBM.
+  \item The futures' realized moments: \rhabLassoLoRmAllPct\% to \rhabEnetLoRmAllPct\% across the classes,
+    $\DM={}$\rhabLassoLoRmAllDm{} or larger.
+  \item Added on its own (Panel~B), the FOMC calendar delivers most of the trees' gain: \rhabLgbmAddFomcAllPct\% for
+    LightGBM against \rhabLgbmFullAllPct\% for its full set, and \rhabRfAddFomcAllPct\% against \rhabRfFullAllPct\%
+    for the random forest.
+  \item The liquidity and constituent-market groups lower the trees' loss by similar amounts when added alone
+    (\rhabXgbAddVwAllPct\% for the value-weighted market and XGBoost) but not when removed from the full set: their
+    information overlaps with that of the futures' moments.
+  \end{itemize}
+\item \textbf{Alternative data on their live windows.} The implied-volatility, StockTwits and volatility-demand series
+  start after the data and enter as zero until the rolling window holds \rhorWindowDays{} trading days of their
+  history (Section~\ref{sec:rh_predictors}), so over most of the span the rows of Panels~A and~B measure these groups
+  through their availability shares. Panel~E scores them only on the bars on which their values are live, and the
+  gains remain small; Section~\ref{sec:rh_fi} turns to how much the models use these series.
+  \begin{itemize}
+  \item Adding the VIX changes the loss of XGBoost by \rhabXgbAddIvLiveIvPct\% from \rhabLiveIvStart{}
+    ($\DM={}$\rhabXgbAddIvLiveIvDm).
+  \item The StockTwits series change no class's loss significantly from \rhabLiveSentStart{} (the largest change is
+    the elastic net's, \rhabEnetAddSentLiveSentPct\%).
+  \item The volatility-demand series raise the loss of the penalized linear models between \rhabLiveVdStart{} and
+    \rhabLiveVdEnd{} (\rhabRidgeAddVdLiveVdPct\% for ridge regression, $\DM={}$\rhabRidgeAddVdLiveVdDm).
+  \end{itemize}
+\end{itemize}
+
+
+\subsection{Robustness}
+\label{sec:rh_results_robust}
+\begin{itemize}
+\item \textbf{Estimation window.} The window length $W$ of \rhorWindowDays{} trading days was chosen after the
+  \rhwsNWinWord{} candidate windows from \rhwsWinMin{} to \rhrbWinLong{} trading days had been
+  scored out of sample on $\mathcal T_{\mathrm{oos}}$; it is not a pre-sample choice. Appendix~\ref{app:rh_robust_window}
+  reports every window.
+  \begin{itemize}
+  \item Every bar: the comparison does not depend on the window. Across the candidate windows the every-bar gain of the
+    full-set elastic net over its HAR-set forecast lies between \rhwsEnetBarPctMin{}\% and
+    \rhwsEnetBarPctMax{}\%, significant at each, and with a window of \rhrbWinLong{} days the full set
+    remains significantly more accurate on every bar in \rhrbNFullLowerSigBarLong{} of the \rhrbNModelsLong{} classes
+    (Table~\ref{tab:rh_robust_w3500}).
+  \end{itemize}
+\item \textbf{Multiple comparisons.} Adjusting for the number of comparisons leaves the every-bar result intact: under
+  QLIKE the 90\% model confidence set \citep{HansenLundeNason2011} holds \rhmcsBarQlikeTmaxNNinety{} of the
+  \rhmcsNModels{} distinct pooled forecasts (\rhmcsBarQlikeTmaxSetNinety), and StepM \citep{RomanoWolf2005} rejects
+  equal accuracy of the full and HAR benchmark sets in \rhmcsBarQAfNRej{} of the \rhmcsNAlt{} classes (SPA
+  $p$-value \rhmcsBarQAfSpaC; \citealp{Hansen2005}), against \rhmcsBarMAfNRejWord{} under squared error
+  (Tables~\ref{tab:rh_mcs} and~\ref{tab:rh_mcs_spa}).
+\end{itemize}
+
+
+
+
+
+
+
+
+

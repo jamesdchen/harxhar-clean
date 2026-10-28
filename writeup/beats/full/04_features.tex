@@ -1,0 +1,117 @@
+
+
+
+\section{Predictors}
+\label{sec:rh_predictors}
+\begin{itemize}
+\item \textbf{Trailing averages on the full grid.} Following \citet{Corsi2009}, every predictor is a trailing average
+  of a transformed series $\tilde u$ over $k$ samples, lagged by one sample:
+  \[
+    \bar u^{(k)}_{t,i} = \frac{1}{k} \sum_{j=1}^{k} \tilde u_{t,i-j}, \qquad
+    k \in \mathcal{K} = \{1, 5, 25, 125, 625, 3125\},
+  \]
+  \rhdmNHorizonsPooled{} horizons in base 5. A sample is one interval of the full grid $\mathcal{G}$, overnight
+  sessions included: the models are estimated on the \rhorNBars{} regular-hours bars of each day
+  (Section~\ref{sec:rh_methods_setup}), but the averages of a regular-hours bar include the intervals of the
+  overnight session before it. With each value average we form the same average of the availability indicator,
+  $\bar a^{(k)}_{t,i}$, the share of the $k$ intervals on which the series was observed.
+\item \textbf{Notation.} In tables and figures we drop the overbar and the interval index.
+  \ifrawseries
+  We refer to each exogenous series by its column name in the data (Table~\ref{tab:rh_dm_dictionary}): for instance,
+  $\ser{vix}{\mathrm{VIX}}^{(25)}$ is the transformed VIX averaged over the 25 intervals before the forecast
+  interval; the implied volatility series are \sername{vix}, \sername{vix3m} and \sername{vvix}; the suffixes
+  \sername{_ewstock} and \sername{_vwstock} mark the equal- and value-weighted constituent aggregates (e.g.,
+  \sername{ofi_ewstock} and \sername{spread_vwstock}); and the FOMC series are \sername{fomc_day},
+  \sername{fomc_until_inv} and \sername{fomc_since_inv}. We write $\bar a^{(k)}(u)$ for the availability average of
+  series $u$.
+  \else
+  For instance, $\mathrm{VIX}^{(25)}$ is the transformed VIX averaged over the 25 intervals before the forecast
+  interval. We denote the implied volatility series by $\mathrm{VIX}$, $\mathrm{VIX3M}$ and $\mathrm{VVIX}$, label
+  the equal- and value-weighted constituent aggregates with the superscripts EW and VW (e.g.,
+  $\mathrm{OFI}^{\mathrm{EW}}$ and $\mathrm{Spread}^{\mathrm{VW}}$), denote the announcement predictors by
+  $\mathrm{FOMC}$, and write $\bar a^{(k)}(u)$ for the availability average of series $u$.
+  \fi
+\item \textbf{HAR benchmark.} The HAR benchmark set holds the HAR components of the target, $\bar y^{(k)}_{t,i}$, the
+  same trailing averages of the winsorized target $\tilde y$ (\rhdmNHorizonsPooled{} columns), and the calendar vector
+  $\bm D_{t,i}$ (\rhorNCalendarAf{} columns): five day-of-the-week dummies and the hour of the interval-end stamp,
+  entered as an integer, not as a set of dummies. The estimation sample holds no overnight interval, so
+  $\bm D_{t,i}$ has no overnight indicator; and every interval in it falls on a weekday, so the five dummies sum to one
+  and are not identified separately from the intercept: the OLS fit is the minimum-norm least-squares solution
+  (Appendix~\ref{app:rh_methods_linear}).
+\item \textbf{Full predictor set.} The full predictor set adds, for each of the \rhdmNSeriesPooled{} exogenous series
+  of Section~\ref{sec:rh_data} (the FOMC group included), the standardized value averages (step~6 below) and the
+  availability averages $\bar a^{(k)}$ at every horizon, so that it has
+  \[
+    \rhorNColsAf = \underbrace{\rhdmNHorizonsPooled}_{\bar y^{(k)}}
+      + \underbrace{\rhorNCalendarAf}_{\bm D_{t,i}}
+      + \underbrace{\rhdmNSeriesPooled \times \rhdmNHorizonsPooled}_{\bar u^{(k)}}
+      + \underbrace{\rhdmNSeriesPooled \times \rhdmNHorizonsPooled}_{\bar a^{(k)}}
+  \]
+  candidate columns. The penalized linear models fit a screened subset of them, leaving out columns that are
+  constant or exact duplicates on the estimation window, columns of a series with too few prints off its mode, and
+  availability averages that move no more than missing observations at random would; each solver applies the
+  screens on its own schedule (Appendix~\ref{app:rh_methods_linear}). The tree ensembles use every column.
+\item \textbf{Transformations.} Each exogenous series passes through six steps. Every statistic in them is computed
+  from earlier intervals only; Appendix~\ref{app:rh_dp_transform} gives the formulas and the constants.
+  \begin{enumerate}
+  \item \emph{Diurnal adjustment.} The raw series $u_{t,i}$ is divided by a time-of-day factor $b^{(u)}_{t,i}$: its
+    mean (nonnegative series) or standard deviation (signed series) on interval $i$ over the prior days
+    $\mathcal{D}_{t,i}$ of the target's factor $s^2_{t,i}$ (Section~\ref{sec:rh_methods_setup}), bounded relative to
+    the factor's own trailing median. The implied volatility indices, the StockTwits sentiment score and the FOMC
+    series are not adjusted.
+  \item \emph{Variance stabilization.} A map chosen by what the series measures: the square root for variances,
+    turnover and the effective spread, signed power roots for the higher moments and the autocovariance, the identity
+    for the other signed series and absolute returns, and the logarithm otherwise. The volatility-demand series,
+    whose standard-deviation divisor sits at its floor, take instead an inverse hyperbolic sine of the raw series,
+    scaled by a trailing average of its absolute value.
+  \item \emph{Winsorization.} A clip at rolling quantiles of the series' preceding \rhdmWinsorWindow{} intervals, at the
+    levels of the target's winsorization (Section~\ref{sec:rh_methods_setup}). The bounds need a value on each of
+    those intervals, so a series is not clipped where its prints leave a gap longer than the fill cap within the
+    window: VIX3M and VVIX never are, VIX and the constituent aggregates on part of the sample. The FOMC series are
+    not winsorized: the statement-day indicator passes through unchanged, and the proximity measures are
+    deterministic ramps, each the extreme of its own trailing window between statements.
+  \item \emph{Imputation.} An interval with $a_{t,i} = 0$ takes the median of the series' earlier observed
+    transformed values, and before the series starts its first observed value; $a_{t,i}$ itself enters through
+    $\bar a^{(k)}$.
+  \item \emph{Trailing averages:} $\bar u^{(k)}_{t,i}$, $\bar a^{(k)}_{t,i}$ and $\bar y^{(k)}_{t,i}$ for
+    $k \in \mathcal{K}$.
+  \item \emph{Robust standardization.} Each value average is centred and scaled on the rolling window
+    $\mathcal{W}_{t,i}$, the $W$ rows of the estimation sample before $(t,i)$ (Section~\ref{sec:rh_methods_setup}),
+    imputed rows included:
+    \begin{gather*}
+      z^{(k)}_{t,i} = \frac{\bar u^{(k)}_{t,i}
+          - \operatorname{med}\bigl\{\bar u^{(k)}_{t',i'} : (t',i') \in \mathcal{W}_{t,i}\bigr\}}
+        {\max\bigl\{\mathrm{IQR}^{(k)}_{t,i},\ \rhdmIqrFloorFrac\,\overline{\mathrm{IQR}}^{(k)}_{t,i},\
+          \mathrm{IQR}^{\ast(k)}_{t,i}\bigr\}}, \\
+      \mathrm{IQR}^{(k)}_{t,i} = \mathrm{IQR}\bigl\{\bar u^{(k)}_{t',i'} : (t',i') \in \mathcal{W}_{t,i}\bigr\},
+    \end{gather*}
+    where $\overline{\mathrm{IQR}}^{(k)}_{t,i}$ is the largest $\mathrm{IQR}^{(k)}$ up to $(t,i)$ and
+    $\mathrm{IQR}^{\ast(k)}_{t,i}$ a causal floor, the interquartile range of the average over the earlier rows whose
+    $k$ intervals were all observed. The median and the interquartile range are recomputed at every row; the rows of
+    the first window, all before the first forecast, take that window's statistics
+    (Appendix~\ref{app:rh_dp_scale}).
+    \begin{itemize}
+    \item The availability averages are not standardized; the HAR components and the calendar columns follow the same
+      rule with $\mathrm{IQR}^{\ast(k)} = 0$.
+    \item \emph{Late start.} For a series whose first print comes after the start of the sample,
+      $z^{(k)}_{t,i} = 0$ on every row whose window $\mathcal{W}_{t,i}$ holds a row whose $k$-interval average
+      reaches back before the day of that print. Because the window spans \rhorWindowBars{} bars (about
+      \rhorWindowDays{} trading days), late series enter late: on the bars scored from \rhorSpanStart{} to
+      \rhorSpanEnd, the value averages are live on \rhlvVixEvRange\% of bars for the VIX, \rhlvVixThreeEvRange\% for
+      VIX3M, \rhlvStAttEvRange\% for StockTwits attention, \rhlvStSentEvRange\% for its sentiment and tag count,
+      \rhlvVdEvRange\% for volatility demand and \rhlvVvixEvRange\% for VVIX (ranges over $k$).
+    \item \emph{No observation.} $z^{(k)}_{t,i} = 0$ whenever the $k$-interval average holds no observed interval,
+      $\bar a^{(k)}_{t,i} = 0$, so the averages of a feed that has stopped are neutral.
+    \item The step equalizes interquartile ranges, not variances, and scales each row on its own trailing window;
+      the penalized linear models therefore standardize the columns again within their estimation window
+      (Appendix~\ref{app:rh_methods_linear}).
+    \end{itemize}
+  \end{enumerate}
+\item \textbf{No look-ahead.} Every statistic indexed by $(t,i)$ uses intervals before $(t,i)$ only: the trailing
+  averages, the diurnal factors and their bounds, the winsorization bounds, the imputation medians, the routing of
+  step~2 and the standardization statistics. The FOMC proximity measures use the pre-announced calendar
+  (Section~\ref{sec:rh_data}). Two inputs use later intervals, and neither looks ahead of a forecast: the first print
+  that fills the intervals before a series starts (step~4), which the late-start rule sets to zero, and the statistics
+  that scale the rows of the first standardization window, all of which precede the first forecast.
+\end{itemize}
+

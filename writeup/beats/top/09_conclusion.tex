@@ -1,0 +1,28 @@
+
+
+\section{Conclusion}
+\label{sec:rh_conclusion}
+\begin{itemize}
+\item \textbf{Exogenous predictors in intraday realized variance forecasts.} We ask what exogenous predictors, from
+  the futures' own realized moments and the constituents' trading to the FOMC calendar, implied volatility and
+  alternative data, add to pooled forecasts of the E-mini S\&P~500's realized variance on every regular-hours bar,
+  against OLS on the HAR benchmark set.
+\item \textbf{The exogenous predictors improve the forecast of every bar} (Section~\ref{sec:rh_results}).
+\item \textbf{The gain is concentrated} (Sections~\ref{sec:rh_results_ablation} and~\ref{sec:rh_fi}). The FOMC calendar
+  carries most of the trees' gain and the futures' realized moments come second; the \ladderTopK{}
+  highest-ranked series retain \ladderTreeRetainRng{}\% of it, and the linear models do best with
+  \ladderLinKstarRng{} series. The signal sits in a few series rather than spreading thinly over many.
+\item \textbf{Alternative data add little, even when live.}
+\item \textbf{QLIKE and squared error.} Under squared-error loss the full set is not more accurate (its mean squared
+  error is higher in \rhcaNMseHigherBarSpan{} of \rhorAfPairs{} classes, significantly in \rhcaNMseHigherSigBarSpan),
+  a difference carried almost entirely by \rhcaTopDays{} days of the COVID-19 crash; without the crash window it is
+  significantly lower in \rhcaNMseLowerSigBarOosExCrash{} classes.
+\item \textbf{An application to 0DTE straddles} (Section~\ref{sec:rh_econ}).
+\item \textbf{Comparison with machine-learning option portfolios.}
+\item \textbf{Scope and extensions.} One index and one futures contract; a window fixed after an out-of-sample
+  comparison of windows, all reported in the online appendix; NYSE-holiday sessions kept in the estimation sample; a
+  short option sample (\rheSzDays{} days). Extensions: the sessions after \rhorSpanEnd, other markets, density
+  forecasts, and trades entered at earlier bars from the every-bar forecasts already produced.
+\end{itemize}
+
+
