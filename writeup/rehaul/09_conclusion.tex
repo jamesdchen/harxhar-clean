@@ -49,8 +49,14 @@
   \ladderLinKstarRng{} series. The signal sits in a few series rather than spreading thinly over many.
 % 2026-10-26 (audit correctness-4, front-11): the option-day live share of StockTwits attention alone (100%) parked;
 % the evaluation bars are the reach that matters, and the training-window share is \rhfilStwWinPct.
-\item \textbf{Alternative data add little, even when live.}
+\item \textbf{Beyond the two groups, a small gain in the boosted trees.}
   \begin{itemize}
+  \item The other \rhbyFLNSeries{} series change no penalized linear model's loss significantly and that of
+    LightGBM and XGBoost by \rhabLgbmFullVsAddRmFomcAllPct{} and \rhabXgbFullVsAddRmFomcAllPct\%, through a few
+    series from several groups rather than a factor common to them.
+% 2026-10-28 (author, alternative-data edit: the claim is about the 36 series beyond HAR + RM + FOMC). Was:
+% \item \textbf{Alternative data add little, even when live.}
+%   \begin{itemize}
   \item Under our causal construction the StockTwits and volatility-demand series are live on
     \rhlvStSentEvLo--\rhlvStAttEvHi\% and \rhlvVdEvLo--\rhlvVdEvHi\% of the scored bars; on those bars they change the
     loss little, and volatility demand raises that of the linear models.

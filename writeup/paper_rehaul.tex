@@ -173,6 +173,15 @@
 \input{generated/rehaul_oos_vs_ols_numbers}
 \input{generated/rehaul_window_sweep_numbers}
 \input{generated/rehaul_ci_har_numbers}
+% 2026-10-28 (author: main2.tex on Overleaf was over its 2 MB limit for editable files): the number files that the
+% sections load through \ifdefined guards are loaded here too, so flatten.py drops those guards instead of inlining
+% the file at each one.
+\input{generated/rehaul_channels_numbers}
+\input{generated/rehaul_factor_numbers}
+\input{generated/rehaul_beyond_ladder_numbers}
+\input{generated/rehaul_beyond_factor_numbers}
+% 2026-10-28 (author, alternative-data edit): \rhbyFLNSeries, the 36 series of the six groups beyond HAR + RM + FOMC.
+\input{generated/rehaul_beyond_factor_lin_numbers}
 % ---- end of the reserved block ------------------------------------------------------------------------------------
 
 % 2026-10-15 (consolidation): parked -- "closing bar" is code jargon (guide section 1: the closing half hour).
@@ -266,7 +275,7 @@ realized-variance forecasts for every regular-hours half-hour bar. Against an OL
 benchmark, the full set lowers QLIKE loss significantly in all \rhorAfPairs{} model classes, by
 \rhorVsOlsRedLinRng{}\% (penalized linear models) and \rhorVsOlsRedTreeRng{}\% (tree
 ensembles), and beats augmented HAR models. The gain concentrates in the FOMC calendar and the futures' realized
-moments; alternative data add little even when live. Under squared error, a few crash days offset it. In 0DTE
+moments; beyond them, only boosted trees gain, slightly. Under squared error, a few crash days offset it. In 0DTE
 straddles, full-set forecasts beat passive selling but seldom significantly beat HAR forecasts.
 % 2026-10-28 (D19, standard pooled Sharpe): under the pooled ratio and the Ledoit--Wolf test \rhemFullVsShortSig = 3
 % (of 6) against the short straddle and \rhemFullVsOlsHarSig = 1 (the random forest, p 0.039) against the OLS-HAR

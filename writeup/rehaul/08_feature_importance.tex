@@ -125,7 +125,9 @@
   \rhabBaseShareTreeMin--\rhabBaseShareTreeMax\% in the tree ensembles and at least \rhabBaseShareLinMin\% in the
   penalized linear models (Table~\ref{tab:rh_ablation}, Panel~D). The calendar carries the statement days
   (Section~\ref{sec:rh_fi_event}), the realized moments the ordinary days (Section~\ref{sec:rh_fi_ordinary}). What
-  remains is small, only the tree ensembles capture it, and a few series carry it (Section~\ref{sec:rh_fi_rest}). How
+  remains is small, only the boosted trees capture it, and a few series carry it (Section~\ref{sec:rh_fi_rest}). How
+% 2026-10-28 (author, alternative-data edit: the claim is about the 36 series beyond HAR + RM + FOMC). Was:
+%   remains is small, only the tree ensembles capture it, and a few series carry it
   much a model uses a series is a poor guide to these gains (Section~\ref{sec:rh_fi_use}).
 \item \textbf{Evidence.} Three kinds, each reported for every class and predictor group.
   \begin{itemize}
@@ -231,7 +233,7 @@
 \label{sec:rh_fi_rest}
 \label{sec:rh_results_beyond}
 \begin{itemize}
-\item \textbf{Small, and only in the trees} (Table~\ref{tab:rh_ablation}, Panel~D, last row;
+\item \textbf{Small, and only in the boosted trees} (Table~\ref{tab:rh_ablation}, Panel~D, last row;
   Appendix~\ref{app:rh_results_beyond}). Against HAR\,+\,RM\,+\,FOMC the full set changes the every-bar loss of the
   ridge, lasso and elastic net by \rhabRidgeFullVsAddRmFomcAllPct, \rhabLassoFullVsAddRmFomcAllPct{} and
   \rhabEnetFullVsAddRmFomcAllPct\%, none significantly ($p \geq{}$\rhabLinFullVsAddRmFomcAllPMin), and that of
@@ -239,16 +241,41 @@
   ($\DM={}$\rhabLgbmFullVsAddRmFomcAllDm{} and \rhabXgbFullVsAddRmFomcAllDm); the random forest's
   \rhabRfFullVsAddRmFomcAllPct\% is not significant ($p$-value \rhabRfFullVsAddRmFomcAllP). On ordinary days the trees'
   remainder is \rhabLgbmFullVsAddRmFomcOrdPct, \rhabXgbFullVsAddRmFomcOrdPct{} and \rhabRfFullVsAddRmFomcOrdPct\%.
-\item \textbf{In a few series, not a common factor.} No single remaining group is indispensable: removing any group
-  other than the FOMC calendar and the realized moments changes the every-bar loss by at most
-  \rhabLoOtherAllMaxAbs\%. Yet a few series carry the trees' remainder. In follow-up tests outside the pre-specified
-  design, scored on ordinary days, LightGBM and XGBoost refitted on HAR\,+\,RM\,+\,FOMC plus their own top five series
-  recover shares of \rhbyLLgbmKFiveOrdR{} and \rhbyLXgbKFiveOrdR{} of the remaining gain; ten principal components of
-  the six remaining groups recover \rhbyFLgbmPcaTenOrdR{} and \rhbyFXgbPcaTenOrdR. The gain sits in specific series,
-  not in a factor common to them, and the linear models do not capture it.
+\item \textbf{A few series, from several groups} (Table~\ref{tab:rh_beyond_ladder}). No single remaining group is
+  indispensable: removing any group other than the FOMC calendar and the realized moments changes the every-bar loss
+  by at most \rhabLoOtherAllMaxAbs\%. Yet a few series carry the boosted trees' remainder, and they come from several
+  groups. LightGBM's top five are the value- and equal-weighted constituents' absolute returns, the value-weighted
+  effective spread, the VIX and the value-weighted constituents' third moment; XGBoost ranks StockTwits sentiment
+  first, then the same constituent series and the VIX. In follow-up tests outside the pre-specified design, scored
+  on ordinary days, LightGBM and XGBoost refitted on HAR\,+\,RM\,+\,FOMC plus their own top five series recover
+  shares of \rhbyLLgbmKFiveOrdR{} and \rhbyLXgbKFiveOrdR{} of the remaining gain (LightGBM's top series alone
+  \rhbyLLgbmKOneOrdR), and ten principal components of the six remaining groups \rhbyFLgbmPcaTenOrdR{} and
+  \rhbyFXgbPcaTenOrdR.
+\item \textbf{Sparse, not dense.} In the terms of \citet{GiannoneLenzaPrimiceri2021}, the remainder is sparse in
+  series and scattered across groups.
+  \begin{itemize}
+  \item A dense linear signal would show in the ridge, which keeps and shrinks every series; yet the ridge's full set
+    changes its ordinary-day loss against HAR\,+\,RM\,+\,FOMC by \rhabRidgeFullVsAddRmFomcOrdPct\%
+    ($p = \rhabRidgeFullVsAddRmFomcOrdP$). In the boosted trees five series recover more of the remainder than ten
+    principal components of all of them, and under the reading fixed before the ladder was scored XGBoost's
+    remainder is \rhbyLXgbReading{} and LightGBM's \rhbyLLgbmReading{} ($R = \rhbyLLgbmKTwentyOrdR$ with twenty
+    series): neither is dense.
+  \item No group is indispensable, yet the top series come from four or five groups: series in different groups
+    appear to measure much the same thing (both models rank the equal- and the value-weighted constituents'
+    absolute returns among their top five). Where averaging beats selection, it does so among the correlated
+    columns of the futures' realized moments (Section~\ref{sec:rh_fi_ordinary}).
+  \end{itemize}
+% 2026-10-28 (author, alternative-data edit: the claim is about the 36 series beyond HAR + RM + FOMC). Was:
+% \item \textbf{In a few series, not a common factor.} No single remaining group is indispensable: removing any group
+%   other than the FOMC calendar and the realized moments changes the every-bar loss by at most
+%   \rhabLoOtherAllMaxAbs\%. Yet a few series carry the trees' remainder. In follow-up tests outside the pre-specified
+%   design, scored on ordinary days, LightGBM and XGBoost refitted on HAR\,+\,RM\,+\,FOMC plus their own top five series
+%   recover shares of \rhbyLLgbmKFiveOrdR{} and \rhbyLXgbKFiveOrdR{} of the remaining gain; ten principal components of
+%   the six remaining groups recover \rhbyFLgbmPcaTenOrdR{} and \rhbyFXgbPcaTenOrdR. The gain sits in specific series,
+%   not in a factor common to them, and the linear models do not capture it.
 \end{itemize}
 
-\subsection{Alternative data}
+\subsection{StockTwits, net vega demand and the VIX}
 \label{sec:rh_fi_alt}
 \begin{itemize}
 \item \textbf{Little incremental gain} (Table~\ref{tab:rh_channels_abl}). Removing the StockTwits, volatility-demand
@@ -260,7 +287,14 @@
   % linear models' loss" -- three removals are significant (volatility demand on statement days for the lasso and
   % LightGBM, StockTwits on ordinary days for LightGBM), and added alone the implied volatility lowers the linear
   % models' ordinary-day loss.
+\item \textbf{StockTwits sentiment in XGBoost} (Table~\ref{tab:rh_beyond_ladder}). XGBoost ranks StockTwits
+  sentiment first among the remaining series: added alone to HAR\,+\,RM\,+\,FOMC it changes XGBoost's ordinary-day
+  loss by \rhbyLXgbKOneOrdPct\% ($\DM={}$\rhbyLXgbKOneOrdDm), a share of \rhbyLXgbKOneOrdR{} of the remainder. Its
+  values are live only from \rhabLiveSentStart, so over most of the span the model sees its availability averages,
+  when messages print, not what they say.
 \item \textbf{On their live windows} (Table~\ref{tab:rh_ablation}, Panel~E). These series start after the data and
+% 2026-10-28 (author, alternative-data edit: the claim is about the 36 series beyond HAR + RM + FOMC). Was:
+% \item \textbf{On their live windows} (Table~\ref{tab:rh_ablation}, Panel~E).
   enter as zero until the rolling window holds \rhorWindowDays{} trading days of their history
   (Section~\ref{sec:rh_predictors}), so over most of the span Panels~A and~B measure them through their availability
   shares. On the bars on which their values are live the gains remain small:
@@ -272,6 +306,10 @@
   \item The volatility-demand series raise the loss of the penalized linear models between \rhabLiveVdStart{} and
     \rhabLiveVdEnd{} (\rhabRidgeAddVdLiveVdPct\% for ridge regression, $\DM={}$\rhabRidgeAddVdLiveVdDm).
   \end{itemize}
+\item \textbf{A weak test of volatility demand.} The net vega bought by non-market-makers is live only from
+  \rhabLiveVdStart{} to \rhabLiveVdEnd, when its feed ends: \rhabLiveVdDays{} trading days,
+  \rhlvVdEvLo--\rhlvVdEvHi\% of the scored bars. The sample shows that it does not help there, not that it cannot
+  help.
 \item \textbf{Used more while live, without a gain} (Figure~\ref{fig:rh_fi_live}). Before their values are live the
   trees see mostly the availability averages, which record when a series prints, not what it prints. In the full
   years in which their values are live, the trees' yearly attribution shares rise: StockTwits from
@@ -296,9 +334,13 @@
   its share.
 \item \textbf{In short.} Two groups carry the pooled gain: the FOMC calendar on the statement days, in one group and on
   few bars, and the futures' realized moments on ordinary days, whose information the constituents' moments and the
-  liquidity measures largely repeat and a few common factors of all the series do not recover. What remains beyond
-  them and the HAR terms is small, only the trees capture it, and a few series carry it; the alternative data add
-  little. Attribution is a poor guide to all of this: the series a model uses most are not the ones that
+  liquidity measures largely repeat and a few common factors of all the series do not recover. Beyond them and the HAR
+  terms, the other \rhbyFLNSeries{} series add nothing to the linear models and a small gain to the boosted trees,
+  carried by a few series scattered across groups: sparse, not dense. Attribution is a poor guide to all of this: the series a model uses most are not the ones that
+% 2026-10-28 (author, alternative-data edit: the claim is about the 36 series beyond HAR + RM + FOMC). Was:
+% What remains beyond
+%   them and the HAR terms is small, only the trees capture it, and a few series carry it; the alternative data add
+%   little.
   make it more accurate.
 \end{itemize}
 % 2026-10-28 (author: v2 of Sections 6-7 approved preliminarily): the previous body of Section 7 (Variable importance). Questions and measures, What the models use, and How many series carry the gain (with Ridge against lasso and the window scaling) moved to Appendix rehaul/A_fi.tex; the late-starting series, Use is not accuracy and In short are rewritten in Sections 7.4 and 7.5. Was:

@@ -134,7 +134,15 @@
 % 2026-10-28 (v2 of Sections 6-7, author approved preliminarily): pointer for the v2 layout. Was: (Section~\ref{sec:rh_fi}, Figure~\ref{fig:rh_ladder})
       Figure~\ref{fig:rh_ladder}). On the dense-versus-sparse question, the exogenous signal sits in a few series
       rather than spreading thinly over many.
-    \item The alternative data add little even on the bars on which their values are live: there StockTwits changes
+    \item Beyond the FOMC calendar and the futures' realized moments, the other \rhbyFLNSeries{} series change no
+      penalized linear model's loss significantly and that of LightGBM and XGBoost by
+      \rhabLgbmFullVsAddRmFomcAllPct{} and \rhabXgbFullVsAddRmFomcAllPct\% (Section~\ref{sec:rh_fi_rest}), through a
+      few series from several groups, chiefly the constituents' absolute returns and spreads, the VIX and
+      StockTwits sentiment.
+    \item StockTwits and the net vega demand add little even on the bars on which their values are live: there
+      StockTwits changes
+% 2026-10-28 (author, alternative-data edit: the claim is about the 36 series beyond HAR + RM + FOMC). Was:
+%     \item The alternative data add little even on the bars on which their values are live: there StockTwits changes
       the trees' loss by \rhabLgbmAddSentLiveSentPct\% (LightGBM) and \rhabXgbAddSentLiveSentPct\% (XGBoost), and
       volatility demand raises that of the linear models (\rhabRidgeAddVdLiveVdPct\% for ridge). Their share of the
       trees' attribution, \rhfipSentMin--\rhfipSentMax\% for StockTwits over the span (Table~\ref{tab:rh_fip_shares}),
