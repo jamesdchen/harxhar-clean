@@ -147,3 +147,13 @@ Expected: tree pieces 2.2-3.1 h on Gold 6240, so the trees finish ~22:30-23:00; 
 | 17:49 | (read-only) ladder 94 of 94 pieces done, 0 failed; no job of ours left in either queue (the three UGE pp_pooltre jobs are another run's, untouched) |
 | 17:50 | merge 521871 (merge_ladder.sh): T2 bit-identical (LightGBM / XGBoost), the 10 rungs merged (pieces from Gold 6442Y, Xeon 6736P, Gold 6240, UGE Gold 6140; all four BASE gates PASS, gate/rb/), trees_wide.parquet md5 fc6bbe09...; fetched -> forecasts/trees_wide_ladder.parquet, runs/tree_merge_ladder/, gate/rb/*/gatebase.json |
 | 17:55 | scored --design fix (169 forecasts, checks PASS); writeup/make_rehaul_beyond_ladder.py: readings (ORDINARY days, RULE section 2) LightGBM INTERMEDIATE (R(5) 0.72, R(20) 0.94), XGBoost CONCENTRATED (R(5) 0.91): split; tab:rh_beyond_ladder and the \rhbyL macros, compile-tested |
+| (28 Oct) 16:40 | author ("do 1", after the readings by day type): the boosted trees' removals lo_<g>, g != fomc, on the patched design; RULE.txt addendum J (5b1b842, pushed before any job): 14 arms (LightGBM, XGBoost x rm, liq, ew, vw, sent, iv, vd), the 171 pieces of tasks/trees.txt verbatim -> tasks/trees_lofix.txt, ~3,900 CPU-hours (approved above 2,500); merge_lofix.sh |
+| 16:42 | installed on Hoffman2 (code_lofix_5b1b842.tar extracted into code/, LF, code/COMMIT appended); submitted (jobids.txt slurm26 / uge9): Slurm 541089-541096 (Gold 6240, 8 x 4 workers; RUNNING at 16:43), 541097-541100 (Gold 6442Y, 4 x 6; pending), 541101-541102 (Xeon 6736P, 2 x 9; pending); UGE 15339286 (25 x 1 worker, 8 slots, Gold 6140; queued).  Claims runs/claims_trees_lofix, output runs/trees_lofix, TFULL designs_fix/full |
+
+## State at 16:45 PDT, 28 October: addendum J (the trees' removals on the patched design) running
+
+**Steps to finish** (B=/u/scratch/j/jamesdc1/abl; Slurm on hoffman2.oarc.ucla.edu):
+1. Poll: `ls $B/runs/claims_trees_lofix/*/done | wc -l` (171), no `failed`.
+2. `sbatch --parsable -p campus --qos=campus24 -C intel-gold-6240 -c 1 --mem=16G -t 1:00:00 -J abl_mlofix -o $B/logs/mlofix.%j.log $B/code/cluster/ablate/merge_lofix.sh`
+3. Fetch only runs/trees_lofix/trees_wide.parquet -> forecasts/trees_wide_lofix.parquet and runs/trees_lofix/forecasts/*.json -> runs/tree_merge_lofix/.
+4. ablate_score.py --design fix with the patched lo_<g> against the patched full set (replacing the pre-patch pairs, the dagger cells); make_rehaul_ablations.py, make_rehaul_channels.py (readings recomputed); compile-test; report each removal pre-patch -> patched and every reading that changes.
