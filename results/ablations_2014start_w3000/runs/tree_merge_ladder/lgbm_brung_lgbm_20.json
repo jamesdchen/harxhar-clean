@@ -1,0 +1,49 @@
+{
+ "arm": "brung_lgbm_20",
+ "est": "lgbm",
+ "n_pieces": 12,
+ "rows": 33970,
+ "cpus": [
+  "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz",
+  "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz",
+  "Intel(R) Xeon(R) Gold 6442Y"
+ ],
+ "piece_cpus": {
+  "brung_lgbm_20_lgbm_1of12.parquet": [
+   "Intel(R) Xeon(R) Gold 6442Y"
+  ],
+  "brung_lgbm_20_lgbm_2of12.parquet": [
+   "Intel(R) Xeon(R) Gold 6442Y"
+  ],
+  "brung_lgbm_20_lgbm_3of12.parquet": [
+   "Intel(R) Xeon(R) Gold 6442Y"
+  ],
+  "brung_lgbm_20_lgbm_4of12.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "brung_lgbm_20_lgbm_5of12.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "brung_lgbm_20_lgbm_6of12.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "brung_lgbm_20_lgbm_7of12.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "brung_lgbm_20_lgbm_8of12.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "brung_lgbm_20_lgbm_9of12.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "brung_lgbm_20_lgbm_10of12.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "brung_lgbm_20_lgbm_11of12.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "brung_lgbm_20_lgbm_12of12.parquet": [
+   "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+  ]
+ }
+}
