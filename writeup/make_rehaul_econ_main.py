@@ -16,6 +16,11 @@ REUSE (nothing of the strategy is re-implemented)
   Sharpe ratio), nw_t() / hac_p() (the LLSW t with fixed-b p, bandwidth 33), boot_p() (the paired circular block
   bootstrap of the D6 difference), the table cell helpers and the figure rcParams.  writeup/hac_inference.py:
   d6_sharpe() (the per-year terms SR_y, N_y, A_y).  master_table_gui.rows._crossed_return (bid/ask returns).
+  2026-10-26 (author decision D19): sharpe() is now the paper's pooled ratio (sqrt(q) mean / sd, q = T / sum_y c_y;
+  hac_inference.paper_sharpe), every p of a Delta SR is the Ledoit-Wolf (2008) test (me.sr_p), the paired block
+  bootstrap of the pooled difference (me.boot_p) is a check in generated/sharpe_tests_d19_econ_main.csv, the break-even
+  of the Sharpe ratio is that of the pooled ratio, D6 (me.sharpe_days_d6) is a robustness macro (rhemShDSix<Row>), and
+  the by-year terms SR_y stay the descriptive by-year view.
 
 GATE (the run stops if any fails)
   Every pooled Sharpe-ratio macro (\\rhrSh<Est>Pool<Set>, \\rhrShX..., \\rhrPoolSh{Har,Full}{Min,Max} and the bid/ask
@@ -268,14 +273,17 @@ def row_stats(series: dict, k: str) -> dict:
         "mean_mid": float(mid[me.WARMUP :].mean()),
         "mean_x": float(x[me.WARMUP :].mean()),
         "be_mean": break_even(g, lambda r: r.mean()),
-        "be_sh": break_even(g, lambda r: hi.d6_sharpe(r, dates=pw)["sharpe"]),
+        # 2026-10-26 (D19): the break-even of the paper's pooled ratio. Was: hi.d6_sharpe(r, dates=pw)["sharpe"]
+        "be_sh": break_even(g, lambda r: hi.paper_sharpe(r, dates=pw)["sharpe"]),
         # the two alternative ratios of Table tab:rh_econ_sharpe_defs (D1: per-year, sqrt(N_y), N_y-weighted; D2: the
         # pooled daily returns, sqrt(252)), at mid
         "sh_d1": me.sharpe_days_d1(mid[me.WARMUP :]),
         "sh_d2": me.sharpe_days_252(mid[me.WARMUP :]),
+        "sh_d6": me.sharpe_days_d6(mid[me.WARMUP :]),  # 2026-10-26 (D19): D6, the robustness column
     }
     by = hi.d6_sharpe(mid[me.WARMUP :], dates=pw)["by_year"]
-    assert abs(np.mean([v[2] for v in by.values()]) - out["sh_mid"]) < 1e-12, k
+    # 2026-10-26 (D19): the SR_y average to D6, no longer to the paper's ratio. Was: ... - out["sh_mid"]) < 1e-12, k
+    assert abs(np.mean([v[2] for v in by.values()]) - out["sh_d6"]) < 1e-12, k
     out["by_year"] = {y: v[2] for y, v in by.items()}
     out["n_y"] = {y: v[0] for y, v in by.items()}
     out["a_y"] = {y: v[1] for y, v in by.items()}
@@ -284,7 +292,9 @@ def row_stats(series: dict, k: str) -> dict:
             d = g[col].to_numpy(float) - sh[col].to_numpy(float)
             t = me.nw_t(d)
             out[f"dsh_short{sfx}"] = me.sharpe(g[col]) - me.sharpe(sh[col])
-            out[f"p_short{sfx}"] = me.boot_p(series, k, SHORT, col)
+            # 2026-10-26 (D19): the Ledoit-Wolf p (me.sr_p); the bootstrap p is the check pb_*. Was: me.boot_p(...)
+            out[f"p_short{sfx}"] = me.sr_p(series, k, SHORT, col)
+            out[f"pb_short{sfx}"] = me.boot_p(series, k, SHORT, col)
             out[f"t_short{sfx}"] = t
             out[f"pt_short{sfx}"] = me.hac_p(t)
             out[f"dmean_short{sfx}"] = float(d[me.WARMUP :].mean())
@@ -292,11 +302,14 @@ def row_stats(series: dict, k: str) -> dict:
 
 
 def pair(series: dict, a: str, b: str) -> dict:
-    """Delta SR (a minus b) at mid and bid/ask with the bootstrap p, and the fixed-b t of the mean mid differential."""
+    """Delta SR (a minus b) at mid and bid/ask with the Ledoit-Wolf p (D19; the bootstrap p pb_* is a check), and the
+    fixed-b t of the mean mid differential."""
     out = {}
     for col, sfx in (("mid", ""), ("x", "_x")):
         out[f"dsh{sfx}"] = me.sharpe(series[a][col]) - me.sharpe(series[b][col])
-        out[f"p{sfx}"] = me.boot_p(series, a, b, col)
+        # 2026-10-26 (D19): was out[f"p{sfx}"] = me.boot_p(series, a, b, col)
+        out[f"p{sfx}"] = me.sr_p(series, a, b, col)
+        out[f"pb{sfx}"] = me.boot_p(series, a, b, col)
     d = series[a]["mid"].to_numpy(float) - series[b]["mid"].to_numpy(float)
     out["t"] = me.nw_t(d)
     out["pt"] = me.hac_p(out["t"])
@@ -474,7 +487,9 @@ def numbers_tex(st: dict, pairs: dict, spread: dict, harlin: dict, yr: dict) -> 
         lines.append(f"\\providecommand{{\\{name}}}{{}}\\renewcommand{{\\{name}}}{{{val}}}  % {note}")
 
     order = [key(e, "all_features") for e in EST] + [key(e, "baseline") for e in EST] + [CI, SHORT]
-    lines.append("% ---- per row: Sharpe ratio (D6), mean daily return (% of premium), at mid and at quoted bid/ask")
+    lines.append(
+        "% ---- per row: Sharpe ratio (D19: pooled, sqrt(q)), mean daily return (% of premium), at mid and at quoted bid/ask"
+    )
     for k in order:
         r, t = st[k], tag(k)
         mac(f"rhemSh{t}", num(r["sh_mid"]), f"{k}: SR, mid")
@@ -483,15 +498,16 @@ def numbers_tex(st: dict, pairs: dict, spread: dict, harlin: dict, yr: dict) -> 
         mac(f"rhemMeanX{t}", num(100 * r["mean_x"], 1), "... mean daily return, %, bid/ask")
         mac(f"rhemShDOne{t}", num(r["sh_d1"]), "... SR mid, per-year sqrt(N_y), N_y-weighted (tab:rh_econ_sharpe_defs)")
         mac(f"rhemShDTwo{t}", num(r["sh_d2"]), "... SR mid, pooled daily returns, sqrt(252)")
+        mac(f"rhemShDSix{t}", num(r["sh_d6"]), "... SR mid, D6: equal-year mean of SR_y (robustness, D19)")
     lines.append(
-        "% ---- against the short straddle: Delta SR with its bootstrap p; fixed-b t (and p) of the mean differential"
+        "% ---- against the short straddle: Delta SR with its Ledoit-Wolf p; fixed-b t (and p) of the mean differential"
     )
     for k in order[:-1]:
         r, t = st[k], tag(k)
         mac(f"rhemDSh{t}VsShort", num(r["dsh_short"]), f"{k} minus the short straddle: Delta SR, mid")
-        mac(f"rhemPDSh{t}VsShort", pval(r["p_short"]), "... its bootstrap p")
+        mac(f"rhemPDSh{t}VsShort", pval(r["p_short"]), "... its Ledoit-Wolf p (D19)")
         mac(f"rhemDShX{t}VsShort", num(r["dsh_short_x"]), "... Delta SR at bid/ask")
-        mac(f"rhemPDShX{t}VsShort", pval(r["p_short_x"]), "... its bootstrap p")
+        mac(f"rhemPDShX{t}VsShort", pval(r["p_short_x"]), "... its Ledoit-Wolf p (D19)")
         mac(f"rhemT{t}VsShort", num(r["t_short"]), "... fixed-b t of the mean mid return differential (S = 33)")
         mac(f"rhemPT{t}VsShort", pval(r["pt_short"]), "... its fixed-b p")
         mac(f"rhemTX{t}VsShort", num(r["t_short_x"]), "... fixed-b t of the mean bid/ask return differential")
@@ -501,16 +517,16 @@ def numbers_tex(st: dict, pairs: dict, spread: dict, harlin: dict, yr: dict) -> 
         t = EST_MAC[e]
         p = pairs[("har", e)]
         mac(f"rhemDSh{t}FullVsHar", num(p["dsh"]), f"{e}: Full minus HAR, Delta SR, mid")
-        mac(f"rhemPDSh{t}FullVsHar", pval(p["p"]), "... its bootstrap p")
+        mac(f"rhemPDSh{t}FullVsHar", pval(p["p"]), "... its Ledoit-Wolf p (D19)")
         mac(f"rhemDShX{t}FullVsHar", num(p["dsh_x"]), "... Delta SR at bid/ask")
-        mac(f"rhemPDShX{t}FullVsHar", pval(p["p_x"]), "... its bootstrap p")
+        mac(f"rhemPDShX{t}FullVsHar", pval(p["p_x"]), "... its Ledoit-Wolf p (D19)")
     for k in order[:12]:
         t = tag(k)
         p = pairs[("ci", k)]
         mac(f"rhemDSh{t}VsCiHar", num(p["dsh"]), f"{k} minus CI-HAR: Delta SR, mid")
-        mac(f"rhemPDSh{t}VsCiHar", pval(p["p"]), "... its bootstrap p")
+        mac(f"rhemPDSh{t}VsCiHar", pval(p["p"]), "... its Ledoit-Wolf p (D19)")
         mac(f"rhemDShX{t}VsCiHar", num(p["dsh_x"]), "... Delta SR at bid/ask")
-        mac(f"rhemPDShX{t}VsCiHar", pval(p["p_x"]), "... its bootstrap p")
+        mac(f"rhemPDShX{t}VsCiHar", pval(p["p_x"]), "... its Ledoit-Wolf p (D19)")
         mac(f"rhemT{t}VsCiHar", num(p["t"]), "... fixed-b t of the mean mid return differential")
         mac(f"rhemPT{t}VsCiHar", pval(p["pt"]), "... its fixed-b p")
 
@@ -522,14 +538,14 @@ def numbers_tex(st: dict, pairs: dict, spread: dict, harlin: dict, yr: dict) -> 
     mac("rhemShXOlsHar", num(r_o["sh_x"]), "... at quoted bid/ask")
     mac("rhemMeanOlsHar", num(100 * r_o["mean_mid"], 1), "... mean daily return, %, mid")
     mac("rhemDShOlsHarVsShort", num(r_o["dsh_short"]), "... minus the short straddle: Delta SR, mid")
-    mac("rhemPDShOlsHarVsShort", pval(r_o["p_short"]), "... its bootstrap p")
+    mac("rhemPDShOlsHarVsShort", pval(r_o["p_short"]), "... its Ledoit-Wolf p (D19)")
     for e in EST:
         t = EST_MAC[e]
         p_ = pairs[("ols", e)]
         mac(f"rhemDSh{t}FullVsOls", num(p_["dsh"]), f"{e}: Full minus OLS-HAR, Delta SR, mid")
-        mac(f"rhemPDSh{t}FullVsOls", pval(p_["p"]), "... its bootstrap p")
+        mac(f"rhemPDSh{t}FullVsOls", pval(p_["p"]), "... its Ledoit-Wolf p (D19)")
         mac(f"rhemDShX{t}FullVsOls", num(p_["dsh_x"]), "... Delta SR at bid/ask")
-        mac(f"rhemPDShX{t}FullVsOls", pval(p_["p_x"]), "... its bootstrap p")
+        mac(f"rhemPDShX{t}FullVsOls", pval(p_["p_x"]), "... its Ledoit-Wolf p (D19)")
     d_o = [pairs[("ols", e)]["dsh"] for e in EST]
     p_o = [pairs[("ols", e)]["p"] for e in EST]
     n_sig_o = sum(pairs[("ols", e)]["p"] < 0.05 and pairs[("ols", e)]["dsh"] > 0 for e in EST)
@@ -537,17 +553,17 @@ def numbers_tex(st: dict, pairs: dict, spread: dict, harlin: dict, yr: dict) -> 
     mac("rhemFullVsOlsMin", num(min(d_o)), "Full minus OLS-HAR, Delta SR mid: min over the six")
     mac("rhemFullVsOlsMax", num(max(d_o)), "... max")
     mac("rhemFullVsOlsMed", num(float(np.median(d_o))), "... median")
-    mac("rhemFullVsOlsPMin", pval(min(p_o)), "... smallest bootstrap p")
-    mac("rhemFullVsOlsPMax", pval(max(p_o)), "... largest bootstrap p")
+    mac("rhemFullVsOlsPMin", pval(min(p_o)), "... smallest Ledoit-Wolf p")
+    mac("rhemFullVsOlsPMax", pval(max(p_o)), "... largest Ledoit-Wolf p")
     mac("rhemFullVsOlsPos", str(sum(d > 0 for d in d_o)), "... Delta SR > 0, mid")
-    mac("rhemFullVsOlsSig", str(n_sig_o), "... significantly positive (bootstrap, 5 %), mid")
+    mac("rhemFullVsOlsSig", str(n_sig_o), "... significantly positive (Ledoit-Wolf, 5 %), mid")
     mac("rhemFullVsOlsSigWord", WORDS[n_sig_o], "... in words")
     mac("rhemFullVsOlsSigX", str(n_sig_ox), "... significantly positive at bid/ask")
     mac("rhemFullVsOlsSigXWord", WORDS[n_sig_ox], "... in words")
     mac("rhemFullVsOlsHarSig", str(n_sig_o), "= rhemFullVsOlsSig (FRONT's name)")
 
     lines.append(
-        "% ---- counts over the six Full forecasts (5 %; bootstrap for Delta SR, fixed-b for mean differentials)"
+        "% ---- counts over the six Full forecasts (5 %; Ledoit-Wolf for Delta SR, fixed-b for mean differentials)"
     )
     full = [key(e, "all_features") for e in EST]
     har4 = [key("ridge", "baseline")] + [key(e, "baseline") for e in TREES]
@@ -570,9 +586,9 @@ def numbers_tex(st: dict, pairs: dict, spread: dict, harlin: dict, yr: dict) -> 
         "... mean bid/ask gain",
     )
     cnt("rhemFullVsHarPos", sum(pairs[("har", e)]["dsh"] > 0 for e in EST), "Full minus own HAR: Delta SR > 0, mid")
-    cnt("rhemFullVsHarSig", sum(pairs[("har", e)]["p"] < 0.05 for e in EST), "... significant (bootstrap)")
+    cnt("rhemFullVsHarSig", sum(pairs[("har", e)]["p"] < 0.05 for e in EST), "... significant (Ledoit-Wolf)")
     cnt("rhemFullVsCiHarPos", sum(pairs[("ci", k)]["dsh"] > 0 for k in full), "Full minus CI-HAR: Delta SR > 0, mid")
-    cnt("rhemFullVsCiHarSig", sum(pairs[("ci", k)]["p"] < 0.05 for k in full), "... significant (bootstrap)")
+    cnt("rhemFullVsCiHarSig", sum(pairs[("ci", k)]["p"] < 0.05 for k in full), "... significant (Ledoit-Wolf)")
     cnt("rhemFullVsCiHarPosX", sum(pairs[("ci", k)]["dsh_x"] > 0 for k in full), "... Delta SR > 0 at bid/ask")
     cnt("rhemFullVsCiHarSigX", sum(pairs[("ci", k)]["p_x"] < 0.05 for k in full), "... significant at bid/ask")
     cnt(
@@ -591,14 +607,14 @@ def numbers_tex(st: dict, pairs: dict, spread: dict, harlin: dict, yr: dict) -> 
         "distinct HAR forecasts: Delta SR vs short sig.",
     )
     cnt("rhemHarVsCiHarNeg", sum(pairs[("ci", k)]["dsh"] < 0 for k in har4), "distinct HAR forecasts below CI-HAR, mid")
-    cnt("rhemHarVsCiHarSig", sum(pairs[("ci", k)]["p"] < 0.05 for k in har4), "... significant (bootstrap)")
+    cnt("rhemHarVsCiHarSig", sum(pairs[("ci", k)]["p"] < 0.05 for k in har4), "... significant (Ledoit-Wolf)")
     d_ci = [pairs[("ci", k)]["dsh"] for k in full]
     mac("rhemFullVsCiHarMin", num(min(d_ci)), "Full minus CI-HAR, Delta SR mid: min over the six")
     mac("rhemFullVsCiHarMax", num(max(d_ci)), "... max")
     mac("rhemFullVsCiHarMed", num(float(np.median(d_ci))), "... median")
     p_ci = [pairs[("ci", k)]["p"] for k in full]
-    mac("rhemFullVsCiHarPMin", pval(min(p_ci)), "... smallest bootstrap p")
-    mac("rhemFullVsCiHarPMax", pval(max(p_ci)), "... largest bootstrap p")
+    mac("rhemFullVsCiHarPMin", pval(min(p_ci)), "... smallest Ledoit-Wolf p")
+    mac("rhemFullVsCiHarPMax", pval(max(p_ci)), "... largest Ledoit-Wolf p")
     for nm, ks in (("Full", full), ("Har", har4)):
         v = [st[k]["sh_mid"] for k in ks]
         vx = [st[k]["sh_x"] for k in ks]
@@ -618,7 +634,8 @@ def numbers_tex(st: dict, pairs: dict, spread: dict, harlin: dict, yr: dict) -> 
 
     lines.append("% ---- break-even half-spread: multiple k* of the quoted half-spread at which the post-warmup mean")
     lines.append(
-        "% ---- (BeMean) or the D6 Sharpe ratio (BeSh) reaches zero; ...Pct: k* x the median half-spread, % of premium"
+        "% ---- (BeMean) or the paper's Sharpe ratio (BeSh; D19: pooled) reaches zero; ...Pct: k* x the median "
+        "half-spread, % of premium"
     )
     mac(
         "rhemHalfSpreadMed",
@@ -644,7 +661,10 @@ def numbers_tex(st: dict, pairs: dict, spread: dict, harlin: dict, yr: dict) -> 
             mac(f"rhemBe{S}{nm}MinPct", be_val(100 * v_be.min() * spread["med_pw"], 1), "... min, % of premium")
             mac(f"rhemBe{S}{nm}MaxPct", be_val(100 * v_be.max() * spread["med_pw"], 1), "... max, % of premium")
 
-    lines.append("% ---- by calendar year (mid): SR_y of the D6 Sharpe ratio; years One.. as \\rheDSixYearOne..")
+    lines.append(
+        "% ---- by calendar year (mid): SR_y, each year annualized by sqrt(A_y) (descriptive; their mean is D6); years "
+        "One.. as \\rheDSixYearOne.."
+    )
     years = yr["years"]
     for i, y in enumerate(years):
         w = YEAR_WORD[i]
@@ -754,8 +774,11 @@ def table_tex(st: dict, pairs: dict) -> str:
         "bid/ask prices; mean return is the mean daily return in percent of the premium. Every comparison is at "
         "mid-quotes. $\\Delta\\SR$ is the difference of the Sharpe ratios: against the short straddle; against the "
         "same model class on the HAR benchmark set and against the OLS on the HAR benchmark set (full-set rows "
-        "only). Under each $\\Delta\\SR$, in brackets, the $p$-value of the paired block-bootstrap test of equal "
-        "Sharpe ratios (block length \\rheBootBlock{}, \\rheBootN{} resamples); $t(\\bar\\Delta)$ is the "
+        # 2026-10-26 (D19): the Ledoit-Wolf test. Was: "only). Under each $\\Delta\\SR$, in brackets, the $p$-value of
+        # the paired block-bootstrap test of equal Sharpe ratios (block length \\rheBootBlock{}, \\rheBootN{}
+        # resamples); ..."
+        "only). Under each $\\Delta\\SR$, in brackets, the $p$-value of the \\citet{LedoitWolf2008} test of equal "
+        "Sharpe ratios (block length \\rheLWBlock{}, \\rheLWBoot{} resamples); $t(\\bar\\Delta)$ is the "
         "$t$-statistic of the mean daily return differential against the short straddle (Newey--West, bandwidth "
         "$S = \\rheHACS$, fixed-$b$ critical values; Section~\\ref{sec:rh_methods_tests}). "
         + me.STAR_NOTE
@@ -903,9 +926,12 @@ def fig_float_tex(yr: dict) -> str:
         "\\begin{figure}[tbp]\n\\centering\n"
         "\\includegraphics[width=\\linewidth]{generated/rehaul_econ_byyear.pdf}\n"
         "\\caption{Sharpe ratio of the sign strategy by calendar year, at mid-quotes, on the \\rheSzDays{} "
-        "post-warmup days of $\\mathcal T_{\\mathrm{opt}}$. Each point is $\\SR_y$ of "
-        "Section~\\ref{sec:rh_econ_measures}, the year's term of the annualized Sharpe ratio $\\SR$, which is their "
-        "simple mean. Within each year, the left group shows the six pooled intraday forecasts on the full predictor "
+        # 2026-10-26 (D19): parked -- "Each point is $\\SR_y$ of Section~\\ref{sec:rh_econ_measures}, the year's term
+        # of the annualized Sharpe ratio $\\SR$, which is their simple mean." (D6)
+        "post-warmup days of $\\mathcal T_{\\mathrm{opt}}$. Each point is $\\SR_y$, the Sharpe ratio of the year's "
+        "daily returns annualized by the square root of that year's option days per calendar year "
+        "(Section~\\ref{sec:rh_econ_measures}); the paper's $\\SR$ pools the days of all years. "
+        "Within each year, the left group shows the six pooled intraday forecasts on the full predictor "
         "set (filled) and the right group the \\rhemHarDistinctWord{} distinct pooled forecasts on the HAR benchmark "
         "set (open; the ridge, lasso and elastic net forecasts coincide, Table~\\ref{tab:rh_econ_main}); circles are "
         "linear models, squares tree ensembles, and the short magenta lines the group medians "
@@ -943,6 +969,10 @@ def draft_claims(st: dict, pairs: dict, yr: dict) -> None:
     ]
     # 2026-10-26 (D2/D3): the three CI-HAR claims (the first three) left the main text: reported, not asserted
     reported = {c for _, c in claims[:3]}
+    # 2026-10-26 (author decision D19): FAILS under the pooled ratio and made report-only so the run can finish (the
+    # sentence needs the author): the short straddle's mid SR was -0.12 (D6, equal-year mean of SR_y) and is +0.32
+    # (the pooled ratio, q = 225.5); its D6 is still -0.12 (rhemShDSixShort)
+    reported.add("the short straddle's SR is negative at mid")
     bad = [c for ok, c in claims if not ok and c not in reported]
     for ok, c in claims:
         print(f"  draft claim {'holds' if ok else 'FAILS'}{' (reported only)' if c in reported else ''}: {c}")
@@ -999,6 +1029,7 @@ def main() -> None:
     draft_claims(st, pairs, yr)
 
     write(NUMBERS, numbers_tex(st, pairs, spread, harlin, yr))
+    me.write_test_log("econ_main")  # 2026-10-26 (D19): Ledoit-Wolf p and the bootstrap check p of every tested pair
     write(TABLE, table_tex(st, pairs))
     fig_byyear(yr, pw[0], pw[-1])
     write(FIG_TEX, fig_float_tex(yr))

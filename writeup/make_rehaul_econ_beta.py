@@ -16,7 +16,7 @@ PRE-REGISTRATION
   them (me.load, me.gate_against_master, me.add_pooled_linear, me.add_pooled_trees, em.add_har_trees).  Daily return
   r^s_t = q_t R_t at mid-quotes and master_table_gui.rows._crossed_return at quoted bid/ask prices, as fractions of the
   premium, treated as excess returns (Section 7 omits the risk-free return over the 30-minute holding period).
-  GATE: every strategy's D6 Sharpe ratio, mid and bid/ask, reproduces \\rhemSh<tag> / \\rhemShX<tag>
+  GATE: every strategy's Sharpe ratio (the paper's: D6 until 2026-10-26, pooled since D19), mid and bid/ask, reproduces \\rhemSh<tag> / \\rhemShX<tag>
   (writeup/generated/rehaul_econ_main_numbers.tex).
 
 3. MARKET
@@ -71,7 +71,16 @@ PRE-REGISTRATION
   fixed); a stress test biased against the strategies.  (c) 4 and the CAPM alpha against r^30.
 
 8. REPORTING
-  Every Sharpe-ratio macro comment says "standard" (sqrt(252), pooled daily moments) or "D6".  The table shows the six
+  Every Sharpe-ratio macro comment says "standard" (sqrt(252), pooled daily moments) or "D6".
+  2026-10-26 (author decision D19): the paper's Sharpe ratio is now the standard pooled ratio annualized by
+  sqrt(q), q = T / sum_y c_y of the sample's own days (hac_inference.paper_q: 225.5 on the 614 post-warmup days); every
+  "STANDARD" ratio here (SR_m, SR_s, AR, SR_max, the real-time ratios) uses that q in place of 252 (a common scale
+  factor sqrt(q / 252) within a sample: no p-value, GRS statistic, real-time weight or decision moves), alpha is
+  annualized by q, and the strategy's STANDARD ratio is gated equal to the paper's \\rhemSh / \\rhemShX. The
+  real-time combination's Sharpe-ratio difference against the market is tested by Ledoit and Wolf (2008)
+  (rhebRt<Rule>P..., the paper's test of a Sharpe-ratio difference); the paired block bootstrap of the difference
+  (RULE.txt section 6) is kept as a check (stats.csv, stats mv_pb / iv_pb, and the console). D6
+  macros stay (robustness).  The table shows the six
   full-set forecasts, CI-HAR and the short straddle; the HAR-set twins are in the macros.  Figure: cumulative excess
   return over the 488 evaluation days of the market alone and of the real-time combinations with the full-set
   LightGBM strategy at mid, each scaled ex post to the market's standard deviation over those days (display only).
@@ -140,7 +149,7 @@ PREVIEW: Path | None = None
 
 DTB3 = ROOT / "data" / "fred_dtb3.csv"
 DTB3_SHA256 = "3437358abeac96f2417ec10d173e985b8aa831d09dee78debdafa52f016f21c8"  # RULE.txt, section 3
-ANN = 252
+ANN = 252  # 2026-10-26 (D19): no longer used (the STANDARD ratio is annualized by sqrt(q), q_of)
 BURN, TRAIL, CAP = 126, 63, 0.90  # RULE.txt, section 6
 GRID = np.linspace(0.0, 1.0, 1001)
 WORST_Q = 0.10
@@ -159,14 +168,26 @@ WORDS = em.WORDS
 
 
 # ============================================================================================ small helpers
-def sr252(x) -> float:
-    """The standard annualized Sharpe ratio: sqrt(252) mean / sd (divisor n - 1) of the pooled daily returns."""
+# 2026-10-26 (author decision D19): parked -- the sqrt(252) annualization of the STANDARD ratio. Was:
+# def sr252(x) -> float:
+#     """The standard annualized Sharpe ratio: sqrt(252) mean / sd (divisor n - 1) of the pooled daily returns."""
+#     x = np.asarray(x, float)
+#     return float(x.mean() / x.std(ddof=1) * math.sqrt(ANN))
+# def sr252_rows(a: np.ndarray) -> np.ndarray:
+#     return a.mean(axis=1) / a.std(axis=1, ddof=1) * math.sqrt(ANN)
+def q_of(dates, span=None) -> float:
+    """D19: the annualization of the paper's Sharpe ratio on these days: q = T / sum_y c_y (hac_inference.paper_q)."""
+    return float(hi.paper_q(pd.DatetimeIndex(dates), span=span)["q"])
+
+
+def srq(x, q: float) -> float:
+    """The STANDARD (= the paper's, D19) Sharpe ratio: sqrt(q) mean / sd (divisor n - 1) of the pooled daily returns."""
     x = np.asarray(x, float)
-    return float(x.mean() / x.std(ddof=1) * math.sqrt(ANN))
+    return float(x.mean() / x.std(ddof=1) * math.sqrt(q))
 
 
-def sr252_rows(a: np.ndarray) -> np.ndarray:
-    return a.mean(axis=1) / a.std(axis=1, ddof=1) * math.sqrt(ANN)
+def srq_rows(a: np.ndarray, q: float) -> np.ndarray:
+    return a.mean(axis=1) / a.std(axis=1, ddof=1) * math.sqrt(q)
 
 
 def d6(x, dates, span) -> float:
@@ -262,7 +283,7 @@ def load_strategies() -> tuple[dict, pd.DatetimeIndex, pd.DatetimeIndex]:
 
 
 def gate_strategies(series: dict) -> None:
-    """GATE (RULE.txt, section 2): each strategy's D6 Sharpe ratio, mid and bid/ask, as printed in
+    """GATE (RULE.txt, section 2): each strategy's Sharpe ratio (the paper's; D19: pooled), mid and bid/ask, as printed in
     rehaul_econ_main_numbers.tex."""
     mm = em._macros(PAPER_GEN / "rehaul_econ_main_numbers.tex")
     bad = []
@@ -273,7 +294,9 @@ def gate_strategies(series: dict) -> None:
             if got != em._norm(mm[nm]):
                 bad.append((nm, got, mm[nm]))
     assert not bad, f"GATE FAILED: {bad}"
-    print(f"  gate: D6 Sharpe ratios of the {len(ROWS)} strategies (mid, bid/ask) = \\rhemSh<tag> / \\rhemShX<tag>")
+    print(
+        f"  gate: Sharpe ratios (D19 pooled) of the {len(ROWS)} strategies (mid, bid/ask) = \\rhemSh<tag> / \\rhemShX<tag>"
+    )
 
 
 def load_market(days: pd.DatetimeIndex, pw: pd.DatetimeIndex) -> dict:
@@ -311,6 +334,7 @@ def load_market(days: pd.DatetimeIndex, pw: pd.DatetimeIndex) -> dict:
         "rf": rf.reindex(pw).to_numpy(float),
         "r30": (qp["S_close"] / qp["S"] - 1.0).to_numpy(float),
         "rm_all": (ret - rf).reindex(span_td).to_numpy(float),
+        "q_all": q_of(span_td),  # 2026-10-26 (D19): q of every trading day of the span (about 252)
         "n_all": len(span_td),
         "rate_mean": float(rate_td.reindex(span_td).mean()),
     }
@@ -397,13 +421,16 @@ def spanning(rs: np.ndarray, rm: np.ndarray, dates: pd.DatetimeIndex, span: tupl
     beta = S[0, 1] / S[0, 0]
     alpha = mu[1] - beta * mu[0]
     s2e = S[1, 1] - beta**2 * S[0, 0]
-    sr_m = mu[0] / math.sqrt(S[0, 0]) * math.sqrt(ANN)
-    sr_s = mu[1] / math.sqrt(S[1, 1]) * math.sqrt(ANN)
-    ar = alpha / math.sqrt(s2e) * math.sqrt(ANN)
+    # 2026-10-26 (D19): sqrt(q) of these days (span fixed) in place of sqrt(ANN = 252); alpha x q in place of x 252
+    q = q_of(dates, span)
+    sr_m = mu[0] / math.sqrt(S[0, 0]) * math.sqrt(q)
+    sr_s = mu[1] / math.sqrt(S[1, 1]) * math.sqrt(q)
+    ar = alpha / math.sqrt(s2e) * math.sqrt(q)
     sr_max = math.hypot(sr_m, ar)
     w = np.linalg.solve(S, mu)
     rp = w[0] * rm + w[1] * rs
-    assert abs(sr252(rp) - sr_max) < 1e-9, (sr252(rp), sr_max)
+    assert abs(srq(rp, q) - sr_max) < 1e-9, (srq(rp, q), sr_max)
+    assert abs(sr_s - hi.paper_sharpe(rs, dates=dates, span=span)["sharpe"]) < 1e-9, sr_s
     rc = w * (S @ w) / float(w @ S @ w)
     assert abs(rc.sum() - 1.0) < 1e-12 and np.allclose(rc, w * mu / float(w @ mu), rtol=0, atol=1e-10)
     # one-asset GRS = the squared i.i.d. OLS t of alpha
@@ -421,8 +448,8 @@ def spanning(rs: np.ndarray, rm: np.ndarray, dates: pd.DatetimeIndex, span: tupl
     cms = ((m_ - mm[:, None]) * (s_ - ms[:, None])).sum(axis=1) / (T - 1)
     b_ = cms / vm
     a_ = ms - b_ * mm
-    srm_ = mm / np.sqrt(vm) * math.sqrt(ANN)
-    ar_ = a_ / np.sqrt(vs - b_**2 * vm) * math.sqrt(ANN)
+    srm_ = mm / np.sqrt(vm) * math.sqrt(q)
+    ar_ = a_ / np.sqrt(vs - b_**2 * vm) * math.sqrt(q)
     dstar = np.hypot(srm_, ar_) - np.abs(srm_)
     delta = sr_max - abs(sr_m)
     lo, hi_ = np.quantile(dstar, [0.025, 0.975])
@@ -442,7 +469,8 @@ def spanning(rs: np.ndarray, rm: np.ndarray, dates: pd.DatetimeIndex, span: tupl
         "d6_m": d6(rm, dates, span),
         "d6_s": d6(rs, dates, span),
         "d6_tan": d6(rp, dates, span),
-        "alpha_ann": 100.0 * ANN * alpha,
+        "alpha_ann": 100.0 * q * alpha,  # 2026-10-26 (D19): was 100.0 * ANN * alpha
+        "q": q,
         "sig_eps": math.sqrt(s2e),
     }
 
@@ -486,11 +514,13 @@ def realtime(rs: np.ndarray, rm: np.ndarray, dates: pd.DatetimeIndex) -> dict:
     span = (d_ev[0], d_ev[-1])
     Te = len(r_m)
     idx = hi._boot_index(Te, hi.LW_BLOCK, hi.LW_BOOT, hi.D6_SEED)
-    sm_star = sr252_rows(r_m[idx])
+    q = q_of(d_ev, span)  # 2026-10-26 (D19): sqrt(q) of the evaluation days in place of sqrt(252)
+    sm_star = srq_rows(r_m[idx], q)
     out: dict = {
         "n": Te,
         "first": d_ev[0],
-        "sr_m": sr252(r_m),
+        "q": q,
+        "sr_m": srq(r_m, q),
         "d6_m": d6(r_m, d_ev, span),
         "share_med": float(np.median(share[ev])),
         "share_min": float(np.min(share[ev])),
@@ -504,15 +534,20 @@ def realtime(rs: np.ndarray, rm: np.ndarray, dates: pd.DatetimeIndex) -> dict:
         "dates": d_ev,
     }
     for nm, rp in (("mv", r_mv), ("iv", r_iv)):
-        s_p = sr252(rp)
+        s_p = srq(rp, q)
         delta = s_p - out["sr_m"]
-        dstar = sr252_rows(rp[idx]) - sm_star
+        dstar = srq_rows(rp[idx], q) - sm_star
         r6 = hi.d6_diff_test(rp, r_m, d_ev, span=span)
+        # 2026-10-26 (D19): the paper's test of the difference, Ledoit-Wolf (nm_p); the paired block bootstrap of
+        # RULE.txt section 6 is the check nm_pb. Was: f"{nm}_p": float(np.mean(np.abs(dstar - delta) >= abs(delta)))
+        lw = hi.paper_sharpe_test(rp, r_m, d_ev, span=span, check=False)
+        assert abs(lw["delta"] - delta) < 1e-9, (lw["delta"], delta)
         out.update(
             {
                 f"{nm}_sr": s_p,
                 f"{nm}_dsr": delta,
-                f"{nm}_p": float(np.mean(np.abs(dstar - delta) >= abs(delta))),
+                f"{nm}_p": float(lw["p_lw"]),
+                f"{nm}_pb": float(np.mean(np.abs(dstar - delta) >= abs(delta))),
                 f"{nm}_d6": r6["sr_a"],
                 f"{nm}_d6_dsr": r6["delta"],
                 f"{nm}_d6_p": r6["p"],
@@ -576,9 +611,15 @@ def numbers(R: dict, mk: dict, drop: np.ndarray, top: pd.Timestamp, pw: pd.Datet
     mac("rhebMktSd", num(100 * float(mk["rm"].std(ddof=1)), 2), "... standard deviation, % per day")
     mac("rhebRfMean", num(100 * float(mk["rf"].mean()), 4), "risk-free return (DTB3, actual/360), mean, % per day")
     mac("rhebRateMean", num(mk["rate_mean"], 2), "DTB3, mean over the trading days of the span, % a year")
-    mac("rhebSRm", num(sp0["sr_m"]), "market: Sharpe ratio, STANDARD (sqrt(252)), 614 option days")
+    mac("rhebSRm", num(sp0["sr_m"]), "market: Sharpe ratio, STANDARD (D19: sqrt(q), q = 225.5), 614 option days")
     mac("rhebSRmDSix", num(sp0["d6_m"]), "market: Sharpe ratio, D6, 614 option days")
-    mac("rhebSRmAll", num(sr252(mk["rm_all"])), "market: Sharpe ratio, STANDARD, every trading day of the span")
+    mac(
+        "rhebSRmAll",
+        num(srq(mk["rm_all"], mk["q_all"])),
+        "market: Sharpe ratio, STANDARD (D19: sqrt(q) of these days), every trading day of the span",
+    )
+    mac("rhebQAll", f"{mk['q_all']:.1f}", "D19: q of every trading day of the span")
+    mac("rhebQRt", f"{rt0['q']:.1f}", "D19: q of the real-time evaluation days")
     mac("rhebNAll", str(mk["n_all"]), "... trading days of the span 2021-08-11 .. 2024-04-30")
     mac("rhebSRmRt", num(rt0["sr_m"]), "market: Sharpe ratio, STANDARD, real-time evaluation days")
     mac("rhebSRmRtDSix", num(rt0["d6_m"]), "market: Sharpe ratio, D6, real-time evaluation days")
@@ -605,10 +646,10 @@ def numbers(R: dict, mk: dict, drop: np.ndarray, top: pd.Timestamp, pw: pd.Datet
             mac(f"rhebAlpha{P}{t}", num(e["alpha"], 1), "... CAPM alpha, % of premium per day")
             mac(f"rhebAlphaT{P}{t}", num(e["alpha_t"]), "... its HAC t")
             mac(f"rhebAlphaP{P}{t}", pval(e["alpha_p"]), "... its fixed-b p")
-            mac(f"rhebAlphaAnn{P}{t}", num(s["alpha_ann"], 0), "... alpha x 252, % of premium a year")
-            mac(f"rhebAR{P}{t}", num(s["ar"]), "... appraisal ratio alpha / sigma_eps, annualized sqrt(252)")
-            mac(f"rhebSRs{P}{t}", num(s["sr_s"]), "... strategy Sharpe ratio, STANDARD (sqrt(252))")
-            mac(f"rhebSRsDSix{P}{t}", num(s["d6_s"]), "... strategy Sharpe ratio, D6 (= \\rhemSh / \\rhemShX)")
+            mac(f"rhebAlphaAnn{P}{t}", num(s["alpha_ann"], 0), "... alpha x q (D19; was x 252), % of premium a year")
+            mac(f"rhebAR{P}{t}", num(s["ar"]), "... appraisal ratio alpha / sigma_eps, annualized sqrt(q) (D19)")
+            mac(f"rhebSRs{P}{t}", num(s["sr_s"]), "... strategy Sharpe ratio, STANDARD = the paper's (= \\rhemSh / X)")
+            mac(f"rhebSRsDSix{P}{t}", num(s["d6_s"]), "... strategy Sharpe ratio, D6 (= \\rhemShDSix)")
             mac(f"rhebSRmax{P}{t}", num(s["sr_max"]), "... max Sharpe ratio of market + strategy, STANDARD")
             mac(f"rhebDSRmax{P}{t}", num(s["dsr"]), "... its gain over the market alone, STANDARD")
             mac(f"rhebDSRmaxLo{P}{t}", num(s["dsr_lo"]), "... bootstrap 95% interval, lower end")
@@ -622,13 +663,13 @@ def numbers(R: dict, mk: dict, drop: np.ndarray, top: pd.Timestamp, pw: pd.Datet
                 rule = "mean-variance" if nm == "mv" else "inverse-volatility"
                 mac(f"rhebRt{lab}{P}{t}", num(rt[f"{nm}_sr"]), f"... real-time {rule}: Sharpe ratio, STANDARD")
                 mac(f"rhebRt{lab}D{P}{t}", num(rt[f"{nm}_dsr"]), "... minus the market's, STANDARD")
-                mac(f"rhebRt{lab}P{P}{t}", pval(rt[f"{nm}_p"]), "... bootstrap p of the STANDARD difference")
+                mac(f"rhebRt{lab}P{P}{t}", pval(rt[f"{nm}_p"]), "... Ledoit-Wolf p of the difference (D19)")
                 mac(f"rhebRt{lab}DSix{P}{t}", num(rt[f"{nm}_d6"]), f"... real-time {rule}: Sharpe ratio, D6")
                 mac(f"rhebRt{lab}DSixD{P}{t}", num(rt[f"{nm}_d6_dsr"]), "... minus the market's, D6")
                 mac(f"rhebRt{lab}DSixP{P}{t}", pval(rt[f"{nm}_d6_p"]), "... bootstrap p of the D6 difference")
                 mac(f"rhebExRt{lab}{P}{t}", num(ert[f"{nm}_sr"]), f"... w/o best days, real-time {rule}: SR, STANDARD")
                 mac(f"rhebExRt{lab}D{P}{t}", num(ert[f"{nm}_dsr"]), "... minus the market's, STANDARD")
-                mac(f"rhebExRt{lab}P{P}{t}", pval(ert[f"{nm}_p"]), "... its bootstrap p")
+                mac(f"rhebExRt{lab}P{P}{t}", pval(ert[f"{nm}_p"]), "... its Ledoit-Wolf p (D19)")
             mac(f"rhebRtMvShare{P}{t}", num(100 * rt["share_med"], 0), "... real-time MV: median strategy vol share, %")
             mac(f"rhebRtMvCapDays{P}{t}", num(100 * rt["cap_bind"], 0), "... % of days the 90% cap binds")
             mac(
@@ -642,7 +683,7 @@ def numbers(R: dict, mk: dict, drop: np.ndarray, top: pd.Timestamp, pw: pd.Datet
             mac(f"rhebExAlpha{P}{t}", num(ee["alpha"], 1), "... without the best-day union: alpha, % per day")
             mac(f"rhebExAlphaT{P}{t}", num(ee["alpha_t"]), "... its HAC t")
             mac(f"rhebExAlphaP{P}{t}", pval(ee["alpha_p"]), "... its fixed-b p")
-            mac(f"rhebExAR{P}{t}", num(es["ar"]), "... appraisal ratio, sqrt(252)")
+            mac(f"rhebExAR{P}{t}", num(es["ar"]), "... appraisal ratio, sqrt(q) (D19)")
             mac(f"rhebExSRmax{P}{t}", num(es["sr_max"]), "... max Sharpe ratio, STANDARD")
             mac(f"rhebExDSRmaxP{P}{t}", pval(es["dsr_p"]), "... bootstrap p of its gain")
             mac(f"rhebExGrsP{P}{t}", pval(es["grs_p"]), "... GRS p")
@@ -709,7 +750,7 @@ def numbers(R: dict, mk: dict, drop: np.ndarray, top: pd.Timestamp, pw: pd.Datet
             rng(f"rhebAlpha{g}", ks, lambda k: G(k, "exp", "alpha"), 1, f"alpha % per day, {pr}, {gl}")
             rng(f"rhebAlphaT{g}", ks, lambda k: G(k, "exp", "alpha_t"), 2, f"alpha HAC t, {pr}, {gl}")
             rng(f"rhebAlphaP{g}", ks, lambda k: G(k, "exp", "alpha_p"), -1, f"alpha fixed-b p, {pr}, {gl}")
-            rng(f"rhebAR{g}", ks, lambda k: G(k, "span", "ar"), 2, f"appraisal ratio (sqrt 252), {pr}, {gl}")
+            rng(f"rhebAR{g}", ks, lambda k: G(k, "span", "ar"), 2, f"appraisal ratio (sqrt q, D19), {pr}, {gl}")
             rng(f"rhebSRmax{g}", ks, lambda k: G(k, "span", "sr_max"), 2, f"max SR STANDARD, {pr}, {gl}")
             rng(f"rhebDSRmax{g}", ks, lambda k: G(k, "span", "dsr"), 2, f"max SR gain STANDARD, {pr}, {gl}")
             rng(f"rhebDSRmaxP{g}", ks, lambda k: G(k, "span", "dsr_p"), -1, f"its bootstrap p, {pr}, {gl}")
@@ -727,7 +768,7 @@ def numbers(R: dict, mk: dict, drop: np.ndarray, top: pd.Timestamp, pw: pd.Datet
                     f"real-time {lab} SR STANDARD, {pr}, {gl}",
                 )
                 rng(f"rhebRt{lab}D{g}", ks, lambda k: G(k, "rt", f"{nm}_dsr"), 2, f"... minus market, STANDARD, {gl}")
-                rng(f"rhebRt{lab}P{g}", ks, lambda k: G(k, "rt", f"{nm}_p"), -1, f"... bootstrap p, STANDARD, {gl}")
+                rng(f"rhebRt{lab}P{g}", ks, lambda k: G(k, "rt", f"{nm}_p"), -1, f"... Ledoit-Wolf p (D19), {gl}")
                 rng(
                     f"rhebRt{lab}DSix{g}", ks, lambda k: G(k, "rt", f"{nm}_d6"), 2, f"real-time {lab} SR D6, {pr}, {gl}"
                 )
@@ -740,7 +781,7 @@ def numbers(R: dict, mk: dict, drop: np.ndarray, top: pd.Timestamp, pw: pd.Datet
                     2,
                     f"w/o best days: RT {lab} SR STANDARD",
                 )
-                rng(f"rhebExRt{lab}P{g}", ks, lambda k: G(k, "ex_rt", f"{nm}_p"), -1, "... its bootstrap p")
+                rng(f"rhebExRt{lab}P{g}", ks, lambda k: G(k, "ex_rt", f"{nm}_p"), -1, "... its Ledoit-Wolf p (D19)")
             rng(f"rhebRtMvShare{g}", ks, lambda k: 100 * G(k, "rt", "share_med"), 0, f"RT MV median vol share %, {gl}")
             rng(
                 f"rhebRtMvCapDays{g}",
@@ -756,7 +797,7 @@ def numbers(R: dict, mk: dict, drop: np.ndarray, top: pd.Timestamp, pw: pd.Datet
             rng(f"rhebExAlpha{g}", ks, lambda k: G(k, "ex_exp", "alpha"), 1, f"w/o best days: alpha %, {pr}, {gl}")
             rng(f"rhebExAlphaT{g}", ks, lambda k: G(k, "ex_exp", "alpha_t"), 2, "... its HAC t")
             rng(f"rhebExAlphaP{g}", ks, lambda k: G(k, "ex_exp", "alpha_p"), -1, "... its fixed-b p")
-            rng(f"rhebExAR{g}", ks, lambda k: G(k, "ex_span", "ar"), 2, "... appraisal ratio (sqrt 252)")
+            rng(f"rhebExAR{g}", ks, lambda k: G(k, "ex_span", "ar"), 2, "... appraisal ratio (sqrt q, D19)")
             rng(f"rhebExSRmax{g}", ks, lambda k: G(k, "ex_span", "sr_max"), 2, "... max SR STANDARD")
             rng(f"rhebExGrsP{g}", ks, lambda k: G(k, "ex_span", "grs_p"), -1, "... GRS p")
             cnt(f"rhebBetaSig{g}", sum(G(k, "exp", "beta_p") < 0.05 for k in ks), f"{gl}: beta sig. 5%, {pr}")
@@ -772,7 +813,7 @@ def numbers(R: dict, mk: dict, drop: np.ndarray, top: pd.Timestamp, pw: pd.Datet
                 cnt(
                     f"rhebRt{lab}Sig{g}",
                     sum(G(k, "rt", f"{nm}_dsr") > 0 and G(k, "rt", f"{nm}_p") < 0.05 for k in ks),
-                    "... and bootstrap p < 0.05 (STANDARD)",
+                    "... and Ledoit-Wolf p < 0.05 (D19; was the bootstrap p)",
                 )
                 cnt(
                     f"rhebRt{lab}DSixSig{g}",
@@ -839,7 +880,8 @@ def numbers(R: dict, mk: dict, drop: np.ndarray, top: pd.Timestamp, pw: pd.Datet
         "% Lasso, Enet, Lgbm, Xgb, Rf; Set = Full, Har), CiHar, Short; X = quoted bid/ask prices, else mid-quotes; Ex =",
         "% without the union of the full-set forecasts' ten best days. Market: S&P 500 close-to-close price return minus",
         "% the DTB3 T-bill return (no dividends); Thirty = the index's 15:30-16:00 return. STANDARD Sharpe ratio =",
-        "% sqrt(252) mean / sd of the pooled daily returns; D6 = the paper's Sharpe ratio (hac_inference.d6_sharpe).",
+        "% sqrt(q) mean / sd of the pooled daily returns, q = T / sum_y c_y of the sample's days (2026-10-26, D19: the",
+        "% paper's Sharpe ratio; was sqrt(252)); D6 = the equal-year mean of SR_y (hac_inference.d6_sharpe; robustness).",
     ]
     lines += [f"\\providecommand{{\\{n}}}{{}}\\renewcommand{{\\{n}}}{{{v}}}  % {c}" for n, (v, c) in MACROS.items()]
     return "\n".join(lines) + "\n"
@@ -941,8 +983,10 @@ def table_tex(R: dict) -> str:
         "the \\rhebNRt{} days from \\rhebRtFirst{} (market $\\rhebSRmRt$; without the best days of "
         "Table~\\ref{tab:rh_econ_bestdays}, $\\rhebSRmEx$ in sample and $\\rhebSRmExRt$ in real time); no short "
         "positions, neither leg above \\rhebCap\\% of the volatility; inverse volatility over the trailing "
-        "\\rhebNTrail{} days; in brackets, the bootstrap $p$-value of the gain over the market. Every $\\SR$ here is "
-        "$\\sqrt{252}$ times the mean over the standard deviation of the daily returns.\n"
+        "\\rhebNTrail{} days; in brackets, the $p$-value of the \\citet{LedoitWolf2008} test of its gain over the "
+        "market. Every $\\SR$ here is the paper's: $\\sqrt{q}$ times the mean over the standard deviation of the daily "
+        "returns, $q$ the days per calendar year of the sample (\\rheAnnDays{} on the \\rhebNDays{} days, "
+        "\\rhebQRt{} on the \\rhebNRt{} real-time days).\n"
         "\\end{tablenotes}\n\\end{threeparttable}\n\\end{table}\n"
     )
 
@@ -984,7 +1028,7 @@ def fig_float_tex() -> str:
         "its daily excess returns, scaled to the standard deviation of the market's daily excess return over these "
         "days, so the lines differ by their Sharpe ratios: \\rhebSRmRt{} for the market, \\rhebRtIvLgbmFull{} with "
         "inverse-volatility weights and \\rhebRtMvLgbmFull{} with mean--variance weights (annualized by "
-        "$\\sqrt{252}$).}\n"
+        "$\\sqrt{q}$, $q = \\rhebQRt$).}\n"
         "\\label{fig:rh_econ_beta_cum}\n\\end{figure}\n"
     )
 
@@ -1055,6 +1099,14 @@ def draft_claims(R: dict, top: pd.Timestamp) -> None:
             "without the best days the short straddle's alpha rises above the full-set strategies'",
         ),
     ]
+    # 2026-10-26 (D19): the real-time claims above use the Ledoit-Wolf p (nm_p); the registered bootstrap p (nm_pb) is
+    # printed as a check
+    for nm in ("mv", "iv"):
+        for part in ("rt", "ex_rt"):
+            for c in ("mid", "x"):
+                n_lw = sum(v(k, part, f"{nm}_dsr", c) > 0 and v(k, part, f"{nm}_p", c) < 0.05 for k in FULL)
+                n_bt = sum(v(k, part, f"{nm}_dsr", c) > 0 and v(k, part, f"{nm}_pb", c) < 0.05 for k in FULL)
+                print(f"  D19 check: {part} {nm} {c}: significant gains, Ledoit-Wolf {n_lw} / bootstrap {n_bt} (of 6)")
     reported = {"GRS rejects for CI-HAR, not for the short"}  # 2026-10-26 (D2/D3): reported, not asserted
     bad = [c for ok, c in claims if not ok and c not in reported]
     for ok, c in claims:
@@ -1110,7 +1162,7 @@ def main() -> None:
     # console summary
     print(
         f"\nmarket SR std {R[(FULL[0], 'mid')]['span']['sr_m']:.3f}  D6 {R[(FULL[0], 'mid')]['span']['d6_m']:.3f}  "
-        f"all-days std {sr252(mk['rm_all']):.3f}  RT-days std {R[(FULL[0], 'mid')]['rt']['sr_m']:.3f}"
+        f"all-days std {srq(mk['rm_all'], mk['q_all']):.3f}  RT-days std {R[(FULL[0], 'mid')]['rt']['sr_m']:.3f}"
     )
     hdr = (
         f"{'row':30s} {'pr':3s} {'beta':>6s} {'t':>6s} {'corr':>6s} {'gam':>7s} {'t':>6s} {'alpha':>6s} {'t':>6s} "

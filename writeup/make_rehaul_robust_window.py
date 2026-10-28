@@ -34,6 +34,10 @@ ECONOMY  the sign strategy of Section 7, as make_rehaul_economics.add_pooled_tre
          the paper's D6 (hac_inference.d6_sharpe) on the 614 post-warmup days t > 252, and every Sharpe-ratio
          difference (full - HAR at a window; 3,500 - 3,000 of an arm) is tested by hac_inference.d6_diff_test (paired
          circular block bootstrap, block 10, 4,999 resamples, seed D6_SEED), the p the paper prints (stars, [p]).
+         2026-10-26 (author decision D19): the Sharpe ratio is the paper's pooled ratio (hac_inference.paper_sharpe:
+         sqrt(q) mean / sd, q = T / sum_y c_y = 225.5) and every difference is tested by Ledoit-Wolf (2008)
+         (hac_inference.paper_sharpe_test); the paired block bootstrap of the pooled difference is a check (sharpe.csv,
+         p_boot). The self-check against the runs' econ.csv still compares their D6 columns (sr_d6, boot_d6).
          The pooled OLS is Table 1's reference row, not one of the paper's 12 pooled forecasts: accuracy macros only.
 SELF-CHECK  every W = 3,000 (and W = 3,500) number above that a run's own score files carry is compared with them and
          must agree (results/pooled_trees_final_2014start_w<W>/scores/{metrics,dm,cross_window_dm,econ}.csv,
@@ -83,9 +87,7 @@ def _import(name: str):
     raise AssertionError("unreachable")
 
 
-fr = _import(
-    "final_run"
-)  # the final design's constants and output switches (read only)
+fr = _import("final_run")  # the final design's constants and output switches (read only)
 import atm_straddle_lib as asl  # noqa: E402  (EARLY_CLOSE_DATES, the day rule of Table 1)
 import hac_inference as hi  # noqa: E402  (d6_sharpe, d6_diff_test: the paper's Sharpe ratio and its test)
 
@@ -97,9 +99,7 @@ W_MAIN, W_LONG = WINDOWS
 WTAG = {W_MAIN: "Main", W_LONG: "Long"}
 RF_KEY = getattr(fr, "RF_KEY", "rf_skx")
 PENDING_TEX = getattr(fr, "PENDING_TEX", r"\rhPending{}")
-PENDING_DEF = getattr(
-    fr, "PENDING_DEF", r"\providecommand{\rhPending}{\textit{pending}}"
-)
+PENDING_DEF = getattr(fr, "PENDING_DEF", r"\providecommand{\rhPending}{\textit{pending}}")
 ROW_MARK = getattr(fr, "ROW_MARK", "% rhPending row")
 
 
@@ -131,9 +131,7 @@ for _env, _got, _want in (
 
 CORE = ROOT / "data" / "core_stats.parquet"
 MT_DAILY = RESULTS / "close_master_table" / "master_table_daily.parquet"
-QUOTE_BOOK = (
-    RESULTS / "atm_straddle_0dte_1530" / "daily_a0.parquet"
-)  # master_table_gui.rows._QUOTE_BOOK
+QUOTE_BOOK = RESULTS / "atm_straddle_0dte_1530" / "daily_a0.parquet"  # master_table_gui.rows._QUOTE_BOOK
 PART2_ECON = RESULTS / "window_sweep_2014start_2026-10-22" / "part2" / "econ.csv"
 OLS_CLOSE = "sub_ols_baseline"  # make_rehaul_economics.OLS: the option days, iv_var and the realized variance
 FIRST, LAST, N_DAYS = fr.FIRST_DAY, fr.LAST_DAY, 2579
@@ -153,9 +151,7 @@ SIG = 0.05  # the level of the counts
 
 LIN_EST = ("ridge", "lasso", "enet")
 TREE_EST = ("lgbm", "xgb", "rf")
-MODELS = (
-    LIN_EST + TREE_EST
-)  # the six pooled classes the paper counts (final_run.POOL_LINEAR + POOL_TREES)
+MODELS = LIN_EST + TREE_EST  # the six pooled classes the paper counts (final_run.POOL_LINEAR + POOL_TREES)
 SETS = ("baseline", "all_features")
 ARMS = [("ols", "baseline")] + [(m, s) for m in MODELS for s in SETS]
 NAME = {
@@ -222,9 +218,7 @@ def scored_set(fc: dict, rv: pd.Series, days: pd.DatetimeIndex) -> pd.DatetimeIn
     t = rv.reindex(idx)
     idx = idx[(t.to_numpy() > 0) & np.isfinite(t.to_numpy())]
     for k, f in fc.items():
-        assert np.array_equal(
-            f["rv"].reindex(idx).to_numpy(), rv.reindex(idx).to_numpy()
-        ), k
+        assert np.array_equal(f["rv"].reindex(idx).to_numpy(), rv.reindex(idx).to_numpy()), k
     return idx.sort_values()
 
 
@@ -237,17 +231,10 @@ def qlike(f: pd.DataFrame, idx: pd.DatetimeIndex, rv: pd.Series) -> np.ndarray:
 
 def daily(x: np.ndarray, idx: pd.DatetimeIndex) -> np.ndarray:
     """make_rehaul_oos_rerun.daily: the daily average of a per-bar loss."""
-    return (
-        pd.Series(x, index=pd.DatetimeIndex(idx.normalize()))
-        .groupby(level=0)
-        .mean()
-        .to_numpy()
-    )
+    return pd.Series(x, index=pd.DatetimeIndex(idx.normalize())).groupby(level=0).mean().to_numpy()
 
 
-def _frame(
-    path: Path, keys: set[tuple[str, str]], n_rows: int, rename: dict[str, str]
-) -> dict:
+def _frame(path: Path, keys: set[tuple[str, str]], n_rows: int, rename: dict[str, str]) -> dict:
     """(model, set) -> frame by bar end with plain and rv, from one forecasts.parquet; gates of pooled_*_13._frame:
     the arms, rows an arm, plain = pred_adj^2 B, 13 bars a day ending at 16:00."""
     f = pd.read_parquet(
@@ -272,17 +259,11 @@ def _frame(
     assert rel <= 1e-12, (path, rel)
     t = pd.to_datetime(f["date"])
     clock = t.dt.strftime("%H:%M")
-    assert (
-        clock.nunique() == 13 and clock.min() == "10:00" and clock.max() == "16:00"
-    ), path
+    assert clock.nunique() == 13 and clock.min() == "10:00" and clock.max() == "16:00", path
     assert t.dt.normalize().max() == LAST, (path, t.max())
     out = {}
     for (m, s), g in f.groupby(["model", "predictor_set"]):
-        x = (
-            g.set_index(pd.to_datetime(g["date"]))
-            .rename(columns={"rv_actual": "rv"})[["plain", "rv"]]
-            .sort_index()
-        )
+        x = g.set_index(pd.to_datetime(g["date"])).rename(columns={"rv_actual": "rv"})[["plain", "rv"]].sort_index()
         assert not x.index.duplicated().any(), (path, m, s)
         out[(m, s)] = x
     return out
@@ -346,22 +327,16 @@ def penalties(W: int) -> dict:
 
 def crossed_return(q, ex, bid, ask) -> np.ndarray:
     """writeup/master_table_gui/rows.py _crossed_return: a buy pays the ask, a sale gets the bid (entry only)."""
-    return np.where(
-        q > 0, q * (ex / ask - 1.0), np.where(q < 0, q * (ex / bid - 1.0), 0.0)
-    )
+    return np.where(q > 0, q * (ex / ask - 1.0), np.where(q < 0, q * (ex / bid - 1.0), 0.0))
 
 
 def trade_frame() -> pd.DataFrame:
     """The 866 option days of the closing-interval OLS row (make_rehaul_economics.load, its OLS row and book): iv_var,
     rv_unclipped, and the quote book's straddle (R, exit, bid, ask); gate: the row's mid return is q R."""
-    d = pd.read_parquet(
-        MT_DAILY, columns=["key", "day", "q", "ret_mid", "iv_var", "rv_unclipped"]
-    )
+    d = pd.read_parquet(MT_DAILY, columns=["key", "day", "q", "ret_mid", "iv_var", "rv_unclipped"])
     d = d[d["key"] == OLS_CLOSE].copy()
     d["day"] = pd.to_datetime(d["day"]).dt.normalize()
-    qb = pd.read_parquet(
-        QUOTE_BOOK, columns=["R", "exit", "bid_c", "bid_p", "ask_c", "ask_p"]
-    )
+    qb = pd.read_parquet(QUOTE_BOOK, columns=["R", "exit", "bid_c", "bid_p", "ask_c", "ask_p"])
     qb.index = pd.to_datetime(qb.index).normalize().astype("datetime64[ns]")
     book = pd.DataFrame(
         {
@@ -375,9 +350,7 @@ def trade_frame() -> pd.DataFrame:
     g.index = g.index.astype("datetime64[ns]")
     g = g.join(book, how="inner")
     assert len(g) == N_OPT, len(g)
-    assert np.allclose(g["q"] * g["R"], g["ret_mid"], rtol=0, atol=1e-10), (
-        "quote-book R"
-    )
+    assert np.allclose(g["q"] * g["R"], g["ret_mid"], rtol=0, atol=1e-10), "quote-book R"
     assert np.isfinite(g[["iv_var", "rv_unclipped"]].to_numpy()).all()
     return g
 
@@ -405,9 +378,7 @@ def trade(f: pd.DataFrame, tf: pd.DataFrame) -> dict[str, np.ndarray]:
     q = np.where(p > tf["iv_var"].to_numpy(float), 1.0, -1.0)
     return {
         "mid": q * tf["R"].to_numpy(float),
-        "x": crossed_return(
-            q, tf["ex"].to_numpy(), tf["bid"].to_numpy(), tf["ask"].to_numpy()
-        ),
+        "x": crossed_return(q, tf["ex"].to_numpy(), tf["bid"].to_numpy(), tf["ask"].to_numpy()),
     }
 
 
@@ -479,13 +450,8 @@ def main() -> None:
     res.mkdir(parents=True, exist_ok=True)
 
     # one design apart from the window: the same frozen penalties and tree configurations
-    assert penalties(W_MAIN) == penalties(W_LONG), (
-        "the two windows' linear penalties differ"
-    )
-    cfg = {
-        W: json.loads((trees_run(W) / "run.json").read_text()).get("configs")
-        for W in WINDOWS
-    }
+    assert penalties(W_MAIN) == penalties(W_LONG), "the two windows' linear penalties differ"
+    cfg = {W: json.loads((trees_run(W) / "run.json").read_text()).get("configs") for W in WINDOWS}
     assert cfg[W_MAIN] == cfg[W_LONG], "the two windows' tree configurations differ"
 
     rv = core()
@@ -506,17 +472,11 @@ def main() -> None:
         FC[W], PEND[W] = fc, pend
         lin = {k: v for k, v in fc.items() if k[0] in ("ols",) + LIN_EST}
         idx = scored_set(lin, rv, days)
-        idx_all = scored_set(
-            fc, rv, days
-        )  # also asserts each tree's / the forest's RV is the core_stats print
+        idx_all = scored_set(fc, rv, days)  # also asserts each tree's / the forest's RV is the core_stats print
         miss = idx.difference(idx_all)
-        assert idx_all.equals(idx), (
-            f"w{W}: an arm misses {len(miss)} bars the linear rows score, e.g. {list(miss[:5])}"
-        )
+        assert idx_all.equals(idx), f"w{W}: an arm misses {len(miss)} bars the linear rows score, e.g. {list(miss[:5])}"
         IDX[W] = idx
-        print(
-            f"W={W:,}: {len(fc)} arms, pending {pend or 'none'}; {len(idx):,} bars scored ({time.time() - t0:.0f} s)"
-        )
+        print(f"W={W:,}: {len(fc)} arms, pending {pend or 'none'}; {len(idx):,} bars scored ({time.time() - t0:.0f} s)")
     assert IDX[W_MAIN].equals(IDX[W_LONG]), "the two windows score different bars"
     idx = IDX[W_MAIN]
     on16 = idx[(idx.hour == 16) & (idx.minute == 0)]
@@ -547,21 +507,27 @@ def main() -> None:
             return None
         key = (W, m, s, side)
         if key not in sr_cache:
-            sr_cache[key] = float(hi.d6_sharpe(x[side], dates=pw)["sharpe"])
+            # 2026-10-26 (D19): the paper's pooled ratio. Was: hi.d6_sharpe(x[side], dates=pw)["sharpe"]
+            sr_cache[key] = float(hi.paper_sharpe(x[side], dates=pw)["sharpe"])
         return sr_cache[key]
 
+    def sr_d6(W, m, s, side) -> float | None:
+        """2026-10-26 (D19): D6, for the self-check against the runs' econ.csv only."""
+        x = R.get((W, m, s))
+        return None if x is None else float(hi.d6_sharpe(x[side], dates=pw)["sharpe"])
+
     def dm(la: np.ndarray, lb: np.ndarray, bars: str) -> dict:
-        r = (
-            dm_test(daily(la, idx), daily(lb, idx))
-            if bars == "bar"
-            else dm_test(la, lb)
-        )
+        r = dm_test(daily(la, idx), daily(lb, idx)) if bars == "bar" else dm_test(la, lb)
         assert r["T"] == N_DAYS, r
         return r
 
+    # 2026-10-26 (D19): the paper's test, Ledoit-Wolf (p), with the pooled bootstrap check (p_boot). Was:
+    #     r = hi.d6_diff_test(a, b, pw)
     def boot(a: np.ndarray, b: np.ndarray) -> dict:
-        r = hi.d6_diff_test(a, b, pw)
+        r = hi.paper_sharpe_test(a, b, pw)
         return r
+
+    SRF_D6: dict = {}  # 2026-10-26 (D19): (W, m, side) -> the D6 bootstrap (full - HAR), for the self-check only
 
     # rows of the CSVs and the dictionaries the table / macros read
     met_rows, dmw_rows, dmf_rows, sh_rows = [], [], [], []
@@ -613,9 +579,7 @@ def main() -> None:
             if not (have(W, (m, "all_features")) and have(W, (m, "baseline"))):
                 continue
             for bars, _, _ in BARS:
-                r = dm(
-                    L[(W, m, "all_features")][bars], L[(W, m, "baseline")][bars], bars
-                )
+                r = dm(L[(W, m, "all_features")][bars], L[(W, m, "baseline")][bars], bars)
                 DMF[(W, m, bars)] = r
                 qa, qb = (
                     q_mean(W, m, "all_features", bars),
@@ -642,16 +606,13 @@ def main() -> None:
         for W in WINDOWS:
             for m in MODELS:
                 if (W, m, "all_features") in R and (W, m, "baseline") in R:
-                    r = boot(
-                        R[(W, m, "all_features")][side], R[(W, m, "baseline")][side]
-                    )
+                    r = boot(R[(W, m, "all_features")][side], R[(W, m, "baseline")][side])
                     a, b = sr(W, m, "all_features", side), sr(W, m, "baseline", side)
-                    assert (
-                        a is not None
-                        and b is not None
-                        and abs(r["delta"] - (a - b)) < 1e-10
-                    )
+                    assert a is not None and b is not None and abs(r["delta"] - (a - b)) < 1e-10
                     SRF[(W, m, side)] = r
+                    SRF_D6[(W, m, side)] = hi.d6_diff_test(
+                        R[(W, m, "all_features")][side], R[(W, m, "baseline")][side], pw
+                    )
                     sh_rows.append(
                         {
                             "test": "full - HAR",
@@ -663,6 +624,9 @@ def main() -> None:
                             "sr_b": b,
                             "delta": r["delta"],
                             "p": r["p"],
+                            "p_boot": r["p_boot"],  # 2026-10-26 (D19): the check
+                            "delta_d6": SRF_D6[(W, m, side)]["delta"],
+                            "p_d6": SRF_D6[(W, m, side)]["p"],
                             "T": r["T"],
                         }
                     )
@@ -684,6 +648,7 @@ def main() -> None:
                     "sr_b": b,
                     "delta": r["delta"],
                     "p": r["p"],
+                    "p_boot": r["p_boot"],  # 2026-10-26 (D19): the check
                     "T": r["T"],
                 }
             )
@@ -735,9 +700,7 @@ def main() -> None:
                 m, s = mkey(r["model"]), r["set"]
                 if not have(W, (m, s)):
                     continue
-                cmp(
-                    src + "/metrics.csv", W, m, s, "n_bars", len(idx), r["n_bars"], 0, 0
-                )
+                cmp(src + "/metrics.csv", W, m, s, "n_bars", len(idx), r["n_bars"], 0, 0)
                 cmp(
                     src + "/metrics.csv",
                     W,
@@ -768,10 +731,7 @@ def main() -> None:
                     r["qlike_1600"],
                 )
             D = pd.read_csv(sd / "dm.csv")
-            D = D[
-                (D["comparison"] == "all features vs HAR benchmark")
-                & (D["loss"] == "qlike")
-            ]
+            D = D[(D["comparison"] == "all features vs HAR benchmark") & (D["loss"] == "qlike")]
             for _, r in D.iterrows():
                 m = mkey(r["model"])
                 bars = "bar" if r["bars"] == "every bar" else "close"
@@ -825,11 +785,11 @@ def main() -> None:
                     )
             E = pd.read_csv(sd / "econ.csv")
             for _, r in E.iterrows():
-                econ_check(cmp, src + "/econ.csv", W, mkey(r["model"]), r, sr, SRF)
+                econ_check(cmp, src + "/econ.csv", W, mkey(r["model"]), r, sr_d6, SRF_D6)  # D19: was sr, SRF
     if PART2_ECON.is_file():
         E = pd.read_csv(PART2_ECON)
         for _, r in E[E["W"].isin(WINDOWS)].iterrows():
-            econ_check(cmp, rel(PART2_ECON), int(r["W"]), r["model"], r, sr, SRF)
+            econ_check(cmp, rel(PART2_ECON), int(r["W"]), r["model"], r, sr_d6, SRF_D6)  # D19: was sr, SRF
     for W in WINDOWS:  # the linear runs' own 2020-2024 scores (their scores.csv and scores_all_bars.csv)
         lr = linear_run(W)
         ck16 = on16[(on16.normalize() >= CK[0]) & (on16.normalize() <= CK[1])]
@@ -874,15 +834,10 @@ def main() -> None:
     CHK = pd.DataFrame(chk)
     CHK.to_csv(res / "selfcheck.csv", index=False)
     bad = CHK[~CHK["ok"]]
-    print(
-        f"self-check: {len(CHK)} comparisons, {int(CHK['ok'].sum())} agree; max |diff| "
-        f"{CHK['abs_diff'].max():.3g}"
-    )
+    print(f"self-check: {len(CHK)} comparisons, {int(CHK['ok'].sum())} agree; max |diff| {CHK['abs_diff'].max():.3g}")
     if len(bad):
         print(bad.to_string(index=False))
-        raise SystemExit(
-            "self-check failed: the robustness numbers do not reproduce the runs' score files"
-        )
+        raise SystemExit("self-check failed: the robustness numbers do not reproduce the runs' score files")
 
     # ------------------------------------------------------------------ CSVs
     pd.DataFrame(met_rows).to_csv(res / "metrics.csv", index=False)
@@ -925,14 +880,12 @@ def main() -> None:
     mac(
         "rhrbBootN",
         thousands(hi.LW_BOOT),
-        "bootstrap resamples of the Sharpe-ratio test",
+        "bootstrap resamples of the Sharpe-ratio test (Ledoit-Wolf since D19)",
     )
     mac("rhrbBootBlock", str(hi.LW_BLOCK), "block length of the Sharpe-ratio bootstrap")
     mac(
         "rhrbPendingNote",
-        f"The random forest on the \\rhrbWinLong-day window is {PENDING_TEX}."
-        if rf_long_pending
-        else "",
+        f"The random forest on the \\rhrbWinLong-day window is {PENDING_TEX}." if rf_long_pending else "",
         "table-note sentence on the pending forest (empty when nothing is pending)",
     )
     for m, s in ARMS:
@@ -948,7 +901,7 @@ def main() -> None:
                     mac(
                         f"rhrbSR{MTAG[m]}{STAG[s]}{stag}{WTAG[W]}",
                         mnum(sr(W, m, s, side), 2),
-                        f"Sharpe ratio (D6), sign strategy at {sword}, {NAME[m]}, {SET_WORD[s]}, W = {W:,}",
+                        f"Sharpe ratio (D19 pooled), sign strategy at {sword}, {NAME[m]}, {SET_WORD[s]}, W = {W:,}",
                     )
         for bars, btag, bword in BARS:
             rt = DMW.get((m, s, bars))
@@ -956,9 +909,7 @@ def main() -> None:
             mac(
                 f"rhrbPct{MTAG[m]}{STAG[s]}{btag}",
                 mnum(
-                    None
-                    if rt is None or qa is None or qb is None
-                    else 100.0 * (qa / qb - 1.0),
+                    None if rt is None or qa is None or qb is None else 100.0 * (qa / qb - 1.0),
                     1,
                 ),
                 f"QLIKE change, %, W = 3,500 vs 3,000, {bword}, {NAME[m]}, {SET_WORD[s]}",
@@ -984,7 +935,7 @@ def main() -> None:
                 mac(
                     f"rhrbPSR{MTAG[m]}{STAG[s]}{stag}",
                     mpval(None if rt is None else rt["p"]),
-                    "... its p statement (D6 bootstrap)",
+                    "... its p statement (Ledoit-Wolf, D19; was the D6 bootstrap)",
                 )
     for m in MODELS:
         for W in WINDOWS:
@@ -997,9 +948,7 @@ def main() -> None:
                 mac(
                     f"rhrbPctF{MTAG[m]}{btag}{WTAG[W]}",
                     mnum(
-                        None
-                        if rt is None or qa is None or qb is None
-                        else 100.0 * (qa / qb - 1.0),
+                        None if rt is None or qa is None or qb is None else 100.0 * (qa / qb - 1.0),
                         1,
                     ),
                     f"QLIKE, full set vs HAR benchmark, %, {bword}, {NAME[m]}, W = {W:,}",
@@ -1024,7 +973,7 @@ def main() -> None:
                 mac(
                     f"rhrbPSRF{MTAG[m]}{stag}{WTAG[W]}",
                     mpval(None if rt is None else rt["p"]),
-                    "... its p statement (D6 bootstrap)",
+                    "... its p statement (Ledoit-Wolf, D19; was the D6 bootstrap)",
                 )
     # counts over the finished arms / classes (the paper's 12 pooled forecasts; the OLS reference row left out)
     arms12 = [(m, s) for m in MODELS for s in SETS]
@@ -1057,27 +1006,15 @@ def main() -> None:
         )
         mac(
             f"rhrbNHigherSig{btag}",
-            str(
-                sum(
-                    DMW[(m, s, bars)]["dm"] > 0 and DMW[(m, s, bars)]["p"] < SIG
-                    for m, s in both
-                )
-            ),
+            str(sum(DMW[(m, s, bars)]["dm"] > 0 and DMW[(m, s, bars)]["p"] < SIG for m, s in both)),
             f"of rhrbNArms: significantly higher QLIKE at 3,500 (DM > 0, 5 %), {bword}",
         )
         mac(
             f"rhrbNLowerSig{btag}",
-            str(
-                sum(
-                    DMW[(m, s, bars)]["dm"] < 0 and DMW[(m, s, bars)]["p"] < SIG
-                    for m, s in both
-                )
-            ),
+            str(sum(DMW[(m, s, bars)]["dm"] < 0 and DMW[(m, s, bars)]["p"] < SIG for m, s in both)),
             f"of rhrbNArms: significantly lower QLIKE at 3,500 (DM < 0, 5 %), {bword}",
         )
-        pcts = [
-            abs(x["pct"]) for x in dmw_rows if x["bars"] == bars and x["model"] != "ols"
-        ]
+        pcts = [abs(x["pct"]) for x in dmw_rows if x["bars"] == bars and x["model"] != "ols"]
         mac(
             f"rhrbMaxAbsPct{btag}",
             mnum(max(pcts), 1),
@@ -1093,12 +1030,7 @@ def main() -> None:
         for bars, btag, bword in BARS:
             mac(
                 f"rhrbNFullLowerSig{btag}{WTAG[W]}",
-                str(
-                    sum(
-                        DMF[(W, m, bars)]["dm"] < 0 and DMF[(W, m, bars)]["p"] < SIG
-                        for m in done
-                    )
-                ),
+                str(sum(DMF[(W, m, bars)]["dm"] < 0 and DMF[(W, m, bars)]["p"] < SIG for m in done)),
                 f"of rhrbNModels{WTAG[W]}: full set significantly more accurate than HAR (DM < 0, 5 %), {bword}",
             )
         for side, stag, sword in SIDES:
@@ -1109,13 +1041,8 @@ def main() -> None:
             )
             mac(
                 f"rhrbNDSRFSig{stag}{WTAG[W]}",
-                str(
-                    sum(
-                        SRF[(W, m, side)]["delta"] > 0 and SRF[(W, m, side)]["p"] < SIG
-                        for m in done
-                    )
-                ),
-                f"of rhrbNModels{WTAG[W]}: ... and bootstrap p < 0.05, {sword}",
+                str(sum(SRF[(W, m, side)]["delta"] > 0 and SRF[(W, m, side)]["p"] < SIG for m in done)),
+                f"of rhrbNModels{WTAG[W]}: ... and Ledoit-Wolf p < 0.05 (D19), {sword}",
             )
     mac("rhrbNModelsAll", str(len(MODELS)), "model classes in all")
     for side, stag, sword in SIDES:
@@ -1123,7 +1050,7 @@ def main() -> None:
         mac(
             f"rhrbNSRSig{stag}",
             str(sum(SRW[k]["p"] < SIG for k in n_sr)),
-            f"of rhrbNArms: Sharpe ratio differs between the windows (bootstrap p < 0.05), {sword}",
+            f"of rhrbNArms: Sharpe ratio differs between the windows (Ledoit-Wolf p < 0.05, D19), {sword}",
         )
         mac(
             f"rhrbMaxAbsDSR{stag}",
@@ -1133,7 +1060,7 @@ def main() -> None:
         mac(
             f"rhrbMinPSR{stag}",
             mpval(min(SRW[k]["p"] for k in n_sr)),
-            f"smallest bootstrap p of a Sharpe-ratio change between the windows, {sword}",
+            f"smallest Ledoit-Wolf p (D19) of a Sharpe-ratio change between the windows, {sword}",
         )
 
     num_lines = [
@@ -1141,9 +1068,9 @@ def main() -> None:
         "% \\rhrb... macros of the appendix robustness table tab:rh_robust_w3500 (rehaul_robust_w3500_table.tex): the final",
         f"% pooled models on a rolling window of {W_LONG:,} against {W_MAIN:,} trading days; every bar scored on the "
         f"{N_DAYS:,} days {FIRST.date()} .. {LAST.date()}",
-        f"% ({len(idx):,} bars), Sharpe ratios (D6) on the {N_PW} post-warmup option days. Names: Q (QLIKE), SR (Sharpe "
+        f"% ({len(idx):,} bars), Sharpe ratios (D19 pooled) on the {N_PW} post-warmup option days. Names: Q (QLIKE), SR (Sharpe "
         "ratio), Pct / DM / P",
-        "% (3,500 vs 3,000: % change, DM, p statement), DSR / PSR (Sharpe change 3,500 - 3,000, bootstrap p), PctF / DMF "
+        "% (3,500 vs 3,000: % change, DM, p statement), DSR / PSR (Sharpe change 3,500 - 3,000, Ledoit-Wolf p), PctF / DMF "
         "/ PF / DSRF / PSRF",
         "% (full set vs HAR benchmark at a window); Model Ols Ridge Lasso Enet Lgbm Xgb Rf; Set Har Full; Bar (every "
         "bar) / Close (16:00);",
@@ -1153,15 +1080,9 @@ def main() -> None:
         PENDING_DEF,
     ]
     for name, value, note in macros:
-        num_lines.append(
-            f"\\providecommand{{\\{name}}}{{}}\\renewcommand{{\\{name}}}{{{value}}}  % {note}"
-        )
-    (gen / "rehaul_robust_w3500_numbers.tex").write_text(
-        "\n".join(num_lines) + "\n", encoding="utf-8", newline="\n"
-    )
-    print(
-        f"wrote {rel(gen / 'rehaul_robust_w3500_numbers.tex')} ({len(macros)} macros)"
-    )
+        num_lines.append(f"\\providecommand{{\\{name}}}{{}}\\renewcommand{{\\{name}}}{{{value}}}  % {note}")
+    (gen / "rehaul_robust_w3500_numbers.tex").write_text("\n".join(num_lines) + "\n", encoding="utf-8", newline="\n")
+    print(f"wrote {rel(gen / 'rehaul_robust_w3500_numbers.tex')} ({len(macros)} macros)")
 
     # ------------------------------------------------------------------ the table
     def line(label: str, wlab: str, cells: list[str]) -> str:
@@ -1189,9 +1110,7 @@ def main() -> None:
                         None if rt is None else rt["p"],
                     ),
                 ]
-            body.append(
-                line(NAME[m] if W == W_MAIN else "", f"\\rhrbWin{WTAG[W]}", cells)
-            )
+            body.append(line(NAME[m] if W == W_MAIN else "", f"\\rhrbWin{WTAG[W]}", cells))
         cells = []
         for bars, _, _ in BARS:
             for s in SETS:
@@ -1229,9 +1148,7 @@ def main() -> None:
                         None if rt is None else rt["p"],
                     ),
                 ]
-            body.append(
-                line(NAME[m] if W == W_MAIN else "", f"\\rhrbWin{WTAG[W]}", cells)
-            )
+            body.append(line(NAME[m] if W == W_MAIN else "", f"\\rhrbWin{WTAG[W]}", cells))
         cells = []
         for side, _, _ in SIDES:
             for s in SETS:
@@ -1251,8 +1168,8 @@ def main() -> None:
     tex = f"""{HEAD}
 % tab:rh_robust_w3500 (appendix): the final pooled models on a rolling window of {W_LONG:,} trading days against
 % {W_MAIN:,} (same first day, frozen hyperparameters and refit at every bar); QLIKE on every bar and on the 16:00 bar of
-% the {N_DAYS:,} evaluation days, DM on the daily loss (HLN, Newey-West lag {dm_lag}); Sharpe ratio (D6) of the sign
-% strategy on the {N_PW} post-warmup option days, differences tested by the paired block bootstrap (hac_inference).
+% the {N_DAYS:,} evaluation days, DM on the daily loss (HLN, Newey-West lag {dm_lag}); Sharpe ratio (D19 pooled) of the sign
+% strategy on the {N_PW} post-warmup option days, differences tested by Ledoit-Wolf (hac_inference; D19).
 % Runs: {rel(linear_run(W_MAIN))}, {rel(trees_run(W_MAIN))}, {rel(rf_run(W_MAIN))} and their w{W_LONG} twins.
 % Pending: {", ".join(f"{e} at W = {W:,}" for W in WINDOWS for e in PEND[W]) or "none"}.
 % \\rhPending comes from the numbers file (a second \\providecommand here would stop the Overleaf flattener).
@@ -1282,19 +1199,15 @@ every bar (\\rhrbNbars{{}} bars) and on the 16:00 bar of the $T_{{\\mathrm{{oos}
 $q_{{\\mathrm{{NW}}}} = \\rhrbDMLag$) of the daily loss, full minus HAR (negative: full more accurate); Change, in
 parentheses: \\rhrbWinLong-day minus \\rhrbWinMain-day loss (positive: the longer window is less accurate). Panel B:
 Sharpe ratio of the sign strategy (Section~\\ref{{sec:rh_econ_measures}}) on the \\rhrbNpw{{}} post-warmup option days;
-$\\Delta\\SR$: full minus HAR; Change: \\rhrbWinLong-day minus \\rhrbWinMain-day ratio; stars from the paired
-block-bootstrap test of equal Sharpe ratios (Section~\\ref{{sec:rh_methods_tests}}). $^{{*}}$, $^{{**}}$, $^{{***}}$:
+$\\Delta\\SR$: full minus HAR; Change: \\rhrbWinLong-day minus \\rhrbWinMain-day ratio; stars from the
+\\citet{{LedoitWolf2008}} test of equal Sharpe ratios (Section~\\ref{{sec:rh_methods_tests}}). $^{{*}}$, $^{{**}}$, $^{{***}}$:
 significance at the 10\\%, 5\\% and 1\\% levels. \\rhrbPendingNote
 \\end{{tablenotes}}
 \\end{{threeparttable}}
 \\end{{table}}
 """
-    (gen / "rehaul_robust_w3500_table.tex").write_text(
-        tex, encoding="utf-8", newline="\n"
-    )
-    print(
-        f"wrote {rel(gen / 'rehaul_robust_w3500_table.tex')}; CSVs in {rel(res)} ({time.time() - t0:.0f} s)"
-    )
+    (gen / "rehaul_robust_w3500_table.tex").write_text(tex, encoding="utf-8", newline="\n")
+    print(f"wrote {rel(gen / 'rehaul_robust_w3500_table.tex')}; CSVs in {rel(res)} ({time.time() - t0:.0f} s)")
 
 
 def econ_check(cmp, src: str, W: int, m: str, r: pd.Series, sr, SRF: dict) -> None:

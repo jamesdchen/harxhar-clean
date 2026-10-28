@@ -267,7 +267,12 @@ benchmark, the full set lowers QLIKE loss significantly in all \rhorAfPairs{} mo
 \rhorVsOlsRedLinRng{}\% (penalized linear models) and \rhorVsOlsRedTreeRng{}\% (tree
 ensembles), and beats augmented HAR models. The gain concentrates in the FOMC calendar and the futures' realized
 moments; alternative data add little even when live. Under squared error, a few crash days offset it. In 0DTE
-straddles, full-set forecasts beat passive selling but not, significantly, HAR forecasts.
+straddles, full-set forecasts beat passive selling but seldom significantly beat HAR forecasts.
+% 2026-10-28 (D19, standard pooled Sharpe): under the pooled ratio and the Ledoit--Wolf test \rhemFullVsShortSig = 3
+% (of 6) against the short straddle and \rhemFullVsOlsHarSig = 1 (the random forest, p 0.039) against the OLS-HAR
+% strategy, so "not, significantly," no longer holds; same word count. Author to confirm the wording
+% (99_author_notes.tex). Was: "In 0DTE straddles, full-set forecasts beat passive selling but not, significantly, HAR
+% forecasts."
 \end{abstract}
 
 \editc{black}{Notes}{Colored notes are draft comments, not paper text.\\

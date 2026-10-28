@@ -99,14 +99,26 @@
   % "(Section~\ref{sec:rh_econ})".
   \item E26b, the pooled interval-shift test (Appendix~\ref{app:rh_econ_shift}): (i) which days (every shift on the
     days on which every shifted forecast exists, or only the earlier bars on all post-warmup days of the printed
-    Sharpe ratios), (ii) the sampling band under the Sharpe ratio's yearly weights in place of
-    $1.96\sqrt{252/n}$, and (iii) how to read the pattern at the earlier bars. The earlier reading (``well within''
-    the band) is parked in rehaul/A\_econ.tex.
-  \item The random forest's storyline (RF\_STORY\_OPTIONS.md): its HAR-only arm has a near-zero Sharpe ratio at the
-    main window, so its within-class Sharpe gain is the largest; against the OLS-HAR strategy (D2) the comparison
-    awaits \texttt{rhemFullVsOlsHarSig}.
-  \item The Sharpe ratio's yearly weights give the short final year (2024) a quarter of the weight; one sentence of
-    disclosure, or a sensitivity check.
+    Sharpe ratios), (ii) the sampling band, now $1.96\sqrt{q/n}$ under the pooled Sharpe ratio (D19), and (iii) how
+    to read the pattern at the earlier bars. The earlier reading (``well within'' the band) is parked in
+    rehaul/A\_econ.tex.
+  % 2026-10-28 (D19, standard pooled Sharpe): (ii) settled by D19 (make_rehaul_pooled_extras.py, band_d6). Was: "(ii)
+  % the sampling band under the Sharpe ratio's yearly weights in place of $1.96\sqrt{252/n}$".
+  \item The random forest's storyline (RF\_STORY\_OPTIONS.md): its HAR-only arm has about the Sharpe ratio of the
+    short straddle at the main window (\rhemShRfHar{} against \rheShortSh), so its within-class Sharpe gain is the largest;
+    it is also the one full-set strategy whose gain over the OLS-HAR strategy (D2) is significant
+    (\texttt{rhemFullVsOlsHarSig} $= \rhemFullVsOlsHarSig$).
+  % 2026-10-28 (D19, standard pooled Sharpe): the forest's HAR arm moved from 0.01 (D6) to the short straddle's ratio,
+  % and the OLS-HAR comparison is in. Was: "its HAR-only arm has a near-zero Sharpe ratio at the main window, so its
+  % within-class Sharpe gain is the largest; against the OLS-HAR strategy (D2) the comparison awaits
+  % \texttt{rhemFullVsOlsHarSig}."
+  \item D19 (author, 28 October): the Sharpe ratio is the standard pooled ratio, each option day with weight $1/T$,
+    so the short final year no longer has a quarter of the weight; the equal-year mean of the $\SR_y$ and the
+    $N_y$-weighted ratio are robustness columns (Table~\ref{tab:rh_econ_sharpe_defs}). The abstract's ``but not,
+    significantly, HAR forecasts'' no longer holds (\texttt{rhemFullVsOlsHarSig} $= \rhemFullVsOlsHarSig$, the random
+    forest) and now reads ``but seldom significantly beat HAR forecasts'' (one word more, 100); please check the wording.
+  % 2026-10-28 (D19, standard pooled Sharpe): resolved by D19. Was: "\item The Sharpe ratio's yearly weights give the
+  % short final year (2024) a quarter of the weight; one sentence of disclosure, or a sensitivity check."
   % 2026-10-26 (relay from DATA): E30 split out and detailed; parked in rehaul/04_features.tex.
   \item E30 (from Section~\ref{sec:rh_predictors}; the professor): the formula of the StockTwits sentiment score
     between its endpoints $\pm 1$.

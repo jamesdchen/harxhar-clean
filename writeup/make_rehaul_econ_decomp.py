@@ -42,7 +42,8 @@ STATISTICS
      scale sum RV / sum sigma2 over t' < t is the alternative (macros only).
   4. Each full-set forecast's 10 best and 10 worst days by its mid return; their union over the six forecasts with
      tags; the change in Delta SR (vs the short straddle and vs the HAR twin) when those days are dropped from both
-     series (D6 Sharpe ratio, hac_inference.d6_sharpe, the sample's span held fixed).
+     series (the paper's Sharpe ratio, hac_inference.paper_sharpe since 2026-10-26 (D19; was D6, d6_sharpe), the
+     sample's span held fixed).
   5. Worthless expiries (R_t = -1: the close settles in [K_P, K_C]): observed count against the count implied by a
      normal half-hour log move with the implied volatility IV_t, by the empirical distribution of the earlier days'
      moves standardized by IV (t' < t), and by the earlier days' raw moves; distance of the close to the nearest
@@ -368,9 +369,13 @@ def gate(d: dict) -> None:
 
 
 # ============================================================================= statistics
+# 2026-10-26 (author decision D19): parked -- D6 as the paper's ratio. Was:
+#     """The paper's D6 Sharpe ratio on the days given, the post-warmup span held fixed."""
+#     return float(hi.d6_sharpe(np.asarray(x, float), dates=dates, span=SPAN_OF_DAYS)["sharpe"])
 def sr(x: np.ndarray, dates: pd.DatetimeIndex) -> float:
-    """The paper's D6 Sharpe ratio on the days given, the post-warmup span held fixed."""
-    return float(hi.d6_sharpe(np.asarray(x, float), dates=dates, span=SPAN_OF_DAYS)["sharpe"])
+    """The paper's Sharpe ratio (D19, hac_inference.paper_sharpe: sqrt(q) mean / sd, q = T / sum_y c_y) on the days
+    given, the post-warmup span (so sum_y c_y) held fixed when days are dropped."""
+    return float(hi.paper_sharpe(np.asarray(x, float), dates=dates, span=SPAN_OF_DAYS)["sharpe"])
 
 
 def hac_ols(y: np.ndarray, X: np.ndarray) -> dict:

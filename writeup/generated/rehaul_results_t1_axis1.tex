@@ -16,26 +16,26 @@ Model & HAR & Full & $\Delta$ (\%) & $\DM$ & $\Delta\SR$ & $t$ \\
 \midrule
 \multicolumn{7}{@{}l}{\textit{Panel A: Closing-interval models}} \\
 \addlinespace[2pt]
-Ridge & 0.1033 & 0.1031 & $-0.1^{\phantom{***}}$ & $(-0.04)$ & $0.00^{\phantom{***}}$ & $(-0.27)$ \\
-Lasso & 0.1033 & 0.0992 & $-4.0^{*\phantom{**}}$ & $(-1.91)$ & $-0.03^{\phantom{***}}$ & $(0.35)$ \\
-Elastic net & 0.1033 & 0.1014 & $-1.8^{\phantom{***}}$ & $(-0.55)$ & $0.21^{\phantom{***}}$ & $(0.74)$ \\
-LightGBM & 0.1094 & 0.1049 & $-4.1^{\phantom{***}}$ & $(-1.48)$ & $0.87^{\phantom{***}}$ & $(1.41)$ \\
-XGBoost & 0.1076 & 0.1031 & $-4.1^{\phantom{***}}$ & $(-1.63)$ & $0.34^{\phantom{***}}$ & $(0.53)$ \\
-Random forest & 0.1068 & 0.1060 & $-0.8^{\phantom{***}}$ & $(-0.28)$ & $0.59^{\phantom{***}}$ & $(0.56)$ \\
+Ridge & 0.1033 & 0.1031 & $-0.1^{\phantom{***}}$ & $(-0.04)$ & $-0.12^{\phantom{***}}$ & $(-0.27)$ \\
+Lasso & 0.1033 & 0.0992 & $-4.0^{*\phantom{**}}$ & $(-1.91)$ & $0.12^{\phantom{***}}$ & $(0.35)$ \\
+Elastic net & 0.1033 & 0.1014 & $-1.8^{\phantom{***}}$ & $(-0.55)$ & $0.28^{\phantom{***}}$ & $(0.74)$ \\
+LightGBM & 0.1094 & 0.1049 & $-4.1^{\phantom{***}}$ & $(-1.48)$ & $0.74^{\phantom{***}}$ & $(1.41)$ \\
+XGBoost & 0.1076 & 0.1031 & $-4.1^{\phantom{***}}$ & $(-1.63)$ & $0.33^{\phantom{***}}$ & $(0.53)$ \\
+Random forest & 0.1068 & 0.1060 & $-0.8^{\phantom{***}}$ & $(-0.28)$ & $0.34^{\phantom{***}}$ & $(0.56)$ \\
 \addlinespace[4pt]
 \multicolumn{7}{@{}l}{\textit{Panel B: Intraday models}} \\
 \addlinespace[2pt]
-Ridge & 0.1137 & 0.1269 & $11.6^{**\phantom{*}}$ & $(2.44)$ & $0.77^{\phantom{***}}$ & $(1.32)$ \\
+Ridge & 0.1137 & 0.1269 & $11.6^{**\phantom{*}}$ & $(2.44)$ & $0.69^{\phantom{***}}$ & $(1.32)$ \\
 Lasso & 0.1137 & 0.1309 & $15.2^{***}$ & $(2.68)$ & $0.77^{\phantom{***}}$ & $(1.59)$ \\
-Elastic net & 0.1137 & 0.1245 & $9.5^{**\phantom{*}}$ & $(2.09)$ & $0.97^{\phantom{***}}$ & $(1.67)$ \\
-LightGBM & 0.1101 & 0.1086 & $-1.4^{\phantom{***}}$ & $(-0.49)$ & $1.06^{*\phantom{**}}$ & $(1.89)$ \\
-XGBoost & 0.1102 & 0.1083 & $-1.7^{\phantom{***}}$ & $(-0.63)$ & $0.81^{\phantom{***}}$ & $(1.16)$ \\
-Random forest & 0.1131 & 0.1123 & $-0.7^{\phantom{***}}$ & $(-0.27)$ & $1.98^{***}$ & $(2.42)$ \\
+Elastic net & 0.1137 & 0.1245 & $9.5^{**\phantom{*}}$ & $(2.09)$ & $0.90^{*\phantom{**}}$ & $(1.67)$ \\
+LightGBM & 0.1101 & 0.1086 & $-1.4^{\phantom{***}}$ & $(-0.49)$ & $0.88^{**\phantom{*}}$ & $(1.89)$ \\
+XGBoost & 0.1102 & 0.1083 & $-1.7^{\phantom{***}}$ & $(-0.63)$ & $0.56^{\phantom{***}}$ & $(1.16)$ \\
+Random forest & 0.1131 & 0.1123 & $-0.7^{\phantom{***}}$ & $(-0.27)$ & $1.56^{**\phantom{*}}$ & $(2.42)$ \\
 \bottomrule
 \end{tabular}
 \begin{tablenotes}[flushleft]
 \footnotesize
-\item \textit{Notes:} Rolling forecasts from \rhoosSpanStart{} to \rhoosSpanEnd{} ($T_{\mathrm{oos}} = \rhoosDays$ trading days, each forecast from a model estimated on its trailing window; Section~\ref{sec:rh_results_eval}); Sharpe ratios and HAC $t$-statistics on the \rhrDays{} days of the option-data subsample. QLIKE is the mean loss $\bar L$, with $L_t = \QLIKE(\RV_t, \hat\sigma^2_t)$, $\RV_t$ the actual realized variance of the closing half hour and $\hat\sigma^2_t = \hat y_t^{\,2} s^2_{t,c}$ the variance forecast. $\Delta = 100(\bar L^{\mathrm{Full}}/\bar L^{\mathrm{HAR}} - 1)$, negative when the full predictor set is more accurate, and $\DM$ is the Diebold--Mariano statistic of the daily loss differential (Harvey--Leybourne--Newbold correction; Newey--West lag $q_{\mathrm{NW}} = \rhrDMLag$). $\Delta\SR$ is the change in the annualized Sharpe ratio of the sign strategy at mid-quotes, with stars from the paired block-bootstrap test of equal Sharpe ratios, and $t$ the $t$-statistic of the mean daily return differential (Newey--West with bandwidth $S = \rheHACS$, fixed-$b$ critical values; Section~\ref{sec:rh_methods_tests}). $^{*}$, $^{**}$ and $^{***}$ denote significance at the 10\%, 5\% and 1\% levels. Closing-interval trees use fixed hyperparameters and are re-estimated every trading session (Section~\ref{sec:rh_exp_schemes}).
+\item \textit{Notes:} Rolling forecasts from \rhoosSpanStart{} to \rhoosSpanEnd{} ($T_{\mathrm{oos}} = \rhoosDays$ trading days, each forecast from a model estimated on its trailing window; Section~\ref{sec:rh_results_eval}); Sharpe ratios and HAC $t$-statistics on the \rhrDays{} days of the option-data subsample. QLIKE is the mean loss $\bar L$, with $L_t = \QLIKE(\RV_t, \hat\sigma^2_t)$, $\RV_t$ the actual realized variance of the closing half hour and $\hat\sigma^2_t = \hat y_t^{\,2} s^2_{t,c}$ the variance forecast. $\Delta = 100(\bar L^{\mathrm{Full}}/\bar L^{\mathrm{HAR}} - 1)$, negative when the full predictor set is more accurate, and $\DM$ is the Diebold--Mariano statistic of the daily loss differential (Harvey--Leybourne--Newbold correction; Newey--West lag $q_{\mathrm{NW}} = \rhrDMLag$). $\Delta\SR$ is the change in the annualized Sharpe ratio of the sign strategy at mid-quotes, with stars from the \citet{LedoitWolf2008} test of equal Sharpe ratios, and $t$ the $t$-statistic of the mean daily return differential (Newey--West with bandwidth $S = \rheHACS$, fixed-$b$ critical values; Section~\ref{sec:rh_methods_tests}). $^{*}$, $^{**}$ and $^{***}$ denote significance at the 10\%, 5\% and 1\% levels. Closing-interval trees use fixed hyperparameters and are re-estimated every trading session (Section~\ref{sec:rh_exp_schemes}).
 \end{tablenotes}
 \end{threeparttable}
 \end{table}

@@ -43,6 +43,15 @@ TRADE (experiments/master_table_close.py:1168-1187, 1293-1312)
   hi.LW_BLOCK, hi.LW_BOOT resamples, seed hi.D6_SEED).  The Ledoit-Wolf p stays computed (lw_p) for the robustness
   table of the Sharpe-ratio definitions (rehaul_econ_sharpe_defs.tex: D6, the per-year ratio "D1", the pooled
   sqrt(252) ratio "D2", and D6 before / after 16 May 2022, for the six pooled classes, full set minus HAR).
+  2026-10-26 (author decision D19): the paper's Sharpe ratio is the standard pooled ratio, sqrt(q) mean / sd (ddof 1)
+  of all 614 post-warmup returns, q = T / sum_y c_y = 225.5 (hac_inference.paper_sharpe; sharpe_days / sharpe), and
+  every significance on a Sharpe-ratio difference is the Ledoit-Wolf (2008) test of equal pooled ratios (sr_p = lw_p).
+  D6 stays as a robustness column (sharpe_days_d6, boot_p_d6); the paired block bootstrap of the pooled difference
+  (boot_p) is a check, written with every tested pair to generated/sharpe_tests_d19_economics.csv. The definitions
+  table: the paper's ratio (Ledoit-Wolf p), D6 (bootstrap p), D1, and the paper's ratio before / from 16 May 2022,
+  each pooled with its own q. New macros rheAnnDays, rheAnnYears (q and sum_y c_y), rheAnnSqrt, rheAnnDays{Pre,Post},
+  rheAnnYears{Pre,Post}, rheDefDPool<Cls>, rheDefDPool{Pos,Min,Max}, rheDefPoolSig, rheDefPoolSigNeg,
+  rheRankCorr{Q,ES}PoolDSix.
 
 SIZING (writeup/master_table_gui/rows.py:88-134 _position_sizes, :1140-1180 _score_sizes)
   The GUI's functions are called directly: sizes use only earlier days; scored on days 253-866 (614).
@@ -294,13 +303,23 @@ def pw_days() -> pd.DatetimeIndex:
 #     return float(x.mean() / x.std(ddof=1) * ANN)
 # 2026-10-22 (user, D6): parked -- the N_y-weighted per-year ratio (new-notes 15). Was:
 #     return float(asl.sharpe_ann_by_year(x, dates=dates)["sharpe"])
+# 2026-10-26 (author decision D19): parked -- D6, the equal-year mean of the SR_y, as the paper's ratio; it is now the
+# robustness column sharpe_days_d6. Was:
+#     return float(hi.d6_sharpe(x, dates=_days_of(x, dates))["sharpe"])
 def sharpe_days(x, dates=None) -> float:
-    """The paper's Sharpe ratio (D6, hac_inference.d6_sharpe) on exactly the days given (sizing, printed ratios): the
-    simple mean over calendar years of SR_y = mean_y / sd_y * sqrt(A_y), A_y = the year's days over the fraction of
-    the year the days span.
+    """The paper's Sharpe ratio (D19, hac_inference.paper_sharpe) on exactly the days given (sizing, printed ratios):
+    sqrt(q) * mean / sd (ddof 1) of all the returns, each day weighing 1/T, q = T / sum_y c_y (c_y the fraction of
+    calendar year y the days span; q = 225.5 on the 614 post-warmup days).
 
     dates: the date of each return; when omitted, x must span the 866 option days or the 614 post-warmup days.
     """
+    x = np.asarray(x, dtype=float)
+    return float(hi.paper_sharpe(x, dates=_days_of(x, dates))["sharpe"])
+
+
+def sharpe_days_d6(x, dates=None) -> float:
+    """2026-10-26 (D19): D6, the paper's ratio from 2026-10-22 to 2026-10-26 (hac_inference.d6_sharpe: the simple mean
+    over calendar years of SR_y = mean_y / sd_y * sqrt(A_y)): robustness column only."""
     x = np.asarray(x, dtype=float)
     return float(hi.d6_sharpe(x, dates=_days_of(x, dates))["sharpe"])
 
@@ -371,23 +390,72 @@ def lw_p(series, key_a: str, key_b: str, col: str = "mid", block: int = hi.LW_BL
     return LW_CACHE[k]
 
 
+def sr_p(series, key_a: str, key_b: str, col: str = "mid") -> float:
+    """2026-10-26 (author decision D19): the paper's test of a Sharpe-ratio difference, forecast key_a minus key_b, on
+    the 614 post-warmup days: the Ledoit-Wolf (2008) test of equal pooled ratios (lw_p, block hi.LW_BLOCK). The
+    significance of every printed Sharpe-ratio difference (stars, p, counts). Each call also logs the pair, with the
+    check p of the paired block bootstrap (boot_p), to TEST_LOG (sharpe_tests_d19_economics.csv)."""
+    p = lw_p(series, key_a, key_b, col)
+    k = (key_a, key_b, col)
+    if k not in TEST_LOG:
+        a, b = post_warmup(series[key_a][col]), post_warmup(series[key_b][col])
+        TEST_LOG[k] = dict(
+            key_a=key_a,
+            key_b=key_b,
+            col=col,
+            sr_a=sharpe_days(a),
+            sr_b=sharpe_days(b),
+            d_sr=sharpe_days(a) - sharpe_days(b),
+            p_lw=p,
+            p_boot=boot_p(series, key_a, key_b, col),
+            d_sr_d6=sharpe_days_d6(a) - sharpe_days_d6(b),
+            p_boot_d6=boot_p_d6(series, key_a, key_b, col),
+        )
+    return p
+
+
+TEST_LOG: dict[tuple, dict] = {}
 BOOT_CACHE: dict[tuple, float] = {}
+BOOT_D6_CACHE: dict[tuple, float] = {}
 
 
+# 2026-10-26 (author decision D19): parked -- the bootstrap of the D6 difference as the paper's test (now boot_p_d6, the
+# robustness column; the paper's test is sr_p, Ledoit-Wolf). Was, as boot_p:
+#     r = hi.d6_diff_test(a, b, pw_days())
+#     assert abs(r["delta"] - (sharpe_days(a) - sharpe_days(b))) < 1e-10, (k, r["delta"])
 def boot_p(series, key_a: str, key_b: str, col: str = "mid") -> float:
-    """2026-10-22 (user, D6): p of the paired circular block bootstrap of the D6 Sharpe-ratio difference, forecast
-    key_a minus key_b, on the 614 post-warmup days (hac_inference.d6_diff_test: block hi.LW_BLOCK, hi.LW_BOOT
-    resamples, seed hi.D6_SEED). The significance of every printed Sharpe-ratio difference (stars, p, counts)."""
+    """2026-10-26 (D19): the check p (CSV only) of the paired circular block bootstrap of the difference of the paper's
+    pooled ratios, forecast key_a minus key_b, on the 614 post-warmup days (hac_inference.pooled_diff_boot: the
+    resamples of d6_diff_test, block hi.LW_BLOCK, hi.LW_BOOT resamples, seed hi.D6_SEED)."""
     k = (key_a, key_b, col)
     if k not in BOOT_CACHE:
         a, b = post_warmup(series[key_a][col]), post_warmup(series[key_b][col])
-        r = hi.d6_diff_test(a, b, pw_days())
-        assert abs(r["delta"] - (sharpe_days(a) - sharpe_days(b))) < 1e-10, (
-            k,
-            r["delta"],
-        )
+        r = hi.pooled_diff_boot(a, b, pw_days())
+        assert abs(r["delta"] - (sharpe_days(a) - sharpe_days(b))) < 1e-10, (k, r["delta"])
         BOOT_CACHE[k] = r["p"]
     return BOOT_CACHE[k]
+
+
+def boot_p_d6(series, key_a: str, key_b: str, col: str = "mid") -> float:
+    """2026-10-22 (user, D6); 2026-10-26 (D19): robustness only -- p of the paired circular block bootstrap of the D6
+    Sharpe-ratio difference (hac_inference.d6_diff_test: block hi.LW_BLOCK, hi.LW_BOOT resamples, seed hi.D6_SEED)."""
+    k = (key_a, key_b, col)
+    if k not in BOOT_D6_CACHE:
+        a, b = post_warmup(series[key_a][col]), post_warmup(series[key_b][col])
+        r = hi.d6_diff_test(a, b, pw_days())
+        assert abs(r["delta"] - (sharpe_days_d6(a) - sharpe_days_d6(b))) < 1e-10, (k, r["delta"])
+        BOOT_D6_CACHE[k] = r["p"]
+    return BOOT_D6_CACHE[k]
+
+
+def write_test_log(name: str = "economics") -> None:
+    """2026-10-26 (D19): every Sharpe-ratio difference tested by sr_p in this process, with its Ledoit-Wolf p (the
+    paper's), the check p of the paired block bootstrap of the pooled difference, and the D6 difference with its
+    bootstrap p, to generated/sharpe_tests_d19_<name>.csv."""
+    if TEST_LOG:
+        out = GEN / f"sharpe_tests_d19_{name}.csv"
+        pd.DataFrame(list(TEST_LOG.values())).to_csv(out, index=False, float_format="%.6f")
+        print("wrote", out.name, f"({len(TEST_LOG)} tested pairs)")
 
 
 def nw_t_all(x) -> float:
@@ -856,6 +924,10 @@ def pair_stats(series, base, new) -> dict:
         # Ledoit-Wolf p stays (lw_*), for the robustness table of the Sharpe-ratio definitions
         "lw_mid": lw_p(series, new, base, "mid"),
         "lw_x": lw_p(series, new, base, "x"),
+        # 2026-10-26 (author decision D19): the stars and counts use the paper's test, Ledoit-Wolf (p_*, = lw_*); the
+        # paired block bootstrap of the pooled difference (bt_*) is a check, in sharpe_tests_d19_economics.csv only
+        "p_mid": sr_p(series, new, base, "mid"),
+        "p_x": sr_p(series, new, base, "x"),
         "bt_mid": boot_p(series, new, base, "mid"),
         "bt_x": boot_p(series, new, base, "x"),
     }
@@ -1020,8 +1092,13 @@ NUMBERS_GUARD = "\\ifdefined\\rheNdays\\else\\input{generated/rehaul_econ_number
 #     r"$p$-value of the \citet{LedoitWolf2008} bootstrap test of equal Sharpe ratios on the \rheSzDays{} post-warmup "
 #     r"days, in brackets (Section~\ref{sec:rh_methods_tests})"
 # )
+# 2026-10-26 (author decision D19): parked -- the paired block-bootstrap p of the D6 difference. Was:
+# HAC_NOTE = (
+#     r"$p$-value of the paired block-bootstrap test of equal Sharpe ratios on the \rheSzDays{} post-warmup days, in "
+#     r"brackets (Section~\ref{sec:rh_methods_tests})"
+# )
 HAC_NOTE = (
-    r"$p$-value of the paired block-bootstrap test of equal Sharpe ratios on the \rheSzDays{} post-warmup days, in "
+    r"$p$-value of the \citet{LedoitWolf2008} test of equal Sharpe ratios on the \rheSzDays{} post-warmup days, in "
     r"brackets (Section~\ref{sec:rh_methods_tests})"
 )
 MEAN_NOTE = (
@@ -1265,7 +1342,9 @@ def table_e1(series, fam, model_set, trees) -> tuple[str, dict]:
             # p_lw = lw_p(series, key, SHORT, "mid")
             # top.append(cell(s["dsh"], 2, n_stars_p(p_lw)))
             # under.append(pbrack(p_lw))
-            p_bt = boot_p(series, key, SHORT, "mid")
+            # 2026-10-26 (author decision D19): parked -- the D6 bootstrap p; now the Ledoit-Wolf p (sr_p). Was:
+            # p_bt = boot_p(series, key, SHORT, "mid")
+            p_bt = sr_p(series, key, SHORT, "mid")
             top.append(cell(s["dsh"], 2, n_stars_p(p_bt)))
             under.append(pbrack(p_bt))
         return rows2(label, top, under)
@@ -1478,10 +1557,10 @@ def table_e2(series, fam, model_set) -> tuple[str, dict]:
             # 2026-10-21 (user, decision #2): Ledoit-Wolf p on dSharpe. Was: n_stars(s["t_mid"]), n_stars(s["t_x"]) and
             # tstat(s["t_mid"]), tstat(s["t_x"]) underneath
             # 2026-10-22 (user, D6): parked -- the Ledoit-Wolf p (lw_mid, lw_x); now the D6 bootstrap p (bt_mid, bt_x)
-            cell(s["d_mid"], 2, n_stars_p(s["bt_mid"])),
-            cell(s["d_x"], 2, n_stars_p(s["bt_x"])),
+            cell(s["d_mid"], 2, n_stars_p(s["p_mid"])),
+            cell(s["d_x"], 2, n_stars_p(s["p_x"])),
         ]
-        return rows2(label, top, ["", "", pbrack(s["bt_mid"]), pbrack(s["bt_x"])])
+        return rows2(label, top, ["", "", pbrack(s["p_mid"]), pbrack(s["p_x"])])
 
     def summary(label: str, keys: list[str]) -> str:
         v = pd.DataFrame([ps[k] for k in keys])
@@ -1497,8 +1576,8 @@ def table_e2(series, fam, model_set) -> tuple[str, dict]:
             "",
             # 2026-10-21 (user, decision #2): Ledoit-Wolf. Was: (v.t_mid > SIG), (v.t_x > SIG)
             # 2026-10-22 (user, D6): parked -- the Ledoit-Wolf p (v.lw_mid, v.lw_x); now the D6 bootstrap p
-            count(int(((v.bt_mid < 0.05) & (v.d_mid > 0)).sum()), n),
-            count(int(((v.bt_x < 0.05) & (v.d_x > 0)).sum()), n),
+            count(int(((v.p_mid < 0.05) & (v.d_mid > 0)).sum()), n),
+            count(int(((v.p_x < 0.05) & (v.d_x > 0)).sum()), n),
         ]
         return rows2(label, top, under)
 
@@ -1551,18 +1630,21 @@ def table_e2(series, fam, model_set) -> tuple[str, dict]:
         # and < -1.96 of the mean return differential): \rhePairsSig, \rhePairsSigNeg
         # 2026-10-22 (user, D6): parked -- the Ledoit-Wolf p (v.lw_mid, v.lw_x); now the D6 bootstrap p (bt_*). The
         # Ledoit-Wolf counts stay as sig_lw / sig_neg_lw (console)
-        "sig": int(((v.bt_mid < 0.05) & (v.d_mid > 0)).sum()),
-        "sig_neg": int(((v.bt_mid < 0.05) & (v.d_mid < 0)).sum()),
-        "sig_neg_x": int(((v.bt_x < 0.05) & (v.d_x < 0)).sum()),
+        "sig": int(((v.p_mid < 0.05) & (v.d_mid > 0)).sum()),
+        "sig_neg": int(((v.p_mid < 0.05) & (v.d_mid < 0)).sum()),
+        "sig_neg_x": int(((v.p_x < 0.05) & (v.d_x < 0)).sum()),
         "sig_lw": int(((v.lw_mid < 0.05) & (v.d_mid > 0)).sum()),
         "sig_neg_lw": int(((v.lw_mid < 0.05) & (v.d_mid < 0)).sum()),
+        # 2026-10-26 (D19): the check counts of the paired block bootstrap of the pooled difference (console only)
+        "sig_bt": int(((v.bt_mid < 0.05) & (v.d_mid > 0)).sum()),
+        "sig_neg_bt": int(((v.bt_mid < 0.05) & (v.d_mid < 0)).sum()),
         "up_x": int((v.d_x > 0).sum()),
         "med": float(v.d_mid.median()),
         "med_x": float(v.d_x.median()),
         "n_tree": len(tree_keys),
         "n_tree_each": n_each["lgbm"],
         # was ps[b]["t_mid"] > SIG; 2026-10-22 (user, D6): was ps[b]["lw_mid"] < 0.05
-        "sig_keys": [b for b in ps if ps[b]["bt_mid"] < 0.05 and ps[b]["d_mid"] > 0],
+        "sig_keys": [b for b in ps if ps[b]["p_mid"] < 0.05 and ps[b]["d_mid"] > 0],
         "pairs": ps,
         "pairs13": ps13,  # 2026-10-22 (user, E34): Panel B, the pooled linear pairs on the trees' design
         "nn": nn,
@@ -1604,11 +1686,12 @@ Sharpe ratio difference is significantly positive at the 5\% level in brackets (
     # 2026-10-21 (user, decision #2): parked -- the note's "none is significantly negative" asserted on the HAC t; the
     # note now prints the Ledoit-Wolf counts. Was: assert info["sig_neg"] == 0 and int((v.t_x < -SIG).sum()) == 0
     print(
-        f"E2: dSharpe significantly negative (D6 bootstrap, 5 %): {info['sig_neg']} at mid, {info['sig_neg_x']} at bid/ask"
+        f"E2: dSharpe significantly negative (D19 Ledoit-Wolf, 5 %): {info['sig_neg']} at mid, {info['sig_neg_x']} at "
+        "bid/ask"
     )
     print(
-        f"D6 E2: significant at mid (bootstrap / Ledoit-Wolf): gains {info['sig']} / {info['sig_lw']}, losses "
-        f"{info['sig_neg']} / {info['sig_neg_lw']}"
+        f"D19 E2: significant at mid (Ledoit-Wolf / pooled bootstrap check): gains {info['sig']} / {info['sig_bt']}, "
+        f"losses {info['sig_neg']} / {info['sig_neg_bt']}"
     )
     return tex, info
 
@@ -1694,11 +1777,11 @@ def table_e3(series) -> tuple[str, list]:
                 cell(s["sh_b"], starred=False),  # closing interval
                 # 2026-10-21 (user, decision #2): Ledoit-Wolf p on dSharpe (was n_stars / tstat of the HAC t)
                 # 2026-10-22 (user, D6): parked -- the Ledoit-Wolf p (lw_mid, lw_x); now the D6 bootstrap p
-                cell(s["d_mid"], 2, n_stars_p(s["bt_mid"])),
-                cell(s["d_x"], 2, n_stars_p(s["bt_x"])),
+                cell(s["d_mid"], 2, n_stars_p(s["p_mid"])),
+                cell(s["d_x"], 2, n_stars_p(s["p_x"])),
                 cell(dq, 1, int(sum(dmr["p"] < a for a in LEVELS))),
             ]
-            under = ["", "", pbrack(s["bt_mid"]), pbrack(s["bt_x"]), tstat(dm)]
+            under = ["", "", pbrack(s["p_mid"]), pbrack(s["p_x"]), tstat(dm)]
             body += rows2(EST_NAME[e], top, under)
             rows_.append(dict(est=e, set=set_, **s, dq=dq, dm=dm, dm_lag=dmr["hac_lag"]))
     assert len({r["dm_lag"] for r in rows_}) == 1, rows_  # one lag in the notes
@@ -1986,25 +2069,40 @@ their own sign strategy. Point estimates; no test is reported.{e4_pending}
 
 
 # ============================================================================= 2026-10-22 (user, D6): definitions
+# 2026-10-26 (author decision D19): columns now (1) the paper's pooled ratio with the Ledoit-Wolf p, (2) D6, the
+# equal-year mean of the SR_y (the paper's ratio 2026-10-22 to 10-26) with its paired block-bootstrap p, (3) D1, the
+# per-year N_y-weighted ratio (the paper's ratio 2026-10-18 to 10-22), (4)-(5) the paper's ratio before / from 16 May
+# 2022, each pooled with its own q. The sqrt(252) pooled column (D2) is dropped: it is the paper's ratio times
+# sqrt(252 / q), with the same test (its macros stay). Was:
+#         top = [
+#             cell(r["d6"], 2, n_stars_p(r["bt"])),
+#             cell(r["d1"], starred=False),
+#             cell(r["d2"], 2, n_stars_p(r["lw"])),
+#             cell(r["pre"], starred=False),
+#             cell(r["post"], starred=False),
+#         ]
+#         body += rows2(r["name"], top, [pbrack(r["bt"]), "", pbrack(r["lw"]), "", ""])
+# with the header "& $\SR$ & Per-year, & Pooled, & Before & From \\ & (paper) & $N_y$-weighted & $\sqrt{{252}}$ & ..."
 def table_sharpe_defs(dfd: pd.DataFrame) -> str:
     """Robustness of the Sharpe-ratio definition (main(): the six pooled classes, full set minus HAR, mid-quotes, 614
-    post-warmup days): D6 with its bootstrap p, D1, D2 with the Ledoit-Wolf p, and D6 on each side of 16 May 2022."""
+    post-warmup days): the paper's pooled ratio with the Ledoit-Wolf p, D6 with its bootstrap p, D1, and the paper's
+    ratio on each side of 16 May 2022 (each pooled with its own q)."""
     body = ""
     for _, r in dfd.iterrows():
         if r["pending"]:  # 2026-10-23 (final_run.py PENDING): a pending class prints \rhPending{} in its five cells
             body += pending_row(r["name"], 5, "\\\\[2pt]")
             continue
         top = [
+            cell(r["pool"], 2, n_stars_p(r["lw"])),
             cell(r["d6"], 2, n_stars_p(r["bt"])),
             cell(r["d1"], starred=False),
-            cell(r["d2"], 2, n_stars_p(r["lw"])),
             cell(r["pre"], starred=False),
             cell(r["post"], starred=False),
         ]
-        body += rows2(r["name"], top, [pbrack(r["bt"]), "", pbrack(r["lw"]), "", ""])
+        body += rows2(r["name"], top, [pbrack(r["lw"]), pbrack(r["bt"]), "", "", ""])
     return (
         float_head(
-            "Table (D6 robustness)",
+            "Table (Sharpe-ratio definitions, D19)",
             "the Sharpe-ratio change of the pooled models under other definitions",
         )
         + rf"""\begin{{table}}[tbp]
@@ -2017,8 +2115,8 @@ def table_sharpe_defs(dfd: pd.DataFrame) -> str:
 \toprule
  & \multicolumn{{3}}{{c}}{{All \rheSzDays{{}} post-warmup days}} & \multicolumn{{2}}{{c}}{{$\SR$ by subsample}} \\
 \cmidrule(lr){{2-4}}\cmidrule(l){{5-6}}
- & $\SR$ & Per-year, & Pooled, & Before & From \\
- & (paper) & $N_y$-weighted & $\sqrt{{252}}$ & \rheSplitDate & \rheSplitDate \\
+ & $\SR$ & Mean of & Per-year, & Before & From \\
+ & (paper) & $\SR_y$ & $N_y$-weighted & \rheSplitDate & \rheSplitDate \\
 \midrule
 {body}\bottomrule
 \end{{tabular}}
@@ -2026,14 +2124,15 @@ def table_sharpe_defs(dfd: pd.DataFrame) -> str:
 \footnotesize
 \item \textit{{Notes:}} Each row is a pooled intraday model class; each entry is the Sharpe ratio of the sign strategy
 at mid-quotes on the full predictor set minus that on the HAR benchmark. $\SR$ is the paper's Sharpe ratio
-(Section~\ref{{sec:rh_econ_measures}}): the equal-weight mean over calendar years of $\SR_y$, each year annualized by
-the square root of its option days per calendar year; in brackets, the $p$-value of the paired block-bootstrap test
-of equal Sharpe ratios (Section~\ref{{sec:rh_methods_tests}}). Per-year, $N_y$-weighted: each year's ratio scaled by
-the square root of its number of option days $N_y$, the years weighted by $N_y$. Pooled, $\sqrt{{252}}$: the ratio of
-the mean to the standard deviation of all \rheSzDays{{}} daily returns, times $\sqrt{{252}}$; in brackets, the
-$p$-value of the \citet{{LedoitWolf2008}} test, which tests the equality of these pooled ratios. The last two columns
-give $\SR$ on the \rheSplitPreN{{}} post-warmup days before \rheSplitDate{{}}, the first week with an expiration on
-every weekday, and on the \rheSplitPostN{{}} days from that date, each subsample annualized as a sample of its own.
+(Section~\ref{{sec:rh_econ_measures}}): the ratio of the mean to the standard deviation of all \rheSzDays{{}} daily
+returns, times the square root of $q = \rheAnnDays$ option days per calendar year; in brackets, the $p$-value of the
+\citet{{LedoitWolf2008}} test of equal Sharpe ratios (Section~\ref{{sec:rh_methods_tests}}). Mean of $\SR_y$: the
+equal-weight mean over calendar years of $\SR_y$, each year annualized by the square root of its own option days per
+calendar year; in brackets, the $p$-value of the paired block-bootstrap test of equal ratios. Per-year,
+$N_y$-weighted: each year's ratio scaled by the square root of its number of option days $N_y$, the years weighted by
+$N_y$. The last two columns give $\SR$ on the \rheSplitPreN{{}} post-warmup days before \rheSplitDate{{}}, the first
+week with an expiration on every weekday, and on the \rheSplitPostN{{}} days from that date, each subsample annualized
+by its own option days per calendar year ($q = \rheAnnDaysPre$ and $\rheAnnDaysPost$, respectively).
 {STAR_NOTE}{pending_note() if dfd["pending"].any() else ""}
 \end{{tablenotes}}
 \end{{threeparttable}}
@@ -2749,22 +2848,22 @@ and median of the {len(model_set)} forecasts of the model set (median {", ".join
     nums += mac(
         "rhePairsSig",
         str(e2i["sig"]),
-        "... Sharpe mid higher and D6 bootstrap p < 0.05",
+        "... Sharpe mid higher and Ledoit-Wolf p < 0.05 (D19; D6 bootstrap 10-22 to 10-26)",
     )
     nums += mac(
         "rhePairsSigNeg",
         str(e2i["sig_neg"]),
-        "... Sharpe mid lower and D6 bootstrap p < 0.05",
+        "... Sharpe mid lower and Ledoit-Wolf p < 0.05 (D19; D6 bootstrap 10-22 to 10-26)",
     )
     nums += mac(
         "rhePairsSigLW",
         str(e2i["sig_lw"]),
-        "... Sharpe mid higher and Ledoit-Wolf p < 0.05 (robustness)",
+        "... Sharpe mid higher and Ledoit-Wolf p < 0.05 (= rhePairsSig since D19)",
     )
     nums += mac(
         "rhePairsSigNegLW",
         str(e2i["sig_neg_lw"]),
-        "... Sharpe mid lower and Ledoit-Wolf p < 0.05 (robustness)",
+        "... Sharpe mid lower and Ledoit-Wolf p < 0.05 (= rhePairsSigNeg since D19)",
     )
     nums += mac("rhePairsMed", m2(e2i["med"], plus=True), "... median dSharpe mid")
     for r, nm in (
@@ -2827,11 +2926,11 @@ and median of the {len(model_set)} forecasts of the model set (median {", ".join
     # af_enet_lasso_sig = sum(
     #     e2i["pairs"][k]["lw_mid"] < 0.05 for k in ("subpt_enet_baseline", "subpt_lasso_baseline")
     # )
-    af_enet_lasso_sig = sum(e2i["pairs"][k]["bt_mid"] < 0.05 for k in ("subpt_enet_baseline", "subpt_lasso_baseline"))
+    af_enet_lasso_sig = sum(e2i["pairs"][k]["p_mid"] < 0.05 for k in ("subpt_enet_baseline", "subpt_lasso_baseline"))
     print(
-        "closing-interval enet / lasso, full vs HAR, D6 bootstrap p / Ledoit-Wolf p:",
+        "closing-interval enet / lasso, full vs HAR, D19 Ledoit-Wolf p / pooled bootstrap check p:",
         [
-            (round(e2i["pairs"][k]["bt_mid"], 4), round(e2i["pairs"][k]["lw_mid"], 4))
+            (round(e2i["pairs"][k]["p_mid"], 4), round(e2i["pairs"][k]["bt_mid"], 4))
             for k in ("subpt_enet_baseline", "subpt_lasso_baseline")
         ],
     )
@@ -2841,7 +2940,7 @@ and median of the {len(model_set)} forecasts of the model set (median {", ".join
     nums += mac(
         "rheAfEnetLassoSig",
         str(af_enet_lasso_sig),
-        "... of those two, D6 bootstrap p < 0.05 on the Sharpe mid change (2026-10-22, D6; was Ledoit-Wolf)",
+        "... of those two, Ledoit-Wolf p < 0.05 on the Sharpe mid change (2026-10-26, D19; D6 bootstrap 10-22 to 10-26)",
     )
     # 2026-10-18 (user, second-list N2): parked -- the losing-year count ran over all 866 option days (2020-2024, 5
     # years, yrs[SHORT] of fig_byyear), while the Sharpe ratio it sits next to (07_economics.tex) is on the 614
@@ -2974,7 +3073,9 @@ and median of the {len(model_set)} forecasts of the model set (median {", ".join
     )
     # 2026-10-22 (user, D6): the two macros above use the D6 Sharpe ratio (sharpe()); the same correlations under the
     # per-year ratio D1 (N_y-weighted sqrt(N_y)) and the pooled sqrt(252) ratio D2, robustness (new macros)
-    for nm_, fn_ in (("DOne", sharpe_days_d1), ("DTwo", sharpe_days_252)):
+    # 2026-10-26 (author decision D19): + DSix, the D6 ratio (the paper's ratio before D19), as robustness. Was:
+    # for nm_, fn_ in (("DOne", sharpe_days_d1), ("DTwo", sharpe_days_252)):
+    for nm_, fn_ in (("DOne", sharpe_days_d1), ("DTwo", sharpe_days_252), ("DSix", sharpe_days_d6)):
         sh_alt = pd.Series({k: fn_(post_warmup(v["mid"])) for k, v in pser.items()})
         for what_, loss_ in (("Q", ql_p), ("ES", es_p)):
             rho_ = float(loss_.rank().corr(sh_alt.rank()))
@@ -3056,11 +3157,16 @@ and median of the {len(model_set)} forecasts of the model set (median {", ".join
     # (A_y from the fraction of year y between the side's first and last day; the simple mean over the side's years).
     # Was:
     #     out = asl.sharpe_ann_by_year(np.asarray(r, float)[WARMUP:][m], dates=side_days[side], combine="weighted")
-    def split_sr(r, side: str) -> float:
+    # 2026-10-26 (author decision D19): parked -- D6 on each side. Now the paper's pooled ratio on each side's own
+    # sample, annualized by its own q = N_side / sum_y c_y (c_y between the side's first and last day). Was:
+    #     out = hi.d6_sharpe(np.asarray(r, float)[WARMUP:][m], dates=side_days[side])
+    def split_sr(r, side: str, d6: bool = False) -> float:
         m = pre_m if side == "Pre" else ~pre_m
-        out = hi.d6_sharpe(np.asarray(r, float)[WARMUP:][m], dates=side_days[side])
+        out = hi.paper_sharpe(np.asarray(r, float)[WARMUP:][m], dates=side_days[side])
         assert {int(y): int(v[0]) for y, v in out["by_year"].items()} == want_ny[side], (side, out["by_year"])
-        return float(out["sharpe"])
+        return float(out["sharpe_d6" if d6 else "sharpe"])
+
+    split_q = {side: hi.paper_q(side_days[side]) for side in ("Pre", "Post")}
 
     bS = series[OLS]
     R_S = bS["R"].to_numpy(float)
@@ -3121,8 +3227,8 @@ and median of the {len(model_set)} forecasts of the model set (median {", ".join
         float_format="%.6f",
     )
     print(
-        "item 19 split (D6 SR, mid / crossed):\n" + sp.round(3).to_string(index=False)
-    )  # 2026-10-22 (D6): was "per-year SR"
+        "item 19 split (D19 pooled SR, own q, mid / crossed):\n" + sp.round(3).to_string(index=False)
+    )  # 2026-10-22 (D6): was "per-year SR"; 2026-10-26 (D19): was "D6 SR"
     print("item 19 always short:", {k_: round(v_, 3) for k_, v_ in shS.items()})
     nums += mac(
         "rheSplitDate",
@@ -3145,7 +3251,8 @@ and median of the {len(model_set)} forecasts of the model set (median {", ".join
             c = sp[f"{side.lower()}_{col}"]
             # 2026-10-22 (user, D6): "per-year SR" -> "D6 SR" in the macro comments
             # 2026-10-23 (final_run.py PENDING): the finished pooled forecasts. Was: "..., 12 pooled intraday forecasts, ..."
-            what = f"{'before' if side == 'Pre' else 'from'} the split, {'mid-quote' if col == 'mid' else 'crossed'} fills, {n_pool} pooled intraday forecasts, D6 SR"
+            # 2026-10-26 (D19): "D6 SR" -> "paper's SR (pooled, own q)"
+            what = f"{'before' if side == 'Pre' else 'from'} the split, {'mid-quote' if col == 'mid' else 'crossed'} fills, {n_pool} pooled intraday forecasts, paper's SR (pooled, own q)"
             nums += mac(
                 f"rheSplit{side}Med{f}",
                 mdp(c.median(), 2),
@@ -3163,7 +3270,7 @@ and median of the {len(model_set)} forecasts of the model set (median {", ".join
                 mdp(shS[side + f], 2),
                 "always-short straddle Sharpe ratio "
                 + what.split(f", {n_pool} pooled")[0]  # 2026-10-23: was what.split(", 12")[0]
-                + ", D6 SR",
+                + ", paper's SR (pooled, own q)",
             )
 
     # 2026-10-22 (user, D6): robustness of the Sharpe-ratio definition. The six pooled intraday classes, full predictor
@@ -3194,36 +3301,53 @@ and median of the {len(model_set)} forecasts of the model set (median {", ".join
         )
         hp, fp = post_warmup(h_), post_warmup(f_)
         bt_ = hi.d6_diff_test(fp, hp, pw_days_)
+        # 2026-10-26 (author decision D19): the paper's column is now the pooled ratio with the Ledoit-Wolf p (pool, lw;
+        # the paired block bootstrap of the pooled difference, bt_pool, is a check in the CSV); D6 (the paper's ratio
+        # before D19) is the second column with its own bootstrap p (d6, bt); the subsamples are the pooled ratio with
+        # each side's own q. Was: d6=sharpe(f_) - sharpe(h_) (the paper's ratio was D6), pre / post = D6 by side
+        tst_ = hi.paper_sharpe_test(fp, hp, pw_days_)
         row_ = dict(
             name=name,
             tok=tok_,
-            d6=sharpe(f_) - sharpe(h_),
+            pool=sharpe(f_) - sharpe(h_),
+            lw=tst_["p_lw"],
+            bt_pool=tst_["p_boot"],
+            d6=sharpe_days_d6(fp) - sharpe_days_d6(hp),
             bt=bt_["p"],
             d1=sharpe_days_d1(fp) - sharpe_days_d1(hp),
             d2=sharpe_days_252(fp) - sharpe_days_252(hp),
-            lw=hi.lw_sharpe_test(fp, hp)["p"],
             pre=split_sr(f_, "Pre") - split_sr(h_, "Pre"),
             post=split_sr(f_, "Post") - split_sr(h_, "Post"),
+            pre_d6=split_sr(f_, "Pre", d6=True) - split_sr(h_, "Pre", d6=True),
+            post_d6=split_sr(f_, "Post", d6=True) - split_sr(h_, "Post", d6=True),
             pending=False,
         )
         assert abs(bt_["delta"] - row_["d6"]) < 1e-10, (k, bt_["delta"], row_["d6"])
+        assert abs(tst_["delta"] - row_["pool"]) < 1e-10, (k, tst_["delta"], row_["pool"])
+        assert abs(tst_["p_lw"] - hi.lw_sharpe_test(fp, hp)["p"]) < 1e-12, k
         def_rows.append(row_)
     dfd = pd.DataFrame(def_rows).set_index("tok")
     dfd_done = dfd[~dfd["pending"]]  # 2026-10-23 (final_run.py PENDING): the finished classes, every statistic below
-    print("D6 robustness of the Sharpe-ratio definition (full minus HAR, mid, 614 days):\n" + dfd.round(4).to_string())
+    print("D19 robustness of the Sharpe-ratio definition (full minus HAR, mid, 614 days):\n" + dfd.round(4).to_string())
+    dfd.reset_index().to_csv(GEN / "sharpe_tests_d19_defs.csv", index=False, float_format="%.6f")  # 2026-10-26 (D19)
 
     def p_mac(p: float) -> str:
         return p_digits(p) if p >= 0.001 else r"\ensuremath{<}0.001"
 
     for tok_, r_ in dfd.iterrows():
         if r_["pending"]:  # 2026-10-23 (final_run.py PENDING): every macro of a pending class is \rhPending{}
-            for stem_ in ("DSix", "BootP", "DOne", "DTwo", "LWP", "Pre", "Post"):
+            for stem_ in ("DPool", "DSix", "BootP", "DOne", "DTwo", "LWP", "Pre", "Post"):  # D19: + DPool
                 nums += mac(
                     f"rheDef{stem_}{tok_}",
                     fr.PENDING_TEX,
                     f"pooled {r_['name']}: PENDING (no final forecasts), as rheDef{stem_} of the other classes",
                 )
             continue
+        nums += mac(
+            f"rheDefDPool{tok_}",
+            m2(r_["pool"], plus=True),
+            f"pooled {r_['name']}: the paper's (D19, pooled, q) Sharpe mid, full minus HAR (614 days); its p: rheDefLWP",
+        )
         nums += mac(
             f"rheDefDSix{tok_}",
             m2(r_["d6"], plus=True),
@@ -3245,15 +3369,16 @@ and median of the {len(model_set)} forecasts of the model set (median {", ".join
             p_mac(r_["lw"]),
             "... Ledoit-Wolf p (equal Sharpe ratios of the daily returns)",
         )
+        # 2026-10-26 (D19): the paper's ratio by subsample (pooled, each side's own q). Was: "... D6 change ..."
         nums += mac(
             f"rheDefPre{tok_}",
             m2(r_["pre"], plus=True),
-            "... D6 change before 16 May 2022 (125 days)",
+            "... the paper's SR change before 16 May 2022 (125 days, pooled, own q)",
         )
         nums += mac(
             f"rheDefPost{tok_}",
             m2(r_["post"], plus=True),
-            "... D6 change from 16 May 2022 (489 days)",
+            "... the paper's SR change from 16 May 2022 (489 days, pooled, own q)",
         )
     # 2026-10-23 (final_run.py PENDING): rheDefN, the denominator of the counts below, and the counts, minima and maxima
     # run over the finished classes (dfd_done; all six when nothing is pending); rheDefNAll counts the table's rows.
@@ -3271,6 +3396,7 @@ and median of the {len(model_set)} forecasts of the model set (median {", ".join
         "pooled classes of the Sharpe-definition table, pending ones included (rheDefN: the finished ones)",
     )
     for col, nm in (
+        ("pool", "DPool"),  # 2026-10-26 (D19)
         ("d6", "DSix"),
         ("d1", "DOne"),
         ("d2", "DTwo"),
@@ -3300,8 +3426,30 @@ and median of the {len(model_set)} forecasts of the model set (median {", ".join
     nums += mac(
         "rheDefLWSig",
         str(int((dfd_done["lw"] < 0.05).sum())),
-        f"pooled classes (of {n_def}) with Ledoit-Wolf p < 0.05",
+        f"pooled classes (of {n_def}) with Ledoit-Wolf p < 0.05 (2026-10-26, D19: the paper's test)",
     )
+    # 2026-10-26 (D19): the paper's test, by name, and its sign-split counts
+    nums += mac(
+        "rheDefPoolSig",
+        str(int(((dfd_done["lw"] < 0.05) & (dfd_done["pool"] > 0)).sum())),
+        f"pooled classes (of {n_def}) with the paper's SR change > 0 and Ledoit-Wolf p < 0.05",
+    )
+    nums += mac(
+        "rheDefPoolSigNeg",
+        str(int(((dfd_done["lw"] < 0.05) & (dfd_done["pool"] < 0)).sum())),
+        f"pooled classes (of {n_def}) with the paper's SR change < 0 and Ledoit-Wolf p < 0.05",
+    )
+    # 2026-10-26 (D19): the annualization of the paper's ratio, q = T / sum_y c_y, on the 614 days and by subsample
+    _pq = hi.paper_q(pw_days_)
+    assert _pq["T"] == 614 and abs(_pq["q"] - 225.5) < 0.1, _pq
+    nums += mac(
+        "rheAnnDays", f"{_pq['q']:.1f}", "q = T / sum_y c_y: option days per calendar year, 614 post-warmup days"
+    )
+    nums += mac("rheAnnYears", f"{_pq['sum_c']:.3f}", "sum_y c_y: calendar years the 614 post-warmup days span")
+    nums += mac("rheAnnSqrt", f"{np.sqrt(_pq['q']):.2f}", "sqrt(q), the annualization factor of the paper's ratio")
+    for side in ("Pre", "Post"):
+        nums += mac(f"rheAnnDays{side}", f"{split_q[side]['q']:.1f}", f"... q of the {side} subsample (own span)")
+        nums += mac(f"rheAnnYears{side}", f"{split_q[side]['sum_c']:.3f}", f"... sum_y c_y of the {side} subsample")
     defs_tex = table_sharpe_defs(dfd)
 
     days = series[SHORT].index
@@ -3465,6 +3613,7 @@ and median of the {len(model_set)} forecasts of the model set (median {", ".join
     write(GEN / "rehaul_econ_fig_byyear.tex", fig3)
     write(GEN / "rehaul_econ_numbers.tex", nums)
     write(GEN / "rehaul_econ_sharpe_defs.tex", defs_tex)  # 2026-10-22 (user, D6)
+    write_test_log()  # 2026-10-26 (D19): the Ledoit-Wolf p and the bootstrap check p of every tested pair
 
     # ---- console summary
     print("\nE1:")

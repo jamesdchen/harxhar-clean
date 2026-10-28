@@ -52,7 +52,7 @@
 \providecommand{\rhedOlsLongMid}{}\renewcommand{\rhedOlsLongMid}{9}  % ... its mean mid return on long days, %
 \providecommand{\rhedOlsShortMid}{}\renewcommand{\rhedOlsShortMid}{8}  % ... its mean mid return on short days, %
 \providecommand{\rhedOlsLongHit}{}\renewcommand{\rhedOlsLongHit}{46}  % ... % of its long days with RV > IV^2
-\providecommand{\rhedOlsSh}{}\renewcommand{\rhedOlsSh}{0.99}  % ... its Sharpe ratio, mid (= rhrOlsSharpe)
+\providecommand{\rhedOlsSh}{}\renewcommand{\rhedOlsSh}{1.11}  % ... its Sharpe ratio, mid (= rhrOlsSharpe)
 \providecommand{\rhedCalLevelMin}{}\renewcommand{\rhedCalLevelMin}{0.95}  % lowest mean forecast / mean RV across the six full-set pooled forecasts, 614 days
 \providecommand{\rhedCalLevelMax}{}\renewcommand{\rhedCalLevelMax}{1.01}  % highest mean forecast / mean RV across the six full-set pooled forecasts, 614 days
 \providecommand{\rhedCalScaleMin}{}\renewcommand{\rhedCalScaleMin}{1.09}  % lowest mean of RV / forecast (QLIKE-optimal scale) across the six full-set pooled forecasts, 614 days
@@ -71,35 +71,35 @@
 \providecommand{\rhedBcLongMax}{}\renewcommand{\rhedBcLongMax}{241}  % highest long days under the bias correction across the six full-set pooled forecasts, 614 days
 \providecommand{\rhedBcFlipRMin}{}\renewcommand{\rhedBcFlipRMin}{\ensuremath{-}24}  % lowest mean mid straddle return R on the changed days, % across the six full-set pooled forecasts, 614 days
 \providecommand{\rhedBcFlipRMax}{}\renewcommand{\rhedBcFlipRMax}{\ensuremath{-}8}  % highest mean mid straddle return R on the changed days, % across the six full-set pooled forecasts, 614 days
-\providecommand{\rhedBcShMin}{}\renewcommand{\rhedBcShMin}{0.88}  % lowest Sharpe ratio mid under the bias correction (diagnostic) across the six full-set pooled forecasts, 614 days
-\providecommand{\rhedBcShMax}{}\renewcommand{\rhedBcShMax}{1.42}  % highest Sharpe ratio mid under the bias correction (diagnostic) across the six full-set pooled forecasts, 614 days
-\providecommand{\rhedBcShXMin}{}\renewcommand{\rhedBcShXMin}{0.53}  % lowest Sharpe ratio bid/ask under the bias correction across the six full-set pooled forecasts, 614 days
-\providecommand{\rhedBcShXMax}{}\renewcommand{\rhedBcShXMax}{1.08}  % highest Sharpe ratio bid/ask under the bias correction across the six full-set pooled forecasts, 614 days
+\providecommand{\rhedBcShMin}{}\renewcommand{\rhedBcShMin}{0.92}  % lowest Sharpe ratio mid under the bias correction (diagnostic) across the six full-set pooled forecasts, 614 days
+\providecommand{\rhedBcShMax}{}\renewcommand{\rhedBcShMax}{1.32}  % highest Sharpe ratio mid under the bias correction (diagnostic) across the six full-set pooled forecasts, 614 days
+\providecommand{\rhedBcShXMin}{}\renewcommand{\rhedBcShXMin}{0.57}  % lowest Sharpe ratio bid/ask under the bias correction across the six full-set pooled forecasts, 614 days
+\providecommand{\rhedBcShXMax}{}\renewcommand{\rhedBcShXMax}{0.97}  % highest Sharpe ratio bid/ask under the bias correction across the six full-set pooled forecasts, 614 days
 \providecommand{\rhedLevFlipMin}{}\renewcommand{\rhedLevFlipMin}{4}  % lowest positions changed by the level correction (sum RV / sum fc) across the six full-set pooled forecasts, 614 days
 \providecommand{\rhedLevFlipMax}{}\renewcommand{\rhedLevFlipMax}{19}  % highest positions changed by the level correction (sum RV / sum fc) across the six full-set pooled forecasts, 614 days
-\providecommand{\rhedLevShMin}{}\renewcommand{\rhedLevShMin}{1.64}  % lowest Sharpe ratio mid under the level correction across the six full-set pooled forecasts, 614 days
-\providecommand{\rhedLevShMax}{}\renewcommand{\rhedLevShMax}{2.04}  % highest Sharpe ratio mid under the level correction across the six full-set pooled forecasts, 614 days
-\providecommand{\rhedHarBcShMin}{}\renewcommand{\rhedHarBcShMin}{0.75}  % lowest Sharpe ratio mid under the bias correction across the six HAR-benchmark pooled forecasts, 614 days
-\providecommand{\rhedHarBcShMax}{}\renewcommand{\rhedHarBcShMax}{1.18}  % highest Sharpe ratio mid under the bias correction across the six HAR-benchmark pooled forecasts, 614 days
+\providecommand{\rhedLevShMin}{}\renewcommand{\rhedLevShMin}{1.61}  % lowest Sharpe ratio mid under the level correction across the six full-set pooled forecasts, 614 days
+\providecommand{\rhedLevShMax}{}\renewcommand{\rhedLevShMax}{2.01}  % highest Sharpe ratio mid under the level correction across the six full-set pooled forecasts, 614 days
+\providecommand{\rhedHarBcShMin}{}\renewcommand{\rhedHarBcShMin}{0.76}  % lowest Sharpe ratio mid under the bias correction across the six HAR-benchmark pooled forecasts, 614 days
+\providecommand{\rhedHarBcShMax}{}\renewcommand{\rhedHarBcShMax}{1.05}  % highest Sharpe ratio mid under the bias correction across the six HAR-benchmark pooled forecasts, 614 days
 \providecommand{\rhedBcShUpN}{}\renewcommand{\rhedBcShUpN}{0}  % full-set forecasts whose mid SR rises under the bias correction
 \providecommand{\rhedBcShDownN}{}\renewcommand{\rhedBcShDownN}{6}  % full-set forecasts whose mid SR falls under the bias correction
-\providecommand{\rhedHarBcShUpN}{}\renewcommand{\rhedHarBcShUpN}{5}  % HAR-benchmark forecasts whose mid SR rises under the bias correction
+\providecommand{\rhedHarBcShUpN}{}\renewcommand{\rhedHarBcShUpN}{2}  % HAR-benchmark forecasts whose mid SR rises under the bias correction
 \providecommand{\rhedMoveSqIV}{}\renewcommand{\rhedMoveSqIV}{1.01}  % mean of the squared S&P 500 half-hour log return over IV_t^2, 614 days
 \providecommand{\rhedMoveSqRV}{}\renewcommand{\rhedMoveSqRV}{1.15}  % mean squared S&P 500 half-hour log return over mean RV_t, 614 days
 \providecommand{\rhedOlsCalScale}{}\renewcommand{\rhedOlsCalScale}{1.01}  % mean of RV / forecast, closing-interval HAR forecast
-\providecommand{\rhedOlsBcSh}{}\renewcommand{\rhedOlsBcSh}{1.00}  % Sharpe ratio mid under the bias correction, closing-interval HAR
+\providecommand{\rhedOlsBcSh}{}\renewcommand{\rhedOlsBcSh}{1.12}  % Sharpe ratio mid under the bias correction, closing-interval HAR
 \providecommand{\rhedBcFlipRidge}{}\renewcommand{\rhedBcFlipRidge}{105}  % positions changed by the bias correction, poolpt13_ridge_all_features
-\providecommand{\rhedBcShRidge}{}\renewcommand{\rhedBcShRidge}{1.08}  % Sharpe ratio mid under the bias correction, poolpt13_ridge_all_features
+\providecommand{\rhedBcShRidge}{}\renewcommand{\rhedBcShRidge}{1.17}  % Sharpe ratio mid under the bias correction, poolpt13_ridge_all_features
 \providecommand{\rhedBcFlipLasso}{}\renewcommand{\rhedBcFlipLasso}{120}  % positions changed by the bias correction, poolpt13_lasso_all_features
-\providecommand{\rhedBcShLasso}{}\renewcommand{\rhedBcShLasso}{1.19}  % Sharpe ratio mid under the bias correction, poolpt13_lasso_all_features
+\providecommand{\rhedBcShLasso}{}\renewcommand{\rhedBcShLasso}{1.31}  % Sharpe ratio mid under the bias correction, poolpt13_lasso_all_features
 \providecommand{\rhedBcFlipEnet}{}\renewcommand{\rhedBcFlipEnet}{108}  % positions changed by the bias correction, poolpt13_enet_all_features
-\providecommand{\rhedBcShEnet}{}\renewcommand{\rhedBcShEnet}{0.88}  % Sharpe ratio mid under the bias correction, poolpt13_enet_all_features
+\providecommand{\rhedBcShEnet}{}\renewcommand{\rhedBcShEnet}{0.99}  % Sharpe ratio mid under the bias correction, poolpt13_enet_all_features
 \providecommand{\rhedBcFlipLgbm}{}\renewcommand{\rhedBcFlipLgbm}{55}  % positions changed by the bias correction, pooltree_lgbm_all_features
-\providecommand{\rhedBcShLgbm}{}\renewcommand{\rhedBcShLgbm}{1.42}  % Sharpe ratio mid under the bias correction, pooltree_lgbm_all_features
+\providecommand{\rhedBcShLgbm}{}\renewcommand{\rhedBcShLgbm}{1.32}  % Sharpe ratio mid under the bias correction, pooltree_lgbm_all_features
 \providecommand{\rhedBcFlipXgb}{}\renewcommand{\rhedBcFlipXgb}{61}  % positions changed by the bias correction, pooltree_xgb_all_features
-\providecommand{\rhedBcShXgb}{}\renewcommand{\rhedBcShXgb}{1.24}  % Sharpe ratio mid under the bias correction, pooltree_xgb_all_features
+\providecommand{\rhedBcShXgb}{}\renewcommand{\rhedBcShXgb}{1.15}  % Sharpe ratio mid under the bias correction, pooltree_xgb_all_features
 \providecommand{\rhedBcFlipRf}{}\renewcommand{\rhedBcFlipRf}{90}  % positions changed by the bias correction, pooltree_rf_all_features
-\providecommand{\rhedBcShRf}{}\renewcommand{\rhedBcShRf}{0.99}  % Sharpe ratio mid under the bias correction, pooltree_rf_all_features
+\providecommand{\rhedBcShRf}{}\renewcommand{\rhedBcShRf}{0.92}  % Sharpe ratio mid under the bias correction, pooltree_rf_all_features
 \providecommand{\rhedQMonoN}{}\renewcommand{\rhedQMonoN}{6}  % full-set forecasts whose mean RV/IV^2 rises across all five quintiles
 \providecommand{\rhedHarQMonoN}{}\renewcommand{\rhedHarQMonoN}{4}  % HAR-benchmark forecasts whose mean RV/IV^2 rises across all five quintiles
 \providecommand{\rhedQRPatternN}{}\renewcommand{\rhedQRPatternN}{6}  % full-set forecasts with mean R < 0 in quintiles 1-4 and > 0 in 5
@@ -147,23 +147,23 @@
 \providecommand{\rhedBestNoTagN}{}\renewcommand{\rhedBestNoTagN}{8}  % best-day union: days without any event tag (calendar as covered)
 \providecommand{\rhedBestAfterRelN}{}\renewcommand{\rhedBestAfterRelN}{5}  % best-day union: days after the release calendar ends (dagger)
 \providecommand{\rhedWorstAfterRelN}{}\renewcommand{\rhedWorstAfterRelN}{4}  % worst-day union: days after the release calendar ends
-\providecommand{\rhedDShortAllMin}{}\renewcommand{\rhedDShortAllMin}{1.78}  % lowest Delta SR mid vs the short straddle, all days across the six full-set pooled forecasts, 614 days
-\providecommand{\rhedDShortAllMax}{}\renewcommand{\rhedDShortAllMax}{2.10}  % highest Delta SR mid vs the short straddle, all days across the six full-set pooled forecasts, 614 days
-\providecommand{\rhedDShortExBestMin}{}\renewcommand{\rhedDShortExBestMin}{\ensuremath{-}0.34}  % lowest Delta SR mid vs the short straddle without the forecast's ten best days across the six full-set pooled forecasts, 614 days
-\providecommand{\rhedDShortExBestMax}{}\renewcommand{\rhedDShortExBestMax}{0.13}  % highest Delta SR mid vs the short straddle without the forecast's ten best days across the six full-set pooled forecasts, 614 days
-\providecommand{\rhedDShortExBothMin}{}\renewcommand{\rhedDShortExBothMin}{\ensuremath{-}0.35}  % lowest ... without its ten best and ten worst days across the six full-set pooled forecasts, 614 days
-\providecommand{\rhedDShortExBothMax}{}\renewcommand{\rhedDShortExBothMax}{0.13}  % highest ... without its ten best and ten worst days across the six full-set pooled forecasts, 614 days
+\providecommand{\rhedDShortAllMin}{}\renewcommand{\rhedDShortAllMin}{1.21}  % lowest Delta SR mid vs the short straddle, all days across the six full-set pooled forecasts, 614 days
+\providecommand{\rhedDShortAllMax}{}\renewcommand{\rhedDShortAllMax}{1.56}  % highest Delta SR mid vs the short straddle, all days across the six full-set pooled forecasts, 614 days
+\providecommand{\rhedDShortExBestMin}{}\renewcommand{\rhedDShortExBestMin}{\ensuremath{-}0.54}  % lowest Delta SR mid vs the short straddle without the forecast's ten best days across the six full-set pooled forecasts, 614 days
+\providecommand{\rhedDShortExBestMax}{}\renewcommand{\rhedDShortExBestMax}{\ensuremath{-}0.12}  % highest Delta SR mid vs the short straddle without the forecast's ten best days across the six full-set pooled forecasts, 614 days
+\providecommand{\rhedDShortExBothMin}{}\renewcommand{\rhedDShortExBothMin}{\ensuremath{-}0.64}  % lowest ... without its ten best and ten worst days across the six full-set pooled forecasts, 614 days
+\providecommand{\rhedDShortExBothMax}{}\renewcommand{\rhedDShortExBothMax}{\ensuremath{-}0.14}  % highest ... without its ten best and ten worst days across the six full-set pooled forecasts, 614 days
 \providecommand{\rhedBestShareMin}{}\renewcommand{\rhedBestShareMin}{107}  % lowest % of the summed gain over the short straddle earned on the ten best days across the six full-set pooled forecasts, 614 days
 \providecommand{\rhedBestShareMax}{}\renewcommand{\rhedBestShareMax}{138}  % highest % of the summed gain over the short straddle earned on the ten best days across the six full-set pooled forecasts, 614 days
-\providecommand{\rhedDHarAllMin}{}\renewcommand{\rhedDHarAllMin}{0.77}  % lowest Delta SR mid vs the HAR twin, all days across the six full-set pooled forecasts, 614 days
-\providecommand{\rhedDHarAllMax}{}\renewcommand{\rhedDHarAllMax}{1.98}  % highest Delta SR mid vs the HAR twin, all days across the six full-set pooled forecasts, 614 days
-\providecommand{\rhedDHarExBestMin}{}\renewcommand{\rhedDHarExBestMin}{0.43}  % lowest Delta SR mid vs the HAR twin without the forecast's ten best days across the six full-set pooled forecasts, 614 days
-\providecommand{\rhedDHarExBestMax}{}\renewcommand{\rhedDHarExBestMax}{1.13}  % highest Delta SR mid vs the HAR twin without the forecast's ten best days across the six full-set pooled forecasts, 614 days
-\providecommand{\rhedDHarExBothMin}{}\renewcommand{\rhedDHarExBothMin}{0.38}  % lowest ... without its ten best and ten worst days across the six full-set pooled forecasts, 614 days
-\providecommand{\rhedDHarExBothMax}{}\renewcommand{\rhedDHarExBothMax}{1.31}  % highest ... without its ten best and ten worst days across the six full-set pooled forecasts, 614 days
+\providecommand{\rhedDHarAllMin}{}\renewcommand{\rhedDHarAllMin}{0.56}  % lowest Delta SR mid vs the HAR twin, all days across the six full-set pooled forecasts, 614 days
+\providecommand{\rhedDHarAllMax}{}\renewcommand{\rhedDHarAllMax}{1.56}  % highest Delta SR mid vs the HAR twin, all days across the six full-set pooled forecasts, 614 days
+\providecommand{\rhedDHarExBestMin}{}\renewcommand{\rhedDHarExBestMin}{0.30}  % lowest Delta SR mid vs the HAR twin without the forecast's ten best days across the six full-set pooled forecasts, 614 days
+\providecommand{\rhedDHarExBestMax}{}\renewcommand{\rhedDHarExBestMax}{0.83}  % highest Delta SR mid vs the HAR twin without the forecast's ten best days across the six full-set pooled forecasts, 614 days
+\providecommand{\rhedDHarExBothMin}{}\renewcommand{\rhedDHarExBothMin}{0.36}  % lowest ... without its ten best and ten worst days across the six full-set pooled forecasts, 614 days
+\providecommand{\rhedDHarExBothMax}{}\renewcommand{\rhedDHarExBothMax}{0.97}  % highest ... without its ten best and ten worst days across the six full-set pooled forecasts, 614 days
 \providecommand{\rhedHarBestShareMin}{}\renewcommand{\rhedHarBestShareMin}{47}  % lowest % of the summed gain over the HAR twin earned on the ten best days across the six full-set pooled forecasts, 614 days
 \providecommand{\rhedHarBestShareMax}{}\renewcommand{\rhedHarBestShareMax}{61}  % highest % of the summed gain over the HAR twin earned on the ten best days across the six full-set pooled forecasts, 614 days
-\providecommand{\rhedDShortExBestNeg}{}\renewcommand{\rhedDShortExBestNeg}{5}  % full-set forecasts whose Delta SR vs short is negative without the ten best days
+\providecommand{\rhedDShortExBestNeg}{}\renewcommand{\rhedDShortExBestNeg}{6}  % full-set forecasts whose Delta SR vs short is negative without the ten best days
 \providecommand{\rhedDHarExBestNeg}{}\renewcommand{\rhedDHarExBestNeg}{0}  % full-set forecasts whose Delta SR vs the HAR twin is negative without the ten best days
 \providecommand{\rhedFomcN}{}\renewcommand{\rhedFomcN}{21}  % FOMC days among the 614 post-warmup days
 \providecommand{\rhedFomcR}{}\renewcommand{\rhedFomcR}{25}  % mean mid straddle return R on FOMC days, %

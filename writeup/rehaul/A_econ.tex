@@ -91,12 +91,21 @@
 \input{generated/rehaul_econ_byyear_fig}
 \begin{itemize}
 % 2026-10-26 (integration, JFEc): moved here from 07_economics.tex (Performance measures, Annualized Sharpe ratio).
-\item \textbf{Annualization.} In the Sharpe ratio $\SR$ of Section~\ref{sec:rh_econ_measures}, $A_y = N_y/c_y$ is
-  \rheDSixAOne, \rheDSixATwo, \rheDSixAThree{} and \rheDSixAFour{} for \rheDSixYearOne{} to \rheDSixYearFour{}
-  ($N_y = \rheDSixNOne$, \rheDSixNTwo, \rheDSixNThree, \rheDSixNFour; $c_y = \rheDSixCovOne$, \rheDSixCovTwo,
-  \rheDSixCovThree, \rheDSixCovFour), where $c_y$ runs from the later of 1 January and the sample's first day to the
-  earlier of 31 December and its last day. Equal weights also keep a year with many option days from dominating the
-  average if the strategy's performance changes over the sample.
+\item \textbf{Annualization.} In the Sharpe ratio $\SR$ of Section~\ref{sec:rh_econ_measures},
+  $q = T/\sum_y c_y = \rheAnnDays$, with $\sum_y c_y = \rheAnnYears$ ($c_y = \rheDSixCovOne$, \rheDSixCovTwo,
+  \rheDSixCovThree{} and \rheDSixCovFour{} for \rheDSixYearOne{} to \rheDSixYearFour), where $c_y$ runs from the later
+  of 1 January and the sample's first day to the earlier of 31 December and its last day. In the ratios $\SR_y$ of
+  the single years, $A_y = N_y/c_y$ is \rheDSixAOne, \rheDSixATwo, \rheDSixAThree{} and \rheDSixAFour{}
+  ($N_y = \rheDSixNOne$, \rheDSixNTwo, \rheDSixNThree, \rheDSixNFour). The equal-weight mean of the $\SR_y$, an
+  alternative in Table~\ref{tab:rh_econ_sharpe_defs}, keeps a year with many option days from dominating the average
+  if the strategy's performance changes over the sample.
+% 2026-10-28 (D19, standard pooled Sharpe): q of the pooled ratio added; A_y now annualizes the single years only.
+% Was: "\item \textbf{Annualization.} In the Sharpe ratio $\SR$ of Section~\ref{sec:rh_econ_measures}, $A_y =
+% N_y/c_y$ is \rheDSixAOne, \rheDSixATwo, \rheDSixAThree{} and \rheDSixAFour{} for \rheDSixYearOne{} to
+% \rheDSixYearFour{} ($N_y = \rheDSixNOne$, \rheDSixNTwo, \rheDSixNThree, \rheDSixNFour; $c_y = \rheDSixCovOne$,
+% \rheDSixCovTwo, \rheDSixCovThree, \rheDSixCovFour), where $c_y$ runs from the later of 1 January and the sample's
+% first day to the earlier of 31 December and its last day. Equal weights also keep a year with many option days from
+% dominating the average if the strategy's performance changes over the sample."
 % 2026-10-26 (integration, JFEc): note D6 resolved (decision of 2026-10-22) and parked; its disclosure is now the item
 % below. Was: "\editc{orange}{D6}{Decision (user, 2026-10-22): the Sharpe ratio is the definition above (D6): for each
 % calendar year $y$ of the post-warmup sample, $\SR_y = \sqrt{A_y}\,\bar r_y/\mathrm{sd}_y(r)$ with $A_y = N_y/c_y$ the
@@ -106,17 +115,26 @@
 % $\sqrt{N_y}$, $N_y$-weighted, of 2026-10-18) had been seen. That ratio (D1) and the ratio of the pooled daily returns
 % scaled by $\sqrt{252}$ (D2), with the \citet{LedoitWolf2008} test of the pooled ratios, are reported in
 % Table~\ref{tab:rh_econ_sharpe_defs}, together with D6 before and from \rheSplitDate.}"
-\item \textbf{When the definition was chosen.} We adopted $\SR$ after the results under a previous definition had
-  been seen: the per-year ratio with $\sqrt{N_y}$ in place of $\sqrt{A_y}$, the years weighted by $N_y$.
-  Table~\ref{tab:rh_econ_sharpe_defs} therefore repeats the comparison of the full predictor set with the HAR
-  benchmark set under that ratio and under the ratio of the mean to the standard deviation of all \rheSzDays{} daily
-  returns, scaled by $\sqrt{252}$, with the \citet{LedoitWolf2008} test of equal pooled ratios; the latter rejects at
-  the 5\% level in \rheDefLWSig{} of the \rheDefN{} classes. Under the two
-  alternatives the short straddle's mid-quote ratio is \rhemShDOneShort{} and \rhemShDTwoShort{} rather than
-  \rheShortSh.
+\item \textbf{When the definition was chosen.} We adopted $\SR$ after the results under two previous definitions had
+  been seen: the per-year ratio with $\sqrt{N_y}$ in place of $\sqrt{A_y}$, the years weighted by $N_y$, and then the
+  equal-weight mean of the $\SR_y$. Table~\ref{tab:rh_econ_sharpe_defs} therefore repeats the comparison of the full
+  predictor set with the HAR benchmark set under both; the paired block-bootstrap test of equal means of the $\SR_y$
+  (Appendix~\ref{sec:rh_methods_tests}) rejects at the 5\% level in \rheDefBootSig{} of the \rheDefN{} classes, the
+  \citet{LedoitWolf2008} test of equal ratios $\SR$ in \rheDefPoolSig. Under the two alternatives the short
+  straddle's mid-quote ratio is \rhemShDSixShort{} and \rhemShDOneShort{} rather than \rheShortSh.
+% 2026-10-28 (D19, standard pooled Sharpe): the pooled ratio is now SR itself; D6 (the equal-year mean) joins D1 as an
+% alternative. Was: "We adopted $\SR$ after the results under a previous definition had been seen: the per-year ratio
+% with $\sqrt{N_y}$ in place of $\sqrt{A_y}$, the years weighted by $N_y$. Table~\ref{tab:rh_econ_sharpe_defs}
+% therefore repeats the comparison of the full predictor set with the HAR benchmark set under that ratio and under the
+% ratio of the mean to the standard deviation of all \rheSzDays{} daily returns, scaled by $\sqrt{252}$, with the
+% \citet{LedoitWolf2008} test of equal pooled ratios; the latter rejects at the 5\% level in \rheDefLWSig{} of the
+% \rheDefN{} classes. Under the two alternatives the short straddle's mid-quote ratio is \rhemShDOneShort{} and
+% \rhemShDTwoShort{} rather than \rheShortSh."
 % 2026-10-26 (integration, JFEc): moved here from 07_economics.tex (Robustness checks, Subsample stability).
 \item \textbf{Subsamples.} Table~\ref{tab:rh_econ_sharpe_defs} also computes $\SR$ separately on the post-warmup
-  days before and from \rheSplitDate, when CBOE expanded SPXW expirations to all five weekdays.
+  days before and from \rheSplitDate, when CBOE expanded SPXW expirations to all five weekdays, each subsample with
+  its own $q$ (\rheAnnDaysPre{} and \rheAnnDaysPost).
+% 2026-10-28 (D19, standard pooled Sharpe): ", each subsample with its own $q$ (...)" added.
 \end{itemize}
 
 % 2026-10-26 (integration, JFEc): moved here from 07_economics.tex (Trading strategies: the robust clip and the
@@ -236,18 +254,27 @@
   $\mathcal T_{\mathrm{opt}}$).
 \item \textbf{Break-even spreads.} We scale every day's quoted half-spread $h_t = (P^{a}_t - P^{b}_t)/2$ by a common
   factor $k$, so that a purchase pays $P_t + k h_t$ and a sale receives $P_t - k h_t$ ($k = 0$: mid-quotes; $k = 1$:
-  quoted bid/ask prices), and find the factor at which the mean daily return or the Sharpe ratio reaches zero; in
-  percent of the premium, the break-even half-spread is $k$ times the median quoted half-spread.
+  quoted bid/ask prices), and find the factor at which the mean daily return, and with it the Sharpe ratio, reaches
+  zero; in percent of the premium, the break-even half-spread is $k$ times the median quoted half-spread.
   \begin{itemize}
-  \item For the six full-set forecasts the mean daily return stays positive up to $k = \rhemBeMeanFullMin$ to
-    $\rhemBeMeanFullMax$ (\rhemBeMeanFullMinPct\% to \rhemBeMeanFullMaxPct\% of the premium) and the Sharpe ratio up
-    to $k = \rhemBeShFullMin$ to $\rhemBeShFullMax$ (\rhemBeShFullMinPct\% to \rhemBeShFullMaxPct\%).
-  \item For the benchmark forecast the two factors are \rhemBeMeanRidgeHar{} and \rhemBeShRidgeHar{}
-    (\rhemBeMeanPctRidgeHar\% and \rhemBeShPctRidgeHar\% of the premium); for the \rhemHarDistinctWord{} distinct
-    HAR-set forecasts the Sharpe-ratio factor runs from \rhemBeShHarMin{} to \rhemBeShHarMax.
-  \item The mean daily return of the short straddle reaches zero at $k = \rhemBeMeanShort$, inside the quoted
-    spread, and its Sharpe ratio is negative at mid-quotes already.
+  \item For the six full-set forecasts the mean daily return, and with it the Sharpe ratio, stays positive up to
+    $k = \rhemBeMeanFullMin$ to $\rhemBeMeanFullMax$ (\rhemBeMeanFullMinPct\% to \rhemBeMeanFullMaxPct\% of the
+    premium).
+  \item For the benchmark forecast the factor is \rhemBeMeanRidgeHar{} (\rhemBeMeanPctRidgeHar\% of the premium); for
+    the \rhemHarDistinctWord{} distinct HAR-set forecasts it runs from \rhemBeMeanHarMin{} to \rhemBeMeanHarMax.
+  \item The mean daily return of the short straddle, and with it its Sharpe ratio, reaches zero at
+    $k = \rhemBeMeanShort$, inside the quoted spread.
   \end{itemize}
+% 2026-10-28 (D19, standard pooled Sharpe): the pooled ratio has the sign of the mean, so the two break-even factors
+% coincide (\rhemBeSh... = \rhemBeMean...), and the short straddle's ratio is positive at mid-quotes (\rheShortSh).
+% Was: "find the factor at which the mean daily return or the Sharpe ratio reaches zero"; "For the six full-set
+% forecasts the mean daily return stays positive up to $k = \rhemBeMeanFullMin$ to $\rhemBeMeanFullMax$
+% (\rhemBeMeanFullMinPct\% to \rhemBeMeanFullMaxPct\% of the premium) and the Sharpe ratio up to $k = \rhemBeShFullMin$
+% to $\rhemBeShFullMax$ (\rhemBeShFullMinPct\% to \rhemBeShFullMaxPct\%)."; "For the benchmark forecast the two factors
+% are \rhemBeMeanRidgeHar{} and \rhemBeShRidgeHar{} (\rhemBeMeanPctRidgeHar\% and \rhemBeShPctRidgeHar\% of the
+% premium); for the \rhemHarDistinctWord{} distinct HAR-set forecasts the Sharpe-ratio factor runs from
+% \rhemBeShHarMin{} to \rhemBeShHarMax."; "The mean daily return of the short straddle reaches zero at
+% $k = \rhemBeMeanShort$, inside the quoted spread, and its Sharpe ratio is negative at mid-quotes already."
 \end{itemize}
 
 % 2026-10-26 (integration, JFEc): moved here from 07_economics.tex (Performance measures: Elementary score and
@@ -273,9 +300,12 @@
 \item \textbf{Rank correlations.} Across the \rhrPoolN{} pooled forecasts, the rank correlation of the Sharpe ratio is
   positive with average QLIKE loss, \rheRankCorrQPool, and negative with $\overline{\mathrm{ES}}_1$, the loss at the
   implied-variance threshold, \rheRankCorrESPool. With the per-year ratio scaled by $\sqrt{N_y}$ and weighted by
-  $N_y$ in place of $\SR$, the two correlations are \rheRankCorrQPoolDOne{} and \rheRankCorrESPoolDOne; with the ratio
-  of the pooled daily returns scaled by $\sqrt{252}$, they are \rheRankCorrQPoolDTwo{} and \rheRankCorrESPoolDTwo.
-  Their signs are the same under all three definitions. Two caveats: the mean QLIKE loss is taken over all \cmNdays{}
+  $N_y$ in place of $\SR$, the two correlations are \rheRankCorrQPoolDOne{} and \rheRankCorrESPoolDOne; with the
+  equal-weight mean of the $\SR_y$, they are \rheRankCorrQPoolDSix{} and \rheRankCorrESPoolDSix.
+  Their signs are the same under all three definitions.
+% 2026-10-28 (D19, standard pooled Sharpe): the pooled ratio scaled by sqrt(252) ranks as SR does; the third definition
+% is now D6. Was: "with the ratio of the pooled daily returns scaled by $\sqrt{252}$, they are \rheRankCorrQPoolDTwo{}
+% and \rheRankCorrESPoolDTwo." Two caveats: the mean QLIKE loss is taken over all \cmNdays{}
   days of $\mathcal T_{\mathrm{opt}}$, the \rheSzWarmup{} warm-up days included, while $\overline{\mathrm{ES}}_1$ and
   the Sharpe ratio are on the \rheSzDays{} post-warmup days; and the \rhrPoolN{} forecasts count the identical
   HAR-set ridge, lasso and elastic-net forecast three times, a three-way tie in both rankings.
@@ -401,7 +431,9 @@
     log move of the cash index from $S_t$ to $S^{\mathrm{close}}_t$ averages \rhedMoveSqIV{} of it, and
     \rhedMoveSqRV{} times the mean of $\RV_t$. Measured on the move that settles the straddle, the implied variance
     carries no premium on average in our sample, which agrees with the short straddle's Sharpe ratio of
-    \rheShortSh.
+    \rheShortSh, whose mean daily return is not significantly different from zero ($t = \rheShortT$).
+% 2026-10-28 (D19, standard pooled Sharpe): the short straddle's ratio is now positive; its insignificance added.
+% Was: "which agrees with the short straddle's Sharpe ratio of \rheShortSh."
   \end{itemize}
 % 2026-10-26 (integration, JFEc; audit numbers-1, results-6, correctness-8): the worthless-expiry share of the parked
 % "Concentration of economic gains" item (07_economics.tex) placed here, its "settlement pinning" gloss dropped; the
@@ -487,7 +519,15 @@
 \item \textbf{Question.} The sign strategy of Section~\ref{sec:rh_econ} holds one straddle over the last half hour of
   the session. We ask whether its returns are a disguised position in the stock market, and what an investor who holds
   the S\&P~500 gains by adding the strategy. The specification below was fixed before any of these statistics was
-  computed.
+  computed, except two changes that follow the paper's Sharpe ratio (Section~\ref{sec:rh_econ_measures}), adopted
+  after they had been seen: every Sharpe ratio is annualized by $\sqrt{q}$ in place of $\sqrt{252}$, a common factor
+  that moves no test, and the gain of a real-time combination over the market is tested by \citet{LedoitWolf2008} in
+  place of a paired block bootstrap of the difference.
+% 2026-10-28 (D19, standard pooled Sharpe): the two deviations from the registered rule (RULE.txt, sections 6 and 8)
+% disclosed. Under the registered bootstrap (stats.csv, iv_pb) the inverse-volatility gain is significant at mid for
+% the lasso, the elastic net and the random forest (p 0.046-0.049); under Ledoit--Wolf for none (p 0.054-0.061). No
+% macro carries the registered count. Was: "The specification below was fixed before any of these statistics was
+% computed."
 \item \textbf{Returns.} The strategy's daily return $r^{s}_t$ (in percent of the premium, at mid-quotes unless noted)
   is treated as an excess return, as in Section~\ref{sec:rh_econ_measures}. The market return $r^{m}_t$ is the
   S\&P~500 close-to-close return of option day $t$, from the previous trading day's close, minus the return of the
@@ -497,12 +537,22 @@
   \begin{itemize}
   \item Over the \rhebNDays{} post-warmup days the market's excess return averages \rhebMktMean\% a day with a
     standard deviation of \rhebMktSd\%, a Sharpe ratio of \rhebSRm{} (\rhebSRmAll{} over all \rhebNAll{} trading days
-    of the same span). Under the paper's ratio $\SR$ of Section~\ref{sec:rh_econ_measures}, which gives each calendar
-    year, including the partial first and last ones, the same weight, it is \rhebSRmDSix.
-  \item The decomposition of the maximum Sharpe ratio below holds for the ratio of the pooled daily returns, so every
-    Sharpe ratio in this subsection is $\sqrt{252}$ times the ratio of the mean to the standard deviation of the daily
-    returns unless it is marked as $\SR$. All $t$-statistics use Newey--West standard errors with bandwidth
-    $S = \rheHACS$ and fixed-$b$ critical values (Appendix~\ref{sec:rh_methods_tests}).
+    of the same span, with $q = \rhebQAll$). Under the equal-weight mean of the $\SR_y$
+    (Appendix~\ref{app:rh_econ_sharpe}), which gives each calendar year, including the partial first and last ones, the
+    same weight, it is \rhebSRmDSix.
+  \item The decomposition of the maximum Sharpe ratio below holds for the ratio of the pooled daily returns, which is
+    the paper's $\SR$: every Sharpe ratio in this subsection is $\sqrt{q}$ times the ratio of the mean to the standard
+    deviation of the daily returns, $q$ the average number of days per calendar year of its sample
+    (Section~\ref{sec:rh_econ_measures}), unless it is marked as the mean of the $\SR_y$. All $t$-statistics use
+    Newey--West standard errors with bandwidth $S = \rheHACS$ and fixed-$b$ critical values
+    (Appendix~\ref{sec:rh_methods_tests}).
+% 2026-10-28 (D19, standard pooled Sharpe): the paper's ratio is now the pooled one, annualized by sqrt(q) (the
+% generator's STANDARD ratio; rhebQAll for the trading days of the span); D6 is the marked alternative. Was: "(\rhebSRmAll{}
+% over all \rhebNAll{} trading days of the same span). Under the paper's ratio $\SR$ of
+% Section~\ref{sec:rh_econ_measures}, which gives each calendar year, including the partial first and last ones, the
+% same weight, it is \rhebSRmDSix." and "The decomposition of the maximum Sharpe ratio below holds for the ratio of the
+% pooled daily returns, so every Sharpe ratio in this subsection is $\sqrt{252}$ times the ratio of the mean to the
+% standard deviation of the daily returns unless it is marked as $\SR$."
   \end{itemize}
 % Parked (plan D2): in the next item, after "($R^2$ at most \rhebRsqFullMax).", Was: "The closing-interval HAR strategy
 % ($\beta = \rhebBetaCiHar$, $t = \rhebBetaTCiHar$) and the short straddle ($\beta = \rhebBetaShort$, $t =
@@ -551,8 +601,9 @@
 \item \textbf{Alpha} (Panel B). The CAPM intercept of the full-set strategies is \rhebAlphaFullMin{} to
   \rhebAlphaFullMax\% of the premium a day ($t$ from \rhebAlphaTFullMin{} to \rhebAlphaTFullMax, fixed-$b$ $p$ at most
   \rhebAlphaPFullMax), with appraisal ratios $\alpha/\sigma_\varepsilon$ of \rhebARFullMin{} to \rhebARFullMax{}
-  (annualized by $\sqrt{252}$). With a beta near zero, $\alpha$ is close to the mean return and the appraisal ratio
+  (annualized by $\sqrt{q}$). With a beta near zero, $\alpha$ is close to the mean return and the appraisal ratio
   to the strategy's own Sharpe ratio (\rhebSRsFullMin{} to \rhebSRsFullMax).
+% 2026-10-28 (D19, standard pooled Sharpe): was "(annualized by $\sqrt{252}$)".
   \begin{itemize}
   \item The short straddle has $\alpha = \rhebAlphaShort\%$ ($t = \rhebAlphaTShort$). For the
     \rhebNHarDistinctWord{} distinct HAR-set forecasts $\alpha$ is \rhebAlphaHarMin{} to \rhebAlphaHarMax\% ($t$ at
@@ -583,20 +634,28 @@
 \item \textbf{Real-time allocation} (Panel C, Figure~\ref{fig:rh_econ_beta_cum}). Each day the weights of the market
   and the strategy are set from the earlier post-warmup days only. After a burn-in of \rhebNBurn{} days the
   combinations are evaluated on the \rhebNRt{} days from \rhebRtFirst, over which the market alone has a Sharpe ratio
-  of \rhebSRmRt{} ($\SR = \rhebSRmRtDSix$). The largest of the strategies' best days, \rhebTopDate, falls in the
-  burn-in: it moves the estimated weights but not the evaluation.
+  of \rhebSRmRt{} (mean of the $\SR_y$: \rhebSRmRtDSix). The largest of the strategies' best days, \rhebTopDate,
+  falls in the burn-in: it moves the estimated weights but not the evaluation.
+% 2026-10-28 (D19, standard pooled Sharpe): was "($\SR = \rhebSRmRtDSix$)".
   \begin{itemize}
   \item Mean--variance weights (expanding window, no short positions, neither leg above \rhebCap\% of the estimated
     portfolio volatility) reach Sharpe ratios of \rhebRtMvFullMin{} to \rhebRtMvFullMax{} with the full-set
     strategies. The estimated means put the strategy at the cap on every evaluation day, which amounts to a median of
     \rhebRtMvWsFullMin{} to \rhebRtMvWsFullMax\% of capital in straddle premium; the rule is in effect a fixed split of
-    the risk at the cap. The gain over the market is significant at the 5\% level for none of the six (bootstrap $p$
-    from \rhebRtMvPFullMin{} to \rhebRtMvPFullMax; with $\SR$, \rhebRtMvDSixFullMin{} to \rhebRtMvDSixFullMax{} and
-    $p$ from \rhebRtMvDSixPFullMin{} to \rhebRtMvDSixPFullMax).
+    the risk at the cap. The gain over the market is significant at the 5\% level for none of the six
+    (\citet{LedoitWolf2008} $p$ from \rhebRtMvPFullMin{} to \rhebRtMvPFullMax; with the mean of the $\SR_y$,
+    \rhebRtMvDSixFullMin{} to \rhebRtMvDSixFullMax{} and bootstrap $p$ from \rhebRtMvDSixPFullMin{} to
+    \rhebRtMvDSixPFullMax).
   \item Inverse-volatility weights over the trailing \rhebNTrail{} days, which estimate no means and split the risk
     equally (a median of at most \rhebRtIvWsFullMax\% of capital in premium), reach \rhebRtIvFullMin{} to
-    \rhebRtIvFullMax; the gain is significant for \rhebRtIvSigFullWord{} of the six ($p$ from \rhebRtIvPFullMin{} to
-    \rhebRtIvPFullMax; with $\SR$, for \rhebRtIvDSixSigFullWord).
+    \rhebRtIvFullMax; the gain is significant for none of the six (\citet{LedoitWolf2008} $p$ from
+    \rhebRtIvPFullMin{} to \rhebRtIvPFullMax; with the mean of the $\SR_y$, for \rhebRtIvDSixSigFullWord{} under the
+    bootstrap).
+% 2026-10-28 (D19, standard pooled Sharpe): the real-time p is Ledoit--Wolf, "$\SR$" here meant D6, and
+% \rhebRtIvSigFullWord is now "zero" (the p range above starts at \rhebRtIvPFullMin). Was: "(bootstrap $p$ from
+% \rhebRtMvPFullMin{} to \rhebRtMvPFullMax; with $\SR$, \rhebRtMvDSixFullMin{} to \rhebRtMvDSixFullMax{} and $p$ from
+% \rhebRtMvDSixPFullMin{} to \rhebRtMvDSixPFullMax)." and "the gain is significant for \rhebRtIvSigFullWord{} of the
+% six ($p$ from \rhebRtIvPFullMin{} to \rhebRtIvPFullMax; with $\SR$, for \rhebRtIvDSixSigFullWord)."
   \item With the short straddle the two rules reach \rhebRtMvShort{} and \rhebRtIvShort.
   \end{itemize}
 \item \textbf{Quoted bid/ask prices} (Panel D). The betas are as at mid-quotes (\rhebBetaFullXMin{} to
@@ -636,10 +695,13 @@
   \item Its intercept is significant, so in this sample a holder of the S\&P~500 would have given almost all of the
     risk budget to the strategy.
   \item In real time, the combinations reach Sharpe ratios of \rhebRtIvFullMin{} to \rhebRtMvFullMax{} at mid-quotes
-    against \rhebSRmRt{} for the market, but over \rhebNRt{} days that gain is not statistically significant for the
-    mean--variance weights, significant for \rhebRtIvSigFullWord{} of the six inverse-volatility combinations, and
-    for none at quoted bid/ask prices or without the \rhebNBest{} days that carry the strategies' gain over the short
-    straddle.
+    against \rhebSRmRt{} for the market, but over \rhebNRt{} days that gain is not statistically significant for
+    either rule, at mid-quotes or at quoted bid/ask prices, or without the \rhebNBest{} days that carry the
+    strategies' gain over the short straddle.
+% 2026-10-28 (D19, standard pooled Sharpe): \rhebRtIvSigFullWord is now "zero" under the Ledoit--Wolf test. Was:
+% "that gain is not statistically significant for the mean--variance weights, significant for \rhebRtIvSigFullWord{}
+% of the six inverse-volatility combinations, and for none at quoted bid/ask prices or without the \rhebNBest{} days
+% that carry the strategies' gain over the short straddle."
   \end{itemize}
 \end{itemize}
 

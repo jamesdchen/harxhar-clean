@@ -57,6 +57,9 @@ SPA (Hansen 2005, JBES 23(4), 365-380) and StepM (Romano and Wolf 2005, Economet
   circular block bootstrap, hac_inference._boot_index: block hi.LW_BLOCK, hi.LW_BOOT resamples, seed hi.D6_SEED, each
   day keeps its year and A_y), studentized by the bootstrap standard deviation of each difference.  Gate: the two-
   sided D6 p of each twin pair equals hac_inference.d6_diff_test (the p_bt of the paper's T1).
+  2026-10-26 (author decision D19): the Sharpe-ratio statistic is the paper's pooled ratio, sqrt(q) mean / sd with
+  q = T / sum_y c_y (hac_inference.paper_sharpe), on the same paired resamples (q fixed); the gate is the two-sided p of
+  hac_inference.pooled_diff_boot (the same resamples). The mean-return families are unchanged.
 
 GATES (the run stops if one fails)
   Table 1's every-bar QLIKE (results/oos_final_2014start/table1_w3000/metrics.csv, 1e-12; and the printed 4-decimal
@@ -185,6 +188,16 @@ GATES: list[dict] = []
 BOUNDARY: list[dict] = []  # StepM decisions on the level (run_family)
 
 
+D19_SR_CLAIMS = {
+    "vs short, Sharpe ratio: StepM rejects all six (one- and two-sided, mid and bid/ask, blocks 5, 10, 20)",
+    "vs HAR twin, Sharpe ratio: StepM rejects the random forest alone (one-sided at blocks 5, 10, 20; two-sided "
+    "at block 10; mid and bid/ask)",
+    "vs HAR twin: the smallest two-sided adjusted p is the random forest's at every block length (mean, Sharpe)",
+    "vs HAR twin, Sharpe ratio: LightGBM has the second smallest single-test two-sided p (after the forest), and "
+    "the forest's is the only one below 5 %",
+}
+
+
 def gate(name: str, item: str, value: object, ok: bool) -> None:
     # 2026-10-26 (integration plan D2/D3/D9): the draft's claims on T_close (16:00, the 1,082 days with the
     # closing-interval HAR benchmark, now the rebuilt CI-HAR) belong to the closing-interval appendix section; they are
@@ -215,6 +228,10 @@ def gate(name: str, item: str, value: object, ok: bool) -> None:
             "vs HAR twin, mean: StepM rejects LightGBM and the random forest (one-sided), the forest alone (two-sided)",
         }
     )
+    # 2026-10-26 (author decision D19): the Sharpe-ratio StepM claims were written on D6; on the paper's pooled ratio
+    # they are REPORTED, not asserted, until the text is rewritten (each prints its rejection sets; old -> new in the
+    # D19 report)
+    reported = reported or (name == "draft claim" and item in D19_SR_CLAIMS)
     GATES.append({"gate": name, "item": item, "value": str(value), "ok": bool(ok)})
     print(f"  [{'ok' if ok else ('CHANGED (reported)' if reported else 'FAIL')}] {name}: {item} ({value})")
     assert ok or reported, (name, item, value)
@@ -446,7 +463,8 @@ def trade_data() -> dict:
     assert len(pw) == N_PW
 
     def d6(x: np.ndarray) -> float:
-        return float(hi.d6_sharpe(x[WARMUP:], dates=pw)["sharpe"])
+        # 2026-10-26 (D19): the paper's pooled ratio (name kept). Was: hi.d6_sharpe(x[WARMUP:], dates=pw)["sharpe"]
+        return float(hi.paper_sharpe(x[WARMUP:], dates=pw)["sharpe"])
 
     rm = macros_of(PRINTED / "rehaul_results_numbers.tex")
     em = macros_of(PRINTED / "rehaul_econ_numbers.tex")
@@ -457,14 +475,17 @@ def trade_data() -> dict:
                 v = d6(x)
                 gate(
                     "Section 7",
-                    f"D6 Sharpe ratio \\{name}",
+                    f"Sharpe ratio (D19 pooled) \\{name}",
                     f"{v:.4f} vs {rm[name]}",
                     f"{v:.2f}" == f"{num_of(rm[name]):.2f}",
                 )
     for name, x in (("rheShortSh", short_mid), ("rheShortShX", short_ba)):
         v = d6(x)
         gate(
-            "Section 7", f"D6 Sharpe ratio \\{name}", f"{v:.4f} vs {em[name]}", f"{v:.2f}" == f"{num_of(em[name]):.2f}"
+            "Section 7",
+            f"Sharpe ratio (D19 pooled) \\{name}",
+            f"{v:.4f} vs {em[name]}",
+            f"{v:.2f}" == f"{num_of(em[name]):.2f}",
         )
     same_lin = all(np.array_equal(mid[(e, "baseline")], mid[("ridge", "baseline")]) for e in LIN) and all(
         np.array_equal(bax[(e, "baseline")], bax[("ridge", "baseline")]) for e in LIN
@@ -907,20 +928,22 @@ def main() -> None:  # noqa: C901
     say("SPA and StepM, strategies")
     pw = trd["pw"]
     T = N_PW
-    yy = hi.d6_years(pw)
-    ys = sorted(yy["A"])
-    code = np.searchsorted(np.array(ys), yy["years"])
-    sqrt_a = np.sqrt(np.array([yy["A"][y] for y in ys], dtype=float))
+    # 2026-10-26 (author decision D19): parked -- D6 and its replicates. Was:
+    #     yy = hi.d6_years(pw); ys = sorted(yy["A"]); code = np.searchsorted(np.array(ys), yy["years"])
+    #     sqrt_a = np.sqrt(np.array([yy["A"][y] for y in ys], dtype=float))
+    #     sr = float(hi._d6_stat(x[one], code[one], sqrt_a)[0]); star[...] = hi._d6_stat(x[ix], code[ix], sqrt_a)
+    sqrt_q = float(np.sqrt(hi.paper_q(pw)["q"]))
     one = np.arange(T)[None, :]
 
     def d6_and_boot(x: np.ndarray, blk: int) -> tuple[float, np.ndarray]:
-        """D6 of x and its replicates on hac_inference.d6_diff_test's resamples (block blk)."""
+        """The paper's pooled ratio (D19; name kept) of x and its replicates on hac_inference.d6_diff_test's resamples
+        (block blk), q fixed."""
         idx_b = hi._boot_index(T, blk, B_ECON, SEED_ECON)
-        sr = float(hi._d6_stat(x[one], code[one], sqrt_a)[0])
+        sr = float(hi._pooled_stat(x[one], sqrt_q)[0])
         star = np.empty(B_ECON)
         for s0 in range(0, B_ECON, 1000):
             ix = idx_b[s0 : s0 + 1000]
-            star[s0 : s0 + len(ix)] = hi._d6_stat(x[ix], code[ix], sqrt_a)
+            star[s0 : s0 + len(ix)] = hi._pooled_stat(x[ix], sqrt_q)
         return sr, star
 
     def mean_boot(x: np.ndarray, blk: int) -> np.ndarray:
@@ -969,20 +992,21 @@ def main() -> None:  # noqa: C901
                     th[i], th_s[:, i] = sa - sb, sa_s - sb_s
                     if vs == "Twin" and exe == "Mid" and blk == BLOCK_ECON:
                         two = float(np.mean(np.abs(th_s[:, i] - th[i]) >= abs(th[i])))
-                        ref = hi.d6_diff_test(A[:, i], Bm[:, i], pw)
+                        # 2026-10-26 (D19): was hi.d6_diff_test, "D6 bootstrap", "... D6 difference = ...d6_diff_test"
+                        ref = hi.pooled_diff_boot(A[:, i], Bm[:, i], pw)
                         gate(
-                            "D6 bootstrap",
-                            f"{e}: two-sided p of the Full - HAR D6 difference = hac_inference.d6_diff_test",
+                            "pooled bootstrap",
+                            f"{e}: two-sided p of the Full - HAR pooled-SR difference = hac_inference.pooled_diff_boot",
                             f"{two:.4f} vs {ref['p']:.4f}",
                             two == ref["p"] and bool(np.isclose(th[i], ref["delta"], rtol=1e-12)),
                         )
                         econ_twin_p[e] = two
-                run_family(f"{exe}{vs}Sr", blk, None, th, th_s, dict(meta, stat="D6 Sharpe ratio difference"))
+                run_family(f"{exe}{vs}Sr", blk, None, th, th_s, dict(meta, stat="Sharpe ratio difference (D19 pooled)"))
             say(f"  {exe} vs {vs}: done")
     raw2 = fam_res[("MidTwinSr", BLOCK_ECON)]["stepm"]["raw2"]
     gate(
         "StepM",
-        "MidTwinSr: two-sided single-test p = the paper's D6 bootstrap p (studentizing one difference cancels)",
+        "MidTwinSr: two-sided single-test p = the pooled-SR bootstrap p (D19; studentizing one difference cancels)",
         f"{np.round(raw2, 4).tolist()}",
         all(abs(raw2[i] - econ_twin_p[e]) <= 1.0 / B_ECON for i, e in enumerate(EST)),
     )
@@ -1147,7 +1171,8 @@ def main() -> None:  # noqa: C901
         mac(
             f"rhmcsTwinTwoSidedP{EST_TAG[e]}",
             ptxt(econ_twin_p[e]),
-            f"two-sided D6 bootstrap p of the Full - HAR Sharpe difference, {EST_NAME[e]} (= the paper's T1 p_bt)",
+            f"two-sided pooled-SR bootstrap p of the Full - HAR Sharpe difference, {EST_NAME[e]} (D19: the check p_bt; "
+            "the paper's test is Ledoit-Wolf)",
         )
 
     draft_claims(mcs_res, mcs_keys, fam_res)
@@ -1178,7 +1203,7 @@ def main() -> None:  # noqa: C901
         "% Oos (16:00, T_oos), Ch (16:00, the benchmark's span). Losses: Qlike, Mse. MCS statistics: Tmax, Trange (T_R).",
         "% SPA / StepM families: <Sample><Q|M>Af (Full vs own HAR), <Sample><Q|M>Bm (Full vs the closing-interval HAR),",
         "% <Mid|Ba><Short|Twin><Mean|Sr> (sign strategies on the 614 post-warmup days, vs the short straddle or the HAR twin,",
-        "% mean return or D6 Sharpe ratio). p-values of StepM and SPA are one-sided (H_k: no better than the benchmark).",
+        "% mean return or the paper's pooled Sharpe ratio, D19). p-values of StepM and SPA are one-sided (H_k: no better than the benchmark).",
     ]
     for name, (val, com) in M.items():
         lines.append(f"\\providecommand{{\\{name}}}{{}}\\renewcommand{{\\{name}}}{{{val}}}  % {com}")
@@ -1318,7 +1343,12 @@ def draft_claims(mcs_res: dict, mcs_keys: dict, fam_res: dict) -> None:
     gate(
         c,
         "vs short, Sharpe ratio: StepM rejects all six (one- and two-sided, mid and bid/ask, blocks 5, 10, 20)",
-        "",
+        "; ".join(  # 2026-10-26 (D19): the rejection sets (was "")
+            f"{x} {'two' if tw else 'one'}-sided b{b}: {sorted(rej(f'{x}ShortSr', tw, b))}"
+            for x in ("Mid", "Ba")
+            for tw in (False, True)
+            for b in (BLOCK,) + BLOCK_ALT
+        ),
         all(
             rej(f"{x}ShortSr", tw, b) == full
             for x in ("Mid", "Ba")
@@ -1339,14 +1369,26 @@ def draft_claims(mcs_res: dict, mcs_keys: dict, fam_res: dict) -> None:
         c,
         "vs HAR twin, Sharpe ratio: StepM rejects the random forest alone (one-sided at blocks 5, 10, 20; two-sided "
         "at block 10; mid and bid/ask)",
-        "",
+        "; ".join(  # 2026-10-26 (D19): the rejection sets (was "")
+            [
+                f"{x} one-sided b{b}: {sorted(rej(f'{x}TwinSr', False, b))}"
+                for x in ("Mid", "Ba")
+                for b in (BLOCK,) + BLOCK_ALT
+            ]
+            + [f"{x} two-sided b{BLOCK}: {sorted(rej(f'{x}TwinSr', True))}" for x in ("Mid", "Ba")]
+        ),
         all(rej(f"{x}TwinSr", False, b) == {"RfFull"} for x in ("Mid", "Ba") for b in (BLOCK,) + BLOCK_ALT)
         and all(rej(f"{x}TwinSr", True) == {"RfFull"} for x in ("Mid", "Ba")),
     )
     gate(
         c,
         "vs HAR twin: the smallest two-sided adjusted p is the random forest's at every block length (mean, Sharpe)",
-        "",
+        "; ".join(  # 2026-10-26 (D19): the argmin per family (was "")
+            f"{x}{s} b{b}: {EST[int(np.argmin(fam_res[(f'{x}Twin{s}', b)]['stepm']['adj2']))]}"
+            for x in ("Mid", "Ba")
+            for s in ("Mean", "Sr")
+            for b in (BLOCK,) + BLOCK_ALT
+        ),
         all(
             int(np.argmin(fam_res[(f"{x}Twin{s}", b)]["stepm"]["adj2"])) == EST.index("rf")
             for x in ("Mid", "Ba")
@@ -1359,7 +1401,7 @@ def draft_claims(mcs_res: dict, mcs_keys: dict, fam_res: dict) -> None:
         c,
         "vs HAR twin, Sharpe ratio: LightGBM has the second smallest single-test two-sided p (after the forest), and "
         "the forest's is the only one below 5 %",
-        "",
+        str({EST[i]: round(float(raw2[i]), 4) for i in range(len(EST))}),  # 2026-10-26 (D19): was ""
         [EST[i] for i in np.argsort(raw2, kind="stable")[:2]] == ["rf", "lgbm"]
         and [EST[i] for i in np.flatnonzero(raw2 < ALPHA)] == ["rf"],
     )

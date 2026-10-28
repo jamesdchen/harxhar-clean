@@ -17,38 +17,38 @@
 \midrule
 \multicolumn{9}{@{}l}{\textit{Panel A: Pooled intraday models, full predictor set\tnote{a}}} \\
 \addlinespace[2pt]
-Ridge & $1.75$ & $1.40$ & $12.3$ & $9.7$ & $1.87^{***}$ & $1.70^{\phantom{***}}$ & $0.77^{\phantom{***}}$ & $0.77^{\phantom{***}}$ \\
- &  &  &  &  & $[0.007]^{\phantom{***}}$ &  & $[0.217]^{\phantom{***}}$ & $[0.217]^{\phantom{***}}$ \\[2pt]
-Lasso & $1.75$ & $1.40$ & $13.0$ & $10.3$ & $1.87^{***}$ & $1.93^{*\phantom{**}}$ & $0.77^{\phantom{***}}$ & $0.77^{\phantom{***}}$ \\
- &  &  &  &  & $[0.009]^{\phantom{***}}$ &  & $[0.206]^{\phantom{***}}$ & $[0.206]^{\phantom{***}}$ \\[2pt]
-Elastic net & $1.95$ & $1.59$ & $13.9$ & $11.3$ & $2.07^{***}$ & $1.95^{*\phantom{**}}$ & $0.97^{\phantom{***}}$ & $0.97^{\phantom{***}}$ \\
- &  &  &  &  & $[0.003]^{\phantom{***}}$ &  & $[0.132]^{\phantom{***}}$ & $[0.132]^{\phantom{***}}$ \\[2pt]
-LightGBM & $1.67$ & $1.31$ & $11.5$ & $8.9$ & $1.78^{***}$ & $1.68^{\phantom{***}}$ & $1.06^{*\phantom{**}}$ & $0.68^{\phantom{***}}$ \\
- &  &  &  &  & $[0.006]^{\phantom{***}}$ &  & $[0.063]^{\phantom{***}}$ & $[0.232]^{\phantom{***}}$ \\[2pt]
-XGBoost & $1.71$ & $1.36$ & $11.6$ & $9.0$ & $1.83^{***}$ & $1.61^{\phantom{***}}$ & $0.81^{\phantom{***}}$ & $0.73^{\phantom{***}}$ \\
- &  &  &  &  & $[0.004]^{\phantom{***}}$ &  & $[0.116]^{\phantom{***}}$ & $[0.201]^{\phantom{***}}$ \\[2pt]
-Random forest & $1.99$ & $1.63$ & $14.1$ & $11.4$ & $2.10^{***}$ & $2.14^{**\phantom{*}}$ & $1.98^{***}$ & $1.01^{\phantom{***}}$ \\
- &  &  &  &  & $[0.001]^{\phantom{***}}$ &  & $[0.007]^{\phantom{***}}$ & $[0.125]^{\phantom{***}}$ \\[2pt]
+Ridge & $1.64$ & $1.29$ & $12.3$ & $9.7$ & $1.32^{*\phantom{**}}$ & $1.70^{\phantom{***}}$ & $0.69^{\phantom{***}}$ & $0.69^{\phantom{***}}$ \\
+ &  &  &  &  & $[0.059]^{\phantom{***}}$ &  & $[0.171]^{\phantom{***}}$ & $[0.171]^{\phantom{***}}$ \\[2pt]
+Lasso & $1.73$ & $1.37$ & $13.0$ & $10.3$ & $1.40^{**\phantom{*}}$ & $1.93^{*\phantom{**}}$ & $0.77^{\phantom{***}}$ & $0.77^{\phantom{***}}$ \\
+ &  &  &  &  & $[0.039]^{\phantom{***}}$ &  & $[0.120]^{\phantom{***}}$ & $[0.120]^{\phantom{***}}$ \\[2pt]
+Elastic net & $1.85$ & $1.50$ & $13.9$ & $11.3$ & $1.53^{**\phantom{*}}$ & $1.95^{*\phantom{**}}$ & $0.90^{*\phantom{**}}$ & $0.90^{*\phantom{**}}$ \\
+ &  &  &  &  & $[0.026]^{\phantom{***}}$ &  & $[0.074]^{\phantom{***}}$ & $[0.074]^{\phantom{***}}$ \\[2pt]
+LightGBM & $1.54$ & $1.18$ & $11.5$ & $8.9$ & $1.21^{*\phantom{**}}$ & $1.68^{\phantom{***}}$ & $0.88^{**\phantom{*}}$ & $0.58^{\phantom{***}}$ \\
+ &  &  &  &  & $[0.070]^{\phantom{***}}$ &  & $[0.050]^{\phantom{***}}$ & $[0.177]^{\phantom{***}}$ \\[2pt]
+XGBoost & $1.54$ & $1.19$ & $11.6$ & $9.0$ & $1.22^{*\phantom{**}}$ & $1.61^{\phantom{***}}$ & $0.56^{\phantom{***}}$ & $0.59^{\phantom{***}}$ \\
+ &  &  &  &  & $[0.064]^{\phantom{***}}$ &  & $[0.204]^{\phantom{***}}$ & $[0.168]^{\phantom{***}}$ \\[2pt]
+Random forest & $1.88$ & $1.52$ & $14.1$ & $11.4$ & $1.56^{**\phantom{*}}$ & $2.14^{**\phantom{*}}$ & $1.56^{**\phantom{*}}$ & $0.92^{**\phantom{*}}$ \\
+ &  &  &  &  & $[0.018]^{\phantom{***}}$ &  & $[0.020]^{\phantom{***}}$ & $[0.039]^{\phantom{***}}$ \\[2pt]
 \addlinespace[4pt]
 \multicolumn{9}{@{}l}{\textit{Panel B: Pooled intraday models, HAR benchmark set\tnote{a}}} \\
 \addlinespace[2pt]
-OLS\tnote{b} & $0.98$ & $0.62$ & $7.2$ & $4.6$ & $1.10^{\phantom{***}}$ & $0.90^{\phantom{***}}$ & --$^{\phantom{***}}$ & --$^{\phantom{***}}$ \\
- &  &  &  &  & $[0.178]^{\phantom{***}}$ &  &  &  \\[2pt]
-LightGBM & $0.61$ & $0.25$ & $4.9$ & $2.3$ & $0.73^{\phantom{***}}$ & $0.53^{\phantom{***}}$ & --$^{\phantom{***}}$ & --$^{\phantom{***}}$ \\
- &  &  &  &  & $[0.347]^{\phantom{***}}$ &  &  &  \\[2pt]
-XGBoost & $0.91$ & $0.55$ & $7.4$ & $4.8$ & $1.02^{\phantom{***}}$ & $1.08^{\phantom{***}}$ & --$^{\phantom{***}}$ & --$^{\phantom{***}}$ \\
- &  &  &  &  & $[0.189]^{\phantom{***}}$ &  &  &  \\[2pt]
-Random forest & $0.01$ & $-0.32$ & $2.4$ & $-0.2$ & $0.13^{\phantom{***}}$ & $-0.01^{\phantom{***}}$ & --$^{\phantom{***}}$ & --$^{\phantom{***}}$ \\
- &  &  &  &  & $[0.816]^{\phantom{***}}$ &  &  &  \\[2pt]
+OLS\tnote{b} & $0.95$ & $0.60$ & $7.2$ & $4.6$ & $0.63^{\phantom{***}}$ & $0.90^{\phantom{***}}$ & --$^{\phantom{***}}$ & --$^{\phantom{***}}$ \\
+ &  &  &  &  & $[0.350]^{\phantom{***}}$ &  &  &  \\[2pt]
+LightGBM & $0.65$ & $0.31$ & $4.9$ & $2.3$ & $0.33^{\phantom{***}}$ & $0.53^{\phantom{***}}$ & --$^{\phantom{***}}$ & --$^{\phantom{***}}$ \\
+ &  &  &  &  & $[0.614]^{\phantom{***}}$ &  &  &  \\[2pt]
+XGBoost & $0.98$ & $0.63$ & $7.4$ & $4.8$ & $0.66^{\phantom{***}}$ & $1.08^{\phantom{***}}$ & --$^{\phantom{***}}$ & --$^{\phantom{***}}$ \\
+ &  &  &  &  & $[0.315]^{\phantom{***}}$ &  &  &  \\[2pt]
+Random forest & $0.32$ & $-0.03$ & $2.4$ & $-0.2$ & $0.00^{\phantom{***}}$ & $-0.01^{\phantom{***}}$ & --$^{\phantom{***}}$ & --$^{\phantom{***}}$ \\
+ &  &  &  &  & $[0.992]^{\phantom{***}}$ &  &  &  \\[2pt]
 \addlinespace[4pt]
 \multicolumn{9}{@{}l}{\textit{Panel C: Benchmark}} \\
 \addlinespace[2pt]
-Short straddle & $-0.12$ & $-0.46$ & $2.4$ & $-0.2$ & --$^{\phantom{***}}$ & --$^{\phantom{***}}$ & --$^{\phantom{***}}$ & --$^{\phantom{***}}$ \\
+Short straddle & $0.32$ & $-0.03$ & $2.4$ & $-0.2$ & --$^{\phantom{***}}$ & --$^{\phantom{***}}$ & --$^{\phantom{***}}$ & --$^{\phantom{***}}$ \\
 \bottomrule
 \end{tabular}
 \begin{tablenotes}[flushleft]
 \footnotesize
-\item \textit{Notes:} The sign strategy $q_t = \sign(\hat\sigma^2_t - \mathrm{IV}^2_t)$ on the \rheSzDays{} post-warmup days of $\mathcal T_{\mathrm{opt}}$; the short straddle holds $q_t \equiv -1$. $\SR$ is the annualized Sharpe ratio of Section~\ref{sec:rh_econ_measures}, at mid-quotes and at quoted bid/ask prices; mean return is the mean daily return in percent of the premium. Every comparison is at mid-quotes. $\Delta\SR$ is the difference of the Sharpe ratios: against the short straddle; against the same model class on the HAR benchmark set and against the OLS on the HAR benchmark set (full-set rows only). Under each $\Delta\SR$, in brackets, the $p$-value of the paired block-bootstrap test of equal Sharpe ratios (block length \rheBootBlock{}, \rheBootN{} resamples); $t(\bar\Delta)$ is the $t$-statistic of the mean daily return differential against the short straddle (Newey--West, bandwidth $S = \rheHACS$, fixed-$b$ critical values; Section~\ref{sec:rh_methods_tests}). $^{*}$, $^{**}$ and $^{***}$ denote significance at the 10\%, 5\% and 1\% levels.
+\item \textit{Notes:} The sign strategy $q_t = \sign(\hat\sigma^2_t - \mathrm{IV}^2_t)$ on the \rheSzDays{} post-warmup days of $\mathcal T_{\mathrm{opt}}$; the short straddle holds $q_t \equiv -1$. $\SR$ is the annualized Sharpe ratio of Section~\ref{sec:rh_econ_measures}, at mid-quotes and at quoted bid/ask prices; mean return is the mean daily return in percent of the premium. Every comparison is at mid-quotes. $\Delta\SR$ is the difference of the Sharpe ratios: against the short straddle; against the same model class on the HAR benchmark set and against the OLS on the HAR benchmark set (full-set rows only). Under each $\Delta\SR$, in brackets, the $p$-value of the \citet{LedoitWolf2008} test of equal Sharpe ratios (block length \rheLWBlock{}, \rheLWBoot{} resamples); $t(\bar\Delta)$ is the $t$-statistic of the mean daily return differential against the short straddle (Newey--West, bandwidth $S = \rheHACS$, fixed-$b$ critical values; Section~\ref{sec:rh_methods_tests}). $^{*}$, $^{**}$ and $^{***}$ denote significance at the 10\%, 5\% and 1\% levels.
 \item[a] Panels A and B: models estimated on the \rhePoolNBars{} regular-hours 30-minute intervals of each day (the pooled intraday scheme); each trades its 15:30 forecast of the 15:30--16:00 ET variance.
 \item[b] The OLS on the HAR benchmark set, the primary benchmark (Table~\ref{tab:rh_oos}); the ridge, lasso and elastic net forecasts on that set coincide with it (largest relative difference \rhemHarLinMaxRelDiff{} over \rhemHarLinNRows{} forecasts; the positions agree on every day), so Panel B holds \rhemHarDistinctWord{} distinct forecasts.
 \end{tablenotes}

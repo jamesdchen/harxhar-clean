@@ -5,7 +5,7 @@
 % Oos (16:00, T_oos), Ch (16:00, the benchmark's span). Losses: Qlike, Mse. MCS statistics: Tmax, Trange (T_R).
 % SPA / StepM families: <Sample><Q|M>Af (Full vs own HAR), <Sample><Q|M>Bm (Full vs the closing-interval HAR),
 % <Mid|Ba><Short|Twin><Mean|Sr> (sign strategies on the 614 post-warmup days, vs the short straddle or the HAR twin,
-% mean return or D6 Sharpe ratio). p-values of StepM and SPA are one-sided (H_k: no better than the benchmark).
+% mean return or the paper's pooled Sharpe ratio, D19). p-values of StepM and SPA are one-sided (H_k: no better than the benchmark).
 \providecommand{\rhmcsB}{}\renewcommand{\rhmcsB}{4{,}999}  % bootstrap replications, every MCS / SPA / StepM (accuracy and strategies)
 \providecommand{\rhmcsBlock}{}\renewcommand{\rhmcsBlock}{10}  % block length in trading days (circular moving-block bootstrap), main
 \providecommand{\rhmcsBlockLo}{}\renewcommand{\rhmcsBlockLo}{5}  % block length, sensitivity (shorter)
@@ -1311,58 +1311,58 @@
 \providecommand{\rhmcsMidShortMeanNRejTwoHi}{}\renewcommand{\rhmcsMidShortMeanNRejTwoHi}{1}  % ... two-sided, block length 20
 \providecommand{\rhmcsMidShortMeanPMinHi}{}\renewcommand{\rhmcsMidShortMeanPMinHi}{0.028}  % smallest adjusted p, block length 20
 \providecommand{\rhmcsMidShortMeanPTwoMinHi}{}\renewcommand{\rhmcsMidShortMeanPTwoMinHi}{0.036}  % ... two-sided, block length 20
-\providecommand{\rhmcsMidShortSrSpaC}{}\renewcommand{\rhmcsMidShortSrSpaC}{0.002}  % SPA p-value (consistent), family MidShortSr
-\providecommand{\rhmcsMidShortSrSpaL}{}\renewcommand{\rhmcsMidShortSrSpaL}{0.002}  % ... lower
-\providecommand{\rhmcsMidShortSrSpaU}{}\renewcommand{\rhmcsMidShortSrSpaU}{0.002}  % ... upper
+\providecommand{\rhmcsMidShortSrSpaC}{}\renewcommand{\rhmcsMidShortSrSpaC}{0.008}  % SPA p-value (consistent), family MidShortSr
+\providecommand{\rhmcsMidShortSrSpaL}{}\renewcommand{\rhmcsMidShortSrSpaL}{0.008}  % ... lower
+\providecommand{\rhmcsMidShortSrSpaU}{}\renewcommand{\rhmcsMidShortSrSpaU}{0.008}  % ... upper
 \providecommand{\rhmcsMidShortSrNRej}{}\renewcommand{\rhmcsMidShortSrNRej}{6}  % StepM rejections at FWER 5 % (of 6)
 \providecommand{\rhmcsMidShortSrNRejWord}{}\renewcommand{\rhmcsMidShortSrNRejWord}{six}  % ... as a word
 \providecommand{\rhmcsMidShortSrNRaw}{}\renewcommand{\rhmcsMidShortSrNRaw}{6}  % single-test bootstrap p < 0.05 (no adjustment)
 \providecommand{\rhmcsMidShortSrNRawWord}{}\renewcommand{\rhmcsMidShortSrNRawWord}{six}  % ... as a word
 \providecommand{\rhmcsMidShortSrNPos}{}\renewcommand{\rhmcsMidShortSrNPos}{6}  % alternatives with a positive estimate (better than the benchmark)
-\providecommand{\rhmcsMidShortSrPMin}{}\renewcommand{\rhmcsMidShortSrPMin}{0.002}  % smallest StepM-adjusted p-value
-\providecommand{\rhmcsMidShortSrPMax}{}\renewcommand{\rhmcsMidShortSrPMax}{0.003}  % largest StepM-adjusted p-value
-\providecommand{\rhmcsMidShortSrPTwoMin}{}\renewcommand{\rhmcsMidShortSrPTwoMin}{0.004}  % smallest two-sided StepM-adjusted p-value
-\providecommand{\rhmcsMidShortSrPTwoMax}{}\renewcommand{\rhmcsMidShortSrPTwoMax}{0.012}  % largest two-sided StepM-adjusted p-value
-\providecommand{\rhmcsMidShortSrRawMin}{}\renewcommand{\rhmcsMidShortSrRawMin}{0.001}  % smallest single-test bootstrap p-value
+\providecommand{\rhmcsMidShortSrPMin}{}\renewcommand{\rhmcsMidShortSrPMin}{0.008}  % smallest StepM-adjusted p-value
+\providecommand{\rhmcsMidShortSrPMax}{}\renewcommand{\rhmcsMidShortSrPMax}{0.028}  % largest StepM-adjusted p-value
+\providecommand{\rhmcsMidShortSrPTwoMin}{}\renewcommand{\rhmcsMidShortSrPTwoMin}{0.016}  % smallest two-sided StepM-adjusted p-value
+\providecommand{\rhmcsMidShortSrPTwoMax}{}\renewcommand{\rhmcsMidShortSrPTwoMax}{0.060}  % largest two-sided StepM-adjusted p-value
+\providecommand{\rhmcsMidShortSrRawMin}{}\renewcommand{\rhmcsMidShortSrRawMin}{0.003}  % smallest single-test bootstrap p-value
 \providecommand{\rhmcsMidShortSrRej}{}\renewcommand{\rhmcsMidShortSrRej}{ridge regression on the full predictor set, the lasso on the full predictor set, the elastic net on the full predictor set, LightGBM on the full predictor set, XGBoost on the full predictor set, and the random forest on the full predictor set}  % the alternatives StepM rejects at 5 % (none: none)
-\providecommand{\rhmcsMidShortSrNRejTwo}{}\renewcommand{\rhmcsMidShortSrNRejTwo}{6}  % StepM rejections at FWER 5 %, two-sided
-\providecommand{\rhmcsMidShortSrNRejTwoWord}{}\renewcommand{\rhmcsMidShortSrNRejTwoWord}{six}  % ... as a word
+\providecommand{\rhmcsMidShortSrNRejTwo}{}\renewcommand{\rhmcsMidShortSrNRejTwo}{3}  % StepM rejections at FWER 5 %, two-sided
+\providecommand{\rhmcsMidShortSrNRejTwoWord}{}\renewcommand{\rhmcsMidShortSrNRejTwoWord}{three}  % ... as a word
 \providecommand{\rhmcsMidShortSrNRawTwo}{}\renewcommand{\rhmcsMidShortSrNRawTwo}{6}  % single-test bootstrap p < 0.05, two-sided
-\providecommand{\rhmcsMidShortSrRejTwo}{}\renewcommand{\rhmcsMidShortSrRejTwo}{ridge regression on the full predictor set, the lasso on the full predictor set, the elastic net on the full predictor set, LightGBM on the full predictor set, XGBoost on the full predictor set, and the random forest on the full predictor set}  % the alternatives the two-sided StepM rejects at 5 % (none: none)
-\providecommand{\rhmcsMidShortSrPRidge}{}\renewcommand{\rhmcsMidShortSrPRidge}{0.003}  % StepM-adjusted p-value (one-sided), Ridge
-\providecommand{\rhmcsMidShortSrRawRidge}{}\renewcommand{\rhmcsMidShortSrRawRidge}{0.002}  % single-test bootstrap p-value (one-sided), Ridge
-\providecommand{\rhmcsMidShortSrPTwoRidge}{}\renewcommand{\rhmcsMidShortSrPTwoRidge}{0.012}  % StepM-adjusted p-value (two-sided), Ridge
-\providecommand{\rhmcsMidShortSrRawTwoRidge}{}\renewcommand{\rhmcsMidShortSrRawTwoRidge}{0.007}  % single-test bootstrap p-value (two-sided), Ridge
-\providecommand{\rhmcsMidShortSrPLasso}{}\renewcommand{\rhmcsMidShortSrPLasso}{0.003}  % StepM-adjusted p-value (one-sided), Lasso
-\providecommand{\rhmcsMidShortSrRawLasso}{}\renewcommand{\rhmcsMidShortSrRawLasso}{0.002}  % single-test bootstrap p-value (one-sided), Lasso
-\providecommand{\rhmcsMidShortSrPTwoLasso}{}\renewcommand{\rhmcsMidShortSrPTwoLasso}{0.012}  % StepM-adjusted p-value (two-sided), Lasso
-\providecommand{\rhmcsMidShortSrRawTwoLasso}{}\renewcommand{\rhmcsMidShortSrRawTwoLasso}{0.009}  % single-test bootstrap p-value (two-sided), Lasso
-\providecommand{\rhmcsMidShortSrPEnet}{}\renewcommand{\rhmcsMidShortSrPEnet}{0.002}  % StepM-adjusted p-value (one-sided), Elastic net
-\providecommand{\rhmcsMidShortSrRawEnet}{}\renewcommand{\rhmcsMidShortSrRawEnet}{0.002}  % single-test bootstrap p-value (one-sided), Elastic net
-\providecommand{\rhmcsMidShortSrPTwoEnet}{}\renewcommand{\rhmcsMidShortSrPTwoEnet}{0.008}  % StepM-adjusted p-value (two-sided), Elastic net
-\providecommand{\rhmcsMidShortSrRawTwoEnet}{}\renewcommand{\rhmcsMidShortSrRawTwoEnet}{0.003}  % single-test bootstrap p-value (two-sided), Elastic net
-\providecommand{\rhmcsMidShortSrPLgbm}{}\renewcommand{\rhmcsMidShortSrPLgbm}{0.003}  % StepM-adjusted p-value (one-sided), LightGBM
-\providecommand{\rhmcsMidShortSrRawLgbm}{}\renewcommand{\rhmcsMidShortSrRawLgbm}{0.002}  % single-test bootstrap p-value (one-sided), LightGBM
-\providecommand{\rhmcsMidShortSrPTwoLgbm}{}\renewcommand{\rhmcsMidShortSrPTwoLgbm}{0.012}  % StepM-adjusted p-value (two-sided), LightGBM
-\providecommand{\rhmcsMidShortSrRawTwoLgbm}{}\renewcommand{\rhmcsMidShortSrRawTwoLgbm}{0.006}  % single-test bootstrap p-value (two-sided), LightGBM
-\providecommand{\rhmcsMidShortSrPXgb}{}\renewcommand{\rhmcsMidShortSrPXgb}{0.003}  % StepM-adjusted p-value (one-sided), XGBoost
-\providecommand{\rhmcsMidShortSrRawXgb}{}\renewcommand{\rhmcsMidShortSrRawXgb}{0.002}  % single-test bootstrap p-value (one-sided), XGBoost
-\providecommand{\rhmcsMidShortSrPTwoXgb}{}\renewcommand{\rhmcsMidShortSrPTwoXgb}{0.012}  % StepM-adjusted p-value (two-sided), XGBoost
-\providecommand{\rhmcsMidShortSrRawTwoXgb}{}\renewcommand{\rhmcsMidShortSrRawTwoXgb}{0.004}  % single-test bootstrap p-value (two-sided), XGBoost
-\providecommand{\rhmcsMidShortSrPRf}{}\renewcommand{\rhmcsMidShortSrPRf}{0.002}  % StepM-adjusted p-value (one-sided), Random forest
-\providecommand{\rhmcsMidShortSrRawRf}{}\renewcommand{\rhmcsMidShortSrRawRf}{0.001}  % single-test bootstrap p-value (one-sided), Random forest
-\providecommand{\rhmcsMidShortSrPTwoRf}{}\renewcommand{\rhmcsMidShortSrPTwoRf}{0.004}  % StepM-adjusted p-value (two-sided), Random forest
-\providecommand{\rhmcsMidShortSrRawTwoRf}{}\renewcommand{\rhmcsMidShortSrRawTwoRf}{0.001}  % single-test bootstrap p-value (two-sided), Random forest
+\providecommand{\rhmcsMidShortSrRejTwo}{}\renewcommand{\rhmcsMidShortSrRejTwo}{the lasso on the full predictor set, the elastic net on the full predictor set, and the random forest on the full predictor set}  % the alternatives the two-sided StepM rejects at 5 % (none: none)
+\providecommand{\rhmcsMidShortSrPRidge}{}\renewcommand{\rhmcsMidShortSrPRidge}{0.028}  % StepM-adjusted p-value (one-sided), Ridge
+\providecommand{\rhmcsMidShortSrRawRidge}{}\renewcommand{\rhmcsMidShortSrRawRidge}{0.019}  % single-test bootstrap p-value (one-sided), Ridge
+\providecommand{\rhmcsMidShortSrPTwoRidge}{}\renewcommand{\rhmcsMidShortSrPTwoRidge}{0.060}  % StepM-adjusted p-value (two-sided), Ridge
+\providecommand{\rhmcsMidShortSrRawTwoRidge}{}\renewcommand{\rhmcsMidShortSrRawTwoRidge}{0.039}  % single-test bootstrap p-value (two-sided), Ridge
+\providecommand{\rhmcsMidShortSrPLasso}{}\renewcommand{\rhmcsMidShortSrPLasso}{0.017}  % StepM-adjusted p-value (one-sided), Lasso
+\providecommand{\rhmcsMidShortSrRawLasso}{}\renewcommand{\rhmcsMidShortSrRawLasso}{0.010}  % single-test bootstrap p-value (one-sided), Lasso
+\providecommand{\rhmcsMidShortSrPTwoLasso}{}\renewcommand{\rhmcsMidShortSrPTwoLasso}{0.040}  % StepM-adjusted p-value (two-sided), Lasso
+\providecommand{\rhmcsMidShortSrRawTwoLasso}{}\renewcommand{\rhmcsMidShortSrRawTwoLasso}{0.021}  % single-test bootstrap p-value (two-sided), Lasso
+\providecommand{\rhmcsMidShortSrPEnet}{}\renewcommand{\rhmcsMidShortSrPEnet}{0.012}  % StepM-adjusted p-value (one-sided), Elastic net
+\providecommand{\rhmcsMidShortSrRawEnet}{}\renewcommand{\rhmcsMidShortSrRawEnet}{0.007}  % single-test bootstrap p-value (one-sided), Elastic net
+\providecommand{\rhmcsMidShortSrPTwoEnet}{}\renewcommand{\rhmcsMidShortSrPTwoEnet}{0.027}  % StepM-adjusted p-value (two-sided), Elastic net
+\providecommand{\rhmcsMidShortSrRawTwoEnet}{}\renewcommand{\rhmcsMidShortSrRawTwoEnet}{0.012}  % single-test bootstrap p-value (two-sided), Elastic net
+\providecommand{\rhmcsMidShortSrPLgbm}{}\renewcommand{\rhmcsMidShortSrPLgbm}{0.028}  % StepM-adjusted p-value (one-sided), LightGBM
+\providecommand{\rhmcsMidShortSrRawLgbm}{}\renewcommand{\rhmcsMidShortSrRawLgbm}{0.021}  % single-test bootstrap p-value (one-sided), LightGBM
+\providecommand{\rhmcsMidShortSrPTwoLgbm}{}\renewcommand{\rhmcsMidShortSrPTwoLgbm}{0.060}  % StepM-adjusted p-value (two-sided), LightGBM
+\providecommand{\rhmcsMidShortSrRawTwoLgbm}{}\renewcommand{\rhmcsMidShortSrRawTwoLgbm}{0.047}  % single-test bootstrap p-value (two-sided), LightGBM
+\providecommand{\rhmcsMidShortSrPXgb}{}\renewcommand{\rhmcsMidShortSrPXgb}{0.028}  % StepM-adjusted p-value (one-sided), XGBoost
+\providecommand{\rhmcsMidShortSrRawXgb}{}\renewcommand{\rhmcsMidShortSrRawXgb}{0.020}  % single-test bootstrap p-value (one-sided), XGBoost
+\providecommand{\rhmcsMidShortSrPTwoXgb}{}\renewcommand{\rhmcsMidShortSrPTwoXgb}{0.060}  % StepM-adjusted p-value (two-sided), XGBoost
+\providecommand{\rhmcsMidShortSrRawTwoXgb}{}\renewcommand{\rhmcsMidShortSrRawTwoXgb}{0.046}  % single-test bootstrap p-value (two-sided), XGBoost
+\providecommand{\rhmcsMidShortSrPRf}{}\renewcommand{\rhmcsMidShortSrPRf}{0.008}  % StepM-adjusted p-value (one-sided), Random forest
+\providecommand{\rhmcsMidShortSrRawRf}{}\renewcommand{\rhmcsMidShortSrRawRf}{0.003}  % single-test bootstrap p-value (one-sided), Random forest
+\providecommand{\rhmcsMidShortSrPTwoRf}{}\renewcommand{\rhmcsMidShortSrPTwoRf}{0.016}  % StepM-adjusted p-value (two-sided), Random forest
+\providecommand{\rhmcsMidShortSrRawTwoRf}{}\renewcommand{\rhmcsMidShortSrRawTwoRf}{0.007}  % single-test bootstrap p-value (two-sided), Random forest
 \providecommand{\rhmcsMidShortSrNRejLo}{}\renewcommand{\rhmcsMidShortSrNRejLo}{6}  % StepM rejections at 5 %, block length 5
-\providecommand{\rhmcsMidShortSrSpaCLo}{}\renewcommand{\rhmcsMidShortSrSpaCLo}{0.005}  % SPA p-value (consistent), block length 5
-\providecommand{\rhmcsMidShortSrNRejTwoLo}{}\renewcommand{\rhmcsMidShortSrNRejTwoLo}{6}  % ... two-sided, block length 5
-\providecommand{\rhmcsMidShortSrPMinLo}{}\renewcommand{\rhmcsMidShortSrPMinLo}{0.005}  % smallest adjusted p, block length 5
-\providecommand{\rhmcsMidShortSrPTwoMinLo}{}\renewcommand{\rhmcsMidShortSrPTwoMinLo}{0.016}  % ... two-sided, block length 5
+\providecommand{\rhmcsMidShortSrSpaCLo}{}\renewcommand{\rhmcsMidShortSrSpaCLo}{0.010}  % SPA p-value (consistent), block length 5
+\providecommand{\rhmcsMidShortSrNRejTwoLo}{}\renewcommand{\rhmcsMidShortSrNRejTwoLo}{3}  % ... two-sided, block length 5
+\providecommand{\rhmcsMidShortSrPMinLo}{}\renewcommand{\rhmcsMidShortSrPMinLo}{0.010}  % smallest adjusted p, block length 5
+\providecommand{\rhmcsMidShortSrPTwoMinLo}{}\renewcommand{\rhmcsMidShortSrPTwoMinLo}{0.027}  % ... two-sided, block length 5
 \providecommand{\rhmcsMidShortSrNRejHi}{}\renewcommand{\rhmcsMidShortSrNRejHi}{6}  % StepM rejections at 5 %, block length 20
-\providecommand{\rhmcsMidShortSrSpaCHi}{}\renewcommand{\rhmcsMidShortSrSpaCHi}{0.004}  % SPA p-value (consistent), block length 20
-\providecommand{\rhmcsMidShortSrNRejTwoHi}{}\renewcommand{\rhmcsMidShortSrNRejTwoHi}{6}  % ... two-sided, block length 20
-\providecommand{\rhmcsMidShortSrPMinHi}{}\renewcommand{\rhmcsMidShortSrPMinHi}{0.004}  % smallest adjusted p, block length 20
-\providecommand{\rhmcsMidShortSrPTwoMinHi}{}\renewcommand{\rhmcsMidShortSrPTwoMinHi}{0.006}  % ... two-sided, block length 20
+\providecommand{\rhmcsMidShortSrSpaCHi}{}\renewcommand{\rhmcsMidShortSrSpaCHi}{0.008}  % SPA p-value (consistent), block length 20
+\providecommand{\rhmcsMidShortSrNRejTwoHi}{}\renewcommand{\rhmcsMidShortSrNRejTwoHi}{3}  % ... two-sided, block length 20
+\providecommand{\rhmcsMidShortSrPMinHi}{}\renewcommand{\rhmcsMidShortSrPMinHi}{0.008}  % smallest adjusted p, block length 20
+\providecommand{\rhmcsMidShortSrPTwoMinHi}{}\renewcommand{\rhmcsMidShortSrPTwoMinHi}{0.015}  % ... two-sided, block length 20
 \providecommand{\rhmcsMidTwinMeanSpaC}{}\renewcommand{\rhmcsMidTwinMeanSpaC}{0.027}  % SPA p-value (consistent), family MidTwinMean
 \providecommand{\rhmcsMidTwinMeanSpaL}{}\renewcommand{\rhmcsMidTwinMeanSpaL}{0.027}  % ... lower
 \providecommand{\rhmcsMidTwinMeanSpaU}{}\renewcommand{\rhmcsMidTwinMeanSpaU}{0.027}  % ... upper
@@ -1415,58 +1415,58 @@
 \providecommand{\rhmcsMidTwinMeanNRejTwoHi}{}\renewcommand{\rhmcsMidTwinMeanNRejTwoHi}{1}  % ... two-sided, block length 20
 \providecommand{\rhmcsMidTwinMeanPMinHi}{}\renewcommand{\rhmcsMidTwinMeanPMinHi}{0.033}  % smallest adjusted p, block length 20
 \providecommand{\rhmcsMidTwinMeanPTwoMinHi}{}\renewcommand{\rhmcsMidTwinMeanPTwoMinHi}{0.047}  % ... two-sided, block length 20
-\providecommand{\rhmcsMidTwinSrSpaC}{}\renewcommand{\rhmcsMidTwinSrSpaC}{0.020}  % SPA p-value (consistent), family MidTwinSr
-\providecommand{\rhmcsMidTwinSrSpaL}{}\renewcommand{\rhmcsMidTwinSrSpaL}{0.020}  % ... lower
-\providecommand{\rhmcsMidTwinSrSpaU}{}\renewcommand{\rhmcsMidTwinSrSpaU}{0.020}  % ... upper
+\providecommand{\rhmcsMidTwinSrSpaC}{}\renewcommand{\rhmcsMidTwinSrSpaC}{0.007}  % SPA p-value (consistent), family MidTwinSr
+\providecommand{\rhmcsMidTwinSrSpaL}{}\renewcommand{\rhmcsMidTwinSrSpaL}{0.007}  % ... lower
+\providecommand{\rhmcsMidTwinSrSpaU}{}\renewcommand{\rhmcsMidTwinSrSpaU}{0.007}  % ... upper
 \providecommand{\rhmcsMidTwinSrNRej}{}\renewcommand{\rhmcsMidTwinSrNRej}{1}  % StepM rejections at FWER 5 % (of 6)
 \providecommand{\rhmcsMidTwinSrNRejWord}{}\renewcommand{\rhmcsMidTwinSrNRejWord}{one}  % ... as a word
-\providecommand{\rhmcsMidTwinSrNRaw}{}\renewcommand{\rhmcsMidTwinSrNRaw}{2}  % single-test bootstrap p < 0.05 (no adjustment)
-\providecommand{\rhmcsMidTwinSrNRawWord}{}\renewcommand{\rhmcsMidTwinSrNRawWord}{two}  % ... as a word
+\providecommand{\rhmcsMidTwinSrNRaw}{}\renewcommand{\rhmcsMidTwinSrNRaw}{3}  % single-test bootstrap p < 0.05 (no adjustment)
+\providecommand{\rhmcsMidTwinSrNRawWord}{}\renewcommand{\rhmcsMidTwinSrNRawWord}{three}  % ... as a word
 \providecommand{\rhmcsMidTwinSrNPos}{}\renewcommand{\rhmcsMidTwinSrNPos}{6}  % alternatives with a positive estimate (better than the benchmark)
-\providecommand{\rhmcsMidTwinSrPMin}{}\renewcommand{\rhmcsMidTwinSrPMin}{0.020}  % smallest StepM-adjusted p-value
-\providecommand{\rhmcsMidTwinSrPMax}{}\renewcommand{\rhmcsMidTwinSrPMax}{0.16}  % largest StepM-adjusted p-value
-\providecommand{\rhmcsMidTwinSrPTwoMin}{}\renewcommand{\rhmcsMidTwinSrPTwoMin}{0.024}  % smallest two-sided StepM-adjusted p-value
-\providecommand{\rhmcsMidTwinSrPTwoMax}{}\renewcommand{\rhmcsMidTwinSrPTwoMax}{0.248}  % largest two-sided StepM-adjusted p-value
-\providecommand{\rhmcsMidTwinSrRawMin}{}\renewcommand{\rhmcsMidTwinSrRawMin}{0.003}  % smallest single-test bootstrap p-value
+\providecommand{\rhmcsMidTwinSrPMin}{}\renewcommand{\rhmcsMidTwinSrPMin}{0.007}  % smallest StepM-adjusted p-value
+\providecommand{\rhmcsMidTwinSrPMax}{}\renewcommand{\rhmcsMidTwinSrPMax}{0.14}  % largest StepM-adjusted p-value
+\providecommand{\rhmcsMidTwinSrPTwoMin}{}\renewcommand{\rhmcsMidTwinSrPTwoMin}{0.012}  % smallest two-sided StepM-adjusted p-value
+\providecommand{\rhmcsMidTwinSrPTwoMax}{}\renewcommand{\rhmcsMidTwinSrPTwoMax}{0.27}  % largest two-sided StepM-adjusted p-value
+\providecommand{\rhmcsMidTwinSrRawMin}{}\renewcommand{\rhmcsMidTwinSrRawMin}{0.002}  % smallest single-test bootstrap p-value
 \providecommand{\rhmcsMidTwinSrRej}{}\renewcommand{\rhmcsMidTwinSrRej}{the random forest on the full predictor set}  % the alternatives StepM rejects at 5 % (none: none)
 \providecommand{\rhmcsMidTwinSrNRejTwo}{}\renewcommand{\rhmcsMidTwinSrNRejTwo}{1}  % StepM rejections at FWER 5 %, two-sided
 \providecommand{\rhmcsMidTwinSrNRejTwoWord}{}\renewcommand{\rhmcsMidTwinSrNRejTwoWord}{one}  % ... as a word
-\providecommand{\rhmcsMidTwinSrNRawTwo}{}\renewcommand{\rhmcsMidTwinSrNRawTwo}{1}  % single-test bootstrap p < 0.05, two-sided
+\providecommand{\rhmcsMidTwinSrNRawTwo}{}\renewcommand{\rhmcsMidTwinSrNRawTwo}{2}  % single-test bootstrap p < 0.05, two-sided
 \providecommand{\rhmcsMidTwinSrRejTwo}{}\renewcommand{\rhmcsMidTwinSrRejTwo}{the random forest on the full predictor set}  % the alternatives the two-sided StepM rejects at 5 % (none: none)
-\providecommand{\rhmcsMidTwinSrPRidge}{}\renewcommand{\rhmcsMidTwinSrPRidge}{0.16}  % StepM-adjusted p-value (one-sided), Ridge
-\providecommand{\rhmcsMidTwinSrRawRidge}{}\renewcommand{\rhmcsMidTwinSrRawRidge}{0.15}  % single-test bootstrap p-value (one-sided), Ridge
-\providecommand{\rhmcsMidTwinSrPTwoRidge}{}\renewcommand{\rhmcsMidTwinSrPTwoRidge}{0.248}  % StepM-adjusted p-value (two-sided), Ridge
-\providecommand{\rhmcsMidTwinSrRawTwoRidge}{}\renewcommand{\rhmcsMidTwinSrRawTwoRidge}{0.22}  % single-test bootstrap p-value (two-sided), Ridge
-\providecommand{\rhmcsMidTwinSrPLasso}{}\renewcommand{\rhmcsMidTwinSrPLasso}{0.16}  % StepM-adjusted p-value (one-sided), Lasso
-\providecommand{\rhmcsMidTwinSrRawLasso}{}\renewcommand{\rhmcsMidTwinSrRawLasso}{0.14}  % single-test bootstrap p-value (one-sided), Lasso
-\providecommand{\rhmcsMidTwinSrPTwoLasso}{}\renewcommand{\rhmcsMidTwinSrPTwoLasso}{0.248}  % StepM-adjusted p-value (two-sided), Lasso
-\providecommand{\rhmcsMidTwinSrRawTwoLasso}{}\renewcommand{\rhmcsMidTwinSrRawTwoLasso}{0.21}  % single-test bootstrap p-value (two-sided), Lasso
-\providecommand{\rhmcsMidTwinSrPEnet}{}\renewcommand{\rhmcsMidTwinSrPEnet}{0.16}  % StepM-adjusted p-value (one-sided), Elastic net
-\providecommand{\rhmcsMidTwinSrRawEnet}{}\renewcommand{\rhmcsMidTwinSrRawEnet}{0.100}  % single-test bootstrap p-value (one-sided), Elastic net
-\providecommand{\rhmcsMidTwinSrPTwoEnet}{}\renewcommand{\rhmcsMidTwinSrPTwoEnet}{0.23}  % StepM-adjusted p-value (two-sided), Elastic net
-\providecommand{\rhmcsMidTwinSrRawTwoEnet}{}\renewcommand{\rhmcsMidTwinSrRawTwoEnet}{0.13}  % single-test bootstrap p-value (two-sided), Elastic net
-\providecommand{\rhmcsMidTwinSrPLgbm}{}\renewcommand{\rhmcsMidTwinSrPLgbm}{0.11}  % StepM-adjusted p-value (one-sided), LightGBM
-\providecommand{\rhmcsMidTwinSrRawLgbm}{}\renewcommand{\rhmcsMidTwinSrRawLgbm}{0.050}  % single-test bootstrap p-value (one-sided), LightGBM
-\providecommand{\rhmcsMidTwinSrPTwoLgbm}{}\renewcommand{\rhmcsMidTwinSrPTwoLgbm}{0.14}  % StepM-adjusted p-value (two-sided), LightGBM
-\providecommand{\rhmcsMidTwinSrRawTwoLgbm}{}\renewcommand{\rhmcsMidTwinSrRawTwoLgbm}{0.063}  % single-test bootstrap p-value (two-sided), LightGBM
-\providecommand{\rhmcsMidTwinSrPXgb}{}\renewcommand{\rhmcsMidTwinSrPXgb}{0.16}  % StepM-adjusted p-value (one-sided), XGBoost
-\providecommand{\rhmcsMidTwinSrRawXgb}{}\renewcommand{\rhmcsMidTwinSrRawXgb}{0.087}  % single-test bootstrap p-value (one-sided), XGBoost
-\providecommand{\rhmcsMidTwinSrPTwoXgb}{}\renewcommand{\rhmcsMidTwinSrPTwoXgb}{0.23}  % StepM-adjusted p-value (two-sided), XGBoost
-\providecommand{\rhmcsMidTwinSrRawTwoXgb}{}\renewcommand{\rhmcsMidTwinSrRawTwoXgb}{0.12}  % single-test bootstrap p-value (two-sided), XGBoost
-\providecommand{\rhmcsMidTwinSrPRf}{}\renewcommand{\rhmcsMidTwinSrPRf}{0.020}  % StepM-adjusted p-value (one-sided), Random forest
-\providecommand{\rhmcsMidTwinSrRawRf}{}\renewcommand{\rhmcsMidTwinSrRawRf}{0.003}  % single-test bootstrap p-value (one-sided), Random forest
-\providecommand{\rhmcsMidTwinSrPTwoRf}{}\renewcommand{\rhmcsMidTwinSrPTwoRf}{0.024}  % StepM-adjusted p-value (two-sided), Random forest
-\providecommand{\rhmcsMidTwinSrRawTwoRf}{}\renewcommand{\rhmcsMidTwinSrRawTwoRf}{0.007}  % single-test bootstrap p-value (two-sided), Random forest
+\providecommand{\rhmcsMidTwinSrPRidge}{}\renewcommand{\rhmcsMidTwinSrPRidge}{0.14}  % StepM-adjusted p-value (one-sided), Ridge
+\providecommand{\rhmcsMidTwinSrRawRidge}{}\renewcommand{\rhmcsMidTwinSrRawRidge}{0.089}  % single-test bootstrap p-value (one-sided), Ridge
+\providecommand{\rhmcsMidTwinSrPTwoRidge}{}\renewcommand{\rhmcsMidTwinSrPTwoRidge}{0.27}  % StepM-adjusted p-value (two-sided), Ridge
+\providecommand{\rhmcsMidTwinSrRawTwoRidge}{}\renewcommand{\rhmcsMidTwinSrRawTwoRidge}{0.17}  % single-test bootstrap p-value (two-sided), Ridge
+\providecommand{\rhmcsMidTwinSrPLasso}{}\renewcommand{\rhmcsMidTwinSrPLasso}{0.12}  % StepM-adjusted p-value (one-sided), Lasso
+\providecommand{\rhmcsMidTwinSrRawLasso}{}\renewcommand{\rhmcsMidTwinSrRawLasso}{0.071}  % single-test bootstrap p-value (one-sided), Lasso
+\providecommand{\rhmcsMidTwinSrPTwoLasso}{}\renewcommand{\rhmcsMidTwinSrPTwoLasso}{0.22}  % StepM-adjusted p-value (two-sided), Lasso
+\providecommand{\rhmcsMidTwinSrRawTwoLasso}{}\renewcommand{\rhmcsMidTwinSrRawTwoLasso}{0.12}  % single-test bootstrap p-value (two-sided), Lasso
+\providecommand{\rhmcsMidTwinSrPEnet}{}\renewcommand{\rhmcsMidTwinSrPEnet}{0.082}  % StepM-adjusted p-value (one-sided), Elastic net
+\providecommand{\rhmcsMidTwinSrRawEnet}{}\renewcommand{\rhmcsMidTwinSrRawEnet}{0.045}  % single-test bootstrap p-value (one-sided), Elastic net
+\providecommand{\rhmcsMidTwinSrPTwoEnet}{}\renewcommand{\rhmcsMidTwinSrPTwoEnet}{0.15}  % StepM-adjusted p-value (two-sided), Elastic net
+\providecommand{\rhmcsMidTwinSrRawTwoEnet}{}\renewcommand{\rhmcsMidTwinSrRawTwoEnet}{0.072}  % single-test bootstrap p-value (two-sided), Elastic net
+\providecommand{\rhmcsMidTwinSrPLgbm}{}\renewcommand{\rhmcsMidTwinSrPLgbm}{0.065}  % StepM-adjusted p-value (one-sided), LightGBM
+\providecommand{\rhmcsMidTwinSrRawLgbm}{}\renewcommand{\rhmcsMidTwinSrRawLgbm}{0.027}  % single-test bootstrap p-value (one-sided), LightGBM
+\providecommand{\rhmcsMidTwinSrPTwoLgbm}{}\renewcommand{\rhmcsMidTwinSrPTwoLgbm}{0.12}  % StepM-adjusted p-value (two-sided), LightGBM
+\providecommand{\rhmcsMidTwinSrRawTwoLgbm}{}\renewcommand{\rhmcsMidTwinSrRawTwoLgbm}{0.050}  % single-test bootstrap p-value (two-sided), LightGBM
+\providecommand{\rhmcsMidTwinSrPXgb}{}\renewcommand{\rhmcsMidTwinSrPXgb}{0.14}  % StepM-adjusted p-value (one-sided), XGBoost
+\providecommand{\rhmcsMidTwinSrRawXgb}{}\renewcommand{\rhmcsMidTwinSrRawXgb}{0.11}  % single-test bootstrap p-value (one-sided), XGBoost
+\providecommand{\rhmcsMidTwinSrPTwoXgb}{}\renewcommand{\rhmcsMidTwinSrPTwoXgb}{0.27}  % StepM-adjusted p-value (two-sided), XGBoost
+\providecommand{\rhmcsMidTwinSrRawTwoXgb}{}\renewcommand{\rhmcsMidTwinSrRawTwoXgb}{0.20}  % single-test bootstrap p-value (two-sided), XGBoost
+\providecommand{\rhmcsMidTwinSrPRf}{}\renewcommand{\rhmcsMidTwinSrPRf}{0.007}  % StepM-adjusted p-value (one-sided), Random forest
+\providecommand{\rhmcsMidTwinSrRawRf}{}\renewcommand{\rhmcsMidTwinSrRawRf}{0.002}  % single-test bootstrap p-value (one-sided), Random forest
+\providecommand{\rhmcsMidTwinSrPTwoRf}{}\renewcommand{\rhmcsMidTwinSrPTwoRf}{0.012}  % StepM-adjusted p-value (two-sided), Random forest
+\providecommand{\rhmcsMidTwinSrRawTwoRf}{}\renewcommand{\rhmcsMidTwinSrRawTwoRf}{0.003}  % single-test bootstrap p-value (two-sided), Random forest
 \providecommand{\rhmcsMidTwinSrNRejLo}{}\renewcommand{\rhmcsMidTwinSrNRejLo}{1}  % StepM rejections at 5 %, block length 5
-\providecommand{\rhmcsMidTwinSrSpaCLo}{}\renewcommand{\rhmcsMidTwinSrSpaCLo}{0.018}  % SPA p-value (consistent), block length 5
+\providecommand{\rhmcsMidTwinSrSpaCLo}{}\renewcommand{\rhmcsMidTwinSrSpaCLo}{0.011}  % SPA p-value (consistent), block length 5
 \providecommand{\rhmcsMidTwinSrNRejTwoLo}{}\renewcommand{\rhmcsMidTwinSrNRejTwoLo}{1}  % ... two-sided, block length 5
-\providecommand{\rhmcsMidTwinSrPMinLo}{}\renewcommand{\rhmcsMidTwinSrPMinLo}{0.018}  % smallest adjusted p, block length 5
-\providecommand{\rhmcsMidTwinSrPTwoMinLo}{}\renewcommand{\rhmcsMidTwinSrPTwoMinLo}{0.021}  % ... two-sided, block length 5
+\providecommand{\rhmcsMidTwinSrPMinLo}{}\renewcommand{\rhmcsMidTwinSrPMinLo}{0.011}  % smallest adjusted p, block length 5
+\providecommand{\rhmcsMidTwinSrPTwoMinLo}{}\renewcommand{\rhmcsMidTwinSrPTwoMinLo}{0.017}  % ... two-sided, block length 5
 \providecommand{\rhmcsMidTwinSrNRejHi}{}\renewcommand{\rhmcsMidTwinSrNRejHi}{1}  % StepM rejections at 5 %, block length 20
-\providecommand{\rhmcsMidTwinSrSpaCHi}{}\renewcommand{\rhmcsMidTwinSrSpaCHi}{0.032}  % SPA p-value (consistent), block length 20
+\providecommand{\rhmcsMidTwinSrSpaCHi}{}\renewcommand{\rhmcsMidTwinSrSpaCHi}{0.010}  % SPA p-value (consistent), block length 20
 \providecommand{\rhmcsMidTwinSrNRejTwoHi}{}\renewcommand{\rhmcsMidTwinSrNRejTwoHi}{1}  % ... two-sided, block length 20
-\providecommand{\rhmcsMidTwinSrPMinHi}{}\renewcommand{\rhmcsMidTwinSrPMinHi}{0.032}  % smallest adjusted p, block length 20
-\providecommand{\rhmcsMidTwinSrPTwoMinHi}{}\renewcommand{\rhmcsMidTwinSrPTwoMinHi}{0.049}  % ... two-sided, block length 20
+\providecommand{\rhmcsMidTwinSrPMinHi}{}\renewcommand{\rhmcsMidTwinSrPMinHi}{0.010}  % smallest adjusted p, block length 20
+\providecommand{\rhmcsMidTwinSrPTwoMinHi}{}\renewcommand{\rhmcsMidTwinSrPTwoMinHi}{0.016}  % ... two-sided, block length 20
 \providecommand{\rhmcsBaShortMeanSpaC}{}\renewcommand{\rhmcsBaShortMeanSpaC}{0.025}  % SPA p-value (consistent), family BaShortMean
 \providecommand{\rhmcsBaShortMeanSpaL}{}\renewcommand{\rhmcsBaShortMeanSpaL}{0.025}  % ... lower
 \providecommand{\rhmcsBaShortMeanSpaU}{}\renewcommand{\rhmcsBaShortMeanSpaU}{0.025}  % ... upper
@@ -1519,58 +1519,58 @@
 \providecommand{\rhmcsBaShortMeanNRejTwoHi}{}\renewcommand{\rhmcsBaShortMeanNRejTwoHi}{1}  % ... two-sided, block length 20
 \providecommand{\rhmcsBaShortMeanPMinHi}{}\renewcommand{\rhmcsBaShortMeanPMinHi}{0.027}  % smallest adjusted p, block length 20
 \providecommand{\rhmcsBaShortMeanPTwoMinHi}{}\renewcommand{\rhmcsBaShortMeanPTwoMinHi}{0.035}  % ... two-sided, block length 20
-\providecommand{\rhmcsBaShortSrSpaC}{}\renewcommand{\rhmcsBaShortSrSpaC}{0.002}  % SPA p-value (consistent), family BaShortSr
-\providecommand{\rhmcsBaShortSrSpaL}{}\renewcommand{\rhmcsBaShortSrSpaL}{0.002}  % ... lower
-\providecommand{\rhmcsBaShortSrSpaU}{}\renewcommand{\rhmcsBaShortSrSpaU}{0.002}  % ... upper
+\providecommand{\rhmcsBaShortSrSpaC}{}\renewcommand{\rhmcsBaShortSrSpaC}{0.007}  % SPA p-value (consistent), family BaShortSr
+\providecommand{\rhmcsBaShortSrSpaL}{}\renewcommand{\rhmcsBaShortSrSpaL}{0.007}  % ... lower
+\providecommand{\rhmcsBaShortSrSpaU}{}\renewcommand{\rhmcsBaShortSrSpaU}{0.007}  % ... upper
 \providecommand{\rhmcsBaShortSrNRej}{}\renewcommand{\rhmcsBaShortSrNRej}{6}  % StepM rejections at FWER 5 % (of 6)
 \providecommand{\rhmcsBaShortSrNRejWord}{}\renewcommand{\rhmcsBaShortSrNRejWord}{six}  % ... as a word
 \providecommand{\rhmcsBaShortSrNRaw}{}\renewcommand{\rhmcsBaShortSrNRaw}{6}  % single-test bootstrap p < 0.05 (no adjustment)
 \providecommand{\rhmcsBaShortSrNRawWord}{}\renewcommand{\rhmcsBaShortSrNRawWord}{six}  % ... as a word
 \providecommand{\rhmcsBaShortSrNPos}{}\renewcommand{\rhmcsBaShortSrNPos}{6}  % alternatives with a positive estimate (better than the benchmark)
-\providecommand{\rhmcsBaShortSrPMin}{}\renewcommand{\rhmcsBaShortSrPMin}{0.002}  % smallest StepM-adjusted p-value
-\providecommand{\rhmcsBaShortSrPMax}{}\renewcommand{\rhmcsBaShortSrPMax}{0.004}  % largest StepM-adjusted p-value
-\providecommand{\rhmcsBaShortSrPTwoMin}{}\renewcommand{\rhmcsBaShortSrPTwoMin}{0.004}  % smallest two-sided StepM-adjusted p-value
-\providecommand{\rhmcsBaShortSrPTwoMax}{}\renewcommand{\rhmcsBaShortSrPTwoMax}{0.012}  % largest two-sided StepM-adjusted p-value
-\providecommand{\rhmcsBaShortSrRawMin}{}\renewcommand{\rhmcsBaShortSrRawMin}{0.001}  % smallest single-test bootstrap p-value
+\providecommand{\rhmcsBaShortSrPMin}{}\renewcommand{\rhmcsBaShortSrPMin}{0.007}  % smallest StepM-adjusted p-value
+\providecommand{\rhmcsBaShortSrPMax}{}\renewcommand{\rhmcsBaShortSrPMax}{0.027}  % largest StepM-adjusted p-value
+\providecommand{\rhmcsBaShortSrPTwoMin}{}\renewcommand{\rhmcsBaShortSrPTwoMin}{0.015}  % smallest two-sided StepM-adjusted p-value
+\providecommand{\rhmcsBaShortSrPTwoMax}{}\renewcommand{\rhmcsBaShortSrPTwoMax}{0.058}  % largest two-sided StepM-adjusted p-value
+\providecommand{\rhmcsBaShortSrRawMin}{}\renewcommand{\rhmcsBaShortSrRawMin}{0.002}  % smallest single-test bootstrap p-value
 \providecommand{\rhmcsBaShortSrRej}{}\renewcommand{\rhmcsBaShortSrRej}{ridge regression on the full predictor set, the lasso on the full predictor set, the elastic net on the full predictor set, LightGBM on the full predictor set, XGBoost on the full predictor set, and the random forest on the full predictor set}  % the alternatives StepM rejects at 5 % (none: none)
-\providecommand{\rhmcsBaShortSrNRejTwo}{}\renewcommand{\rhmcsBaShortSrNRejTwo}{6}  % StepM rejections at FWER 5 %, two-sided
-\providecommand{\rhmcsBaShortSrNRejTwoWord}{}\renewcommand{\rhmcsBaShortSrNRejTwoWord}{six}  % ... as a word
+\providecommand{\rhmcsBaShortSrNRejTwo}{}\renewcommand{\rhmcsBaShortSrNRejTwo}{3}  % StepM rejections at FWER 5 %, two-sided
+\providecommand{\rhmcsBaShortSrNRejTwoWord}{}\renewcommand{\rhmcsBaShortSrNRejTwoWord}{three}  % ... as a word
 \providecommand{\rhmcsBaShortSrNRawTwo}{}\renewcommand{\rhmcsBaShortSrNRawTwo}{6}  % single-test bootstrap p < 0.05, two-sided
-\providecommand{\rhmcsBaShortSrRejTwo}{}\renewcommand{\rhmcsBaShortSrRejTwo}{ridge regression on the full predictor set, the lasso on the full predictor set, the elastic net on the full predictor set, LightGBM on the full predictor set, XGBoost on the full predictor set, and the random forest on the full predictor set}  % the alternatives the two-sided StepM rejects at 5 % (none: none)
-\providecommand{\rhmcsBaShortSrPRidge}{}\renewcommand{\rhmcsBaShortSrPRidge}{0.003}  % StepM-adjusted p-value (one-sided), Ridge
-\providecommand{\rhmcsBaShortSrRawRidge}{}\renewcommand{\rhmcsBaShortSrRawRidge}{0.002}  % single-test bootstrap p-value (one-sided), Ridge
-\providecommand{\rhmcsBaShortSrPTwoRidge}{}\renewcommand{\rhmcsBaShortSrPTwoRidge}{0.012}  % StepM-adjusted p-value (two-sided), Ridge
-\providecommand{\rhmcsBaShortSrRawTwoRidge}{}\renewcommand{\rhmcsBaShortSrRawTwoRidge}{0.007}  % single-test bootstrap p-value (two-sided), Ridge
-\providecommand{\rhmcsBaShortSrPLasso}{}\renewcommand{\rhmcsBaShortSrPLasso}{0.004}  % StepM-adjusted p-value (one-sided), Lasso
-\providecommand{\rhmcsBaShortSrRawLasso}{}\renewcommand{\rhmcsBaShortSrRawLasso}{0.003}  % single-test bootstrap p-value (one-sided), Lasso
-\providecommand{\rhmcsBaShortSrPTwoLasso}{}\renewcommand{\rhmcsBaShortSrPTwoLasso}{0.012}  % StepM-adjusted p-value (two-sided), Lasso
-\providecommand{\rhmcsBaShortSrRawTwoLasso}{}\renewcommand{\rhmcsBaShortSrRawTwoLasso}{0.009}  % single-test bootstrap p-value (two-sided), Lasso
-\providecommand{\rhmcsBaShortSrPEnet}{}\renewcommand{\rhmcsBaShortSrPEnet}{0.003}  % StepM-adjusted p-value (one-sided), Elastic net
-\providecommand{\rhmcsBaShortSrRawEnet}{}\renewcommand{\rhmcsBaShortSrRawEnet}{0.002}  % single-test bootstrap p-value (one-sided), Elastic net
-\providecommand{\rhmcsBaShortSrPTwoEnet}{}\renewcommand{\rhmcsBaShortSrPTwoEnet}{0.008}  % StepM-adjusted p-value (two-sided), Elastic net
-\providecommand{\rhmcsBaShortSrRawTwoEnet}{}\renewcommand{\rhmcsBaShortSrRawTwoEnet}{0.003}  % single-test bootstrap p-value (two-sided), Elastic net
-\providecommand{\rhmcsBaShortSrPLgbm}{}\renewcommand{\rhmcsBaShortSrPLgbm}{0.004}  % StepM-adjusted p-value (one-sided), LightGBM
-\providecommand{\rhmcsBaShortSrRawLgbm}{}\renewcommand{\rhmcsBaShortSrRawLgbm}{0.002}  % single-test bootstrap p-value (one-sided), LightGBM
-\providecommand{\rhmcsBaShortSrPTwoLgbm}{}\renewcommand{\rhmcsBaShortSrPTwoLgbm}{0.012}  % StepM-adjusted p-value (two-sided), LightGBM
-\providecommand{\rhmcsBaShortSrRawTwoLgbm}{}\renewcommand{\rhmcsBaShortSrRawTwoLgbm}{0.007}  % single-test bootstrap p-value (two-sided), LightGBM
-\providecommand{\rhmcsBaShortSrPXgb}{}\renewcommand{\rhmcsBaShortSrPXgb}{0.003}  % StepM-adjusted p-value (one-sided), XGBoost
-\providecommand{\rhmcsBaShortSrRawXgb}{}\renewcommand{\rhmcsBaShortSrRawXgb}{0.002}  % single-test bootstrap p-value (one-sided), XGBoost
-\providecommand{\rhmcsBaShortSrPTwoXgb}{}\renewcommand{\rhmcsBaShortSrPTwoXgb}{0.012}  % StepM-adjusted p-value (two-sided), XGBoost
-\providecommand{\rhmcsBaShortSrRawTwoXgb}{}\renewcommand{\rhmcsBaShortSrRawTwoXgb}{0.005}  % single-test bootstrap p-value (two-sided), XGBoost
-\providecommand{\rhmcsBaShortSrPRf}{}\renewcommand{\rhmcsBaShortSrPRf}{0.002}  % StepM-adjusted p-value (one-sided), Random forest
-\providecommand{\rhmcsBaShortSrRawRf}{}\renewcommand{\rhmcsBaShortSrRawRf}{0.001}  % single-test bootstrap p-value (one-sided), Random forest
-\providecommand{\rhmcsBaShortSrPTwoRf}{}\renewcommand{\rhmcsBaShortSrPTwoRf}{0.004}  % StepM-adjusted p-value (two-sided), Random forest
-\providecommand{\rhmcsBaShortSrRawTwoRf}{}\renewcommand{\rhmcsBaShortSrRawTwoRf}{0.001}  % single-test bootstrap p-value (two-sided), Random forest
+\providecommand{\rhmcsBaShortSrRejTwo}{}\renewcommand{\rhmcsBaShortSrRejTwo}{the lasso on the full predictor set, the elastic net on the full predictor set, and the random forest on the full predictor set}  % the alternatives the two-sided StepM rejects at 5 % (none: none)
+\providecommand{\rhmcsBaShortSrPRidge}{}\renewcommand{\rhmcsBaShortSrPRidge}{0.027}  % StepM-adjusted p-value (one-sided), Ridge
+\providecommand{\rhmcsBaShortSrRawRidge}{}\renewcommand{\rhmcsBaShortSrRawRidge}{0.018}  % single-test bootstrap p-value (one-sided), Ridge
+\providecommand{\rhmcsBaShortSrPTwoRidge}{}\renewcommand{\rhmcsBaShortSrPTwoRidge}{0.058}  % StepM-adjusted p-value (two-sided), Ridge
+\providecommand{\rhmcsBaShortSrRawTwoRidge}{}\renewcommand{\rhmcsBaShortSrRawTwoRidge}{0.037}  % single-test bootstrap p-value (two-sided), Ridge
+\providecommand{\rhmcsBaShortSrPLasso}{}\renewcommand{\rhmcsBaShortSrPLasso}{0.017}  % StepM-adjusted p-value (one-sided), Lasso
+\providecommand{\rhmcsBaShortSrRawLasso}{}\renewcommand{\rhmcsBaShortSrRawLasso}{0.010}  % single-test bootstrap p-value (one-sided), Lasso
+\providecommand{\rhmcsBaShortSrPTwoLasso}{}\renewcommand{\rhmcsBaShortSrPTwoLasso}{0.039}  % StepM-adjusted p-value (two-sided), Lasso
+\providecommand{\rhmcsBaShortSrRawTwoLasso}{}\renewcommand{\rhmcsBaShortSrRawTwoLasso}{0.021}  % single-test bootstrap p-value (two-sided), Lasso
+\providecommand{\rhmcsBaShortSrPEnet}{}\renewcommand{\rhmcsBaShortSrPEnet}{0.011}  % StepM-adjusted p-value (one-sided), Elastic net
+\providecommand{\rhmcsBaShortSrRawEnet}{}\renewcommand{\rhmcsBaShortSrRawEnet}{0.007}  % single-test bootstrap p-value (one-sided), Elastic net
+\providecommand{\rhmcsBaShortSrPTwoEnet}{}\renewcommand{\rhmcsBaShortSrPTwoEnet}{0.026}  % StepM-adjusted p-value (two-sided), Elastic net
+\providecommand{\rhmcsBaShortSrRawTwoEnet}{}\renewcommand{\rhmcsBaShortSrRawTwoEnet}{0.012}  % single-test bootstrap p-value (two-sided), Elastic net
+\providecommand{\rhmcsBaShortSrPLgbm}{}\renewcommand{\rhmcsBaShortSrPLgbm}{0.027}  % StepM-adjusted p-value (one-sided), LightGBM
+\providecommand{\rhmcsBaShortSrRawLgbm}{}\renewcommand{\rhmcsBaShortSrRawLgbm}{0.020}  % single-test bootstrap p-value (one-sided), LightGBM
+\providecommand{\rhmcsBaShortSrPTwoLgbm}{}\renewcommand{\rhmcsBaShortSrPTwoLgbm}{0.058}  % StepM-adjusted p-value (two-sided), LightGBM
+\providecommand{\rhmcsBaShortSrRawTwoLgbm}{}\renewcommand{\rhmcsBaShortSrRawTwoLgbm}{0.045}  % single-test bootstrap p-value (two-sided), LightGBM
+\providecommand{\rhmcsBaShortSrPXgb}{}\renewcommand{\rhmcsBaShortSrPXgb}{0.027}  % StepM-adjusted p-value (one-sided), XGBoost
+\providecommand{\rhmcsBaShortSrRawXgb}{}\renewcommand{\rhmcsBaShortSrRawXgb}{0.019}  % single-test bootstrap p-value (one-sided), XGBoost
+\providecommand{\rhmcsBaShortSrPTwoXgb}{}\renewcommand{\rhmcsBaShortSrPTwoXgb}{0.058}  % StepM-adjusted p-value (two-sided), XGBoost
+\providecommand{\rhmcsBaShortSrRawTwoXgb}{}\renewcommand{\rhmcsBaShortSrRawTwoXgb}{0.043}  % single-test bootstrap p-value (two-sided), XGBoost
+\providecommand{\rhmcsBaShortSrPRf}{}\renewcommand{\rhmcsBaShortSrPRf}{0.007}  % StepM-adjusted p-value (one-sided), Random forest
+\providecommand{\rhmcsBaShortSrRawRf}{}\renewcommand{\rhmcsBaShortSrRawRf}{0.002}  % single-test bootstrap p-value (one-sided), Random forest
+\providecommand{\rhmcsBaShortSrPTwoRf}{}\renewcommand{\rhmcsBaShortSrPTwoRf}{0.015}  % StepM-adjusted p-value (two-sided), Random forest
+\providecommand{\rhmcsBaShortSrRawTwoRf}{}\renewcommand{\rhmcsBaShortSrRawTwoRf}{0.006}  % single-test bootstrap p-value (two-sided), Random forest
 \providecommand{\rhmcsBaShortSrNRejLo}{}\renewcommand{\rhmcsBaShortSrNRejLo}{6}  % StepM rejections at 5 %, block length 5
-\providecommand{\rhmcsBaShortSrSpaCLo}{}\renewcommand{\rhmcsBaShortSrSpaCLo}{0.005}  % SPA p-value (consistent), block length 5
-\providecommand{\rhmcsBaShortSrNRejTwoLo}{}\renewcommand{\rhmcsBaShortSrNRejTwoLo}{6}  % ... two-sided, block length 5
-\providecommand{\rhmcsBaShortSrPMinLo}{}\renewcommand{\rhmcsBaShortSrPMinLo}{0.005}  % smallest adjusted p, block length 5
-\providecommand{\rhmcsBaShortSrPTwoMinLo}{}\renewcommand{\rhmcsBaShortSrPTwoMinLo}{0.016}  % ... two-sided, block length 5
+\providecommand{\rhmcsBaShortSrSpaCLo}{}\renewcommand{\rhmcsBaShortSrSpaCLo}{0.010}  % SPA p-value (consistent), block length 5
+\providecommand{\rhmcsBaShortSrNRejTwoLo}{}\renewcommand{\rhmcsBaShortSrNRejTwoLo}{3}  % ... two-sided, block length 5
+\providecommand{\rhmcsBaShortSrPMinLo}{}\renewcommand{\rhmcsBaShortSrPMinLo}{0.010}  % smallest adjusted p, block length 5
+\providecommand{\rhmcsBaShortSrPTwoMinLo}{}\renewcommand{\rhmcsBaShortSrPTwoMinLo}{0.027}  % ... two-sided, block length 5
 \providecommand{\rhmcsBaShortSrNRejHi}{}\renewcommand{\rhmcsBaShortSrNRejHi}{6}  % StepM rejections at 5 %, block length 20
-\providecommand{\rhmcsBaShortSrSpaCHi}{}\renewcommand{\rhmcsBaShortSrSpaCHi}{0.004}  % SPA p-value (consistent), block length 20
-\providecommand{\rhmcsBaShortSrNRejTwoHi}{}\renewcommand{\rhmcsBaShortSrNRejTwoHi}{6}  % ... two-sided, block length 20
-\providecommand{\rhmcsBaShortSrPMinHi}{}\renewcommand{\rhmcsBaShortSrPMinHi}{0.004}  % smallest adjusted p, block length 20
-\providecommand{\rhmcsBaShortSrPTwoMinHi}{}\renewcommand{\rhmcsBaShortSrPTwoMinHi}{0.006}  % ... two-sided, block length 20
+\providecommand{\rhmcsBaShortSrSpaCHi}{}\renewcommand{\rhmcsBaShortSrSpaCHi}{0.008}  % SPA p-value (consistent), block length 20
+\providecommand{\rhmcsBaShortSrNRejTwoHi}{}\renewcommand{\rhmcsBaShortSrNRejTwoHi}{3}  % ... two-sided, block length 20
+\providecommand{\rhmcsBaShortSrPMinHi}{}\renewcommand{\rhmcsBaShortSrPMinHi}{0.008}  % smallest adjusted p, block length 20
+\providecommand{\rhmcsBaShortSrPTwoMinHi}{}\renewcommand{\rhmcsBaShortSrPTwoMinHi}{0.014}  % ... two-sided, block length 20
 \providecommand{\rhmcsBaTwinMeanSpaC}{}\renewcommand{\rhmcsBaTwinMeanSpaC}{0.028}  % SPA p-value (consistent), family BaTwinMean
 \providecommand{\rhmcsBaTwinMeanSpaL}{}\renewcommand{\rhmcsBaTwinMeanSpaL}{0.028}  % ... lower
 \providecommand{\rhmcsBaTwinMeanSpaU}{}\renewcommand{\rhmcsBaTwinMeanSpaU}{0.028}  % ... upper
@@ -1623,61 +1623,61 @@
 \providecommand{\rhmcsBaTwinMeanNRejTwoHi}{}\renewcommand{\rhmcsBaTwinMeanNRejTwoHi}{1}  % ... two-sided, block length 20
 \providecommand{\rhmcsBaTwinMeanPMinHi}{}\renewcommand{\rhmcsBaTwinMeanPMinHi}{0.034}  % smallest adjusted p, block length 20
 \providecommand{\rhmcsBaTwinMeanPTwoMinHi}{}\renewcommand{\rhmcsBaTwinMeanPTwoMinHi}{0.048}  % ... two-sided, block length 20
-\providecommand{\rhmcsBaTwinSrSpaC}{}\renewcommand{\rhmcsBaTwinSrSpaC}{0.020}  % SPA p-value (consistent), family BaTwinSr
-\providecommand{\rhmcsBaTwinSrSpaL}{}\renewcommand{\rhmcsBaTwinSrSpaL}{0.020}  % ... lower
-\providecommand{\rhmcsBaTwinSrSpaU}{}\renewcommand{\rhmcsBaTwinSrSpaU}{0.020}  % ... upper
+\providecommand{\rhmcsBaTwinSrSpaC}{}\renewcommand{\rhmcsBaTwinSrSpaC}{0.008}  % SPA p-value (consistent), family BaTwinSr
+\providecommand{\rhmcsBaTwinSrSpaL}{}\renewcommand{\rhmcsBaTwinSrSpaL}{0.008}  % ... lower
+\providecommand{\rhmcsBaTwinSrSpaU}{}\renewcommand{\rhmcsBaTwinSrSpaU}{0.008}  % ... upper
 \providecommand{\rhmcsBaTwinSrNRej}{}\renewcommand{\rhmcsBaTwinSrNRej}{1}  % StepM rejections at FWER 5 % (of 6)
 \providecommand{\rhmcsBaTwinSrNRejWord}{}\renewcommand{\rhmcsBaTwinSrNRejWord}{one}  % ... as a word
-\providecommand{\rhmcsBaTwinSrNRaw}{}\renewcommand{\rhmcsBaTwinSrNRaw}{2}  % single-test bootstrap p < 0.05 (no adjustment)
-\providecommand{\rhmcsBaTwinSrNRawWord}{}\renewcommand{\rhmcsBaTwinSrNRawWord}{two}  % ... as a word
+\providecommand{\rhmcsBaTwinSrNRaw}{}\renewcommand{\rhmcsBaTwinSrNRaw}{3}  % single-test bootstrap p < 0.05 (no adjustment)
+\providecommand{\rhmcsBaTwinSrNRawWord}{}\renewcommand{\rhmcsBaTwinSrNRawWord}{three}  % ... as a word
 \providecommand{\rhmcsBaTwinSrNPos}{}\renewcommand{\rhmcsBaTwinSrNPos}{6}  % alternatives with a positive estimate (better than the benchmark)
-\providecommand{\rhmcsBaTwinSrPMin}{}\renewcommand{\rhmcsBaTwinSrPMin}{0.020}  % smallest StepM-adjusted p-value
-\providecommand{\rhmcsBaTwinSrPMax}{}\renewcommand{\rhmcsBaTwinSrPMax}{0.16}  % largest StepM-adjusted p-value
-\providecommand{\rhmcsBaTwinSrPTwoMin}{}\renewcommand{\rhmcsBaTwinSrPTwoMin}{0.024}  % smallest two-sided StepM-adjusted p-value
-\providecommand{\rhmcsBaTwinSrPTwoMax}{}\renewcommand{\rhmcsBaTwinSrPTwoMax}{0.24}  % largest two-sided StepM-adjusted p-value
-\providecommand{\rhmcsBaTwinSrRawMin}{}\renewcommand{\rhmcsBaTwinSrRawMin}{0.003}  % smallest single-test bootstrap p-value
+\providecommand{\rhmcsBaTwinSrPMin}{}\renewcommand{\rhmcsBaTwinSrPMin}{0.008}  % smallest StepM-adjusted p-value
+\providecommand{\rhmcsBaTwinSrPMax}{}\renewcommand{\rhmcsBaTwinSrPMax}{0.14}  % largest StepM-adjusted p-value
+\providecommand{\rhmcsBaTwinSrPTwoMin}{}\renewcommand{\rhmcsBaTwinSrPTwoMin}{0.013}  % smallest two-sided StepM-adjusted p-value
+\providecommand{\rhmcsBaTwinSrPTwoMax}{}\renewcommand{\rhmcsBaTwinSrPTwoMax}{0.27}  % largest two-sided StepM-adjusted p-value
+\providecommand{\rhmcsBaTwinSrRawMin}{}\renewcommand{\rhmcsBaTwinSrRawMin}{0.002}  % smallest single-test bootstrap p-value
 \providecommand{\rhmcsBaTwinSrRej}{}\renewcommand{\rhmcsBaTwinSrRej}{the random forest on the full predictor set}  % the alternatives StepM rejects at 5 % (none: none)
 \providecommand{\rhmcsBaTwinSrNRejTwo}{}\renewcommand{\rhmcsBaTwinSrNRejTwo}{1}  % StepM rejections at FWER 5 %, two-sided
 \providecommand{\rhmcsBaTwinSrNRejTwoWord}{}\renewcommand{\rhmcsBaTwinSrNRejTwoWord}{one}  % ... as a word
-\providecommand{\rhmcsBaTwinSrNRawTwo}{}\renewcommand{\rhmcsBaTwinSrNRawTwo}{1}  % single-test bootstrap p < 0.05, two-sided
+\providecommand{\rhmcsBaTwinSrNRawTwo}{}\renewcommand{\rhmcsBaTwinSrNRawTwo}{2}  % single-test bootstrap p < 0.05, two-sided
 \providecommand{\rhmcsBaTwinSrRejTwo}{}\renewcommand{\rhmcsBaTwinSrRejTwo}{the random forest on the full predictor set}  % the alternatives the two-sided StepM rejects at 5 % (none: none)
-\providecommand{\rhmcsBaTwinSrPRidge}{}\renewcommand{\rhmcsBaTwinSrPRidge}{0.16}  % StepM-adjusted p-value (one-sided), Ridge
-\providecommand{\rhmcsBaTwinSrRawRidge}{}\renewcommand{\rhmcsBaTwinSrRawRidge}{0.14}  % single-test bootstrap p-value (one-sided), Ridge
-\providecommand{\rhmcsBaTwinSrPTwoRidge}{}\renewcommand{\rhmcsBaTwinSrPTwoRidge}{0.24}  % StepM-adjusted p-value (two-sided), Ridge
-\providecommand{\rhmcsBaTwinSrRawTwoRidge}{}\renewcommand{\rhmcsBaTwinSrRawTwoRidge}{0.21}  % single-test bootstrap p-value (two-sided), Ridge
-\providecommand{\rhmcsBaTwinSrPLasso}{}\renewcommand{\rhmcsBaTwinSrPLasso}{0.16}  % StepM-adjusted p-value (one-sided), Lasso
-\providecommand{\rhmcsBaTwinSrRawLasso}{}\renewcommand{\rhmcsBaTwinSrRawLasso}{0.13}  % single-test bootstrap p-value (one-sided), Lasso
-\providecommand{\rhmcsBaTwinSrPTwoLasso}{}\renewcommand{\rhmcsBaTwinSrPTwoLasso}{0.24}  % StepM-adjusted p-value (two-sided), Lasso
-\providecommand{\rhmcsBaTwinSrRawTwoLasso}{}\renewcommand{\rhmcsBaTwinSrRawTwoLasso}{0.20}  % single-test bootstrap p-value (two-sided), Lasso
-\providecommand{\rhmcsBaTwinSrPEnet}{}\renewcommand{\rhmcsBaTwinSrPEnet}{0.16}  % StepM-adjusted p-value (one-sided), Elastic net
-\providecommand{\rhmcsBaTwinSrRawEnet}{}\renewcommand{\rhmcsBaTwinSrRawEnet}{0.096}  % single-test bootstrap p-value (one-sided), Elastic net
-\providecommand{\rhmcsBaTwinSrPTwoEnet}{}\renewcommand{\rhmcsBaTwinSrPTwoEnet}{0.22}  % StepM-adjusted p-value (two-sided), Elastic net
-\providecommand{\rhmcsBaTwinSrRawTwoEnet}{}\renewcommand{\rhmcsBaTwinSrRawTwoEnet}{0.13}  % single-test bootstrap p-value (two-sided), Elastic net
-\providecommand{\rhmcsBaTwinSrPLgbm}{}\renewcommand{\rhmcsBaTwinSrPLgbm}{0.102}  % StepM-adjusted p-value (one-sided), LightGBM
-\providecommand{\rhmcsBaTwinSrRawLgbm}{}\renewcommand{\rhmcsBaTwinSrRawLgbm}{0.048}  % single-test bootstrap p-value (one-sided), LightGBM
-\providecommand{\rhmcsBaTwinSrPTwoLgbm}{}\renewcommand{\rhmcsBaTwinSrPTwoLgbm}{0.13}  % StepM-adjusted p-value (two-sided), LightGBM
-\providecommand{\rhmcsBaTwinSrRawTwoLgbm}{}\renewcommand{\rhmcsBaTwinSrRawTwoLgbm}{0.061}  % single-test bootstrap p-value (two-sided), LightGBM
-\providecommand{\rhmcsBaTwinSrPXgb}{}\renewcommand{\rhmcsBaTwinSrPXgb}{0.16}  % StepM-adjusted p-value (one-sided), XGBoost
-\providecommand{\rhmcsBaTwinSrRawXgb}{}\renewcommand{\rhmcsBaTwinSrRawXgb}{0.084}  % single-test bootstrap p-value (one-sided), XGBoost
-\providecommand{\rhmcsBaTwinSrPTwoXgb}{}\renewcommand{\rhmcsBaTwinSrPTwoXgb}{0.22}  % StepM-adjusted p-value (two-sided), XGBoost
-\providecommand{\rhmcsBaTwinSrRawTwoXgb}{}\renewcommand{\rhmcsBaTwinSrRawTwoXgb}{0.11}  % single-test bootstrap p-value (two-sided), XGBoost
-\providecommand{\rhmcsBaTwinSrPRf}{}\renewcommand{\rhmcsBaTwinSrPRf}{0.020}  % StepM-adjusted p-value (one-sided), Random forest
-\providecommand{\rhmcsBaTwinSrRawRf}{}\renewcommand{\rhmcsBaTwinSrRawRf}{0.003}  % single-test bootstrap p-value (one-sided), Random forest
-\providecommand{\rhmcsBaTwinSrPTwoRf}{}\renewcommand{\rhmcsBaTwinSrPTwoRf}{0.024}  % StepM-adjusted p-value (two-sided), Random forest
-\providecommand{\rhmcsBaTwinSrRawTwoRf}{}\renewcommand{\rhmcsBaTwinSrRawTwoRf}{0.007}  % single-test bootstrap p-value (two-sided), Random forest
+\providecommand{\rhmcsBaTwinSrPRidge}{}\renewcommand{\rhmcsBaTwinSrPRidge}{0.14}  % StepM-adjusted p-value (one-sided), Ridge
+\providecommand{\rhmcsBaTwinSrRawRidge}{}\renewcommand{\rhmcsBaTwinSrRawRidge}{0.089}  % single-test bootstrap p-value (one-sided), Ridge
+\providecommand{\rhmcsBaTwinSrPTwoRidge}{}\renewcommand{\rhmcsBaTwinSrPTwoRidge}{0.27}  % StepM-adjusted p-value (two-sided), Ridge
+\providecommand{\rhmcsBaTwinSrRawTwoRidge}{}\renewcommand{\rhmcsBaTwinSrRawTwoRidge}{0.17}  % single-test bootstrap p-value (two-sided), Ridge
+\providecommand{\rhmcsBaTwinSrPLasso}{}\renewcommand{\rhmcsBaTwinSrPLasso}{0.12}  % StepM-adjusted p-value (one-sided), Lasso
+\providecommand{\rhmcsBaTwinSrRawLasso}{}\renewcommand{\rhmcsBaTwinSrRawLasso}{0.071}  % single-test bootstrap p-value (one-sided), Lasso
+\providecommand{\rhmcsBaTwinSrPTwoLasso}{}\renewcommand{\rhmcsBaTwinSrPTwoLasso}{0.22}  % StepM-adjusted p-value (two-sided), Lasso
+\providecommand{\rhmcsBaTwinSrRawTwoLasso}{}\renewcommand{\rhmcsBaTwinSrRawTwoLasso}{0.12}  % single-test bootstrap p-value (two-sided), Lasso
+\providecommand{\rhmcsBaTwinSrPEnet}{}\renewcommand{\rhmcsBaTwinSrPEnet}{0.080}  % StepM-adjusted p-value (one-sided), Elastic net
+\providecommand{\rhmcsBaTwinSrRawEnet}{}\renewcommand{\rhmcsBaTwinSrRawEnet}{0.043}  % single-test bootstrap p-value (one-sided), Elastic net
+\providecommand{\rhmcsBaTwinSrPTwoEnet}{}\renewcommand{\rhmcsBaTwinSrPTwoEnet}{0.14}  % StepM-adjusted p-value (two-sided), Elastic net
+\providecommand{\rhmcsBaTwinSrRawTwoEnet}{}\renewcommand{\rhmcsBaTwinSrRawTwoEnet}{0.070}  % single-test bootstrap p-value (two-sided), Elastic net
+\providecommand{\rhmcsBaTwinSrPLgbm}{}\renewcommand{\rhmcsBaTwinSrPLgbm}{0.066}  % StepM-adjusted p-value (one-sided), LightGBM
+\providecommand{\rhmcsBaTwinSrRawLgbm}{}\renewcommand{\rhmcsBaTwinSrRawLgbm}{0.027}  % single-test bootstrap p-value (one-sided), LightGBM
+\providecommand{\rhmcsBaTwinSrPTwoLgbm}{}\renewcommand{\rhmcsBaTwinSrPTwoLgbm}{0.12}  % StepM-adjusted p-value (two-sided), LightGBM
+\providecommand{\rhmcsBaTwinSrRawTwoLgbm}{}\renewcommand{\rhmcsBaTwinSrRawTwoLgbm}{0.050}  % single-test bootstrap p-value (two-sided), LightGBM
+\providecommand{\rhmcsBaTwinSrPXgb}{}\renewcommand{\rhmcsBaTwinSrPXgb}{0.14}  % StepM-adjusted p-value (one-sided), XGBoost
+\providecommand{\rhmcsBaTwinSrRawXgb}{}\renewcommand{\rhmcsBaTwinSrRawXgb}{0.11}  % single-test bootstrap p-value (one-sided), XGBoost
+\providecommand{\rhmcsBaTwinSrPTwoXgb}{}\renewcommand{\rhmcsBaTwinSrPTwoXgb}{0.27}  % StepM-adjusted p-value (two-sided), XGBoost
+\providecommand{\rhmcsBaTwinSrRawTwoXgb}{}\renewcommand{\rhmcsBaTwinSrRawTwoXgb}{0.21}  % single-test bootstrap p-value (two-sided), XGBoost
+\providecommand{\rhmcsBaTwinSrPRf}{}\renewcommand{\rhmcsBaTwinSrPRf}{0.008}  % StepM-adjusted p-value (one-sided), Random forest
+\providecommand{\rhmcsBaTwinSrRawRf}{}\renewcommand{\rhmcsBaTwinSrRawRf}{0.002}  % single-test bootstrap p-value (one-sided), Random forest
+\providecommand{\rhmcsBaTwinSrPTwoRf}{}\renewcommand{\rhmcsBaTwinSrPTwoRf}{0.013}  % StepM-adjusted p-value (two-sided), Random forest
+\providecommand{\rhmcsBaTwinSrRawTwoRf}{}\renewcommand{\rhmcsBaTwinSrRawTwoRf}{0.003}  % single-test bootstrap p-value (two-sided), Random forest
 \providecommand{\rhmcsBaTwinSrNRejLo}{}\renewcommand{\rhmcsBaTwinSrNRejLo}{1}  % StepM rejections at 5 %, block length 5
-\providecommand{\rhmcsBaTwinSrSpaCLo}{}\renewcommand{\rhmcsBaTwinSrSpaCLo}{0.019}  % SPA p-value (consistent), block length 5
+\providecommand{\rhmcsBaTwinSrSpaCLo}{}\renewcommand{\rhmcsBaTwinSrSpaCLo}{0.011}  % SPA p-value (consistent), block length 5
 \providecommand{\rhmcsBaTwinSrNRejTwoLo}{}\renewcommand{\rhmcsBaTwinSrNRejTwoLo}{1}  % ... two-sided, block length 5
-\providecommand{\rhmcsBaTwinSrPMinLo}{}\renewcommand{\rhmcsBaTwinSrPMinLo}{0.019}  % smallest adjusted p, block length 5
-\providecommand{\rhmcsBaTwinSrPTwoMinLo}{}\renewcommand{\rhmcsBaTwinSrPTwoMinLo}{0.022}  % ... two-sided, block length 5
+\providecommand{\rhmcsBaTwinSrPMinLo}{}\renewcommand{\rhmcsBaTwinSrPMinLo}{0.011}  % smallest adjusted p, block length 5
+\providecommand{\rhmcsBaTwinSrPTwoMinLo}{}\renewcommand{\rhmcsBaTwinSrPTwoMinLo}{0.017}  % ... two-sided, block length 5
 \providecommand{\rhmcsBaTwinSrNRejHi}{}\renewcommand{\rhmcsBaTwinSrNRejHi}{1}  % StepM rejections at 5 %, block length 20
-\providecommand{\rhmcsBaTwinSrSpaCHi}{}\renewcommand{\rhmcsBaTwinSrSpaCHi}{0.032}  % SPA p-value (consistent), block length 20
+\providecommand{\rhmcsBaTwinSrSpaCHi}{}\renewcommand{\rhmcsBaTwinSrSpaCHi}{0.012}  % SPA p-value (consistent), block length 20
 \providecommand{\rhmcsBaTwinSrNRejTwoHi}{}\renewcommand{\rhmcsBaTwinSrNRejTwoHi}{1}  % ... two-sided, block length 20
-\providecommand{\rhmcsBaTwinSrPMinHi}{}\renewcommand{\rhmcsBaTwinSrPMinHi}{0.032}  % smallest adjusted p, block length 20
-\providecommand{\rhmcsBaTwinSrPTwoMinHi}{}\renewcommand{\rhmcsBaTwinSrPTwoMinHi}{0.049}  % ... two-sided, block length 20
-\providecommand{\rhmcsTwinTwoSidedPRidge}{}\renewcommand{\rhmcsTwinTwoSidedPRidge}{0.22}  % two-sided D6 bootstrap p of the Full - HAR Sharpe difference, Ridge (= the paper's T1 p_bt)
-\providecommand{\rhmcsTwinTwoSidedPLasso}{}\renewcommand{\rhmcsTwinTwoSidedPLasso}{0.21}  % two-sided D6 bootstrap p of the Full - HAR Sharpe difference, Lasso (= the paper's T1 p_bt)
-\providecommand{\rhmcsTwinTwoSidedPEnet}{}\renewcommand{\rhmcsTwinTwoSidedPEnet}{0.13}  % two-sided D6 bootstrap p of the Full - HAR Sharpe difference, Elastic net (= the paper's T1 p_bt)
-\providecommand{\rhmcsTwinTwoSidedPLgbm}{}\renewcommand{\rhmcsTwinTwoSidedPLgbm}{0.063}  % two-sided D6 bootstrap p of the Full - HAR Sharpe difference, LightGBM (= the paper's T1 p_bt)
-\providecommand{\rhmcsTwinTwoSidedPXgb}{}\renewcommand{\rhmcsTwinTwoSidedPXgb}{0.12}  % two-sided D6 bootstrap p of the Full - HAR Sharpe difference, XGBoost (= the paper's T1 p_bt)
-\providecommand{\rhmcsTwinTwoSidedPRf}{}\renewcommand{\rhmcsTwinTwoSidedPRf}{0.007}  % two-sided D6 bootstrap p of the Full - HAR Sharpe difference, Random forest (= the paper's T1 p_bt)
+\providecommand{\rhmcsBaTwinSrPMinHi}{}\renewcommand{\rhmcsBaTwinSrPMinHi}{0.012}  % smallest adjusted p, block length 20
+\providecommand{\rhmcsBaTwinSrPTwoMinHi}{}\renewcommand{\rhmcsBaTwinSrPTwoMinHi}{0.018}  % ... two-sided, block length 20
+\providecommand{\rhmcsTwinTwoSidedPRidge}{}\renewcommand{\rhmcsTwinTwoSidedPRidge}{0.17}  % two-sided pooled-SR bootstrap p of the Full - HAR Sharpe difference, Ridge (D19: the check p_bt; the paper's test is Ledoit-Wolf)
+\providecommand{\rhmcsTwinTwoSidedPLasso}{}\renewcommand{\rhmcsTwinTwoSidedPLasso}{0.12}  % two-sided pooled-SR bootstrap p of the Full - HAR Sharpe difference, Lasso (D19: the check p_bt; the paper's test is Ledoit-Wolf)
+\providecommand{\rhmcsTwinTwoSidedPEnet}{}\renewcommand{\rhmcsTwinTwoSidedPEnet}{0.072}  % two-sided pooled-SR bootstrap p of the Full - HAR Sharpe difference, Elastic net (D19: the check p_bt; the paper's test is Ledoit-Wolf)
+\providecommand{\rhmcsTwinTwoSidedPLgbm}{}\renewcommand{\rhmcsTwinTwoSidedPLgbm}{0.050}  % two-sided pooled-SR bootstrap p of the Full - HAR Sharpe difference, LightGBM (D19: the check p_bt; the paper's test is Ledoit-Wolf)
+\providecommand{\rhmcsTwinTwoSidedPXgb}{}\renewcommand{\rhmcsTwinTwoSidedPXgb}{0.20}  % two-sided pooled-SR bootstrap p of the Full - HAR Sharpe difference, XGBoost (D19: the check p_bt; the paper's test is Ledoit-Wolf)
+\providecommand{\rhmcsTwinTwoSidedPRf}{}\renewcommand{\rhmcsTwinTwoSidedPRf}{0.003}  % two-sided pooled-SR bootstrap p of the Full - HAR Sharpe difference, Random forest (D19: the check p_bt; the paper's test is Ledoit-Wolf)

@@ -96,10 +96,12 @@
   \end{itemize}
 \item \textbf{Its strategy.} The sign strategy on the benchmark's forecast (Section~\ref{sec:rh_econ_strategy}) has
   $\SR = \rhemShCiHar$ at mid-quotes and \rhemShXCiHar{} at quoted bid and ask prices, against the short straddle
-  $\Delta\SR = \rhemDShCiHarVsShort$ (bootstrap $p = \rhemPDShCiHarVsShort$). The full-set strategies of the pooled
-  models have the higher Sharpe ratio in \rhemFullVsCiHarPos{} of the \rhorAfPairs{} model classes
+  $\Delta\SR = \rhemDShCiHarVsShort$ (Ledoit--Wolf $p = \rhemPDShCiHarVsShort$). The full-set strategies of the
+  pooled models have the higher Sharpe ratio in \rhemFullVsCiHarPos{} of the \rhorAfPairs{} model classes
   ($\Delta\SR = \rhemFullVsCiHarMin$ to $\rhemFullVsCiHarMax$); \rhemFullVsCiHarSig{} of these differences are
-  significant at the 5\% level under the bootstrap test (the smallest $p$, \rhemFullVsCiHarPMin).
+  significant at the 5\% level under the \citet{LedoitWolf2008} test (the smallest $p$, \rhemFullVsCiHarPMin).
+% 2026-10-28 (D19, standard pooled Sharpe): was "(bootstrap $p = \rhemPDShCiHarVsShort$)" and "under the bootstrap
+% test".
 \item \textbf{Models trained on the closing half hour (CLOSE).} A pre-registered comparison of training samples
   (Appendix~\ref{app:rh_robust_train}) re-estimated every pooled model of Table~\ref{tab:rh_oos} on the closing half
   hour alone.
@@ -155,11 +157,17 @@
   $\rhtaClVsRthThreeKClosePctMax$; the largest $p$, \rhtaClVsRthThreeKClosePMax; Panel~D). Its window spans about
   \rhtaSpanClSmall{} years against about \rhtaSpanRthSmall{} trading days, so this comparison does not separate the
   choice of intervals from the span of the window.
-\item \textbf{The trade} (Panel~E). The full-set sign strategies trained on CLOSE have $\SR$ from \rhtaShFullClMin{}
-  to \rhtaShFullClMax, against \rhtaShFullRthMin{} to \rhtaShFullRthMax{} in the main design.
+\item \textbf{The trade} (Panel~E). Here the Sharpe ratio is the equal-year mean of the yearly ratios $\SR_y$ of
+  Section~\ref{sec:rh_econ_measures}. The full-set sign strategies trained on CLOSE have ratios from
+  \rhtaShFullClMin{} to \rhtaShFullClMax, against \rhtaShFullRthMin{} to \rhtaShFullRthMax{} in the main design.
+  % 2026-10-28 (D19, standard pooled Sharpe; coordinator): make_rehaul_train_arms.py (\rhta...) still computes the
+  % equal-year mean of the SR_y with the paired bootstrap; the text names it until the generator is rerun. Was: "The
+  % full-set sign strategies trained on CLOSE have $\SR$ from ... in the main design." and, below, "None of the
+  % \rhtaNDShTests{} differences in $\SR$ ... is significant at the 5\% level (the smallest $p$, \rhtaDShPMin)."
   \begin{itemize}
-  \item None of the \rhtaNDShTests{} differences in $\SR$ between the full-set strategies of ALL48 or CLOSE and
-    those of the main design is significant at the 5\% level (the smallest $p$, \rhtaDShPMin).
+  \item None of the \rhtaNDShTests{} differences in this ratio between the full-set strategies of ALL48 or CLOSE and
+    those of the main design is significant at the 5\% level under the paired bootstrap (the smallest $p$,
+    \rhtaDShPMin).
   \item For the tree ensembles, the full-set strategy's gain over the HAR benchmark's is significant at the 5\% level
     in \rhtaNTreeShSigCl{} of the three classes under CLOSE, where the trees' HAR benchmark strategies have $\SR$
     from \rhtaShTreeHarClMin{} to \rhtaShTreeHarClMax.
@@ -271,8 +279,13 @@
   \begin{itemize}
   \item Against the unconditional short straddle, the Sharpe ratio gain survives the adjustment for every full-set
     strategy: the SPA $p$-value is \rhmcsMidShortSrSpaC{} at mid-quotes and \rhmcsBaShortSrSpaC{} at quoted bid and
-    ask prices, and StepM rejects all \rhmcsNAlt{} hypotheses (two-sided adjusted $p$-values at most
-    \rhmcsMidShortSrPTwoMax{} and \rhmcsBaShortSrPTwoMax). For the mean daily return differential the SPA $p$-value
+    ask prices, and StepM rejects all \rhmcsNAlt{} hypotheses; the two-sided StepM rejects
+    \rhmcsMidShortSrNRejTwoWord{} at mid-quotes and \rhmcsBaShortSrNRejTwoWord{} at quoted bid and ask prices
+    (two-sided adjusted $p$-values at most \rhmcsMidShortSrPTwoMax{} and \rhmcsBaShortSrPTwoMax).
+% 2026-10-28 (D19, standard pooled Sharpe): the two-sided StepM no longer rejects all six (make_rehaul_mcs.py,
+% D19_SR_CLAIMS, reported). Was: "and StepM rejects all \rhmcsNAlt{} hypotheses (two-sided adjusted $p$-values at most
+% \rhmcsMidShortSrPTwoMax{} and \rhmcsBaShortSrPTwoMax)."
+    For the mean daily return differential the SPA $p$-value
     is \rhmcsMidShortMeanSpaC, and StepM rejects \rhmcsMidShortMeanNRej{} of the \rhmcsNAlt{} hypotheses.
   \item Against the HAR-benchmark strategy of the same class, the Sharpe ratio gain survives for the random forest
     alone: SPA $p$-value \rhmcsMidTwinSrSpaC, StepM-adjusted $p$-value \rhmcsMidTwinSrPRf{} (two-sided

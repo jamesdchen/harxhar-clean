@@ -172,10 +172,16 @@
     ($\Delta\% = \rhtaRthThreeKVsRthClosePctMin$ to $\rhtaRthThreeKVsRthClosePctMax$) and on every bar
     ($\Delta\% = \rhtaRthThreeKVsRthBarPctMin$ to $\rhtaRthThreeKVsRthBarPctMax$), each significant at the 1\% level.
   \end{itemize}
-\item \textbf{The trade.} The Sharpe ratio $\SR$ of the full-set sign strategy (Section~\ref{sec:rh_econ_measures};
-  Panel~E) lies between \rhtaShFullRthMin{} and \rhtaShFullRthMax{} under RTH13 and between \rhtaShFullAllMin{} and
-  \rhtaShFullAllMax{} under ALL48. None of the \rhtaNDShTests{} differences in $\SR$ between the full-set strategies
-  of ALL48 or CLOSE and those of RTH13 is significant at the 5\% level (the smallest, \rhtaDShPMin). For the tree
+\item \textbf{The trade.} The Sharpe ratio of the full-set sign strategy, here the equal-year mean of the yearly
+  ratios $\SR_y$ of Section~\ref{sec:rh_econ_measures} (Panel~E), lies between \rhtaShFullRthMin{} and
+  \rhtaShFullRthMax{} under RTH13 and between \rhtaShFullAllMin{} and \rhtaShFullAllMax{} under ALL48. None of the
+  \rhtaNDShTests{} differences in it between the full-set strategies of ALL48 or CLOSE and those of RTH13 is
+  significant at the 5\% level under the paired bootstrap (the smallest, \rhtaDShPMin). For the tree
+  % 2026-10-28 (D19, standard pooled Sharpe; coordinator): make_rehaul_train_arms.py (\rhta...) still computes the
+  % equal-year mean of the SR_y with the paired bootstrap, so the text names that definition until the generator is
+  % rerun on the pooled ratio. Was: "The Sharpe ratio $\SR$ of the full-set sign strategy
+  % (Section~\ref{sec:rh_econ_measures}; Panel~E) lies between ... None of the \rhtaNDShTests{} differences in $\SR$
+  % between ... is significant at the 5\% level (the smallest, \rhtaDShPMin)."
   ensembles, the full-set strategy's gain over the HAR benchmark's is significant at the 5\% level in
   \rhtaNTreeShSigRth{} of the three classes under RTH13 and \rhtaNTreeShSigAll{} under ALL48.
 \item \textbf{Caveats.} The tree configurations were chosen on an earlier design (Appendix~\ref{app:rh_tuning}) and,
@@ -222,7 +228,10 @@
   \item With the FOMC fixes, dropping the sessions moves the full predictor set's change in every-bar QLIKE against
     the HAR benchmark by \rhholEffDBBarPpRng{} percentage points, and its change at 16:00 by
     \rhholEffDBClosePpRng{} (without the fixes, \rhholEffCABarPpRng{} and \rhholEffCAClosePpRng).
-  \item The Sharpe ratio of the full-set sign strategy moves by \rhholEffDBShFullRng.
+  \item The Sharpe ratio of the full-set sign strategy, the equal-year mean of the yearly ratios $\SR_y$ here, moves
+    by \rhholEffDBShFullRng.
+    % 2026-10-28 (D19; coordinator): make_rehaul_holiday.py still uses the equal-year mean of the SR_y. Was: "The
+    % Sharpe ratio of the full-set sign strategy moves by \rhholEffDBShFullRng."
   \end{itemize}
 \input{generated/rehaul_holiday_table}
 \end{itemize}

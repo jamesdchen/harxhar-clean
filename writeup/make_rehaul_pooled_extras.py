@@ -20,7 +20,9 @@ WHAT
      range, and the smallest and largest median change against j = 0 (j != 0); here also over j <= 0 alone (the
      offsets that read no later information; j > 0 reads day t + 1, a placebo).
      What changes against the original (the task's two fixes):
-       Sharpe ratio  the paper's (D6, writeup/hac_inference.d6_sharpe, Section 7.1): the equal-weight mean over
+       Sharpe ratio  2026-10-26 (D19): the paper's pooled ratio sqrt(q) mean / sd, q = T / sum_y c_y of the days
+                     scored (hac_inference.paper_sharpe), and its i.i.d. band 1.96 sqrt(q / T). Was:
+                     the paper's (D6, writeup/hac_inference.d6_sharpe, Section 7.1): the equal-weight mean over
                      calendar years of SR_y = sqrt(A_y) mean_y / sd_y, A_y = N_y / c_y, on exactly the days scored;
                      the original used sqrt(252) mean / sd on all option days.
        days          the post-warmup option days t > WARMUP (the sample of every printed Sharpe ratio), not all
@@ -214,9 +216,15 @@ def macro_values(tex: str) -> dict[str, str]:
 
 
 # ---------------------------------------------------------------------------------------------- Sharpe ratios
+# 2026-10-26 (author decision D19): sr_d6 / band_d6 keep their names (every caller and self-check) but compute the
+# paper's ratio, now the pooled sqrt(q) mean / sd, q = T / sum_y c_y (hac_inference.paper_sharpe), and its i.i.d. band
+# 1.96 sqrt(q / T) = 1.96 / sqrt(sum_y c_y) (Lo 2002: Var(mean / sd) = 1 / T). Was:
+#     """The paper's Sharpe ratio (D6) on exactly the days given (make_rehaul_economics.sharpe_days)."""
+#     return float(hi.d6_sharpe(np.asarray(x, float), dates=pd.DatetimeIndex(dates))["sharpe"])
+# and band_d6: 1.96 sqrt(sum_y A_y / N_y) / K (the D6 ratio's band).
 def sr_d6(x, dates) -> float:
-    """The paper's Sharpe ratio (D6) on exactly the days given (make_rehaul_economics.sharpe_days)."""
-    return float(hi.d6_sharpe(np.asarray(x, float), dates=pd.DatetimeIndex(dates))["sharpe"])
+    """The paper's Sharpe ratio (D19: pooled, sqrt(q)) on exactly the days given (make_rehaul_economics.sharpe_days)."""
+    return float(hi.paper_sharpe(np.asarray(x, float), dates=pd.DatetimeIndex(dates))["sharpe"])
 
 
 def sr_fixed(x, dates) -> float:  # noqa: ARG001
@@ -226,10 +234,9 @@ def sr_fixed(x, dates) -> float:  # noqa: ARG001
 
 
 def band_d6(dates) -> float:
-    """95 % half-width of the D6 ratio under i.i.d. returns at SR = 0: 1.96 sqrt(sum_y A_y / N_y) / K (docstring)."""
-    yy = hi.d6_years(pd.DatetimeIndex(dates))
-    k = len(yy["A"])
-    return float(BAND_Z * np.sqrt(sum(yy["A"][y] / yy["N"][y] for y in yy["A"])) / k)
+    """95 % half-width of the paper's ratio (D19) under i.i.d. returns at SR = 0: 1.96 sqrt(q / T)."""
+    pq = hi.paper_q(pd.DatetimeIndex(dates))
+    return float(BAND_Z * np.sqrt(pq["q"] / pq["T"]))
 
 
 def band_fixed(dates) -> float:
@@ -767,7 +774,9 @@ def selfcheck_pooled_d6(mk: pd.DataFrame) -> None:
         assert len(t) == N_OPT, (e, s, len(t))
         for col, tag in (("mid", "Sh"), ("x", "ShX")):
             name = f"rhr{tag}{EST_MACRO[e]}Pool{SET_MACRO[s]}"
-            v = sr_d6(t[col].to_numpy(float)[WARMUP:], pw)
+            # 2026-10-26 (D19): the pinned reference (PRINTED_REF) printed D6, so the reproduction check keeps D6 (the
+            # trade pipeline is what it checks; sr_d6 now computes the pooled ratio). Was: v = sr_d6(...)
+            v = float(hi.d6_sharpe(t[col].to_numpy(float)[WARMUP:], dates=pw)["sharpe"])
             rows.append(
                 {
                     "macro": name,
@@ -779,7 +788,7 @@ def selfcheck_pooled_d6(mk: pd.DataFrame) -> None:
     sc = pd.DataFrame(rows)
     sc.to_csv(OUT / "selfcheck_C_pooled_d6.csv", index=False)
     gate(
-        "self-check C: the printed pooled Sharpe ratios (D6, 614 days) reproduced",
+        "self-check C: the printed pooled Sharpe ratios (D19 pooled, 614 days) reproduced",
         float((~sc["match"]).sum()),
         0,
         len(sc),
@@ -847,17 +856,17 @@ def write_tex(
             (
                 "rhpsZeroMed",
                 agg(sgn(sw["zero"])),
-                "median SR (D6, mid) across the forecasts at j = 0, on those days",
+                "median SR (paper's, D19 pooled; mid) across the forecasts at j = 0, on those days",
             ),
             (
                 "rhpsMedLo",
                 agg(sgn(sw["lo"])),
-                "smallest median SR (D6, mid) over the offsets j (j = 0 included)",
+                "smallest median SR (paper's, D19; mid) over the offsets j (j = 0 included)",
             ),
             (
                 "rhpsMedHi",
                 agg(sgn(sw["hi"])),
-                "largest median SR (D6, mid) over the offsets j",
+                "largest median SR (paper's, D19; mid) over the offsets j",
             ),
             ("rhpsHalf", agg(sgn(sw["half"])), "half that range: the swing, +-"),
             (
@@ -900,7 +909,7 @@ def write_tex(
             (
                 "rhpsNoiseBand",
                 agg(sgn(sw["band"])),
-                "1.96 sqrt(sum_y A_y/N_y)/K: 95 % half-width of the D6 SR under iid returns at SR = 0, those days",
+                "1.96 sqrt(q/T): 95 % half-width of the paper's SR (D19) under iid returns at SR = 0, those days",
             ),
         ]
     if sw_alt is not None:  # ALTERNATIVE (owner decision): j <= 0 only, on all 614 post-warmup days
@@ -939,7 +948,7 @@ def write_tex(
             (
                 "rhpsPwNoiseBand",
                 agg(sgn(sw_alt["band"])),
-                "ALT: the D6 iid band on those days",
+                "ALT: the paper's (D19) iid band on those days",
             ),
         ]
     if csum is not None:

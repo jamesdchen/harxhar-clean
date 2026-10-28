@@ -13,34 +13,34 @@
 \cmidrule(lr){3-4}
  & return (\%) & Mid-quotes & Bid--ask & rate (\%) & days (\%) & $\Delta\SR$ \\
 \midrule
-Short straddle & $2.4^{\phantom{***}}$ & $-0.12$ & $-0.46$ & $62.2$ & $0.0$ & --$^{\phantom{***}}$ \\
+Short straddle & $2.4^{\phantom{***}}$ & $0.32$ & $-0.03$ & $62.2$ & $0.0$ & --$^{\phantom{***}}$ \\
  & $(0.67)^{\phantom{***}}$ &  &  &  &  &  \\[2pt]
 \addlinespace[4pt]
 \multicolumn{7}{@{}l}{\textit{Panel A: Pooled intraday models (\rhePoolNBars{} regular-hours intervals)}} \\
 \addlinespace[2pt]
-Ridge\tnote{a} & $12.3^{***}$ & $1.75$ & $1.40$ & $59.4$ & $20.0$ & $1.87^{***}$ \\
- & $(2.93)^{\phantom{***}}$ &  &  &  &  & $[0.007]^{\phantom{***}}$ \\[2pt]
-Lasso\tnote{a} & $13.0^{***}$ & $1.75$ & $1.40$ & $59.8$ & $19.7$ & $1.87^{***}$ \\
- & $(3.35)^{\phantom{***}}$ &  &  &  &  & $[0.009]^{\phantom{***}}$ \\[2pt]
-Elastic net\tnote{a} & $13.9^{***}$ & $1.95$ & $1.59$ & $60.4$ & $19.1$ & $2.07^{***}$ \\
- & $(3.27)^{\phantom{***}}$ &  &  &  &  & $[0.003]^{\phantom{***}}$ \\[2pt]
-LightGBM\tnote{a} & $11.5^{***}$ & $1.67$ & $1.31$ & $58.6$ & $23.8$ & $1.78^{***}$ \\
- & $(3.29)^{\phantom{***}}$ &  &  &  &  & $[0.006]^{\phantom{***}}$ \\[2pt]
-XGBoost\tnote{a} & $11.6^{***}$ & $1.71$ & $1.36$ & $58.8$ & $23.3$ & $1.83^{***}$ \\
- & $(3.23)^{\phantom{***}}$ &  &  &  &  & $[0.004]^{\phantom{***}}$ \\[2pt]
-Random forest\tnote{a} & $14.1^{***}$ & $1.99$ & $1.63$ & $60.3$ & $21.5$ & $2.10^{***}$ \\
- & $(3.77)^{\phantom{***}}$ &  &  &  &  & $[0.001]^{\phantom{***}}$ \\[2pt]
+Ridge\tnote{a} & $12.3^{***}$ & $1.64$ & $1.29$ & $59.4$ & $20.0$ & $1.32^{*\phantom{**}}$ \\
+ & $(2.93)^{\phantom{***}}$ &  &  &  &  & $[0.059]^{\phantom{***}}$ \\[2pt]
+Lasso\tnote{a} & $13.0^{***}$ & $1.73$ & $1.37$ & $59.8$ & $19.7$ & $1.40^{**\phantom{*}}$ \\
+ & $(3.35)^{\phantom{***}}$ &  &  &  &  & $[0.039]^{\phantom{***}}$ \\[2pt]
+Elastic net\tnote{a} & $13.9^{***}$ & $1.85$ & $1.50$ & $60.4$ & $19.1$ & $1.53^{**\phantom{*}}$ \\
+ & $(3.27)^{\phantom{***}}$ &  &  &  &  & $[0.026]^{\phantom{***}}$ \\[2pt]
+LightGBM\tnote{a} & $11.5^{***}$ & $1.54$ & $1.18$ & $58.6$ & $23.8$ & $1.21^{*\phantom{**}}$ \\
+ & $(3.29)^{\phantom{***}}$ &  &  &  &  & $[0.070]^{\phantom{***}}$ \\[2pt]
+XGBoost\tnote{a} & $11.6^{***}$ & $1.54$ & $1.19$ & $58.8$ & $23.3$ & $1.22^{*\phantom{**}}$ \\
+ & $(3.23)^{\phantom{***}}$ &  &  &  &  & $[0.064]^{\phantom{***}}$ \\[2pt]
+Random forest\tnote{a} & $14.1^{***}$ & $1.88$ & $1.52$ & $60.3$ & $21.5$ & $1.56^{**\phantom{*}}$ \\
+ & $(3.77)^{\phantom{***}}$ &  &  &  &  & $[0.018]^{\phantom{***}}$ \\[2pt]
 \addlinespace[4pt]
 \multicolumn{7}{@{}l}{\textit{Panel B: Closing-interval models (15:30--16:00 ET half hour)}} \\
 \addlinespace[2pt]
-OLS, HAR benchmark & $8.3^{**\phantom{*}}$ & $0.99$ & $0.63$ & $56.0$ & $32.2$ & $1.10^{\phantom{***}}$ \\
- & $(2.35)^{\phantom{***}}$ &  &  &  &  & $[0.195]^{\phantom{***}}$ \\[2pt]
-Ridge & $10.7^{***}$ & $1.47$ & $1.12$ & $57.8$ & $29.2$ & $1.59^{**\phantom{*}}$ \\
- & $(2.89)^{\phantom{***}}$ &  &  &  &  & $[0.023]^{\phantom{***}}$ \\[2pt]
-Lasso & $12.5^{***}$ & $1.44$ & $1.09$ & $58.0$ & $30.9$ & $1.56^{**\phantom{*}}$ \\
- & $(3.27)^{\phantom{***}}$ &  &  &  &  & $[0.038]^{\phantom{***}}$ \\[2pt]
-Elastic net & $13.7^{***}$ & $1.68$ & $1.33$ & $57.5$ & $29.8$ & $1.80^{**\phantom{*}}$ \\
- & $(3.41)^{\phantom{***}}$ &  &  &  &  & $[0.018]^{\phantom{***}}$ \\[2pt]
+OLS, HAR benchmark & $8.3^{**\phantom{*}}$ & $1.11$ & $0.76$ & $56.0$ & $32.2$ & $0.79^{\phantom{***}}$ \\
+ & $(2.35)^{\phantom{***}}$ &  &  &  &  & $[0.254]^{\phantom{***}}$ \\[2pt]
+Ridge & $10.7^{***}$ & $1.42$ & $1.08$ & $57.8$ & $29.2$ & $1.10^{\phantom{***}}$ \\
+ & $(2.89)^{\phantom{***}}$ &  &  &  &  & $[0.110]^{\phantom{***}}$ \\[2pt]
+Lasso & $12.5^{***}$ & $1.67$ & $1.32$ & $58.0$ & $30.9$ & $1.35^{*\phantom{**}}$ \\
+ & $(3.27)^{\phantom{***}}$ &  &  &  &  & $[0.058]^{\phantom{***}}$ \\[2pt]
+Elastic net & $13.7^{***}$ & $1.82$ & $1.48$ & $57.5$ & $29.8$ & $1.50^{**\phantom{*}}$ \\
+ & $(3.41)^{\phantom{***}}$ &  &  &  &  & $[0.035]^{\phantom{***}}$ \\[2pt]
 \bottomrule
 \end{tabular}
 \begin{tablenotes}[flushleft]
@@ -52,7 +52,7 @@ $q_t \equiv -1$; every model except the
 OLS uses the full predictor set. Mean return is at mid-quotes, in percent of the premium; $\SR$ is the annualized
 Sharpe ratio at mid-quotes and at quoted bid/ask prices; hit rate and long days are the shares of days with
 $r_t > 0$ at mid-quotes and with $q_t = +1$. $\Delta\SR$ is $\SR$ at mid-quotes minus that of the short-straddle
-benchmark (\rheShortSh); in parentheses, the $t$-statistic of the mean return (Newey--West with bandwidth $S = \rheHACS$ and fixed-$b$ critical values, \citealp{LazarusLewisStockWatson2018}; Section~\ref{sec:rh_methods_tests}); under $\Delta\SR$, the $p$-value of the paired block-bootstrap test of equal Sharpe ratios on the \rheSzDays{} post-warmup days, in brackets (Section~\ref{sec:rh_methods_tests}).
+benchmark (\rheShortSh); in parentheses, the $t$-statistic of the mean return (Newey--West with bandwidth $S = \rheHACS$ and fixed-$b$ critical values, \citealp{LazarusLewisStockWatson2018}; Section~\ref{sec:rh_methods_tests}); under $\Delta\SR$, the $p$-value of the \citet{LedoitWolf2008} test of equal Sharpe ratios on the \rheSzDays{} post-warmup days, in brackets (Section~\ref{sec:rh_methods_tests}).
 $^{*}$, $^{**}$ and $^{***}$ denote significance at the 10\%, 5\% and 1\% levels.
 Panel A: models estimated on the \rhePoolNBars{} regular-hours 30-minute intervals of each day (the pooled intraday
 scheme, note a); Panel B: models

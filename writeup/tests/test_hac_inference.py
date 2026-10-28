@@ -46,7 +46,7 @@ def test_lrv_divides_by_T():
     x = rng.standard_normal(50)
     e = x - x.mean()
     S = 4
-    want = sum((1 - abs(j) / S) * float(e[abs(j):] @ e[: len(e) - abs(j)]) / len(e) for j in range(-S + 1, S))
+    want = sum((1 - abs(j) / S) * float(e[abs(j) :] @ e[: len(e) - abs(j)]) / len(e) for j in range(-S + 1, S))
     assert math.isclose(h.bartlett_lrv(x, S), want, rel_tol=1e-12)
 
 
@@ -158,18 +158,14 @@ def test_d6_years_coverage():
     d = _d6_calendar()
     yy = h.d6_years(d)
     assert sorted(yy["A"]) == [2021, 2022, 2023, 2024]
-    assert math.isclose(yy["coverage"][2021], 143 / 365) and math.isclose(
-        yy["coverage"][2024], 121 / 366
-    )
+    assert math.isclose(yy["coverage"][2021], 143 / 365) and math.isclose(yy["coverage"][2024], 121 / 366)
     assert yy["coverage"][2022] == 1.0 == yy["coverage"][2023]
     for y in yy["A"]:
         assert math.isclose(yy["A"][y], yy["N"][y] / yy["coverage"][y])
     # span widens the sample: a year inside it is fully covered
     import pandas as pd
 
-    yy2 = h.d6_years(
-        d[d.year == 2022], span=(pd.Timestamp("2021-08-11"), pd.Timestamp("2024-04-30"))
-    )
+    yy2 = h.d6_years(d[d.year == 2022], span=(pd.Timestamp("2021-08-11"), pd.Timestamp("2024-04-30")))
     assert yy2["coverage"] == {2022: 1.0}
 
 
@@ -181,12 +177,7 @@ def test_d6_sharpe_matches_scratch_and_definition():
     r = h.d6_sharpe(x, d)
     assert math.isclose(r["sharpe"], _ref_stat(x, yy["years"], yy["A"]), rel_tol=1e-12)
     # each year: mean / sd * sqrt(A_y); the years combined with equal weights
-    srs = [
-        x[yy["years"] == y].mean()
-        / x[yy["years"] == y].std(ddof=1)
-        * math.sqrt(yy["A"][y])
-        for y in yy["A"]
-    ]
+    srs = [x[yy["years"] == y].mean() / x[yy["years"] == y].std(ddof=1) * math.sqrt(yy["A"][y]) for y in yy["A"]]
     assert math.isclose(r["sharpe"], float(np.mean(srs)), rel_tol=1e-12)
     # a sample spanning the whole calendar year: A_y = N_y, so the year's term is the per-year ratio of new-notes 15
     # (the sample's own first and last days, 2 Jan and 29 Dec, cover 362/365 of it)
@@ -197,9 +188,7 @@ def test_d6_sharpe_matches_scratch_and_definition():
     whole = (pd.Timestamp("2023-01-01"), pd.Timestamp("2023-12-31"))
     d1 = asl.sharpe_ann_by_year(z, dates=full)["sharpe"]
     assert math.isclose(h.d6_sharpe(z, full, span=whole)["sharpe"], d1, rel_tol=1e-12)
-    assert math.isclose(
-        h.d6_sharpe(z, full)["sharpe"], d1 * math.sqrt(365 / 362), rel_tol=1e-12
-    )
+    assert math.isclose(h.d6_sharpe(z, full)["sharpe"], d1 * math.sqrt(365 / 362), rel_tol=1e-12)
 
 
 def test_d6_diff_test_matches_scratch_boot_p():
@@ -231,6 +220,45 @@ def test_d6_diff_test_detects_large_gap():
     a = 0.3 + z[:, 0]
     b = 0.0 + 0.9 * z[:, 0] + 0.4359 * z[:, 1]
     assert h.d6_diff_test(a, b, d, n_boot=999)["p"] < 0.01
+
+
+# 2026-10-26 (author decision D19): the paper's pooled Sharpe ratio and its tests
+def test_paper_sharpe_definition():
+    d = _d6_calendar()
+    rng = np.random.default_rng(13)
+    x = 0.05 + rng.standard_normal(len(d))
+    yy = h.d6_years(d)
+    pq = h.paper_q(d)
+    assert math.isclose(pq["sum_c"], sum(yy["coverage"].values()), rel_tol=1e-14)
+    assert math.isclose(pq["q"], len(d) / pq["sum_c"], rel_tol=1e-14)
+    r = h.paper_sharpe(x, d)
+    assert math.isclose(r["sharpe"], math.sqrt(pq["q"]) * x.mean() / x.std(ddof=1), rel_tol=1e-12)
+    assert math.isclose(r["sharpe_d6"], h.d6_sharpe(x, d)["sharpe"], rel_tol=1e-14)
+    # one full calendar year spanned: q = N_y, the classical sqrt(N) annualization
+    import pandas as pd
+
+    full = pd.bdate_range("2023-01-01", "2023-12-31")
+    whole = (pd.Timestamp("2023-01-01"), pd.Timestamp("2023-12-31"))
+    assert math.isclose(h.paper_q(full, span=whole)["q"], len(full), rel_tol=1e-14)
+
+
+def test_paper_sharpe_test_is_ledoit_wolf_and_boot_check():
+    d = _d6_calendar()
+    rng = np.random.default_rng(14)
+    z = rng.standard_normal((len(d), 2))
+    a = 0.08 + z[:, 0]
+    b = 0.02 + 0.8 * z[:, 0] + 0.6 * z[:, 1]
+    r = h.paper_sharpe_test(a, b, d, n_boot=199)
+    lw = h.lw_sharpe_test(a, b, n_boot=199)
+    assert r["p"] == r["p_lw"] == lw["p"]
+    assert math.isclose(r["delta"], h.paper_sharpe(a, d)["sharpe"] - h.paper_sharpe(b, d)["sharpe"], rel_tol=1e-12)
+    bt = h.pooled_diff_boot(a, b, d, n_boot=199)
+    assert r["p_boot"] == bt["p"] and math.isclose(bt["delta"], r["delta"], rel_tol=1e-12)
+    # the bootstrap check uses d6_diff_test's resamples: antisymmetric, scale invariant
+    bt2 = h.pooled_diff_boot(b, a, d, n_boot=199)
+    assert math.isclose(bt2["delta"], -bt["delta"]) and bt2["p"] == bt["p"]
+    bt3 = h.pooled_diff_boot(3 * a, 0.5 * b, d, n_boot=199)
+    assert math.isclose(bt3["delta"], bt["delta"], rel_tol=1e-10) and bt3["p"] == bt["p"]
 
 
 if __name__ == "__main__":

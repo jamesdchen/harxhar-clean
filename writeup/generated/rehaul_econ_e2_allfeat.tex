@@ -15,34 +15,34 @@
 \midrule
 \multicolumn{5}{@{}l}{\textit{Panel A: Closing-interval models}} \\
 \addlinespace[2pt]
-Elastic net & $1.47$ & $1.68$ & $0.21^{\phantom{***}}$ & $0.21^{\phantom{***}}$ \\
- &  &  & $[0.607]^{\phantom{***}}$ & $[0.602]^{\phantom{***}}$ \\[2pt]
-Lasso & $1.47$ & $1.44$ & $-0.03^{\phantom{***}}$ & $-0.03^{\phantom{***}}$ \\
- &  &  & $[0.942]^{\phantom{***}}$ & $[0.948]^{\phantom{***}}$ \\[2pt]
-Ridge & $1.47$ & $1.47$ & $0.00^{\phantom{***}}$ & $0.01^{\phantom{***}}$ \\
- &  &  & $[0.997]^{\phantom{***}}$ & $[0.987]^{\phantom{***}}$ \\[2pt]
+Elastic net & $1.55$ & $1.82$ & $0.28^{\phantom{***}}$ & $0.28^{\phantom{***}}$ \\
+ &  &  & $[0.450]^{\phantom{***}}$ & $[0.448]^{\phantom{***}}$ \\[2pt]
+Lasso & $1.55$ & $1.67$ & $0.12^{\phantom{***}}$ & $0.12^{\phantom{***}}$ \\
+ &  &  & $[0.737]^{\phantom{***}}$ & $[0.731]^{\phantom{***}}$ \\[2pt]
+Ridge & $1.55$ & $1.42$ & $-0.12^{\phantom{***}}$ & $-0.12^{\phantom{***}}$ \\
+ &  &  & $[0.803]^{\phantom{***}}$ & $[0.803]^{\phantom{***}}$ \\[2pt]
 \addlinespace[4pt]
 \multicolumn{5}{@{}l}{\textit{Panel B: Intraday models}} \\
 \addlinespace[2pt]
-Elastic net & $0.98$ & $1.95$ & $0.97^{\phantom{***}}$ & $0.97^{\phantom{***}}$ \\
- &  &  & $[0.132]^{\phantom{***}}$ & $[0.128]^{\phantom{***}}$ \\[2pt]
-Lasso & $0.98$ & $1.75$ & $0.77^{\phantom{***}}$ & $0.77^{\phantom{***}}$ \\
- &  &  & $[0.206]^{\phantom{***}}$ & $[0.202]^{\phantom{***}}$ \\[2pt]
-Ridge & $0.98$ & $1.75$ & $0.77^{\phantom{***}}$ & $0.78^{\phantom{***}}$ \\
- &  &  & $[0.217]^{\phantom{***}}$ & $[0.207]^{\phantom{***}}$ \\[2pt]
+Elastic net & $0.95$ & $1.85$ & $0.90^{*\phantom{**}}$ & $0.89^{*\phantom{**}}$ \\
+ &  &  & $[0.074]^{\phantom{***}}$ & $[0.075]^{\phantom{***}}$ \\[2pt]
+Lasso & $0.95$ & $1.73$ & $0.77^{\phantom{***}}$ & $0.77^{\phantom{***}}$ \\
+ &  &  & $[0.120]^{\phantom{***}}$ & $[0.120]^{\phantom{***}}$ \\[2pt]
+Ridge & $0.95$ & $1.64$ & $0.69^{\phantom{***}}$ & $0.68^{\phantom{***}}$ \\
+ &  &  & $[0.171]^{\phantom{***}}$ & $[0.171]^{\phantom{***}}$ \\[2pt]
 \addlinespace[4pt]
 \multicolumn{5}{@{}l}{\textit{Panel C: Medians across pairs}} \\
 \addlinespace[2pt]
-LightGBM (\rheTreePairsEach) & $0.19$ & $1.20$ & $0.87^{\phantom{***}}$ & $0.86^{\phantom{***}}$ \\
- &  &  & $[4/12]^{\phantom{***}}$ & $[4/12]^{\phantom{***}}$ \\[2pt]
-XGBoost (\rheTreePairsEach) & $0.31$ & $1.07$ & $0.62^{\phantom{***}}$ & $0.60^{\phantom{***}}$ \\
+LightGBM (\rheTreePairsEach) & $0.36$ & $1.25$ & $0.74^{\phantom{***}}$ & $0.72^{\phantom{***}}$ \\
+ &  &  & $[3/12]^{\phantom{***}}$ & $[3/12]^{\phantom{***}}$ \\[2pt]
+XGBoost (\rheTreePairsEach) & $0.50$ & $1.08$ & $0.50^{\phantom{***}}$ & $0.50^{\phantom{***}}$ \\
  &  &  & $[2/12]^{\phantom{***}}$ & $[2/12]^{\phantom{***}}$ \\[2pt]
-Random forest (\rheTreePairsEach) & $-0.09$ & $0.99$ & $0.82^{\phantom{***}}$ & $0.81^{\phantom{***}}$ \\
- &  &  & $[5/12]^{\phantom{***}}$ & $[5/12]^{\phantom{***}}$ \\[2pt]
-All trees (\rheTreePairs) & $0.21$ & $1.07$ & $0.84^{\phantom{***}}$ & $0.83^{\phantom{***}}$ \\
- &  &  & $[11/36]^{\phantom{***}}$ & $[11/36]^{\phantom{***}}$ \\[2pt]
-Model set (\rhePairs) & $0.23$ & $1.11$ & $0.81^{\phantom{***}}$ & $0.79^{\phantom{***}}$ \\
- &  &  & $[12/42]^{\phantom{***}}$ & $[12/42]^{\phantom{***}}$ \\[2pt]
+Random forest (\rheTreePairsEach) & $0.19$ & $0.80$ & $0.56^{\phantom{***}}$ & $0.55^{\phantom{***}}$ \\
+ &  &  & $[0/12]^{\phantom{***}}$ & $[0/12]^{\phantom{***}}$ \\[2pt]
+All trees (\rheTreePairs) & $0.35$ & $1.09$ & $0.62^{\phantom{***}}$ & $0.61^{\phantom{***}}$ \\
+ &  &  & $[5/36]^{\phantom{***}}$ & $[5/36]^{\phantom{***}}$ \\[2pt]
+Model set (\rhePairs) & $0.43$ & $1.13$ & $0.62^{\phantom{***}}$ & $0.61^{\phantom{***}}$ \\
+ &  &  & $[6/42]^{\phantom{***}}$ & $[6/42]^{\phantom{***}}$ \\[2pt]
 \bottomrule
 \end{tabular}
 \begin{tablenotes}[flushleft]
@@ -50,7 +50,7 @@ Model set (\rhePairs) & $0.23$ & $1.11$ & $0.81^{\phantom{***}}$ & $0.79^{\phant
 \item \textit{Notes:} Each pair is one model estimated on the HAR benchmark and on the full predictor set, with
 everything else unchanged, over the out-of-sample period ($T_{\mathrm{oos}} = \rheNdays$ trading days). $\SR$ is the
 annualized Sharpe ratio of the sign strategy; $\Delta\SR$ is the full-set minus the HAR-benchmark $\SR$, at
-mid-quotes and at quoted bid/ask prices, with the $p$-value of the paired block-bootstrap test of equal Sharpe ratios on the \rheSzDays{} post-warmup days, in brackets (Section~\ref{sec:rh_methods_tests}). On the HAR benchmark the three closing-interval linear models hold the same position as one another; they differ from the closing-interval OLS, rebuilt under the current data rules, on at most 32 days. Panel C gives medians across the closing-interval tree pairs (every hyperparameter specification in the model
+mid-quotes and at quoted bid/ask prices, with the $p$-value of the \citet{LedoitWolf2008} test of equal Sharpe ratios on the \rheSzDays{} post-warmup days, in brackets (Section~\ref{sec:rh_methods_tests}). On the HAR benchmark the three closing-interval linear models hold the same position as one another; they differ from the closing-interval OLS, rebuilt under the current data rules, on at most 32 days. Panel C gives medians across the closing-interval tree pairs (every hyperparameter specification in the model
 set) and across all pairs of the \rheModelSetN{} forecasts of the model set, with the number of pairs whose
 Sharpe ratio difference is significantly positive at the 5\% level in brackets (none is significantly negative at that level). $^{*}$, $^{**}$ and $^{***}$ denote significance at the 10\%, 5\% and 1\% levels.
 \end{tablenotes}

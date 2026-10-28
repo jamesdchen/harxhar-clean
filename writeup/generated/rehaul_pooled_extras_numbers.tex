@@ -8,28 +8,28 @@
 \newcommand{\rhpsJMin}{\ensuremath{-}12}  % smallest offset j (the 10:00 bar of day t)
 \newcommand{\rhpsJMax}{6}  % largest offset j (the 12:30 bar of day t+1)
 \newcommand{\rhpsNdays}{613}  % post-warmup option days on which every shifted forecast exists
-\newcommand{\rhpsZeroMed}{1.50}  % median SR (D6, mid) across the forecasts at j = 0, on those days
-\newcommand{\rhpsMedLo}{\ensuremath{-}0.46}  % smallest median SR (D6, mid) over the offsets j (j = 0 included)
-\newcommand{\rhpsMedHi}{1.98}  % largest median SR (D6, mid) over the offsets j
-\newcommand{\rhpsHalf}{1.22}  % half that range: the swing, +-
-\newcommand{\rhpsDeltaLo}{\ensuremath{-}1.90}  % smallest median change of SR against j = 0 (j != 0)
-\newcommand{\rhpsDeltaHi}{+0.47}  % largest median change of SR against j = 0 (j != 0)
-\newcommand{\rhpsSameMedLo}{\ensuremath{-}0.46}  % smallest median SR over j <= 0 (no information after 15:30 of day t)
-\newcommand{\rhpsSameMedHi}{1.50}  % largest median SR over j <= 0
-\newcommand{\rhpsSameHalf}{0.98}  % half that range
-\newcommand{\rhpsSameDeltaLo}{\ensuremath{-}1.90}  % smallest median change against j = 0, j < 0
-\newcommand{\rhpsSameDeltaHi}{\ensuremath{-}0.67}  % largest median change against j = 0, j < 0
-\newcommand{\rhpsStaleNBelowMin}{8}  % fewest forecasts below their own j = 0 SR at an offset j < 0
+\newcommand{\rhpsZeroMed}{1.35}  % median SR (paper's, D19 pooled; mid) across the forecasts at j = 0, on those days
+\newcommand{\rhpsMedLo}{\ensuremath{-}0.25}  % smallest median SR (paper's, D19; mid) over the offsets j (j = 0 included)
+\newcommand{\rhpsMedHi}{2.08}  % largest median SR (paper's, D19; mid) over the offsets j
+\newcommand{\rhpsHalf}{1.17}  % half that range: the swing, +-
+\newcommand{\rhpsDeltaLo}{\ensuremath{-}1.51}  % smallest median change of SR against j = 0 (j != 0)
+\newcommand{\rhpsDeltaHi}{+0.73}  % largest median change of SR against j = 0 (j != 0)
+\newcommand{\rhpsSameMedLo}{\ensuremath{-}0.25}  % smallest median SR over j <= 0 (no information after 15:30 of day t)
+\newcommand{\rhpsSameMedHi}{1.35}  % largest median SR over j <= 0
+\newcommand{\rhpsSameHalf}{0.80}  % half that range
+\newcommand{\rhpsSameDeltaLo}{\ensuremath{-}1.51}  % smallest median change against j = 0, j < 0
+\newcommand{\rhpsSameDeltaHi}{\ensuremath{-}0.31}  % largest median change against j = 0, j < 0
+\newcommand{\rhpsStaleNBelowMin}{7}  % fewest forecasts below their own j = 0 SR at an offset j < 0
 \newcommand{\rhpsStaleNBelowMax}{12}  % most forecasts below their own j = 0 SR at an offset j < 0
-\newcommand{\rhpsNoiseBand}{1.35}  % 1.96 sqrt(sum_y A_y/N_y)/K: 95 % half-width of the D6 SR under iid returns at SR = 0, those days
+\newcommand{\rhpsNoiseBand}{1.19}  % 1.96 sqrt(q/T): 95 % half-width of the paper's SR (D19) under iid returns at SR = 0, those days
 \newcommand{\rhpsPwNdays}{614}  % ALT: j <= 0 only, on all post-warmup days
-\newcommand{\rhpsPwZeroMed}{1.32}  % ALT: median SR at j = 0 (= median of the printed SRs)
-\newcommand{\rhpsPwMedLo}{\ensuremath{-}0.60}  % ALT: smallest median SR over j <= 0
-\newcommand{\rhpsPwMedHi}{1.32}  % ALT: largest median SR over j <= 0
-\newcommand{\rhpsPwHalf}{0.96}  % ALT: half that range
-\newcommand{\rhpsPwDeltaLo}{\ensuremath{-}1.86}  % ALT: smallest median change against j = 0, j < 0
-\newcommand{\rhpsPwDeltaHi}{\ensuremath{-}0.52}  % ALT: largest median change against j = 0, j < 0
-\newcommand{\rhpsPwNoiseBand}{1.35}  % ALT: the D6 iid band on those days
+\newcommand{\rhpsPwZeroMed}{1.26}  % ALT: median SR at j = 0 (= median of the printed SRs)
+\newcommand{\rhpsPwMedLo}{\ensuremath{-}0.33}  % ALT: smallest median SR over j <= 0
+\newcommand{\rhpsPwMedHi}{1.26}  % ALT: largest median SR over j <= 0
+\newcommand{\rhpsPwHalf}{0.80}  % ALT: half that range
+\newcommand{\rhpsPwDeltaLo}{\ensuremath{-}1.50}  % ALT: smallest median change against j = 0, j < 0
+\newcommand{\rhpsPwDeltaHi}{\ensuremath{-}0.31}  % ALT: largest median change against j = 0, j < 0
+\newcommand{\rhpsPwNoiseBand}{1.19}  % ALT: the paper's (D19) iid band on those days
 \newcommand{\rhpcNdays}{614}  % post-warmup option days compounded (t > 252)
 \newcommand{\rhpcNPosMid}{12}  % forecasts ending above one unit of wealth, mid-quotes
 \newcommand{\rhpcNPosX}{11}  % the same at quoted bid/ask prices

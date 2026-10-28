@@ -8,18 +8,28 @@ READS   results/window_sweep_2014start_2026-10-22/part2/{gap,econ}.csv (the full
 WRITES  writeup/generated/rehaul_window_sweep_numbers.tex   \\rhws... macros (definitions only)
         writeup/generated/rehaul_window_sweep_table.tex     Table tab:rh_window_sweep
 NOTE    the sweep runs on the design before the FOMC fix (the window choice does not depend on it; disclosed).
+D19     2026-10-26 (author decision D19): the table's Delta SR is the paper's pooled ratio, sqrt(q) mean / sd on the 614
+        post-warmup days (q = T / sum_y c_y = 225.5), computed exactly from econ.csv's dsr614_mid (score14.ann252: the
+        same ratio times sqrt(252)) as dsr614_mid * sqrt(q / 252), with the Ledoit-Wolf p (lw_p_mid); was the D6
+        difference (dd6_mid) with its bootstrap p (d6_boot_p_mid). q is gated against \\rheAnnDays.
 
 Run:  python writeup/make_rehaul_window_sweep.py     (repository root)
 """
 
 from __future__ import annotations
 
+import re
+import sys
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
+sys.path.insert(0, str(HERE))
+import hac_inference as hi  # noqa: E402  (2026-10-26, D19: the annualization q of the paper's Sharpe ratio)
+
 WS = ROOT / "results" / "window_sweep_2014start_2026-10-22"
 GEN = HERE / "generated"
 OUT_NUM = GEN / "rehaul_window_sweep_numbers.tex"
@@ -48,9 +58,24 @@ def pval(p: float) -> str:
     return "\\ensuremath{<}0.001" if p < 0.001 else f"{p:.3f}"
 
 
+def paper_q() -> float:
+    """2026-10-26 (D19): q = T / sum_y c_y of the 614 post-warmup option days (2021-08-11 .. 2024-04-30, every calendar
+    year 2021-2024 present), gated against \\rheAnnDays of rehaul_econ_numbers.tex."""
+    span = (pd.Timestamp("2021-08-11"), pd.Timestamp("2024-04-30"))
+    days = pd.DatetimeIndex([span[0], pd.Timestamp("2022-06-01"), pd.Timestamp("2023-06-01"), span[1]])
+    sum_c = float(sum(hi.d6_years(days, span=span)["coverage"].values()))
+    q = 614 / sum_c
+    m = re.search(r"\\renewcommand\{\\rheAnnDays\}\{([0-9.]+)\}", (GEN / "rehaul_econ_numbers.tex").read_text("utf-8"))
+    assert m and m.group(1) == f"{q:.1f}", (m and m.group(1), q)
+    return q
+
+
 def main() -> None:
     gap = pd.read_csv(WS / "part2" / "gap.csv")
     econ = pd.read_csv(WS / "part2" / "econ.csv")
+    # 2026-10-26 (D19): the paper's pooled ratio from the stored sqrt(252) pooled ratio of the same 614 days
+    scale = float(np.sqrt(paper_q() / 252.0))
+    econ = econ.assign(dsr_paper_mid=econ["dsr614_mid"] * scale)
     late = pd.read_csv(WS / "latestart" / "latestart_spans.csv")
     ws = sorted(int(w) for w in gap["W"].unique())
     assert W_MAIN in ws and set(gap["model"]) == set(LIN), (ws, set(gap["model"]))
@@ -110,7 +135,8 @@ def main() -> None:
             body.append(
                 f"{lab} & {thousands(w)}{mark} & {num(g.gap_pct_bar)} & {num(g.gap_dm_bar, 2)} ({pval(g.gap_p_bar)}) & "
                 f"{num(g.gap_pct_16)} & {num(g.gap_dm_16, 2)} ({pval(g.gap_p_16)}) & "
-                f"{num(e.dd6_mid, 2)} ({pval(e.d6_boot_p_mid)}) \\\\"
+                # 2026-10-26 (D19): was f"{num(e.dd6_mid, 2)} ({pval(e.d6_boot_p_mid)}) \\\\"
+                f"{num(e.dsr_paper_mid, 2)} ({pval(e.lw_p_mid)}) \\\\"
             )
         body.append("\\addlinespace[3pt]")
     body = body[:-1]
@@ -142,7 +168,8 @@ def main() -> None:
             "(negative: lower loss), on the \\rhorNIntB{} bars of Table~\\ref{tab:rh_oos} and on their 16:00 bar; DM: "
             "Diebold--Mariano statistic of the daily (average) QLIKE, HLN correction, Newey--West lag \\rhorHacLag, "
             "$p$-value in parentheses. $\\Delta\\SR$: the full-set minus the HAR-set Sharpe ratio of the sign strategy "
-            "at mid-quotes on the \\rheSzDays{} post-warmup option days, with the bootstrap $p$-value. Design before "
+            "at mid-quotes on the \\rheSzDays{} post-warmup option days, with the $p$-value of the "
+            "\\citet{LedoitWolf2008} test. Design before "
             "the FOMC calendar corrections of Section~\\ref{sec:rh_data}.",
             "\\end{tablenotes}",
             "\\end{threeparttable}",

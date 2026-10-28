@@ -134,28 +134,49 @@
   \item Under the null hypothesis and fixed $b$, the limiting distribution of $t$ is a functional of Brownian motion that depends only on the kernel and on $b$ \citep{KieferVogelsang2005}. We obtain its quantiles by simulation, computing the same statistic on 1{,}000{,}000 independent series of 1{,}000 i.i.d.\ standard normal draws with bandwidth $1{,}000\,b$. This gives the two-sided 5\% critical value \rheHACCV{} and the $p$-values reported in the text, in place of the standard normal value 1.96.
   \end{itemize}
 % 2026-10-22 (user, D6): parked -- the Ledoit--Wolf test as the test of every Sharpe statement; it tests the ratio of the pooled daily returns, while the paper's $\SR$ (note D6) averages calendar years, each annualized by its own $A_y$. The Ledoit--Wolf item below is kept as a robustness check. Was: "\item \textbf{Test of equal Sharpe ratios.} A test of $\bar\Delta = 0$ concerns the mean return differential, not the difference between two Sharpe ratios, which divides each strategy's mean return by its own standard deviation. For every statement about a Sharpe ratio difference we therefore use the studentized circular block bootstrap test of \citet{LedoitWolf2008}."
-\item \textbf{Test of equal Sharpe ratios.} A test of $\bar\Delta = 0$ concerns the mean return differential, not the difference between two Sharpe ratios, which divides each strategy's mean return by its own standard deviation. For every statement about a Sharpe ratio difference $\Delta\SR = \SR(r^A) - \SR(r^B)$, with $\SR$ the ratio of Section~\ref{sec:rh_econ_measures}, we therefore use a paired circular block bootstrap of $\Delta\SR$.
+\item \textbf{Test of equal Sharpe ratios.} A test of $\bar\Delta = 0$ concerns the mean return differential, not the difference between two Sharpe ratios, which divides each strategy's mean return by its own standard deviation. For every statement about a Sharpe ratio difference $\Delta\SR = \SR(r^A) - \SR(r^B)$, with $\SR$ the ratio of Section~\ref{sec:rh_econ_measures}, we therefore use the studentized circular block bootstrap test of \citet{LedoitWolf2008} of the next item. The equal-weight mean of the $\SR_y$, an alternative definition in Table~\ref{tab:rh_econ_sharpe_defs}, has no closed-form standard error; a difference of two such means is tested by a paired circular block bootstrap of the difference.
+% 2026-10-28 (D19, standard pooled Sharpe): the Ledoit--Wolf test is again the test of every Sharpe statement; the
+% paired bootstrap tests the D6 robustness column. Was: "For every statement about a Sharpe ratio difference
+% $\Delta\SR = \SR(r^A) - \SR(r^B)$, with $\SR$ the ratio of Section~\ref{sec:rh_econ_measures}, we therefore use a
+% paired circular block bootstrap of $\Delta\SR$."
   \begin{itemize}
-  \item Each of \rheBootN{} bootstrap samples joins blocks of \rheBootBlock{} consecutive days, drawn with replacement from the $T$ post-warmup days arranged on a circle; both strategies are resampled on the same days. Each drawn day keeps its own calendar year, and $A_y$ stays at its value in the original sample, so each sample gives $\Delta\SR^{*}$ computed exactly as $\Delta\SR$.
-  \item The $p$-value is two-sided, the share of samples with $|\Delta\SR^{*} - \Delta\SR| \ge |\Delta\SR|$. The block length is fixed rather than calibrated, and the random seed is fixed.
-  \item The bootstrap is not studentized: $\SR$ averages ratios over calendar years, and no closed-form standard error of that average is used.
+  \item Each of \rheBootN{} bootstrap samples joins blocks of \rheBootBlock{} consecutive days, drawn with replacement from the $T$ post-warmup days arranged on a circle; both strategies are resampled on the same days. Each drawn day keeps its own calendar year, and $A_y$ stays at its value in the original sample, so each sample gives the difference $\Delta^{*}$ computed exactly as the difference $\Delta$ in the original sample.
+  \item The $p$-value is two-sided, the share of samples with $|\Delta^{*} - \Delta| \ge |\Delta|$. The block length is fixed rather than calibrated, and the random seed is fixed.
+  \item The bootstrap is not studentized: the mean of the $\SR_y$ averages ratios over calendar years, and no closed-form standard error of that average is used.
   \end{itemize}
-\item \textbf{Test of equal Sharpe ratios of the pooled daily returns} (robustness). The studentized circular block bootstrap test of \citet{LedoitWolf2008} tests the equality of the Sharpe ratios of the daily returns pooled over the $T$ days, the ratio of the mean to the standard deviation of all $T$ returns. It is the test of the second alternative definition in Table~\ref{tab:rh_econ_sharpe_defs} and is reported beside the bootstrap test above in Table~\ref{tab:rh_app_hac_robust}.
+% 2026-10-28 (D19, standard pooled Sharpe): in the three sub-items above, was "so each sample gives $\Delta\SR^{*}$
+% computed exactly as $\Delta\SR$.", "the share of samples with $|\Delta\SR^{*} - \Delta\SR| \ge |\Delta\SR|$." and
+% "The bootstrap is not studentized: $\SR$ averages ratios over calendar years, ...".
+\item \textbf{Test of equal Sharpe ratios of the pooled daily returns.} The studentized circular block bootstrap test of \citet{LedoitWolf2008} tests the equality of the Sharpe ratios of the daily returns pooled over the $T$ days, the ratio of the mean to the standard deviation of all $T$ returns, which is $\SR$ up to the common factor $\sqrt{q}$. It is the test of every Sharpe ratio difference in the text and in Table~\ref{tab:rh_app_hac_robust}.
+% 2026-10-28 (D19, standard pooled Sharpe): was "\item \textbf{Test of equal Sharpe ratios of the pooled daily
+% returns} (robustness). ... the ratio of the mean to the standard deviation of all $T$ returns. It is the test of the
+% second alternative definition in Table~\ref{tab:rh_econ_sharpe_defs} and is reported beside the bootstrap test above
+% in Table~\ref{tab:rh_app_hac_robust}."
   \begin{itemize}
   \item With $u = \bigl(\mu_A, \mu_B, \mathrm E[(r^A_t)^2], \mathrm E[(r^B_t)^2]\bigr)$, the difference of the Sharpe ratios of the daily returns, $\mu_A/\sigma_A - \mu_B/\sigma_B$, is a smooth function $f(u)$; its standard error follows from the delta method and the long-run covariance matrix $\Psi$ of $\bigl(r^A_t, r^B_t, (r^A_t)^2, (r^B_t)^2\bigr)$.
   \item The test statistic is $d = |f(\hat u)| / \mathrm{se}(\hat u)$. Each of \rheLWBoot{} bootstrap samples joins blocks of \rheLWBlock{} consecutive days, drawn with replacement from the $T$ post-warmup days arranged on a circle, and gives $d^{*} = |f(\hat u^{*}) - f(\hat u)| / \mathrm{se}(\hat u^{*})$, with $\Psi$ estimated in that sample by the block-based estimator of \citet{LedoitWolf2008}. The $p$-value is $\bigl(\#\{d^{*} \ge d\} + 1\bigr)/(\rheLWBoot + 1)$.
   \item In the original sample, $\Psi$ is estimated with the Bartlett kernel at bandwidth equal to the block length, whose expectation is approximately that of the block-based estimator; \citet{LedoitWolf2008} use a prewhitened quadratic-spectral kernel at this step. The block length is fixed at \rheLWBlock{} days rather than calibrated; the next item reports the number of rejections at block lengths \rheLWBlockLo{} and \rheLWBlockHi{}. The random seed is fixed.
-  \item The test concerns the Sharpe ratios of daily returns over the $T$ post-warmup days, without the year-by-year annualization of Section~\ref{sec:rh_econ_measures}.
+  \item The test concerns the Sharpe ratios of the daily returns over the $T$ post-warmup days. The annualization of Section~\ref{sec:rh_econ_measures} multiplies both ratios by the same factor, so the $p$-value is that of a test of equal ratios $\SR$.
+% 2026-10-28 (D19, standard pooled Sharpe): was "\item The test concerns the Sharpe ratios of daily returns over the
+% $T$ post-warmup days, without the year-by-year annualization of Section~\ref{sec:rh_econ_measures}."
   \end{itemize}
 % 2026-10-22 (user, D6): parked -- the Ledoit--Wolf test as the test of the text's Sharpe statements; now the bootstrap of $\Delta\SR$, with the Ledoit--Wolf $p$ beside it. Was: "... the fixed-$b$ test above; and the $p$-value of the \citet{LedoitWolf2008} test. Statements in the text about mean returns use the fixed-$b$ test, and statements about Sharpe ratios use the \citet{LedoitWolf2008} test." and "\item Of the \rhrRobNPairs{} tests of equal Sharpe ratios, \rhrRobLWSig{} reject at the 5\% level with block length \rheLWBlock{}, \rhrRobLWSigLo{} with block length \rheLWBlockLo{} and \rhrRobLWSigHi{} with block length \rheLWBlockHi{}."
 % 2026-10-26 (integration, JFEc; D3): parked -- "or Appendix~\ref{sec:rh_econ_last30}": the statements about the
 % master-table closing-interval models are parked (Panel C of the table, pooled minus closing-interval model, still
 % compares with that dropped set; NUMBERS asked to drop or replace it). Was: "... whose statistical significance
 % Section~\ref{sec:rh_econ} or Appendix~\ref{sec:rh_econ_last30} states."
-\item \textbf{Robustness to the long-run variance estimator.} Table~\ref{tab:rh_app_hac_robust} lists the comparisons of strategy returns whose statistical significance Section~\ref{sec:rh_econ} states. For each comparison it reports the $t$-statistic of the mean return differential with the Newey--West variance at lag truncation $q_{\mathrm{NW}} = \lfloor 4 (T/100)^{2/9} \rfloor = \rhrRobLagNW$ \citep{NeweyWest1994} and at $q_{\mathrm{NW}} = \lfloor 1.5\, T^{1/3} \rfloor = \rhrRobLagOld$, the lag truncation of an earlier version of this paper, both with standard normal $p$-values; the fixed-$b$ test above; the $p$-value of the bootstrap test of equal Sharpe ratios; and that of the \citet{LedoitWolf2008} test. Statements in the text about mean returns use the fixed-$b$ test, and statements about Sharpe ratios use the bootstrap test.
+\item \textbf{Robustness to the long-run variance estimator.} Table~\ref{tab:rh_app_hac_robust} lists the comparisons of strategy returns whose statistical significance Section~\ref{sec:rh_econ} states. For each comparison it reports the $t$-statistic of the mean return differential with the Newey--West variance at lag truncation $q_{\mathrm{NW}} = \lfloor 4 (T/100)^{2/9} \rfloor = \rhrRobLagNW$ \citep{NeweyWest1994} and at $q_{\mathrm{NW}} = \lfloor 1.5\, T^{1/3} \rfloor = \rhrRobLagOld$, the lag truncation of an earlier version of this paper, both with standard normal $p$-values; the fixed-$b$ test above; and the $p$-value of the \citet{LedoitWolf2008} test. Statements in the text about mean returns use the fixed-$b$ test, and statements about Sharpe ratios use the \citet{LedoitWolf2008} test.
+% 2026-10-28 (D19, standard pooled Sharpe): the bootstrap column left the table. Was: "...; the fixed-$b$ test above;
+% the $p$-value of the bootstrap test of equal Sharpe ratios; and that of the \citet{LedoitWolf2008} test. Statements
+% in the text about mean returns use the fixed-$b$ test, and statements about Sharpe ratios use the bootstrap test."
   \begin{itemize}
   \item Of the \rhrRobN{} tests of a mean, \rhrRobFbSig{} are statistically significant at the 5\% level under the fixed-$b$ test, \rhrRobNWFiveSig{} at lag truncation \rhrRobLagNW{} and \rhrRobNWTwelveSig{} at lag truncation \rhrRobLagOld{} with standard normal critical values.
-  \item Of the \rhrRobNPairs{} tests of equal Sharpe ratios, \rhrRobBootSig{} reject at the 5\% level under the bootstrap test; under the \citet{LedoitWolf2008} test of the pooled ratios, \rhrRobLWSig{} reject with block length \rheLWBlock{}, \rhrRobLWSigLo{} with block length \rheLWBlockLo{} and \rhrRobLWSigHi{} with block length \rheLWBlockHi{}.
+  \item Of the \rhrRobNPairs{} tests of equal Sharpe ratios, \rhrRobLWSig{} reject at the 5\% level under the \citet{LedoitWolf2008} test with block length \rheLWBlock{}, \rhrRobLWSigLo{} with block length \rheLWBlockLo{} and \rhrRobLWSigHi{} with block length \rheLWBlockHi{}; a paired circular block bootstrap of $\Delta\SR$, not studentized, rejects \rhrRobBootSig.
+% 2026-10-28 (D19, standard pooled Sharpe): was "\item Of the \rhrRobNPairs{} tests of equal Sharpe ratios,
+% \rhrRobBootSig{} reject at the 5\% level under the bootstrap test; under the \citet{LedoitWolf2008} test of the
+% pooled ratios, \rhrRobLWSig{} reject with block length \rheLWBlock{}, \rhrRobLWSigLo{} with block length
+% \rheLWBlockLo{} and \rhrRobLWSigHi{} with block length \rheLWBlockHi{}." (\rhrRobBootSig now counts the bootstrap of
+% the pooled difference, a check outside the table.)
   \end{itemize}
 \input{generated/rehaul_app_hac_robust}
 % 2026-10-26 (integration, JFEc): the item replaced by Part A of drafts/2026-10-25_mcs.tex (writeup/make_rehaul_mcs.py,
@@ -204,13 +225,19 @@
     $H_k\colon \E[d_{k,t}] = 0$, replaces $t_k$ and $Z^{*}_k$ by their absolute values. Beside each adjusted $p$-value
     we report the bootstrap $p$-value of the comparison alone, $\Pr^{*}(Z^{*}_k \ge t_k)$.
   \item \emph{Sharpe ratios.} For a difference of the Sharpe ratios of Section~\ref{sec:rh_econ_measures},
-    $\Delta\SR_k$ takes the place of $\bar d_k$ and $\Delta\SR^{*}_k$, computed in each bootstrap sample as in the
-    test of equal Sharpe ratios above, the place of $\bar d^{*}_k$. For a single comparison the two-sided bootstrap
-    $p$-value is then the $p$-value of that test.
+    $\Delta\SR_k$ takes the place of $\bar d_k$ and $\Delta\SR^{*}_k$, computed in each sample of the paired circular
+    block bootstrap above with $q$ fixed at its value in the original sample, the place of $\bar d^{*}_k$. For a single
+    comparison the two-sided bootstrap $p$-value is then that of the paired bootstrap of $\Delta\SR$, not the
+    \citet{LedoitWolf2008} $p$-value.
   \item \emph{Bootstrap.} The three procedures resample trading days with the circular moving-block bootstrap: blocks
     of \rhmcsBlock{} consecutive days, \rhmcsB{} samples, the same samples for every forecast of a comparison and at
-    every elimination step. The forecast losses use seed \rhmcsSeed; the strategy returns use the samples of the test
-    of equal Sharpe ratios above (seed \rhmcsSeedEcon). The block length is fixed rather than calibrated; we also
+    every elimination step. The forecast losses use seed \rhmcsSeed; the strategy returns use the samples of the
+    paired bootstrap above (seed \rhmcsSeedEcon).
+% 2026-10-28 (D19, standard pooled Sharpe): the MCS families resample the pooled ratio on the paired bootstrap's
+% samples (make_rehaul_mcs.py). Was: "$\Delta\SR^{*}_k$, computed in each bootstrap sample as in the test of equal
+% Sharpe ratios above, the place of $\bar d^{*}_k$. For a single comparison the two-sided bootstrap $p$-value is then
+% the $p$-value of that test." and "the strategy returns use the samples of the test of equal Sharpe ratios above
+% (seed \rhmcsSeedEcon)." The block length is fixed rather than calibrated; we also
     report the results at block lengths \rhmcsBlockLo{} and \rhmcsBlockHi.
   \item \emph{Losses and forecasts.} The losses are daily: for the forecasts of every regular-hours bar, the average
     loss of the day's \rhorNBars{} bars, as in the Diebold--Mariano tests of Table~\ref{tab:rh_oos}, so the bootstrap
@@ -223,7 +250,8 @@
 % 2026-10-21 (user, decision #2): parked -- "Diebold--Mariano or HAC $t$-statistics". Was: "\item \textbf{Reporting convention.} All main tables report point estimates accompanied by pairwise Diebold--Mariano or HAC $t$-statistics, without bootstrap confidence intervals."
 % 2026-10-22 (user, D6): parked -- "or \citet{LedoitWolf2008} bootstrap $p$-values for Sharpe ratio differences"; now the bootstrap of $\Delta\SR$ (note D6).
 % 2026-10-26 (integration, JFEc; drafts/2026-10-25_mcs.tex, Part D8): the multiple-comparison tables named.
-\item \textbf{Reporting convention.} All main tables report point estimates accompanied by pairwise Diebold--Mariano statistics, $t$-statistics of mean returns with fixed-$b$ critical values, or block-bootstrap $p$-values for Sharpe ratio differences, without bootstrap confidence intervals. Tables~\ref{tab:rh_mcs} and~\ref{tab:rh_mcs_spa} report the multiple-comparison procedures.
+\item \textbf{Reporting convention.} All main tables report point estimates accompanied by pairwise Diebold--Mariano statistics, $t$-statistics of mean returns with fixed-$b$ critical values, or \citet{LedoitWolf2008} $p$-values for Sharpe ratio differences, without bootstrap confidence intervals. Tables~\ref{tab:rh_mcs} and~\ref{tab:rh_mcs_spa} report the multiple-comparison procedures.
+% 2026-10-28 (D19, standard pooled Sharpe): was "or block-bootstrap $p$-values for Sharpe ratio differences".
 \end{itemize}
 
 % 2026-10-26 (integration, JFEc; D3): the final appendix section, on the models estimated on the closing half hour
