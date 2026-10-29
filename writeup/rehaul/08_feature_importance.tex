@@ -220,11 +220,15 @@
   \rhabXgbAddVwAllPct\% for the value-weighted market and XGBoost), and the groups' separate gains sum to
   \rhchOrdSumRatioTreeRng{} times the trees' joint gain, but removing any one of them from the full set changes the
   gradient-boosted trees' ordinary-day loss by at most \rhchOrdLoOtherTreeMaxAbs\%, none significantly. The
-  redundancy reading holds in all \rhchLinOrdNRedTest{} linear classes and in XGBoost; it fails for LightGBM, which
-  has a second significant removal, and cannot be applied to the random forest, whose other removals were not run
-  (the trees' removals other than the FOMC calendar's are on the design before the FOMC fix;
-  Appendix~\ref{app:rh_channels}). The groups are largely correlated proxies of the volatility information that the
-  futures' own moments measure most directly.
+  redundancy reading holds in all \rhchLinOrdNRedTest{} linear classes and in both gradient-boosted trees; it cannot
+  be applied to the random forest, whose other removals were not run (its removal of the realized moments is on the
+  design before the FOMC fix; Appendix~\ref{app:rh_channels}). The groups are largely correlated proxies of the
+  volatility information that the futures' own moments measure most directly.
+  % 2026-10-29 (coordinator; claim check after addendum J, Q-2026-10-29-22): was "... and in XGBoost; it fails for
+  % LightGBM, which has a second significant removal, and cannot be applied to the random forest, whose other removals
+  % were not run (the trees' removals other than the FOMC calendar's are on the design before the FOMC fix; ...)".
+  % On the patched design LightGBM's ordinary-day sentiment removal is no longer significant (p .035 -> .066):
+  % \rhchLgbmOrdRedTest no -> yes, \rhchTreeOrdNRedTest 1 -> 2; only the forest's lo_rm stays pre-patch.
   % 2026-10-28 (coordinator; claim check on the patched numbers): was "... sum to \rhchOrdSumRatioRng{} times the joint
   % gain, but removing any one of them from the full set costs little. The redundancy reading holds in
   % \rhchLinOrdNRedTest{} of the three linear classes and \rhchTreeOrdNRedTest{} of the three trees: the groups are
