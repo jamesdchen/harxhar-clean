@@ -13,5 +13,7 @@ tree add_fomc (patched),results/ablations_2014start_w3000/forecasts/trees_wide_f
 forest lo_fomc,,,,"NOT RUN (stopped, ablation addendum E (i))","items 1 (b), 3 (ii)"
 "ablation scores, pre-patch",results/ablations_2014start_w3000/scores/metrics.csv,worktree,pre-patch,ok,gate (arm QLIKE)
 "ablation scores, patched",results/ablations_2014start_w3000/scores_fomcfix/metrics.csv,worktree,patched,ok,gate (arm QLIKE)
-feature-count ladder,results/ladder_2026-10-26/fomcfix/forecasts_wide.parquet,worktree,patched,ok,item 3 (iii)
-ladder scores,results/ladder_2026-10-26/fomcfix/scores.csv,worktree,patched,ok,gate (ladder QLIKE)
+"feature-count ladder, monthly",results/ladder_2026-10-26/fomcfix/forecasts_wide.parquet,worktree,patched,ok,"item 3 (iii), monthly record (item3iii_ladder_daytype.csv)"
+"ladder scores, monthly",results/ladder_2026-10-26/fomcfix/scores.csv,worktree,patched,ok,gate (ladder QLIKE)
+"feature-count ladder, every bar (addendum K)",results/ablations_2014start_w3000/scores_fomcfix/ladall_scores.csv,worktree,patched,ok,"item 3 (iii), Panel B (since 2026-10-29)"
+every-bar ladder checks,results/ablations_2014start_w3000/scores_fomcfix/ladall_checks.json,worktree,patched,ok,gate (the scorer's pass flag)

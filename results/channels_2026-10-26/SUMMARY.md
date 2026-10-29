@@ -22,8 +22,10 @@ Scored set: Table 1's 33,527 bars on 2,579 days (13 a day); EVENT = 81 scheduled
 | forest lo_fomc | -  | - | NOT RUN (stopped, ablation addendum E (i)) | items 1 (b), 3 (ii) |
 | ablation scores, pre-patch | worktree `results/ablations_2014start_w3000/scores/metrics.csv` | pre-patch | ok | gate (arm QLIKE) |
 | ablation scores, patched | worktree `results/ablations_2014start_w3000/scores_fomcfix/metrics.csv` | patched | ok | gate (arm QLIKE) |
-| feature-count ladder | worktree `results/ladder_2026-10-26/fomcfix/forecasts_wide.parquet` | patched | ok | item 3 (iii) |
-| ladder scores | worktree `results/ladder_2026-10-26/fomcfix/scores.csv` | patched | ok | gate (ladder QLIKE) |
+| feature-count ladder, monthly | worktree `results/ladder_2026-10-26/fomcfix/forecasts_wide.parquet` | patched | ok | item 3 (iii), monthly record (item3iii_ladder_daytype.csv) |
+| ladder scores, monthly | worktree `results/ladder_2026-10-26/fomcfix/scores.csv` | patched | ok | gate (ladder QLIKE) |
+| feature-count ladder, every bar (addendum K) | worktree `results/ablations_2014start_w3000/scores_fomcfix/ladall_scores.csv` | patched | ok | item 3 (iii), Panel B (since 2026-10-29) |
+| every-bar ladder checks | worktree `results/ablations_2014start_w3000/scores_fomcfix/ladall_checks.json` | patched | ok | gate (the scorer's pass flag) |
 
 Arms pending: none.  Arms not run (by the ablation RULE): rf|lo_ew, rf|lo_fomc, rf|lo_iv, rf|lo_liq, rf|lo_sent, rf|lo_vd, rf|lo_vw.
 
@@ -34,7 +36,8 @@ Arms pending: none.  Arms not run (by the ablation RULE): rf|lo_ew, rf|lo_fomc, 
 - every arm's every-bar QLIKE = the ablation scorer's (89 arms)
 - linear_wide_fix: 24 FOMC-free arms bit-identical to the pre-patch walks, 24 FOMC arms changed
 - the trees' HAR fits equal across the patched and pre-patch runs; B equal across every input; RV = rv_actual
-- ladder (patched, worktree): every rung's every-bar QLIKE = its scores.csv
+- monthly ladder (patched, worktree): every rung's every-bar QLIKE = its scores.csv
+- every-bar ladder (worktree, ladall_checks.json pass): bars by day type = these day types; k = 0 / 46 QLIKE = Table 1's walks on every span (30 checks, 1e-12); Panel B's Full = the joint row of tab:rh_channels_abl as printed on both day types (largest difference 7.0e-06 pp)
 
 ## Item 1: what the other predictors add beyond FOMC
 
@@ -142,7 +145,31 @@ Asked by the coordinator after the first scoring (not in RULE.txt; macros \rhchX
 
 Every (class, day type, group) cell with % and DM, MSE alongside: item3ii_ablation_daytype.csv.
 
-## Item 3 (iii): feature-count ladder by day type (patched design, primary ranking)
+## Item 3 (iii): feature-count ladder by day type, refitted at every bar (Panel B; patched, primary ranking)
+
+Since 2026-10-29 (Q-2026-10-29-30) Panel B of tab:rh_channels_sparse: the ladder refitted at every bar (ablation RULE ADDENDUM K; ladall_scores.csv; item3iii_ladder_daytype_everybar.csv).  k = 0 and k = 46 are Table 1's walks, so 'full vs k=0' = the joint row of tab:rh_channels_abl.  No random forest.  DM p of the k = 10 rung against the full set as the scorer gives it (its own Newey-West lag: hac_lag in the csv, all 8, event 3, ord 8).
+
+| class | day type | full vs k=0 % | R1 | R3 | R5 | R10 | R20 | p(10 vs full) |
+|---|---|---|---|---|---|---|---|---|
+| Ridge | event | -22.41 | 67 | 98 | 98 | 103 | 100 | 0.507 |
+| Ridge | ord | -3.24 | -6 | -5 | 73 | 129 | 116 | 0.033 |
+| Ridge | all | -6.04 | 34 | 51 | 87 | 115 | 107 | 0.030 |
+| Lasso | event | -47.19 | 63 | 67 | 92 | 95 | 96 | <0.001 |
+| Lasso | ord | -2.44 | -9 | -28 | 59 | 140 | 124 | 0.101 |
+| Lasso | all | -8.97 | 46 | 45 | 84 | 105 | 102 | 0.361 |
+| Elastic net | event | -22.61 | 91 | 100 | 98 | 102 | 98 | 0.499 |
+| Elastic net | ord | -3.97 | -3 | -6 | 60 | 105 | 110 | 0.625 |
+| Elastic net | all | -6.69 | 43 | 46 | 78 | 104 | 104 | 0.522 |
+| LightGBM | event | -62.28 | -1 | 4 | 3 | 100 | 100 | 0.460 |
+| LightGBM | ord | -6.04 | 14 | 91 | 94 | 90 | 94 | 0.004 |
+| LightGBM | all | -14.11 | 4 | 36 | 36 | 97 | 98 | 0.008 |
+| XGBoost | event | -63.92 | -0 | 8 | 2 | 99 | 99 | 0.009 |
+| XGBoost | ord | -6.11 | 19 | 67 | 102 | 91 | 94 | 0.020 |
+| XGBoost | all | -14.60 | 7 | 29 | 38 | 96 | 97 | 0.005 |
+
+### Monthly record: the pre-specified ladder by day type (patched design, primary ranking)
+
+Panel B before 2026-10-29 (item3iii_ladder_daytype.csv); no table or macro reads it now.  Monthly refits at 126 origins, each against its own k = 0 rung.
 
 | class | day type | full vs k=0 % | R1 | R3 | R5 | R10 | R20 |
 |---|---|---|---|---|---|---|---|

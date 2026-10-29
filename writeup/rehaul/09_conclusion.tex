@@ -43,11 +43,16 @@
     % 2026-10-26 (coordinator; author: no 16:00-bar results in the main text): dropped "; it is weakest at the closing half hour (significant in \rhcaNLowerSigCloseSpan{} of
     % \rhorAfPairs{} classes)".
   \end{itemize}
+% 2026-10-29 (Q-2026-10-29-30, inferred T2; wording Q-2026-10-29-31): the every-bar ladder (addendum K); the heading
+% stays (it rests on the group ablations). Was: "carries most of the trees' gain and the futures' realized moments
+% come second; the \ladderTopK{} highest-ranked series retain \ladderTreeRetainRng{}\% of it, and the linear models do
+% best with \ladderLinKstarRng{} series. The signal sits in a few series rather than spreading thinly over many."
 \item \textbf{The gain is concentrated} (Section~\ref{sec:rh_fi}). The FOMC calendar
 % 2026-10-28 (v2 of Sections 6-7, author approved preliminarily): pointer for the v2 layout. Was: (Sections~\ref{sec:rh_results_ablation} and~\ref{sec:rh_fi}), now one section
-  carries most of the trees' gain and the futures' realized moments come second; the \ladderTopK{}
-  highest-ranked series retain \ladderTreeRetainRng{}\% of it, and the linear models do best with
-  \ladderLinKstarRng{} series. The signal sits in a few series rather than spreading thinly over many.
+  carries most of the trees' gain and the futures' realized moments come second. Along the feature-count ladder the
+  \ladderEBTopK{} highest-ranked series retain \ladderEBTreeRetainRng{}\% of the boosted trees' gain and
+  \rhldEBLinRTenMin{}--\rhldEBLinRTenMax{}\% of the linear models'. The gain sits in about \ladderEBTopK{} of the
+  \rhldEBNSeries{} series rather than spreading thinly over many.
 % 2026-10-26 (audit correctness-4, front-11): the option-day live share of StockTwits attention alone (100%) parked;
 % the evaluation bars are the reach that matters, and the training-window share is \rhfilStwWinPct.
 \item \textbf{Beyond the two groups, a small gain in the boosted trees.}

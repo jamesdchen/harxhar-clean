@@ -116,5 +116,19 @@
  "ladder_gate_notes": {
   "lgbm": "ladder's own pass flag false: GP on secondary rungs ['S3: max |diff| 1.1e-13 on 154 rows']"
  },
+ "ladder_everybar_source": "worktree",
+ "ladder_everybar_full_vs_joint_pp": {
+  "ridge|event": -5.795918625040031e-07,
+  "ridge|ord": -3.221868882796741e-07,
+  "lasso|event": -8.074144020042695e-07,
+  "lasso|ord": -1.1443184844139864e-06,
+  "enet|event": -7.0324726486603595e-06,
+  "enet|ord": -6.257572937595768e-06,
+  "lgbm|event": -1.4210854715202004e-14,
+  "lgbm|ord": -2.220446049250313e-14,
+  "xgb|event": -7.105427357601002e-15,
+  "xgb|ord": -3.2862601528904634e-14
+ },
+ "ladder_everybar_qlike_checked": 30,
  "pass": true
 }

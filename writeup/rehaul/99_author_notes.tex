@@ -32,9 +32,12 @@
     Sharpe-ratio gain over it is significant, D6 bootstrap); the abstract's ``but not, significantly, HAR forecasts''
     holds only if it is zero. The ablations at 16:00: \texttt{rhabNClassesBeatAddRmClose} (classes whose full set
     beats its HAR benchmark plus the realized moments at the closing half hour, DM $p < 0.05$). The feature-count
-    ladder on the patched design: \texttt{ladderTopK} (the rung quoted, ten series), \texttt{ladderTreeRetainRng} (the
-    share of the trees' full-set gain it retains, as text ``a--b''), \texttt{ladderLinKstarRng} (the linear models'
-    best rung, as text ``a--b''). In Section~\ref{sec:rh_data}: \texttt{holiday} (the NYSE-holiday disclosure, D15;
+    ladder on the patched design, refitted at every bar (addendum~K; Q-2026-10-29-30): \texttt{ladderEBTopK} (the
+    rung quoted, ten series), \texttt{ladderEBTreeRetainRng} (the share of the boosted trees' full-set gain it
+    retains, as text ``a--b''), \texttt{rhldEB...} (the every-bar readings); the monthly \texttt{ladder...} macros stay
+    for the forest and the window grid.
+    % 2026-10-29 (Q-2026-10-29-30, inferred T2). Was: "... \texttt{ladderTopK} (the rung quoted, ten series),
+    % \texttt{ladderTreeRetainRng} (...), \texttt{ladderLinKstarRng} (the linear models' best rung, as text ``a--b'')." In Section~\ref{sec:rh_data}: \texttt{holiday} (the NYSE-holiday disclosure, D15;
     relayed by DATA).
   \fi
   \item \textbf{FOMC-patched design (D13).} The paper's numbers are to come from the patched design
@@ -67,8 +70,15 @@
   \item \textbf{Variable importance on the patched design} (from Section~\ref{sec:rh_fi}; 28 October): the trees'
     SHAP values (results/tree\_shap\_w3000\_2014start\_fomcfix\_2026-10-26; gate: each tree bit-equal to its patched
     walk at all \rhfipNOrigins{} origins), the live-window shares built on them (Figure~\ref{fig:rh_fi_live}), the
-    feature-count ladder (Figure~\ref{fig:rh_ladder}; results/ladder\_2026-10-26/fomcfix) and the window $\times$
-    feature-count grid (fomcfix/grid) are now on the patched design (D13); the pre-patch versions stay reachable
+    feature-count ladder and the window $\times$ feature-count grid (fomcfix/grid) are now on the patched design
+    (D13). Since 29 October the paper's ladder (Figure~\ref{fig:rh_ladder}, Panel~B of
+    Table~\ref{tab:rh_channels_sparse}, the introduction and the conclusion) is the every-bar refit of addendum~K
+    (results/ablations\_2014start\_w3000/scores\_fomcfix/ladall\_*; Q-2026-10-29-30); the monthly ladder
+    (results/ladder\_2026-10-26/fomcfix) stays for the forest, the window grid and the dashed lines of the figure.
+    % 2026-10-29 (Q-2026-10-29-30, inferred T2). Was: "... the feature-count ladder (Figure~\ref{fig:rh_ladder};
+    % results/ladder\_2026-10-26/fomcfix) and the window $\times$ feature-count grid (fomcfix/grid) are now on the
+    % patched design (D13); ..."
+    The pre-patch versions stay reachable
     (\texttt{--prepatch}, \texttt{\_prepatch} outputs). Still pre-patch: the window test of
     Appendix~\ref{app:rh_fi_window} (the linear walks across windows, now disclosed there, and the trees across
     windows, Table~\ref{tab:rh_fip_lc}). Claims changed by the SHAP rerun: as a share of the exogenous total the

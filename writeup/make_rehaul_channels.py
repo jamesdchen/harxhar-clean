@@ -26,8 +26,14 @@ INPUTS   (each found in this worktree first, else as a COMMITTED file of its run
                         design-invariant where the arm holds no FOMC column); trees_wide_fix.parquet (the trees' patched
                         add_fomc, addendum D (d)); trees_wide_rflofomc.parquet (the forest's lo_fomc, addendum E;
                         design-invariant).  A missing file prints \\rhPending{} in its cells and macros.
-  ladder                results/ladder_2026-10-26/fomcfix/ (patched, primary ranking), else results/ladder_2026-10-26/
-                        (pre-patch, labelled)
+  ladder, every bar     results/ablations_2014start_w3000/scores_fomcfix/ladall_scores.csv (+ ladall_checks.json, its
+                        "pass" flag): the feature-count ladder refitted at every bar (ablation RULE ADDENDUM K; patched,
+                        primary ranking; LightGBM, XGBoost, ridge, lasso, elastic net; k = 0 / 46 = Table 1's walks).
+                        Item 3 (iii), its macros and Panel B of tab:rh_channels_sparse since 2026-10-29
+                        (Q-2026-10-29-30): Full = 100 (L_46 / L_0 - 1), R_k as the csv gives it.  No random forest.
+  ladder, monthly       results/ladder_2026-10-26/fomcfix/ (patched, primary ranking), else results/ladder_2026-10-26/
+                        (pre-patch, labelled): the pre-specified ladder, scored here by day type and kept as a record
+                        (item3iii_ladder_daytype.csv, SUMMARY.md); no table or macro reads it since 2026-10-29.
   An arm holding a FOMC column is used only on the patched design or labelled pre-patch: the trees' lo_<g>, g != fomc,
   are pre-patch and compared with the pre-patch full set (dagger in the tables).
 GATES    (asserted, before any day split; written to results/channels_2026-10-26/gates.json first)
@@ -35,8 +41,13 @@ GATES    (asserted, before any day split; written to results/channels_2026-10-26
   relative) and its full-vs-HAR and vs-OLS DM of all six classes (1e-9); RV = rv_actual; B equal across inputs; every
   arm finite and positive on the scored set; each arm's every-bar QLIKE = the ablation scorer's (scores/ or
   scores_fomcfix/ metrics.csv, 1e-12); the linear FOMC-free arms of linear_wide_fix = their pre-patch walks bit for bit;
-  the trees' HAR fits equal across the patched and pre-patch runs; the ladder's every-bar QLIKE = its scores.csv.
+  the trees' HAR fits equal across the patched and pre-patch runs; the monthly ladder's every-bar QLIKE = its
+  scores.csv; the every-bar ladder's bars by day type = the day types here, its k = 0 and k = 46 QLIKE = Table 1's
+  walks (the class's own HAR-set fit, the full set) on every bar and both day types (1e-12 relative), and its Full on
+  each day type = the joint row of tab:rh_channels_abl as printed (one decimal; the linear joint row's reference is
+  the OLS on the HAR set, the ladder's k = 0 the class's own HAR-set fit).
 WRITES   results/channels_2026-10-26/*.csv, gates.json, provenance.csv, SUMMARY.md
+         (item3iii_ladder_daytype_everybar.csv: Panel B's source; item3iii_ladder_daytype.csv: the monthly record)
          writeup/generated/rehaul_channels_numbers.tex           \\rhch... macros
          writeup/generated/rehaul_channels_corrections_table.tex  tab:rh_channels_corr   (item 1)
          writeup/generated/rehaul_channels_ablation_table.tex     tab:rh_channels_abl    (item 3 ii)
@@ -128,6 +139,8 @@ SNAME = {"all": "every bar", "event": "FOMC statement days", "ord": "ordinary da
 KS = (1, 3, 5, 10, 20)
 KTAG = {1: "One", 3: "Three", 5: "Five", 10: "Ten", 20: "Twenty"}
 LAD_KEY = {"rf": "rf_skx"}
+LAD_EB = ("ridge", "lasso", "enet", "lgbm", "xgb")  # the every-bar ladder's models (ablation ADDENDUM K: no forest)
+EB_SPAN = {"all": "all", "event": "ev", "ord": "ord"}  # ladall_scores.csv's span names
 T1_ROWS = [("ols", "baseline")] + [(c, s) for c in CLASSES for s in ("all_features", "baseline")]
 SET_ARM = {"all_features": "full", "baseline": "har"}
 OKABE = ["#0072B2", "#D55E00", "#009E73", "#CC79A7", "#E69F00", "#56B4E9", "#000000"]  # make_rehaul_fi.OKABE
@@ -464,6 +477,10 @@ def main() -> None:
     lad_sc = find(lad_dir + "scores.csv", BRANCH_LAD)
     lad_gates = find(lad_dir + "gates.json", BRANCH_LAD)
     assert lad is not None and lad_sc is not None and lad_gates is not None
+    # 2026-10-29 (Q-2026-10-29-30): the ladder refitted at every bar (ablation ADDENDUM K), item 3 (iii) and Panel B
+    lad_eb = find(abl + "scores_fomcfix/ladall_scores.csv", BRANCH_ABL)
+    lad_eb_chk = find(abl + "scores_fomcfix/ladall_checks.json", BRANCH_ABL)
+    assert lad_eb is not None and lad_eb_chk is not None, "the every-bar ladder (ladall_scores.csv) is missing"
 
     def note(name: str, s: Src | None, design: str, use: str, missing: str = "PENDING") -> None:
         prov.append(
@@ -500,8 +517,15 @@ def main() -> None:
     )
     note("ablation scores, pre-patch", a_sc_pre, "pre-patch", "gate (arm QLIKE)")
     note("ablation scores, patched", a_sc_fix, "patched", "gate (arm QLIKE)")
-    note("feature-count ladder", lad, "patched" if lad_patched else "pre-patch", "item 3 (iii)")
-    note("ladder scores", lad_sc, "patched" if lad_patched else "pre-patch", "gate (ladder QLIKE)")
+    note(
+        "feature-count ladder, monthly",
+        lad,
+        "patched" if lad_patched else "pre-patch",
+        "item 3 (iii), monthly record (item3iii_ladder_daytype.csv)",
+    )
+    note("ladder scores, monthly", lad_sc, "patched" if lad_patched else "pre-patch", "gate (ladder QLIKE)")
+    note("feature-count ladder, every bar (addendum K)", lad_eb, "patched", "item 3 (iii), Panel B (since 2026-10-29)")
+    note("every-bar ladder checks", lad_eb_chk, "patched", "gate (the scorer's pass flag)")
 
     # ---------------------------------------------------------------- templates
     raw: dict = {}
@@ -746,6 +770,40 @@ def main() -> None:
             chk(len(r) == 1 and bool(np.isclose(q, float(r["qlike"].iloc[0]), rtol=1e-12, atol=0)), f"ladder {key}")
     del lw
 
+    # ---------------------------------------------------------------- ladder, every bar (2026-10-29, Q-2026-10-29-30)
+    # its k = 0 and k = 46 rungs are Table 1's walks: their QLIKE here on every span, and Panel B's Full = the joint
+    # row of tab:rh_channels_abl on both day types as printed (the linear joint row's reference is the OLS on the HAR
+    # set, the ladder's k = 0 the class's own HAR-set fit; they differ in the eighth digit)
+    les = lad_eb.read_csv()
+    chk(
+        json.loads(lad_eb_chk.read_text()).get("pass") is True, "ladall_checks.json: the every-bar ladder's checks fail"
+    )
+    les = les[les["ranking"] == "primary"].assign(k=lambda d: d["k"].astype(float).astype(int))
+    chk(set(les["model"]) == set(LAD_EB), f"every-bar ladder models {sorted(set(les['model']))}")
+    chk(set(les["fitted_as"]) == {"everybar"}, f"every-bar ladder fitted_as {sorted(set(les['fitted_as']))}")
+    gates["ladder_everybar_source"] = lad_eb.where
+    gates["ladder_everybar_full_vs_joint_pp"] = {}
+    n_eb = 0
+    for c in LAD_EB:
+        for sp in SPANS:
+            f = les[(les["model"] == c) & (les["span"] == EB_SPAN[sp])]
+            chk(sorted(f["k"]) == [0, *KS, 46], f"every-bar ladder {c} {sp}: rungs {sorted(f['k'])}")
+            f = f.set_index("k")
+            chk(set(f["n_bars"].astype(int)) == {int(S.mask[sp].sum())}, f"every-bar ladder {c} {sp}: bars")
+            for kk, key in ((0, (c, "har")), (46, (c, "full"))):
+                q = S.mean(key, sp)
+                chk(
+                    bool(np.isclose(float(f.loc[kk, "qlike"]), q, rtol=1e-12, atol=0)),
+                    f"every-bar ladder {c} {sp} k={kk}: QLIKE {float(f.loc[kk, 'qlike'])} vs Table 1's walk {q}",
+                )
+                n_eb += 1
+            if sp != "all":
+                full = 100.0 * (float(f.loc[46, "qlike"]) / float(f.loc[0, "qlike"]) - 1.0)
+                joint = 100.0 * (S.mean((c, "full"), sp) / S.mean(har_of(c), sp) - 1.0)
+                gates["ladder_everybar_full_vs_joint_pp"][f"{c}|{sp}"] = full - joint
+                chk(fmt(full, 1) == fmt(joint, 1), f"Panel B Full {c} {sp}: {full} vs the joint row {joint}")
+    gates["ladder_everybar_qlike_checked"] = n_eb
+
     gates["pass"] = not gates["fail"]
     (RES / "gates.json").write_text(json.dumps(gates, indent=1, default=str), encoding="utf-8")
     pd.DataFrame(prov).to_csv(RES / "provenance.csv", index=False)
@@ -982,7 +1040,36 @@ def main() -> None:
                     rr.update(dm_vs_full=x["dm_qlike"], p_vs_full=x["p_qlike"])
                 rows5.append(rr)
     LD = pd.DataFrame(rows5)
-    LD.to_csv(RES / "item3iii_ladder_daytype.csv", index=False)
+    LD.to_csv(RES / "item3iii_ladder_daytype.csv", index=False)  # the monthly ladder: a record, read by no table
+    # 2026-10-29 (Q-2026-10-29-30): item 3 (iii) as the paper reports it, the ladder refitted at every bar (the scorer's
+    # ladall_scores.csv; QLIKE, R_k and its DM against the full set as the csv gives them; Full = 100 (L_46 / L_0 - 1))
+    rows5e = []
+    for c in LAD_EB:
+        for sp in SPANS:
+            f = les[(les["model"] == c) & (les["span"] == EB_SPAN[sp])].set_index("k")
+            l0, l46 = float(f.loc[0, "qlike"]), float(f.loc[46, "qlike"])
+            j = A4[(A4.cls == c) & (A4.span == sp) & (A4.kind == "joint")].iloc[0]
+            full = 100.0 * (l46 / l0 - 1.0)
+            assert fmt(full, 1) == fmt(j["pct_qlike"], 1), (c, sp, full, j["pct_qlike"])  # = the gate above
+            for kk in (0, *KS, 46):
+                rows5e.append(
+                    dict(
+                        cls=c,
+                        span=sp,
+                        k=kk,
+                        rung=str(f.loc[kk, "rung"]),
+                        qlike=float(f.loc[kk, "qlike"]),
+                        design="patched, every bar",
+                        R_pct=float(f.loc[kk, "R"]),
+                        gain_full_vs_k0_pct=full,
+                        joint_pct_tab_abl=float(j["pct_qlike"]),
+                        dm_vs_full=float(f.loc[kk, "dm_vs_full"]),
+                        p_vs_full=float(f.loc[kk, "p_vs_full"]),
+                        hac_lag=f.loc[kk, "hac_lag"],
+                    )
+                )
+    LDE = pd.DataFrame(rows5e)
+    LDE.to_csv(RES / "item3iii_ladder_daytype_everybar.csv", index=False)
 
     # ---------------------------------------------------------------- ADDITIONAL, NOT PRE-REGISTERED (coordinator,
     # 2026-10-26 after the first scoring): the full set against HAR + the futures' realized moments (add_rm), and HAR +
@@ -1010,14 +1097,14 @@ def main() -> None:
     XD = pd.DataFrame(rows6)
     XD.to_csv(RES / "itemX_additional_rm_not_preregistered.csv", index=False)
 
-    write_tex(S, C1, agree, SH, B2, P3, A4, RD, LD, gates, PROV, AVAIL, n_ev_bars, XD)
+    write_tex(S, C1, agree, SH, B2, P3, A4, RD, LDE, gates, PROV, AVAIL, n_ev_bars, XD)
     figure(D2, B2, bars, gates)
-    summary(C1, agree, SH, B2, P3, A4, RD, RDl, RDp, LD, gates, prov, n_ev_bars, XD, AVAIL)
+    summary(C1, agree, SH, B2, P3, A4, RD, RDl, RDp, LD, LDE, gates, prov, n_ev_bars, XD, AVAIL)
     say(f"wrote {RES}/ and the generated files")
 
 
 # ------------------------------------------------------------------------------------------------ LaTeX
-def write_tex(S, C1, agree, SH, B2, P3, A4, RD, LD, gates, PROV, AVAIL, n_ev_bars, XD) -> None:  # noqa: ANN001
+def write_tex(S, C1, agree, SH, B2, P3, A4, RD, LDE, gates, PROV, AVAIL, n_ev_bars, XD) -> None:  # noqa: ANN001
     M: list[tuple[str, str, str]] = []
 
     def add(name: str, value: str, note: str) -> None:
@@ -1184,21 +1271,21 @@ def write_tex(S, C1, agree, SH, B2, P3, A4, RD, LD, gates, PROV, AVAIL, n_ev_bar
                 f"ADDITIONAL: {grp} {sp}: classes whose full set beats HAR+RM at 5%",
             )
 
-    # item 3 (iii)
-    for c in CLASSES:
+    # item 3 (iii): the ladder refitted at every bar since 2026-10-29 (Q-2026-10-29-30; no random forest)
+    for c in LAD_EB:
         for sp in SPANS:
-            f = LD[(LD.cls == c) & (LD.span == sp)].set_index("k")
+            f = LDE[(LDE.cls == c) & (LDE.span == sp)].set_index("k")
             add(
                 f"{CTAG[c]}{STAG[sp]}LadFullPct",
                 fmt(f.loc[46, "gain_full_vs_k0_pct"], 1),
-                f"{c} {sp}: ladder k=46 vs 0 %",
+                f"{c} {sp}: every-bar ladder k=46 vs 0 %",
             )
             for k in KS:
                 v = f.loc[k, "R_pct"]
                 add(
                     f"{CTAG[c]}{STAG[sp]}R{KTAG[k]}",
                     fmt(v, 0) if np.isfinite(v) else "--",
-                    f"{c} {sp}: ladder R_{k} (%)",
+                    f"{c} {sp}: every-bar ladder R_{k} (%)",
                 )
 
     names = [n for n, _, _ in M]
@@ -1218,7 +1305,7 @@ def write_tex(S, C1, agree, SH, B2, P3, A4, RD, LD, gates, PROV, AVAIL, n_ev_bar
     say(f"wrote rehaul_channels_numbers.tex: {len(M)} macros")
     table_corr(C1, agree)
     table_abl(A4, RD, n_ev_bars)
-    table_sparse(P3, LD, gates)
+    table_sparse(P3, LDE)
 
 
 CONLIQ = ("ew", "vw", "liq")  # the constituents' moments (EW, VW) and liquidity (which holds the order-flow imbalance)
@@ -1639,7 +1726,9 @@ summed over the groups against the joint gain and the counts of significant leav
     (GEN / "rehaul_channels_ablation_full_table.tex").write_text(with_def(full), encoding="utf-8", newline="\n")
 
 
-def table_sparse(P3: pd.DataFrame, LD: pd.DataFrame, gates: dict) -> None:
+def table_sparse(P3: pd.DataFrame, LDE: pd.DataFrame) -> None:
+    """tab:rh_channels_sparse.  Panel B since 2026-10-29 (Q-2026-10-29-30): the ladder refitted at every bar (LDE, from
+    ladall_scores.csv), five rows (no random forest: it is refitted only monthly)."""
     ra = []
     for b, nm in (("ridge", "Lasso vs ridge"), ("enet", "Lasso vs elastic net")):
         cells = []
@@ -1648,20 +1737,18 @@ def table_sparse(P3: pd.DataFrame, LD: pd.DataFrame, gates: dict) -> None:
             cells.append(f"{fmt(r['pct_qlike'], 1)} ({fmt(r['dm_qlike'], 2)})")
         ra.append(f"{nm} & " + " & ".join(cells) + " \\\\")
     rb = []
-    for c in CLASSES:
+    no_gain = False  # a "--" cell (R_k undefined: the full set does not beat k = 0 on the day type)
+    for c in LAD_EB:
         cells = []
         for sp in ("event", "ord"):
-            f = LD[(LD.cls == c) & (LD.span == sp)].set_index("k")
+            f = LDE[(LDE.cls == c) & (LDE.span == sp)].set_index("k")
             cells.append(fmt(f.loc[46, "gain_full_vs_k0_pct"], 1))
             cells += [fmt(f.loc[k, "R_pct"], 0) if np.isfinite(f.loc[k, "R_pct"]) else "--" for k in KS]
+            no_gain |= not all(np.isfinite(f.loc[k, "R_pct"]) for k in KS)
         rb.append(f"{CNAME[c]} & " + " & ".join(cells) + " \\\\")
         if c == "enet":
             rb.append("\\addlinespace[2pt]")
-    lab = (
-        "the FOMC-patched design"
-        if gates["ladder_design"] == "patched"
-        else "the unpatched design (the FOMC proximity series before the fix)"
-    )
+    dash = "; --: no gain to keep" if no_gain else ""  # the legend of "--" only where a cell prints it
     kh = " & ".join(f"$k{{=}}{k}$" for k in KS)
     body = rf"""\begin{{table}}[htbp]
 \centering
@@ -1700,16 +1787,20 @@ change in mean QLIKE of the row's forecast against its reference, and Panel A's 
 sign. Panel A (reference: the ridge's or the elastic net's full set): negative = the lasso is more accurate. Panel B,
 Full (the full set against the HAR benchmark set): negative = the full set is more accurate; $R_k$: 100 = the top $k$
 series keep all of the full set's gain over the HAR benchmark set, 0 = none of it, below 0 = worse than the HAR
-benchmark set, above 100 = better than the full set; --: no gain to keep. Panel A: the lasso's full-set forecast against
+benchmark set, above 100 = better than the full set{dash}. Panel A: the lasso's full-set forecast against
 the ridge's and the elastic net's, percentage change in QLIKE with the Diebold--Mariano statistic in parentheses (HLN
-correction, daily average loss, Newey--West lag \rhchHacLag). Panel B: each model refitted monthly on its $k$
+correction, daily average loss, Newey--West lag \rhchHacLag). Panel B: each model refitted at every bar on its $k$
 highest-ranked exogenous series (ranking from a pre-sample fit; the feature-count ladder of
-Section~\ref{{sec:rh_fi}}), {lab}. Full: the $k = 46$ rung (the full set) against the $k = 0$ rung (the HAR benchmark
-set), \% change in QLIKE on the day type; $R_k = (L_0 - L_k) / (L_0 - L_{{46}})$, the share of that gain the top $k$
-series keep.
+Appendix~\ref{{app:rh_fi_ladder}}), the FOMC-patched design; $k = 0$ and $k = \rhldEBNSeries$ are the forecasts of
+Table~\ref{{tab:rh_oos}}, so Full equals the joint row of Table~\ref{{tab:rh_channels_abl}}. The random forest, refitted
+only monthly, is in Appendix~\ref{{app:rh_fi_ladder}}. Full: the $k = 46$ rung (the full set) against the $k = 0$ rung
+(the HAR benchmark set), \% change in QLIKE on the day type; $R_k = (L_0 - L_k) / (L_0 - L_{{46}})$, the share of that
+gain the top $k$ series keep.
 \end{{minipage}}
 \end{{table}}
 """
+    # the note reads \rhldEBNSeries: the every-bar ladder's numbers file, guarded like the channels' own
+    body = "\\ifdefined\\rhldEBNSeries\\else\\input{generated/rehaul_ladder_numbers_everybar}\\fi\n" + body
     (GEN / "rehaul_channels_sparsity_table.tex").write_text(with_def(body), encoding="utf-8", newline="\n")
 
 
@@ -1823,7 +1914,7 @@ def figure(D2: pd.DataFrame, B2: pd.DataFrame, bars: list[str], gates: dict) -> 
 
 
 # ------------------------------------------------------------------------------------------------ SUMMARY.md
-def summary(C1, agree, SH, B2, P3, A4, RD, RDl, RDp, LD, gates, prov, n_ev_bars, XD, AVAIL) -> None:  # noqa: ANN001
+def summary(C1, agree, SH, B2, P3, A4, RD, RDl, RDp, LD, LDE, gates, prov, n_ev_bars, XD, AVAIL) -> None:  # noqa: ANN001
     L: list[str] = [
         "# Channels of the pooled gain: FOMC statement days and ordinary days (RULE.txt items 1-3)",
         "",
@@ -1860,7 +1951,12 @@ def summary(C1, agree, SH, B2, P3, A4, RD, RDl, RDp, LD, gates, prov, n_ev_bars,
         f"- linear_wide_fix: {gates.get('linear_fix_invariant_equal', '-')} FOMC-free arms bit-identical to the "
         f"pre-patch walks, {gates.get('linear_fix_fomc_changed', '-')} FOMC arms changed",
         "- the trees' HAR fits equal across the patched and pre-patch runs; B equal across every input; RV = rv_actual",
-        f"- ladder ({gates['ladder_design']}, {gates['ladder_source']}): every rung's every-bar QLIKE = its scores.csv",
+        f"- monthly ladder ({gates['ladder_design']}, {gates['ladder_source']}): every rung's every-bar QLIKE = its "
+        "scores.csv",
+        f"- every-bar ladder ({gates['ladder_everybar_source']}, ladall_checks.json pass): bars by day type = these day "
+        f"types; k = 0 / 46 QLIKE = Table 1's walks on every span ({gates['ladder_everybar_qlike_checked']} checks, "
+        "1e-12); Panel B's Full = the joint row of tab:rh_channels_abl as printed on both day types (largest "
+        f"difference {max(abs(v) for v in gates['ladder_everybar_full_vs_joint_pp'].values()):.1e} pp)",
         "",
         "## Item 1: what the other predictors add beyond FOMC",
         "",
@@ -2036,7 +2132,31 @@ def summary(C1, agree, SH, B2, P3, A4, RD, RDl, RDp, LD, gates, prov, n_ev_bars,
         "",
         "Every (class, day type, group) cell with % and DM, MSE alongside: item3ii_ablation_daytype.csv.",
         "",
-        f"## Item 3 (iii): feature-count ladder by day type ({gates['ladder_design']} design, primary ranking)",
+        "## Item 3 (iii): feature-count ladder by day type, refitted at every bar (Panel B; patched, primary ranking)",
+        "",
+        "Since 2026-10-29 (Q-2026-10-29-30) Panel B of tab:rh_channels_sparse: the ladder refitted at every bar "
+        "(ablation RULE ADDENDUM K; ladall_scores.csv; item3iii_ladder_daytype_everybar.csv).  k = 0 and k = 46 are "
+        "Table 1's walks, so 'full vs k=0' = the joint row of tab:rh_channels_abl.  No random forest.  DM p of the "
+        "k = 10 rung against the full set as the scorer gives it (its own Newey-West lag: hac_lag in the csv, "
+        f"{', '.join(f'{sp} {int(LDE[LDE.span == sp].hac_lag.iloc[0])}' for sp in SPANS)}).",
+        "",
+        "| class | day type | full vs k=0 % | " + " | ".join(f"R{k}" for k in KS) + " | p(10 vs full) |",
+        "|---|---|---|" + "---|" * 6,
+    ]
+    for c in LAD_EB:
+        for sp in ("event", "ord", "all"):
+            f = LDE[(LDE.cls == c) & (LDE.span == sp)].set_index("k")
+            L.append(
+                f"| {CNAME[c]} | {sp} | {f.loc[46, 'gain_full_vs_k0_pct']:+.2f} | "
+                + " | ".join("-" if not np.isfinite(f.loc[k, "R_pct"]) else f"{f.loc[k, 'R_pct']:.0f}" for k in KS)
+                + f" | {ptxt(f.loc[10, 'p_vs_full'])} |"
+            )
+    L += [
+        "",
+        f"### Monthly record: the pre-specified ladder by day type ({gates['ladder_design']} design, primary ranking)",
+        "",
+        "Panel B before 2026-10-29 (item3iii_ladder_daytype.csv); no table or macro reads it now.  Monthly refits at 126 "
+        "origins, each against its own k = 0 rung.",
         "",
         "| class | day type | full vs k=0 % | " + " | ".join(f"R{k}" for k in KS) + " |",
         "|---|---|---|" + "---|" * 5,
