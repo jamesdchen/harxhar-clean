@@ -18,6 +18,7 @@ Scored set: Table 1's 33,527 bars on 2,579 days (13 a day); EVENT = 81 scheduled
 | linear ablation arms (pre-patch) | worktree `results/ablations_2014start_w3000/forecasts/linear_wide.parquet` | pre-patch | ok | gate (invariance); fallback |
 | tree ablation arms | worktree `results/ablations_2014start_w3000/forecasts/trees_wide.parquet` | invariant (add_g, g!=fomc; lo_fomc) / pre-patch (lo_g, g!=fomc) | ok | 1 (b), 3 (ii) |
 | tree add_fomc (patched) | worktree `results/ablations_2014start_w3000/forecasts/trees_wide_fix.parquet` | patched | ok | items 1 (a), 3 (ii) |
+| boosted trees' lo_g, g!=fomc (patched, addendum J) | worktree `results/ablations_2014start_w3000/forecasts/trees_wide_lofix.parquet` | patched | ok | 1 (b), 3 (ii) |
 | forest lo_fomc | -  | - | NOT RUN (stopped, ablation addendum E (i)) | items 1 (b), 3 (ii) |
 | ablation scores, pre-patch | worktree `results/ablations_2014start_w3000/scores/metrics.csv` | pre-patch | ok | gate (arm QLIKE) |
 | ablation scores, patched | worktree `results/ablations_2014start_w3000/scores_fomcfix/metrics.csv` | patched | ok | gate (arm QLIKE) |
@@ -98,19 +99,19 @@ Per class and day type: J = joint gain (HAR loss - full loss); top = the group w
 | event | Ridge | 197.09 | -22.41 (p <0.001) | FOMC (104 %) | 0.60 | fomc (of 8 run) | yes / no | CONCENTRATED | CONCENTRATED |
 | event | Lasso | 415.04 | -47.19 (p <0.001) | FOMC (93 %) | 0.72 | vd fomc (of 8 run) | yes / no | CONCENTRATED | CONCENTRATED |
 | event | Elastic net | 198.87 | -22.61 (p <0.001) | FOMC (103 %) | 0.74 | fomc (of 8 run) | yes / no | CONCENTRATED | CONCENTRATED |
-| event | LightGBM | 533.60 | -62.28 (p <0.001) | FOMC (101 %) | 1.05 | vd fomc (of 8 run) | yes / no | CONCENTRATED | CONCENTRATED |
-| event | XGBoost | 564.48 | -63.92 (p <0.001) | FOMC (100 %) | 1.05 | fomc (of 8 run) | yes / no | CONCENTRATED | CONCENTRATED |
+| event | LightGBM | 533.60 | -62.28 (p <0.001) | FOMC (101 %) | 1.05 | iv fomc (of 8 run) | yes / no | CONCENTRATED | CONCENTRATED |
+| event | XGBoost | 564.48 | -63.92 (p <0.001) | FOMC (100 %) | 1.05 | iv fomc (of 8 run) | yes / no | CONCENTRATED | CONCENTRATED |
 | event | Random forest | 410.23 | -44.80 (p <0.001) | FOMC (108 %) | 0.86 | - (of 1 run) | ? / no | INCOMPLETE | INCOMPLETE |
 | event | **linear** | | | | | | | **CONCENTRATED** | **CONCENTRATED** |
 | event | **trees** | | | | | | | **CONCENTRATED** | **CONCENTRATED** |
 | ord | Ridge | 5.41 | -3.24 (p <0.001) | Realized moments (118 %) | 1.79 | rm (of 8 run) | yes / yes | CONCENTRATED | REDUNDANT |
 | ord | Lasso | 4.06 | -2.44 (p 0.037) | Realized moments (136 %) | 2.07 | rm (of 8 run) | yes / yes | CONCENTRATED | REDUNDANT |
 | ord | Elastic net | 6.63 | -3.97 (p <0.001) | Realized moments (97 %) | 1.68 | rm (of 8 run) | yes / yes | CONCENTRATED | REDUNDANT |
-| ord | LightGBM | 10.01 | -6.04 (p <0.001) | Realized moments (77 %) | 2.95 | rm sent (of 8 run) | yes / no | CONCENTRATED | CONCENTRATED |
+| ord | LightGBM | 10.01 | -6.04 (p <0.001) | Realized moments (77 %) | 2.95 | rm (of 8 run) | yes / yes | CONCENTRATED | REDUNDANT |
 | ord | XGBoost | 10.15 | -6.11 (p <0.001) | Realized moments (81 %) | 3.32 | rm (of 8 run) | yes / yes | CONCENTRATED | REDUNDANT |
 | ord | Random forest | 8.82 | -5.31 (p <0.001) | Realized moments (88 %) | 3.07 | rm (of 1 run) | yes / ? | CONCENTRATED | INCOMPLETE |
 | ord | **linear** | | | | | | | **CONCENTRATED** | **REDUNDANT** |
-| ord | **trees** | | | | | | | **CONCENTRATED** | **SPLIT** |
+| ord | **trees** | | | | | | | **CONCENTRATED** | **REDUNDANT** |
 
 Literal two-sided leave-one-out significance (either sign) instead of 'removal hurts': no reading changes.
 

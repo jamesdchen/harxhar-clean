@@ -1475,6 +1475,15 @@ def table_abl(A4: pd.DataFrame, RD: pd.DataFrame, n_ev_bars: int) -> None:
         des = set(lo[lo.group != "fomc"]["design"])
         hdr_dag[c] = des == {"pre-patch"}
         cell_dag[c] = "pre-patch" in des and not hdr_dag[c]
+    # 2026-10-29 (claim check after addendum J): the full table's dagger note names the classes with pre-patch
+    # leave-outs from the data (was hard-coded "the trees' leave-outs other than FOMC", false once J's arms merged)
+    pre_lo = [CSHORT[c] for c in CLASSES if hdr_dag[c] or cell_dag[c]]
+    dag_full = (
+        " $^{\\dagger}$ Unpatched design (the FOMC proximity series before the fix), compared with the unpatched full"
+        + f" set: these leave-outs ({', '.join(pre_lo)}) were not rerun on the patched design. "
+        if pre_lo
+        else " "
+    )
 
     def bold(r: pd.Series | None, c: str = "", shade: bool = False) -> str:
         """Main-table cell: bold when significant at ALPHA (the full table's * criterion), shaded on request."""
@@ -1584,9 +1593,8 @@ that hurts counts negative) summed over the eight groups, divided by the joint g
 leave-outs run. Readings (fixed before scoring, tested in this order): concentrated (conc.)\ if one group's add-alone
 gain is at least 75\% of the joint gain and its leave-out is significant; redundant (redund.)\ if the add-alone gains
 sum to more than 1.5 times the joint gain and at most one leave-out is significant; otherwise mixed; by model type the
-majority of ridge, lasso and elastic net, and of LightGBM and XGBoost with the forest where its arms exist. $^{\dagger}$ Unpatched design (the FOMC proximity
-series before the fix), compared with the unpatched full set: the trees' leave-outs other than FOMC were not rerun on
-the patched design. """
+majority of ridge, lasso and elastic net, and of LightGBM and XGBoost with the forest where its arms exist."""
+        + dag_full
         + tail
     )
     dag = []

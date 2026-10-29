@@ -36,7 +36,7 @@
    "days": 196
   }
  },
- "design": "fix: FOMC-patched (fomcfix cell B); trees' lo_<g> (g != fomc) pre-patch vs full_pre",
+ "design": "fix: FOMC-patched (fomcfix cell B); trees' lo_<g> (g != fomc) pre-patch vs full_pre; addendum J: 14 boosted-tree lo_<g> patched vs full",
  "rf_full_fix": true,
  "pass": true,
  "arms": [

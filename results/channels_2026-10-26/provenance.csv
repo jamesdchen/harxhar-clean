@@ -9,6 +9,7 @@ linear ablation arms (patched),results/ablations_2014start_w3000/forecasts/linea
 linear ablation arms (pre-patch),results/ablations_2014start_w3000/forecasts/linear_wide.parquet,worktree,pre-patch,ok,gate (invariance); fallback
 tree ablation arms,results/ablations_2014start_w3000/forecasts/trees_wide.parquet,worktree,"invariant (add_g, g!=fomc; lo_fomc) / pre-patch (lo_g, g!=fomc)",ok,"1 (b), 3 (ii)"
 tree add_fomc (patched),results/ablations_2014start_w3000/forecasts/trees_wide_fix.parquet,worktree,patched,ok,"items 1 (a), 3 (ii)"
+"boosted trees' lo_g, g!=fomc (patched, addendum J)",results/ablations_2014start_w3000/forecasts/trees_wide_lofix.parquet,worktree,patched,ok,"1 (b), 3 (ii)"
 forest lo_fomc,,,,"NOT RUN (stopped, ablation addendum E (i))","items 1 (b), 3 (ii)"
 "ablation scores, pre-patch",results/ablations_2014start_w3000/scores/metrics.csv,worktree,pre-patch,ok,gate (arm QLIKE)
 "ablation scores, patched",results/ablations_2014start_w3000/scores_fomcfix/metrics.csv,worktree,patched,ok,gate (arm QLIKE)

@@ -358,15 +358,13 @@ def main() -> int:
                     if ("ols", b) in panel:
                         rows += dm((c, "full"), ("ols", b), sp)
     D = pd.DataFrame(rows)
-    # checks against Table 1
+    # checks against Table 1.  2026-10-29: Table 1 is on the FOMC-patched design since D13 (b1174ef), so under
+    # --design fix every class's patched full and HAR rows must reproduce it (the trees' full_pre rows are the
+    # template walks, read unchanged; they matched the pre-patch Table 1 of 7206771 until then)
     t1 = pd.read_csv(TABLE1 / "metrics.csv")
     d1 = pd.read_csv(TABLE1 / "dm.csv")
     for _, r in t1.iterrows():
         k = (r["model"], SET_ARM[r["set"]])
-        if a.design == "fix" and k[1] == "full":  # the pre-patch full rows: kept as full_pre for the trees only
-            if k[0] not in TREES:
-                continue
-            k = (k[0], "full_pre")
         mine = M[(M.cls == k[0]) & (M.arm == k[1])].set_index("span")
         for col, sp, ref in (
             ("qlike", "all", r["qlike"]),
@@ -379,11 +377,9 @@ def main() -> int:
         if int(mine.loc["all", "n_bars"]) != int(r["n_intervals"]):
             checks["fail"].append(f"Table 1 {k}: bars {int(mine.loc['all', 'n_bars'])} vs {int(r['n_intervals'])}")
     for _, r in d1[(d1["comparison"] == "all features vs HAR benchmark") & (d1["loss"] == "qlike")].iterrows():
-        if a.design == "fix" and r["model"] not in TREES:
-            continue
         mine = D[
             (D.cls == r["model"])
-            & (D.arm == ("full_pre" if a.design == "fix" else "full"))
+            & (D.arm == "full")
             & (D.vs_cls == r["model"])
             & (D.vs_arm == "har")
             & (D.span == "all")

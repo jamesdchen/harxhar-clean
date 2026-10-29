@@ -1,0 +1,47 @@
+{
+ "arm": "lo_liq",
+ "est": "xgb",
+ "n_pieces": 12,
+ "rows": 33970,
+ "cpus": [
+  "Intel(R) Xeon(R) Gold 6442Y"
+ ],
+ "piece_cpus": {
+  "lo_liq_xgb_1of12.parquet": [
+   "Intel(R) Xeon(R) Gold 6442Y"
+  ],
+  "lo_liq_xgb_2of12.parquet": [
+   "Intel(R) Xeon(R) Gold 6442Y"
+  ],
+  "lo_liq_xgb_3of12.parquet": [
+   "Intel(R) Xeon(R) Gold 6442Y"
+  ],
+  "lo_liq_xgb_4of12.parquet": [
+   "Intel(R) Xeon(R) Gold 6442Y"
+  ],
+  "lo_liq_xgb_5of12.parquet": [
+   "Intel(R) Xeon(R) Gold 6442Y"
+  ],
+  "lo_liq_xgb_6of12.parquet": [
+   "Intel(R) Xeon(R) Gold 6442Y"
+  ],
+  "lo_liq_xgb_7of12.parquet": [
+   "Intel(R) Xeon(R) Gold 6442Y"
+  ],
+  "lo_liq_xgb_8of12.parquet": [
+   "Intel(R) Xeon(R) Gold 6442Y"
+  ],
+  "lo_liq_xgb_9of12.parquet": [
+   "Intel(R) Xeon(R) Gold 6442Y"
+  ],
+  "lo_liq_xgb_10of12.parquet": [
+   "Intel(R) Xeon(R) Gold 6442Y"
+  ],
+  "lo_liq_xgb_11of12.parquet": [
+   "Intel(R) Xeon(R) Gold 6442Y"
+  ],
+  "lo_liq_xgb_12of12.parquet": [
+   "Intel(R) Xeon(R) Gold 6442Y"
+  ]
+ }
+}

@@ -610,10 +610,10 @@ def design_txt() -> str:
         return DESIGN_TXT
     return (
         "FOMC-patched design (the scheduled 18 March 2020 meeting added, the proximity ramps not winsorized); every"
-        " linear arm, the trees' FOMC arms and the gradient-boosted trees' removals are walked on it.  Cells marked"
-        " \\dag{} (the random forest's removal of the realized moments) are on the pre-patch FOMC design, against the"
-        " pre-patch full set; the forest's other removals were not run (the trees' add arms other than FOMC and the"
-        " removal of FOMC hold no FOMC column, so their forecasts are the same on both designs)."
+        " linear arm, the trees' FOMC arms and the gradient-boosted trees' removals are walked on it (the trees' add"
+        " arms other than FOMC and the removal of FOMC hold no FOMC column, so their forecasts are the same on both"
+        " designs).  Cells marked \\dag{} (the random forest's removal of the realized moments) are on the pre-patch"
+        " FOMC design, against the pre-patch full set; the forest's other removals were not run."
     )
 
 

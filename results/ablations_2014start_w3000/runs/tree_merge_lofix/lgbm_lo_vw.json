@@ -1,0 +1,41 @@
+{
+ "arm": "lo_vw",
+ "est": "lgbm",
+ "n_pieces": 10,
+ "rows": 33970,
+ "cpus": [
+  "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz"
+ ],
+ "piece_cpus": {
+  "lo_vw_lgbm_1of10.parquet": [
+   "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz"
+  ],
+  "lo_vw_lgbm_2of10.parquet": [
+   "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz"
+  ],
+  "lo_vw_lgbm_3of10.parquet": [
+   "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz"
+  ],
+  "lo_vw_lgbm_4of10.parquet": [
+   "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz"
+  ],
+  "lo_vw_lgbm_5of10.parquet": [
+   "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz"
+  ],
+  "lo_vw_lgbm_6of10.parquet": [
+   "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz"
+  ],
+  "lo_vw_lgbm_7of10.parquet": [
+   "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz"
+  ],
+  "lo_vw_lgbm_8of10.parquet": [
+   "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz"
+  ],
+  "lo_vw_lgbm_9of10.parquet": [
+   "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz"
+  ],
+  "lo_vw_lgbm_10of10.parquet": [
+   "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz"
+  ]
+ }
+}
