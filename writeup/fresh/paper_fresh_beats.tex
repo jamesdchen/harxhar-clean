@@ -1,0 +1,627 @@
+% paper_fresh_beats.tex -- a from-scratch "simple, unedited" top-beats version of the paper (2026-10-28), written from
+% the author's decisions D1-D20 (writeup/INTEGRATION_PLAN_2026-10-26.md) and the generated number files only; the
+% current paper text was not read. Build from writeup/fresh: pdflatex, bibtex, pdflatex, pdflatex (the \input@path
+% and \graphicspath lines below resolve generated/ and figures/ one level up). Preamble copied from
+% writeup/paper_rehaul.tex (lines before \begin{document}); additions are marked "fresh".
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{bm}
+\DeclareMathOperator{\QLIKE}{QLIKE}
+\DeclareMathOperator{\sign}{sign}
+\DeclareMathOperator{\clip}{clip}
+\DeclareMathOperator{\softplus}{softplus}
+\DeclareMathOperator*{\argmin}{arg\,min}
+% 2026-10-15 (notation pass): shared symbols, see writeup/NOTATION_GUIDE_2026-10-15.md
+\newcommand{\RV}{\mathrm{RV}}
+\newcommand{\E}{\mathbb{E}}
+\DeclareMathOperator{\Var}{Var}
+\DeclareMathOperator{\Cov}{Cov}
+\newcommand{\SR}{\mathrm{SR}}
+\newcommand{\DM}{\mathrm{DM}}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage[round]{natbib}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{threeparttable}
+\usepackage{longtable}
+% 2026-10-15 (table legibility): landscape pages for wide tables, stacked headers. siunitx is NOT loaded: the
+% local MiKTeX's expl3 is too old for it (fatal "Support package expl3 too old"); use r columns with fixed decimals.
+\usepackage{pdflscape}
+\usepackage{makecell}
+\usepackage{xcolor}
+% 2026-10-28 (author, Table tab:rh_channels_abl legibility): \cellcolor shading in tables. colortbl v1.0k (2024)
+% calls \insert@pcolumn, which array.sty defines only from v2.6; the local MiKTeX's array v2.5g builds p columns with
+% \insert@column, so it stands in there (no effect where array is current, as on Overleaf).
+\usepackage{colortbl}
+\makeatletter\@ifundefined{insert@pcolumn}{\let\insert@pcolumn\insert@column}{}\makeatother
+\captionsetup{font=small,labelfont=bf}
+\usepackage{hyperref}
+\emergencystretch=3em
+\setlist{itemsep=1pt, topsep=3pt, parsep=0pt}
+\setlist[itemize,2]{label=--}
+\newcommand{\todo}[1]{\textit{[#1]}}
+% 2026-10-26 (integration, JFEc): the author-notes switch. \authornotesfalse, the default, is the submission build:
+% every \editc box prints nothing and the notes to the authors (rehaul/99_author_notes.tex) are not read.
+% \authornotestrue restores the draft view (the boxes, the notes section and the draft subtitle).
+\newif\ifauthornotes
+\authornotesfalse
+% 2026-10-16 (user): editorial notes for the consistency pass. Colored boxes in the draft, not part of the paper.
+% red: two live statements disagree. orange: the statement does not match the computation behind a printed number.
+% blue: a reader cannot recover the input or the rule. Numbered E1--E25 so a note can be named in editing.
+% 2026-10-26 (integration, JFEc): the box is defined only under \authornotestrue; otherwise \editc takes its three
+% arguments and prints nothing.
+\ifauthornotes
+\newcommand{\editc}[3]{%
+  \par\smallskip\noindent
+  \begingroup
+  \setlength{\fboxsep}{3pt}%
+  \colorbox{#1!12}{%
+    \parbox{\dimexpr\linewidth-2\fboxsep\relax}{%
+      \raggedright\footnotesize\textcolor{#1!75!black}{\textbf{#2.} #3}%
+    }%
+  }%
+  \endgroup
+  \par\smallskip
+}
+\else
+\newcommand{\editc}[3]{\ignorespaces}
+\fi
+% 2026-10-26 (integration, JFEc): \rhPending marks a number whose generated macro is not written yet. \rhPending{}
+% (the generators' form, and \rhPending alone) prints "pending"; \rhPending{name} prints the name of the missing macro,
+% so the gap is visible in the PDF. Defined before the number files: their \providecommand{\rhPending}{...} lines
+% leave this definition in place.
+\makeatletter
+\DeclareRobustCommand{\rhPending}{\@ifnextchar\bgroup{\rh@pending}{\textit{pending}}}
+\newcommand{\rh@pending}[1]{%
+  \if\relax\detokenize{#1}\relax\textit{pending}\else\textit{[pending: \texttt{\detokenize{#1}}]}\fi}
+\makeatother
+% 2026-10-19 (user): the draft names each exogenous series by its raw parquet column name for now (the "% data field"
+% names of generated/rehaul_dm_dictionary.tex). \rawseriesfalse restores the symbols of the 15 October notation pass
+% (writeup/NOTATION_GUIDE_ADDENDA_2026-10-15.md, A.2). \ser{raw}{symbol}: the series' name; \serx{raw}{raw
+% superscript/subscript}{symbol}: for a symbol whose own superscript takes the horizon, e.g.
+% \serx{sumret2_ewstock}{^{(25)}}{\mathrm{RV}^{\mathrm{EW},(25)}}. In text mode the raw name may break after an
+% underscore (table cells); in math mode it is one box.
+\newif\ifrawseries
+\rawseriestrue
+\makeatletter
+\begingroup\catcode`\_=12
+\gdef\ser@split#1_#2\@nil{#1\if\relax\detokenize{#2}\relax\else\textunderscore\allowbreak\ser@split#2\@nil\fi}
+\endgroup
+\def\ser@text#1{{\normalfont\ttfamily\expandafter\ser@split\detokenize{#1_}\@nil}}
+\DeclareRobustCommand{\sername}[1]{\ifmmode\text{\ser@text{#1}}\else\ser@text{#1}\fi}
+\makeatother
+\newcommand{\ser}[2]{\ifrawseries\sername{#1}\else #2\fi}
+\newcommand{\serx}[3]{\ifrawseries\sername{#1}#2\else #3\fi}
+% fresh (2026-10-28): this file lives in writeup/fresh; generated/ and figures/ are one level up. \input@path makes
+% every \input{generated/...} (here and inside the generated floats) resolve to ../generated/...; \graphicspath does
+% the same for \includegraphics{figures/...} and \includegraphics{generated/...}.
+\makeatletter\def\input@path{{../}}\makeatother
+\graphicspath{{../}}
+% fresh (2026-10-28): two product names that contain digits, as macros, so that the running text holds no digit.
+\newcommand{\SPfh}{S\&P~500}
+\newcommand{\zdte}{0DTE}
+% 2026-10-15 (consolidation): every macro-only number file is loaded once, here. Each file holds definitions only (no
+% tables, checked), and no macro name is defined in two of them. The in-body \input lines of these files in the section
+% files are parked, so nothing is defined twice. Generators: make_table_close_main.py (close_main_numbers),
+% make_fig_qlike_sharpe.py (fig_qlike_sharpe_numbers), make_rehaul_results.py, make_rehaul_economics.py,
+% make_rehaul_fi.py, make_rehaul_appendix.py (rehaul_*_numbers).
+% 2026-10-15 (number macros): added make_rehaul_data_methods.py (rehaul_dm_numbers: \rhdm... sample counts and
+% constants), make_buckets_tex.py (buckets_numbers: \bkSize... group sizes), and the --numbers-only modes of
+% experiments/close_{murphy_splits,compounding,shift_test}_headline.py (close_*_numbers: \hmurRhoESLossMid, \cmp...,
+% \shiftSwing... / \shiftNoiseBand), whose table-mixed appendix_close_*.tex files are not loaded here.
+\input{generated/close_main_numbers}
+\input{generated/fig_qlike_sharpe_numbers}
+\input{generated/rehaul_results_numbers}
+\input{generated/rehaul_econ_numbers}
+\input{generated/rehaul_fi_numbers}
+\input{generated/rehaul_app_numbers}
+\input{generated/rehaul_dm_numbers}
+\input{generated/buckets_numbers}
+\input{generated/close_murphy_splits_numbers}
+\input{generated/close_compounding_numbers}
+\input{generated/close_shift_test_numbers}
+\input{generated/rehaul_oos_numbers}
+% 2026-10-20 (user): Table 1 from the pooled linear reruns, like for like (writeup/make_rehaul_oos_rerun.py).
+\input{generated/rehaul_oos_rerun_numbers}
+% 2026-10-23 (user, final rerun): the pooled shift test and compounding (writeup/make_rehaul_pooled_extras.py: \rhps...,
+% \rhpc...; notes E26, E27, N15b), the window robustness (writeup/make_rehaul_robust_window.py: \rhrb..., Table
+% tab:rh_robust_w3500) and the pooled variable importance (writeup/make_rehaul_fi_pooled.py: \rhfip...; 08_feature_importance
+% loads it only if it is not loaded here). Macro-only files; no name is defined in another loaded file (checked).
+\input{generated/rehaul_pooled_extras_numbers}
+\input{generated/rehaul_robust_w3500_numbers}
+\input{generated/rehaul_fip_numbers}
+% 2026-10-23 (coordinator, tree learning curve): the tree ensembles across training windows in Section 8
+% (writeup/make_rehaul_fip_lc.py: \rhlc..., Table tab:rh_fip_lc). Macro-only file; no name is defined in another
+% loaded file (checked).
+\input{generated/rehaul_fip_lc_numbers}
+% 2026-10-26 (user): the late-starting series' TreeSHAP shares in the years they are live, Section 8
+% (writeup/make_rehaul_fi_live.py: \rhfil..., Figure fig:rh_fi_live). Macro-only file; no name is defined in another
+% loaded file (checked).
+\input{generated/rehaul_fi_live_numbers}
+% 2026-10-25 (user): numbers reported by Maisch, Zhang, Ulrich and Zimmer (SSRN 7269778), for the comparison in the
+% conclusion (writeup/make_external_numbers.py: \extMaisch...). Macro-only file; not results of ours; no name is
+% defined in another loaded file (checked).
+\input{generated/external_maisch_numbers}
+% 2026-10-25 (user, step 1 of the gap analysis): the reach of the late-start rule (writeup/make_rehaul_live_windows.py:
+% \rhlv...). Macro-only file; no name is defined in another loaded file (checked).
+\input{generated/rehaul_live_numbers}
+% 2026-10-26 (integration, JFEc): the macro files of the drafts integrated in this pass (D5, D6, D10; the ladder grid).
+% Each is macro-only (every non-comment line is a definition, checked) and no macro name in them is defined in any
+% other file loaded here (checked by script, 26 October 2026). Their floats load them only when undefined
+% (\ifdefined ... \input), so do not \input them again in a section file: rehaul_ablation_numbers uses \newcommand,
+% and a second load stops the build. Definition styles differ between the generated files: \newcommand (a duplicate
+% stops the build), \providecommand alone (the first load wins) and \providecommand{}\renewcommand (the last load
+% wins), so a new file is checked for name collisions, not for load order.
+%   rehaul_ablation_numbers      writeup/make_rehaul_ablations.py        \rhab...  (tab:rh_ablation; drafts/2026-10-25_ablations)
+%   rehaul_econ_main_numbers     writeup/make_rehaul_econ_main.py        \rhem...  (tab:rh_econ_main; drafts/2026-10-25_econ_main)
+%   rehaul_econ_decomp_numbers   writeup/make_rehaul_econ_decomp.py      \rhed...  (drafts/2026-10-25_econ_decomp)
+%   rehaul_mcs_numbers           writeup/make_rehaul_mcs.py              \rhmcs... (tab:rh_mcs_spa; drafts/2026-10-25_mcs)
+%   rehaul_close_accuracy_numbers writeup/make_rehaul_close_accuracy.py  \rhca...  (drafts/2026-10-25_close_accuracy)
+%   rehaul_econ_beta_numbers     writeup/make_rehaul_econ_beta.py        \rheb...  (tab:rh_econ_beta; drafts/2026-10-26_econ_beta)
+%   rehaul_train_arms_numbers    writeup/make_rehaul_train_arms.py       \rhta...  (tab:rh_train_arms; drafts/2026-10-26_train_arms)
+%   rehaul_complexity_numbers    writeup/make_rehaul_complexity.py       \rhcx...  (drafts/2026-10-26_complexity; pre-patch)
+\input{generated/rehaul_ablation_numbers}
+\input{generated/rehaul_econ_main_numbers}
+\input{generated/rehaul_econ_decomp_numbers}
+\input{generated/rehaul_mcs_numbers}
+\input{generated/rehaul_close_accuracy_numbers}
+\input{generated/rehaul_econ_beta_numbers}
+\input{generated/rehaul_train_arms_numbers}
+\input{generated/rehaul_complexity_numbers}
+% ---- 2026-10-26 (integration, JFEc): RESERVED BLOCK for the NUMBERS agent's new macro files -------------------
+% To come: the feature-count ladder on the FOMC-patched design (D13), the tuning disclosure (D14), the NYSE-holiday
+% disclosure (D15) and Table 1 against the RTH13 OLS-HAR benchmark (D2). Add each here as a macro-only \input, after
+% checking that none of its macro names is defined in a file loaded above. The front matter marks the numbers these
+% files are to supply with \rhPending{name} (see the integration report and rehaul/99_author_notes.tex); replace
+% each \rhPending{name} by the generated macro once the file is loaded. File names below are placeholders.
+% 2026-10-26 (coordinator): the NUMBERS agent's files, now generated (no name collision with the files above, checked
+% by the NUMBERS agent); the \rhPending{name} placeholders were replaced by these macros.
+\input{generated/rehaul_ladder_numbers}
+\input{generated/rehaul_tuning_numbers}
+\input{generated/rehaul_holiday_numbers}
+\input{generated/rehaul_oos_vs_ols_numbers}
+\input{generated/rehaul_window_sweep_numbers}
+\input{generated/rehaul_ci_har_numbers}
+% 2026-10-28 (author: main2.tex on Overleaf was over its 2 MB limit for editable files): the number files that the
+% sections load through \ifdefined guards are loaded here too, so flatten.py drops those guards instead of inlining
+% the file at each one.
+\input{generated/rehaul_channels_numbers}
+\input{generated/rehaul_factor_numbers}
+\input{generated/rehaul_beyond_ladder_numbers}
+\input{generated/rehaul_beyond_factor_numbers}
+% 2026-10-28 (author, alternative-data edit): \rhbyFLNSeries, the 36 series of the six groups beyond HAR + RM + FOMC.
+\input{generated/rehaul_beyond_factor_lin_numbers}
+% fresh (2026-10-28): the ends of the feeds and the data fixes (writeup/make_rehaul_disclosures.py: \rhds...), used by the
+% Data section here. Macro-only file; no name is defined in another loaded file (checked against every generated file).
+\input{generated/rehaul_disclosure_numbers}
+% ---- end of the reserved block ------------------------------------------------------------------------------------
+
+\title{Exogenous Predictors in Pooled Intraday Forecasts of Realized Variance\\\large Fresh beats version (simple,
+unedited), written from the decisions and the results only}
+\author{James Chen \and Mihai Cucuringu \and Christopher S. Jones \and Austin Pollok}
+\date{Working draft, not for citation}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\noindent We forecast the realized variance of every regular-hours half hour of \SPfh{} futures with pooled penalized
+linear models and tree ensembles. Against a pooled OLS-HAR benchmark, \rhdmNSeriesPooled{} exogenous series lower
+QLIKE by \rhorVsOlsRedLinRng\% (linear) and \rhorVsOlsRedTreeRng\% (trees) but raise MSE, through a few crash days. The
+futures' realized moments and the FOMC calendar carry \rhabBaseShareMin--\rhabBaseShareMax\% of the gain. Beyond them,
+other series add no significant accuracy to linear models and a small, dense gain to boosted trees. Signing
+\zdte{} SPX straddles with these forecasts raises the Sharpe ratio over the benchmark's, significantly for
+\rhemFullVsOlsSigWord{} model of \rhmcsNAltWord.
+\end{abstract}
+
+\section*{Governing claim}
+
+Pooled over the \rhorNBars{} regular-hours half hours of the day, forecasts of \SPfh{} futures realized variance that
+use \rhdmNSeriesPooled{} exogenous series have a QLIKE \rhorVsOlsRedLinRng\% (penalized linear models) and
+\rhorVsOlsRedTreeRng\% (tree ensembles) below the pooled OLS-HAR benchmark, at the cost of a higher MSE that a few days
+of the spring crash produce. Between \rhabBaseShareMin\% and \rhabBaseShareMax\% of each class's gain comes from two
+sources that are already studied: the futures' own realized moments on ordinary days and the FOMC calendar on statement
+days. Beyond them, the remaining \rhbyFLNSeries{} series add no significant accuracy to penalized linear models and
+change the boosted trees' QLIKE by \rhabLgbmFullVsAddRmFomcAllPct\% and \rhabXgbFullVsAddRmFomcAllPct\%, a gain that a
+few principal or partial-least-squares components do not recover. The full-set forecasts sign a \zdte{} straddle with
+a higher Sharpe ratio than the benchmark's in \rhemFullVsOlsPos{} of \rhmcsNAlt{} classes, by \rhemFullVsOlsMin{} to
+\rhemFullVsOlsMax, significantly for \rhemFullVsOlsSigWord.
+
+% ======================================================================================================================
+\section{Introduction}
+\label{sec:intro}
+
+% CONFLICT: D18 makes the question what the other exogenous series add beyond HAR + RM + FOMC, while D1, D2 and D7 put
+% the full-set-versus-OLS-HAR gain and the MSE clause in the abstract and introduction. These beats lead with the
+% full-set gain (D1/D2/D7) and answer the D18 question second (contribution two); the author may prefer the reverse.
+\begin{enumerate}
+\item This paper asks what exogenous series add to a pooled forecast of intraday realized variance beyond the HAR
+  components, the futures' own realized moments and the FOMC calendar.
+\item The target is the realized variance of each regular-hours half hour of the E-mini \SPfh{} futures, the
+  \rhorNBars{} bars ending \rhfipBarFirst{} to \rhfipBarLast{} ET, and one model of each class is fitted to the bars of
+  every time of day together.
+\item The benchmark is the OLS on the HAR benchmark set \citep{Corsi2009}, pooled on the same bars.
+\item With the full set of \rhdmNSeriesPooled{} exogenous series (\rhorNColsAf{} predictors), the forecasts have a
+  lower QLIKE than the benchmark in \rhorVsOlsFullLowerSig{} of \rhorVsOlsFullN{} model classes, by
+  \rhorVsOlsRedLinRng\% for ridge, lasso and elastic net and \rhorVsOlsRedTreeRng\% for LightGBM, XGBoost and the random
+  forest, on \rhorDays{} trading days from \rhorSpanStart{} to \rhorSpanEnd.
+\item The same full-set forecasts have a higher MSE than their HAR-set fits; in \rhcaYearsOos{} the increase comes from
+  \rhcaTopDays{} days between \rhcaTopFirstBarOos{} and \rhcaTopLastBarOos, and without the crash window
+  \rhcaNMseLowerSigBarOosExCrash{} of \rhorVsOlsFullN{} classes have a significantly lower MSE on the full set.
+\item The first contribution splits the gain into two channels: the \rhchNEventDays{} scheduled FOMC statement days
+  hold \rhchEventBarPct\% of the scored bars but \rhchLinShareEventMin--\rhchLinShareEventMax\% of the linear models'
+  gain and \rhchTreeShareEventMin--\rhchTreeShareEventMax\% of the trees' gain, and on those days the FOMC calendar
+  alone delivers the gain.
+\item On the other, ordinary days the futures' realized moments carry most of the gain, \rhchOrdRmShareTreeRng\% of it
+  for the trees.
+\item The second contribution answers the question: the HAR set plus the realized moments and the FOMC calendar
+  (\rhbyFLNBase{} predictors) reaches \rhabBaseShareMin--\rhabBaseShareMax\% of each class's full-set gain, and the
+  remaining \rhbyFLNSeries{} series add no significant accuracy to the penalized linear models.
+\item The boosted trees gain a little more from those series, \rhabLgbmFullVsAddRmFomcAllPct\% (LightGBM) and
+  \rhabXgbFullVsAddRmFomcAllPct\% (XGBoost) in QLIKE, and the gain is spread over the series: up to $k = 3$ principal or
+  partial-least-squares components of them recover at most \rhbyFXgbBestShortOrdR{} of its ordinary-day part.
+\item The third contribution is the application: a \zdte{} SPX straddle opened half an hour before the close and
+  signed by the pooled forecast of the closing bar has a Sharpe ratio higher by \rhemFullVsOlsMin{} to
+  \rhemFullVsOlsMax{} with full-set forecasts than with the OLS-HAR forecast.
+\item That Sharpe ratio difference is significant for \rhemFullVsOlsSigWord{} of the \rhmcsNAltWord{} classes, and the
+  profits come from a few long positions.
+\item Related work, realized variance: the paper builds on realized variance as a measure of integrated variance
+  \citep{AndersenBollerslevDieboldLabys2003,BarndorffNielsenShephard2002} and on the HAR model and its extensions with
+  semivariances, quarticity and leverage \citep{Corsi2009,PattonSheppard2015,BollerslevPattonQuaedvlieg2016,CorsiReno2012}.
+\item Related work, intraday forecasting: it pools the intraday bars of the regular session with predictors that see
+  the overnight session, as in \citet{EngleSokalska2012} and \citet{ZhangZhangCucuringuQian2024}, and uses the
+  overnight information studied by \citet{StroudJohannes2014}, \citet{ChenYuZivot2012} and \citet{TodorovaSoucek2014}.
+\item Related work, machine learning: penalized regressions and tree ensembles have been applied to realized variance
+  \citep{AudrinoKnaus2016,LuongDokuchaev2018,RahimikiaPoon2020,christensen2023machine}, and
+  \citet{BrancoRubesamZevallos2024} ask whether anything beats linear models; here the answer depends on the predictor
+  set.
+\item Related work, alternative data: sentiment, attention and news measures have been tried as volatility predictors
+  \citep{AudrinoSigristBallinari2020,BehrendtSchmidt2018,CaporinPoli2017,MittnikRobinzonovSpindler2015}; here they are
+  read on the windows in which they are live.
+\item Related work, economic evaluation: variance forecasts are valued in option strategies
+  \citep{FlemingKirbyOstdiek2001,BandiFusariReno2023,AlmeidaFreireHizmeri2025,Vilkov2026}, and
+  \citet{MaischZhangUlrichZimmer2026} trade machine-learning portfolios of half-hour SPX options in
+  \extMaischYear.
+\item Section~\ref{sec:rh_data} describes the data, Section~\ref{sec:rh_predictors} the predictors,
+  Section~\ref{sec:rh_methods} the design and tests, Section~\ref{sec:rh_results} the accuracy results,
+  Section~\ref{sec:rh_beyond} what the remaining series add, Section~\ref{sec:rh_econ} the straddle application and
+  Section~\ref{sec:concl} concludes.
+\end{enumerate}
+
+% ======================================================================================================================
+\section{Data}
+\label{sec:rh_data}
+
+\begin{enumerate}
+\item The realized variance of a half hour is the sum of the squared one-minute log returns of the front-month E-mini
+  \SPfh{} futures in it, on a grid of \rhdmNIntervals{} half-hour intervals a day that includes the overnight session.
+\item The grid holds \rhdmGridRows{} intervals with an observed realized variance, from \rhPending{first day of the
+  futures sample} to \rhdsSampleEnd.
+\item The forecasts are scored on the \rhorNBars{} regular-hours bars of the \rhorDays{} trading days from
+  \rhorSpanStart{} to \rhorSpanEnd, \rhorNIntB{} bars after dropping \rhorEarlyCloses{} early-close days and bars with a
+  non-positive realized variance.
+\item The exogenous series come from the index constituents (equal- and value-weighted realized moments, turnover,
+  order flow and spreads), StockTwits (attention and sentiment), Cboe (the VIX indices and net volatility demand) and
+  the FOMC calendar, each recorded at the end of its half-hour interval.
+\item Several feeds end before the futures sample: the vendor's VIX prints stop on \rhdsVixVendorLast{} and the last
+  \rhdsVixSpliceDays{} trading days are spliced from a public feed that agrees with the vendor on \rhdsVixAgree\% of
+  the overlapping stamps, and the volatility-demand series stop on \rhdsVdLast.
+\item The FOMC calendar is the patched one: it includes the scheduled meeting of \rhdsFomcSchedMeeting{} that the
+  emergency action of \rhdsFomcReplaced{} replaced, and the proximity series are not winsorized; the span holds
+  \rhchNEventDays{} scheduled statement days.
+% NOTE (D15): before the official version, rerun every model with DROP_HOLIDAY_SESSIONS on.
+\item The \rhholNSessions{} shortened futures sessions on NYSE holidays in the span stay in the estimation windows and
+  are forecast (\rhholNBars{} bars) but not scored.
+\item Dropping those sessions from training shrinks the linear models' every-bar QLIKE gain by \rhholEffDBBarPpRng{}
+  percentage points, and the gain stays significant (Appendix~\ref{app:robust}).
+\item The option data are SPXW quotes on expiration days: \rheNdays{} option days from \rheSampleStart{} to
+  \rheSampleEnd, early closes dropped.
+\end{enumerate}
+
+% ======================================================================================================================
+\section{Predictors}
+\label{sec:rh_predictors}
+
+\begin{enumerate}
+\item The \rhdmNSeriesPooled{} exogenous series fall into \bkNBuckets{} groups: the futures' realized moments
+  (\bkSizeMom{} series), liquidity (\bkSizeLiq), equal-weighted (\bkSizeMew) and value-weighted (\bkSizeMvw) market
+  moments of the constituents, sentiment (\bkSizeSent), implied volatility (\bkSizeIv), volatility demand (\bkSizeVd)
+  and the FOMC calendar (\bkSizeFomc).
+\item The realized moments are the futures' return sum, absolute variation, realized skewness and quarticity, positive
+  semivariance, bipower variation and first-order autocovariance; the FOMC group is the statement-day indicator and the
+  inverse distances to the next and to the last statement.
+\item Each series is divided by its trailing same-interval mean or standard deviation, the diurnal adjustment
+  \citep{AndersenBollerslev1997,AndersenSuTodorovZhang2024}, then transformed and winsorized.
+\item Each series enters as its average over the previous $k \in \{1, 5, 25, 125, 625, 3125\}$ half-hour intervals and
+  as the share of those intervals on which it was observed, \rhfipNPerSeries{} predictors a series.
+\item The averages run over the full grid of \rhdmNIntervals{} intervals a day, so the forecasts for the morning bars
+  see the overnight session.
+\item The HAR benchmark set holds the HAR components of the target at the same \rhdmNHorizonsPooled{} horizons and
+  \rhorNCalendarAf{} calendar columns; the full set adds every exogenous series, \rhorNColsAf{} predictors in all.
+\item The base set of Section~\ref{sec:rh_beyond}, the HAR set plus the realized moments and the FOMC calendar, has
+  \rhbyFLNBase{} predictors; the remaining \rhbyFLNSeries{} series are the liquidity, market-moment, sentiment,
+  implied-volatility and volatility-demand groups.
+\item A series that starts after the futures data enters as zero until the rolling window holds \rhorWindowDays{} days
+  of its history (the late-start rule).
+\item Under that rule the VIX averages are live from \rhlvVixLiveYear, the StockTwits sentiment from
+  \rhlvStSentLiveYear{} and the volatility demand from \rhlvVdLiveYear, on \rhlvVixEvRange\%, \rhlvStSentEvRange\% and
+  \rhlvVdEvRange\% of the scored bars.
+\end{enumerate}
+
+% ======================================================================================================================
+\section{Methods}
+\label{sec:rh_methods}\label{sec:rh_methods_tests}\label{sec:rh_results_eval}
+
+\begin{enumerate}
+\item Every model is estimated on the \rhorNBars{} regular-hours bars only, pooled, on a rolling window of the previous
+  \rhorWindowBars{} bars (\rhorWindowDays{} trading days), and re-estimated at every bar.
+\item Each model forecasts a diurnally scaled volatility $\hat y_{t,i}$, and the variance forecast
+  $\hat\sigma^2_{t,i} = \hat y^{2}_{t,i}\, s^2_{t,i}$ is scored against the realized variance of the bar.
+\item The linear classes are OLS, ridge \citep{HoerlKennard1970}, lasso \citep{Tibshirani1996} and elastic net
+  \citep{ZouHastie2005}; the tree classes are LightGBM \citep{Ke2017}, XGBoost \citep{Chen2016} and the random forest
+  \citep{Breiman2001}.
+\item The penalties are chosen once on \rhorPenSample{} and frozen; each tree method keeps one configuration from an
+  Optuna search \citep{Akiba2019} on the \rhtuTreeSearchSpan{} pre-sample, also frozen.
+\item The tuning only has to put off-the-shelf models in the forecasting regime, and its checks are disclosed in
+  Appendix~\ref{sec:rh_methods_hyper}.
+\item The primary benchmark is the OLS on the HAR set; the ridge, lasso and elastic net on the HAR set coincide with it
+  (largest QLIKE change \rhorVsOlsPctLinHarMaxAbs\%).
+\item The classical HAR extensions, SHAR, HARQ and LHAR, serve as augmented benchmarks
+  \citep{PattonSheppard2015,BollerslevPattonQuaedvlieg2016,CorsiReno2012}.
+\item QLIKE is the primary loss because it ranks variance forecasts consistently under a noisy proxy
+  \citep{Patton2011}; MSE and the out-of-sample $R^2$ against the historical same-interval mean
+  \citep{CampbellThompson2008} are reported with it.
+\item Forecasts are compared with the Diebold--Mariano test \citep{DieboldMariano1995} with the
+  \citet{HarveyLeybourneNewbold1997} correction, on the daily average loss over the day's bars, Newey--West lag
+  \rhorHacLag.
+\item The day types are fixed by the Fed's published calendar before any scoring: statement days are the scheduled FOMC
+  statement days, ordinary days are the others, and analyses added after the first scoring are labelled as such.
+\end{enumerate}
+
+% ======================================================================================================================
+\section{Forecast accuracy}
+\label{sec:rh_results}
+
+\input{generated/rehaul_results_oos}
+
+% CONFLICT: D2 asks that every main-text forecast, the trees' full sets included, be tested against the RTH13 OLS-HAR.
+% The generated Table 1 (tab:rh_oos) tests each tree's full set against its own HAR-set fit, and the generated table
+% that tests every forecast against the OLS-HAR (tab:rh_oos_vsols) also carries 16:00-bar columns, which D16 keeps out of
+% the main text. The beats below give the every-bar tests against the OLS-HAR from the \rhorVsOls... macros; an
+% every-bar-only version of tab:rh_oos_vsols would resolve this.
+\begin{enumerate}
+\item The full-set forecasts beat the OLS-HAR benchmark in \rhorVsOlsFullLowerSig{} of \rhorVsOlsFullN{} classes
+  (Table~\ref{tab:rh_oos}): QLIKE falls by \rhorVsOlsRedLinRng\% for the linear models and \rhorVsOlsRedTreeRng\% for the
+  trees, with the largest Diebold--Mariano $p$-value \rhorVsOlsPMax.
+\item Within each class the full set also beats the class's own HAR-set fit, with Diebold--Mariano statistics from
+  \rhorDmRidgeB{} (ridge) to \rhorDmLgbmB{} (LightGBM).
+\item The trees on the HAR set alone are within \rhorVsOlsPctTreeHarMaxAbs\% of the OLS-HAR in QLIKE, so the trees'
+  gain comes from the exogenous series, not from a nonlinear use of the HAR components.
+\item The trees beat the linear models: on QLIKE the model confidence set at both levels reported keeps only
+  \rhmcsBarQlikeTmaxSetNinety{} of the \rhmcsNModelsWord{} distinct forecasts.
+\item Among the linear full sets the lasso has the lowest QLIKE, \rhldPctLassoRidge\% against the ridge (DM
+  \rhldDmLassoRidge).
+\item The best classical extension, the OLS on \rhabBestOlsBench, changes QLIKE by \rhabOlsSharqlAllPct\% (DM
+  \rhabOlsSharqlAllDm), less than any full set (Table~\ref{tab:rh_ablation}, Panel C).
+\item On MSE the ranking reverses: the full set has a higher every-bar MSE than its HAR-set fit in
+  \rhcaNMseHigherBarSpan{} of \rhorVsOlsFullN{} classes, by \rhcaLinMsePctBarSpanRng\% (linear) and
+  \rhcaTreeMsePctBarSpanRng\% (trees), and \rhcaNMseHigherSigBarSpan{} of these increases are significant.
+\item In \rhcaYearsOos, the \rhcaTopDays{} days with the largest squared-error difference, all between
+  \rhcaTopFirstBarOos{} and \rhcaTopLastBarOos, hold \rhcaLinTopShareBarOosRng\% (linear) and
+  \rhcaTreeTopShareBarOosRng\% (trees) of the full set's excess squared error.
+\item Without the crash window from \rhcaCrashStart{} to \rhcaCrashEnd, the full set changes the every-bar MSE by
+  \rhcaLinMsePctBarOosExCrashRng\% (linear) and \rhcaTreeMsePctBarOosExCrashRng\% (trees), significantly in
+  \rhcaNMseLowerSigBarOosExCrash{} of \rhorVsOlsFullN{} classes.
+\item By subperiod, the linear full sets raise the out-of-sample $R^2$ in \rhorSubALabel{} (\rhorSubARoosAfMin--\rhorSubARoosAfMax\%
+  against \rhorSubARoosHar\%) and lower it in \rhorSubBLabel{} (\rhorSubBRoosAfMin--\rhorSubBRoosAfMax\% against
+  \rhorSubBRoosHar\%).
+\item The gain has two channels (Figure~\ref{fig:rh_channels}): the FOMC statement days hold \rhchEventBarPct\% of the
+  bars and \rhchLinShareEventMin--\rhchLinShareEventMax\% (linear) and \rhchTreeShareEventMin--\rhchTreeShareEventMax\%
+  (trees) of the gain, most of it on their bars from the statement to the close.
+\item On statement days the FOMC group added alone to the HAR set delivers \rhchEvFomcShareLinRng\% (linear) and
+  \rhchEvFomcShareTreeRng\% (trees) of the full set's gain.
+\item The lasso wins on statement days and loses on ordinary days: against the ridge its QLIKE changes by
+  \rhchLassoRidgeEventPct\% on statement days and \rhchLassoRidgeOrdPct\% on ordinary days ($p = \rhchLassoRidgeOrdP$).
+\item On ordinary days the full set still gains, by \rhchCorrLinRng\% (linear) and \rhchCorrTreeRng\% (trees) under
+  each way of removing the FOMC channel, and the ways agree within \rhchAgreePp{} percentage points for
+  \rhchNCorrAgree{} classes.
+\item On ordinary days the realized moments added alone give \rhchOrdRmShareTreeRng\% of the trees' gain and
+  \rhchXEnetOrdRmVsHarShare--\rhchXLassoOrdRmVsHarShare\% of the linear models' gain.
+\item The leave-one-out ablations agree: removing the realized moments raises QLIKE by
+  \rhabLoRmAllPctMin--\rhabLoRmAllPctMax\%, removing the FOMC group by \rhabLoFomcAllPctMin--\rhabLoFomcAllPctMax\%, and
+  removing any other group changes it by at most \rhabLoOtherAllMaxAbs\% (Table~\ref{tab:rh_ablation}, Panel A; the
+  trees' arms other than FOMC are on the unpatched design).
+\item An unpenalized OLS on the HAR set, the realized moments and the FOMC calendar changes QLIKE by
+  \rhabOlsAddRmFomcVsHarAllPct\% against the OLS-HAR (DM \rhabOlsAddRmFomcVsHarAllDm), about as much as the penalized
+  linear full sets.
+\item The gain holds across windows: across \rhwsNWinWord{} windows from \rhwsWinMin{} to \rhwsWinMax{} days,
+  the linear full sets beat the HAR set significantly in \rhwsBarNSigAll{} of \rhwsNCells{} cells, with
+  QLIKE changes from \rhwsBarPctMin\% to \rhwsBarPctMax\%, and the trees in \rhlcNGapSigBar{} of \rhlcNGapCellsBar{} cells
+  (Appendix~\ref{app:robust}).
+\end{enumerate}
+
+\input{generated/rehaul_ablation_table}
+
+\input{generated/rehaul_channels_fig}
+
+% ======================================================================================================================
+\section{Beyond HAR, realized moments and the FOMC calendar}
+\label{sec:rh_beyond}
+
+\begin{enumerate}
+\item The base set, the HAR set plus the realized moments and the FOMC calendar, reaches
+  \rhabBaseShareMin--\rhabBaseShareMax\% of each class's full-set gain over its HAR fit.
+\item Beyond the base, the penalized linear full sets are not significantly more accurate than the same class on the
+  base, with smallest $p$-values \rhabLinFullVsAddRmFomcAllPMin{} at every bar and \rhabLinFullVsAddRmFomcOrdPMin{} on
+  ordinary days (Table~\ref{tab:rh_ablation_beyond}).
+% CONFLICT: under D2 the OLS is the primary benchmark, but the beyond-base comparison sets each class against its own
+% penalized base (the full set's frozen penalties). Against the OLS on the base the elastic-net full set is better on
+% ordinary days and worse at every bar (next beat), so "the linear models gain nothing beyond the base" depends on the
+% base's estimator.
+\item Against the OLS on the base, the elastic-net full set changes QLIKE by \rhbyFLFullOrdPct\% on ordinary days
+  ($p = \rhbyFLFullOrdP$) and by \rhbyFLFullAllPct\% at every bar ($p = \rhbyFLFullAllP$), because the OLS base is
+  better on statement days.
+\item The boosted trees gain beyond the base: QLIKE changes by \rhabLgbmFullVsAddRmFomcAllPct\% for LightGBM (DM
+  \rhabLgbmFullVsAddRmFomcAllDm) and \rhabXgbFullVsAddRmFomcAllPct\% for XGBoost (DM \rhabXgbFullVsAddRmFomcAllDm), and
+  by \rhabRfFullVsAddRmFomcAllPct\% for the forest ($p = \rhabRfFullVsAddRmFomcAllP$).
+\item The trees' gain beyond the base is on ordinary days, \rhabLgbmFullVsAddRmFomcOrdPct\% and
+  \rhabXgbFullVsAddRmFomcOrdPct\%, and not significant on statement days ($p = \rhabLgbmFullVsAddRmFomcEvP$ and
+  \rhabXgbFullVsAddRmFomcEvP).
+\item The remaining groups overlap: added one at a time to the base, their gains sum to \rhabLgbmBeyondRatioAll{}
+  (LightGBM) and \rhabXgbBeyondRatioAll{} (XGBoost) times the full set's gain.
+\item The gain is not a few shared factors: the best model with at most $k = 3$ principal or partial-least-squares
+  components of the remaining series recovers \rhbyFLgbmBestShortOrdR{} (LightGBM) and \rhbyFXgbBestShortOrdR{}
+  (XGBoost) of the ordinary-day gain, and the pre-set reading for both is ``\rhbyFLgbmReading''.
+\item The first $k = 3$ principal components hold \rhbyFLShareCumThree\% of the remaining series' variance, and the
+  linear version of the test gives the same reading (``\rhbyFLReading'').
+\item Ranked by importance, the single top remaining series recovers \rhbyLLgbmKOneAllR{} of LightGBM's gain beyond
+  the base, but the full set stays more accurate (DM \rhbyLLgbmKOneAllDmFull), and the two boosted trees read
+  differently (LightGBM \rhbyLLgbmReading, XGBoost \rhbyLXgbReading).
+% CONFLICT: the JFEc budget puts the feature-count ladder figure in this section, but the generated figure
+% (fig:rh_ladder) has a 16:00-bar panel, which D16 keeps out of the main text, and its generator places it in the
+% appendix. The figure is not \input here; the next beat gives the every-bar rungs from macros.
+\item On the full feature-count ladder, the trees refitted on their top $k = 10$ of \rhldNSeries{} series keep
+  \rhldLgbmBarRTen\%, \rhldXgbBarRTen\% and \rhldRfBarRTen\% of the full set's every-bar gain, against
+  \rhldLgbmBarRThree\%, \rhldXgbBarRThree\% and \rhldRfBarRThree\% at $k = 3$; the linear models at $k = 5$ keep
+  \rhldRidgeBarRFive\%, \rhldLassoBarRFive\% and \rhldEnetBarRFive\%.
+% CONFLICT: the SHAP generator splits the predictors into standard (HAR, calendar, the realized moments, the VIX, the
+% futures volume and trade count) and non-standard series (the FOMC series among them), which does not match D18's base
+% (HAR + RM + FOMC). No macro gives the attribution share of the six remaining groups, hence the pending mark below.
+\item In the trees' attribution the HAR components hold \rhfipHarMin--\rhfipHarMax\% and the realized moments
+  \rhfipMomMin--\rhfipMomMax\% of the mean absolute SHAP value \citep{lundberg2018consistent}, and the six remaining
+  groups \rhPending{TreeSHAP share of the six groups beyond HAR, RM and FOMC} (Table~\ref{tab:rh_fip_shares}).
+\item Use is not accuracy: the trees split on \rhfipLgbmNUsedAll, \rhfipXgbNUsedAll{} and \rhfipRfNUsedAll{} of the
+  \rhfipNExog{} exogenous series at each of the \rhfipNOrigins{} origins, yet the remaining series change their QLIKE by
+  \rhabLgbmFullVsAddRmFomcAllPct\% (LightGBM) and \rhabXgbFullVsAddRmFomcAllPct\% (XGBoost).
+\item The linear models put more of their exogenous weight on the non-standard series than the trees do, in
+  \rhfipNDLess{} of \rhfipNDAll{} tree-minus-linear comparisons.
+\item The late-starting series gain attribution once they are live: the StockTwits share rises from
+  \rhfilStwPreMin--\rhfilStwPreMax\% in \rhfilStwPreYears{} to \rhfilStwLiveMin--\rhfilStwLiveMax\% in
+  \rhfilStwLiveYears, and the volatility-demand share from \rhfilVdPreMin--\rhfilVdPreMax\% to
+  \rhfilVdLiveMin--\rhfilVdLiveMax\% in \rhfilVdLiveYears.
+\end{enumerate}
+
+\input{generated/rehaul_ablation_beyond_table}
+
+\input{generated/rehaul_fip_shares}
+
+% ======================================================================================================================
+\section{Economic value: \zdte{} straddles}
+\label{sec:rh_econ}\label{sec:rh_econ_measures}
+
+% CONFLICT: D16 keeps the application on the forecast of the 16:00 bar ("keep the econ application as is") and keeps
+% 16:00-bar accuracy out of the main text. A main-text reader therefore cannot see how accurate the forecast that signs
+% the trade is (the linear full sets are not more accurate than the OLS-HAR at that bar; Appendix). One sentence
+% pointing to the appendix is proposed in the first beat.
+\begin{enumerate}
+\item On each option day the strategy trades the at-the-money SPXW straddle that expires that day, half an hour before
+  the close, long when the pooled forecast of the closing bar's realized variance exceeds the straddle's implied
+  variance and short otherwise; the accuracy of that bar's forecast is in Appendix~\ref{app:rh_closing_bench}.
+\item The benchmarks are the same strategy signed by the OLS-HAR forecast and the short straddle held every day.
+\item The statistics use the \rheSzDays{} option days after a warm-up of \rheSzWarmup{} days, of the \rheNdays{} option
+  days from \rheSampleStart{} to \rheSampleEnd.
+\item The Sharpe ratio pools the daily returns, each day weighted equally, and annualizes by the square root of
+  \rheAnnDays{} option days per calendar year; differences are tested with \citet{LedoitWolf2008} (block length
+  \rheLWBlock, \rheLWBoot{} resamples).
+\item The full-set strategies have a median Sharpe ratio of \rhemFullShMed{} at mid-quotes and \rhemFullShXMed{} at
+  quoted bid and ask, against \rhemShOlsHar{} and \rhemShXOlsHar{} for the OLS-HAR and \rhemShShort{} and \rhemShXShort{}
+  for the short straddle (Table~\ref{tab:rh_econ_main}).
+\item Against the OLS-HAR strategy, the full-set Sharpe ratios are higher in \rhemFullVsOlsPos{} of \rhmcsNAlt{}
+  classes, by \rhemFullVsOlsMin{} to \rhemFullVsOlsMax, significantly for \rhemFullVsOlsSigWord{} (the random forest,
+  $p = \rhemPDShRfFullVsOls$).
+\item Against the short straddle, \rhemFullVsShortSigWord{} full-set strategies have a significantly higher Sharpe
+  ratio, against \rhemHarVsShortSigWord{} of the HAR-set strategies.
+\item Within each class the full set raises the Sharpe ratio over the class's HAR set in \rhemFullVsHarPosWord{}
+  classes, significantly in \rhemFullVsHarSigWord.
+\item By calendar year the median full-set Sharpe ratio is above the median HAR-set ratio in
+  \rhemYearsFullMedAboveHarMedWord{} of \rhemNYearsWord{} years, and the \rhmcsNAltWord{} full-set ratios are positive in
+  \rhemYearsFullAllPosWord{} of \rhemNYearsWord{} years (Figure~\ref{fig:rh_econ_byyear}).
+\item The profits come from the long days: the full-set strategies go long on \rhedLongPctMin--\rhedLongPctMax\% of
+  the days and earn \rhedLongShareMin--\rhedLongShareMax\% of their summed return on them, while the HAR-set strategies
+  go long on \rhedHarLongNMin--\rhedHarLongNMax{} of the \rhedNDays{} days.
+\item The profits come from a few days: the \rhedNTop{} best days hold \rhedBestShareMin--\rhedBestShareMax\% of the
+  summed gain over the short straddle, and without them the Sharpe ratio difference against the short straddle is
+  negative for \rhedDShortExBestNeg{} of \rhmcsNAlt{} strategies (\rhedDShortExBestMin{} to \rhedDShortExBestMax).
+\item Without those days the full set still beats its HAR-set twin, by \rhedDHarExBestMin{} to \rhedDHarExBestMax{}
+  in Sharpe ratio.
+\item The full-set strategies break even at a cost of \rhemBeMeanFullMinPct--\rhemBeMeanFullMaxPct\% of the premium,
+  against a median quoted half-spread of \rhemHalfSpreadMed\%.
+\item The strategy returns carry no significant market beta (\rhebBetaSigFullWord{} of the full-set strategies), and
+  their alphas are significant for \rhebAlphaSigFullWord{} (Appendix~\ref{app:econ}).
+\end{enumerate}
+
+\input{generated/rehaul_econ_main_table}
+
+\input{generated/rehaul_econ_byyear_fig}
+
+% ======================================================================================================================
+\section{Conclusion}
+\label{sec:concl}
+
+\begin{enumerate}
+\item Pooled over the regular-hours bars, \rhdmNSeriesPooled{} exogenous series lower the QLIKE of realized-variance
+  forecasts against the OLS-HAR by \rhorVsOlsRedLinRng\% (linear) and \rhorVsOlsRedTreeRng\% (trees).
+\item The same forecasts have a higher MSE, which a few crash days produce; without the crash window the full set
+  also lowers the MSE.
+\item The gain runs through the FOMC calendar on statement days and the futures' realized moments on ordinary days,
+  which together reach \rhabBaseShareMin--\rhabBaseShareMax\% of it.
+\item What the remaining \rhbyFLNSeries{} series add is not significant for penalized linear models and is a small gain
+  for boosted trees, spread over the series rather than held in a few components.
+\item A practitioner who wants most of the gain needs the HAR set, the futures' realized moments and the FOMC calendar;
+  the other series pay only inside a tree ensemble.
+\item The forecasts carry economic value in a \zdte{} straddle strategy, but the evidence rests on few days and is
+  significant against the OLS-HAR strategy for \rhemFullVsOlsSigWord{} class.
+\item The StockTwits and volatility-demand series are live on \rhlvStSentEvRange\% and \rhlvVdEvRange\% of the scored
+  bars, so their contribution is measured on short windows.
+\end{enumerate}
+
+% ======================================================================================================================
+\appendix
+\section{Online appendix: pointers}
+\label{app:pointers}
+
+\subsection{Tuning disclosure}
+\label{sec:rh_methods_hyper}
+\begin{enumerate}
+\item Re-tuning the penalties every year moves the linear full sets' every-bar QLIKE change to
+  between \rhtuAnnPctBarMin\% and \rhtuAnnPctBarMax\%, and the neighbouring penalties give changes between
+  \rhtuNbrPctBarMin\% and \rhtuNbrPctBarMax\%.
+\item The forest runs on the oneDAL engine, \rhtuRfSpeedup{} times faster than the stock forest, with a validation
+  QLIKE within \rhtuRfQlikeDiffPct\% of it.
+\end{enumerate}
+
+\subsection{The closing half hour}
+\label{app:rh_closing_bench}\label{app:rh_closing}
+% CONFLICT: D3 corrals every closing-interval model (CI-HAR, close-trained linear and trees) into a final main-text
+% section, while D16 and the JFEc budget keep 16:00-bar accuracy in the appendix. Here they are appendix only.
+\begin{enumerate}
+\item The accuracy at the closing bar, of the pooled models and of the models trained on the last half hour only
+  (Table~\ref{tab:rh_oos_last30}), the rebuilt closing-interval HAR and the pre-registered three-way training
+  comparison go here.
+\end{enumerate}
+
+\input{generated/rehaul_results_oos_last30}
+
+\subsection{Robustness}
+\label{app:robust}
+\begin{enumerate}
+\item The windows, the training arms, the holiday sessions, the model confidence set, SPA and StepM tests go here.
+\end{enumerate}
+
+\subsection{Economics details}
+\label{app:econ}
+\begin{enumerate}
+\item The Sharpe ratio definitions, sizing, compounding, the interval-shift test, break-evens, the market beta and the
+  allocation with the market, and the profit decomposition go here.
+\end{enumerate}
+
+\bibliographystyle{plainnat}
+\bibliography{../references}
+
+\end{document}
