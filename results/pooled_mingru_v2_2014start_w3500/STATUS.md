@@ -145,3 +145,25 @@ the old run (read-only): `/home1/jc_905/pmf35/data` (design copies, fold-3 ridge
   RULE); (D4) the export rerun as a CPU main job into gru2fix/xdata_w3500 with gate E in full; the phase-1
   pmf2_35_fix/xdata kept as a record only. Measured v2 cost: W 3,500 1.25 s a refit (both full arms 256.6 P100-h).
   Nothing submitted.
+- 2026-10-29 11:37 PDT: ADDENDUM 4 / 4a rerun SUBMITTED (coordinator session, the one CARC SSH owner from 11:31; the
+  CARC agent's sbatch had been refused by Claude Code's permission check, the author then said "submit from main").
+  Gate J PASSED at 11:35 (login node, copies only): new roots /project2/pollok_1603/jc_905/gru2fix/pmf2 and pmf2_35;
+  every copy cmp-equal to v2's (W 3,000 46 files, W 3,500 26): bin/forecast_train 44ab6fff, inputs/init_index_v2.csv,
+  walkinit_all_features.csv, the v2w_all_features files (6 / 4), the 30 / 12 piece files, the c24 canary (= the first
+  120 lines of v2w_all_features.000.txt), and code/ (v2's CARC cpu sbatch 1ab7669a, gpu sbatch 802e37ae, slice /
+  submit scripts, folds14.json) except pooled_mingru_v2.py = the commit's 1a78d41a (4a D3: only walk-merge differs from
+  v2's 11504cdb). Piece union: 169,850 lines a window, no duplicates, sorted equal to the v2w files' lines once the
+  CRLF line ends are stripped: v2's piece files end every line in CRLF (all 169,850 lines, in v2's own roots too; the
+  bytes v2's scored walk ran) while the v2w files are LF; the copies keep v2's bytes.
+  Tools: gru2fix/code (export script 8b3f444a, gate_e_fix.py 7a8d32c6, gfx_export.sbatch 118b43c0, gfx_e5.sbatch
+  50f43d14, gfx_gate_s.sbatch c30206c3). Chain, each step afterok on the last with --kill-on-invalid-dep=yes (a failed
+  gate cancels everything after it; no GPU job runs before gate S passes):
+  W 3,000: export + E1-E4 13565829 (main, 4 CPUs; design /home1/jc_905/fomcfix_lin/runs/B/_work, X 725eb201) ->
+  walk inits 13565831_[0-5] (XDATA=gru2fix/xdata_w3000 explicit) -> E5 13565833 -> gate S a 13565834 (NOSTEPS=0),
+  b 13565836 (NOSTEPS=1) (debug or gpu P100, 2 CPUs / 16G, CONC 24, 45 min) -> gate S check 13565837 (S1-S3) -> 30
+  pieces (gpu, P100, 589 min, CONC 24, NOSTEPS=1, PARTIAL_S=900, TAG v2w_all_features_fix_<piece>; ids in
+  gru2fix/pmf2/inputs/walk_ids_fix_all_features.txt).
+  W 3,500: export + E1-E4 13565869 (design /home1/jc_905/ladder_fomcfix/designs/w3500/_work, X 6f5ab023) -> walk
+  inits 13565870_[0-3] -> E5 13565871 -> gate S a 13565872, b 13565873 (35 min) -> check 13565874 -> 12 pieces (509 min).
+  Log: gru2fix/jobids.txt. 46 GPU jobs submitted (the gpu QOS runs at most 36 at once). Also: addendum K index 15
+  resubmitted as 13565562 (running at 11:37).
