@@ -12,7 +12,7 @@ Every part of the system this author wants already exists and is proven in some 
 
 What no system found does is combine them for a paper. None filters review on whether a claim's *outcome* flipped: they flag whenever an *input* changes. And no published tool round-trips prose both ways with Overleaf.
 
-Among paper-writing systems themselves, the end-to-end research agents (Sakana's AI Scientist, Agent Laboratory, Jr. AI Scientist, data-to-paper) treat outlines as scaffolding and overwrite them. The economists who publish their Claude Code workflows stop at "every number comes from code" plus critics run in fresh contexts. This author's scaffold already holds the paper-side parts: generated number macros, a visible `\rhPending`, two generated review layers with injected labels, and a two-way Overleaf round trip for the main file. Most of the remaining work is **gates, not generation**, and most gates can be copied from those other fields. The evidence and the author's binding decisions (A1–A5, boxed below) point to seven additions:
+Among paper-writing systems themselves, the end-to-end research agents (Sakana's AI Scientist, Agent Laboratory, Jr. AI Scientist, data-to-paper) treat outlines as scaffolding and overwrite them. The economists who publish their Claude Code workflows stop at "every number comes from code" plus critics run in fresh contexts. This author's scaffold already holds the paper-side parts: generated number macros, a visible `\rhPending`, two generated review layers with injected labels, and a two-way Overleaf round trip for the main file. Most of the remaining work is **gates, not generation**, and most gates can be copied from those other fields. The evidence and the author's binding decisions (A1–A6, boxed below) point to seven additions:
 
 1. **Close the number pipeline the way data-to-paper did.** Add a hard lint on typed digits, staleness stamps on generated files, and generator-emitted predicates for direction words. Outline-first generation raises coherence by 14 to 28 points, but it leaves verifiability unchanged (STORM: 3.80 vs 3.85).
 2. **Render the final paper from the bullets with the scaffolding stripped, rather than having an LLM expand them.** Expansion is where unsupported connective claims enter, and bullet-to-prose expansion is how researchers synthesize "LLM-modified" text.
@@ -42,6 +42,9 @@ Among paper-writing systems themselves, the end-to-end research agents (Sakana's
 >
 > **A5 (28 Oct 2026): Overleaf edits still flow back.** "but other people will collaborate on the overleaf. so edits do still need to have the option of flowing back from overleaf as well"
 > *Effect:* amends A3. There are two input channels: the author's chat edits (A3), and edits made directly on Overleaf by collaborators (or on occasion the author), which flow back into the sources, review layers included. Under the proposed default, collaborator edits are applied as text and recorded with their source, lock only when the author adopts them, and are held when they would break a lock. Their authority, their protection under A4 and tracked changes are open questions (§8.5, §8.9 Q10–Q12).
+>
+> **A6 (29 Oct 2026): questions come in tiers, after deliberation.** "we may need a tier system for questions if we ever make parts of it more automatic. plenty of tokens should be burned arriving at the most likely correct conclusions before every coming to me with any questions"
+> *Effect:* every open question is routed through a tier system (T0 mechanical, T1 evidence-resolvable, T2 inferred preference, T3 author judgment). Only residual T3 items reach the author, after a saved multi-solver deliberation, batched, each with a recommendation and a default (§8.10).
 
 The smallest useful first step is a single standard-library check that fails the build on any digit typed into live text.
 
@@ -54,7 +57,7 @@ The smallest useful first step is a single standard-library check that fails the
   - **T-genre**: transferred from studies of other text genres (stories, encyclopedic articles, ML papers, emails, student essays).
   - **P**: prescriptive guidance (style guides, editorial rules, pragmatics) with no measured effect.
   - **I**: inferred from this repository's constraints and untested anywhere.
-- **Author decisions** (A1–A5) are binding. Where an earlier inference conflicts with one, the inference is marked superseded and kept as research.
+- **Author decisions** (A1–A6) are binding. Where an earlier inference conflicts with one, the inference is marked superseded and kept as research.
 
 The sixteen source notes are in `writeup/research_notes/AI layered paper writing system/`. Claims the notes mark as secondary or unverified carry that flag here too.
 
@@ -953,7 +956,8 @@ writeup/
                                      beat ID -> section, label, claim hash, bullet sentence hashes);
                                      + prints the decision register in front of L1
   decisions.yaml                   NEW the register: one entry per decision (author's message words
-                                     verbatim + date, source: chat or Overleaf + editor, layer, parent,
+                                     verbatim + date, source: chat, Overleaf + editor, or inferred (T1/T2,
+                                     with evidence), layer, parent,
                                      status, supersedes, rationale, EARS rule, binds, forbids,
                                      exceptions, times); each chat edit also kept as a dated
                                      ADDED/MODIFIED/REMOVED delta; seeded from D1-D20 and the dated
@@ -969,6 +973,7 @@ writeup/
                                      (title, label, macro -> generator, quote), inventory, apply,
                                      verify, report; writes the decision entry and delta
   layer_state.json                 NEW per layer: served commit, locked or not, date (no layer twice)
+  deliberation/<date>/             NEW saved deliberations: solver answers, adjudication, tier (8.10)
   flips.md                         NEW generated: flipped and uncertain claims, conflicts; the author's
                                      only list
   rehaul/*.tex, rehaul/A_*.tex     beats via \beat{id}{label}; one sentence per line
@@ -1266,7 +1271,7 @@ Interpretation lives only in beats. A bullet that adds an interpretation beyond 
 - conflicts between decisions, between a new edit and an earlier lock, or held Overleaf edits;
 - requests to change a generator that came from edits to generated regions.
 
-Everything else is silent. Numbers update through macros, and the prose of unflipped claims is not regenerated.
+Everything else is silent. Numbers update through macros, and the prose of unflipped claims is not regenerated. Flipped and uncertain claims are themselves routed through the question tiers (§8.10). They reach the author as T3 only if deliberation cannot place them: for example, a flip that a locked claim's own predicate already settles, such as a rewording dictated by a generated comparison word, is T0.
 
 **The author's whole review surface** has three parts:
 
@@ -1313,6 +1318,7 @@ These rules govern every drafting and review agent. Each is a gate in practice, 
 | A layer is generated only from a locked parent, and drafted plain. No scrub, register pass or stylistic rewrite runs before lock. | I (A2) |
 | A decision's words are the author's message words, verbatim and dated. Agents infer its parameters and never edit its words. | I (A2, A3) |
 | One edit message may yield several locks, each recorded separately with the same words and date. Commit once per message and push, so the PDF updates. | I (A3) |
+| No question goes to the author without a saved deliberation under `writeup/deliberation/<date>/` that placed it in T3. T0–T2 outcomes are acted on and recorded, not asked (§8.10). | T-code and assurance-case transfer; D for pooled independent reviewers plus a verifier (§5.4); I (A6) |
 | Locate chat edits by the seven-step procedure (§8.5): resolve numbers with the `.aux` of the commit printed on the PDF, build the propagation inventory before editing, search decisions by idea not keyword, ask one question for unclear siblings, never edit through shell heredocs. | D (repo transcripts, 64 past requests) |
 | Ask only when an edit is ambiguous or conflicts with a lock. Otherwise apply, lock, push and report in one short message. | I (A3) |
 | Text the author supplied is copied verbatim inside `\auth{ID}{…}`. No agent pass edits it, and the mark travels with it into lower layers and the final build. | I (A4) |
@@ -1342,7 +1348,7 @@ Each phase is useful alone, and the order follows value per effort plus dependen
 |---|---|---|---|---|
 | **0. Gate the numbers (first step)** | **P0.1 `tests/check_numbers.py`**: standard library, run in the build and in `push --check`, exiting non-zero on failure (C27). P0.2 `\rhPending`/`\editc` error in a final wrapper. P0.3 header stamps + `check_stale.py`; full regenerate-and-diff before push | Zero unwhitelisted digits; every whitelist entry has a reason; a deliberately stale file fails | Nothing | D / T-code |
 | 1. Layer selector and beat IDs | `\paperlayer` with hard error; `paper_final.tex`; beat macros and migration script; `make_paper_beats.py` learns them and writes `beats/manifest.json`; `check_beats.py`; parked text moved to `rehaul/parked/` (and `unflatten.py` parks there); SemBr reflow as one bulk commit, announced, before collaborators start (A5); minimal-diff push gate and fixed flat file names (C28) | Bullet-layer PDF text identical before and after migration; L4 compiles as paragraphs; flat file under 2 MB | Phase 0 | I; T-code |
-| 2. Decision locks and correction capture (both channels) | Migrate D1–D20 and the dated author quotes into `decisions.yaml`, exceptions and forbids included (D3, D16, the feature-importance sample). Build `locks.py` and move generators onto it. Add stamping (`stamps.json`) and lock macros. Have generators emit the predicates the locked claims need (moved forward from Phase 5), and build `claims.yml`. Add `check_locks.py` (C20–C26). Build correction capture for both channels: `apply_edit.py` for chat edits (A3), with margin beat IDs and the `\auth` protection (A4); layer-file unflatten through `map_beats*.json`, so `push-beats` pulls collaborators' edits back instead of refusing them (A5); pull-before-push in `autopush.sh`; message-to-PDF times in the register. Make stamps hash only the parameters each generator reads. Add three-state review records with carried-forward clearance; the flipped and uncertain tiers; the ripple graph and `where_used.py`; ADR fields, EARS rules and dated deltas in the register; the drift gate on pulled Overleaf edits (C29); the commit hash in every pushed review build (C30); and `apply_edit.py` implementing the seven-step chat procedure. Add `flips.md` and the register printed in front of L1. Then serve the current top beats, seeded from D1–D20, as the simple starting state | A changed span propagates to every table and sentence with only flipped and uncertain claims shown, and a reordering of `decisions.yaml` flags nothing. One edit message about L1 becomes a decision entry, reaches every governed number without further review, and lands as an updated PDF on Overleaf with its time logged. One collaborator edit on `beats_top.tex` flows back to its source line, and one that breaks a lock is held and reported | Phases 0–1 | I; T-code (showyourwork/Make; Gentzkow–Shapiro); D (data-to-paper chain) |
+| 2. Decision locks and correction capture (both channels) | Migrate D1–D20 and the dated author quotes into `decisions.yaml`, exceptions and forbids included (D3, D16, the feature-importance sample). Build `locks.py` and move generators onto it. Add stamping (`stamps.json`) and lock macros. Have generators emit the predicates the locked claims need (moved forward from Phase 5), and build `claims.yml`. Add `check_locks.py` (C20–C26). Build correction capture for both channels: `apply_edit.py` for chat edits (A3), with margin beat IDs and the `\auth` protection (A4); layer-file unflatten through `map_beats*.json`, so `push-beats` pulls collaborators' edits back instead of refusing them (A5); pull-before-push in `autopush.sh`; message-to-PDF times in the register. Make stamps hash only the parameters each generator reads. Add three-state review records with carried-forward clearance; the flipped and uncertain tiers; the ripple graph and `where_used.py`; ADR fields, EARS rules and dated deltas in the register; the drift gate on pulled Overleaf edits (C29); the commit hash in every pushed review build (C30); and `apply_edit.py` implementing the seven-step chat procedure. Add the question-tier router with saved deliberations (§8.10). Add `flips.md` and the register printed in front of L1. Then serve the current top beats, seeded from D1–D20, as the simple starting state | A changed span propagates to every table and sentence with only flipped and uncertain claims shown, and a reordering of `decisions.yaml` flags nothing. One edit message about L1 becomes a decision entry, reaches every governed number without further review, and lands as an updated PDF on Overleaf with its time logged. One collaborator edit on `beats_top.tex` flows back to its source line, and one that breaks a lock is held and reported | Phases 0–1 | I; T-code (showyourwork/Make; Gentzkow–Shapiro); D (data-to-paper chain) |
 | 3. Citations | One canonical bib; deterministic fetch skill; `check_bib.py` with cache; then PaperQA2 over local PDFs → `litmap.jsonl` → "not supported" findings to the agent queue | All 148 entries verified or explained; writer restricted to verified keys | Phase 0 | D; D-partial |
 | 4. Prose scrub | Built while the author reads; **runs only on locked layers** (A2). S0 drafting guide; S1–S3 lint. S4b Rule NT: Stage A and the set registry (built from `decisions.yaml`), with TRUE? on Phase 2's predicates. Corpus build, S4a cadence and voice bands, and S5–S6 (stats only committed). S7–S8 register pass with post-checks; edits applied automatically and logged | Corpus dashboard shows the locked draft inside the 10th–90th percentile band, or each exception is recorded as a decision; every universal and superlative is either deleted with a reason code or backed by a macro | Phase 2 | D for statistics; T-genre for rewriting; P + I for Rule NT |
 | 5. Direction words and provenance | Generators emit the remaining predicates and spec macros; `check_claims.py` over every sentence; provenance wrapper | Every sentence with a numeric macro and a direction word is checked | Phase 2 | I; D (data-to-paper chain) |
@@ -1385,21 +1391,54 @@ The phases set the order in which the **tooling** is built. The order in which t
 
 ### 8.9 Open questions for the author
 
-These decisions belong to the author:
+Under A6 each question carries a tier and a status (§8.10). Tiers marked "proposed" are the report's pre-deliberation guess; a deliberation assigns the final tier, and only residual T3 items reach the author.
 
-1. **Overleaf comments.** *Resolved (A3, A5).* The author's corrections arrive as chat messages, and collaborators' Overleaf edits flow back through the pull. Comments are still not an input.
-2. **Final form, section by section.** Should each section use Option A (scaffold removal) or Option B (co-located prose)? The recommendation is A everywhere except the introduction and conclusion.
-3. **Parked text.** Moving parked text to sidecar files changes a house rule's location, not its substance. It needs the author's assent because `unflatten.py` writes the parks.
-4. **The style corpus.** Which 60–150 papers make up the corpus, held through which legitimate access?
-5. **Budget.** Is there budget for Refine (a reader-reported $30–50 per paper; [Litvak](https://paullitvak.com/p/how-well-does-ai-peer-review-work)) and for a second model vendor at milestones?
-6. **Data.** Do the options data need JFEc's replication exemption?
-7. **Voice rules.** Should the notation guide's blanket "'We' and active voice" rule stand, or should per-section corpus bands set voice (§4.3.2)? Should its preferred magnitude words ("substantially", "materially", "modestly") become generator-emitted words tied to thresholds (§4.3.7)?
-8. **Starting state (A2).** Should the existing bullet text be reset, so L2 is generated fresh from the locked L1? Or should it be kept as the first L2 draft, which the author reads once and sends edits on? Keeping it saves generation, but it serves text written before the locks existed.
-9. **Author-typed text and the scrub.** *Answered (A4): no.* Rule NT and the rest of the scrub never alter text the author supplied, in any layer or the final build.
-10. **Collaborator authority (A5).** The proposed default: a collaborator's Overleaf edit is applied as text and recorded with its source. It locks only when the author adopts it, and one that would break a lock is held and shown as a conflict. Keep this, or let named coauthors' edits lock directly?
-11. **A4 for collaborators.** Should collaborators' text get the same verbatim protection from the scrub and Rule NT as the author's?
-12. **Tracked changes (A5).** Should collaborators accept or reject tracked changes on Overleaf before each pull, or should the pull detect and report them? Whether the git bridge exposes tracked changes or comments at all is unverified.
-13. **Agent edit route on Overleaf.** Should agents keep the git route, or post edits as tracked-change suggestions from a dedicated bot account through the live editor (claudeleaf)? The bot route makes agent edits attributable and leaves comments in place. It needs premium track changes, cannot resolve comments, and edits the live document (§1.5, §8.5).
+1. **Overleaf comments.** *[Resolved by A3 and A5.]* The author's corrections arrive as chat messages, and collaborators' Overleaf edits flow back through the pull. Comments are still not an input.
+2. **Final form, section by section.** *[T2 proposed; open.]* Should each section use Option A (scaffold removal) or Option B (co-located prose)? The recommendation is A everywhere except the introduction and conclusion. The author's bullet-structure requirement and A2 suggest the answer.
+3. **Parked text.** *[T3 proposed: it changes the location of an author house rule; open.]* Moving parked text to sidecar files changes the rule's location, not its substance. It needs the author's assent because `unflatten.py` writes the parks.
+4. **The style corpus.** *[T3 proposed: it depends on the author's legitimate access; open.]* Which 60–150 papers make up the corpus, held through which legitimate access?
+5. **Budget.** *[T3: spending and outward-facing; open.]* Is there budget for Refine (a reader-reported $30–50 per paper; [Litvak](https://paullitvak.com/p/how-well-does-ai-peer-review-work)) and for a second model vendor at milestones?
+6. **Data.** *[T3: outward-facing and licence-dependent; open.]* Do the options data need JFEc's replication exemption?
+7. **Voice rules.** *[T1 proposed once the corpus bands exist, T2 for the magnitude words; open.]* Should the notation guide's blanket "'We' and active voice" rule stand, or should per-section corpus bands set voice (§4.3.2)? Should its preferred magnitude words ("substantially", "materially", "modestly") become generator-emitted words tied to thresholds (§4.3.7)?
+8. **Starting state (A2).** *[Deliberation started 29 Oct; tier pending.]* Should the existing bullet text be reset, so L2 is generated fresh from the locked L1? Or should it be kept as the first L2 draft, which the author reads once and sends edits on? Keeping it saves generation, but it serves text written before the locks existed.
+9. **Author-typed text and the scrub.** *[Answered by A4: no.]* Rule NT and the rest of the scrub never alter text the author supplied, in any layer or the final build.
+10. **Collaborator authority (A5).** *[Deliberation started 29 Oct; tier pending.]* The proposed default: a collaborator's Overleaf edit is applied as text and recorded with its source. It locks only when the author adopts it, and one that would break a lock is held and shown as a conflict. Keep this, or let named coauthors' edits lock directly?
+11. **A4 for collaborators.** *[Deliberation started 29 Oct; tier pending.]* Should collaborators' text get the same verbatim protection from the scrub and Rule NT as the author's?
+12. **Tracked changes (A5).** *[Deliberation started 29 Oct; tier pending.]* Should collaborators accept or reject tracked changes on Overleaf before each pull, or should the pull detect and report them? Whether the git bridge exposes tracked changes or comments at all is unverified.
+13. **Agent edit route on Overleaf.** *[Deliberation started 29 Oct; tier pending.]* Should agents keep the git route, or post edits as tracked-change suggestions from a dedicated bot account through the live editor (claudeleaf)? The bot route makes agent edits attributable and leaves comments in place. It needs premium track changes, cannot resolve comments, and edits the live document (§1.5, §8.5).
+
+### 8.10 Question tiers and deliberation
+
+A6 asks for two things. Questions are sorted by how much they need the author, and every candidate question is deliberated at length before it reaches the author. The router applies to any open question: lock conflicts, flips and uncertain claims (§8.5), ambiguous edits (§8.5's step 1), the open questions of §8.9, and anything an agent would otherwise ask.
+
+| Tier | What qualifies | What happens | Shown to the author |
+|---|---|---|---|
+| **T0 mechanical** | Follows from a lock, a generated fact or a rule (for example, a comparison word set by a predicate, or a Rule NT deletion) | Act and log | Never |
+| **T1 evidence-resolvable** | Data, results, the literature, or the author's recorded decisions and quotes settle it; independent solvers agree and a refuter fails | Act, keep it reversible, record it in `decisions.yaml` with source `inferred` and its evidence | In a skimmable digest |
+| **T2 inferred preference** | A matter of taste, but the author's dated quotes and past choices imply the answer | Apply provisionally, marked `inferred` | In the digest; the author can veto in one line |
+| **T3 author judgment** | The author's own locks conflict with no precedence rule or later quote to settle them; or the evidence stays balanced after deliberation; or the action is irreversible or outward-facing (a submission, a spend, a public post) | Ask once, batched and ordered by impact. Each question carries a recommendation, a confidence, the alternatives, its where-used consequences (§8.5) and a default | Yes; only residual T3 |
+
+**Deliberation before any T3.** No item is classed T3 until a deliberation has run:
+
+1. **Independent solvers.** At least two, preferably three, solvers work the question with different lenses and without seeing each other's work:
+   - the evidence and results;
+   - the author's record of dated quotes and decisions (`decisions.yaml`, the dated `% (user|author, …)` comments, commit messages);
+   - a JFEc referee's view.
+2. **Adjudication.** An adjudicator compares the answers and tries to refute the majority answer against the repo. It checks for a later author decision that supersedes an earlier one, which is the precedence rule. It then assigns the tier.
+3. **Saved record.** Every deliberation is saved under `writeup/deliberation/<date>/`. Every T1 or T2 outcome is recorded in `decisions.yaml` with source `inferred` and its evidence, so the author's veto is a single line.
+
+**Basis.** The solver–refuter–adjudicator structure transfers the AI-review evidence of §5.4 (D in other fields):
+
+- pooled independent reviewers raised detection of planted errors from 71 to 91–93 ([Litvak](https://paullitvak.com/p/how-well-does-ai-peer-review-work));
+- a separate verifier reached 83.2% precision ([Bianchi et al.](https://arxiv.org/html/2512.05925v1));
+- single runs rarely rediscover the same errors ([SPOT](https://arxiv.org/abs/2505.11855)).
+
+The tiering transfers code review's rule of sending direction-level problems first (T-code), and the assurance-case split between computed potential impact and judged actual impact (§1.5). The thresholds and the routing are inference (I, A6). Two risks remain unmeasured:
+
+- that deliberation spends tokens on questions a human would settle in seconds;
+- that agreeing solvers share one model's blind spots. Cross-vendor solvers help (§1.3).
+
+**First live run.** On 29 October deliberation started on the fresh version's conflicts C1–C7 (these are not the checks C1–C7 of §8.3) and on §8.9 Q8 and Q10–Q13. Their tiers and outcomes will be recorded under `writeup/deliberation/2026-10-29/` and in §8.9.
 
 ---
 
