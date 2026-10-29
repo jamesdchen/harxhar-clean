@@ -92,13 +92,9 @@ def find_bash() -> str:
     if os.environ.get("OVERLEAF_TEST_BASH"):
         return os.environ["OVERLEAF_TEST_BASH"]
     found = shutil.which("bash")
-    if (
-        found and "system32" not in found.lower()
-    ):  # C:\Windows\System32\bash.exe starts WSL
+    if found and "system32" not in found.lower():  # C:\Windows\System32\bash.exe starts WSL
         return found
-    exec_path = subprocess.run(
-        ["git", "--exec-path"], capture_output=True, text=True, check=True
-    ).stdout.strip()
+    exec_path = subprocess.run(["git", "--exec-path"], capture_output=True, text=True, check=True).stdout.strip()
     cand = Path(exec_path).parents[2] / "bin" / "bash.exe"
     if cand.is_file():
         return str(cand)
@@ -113,12 +109,8 @@ def setUpModule() -> None:
     BASH = find_bash()
 
 
-def run(
-    cmd: list[str], cwd: Path, env: dict[str, str], timeout: int = 900
-) -> subprocess.CompletedProcess[str]:
-    for _ in range(
-        10
-    ):  # a git command may meet the index lock of a pass committing at the same moment
+def run(cmd: list[str], cwd: Path, env: dict[str, str], timeout: int = 900) -> subprocess.CompletedProcess[str]:
+    for _ in range(10):  # a git command may meet the index lock of a pass committing at the same moment
         r = subprocess.run(
             cmd,
             cwd=cwd,
@@ -149,14 +141,8 @@ class Fixture:
         self.github = self.tmp / "github.git"
         self.repo = self.tmp / "repo"
         self.clone = self.tmp / "overleaf_clone"  # overleaf_git.sh's OVERLEAF_DIR
-        self.coauthor = (
-            self.tmp / "coauthor"
-        )  # a coauthor's view of the Overleaf project
-        self.env = {
-            k: v
-            for k, v in os.environ.items()
-            if k != "OVERLEAF_GIT_TOKEN" and not k.startswith("GIT_")
-        }
+        self.coauthor = self.tmp / "coauthor"  # a coauthor's view of the Overleaf project
+        self.env = {k: v for k, v in os.environ.items() if k != "OVERLEAF_GIT_TOKEN" and not k.startswith("GIT_")}
         self.env.update(
             OVERLEAF_GIT_URL=self.overleaf.as_posix(),
             OVERLEAF_DIR=self.clone.as_posix(),
@@ -179,9 +165,7 @@ class Fixture:
         )
         seed = self.tmp / "seed"
         self.git("init", "-q", "-b", "master", seed.as_posix(), cwd=self.tmp)
-        (seed / "main.tex").write_text(
-            "\\documentclass{article}\\begin{document}Old draft.\\end{document}\n"
-        )
+        (seed / "main.tex").write_text("\\documentclass{article}\\begin{document}Old draft.\\end{document}\n")
         self.git("add", "-A", cwd=seed)
         self.git("commit", "-qm", "the project's own draft", cwd=seed)
         self.git("push", "-q", self.overleaf.as_posix(), "master", cwd=seed)
@@ -212,23 +196,15 @@ class Fixture:
         (sync / "hooks").mkdir()
         shutil.copyfile(SYNC / "hooks" / "post-commit", sync / "hooks" / "post-commit")
         example = script.read_text(encoding="utf-8")
-        assert re.search(r"^# OVERLEAF_GIT_TOKEN=[ \t]*$", example, re.M), (
-            "the script under test must have no token"
-        )
-        (sync / "overleaf_git.example.sh").write_text(
-            example, encoding="utf-8", newline="\n"
-        )
+        assert re.search(r"^# OVERLEAF_GIT_TOKEN=[ \t]*$", example, re.M), "the script under test must have no token"
+        (sync / "overleaf_git.example.sh").write_text(example, encoding="utf-8", newline="\n")
         live = example.replace(REAL_URL, self.overleaf.as_posix())
-        assert "git.overleaf.com" not in live, (
-            "the fixture's overleaf_git.sh must not name the real Overleaf"
-        )
+        assert "git.overleaf.com" not in live, "the fixture's overleaf_git.sh must not name the real Overleaf"
         (sync / "overleaf_git.sh").write_text(live, encoding="utf-8", newline="\n")
         self.git("init", "-q", "-b", BRANCH, self.repo.as_posix(), cwd=self.tmp)
         self.git("add", "-A")
         self.git("commit", "-qm", "fixture")
-        self.git(
-            "init", "-q", "--bare", "-b", BRANCH, self.github.as_posix(), cwd=self.tmp
-        )
+        self.git("init", "-q", "--bare", "-b", BRANCH, self.github.as_posix(), cwd=self.tmp)
         self.git("remote", "add", "origin", self.github.as_posix())
         self.git("push", "-q", "-u", "origin", BRANCH)
 
@@ -236,16 +212,12 @@ class Fixture:
     def git(self, *args: str, cwd: Path | None = None, check: bool = True) -> str:
         r = run(["git", *args], cwd or self.repo, self.env)
         if check and r.returncode != 0:
-            raise AssertionError(
-                f"git {' '.join(args)} failed:\n{r.stdout}\n{r.stderr}"
-            )
+            raise AssertionError(f"git {' '.join(args)} failed:\n{r.stdout}\n{r.stderr}")
         return r.stdout.strip()
 
     def og(self, *args: str) -> Result:
         """overleaf_git.sh in the fixture repository."""
-        r = run(
-            [BASH, "writeup/overleaf_sync/overleaf_git.sh", *args], self.repo, self.env
-        )
+        r = run([BASH, "writeup/overleaf_sync/overleaf_git.sh", *args], self.repo, self.env)
         return Result(r.returncode, r.stdout + r.stderr)
 
     def write(self, rel: str, text: str, root: Path | None = None) -> None:
@@ -270,9 +242,7 @@ class Fixture:
         self.write(rel, text.replace(old, new))
         self.git("add", rel)
         t0 = time.monotonic()
-        r = run(
-            ["git", "commit", "-qm", msg], self.repo, {**self.env, **(extra_env or {})}
-        )
+        r = run(["git", "commit", "-qm", msg], self.repo, {**self.env, **(extra_env or {})})
         elapsed = time.monotonic() - t0
         if r.returncode != 0:
             raise AssertionError(f"commit failed:\n{r.stdout}\n{r.stderr}")
@@ -323,9 +293,7 @@ class Fixture:
     def set_hook(self, git_dir: Path, name: str, body: str) -> Path:
         p = git_dir / "hooks" / name
         p.parent.mkdir(parents=True, exist_ok=True)
-        p.write_text(
-            "#!/usr/bin/env bash\n" + body + "\n", encoding="utf-8", newline="\n"
-        )
+        p.write_text("#!/usr/bin/env bash\n" + body + "\n", encoding="utf-8", newline="\n")
         return p
 
     def cleanup(self) -> None:
@@ -349,9 +317,7 @@ def remove_tree(path: Path) -> None:
 
 
 def script_under_test() -> Path:
-    return Path(
-        os.environ.get("OVERLEAF_SYNC_UNDER_TEST") or SYNC / "overleaf_git.example.sh"
-    )
+    return Path(os.environ.get("OVERLEAF_SYNC_UNDER_TEST") or SYNC / "overleaf_git.example.sh")
 
 
 INTRO_REL = "writeup/rehaul/01_introduction.tex"
@@ -371,9 +337,7 @@ class DefectTests(unittest.TestCase):
         f = self.f
         f.coauthor_edit("quick brown fox", "quick red fox")
         r = f.og("push")
-        self.assertNotEqual(
-            r.returncode, 0, "push must refuse while Overleaf has edits not pulled back"
-        )
+        self.assertNotEqual(r.returncode, 0, "push must refuse while Overleaf has edits not pulled back")
         self.assertIn("differs from the last flatten", r.out)
 
         r = f.og("pull")
@@ -381,9 +345,7 @@ class DefectTests(unittest.TestCase):
         self.assertIn("quick red fox", f.read(INTRO_REL))
         pulled = f.read(INTRO_REL)
 
-        r = f.og(
-            "push"
-        )  # pulled but not committed: HEAD lacks the edit, so the push would revert it on Overleaf
+        r = f.og("push")  # pulled but not committed: HEAD lacks the edit, so the push would revert it on Overleaf
         self.assertNotEqual(
             r.returncode,
             0,
@@ -408,9 +370,7 @@ class DefectTests(unittest.TestCase):
         self.assertIn("quick red fox", f.map_flat())
         self.assertTrue(f.subject().startswith("Overleaf sync: map.json"), f.subject())
 
-        f.coauthor_edit(
-            "second paragraph", "next paragraph"
-        )  # the mark is spent: a new edit needs a new pull
+        f.coauthor_edit("second paragraph", "next paragraph")  # the mark is spent: a new edit needs a new pull
         r = f.og("push")
         self.assertNotEqual(r.returncode, 0)
         self.assertIn("differs from the last flatten", r.out)
@@ -486,9 +446,7 @@ class DefectTests(unittest.TestCase):
         self.assertNotEqual(r.returncode, 0, r.out)
         self.assertIn("next paragraph", f.overleaf_text("main2.tex"))
         self._assert_nothing_recorded(map_before, head_before)
-        r = f.og(
-            "push"
-        )  # the clone is clean and current, so the coauthor's edit is seen and protected
+        r = f.og("push")  # the clone is clean and current, so the coauthor's edit is seen and protected
         self.assertNotEqual(r.returncode, 0)
         self.assertIn("differs from the last flatten", r.out)
 
@@ -538,9 +496,7 @@ class DefectTests(unittest.TestCase):
         self.assertEqual(r.returncode, 0, r.out)
         self.assertIn("lazy dog", f.overleaf_text("main2.tex"))
         self.assertNotIn("half-written", f.overleaf_text("main2.tex"))
-        (f.clone / "notes.txt").write_text(
-            "not ours\n", encoding="utf-8"
-        )  # anything else still stops the push
+        (f.clone / "notes.txt").write_text("not ours\n", encoding="utf-8")  # anything else still stops the push
         r = f.og("push")
         self.assertNotEqual(r.returncode, 0)
         self.assertIn("uncommitted changes", r.out)
@@ -560,9 +516,7 @@ class DefectTests(unittest.TestCase):
         self.assertNotEqual(r.returncode, 0, r.out)
         self.assertIn("--check FAILED", r.out)
         self._assert_nothing_recorded(map_before, head_before)
-        f.commit(
-            INTRO_REL, "\\section{Intro_duction}", "\\section{Introduction}", "fix it"
-        )
+        f.commit(INTRO_REL, "\\section{Intro_duction}", "\\section{Introduction}", "fix it")
         r = f.og("push")
         self.assertEqual(r.returncode, 0, r.out)
 
@@ -578,9 +532,7 @@ class DefectTests(unittest.TestCase):
             "layer edit",
         )
         r = f.og("push-all")
-        self.assertNotEqual(
-            r.returncode, 0, "push-all must report the refused paper push"
-        )
+        self.assertNotEqual(r.returncode, 0, "push-all must report the refused paper push")
         self.assertIn("differs from the last flatten", r.out)
         self.assertIn(
             "Layer text revised",
@@ -592,9 +544,7 @@ class DefectTests(unittest.TestCase):
             f.overleaf_text("main2.tex"),
             "the coauthor's edit must survive",
         )
-        self.assertTrue(
-            f.subject().startswith("Overleaf sync: review-layer maps"), f.subject()
-        )
+        self.assertTrue(f.subject().startswith("Overleaf sync: review-layer maps"), f.subject())
         self.assertIn("Layer text revised", f.map_flat("map_beats.json"))
 
 
@@ -606,9 +556,7 @@ class LiveCopyTest(unittest.TestCase):
 
         def body(p: Path) -> list[str]:
             return [
-                ln
-                for ln in p.read_text(encoding="utf-8").splitlines()
-                if not ln.startswith("# OVERLEAF_GIT_TOKEN=")
+                ln for ln in p.read_text(encoding="utf-8").splitlines() if not ln.startswith("# OVERLEAF_GIT_TOKEN=")
             ]
 
         same = body(live) == body(SYNC / "overleaf_git.example.sh")
@@ -640,17 +588,13 @@ class HookGatingTests(unittest.TestCase):
         self.f.git("config", "extensions.worktreeConfig", "true")  # as in harxhar-clean
 
     def install(self, root: Path, *args: str) -> Result:
-        r = run(
-            [BASH, "writeup/overleaf_sync/install_hook.sh", *args], root, self.f.env
-        )
+        r = run([BASH, "writeup/overleaf_sync/install_hook.sh", *args], root, self.f.env)
         return Result(r.returncode, r.stdout + r.stderr)
 
     def assert_not_scheduled(self, root: Path | None = None) -> None:
         time.sleep(4)  # the detached trigger decides within about a second
         state = worktree_state(self.f, root)
-        self.assertFalse(
-            (state / "pending").exists(), "the hook scheduled a push it should not have"
-        )
+        self.assertFalse((state / "pending").exists(), "the hook scheduled a push it should not have")
         log = (root or self.f.repo) / "writeup/overleaf_sync/autopush.log"
         if log.exists():
             self.assertNotIn("pass at", log.read_text(encoding="utf-8"))
@@ -659,20 +603,13 @@ class HookGatingTests(unittest.TestCase):
         f = self.f
         r = self.install(f.repo)
         self.assertEqual(r.returncode, 0, r.out)
-        hook = (
-            Path(f.git("rev-parse", "--path-format=absolute", "--git-path", "hooks"))
-            / "post-commit"
-        )
+        hook = Path(f.git("rev-parse", "--path-format=absolute", "--git-path", "hooks")) / "post-commit"
         data = hook.read_bytes()
         self.assertIn(b"harxhar overleaf autopush hook", data)
         self.assertNotIn(b"\r", data)
-        self.assertEqual(
-            f.git("config", "--worktree", "--get", "overleaf.autopush"), BRANCH
-        )
+        self.assertEqual(f.git("config", "--worktree", "--get", "overleaf.autopush"), BRANCH)
 
-        wt2 = (
-            f.tmp / "wt2"
-        )  # another worktree shares the hooks directory but is not enabled
+        wt2 = f.tmp / "wt2"  # another worktree shares the hooks directory but is not enabled
         f.git("worktree", "add", "-q", wt2.as_posix(), "-b", "other")
         f.write(INTRO_REL, INTRO + "Worktree two.\n", root=wt2)
         f.git("commit", "-qam", "edit in another worktree", cwd=wt2)
@@ -692,21 +629,15 @@ class HookGatingTests(unittest.TestCase):
         self.assert_not_scheduled()
 
         # a commit that changes writeup/ is scheduled, and git commit does not wait for it
-        elapsed = f.commit(
-            INTRO_REL, "quick brown fox!", "quick brown fox?", "scheduled"
-        )
+        elapsed = f.commit(INTRO_REL, "quick brown fox!", "quick brown fox?", "scheduled")
         self.assertLess(elapsed, 3.0, "the commit waited for the push")
         state = worktree_state(f)
         deadline = time.monotonic() + 30
         while not (state / "lock" / "pid").exists() and time.monotonic() < deadline:
             time.sleep(0.5)
-        self.assertTrue(
-            (state / "pending").exists(), "a writeup/ commit was not scheduled"
-        )
+        self.assertTrue((state / "pending").exists(), "a writeup/ commit was not scheduled")
         self.assertTrue((state / "lock" / "pid").exists(), "no runner holds the lock")
-        (
-            state / "pending"
-        ).unlink()  # withdraw the request: the runner leaves without a pass
+        (state / "pending").unlink()  # withdraw the request: the runner leaves without a pass
         deadline = time.monotonic() + 30
         while (state / "lock").exists() and time.monotonic() < deadline:
             time.sleep(0.5)
@@ -726,9 +657,7 @@ class HookGatingTests(unittest.TestCase):
         self.assert_not_scheduled()
 
 
-@unittest.skipIf(
-    os.environ.get("OVERLEAF_SYNC_SKIP_E2E"), "OVERLEAF_SYNC_SKIP_E2E is set"
-)
+@unittest.skipIf(os.environ.get("OVERLEAF_SYNC_SKIP_E2E"), "OVERLEAF_SYNC_SKIP_E2E is set")
 @unittest.skipUnless(HAVE_TEX, "needs pdflatex, bibtex and pdftotext")
 class HookEndToEndTests(unittest.TestCase):
     """The installed hook, the detached runner and real passes (layers, push-all --check, git push)."""
@@ -747,19 +676,13 @@ class HookEndToEndTests(unittest.TestCase):
         self.state = worktree_state(f)
 
     def cleanup(self) -> None:
-        deadline = (
-            time.monotonic() + 300
-        )  # let a runner still at work finish before its directory goes
+        deadline = time.monotonic() + 300  # let a runner still at work finish before its directory goes
         while (self.state / "lock").exists() and time.monotonic() < deadline:
             time.sleep(1)
         self.f.cleanup()
 
     def log_text(self) -> str:
-        return (
-            self.log.read_text(encoding="utf-8", errors="replace")
-            if self.log.exists()
-            else ""
-        )
+        return self.log.read_text(encoding="utf-8", errors="replace") if self.log.exists() else ""
 
     def wait_for(self, pattern: str, count: int, timeout: float) -> str:
         deadline = time.monotonic() + timeout
@@ -768,9 +691,7 @@ class HookEndToEndTests(unittest.TestCase):
             if len(re.findall(pattern, text)) >= count:
                 return text
             time.sleep(1)
-        self.fail(
-            f"timed out waiting for {count} x {pattern!r}; log:\n{self.log_text()}"
-        )
+        self.fail(f"timed out waiting for {count} x {pattern!r}; log:\n{self.log_text()}")
 
     def test_debounce_rerun_and_no_loop(self) -> None:
         f = self.f
@@ -780,34 +701,24 @@ class HookEndToEndTests(unittest.TestCase):
         f.commit(INTRO_REL, "fox two", "fox three", "c3")
         c3 = f.git("rev-parse", "--short", "HEAD")
         self.wait_for(r"autopush: pass at", 1, 120)
-        f.commit(
-            INTRO_REL, "fox three", "fox four", "c4: arrives during the first pass"
-        )
+        f.commit(INTRO_REL, "fox three", "fox four", "c4: arrives during the first pass")
         text = self.wait_for(r"autopush: done in", 2, 600)
         passes = re.findall(r"autopush: pass at (\w+)", text)
         self.assertEqual(len(passes), 2, text)
-        self.assertEqual(
-            passes[0], c3, "the first pass should start once c1..c3 have settled"
-        )
+        self.assertEqual(passes[0], c3, "the first pass should start once c1..c3 have settled")
         self.assertIn("pushed the flatten", text)
         self.assertNotIn("REFUSED", text)
         self.assertIn("quick brown fox four", f.overleaf_text("main2.tex"))
         words = len(f.read(INTRO_REL).split())
-        self.assertIn(
-            f"The introduction has {words} words", f.overleaf_text("beats.tex")
-        )
+        self.assertIn(f"The introduction has {words} words", f.overleaf_text("beats.tex"))
         self.assertEqual(
             f.git("rev-parse", BRANCH, cwd=f.github),
             f.head(),
             "GitHub stand-in not up to date",
         )
         self.assertTrue(f.subject().startswith("Overleaf sync:"), f.subject())
-        time.sleep(
-            SETTLE + 5
-        )  # the passes' own commits (layers, maps) must not start another pass
-        self.assertEqual(
-            len(re.findall(r"autopush: pass at", self.log_text())), 2, self.log_text()
-        )
+        time.sleep(SETTLE + 5)  # the passes' own commits (layers, maps) must not start another pass
+        self.assertEqual(len(re.findall(r"autopush: pass at", self.log_text())), 2, self.log_text())
         self.assertFalse((self.state / "lock").exists())
         self.assertFalse((self.state / "pending").exists())
 
@@ -837,9 +748,7 @@ class HookEndToEndTests(unittest.TestCase):
             "the coauthor's edit was overwritten",
         )
         self.assertEqual(f.read("writeup/overleaf_sync/map.json"), map_before)
-        self.assertNotIn(
-            "Overleaf sync: map.json", f.git("log", "--format=%s", f"{trigger}..HEAD")
-        )
+        self.assertNotIn("Overleaf sync: map.json", f.git("log", "--format=%s", f"{trigger}..HEAD"))
 
 
 if __name__ == "__main__":
