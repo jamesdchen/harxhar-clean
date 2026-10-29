@@ -194,3 +194,9 @@ the maximum 227 relative, at 2023-02-21 10:00.
 - The same near-null directions explain C1's extreme bars under the convention (amendment B (b)): the whitened C1
   scales them up to unit variance.  This only flags C1 on these days; the k-arms are unaffected, since their scores
   are the leading components.
+D (b) (2026-10-28 ~20:20 PDT, the coordinator's condition for accepting amendment D; before score A).
+Wherever test A reports a reading, it also reports that reading with 2023-02-21 and 2023-02-22 excluded, for every
+class (ridge, lasso, elastic net and the OLS reference): FULL vs BASE, the reading, and R for every arm, on ORDINARY
+days without those two days.  The same exclusion goes beside the C1 extreme-bar note (R(C1) without those days).  The
+score mode computes it for both tests (spans ordinary_excl and all_excl in scores.csv, readings_excl_days in
+reading.json, a second readings table in SUMMARY.md).
