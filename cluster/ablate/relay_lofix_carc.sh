@@ -80,7 +80,7 @@ if [ $APPLY -eq 1 ]; then
   sx "$H2" "cat > $BH/tmp/relay_lofix_carc/$STAMP/lines.txt" < "$W/lines.txt"
 fi
 sx "$H2" "bash -s -- $(printf '%q ' "$BH" "$STAMP" "$TMD5" "$APPLY" "$MARK" "$(tr '\n' ' ' < "$W/lines.txt")" \
-  "$(awk '{printf "%s:%s ", $2, $1}' "$W/pieces.md5")")" << 'EOF'
+  "$(awk '{f = $2; sub(/^\*/, "", f); printf "%s:%s ", f, $1}' "$W/pieces.md5")")" << 'EOF'
 set -euo pipefail
 BH=$1 STAMP=$2 TMD5=$3 APPLY=$4 MARK=$5 LINES=$6 MD5S=$7
 CL=$BH/runs/claims_trees_lofix P=$BH/runs/trees_lofix/pieces U=$BH/tmp/relay_lofix_carc/$STAMP
@@ -96,17 +96,25 @@ while [ $# -ge 2 ]; do
   if [ ! -d $CL/$n ] || [ -n "$r" ] || [ "$cpu" != "$MARK" ]; then
     echo "BAD $n $f: Hoffman2 claim is not the reservation (cpu '$cpu'${r:+, $r})"; bad=1; continue
   fi
-  same=1 any=0
+  have=0 diff=0  # files of the piece already in place with CARC's md5; a file in place with another md5 (or no md5)
   for e in parquet json; do
-    if [ -e $P/$f.$e ]; then any=1; [ "$(md5sum < $P/$f.$e | cut -c1-32)" = "${want[$f.$e]}" ] || same=0; else same=0; fi
+    w=${want[$f.$e]:-}
+    if [ -z "$w" ]; then
+      diff=1
+    elif [ -e $P/$f.$e ]; then
+      if [ "$(md5sum < $P/$f.$e | cut -c1-32)" = "$w" ]; then have=$((have + 1)); else diff=1; fi
+    fi
   done
-  [ -e $P/$f.ckpt.json ] && { echo "BAD $n $f: a Hoffman2 checkpoint exists"; bad=1; continue; }
-  if [ -e $CL/$n/done ]; then
-    [ $same -eq 1 ] && skip+=($n) || { echo "BAD $n $f: done on Hoffman2 but the piece differs"; bad=1; }
-  elif [ $any -eq 1 ]; then
-    [ $same -eq 1 ] && todo+=("$n:$f") || { echo "BAD $n $f: a Hoffman2 piece of this name differs"; bad=1; }
+  if [ -e $P/$f.ckpt.json ]; then
+    echo "BAD $n $f: a Hoffman2 checkpoint exists"; bad=1
+  elif [ $diff -eq 1 ]; then
+    echo "BAD $n $f: a Hoffman2 piece file of this name differs from CARC's (or no md5)"; bad=1
+  elif [ -e $CL/$n/done ]; then
+    if [ $have -eq 2 ]; then skip+=($n); else
+      echo "BAD $n $f: done on Hoffman2 but the piece is incomplete"; bad=1
+    fi
   else
-    todo+=("$n:$f")
+    todo+=("$n:$f")  # none or part of it in place (an interrupted relay): the rest is moved below
   fi
 done
 echo "Hoffman2: to relay ${#todo[@]}, already relayed ${#skip[@]}"
@@ -120,7 +128,8 @@ for t in "${todo[@]}"; do
   n=${t%%:*} f=${t#*:}
   for e in parquet json; do
     [ -e $P/$f.$e ] || mv -n $U/x/$f.$e $P/$f.$e
-    [ "$(md5sum < $P/$f.$e | cut -c1-32)" = "${want[$f.$e]}" ] || { echo "Hoffman2: $f.$e md5 after the move differs -- stop"; exit 4; }
+    [ "$(md5sum < $P/$f.$e | cut -c1-32)" = "${want[$f.$e]:-}" ] \
+      || { echo "Hoffman2: $f.$e md5 after the move differs -- stop"; exit 4; }
   done
   [ ! -e $CL/$n/done ] && [ "$(cat $CL/$n/cpu)" = "$MARK" ] && date +%F_%T > $CL/$n/done
   echo "relayed $n $f"
