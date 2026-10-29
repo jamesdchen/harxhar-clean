@@ -354,3 +354,177 @@ arms at nice 0, so its P100 concurrency is 0 until they drain): L40S if min(6 - 
 gpu-partition jobs, free L40S usable at cpu 4 / 24G) >= 1 at the check, else P100. Its G5 canary (3d) runs first on the
 chosen type; the re-pin (3d) follows only if it passes. Its 4 A40 pieces stay cancelled, its 18 debug A40 pieces
 withdrawn.
+
+ADDENDUM 4 2026-10-29 01:00 PDT (08:00 UTC; author, James, 29 Oct, after the full-set PRE-FOMC-FIX PREVIEW was scored in
+99d7b2a: "MinGRU: write the rule addendum and launch the rerun of the two full-set walks (3,000- and 3,500-day windows)
+on the FOMC-fixed features, using v2's frozen configuration with no re-tuning, same design as the trees' move to the
+fixed design. Commit the addendum before submitting, export the fixed design and pass the slice gate first, then launch
+on CARC GPUs within the 36-GPU cap."), written, committed and pushed before any job of the rerun; identical in both
+windows' copies. THE TWO FULL-SET WALKS ON THE FOMC-FIXED DESIGN. Requested by the author after the preview, not part
+of ADDENDUM 2's pre-registration (its full-set walks read the design caches exported 2026-10-22, before the FOMC fix
+D13 was adopted on 2026-10-26). The design change is the only change: picks, seeds, rows, windows, refit schedule,
+trainer, GPU type, merge and scorer are ADDENDUM 2's and the 28-29 Oct scoring's.
+SCOPE    Rerun ONLY the two full-set arms (all_features), W 3,000 and W 3,500. The HAR-set arms (baseline) are FINAL and
+         not rerun: the HAR benchmark set has no FOMC column and the fixed baseline design is md5-equal to the pre-fix
+         one (fomcfix gate G3; checked again at the export by E2). Their scored walks are the HAR rows of every
+         comparison below: walk-merge outputs W 3,000 forecasts_baseline.parquet md5 6effb2a8df7492240bd877ea73b2e744,
+         merge_baseline.json 959d543cdd8811e176a0de8900fc2b5f; W 3,500 8c90e92adf3949d918c5bae5624512eb,
+         eb9c18bf4543671aa7ca63a0246b5926 (score/DONE_w<W>_baseline.txt).
+DESIGN   The FOMC-fixed design exactly as the trees' move (main branch: writeup/INTEGRATION_PLAN_2026-10-26.md D13;
+         results/fomcfix_2026-10-26/RULE.txt cell B; results/ablations_2014start_w3000/RULE.txt ADDENDA D and J): the
+         final 13-bar design built with --ex-flag FOMC_SCHEDULE_2020_FIX=1 --ex-flag FOMC_PROXIMITY_NO_WINSOR=1
+         --ex-flag DROP_HOLIDAY_SESSIONS=0 (holiday sessions kept, as cell B), every other flag as the final design
+         (LATE_START_WARMUP, UNOBSERVED_NEUTRAL, EXCLUDE_FOMC_RELEASE, DROP_ACTIVITY_MA, CALENDAR_THROUGH_OVERNIGHT,
+         DROP_OVERNIGHT_INDICATOR, LEAN_GLOBAL_LAGS on; rolling robust scaling over the window's W rows). The fix
+         changes exactly the 12 value averages adj_fomc_until_inv_ma_k and adj_fomc_since_inv_ma_k, k in {1, 5, 25,
+         125, 625, 3125}. Unchanged: the other 24 FOMC columns (adj_fomc_day_ma_k and the 18 availability averages
+         fomc_*_avail_ma_k), the other 528 columns, the column order, y, B (b_oos), every row and its date.
+         Source per window (CARC, read-only):
+           W 3,000  TFULL = /home1/jc_905/fomcfix_lin/runs/B/_work/design_all_features (X md5
+                    725eb201044783d3cdc62501307dcc3a; y 996504f16da7982d64656d1ba0d9722a, b_oos
+                    7670f01a3055265dfac28ebac1eca864, dates_oos d8a203fe273cd3e8e34987fe5a73048e = the final design's),
+                    design_baseline beside it (md5-equal to the final one): the cache of the trees' patched walks
+                    (fomcfix section 6) and of ADDENDUM J. Export --design /home1/jc_905/fomcfix_lin/runs/B/_work.
+           W 3,500  No fixed W 3,500 design exists (the trees' window-robustness arms stay pre-patch). It is built as
+                    cell B at W 3,500: the fomcfix linear staging /home1/jc_905/fomcfix_lin (the code tree cell B was
+                    built from; its venv; lin_stage.sh's numerical environment: OPENBLAS_CORETYPE=Prescott, numpy's
+                    AVX-512 dispatch off where present), python experiments/pooled_linear_rerun_2026_10_19_13.py design
+                    --jobs <cell B's> --window-days 3500 --first-day 2014-01-02 --ex-flag LATE_START_WARMUP=1
+                    --ex-flag FOMC_SCHEDULE_2020_FIX=1 --ex-flag FOMC_PROXIMITY_NO_WINSOR=1
+                    --ex-flag DROP_HOLIDAY_SESSIONS=0 --out <B35>: cell B's arguments with the window sweep's W 3,500
+                    (a copy of lin_stage.sh differing only in the token 3000 -> 3500 of --window-days may run it; the
+                    diff is recorded). B35 = /home1/jc_905/fomcfix_lin/runs/B35 (if the /home1 quota refuses:
+                    /project2/pollok_1603/jc_905/gru2fix/design/B35; the md5s bind, not the path). CARC main,
+                    --constraint "epyc-7513|epyc-7542", 8 CPUs, 48 GB (as cell B's build 13457893).
+GATE D   (W 3,500 design, CPU, before its export) results/fomcfix_2026-10-26/code/design_gate.py <pre-fix W 3,500
+         root> <B35> D35.json --expect fomc, fomcfix's G3 at W 3,500: the baseline cache md5-equal; the full cache's y,
+         b_oos, dates_oos md5-equal; X bit-identical in every column except exactly the 12, each of which differs. The
+         pre-fix root is v2's export source /scratch1/jc_905/wsweep/code/results/window_sweep_2014start_2026-10-22/
+         w3500 (its X, y, b_oos, dates_oos sha256 checked first against /home1/jc_905/pmf35/data/pmf_export.json); if
+         it cannot be read, D is recorded as not run and E2-E3 (the same comparison on v2's export of it) decide.
+         Reported: B35's design.json config = cell B's except window 45,500 (39,000).
+EXPORT   Per window: experiments/pooled_mingru_final_2014_w3000.py export (this commit's file, md5
+         62255995f4c2ee0abdde55aed753c290; its export stage unchanged since 66a35a1, 2026-10-22, the one that wrote
+         v2's data), PMF_WINDOW_DAYS = 3000 / 3500, env /home1/jc_905/envs/harxhar-r13, CPU (main), no --prev-rows:
+           W 3,000  --design /home1/jc_905/fomcfix_lin/runs/B/_work  --data XFIX_3000
+           W 3,500  --design B35/_work                               --data XFIX_3500
+         XFIX_3000 = /project2/pollok_1603/jc_905/gru2fix/xdata_w3000, XFIX_3500 = /project2/pollok_1603/jc_905/gru2fix/
+         xdata_w3500 (pmf_baseline/ and pmf_all_features/ {X.f32, X.f64, y.f32, enc_pf.f64, meta.txt, columns.txt},
+         pmf_rows.csv, pmf_export.json). References, read-only: v2's pre-fix exports /home1/jc_905/pmf/data (W 3,000)
+         and /home1/jc_905/pmf35/data (W 3,500).
+GATE E   (export check, CPU, per window, before any GPU job of the window). Tolerance 0 throughout (md5 or bitwise
+         array equality): the export recomputes nothing in floating point except the deterministic float32 cast.
+         E1 provenance: pmf_export.json's design = the source above; its ex_flags FOMC_SCHEDULE_2020_FIX true,
+            FOMC_PROXIMITY_NO_WINSOR true, DROP_HOLIDAY_SESSIONS false, LATE_START_WARMUP true; the source's
+            all_features X.npy md5 = 725eb201044783d3cdc62501307dcc3a (W 3,000) or B35's of gate D (W 3,500).
+         E2 byte-identical (md5) to v2's export: pmf_rows.csv (every row, its date, B and y); all six pmf_baseline files;
+            pmf_all_features y.f32, enc_pf.f64, meta.txt, columns.txt (the 564 names in order).
+         E3 pmf_all_features X.f64 and X.f32 against v2's (84,747 x 564): every column other than the 12 equal bit for
+            bit on all 84,747 rows; each of the 12 differs on at least one row (expected: nearly every row; the trees'
+            G3 at W 3,000: 84,633-84,747 of 84,747 a column); per column, the differing rows (count, first, last) and
+            the largest absolute difference reported.
+         E4 the FOMC columns = the trees' fixed design: X.f64 = the source X.npy (float64, row-major) bit for bit in all
+            564 columns and 84,747 rows (W 3,000: the source is TFULL, the trees' fixed design itself; W 3,500: B35,
+            the same recipe at W 3,500); X.f32 = float32(X.f64) bit for bit; X finite; y > 0; B finite and > 0 on
+            every row >= W.
+         E5 (after INITS, before any walk piece) the 33,970 fixed bar inits: every one finite, of length n_keep + 1;
+            their mu, sd and n equal v2's walk inits' (v2 root inputs/walkinit/all_features_w<i>.csv) exactly (y and
+            the windows are unchanged); n_keep against v2's reported (expected equal).
+         A miss stops the window's rerun and is reported with its diagnosis.
+MODEL    ADDENDUM 2's frozen picks, verbatim, no re-tuning (no Stage 1, Stage 2 or G7 job is rerun):
+           W 3,000 full: H 64, L 8, lr 0.003, tau 9 (wd 0.12218715), wd_enc 3, E 160
+           W 3,500 full: H 64, L 8, lr 0.003, tau 1 (wd 0.045674614), wd_enc 3, E 40
+         Trainer native_g9 (bin/forecast_train md5 44ab6fff270e15547335c6b36b3ceead); shortcut lin=1, dec_zero=1,
+         frozen (lr_lin 0, wd_lin 0) at each bar's window ridge (window mask and closed-form ridge on [o - W, o), L 8,
+         wl 0.003); seeds 20261012-20261016; every design row o = 50,777 .. 84,746 (2014-01-02 10:00 .. 2024-04-30
+         16:00; 33,970 bars, 169,850 refits an arm), trailing W rows [o - W, o) (39,000 / 45,500), from scratch, E*
+         epochs fully annealed, wd from tau with S = 305 / 356 steps an epoch, fc_n 1; forecast = the 5-seed mean of f,
+         plain = f^2 B. The job lines are v2's, byte for byte, e.g. W 3,000 "id=v2w_all_features_r50777_s20261012
+         data=data/pmf_all_features mode=refit w0=11777 w1=50777 fc_n=1 L=8 H=64 lr=0.003 seed=20261012 epochs=160
+         max_epochs=160 patience=160 layers=1 batch=128 momentum=0.95 max_grad_norm=1.0 anneal=1 min_lr_ratio=0 mask=1
+         xstd=0 link=softplus loss=qlike lin=1 dec_zero=1 wd=0.12218715 wd_enc=3 lr_lin=0 wd_lin=0
+         lin_init=data/pmf_lin_init/all_features/w000/r50777_L8_wl0.003.f32" (W 3,500: w0=5277, epochs = max_epochs =
+         patience = 40, wd=0.045674614). Only the data those lines name change: data/pmf_all_features is staged from
+         XFIX, and every lin_init file is recomputed from it (INITS).
+GPU      P100 only, the type of both full arms' scored walks (ADDENDA 3d / 3e / 3g) and of both HAR arms: one type an
+         arm, the same type as the walks it is compared with. GPUTYPE=P100, --constraint=p100.
+JOBS     (gate J, before any GPU job of the window) New roots XROOT_3000 = /project2/pollok_1603/jc_905/gru2fix/pmf2,
+         XROOT_3500 = /project2/pollok_1603/jc_905/gru2fix/pmf2_35 (empty at the start, so no pre-fix run directory can
+         reach the merge; the names end in pmf2 / pmf2_35 as cluster/pooled_mingru_v2_{gpu,cpu}_carc.sbatch require).
+         Copied from v2's roots /project2/pollok_1603/jc_905/pmf2(_35) with an md5 check: bin/forecast_train;
+         code/pooled_mingru_v2.py (md5 1a78d41ac4f4bbd0de62b7708c760358, unchanged since 1d70047);
+         inputs/init_index_v2.csv (read by POST); inputs/walkinit_all_features.csv; inputs/v2w_all_features.<i>.txt
+         (W 3,000 i = 000-005, W 3,500 000-003); the piece files of walk/pieces_all_features.csv (W 3,000 30 pieces of
+         5,660-5,665 refits, W 3,500 12 of 14,150-14,155); inputs/pieces/canary/v2w_all_features.000.c24.txt. Pass:
+         every copy md5-equal to v2's, and the pieces' lines together = the 169,850 lines of the v2w files, each once.
+         Pieces may be cut further into contiguous blocks of whole bar origins (lines unchanged; ADDENDUM 3 SPLIT),
+         listed in walk/pieces_fix_all_features.csv; the union check then applies to those.
+INITS    CPU (main): cluster/pooled_mingru_v2_cpu_carc.sbatch MODE=walkinits, ROOT = XROOT, XDATA = XFIX (set
+         explicitly: the script's default is v2's pre-fix export), TASKS=walkinit_all_features.csv, --array 0-5
+         (W 3,000) / 0-3 (W 3,500): XROOT/data/pmf_lin_init/all_features/w<i>/ and inputs/walkinit/all_features_w<i>.csv.
+         Then E5.
+GATE S   (slice gate, per window, P100, after E1-E5 and J, before any walk piece of the window). A bit-for-bit
+         comparison with v2 is impossible: the fix changes the 12 columns on nearly every row of every window, so
+         every refit's training rows differ from v2's. Gate S is therefore v2's own reproducibility check on the
+         slice, on the same GPU type, plus the finite / positive / status-ok checks, on the fixed export: v2's slice
+         check (13380579, ADDENDUM 2 LOGS: the same bar refits with and without the step log, preds.csv
+         text-identical) joined to its P100 G5 walk canary (ADDENDA 3d / 3e: POST n_bad 0).
+         Slice: v2's canary file inputs/pieces/canary/v2w_all_features.000.c24.txt = the first 120 lines of
+         v2w_all_features.000.txt, bar origins 50,777-50,800 (from 2014-01-02 10:00; the G7 probe's origins) x 5
+         seeds, the lines v2 ran on P100 as 13445232 (W 3,000) and 13446389 (W 3,500).
+         Runs: two jobs of cluster/pooled_mingru_v2_gpu_carc.sbatch (md5 802e37ae9eab7d9c71f488d1519c9ad3), ROOT =
+         XROOT, XDATA = XFIX (explicit), JOBS=pieces/canary/v2w_all_features.000.c24.txt, SUB=refit, INITSUB=w000,
+         CONC 24, GPUTYPE P100, cpu 2 / 16G: (a) NOSTEPS=0, TAG v2wfixslice_a_all_features; (b) NOSTEPS=1, TAG
+         v2wfixslice_b_all_features (both outside walk-merge's v2w_all_features_* glob); debug or gpu partition P100s
+         (identical outputs, ADDENDUM 3b). Not cluster/pooled_mingru_v2_slice_carc.sbatch: it stages the data from a
+         path fixed by ROOT (v2's pre-fix /home1/jc_905/pmf(35)/data, no XDATA override) and both sets' inits.
+         PASS iff (S1) the two runs' refit/preds.csv are text-identical after sorting (tolerance 0); (S2) both POSTs
+         n_bad 0: 120 jobs, every status ok, epochs_run = E* (160 / 40), the trainer's kept columns (n_inputs) = the bar
+         init's n_keep, the forecast row = the origin, f finite and > 0; (S3) both env.txt: a P100, GPUTYPE=P100,
+         XDATA = XFIX, the binary md5 44ab6fff. Reported, not deciding: per refit and per bar (5-seed mean) the
+         relative difference of f against v2's pre-fix P100 canary on the same 120 lines (nonzero by construction),
+         and the P100-s a refit against v2's 4.40 / 1.52. A failure stops the window's walk and is reported.
+WALK     After the window's gate S: its pieces, gpu partition, P100, cluster/pooled_mingru_v2_gpu_carc.sbatch with
+         ROOT = XROOT, XDATA = XFIX (explicit), SUB=refit, INITSUB = the piece's w<i>, CONC 24, NOSTEPS=1, PARTIAL_S=900,
+         cpu 2 / 16G, TAG v2w_all_features_fix_<piece>, nice 0 in both windows (W 3,000's pieces first: the longer
+         arm); time limits from the G7 P100 rate, est x 1.3 + 30 min (W 3,000 4.55 s a refit: a 5,660-refit piece 589
+         min; W 3,500 1.56 s: a 14,155-refit piece 509 min; <= 48 h). Refits a piece leaves undone are rerun, on P100,
+         from walk-merge's remainder file (ADDENDUM 3 practice).
+COMPUTE  CARC only. At most 36 GPU jobs of the rerun at once (the author's cap = the gpu QOS's 36 running jobs a user,
+         shared with any other GPU job of ours; gate-S jobs on the debug P100s count within it); <= 100 submitted.
+         Estimate at v2's measured P100 rates (refits x P100-s a refit):
+           W 3,000 full  169,850 x 4.40 s (canary 13445232; debug pieces 4.36; G7 4.55)  207.6 P100-h (214.7 at G7)
+           W 3,500 full  169,850 x 1.52 s (canary 13446389; G7 1.56)                      71.7 P100-h  (73.6 at G7)
+           gate S        4 runs x 120 refits                                               ~0.4 P100-h
+           total ~280 P100-h (~289 at the G7 rates): >= 7.8 h of wall-clock at 36 P100s; ~13-15 h with v2's 42 pieces
+           (36 at once, then 6), less with smaller pieces. CPU (main): B35 build ~0.1 h x 8 CPUs, two exports, walk
+           inits (10 tasks, < 1 h x 4 CPUs each), merges: < 60 CPU-hours.
+MERGE    Per window, as the 28 Oct preview (99d7b2a): PMF_WINDOW_DAYS = W, python experiments/pooled_mingru_v2.py
+         walk-merge --set all_features --gputype P100 --runs XROOT/runs,XROOT/salvage --inputs XROOT/inputs --rows
+         XFIX/pmf_rows.csv (= v2's, E2) --rv data/core_stats.parquet --out OUT (on CARC or on pulled copies, as the arm
+         workers did): every bar x seed exactly once, status ok, row = origin, finite, > 0; forecast = the 5-seed mean
+         of f, plain = f^2 B. Before it: every run directory the merge reads (a salvage directory: its runs/ twin)
+         carries XDATA=XFIX and GPUTYPE=P100 in its env.txt, else the merge stops. Then walk-combine (PMF_WINDOW_DAYS =
+         W) of the fixed full arm with the final HAR arm's merge outputs copied unchanged into OUT (md5 under SCOPE).
+SCORE    The 28-29 Oct scoring, unchanged but for its full-set input: experiments/pooled_mingru_v2_compare.py of 99d7b2a
+         (Table 1's 33,527 bars on 2,579 days; QLIKE and MSE; full vs HAR, % and HLN DM on the daily mean loss,
+         Newey-West lag 8, EVENT also its automatic lag; spans: every bar, the 16:00 bar 2014-24 and 2020-24 (Table 1's
+         column), ORDINARY days (2,498), EVENT days (the 81 scheduled statement days), and the statement afternoons
+         (EVENT bars ending 14:30-16:00, Section 6.2's gain share); D19 economics: the sign strategy on the 866 option
+         days, the paper's Sharpe ratio on the 614 post-warmup days, mid and bid / ask, Ledoit-Wolf tests (block 10,
+         4,999 resamples) with the paired block-bootstrap p, full vs HAR and each vs the short straddle; the six
+         classes as context), its gates rerun and passing. Changed: the full-set forecasts (the fixed walk's) and their
+         label ("FOMC-FIXED, ADDENDUM 4" for "PRE-FOMC-FIX PREVIEW"). The comparison is against the final HAR arms
+         (md5-equal to the scored ones). Context: at W 3,000 the apples-to-apples rows are now the six classes' PATCHED
+         full sets (Table 1; ablations scores_fomcfix), the pre-patch rows beside them; at W 3,500 no patched context
+         run exists, so its pre-patch robustness rows are shown, labelled pre-patch. Output: score_fomcfix/ in each
+         window's directory (SUMMARY.md and the same files as score/).
+SUPERSEDE The preview's full-set numbers (score/, 99d7b2a) are superseded by the rerun's: never averaged, pooled or
+         combined with them. score/ stays as the record (PRE-FOMC-FIX PREVIEW, superseded by ADDENDUM 4); the report
+         gives each full-set number preview -> fixed. The pre-fix full-set runs stay in v2's roots, never merged into
+         the rerun. Nothing goes into the paper under this addendum.
+ORDER    (1) this addendum committed and pushed; (2) W 3,500: B35 built, gate D; (3) per window: export, gate E
+         (E1-E4); XROOT staged, gate J; INITS, E5; gate S; (4) the window's walk pieces, each only after its window's
+         gate S passed (Slurm afterok on both gate-S jobs allowed); (5) merge, combine, score. One SSH owner of CARC;
+         every state-changing command written out in its tool call (the 2026-10-24 standing rule); STATUS.md records
+         each step with its job ids.

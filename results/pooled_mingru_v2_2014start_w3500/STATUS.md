@@ -128,3 +128,12 @@ the old run (read-only): `/home1/jc_905/pmf35/data` (design copies, fold-3 ridge
   - the statement afternoons carry 46.2 % of the gain;
   - D19 Sharpe full 1.449 vs HAR 0.882 (LW p 0.27); vs short straddle 0.322: p 0.109.
   HAR every bar 0.18000 (OLS-HAR 0.18967).
+- 2026-10-29 01:00 PDT: RULE ADDENDUM 4 (both copies; author, 29 Oct, after the preview was scored: rerun the two
+  full-set walks on the FOMC-fixed features with v2's frozen configuration, no re-tuning, the trees' fixed design),
+  written, committed and pushed before any job of the rerun; nothing submitted. Scope: full W 3,000 and full W 3,500
+  only; the HAR arms are final. W 3,500 design source: no fixed W 3,500 design exists; it is built as cell B at
+  --window-days 3500 (FOMC_SCHEDULE_2020_FIX=1, FOMC_PROXIMITY_NO_WINSOR=1, DROP_HOLIDAY_SESSIONS=0) in
+  /home1/jc_905/fomcfix_lin/runs/B35 and gated against the pre-fix W 3,500 design (gate D, fomcfix G3 at W 3,500).
+  Pick unchanged: H 64, L 8, lr 0.003, tau 1 (wd 0.045674614), wd_enc 3, E 40, seeds 20261012-16, P100. Export to
+  /project2/pollok_1603/jc_905/gru2fix/xdata_w3500, root /project2/pollok_1603/jc_905/gru2fix/pmf2_35; gates E, J, S
+  as W 3,000. Estimate 71.7 P100-h (73.6 at G7). Handed to the CARC agent (one SSH owner).
