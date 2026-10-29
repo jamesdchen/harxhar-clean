@@ -1,0 +1,136 @@
+RULE: the linear factor tests with PENALIZED estimators (ridge, lasso, elastic net), so that the linear and the trees'
+recovery shares are on the same footing.  Written 2026-10-28 by the worker that runs it, committed and pushed before any
+computation.  Label of every output: "requested by the author after the OLS factor tests; not pre-registered".
+
+REQUEST (the author, 28 Oct, verbatim): "they're cheap, and they make the results apples to apples. run it."
+Follow-up (the author, 28 Oct, verbatim, before this rule was committed): "how are we sure that the pca isn't
+handicapping the factor model in comparison to the other ablations?"  -> the controls C1-C3 of section 6.
+
+DISCLOSURE.  Requested after both OLS factor tests (channels RULE section 4, results/channels_2026-10-26/factor; this
+folder's RULE_linear.txt with Amendment A, linear/) and the penalization split (linear/ADDENDUM_pen_split.md) had been
+seen: beyond HAR + RM + FOMC the penalized classes' full sets do not beat their own penalized base on ORDINARY days
+(ridge +0.15%, lasso +0.00%, elastic net -0.57%, none significant).  Not pre-registered in that sense; everything below
+is fixed before any walk.
+
+WHY (the mismatch): the earlier linear tests fit the base and the component arms by OLS but measure R against a
+PENALIZED full set (the lower of Table 1's ridge / elastic net), so R mixed the components' contribution with the
+penalty's; the trees' test (RULE.txt section 1) fits base, arms and full set with ONE model.  Here every linear class is
+the one model of its own base, arms and full set: the estimator changes from OLS to the penalized classes.
+
+1. TESTS (two, same code)
+   A. BASE = the HAR benchmark set (12 columns: har_ma_1 .. har_ma_3125, DOW_0 .. DOW_4, hour).  BLOCK = the value
+      averages adj_<s>_ma_k (k = 1 .. 3125) of the 43 non-FOMC series (258 columns; the realized moments folded in), the
+      block of tab:rh_factor (experiments/factor_har_2026_10_26.block_names).
+   B. BASE = the add_rm_fomc arm (132 columns: HAR set + the futures' realized moments + the FOMC group, value and
+      availability averages; experiments/ablate_arms.arm_names("add_rm_fomc")).  BLOCK = the value averages of the 36
+      series of ew, vw, liq, iv, sent, vd (216 columns), the trees' factor test's block
+      (experiments/beyond_factor_linear.block_names).
+   Design: Table 1's (13 regular-hours bars pooled, base-5 HAR on the 48-interval grid, W = 3,000 days = 39,000 rows,
+   FOMC-patched design D13), the laptop rebuild in 12 column parts used by the OLS tests (scratchpad fl/design_parts,
+   pool_linear_pretune.py design --part K/12); refit at every bar from Table 1's walk start (2013-12-27 16:00, 33,997
+   solves); forecasts 2014-01-02 .. 2024-04-30.
+
+2. COMPONENTS (exactly the existing tests'; unchanged)
+   Once a trading day, from the window rows [t0 - W, t0) ending at the bar before the day's first bar t0, held for the
+   day's bars (every training row of a bar's window and the bar's own row take the day's map): active block columns =
+   window s.d. > 1e-12 and the series' k = 1 column has >= 250 rows off its window mode; PCA = eigenvectors of the active
+   columns' window correlation matrix (descending; signed to a non-negative sum); PLS = SIMPLS weights of the
+   standardized active block against the window's target.  Test A: experiments/factor_har_2026_10_26.day_map on the
+   rolled window sums (its walk's route); test B: experiments/beyond_factor_linear.compute_map on the materialized window
+   (its walk's route), here also returning every active eigenvector (C1).
+
+3. ESTIMATORS (the change from OLS: Table 1's full sets and the ablation's add arms, ablation RULE section 3 and
+   addenda F, G)
+   ridge (alpha 1e3), lasso (alpha 1e-4), elastic net (alpha 1e-3, l1_ratio 0.5): the full set's frozen penalty
+   (w3000 frozen_penalties.json all_features), penalty factor r = 0.01 on the HAR benchmark block (12 columns), 1 on
+   every other column (the realized-moment and FOMC columns of base B, the component scores, the block's columns in C2:
+   "the component scores are penalized as exogenous columns"); experiments/pool_linear_pretune.py's estimator semantics
+   at its defaults (STANDARDIZE_PENALTY: the penalty on the window-standardized coefficients s_j b_j; intercept free;
+   the identifiability mask at every 250th solve; the evidence mask; ridge with the s.d. of every bar's own window;
+   lasso / elastic net with the s.d. held between cold seeds -- every 250th solve and the runner's data-driven reseeds
+   (lasso mask additions, evidence, binomial availability rule) -- and the KKT-certified solution).
+   - Implementation: the walk cannot use the runner's warm rank-one path (each day's loadings change every training
+     row's scores), so it solves every bar's problem exactly (ridge: the linear system; lasso / elastic net: an
+     active-set solve warm-started from the previous bar's support, certified by the runner's KKT conditions and
+     tolerance, falling back to the runner's own batch solve) on the window Gram of [base, scores] (the Gram route of
+     the OLS tests).  Masks and seed schedule of the base columns are tracked exactly as the runner; a KKT-triggered
+     reseed of the runner (a numerical event of its warm path) is taken from the runner's own trace of the k = 0 walk if
+     the gate G1 shows one (that walk then rerun locally for its trace), and applied to every arm of the class.
+   - Score columns: never masked by the estimator's rules (they are continuous; their entry is section 2's active
+     rule).  Weight (s.d.) of a score column: ridge, its window s.d. at every bar (as every ridge column); lasso /
+     elastic net, its window s.d. at the later of the day's first bar (where the day's map defines it) and the last
+     cold seed, held until either recurs (the runner's held-weight rule applied to a column redefined daily).
+   - OLS (min-norm, Table 1's walk) is computed alongside as the reference class (gate G0, the C1 rotation gate), no
+     reading.
+   - BASE of each class (its OWN): test A, the class's HAR arm of Table 1 (window_sweep_2014start_fomcfix/w3000
+     forecasts.parquet, predictor_set baseline; the HAR design is untouched by the patch), which carries the HAR set's
+     OWN frozen penalty (ridge 1e-3, lasso 1e-8, elastic net 1e-7, r = 1); test B, the class's add_rm_fomc walk of the
+     ablation (results/ablations_2014start_w3000/forecasts/linear_wide_rmfomc.parquet "<class>|add_rm_fomc"), which
+     is the add-arm convention itself.  FULL of each class (its OWN): Table 1's patched full-set walk of the class
+     (window_sweep_2014start_fomcfix/w3000, all_features).
+   - Test A's k = 0 under the add-arm convention (the HAR set at the full set's penalty, r = 0.01) has no existing
+     every-bar walk; it is walked here as the arm "k0" and reported with its R (the penalty switch alone; both penalties
+     are tiny on the HAR block, so R(k0) ~ 0 is expected) -- the k-arms' R is read against the HAR arm (BASE A), and
+     R(arm) - R(k0) is reported beside it as information.
+
+4. ARMS (per test and class): k0; BASE + the first k PCA scores, k in {1, 2, 3, 5, 10, 20}; BASE + the first k PLS
+   scores, k in {1, 2, 3} (Amendment A's sets); C1, C2 (section 6).  C3 on its sample days only.
+
+5. GATES (before any scoring; gates.json of each test)
+   G0  components = the existing tests': the OLS arms of this walk reproduce the earlier OLS factor tests' forecasts
+       (test A: results/channels_2026-10-26/factor/forecasts.parquet; test B: linear/forecasts.parquet), every bar,
+       1e-10 relative; test B's day maps (first 20 PCs + 3 PLS columns of P) equal the stored maps.npz (md5
+       210da341ee6c73b2a3b71e361ab4a188) within 1e-10 relative to each column's norm.
+   G1  k = 0 reproduces the class's existing walk to 1e-10 relative on every bar: test A, the walk code run with the HAR
+       arm's own settings (its penalty, r = 1) against Table 1's HAR-arm walk of the class; test B, k0 against the
+       ablation's add_rm_fomc walk of the class.  Target = Table 1's true_adj.
+   G2  a direct solve equals the walk on the earlier tests' 7 spread days (2014-01-02, 2016-01-27, 2018-02-16,
+       2020-03-16, 2020-03-17, 2022-04-06, 2024-04-30), first and last bar, every arm and class: the window materialized,
+       the map from scratch (SVD PCA, NIPALS PLS, the entry rule from scratch), the scores materialized, the
+       convention's weights from the materialized window (lasso / elastic net: the walk's held seed weights, which the
+       check recomputes from the materialized seed window), the runner's own batch solve (pool_linear_pretune.fit_std /
+       batch_z route); within 1e-8 relative.
+   G3  scored set = Table 1's 33,527 bars, 81 EVENT / 2,498 ORDINARY days.
+   GC1 (C1 rotation) OLS: C1 equals OLS on [BASE, the day's active block columns] to 1e-8 relative on every bar.
+       Ridge: the add-arm convention standardizes every column, the scores included, so ridge's penalty on the full
+       rotation is alpha sum_k lambda_k c_k^2 = alpha gamma' R gamma in the block's standardized coordinates (R the
+       window correlation matrix) -- not isotropic, so ridge C1 is NOT a rotation of C2 under the convention (the
+       coordinator's premise checked: false for ridge).  The rotation mechanics are gated instead on a variant with
+       unstandardized scores (penalty alpha ||c||^2): at every day's first bar it equals ridge on [BASE, the day's active
+       block columns] to 1e-8 relative.  Ridge / lasso / elastic net C1 under the convention: reported, no gate.
+
+6. CONTROLS (the follow-up question: does the PCA construction handicap the factor arms against the ablations?)
+   C1  FULL ROTATION: BASE + ALL active components of the day (k = the day's number of active block columns), each class.
+   C2  VALUE-ONLY BLOCK: BASE + the block's value-average columns themselves (no PCA, no availability averages), the same
+       estimator as an add arm (the estimator's own masks; its own data-driven seed events for lasso / elastic net).
+       Its gap to the class's full set = what the components cannot see by construction (test B: the 36 series'
+       availability averages; test A: the availability averages and the FOMC group); C2 - C1 = the component basis
+       (the active rule and, for penalized classes, the standardization of the scores); C1 - k-arms = truncation.
+   C3  LOADING FREQUENCY (information): 21 days at the quantiles i / 20, i = 0 .. 20, of the 2,579 evaluation days (the
+       nearest day), plus 2020-03-16 if not among them: PCA k = 3 and 10 with the loadings recomputed at every bar (from
+       the window ending at the previous bar) instead of once a day, every class; reported: max and mean relative
+       forecast difference to the daily-loading arm, and QLIKE of both on those days' bars.
+   Each reported next to the k-arms (QLIKE, % vs BASE, DM, R) in scores.csv and SUMMARY.md.
+
+7. SCORING (as RULE.txt section 0 and the OLS tests)
+   QLIKE on the bar's actual RV (plain = pred_adj^2 * B, B of Table 1's rows; rv_actual of the templates); spans
+   ORDINARY (primary; the 81 scheduled FOMC statement days removed, channels RULE section 0), every bar, EVENT;
+   Diebold-Mariano with the HLN correction on daily mean QLIKE, HAC lag 8 (src/evaluation/diebold_mariano.dm_test), of
+   every arm against the class's BASE and against the class's FULL.  Per test, class and span:
+   R_k = (L_BASE - L_k) / (L_BASE - L_FULL) with the class's own BASE and FULL.  Where the class's FULL does not beat
+   its BASE on the span (L_FULL >= L_BASE) the span says "no gain to recover" and R is not reported as a share (the
+   losses and DMs are).  FULL vs BASE (% change, DM, p) is reported for every class and span.
+
+8. READING (per test and class, ORDINARY days; the earlier tests' rule, applied only where there is a gain)
+   NO GAIN TO RECOVER if L_FULL >= L_BASE; else SHARED FACTOR if some k <= 3 (PCA or PLS) has R >= 0.75 and its loss is
+   not significantly above FULL's (not: DM(arm vs FULL) > 0 with p < 0.05); else DENSE BEYOND A FEW FACTORS if R(PCA 10)
+   < 0.5 and FULL beats BASE + 10 components significantly (DM(FULL vs pca10) < 0, p < 0.05); else INTERMEDIATE.  Where
+   FULL beats BASE but not significantly (p >= 0.05), the reading carries "(gain not significant; R imprecise)".
+   No reading is pooled over classes; the OLS versions and the trees' R are set beside them in SUMMARY.md, not merged.
+
+9. OUTPUTS AND PLACE
+   Code experiments/factor_pen_2026_10_28.py (walk, gates, score).  Test A -> results/channels_2026-10-26/factor_pen/,
+   test B -> results/beyond_trees_2026-10-27/linear_pen/: forecasts.parquet, scores.csv, reading.json, gates.json,
+   walk.json, SUMMARY.md.  Laptop (one thread a walk), unless a measured smoke run projects more than ~5 GB of disk or
+   hours of the laptop's memory, then CARC (the patched full cache read in place, own staging dir).  Nothing under
+   writeup/ is edited; what the tables and text would need is reported to the coordinator.
