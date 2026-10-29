@@ -42,8 +42,11 @@
 % divergence of QLIKE and squared-error loss, the design of the ablations of Table~\ref{tab:rh_ablation}, the
 % follow-up tests beyond HAR\,+\,RM\,+\,FOMC, and the comparison of the pooled models with the closing-interval HAR
 % benchmark."
+% 2026-10-28 (author: Sections 6 and 7 are one section): Section~\ref{sec:rh_fi} is now Section 6.3, inside
+% Section~\ref{sec:rh_results}. Was: "The details of Section~\ref{sec:rh_results} and of the accuracy evidence of
+% Section~\ref{sec:rh_fi}: ..."
 \begin{itemize}
-\item \textbf{Contents.} The details of Section~\ref{sec:rh_results} and of the accuracy evidence of
+\item \textbf{Contents.} The details of Section~\ref{sec:rh_results}, including the accuracy evidence of
   Section~\ref{sec:rh_fi}: the estimation sample and spans, the subperiods of Table~\ref{tab:rh_oos}, the calibration
   diagnostics behind the divergence of QLIKE and squared-error loss, the design of the ablations of
   Table~\ref{tab:rh_ablation}, the split into FOMC statement days and ordinary days with the rule fixed before it was
@@ -68,7 +71,9 @@
     \rhdmPooledRows = \rhdmGridRows \text{ intervals on the grid} - \rhdmBurnIn \text{ burn-in samples};
   \]
   the pooled linear models and tree ensembles of Table~\ref{tab:rh_oos} and of Sections~\ref{sec:rh_results}
-  to~\ref{sec:rh_econ} are trained on its \rhorNBars{} regular-hours bars with a rolling window of
+  and~\ref{sec:rh_econ} are trained on its \rhorNBars{} regular-hours bars with a rolling window of
+  % 2026-10-28 (author: Sections 6 and 7 are one section): the range is now two adjacent sections. Was:
+  % "Sections~\ref{sec:rh_results} to~\ref{sec:rh_econ}"
   $W = \rhorWindowBars$ bars and re-estimated at every bar (Section~\ref{sec:rh_methods_setup}). The window counts bars,
   not days: \rhorWindowBars{} bars are \rhorWindowDays{} regular sessions of \rhorNBars{} bars, and the window also
   holds the shorter sessions on exchange holidays (Section~\ref{sec:rh_data}).

@@ -20,11 +20,19 @@ with its own rule, re-ran the CLOSE arm at windows W = 1,000 .. 3,500 closes (Pa
 SOURCES  read with `git show <commit>:<path>` from the pushed result branches (nothing is checked out or merged; the
          commits are pinned in SRC, the branch tips at writing):
            linear  insurance-selling-2026-09-19-e34-train3way          results/linear_train3way_2014start_w3000/
-                   scores_all/{gap,dm,qlike_16,qlike_bar}.csv, econ/{econ_d6,econ_diff}.csv, econ/econ_tables.txt
+                   scores_all/{gap,dm,qlike_16,qlike_bar}.csv, scores_all/f16.parquet, econ/econ_d6.csv,
+                   econ/econ_tables.txt
            trees   insurance-selling-2026-09-19-e34-train3way-trees    results/trees_train3way_2014start_w3000/
-                   scores/{gap,dm,qlike_16,qlike_bar}.csv, econ/{econ_d6,econ_diff,econ_gap}.csv (final merge 3501ab7,
+                   scores/{gap,dm,qlike_16,qlike_bar}.csv, scores/f16.parquet, econ/econ_d6.csv (final merge 3501ab7,
                    the ALL48 forest full set including the 159 Hoffman2 pieces of -train3way-trees-h2), and the
                    interim scores_w1/-w3 (checked equal to the final scores where both exist)
+         2026-10-28 (D19): f16.parquet, each arm's 16:00 forecast (plain) on the 2,579 days, from which the sign
+         strategy's returns are rebuilt here; econ_d6.csv (the branches' D6 ratios) is read only for the gate that the
+         rebuilt returns reproduce it.  Was also: econ/{econ_diff,econ_gap}.csv (the D6 differences and their
+         bootstrap p), no longer read.
+         the sign strategy's inputs (local, read only; make_rehaul_robust_window.trade_frame): the 866 option days,
+           iv_var and rv_unclipped of the closing-interval OLS row (results/close_master_table/master_table_daily.parquet,
+           sub_ols_baseline) joined with the quote book results/atm_straddle_0dte_1530/daily_a0.parquet
            window  insurance-selling-2026-09-19-e34-closeonly-wsweep   results/closeonly_wsweep_2014start/
                    {linear,trees}/gap.csv (CLOSE at W = 1,000 .. 3,500; W = 1,000: penalized linear models on 1,001
                    closes, the OLS on 1,000)
@@ -41,13 +49,24 @@ SCORING  as on the branches (their score scripts; nothing is recomputed here): t
          bars (33,527 with RV > 0); QLIKE averaged over them; Diebold-Mariano (HLN, Newey-West lag 8) on the daily loss
          (16:00 loss; the daily mean over the 13 bars for every bar).  Full vs HAR: the full set against the HAR
          benchmark of the same model and arm (negative = the full set is more accurate).  Across arms: the first-named
-         arm against the second, full set (negative = the first is more accurate).  Sharpe ratio: the paper's D6 of the
-         sign strategy (Section 7) on the 614 post-warmup option days, at mid-quotes (and bid/ask, macros only); the
-         differences by the paired block bootstrap of hac_inference.d6_diff_test.
+         arm against the second, full set (negative = the first is more accurate).
+SHARPE   2026-10-28 (author decision D19, as Section 7): recomputed here (the branches stored D6 only).  The sign
+         strategy of make_rehaul_economics.add_pooled_linear / add_pooled_trees (copied in sign_returns): on the 866
+         option days, q = +1 if the arm's 16:00 plain exceeds the OLS row's iv_var, else -1; mid return q R, bid/ask
+         return master_table_gui.rows._crossed_return.  The Sharpe ratio is the paper's pooled ratio
+         (hac_inference.paper_sharpe: sqrt(q) mean / sd, q = T / sum_y c_y = 225.5) on the 614 post-warmup option days,
+         at mid-quotes (and bid/ask, macros only); every difference (full - HAR of an arm; one arm - another, full set)
+         is tested by Ledoit-Wolf (2008) (hac_inference.paper_sharpe_test), the paired block bootstrap of the pooled
+         difference a check (writeup/generated/sharpe_tests_d19_train_arms.csv, p_boot).  Was: the paper's D6 (the
+         equal-year mean of the SR_y) read from the branches' econ files, the differences by the paired block bootstrap
+         of hac_inference.d6_diff_test.
 GATES    nothing is written unless all pass:
+         (0) 2026-10-28 (D19): the rebuilt returns reproduce every D6 ratio of the branches' econ_d6.csv (mid and
+             bid/ask, every arm, model and set) to 1e-12 (relative), and q is the printed \\rheAnnDays;
          (1) MAIN DESIGN: every RTH13 number of the branches (16:00 and every-bar QLIKE of both sets, full-vs-HAR % /
-             DM / p, D6 Sharpe ratios at mid and bid/ask, the trees' full-vs-HAR bootstrap p) equals the main design's
-             score files to 1e-12 (relative);
+             DM / p, D6 Sharpe ratios at mid and bid/ask) equals the main design's score files to 1e-12 (relative), and
+             (D19) the rebuilt RTH13 pooled ratios and full-vs-HAR Ledoit-Wolf p equal those files' sr614 (scaled by
+             sqrt(q / 252)) and lw_p columns (Was: the trees' full-vs-HAR bootstrap p);
          (2) PRINTED: the same numbers reproduce, at their printed precision, Table 1's cells and \\rhorDm...B, the
              \\rhrb...Main macros of Table tab:rh_robust_w3500 (integrated in the appendix), the \\rhca...CloseSpan and
              the \\rhem... macros;
@@ -60,6 +79,8 @@ CLAIMS   the statements of writeup/drafts/2026-10-26_train_arms.tex that name cl
 WRITES   writeup/generated/rehaul_train_arms_numbers.tex   \\rhta... macros (\\providecommand, a comment per macro)
          writeup/generated/rehaul_train_arms_table.tex     Table tab:rh_train_arms (Panels A-C) and its continuation
                                                            (Panels D-F, \\ContinuedFloat, label tab:rh_train_arms_cont)
+         writeup/generated/sharpe_tests_d19_train_arms.csv  2026-10-28 (D19): every Sharpe-ratio difference tested,
+                                                           with its Ledoit-Wolf p and the bootstrap check p
          --gates-csv PATH writes the gate log (default: printed only).
 
 Run:  python writeup/make_rehaul_train_arms.py      (from anywhere; git must reach the pinned commits)
@@ -69,8 +90,10 @@ from __future__ import annotations
 
 import argparse
 import io
+import math
 import re
 import subprocess
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -78,9 +101,14 @@ import pandas as pd
 
 ROOT = Path(__file__).resolve().parent  # writeup/
 REPO = ROOT.parent
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+import hac_inference as hi  # noqa: E402  (2026-10-28, D19: the paper's Sharpe ratio and its Ledoit-Wolf test)
+
 GEN = ROOT / "generated"
 OUT_NUM = GEN / "rehaul_train_arms_numbers.tex"
 OUT_TAB = GEN / "rehaul_train_arms_table.tex"
+OUT_TESTS = GEN / "sharpe_tests_d19_train_arms.csv"  # 2026-10-28 (D19): the tested differences, with the check p
 HEAD = "% AUTO-GENERATED by writeup/make_rehaul_train_arms.py -- do not edit; re-run the script."
 
 # pushed result branches: (branch, pinned commit, result directory)
@@ -105,6 +133,13 @@ LIN_MAIN = REPO / "results" / "window_sweep_2014start_2026-10-22" / "part2"
 TREE_MAIN = REPO / "results" / "pooled_trees_final_2014start_w3000" / "scores"
 RF_MAIN = REPO / "results" / "pooled_rf_skx_2014start_w3000" / "scores"
 W_MAIN = 3000
+# 2026-10-28 (D19): the sign strategy's inputs (make_rehaul_robust_window.MT_DAILY / QUOTE_BOOK / OLS_CLOSE)
+MT_DAILY = REPO / "results" / "close_master_table" / "master_table_daily.parquet"
+QUOTE_BOOK = REPO / "results" / "atm_straddle_0dte_1530" / "daily_a0.parquet"  # master_table_gui.rows._QUOTE_BOOK
+OLS_CLOSE = "sub_ols_baseline"  # make_rehaul_economics.OLS: the option days, iv_var and the realized variance
+N_OPT = 866  # option days (make_rehaul_economics.N_OPT)
+WARMUP = 252  # make_rehaul_economics.WARMUP (master_table_gui.rows._SIZING_WARMUP)
+N_PW = N_OPT - WARMUP  # 614 post-warmup days, the sample of every Sharpe ratio
 
 N_DAYS = 2579  # evaluation days, 2014-01-02 .. 2024-04-30 (early closes dropped)
 N_BARS = 33527  # scored regular-hours bars
@@ -245,6 +280,150 @@ def git_csv(src: str, rel: str) -> pd.DataFrame:
     return pd.read_csv(io.StringIO(git_text(src, rel)))
 
 
+def git_parquet(src: str, rel: str) -> pd.DataFrame:
+    """2026-10-28 (D19): a parquet file of a pinned commit (git show, binary)."""
+    branch, sha, base = SRC[src]
+    r = subprocess.run(["git", "-C", str(REPO), "show", f"{sha}:{base}/{rel}"], capture_output=True)
+    if r.returncode != 0:
+        raise SystemExit(f"git show {sha[:7]}:{base}/{rel} failed ({branch}; git fetch origin {branch}): {r.stderr!r}")
+    return pd.read_parquet(io.BytesIO(r.stdout))
+
+
+# --------------------------------------------------------------------------- the sign strategy (2026-10-28, D19)
+
+
+def crossed_return(q, ex, bid, ask) -> np.ndarray:
+    """writeup/master_table_gui/rows.py _crossed_return: a buy pays the ask, a sale gets the bid (entry only)."""
+    return np.where(q > 0, q * (ex / ask - 1.0), np.where(q < 0, q * (ex / bid - 1.0), 0.0))
+
+
+def trade_frame() -> pd.DataFrame:
+    """make_rehaul_robust_window.trade_frame (copied): the 866 option days of the closing-interval OLS row
+    (make_rehaul_economics.load, its OLS row and book): iv_var, rv_unclipped, and the quote book's straddle (R, exit,
+    bid, ask); gate: the row's mid return is q R."""
+    d = pd.read_parquet(MT_DAILY, columns=["key", "day", "q", "ret_mid", "iv_var", "rv_unclipped"])
+    d = d[d["key"] == OLS_CLOSE].copy()
+    d["day"] = pd.to_datetime(d["day"]).dt.normalize()
+    qb = pd.read_parquet(QUOTE_BOOK, columns=["R", "exit", "bid_c", "bid_p", "ask_c", "ask_p"])
+    qb.index = pd.to_datetime(qb.index).normalize().astype("datetime64[ns]")
+    book = pd.DataFrame(
+        {
+            "R": qb["R"].astype(float),
+            "ex": qb["exit"].astype(float),
+            "bid": (qb["bid_c"] + qb["bid_p"]).astype(float),
+            "ask": (qb["ask_c"] + qb["ask_p"]).astype(float),
+        }
+    )
+    g = d.set_index("day").sort_index()
+    g.index = g.index.astype("datetime64[ns]")
+    g = g.join(book, how="inner")
+    assert len(g) == N_OPT, len(g)
+    assert np.allclose(g["q"] * g["R"], g["ret_mid"], rtol=0, atol=1e-10), "quote-book R"
+    assert np.isfinite(g[["iv_var", "rv_unclipped"]].to_numpy()).all()
+    return g
+
+
+def sign_returns(g: pd.DataFrame, tf: pd.DataFrame) -> dict[str, np.ndarray]:
+    """experiments/{linear,trees}_train3way_econ.py (the branches' economics; make_rehaul_economics.add_pooled_linear /
+    add_pooled_trees): an arm's 16:00 forecasts (f16.parquet rows: day, plain, rv_actual) on the 866 option days,
+    q = +1 if plain > iv_var else -1; the mid return q R and the bid/ask return on the 614 post-warmup days.  Gates:
+    a finite positive forecast every option day; the row's realized variance is the OLS row's rv_unclipped."""
+    a = g.set_index(pd.DatetimeIndex(pd.to_datetime(g["day"])).astype("datetime64[ns]")).sort_index()
+    assert not a.index.duplicated().any()
+    a = a.reindex(tf.index)
+    p = a["plain"].to_numpy(float)
+    assert np.isfinite(p).all() and (p > 0).all(), int((~np.isfinite(p)).sum())
+    assert np.allclose(a["rv_actual"].to_numpy(float), tf["rv_unclipped"].to_numpy(float), rtol=1e-12, atol=0.0)
+    q = np.where(p > tf["iv_var"].to_numpy(float), 1.0, -1.0)
+    mid = q * tf["R"].to_numpy(float)
+    ba = crossed_return(q, tf["ex"].to_numpy(float), tf["bid"].to_numpy(float), tf["ask"].to_numpy(float))
+    return {"mid": mid[WARMUP:], "ba": ba[WARMUP:]}
+
+
+def sharpe_frames(S: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, float]:
+    """2026-10-28 (D19): the Sharpe ratios and tests of Panel E, from each arm's rebuilt returns (sign_returns).
+    S: the branches' econ_d6.csv rows (arm, model, set, d6_mid, d6_ba).  Returns
+      S      + sr_mid, sr_ba (the paper's pooled ratio, hac_inference.paper_sharpe) and d6_mid_re, d6_ba_re (D6 of the
+               rebuilt returns, for gate (0));
+      SG     full minus HAR of an arm, mid (arm, model, dsr_mid, p_mid): the tree ensembles in every arm, the linear
+               models in RTH13 (as before: the comparison the main design's files carry);
+      SD     one arm minus another, full set, mid (a, b, model, set, sr_a, sr_b, dsr_mid, p_mid): SH_PAIRS;
+      TESTS  every tested difference with its Ledoit-Wolf p, the bootstrap check p and the D6 difference;
+      q      the annualization T / sum_y c_y of the 614 post-warmup days.
+    Every p is hac_inference.paper_sharpe_test's (Ledoit-Wolf 2008, block LW_BLOCK, LW_BOOT resamples, LW_SEED)."""
+    tf = trade_frame()
+    pw = pd.DatetimeIndex(tf.index[WARMUP:])
+    assert len(pw) == N_PW, len(pw)
+    q = float(hi.paper_q(pw)["q"])
+    RET: dict[tuple[str, str, str], dict[str, np.ndarray]] = {}
+    for fam, sub in (("lin", "scores_all"), ("tree", "scores")):
+        f16 = git_parquet(fam, f"{sub}/f16.parquet")
+        f16 = f16.assign(model=tidy_model(f16["model"].astype(str)))
+        for (v, m, s), g in f16.groupby(["variant", "model", "predictor_set"], sort=False):
+            k = (str(v), str(m), str(s))
+            assert k not in RET, k
+            RET[k] = sign_returns(g, tf)
+    keys = set(zip(S.arm, S.model, S.set))
+    assert keys == set(RET), (sorted(keys ^ set(RET)))[:10]
+    sr: dict[str, list[float]] = {"sr_mid": [], "sr_ba": [], "d6_mid_re": [], "d6_ba_re": []}
+    for k in zip(S.arm, S.model, S.set):
+        for side in ("mid", "ba"):
+            r = hi.paper_sharpe(RET[k][side], dates=pw)
+            assert math.isclose(r["q"], q, rel_tol=1e-15), (k, r["q"], q)
+            sr[f"sr_{side}"].append(float(r["sharpe"]))
+            sr[f"d6_{side}_re"].append(float(r["sharpe_d6"]))
+    S = S.assign(**sr)
+    tests: list[dict] = []
+
+    def test(ka: tuple[str, str, str], kb: tuple[str, str, str], what: str) -> dict:
+        a, b = RET[ka]["mid"], RET[kb]["mid"]
+        t = hi.paper_sharpe_test(a, b, pw)  # Ledoit-Wolf p; p_boot the paired block bootstrap check
+        d6 = hi.d6_sharpe(a, pw)["sharpe"] - hi.d6_sharpe(b, pw)["sharpe"]
+        tests.append(
+            dict(
+                comparison=what,
+                arm_a=ka[0],
+                model_a=ka[1],
+                set_a=ka[2],
+                arm_b=kb[0],
+                model_b=kb[1],
+                set_b=kb[2],
+                col="mid",
+                sr_a=t["sr_a"],
+                sr_b=t["sr_b"],
+                d_sr=t["delta"],
+                p_lw=t["p"],
+                p_boot=t["p_boot"],
+                d_sr_d6=d6,
+            )
+        )
+        return t
+
+    sg = []
+    for v, m, s in RET:
+        if s != "all_features" or not (m in TREE or (m in LIN and v == "RTH13")):
+            continue
+        t = test((v, m, "all_features"), (v, m, "baseline"), "full vs HAR")
+        sg.append(dict(arm=v, model=m, dsr_mid=t["delta"], p_mid=t["p"]))
+    sd = []
+    for a, b in SH_PAIRS:
+        for e in EST:
+            t = test((a, e, "all_features"), (b, e, "all_features"), f"{a} vs {b}, full set")
+            sd.append(
+                dict(
+                    a=a,
+                    b=b,
+                    model=e,
+                    set="all_features",
+                    sr_a=t["sr_a"],
+                    sr_b=t["sr_b"],
+                    dsr_mid=t["delta"],
+                    p_mid=t["p"],
+                )
+            )
+    return S, pd.DataFrame(sg), pd.DataFrame(sd), pd.DataFrame(tests), q
+
+
 def branch_tips() -> list[str]:
     """A note for each branch whose tip is no longer the pinned commit (the numbers stay those of the pinned one)."""
     out = []
@@ -264,7 +443,7 @@ def load() -> dict[str, pd.DataFrame]:
     """Every branch table this script uses, in tidy form (model rf_skx -> rf; target 16:00 -> close, every bar ->
     bar)."""
     D: dict[str, pd.DataFrame] = {}
-    gaps, dms, q16, qbar, d6, ddiff = [], [], [], [], [], []
+    gaps, dms, q16, qbar, d6 = [], [], [], [], []
     for fam, sub in (("lin", "scores_all"), ("tree", "scores")):
         g = git_csv(fam, f"{sub}/gap.csv")
         g["family"] = fam
@@ -281,9 +460,9 @@ def load() -> dict[str, pd.DataFrame]:
         e = git_csv(fam, "econ/econ_d6.csv")
         e["family"] = fam
         d6.append(e)
-        f = git_csv(fam, "econ/econ_diff.csv")
-        f["family"] = fam
-        ddiff.append(f)
+        # 2026-10-28 (D19): the D6 differences (econ_diff.csv) and the trees' full-vs-HAR D6 tests (econ_gap.csv) are
+        # no longer read; every Sharpe ratio and test is recomputed from the 16:00 forecasts (sharpe_frames). Was:
+        # f = git_csv(fam, "econ/econ_diff.csv"); f["family"] = fam; ddiff.append(f)
     G = pd.concat(gaps, ignore_index=True)
     G = G.assign(model=tidy_model(G.model), target=G.target.map(TGT)).rename(
         columns={"variant": "arm", "dm_qlike": "dm", "dm_qlike_p": "p"}
@@ -298,11 +477,13 @@ def load() -> dict[str, pd.DataFrame]:
     QB = QB.assign(model=tidy_model(QB.model)).rename(columns={"variant": "arm"})
     S = pd.concat(d6, ignore_index=True)
     S = S.assign(model=tidy_model(S.model)).rename(columns={"variant": "arm"})
-    SD = pd.concat(ddiff, ignore_index=True)
-    SD = SD.assign(model=tidy_model(SD.model))
-    SG = git_csv("tree", "econ/econ_gap.csv")
-    SG = SG.assign(model=tidy_model(SG.model)).rename(columns={"variant": "arm"})
-    D.update(G=G, X=X, Q16=Q16, QB=QB, S=S, SD=SD, SG=SG)
+    # 2026-10-28 (D19): the paper's pooled ratio and the Ledoit-Wolf tests, from the rebuilt returns. Was:
+    # SD = pd.concat(ddiff, ignore_index=True); SD = SD.assign(model=tidy_model(SD.model))
+    # SG = git_csv("tree", "econ/econ_gap.csv")
+    # SG = SG.assign(model=tidy_model(SG.model)).rename(columns={"variant": "arm"})
+    S, SG, SD, TESTS, q = sharpe_frames(S)
+    D.update(G=G, X=X, Q16=Q16, QB=QB, S=S, SD=SD, SG=SG, TESTS=TESTS)
+    D["paper_q"] = pd.DataFrame({"q": [q]})
     # the window sweep of the CLOSE arm
     ws = []
     for fam, sub in (("lin", "linear"), ("tree", "trees")):
@@ -317,7 +498,8 @@ def load() -> dict[str, pd.DataFrame]:
         b = git_csv("tree", f"{w}/qlike_bar.csv")
         D[f"T16_{w}"] = a.assign(model=tidy_model(a.model)).rename(columns={"variant": "arm"})
         D[f"TB_{w}"] = b.assign(model=tidy_model(b.model)).rename(columns={"variant": "arm"})
-    # the option days of the D6 Sharpe ratio, from the econ tables' header line
+    # the option days of the branches' (D6) Sharpe ratio, from the econ tables' header line (2026-10-28, D19: gated
+    # equal to the 614 post-warmup days of the rebuilt returns)
     for fam in ("lin", "tree"):
         m = re.search(r"D6 Sharpe ratio, (\d+) post-warmup option days", git_text(fam, "econ/econ_tables.txt"))
         assert m, fam
@@ -441,17 +623,23 @@ def sharpe(D: dict, arm: str, model: str, set_: str) -> pd.Series | None:
     return None if r.empty else r.iloc[0]
 
 
+# 2026-10-28 (D19): parked -- the D6 bootstrap p (the trees' econ_gap.csv; the linear RTH13 p from part2/econ.csv).
+# Was:
+#     if model in TREE:
+#         SG = D["SG"]
+#         r = SG[(SG.arm == arm) & (SG.model == model)]
+#         return None if r.empty else float(r.iloc[0].p_mid)
+#     if arm == "RTH13":
+#         e = D["main_lin_econ"]
+#         return float(e[e.model == model].iloc[0].d6_boot_p_mid)
+#     return None
 def sharpe_p(D: dict, arm: str, model: str) -> float | None:
-    """Bootstrap p of the full-set minus HAR Sharpe ratio (mid): the trees' econ_gap.csv in every arm; the linear models
-    only in RTH13, from the main design (part2/econ.csv: the linear comparison computed cross-arm differences only)."""
-    if model in TREE:
-        SG = D["SG"]
-        r = SG[(SG.arm == arm) & (SG.model == model)]
-        return None if r.empty else float(r.iloc[0].p_mid)
-    if arm == "RTH13":
-        e = D["main_lin_econ"]
-        return float(e[e.model == model].iloc[0].d6_boot_p_mid)
-    return None
+    """Ledoit-Wolf p of the full-set minus HAR Sharpe ratio (mid; D19, sharpe_frames): the tree ensembles in every arm,
+    the linear models only in RTH13 (the comparison the main design's files carry; gated against them)."""
+    SG = D["SG"]
+    r = SG[(SG.arm == arm) & (SG.model == model)]
+    assert len(r) <= 1
+    return None if r.empty else float(r.iloc[0].p_mid)
 
 
 def _lt(p: float | None, level: float) -> bool:
@@ -557,6 +745,16 @@ def run_gates(D: dict) -> None:
     """GATES (module docstring): the RTH13 arm is the main design, reproduces the printed numbers and the key numbers;
     the branches agree with one another.  Stops on any failure."""
     G, Q16, QB = D["G"], D["Q16"], D["QB"]
+    # --- (0) 2026-10-28 (D19): the rebuilt returns reproduce the branches' D6 ratios; q is the printed one
+    S = D["S"]
+    for r in S.itertuples():
+        for side in ("mid", "ba"):
+            got, want = getattr(r, f"d6_{side}_re"), getattr(r, f"d6_{side}")
+            gate("rebuilt returns = branch econ_d6", f"{r.arm} {r.model} {r.set} {side}", got, want, close(got, want))
+    q = float(D["paper_q"].q[0])
+    mann = read_macros(GEN / "rehaul_econ_numbers.tex")["rheAnnDays"]
+    gate("q = \\rheAnnDays", "614 post-warmup days", f"{q:.1f}", mann)
+    sc252 = math.sqrt(q / 252.0)  # the main design's files carry the pooled ratio scaled by sqrt(252) (sr614_*)
     # --- (1) RTH13 = the main design's own score files
     lq, lgp, le = D["main_lin_q"], D["main_lin_gap"], D["main_lin_econ"]
     lm = D["main_lin_metrics"]  # the linear rows of the trees' metrics.csv (the same w3000 forecasts, OLS included)
@@ -589,6 +787,11 @@ def run_gates(D: dict) -> None:
             assert r is not None
             gate("main lin D6 mid", f"{e} {s}", r.d6_mid, me[f"d6_mid_{sc}"], close(r.d6_mid, me[f"d6_mid_{sc}"]))
             gate("main lin D6 ba", f"{e} {s}", r.d6_ba, me[f"d6_ba_{sc}"], close(r.d6_ba, me[f"d6_ba_{sc}"]))
+            for side, col in (("mid", "sr_mid"), ("ba", "sr_ba")):  # 2026-10-28 (D19)
+                want = me[f"sr614_{side}_{sc}"] * sc252
+                gate(f"main lin SR {side}", f"{e} {s}", r[col], want, close(r[col], want, 1e-10))
+        p = sharpe_p(D, "RTH13", e)  # 2026-10-28 (D19): the Ledoit-Wolf p of full minus HAR
+        gate("main lin LW p", e, p, me.lw_p_mid, p is not None and close(p, me.lw_p_mid))
     tm, td, te = D["main_tree_metrics"], D["main_tree_dm"], D["main_tree_econ"]
     for e in TREE:
         for s in SETS:
@@ -612,8 +815,12 @@ def run_gates(D: dict) -> None:
             assert r is not None
             gate("main tree D6 mid", f"{e} {s}", r.d6_mid, me[f"d6_mid_{sc}"], close(r.d6_mid, me[f"d6_mid_{sc}"]))
             gate("main tree D6 ba", f"{e} {s}", r.d6_ba, me[f"d6_ba_{sc}"], close(r.d6_ba, me[f"d6_ba_{sc}"]))
+            for side, col in (("mid", "sr_mid"), ("ba", "sr_ba")):  # 2026-10-28 (D19)
+                want = me[f"sr614_{side}_{sc}"] * sc252
+                gate(f"main tree SR {side}", f"{e} {s}", r[col], want, close(r[col], want, 1e-10))
+        # 2026-10-28 (D19): the Ledoit-Wolf p. Was: gate("main tree D6 p", e, p, me.d6_boot_p_mid, ...)
         p = sharpe_p(D, "RTH13", e)
-        gate("main tree D6 p", e, p, me.d6_boot_p_mid, p is not None and close(p, me.d6_boot_p_mid))
+        gate("main tree LW p", e, p, me.lw_p_mid, p is not None and close(p, me.lw_p_mid))
 
     # --- (2) RTH13 = the printed numbers
     # 2026-10-26 (integration, APPENDIX): the training arms run on the design before the FOMC patch (D13). Once the
@@ -653,10 +860,11 @@ def run_gates(D: dict) -> None:
                     gate("rhcaQ", f"{e} {s}", r16[s].qlike, mca[nm], printed(r16[s].qlike, mca[nm]))
                 sh = sharpe(D, "RTH13", e, s)
                 assert sh is not None
-                for col, tok in (("d6_mid", "Mid"), ("d6_ba", "Ba")):
+                # 2026-10-28 (D19): the printed ratios are the pooled ones. Was: d6_mid, d6_ba (both loops)
+                for col, tok in (("sr_mid", "Mid"), ("sr_ba", "Ba")):
                     nm = f"rhrbSR{k}{STOK[s]}{tok}Main"
                     gate("rhrbSR", f"{e} {s} {tok}", sh[col], mrb[nm], printed(sh[col], mrb[nm]))
-                for col, tok in (("d6_mid", ""), ("d6_ba", "X")):
+                for col, tok in (("sr_mid", ""), ("sr_ba", "X")):
                     nm = f"rhemSh{tok}{k}{STOK[s]}"
                     if mem is not None:
                         gate("rhemSh", f"{e} {s} {tok}", sh[col], mem[nm], printed(sh[col], mem[nm]))
@@ -720,6 +928,7 @@ def run_gates(D: dict) -> None:
     gate("DM T / lag", "cross-arm", sorted(set(zip(D["X"].dm_T, D["X"].dm_hac_lag))), [(N_DAYS, HAC_LAG)])
     gate("DM T / lag", "window sweep", sorted(set(zip(D["WS"].dm_T, D["WS"].dm_hac_lag))), [(N_DAYS, HAC_LAG)])
     gate("option days", "lin = tree", int(D["opt_days_lin"].n[0]), int(D["opt_days_tree"].n[0]))
+    gate("option days", "lin = rebuilt returns (D19)", int(D["opt_days_lin"].n[0]), N_PW)
     gate("window sweep W", "both", sorted(set(D["WS"].W)), list(WS_W))
     # every Panel A-D cell of a primary or equal-row arm exists for every class
     for arm in PRIMARY + EQUAL_ROWS:
@@ -811,18 +1020,24 @@ def claims(D: dict) -> None:
     for t in ("close", "bar"):
         rs = xp("RTH13_N3k", "RTH13", t)
         assert (rs.pct > 0).all() and (rs.p < 0.01).all(), t
-    # Panel E: no full-set Sharpe ratio difference ALL48 - RTH13 or CLOSE - RTH13 significant at 5 %
-    for a, b in SH_PAIRS:
-        for e in EST:
-            r = sharpe_diff(D, a, b, e)
-            assert r is not None and r.p_mid >= SIG, (a, b, e)
-    # the trees' full-vs-HAR Sharpe ratio difference: significant at 5 % in 1 / 2 / 2 classes under RTH13 / ALL48 / CLOSE
+    # Panel E (2026-10-28, D19: the pooled ratio, Ledoit-Wolf p; the claims below were D6 / bootstrap until then)
+    sd_p = {(a, e): sharpe_diff(D, a, b, e).p_mid for a, b in SH_PAIRS for e in EST}  # type: ignore[union-attr]
     nsig = {arm: sum(_lt(sharpe_p(D, arm, e), SIG) for e in TREE) for arm in PRIMARY}
-    assert nsig == {"RTH13": 1, "ALL48": 2, "CLOSE": 2}, nsig
+    print(f"claims, Panel E (D19): cross-arm p {sd_p}; tree full-vs-HAR p < 0.05 by arm {nsig}")
+    # no full-set Sharpe ratio difference ALL48 - RTH13 or CLOSE - RTH13 significant at 5 %
+    for (a, e), p in sd_p.items():
+        assert p >= SIG, (a, e, p)
+    # the trees' full-vs-HAR Sharpe ratio difference: significant at 5 % in 2 / 0 / 1 classes under RTH13 / ALL48 / CLOSE
+    # (2026-10-28, D19, Ledoit-Wolf; was 1 / 2 / 2 under D6 and the bootstrap), and each significant one a gain (the
+    # text: "the full-set strategy's gain over the HAR benchmark's is significant")
+    assert nsig == {"RTH13": 2, "ALL48": 0, "CLOSE": 1}, nsig
+    SG = D["SG"]
+    assert (SG[SG.p_mid < SIG].dsr_mid > 0).all(), SG[SG.p_mid < SIG]
     assert all(not _lt(sharpe_p(D, "RTH13", e), SIG) for e in LIN)
     for e in TREE:
         sc, sr = sharpe(D, "CLOSE", e, "baseline"), sharpe(D, "RTH13", e, "baseline")
-        assert sc is not None and sr is not None and sc.d6_mid < sr.d6_mid, e
+        # 2026-10-28 (D19): was sc.d6_mid < sr.d6_mid
+        assert sc is not None and sr is not None and sc.sr_mid < sr.sr_mid, e
     # Panel F: the window sweep: lower QLIKE with the full set at every W and class; significant at 5 % from W = 2,000
     WS = D["WS"]
     assert (WS.pct < 0).all()
@@ -875,7 +1090,8 @@ def write_macros(D: dict) -> set[str]:
     add(
         "rhtaValYear", "2013", "validation year of the pre-sample fold on which every arm's linear penalties are chosen"
     )
-    add("rhtaOptDays", thousands(n_opt), "post-warmup option days of the D6 Sharpe ratio (Section 7)")
+    # 2026-10-28 (D19): was "post-warmup option days of the D6 Sharpe ratio (Section 7)"
+    add("rhtaOptDays", thousands(n_opt), "post-warmup option days of the Sharpe ratio (Section 7; D19 pooled ratio)")
     add("rhtaNClasses", str(len(EST)), "model classes (ridge, lasso, elastic net, LightGBM, XGBoost, random forest)")
     add("rhtaWsMin", thousands(min(WS_W)), "smallest window of the close-only sweep, closes")
     add("rhtaWsMax", thousands(max(WS_W)), "largest window of the close-only sweep, closes")
@@ -908,7 +1124,8 @@ def write_macros(D: dict) -> set[str]:
             )
             add(f"rhtaXDm{stem}", mnum(r.dm, 2), "... its Diebold-Mariano statistic")
             add(f"rhtaXP{stem}", mpval(r.p), "... its p statement")
-    # --- Sharpe ratios
+    # --- Sharpe ratios (2026-10-28, D19: the paper's pooled ratio, Ledoit-Wolf p; was D6 and the bootstrap p, read
+    # from the branches: r.d6_mid, r.d6_ba, r.dd6_mid)
     for arm in SH_ARMS:
         for e in EST:
             for s in SETS:
@@ -916,22 +1133,22 @@ def write_macros(D: dict) -> set[str]:
                 if r is None:
                     continue
                 stem = f"{MTOK[e]}{STOK[s]}{ATOK[arm]}"
-                add(f"rhtaSh{stem}", mnum(r.d6_mid, 2), f"Sharpe ratio (D6), mid-quotes: {NAME[e]}, {s}, {ADESC[arm]}")
-                add(f"rhtaShX{stem}", mnum(r.d6_ba, 2), "... at quoted bid/ask prices")
+                add(f"rhtaSh{stem}", mnum(r.sr_mid, 2), f"Sharpe ratio (D19), mid-quotes: {NAME[e]}, {s}, {ADESC[arm]}")
+                add(f"rhtaShX{stem}", mnum(r.sr_ba, 2), "... at quoted bid/ask prices")
             p = sharpe_p(D, arm, e)
             if p is not None:
                 add(
                     f"rhtaPSh{MTOK[e]}{ATOK[arm]}",
                     mpval(p),
-                    f"bootstrap p, Sharpe ratio full minus HAR (mid): {NAME[e]}, {arm}",
+                    f"Ledoit-Wolf p, Sharpe ratio full minus HAR (mid): {NAME[e]}, {arm}",
                 )
     for a, b in SH_PAIRS:
         for e in EST:
             r = sharpe_diff(D, a, b, e)
             assert r is not None
             stem = f"{MTOK[e]}{ATOK[a]}Vs{ATOK[b]}"
-            add(f"rhtaDSh{stem}", mnum(r.dd6_mid, 2), f"Sharpe ratio (D6, mid), {a} minus {b}, full set, {NAME[e]}")
-            add(f"rhtaPDSh{stem}", mpval(r.p_mid), "... its bootstrap p")
+            add(f"rhtaDSh{stem}", mnum(r.dsr_mid, 2), f"Sharpe ratio (D19, mid), {a} minus {b}, full set, {NAME[e]}")
+            add(f"rhtaPDSh{stem}", mpval(r.p_mid), "... its Ledoit-Wolf p")
     # --- the close-only window sweep
     for w in WS_W:
         for e in EST:
@@ -1009,26 +1226,28 @@ def write_macros(D: dict) -> set[str]:
     rng("rhtaRthThreeKVsRthClosePct", pcts(x, EST), "16:00, RTH13_N3k vs RTH13 (3,000 vs 39,000 rows), full set")
     x = xp("RTH13_N3k", "RTH13", "bar")
     rng("rhtaRthThreeKVsRthBarPct", pcts(x, EST), "every bar, RTH13_N3k vs RTH13 (3,000 vs 39,000 rows), full set")
-    # Sharpe ratios
+    # Sharpe ratios (2026-10-28, D19: sr_mid; was d6_mid)
     for arm in PRIMARY:
-        v = [float(sharpe(D, arm, e, "all_features").d6_mid) for e in EST]  # type: ignore[union-attr]
-        add(f"rhtaShFull{ATOK[arm]}Min", mnum(min(v), 2), f"Sharpe ratio (D6, mid), full set, {arm}: lowest of the six")
+        v = [float(sharpe(D, arm, e, "all_features").sr_mid) for e in EST]  # type: ignore[union-attr]
+        add(
+            f"rhtaShFull{ATOK[arm]}Min", mnum(min(v), 2), f"Sharpe ratio (D19, mid), full set, {arm}: lowest of the six"
+        )
         add(f"rhtaShFull{ATOK[arm]}Max", mnum(max(v), 2), "... highest of the six")
         n = sum(_lt(sharpe_p(D, arm, e), SIG) for e in TREE)
         add(
             f"rhtaNTreeShSig{ATOK[arm]}",
             WORD[n],
-            f"tree classes whose full-vs-HAR Sharpe ratio difference has p < 0.05, {arm}",
+            f"tree classes whose full-vs-HAR Sharpe ratio difference has Ledoit-Wolf p < 0.05, {arm}",
         )
-    v = [float(sharpe(D, "CLOSE", e, "baseline").d6_mid) for e in TREE]  # type: ignore[union-attr]
-    add("rhtaShTreeHarClMin", mnum(min(v), 2), "Sharpe ratio (D6, mid), HAR benchmark, CLOSE, tree ensembles: lowest")
+    v = [float(sharpe(D, "CLOSE", e, "baseline").sr_mid) for e in TREE]  # type: ignore[union-attr]
+    add("rhtaShTreeHarClMin", mnum(min(v), 2), "Sharpe ratio (D19, mid), HAR benchmark, CLOSE, tree ensembles: lowest")
     add("rhtaShTreeHarClMax", mnum(max(v), 2), "... highest")
     ps = [float(sharpe_diff(D, a, b, e).p_mid) for a, b in SH_PAIRS for e in EST]  # type: ignore[union-attr]
     add(
         "rhtaNDShTests", str(len(ps)), "Sharpe ratio tests ALL48 - RTH13 and CLOSE - RTH13, full set (six classes each)"
     )
-    add("rhtaNDShSig", WORD[sum(p < SIG for p in ps)], "... of them with p < 0.05")
-    add("rhtaDShPMin", mpval(min(ps)), "... the smallest p")
+    add("rhtaNDShSig", WORD[sum(p < SIG for p in ps)], "... of them with Ledoit-Wolf p < 0.05")
+    add("rhtaDShPMin", mpval(min(ps)), "... the smallest Ledoit-Wolf p")
     # window sweep
     WS = D["WS"]
     add("rhtaWsNCells", str(len(WS)), "window x class cells of the close-only sweep (16:00, full vs HAR)")
@@ -1051,7 +1270,8 @@ def write_macros(D: dict) -> set[str]:
         "% writeup/drafts/2026-10-26_train_arms.tex).  Names: <Stat><Model><Arm><Bar>; Arm Rth (RTH13, the main design),",
         "% All (ALL48), Cl (CLOSE), ClNat (CLOSE_NAT), AllCt / RthCt (penalties chosen at 16:00), AllThreeK / RthThreeK /",
         "% AllThirtyNineK (the last 3,000 / 39,000 rows); Bar Close (16:00) or Bar (every bar); X... = first arm vs second",
-        "% (full set); Sh... = Sharpe ratio (D6); Ws... = the close-only window sweep.",
+        "% (full set); Sh... = Sharpe ratio (D19: the paper's pooled ratio; p by Ledoit-Wolf); Ws... = the close-only",
+        "% window sweep.",
         "% Sources (git show, pinned): "
         + "; ".join(f"{SRC[k][0]} {SRC[k][1][:7]}" for k in ("lin", "tree", "ws"))
         + ".",
@@ -1115,8 +1335,9 @@ def write_table(D: dict) -> None:
         HEAD,
         "% tab:rh_train_arms (appendix): the pre-registered three-way comparison of training samples (RTH13 = the main",
         "% design, ALL48, CLOSE; the linear secondary arms; the equal-row arms) and the close-only window sweep, scored on",
-        "% the 2,579 days 2014-01-02 .. 2024-04-30; DM (HLN, Newey-West lag 8) on the daily loss; Sharpe ratio D6 of the",
-        "% sign strategy on the 614 post-warmup option days.  Two floats: Panels A-C, and D-F (\\ContinuedFloat).",
+        "% the 2,579 days 2014-01-02 .. 2024-04-30; DM (HLN, Newey-West lag 8) on the daily loss; Sharpe ratio of the sign",
+        "% strategy on the 614 post-warmup option days (D19: the paper's pooled ratio, Ledoit-Wolf p; was D6, bootstrap p).",
+        "% Two floats: Panels A-C, and D-F (\\ContinuedFloat).",
         f"% Sources (git show, pinned): {src}.",
         "\\ifdefined\\rhtaNdays\\else\\input{generated/rehaul_train_arms_numbers}\\fi",
         "\\begin{table}[p]",
@@ -1203,12 +1424,12 @@ def write_table(D: dict) -> None:
             if tt == t:
                 L.append(f"{short(a)} & {short(b)} & {pair_cells(D, a, b, t)} \\\\")
     L += ["\\addlinespace[4pt]", panel("Panel E: Sharpe ratio of the sign strategy, mid-quotes", NCOL2)]
-    for arm in SH_ARMS:
+    for arm in SH_ARMS:  # 2026-10-28 (D19): sr_mid, dsr_mid and the Ledoit-Wolf p; was d6_mid, dd6_mid, bootstrap p
         full, har = [], []
         for e in EST:
             f, h = sharpe(D, arm, e, "all_features"), sharpe(D, arm, e, "baseline")
-            full.append("--" if f is None else f"{tnum(f.d6_mid, 2)} {{\\scriptsize {tp(sharpe_p(D, arm, e))}}}")
-            har.append("--" if h is None else tnum(h.d6_mid, 2))
+            full.append("--" if f is None else f"{tnum(f.sr_mid, 2)} {{\\scriptsize {tp(sharpe_p(D, arm, e))}}}")
+            har.append("--" if h is None else tnum(h.sr_mid, 2))
         L.append(f"{short(arm)} & Full & " + " & ".join(full) + " \\\\")
         L.append(" & HAR & " + " & ".join(har) + " \\\\")
     L.append("\\addlinespace[2pt]")
@@ -1216,7 +1437,7 @@ def write_table(D: dict) -> None:
         cells = []
         for e in EST:
             r = sharpe_diff(D, a, b, e)
-            cells.append("--" if r is None else f"{tnum(r.dd6_mid, 2)} {{\\scriptsize {tp(r.p_mid)}}}")
+            cells.append("--" if r is None else f"{tnum(r.dsr_mid, 2)} {{\\scriptsize {tp(r.p_mid)}}}")
         L.append(f"{short(a)} & $-$ {short(b)} & " + " & ".join(cells) + " \\\\")
     L += [
         "\\addlinespace[4pt]",
@@ -1233,11 +1454,15 @@ def write_table(D: dict) -> None:
         "\\item \\textit{Notes:} Samples, entries and $p$-values as in Panels A--C. Panel D: the equal-row samples "
         "against one another and against their equal-calendar siblings. Panel E: the Sharpe ratio $\\SR$ of the sign "
         "strategy of Section~\\ref{sec:rh_econ_measures} on the \\rhtaOptDays{} post-warmup option days, at "
+        # 2026-10-28 (D19): the p-values are Ledoit-Wolf's. Was: "... in parentheses after Full, the bootstrap
+        # $p$-value of Full minus HAR (paired block bootstrap, Appendix~\\ref{sec:rh_methods_tests}), computed for the
+        # linear models in RTH13 only (--). Rows ALL48 $-$ RTH13 and CLOSE $-$ RTH13: the difference in $\\SR$
+        # between the full-set strategies of two samples, with its bootstrap $p$-value."
         "mid-quotes, for the forecast of the full predictor set (Full) and of the HAR benchmark (HAR); in parentheses "
-        "after Full, the bootstrap $p$-value of Full minus HAR (paired block bootstrap, "
-        "Appendix~\\ref{sec:rh_methods_tests}), computed for the linear models in RTH13 only (--). Rows ALL48 $-$ "
-        "RTH13 and CLOSE $-$ RTH13: the difference in $\\SR$ between the full-set strategies of two samples, with its "
-        "bootstrap $p$-value. Panel F: CLOSE on rolling windows of $W$ closes, everything else unchanged (the linear "
+        "after Full, the $p$-value of the \\citet{LedoitWolf2008} test of Full against HAR "
+        "(Appendix~\\ref{sec:rh_methods_tests}), computed for the linear models in RTH13 only (--). Rows ALL48 $-$ "
+        "RTH13 and CLOSE $-$ RTH13: the difference in $\\SR$ between the full-set strategies of two samples, with the "
+        "$p$-value of the same test. Panel F: CLOSE on rolling windows of $W$ closes, everything else unchanged (the linear "
         "penalties re-chosen at each $W$ by the same rule; at $W = 1{,}000$ the penalized models use 1{,}001 closes; "
         "the tree ensembles keep the configurations chosen on the pooled regular-hours bars); $W = \\rhtaWinDays$ is "
         "the CLOSE row of Panel~A.",
@@ -1281,6 +1506,8 @@ def main() -> None:
     if args.gates_csv:
         pd.DataFrame(GATES).to_csv(args.gates_csv, index=False)
     claims(D)
+    # 2026-10-28 (D19): every tested Sharpe-ratio difference, Ledoit-Wolf p and the bootstrap check p
+    D["TESTS"].to_csv(OUT_TESTS, index=False, float_format="%.6f")
     names = write_macros(D)
     check_macro_names(names)
     write_table(D)

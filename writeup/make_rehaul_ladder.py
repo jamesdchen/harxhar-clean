@@ -1,8 +1,23 @@
-"""The feature-count ladder (top-k exogenous series) of the pooled intraday forecasts at W = 3,000 days (2026-10-26).
+"""The feature-count ladder (top-k exogenous series) of the pooled intraday forecasts at W = 3,000 days (2026-10-26;
+FOMC-patched by default since 2026-10-28).
 
-READS    results/ladder_2026-10-26/ (RULE.txt; scores.csv, readings.csv, gates.json, rank_primary.csv,
-         posthoc_vs_walk.csv), written by its code/ladder_score.py and code/ladder_posthoc.py from the CARC runs.  Every
-         number below is read from those files; none is recomputed from forecasts here.
+READS    default: results/ladder_2026-10-26/fomcfix/, the FOMC-PATCHED ladder (RULE.txt ADDENDUM 3; decision D13, the
+         paper's design), as make_rehaul_channels.py reads it for Table tab:rh_channels_sparse, Panel B.
+         --prepatch: results/ladder_2026-10-26/, the PRE-PATCH ladder (RULE.txt ADDENDUM 2), kept reachable.
+         From the chosen directory: scores.csv, readings.csv, gates.json, rank_primary.csv (written by
+         code/ladder_score.py, and for the patched one fomcfix/code/ff_*.py, from the CARC runs) and posthoc_vs_walk.csv
+         (below); RULE.txt of results/ladder_2026-10-26 in both cases.  Every number below is read from those files;
+         none is recomputed from forecasts here.
+POST HOC posthoc_vs_walk.csv (not in the RULE): the monthly rungs against Table 1's every-bar walks of the full set and
+         the HAR set, written by code/ladder_posthoc.py.  The patched run did not write one; `--posthoc` writes
+         fomcfix/posthoc_vs_walk.csv with that script UNCHANGED, its results directory and walk templates pointed at
+         fomcfix/ and at Table 1's patched walks (results/window_sweep_2014start_fomcfix/w3000,
+         results/pooled_trees_final_2014start_fomcfix_w3000, results/pooled_rf_skx_2014start_fomcfix_w3000), with the
+         script's own gate (each monthly rung's QLIKE = scores.csv to 1e-12).  (The walk_full / walk_har rows of
+         fomcfix/scores.csv are the PRE-PATCH Table 1 walks, the scorer's reference template; not read here.)
+GATES    the ladder's own per-model pass flag (gates.json); on the patched ladder a model whose flag is false only through
+         GP (patch invariance) on a SECONDARY (look-ahead) rung other than S10 passes the gates of the rungs read here,
+         as in make_rehaul_channels.py (2026-10-26: LightGBM S3, max |diff| 1.1e-13 on 154 rows).
 DESIGN   (RULE.txt sections 1-6) each model refitted on its top k exogenous series only, k = 0 (the HAR benchmark set),
          1, 3, 5, 10, 20 and 46 (the full set); each series enters with its 12 columns; the 12 HAR-benchmark columns in
          every rung; LightGBM, XGBoost, the random forest on oneDAL, ridge, lasso, elastic net with the frozen
@@ -11,16 +26,16 @@ DESIGN   (RULE.txt sections 1-6) each model refitted on its top k exogenous seri
          the series' 12 columns; linear: sum |beta| x s.d.), no look-ahead; SECONDARY (look-ahead, descriptive): the
          full-span pooled shares.  Scored on Table 1's 33,527 bars (2,579 days) and on their 16:00 bar; QLIKE; DM (HLN,
          Newey-West lag 8, daily average loss); retained gain R_k = (L_0 - L_k) / (L_0 - L_46) x 100.
-         PRE-PATCH design: the FOMC calendar features before the FOMC fix (RULE.txt ADDENDUM 2).
-WRITES   writeup/generated/rehaul_ladder_numbers.tex   \\rhld... macros (definitions only)
-         writeup/generated/rehaul_ladder_fig.tex       Figure fig:rh_ladder
-         writeup/figures/rehaul_ladder.pdf (and .png)
+WRITES   (tag "" = patched, the names the paper inputs; "_prepatch" with --prepatch)
+         writeup/generated/rehaul_ladder_numbers<tag>.tex   \\rhld... and \\ladder... macros (definitions only)
+         writeup/generated/rehaul_ladder_fig<tag>.tex       Figure fig:rh_ladder (A_fi.tex, app:rh_fi_ladder)
+         writeup/figures/rehaul_ladder<tag>.pdf (and .png)
 NAMES    \\rhld<Model><Span>...: Model Lgbm Xgb Rf Ridge Lasso Enet; Span Bar (every bar) / Close (16:00); rung words
          Full (46), Twenty, Ten, Five, Three, One, Zero (the HAR set).  R<k> retained gain (%), P<k>Full the DM p of the
          rung against the full set, Kninety the smallest k keeping 90 %, Verdict the RULE's reading.  Aggregates over
          the trees (LightGBM, XGBoost, forest) and the linear models (ridge, lasso, elastic net): ...Min / ...Max.
 
-Run:  python writeup/make_rehaul_ladder.py     (repository root)
+Run:  python writeup/make_rehaul_ladder.py [--prepatch] [--posthoc]     (repository root)
 """
 
 from __future__ import annotations
@@ -37,11 +52,25 @@ ROOT = HERE.parent
 sys.path.insert(0, str(HERE))
 import make_rehaul_fi as fi  # noqa: E402  (series names and figure style; importing it only defines them)
 
-LAD = ROOT / "results" / "ladder_2026-10-26"
+LAD_PRE = ROOT / "results" / "ladder_2026-10-26"  # the pre-patch ladder (RULE.txt ADDENDUM 2); RULE.txt for both
+LAD_FIX = LAD_PRE / "fomcfix"  # the FOMC-patched ladder (RULE.txt ADDENDUM 3, D13): the paper's design
+LAD, TAG = LAD_FIX, ""  # set by the command line (--prepatch: LAD_PRE, "_prepatch")
+# Table 1's every-bar walks on the patched design (make_rehaul_channels.py's "Table 1" inputs): the post hoc's templates
+WALK_FIX = {
+    "lin": ROOT / "results" / "window_sweep_2014start_fomcfix" / "w3000" / "forecasts.parquet",
+    "trees": ROOT / "results" / "pooled_trees_final_2014start_fomcfix_w3000" / "forecasts.parquet",
+    "rf": ROOT / "results" / "pooled_rf_skx_2014start_fomcfix_w3000" / "forecasts.parquet",
+}
+LABEL = {
+    "": "PATCHED design: the FOMC fix adopted (FOMC_SCHEDULE_2020_FIX, FOMC_PROXIMITY_NO_WINSOR; RULE.txt ADDENDUM 3).",
+    "_prepatch": "PRE-PATCH design: the FOMC calendar features before the FOMC fix (RULE.txt ADDENDUM 2).",
+}
+CAPTION = {
+    "": "FOMC-patched design.",
+    "_prepatch": r"Pre-patch design: the FOMC calendar features before the fix of Section~\ref{sec:rh_data}.",
+}
 GEN = HERE / "generated"
 FIG = HERE / "figures"
-OUT_NUM = GEN / "rehaul_ladder_numbers.tex"
-OUT_FIG = GEN / "rehaul_ladder_fig.tex"
 HEAD = "% AUTO-GENERATED by writeup/make_rehaul_ladder.py -- do not edit; re-run the script."
 
 KS = (0, 1, 3, 5, 10, 20, 46)
@@ -94,14 +123,46 @@ def pval(p: float) -> str:
     return "\\ensuremath{<}0.001" if p < 0.001 else f"{p:.3f}"
 
 
+def gate_ok(g: dict) -> bool:
+    """The ladder's own pass flag; or (patched ladder) false only through GP on secondary rungs this file does not read
+    (every rung but S10), with the core gate (trees: GT, the full rung = the walk at 126 / 126 origins; linear: GL1)."""
+    if bool(g.get("pass", False)):
+        return True
+    core = g.get("GT_origin_bit_equal") == g.get("GT_origin_n") == 126 if "GT_origin_n" in g else g.get("GL1_pass")
+    gp = [str(x).split(":")[0] for x in g.get("GP_differ", [])]
+    return bool(core) and bool(gp) and all(x.startswith("S") and x != "S10" for x in gp)
+
+
+def posthoc_patched() -> None:
+    """Write fomcfix/posthoc_vs_walk.csv: code/ladder_posthoc.py unchanged, its RES and TEMPL pointed at the patched
+    ladder and Table 1's patched walks (the script asserts each monthly rung's QLIKE = scores.csv to 1e-12)."""
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("ladder_posthoc", LAD_PRE / "code" / "ladder_posthoc.py")
+    assert spec is not None and spec.loader is not None
+    lp = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(lp)
+    for f in WALK_FIX.values():
+        assert f.is_file(), f"patched Table 1 walk missing: {f}"
+    setattr(lp, "RES", LAD_FIX)  # read by lp.main() at call time
+    setattr(lp, "TEMPL", dict(WALK_FIX))
+    assert lp.main() == 0
+    print(f"wrote {(LAD_FIX / 'posthoc_vs_walk.csv').relative_to(ROOT)}")
+
+
 def main() -> None:
     S = pd.read_csv(LAD / "scores.csv")
     R = pd.read_csv(LAD / "readings.csv")
     gates = json.loads((LAD / "gates.json").read_text())
     rank = pd.read_csv(LAD / "rank_primary.csv")
+    assert (LAD / "posthoc_vs_walk.csv").is_file(), f"{LAD / 'posthoc_vs_walk.csv'} missing: run with --posthoc"
     walk = pd.read_csv(LAD / "posthoc_vs_walk.csv")
-    rule = (LAD / "RULE.txt").read_text(encoding="utf-8")
-    assert "PRE-PATCH" in rule, "the ladder's RULE no longer labels the design pre-patch: check the caption"
+    rule = (LAD_PRE / "RULE.txt").read_text(encoding="utf-8")
+    if TAG == "_prepatch":
+        assert "PRE-PATCH" in rule, "the ladder's RULE no longer labels the design pre-patch: check the caption"
+    else:
+        assert "ADDENDUM 3" in rule and "RERUN ON THE PATCHED DESIGN" in rule, "the RULE has no patched rerun"
+    out_num, out_fig = GEN / f"rehaul_ladder_numbers{TAG}.tex", GEN / f"rehaul_ladder_fig{TAG}.tex"
     M: list[tuple[str, str, str]] = []
 
     def add(name: str, value: str, note: str) -> None:
@@ -117,10 +178,15 @@ def main() -> None:
     add("NDays", thousands(N_DAYS), "evaluation days")
     add("HacLag", "8", "Newey-West lag of the DM tests (2,579 days)")
     add("RankYear", "2013", "the year on which the primary ranking's fit is explained (fold 3's validation year)")
-    n_pass = sum(bool(g["pass"]) for g in gates.values())
+    n_pass = sum(gate_ok(g) for g in gates.values())
     assert set(gates) == set(MODELS), sorted(gates)
+    gp_note = "; ".join(f"{m} {g['GP_differ']}" for m, g in gates.items() if not g.get("pass", False))
     add("NGates", str(len(gates)), "gated models (trees: bit-equal full rung; linear: replay = walk)")
-    add("NGatesPass", str(n_pass), "gates passed")
+    add(
+        "NGatesPass",
+        str(n_pass),
+        "gates passed on the rungs read" + (f" (GP, secondary: {gp_note})" if gp_note else ""),
+    )
     assert n_pass == len(gates), "a ladder gate failed: the numbers are flagged in the RULE's sense"
 
     sc = S[S["ranking"].isin(["P", "both"])].copy()  # the primary ranking (k = 46 and k = 0 are shared: "both")
@@ -181,10 +247,16 @@ def main() -> None:
         ]
         add(f"{grp}NRungsBelowFullMin", str(min(nb)), f"{grp}, every bar: fewest reduced rungs below the full set")
         add(f"{grp}NRungsBelowFullMax", str(max(nb)), f"{grp}, every bar: most reduced rungs below the full set")
-    # the text's claims, checked (08_feature_importance.tex, 2026-10-26): the trees' top 10 keep most of the gain and
-    # their top 5 do not; the linear models' 5- and 10-series rungs beat the full set
+    # the text's claims, checked (A_fi.tex, app:rh_fi_ladder): the trees' top 10 keep most of the gain and their top 5
+    # do not; the linear models' 10-series rungs beat the full set (DM p < 0.05) and their 5-series rungs are no worse
+    # than it (R_5 > 100, or DM p > 0.10 against the full set). 2026-10-28 (patched ladder): was "the linear models'
+    # 5- and 10-series rungs beat the full set" (pre-patch R_5 132-211); patched, the elastic net's R_5 is 99.
     assert min(rk(m, 10) for m in TREES) >= 90 and max(rk(m, 5) for m in TREES) < 50, "trees: claim 'top 10 / top 5'"
-    assert min(rk(m, k) for m in LINS for k in (5, 10)) > 100, "linear: claim '5 or 10 series beat the full set'"
+    assert min(rk(m, 10) for m in LINS) > 100, "linear: claim '10 series beat the full set'"
+    assert max(float(rows[(m, "all")].loc[10, "p_vs_full"]) for m in LINS) < 0.05, "linear: claim 'top 10 > full'"
+    assert all(rk(m, 5) > 100 or float(rows[(m, "all")].loc[5, "p_vs_full"]) > 0.10 for m in LINS), (
+        "linear: claim '5 series no worse than the full set'"
+    )
     # the FOMC proximity series in the trees' primary ranking
     fr_ = rank[(rank.ranking == "primary") & (rank.series == "fomc_until_inv")].set_index("model")["rank"]
     tr = [int(fr_[m]) for m in TREES]
@@ -244,34 +316,36 @@ def main() -> None:
     assert len(set(names)) == len(names), "a macro name twice"
     lines = [
         HEAD,
-        "% \\rhld... macros of the feature-count ladder (Figure fig:rh_ladder; results/ladder_2026-10-26, RULE.txt",
-        "% sections 1-6): each model refitted on its top k exogenous series, monthly refits at 126 origins, W = 3,000",
-        "% days, primary (pre-sample) ranking unless named Sec; scored on Table 1's bars. Names in the generator's",
-        "% docstring. PRE-PATCH design: the FOMC calendar features before the FOMC fix (RULE.txt ADDENDUM 2).",
+        f"% \\rhld... macros of the feature-count ladder (Figure fig:rh_ladder; {LAD.relative_to(ROOT).as_posix()},",
+        "% RULE.txt sections 1-6): each model refitted on its top k exogenous series, monthly refits at 126 origins,",
+        "% W = 3,000 days, primary (pre-sample) ranking unless named Sec; scored on Table 1's bars. Names in the",
+        f"% generator's docstring. {LABEL[TAG]}",
     ]
     for name, value, note in M:
         lines.append(f"\\providecommand{{\\{name}}}{{}}\\renewcommand{{\\{name}}}{{{value}}}  % {note}")
     GEN.mkdir(parents=True, exist_ok=True)
-    OUT_NUM.write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
+    out_num.write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
     figure(rows)
     floats = rf"""{HEAD}
-% Figure fig:rh_ladder (Section 8): the feature-count ladder, results/ladder_2026-10-26 (RULE.txt sections 1-6).
+% Figure fig:rh_ladder (Appendix app:rh_fi_ladder): the feature-count ladder, {LAD.relative_to(ROOT).as_posix()}
+% (RULE.txt sections 1-6). {LABEL[TAG]}
 \begin{{figure}}[tbp]
   \centering
-  \includegraphics[width=\linewidth]{{figures/rehaul_ladder.pdf}}
+  \includegraphics[width=\linewidth]{{figures/rehaul_ladder{TAG}.pdf}}
   \caption{{How many exogenous series carry the gain. Each model is refitted on its top $k$ exogenous series only
     ($k = 0$ is the HAR benchmark set, $k = \rhldNSeries$ the full set), ranked once by the model's own importance
     measure on a fit explained on \rhldRankYear{{}} data, before the evaluation span. Vertical axis: the QLIKE of the
     rung relative to the same model's $k = 0$ rung, in percent (negative: more accurate), on the \rhldNBars{{}} bars
     of Table~\ref{{tab:rh_oos}} (left) and on their 16:00 bar (right). Monthly refits at \rhldNOrigins{{}} origins, each
     held for \rhldHoldSessions{{}} sessions, window $W = \rhldWindowDays$ trading days, hyperparameters frozen.
-    Pre-patch design: the FOMC calendar features before the fix of Section~\ref{{sec:rh_data}}.}}
+    {CAPTION[TAG]}}}
   \label{{fig:rh_ladder}}
 \end{{figure}}
 """
-    OUT_FIG.write_text(floats, encoding="utf-8", newline="\n")
+    out_fig.write_text(floats, encoding="utf-8", newline="\n")
     print(
-        f"wrote {len(M)} macros to {OUT_NUM.relative_to(ROOT)}, {OUT_FIG.relative_to(ROOT)}, figures/rehaul_ladder.pdf"
+        f"{LAD.relative_to(ROOT).as_posix()}: wrote {len(M)} macros to {out_num.relative_to(ROOT)}, "
+        f"{out_fig.relative_to(ROOT)}, figures/rehaul_ladder{TAG}.pdf"
     )
 
 
@@ -311,10 +385,21 @@ def figure(rows: dict) -> None:
     h, lb = axes[0].get_legend_handles_labels()
     fig.legend(h, lb, loc="upper center", ncol=6, frameon=False, fontsize=7)
     fig.tight_layout(rect=(0, 0, 1, 0.9))
-    fig.savefig(FIG / "rehaul_ladder.pdf")
-    fig.savefig(FIG / "rehaul_ladder.png", dpi=150)
+    fig.savefig(FIG / f"rehaul_ladder{TAG}.pdf")
+    fig.savefig(FIG / f"rehaul_ladder{TAG}.png", dpi=150)
     plt.close(fig)
 
 
 if __name__ == "__main__":
+    import argparse
+
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--prepatch", action="store_true", help="the pre-patch ladder; writes the *_prepatch names")
+    ap.add_argument("--posthoc", action="store_true", help="first write fomcfix/posthoc_vs_walk.csv (patched only)")
+    a = ap.parse_args()
+    if a.prepatch:
+        assert not a.posthoc, "--posthoc writes the patched ladder's post hoc only (the pre-patch one is on file)"
+        LAD, TAG = LAD_PRE, "_prepatch"
+    if a.posthoc:
+        posthoc_patched()
     main()

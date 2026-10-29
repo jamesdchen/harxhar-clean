@@ -13,6 +13,9 @@
 % rehaul_complexity_numbers). The file holds \subsection's only; APPENDIX wires it into the online appendix.
 % Design note: the SHAP values, the ladder and the grid are on the design before the FOMC patch (D13); to be rerun on
 % the patched design.
+% 2026-10-28 (ladder on the patched design): the every-bar feature-count ladder of app:rh_fi_ladder (Figure
+% fig:rh_ladder, the \rhld... macros) is now read from the FOMC-patched ladder, results/ladder_2026-10-26/fomcfix
+% (RULE.txt ADDENDUM 3; writeup/make_rehaul_ladder.py, patched by default, --prepatch for the old one).
 % 2026-10-28 (v2 of Sections 6-7, author approved preliminarily; drafts/MAP_06_07.md): Section 7 ("Which predictors
 % carry the gain?", sec:rh_fi) is organized by day type, and three of its former bullets moved here, lightly edited:
 % "Questions and measures" (only its comparison convention was not here already: app:rh_fi_compute, item
@@ -346,21 +349,31 @@
   and with the frozen hyperparameters, and score every rung on the \rhorNIntB{} bars of Table~\ref{tab:rh_oos}. Each
   model ranks the series once, by its own measure on a fit explained on \rhorPenYears, before the span, so the ranking
   has no look-ahead. Rung $k$ retains $R_k = (L_0 - L_k)/(L_0 - L_{\rhfipNExog})$ of the full set's QLIKE gain; the
-  reading rule was fixed before scoring. The figure and the numbers below are on the design before the FOMC fixes of
-  Appendix~\ref{app:rh_dp_fomc}; the same ladder after the fixes, by day type, is Panel~B of
-  Table~\ref{tab:rh_channels_sparse}.
+  reading rule was fixed before scoring.
+  % 2026-10-28 (ladder on the patched design; generated/rehaul_ladder_numbers.tex now from
+  % results/ladder_2026-10-26/fomcfix). Was: "The figure and the numbers below are on the design before the FOMC fixes
+  % of Appendix~\ref{app:rh_dp_fomc}; the same ladder after the fixes, by day type, is Panel~B of
+  % Table~\ref{tab:rh_channels_sparse}."
+  The figure and the numbers below, like the same ladder by day type in Panel~B of
+  Table~\ref{tab:rh_channels_sparse}, are on the design with the FOMC fixes of Appendix~\ref{app:rh_dp_fomc}.
   \begin{itemize}
   \item Trees: the top 10 series keep \rhldTreeRTenMin{}--\rhldTreeRTenMax{}\% of the gain, the top
     5 only \rhldTreeRFiveMin{}--\rhldTreeRFiveMax{}\%; \rhfipFomcUntil{}, ranked
     \rhldTreeRankFomcUntilMin{}--\rhldTreeRankFomcUntilMax{} by the trees, enters between the two
     rungs. The other series add little (top 10 against the full set: DM $p = \rhldLgbmPTenFull{}$,
     \rhldXgbPTenFull{} and \rhldRfPTenFull{}).
-  \item Linear models: with 5 or 10 series they keep \rhldLinRFiveMin{}--\rhldLinRFiveMax{}\% and
-    \rhldLinRTenMin{}--\rhldLinRTenMax{}\% of the gain, more than the full set (top 10 against the
-    full set: DM $p \le \rhldLinPTenFullMax{}$), and the lasso's single top series,
-    \rhldLassoTopOne{}, matches the full set. Part of the shortfall is the cost of holding a fit on
-    \rhfipNCols{} predictors for a month: re-estimated at every bar (Table~\ref{tab:rh_oos}), the full sets are as
-    accurate as the monthly top-10 rungs (post hoc; DM $p$ from \rhldLinPTenVsWalkMin{} to
+  % 2026-10-28 (ladder on the patched design: the elastic net's 5-series rung keeps 99%, DM p = 0.911 against the
+  % full set; the lasso's top series alone keeps 69%, pre-patch 105%). Was: "with 5 or 10 series they keep
+  % \rhldLinRFiveMin{}--\rhldLinRFiveMax{}\% and \rhldLinRTenMin{}--\rhldLinRTenMax{}\% of the gain, more than the full
+  % set (top 10 against the full set: DM $p \le \rhldLinPTenFullMax{}$), and the lasso's single top series,
+  % \rhldLassoTopOne{}, matches the full set. Part of the shortfall is ..." (now "Part of the full set's shortfall",
+  % since the sentence before it now ends on the lasso's single series).
+  \item Linear models: with 10 series they keep \rhldLinRTenMin{}--\rhldLinRTenMax{}\% of the gain, more than the
+    full set (top 10 against the full set: DM $p \le \rhldLinPTenFullMax{}$), and with 5 series
+    \rhldLinRFiveMin{}--\rhldLinRFiveMax{}\%, as much as the full set or more; the lasso's single top series,
+    \rhldLassoTopOne{}, alone keeps \rhldLassoBarROne{}\%. Part of the full set's shortfall is the cost of holding a
+    fit on \rhfipNCols{} predictors for a month: re-estimated at every bar (Table~\ref{tab:rh_oos}), the full sets are
+    as accurate as the monthly top-10 rungs (post hoc; DM $p$ from \rhldLinPTenVsWalkMin{} to
     \rhldLinPTenVsWalkMax{}).
   \item Ridge against lasso: a dense and weak signal favors the ridge, which keeps and shrinks every series, over the
     lasso, which selects \citep[see][]{GiannoneLenzaPrimiceri2021}. In Table~\ref{tab:rh_oos} the full set changes

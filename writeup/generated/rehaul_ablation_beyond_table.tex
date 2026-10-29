@@ -13,7 +13,7 @@
 \cmidrule(lr){2-4}\cmidrule(l){5-7}
  & Linear & LightGBM & XGBoost & Linear & LightGBM & XGBoost \\
 \midrule
-\multicolumn{7}{@{}l}{\textit{A. HAR + RM + FOMC plus the group, against HAR + RM + FOMC}} \\
+\multicolumn{7}{@{}l}{\textit{A. HAR + RM + FOMC plus the group, against HAR + RM + FOMC ($-$: the group adds accuracy)}} \\
 Equal-weighted market & $-$0.5 to $-$0.2 & $-$1.0 ($-$4.5) & $-$0.7 ($-$3.3) & $-$0.5 to $-$0.1 & $-$1.0 ($-$5.2) & $-$0.8 ($-$4.3) \\
 Value-weighted market & $-$0.8 to $-$0.3 & $-$1.2 ($-$4.6) & $-$1.1 ($-$4.0) & $-$0.7 to $-$0.2 & $-$1.2 ($-$5.0) & $-$1.2 ($-$4.7) \\
 Liquidity & $-$0.6 to 0.0 & $-$1.1 ($-$4.4) & $-$1.1 ($-$4.4) & $-$0.6 to $-$0.4 & $-$1.2 ($-$4.7) & $-$1.2 ($-$4.7) \\
@@ -23,7 +23,7 @@ Volatility demand & 0.0 to 0.3 & $-$0.3 ($-$4.4) & $-$0.3 ($-$4.6) & 0.2 to 0.3 
 All six (the full set) & $-$0.6 to 0.1 & $-$1.6 ($-$4.9) & $-$1.8 ($-$5.3) & $-$0.6 to 0.2 & $-$1.6 ($-$5.3) & $-$1.8 ($-$5.9) \\
 Sum of the six rows [ratio to the full set] & $-$1.7 to 0.5 & $-$4.5 [2.88] & $-$4.4 [2.46] & $-$1.1 to 0.4 & $-$4.7 [2.90] & $-$4.7 [2.63] \\
 \addlinespace[4pt]
-\multicolumn{7}{@{}l}{\textit{B. Full set against HAR + RM + FOMC plus the group}} \\
+\multicolumn{7}{@{}l}{\textit{B. Full set against HAR + RM + FOMC plus the group ($-$: the full set is more accurate)}} \\
 Equal-weighted market & $-$0.2 to 0.2 & $-$0.6 ($-$3.1) & $-$1.1 ($-$4.9) & $-$0.1 to 0.2 & $-$0.6 ($-$3.2) & $-$1.0 ($-$4.6) \\
 Value-weighted market & $-$0.2 to 0.3 & $-$0.4 ($-$2.6) & $-$0.7 ($-$4.3) & 0.1 to 0.3 & $-$0.4 ($-$2.7) & $-$0.6 ($-$3.9) \\
 Liquidity & $-$0.3 to 0.1 & $-$0.5 ($-$2.6) & $-$0.6 ($-$3.4) & 0.0 to 0.5 & $-$0.4 ($-$2.7) & $-$0.6 ($-$3.6) \\
@@ -34,7 +34,8 @@ Volatility demand & $-$0.8 to $-$0.3 & $-$1.2 ($-$3.9) & $-$1.5 ($-$4.5) & $-$0.
 \end{tabular*}
 \begin{tablenotes}[flushleft]
 \footnotesize
-\item \textit{Notes:} Requested by the author after the results against HAR + RM + FOMC (Table~\ref{tab:rh_ablation}, Panel~D), not part of the pre-specified design.  Base: the HAR benchmark set plus the futures' realized moments (RM) and the FOMC calendar (132 columns); each row of Panel~A adds one remaining group to it, Panel~B sets the full set against that model.  Every model keeps the full set's frozen hyperparameters (FOMC-patched design); the random forest is not run.  Cells: percentage change in QLIKE with the Diebold--Mariano statistic in parentheses (negative: the first model has the lower loss; daily average QLIKE); Linear: the range over ridge, lasso and elastic net.  Ordinary days exclude the \rhabNEventDays{} scheduled FOMC statement days.  The bracket (trees) is the sum of the six Panel~A changes divided by the full set's change: above one, the groups' gains overlap; below one, they complement each other (the linear full sets gain about nothing against the base, so no ratio is shown for them).
+\item \textit{Sign:} each cell is $100\,(L_{\text{row}}/L_{\text{ref}} - 1)$, the percentage change in mean QLIKE of the row's forecast against its reference, with the Diebold--Mariano statistic in parentheses (same sign; daily average QLIKE).  Panel~A, a group added to HAR + RM + FOMC (reference: that base; All six: all six groups added, i.e.\ the full set; Sum: the six rows above added up): negative, the loss falls when the group is added, i.e.\ the group adds accuracy; positive, the group hurts.  Panel~B, the full set against HAR + RM + FOMC plus the group (reference: that set): negative, the full set is more accurate.
+\item \textit{Notes:} Requested by the author after the results against HAR + RM + FOMC (Table~\ref{tab:rh_ablation}, Panel~D), not part of the pre-specified design.  Base: the HAR benchmark set plus the futures' realized moments (RM) and the FOMC calendar (132 columns); each row of Panel~A adds one remaining group to it, Panel~B sets the full set against that model.  Every model keeps the full set's frozen hyperparameters (FOMC-patched design); the random forest is not run.  Linear: the range over ridge, lasso and elastic net.  Ordinary days exclude the \rhabNEventDays{} scheduled FOMC statement days.  The bracket (trees) is the sum of the six Panel~A changes divided by the full set's change: above one, the groups' gains overlap; below one, they complement each other (the linear full sets gain about nothing against the base, so no ratio is shown for them).
 \end{tablenotes}
 \end{threeparttable}
 \end{table}

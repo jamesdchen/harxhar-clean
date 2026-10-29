@@ -1,0 +1,31 @@
+% 06b_robustness.tex -- Section 6.4, Robustness (label sec:rh_results_robust), the last subsection of Results.
+% 2026-10-28 (author: "sections 6 and 7 were never meant to be split. it needs to be one experiments section"):
+% moved verbatim from the end of rehaul/06_results.tex (where it was Section 6.3) so that it follows the former
+% Section 7 (rehaul/08_feature_importance.tex, now Section 6.3, "Which predictors carry the gain?"); paper_rehaul.tex
+% inputs this file after 08_feature_importance and before 07_economics. House rules as in 06_results.tex: every number
+% is a generated macro; replaced text is parked in dated comments, never deleted.
+
+\subsection{Robustness}
+\label{sec:rh_results_robust}
+\begin{itemize}
+\item \textbf{Estimation window.} The window length $W$ of \rhorWindowDays{} trading days was chosen after the
+  \rhwsNWinWord{} candidate windows from \rhwsWinMin{} to \rhrbWinLong{} trading days had been
+  scored out of sample on $\mathcal T_{\mathrm{oos}}$; it is not a pre-sample choice. Appendix~\ref{app:rh_robust_window}
+  reports every window.
+  \begin{itemize}
+  \item Every bar: the comparison does not depend on the window. Across the candidate windows the every-bar gain of the
+    full-set elastic net over its HAR-set forecast lies between \rhwsEnetBarPctMin{}\% and
+    \rhwsEnetBarPctMax{}\%, significant at each, and with a window of \rhrbWinLong{} days the full set
+    remains significantly more accurate on every bar in \rhrbNFullLowerSigBarLong{} of the \rhrbNModelsLong{} classes
+    (Table~\ref{tab:rh_robust_w3500}).
+% 2026-10-26 (coordinator; author: no 16:00-bar results in the main text): moved to Appendix app:rh_robust_window. Was:
+%   \item The 16:00 bar: comparisons are window-sensitive; the same elastic-net change at 16:00 ranges from
+%     \rhwsEnetClosePctMin{}\% to \rhwsEnetClosePctMax{}\% across the windows.
+  \end{itemize}
+\item \textbf{Multiple comparisons.} Adjusting for the number of comparisons leaves the every-bar result intact: under
+  QLIKE the 90\% model confidence set \citep{HansenLundeNason2011} holds \rhmcsBarQlikeTmaxNNinety{} of the
+  \rhmcsNModels{} distinct pooled forecasts (\rhmcsBarQlikeTmaxSetNinety), and StepM \citep{RomanoWolf2005} rejects
+  equal accuracy of the full and HAR benchmark sets in \rhmcsBarQAfNRej{} of the \rhmcsNAlt{} classes (SPA
+  $p$-value \rhmcsBarQAfSpaC; \citealp{Hansen2005}), against \rhmcsBarMAfNRejWord{} under squared error
+  (Tables~\ref{tab:rh_mcs} and~\ref{tab:rh_mcs_spa}).
+\end{itemize}

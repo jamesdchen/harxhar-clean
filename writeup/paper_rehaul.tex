@@ -317,6 +317,11 @@ The pooled trees (LightGBM, XGBoost and the random forest, on the HAR benchmark 
 % importance (rehaul/08_feature_importance, promoted from a subsection of Results to its own \section; label
 % sec:rh_fi kept), 8 Economic application (rehaul/07_economics), 9 Conclusion; references; online appendix. The file
 % names keep their old numbers; the order of the \input lines below sets the section numbers.
+% 2026-10-28 (author: "sections 6 and 7 were never meant to be split. it needs to be one experiments section"): the
+% main text is 1 Introduction, 2 Related work, 3 Data, 4 Predictors, 5 Methods, 6 Results (6.1 accuracy on every bar,
+% 6.2 FOMC statement days and ordinary days, 6.3 which predictors carry the gain = rehaul/08_feature_importance, its
+% \section demoted to \subsection, 6.4 robustness = rehaul/06b_robustness, moved out of rehaul/06_results),
+% 7 Economic application (rehaul/07_economics), 8 Conclusion.
 % 2026-10-16 (user): introduction restored. It states the exogenous-feature question.
 \input{rehaul/01_introduction}
 \input{rehaul/02_related_work}
@@ -335,7 +340,12 @@ The pooled trees (LightGBM, XGBoost and the random forest, on the HAR benchmark 
 \input{rehaul/08_feature_importance}
 \input{rehaul/08_feature_importance_floats}
 \input{rehaul/08b_fi_measures_floats}
+% 2026-10-28 (author: Sections 6 and 7 are one section): 08_feature_importance is Section 6.3 of Results (no longer
+% Section 7), and Robustness, Section 6.4, follows it here (rehaul/06b_robustness, moved from the end of
+% rehaul/06_results); its tables are appendix floats.
+\input{rehaul/06b_robustness}
 % 2026-10-26 (integration, JFEc): the economic application is Section 8.
+% 2026-10-28 (author: Sections 6 and 7 are one section): the economic application is Section 7.
 \input{rehaul/07_economics}
 \input{rehaul/07_economics_floats}
 % \input{rehaul/08_feature_importance}

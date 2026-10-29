@@ -1426,15 +1426,20 @@ def table_corr(C1: pd.DataFrame, agree: dict) -> None:
  & Table~\ref{{tab:rh_oos}} & (a) & (b) & (c) & Spread & Agree \\
  & Full vs HAR & Full vs HAR + FOMC & Full without FOMC & Full vs HAR, & (pp) & \\
  & every bar & every bar & vs HAR, every bar & ordinary days & & \\
+\cmidrule(lr){{2-5}}
+ & \multicolumn{{4}}{{c}}{{\textit{{$-$: the full set (in (b), without FOMC) is more accurate; $+$: less accurate}}}} & & \\
 \midrule
 {chr(10).join(rows)}
 \bottomrule
 \end{{tabular*}}
 \begin{{tablenotes}}[flushleft]
 \footnotesize
-\item \textit{{Notes:}} Each cell is the percentage change in QLIKE of the first forecast against the second, with the
-Diebold--Mariano statistic of the difference in parentheses (HLN correction, daily average loss, Newey--West lag
-\rhchHacLag; negative: the first forecast has the lower loss). Benchmarks as in Table~\ref{{tab:rh_oos}}: the pooled OLS
+\item \textit{{Notes:}} \textit{{Sign:}} each cell is $100\,(L/L_{{\mathrm{{ref}}}} - 1)$, the percentage change in mean
+QLIKE of the column's first forecast (the full set; in (b), the full set without the FOMC group) against its reference,
+the forecast after ``vs''; the Diebold--Mariano statistic of the difference, in parentheses, has the same sign. Negative
+= the full set is more accurate than its reference; positive = less accurate. (a)--(c) set the FOMC calendar aside, so
+there negative = the other predictors add accuracy beyond it; positive = they hurt. HLN correction, daily average loss,
+Newey--West lag \rhchHacLag. Benchmarks as in Table~\ref{{tab:rh_oos}}: the pooled OLS
 on the HAR set for ridge, lasso and elastic net, each tree's own HAR-set fit. (a) sets the full set against the HAR
 benchmark set plus the FOMC group, (b) the full set without the FOMC group against the HAR benchmark, both on every bar
 of Table~\ref{{tab:rh_oos}}; (c) sets the full set against the HAR benchmark on the \rhchNOrdDays{{}} days that are not
@@ -1492,6 +1497,8 @@ def table_abl(A4: pd.DataFrame, RD: pd.DataFrame, n_ev_bars: int) -> None:
 \begin{{tabular*}}{{\linewidth}}{{@{{\extracolsep{{\fill}}}}lrrrrrrrrrrrr@{{}}}}
 \toprule
  & \multicolumn{{6}}{{c}}{{HAR benchmark plus the group, vs HAR}} & \multicolumn{{6}}{{c}}{{Full set without the group, vs full set}} \\
+ & \multicolumn{{6}}{{c}}{{\textit{{$-$: the group adds accuracy; $+$: it hurts}}}}
+ & \multicolumn{{6}}{{c}}{{\textit{{$+$: the group adds accuracy; $-$: it hurts}}}} \\
 \cmidrule(lr){{2-7}}\cmidrule(l){{8-13}}
  & {hdr} & {hdr} \\
 \midrule
@@ -1500,12 +1507,16 @@ def table_abl(A4: pd.DataFrame, RD: pd.DataFrame, n_ev_bars: int) -> None:
 \end{{tabular*}}
 \begin{{tablenotes}}[flushleft]
 \footnotesize
-\item \textit{{Notes:}} Percentage change in QLIKE of the arm against its reference on the bars of the day type; * the
-Diebold--Mariano test rejects equal accuracy at 5\% (two-sided; daily average loss, Newey--West lag \rhchHacLag). Left
-block: the HAR benchmark set plus one predictor group against the HAR benchmark (the pooled OLS on the HAR set for the
-linear models, each tree's own HAR-set fit); right block: the full set without the group against the full set. Joint:
-the full set against the HAR benchmark on the same days. Sum add / joint: the add-alone QLIKE gains summed over the
-eight groups, divided by the joint gain; sig.\ leave-outs: groups whose removal raises the loss significantly, of the
+\item \textit{{Notes:}} \textit{{Sign:}} every cell is $100\,(L_{{\mathrm{{row}}}}/L_{{\mathrm{{ref}}}} - 1)$, the
+percentage change in mean QLIKE of the row's forecast against its reference on the bars of the day type; the
+Diebold--Mariano statistic has the same sign. Left block, the group added to the HAR benchmark set (reference: the HAR
+benchmark): negative = the loss falls when the group is added, i.e.\ the group adds accuracy; positive = the group
+hurts. Right block, the group removed from the full set (reference: the full set): positive = the loss rises when the
+group is dropped, i.e.\ the group adds accuracy; negative = the group hurts. Joint: the full set against the HAR
+benchmark on the same days; negative = the full set is more accurate. * the Diebold--Mariano test rejects equal accuracy
+at 5\% (two-sided; daily average loss, Newey--West lag \rhchHacLag). HAR benchmark: the pooled OLS on the HAR set for
+the linear models, each tree's own HAR-set fit. Sum add / joint: the add-alone QLIKE gains (falls in the loss; a group
+that hurts counts negative) summed over the eight groups, divided by the joint gain; sig.\ leave-outs: groups whose removal raises the loss significantly, of the
 leave-outs run. Readings (fixed before scoring, tested in this order): concentrated (conc.)\ if one group's add-alone
 gain is at least 75\% of the joint gain and its leave-out is significant; redundant (redund.)\ if the add-alone gains
 sum to more than 1.5 times the joint gain and at most one leave-out is significant; otherwise mixed; by model type the
@@ -1553,7 +1564,7 @@ def table_sparse(P3: pd.DataFrame, LD: pd.DataFrame, gates: dict) -> None:
 \label{{tab:rh_channels_sparse}}
 \begin{{tabular*}}{{\linewidth}}{{@{{\extracolsep{{\fill}}}}lrrr@{{}}}}
 \toprule
-\multicolumn{{4}}{{@{{}}l}}{{\textit{{A. Full sets: \% change in QLIKE (DM statistic)}}}} \\
+\multicolumn{{4}}{{@{{}}l}}{{\textit{{A. Full sets: \% change in QLIKE (DM statistic); $-$: the lasso is more accurate, $+$: less accurate}}}} \\
  & Every bar & FOMC statement days & Ordinary days \\
 \midrule
 {chr(10).join(ra)}
@@ -1564,6 +1575,7 @@ def table_sparse(P3: pd.DataFrame, LD: pd.DataFrame, gates: dict) -> None:
 \begin{{tabular*}}{{\linewidth}}{{@{{\extracolsep{{\fill}}}}lrrrrrrrrrrrr@{{}}}}
 \toprule
 \multicolumn{{13}}{{@{{}}l}}{{\textit{{B. Feature-count ladder: retained gain $R_k$ (\%) by day type}}}} \\
+\multicolumn{{13}}{{@{{}}l}}{{\textit{{Full: $-$ = the full set beats HAR. $R_k$: 100 = all of that gain kept, 0 = none, below 0 = worse than HAR}}}} \\
  & \multicolumn{{6}}{{c}}{{FOMC statement days}} & \multicolumn{{6}}{{c}}{{Ordinary days}} \\
 \cmidrule(lr){{2-7}}\cmidrule(l){{8-13}}
  & Full (\%) & {kh} & Full (\%) & {kh} \\
@@ -1575,13 +1587,18 @@ def table_sparse(P3: pd.DataFrame, LD: pd.DataFrame, gates: dict) -> None:
 \smallskip
 \begin{{minipage}}{{\linewidth}}
 \footnotesize
-\textit{{Notes:}} Panel A: the lasso's full-set forecast against the ridge's and the elastic net's, percentage change in
-QLIKE with the Diebold--Mariano statistic in parentheses (negative: the lasso has the lower loss; HLN correction, daily
-average loss, Newey--West lag \rhchHacLag). Panel B: each model refitted monthly on its $k$ highest-ranked exogenous
-series (ranking from a pre-sample fit; the feature-count ladder of Section~\ref{{sec:rh_fi}}), {lab}. Full: the
-$k = 46$ rung (the full set) against the $k = 0$ rung (the HAR benchmark set), \% change in QLIKE on the day type;
-$R_k = (L_0 - L_k) / (L_0 - L_{{46}})$, the share of that gain the top $k$ series keep (above 100: the reduced set beats
-the full set; --: no gain to keep).
+\textit{{Notes:}} \textit{{Sign:}} a \% change is $100\,(L_{{\mathrm{{row}}}}/L_{{\mathrm{{ref}}}} - 1)$, the percentage
+change in mean QLIKE of the row's forecast against its reference, and Panel A's Diebold--Mariano statistic has the same
+sign. Panel A (reference: the ridge's or the elastic net's full set): negative = the lasso is more accurate. Panel B,
+Full (the full set against the HAR benchmark set): negative = the full set is more accurate; $R_k$: 100 = the top $k$
+series keep all of the full set's gain over the HAR benchmark set, 0 = none of it, below 0 = worse than the HAR
+benchmark set, above 100 = better than the full set; --: no gain to keep. Panel A: the lasso's full-set forecast against
+the ridge's and the elastic net's, percentage change in QLIKE with the Diebold--Mariano statistic in parentheses (HLN
+correction, daily average loss, Newey--West lag \rhchHacLag). Panel B: each model refitted monthly on its $k$
+highest-ranked exogenous series (ranking from a pre-sample fit; the feature-count ladder of
+Section~\ref{{sec:rh_fi}}), {lab}. Full: the $k = 46$ rung (the full set) against the $k = 0$ rung (the HAR benchmark
+set), \% change in QLIKE on the day type; $R_k = (L_0 - L_k) / (L_0 - L_{{46}})$, the share of that gain the top $k$
+series keep.
 \end{{minipage}}
 \end{{table}}
 """

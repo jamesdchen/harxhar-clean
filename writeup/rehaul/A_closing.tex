@@ -157,16 +157,22 @@
   $\rhtaClVsRthThreeKClosePctMax$; the largest $p$, \rhtaClVsRthThreeKClosePMax; Panel~D). Its window spans about
   \rhtaSpanClSmall{} years against about \rhtaSpanRthSmall{} trading days, so this comparison does not separate the
   choice of intervals from the span of the window.
-\item \textbf{The trade} (Panel~E). Here the Sharpe ratio is the equal-year mean of the yearly ratios $\SR_y$ of
-  Section~\ref{sec:rh_econ_measures}. The full-set sign strategies trained on CLOSE have ratios from
+\item \textbf{The trade} (Panel~E). The full-set sign strategies trained on CLOSE have $\SR$ from
   \rhtaShFullClMin{} to \rhtaShFullClMax, against \rhtaShFullRthMin{} to \rhtaShFullRthMax{} in the main design.
+  % 2026-10-28 (D19; make_rehaul_train_arms.py rerun: the pooled ratio of Section~\ref{sec:rh_econ_measures}, the
+  % Ledoit-Wolf test): the item names the paper's ratio and test again; \rhtaNTreeShSigCl moved from two to one.
+  % Was: "Here the Sharpe ratio is the equal-year mean of the yearly ratios $\SR_y$ of
+  % Section~\ref{sec:rh_econ_measures}. The full-set sign strategies trained on CLOSE have ratios from ... in the main
+  % design." and, below, "None of the \rhtaNDShTests{} differences in this ratio between the full-set strategies of
+  % ALL48 or CLOSE and those of the main design is significant at the 5\% level under the paired bootstrap (the
+  % smallest $p$, \rhtaDShPMin)."
   % 2026-10-28 (D19, standard pooled Sharpe; coordinator): make_rehaul_train_arms.py (\rhta...) still computes the
   % equal-year mean of the SR_y with the paired bootstrap; the text names it until the generator is rerun. Was: "The
   % full-set sign strategies trained on CLOSE have $\SR$ from ... in the main design." and, below, "None of the
   % \rhtaNDShTests{} differences in $\SR$ ... is significant at the 5\% level (the smallest $p$, \rhtaDShPMin)."
   \begin{itemize}
-  \item None of the \rhtaNDShTests{} differences in this ratio between the full-set strategies of ALL48 or CLOSE and
-    those of the main design is significant at the 5\% level under the paired bootstrap (the smallest $p$,
+  \item None of the \rhtaNDShTests{} differences in $\SR$ between the full-set strategies of ALL48 or CLOSE and those
+    of the main design is significant at the 5\% level under the \citet{LedoitWolf2008} test (the smallest $p$,
     \rhtaDShPMin).
   \item For the tree ensembles, the full-set strategy's gain over the HAR benchmark's is significant at the 5\% level
     in \rhtaNTreeShSigCl{} of the three classes under CLOSE, where the trees' HAR benchmark strategies have $\SR$

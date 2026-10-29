@@ -14,7 +14,7 @@
 \cmidrule(lr){2-4}\cmidrule(l){5-7}
  & QLIKE \% (DM) & $R_k$ & DM vs full & QLIKE \% (DM) & $R_k$ & DM vs full \\
 \midrule
-\multicolumn{7}{@{}l}{\textit{Principal components}} \\
+\multicolumn{7}{@{}l}{\textit{Principal components (\%: $-$, they add accuracy; DM vs full: $+$, the full set is better)}} \\
 $k = 1$ & 0.08 (0.90) & $-$0.02 & 4.89 & $-$0.05 ($-$0.53) & 0.01 & 7.44 \\
 $k = 2$ & 0.06 (0.32) & $-$0.02 & 4.86 & 0.11 (0.55) & $-$0.02 & 7.48 \\
 $k = 3$ & 0.45 (1.44) & $-$0.11 & 5.33 & 0.69 (2.24) & $-$0.10 & 7.96 \\
@@ -22,7 +22,7 @@ $k = 5$ & 0.93 (1.85) & $-$0.23 & 5.94 & 0.94 (2.05) & $-$0.14 & 8.48 \\
 $k = 10$ & $-$1.06 ($-$2.19) & 0.27 & 4.45 & $-$0.66 ($-$1.43) & 0.10 & 7.31 \\
 $k = 20$ & $-$1.09 ($-$1.53) & 0.27 & 3.66 & $-$0.87 ($-$1.28) & 0.13 & 6.40 \\
 \addlinespace[3pt]
-\multicolumn{7}{@{}l}{\textit{Partial least squares}} \\
+\multicolumn{7}{@{}l}{\textit{Partial least squares (\%: $-$, they add accuracy; DM vs full: $+$, the full set is better)}} \\
 $k = 1$ & 0.01 (0.05) & 0.00 & 4.95 & $-$0.23 ($-$1.07) & 0.03 & 7.49 \\
 $k = 2$ & 1.57 (1.29) & $-$0.40 & 4.51 & 1.66 (1.55) & $-$0.25 & 6.99 \\
 $k = 3$ & 0.04 (0.03) & $-$0.01 & 3.84 & 0.01 (0.01) & 0.00 & 6.39 \\
@@ -32,7 +32,8 @@ Full set (elastic net) & $-$3.97 ($-$4.73) & 1.00 & -- & $-$6.69 ($-$7.36) & 1.0
 \end{tabular*}
 \begin{tablenotes}[flushleft]
 \footnotesize
-\item OLS on the HAR benchmark set plus the first $k$ components of the \rhfaNBlock{} value averages of the \rhfaNSeries{} exogenous series outside the FOMC group, standardized in each estimation window; principal components of the window's correlation matrix or partial least squares components against the target, both recomputed once a trading day from the window ending at the previous bar and held for the day; the regression re-estimated at every bar on Table~\ref{tab:rh_oos}'s 39{,}000-row window. QLIKE \%: change against Table~\ref{tab:rh_oos}'s OLS on the HAR set, with the Diebold--Mariano statistic (HLN, daily mean losses, lag 8) in parentheses; negative favours the row. $R_k = (L_{\mathrm{HAR}} - L_k)/(L_{\mathrm{HAR}} - L_{\mathrm{full}})$, $L_{\mathrm{full}}$ the lower QLIKE of Table~\ref{tab:rh_oos}'s full-set ridge and elastic net on the same days. DM vs full: the row against that full set (negative favours the row). Ordinary days: the scored sessions that are not one of the \rhfaNEvDays{} scheduled FOMC statement days. The full sets are penalized and include availability averages; the component regressions are OLS on value averages only, so the comparison is of forecast accuracy, not a nesting.
+\item \textit{Sign:} QLIKE \%: $100\,(L_k/L_{\mathrm{HAR}} - 1)$, the percentage change in mean QLIKE of the row's forecast against Table~\ref{tab:rh_oos}'s OLS on the HAR set, with the Diebold--Mariano statistic (HLN, daily mean losses, lag 8) in parentheses (same sign): negative, the loss falls when the components are added to the HAR set, i.e.\ they add accuracy; positive, they hurt; in the full-set row, negative: the full set is more accurate. $R_k = (L_{\mathrm{HAR}} - L_k)/(L_{\mathrm{HAR}} - L_{\mathrm{full}})$, $L_{\mathrm{full}}$ the lower QLIKE of Table~\ref{tab:rh_oos}'s full-set ridge and elastic net on the same days: 1, all of the full set's gain over the HAR set; 0, none; below 0, worse than the HAR set. DM vs full: the row against that full set; positive, the full set is more accurate.
+\item OLS on the HAR benchmark set plus the first $k$ components of the \rhfaNBlock{} value averages of the \rhfaNSeries{} exogenous series outside the FOMC group, standardized in each estimation window; principal components of the window's correlation matrix or partial least squares components against the target, both recomputed once a trading day from the window ending at the previous bar and held for the day; the regression re-estimated at every bar on Table~\ref{tab:rh_oos}'s 39{,}000-row window. Ordinary days: the scored sessions that are not one of the \rhfaNEvDays{} scheduled FOMC statement days. The full sets are penalized and include availability averages; the component regressions are OLS on value averages only, so the comparison is of forecast accuracy, not a nesting.
 \end{tablenotes}
 \end{threeparttable}
 \end{table}

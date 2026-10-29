@@ -3,7 +3,8 @@
 % writeup/drafts/2026-10-26_train_arms.tex).  Names: <Stat><Model><Arm><Bar>; Arm Rth (RTH13, the main design),
 % All (ALL48), Cl (CLOSE), ClNat (CLOSE_NAT), AllCt / RthCt (penalties chosen at 16:00), AllThreeK / RthThreeK /
 % AllThirtyNineK (the last 3,000 / 39,000 rows); Bar Close (16:00) or Bar (every bar); X... = first arm vs second
-% (full set); Sh... = Sharpe ratio (D6); Ws... = the close-only window sweep.
+% (full set); Sh... = Sharpe ratio (D19: the paper's pooled ratio; p by Ledoit-Wolf); Ws... = the close-only
+% window sweep.
 % Sources (git show, pinned): insurance-selling-2026-09-19-e34-train3way 0106ccb; insurance-selling-2026-09-19-e34-train3way-trees 3501ab7; insurance-selling-2026-09-19-e34-closeonly-wsweep f4abb69.
 \providecommand{\rhtaNdays}{}\renewcommand{\rhtaNdays}{2{,}579}  % trading days scored, 2 January 2014 .. 30 April 2024 (early closes dropped)
 \providecommand{\rhtaNbars}{}\renewcommand{\rhtaNbars}{33{,}527}  % regular-hours bars scored (every bar; RV > 0)
@@ -23,7 +24,7 @@
 \providecommand{\rhtaSpanClSmall}{}\renewcommand{\rhtaSpanClSmall}{12}  % years of closes spanned by 3,000 closes (about)
 \providecommand{\rhtaSpanAllLarge}{}\renewcommand{\rhtaSpanAllLarge}{812.5}  % days of 48 intervals spanned by 39,000 rows (about)
 \providecommand{\rhtaValYear}{}\renewcommand{\rhtaValYear}{2013}  % validation year of the pre-sample fold on which every arm's linear penalties are chosen
-\providecommand{\rhtaOptDays}{}\renewcommand{\rhtaOptDays}{614}  % post-warmup option days of the D6 Sharpe ratio (Section 7)
+\providecommand{\rhtaOptDays}{}\renewcommand{\rhtaOptDays}{614}  % post-warmup option days of the Sharpe ratio (Section 7; D19 pooled ratio)
 \providecommand{\rhtaNClasses}{}\renewcommand{\rhtaNClasses}{6}  % model classes (ridge, lasso, elastic net, LightGBM, XGBoost, random forest)
 \providecommand{\rhtaWsMin}{}\renewcommand{\rhtaWsMin}{1{,}000}  % smallest window of the close-only sweep, closes
 \providecommand{\rhtaWsMax}{}\renewcommand{\rhtaWsMax}{3{,}500}  % largest window of the close-only sweep, closes
@@ -765,231 +766,231 @@
 \providecommand{\rhtaXPctRfAllThirtyNineKVsAllBar}{}\renewcommand{\rhtaXPctRfAllThirtyNineKVsAllBar}{2.6}  % QLIKE % change, ALL48_N39k vs ALL48 (full set; negative: ALL48_N39k more accurate), Random forest, every bar
 \providecommand{\rhtaXDmRfAllThirtyNineKVsAllBar}{}\renewcommand{\rhtaXDmRfAllThirtyNineKVsAllBar}{4.91}  % ... its Diebold-Mariano statistic
 \providecommand{\rhtaXPRfAllThirtyNineKVsAllBar}{}\renewcommand{\rhtaXPRfAllThirtyNineKVsAllBar}{\ensuremath{p < 0.001}}  % ... its p statement
-\providecommand{\rhtaShRidgeHarRth}{}\renewcommand{\rhtaShRidgeHarRth}{0.98}  % Sharpe ratio (D6), mid-quotes: Ridge, baseline, RTH13 (main design: the 13 regular-hours bars, 3,000 days)
-\providecommand{\rhtaShXRidgeHarRth}{}\renewcommand{\rhtaShXRidgeHarRth}{0.62}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShRidgeFullRth}{}\renewcommand{\rhtaShRidgeFullRth}{1.85}  % Sharpe ratio (D6), mid-quotes: Ridge, all_features, RTH13 (main design: the 13 regular-hours bars, 3,000 days)
-\providecommand{\rhtaShXRidgeFullRth}{}\renewcommand{\rhtaShXRidgeFullRth}{1.49}  % ... at quoted bid/ask prices
-\providecommand{\rhtaPShRidgeRth}{}\renewcommand{\rhtaPShRidgeRth}{\ensuremath{p = 0.16}}  % bootstrap p, Sharpe ratio full minus HAR (mid): Ridge, RTH13
-\providecommand{\rhtaShLassoHarRth}{}\renewcommand{\rhtaShLassoHarRth}{0.98}  % Sharpe ratio (D6), mid-quotes: Lasso, baseline, RTH13 (main design: the 13 regular-hours bars, 3,000 days)
-\providecommand{\rhtaShXLassoHarRth}{}\renewcommand{\rhtaShXLassoHarRth}{0.62}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShLassoFullRth}{}\renewcommand{\rhtaShLassoFullRth}{1.72}  % Sharpe ratio (D6), mid-quotes: Lasso, all_features, RTH13 (main design: the 13 regular-hours bars, 3,000 days)
-\providecommand{\rhtaShXLassoFullRth}{}\renewcommand{\rhtaShXLassoFullRth}{1.36}  % ... at quoted bid/ask prices
-\providecommand{\rhtaPShLassoRth}{}\renewcommand{\rhtaPShLassoRth}{\ensuremath{p = 0.23}}  % bootstrap p, Sharpe ratio full minus HAR (mid): Lasso, RTH13
-\providecommand{\rhtaShEnetHarRth}{}\renewcommand{\rhtaShEnetHarRth}{0.98}  % Sharpe ratio (D6), mid-quotes: Elastic net, baseline, RTH13 (main design: the 13 regular-hours bars, 3,000 days)
-\providecommand{\rhtaShXEnetHarRth}{}\renewcommand{\rhtaShXEnetHarRth}{0.62}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShEnetFullRth}{}\renewcommand{\rhtaShEnetFullRth}{1.94}  % Sharpe ratio (D6), mid-quotes: Elastic net, all_features, RTH13 (main design: the 13 regular-hours bars, 3,000 days)
-\providecommand{\rhtaShXEnetFullRth}{}\renewcommand{\rhtaShXEnetFullRth}{1.58}  % ... at quoted bid/ask prices
-\providecommand{\rhtaPShEnetRth}{}\renewcommand{\rhtaPShEnetRth}{\ensuremath{p = 0.13}}  % bootstrap p, Sharpe ratio full minus HAR (mid): Elastic net, RTH13
-\providecommand{\rhtaShLgbmHarRth}{}\renewcommand{\rhtaShLgbmHarRth}{0.61}  % Sharpe ratio (D6), mid-quotes: LightGBM, baseline, RTH13 (main design: the 13 regular-hours bars, 3,000 days)
-\providecommand{\rhtaShXLgbmHarRth}{}\renewcommand{\rhtaShXLgbmHarRth}{0.25}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShLgbmFullRth}{}\renewcommand{\rhtaShLgbmFullRth}{1.75}  % Sharpe ratio (D6), mid-quotes: LightGBM, all_features, RTH13 (main design: the 13 regular-hours bars, 3,000 days)
-\providecommand{\rhtaShXLgbmFullRth}{}\renewcommand{\rhtaShXLgbmFullRth}{1.40}  % ... at quoted bid/ask prices
-\providecommand{\rhtaPShLgbmRth}{}\renewcommand{\rhtaPShLgbmRth}{\ensuremath{p = 0.051}}  % bootstrap p, Sharpe ratio full minus HAR (mid): LightGBM, RTH13
-\providecommand{\rhtaShXgbHarRth}{}\renewcommand{\rhtaShXgbHarRth}{0.91}  % Sharpe ratio (D6), mid-quotes: XGBoost, baseline, RTH13 (main design: the 13 regular-hours bars, 3,000 days)
-\providecommand{\rhtaShXXgbHarRth}{}\renewcommand{\rhtaShXXgbHarRth}{0.55}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShXgbFullRth}{}\renewcommand{\rhtaShXgbFullRth}{1.67}  % Sharpe ratio (D6), mid-quotes: XGBoost, all_features, RTH13 (main design: the 13 regular-hours bars, 3,000 days)
-\providecommand{\rhtaShXXgbFullRth}{}\renewcommand{\rhtaShXXgbFullRth}{1.31}  % ... at quoted bid/ask prices
-\providecommand{\rhtaPShXgbRth}{}\renewcommand{\rhtaPShXgbRth}{\ensuremath{p = 0.14}}  % bootstrap p, Sharpe ratio full minus HAR (mid): XGBoost, RTH13
-\providecommand{\rhtaShRfHarRth}{}\renewcommand{\rhtaShRfHarRth}{0.01}  % Sharpe ratio (D6), mid-quotes: Random forest, baseline, RTH13 (main design: the 13 regular-hours bars, 3,000 days)
-\providecommand{\rhtaShXRfHarRth}{}\renewcommand{\rhtaShXRfHarRth}{\ensuremath{-}0.32}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShRfFullRth}{}\renewcommand{\rhtaShRfFullRth}{1.96}  % Sharpe ratio (D6), mid-quotes: Random forest, all_features, RTH13 (main design: the 13 regular-hours bars, 3,000 days)
-\providecommand{\rhtaShXRfFullRth}{}\renewcommand{\rhtaShXRfFullRth}{1.60}  % ... at quoted bid/ask prices
-\providecommand{\rhtaPShRfRth}{}\renewcommand{\rhtaPShRfRth}{\ensuremath{p = 0.007}}  % bootstrap p, Sharpe ratio full minus HAR (mid): Random forest, RTH13
-\providecommand{\rhtaShRidgeHarAll}{}\renewcommand{\rhtaShRidgeHarAll}{0.97}  % Sharpe ratio (D6), mid-quotes: Ridge, baseline, ALL48 (all 48 intervals, 3,000 days)
-\providecommand{\rhtaShXRidgeHarAll}{}\renewcommand{\rhtaShXRidgeHarAll}{0.61}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShRidgeFullAll}{}\renewcommand{\rhtaShRidgeFullAll}{1.69}  % Sharpe ratio (D6), mid-quotes: Ridge, all_features, ALL48 (all 48 intervals, 3,000 days)
-\providecommand{\rhtaShXRidgeFullAll}{}\renewcommand{\rhtaShXRidgeFullAll}{1.34}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShLassoHarAll}{}\renewcommand{\rhtaShLassoHarAll}{0.97}  % Sharpe ratio (D6), mid-quotes: Lasso, baseline, ALL48 (all 48 intervals, 3,000 days)
-\providecommand{\rhtaShXLassoHarAll}{}\renewcommand{\rhtaShXLassoHarAll}{0.61}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShLassoFullAll}{}\renewcommand{\rhtaShLassoFullAll}{1.58}  % Sharpe ratio (D6), mid-quotes: Lasso, all_features, ALL48 (all 48 intervals, 3,000 days)
-\providecommand{\rhtaShXLassoFullAll}{}\renewcommand{\rhtaShXLassoFullAll}{1.23}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShEnetHarAll}{}\renewcommand{\rhtaShEnetHarAll}{0.90}  % Sharpe ratio (D6), mid-quotes: Elastic net, baseline, ALL48 (all 48 intervals, 3,000 days)
+\providecommand{\rhtaShRidgeHarRth}{}\renewcommand{\rhtaShRidgeHarRth}{0.95}  % Sharpe ratio (D19), mid-quotes: Ridge, baseline, RTH13 (main design: the 13 regular-hours bars, 3,000 days)
+\providecommand{\rhtaShXRidgeHarRth}{}\renewcommand{\rhtaShXRidgeHarRth}{0.60}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShRidgeFullRth}{}\renewcommand{\rhtaShRidgeFullRth}{1.77}  % Sharpe ratio (D19), mid-quotes: Ridge, all_features, RTH13 (main design: the 13 regular-hours bars, 3,000 days)
+\providecommand{\rhtaShXRidgeFullRth}{}\renewcommand{\rhtaShXRidgeFullRth}{1.41}  % ... at quoted bid/ask prices
+\providecommand{\rhtaPShRidgeRth}{}\renewcommand{\rhtaPShRidgeRth}{\ensuremath{p = 0.11}}  % Ledoit-Wolf p, Sharpe ratio full minus HAR (mid): Ridge, RTH13
+\providecommand{\rhtaShLassoHarRth}{}\renewcommand{\rhtaShLassoHarRth}{0.95}  % Sharpe ratio (D19), mid-quotes: Lasso, baseline, RTH13 (main design: the 13 regular-hours bars, 3,000 days)
+\providecommand{\rhtaShXLassoHarRth}{}\renewcommand{\rhtaShXLassoHarRth}{0.60}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShLassoFullRth}{}\renewcommand{\rhtaShLassoFullRth}{1.72}  % Sharpe ratio (D19), mid-quotes: Lasso, all_features, RTH13 (main design: the 13 regular-hours bars, 3,000 days)
+\providecommand{\rhtaShXLassoFullRth}{}\renewcommand{\rhtaShXLassoFullRth}{1.37}  % ... at quoted bid/ask prices
+\providecommand{\rhtaPShLassoRth}{}\renewcommand{\rhtaPShLassoRth}{\ensuremath{p = 0.12}}  % Ledoit-Wolf p, Sharpe ratio full minus HAR (mid): Lasso, RTH13
+\providecommand{\rhtaShEnetHarRth}{}\renewcommand{\rhtaShEnetHarRth}{0.95}  % Sharpe ratio (D19), mid-quotes: Elastic net, baseline, RTH13 (main design: the 13 regular-hours bars, 3,000 days)
+\providecommand{\rhtaShXEnetHarRth}{}\renewcommand{\rhtaShXEnetHarRth}{0.60}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShEnetFullRth}{}\renewcommand{\rhtaShEnetFullRth}{1.86}  % Sharpe ratio (D19), mid-quotes: Elastic net, all_features, RTH13 (main design: the 13 regular-hours bars, 3,000 days)
+\providecommand{\rhtaShXEnetFullRth}{}\renewcommand{\rhtaShXEnetFullRth}{1.50}  % ... at quoted bid/ask prices
+\providecommand{\rhtaPShEnetRth}{}\renewcommand{\rhtaPShEnetRth}{\ensuremath{p = 0.077}}  % Ledoit-Wolf p, Sharpe ratio full minus HAR (mid): Elastic net, RTH13
+\providecommand{\rhtaShLgbmHarRth}{}\renewcommand{\rhtaShLgbmHarRth}{0.65}  % Sharpe ratio (D19), mid-quotes: LightGBM, baseline, RTH13 (main design: the 13 regular-hours bars, 3,000 days)
+\providecommand{\rhtaShXLgbmHarRth}{}\renewcommand{\rhtaShXLgbmHarRth}{0.31}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShLgbmFullRth}{}\renewcommand{\rhtaShLgbmFullRth}{1.59}  % Sharpe ratio (D19), mid-quotes: LightGBM, all_features, RTH13 (main design: the 13 regular-hours bars, 3,000 days)
+\providecommand{\rhtaShXLgbmFullRth}{}\renewcommand{\rhtaShXLgbmFullRth}{1.23}  % ... at quoted bid/ask prices
+\providecommand{\rhtaPShLgbmRth}{}\renewcommand{\rhtaPShLgbmRth}{\ensuremath{p = 0.040}}  % Ledoit-Wolf p, Sharpe ratio full minus HAR (mid): LightGBM, RTH13
+\providecommand{\rhtaShXgbHarRth}{}\renewcommand{\rhtaShXgbHarRth}{0.98}  % Sharpe ratio (D19), mid-quotes: XGBoost, baseline, RTH13 (main design: the 13 regular-hours bars, 3,000 days)
+\providecommand{\rhtaShXXgbHarRth}{}\renewcommand{\rhtaShXXgbHarRth}{0.63}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShXgbFullRth}{}\renewcommand{\rhtaShXgbFullRth}{1.47}  % Sharpe ratio (D19), mid-quotes: XGBoost, all_features, RTH13 (main design: the 13 regular-hours bars, 3,000 days)
+\providecommand{\rhtaShXXgbFullRth}{}\renewcommand{\rhtaShXXgbFullRth}{1.12}  % ... at quoted bid/ask prices
+\providecommand{\rhtaPShXgbRth}{}\renewcommand{\rhtaPShXgbRth}{\ensuremath{p = 0.27}}  % Ledoit-Wolf p, Sharpe ratio full minus HAR (mid): XGBoost, RTH13
+\providecommand{\rhtaShRfHarRth}{}\renewcommand{\rhtaShRfHarRth}{0.32}  % Sharpe ratio (D19), mid-quotes: Random forest, baseline, RTH13 (main design: the 13 regular-hours bars, 3,000 days)
+\providecommand{\rhtaShXRfHarRth}{}\renewcommand{\rhtaShXRfHarRth}{\ensuremath{-}0.03}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShRfFullRth}{}\renewcommand{\rhtaShRfFullRth}{1.88}  % Sharpe ratio (D19), mid-quotes: Random forest, all_features, RTH13 (main design: the 13 regular-hours bars, 3,000 days)
+\providecommand{\rhtaShXRfFullRth}{}\renewcommand{\rhtaShXRfFullRth}{1.52}  % ... at quoted bid/ask prices
+\providecommand{\rhtaPShRfRth}{}\renewcommand{\rhtaPShRfRth}{\ensuremath{p = 0.020}}  % Ledoit-Wolf p, Sharpe ratio full minus HAR (mid): Random forest, RTH13
+\providecommand{\rhtaShRidgeHarAll}{}\renewcommand{\rhtaShRidgeHarAll}{0.95}  % Sharpe ratio (D19), mid-quotes: Ridge, baseline, ALL48 (all 48 intervals, 3,000 days)
+\providecommand{\rhtaShXRidgeHarAll}{}\renewcommand{\rhtaShXRidgeHarAll}{0.59}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShRidgeFullAll}{}\renewcommand{\rhtaShRidgeFullAll}{1.61}  % Sharpe ratio (D19), mid-quotes: Ridge, all_features, ALL48 (all 48 intervals, 3,000 days)
+\providecommand{\rhtaShXRidgeFullAll}{}\renewcommand{\rhtaShXRidgeFullAll}{1.26}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShLassoHarAll}{}\renewcommand{\rhtaShLassoHarAll}{0.93}  % Sharpe ratio (D19), mid-quotes: Lasso, baseline, ALL48 (all 48 intervals, 3,000 days)
+\providecommand{\rhtaShXLassoHarAll}{}\renewcommand{\rhtaShXLassoHarAll}{0.58}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShLassoFullAll}{}\renewcommand{\rhtaShLassoFullAll}{1.50}  % Sharpe ratio (D19), mid-quotes: Lasso, all_features, ALL48 (all 48 intervals, 3,000 days)
+\providecommand{\rhtaShXLassoFullAll}{}\renewcommand{\rhtaShXLassoFullAll}{1.14}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShEnetHarAll}{}\renewcommand{\rhtaShEnetHarAll}{0.89}  % Sharpe ratio (D19), mid-quotes: Elastic net, baseline, ALL48 (all 48 intervals, 3,000 days)
 \providecommand{\rhtaShXEnetHarAll}{}\renewcommand{\rhtaShXEnetHarAll}{0.54}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShEnetFullAll}{}\renewcommand{\rhtaShEnetFullAll}{1.61}  % Sharpe ratio (D6), mid-quotes: Elastic net, all_features, ALL48 (all 48 intervals, 3,000 days)
-\providecommand{\rhtaShXEnetFullAll}{}\renewcommand{\rhtaShXEnetFullAll}{1.26}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShLgbmHarAll}{}\renewcommand{\rhtaShLgbmHarAll}{0.04}  % Sharpe ratio (D6), mid-quotes: LightGBM, baseline, ALL48 (all 48 intervals, 3,000 days)
-\providecommand{\rhtaShXLgbmHarAll}{}\renewcommand{\rhtaShXLgbmHarAll}{\ensuremath{-}0.28}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShLgbmFullAll}{}\renewcommand{\rhtaShLgbmFullAll}{1.42}  % Sharpe ratio (D6), mid-quotes: LightGBM, all_features, ALL48 (all 48 intervals, 3,000 days)
-\providecommand{\rhtaShXLgbmFullAll}{}\renewcommand{\rhtaShXLgbmFullAll}{1.07}  % ... at quoted bid/ask prices
-\providecommand{\rhtaPShLgbmAll}{}\renewcommand{\rhtaPShLgbmAll}{\ensuremath{p = 0.013}}  % bootstrap p, Sharpe ratio full minus HAR (mid): LightGBM, ALL48
-\providecommand{\rhtaShXgbHarAll}{}\renewcommand{\rhtaShXgbHarAll}{0.72}  % Sharpe ratio (D6), mid-quotes: XGBoost, baseline, ALL48 (all 48 intervals, 3,000 days)
-\providecommand{\rhtaShXXgbHarAll}{}\renewcommand{\rhtaShXXgbHarAll}{0.36}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShXgbFullAll}{}\renewcommand{\rhtaShXgbFullAll}{1.71}  % Sharpe ratio (D6), mid-quotes: XGBoost, all_features, ALL48 (all 48 intervals, 3,000 days)
-\providecommand{\rhtaShXXgbFullAll}{}\renewcommand{\rhtaShXXgbFullAll}{1.36}  % ... at quoted bid/ask prices
-\providecommand{\rhtaPShXgbAll}{}\renewcommand{\rhtaPShXgbAll}{\ensuremath{p = 0.087}}  % bootstrap p, Sharpe ratio full minus HAR (mid): XGBoost, ALL48
-\providecommand{\rhtaShRfHarAll}{}\renewcommand{\rhtaShRfHarAll}{0.27}  % Sharpe ratio (D6), mid-quotes: Random forest, baseline, ALL48 (all 48 intervals, 3,000 days)
-\providecommand{\rhtaShXRfHarAll}{}\renewcommand{\rhtaShXRfHarAll}{\ensuremath{-}0.06}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShRfFullAll}{}\renewcommand{\rhtaShRfFullAll}{1.99}  % Sharpe ratio (D6), mid-quotes: Random forest, all_features, ALL48 (all 48 intervals, 3,000 days)
-\providecommand{\rhtaShXRfFullAll}{}\renewcommand{\rhtaShXRfFullAll}{1.64}  % ... at quoted bid/ask prices
-\providecommand{\rhtaPShRfAll}{}\renewcommand{\rhtaPShRfAll}{\ensuremath{p = 0.002}}  % bootstrap p, Sharpe ratio full minus HAR (mid): Random forest, ALL48
-\providecommand{\rhtaShRidgeHarCl}{}\renewcommand{\rhtaShRidgeHarCl}{0.87}  % Sharpe ratio (D6), mid-quotes: Ridge, baseline, CLOSE (the closing half hour only, 3,000 closes)
-\providecommand{\rhtaShXRidgeHarCl}{}\renewcommand{\rhtaShXRidgeHarCl}{0.51}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShRidgeFullCl}{}\renewcommand{\rhtaShRidgeFullCl}{1.34}  % Sharpe ratio (D6), mid-quotes: Ridge, all_features, CLOSE (the closing half hour only, 3,000 closes)
-\providecommand{\rhtaShXRidgeFullCl}{}\renewcommand{\rhtaShXRidgeFullCl}{0.99}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShLassoHarCl}{}\renewcommand{\rhtaShLassoHarCl}{0.87}  % Sharpe ratio (D6), mid-quotes: Lasso, baseline, CLOSE (the closing half hour only, 3,000 closes)
-\providecommand{\rhtaShXLassoHarCl}{}\renewcommand{\rhtaShXLassoHarCl}{0.51}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShLassoFullCl}{}\renewcommand{\rhtaShLassoFullCl}{1.50}  % Sharpe ratio (D6), mid-quotes: Lasso, all_features, CLOSE (the closing half hour only, 3,000 closes)
-\providecommand{\rhtaShXLassoFullCl}{}\renewcommand{\rhtaShXLassoFullCl}{1.15}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShEnetHarCl}{}\renewcommand{\rhtaShEnetHarCl}{0.87}  % Sharpe ratio (D6), mid-quotes: Elastic net, baseline, CLOSE (the closing half hour only, 3,000 closes)
-\providecommand{\rhtaShXEnetHarCl}{}\renewcommand{\rhtaShXEnetHarCl}{0.51}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShEnetFullCl}{}\renewcommand{\rhtaShEnetFullCl}{1.78}  % Sharpe ratio (D6), mid-quotes: Elastic net, all_features, CLOSE (the closing half hour only, 3,000 closes)
-\providecommand{\rhtaShXEnetFullCl}{}\renewcommand{\rhtaShXEnetFullCl}{1.43}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShLgbmHarCl}{}\renewcommand{\rhtaShLgbmHarCl}{\ensuremath{-}0.47}  % Sharpe ratio (D6), mid-quotes: LightGBM, baseline, CLOSE (the closing half hour only, 3,000 closes)
-\providecommand{\rhtaShXLgbmHarCl}{}\renewcommand{\rhtaShXLgbmHarCl}{\ensuremath{-}0.79}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShLgbmFullCl}{}\renewcommand{\rhtaShLgbmFullCl}{1.87}  % Sharpe ratio (D6), mid-quotes: LightGBM, all_features, CLOSE (the closing half hour only, 3,000 closes)
-\providecommand{\rhtaShXLgbmFullCl}{}\renewcommand{\rhtaShXLgbmFullCl}{1.52}  % ... at quoted bid/ask prices
-\providecommand{\rhtaPShLgbmCl}{}\renewcommand{\rhtaPShLgbmCl}{\ensuremath{p < 0.001}}  % bootstrap p, Sharpe ratio full minus HAR (mid): LightGBM, CLOSE
-\providecommand{\rhtaShXgbHarCl}{}\renewcommand{\rhtaShXgbHarCl}{0.02}  % Sharpe ratio (D6), mid-quotes: XGBoost, baseline, CLOSE (the closing half hour only, 3,000 closes)
-\providecommand{\rhtaShXXgbHarCl}{}\renewcommand{\rhtaShXXgbHarCl}{\ensuremath{-}0.30}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShXgbFullCl}{}\renewcommand{\rhtaShXgbFullCl}{1.56}  % Sharpe ratio (D6), mid-quotes: XGBoost, all_features, CLOSE (the closing half hour only, 3,000 closes)
-\providecommand{\rhtaShXXgbFullCl}{}\renewcommand{\rhtaShXXgbFullCl}{1.21}  % ... at quoted bid/ask prices
-\providecommand{\rhtaPShXgbCl}{}\renewcommand{\rhtaPShXgbCl}{\ensuremath{p = 0.014}}  % bootstrap p, Sharpe ratio full minus HAR (mid): XGBoost, CLOSE
-\providecommand{\rhtaShRfHarCl}{}\renewcommand{\rhtaShRfHarCl}{\ensuremath{-}0.07}  % Sharpe ratio (D6), mid-quotes: Random forest, baseline, CLOSE (the closing half hour only, 3,000 closes)
-\providecommand{\rhtaShXRfHarCl}{}\renewcommand{\rhtaShXRfHarCl}{\ensuremath{-}0.39}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShRfFullCl}{}\renewcommand{\rhtaShRfFullCl}{1.24}  % Sharpe ratio (D6), mid-quotes: Random forest, all_features, CLOSE (the closing half hour only, 3,000 closes)
-\providecommand{\rhtaShXRfFullCl}{}\renewcommand{\rhtaShXRfFullCl}{0.88}  % ... at quoted bid/ask prices
-\providecommand{\rhtaPShRfCl}{}\renewcommand{\rhtaPShRfCl}{\ensuremath{p = 0.063}}  % bootstrap p, Sharpe ratio full minus HAR (mid): Random forest, CLOSE
-\providecommand{\rhtaShRidgeHarClNat}{}\renewcommand{\rhtaShRidgeHarClNat}{0.80}  % Sharpe ratio (D6), mid-quotes: Ridge, baseline, CLOSE_NAT (closing rows, design built natively on them; linear only)
-\providecommand{\rhtaShXRidgeHarClNat}{}\renewcommand{\rhtaShXRidgeHarClNat}{0.44}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShRidgeFullClNat}{}\renewcommand{\rhtaShRidgeFullClNat}{1.37}  % Sharpe ratio (D6), mid-quotes: Ridge, all_features, CLOSE_NAT (closing rows, design built natively on them; linear only)
-\providecommand{\rhtaShXRidgeFullClNat}{}\renewcommand{\rhtaShXRidgeFullClNat}{1.02}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShLassoHarClNat}{}\renewcommand{\rhtaShLassoHarClNat}{0.80}  % Sharpe ratio (D6), mid-quotes: Lasso, baseline, CLOSE_NAT (closing rows, design built natively on them; linear only)
-\providecommand{\rhtaShXLassoHarClNat}{}\renewcommand{\rhtaShXLassoHarClNat}{0.44}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShLassoFullClNat}{}\renewcommand{\rhtaShLassoFullClNat}{1.22}  % Sharpe ratio (D6), mid-quotes: Lasso, all_features, CLOSE_NAT (closing rows, design built natively on them; linear only)
-\providecommand{\rhtaShXLassoFullClNat}{}\renewcommand{\rhtaShXLassoFullClNat}{0.87}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShEnetHarClNat}{}\renewcommand{\rhtaShEnetHarClNat}{0.80}  % Sharpe ratio (D6), mid-quotes: Elastic net, baseline, CLOSE_NAT (closing rows, design built natively on them; linear only)
-\providecommand{\rhtaShXEnetHarClNat}{}\renewcommand{\rhtaShXEnetHarClNat}{0.44}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShEnetFullClNat}{}\renewcommand{\rhtaShEnetFullClNat}{1.84}  % Sharpe ratio (D6), mid-quotes: Elastic net, all_features, CLOSE_NAT (closing rows, design built natively on them; linear only)
-\providecommand{\rhtaShXEnetFullClNat}{}\renewcommand{\rhtaShXEnetFullClNat}{1.49}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShRidgeHarAllCt}{}\renewcommand{\rhtaShRidgeHarAllCt}{0.97}  % Sharpe ratio (D6), mid-quotes: Ridge, baseline, ALL48@16 (ALL48, penalties chosen on the 16:00 validation rows; linear only)
-\providecommand{\rhtaShXRidgeHarAllCt}{}\renewcommand{\rhtaShXRidgeHarAllCt}{0.61}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShRidgeFullAllCt}{}\renewcommand{\rhtaShRidgeFullAllCt}{1.43}  % Sharpe ratio (D6), mid-quotes: Ridge, all_features, ALL48@16 (ALL48, penalties chosen on the 16:00 validation rows; linear only)
-\providecommand{\rhtaShXRidgeFullAllCt}{}\renewcommand{\rhtaShXRidgeFullAllCt}{1.08}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShLassoHarAllCt}{}\renewcommand{\rhtaShLassoHarAllCt}{1.00}  % Sharpe ratio (D6), mid-quotes: Lasso, baseline, ALL48@16 (ALL48, penalties chosen on the 16:00 validation rows; linear only)
-\providecommand{\rhtaShXLassoHarAllCt}{}\renewcommand{\rhtaShXLassoHarAllCt}{0.64}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShLassoFullAllCt}{}\renewcommand{\rhtaShLassoFullAllCt}{1.37}  % Sharpe ratio (D6), mid-quotes: Lasso, all_features, ALL48@16 (ALL48, penalties chosen on the 16:00 validation rows; linear only)
-\providecommand{\rhtaShXLassoFullAllCt}{}\renewcommand{\rhtaShXLassoFullAllCt}{1.02}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShEnetHarAllCt}{}\renewcommand{\rhtaShEnetHarAllCt}{0.77}  % Sharpe ratio (D6), mid-quotes: Elastic net, baseline, ALL48@16 (ALL48, penalties chosen on the 16:00 validation rows; linear only)
-\providecommand{\rhtaShXEnetHarAllCt}{}\renewcommand{\rhtaShXEnetHarAllCt}{0.41}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShEnetFullAllCt}{}\renewcommand{\rhtaShEnetFullAllCt}{1.61}  % Sharpe ratio (D6), mid-quotes: Elastic net, all_features, ALL48@16 (ALL48, penalties chosen on the 16:00 validation rows; linear only)
-\providecommand{\rhtaShXEnetFullAllCt}{}\renewcommand{\rhtaShXEnetFullAllCt}{1.26}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShRidgeHarRthCt}{}\renewcommand{\rhtaShRidgeHarRthCt}{0.98}  % Sharpe ratio (D6), mid-quotes: Ridge, baseline, RTH13@16 (RTH13, penalties chosen on the 16:00 validation rows; linear only)
-\providecommand{\rhtaShXRidgeHarRthCt}{}\renewcommand{\rhtaShXRidgeHarRthCt}{0.62}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShRidgeFullRthCt}{}\renewcommand{\rhtaShRidgeFullRthCt}{1.85}  % Sharpe ratio (D6), mid-quotes: Ridge, all_features, RTH13@16 (RTH13, penalties chosen on the 16:00 validation rows; linear only)
-\providecommand{\rhtaShXRidgeFullRthCt}{}\renewcommand{\rhtaShXRidgeFullRthCt}{1.49}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShLassoHarRthCt}{}\renewcommand{\rhtaShLassoHarRthCt}{1.00}  % Sharpe ratio (D6), mid-quotes: Lasso, baseline, RTH13@16 (RTH13, penalties chosen on the 16:00 validation rows; linear only)
-\providecommand{\rhtaShXLassoHarRthCt}{}\renewcommand{\rhtaShXLassoHarRthCt}{0.64}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShLassoFullRthCt}{}\renewcommand{\rhtaShLassoFullRthCt}{1.91}  % Sharpe ratio (D6), mid-quotes: Lasso, all_features, RTH13@16 (RTH13, penalties chosen on the 16:00 validation rows; linear only)
-\providecommand{\rhtaShXLassoFullRthCt}{}\renewcommand{\rhtaShXLassoFullRthCt}{1.56}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShEnetHarRthCt}{}\renewcommand{\rhtaShEnetHarRthCt}{0.94}  % Sharpe ratio (D6), mid-quotes: Elastic net, baseline, RTH13@16 (RTH13, penalties chosen on the 16:00 validation rows; linear only)
-\providecommand{\rhtaShXEnetHarRthCt}{}\renewcommand{\rhtaShXEnetHarRthCt}{0.57}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShEnetFullRthCt}{}\renewcommand{\rhtaShEnetFullRthCt}{1.94}  % Sharpe ratio (D6), mid-quotes: Elastic net, all_features, RTH13@16 (RTH13, penalties chosen on the 16:00 validation rows; linear only)
-\providecommand{\rhtaShXEnetFullRthCt}{}\renewcommand{\rhtaShXEnetFullRthCt}{1.58}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShRidgeHarAllThreeK}{}\renewcommand{\rhtaShRidgeHarAllThreeK}{1.58}  % Sharpe ratio (D6), mid-quotes: Ridge, baseline, ALL48_N3k (ALL48, the last 3,000 rows)
-\providecommand{\rhtaShXRidgeHarAllThreeK}{}\renewcommand{\rhtaShXRidgeHarAllThreeK}{1.22}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShRidgeFullAllThreeK}{}\renewcommand{\rhtaShRidgeFullAllThreeK}{1.33}  % Sharpe ratio (D6), mid-quotes: Ridge, all_features, ALL48_N3k (ALL48, the last 3,000 rows)
-\providecommand{\rhtaShXRidgeFullAllThreeK}{}\renewcommand{\rhtaShXRidgeFullAllThreeK}{0.97}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShLassoHarAllThreeK}{}\renewcommand{\rhtaShLassoHarAllThreeK}{1.63}  % Sharpe ratio (D6), mid-quotes: Lasso, baseline, ALL48_N3k (ALL48, the last 3,000 rows)
-\providecommand{\rhtaShXLassoHarAllThreeK}{}\renewcommand{\rhtaShXLassoHarAllThreeK}{1.27}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShLassoFullAllThreeK}{}\renewcommand{\rhtaShLassoFullAllThreeK}{1.54}  % Sharpe ratio (D6), mid-quotes: Lasso, all_features, ALL48_N3k (ALL48, the last 3,000 rows)
-\providecommand{\rhtaShXLassoFullAllThreeK}{}\renewcommand{\rhtaShXLassoFullAllThreeK}{1.19}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShEnetHarAllThreeK}{}\renewcommand{\rhtaShEnetHarAllThreeK}{1.54}  % Sharpe ratio (D6), mid-quotes: Elastic net, baseline, ALL48_N3k (ALL48, the last 3,000 rows)
-\providecommand{\rhtaShXEnetHarAllThreeK}{}\renewcommand{\rhtaShXEnetHarAllThreeK}{1.18}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShEnetFullAllThreeK}{}\renewcommand{\rhtaShEnetFullAllThreeK}{1.57}  % Sharpe ratio (D6), mid-quotes: Elastic net, all_features, ALL48_N3k (ALL48, the last 3,000 rows)
-\providecommand{\rhtaShXEnetFullAllThreeK}{}\renewcommand{\rhtaShXEnetFullAllThreeK}{1.22}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShLgbmHarAllThreeK}{}\renewcommand{\rhtaShLgbmHarAllThreeK}{0.94}  % Sharpe ratio (D6), mid-quotes: LightGBM, baseline, ALL48_N3k (ALL48, the last 3,000 rows)
-\providecommand{\rhtaShXLgbmHarAllThreeK}{}\renewcommand{\rhtaShXLgbmHarAllThreeK}{0.58}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShLgbmFullAllThreeK}{}\renewcommand{\rhtaShLgbmFullAllThreeK}{1.29}  % Sharpe ratio (D6), mid-quotes: LightGBM, all_features, ALL48_N3k (ALL48, the last 3,000 rows)
-\providecommand{\rhtaShXLgbmFullAllThreeK}{}\renewcommand{\rhtaShXLgbmFullAllThreeK}{0.94}  % ... at quoted bid/ask prices
-\providecommand{\rhtaPShLgbmAllThreeK}{}\renewcommand{\rhtaPShLgbmAllThreeK}{\ensuremath{p = 0.40}}  % bootstrap p, Sharpe ratio full minus HAR (mid): LightGBM, ALL48_N3k
-\providecommand{\rhtaShXgbHarAllThreeK}{}\renewcommand{\rhtaShXgbHarAllThreeK}{0.91}  % Sharpe ratio (D6), mid-quotes: XGBoost, baseline, ALL48_N3k (ALL48, the last 3,000 rows)
-\providecommand{\rhtaShXXgbHarAllThreeK}{}\renewcommand{\rhtaShXXgbHarAllThreeK}{0.55}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShXgbFullAllThreeK}{}\renewcommand{\rhtaShXgbFullAllThreeK}{1.19}  % Sharpe ratio (D6), mid-quotes: XGBoost, all_features, ALL48_N3k (ALL48, the last 3,000 rows)
-\providecommand{\rhtaShXXgbFullAllThreeK}{}\renewcommand{\rhtaShXXgbFullAllThreeK}{0.84}  % ... at quoted bid/ask prices
-\providecommand{\rhtaPShXgbAllThreeK}{}\renewcommand{\rhtaPShXgbAllThreeK}{\ensuremath{p = 0.53}}  % bootstrap p, Sharpe ratio full minus HAR (mid): XGBoost, ALL48_N3k
-\providecommand{\rhtaShRfHarAllThreeK}{}\renewcommand{\rhtaShRfHarAllThreeK}{0.83}  % Sharpe ratio (D6), mid-quotes: Random forest, baseline, ALL48_N3k (ALL48, the last 3,000 rows)
-\providecommand{\rhtaShXRfHarAllThreeK}{}\renewcommand{\rhtaShXRfHarAllThreeK}{0.48}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShRfFullAllThreeK}{}\renewcommand{\rhtaShRfFullAllThreeK}{1.49}  % Sharpe ratio (D6), mid-quotes: Random forest, all_features, ALL48_N3k (ALL48, the last 3,000 rows)
-\providecommand{\rhtaShXRfFullAllThreeK}{}\renewcommand{\rhtaShXRfFullAllThreeK}{1.14}  % ... at quoted bid/ask prices
-\providecommand{\rhtaPShRfAllThreeK}{}\renewcommand{\rhtaPShRfAllThreeK}{\ensuremath{p = 0.15}}  % bootstrap p, Sharpe ratio full minus HAR (mid): Random forest, ALL48_N3k
-\providecommand{\rhtaShRidgeHarRthThreeK}{}\renewcommand{\rhtaShRidgeHarRthThreeK}{1.11}  % Sharpe ratio (D6), mid-quotes: Ridge, baseline, RTH13_N3k (RTH13, the last 3,000 rows)
-\providecommand{\rhtaShXRidgeHarRthThreeK}{}\renewcommand{\rhtaShXRidgeHarRthThreeK}{0.76}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShRidgeFullRthThreeK}{}\renewcommand{\rhtaShRidgeFullRthThreeK}{1.13}  % Sharpe ratio (D6), mid-quotes: Ridge, all_features, RTH13_N3k (RTH13, the last 3,000 rows)
-\providecommand{\rhtaShXRidgeFullRthThreeK}{}\renewcommand{\rhtaShXRidgeFullRthThreeK}{0.78}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShLassoHarRthThreeK}{}\renewcommand{\rhtaShLassoHarRthThreeK}{1.11}  % Sharpe ratio (D6), mid-quotes: Lasso, baseline, RTH13_N3k (RTH13, the last 3,000 rows)
-\providecommand{\rhtaShXLassoHarRthThreeK}{}\renewcommand{\rhtaShXLassoHarRthThreeK}{0.76}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShLassoFullRthThreeK}{}\renewcommand{\rhtaShLassoFullRthThreeK}{1.68}  % Sharpe ratio (D6), mid-quotes: Lasso, all_features, RTH13_N3k (RTH13, the last 3,000 rows)
-\providecommand{\rhtaShXLassoFullRthThreeK}{}\renewcommand{\rhtaShXLassoFullRthThreeK}{1.33}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShEnetHarRthThreeK}{}\renewcommand{\rhtaShEnetHarRthThreeK}{1.11}  % Sharpe ratio (D6), mid-quotes: Elastic net, baseline, RTH13_N3k (RTH13, the last 3,000 rows)
-\providecommand{\rhtaShXEnetHarRthThreeK}{}\renewcommand{\rhtaShXEnetHarRthThreeK}{0.76}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShEnetFullRthThreeK}{}\renewcommand{\rhtaShEnetFullRthThreeK}{1.37}  % Sharpe ratio (D6), mid-quotes: Elastic net, all_features, RTH13_N3k (RTH13, the last 3,000 rows)
-\providecommand{\rhtaShXEnetFullRthThreeK}{}\renewcommand{\rhtaShXEnetFullRthThreeK}{1.01}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShLgbmHarRthThreeK}{}\renewcommand{\rhtaShLgbmHarRthThreeK}{0.16}  % Sharpe ratio (D6), mid-quotes: LightGBM, baseline, RTH13_N3k (RTH13, the last 3,000 rows)
-\providecommand{\rhtaShXLgbmHarRthThreeK}{}\renewcommand{\rhtaShXLgbmHarRthThreeK}{\ensuremath{-}0.19}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShLgbmFullRthThreeK}{}\renewcommand{\rhtaShLgbmFullRthThreeK}{0.89}  % Sharpe ratio (D6), mid-quotes: LightGBM, all_features, RTH13_N3k (RTH13, the last 3,000 rows)
-\providecommand{\rhtaShXLgbmFullRthThreeK}{}\renewcommand{\rhtaShXLgbmFullRthThreeK}{0.54}  % ... at quoted bid/ask prices
-\providecommand{\rhtaPShLgbmRthThreeK}{}\renewcommand{\rhtaPShLgbmRthThreeK}{\ensuremath{p = 0.24}}  % bootstrap p, Sharpe ratio full minus HAR (mid): LightGBM, RTH13_N3k
-\providecommand{\rhtaShXgbHarRthThreeK}{}\renewcommand{\rhtaShXgbHarRthThreeK}{0.70}  % Sharpe ratio (D6), mid-quotes: XGBoost, baseline, RTH13_N3k (RTH13, the last 3,000 rows)
-\providecommand{\rhtaShXXgbHarRthThreeK}{}\renewcommand{\rhtaShXXgbHarRthThreeK}{0.34}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShXgbFullRthThreeK}{}\renewcommand{\rhtaShXgbFullRthThreeK}{0.86}  % Sharpe ratio (D6), mid-quotes: XGBoost, all_features, RTH13_N3k (RTH13, the last 3,000 rows)
-\providecommand{\rhtaShXXgbFullRthThreeK}{}\renewcommand{\rhtaShXXgbFullRthThreeK}{0.50}  % ... at quoted bid/ask prices
-\providecommand{\rhtaPShXgbRthThreeK}{}\renewcommand{\rhtaPShXgbRthThreeK}{\ensuremath{p = 0.78}}  % bootstrap p, Sharpe ratio full minus HAR (mid): XGBoost, RTH13_N3k
-\providecommand{\rhtaShRfHarRthThreeK}{}\renewcommand{\rhtaShRfHarRthThreeK}{0.33}  % Sharpe ratio (D6), mid-quotes: Random forest, baseline, RTH13_N3k (RTH13, the last 3,000 rows)
-\providecommand{\rhtaShXRfHarRthThreeK}{}\renewcommand{\rhtaShXRfHarRthThreeK}{\ensuremath{-}0.03}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShRfFullRthThreeK}{}\renewcommand{\rhtaShRfFullRthThreeK}{0.96}  % Sharpe ratio (D6), mid-quotes: Random forest, all_features, RTH13_N3k (RTH13, the last 3,000 rows)
-\providecommand{\rhtaShXRfFullRthThreeK}{}\renewcommand{\rhtaShXRfFullRthThreeK}{0.61}  % ... at quoted bid/ask prices
-\providecommand{\rhtaPShRfRthThreeK}{}\renewcommand{\rhtaPShRfRthThreeK}{\ensuremath{p = 0.20}}  % bootstrap p, Sharpe ratio full minus HAR (mid): Random forest, RTH13_N3k
-\providecommand{\rhtaShRidgeHarAllThirtyNineK}{}\renewcommand{\rhtaShRidgeHarAllThirtyNineK}{1.13}  % Sharpe ratio (D6), mid-quotes: Ridge, baseline, ALL48_N39k (ALL48, the last 39,000 rows)
-\providecommand{\rhtaShXRidgeHarAllThirtyNineK}{}\renewcommand{\rhtaShXRidgeHarAllThirtyNineK}{0.77}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShRidgeFullAllThirtyNineK}{}\renewcommand{\rhtaShRidgeFullAllThirtyNineK}{0.58}  % Sharpe ratio (D6), mid-quotes: Ridge, all_features, ALL48_N39k (ALL48, the last 39,000 rows)
-\providecommand{\rhtaShXRidgeFullAllThirtyNineK}{}\renewcommand{\rhtaShXRidgeFullAllThirtyNineK}{0.24}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShLassoHarAllThirtyNineK}{}\renewcommand{\rhtaShLassoHarAllThirtyNineK}{1.15}  % Sharpe ratio (D6), mid-quotes: Lasso, baseline, ALL48_N39k (ALL48, the last 39,000 rows)
-\providecommand{\rhtaShXLassoHarAllThirtyNineK}{}\renewcommand{\rhtaShXLassoHarAllThirtyNineK}{0.79}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShLassoFullAllThirtyNineK}{}\renewcommand{\rhtaShLassoFullAllThirtyNineK}{1.31}  % Sharpe ratio (D6), mid-quotes: Lasso, all_features, ALL48_N39k (ALL48, the last 39,000 rows)
-\providecommand{\rhtaShXLassoFullAllThirtyNineK}{}\renewcommand{\rhtaShXLassoFullAllThirtyNineK}{0.96}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShEnetHarAllThirtyNineK}{}\renewcommand{\rhtaShEnetHarAllThirtyNineK}{1.19}  % Sharpe ratio (D6), mid-quotes: Elastic net, baseline, ALL48_N39k (ALL48, the last 39,000 rows)
-\providecommand{\rhtaShXEnetHarAllThirtyNineK}{}\renewcommand{\rhtaShXEnetHarAllThirtyNineK}{0.83}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShEnetFullAllThirtyNineK}{}\renewcommand{\rhtaShEnetFullAllThirtyNineK}{1.75}  % Sharpe ratio (D6), mid-quotes: Elastic net, all_features, ALL48_N39k (ALL48, the last 39,000 rows)
-\providecommand{\rhtaShXEnetFullAllThirtyNineK}{}\renewcommand{\rhtaShXEnetFullAllThirtyNineK}{1.39}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShLgbmHarAllThirtyNineK}{}\renewcommand{\rhtaShLgbmHarAllThirtyNineK}{0.26}  % Sharpe ratio (D6), mid-quotes: LightGBM, baseline, ALL48_N39k (ALL48, the last 39,000 rows)
-\providecommand{\rhtaShXLgbmHarAllThirtyNineK}{}\renewcommand{\rhtaShXLgbmHarAllThirtyNineK}{\ensuremath{-}0.07}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShLgbmFullAllThirtyNineK}{}\renewcommand{\rhtaShLgbmFullAllThirtyNineK}{1.86}  % Sharpe ratio (D6), mid-quotes: LightGBM, all_features, ALL48_N39k (ALL48, the last 39,000 rows)
-\providecommand{\rhtaShXLgbmFullAllThirtyNineK}{}\renewcommand{\rhtaShXLgbmFullAllThirtyNineK}{1.50}  % ... at quoted bid/ask prices
-\providecommand{\rhtaPShLgbmAllThirtyNineK}{}\renewcommand{\rhtaPShLgbmAllThirtyNineK}{\ensuremath{p = 0.001}}  % bootstrap p, Sharpe ratio full minus HAR (mid): LightGBM, ALL48_N39k
-\providecommand{\rhtaShXgbHarAllThirtyNineK}{}\renewcommand{\rhtaShXgbHarAllThirtyNineK}{0.40}  % Sharpe ratio (D6), mid-quotes: XGBoost, baseline, ALL48_N39k (ALL48, the last 39,000 rows)
-\providecommand{\rhtaShXXgbHarAllThirtyNineK}{}\renewcommand{\rhtaShXXgbHarAllThirtyNineK}{0.06}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShXgbFullAllThirtyNineK}{}\renewcommand{\rhtaShXgbFullAllThirtyNineK}{1.81}  % Sharpe ratio (D6), mid-quotes: XGBoost, all_features, ALL48_N39k (ALL48, the last 39,000 rows)
-\providecommand{\rhtaShXXgbFullAllThirtyNineK}{}\renewcommand{\rhtaShXXgbFullAllThirtyNineK}{1.46}  % ... at quoted bid/ask prices
-\providecommand{\rhtaPShXgbAllThirtyNineK}{}\renewcommand{\rhtaPShXgbAllThirtyNineK}{\ensuremath{p = 0.005}}  % bootstrap p, Sharpe ratio full minus HAR (mid): XGBoost, ALL48_N39k
-\providecommand{\rhtaShRfHarAllThirtyNineK}{}\renewcommand{\rhtaShRfHarAllThirtyNineK}{0.66}  % Sharpe ratio (D6), mid-quotes: Random forest, baseline, ALL48_N39k (ALL48, the last 39,000 rows)
-\providecommand{\rhtaShXRfHarAllThirtyNineK}{}\renewcommand{\rhtaShXRfHarAllThirtyNineK}{0.31}  % ... at quoted bid/ask prices
-\providecommand{\rhtaShRfFullAllThirtyNineK}{}\renewcommand{\rhtaShRfFullAllThirtyNineK}{0.86}  % Sharpe ratio (D6), mid-quotes: Random forest, all_features, ALL48_N39k (ALL48, the last 39,000 rows)
-\providecommand{\rhtaShXRfFullAllThirtyNineK}{}\renewcommand{\rhtaShXRfFullAllThirtyNineK}{0.50}  % ... at quoted bid/ask prices
-\providecommand{\rhtaPShRfAllThirtyNineK}{}\renewcommand{\rhtaPShRfAllThirtyNineK}{\ensuremath{p = 0.68}}  % bootstrap p, Sharpe ratio full minus HAR (mid): Random forest, ALL48_N39k
-\providecommand{\rhtaDShRidgeAllVsRth}{}\renewcommand{\rhtaDShRidgeAllVsRth}{\ensuremath{-}0.16}  % Sharpe ratio (D6, mid), ALL48 minus RTH13, full set, Ridge
-\providecommand{\rhtaPDShRidgeAllVsRth}{}\renewcommand{\rhtaPDShRidgeAllVsRth}{\ensuremath{p = 0.72}}  % ... its bootstrap p
-\providecommand{\rhtaDShLassoAllVsRth}{}\renewcommand{\rhtaDShLassoAllVsRth}{\ensuremath{-}0.14}  % Sharpe ratio (D6, mid), ALL48 minus RTH13, full set, Lasso
-\providecommand{\rhtaPDShLassoAllVsRth}{}\renewcommand{\rhtaPDShLassoAllVsRth}{\ensuremath{p = 0.76}}  % ... its bootstrap p
-\providecommand{\rhtaDShEnetAllVsRth}{}\renewcommand{\rhtaDShEnetAllVsRth}{\ensuremath{-}0.33}  % Sharpe ratio (D6, mid), ALL48 minus RTH13, full set, Elastic net
-\providecommand{\rhtaPDShEnetAllVsRth}{}\renewcommand{\rhtaPDShEnetAllVsRth}{\ensuremath{p = 0.43}}  % ... its bootstrap p
-\providecommand{\rhtaDShLgbmAllVsRth}{}\renewcommand{\rhtaDShLgbmAllVsRth}{\ensuremath{-}0.33}  % Sharpe ratio (D6, mid), ALL48 minus RTH13, full set, LightGBM
-\providecommand{\rhtaPDShLgbmAllVsRth}{}\renewcommand{\rhtaPDShLgbmAllVsRth}{\ensuremath{p = 0.23}}  % ... its bootstrap p
-\providecommand{\rhtaDShXgbAllVsRth}{}\renewcommand{\rhtaDShXgbAllVsRth}{0.04}  % Sharpe ratio (D6, mid), ALL48 minus RTH13, full set, XGBoost
-\providecommand{\rhtaPDShXgbAllVsRth}{}\renewcommand{\rhtaPDShXgbAllVsRth}{\ensuremath{p = 0.88}}  % ... its bootstrap p
-\providecommand{\rhtaDShRfAllVsRth}{}\renewcommand{\rhtaDShRfAllVsRth}{0.03}  % Sharpe ratio (D6, mid), ALL48 minus RTH13, full set, Random forest
-\providecommand{\rhtaPDShRfAllVsRth}{}\renewcommand{\rhtaPDShRfAllVsRth}{\ensuremath{p = 0.93}}  % ... its bootstrap p
-\providecommand{\rhtaDShRidgeClVsRth}{}\renewcommand{\rhtaDShRidgeClVsRth}{\ensuremath{-}0.50}  % Sharpe ratio (D6, mid), CLOSE minus RTH13, full set, Ridge
-\providecommand{\rhtaPDShRidgeClVsRth}{}\renewcommand{\rhtaPDShRidgeClVsRth}{\ensuremath{p = 0.22}}  % ... its bootstrap p
-\providecommand{\rhtaDShLassoClVsRth}{}\renewcommand{\rhtaDShLassoClVsRth}{\ensuremath{-}0.22}  % Sharpe ratio (D6, mid), CLOSE minus RTH13, full set, Lasso
-\providecommand{\rhtaPDShLassoClVsRth}{}\renewcommand{\rhtaPDShLassoClVsRth}{\ensuremath{p = 0.62}}  % ... its bootstrap p
-\providecommand{\rhtaDShEnetClVsRth}{}\renewcommand{\rhtaDShEnetClVsRth}{\ensuremath{-}0.16}  % Sharpe ratio (D6, mid), CLOSE minus RTH13, full set, Elastic net
-\providecommand{\rhtaPDShEnetClVsRth}{}\renewcommand{\rhtaPDShEnetClVsRth}{\ensuremath{p = 0.71}}  % ... its bootstrap p
-\providecommand{\rhtaDShLgbmClVsRth}{}\renewcommand{\rhtaDShLgbmClVsRth}{0.12}  % Sharpe ratio (D6, mid), CLOSE minus RTH13, full set, LightGBM
-\providecommand{\rhtaPDShLgbmClVsRth}{}\renewcommand{\rhtaPDShLgbmClVsRth}{\ensuremath{p = 0.75}}  % ... its bootstrap p
-\providecommand{\rhtaDShXgbClVsRth}{}\renewcommand{\rhtaDShXgbClVsRth}{\ensuremath{-}0.11}  % Sharpe ratio (D6, mid), CLOSE minus RTH13, full set, XGBoost
-\providecommand{\rhtaPDShXgbClVsRth}{}\renewcommand{\rhtaPDShXgbClVsRth}{\ensuremath{p = 0.67}}  % ... its bootstrap p
-\providecommand{\rhtaDShRfClVsRth}{}\renewcommand{\rhtaDShRfClVsRth}{\ensuremath{-}0.72}  % Sharpe ratio (D6, mid), CLOSE minus RTH13, full set, Random forest
-\providecommand{\rhtaPDShRfClVsRth}{}\renewcommand{\rhtaPDShRfClVsRth}{\ensuremath{p = 0.28}}  % ... its bootstrap p
+\providecommand{\rhtaShEnetFullAll}{}\renewcommand{\rhtaShEnetFullAll}{1.52}  % Sharpe ratio (D19), mid-quotes: Elastic net, all_features, ALL48 (all 48 intervals, 3,000 days)
+\providecommand{\rhtaShXEnetFullAll}{}\renewcommand{\rhtaShXEnetFullAll}{1.17}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShLgbmHarAll}{}\renewcommand{\rhtaShLgbmHarAll}{0.21}  % Sharpe ratio (D19), mid-quotes: LightGBM, baseline, ALL48 (all 48 intervals, 3,000 days)
+\providecommand{\rhtaShXLgbmHarAll}{}\renewcommand{\rhtaShXLgbmHarAll}{\ensuremath{-}0.14}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShLgbmFullAll}{}\renewcommand{\rhtaShLgbmFullAll}{1.25}  % Sharpe ratio (D19), mid-quotes: LightGBM, all_features, ALL48 (all 48 intervals, 3,000 days)
+\providecommand{\rhtaShXLgbmFullAll}{}\renewcommand{\rhtaShXLgbmFullAll}{0.90}  % ... at quoted bid/ask prices
+\providecommand{\rhtaPShLgbmAll}{}\renewcommand{\rhtaPShLgbmAll}{\ensuremath{p = 0.11}}  % Ledoit-Wolf p, Sharpe ratio full minus HAR (mid): LightGBM, ALL48
+\providecommand{\rhtaShXgbHarAll}{}\renewcommand{\rhtaShXgbHarAll}{0.73}  % Sharpe ratio (D19), mid-quotes: XGBoost, baseline, ALL48 (all 48 intervals, 3,000 days)
+\providecommand{\rhtaShXXgbHarAll}{}\renewcommand{\rhtaShXXgbHarAll}{0.38}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShXgbFullAll}{}\renewcommand{\rhtaShXgbFullAll}{1.50}  % Sharpe ratio (D19), mid-quotes: XGBoost, all_features, ALL48 (all 48 intervals, 3,000 days)
+\providecommand{\rhtaShXXgbFullAll}{}\renewcommand{\rhtaShXXgbFullAll}{1.15}  % ... at quoted bid/ask prices
+\providecommand{\rhtaPShXgbAll}{}\renewcommand{\rhtaPShXgbAll}{\ensuremath{p = 0.11}}  % Ledoit-Wolf p, Sharpe ratio full minus HAR (mid): XGBoost, ALL48
+\providecommand{\rhtaShRfHarAll}{}\renewcommand{\rhtaShRfHarAll}{0.65}  % Sharpe ratio (D19), mid-quotes: Random forest, baseline, ALL48 (all 48 intervals, 3,000 days)
+\providecommand{\rhtaShXRfHarAll}{}\renewcommand{\rhtaShXRfHarAll}{0.29}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShRfFullAll}{}\renewcommand{\rhtaShRfFullAll}{1.82}  % Sharpe ratio (D19), mid-quotes: Random forest, all_features, ALL48 (all 48 intervals, 3,000 days)
+\providecommand{\rhtaShXRfFullAll}{}\renewcommand{\rhtaShXRfFullAll}{1.46}  % ... at quoted bid/ask prices
+\providecommand{\rhtaPShRfAll}{}\renewcommand{\rhtaPShRfAll}{\ensuremath{p = 0.066}}  % Ledoit-Wolf p, Sharpe ratio full minus HAR (mid): Random forest, ALL48
+\providecommand{\rhtaShRidgeHarCl}{}\renewcommand{\rhtaShRidgeHarCl}{1.03}  % Sharpe ratio (D19), mid-quotes: Ridge, baseline, CLOSE (the closing half hour only, 3,000 closes)
+\providecommand{\rhtaShXRidgeHarCl}{}\renewcommand{\rhtaShXRidgeHarCl}{0.68}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShRidgeFullCl}{}\renewcommand{\rhtaShRidgeFullCl}{1.26}  % Sharpe ratio (D19), mid-quotes: Ridge, all_features, CLOSE (the closing half hour only, 3,000 closes)
+\providecommand{\rhtaShXRidgeFullCl}{}\renewcommand{\rhtaShXRidgeFullCl}{0.91}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShLassoHarCl}{}\renewcommand{\rhtaShLassoHarCl}{1.03}  % Sharpe ratio (D19), mid-quotes: Lasso, baseline, CLOSE (the closing half hour only, 3,000 closes)
+\providecommand{\rhtaShXLassoHarCl}{}\renewcommand{\rhtaShXLassoHarCl}{0.68}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShLassoFullCl}{}\renewcommand{\rhtaShLassoFullCl}{1.58}  % Sharpe ratio (D19), mid-quotes: Lasso, all_features, CLOSE (the closing half hour only, 3,000 closes)
+\providecommand{\rhtaShXLassoFullCl}{}\renewcommand{\rhtaShXLassoFullCl}{1.23}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShEnetHarCl}{}\renewcommand{\rhtaShEnetHarCl}{1.03}  % Sharpe ratio (D19), mid-quotes: Elastic net, baseline, CLOSE (the closing half hour only, 3,000 closes)
+\providecommand{\rhtaShXEnetHarCl}{}\renewcommand{\rhtaShXEnetHarCl}{0.68}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShEnetFullCl}{}\renewcommand{\rhtaShEnetFullCl}{1.71}  % Sharpe ratio (D19), mid-quotes: Elastic net, all_features, CLOSE (the closing half hour only, 3,000 closes)
+\providecommand{\rhtaShXEnetFullCl}{}\renewcommand{\rhtaShXEnetFullCl}{1.36}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShLgbmHarCl}{}\renewcommand{\rhtaShLgbmHarCl}{\ensuremath{-}0.03}  % Sharpe ratio (D19), mid-quotes: LightGBM, baseline, CLOSE (the closing half hour only, 3,000 closes)
+\providecommand{\rhtaShXLgbmHarCl}{}\renewcommand{\rhtaShXLgbmHarCl}{\ensuremath{-}0.37}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShLgbmFullCl}{}\renewcommand{\rhtaShLgbmFullCl}{1.94}  % Sharpe ratio (D19), mid-quotes: LightGBM, all_features, CLOSE (the closing half hour only, 3,000 closes)
+\providecommand{\rhtaShXLgbmFullCl}{}\renewcommand{\rhtaShXLgbmFullCl}{1.60}  % ... at quoted bid/ask prices
+\providecommand{\rhtaPShLgbmCl}{}\renewcommand{\rhtaPShLgbmCl}{\ensuremath{p = 0.003}}  % Ledoit-Wolf p, Sharpe ratio full minus HAR (mid): LightGBM, CLOSE
+\providecommand{\rhtaShXgbHarCl}{}\renewcommand{\rhtaShXgbHarCl}{0.40}  % Sharpe ratio (D19), mid-quotes: XGBoost, baseline, CLOSE (the closing half hour only, 3,000 closes)
+\providecommand{\rhtaShXXgbHarCl}{}\renewcommand{\rhtaShXXgbHarCl}{0.05}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShXgbFullCl}{}\renewcommand{\rhtaShXgbFullCl}{1.62}  % Sharpe ratio (D19), mid-quotes: XGBoost, all_features, CLOSE (the closing half hour only, 3,000 closes)
+\providecommand{\rhtaShXXgbFullCl}{}\renewcommand{\rhtaShXXgbFullCl}{1.27}  % ... at quoted bid/ask prices
+\providecommand{\rhtaPShXgbCl}{}\renewcommand{\rhtaPShXgbCl}{\ensuremath{p = 0.055}}  % Ledoit-Wolf p, Sharpe ratio full minus HAR (mid): XGBoost, CLOSE
+\providecommand{\rhtaShRfHarCl}{}\renewcommand{\rhtaShRfHarCl}{0.29}  % Sharpe ratio (D19), mid-quotes: Random forest, baseline, CLOSE (the closing half hour only, 3,000 closes)
+\providecommand{\rhtaShXRfHarCl}{}\renewcommand{\rhtaShXRfHarCl}{\ensuremath{-}0.05}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShRfFullCl}{}\renewcommand{\rhtaShRfFullCl}{1.29}  % Sharpe ratio (D19), mid-quotes: Random forest, all_features, CLOSE (the closing half hour only, 3,000 closes)
+\providecommand{\rhtaShXRfFullCl}{}\renewcommand{\rhtaShXRfFullCl}{0.94}  % ... at quoted bid/ask prices
+\providecommand{\rhtaPShRfCl}{}\renewcommand{\rhtaPShRfCl}{\ensuremath{p = 0.14}}  % Ledoit-Wolf p, Sharpe ratio full minus HAR (mid): Random forest, CLOSE
+\providecommand{\rhtaShRidgeHarClNat}{}\renewcommand{\rhtaShRidgeHarClNat}{0.94}  % Sharpe ratio (D19), mid-quotes: Ridge, baseline, CLOSE_NAT (closing rows, design built natively on them; linear only)
+\providecommand{\rhtaShXRidgeHarClNat}{}\renewcommand{\rhtaShXRidgeHarClNat}{0.59}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShRidgeFullClNat}{}\renewcommand{\rhtaShRidgeFullClNat}{1.24}  % Sharpe ratio (D19), mid-quotes: Ridge, all_features, CLOSE_NAT (closing rows, design built natively on them; linear only)
+\providecommand{\rhtaShXRidgeFullClNat}{}\renewcommand{\rhtaShXRidgeFullClNat}{0.89}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShLassoHarClNat}{}\renewcommand{\rhtaShLassoHarClNat}{0.94}  % Sharpe ratio (D19), mid-quotes: Lasso, baseline, CLOSE_NAT (closing rows, design built natively on them; linear only)
+\providecommand{\rhtaShXLassoHarClNat}{}\renewcommand{\rhtaShXLassoHarClNat}{0.59}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShLassoFullClNat}{}\renewcommand{\rhtaShLassoFullClNat}{1.23}  % Sharpe ratio (D19), mid-quotes: Lasso, all_features, CLOSE_NAT (closing rows, design built natively on them; linear only)
+\providecommand{\rhtaShXLassoFullClNat}{}\renewcommand{\rhtaShXLassoFullClNat}{0.89}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShEnetHarClNat}{}\renewcommand{\rhtaShEnetHarClNat}{0.94}  % Sharpe ratio (D19), mid-quotes: Elastic net, baseline, CLOSE_NAT (closing rows, design built natively on them; linear only)
+\providecommand{\rhtaShXEnetHarClNat}{}\renewcommand{\rhtaShXEnetHarClNat}{0.59}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShEnetFullClNat}{}\renewcommand{\rhtaShEnetFullClNat}{1.71}  % Sharpe ratio (D19), mid-quotes: Elastic net, all_features, CLOSE_NAT (closing rows, design built natively on them; linear only)
+\providecommand{\rhtaShXEnetFullClNat}{}\renewcommand{\rhtaShXEnetFullClNat}{1.37}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShRidgeHarAllCt}{}\renewcommand{\rhtaShRidgeHarAllCt}{0.95}  % Sharpe ratio (D19), mid-quotes: Ridge, baseline, ALL48@16 (ALL48, penalties chosen on the 16:00 validation rows; linear only)
+\providecommand{\rhtaShXRidgeHarAllCt}{}\renewcommand{\rhtaShXRidgeHarAllCt}{0.59}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShRidgeFullAllCt}{}\renewcommand{\rhtaShRidgeFullAllCt}{1.40}  % Sharpe ratio (D19), mid-quotes: Ridge, all_features, ALL48@16 (ALL48, penalties chosen on the 16:00 validation rows; linear only)
+\providecommand{\rhtaShXRidgeFullAllCt}{}\renewcommand{\rhtaShXRidgeFullAllCt}{1.05}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShLassoHarAllCt}{}\renewcommand{\rhtaShLassoHarAllCt}{0.96}  % Sharpe ratio (D19), mid-quotes: Lasso, baseline, ALL48@16 (ALL48, penalties chosen on the 16:00 validation rows; linear only)
+\providecommand{\rhtaShXLassoHarAllCt}{}\renewcommand{\rhtaShXLassoHarAllCt}{0.60}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShLassoFullAllCt}{}\renewcommand{\rhtaShLassoFullAllCt}{1.35}  % Sharpe ratio (D19), mid-quotes: Lasso, all_features, ALL48@16 (ALL48, penalties chosen on the 16:00 validation rows; linear only)
+\providecommand{\rhtaShXLassoFullAllCt}{}\renewcommand{\rhtaShXLassoFullAllCt}{1.00}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShEnetHarAllCt}{}\renewcommand{\rhtaShEnetHarAllCt}{0.80}  % Sharpe ratio (D19), mid-quotes: Elastic net, baseline, ALL48@16 (ALL48, penalties chosen on the 16:00 validation rows; linear only)
+\providecommand{\rhtaShXEnetHarAllCt}{}\renewcommand{\rhtaShXEnetHarAllCt}{0.45}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShEnetFullAllCt}{}\renewcommand{\rhtaShEnetFullAllCt}{1.52}  % Sharpe ratio (D19), mid-quotes: Elastic net, all_features, ALL48@16 (ALL48, penalties chosen on the 16:00 validation rows; linear only)
+\providecommand{\rhtaShXEnetFullAllCt}{}\renewcommand{\rhtaShXEnetFullAllCt}{1.17}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShRidgeHarRthCt}{}\renewcommand{\rhtaShRidgeHarRthCt}{0.95}  % Sharpe ratio (D19), mid-quotes: Ridge, baseline, RTH13@16 (RTH13, penalties chosen on the 16:00 validation rows; linear only)
+\providecommand{\rhtaShXRidgeHarRthCt}{}\renewcommand{\rhtaShXRidgeHarRthCt}{0.60}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShRidgeFullRthCt}{}\renewcommand{\rhtaShRidgeFullRthCt}{1.77}  % Sharpe ratio (D19), mid-quotes: Ridge, all_features, RTH13@16 (RTH13, penalties chosen on the 16:00 validation rows; linear only)
+\providecommand{\rhtaShXRidgeFullRthCt}{}\renewcommand{\rhtaShXRidgeFullRthCt}{1.41}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShLassoHarRthCt}{}\renewcommand{\rhtaShLassoHarRthCt}{1.01}  % Sharpe ratio (D19), mid-quotes: Lasso, baseline, RTH13@16 (RTH13, penalties chosen on the 16:00 validation rows; linear only)
+\providecommand{\rhtaShXLassoHarRthCt}{}\renewcommand{\rhtaShXLassoHarRthCt}{0.65}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShLassoFullRthCt}{}\renewcommand{\rhtaShLassoFullRthCt}{1.88}  % Sharpe ratio (D19), mid-quotes: Lasso, all_features, RTH13@16 (RTH13, penalties chosen on the 16:00 validation rows; linear only)
+\providecommand{\rhtaShXLassoFullRthCt}{}\renewcommand{\rhtaShXLassoFullRthCt}{1.52}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShEnetHarRthCt}{}\renewcommand{\rhtaShEnetHarRthCt}{1.01}  % Sharpe ratio (D19), mid-quotes: Elastic net, baseline, RTH13@16 (RTH13, penalties chosen on the 16:00 validation rows; linear only)
+\providecommand{\rhtaShXEnetHarRthCt}{}\renewcommand{\rhtaShXEnetHarRthCt}{0.66}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShEnetFullRthCt}{}\renewcommand{\rhtaShEnetFullRthCt}{1.86}  % Sharpe ratio (D19), mid-quotes: Elastic net, all_features, RTH13@16 (RTH13, penalties chosen on the 16:00 validation rows; linear only)
+\providecommand{\rhtaShXEnetFullRthCt}{}\renewcommand{\rhtaShXEnetFullRthCt}{1.50}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShRidgeHarAllThreeK}{}\renewcommand{\rhtaShRidgeHarAllThreeK}{1.56}  % Sharpe ratio (D19), mid-quotes: Ridge, baseline, ALL48_N3k (ALL48, the last 3,000 rows)
+\providecommand{\rhtaShXRidgeHarAllThreeK}{}\renewcommand{\rhtaShXRidgeHarAllThreeK}{1.21}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShRidgeFullAllThreeK}{}\renewcommand{\rhtaShRidgeFullAllThreeK}{1.45}  % Sharpe ratio (D19), mid-quotes: Ridge, all_features, ALL48_N3k (ALL48, the last 3,000 rows)
+\providecommand{\rhtaShXRidgeFullAllThreeK}{}\renewcommand{\rhtaShXRidgeFullAllThreeK}{1.10}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShLassoHarAllThreeK}{}\renewcommand{\rhtaShLassoHarAllThreeK}{1.57}  % Sharpe ratio (D19), mid-quotes: Lasso, baseline, ALL48_N3k (ALL48, the last 3,000 rows)
+\providecommand{\rhtaShXLassoHarAllThreeK}{}\renewcommand{\rhtaShXLassoHarAllThreeK}{1.21}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShLassoFullAllThreeK}{}\renewcommand{\rhtaShLassoFullAllThreeK}{1.41}  % Sharpe ratio (D19), mid-quotes: Lasso, all_features, ALL48_N3k (ALL48, the last 3,000 rows)
+\providecommand{\rhtaShXLassoFullAllThreeK}{}\renewcommand{\rhtaShXLassoFullAllThreeK}{1.06}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShEnetHarAllThreeK}{}\renewcommand{\rhtaShEnetHarAllThreeK}{1.52}  % Sharpe ratio (D19), mid-quotes: Elastic net, baseline, ALL48_N3k (ALL48, the last 3,000 rows)
+\providecommand{\rhtaShXEnetHarAllThreeK}{}\renewcommand{\rhtaShXEnetHarAllThreeK}{1.16}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShEnetFullAllThreeK}{}\renewcommand{\rhtaShEnetFullAllThreeK}{1.63}  % Sharpe ratio (D19), mid-quotes: Elastic net, all_features, ALL48_N3k (ALL48, the last 3,000 rows)
+\providecommand{\rhtaShXEnetFullAllThreeK}{}\renewcommand{\rhtaShXEnetFullAllThreeK}{1.27}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShLgbmHarAllThreeK}{}\renewcommand{\rhtaShLgbmHarAllThreeK}{0.92}  % Sharpe ratio (D19), mid-quotes: LightGBM, baseline, ALL48_N3k (ALL48, the last 3,000 rows)
+\providecommand{\rhtaShXLgbmHarAllThreeK}{}\renewcommand{\rhtaShXLgbmHarAllThreeK}{0.57}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShLgbmFullAllThreeK}{}\renewcommand{\rhtaShLgbmFullAllThreeK}{1.35}  % Sharpe ratio (D19), mid-quotes: LightGBM, all_features, ALL48_N3k (ALL48, the last 3,000 rows)
+\providecommand{\rhtaShXLgbmFullAllThreeK}{}\renewcommand{\rhtaShXLgbmFullAllThreeK}{0.99}  % ... at quoted bid/ask prices
+\providecommand{\rhtaPShLgbmAllThreeK}{}\renewcommand{\rhtaPShLgbmAllThreeK}{\ensuremath{p = 0.20}}  % Ledoit-Wolf p, Sharpe ratio full minus HAR (mid): LightGBM, ALL48_N3k
+\providecommand{\rhtaShXgbHarAllThreeK}{}\renewcommand{\rhtaShXgbHarAllThreeK}{0.93}  % Sharpe ratio (D19), mid-quotes: XGBoost, baseline, ALL48_N3k (ALL48, the last 3,000 rows)
+\providecommand{\rhtaShXXgbHarAllThreeK}{}\renewcommand{\rhtaShXXgbHarAllThreeK}{0.58}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShXgbFullAllThreeK}{}\renewcommand{\rhtaShXgbFullAllThreeK}{1.24}  % Sharpe ratio (D19), mid-quotes: XGBoost, all_features, ALL48_N3k (ALL48, the last 3,000 rows)
+\providecommand{\rhtaShXXgbFullAllThreeK}{}\renewcommand{\rhtaShXXgbFullAllThreeK}{0.88}  % ... at quoted bid/ask prices
+\providecommand{\rhtaPShXgbAllThreeK}{}\renewcommand{\rhtaPShXgbAllThreeK}{\ensuremath{p = 0.41}}  % Ledoit-Wolf p, Sharpe ratio full minus HAR (mid): XGBoost, ALL48_N3k
+\providecommand{\rhtaShRfHarAllThreeK}{}\renewcommand{\rhtaShRfHarAllThreeK}{0.87}  % Sharpe ratio (D19), mid-quotes: Random forest, baseline, ALL48_N3k (ALL48, the last 3,000 rows)
+\providecommand{\rhtaShXRfHarAllThreeK}{}\renewcommand{\rhtaShXRfHarAllThreeK}{0.52}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShRfFullAllThreeK}{}\renewcommand{\rhtaShRfFullAllThreeK}{1.30}  % Sharpe ratio (D19), mid-quotes: Random forest, all_features, ALL48_N3k (ALL48, the last 3,000 rows)
+\providecommand{\rhtaShXRfFullAllThreeK}{}\renewcommand{\rhtaShXRfFullAllThreeK}{0.94}  % ... at quoted bid/ask prices
+\providecommand{\rhtaPShRfAllThreeK}{}\renewcommand{\rhtaPShRfAllThreeK}{\ensuremath{p = 0.21}}  % Ledoit-Wolf p, Sharpe ratio full minus HAR (mid): Random forest, ALL48_N3k
+\providecommand{\rhtaShRidgeHarRthThreeK}{}\renewcommand{\rhtaShRidgeHarRthThreeK}{1.16}  % Sharpe ratio (D19), mid-quotes: Ridge, baseline, RTH13_N3k (RTH13, the last 3,000 rows)
+\providecommand{\rhtaShXRidgeHarRthThreeK}{}\renewcommand{\rhtaShXRidgeHarRthThreeK}{0.80}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShRidgeFullRthThreeK}{}\renewcommand{\rhtaShRidgeFullRthThreeK}{1.12}  % Sharpe ratio (D19), mid-quotes: Ridge, all_features, RTH13_N3k (RTH13, the last 3,000 rows)
+\providecommand{\rhtaShXRidgeFullRthThreeK}{}\renewcommand{\rhtaShXRidgeFullRthThreeK}{0.77}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShLassoHarRthThreeK}{}\renewcommand{\rhtaShLassoHarRthThreeK}{1.16}  % Sharpe ratio (D19), mid-quotes: Lasso, baseline, RTH13_N3k (RTH13, the last 3,000 rows)
+\providecommand{\rhtaShXLassoHarRthThreeK}{}\renewcommand{\rhtaShXLassoHarRthThreeK}{0.80}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShLassoFullRthThreeK}{}\renewcommand{\rhtaShLassoFullRthThreeK}{1.55}  % Sharpe ratio (D19), mid-quotes: Lasso, all_features, RTH13_N3k (RTH13, the last 3,000 rows)
+\providecommand{\rhtaShXLassoFullRthThreeK}{}\renewcommand{\rhtaShXLassoFullRthThreeK}{1.19}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShEnetHarRthThreeK}{}\renewcommand{\rhtaShEnetHarRthThreeK}{1.16}  % Sharpe ratio (D19), mid-quotes: Elastic net, baseline, RTH13_N3k (RTH13, the last 3,000 rows)
+\providecommand{\rhtaShXEnetHarRthThreeK}{}\renewcommand{\rhtaShXEnetHarRthThreeK}{0.80}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShEnetFullRthThreeK}{}\renewcommand{\rhtaShEnetFullRthThreeK}{1.25}  % Sharpe ratio (D19), mid-quotes: Elastic net, all_features, RTH13_N3k (RTH13, the last 3,000 rows)
+\providecommand{\rhtaShXEnetFullRthThreeK}{}\renewcommand{\rhtaShXEnetFullRthThreeK}{0.89}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShLgbmHarRthThreeK}{}\renewcommand{\rhtaShLgbmHarRthThreeK}{0.25}  % Sharpe ratio (D19), mid-quotes: LightGBM, baseline, RTH13_N3k (RTH13, the last 3,000 rows)
+\providecommand{\rhtaShXLgbmHarRthThreeK}{}\renewcommand{\rhtaShXLgbmHarRthThreeK}{\ensuremath{-}0.10}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShLgbmFullRthThreeK}{}\renewcommand{\rhtaShLgbmFullRthThreeK}{0.83}  % Sharpe ratio (D19), mid-quotes: LightGBM, all_features, RTH13_N3k (RTH13, the last 3,000 rows)
+\providecommand{\rhtaShXLgbmFullRthThreeK}{}\renewcommand{\rhtaShXLgbmFullRthThreeK}{0.47}  % ... at quoted bid/ask prices
+\providecommand{\rhtaPShLgbmRthThreeK}{}\renewcommand{\rhtaPShLgbmRthThreeK}{\ensuremath{p = 0.22}}  % Ledoit-Wolf p, Sharpe ratio full minus HAR (mid): LightGBM, RTH13_N3k
+\providecommand{\rhtaShXgbHarRthThreeK}{}\renewcommand{\rhtaShXgbHarRthThreeK}{0.87}  % Sharpe ratio (D19), mid-quotes: XGBoost, baseline, RTH13_N3k (RTH13, the last 3,000 rows)
+\providecommand{\rhtaShXXgbHarRthThreeK}{}\renewcommand{\rhtaShXXgbHarRthThreeK}{0.52}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShXgbFullRthThreeK}{}\renewcommand{\rhtaShXgbFullRthThreeK}{0.86}  % Sharpe ratio (D19), mid-quotes: XGBoost, all_features, RTH13_N3k (RTH13, the last 3,000 rows)
+\providecommand{\rhtaShXXgbFullRthThreeK}{}\renewcommand{\rhtaShXXgbFullRthThreeK}{0.51}  % ... at quoted bid/ask prices
+\providecommand{\rhtaPShXgbRthThreeK}{}\renewcommand{\rhtaPShXgbRthThreeK}{\ensuremath{p = 0.98}}  % Ledoit-Wolf p, Sharpe ratio full minus HAR (mid): XGBoost, RTH13_N3k
+\providecommand{\rhtaShRfHarRthThreeK}{}\renewcommand{\rhtaShRfHarRthThreeK}{0.67}  % Sharpe ratio (D19), mid-quotes: Random forest, baseline, RTH13_N3k (RTH13, the last 3,000 rows)
+\providecommand{\rhtaShXRfHarRthThreeK}{}\renewcommand{\rhtaShXRfHarRthThreeK}{0.31}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShRfFullRthThreeK}{}\renewcommand{\rhtaShRfFullRthThreeK}{0.91}  % Sharpe ratio (D19), mid-quotes: Random forest, all_features, RTH13_N3k (RTH13, the last 3,000 rows)
+\providecommand{\rhtaShXRfFullRthThreeK}{}\renewcommand{\rhtaShXRfFullRthThreeK}{0.56}  % ... at quoted bid/ask prices
+\providecommand{\rhtaPShRfRthThreeK}{}\renewcommand{\rhtaPShRfRthThreeK}{\ensuremath{p = 0.53}}  % Ledoit-Wolf p, Sharpe ratio full minus HAR (mid): Random forest, RTH13_N3k
+\providecommand{\rhtaShRidgeHarAllThirtyNineK}{}\renewcommand{\rhtaShRidgeHarAllThirtyNineK}{1.23}  % Sharpe ratio (D19), mid-quotes: Ridge, baseline, ALL48_N39k (ALL48, the last 39,000 rows)
+\providecommand{\rhtaShXRidgeHarAllThirtyNineK}{}\renewcommand{\rhtaShXRidgeHarAllThirtyNineK}{0.87}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShRidgeFullAllThirtyNineK}{}\renewcommand{\rhtaShRidgeFullAllThirtyNineK}{0.76}  % Sharpe ratio (D19), mid-quotes: Ridge, all_features, ALL48_N39k (ALL48, the last 39,000 rows)
+\providecommand{\rhtaShXRidgeFullAllThirtyNineK}{}\renewcommand{\rhtaShXRidgeFullAllThirtyNineK}{0.40}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShLassoHarAllThirtyNineK}{}\renewcommand{\rhtaShLassoHarAllThirtyNineK}{1.20}  % Sharpe ratio (D19), mid-quotes: Lasso, baseline, ALL48_N39k (ALL48, the last 39,000 rows)
+\providecommand{\rhtaShXLassoHarAllThirtyNineK}{}\renewcommand{\rhtaShXLassoHarAllThirtyNineK}{0.84}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShLassoFullAllThirtyNineK}{}\renewcommand{\rhtaShLassoFullAllThirtyNineK}{1.33}  % Sharpe ratio (D19), mid-quotes: Lasso, all_features, ALL48_N39k (ALL48, the last 39,000 rows)
+\providecommand{\rhtaShXLassoFullAllThirtyNineK}{}\renewcommand{\rhtaShXLassoFullAllThirtyNineK}{0.98}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShEnetHarAllThirtyNineK}{}\renewcommand{\rhtaShEnetHarAllThirtyNineK}{1.22}  % Sharpe ratio (D19), mid-quotes: Elastic net, baseline, ALL48_N39k (ALL48, the last 39,000 rows)
+\providecommand{\rhtaShXEnetHarAllThirtyNineK}{}\renewcommand{\rhtaShXEnetHarAllThirtyNineK}{0.87}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShEnetFullAllThirtyNineK}{}\renewcommand{\rhtaShEnetFullAllThirtyNineK}{1.63}  % Sharpe ratio (D19), mid-quotes: Elastic net, all_features, ALL48_N39k (ALL48, the last 39,000 rows)
+\providecommand{\rhtaShXEnetFullAllThirtyNineK}{}\renewcommand{\rhtaShXEnetFullAllThirtyNineK}{1.27}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShLgbmHarAllThirtyNineK}{}\renewcommand{\rhtaShLgbmHarAllThirtyNineK}{0.48}  % Sharpe ratio (D19), mid-quotes: LightGBM, baseline, ALL48_N39k (ALL48, the last 39,000 rows)
+\providecommand{\rhtaShXLgbmHarAllThirtyNineK}{}\renewcommand{\rhtaShXLgbmHarAllThirtyNineK}{0.13}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShLgbmFullAllThirtyNineK}{}\renewcommand{\rhtaShLgbmFullAllThirtyNineK}{1.73}  % Sharpe ratio (D19), mid-quotes: LightGBM, all_features, ALL48_N39k (ALL48, the last 39,000 rows)
+\providecommand{\rhtaShXLgbmFullAllThirtyNineK}{}\renewcommand{\rhtaShXLgbmFullAllThirtyNineK}{1.37}  % ... at quoted bid/ask prices
+\providecommand{\rhtaPShLgbmAllThirtyNineK}{}\renewcommand{\rhtaPShLgbmAllThirtyNineK}{\ensuremath{p = 0.060}}  % Ledoit-Wolf p, Sharpe ratio full minus HAR (mid): LightGBM, ALL48_N39k
+\providecommand{\rhtaShXgbHarAllThirtyNineK}{}\renewcommand{\rhtaShXgbHarAllThirtyNineK}{0.62}  % Sharpe ratio (D19), mid-quotes: XGBoost, baseline, ALL48_N39k (ALL48, the last 39,000 rows)
+\providecommand{\rhtaShXXgbHarAllThirtyNineK}{}\renewcommand{\rhtaShXXgbHarAllThirtyNineK}{0.27}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShXgbFullAllThirtyNineK}{}\renewcommand{\rhtaShXgbFullAllThirtyNineK}{1.64}  % Sharpe ratio (D19), mid-quotes: XGBoost, all_features, ALL48_N39k (ALL48, the last 39,000 rows)
+\providecommand{\rhtaShXXgbFullAllThirtyNineK}{}\renewcommand{\rhtaShXXgbFullAllThirtyNineK}{1.28}  % ... at quoted bid/ask prices
+\providecommand{\rhtaPShXgbAllThirtyNineK}{}\renewcommand{\rhtaPShXgbAllThirtyNineK}{\ensuremath{p = 0.12}}  % Ledoit-Wolf p, Sharpe ratio full minus HAR (mid): XGBoost, ALL48_N39k
+\providecommand{\rhtaShRfHarAllThirtyNineK}{}\renewcommand{\rhtaShRfHarAllThirtyNineK}{0.87}  % Sharpe ratio (D19), mid-quotes: Random forest, baseline, ALL48_N39k (ALL48, the last 39,000 rows)
+\providecommand{\rhtaShXRfHarAllThirtyNineK}{}\renewcommand{\rhtaShXRfHarAllThirtyNineK}{0.50}  % ... at quoted bid/ask prices
+\providecommand{\rhtaShRfFullAllThirtyNineK}{}\renewcommand{\rhtaShRfFullAllThirtyNineK}{0.95}  % Sharpe ratio (D19), mid-quotes: Random forest, all_features, ALL48_N39k (ALL48, the last 39,000 rows)
+\providecommand{\rhtaShXRfFullAllThirtyNineK}{}\renewcommand{\rhtaShXRfFullAllThirtyNineK}{0.58}  % ... at quoted bid/ask prices
+\providecommand{\rhtaPShRfAllThirtyNineK}{}\renewcommand{\rhtaPShRfAllThirtyNineK}{\ensuremath{p = 0.83}}  % Ledoit-Wolf p, Sharpe ratio full minus HAR (mid): Random forest, ALL48_N39k
+\providecommand{\rhtaDShRidgeAllVsRth}{}\renewcommand{\rhtaDShRidgeAllVsRth}{\ensuremath{-}0.16}  % Sharpe ratio (D19, mid), ALL48 minus RTH13, full set, Ridge
+\providecommand{\rhtaPDShRidgeAllVsRth}{}\renewcommand{\rhtaPDShRidgeAllVsRth}{\ensuremath{p = 0.63}}  % ... its Ledoit-Wolf p
+\providecommand{\rhtaDShLassoAllVsRth}{}\renewcommand{\rhtaDShLassoAllVsRth}{\ensuremath{-}0.23}  % Sharpe ratio (D19, mid), ALL48 minus RTH13, full set, Lasso
+\providecommand{\rhtaPDShLassoAllVsRth}{}\renewcommand{\rhtaPDShLassoAllVsRth}{\ensuremath{p = 0.51}}  % ... its Ledoit-Wolf p
+\providecommand{\rhtaDShEnetAllVsRth}{}\renewcommand{\rhtaDShEnetAllVsRth}{\ensuremath{-}0.33}  % Sharpe ratio (D19, mid), ALL48 minus RTH13, full set, Elastic net
+\providecommand{\rhtaPDShEnetAllVsRth}{}\renewcommand{\rhtaPDShEnetAllVsRth}{\ensuremath{p = 0.32}}  % ... its Ledoit-Wolf p
+\providecommand{\rhtaDShLgbmAllVsRth}{}\renewcommand{\rhtaDShLgbmAllVsRth}{\ensuremath{-}0.34}  % Sharpe ratio (D19, mid), ALL48 minus RTH13, full set, LightGBM
+\providecommand{\rhtaPDShLgbmAllVsRth}{}\renewcommand{\rhtaPDShLgbmAllVsRth}{\ensuremath{p = 0.17}}  % ... its Ledoit-Wolf p
+\providecommand{\rhtaDShXgbAllVsRth}{}\renewcommand{\rhtaDShXgbAllVsRth}{0.03}  % Sharpe ratio (D19, mid), ALL48 minus RTH13, full set, XGBoost
+\providecommand{\rhtaPDShXgbAllVsRth}{}\renewcommand{\rhtaPDShXgbAllVsRth}{\ensuremath{p = 0.90}}  % ... its Ledoit-Wolf p
+\providecommand{\rhtaDShRfAllVsRth}{}\renewcommand{\rhtaDShRfAllVsRth}{\ensuremath{-}0.06}  % Sharpe ratio (D19, mid), ALL48 minus RTH13, full set, Random forest
+\providecommand{\rhtaPDShRfAllVsRth}{}\renewcommand{\rhtaPDShRfAllVsRth}{\ensuremath{p = 0.85}}  % ... its Ledoit-Wolf p
+\providecommand{\rhtaDShRidgeClVsRth}{}\renewcommand{\rhtaDShRidgeClVsRth}{\ensuremath{-}0.51}  % Sharpe ratio (D19, mid), CLOSE minus RTH13, full set, Ridge
+\providecommand{\rhtaPDShRidgeClVsRth}{}\renewcommand{\rhtaPDShRidgeClVsRth}{\ensuremath{p = 0.22}}  % ... its Ledoit-Wolf p
+\providecommand{\rhtaDShLassoClVsRth}{}\renewcommand{\rhtaDShLassoClVsRth}{\ensuremath{-}0.15}  % Sharpe ratio (D19, mid), CLOSE minus RTH13, full set, Lasso
+\providecommand{\rhtaPDShLassoClVsRth}{}\renewcommand{\rhtaPDShLassoClVsRth}{\ensuremath{p = 0.72}}  % ... its Ledoit-Wolf p
+\providecommand{\rhtaDShEnetClVsRth}{}\renewcommand{\rhtaDShEnetClVsRth}{\ensuremath{-}0.15}  % Sharpe ratio (D19, mid), CLOSE minus RTH13, full set, Elastic net
+\providecommand{\rhtaPDShEnetClVsRth}{}\renewcommand{\rhtaPDShEnetClVsRth}{\ensuremath{p = 0.70}}  % ... its Ledoit-Wolf p
+\providecommand{\rhtaDShLgbmClVsRth}{}\renewcommand{\rhtaDShLgbmClVsRth}{0.36}  % Sharpe ratio (D19, mid), CLOSE minus RTH13, full set, LightGBM
+\providecommand{\rhtaPDShLgbmClVsRth}{}\renewcommand{\rhtaPDShLgbmClVsRth}{\ensuremath{p = 0.41}}  % ... its Ledoit-Wolf p
+\providecommand{\rhtaDShXgbClVsRth}{}\renewcommand{\rhtaDShXgbClVsRth}{0.15}  % Sharpe ratio (D19, mid), CLOSE minus RTH13, full set, XGBoost
+\providecommand{\rhtaPDShXgbClVsRth}{}\renewcommand{\rhtaPDShXgbClVsRth}{\ensuremath{p = 0.60}}  % ... its Ledoit-Wolf p
+\providecommand{\rhtaDShRfClVsRth}{}\renewcommand{\rhtaDShRfClVsRth}{\ensuremath{-}0.59}  % Sharpe ratio (D19, mid), CLOSE minus RTH13, full set, Random forest
+\providecommand{\rhtaPDShRfClVsRth}{}\renewcommand{\rhtaPDShRfClVsRth}{\ensuremath{p = 0.22}}  % ... its Ledoit-Wolf p
 \providecommand{\rhtaWsPctRidgeWOne}{}\renewcommand{\rhtaWsPctRidgeWOne}{\ensuremath{-}4.8}  % CLOSE at W = 1,000 closes, 16:00, QLIKE % change full vs HAR, Ridge
 \providecommand{\rhtaWsPRidgeWOne}{}\renewcommand{\rhtaWsPRidgeWOne}{\ensuremath{p < 0.001}}  % ... its p statement
 \providecommand{\rhtaWsPctLassoWOne}{}\renewcommand{\rhtaWsPctLassoWOne}{\ensuremath{-}2.6}  % CLOSE at W = 1,000 closes, 16:00, QLIKE % change full vs HAR, Lasso
@@ -1125,20 +1126,20 @@
 \providecommand{\rhtaRthThreeKVsRthClosePctMax}{}\renewcommand{\rhtaRthThreeKVsRthClosePctMax}{12.3}  % 16:00, RTH13_N3k vs RTH13 (3,000 vs 39,000 rows), full set: highest of the range, %
 \providecommand{\rhtaRthThreeKVsRthBarPctMin}{}\renewcommand{\rhtaRthThreeKVsRthBarPctMin}{2.7}  % every bar, RTH13_N3k vs RTH13 (3,000 vs 39,000 rows), full set: lowest of the range, %
 \providecommand{\rhtaRthThreeKVsRthBarPctMax}{}\renewcommand{\rhtaRthThreeKVsRthBarPctMax}{14.9}  % every bar, RTH13_N3k vs RTH13 (3,000 vs 39,000 rows), full set: highest of the range, %
-\providecommand{\rhtaShFullRthMin}{}\renewcommand{\rhtaShFullRthMin}{1.67}  % Sharpe ratio (D6, mid), full set, RTH13: lowest of the six
-\providecommand{\rhtaShFullRthMax}{}\renewcommand{\rhtaShFullRthMax}{1.96}  % ... highest of the six
-\providecommand{\rhtaNTreeShSigRth}{}\renewcommand{\rhtaNTreeShSigRth}{one}  % tree classes whose full-vs-HAR Sharpe ratio difference has p < 0.05, RTH13
-\providecommand{\rhtaShFullAllMin}{}\renewcommand{\rhtaShFullAllMin}{1.42}  % Sharpe ratio (D6, mid), full set, ALL48: lowest of the six
-\providecommand{\rhtaShFullAllMax}{}\renewcommand{\rhtaShFullAllMax}{1.99}  % ... highest of the six
-\providecommand{\rhtaNTreeShSigAll}{}\renewcommand{\rhtaNTreeShSigAll}{two}  % tree classes whose full-vs-HAR Sharpe ratio difference has p < 0.05, ALL48
-\providecommand{\rhtaShFullClMin}{}\renewcommand{\rhtaShFullClMin}{1.24}  % Sharpe ratio (D6, mid), full set, CLOSE: lowest of the six
-\providecommand{\rhtaShFullClMax}{}\renewcommand{\rhtaShFullClMax}{1.87}  % ... highest of the six
-\providecommand{\rhtaNTreeShSigCl}{}\renewcommand{\rhtaNTreeShSigCl}{two}  % tree classes whose full-vs-HAR Sharpe ratio difference has p < 0.05, CLOSE
-\providecommand{\rhtaShTreeHarClMin}{}\renewcommand{\rhtaShTreeHarClMin}{\ensuremath{-}0.47}  % Sharpe ratio (D6, mid), HAR benchmark, CLOSE, tree ensembles: lowest
-\providecommand{\rhtaShTreeHarClMax}{}\renewcommand{\rhtaShTreeHarClMax}{0.02}  % ... highest
+\providecommand{\rhtaShFullRthMin}{}\renewcommand{\rhtaShFullRthMin}{1.47}  % Sharpe ratio (D19, mid), full set, RTH13: lowest of the six
+\providecommand{\rhtaShFullRthMax}{}\renewcommand{\rhtaShFullRthMax}{1.88}  % ... highest of the six
+\providecommand{\rhtaNTreeShSigRth}{}\renewcommand{\rhtaNTreeShSigRth}{two}  % tree classes whose full-vs-HAR Sharpe ratio difference has Ledoit-Wolf p < 0.05, RTH13
+\providecommand{\rhtaShFullAllMin}{}\renewcommand{\rhtaShFullAllMin}{1.25}  % Sharpe ratio (D19, mid), full set, ALL48: lowest of the six
+\providecommand{\rhtaShFullAllMax}{}\renewcommand{\rhtaShFullAllMax}{1.82}  % ... highest of the six
+\providecommand{\rhtaNTreeShSigAll}{}\renewcommand{\rhtaNTreeShSigAll}{none}  % tree classes whose full-vs-HAR Sharpe ratio difference has Ledoit-Wolf p < 0.05, ALL48
+\providecommand{\rhtaShFullClMin}{}\renewcommand{\rhtaShFullClMin}{1.26}  % Sharpe ratio (D19, mid), full set, CLOSE: lowest of the six
+\providecommand{\rhtaShFullClMax}{}\renewcommand{\rhtaShFullClMax}{1.94}  % ... highest of the six
+\providecommand{\rhtaNTreeShSigCl}{}\renewcommand{\rhtaNTreeShSigCl}{one}  % tree classes whose full-vs-HAR Sharpe ratio difference has Ledoit-Wolf p < 0.05, CLOSE
+\providecommand{\rhtaShTreeHarClMin}{}\renewcommand{\rhtaShTreeHarClMin}{\ensuremath{-}0.03}  % Sharpe ratio (D19, mid), HAR benchmark, CLOSE, tree ensembles: lowest
+\providecommand{\rhtaShTreeHarClMax}{}\renewcommand{\rhtaShTreeHarClMax}{0.40}  % ... highest
 \providecommand{\rhtaNDShTests}{}\renewcommand{\rhtaNDShTests}{12}  % Sharpe ratio tests ALL48 - RTH13 and CLOSE - RTH13, full set (six classes each)
-\providecommand{\rhtaNDShSig}{}\renewcommand{\rhtaNDShSig}{none}  % ... of them with p < 0.05
-\providecommand{\rhtaDShPMin}{}\renewcommand{\rhtaDShPMin}{\ensuremath{p = 0.22}}  % ... the smallest p
+\providecommand{\rhtaNDShSig}{}\renewcommand{\rhtaNDShSig}{none}  % ... of them with Ledoit-Wolf p < 0.05
+\providecommand{\rhtaDShPMin}{}\renewcommand{\rhtaDShPMin}{\ensuremath{p = 0.17}}  % ... the smallest Ledoit-Wolf p
 \providecommand{\rhtaWsNCells}{}\renewcommand{\rhtaWsNCells}{36}  % window x class cells of the close-only sweep (16:00, full vs HAR)
 \providecommand{\rhtaWsNLower}{}\renewcommand{\rhtaWsNLower}{36}  % ... with the lower QLIKE on the full set
 \providecommand{\rhtaWsNSig}{}\renewcommand{\rhtaWsNSig}{32}  % ... with p < 0.05

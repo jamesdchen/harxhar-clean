@@ -10,7 +10,20 @@ READS   results/fomcfix_2026-10-26/ (RULE.txt ADDENDUM A): holiday_sessions.csv 
         patches P1 = P2 in {0, 1} and DROP_HOLIDAY_SESSIONS in {0, 1}, cells A-D, ridge / lasso / elastic net on both
         predictor sets with the frozen penalties, scored on Table 1's 33,527 bars and their 16:00 bar: QLIKE, % of the
         full set vs the HAR set of the class, DM HLN lag 8; D6 Sharpe ratios on the 614 post-warmup option days).
-        Every number is read from those files; none is recomputed here.
+        Every accuracy number is read from those files; none is recomputed here.
+SHARPE  2026-10-28 (author decision D19, as Section 7): the Sharpe ratios are recomputed here, the paper's pooled ratio
+        (hac_inference.paper_sharpe: sqrt(q) mean / sd, q = T / sum_y c_y = 225.5) of the sign strategy at mid-quotes on
+        the 614 post-warmup option days, from each cell's 16:00 forecasts: cell A
+        results/window_sweep_2014start_2026-10-22/w3000/forecasts.parquet, cells B, C, D
+        results/fomcfix_2026-10-26/forecasts/lin_{B,C,D}.parquet (cell B has the full set only and takes cell A's HAR
+        rows, as results/fomcfix_2026-10-26/code/fomcfix_score.py), plain = pred_adj^2 B; the strategy of
+        fomcfix_score.py / make_rehaul_economics.add_pooled_linear (sign_returns): q = +1 if the 16:00 plain exceeds the
+        closing-interval OLS row's iv_var, else -1, mid return q R, on the 866 option days of that row
+        (results/close_master_table/master_table_daily.parquet, sub_ols_baseline, joined with the quote book
+        results/atm_straddle_0dte_1530/daily_a0.parquet; make_rehaul_robust_window.trade_frame).  Gates: the rebuilt
+        returns reproduce scores_linear/d6.csv's D6 ratios (full and HAR, mid and bid/ask, every cell and class) to
+        1e-12 (relative); q is the printed \\rheAnnDays.  Was: the D6 ratios (the equal-year mean of the SR_y) of
+        summary.csv / effects.csv (d6_mid_full, d6_mid_har, dd6_mid).
 CELLS   A current design (holidays kept, FOMC unpatched; the printed forecasts), B FOMC patches (the paper's design after
         D13), C holidays dropped, D both.  Holiday effect: C - A and D - B; the table prints all four cells.
 WRITES  writeup/generated/rehaul_holiday_numbers.tex   \\rhhol... macros (definitions only)
@@ -21,13 +34,33 @@ Run:  python writeup/make_rehaul_holiday.py     (repository root)
 
 from __future__ import annotations
 
+import math
+import re
+import sys
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
+if str(HERE) not in sys.path:
+    sys.path.insert(0, str(HERE))
+import hac_inference as hi  # noqa: E402  (2026-10-28, D19: the paper's Sharpe ratio)
+
 FF = ROOT / "results" / "fomcfix_2026-10-26"
+# 2026-10-28 (D19): each cell's forecasts (results/fomcfix_2026-10-26/STATUS.md: fomcfix_score.py --lin A=..., B, C, D)
+FC = {
+    "A": ROOT / "results" / "window_sweep_2014start_2026-10-22" / "w3000" / "forecasts.parquet",
+    "B": FF / "forecasts" / "lin_B.parquet",
+    "C": FF / "forecasts" / "lin_C.parquet",
+    "D": FF / "forecasts" / "lin_D.parquet",
+}
+MT_DAILY = ROOT / "results" / "close_master_table" / "master_table_daily.parquet"
+QUOTE_BOOK = ROOT / "results" / "atm_straddle_0dte_1530" / "daily_a0.parquet"  # master_table_gui.rows._QUOTE_BOOK
+OLS_CLOSE = "sub_ols_baseline"  # make_rehaul_economics.OLS: the option days, iv_var and the realized variance
+N_OPT, WARMUP = 866, 252  # make_rehaul_economics.N_OPT, WARMUP
+N_PW = N_OPT - WARMUP  # 614 post-warmup days
 GEN = HERE / "generated"
 OUT_NUM = GEN / "rehaul_holiday_numbers.tex"
 OUT_TAB = GEN / "rehaul_holiday_table.tex"
@@ -74,6 +107,125 @@ def rng(lo: float, hi: float, nd: int = 2) -> str:
     return f"{sgn(lo, nd)} to {sgn(hi, nd)}"
 
 
+# --------------------------------------------------------------------------- the sign strategy (2026-10-28, D19)
+
+
+def crossed_return(q, ex, bid, ask) -> np.ndarray:
+    """writeup/master_table_gui/rows.py _crossed_return: a buy pays the ask, a sale gets the bid (entry only)."""
+    return np.where(q > 0, q * (ex / ask - 1.0), np.where(q < 0, q * (ex / bid - 1.0), 0.0))
+
+
+def trade_frame() -> pd.DataFrame:
+    """make_rehaul_robust_window.trade_frame (copied): the 866 option days of the closing-interval OLS row
+    (make_rehaul_economics.load, its OLS row and book): iv_var, rv_unclipped, and the quote book's straddle (R, exit,
+    bid, ask); gate: the row's mid return is q R."""
+    d = pd.read_parquet(MT_DAILY, columns=["key", "day", "q", "ret_mid", "iv_var", "rv_unclipped"])
+    d = d[d["key"] == OLS_CLOSE].copy()
+    d["day"] = pd.to_datetime(d["day"]).dt.normalize()
+    qb = pd.read_parquet(QUOTE_BOOK, columns=["R", "exit", "bid_c", "bid_p", "ask_c", "ask_p"])
+    qb.index = pd.to_datetime(qb.index).normalize().astype("datetime64[ns]")
+    book = pd.DataFrame(
+        {
+            "R": qb["R"].astype(float),
+            "ex": qb["exit"].astype(float),
+            "bid": (qb["bid_c"] + qb["bid_p"]).astype(float),
+            "ask": (qb["ask_c"] + qb["ask_p"]).astype(float),
+        }
+    )
+    g = d.set_index("day").sort_index()
+    g.index = g.index.astype("datetime64[ns]")
+    g = g.join(book, how="inner")
+    assert len(g) == N_OPT, len(g)
+    assert np.allclose(g["q"] * g["R"], g["ret_mid"], rtol=0, atol=1e-10), "quote-book R"
+    assert np.isfinite(g[["iv_var", "rv_unclipped"]].to_numpy()).all()
+    return g
+
+
+def cell_16(path: Path, tf: pd.DataFrame) -> dict[tuple[str, str], np.ndarray]:
+    """(model, set) -> a cell's 16:00 forecast on the 866 option days (fomcfix_score.frames: plain = pred_adj^2 B, the
+    file's own plain where it has one, asserted equal; the file's rv_actual, where present, is the OLS row's
+    rv_unclipped, as fomcfix_score.py asserts of every arm)."""
+    f = pd.read_parquet(path)
+    t = pd.DatetimeIndex(pd.to_datetime(f["date"]))
+    f = f[(t.hour == 16) & (t.minute == 0)]
+    out = {}
+    for (m, s), g in f.groupby(["model", "predictor_set"]):
+        idx = pd.DatetimeIndex(pd.to_datetime(g["date"])).normalize().astype("datetime64[ns]")
+        assert not idx.duplicated().any(), (path.name, m, s)
+        plain = g["pred_adj"].to_numpy(float) ** 2 * g["B"].to_numpy(float)
+        if "plain" in g.columns:
+            assert np.allclose(plain, g["plain"].to_numpy(float), rtol=1e-12, atol=0), (path.name, m, s)
+            plain = g["plain"].to_numpy(float)
+        p = pd.Series(plain, index=idx).reindex(tf.index).to_numpy(float)
+        assert np.isfinite(p).all() and (p > 0).all(), (path.name, m, s)
+        if "rv_actual" in g.columns:
+            rv = pd.Series(g["rv_actual"].to_numpy(float), index=idx).reindex(tf.index).to_numpy(float)
+            assert np.allclose(rv, tf["rv_unclipped"].to_numpy(float), rtol=1e-12, atol=0.0), (path.name, m, s)
+        out[(str(m), str(s))] = p
+    return out
+
+
+def sign_returns(p: np.ndarray, tf: pd.DataFrame) -> dict[str, np.ndarray]:
+    """fomcfix_score.py / make_rehaul_economics.add_pooled_linear: q = +1 if plain > iv_var else -1 on the 866 option
+    days; the mid return q R and the bid/ask return on the 614 post-warmup days."""
+    q = np.where(p > tf["iv_var"].to_numpy(float), 1.0, -1.0)
+    mid = q * tf["R"].to_numpy(float)
+    ba = crossed_return(q, tf["ex"].to_numpy(float), tf["bid"].to_numpy(float), tf["ask"].to_numpy(float))
+    return {"mid": mid[WARMUP:], "ba": ba[WARMUP:]}
+
+
+def sharpe_cells() -> pd.DataFrame:
+    """2026-10-28 (D19): per cell and linear class, the paper's pooled Sharpe ratio at mid-quotes of the full-set and
+    HAR-set sign strategies and their difference (sr_mid_full, sr_mid_har, dsr_mid).  Gates: the rebuilt returns give
+    scores_linear/d6.csv's D6 ratios (full and HAR, mid and bid/ask) to 1e-12; q is the printed \\rheAnnDays."""
+    tf = trade_frame()
+    pw = pd.DatetimeIndex(tf.index[WARMUP:])
+    assert len(pw) == N_PW, len(pw)
+    q = float(hi.paper_q(pw)["q"])
+    m = re.search(r"\\renewcommand\{\\rheAnnDays\}\{([0-9.]+)\}", (GEN / "rehaul_econ_numbers.tex").read_text("utf-8"))
+    assert m and m.group(1) == f"{q:.1f}", (m and m.group(1), q)
+    P = {c: cell_16(path, tf) for c, path in FC.items()}
+    for c in CELLS:
+        if not any(s == "baseline" for _, s in P[c]):
+            assert c == "B", c  # cell B: the HAR benchmark rows are cell A's (fomcfix_score.py, gate G3)
+            P[c] |= {k: v for k, v in P["A"].items() if k[1] == "baseline"}
+    d6 = pd.read_csv(FF / "scores_linear" / "d6.csv").set_index(["cell", "model"])
+    rows, n_gate = [], 0
+    for c in CELLS:
+        for mo in LIN:
+            sr: dict[str, float] = {}
+            for s, lab in (("all_features", "full"), ("baseline", "har")):
+                r = sign_returns(P[c][(mo, s)], tf)
+                for side in ("mid", "ba"):
+                    x = hi.paper_sharpe(r[side], dates=pw)
+                    assert math.isclose(x["q"], q, rel_tol=1e-15)
+                    want = float(d6.loc[(c, mo), f"d6_{side}_{lab}"])
+                    assert math.isclose(x["sharpe_d6"], want, rel_tol=1e-12, abs_tol=1e-15), (c, mo, s, side, want)
+                    n_gate += 1
+                    sr[f"sr_{side}_{lab}"] = float(x["sharpe"])
+            rows.append(
+                dict(
+                    cell=c,
+                    model=mo,
+                    sr_mid_full=sr["sr_mid_full"],
+                    sr_mid_har=sr["sr_mid_har"],
+                    dsr_mid=sr["sr_mid_full"] - sr["sr_mid_har"],
+                )
+            )
+    out = pd.DataFrame(rows)
+    # cell B is the main text's design: its ratios are the printed \rhemSh<Model>{Full,Har} (make_rehaul_econ_main.py)
+    em = (GEN / "rehaul_econ_main_numbers.tex").read_text("utf-8")
+    for r in out[out.cell == "B"].itertuples():
+        for lab, v in (("Full", r.sr_mid_full), ("Har", r.sr_mid_har)):
+            nm = f"rhemSh{MTAG[r.model]}{lab}"
+            m = re.search(r"\\renewcommand\{\\" + nm + r"\}\{([0-9.]+)\}", em)
+            assert m and m.group(1) == num(v), (nm, m and m.group(1), v)
+    print(
+        f"D19: rebuilt returns reproduce {n_gate} D6 ratios of scores_linear/d6.csv; q = {q:.4f}; cell B = \\rhemSh..."
+    )
+    return out
+
+
 def main() -> None:
     M: list[tuple[str, str, str]] = []
 
@@ -103,13 +255,22 @@ def main() -> None:
     assert set(sm.cell) == set(CELLS) and set(sm.model) == set(LIN), (set(sm.cell), set(sm.model))
     # every cell keeps a significant every-bar gain (the disclosure's claim: dropping the holidays changes no reading)
     assert ((sm.dm_bar < 0) & (sm.p_bar < SIG)).all(), "claim: the full set's every-bar gain significant in every cell"
+    # 2026-10-28 (D19): the Sharpe ratios are the paper's pooled ratio, recomputed (sharpe_cells); was the D6 columns
+    # of summary.csv / effects.csv: ("d6_mid_full", "ShFull", 2), ("dd6_mid", "DSh", 2) in the loop below
+    SC = sharpe_cells().set_index(["cell", "model"])
     for eff, tag in (("C-A", "CA"), ("D-B", "DB")):
         e = ef[ef.effect == eff].set_index("model")
+        new, old = eff.split("-")
+        e = e.assign(
+            sr_mid_full=SC.loc[new].sr_mid_full - SC.loc[old].sr_mid_full,
+            dsr_mid=SC.loc[new].dsr_mid - SC.loc[old].dsr_mid,
+        )
+        assert e.loc[list(LIN), ["sr_mid_full", "dsr_mid"]].notna().all().all(), eff
         for col, ctag, nd in (
             ("pct_vs_har_bar", "BarPp", 2),
             ("pct_vs_har_c16", "ClosePp", 2),
-            ("d6_mid_full", "ShFull", 2),
-            ("dd6_mid", "DSh", 2),
+            ("sr_mid_full", "ShFull", 2),
+            ("dsr_mid", "DSh", 2),
         ):
             v = e.loc[list(LIN), col].astype(float)
             add(f"Eff{tag}{ctag}Min", sgn(v.min(), nd), f"holiday effect {eff}, linear: lowest change of {col}")
@@ -127,7 +288,9 @@ def main() -> None:
             add(f"{t}PctBar", num(float(r.pct_vs_har_bar), 1), f"cell {c}, {m}: every-bar % vs HAR")
             add(f"{t}PBar", pval(float(r.p_bar)), f"cell {c}, {m}: every-bar DM p")
             add(f"{t}PctClose", num(float(r.pct_vs_har_c16), 1), f"cell {c}, {m}: 16:00 % vs HAR")
-            add(f"{t}ShFull", num(float(r.d6_mid_full)), f"cell {c}, {m}: D6 Sharpe ratio, full set, mid")
+            # 2026-10-28 (D19). Was: num(float(r.d6_mid_full)), "D6 Sharpe ratio, full set, mid"
+            sh = SC.loc[(c, m)]
+            add(f"{t}ShFull", num(float(sh.sr_mid_full)), f"cell {c}, {m}: Sharpe ratio (D19), full set, mid")
 
     # ------------------------------------------------------------------ table
     body = []
@@ -135,12 +298,15 @@ def main() -> None:
         first = True
         for c, (hol, fomc) in CELLS.items():
             r = sm[(sm.cell == c) & (sm.model == m)].iloc[0]
+            sh = SC.loc[(c, m)]
             lab = MNAME[m] if first else ""
             first = False
+            # 2026-10-28 (D19): the last cell is the pooled ratio. Was: f"{num(float(r.d6_mid_full))} / "
+            # f"{num(float(r.d6_mid_har))} \\\\"
             body.append(
                 f"{lab} & {c} & {hol} & {fomc} & {sgn(float(r.pct_vs_har_bar), 1)} & {num(float(r.dm_bar))} "
                 f"({pval(float(r.p_bar))}) & {sgn(float(r.pct_vs_har_c16), 1)} & {num(float(r.dm_c16))} "
-                f"({pval(float(r.p_c16))}) & {num(float(r.d6_mid_full))} / {num(float(r.d6_mid_har))} \\\\"
+                f"({pval(float(r.p_c16))}) & {num(float(sh.sr_mid_full))} / {num(float(sh.sr_mid_har))} \\\\"
             )
         body.append("\\addlinespace[3pt]")
     body = body[:-1]
@@ -153,8 +319,10 @@ def main() -> None:
         "(the holiday bars are never scored) and on their 16:00 bar. \\% vs HAR: the full set's QLIKE against the HAR set "
         "of the same class (negative: the full set has the lower loss); DM: the Diebold--Mariano statistic of the daily "
         "average (every bar) or 16:00 QLIKE, HLN correction, Newey--West lag \\rhorHacLag, $p$-value in parentheses. "
-        "$\\SR$: the annualized Sharpe ratio of the sign strategy at mid-quotes, full set / HAR set, on the "
-        "\\rheSzDays{} post-warmup option days."
+        # 2026-10-28 (D19): the ratio of Section 7 (the pooled ratio). Was: "$\\SR$: the annualized Sharpe ratio of
+        # the sign strategy at mid-quotes, full set / HAR set, on the \\rheSzDays{} post-warmup option days."
+        "$\\SR$: the Sharpe ratio of Section~\\ref{sec:rh_econ_measures} of the sign strategy at mid-quotes, full set "
+        "/ HAR set, on the \\rheSzDays{} post-warmup option days."
     )
     table = "\n".join(
         [
@@ -191,6 +359,7 @@ def main() -> None:
         HEAD,
         "% \\rhhol... macros of the NYSE-holiday disclosure (D15; Table tab:rh_holiday): results/fomcfix_2026-10-26,",
         "% RULE.txt ADDENDUM A (cells A-D; Eff CA = C - A, Eff DB = D - B, the holiday effect without / with the FOMC fix).",
+        "% Sh... (2026-10-28, D19): the paper's pooled Sharpe ratio, recomputed from each cell's 16:00 forecasts (was D6).",
         "% NOTE FOR OFFICIAL PUBLICATION (D15): rerun with DROP_HOLIDAY_SESSIONS on (all models) before the final version.",
     ]
     for name, value, n_ in M:

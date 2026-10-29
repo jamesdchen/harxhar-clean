@@ -134,8 +134,8 @@ def table(res: dict) -> str:
         "\\cmidrule(lr){2-5}\\cmidrule(l){6-9}",
         " & \\multicolumn{2}{c}{Every bar} & \\multicolumn{2}{c}{Ordinary days} & \\multicolumn{2}{c}{Every bar}"
         " & \\multicolumn{2}{c}{Ordinary days} \\\\",
-        "Series added to the base & $\\Delta$ (DM) & $R$ & $\\Delta$ (DM) & $R$ & $\\Delta$ (DM) & $R$ & $\\Delta$ (DM)"
-        " & $R$ \\\\",
+        "Series added to the base ($-$: they add accuracy) & $\\Delta$ (DM) & $R$ & $\\Delta$ (DM) & $R$ & $\\Delta$ (DM)"
+        " & $R$ & $\\Delta$ (DM) & $R$ \\\\",
         "\\midrule",
     ]
     for k in AA.LADDER_K:
@@ -158,15 +158,19 @@ def table(res: dict) -> str:
         "\\end{tabular*}",
         "\\begin{tablenotes}[flushleft]",
         "\\footnotesize",
+        # 2026-10-28 (author: make the meaning of positive and negative changes abundantly clear): the sign key opens
+        # the notes; pct and the DM are rung minus BASE (dm.csv: arm brung_<est>_<k> vs add_rm_fomc)
+        "\\item \\textit{Sign:} $\\Delta = 100\\,(L_k/L_{\\text{base}} - 1)$, the percentage change in mean QLIKE of the"
+        " row's forecast against the base, with the Diebold--Mariano statistic on daily average QLIKE in parentheses"
+        " (same sign): negative, the loss falls when the series are added, i.e.\\ they add accuracy; positive, they"
+        " hurt.  $R = (L_{\\text{base}} - L_k) / (L_{\\text{base}} - L_{\\text{full}})$, the share of the full set's gain"
+        " over the base recovered by the top $k$ series: 1, all of it; 0, none; below 0, worse than the base.",
         "\\item \\textit{Notes:} Requested by the author after the results beyond HAR + RM + FOMC"
         " (Table~\\ref{tab:rh_ablation_beyond}), not part of the pre-specified design.  Base: the HAR benchmark set plus"
         " the futures' realized moments and the FOMC calendar (132 columns).  Each row adds the top $k$ series of the"
         " six remaining groups, in the model's own ranking from its 2013 pre-sample fit (the ladder of"
         " Section~\\ref{sec:rh_results_predictors}), with all their trailing averages and availability shares; FOMC-patched"
-        " design, frozen hyperparameters, re-estimated at every bar.  $\\Delta$: percentage change in QLIKE against the"
-        " base, with the Diebold--Mariano statistic on daily average QLIKE; $R = (L_{\\text{base}} - L_k) /"
-        " (L_{\\text{base}} - L_{\\text{full}})$, the share of the full set's gain over the base recovered by the top $k$"
-        " series.  Ordinary days exclude the 81 scheduled FOMC statement days.  Reading, fixed before scoring:"
+        " design, frozen hyperparameters, re-estimated at every bar.  Ordinary days exclude the 81 scheduled FOMC statement days.  Reading, fixed before scoring:"
         " concentrated if $R \\geq 0.75$ at $k = 5$, dense if $R < 0.75$ at $k = 20$, intermediate otherwise.  Top five"
         f" series: {top}.",
         "\\end{tablenotes}",

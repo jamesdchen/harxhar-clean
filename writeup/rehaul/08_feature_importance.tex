@@ -58,7 +58,10 @@
 % 2026-10-26 (integration, JFEc): parked -- the subsection heading; Variable importance is now its own section,
 % after the results and before the economic application (FRONT wires the order in paper_rehaul.tex). Was:
 % "\subsection{Variable importance}"
-\section{Which predictors carry the gain?}
+% 2026-10-28 (author: Sections 6 and 7 are one section): the former Section 7 is Section 6.3, a subsection of Results (its
+% subsections are \subsubsection's, labels unchanged); paper_rehaul.tex inputs Robustness (rehaul/06b_robustness.tex,
+% Section 6.4) after this file. Was: \section{Which predictors carry the gain?}
+\subsection{Which predictors carry the gain?}
 \label{sec:rh_fi}
 \label{sec:rh_results_ablation}
 % 2026-10-28 (author: v2 of Sections 6-7 approved preliminarily): the section is v2 (drafts/08_predictors_DRAFT.tex
@@ -156,12 +159,11 @@
   % 2026-10-28 (coordinator): "at least one and a half times" -> "more than", as RULE.txt and the table notes.
 \end{itemize}
 % 2026-10-28 (coordinator, v2): Section 7's tables, input here (not in 08_feature_importance_floats.tex) so that they
-% print within the section.
-\input{generated/rehaul_channels_ablation_table}
-\input{generated/rehaul_channels_sparsity_table}
-\input{generated/rehaul_factor_table}
+% print within the section. 2026-10-28 (one Results section): moved to just before 6.3.2, so that they follow 6.3.1
+% instead of three float pages in a row. Was: the three \input lines here.
 
-\subsection{The FOMC calendar: one group, few bars}
+% 2026-10-28 (author: Sections 6 and 7 are one section). Was: \subsection{The FOMC calendar: one group, few bars}
+\subsubsection{The FOMC calendar: one group, few bars}
 \label{sec:rh_fi_event}
 \begin{itemize}
 \item \textbf{It carries the statement days} (Tables~\ref{tab:rh_ablation} and~\ref{tab:rh_channels_abl}). On every
@@ -184,7 +186,12 @@
   cost (\rhchOrdAddFomcTreeRng\%).
 \end{itemize}
 
-\subsection{The futures' realized moments: the ordinary days}
+\input{generated/rehaul_channels_ablation_table}
+\input{generated/rehaul_channels_sparsity_table}
+\input{generated/rehaul_factor_table}
+
+% 2026-10-28 (author: Sections 6 and 7 are one section). Was: \subsection{The futures' realized moments: the ordinary days}
+\subsubsection{The futures' realized moments: the ordinary days}
 \label{sec:rh_fi_ordinary}
 \label{sec:rh_results_bench}
 \begin{itemize}
@@ -229,7 +236,8 @@
   % The RULE's mechanical reading is "\rhfaReading" (R_10 < 0.5); the text gives the reason rather than the label.
 \end{itemize}
 
-\subsection{What remains}
+% 2026-10-28 (author: Sections 6 and 7 are one section). Was: \subsection{What remains}
+\subsubsection{What remains}
 \label{sec:rh_fi_rest}
 \label{sec:rh_results_beyond}
 \begin{itemize}
@@ -275,7 +283,8 @@
 %   not in a factor common to them, and the linear models do not capture it.
 \end{itemize}
 
-\subsection{StockTwits, net vega demand and the VIX}
+% 2026-10-28 (author: Sections 6 and 7 are one section). Was: \subsection{StockTwits, net vega demand and the VIX}
+\subsubsection{StockTwits, net vega demand and the VIX}
 \label{sec:rh_fi_alt}
 \begin{itemize}
 \item \textbf{Little incremental gain} (Table~\ref{tab:rh_channels_abl}). Removing the StockTwits, volatility-demand
@@ -319,7 +328,8 @@
   \rhfilVdLiveMin--\rhfilVdLiveMax\% (\rhfilVdLiveYears). The use buys little accuracy (Panel~E).
 \end{itemize}
 
-\subsection{Use is not accuracy}
+% 2026-10-28 (author: Sections 6 and 7 are one section). Was: \subsection{Use is not accuracy}
+\subsubsection{Use is not accuracy}
 \label{sec:rh_fi_use}
 \begin{itemize}
 \item \textbf{Attribution ranks the parts the wrong way round.} The trees attribute \rhfipHarMin--\rhfipHarMax\% of

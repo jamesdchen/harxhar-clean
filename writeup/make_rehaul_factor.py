@@ -219,8 +219,12 @@ def table(S: pd.DataFrame) -> None:
     sa = S[S["span"] == "all"].set_index("model")
     fo, fa = so["full_ref"].iloc[0], sa["full_ref"].iloc[0]
     body = []
+    # 2026-10-28 (author: make the meaning of positive and negative changes abundantly clear): the sign of both signed
+    # columns in each block heading (short enough not to widen the table) and a sign key opening the notes; the
+    # scorer's qlike_pct_vs_har, dm_har_qlike and dm_full_qlike are all row minus reference (factor_har_2026_10_26.py)
+    sign = " (\\%: $-$, they add accuracy; DM vs full: $+$, the full set is better)"
     for meth, ks, label in (("pca", K_PCA, "Principal components"), ("pls", K_PLS, "Partial least squares")):
-        body.append(f"\\multicolumn{{7}}{{@{{}}l}}{{\\textit{{{label}}}}} \\\\")
+        body.append(f"\\multicolumn{{7}}{{@{{}}l}}{{\\textit{{{label}{sign}}}}} \\\\")
         for k in ks:
             m = f"{meth}{k}"
             body.append(" & ".join([f"$k = {k}$", *cells(so, m, fo), *cells(sa, m, fa)]) + " \\\\")
@@ -249,15 +253,19 @@ def table(S: pd.DataFrame) -> None:
         "\\end{tabular*}",
         "\\begin{tablenotes}[flushleft]",
         "\\footnotesize",
+        "\\item \\textit{Sign:} QLIKE \\%: $100\\,(L_k/L_{\\mathrm{HAR}} - 1)$, the percentage change in mean QLIKE of the"
+        " row's forecast against Table~\\ref{tab:rh_oos}'s OLS on the HAR set, with the Diebold--Mariano statistic (HLN,"
+        " daily mean losses, lag 8) in parentheses (same sign): negative, the loss falls when the components are added"
+        " to the HAR set, i.e.\\ they add accuracy; positive, they hurt; in the full-set row, negative: the full set is"
+        " more accurate. $R_k = (L_{\\mathrm{HAR}} - L_k)/(L_{\\mathrm{HAR}} - L_{\\mathrm{full}})$, $L_{\\mathrm{full}}$"
+        " the lower QLIKE of Table~\\ref{tab:rh_oos}'s full-set ridge and elastic net on the same days: 1, all of the"
+        " full set's gain over the HAR set; 0, none; below 0, worse than the HAR set. DM vs full: the row against that"
+        " full set; positive, the full set is more accurate.",
         "\\item OLS on the HAR benchmark set plus the first $k$ components of the \\rhfaNBlock{} value averages of the"
         " \\rhfaNSeries{} exogenous series outside the FOMC group, standardized in each estimation window; principal"
         " components of the window's correlation matrix or partial least squares components against the target, both"
         " recomputed once a trading day from the window ending at the previous bar and held for the day; the regression"
-        " re-estimated at every bar on Table~\\ref{tab:rh_oos}'s 39{,}000-row window. QLIKE \\%: change against"
-        " Table~\\ref{tab:rh_oos}'s OLS on the HAR set, with the Diebold--Mariano statistic (HLN, daily mean losses,"
-        " lag 8) in parentheses; negative favours the row. $R_k = (L_{\\mathrm{HAR}} - L_k)/(L_{\\mathrm{HAR}} -"
-        " L_{\\mathrm{full}})$, $L_{\\mathrm{full}}$ the lower QLIKE of Table~\\ref{tab:rh_oos}'s full-set ridge and"
-        " elastic net on the same days. DM vs full: the row against that full set (negative favours the row)."
+        " re-estimated at every bar on Table~\\ref{tab:rh_oos}'s 39{,}000-row window."
         " Ordinary days: the scored sessions that are not one of the \\rhfaNEvDays{} scheduled FOMC statement days."
         " The full sets are penalized and include availability averages; the component regressions are OLS on value"
         " averages only, so the comparison is of forecast accuracy, not a nesting.",

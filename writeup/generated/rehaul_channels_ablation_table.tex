@@ -11,6 +11,8 @@
 \begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lrrrrrrrrrrrr@{}}
 \toprule
  & \multicolumn{6}{c}{HAR benchmark plus the group, vs HAR} & \multicolumn{6}{c}{Full set without the group, vs full set} \\
+ & \multicolumn{6}{c}{\textit{$-$: the group adds accuracy; $+$: it hurts}}
+ & \multicolumn{6}{c}{\textit{$+$: the group adds accuracy; $-$: it hurts}} \\
 \cmidrule(lr){2-7}\cmidrule(l){8-13}
  & Ridge & Lasso & E.\ net & LGBM & XGB & Forest & Ridge & Lasso & E.\ net & LGBM & XGB & Forest \\
 \midrule
@@ -47,12 +49,16 @@ Reading, by model type & \multicolumn{3}{c}{concentrated} & \multicolumn{3}{c}{c
 \end{tabular*}
 \begin{tablenotes}[flushleft]
 \footnotesize
-\item \textit{Notes:} Percentage change in QLIKE of the arm against its reference on the bars of the day type; * the
-Diebold--Mariano test rejects equal accuracy at 5\% (two-sided; daily average loss, Newey--West lag \rhchHacLag). Left
-block: the HAR benchmark set plus one predictor group against the HAR benchmark (the pooled OLS on the HAR set for the
-linear models, each tree's own HAR-set fit); right block: the full set without the group against the full set. Joint:
-the full set against the HAR benchmark on the same days. Sum add / joint: the add-alone QLIKE gains summed over the
-eight groups, divided by the joint gain; sig.\ leave-outs: groups whose removal raises the loss significantly, of the
+\item \textit{Notes:} \textit{Sign:} every cell is $100\,(L_{\mathrm{row}}/L_{\mathrm{ref}} - 1)$, the
+percentage change in mean QLIKE of the row's forecast against its reference on the bars of the day type; the
+Diebold--Mariano statistic has the same sign. Left block, the group added to the HAR benchmark set (reference: the HAR
+benchmark): negative = the loss falls when the group is added, i.e.\ the group adds accuracy; positive = the group
+hurts. Right block, the group removed from the full set (reference: the full set): positive = the loss rises when the
+group is dropped, i.e.\ the group adds accuracy; negative = the group hurts. Joint: the full set against the HAR
+benchmark on the same days; negative = the full set is more accurate. * the Diebold--Mariano test rejects equal accuracy
+at 5\% (two-sided; daily average loss, Newey--West lag \rhchHacLag). HAR benchmark: the pooled OLS on the HAR set for
+the linear models, each tree's own HAR-set fit. Sum add / joint: the add-alone QLIKE gains (falls in the loss; a group
+that hurts counts negative) summed over the eight groups, divided by the joint gain; sig.\ leave-outs: groups whose removal raises the loss significantly, of the
 leave-outs run. Readings (fixed before scoring, tested in this order): concentrated (conc.)\ if one group's add-alone
 gain is at least 75\% of the joint gain and its leave-out is significant; redundant (redund.)\ if the add-alone gains
 sum to more than 1.5 times the joint gain and at most one leave-out is significant; otherwise mixed; by model type the

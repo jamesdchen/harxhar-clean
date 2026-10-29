@@ -121,8 +121,12 @@ def main() -> int:
         r" & \% (DM) & $R$ & DM vs full & \% (DM) & $R$ & DM vs full \\",
         r"\midrule",
     ]
+    # 2026-10-28 (author: make the meaning of positive and negative changes abundantly clear): the sign of both signed
+    # columns in each panel heading (short enough not to widen the table) and a sign key opening the notes; the scorer's
+    # pct_vs_base, dm_vs_base and dm_vs_full are all row minus reference (experiments/beyond_factor_score.py)
+    sign = r" (\%: $-$, the addition adds accuracy; DM vs full: $+$, the full set is better)"
     for sp, title in (("ordinary", "A. Ordinary days"), ("all", "B. Every bar")):
-        L.append(rf"\multicolumn{{7}}{{@{{}}l}}{{\textit{{{title}}}}} \\")
+        L.append(rf"\multicolumn{{7}}{{@{{}}l}}{{\textit{{{title}{sign}}}}} \\")
         for arm, (_, lab) in ARMS.items():
             L.append(" & ".join([lab, *cell("lgbm", arm, sp), *cell("xgb", arm, sp)]) + r" \\")
         if sp == "ordinary":
@@ -133,6 +137,13 @@ def main() -> int:
         r"\end{tabular*}",
         r"\begin{tablenotes}[flushleft]",
         r"\footnotesize",
+        r"\item \textit{Sign:} \%: $100\,(L_{\text{row}}/L_{\text{base}} - 1)$, the percentage change in mean QLIKE of"
+        r" the row's forecast against the base, with the Diebold--Mariano statistic (HLN, daily average QLIKE, lag 8) in"
+        r" parentheses (same sign): negative, the loss falls when the components (in the last row, the six groups) are"
+        r" added, i.e.\ they add accuracy; positive, they hurt.  $R = (L_{\text{base}} - L_{\text{row}}) /"
+        r" (L_{\text{base}} - L_{\text{full}})$, the share of the full set's gain over the base that the row recovers:"
+        r" 1, all of it; 0, none; below 0, worse than the base.  DM vs full: the row against the full set; positive,"
+        r" the full set is more accurate.",
         r"\item \textit{Notes:} Requested by the author after the results beyond HAR + RM + FOMC"
         r" (Table~\ref{tab:rh_ablation_beyond}); not part of the pre-specified design.  Base: the HAR benchmark set plus"
         r" the futures' realized moments and the FOMC calendar (132 columns).  Each row adds to it the first $k$"
@@ -140,10 +151,7 @@ def main() -> int:
         r" value averages (the equal- and value-weighted market, liquidity, implied volatility, sentiment and volatility"
         r" demand: 216 columns), standardized within the rolling window; the loadings are re-estimated once a trading"
         r" day from the window ending at the previous bar.  Frozen hyperparameters, refit at every bar, FOMC-patched"
-        r" design.  \%: change in QLIKE against the base, with the Diebold--Mariano statistic (HLN, daily average QLIKE,"
-        r" lag 8) in parentheses; $R$: the share of the full set's gain over the base that the row recovers; DM vs full:"
-        r" the row against the full set (positive: the full set has the lower loss).  Ordinary days exclude the 81"
-        rf" scheduled FOMC statement days.  Reading on ordinary days: LightGBM, {rl}; XGBoost, {rx}.",
+        rf" design.  Ordinary days exclude the 81 scheduled FOMC statement days.  Reading on ordinary days: LightGBM, {rl}; XGBoost, {rx}.",
         r"\end{tablenotes}",
         r"\end{threeparttable}",
         r"\end{table}",

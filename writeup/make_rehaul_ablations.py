@@ -508,7 +508,8 @@ def beyond_table(q, dq, have: set) -> str:
         "\\cmidrule(lr){2-4}\\cmidrule(l){5-7}",
         " & Linear & LightGBM & XGBoost & Linear & LightGBM & XGBoost \\\\",
         "\\midrule",
-        "\\multicolumn{7}{@{}l}{\\textit{A. HAR + RM + FOMC plus the group, against HAR + RM + FOMC}} \\\\",
+        "\\multicolumn{7}{@{}l}{\\textit{A. HAR + RM + FOMC plus the group, against HAR + RM + FOMC ($-$: the group"
+        " adds accuracy)}} \\\\",
     ]
     for a, g in BEYOND.items():
         out.append(row(AA.GROUP_LABEL[g], a, COMBO))
@@ -531,7 +532,8 @@ def beyond_table(q, dq, have: set) -> str:
     out.append("Sum of the six rows [ratio to the full set] & " + " & ".join(sums) + " \\\\")
     out += [
         "\\addlinespace[4pt]",
-        "\\multicolumn{7}{@{}l}{\\textit{B. Full set against HAR + RM + FOMC plus the group}} \\\\",
+        "\\multicolumn{7}{@{}l}{\\textit{B. Full set against HAR + RM + FOMC plus the group ($-$: the full set is more"
+        " accurate)}} \\\\",
     ]
     for a, g in BEYOND.items():
         out.append(row(AA.GROUP_LABEL[g], "full", a, flip=True))
@@ -540,13 +542,19 @@ def beyond_table(q, dq, have: set) -> str:
         "\\end{tabular*}",
         "\\begin{tablenotes}[flushleft]",
         "\\footnotesize",
+        # 2026-10-28 (author): the sign key opens the notes; one() is row minus reference (the full set's rows flip
+        # the stored "base + g vs full" / "base vs full" test), rng() the same change over the linear classes
+        "\\item \\textit{Sign:} each cell is $100\\,(L_{\\text{row}}/L_{\\text{ref}} - 1)$, the percentage change in"
+        " mean QLIKE of the row's forecast against its reference, with the Diebold--Mariano statistic in parentheses"
+        " (same sign; daily average QLIKE).  Panel~A, a group added to HAR + RM + FOMC (reference: that base; All six:"
+        " all six groups added, i.e.\\ the full set; Sum: the six rows above added up): negative, the loss falls when"
+        " the group is added, i.e.\\ the group adds accuracy; positive, the group hurts.  Panel~B, the full set against"
+        " HAR + RM + FOMC plus the group (reference: that set): negative, the full set is more accurate.",
         "\\item \\textit{Notes:} Requested by the author after the results against HAR + RM + FOMC (Table~\\ref{tab:rh_ablation},"
         " Panel~D), not part of the pre-specified design.  Base: the HAR benchmark set plus the futures' realized moments"
         " (RM) and the FOMC calendar (132 columns); each row of Panel~A adds one remaining group to it, Panel~B sets"
         " the full set against that model.  Every model keeps the full set's frozen hyperparameters (FOMC-patched"
-        " design); the random forest is not run.  Cells: percentage change in QLIKE with the Diebold--Mariano"
-        " statistic in parentheses (negative: the first model has the lower loss; daily average QLIKE); Linear: the"
-        " range over ridge, lasso and elastic net.  Ordinary days exclude the \\rhabNEventDays{} scheduled FOMC"
+        " design); the random forest is not run.  Linear: the range over ridge, lasso and elastic net.  Ordinary days exclude the \\rhabNEventDays{} scheduled FOMC"
         " statement days.  The bracket (trees) is the sum of the six Panel~A changes divided by the full set's change:"
         " above one, the groups' gains overlap; below one, they complement each other (the linear full sets gain about"
         " nothing against the base, so no ratio is shown for them).",
@@ -608,6 +616,21 @@ def design_txt() -> str:
     )
 
 
+# 2026-10-28 (author: make the meaning of positive and negative changes abundantly clear): the notes open with the
+# sign key; the row is the arm of cell() / full_vs_add(), the reference its ref_arm() (or the add set: full_vs_add flips
+# the stored "add vs full" test), and the DM is row minus reference (src/evaluation/diebold_mariano.dm_test)
+SIGN_KEY = (
+    "\\item \\textit{Sign:} each cell is $100\\,(L_{\\text{row}}/L_{\\text{ref}} - 1)$, the percentage change in mean"
+    " QLIKE of the row's pooled intraday forecast against its reference, with the Diebold--Mariano statistic of the"
+    " difference in parentheses (same sign).  Panel~A, a group removed from the full set (reference: the full set):"
+    " positive, the loss rises when the group is dropped, i.e.\\ the group adds accuracy; negative, the group hurts."
+    "  Panels~B and~C, a group or extension added to the HAR benchmark set (reference: that set): negative, the loss"
+    " falls when it is added, i.e.\\ it adds accuracy; positive, it hurts.  Panel~D, the full set against the HAR"
+    " benchmark set (first row) or the augmented HAR set named in the row: negative, the full set is more accurate."
+    "  Panel~E: as Panel~B for the rows added and as Panel~A for the rows removed."
+)
+
+
 def table(M: pd.DataFrame, D: pd.DataFrame, have: set) -> str:
     q = M.set_index(["cls", "arm", "span"])
     dq = D[D["loss"] == "qlike"].set_index(["cls", "arm", "vs_cls", "vs_arm", "span"])
@@ -628,25 +651,29 @@ def table(M: pd.DataFrame, D: pd.DataFrame, have: set) -> str:
         "\\toprule",
         " & " + " & ".join(CLS_NAME[c] for c in cols) + " \\\\",
         "\\midrule",
-        f"\\multicolumn{{{len(cols) + 1}}}{{@{{}}l}}{{\\textit{{A. Full set without the group, against the full set}}}} \\\\",
+        f"\\multicolumn{{{len(cols) + 1}}}{{@{{}}l}}{{\\textit{{A. Full set without the group, against the full set"
+        " ($+$: the group adds accuracy)}} \\\\",
     ]
     for g in AA.GROUPS:
         out.append(f"{AA.GROUP_LABEL[g]} & " + " & ".join(cell(q, dq, c, f"lo_{g}", have) for c in cols) + " \\\\")
     out += [
         "\\addlinespace[4pt]",
-        f"\\multicolumn{{{len(cols) + 1}}}{{@{{}}l}}{{\\textit{{B. HAR benchmark plus the group, against the HAR benchmark}}}} \\\\",
+        f"\\multicolumn{{{len(cols) + 1}}}{{@{{}}l}}{{\\textit{{B. HAR benchmark plus the group, against the HAR"
+        " benchmark ($-$: the group adds accuracy)}} \\\\",
     ]
     for g in AA.GROUPS:
         out.append(f"{AA.GROUP_LABEL[g]} & " + " & ".join(cell(q, dq, c, f"add_{g}", have) for c in cols) + " \\\\")
     out += [
         "\\addlinespace[4pt]",
-        f"\\multicolumn{{{len(cols) + 1}}}{{@{{}}l}}{{\\textit{{C. Classical HAR extensions, against the HAR benchmark}}}} \\\\",
+        f"\\multicolumn{{{len(cols) + 1}}}{{@{{}}l}}{{\\textit{{C. Classical HAR extensions, against the HAR benchmark"
+        " ($-$: the extension adds accuracy)}} \\\\",
     ]
     for b in ("shar", "harq", "lhar", "sharql"):
         out.append(f"{AA.CLASSICAL_LABEL[b]} & " + " & ".join(cell(q, dq, c, b, have) for c in cols) + " \\\\")
     out += [
         "\\addlinespace[4pt]",
-        f"\\multicolumn{{{len(cols) + 1}}}{{@{{}}l}}{{\\textit{{D. Full set, against the HAR benchmark (Table~\\ref{{tab:rh_oos}})}}}} \\\\",
+        f"\\multicolumn{{{len(cols) + 1}}}{{@{{}}l}}{{\\textit{{D. Full set, against the HAR benchmark"
+        " (Table~\\ref{tab:rh_oos}; $-$: the full set is more accurate)}} \\\\",
     ]
     out.append("All features & " + " & ".join(cell(q, dq, c, "full", have) for c in cols) + " \\\\")
     # the full set against the class's own HAR + RM / + FOMC / (addendum F) + RM + FOMC
@@ -661,7 +688,11 @@ def table(M: pd.DataFrame, D: pd.DataFrame, have: set) -> str:
     if any(sp in set(M["span"]) for sp in LIVE_TEX):
         out += [
             "\\addlinespace[4pt]",
-            f"\\multicolumn{{{len(cols) + 1}}}{{@{{}}l}}{{\\textit{{E. Late-starting groups on their live bars (subsamples): added to HAR / removed from the full set}}}} \\\\",
+            # the sign differs by row (added / removed): the heading takes two lines to stay within the table's width
+            f"\\multicolumn{{{len(cols) + 1}}}{{@{{}}l}}{{\\textit{{E. Late-starting groups on their live bars"
+            " (subsamples): added to HAR ($-$: the group adds accuracy) /}} \\\\",
+            f"\\multicolumn{{{len(cols) + 1}}}{{@{{}}l}}{{\\textit{{\\quad removed from the full set ($+$: the group"
+            " adds accuracy)}} \\\\",
         ]
         for sp, (_t, g, lab) in LIVE_TEX.items():
             if not lab or sp not in set(M["span"]):
@@ -673,12 +704,11 @@ def table(M: pd.DataFrame, D: pd.DataFrame, have: set) -> str:
         "\\end{tabular*}",
         "\\begin{tablenotes}[flushleft]",
         "\\footnotesize",
+        SIGN_KEY,
         NOTE_DESIGN
         + "\\item \\textit{Notes:} "
         + design_txt()
-        + " Each cell is the percentage change in QLIKE of a pooled intraday forecast against its"
-        " reference, with the Diebold--Mariano statistic of the difference in parentheses (negative: the arm has the lower"
-        " loss); every bar of Table~\\ref{tab:rh_oos} is scored (2014--2024) and the test runs on daily average QLIKE."
+        + " Every bar of Table~\\ref{tab:rh_oos} is scored (2014--2024) and the test runs on daily average QLIKE."
         " Panel A removes one predictor group (its series' trailing averages and availability shares) from the full"
         " set; Panel B adds one group to the HAR benchmark; Panel C adds the semivariances RS$^{+}$ and RS$^{-}$ of the"
         " last half hour (SHAR), the HARQ interaction of realized variance with the square root of realized quarticity,"
