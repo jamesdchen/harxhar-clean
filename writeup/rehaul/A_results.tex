@@ -337,8 +337,11 @@
     days but behind them on ordinary days.
   \item A written rule then fixed the day types, the tests, the readings below and their thresholds, and the factor
     test, before any forecast on the fixed design was scored by day type. Every number the paper reports by day type
-    comes from the fixed design under that rule; the exploratory numbers are not reported. Every model class and every
-    predictor group is reported; none was dropped after scoring.
+    comes from the fixed design under that rule, except the random forest's removal of the realized moments (marked
+    $^{\dagger}$); the exploratory numbers are not reported. Every model class and every predictor group is reported;
+    none was dropped after scoring.
+    % 2026-10-29 (coordinator; claim check after addendum J, Q-2026-10-29-24): the exception added; the forest's lo_rm
+    % is the one by-day-type cell still on the pre-patch design (before addendum J, the boosted trees' 14 were too).
   \end{itemize}
 \item \textbf{Readings} (Tables~\ref{tab:rh_channels_abl} and~\ref{tab:rh_channels_abl_full}). On each day type,
   with the joint gain that of the full set over the HAR benchmark on that day type, the gain is
@@ -374,8 +377,11 @@
   the lasso against the ridge and the elastic net and the feature-count ladder by day type;
   Table~\ref{tab:rh_channels_corr} and Figure~\ref{fig:rh_channels} the three corrections and where the gain falls.
   Two gaps are marked in the tables: the random forest is fitted for the additions and for removing the realized
-  moments only (Appendix~\ref{app:rh_results_ablation}), and the trees' removals other than that of the FOMC group are
-  on the design before the FOMC fixes, against the full set on that design.
+  moments only (Appendix~\ref{app:rh_results_ablation}), and that removal is on the design before the FOMC fixes,
+  against the full set on that design.
+  % 2026-10-29 (coordinator; claim check after addendum J, Q-2026-10-29-23): was "... and the trees' removals other
+  % than that of the FOMC group are on the design before the FOMC fixes, ..."; addendum J walked LightGBM's and
+  % XGBoost's removals on the patched design, so only the forest's removal of the realized moments keeps the dagger.
 \item \textbf{Added after the rule.} Not pre-registered, each requested by the author after the results it follows and
   specified in a dated addendum to the ablation rule, or in a rule of its own, before its forecasts were scored:
   \begin{itemize}

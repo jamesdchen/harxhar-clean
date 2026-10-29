@@ -39,11 +39,14 @@
   \fi
   \item \textbf{FOMC-patched design (D13).} The paper's numbers are to come from the patched design
     (FOMC\_SCHEDULE\_2020\_FIX, FOMC\_PROXIMITY\_NO\_WINSOR; branch -fomcfix). Rerun on it: the linear ablations, the
-    FOMC tree arms (add\_fomc for the three trees, lo\_fomc for LightGBM and XGBoost), the ladder and scaling grid,
-    and the tree SHAP values with the live-window shares built on them; the forest's last piece is pending. The other
-    tree ablation arms and the three-way and window robustness arms stay pre-patch and are disclosed. Until the
-    generators are rerun, the \texttt{\textbackslash rhab...} and \texttt{\textbackslash rhcx...} macros of the front
-    matter are pre-patch.
+    FOMC tree arms (add\_fomc for the three trees, lo\_fomc for LightGBM and XGBoost), the boosted trees' other
+    removals (lo\_\textit{g}, addendum J, scored 29 Oct), the ladder and scaling grid, and the tree SHAP values with the
+    live-window shares built on them; the forest's last piece is pending. The forest's removal of the realized moments
+    and the three-way and window robustness arms stay pre-patch and are disclosed. Until its generator is rerun, the
+    \texttt{\textbackslash rhcx...} macros of the front matter are pre-patch.
+    % 2026-10-29 (coordinator; claim check after addendum J, Q-2026-10-29-23): was "... The other tree ablation arms
+    % and the three-way and window robustness arms stay pre-patch ... Until the generators are rerun, the \rhab... and
+    % \rhcx... macros of the front matter are pre-patch." The \rhab macros come from scores_fomcfix (patched).
   \item \textbf{Before official publication (D15).} NOTE FOR OFFICIAL PUBLICATION: rerun with
     DROP\_HOLIDAY\_SESSIONS on (all models) before the final version. This draft keeps the NYSE-holiday futures
     sessions in the estimation sample and discloses them (two sentences and the linear $2 \times 2$ as robustness).
