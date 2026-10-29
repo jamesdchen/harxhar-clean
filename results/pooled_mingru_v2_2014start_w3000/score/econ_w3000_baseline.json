@@ -1,0 +1,46 @@
+{
+ "arm": "w3000_baseline",
+ "strategy": "16:00 sign strategy: q = +1 if plain16 > iv_var else -1 (ties short), 0DTE ATM straddle 15:30 to close",
+ "sharpe": "D19 paper ratio: sqrt(q) mean / sd (ddof 1), q = T / sum_y c_y, 614 post-warmup days",
+ "test": "Ledoit-Wolf (2008) studentized circular block bootstrap, block 10, 4,999 resamples (hac_inference)",
+ "gates": {
+  "ols_har_vs_short_mid": {
+   "max_abs_diff": 3.3706607815986445e-07,
+   "ours": [
+    0.95404827989337,
+    0.32194333706607814,
+    0.35,
+    0.31446289257851573
+   ],
+   "paper": [
+    0.954048,
+    0.321943,
+    0.35,
+    0.314463
+   ]
+  },
+  "ols_har_vs_short_x": {
+   "max_abs_diff": 2.7328142859772697e-07,
+   "ours": [
+    0.6019487267185714,
+    -0.03204098700794292,
+    0.345,
+    0.3052610522104421
+   ],
+   "paper": [
+    0.601949,
+    -0.032041,
+    0.345,
+    0.305261
+   ]
+  },
+  "short_sr_vs_macro_rheShortSh_0.32_rheShortShX_-0.03": [
+   0.32,
+   -0.03
+  ]
+ },
+ "files": {
+  "econ_w3000_baseline.csv": "893cf6b88c968cb694ffa9c57bb878bb",
+  "econ_daily_w3000_baseline.parquet": "bceef9924d7a579c465e3df4fa27e089"
+ }
+}

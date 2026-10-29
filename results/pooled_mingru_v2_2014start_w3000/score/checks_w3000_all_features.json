@@ -1,0 +1,247 @@
+{
+ "label": "PRE-FOMC-FIX PREVIEW",
+ "arm": "w3000_all_features",
+ "set": "all_features",
+ "window_days": 3000,
+ "gputype": "P100",
+ "fail": [],
+ "merge": {
+  "want": 169850,
+  "have": 169850,
+  "missing": 0,
+  "span": [
+   "2014-01-02 10:00:00",
+   "2024-04-30 16:00:00"
+  ],
+  "n_runs": 57
+ },
+ "refits": {
+  "job_lines_read": 330851,
+  "unique_ids": 169850,
+  "ids_with_ok": 169850,
+  "non_ok_lines": 0,
+  "non_ok_status_counts": {},
+  "ids_never_ok": 0,
+  "ids_with_duplicate_copies": 160289,
+  "duplicate_copies_max_abs_diff": 0.0
+ },
+ "forecasts": {
+  "n_bars": 33970,
+  "n_seeds": 5,
+  "seeds": [
+   20261012,
+   20261013,
+   20261014,
+   20261015,
+   20261016
+  ],
+  "first": "2014-01-02 10:00:00",
+  "last": "2024-04-30 16:00:00",
+  "seed_f_finite_positive": true,
+  "pred_adj_min": 0.22581079,
+  "pred_adj_max": 6.518080616000001,
+  "seed_cv_median": 0.011608193526067578,
+  "seed_cv_p99": 0.0471060635141246
+ },
+ "design": {
+  "dates_equal_pmf_rows": true,
+  "dates_equal_table1_trees_33970": true,
+  "dates_equal_table1_linear_33970": true,
+  "B_max_rel_diff_vs_table1_lgbm": 9.504619313815965e-13,
+  "B_bit_equal_table1_lgbm": false,
+  "B_max_rel_diff_vs_table1_linear": 9.504619313815965e-13,
+  "true_adj_max_abs_diff_vs_table1_lgbm": 8.881784197001252e-16,
+  "rv_actual_equal_table1_lgbm": true
+ },
+ "scored_set": {
+  "n_bars": 33527,
+  "n_days": 2579,
+  "n_event_days": 81,
+  "n_ordinary_days": 2498,
+  "equals_table1_scored_set": true,
+  "B_bit_equal_table1_on_scored_bars": false,
+  "event_days_md5": "910dc9e145a1aa187b306a1847564e57",
+  "event_days": [
+   "2014-01-29",
+   "2014-03-19",
+   "2014-04-30",
+   "2014-06-18",
+   "2014-07-30",
+   "2014-09-17",
+   "2014-10-29",
+   "2014-12-17",
+   "2015-01-28",
+   "2015-03-18",
+   "2015-04-29",
+   "2015-06-17",
+   "2015-07-29",
+   "2015-09-17",
+   "2015-10-28",
+   "2015-12-16",
+   "2016-01-27",
+   "2016-03-16",
+   "2016-04-27",
+   "2016-06-15",
+   "2016-07-27",
+   "2016-09-21",
+   "2016-11-02",
+   "2016-12-14",
+   "2017-02-01",
+   "2017-03-15",
+   "2017-05-03",
+   "2017-06-14",
+   "2017-07-26",
+   "2017-09-20",
+   "2017-11-01",
+   "2017-12-13",
+   "2018-01-31",
+   "2018-03-21",
+   "2018-05-02",
+   "2018-06-13",
+   "2018-08-01",
+   "2018-09-26",
+   "2018-11-08",
+   "2018-12-19",
+   "2019-01-30",
+   "2019-03-20",
+   "2019-05-01",
+   "2019-06-19",
+   "2019-07-31",
+   "2019-09-18",
+   "2019-10-30",
+   "2019-12-11",
+   "2020-01-29",
+   "2020-04-29",
+   "2020-06-10",
+   "2020-07-29",
+   "2020-09-16",
+   "2020-11-05",
+   "2020-12-16",
+   "2021-01-27",
+   "2021-03-17",
+   "2021-04-28",
+   "2021-06-16",
+   "2021-07-28",
+   "2021-09-22",
+   "2021-11-03",
+   "2021-12-15",
+   "2022-01-26",
+   "2022-03-16",
+   "2022-05-04",
+   "2022-06-15",
+   "2022-07-27",
+   "2022-09-21",
+   "2022-11-02",
+   "2022-12-14",
+   "2023-02-01",
+   "2023-03-22",
+   "2023-05-03",
+   "2023-06-14",
+   "2023-07-26",
+   "2023-09-20",
+   "2023-11-01",
+   "2023-12-13",
+   "2024-01-31",
+   "2024-03-20"
+  ]
+ },
+ "scorer_gates": {
+  "t1_ridge_all_features": {
+   "qlike": 4.682248820327151e-16,
+   "mse": 0.0,
+   "qlike_1600_2020": 0.0
+  },
+  "channels_ridge_all_features_event": {
+   "qlike": 0.0,
+   "mse": 0.0,
+   "n_bars": true
+  },
+  "channels_ridge_all_features_ord": {
+   "qlike": 1.7188863689068873e-16,
+   "mse": 0.0,
+   "n_bars": true
+  },
+  "channels_ridge_all_features_event_pm": {
+   "qlike": 0.0
+  },
+  "t1_ols_baseline": {
+   "qlike": 4.399382878030181e-16,
+   "mse": 1.1623505161214636e-16,
+   "qlike_1600_2020": 3.66282373322122e-16
+  },
+  "channels_ols_baseline_event": {
+   "qlike": 0.0,
+   "mse": 0.0,
+   "n_bars": true
+  },
+  "channels_ols_baseline_ord": {
+   "qlike": 0.0,
+   "mse": 1.225692348518772e-16,
+   "n_bars": true
+  },
+  "t1_lgbm_all_features": {
+   "qlike": 3.4466522623098654e-16,
+   "mse": 1.8229596833571528e-16,
+   "qlike_1600_2020": 3.8329042722780456e-16
+  },
+  "channels_lgbm_all_features_event": {
+   "qlike": 1.71750647306194e-16,
+   "mse": 0.0,
+   "n_bars": true
+  },
+  "channels_lgbm_all_features_ord": {
+   "qlike": 0.0,
+   "mse": 0.0,
+   "n_bars": true
+  },
+  "channels_lgbm_all_features_event_pm": {
+   "qlike": 1.440443997785297e-16
+  }
+ },
+ "outputs": {
+  "scores_w3000_all_features.csv": {
+   "md5": "90535704429c25e894a37157a20fd153",
+   "bytes": 1300
+  },
+  "daily_w3000_all_features.parquet": {
+   "md5": "a4c27b64c7f61d45b5f2f9cba04ca321",
+   "bytes": 150496
+  },
+  "forecasts_w3000_all_features.parquet": {
+   "md5": "145663e1efd3dd374e1e73e06fbd917c",
+   "bytes": 1702245
+  },
+  "econ_w3000_all_features.csv": {
+   "md5": "1cfb3c2aa41ad14c074835fd11330dfb",
+   "bytes": 1015
+  },
+  "econ_daily_w3000_all_features.parquet": {
+   "md5": "e11c7e79d73995015852f62f9a1646c6",
+   "bytes": 65211
+  }
+ },
+ "merge_outputs_tmp": {
+  "forecasts_all_features.parquet": "e6c3f300cf4660b974a4a21e443d9a82",
+  "forecasts_seeds_all_features.parquet": "6038487176e23326b2bc13a5de116e16",
+  "merge_all_features.json": "63d4dd9a320f04abcc6005b5468c9b64"
+ },
+ "forecasts_columns": [
+  "date",
+  "pred_adj",
+  "plain",
+  "B",
+  "true_adj"
+ ],
+ "pass": true,
+ "notes": [
+  "PRE-FOMC-FIX PREVIEW: the walk ran on the pre-FOMC-fix design caches (built 2026-10-22), not the design the paper adopted on 26 Oct.",
+  "walk-merge --gputype P100 on the 57 pulled P100 run dirs (no salvage dirs; the archived A40 pieces are not in runs/). Seed mean of f and plain = f^2 B are walk-merge's (forecasts_all_features.parquet).",
+  "walk-combine NOT run: it only concatenates the two arms of a window (baseline + all_features) and asserts both exist; with one arm a worker it is the comparison worker's step. The seed averaging it would carry is already in walk-merge.",
+  "B: the arm's B is pmf_rows.csv's (the design rows); vs Table 1's B (LightGBM / linear forecasts) max rel diff 9.5e-13 (CSV text round trip), not bit-equal; plain = pred_adj^2 B agrees with pred_adj^2 x Table 1's B to 1e-12 on every scored bar.",
+  "Table 1 metrics.csv qlike_1600 is the 2020-01-03..2024-04-30 check column (1,082 days); span '1600' here is every scored day (2,579), span '1600_2020' the 1,082-day one (gated).",
+  "Scorer gates: Table 1 ridge full / OLS-HAR / LightGBM full every-bar QLIKE and MSE and qlike_1600 (1e-12), channels_2026-10-26 EVENT / ORDINARY QLIKE and MSE and EVENT 14:30-16:00 QLIKE (1e-12): all pass.",
+  "Econ gate: the same code on Table 1's ridge full set reproduces writeup/generated/sharpe_tests_d19_economics.csv (poolpt13_ridge_all_features vs always_short, mid: SR, d, LW p, boot p, D6) to the CSV's 6 decimals; always-short bid/ask SR -0.032 = macro rheShortShX -0.03."
+ ],
+ "econ_gate_pass": true,
+ "written": "2026-10-28T19:28:16"
+}

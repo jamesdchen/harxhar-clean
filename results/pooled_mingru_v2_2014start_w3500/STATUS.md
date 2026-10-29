@@ -119,3 +119,12 @@ the old run (read-only): `/home1/jc_905/pmf35/data` (design copies, fold-3 ridge
 - 2026-10-26 23:59 PDT: W 3,500 top-up (nice 100): full 13481127 / 29 (003.p01-p02: all 12 full W 3,500 pieces now submitted), HAR 13481128 / 30-34 (005.p02-006.p02). gpu 99 (29 running P100, 70 pending). No FAILED since 22:50.
 - 2026-10-27 00:40 PDT: last 7 HAR W 3,500 pieces 13481741-47 (006.p03-007.p04, nice 100): every W 3,500 piece is now
   submitted. Refits done: HAR 63,695 / 169,850 (none of its jobs ran since the W 3,000 queue refilled), full 0.
+- 2026-10-28 19:46 PDT: SCORED (comparison worker; CPU only; nothing in the paper). All four arms merged, seed-averaged
+  and scored by their workers (checks pass). walk-combine was run here, and score/ holds the arms' files and the
+  comparison (score/SUMMARY.md; experiments/pooled_mingru_v2_compare.py, 713 gates, 0 failed). The HAR set is FINAL;
+  every full-set number is a PRE-FOMC-FIX PREVIEW. Full vs HAR [PREVIEW]:
+  - every bar -10.25 % (DM -10.82); 16:00 -5.90 % (p 0.002), 2020-24 -2.39 % (p 0.54);
+  - ORDINARY -6.41 % (DM -8.46); EVENT -37.38 % (DM -7.93);
+  - the statement afternoons carry 46.2 % of the gain;
+  - D19 Sharpe full 1.449 vs HAR 0.882 (LW p 0.27); vs short straddle 0.322: p 0.109.
+  HAR every bar 0.18000 (OLS-HAR 0.18967).

@@ -1,0 +1,11 @@
+PRE-FOMC-FIX PREVIEW -- w3500_all_features (MinGRU v2, full set, W 3,500, P100) finished 2026-10-28 19:28 PDT
+checks: PASS (checks_w3500_all_features.json, fail = [])
+58fec6dc893cfe3425ff395d12ce2650 *checks_w3500_all_features.json
+f2a346e4914743baa448b18273cbe2a3 *forecasts_w3500_all_features.parquet
+369863dce16998a3e708c68233b15d07 *scores_w3500_all_features.csv
+48c838448f25dea668cec44c81472f04 *daily_w3500_all_features.parquet
+d567360bfc0d496d81a7ee841c87292c *econ_w3500_all_features.csv
+2b1b2546297d3e888b0b890a4914147c *econ_daily_w3500_all_features.parquet
+632bd125bac41e6869256f8038625d4a *walk_merge/forecasts_all_features.parquet
+6861a4b2669ae0faafabf1db00918fdf *walk_merge/forecasts_seeds_all_features.parquet
+5fc9b86ff734065c65b61906945cff52 *walk_merge/merge_all_features.json

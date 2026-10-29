@@ -1,0 +1,13 @@
+arm w3500_baseline DONE 2026-10-29 02:29:38 UTC
+checks pass: true; walk-merge ok (169,850 refits, 0 missing); walk-combine not run (two-arm step, needs w3500_all_features)
+md5:
+76a04aef776af381e10d8508404e76f3 *./checks_w3500_baseline.json
+57edbedb4fb46a16447901aeb82d4be6 *./daily_w3500_baseline.parquet
+a24d21ad9df7ea1dd7a443a29988ff5b *./econ_w3500_baseline.csv
+324383d0862563729d2faa985265aad8 *./econ_w3500_baseline_daily.parquet
+245850488a8ff37b008f6f4d75c18418 *./forecasts_w3500_baseline.parquet
+8c90e92adf3949d918c5bae5624512eb *./merge/forecasts_baseline.parquet
+3e14c630b1679f5a982a3ec1188ff401 *./merge/forecasts_seeds_baseline.parquet
+eb9c18bf4543671aa7ca63a0246b5926 *./merge/merge_baseline.json
+77b1c50a8d82582bb12907e2be23e9a1 *./scores_meta_w3500_baseline.json
+057c9932893f7ee117f470bb9a6c026d *./scores_w3500_baseline.csv

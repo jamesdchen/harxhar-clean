@@ -1,0 +1,19 @@
+{
+ "arm": "w3000_baseline",
+ "status": "DONE",
+ "pass_": true,
+ "fail": [],
+ "utc": "2026-10-29 02:38:12",
+ "files": {
+  "checks_w3000_baseline.json": "5fa01fec885210393f18761ce4911513",
+  "daily_w3000_baseline.parquet": "462c739d82957d186ca9d226b0d016c2",
+  "econ_daily_w3000_baseline.parquet": "bceef9924d7a579c465e3df4fa27e089",
+  "econ_w3000_baseline.csv": "893cf6b88c968cb694ffa9c57bb878bb",
+  "econ_w3000_baseline.json": "2c63e27d8b415a67b5d0abff425b44b5",
+  "forecasts_w3000_baseline.parquet": "3c7aad028b033009d077365d82897684",
+  "merge/forecasts_baseline.parquet": "6effb2a8df7492240bd877ea73b2e744",
+  "merge/forecasts_seeds_baseline.parquet": "b94e133db001215993a090251bfcb191",
+  "merge/merge_baseline.json": "959d543cdd8811e176a0de8900fc2b5f",
+  "scores_w3000_baseline.csv": "37ea92a9dd67f62ea71df0cc64cbaf61"
+ }
+}

@@ -1,0 +1,146 @@
+{
+ "gates": {
+  "scored_set": {
+   "n_bars": 33527,
+   "n_days": 2579,
+   "n_1600": 2579
+  },
+  "event_days": {
+   "n": 81,
+   "statement_stamps": [
+    "14:30"
+   ],
+   "equal_channels_item2": true
+  },
+  "span_bars": {
+   "all": 33527,
+   "1600": 2579,
+   "ordinary": 32474,
+   "event": 1053,
+   "event_pm_1430_1600": 324
+  },
+  "table1_w3000_ols_baseline": 2.3247010322429273e-16,
+  "table1_w3000_ridge_baseline": 1.1623505104535451e-16,
+  "robust_w3500_ols_baseline": 8.326672684688674e-17,
+  "robust_w3500_ridge_baseline": 2.7755575615628914e-17,
+  "short_sr_mid": 0.321943,
+  "short_sr_x": -0.032041,
+  "robust_w3500_ridge_baseline_sr": 2.220446049250313e-16
+ },
+ "reference_w3500_har_rows": [
+  {
+   "model": "ols_har_w3500",
+   "span": "all",
+   "n_bars": 33527,
+   "n_days": 2579,
+   "qlike": 0.18966645995794057,
+   "mse": 1.1156961426898587e-10,
+   "mse_e10": 1.1156961426898586,
+   "qlike_daily_mean": 0.1896664599579406
+  },
+  {
+   "model": "ols_har_w3500",
+   "span": "1600",
+   "n_bars": 2579,
+   "n_days": 2579,
+   "qlike": 0.12723098540089275,
+   "mse": 1.9852958374511513e-10,
+   "mse_e10": 1.9852958374511513,
+   "qlike_daily_mean": 0.12723098540089275
+  },
+  {
+   "model": "ols_har_w3500",
+   "span": "ordinary",
+   "n_bars": 32474,
+   "n_days": 2498,
+   "qlike": 0.16697661391910826,
+   "mse": 1.0580532990845493e-10,
+   "mse_e10": 1.0580532990845493,
+   "qlike_daily_mean": 0.16697661391910826
+  },
+  {
+   "model": "ols_har_w3500",
+   "span": "event",
+   "n_bars": 1053,
+   "n_days": 81,
+   "qlike": 0.889410106933288,
+   "mse": 2.89337297387582e-10,
+   "mse_e10": 2.89337297387582,
+   "qlike_daily_mean": 0.8894101069332879
+  },
+  {
+   "model": "ols_har_w3500",
+   "span": "event_pm_1430_1600",
+   "n_bars": 324,
+   "n_days": 81,
+   "qlike": 2.5816581224801687,
+   "mse": 9.288392462776378e-10,
+   "mse_e10": 9.288392462776377,
+   "qlike_daily_mean": 2.5816581224801687
+  },
+  {
+   "model": "ridge_har_w3500",
+   "span": "all",
+   "n_bars": 33527,
+   "n_days": 2579,
+   "qlike": 0.1896664605827878,
+   "mse": 1.1156961475925384e-10,
+   "mse_e10": 1.1156961475925384,
+   "qlike_daily_mean": 0.1896664605827878
+  },
+  {
+   "model": "ridge_har_w3500",
+   "span": "1600",
+   "n_bars": 2579,
+   "n_days": 2579,
+   "qlike": 0.12723098509718603,
+   "mse": 1.9852958466369514e-10,
+   "mse_e10": 1.9852958466369515,
+   "qlike_daily_mean": 0.12723098509718603
+  },
+  {
+   "model": "ridge_har_w3500",
+   "span": "ordinary",
+   "n_bars": 32474,
+   "n_days": 2498,
+   "qlike": 0.16697661439085174,
+   "mse": 1.0580533036696861e-10,
+   "mse_e10": 1.0580533036696862,
+   "qlike_daily_mean": 0.16697661439085174
+  },
+  {
+   "model": "ridge_har_w3500",
+   "span": "event",
+   "n_bars": 1053,
+   "n_days": 81,
+   "qlike": 0.8894101122797796,
+   "mse": 2.89337298857136e-10,
+   "mse_e10": 2.89337298857136,
+   "qlike_daily_mean": 0.8894101122797795
+  },
+  {
+   "model": "ridge_har_w3500",
+   "span": "event_pm_1430_1600",
+   "n_bars": 324,
+   "n_days": 81,
+   "qlike": 2.5816581384995065,
+   "mse": 9.288392510305333e-10,
+   "mse_e10": 9.288392510305332,
+   "qlike_daily_mean": 2.581658138499507
+  }
+ ],
+ "inputs": {
+  "table1_linear": "results\\window_sweep_2014start_fomcfix\\w3000\\forecasts.parquet",
+  "linear_w3500": "results\\window_sweep_2014start_2026-10-22\\w3500\\forecasts.parquet",
+  "core_stats_md5": "e2779c24fa13c11857185e07bdf2548e"
+ },
+ "daily_parquet_layout": "long: date, span (all | 1600 | ordinary | event | event_pm_1430_1600), qlike = the day's mean QLIKE over the span's bars, se = the day's mean squared error, n_bars, event (FOMC statement day)",
+ "outputs": {
+  "scores_w3500_baseline.csv": "057c9932893f7ee117f470bb9a6c026d",
+  "daily_w3500_baseline.parquet": "57edbedb4fb46a16447901aeb82d4be6",
+  "econ_w3500_baseline.csv": "a24d21ad9df7ea1dd7a443a29988ff5b",
+  "econ_w3500_baseline_daily.parquet": "324383d0862563729d2faa985265aad8"
+ },
+ "code_md5": "f0983d8937ad1c56b30fb5ced32db819",
+ "seconds": 16.2
+}

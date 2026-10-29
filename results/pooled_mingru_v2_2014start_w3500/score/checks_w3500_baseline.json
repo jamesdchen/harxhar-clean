@@ -1,0 +1,182 @@
+{
+ "arm": "w3500_baseline",
+ "set": "baseline",
+ "window_days": 3500,
+ "window_rows": 45500,
+ "manifest": {
+  "file": "C:\\Users\\james\\AppData\\Local\\Temp\\claude\\C--Users-james-CC-Allowed-harxhar-0dte-professor\\bd4224e0-12aa-4614-b6a6-3fe50535ade1\\scratchpad\\mgv2\\manifest\\w3500_baseline.md5",
+  "n_files": 274,
+  "mismatched_or_missing": [],
+  "n_bad": 0
+ },
+ "merge": {
+  "set": "baseline",
+  "window_days": 3500,
+  "gputype": "P100",
+  "want": 169850,
+  "have": 169850,
+  "missing": 0,
+  "span": [
+   "2014-01-02 10:00:00",
+   "2024-04-30 16:00:00"
+  ],
+  "runs": [
+   "v2w_baseline_000_d00_13382912",
+   "v2w_baseline_000_d00r_13385642",
+   "v2w_baseline_000_d01_13382913",
+   "v2w_baseline_000_d01r_13385643",
+   "v2w_baseline_000_d02_13382914",
+   "v2w_baseline_000_d02r_13385644",
+   "v2w_baseline_000_d03_13382915",
+   "v2w_baseline_000_d03r_13385645",
+   "v2w_baseline_000_d04_13385626",
+   "v2w_baseline_000_p00_13385627",
+   "v2w_baseline_000_p01_13385628",
+   "v2w_baseline_000_p02_13385629",
+   "v2w_baseline_000_p03_13385630",
+   "v2w_baseline_000_p04_13385631",
+   "v2w_baseline_001_p00_13385632",
+   "v2w_baseline_001_p01_13385633",
+   "v2w_baseline_001_p02_13385634",
+   "v2w_baseline_001_p03_13385635",
+   "v2w_baseline_001_p04_13385636",
+   "v2w_baseline_002_p00_13385637",
+   "v2w_baseline_002_p01_13385638",
+   "v2w_baseline_002_p02_13385639",
+   "v2w_baseline_002_p03_13385640",
+   "v2w_baseline_002_p04_13385641",
+   "v2w_baseline_003_p00_13471944",
+   "v2w_baseline_003_p01_13471945",
+   "v2w_baseline_003_p02_13473344",
+   "v2w_baseline_003_p03_13474336",
+   "v2w_baseline_003_p04_13474338",
+   "v2w_baseline_004_p00_13478019",
+   "v2w_baseline_004_p01_13478021",
+   "v2w_baseline_004_p02_13478023",
+   "v2w_baseline_004_p03_13478603",
+   "v2w_baseline_004_p04_13478605",
+   "v2w_baseline_005_p00_13478607",
+   "v2w_baseline_005_p01_13478609",
+   "v2w_baseline_005_p02_13481128",
+   "v2w_baseline_005_p03_13481130",
+   "v2w_baseline_005_p04_13481131",
+   "v2w_baseline_006_p00_13481132",
+   "v2w_baseline_006_p01_13481133",
+   "v2w_baseline_006_p02_13481134",
+   "v2w_baseline_006_p03_13481741",
+   "v2w_baseline_006_p04_13481742",
+   "v2w_baseline_007_p00_13481743",
+   "v2w_baseline_007_p01_13481744",
+   "v2w_baseline_007_p02_13481745",
+   "v2w_baseline_007_p03_13481746",
+   "v2w_baseline_007_p04_13481747"
+  ],
+  "n_sources": 90
+ },
+ "jobs_rows_read": 336452,
+ "status_counts_all_rows": {
+  "ok": 336452
+ },
+ "unique_ok_ids": 169850,
+ "ids_never_ok": 0,
+ "gputypes": [
+  "P100"
+ ],
+ "refit_params": {
+  "forecast_row_eq_origin": true,
+  "w1_eq_origin": true,
+  "w0_eq_origin_minus_W": true,
+  "epochs_run": [
+   40.0
+  ],
+  "H": [
+   256.0
+  ],
+  "L": [
+   8.0
+  ],
+  "lr": [
+   0.003
+  ],
+  "wd": [
+   0.137023836
+  ],
+  "wd_enc": [
+   0.0
+  ],
+  "nonfinite": [
+   0.0
+  ],
+  "n_inputs": [
+   12.0
+  ],
+  "seeds": [
+   20261012,
+   20261013,
+   20261014,
+   20261015,
+   20261016
+  ],
+  "origins": [
+   50777,
+   84746,
+   33970
+  ],
+  "f_finite_positive": true
+ },
+ "duplicate_ok_copies": {
+  "n_ids": 166602,
+  "n_rows": 333204,
+  "max_abs_diff": 0.0,
+  "n_ids_differing": 0
+ },
+ "forecasts": {
+  "n_bars": 33970,
+  "n_days": 2643,
+  "span": [
+   "2014-01-02 10:00:00",
+   "2024-04-30 16:00:00"
+  ],
+  "finite": true,
+  "positive_pred_plain_B": true,
+  "plain_eq_f2B_maxrel": 0.0,
+  "rv_actual_finite": 33970,
+  "f_seed_sd_mean": 0.012214459942797306,
+  "f_seed_sd_rel_mean": 0.01182031855185878,
+  "seed_pairwise_corr_min": 0.9966481002150137
+ },
+ "design": {
+  "table1_w3000_fomcfix": {
+   "file": "results\\window_sweep_2014start_fomcfix\\w3000\\forecasts.parquet",
+   "md5": "ecee9323783730ba66b5f29413cab42f",
+   "n_bars_from_2014_01_02": 33970,
+   "dates_equal": true,
+   "B_max_rel_diff": 9.504619313815965e-13,
+   "B_bit_equal": false,
+   "true_adj_max_abs_diff": 0.0,
+   "rv_actual_equal": true
+  },
+  "linear_w3500": {
+   "file": "results\\window_sweep_2014start_2026-10-22\\w3500\\forecasts.parquet",
+   "md5": "97bd8949fef72af0159c6b7116081e7a",
+   "n_bars_from_2014_01_02": 33970,
+   "dates_equal": true,
+   "B_max_rel_diff": 9.504619313815965e-13,
+   "B_bit_equal": false,
+   "true_adj_max_abs_diff": 0.0,
+   "rv_actual_equal": true
+  }
+ },
+ "outputs": {
+  "forecasts_w3500_baseline.parquet": "245850488a8ff37b008f6f4d75c18418",
+  "merge/forecasts_baseline.parquet": "8c90e92adf3949d918c5bae5624512eb",
+  "merge/forecasts_seeds_baseline.parquet": "3e14c630b1679f5a982a3ec1188ff401",
+  "merge/merge_baseline.json": "eb9c18bf4543671aa7ca63a0246b5926"
+ },
+ "code": {
+  "pooled_mingru_v2.py": "1a78d41ac4f4bbd0de62b7708c760358",
+  "check_arm.py": "be4fef965379feca23a6b442e72fd74e"
+ },
+ "fails": [],
+ "pass": true
+}

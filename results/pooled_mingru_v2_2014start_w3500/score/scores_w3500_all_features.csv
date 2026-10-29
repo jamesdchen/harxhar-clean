@@ -1,0 +1,7 @@
+label,arm,model,predictor_set,window_days,gputype,span,n_bars,n_days,qlike,mse,mse_e10,note
+PRE-FOMC-FIX PREVIEW,w3500_all_features,mingru_v2,all_features,3500,P100,every_bar,33527,2579,0.16154297763208336,1.5312218011285218e-10,1.5312218011285217,"Table 1's 33,527 scored bars"
+PRE-FOMC-FIX PREVIEW,w3500_all_features,mingru_v2,all_features,3500,P100,bar_1600,2579,2579,0.11326854724436443,2.1061574450431648e-10,2.1061574450431646,"the 16:00 bar (15:30 forecast of the closing half hour), 2,579 days"
+PRE-FOMC-FIX PREVIEW,w3500_all_features,mingru_v2,all_features,3500,P100,ordinary_days,32474,2498,0.15232528782193094,1.5042702711629977e-10,1.5042702711629978,"every bar of the 2,498 ORDINARY days"
+PRE-FOMC-FIX PREVIEW,w3500_all_features,mingru_v2,all_features,3500,P100,event_days,1053,81,0.44581197943159845,2.362393675867777e-10,2.362393675867777,every bar of the 81 scheduled FOMC statement days
+PRE-FOMC-FIX PREVIEW,w3500_all_features,mingru_v2,all_features,3500,P100,event_1430_1600,324,81,1.1253823467924713,7.541079979422397e-10,7.541079979422397,"statement days, bars ending 14:30, 15:00, 15:30, 16:00"
+PRE-FOMC-FIX PREVIEW,w3500_all_features,mingru_v2,all_features,3500,P100,bar_1600_2020_2024,1082,1082,0.10644327806196605,4.6359609613327017e-10,4.635960961332701,"16:00 bar, 2020-01-03 .. 2024-04-30 (Table 1's qlike_1600 convention; extra)"

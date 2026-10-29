@@ -1,0 +1,8 @@
+PRE-FOMC-FIX PREVIEW
+arm w3000_all_features: done 2026-10-28T19:28:16; checks pass=True fail=[]
+50d6328394d488b414669e22440e2c53  checks_w3000_all_features.json  6864
+a4c27b64c7f61d45b5f2f9cba04ca321  daily_w3000_all_features.parquet  150496
+e11c7e79d73995015852f62f9a1646c6  econ_daily_w3000_all_features.parquet  65211
+1cfb3c2aa41ad14c074835fd11330dfb  econ_w3000_all_features.csv  1015
+145663e1efd3dd374e1e73e06fbd917c  forecasts_w3000_all_features.parquet  1702245
+90535704429c25e894a37157a20fd153  scores_w3000_all_features.csv  1300

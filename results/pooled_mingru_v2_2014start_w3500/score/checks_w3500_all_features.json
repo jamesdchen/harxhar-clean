@@ -1,0 +1,293 @@
+{
+ "label": "PRE-FOMC-FIX PREVIEW",
+ "arm": "w3500_all_features",
+ "set": "all_features",
+ "window_days": 3500,
+ "gputype": "P100",
+ "fail": [],
+ "items": {
+  "every run env.txt: GPUTYPE and GPU name": {
+   "ok": true,
+   "value": "12 runs, Tesla P100-PCIE-16GB, 580.159.04, 16384 MiB; XDATA=/home1/jc_905/pmf35/data CONC=24 WD=3500 GPUTYPE=P100"
+  },
+  "no job row with status != ok (refit copies; partial copies without their torn last line)": {
+   "ok": true,
+   "value": 0
+  },
+  "refit copies: every bar x seed exactly once": {
+   "ok": true,
+   "value": {
+    "rows": 169850,
+    "unique": 169850,
+    "want": 169850,
+    "missing": 0
+   }
+  },
+  "every refit: the ADDENDUM 2 pick (H, L, lr, E, wd, wd_enc), w0 = o - W, w1 = o, seed, frozen shortcut, nonfinite 0": {
+   "ok": true,
+   "value": {
+    "bad": 0,
+    "H": 64,
+    "L": 8,
+    "lr": 0.003,
+    "wd": 0.045674614,
+    "wd_enc": 3,
+    "E": 40
+   }
+  },
+  "refit preds: one fc row an id": {
+   "ok": true,
+   "value": 169850
+  },
+  "forecast row = origin": {
+   "ok": true
+  },
+  "every refit forecast finite and positive": {
+   "ok": true,
+   "value": {
+    "min": 0.197649822,
+    "max": 6.58375454
+   }
+  },
+  "15-min partial copies = the final refit outputs": {
+   "ok": true,
+   "value": {
+    "overlap": 164790,
+    "differing": 0
+   }
+  },
+  "walk-merge report": {
+   "ok": true,
+   "value": {
+    "want": 169850,
+    "have": 169850,
+    "missing": 0,
+    "gputype": "P100",
+    "span": [
+     "2014-01-02 10:00:00",
+     "2024-04-30 16:00:00"
+    ]
+   }
+  },
+  "33,970 bars x 5 seeds": {
+   "ok": true,
+   "value": {
+    "bars": 33970,
+    "seed_rows": 169850
+   }
+  },
+  "seed file dates = forecast dates": {
+   "ok": true
+  },
+  "seed file = raw refit forecasts (exact)": {
+   "ok": true
+  },
+  "pred_adj = 5-seed mean of f (exact)": {
+   "ok": true
+  },
+  "plain = pred_adj^2 B": {
+   "ok": true,
+   "value": 0.0
+  },
+  "pred_adj, B, plain finite and positive": {
+   "ok": true
+  },
+  "true_adj finite": {
+   "ok": true
+  },
+  "dates = pmf_rows rows 50,777 .. 84,746": {
+   "ok": true,
+   "value": [
+    "2014-01-02 10:00:00",
+    "2024-04-30 16:00:00"
+   ]
+  },
+  "span 2014-01-02 10:00 .. 2024-04-30 16:00": {
+   "ok": true
+  },
+  "bars a day: 2,579 days of 13 (10:00 .. 16:00) + short / holiday sessions (kept in the design, never scored)": {
+   "ok": true,
+   "value": {
+    "days": 2643,
+    "by_count": {
+     "13": 2579,
+     "7": 61,
+     "4": 2,
+     "8": 1
+    }
+   }
+  },
+  "dates = the W 3,500 design's oos rows (pooled trees W 3,500, 33,970 bars)": {
+   "ok": true
+  },
+  "dates = the W 3,500 linear run's rows from 2014-01-02 10:00": {
+   "ok": true
+  },
+  "dates = Table 1's tree rows (33,970)": {
+   "ok": true
+  },
+  "B = Table 1's B (1e-12 relative, all 33,970 bars; pmf_rows.csv is a CSV print of B)": {
+   "ok": true,
+   "value": {
+    "max_rel": 9.504619313815965e-13,
+    "n_bits_differ": 5339
+   }
+  },
+  "B = the W 3,500 pre-patch design's B (1e-12); Table 1's B = the W 3,500 runs' B (exact)": {
+   "ok": true,
+   "value": {
+    "max_rel": 9.504619313815965e-13
+   }
+  },
+  "true_adj = the W 3,500 design's (1e-6)": {
+   "ok": true,
+   "value": 8.881784197001252e-16
+  },
+  "rv_actual = core_stats sumret2": {
+   "ok": true
+  },
+  "channels: 2,579 scored days, 81 EVENT days": {
+   "ok": true,
+   "value": {
+    "days": 2579,
+    "event": 81
+   }
+  },
+  "channels' days = make_rehaul_robust_window.evaluation_days (positive 16:00 print, early closes dropped)": {
+   "ok": true,
+   "value": 2579
+  },
+  "the arm's 13-bar days = the scored days": {
+   "ok": true
+  },
+  "Table 1's scored set: 33,527 bars = 2,579 days x 13": {
+   "ok": true,
+   "value": 33527
+  },
+  "gate: Table 1's every-bar QLIKE and MSE of its 13 rows reproduced (1e-12)": {
+   "ok": true,
+   "value": 13
+  },
+  "span every_bar: 33527 bars": {
+   "ok": true,
+   "value": 33527
+  },
+  "span bar_1600: 2579 bars": {
+   "ok": true,
+   "value": 2579
+  },
+  "span ordinary_days: 32474 bars": {
+   "ok": true,
+   "value": 32474
+  },
+  "span event_days: 1053 bars": {
+   "ok": true,
+   "value": 1053
+  },
+  "span event_1430_1600: 324 bars": {
+   "ok": true,
+   "value": 324
+  },
+  "span bar_1600_2020_2024: 1082 bars": {
+   "ok": true,
+   "value": 1082
+  },
+  "the W 3,500 robustness runs score Table 1's bars": {
+   "ok": true
+  },
+  "gate: robust-window W 3,500 every-bar and 16:00 QLIKE reproduced (1e-12)": {
+   "ok": true,
+   "value": 13
+  },
+  "arm forecasts every scored bar, finite positive": {
+   "ok": true
+  },
+  "daily means average back to the every-bar QLIKE (13 bars a day)": {
+   "ok": true
+  },
+  "866 option days; quote-book R": {
+   "ok": true
+  },
+  "gate: robust-window W 3,500 D19 Sharpe ratios (mid, bid/ask) reproduced (1e-10)": {
+   "ok": true,
+   "value": 12
+  },
+  "gate: robust-window LW test (lgbm W 3,500 full - HAR, mid) reproduced": {
+   "ok": true,
+   "value": {
+    "p": 0.0348,
+    "ref": 0.0348
+   }
+  },
+  "short straddle bid/ask": {
+   "ok": true
+  }
+ },
+ "partial_torn_last_lines": {
+  "n_partial_copies": 12,
+  "n_last_job_line_status_missing": 8,
+  "note": "the 15-min partial copies were taken mid-write; their last line is dropped as walk-merge (walk_read) does; every id comes from a complete refit/ copy (merge_all_features.json sources: partial 0 new)"
+ },
+ "seed_dispersion": {
+  "f_seed_sd_over_mean_median": 0.01219026236557064,
+  "f_seed_sd_over_mean_p99": 0.04690475113696605,
+  "f_seed_sd_over_mean_max": 0.18565698287436583
+ },
+ "true_adj_vs": {
+  "w3500_prepatch_max_abs_diff": 8.881784197001252e-16,
+  "table1_patched_max_abs_diff": 8.881784197001252e-16,
+  "table1_patched_n_differ_1e12": 0,
+  "note": "true_adj is not used by any score (QLIKE / MSE use the bar's RV); the FOMC patch may change the target"
+ },
+ "scores_with_table1_B": {
+  "every_bar": {
+   "qlike_abs_diff": 0.0,
+   "mse_rel_diff": 1.8818280267396403e-13
+  },
+  "bar_1600": {
+   "qlike_abs_diff": 1.3877787807814457e-17,
+   "mse_rel_diff": 1.2811973704174306e-13
+  },
+  "ordinary_days": {
+   "qlike_abs_diff": 0.0,
+   "mse_rel_diff": 1.9728663147589032e-13
+  },
+  "event_days": {
+   "qlike_abs_diff": 0.0,
+   "mse_rel_diff": 0.0
+  },
+  "event_1430_1600": {
+   "qlike_abs_diff": 0.0,
+   "mse_rel_diff": 0.0
+  },
+  "bar_1600_2020_2024": {
+   "qlike_abs_diff": 1.1102230246251565e-16,
+   "mse_rel_diff": 1.3922196728799463e-13
+  }
+ },
+ "pass": true,
+ "md5": {
+  "forecasts_w3500_all_features.parquet": "f2a346e4914743baa448b18273cbe2a3",
+  "scores_w3500_all_features.csv": "369863dce16998a3e708c68233b15d07",
+  "daily_w3500_all_features.parquet": "48c838448f25dea668cec44c81472f04",
+  "econ_w3500_all_features.csv": "d567360bfc0d496d81a7ee841c87292c",
+  "econ_daily_w3500_all_features.parquet": "2b1b2546297d3e888b0b890a4914147c",
+  "forecasts_all_features.parquet": "632bd125bac41e6869256f8038625d4a",
+  "forecasts_seeds_all_features.parquet": "6861a4b2669ae0faafabf1db00918fdf",
+  "merge_all_features.json": "5fc9b86ff734065c65b61906945cff52"
+ },
+ "inputs_md5": {
+  "pmf_rows.csv": "44e236a8a3f604729b6cd8617b949f80",
+  "core_stats.parquet": "e2779c24fa13c11857185e07bdf2548e"
+ },
+ "counts": {
+  "bars": 33970,
+  "seeds": 5,
+  "refits": 169850,
+  "runs": 12,
+  "scored_bars": 33527,
+  "scored_days": 2579,
+  "event_days": 81,
+  "ordinary_days": 2498
+ }
+}

@@ -1,0 +1,220 @@
+{
+ "arm": "w3000_baseline",
+ "set": "baseline",
+ "window_days": 3000,
+ "fail": [],
+ "merge_complete": {
+  "want": 169850,
+  "have": 169850,
+  "missing": 0,
+  "gputype": "P100",
+  "n_runs": 278
+ },
+ "zero_byte_preds_skipped": {
+  "n": 17,
+  "paths": [
+   "runs/v2w_baseline_000_rem10260005_13457679/partial/preds.csv",
+   "runs/v2w_baseline_001_rem10260005_13457680/partial/preds.csv",
+   "runs/v2w_baseline_003_rem10260035_13457951/partial/preds.csv",
+   "runs/v2w_baseline_004_rem10260035_13457952/partial/preds.csv",
+   "runs/v2w_baseline_005_rem10260035_13457953/partial/preds.csv",
+   "runs/v2w_baseline_006_rem10260035_13457954/partial/preds.csv",
+   "runs/v2w_baseline_007_rem10260035_13457955/partial/preds.csv",
+   "runs/v2w_baseline_008_rem10260035_13457956/partial/preds.csv",
+   "runs/v2w_baseline_009_rem10260035_13457957/partial/preds.csv",
+   "runs/v2w_baseline_010_rem10260035_13457958/partial/preds.csv",
+   "runs/v2w_baseline_011_rem10260035_13457959/partial/preds.csv",
+   "runs/v2w_baseline_012_rem10260035_13457960/partial/preds.csv",
+   "runs/v2w_baseline_013_rem10242027_13401259/partial/preds.csv",
+   "runs/v2w_baseline_014_rem10242027_13401260/partial/preds.csv",
+   "runs/v2w_baseline_017_rem10242314_13422010/partial/preds.csv",
+   "salvage/v2w_baseline_013_rem10242027_13401259/refit/preds.csv",
+   "salvage/v2w_baseline_014_rem10242027_13401260/refit/preds.csv"
+  ],
+  "how": "walk-merge (gru2_wt code unchanged) run on a copy of runs/ and salvage/ (tmp/mirror) without these zero-byte files, so its reader skips them (a run sub-dir needs both jobs_out.csv and preds.csv); same result as reading them as empty frames: they hold no forecasts",
+  "eq_PULLED_json_list": true,
+  "mirror_files": 1551
+ },
+ "every_refit_ok": {
+  "run_dirs": 282,
+  "jobs_out_rows_in_walk": 280395,
+  "unique_ok_ids": 169850,
+  "want": 169850,
+  "ok_rows_with_wrong_parameters": {
+   "epochs_run": 0,
+   "H": 0,
+   "L": 0,
+   "lr": 0,
+   "wd": 0,
+   "wd_enc": 0,
+   "w0": 0,
+   "w1": 0,
+   "seed": 0,
+   "mode_refit": 0,
+   "lin1_dec_zero1_lr_lin0_wd_lin0": 0,
+   "nonfinite": 0
+  },
+  "pick": {
+   "H": 256,
+   "L": 8,
+   "lr": 0.003,
+   "wd": 0.196067752,
+   "wd_enc": 0.0,
+   "E": 300
+  },
+  "non_ok_rows": 0,
+  "non_ok_status": {},
+  "non_ok_ids_with_an_ok_copy": 0
+ },
+ "duplicate_copies_identical": {
+  "ids_with_forecast": 169850,
+  "ids_with_several_copies": 105270,
+  "differing": 0,
+  "max_rel_diff": 0.0
+ },
+ "seeds_33970x5_finite_positive": {
+  "shape": [
+   33970,
+   5
+  ],
+  "seeds": [
+   20261012,
+   20261013,
+   20261014,
+   20261015,
+   20261016
+  ],
+  "finite": true,
+  "positive": true,
+  "f_min": 0.285946578,
+  "f_max": 8.12648392
+ },
+ "pred_adj_eq_seed_mean_of_f": true,
+ "forecasts_finite_positive": true,
+ "plain_eq_f2B": 0.0,
+ "dates_unique_sorted": true,
+ "dates_eq_design_oos_rows": {
+  "first": "2014-01-02 10:00:00",
+  "last": "2024-04-30 16:00:00",
+  "n": 33970,
+  "rows": [
+   50777,
+   84746
+  ]
+ },
+ "dates_in_table1": true,
+ "dates_eq_table1_from_2014": true,
+ "B_eq_table1_B": {
+  "max_rel_diff": 9.504619313815965e-13,
+  "exact_equal": false
+ },
+ "true_adj_eq_table1": {
+  "max_rel_diff": 0.0
+ },
+ "rv_actual_eq_table1": true,
+ "evaluation_days_2579": 2579,
+ "scored_set_33527_eq_table1": {
+  "n_bars": 33527,
+  "n_days": 2579,
+  "all_13": true,
+  "eq_table1_scored": true
+ },
+ "event_days_81": {
+  "n": 81,
+  "stamps": [
+   "14:30"
+  ]
+ },
+ "rv_actual_eq_core_sumret2": true,
+ "span_sizes": {
+  "all": 33527,
+  "1600": 2579,
+  "1600_2020": 1082,
+  "ord": 32474,
+  "event": 1053,
+  "event_pm": 324
+ },
+ "gate_table1_linear_rows_reproduced": {
+  "max_rel": {
+   "enet_all_features": 6.661338147750939e-16,
+   "enet_baseline": 2.220446049250313e-16,
+   "lasso_all_features": 2.220446049250313e-16,
+   "lasso_baseline": 2.220446049250313e-16,
+   "ols_baseline": 4.440892098500626e-16,
+   "ridge_all_features": 4.440892098500626e-16,
+   "ridge_baseline": 6.661338147750939e-16
+  }
+ },
+ "daily_days_per_span": {
+  "all": 2579,
+  "1600": 2579,
+  "1600_2020": 1082,
+  "ord": 2498,
+  "event": 81,
+  "event_pm": 81
+ },
+ "seed_sd_of_f": {
+  "mean": 0.012805379616343539,
+  "max": 0.5799293084644287,
+  "mean_rel": 0.011949270253696504
+ },
+ "files": {
+  "forecasts_w3000_baseline.parquet": "3c7aad028b033009d077365d82897684",
+  "scores_w3000_baseline.csv": "37ea92a9dd67f62ea71df0cc64cbaf61",
+  "daily_w3000_baseline.parquet": "462c739d82957d186ca9d226b0d016c2",
+  "forecasts_baseline.parquet": "6effb2a8df7492240bd877ea73b2e744",
+  "forecasts_seeds_baseline.parquet": "b94e133db001215993a090251bfcb191",
+  "merge_baseline.json": "959d543cdd8811e176a0de8900fc2b5f",
+  "econ_w3000_baseline.csv": "893cf6b88c968cb694ffa9c57bb878bb",
+  "econ_daily_w3000_baseline.parquet": "bceef9924d7a579c465e3df4fa27e089",
+  "econ_w3000_baseline.json": "2c63e27d8b415a67b5d0abff425b44b5"
+ },
+ "md5_forecasts": "3c7aad028b033009d077365d82897684",
+ "pass": true,
+ "inputs": {
+  "table1_linear": "C:\\Users\\james\\CC Allowed\\harxhar-0dte-professor\\results\\window_sweep_2014start_fomcfix\\w3000\\forecasts.parquet",
+  "table1_metrics": "C:\\Users\\james\\CC Allowed\\harxhar-0dte-professor\\results\\oos_final_2014start\\table1_w3000\\metrics.csv",
+  "rows": "shared/w3000/pmf_rows.csv",
+  "core_stats": "C:\\Users\\james\\CC Allowed\\harxhar-0dte-professor\\data\\core_stats.parquet",
+  "v2_code": "C:\\Users\\james\\AppData\\Local\\Temp\\gru2_wt\\experiments\\pooled_mingru_v2.py",
+  "v2_code_md5": "1a78d41ac4f4bbd0de62b7708c760358"
+ },
+ "econ_gates": {
+  "ols_har_vs_short_mid": {
+   "max_abs_diff": 3.3706607815986445e-07,
+   "ours": [
+    0.95404827989337,
+    0.32194333706607814,
+    0.35,
+    0.31446289257851573
+   ],
+   "paper": [
+    0.954048,
+    0.321943,
+    0.35,
+    0.314463
+   ]
+  },
+  "ols_har_vs_short_x": {
+   "max_abs_diff": 2.7328142859772697e-07,
+   "ours": [
+    0.6019487267185714,
+    -0.03204098700794292,
+    0.345,
+    0.3052610522104421
+   ],
+   "paper": [
+    0.601949,
+    -0.032041,
+    0.345,
+    0.305261
+   ]
+  },
+  "short_sr_vs_macro_rheShortSh_0.32_rheShortShX_-0.03": [
+   0.32,
+   -0.03
+  ]
+ },
+ "B_note": "pmf_rows.csv B (the design cache b_oos, used by walk-merge for plain = f^2 B) differs from Table 1 linear B (pre-patch and fomcfix alike) in the last bits on 5,339 of 33,970 bars, max rel 9.5e-13; kept as the rule's merge writes it",
+ "walk_combine": "not run here: it concatenates both arms of a window (asserts both sets); the comparison worker's step"
+}
