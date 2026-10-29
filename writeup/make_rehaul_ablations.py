@@ -550,8 +550,9 @@ def beyond_table(q, dq, have: set) -> str:
         " all six groups added, i.e.\\ the full set; Sum: the six rows above added up): negative, the loss falls when"
         " the group is added, i.e.\\ the group adds accuracy; positive, the group hurts.  Panel~B, the full set against"
         " HAR + RM + FOMC plus the group (reference: that set): negative, the full set is more accurate.",
-        "\\item \\textit{Notes:} Requested by the author after the results against HAR + RM + FOMC (Table~\\ref{tab:rh_ablation},"
-        " Panel~D), not part of the pre-specified design.  Base: the HAR benchmark set plus the futures' realized moments"
+        # 2026-10-28 (author): the note's opening "Requested by the author after the results against HAR + RM + FOMC
+        # (Table tab:rh_ablation, Panel D), not part of the pre-specified design." removed.
+        "\\item \\textit{Notes:} Base: the HAR benchmark set plus the futures' realized moments"
         " (RM) and the FOMC calendar (132 columns); each row of Panel~A adds one remaining group to it, Panel~B sets"
         " the full set against that model.  Every model keeps the full set's frozen hyperparameters (FOMC-patched"
         " design); the random forest is not run.  Linear: the range over ridge, lasso and elastic net.  Ordinary days exclude the \\rhabNEventDays{} scheduled FOMC"

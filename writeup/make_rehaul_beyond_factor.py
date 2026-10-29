@@ -144,8 +144,9 @@ def main() -> int:
         r" (L_{\text{base}} - L_{\text{full}})$, the share of the full set's gain over the base that the row recovers:"
         r" 1, all of it; 0, none; below 0, worse than the base.  DM vs full: the row against the full set; positive,"
         r" the full set is more accurate.",
-        r"\item \textit{Notes:} Requested by the author after the results beyond HAR + RM + FOMC"
-        r" (Table~\ref{tab:rh_ablation_beyond}); not part of the pre-specified design.  Base: the HAR benchmark set plus"
+        # 2026-10-28 (author): the note's opening "Requested by the author after the results beyond HAR + RM + FOMC
+        # (Table tab:rh_ablation_beyond); not part of the pre-specified design." removed.
+        r"\item \textit{Notes:} Base: the HAR benchmark set plus"
         r" the futures' realized moments and the FOMC calendar (132 columns).  Each row adds to it the first $k$"
         r" principal components, or partial-least-squares components against the target, of the remaining predictors'"
         r" value averages (the equal- and value-weighted market, liquidity, implied volatility, sentiment and volatility"

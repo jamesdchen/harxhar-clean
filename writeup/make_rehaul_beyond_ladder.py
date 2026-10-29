@@ -165,8 +165,9 @@ def table(res: dict) -> str:
         " (same sign): negative, the loss falls when the series are added, i.e.\\ they add accuracy; positive, they"
         " hurt.  $R = (L_{\\text{base}} - L_k) / (L_{\\text{base}} - L_{\\text{full}})$, the share of the full set's gain"
         " over the base recovered by the top $k$ series: 1, all of it; 0, none; below 0, worse than the base.",
-        "\\item \\textit{Notes:} Requested by the author after the results beyond HAR + RM + FOMC"
-        " (Table~\\ref{tab:rh_ablation_beyond}), not part of the pre-specified design.  Base: the HAR benchmark set plus"
+        # 2026-10-28 (author): the note's opening "Requested by the author after the results beyond HAR + RM + FOMC
+        # (Table tab:rh_ablation_beyond), not part of the pre-specified design." removed.
+        "\\item \\textit{Notes:} Base: the HAR benchmark set plus"
         " the futures' realized moments and the FOMC calendar (132 columns).  Each row adds the top $k$ series of the"
         " six remaining groups, in the model's own ranking from its 2013 pre-sample fit (the ladder of"
         " Section~\\ref{sec:rh_results_predictors}), with all their trailing averages and availability shares; FOMC-patched"
