@@ -1,71 +1,50 @@
-# Voice guide for drafting the paper
+# Voice guide for drafting the paper: catalog index
 
-The drafting guide (stage S0) of `writeup/reports/AI layered paper writing system.md` (§8.2, §8.4). Every agent that writes or
-rewrites paper text, beats, bullets or table notes follows it. It governs agent-written text only: text the author supplied
-in an edit message is protected verbatim and never changed to fit these rules (A4, §4.3.7 "Scope").
+The drafting guide (stage S0) of `writeup/reports/AI layered paper writing system.md` (§8.2, §8.4), kept as a catalog
+of patterns. Each rule is one file under `writeup/style/patterns/<family>/`, written in the Gang-of-Four template
+adapted to prose: intent, also known as, motivation, applicability, structure and rewrite, consequences, detection,
+related patterns, source. This file only indexes them; the pattern files hold the rules.
 
-Each rule gives its source. Rules V1-V5 restate what the report already specifies for S0; later rules are the author's.
+**Entry point.** Agents reach the catalog through the `paper-prose` skill (`.claude/skills/paper-prose/SKILL.md`). It
+sends each writing task (a claim, a number, a caption, a title, an applied edit, an edit-stage pass) to the patterns it
+needs, in order, and ends with a self-check. Read patterns directly only when a coordinator named them.
 
-## V1. Plain declarative sentences
+**Scope.** The catalog governs agent-written text: sections, beats, bullets, captions, table notes, generator note
+strings and wording applied from a deliberation outcome. Text the author supplied in an edit message is protected
+verbatim and never changed to fit these rules (A4, §4.3.7 "Scope"; V13). Text people typed on Overleaf is not
+restyled (V15). The drafting patterns apply before lock; the edit-stage patterns (V12, V16) and the scrub run only on
+layers the author has locked (A2; V14).
 
-Draft the simple version plainly: one claim a sentence, subject and verb early, no polish before the layer is locked (A2,
-§8.4 S0).
+**Ids.** V1–V6 keep the numbers they had in the flat guide of 29 Oct 2026 (commit 2f61ba3), so references in commits,
+deliberation records and the report's S3 row still resolve. V7–V16 were added when the guide became a catalog. AP-V and
+AP-S are the anti-pattern catalogs of scrub stages S2 and S3, with row ids AP-V1… and AP-S1…. An id is never reused.
+When `style/rules/` (§8.2) is built for `scrub.py`, its rules should carry these ids.
 
-## V2. Numbers come from macros
+**Sources and grades.** Every pattern cites the report, the notation guide or the author's dated words. Its basis uses
+the report's grades: D (tested or mandated), T-code and T-genre (transferred), P (prescriptive, no measured effect),
+I (inferred, untested); "author" marks the author's own rule. In rewrite examples numbers appear as macro names, and
+`\rhX…` marks a macro a generator would have to emit.
 
-Every number in the text is a generated macro (`writeup/generated/*.tex`); none is typed (§3, §8.4 S0).
+| Id | Name | Family | Stage | Intent | File |
+|---|---|---|---|---|---|
+| V1 | Plain declarative sentences | sentences | S0 | One plain claim a sentence, subject and verb early | `patterns/sentences/V1-plain-declarative.md` |
+| V2 | Numbers come from macros | numbers | S0; C2 | Every number is a generated macro, never typed | `patterns/numbers/V2-numbers-from-macros.md` |
+| V3 | One name per estimator | numbers | S0 | The notation guide's single name for each estimator, set, sample and test | `patterns/numbers/V3-one-name-per-estimator.md` |
+| V4 | Verdict and magnitude words come from predicates | claims | S0; C5 | Comparison, verdict and magnitude words only where a predicate licenses them | `patterns/claims/V4-verdict-words-from-predicates.md` |
+| V5 | Rule NT: NEEDED? first, then TRUE? | claims | S0; S4b; C18 | Universals, superlatives and boosters only if needed, then only if true | `patterns/claims/V5-rule-nt.md` |
+| V6 | No punchy qualification after the fact | claims | S0; S3 | No clipped verdict tail after a finished clause | `patterns/claims/V6-no-after-the-fact-tails.md` |
+| V7 | Scope and hedges match the evidence | claims | S0; C19 | Findings carry sample, period and test; hedges only on interpretation | `patterns/claims/V7-scope-and-hedges-match-evidence.md` |
+| V8 | Beat labels state a claim | sentences | S0; C8 | A beat label is a claim, not a topic | `patterns/sentences/V8-beat-labels-state-claims.md` |
+| V9 | Conventional section titles | sentences | S0 | Titles are the field's noun phrases, not claims, questions or colons | `patterns/sentences/V9-conventional-titles.md` |
+| V10 | Inanimate subjects do not evaluate | sentences | S0; S4a | No "the results underscore"; state the number | `patterns/sentences/V10-inanimate-subjects-do-not-evaluate.md` |
+| V11 | Take the literature's register, not its sentences | sentences | S0; S5, S6, S8 | Phrase frames and corpus statistics, never copied sentences | `patterns/sentences/V11-register-not-sentences.md` |
+| V12 | Named sentence operations, not style targets | sentences | S7 (locked layers) | One named operation per flagged sentence; stop inside the band | `patterns/sentences/V12-named-sentence-operations.md` |
+| V13 | The author's text is copied verbatim | scope | all | Author-supplied text byte for byte, never restyled (A4) | `patterns/scope/V13-author-text-verbatim.md` |
+| V14 | No polish before lock | scope | all; C25 | No style edit of existing text until its layer is locked (A2) | `patterns/scope/V14-no-polish-before-lock.md` |
+| V15 | Text typed on Overleaf is not restyled | scope | all | Human text pulled from Overleaf is exempt from the scrub (provisional) | `patterns/scope/V15-overleaf-text-not-restyled.md` |
+| V16 | A rewrite preserves content | scope | S8 | Same macros, cites, refs, negations, modals, direction words and agents | `patterns/scope/V16-rewrite-preserves-content.md` |
+| AP-V | Vocabulary markers | anti-patterns | S2 | Hard-flag and density-flag words, with the field whitelist | `patterns/anti-patterns/AP-V-vocabulary-markers.md` |
+| AP-S | Structural markers | anti-patterns | S3 | Em dashes, participial tails, signposting, summary openers and the rest | `patterns/anti-patterns/AP-S-structural-markers.md` |
 
-## V3. One name per estimator
-
-Use the notation guide's single name for each estimator, set and test (`writeup/NOTATION_GUIDE_2026-10-15.md` and its addenda).
-
-## V4. Verdict and magnitude words come from predicates
-
-Comparison and verdict words ("lower", "significant", "concentrated", "redundant") and magnitude words ("substantially",
-"modestly") appear only where a generated predicate or threshold backs them (§3.3, §4.3.7).
-
-## V5. Rule NT: NEEDED? first, then TRUE?
-
-Every universal (all, every, each, any, no, none, always, never), completeness adverb, superlative and booster is kept only
-if it is needed, and then only if a computed fact makes it true. The full rule and its detection are in §4.3.7.
-
-## V6. No punchy qualification after the fact
-
-**Source.** Author, 29 Oct 2026: "add a rule to the style guide about "none significantly" or any punchy qualification
-after the fact".
-
-**Rule.** Do not append a clipped verdict or qualification to the end of a finished clause. A tail of a few words after a
-comma, semicolon, dash or colon that restricts, overturns or grades the claim just made is banned, for example:
-
-- ", none significantly" / ", none of them significant" / ", all significant"
-- ", and none survive" / ", not one" / "; neither does X" / ", if at all"
-- "-- and only barely" / ": none." / ", and it is not close"
-
-If the qualification matters, state it as a claim of its own, inside the sentence's grammar, with its number and test.
-If it does not matter, delete it.
-
-**Why.**
-
-1. It is a cadence device (the catalogued "punch" of §4.3.3). The main clause sets up a reading and the tail overturns or
-   seals it, which is rhetoric rather than reporting.
-2. It hides a universal claim from checking. The tail carries a universal ("none", "all", "not one") or a verdict with no
-   number, test or count behind it, so Rule NT's TRUE? step (V5) has nothing to check. This paper's own case: Section 8
-   said the gradient-boosted trees' removals of the other groups change the ordinary-day loss "by at most
-   \rhchOrdLoOtherTreeMaxAbs\%, none significantly". Under the numbers before ablation addendum J that was false (LightGBM's
-   sentiment removal had p = 0.035), and the tail drew no check. It became true only when the patched rerun moved that
-   p-value to 0.066 (claim check, 29 Oct 2026; `writeup/deliberation/2026-10-29b`).
-
-**Rewrite** (illustrative numbers).
-
-| Instead of | Write |
-|---|---|
-| "... changes the loss by at most 0.5%, none significantly." | "... changes the loss by at most 0.5%. No removal is significant at 5% (smallest p = 0.066)." |
-| "The other groups add little, if at all." | "Each other group lowers the loss by at most 0.3% (Table 4)." |
-| "Three classes beat HAR -- and only barely." | "Three classes beat HAR, by 0.4% to 0.9% (DM p from 0.03 to 0.05)." |
-
-Back the kept universal with a macro (a count of significant tests against the total, or the smallest p), as V4 and V5
-require.
-
-**Detection** (stage S3, structure tier, §8.4). Flag a clause-final tail of at most five words, after `,`, `;`, `:` or a
-dash, that contains a universal or negative quantifier (none, no, not, all, every, only, neither, nor) or a verdict word
-(significant(ly), barely, at all, close). A flag goes to review; it is not rewritten automatically.
+**Not rules yet.** Per-section voice (passive share, "we" by verb class) waits for the corpus bands (§4.3.2; S0; §8.9
+Q7), and phrase frames wait for the corpus (S6; §8.9 Q4). Both enter the catalog only when built and confirmed.
