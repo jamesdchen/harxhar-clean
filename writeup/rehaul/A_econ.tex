@@ -165,7 +165,8 @@
   on the remaining \rheSzDays{} post-warmup days.
 % 2026-10-26 (integration, JFEc; audit results-12): the twelve forecasts count the identical HAR-set linear forecast
 % three times; flagged in the text. The medians and counts over the distinct forecasts need new macros (NUMBERS).
-\item \textbf{Results.} Across the \rhrPoolN{} pooled forecasts, in which the identical HAR-set ridge, lasso and
+\item \textbf{Results.} Across the \rhrPoolN{} forecasts, in which the identical HAR-set ridge, lasso and
+% 2026-10-28 (author: prune "pooled"). Was: "\rhrPoolN{} pooled forecasts, in which".
   elastic-net forecast is counted three times (Table~\ref{tab:rh_econ_main}, note b), the median mid-quote Sharpe
   ratio is \rhrPoolSzSignMed{} under the sign strategy, \rhrPoolSzClipMed{} under the robust clip and
   \rhrPoolSzRankMed{} under the percentile rank. In point estimates the robust clip beats the sign strategy
@@ -193,7 +194,8 @@
 % is requested from NUMBERS). Was: "... against \rhpcAW{} and \rhpcAWX{} for the unconditional short straddle, with
 % maximum drawdowns reaching up to \rhpcDDMaxMid\% and \rhpcDDMaxX\%, respectively (\rhpcADDMid\% and \rhpcADDX\% for
 % the unconditional short straddle; Table~\ref{tab:rh_pooled_shift_compounding});"
-\item \textbf{Results.} Across the \rhpsNfc{} pooled forecasts (the HAR-set linear forecast counted three times),
+\item \textbf{Results.} Across the \rhpsNfc{} forecasts (the HAR-set linear forecast counted three times),
+% 2026-10-28 (author: prune "pooled"). Was: "\rhpsNfc{} pooled forecasts (the HAR-set".
   compounding at $f = \rhappCompF\%$ over the \rhpcNdays{} post-warmup days yields a median terminal value $V$ of
   \rhpcWMedMid{} at mid-quotes (\rhpcWLoMid{} to \rhpcWHiMid) and \rhpcWMedX{} at quoted bid/ask prices (\rhpcWLoX{}
   to \rhpcWHiX), with maximum drawdowns of up to \rhpcDDMaxMid\% and \rhpcDDMaxX\%
@@ -214,7 +216,8 @@
     q_t = \sign\bigl(\hat y_{t,c+j}^{\,2}\, s^2_{t,c} - \mathrm{IV}_t^2\bigr), \qquad j = \rhpsJMin, \dots, \rhpsJMax,
   \]
   ($j < 0$ earlier on day $t$; $j > 0$ on day $t+1$, not known at the 15:30 origin, a placebo).
-\item \textbf{Across offsets.} The median Sharpe ratio across the \rhpsNfc{} pooled forecasts (\rhpsNdays{}
+\item \textbf{Across offsets.} The median Sharpe ratio across the \rhpsNfc{} forecasts (\rhpsNdays{}
+% 2026-10-28 (author: prune "pooled"). Was: "\rhpsNfc{} pooled forecasts (\rhpsNdays{}".
   post-warmup days on which every shifted forecast exists; \rhpsZeroMed{} at $j = 0$) ranges from \rhpsMedLo{} to
   \rhpsMedHi{} across $j$ (a half-range of $\pm\rhpsHalf$), against the $\pm\rhpsNoiseBand$ 95\% sampling band of the
   Sharpe ratio under i.i.d.\ returns (Table~\ref{tab:rh_pooled_shift_compounding}).
@@ -299,7 +302,8 @@
 % T_opt days incl. the warm-up (make_rehaul_economics.py ~3046-3049: ql_p over N_OPT, es_p over iloc[WARMUP:]), and
 % the twelve points hold a three-way tie. Regenerating \rheRankCorrQPool* on the post-warmup days and over the
 % distinct forecasts is requested from NUMBERS.
-\item \textbf{Rank correlations.} Across the \rhrPoolN{} pooled forecasts, the rank correlation of the Sharpe ratio is
+\item \textbf{Rank correlations.} Across the \rhrPoolN{} forecasts, the rank correlation of the Sharpe ratio is
+% 2026-10-28 (author: prune "pooled"). Was: "\rhrPoolN{} pooled forecasts, the rank".
   positive with average QLIKE loss, \rheRankCorrQPool, and negative with $\overline{\mathrm{ES}}_1$, the loss at the
   implied-variance threshold, \rheRankCorrESPool. With the per-year ratio scaled by $\sqrt{N_y}$ and weighted by
   $N_y$ in place of $\SR$, the two correlations are \rheRankCorrQPoolDOne{} and \rheRankCorrESPoolDOne; with the
@@ -325,7 +329,8 @@
   \begin{itemize}
   \item the full predictor set raises the mid-quote Sharpe ratio in \rhrbNDSRFPosMidLong{} of the
     \rhrbNModelsLong{} model classes, \rhrbNDSRFSigMidLong{} of them significantly at the 5\% level;
-  \item no pooled forecast's Sharpe ratio differs significantly between the two windows (\rhrbNSRSigMid{} of
+  \item no forecast's Sharpe ratio differs significantly between the two windows (\rhrbNSRSigMid{} of
+  % 2026-10-28 (author: prune "pooled"). Was: "no pooled forecast's Sharpe ratio".
     \rhrbNArms), and the random forest on the HAR benchmark set moves most, from \rhrbSRRfHarMidMain{} to
     \rhrbSRRfHarMidLong{} (\rhrbPSRRfHarMid).
   \end{itemize}
@@ -339,7 +344,8 @@
 \subsection{Profit decomposition}
 \label{app:rh_econ_decomp}
 \begin{itemize}
-\item \textbf{A short straddle that turns long on a fifth of the days.} The sign strategies of the six pooled
+\item \textbf{A short straddle that turns long on a fifth of the days.} The sign strategies of the six
+% 2026-10-28 (author: prune "pooled"). Was: "of the six pooled".
   forecasts on the full predictor set hold a long straddle on \rhedLongNMin{} to \rhedLongNMax{} of the \rheSzDays{}
   post-warmup days (\rhedLongPctMin--\rhedLongPctMax\%; Table~\ref{tab:rh_econ_longshort}). Because
   \[
@@ -453,7 +459,8 @@
     Kolmogorov--Smirnov $D = \rhedKsD$, 5\% critical value \rhedKsCV).
   \item The full-set forecasts are short on \rhedWorthShortMin--\rhedWorthShortMax{} of these days, on which the short
     straddle keeps its whole premium; these days supply \rhePoolWorthlessShareMed\% of the positive returns of the
-    median pooled forecast (\rhePoolWorthlessShareMin--\rhePoolWorthlessShareMax\% across the \rhrPoolN{} pooled
+    median forecast (\rhePoolWorthlessShareMin--\rhePoolWorthlessShareMax\% across the \rhrPoolN{}
+    % 2026-10-28 (author: prune "pooled"). Was: "median pooled forecast (" and "across the \rhrPoolN{} pooled".
     forecasts).
   \item Monthly SPX expirations are the exception: \rhedWorthOpexN{} of the \rhedOpexN{} expire worthless against
     \rhedWorthOpexExp{} expected ($\rhedWorthOpexZ$ standard deviations), and the squared closing move averages

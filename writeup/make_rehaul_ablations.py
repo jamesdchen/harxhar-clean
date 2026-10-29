@@ -622,7 +622,8 @@ def design_txt() -> str:
 # the stored "add vs full" test), and the DM is row minus reference (src/evaluation/diebold_mariano.dm_test)
 SIGN_KEY = (
     "\\item \\textit{Sign:} each cell is $100\\,(L_{\\text{row}}/L_{\\text{ref}} - 1)$, the percentage change in mean"
-    " QLIKE of the row's pooled intraday forecast against its reference, with the Diebold--Mariano statistic of the"
+    # 2026-10-28 (author: prune "pooled"). Was: " QLIKE of the row's pooled intraday forecast against its reference, ..."
+    " QLIKE of the row's intraday forecast against its reference, with the Diebold--Mariano statistic of the"
     " difference in parentheses (same sign).  Panel~A, a group removed from the full set (reference: the full set):"
     " positive, the loss rises when the group is dropped, i.e.\\ the group adds accuracy; negative, the group hurts."
     "  Panels~B and~C, a group or extension added to the HAR benchmark set (reference: that set): negative, the loss"

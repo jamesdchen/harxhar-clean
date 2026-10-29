@@ -1414,6 +1414,7 @@ def table_corr(C1: pd.DataFrame, agree: dict) -> None:
         if c == "enet":
             rows.append("\\addlinespace[3pt]")
     na_note = " --: not run." if (C1.status == "NA").any() else ""
+    # 2026-10-28 (author: prune "pooled"). Was (notes): "Benchmarks as in Table~\ref{{tab:rh_oos}}: the pooled OLS"
     body = rf"""\begin{{table}}[htbp]
 \centering
 \footnotesize
@@ -1440,7 +1441,7 @@ QLIKE of the column's first forecast (the full set; in (b), the full set without
 the forecast after ``vs''; the Diebold--Mariano statistic of the difference, in parentheses, has the same sign. Negative
 = the full set is more accurate than its reference; positive = less accurate. (a)--(c) set the FOMC calendar aside, so
 there negative = the other predictors add accuracy beyond it; positive = they hurt. HLN correction, daily average loss,
-Newey--West lag \rhchHacLag. Benchmarks as in Table~\ref{{tab:rh_oos}}: the pooled OLS
+Newey--West lag \rhchHacLag. Benchmarks as in Table~\ref{{tab:rh_oos}}: the OLS
 on the HAR set for ridge, lasso and elastic net, each tree's own HAR-set fit. (a) sets the full set against the HAR
 benchmark set plus the FOMC group, (b) the full set without the FOMC group against the HAR benchmark, both on every bar
 of Table~\ref{{tab:rh_oos}}; (c) sets the full set against the HAR benchmark on the \rhchNOrdDays{{}} days that are not
@@ -1545,8 +1546,9 @@ benchmark): negative = the loss falls when the group is added, i.e.\ the group a
 hurts. Right block, the group removed from the full set (reference: the full set): positive = the loss rises when the
 group is dropped, i.e.\ the group adds accuracy; negative = the group hurts. Joint: the full set against the HAR
 benchmark on the same days; negative = the full set is more accurate."""
+    # 2026-10-28 (author: prune "pooled"). Was: "HAR benchmark: the pooled OLS on the HAR set for"
     test = r"""the Diebold--Mariano test rejects equal accuracy
-at 5\% (two-sided; daily average loss, Newey--West lag \rhchHacLag). HAR benchmark: the pooled OLS on the HAR set for
+at 5\% (two-sided; daily average loss, Newey--West lag \rhchHacLag). HAR benchmark: the OLS on the HAR set for
 the linear models, each tree's own HAR-set fit."""
     # 2026-10-28: the forest's FOMC removal was stopped (ablation addendum E (i)), so it is not "run"; was: "for leaving
     # out the realized moments and the FOMC group only" in every case

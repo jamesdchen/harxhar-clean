@@ -50,7 +50,8 @@
 \begin{itemize}
 \item \textbf{Scope.} The models of the main text are estimated on every regular-hours bar and forecast every bar.
   This section collects the models estimated on the closing half hour alone ($\mathcal I = \{c\}$, one observation
-  a trading day): the closing-interval HAR benchmark, rebuilt under the current data chain, and the pooled models of
+  a trading day): the closing-interval HAR benchmark, rebuilt under the current data chain, and the models of
+  % 2026-10-28 (author: prune "pooled"). Was: "and the pooled models of".
   Table~\ref{tab:rh_oos} re-estimated on the closing half hour (the CLOSE sample). It also reports the accuracy of
   the pooled models' closing half hour on both evaluation spans and the multiple-comparison procedures, whose sets
   of the closing half hour include the closing-interval HAR benchmark.
@@ -104,7 +105,8 @@
 % 2026-10-28 (D19, standard pooled Sharpe): was "(bootstrap $p = \rhemPDShCiHarVsShort$)" and "under the bootstrap
 % test".
 \item \textbf{Models trained on the closing half hour (CLOSE).} A pre-registered comparison of training samples
-  (Appendix~\ref{app:rh_robust_train}) re-estimated every pooled model of Table~\ref{tab:rh_oos} on the closing half
+  (Appendix~\ref{app:rh_robust_train}) re-estimated every model of Table~\ref{tab:rh_oos} on the closing half
+  % 2026-10-28 (author: prune "pooled"). Was: "re-estimated every pooled model of".
   hour alone.
   \begin{itemize}
   \item Sample: the 16:00 rows of the main design, over a rolling window of \rhtaRowsCl{} closes, refit at every
@@ -197,7 +199,8 @@
 \label{app:rh_closing_accuracy}
 \begin{itemize}
 \item \textbf{The table.} Table~\ref{tab:rh_close_accuracy} reports the 15:30 forecast of the closing half hour from
-  the pooled models of Table~\ref{tab:rh_oos} on the \rhcaNdaysSpan{} trading days of $\mathcal T_{\mathrm{oos}}$,
+  the models of Table~\ref{tab:rh_oos} on the \rhcaNdaysSpan{} trading days of $\mathcal T_{\mathrm{oos}}$,
+  % 2026-10-28 (author: prune "pooled"). Was: "the pooled models of Table".
   from \rhcaStartSpan{} to \rhcaEndSpan{} (Panel~A), and on $\mathcal T_{\mathrm{close}}$ (Panel~B).
 \item \textbf{On $\mathcal T_{\mathrm{oos}}$.} The full predictor set lowers the average QLIKE loss of the closing
   half hour in \rhcaNLowerCloseSpan{} of the \rhorAfPairs{} model classes.
@@ -253,7 +256,8 @@
 \begin{itemize}
 \item \textbf{What is tested.} Tables~\ref{tab:rh_mcs} and~\ref{tab:rh_mcs_spa} apply the model confidence set, the
   test of superior predictive ability (SPA) and StepM of Appendix~\ref{sec:rh_methods_tests} to the
-  \rhmcsNModelsWord{} distinct pooled forecasts of Table~\ref{tab:rh_oos} and, at the closing half hour on
+  \rhmcsNModelsWord{} distinct forecasts of Table~\ref{tab:rh_oos} and, at the closing half hour on
+  % 2026-10-28 (author: prune "pooled"). Was: "distinct pooled forecasts of Table".
   $\mathcal T_{\mathrm{close}}$, to the closing-interval HAR benchmark as well. Each SPA and StepM family compares
   the \rhmcsNAlt{} full-set forecasts, or strategies, with their comparisons.
 \item \textbf{Every bar, QLIKE.} The 90\% model confidence set holds \rhmcsBarQlikeTmaxSetNinety{} under $T_{\max}$
@@ -265,7 +269,8 @@
   rejects none of the \rhmcsNAlt{} hypotheses (SPA $p$-value \rhmcsBarMAfSpaC).
 \item \textbf{The closing half hour on $\mathcal T_{\mathrm{oos}}$.} The forecasts are hard to tell apart.
   \begin{itemize}
-  \item Under $T_{\max}$ the 90\% set holds \rhmcsAllQlikeTmaxNNinety{} of the \rhmcsNModels{} pooled forecasts,
+  \item Under $T_{\max}$ the 90\% set holds \rhmcsAllQlikeTmaxNNinety{} of the \rhmcsNModels{} forecasts,
+  % 2026-10-28 (author: prune "pooled"). Was: "\rhmcsNModels{} pooled forecasts,".
     under $T_R$ \rhmcsAllQlikeTrangeSetNinety; the 75\% set holds \rhmcsAllQlikeTmaxSetSevenFive. % 2026-10-26 (coordinator, D13): "alone" dropped (two forecasts now)
   \item Against the HAR benchmark of the same class, the SPA $p$-value is \rhmcsAllQAfSpaC; StepM rejects for
     \rhmcsAllQAfRej, and the two-sided StepM for \rhmcsAllQAfRejTwo.
@@ -279,7 +284,8 @@
     higher loss for \rhmcsOosQAfRejTwo{} (adjusted $p$-value \rhmcsOosQAfPTwoLasso), not for ridge regression
     (\rhmcsOosQAfPTwoRidge).
   \item No full-set forecast is more accurate than the closing-interval HAR benchmark (SPA $p$-value
-    \rhmcsOosQBmSpaC). Testing all \rhmcsNModelsWord{} distinct pooled forecasts against it at once, the two-sided
+    \rhmcsOosQBmSpaC). Testing all \rhmcsNModelsWord{} distinct forecasts against it at once, the two-sided
+    % 2026-10-28 (author: prune "pooled"). Was: "distinct pooled forecasts against it".
     StepM confirms a higher loss for \rhmcsOosQBmAllRejTwo.
   \item Under squared error every forecast is in the 75\% sets (\rhmcsOosMseTmaxNSevenFive{} of
     \rhmcsNModelsBench), and StepM rejects no hypothesis.

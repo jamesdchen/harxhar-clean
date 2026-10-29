@@ -65,12 +65,14 @@
 % $W = \rhorWindowBars$ bars (\rhorWindowDays{} trading days; training scheme below), and the pooled linear runs of the
 % model set on all its intervals with $W = \rhdmPooledLinWindow$ intervals (Appendix~\ref{sec:rh_exp_schemes})."
 % 2026-10-26 (integration; audit numbers-7): added -- W counts bars; the holiday sessions are in the window.
-\item \textbf{Estimation sample} (Appendix Table~\ref{tab:rh_dm_samples}). The pooled intraday sample comprises
+\item \textbf{Estimation sample} (Appendix Table~\ref{tab:rh_dm_samples}). The intraday sample comprises
+% 2026-10-28 (author: prune "pooled"). Was: "The pooled intraday sample comprises".
   \rhdmPooledRows{} half-hour intervals beginning in June 1998,
   \[
     \rhdmPooledRows = \rhdmGridRows \text{ intervals on the grid} - \rhdmBurnIn \text{ burn-in samples};
   \]
-  the pooled linear models and tree ensembles of Table~\ref{tab:rh_oos} and of Sections~\ref{sec:rh_results}
+  the linear models and tree ensembles of Table~\ref{tab:rh_oos} and of Sections~\ref{sec:rh_results}
+  % 2026-10-28 (author: prune "pooled"). Was: "the pooled linear models and tree ensembles".
   and~\ref{sec:rh_econ} are trained on its \rhorNBars{} regular-hours bars with a rolling window of
   % 2026-10-28 (author: Sections 6 and 7 are one section): the range is now two adjacent sections. Was:
   % "Sections~\ref{sec:rh_results} to~\ref{sec:rh_econ}"
@@ -194,7 +196,8 @@
     where the first term vanishes when $\bar r = 1$ and is what a constant rescaling of the forecast can remove, and
     the second is unchanged by such a rescaling.
   \end{itemize}
-\item \textbf{Not a level bias.} The bias term is at most \rhcaAllShBiasBarOosMax\% of the MSE of any pooled forecast
+\item \textbf{Not a level bias.} The bias term is at most \rhcaAllShBiasBarOosMax\% of the MSE of any forecast
+% 2026-10-28 (author: prune "pooled"). Was: "any pooled forecast".
   on every bar of \rhcaYearsOos, and the ratio of mean realized to mean forecast variance lies between
   \rhcaAllRmBarOosMin{} and \rhcaAllRmBarOosMax.
 \item \textbf{Not before 2020.} On \rhcaYearsPre{} the full predictor set has the lower MSE on every bar in all
@@ -474,9 +477,11 @@
 \item \textbf{Against the closing-interval HAR benchmark.} Every pooled forecast has a higher average QLIKE loss at
   16:00 on $\mathcal T_{\mathrm{close}}$ than the closing-interval HAR benchmark ($\overline{\QLIKE} = \rhrOlsQ$).
   \begin{itemize}
-  \item On the full predictor set the excess loss of the pooled linear models is $+\rhrVsBmPoolLinFullPctMin$ to
+  \item On the full predictor set the excess loss of the linear models is $+\rhrVsBmPoolLinFullPctMin$ to
+  % 2026-10-28 (author: prune "pooled"). Was: "the excess loss of the pooled linear models".
     $+\rhrVsBmPoolLinFullPctMax\%$, significant at the 5\% level for \rhrVsBmPoolLinFullSig{} of the
-    \rhrPoolNLinWord; for the pooled tree ensembles it is $+\rhrVsBmPoolTreeFullPctMin$ to
+    \rhrPoolNLinWord; for the tree ensembles it is $+\rhrVsBmPoolTreeFullPctMin$ to
+    % 2026-10-28 (author: prune "pooled"). Was: "for the pooled tree ensembles".
     $+\rhrVsBmPoolTreeFullPctMax\%$, significant at the 5\% level for \rhrVsBmPoolTreeFullSig{} of the
     \rhrPoolNTreeWord.
   \item On the HAR benchmark set the distinct forecasts are the OLS, which the HAR-set ridge regression, lasso and
@@ -484,7 +489,8 @@
     $+\rhrVsBmRidgePoolHarPct\%$ for the OLS (\rhrVsBmRidgePoolHarPval), $+\rhrVsBmLgbmPoolHarPct\%$ for LightGBM
     (\rhrVsBmLgbmPoolHarPval), $+\rhrVsBmXgbPoolHarPct\%$ for XGBoost (\rhrVsBmXgbPoolHarPval) and
     $+\rhrVsBmRfPoolHarPct\%$ for the random forest (\rhrVsBmRfPoolHarPval).
-  \item Testing the \rhmcsNModelsWord{} distinct pooled forecasts against the benchmark at once, the two-sided StepM
+  \item Testing the \rhmcsNModelsWord{} distinct forecasts against the benchmark at once, the two-sided StepM
+  % 2026-10-28 (author: prune "pooled"). Was: "distinct pooled forecasts against the benchmark".
     of Appendix~\ref{sec:rh_methods_tests} no longer finds the higher loss of LightGBM and XGBoost on the HAR
     benchmark set significant (adjusted $p$-values \rhmcsOosQBmAllPTwoLgbmHar{} and \rhmcsOosQBmAllPTwoXgbHar), nor
     that of the random forest on the full predictor set (\rhmcsOosQBmAllPTwoRfFull); that of the OLS survives

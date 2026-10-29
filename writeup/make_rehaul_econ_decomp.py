@@ -566,6 +566,7 @@ def table_longshort(d: dict, ls: dict, cal: dict) -> str:
         + "% Table tab:rh_econ_longshort: long and short days of the sign strategy, the gain over the short straddle, and\n"
         + "% the calibration of the forecasts (writeup/make_rehaul_econ_decomp.py, statistics 1 and 3).\n"
         + GUARD
+        # 2026-10-28 (author: prune "pooled"). Was (notes): "... of each pooled intraday forecast"
         + rf"""\begin{{table}}[tbp]
 \centering
 \small
@@ -583,7 +584,7 @@ def table_longshort(d: dict, ls: dict, cal: dict) -> str:
 \end{{tabular}}
 \begin{{tablenotes}}[flushleft]
 \footnotesize
-\item \textit{{Notes:}} Sign strategy $q_t = \sign(\hat\sigma^2_t - \mathrm{{IV}}_t^2)$ of each pooled intraday forecast
+\item \textit{{Notes:}} Sign strategy $q_t = \sign(\hat\sigma^2_t - \mathrm{{IV}}_t^2)$ of each intraday forecast
 on the full predictor set, on the \rheSzDays{{}} post-warmup option days (Section~\ref{{sec:rh_econ_strategy}}); returns
 in \% of the premium. Mean: the mean over the six full-set forecasts and over their six HAR-benchmark counterparts (the
 three penalized linear models on the HAR benchmark take the same position on every day); in the share rows, the summed
@@ -637,6 +638,7 @@ def table_quintiles(qt: dict) -> str:
         + "% Table tab:rh_econ_quintiles: the sign strategy by quintile of the forecast variance gap\n"
         + "% (writeup/make_rehaul_econ_decomp.py, statistic 2).\n"
         + GUARD
+        # 2026-10-28 (author: prune "pooled"). Was (notes): "For each pooled intraday forecast, ..."
         + rf"""\begin{{table}}[tbp]
 \centering
 \small
@@ -654,7 +656,7 @@ Quintile & $\hat\sigma^2_t/\mathrm{{IV}}_t^2$ & Long (\%) & $\RV_t/\mathrm{{IV}}
 \end{{tabular}}
 \begin{{tablenotes}}[flushleft]
 \footnotesize
-\item \textit{{Notes:}} For each pooled intraday forecast, the \rheSzDays{{}} post-warmup option days are sorted into
+\item \textit{{Notes:}} For each intraday forecast, the \rheSzDays{{}} post-warmup option days are sorted into
 quintiles of $\log(\hat\sigma^2_t/\mathrm{{IV}}_t^2)$, the forecast variance gap that signs the straddle position
 (Section~\ref{{sec:rh_econ_strategy}}); breakpoints from the whole sample, about 123 days a quintile. Each entry is the mean
 over the six forecasts of a panel of the quintile's statistic: $\hat\sigma^2_t/\mathrm{{IV}}_t^2$, the geometric mean of
@@ -737,6 +739,7 @@ def table_bestdays(d: dict, bw: dict, contrib: dict) -> str:
         + "% Table tab:rh_econ_bestdays: the ten best and ten worst days of each full-set pooled forecast, their union\n"
         + "% over the six, and what they contribute to Delta SR (writeup/make_rehaul_econ_decomp.py, statistic 4).\n"
         + GUARD
+        # 2026-10-28 (author: prune "pooled"). Was (notes): "... the union over the six pooled intraday forecasts ..."
         + rf"""\begin{{table}}[tbp]
 \centering
 \small
@@ -765,7 +768,7 @@ Panel C & All days & No best & No best, & Best-day & All days & No best & No bes
 \end{{tabular}}
 \begin{{tablenotes}}[flushleft]
 \footnotesize
-\item \textit{{Notes:}} Panels A and B: the union over the six pooled intraday forecasts on the full predictor set of
+\item \textit{{Notes:}} Panels A and B: the union over the six intraday forecasts on the full predictor set of
 each forecast's \rhedNTop{{}} best and \rhedNTop{{}} worst post-warmup days by its mid-quote return. In ten: the number of
 the six forecasts with the day among their ten; Long: the number of the six that hold a long straddle. Return: of the
 position of the forecasts that count the day among their ten (a long straddle bought at the ask, a short one sold at
@@ -870,6 +873,7 @@ def table_riskreg(regs: dict) -> str:
         + "% Table tab:rh_econ_riskreg: risk regressions of the sign strategy's daily return\n"
         + "% (writeup/make_rehaul_econ_decomp.py, statistic 6).\n"
         + GUARD
+        # 2026-10-28 (author: prune "pooled"). Was (notes): "Columns: the six pooled intraday forecasts on the full ..."
         + rf"""\begin{{table}}[tbp]
 \centering
 \footnotesize
@@ -888,7 +892,7 @@ def table_riskreg(regs: dict) -> str:
 \begin{{tablenotes}}[flushleft]
 \footnotesize
 \item \textit{{Notes:}} OLS regressions of the daily return of the sign strategy (in \% of the premium) on the
-\rheSzDays{{}} post-warmup option days. Columns: the six pooled intraday forecasts on the full predictor set, their
+\rheSzDays{{}} post-warmup option days. Columns: the six intraday forecasts on the full predictor set, their
 equal-weight mean return (Mean), and the unconditional short straddle. Regressors: (a) the return of the unconditional
 short straddle at mid-quotes, $-R_t$ (\%); (b) the S\&P~500 log return from the 15:30 underlying print to the close,
 $r^{{30}}_t = \log(S^{{\mathrm{{close}}}}_t/S_t)$, and its absolute value, in basis points; (c) the S\&P~500

@@ -1086,7 +1086,8 @@ def cell_ci(v: float, lo: float, hi: float, signed: bool = False) -> str:
 
 
 SAMPLE = (
-    r"Pooled intraday models of the final design, rolling window of \rhfipWindowDays{} trading days, full predictor "
+    # 2026-10-28 (author: prune "pooled"). Was: r"Pooled intraday models of the final design, rolling window of ..."
+    r"Intraday models of the final design, rolling window of \rhfipWindowDays{} trading days, full predictor "
     r"set (\rhfipNCols{} predictors in \rhfipNGroups{} groups: \rhfipNExog{} exogenous series, the HAR components, the "
     r"calendar dummies), re-estimated at \rhfipNOrigins{} monthly origins (\rhfipFirstOrigin{} to \rhfipLastOrigin)"
     # 2026-10-26 (integration, audit results-8): the explained bars include the NYSE-holiday futures sessions, which
@@ -1417,7 +1418,9 @@ def tab_window(T: dict, D: dict) -> None:
         if m != LINS[-1]:
             rows.append(r"\addlinespace")
     notes = (
-        r"The pooled ridge, lasso and elastic net on the full predictor set, rolling windows $W = "
+        # 2026-10-28 (author: prune "pooled"; "per origin and pooled" below is kept: pooled over the origins).
+        # Was: r"The pooled ridge, lasso and elastic net on the full predictor set, rolling windows $W = "
+        r"The ridge, lasso and elastic net on the full predictor set, rolling windows $W = "
         + ", ".join(num(w) for w in W)
         + r"$ trading days, each walk's coefficients at the same \rhfipNOrigins{} monthly origins; tuned: each $W$'s walk at "
         r"the penalty its pre-sample tuning chose (listed from the shortest to the longest window where it changes); "

@@ -1376,7 +1376,9 @@ def write_table(D: dict) -> None:
         "\\end{tabular*}",
         "\\begin{tablenotes}[flushleft]",
         "\\footnotesize",
-        "\\item \\textit{Notes:} The pooled models of Table~\\ref{tab:rh_oos} trained on other samples, everything else "
+        # 2026-10-28 (author: prune "pooled"; "the pooled regular-hours bars" of Panel F's note is kept: against CLOSE).
+        # Was: "\\item \\textit{Notes:} The pooled models of Table~\\ref{tab:rh_oos} trained on other samples, ..."
+        "\\item \\textit{Notes:} The models of Table~\\ref{tab:rh_oos} trained on other samples, everything else "
         "as in the main design: predictors on the full grid of \\rhtaNIntervals{} half-hour intervals, overnight "
         "included; a refit at every training row; the tree ensembles' frozen configurations; the linear penalties "
         "chosen in each sample by the main design's rule on that sample's pre-sample rows (validation year "

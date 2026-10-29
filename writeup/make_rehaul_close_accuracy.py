@@ -1293,7 +1293,9 @@ def write_accuracy_table(A16: pd.DataFrame) -> None:
             # "... with the models trained on the closing half hour only (Table~\\ref{tab:rh_oos_last30})."
             "$\\mathcal T_{\\mathrm{close}}$, the \\rhcaNdaysOos{} trading days from \\rhcaStartOos{} to \\rhcaEndOos; "
             "models trained on the closing half hour only are in Table~\\ref{tab:rh_train_arms}. HAR: HAR benchmark; Full: full predictor set; "
-            "on the HAR benchmark the pooled ridge, lasso and elastic net reproduce the OLS forecast "
+            # 2026-10-28 (author: prune "pooled"; kept in the panel heads and the first sentence, against the
+            # closing-interval models). Was: "on the HAR benchmark the pooled ridge, lasso and elastic net reproduce ..."
+            "on the HAR benchmark the ridge, lasso and elastic net reproduce the OLS forecast "
             "(Section~\\ref{sec:rh_exp_setup}). MSE in units of $10^{-\\rhcaMseExp}$. $R^2_{\\mathrm{OOS}}$ against the "
             "historical mean of the closing-half-hour realized variance from \\rhoosBenchStart{} \\citep{CampbellThompson2008}. "
             "Full vs HAR: $\\Delta\\% = 100(\\bar L^{\\mathrm{Full}}/\\bar L^{\\mathrm{HAR}} - 1)$ for the mean QLIKE of the "
@@ -1370,7 +1372,8 @@ def write_calibration_table(CAL: pd.DataFrame) -> None:
         "\\scriptsize",
         "\\setlength{\\tabcolsep}{2.5pt}",
         "\\begin{threeparttable}",
-        "\\caption{Calibration of the pooled intraday forecasts}",
+        # 2026-10-28 (author: prune "pooled"). Was: "\\caption{Calibration of the pooled intraday forecasts}",
+        "\\caption{Calibration of the intraday forecasts}",
         "\\label{tab:rh_calibration}",
         "\\begin{tabular*}{\\linewidth}{@{\\extracolsep{\\fill}}llrrrrrrrrrrrr@{}}",
         "\\toprule",
@@ -1520,7 +1523,8 @@ def write_figure(DEC: pd.DataFrame) -> None:
         (
             "\\caption{Calibration by forecast decile. Within each decile of the forecast, the mean realized variance "
             "relative to the mean forecast (vertical axis; 1: calibrated, above 1: the forecasts are too low), plotted "
-            "at the decile's mean forecast (horizontal axis), for the pooled elastic net and LightGBM on the HAR "
+            # 2026-10-28 (author: prune "pooled"). Was: "... (horizontal axis), for the pooled elastic net and LightGBM ..."
+            "at the decile's mean forecast (horizontal axis), for the elastic net and LightGBM on the HAR "
             "benchmark (open markers, dashed) and on the full predictor set (filled markers, solid); log scales. Top: "
             "every bar of Table~\\ref{tab:rh_oos}; bottom: the 16:00 bar (the forecast of the closing half hour). Left: "
             "\\rhcaYearsPre{} ($\\rhcaNdaysPre$ days); right: \\rhcaYearsOos{} ($\\mathcal T_{\\mathrm{close}}$, "

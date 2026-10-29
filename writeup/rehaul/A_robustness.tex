@@ -38,7 +38,8 @@
 \label{app:rh_robust_window}
 \begin{itemize}
 \item \textbf{How the window was chosen.} The rolling window of the main design, $W = \rhrbWinMain$ trading days
-  ($\rhrbWinMainBars$ bars), was fixed after the pooled linear models had been estimated and scored out of sample,
+  ($\rhrbWinMainBars$ bars), was fixed after the linear models had been estimated and scored out of sample,
+  % 2026-10-28 (author: prune "pooled"). Was: "after the pooled linear models had been".
   over the evaluation span $\mathcal T_{\mathrm{oos}}$ of Table~\ref{tab:rh_oos}, at \rhwsNWin{} windows from
   \rhwsWinMin{} to \rhwsWinMax{} trading days, on the design before the FOMC fixes of
   Appendix~\ref{app:rh_dp_fomc}. The window is therefore not a pre-sample choice, and the items below report the
@@ -227,7 +228,8 @@
 \item \textbf{The sessions.} On full NYSE holidays the E-mini trades a shortened session whose last regular-hours
   bar ends at about \rhholLastBar~ET. The \rhholNSessions{} such sessions of the evaluation span have \rhholNBars{}
   regular-hours bars. They are rows of the estimation sample and enter the target's diurnal factor, but they are not
-  scored, since Table~\ref{tab:rh_oos} scores the bars of NYSE trading days: each pooled model has \rhholNForecast{}
+  scored, since Table~\ref{tab:rh_oos} scores the bars of NYSE trading days: each model has \rhholNForecast{}
+  % 2026-10-28 (author: prune "pooled"). Was: "each pooled model has".
   forecasts and \rhholNScored{} scored bars (Appendix~\ref{app:rh_dp_sessions}). The main design keeps them.
 \item \textbf{The sessions dropped.} Table~\ref{tab:rh_holiday} re-estimates the penalized linear models of
   Table~\ref{tab:rh_oos} with the holiday sessions dropped from the estimation rows and from the diurnal factor,

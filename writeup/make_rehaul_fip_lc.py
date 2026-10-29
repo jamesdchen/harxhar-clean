@@ -205,8 +205,7 @@ def score() -> dict:
     for W in WINDOWS:
         FT[W], IDX[W], PEND[W] = load_window(W, rv, days)
         print(
-            f"W {W:,}: {len(IDX[W]):,} scored bars; trees {sorted(FT[W])}"
-            + (f"; PENDING {PEND[W]}" if PEND[W] else "")
+            f"W {W:,}: {len(IDX[W]):,} scored bars; trees {sorted(FT[W])}" + (f"; PENDING {PEND[W]}" if PEND[W] else "")
         )
     idx = IDX[WINDOWS[0]]
     for W in WINDOWS[1:]:
@@ -345,9 +344,7 @@ def selfcheck(S: dict, out: Path) -> None:
             ref = ref[ref["model"] == CROSS_KEY[e]].assign(model=e)
             m = mine[mine["model"] == e]
             n_ref += len(ref)
-            j = ref.merge(
-                m, on=keys, how="outer", suffixes=("_ref", ""), indicator=True
-            )
+            j = ref.merge(m, on=keys, how="outer", suffixes=("_ref", ""), indicator=True)
             src = f"{fr.rel(CROSS[e]).replace(chr(92), '/')}/{fname}"
             pending_e = any(e in S["pending"][W] for W in WINDOWS)
             for _, r in j.iterrows():
@@ -372,11 +369,7 @@ def selfcheck(S: dict, out: Path) -> None:
     met = pd.read_csv(ROBUST / "metrics.csv")
     q = S["Q"]
     for _, r in q[q["W"].isin([3000, 3500])].iterrows():
-        x = met[
-            (met["W"] == r["W"])
-            & (met["model"] == r["model"])
-            & (met["set"] == r["set"])
-        ]
+        x = met[(met["W"] == r["W"]) & (met["model"] == r["model"]) & (met["set"] == r["set"])]
         assert len(x) == 1, (r["W"], r["model"], r["set"])
         for c in ("qlike", "qlike_1600"):
             cmp(
@@ -416,9 +409,7 @@ def selfcheck(S: dict, out: Path) -> None:
     )
     if len(bad):
         print(bad.head(20).to_string())
-        raise SystemExit(
-            "self-check FAILED: a recomputed value differs from the committed files"
-        )
+        raise SystemExit("self-check FAILED: a recomputed value differs from the committed files")
 
 
 # --------------------------------------------------------------------------- the text's words
@@ -454,12 +445,7 @@ def gap(S: dict, e: str, W: int, where: str) -> pd.Series | None:
 
 def dmrow(S: dict, e: str, s: str, a: int, b: int, where: str) -> pd.Series | None:
     x = S["DM"]
-    x = x[
-        (x["model"] == e)
-        & (x["set"] == s)
-        & (x["pair"] == f"{a}->{b}")
-        & (x["bars"] == where)
-    ]
+    x = x[(x["model"] == e) & (x["set"] == s) & (x["pair"] == f"{a}->{b}") & (x["bars"] == where)]
     return None if x.empty else x.iloc[0]
 
 
@@ -473,18 +459,14 @@ def claims(S: dict) -> None:
     print("claims in the text")
     # every bar: the full set's lead widens up to the main window for every tree ("widens ... up to 3,000 days")
     for e in TREES:
-        g = [
-            float(need(gap(S, e, W, "every bar"))["gap_full_minus_har"])
-            for W in WINDOWS
-        ]
+        g = [float(need(gap(S, e, W, "every bar"))["gap_full_minus_har"]) for W in WINDOWS]
         check(
             g[0] > g[1] > g[2],
             f"{e}: every-bar gap full - HAR more negative from 1,000 to 2,000 to 3,000 days",
         )
         check(
             all(
-                need(gap(S, e, W, "every bar"))["p"] < SIG
-                and need(gap(S, e, W, "every bar"))["gap_full_minus_har"] < 0
+                need(gap(S, e, W, "every bar"))["p"] < SIG and need(gap(S, e, W, "every bar"))["gap_full_minus_har"] < 0
                 for W in WINDOWS
             ),
             f"{e}: every-bar gap negative and significant at every window",
@@ -536,9 +518,7 @@ def claims(S: dict) -> None:
         pos == {("lgbm", 1000)},
         f"16:00: toward the benchmark = LightGBM 1,000->2,000 ({sorted(pos)})",
     )
-    check(
-        all(e != "rf" for e, _ in neg | pos), "16:00: never significant for the forest"
-    )
+    check(all(e != "rf" for e, _ in neg | pos), "16:00: never significant for the forest")
 
 
 def check(cond: bool, msg: str) -> None:
@@ -570,9 +550,7 @@ def macros(S: dict) -> list[tuple[str, str, str]]:
     )
     add("NDays", RW.thousands(S["n_days"]), "evaluation days (Table 1's)")
     add("NBars", RW.thousands(S["n_bars"]), "scored bars, the same at every window")
-    add(
-        "HacLag", str(S["hac_lag"]), "Newey-West lag (Bartlett, floor(4 (T/100)^(2/9)))"
-    )
+    add("HacLag", str(S["hac_lag"]), "Newey-West lag (Bartlett, floor(4 (T/100)^(2/9)))")
     done = [e for e in TREES if all((W, e) in S["have"] for W in WINDOWS)]
     add("NTrees", str(len(done)), "tree ensembles with every window finished")
     n_arms_all = len(WINDOWS) * n_trees * len(SETS)
@@ -651,23 +629,15 @@ def macros(S: dict) -> list[tuple[str, str, str]]:
             )
             for s, stg in (("all_features", "Full"), ("baseline", "Har")):
                 xs = {e: dmrow(S, e, s, a, b, where) for e in fin}
-                f_ = [
-                    e
-                    for e, x in xs.items()
-                    if x is not None and x["p"] < SIG and x["dm"] < 0
-                ]
+                f_ = [e for e, x in xs.items() if x is not None and x["p"] < SIG and x["dm"] < 0]
                 add(
                     f"{stg}Fall{tg}{B}Who",
                     who(f_, len(fin)),
                     f"{where} {a}->{b}: trees whose {s} QLIKE falls significantly (DM, p < {SIG})",
                 )
         # the adjacent steps together, and the gap cells
-        neg_all = sum(
-            int(sig_neg(did(S, e, a, b, where))) for e in TREES for a, b in STEPS
-        )
-        pos_all = sum(
-            int(sig_pos(did(S, e, a, b, where))) for e in TREES for a, b in STEPS
-        )
+        neg_all = sum(int(sig_neg(did(S, e, a, b, where))) for e in TREES for a, b in STEPS)
+        pos_all = sum(int(sig_pos(did(S, e, a, b, where))) for e in TREES for a, b in STEPS)
         n_st = sum(n_steps[(step_tag(a, b), B)] for a, b in STEPS)
         add(
             f"NSigNeg{B}",
@@ -685,9 +655,7 @@ def macros(S: dict) -> list[tuple[str, str, str]]:
             str(len(STEPS) * n_trees),
             f"{where}: adjacent steps x trees of the comparison",
         )
-        gs = [
-            g for e in TREES for W in WINDOWS if (g := gap(S, e, W, where)) is not None
-        ]
+        gs = [g for e in TREES for W in WINDOWS if (g := gap(S, e, W, where)) is not None]
         add(
             f"NGapSig{B}",
             str(sum(int(g["p"] < SIG and g["gap_full_minus_har"] < 0) for g in gs)),
@@ -786,7 +754,9 @@ def table(S: dict) -> tuple[str, int]:
         r"\end{tabular*}",
         r"\begin{tablenotes}[flushleft]",
         r"\footnotesize",
-        r"\item \textit{Notes:} The pooled LightGBM, XGBoost and random forest on the HAR benchmark and on the full "
+        # 2026-10-28 (author: prune "pooled"). Was: r"\item \textit{Notes:} The pooled LightGBM, XGBoost and random
+        # forest on the HAR benchmark and on the full "
+        r"\item \textit{Notes:} The LightGBM, XGBoost and random forest on the HAR benchmark and on the full "
         r"predictor set, refit at every bar on rolling windows of $W$ trading days, each on its frozen configuration, "
         r"first evaluation day \rhlcFirstDay; QLIKE on the \rhlcNBars{} bars of the \rhlcNDays{} evaluation days "
         r"(the scored set of Table~\ref{tab:rh_oos}, the same at every window; Panel B: their 16:00 bars), in units of "
@@ -833,18 +803,12 @@ def main() -> None:
         PENDING_DEF,
     ]
     for name, value, note in M:
-        num.append(
-            f"\\providecommand{{\\{name}}}{{}}\\renewcommand{{\\{name}}}{{{value}}}  % {note}"
-        )
-    (gen / "rehaul_fip_lc_numbers.tex").write_text(
-        "\n".join(num) + "\n", encoding="utf-8", newline="\n"
-    )
+        num.append(f"\\providecommand{{\\{name}}}{{}}\\renewcommand{{\\{name}}}{{{value}}}  % {note}")
+    (gen / "rehaul_fip_lc_numbers.tex").write_text("\n".join(num) + "\n", encoding="utf-8", newline="\n")
     print(f"wrote {fr.rel(gen / 'rehaul_fip_lc_numbers.tex')} ({len(M)} macros)")
     tex, n_marked = table(S)
     (gen / "rehaul_fip_lc_table.tex").write_text(tex, encoding="utf-8", newline="\n")
-    print(
-        f"wrote {fr.rel(gen / 'rehaul_fip_lc_table.tex')} ({n_marked} pending rows); {time.time() - t0:.0f} s"
-    )
+    print(f"wrote {fr.rel(gen / 'rehaul_fip_lc_table.tex')} ({n_marked} pending rows); {time.time() - t0:.0f} s")
 
 
 if __name__ == "__main__":

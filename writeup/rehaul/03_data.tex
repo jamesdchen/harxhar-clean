@@ -61,7 +61,8 @@
   \]
   which we forecast on every regular-hours interval, the bars ending 10:00 to 16:00~ET
   (Section~\ref{sec:rh_methods_setup}).
-\item \textbf{Exogenous series.} The pooled models use \rhdmNSeriesPooled{} exogenous series in \bkNBuckets{} groups.
+\item \textbf{Exogenous series.} The models use \rhdmNSeriesPooled{} exogenous series in \bkNBuckets{} groups.
+% 2026-10-28 (author: prune "pooled"). Was: "The pooled models use \rhdmNSeriesPooled{} exogenous series in \bkNBuckets{} groups."
   Appendix Table~\ref{tab:rh_dm_dictionary} defines each series, and Appendix~\ref{app:rh_dp_sources} gives the
   sources and the construction.
   % 2026-10-26 (integration, JFEc): the display of the seven sums and the sentence that names them moved to Appendix
@@ -97,7 +98,8 @@
   \item The interval grid $\mathcal{G}$ holds the intervals with an observed realized variance outside the weekend
     break, Friday 20:00 to Sunday 18:30. Lag operators step back through $\mathcal{G}$, overnight sessions included:
     $(t, i - j)$ is the $j$-th interval of $\mathcal{G}$ before $(t, i)$, which may lie on an earlier day.
-  \item Early-close sessions stay in $\mathcal{G}$ but leave the estimation and evaluation samples of the pooled
+  \item Early-close sessions stay in $\mathcal{G}$ but leave the estimation and evaluation samples of the
+% 2026-10-28 (author: prune "pooled"). Was: "... but leave the estimation and evaluation samples of the pooled"
     models and the option-trading sample; their intervals after the 13:00~ET close also leave the window of the
     target's diurnal factor (Section~\ref{sec:rh_methods_setup}).
   \item On NYSE holidays the E-mini trades a shortened session that ends at about 13:00~ET. The regular-hours intervals

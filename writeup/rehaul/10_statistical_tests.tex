@@ -241,10 +241,12 @@
     report the results at block lengths \rhmcsBlockLo{} and \rhmcsBlockHi.
   \item \emph{Losses and forecasts.} The losses are daily: for the forecasts of every regular-hours bar, the average
     loss of the day's \rhorNBars{} bars, as in the Diebold--Mariano tests of Table~\ref{tab:rh_oos}, so the bootstrap
-    resamples days. The pooled ridge regression, lasso and elastic net on the HAR benchmark reproduce the pooled OLS
+    resamples days. The ridge regression, lasso and elastic net on the HAR benchmark reproduce the OLS
+    % 2026-10-28 (author: prune "pooled"). Was: "The pooled ridge regression" and "reproduce the pooled OLS".
     (their penalties are numerically zero): their daily every-bar losses differ from those of the OLS by at most
     $\rhmcsLinGap$ in relative terms, so they enter the model confidence set as one forecast, the OLS. The set
-    therefore holds \rhmcsNModelsWord{} distinct pooled forecasts, and \rhmcsNModelsBenchWord{} with the
+    therefore holds \rhmcsNModelsWord{} distinct forecasts, and \rhmcsNModelsBenchWord{} with the
+    % 2026-10-28 (author: prune "pooled"). Was: "distinct pooled forecasts, and".
     closing-interval HAR benchmark of Appendix~\ref{app:rh_closing} in the sets of the closing half hour.
   \end{itemize}
 % 2026-10-21 (user, decision #2): parked -- "Diebold--Mariano or HAC $t$-statistics". Was: "\item \textbf{Reporting convention.} All main tables report point estimates accompanied by pairwise Diebold--Mariano or HAC $t$-statistics, without bootstrap confidence intervals."

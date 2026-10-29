@@ -62,7 +62,8 @@
 % difference from the implied variance."
 % 2026-10-26 (integration, coordinator: bullet structure): the lead paragraph recast as a bold-lead item, content kept.
 \begin{itemize}
-\item \textbf{A trade on the closing-bar forecast.} The pooled models forecast every regular-hours bar, and their
+\item \textbf{A trade on the closing-bar forecast.} Our models forecast every regular-hours bar, and their
+% 2026-10-28 (author: prune "pooled"). Was: "The pooled models forecast every regular-hours bar, and their"
   15:30 forecast of the closing bar has a counterpart in the options market: a same-day-expiring S\&P~500 straddle
   traded at 15:30 ET and held to the close.
   \begin{itemize}
@@ -111,8 +112,11 @@
 % 2026-10-26 (integration, JFEc; D2; audit results-12): added -- the two benchmark strategies, and the HAR-set
 % forecasts counted once (the pooled ridge, lasso and elastic net on the HAR benchmark set equal the OLS).
 \item \textbf{Benchmarks.} The unconditional short straddle, $q_t \equiv -1$, and the sign strategy of the benchmark
-  forecast, the OLS on the HAR benchmark set pooled over the \rhePoolNBars{} regular-hours bars
-  (Table~\ref{tab:rh_oos}). On the HAR benchmark set the pooled ridge, lasso and elastic-net forecasts coincide with
+  forecast, the OLS on the HAR benchmark set estimated on the \rhePoolNBars{} regular-hours bars
+  (Table~\ref{tab:rh_oos}). On the HAR benchmark set the ridge, lasso and elastic-net forecasts coincide with
+% 2026-10-28 (author: prune "pooled"). Was: "forecast, the OLS on the HAR benchmark set pooled over the \rhePoolNBars{}
+% regular-hours bars (Table~\ref{tab:rh_oos}). On the HAR benchmark set the pooled ridge, lasso and elastic-net
+% forecasts coincide with"
   the OLS (Table~\ref{tab:rh_econ_main}, note b), so the six HAR-set strategies hold \rhemHarDistinctWord{} distinct
   forecasts.
 % 2026-10-26 (integration, JFEc): moved to A_econ.tex (app:rh_econ_details) -- the display of r^ba_t.
@@ -175,7 +179,8 @@
 \label{sec:rh_econ_results}
 \begin{itemize}
 % 2026-10-26 (integration, coordinator: bullet structure): the lead sentence recast as a bold-lead item.
-\item \textbf{Table and figure.} Table~\ref{tab:rh_econ_main} reports the sign strategies of the \rhrPoolN{} pooled
+\item \textbf{Table and figure.} Table~\ref{tab:rh_econ_main} reports the sign strategies of the \rhrPoolN{}
+% 2026-10-28 (author: prune "pooled"). Was: "... reports the sign strategies of the \rhrPoolN{} pooled"
   forecasts and the short straddle, and Figure~\ref{fig:rh_econ_byyear} plots their Sharpe ratios by calendar year,
   $\SR_y$.
 % 2026-10-28 (D19, standard pooled Sharpe): the SR_y are no longer the terms of SR. Was: "and
@@ -212,7 +217,8 @@
 % specifications (fixed-$b$ test of the mean daily return differential on the \rheSzDays{} post-warmup days, bandwidth
 % $S = \rheHACS$); the $t$-statistics range from \rhrVsShortPoolTMin{} to \rhrVsShortPoolTMax{}." (the 12 counted the
 % identical HAR-set linear forecast three times, audit results-12).
-\item \textbf{The full predictor set beats passive selling.} The six pooled forecasts on the full predictor set reach
+\item \textbf{The full predictor set beats passive selling.} The six forecasts on the full predictor set reach
+% 2026-10-28 (author: prune "pooled"). Was: "The six pooled forecasts on the full predictor set reach"
   $\SR = \rhrPoolShFullMin$ to \rhrPoolShFullMax{} at mid-quotes and \rhrPoolShXFullMin{} to \rhrPoolShXFullMax{} at
   quoted bid/ask prices. Their Sharpe ratio gain over the short straddle is significant at the 5\% level for
   \rhemFullVsShortSigWord{} of the six at mid-quotes and \rhemFullVsShortSigXWord{} at quoted bid/ask prices

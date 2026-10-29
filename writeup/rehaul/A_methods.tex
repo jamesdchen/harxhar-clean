@@ -52,7 +52,8 @@
     \mathcal W^{\mathrm{val}}_{t,i} = \{(t,i) \ominus j : j = 1, \dots, n_{\mathrm{val}}\}.
   \end{gather*}
   The estimation subsample is a full window of $W$ observations, so that each candidate is fitted on as many
-  observations as a forecast. The pooled linear models choose their penalties once on such a split, \rhorPenSample,
+  observations as a forecast. The linear models choose their penalties once on such a split, \rhorPenSample,
+  % 2026-10-28 (author: prune "pooled"). Was: "The pooled linear models choose".
   with $n_{\mathrm{gap}} = \rhdmPlPreEmbargoBars$ bars (\rhdmPlPreEmbargoSess{} trading days) and
   $n_{\mathrm{val}} = \rhdmPlPreFoldBars$ bars (\rhdmPlPreFoldSess{} trading days); the first scored forecast follows
   it. Each candidate penalty $\lambda$ is fitted on $\mathcal W^{\mathrm{est}}_{t,i}$ and scored by the mean squared

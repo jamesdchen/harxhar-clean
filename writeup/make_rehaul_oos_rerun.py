@@ -829,7 +829,8 @@ def main() -> None:
         "\\rhoosSpanEnd{} (early closes dropped)"
     )
     # 2026-10-22 (user, E36): the rows, the design and the trees sentence of the notes, per span (2020: as committed)
-    lead = "Pooled intraday linear models"
+    # 2026-10-28 (author: prune "pooled"). Was: lead = "Pooled intraday linear models"
+    lead = "Intraday linear models"
     design = (
         f"{pen}, a rolling window of {thousands(cfg['window'])} trading days, "
         "re-estimated every interval (Section~\\ref{sec:rh_methods}), trained and scored on the 13 regular-hours "
@@ -882,7 +883,8 @@ def main() -> None:
         )
         # 2026-10-22 (user, E36): parked -- "Pooled intraday linear models", the 2012 design sentence with {pen} and the
         # typed window, and " Tree ensembles are left out until they are re-estimated on this design."
-        lead = "Pooled intraday linear models and tree ensembles"
+        # 2026-10-28 (author: prune "pooled"). Was: lead = "Pooled intraday linear models and tree ensembles"
+        lead = "Intraday linear models and tree ensembles"
         design = (
             "a rolling window of \\rhorWindowDays{} trading days, re-estimated at every bar "
             "(Section~\\ref{sec:rh_methods}), trained and scored on the \\rhorNBars{} regular-hours half-hour bars "

@@ -1041,7 +1041,9 @@ def write_tex(
         r"\centering",
         r"\small",
         r"\begin{threeparttable}",
-        r"\caption{Interval-shift test and compounded wealth of the pooled intraday forecasts}",
+        # 2026-10-28 (author: prune "pooled"). Was: r"\caption{Interval-shift test and compounded wealth of the pooled
+        # intraday forecasts}",
+        r"\caption{Interval-shift test and compounded wealth of the intraday forecasts}",
         r"\label{tab:rh_pooled_shift_compounding}",
         r"\begin{tabular}{@{}llrrrrrrr@{}}",
         r"\toprule",

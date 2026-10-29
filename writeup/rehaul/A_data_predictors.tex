@@ -184,13 +184,15 @@
     (t,i) \in \mathcal{G} \iff \RV_{t,i} \text{ observed and } (t,i) \notin (\text{Fri } 20{:}00,\ \text{Sun } 18{:}30) .
   \]
 \item \textbf{Early closes.} The early-close sessions stay in the grid $\mathcal G$, on which every trailing average is
-  computed, but the pooled models neither estimate on nor score any interval of them, and the option-trading sample
+  computed, but the models neither estimate on nor score any interval of them, and the option-trading sample
+  % 2026-10-28 (author: prune "pooled"). Was: "but the pooled models neither".
   leaves them out. The intervals after their 13:00~ET close leave the window $\mathcal D_{t,i}$ of the target's
   diurnal factor $s^2_{t,i}$; the diurnal factors of the exogenous series keep them.
 \item \textbf{Holiday sessions.} On full NYSE holidays the cash market is closed and the E-mini trades a shortened
   session that ends at about 13:00~ET. Its regular-hours intervals, which carry little variance, are rows of the
   \rhorNBars-bar estimation sample and enter the windows $\mathcal D_{t,i}$ of the target's diurnal factor at their
-  times of day; they are forecast but never scored, which is why each pooled model has \rhorNTreeBars{} forecasts
+  times of day; they are forecast but never scored, which is why each model has \rhorNTreeBars{} forecasts
+  % 2026-10-28 (author: prune "pooled"). Was: "each pooled model has".
   and \rhorNIntB{} scored bars over the evaluation span. Because the estimation window counts rows, its
   \rhorWindowBars{} rows span slightly fewer than \rhorWindowDays{} trading days. In the robustness check of
   Appendix~\ref{app:rh_robust_holiday}, the holiday sessions leave the estimation sample and the windows $\mathcal D_{t,i}$, while
@@ -208,7 +210,8 @@
   longer than the cap stays missing in these statistics.
 \item \textbf{No observation.} A series whose feed stops is unobserved from its last print on, and its availability
   averages fall to zero. Wherever a $k$-interval average holds no observed interval, its standardized value is set to
-  zero (step~6 of Section~\ref{sec:rh_predictors}). In the pooled models this rule acts, on at least one interval, on
+  zero (step~6 of Section~\ref{sec:rh_predictors}). This rule acts, on at least one interval, on
+  % 2026-10-28 (author: prune "pooled"). Was: "In the pooled models this rule acts,".
   \rhdsUnobsCols{} of the \rhdsValueCols{} value averages of the full predictor set over the whole sample and on
   \rhdsUnobsColsEval{} of them within the evaluation span from \rhdsEvalStart: on every horizon of the volatility-demand
   series once their feed has stopped, and on the shorter horizons of the series that do not print on every interval

@@ -1475,7 +1475,8 @@ def table_mcs(res: dict, keys: dict, acc: dict) -> str:
         "\\small",
         "\\setlength{\\tabcolsep}{4pt}",
         "\\begin{threeparttable}",
-        "\\caption{Model confidence sets of the pooled intraday forecasts}",
+        # 2026-10-28 (author: prune "pooled"). Was: "\\caption{Model confidence sets of the pooled intraday forecasts}",
+        "\\caption{Model confidence sets of the intraday forecasts}",
         # 2026-10-26 (integration, RESULTS/APPENDIX): the 1,082-day span is T_close (T_oos is Table 1's span)
         "\\label{tab:rh_mcs}",
         "\\begin{tabular*}{\\linewidth}{@{\\extracolsep{\\fill}}lrrrrrr@{}}",
@@ -1518,7 +1519,9 @@ def table_mcs(res: dict, keys: dict, acc: dict) -> str:
         "\\rhorSpanStart{} to \\rhorSpanEnd{} in the first four columns and the \\rhmcsDaysOos{} days of "
         "$\\mathcal T_{\\mathrm{close}}$ in the last two. Circular moving-block bootstrap, blocks of \\rhmcsBlock{} "
         "trading days, \\rhmcsB{} replications, seed \\rhmcsSeed; the same resamples at every elimination step. "
-        "$^{a}$The pooled ridge, lasso and elastic net on the HAR benchmark reproduce the pooled OLS (their "
+        # 2026-10-28 (author: prune "pooled"; kept in the first sentence, against the closing-interval benchmark).
+        # Was: "$^{a}$The pooled ridge, lasso and elastic net on the HAR benchmark reproduce the pooled OLS (their "
+        "$^{a}$The ridge, lasso and elastic net on the HAR benchmark reproduce the OLS (their "
         "penalties are numerically zero), so they enter as one model, the OLS forecast. "
         "$^{b}$The closing-interval HAR benchmark has forecasts from \\rhmcsChStart{} only, so it is not in the "
         f"{yrs} sets.",

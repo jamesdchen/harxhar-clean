@@ -6,7 +6,7 @@
 \small
 \setlength{\tabcolsep}{4pt}
 \begin{threeparttable}
-\caption{Model confidence sets of the pooled intraday forecasts}
+\caption{Model confidence sets of the intraday forecasts}
 \label{tab:rh_mcs}
 \begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lrrrrrr@{}}
 \toprule
@@ -45,7 +45,7 @@ Closing-interval HAR benchmark$^{b}$ & -- & -- & -- & -- & \textbf{0.557} & \tex
 \end{tabular*}
 \begin{tablenotes}[flushleft]
 \footnotesize
-\item \textit{Notes:} MCS $p$-values \citep{HansenLundeNason2011} of the pooled intraday forecasts of Table~\ref{tab:rh_oos} and, on $\mathcal T_{\mathrm{close}}$, of the closing-interval HAR benchmark. A forecast is in the 90\% (75\%) model confidence set when its $p$-value is at least 0.10 (0.25); \textbf{bold}: in the 75\% set, \textit{italic}: in the 90\% set only. $T_{\max}$ and $T_R$: the two statistics of the elimination rule. Losses are daily (on every bar, the mean loss of the day's \rhorNBars{} bars), so the bootstrap resamples trading days: the \rhmcsDaysAll{} days from \rhorSpanStart{} to \rhorSpanEnd{} in the first four columns and the \rhmcsDaysOos{} days of $\mathcal T_{\mathrm{close}}$ in the last two. Circular moving-block bootstrap, blocks of \rhmcsBlock{} trading days, \rhmcsB{} replications, seed \rhmcsSeed; the same resamples at every elimination step. $^{a}$The pooled ridge, lasso and elastic net on the HAR benchmark reproduce the pooled OLS (their penalties are numerically zero), so they enter as one model, the OLS forecast. $^{b}$The closing-interval HAR benchmark has forecasts from \rhmcsChStart{} only, so it is not in the 2014--2024 sets.
+\item \textit{Notes:} MCS $p$-values \citep{HansenLundeNason2011} of the pooled intraday forecasts of Table~\ref{tab:rh_oos} and, on $\mathcal T_{\mathrm{close}}$, of the closing-interval HAR benchmark. A forecast is in the 90\% (75\%) model confidence set when its $p$-value is at least 0.10 (0.25); \textbf{bold}: in the 75\% set, \textit{italic}: in the 90\% set only. $T_{\max}$ and $T_R$: the two statistics of the elimination rule. Losses are daily (on every bar, the mean loss of the day's \rhorNBars{} bars), so the bootstrap resamples trading days: the \rhmcsDaysAll{} days from \rhorSpanStart{} to \rhorSpanEnd{} in the first four columns and the \rhmcsDaysOos{} days of $\mathcal T_{\mathrm{close}}$ in the last two. Circular moving-block bootstrap, blocks of \rhmcsBlock{} trading days, \rhmcsB{} replications, seed \rhmcsSeed; the same resamples at every elimination step. $^{a}$The ridge, lasso and elastic net on the HAR benchmark reproduce the OLS (their penalties are numerically zero), so they enter as one model, the OLS forecast. $^{b}$The closing-interval HAR benchmark has forecasts from \rhmcsChStart{} only, so it is not in the 2014--2024 sets.
 \end{tablenotes}
 \end{threeparttable}
 \end{table}

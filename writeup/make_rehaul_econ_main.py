@@ -700,8 +700,10 @@ def table_tex(st: dict, pairs: dict) -> str:
     body = ""
     for pi, (pset, title) in enumerate(
         (
-            ("all_features", "Panel A: Pooled intraday models, full predictor set\\tnote{a}"),
-            ("baseline", "Panel B: Pooled intraday models, HAR benchmark set\\tnote{a}"),
+            # 2026-10-28 (author: prune "pooled"). Was: "Panel A: Pooled intraday models, full predictor set\\tnote{a}",
+            # "Panel B: Pooled intraday models, HAR benchmark set\\tnote{a}"
+            ("all_features", "Panel A: Intraday models, full predictor set\\tnote{a}"),
+            ("baseline", "Panel B: Intraday models, HAR benchmark set\\tnote{a}"),
         )
     ):
         body += me.panel_head(title, ncol, first=pi == 0)
@@ -782,8 +784,9 @@ def table_tex(st: dict, pairs: dict) -> str:
         "$t$-statistic of the mean daily return differential against the short straddle (Newey--West, bandwidth "
         "$S = \\rheHACS$, fixed-$b$ critical values; Section~\\ref{sec:rh_methods_tests}). "
         + me.STAR_NOTE
+        # 2026-10-28 (author: prune "pooled"). Was: "of each day (the pooled intraday scheme); each trades ..."
         + "\n\\item[a] Panels A and B: models estimated on the \\rhePoolNBars{} regular-hours 30-minute intervals "
-        "of each day (the pooled intraday scheme); each trades its 15:30 forecast of the 15:30--16:00 ET variance.\n"
+        "of each day (the intraday scheme); each trades its 15:30 forecast of the 15:30--16:00 ET variance.\n"
         "\\item[b] The OLS on the HAR benchmark set, the primary benchmark (Table~\\ref{tab:rh_oos}); the ridge, "
         "lasso and elastic net forecasts on that set coincide with it (largest relative difference "
         "\\rhemHarLinMaxRelDiff{} over \\rhemHarLinNRows{} forecasts; the positions agree on every day), so Panel B "
@@ -931,8 +934,11 @@ def fig_float_tex(yr: dict) -> str:
         "post-warmup days of $\\mathcal T_{\\mathrm{opt}}$. Each point is $\\SR_y$, the Sharpe ratio of the year's "
         "daily returns annualized by the square root of that year's option days per calendar year "
         "(Section~\\ref{sec:rh_econ_measures}); the paper's $\\SR$ pools the days of all years. "
-        "Within each year, the left group shows the six pooled intraday forecasts on the full predictor "
-        "set (filled) and the right group the \\rhemHarDistinctWord{} distinct pooled forecasts on the HAR benchmark "
+        # 2026-10-28 (author: prune "pooled"; "pools the days of all years" above is kept: pooled over days). Was:
+        # "Within each year, the left group shows the six pooled intraday forecasts on the full predictor "
+        # "set (filled) and the right group the \\rhemHarDistinctWord{} distinct pooled forecasts on the HAR benchmark "
+        "Within each year, the left group shows the six intraday forecasts on the full predictor "
+        "set (filled) and the right group the \\rhemHarDistinctWord{} distinct forecasts on the HAR benchmark "
         "set (open; the ridge, lasso and elastic net forecasts coincide, Table~\\ref{tab:rh_econ_main}); circles are "
         "linear models, squares tree ensembles, and the short magenta lines the group medians "
         f"(full set: {seq('rhemByYearFullMed')}; HAR set: {seq('rhemByYearHarMed')}). "

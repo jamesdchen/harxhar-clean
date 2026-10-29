@@ -2105,6 +2105,7 @@ def table_sharpe_defs(dfd: pd.DataFrame) -> str:
             "Table (Sharpe-ratio definitions, D19)",
             "the Sharpe-ratio change of the pooled models under other definitions",
         )
+        # 2026-10-28 (author: prune "pooled"). Was (notes): "Each row is a pooled intraday model class; ..."
         + rf"""\begin{{table}}[tbp]
 \centering
 \small
@@ -2122,7 +2123,7 @@ def table_sharpe_defs(dfd: pd.DataFrame) -> str:
 \end{{tabular}}
 \begin{{tablenotes}}[flushleft]
 \footnotesize
-\item \textit{{Notes:}} Each row is a pooled intraday model class; each entry is the Sharpe ratio of the sign strategy
+\item \textit{{Notes:}} Each row is an intraday model class; each entry is the Sharpe ratio of the sign strategy
 at mid-quotes on the full predictor set minus that on the HAR benchmark. $\SR$ is the paper's Sharpe ratio
 (Section~\ref{{sec:rh_econ_measures}}): the ratio of the mean to the standard deviation of all \rheSzDays{{}} daily
 returns, times the square root of $q = \rheAnnDays$ option days per calendar year; in brackets, the $p$-value of the

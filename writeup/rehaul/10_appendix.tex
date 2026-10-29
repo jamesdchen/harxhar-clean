@@ -82,7 +82,8 @@
   (\texttt{writeup/\allowbreak make\_*.py}) to files in \texttt{writeup/\allowbreak generated/}; one switch
   (\texttt{REHAUL\_\allowbreak FINAL\_\allowbreak RUN}, \texttt{writeup/\allowbreak final\_run.py}) points them at the
   final forecasts.
-\item \textbf{Fits.} The pooled linear models are fitted by
+\item \textbf{Fits.} The linear models are fitted by
+% 2026-10-28 (author: prune "pooled"). Was: "The pooled linear models are fitted by".
   \texttt{experiments/\allowbreak pooled\_\allowbreak linear\_\allowbreak rerun\_\allowbreak 2026\_10\_19\_13.py} and
   the tree ensembles by \texttt{experiments/\allowbreak pooled\_\allowbreak trees\_\allowbreak rerun\_13.py}, the
   random forest with Intel's oneDAL engine
@@ -465,7 +466,8 @@
   % 2026-10-23 (user, final run): parked -- \rhdmNColsPooled counts the dictionary's candidate columns of Section 4, not
   % the fitted 13-bar design of Table 1 (\rhorNColsAf, from frozen_penalties.json: 576 printed, 564 final; author
   % notes, "Predictor count"). Was: "The full predictor set has \rhdmNColsPooled{} predictors (Section~\ref{sec:rh_predictors})."
-  In the design of the pooled models of Table~\ref{tab:rh_oos}, the full predictor set has \rhorNColsAf{}
+  In the design of the models of Table~\ref{tab:rh_oos}, the full predictor set has \rhorNColsAf{}
+  % 2026-10-28 (author: prune "pooled"). Was: "In the design of the pooled models of".
   predictors (Section~\ref{sec:rh_predictors}).
   \begin{itemize}
   % 2026-10-20 (user): parked -- holds for the closing-interval models and the straddle, not for Table 1. Was: "\item Only the forecasts of the closing interval $i = c$, made at the 15:30 ET forecast origin, are scored and traded."
@@ -476,7 +478,8 @@
   % Table~\ref{tab:rh_oos} are scored on every one of the \rhorNBars{} regular-hours bars."
   % 2026-10-22 (user, E36): parked -- "the pooled linear models of Table~\ref{tab:rh_oos} are scored"; Table 1 now holds the tree ensembles too.
   \item The straddle strategy trades only the forecast of the closing interval $i = c$, made at the 15:30 ET
-    forecast origin; the pooled linear models and tree ensembles of Table~\ref{tab:rh_oos} are scored on every one
+    forecast origin; the linear models and tree ensembles of Table~\ref{tab:rh_oos} are scored on every one
+    % 2026-10-28 (author: prune "pooled"). Was: "the pooled linear models and tree ensembles".
     of the \rhorNBars{} regular-hours bars of each NYSE trading day.
   % 2026-10-20 (user): parked -- the window from the Table 1 generator, not rehaul_dm_samples / make_rehaul_data_methods.py. Was: "\item Linear models: $W = \rhdmPooledLinWindow$ intervals (\cmPtFitWin{} trading days), re-estimated every interval."
   \item Linear models: $W = \rhorWindowBars$ bars (\rhorWindowDays{} trading days of the \rhorNBars{} regular-hours bars), re-estimated every interval.
@@ -489,7 +492,8 @@
     % against specs/causal_tune_trees.py (docstring: the pooled LightGBM and XGBoost are arms tree_expert_00 and
     % tree_expert_16 of the frozen 20-arm bank).
   % 2026-10-26 (integration, JFEc; audit correctness-2, D8): added -- how W was chosen.
-  \item The window $W$ of both was fixed after the pooled linear models had been scored out of sample at other
+  \item The window $W$ of both was fixed after the linear models had been scored out of sample at other
+  % 2026-10-28 (author: prune "pooled"). Was: "after the pooled linear models had been".
     windows; Appendix~\ref{app:rh_robust_window} discloses the choice and reports the windows.
   \end{itemize}
 % 2026-10-15 (user): parked -- "park all tables that I haven't mentioned in this chat"
@@ -554,7 +558,8 @@
   % Sections~\ref{sec:rh_results}--\ref{sec:rh_econ}: one penalty per estimator and predictor set, chosen by the same
   % criterion on \rhorPenFolds{} validation folds covering \rhorPenYears{}; Table~\ref{tab:rh_dm_hyper} does not print
   % these picks (note N24);"
-  \item pooled linear models of Table~\ref{tab:rh_oos} and Sections~\ref{sec:rh_results}--\ref{sec:rh_econ}: one
+  \item linear models of Table~\ref{tab:rh_oos} and Sections~\ref{sec:rh_results}--\ref{sec:rh_econ}: one
+  % 2026-10-28 (author: prune "pooled"). Was: "\item pooled linear models of Table".
     penalty per estimator and predictor set, chosen by the same criterion on \rhorPenSample{}
     (Section~\ref{sec:rh_methods_tuning}); on the full predictor set ridge \rhdmPlPenRidgeAll, lasso
     \rhdmPlPenLassoAll{} and elastic net \rhdmPlPenEnetAll, on the HAR benchmark ridge \rhdmPlPenRidgeBase, lasso
@@ -634,7 +639,8 @@
     % pooled_trees_rerun_13.py:231-260 (model_factory) passes the params of cluster/pooltree_lgbm_config.json,
     % cluster/xgbtop_xgb_config.json and cluster/pooltree_rf400_config.json (provenance window 24000) as they are, on
     % the window of the design cache (39,000 bars at W = 3,000; results/pooled_trees_final_2014start_w3000/run.json).
-    The pooled trees of Table~\ref{tab:rh_oos} use the number outside the parentheses as selected, without
+    The trees of Table~\ref{tab:rh_oos} use the number outside the parentheses as selected, without
+    % 2026-10-28 (author: prune "pooled"). Was: "The pooled trees of Table".
     rescaling, on their window of $\rheTreeWindowBars$ bars (Section~\ref{sec:rh_exp_schemes}).
   % 2026-10-15 (finish): typed 255 and 24{,}000 -> \rhdmRfTrial, \rhdmPooledWindow (same values).
   % 2026-10-15 (consolidation): typed 400, 485, 20, 0.90, 0.41, 2,000 -> \cmTreeProv..., \cmPtFitWin (same values).
@@ -686,7 +692,8 @@
   % first forecast: \[ \hat\lambda = \argmin_{\lambda} \frac14 \sum_{v=1}^{4} \mathrm{MSE}^{\mathrm{val}}_v(\lambda),
   % \] with $\mathrm{MSE}^{\mathrm{val}}_v(\lambda)$ the mean squared error of $\tilde y$ on the validation sample of
   % fold $v$;"
-  \item pooled linear models of Table~\ref{tab:rh_oos}: hyperparameter selection on the validation MSE of
+  \item linear models of Table~\ref{tab:rh_oos}: hyperparameter selection on the validation MSE of
+  % 2026-10-28 (author: prune "pooled"). Was: "\item pooled linear models of Table".
     \rhorPenSample{}, fitted on the $W = \rhorWindowBars$ bars before its gap of $n_{\mathrm{gap}}$ trading days
     (Section~\ref{sec:rh_exp_samples}), before the first forecast:
     \[
@@ -739,7 +746,8 @@
 % 2026-10-23 (user, E22): restated -- the tree setting of Table 1 named as such. Was: "\item \textbf{Pooled trees}
 % (Table~\ref{tab:rh_oos} and Sections~\ref{sec:rh_results}--\ref{sec:rh_econ}): one configuration per method
 % (Section~\ref{sec:rh_methods_hyper}), never re-selected, re-estimated every bar (Section~\ref{sec:rh_exp_schemes})."
-\item \textbf{Pooled trees,} the tree cells of Table~\ref{tab:rh_oos} and the trees of
+\item \textbf{Trees,} the tree cells of Table~\ref{tab:rh_oos} and the trees of
+% 2026-10-28 (author: prune "pooled"). Was: "\textbf{Pooled trees,}".
   Sections~\ref{sec:rh_results}--\ref{sec:rh_econ}: one frozen configuration per method
   (Section~\ref{sec:rh_methods_hyper}), never re-selected, refit at every bar on the $W = \rheTreeWindowBars$ bars
   before it (Section~\ref{sec:rh_exp_schemes}).
@@ -987,7 +995,8 @@
 \begin{itemize}
 % 2026-10-20 (user): parked -- Table 1 scored from 2012 (TABLE1_SWITCH.md, approved). Was: "\item \textbf{Reported comparisons.} Forecast accuracy on $\mathcal T_{\mathrm{oos}}$ is Table~\ref{tab:rh_oos}."
 % 2026-10-22 (user, E36): parked -- Table 1 now holds the tree ensembles too. Was: "Forecast accuracy of the pooled linear models is Table~\ref{tab:rh_oos}, ..."
-\item \textbf{Reported comparisons.} Forecast accuracy of the pooled linear models and tree ensembles is Table~\ref{tab:rh_oos}, from \rhorSpanStart{} to \rhorSpanEnd.
+\item \textbf{Reported comparisons.} Forecast accuracy of the linear models and tree ensembles is Table~\ref{tab:rh_oos}, from \rhorSpanStart{} to \rhorSpanEnd.
+% 2026-10-28 (author: prune "pooled"). Was: "accuracy of the pooled linear models".
 % 2026-10-21 (user, decision #2): parked -- "and HAC $t$-statistic". Was: "The Diebold--Mariano statistic, with the Harvey--Leybourne--Newbold correction, and the Newey--West variance and HAC $t$-statistic are Appendix~\ref{sec:rh_methods_tests}."
   The Diebold--Mariano statistic, with the Harvey--Leybourne--Newbold correction, the Newey--West variance and the
   tests of strategy returns are Appendix~\ref{sec:rh_methods_tests}.
@@ -1007,7 +1016,8 @@
 % hour. The comparison of their average QLIKE is in Section~\ref{sec:rh_results}. A forecast of the variance remaining
 % from an earlier origin to the close is not reported."
 \item \textbf{Models estimated on the closing half hour.} They forecast the closing half hour only, and
-  Appendix~\ref{app:rh_closing} compares them with the pooled models of Table~\ref{tab:rh_oos}.
+  Appendix~\ref{app:rh_closing} compares them with the models of Table~\ref{tab:rh_oos}.
+  % 2026-10-28 (author: prune "pooled"). Was: "with the pooled models of".
 % 2026-10-26 (integration, JFEc; D14): the tuning disclosure is METHODS' (rehaul/A_methods.tex, app:rh_tuning, with
 % Table tab:rh_tuning); pointer only, so the table is \input once.
 \item \textbf{Hyperparameter tuning.} How the frozen hyperparameters were obtained, and four checks of them on the

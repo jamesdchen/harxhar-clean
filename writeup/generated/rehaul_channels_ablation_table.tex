@@ -52,7 +52,7 @@ benchmark): negative = the loss falls when the group is added, i.e.\ the group a
 hurts. Right block, the group removed from the full set (reference: the full set): positive = the loss rises when the
 group is dropped, i.e.\ the group adds accuracy; negative = the group hurts. Joint: the full set against the HAR
 benchmark on the same days; negative = the full set is more accurate. Bold: the Diebold--Mariano test rejects equal accuracy
-at 5\% (two-sided; daily average loss, Newey--West lag \rhchHacLag). HAR benchmark: the pooled OLS on the HAR set for
+at 5\% (two-sided; daily average loss, Newey--West lag \rhchHacLag). HAR benchmark: the OLS on the HAR set for
 the linear models, each tree's own HAR-set fit. Shaded: in each class's column, the group with the largest add-alone gain on the day type, in
 both blocks. Readings by model type (fixed before scoring, tested in this order): concentrated if one group's add-alone
 gain is at least 75\% of the joint gain and its removal raises the loss significantly; redundant if the add-alone gains

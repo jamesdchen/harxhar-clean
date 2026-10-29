@@ -15,7 +15,7 @@
 \cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(l){8-9}
  & Mid & Bid/ask & Mid & Bid/ask & $\Delta\SR$ & $t(\bar\Delta)$ & HAR set & OLS-HAR \\
 \midrule
-\multicolumn{9}{@{}l}{\textit{Panel A: Pooled intraday models, full predictor set\tnote{a}}} \\
+\multicolumn{9}{@{}l}{\textit{Panel A: Intraday models, full predictor set\tnote{a}}} \\
 \addlinespace[2pt]
 Ridge & $1.64$ & $1.29$ & $12.3$ & $9.7$ & $1.32^{*\phantom{**}}$ & $1.70^{\phantom{***}}$ & $0.69^{\phantom{***}}$ & $0.69^{\phantom{***}}$ \\
  &  &  &  &  & $[0.059]^{\phantom{***}}$ &  & $[0.171]^{\phantom{***}}$ & $[0.171]^{\phantom{***}}$ \\[2pt]
@@ -30,7 +30,7 @@ XGBoost & $1.54$ & $1.19$ & $11.6$ & $9.0$ & $1.22^{*\phantom{**}}$ & $1.61^{\ph
 Random forest & $1.88$ & $1.52$ & $14.1$ & $11.4$ & $1.56^{**\phantom{*}}$ & $2.14^{**\phantom{*}}$ & $1.56^{**\phantom{*}}$ & $0.92^{**\phantom{*}}$ \\
  &  &  &  &  & $[0.018]^{\phantom{***}}$ &  & $[0.020]^{\phantom{***}}$ & $[0.039]^{\phantom{***}}$ \\[2pt]
 \addlinespace[4pt]
-\multicolumn{9}{@{}l}{\textit{Panel B: Pooled intraday models, HAR benchmark set\tnote{a}}} \\
+\multicolumn{9}{@{}l}{\textit{Panel B: Intraday models, HAR benchmark set\tnote{a}}} \\
 \addlinespace[2pt]
 OLS\tnote{b} & $0.95$ & $0.60$ & $7.2$ & $4.6$ & $0.63^{\phantom{***}}$ & $0.90^{\phantom{***}}$ & --$^{\phantom{***}}$ & --$^{\phantom{***}}$ \\
  &  &  &  &  & $[0.350]^{\phantom{***}}$ &  &  &  \\[2pt]
@@ -49,7 +49,7 @@ Short straddle & $0.32$ & $-0.03$ & $2.4$ & $-0.2$ & --$^{\phantom{***}}$ & --$^
 \begin{tablenotes}[flushleft]
 \footnotesize
 \item \textit{Notes:} The sign strategy $q_t = \sign(\hat\sigma^2_t - \mathrm{IV}^2_t)$ on the \rheSzDays{} post-warmup days of $\mathcal T_{\mathrm{opt}}$; the short straddle holds $q_t \equiv -1$. $\SR$ is the annualized Sharpe ratio of Section~\ref{sec:rh_econ_measures}, at mid-quotes and at quoted bid/ask prices; mean return is the mean daily return in percent of the premium. Every comparison is at mid-quotes. $\Delta\SR$ is the difference of the Sharpe ratios: against the short straddle; against the same model class on the HAR benchmark set and against the OLS on the HAR benchmark set (full-set rows only). Under each $\Delta\SR$, in brackets, the $p$-value of the \citet{LedoitWolf2008} test of equal Sharpe ratios (block length \rheLWBlock{}, \rheLWBoot{} resamples); $t(\bar\Delta)$ is the $t$-statistic of the mean daily return differential against the short straddle (Newey--West, bandwidth $S = \rheHACS$, fixed-$b$ critical values; Section~\ref{sec:rh_methods_tests}). $^{*}$, $^{**}$ and $^{***}$ denote significance at the 10\%, 5\% and 1\% levels.
-\item[a] Panels A and B: models estimated on the \rhePoolNBars{} regular-hours 30-minute intervals of each day (the pooled intraday scheme); each trades its 15:30 forecast of the 15:30--16:00 ET variance.
+\item[a] Panels A and B: models estimated on the \rhePoolNBars{} regular-hours 30-minute intervals of each day (the intraday scheme); each trades its 15:30 forecast of the 15:30--16:00 ET variance.
 \item[b] The OLS on the HAR benchmark set, the primary benchmark (Table~\ref{tab:rh_oos}); the ridge, lasso and elastic net forecasts on that set coincide with it (largest relative difference \rhemHarLinMaxRelDiff{} over \rhemHarLinNRows{} forecasts; the positions agree on every day), so Panel B holds \rhemHarDistinctWord{} distinct forecasts.
 \end{tablenotes}
 \end{threeparttable}

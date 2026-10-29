@@ -2509,7 +2509,8 @@ def write_samples(P: dict) -> None:
             [
                 # 2026-10-22 (user, E34): the label names the pooled linear models of the 13-bar rerun too. Was:
                 # rf"\quad Regular-hours bars, bar ends {rth[0]}--{rth[-1]} ET (trees)",
-                rf"\quad Regular-hours bars, bar ends {rth[0]}--{rth[-1]} ET: the trees and the pooled linear models of "
+                # 2026-10-28 (author: prune "pooled"). Was: "... ET: the trees and the pooled linear models of "
+                rf"\quad Regular-hours bars, bar ends {rth[0]}--{rth[-1]} ET: the trees and the linear models of "
                 r"Table~\ref{tab:rh_oos} and Sections~\ref{sec:rh_results}--\ref{sec:rh_econ}",
                 D_(t13.iloc[0]),
                 D_(t13.iloc[-1]),
@@ -2534,7 +2535,8 @@ def write_samples(P: dict) -> None:
             [
                 cells(
                     [
-                        rf"\quad Penalty selection (pooled linear models): validation sample of pre-sample fold "
+                        # 2026-10-28 (author: prune "pooled"). Was: rf"\quad Penalty selection (pooled linear models): ..."
+                        rf"\quad Penalty selection (linear models): validation sample of pre-sample fold "
                         rf"{', '.join(str(f['fold']) for f in pen_folds)}",
                         D_(pd.Timestamp(pen_folds[0]["val_first"])),
                         D_(pd.Timestamp(pen_folds[-1]["val_last"])),
@@ -2630,10 +2632,12 @@ def write_samples(P: dict) -> None:
         # rf"tree hyperparameters are chosen once, by an Optuna search on the {P['dev'][0].year}--{P['dev'][1].year} "
         # ... (as below) ... rf"it on the next {P['tm']['SCREEN_REFIT']}, stepping forward {P['tm']['SCREEN_REFIT']} "
         # "intervals at a time; " r"the reported forecasts refit every interval.",
-        r"The trees and the pooled linear models of Table~\ref{tab:rh_oos} and "
+        # 2026-10-28 (author: prune "pooled"). Was: r"The trees and the pooled linear models of Table~\ref{tab:rh_oos} and "
+        # ... r"bars); the pooled linear models on all \rhdmNIntervals{} intervals (in the model set) use "
+        r"The trees and the linear models of Table~\ref{tab:rh_oos} and "
         r"Sections~\ref{sec:rh_results}--\ref{sec:rh_econ} are re-estimated at every bar on the previous "
         rf"{n_(tw['window_bars'])} regular-hours bars ({n_(tw['window_days'])} trading days of {tw['bars_day']} "
-        r"bars); the pooled linear models on all \rhdmNIntervals{} intervals (in the model set) use "
+        r"bars); the linear models on all \rhdmNIntervals{} intervals (in the model set) use "
         r"$W = \rhdmPooledLinWindow$ intervals (\cmPtFitWin{} trading days).",
         rf"The tree hyperparameters are chosen once, by an Optuna search on the {P['dev'][0].year}--{P['dev'][1].year} "
         rf"development sample that fits each candidate on the previous {n_(P['tm']['WINDOW'])} intervals and scores "
@@ -2643,7 +2647,8 @@ def write_samples(P: dict) -> None:
         # 2026-10-23 (final design, coordinator): the pooled linear pre-sample scheme of the final rerun
         *(
             [
-                r"The penalties of the pooled linear models on the regular-hours bars are chosen once, on pre-sample "
+                # 2026-10-28 (author: prune "pooled"). Was: r"The penalties of the pooled linear models on the ..."
+                r"The penalties of the linear models on the regular-hours bars are chosen once, on pre-sample "
                 r"fold \rhdmPlPreFoldUsed: each candidate is fitted on the $W$ bars before a gap of "
                 r"\rhdmPlPreEmbargoSess{} sessions (\rhdmPlPreEmbargoBars{} bars) and scored on the next "
                 r"\rhdmPlPreFoldSess{} sessions (\rhdmPlPreFoldBars{} bars, the validation row above); a penalty "
