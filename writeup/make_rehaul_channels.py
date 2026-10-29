@@ -40,6 +40,7 @@ WRITES   results/channels_2026-10-26/*.csv, gates.json, provenance.csv, SUMMARY.
          writeup/generated/rehaul_channels_numbers.tex           \\rhch... macros
          writeup/generated/rehaul_channels_corrections_table.tex  tab:rh_channels_corr   (item 1)
          writeup/generated/rehaul_channels_ablation_table.tex     tab:rh_channels_abl    (item 3 ii)
+         writeup/generated/rehaul_channels_ablation_full_table.tex tab:rh_channels_abl_full (3 ii, every row)
          writeup/generated/rehaul_channels_sparsity_table.tex     tab:rh_channels_sparse (items 3 i, 3 iii)
          writeup/figures/rehaul_channels_cum.pdf, writeup/generated/rehaul_channels_fig.tex   fig:rh_channels (item 2)
 ADDITIONAL, NOT PRE-REGISTERED (coordinator, 2026-10-26, after the first scoring; labelled so in the CSV, SUMMARY.md
@@ -1454,81 +1455,178 @@ on the patched and the unpatched design; every forecast here is on the patched d
 
 
 def table_abl(A4: pd.DataFrame, RD: pd.DataFrame, n_ev_bars: int) -> None:
+    """tab:rh_channels_abl (Section 7) and tab:rh_channels_abl_full (Appendix app:rh_channels, every row).  The full
+    table: * on a significant cell, the dagger on each pre-patch cell, the add-alone sum, the significant leave-outs and
+    the readings by class.  The main table (author, 2026-10-28): a significant cell in bold; each class's top add-alone
+    group (the readings' top_group) shaded in both blocks; the dagger once on a class header whose removals other than
+    FOMC are all pre-patch (a class whose removals mix the designs keeps it on its pre-patch cells); the joint row and
+    the readings by model type only."""
+
     def get(c: str, sp: str, kind: str, g: str = "") -> pd.Series | None:
         f = A4[(A4.cls == c) & (A4.span == sp) & (A4.kind == kind) & (A4.group == g)]
         return f.iloc[0] if len(f) else None
 
-    out = []
+    hdr_dag: dict[str, bool] = {}  # main table: the dagger on the class header
+    cell_dag: dict[str, bool] = {}  # main table: the dagger on the class's pre-patch cells (designs mixed)
+    for c in CLASSES:
+        lo = A4[(A4.cls == c) & (A4.kind == "lo") & (A4.status == "ok")]
+        assert not (lo[lo.group == "fomc"]["design"] == "pre-patch").any(), f"{c}: lo_fomc pre-patch"  # the note
+        des = set(lo[lo.group != "fomc"]["design"])
+        hdr_dag[c] = des == {"pre-patch"}
+        cell_dag[c] = "pre-patch" in des and not hdr_dag[c]
+
+    def bold(r: pd.Series | None, c: str = "", shade: bool = False) -> str:
+        """Main-table cell: bold when significant at ALPHA (the full table's * criterion), shaded on request."""
+        s = cell(r)
+        if r is not None and r["status"] == "ok":
+            if r["p_qlike"] < ALPHA:
+                s = f"\\textbf{{\\boldmath {s}}}"
+            if c and cell_dag[c] and r["design"] == "pre-patch":
+                s += "$^{\\dagger}$"
+        return ("\\cellcolor{black!8}" if shade else "") + s
+
+    out_f: list[str] = []  # the full table
+    out_m: list[str] = []  # the main table
     for sp, title in (
         ("event", f"A. FOMC statement days (\\rhchNEventDays{{}} days, {thousands(n_ev_bars)} bars)"),
         ("ord", "B. Ordinary days (\\rhchNOrdDays{} days)"),
     ):
-        out.append(f"\\multicolumn{{13}}{{@{{}}l}}{{\\textit{{{title}}}}} \\\\")
+        for out in (out_f, out_m):
+            out.append(f"\\multicolumn{{13}}{{@{{}}l}}{{\\textit{{{title}}}}} \\\\")
+        rds = RD[(RD.level == "class") & (RD.span == sp)].set_index("who")
+        top = {c: str(rds.loc[c, "top_group"]) for c in CLASSES}
         for g in GROUPS:
             cells = [cell(get(c, sp, "add", g), star=True) for c in CLASSES]
             cells += [cell(get(c, sp, "lo", g), star=True, dagger=True) for c in CLASSES]
-            out.append(f"{GNAME[g]} & " + " & ".join(cells) + " \\\\")
-        out.append("\\addlinespace[2pt]")
+            out_f.append(f"{GNAME[g]} & " + " & ".join(cells) + " \\\\")
+            cells = [bold(get(c, sp, "add", g), shade=top[c] == g) for c in CLASSES]
+            cells += [bold(get(c, sp, "lo", g), c, shade=top[c] == g) for c in CLASSES]
+            out_m.append(f"{GNAME[g]} & " + " & ".join(cells) + " \\\\")
+        for out in (out_f, out_m):
+            out.append("\\addlinespace[2pt]")
         cells = [cell(get(c, sp, "joint"), star=True) for c in CLASSES] + [""] * 6
-        out.append("Full set vs HAR (joint) & " + " & ".join(cells) + " \\\\")
-        rds = RD[(RD.level == "class") & (RD.span == sp)].set_index("who")
+        out_f.append("Full set vs HAR (joint) & " + " & ".join(cells) + " \\\\")
+        cells = [bold(get(c, sp, "joint")) for c in CLASSES] + [""] * 6
+        out_m.append("Full set vs HAR (joint) & " + " & ".join(cells) + " \\\\")
         cells = [fmt(rds.loc[c, "ratio_sum"], 2) if np.isfinite(rds.loc[c, "ratio_sum"]) else PEND for c in CLASSES] + [
             f"{int(rds.loc[c, 'n_lo_sig'])}/{len(GROUPS) - int(rds.loc[c, 'n_lo_unknown'])}" for c in CLASSES
         ]
-        out.append("Sum add / joint; sig.\\ leave-outs & " + " & ".join(cells) + " \\\\")
+        out_f.append("Sum add / joint; sig.\\ leave-outs & " + " & ".join(cells) + " \\\\")
         cells = [rd_tex(rds.loc[c, "reading"], short=True) for c in CLASSES] + [""] * 6
-        out.append("Reading, by class & " + " & ".join(cells) + " \\\\")
+        out_f.append("Reading, by class & " + " & ".join(cells) + " \\\\")
         rt = RD[(RD.level == "type") & (RD.span == sp)].set_index("who")["reading"]
-        out.append(
-            f"Reading, by model type & \\multicolumn{{3}}{{c}}{{{rd_tex(rt['lin'])}}} & "
-            f"\\multicolumn{{3}}{{c}}{{{rd_tex(rt['tree'])}}} & & & & & & \\\\"
-        )
-        if sp == "event":
-            out.append("\\addlinespace[4pt]")
+        for out in (out_f, out_m):
+            out.append(
+                f"Reading, by model type & \\multicolumn{{3}}{{c}}{{{rd_tex(rt['lin'])}}} & "
+                f"\\multicolumn{{3}}{{c}}{{{rd_tex(rt['tree'])}}} & & & & & & \\\\"
+            )
+            if sp == "event":
+                out.append("\\addlinespace[4pt]")
     hdr = " & ".join(CSHORT[c] for c in CLASSES)
-    body = rf"""\begin{{table}}[htbp]
+    hdr_lo = " & ".join(CSHORT[c] + ("$^{\\dagger}$" if hdr_dag[c] else "") for c in CLASSES)
+    head = r"""\begin{table}[htbp]
 \centering
 \scriptsize
-\setlength{{\tabcolsep}}{{1.5pt}}
-\begin{{threeparttable}}
-\caption{{Predictor groups by day type: each group added alone to the HAR benchmark and left out of the full set, on
-  FOMC statement days and on ordinary days (\% change in QLIKE)}}
-\label{{tab:rh_channels_abl}}
-\begin{{tabular*}}{{\linewidth}}{{@{{\extracolsep{{\fill}}}}lrrrrrrrrrrrr@{{}}}}
+\setlength{\tabcolsep}{1.5pt}
+\begin{threeparttable}
+\caption{Predictor groups by day type: each group added alone to the HAR benchmark and left out of the full set, on
+  FOMC statement days and on ordinary days (\% change in QLIKE"""
+    cols = r"""\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lrrrrrrrrrrrr@{}}
 \toprule
- & \multicolumn{{6}}{{c}}{{HAR benchmark plus the group, vs HAR}} & \multicolumn{{6}}{{c}}{{Full set without the group, vs full set}} \\
- & \multicolumn{{6}}{{c}}{{\textit{{$-$: the group adds accuracy; $+$: it hurts}}}}
- & \multicolumn{{6}}{{c}}{{\textit{{$+$: the group adds accuracy; $-$: it hurts}}}} \\
-\cmidrule(lr){{2-7}}\cmidrule(l){{8-13}}
- & {hdr} & {hdr} \\
-\midrule
-{chr(10).join(out)}
-\bottomrule
-\end{{tabular*}}
-\begin{{tablenotes}}[flushleft]
-\footnotesize
-\item \textit{{Notes:}} \textit{{Sign:}} every cell is $100\,(L_{{\mathrm{{row}}}}/L_{{\mathrm{{ref}}}} - 1)$, the
+ & \multicolumn{6}{c}{HAR benchmark plus the group, vs HAR} & \multicolumn{6}{c}{Full set without the group, vs full set} \\
+ & \multicolumn{6}{c}{\textit{$-$: the group adds accuracy; $+$: it hurts}}
+ & \multicolumn{6}{c}{\textit{$+$: the group adds accuracy; $-$: it hurts}} \\
+\cmidrule(lr){2-7}\cmidrule(l){8-13}
+"""
+    sign = r"""\item \textit{Notes:} \textit{Sign:} every cell is $100\,(L_{\mathrm{row}}/L_{\mathrm{ref}} - 1)$, the
 percentage change in mean QLIKE of the row's forecast against its reference on the bars of the day type; the
 Diebold--Mariano statistic has the same sign. Left block, the group added to the HAR benchmark set (reference: the HAR
 benchmark): negative = the loss falls when the group is added, i.e.\ the group adds accuracy; positive = the group
 hurts. Right block, the group removed from the full set (reference: the full set): positive = the loss rises when the
 group is dropped, i.e.\ the group adds accuracy; negative = the group hurts. Joint: the full set against the HAR
-benchmark on the same days; negative = the full set is more accurate. * the Diebold--Mariano test rejects equal accuracy
+benchmark on the same days; negative = the full set is more accurate."""
+    test = r"""the Diebold--Mariano test rejects equal accuracy
 at 5\% (two-sided; daily average loss, Newey--West lag \rhchHacLag). HAR benchmark: the pooled OLS on the HAR set for
-the linear models, each tree's own HAR-set fit. Sum add / joint: the add-alone QLIKE gains (falls in the loss; a group
+the linear models, each tree's own HAR-set fit."""
+    # 2026-10-28: the forest's FOMC removal was stopped (ablation addendum E (i)), so it is not "run"; was: "for leaving
+    # out the realized moments and the FOMC group only" in every case
+    rf_lo = "the realized moments only" if RF_LOFOMC_DROPPED else "the realized moments and the FOMC group only"
+    tail = (
+        r"""Arms without a FOMC column are the same forecasts on both designs. The forest is run for the
+added groups and for leaving out """
+        + rf_lo
+        + r""" (--: not run).
+\end{tablenotes}"""
+    )
+    tail += r"""
+\end{threeparttable}
+\end{table}
+"""
+    full = (
+        head
+        + r"""; full detail)}
+\label{tab:rh_channels_abl_full}
+"""
+        + cols
+        + f" & {hdr} & {hdr} \\\\\n\\midrule\n{chr(10).join(out_f)}\n"
+        + r"""\bottomrule
+\end{tabular*}
+\begin{tablenotes}[flushleft]
+\footnotesize
+"""
+        + sign
+        + " * "
+        + test
+        + r""" Sum add / joint: the add-alone QLIKE gains (falls in the loss; a group
 that hurts counts negative) summed over the eight groups, divided by the joint gain; sig.\ leave-outs: groups whose removal raises the loss significantly, of the
 leave-outs run. Readings (fixed before scoring, tested in this order): concentrated (conc.)\ if one group's add-alone
 gain is at least 75\% of the joint gain and its leave-out is significant; redundant (redund.)\ if the add-alone gains
 sum to more than 1.5 times the joint gain and at most one leave-out is significant; otherwise mixed; by model type the
-majority of ridge, lasso and elastic net, and of LightGBM and XGBoost with the forest where its arms exist. $^{{\dagger}}$ Unpatched design (the FOMC proximity
+majority of ridge, lasso and elastic net, and of LightGBM and XGBoost with the forest where its arms exist. $^{\dagger}$ Unpatched design (the FOMC proximity
 series before the fix), compared with the unpatched full set: the trees' leave-outs other than FOMC were not rerun on
-the patched design. Arms without a FOMC column are the same forecasts on both designs. The forest is run for the
-added groups and for leaving out the realized moments and the FOMC group only (--: not run).
-\end{{tablenotes}}
-\end{{threeparttable}}
-\end{{table}}
+the patched design. """
+        + tail
+    )
+    dag = []
+    if any(hdr_dag.values()):
+        dag.append("On a class: its removals other than the FOMC group are")
+    if any(cell_dag.values()):
+        dag.append("on a cell: that removal is" if dag else "On a cell: that removal is")
+    dag_note = (
+        "$^{\\dagger}$ "
+        + "; ".join(dag)
+        + " on the unpatched design (the FOMC proximity series before the fix), compared with the unpatched full set;"
+        + " they were not rerun on the patched design. "
+        if dag
+        else ""
+    )
+    main = (
+        head
+        + r""")}
+\label{tab:rh_channels_abl}
 """
-    (GEN / "rehaul_channels_ablation_table.tex").write_text(with_def(body), encoding="utf-8", newline="\n")
+        + cols
+        + f" & {hdr} & {hdr_lo} \\\\\n\\midrule\n{chr(10).join(out_m)}\n"
+        + r"""\bottomrule
+\end{tabular*}
+\begin{tablenotes}[flushleft]
+\footnotesize
+"""
+        + sign
+        + " Bold: "
+        + test
+        + r""" Shaded: in each class's column, the group with the largest add-alone gain on the day type, in
+both blocks. Readings by model type (fixed before scoring, tested in this order): concentrated if one group's add-alone
+gain is at least 75\% of the joint gain and its removal raises the loss significantly; redundant if the add-alone gains
+sum to more than 1.5 times the joint gain and at most one removal raises the loss significantly; otherwise mixed; the
+majority of ridge, lasso and elastic net, and of LightGBM and XGBoost with the forest where its arms exist.
+Table~\ref{tab:rh_channels_abl_full} (Appendix~\ref{app:rh_channels}) adds the per-class readings, the add-alone gains
+summed over the groups against the joint gain and the counts of significant leave-outs. """
+        + dag_note
+        + tail
+    )
+    (GEN / "rehaul_channels_ablation_table.tex").write_text(with_def(main), encoding="utf-8", newline="\n")
+    (GEN / "rehaul_channels_ablation_full_table.tex").write_text(with_def(full), encoding="utf-8", newline="\n")
 
 
 def table_sparse(P3: pd.DataFrame, LD: pd.DataFrame, gates: dict) -> None:

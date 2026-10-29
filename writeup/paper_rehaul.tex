@@ -33,6 +33,11 @@
 \usepackage{pdflscape}
 \usepackage{makecell}
 \usepackage{xcolor}
+% 2026-10-28 (author, Table tab:rh_channels_abl legibility): \cellcolor shading in tables. colortbl v1.0k (2024)
+% calls \insert@pcolumn, which array.sty defines only from v2.6; the local MiKTeX's array v2.5g builds p columns with
+% \insert@column, so it stands in there (no effect where array is current, as on Overleaf).
+\usepackage{colortbl}
+\makeatletter\@ifundefined{insert@pcolumn}{\let\insert@pcolumn\insert@column}{}\makeatother
 \captionsetup{font=small,labelfont=bf}
 \usepackage{hyperref}
 \emergencystretch=3em

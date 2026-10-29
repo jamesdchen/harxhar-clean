@@ -337,8 +337,8 @@
     comes from the fixed design under that rule; the exploratory numbers are not reported. Every model class and every
     predictor group is reported; none was dropped after scoring.
   \end{itemize}
-\item \textbf{Readings} (Table~\ref{tab:rh_channels_abl}). On each day type, with the joint gain that of the full set
-  over the HAR benchmark on that day type, the gain is
+\item \textbf{Readings} (Tables~\ref{tab:rh_channels_abl} and~\ref{tab:rh_channels_abl_full}). On each day type,
+  with the joint gain that of the full set over the HAR benchmark on that day type, the gain is
   \begin{itemize}
   \item concentrated if one group, added alone to the HAR benchmark set, recovers at least three-quarters of the joint
     gain and removing it from the full set raises the loss significantly;
@@ -365,7 +365,9 @@
     ten-component model significantly; intermediate otherwise. On ordinary days it is ``\rhfaReading''.
   \end{itemize}
 \item \textbf{Tables and coverage.} Table~\ref{tab:rh_channels_abl} reports every group's change added alone and
-  removed, for every class on both day types, with the joint gain and the readings; Table~\ref{tab:rh_channels_sparse}
+  removed, for every class on both day types, with the joint gain and the readings by model type;
+  Table~\ref{tab:rh_channels_abl_full} repeats it in full, with the per-class readings, the add-alone gains summed over
+  the groups against the joint gain and the counts of significant removals; Table~\ref{tab:rh_channels_sparse}
   the lasso against the ridge and the elastic net and the feature-count ladder by day type;
   Table~\ref{tab:rh_channels_corr} and Figure~\ref{fig:rh_channels} the three corrections and where the gain falls.
   Two gaps are marked in the tables: the random forest is fitted for the additions and for removing the realized
@@ -380,6 +382,9 @@
   \item the tests beyond that reference (Appendix~\ref{app:rh_results_beyond}), after the results against it.
   \end{itemize}
 \end{itemize}
+% 2026-10-28 (author, Table tab:rh_channels_abl legibility): the full ablation table by day type (every row, stars and
+% daggers per cell; writeup/make_rehaul_channels.py), named in "Tables and coverage" above.
+\input{generated/rehaul_channels_ablation_full_table}
 % Share of the full set's ordinary-day gain recovered by k components (writeup/make_rehaul_factor.py; RULE item 4)
 \input{generated/rehaul_factor_fig}
 
