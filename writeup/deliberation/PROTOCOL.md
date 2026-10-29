@@ -246,7 +246,7 @@ The `deliberate` skill holds the full procedure and the prompt templates.
 1. **Queue.** Append the items to `queue.jsonl`.
 2. **Route.** T0 items get a router adjudication and are done.
 3. **Solve.** Three blind solvers per remaining item, in parallel. Each writes `<id>.<lens>.md`.
-4. **Adjudicate.** One adjudicator writes `<id>.adjudication.json` and validates it with `digest.py --dry-run`.
+4. **Adjudicate.** One adjudicator writes `<id>.adjudication.json` and validates it with `digest.py --dry-run`. Adjudication is pipelined (author, 29 Oct 2026: "pipeline yes"): an item, or a group of related items that shared solvers, goes to its own adjudicator as soon as its three solver files exist, without waiting for the rest of the round.
 5. **Digest.** Run `python writeup/deliberation/digest.py writeup/deliberation/<round>`.
 6. **Send.** Send the author the content of `digest.md`, and nothing else.
 7. **Apply.** Apply T0, T1 and T2 actions through the repo's normal editing rules, one commit per item. Record answers and vetoes as they arrive.

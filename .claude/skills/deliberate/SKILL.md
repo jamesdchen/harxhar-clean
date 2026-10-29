@@ -189,7 +189,9 @@ object to.
 
 ## Step 4: adjudicator
 
-**Spawning.** Spawn one fresh `general-purpose` agent that was not a solver this round. For more than about eight items, spawn one adjudicator per batch.
+**Pipelined (author, 29 Oct 2026: "pipeline yes").** Do not wait for the whole round. As soon as one item's three solver files exist (or, for related items that shared solvers, all of that group's files), check that item's files and stray edits as in step 3's "Afterwards", then spawn its adjudicator at once while other items' solvers are still running. Group related items that shared solvers under one adjudicator. Each adjudicator validates with `--dry-run` and ignores errors in items that are not its own and not yet adjudicated. Run step 5 (the digest) only when every item of the round has its adjudication.
+
+**Spawning.** Spawn one fresh `general-purpose` agent that was not a solver this round, per item or per related group.
 
 **Validation.** When it finishes, run `python writeup/deliberation/digest.py writeup/deliberation/<round> --dry-run`.
 
