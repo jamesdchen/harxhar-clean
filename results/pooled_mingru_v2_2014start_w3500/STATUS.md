@@ -137,3 +137,11 @@ the old run (read-only): `/home1/jc_905/pmf35/data` (design copies, fold-3 ridge
   Pick unchanged: H 64, L 8, lr 0.003, tau 1 (wd 0.045674614), wd_enc 3, E 40, seeds 20261012-16, P100. Export to
   /project2/pollok_1603/jc_905/gru2fix/xdata_w3500, root /project2/pollok_1603/jc_905/gru2fix/pmf2_35; gates E, J, S
   as W 3,000. Estimate 71.7 P100-h (73.6 at G7). Handed to the CARC agent (one SSH owner).
+- 2026-10-29 00:55 PDT: RULE ADDENDUM 4a (both copies; coordinator, the CARC agent's phase-1 findings D1-D4), before any
+  submission: (D1) the W 3,500 source is the existing gated fixed design /home1/jc_905/ladder_fomcfix/designs/w3500/
+  _work (ladder RULE ADDENDUM 3 (1), 26 Oct; X md5 6f5ab023, y 996504f1, b_oos c0dd7663, dates f756e6bc; its gate D
+  vs fi_window/w3500 = v2's pre-fix source X 118dbe77: only the 12 FOMC value averages differ), replacing ADDENDUM 4's
+  B35 build and gate D; (D2) export script md5 8b3f444a (LF); (D3) runner copy 11504cdb vs 1a78d41a diffed first (see
+  RULE); (D4) the export rerun as a CPU main job into gru2fix/xdata_w3500 with gate E in full; the phase-1
+  pmf2_35_fix/xdata kept as a record only. Measured v2 cost: W 3,500 1.25 s a refit (both full arms 256.6 P100-h).
+  Nothing submitted.

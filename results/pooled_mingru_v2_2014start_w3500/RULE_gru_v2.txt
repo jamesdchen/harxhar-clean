@@ -528,3 +528,53 @@ ORDER    (1) this addendum committed and pushed; (2) W 3,500: B35 built, gate D;
          gate S passed (Slurm afterok on both gate-S jobs allowed); (5) merge, combine, score. One SSH owner of CARC;
          every state-changing command written out in its tool call (the 2026-10-24 standing rule); STATUS.md records
          each step with its job ids.
+
+ADDENDUM 4a 2026-10-29 00:55 PDT (07:55 UTC; coordinator, relaying the CARC agent's phase-1 findings D1-D4 against
+ADDENDUM 4), written before any submission of the rerun; identical in both windows' copies. (ADDENDUM 4's header time,
+01:00 PDT, was its planned time: it was committed at 00:49 PDT as 4b7f1d7.) Only what is named here changes; the scope,
+the design flags, the frozen picks, gates S and J's criteria, the walk, the merge and the scoring of ADDENDUM 4 stand.
+D1 W 3,500 DESIGN. A gated fixed W 3,500 design already exists; it replaces ADDENDUM 4's B35 build (no new design is
+         built; ADDENDUM 4's GATE D is not run and its ORDER step (2) lapses):
+           /home1/jc_905/ladder_fomcfix/designs/w3500/_work (design_all_features and design_baseline), built 2026-10-26
+           under results/ladder_2026-10-26/RULE.txt ADDENDUM 3 (1) with the fomcfix code tree and venv
+           (/home1/jc_905/fomcfix_lin/{code,venv}), the lin_stage.sh design command with --window-days 3500
+           --first-day 2014-01-02 --ex-flag LATE_START_WARMUP=1 --ex-flag FOMC_SCHEDULE_2020_FIX=1
+           --ex-flag FOMC_PROXIMITY_NO_WINSOR=1 (DROP_HOLIDAY_SESSIONS not passed: off, its default), window 45,500
+           rows. all_features X md5 6f5ab0232cfb43905f14380c0b8df8b7, y 996504f16da7982d64656d1ba0d9722a, b_oos
+           c0dd76634e8d421a3e343138c3b47171, dates_oos f756e6bc11bdf951f5d58927b517690a.
+         Its gate D passed (results/ladder_2026-10-26/fomcfix/carc/w3500_gate_design.json, main branch): against the
+         pre-patch W 3,500 cache /scratch1/jc_905/fi_window/w3500 (X md5 118dbe77b10791077f0d5675a8640b5a, which equals
+         v2's pre-fix W 3,500 export source): names equal; y, b_oos, dates_oos md5-equal; X bit-equal in every column
+         except exactly the 12 FOMC value averages (differing_outside_allowed empty). That gate covers the full set
+         only; the baseline set is checked at the export (E2: its six files byte-identical to v2's).
+         W 3,500 export: --design /home1/jc_905/ladder_fomcfix/designs/w3500/_work. E1 at W 3,500: the source's
+         all_features X.npy md5 = 6f5ab0232cfb43905f14380c0b8df8b7. E4 at W 3,500: X.f64 = that X.npy bit for bit.
+         E1 (both windows): DROP_HOLIDAY_SESSIONS false or absent from ex_flags (its default, off = the design before
+         the flag bit for bit); E2's byte-identical pmf_rows.csv confirms no row was dropped.
+D2 MD5 OF THE EXPORT SCRIPT. ADDENDUM 4's 62255995f4c2ee0abdde55aed753c290 for experiments/pooled_mingru_final_2014_
+         w3000.py is the md5 of the laptop's Windows (CRLF) checkout. The binding md5 is the committed (LF) blob's,
+         8b3f444ac3d4a864179eef735f4526c4. ADDENDUM 4's other md5s are of LF files and stand (pooled_mingru_v2.py
+         1a78d41ac4f4bbd0de62b7708c760358, cluster/pooled_mingru_v2_gpu_carc.sbatch 802e37ae9eab7d9c71f488d1519c9ad3,
+         cluster/pooled_mingru_v2_cpu_carc.sbatch 1ab7669a55ac7cf70f0f6b0fcb986c07). Every file copied to CARC is
+         LF-normalised (git archive on the laptop writes CRLF) and checked there against its committed (LF) blob md5.
+D3 THE RUNNER COPY (gate J). v2's CARC pmf2/code/pooled_mingru_v2.py is an older copy, md5 11504cdb (without the
+         --gputype merge guard of 1d70047); pmf2_35/code links to it. That older copy ran v2's scored walks (bar inits
+         and POST). Before anything is copied, the CARC agent diffs 11504cdb against 1a78d41a and records the diff:
+           - if no line of the refit / forecast path differs (walk-line construction walk_line / wd_of /
+             steps_per_epoch / COMMON, TData, window_keep64, gram, solve, ridge_init, st_walk_inits, st_post and
+             st_post_tail; only walk-merge / its guard / other stages differ): XROOT/code/pooled_mingru_v2.py is copied
+             from this branch (1a78d41a, LF), everything else from v2's roots as ADDENDUM 4 JOBS writes;
+           - if any refit-path line differs: the rerun's bar inits and POSTs use v2's actual copy, 11504cdb, copied
+             byte for byte from v2's root (so the rerun computes exactly as v2 did), and the merge alone uses 1a78d41a
+             (for its --gputype guard); STATUS.md says so, with the differing lines.
+         Gate J's other criteria are unchanged.
+D4 EXPORTS. The exports are run as CPU jobs in the main partition into ADDENDUM 4's paths (XFIX_3000 = /project2/
+         pollok_1603/jc_905/gru2fix/xdata_w3000, XFIX_3500 = .../gru2fix/xdata_w3500), and gate E is rerun there in full
+         (E1-E4 on those exports, then E5 on the bar inits computed from them). The phase-1 exports written on the
+         login node (pmf2_fix/xdata, pmf2_35_fix/xdata; gate E passed there at tolerance 0 at both windows) are kept as
+         a record: no job reads them as XDATA, and nothing is ever merged from them.
+COST     Measured v2 P100 cost (sacct, the scored full-set walks): 256.6 P100-h for both full arms, W 3,000 4.20 s a
+         refit and W 3,500 1.25 s a refit in the gpu partition; about 12-16 h of wall-clock at the current P100
+         contention. This replaces ADDENDUM 4's ~280 P100-h (from the canary rates) as the estimate; the time limits
+         stay from the G7 rates (4.55 / 1.56 s, est x 1.3 + 30 min), the conservative side. The 36-GPU cap, CARC only,
+         P100 only: unchanged.

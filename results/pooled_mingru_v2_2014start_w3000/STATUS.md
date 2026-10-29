@@ -582,3 +582,11 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   xdata_w3000, root /project2/pollok_1603/jc_905/gru2fix/pmf2; gates E (export vs v2's, only the 12 FOMC value
   averages differ, = TFULL), J (job files = v2's), S (v2's canary slice c24 twice on P100, with / without the step log,
   preds text-identical, POST n_bad 0). Estimate 207.6 P100-h (214.7 at G7). Handed to the CARC agent (one SSH owner).
+- 2026-10-29 00:55 PDT: RULE ADDENDUM 4a (both copies; coordinator, the CARC agent's phase-1 findings D1-D4), before any
+  submission: (D1) W 3,500 uses the existing gated fixed design /home1/jc_905/ladder_fomcfix/designs/w3500/_work (X md5
+  6f5ab023), no B35 build; (D2) the export script's binding md5 is the LF blob's 8b3f444a (62255995 was the CRLF
+  checkout), all CARC copies LF-checked; (D3) v2's CARC runner copy is 11504cdb: diffed against 1a78d41a first, the
+  committed copy used only if no refit-path line differs, else v2's 11504cdb for inits / POST; (D4) exports rerun as
+  CPU main jobs into gru2fix/xdata_w3000 and _w3500 with gate E in full; the phase-1 login-node exports (pmf2_fix/xdata,
+  gate E passed) kept as a record only. Measured v2 cost (sacct): 256.6 P100-h for both full arms (W 3,000 4.20 s a
+  refit), ~12-16 h wall. Nothing submitted.
