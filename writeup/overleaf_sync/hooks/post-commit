@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+# harxhar overleaf autopush hook -- git post-commit (2026-10-29, author: "Shouldn't the Overleaf update be
+# automatic/a part of the pipeline"). Installed by writeup/overleaf_sync/install_hook.sh into the repository's hooks
+# directory, which every worktree shares. It acts only in a worktree whose config sets overleaf.autopush to the branch
+# checked out there (install_hook.sh sets it in that worktree's config.worktree), and only on that branch.
+#
+# It starts `writeup/overleaf_sync/autopush.sh trigger <commit>` detached and returns: it never waits for the push and
+# never fails a commit. The runner checks whether the commit changed writeup/ (the sync's map files and the generated
+# review layers aside), lets commits settle for 20 s and pushes once (log: writeup/overleaf_sync/autopush.log).
+# A process costs 200-300 ms on this Windows machine, so the hook starts one git and reads the config files itself.
+# Skip one commit: OVERLEAF_AUTOPUSH=0 git commit ...   Disable: bash writeup/overleaf_sync/install_hook.sh --disable
+
+read_autopush() {  # sets want from "[overleaf] autopush = <branch>" in the git config file $1
+    local line sect=""
+    [ -f "$1" ] || return 0
+    while IFS= read -r line || [ -n "$line" ]; do
+        line="${line%$'\r'}"
+        if [[ $line =~ ^[[:space:]]*\[([^]]*)\] ]]; then
+            sect="${BASH_REMATCH[1],,}"
+        elif [[ $sect == overleaf && $line =~ ^[[:space:]]*autopush[[:space:]]*=[[:space:]]*\"?([^\"]*[^\"[:space:]])\"?[[:space:]]*$ ]]; then
+            want="${BASH_REMATCH[1]}"
+        fi
+    done < "$1"
+}
+
+hook() {
+    [ -z "${OVERLEAF_AUTOPUSH_RUNNING:-}" ] || return 0   # the push's own commits (review layers, maps)
+    [ "${OVERLEAF_AUTOPUSH:-1}" != 0 ] || return 0
+    local out v want=""
+    out="$(git rev-parse --path-format=absolute --show-toplevel --git-path config --git-path config.worktree HEAD \
+        --abbrev-ref HEAD)" || return 0
+    mapfile -t v <<< "$out"   # top, common config, worktree config, commit, branch
+    read_autopush "${v[1]}"
+    read_autopush "${v[2]}"   # the worktree's own setting wins
+    [ -n "$want" ] && [ "${v[4]}" = "$want" ] || return 0
+    [ -f "${v[0]}/writeup/overleaf_sync/autopush.sh" ] || return 0
+    # detached: immune to hangups, holding none of the committer's stdin, stdout or stderr (a runner that kept one
+    # would make a caller that reads the commit's output wait for the whole push)
+    ( trap '' HUP; exec bash "${v[0]}/writeup/overleaf_sync/autopush.sh" trigger "${v[3]}" ) </dev/null >/dev/null 2>&1 &
+}
+
+hook </dev/null >/dev/null 2>&1 || true
+exit 0

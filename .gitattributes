@@ -6,3 +6,7 @@
 writeup/idea_to_trade_pipeline_v2_*.md -text
 writeup/idea_to_trade_system_design_*.md -text
 writeup/pipeline_v2_unsigned_slots_*.md -text
+
+# Overleaf sync: shell scripts and the git hook run under bash, so LF only whatever core.autocrlf says (2026-10-29)
+writeup/overleaf_sync/*.sh text eol=lf
+writeup/overleaf_sync/hooks/* text eol=lf

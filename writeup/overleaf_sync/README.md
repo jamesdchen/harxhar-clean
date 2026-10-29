@@ -56,6 +56,50 @@ bash writeup/overleaf_sync/overleaf_git.sh pull
   this repository is public. The tracked copy without the token is `overleaf_git.example.sh`. Copy it to
   `overleaf_git.sh` and fill in the `# OVERLEAF_GIT_TOKEN=` line, or set `OVERLEAF_GIT_TOKEN` in the environment
   instead.
+* After a real `pull`, commit the pulled edits together with `map_pulled.json` (2026-10-29). `push` then accepts
+  Overleaf's `main2.tex` as the pulled text and pushes over it. Before that commit it refuses, so the pulled edits are
+  not reverted on Overleaf.
+* A push that does not land (failed `--check`, rejected, stopped) leaves `map.json` and the Overleaf clone as they
+  were. `push-all` pushes the review layers even when the paper push refuses.
+
+## Automatic push after every commit (2026-10-29)
+
+A git post-commit hook brings Overleaf up to date after every commit that changes `writeup/`. Commits that change only
+the sync's map files or the generated review layers do not trigger it. The push does not depend on Claude Code.
+
+```sh
+bash writeup/overleaf_sync/install_hook.sh             # install; enables this worktree's current branch
+bash writeup/overleaf_sync/install_hook.sh --disable   # stop (or: git config --worktree --unset overleaf.autopush)
+OVERLEAF_AUTOPUSH=0 git commit ...                     # skip a single commit
+bash writeup/overleaf_sync/autopush.sh once            # one pass now, in the foreground
+```
+
+* **What runs.** The hook returns at once, in well under a second: it starts one `git rev-parse` and nothing waits on
+  the push. It starts `autopush.sh trigger <commit>` detached (immune to hangups, no inherited output). If that
+  commit changed `writeup/`, the runner:
+  1. waits until no commit has come in for 20 s;
+  2. regenerates the review layers from a clean checkout of HEAD;
+  3. runs `overleaf_git.sh push-all --check`;
+  4. runs `git push` (the map and layer commits).
+
+  A commit that arrives during a pass gets one more pass. Only one pass runs at a time. The lock is
+  `$(git rev-parse --git-path overleaf-autopush)/lock`. A lock left by a killed run is taken over.
+* **Log.** `writeup/overleaf_sync/autopush.log` (gitignored, token masked as `olp_***`). Each pass starts with
+  `autopush: pass at <sha>` and ends with `autopush: done in N s`.
+* **Failure.**
+  * `autopush: REFUSED: Overleaf has edits that are not pulled back; nothing was forced.` Then the `pull --dry-run`
+    summary (`unflatten: N changed block(s) ...`). Nothing is pulled automatically. When the pull rules allow it, run
+    `overleaf_git.sh pull` and commit the pulled edits with `map_pulled.json`. That commit pushes.
+  * `autopush: REFUSED: a review layer was edited on Overleaf outside its header`. Move that edit to the sources.
+  * `autopush: FAILED: push-all exited N`. Lines above it such as `--check FAILED`, `did not land` or
+    `make_paper_beats.py failed` give the cause.
+
+  Nothing is retried until the next commit, and nothing is ever force-pushed.
+* **Limits.** The hook acts in one worktree only, the one where `install_hook.sh` ran (`overleaf.autopush` in its
+  `config.worktree`), and only on that branch. `git pull`, merge and rebase do not trigger it. A pass outlives the
+  command that made the commit. A pass that is killed anyway (reboot, a closed console) is redone by the next commit:
+  the lock is taken over, and what the killed run left in the Overleaf clone is cleaned up. While a pass commits, a
+  commit made at the same moment may find `index.lock` taken. Retry it.
 
 ## Bring Overleaf edits back
 
