@@ -681,7 +681,7 @@ def table(M: pd.DataFrame, D: pd.DataFrame, have: set) -> str:
     out.append("\\quad vs HAR + FOMC & " + " & ".join(full_vs_add(q, dq, c, have, "add_fomc") for c in cols) + " \\\\")
     if any(a == COMBO for _c, a in have):  # addendum F
         out.append(
-            "\\quad vs HAR + RM + FOMC\\textsuperscript{*} & "
+            "\\quad vs HAR + RM + FOMC & "  # 2026-10-28 (author): the asterisk of the removed note dropped
             + " & ".join(full_vs_add(q, dq, c, have, COMBO) for c in cols)
             + " \\\\"
         )
@@ -716,10 +716,11 @@ def table(M: pd.DataFrame, D: pd.DataFrame, have: set) -> str:
         " The last rows of Panel D set the full set against the same class's HAR benchmark plus the futures'"
         " realized moments (RM, Panel B's first row) and plus the FOMC calendar (Panel B's last row)"
         + (
-            ", and plus both (\\textsuperscript{*}requested by the author after the results by day type, not part of"
-            " the pre-specified design; 132 columns, every class at its frozen hyperparameters)."
-            if any(a == COMBO for _c, a in have)
-            else "."
+            # 2026-10-28 (author): the parenthetical on when the row was requested removed from the note (the order
+            # of the analyses stays in Appendix app:rh_channels, "Added after the rule").  Was: ", and plus both
+            # (*requested by the author after the results by day type, not part of the pre-specified design; 132
+            # columns, every class at its frozen hyperparameters)."
+            ", and plus both." if any(a == COMBO for _c, a in have) else "."
         )
         + " Every model keeps the full set's frozen hyperparameters (the linear penalties chosen on the 2013 pre-sample"
         " fold for the full set; one configuration per tree method).  The random forest is run for Panel B and for the"
