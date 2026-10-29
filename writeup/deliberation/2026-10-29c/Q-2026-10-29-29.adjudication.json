@@ -1,0 +1,33 @@
+{
+ "id": "Q-2026-10-29-29",
+ "date": "2026-10-29",
+ "question": "08:356 gives the forest's realized-moments removal (+1.5%) next to the boosted trees' patched ones without saying it is pre-patch (against full_pre). Flag it there, or drop the forest from that comparison?",
+ "adjudicated_by": "router",
+ "kind": "mechanical",
+ "lock_conflict": "none",
+ "final_answer": "Flag it. The forest's realized-moments removal is scored against its pre-patch full set (the macro's generator comment reads 'vs full_pre'), and the paper's own rule marks that one cell (A_results day-type sentence, Q-2026-10-29-24). 08:356 now adds '(the forest's on the design before the FOMC fix)' after the three numbers; the numbers stay.",
+ "answer_short": "Sec. 8: the forest's realized-moments removal is flagged as on the design before the FOMC fix.",
+ "rationale": "One generated source decides the fact; the edit only names it (T0 test, PROTOCOL.md section 4).",
+ "tier": "T0",
+ "confidence": 0.95,
+ "importance": "HIGH",
+ "touches": [
+  "main_text_number"
+ ],
+ "consequence": 1,
+ "hard_trigger": [],
+ "evidence": [
+  "writeup/generated/rehaul_ablation_numbers.tex (rhabRfLoRmAllPct: comment 'vs full_pre')",
+  "writeup/rehaul/A_results.tex:338-344 (Q-2026-10-29-24: the forest's lo_rm is the one pre-patch day-type cell, marked)"
+ ],
+ "actions": [
+  {
+   "kind": "edit_text",
+   "target": "writeup/rehaul/08_feature_importance.tex",
+   "detail": "line 356: flag the forest's number"
+  }
+ ],
+ "consequences": "08_feature_importance.tex line 356 only.",
+ "recommendation": "Apply the edit.",
+ "default": "The edit stands."
+}

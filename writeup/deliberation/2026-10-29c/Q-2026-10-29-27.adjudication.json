@@ -1,0 +1,83 @@
+{
+ "id": "Q-2026-10-29-27",
+ "date": "2026-10-29",
+ "question": "Section 8's 'In short' says 'the series a model uses most are not the ones that make it more accurate'. At group level the realized moments are the trees' largest exogenous attribution and their second-largest removal (+1.6 / +1.8%). Replace it with the D18 result (the six groups beyond HAR + RM + FOMC hold 20-23% of the trees' attribution but give 4-11% of the gain)?",
+ "adjudicated_by": "adjudicator",
+ "kind": "evidence",
+ "solvers": [
+  {
+   "lens": "evidence",
+   "file": "Q-2026-10-29-27.evidence.md",
+   "answer": "Replace the clause, which is false at group and series level, with the D18 contrast on exogenous attribution (the six groups hold 45.2-48.0% of it; the full set's gain over HAR + RM + FOMC is 4-11% of its gain over HAR) plus the FOMC half (3.3-4.9% of exogenous attribution, 65-68% of the gain).",
+   "confidence": 0.8,
+   "tier": "T1"
+  },
+  {
+   "lens": "author_record",
+   "file": "Q-2026-10-29-27.author_record.md",
+   "answer": "Retire the sentence and state the D18 result plainly from the C5 macros on the exogenous denominator: the six other groups hold 45.2-48.0% of the trees' exogenous attribution and deliver 4-11% of their gain; change the section opening (08:133-135) with it.",
+   "confidence": 0.75,
+   "tier": "T2"
+  },
+  {
+   "lens": "referee",
+   "file": "Q-2026-10-29-27.referee.md",
+   "answer": "Replace the sentence, but not with the D18 contrast: in LightGBM and XGBoost the realized moments and the six groups have the same attribution share and the same removal cost, a substitutes pattern, so the contrast does not show attribution misleads. Use an FOMC-only sentence from existing macros.",
+   "confidence": 0.75,
+   "tier": "T2"
+  }
+ ],
+ "agreement": "majority",
+ "refutation": {
+  "outcome": "succeeded",
+  "note": "All three lenses agree the sentence goes (false: the realized moments are the trees' largest exogenous group and second-largest removal; the top 10 series by the trees' own attribution keep \\rhldEBLgbmBarRTen = 97% and \\rhldEBXgbBarRTen = 96% of the every-bar gain). The majority replacement (evidence, author record: the D18 contrast) does not survive. Checked: (1) Decisive point, the twin rows, recomputed from scores_fomcfix/metrics.csv: removal cost as a share of the full set's gain over HAR is 9.6% (LightGBM) and 10.3% (XGBoost) for the realized moments, and 9.6% and 10.5% for the six groups together (HAR + RM + FOMC against the full set); their exogenous attribution is 47.0/50.0% (\\rhfrcLgbmRmShareAll, \\rhfrcXgbRmShareAll) against 48.0/45.2% (\\rhfrcLgbmBeyondShareExogAll, \\rhfrcXgbBeyondShareExogAll). By the D18 sentence's own yardstick the realized moments, which the same 'In short' says carry the ordinary days, would also be 'used but add little'. The contrast comes from the order of the decomposition (D18 accounts for RM first) and from substitution, which the 'In short' already states ('whose information the constituents' moments and the liquidity measures largely repeat'). tab:rh_fi_reconcile, which C5 puts in the same subsection, prints the two rows one above the other. (2) Added alone, liquidity, EW and VW each give 19.7-23.7% of the boosted trees' gain, as the realized moments do (21.2/23.4%); attribution does not overstate the six against what they add alone, and the author-record wording 'deliver 4-11% of their gain over the HAR benchmark set' misstates a gain beyond the base as the six groups' whole gain. (3) The 4% low end is the forest, whose remainder is not significant (\\rhabRfFullVsAddRmFomcAllP = 0.096). (4) The \\rhfrc macros are committed (c910c6b) but not input by the paper (grep), and C5's insertion waits on Q8 (Q-2026-10-29-09, T3 open); the FOMC sentence uses only loaded \\rhfip and \\rhab macros. (5) Author record: no author-typed message after 29 Oct 14:32 PDT (transcript bd4224e0 to 15:10 PDT, queued ones included) or log line decides this sentence; the coordinator's 14:37 PDT chat line calling the D18 contrast 'the clean use is not accuracy result' is agent text, unanswered. The attribution statement the author endorsed (claim 3, 27 Oct 22:52-22:53 PDT) is the FOMC one. (6) The referee's optional symmetric sentence needs two new generator macros, a reviewer's new number held as a proposal (report section 8.6), so it is not applied. (7) Voice: the referee's lead 'Attribution is a poor guide to the calendar's part:' is a verdict without a predicate (V4) before a colon; the final wording is the plain declarative (V1)."
+ },
+ "lock_conflict": "resolved",
+ "precedence_note": "D18 (author, 26 Oct 18:58 PDT: 'how do the exogenous features contribute when these 3 ... are accounted for?') sets the question, and the 'In short' sentence just before this one (the author's alternative-data edit, 3c6ccc4, 28 Oct 16:18 PDT) already answers it; D18 does not call for an attribution contrast. The attribution claim the author asked to build the section on is claim 3 (27 Oct 22:52 PDT, FOMC-specific; author 22:53 PDT: 'I need the feature importance part of section 6 rewritten with this in mind'). D20's preliminary approval of v2 (28 Oct 00:42 PDT) is reopened by the later same-scope request of 28 Oct 17:50 PDT ('I need a better reconciliation of the attribution with the ablations'). C5 (inferred, T2) builds the table but does not decide this sentence. Wording follows voice.md V4-V6 (V6: author, 29 Oct 12:51 PDT).",
+ "final_answer": "Yes, replace the sentence, but with the FOMC fact rather than the D18 contrast, because the realized moments show the same attribution share and the same removal cost as the six groups in LightGBM and XGBoost (a substitutes pattern the 'In short' already states). In writeup/rehaul/08_feature_importance.tex, replace 'Attribution is a poor guide to all of this: the series a model uses most are not the ones that' (end of line 364) and 'make it more accurate.' (line 369) with exactly: The trees attribute \\rhfipFomcBucketMin--\\rhfipFomcBucketMax\\% of their forecasts to the FOMC calendar, yet added alone to the HAR benchmark set it delivers \\rhabTreeFomcGainShareMin--\\rhabTreeFomcGainShareMax\\% of their every-bar gain. Keep the 3c6ccc4 comment block (lines 365-368) intact and park the old sentence verbatim in a dated comment ('% 2026-10-29 (Q-2026-10-29-27, inferred T2). Was: ...'). Every macro is already loaded; no generator, macro or table change. The section opening (08:132-135) changes under Q-2026-10-29-26, not here.",
+ "answer_short": "Sec. 8 'In short': 'the series a model uses most are not the ones that make it more accurate' becomes the FOMC fact (1.4-2.3% of the trees' attribution, 65-68% of their gain).",
+ "rationale": "The sentence must go; all three lenses agree. The replacement the majority chose, the D18 contrast, has right numbers but cannot carry the claim it replaces: the realized moments show the same share and the same removal cost, so the contrast reflects the decomposition order and substitution, not misleading attribution, and a referee would read that off the reconciliation table printed beside it. The refutation succeeded, so the final answer is the referee's FOMC sentence, worded to V1/V4 and using loaded macros: T2 at best. Confidence 0.68: the FOMC claim is the one the author endorsed on 27 Oct, but D18 is his own question and two lenses expected him to want the six groups named in the summary.",
+ "tier": "T2",
+ "confidence": 0.68,
+ "importance": "HIGH",
+ "touches": [
+  "headline_claim",
+  "main_text_number",
+  "wording"
+ ],
+ "consequence": 3,
+ "hard_trigger": [],
+ "evidence": [
+  "writeup/rehaul/08_feature_importance.tex:359-369",
+  "results/ablations_2014start_w3000/scores_fomcfix/metrics.csv (lo_rm, add_rm_fomc, full, har; lgbm, xgb; recomputed)",
+  "writeup/generated/rehaul_fi_reconcile_table.tex (rows Realized moments and The six together)",
+  "writeup/generated/rehaul_fi_reconcile_numbers.tex (rhfrcLgbmRmShareAll 47.0, rhfrcXgbRmShareAll 50.0, rhfrcLgbmBeyondShareExogAll 48.0, rhfrcXgbBeyondShareExogAll 45.2, rhfrcTreeBeyondGainMin 4)",
+  "writeup/generated/rehaul_ablation_numbers.tex:3262-3264,3330-3332,3398-3400 (FullVsAddRmFomc: -1.6, -1.8, forest -0.5 with p 0.096)",
+  "writeup/generated/rehaul_ablation_numbers.tex:4420-4421 (rhabTreeFomcGainShareMin/Max 65-68)",
+  "writeup/generated/rehaul_fip_numbers.tex:101-102 (rhfipFomcBucketMin/Max 1.4-2.3)",
+  "writeup/generated/rehaul_ladder_numbers_everybar.tex (rhldEBLgbmBarRTen 97, rhldEBXgbBarRTen 96)",
+  "writeup/INTEGRATION_PLAN_2026-10-26.md:54 (D18)",
+  "author 2026-10-27 22:53: \"I need the feature importance part of section 6 rewritten with this in mind\"",
+  "author 2026-10-28 17:50: \"I need a better reconciliation of the attribution with the ablations\"",
+  "writeup/reports/AI layered paper writing system.md:1333 (section 8.6: a reviewer's new number is a proposal)",
+  "writeup/style/voice.md (V1, V4-V6)",
+  "commit c910c6b"
+ ],
+ "actions": [
+  {
+   "kind": "edit_text",
+   "target": "writeup/rehaul/08_feature_importance.tex",
+   "detail": "Lines 364 and 369: replace 'Attribution is a poor guide to all of this: the series a model uses most are not the ones that' ... 'make it more accurate.' with exactly: The trees attribute \\rhfipFomcBucketMin--\\rhfipFomcBucketMax\\% of their forecasts to the FOMC calendar, yet added alone to the HAR benchmark set it delivers \\rhabTreeFomcGainShareMin--\\rhabTreeFomcGainShareMax\\% of their every-bar gain. Keep the 3c6ccc4 comment block (365-368); park the old sentence in a dated comment citing Q-2026-10-29-27."
+  }
+ ],
+ "consequences": "writeup/rehaul/08_feature_importance.tex lines 364 and 369 only, the last sentence of the 'In short' bullet. It prints already-loaded macros (\\rhfipFomcBucketMin/Max, \\rhabTreeFomcGainShareMin/Max); no generator, macro or table change. The section opening (08:132-135) is changed under Q-2026-10-29-26; Q-26's bullet two items up gives the same calendar contrast with its evidence, so the two agree; apply both in one push, then the routine Overleaf push. Review layers writeup/beats/top/08_feature_importance.tex:169 and beats/full:207 follow when the beats are next regenerated. Not affected: the abstract, the introduction and the conclusion (their 'use is not accuracy' is about StockTwits' live-year share), A_fi.tex. The D18 attribution numbers stay available in tab:rh_fi_reconcile when C5's table goes in (waits on Q8). The fresh layer's 'Use is not accuracy' beat (writeup/fresh/paper_fresh_beats.tex:499-501) makes the same one-sided contrast and needs the same fix if Q-2026-10-29-09 adopts that layer. Adjacent, not part of this item: the same bullet's 'the other \\rhbyFLNSeries{} series add nothing to the linear models' is a universal without a backing number under V5 (the lasso's and elastic net's remainders are 6% and 9% of their gain, p 0.312 and 0.161); the coordinator may raise it as a new item.",
+ "recommendation": "Replace the general sentence with the FOMC fact from loaded macros, keeping the old wording in a dated comment.",
+ "default": "The FOMC sentence stands, applied provisionally; the author can veto in one line.",
+ "alternatives": [
+  "The D18 contrast (the six groups hold 45-48% of the trees' exogenous attribution; the gain beyond HAR + RM + FOMC is 4-11% of the gain): the realized moments show the same share and removal cost in LightGBM and XGBoost, its 4% end is the forest's non-significant remainder, and it needs C5's macros in the paper.",
+  "A symmetric sentence (the realized moments and the other series each hold about a fifth of the attribution and cost about the same when removed): accurate, but needs two new generator macros, a new number the author must adopt first.",
+  "Delete the attribution sentence from 'In short': simplest, but leaves the summary without the attribution result the author asked to reconcile.",
+  "Keep the sentence: false by group and by series."
+ ],
+ "question_for_author": "Section 8's summary says the series a model uses most are not the ones that make it more accurate, which the data contradict. Replace it with the FOMC fact (little attribution, most of the gain) rather than the six-groups contrast?"
+}

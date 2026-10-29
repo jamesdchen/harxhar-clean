@@ -1,0 +1,90 @@
+{
+ "id": "Q-2026-10-29-26",
+ "date": "2026-10-29",
+ "question": "Section 8 says attribution 'ranks the parts the wrong way round'. Across the eight groups the trees' attribution ranks agree positively with the add-alone gains (Spearman +0.5 to +0.7 every bar, +0.8 to +0.9 ordinary days); it is reversed only for FOMC vs the realized moments. Narrow the sentence to that pair?",
+ "adjudicated_by": "adjudicator",
+ "kind": "evidence",
+ "solvers": [
+  {
+   "lens": "evidence",
+   "file": "Q-2026-10-29-26.evidence.md",
+   "answer": "Narrow it, but to the trees' FOMC calendar rather than the pair: attribution orders the eight groups like their add-alone gains (Spearman +0.50 to +0.71 every bar) except the calendar, which is out of order against every larger group. Retitle 'Attribution understates the FOMC calendar' and correct the realized-moments clause (largest exogenous group, second-largest removal).",
+   "confidence": 0.85,
+   "tier": "T1"
+  },
+  {
+   "lens": "author_record",
+   "file": "Q-2026-10-29-26.author_record.md",
+   "answer": "Narrow it to the FOMC calendar against the realized moments, the pair the sentence was drafted about ('ranks the channels', b81283d): new lead 'Attribution and accuracy rank the FOMC calendar and the realized moments in opposite order', body kept, 'only' dropped.",
+   "confidence": 0.85,
+   "tier": "T1"
+  },
+  {
+   "lens": "referee",
+   "file": "Q-2026-10-29-26.referee.md",
+   "answer": "Narrow it to the FOMC calendar, not the pair (the calendar is also out of order against liquidity, EW and VW), drop the 'converse' clause (the realized moments are the second-largest removal), compare the FOMC and RM removals for LightGBM and XGBoost only, and change the opening at 08:134-135 to match.",
+   "confidence": 0.85,
+   "tier": "T1"
+  }
+ ],
+ "agreement": "majority",
+ "refutation": {
+  "outcome": "failed",
+  "note": "All three narrow the sentence; the evidence and referee lenses narrow it to the calendar against every larger group, the author-record lens to the FOMC-RM pair. Checked: (1) Re-opened 08:128-135 and 08:349-358; git blame gives b0477ae (v2, agent-drafted, approved preliminarily under D20) and 3c6ccc4, so A4 does not protect the text. (2) Recomputed every add-alone and drop-one change from scores_fomcfix/metrics.csv; all cited \\rhab macros and the tab:rh_fi_reconcile cells match, and \\rhfrc<C>RhoAdd is negative (agreement, the generator's sign) in all six classes. (3) Decisive point, discordant pairs: the calendar holds 4.9/4.7/3.3% of the trees' exogenous attribution (5th-6th of 8) but gives the largest add-alone gain (-9.2/-9.5/-7.6%), so it is out of order against RM, liquidity, EW and VW in all three trees (and IV in the forest); the remaining discordant pairs are near-ties. The pair is one of four, so the queued 'reversed only for FOMC vs RM' is incomplete and the majority's calendar reading holds. (4) The 'converse' clause contradicts the paper itself: RM is the second-largest removal (1.6/1.8, DM 7.11/7.22) and the introduction (01_introduction.tex:131) already says 'The futures' realized moments come second'. (5) Tried to break the majority heading: the lasso puts \\rhfrcLassoFomcShareAll = 60.7% of its exogenous weight on the calendar and its top series is FOMC^next (08:180), so an unscoped 'Attribution understates the FOMC calendar' is false for the lasso; the heading is scoped to the trees, as the body already is. (6) Author record: author-typed messages in transcript bd4224e0 to its last line (29 Oct 15:10 PDT), queued ones included, and log.jsonl: nothing after 'how exactly did we reconcile the ablations against the attributions?' (14:26 PDT) and 'meeting is happening, please speed it up' (14:32 PDT) touches this sentence. (7) Forbids: report section 8.6 logs a reviewer's new number, test or citation as a proposal until the author adopts it, so the referee's added citation clause (lundberg2020local, christensen2023machine) is not applied; the evidence lens's \\rhfrc statement-day shares and its tab:rh_fi_reconcile pointer need C5's macros and table in the paper, which are not input (grep) and wait on Q8 (Q-2026-10-29-09, T3 open). The final text therefore uses only \\rhfip and \\rhab macros already loaded (paper_rehaul.tex:128, 159). (8) Voice: 'only' and 'strongly' dropped (V4, no predicate), and the closing ', not by its share' tail dropped (V6)."
+ },
+ "lock_conflict": "resolved",
+ "precedence_note": "D20 (author, 28 Oct 00:42 PDT: 'I approve v2 preliminarily. make sure it's easy to revert if I find something wrong') approved the v2 bullet. The author's later request on the same scope, 28 Oct 17:50 PDT ('I need a better reconciliation of the attribution with the ablations'), and his 29 Oct 14:26 PDT question reopen it. The attribution claim the author asked to build the section on is claim 3 of 27 Oct 22:52 PDT, which is FOMC-specific ('the FOMC calendar is 1-2% of the trees' SHAP attribution but two-thirds of their gain'; author 22:53 PDT: 'I need the feature importance part of section 6 rewritten with this in mind'). The wording follows voice.md V4-V6 (V6: author, 29 Oct 12:51 PDT).",
+ "final_answer": "Yes, narrow it, to the trees' FOMC calendar rather than to the pair: the calendar is out of order against the realized moments, liquidity and both constituent groups, and the realized moments are the second-largest removal, so the 'converse' clause goes. Two edits in writeup/rehaul/08_feature_importance.tex, old text kept verbatim in dated % comments ('% 2026-10-29 (Q-2026-10-29-26, inferred T2). Was: ...'). (1) Replace the bullet at lines 349-358 with: \\item \\textbf{The trees' attribution understates the FOMC calendar.} The trees attribute \\rhfipHarMin--\\rhfipHarMax\\% of their forecasts to the HAR terms, \\rhfipMomMin--\\rhfipMomMax\\% to the futures' realized moments and \\rhfipFomcBucketMin--\\rhfipFomcBucketMax\\% to the FOMC calendar (Appendix~\\ref{app:rh_fi_rank}). Yet the calendar carries most of their accuracy gain. Added alone to the HAR benchmark set it changes QLIKE by \\rhabLgbmAddFomcAllPct, \\rhabXgbAddFomcAllPct{} and \\rhabRfAddFomcAllPct\\%, against \\rhabLgbmFullAllPct, \\rhabXgbFullAllPct{} and \\rhabRfFullAllPct\\% for the full set. Removed from the full set, it raises the QLIKE of LightGBM and XGBoost by \\rhabLgbmLoFomcAllPct{} and \\rhabXgbLoFomcAllPct\\%, against \\rhabLgbmLoRmAllPct{} and \\rhabXgbLoRmAllPct\\% for the realized moments. A share averages the forecast's movement over all bars, and the calendar moves the forecast on few bars (Section~\\ref{sec:rh_fi_event}). What a series adds to accuracy is measured by the ablations. (2) In the opening bullet, replace the sentence 'How much a model uses a series is a poor guide to these gains (Section~\\ref{sec:rh_fi_use}).' (it starts at the end of line 132 and ends at line 135, around the 3c6ccc4 comment lines 133-134, which stay) with: The trees' attribution understates the FOMC calendar's part in these gains (Section~\\ref{sec:rh_fi_use}). Every macro is already loaded; no generator, macro or table changes.",
+ "answer_short": "Sec. 8: 'attribution ranks the parts the wrong way round' becomes 'the trees' attribution understates the FOMC calendar'; the 'converse' clause goes; the opening matches.",
+ "rationale": "The data settle that the general sentence is false and that the reversal belongs to the calendar, not to one pair: the calendar is out of order against four larger groups in every tree. The final text keeps the author-record lens's FOMC-versus-RM contrast as evidence (the two removals side by side), so it loses nothing the pair reading had. Tier T2: the agreement is a majority, resolved by the checked discordant-pair count and the introduction's own ordering. Confidence 0.78, not higher: the author-record lens, the lens that predicts the author, chose the pair framing, and the heading wording is a drafting choice; the author-endorsed claim 3 of 27 Oct, which is about the calendar alone, supports the final answer.",
+ "tier": "T2",
+ "confidence": 0.78,
+ "importance": "HIGH",
+ "touches": [
+  "headline_claim",
+  "main_text_number",
+  "wording"
+ ],
+ "consequence": 3,
+ "hard_trigger": [],
+ "evidence": [
+  "writeup/rehaul/08_feature_importance.tex:349-358",
+  "writeup/rehaul/08_feature_importance.tex:132-135",
+  "writeup/generated/rehaul_fi_reconcile_table.tex (exogenous shares, add-alone and drop-one cells, Spearman row)",
+  "writeup/generated/rehaul_fi_reconcile_numbers.tex (rhfrcLgbmRhoAdd -0.60, rhfrcXgbRhoAdd -0.71, rhfrcRfRhoAdd -0.50, rhfrcLassoFomcShareAll 60.7)",
+  "results/ablations_2014start_w3000/scores_fomcfix/metrics.csv (add_fomc, add_rm, add_liq, add_ew, add_vw, lo_rm, lo_fomc; recomputed)",
+  "writeup/generated/rehaul_ablation_numbers.tex:1135,1180,2224,2269 (rhabLgbmLoFomcAllPct 10.3, rhabLgbmLoRmAllPct 1.6, rhabXgbLoFomcAllPct 10.3, rhabXgbLoRmAllPct 1.8)",
+  "writeup/generated/rehaul_ablation_numbers.tex:1507 (rhabRfLoRmAllPct: vs full_pre)",
+  "writeup/generated/rehaul_fip_numbers.tex:91-102 (rhfipHar, rhfipMom, rhfipFomcBucket ranges)",
+  "writeup/rehaul/01_introduction.tex:128-132 (\"The futures' realized moments come second\")",
+  "writeup/rehaul/08_feature_importance.tex:180-184 (the lasso's top series is FOMC^next; the calendar's attribution on few bars)",
+  "author 2026-10-27 22:53: \"I need the feature importance part of section 6 rewritten with this in mind\"",
+  "author 2026-10-28 17:50: \"I need a better reconciliation of the attribution with the ablations\"",
+  "author 2026-10-29 14:26: \"how exactly did we reconcile the ablations against the attributions?\"",
+  "writeup/reports/AI layered paper writing system.md:1333 (section 8.6: a reviewer's new number, test or citation is a proposal)",
+  "writeup/style/voice.md (V4-V6)",
+  "commit b0477ae"
+ ],
+ "actions": [
+  {
+   "kind": "edit_text",
+   "target": "writeup/rehaul/08_feature_importance.tex",
+   "detail": "Lines 349-358: replace the bullet with exactly: \\item \\textbf{The trees' attribution understates the FOMC calendar.} The trees attribute \\rhfipHarMin--\\rhfipHarMax\\% of their forecasts to the HAR terms, \\rhfipMomMin--\\rhfipMomMax\\% to the futures' realized moments and \\rhfipFomcBucketMin--\\rhfipFomcBucketMax\\% to the FOMC calendar (Appendix~\\ref{app:rh_fi_rank}). Yet the calendar carries most of their accuracy gain. Added alone to the HAR benchmark set it changes QLIKE by \\rhabLgbmAddFomcAllPct, \\rhabXgbAddFomcAllPct{} and \\rhabRfAddFomcAllPct\\%, against \\rhabLgbmFullAllPct, \\rhabXgbFullAllPct{} and \\rhabRfFullAllPct\\% for the full set. Removed from the full set, it raises the QLIKE of LightGBM and XGBoost by \\rhabLgbmLoFomcAllPct{} and \\rhabXgbLoFomcAllPct\\%, against \\rhabLgbmLoRmAllPct{} and \\rhabXgbLoRmAllPct\\% for the realized moments. A share averages the forecast's movement over all bars, and the calendar moves the forecast on few bars (Section~\\ref{sec:rh_fi_event}). What a series adds to accuracy is measured by the ablations. Park the old bullet verbatim above it in a dated comment: '% 2026-10-29 (Q-2026-10-29-26, inferred T2). Was:'."
+  },
+  {
+   "kind": "edit_text",
+   "target": "writeup/rehaul/08_feature_importance.tex",
+   "detail": "Lines 132-135: replace the sentence 'How much a model uses a series is a poor guide to these gains (Section~\\ref{sec:rh_fi_use}).' with exactly: The trees' attribution understates the FOMC calendar's part in these gains (Section~\\ref{sec:rh_fi_use}). Keep the 3c6ccc4 comment lines 133-134; park the old sentence in a dated comment citing Q-2026-10-29-26."
+  }
+ ],
+ "consequences": "writeup/rehaul/08_feature_importance.tex only: the Variable importance bullet (349-358) and the section's opening sentence (132-135). The forest's pre-patch realized-moments removal (\\rhabRfLoRmAllPct) leaves the text, so router item Q-2026-10-29-29's flag at 08:356 becomes moot: log it as moot; if this item is vetoed, Q-29's flag applies to the restored text. Macros newly printed in this bullet (\\rhabLgbmLoFomcAllPct, \\rhabXgbLoFomcAllPct) are already loaded and already printed in 01_introduction.tex:130-131. No generator, macro or table change; tab:rh_fi_reconcile stays uninput until C5's insertion (waits on Q8). Review layers writeup/beats/top/08_feature_importance.tex (19, 155) and beats/full (19, 193) follow when the beats are next regenerated. Not affected: the abstract; 01_introduction.tex:151 and 09_conclusion.tex:65 ('use is not accuracy' about StockTwits' live-year share); A_fi.tex. Q-2026-10-29-27 rewrites the 'In short' sentence of the same subsection in its own commit; apply both in one push, then the routine Overleaf push. Dependent, for later: when C5's table goes in, its Spearman row prints agreement as negative values under 'Added to HAR' (the note explains the sign); a sign flip in make_rehaul_fi_reconcile.py would stop a reader taking -0.60 as 'the wrong way round'. The fresh layer's beat (writeup/fresh/paper_fresh_beats.tex:499-501) needs the same correction if Q-2026-10-29-09 adopts that layer.",
+ "recommendation": "Replace the bullet with the narrowed one about the trees' FOMC calendar and change the section's opening sentence to match, with the old text kept in dated comments.",
+ "default": "The narrowed bullet and opening sentence stand, applied provisionally; the author can veto in one line.",
+ "alternatives": [
+  "Narrow to the FOMC-realized-moments pair and keep the 'converse' body (author-record lens): the calendar is also out of order against liquidity and both constituent groups, and the introduction already ranks the realized moments second.",
+  "The evidence lens's version with the statement-day shares and a Spearman pointer to tab:rh_fi_reconcile: needs C5's macros and table in the paper first, which wait on Q8.",
+  "Add a literature clause (Lundberg et al. 2020; Christensen et al. 2023): a new citation proposed by a reviewer is held as a proposal until the author adopts it (report section 8.6).",
+  "Keep the sentence: the paper's own numbers contradict it, since attribution and the add-alone gains rank the groups in the same order apart from the calendar."
+ ],
+ "question_for_author": "Section 8 says attribution 'ranks the parts the wrong way round', but the data show it ranks the groups much as their gains do except the FOMC calendar. Should the bullet say that the trees' attribution understates the calendar?"
+}

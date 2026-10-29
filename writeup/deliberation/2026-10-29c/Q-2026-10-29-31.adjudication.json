@@ -1,0 +1,103 @@
+{
+  "id": "Q-2026-10-29-31",
+  "date": "2026-10-29",
+  "question": "On the every-bar ladder the linear readings change: all five models INTERMEDIATE on every bar (linear were CONCENTRATED monthly; k90 5 -> 10); top 10 beat the full set significantly only for the ridge (p .030 / .361 / .522); top 5 keep 78-87% and are significantly worse for lasso and elastic net; the best linear rung is 10-20. How should A_fi:388-411, 01_introduction:133-136 and 09_conclusion:46-50 state the linear result (and the trees' 'other series add little', now p .008 / .005)?",
+  "adjudicated_by": "adjudicator",
+  "kind": "taste",
+  "solvers": [
+    {
+      "lens": "evidence",
+      "file": "Q-2026-10-29-31.evidence.md",
+      "answer": "Every-bar numbers with their tests in the appendix; the introduction and conclusion say the linear models are at least as accurate with the top 10 and keep 'the signal sits in a few series'; the trees' remainder small but significant; 'do best with 10-20' dropped.",
+      "confidence": 0.7,
+      "tier": "T2"
+    },
+    {
+      "lens": "author_record",
+      "file": "Q-2026-10-29-31.author_record.md",
+      "answer": "Same direction; the introduction and conclusion print the linear 104-115% next to the trees' 96-97% and keep 'sits in a few series'; the appendix prints every p-value; the trees' remainder is 'a small gain that is significant'.",
+      "confidence": 0.7,
+      "tier": "T2"
+    },
+    {
+      "lens": "referee",
+      "file": "Q-2026-10-29-31.referee.md",
+      "answer": "Same direction; the introduction and conclusion print the linear range, carry no ridge p (it fails a Holm adjustment, 0.09), and say the gain sits in about 10 of the 46 series; the appendix states every test and the day-type split.",
+      "confidence": 0.75,
+      "tier": "T2"
+    }
+  ],
+  "agreement": "majority",
+  "refutation": {
+    "outcome": "succeeded",
+    "note": "Numbers re-read from results/ablations_2014start_w3000/scores_fomcfix/ladall_readings.csv and ladall_scores.csv and matched to the EB macros: linear R10 115/105/104, R20 107/102/104, R5 87/84/78; p(10 vs full) 0.030/0.361/0.522 (DM all negative); p(20 vs full) 0.244/0.673/0.231; p(5 vs full) 0.084/0.007/<0.001 (DM positive); trees R10 97/96, R5 36/38, p10 0.008/0.005, p20 0.031/0.010, best rung 46; k90 = 10 in all five; elastic net QLIKE 0.176083 at k = 20 against 0.176133 at k = 10, the tie behind \\ladderEBLinKstarRng = 10--20. The EB file's claim report marks two current linear claims FAILS. Holm over the three rungs gives the ridge's top 10 0.091, but ladder RULE section 6 prescribes the raw DM p of k = 20, 10, 5 and no DM test in the paper is adjusted for multiplicity (the only mention, A_econ.tex:699, says the strategies are not), so the appendix prints nominal p and the introduction and conclusion carry no p, as all three solvers propose. Refuted point: the evidence and author-record solvers keep 'the exogenous signal sits in a few series'. The pre-specified reading (results/ladder_2026-10-26/RULE.txt:116-121) calls k90 <= 5 concentrated and 10 intermediate; every model is intermediate on every bar; V4 allows verdict words only with a backing predicate. 'A few series' would claim the reading the ladder no longer gives, while 'no model is dense and weak' backs only 'rather than spreading thinly'. The referee's 'about \\ladderEBTopK{} of the ... series' is adopted for the introduction and conclusion; 'about' reflects the rung grid (k90 lies above 5 and at most 10 for every model). git blame: the three passages are agent text (5554817, b0477ae), not protected by A4. No author message after 14:42 PDT on 29 Oct."
+  },
+  "lock_conflict": "none",
+  "precedence_note": "V6 (author, 29 Oct 12:51) governs the form: each significance claim is stated with its test, never as a clause-final tail. A1 (28 Oct 23:22) and the 'go' (28 Oct 17:04) govern the content: the every-bar numbers back the sentences. The ladder RULE's reading (section 6) decides the verdict words. No author decision on this wording conflicts.",
+  "final_answer": "Conditional on Q-2026-10-29-30's switch; if that is vetoed, this item lapses and the monthly text stays. State the linear result as the every-bar numbers show it, each significance claim with its test and no clause-final verdict tails (V6): the top 10 series keep at least the full set's gain in all three linear classes, significantly more only in the ridge (nominal p, as everywhere else in the paper); the top 5 keep less, significantly less in the lasso and the elastic net; the pre-specified reading is intermediate in all five models. 'Concentrated' is no longer said of the ladder, and 'do best with N series' goes. The boosted trees' remainder beyond the top 10 is small but significant, with its tests; the forest's monthly result is one labelled sentence. The introduction and conclusion print the linear range next to the trees', carry no p-value, and say the gain sits in about \\ladderEBTopK{} of the \\rhldEBNSeries{} series instead of 'a few series'. The headings ('The gain is concentrated, not dense and weak'; 'The gain is concentrated') stay: they rest on the group ablations. The 'Ridge against lasso' bullet (A_fi.tex:403-408) is unchanged. Replacement text for 01_introduction.tex:133-138, 09_conclusion.tex:46-50 and A_fi.tex:385-414, and the generator's new macros and checks, are in actions[].detail; the old text is parked in dated comments.",
+  "answer_short": "Ladder sentences on every-bar numbers: top 10 keep 96-97% of the boosted trees' gain and 104-115% of the linear models'; gain in about 10 of 46 series; 'concentrated', 'do best' dropped.",
+  "rationale": "All three lenses agree on the content: every-bar numbers, no 'concentrated' for the ladder, no 'do best with', the trees' remainder stated as small but significant, every test printed in the appendix and none in the introduction or conclusion. They differ on wording; the decisive points were settled against the repo: the linear range is printed in the headline sentences (two of three, and V4 favours a number over 'at least as accurate'), no multiplicity-adjusted p is introduced (the rule and the paper use nominal DM p), and 'a few series' gives way to the referee's 'about ten of the 46', because the rule reads ten series as intermediate. Confidence 0.7: the content is settled; the exact phrasing is taste. T2 (taste, majority, refutation succeeded on one sentence). HIGH: introduction and conclusion. Consequence 4.",
+  "tier": "T2",
+  "confidence": 0.7,
+  "importance": "HIGH",
+  "touches": [
+    "introduction",
+    "headline_claim",
+    "appendix",
+    "wording"
+  ],
+  "consequence": 4,
+  "hard_trigger": [],
+  "evidence": [
+    "results/ablations_2014start_w3000/scores_fomcfix/ladall_readings.csv",
+    "results/ablations_2014start_w3000/scores_fomcfix/ladall_scores.csv",
+    "writeup/generated/rehaul_ladder_numbers_everybar.tex:17-24",
+    "results/ladder_2026-10-26/RULE.txt:116-121",
+    "writeup/style/voice.md",
+    "author 2026-10-29 12:51: \"add a rule to the style guide about \"none significantly\" or any punchy qualification after the fact\"",
+    "author 2026-10-28 23:22: \"that decision needs to be reflected everywhere those results are reported or used to back up any claim or compared against, etc.\"",
+    "author 2026-10-28 22:52: \"they also use a bunch of superlatives like \"always\" \"everyone\" \"never\" \"no one\"\"",
+    "writeup/rehaul/01_introduction.tex:133-138",
+    "writeup/rehaul/09_conclusion.tex:46-50",
+    "writeup/rehaul/A_fi.tex:385-414",
+    "commit 5554817",
+    "writeup/deliberation/ladder_claims_map.md:142-151"
+  ],
+  "actions": [
+    {
+      "kind": "edit_text",
+      "target": "writeup/rehaul/01_introduction.tex",
+      "detail": "l.133-138 (keep the dated comment at l.136 in place) become:\n    \\item Along a ladder of nested predictor sets ranked before the evaluation span, the \\ladderEBTopK{}\n      highest-ranked series retain \\ladderEBTreeRetainRng{}\\% of the boosted trees' full-set gain and\n      \\rhldEBLinRTenMin{}--\\rhldEBLinRTenMax{}\\% of the penalized linear models' (Appendix~\\ref{app:rh_fi_ladder},\n      Figure~\\ref{fig:rh_ladder}). On the dense-versus-sparse question, the forecast gain sits in about\n      \\ladderEBTopK{} of the \\rhldEBNSeries{} exogenous series rather than spreading thinly over all of them.\nThe heading at l.125 stays."
+    },
+    {
+      "kind": "edit_text",
+      "target": "writeup/rehaul/09_conclusion.tex",
+      "detail": "l.46-50 (keep the dated comment at l.47 in place) become:\n\\item \\textbf{The gain is concentrated} (Section~\\ref{sec:rh_fi}). The FOMC calendar\n  carries most of the trees' gain and the futures' realized moments come second. Along the feature-count ladder the\n  \\ladderEBTopK{} highest-ranked series retain \\ladderEBTreeRetainRng{}\\% of the boosted trees' gain and\n  \\rhldEBLinRTenMin{}--\\rhldEBLinRTenMax{}\\% of the linear models'. The gain sits in about \\ladderEBTopK{} of the\n  \\rhldEBNSeries{} series rather than spreading thinly over many."
+    },
+    {
+      "kind": "edit_text",
+      "target": "writeup/rehaul/A_fi.tex",
+      "detail": "Inside the first item of app:rh_fi_ladder: the trees sub-item (l.385-389) becomes:\n  \\item Boosted trees: the top 10 series keep \\rhldEBTreeRTenMin{}--\\rhldEBTreeRTenMax{}\\% of the gain, the top 5\n    only \\rhldEBTreeRFiveMin{}--\\rhldEBTreeRFiveMax{}\\%; \\rhfipFomcUntil{}, ranked\n    \\rhldEBTreeRankFomcUntilMin{}--\\rhldEBTreeRankFomcUntilMax{} by both, enters between the two rungs. What the\n    remaining series add is small but significant in both models: the full set is more accurate than the top 10 (DM\n    $p = \\rhldEBLgbmBarPTenFull$ for LightGBM and \\rhldEBXgbBarPTenFull{} for XGBoost) and than the top 20\n    ($p = \\rhldEBLgbmBarPTwentyFull$ and \\rhldEBXgbBarPTwentyFull). The random forest, refitted only monthly, reads\n    \\rhldRfBarVerdict{} on that ladder, as the boosted trees do: its top 10 keep \\rhldRfBarRTen\\% and its top 5\n    \\rhldRfBarRFive\\% of its monthly gain.\nThe linear sub-item (l.396-402, with the old post hoc sentence; update the dated comment at l.390-395) becomes:\n  \\item Linear models: the top 10 series keep \\rhldEBLinRTenMin{}--\\rhldEBLinRTenMax{}\\% of the gain and the top 20\n    \\rhldEBLinRTwentyMin{}--\\rhldEBLinRTwentyMax\\%, so in each class both rungs have a lower loss than the full set.\n    The top 10 are significantly more accurate than the full set in the ridge (DM $p = \\rhldEBRidgeBarPTenFull$). In\n    the lasso and the elastic net the difference is not significant ($p = \\rhldEBLassoBarPTenFull$ and\n    \\rhldEBEnetBarPTenFull), and with 20 series it is not significant in any class ($p$ from\n    \\rhldEBLinPTwentyFullMin{} to \\rhldEBLinPTwentyFullMax). The top 5 keep \\rhldEBLinRFiveMin{}--\\rhldEBLinRFiveMax\\%\n    of the gain; the full set is significantly more accurate than them in the lasso ($p = \\rhldEBLassoBarPFiveFull$)\n    and the elastic net ($p = \\rhldEBEnetBarPFiveFull$), and the ridge's $p$ is \\rhldEBRidgeBarPFiveFull. The lasso's\n    single top series, \\rhldEBLassoTopOne, alone keeps \\rhldEBLassoBarROne\\%. Refitted monthly, as in the\n    pre-specified design (dashed in Figure~\\ref{fig:rh_ladder}), the same rungs kept\n    \\rhldLinRTenMin{}--\\rhldLinRTenMax\\% of their monthly gain with 10 series and \\rhldLinRFiveMin{}--\\rhldLinRFiveMax\\%\n    with 5: a month's hold raises the loss of the full set by \\rhldEBLinPctMonthlyFullMin{} to\n    \\rhldEBLinPctMonthlyFullMax\\% but that of the 10-series rung by at most \\rhldEBLinPctMonthlyTenMax\\%.\nThe 'Ridge against lasso' sub-item (l.403-408) is unchanged. The closing paragraph (l.410-414) becomes:\n  On every bar, then, each model's top 10 series keep at least \\rhldRulePct\\% of its gain and its top 5 do not\n  ($k_{90} = \\rhldEBTreeKninetyMax$ in the boosted trees and \\rhldEBLinKninetyMax{} in the linear models), so under the\n  reading fixed before the ladder was first scored the signal is \\rhldEBAllBarVerdict{} in all five models, between\n  concentrated (\\rhldRuleKConc{} or fewer series) and dense and weak (no reduced rung at \\rhldRulePct\\%). Refitted\n  monthly, the linear models read \\rhldEBLinVerdictMonthly{} ($k_{90} = \\rhldLinKninetyMax$). By day type\n  (Table~\\ref{tab:rh_channels_sparse}, Panel~B) the reading is \\rhldEBLgbmOrdVerdict{} for LightGBM and XGBoost on\n  ordinary days (\\rhldEBTreeOrdKninetyMin{}--\\rhldEBTreeOrdKninetyMax{} series keep \\rhldRulePct\\% of the gain) and\n  for the linear models on FOMC statement days (\\rhldEBLinEvKninetyMin{}--\\rhldEBLinEvKninetyMax{} series), the two\n  channels of Section~\\ref{sec:rh_fi}. In the monthly version of the ladder, across windows of \\rhcxWOne{} to\n  \\rhcxWLong{} trading days, the best number of series rises with the window, as a dense and weak signal predicts,\n  only for \\rhcxWhoKstarRisesBar{} (Appendix~\\ref{app:rh_fi_scaling}); the window test is in\n  Appendix~\\ref{app:rh_fi_window}."
+    },
+    {
+      "kind": "edit_code",
+      "target": "writeup/make_rehaul_ladder.py",
+      "detail": "New macros in the --everybar file: \\rhldEBLinPctMonthlyFullMin, \\rhldEBLinPctMonthlyFullMax and \\rhldEBLinPctMonthlyTenMax (extremes of the per-model \\rhldEB<M>BarPctMonthly{Full,Ten}; until they exist the per-model macros can be written out); \\rhldEBAllBarVerdict (written only when the five every-bar verdicts agree); \\rhldEBLinVerdictMonthly (written only when the three monthly linear verdicts agree); optionally a front macro \\ladderEBLinRetainRng = \\rhldEBLinRTenMin--\\rhldEBLinRTenMax. Asserts, so a rerun cannot silently falsify the new sentences (V4, V5): \\rhldEBLinRTenMin and \\rhldEBLinRTwentyMin above 100 and \\rhldEBLinNRungsBelowFullMin equal to 2; the ridge's p(10 vs full) below 0.05 with a negative DM, the lasso's and elastic net's at or above 0.05; \\rhldEBLinPTwentyFullMin at or above 0.05; the lasso's and elastic net's p(5 vs full) below 0.05 with a positive DM; \\rhldEBLinRFiveMax below 100; \\rhldEBTreePTenFullMax and \\rhldEBTreePTwentyFullMax below 0.05 with positive DMs; the tree and linear k90 minima and maxima all equal \\ladderEBTopK and every R_5 below the threshold; the LightGBM and XGBoost ordinary-day verdicts equal the three linear statement-day verdicts; the monthly forest verdict equals the monthly LightGBM and XGBoost verdicts. Replace the monthly-claim report in the file header with these checks. The monthly generator's own asserts stay on the monthly numbers."
+    },
+    {
+      "kind": "edit_text",
+      "target": "writeup/beats/full/01_introduction.tex",
+      "detail": "The review layers carry the same sentences: beats/full/01_introduction.tex:88-92, beats/full/09_conclusion.tex:19-22 and beats/top/09_conclusion.tex:11-14 take the introduction and conclusion wording above; the fresh version's ladder beat (writeup/fresh/paper_fresh_beats.tex:489-492) moves to the every-bar macros without the forest, when that layer is next regenerated or edited."
+    }
+  ],
+  "consequences": "Changes the ladder bullet of the introduction (01_introduction.tex:133-138), the ladder sentence of the conclusion (09_conclusion.tex:46-50) and the trees, linear and closing text of the ladder appendix (A_fi.tex:385-414); the 'Ridge against lasso' bullet and both headings stay. The same sentences change in the review layers (beats/full/01_introduction.tex, beats/full/09_conclusion.tex, beats/top/09_conclusion.tex) and in the fresh version's ladder beat. make_rehaul_ladder.py gains the macros and checks the new sentences rely on, and rehaul_ladder_numbers_everybar.tex regenerates. What a reader sees change: the trees' retained share goes from 95-98% (three trees) to 96-97% (the two boosted trees); the linear clause goes from 'do best with 10 series' to '104-115% of the gain'; 'the signal sits in a few series' becomes 'the gain sits in about 10 of the 46 series'; the appendix now says the linear models' top 10 beat the full set significantly only in the ridge, that 5 series are significantly worse in the lasso and the elastic net, that every model reads intermediate, and that the boosted trees' remaining series add a small but significant part. Section 8's 'what remains is small, only the boosted trees capture it' stays consistent. The monthly macros \\ladderTopK, \\ladderTreeRetainRng and \\ladderLinKstarRng leave the text. Applied with Q-2026-10-29-30 in the same or the next commit; lapses if that item is vetoed.",
+  "recommendation": "Apply the wording in this file: every-bar numbers, each test stated with its p-value, no 'concentrated' or 'do best with' for the ladder, and 'about 10 of the 46 series' in the introduction and conclusion.",
+  "default": "Applied provisionally together with Q-2026-10-29-30; a one-line veto restores the current sentences.",
+  "alternatives": [
+    "Swap the macros only ('the linear models do best with 10-20 series'): the range comes from a 0.03% tie between the elastic net's 10- and 20-series fits, and 'do best' reads as beating the full set, which is significant only for the ridge",
+    "Say 'the linear models are at least as accurate with their top 10 as with all 46' instead of printing 104-115%",
+    "Keep 'the signal sits in a few series': ten series is 'intermediate', not 'concentrated', under the paper's own reading rule",
+    "Add a multiple-testing-adjusted p for the ridge's top 10 (0.09): the rule does not call for it and no other test in the paper is adjusted",
+    "Drop the linear clause from the introduction and conclusion: it hides the class whose reading changed"
+  ]
+}

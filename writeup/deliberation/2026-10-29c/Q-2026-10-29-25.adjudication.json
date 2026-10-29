@@ -1,0 +1,85 @@
+{
+  "id": "Q-2026-10-29-25",
+  "date": "2026-10-29",
+  "question": "Add one line to the project section of ~/.claude/CLAUDE.md so that every agent drafting paper text, beats, bullets or table notes reads writeup/style/voice.md first?",
+  "adjudicated_by": "adjudicator",
+  "kind": "evidence",
+  "solvers": [
+    {
+      "lens": "evidence",
+      "file": "Q-2026-10-29-25.evidence.md",
+      "answer": "Yes: one pointer line (not an @import of the guide) after the 'Writing-process reference' line, covering generator-written notes, subagent prompts and an exclusion for the author's text (A4).",
+      "confidence": 0.85,
+      "tier": "T3"
+    },
+    {
+      "lens": "author_record",
+      "file": "Q-2026-10-29-25.author_record.md",
+      "answer": "Yes: one line in the form of the three existing project lines, citing the author's 29 Oct V6 words, limited by A4 (author text untouched) and A2 (no restyling outside the edit at hand).",
+      "confidence": 0.9,
+      "tier": "T3"
+    },
+    {
+      "lens": "referee",
+      "file": "Q-2026-10-29-25.referee.md",
+      "answer": "Yes, if the line is scoped by action and file (applied deliberation outcomes included), excludes the author's and coauthors' text, and cites the author's answer to this item rather than an invented quote.",
+      "confidence": 0.85,
+      "tier": "T3"
+    }
+  ],
+  "agreement": "unanimous",
+  "refutation": {
+    "outcome": "failed",
+    "note": "Checked: (1) C:/Users/james/.claude/CLAUDE.md is unchanged since 29 Oct 00:51 PDT (mtime); its project section (lines 75-78) has three lines and none loads voice.md. (2) The author's typed messages in transcript bd4224e0 after 12:51 PDT: 14:20 'meeting in 10 min', 14:21 'try now', 14:23 the ladder question, 14:24 'I need everything parallelized', 14:26 the reconciliation question, 14:29 'what is q8?', 14:32 'meeting is happening, please speed it up', 14:42 the deliberate skill; none mentions CLAUDE.md or the style guide, and the coordinator's 12:54 reply queuing this item drew no answer. (3) log.jsonl has no veto of any CLAUDE.md line; Q-2026-10-29-20, another CLAUDE.md line, is still awaiting him. (4) Nothing else loads the guide: no repo CLAUDE.md or .claude/rules, and voice.md:3-4 says every drafting agent follows it, which holds only if it is loaded. (5) Direct observation: this adjudicator, a spawned subagent, has the global CLAUDE.md project section in its context, so a line there reaches subagents. (6) The banned tail is live in agent text (08_feature_importance.tex:224, ', none significantly'). (7) No lock or forbid on CLAUDE.md content beyond the config trigger itself. The answer survives; the wording below merges the three proposals (pointer only, placement after line 77 as two solvers propose, the referee's scope and attribution, the A4/A2 limits)."
+  },
+  "lock_conflict": "none",
+  "precedence_note": "No author decisions conflict. The author's 29 Oct 12:51 rule (V6) and the report he made the reference on 28 Oct 22:40 (section 8.2: voice.md 'loaded by every agent') both call for loading the guide; A4 (author text never scrubbed) and A2 (scrub only after lock) limit its scope and are written into the line. The config trigger (PROTOCOL section 4) decides who acts, not the answer.",
+  "final_answer": "Yes. After the author's yes, back up C:/Users/james/.claude/CLAUDE.md to a dated copy and insert this line as a new bullet after the 'Writing-process reference' bullet (line 77) of the project section 'harxhar-0dte-professor (paper)':\n- **Voice guide** (user, 2026-10-29: the style-guide rule V6; added on the author's yes to Q-2026-10-29-25): before writing or rewriting any paper text (sections, beats, bullets, captions, table notes, including the captions and notes written by `writeup/make_*.py`, and the wording of applied deliberation outcomes), read `writeup/style/voice.md` and follow its rules, and name that file in the prompt of any subagent you give such work. It governs agent-written text only: text the author supplied stays verbatim (A4), coauthors' Overleaf text is not restyled, and it is no reason to restyle text outside the edit at hand.\nNo git commit or /sync: ~/.claude is not a repo. Record the author's words verbatim in log.jsonl. Until then CLAUDE.md is not touched; coordinators may name writeup/style/voice.md in the drafting prompts they send, which needs no config change.",
+  "answer_short": "One line in your CLAUDE.md so every agent that writes paper text reads your style guide (writeup/style/voice.md) first; it waits for your yes.",
+  "rationale": "All three lenses answer yes on checked grounds: the guide exists because the author asked for the V6 rule today, no mechanism loads it, agent text already carries the tail it bans, and the design the author adopted says the guide is loaded by every agent. Confidence 0.85: the yes is likely; the residual doubt is the mechanism (he might prefer a repo-level rule file) and the wording. T3 only because a CLAUDE.md change is a config hard trigger. Importance HIGH although the touches are process and wording: the line decides whether the author's own rule reaches the drafting of the introduction, abstract and headline sentences, and he asked for that rule today (PROTOCOL section 6, when unsure choose HIGH). Consequence 3: it governs future drafting in many places but changes no paper text now.",
+  "tier": "T3",
+  "confidence": 0.85,
+  "importance": "HIGH",
+  "touches": [
+    "process",
+    "wording"
+  ],
+  "consequence": 3,
+  "hard_trigger": [
+    "config"
+  ],
+  "evidence": [
+    "author 2026-10-29 12:51: \"add a rule to the style guide about \"none significantly\" or any punchy qualification after the fact\"",
+    "commit 2f61ba3",
+    "writeup/style/voice.md:3-4",
+    "writeup/reports/AI layered paper writing system.md:1012",
+    "C:/Users/james/.claude/CLAUDE.md:75-78",
+    "writeup/deliberation/PROTOCOL.md:120",
+    "writeup/rehaul/08_feature_importance.tex:224",
+    "writeup/deliberation/log.jsonl:15",
+    "writeup/deliberation/log.jsonl:20"
+  ],
+  "actions": [
+    {
+      "kind": "edit_config",
+      "target": "C:/Users/james/.claude/CLAUDE.md (project section 'harxhar-0dte-professor (paper)')",
+      "detail": "Only after the author's yes: copy the file to CLAUDE.md.bak-20261029, then insert as a new bullet after the 'Writing-process reference' bullet (line 77), exactly:\n- **Voice guide** (user, 2026-10-29: the style-guide rule V6; added on the author's yes to Q-2026-10-29-25): before writing or rewriting any paper text (sections, beats, bullets, captions, table notes, including the captions and notes written by `writeup/make_*.py`, and the wording of applied deliberation outcomes), read `writeup/style/voice.md` and follow its rules, and name that file in the prompt of any subagent you give such work. It governs agent-written text only: text the author supplied stays verbatim (A4), coauthors' Overleaf text is not restyled, and it is no reason to restyle text outside the edit at hand."
+    },
+    {
+      "kind": "log_only",
+      "target": "writeup/deliberation/log.jsonl",
+      "detail": "Record the author's answer verbatim (source author) with the exact inserted line, so a veto can remove it byte for byte."
+    }
+  ],
+  "consequences": "Changes only C:/Users/james/.claude/CLAUDE.md: one new line in the project section, about 100 words, read in every session; the file is outside git, so undoing it means deleting that line (a dated backup is taken first). No paper text changes when it is added. From then on every new session and every subagent that writes or rewrites paper text reads writeup/style/voice.md (rules V1-V6) first. Existing tails of the banned kind (for example 08_feature_importance.tex:224 and 261, A_results.tex:180 and 442, A_closing.tex:216) stay until an edit touches them or the section's review flags them; nothing is rewritten in bulk. One clash will surface: an earlier settled outcome (Q-2026-10-29-15) words 06_results.tex:146 as '... higher in all six classes, in none significantly', which is the kind of tail your new rule bans; it has not been applied yet, and this item does not decide it. The guide exists only on this branch (commit 2f61ba3), so agents in other worktrees will not find it until that commit is merged.",
+  "recommendation": "Yes. Add this line after the 'Writing-process reference' line: **Voice guide** (user, 2026-10-29: the style-guide rule V6; added on the author's yes to Q-2026-10-29-25): before writing or rewriting any paper text (sections, beats, bullets, captions, table notes, including the captions and notes written by `writeup/make_*.py`, and the wording of applied deliberation outcomes), read `writeup/style/voice.md` and follow its rules, and name that file in the prompt of any subagent you give such work. It governs agent-written text only: text the author supplied stays verbatim (A4), coauthors' Overleaf text is not restyled, and it is no reason to restyle text outside the edit at hand.",
+  "default": "Nothing in CLAUDE.md changes. Agents read the style guide only when their task prompt names it; the coordinator names it in the drafting prompts it sends, which needs no config change.",
+  "alternatives": [
+    "A rule file in the repo (.claude/rules/) that loads the guide whenever an agent opens a paper file: loads more reliably, but it is a new kind of config file that git ignores here; the fallback if agents ignore the pointer",
+    "No CLAUDE.md change, the coordinator names the guide in each drafting prompt: misses fresh sessions that apply your chat edits",
+    "Copy or import the whole guide into CLAUDE.md: about 70 lines in every session of every project, and two copies that drift apart",
+    "A repo-level CLAUDE.md: splits your project rules across two places and is committed separately on each branch"
+  ],
+  "question_for_author": "May I add one line to the project section of your global CLAUDE.md telling every agent that writes or rewrites paper text (sections, beats, bullets, captions, table notes) to read your style guide, writeup/style/voice.md, first? Today no agent reads it, so your 29 Oct rule against tails like 'none significantly' does not reach drafting.",
+  "t3_reason": "Only you can change your CLAUDE.md"
+}

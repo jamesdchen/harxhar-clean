@@ -1,0 +1,33 @@
+{
+ "id": "Q-2026-10-29-28",
+ "date": "2026-10-29",
+ "question": "'XGBoost ranks StockTwits sentiment first' (08:268, 08:312) uses the 2013 pre-sample ranking fit used by the ladder; in the pooled 2014-24 shares XGBoost ranks it 13th of 36. Name which attribution the sentence uses?",
+ "adjudicated_by": "router",
+ "kind": "mechanical",
+ "lock_conflict": "none",
+ "final_answer": "Name the ranking. Both sentences use the ranking from each model's 2013 pre-sample fit (the ladder's PRIMARY ranking), which the beyond-ladder table note already names. 08:268 and 08:312 now say 'in its own ranking from its 2013 pre-sample fit, XGBoost puts StockTwits sentiment first'; no number changes.",
+ "answer_short": "Sec. 8: 'XGBoost ranks StockTwits first' now names its source, the 2013 pre-sample ranking fit.",
+ "rationale": "One generated source decides the fact; the edit only names it (T0 test, PROTOCOL.md section 4).",
+ "tier": "T0",
+ "confidence": 0.95,
+ "importance": "LOW",
+ "touches": [
+  "wording"
+ ],
+ "consequence": 1,
+ "hard_trigger": [],
+ "evidence": [
+  "writeup/generated/rehaul_beyond_ladder_table.tex:29 (note: 'in the model's own ranking from its 2013 pre-sample fit')",
+  "results/ladder_2026-10-26/RULE.txt:63-75 (PRIMARY ranking: one pre-sample fit at 2013-01-02)"
+ ],
+ "actions": [
+  {
+   "kind": "edit_text",
+   "target": "writeup/rehaul/08_feature_importance.tex",
+   "detail": "lines 268 and 312: name the 2013 pre-sample ranking"
+  }
+ ],
+ "consequences": "08_feature_importance.tex lines 268 and 312 only; no macro, table or generator changes.",
+ "recommendation": "Apply the edit.",
+ "default": "The edit stands."
+}

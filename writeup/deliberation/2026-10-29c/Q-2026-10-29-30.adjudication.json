@@ -1,0 +1,118 @@
+{
+  "id": "Q-2026-10-29-30",
+  "date": "2026-10-29",
+  "question": "Switch the paper's feature-count ladder (A_fi app:rh_fi_ladder, fig:rh_ladder, tab:rh_channels_sparse Panel B, the introduction and conclusion sentences) from the monthly ladder to the every-bar one (addendum K, not pre-registered), as C4 provisionally set? If so: the forest has no every-bar ladder (keep its monthly row labelled, or drop it); the window x k grid (app:rh_fi_scaling) exists only monthly (keep it monthly and labelled, or move it); Panel B moves to the every-bar ordinary / statement-day spans.",
+  "adjudicated_by": "adjudicator",
+  "kind": "evidence",
+  "solvers": [
+    {
+      "lens": "evidence",
+      "file": "Q-2026-10-29-30.evidence.md",
+      "answer": "Switch. Drop the forest from the every-bar figure and Panel B and keep its monthly result as one labelled appendix clause; keep the grid monthly and labelled; Panel B on the every-bar day-type spans; the not-pre-registered label goes in appendix prose, not in the caption.",
+      "confidence": 0.78,
+      "tier": "T2"
+    },
+    {
+      "lens": "author_record",
+      "file": "Q-2026-10-29-30.author_record.md",
+      "answer": "Switch. Keep the forest's monthly ladder as a dashed line in the figure and a marked row in Panel B; grid monthly and labelled; no pre-registration label in caption or note, disclosure in the 'Added after the rule' list of A_results and in A_fi.",
+      "confidence": 0.8,
+      "tier": "T2"
+    },
+    {
+      "lens": "referee",
+      "file": "Q-2026-10-29-30.referee.md",
+      "answer": "Switch. Drop the forest from the figure and Panel B, one labelled appendix sentence; grid monthly and labelled; the figure caption and the Panel B note say the every-bar version is not pre-registered.",
+      "confidence": 0.8,
+      "tier": "T2"
+    }
+  ],
+  "agreement": "majority",
+  "refutation": {
+    "outcome": "failed",
+    "note": "Majority answer (switch; forest out of Panel B and the figure with one labelled monthly sentence; no pre-registration label in the caption or the note; grid monthly and labelled) checked against the repo. (1) The author's words: transcript bd4224e0 2026-10-29T00:02:27Z (agent's recommendation, including 'Random forest: ... I'd leave it monthly and label it so') and 00:04:29Z 'go'; 2026-10-29T00:20:59Z (labels 'get rid of this') and 00:30:03Z ('for the stray line break and other notes, yes'), applied in commit c872c53 ('the order of the analyses stays in the appendix'); A1; 29 Oct 14:23 'did we update the ladder tables on overleaf?'. No later author message on the ladder (last typed message 14:32 PDT, skill call 14:42), and log.jsonl has no veto of C4 (Q-2026-10-29-05, provisional). (2) Numbers: ladall_readings.csv and ladall_scores.csv match the EB macros (linear R10 115/105/104, k90 10 in all five, trees R10 97/96); ladall_checks.json passes. (3) Forest: its monthly Panel B Full cells are -44.4 (statement days) and -4.6 (ordinary days), sparsity table line 35, against -44.8 and -5.3 in the joint row of tab:rh_channels_abl (lines 29, 42): keeping the row would recreate for the forest the mismatch the switch removes for the other five (lasso ordinary days +1.0 against -2.4). 'Label it so' is met by the labelled sentence and by the caption and note saying the forest is refitted only monthly; tab:rh_ablation_beyond already prints 'the random forest is not run' in the main text. The author-record solver's dagger precedent marks pre-patch cells within one refit design, a weaker analogue. (4) Labels: addendum K (h) asks that every output carry the label, but it is agent-written; the author's later-dated words of 28 Oct 17:20/17:30 removed the same labels from three table notes (PROTOCOL section 5 rule 2), and the generated files' header comments keep it. (5) Grid: rehaul_complexity_numbers.tex header shows the patched fomcfix grid, so A_fi.tex:496 'The design precedes the FOMC-calendar patch' is stale; an every-bar grid or forest would be unapproved compute. (6) Where-used: paper_rehaul.tex:175 inputs only the monthly macro file, and the beat layers and the fresh version also use the monthly ladder macros; the every-bar caption self-references fig:rh_ladder. No lock or forbid found against the switch. The majority answer survives."
+  },
+  "lock_conflict": "none",
+  "precedence_note": "The switch: D1 (25 Oct, every bar), the 28 Oct 16:58-17:04 messages and 'go', and A1 (28 Oct 23:22) all point the same way; no author decision favours the monthly ladder. Labels: the author's 28 Oct 17:20/17:30 removal of 'requested by the author ... not part of the pre-specified design' from table notes governs captions and notes and outranks the agent-written addendum K (h) (section 5 rule 2); the order of the analyses stays in the appendix prose. Forest: the approved 17:02 recommendation ('leave it monthly and label it so') composes with dropping its row, since its monthly result stays, labelled. C4 (inferred, T2) composes and keeps its separate 16:00 figure. D16 keeps the 16:00 bar out of the main text.",
+  "final_answer": "Yes: switch. The paper's feature-count ladder is the every-bar ladder of addendum K wherever it is reported: the text of app:rh_fi_ladder, fig:rh_ladder, Panel B of tab:rh_channels_sparse, and the introduction and conclusion sentences (their wording is Q-2026-10-29-31). The pre-specified monthly ladder stays, labelled monthly, only where the every-bar run has no counterpart: the dashed lines of the figure, one sentence on the random forest, the 16:00 figure that C4 moves to app:rh_closing, and the window x k grid. Nothing is refitted or rescored. (1) Random forest: not in the every-bar figure or in Panel B; its monthly result is one labelled sentence in the trees bullet of app:rh_fi_ladder (wording in Q-2026-10-29-31), and the figure caption and the Panel B note say it is refitted only monthly. No every-bar forest run. (2) Labels: no 'requested by the author' or 'not pre-registered' in the figure caption or the Panel B note. The order of the analyses is stated in appendix prose: a new 'Order of the analyses' item in app:rh_fi_ladder and a new item in the 'Added after the rule' list of A_results.tex. The generated files' header comments keep addendum K's label. (3) Window x k grid: stays monthly, labelled 'the monthly version of the feature-count ladder'; the stale pre-patch sentence is deleted. (4) Panel B: the every-bar statement-day and ordinary-day spans, five rows, so its Full column equals the joint row of tab:rh_channels_abl. (5) The every-bar figure takes the label fig:rh_ladder; the monthly figure is relabelled fig:rh_ladder_monthly and is the source of C4's 16:00 figure only. No 16:00 span is scored on the every-bar forecasts. Replacement text and generator changes are in actions[].detail; one commit for the item, then the routine Overleaf push.",
+  "answer_short": "Your ladder is now the every-bar one (figure, Panel B, intro, conclusion); the monthly ladder stays, labelled, for the forest, the 16:00 bar and the window grid.",
+  "rationale": "All three lenses switch, for the same checked reasons: the monthly Panel B contradicts the main-text table printed above it (lasso ordinary days +1.0 against -2.4), the monthly shares are not shares of Table 1's gain, and the author asked for the every-bar rerun and for every-bar results wherever they back a claim (A1). The two minority positions were resolved with checked reasons: the forest's monthly row would recreate the mismatch the switch removes, and the caption label goes against the author's 28 Oct removal of the same labels. Confidence 0.75: the switch about 0.9, the forest handling about 0.7, the label placement about 0.85. T2 (majority agreement, confidence below 0.8, no hard trigger). HIGH: a main-text table, the introduction and conclusion, and the refit design of a reported result. Consequence 4.",
+  "tier": "T2",
+  "confidence": 0.75,
+  "importance": "HIGH",
+  "touches": [
+    "main_text_table",
+    "introduction",
+    "headline_claim",
+    "design",
+    "appendix"
+  ],
+  "consequence": 4,
+  "hard_trigger": [],
+  "evidence": [
+    "author 2026-10-28 17:04: \"go\"",
+    "transcript bd4224e0-12aa-4614-b6a6-3fe50535ade1 2026-10-29T00:02:27Z",
+    "author 2026-10-28 16:58: \"why was the feature count ladder table refitting monthly?\"",
+    "author 2026-10-28 17:01: \"we need to rerun the ladder every bar to have qlike stats no?\"",
+    "author 2026-10-28 17:20: \"\"requested by the author after the results by day type, not part of the pre-specified design; 132 columns, every class at its frozen hyperparameters\" get rid of this\"",
+    "author 2026-10-28 17:30: \"for the stray line break and other notes, yes\"",
+    "commit c872c53",
+    "author 2026-10-28 23:22: \"that decision needs to be reflected everywhere those results are reported or used to back up any claim or compared against, etc.\"",
+    "author 2026-10-29 14:23: \"did we update the ladder tables on overleaf?\"",
+    "writeup/deliberation/log.jsonl:5",
+    "results/ablations_2014start_w3000/RULE.txt:479-598",
+    "results/ablations_2014start_w3000/scores_fomcfix/ladall_readings.csv",
+    "writeup/generated/rehaul_channels_sparsity_table.tex:29-35",
+    "writeup/generated/rehaul_channels_ablation_table.tex:29",
+    "writeup/generated/rehaul_channels_ablation_table.tex:42",
+    "writeup/generated/rehaul_ladder_fig_everybar.tex:14-17",
+    "writeup/generated/rehaul_ablation_beyond_table.tex:38",
+    "writeup/rehaul/A_fi.tex:369-414",
+    "writeup/rehaul/A_fi.tex:443",
+    "writeup/rehaul/A_fi.tex:494-497",
+    "writeup/rehaul/A_results.tex:385-391",
+    "writeup/paper_rehaul.tex:175",
+    "writeup/deliberation/ladder_claims_map.md:138-154"
+  ],
+  "actions": [
+    {
+      "kind": "edit_code",
+      "target": "writeup/make_rehaul_ladder.py",
+      "detail": "--everybar mode: write the figure under the label fig:rh_ladder; the monthly default-mode figure becomes fig:rh_ladder_monthly (not input in A_fi; the source of C4's 16:00 figure for A_closing.tex, labelled refitted monthly). Caption: Replace 'Dashed (left panel): the same models refitted monthly, the ladder of Figure~\\ref{fig:rh_ladder}, each against its own $k = 0$ rung.' with 'Dashed (left panel): the same rungs refitted at the \\rhldNOrigins{} monthly origins and held for \\rhldHoldSessions{} sessions, the pre-specified version of Appendix~\\ref{app:rh_fi_ladder}, each against its own $k = 0$ rung.'; replace 'LightGBM, XGBoost and the linear models; no random forest.' with 'LightGBM, XGBoost and the linear models. The random forest is refitted only monthly (Appendix~\\ref{app:rh_fi_ladder}).'; delete the closing 'Every-bar refit, requested by the author after the monthly-vs-every-bar comparison; not pre-registered.' from the printed caption (it stays in the file's header comment, which satisfies addendum K (h) at the file level). New macros: \\rhldPctMonthlyVsWalkMin and \\rhldPctMonthlyVsWalkMax (the extremes of \\rhld<M>PctMonthlyVsWalk), \\rhldRuleKConc (the reading rule's concentration bound) and \\rhldRulePct (its retained-share threshold), plus the aggregates and checks listed in Q-2026-10-29-31. Rerun both modes; the monthly outputs change only by the new label of the monthly figure."
+    },
+    {
+      "kind": "edit_code",
+      "target": "writeup/make_rehaul_channels.py",
+      "detail": "table_sparse and item 3(iii): Panel B reads results/ablations_2014start_w3000/scores_fomcfix/ladall_scores.csv, spans ev and ord, five rows (ridge, lasso, elastic net, LightGBM, XGBoost; the random forest row removed): Full = 100(L_46/L_0 - 1) and R_k from the csv. Add a gate that Panel B's Full equals tab:rh_channels_abl's joint row on both day types. In the note replace 'Panel B: each model refitted monthly on its $k$ highest-ranked exogenous series (ranking from a pre-sample fit; the feature-count ladder of Section~\\ref{sec:rh_fi}), the FOMC-patched design.' with 'Panel B: each model refitted at every bar on its $k$ highest-ranked exogenous series (ranking from a pre-sample fit; the feature-count ladder of Appendix~\\ref{app:rh_fi_ladder}), the FOMC-patched design; $k = 0$ and $k = \\rhldEBNSeries$ are the forecasts of Table~\\ref{tab:rh_oos}, so Full equals the joint row of Table~\\ref{tab:rh_channels_abl}. The random forest, refitted only monthly, is in Appendix~\\ref{app:rh_fi_ladder}.' The \\rhch<M>{Event,Ord}{LadFullPct,R<k>} macros regenerate; no text reads them."
+    },
+    {
+      "kind": "edit_text",
+      "target": "writeup/rehaul/A_fi.tex",
+      "detail": "l.369: \\input{generated/rehaul_ladder_fig_everybar} replaces \\input{generated/rehaul_ladder_fig}. l.371-383 (the first item's design text, up to its sub-list; the sub-list items are replaced under Q-2026-10-29-31) become:\n\\item \\textbf{How many series carry the gain} (Figure~\\ref{fig:rh_ladder}). Following\n  \\citet{MaischZhangUlrichZimmer2026}, we refit each model on its top $k$ exogenous series only, $k = 1$, 3, 5, 10\n  and 20, re-estimated at every bar as in Table~\\ref{tab:rh_oos} (window of \\rhldEBWindowDays{} trading days, frozen\n  hyperparameters); $k = 0$ (the HAR benchmark set) and $k = \\rhldEBNSeries$ (the full set) are the forecasts of\n  Table~\\ref{tab:rh_oos}. Every rung is scored on the \\rhldEBNBars{} bars of Table~\\ref{tab:rh_oos}, and on the\n  \\rhldEBNDaysOrd{} ordinary days and the \\rhldEBNDaysEv{} FOMC statement days of Section~\\ref{sec:rh_fi}. Each model\n  ranks the series once, by its own measure on a fit explained on \\rhldEBRankYear, before the span, so the ranking\n  has no look-ahead. Rung $k$ retains $R_k = (L_0 - L_k)/(L_0 - L_{\\rhldEBNSeries})$ of the full set's QLIKE gain. A\n  model's signal reads concentrated if \\rhldRuleKConc{} or fewer series retain \\rhldRulePct\\% of the gain,\n  intermediate if 10 or 20 are needed, and dense and weak if no reduced rung reaches \\rhldRulePct\\%. The figure and\n  the numbers below, like the same ladder by day type in Panel~B of Table~\\ref{tab:rh_channels_sparse}, cover\n  LightGBM, XGBoost, ridge, lasso and elastic net on the design with the FOMC fixes of\n  Appendix~\\ref{app:rh_dp_fomc}.\nAfter the closing paragraph (current l.410-414, replaced under Q-2026-10-29-31) and before \\end{itemize}, add a second top-level item:\n\\item \\textbf{Order of the analyses.} The pre-specified ladder refitted each rung at the \\rhldNOrigins{} monthly\n  origins of Appendix~\\ref{app:rh_fi_compute} and held each fit for \\rhldHoldSessions{} sessions; its rungs, rankings\n  and reading were fixed before it was scored. Held for a month, the full sets are less accurate than those of\n  Table~\\ref{tab:rh_oos}, by \\rhldPctMonthlyVsWalkMin{} to \\rhldPctMonthlyVsWalkMax\\%, so its shares are not shares of\n  Table~\\ref{tab:rh_oos}'s gain. Refitting every rung at every bar was added after that comparison and is not part of\n  the pre-specified design; its design was fixed in a dated addendum before its forecasts were made, and it is read\n  with the pre-specified rule. Figure~\\ref{fig:rh_ladder} draws the monthly rungs dashed. The random forest has only\n  the monthly ladder.\nGrid: l.443 'The feature-count ladder of Appendix~\\ref{app:rh_fi_ladder} at rolling windows' becomes 'The monthly version of the feature-count ladder of Appendix~\\ref{app:rh_fi_ladder} at rolling windows'; l.496-497 delete 'The design precedes the FOMC-calendar patch, and the FOMC calendar is among the top-ranked series of the linear models.' (the grid is on the patched design); l.499 the comment '(pre-patch design)' corrected; l.378-383 and l.425 stale comments updated. The old text is parked in dated comments."
+    },
+    {
+      "kind": "edit_text",
+      "target": "writeup/rehaul/A_results.tex",
+      "detail": "'Added after the rule' list (l.385-391): end the second item with ';' instead of '.', and add '\\item the feature-count ladder refitted at every bar (Appendix~\\ref{app:rh_fi_ladder}; Table~\\ref{tab:rh_channels_sparse}, Panel~B), after the monthly ladder's results.'"
+    },
+    {
+      "kind": "edit_text",
+      "target": "writeup/paper_rehaul.tex",
+      "detail": "l.175: add \\input{generated/rehaul_ladder_numbers_everybar} after the monthly file, which stays (the forest, the dashed lines, the contrast sentence and the grid read it). The same input goes into writeup/paper_rehaul_beats.tex, writeup/paper_rehaul_beats_top.tex and writeup/fresh/paper_fresh_beats.tex."
+    },
+    {
+      "kind": "edit_text",
+      "target": "writeup/rehaul/99_author_notes.tex",
+      "detail": "l.35-36 and l.64-70: the ladder macros and provenance become the every-bar ladder (results/ablations_2014start_w3000/scores_fomcfix, addendum K); the forest and the grid stay monthly."
+    }
+  ],
+  "consequences": "Paper: the ladder appendix (A_fi.tex, app:rh_fi_ladder) switches its figure to the every-bar one with ordinary-day and statement-day panels and rewrites its design text, with a new 'Order of the analyses' item; Panel B of the main-text table tab:rh_channels_sparse (Section 8) switches to every-bar rows for five models and loses the random-forest row, and its Full column then matches the joint row of tab:rh_channels_abl; the introduction (01_introduction.tex:133-138) and the conclusion (09_conclusion.tex:46-50) move to the every-bar numbers, with the wording of Q-2026-10-29-31; the window-by-number-of-series grid (A_fi.tex:443, 494-497) is labelled monthly and loses a sentence that wrongly calls it pre-patch; A_results.tex's 'Added after the rule' list gains one item. Generators: make_rehaul_ladder.py (figure label, caption, new macros) and make_rehaul_channels.py (Panel B source, note, a consistency check); regenerated files: rehaul_ladder_fig_everybar.tex, rehaul_ladder_numbers_everybar.tex, rehaul_ladder_fig.tex (label only), rehaul_channels_sparsity_table.tex and rehaul_channels_numbers.tex. Preambles: paper_rehaul.tex, paper_rehaul_beats.tex, paper_rehaul_beats_top.tex and fresh/paper_fresh_beats.tex also load the every-bar macros. Draft notes: 99_author_notes.tex. Unchanged: the monthly results and their files; C4's separate 16:00 figure for the closing-interval appendix, which can only come from the monthly ladder. Nothing is refitted or rescored, and one git revert undoes the item.",
+  "recommendation": "Switch the paper's ladder to the every-bar version everywhere it is reported. Keep the monthly ladder, labelled 'refitted monthly', only where the every-bar run has nothing: the dashed lines, one sentence on the random forest, the 16:00 figure and the window grid. Drop the forest row from Panel B. Keep 'not pre-registered' out of captions and table notes and say it in the appendix text.",
+  "default": "Applied provisionally as recommended; a one-line veto restores the monthly ladder everywhere.",
+  "alternatives": [
+    "Keep the random forest's monthly row in Panel B and its line in the figure, marked 'refitted monthly': its Full cells (-44.4% and -4.6%) would disagree with the joint row printed just above (-44.8% and -5.3%)",
+    "Print 'not pre-registered' in the figure caption and the Panel B note: you had the same labels removed from three table notes on 28 Oct",
+    "Keep the monthly ladder as the paper's ladder and the every-bar one as a robustness check: Panel B keeps contradicting the table above it, and the monthly shares are not shares of Table 1's gain",
+    "Refit the forest and the window grid at every bar first: about 1,900 to 3,000 CPU-hours of new compute you have not approved"
+  ]
+}
