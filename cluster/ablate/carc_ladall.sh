@@ -9,7 +9,8 @@
 #   MODE=piece  TASKS: line SLURM_ARRAY_TASK_ID ("<est> <arm> <i>/<n> <hours>") -> ablate_trees.py walk ->
 #               $D/runs/trees_ladall/pieces (checkpoints every 300 s; resumable by resubmitting the index); exit 98 if
 #               this node's CPU model has not passed the gate for the class
-#   MODE=merge  TASKS, GATES: ablate_ladall.py merge -> $D/runs/trees_ladall/trees_wide.parquet
+#   MODE=merge  TASKS [, GATES]: ablate_ladall.py merge -> $D/runs/trees_ladall/trees_wide.parquet (GATES default: every
+#               gate dir under $D/gate; a dir without passed_<est> is ignored by T2)
 set -eo pipefail
 : "${MODE:?}" "${PY:?}" "${CODE:?}" "${FULL:?}" "${D:?}"
 cd "$CODE"
@@ -51,7 +52,10 @@ case "$MODE" in
       --out "$D/runs/trees_ladall" --threads "$NT"
     ;;
   merge)
-    : "${TASKS:?}" "${GATES:?}"
+    : "${TASKS:?}"
+    # GATES: default every gate dir under $D/gate (sbatch --export splits a comma-separated value)
+    GATES=${GATES:-$(ls -d "$D"/gate/*/ | sed 's:/$::' | paste -sd, -)}
+    echo "gates: $GATES"
     "$PY" experiments/ablate_ladall.py merge --out "$D/runs/trees_ladall" --gates "$GATES" --tasks "$TASKS" \
       --to "$D/runs/trees_ladall/trees_wide.parquet"
     ;;

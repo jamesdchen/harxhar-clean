@@ -28,6 +28,8 @@ usage: python experiments/ablate_ladall.py <mode> [options]
                                         walk (fomcfix lin_B.parquet) bit for bit in pred_adj and true_adj on the same
                                         dates; exit 3 on a failure
   check    [--csv rank_primary.csv]     LADALL against the ranking; every rung's columns on the full design's names
+  join     --parts F1,F2 --to P         (laptop) the two clusters' compact tree files joined on date (dates asserted
+                                        equal, columns disjoint, 33,970 rows, no NaN) -> P (forecasts/trees_wide_ladall)
 """
 
 from __future__ import annotations
@@ -303,9 +305,28 @@ def cmd_check(a) -> int:
     return 0
 
 
+def cmd_join(a) -> int:
+    """The CARC (LightGBM) and Hoffman2 (XGBoost) compact files -> one compact file of the 10 tree rungs."""
+    parts = [pd.read_parquet(p) for p in a.parts.split(",") if p]
+    w = parts[0]
+    for f in parts[1:]:
+        assert pd.DatetimeIndex(f["date"]).equals(pd.DatetimeIndex(w["date"])), "dates differ"
+        both = (set(f.columns) & set(w.columns)) - {"date"}
+        assert not both, both
+        w = pd.concat([w, f.drop(columns="date")], axis=1)
+    w = w[["date", *sorted(c for c in w.columns if c != "date")]]
+    assert len(w) == 33970 and w.notna().all().all(), (len(w), int(w.isna().sum().sum()))
+    want = {f"{e}|{x}" for e in ("lgbm", "xgb") for x in AA.LRUNGS[e]}
+    assert set(w.columns) - {"date"} == want, sorted(set(w.columns) ^ want)
+    w.to_parquet(a.to, index=False)
+    say(f"{w.shape[1] - 1} tree rungs x {len(w)} bars -> {a.to}")
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("mode", choices=("tasks", "gate", "t2", "merge", "lingate", "check"))
+    ap.add_argument("mode", choices=("tasks", "gate", "t2", "merge", "lingate", "check", "join"))
+    ap.add_argument("--parts", default="")
     ap.add_argument("--dir", default="")
     ap.add_argument("--target-hours", type=float, default=2.0)
     ap.add_argument("--out", default="")
@@ -325,6 +346,7 @@ def main() -> int:
         "merge": cmd_merge,
         "lingate": cmd_lingate,
         "check": cmd_check,
+        "join": cmd_join,
     }[a.mode](a)
 
 
