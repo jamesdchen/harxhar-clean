@@ -1082,8 +1082,21 @@ def cmd_gates(a) -> int:
     r_o = (np.abs(fi["ols|c1"] - fi["ols|c2act"]) / np.abs(fi["ols|c2act"])).dropna()
     x = fi[["ridge|c1iso", "ridge|c2act"]].dropna()
     r_r = np.abs(x["ridge|c1iso"] - x["ridge|c2act"]) / np.abs(x["ridge|c2act"])
+    # amendment D: OLS bars above the tolerance, with the day map's smallest eigenvalue (numerical rank)
+    mt = np.load(work / f"maps_{test}" / "meta.npz")
+    lmin = {str(d_): float(mt["lam"][j_, mt["n_active"][j_] - 1]) for j_, d_ in enumerate(mt["days"])}
+    over = r_o[r_o > GC1_TOL]
     rec["GC1"] = dict(
-        ols=dict(bars=len(r_o), max_rel=float(r_o.max()), pass_=bool(len(r_o) == len(fi) and r_o.max() <= GC1_TOL)),
+        ols=dict(
+            bars=len(r_o),
+            max_rel=float(r_o.max()),
+            median_rel=float(r_o.median()),
+            n_above_1e_10=int((r_o > 1e-10).sum()),
+            above_tol=[(str(d_), float(v_), lmin[str(d_.date())]) for d_, v_ in over.items()],
+            median_day_min_eigenvalue=float(np.median(list(lmin.values()))),
+            pass_=bool(len(r_o) == len(fi) and r_o.max() <= GC1_TOL),
+            blocking=False,
+        ),
         ridge_iso=dict(bars=len(r_r), max_rel=float(r_r.max()), pass_=bool(r_r.max() <= GC1_TOL)),
         note="under the add-arm convention every column is standardized, the scores included: ridge's penalty on the full"
         " rotation is alpha sum_k lambda_k c_k^2 = alpha gamma' R gamma in the block's standardized coordinates, not"
@@ -1157,7 +1170,7 @@ def cmd_gates(a) -> int:
         ("G1", all(x_["pass_"] for x_ in g1.values())),
         ("G2", rec["G2"]["pass_"]),
         ("G3", g3["pass_"]),
-        ("GC1", rec["GC1"]["ols"]["pass_"] and rec["GC1"]["ridge_iso"]["pass_"]),
+        ("GC1", rec["GC1"]["ridge_iso"]["pass_"]),  # amendment D: the OLS check is reported, not blocking
     ):
         if not v:
             rec["fail"].append(k)
@@ -1497,9 +1510,13 @@ def summary(test: str, sc: pd.DataFrame, rd: dict, c3: dict, g: dict, infos: dic
         f" {g['G3']['n_event_days']} EVENT days."
     )
     L.append(
-        f"- GC1: OLS C1 vs OLS on [BASE, the active block columns], every bar, max relative"
-        f" {g['GC1']['ols']['max_rel']:.2e}; ridge with unstandardized scores vs ridge on [BASE, the active block"
-        f" columns] at the days' first bars, max relative {g['GC1']['ridge_iso']['max_rel']:.2e}.  {g['GC1']['note']}."
+        f"- GC1 ridge {'PASS' if g['GC1']['ridge_iso']['pass_'] else 'FAIL'}: ridge with unstandardized scores vs"
+        f" ridge on [BASE, the active block columns] at the days' first bars, max relative"
+        f" {g['GC1']['ridge_iso']['max_rel']:.2e}.  GC1 OLS (amendment D, reported, not blocking): OLS C1 vs OLS on"
+        f" [BASE, the active block columns], every bar, median relative {g['GC1']['ols']['median_rel']:.1e},"
+        f" {g['GC1']['ols']['n_above_1e_10']} bars above 1e-10; the bars above 1e-8 (date, relative difference, the"
+        f" day map's smallest correlation eigenvalue; the median over days is"
+        f" {g['GC1']['ols']['median_day_min_eigenvalue']:.1e}): {g['GC1']['ols']['above_tol']}.  {g['GC1']['note']}."
     )
     L += ["", "## Provenance", ""]
     for k, inf in infos.items():

@@ -177,3 +177,20 @@ max|c|) slightly off the exact optimum this walk solves for.
   so they were dropped.
 - G1: such isolated bars (both neighbours within 1e-10) are counted separately and listed in gates.json.  G1 passes
   when every other bar is within 1e-10 and every isolated bar is within 1e-8.
+
+AMENDMENT D (2026-10-28 ~20:05 PDT, before any scoring; seen in test A's gates).
+GC1's OLS check fails on a few bars: 5 bars above 1e-8 and 27 above 1e-10 out of 33,997; the median is 2.9e-14 and
+the maximum 227 relative, at 2023-02-21 10:00.
+- Cause: the day map of 2023-02-21 admits 4 new block columns.  These are series that pass the 250-row evidence rule
+  that day, the window ending at the Presidents' Day session of 2023-02-20.  Their moving averages are nearly
+  collinear in the window: the smallest correlation eigenvalues are 1.6e-11, 4.9e-10 and 1.3e-8, against a median
+  minimum over days of about 2e-4.
+- OLS's min-norm cut (eigenvalues below 1e-15 of the largest) then drops different directions in the score basis and
+  in the raw-column basis.  The forecast row lies off the window's span in those directions.  The two forecasts are
+  different min-norm answers to an ill-posed extrapolation, not a rotation error.
+- Ridge's rotation check, which has no rank cut, holds to 8.5e-15 on every day's first bar, 2023-02-21 included.
+- Therefore GC1's OLS check is reported (its bars above 1e-8, each with that day's smallest eigenvalue) and does not
+  block scoring; the ridge rotation check stays a gate.
+- The same near-null directions explain C1's extreme bars under the convention (amendment B (b)): the whitened C1
+  scales them up to unit variance.  This only flags C1 on these days; the k-arms are unaffected, since their scores
+  are the leading components.
