@@ -147,3 +147,7 @@ There is no controlled study of top-down layered review for documents. The best 
 ### Gaps
 - No experimental or field evidence was found quantifying time saved by top-down (outline-first) review of documents vs linear review. Literature on reverse outlining or hierarchical document review was not searched within the tool budget.
 - No evidence was found on whether approving an outline biases reviewers to under-scrutinize later prose (a possible automation-bias side effect of layering).
+
+---
+
+**Correction (2026-10-28):** arXiv 2506.20595 (Q1, "Other co-writing studies") is not "Script&Shift". Its arXiv abstract page gives the title "AI in the Writing Process: How Purposeful AI Support Fosters Student Writing" (Siddiqui, Pea, Subramonyam; 25 June 2025): an RCT with 90 undergraduates comparing a chat assistant, an integrated multi-subprocess tool and a control, in which the integrated tool gave greater writer agency. — [arXiv 2506.20595](https://arxiv.org/abs/2506.20595); source: `precedent_scholarly_overleaf.md` Q3. Script&Shift itself was not located under its own arXiv ID and is unverified.
