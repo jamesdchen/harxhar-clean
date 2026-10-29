@@ -176,8 +176,12 @@ push-beats)
         fi
     done
     for f in beats.tex beats_top.tex referencesb.bib; do  # never replace a file the project made itself
+        # 2026-10-28: a layer whose content is exactly its last flatten is ours, whatever its last commit says (e.g.
+        # the revert of a stray edit made in the Overleaf editor)
+        fm=""; [[ "$f" == beats.tex ]] && fm=map_beats.json; [[ "$f" == beats_top.tex ]] && fm=map_beats_top.json
         if git -C "$DIR" ls-files --error-unmatch -- "$f" >/dev/null 2>&1 \
-            && [[ "$(git -C "$DIR" log -1 --format=%s -- "$f")" != "Review layers from harxhar-clean "* ]]; then
+            && [[ "$(git -C "$DIR" log -1 --format=%s -- "$f")" != "Review layers from harxhar-clean "* ]] \
+            && ! { [[ -n "$fm" ]] && same_flat "$SYNC/$fm" "$DIR/$f"; }; then
             die "$f is one of the project's own files; not overwriting it"
         fi
     done
