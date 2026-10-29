@@ -3,7 +3,7 @@
 \section{Economic application}
 \label{sec:rh_econ}
 \begin{itemize}
-\item \textbf{A trade on the closing-bar forecast.} The pooled models forecast every regular-hours bar, and their
+\item \textbf{A trade on the closing-bar forecast.} Our models forecast every regular-hours bar, and their
   15:30 forecast of the closing bar has a counterpart in the options market: a same-day-expiring S\&P~500 straddle
   traded at 15:30 ET and held to the close.
   \begin{itemize}
@@ -43,8 +43,8 @@
   the implied variance and short otherwise (ties go short); $\mathrm{IV}_t^2 - \hat\sigma^2_t$ is the forecast of the
   half hour's variance risk premium \citep{CarrWu2009,BollerslevTauchenZhou2009}.
 \item \textbf{Benchmarks.} The unconditional short straddle, $q_t \equiv -1$, and the sign strategy of the benchmark
-  forecast, the OLS on the HAR benchmark set pooled over the \rhePoolNBars{} regular-hours bars
-  (Table~\ref{tab:rh_oos}). On the HAR benchmark set the pooled ridge, lasso and elastic-net forecasts coincide with
+  forecast, the OLS on the HAR benchmark set estimated on the \rhePoolNBars{} regular-hours bars
+  (Table~\ref{tab:rh_oos}). On the HAR benchmark set the ridge, lasso and elastic-net forecasts coincide with
   the OLS (Table~\ref{tab:rh_econ_main}, note b), so the six HAR-set strategies hold \rhemHarDistinctWord{} distinct
   forecasts.
 \item \textbf{Execution.} At quoted prices a purchase pays the sum of the legs' asks and a sale receives the sum of
@@ -84,7 +84,7 @@
 \subsection{Strategy performance}
 \label{sec:rh_econ_results}
 \begin{itemize}
-\item \textbf{Table and figure.} Table~\ref{tab:rh_econ_main} reports the sign strategies of the \rhrPoolN{} pooled
+\item \textbf{Table and figure.} Table~\ref{tab:rh_econ_main} reports the sign strategies of the \rhrPoolN{}
   forecasts and the short straddle, and Figure~\ref{fig:rh_econ_byyear} plots their Sharpe ratios by calendar year,
   $\SR_y$.
 \item \textbf{Passive selling earns nothing detectable.} The unconditional short straddle has $\SR = \rheShortSh$ at
@@ -97,7 +97,7 @@
   mid-quotes and \rhemShXRidgeHar{} at quoted bid/ask prices. Its Sharpe ratio exceeds the short straddle's by
   \rhemDShRidgeHarVsShort{} (Ledoit--Wolf $p = \rhemPDShRidgeHarVsShort$), and none of the \rhemHarDistinctWord{}
   distinct HAR-set forecasts has a Sharpe ratio significantly above the short straddle's.
-\item \textbf{The full predictor set beats passive selling.} The six pooled forecasts on the full predictor set reach
+\item \textbf{The full predictor set beats passive selling.} The six forecasts on the full predictor set reach
   $\SR = \rhrPoolShFullMin$ to \rhrPoolShFullMax{} at mid-quotes and \rhrPoolShXFullMin{} to \rhrPoolShXFullMax{} at
   quoted bid/ask prices. Their Sharpe ratio gain over the short straddle is significant at the 5\% level for
   \rhemFullVsShortSigWord{} of the six at mid-quotes and \rhemFullVsShortSigXWord{} at quoted bid/ask prices

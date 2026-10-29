@@ -14,7 +14,7 @@
     carried the approach to that horizon \citep{EngleSokalska2012,ZhangZhangCucuringuQian2024}. Like the HAR model,
     they forecast volatility from its own past; we ask what predictors beyond its lagged realized variances add.
   \end{itemize}
-\item \textbf{Research question.} We investigate whether exogenous predictors improve pooled forecasts of the
+\item \textbf{Research question.} We investigate whether exogenous predictors improve forecasts of the
   realized variance of front-month E-mini S\&P~500 futures on every regular-hours half-hour bar of the trading day.
   \begin{itemize}
   \item We call exogenous every predictor outside the HAR components of the target and the calendar dummies. The
@@ -48,7 +48,7 @@
   \end{itemize}
 \item \textbf{Benchmark and evaluation.}
   \begin{itemize}
-  \item The primary benchmark is ordinary least squares on the HAR benchmark set, pooled on the same bars (the OLS
+  \item The primary benchmark is ordinary least squares on the HAR benchmark set, estimated on the same bars (the OLS
     row of Table~\ref{tab:rh_oos}); on this set the penalized linear models choose penalties close to zero and
     reproduce its forecast.
   \item Every forecast is compared with this benchmark, and each class's full predictor set with the HAR benchmark
