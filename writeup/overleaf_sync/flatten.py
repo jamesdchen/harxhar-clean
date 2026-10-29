@@ -1116,6 +1116,16 @@ def check(fl: Flattener, out_dir: Path, flat: str, keep: bool) -> bool:
         if new_errors:
             print(f"  errors in main.log only: {dict(new_errors)}")
         ok &= undefined == 0 and not new_errors
+        # 2026-10-28 (author: update Overleaf faster): the source build itself must be clean too -- no LaTeX error,
+        # undefined reference or citation, or multiply-defined label -- so the push's check replaces a separate build.
+        src_bad = {
+            "errors": sum(errors_paper.values()),
+            "undefined references": len(re.findall(r"Reference `[^']*' on page \d+ undefined", paper_log)),
+            "undefined citations": len(re.findall(r"Citation `[^']*' on page \d+ undefined", paper_log)),
+            "multiply defined labels": len(re.findall(r"Label `[^']*' multiply defined", paper_log)),
+        }
+        print(f"  {job}.log: " + ", ".join(f"{k} {v}" for k, v in src_bad.items()))
+        ok &= not any(src_bad.values())
         new_warn = log_warnings(main_log) - log_warnings(paper_log)
         gone_warn = log_warnings(paper_log) - log_warnings(main_log)
         print(f"  warnings in main.log but not in {job}.log: {sum(new_warn.values()) or 'none'}")
