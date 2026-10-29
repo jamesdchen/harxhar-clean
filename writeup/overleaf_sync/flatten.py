@@ -36,8 +36,8 @@ the source text, macro text equal to the expansion, and every character of every
 Output is deterministic: the same sources give a byte-identical main.tex and map (except the map's "created").
 
 --check builds main.tex (in a temporary copy of DIR's main.tex, .bib files and figures) and paper_rehaul.tex (in a
-temporary copy of writeup/, so the tracked build files are not touched), each with pdflatex, bibtex, pdflatex x2. It
-requires identical pdftotext output, equal page counts, no live \input / \include / \InputIfFileExists and no live
+temporary copy of writeup/, so the tracked build files are not touched), each with pdflatex, bibtex, pdflatex x2 (the
+first two passes in -draftmode; the two builds in parallel). It requires identical pdftotext output, equal page counts, no live \input / \include / \InputIfFileExists and no live
 number-macro control word in main.tex, no "Undefined control sequence" in the main.tex log, and no warning in that
 log that the paper's log does not have (line numbers ignored).
 
@@ -58,6 +58,7 @@ from __future__ import annotations
 
 import argparse
 import collections
+import concurrent.futures
 import datetime
 import difflib
 import functools
@@ -1021,13 +1022,16 @@ def is_miktex() -> bool:
 
 
 def build(workdir: Path, job: str) -> tuple[Path, str]:
-    """pdflatex, bibtex, pdflatex x2 in workdir; returns (pdf, final log text)."""
+    """pdflatex (draft), bibtex, pdflatex (draft), pdflatex in workdir; returns (pdf, final log text)."""
     env = dict(os.environ, max_print_line="10000", error_line="254", half_error_line="238")
     # 2026-10-27: MiKTeX ignores those variables (TeX Live reads them) and wraps the log at 79 columns, so a warning
     # "... on input line NNNN." broke at a different place in the two logs and counted as new; it takes them as flags.
     flags = ["-max-print-line=10000", "-error-line=254", "-half-error-line=238"] if is_miktex() else []
     latex = ["pdflatex", "-interaction=nonstopmode", *flags, f"{job}.tex"]
-    for cmd in (latex, ["bibtex", job], latex, latex):
+    # 2026-10-28 (author: update Overleaf faster): the first two passes in -draftmode (aux files written, no PDF);
+    # only the last pass writes the PDF, whose text and log the check compares.
+    draft = ["pdflatex", "-interaction=nonstopmode", "-draftmode", *flags, f"{job}.tex"]
+    for cmd in (draft, ["bibtex", job], draft, latex):
         subprocess.run(
             cmd,
             cwd=workdir,
@@ -1080,8 +1084,12 @@ def check(fl: Flattener, out_dir: Path, flat: str, keep: bool) -> bool:
         for ext in (".aux", ".bbl", ".blg", ".out", ".toc", ".lof", ".lot", ".log", ".pdf", ".fls"):
             (paper_dir / (job + ext)).unlink(missing_ok=True)  # both builds start from scratch
         print(f"  building main.tex in {flat_dir} and {fl.entry_rel} in {paper_dir} ...", flush=True)
-        main_pdf, main_log = build(flat_dir, Path(fl.flat_name).stem)
-        paper_pdf, paper_log = build(paper_dir, job)
+        # 2026-10-28 (author: update Overleaf faster): the two builds run at the same time (separate directories)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
+            f_main = pool.submit(build, flat_dir, Path(fl.flat_name).stem)
+            f_paper = pool.submit(build, paper_dir, job)
+            main_pdf, main_log = f_main.result()
+            paper_pdf, paper_log = f_paper.result()
         if not main_pdf.is_file() or not paper_pdf.is_file():
             print(f"  FAIL: no PDF (main.pdf: {main_pdf.is_file()}, {job}.pdf: {paper_pdf.is_file()})")
             return False

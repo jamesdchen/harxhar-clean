@@ -9,6 +9,7 @@
 #   bash writeup/overleaf_sync/overleaf_git.sh push [--first] [--check]   # flatten the source -> Overleaf
 #   bash writeup/overleaf_sync/overleaf_git.sh pull [--dry-run]           # Overleaf edits -> section files
 #   bash writeup/overleaf_sync/overleaf_git.sh push-beats [--check]       # review layers (HEAD only) -> Overleaf
+#   bash writeup/overleaf_sync/overleaf_git.sh push-all [--check]         # push, then push-beats (2026-10-28)
 #
 # 2026-10-20 (user): the project already holds an earlier draft (main.tex, references.bib, sections/, ...), which stays
 # as it is. The flat paper is written as main2.tex, with its bibliography as references2.bib, and nothing else is
@@ -16,6 +17,7 @@
 # 2026-10-24: the flat paper's live figures are committed too, at their paths under writeup/ (flatten.py copied them
 # but they were never committed, so Overleaf compiled without them); a figure never replaces a project file.
 #
+# push: (2026-10-28) flattens a clean checkout of HEAD, never the working tree: commit first.
 # push: clones (or updates) the Overleaf project in $OVERLEAF_DIR. It refuses if Overleaf's main2.tex differs from the
 #       last flatten in writeup/overleaf_sync/map.json, because that means human edits not yet pulled back; --first
 #       allows the very first push (no main2.tex yet). It flattens (flatten.py --name main2.tex --bib-suffix 2, with
@@ -51,13 +53,30 @@ TOKEN="${OVERLEAF_GIT_TOKEN:-$(sed -n 's/^# OVERLEAF_GIT_TOKEN=//p' "${BASH_SOUR
 
 die() { echo "overleaf_git: $*" >&2; exit 1; }
 
-og() {  # git with the token helper when a token is known
+og_once() {  # git with the token helper when a token is known
     if [[ -n "$TOKEN" ]]; then
         OVERLEAF_GIT_TOKEN="$TOKEN" git -c credential.helper= \
             -c credential.helper='!f() { echo username=git; echo "password=${OVERLEAF_GIT_TOKEN}"; }; f' "$@"
     else
         git "$@"
     fi
+}
+
+og() {  # og_once, retried while Overleaf's git bridge fails transiently (2026-10-28: 503s are frequent)
+    local i err rc
+    err="$(mktemp)"
+    for i in 1 2 3 4 5 6 7 8; do
+        if GIT_TERMINAL_PROMPT=0 GCM_INTERACTIVE=never og_once "$@" 2>"$err"; then rc=0; else rc=$?; fi
+        cat "$err" >&2
+        if [[ $rc -eq 0 ]] || ! grep -qE "error: (502|503|504)|upstream connect|no healthy upstream|Connection (reset|timed out|refused)|Could not resolve host|unable to access" "$err"; then
+            rm -f "$err"
+            return $rc
+        fi
+        echo "overleaf_git: Overleaf's git bridge failed (try $i of 8); retrying in $((15 * i)) s" >&2
+        sleep $((15 * i))
+    done
+    rm -f "$err"
+    return $rc
 }
 
 checkout() {  # clone the project, or bring an existing clone up to date
@@ -102,8 +121,18 @@ push)
         die "--first, but $DIR/$FLAT already exists with other content; pull it back first"
     fi
     figlist="$(mktemp)"
-    python3 "$SYNC/flatten.py" --out "$DIR" --map "$MAP" --name "$FLAT" --bib-suffix "$BIB_SUFFIX" \
-        --figures-out "$figlist" ${check[@]+"${check[@]}"}
+    # 2026-10-28 (author: update Overleaf faster): flatten a clean checkout of HEAD (writeup/ only), as push-beats
+    # does, so uncommitted edits never reach Overleaf and committed work can be pushed while others are editing.
+    dirty="$(git -C "$REPO" status --porcelain --untracked-files=no -- writeup | wc -l)"
+    [[ "$dirty" -eq 0 ]] || echo "overleaf_git: $dirty uncommitted file(s) under writeup/ are NOT pushed (HEAD is)"
+    ptmp="$(mktemp -d)"
+    pwt="$ptmp/wt"
+    git -C "$REPO" worktree add -q --no-checkout --detach "$pwt" HEAD
+    trap 'git -C "$REPO" worktree remove --force "$pwt" >/dev/null 2>&1 || true' EXIT
+    git -C "$pwt" sparse-checkout set --cone writeup
+    git -C "$pwt" checkout -q --detach HEAD
+    python3 "$pwt/writeup/overleaf_sync/flatten.py" --entry "$pwt/writeup/paper_rehaul.tex" --out "$DIR" --map "$MAP" \
+        --name "$FLAT" --bib-suffix "$BIB_SUFFIX" --figures-out "$figlist" ${check[@]+"${check[@]}"}
     figs=()
     while IFS= read -r f; do [[ -n "$f" ]] && figs+=("$f"); done < "$figlist"
     rm -f "$figlist"
@@ -202,8 +231,12 @@ pull)
     echo "overleaf_git: report in $SYNC/REPORT.md (unflatten exit $rc: 0 = clean, 2 = conflicts listed in the report)"
     exit $rc
     ;;
+push-all)  # 2026-10-28 (author: update Overleaf faster): the paper and the review layers in one command
+    bash "${BASH_SOURCE[0]}" push "$@"
+    bash "${BASH_SOURCE[0]}" push-beats "$@"
+    ;;
 *)
-    sed -n '9,11p' "${BASH_SOURCE[0]}"
+    sed -n '9,12p' "${BASH_SOURCE[0]}"
     exit 1
     ;;
 esac
