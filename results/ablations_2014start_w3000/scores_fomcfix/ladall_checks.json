@@ -1,0 +1,53 @@
+{
+ "pass": true,
+ "fail": [],
+ "label": "every-bar refit, requested by the author after the monthly-vs-every-bar comparison; not pre-registered",
+ "rule": "results/ablations_2014start_w3000/RULE.txt addendum K (h); readings: ladder RULE section 6 (results/ladder_2026-10-26/code/ladder_score.py's definition of k50 / k75 / k90 and the verdict)",
+ "inputs": {
+  "trees_wide_ladall.parquet": "C:\\Users\\james\\CC Allowed\\harxhar-0dte-professor\\results\\ablations_2014start_w3000\\forecasts\\trees_wide_ladall.parquet",
+  "linear_wide_ladall.parquet": "C:\\Users\\james\\CC Allowed\\harxhar-0dte-professor\\results\\ablations_2014start_w3000\\forecasts\\linear_wide_ladall.parquet"
+ },
+ "res": "C:\\Users\\james\\CC Allowed\\harxhar-0dte-professor\\results\\ablations_2014start_w3000",
+ "rf_fix": "C:\\Users\\james\\CC Allowed\\harxhar-0dte-professor\\results\\pooled_rf_skx_2014start_fomcfix_w3000\\forecasts.parquet",
+ "n_bars_table1": 33527,
+ "n_bars_scored": 33527,
+ "day_types": {
+  "event_days": 81,
+  "ordinary_days": 2498,
+  "event_bars": 1053,
+  "ordinary_bars": 32474,
+  "rule": "ablate_score.event_days (results/channels_2026-10-26/RULE.txt section 0)"
+ },
+ "B": {
+  "rule": "plain = pred_adj^2 x B with the templates' B (load_panel's); the rung files' dates = the templates' B dates; the templates' B = the B of each class's patched full walk (fomcfix forecasts_gb / lin_B), whose design the rungs subset; tree rungs: ablate_trees merge records (true_adj and B asserted = the templates')",
+  "rung_file_dates_equal": {
+   "trees_wide_ladall.parquet": true,
+   "linear_wide_ladall.parquet": true
+  },
+  "walk_B_equal": {
+   "lgbm": true,
+   "xgb": true,
+   "ridge": true,
+   "lasso": true,
+   "enet": true
+  },
+  "tree_merge_records": {
+   "lgbm|lrung_lgbm_1": true,
+   "lgbm|lrung_lgbm_3": true,
+   "lgbm|lrung_lgbm_5": true,
+   "lgbm|lrung_lgbm_10": true,
+   "lgbm|lrung_lgbm_20": true,
+   "xgb|lrung_xgb_1": true,
+   "xgb|lrung_xgb_3": true,
+   "xgb|lrung_xgb_5": true,
+   "xgb|lrung_xgb_10": true,
+   "xgb|lrung_xgb_20": true
+  }
+ },
+ "rungs_not_finite_positive": {},
+ "table1_rows_checked": 10,
+ "table1": "C:\\Users\\james\\CC Allowed\\harxhar-0dte-professor\\results\\oos_final_2014start\\table1_w3000\\metrics.csv",
+ "dm": "ablate_score's every-bar DM: dm_test (HLN) on the daily average QLIKE, auto HAC lag (8 on all / ord)",
+ "R": "(L_0 - L_k) / (L_0 - L_46) x 100 on the span's own L_0 (Table 1's HAR walk) and L_46 (patched full walk); NaN unless L_0 > L_46",
+ "R_monthly": "C:\\Users\\james\\CC Allowed\\harxhar-0dte-professor\\results\\ladder_2026-10-26\\fomcfix\\scores.csv: retained_pct, ranking P (k = 0 / 46: both), span all; on span all rows only (the monthly ladder has no ord / ev span), NaN elsewhere"
+}
