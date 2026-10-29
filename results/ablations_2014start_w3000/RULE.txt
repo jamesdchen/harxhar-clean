@@ -423,6 +423,50 @@ ADDENDUM J, 2026-10-28 16:45 PDT (23:45 UTC), before any job it affects: THE TRE
        days; the readings of results/channels_2026-10-26/RULE.txt recomputed mechanically.  The report gives each
        removal pre-patch -> patched (QLIKE change, DM, p) and every reading that changes, in particular the two
        boosted trees' sentiment removals on ORDINARY days (pre-patch p 0.035 LightGBM, 0.051 XGBoost).
+   (e) 2026-10-28 17:31 PDT, before any CARC job: THE CARC SHARE.  The author (28 Oct): "make sure to use both hoffman
+       and carc".  Nothing of (a)-(d) changes but where 38 pieces run.
+       (i) Which: lines 134-171 of tasks/trees_lofix.txt = LightGBM lo_ew (134-143), lo_vw (144-153), lo_rm (154-163),
+           lo_liq (164-171), 38 pieces, 106 of the 488 piece-hours.  Why these: the end of the file (Hoffman2's workers
+           take the lowest free line; they held lines 1-64 when this was written), whole arms (each arm's pieces on one
+           cluster), LightGBM only (one class, one gate).  Why 38: CARC's main partition gave a start estimate of 31 Oct
+           (sbatch --test-only), its oneweek partition starts at once but allows 208 CPUs a user (26 eight-thread
+           workers); 20 workers walk the 38 pieces in two rounds while Hoffman2's 64-99 workers walk the other 133 in
+           about two.
+       (ii) Reservation on Hoffman2, before CARC walks anything: cluster/ablate/claim_reserve.sh reserve (all or
+           nothing; refused if any of the lines is already claimed) makes each line's claim dir
+           runs/claims_trees_lofix/<n> by hand, with cpu = "CARC-RESERVED addendum J (e)". pool3.sh never runs such a
+           line: state() reports it running, then stale, and a stale claim is taken over only by a worker whose
+           /proc/cpuinfo model name equals the claim's cpu string, which the marker is not; done / failed are written
+           only by the worker that ran the line (tested on a copy of pool3.sh's state() before use).  CARC's task file
+           tasks/trees_lofix_carc.txt holds exactly these 38 lines, verbatim, at their own line numbers (lines 1-133
+           blank; the pool skips blank lines), so a line has the same number, claim dir and piece name on both clusters,
+           and no line is in both clusters' files.
+       (iii) CARC (sbatch on usc-discovery, account pollok_1603): staging /scratch1/jc_905/abl_lofix; code = the LF git
+           archive of 5b1b842 (tar md5 43b44c3a999f3c03c55df691f8ff7815) + this commit's new files; design = CARC
+           /home1/jc_905/fomcfix_lin/runs/B/_work/design_all_features read in place (the source of Hoffman2's
+           designs_fix/full; X 725eb201044783d3cdc62501307dcc3a, y 996504f1..., b_oos 7670f01a..., dates_oos
+           d8a203fe..., design.json c7ab33ce..., compared with Hoffman2's copy before the pools); python
+           /home1/jc_905/trees_final/venv_skx (lightgbm 4.6.0, xgboost 3.2.0; the environment of fomcfix's tree walks)
+           through cluster/ablate/py_carc.sh; cluster/ablate/pool5.sh = pool3.sh with the staging dir (ABL_B) and the
+           python wrapper (PYSH) from the environment, its claim / take-over / eligibility logic unchanged; KIND=trees,
+           NW=1, claims runs/claims_trees_lofix, output runs/trees_lofix; partition oneweek, --constraint xeon-2640v4
+           (Xeon E5-2640 v4, one CPU model, so a CARC arm needs no T2), 20 jobs x 8 CPUs, 8 GB.
+       (iv) Gate FC (cluster/ablate/tgate_carc.sh, gate FT for LightGBM on CARC), on that CPU model before its pools
+           (Slurm afterany; a pool walks a line only if the node's CPU model is in gate/*/passed_lgbm): LightGBM's walk
+           on the patched full cache at the first and last 10 origins text-identical (repr) to Table 1's patched
+           LightGBM forecasts (results/fomcfix_2026-10-26/forecasts/forecasts_gb.parquet, walked on CARC EPYC; FT
+           reproduced them on Gold 6240), the HAR benchmark to the templates, true_adj and B equal (ablate_trees.py
+           gate1 --est lgbm) -> gate/x2640/passed_lgbm.  If it fails no CARC line is walked and the 38 reservations are
+           released for Hoffman2 (claim_reserve.sh release).
+       (v) Back to one place: cluster/ablate/relay_lofix_carc.sh (laptop; CARC -> laptop -> Hoffman2, md5 at every hop):
+           only lines whose CARC claim is done, their piece .parquet + .json (no checkpoint), moved into Hoffman2's
+           runs/trees_lofix/pieces/ without overwriting, then done written into the reservation as pool3.sh's run_line
+           writes it; merge_lofix.sh then merges all 171 lines on Hoffman2 as (b).  An arm's pieces are all CARC
+           (E5-2640 v4) or all Hoffman2.
+       (vi) Rebalancing, if one cluster lags, always lock first, unlock second: a line CARC has not claimed goes back to
+           Hoffman2 by reserving it in CARC's claims dir (claim_reserve.sh reserve, marker "H2-RELEASED addendum J (e)")
+           and then releasing it on Hoffman2 (claim_reserve.sh release); a line Hoffman2 has not claimed goes to CARC by
+           reserving it on Hoffman2 and then adding it to CARC's task file.
 
 ADDENDUM K, 2026-10-28 17:30 PDT (2026-10-29 00:30 UTC), before any job it affects: THE FEATURE-COUNT LADDER REFITTED AT
 EVERY BAR

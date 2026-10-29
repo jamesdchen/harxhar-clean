@@ -1,0 +1,171 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+lgbm lo_ew 1/10 2.78
+lgbm lo_ew 2/10 2.78
+lgbm lo_ew 3/10 2.78
+lgbm lo_ew 4/10 2.78
+lgbm lo_ew 5/10 2.78
+lgbm lo_ew 6/10 2.78
+lgbm lo_ew 7/10 2.78
+lgbm lo_ew 8/10 2.78
+lgbm lo_ew 9/10 2.78
+lgbm lo_ew 10/10 2.78
+lgbm lo_vw 1/10 2.78
+lgbm lo_vw 2/10 2.78
+lgbm lo_vw 3/10 2.78
+lgbm lo_vw 4/10 2.78
+lgbm lo_vw 5/10 2.78
+lgbm lo_vw 6/10 2.78
+lgbm lo_vw 7/10 2.78
+lgbm lo_vw 8/10 2.78
+lgbm lo_vw 9/10 2.78
+lgbm lo_vw 10/10 2.78
+lgbm lo_rm 1/10 2.72
+lgbm lo_rm 2/10 2.72
+lgbm lo_rm 3/10 2.72
+lgbm lo_rm 4/10 2.72
+lgbm lo_rm 5/10 2.72
+lgbm lo_rm 6/10 2.72
+lgbm lo_rm 7/10 2.72
+lgbm lo_rm 8/10 2.72
+lgbm lo_rm 9/10 2.72
+lgbm lo_rm 10/10 2.72
+lgbm lo_liq 1/8 2.90
+lgbm lo_liq 2/8 2.90
+lgbm lo_liq 3/8 2.90
+lgbm lo_liq 4/8 2.90
+lgbm lo_liq 5/8 2.90
+lgbm lo_liq 6/8 2.90
+lgbm lo_liq 7/8 2.90
+lgbm lo_liq 8/8 2.90
