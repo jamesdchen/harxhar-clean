@@ -34,13 +34,17 @@
 % 33,970 against 33,527 bars), results-20 (the tree configurations come from the development-span Optuna menu, not
 % from the last pre-sample fold). Was (results-20): "The penalties and the tree configurations were chosen on the last
 % pre-sample fold, which ends on \rhfipTuneLast, so no explained bar lies in a tuning fold."
-\subsection{Variable importance: construction and checks}
+% 2026-10-28 (author: conventional titles). Was: \subsection{Variable importance: construction and checks}
+\subsection{Construction}
 \label{app:rh_fi_compute}
 \begin{itemize}
+% 2026-10-28 (SHAP on the patched design): "on the design with the FOMC fixes" added; the trees' SHAP values and the
+% linear coefficients at W = 3,000 are now those of the FOMC-patched walks (D13). Was: "... the HAR components and the
+% calendar dummies), explained at monthly origins."
 \item \textbf{Models.} The pooled intraday models of the final design (rolling window of \rhfipWindowDays{} trading
   days, \rhfipWindowBars{} bars; full predictor set of \rhfipNCols{} predictors in \rhfipNGroups{} groups: each of the
   \rhfipNExog{} exogenous series with its \rhfipNPerSeries{} predictors, the HAR components and the calendar dummies),
-  explained at monthly origins.
+  on the design with the FOMC fixes of Appendix~\ref{app:rh_dp_fomc}, explained at monthly origins.
 \item \textbf{Origins.} $k = 1, \dots, K$, $K = \rhfipNOrigins$: one every \rhfipOriginEvery{} trading days, at the
   \rhfipBarFirst{} bar, from \rhfipFirstOrigin{} to \rhfipLastOrigin. Origin $k$'s model forecasts its block
   $\mathcal O_k$, the \rhfipOriginEvery{} trading days up to the next origin (the last block: \rhfipLastBlock{} days);
@@ -98,7 +102,8 @@
 % 2026-10-28 (v2 of Sections 6-7, author approved preliminarily): retitled -- the subsection now opens with the
 % attribution shares ("What the models use" and Table tab:rh_fip_shares, moved from Section 7). Was:
 % "\subsection{Variable importance: rankings and their time profile}"
-\subsection{Variable importance: attribution shares, rankings and their time profile}
+% 2026-10-28 (author: conventional titles). Was: \subsection{Variable importance: attribution shares, rankings and their time profile}
+\subsection{Attribution shares}
 \label{app:rh_fi_rank}
 % 2026-10-26 (coordinator, JFEc page budget): moved here from rehaul/08_feature_importance_floats.tex.
 \input{generated/rehaul_fi_live_fig}
@@ -161,7 +166,10 @@
 % Data section), so their 39 bars count as other days. Fix: build the subset from the loader's calendar, recompute
 % \rhfipFomcDays, \rhfipFomcRows and the ...NsFomc / ...NsOther / ...UntilFomc / ...UntilOther / ...FomcDiff macros
 % (writeup/make_rehaul_fi_pooled.py). The tree SHAP study is to be rerun on the FOMC-patched design anyway (D13).
-\subsection{Variable importance: conditional shares}
+% 2026-10-28: the patched rerun (results/tree_shap_w3000_2014start_fomcfix_2026-10-26) kept releases.parquet's 78 days in
+% M4 (its shap_reduce.py builds the subset as before), so the item stays open; the figure caption discloses it.
+% 2026-10-28 (author: conventional titles). Was: \subsection{Variable importance: conditional shares}
+\subsection{Conditional attribution}
 \label{app:rh_fi_cond}
 \begin{itemize}
 \item \textbf{Only sometimes, or conditionally?} (Figure~\ref{fig:rh_fip_cond}). The trees split on most series at
@@ -186,8 +194,12 @@
     high-VIX tercile than in the low one, \rhfipLgbmVixDiff{} [\rhfipLgbmVixDiffLo, \rhfipLgbmVixDiffHi],
     \rhfipXgbVixDiff{} [\rhfipXgbVixDiffLo, \rhfipXgbVixDiffHi] and \rhfipRfVixDiff{} [\rhfipRfVixDiffLo,
     \rhfipRfVixDiffHi] percentage points of the total, and the HAR components gain instead (\rhfipLgbmVixHar,
-    \rhfipXgbVixHar, \rhfipRfVixHar). As a share of the exogenous total the drop is clear for XGBoost and the forest
-    and not for LightGBM (\rhfipLgbmVixDiffEx{} [\rhfipLgbmVixDiffExLo, \rhfipLgbmVixDiffExHi]).
+    \rhfipXgbVixHar, \rhfipRfVixHar). As a share of the exogenous total the drop is clear for all three, least for
+    LightGBM (\rhfipLgbmVixDiffEx{} [\rhfipLgbmVixDiffExLo, \rhfipLgbmVixDiffExHi]; XGBoost \rhfipXgbVixDiffEx, the
+    forest \rhfipRfVixDiffEx).
+    % 2026-10-28 (SHAP on the patched design: LightGBM's interval now lies below zero too). Was: "As a share of the
+    % exogenous total the drop is clear for XGBoost and the forest and not for LightGBM (\rhfipLgbmVixDiffEx{}
+    % [\rhfipLgbmVixDiffExLo, \rhfipLgbmVixDiffExHi])."
   \end{itemize}
 \end{itemize}
 % Conditional: by bar of the day, FOMC statement days, VIX tercile
@@ -195,7 +207,8 @@
 
 % ---------------------------------------------------------------------------------------------------------------------
 % 2026-10-26 (integration, JFEc): moved from 08_feature_importance.tex, "Shape of the response" and "Interactions".
-\subsection{Variable importance: response shapes and interactions}
+% 2026-10-28 (author: conventional titles). Was: \subsection{Variable importance: response shapes and interactions}
+\subsection{Response shapes and interactions}
 \label{app:rh_fi_shapes}
 \begin{itemize}
 \item \textbf{Shape of the response} (Table~\ref{tab:rh_fip_nonstd}, Figure~\ref{fig:rh_fip_shapes}). For each
@@ -203,15 +216,21 @@
   \rhfipRfNShape{} series), the mean SHAP value by decile of its dominant predictor is classified by a rule fixed in
   advance: monotone \rhfipLgbmNMono, \rhfipXgbNMono{} and \rhfipRfNMono; irregular \rhfipLgbmNIrr, \rhfipXgbNIrr{} and
   \rhfipRfNIrr; a step \rhfipLgbmNStep, \rhfipXgbNStep{} and \rhfipRfNStep; flat \rhfipLgbmNFlat, \rhfipXgbNFlat{} and
-  \rhfipRfNFlat; none U-shaped, inverted-U or a threshold. Most responses are one-sided (asymmetric: \rhfipLgbmNAsym,
-  \rhfipXgbNAsym{} and \rhfipRfNAsym).
+  \rhfipRfNFlat; a threshold \rhfipLgbmNThresh, \rhfipXgbNThresh{} and \rhfipRfNThresh; none U-shaped or inverted-U.
+  Most responses are one-sided (asymmetric: \rhfipLgbmNAsym, \rhfipXgbNAsym{} and \rhfipRfNAsym).
+  % 2026-10-28 (SHAP on the patched design: XGBoost's profile of the equal-weighted effective spread is now a
+  % threshold, monotone with one large step). Was: "...; flat \rhfipLgbmNFlat, \rhfipXgbNFlat{} and \rhfipRfNFlat;
+  % none U-shaped, inverted-U or a threshold. Most responses are one-sided ..."
   \begin{itemize}
   \item The market's cross-sectional absolute returns and the spreads rise monotonically and are asymmetric toward
     the top tail: \rhfipAbsVw{} moves the forecast from \rhfipAbsVwLgbmLo\% of the mean forecast in its bottom
     decile to \rhfipAbsVwLgbmHi\% in its top decile (LightGBM; XGBoost \rhfipAbsVwXgbHi\%, forest \rhfipAbsVwRfHi\%).
   \item \rhfipOfi{} falls monotonically: a larger order-flow imbalance lowers the forecast, from \rhfipOfiLgbmLo\% to
     \rhfipOfiLgbmHi\% (LightGBM).
-  \item \rhfipFomcUntil{} (dominant predictor: its average over $k = \rhfipUntilHorizon$ samples) is labeled irregular
+  % 2026-10-28 (SHAP on the patched design: XGBoost's dominant predictor of the series is now its 1-sample average).
+  % Was: "(dominant predictor: its average over $k = \rhfipUntilHorizon$ samples) is labeled irregular"
+  \item \rhfipFomcUntil{} (dominant predictor: its average over $k = \rhfipUntilHorizon$ samples; in XGBoost $k =
+    \rhfipUntilHorizonXgb$) is labeled irregular
     by the rule; read from the figure (post hoc), it is flat through the lower deciles and jumps in the top decile,
     the approach of a statement, to \rhfipUntilLgbmHi, \rhfipUntilXgbHi{} and \rhfipUntilRfHi\% of the mean forecast.
   \end{itemize}
@@ -248,14 +267,18 @@
 % at \rhfipWNext); the ridge's weight does not spread (...). The dense-and-weak reading is not supported for the linear
 % models. A falling count is also what a signal that changes over time would produce, since a longer window averages
 % over more regimes; the study does not test that, so it does not show a sparse and strong signal either."
-\subsection{Variable importance: the window test}
+% 2026-10-28 (author: conventional titles). Was: \subsection{Variable importance: the window test}
+\subsection{Window test}
 \label{app:rh_fi_window}
 \begin{itemize}
 \item \textbf{Linear models across windows} (Table~\ref{tab:rh_fip_window}). If the exogenous signal were dense and
   weak, more observations per coefficient would bring more series in: a longer window would select more exogenous
   series (P1) and spread the weight over more of them (P2). The test refits nothing new: the walks at $W$ from
   \rhfipWMin{} to \rhfipWMax{} trading days, at the same \rhfipNOrigins{} origins, with the predictions and the rule
-  fixed before computing.
+  fixed before computing. These walks are on the design before the FOMC fixes of Appendix~\ref{app:rh_dp_fomc} (not
+  rerun).
+  % 2026-10-28 (SHAP on the patched design): the last sentence added; the window study (results/fi_by_window_2014start_
+  % 2026-10-22) has no patched rerun, while the shares of Appendix app:rh_fi_rank now are patched.
   \begin{itemize}
   \item At a penalty held fixed across windows, none of the \rhfipSOneMeasures{} statistics rises with $W$
     (\rhfipSOneFalls{} fall, \rhfipSOneFlat{} stay flat; the count includes the ridge's P1 statistics, which the
@@ -337,7 +360,8 @@
 % earlier draft is in Appendix~\ref{app:rh_fi_window}." Parked with it, the PENDING note of the ridge--lasso item
 % (2026-10-26, coordinator): "PENDING the author's framing decision (event vs ordinary days): on non-FOMC days ridge
 % and elastic net beat the lasso (exploratory rescoring, 26 Oct), so this bullet may be split by day type."
-\subsection{Variable importance: the feature-count ladder on every bar}
+% 2026-10-28 (author: conventional titles). Was: \subsection{Variable importance: the feature-count ladder on every bar}
+\subsection{Feature-count ladder}
 \label{app:rh_fi_ladder}
 % 2026-10-28 (v2 of Sections 6-7, author approved preliminarily): moved here from the top of app:rh_fi_scaling, next to
 % the text that describes it.
@@ -398,7 +422,8 @@
 % Floats: generated/rehaul_complexity_floats.tex (NUMBERS: the first figure's caption is framed on c = P/T; the
 % framing-B version is gain against the number of series at each window, results/ladder_2026-10-26/grid/
 % fig_feature_scaling.pdf). PRE-PATCH design (RULE.txt ADDENDUM 2); to be rerun on the patched design (D13).
-\subsection{Variable importance: training window, number of series and the exogenous gain}
+% 2026-10-28 (author: conventional titles). Was: \subsection{Variable importance: training window, number of series and the exogenous gain}
+\subsection{Estimation window and number of predictors}
 \label{app:rh_fi_scaling}
 % 2026-10-26 (coordinator): moved here from rehaul/08_feature_importance_floats.tex (its 16:00 panel; author: no
 % 16:00-bar results in the main text).

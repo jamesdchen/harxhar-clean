@@ -56,11 +56,25 @@
     closing-interval model set, so check that no appendix statistic still runs over it. The pooled MinGRU stays
     parked. % 2026-10-26: the coordinator adds the open notes the other section agents report here.
   % 2026-10-26 (relay from VI via the coordinator): added.
-  \item \textbf{Variable importance on the pre-patch design} (from Section~\ref{sec:rh_fi}): the trees' SHAP values,
-    the live-window shares built on them (Figure~\ref{fig:rh_fi_live}), the feature-count ladder
-    (Figure~\ref{fig:rh_ladder}) and the window $\times$ feature-count grid are on the design before the FOMC patch
-    and are being rerun on the patched design (D13). The ladder macros are wired in (pre-patch values until the
-    rerun lands).
+  % 2026-10-28 (SHAP generators switched to the patched study). Was: "\textbf{Variable importance on the pre-patch
+  % design} (from Section~\ref{sec:rh_fi}): the trees' SHAP values, the live-window shares built on them
+  % (Figure~\ref{fig:rh_fi_live}), the feature-count ladder (Figure~\ref{fig:rh_ladder}) and the window $\times$
+  % feature-count grid are on the design before the FOMC patch and are being rerun on the patched design (D13). The
+  % ladder macros are wired in (pre-patch values until the rerun lands)."
+  \item \textbf{Variable importance on the patched design} (from Section~\ref{sec:rh_fi}; 28 October): the trees'
+    SHAP values (results/tree\_shap\_w3000\_2014start\_fomcfix\_2026-10-26; gate: each tree bit-equal to its patched
+    walk at all \rhfipNOrigins{} origins), the live-window shares built on them (Figure~\ref{fig:rh_fi_live}), the
+    feature-count ladder (Figure~\ref{fig:rh_ladder}; results/ladder\_2026-10-26/fomcfix) and the window $\times$
+    feature-count grid (fomcfix/grid) are now on the patched design (D13); the pre-patch versions stay reachable
+    (\texttt{--prepatch}, \texttt{\_prepatch} outputs). Still pre-patch: the window test of
+    Appendix~\ref{app:rh_fi_window} (the linear walks across windows, now disclosed there, and the trees across
+    windows, Table~\ref{tab:rh_fip_lc}). Claims changed by the SHAP rerun: as a share of the exogenous total the
+    high-VIX drop is now clear for all three trees (LightGBM's too); one XGBoost profile is now a threshold; XGBoost's
+    dominant predictor of the time to the next statement is its 1-sample average; the linear models' leading series
+    is now that FOMC series in all three (before: \texttt{sumret} in the ridge and the elastic net), and
+    \texttt{fomc\_day} falls to ninth in the ridge. The FOMC-day subset of the rerun still
+    holds \rhfipFomcDaysShap{} of the \rhfipFomcDays{} statement days (its reducer kept releases.parquet's calendar;
+    the caption of Figure~\ref{fig:rh_fip_cond} says so).
   % 2026-10-26 (relay from NUMBERS via the coordinator): added.
   \item \textbf{Open numbers items} (NUMBERS, 26 October). The samples table shows 85,314 rows rather than 84,747;
     the early-close drop alone gives 84,770, and the rest of the gap is unexplained. Panels C--E of
@@ -72,8 +86,11 @@
     significantly better). Its gap to the closing-interval HAR-set fits is now a computed bound, 0.8\%, not 0.01\%.
     The GRS test no longer rejects for it. Four MCS statements on $\mathcal T_{\mathrm{close}}$ changed and are
     reported, not asserted. Generators that do not follow the \texttt{REHAUL\_FOMCFIX} switch: robust\_window,
-    fi\_pooled, fip\_lc (hard-coded paths); ladder, complexity, window\_sweep, ablations (rerun inputs of their own);
-    tuning, holiday, ci\_har (fixed inputs).
+    fip\_lc (hard-coded paths); ladder, complexity, fi\_pooled, fi\_live, window\_sweep, ablations (rerun inputs of
+    their own); tuning, holiday, ci\_har (fixed inputs).
+    % 2026-10-28 (fi_pooled and fi_live read the patched SHAP study by default, --prepatch). Was: "...: robust\_window,
+    % fi\_pooled, fip\_lc (hard-coded paths); ladder, complexity, window\_sweep, ablations (rerun inputs of their own);
+    % ..."
   \end{itemize}
 % 2026-10-26: carried over from the list of 23 October 2026 (parked below), updated.
 \item \textbf{Window and sample} (decided 23 October 2026; disclosure D8, audit correctness-2): first evaluation day
