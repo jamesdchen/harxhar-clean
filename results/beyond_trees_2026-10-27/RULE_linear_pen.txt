@@ -134,3 +134,35 @@ the one model of its own base, arms and full set: the estimator changes from OLS
    walk.json, SUMMARY.md.  Laptop (one thread a walk), unless a measured smoke run projects more than ~5 GB of disk or
    hours of the laptop's memory, then CARC (the patched full cache read in place, own staging dir).  Nothing under
    writeup/ is edited; what the tables and text would need is reported to the coordinator.
+
+AMENDMENT B (2026-10-28 ~19:35 PDT, before any scoring; the coordinator approved it as in line with the request)
+(a) KKT-triggered reseeds.  Section 3 said such reseeds are "taken from the runner's own trace of the k = 0 walk ...
+    (that walk then rerun locally for its trace)".  Found while gating: test B lasso k0 differs from the ablation's
+    lasso add_rm_fomc walk by up to 7.8e-5 relative.  The mismatches start mid-block (e.g. solves 208 and 451 of the
+    walk) and end at the next 250-solve tune, which is the signature of a KKT-triggered reseed of the runner's warm path.
+    The local rerun of the runner itself (experiments/pool_linear_pretune.py walk, unchanged, the ablation's arguments,
+    on a 132-column cache of the laptop's D13 rebuild) made 45 KKT reseeds of its own and differs from the ablation's
+    walk by up to 3.3e-3 relative on 6,732 bars.  The warm path's KKT failures depend on the last bits of the design
+    and of the BLAS, so a local trace does not reproduce the Hoffman2 walk's reseeds, and that walk's trace is not
+    reachable from here.  Therefore the reseed solves of the class's existing k = 0 walk are identified from its
+    forecasts:
+    - walk k = 0 only; in each 250-solve block, the first solve whose forecast differs from the existing walk by more
+      than 1e-10 relative is a candidate reseed (a cold seed on that solve's window: weights and masks recomputed, as
+      the runner's _kkt_after -> _seed);
+    - rerun with the candidates; a candidate is confirmed when the bars from it to the next seed then reproduce the
+      existing walk to 1e-10;
+    - iterate until G1 passes, or until a block's first mismatch does not resolve, which is then reported as a G1
+      failure with its size.
+    G1 for such a class is then a consistency check of the identified schedule, not an independent reproduction:
+    every identified reseed must make all the following bars of its block match, which a wrong solve cannot do.
+    The identified set is applied to every arm of the class (the k-arms, C1, C3 and C2), as section 3 says.  The same
+    procedure is used for any class whose G1 shows this pattern (test A's HAR-arm walks <cls>_h; test B's ridge or
+    elastic net).  Test A's add-arm arms (k0 and the k-arms) have no runner walk to take reseeds from, so none are
+    applied there; the exact solve needs none, and a reseed only refreshes held weights (forecast effect <= ~1e-4
+    relative, the size of the G1 mismatches above).
+(b) C1 under the convention.  The add-arm convention standardizes every column, the scores included, so C1 is a
+    whitened rotation: its penalty in the block's standardized coordinates is alpha gamma' R gamma, not isotropic (as
+    GC1 already records).  Near-null directions of the collinear moving averages enter at unit scale and can blow up
+    single forecasts (test A ridge: one bar, 2023-02-21 10:00, pred_adj -114 against k0's 0.85).  C1 is reported as
+    defined: no trimming and no new arm, with its extreme bars stated (the count of bars where |pred_C1 / pred_k0 - 1|
+    > 0.5, the minimum and the maximum, and the QLIKE without the bars where pred_C1 <= 0 as information only).
