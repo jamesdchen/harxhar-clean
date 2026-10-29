@@ -1,0 +1,32 @@
+{
+ "classes": {
+  "lgbm": {
+   "models": {
+    "e7513": [
+     "AMD EPYC 7513 32-Core Processor"
+    ],
+    "e7542": [
+     "AMD EPYC 7542 32-Core Processor"
+    ]
+   },
+   "identical": true,
+   "max_rel": 0.0
+  },
+  "xgb": {
+   "models": {
+    "e7513": [
+     "AMD EPYC 7513 32-Core Processor"
+    ],
+    "e7542": [
+     "AMD EPYC 7542 32-Core Processor"
+    ]
+   },
+   "identical": true,
+   "max_rel": 0.0
+  }
+ },
+ "gates": [
+  "/scratch1/jc_905/abl_ladall/gate/e7513",
+  "/scratch1/jc_905/abl_ladall/gate/e7542"
+ ]
+}

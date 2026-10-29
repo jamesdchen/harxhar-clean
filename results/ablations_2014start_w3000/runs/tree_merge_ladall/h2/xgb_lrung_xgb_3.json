@@ -1,0 +1,23 @@
+{
+ "arm": "lrung_xgb_3",
+ "est": "xgb",
+ "n_pieces": 4,
+ "rows": 33970,
+ "cpus": [
+  "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+ ],
+ "piece_cpus": {
+  "lrung_xgb_3_xgb_1of4.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "lrung_xgb_3_xgb_2of4.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "lrung_xgb_3_xgb_3of4.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ],
+  "lrung_xgb_3_xgb_4of4.parquet": [
+   "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+  ]
+ }
+}

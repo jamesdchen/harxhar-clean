@@ -1,0 +1,23 @@
+{
+ "arm": "lrung_lgbm_3",
+ "est": "lgbm",
+ "n_pieces": 4,
+ "rows": 33970,
+ "cpus": [
+  "AMD EPYC 7513 32-Core Processor"
+ ],
+ "piece_cpus": {
+  "lrung_lgbm_3_lgbm_1of4.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "lrung_lgbm_3_lgbm_2of4.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "lrung_lgbm_3_lgbm_3of4.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ],
+  "lrung_lgbm_3_lgbm_4of4.parquet": [
+   "AMD EPYC 7513 32-Core Processor"
+  ]
+ }
+}

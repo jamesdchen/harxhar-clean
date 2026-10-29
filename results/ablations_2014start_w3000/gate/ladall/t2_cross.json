@@ -1,0 +1,53 @@
+{
+ "classes": {
+  "lgbm": {
+   "models": {
+    "e7513": [
+     "AMD EPYC 7513 32-Core Processor"
+    ],
+    "e7542": [
+     "AMD EPYC 7542 32-Core Processor"
+    ],
+    "s6240": [
+     "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+    ],
+    "s6442y": [
+     "Intel(R) Xeon(R) Gold 6442Y"
+    ],
+    "u6140": [
+     "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+    ]
+   },
+   "identical": true,
+   "max_rel": 0.0
+  },
+  "xgb": {
+   "models": {
+    "e7513": [
+     "AMD EPYC 7513 32-Core Processor"
+    ],
+    "e7542": [
+     "AMD EPYC 7542 32-Core Processor"
+    ],
+    "s6240": [
+     "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz"
+    ],
+    "s6442y": [
+     "Intel(R) Xeon(R) Gold 6442Y"
+    ],
+    "u6140": [
+     "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+    ]
+   },
+   "identical": true,
+   "max_rel": 0.0
+  }
+ },
+ "gates": [
+  "results\\ablations_2014start_w3000\\gate\\ladall\\e7513",
+  "results\\ablations_2014start_w3000\\gate\\ladall\\e7542",
+  "results\\ablations_2014start_w3000\\gate\\ladall\\s6240",
+  "results\\ablations_2014start_w3000\\gate\\ladall\\s6442y",
+  "results\\ablations_2014start_w3000\\gate\\ladall\\u6140"
+ ]
+}

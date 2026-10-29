@@ -1,0 +1,49 @@
+{
+ "arm": "lrung_lgbm_46",
+ "est": "lgbm",
+ "tag": "first10",
+ "n_columns": 564,
+ "columns_md5": "074472d2b3522811b3c007d72ef902e9",
+ "design": "/u/scratch/j/jamesdc1/abl/designs_fix/full",
+ "window_rows": 39000,
+ "block": [
+  "2014-01-02 10:00:00",
+  "2014-01-02 14:30:00"
+ ],
+ "rows": 10,
+ "refits": 10,
+ "wall_sec": 60.6,
+ "config": "lgbm_opt_00",
+ "sha": "abab811bd4b6",
+ "params": {
+  "num_leaves": 20,
+  "learning_rate": 0.01296404565731986,
+  "n_estimators": 392,
+  "min_child_samples": 98,
+  "feature_fraction": 0.7017000121697539,
+  "bagging_fraction": 0.5636236714089857,
+  "lambda_l1": 1.0413823540826713e-08,
+  "lambda_l2": 0.015950303832251992,
+  "bagging_freq": 1
+ },
+ "config_file_sha256": "1349f96a9ae69198db9f754c07993c729fe02b6c5a0a45c66d0ce4dae3e80d0d",
+ "threads": 8,
+ "host": "n6408",
+ "cpu": "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz",
+ "cpus": [
+  "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+ ],
+ "versions": {
+  "python": "3.12.3",
+  "numpy": "1.26.4",
+  "pandas": "2.3.3",
+  "scipy": "1.17.1",
+  "sklearn": "1.9.1",
+  "lightgbm": "4.6.0",
+  "xgboost": "3.2.0",
+  "pyarrow": "19.0.1"
+ },
+ "job": "15339932",
+ "lgbm_deterministic": true,
+ "lgbm_force_col_wise": true
+}

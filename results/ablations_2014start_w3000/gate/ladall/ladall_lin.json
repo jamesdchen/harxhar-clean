@@ -1,0 +1,53 @@
+{
+ "root": "/u/scratch/j/jamesdc1/abl/runs/lin_ladall_gate",
+ "ref": "/u/scratch/j/jamesdc1/abl/code/results/fomcfix_2026-10-26/forecasts/lin_B.parquet",
+ "checks": [
+  {
+   "arm": "lrung_lasso_46",
+   "model": "lasso",
+   "chunk": 0,
+   "chunks": 4,
+   "rows": 8500,
+   "first": "2013-12-27 16:00:00",
+   "last": "2016-07-29 13:30:00",
+   "dates_in_ref": true,
+   "pred_adj_bit_identical": true,
+   "true_adj_equal": true,
+   "max_abs_diff": 0.0,
+   "sec": 652.4
+  },
+  {
+   "arm": "lrung_enet_46",
+   "model": "enet",
+   "chunk": 0,
+   "chunks": 4,
+   "rows": 8500,
+   "first": "2013-12-27 16:00:00",
+   "last": "2016-07-29 13:30:00",
+   "dates_in_ref": true,
+   "pred_adj_bit_identical": true,
+   "true_adj_equal": true,
+   "max_abs_diff": 0.0,
+   "sec": 310.1
+  },
+  {
+   "arm": "lrung_ridge_46",
+   "model": "ridge",
+   "chunk": 0,
+   "chunks": 2,
+   "rows": 17000,
+   "first": "2013-12-27 16:00:00",
+   "last": "2019-03-04 14:30:00",
+   "dates_in_ref": true,
+   "pred_adj_bit_identical": true,
+   "true_adj_equal": true,
+   "max_abs_diff": 0.0,
+   "sec": 353.1
+  }
+ ],
+ "fail": [],
+ "host": "n1808",
+ "cpu": "Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz",
+ "numpy": "1.26.4",
+ "pass": true
+}

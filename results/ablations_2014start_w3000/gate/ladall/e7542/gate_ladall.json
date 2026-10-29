@@ -1,0 +1,95 @@
+{
+ "dir": "/scratch1/jc_905/abl_ladall/gate/e7542",
+ "classes": {
+  "lgbm": {
+   "pass_": true,
+   "cpus": [
+    "AMD EPYC 7542 32-Core Processor"
+   ],
+   "checks": [
+    {
+     "arm": "lrung_lgbm_0",
+     "rows": 10,
+     "text_identical": 10,
+     "max_abs_diff": 0.0,
+     "side_equal": true,
+     "n_columns": 12,
+     "cpus": [
+      "AMD EPYC 7542 32-Core Processor"
+     ],
+     "sec_refit": 0.47000000000000003,
+     "dates": [
+      "2014-01-02 10:00:00",
+      "2014-01-02 14:30:00"
+     ],
+     "pass_": true
+    },
+    {
+     "arm": "lrung_lgbm_46",
+     "rows": 10,
+     "text_identical": 10,
+     "max_abs_diff": 0.0,
+     "side_equal": true,
+     "n_columns": 564,
+     "cpus": [
+      "AMD EPYC 7542 32-Core Processor"
+     ],
+     "sec_refit": 3.63,
+     "dates": [
+      "2014-01-02 10:00:00",
+      "2014-01-02 14:30:00"
+     ],
+     "pass_": true
+    }
+   ]
+  },
+  "xgb": {
+   "pass_": true,
+   "cpus": [
+    "AMD EPYC 7542 32-Core Processor"
+   ],
+   "checks": [
+    {
+     "arm": "lrung_xgb_0",
+     "rows": 10,
+     "text_identical": 10,
+     "max_abs_diff": 0.0,
+     "side_equal": true,
+     "n_columns": 12,
+     "cpus": [
+      "AMD EPYC 7542 32-Core Processor"
+     ],
+     "sec_refit": 0.37,
+     "dates": [
+      "2014-01-02 10:00:00",
+      "2014-01-02 14:30:00"
+     ],
+     "pass_": true
+    },
+    {
+     "arm": "lrung_xgb_46",
+     "rows": 10,
+     "text_identical": 10,
+     "max_abs_diff": 0.0,
+     "side_equal": true,
+     "n_columns": 564,
+     "cpus": [
+      "AMD EPYC 7542 32-Core Processor"
+     ],
+     "sec_refit": 5.37,
+     "dates": [
+      "2014-01-02 10:00:00",
+      "2014-01-02 14:30:00"
+     ],
+     "pass_": true
+    }
+   ]
+  }
+ },
+ "fail": [],
+ "reference": {
+  "k0": "templates' baseline rows (Table 1's HAR walk)",
+  "k46": "/scratch1/jc_905/abl_ladall/code/results/fomcfix_2026-10-26/forecasts/forecasts_gb.parquet"
+ },
+ "pass": true
+}

@@ -1,0 +1,95 @@
+{
+ "dir": "/u/scratch/j/jamesdc1/abl/gate/ladall/u6140",
+ "classes": {
+  "lgbm": {
+   "pass_": true,
+   "cpus": [
+    "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+   ],
+   "checks": [
+    {
+     "arm": "lrung_lgbm_0",
+     "rows": 10,
+     "text_identical": 10,
+     "max_abs_diff": 0.0,
+     "side_equal": true,
+     "n_columns": 12,
+     "cpus": [
+      "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+     ],
+     "sec_refit": 0.86,
+     "dates": [
+      "2014-01-02 10:00:00",
+      "2014-01-02 14:30:00"
+     ],
+     "pass_": true
+    },
+    {
+     "arm": "lrung_lgbm_46",
+     "rows": 10,
+     "text_identical": 10,
+     "max_abs_diff": 0.0,
+     "side_equal": true,
+     "n_columns": 564,
+     "cpus": [
+      "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+     ],
+     "sec_refit": 6.0600000000000005,
+     "dates": [
+      "2014-01-02 10:00:00",
+      "2014-01-02 14:30:00"
+     ],
+     "pass_": true
+    }
+   ]
+  },
+  "xgb": {
+   "pass_": true,
+   "cpus": [
+    "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+   ],
+   "checks": [
+    {
+     "arm": "lrung_xgb_0",
+     "rows": 10,
+     "text_identical": 10,
+     "max_abs_diff": 0.0,
+     "side_equal": true,
+     "n_columns": 12,
+     "cpus": [
+      "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+     ],
+     "sec_refit": 0.5700000000000001,
+     "dates": [
+      "2014-01-02 10:00:00",
+      "2014-01-02 14:30:00"
+     ],
+     "pass_": true
+    },
+    {
+     "arm": "lrung_xgb_46",
+     "rows": 10,
+     "text_identical": 10,
+     "max_abs_diff": 0.0,
+     "side_equal": true,
+     "n_columns": 564,
+     "cpus": [
+      "Intel(R) Xeon(R) Gold 6140 CPU @ 2.30GHz"
+     ],
+     "sec_refit": 7.9799999999999995,
+     "dates": [
+      "2014-01-02 10:00:00",
+      "2014-01-02 14:30:00"
+     ],
+     "pass_": true
+    }
+   ]
+  }
+ },
+ "fail": [],
+ "reference": {
+  "k0": "templates' baseline rows (Table 1's HAR walk)",
+  "k46": "/u/scratch/j/jamesdc1/abl/code/results/fomcfix_2026-10-26/forecasts/forecasts_gb.parquet"
+ },
+ "pass": true
+}
