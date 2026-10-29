@@ -467,6 +467,14 @@ ADDENDUM J, 2026-10-28 16:45 PDT (23:45 UTC), before any job it affects: THE TRE
            Hoffman2 by reserving it in CARC's claims dir (claim_reserve.sh reserve, marker "H2-RELEASED addendum J (e)")
            and then releasing it on Hoffman2 (claim_reserve.sh release); a line Hoffman2 has not claimed goes to CARC by
            reserving it on Hoffman2 and then adding it to CARC's task file.
+       (vii) 2026-10-28 18:40 PDT, by (vi), before any line it moves was claimed: measured on CARC, LightGBM lo_ew /
+           lo_vw at 4.1-5.6 s a refit on E5-2640 v4 (pieces ~4-5 h; two tasks of the first array failed at start on node
+           d18-14, unclaimed, and were replaced with -x d18-14); Hoffman2 ran 76 workers with 57 of its lines left, so
+           about 19 of them would exit idle in their second round while CARC's second round (lines 154-171) would start
+           only ~23:00 and end ~03:30.  Lines 154-171 (LightGBM lo_rm, lo_liq; 18 pieces, whole arms) therefore go back
+           to Hoffman2: reserved in CARC's claims dir (marker "H2-RELEASED addendum J (e)"), then released on Hoffman2.
+           CARC walks lines 134-153 (LightGBM lo_ew, lo_vw: 20 pieces on its 20 workers, one round); the relay runs with
+           LAST=153.
 
 ADDENDUM K, 2026-10-28 17:30 PDT (2026-10-29 00:30 UTC), before any job it affects: THE FEATURE-COUNT LADDER REFITTED AT
 EVERY BAR
