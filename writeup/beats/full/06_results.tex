@@ -13,9 +13,8 @@
   scored, and the primary benchmark is the OLS on the HAR benchmark set, the OLS row of Table~\ref{tab:rh_oos}, which
   the HAR-set penalized models reproduce. The window length was fixed after out-of-sample scoring
   (Section~\ref{sec:rh_results_robust}). We report accuracy on every bar (Section~\ref{sec:rh_results_oos}), locate
-  the gain on the days with a scheduled FOMC statement and on all other days (Section~\ref{sec:rh_results_channels})
-  and check robustness (Section~\ref{sec:rh_results_robust}); Section~\ref{sec:rh_fi} asks which predictors carry the
-  gain.
+  the gain on the days with a scheduled FOMC statement and on all other days (Section~\ref{sec:rh_results_channels}),
+  ask which predictors carry it (Section~\ref{sec:rh_fi}) and check robustness (Section~\ref{sec:rh_results_robust}).
 \end{itemize}
 
 \subsection{Accuracy on every bar}
@@ -99,27 +98,6 @@
 \end{itemize}
 
 
-\subsection{Robustness}
-\label{sec:rh_results_robust}
-\begin{itemize}
-\item \textbf{Estimation window.} The window length $W$ of \rhorWindowDays{} trading days was chosen after the
-  \rhwsNWinWord{} candidate windows from \rhwsWinMin{} to \rhrbWinLong{} trading days had been
-  scored out of sample on $\mathcal T_{\mathrm{oos}}$; it is not a pre-sample choice. Appendix~\ref{app:rh_robust_window}
-  reports every window.
-  \begin{itemize}
-  \item Every bar: the comparison does not depend on the window. Across the candidate windows the every-bar gain of the
-    full-set elastic net over its HAR-set forecast lies between \rhwsEnetBarPctMin{}\% and
-    \rhwsEnetBarPctMax{}\%, significant at each, and with a window of \rhrbWinLong{} days the full set
-    remains significantly more accurate on every bar in \rhrbNFullLowerSigBarLong{} of the \rhrbNModelsLong{} classes
-    (Table~\ref{tab:rh_robust_w3500}).
-  \end{itemize}
-\item \textbf{Multiple comparisons.} Adjusting for the number of comparisons leaves the every-bar result intact: under
-  QLIKE the 90\% model confidence set \citep{HansenLundeNason2011} holds \rhmcsBarQlikeTmaxNNinety{} of the
-  \rhmcsNModels{} distinct pooled forecasts (\rhmcsBarQlikeTmaxSetNinety), and StepM \citep{RomanoWolf2005} rejects
-  equal accuracy of the full and HAR benchmark sets in \rhmcsBarQAfNRej{} of the \rhmcsNAlt{} classes (SPA
-  $p$-value \rhmcsBarQAfSpaC; \citealp{Hansen2005}), against \rhmcsBarMAfNRejWord{} under squared error
-  (Tables~\ref{tab:rh_mcs} and~\ref{tab:rh_mcs_spa}).
-\end{itemize}
 
 
 
