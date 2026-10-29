@@ -374,12 +374,15 @@
   few bars, and the futures' realized moments on ordinary days, whose information the constituents' moments and the
   liquidity measures largely repeat and a few common factors of all the series do not recover. Beyond them and the HAR
   terms, the other \rhbyFLNSeries{} series add nothing to the linear models and a small gain to the boosted trees,
-  carried by a few series scattered across groups: sparse, not dense. Attribution is a poor guide to all of this: the series a model uses most are not the ones that
+  carried by a few series scattered across groups: sparse, not dense. The trees attribute
+  \rhfipFomcBucketMin--\rhfipFomcBucketMax\% of their forecasts to the FOMC calendar, yet added alone to the HAR
+  benchmark set it delivers \rhabTreeFomcGainShareMin--\rhabTreeFomcGainShareMax\% of their every-bar gain.
 % 2026-10-28 (author, alternative-data edit: the claim is about the 36 series beyond HAR + RM + FOMC). Was:
 % What remains beyond
 %   them and the HAR terms is small, only the trees capture it, and a few series carry it; the alternative data add
 %   little.
-  make it more accurate.
+  % 2026-10-29 (Q-2026-10-29-27, inferred T2). Was: "Attribution is a poor guide to all of this: the series a model
+  % uses most are not the ones that make it more accurate."
 \end{itemize}
 % 2026-10-28 (author: v2 of Sections 6-7 approved preliminarily): the previous body of Section 7 (Variable importance). Questions and measures, What the models use, and How many series carry the gain (with Ridge against lasso and the window scaling) moved to Appendix rehaul/A_fi.tex; the late-starting series, Use is not accuracy and In short are rewritten in Sections 7.4 and 7.5. Was:
 % \begin{itemize}
