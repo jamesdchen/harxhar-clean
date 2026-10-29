@@ -129,10 +129,12 @@
   \rhabBaseShareTreeMin--\rhabBaseShareTreeMax\% in the tree ensembles and at least \rhabBaseShareLinMin\% in the
   penalized linear models (Table~\ref{tab:rh_ablation}, Panel~D). The calendar carries the statement days
   (Section~\ref{sec:rh_fi_event}), the realized moments the ordinary days (Section~\ref{sec:rh_fi_ordinary}). What
-  remains is small, only the boosted trees capture it, and a few series carry it (Section~\ref{sec:rh_fi_rest}). How
+  remains is small, only the boosted trees capture it, and a few series carry it (Section~\ref{sec:rh_fi_rest}). The
 % 2026-10-28 (author, alternative-data edit: the claim is about the 36 series beyond HAR + RM + FOMC). Was:
 %   remains is small, only the tree ensembles capture it, and a few series carry it
-  much a model uses a series is a poor guide to these gains (Section~\ref{sec:rh_fi_use}).
+  trees' attribution understates the FOMC calendar's part in these gains (Section~\ref{sec:rh_fi_use}).
+  % 2026-10-29 (Q-2026-10-29-26, inferred T2). Was: "How much a model uses a series is a poor guide to these gains
+  % (Section~\ref{sec:rh_fi_use})."
 \item \textbf{Evidence.} Three kinds, each reported for every class and predictor group.
   \begin{itemize}
   \item Accuracy: the predictor-group ablations of Table~\ref{tab:rh_ablation}, with the design of
@@ -346,16 +348,27 @@
 \subsubsection{Variable importance}
 \label{sec:rh_fi_use}
 \begin{itemize}
-\item \textbf{Attribution ranks the parts the wrong way round.} The trees attribute \rhfipHarMin--\rhfipHarMax\% of
-  their forecasts to the HAR terms and \rhfipMomMin--\rhfipMomMax\% to the futures' realized moments, and only
-  \rhfipFomcBucketMin--\rhfipFomcBucketMax\% to the FOMC calendar (Appendix~\ref{app:rh_fi_rank}). Yet the calendar
-  carries most of their accuracy gain: added alone to the HAR benchmark set it changes QLIKE by
-  \rhabLgbmAddFomcAllPct, \rhabXgbAddFomcAllPct{} and \rhabRfAddFomcAllPct\%, against \rhabLgbmFullAllPct,
-  \rhabXgbFullAllPct{} and \rhabRfFullAllPct\% for the full set, by moving the forecast strongly on few bars
-  (Section~\ref{sec:rh_fi_event}). The realized moments are the converse: second in attribution, yet removing them
-  raises the trees' QLIKE by only \rhabLgbmLoRmAllPct, \rhabXgbLoRmAllPct{} and \rhabRfLoRmAllPct\%, as other
-  predictors carry much of the same information. What a series adds to accuracy is measured by the ablations, not by
-  its share.
+% 2026-10-29 (Q-2026-10-29-26, inferred T2). Was:
+% \item \textbf{Attribution ranks the parts the wrong way round.} The trees attribute \rhfipHarMin--\rhfipHarMax\% of
+%   their forecasts to the HAR terms and \rhfipMomMin--\rhfipMomMax\% to the futures' realized moments, and only
+%   \rhfipFomcBucketMin--\rhfipFomcBucketMax\% to the FOMC calendar (Appendix~\ref{app:rh_fi_rank}). Yet the calendar
+%   carries most of their accuracy gain: added alone to the HAR benchmark set it changes QLIKE by
+%   \rhabLgbmAddFomcAllPct, \rhabXgbAddFomcAllPct{} and \rhabRfAddFomcAllPct\%, against \rhabLgbmFullAllPct,
+%   \rhabXgbFullAllPct{} and \rhabRfFullAllPct\% for the full set, by moving the forecast strongly on few bars
+%   (Section~\ref{sec:rh_fi_event}). The realized moments are the converse: second in attribution, yet removing them
+%   raises the trees' QLIKE by only \rhabLgbmLoRmAllPct, \rhabXgbLoRmAllPct{} and \rhabRfLoRmAllPct\%, as other
+%   predictors carry much of the same information. What a series adds to accuracy is measured by the ablations, not by
+%   its share.
+\item \textbf{The trees' attribution understates the FOMC calendar.} The trees attribute
+  \rhfipHarMin--\rhfipHarMax\% of their forecasts to the HAR terms, \rhfipMomMin--\rhfipMomMax\% to the futures'
+  realized moments and \rhfipFomcBucketMin--\rhfipFomcBucketMax\% to the FOMC calendar
+  (Appendix~\ref{app:rh_fi_rank}). Yet the calendar carries most of their accuracy gain. Added alone to the HAR
+  benchmark set it changes QLIKE by \rhabLgbmAddFomcAllPct, \rhabXgbAddFomcAllPct{} and \rhabRfAddFomcAllPct\%,
+  against \rhabLgbmFullAllPct, \rhabXgbFullAllPct{} and \rhabRfFullAllPct\% for the full set. Removed from the full
+  set, it raises the QLIKE of LightGBM and XGBoost by \rhabLgbmLoFomcAllPct{} and \rhabXgbLoFomcAllPct\%, against
+  \rhabLgbmLoRmAllPct{} and \rhabXgbLoRmAllPct\% for the realized moments. A share averages the forecast's movement
+  over all bars, and the calendar moves the forecast on few bars (Section~\ref{sec:rh_fi_event}). What a series adds
+  to accuracy is measured by the ablations.
 \item \textbf{In short.} Two groups carry the gain: the FOMC calendar on the statement days, in one group and on
 % 2026-10-28 (author: prune "pooled"). Was: "Two groups carry the pooled gain: the FOMC calendar on the statement days, in one group and on"
   few bars, and the futures' realized moments on ordinary days, whose information the constituents' moments and the
