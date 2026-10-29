@@ -16,6 +16,7 @@ HOURS="${1:-12}"
 END=$(($(date +%s) + HOURS * 3600))
 LOCK="${TMPDIR:-/tmp}/harxhar_overleaf_autopush.lock"
 LAYERS=(writeup/beats writeup/paper_rehaul_beats.tex writeup/paper_rehaul_beats_top.tex)
+ODIR="${OVERLEAF_DIR:-$REPO/../harxhar-overleaf}"  # the Overleaf clone (overleaf_git.sh's DIR)
 export GIT_TERMINAL_PROMPT=0 GCM_INTERACTIVE=never
 
 regen_beats() {  # the review layers regenerated from HEAD, committed when they changed
@@ -76,8 +77,20 @@ while [ "$(date +%s)" -lt "$END" ]; do
     echo "$(date +%H:%M:%S) autopush: $n file(s) under writeup/ changed since $(git -C "$REPO" rev-parse --short "$last"); at $(git -C "$REPO" rev-parse --short "$cur")"
     t0=$(date +%s)
     regen_beats
-    bash "$REPO/writeup/overleaf_sync/overleaf_git.sh" push-all --check 2>&1 | sed -E 's/olp_[A-Za-z0-9_]+/olp_***/g' \
-        | grep -E "PASSED|FAILED|FAIL:|pushed|already|refuse|differs|own files|try [0-9]|uncommitted|errors|undefined" || true
+    out="$(bash "$REPO/writeup/overleaf_sync/overleaf_git.sh" push-all --check 2>&1 | sed -E 's/olp_[A-Za-z0-9_]+/olp_***/g')"
+    echo "$out" | grep -E "PASSED|FAILED|FAIL:|pushed|already|refuse|differs|own files|try [0-9]|uncommitted|errors|undefined" || true
+    # 2026-10-28 (author): an Overleaf-editor edit to a review layer that lies wholly inside its generated %% header (stray
+    # keystrokes) is reverted and the layers pushed again; any other edit is left for the author (logged)
+    if echo "$out" | grep -qE "beats(_top)?\.tex differs from its last flatten"; then
+        if python3 "$REPO/writeup/overleaf_sync/layer_header_fix.py" "$ODIR" "$REPO/writeup/overleaf_sync"; then
+            git -C "$ODIR" commit -q -m "Revert a stray editor edit in a review layer's generated header (autopush)" \
+                -- beats.tex beats_top.tex && echo "autopush: stray header edit reverted; pushing the review layers again"
+            bash "$REPO/writeup/overleaf_sync/overleaf_git.sh" push-beats --check 2>&1 | sed -E 's/olp_[A-Za-z0-9_]+/olp_***/g' \
+                | grep -E "PASSED|FAILED|FAIL:|pushed|already|refuse|differs|own files|try [0-9]" || true
+        else
+            echo "autopush: a review layer was edited on Overleaf outside its header; left for the author"
+        fi
+    fi
     git -C "$REPO" push -q origin "$BR" 2>&1 | tail -1
     echo "$(date +%H:%M:%S) autopush: done in $(($(date +%s) - t0)) s"
     rmdir "$LOCK"
