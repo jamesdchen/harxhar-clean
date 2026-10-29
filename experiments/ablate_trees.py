@@ -148,10 +148,13 @@ def cmd_walk(a) -> int:
     F = Full(Path(a.full))
     arm, est = a.arm, a.est
     assert est in EST, est
-    assert arm in ("full", "har") or arm in arms_of(est) or arm in AA.COMBO or arm in AA.RUNGS.get(est, []), (
-        arm,
-        est,
-    )  # addendum F: + COMBO; addendum I: + the model's own ladder rungs
+    assert (
+        arm in ("full", "har")
+        or arm in arms_of(est)
+        or arm in AA.COMBO
+        or arm in AA.RUNGS.get(est, [])
+        or (arm.startswith("lrung_") and AA.lrung_parts(arm)[0] == est)
+    ), (arm, est)  # addendum F: + COMBO; addendum I: + the model's own ladder rungs; addendum K: + its lrung_ rungs
     rows, tag = select(a, F)
     out = Path(a.out)
     path = piece_path(out, arm, est, tag)

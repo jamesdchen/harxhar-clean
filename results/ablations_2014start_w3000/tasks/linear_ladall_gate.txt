@@ -1,0 +1,3 @@
+lrung_lasso_46 lasso 0 4
+lrung_enet_46 enet 0 4
+lrung_ridge_46 ridge 0 2

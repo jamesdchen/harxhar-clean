@@ -10,6 +10,8 @@ An arm is a list of column names of a design cache:
   add_<g>   the HAR benchmark set plus group g's columns
   add_<g1>_<g2>   the HAR benchmark set plus the columns of groups g1 and g2 (COMBO; 2026-10-26 addendum F: add_rm_fomc)
   shar, harq, lhar, sharql   classical HAR extensions (value averages of the new series of bucket abl_new)
+  brung_<est>_<k>   addendum I: add_rm_fomc + the top k remaining-block series of the model's ranking (LADDER)
+  lrung_<est>_<k>   addendum K: the HAR set + the top k of the 46 series of the model's own ranking (LADALL)
 Column order: the cache's own order (har ladder, value ladders, availability ladders, calendar).
 """
 
@@ -141,6 +143,148 @@ def rung_parts(arm: str) -> tuple[str, int]:
     return est, int(k)
 
 
+# 2026-10-28 addendum K (requested by the author on 28 October after the monthly-vs-every-bar comparison; not
+# pre-registered): the feature-count ladder of results/ladder_2026-10-26 (RULE.txt sections 1 and 3) refitted at EVERY
+# bar on the FOMC-patched design.  Rung lrung_<est>_<k> = the HAR benchmark set + all 12 columns of each of the top k of
+# the 46 exogenous series in the model's own patched PRIMARY ranking (results/ladder_2026-10-26/fomcfix/rank_primary.csv,
+# git blob 53d057da; the 2013 pre-span fit; ladder RULE section 3: "each model its own", so the three linear classes
+# have one ranking each).  Production k in LADDER_K; k = 0 (the HAR set) and k = 46 (the full set) are the gate rungs
+# only.  The top 20 per model, in rank order (checked against the csv by check_ladall):
+LADALL = {
+    "lgbm": [
+        "sumabsret",
+        "sumret",
+        "sumabsret_vwstock",
+        "sumabsret_ewstock",
+        "sumautocov",
+        "effspread_vwstock",
+        "fomc_until_inv",
+        "sumret3",
+        "vix",
+        "sumret3_vwstock",
+        "stocktwits_sentiment",
+        "sumret3_ewstock",
+        "spread_vwstock",
+        "effspread_ewstock",
+        "spread_ewstock",
+        "sumvolume",
+        "ofi_ewstock",
+        "sumret4",
+        "sumret2_ewstock",
+        "sumret2_vwstock",
+    ],
+    "xgb": [
+        "sumabsret",
+        "stocktwits_sentiment",
+        "sumabsret_vwstock",
+        "sumret",
+        "effspread_vwstock",
+        "sumabsret_ewstock",
+        "sumautocov",
+        "fomc_until_inv",
+        "vix",
+        "sumret3",
+        "sumret3_vwstock",
+        "sumret3_ewstock",
+        "stocktwits_sentcount",
+        "spread_vwstock",
+        "spread_ewstock",
+        "effspread_ewstock",
+        "sumvolume",
+        "sellturnover_ewstock",
+        "ofi_ewstock",
+        "sumpret2",
+    ],
+    "ridge": [
+        "fomc_until_inv",
+        "fomc_since_inv",
+        "sumabsret",
+        "fomc_day",
+        "sumret",
+        "sumabsret_vwstock",
+        "sumautocov",
+        "turnover_ewstock",
+        "sumret4",
+        "sellturnover_vwstock",
+        "spread_vwstock",
+        "buyturnover_vwstock",
+        "sumret3",
+        "sumret2_vwstock",
+        "sumret3_vwstock",
+        "sumret2_ewstock",
+        "sumbipow",
+        "sumvolume",
+        "buyturnover_ewstock",
+        "sellturnover_ewstock",
+    ],
+    "lasso": [
+        "fomc_until_inv",
+        "fomc_since_inv",
+        "sumabsret",
+        "fomc_day",
+        "sumret",
+        "turnover_ewstock",
+        "sumabsret_vwstock",
+        "buyturnover_ewstock",
+        "sumret4",
+        "sumautocov",
+        "sumbipow",
+        "sellturnover_vwstock",
+        "sumret3",
+        "sumret2_ewstock",
+        "spread_vwstock",
+        "sumret2_vwstock",
+        "sumvolume",
+        "sumbipow_vwstock",
+        "sumret3_vwstock",
+        "vvix",
+    ],
+    "enet": [
+        "fomc_until_inv",
+        "fomc_since_inv",
+        "sumabsret",
+        "sumret",
+        "fomc_day",
+        "sumabsret_vwstock",
+        "sumautocov",
+        "sumret4",
+        "sumret2_ewstock",
+        "sumret3_vwstock",
+        "sumret3",
+        "sumvolume",
+        "spread_vwstock",
+        "sellturnover_vwstock",
+        "buyturnover_vwstock",
+        "ofi_ewstock",
+        "vix",
+        "numobs",
+        "sumret2_vwstock",
+        "sumret3_ewstock",
+    ],
+}
+LADALL_GATE_K = (0, 46)
+LRUNGS = {est: [f"lrung_{est}_{k}" for k in LADDER_K] for est in LADALL}
+
+
+def lrung_parts(arm: str) -> tuple[str, int]:
+    """Addendum K: lrung_<est>_<k> -> (est, k); k in LADDER_K or a gate rung (0, 46)."""
+    _l, est, k = arm.split("_")
+    assert _l == "lrung" and est in LADALL and int(k) in (*LADDER_K, *LADALL_GATE_K), arm
+    return est, int(k)
+
+
+def check_ladall(csv: str) -> None:
+    """LADALL = the csv's primary ranking per model over all 46 series, first 20, in rank order."""
+    import pandas as pd
+
+    r = pd.read_csv(csv)
+    allf = {s for v in group_series().values() for s in v}
+    for est, top in LADALL.items():
+        f = r[(r["model"] == est) & (r["ranking"] == "primary")].sort_values("rank")
+        assert len(f) == 46 and f["rank"].is_unique and set(f["series"]) == allf, (est, len(f))
+        assert list(f["series"].head(20)) == top, est
+
+
 def check_ladder(csv: str) -> None:
     """LADDER = the csv's primary ranking per model restricted to the remaining block, first 20, in rank order."""
     import pandas as pd
@@ -197,6 +341,12 @@ def arm_names(arm: str, names: list[str], gs: dict[str, list[str]] | None = None
         assert len(out) == len(want), (arm, sorted(want - set(out)))
         return out
     gs = gs or group_series()
+    if arm.startswith("lrung_"):  # addendum K: the HAR set + the top-k of the 46 series in the model's own ranking
+        est, k = lrung_parts(arm)
+        ser = [s for v in gs.values() for s in v] if k == 46 else LADALL[est][:k]
+        keep = set(HAR12).union(*(series_cols(s) for s in ser))
+        assert keep <= set(names), arm
+        return [n for n in names if n in keep]
     if arm.startswith("brung_"):  # addendum I: BASE + the top-k remaining-block series of the model's ranking
         est, k = rung_parts(arm)
         keep = set(HAR12).union(
@@ -245,5 +395,7 @@ def n_cols(arm: str) -> int:
         return 12 + 12 * sum(N_SERIES[g] for g in add_groups(arm))
     if arm.startswith("brung_"):
         return 12 + 12 * (N_SERIES["rm"] + N_SERIES["fomc"] + rung_parts(arm)[1])
+    if arm.startswith("lrung_"):  # addendum K
+        return 12 + 12 * lrung_parts(arm)[1]
     g = arm.split("_", 1)[1]
     return 564 - 12 * N_SERIES[g]

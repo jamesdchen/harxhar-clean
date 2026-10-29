@@ -423,3 +423,124 @@ ADDENDUM J, 2026-10-28 16:45 PDT (23:45 UTC), before any job it affects: THE TRE
        days; the readings of results/channels_2026-10-26/RULE.txt recomputed mechanically.  The report gives each
        removal pre-patch -> patched (QLIKE change, DM, p) and every reading that changes, in particular the two
        boosted trees' sentiment removals on ORDINARY days (pre-patch p 0.035 LightGBM, 0.051 XGBoost).
+
+ADDENDUM K, 2026-10-28 17:30 PDT (2026-10-29 00:30 UTC), before any job it affects: THE FEATURE-COUNT LADDER REFITTED AT
+EVERY BAR
+   REQUESTED BY THE AUTHOR ON 28 OCTOBER ("go"), AFTER SEEING THE MONTHLY-VS-EVERY-BAR COMPARISON; NOT PRE-REGISTERED.
+   Why: the ladder (results/ladder_2026-10-26/RULE.txt; patched run in fomcfix/) refits each rung at 126 MONTHLY origins
+   held for 21 sessions (its section 2).  Monthly refits cost the full set 1.0-3.3 % QLIKE against Table 1's every-bar
+   walks and cut the linear models' gain over HAR by about a third, so its retained shares are not shares of Table 1's
+   gain.  Here every rung is walked as Table 1 and the ablation arms are: refit at every bar.  The author's instruction
+   (28 Oct, "make sure to use both hoffman and carc"): the work is split across Hoffman2 and USC CARC, (f).
+   (a) Rungs: lrung_<m>_<k> = the HAR benchmark set (12 columns) + all 12 columns (6 value and 6 availability averages)
+       of each of the top k of the 46 exogenous series in model m's own PRIMARY ranking, k in {1, 3, 5, 10, 20}
+       (24, 48, 72, 132, 252 columns, design order; experiments/ablate_arms.py LADALL / LRUNGS, checked against the csv
+       by check_ladall).  Ranking: results/ladder_2026-10-26/fomcfix/rank_primary.csv (git blob 53d057da; one full-set
+       fit at 2013-01-02 10:00 explained on the 2013 rows, before the span; trees mean |TreeSHAP|, linear sum |beta| x
+       s.d.), over all 46 series (not restricted to a block).  Ladder RULE section 3 gives each model its own ranking
+       ("each model its own"; the csv holds one per class), so ridge, lasso and elastic net each use their own -- no
+       shared linear ranking.  Top 20 in rank order:
+       LightGBM: sumabsret, sumret, sumabsret_vwstock, sumabsret_ewstock, sumautocov, effspread_vwstock, fomc_until_inv,
+         sumret3, vix, sumret3_vwstock, stocktwits_sentiment, sumret3_ewstock, spread_vwstock, effspread_ewstock,
+         spread_ewstock, sumvolume, ofi_ewstock, sumret4, sumret2_ewstock, sumret2_vwstock.
+       XGBoost: sumabsret, stocktwits_sentiment, sumabsret_vwstock, sumret, effspread_vwstock, sumabsret_ewstock,
+         sumautocov, fomc_until_inv, vix, sumret3, sumret3_vwstock, sumret3_ewstock, stocktwits_sentcount,
+         spread_vwstock, spread_ewstock, effspread_ewstock, sumvolume, sellturnover_ewstock, ofi_ewstock, sumpret2.
+       Ridge: fomc_until_inv, fomc_since_inv, sumabsret, fomc_day, sumret, sumabsret_vwstock, sumautocov,
+         turnover_ewstock, sumret4, sellturnover_vwstock, spread_vwstock, buyturnover_vwstock, sumret3, sumret2_vwstock,
+         sumret3_vwstock, sumret2_ewstock, sumbipow, sumvolume, buyturnover_ewstock, sellturnover_ewstock.
+       Lasso: fomc_until_inv, fomc_since_inv, sumabsret, fomc_day, sumret, turnover_ewstock, sumabsret_vwstock,
+         buyturnover_ewstock, sumret4, sumautocov, sumbipow, sellturnover_vwstock, sumret3, sumret2_ewstock,
+         spread_vwstock, sumret2_vwstock, sumvolume, sumbipow_vwstock, sumret3_vwstock, vvix.
+       Elastic net: fomc_until_inv, fomc_since_inv, sumabsret, sumret, fomc_day, sumabsret_vwstock, sumautocov, sumret4,
+         sumret2_ewstock, sumret3_vwstock, sumret3, sumvolume, spread_vwstock, sellturnover_vwstock,
+         buyturnover_vwstock, ofi_ewstock, vix, numobs, sumret2_vwstock, sumret3_ewstock.
+       k = 0 (the HAR set) and k = 46 (the full set) are NOT refitted: they are Table 1's own every-bar walks on the
+       patched design (full: fomcfix forecasts/lin_B.parquet = results/window_sweep_2014start_fomcfix/w3000, and
+       forecasts/forecasts_gb.parquet = results/pooled_trees_final_2014start_fomcfix_w3000; HAR: the ablation's
+       templates, the baseline rows of w3000/forecasts.parquet and of results/pooled_trees_final_2014start_w3000 -- the
+       HAR design is untouched by the patch).  For the linear classes this k = 0 is Table 1's HAR walk (its own baseline
+       penalty), not the monthly ladder's k = 0 (the HAR set under the full set's penalty and r = 0.01, ladder RULE
+       section 1); Table 1's HAR rows are the reference the request names (QLIKE 0.18927 for all three classes; the
+       monthly ladder's k = 0: 0.18934-0.18935).  The rungs k = 0 and k = 46 are walked only as gates, (c).
+   (b) Models and estimation, as the ablation run (sections 3-4): LightGBM (lgbm_opt_00, deterministic + col-wise) and
+       XGBoost (xgb_opt_00) at their frozen configurations, seed 42, 8 threads, experiments/ablate_trees.py walk; ridge,
+       lasso, elastic net through experiments/ablate_linear.py walk1 (pool_linear_pretune.py walk unchanged) under the
+       add-arm convention of ladder RULE section 1 and of every add arm here (the full set's frozen penalty: ridge 1e3,
+       lasso 1e-4, elastic net 1e-3; r = 0.01 on the HAR block), one chunk a rung, one thread a walk, with the cell-B
+       flags FOMC_SCHEDULE_2020_FIX=1, FOMC_PROXIMITY_NO_WINSOR=1, DROP_HOLIDAY_SESSIONS=0.  Design: the FOMC-patched
+       full cache (X md5 725eb201...; Hoffman2 designs_fix/full, gate F0; CARC
+       /home1/jc_905/fomcfix_lin/runs/B/_work/design_all_features, read in place, X md5 = 725eb201... checked on 28 Oct
+       and again in every CARC gate job); W = 3,000 days (39,000 rows), refit at every bar, the 33,970 bars 2014-01-02
+       10:00 .. 2024-04-30 16:00 (linear: the walk's 33,997 rows from 2013-12-27 16:00).  No random forest.  Linear rung
+       caches: designs_fix/lin/lrung_<m>_<k> by ablate_design.py subsets (column subsets of the patched cache, as every
+       linear arm).
+   (c) Gates, before the pools of their class and CPU model (the pools wait on them: Slurm afterok, UGE hold_jid):
+       GK (trees, per CPU model, both classes): the rung code path on lrung_<est>_0 (= the HAR set) and lrung_<est>_46
+         (= the full set, the 46 series taken through the ranking code) at the first 10 origins (2014-01-02 10:00 ..
+         14:30), against Table 1's HAR walk (the templates' baseline rows) and
+         its patched full walk (fomcfix forecasts_gb.parquet): pred_adj text-identical (repr), true_adj and B equal, one
+         CPU model, the piece's column count = the rung's (experiments/ablate_ladall.py gate) ->
+         gate/ladall/<model>/passed_<est> (Hoffman2), <staging>/gate/<model>/passed_<est> (CARC).  Hoffman2: Slurm Gold
+         6240 and Gold 6442Y, UGE Gold 6140 (cluster/ablate/gate_ladall.sh); CARC: AMD EPYC 7513 and 7542
+         (cluster/ablate/carc_ladall.sh MODE=gate, which first checks the X md5).  The Hoffman2 tree pools are pool4.sh
+         with REQGATE=gate/ladall (a line needs the node's model in both the T1 gate and this one); a CARC piece exits
+         98 unless its node's model passed this gate.
+       GKL (linear, Hoffman2 Gold 6240, the linear-gated model; cluster/ablate/lingate_ladall.sh): chunk 0 of
+         lrung_<m>_46 (the full set through the rung cache code path, with the full set's chunks: ridge 1 of 2, lasso
+         and elastic net 1 of 4) reproduces Table 1's patched walk lin_B.parquet bit for bit in pred_adj and true_adj on
+         every row of the chunk (ablate_ladall.py lingate -> gate/ladall_lin.json); the linear pool runs afterok on it.
+       T2 at each merge: an arm's pieces from more than one CPU model only if the class's gate pieces are bit-identical
+         across every gate dir that passed it (ablate_ladall.py t2, in the gate2 format ablate_trees.cmd_merge reads).
+         Each class is walked on ONE cluster, (f), so no arm mixes clusters; the gate pieces of both clusters (both
+         classes) are fetched and compared across clusters on the laptop for the record (gate FT already found LightGBM
+         and XGBoost text-identical between CARC EPYC and Hoffman2 Gold 6240 on the patched full set).
+   (d) Pieces (experiments/ablate_ladall.py tasks): blocks of trading days of <= 2 h at the cost model's speed (8
+       threads), the largest rungs first, resumable (checkpoints every 300 s; a piece resumes on a gated model only).
+       tasks/trees_ladall_carc.txt: LightGBM, 26 pieces (k = 20: 9, 10: 6, 5: 4, 3: 4, 1: 3);
+       tasks/trees_ladall_h2.txt: XGBoost, 31 pieces (k = 20: 12, 10: 7, 5: 5, 3: 4, 1: 3);
+       tasks/linear_ladall.txt: the 15 linear rung walks (3 classes x 5 rungs, one chunk each);
+       tasks/linear_ladall_gate.txt: the 3 GKL walks.
+   (e) Projection (section 6's cost model, linear in the column count, calibrated on the templates at EPYC speed):
+       LightGBM 375 CPU-hours (k = 1, 3, 5, 10, 20: 44, 53, 62, 85, 131), XGBoost 435 (34, 50, 65, 104, 182).  Measured
+       against the cost model (Hoffman2 piece metas of addenda F, G, I, read on 28 Oct): XGBoost on Gold 6240 0.89-1.06 x
+       (the ladder rungs brung_xgb_10 / _20: 1.00 / 1.06), on Gold 6442Y 0.67-0.70 x; LightGBM on Gold 6240 / Gold 6140
+       1.0-1.8 x (continuous-heavy rungs 1.2-1.8), on Xeon 6736P 0.94-1.07 x; on CARC EPYC the cost model is the
+       templates' own speed (the beyond_trees CARC gate: LightGBM on 132 columns ~0.9 x).  Hence the split of (f):
+       LightGBM on CARC EPYC ~340-450 CPU-hours (0.9-1.2 x; one 8-CPU array task a piece, no node tails); XGBoost on
+       Hoffman2 ~305-460 (0.7-1.06 x) + node-pool tails <= ~20 % -> <= ~550 allocated; linear ~30 (the cache build, the
+       3 GKL walks, the 15 one-thread walks; the pool's 16 CPUs while it runs); gates ~10.  Total about 860 CPU-hours,
+       <= ~1,040 at the upper ends: within the ~800-1,000 approved (28 Oct) and under the 1,500 to report above;
+       submitted without a stop.  Wall-clock: CARC ~2.5-3 h after its gates if its 26 tasks start together; Hoffman2
+       ~2-3 h after its pools start (addendum J's 14 pools hold most of the 16-node cap and UGE is full with its
+       25 x 8 slots), so 3-8 h.
+   (f) Clusters (disjoint task files; claims never span clusters):
+       CARC (sbatch on usc-discovery, account pollok_1603, partition main): LightGBM's 26 pieces as one array (a task a
+       line, 8 CPUs, 8 GB, -C "epyc-7513|epyc-7542", afterok on both EPYC gates); staging /scratch1/jc_905/abl_ladall
+       (code = the LF git archive of this commit's experiments/, src/, cluster/, data/ and the reference files the gates
+       and the merge read; logs/, gate/, runs/trees_ladall/); PY /home1/jc_905/trees_final/venv_skx/bin/python (Python
+       3.12.15, lightgbm 4.6.0, xgboost 3.2.0; the fomcfix / beyond_trees trees' environment).  No other run's CARC
+       directory (abl_lofix, beyond_trees, fomcfix_*, ladder_fomcfix) is written.
+       Hoffman2 (staging /u/scratch/j/jamesdc1/abl): XGBoost's 31 pieces (pool4.sh KIND=trees REQGATE=gate/ladall,
+       claims runs/claims_trees_ladall, output runs/trees_ladall, TFULL designs_fix/full; Slurm campus Gold 6240 (4 jobs
+       x 4 workers), Gold 6442Y (2 x 6), UGE Gold 6140 (8 x 1, 8 slots)); the linear caches, GKL and the 15 linear walks
+       (pool3.sh KIND=lin LSKIP=0, claims runs/claims_lin_ladall, root runs/lin_ladall, Gold 6240, 15 one-thread
+       workers).  Both clusters' gate jobs walk both tree classes (minutes), so the cross-cluster record of (c) exists and
+       a later move of a class to the other cluster needs no new gate.
+   (g) Merges and fetch: cluster/ablate/merge_ladall.sh on Hoffman2 (WHAT=lin -> runs/lin_ladall/linear_wide.parquet, 15
+       columns "<m>|lrung_<m>_<k>"; WHAT=trees -> runs/trees_ladall/trees_wide.parquet, 5 XGBoost columns);
+       carc_ladall.sh MODE=merge on CARC (-> <staging>/runs/trees_ladall/trees_wide.parquet, 5 LightGBM columns).
+       Fetched compact to the laptop: forecasts/linear_wide_ladall.parquet and forecasts/trees_wide_ladall.parquet (the
+       two clusters' tree files joined on date, dates asserted equal, 10 columns), the gate JSONs and the merge records
+       (runs/tree_merge_ladall/).
+   (h) Scoring (laptop; Table 1's conventions as experiments/ablate_score.py --design fix): plain = pred_adj^2 x B on
+       Table 1's 33,527 bars (asserted), QLIKE; spans every bar, ORDINARY days and EVENT days (the 81 scheduled FOMC
+       statement days, ablate_score.event_days); per model and rung: QLIKE, R_k = (L_0 - L_k) / (L_0 - L_46) x 100 with
+       L_0 and L_46 the model's own every-bar HAR and patched full walks of Table 1 (reported when L_0 > L_46), DM (HLN,
+       daily average QLIKE, HAC lag 8) of the rung against k = 46 and against k = 0, and the monthly rung's R_k beside
+       it.  The ladder RULE section 6 reading applied mechanically to the every-bar R_k (span every bar: k90 <= 5
+       CONCENTRATED, k90 in {10, 20} INTERMEDIATE, no k <= 20 at 90 % DENSE AND WEAK, L_46 >= L_0 NO GAIN TO RETAIN;
+       k50, k75 and the DM p of k = 20, 10, 5 against k = 46 stated), also on ORDINARY and EVENT days; every output
+       labelled "every-bar refit, requested by the author after the monthly-vs-every-bar comparison; not
+       pre-registered".  writeup/make_rehaul_ladder.py reads the monthly ladder only and needs an every-bar mode
+       (described in STATUS.md; not written by this addendum).
