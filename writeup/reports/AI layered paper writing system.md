@@ -1,13 +1,22 @@
-# Layer the paper, gate it, serve judgments
+# Layer the paper, gate it, lock judgments
 
-No published system keeps a paper's beats, bullets, appendix and final text as persistent, separately reviewable layers of one source. The end-to-end research agents (Sakana's AI Scientist, Agent Laboratory, Jr. AI Scientist, data-to-paper) treat outlines as scaffolding and overwrite them. The economists who publish their Claude Code workflows stop at "every number comes from code" plus critics run in fresh contexts. This author's scaffold is therefore already ahead on layering: generated number macros, a visible `\rhPending`, two generated review layers with injected labels, and an Overleaf round trip. Most of the remaining work is **gates, not generation**. The evidence points to six additions, listed here as a single sequence because the paragraph format requires it:
+No published system keeps a paper's beats, bullets, appendix and final text as persistent, separately reviewable layers of one source. The end-to-end research agents (Sakana's AI Scientist, Agent Laboratory, Jr. AI Scientist, data-to-paper) treat outlines as scaffolding and overwrite them. The economists who publish their Claude Code workflows stop at "every number comes from code" plus critics run in fresh contexts. This author's scaffold is therefore already ahead on layering: generated number macros, a visible `\rhPending`, two generated review layers with injected labels, and an Overleaf round trip. Most of the remaining work is **gates, not generation**. The evidence and the author's two binding decisions (A1 and A2, boxed below) point to seven additions:
 
 1. **Close the number pipeline the way data-to-paper did.** Add a hard lint on typed digits, staleness stamps on generated files, and generator-emitted predicates for direction words. Outline-first generation raises coherence by 14 to 28 points, but it leaves verifiability unchanged (STORM: 3.80 vs 3.85).
 2. **Render the final paper from the bullets with the scaffolding stripped, rather than having an LLM expand them.** Expansion is where unsupported connective claims enter, and bullet-to-prose expansion is how researchers synthesize "LLM-modified" text.
-3. **Calibrate the prose scrub against a JFEc/JoE/JBES corpus.** Let an LLM touch only register, through named sentence-level operations rather than global style targets. The current live text already has no em dashes and no rare marker words. Every universal and superlative must pass Rule NT (§4.3.7): delete it if the context already makes it valid, even when it is true; if it adds information, it must match a computed fact.
-4. **Serve one-screen review cards that put friction only on edits that change a number, claim, hedge or citation.** A typed "adds new information" warning nearly doubled the share of planted bad edits caught, from 23.4% to 43.5%, at about 44 seconds per check.
-5. **Fetch BibTeX deterministically.** Search-enabled frontier models got only 50.9% of entries fully right.
-6. **Generate OUP's mandatory AI disclosure from the git trailers.** OUP requires the disclosure in both the cover letter and the Acknowledgements, with tool name and version, and the trailers already record which Claude model touched each commit.
+3. **Calibrate the prose scrub against a JFEc/JoE/JBES corpus, and run it last.** Let an LLM touch only register, through named sentence-level operations rather than global style targets, and only on content the author has already locked. The current live text already has no em dashes and no rare marker words. Every universal and superlative must pass Rule NT (§4.3.7): delete it if the context already makes it valid, even when it is true; if it adds information, it must match a computed fact.
+4. **Lock the author's decisions instead of reviewing edits.** Each judgment at any layer (story, design, presentation, beat) is stored once as data with machine parameters. Generators compute from those parameters, scope wording prints from them, and the build checks every number and comparison against them. A changed decision therefore propagates to every lower layer, and the author sees only the claims it flips (§8.5).
+5. **Build the paper top-down from a simple, unedited state.** The author reads the plainest version of each new layer once and corrects it in place on Overleaf. An agent turns each correction into a lock before the next layer is generated, and polishing comes only after the content is locked (§8.5).
+6. **Fetch BibTeX deterministically.** Search-enabled frontier models got only 50.9% of entries fully right.
+7. **Generate OUP's mandatory AI disclosure from the git trailers.** OUP requires the disclosure in both the cover letter and the Acknowledgements, with tool name and version, and the trailers already record which Claude model touched each commit.
+
+> **Author decisions (binding).** These override any inference in this report that conflicts with them.
+>
+> **A1 (28 Oct 2026): no review cards.** "no cards. the content that I need to review that you proposed is way too much. There needs to essentially be a way for a human's judgement at any top layer to trickle down and stay locked in for every lower layer. For example, if I decide that the main story is to compare on every RTH bar over 20 years of sample, that decision needs to be reflected everywhere those results are reported or used to back up any claim or compared against, etc."
+> *Effect:* §8.5 is now decision locks. The card inferences in §5 are superseded and kept as research; the card design is in commit 3c87fa6.
+>
+> **A2 (28 Oct 2026): from simple to finished, through the author's corrections.** "thus, the paper needs to start from a simple unedited state and, through my reading and correction of the simple version, end in a finished edited state."
+> *Effect:* layers are generated top-down, each from a locked parent. The author reads the simple version of each new layer once and corrects it in place, and the corrections become locks. Scaffold removal, typography and the scrub run last and may not change locked content (§8.1, §8.4, §8.5, §8.7).
 
 The smallest useful first step is a single standard-library check that fails the build on any digit typed into live text.
 
@@ -20,6 +29,7 @@ The smallest useful first step is a single standard-library check that fails the
   - **T-genre**: transferred from studies of other text genres (stories, encyclopedic articles, ML papers, emails, student essays).
   - **P**: prescriptive guidance (style guides, editorial rules, pragmatics) with no measured effect.
   - **I**: inferred from this repository's constraints and untested anywhere.
+- **Author decisions** (A1, A2) are binding. Where an earlier inference conflicts with one, the inference is marked superseded and kept as research.
 
 The eleven source notes are in `writeup/research_notes/AI layered paper writing system/`. Claims the notes mark as secondary or unverified carry that flag here too.
 
@@ -131,7 +141,8 @@ The same audit shows two costs (repo measurement, 2026-10-28):
 | Interpretation rules | Warned about (Alizadeh et al.) | `RULE_*.txt` pre-registered with amendments | Rules are not linked to the verdict words in the text |
 | Claims ledger | Nanopublications (§3.3) | [CLAIMS_LEDGER_2026-08-06.md](../CLAIMS_LEDGER_2026-08-06.md), markdown, an earlier study | Not machine-checked |
 | Citations | clibib deterministic fetch (§6.1) | 148-entry `references.bib` | No verification gate (§6.4) |
-| Review surface | InkSync typed edits, Patchwork branches (§5.1) | The author reads the flat paper on Overleaf | No card or decision layer |
+| Review surface | InkSync typed edits, Patchwork branches (§5.1) | The author reads the flat paper and two layers on Overleaf. The Overleaf helper script's `push-beats` treats the layers as read-only ("edits go to the sources") | Corrections made on the layer being read are not captured (A2, §8.5) |
+| Author decisions | None for papers. Nearest: data-to-paper's labelled-value chain, showyourwork's dependency graph | D1–D20 table in [INTEGRATION_PLAN_2026-10-26.md](../INTEGRATION_PLAN_2026-10-26.md), prose that no generator reads | Decisions reach the code only by hand: D13 reached three generators two days late (§8.5) |
 | AI disclosure | OUP July 2026 policy (§7.1) | Commit trailers name the model | No generated statement |
 
 ---
@@ -208,7 +219,7 @@ For diffs, the Semantic Line Breaks spec requires a break after every sentence. 
 ***Inference.*** Four consequences follow:
 
 1. **Layers on Overleaf should be thin wrapper files.** Each sets a layer name and inputs the body, the source-level equivalent of Quarto profiles.
-2. **Review state cannot live in git branches or Overleaf comments on the Overleaf side.** It must live in files that round-trip.
+2. **Decision state cannot live in git branches or Overleaf comments on the Overleaf side.** It must live in files that round-trip. The author's corrections are edits to the text being read, which round-trip through git; comments do not (A2, §8.5).
 3. **Parked text should leave the live files** for a per-section sidecar. This keeps the never-delete policy while shrinking the flat file, the agents' context, and the diffs.
 4. **One sentence per line** should become a source convention, checked on pull because Overleaf editing can rejoin lines.
 
@@ -569,6 +580,12 @@ No study measures whether any of this changes referee or editor ratings of acade
 
 ## 5. Review loop: one screen per decision, friction only where claims change
 
+*Status: research only.* The author's decision A1 (no review cards) supersedes this section's card inferences. A2 replaces per-edit review with one read-and-correct pass per layer (§8.5). The evidence stays because three of its findings carry into the lock design:
+
+- friction belongs only on changes to what the paper asserts (§5.1);
+- direction is settled before detail (§5.3);
+- AI reviewers are detectors, not judges (§5.4).
+
 ### 5.1 Co-writing studies favor anchored, typed edits over chat
 
 The strongest controlled evidence comes from InkSync. Each suggestion is an executable in-document edit with a flag for whether it **adds new information**:
@@ -583,7 +600,7 @@ Ink & Switch's Patchwork staged AI edits as a branch the author partially merges
 
 Users of AI code editors ask for per-change decisions and review "in page order" ([Cursor forum](https://forum.cursor.com/t/can-you-review-agent-edits-in-page-order/171421)). A Claude Code issue contrasts its all-or-nothing edit acceptance in VS Code with Cursor's per-hunk accept and reject ([claude-code #42448](https://github.com/anthropics/claude-code/issues/42448)).
 
-***Inference.*** Agents should emit span-level edits typed as one of three classes:
+***Inference (superseded by A1).*** Agents should emit span-level edits typed as one of three classes:
 
 - **wording;**
 - **structure;**
@@ -600,7 +617,7 @@ Google's guidance:
 
 A 2006 vendor study at Cisco recommends reviewing **fewer than 200–400 lines at a time** in sessions of 60–90 minutes ([SmartBear summary](https://www.stickyminds.com/article/largest-case-study-code-reviews-ever)). An MSR 2026 study of about 80,000 pull requests found that **stating the type of feedback wanted** is the description element most associated with acceptance and reviewer engagement ([Pirouzkhah et al.](https://arxiv.org/html/2602.14611)).
 
-***Inference.*** By analogy, a card is one rhetorical move with at most about three sentences of diff, and it states the decision asked ("accept or reject", "pick A or B", "your judgment on: …"). Mechanical sweeps (reflow, macro renames, typo batches) travel as one bulk card with a count and a sample. A sitting is tens of cards, not hundreds. This is transfer from code review, not tested on prose.
+***Inference (superseded by A1).*** By analogy, a card is one rhetorical move with at most about three sentences of diff, and it states the decision asked ("accept or reject", "pick A or B", "your judgment on: …"). Mechanical sweeps (reflow, macro renames, typo batches) travel as one bulk card with a count and a sample. A sitting is tens of cards, not hundreds. This is transfer from code review, not tested on prose.
 
 ### 5.3 Layered review is waste avoidance, not a measured saving
 
@@ -611,7 +628,7 @@ Google's reviewer guidance for navigating a change:
 
 AnchoredAI found that anchored help did not change behavior on global restructuring tasks ([AnchoredAI](https://arxiv.org/html/2509.16128v1)). No controlled study measures the time saved by top-down review of documents.
 
-***Inference.*** Beats map to Google's step 1, bullets to step 2, and final text to step 3. No bullet card should be served under an unaccepted beat, and no wording card under an unaccepted bullet. A rejected beat cancels its dependent cards. The saving is avoided rework, and its size is unmeasured.
+***Inference (superseded by A1; its top-down order survives in A2).*** Beats map to Google's step 1, bullets to step 2, and final text to step 3. No bullet card should be served under an unaccepted beat, and no wording card under an unaccepted bullet. A rejected beat cancels its dependent cards. The saving is avoided rework, and its size is unmeasured.
 
 ### 5.4 AI reviewers: verifiers beat referee simulators, so pool them and make them refute
 
@@ -635,12 +652,19 @@ Refine, the economics tool, is the only reviewer aimed at economics.
 - No evidence was found of AI review at JFEc.
 - Persona prompts ("a senior econometrician writing for a top journal") are practitioner advice and have not been tested in the studies found.
 
-***Inference.*** Use AI reviewers as error detectors that feed cards, never as score targets.
+***Inference (revised for A1).*** Use AI reviewers as error detectors that feed the agent queue, never as score targets.
 
-- Run several aspect-specialized reviewers with structured checklists (§8.5): identification and inference, sample construction and look-ahead, table-text consistency, literature positioning, exposition. Use more than one model family where possible.
+- At milestones, run several aspect-specialized reviewers with structured checklists. Use more than one model family where possible. The checklists cover:
+  - identification and inference, including HAC and overlapping returns;
+  - sample construction and look-ahead;
+  - table, text and macro consistency;
+  - multiple-testing disclosure;
+  - the out-of-sample protocol;
+  - literature positioning;
+  - exposition.
 - Merge duplicate issues, then have a separate verifier try to refute each one against the source and CSVs.
-- Serve only confirmed issues and judgment calls.
-- Send any request for a new number, test or citation to the author's queue, never to the writer.
+- Pass only confirmed issues to the agent queue. Agents fix what they can inside the locks; anything that would change a locked claim becomes a conflict (§8.5).
+- Log any request for a new number, test or citation as a proposal. Never hand it to a writer: nothing acts on it until an author correction adopts it.
 - Ask explicit "is X reported?" questions to cover omissions.
 
 ---
@@ -677,13 +701,13 @@ Programmatic access:
 - **OpenAlex** has required a free key since 13 February 2026, with a $1/day free budget ([OpenAlex auth](https://developers.openalex.org/api-reference/authentication)).
 - **Semantic Scholar** keys start at 1 request per second ([S2 tutorial](https://webflow.semanticscholar.org/product/api/tutorial)).
 
-***Inference.*** Support checks run as advisory cards. The pipeline is:
+***Inference (revised for A1).*** Support checks feed the agent queue. The pipeline is:
 
 1. Extract every `\cite` sentence.
 2. Retrieve evidence with PaperQA2 from the local PDF, falling back to the abstract.
 3. Have an LLM return a verdict (supported, partial, not supported, cannot assess) with a quoted passage and page.
 
-Only "not supported" reaches the author, and verdicts are keyed to a sentence hash so they go stale when the sentence changes.
+An agent acts only on "not supported": it rewrites the sentence or swaps the citation. If neither is possible without changing a locked claim, the case is shown to the author as a conflict (§8.5). Verdicts are keyed to a sentence hash, so they go stale when the sentence changes.
 
 ### 6.3 Writers may cite only verified keys
 
@@ -757,14 +781,24 @@ Reviewers at Elsevier and Wiley must not upload manuscripts to AI tools ([Elsevi
 
 One source and five layers, plus a provenance view. Three layers already exist as builds: L1 and L2 are generated by `make_paper_beats.py`, and L3 is `paper_rehaul.tex` itself. L4 and the provenance view are new wrappers. Every layer compiles on Overleaf by selecting its file.
 
-| Layer | What it shows | How it is produced | Who reviews it | Basis |
-|---|---|---|---|---|
-| L0 Contribution | Abstract plus a one-paragraph contribution (Cochrane, Minto) | Source text in `paper_rehaul.tex` | Author, first | T-genre (Dramatron logline, DOC premise); D for the ≤100-word limit (JFEc) |
-| L1 Beats | Top-level `\beat` claims only, tables kept | `make_paper_beats.py` → `paper_rehaul_beats_top.tex` (exists) | Author: beat cards | T-genre (Dramatron, DOC); T-code (review direction first) |
-| L2 Bullets | All bullets, floats stubbed | `make_paper_beats.py` → `paper_rehaul_beats.tex` (exists) | Author: bullet cards; AI reviewers | T-genre; D for number gates (data-to-paper) |
-| L3 Attached appendix | Full draft with `rehaul/A_*.tex`, author notes on | `paper_rehaul.tex` with `\paperlayer{draft}` (exists as default) | Agents; author on demand | I |
-| L4 Final | Scaffolding removed: no list markup or labels, notes off, `\rawseriesfalse`, parked text absent, `\rhPending` and `\editc` are errors | New wrapper `paper_final.tex`, then flatten | Gates; author reads the PDF once per milestone | I (Option A, §2.3) |
-| Provenance view | L3 with each number macro annotated: macro, description, generator, input hash | New wrapper `paper_provenance.tex` | Author when checking a number card; AI verifiers | D (data-to-paper chain; CMU 55→82%) |
+Under A2 the layers are also a **sequence**:
+
+1. The paper starts at L0–L1, in plain, unpolished sentences.
+2. The author reads that simple version once and corrects it in place, and an agent captures each correction as a lock (§8.5).
+3. Only then is L2 generated from the locked L1. The author reads and corrects only what is new.
+4. L3 follows the same way.
+5. L4's editing (scaffold removal, typography, the scrub of §8.4) comes last and may not change locked content.
+
+No layer is served twice, except where a later correction conflicts with an earlier lock.
+
+| Layer | What it shows | How it is produced | Author | AI | Basis |
+|---|---|---|---|---|---|
+| L0 Contribution | Abstract plus a one-paragraph contribution (Cochrane, Minto), plain sentences | Source text in `paper_rehaul.tex` | Reads and corrects the simple version once, together with L1 | Drafts it under the seeded locks; captures corrections as locks | T-genre (Dramatron logline, DOC premise); D for the ≤100-word limit (JFEc) |
+| L1 Beats | Top-level `\beat` claims only, tables kept, the decision register printed in front | `make_paper_beats.py` → `paper_rehaul_beats_top.tex` (exists) | Reads and corrects the simple version once; each corrected beat becomes a locked claim | Generates under the locks; captures corrections as locks and propagates them | T-genre (Dramatron, DOC); T-code (direction first); I (A2) |
+| L2 Bullets | All bullets, floats stubbed | `make_paper_beats.py` → `paper_rehaul_beats.tex` (exists) | Reads and corrects only the new bullets, once, in plain form | Generates from the locked L1 under the locks; checks against locked claims; captures corrections | T-genre; D for number gates (data-to-paper); I (A2) |
+| L3 Attached appendix | Full draft with `rehaul/A_*.tex`, author notes on | `paper_rehaul.tex` with `\paperlayer{draft}` (exists as default) | Reads and corrects only the new appendix material, once | Generates from the locked L2; captures corrections | I (A2) |
+| L4 Final | Scaffolding removed: no list markup or labels, notes off, `\rawseriesfalse`, parked text absent, `\rhPending` and `\editc` are errors | New wrapper `paper_final.tex`, then flatten | Reads the finished PDF once; corrections are captured like any other | Runs editing only after L0–L3 are locked; may not change locked content (C25) | I (Option A, §2.3; A2) |
+| Provenance view | L3 with each number macro annotated: macro, description, generator, input hash, decision stamps | New wrapper `paper_provenance.tex` | Only to explain a flip, on demand | Used by agents and AI verifiers | D (data-to-paper chain; CMU 55→82%) |
 
 The layer selector and beat macros are an untested sketch (I). The wrappers define `\paperlayer` before `\input{paper_rehaul}`. An unknown name stops the build, which is the lesson of Quarto's silent ignore (§2.2).
 
@@ -805,44 +839,59 @@ writeup/
   paper_provenance.tex             NEW wrapper, provenance view
   paper_rehaul_beats.tex           generated L2;  paper_rehaul_beats_top.tex  generated L1
   make_paper_beats.py              + learns \beat/support/\pt; + writes beats/manifest.json (NEW:
-                                     beat ID -> section, label, claim hash, bullet sentence hashes)
+                                     beat ID -> section, label, claim hash, bullet sentence hashes);
+                                     + prints the decision register in front of L1
+  decisions.yaml                   NEW the register: one entry per decision (author's corrected text
+                                     verbatim + date, layer, parent, binds, forbids, exceptions);
+                                     seeded from D1-D20; written by agents, never by the author
+  locks.py                         NEW reads decisions.yaml; the only source of locked parameters for
+                                     generators; writes generated/locks.tex and stamps; checks C23
+  capture_corrections.py           NEW diffs pulled Overleaf text against what was served (map*.json);
+                                     writes one decision per correction
+  layer_state.json                 NEW per layer: served commit, locked or not, date (no layer twice)
+  flips.md                         NEW generated: flipped claims and conflicts; the author's only list
   rehaul/*.tex, rehaul/A_*.tex     beats via \beat{id}{label}; one sentence per line
   rehaul/parked/<file>.parked.tex  NEW dated parked text moved out of live files, keyed by beat ID
-  generated/*.tex                  + header stamp: generator blob hash, SHA-256 of each input
+  generated/*.tex                  + header stamp: generator blob hash, SHA-256 of each input,
+                                     decision IDs and parameter values
+  generated/stamps.json            NEW macro -> decision IDs + parameter values it was computed under
+  generated/locks.tex              NEW lock macros for scope wording (\lockSpan ...), from locks.py
   generated/*_predicates.tex       NEW sign / rank / significance / comparison-word macros
   tests/check_pending.py           exists
   tests/check_numbers.py           NEW no typed digits in live text (gate)
   tests/check_stale.py             NEW header stamps match generator and inputs (gate)
   tests/check_claims.py            NEW direction words agree with predicates (gate)
   tests/check_beats.py             NEW beat IDs present, unique, stable; manifest consistent (gate)
+  tests/check_locks.py             NEW C20-C25: parameters from locks.py, stamps match the governing
+                                     decisions, comparison locks, locked claims, layer order (gate)
   tests/check_bib.py               NEW Crossref/OpenAlex/S2 verification, cached (gate before push)
   tests/check_jfec.py              NEW abstract <=100 words, 2-6 keywords, JEL, page budget,
                                      disclosure present, zero \rhPending / \editc in L4 (gate)
-  claims/claims.yml                NEW claim ID, beat ID, macros, predicate, table label, generator,
-                                     input hash, tier (successor to CLAIMS_LEDGER_*.md)
+  claims/claims.yml                NEW locked claims: beat ID, decision IDs it rests on, macros,
+                                     predicate, table label, generator, input hash (successor to
+                                     CLAIMS_LEDGER_*.md)
   lit/bib_verified.json            NEW per-key source, id, match score, date
   lit/litmap.jsonl                 NEW bibkey -> sentence hash, file:line, verdict, quote, page
   lit/pdfs/                        NEW gitignored local PDFs (PaperQA2 index lives outside the repo)
-  style/voice.md                   NEW drafting card loaded by every writing agent
+  style/voice.md                   NEW drafting guide for the simple version, loaded by every agent
   style/rules/                     NEW tier V/S/C rules, each with its source; field whitelist
   style/sets.json                  NEW set registry for Rule NT: defined sets and their cardinality
                                      (classes, bars, horizons, tests), with the macro holding each count
   style/corpus_stats/              NEW committed statistics only (counts, rates, hashed 8-grams)
-  style/frames/                    NEW phrase-frame cards (DM, MCS, QLIKE, MZ) with bibkey+page
-  style/scrub.py                   NEW pipeline driver (8.4)
-  review/round_<n>/cards.jsonl     NEW the deck;  review/round_<n>/deck.tex  typeset deck
-  review/decisions.jsonl           NEW append-only: card ID, token, date, round
-  review/accepted_beats.json       NEW manifest as last accepted (the "accepted" state; no git tags
-                                     needed on Overleaf, which has none)
+  style/frames/                    NEW phrase frames (DM, MCS, QLIKE, MZ) with bibkey+page
+  style/scrub.py                   NEW pipeline driver (8.4); runs only on locked layers
+  agent_queue.jsonl                NEW advisory findings agents work off and log; never served
   disclosure/ai_use.json           NEW from git trailers: models, dates, paths
   disclosure/ai_disclosure.tex     NEW Acknowledgements sentence; cover-letter paragraph
-  overleaf_sync/                   + pushes paper_final, deck.tex; + 2 MB per-file gate
+  overleaf_sync/                   + pushes the layer being served and paper_final; + pull unflattens
+                                     edits on beats_top.tex / beats.tex through their maps (today
+                                     push-beats refuses edited layers); + 2 MB per-file gate
   reports/                         this document
 ```
 
 ### 8.3 Checks at each layer
 
-Gates block a build or a push. Advisory checks become cards. Checks run before any LLM critic (data-to-paper's order), and a change that fails a gate never becomes a card.
+Gates block a build or a push. Advisory findings go to `agent_queue.jsonl`, which agents work off and log; they never reach the author (A1). Only lock conflicts and flipped claims reach the author, through `flips.md` (§8.5). Checks run before any LLM critic (data-to-paper's order).
 
 | ID | Check | Layers | Type | Implementation | Basis |
 |---|---|---|---|---|---|
@@ -851,73 +900,176 @@ Gates block a build or a push. Advisory checks become cards. Checks run before a
 | C3 | Generated file stale against its generator or inputs | all | Gate (provenance view prints STALE) | `tests/check_stale.py` + header stamps; full regenerate-and-diff before each push | T-code (showyourwork, Gentzkow–Shapiro, Quarto freeze) |
 | C4 | `\rhPending`, `\editc`, `% RECHECK` count is zero | L4 | Gate | Macros error in L4; grep in `check_jfec.py` | D (fixme final mode ([TeX Catalogue: fixme](https://ftp.rediris.es/mirror/ctan/help/Catalogue/entries/fixme.html)); data-to-paper `[unknown]`) |
 | C5 | Direction, quantifier and significance words agree with generator predicates; t = coef/se; stars against p | L2–L4 | Gate | `tests/check_claims.py` + `*_predicates.tex` | I (statcheck idea; SPOT/SciTab show LLMs weak) |
-| C6 | Each table's span, N and metric macros match the text's declared spec | L2–L4 | Gate | Generators emit spec macros; check compares | I (CMU undisclosed-change pitfalls) |
+| C6 | Each table's span, N and metric match the governing decisions (implemented by C21–C22) | L2–L4 | Gate | Lock stamps (§8.5) | I (CMU undisclosed-change pitfalls) |
 | C7 | Every beat has a unique, unchanged ID; manifest matches source | L1–L4 | Gate | `tests/check_beats.py` | I |
-| C8 | Beat label is a claim, not a topic; siblings non-overlapping | L1 | Advisory card | LLM judge, one round | P (McCloskey, Minto) |
-| C9 | L4 text equals L2 sentences plus approved `\fin{}` and join edits | L4 | Gate | Token diff of the two layers' PDF text | I (Option A) |
-| C10 | Option B paragraphs: first sentence restates beat; each bullet realized; no sentence beyond beat and bullets; sign and significance kept | L4 (intro, conclusion) | Advisory card | LLM/NLI judge; `% src-hash` staleness | T-genre (DOC, STORM, AutoSurvey; reverse outline) |
+| C8 | Beat label is a claim, not a topic; siblings non-overlapping | L1 | Advisory (agent queue), before the layer is served | LLM judge, one round | P (McCloskey, Minto) |
+| C9 | L4 text equals the locked L2 sentences plus `\fin{}` text and logged join edits | L4 | Gate | Token diff of the two layers' PDF text | I (Option A) |
+| C10 | Option B paragraphs, and any bullet: first sentence restates beat; each bullet realized; no sentence or interpretation beyond beat and bullets; sign and significance kept | L2, L4 (intro, conclusion) | Advisory (agent queue) | LLM/NLI judge; `% src-hash` staleness | T-genre (DOC, STORM, AutoSurvey; reverse outline) |
 | C11 | Bib entry verified against Crossref/OpenAlex/S2; writer used only verified keys | all | Gate before push | `tests/check_bib.py`; RefChecker second opinion | D (Rao & Callison-Burch; GPTZero) |
-| C12 | Cited passage supports the sentence | L2–L4 | Advisory card ("not supported" only) | PaperQA2 over `lit/pdfs/`; `litmap.jsonl` | D-partial (CiteGuard 65.4% vs 69.7%) |
-| C13 | Scrub tiers V, S and C (S2–S4a): rates per draft and per section against the corpus p10–p90 band, flagged only beyond sampling error | L2–L4 | Tier-V rare markers: card; others advisory | `style/scrub.py` | D for marker frequencies and LLM grammar ratios; no evidence on referee ratings |
+| C12 | Cited passage supports the sentence | L2–L4 | Advisory (agent queue, "not supported" only); a case that cannot be fixed inside the locks becomes a conflict | PaperQA2 over `lit/pdfs/`; `litmap.jsonl` | D-partial (CiteGuard 65.4% vs 69.7%) |
+| C13 | Scrub tiers V, S and C (S2–S4a): rates per draft and per section against the corpus p10–p90 band, flagged only beyond sampling error | Locked layers only | Rare markers fixed by S7 automatically and logged; others on the dashboard | `style/scrub.py` | D for marker frequencies and LLM grammar ratios; no evidence on referee ratings |
 | C14 | Every `A_*` section referenced from the main text; every main-text reference into the appendix resolves in L1/L2 | L1–L3 | Gate | Extend the existing `.aux` injection check | I |
 | C15 | Abstract ≤100 words, 2–6 keywords, JEL present, page budget, disclosure present and naming every model in the log | L4 | Gate | `tests/check_jfec.py` | D (JFEc; OUP policy) |
 | C16 | Each flat file under 2 MB; project under 7 MB | push | Gate | `overleaf_git.sh push --check` | D (Overleaf limits; repo incident) |
-| C17 | One sentence per line in `rehaul/*.tex` | source | Auto-fix (bulk card) | Splitter on pull | T-code (SemBr) |
-| C18 | **Rule NT** (§4.3.7). Every universal, completeness adverb, superlative and booster passes NEEDED? first: a scope contrast, a scope not recoverable from definitions, table or the previous two sentences, or the paper's claim stated once with a number. Otherwise it is deleted even if true. A kept literal universal or superlative must pass TRUE?: it cites a count, argmax or predicate macro that holds | L2–L4 | NEEDED? failures: bulk deletion card by reason code, accepted unless rejected. Kept but unbacked: ⚠ claim card. In L4, an unbacked literal universal is a gate failure | `style/scrub.py` stage S4b; set registry `style/sets.json`; deletion-equivalence judge; predicates from C5 | P + I for NEEDED? (Grice's Quantity maxim; Cochrane; credibility effect unmeasured); I for TRUE? (C5 mechanism); the need is D (Peters & Chin-Yee; Zhou et al.) |
-| C19 | Scope and hedge calibration: sample, period and test qualifiers in the abstract and conclusion match the results section; modal hedges on mechanism and interpretation only, none on computed facts | L0, L2–L4 | Advisory card | Qualifier diff across sections; hedge lexicon | D for the failure mode (Peters & Chin-Yee, OR 4.85); I for the check |
+| C17 | One sentence per line in `rehaul/*.tex` | source | Auto-fix, logged | Splitter on pull | T-code (SemBr) |
+| C18 | **Rule NT** (§4.3.7). Every universal, completeness adverb, superlative and booster passes NEEDED? first: a scope contrast, a scope not recoverable from definitions, table or the previous two sentences, or the paper's claim stated once with a number. Otherwise it is deleted even if true. A kept literal universal or superlative must pass TRUE?: it cites a count, argmax or predicate macro that holds | Locked layers only; author-typed spans skipped | NEEDED? failures: deleted automatically, logged by reason code. Kept but unbacked: agent queue (add the backing macro or rephrase), or a conflict if that would change a locked claim. In L4, an unbacked literal universal is a gate failure | `style/scrub.py` stage S4b; set registry `style/sets.json`; deletion-equivalence judge; predicates from C5 | P + I for NEEDED? (Grice's Quantity maxim; Cochrane; credibility effect unmeasured); I for TRUE? (C5 mechanism); the need is D (Peters & Chin-Yee; Zhou et al.) |
+| C19 | Scope and hedge calibration: sample, period and test qualifiers in the abstract and conclusion match the results section; modal hedges on mechanism and interpretation only, none on computed facts | L0, L2–L4 | Advisory (agent queue) | Qualifier diff across sections; hedge lexicon | D for the failure mode (Peters & Chin-Yee, OR 4.85); I for the check |
+| C20 | Generators take every locked parameter from `locks.py`. A lint rejects any literal span, benchmark or design constant, or default results path, outside it. Every generated number carries a stamp of decision IDs and parameter values | all | Gate | `tests/check_locks.py`; `generated/stamps.json` | I; T-code (showyourwork/Make dependencies) |
+| C21 | Each number used in a section is stamped with the parameters of the decisions governing that section, unless its beat names an exception; forbids honored (e.g. D16) | L1–L4 | Gate | `check_locks.py` | I (repo: the D13 drift, §8.5) |
+| C22 | Both sides of every comparison (table columns, a test, a sentence citing two macros) share span, sample, benchmark and design stamps | L1–L4 | Gate | `check_locks.py` | I; D for the hazard (CMU undisclosed changes) |
+| C23 | A child decision refines its parent and never contradicts it; a differing value must be a named exception | register | Gate when the entry is written; a failure is a conflict shown to the author | `locks.py` | I |
+| C24 | Each locked claim's scope and predicate hold after regeneration | L1–L4 | Gate. A failure is a flip, listed in `flips.md`; the push stops until the author's correction re-locks the beat | `check_locks.py` + predicates | I (§3.3) |
+| C25 | Order and polish (A2): a layer is generated only from locked parents; no scrub, register or stylistic edit on an unlocked layer; editing never changes locked content; author-typed spans touched only by typography and scaffold removal | all | Gate | `layer_state.json`; `check_locks.py`; S8 | I (A2) |
 
 ### 8.4 Prose-scrub pipeline
 
-The scrub runs on the live bullet text (L2), because under Option A the bullets are the final sentences. It also runs on every join edit. Deterministic stages come first. The LLM touches only sentences still flagged, and only register.
+The scrub is editing, so under A2 it runs **last**. It works only on layers whose content the author has locked, never on the simple version the author is reading (C25). It runs on the bullet text (L2), because under Option A the bullets are the final sentences, and on every join edit.
+
+- **Applied automatically.** Its edits are applied and logged, never served (A1).
+- **Locked content is untouchable.** S8's meaning checks and the lock checks (C20–C24) reject any edit that changes it.
+- **Author text is protected.** Text the author typed in a correction is touched only by typography and scaffold removal.
+
+Deterministic stages come first. The LLM touches only sentences still flagged, and only register.
 
 | Stage | What it does | Output | Basis |
 |---|---|---|---|
-| S0 Prevent | `style/voice.md` is loaded by every drafting agent: Cochrane's phrase rules, the tier lists, "one name per estimator" from the notation guide, verdict and magnitude words only from predicates, Rule NT, and the section voice rules once the corpus confirms them (§4.3.2) | Fewer flags upstream | T-genre (Blattman voice file; Goldsmith-Pinkham style guide) |
+| S0 Draft plain | `style/voice.md` guides the drafting of the simple version: plain declarative sentences, numbers as macros, "one name per estimator" from the notation guide, verdict and magnitude words only from predicates, and nothing the later tiers would remove (rare markers, Rule NT failures). It is a drafting rule, not a rewrite, so it applies before lock. Section voice rules join it once the corpus confirms them (§4.3.2) | Fewer flags at edit time; a plain version for the author to read | T-genre (Blattman voice file; Goldsmith-Pinkham style guide); I (A2) |
 | S1 Detex | Strip comments, math, `\cite`, `\ref`, macro names (keep a placeholder token), floats | Plain text with file:line map back to source | I |
-| S2 Tier V (vocabulary) | Rare markers (delve, underscore, showcase, intricate, meticulous, pivotal, realm, tapestry, testament, multifaceted, garner…) as hard flags. Common words (additionally, notably, crucial, comprehensive, insights, enhance, highlighting) as density flags only. Field whitelist: leverage (effect), robust (standard errors), significant, causal, empirical | Wording cards citing rule ID and source | D (Kobak; Liang; Reinhart; Wikipedia catalog) |
-| S3 Tier S (structure) | Em-dash rate; ", highlighting/ensuring…" tails; "not X but Y" and "rather than"; "it is worth noting"; summary openers outside the conclusion; "serves as"/"stands as"; triads per paragraph; bold inline headers in L4 | Rates per 1,000 words vs corpus band; cards for outliers | D (Reinhart ratios); catalog-level for the rest |
+| S2 Tier V (vocabulary) | Rare markers (delve, underscore, showcase, intricate, meticulous, pivotal, realm, tapestry, testament, multifaceted, garner…) as hard flags. Common words (additionally, notably, crucial, comprehensive, insights, enhance, highlighting) as density flags only. Field whitelist: leverage (effect), robust (standard errors), significant, causal, empirical | Fixed by S7, logged with rule ID and source | D (Kobak; Liang; Reinhart; Wikipedia catalog) |
+| S3 Tier S (structure) | Em-dash rate; ", highlighting/ensuring…" tails; "not X but Y" and "rather than"; "it is worth noting"; summary openers outside the conclusion; "serves as"/"stands as"; triads per paragraph; bold inline headers in L4 | Rates per 1,000 words vs corpus band; outliers to S7 | D (Reinhart ratios); catalog-level for the rest |
 | S4a Tier C (cadence and voice) | Per draft and per section (§4.3.4): passive share, agentless vs by-passive; "we" rate by verb class; main-clause subject types; sentence-length mean, CV, p10/p50/p90, shares over 40 and under 10 words; opening entropy; POS-template repetition; lag-1 length autocorrelation at draft level only. A section is flagged only when outside the corpus p10–p90 band by more than its sampling error. Evaluative verbs with inanimate subjects ("the results underscore") are flagged outright | Dashboard; flagged sentences go to S7 with a named operation | D for LLM-vs-human ratios and narrow length spread (Reinhart; Muñoz-Ortiz; Ju et al.; Shaib et al.); I for thresholds; no academic baseline for alternation |
-| S4b Rule NT (stance) | Lexicon hits attached to their scope by parse. Stage A marks REDUNDANT-CANDIDATE when the scope noun is in the set registry and no contrast marker is near. Stage B runs a deletion-equivalence judge on candidates, completeness adverbs and boosters; it must name the excluded exception or the word goes. Survivors go to TRUE? (C5 predicates). Each deletion is logged as REDUNDANT-SCOPE, BOOSTER, SUPERLATIVE-RESTATES-TABLE or UNSUPPORTED-UNIVERSAL | Bulk deletion card by reason code; ⚠ cards for kept but unbacked claims (C18) | P + I (Grice; Cochrane); the need is D (Peters & Chin-Yee; Zhou et al.) |
-| S5 Corpus calibration | Fightin' Words z for 1–3-grams vs the JFEc/JoE/JBES corpus (prior from pooled background; term in ≥5 papers). z ≥ +3: over-use warning. z ≤ −3 with document frequency ≥30%: suggestion. Per-paper percentiles for sentence length, passive share, "we" rate, em dashes; regenerates `style/rules/corpus_overuse.yml` | Dashboard plus cards | D for the method (Monroe et al.); untested for draft-vs-journal correction |
+| S4b Rule NT (stance) | Lexicon hits attached to their scope by parse. Stage A marks REDUNDANT-CANDIDATE when the scope noun is in the set registry and no contrast marker is near. Stage B runs a deletion-equivalence judge on candidates, completeness adverbs and boosters; it must name the excluded exception or the word goes. Survivors go to TRUE? (C5 predicates). Each deletion is logged as REDUNDANT-SCOPE, BOOSTER, SUPERLATIVE-RESTATES-TABLE or UNSUPPORTED-UNIVERSAL | Automatic deletion, logged by reason code; kept but unbacked claims to the agent queue (C18) | P + I (Grice; Cochrane); the need is D (Peters & Chin-Yee; Zhou et al.) |
+| S5 Corpus calibration | Fightin' Words z for 1–3-grams vs the JFEc/JoE/JBES corpus (prior from pooled background; term in ≥5 papers). z ≥ +3: over-use warning. z ≤ −3 with document frequency ≥30%: suggestion. Per-paper percentiles for sentence length, passive share, "we" rate, em dashes; regenerates `style/rules/corpus_overuse.yml` | Dashboard; flags to S7 | D for the method (Monroe et al.); untested for draft-vs-journal correction |
 | S6 Phrase frames | For standard statements (DM, MCS, QLIKE, Mincer–Zarnowitz), retrieve nearest corpus sentences and abstract them into templates with bibkey and page | `style/frames/*.md` | I (no published tool found) |
-| S7 LLM register pass | Per flagged sentence, with its paragraph, rule IDs and frames: one **named operation** (convert to agentless passive; replace an inanimate agent with "we" or a passive; merge; split at the conjunction; delete the participial tail; delete the quantifier; replace an evaluative verb with the number; cut an importance-assertion). Never a global target such as "use 25% passives" or "vary sentence length". Never touch macros, cites, refs or comparison words. Stop when the section is inside the band, not at the corpus median | One wording card per sentence, rule cited | D against global targets (Reinhart exemplar result; Zhou et al. overshoot); T-genre (LAMP; Patchwork rule citation); I for the operation list |
+| S7 LLM register pass | Per flagged sentence, with its paragraph, rule IDs and frames: one **named operation** (convert to agentless passive; replace an inanimate agent with "we" or a passive; merge; split at the conjunction; delete the participial tail; delete the quantifier; replace an evaluative verb with the number; cut an importance-assertion). Never a global target such as "use 25% passives" or "vary sentence length". Never touch macros, cites, refs or comparison words. Stop when the section is inside the band, not at the corpus median | Applied automatically when S8 passes; logged with rule ID | D against global targets (Reinhart exemplar result; Zhou et al. overshoot); T-genre (LAMP; Patchwork rule citation); I for the operation list |
 | S8 Post-checks | Content-preservation diff: same multiset of macros, cites and refs; negations, modals and direction words unchanged unless the operation targeted them; no invented agent (a passive-to-active rewrite must not make "we" do what a data vendor or cited paper did). Rerun S2–S5, since rewrites can add markers. Longest shared word n-gram with the corpus (hashed 8-grams); flag rare shared spans | Rewrite rejected automatically on any failure | T-genre (Lee et al. copying); I |
 
 The scrub never claims to evade detectors and runs alongside the disclosure (§4.5, §7.1).
 
-### 8.5 Review-card loop
+### 8.5 Decision locks
 
-A card is one screen, and the deck is ordered so the author decides direction before detail. The schema and loop below are transfer from code review and co-writing studies (§5), not tested on papers.
+*This replaces the review-card loop (A1; the card design is in commit 3c87fa6) and implements A2's order.* The basis is **I** throughout unless a part says otherwise. The nearest precedents propagate code changes, not judgments:
 
-| Card field | Content | Basis |
+- data-to-paper's labelled-value chain ties each number to the code that produced it ([data-to-paper](https://arxiv.org/pdf/2404.17605));
+- showyourwork and Make rebuild an output when its inputs change ([showyourwork docs](https://show-your.work/en/latest/latex/));
+- Gentzkow and Shapiro rebuild everything from one script ([Gentzkow & Shapiro](https://web.stanford.edu/~gentzkow/research/CodeAndData.pdf)).
+
+No published system propagates an author's decision. The principle is that the author's judgment enters once, at the highest layer it concerns, as a correction to plain text. Everything beneath it is computed from it, worded from it and checked against it.
+
+**The cycle (A2).**
+
+1. **Serve the simple version.** An agent generates the next layer from the locked layers above it, in plain sentences, with no polish (S0, C25), and pushes it to Overleaf.
+2. **Read and correct.** The author reads it once and corrects the text in place, for example by rewording a beat, changing a span or striking a claim. The author never writes YAML.
+3. **Capture.** On pull, `capture_corrections.py` diffs the pulled text against what was served. The flatten maps already record "the exact text Overleaf started from" ([overleaf_sync README](../overleaf_sync/README.md)). Each change becomes one decision entry: the author's corrected text, verbatim, as its words; the date; the layer; and the parameters or predicate the correction implies.
+4. **Lock and propagate.** `locks.py` validates the entry (C23), regenerates everything the entry governs, and re-evaluates stamps and predicates.
+5. **Advance.** A layer with no open corrections is locked and never served again. The next layer is generated beneath it.
+6. **Edit last.** After L0–L3 are locked, L4's editing runs: scaffold removal, typography and the scrub (§8.4). It may not change locked content (C20–C25, S8).
+
+If a correction implies no machine parameter (a pure wording or framing change), it locks as words only: the corrected sentence itself is protected. If an agent cannot tell which parameter a correction implies, the question goes into `flips.md` as a conflict.
+
+**Inputs.** Overleaf comments are not an input, because pushes can displace them (§2.4). One repo change is needed:
+
+- **Today**, the Overleaf helper script's `push-beats` treats the layer files as read-only. It "refuses if Overleaf's copy differs from its last flatten (the layers are for reading and comments; edits go to the sources)" (repo).
+- **Under A2**, the pull must unflatten edits on `beats_top.tex` and `beats.tex` through `map_beats_top.json` and `map_beats.json`. That is feasible because `make_paper_beats.py` copies every line it keeps verbatim from its source ([make_paper_beats.py](../make_paper_beats.py)).
+
+**The decision record.** Entries live in `writeup/decisions.yaml`, seeded from the D1–D20 table in [INTEGRATION_PLAN_2026-10-26.md](../INTEGRATION_PLAN_2026-10-26.md) (repo).
+
+| Field | Content | Example from this repo |
 |---|---|---|
-| ID, layer, location | `c<round>.<k>`; L1, L2 or L4; section, beat ID, source line; stable across rounds | T-code |
-| Decision asked | accept/reject · pick A or B · "your judgment: …" | T-code (MSR 2026) |
-| Class and flag | wording · structure · ⚠ claim/hedge · ⚠ number · ⚠ citation | D-short-docs (InkSync new-information flag) |
-| Intent | One line citing a rule ID, a reviewer-issue ID or the author's comment | T-genre (Patchwork) |
-| Diff | Word-level before/after, at most about three sentences; larger changes split | T-code (Google small CLs) |
-| Evidence | Number: macro → value → generator → input hash → commit, old vs new. Claim: predicate status. Citation: quote and page. Scrub: rule and corpus statistic | D (data-to-paper; CMU 55→82%) |
-| Checks passed | C1–C17 relevant to the layer; a failed gate means no card | D (data-to-paper rule-first order) |
-| Default if ignored | Wording: accepted at the next round. ⚠: never auto-accepted | T-genre (InkSync, AnchoredAI) |
-| Dependencies | Parent beat or bullet card; a rejected parent cancels it | T-code (stacked changes) |
+| `id` | Stable, never reused | D13 |
+| `layer` | story, design, presentation or beat | D1 story; D13 design; D16 presentation |
+| `parent` | The decision it refines | a design decision under D1 |
+| `words`, `date` | The author's corrected text verbatim, and its date | D16: "why is the 1600 bar still in the main paper??" (26 Oct) |
+| `binds` | Machine parameters | `eval.span=rth13`, `eval.oos=[start,end]`, `benchmark=ols_har_rth13`, `design=fomcfix`, `sharpe=pooled_d19` |
+| `forbids` | What may not appear | D16: no 16:00-bar accuracy results in the main text |
+| `exceptions` | Named exceptions, each itself a decision | D3's closing-interval section; the feature-importance sample from 2020-01-03, today a local constant (`FI_OOS_START` in [rehaul_fi_compute.py](../../experiments/rehaul_fi_compute.py)) |
 
-The loop runs in seven steps:
+```yaml
+# writeup/decisions.yaml (sketch). Agents write entries from the author's corrections; the author
+# never edits this file. Seeded words are the plan's records of D1-D20; parents are illustrative.
+- id: D1
+  layer: story
+  words: "Headline target = every regular-hours bar (intraday RV), not the closing half hour"
+  date: 2026-10-26
+  binds: {eval.span: rth13, eval.oos: [<start>, <end>]}
+  exceptions: [D3, X-FI]
+- id: D3                         # an exception: its own scope, its own span
+  layer: design
+  parent: D1
+  words: "All closing-interval models ... are corralled into the final section ... and its appendix"
+  date: 2026-10-26
+  scope: {sections: [<final section>, <its appendix>]}
+  binds: {eval.span: close30}
+- id: X-FI                       # an exception, today the constant FI_OOS_START
+  layer: design
+  parent: D1
+  words: "<the author's words of 2026-10-18, new-notes 22>"
+  date: 2026-10-18
+  scope: {sections: [sec:rh_fi]}
+  binds: {fi.oos_start: 2020-01-03}
+- id: D13
+  layer: design
+  parent: D4
+  words: "FOMC fixes ADOPTED ... the paper's numbers come from the patched design"
+  date: 2026-10-26
+  binds: {design: fomcfix}
+- id: D16
+  layer: presentation
+  parent: D1
+  words: "why is the 1600 bar still in the main paper??"
+  date: 2026-10-26
+  forbids: [{result: accuracy, bar: "16:00", where: main_text}]
+```
 
-1. **Commit.** Agents commit each card's change as its own commit on a local review branch. Overleaf has no branches, so branches stay local.
-2. **Build the deck.** A deck builder diffs `beats/manifest.json` against `review/accepted_beats.json`, so only changed beats, bullets and sentences are served. It runs the gates and the scrub, attaches evidence, and orders cards: changed beats first; then ⚠ cards in document order; then one bulk card for mechanical sweeps and Rule NT deletions (count by reason code plus three samples); then wording cards in document order.
-3. **Cap the sitting.** A round is about 30 cards and 60–90 minutes, with ⚠ cards budgeted at 30–60 seconds each (InkSync's 44 s average; Cisco's session length).
-4. **Read and decide on Overleaf.** `deck.tex` is pushed to Overleaf, where the author already reads. The author decides by typing `\decide{c7.3}{A}`, `{R}`, `{E: new text}` or `{Q: question}` into the deck file. These are source lines that round-trip through git, unlike Overleaf comments, which pushes can displace (§2.4).
-5. **Apply.** On pull, an agent keeps accepted commits, reverts rejected ones (cancelling dependents), applies and re-gates edits, and answers questions as new cards. It appends every decision to `decisions.jsonl` and advances `accepted_beats.json`.
-6. **Review with AI.** AI reviewers run per milestone, not per round. Several aspect reviewers each carry a structured checklist:
-   - text, table and macro consistency;
-   - HAC and overlapping-return inference;
-   - look-ahead and sample construction;
-   - multiple-testing disclosure;
-   - the out-of-sample protocol;
-   - explicit "is X reported?" questions for omissions.
+**Refinement rule.** A child decision may refine its parent: narrow a range, add a forbid, or fix a parameter the parent left open. It may never contradict its parent. A child that binds a different value must be listed among the parent's named exceptions. Otherwise C23 fails the moment the entry is written, and the clash is shown to the author as a conflict.
 
-   Then merge, refute with a separate verifier against source and CSVs, and serve only confirmed issues and judgment calls as cards. Log refuted issues as known false positives.
-7. **Firewall.** Any reviewer request for a new number, test or citation becomes a "your judgment" card and never goes straight to a writer.
+**Three propagation channels.**
+
+- **(a) Compute.** Generators read every locked parameter from `writeup/locks.py`, never from local constants or default results paths (C20). They are rerun when a parameter they read changes, Make-style, and all of them are rerun before a push (Gentzkow–Shapiro). Each generated number is stamped in `generated/stamps.json` with the decision IDs and parameter values it was computed under. This extends Phase 0's header stamps.
+- **(b) Words.** Scope wording prints from lock macros that `locks.py` writes into `generated/locks.tex`. For example, `\lockSpan` might print "every regular-hours bar, 2014–2024", so every sentence that states the scope changes with the decision. The macros are generated, so they pass C2. Rule NT's set registry (`style/sets.json`) is built from the same entries.
+- **(c) Check.** The build fails if a number in a section is stamped with parameters that differ from the decisions governing that section, unless the beat holding it names an exception (C21). Forbids are enforced the same way: a 16:00-bar accuracy macro in the main text fails D16. Both sides of every comparison must share the lock: span, sample, benchmark and design (C22).
+
+**Locked claims.** A beat the author has read and corrected becomes a locked claim, stored in `claims/claims.yml`. It has two parts:
+
+- its scope, the decision IDs it rests on;
+- a predicate over macros: sign, rank, significance, or count equal to total.
+
+The abstract's "all … each significant" is an existing example: it is backed by `\rhorAfLower = \rhorAfLowerSig = \rhorAfPairs` (repo, §3.3). Bullets and final text beneath a locked claim are maintained by AI and must satisfy it; they are checked, not reviewed (C24).
+
+Interpretation lives only in beats. A bullet that adds an interpretation beyond its beat (C10) is rewritten as evidence or logged as a proposal. It never ships unread.
+
+**Changing a decision.** The author corrects the text once, wherever it appears. The correction is captured and everything is regenerated, after which stamps and predicates re-evaluate. The author then sees only two things, in `flips.md`:
+
+- claims whose direction, rank or significance flipped;
+- conflicts between decisions, or between a new correction and an earlier lock.
+
+Everything else updates without review.
+
+**The author's whole review surface** has three parts:
+
+- the simple version of each new layer, read once;
+- the decision register, one page printed at the front of L1 and correctable like any text;
+- `flips.md`.
+
+There are no diffs and no per-edit decisions.
+
+**The drift that locks would have caught (repo).** D13 adopted the FOMC-patched design on 26 October. On 28 October the ladder and SHAP generators (`make_rehaul_ladder.py`, `make_rehaul_fi_pooled.py`, `make_rehaul_fi_live.py`) still read pre-patch results by default. Commits 7ca4268 and 8fb75e7 switched them by hand that afternoon, keeping `--prepatch` to reproduce the old outputs (git log). Under locks, `design: fomcfix` would have reached every generator through `locks.py` the moment D13 was recorded. Any number still stamped pre-patch in a section governed by D13 would have failed C21.
+
+**What A1 and A2 give up.** The per-edit evidence of §5.1, where InkSync's warning step caught twice as many planted bad edits, no longer applies to text below a lock. The checks cover numbers, scope, comparisons, stated predicates, citations and S8's meaning diff. They do not cover a wording change that alters meaning without touching a macro, negation, modal or comparison word. Three things narrow that gap:
+
+- Option A, under which the final text is the locked bullets (C9);
+- confining interpretation to beats;
+- the milestone pool of AI verifiers (§5.4).
+
+The residual risk is unmeasured.
+
+**Starting point for this paper.**
+
+1. Seed `decisions.yaml` from D1–D20.
+2. Seed the current top beats as locked claims.
+3. Serve the current top beats, with the seeded register in front, as the simple starting state.
+
+Whether the existing bullet text is reset or kept as the first L2 draft is open (§8.9).
 
 ### 8.6 Agent working rules
 
@@ -925,7 +1077,12 @@ These rules govern every drafting and review agent. Each is a gate in practice, 
 
 | Rule | Basis |
 |---|---|
-| Each step receives a declared input manifest and nothing else. Beat-to-bullet drafting gets L0, the section's beat list, this beat and its neighbors, the macro table with descriptions, verified bib keys, predicate words and `voice.md`. | D (data-to-paper whitelisted inputs); T-genre (DOC, Dramatron context) |
+| Each step receives a declared input manifest and nothing else. Beat-to-bullet drafting gets L0, the section's locked beats, this beat and its neighbors, the decisions governing it (via `locks.py`), the macro table with descriptions, verified bib keys, predicate words and `voice.md`. | D (data-to-paper whitelisted inputs); T-genre (DOC, Dramatron context) |
+| Generators take every locked parameter from `locks.py`; no local constant or default results path for a locked parameter. | I; T-code (showyourwork/Make dependencies) |
+| A layer is generated only from a locked parent, and drafted plain. No scrub, register pass or stylistic rewrite runs before lock. | I (A2) |
+| A decision's words are only ever the author's corrected text, verbatim. Agents infer its parameters and never edit its words. | I (A2) |
+| A reviewer's request for a new number, test or citation is logged as a proposal, never given to a writer. Nothing acts on it until an author correction adopts it. | D (Jr. AI Scientist: reviewer feedback induced fabrication) |
+| AI reviewers run at milestones with the §5.4 checklists, merge and refute, and feed the agent queue. | D in other fields (§5.4) |
 | Sections may be drafted in parallel; beats within a section sequentially. | T-genre (AgentWrite: parallel cost about 6% coherence) |
 | Never type a digit. Derived numbers are computed in Python and emitted as macros with a formula comment. | D (data-to-paper `\num`) |
 | Verdict words come only from predicates derived from the pre-registered `RULE_*.txt`. | D (Alizadeh et al.: prompt flipped verdicts 10%→90%) |
@@ -938,19 +1095,21 @@ These rules govern every drafting and review agent. Each is a gate in practice, 
 
 ### 8.7 Phased build order
 
-Each phase is useful alone, and the order follows value per effort plus dependencies. Citations come before the scrub because the live text already measures clean on vocabulary markers (§4.1), while about half of the bibliography lacks DOIs (§6.4).
+Each phase is useful alone, and the order follows value per effort plus dependencies. Locks and correction capture come before the scrub (A2). Citations also come before the scrub, because the live text already measures clean on vocabulary markers (§4.1) while about half of the bibliography lacks DOIs (§6.4).
 
 | Phase | Deliverable | Done when | Depends on | Basis |
 |---|---|---|---|---|
 | **0. Gate the numbers (first step)** | **P0.1 `tests/check_numbers.py`**: standard library, run in the build and in `push --check`. P0.2 `\rhPending`/`\editc` error in a final wrapper. P0.3 header stamps + `check_stale.py`; full regenerate-and-diff before push | Zero unwhitelisted digits; every whitelist entry has a reason; a deliberately stale file fails | Nothing | D / T-code |
 | 1. Layer selector and beat IDs | `\paperlayer` with hard error; `paper_final.tex`; beat macros and migration script; `make_paper_beats.py` learns them and writes `beats/manifest.json`; `check_beats.py`; parked text moved to `rehaul/parked/` (and `unflatten.py` parks there); SemBr reflow as one bulk commit | Bullet-layer PDF text identical before and after migration; L4 compiles as paragraphs; flat file under 2 MB | Phase 0 | I; T-code |
-| 2. Review cards | Deck builder, `deck.tex` on Overleaf, `\decide` round trip, `decisions.jsonl`, accepted manifest, card-per-commit review branch, beat-first gating | One full round completed from Overleaf decisions with no chat | Phase 1 | T-code; D-short-docs |
-| 3. Citations | One canonical bib; deterministic fetch skill; `check_bib.py` with cache; then PaperQA2 over local PDFs → `litmap.jsonl` → "not supported" cards | All 148 entries verified or explained; writer restricted to verified keys | Phase 2 for cards | D; D-partial |
-| 4. Prose scrub | S0–S3 lint and voice card (week 1). S4b Rule NT: Stage A and the set registry are deterministic and can start as soon as Phase 1 lands; TRUE? uses the existing count macros (e.g. `\rhorAfPairs`) and is completed by Phase 5's predicates. Corpus build, S4a cadence and voice bands, and S5–S6 (stats only committed). S7–S8 register pass with post-checks | Corpus dashboard shows draft inside the 10th–90th percentile band, or each exception is a decided card; every universal and superlative is either deleted with a reason code or backed by a macro | Phases 1–2 (Phase 5 for complete TRUE?) | D for statistics; T-genre for rewriting; P + I for Rule NT |
-| 5. Claims and provenance | Generators emit predicates and spec macros; `check_claims.py`; `claims.yml` keyed by beat ID; provenance wrapper | Every sentence with a numeric macro and a direction word is checked | Phase 0 | I; D (data-to-paper chain) |
-| 6. Submission gates and outside review | `check_jfec.py`; disclosure generator from trailers; replication README table from generator headers; pooled reviewers + verifier as cards; Refine at a milestone; a one-month cooling-off before submission | Final layer passes all gates; disclosure names every model in the log; one outside review round triaged | Phases 0–5 | D (OUP, JFEc); D-other-fields (AI review); practitioner (Gans) |
+| 2. Decision locks and correction capture | Migrate D1–D20 into `decisions.yaml`, exceptions and forbids included (D3, D16, the feature-importance sample). Build `locks.py` and move generators onto it. Add stamping (`stamps.json`) and lock macros. Have generators emit the predicates the locked claims need (moved forward from Phase 5), and build `claims.yml`. Add `check_locks.py` (C20–C25) and `capture_corrections.py`, with layer-file unflatten through `map_beats*.json`. Add `flips.md` and the register printed in front of L1. Then serve the current top beats, seeded from D1–D20, as the simple starting state | A changed span propagates to every table and sentence with only flips shown; one Overleaf correction to L1 becomes a decision entry and reaches every governed number without further review | Phases 0–1 | I; T-code (showyourwork/Make; Gentzkow–Shapiro); D (data-to-paper chain) |
+| 3. Citations | One canonical bib; deterministic fetch skill; `check_bib.py` with cache; then PaperQA2 over local PDFs → `litmap.jsonl` → "not supported" findings to the agent queue | All 148 entries verified or explained; writer restricted to verified keys | Phase 0 | D; D-partial |
+| 4. Prose scrub | Built while the author reads; **runs only on locked layers** (A2). S0 drafting guide; S1–S3 lint. S4b Rule NT: Stage A and the set registry (built from `decisions.yaml`), with TRUE? on Phase 2's predicates. Corpus build, S4a cadence and voice bands, and S5–S6 (stats only committed). S7–S8 register pass with post-checks; edits applied automatically and logged | Corpus dashboard shows the locked draft inside the 10th–90th percentile band, or each exception is recorded as a decision; every universal and superlative is either deleted with a reason code or backed by a macro | Phase 2 | D for statistics; T-genre for rewriting; P + I for Rule NT |
+| 5. Direction words and provenance | Generators emit the remaining predicates and spec macros; `check_claims.py` over every sentence; provenance wrapper | Every sentence with a numeric macro and a direction word is checked | Phase 2 | I; D (data-to-paper chain) |
+| 6. Submission gates and outside review | `check_jfec.py`; disclosure generator from trailers; replication README table from generator headers; pooled reviewers + verifier feeding the agent queue; Refine at a milestone; a one-month cooling-off before submission | Final layer passes all gates; disclosure names every model in the log; one outside review round triaged | Phases 0–5 | D (OUP, JFEc); D-other-fields (AI review); practitioner (Gans) |
 
 **The smallest useful first step is P0.1.** One standard-library script strips comments, math and the whitelist from the live text of `paper_rehaul.tex` and `rehaul/*.tex`, and fails on any remaining digit. It is wired into the existing build check and `overleaf_git.sh push --check`. It needs no new layer, closes the one failure every agent-writing evaluation reports, and makes the existing `unflatten.py` digit warning a source-wide invariant.
+
+The phases set the order in which the **tooling** is built. The order in which the paper's **content** moves is A2's: L0–L1 read and corrected first, then L2, then L3, editing last. The first author-facing moment is the end of Phase 2, when the current top beats are served as the simple starting state, seeded from D1–D20 and printed with the register.
 
 ### 8.8 What rests on evidence and what does not
 
@@ -958,12 +1117,13 @@ Each phase is useful alone, and the order follows value per effort plus dependen
 |---|---|---|
 | Numbers only through code, typed-digit lint, abort on placeholders | D (data-to-paper; Jr. AI Scientist; Beel; MLR-Bench) | No finance-paper measurement; the mechanism is domain-independent |
 | Staleness stamps, full regeneration | T-code (showyourwork; Gentzkow–Shapiro) | No measured error rate |
-| Beats and bullets as the human review surface | T-genre (Dramatron, DOC, STORM, Re3) | No study of empirical economics papers |
+| Beats as the first and highest-value human read | T-genre (Dramatron, DOC, STORM, Re3) | No study of empirical economics papers |
 | Final layer by scaffold removal (Option A) | I, motivated by STORM/AutoSurvey unsupported-claim rates and Liang et al.'s expansion generator | Untested; reader response to bullet-derived paragraphs unknown |
 | Beat IDs, hashes, incremental regeneration | I | No published system implements it |
 | Direction-word predicates | I (statcheck idea) | No tool exists; SPOT and SciTab show LLM checks are weak |
-| Typed cards with friction on claim edits | D for short documents (InkSync emails; AnchoredAI essays); T-code for sizing | No study of long academic documents or review fatigue |
-| Beat-first gating | T-code (Google navigation) | No measured time saving for documents |
+| Decision locks: register, parameters from `locks.py`, stamps, comparison locks (A1) | I. Nearest precedents: T-code (showyourwork/Make dependencies; Gentzkow–Shapiro rebuild) and D (data-to-paper's labelled-value chain) | No published system propagates an author's judgment; the D13 drift is one repo incident, not a measured rate |
+| Top-down order: simple layer read once and corrected, next layer generated from the locked one, polish last (A2) | I; T-code (Google: direction first); T-genre (Dramatron: beat layer least edited; DOC: outline errors cascade) | No study of reading each layer once; no measured time saving for documents |
+| Corrections captured as locks; text below a lock checked, not reviewed | I | What the author misses by not reviewing below a lock is unmeasured; per-edit review evidence (InkSync) no longer applies there (§8.5) |
 | Pooled AI reviewers with a refuting verifier | D in ML, astrophysics, psychology and math (Bianchi; Zubeldia; Litvak; AAAI-26) | No financial-econometrics benchmark; persona prompts untested |
 | Deterministic BibTeX and existence checks | D (Rao & Callison-Burch; GPTZero) | SSRN DOI resolution through Crossref unverified |
 | Claim-support checks | D-partial (CiteGuard; scite evaluation) | Below human level; advisory only |
@@ -979,13 +1139,15 @@ Each phase is useful alone, and the order follows value per effort plus dependen
 
 These decisions belong to the author:
 
-1. **Overleaf comments.** Do Overleaf review comments currently carry instructions to agents? Overleaf documents that git pushes can displace them, and nothing in `overleaf_sync/` reads them. If they do, the `\decide` lines in §8.5 should replace them.
+1. **Overleaf comments.** Under A2 the author's corrections to the text are the only input. Comments are not read, and pushes can displace them (§2.4). Does any current instruction live only in an Overleaf comment? If so, it needs to become a correction in the text before the locks are seeded.
 2. **Final form, section by section.** Should each section use Option A (scaffold removal) or Option B (co-located prose)? The recommendation is A everywhere except the introduction and conclusion.
 3. **Parked text.** Moving parked text to sidecar files changes a house rule's location, not its substance. It needs the author's assent because `unflatten.py` writes the parks.
 4. **The style corpus.** Which 60–150 papers make up the corpus, held through which legitimate access?
 5. **Budget.** Is there budget for Refine (a reader-reported $30–50 per paper; [Litvak](https://paullitvak.com/p/how-well-does-ai-peer-review-work)) and for a second model vendor at milestones?
 6. **Data.** Do the options data need JFEc's replication exemption?
 7. **Voice rules.** Should the notation guide's blanket "'We' and active voice" rule stand, or should per-section corpus bands set voice (§4.3.2)? Should its preferred magnitude words ("substantially", "materially", "modestly") become generator-emitted words tied to thresholds (§4.3.7)?
+8. **Starting state (A2).** Should the existing bullet text be reset, so L2 is generated fresh from the locked L1? Or should it be kept as the first L2 draft, which the author reads and corrects once? Keeping it saves generation, but it serves text written before the locks existed.
+9. **Author-typed text and the scrub.** By default the scrub and Rule NT skip text the author typed in a correction (§8.4). Should Rule NT apply to it too?
 
 ---
 
@@ -997,8 +1159,9 @@ The research turns the author's question around. The hard part of an AI-assisted
 - **Unsupported connective claims become impossible** if the final paper is a rendering of approved bullets rather than a fresh expansion.
 - **Citation errors become mechanical** once entries are fetched rather than typed.
 - **Universals and superlatives become mechanical** under Rule NT: they are deleted when the context already implies them, and otherwise tied to a count or an argmax.
-- **Interpretation stays human:** the only remaining residue is the class every evaluation finds weakest (Kosmos's interpretive statements, data-to-paper's interpretation errors, the 10%-to-90% verdict flip). It deserves the author's 44 seconds per card.
+- **Scope and design drift become mechanical** once every author decision is a lock that generators compute from and the build checks against.
+- **Interpretation stays human.** It is the class every evaluation finds weakest: Kosmos's interpretive statements, data-to-paper's interpretation errors, the 10%-to-90% verdict flip. Under A1 and A2 it lives in the beats, which the author reads and corrects first, and it stays locked from then on.
 
-The layers matter less as views than as a **decision order**. Beats settle direction before bullets settle evidence, and bullets are settled before any wording is reviewed. Under that order, the cheapest reviewer, a script, sees everything first, and the most expensive reviewer, the author, sees only the deltas that change what the paper asserts.
+The author's two decisions turn the layers from views into an **order of authority**. The simplest layer comes first and is read once. Each correction becomes a lock that every lower layer inherits, and polish comes last and cannot touch what is locked. Under that order, the cheapest reviewer, a script, checks everything beneath a lock. The most expensive reviewer, the author, reads each layer once in its plainest form and afterwards sees only flips and conflicts. The D13 drift shows why this has to be mechanical: a design decision adopted on 26 October was still missing from three generators two days later.
 
-Two things this design cannot yet promise are worth stating plainly. No study shows that a scrubbed, register-matched draft earns better referee reports, so the scrub should be judged by the corpus dashboard and the author's eye, not by detectors. No study measures review time saved by layering or cards. Logging per-card decision times in `decisions.jsonl` would let this project produce the first such measurement for an empirical finance paper.
+Two things this design cannot yet promise are worth stating plainly. No study shows that a scrubbed, register-matched draft earns better referee reports, so the scrub should be judged by the corpus dashboard and the author's eye, not by detectors. No study measures what an author misses by correcting simple layers once instead of reviewing every edit. Keeping each correction, flip and conflict, dated, in `decisions.yaml` would give this project the first such record for an empirical finance paper.
