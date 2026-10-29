@@ -1,5 +1,5 @@
 
-\subsection{Which predictors carry the gain?}
+\subsection{Predictor-group ablations}
 \label{sec:rh_fi}
 \label{sec:rh_results_ablation}
 \ifdefined\rhfipNOrigins\else\input{generated/rehaul_fip_numbers}\fi
@@ -25,7 +25,7 @@
   once, when one group carries the gain and the others repeat its information; we report both.
 \end{itemize}
 
-\subsubsection{The FOMC calendar: one group, few bars}
+\subsubsection{FOMC calendar}
 \label{sec:rh_fi_event}
 \begin{itemize}
 \item \textbf{It carries the statement days} (Tables~\ref{tab:rh_ablation} and~\ref{tab:rh_channels_abl}). On every
@@ -52,7 +52,7 @@
 \input{generated/rehaul_channels_sparsity_table}
 \input{generated/rehaul_factor_table}
 
-\subsubsection{The futures' realized moments: the ordinary days}
+\subsubsection{Realized moments}
 \label{sec:rh_fi_ordinary}
 \label{sec:rh_results_bench}
 \begin{itemize}
@@ -92,7 +92,7 @@
   HAR terms; the gain sits in particular series, the realized moments, rather than in the series' common variation.
 \end{itemize}
 
-\subsubsection{What remains}
+\subsubsection{Other predictor groups}
 \label{sec:rh_fi_rest}
 \label{sec:rh_results_beyond}
 \begin{itemize}
@@ -118,7 +118,7 @@
   series and scattered across groups.
 \end{itemize}
 
-\subsubsection{StockTwits, net vega demand and the VIX}
+\subsubsection{Sentiment, volatility demand and implied volatility}
 \label{sec:rh_fi_alt}
 \begin{itemize}
 \item \textbf{Little incremental gain} (Table~\ref{tab:rh_channels_abl}). Removing the StockTwits, volatility-demand
@@ -147,7 +147,7 @@
   \rhfilVdLiveMin--\rhfilVdLiveMax\% (\rhfilVdLiveYears). The use buys little accuracy (Panel~E).
 \end{itemize}
 
-\subsubsection{Use is not accuracy}
+\subsubsection{Variable importance}
 \label{sec:rh_fi_use}
 \begin{itemize}
 \item \textbf{Attribution ranks the parts the wrong way round.} The trees attribute \rhfipHarMin--\rhfipHarMax\% of
