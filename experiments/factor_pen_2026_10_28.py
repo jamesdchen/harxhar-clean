@@ -1189,6 +1189,7 @@ TREES_R = dict(  # the trees' factor test and within-block ladder (ORDINARY days
     factor="results/beyond_trees_2026-10-27/factor/reading.json",
     ladder="results/ablations_2014start_w3000/STATUS.md (17:55, 27 Oct): LightGBM R(5) 0.72, XGBoost R(5) 0.91",
 )
+EXCL_DAYS = ("2023-02-21", "2023-02-22")  # amendment D (b)
 SHORT = [f"pca{k}" for k in K_PCA if k <= 3] + [f"pls{k}" for k in K_PLS if k <= 3]
 
 
@@ -1233,12 +1234,23 @@ def cmd_score(a) -> int:
     assert len(idx) == N_SCORED, len(idx)
     dday = pd.DatetimeIndex(idx.normalize())
     span_ix = {"ordinary": idx[~dday.isin(ev)], "all": idx, "event": idx[dday.isin(ev)]}
+    # amendment D (b): the near-singular days excluded (beside every reading and the C1 extreme-bar note)
+    xd = dday.isin(pd.DatetimeIndex(EXCL_DAYS))
+    span_ix["ordinary_excl"] = idx[~dday.isin(ev) & ~xd]
+    span_ix["all_excl"] = idx[~xd]
     yv = rv_a
 
     def loss(name: str, ix: pd.DatetimeIndex) -> np.ndarray:
         pr, yy = plain[name].reindex(ix).to_numpy(float), yv.reindex(ix).to_numpy(float)
         r = yy / pr
         return r - np.log(r) - 1.0
+
+    def mloss(cls_: str, m_: str, ix: pd.DatetimeIndex) -> float:
+        """Mean QLIKE of the class's model on ix; the OLS reference's FULL = the lower of Table 1's ridge / elastic-net
+        full sets on ix (the earlier tests' L_full)."""
+        if cls_ == "ols" and m_ == "FULL":
+            return float(min(loss("ridge|FULL", ix).mean(), loss("enet|FULL", ix).mean()))
+        return float(loss(f"{cls_}|{m_}", ix).mean())
 
     rows = []
     readings: dict = {}
@@ -1279,8 +1291,10 @@ def cmd_score(a) -> int:
                     row.update(dm_full=float(r2["dm"]), p_full=float(r2["p"]), diff_full=float(r2["mean_diff"]))
                 rows.append(row)
     sc = pd.DataFrame(rows)
-    for cls in [*PEN, "ols"]:
-        od = sc[(sc["cls"] == cls) & (sc["span"] == "ordinary")].set_index("model")
+    readings_excl: dict = {}
+
+    def read_span(cls: str, sp_: str) -> dict:
+        od = sc[(sc["cls"] == cls) & (sc["span"] == sp_)].set_index("model")
         gain = bool(od.loc["FULL", "full_beats_base"])
         rd: dict = dict(
             full_beats_base=gain,
@@ -1312,7 +1326,11 @@ def cmd_score(a) -> int:
             )
         if cls == "ols":
             rd["reading"] = "(reference class; the earlier tests' reading: " + rd.get("reading", "") + ")"
-        readings[cls] = rd
+        return rd
+
+    for cls in [*PEN, "ols"]:
+        readings[cls] = read_span(cls, "ordinary")
+        readings_excl[cls] = read_span(cls, "ordinary_excl")
     # C3: loadings at every bar on the C3 days (scored bars of those days)
     c3d = pd.DatetimeIndex(sorted({pd.Timestamp(d) for inf in infos.values() for d in inf["c3_days"]}))
     c3ix = idx[pd.DatetimeIndex(idx.normalize()).isin(c3d)]
@@ -1341,7 +1359,9 @@ def cmd_score(a) -> int:
         c1, k0 = fi[f"{cls}|c1"].reindex(idx), fi[f"{cls}|k0"].reindex(idx)
         q = c1 / k0
         keep = oix[(fi[f"{cls}|c1"].reindex(oix) > 0).to_numpy()]
-        lb, lc, lf = (loss(f"{cls}|{m}", keep).mean() for m in ("BASE", "c1", "FULL"))
+        lb, lc, lf = (mloss(cls, m, keep) for m in ("BASE", "c1", "FULL"))
+        xo = span_ix["ordinary_excl"]
+        xb, xc, xf = (mloss(cls, m, xo) for m in ("BASE", "c1", "FULL"))
         c1x[cls] = dict(
             n_extreme=int((np.abs(q - 1) > 0.5).sum()),
             n_nonpositive=int((c1 <= 0).sum()),
@@ -1350,6 +1370,8 @@ def cmd_score(a) -> int:
             worst_bar=str(q.sub(1).abs().idxmax()),
             ordinary_qlike_without_nonpositive=float(lc),
             ordinary_R_without_nonpositive=float((lb - lc) / (lb - lf)),
+            ordinary_R_excl_days=float((xb - xc) / (xb - xf)),
+            excl_days=list(EXCL_DAYS),
         )
     sc.to_csv(o / "scores.csv", index=False, float_format="%.17g")
     tr = json.loads((ROOT / TREES_R["factor"]).read_text())
@@ -1358,18 +1380,21 @@ def cmd_score(a) -> int:
         rule=RULE,
         test=test,
         readings=readings,
+        readings_excl_days=dict(days=list(EXCL_DAYS), readings=readings_excl),
         c3=c3,
         c1_extremes=c1x,
         trees_factor=tr["models"],
         trees_ladder=TREES_R["ladder"],
     )
     (o / "reading.json").write_text(json.dumps(out, indent=1, default=str))
-    summary(test, sc, readings, c3, g, infos, tr, c1x)
+    summary(test, sc, readings, c3, g, infos, tr["models"], c1x, readings_excl)
     say(f"score {test}: { {k: v['reading'] for k, v in readings.items()} }")
     return 0
 
 
-def summary(test: str, sc: pd.DataFrame, rd: dict, c3: dict, g: dict, infos: dict, tr: dict, c1x: dict) -> None:
+def summary(
+    test: str, sc: pd.DataFrame, rd: dict, c3: dict, g: dict, infos: dict, tr: dict, c1x: dict, rdx: dict
+) -> None:
     o = TESTS[test]["out"]
 
     def f_(v, nd=3):
@@ -1395,6 +1420,22 @@ def summary(test: str, sc: pd.DataFrame, rd: dict, c3: dict, g: dict, infos: dic
     ]
     for cls in [*PEN, "ols"]:
         r = rd[cls]
+        Rr = r["R"] if r["full_beats_base"] else r["R_info"]
+        tag = "" if r["full_beats_base"] else " (info: no gain)"
+        L.append(
+            f"| {names[cls]} | {r['full_vs_base_pct']:+.2f}%, {r['full_vs_base_dm']:+.2f}, {r['full_vs_base_p']:.3f} |"
+            f" {r['reading']} | {' / '.join(f_(Rr[m]) for m in ('pca1', 'pca3', 'pls3', 'pca10', 'pca20'))}{tag} |"
+            f" {f_(Rr['c1'])} / {f_(Rr['c2'])}{tag} |"
+        )
+    L += [
+        "",
+        f"Without {' and '.join(EXCL_DAYS)} (amendment D (b): the near-singular days of GC1; ORDINARY days):",
+        "",
+        "| class | FULL vs BASE (% QLIKE, DM, p) | reading | R pca1 / pca3 / pls3 / pca10 / pca20 | R C1 / C2 |",
+        "|---|---|---|---|---|",
+    ]
+    for cls in [*PEN, "ols"]:
+        r = rdx[cls]
         Rr = r["R"] if r["full_beats_base"] else r["R_info"]
         tag = "" if r["full_beats_base"] else " (info: no gain)"
         L.append(
@@ -1465,7 +1506,8 @@ def summary(test: str, sc: pd.DataFrame, rd: dict, c3: dict, g: dict, infos: dic
         + "; ".join(
             f"{names[c]}: {x['n_extreme']} bars with |C1 / k0 - 1| > 0.5, {x['n_nonpositive']} with pred_adj <= 0"
             f" (min {x['min_pred']:.3g}, max {x['max_pred']:.3g}, worst {x['worst_bar']}); ORDINARY R without the"
-            f" non-positive bars {x['ordinary_R_without_nonpositive']:.3f}"
+            f" non-positive bars {x['ordinary_R_without_nonpositive']:.3f}, without {' and '.join(x['excl_days'])}"
+            f" {x['ordinary_R_excl_days']:.3f}"
             for c, x in c1x.items()
         )
         + ".",
