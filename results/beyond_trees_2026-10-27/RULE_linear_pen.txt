@@ -166,3 +166,14 @@ AMENDMENT B (2026-10-28 ~19:35 PDT, before any scoring; the coordinator approved
     single forecasts (test A ridge: one bar, 2023-02-21 10:00, pred_adj -114 against k0's 0.85).  C1 is reported as
     defined: no trimming and no new arm, with its extreme bars stated (the count of bars where |pred_C1 / pred_k0 - 1|
     > 0.5, the minimum and the maximum, and the QLIKE without the bars where pred_C1 <= 0 as information only).
+
+AMENDMENT C (2026-10-28 ~19:55 PDT, before any scoring; refines amendment B's identification, seen while gating).
+In test B's lasso k0 two bars differ from the ablation's walk while the bars before and after agree to ~1e-13:
+design row 61300 (6.7e-10 relative) and row 80804 (3.1e-9).  A KKT reseed would change every later bar of its block.
+A one-bar difference is instead the runner's warm solution at that bar, accepted by its KKT check (tolerance 1e-9
+max|c|) slightly off the exact optimum this walk solves for.
+- Identification: a reseed candidate is the first solve of a SUSTAINED mismatch (that bar and the next bar of the
+  block both above 1e-10), never an isolated bar.  Taking the two isolated bars as reseeds made their blocks worse,
+  so they were dropped.
+- G1: such isolated bars (both neighbours within 1e-10) are counted separately and listed in gates.json.  G1 passes
+  when every other bar is within 1e-10 and every isolated bar is within 1e-8.

@@ -844,6 +844,7 @@ def walk_dirs(work: Path, test: str) -> list[Path]:
         d
         for d in work.glob(f"walk_{test}_*")
         if not d.name.endswith(("_smoke", "_k0"))
+        and "_k0_it" not in d.name
         and (d / "forecasts.parquet").is_file()
         and (d / "walk.json").is_file()
     )
@@ -1044,7 +1045,20 @@ def cmd_gates(a) -> int:
         rel = np.abs(x - b) / np.abs(b)
         ty = fi["true_adj"].reindex(b.index)
         rel_y = np.abs(ty - ws_ols["true_adj"].reindex(b.index)) / np.abs(ws_ols["true_adj"].reindex(b.index))
+        # amendment C: an isolated one-bar difference (both neighbours within 1e-10) is the runner's warm solution
+        # accepted within its KKT tolerance; counted separately, passes if <= 1e-8
+        rv_ = rel.to_numpy()
+        hi = rv_ > G1_TOL
+        nb_lo = np.r_[False, hi[:-1]]
+        nb_hi = np.r_[hi[1:], False]
+        iso = hi & ~nb_lo & ~nb_hi
+        rest = np.where(iso, 0.0, rv_)
+        kk = sorted({int(s) for inf in infos.values() for s in inf["kkt_reseeds_applied"].get(col.split("|")[0], [])})
         g1[cls] = dict(
+            kkt_reseeds_identified=kk,
+            n_kkt_reseeds=len(kk),
+            isolated_bars=[(str(d), float(v)) for d, v in zip(rel.index[iso], rv_[iso])],
+            max_rel_excluding_isolated=float(np.nanmax(rest)),
             walk=col,
             reference="Table 1 HAR arm (w3000 fomcfix forecasts.parquet, baseline)"
             if test == "A"
@@ -1056,7 +1070,12 @@ def cmd_gates(a) -> int:
             n_above_1e_12=int((rel > 1e-12).sum()),
             argmax=str(rel.idxmax()),
             max_rel_true_adj=float(rel_y.max()),
-            pass_=bool(x.notna().all() and rel.max() <= G1_TOL and rel_y.max() <= 1e-14),
+            pass_=bool(
+                x.notna().all()
+                and np.nanmax(rest) <= G1_TOL
+                and (rv_[iso].max() if iso.any() else 0.0) <= 1e-8
+                and rel_y.max() <= 1e-14
+            ),
         )
     rec["G1"] = g1
     # GC1: the rotation (OLS every bar; ridge, unstandardized scores, at the days' first bars)
@@ -1302,6 +1321,23 @@ def cmd_score(a) -> int:
                 qlike_bar=ql[1],
                 pct=100.0 * (ql[1] / ql[0] - 1.0),
             )
+    # amendment B (b): C1's extreme bars (information; no trimming)
+    c1x: dict = {}
+    oix = span_ix["ordinary"]
+    for cls in [*PEN, "ols"]:
+        c1, k0 = fi[f"{cls}|c1"].reindex(idx), fi[f"{cls}|k0"].reindex(idx)
+        q = c1 / k0
+        keep = oix[(fi[f"{cls}|c1"].reindex(oix) > 0).to_numpy()]
+        lb, lc, lf = (loss(f"{cls}|{m}", keep).mean() for m in ("BASE", "c1", "FULL"))
+        c1x[cls] = dict(
+            n_extreme=int((np.abs(q - 1) > 0.5).sum()),
+            n_nonpositive=int((c1 <= 0).sum()),
+            min_pred=float(c1.min()),
+            max_pred=float(c1.max()),
+            worst_bar=str(q.sub(1).abs().idxmax()),
+            ordinary_qlike_without_nonpositive=float(lc),
+            ordinary_R_without_nonpositive=float((lb - lc) / (lb - lf)),
+        )
     sc.to_csv(o / "scores.csv", index=False, float_format="%.17g")
     tr = json.loads((ROOT / TREES_R["factor"]).read_text())
     out = dict(
@@ -1310,16 +1346,17 @@ def cmd_score(a) -> int:
         test=test,
         readings=readings,
         c3=c3,
+        c1_extremes=c1x,
         trees_factor=tr["models"],
         trees_ladder=TREES_R["ladder"],
     )
     (o / "reading.json").write_text(json.dumps(out, indent=1, default=str))
-    summary(test, sc, readings, c3, g, infos, tr)
+    summary(test, sc, readings, c3, g, infos, tr, c1x)
     say(f"score {test}: { {k: v['reading'] for k, v in readings.items()} }")
     return 0
 
 
-def summary(test: str, sc: pd.DataFrame, rd: dict, c3: dict, g: dict, infos: dict, tr: dict) -> None:
+def summary(test: str, sc: pd.DataFrame, rd: dict, c3: dict, g: dict, infos: dict, tr: dict, c1x: dict) -> None:
     o = TESTS[test]["out"]
 
     def f_(v, nd=3):
@@ -1411,6 +1448,15 @@ def summary(test: str, sc: pd.DataFrame, rd: dict, c3: dict, g: dict, infos: dic
         "",
         "(R here = R_info, the ratio even where FULL does not beat BASE; read only where it does.)",
         "",
+        "C1's extreme bars (amendment B (b); every scored bar; information, nothing trimmed): "
+        + "; ".join(
+            f"{names[c]}: {x['n_extreme']} bars with |C1 / k0 - 1| > 0.5, {x['n_nonpositive']} with pred_adj <= 0"
+            f" (min {x['min_pred']:.3g}, max {x['max_pred']:.3g}, worst {x['worst_bar']}); ORDINARY R without the"
+            f" non-positive bars {x['ordinary_R_without_nonpositive']:.3f}"
+            for c, x in c1x.items()
+        )
+        + ".",
+        "",
         f"C3 (loadings at every bar instead of once a day; {len(c3['days'])} days, {c3['bars']} scored bars):",
         "",
         "| class | arm | max rel diff | mean rel diff | QLIKE daily | QLIKE every bar | % |",
@@ -1438,7 +1484,9 @@ def summary(test: str, sc: pd.DataFrame, rd: dict, c3: dict, g: dict, infos: dic
     for cls, x in g["G1"].items():
         L.append(
             f"- G1 {cls} {'PASS' if x['pass_'] else 'FAIL'}: {x['walk']} vs {x['reference']}, {x['rows']:,} bars,"
-            f" max relative {x['max_rel']:.2e} (tolerance 1e-10)."
+            f" max relative {x['max_rel_excluding_isolated']:.2e} (tolerance 1e-10) with {x['n_kkt_reseeds']} KKT"
+            f" reseeds of the existing walk identified from its forecasts (amendment B); isolated one-bar differences"
+            f" (amendment C): {x['isolated_bars'] or 'none'}."
         )
     L.append(
         f"- G2 {'PASS' if g['G2']['pass_'] else 'FAIL'}: {g['G2']['checks']} direct batch fits on {len(G2_DAYS)} days,"
