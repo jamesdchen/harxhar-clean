@@ -35,13 +35,40 @@ NAMES    \\rhld<Model><Span>...: Model Lgbm Xgb Rf Ridge Lasso Enet; Span Bar (e
          rung against the full set, Kninety the smallest k keeping 90 %, Verdict the RULE's reading.  Aggregates over
          the trees (LightGBM, XGBoost, forest) and the linear models (ridge, lasso, elastic net): ...Min / ...Max.
 
+EVERY BAR (--everybar; 2026-10-29): the same ladder refitted at EVERY BAR (results/ablations_2014start_w3000/RULE.txt
+         ADDENDUM K; every output labelled "every-bar refit, requested by the author after the monthly-vs-every-bar
+         comparison; not pre-registered").  READS results/ablations_2014start_w3000/scores_fomcfix/ladall_scores.csv,
+         ladall_readings.csv and ladall_checks.json (its "pass" flag must be true), written by the ladder's scorer
+         (ADDENDUM K (h)): LightGBM, XGBoost, ridge, lasso, elastic net (no random forest, so no forest macros), the
+         primary ranking, spans all (every bar) / ord (ORDINARY days) / ev (EVENT days: the scheduled FOMC statement
+         days); k = 0 and k = 46 are Table 1's own every-bar walks (HAR set, patched full set).  Also reads, from the
+         monthly fomcfix/ ladder: scores.csv (the figure's dashed monthly rungs, and the R_monthly check),
+         posthoc_vs_walk.csv (check: the every-bar k = 0 / 46 QLIKE = Table 1's walks there) and rank_primary.csv (the
+         every-bar rungs' ranking, ADDENDUM K (a)).  The monthly text's ladder claims are evaluated on the every-bar
+         numbers and REPORTED (header comment, stdout), not asserted.
+         WRITES writeup/generated/rehaul_ladder_numbers_everybar.tex, writeup/generated/rehaul_ladder_fig_everybar.tex
+         (Figure fig:rh_ladder_everybar), writeup/figures/rehaul_ladder_everybar.pdf (and .png): every-bar rungs solid,
+         monthly rungs dashed (all-bars panel only: the monthly ladder has no day-type spans), QLIKE vs k = 0 (%).
+         NAMES: the monthly name with EB inserted after its prefix, \\rhld<X> -> \\rhldEB<X>, \\ladder<X> ->
+         \\ladderEB<X>; Span tags Bar (every bar), Ord (ORDINARY days), Ev (EVENT days); aggregates Tree = LightGBM and
+         XGBoost (no forest), Lin = ridge, lasso, elastic net, unsuffixed on every bar and Tree<Ord|Ev>... /
+         Lin<Ord|Ev>... by day type.  Added (no monthly name): <Model><Span>Kfifty / Kseventyfive (k50 / k75),
+         <Model>BarRMonthly<k> (the monthly R_k beside the every-bar one), <Model>BarPctMonthly<k> (% QLIKE of the
+         monthly rung against the every-bar rung), NBars<Span>, NDays<Span>, HacLag<Span> (Ord / Ev).  R_k is n/a when
+         L_46 >= L_0 (ADDENDUM K (h)).  Monthly names without an every-bar meaning (origins, gates, post hoc vs the
+         walk, secondary ranking, the 16:00 bar) are not written.
+
 Run:  python writeup/make_rehaul_ladder.py [--prepatch] [--posthoc]     (repository root)
+      python writeup/make_rehaul_ladder.py --everybar
+      Either with --in-dir DIR (the ladder files read: the monthly ladder's dir, or the ladall_* dir with --everybar)
+      and --out-dir DIR (writes DIR/generated/ and DIR/figures/ instead of writeup/generated/ and writeup/figures/).
 """
 
 from __future__ import annotations
 
 import json
 import sys
+from collections.abc import Callable
 from pathlib import Path
 
 import numpy as np
@@ -105,6 +132,38 @@ VERDICT = {
     "NO GAIN TO RETAIN": "no gain to retain",
 }
 N_BARS, N_DAYS, N_ORIGINS, HOLD, N_SERIES, W_DAYS = 33527, 2579, 126, 21, 46, 3000
+
+# ---------------------------------------------------------------- the every-bar ladder (--everybar; RULE.txt ADDENDUM K)
+EB_DIR = ROOT / "results" / "ablations_2014start_w3000" / "scores_fomcfix"  # ladall_scores.csv / _readings / _checks
+EB_RULE = ROOT / "results" / "ablations_2014start_w3000" / "RULE.txt"
+EB_IN = EB_DIR  # set by the command line (--in-dir)
+EB_TAG = "_everybar"
+EB_LABEL = "every-bar refit, requested by the author after the monthly-vs-every-bar comparison; not pre-registered"
+EB_HEAD = HEAD.replace("make_rehaul_ladder.py", "make_rehaul_ladder.py --everybar")
+EB_TREES = ("lgbm", "xgb")  # no random forest in the every-bar ladder (ADDENDUM K (b))
+EB_MODELS = EB_TREES + LINS
+EB_SPANS = ("all", "ord", "ev")
+EB_STAG = {"all": "Bar", "ord": "Ord", "ev": "Ev"}
+EB_TITLE = {"all": "All bars", "ord": "Ordinary days", "ev": "FOMC statement days"}
+EB_SCOLS = (
+    "model,ranking,k,rung,fitted_as,span,n_bars,qlike,mse,dm_vs_full,p_vs_full,dm_vs_har,p_vs_har,hac_lag,R,R_monthly"
+).split(",")
+EB_RCOLS = (
+    "model,ranking,span,qlike_full,qlike_har,gain_full_vs_har,k50,k75,k90,verdict,rungs_below_full,R1,R3,R5,R10,R20,"
+    "p20_vs_full,p10_vs_full,p5_vs_full,dm20_vs_full,dm10_vs_full,dm5_vs_full"
+).split(",")
+BARS_PER_DAY = 13  # Table 1's half-hour bars, 10:00 .. 16:00 (33,527 = 2,579 x 13)
+NA = "n/a"
+
+
+def rel(p: Path) -> str:
+    """A path as the outputs print it: relative to the repository root when under it, else absolute."""
+    for q in (p, p.resolve()):
+        try:
+            return q.relative_to(ROOT).as_posix()
+        except ValueError:
+            pass
+    return p.resolve().as_posix()
 
 
 def thousands(x: int) -> str:
@@ -316,7 +375,7 @@ def main() -> None:
     assert len(set(names)) == len(names), "a macro name twice"
     lines = [
         HEAD,
-        f"% \\rhld... macros of the feature-count ladder (Figure fig:rh_ladder; {LAD.relative_to(ROOT).as_posix()},",
+        f"% \\rhld... macros of the feature-count ladder (Figure fig:rh_ladder; {rel(LAD)},",
         "% RULE.txt sections 1-6): each model refitted on its top k exogenous series, monthly refits at 126 origins,",
         "% W = 3,000 days, primary (pre-sample) ranking unless named Sec; scored on Table 1's bars. Names in the",
         f"% generator's docstring. {LABEL[TAG]}",
@@ -327,7 +386,7 @@ def main() -> None:
     out_num.write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
     figure(rows)
     floats = rf"""{HEAD}
-% Figure fig:rh_ladder (Appendix app:rh_fi_ladder): the feature-count ladder, {LAD.relative_to(ROOT).as_posix()}
+% Figure fig:rh_ladder (Appendix app:rh_fi_ladder): the feature-count ladder, {rel(LAD)}
 % (RULE.txt sections 1-6). {LABEL[TAG]}
 \begin{{figure}}[tbp]
   \centering
@@ -344,8 +403,7 @@ def main() -> None:
 """
     out_fig.write_text(floats, encoding="utf-8", newline="\n")
     print(
-        f"{LAD.relative_to(ROOT).as_posix()}: wrote {len(M)} macros to {out_num.relative_to(ROOT)}, "
-        f"{out_fig.relative_to(ROOT)}, figures/rehaul_ladder{TAG}.pdf"
+        f"{rel(LAD)}: wrote {len(M)} macros to {rel(out_num)}, {rel(out_fig)}, {rel(FIG / f'rehaul_ladder{TAG}.pdf')}"
     )
 
 
@@ -390,16 +448,385 @@ def figure(rows: dict) -> None:
     plt.close(fig)
 
 
+# ====================================================================== every-bar mode (--everybar; RULE.txt ADDENDUM K)
+def na_num(x: float, nd: int = 1) -> str:
+    return num(x, nd) if np.isfinite(x) else NA
+
+
+def na_pval(p: float) -> str:
+    return pval(p) if np.isfinite(p) else NA
+
+
+def na_k(x: float) -> str:
+    return str(int(x)) if np.isfinite(x) else NA
+
+
+def finite(v: list[float]) -> list[float]:
+    return [x for x in v if np.isfinite(x)]
+
+
+def span_rng(lo: str, hi: str) -> str:
+    return lo if lo == hi else f"{lo}--{hi}"
+
+
+def main_everybar() -> None:
+    """The ladder refitted at every bar (RULE.txt ADDENDUM K (h)): macros, float and figure under the *_everybar names.
+    Every number is read from the scorer's ladall_* files (and, for the monthly comparison, the monthly ladder's)."""
+    src = EB_IN
+    S = pd.read_csv(src / "ladall_scores.csv")
+    R = pd.read_csv(src / "ladall_readings.csv")
+    checks = json.loads((src / "ladall_checks.json").read_text(encoding="utf-8"))
+    for fname, df, cols in (("ladall_scores.csv", S, EB_SCOLS), ("ladall_readings.csv", R, EB_RCOLS)):
+        miss = [c for c in cols if c not in df.columns]
+        assert not miss, f"{src / fname}: columns missing against the input contract: {miss}"
+    assert checks.get("pass") is True, f"ladall_checks.json: the every-bar ladder's checks failed: {checks.get('fail')}"
+    rule = EB_RULE.read_text(encoding="utf-8")
+    assert "ADDENDUM K" in rule and "NOT PRE-REGISTERED" in rule, "RULE.txt has no ADDENDUM K (the every-bar ladder)"
+    S = S.assign(k=S["k"].astype(float).astype(int), model=S["model"].astype(str), span=S["span"].astype(str))
+    R = R.assign(model=R["model"].astype(str), span=R["span"].astype(str))
+    assert set(S.model) == set(R.model) == set(EB_MODELS), f"every-bar models {sorted(set(S.model))} / {EB_MODELS}"
+    assert set(S.ranking) == set(R.ranking) == {"primary"}, (set(S.ranking), set(R.ranking))
+    assert set(S.fitted_as) == {"everybar"}, set(S.fitted_as)
+    assert set(S.span) == set(R.span) == set(EB_SPANS), (set(S.span), set(R.span))
+    # the monthly ladder (patched): the figure's dashed rungs, R_monthly, the walks' QLIKE, the rungs' ranking
+    mon = pd.read_csv(LAD_FIX / "scores.csv")
+    mon = mon[mon["ranking"].isin(["P", "both"]) & (mon["span"] == "all")]
+    walk = pd.read_csv(LAD_FIX / "posthoc_vs_walk.csv")
+    rank = pd.read_csv(LAD_FIX / "rank_primary.csv")
+    out_num, out_fig = GEN / f"rehaul_ladder_numbers{EB_TAG}.tex", GEN / f"rehaul_ladder_fig{EB_TAG}.tex"
+    M: list[tuple[str, str, str]] = []
+
+    def add(name: str, value: str, note: str) -> None:
+        assert name.isalpha(), name
+        M.append(("rhldEB" + name, value, note))
+
+    # ---------------------------------------------------------------- design (bars and days by span, from the file)
+    nbar: dict[str, int] = {}
+    lag: dict[str, int] = {}
+    for sp in EB_SPANS:
+        nb_ = sorted(set(S.loc[S.span == sp, "n_bars"].astype(int)))
+        lg_ = sorted(set(S.loc[S.span == sp, "hac_lag"].dropna().astype(int)))
+        assert len(nb_) == 1 and len(lg_) == 1, (sp, nb_, lg_)
+        nbar[sp], lag[sp] = nb_[0], lg_[0]
+    assert nbar["all"] == N_BARS and nbar["ord"] + nbar["ev"] == N_BARS, nbar
+    assert all(n % BARS_PER_DAY == 0 for n in nbar.values()), nbar
+    nday = {sp: n // BARS_PER_DAY for sp, n in nbar.items()}
+    assert nday["all"] == N_DAYS, nday
+    add("NSeries", str(N_SERIES), "exogenous series (the full set's rung)")
+    add("WindowDays", thousands(W_DAYS), "rolling window, trading days (39,000 bars), refitted at every bar")
+    add("RankYear", "2013", "the year on which the primary ranking's fit is explained (the monthly ladder's ranking)")
+    for sp in EB_SPANS:
+        sx = "" if sp == "all" else EB_STAG[sp]
+        add(f"NBars{sx}", thousands(nbar[sp]), f"scored bars, span {sp}")
+        add(f"NDays{sx}", thousands(nday[sp]), f"evaluation days, span {sp} ({BARS_PER_DAY} bars a day)")
+        add(f"HacLag{sx}", str(lag[sp]), f"Newey-West lag of the DM tests, span {sp}")
+
+    # ---------------------------------------------------------------- per model and span
+    rows: dict[tuple[str, str], pd.DataFrame] = {}
+    reads: dict[tuple[str, str], pd.Series] = {}
+    mrows: dict[tuple[str, str], pd.DataFrame] = {}
+    for m in EB_MODELS:
+        g = mon[mon.model == m].assign(k=lambda d: d["k"].astype(float).astype(int)).set_index("k")
+        assert sorted(g.index) == sorted(KS) and g.index.is_unique, (m, "monthly", list(g.index))
+        mrows[(m, "all")] = g
+        for sp in EB_SPANS:
+            f = S[(S.model == m) & (S.span == sp)].set_index("k")
+            assert sorted(f.index) == sorted(KS) and f.index.is_unique, (m, sp, list(f.index))
+            for k in KS:
+                want = "har" if k == 0 else "full" if k == N_SERIES else f"lrung_{m}_{k}"
+                assert str(f.loc[k, "rung"]) == want, (m, sp, k, f.loc[k, "rung"], want)
+            rr = R[(R.model == m) & (R.span == sp)]
+            assert len(rr) == 1, (m, sp, len(rr))
+            r = rr.iloc[0]
+            q0, q46 = float(f.loc[0, "qlike"]), float(f.loc[46, "qlike"])
+            assert abs(float(r["qlike_har"]) - q0) < 1e-12 and abs(float(r["qlike_full"]) - q46) < 1e-12, (m, sp)
+            for k in (1, 3, 5, 10, 20):
+                a_, b_ = float(r[f"R{k}"]), float(f.loc[k, "R"])
+                assert np.isclose(a_, b_, rtol=1e-9, atol=1e-9, equal_nan=True), (m, sp, k, "readings R vs scores R")
+            if sp == "all":  # k = 0 / 46 are Table 1's every-bar walks: the monthly post hoc's walk QLIKE
+                for k, vs in ((0, "walk_har"), (46, "walk_full")):
+                    qw = sorted(set(walk.loc[(walk.model == m) & (walk.vs == vs), "qlike_walk"].astype(float)))
+                    assert len(qw) == 1 and abs(qw[0] - float(f.loc[k, "qlike"])) < 1e-12, (m, k, vs, qw)
+                for k in KS:  # R_monthly = the monthly ladder's R_k (primary, every bar), where the scorer gives one
+                    rm = float(f.loc[k, "R_monthly"])
+                    assert not np.isfinite(rm) or abs(rm - float(g.loc[k, "retained_pct"])) < 1e-9, (m, k, "R_monthly")
+            rows[(m, sp)], reads[(m, sp)] = f, r
+            tag = MTAG[m] + EB_STAG[sp]
+            for k in KS:
+                add(f"{tag}Qlike{KTAG[k]}", f"{float(f.loc[k, 'qlike']):.4f}", f"{m} {sp}: QLIKE of the rung k = {k}")
+                add(
+                    f"{tag}Pct{KTAG[k]}",
+                    num(100.0 * (float(f.loc[k, "qlike"]) / q0 - 1.0)),
+                    f"{m} {sp}: % QLIKE change of rung k = {k} against the k = 0 rung",
+                )
+            for k in (1, 3, 5, 10, 20):
+                add(f"{tag}R{KTAG[k]}", na_num(float(f.loc[k, "R"]), 0), f"{m} {sp}: retained gain R_k, k={k}")
+                add(
+                    f"{tag}P{KTAG[k]}Full",
+                    na_pval(float(f.loc[k, "p_vs_full"])),
+                    f"{m} {sp}: DM p, rung k={k} vs k=46",
+                )
+                add(
+                    f"{tag}Dm{KTAG[k]}Full",
+                    na_num(float(f.loc[k, "dm_vs_full"]), 2),
+                    f"{m} {sp}: DM, rung k={k} vs k=46",
+                )
+            add(f"{tag}PFullHar", na_pval(float(f.loc[46, "p_vs_har"])), f"{m} {sp}: DM p, full set vs k = 0")
+            add(f"{tag}Kfifty", na_k(float(r["k50"])), f"{m} {sp}: smallest k keeping 50% of the full set's gain")
+            add(f"{tag}Kseventyfive", na_k(float(r["k75"])), f"{m} {sp}: smallest k keeping 75% of the full set's gain")
+            add(f"{tag}Kninety", na_k(float(r["k90"])), f"{m} {sp}: smallest k keeping 90% of the full set's gain")
+            add(f"{tag}Verdict", VERDICT[str(r["verdict"])], f"{m} {sp}: the RULE's reading (ladder RULE section 6)")
+            add(f"{tag}Kbest", str(int(f["qlike"].astype(float).idxmin())), f"{m} {sp}: the rung with the lowest QLIKE")
+            add(f"{tag}GainFull", num(1e3 * (q0 - q46), 2), f"{m} {sp}: QLIKE gain of the full set over k=0, x 10^3")
+            if sp == "all":  # the monthly ladder beside it (every bar; the monthly ladder has no day-type spans)
+                for k in (1, 3, 5, 10, 20):
+                    add(
+                        f"{tag}RMonthly{KTAG[k]}",
+                        na_num(float(g.loc[k, "retained_pct"]), 0),
+                        f"{m}: the MONTHLY ladder's R_k, k={k} (= rhld{tag}R{KTAG[k]} of the monthly file)",
+                    )
+                for k in KS:
+                    add(
+                        f"{tag}PctMonthly{KTAG[k]}",
+                        num(100.0 * (float(g.loc[k, "qlike"]) / float(f.loc[k, "qlike"]) - 1.0)),
+                        f"{m}: % QLIKE of the monthly rung k = {k} against the every-bar rung k = {k}",
+                    )
+
+    # ---------------------------------------------------------------- aggregates (unsuffixed: every bar)
+    def val(m: str, sp: str, k: int, col: str) -> float:
+        return float(rows[(m, sp)].loc[k, col])
+
+    def kbest(m: str, sp: str) -> int:
+        return int(rows[(m, sp)]["qlike"].astype(float).idxmin())
+
+    def lohi(name: str, v: list[float], fmt: Callable[[float], str], note: str) -> None:
+        v = finite(v)
+        add(f"{name}Min", fmt(min(v)) if v else NA, f"{note}: lowest")
+        add(f"{name}Max", fmt(max(v)) if v else NA, f"{note}: highest")
+
+    for grp, ms in (("Tree", EB_TREES), ("Lin", LINS)):
+        for sp in EB_SPANS:
+            gs = grp + ("" if sp == "all" else EB_STAG[sp])
+            for k in (1, 3, 5, 10, 20):
+                lohi(f"{gs}R{KTAG[k]}", [val(m, sp, k, "R") for m in ms], lambda x: num(x, 0), f"{grp} {sp}: R_{k} (%)")
+            for k in (5, 10, 20):
+                lohi(
+                    f"{gs}P{KTAG[k]}Full",
+                    [val(m, sp, k, "p_vs_full") for m in ms],
+                    pval,
+                    f"{grp} {sp}: DM p of k = {k} vs the full set",
+                )
+            lohi(f"{gs}Kbest", [float(kbest(m, sp)) for m in ms], lambda x: str(int(x)), f"{grp} {sp}: best rung")
+            lohi(f"{gs}Kninety", [float(reads[(m, sp)]["k90"]) for m in ms], lambda x: str(int(x)), f"{grp} {sp}: k90")
+            nbf = [float(sum(val(m, sp, k, "qlike") < val(m, sp, 46, "qlike") for k in KS[1:-1])) for m in ms]
+            lohi(f"{gs}NRungsBelowFull", nbf, lambda x: str(int(x)), f"{grp} {sp}: reduced rungs below the full set")
+
+    # ---------------------------------------------------------------- the ranking (ADDENDUM K (a): the monthly one)
+    fr_ = rank[(rank.ranking == "primary") & (rank.series == "fomc_until_inv")].set_index("model")["rank"]
+    tr = [int(fr_[m]) for m in EB_TREES]
+    add("TreeRankFomcUntilMin", str(min(tr)), "LightGBM / XGBoost: best primary rank of fomc_until_inv")
+    add("TreeRankFomcUntilMax", str(max(tr)), "LightGBM / XGBoost: worst primary rank of fomc_until_inv")
+    for m in EB_MODELS:
+        top = rank[(rank.model == m) & (rank.ranking == "primary")].sort_values("rank")["series"].iloc[0]
+        add(f"{MTAG[m]}TopOne", fi.grp(top), f"{m}: the top series of the primary ranking ({top})")
+
+    # ---------------------------------------------------------------- the monthly text's claims: reported, not asserted
+    def rk(m: str, k: int) -> float:
+        return val(m, "all", k, "R")
+
+    def pk(m: str, k: int) -> float:
+        return val(m, "all", k, "p_vs_full")
+
+    def show(f: Callable[[str], str], ms: tuple[str, ...]) -> str:
+        return ", ".join(f"{m} {f(m)}" for m in ms)
+
+    claims = [
+        (
+            "trees: the top 10 series keep >= 90% of the gain",
+            all(rk(m, 10) >= 90 for m in EB_TREES),
+            "R_10 " + show(lambda m: f"{rk(m, 10):.0f}", EB_TREES),
+        ),
+        (
+            "trees: the top 5 keep < 50%",
+            all(rk(m, 5) < 50 for m in EB_TREES),
+            "R_5 " + show(lambda m: f"{rk(m, 5):.0f}", EB_TREES),
+        ),
+        (
+            "trees: fomc_until_inv enters between the top-5 and top-10 rungs",
+            5 < min(tr) and max(tr) <= 10,
+            f"ranks {tr}",
+        ),
+        (
+            "linear: the top 10 beat the full set (R_10 > 100)",
+            all(rk(m, 10) > 100 for m in LINS),
+            "R_10 " + show(lambda m: f"{rk(m, 10):.0f}", LINS),
+        ),
+        (
+            "linear: top 10 vs the full set, DM p < 0.05",
+            all(pk(m, 10) < 0.05 for m in LINS),
+            "p " + show(lambda m: f"{pk(m, 10):.2g}", LINS),
+        ),
+        (
+            "linear: the top 5 no worse than the full set (R_5 > 100 or DM p > 0.10)",
+            all(rk(m, 5) > 100 or pk(m, 5) > 0.10 for m in LINS),
+            "R_5 / p " + show(lambda m: f"{rk(m, 5):.0f} / {pk(m, 5):.2g}", LINS),
+        ),
+    ]
+    claim_lines = [f"%   [{'HOLDS' if ok else 'FAILS'}] {c} ({d})" for c, ok, d in claims]
+
+    # ---------------------------------------------------------------- FRONT's and VI's aliases, with EB after the prefix
+    ten = finite([rk(m, 10) for m in EB_TREES])
+    kb_lin = sorted({kbest(m, "all") for m in LINS})
+    M.append(("ladderEBTopK", "10", "the rung FRONT quotes (top 10 series)"))
+    M.append(
+        (
+            "ladderEBTreeRetainRng",
+            span_rng(num(min(ten), 0), num(max(ten), 0)) if ten else NA,
+            "= rhldEBTreeRTenMin--rhldEBTreeRTenMax (%)",
+        )
+    )
+    M.append(
+        ("ladderEBLinKstarRng", span_rng(str(kb_lin[0]), str(kb_lin[-1])), "= rhldEBLinKbestMin--rhldEBLinKbestMax")
+    )
+    for m in EB_TREES:
+        M.append((f"rhldEB{MTAG[m]}PTenFull", na_pval(pk(m, 10)), f"= rhldEB{MTAG[m]}BarPTenFull (VI's name)"))
+
+    names = [n for n, _, _ in M]
+    assert len(set(names)) == len(names), "a macro name twice"
+    clabel = " ".join(str(checks.get("label", "")).split())
+    lines = [
+        EB_HEAD,
+        f"% Label: {EB_LABEL}.",
+        "% \\rhldEB... / \\ladderEB... macros of the feature-count ladder REFITTED AT EVERY BAR (Figure",
+        f"% fig:rh_ladder_everybar; {rel(src)}/ladall_scores.csv, ladall_readings.csv, ladall_checks.json;",
+        "% results/ablations_2014start_w3000/RULE.txt ADDENDUM K): each model refitted at every bar on its top k exogenous",
+        "% series (its own primary ranking, results/ladder_2026-10-26/fomcfix/rank_primary.csv), W = 3,000 days; k = 0 and",
+        "% k = 46 are Table 1's every-bar walks (the HAR set; the patched full set); LightGBM, XGBoost, ridge, lasso,",
+        "% elastic net (no random forest); scored on Table 1's bars. FOMC-patched design.",
+        "% NAMING RULE: each name is the monthly file's (rehaul_ladder_numbers.tex) with EB inserted after its prefix:",
+        "% \\rhld<X> -> \\rhldEB<X>, \\ladder<X> -> \\ladderEB<X>. Span tags: Bar (every bar), Ord (ORDINARY days), Ev",
+        "% (EVENT days, the scheduled FOMC statement days). Tree = LightGBM and XGBoost (no forest), Lin = ridge, lasso,",
+        "% elastic net; their ...Min / ...Max aggregates are unsuffixed on every bar and Tree<Ord|Ev>... / Lin<Ord|Ev>...",
+        "% by day type. Added (no monthly name): <Model><Span>Kfifty / Kseventyfive (k50 / k75), <Model>BarRMonthly<k> (the",
+        "% monthly ladder's R_k), <Model>BarPctMonthly<k> (% QLIKE of the monthly rung against the every-bar rung),",
+        "% NBars / NDays / HacLag with Ord / Ev. n/a: R_k undefined (L_46 >= L_0) or no finite value.",
+        f"% Scorer's checks (ladall_checks.json): pass.{(' Label: ' + clabel) if clabel else ''}",
+        "% The monthly text's ladder claims (A_fi.tex app:rh_fi_ladder, 08_feature_importance.tex) on the every-bar",
+        "% numbers, every bar (reported, not asserted):",
+        *claim_lines,
+    ]
+    for name, value, note in M:
+        lines.append(f"\\providecommand{{\\{name}}}{{}}\\renewcommand{{\\{name}}}{{{value}}}  % {note}")
+    GEN.mkdir(parents=True, exist_ok=True)
+    out_num.write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
+    figure_everybar(rows, mrows)
+    floats = rf"""{EB_HEAD}
+% Figure fig:rh_ladder_everybar: the feature-count ladder refitted at every bar, {rel(src)}
+% (results/ablations_2014start_w3000/RULE.txt ADDENDUM K). Label: {EB_LABEL}.
+\begin{{figure}}[tbp]
+  \centering
+  \includegraphics[width=\linewidth]{{figures/rehaul_ladder{EB_TAG}.pdf}}
+  \caption{{How many exogenous series carry the gain when every rung is refitted at every bar. Each model is refitted
+    at every bar on its top $k$ exogenous series only, ranked once by the model's own importance measure on a fit
+    explained on \rhldEBRankYear{{}} data, before the evaluation span; $k = 0$ (the HAR benchmark set) and
+    $k = \rhldEBNSeries$ (the full set) are the walks of Table~\ref{{tab:rh_oos}}. Vertical axis: the QLIKE of the
+    rung relative to the same model's $k = 0$ rung, in percent (negative: more accurate), on the \rhldEBNBars{{}} bars
+    of Table~\ref{{tab:rh_oos}} (left), on the \rhldEBNDaysOrd{{}} ordinary days (middle) and on the
+    \rhldEBNDaysEv{{}} FOMC statement days (right). Solid: refitted at every bar, window $W = \rhldEBWindowDays$
+    trading days, hyperparameters frozen. Dashed (left panel): the same models refitted monthly, the ladder of
+    Figure~\ref{{fig:rh_ladder}}, each against its own $k = 0$ rung. LightGBM, XGBoost and the linear models; no
+    random forest. FOMC-patched design. Every-bar refit, requested by the author after the monthly-vs-every-bar
+    comparison; not pre-registered.}}
+  \label{{fig:rh_ladder_everybar}}
+\end{{figure}}
+"""
+    out_fig.write_text(floats, encoding="utf-8", newline="\n")
+    print(
+        f"{rel(src)}: wrote {len(M)} macros to {rel(out_num)}, {rel(out_fig)}, {rel(FIG / f'rehaul_ladder{EB_TAG}.pdf')}"
+    )
+    print(f"label: {EB_LABEL}")
+    print("the monthly text's ladder claims on the every-bar numbers (reported, not asserted):")
+    for c, ok, d in claims:
+        print(f"  [{'HOLDS' if ok else 'FAILS'}] {c} ({d})")
+
+
+def figure_everybar(rows: dict, mrows: dict) -> None:
+    """Every-bar rungs solid, the monthly rungs dashed (every-bar panel only), QLIKE vs each ladder's own k = 0."""
+    import matplotlib.pyplot as plt
+    from matplotlib.lines import Line2D
+
+    ink, ink2, gridc = "#0b0b0b", "#52514e", "#e4e3df"
+    FIG.mkdir(parents=True, exist_ok=True)
+    x = np.arange(len(KS))
+
+    def pct(f: pd.DataFrame) -> list[float]:
+        q0 = float(f.loc[0, "qlike"])
+        return [100.0 * (float(f.loc[k, "qlike"]) / q0 - 1.0) for k in KS]
+
+    fig, axes = plt.subplots(1, len(EB_SPANS), figsize=(6.5, 2.9), sharex=True)
+    for ax, sp in zip(axes, EB_SPANS):
+        ax.axhline(0, color=ink2, lw=0.8)
+        for m in EB_MODELS:
+            if (m, sp) in mrows:
+                ax.plot(x, pct(mrows[(m, sp)]), color=COLOR[m], marker=MARK[m], ms=3.5, mfc="white", lw=1.0, ls="--")
+        for m in EB_MODELS:
+            ax.plot(x, pct(rows[(m, sp)]), color=COLOR[m], marker=MARK[m], ms=4, lw=1.4, ls="-", label=MNAME[m])
+        ax.set_xticks(x, [str(k) for k in KS])
+        ax.set_xlabel("exogenous series $k$", fontsize=8, color=ink2)
+        ax.set_title(EB_TITLE[sp], fontsize=9, color=ink)
+        ax.grid(axis="y", color=gridc, lw=0.6)
+        for s in ("top", "right"):
+            ax.spines[s].set_visible(False)
+        for s in ("left", "bottom"):
+            ax.spines[s].set_color(ink2)
+        ax.tick_params(colors=ink2, labelsize=7)
+    axes[0].set_ylabel("QLIKE vs $k = 0$ (%)", fontsize=8)
+    h, lb = axes[0].get_legend_handles_labels()
+    h += [Line2D([], [], color=ink2, lw=1.4, ls="-"), Line2D([], [], color=ink2, lw=1.0, ls="--")]
+    lb += ["every-bar refit", "monthly refit"]
+    fig.legend(h, lb, loc="upper center", ncol=7, frameon=False, fontsize=7)
+    fig.tight_layout(rect=(0, 0, 1, 0.9))
+    fig.savefig(FIG / f"rehaul_ladder{EB_TAG}.pdf", metadata={"Subject": EB_LABEL})
+    fig.savefig(FIG / f"rehaul_ladder{EB_TAG}.png", dpi=150, metadata={"Description": EB_LABEL})
+    plt.close(fig)
+
+
 if __name__ == "__main__":
     import argparse
 
     ap = argparse.ArgumentParser()
     ap.add_argument("--prepatch", action="store_true", help="the pre-patch ladder; writes the *_prepatch names")
     ap.add_argument("--posthoc", action="store_true", help="first write fomcfix/posthoc_vs_walk.csv (patched only)")
+    ap.add_argument(
+        "--everybar",
+        action="store_true",
+        help="the ladder refitted at every bar (ADDENDUM K): reads ladall_*; writes the *_everybar names",
+    )
+    ap.add_argument(
+        "--in-dir",
+        type=Path,
+        help="read the ladder files from DIR (default: fomcfix/; --prepatch: its parent; --everybar: scores_fomcfix/)",
+    )
+    ap.add_argument(
+        "--out-dir",
+        type=Path,
+        help="write DIR/generated/ and DIR/figures/ instead of writeup/generated/ and writeup/figures/ (tests)",
+    )
     a = ap.parse_args()
-    if a.prepatch:
-        assert not a.posthoc, "--posthoc writes the patched ladder's post hoc only (the pre-patch one is on file)"
-        LAD, TAG = LAD_PRE, "_prepatch"
-    if a.posthoc:
-        posthoc_patched()
-    main()
+    if a.out_dir is not None:
+        GEN, FIG = a.out_dir / "generated", a.out_dir / "figures"
+    if a.everybar:
+        assert not (a.prepatch or a.posthoc), "--everybar reads the every-bar ladder only (patched; no post hoc)"
+        if a.in_dir is not None:
+            EB_IN = a.in_dir
+        main_everybar()
+    else:
+        if a.prepatch:
+            assert not a.posthoc, "--posthoc writes the patched ladder's post hoc only (the pre-patch one is on file)"
+            LAD, TAG = LAD_PRE, "_prepatch"
+        if a.in_dir is not None:
+            assert not a.posthoc, "--posthoc writes fomcfix/posthoc_vs_walk.csv itself: not with --in-dir"
+            LAD = a.in_dir
+        if a.posthoc:
+            posthoc_patched()
+        main()
