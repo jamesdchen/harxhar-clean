@@ -1,0 +1,34 @@
+{
+ "id": "Q-2026-10-29-24",
+ "date": "2026-10-29",
+ "question": "A_results says every by-day-type number comes from the fixed design; the forest's removal of the realized moments (dagger) does not, before or after addendum J. Add the exception?",
+ "adjudicated_by": "router",
+ "kind": "mechanical",
+ "lock_conflict": "none",
+ "final_answer": "Yes: '..., except the random forest's removal of the realized moments (marked dagger)'. It was false before addendum J too (30 cells then, 2 now).",
+ "answer_short": "Appendix: the day-type provenance sentence now names its one exception, the forest's lo_rm.",
+ "rationale": "A generated value decides the claim's truth with no interpretation (T0 test, PROTOCOL.md section 4).",
+ "tier": "T0",
+ "confidence": 0.9,
+ "importance": "LOW",
+ "touches": [
+  "appendix"
+ ],
+ "consequence": 1,
+ "hard_trigger": [],
+ "evidence": [
+  "writeup/generated/rehaul_channels_ablation_table.tex (Forest header dagger: statement days -2.1, ordinary days 1.8)",
+  "results/ablations_2014start_w3000/scores_fomcfix/dm.csv (rf lo_rm vs full_pre)",
+  "scratchpad claimcheck_08.md / claimcheck_rest.md / claimcheck_intro_concl.md (session bd4224e0)"
+ ],
+ "actions": [
+  {
+   "kind": "edit_text",
+   "target": "writeup/rehaul/A_results.tex",
+   "detail": "lines 338-344"
+  }
+ ],
+ "consequences": "A_results.tex lines 338-344 only.",
+ "recommendation": "Applied.",
+ "default": "The added exception stands."
+}

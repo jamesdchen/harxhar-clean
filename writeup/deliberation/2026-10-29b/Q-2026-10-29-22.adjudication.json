@@ -1,0 +1,35 @@
+{
+ "id": "Q-2026-10-29-22",
+ "date": "2026-10-29",
+ "question": "Section 8 says the ordinary-day redundancy reading holds in XGBoost but fails for LightGBM, and that the trees' removals other than FOMC are pre-patch. Both are false after addendum J: fix the sentence?",
+ "adjudicated_by": "router",
+ "kind": "mechanical",
+ "lock_conflict": "none",
+ "final_answer": "Yes. On the patched design LightGBM's ordinary-day sentiment removal is no longer significant (p .035 -> .066), so LightGBM meets the redundancy test like XGBoost (\\rhchLgbmOrdRedTest no -> yes, \\rhchTreeOrdNRedTest 1 -> 2), and only the forest's removal of the realized moments is pre-patch. The sentence now reads: holds in all linear classes and in both gradient-boosted trees; cannot be applied to the forest, whose removal of the realized moments is on the pre-fix design.",
+ "answer_short": "Sec. 8: LightGBM now passes the ordinary-day redundancy test too; only the forest's lo_rm is pre-patch.",
+ "rationale": "A generated value decides the claim's truth with no interpretation (T0 test, PROTOCOL.md section 4).",
+ "tier": "T0",
+ "confidence": 0.92,
+ "importance": "HIGH",
+ "touches": [
+  "main_text_number"
+ ],
+ "consequence": 2,
+ "hard_trigger": [],
+ "evidence": [
+  "writeup/generated/rehaul_channels_numbers.tex (rhchLgbmOrdRedTest = yes, rhchTreeOrdNRedTest = 2)",
+  "results/ablations_2014start_w3000/scores_fomcfix/dm.csv (lgbm lo_sent vs full, ord: p 0.066)",
+  "experiments/ablate_score.py:132-134 (ref_full: patched lo_<g> vs full)",
+  "scratchpad claimcheck_08.md / claimcheck_rest.md / claimcheck_intro_concl.md (session bd4224e0)"
+ ],
+ "actions": [
+  {
+   "kind": "edit_text",
+   "target": "writeup/rehaul/08_feature_importance.tex",
+   "detail": "lines 222-231: sentence corrected, old wording kept in a dated % comment"
+  }
+ ],
+ "consequences": "08_feature_importance.tex lines 222-226 only; no macro, table or generator changes.",
+ "recommendation": "Applied: the corrected sentence, with the old wording in a dated comment.",
+ "default": "The corrected sentence stands."
+}

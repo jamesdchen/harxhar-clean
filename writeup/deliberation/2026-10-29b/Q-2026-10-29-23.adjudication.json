@@ -1,0 +1,50 @@
+{
+ "id": "Q-2026-10-29-23",
+ "date": "2026-10-29",
+ "question": "The appendix, the author notes and the full channels table's note still say the trees' removals other than FOMC are on the pre-patch design. After addendum J only the forest's lo_rm is: correct them?",
+ "adjudicated_by": "router",
+ "kind": "mechanical",
+ "lock_conflict": "none",
+ "final_answer": "Yes. A_results: the second gap is now only the forest's removal of the realized moments. Author notes: the boosted trees' removals join the rerun list; the forest's lo_rm stays pre-patch; the stale \\rhab clause dropped. The full channels table's dagger note now names the classes with pre-patch leave-outs from the data (Forest); the ablation table note's parenthetical moved next to the clause it explains.",
+ "answer_short": "Appendix and table notes: only the forest's removal of the realized moments is still pre-patch.",
+ "rationale": "A generated value decides the claim's truth with no interpretation (T0 test, PROTOCOL.md section 4).",
+ "tier": "T0",
+ "confidence": 0.93,
+ "importance": "LOW",
+ "touches": [
+  "appendix",
+  "process"
+ ],
+ "consequence": 1,
+ "hard_trigger": [],
+ "evidence": [
+  "results/ablations_2014start_w3000/scores_fomcfix/checks.json (design: addendum J, 14 boosted-tree lo_<g> patched vs full)",
+  "writeup/generated/rehaul_channels_ablation_table.tex (dagger on the Forest header only)",
+  "scratchpad claimcheck_08.md / claimcheck_rest.md / claimcheck_intro_concl.md (session bd4224e0)"
+ ],
+ "actions": [
+  {
+   "kind": "edit_text",
+   "target": "writeup/rehaul/A_results.tex",
+   "detail": "lines 376-384"
+  },
+  {
+   "kind": "edit_text",
+   "target": "writeup/rehaul/99_author_notes.tex",
+   "detail": "lines 40-49"
+  },
+  {
+   "kind": "edit_code",
+   "target": "writeup/make_rehaul_channels.py",
+   "detail": "full-table dagger note from the data"
+  },
+  {
+   "kind": "edit_code",
+   "target": "writeup/make_rehaul_ablations.py",
+   "detail": "note parenthetical placement"
+  }
+ ],
+ "consequences": "A_results.tex, 99_author_notes.tex, the notes of tab:rh_channels_abl_full and tab:rh_ablation (regenerated); no number changes.",
+ "recommendation": "Applied.",
+ "default": "The corrected notes stand."
+}
