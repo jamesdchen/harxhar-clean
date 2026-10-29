@@ -1,0 +1,71 @@
+{
+  "adjudicated_by": "legacy",
+  "lock_conflict": "unresolved",
+  "hard_trigger": [],
+  "id": "Q-2026-10-29-09",
+  "date": "2026-10-29",
+  "question": "Q8: restart from the fresh version, or keep the current bullets as the first draft of the bullet layer (report section 8.9 Q8)?",
+  "kind": "taste",
+  "solvers": [
+    {
+      "lens": "evidence",
+      "file": "solver_evidence.md",
+      "answer": "Keep the current bullets as L2; fill the header-only top beats from the fresh version; fresh version as a checklist.",
+      "confidence": 0.7,
+      "tier": "T2"
+    },
+    {
+      "lens": "author_record",
+      "file": "solver_author_record.md",
+      "answer": "Keep the current bullets as L2; the fresh version is the author's L1 comparison; port what he marks.",
+      "confidence": 0.6,
+      "tier": "T3"
+    },
+    {
+      "lens": "referee",
+      "file": "solver_referee.md",
+      "answer": "Keep the current bullets as L2; L1 = the fresh claim beats after fixing its six lock or evidence errors.",
+      "confidence": 0.7,
+      "tier": "T2"
+    }
+  ],
+  "agreement": "majority",
+  "refutation": {
+    "outcome": "succeeded",
+    "note": "The majority tier (T2) was refuted: the author's quotes pull both ways. A2 ('start from a simple unedited state') and 'let's do a version where we start over just to compare' (28 Oct 23:32, the latest) against A1's locks embedded in the current bullets. The report's Phase 2 line is agent-written."
+  },
+  "precedence_note": "No later quote settles A2 against A1.",
+  "final_answer": "Recommended (0.65): the author first reads a one-page top layer built from the fresh version's claim sentences, its six lock breaks fixed and C1-C7 applied. After he locks it, the bullet layer is the current bullets reconciled to it; contradicting bullets are parked, not rewritten.",
+  "answer_short": "Top layer first from the fresh version (six lock breaks fixed), then the current bullets reconciled to it.",
+  "tier": "T3",
+  "confidence": 0.65,
+  "importance": "HIGH",
+  "touches": [
+    "abstract",
+    "introduction",
+    "headline_claim"
+  ],
+  "consequence": 5,
+  "question_for_author": "What do you read first: a one-page top layer built from the fresh version, with the current bullets then brought in line with it (yes), or a bullet layer regenerated from that top layer? (This is Q8 of the earlier digest; 'Q8 keep' or 'Q8 regenerate' also work.)",
+  "t3_reason": "A2 and your 28 Oct 'let's do a version where we start over just to compare' pull against the locks built into the current bullets",
+  "alternatives": [
+    "Regenerate the bullet layer from the locked top layer and re-apply your edits: more agent work, and some of your roughly 970 dated edits may be lost"
+  ],
+  "evidence": [
+    "writeup/deliberation/2026-10-29/adjudication.md:291",
+    "writeup/reports/AI layered paper writing system.md:34",
+    "author 2026-10-28 23:32: \"let's do a version where we start over just to compare\"",
+    "commit 89c359e",
+    "writeup/fresh/paper_fresh_beats.tex:388"
+  ],
+  "actions": [
+    {
+      "kind": "edit_text",
+      "target": "writeup/beats/top/",
+      "detail": "One-page top layer from the fresh version's claim beats, six lock breaks fixed, C1-C7 applied."
+    }
+  ],
+  "consequences": "Nothing is deleted: the current bullets stay untouched until you lock the top layer, and the fresh file stays in writeup/fresh/. Every paper edit from this round waits for this answer. Choosing to regenerate makes each of your dated corrections a lock to re-apply, so they are recorded first.",
+  "recommendation": "Read the one-page top layer first; once you lock it, the current bullets are brought in line with it, so your dated edits survive.",
+  "default": "The recommendation: top layer first, then the current bullets reconciled to it."
+}

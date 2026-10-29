@@ -277,6 +277,53 @@ def test_folder_without_adjudications_is_refused_and_untouched(tmp_path: Path) -
     assert (rnd / "digest.md").read_text(encoding="utf-8") == "hand-written\n"
 
 
+def test_out_writes_elsewhere_and_leaves_a_hand_written_digest_byte_identical(tmp_path: Path) -> None:
+    rnd = _write(tmp_path / "deliberation" / "2026-10-29", _adj("Q-2026-10-29-01"))
+    hand = "# Digest, 29 October 2026\r\n\r\nWritten by hand.\n".encode()
+    (rnd / "digest.md").write_bytes(hand)
+    assert digest.main([str(rnd)]) == 2  # the default target is hand-written: refused, nothing written
+    assert (rnd / "digest.md").read_bytes() == hand
+    assert not (rnd.parent / "log.jsonl").exists()
+
+    out = rnd / "digest_protocol.md"
+    assert digest.main([str(rnd), "--out", str(out)]) == 0
+    assert (rnd / "digest.md").read_bytes() == hand
+    assert out.read_text(encoding="utf-8").startswith(digest.GENERATED_HEADING + "2026-10-29")
+    assert [e["id"] for e in _log(rnd)] == ["Q-2026-10-29-01"]
+    assert digest.main([str(rnd), "--out", str(out)]) == 0  # a generated digest may be regenerated
+    assert len(_log(rnd)) == 1
+
+
+def test_legacy_items_from_the_hand_run_first_round(tmp_path: Path) -> None:
+    solvers = [
+        {
+            "lens": "process_risk",
+            "file": "solver_process_risk.md",
+            "answer": "Keep git.",
+            "confidence": 0.85,
+            "tier": "T1",
+        },
+        {
+            "lens": "process_goals",
+            "file": "solver_process_goals.md",
+            "answer": "Keep git.",
+            "confidence": None,
+            "tier": None,
+        },
+    ]
+    d = _adj("Q-2026-10-29-01", date="2026-10-29", adjudicated_by="legacy", solvers=solvers)
+    assert digest.validate(d, "fixture") == []
+    assert digest.classify(d)[0] == "T1"
+    later = _adj("Q-2026-10-30-01", adjudicated_by="legacy", solvers=solvers)  # dated after the protocol
+    assert any("only for rounds held before the protocol" in e for e in digest.validate(later, "fixture"))
+    assert any("names the solver file" in e for e in digest.validate({**d, "solvers": []}, "fixture"))
+    no_conf = {**d, "adjudicated_by": "adjudicator"}  # outside legacy, a missing confidence and odd lenses fail
+    errs = digest.validate(no_conf, "fixture")
+    assert any("solvers[1].confidence" in e for e in errs)
+    assert any("solvers[1].tier" in e for e in errs)
+    assert any("solvers[0].lens" in e for e in errs)
+
+
 def test_rerun_does_not_duplicate_log_lines(tmp_path: Path) -> None:
     rnd = _write(
         tmp_path / "deliberation" / "2026-10-30",

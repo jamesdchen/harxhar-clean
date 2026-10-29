@@ -1,0 +1,66 @@
+{
+  "adjudicated_by": "legacy",
+  "lock_conflict": "none",
+  "hard_trigger": [],
+  "id": "Q-2026-10-29-10",
+  "date": "2026-10-29",
+  "question": "Q10: collaborator authority (A5): do coauthors' Overleaf edits lock, and what happens to an edit that breaks a lock?",
+  "kind": "taste",
+  "solvers": [
+    {
+      "lens": "process_risk",
+      "file": "solver_process_risk.md",
+      "answer": "Keep the default: only the author locks; a held edit is reverted on Overleaf by the next push and parked as a dated comment; one conflict line to the author.",
+      "confidence": 0.8,
+      "tier": "T2"
+    },
+    {
+      "lens": "process_goals",
+      "file": "solver_process_goals.md",
+      "answer": "Keep the default: only the author locks; a held edit stays visible in the source as a heldedit note, never silently reverted; the author's own Overleaf account is not a locking channel.",
+      "confidence": 0.8,
+      "tier": "T2"
+    }
+  ],
+  "agreement": "majority",
+  "refutation": {
+    "outcome": "failed",
+    "note": "The shared core survived. On the held-edit form, reverting on Overleaf was refuted: the author reads the PDF (A3), and reverting a senior coauthor's text before he decides is a unilateral rejection in his name. The heldedit note does not block pushes and keeps both builds identical."
+  },
+  "final_answer": "Keep the default. Only the author locks. A held prose edit goes into the source as a draft-only heldedit note beside the locked text ('held: conflicts with D1; pending the author's decision'), listed in the pull digest, resolved by one chat line; the final build fails while any remain. Number and table conflicts keep SPEC section 5's behaviour. The editor is the bridge commit's author (X6). The author's own Overleaf account is not a locking channel.",
+  "answer_short": "Only you lock. Coauthors' Overleaf edits are applied and recorded with the editor's name; one that breaks a lock shows as a held note in the draft PDF until you decide.",
+  "rationale": "Overall 0.75; the held-edit form 0.65, which sets the item's confidence.",
+  "tier": "T2",
+  "confidence": 0.65,
+  "importance": "HIGH",
+  "touches": [
+    "collaborators",
+    "process"
+  ],
+  "consequence": 3,
+  "evidence": [
+    "writeup/deliberation/2026-10-29/adjudication.md:335",
+    "writeup/MEETING_PREP_SEED_2026-08-18.md:9",
+    "writeup/paper_rehaul.tex:292"
+  ],
+  "actions": [
+    {
+      "kind": "edit_code",
+      "target": "writeup/overleaf_sync/unflatten.py",
+      "detail": "Emit heldedit for prose lock conflicts. Pending: sync-code session, after X5."
+    },
+    {
+      "kind": "edit_code",
+      "target": "writeup/check_pending.py",
+      "detail": "Count heldedit notes as pending."
+    },
+    {
+      "kind": "edit_text",
+      "target": "writeup/paper_rehaul.tex",
+      "detail": "Preamble: define heldedit (draft-only; errors in the final layer)."
+    }
+  ],
+  "consequences": "Sync code and one preamble macro; coauthors see held edits as notes in the draft PDF.",
+  "recommendation": "Keep the default with visible held notes.",
+  "default": "Applied provisionally; the sync changes wait for the sync-code session."
+}

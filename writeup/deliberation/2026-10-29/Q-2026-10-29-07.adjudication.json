@@ -1,0 +1,61 @@
+{
+  "adjudicated_by": "legacy",
+  "lock_conflict": "none",
+  "hard_trigger": [],
+  "id": "Q-2026-10-29-07",
+  "date": "2026-10-29",
+  "question": "C6: the application trades on the 16:00 forecast while D16 bans 16:00 accuracy from the main text: is that incoherent, and what changes?",
+  "kind": "evidence",
+  "solvers": [
+    {
+      "lens": "evidence",
+      "file": "solver_evidence.md",
+      "answer": "No conflict: D16 keeps the application as is; add a pointer to App. rh_closing with no numbers.",
+      "confidence": 0.8,
+      "tier": "T1"
+    },
+    {
+      "lens": "author_record",
+      "file": "solver_author_record.md",
+      "answer": "Keep the application as is (option (a)); at most one sentence without numbers pointing to app:rh_closing.",
+      "confidence": 0.9,
+      "tier": "T1"
+    },
+    {
+      "lens": "referee",
+      "file": "solver_referee.md",
+      "answer": "Not incoherent; one pointer sentence with no 16:00 numbers.",
+      "confidence": 0.85,
+      "tier": "T1"
+    }
+  ],
+  "agreement": "unanimous",
+  "refutation": {
+    "outcome": "failed",
+    "note": "The author chose option (a), 'keep the econ application as is' (26 Oct 19:05); a pointer prints no statistic; 07_economics.tex has no pointer today."
+  },
+  "final_answer": "Application unchanged; one sentence in 07_economics.tex (Trading strategy) says the trade uses each model's forecast of the 16:00 bar, whose accuracy against the OLS-HAR is in the closing-interval appendix.",
+  "answer_short": "The application is unchanged; one sentence without numbers points to the 16:00 accuracy in the appendix.",
+  "tier": "T1",
+  "confidence": 0.85,
+  "importance": "LOW",
+  "touches": [
+    "wording"
+  ],
+  "consequence": 2,
+  "evidence": [
+    "writeup/deliberation/2026-10-29/adjudication.md:262",
+    "writeup/INTEGRATION_PLAN_2026-10-26.md:51",
+    "transcript bd4224e0 2026-10-27T02:05Z"
+  ],
+  "actions": [
+    {
+      "kind": "edit_text",
+      "target": "writeup/rehaul/07_economics.tex",
+      "detail": "One pointer sentence near l.79. Waits for the author's answer to Q8 (Q-2026-10-29-09); applied in whichever layer he reads first."
+    }
+  ],
+  "consequences": "One sentence in the economics section.",
+  "recommendation": "Add the pointer sentence.",
+  "default": "Applied; the edit waits for the answer to Q8."
+}

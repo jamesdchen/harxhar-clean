@@ -1,0 +1,47 @@
+{
+  "adjudicated_by": "legacy",
+  "lock_conflict": "none",
+  "hard_trigger": [],
+  "id": "Q-2026-10-29-18",
+  "date": "2026-10-29",
+  "question": "X5: two defects in the Overleaf sync script: push deadlocks after a real pull, and map.json is advanced before a push lands. Fix them?",
+  "kind": "mechanical",
+  "solvers": [
+    {
+      "lens": "process_risk",
+      "file": "solver_process_risk.md",
+      "answer": "D-a: after any real pull of main2.tex, push deadlocks; fix with a pull watermark. D-b: map.json advances before the push lands; write it only after the push succeeds.",
+      "confidence": 0.85,
+      "tier": "T0"
+    }
+  ],
+  "agreement": "unanimous",
+  "refutation": {
+    "outcome": "failed",
+    "note": "Both confirmed in overleaf_git.example.sh (the live copy differs only in the token line), with two related defects found: push-all stops the review layers under set -e, and the map is also written before --check runs. Neither has fired, since no collaborator has edited main2.tex."
+  },
+  "final_answer": "X5a: record a watermark at pull time (Overleaf commit SHA and the text consumed); push accepts Overleaf content equal to the last flatten or the last pulled text. X5b: write the map to a temporary path and move it into place only after the push succeeds; on rejection, reset the clone to origin and report. Automatic pull-and-retry waits for X7.",
+  "answer_short": "The sync script records what each pull took in, so a push no longer refuses forever, and map.json is written only after a push lands.",
+  "tier": "T0",
+  "confidence": 0.85,
+  "importance": "LOW",
+  "touches": [
+    "process"
+  ],
+  "consequence": 3,
+  "evidence": [
+    "writeup/deliberation/2026-10-29/adjudication.md:494",
+    "writeup/overleaf_sync/overleaf_git.example.sh:117-122",
+    "writeup/overleaf_sync/overleaf_git.example.sh:134-151"
+  ],
+  "actions": [
+    {
+      "kind": "edit_code",
+      "target": "writeup/overleaf_sync/overleaf_git.example.sh and the live overleaf_git.sh",
+      "detail": "Pull watermark; map written after the push lands; reset on rejection. Pending: a sync-code session; not yet applied."
+    }
+  ],
+  "consequences": "Sync code only; needed before coauthors' edits can flow back (A5).",
+  "recommendation": "Fix both.",
+  "default": "Applied in the next sync-code session."
+}

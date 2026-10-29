@@ -1,0 +1,76 @@
+{
+  "adjudicated_by": "legacy",
+  "lock_conflict": "none",
+  "hard_trigger": [],
+  "id": "Q-2026-10-29-04",
+  "date": "2026-10-29",
+  "question": "C3: for the linear models beyond HAR + RM + FOMC, which comparison does the paper report: each class against its own base, or against OLS on the base?",
+  "kind": "evidence",
+  "solvers": [
+    {
+      "lens": "evidence",
+      "file": "solver_evidence.md",
+      "answer": "Each class vs its own base; scope 'every bar'; lasso statement-day caveat; one OLS-on-base sentence; penalized test A replaces the OLS one ('little', not 'none').",
+      "confidence": 0.85,
+      "tier": "T1"
+    },
+    {
+      "lens": "author_record",
+      "file": "solver_author_record.md",
+      "answer": "Each class vs its own penalized base; OLS-base split only in the appendix; penalized test A for tab:rh_factor.",
+      "confidence": 0.85,
+      "tier": "T1"
+    },
+    {
+      "lens": "referee",
+      "file": "solver_referee.md",
+      "answer": "Same; scope 'every bar and ordinary days'; disclose OLS on HAR + RM + FOMC; add that row to tab:rh_ablation.",
+      "confidence": 0.9,
+      "tier": "T1"
+    }
+  ],
+  "agreement": "unanimous",
+  "refutation": {
+    "outcome": "failed",
+    "note": "The 27 Oct 'exactly the same design' quote is superseded by the 28 Oct 'they're cheap, and they make the results apples to apples. run it.' (a38439f). Numbers: own-base every bar ridge +0.1%, lasso -0.6%, enet -0.6%, all n.s.; lasso -6.4% on statement days (p < 0.001), so the claim survives only scoped."
+  },
+  "precedence_note": "28 Oct (penalized test commissioned) supersedes 27 Oct (OLS-based design) on the same scope.",
+  "final_answer": "Main text: 'On every bar and on ordinary days the other 36 series add no significant accuracy to any penalized linear model', plus one sentence that OLS on HAR + RM + FOMC is as accurate on every bar as the penalized full sets (-9.2% vs OLS-HAR). tab:rh_factor switches to (or reports beside) the penalized test A; 'recovers none' becomes 'little'.",
+  "answer_short": "Each linear class against its own base, scoped to every bar and ordinary days; OLS on HAR + RM + FOMC disclosed; the factor table moves to the penalized test.",
+  "tier": "T1",
+  "confidence": 0.9,
+  "importance": "HIGH",
+  "touches": [
+    "introduction",
+    "main_text_number",
+    "main_text_table"
+  ],
+  "consequence": 4,
+  "evidence": [
+    "writeup/deliberation/2026-10-29/adjudication.md:160",
+    "commit a38439f",
+    "results/beyond_trees_2026-10-27/RULE_linear_pen.txt",
+    "writeup/generated/rehaul_ablation_numbers.tex:3155-3157",
+    "writeup/rehaul/A_results.tex:434-442"
+  ],
+  "actions": [
+    {
+      "kind": "edit_code",
+      "target": "writeup/make_rehaul_linear_pen.py (new)",
+      "detail": "Macros and a table for tests A/B and the penalization split, from existing results."
+    },
+    {
+      "kind": "edit_code",
+      "target": "writeup/make_rehaul_ablations.py",
+      "detail": "OLS HAR + RM + FOMC cell or Panel C row."
+    },
+    {
+      "kind": "edit_text",
+      "target": "writeup/rehaul/01_introduction.tex, 09_conclusion.tex, 08_feature_importance.tex",
+      "detail": "Scope 'on every bar'; OLS-on-base sentence; l.236-243 on the penalized test A. Waits for the author's answer to Q8 (Q-2026-10-29-09); applied in whichever layer he reads first."
+    }
+  ],
+  "consequences": "One new generator, one generator extended, scope wording in the introduction, conclusion and Section 6.3, and the factor table.",
+  "recommendation": "Within-class comparison, scoped; disclose OLS on the base.",
+  "default": "Applied; text edits wait for the answer to Q8."
+}

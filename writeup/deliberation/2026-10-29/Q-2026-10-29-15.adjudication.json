@@ -1,0 +1,48 @@
+{
+  "adjudicated_by": "legacy",
+  "lock_conflict": "none",
+  "hard_trigger": [],
+  "id": "Q-2026-10-29-15",
+  "date": "2026-10-29",
+  "question": "X2: is 'under squared error the comparison reverses' the right wording when no MSE increase is significant?",
+  "kind": "mechanical",
+  "solvers": [
+    {
+      "lens": "referee",
+      "file": "solver_referee.md",
+      "answer": "F4: none of the 6 MSE increases is significant; say 'higher, in no class significantly'.",
+      "confidence": null,
+      "tier": "T0"
+    }
+  ],
+  "agreement": "unanimous",
+  "refutation": {
+    "outcome": "failed",
+    "note": "MSE is higher in 6 of 6 and significant in 0 (rehaul_close_accuracy_numbers.tex:1610-1611); the comparison word follows from the generated counts."
+  },
+  "final_answer": "06_results.tex:146 reads 'Under squared error the full set's loss is higher in all six classes, in none significantly'.",
+  "answer_short": "'The comparison reverses' becomes 'is higher in all six classes, in none significantly'.",
+  "tier": "T0",
+  "confidence": 0.9,
+  "importance": "LOW",
+  "touches": [
+    "main_text_number",
+    "wording"
+  ],
+  "consequence": 2,
+  "evidence": [
+    "writeup/deliberation/2026-10-29/adjudication.md:475",
+    "writeup/generated/rehaul_close_accuracy_numbers.tex:1610-1611",
+    "writeup/rehaul/06_results.tex:146"
+  ],
+  "actions": [
+    {
+      "kind": "edit_text",
+      "target": "writeup/rehaul/06_results.tex",
+      "detail": "l.146 wording from the generated counts. Waits for the author's answer to Q8 (Q-2026-10-29-09); applied in whichever layer he reads first."
+    }
+  ],
+  "consequences": "One sentence in Section 6.",
+  "recommendation": "Use the count-backed wording.",
+  "default": "Applied; the edit waits for the answer to Q8."
+}

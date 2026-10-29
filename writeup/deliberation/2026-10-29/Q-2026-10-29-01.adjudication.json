@@ -1,0 +1,72 @@
+{
+  "adjudicated_by": "legacy",
+  "lock_conflict": "none",
+  "hard_trigger": [],
+  "id": "Q-2026-10-29-01",
+  "date": "2026-10-29",
+  "question": "C1: should the introduction lead with D18's question (what the 36 series beyond HAR + RM + FOMC add) or with the every-bar full-set gain against the OLS-HAR?",
+  "kind": "taste",
+  "solvers": [
+    {
+      "lens": "evidence",
+      "file": "solver_evidence.md",
+      "answer": "D18's question is the research question; then the full-set gain vs OLS-HAR with the MSE clause, the base share, and the D18 answer.",
+      "confidence": 0.65,
+      "tier": "T2"
+    },
+    {
+      "lens": "author_record",
+      "file": "solver_author_record.md",
+      "answer": "Keep the general question; lead with the every-bar full-set gain vs OLS-HAR and the MSE clause; D18's answer is contribution 2.",
+      "confidence": 0.75,
+      "tier": "T2"
+    },
+    {
+      "lens": "referee",
+      "file": "solver_referee.md",
+      "answer": "The research-question beat states D18's two levels; first result is the full-set gain vs OLS-HAR plus MSE; then channels, beyond base, application.",
+      "confidence": 0.75,
+      "tier": "T2"
+    }
+  ],
+  "agreement": "majority",
+  "refutation": {
+    "outcome": "failed",
+    "note": "All three agree on the result order, and the 28 Oct approval (3c6ccc4) kept the full-set gain first, so the order survived. On the research-question sentence, leading with D18 alone (evidence) and the generic question alone (author record) were each refuted; the referee's two-level question stands."
+  },
+  "precedence_note": "D1/D2/D7 fix target, benchmark and MSE clause; D18 fixes the question. They compose by scope. The 28 Oct approval of the abstract edit is the latest act and kept the order.",
+  "final_answer": "The research-question beat asks two things: (a) do the exogenous series improve every-bar forecasts against the OLS-HAR (D1, D2); (b) what do the 36 series beyond HAR, the futures' realized moments and the FOMC calendar add (D18). Three numbered contributions: the full-set gain with the D7 MSE clause; the two channels (HAR + RM + FOMC delivers 89-101% of each class's gain); beyond the base (nothing significant in the penalized linear models on every bar, -1.6% / -1.8% in LightGBM / XGBoost, sparse). Application in two sentences. Abstract order unchanged.",
+  "answer_short": "The introduction asks two questions: does the full set beat OLS-HAR on every bar, and what do the 36 other series add beyond HAR, realized moments and FOMC. Results keep their order.",
+  "rationale": "Wording of the research question is taste, implied by D18, the 28 Oct approval and the 25/28 Oct alternative-data quotes (adjudication: T2, 0.75).",
+  "tier": "T2",
+  "confidence": 0.75,
+  "importance": "HIGH",
+  "touches": [
+    "introduction",
+    "headline_claim"
+  ],
+  "consequence": 5,
+  "evidence": [
+    "writeup/deliberation/2026-10-29/adjudication.md:56",
+    "writeup/INTEGRATION_PLAN_2026-10-26.md:54",
+    "commit 3c6ccc4",
+    "transcript bd4224e0 2026-10-28T22:09Z to 23:15Z",
+    "SESSION_HANDOFF_2026-10-26.md:41",
+    "writeup/rehaul/01_introduction.tex:49"
+  ],
+  "actions": [
+    {
+      "kind": "edit_text",
+      "target": "writeup/rehaul/01_introduction.tex",
+      "detail": "Research-question bullet (l.49) becomes two-level; contributions renumbered to gain, channels, beyond base. Waits for the author's answer to Q8 (Q-2026-10-29-09); applied in whichever layer he reads first."
+    },
+    {
+      "kind": "edit_text",
+      "target": "writeup/rehaul/09_conclusion.tex",
+      "detail": "First bullet mirrors the order. Waits for the author's answer to Q8 (Q-2026-10-29-09); applied in whichever layer he reads first."
+    }
+  ],
+  "consequences": "Introduction: research-question bullet and the three numbered contributions. Conclusion: first bullet. No number, table or generator changes; the abstract's order stays.",
+  "recommendation": "Two-level research question; results in the order gain, channels, beyond base.",
+  "default": "Applied provisionally; the paper edits wait for the answer to Q8."
+}

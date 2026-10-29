@@ -82,7 +82,7 @@ Written by the adjudicator, or by the router for T0 items. The file name must be
 | `id` | string | yes | The queue id; must equal the file name's stem |
 | `date` | string | yes | Adjudication date |
 | `question` | string | yes | The queued question (verbatim or tightened) |
-| `adjudicated_by` | `adjudicator` \| `router` | yes | `router` only for T0 items settled without solvers |
+| `adjudicated_by` | `adjudicator` \| `router` \| `legacy` | yes | `router` only for T0 items settled without solvers. `legacy` only for items of the hand-run first round, dated up to 2026-10-29 (see below) |
 | `kind` | `mechanical` \| `evidence` \| `taste` | yes | Floors: `evidence` is at least T1, `taste` at least T2 (`PROTOCOL.md` §3) |
 | `solvers` | list | adjudicator: yes; router: absent | One summary per solver: `lens` (`evidence`, `author_record`, `referee`, or `reviewer`), `file` (relative to the round folder), `answer` (one or two sentences), `confidence` (0-1), `tier`. Exactly one each of `evidence`, `author_record` and `referee`; any number of `reviewer` |
 | `agreement` | `unanimous` \| `majority` \| `split` | adjudicator: yes; router: absent | Agreement on the substance of the answer, after adjudication. `majority` means the adjudicator resolved the minority with a checked reason. `split` means it could not |
@@ -120,6 +120,12 @@ Written by the adjudicator, or by the router for T0 items. The file name must be
 | `edit_config` | `CLAUDE.md`, `.claude/settings*.json`, permissions | `config` |
 | `delete_data` | Deleting data or results | `delete_data` |
 | `spend` | Anything that costs money | `spend` |
+
+**Legacy items** carry `adjudicated_by: "legacy"`. They re-enter the 29 Oct round, which ran before this schema, from its Markdown adjudication.
+
+- **Solvers.** `solvers` lists the solvers the item actually had (at least one), under their own lens names (`process_risk`, `process_goals` and so on). A solver that stated no tier or confidence has `null` there.
+- **Everything else** is as for adjudicator items: agreement and refutation are required, and the same floors apply.
+- **Date limit.** `digest.py` rejects `legacy` on any item dated after 2026-10-29.
 
 **Router items** carry `adjudicated_by: "router"`, `kind: "mechanical"` and `tier: "T0"`, and no `solvers`, `agreement` or `refutation`. The decisive source goes first in `evidence`. If such an item would land above T0, `digest.py` rejects it.
 

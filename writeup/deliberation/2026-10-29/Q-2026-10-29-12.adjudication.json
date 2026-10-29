@@ -1,0 +1,56 @@
+{
+  "adjudicated_by": "legacy",
+  "lock_conflict": "none",
+  "hard_trigger": [],
+  "id": "Q-2026-10-29-12",
+  "date": "2026-10-29",
+  "question": "Q12: tracked changes and comments on Overleaf: how does the pull treat them, and what may agents do on Overleaf?",
+  "kind": "taste",
+  "solvers": [
+    {
+      "lens": "process_risk",
+      "file": "solver_process_risk.md",
+      "answer": "Git carries text only; suggestions export as if accepted; pull the visible text; keep track changes off for the token account; conditional T3 if it is on for everyone.",
+      "confidence": 0.75,
+      "tier": "T1"
+    },
+    {
+      "lens": "process_goals",
+      "file": "solver_process_goals.md",
+      "answer": "Collaborators work as usual; pending suggestions come in as text under Q10; agents never accept, reject or resolve anything without the author's word; comments are read-only digest inputs.",
+      "confidence": 0.75,
+      "tier": "T2"
+    }
+  ],
+  "agreement": "majority",
+  "refutation": {
+    "outcome": "failed",
+    "note": "A comment digest does not contradict section 8.9 Q1 (comments are not an edit channel). No coauthor has edited or commented yet, so the digest is deferred. Whether pushes become suggestions is inferred, not shown; a read-only look at the Review panel settles it."
+  },
+  "final_answer": "T1 (0.75): read Overleaf's visible text only; pending suggestions are ordinary collaborator edits under Q10; agents never accept, reject or resolve anything on Overleaf and never change project settings without the author's chat instruction; minimal-diff pushes and fixed file names. T2 (0.60): a read-only comment digest via the author's Chrome session, built at the first coauthor comment. T0: one read-only check of the track-changes setting. Conditional T3, raised as a new item only if that check finds 'track changes for everyone' on.",
+  "answer_short": "Git carries no comments; pending suggestions arrive as accepted text and are handled like edits. Agents never accept, reject or resolve anything on Overleaf without your word.",
+  "rationale": "Rules T1 (0.75); the deferred comment digest T2 (0.60), which sets the item's confidence.",
+  "tier": "T2",
+  "confidence": 0.6,
+  "importance": "HIGH",
+  "touches": [
+    "collaborators",
+    "process"
+  ],
+  "consequence": 3,
+  "evidence": [
+    "writeup/deliberation/2026-10-29/adjudication.md:404",
+    "overleaf/overleaf services/project-history/app/js/SnapshotManager.js (getProjectSnapshot)",
+    "commits 85500a8, aba8c24, be31a78, ae201a4 in ../harxhar-overleaf"
+  ],
+  "actions": [
+    {
+      "kind": "log_only",
+      "target": "Overleaf project settings (read-only)",
+      "detail": "Look at the track-changes setting without changing it; if it is on for everyone, raise the conditional question as a new item."
+    }
+  ],
+  "consequences": "No change to how coauthors work; one read-only settings check; a comment digest later.",
+  "recommendation": "Visible text only; no agent action on Overleaf review state or settings.",
+  "default": "Applied provisionally."
+}

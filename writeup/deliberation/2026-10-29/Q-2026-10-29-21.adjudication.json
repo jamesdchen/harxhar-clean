@@ -1,0 +1,67 @@
+{
+  "adjudicated_by": "legacy",
+  "lock_conflict": "none",
+  "hard_trigger": [
+    "compute"
+  ],
+  "id": "Q-2026-10-29-21",
+  "date": "2026-10-29",
+  "question": "X8: compute the trading strategies on the HAR + RM + FOMC forecasts (proposed 27 Oct, never run)?",
+  "kind": "taste",
+  "solvers": [
+    {
+      "lens": "author_record",
+      "file": "solver_author_record.md",
+      "answer": "Open dependency, not decided: the agent's 27 Oct proposal to compute strategies on the HAR + RM + FOMC forecasts was never approved and has not been run.",
+      "confidence": null,
+      "tier": null
+    }
+  ],
+  "agreement": "unanimous",
+  "refutation": {
+    "outcome": "failed",
+    "note": "Confirmed open: proposed 27 Oct 19:02Z, conditional on 'Decision 1', which was never answered; no econ generator reads add_rm_fomc and no results folder holds base-forecast strategies. Weighed for: the author's 'Both miss the point of the bigger story' (27 Oct) and the referee question; against: 'there needs to not just be a rampage of things we explored' and 'Don't launch anything new without asking'."
+  },
+  "final_answer": "Lean yes (0.60): a local computation from existing 16:00 forecasts, after a rule file committed first and labelled 'proposed after the author's 27 Oct remark; not pre-registered'; results in the economics appendix; the abstract's trading sentence stays on the author's pending check. Under PROTOCOL.md section 4 a new local analysis arm is compute, so it runs only on the author's yes.",
+  "answer_short": "Compute the trading strategies on the HAR + RM + FOMC forecasts (local, appendix only), on your yes.",
+  "rationale": "The hand-run round classed this T2 and planned to run it after the digest unless vetoed. Under PROTOCOL.md section 4 it is a compute hard trigger, so it waits for the author's answer.",
+  "tier": "T3",
+  "confidence": 0.6,
+  "importance": "LOW",
+  "touches": [
+    "appendix"
+  ],
+  "consequence": 3,
+  "question_for_author": "Should the trading strategies be computed on the HAR + RM + FOMC forecasts (a local run from existing forecasts, results in the economics appendix), to show whether the 36 other series add trading value?",
+  "t3_reason": "It launches a new analysis you have not approved, and you said 'Don't launch anything new without asking'",
+  "alternatives": [
+    "Don't run it: the economics section stays on the full-set forecasts; your 'there needs to not just be a rampage of things we explored' (28 Oct) argues against adding more"
+  ],
+  "evidence": [
+    "writeup/deliberation/2026-10-29/adjudication.md:538",
+    "transcript bd4224e0 2026-10-27T19:02Z",
+    "transcript bd4224e0 2026-10-28T00:48Z: \"Don't launch anything new without asking\"",
+    "transcript bd4224e0 2026-10-28T05:51Z",
+    "writeup/rehaul/99_author_notes.tex:136-138"
+  ],
+  "actions": [
+    {
+      "kind": "edit_code",
+      "target": "results/<new folder>/RULE.txt",
+      "detail": "Rule file first, labelled 'proposed after the author's 27 Oct remark; not pre-registered'."
+    },
+    {
+      "kind": "run_compute",
+      "target": "trading strategies on the add_rm_fomc forecasts (local)",
+      "detail": "From existing 16:00 forecasts; no cluster."
+    },
+    {
+      "kind": "edit_text",
+      "target": "writeup/rehaul/ economics appendix",
+      "detail": "One table of the base-forecast strategies."
+    }
+  ],
+  "consequences": "One local run from existing forecasts (no cluster), a rule file and a generator, and a new table in the economics appendix. The main text and the abstract's trading sentence stay as they are until you check them.",
+  "recommendation": "Yes, appendix only, with the rule file committed first.",
+  "default": "Not run."
+}

@@ -1,0 +1,55 @@
+{
+  "adjudicated_by": "legacy",
+  "lock_conflict": "none",
+  "hard_trigger": [],
+  "id": "Q-2026-10-29-19",
+  "date": "2026-10-29",
+  "question": "X6: report section 8.5 says the editor of a pulled Overleaf change is 'unknown': is that right?",
+  "kind": "mechanical",
+  "solvers": [
+    {
+      "lens": "process_goals",
+      "file": "solver_process_goals.md",
+      "answer": "F2: the git bridge records the editor per Overleaf version (SnapshotInfo carries the user); section 8.5's 'unknown' is carried over from the GitHub-sync docs.",
+      "confidence": null,
+      "tier": null
+    },
+    {
+      "lens": "process_risk",
+      "file": "solver_process_risk.md",
+      "answer": "F6: the commit author is the most recent editor of each batch, per Overleaf's git integration docs.",
+      "confidence": null,
+      "tier": null
+    }
+  ],
+  "agreement": "unanimous",
+  "refutation": {
+    "outcome": "failed",
+    "note": "Overleaf's git-integration page: 'the author of the most recent change will be listed as the author of the commit'; the local clone's Overleaf-side commits carry author jamesdchen01 and committer node. Whether two editors are split into separate commits is unverified."
+  },
+  "final_answer": "Correct section 8.5: the editor is the bridge commit's author, the last editor of each pull batch; exact when one person edited between pulls.",
+  "answer_short": "Report section 8.5 corrected: Overleaf records the last editor before each pull.",
+  "tier": "T0",
+  "confidence": 0.85,
+  "importance": "LOW",
+  "touches": [
+    "process"
+  ],
+  "consequence": 1,
+  "evidence": [
+    "writeup/deliberation/2026-10-29/adjudication.md:520",
+    "https://docs.overleaf.com/integrations-and-add-ons/git-integration-and-github-synchronization/git-integration",
+    "writeup/reports/AI layered paper writing system.md:1164",
+    "commit 74d45cd"
+  ],
+  "actions": [
+    {
+      "kind": "edit_text",
+      "target": "writeup/reports/AI layered paper writing system.md",
+      "detail": "Section 8.5 editor attribution; done in commit 74d45cd."
+    }
+  ],
+  "consequences": "One passage of the report.",
+  "recommendation": "Correct the report.",
+  "default": "Applied."
+}

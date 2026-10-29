@@ -1,0 +1,53 @@
+{
+  "adjudicated_by": "legacy",
+  "lock_conflict": "none",
+  "hard_trigger": [],
+  "id": "Q-2026-10-29-13",
+  "date": "2026-10-29",
+  "question": "Q13: should agents keep the git route on Overleaf, or post edits as tracked-change suggestions from a bot account (claudeleaf)?",
+  "kind": "evidence",
+  "solvers": [
+    {
+      "lens": "process_risk",
+      "file": "solver_process_risk.md",
+      "answer": "Keep the git route; no claudeleaf, no hybrid.",
+      "confidence": 0.85,
+      "tier": "T1"
+    },
+    {
+      "lens": "process_goals",
+      "file": "solver_process_goals.md",
+      "answer": "Keep git for every agent write; no suggestion mode, no bot account now.",
+      "confidence": 0.85,
+      "tier": "T1"
+    }
+  ],
+  "agreement": "unanimous",
+  "refutation": {
+    "outcome": "failed",
+    "note": "Suggestion mode makes every agent edit an accept/reject item (the per-edit review A1 rejected); the pull would read pending bot suggestions as accepted text (Q12); A3 names the git route."
+  },
+  "final_answer": "Keep git for all agent writes; no claudeleaf, no bot account.",
+  "answer_short": "Agents keep writing through git; no claudeleaf, no bot account.",
+  "tier": "T1",
+  "confidence": 0.85,
+  "importance": "LOW",
+  "touches": [
+    "process"
+  ],
+  "consequence": 1,
+  "evidence": [
+    "writeup/deliberation/2026-10-29/adjudication.md:439",
+    "writeup/reports/AI layered paper writing system.md:37"
+  ],
+  "actions": [
+    {
+      "kind": "log_only",
+      "target": "writeup/deliberation/log.jsonl",
+      "detail": "No change."
+    }
+  ],
+  "consequences": "None; the current route stays.",
+  "recommendation": "Keep git.",
+  "default": "Status quo."
+}

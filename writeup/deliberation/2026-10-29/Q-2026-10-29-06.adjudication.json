@@ -1,0 +1,73 @@
+{
+  "adjudicated_by": "legacy",
+  "lock_conflict": "none",
+  "hard_trigger": [],
+  "id": "Q-2026-10-29-06",
+  "date": "2026-10-29",
+  "question": "C5: how are the SHAP attribution shares grouped against D18's base, and does the paper reconcile attribution with the ablations?",
+  "kind": "taste",
+  "solvers": [
+    {
+      "lens": "evidence",
+      "file": "solver_evidence.md",
+      "answer": "Add a D18 grouping, labelled post hoc; keep the pre-registered split in the appendix; one main-text clause.",
+      "confidence": 0.75,
+      "tier": "T1"
+    },
+    {
+      "lens": "author_record",
+      "file": "solver_author_record.md",
+      "answer": "Re-aggregate on D18's partition; keep the registered split in the appendix; build a main-text reconciliation table (attribution vs add/remove, by group).",
+      "confidence": 0.8,
+      "tier": "T1"
+    },
+    {
+      "lens": "referee",
+      "file": "solver_referee.md",
+      "answer": "Mechanical regrouping in the generator; keep the registered split.",
+      "confidence": 0.9,
+      "tier": "T0"
+    }
+  ],
+  "agreement": "unanimous",
+  "refutation": {
+    "outcome": "failed",
+    "note": "RULE_shap.txt:150 allows additions labelled post hoc, so add rather than replace. Shares recomputed from m1_buckets.csv match the solvers (six groups 20.0-22.8% of attribution; gain beyond the base 4-11%). The reconciliation table is still open: asked for 28 Oct 17:50, never built."
+  },
+  "final_answer": "T1 (0.85): a D18 grouping as a post hoc panel with macros (point shares now); the registered split stays in Appendix F. T2 (0.70): a reconciliation table in Section 6.3.5, one row per group on the D18 partition: attribution share next to the add-alone and drop-one changes. No compute. Interval estimates for the D18 grouping are a later step, raised separately if they need cluster data.",
+  "answer_short": "SHAP shares get a post hoc D18 grouping; the reconciliation table you asked for on 28 Oct goes in Section 6.3.5, one row per group, no new compute.",
+  "rationale": "Unanimous core; the table came from the author-record solver and answers the author's own 28 Oct request. The table's form is taste, so the item is T2 at 0.70.",
+  "tier": "T2",
+  "confidence": 0.7,
+  "importance": "HIGH",
+  "touches": [
+    "main_text_table",
+    "main_text_number"
+  ],
+  "consequence": 4,
+  "evidence": [
+    "writeup/deliberation/2026-10-29/adjudication.md:227",
+    "RULE_shap.txt:150",
+    "author 2026-10-28 17:50: \"I need a better reconciliation of the attribution with the ablations\""
+  ],
+  "actions": [
+    {
+      "kind": "edit_code",
+      "target": "writeup/make_rehaul_fi_pooled.py",
+      "detail": "D18 panel in tab:rh_fip_shares and its macros (point shares)."
+    },
+    {
+      "kind": "edit_code",
+      "target": "writeup/make_rehaul_fi_reconcile.py (new)",
+      "detail": "Reconciliation table from existing ablation and channel outputs."
+    },
+    {
+      "kind": "edit_text",
+      "target": "writeup/rehaul/08_feature_importance.tex",
+      "detail": "Section 6.3.5: one clause and the table. Waits for the author's answer to Q8 (Q-2026-10-29-09); applied in whichever layer he reads first."
+    }
+  ],
+  "consequences": "One new main-text table (about a third of a page) and a new panel in the SHAP shares table; two generators.",
+  "recommendation": "Add the D18 grouping and the reconciliation table.",
+  "default": "Applied provisionally; text edits wait for the answer to Q8."
+}

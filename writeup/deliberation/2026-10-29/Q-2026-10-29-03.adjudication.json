@@ -1,0 +1,74 @@
+{
+  "adjudicated_by": "legacy",
+  "lock_conflict": "none",
+  "hard_trigger": [],
+  "id": "Q-2026-10-29-03",
+  "date": "2026-10-29",
+  "question": "C2: which tests does Table 1 carry in the main text, and where do the 16:00 columns of tab:rh_oos_vsols go?",
+  "kind": "evidence",
+  "solvers": [
+    {
+      "lens": "evidence",
+      "file": "solver_evidence.md",
+      "answer": "Both tests on every bar for every row (vs OLS-HAR; full vs own HAR set); 16:00 columns of tab:rh_oos_vsols to app:rh_closing.",
+      "confidence": 0.85,
+      "tier": "T1"
+    },
+    {
+      "lens": "author_record",
+      "file": "solver_author_record.md",
+      "answer": "Same; two columns added to Table 1 with a sign key (content T1, layout T2).",
+      "confidence": 0.85,
+      "tier": "T1"
+    },
+    {
+      "lens": "referee",
+      "file": "solver_referee.md",
+      "answer": "Same, plus 90% MCS markers and a Giacomini-White sentence for nested comparisons (tests T0, layout T1).",
+      "confidence": 0.9,
+      "tier": "T0"
+    }
+  ],
+  "agreement": "unanimous",
+  "refutation": {
+    "outcome": "failed",
+    "note": "D2 (plan l.37) covers the trees' HAR-set rows; all six full sets reject vs OLS-HAR at p < 0.001 (rehaul_oos_vs_ols_numbers.tex:5-67); no conclusion changes. Extra columns versus 'a very clean table' (15 Oct) is a layout matter."
+  },
+  "final_answer": "Table 1 gets '% vs OLS-HAR' and 'DM vs OLS-HAR (p)' for all 12 rows and keeps the within-class DM, with a note that the linear HAR rows equal the OLS up to fifth-decimal differences. The 16:00 columns go to the A_closing accuracy table. One methods sentence cites Giacomini and White (2006) for nested comparisons. MCS markers optional.",
+  "answer_short": "Table 1 gets % and DM against OLS-HAR for every row, keeps the within-class test, and notes that the linear HAR rows equal the OLS; the 16:00 columns move to the appendix.",
+  "rationale": "Content T1 (0.90): D2's text and the generated numbers settle it. The layout (two columns, the note) is taste, T2, so the item as a whole is applied provisionally.",
+  "tier": "T2",
+  "confidence": 0.9,
+  "importance": "HIGH",
+  "touches": [
+    "main_text_table",
+    "main_text_number"
+  ],
+  "consequence": 4,
+  "evidence": [
+    "writeup/deliberation/2026-10-29/adjudication.md:121",
+    "writeup/INTEGRATION_PLAN_2026-10-26.md:37",
+    "writeup/INTEGRATION_PLAN_2026-10-26.md:51",
+    "writeup/generated/rehaul_oos_vs_ols_numbers.tex:5-67"
+  ],
+  "actions": [
+    {
+      "kind": "edit_code",
+      "target": "writeup/make_rehaul_oos_rerun.py",
+      "detail": "Two columns and a sign key in tab:rh_oos; no 16:00 columns in main-text floats; an A_closing 16:00 table."
+    },
+    {
+      "kind": "edit_text",
+      "target": "writeup/rehaul/06_results.tex",
+      "detail": "l.121-133 cite the new columns. Waits for the author's answer to Q8 (Q-2026-10-29-09); applied in whichever layer he reads first."
+    },
+    {
+      "kind": "edit_text",
+      "target": "writeup/rehaul/05_methods.tex and writeup/references.bib",
+      "detail": "Giacomini-White sentence; BibTeX fetched deterministically. Waits for the author's answer to Q8 (Q-2026-10-29-09); applied in whichever layer he reads first."
+    }
+  ],
+  "consequences": "Table 1 and its generator; Section 6 text citing it; one methods sentence and one bib entry; the closing-interval appendix gains the 16:00 columns.",
+  "recommendation": "Both tests for every row in Table 1; 16:00 columns to the appendix.",
+  "default": "Applied provisionally; text edits wait for the answer to Q8."
+}

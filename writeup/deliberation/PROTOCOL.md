@@ -127,7 +127,7 @@ LOW_TOUCHES = wording, appendix, process
 1. **Union.** The adjudicator declares triggers in `hard_trigger`, and `digest.py` adds every trigger implied by the item's `actions`. The union decides.
 2. **Approved compute.** A `run_compute` action is exempt only when `approved_by` cites the author's approval of that specific run (dated quote or commit), for example `author 2026-10-28 17:04: "go"`. Approval of a different or smaller run does not carry over.
    - **What counts as compute.** Any run beyond a quick read-only script: cluster jobs, model fits, and new local analysis arms, even from existing forecasts.
-   - **Basis:** the author's "Don't launch anything new without asking" (28 Oct 2026, said of the cluster runs; quoted in `2026-10-29/adjudication.md`). This protocol reads it as covering new local arms too.
+   - **Basis:** the author's "Don't launch anything new without asking" (27 Oct 2026, 17:48 PDT; transcript 2026-10-28T00:48Z; said of the cluster runs; quoted in `2026-10-29/adjudication.md`). This protocol reads it as covering new local arms too.
 3. **Defaults are inaction.** The default of a hard-trigger item is always inaction: nothing is sent, launched, deleted, spent or reconfigured until the author answers.
 4. **The routine Overleaf push is not a trigger.** `CLAUDE.md` requires a push to Overleaf after every paper update (author's standing order, 22 Oct). That push is part of the normal editing rules. Overleaf comments, suggestions and messages to collaborators remain `outward`.
 
@@ -229,7 +229,7 @@ Nothing else. No preamble, no summary of the deliberation and no solver output r
 | `writeup/deliberation/queue.jsonl` | Raisers, the coordinator | Raised items, append-only (`SCHEMA.md` §1). An item is open while it has no line in `log.jsonl` |
 | `writeup/deliberation/<round>/<id>.<lens>.md` | Solvers | One file per item and lens: `evidence`, `author_record`, `referee` (and `reviewer` if used) |
 | `writeup/deliberation/<round>/<id>.adjudication.json` | Router or adjudicator | `SCHEMA.md` §2 |
-| `writeup/deliberation/<round>/digest.md` | `digest.py` | The only text sent to the author |
+| `writeup/deliberation/<round>/digest.md` | `digest.py` | The only text sent to the author. A hand-written digest is never overwritten; `--out` writes the generated one elsewhere |
 | `writeup/deliberation/log.jsonl` | `digest.py`; the coordinator for author answers, vetoes and failed applications | Append-only, one line per event (`SCHEMA.md` §3). An item's current state is its last line |
 | `writeup/decisions.yaml` (once it exists) | The coordinator | T0-T2 outcomes with source `inferred` and their evidence; author answers and vetoes as author decisions |
 
@@ -270,7 +270,12 @@ The `deliberate` skill holds the full procedure and the prompt templates.
 
 **No router script yet.** Until `locks.py` and `claims/claims.yml` exist (Phase 2 of §8.7), the coordinator applies the T0 test by hand. Its test: could a script with access to the one cited file decide this? If not, the item goes to the solvers.
 
-**The first live round (29 Oct) predates this file.** It used five solvers across two lens sets (content items; process items Q10-Q13). Its adjudication and digest were written by hand as Markdown, with no item ids or JSON. `digest.py` refuses a folder without adjudication JSON, so it never overwrites that round's `digest.md`. Its outcomes enter `log.jsonl` only if they are re-expressed as items under this schema.
+**The first live round (29 Oct) predates this file.** It used five solvers across two lens sets: evidence, author record and referee for the content items; process risk and process goals for Q10-Q13. Its adjudication and digest were written by hand as Markdown.
+
+- **Re-entered as legacy items.** Its items were afterwards re-entered as `Q-2026-10-29-01` to `-21`, marked `adjudicated_by: "legacy"` (`SCHEMA.md` §2), and logged.
+  - A legacy item keeps the solvers it actually had, under their own lens names, and may lack a solver's tier or confidence where none was stated.
+  - `digest.py` accepts `legacy` only for items dated up to 29 Oct 2026, so no later round can skip the three fixed lenses.
+- **The hand-written digest is protected.** `digest.py` never overwrites a digest it did not write: one whose first line is not `# Deliberation digest, round ...`. That round's generated digest is `2026-10-29/digest_protocol.md` (`--out`), and its hand-written `digest.md` stays as sent.
 
 ---
 

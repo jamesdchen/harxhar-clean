@@ -1,0 +1,55 @@
+{
+  "adjudicated_by": "legacy",
+  "lock_conflict": "none",
+  "hard_trigger": [],
+  "id": "Q-2026-10-29-16",
+  "date": "2026-10-29",
+  "question": "X3: the abstract's 'significantly in all 6' has no backing table: is it backed?",
+  "kind": "evidence",
+  "solvers": [
+    {
+      "lens": "evidence",
+      "file": "solver_evidence.md",
+      "answer": "tab:rh_oos_vsols is input nowhere, so the abstract's claim against the OLS has no backing table (within its C2 answer).",
+      "confidence": 0.85,
+      "tier": "T1"
+    },
+    {
+      "lens": "referee",
+      "file": "solver_referee.md",
+      "answer": "tab:rh_oos_vsols is not input anywhere today (within its C2 answer).",
+      "confidence": 0.9,
+      "tier": "T0"
+    }
+  ],
+  "agreement": "unanimous",
+  "refutation": {
+    "outcome": "failed",
+    "note": "Partly confirmed: no table carries the claim (holds), but the text prints each full set's DM against the OLS (06_results.tex:127-133) and rhorVsOlsLowerSig = 6, so the claim itself is backed. Resolved by C2."
+  },
+  "final_answer": "Backed in the text, not in a table; C2 adds the table. The stale rhPending in the abstract's backing comment (paper_rehaul.tex:267) is refreshed.",
+  "answer_short": "The claim is backed in the text; C2's Table 1 columns add the table, and the stale backing comment is refreshed.",
+  "tier": "T1",
+  "confidence": 0.9,
+  "importance": "HIGH",
+  "touches": [
+    "abstract",
+    "main_text_table"
+  ],
+  "consequence": 3,
+  "evidence": [
+    "writeup/deliberation/2026-10-29/adjudication.md:482",
+    "writeup/rehaul/06_results.tex:127-133",
+    "writeup/paper_rehaul.tex:267"
+  ],
+  "actions": [
+    {
+      "kind": "edit_text",
+      "target": "writeup/paper_rehaul.tex",
+      "detail": "l.267: refresh the backing comment's stale rhPending. Waits for the author's answer to Q8 (Q-2026-10-29-09); applied in whichever layer he reads first."
+    }
+  ],
+  "consequences": "One source comment; the table comes with C2.",
+  "recommendation": "Resolve through C2; refresh the comment.",
+  "default": "Applied with C2."
+}

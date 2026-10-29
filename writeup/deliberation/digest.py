@@ -11,8 +11,12 @@ Standard library only.
 Run:
     python writeup/deliberation/digest.py writeup/deliberation/<round>             # writes digest.md, appends log
     python writeup/deliberation/digest.py writeup/deliberation/<round> --dry-run   # validates and prints only
+    python writeup/deliberation/digest.py writeup/deliberation/<round> --out PATH  # digest written to PATH instead
 
-Exit codes: 0 done; 1 a file is malformed (nothing is written); 2 bad usage (no folder, or no adjudication files).
+A digest.md that digest.py did not write (a hand-written one, such as the first round's) is never overwritten.
+
+Exit codes: 0 done; 1 a file is malformed (nothing is written); 2 bad usage (no folder, no adjudication files, or a
+hand-written digest where the digest would go; nothing is written).
 """
 
 from __future__ import annotations
@@ -72,7 +76,11 @@ LENSES_EXTRA = ("reviewer",)
 AGREEMENTS = ("unanimous", "majority", "split")
 REFUTATIONS = ("failed", "succeeded")
 LOCK_CONFLICTS = ("none", "resolved", "unresolved")
-ADJUDICATED_BY = ("adjudicator", "router")
+# "legacy": an item of a round held before this protocol existed (the hand-run first round of 29 Oct 2026), entered
+# afterwards from its Markdown adjudication. Its solvers may be fewer than three and carry the old lens names.
+ADJUDICATED_BY = ("adjudicator", "router", "legacy")
+LEGACY_LAST_DATE = "2026-10-29"
+GENERATED_HEADING = "# Deliberation digest, round "  # first line of every digest.py digest; others are hand-written
 IMPORTANCE = ("HIGH", "LOW")
 STATUSES = ("applied", "provisional", "escalated", "vetoed", "queued")
 STATUS_BY_TIER = {"T0": "applied", "T1": "applied", "T2": "provisional"}
@@ -277,9 +285,14 @@ def validate(d: Any, where: str) -> list[str]:
                 bad(f"refutation.{key}", "not a field of a refutation")
             choice(ref, "outcome", "refutation.outcome", REFUTATIONS)
             text(ref, "note", "refutation.note")
+        legacy = d["adjudicated_by"] == "legacy"
+        if legacy and isinstance(d.get("date"), str) and d["date"] > LEGACY_LAST_DATE:
+            bad("adjudicated_by", f"'legacy' is only for rounds held before the protocol (up to {LEGACY_LAST_DATE})")
         solvers = d.get("solvers")
         if not isinstance(solvers, list):
             bad("solvers", "missing or not a list")
+        elif legacy and not solvers:
+            bad("solvers", "a legacy item still names the solver file(s) its answer came from")
         else:
             lenses: list[str] = []
             for n, s in enumerate(solvers):
@@ -289,14 +302,21 @@ def validate(d: Any, where: str) -> list[str]:
                     continue
                 for key in sorted(set(s) - _SOLVER_KEYS):
                     bad(f"{label}.{key}", "not a field of a solver summary")
-                if choice(s, "lens", f"{label}.lens", LENSES_REQUIRED + LENSES_EXTRA):
+                if legacy:  # the pre-protocol lenses had other names (process_risk, process_goals)
+                    if text(s, "lens", f"{label}.lens"):
+                        lenses.append(s["lens"])
+                elif choice(s, "lens", f"{label}.lens", LENSES_REQUIRED + LENSES_EXTRA):
                     lenses.append(s["lens"])
                 text(s, "file", f"{label}.file")
                 text(s, "answer", f"{label}.answer")
-                choice(s, "tier", f"{label}.tier", TIERS)
-                if not _is_number(s.get("confidence")) or not 0.0 <= float(s["confidence"]) <= 1.0:
+                if not (legacy and "tier" in s and s["tier"] is None):  # a pre-protocol solver may have stated none
+                    choice(s, "tier", f"{label}.tier", TIERS)
+                conf: Any = s.get("confidence")
+                if legacy and conf is None and "confidence" in s:
+                    continue  # a pre-protocol solver that stated no confidence
+                if not _is_number(conf) or not 0.0 <= float(conf) <= 1.0:
                     bad(f"{label}.confidence", "must be a number from 0 to 1")
-            for lens in LENSES_REQUIRED:
+            for lens in () if legacy else LENSES_REQUIRED:
                 if lenses.count(lens) != 1:
                     bad("solvers", f"needs exactly one '{lens}' solver (has {lenses.count(lens)})")
     return errs
@@ -323,7 +343,7 @@ def classify(d: dict[str, Any]) -> tuple[str, str, list[str], list[str], list[st
         floors.append((1, "an evidence question is at least T1"))
     if d["kind"] == "taste":
         floors.append((2, "a matter of taste is at least T2"))
-    if d["adjudicated_by"] == "adjudicator":
+    if d["adjudicated_by"] != "router":
         if d["agreement"] == "majority":
             floors.append((2, "the solvers were not unanimous"))
         if d["agreement"] == "split":
@@ -443,7 +463,7 @@ def render_digest(
     waiting: list[dict[str, Any]],
     log_display: str,
 ) -> str:
-    out: list[str] = [f"# Deliberation digest, round {round_name}", ""]
+    out: list[str] = [f"{GENERATED_HEADING}{round_name}", ""]
     logged = counts["T0"] + counts["T1"] + counts["T2_LOW"]
     out += [
         f"Questions for you: {len(shown)}. Applied provisionally, yours to veto: {len(t2_high)}. "
@@ -493,13 +513,27 @@ def render_digest(
     return "\n".join(out) + "\n"
 
 
-def run(folder: Path, log_path: Path, *, dry_run: bool = False) -> tuple[str, list[dict[str, Any]]]:
-    """Process one round. Returns (digest text, log lines appended). Raises UsageError or Malformed."""
+def run(
+    folder: Path, log_path: Path, *, out: Path | None = None, dry_run: bool = False
+) -> tuple[str, list[dict[str, Any]]]:
+    """Process one round. Returns (digest text, log lines appended). Raises UsageError or Malformed.
+
+    ``out`` is where the digest goes (default ``<folder>/digest.md``). A file there that digest.py did not write (its
+    first line is not GENERATED_HEADING) is hand-written and is never overwritten.
+    """
     if not folder.is_dir():
         raise UsageError(f"{folder} is not a folder")
     files = sorted(folder.glob("*" + SUFFIX))
     if not files:
         raise UsageError(f"{folder} holds no *{SUFFIX} files; nothing to digest (digest.md left untouched)")
+    out_path = out if out is not None else folder / "digest.md"
+    if not dry_run and out_path.is_file():
+        first = out_path.read_text(encoding="utf-8", errors="replace").split("\n", 1)[0]
+        if not first.startswith(GENERATED_HEADING):
+            raise UsageError(
+                f"{out_path} is hand-written (it does not start with {GENERATED_HEADING.strip()!r}); not overwriting "
+                "it. Write the generated digest elsewhere with --out."
+            )
     round_name = folder.name
     log_dir = log_path.parent
 
@@ -567,7 +601,8 @@ def run(folder: Path, log_path: Path, *, dry_run: bool = False) -> tuple[str, li
             new_lines.append(log_line(item, "escalated", round_name, log_dir))
 
     if not dry_run:
-        (folder / "digest.md").write_text(digest, encoding="utf-8", newline="\n")
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        out_path.write_text(digest, encoding="utf-8", newline="\n")
         if new_lines:
             log_path.parent.mkdir(parents=True, exist_ok=True)
             prefix = ""
@@ -588,11 +623,14 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("folder", type=Path, help="the round folder, e.g. writeup/deliberation/2026-10-30")
     parser.add_argument("--log", type=Path, default=None, help="log file (default: <folder>/../log.jsonl)")
     parser.add_argument("--dry-run", action="store_true", help="validate and print the digest; write nothing")
+    parser.add_argument(
+        "--out", type=Path, default=None, help="where to write the digest (default: <folder>/digest.md)"
+    )
     args = parser.parse_args(argv)
     folder: Path = args.folder
     log_path: Path = args.log if args.log is not None else folder.parent / "log.jsonl"
     try:
-        digest, new_lines = run(folder, log_path, dry_run=args.dry_run)
+        digest, new_lines = run(folder, log_path, out=args.out, dry_run=args.dry_run)
     except UsageError as exc:
         print(f"digest.py: {exc}", file=sys.stderr)
         return 2
@@ -603,7 +641,8 @@ def main(argv: list[str] | None = None) -> int:
         print(digest, end="")
         print(f"[dry run] {len(new_lines)} log line(s) would be appended to {_display(log_path)}.")
         return 0
-    shown_path, log_shown = _display(folder / "digest.md"), _display(log_path)
+    out_path: Path = args.out if args.out is not None else folder / "digest.md"
+    shown_path, log_shown = _display(out_path), _display(log_path)
     print(f"digest.py: wrote {shown_path}; appended {len(new_lines)} line(s) to {log_shown}")
     decisions = folder.parent.parent / "decisions.yaml"
     to_record = [line["id"] for line in new_lines if line["status"] in ("applied", "provisional")]

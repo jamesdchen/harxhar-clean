@@ -1,0 +1,55 @@
+{
+  "adjudicated_by": "legacy",
+  "lock_conflict": "none",
+  "hard_trigger": [],
+  "id": "Q-2026-10-29-11",
+  "date": "2026-10-29",
+  "question": "Q11: does A4's protection from the scrub and Rule NT cover collaborators' Overleaf text?",
+  "kind": "taste",
+  "solvers": [
+    {
+      "lens": "process_risk",
+      "file": "solver_process_risk.md",
+      "answer": "Yes for the scrub and Rule NT, by pull-commit provenance (git blame); no byte-lock until the author adopts it.",
+      "confidence": 0.75,
+      "tier": "T2"
+    },
+    {
+      "lens": "process_goals",
+      "file": "solver_process_goals.md",
+      "answer": "Protect all human-typed Overleaf text from the scrub and Rule NT; no full verbatim lock; provenance in a sidecar (T1 core, T2 boundaries).",
+      "confidence": 0.8,
+      "tier": "T1"
+    }
+  ],
+  "agreement": "majority",
+  "refutation": {
+    "outcome": "failed",
+    "note": "The core survived: the bridge names only the last editor of each batch (X6), so the only rule that never breaks A4 protects all human Overleaf text. On the mechanism, git blame was refuted: any later mechanical touch moves blame and silently drops the protection."
+  },
+  "final_answer": "All human text pulled from Overleaf is exempt from the scrub and Rule NT; no byte-lock (T1, 0.85). Provenance is a sidecar written by unflatten.py at each pull (file, sentence hash, pull SHA, editor), updated by tools that edit a protected sentence; blame is an audit cross-check (T2, 0.65).",
+  "answer_short": "Text anyone types on Overleaf is never scrubbed or cut by Rule NT; your chat edits and decisions can still change it. A sidecar file records which sentences came from Overleaf.",
+  "rationale": "Core T1 (0.85); the sidecar mechanism T2 (0.65), which sets the item's tier and confidence.",
+  "tier": "T2",
+  "confidence": 0.65,
+  "importance": "HIGH",
+  "touches": [
+    "collaborators",
+    "process"
+  ],
+  "consequence": 3,
+  "evidence": [
+    "writeup/deliberation/2026-10-29/adjudication.md:381",
+    "writeup/reports/AI layered paper writing system.md:40"
+  ],
+  "actions": [
+    {
+      "kind": "edit_code",
+      "target": "writeup/overleaf_sync/unflatten.py",
+      "detail": "Write the provenance sidecar at each pull. Pending: sync-code session."
+    }
+  ],
+  "consequences": "Sync code writes a sidecar; the future scrub skips the sentences it lists.",
+  "recommendation": "Protect all human Overleaf text; track it in a sidecar.",
+  "default": "Applied provisionally; the sync change waits for the sync-code session."
+}

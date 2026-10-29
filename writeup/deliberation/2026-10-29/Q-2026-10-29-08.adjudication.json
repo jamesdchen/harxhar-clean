@@ -1,0 +1,63 @@
+{
+  "adjudicated_by": "legacy",
+  "lock_conflict": "none",
+  "hard_trigger": [],
+  "id": "Q-2026-10-29-08",
+  "date": "2026-10-29",
+  "question": "C7: do the closing-interval models get a final main-text section (D3) or stay in the appendix?",
+  "kind": "mechanical",
+  "solvers": [
+    {
+      "lens": "evidence",
+      "file": "solver_evidence.md",
+      "answer": "Appendix: D16, the approved spec and the 17 Oct parking put them in A_closing.tex.",
+      "confidence": 0.9,
+      "tier": "T0"
+    },
+    {
+      "lens": "author_record",
+      "file": "solver_author_record.md",
+      "answer": "Appendix only, as now; D16 and the budget supersede D3's 'final section'.",
+      "confidence": 0.9,
+      "tier": "T1"
+    },
+    {
+      "lens": "referee",
+      "file": "solver_referee.md",
+      "answer": "Appendix; D16, the plan's appendix list and the author notes place them there.",
+      "confidence": 0.93,
+      "tier": "T0"
+    }
+  ],
+  "agreement": "unanimous",
+  "refutation": {
+    "outcome": "failed",
+    "note": "D3 (25 Oct 23:35) is followed by the budget (26 Oct 14:48) and D16 (26 Oct 17:56); the models are scored only at 16:00, so a main-text section would be 16:00 accuracy."
+  },
+  "precedence_note": "D16 (26 Oct 17:56) supersedes D3 (25 Oct 23:35) on placement.",
+  "final_answer": "Appendix only (A_closing.tex, app:rh_closing), the status quo. D3's row in the plan is annotated as narrowed by D16; its words are not edited.",
+  "answer_short": "The closing-interval models stay in the appendix (D16 came after D3).",
+  "rationale": "The adjudication proposed rewording D3's row; under PROTOCOL.md section 5 and report section 8.6 a decision's words are never edited, so the action is an annotation.",
+  "tier": "T0",
+  "confidence": 0.93,
+  "importance": "LOW",
+  "touches": [
+    "appendix"
+  ],
+  "consequence": 1,
+  "evidence": [
+    "writeup/deliberation/2026-10-29/adjudication.md:277",
+    "writeup/INTEGRATION_PLAN_2026-10-26.md:38",
+    "writeup/INTEGRATION_PLAN_2026-10-26.md:51"
+  ],
+  "actions": [
+    {
+      "kind": "edit_text",
+      "target": "writeup/INTEGRATION_PLAN_2026-10-26.md",
+      "detail": "Annotate D3's row: narrowed by D16 to the final appendix section; words unchanged."
+    }
+  ],
+  "consequences": "None in the paper; one annotation in the integration plan.",
+  "recommendation": "Keep them in the appendix.",
+  "default": "Status quo."
+}

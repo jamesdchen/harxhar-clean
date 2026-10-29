@@ -1,0 +1,58 @@
+{
+  "adjudicated_by": "legacy",
+  "lock_conflict": "none",
+  "hard_trigger": [],
+  "id": "Q-2026-10-29-02",
+  "date": "2026-10-29",
+  "question": "C1b: does 'alternative data' cover the 36 other exogenous series, or keep its narrow meaning (StockTwits, volatility demand)?",
+  "kind": "taste",
+  "solvers": [
+    {
+      "lens": "author_record",
+      "file": "solver_author_record.md",
+      "answer": "Within its C1 answer: the author's 28 Oct replies corrected the definition of alternative data, then he approved the edit (3c6ccc4).",
+      "confidence": 0.75,
+      "tier": "T2"
+    },
+    {
+      "lens": "referee",
+      "file": "solver_referee.md",
+      "answer": "Within its C1 answer: 3c6ccc4, the author's alternative-data edit, is the latest framing.",
+      "confidence": 0.75,
+      "tier": "T2"
+    }
+  ],
+  "agreement": "unanimous",
+  "refutation": {
+    "outcome": "failed",
+    "note": "The 28 Oct draft's 'Your call' on the definition went unanswered and the author applied the draft; calling VIX, spreads and constituents' returns 'alternative data' would draw a referee objection."
+  },
+  "final_answer": "'Alternative data' keeps its narrow meaning (StockTwits, volatility demand). The 36 series are 'the other exogenous series', as in the author's 28 Oct edit.",
+  "answer_short": "'Alternative data' keeps its narrow meaning (StockTwits, volatility demand); the 36 series are 'the other exogenous series', as in your 28 Oct edit.",
+  "rationale": "Split out of C1 in the hand-written digest. The evidence solver did not address the term; the two solvers that did agree.",
+  "tier": "T2",
+  "confidence": 0.75,
+  "importance": "HIGH",
+  "touches": [
+    "abstract",
+    "introduction",
+    "wording"
+  ],
+  "consequence": 3,
+  "evidence": [
+    "writeup/deliberation/2026-10-29/adjudication.md:56",
+    "writeup/deliberation/2026-10-29/digest.md:32",
+    "commit 3c6ccc4",
+    "author 2026-10-28 15:14: \"when I say alternativbe data, I'm not necessarily talking about those 3 series\""
+  ],
+  "actions": [
+    {
+      "kind": "edit_text",
+      "target": "writeup/paper_rehaul.tex and writeup/rehaul/*.tex",
+      "detail": "Use 'the other exogenous series' wherever 'alternative data' drifts to the 36 series. Waits for the author's answer to Q8 (Q-2026-10-29-09); applied in whichever layer he reads first."
+    }
+  ],
+  "consequences": "Wording in the abstract, introduction and results wherever the term is used; no numbers change.",
+  "recommendation": "Keep the narrow meaning.",
+  "default": "Applied provisionally; the wording edits wait for the answer to Q8."
+}

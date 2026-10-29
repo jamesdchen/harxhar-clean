@@ -1,0 +1,69 @@
+{
+  "adjudicated_by": "legacy",
+  "lock_conflict": "none",
+  "hard_trigger": [],
+  "id": "Q-2026-10-29-05",
+  "date": "2026-10-29",
+  "question": "C4: where does the ladder figure with its 16:00 panel go?",
+  "kind": "taste",
+  "solvers": [
+    {
+      "lens": "evidence",
+      "file": "solver_evidence.md",
+      "answer": "Already resolved: the figure is in App. F.6, where a 16:00 panel is allowed; nothing to do.",
+      "confidence": 0.9,
+      "tier": "T0"
+    },
+    {
+      "lens": "author_record",
+      "file": "solver_author_record.md",
+      "answer": "The 16:00 panel leaves fig:rh_ladder for app:rh_closing; every-bar panel redrawn from addendum K (0.95 panel, 0.7 placement).",
+      "confidence": 0.7,
+      "tier": "T1"
+    },
+    {
+      "lens": "referee",
+      "file": "solver_referee.md",
+      "answer": "The figure stays in the appendix; D16 and D20 supersede the budget row.",
+      "confidence": 0.9,
+      "tier": "T0"
+    }
+  ],
+  "agreement": "majority",
+  "refutation": {
+    "outcome": "failed",
+    "note": "The majority answer (appendix, nothing in the main text) survived. The author-record claim that D16 requires every 16:00 result in app:rh_closing failed: D16's own implementation (7f7894a) moved the figure to A_fi, and D20 put it in F.6."
+  },
+  "precedence_note": "D16 (26 Oct 17:56) and D20 (28 Oct) supersede the budget row (26 Oct 14:48).",
+  "final_answer": "No main-text action (T0). When addendum K is scored, make_rehaul_ladder.py draws fig:rh_ladder on every bar only, and the 16:00 panel becomes its own figure in A_closing.tex (T2, 0.60: tidier under A1, not required by D16). The budget row is annotated as superseded.",
+  "answer_short": "The ladder figure stays in the appendix; once the every-bar rerun lands it shows every bar only, and its 16:00 panel moves to the closing-interval appendix.",
+  "rationale": "Core T0 (0.90); the 16:00-panel placement is T2 (0.60), so the item is provisional.",
+  "tier": "T2",
+  "confidence": 0.6,
+  "importance": "LOW",
+  "touches": [
+    "appendix"
+  ],
+  "consequence": 2,
+  "evidence": [
+    "writeup/deliberation/2026-10-29/adjudication.md:204",
+    "commit 7f7894a",
+    "writeup/INTEGRATION_PLAN_2026-10-26.md:51",
+    "author 2026-10-28 17:04: \"go\" (addendum K)"
+  ],
+  "actions": [
+    {
+      "kind": "edit_code",
+      "target": "writeup/make_rehaul_ladder.py",
+      "detail": "Every-bar figure and a separate 16:00 figure, once addendum K (approved 28 Oct) is scored."
+    },
+    {
+      "kind": "edit_text",
+      "target": "writeup/INTEGRATION_PLAN_2026-10-26.md",
+      "detail": "Annotate the budget's ladder row as superseded by D16 and D20 (annotation only)."
+    }
+  ],
+  "consequences": "Appendix figures only; the main text is unchanged.",
+  "recommendation": "Appendix only; split off the 16:00 panel when the every-bar ladder is drawn.",
+  "default": "Applied provisionally."
+}

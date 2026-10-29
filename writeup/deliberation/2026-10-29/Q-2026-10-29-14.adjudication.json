@@ -1,0 +1,58 @@
+{
+  "adjudicated_by": "legacy",
+  "lock_conflict": "none",
+  "hard_trigger": [],
+  "id": "Q-2026-10-29-14",
+  "date": "2026-10-29",
+  "question": "X1: does the abstract's 'beats augmented HAR models' overclaim for the linear classes?",
+  "kind": "evidence",
+  "solvers": [
+    {
+      "lens": "referee",
+      "file": "solver_referee.md",
+      "answer": "F1: yes; OLS on HAR + RM + FOMC beats the ridge and elastic-net full sets; add that OLS row and scope or drop the clause.",
+      "confidence": null,
+      "tier": "T1"
+    }
+  ],
+  "agreement": "unanimous",
+  "refutation": {
+    "outcome": "failed",
+    "note": "Confirmed with a qualification: the backing comment means HAR + RM and SHAR/HARQ/LHAR, which all six classes beat; read unscoped the clause is false for ridge (+3.5%, p 0.003) and elastic net (+2.7%, p 0.021) against OLS on HAR + RM + FOMC."
+  },
+  "final_answer": "Drop 'and beats augmented HAR models' from the abstract (frees 5 of the 100 words) or scope it to 'HAR models augmented with the futures' realized moments'; drop 'beyond richer HAR models' from the introduction's contribution-1 title; add the OLS HAR + RM + FOMC row (with C3).",
+  "answer_short": "The abstract's 'beats augmented HAR models' is dropped or scoped; the OLS HAR + RM + FOMC row is added to the ablation table.",
+  "rationale": "Raised by one solver (referee F1) and verified by the adjudicator against the generated numbers.",
+  "tier": "T1",
+  "confidence": 0.85,
+  "importance": "HIGH",
+  "touches": [
+    "abstract",
+    "introduction",
+    "headline_claim",
+    "main_text_table"
+  ],
+  "consequence": 4,
+  "evidence": [
+    "writeup/deliberation/2026-10-29/adjudication.md:455",
+    "writeup/generated/rehaul_ablation_numbers.tex:3041-3043",
+    "writeup/generated/rehaul_ablation_numbers.tex:3067-3069",
+    "writeup/paper_rehaul.tex:267-268",
+    "commit 5554817"
+  ],
+  "actions": [
+    {
+      "kind": "edit_text",
+      "target": "writeup/paper_rehaul.tex",
+      "detail": "Abstract: drop or scope the clause. Waits for the author's answer to Q8 (Q-2026-10-29-09); applied in whichever layer he reads first."
+    },
+    {
+      "kind": "edit_text",
+      "target": "writeup/rehaul/01_introduction.tex",
+      "detail": "l.100: drop 'beyond richer HAR models'. Waits for the author's answer to Q8 (Q-2026-10-29-09); applied in whichever layer he reads first."
+    }
+  ],
+  "consequences": "One abstract clause, one introduction title, one ablation-table row (with C3).",
+  "recommendation": "Drop or scope the clause.",
+  "default": "Applied; the edits wait for the answer to Q8."
+}

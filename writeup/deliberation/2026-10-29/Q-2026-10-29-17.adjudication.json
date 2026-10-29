@@ -1,0 +1,54 @@
+{
+  "adjudicated_by": "legacy",
+  "lock_conflict": "none",
+  "hard_trigger": [],
+  "id": "Q-2026-10-29-17",
+  "date": "2026-10-29",
+  "question": "X4: do generated macros exist for the 28 Oct penalized factor tests and the penalization split?",
+  "kind": "mechanical",
+  "solvers": [
+    {
+      "lens": "evidence",
+      "file": "solver_evidence.md",
+      "answer": "No generated macro reads linear_pen, factor_pen or pen_split yet (within its C3 answer).",
+      "confidence": 0.85,
+      "tier": "T1"
+    },
+    {
+      "lens": "author_record",
+      "file": "solver_author_record.md",
+      "answer": "A generator for linear_pen must write macros and a table for test B (within its C3 answer).",
+      "confidence": 0.85,
+      "tier": "T1"
+    }
+  ],
+  "agreement": "unanimous",
+  "refutation": {
+    "outcome": "failed",
+    "note": "Only the producers (experiments/factor_pen_2026_10_28.py, experiments/beyond_factor_linear_pensplit.py) reference them; no writeup/*.py or writeup/generated/* does."
+  },
+  "final_answer": "Confirmed: none exist. The generator is built under C3.",
+  "answer_short": "No macros read the 28 Oct penalized tests yet; the generator is built under C3.",
+  "tier": "T0",
+  "confidence": 0.95,
+  "importance": "LOW",
+  "touches": [
+    "process"
+  ],
+  "consequence": 2,
+  "evidence": [
+    "writeup/deliberation/2026-10-29/adjudication.md:488",
+    "experiments/factor_pen_2026_10_28.py",
+    "experiments/beyond_factor_linear_pensplit.py"
+  ],
+  "actions": [
+    {
+      "kind": "edit_code",
+      "target": "writeup/make_rehaul_linear_pen.py (new)",
+      "detail": "Same generator as C3."
+    }
+  ],
+  "consequences": "None beyond C3.",
+  "recommendation": "Build the generator under C3.",
+  "default": "Applied with C3."
+}

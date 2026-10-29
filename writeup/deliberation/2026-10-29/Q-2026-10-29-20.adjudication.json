@@ -1,0 +1,56 @@
+{
+  "adjudicated_by": "legacy",
+  "lock_conflict": "resolved",
+  "hard_trigger": [
+    "config"
+  ],
+  "id": "Q-2026-10-29-20",
+  "date": "2026-10-29",
+  "question": "X7: the CLAUDE.md Overleaf rule ('run pull --dry-run, report, and ask') conflicts with A5/A6; change its wording?",
+  "kind": "evidence",
+  "solvers": [
+    {
+      "lens": "process_goals",
+      "file": "solver_process_goals.md",
+      "answer": "F7: under A5 and A6 the rule would make every collaborator edit a question; the later decisions take precedence in substance, but only the author can amend CLAUDE.md.",
+      "confidence": null,
+      "tier": "T3"
+    }
+  ],
+  "agreement": "unanimous",
+  "refutation": {
+    "outcome": "failed",
+    "note": "Confirmed: A5 and A6 (28-29 Oct) are later than the 22 Oct rule. Precondition: X5a fixed, or a pull still cannot be followed by a push."
+  },
+  "precedence_note": "A5/A6 (28-29 Oct) supersede the 22 Oct CLAUDE.md rule in substance; the wording is the author's to change.",
+  "final_answer": "Replace the rule with: 'If push refuses (Overleaf edits not pulled back): pull, apply the edits under the A5 rules (applied as text and recorded; any edit that breaks a lock is held as a visible note), push, and list them in the digest; ask only about T3 items.' Effective after the X5 fix. Until the author agrees, the current rule stands.",
+  "answer_short": "Your CLAUDE.md Overleaf rule is replaced so that coauthor edits are pulled and applied under A5, with questions only for T3 items.",
+  "tier": "T3",
+  "confidence": 0.9,
+  "importance": "HIGH",
+  "touches": [
+    "collaborators",
+    "process"
+  ],
+  "consequence": 3,
+  "question_for_author": "May the Overleaf rule in your CLAUDE.md become: 'If push refuses (Overleaf edits not pulled back): pull, apply the edits under the A5 rules (applied as text and recorded; any edit that breaks a lock is held as a visible note), push, and list them in the digest; ask only about T3 items'? ('OK CLAUDE.md' from the earlier digest also works.)",
+  "t3_reason": "Only you can change CLAUDE.md",
+  "alternatives": [
+    "Keep the current rule: every coauthor edit that blocks a push becomes a question to you"
+  ],
+  "evidence": [
+    "writeup/deliberation/2026-10-29/adjudication.md:529",
+    "writeup/deliberation/2026-10-29/digest.md:80",
+    "writeup/deliberation/2026-10-29/solver_process_goals.md:49"
+  ],
+  "actions": [
+    {
+      "kind": "edit_config",
+      "target": "~/.claude/CLAUDE.md (project section harxhar-0dte-professor)",
+      "detail": "Replace the push-refusal rule with the proposed wording, after the X5 fix."
+    }
+  ],
+  "consequences": "Coauthors' Overleaf edits would be pulled and applied without asking you; you would see them as digest lines, and only held lock conflicts or T3 items would come to you. Takes effect after the X5 sync fix.",
+  "recommendation": "Yes, effective once the X5 sync fix is in.",
+  "default": "Nothing changes: the current rule (run pull --dry-run, report, and ask) stands."
+}
