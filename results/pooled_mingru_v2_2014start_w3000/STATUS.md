@@ -612,3 +612,9 @@ the old run (read-only): `/home1/jc_905/pmf/data` (design copies, fold-3 ridge i
   inits 13565870_[0-3] -> E5 13565871 -> gate S a 13565872, b 13565873 (35 min) -> check 13565874 -> 12 pieces (509 min).
   Log: gru2fix/jobids.txt. 46 GPU jobs submitted (the gpu QOS runs at most 36 at once). Also: addendum K index 15
   resubmitted as 13565562 (running at 11:37).
+- 2026-10-29 (afternoon) PDT: every gate PASSED at both windows. E1-E4 (exports 13565829 / 13565869, tolerance 0); E5
+  13565833 / 13565871 (33,970 inits each, mu / sd / n text-equal to v2s); gate S runs a / b 13565834 / 13565836 (W 3,000,
+  9.5 / 9.2 min) and 13565872 / 13565873 (W 3,500, 3.8 / 3.6 min) on P100; checks 13565837 / 13565874: S1 preds.csv
+  text-identical with and without the step log, S2 POST n_bad 0 (120 jobs ok, finite, > 0), S3 P100 / GPUTYPE / XDATA =
+  XFIX / binary 44ab6fff. Walk pieces released by their dependencies: 12 RUNNING on P100, 30 PENDING (Priority). Addendum
+  K index 15 (13565562) COMPLETED in 2:10.
