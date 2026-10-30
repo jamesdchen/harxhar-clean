@@ -9,9 +9,10 @@
   against OLS on the HAR benchmark set.
 \item \textbf{The exogenous predictors improve the forecast of every bar} (Section~\ref{sec:rh_results}).
 \item \textbf{The gain is concentrated} (Section~\ref{sec:rh_fi}). The FOMC calendar
-  carries most of the trees' gain and the futures' realized moments come second; the \ladderTopK{}
-  highest-ranked series retain \ladderTreeRetainRng{}\% of it, and the linear models do best with
-  \ladderLinKstarRng{} series. The signal sits in a few series rather than spreading thinly over many.
+  carries most of the trees' gain and the futures' realized moments come second. Along the feature-count ladder the
+  \ladderEBTopK{} highest-ranked series retain \ladderEBTreeRetainRng{}\% of the boosted trees' gain and
+  \rhldEBLinRTenMin{}--\rhldEBLinRTenMax{}\% of the linear models'. The gain sits in about \ladderEBTopK{} of the
+  \rhldEBNSeries{} series rather than spreading thinly over many.
 \item \textbf{Beyond the two groups, a small gain in the boosted trees.}
 \item \textbf{QLIKE and squared error.} Under squared-error loss the full set is not more accurate (its mean squared
   error is higher in \rhcaNMseHigherBarSpan{} of \rhorAfPairs{} classes, significantly in \rhcaNMseHigherSigBarSpan),

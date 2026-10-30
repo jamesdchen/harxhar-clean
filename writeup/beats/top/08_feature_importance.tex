@@ -15,8 +15,8 @@
   \rhabBaseShareTreeMin--\rhabBaseShareTreeMax\% in the tree ensembles and at least \rhabBaseShareLinMin\% in the
   penalized linear models (Table~\ref{tab:rh_ablation}, Panel~D). The calendar carries the statement days
   (Section~\ref{sec:rh_fi_event}), the realized moments the ordinary days (Section~\ref{sec:rh_fi_ordinary}). What
-  remains is small, only the boosted trees capture it, and a few series carry it (Section~\ref{sec:rh_fi_rest}). How
-  much a model uses a series is a poor guide to these gains (Section~\ref{sec:rh_fi_use}).
+  remains is small, only the boosted trees capture it, and a few series carry it (Section~\ref{sec:rh_fi_rest}). The
+  trees' attribution understates the FOMC calendar's part in these gains (Section~\ref{sec:rh_fi_use}).
 \item \textbf{Evidence.} Three kinds, each reported for every class and predictor group.
 \item \textbf{Reading.} Fixed before the day types were scored (Appendix~\ref{app:rh_channels}). A part of the gain is
   concentrated when one group added alone recovers at least three-quarters of it and its removal raises the loss
@@ -76,11 +76,10 @@
   \rhabXgbAddVwAllPct\% for the value-weighted market and XGBoost), and the groups' separate gains sum to
   \rhchOrdSumRatioTreeRng{} times the trees' joint gain, but removing any one of them from the full set changes the
   gradient-boosted trees' ordinary-day loss by at most \rhchOrdLoOtherTreeMaxAbs\%, none significantly. The
-  redundancy reading holds in all \rhchLinOrdNRedTest{} linear classes and in XGBoost; it fails for LightGBM, which
-  has a second significant removal, and cannot be applied to the random forest, whose other removals were not run
-  (the trees' removals other than the FOMC calendar's are on the design before the FOMC fix;
-  Appendix~\ref{app:rh_channels}). The groups are largely correlated proxies of the volatility information that the
-  futures' own moments measure most directly.
+  redundancy reading holds in all \rhchLinOrdNRedTest{} linear classes and in both gradient-boosted trees; it cannot
+  be applied to the random forest, whose other removals were not run (its removal of the realized moments is on the
+  design before the FOMC fix; Appendix~\ref{app:rh_channels}). The groups are largely correlated proxies of the
+  volatility information that the futures' own moments measure most directly.
 \item \textbf{Averaging beats selection on ordinary days.} On ordinary days the lasso's full-set loss lies
   \rhchLassoRidgeOrdPct\% above the ridge's and \rhchLassoEnetOrdPct\% above the elastic net's
   ($\DM={}$\rhchLassoRidgeOrdDm{} and \rhchLassoEnetOrdDm), the reverse of the statement days: the realized moments
@@ -109,9 +108,9 @@
 \item \textbf{A few series, from several groups} (Table~\ref{tab:rh_beyond_ladder}). No single remaining group is
   indispensable: removing any group other than the FOMC calendar and the realized moments changes the every-bar loss
   by at most \rhabLoOtherAllMaxAbs\%. Yet a few series carry the boosted trees' remainder, and they come from several
-  groups. LightGBM's top five are the value- and equal-weighted constituents' absolute returns, the value-weighted
-  effective spread, the VIX and the value-weighted constituents' third moment; XGBoost ranks StockTwits sentiment
-  first, then the same constituent series and the VIX. In follow-up tests outside the pre-specified design, scored
+  groups. In each model's own ranking from its 2013 pre-sample fit, LightGBM's top five are the value- and
+  equal-weighted constituents' absolute returns, the value-weighted effective spread, the VIX and the value-weighted
+  constituents' third moment; XGBoost puts StockTwits sentiment first, then the same constituent series and the VIX.
   on ordinary days, LightGBM and XGBoost refitted on HAR\,+\,RM\,+\,FOMC plus their own top five series recover
   shares of \rhbyLLgbmKFiveOrdR{} and \rhbyLXgbKFiveOrdR{} of the remaining gain (LightGBM's top series alone
   \rhbyLLgbmKOneOrdR), and ten principal components of the six remaining groups \rhbyFLgbmPcaTenOrdR{} and
@@ -127,8 +126,8 @@
   or implied-volatility groups from the full set changes the loss by at most \rhchAltLoMaxAbs\% on either day type,
   significantly in only a few cells, and added alone to the HAR benchmark set the volatility-demand series raise the
   linear models' loss on both day types.
-\item \textbf{StockTwits sentiment in XGBoost} (Table~\ref{tab:rh_beyond_ladder}). XGBoost ranks StockTwits
-  sentiment first among the remaining series: added alone to HAR\,+\,RM\,+\,FOMC it changes XGBoost's ordinary-day
+\item \textbf{StockTwits sentiment in XGBoost} (Table~\ref{tab:rh_beyond_ladder}). In its ranking from its 2013
+  pre-sample fit, XGBoost puts StockTwits sentiment first among the remaining series: added alone to HAR\,+\,RM\,+\,FOMC it changes XGBoost's ordinary-day
   loss by \rhbyLXgbKOneOrdPct\% ($\DM={}$\rhbyLXgbKOneOrdDm), a share of \rhbyLXgbKOneOrdR{} of the remainder. Its
   values are live only from \rhabLiveSentStart, so over most of the span the model sees its availability averages,
   when messages print, not what they say.
@@ -152,22 +151,23 @@
 \subsubsection{Variable importance}
 \label{sec:rh_fi_use}
 \begin{itemize}
-\item \textbf{Attribution ranks the parts the wrong way round.} The trees attribute \rhfipHarMin--\rhfipHarMax\% of
-  their forecasts to the HAR terms and \rhfipMomMin--\rhfipMomMax\% to the futures' realized moments, and only
-  \rhfipFomcBucketMin--\rhfipFomcBucketMax\% to the FOMC calendar (Appendix~\ref{app:rh_fi_rank}). Yet the calendar
-  carries most of their accuracy gain: added alone to the HAR benchmark set it changes QLIKE by
-  \rhabLgbmAddFomcAllPct, \rhabXgbAddFomcAllPct{} and \rhabRfAddFomcAllPct\%, against \rhabLgbmFullAllPct,
-  \rhabXgbFullAllPct{} and \rhabRfFullAllPct\% for the full set, by moving the forecast strongly on few bars
-  (Section~\ref{sec:rh_fi_event}). The realized moments are the converse: second in attribution, yet removing them
-  raises the trees' QLIKE by only \rhabLgbmLoRmAllPct, \rhabXgbLoRmAllPct{} and \rhabRfLoRmAllPct\%, as other
-  predictors carry much of the same information. What a series adds to accuracy is measured by the ablations, not by
-  its share.
+\item \textbf{The trees' attribution understates the FOMC calendar.} The trees attribute
+  \rhfipHarMin--\rhfipHarMax\% of their forecasts to the HAR terms, \rhfipMomMin--\rhfipMomMax\% to the futures'
+  realized moments and \rhfipFomcBucketMin--\rhfipFomcBucketMax\% to the FOMC calendar
+  (Appendix~\ref{app:rh_fi_rank}). Yet the calendar carries most of their accuracy gain. Added alone to the HAR
+  benchmark set it changes QLIKE by \rhabLgbmAddFomcAllPct, \rhabXgbAddFomcAllPct{} and \rhabRfAddFomcAllPct\%,
+  against \rhabLgbmFullAllPct, \rhabXgbFullAllPct{} and \rhabRfFullAllPct\% for the full set. Removed from the full
+  set, it raises the QLIKE of LightGBM and XGBoost by \rhabLgbmLoFomcAllPct{} and \rhabXgbLoFomcAllPct\%, against
+  \rhabLgbmLoRmAllPct{} and \rhabXgbLoRmAllPct\% for the realized moments. A share averages the forecast's movement
+  over all bars, and the calendar moves the forecast on few bars (Section~\ref{sec:rh_fi_event}). What a series adds
+  to accuracy is measured by the ablations.
 \item \textbf{In short.} Two groups carry the gain: the FOMC calendar on the statement days, in one group and on
   few bars, and the futures' realized moments on ordinary days, whose information the constituents' moments and the
   liquidity measures largely repeat and a few common factors of all the series do not recover. Beyond them and the HAR
   terms, the other \rhbyFLNSeries{} series add nothing to the linear models and a small gain to the boosted trees,
-  carried by a few series scattered across groups: sparse, not dense. Attribution is a poor guide to all of this: the series a model uses most are not the ones that
-  make it more accurate.
+  carried by a few series scattered across groups: sparse, not dense. The trees attribute
+  \rhfipFomcBucketMin--\rhfipFomcBucketMax\% of their forecasts to the FOMC calendar, yet added alone to the HAR
+  benchmark set it delivers \rhabTreeFomcGainShareMin--\rhabTreeFomcGainShareMax\% of their every-bar gain.
 \end{itemize}
 \iffalse
 \begin{itemize}

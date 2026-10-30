@@ -85,11 +85,11 @@
       \rhabXgbFullAllPct\% with their full sets, and removing it from the full set raises their loss by
       \rhabLgbmLoFomcAllPct\% and \rhabXgbLoFomcAllPct\%. The futures' realized moments come second (removing them
       raises LightGBM's loss by \rhabLgbmLoRmAllPct\%).
-    \item Along a ladder of nested predictor sets ranked before the evaluation span, the \ladderTopK{}
-      highest-ranked series retain \ladderTreeRetainRng{}\% of the trees' full-set gain, and the penalized
-      linear models do best with \ladderLinKstarRng{} series (Appendix~\ref{app:rh_fi_ladder},
-      Figure~\ref{fig:rh_ladder}). On the dense-versus-sparse question, the exogenous signal sits in a few series
-      rather than spreading thinly over many.
+    \item Along a ladder of nested predictor sets ranked before the evaluation span, the \ladderEBTopK{}
+      highest-ranked series retain \ladderEBTreeRetainRng{}\% of the boosted trees' full-set gain and
+      \rhldEBLinRTenMin{}--\rhldEBLinRTenMax{}\% of the penalized linear models' (Appendix~\ref{app:rh_fi_ladder},
+      Figure~\ref{fig:rh_ladder}). On the dense-versus-sparse question, the forecast gain sits in about
+      \ladderEBTopK{} of the \rhldEBNSeries{} exogenous series rather than spreading thinly over all of them.
     \item Beyond the FOMC calendar and the futures' realized moments, the other \rhbyFLNSeries{} series change no
       penalized linear model's loss significantly and that of LightGBM and XGBoost by
       \rhabLgbmFullVsAddRmFomcAllPct{} and \rhabXgbFullVsAddRmFomcAllPct\% (Section~\ref{sec:rh_fi_rest}), through a
