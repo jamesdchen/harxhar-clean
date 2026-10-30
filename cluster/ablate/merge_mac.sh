@@ -24,8 +24,10 @@ if [ "$WHAT" = lin ]; then
 else
   G=$(ls -d $B/gate/mac/*/ | sed 's:/$::' | paste -sd, -)
   echo "gates: $G"
-  NT=1 $P experiments/ablate_trees.py mergemac --out $B/runs/trees_mac --gates $G --tasks $TD/trees_mac_h2.txt \
-    --to $B/runs/trees_mac/trees_wide.parquet
+  # 2026-10-29 addendum L (ii): MTASKS / MTO merge the full_mac XGBoost pieces (tasks/trees_mac_carc_xgb.txt, run on
+  # Hoffman2) into their own wide file; the defaults are the eight-arm merge above
+  NT=1 $P experiments/ablate_trees.py mergemac --out $B/runs/trees_mac --gates $G \
+    --tasks "${MTASKS:-$TD/trees_mac_h2.txt}" --to "${MTO:-$B/runs/trees_mac/trees_wide.parquet}"
   rc=$?
 fi
 echo "merge_mac done rc $rc $(date)"
