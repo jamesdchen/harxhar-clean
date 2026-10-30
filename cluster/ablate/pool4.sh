@@ -36,7 +36,9 @@ LDESIGNS=${LDESIGNS:-$B/designs/lin}
 LFULL=${LFULL:-$B/designs/full}
 LCELL=${LCELL:-}
 LSKIP=${LSKIP:-14}
-LG=$B/logs/pool_$KIND
+# 2026-10-29 addendum L: POOL_LOGS (the dir of the per-line and worker logs) from the environment, so a run
+# does not overwrite another run's <line>.<claim>.log; unset = as before
+LG=${POOL_LOGS:-$B/logs/pool_$KIND}
 mkdir -p $CL $LG
 echo "pool $KIND job $JOBID on $(hostname) [$CPU]: tasks $TASKS claims $CL; $NW workers, start $(date), stop claiming at $(date -d @$END)"
 

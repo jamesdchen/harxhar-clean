@@ -1,0 +1,31 @@
+load_raw_data: skipping non-bar-keyed parquet(s): spxw_chain.parquet, spxw_spot.parquet
+load_raw_data: nulled 21943 invalid print(s) (domain rule): sumvolume 21852, effspread_ewstock 45, effspread_vwstock 45, spread_vwstock 1
+load_raw_data: spliced the free hourly feed after the last print: {'vix': 1476, 'vix3m': 702, 'vvix': 648}
+load_raw_data: skipping non-bar-keyed parquet(s): spxw_chain.parquet, spxw_spot.parquet
+load_raw_data: nulled 21943 invalid print(s) (domain rule): sumvolume 21852, effspread_ewstock 45, effspread_vwstock 45, spread_vwstock 1
+load_raw_data: spliced the free hourly feed after the last print: {'vix': 1476, 'vix3m': 702, 'vvix': 648}
+load_raw_data: skipping non-bar-keyed parquet(s): spxw_chain.parquet, spxw_spot.parquet
+load_raw_data: nulled 21943 invalid print(s) (domain rule): sumvolume 21852, effspread_ewstock 45, effspread_vwstock 45, spread_vwstock 1
+load_raw_data: spliced the free hourly feed after the last print: {'vix': 1476, 'vix3m': 702, 'vvix': 648}
+load_raw_data: skipping non-bar-keyed parquet(s): spxw_chain.parquet, spxw_spot.parquet
+load_raw_data: nulled 21943 invalid print(s) (domain rule): sumvolume 21852, effspread_ewstock 45, effspread_vwstock 45, spread_vwstock 1
+load_raw_data: spliced the free hourly feed after the last print: {'vix': 1476, 'vix3m': 702, 'vvix': 648}
+GM-F frames: off vs on identical on every existing column
+GM-F cpi: 316 releases in frame (+6 added), until NaN 584 bars, not in panel 2
+GM-F emp: 316 releases in frame (+8 added), until NaN 584 bars, not in panel 4
+GM-F ppi: 315 releases in frame (+4 added), until NaN 3087 bars, not in panel 0
+GM-F gdp: 106 releases in frame (+4 added), until NaN 2289 bars, not in panel 1
+GM-F trade: 316 releases in frame (+6 added), until NaN 2252 bars, not in panel 0
+GM-F retail: 315 releases in frame (+7 added), until NaN 2792 bars, not in panel 1
+load_raw_data: skipping non-bar-keyed parquet(s): spxw_chain.parquet, spxw_spot.parquet
+load_raw_data: nulled 21943 invalid print(s) (domain rule): sumvolume 21852, effspread_ewstock 45, effspread_vwstock 45, spread_vwstock 1
+load_raw_data: spliced the free hourly feed after the last print: {'vix': 1476, 'vix3m': 702, 'vvix': 648}
+load_raw_data: skipping non-bar-keyed parquet(s): spxw_chain.parquet, spxw_spot.parquet
+load_raw_data: nulled 21943 invalid print(s) (domain rule): sumvolume 21852, effspread_ewstock 45, effspread_vwstock 45, spread_vwstock 1
+load_raw_data: spliced the free hourly feed after the last print: {'vix': 1476, 'vix3m': 702, 'vvix': 648}
+load_raw_data: skipping non-bar-keyed parquet(s): spxw_chain.parquet, spxw_spot.parquet
+load_raw_data: nulled 21943 invalid print(s) (domain rule): sumvolume 21852, effspread_ewstock 45, effspread_vwstock 45, spread_vwstock 1
+load_raw_data: spliced the free hourly feed after the last print: {'vix': 1476, 'vix3m': 702, 'vvix': 648}
+GM-F transform: 42 transformed columns, 252 macro design names
+GM-F: PASS
+EXIT 0

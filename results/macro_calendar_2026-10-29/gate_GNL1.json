@@ -1,0 +1,233 @@
+{
+ "cut_bars": {
+  "shutdown_2013": 2429,
+  "shutdown_2018_19": 5279,
+  "fomc_2020": 3220,
+  "release_pm3_2014_2024": 4179,
+  "random": 2000
+ },
+ "cut_bars_union": 16731,
+ "GNL1b_realtime": {
+  "cuts": 4361,
+  "evaluations": 26166,
+  "failures": [],
+  "n_failures": 0
+ },
+ "per_release": {
+  "cpi": {
+   "next_releases_tested": 316,
+   "cuts_covered_P1": 16731,
+   "cuts_with_a_P2_draw": 15449,
+   "cuts_covered_P2": 15449,
+   "tight_draws": 1580,
+   "tight_pass": 1580,
+   "by_window": {
+    "shutdown_2013": {
+     "cuts": 2429,
+     "P1": 2429,
+     "P2": 1272
+    },
+    "shutdown_2018_19": {
+     "cuts": 5279,
+     "P1": 5279,
+     "P2": 5274
+    },
+    "fomc_2020": {
+     "cuts": 3220,
+     "P1": 3220,
+     "P2": 3217
+    },
+    "release_pm3_2014_2024": {
+     "cuts": 4179,
+     "P1": 4179,
+     "P2": 4055
+    },
+    "random": {
+     "cuts": 2000,
+     "P1": 2000,
+     "P2": 1993
+    }
+   }
+  },
+  "emp": {
+   "next_releases_tested": 315,
+   "cuts_covered_P1": 16731,
+   "cuts_with_a_P2_draw": 15840,
+   "cuts_covered_P2": 15840,
+   "tight_draws": 1631,
+   "tight_pass": 1631,
+   "by_window": {
+    "shutdown_2013": {
+     "cuts": 2429,
+     "P1": 2429,
+     "P2": 1664
+    },
+    "shutdown_2018_19": {
+     "cuts": 5279,
+     "P1": 5279,
+     "P2": 5274
+    },
+    "fomc_2020": {
+     "cuts": 3220,
+     "P1": 3220,
+     "P2": 3217
+    },
+    "release_pm3_2014_2024": {
+     "cuts": 4179,
+     "P1": 4179,
+     "P2": 4055
+    },
+    "random": {
+     "cuts": 2000,
+     "P1": 2000,
+     "P2": 1994
+    }
+   }
+  },
+  "ppi": {
+   "next_releases_tested": 315,
+   "cuts_covered_P1": 16731,
+   "cuts_with_a_P2_draw": 15399,
+   "cuts_covered_P2": 15399,
+   "tight_draws": 1586,
+   "tight_pass": 1586,
+   "by_window": {
+    "shutdown_2013": {
+     "cuts": 2429,
+     "P1": 2429,
+     "P2": 1224
+    },
+    "shutdown_2018_19": {
+     "cuts": 5279,
+     "P1": 5279,
+     "P2": 5274
+    },
+    "fomc_2020": {
+     "cuts": 3220,
+     "P1": 3220,
+     "P2": 3217
+    },
+    "release_pm3_2014_2024": {
+     "cuts": 4179,
+     "P1": 4179,
+     "P2": 4055
+    },
+    "random": {
+     "cuts": 2000,
+     "P1": 2000,
+     "P2": 1991
+    }
+   }
+  },
+  "gdp": {
+   "next_releases_tested": 107,
+   "cuts_covered_P1": 16731,
+   "cuts_with_a_P2_draw": 15307,
+   "cuts_covered_P2": 15307,
+   "tight_draws": 1175,
+   "tight_pass": 1175,
+   "by_window": {
+    "shutdown_2013": {
+     "cuts": 2429,
+     "P1": 2429,
+     "P2": 1812
+    },
+    "shutdown_2018_19": {
+     "cuts": 5279,
+     "P1": 5279,
+     "P2": 4513
+    },
+    "fomc_2020": {
+     "cuts": 3220,
+     "P1": 3220,
+     "P2": 3218
+    },
+    "release_pm3_2014_2024": {
+     "cuts": 4179,
+     "P1": 4179,
+     "P2": 4120
+    },
+    "random": {
+     "cuts": 2000,
+     "P1": 2000,
+     "P2": 1993
+    }
+   }
+  },
+  "trade": {
+   "next_releases_tested": 315,
+   "cuts_covered_P1": 16731,
+   "cuts_with_a_P2_draw": 12312,
+   "cuts_covered_P2": 12312,
+   "tight_draws": 1429,
+   "tight_pass": 1429,
+   "by_window": {
+    "shutdown_2013": {
+     "cuts": 2429,
+     "P1": 2429,
+     "P2": 1568
+    },
+    "shutdown_2018_19": {
+     "cuts": 5279,
+     "P1": 5279,
+     "P2": 1845
+    },
+    "fomc_2020": {
+     "cuts": 3220,
+     "P1": 3220,
+     "P2": 3217
+    },
+    "release_pm3_2014_2024": {
+     "cuts": 4179,
+     "P1": 4179,
+     "P2": 3926
+    },
+    "random": {
+     "cuts": 2000,
+     "P1": 2000,
+     "P2": 1969
+    }
+   }
+  },
+  "retail": {
+   "next_releases_tested": 315,
+   "cuts_covered_P1": 16731,
+   "cuts_with_a_P2_draw": 13584,
+   "cuts_covered_P2": 13584,
+   "tight_draws": 1495,
+   "tight_pass": 1495,
+   "by_window": {
+    "shutdown_2013": {
+     "cuts": 2429,
+     "P1": 2429,
+     "P2": 1372
+    },
+    "shutdown_2018_19": {
+     "cuts": 5279,
+     "P1": 5279,
+     "P2": 3308
+    },
+    "fomc_2020": {
+     "cuts": 3220,
+     "P1": 3220,
+     "P2": 3217
+    },
+    "release_pm3_2014_2024": {
+     "cuts": 4179,
+     "P1": 4179,
+     "P2": 3967
+    },
+    "random": {
+     "cuts": 2000,
+     "P1": 2000,
+     "P2": 1986
+    }
+   }
+  }
+ },
+ "evaluations": 17283,
+ "failures": [],
+ "n_failures": 0,
+ "seconds": 3314.2,
+ "pass": true
+}

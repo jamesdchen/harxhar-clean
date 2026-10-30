@@ -1,0 +1,13 @@
+load_raw_data: skipping non-bar-keyed parquet(s): spxw_chain.parquet, spxw_spot.parquet
+load_raw_data: nulled 21943 invalid print(s) (domain rule): sumvolume 21852, effspread_ewstock 45, effspread_vwstock 45, spread_vwstock 1
+load_raw_data: spliced the free hourly feed after the last print: {'vix': 1476, 'vix3m': 702, 'vvix': 648}
+GNL-1: 16731 cut bars ({'shutdown_2013': 2429, 'shutdown_2018_19': 5279, 'fomc_2020': 3220, 'release_pm3_2014_2024': 4179, 'random': 2000}), frame 335105 bars
+GNL-1 cpi: 16731/16731 P1, 15449 P2, tight 1580/1580; failures so far 0
+GNL-1 emp: 16731/16731 P1, 15840 P2, tight 1631/1631; failures so far 0
+GNL-1 ppi: 16731/16731 P1, 15399 P2, tight 1586/1586; failures so far 0
+GNL-1 gdp: 16731/16731 P1, 15307 P2, tight 1175/1175; failures so far 0
+GNL-1 trade: 16731/16731 P1, 12312 P2, tight 1429/1429; failures so far 0
+GNL-1 retail: 16731/16731 P1, 13584 P2, tight 1495/1495; failures so far 0
+GNL-1b: 26166 real-time recomputations, 0 failures
+GNL-1: PASS (0 failures, 17283 evaluations)
+EXIT 0

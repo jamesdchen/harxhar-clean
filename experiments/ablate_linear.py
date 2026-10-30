@@ -3,8 +3,10 @@ net and the OLS on the arms' column-subset caches, through experiments/pool_line
 final w3000 run's arguments (pooled_linear_rerun_2026_10_19_13.walk_jobs: CFG, frozen penalties, walk start, chunks).
 
 usage: python experiments/ablate_linear.py <mode> [options]
-  tasks  --out F                     the task file, one line "<arm> <model> <chunk> <n chunks>" (gate L's 14 walks
-                                     first: arm full / har_sub, then the ablation walks)
+  tasks  --out F [--mac]             the task file, one line "<arm> <model> <chunk> <n chunks>" (gate L's 14 walks
+                                     first: arm full / har_sub, then the ablation walks); --mac (2026-10-29 addendum
+                                     L): gate L's 14 lines, then the macro arms' walks (full_mac in the full set's
+                                     chunks; OLS on ablate_arms.MAC_OLS_ARMS) -> tasks/linear_mac.txt
   walk1  --tasks F --line N --root R --designs D [--full D]
                                      run line N: pool_linear_pretune.py walk -> R/linear/<arm>/<model>[/c<k>]/
   gate   --root R --out J            gate L: the full / har_sub walks = w3000/forecasts.parquet's pred_adj bit for bit
@@ -12,6 +14,8 @@ usage: python experiments/ablate_linear.py <mode> [options]
                                      every finished (arm, model): the stitched walk table -> one parquet (arm, model,
                                      date, pred_adj, true_adj, B, plain)
 The arm caches: D/<arm>/ (experiments/ablate_design.py subsets); arm "full" reads the full cache (--full).
+Addendum L: the macro arms' caches D/<arm>/ and gate LF's D/har_sub, --full D/full are ablate_design.py submac's (column
+subsets of the macro cache, whose config records MACRO_CALENDARS: the pool's --cell carries MACRO_CALENDARS=1).
 """
 
 from __future__ import annotations
@@ -77,7 +81,8 @@ def orchestrator(full: Path, cell: str = ""):
 def n_chunks(arm: str, model: str) -> int:
     if model == "ols":
         return 1
-    return FULL_CHUNKS[model] if (arm == "full" or arm.startswith("lo_")) else 1
+    # 2026-10-29 addendum L: full_mac (780 columns) in the full set's chunks; was: arm == "full" or a lo_ arm
+    return FULL_CHUNKS[model] if (arm in ("full", "full_mac") or arm.startswith("lo_")) else 1
 
 
 def task_lines() -> list[tuple[str, str, int, int]]:
@@ -94,8 +99,21 @@ def task_lines() -> list[tuple[str, str, int, int]]:
     return out
 
 
+def mac_task_lines() -> list[tuple[str, str, int, int]]:
+    """Addendum L: gate L's 14 walks (lines 1-14 of linear.txt, gate LF on the macro cache's subsets), then every
+    macro arm with ridge / lasso / elastic net (the add-arm convention: the full set's penalty, r = 0.01 on the HAR
+    block), the largest first, then the OLS on MAC_OLS_ARMS."""
+    out = task_lines()[:14]
+    for arm in AA.MAC_ARMS:
+        for m in PEN:
+            k = n_chunks(arm, m)
+            out += [(arm, m, c, k) for c in range(k)]
+    out += [(arm, "ols", 0, 1) for arm in AA.MAC_OLS_ARMS]
+    return out
+
+
 def cmd_tasks(a) -> int:
-    lines = task_lines()
+    lines = mac_task_lines() if a.mac else task_lines()  # addendum L: --mac
     Path(a.out).parent.mkdir(parents=True, exist_ok=True)
     Path(a.out).write_text("".join(f"{arm} {m} {c} {k}\n" for arm, m, c, k in lines))
     say(f"{len(lines)} linear walks -> {a.out}")
@@ -290,6 +308,7 @@ def main() -> int:
     ap.add_argument("--cell", default="", help="extra design flags NAME=v,... (addendum D)")
     ap.add_argument("--ref-full", default="", help="gate: the full-set walks' reference parquet (addendum D)")
     ap.add_argument("--wide", default="", help="merge: also the compact file of the ablation walks (addendum F)")
+    ap.add_argument("--mac", action="store_true", help="tasks: the macro arms' task file (addendum L)")
     a = ap.parse_args()
     return {"tasks": cmd_tasks, "walk1": cmd_walk1, "gate": cmd_gate, "merge": cmd_merge}[a.mode](a)
 

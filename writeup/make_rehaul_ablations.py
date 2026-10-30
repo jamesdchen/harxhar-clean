@@ -16,10 +16,21 @@ S = All (every bar 2014-2024), Close (16:00 bar 2014-2024), CloseLate (16:00 bar
   \\rhab<C>FullVsOls<B><S>Dm, ...P   the class's full set against the OLS augmented-HAR benchmark B (AddRm, Shar,
                                 Harq, Lhar, Sharql)
   counts and words of the prose (\\rhabNClassesBeatAddRm, ...), the late-start dates (\\rhabLive<Series>...).
+Macro releases (2026-10-29; only when the scores hold the macro arms, experiments/ablate_score.py MAC, else every output
+is as before; S = All, Rel (release days), Ev (FOMC statement days), Quiet (neither), Close):
+  \\rhab<C>AddMac<S>{Qlike,Pct,Dm,P}            HAR + macro against the class's HAR
+  \\rhab<C>AddRmFomcMac<S>{Qlike,Pct,Dm,P}      HAR + RM + FOMC + macro against HAR + RM + FOMC
+  \\rhab<C>FullMac<S>Qlike, \\rhab<C>FullMacVsFull<S>{Pct,Dm,P}   the full set + macro against the full set
+  \\rhab<C>AddRmFomcMac<R>{All,Rel}{Qlike,Pct,Dm,P}   HAR + RM + FOMC + release R alone against HAR + RM + FOMC,
+                                                every bar and R's own release days (R = Cpi Emp Ppi Gdp Trade Retail)
+  \\rhabNRelDays, \\rhabNRelDays<R>, \\rhabNQuietDays, \\rhabNRelFomcDays, \\rhabNMacReleases   the day counts
+  Panel F of tab:rh_ablation and tab:rh_ablation_macro (writeup/generated/rehaul_ablation_macro_table.tex).
+usage: python writeup/make_rehaul_ablations.py [--res <scores dir>] [--out <generated dir>]  (defaults: the paper's)
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 import sys
 from pathlib import Path
@@ -73,9 +84,36 @@ ARM_TEX[COMBO] = "AddRmFomc"
 COMBO_SPAN_TEX = {"all": "All", "ord": "Ord", "ev": "Ev", "c16": "Close", "c16_2020": "CloseLate"}
 # 2026-10-26 addendum G (requested by the author after the HAR + RM + FOMC results; not pre-registered): the base
 # add_rm_fomc plus each remaining group g; macros \rhab<Cls>AddRmFomc<G>{All,Ord,Ev}{Pct,Dm,P} are against the base
-BEYOND = {f"{COMBO}_{g}": g for g in AA.BEYOND_GROUPS}
+# (the paper's groups only: a macro group listed in ablate_arms is Panel F's, below)
+BEYOND = {f"{COMBO}_{g}": g for g in AA.BEYOND_GROUPS if g in G_TEX}
 ARM_TEX.update({a: f"AddRmFomc{G_TEX[g]}" for a, g in BEYOND.items()})
 OUT_BEYOND = GEN / "rehaul_ablation_beyond_table.tex"
+# the paper's eight groups of Panels A and B, in ablate_arms' order
+GROUPS8 = tuple(g for g in AA.GROUPS if g in G_TEX)
+# 2026-10-29 addendum L (requested by the author on 29 October; not pre-registered; the printed notes carry no such
+# label, the disclosure is in the appendix prose): the six scheduled US macroeconomic release calendars
+# (experiments/ablate_score.py MAC; the scorer's checks.json "macro_releases" gives the releases and the day counts).
+# arm -> (macro tag of the change, macro tag of the QLIKE level, reference arm, row label); the per-release arms
+# add_rm_fomc_mac_<r> are against COMBO.
+MAC = {
+    "add_mac": ("AddMac", "AddMac", "har", "HAR + macro"),
+    f"{COMBO}_mac": ("AddRmFomcMac", "AddRmFomcMac", COMBO, "HAR + RM + FOMC + macro"),
+    "full_mac": ("FullMacVsFull", "FullMac", "full", "Full set + macro"),
+}
+MAC_ONE = f"{COMBO}_mac_"  # + release
+MAC_SPAN_TEX = {"all": "All", "rel": "Rel", "ev": "Ev", "quiet": "Quiet", "c16": "Close"}
+MAC_SPAN_LABEL = {"all": "every bar", "rel": "release days", "ev": "FOMC days", "quiet": "quiet days"}
+REL_TEX = {"cpi": "Cpi", "emp": "Emp", "ppi": "Ppi", "gdp": "Gdp", "trade": "Trade", "retail": "Retail"}
+# the row labels of tab:rh_ablation_macro (its note spells them out)
+REL_NAME = {
+    "cpi": "CPI",
+    "emp": "Employment",
+    "ppi": "PPI",
+    "gdp": "GDP (advance)",
+    "trade": "Trade",
+    "retail": "Retail sales",
+}
+OUT_MACRO = GEN / "rehaul_ablation_macro_table.tex"
 SPAN_TEX = {"all": "All", "c16": "Close", "c16_2020": "CloseLate"}
 # 2026-10-26 (coordinator): live-window subsamples of the late groups (experiments/ablate_score.py LIVE): span ->
 # (macro tag, group, row label); the macros of these spans cover the group's own arms and the full set only
@@ -144,7 +182,31 @@ def date_tex(s: str) -> str:
     return f"{t.day}~{t.strftime('%B')} {t.year}"
 
 
-def main() -> int:
+def configure(res: str | None, out: str | None) -> None:
+    """--res: the scorer's output directory (its checks.json "design" says whether it is the patched panel); --out: the
+    directory the generated files go to.  Neither given: the paper's paths, as before."""
+    global RES, FIXED, DESIGN_TXT, GEN, OUT_NUM, OUT_TAB, OUT_BEYOND, OUT_MACRO
+    if res:
+        RES = Path(res).resolve()
+        FIXED = str(json.loads((RES / "checks.json").read_text()).get("design", "")).startswith("fix")
+        DESIGN_TXT = design_base(FIXED)
+    if out:
+        GEN = Path(out).resolve()
+        OUT_NUM, OUT_TAB, OUT_BEYOND, OUT_MACRO = (GEN / p.name for p in (OUT_NUM, OUT_TAB, OUT_BEYOND, OUT_MACRO))
+
+
+def show(p: Path) -> str:
+    return p.relative_to(REPO).as_posix() if p.is_relative_to(REPO) else p.as_posix()
+
+
+def main(argv: list[str] | None = None) -> int:
+    ap = argparse.ArgumentParser(description="tab:rh_ablation and the \\rhab macros from the ablation scores")
+    ap.add_argument(
+        "--res", help="the scorer's output directory (default: scores_fomcfix/ when it exists, else scores/)"
+    )
+    ap.add_argument("--out", help="the directory of the generated files (default: writeup/generated/)")
+    args = ap.parse_args(argv)
+    configure(args.res, args.out)
     M = pd.read_csv(RES / "metrics.csv")
     D = pd.read_csv(RES / "dm.csv")
     checks = json.loads((RES / "checks.json").read_text())
@@ -155,7 +217,7 @@ def main() -> int:
     dq = D[D["loss"] == "qlike"].set_index(["cls", "arm", "vs_cls", "vs_arm", "span"])
     lines = [
         HEAD,
-        f"% {RES.relative_to(REPO).as_posix()} ({'FOMC-patched panel, RULE.txt addendum D' if FIXED else 'pre-patch'})",
+        f"% {show(RES)} ({'FOMC-patched panel, RULE.txt addendum D' if FIXED else 'pre-patch'})",
     ]
     lines.append("% results/ablations_2014start_w3000 (RULE.txt): column-subset arms of the final 13-bar design,")
     lines.append("% frozen hyperparameters, every bar scored as Table 1; DM on daily (average) QLIKE.")
@@ -217,6 +279,7 @@ def main() -> int:
                     lines.append(mac(f"{nm}P", fmt_p(dq.loc[k, "p"]), "p-value"))
     lines += combo_macros(q, dq, checks)
     lines += beyond_macros(q, dq)
+    lines += mac_macros(q, dq, checks, have)  # 2026-10-29: empty without the macro arms
     for c in CLS[1:]:
         for b in ("add_rm", "shar", "harq", "lhar", "sharql", "har"):
             for sp, st in SPAN_TEX.items():
@@ -301,8 +364,79 @@ def main() -> int:
     OUT_TAB.write_text(table(M, D, have), encoding="utf-8")
     if any(a in BEYOND for _c, a in have):
         OUT_BEYOND.write_text(beyond_table(q, dq, have), encoding="utf-8")
+    if has_mac(have):
+        OUT_MACRO.write_text(macro_table(q, dq, have, checks), encoding="utf-8")
+        print(f"wrote {OUT_MACRO.name}")
     print(f"wrote {OUT_NUM.name} ({len(lines)} lines) and {OUT_TAB.name}")
     return 0
+
+
+def has_mac(have: set) -> bool:
+    return any(a in MAC or a.startswith(MAC_ONE) for _c, a in have)
+
+
+def mac_releases(checks: dict) -> list[str]:
+    """The releases of the scorer's calendar (checks.json "macro_releases"), each with its macro tag."""
+    rels = list(checks["macro_releases"]["releases"])
+    assert all(r in REL_TEX for r in rels), rels
+    return rels
+
+
+def mac_change(q, dq, c: str, a: str, b: str, sp: str) -> tuple[float, float | None, float | None] | None:
+    """(% QLIKE change of arm a against arm b, DM of a vs b, its p) of class c on span sp; None without both arms."""
+    if (c, a, sp) not in q.index or (c, b, sp) not in q.index:
+        return None
+    k = (c, a, c, b, sp)
+    r = dq.loc[k] if k in dq.index else None
+    return gain(q, c, a, b, sp), (None if r is None else r["dm"]), (None if r is None else r["p"])
+
+
+def mac_macros(q, dq, checks: dict, have: set) -> list[str]:
+    """2026-10-29 addendum L: the macro release calendars.  The three group arms against their reference (MAC) on
+    every bar, release days, FOMC statement days, quiet days and the 16:00 bar; each release alone against HAR + RM +
+    FOMC on every bar and on its own release days; the day counts of the scorer's calendar."""
+    if not has_mac(have):
+        return []
+    mr = checks["macro_releases"]
+    rels = mac_releases(checks)
+    out = [
+        f"% 2026-10-29 addendum L: the macro release calendars; calendar {mr['source']}.  Spans: All every bar, Rel",
+        "% the release days (any of the six), Ev the scheduled FOMC statement days, Quiet neither, Close the 16:00 bar.",
+    ]
+
+    def thou(n: int) -> str:
+        return f"{n:,}".replace(",", "{,}")
+
+    out.append(mac("NMacReleases", WORDS[len(rels)], "macro release calendars"))
+    out.append(mac("NRelDays", thou(mr["release_days"]), "scored days with at least one macro release"))
+    for r in rels:
+        out.append(mac(f"NRelDays{REL_TEX[r]}", thou(mr["release_days_by_release"][r]), f"scored {r} release days"))
+    out.append(
+        mac("NRelFomcDays", thou(mr["release_and_fomc_days"]), "scored days with a release and a FOMC statement")
+    )
+    out.append(mac("NQuietDays", thou(mr["quiet_days"]), "scored days with neither a release nor a FOMC statement"))
+
+    def put(nm: str, qnm: str, c: str, a: str, b: str, sp: str) -> None:
+        x = mac_change(q, dq, c, a, b, sp)
+        if x is None:
+            return
+        pc, d, p = x
+        out.append(mac(f"{qnm}Qlike", fmt(q.loc[(c, a, sp), "qlike"], 4), f"QLIKE {c} {a} {sp}"))
+        out.append(mac(f"{nm}Pct", fmt(pc, 1), f"QLIKE change % {c} {a} vs {b}, {sp}"))
+        if d is not None and p is not None:
+            out.append(mac(f"{nm}Dm", fmt(d, 2), f"DM {a} vs {b}"))
+            out.append(mac(f"{nm}P", fmt_p(p), "p-value"))
+
+    for c in CLS:
+        t = CLS_TEX[c]
+        for a, (tag, qtag, b, _lab) in MAC.items():
+            for sp, st in MAC_SPAN_TEX.items():
+                put(f"{t}{tag}{st}", f"{t}{qtag}{st}", c, a, b, sp)
+        for r in rels:
+            for sp, st in (("all", "All"), (f"rel_{r}", "Rel")):
+                nm = f"{t}AddRmFomcMac{REL_TEX[r]}{st}"
+                put(nm, nm, c, MAC_ONE + r, COMBO, sp)
+    return out
 
 
 def combo_macros(q, dq, checks: dict) -> list[str]:
@@ -461,7 +595,7 @@ def consolidated_macros(q, dq, have: set) -> list[str]:
             dms = [x[1] for x in pa.values()]
             assert not any(np.isnan(dms)), dms
             out.append(mac("LoRmAllDmMin", fmt(min(dms), 2), f"smallest DM of the rm removals, {', '.join(pa)}"))
-    other = [abs(x[0]) for g in AA.GROUPS if g not in ("rm", "fomc") for x in panel_a(g).values()]
+    other = [abs(x[0]) for g in GROUPS8 if g not in ("rm", "fomc") for x in panel_a(g).values()]
     assert other
     out.append(mac("LoOtherAllMaxAbs", fmt(max(other), 1), "largest |%| removing a group other than rm, fomc"))
     return out
@@ -591,16 +725,22 @@ def full_vs_add(q, dq, c: str, have: set, ga: str = "add_rm", sp: str = "all") -
 
 
 NOTE_DESIGN = ""
-DESIGN_TXT = (
-    "FOMC-patched design (the scheduled 18 March 2020 meeting added, the proximity ramps not winsorized); every linear"
-    " arm and the trees' FOMC arms are walked on it.  Cells marked \\dag{} (the trees' Panel A rows other than"
-    " FOMC) are on the pre-patch FOMC design, against the pre-patch full set: only the FOMC group is rerun on the"
-    " patched design (the trees' add arms other than FOMC and the removal of FOMC hold no FOMC column, so their"
-    " forecasts are the same on both designs)."
-    if FIXED
-    else "Design before the FOMC patch (the scheduled 18 March 2020 meeting missing, the proximity ramps"
-    " winsorized): the FOMC rows are preliminary."
-)
+
+
+def design_base(fixed: bool) -> str:
+    return (
+        "FOMC-patched design (the scheduled 18 March 2020 meeting added, the proximity ramps not winsorized); every"
+        " linear arm and the trees' FOMC arms are walked on it.  Cells marked \\dag{} (the trees' Panel A rows other"
+        " than FOMC) are on the pre-patch FOMC design, against the pre-patch full set: only the FOMC group is rerun on"
+        " the patched design (the trees' add arms other than FOMC and the removal of FOMC hold no FOMC column, so their"
+        " forecasts are the same on both designs)."
+        if fixed
+        else "Design before the FOMC patch (the scheduled 18 March 2020 meeting missing, the proximity ramps"
+        " winsorized): the FOMC rows are preliminary."
+    )
+
+
+DESIGN_TXT = design_base(FIXED)
 
 
 def design_txt() -> str:
@@ -656,14 +796,14 @@ def table(M: pd.DataFrame, D: pd.DataFrame, have: set) -> str:
         f"\\multicolumn{{{len(cols) + 1}}}{{@{{}}l}}{{\\textit{{A. Full set without the group, against the full set"
         " ($+$: the group adds accuracy)}} \\\\",
     ]
-    for g in AA.GROUPS:
+    for g in GROUPS8:
         out.append(f"{AA.GROUP_LABEL[g]} & " + " & ".join(cell(q, dq, c, f"lo_{g}", have) for c in cols) + " \\\\")
     out += [
         "\\addlinespace[4pt]",
         f"\\multicolumn{{{len(cols) + 1}}}{{@{{}}l}}{{\\textit{{B. HAR benchmark plus the group, against the HAR"
         " benchmark ($-$: the group adds accuracy)}} \\\\",
     ]
-    for g in AA.GROUPS:
+    for g in GROUPS8:
         out.append(f"{AA.GROUP_LABEL[g]} & " + " & ".join(cell(q, dq, c, f"add_{g}", have) for c in cols) + " \\\\")
     out += [
         "\\addlinespace[4pt]",
@@ -735,6 +875,158 @@ def table(M: pd.DataFrame, D: pd.DataFrame, have: set) -> str:
         " \\rhabLiveIvbStart{}; the volatility-demand series from \\rhabLiveVdStart{} until their feed stops on"
         " \\rhabLiveVdEnd{}), subsamples of \\rhabLiveSentDays{}, \\rhabLiveIvDays{}, \\rhabLiveIvbDays{} and"
         " \\rhabLiveVdDays{} trading days.",
+        "\\end{tablenotes}",
+        "\\end{threeparttable}",
+        "\\end{table}",
+        "",
+    ]
+    if has_mac(have):  # 2026-10-29: Panel F, on a continuation page of the same table (the first part is unchanged)
+        out[-1:] = panel_f(q, dq, have, cols)
+    return "\n".join(out)
+
+
+def mac_cell(q, dq, c: str, a: str, b: str, sp: str) -> str:
+    """Panel F's cell: row (the macro arm a) against its reference b, the stored test's own direction (no flip)."""
+    x = mac_change(q, dq, c, a, b, sp)
+    if x is None:
+        return "--"
+    return fmt(x[0], 1) if x[1] is None else f"{fmt(x[0], 1)} ({fmt(x[1], 1)})"
+
+
+def panel_f(q, dq, have: set, cols: list[str]) -> list[str]:
+    """2026-10-29 addendum L: Panel F of tab:rh_ablation, the macro release calendars against the same set without
+    them, by day type.  The table's first part already runs past its page (by about 59pt in the paper's geometry), so
+    the panel is a continuation float (caption package, \\ContinuedFloat: same table number, no label) with its own
+    notes; the first part and its notes are byte for byte the table without the macro arms."""
+    n = len(cols) + 1
+    out = [
+        "% Panel F (2026-10-29): continuation of tab:rh_ablation (\\ContinuedFloat; the label is on the first part).",
+        "\\begin{table}[htbp]",
+        "\\centering",
+        "\\scriptsize",
+        "\\setlength{\\tabcolsep}{1.5pt}",
+        "\\begin{threeparttable}",
+        "\\ContinuedFloat",  # inside threeparttable: before \begin{threeparttable} the number still steps
+        "\\caption{Predictor-group ablations and augmented-HAR benchmarks: change in QLIKE (\\%) (continued)}",
+        f"\\begin{{tabular*}}{{\\linewidth}}{{@{{\\extracolsep{{\\fill}}}}l{'r' * len(cols)}@{{}}}}",
+        "\\toprule",
+        " & " + " & ".join(CLS_NAME[c] for c in cols) + " \\\\",
+        "\\midrule",
+        f"\\multicolumn{{{n}}}{{@{{}}l}}{{\\textit{{F. Macroeconomic release calendars added, against the same set"
+        " without them ($-$: the calendars add accuracy)}} \\\\",
+    ]
+    for i, (a, (_tag, _qtag, b, lab)) in enumerate(MAC.items()):
+        if i:
+            out.append("\\addlinespace[2pt]")
+        ref = {"har": "HAR", COMBO: "HAR + RM + FOMC", "full": "the full set"}[b]
+        out.append(f"\\multicolumn{{{n}}}{{@{{}}l}}{{{lab}, against {ref}}} \\\\")
+        for sp, sl in MAC_SPAN_LABEL.items():
+            out.append(f"\\quad {sl} & " + " & ".join(mac_cell(q, dq, c, a, b, sp) for c in cols) + " \\\\")
+    not_run = [CLS_NAME[c] for c in cols if not any((c, a) in have for a in MAC)]
+    nr = {"Forest": "random forest"}
+    nr_txt = (
+        " The "
+        + " and the ".join(nr.get(x, x) for x in not_run)
+        + (" is" if len(not_run) == 1 else " are")
+        + " not run."
+        if not_run
+        else ""
+    )
+    out += [
+        "\\bottomrule",
+        "\\end{tabular*}",
+        "\\begin{tablenotes}[flushleft]",
+        "\\footnotesize",
+        "\\item \\textit{Sign:} as in Panels~A to~E, each cell is $100\\,(L_{\\text{row}}/L_{\\text{ref}} - 1)$ with the"
+        " Diebold--Mariano statistic in parentheses (same sign).  Panel~F, the macroeconomic release calendars added"
+        " to the set named in the heading (reference: that set without them): negative, the loss falls when they are"
+        " added, i.e.\\ they add accuracy; positive, they hurt.",
+        "\\item \\textit{Notes:} Macro: the calendars of \\rhabNMacReleases{} scheduled US macroeconomic releases (the"
+        " consumer and producer price indexes, the employment situation, the advance estimate of GDP, international"
+        " trade and retail sales), built in the same way as the FOMC calendar.  RM: the futures' realized moments."
+        "  Every bar: the scored bars of Table~\\ref{tab:rh_oos} (2014--2024).  The other rows score the same"
+        " forecasts on the \\rhabNRelDays{} release days (at least one of the releases), on the \\rhabNEventDays{}"
+        " scheduled FOMC statement days and on the \\rhabNQuietDays{} quiet days with neither a release nor a"
+        " statement.  The release days include the \\rhabNRelFomcDays{} days that also hold a FOMC statement.  The"
+        " test runs on daily average QLIKE.  Every model keeps the full set's frozen hyperparameters (FOMC-patched"
+        " design)." + nr_txt,
+        "\\end{tablenotes}",
+        "\\end{threeparttable}",
+        "\\end{table}",
+        "",
+    ]
+    return out
+
+
+MAC_CSHORT = {"ols": "OLS", "ridge": "Ridge", "lasso": "Lasso", "enet": "E.\\ net", "lgbm": "LGBM", "xgb": "XGB"}
+
+
+def macro_table(q, dq, have: set, checks: dict) -> str:
+    """tab:rh_ablation_macro (2026-10-29, addendum L): each release's calendar alone added to HAR + RM + FOMC, against
+    HAR + RM + FOMC, on the release's own days and on every bar; the last row adds all of them (Panel F's second
+    comparison).  One row per release: the % change, with the DM statistic beneath it."""
+    mr = checks["macro_releases"]
+    rels = mac_releases(checks)
+    cls = [c for c in CLS if c in MAC_CSHORT and any((c, MAC_ONE + r) in have for r in rels)]
+    n = len(cls)
+    spans = (("own", "Own release days"), ("all", "Every bar"))
+
+    def cells(a: str, own: str) -> tuple[list[str], list[str]]:
+        top, bot = [], []
+        for sp, _l in spans:
+            for c in cls:
+                x = mac_change(q, dq, c, a, COMBO, own if sp == "own" else "all")
+                top.append("--" if x is None else fmt(x[0], 1))
+                bot.append("" if x is None or x[1] is None else f"({fmt(x[1], 1)})")
+        return top, bot
+
+    def thou(k: int) -> str:
+        return f"{k:,}".replace(",", "{,}")
+
+    out = [
+        HEAD,
+        "% tab:rh_ablation_macro (2026-10-29, addendum L): HAR + RM + FOMC plus one macro release calendar against",
+        f"% HAR + RM + FOMC; DM on daily average QLIKE.  Calendar: {mr['source']}.",
+        "\\begin{table}[htbp]",
+        "\\centering",
+        "\\scriptsize",
+        "\\setlength{\\tabcolsep}{2pt}",
+        "\\begin{threeparttable}",
+        "\\caption{Macroeconomic release calendars one at a time, added to HAR + RM + FOMC: change in QLIKE (\\%)}",
+        "\\label{tab:rh_ablation_macro}",
+        f"\\begin{{tabular*}}{{\\linewidth}}{{@{{\\extracolsep{{\\fill}}}}lr{'r' * (2 * n)}@{{}}}}",
+        "\\toprule",
+        " & & " + " & ".join(f"\\multicolumn{{{n}}}{{c}}{{{lab}}}" for _sp, lab in spans) + " \\\\",
+        f"\\cmidrule(lr){{3-{2 + n}}}\\cmidrule(l){{{3 + n}-{2 + 2 * n}}}",
+        "Release & Days & " + " & ".join(MAC_CSHORT[c] for _sp in spans for c in cls) + " \\\\",
+        "\\midrule",
+    ]
+    rows = [(REL_NAME[r], MAC_ONE + r, f"rel_{r}", mr["release_days_by_release"][r]) for r in rels]
+    rows.append(("All releases", f"{COMBO}_mac", "rel", mr["release_days"]))
+    for i, (lab, a, own, nd) in enumerate(rows):
+        if i == len(rows) - 1:
+            out.append("\\addlinespace[4pt]")
+        top, bot = cells(a, own)
+        out.append(f"{lab} & {thou(nd)} & " + " & ".join(top) + " \\\\")
+        out.append(" & & " + " & ".join(bot) + " \\\\")
+    rf_txt = "; the random forest is not run" if not any(c == "rf" for c, a in have if a.startswith(MAC_ONE)) else ""
+    out += [
+        "\\bottomrule",
+        "\\end{tabular*}",
+        "\\begin{tablenotes}[flushleft]",
+        "\\footnotesize",
+        "\\item \\textit{Sign:} each cell is $100\\,(L_{\\text{row}}/L_{\\text{ref}} - 1)$, the percentage change in"
+        " mean QLIKE of HAR + RM + FOMC plus the row's release calendar against HAR + RM + FOMC (the reference), with"
+        " the Diebold--Mariano statistic beneath it in parentheses (same sign; daily average QLIKE).  Negative, the"
+        " loss falls when the calendar is added, i.e.\\ the calendar adds accuracy; positive, it hurts.",
+        "\\item \\textit{Notes:} HAR + RM + FOMC: the HAR benchmark set plus the futures' realized moments (RM) and the"
+        " FOMC calendar.  Each row adds one release's calendar to it, built in the same way as the FOMC calendar: CPI"
+        " and PPI, the consumer and producer price indexes; Employment, the employment situation; GDP (advance), the"
+        " advance estimate of gross domestic product; Trade, international trade.  The last row adds all"
+        " \\rhabNMacReleases{} calendars (Panel~F of Table~\\ref{tab:rh_ablation}).  Own release days are the scored"
+        " days on which the row's release is published (Days); for the last row they are the \\rhabNRelDays{} days"
+        " with at least one release.  Every bar: the scored bars of Table~\\ref{tab:rh_oos} (2014--2024).  Every"
+        f" model keeps the full set's frozen hyperparameters (FOMC-patched design){rf_txt}.",
         "\\end{tablenotes}",
         "\\end{threeparttable}",
         "\\end{table}",

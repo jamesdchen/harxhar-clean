@@ -17,6 +17,10 @@ Pairs  within class: every arm vs the class's full set and vs its HAR benchmark 
        each class's full set vs each OLS augmented-HAR benchmark (add_rm, shar, harq, lhar, sharql) and vs the OLS HAR.
 Checks the template rows reproduce results/oos_final_2014start/table1_w3000/metrics.csv (QLIKE, MSE, every bar; the
        16:00 QLIKE on 2020-2024) to 1e-12 relative and its full-vs-HAR QLIKE DM to 1e-9; the scored set is Table 1's.
+Macro releases (2026-10-29, --design fix, only when forecasts/linear_wide_mac.parquet or trees_wide_mac.parquet holds
+       a macro arm; see MAC below): spans rel (every bar of the scored days with any of the six releases), quiet (days
+       with neither a FOMC statement nor a release) and rel_<r> (release r's days); DM on daily averages; the day counts
+       asserted and written to checks.json "macro_releases".  Without the two files every output is as before.
 
 usage: python experiments/ablate_score.py [--res results/ablations_2014start_w3000]
        -> <res>/scores/metrics.csv, dm.csv, checks.json, latestart_groups.csv (when <res>/latestart/ exists)
@@ -117,6 +121,51 @@ def event_days(days: pd.DatetimeIndex) -> pd.DatetimeIndex:
     return ev
 
 
+def macro_spans(idx: pd.DatetimeIndex, days: pd.DatetimeIndex, checks: dict) -> dict[str, pd.DatetimeIndex]:
+    """The macro-release spans of the scored bars idx (MAC above): rel (every bar of the scored days with any of the
+    releases), quiet (the scored days with neither a FOMC statement (event_days) nor a release), rel_<r> (release r's
+    days).  Asserts the day counts and writes them to checks["macro_releases"]."""
+    rels, cal, src = macro_calendar()
+    ev = event_days(days)
+    d = pd.DatetimeIndex(idx.normalize())
+    per = {r: cal[r][cal[r].isin(days)] for r in rels}
+    rel = per[rels[0]]
+    for r in rels[1:]:
+        rel = rel.union(per[r])
+    quiet = days[~days.isin(rel) & ~days.isin(ev)]
+    sp = {"rel": idx[d.isin(rel)], "quiet": idx[d.isin(quiet)]}
+    for r in rels:
+        sp[f"rel_{r}"] = idx[d.isin(per[r])]
+    n_rel = {r: len(per[r]) for r in rels}
+    assert all(n > 0 for n in n_rel.values()), n_rel
+    assert len(quiet) + len(rel.union(ev)) == N_DAYS, (len(quiet), len(rel), len(ev))
+    nd = {k: int(pd.DatetimeIndex(v.normalize()).nunique()) for k, v in sp.items()}
+    assert nd["rel"] == len(rel) and nd["quiet"] == len(quiet), (nd, len(rel), len(quiet))
+    assert all(nd[f"rel_{r}"] == n_rel[r] for r in rels), (nd, n_rel)
+    assert len(sp["rel"]) + len(sp["quiet"]) + int((d.isin(ev) & ~d.isin(rel)).sum()) == len(idx)
+    fixed = src.startswith("src/")
+    if fixed and N_REL_DAYS:  # the features' calendar: its counts on the scored days, fixed with it
+        assert n_rel == N_REL_DAYS and len(rel) == N_REL_ANY, (n_rel, len(rel), N_REL_DAYS, N_REL_ANY)
+    checks["macro_releases"] = dict(
+        source=src,
+        counts_asserted=bool(fixed and N_REL_DAYS),
+        releases=list(rels),
+        release_days=len(rel),
+        release_days_by_release=n_rel,
+        release_and_fomc_days=int(rel.isin(ev).sum()),
+        fomc_days=len(ev),
+        quiet_days=len(quiet),
+        release_bars=len(sp["rel"]),
+        quiet_bars=len(sp["quiet"]),
+        release_bars_by_release={r: len(sp[f"rel_{r}"]) for r in rels},
+        calendar_last={r: str(cal[r].max().date()) for r in rels},
+        rule="release day = a scored day of the release's calendar (flag on the 09:00 bar, the 08:30 release); rel = "
+        "the union of the six; quiet = neither a release nor a scheduled FOMC statement (event_days)",
+        label="addendum L: requested by the author on 29 October; not pre-registered",
+    )
+    return sp
+
+
 FIX = ROOT / "results" / "fomcfix_2026-10-26" / "forecasts"
 RF_FIX = ROOT / "results" / "pooled_rf_skx_2014start_fomcfix_w3000" / "forecasts.parquet"
 # 2026-10-26 addendum D: on the FOMC-patched design, the trees' lo_<g> arms for g != fomc hold the pre-patch FOMC
@@ -127,6 +176,58 @@ PRE_TREE = tuple(f"lo_{g}" for g in ("rm", "liq", "ew", "vw", "sent", "iv", "vd"
 # the patched full set.  Filled by load_panel.
 PATCHED_LO: set[tuple[str, str]] = set()
 LOFIX = "trees_wide_lofix.parquet"
+# 2026-10-29 addendum L (requested by the author on 29 October; not pre-registered): the six scheduled US macroeconomic
+# release calendars (CPI, employment, PPI, GDP advance, international trade, retail sales), built as the FOMC calendar
+# is and with no lookahead (src/data/loading.py macro_release_days).  Arms (experiments/ablate_arms.py MAC_ARMS): add_mac
+# (HAR + the macro group), add_rm_fomc_mac (HAR + RM + FOMC + macro), full_mac (the full set + macro) and
+# add_rm_fomc_mac_<r> (HAR + RM + FOMC + release r alone; the OLS runs these and add_rm_fomc_mac only); merged into the
+# two files below (read under --design fix).  Pairs: add_mac vs HAR, add_rm_fomc_mac(_<r>) vs add_rm_fomc and full_mac
+# vs full (the general loops; the OLS's add_rm_fomc_mac(_<r>) vs its add_rm_fomc added).  On the rel_<r> spans only the
+# macro arms are tested.
+MAC_FILES = ("linear_wide_mac.parquet", "trees_wide_mac.parquet")
+MAC_GROUP_ARMS = ("add_mac", COMBO + "_mac", "full_mac")
+MAC_RELEASES_DEFAULT = ("cpi", "emp", "ppi", "gdp", "trade", "retail")
+# the scored release days per release and their union, asserted when the calendar comes from src/data/loading.py (the
+# fallback below records its counts without asserting them).  Counted 2026-10-29 on loading.macro_release_days with
+# MACRO_CALENDAR_FIX and MACRO_SCHEDULE_FIX on (the interface fixed that day); a change of that calendar fails here
+N_REL_DAYS: dict[str, int] = {"cpi": 122, "emp": 120, "ppi": 124, "gdp": 42, "trade": 122, "retail": 123}
+N_REL_ANY = 590
+
+
+def is_mac(arm: str) -> bool:
+    return arm in MAC_GROUP_ARMS or arm.startswith(COMBO + "_mac_")
+
+
+def macro_calendar() -> tuple[tuple[str, ...], dict[str, pd.DatetimeIndex], str]:
+    """(releases, release -> its release days (normalized dates, every day of the calendar), source).  The days come
+    from src/data/loading.py (MACRO_RELEASES, macro_release_days), the calendar the features use."""
+    from src.data import loading
+
+    if hasattr(loading, "macro_release_days") and hasattr(loading, "MACRO_RELEASES"):
+        rels = tuple(loading.MACRO_RELEASES)
+        out = {r: pd.DatetimeIndex(loading.macro_release_days(r)).normalize().unique().sort_values() for r in rels}
+        return rels, out, "src/data/loading.py macro_release_days"
+    # TEMPORARY FALLBACK -- remove once src/data/loading.py exports MACRO_RELEASES and macro_release_days (2026-10-29):
+    # data/releases.parquet's six release columns, each flag on the 09:00 bar (the 08:30 release) -> that bar's date.
+    # No stamp is added for the stale pull's tail (the calendars stop between 2023-10 and 2024-01), so its counts are
+    # recorded, not asserted.
+    raw_col = {
+        "cpi": "cpi release",
+        "emp": "employment release",
+        "ppi": "ppi release",
+        "gdp": "gdp release",
+        "trade": "trade release",
+        "retail": "retail release",
+    }
+    rel = pd.read_parquet(ROOT / "data" / "releases.parquet", columns=["endbartime", *raw_col.values()])
+    t = pd.DatetimeIndex(pd.to_datetime(rel["endbartime"]))
+    out = {}
+    for r, col in raw_col.items():
+        x = np.nan_to_num(pd.to_numeric(rel[col], errors="coerce").to_numpy(float), nan=0.0)
+        st = t[x > 0]
+        assert ((st.hour == 9) & (st.minute == 0)).all(), (r, st[(st.hour != 9) | (st.minute != 0)][:3])
+        out[r] = pd.DatetimeIndex(st.normalize()).unique().sort_values()
+    return MAC_RELEASES_DEFAULT, out, "FALLBACK data/releases.parquet (temporary; loading.macro_release_days missing)"
 
 
 def ref_full(design: str, cls: str, arm: str) -> str:
@@ -182,6 +283,7 @@ def load_panel(res: Path, design: str = "pre", rf_fix: str = "") -> tuple[dict[t
             "trees_wide_beyond.parquet",
             "trees_wide_ladder.parquet",  # addendum I
             LOFIX,  # addendum J
+            *MAC_FILES,  # 2026-10-29: the macro release calendars
         )
         if (res / "forecasts" / LOFIX).is_file():
             w = pd.read_parquet(res / "forecasts" / LOFIX, columns=None)
@@ -267,6 +369,10 @@ def main() -> int:
             rule="results/channels_2026-10-26/RULE.txt section 0",
             label="add_rm_fomc: requested by the author on 26 October, after the channel results; not pre-registered",
         )
+    if any(is_mac(k[1]) for k in panel):  # 2026-10-29: the macro release calendars (MAC above)
+        spans.update(macro_spans(idx, days, checks))
+        own = {a.removeprefix(COMBO + "_mac_") for _c, a in panel if a.startswith(COMBO + "_mac_")}
+        assert own <= set(checks["macro_releases"]["releases"]), f"per-release arms without a calendar: {sorted(own)}"
     assert len(spans["c16"]) == N_DAYS and len(spans["c16_2020"]) == SUB_DAYS, (
         len(spans["c16"]),
         len(spans["c16_2020"]),
@@ -308,7 +414,7 @@ def main() -> int:
         out = []
         for li, lname in ((0, "qlike"), (1, "mse")):
             x1, x2, ix = L[(k1, sp)][li], L[(k2, sp)][li], L[(k1, sp)][2]
-            every_bar = sp in ("all", "ord", "ev") or sp.startswith("live_")
+            every_bar = sp in ("all", "ord", "ev", "rel", "quiet") or sp.startswith(("live_", "rel_"))
             r = dm_test(daily(x1, ix), daily(x2, ix)) if every_bar else dm_test(x1, x2)
             out.append(
                 dict(
@@ -339,9 +445,13 @@ def main() -> int:
                 elif arm in (f"add_{g}", "full", "full_pre"):
                     rows += dm((c, arm), (c, "har"), sp)
                 continue
+            if sp.startswith("rel_") and not is_mac(arm):  # one release's days: the macro arms only
+                continue
             if c == "ols":
                 if arm != "har":
                     rows += dm((c, arm), ("ols", "har"), sp)
+                if is_mac(arm) and arm.startswith(COMBO + "_") and (c, COMBO) in panel:  # macro: against its base
+                    rows += dm((c, arm), (c, COMBO), sp)
                 continue
             rf_ = ref_full(a.design, c, arm)
             if arm not in ("full", "full_pre") and (c, rf_) in panel:

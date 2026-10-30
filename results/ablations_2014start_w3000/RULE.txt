@@ -596,3 +596,80 @@ EVERY BAR
        labelled "every-bar refit, requested by the author after the monthly-vs-every-bar comparison; not
        pre-registered".  writeup/make_rehaul_ladder.py reads the monthly ladder only and needs an every-bar mode
        (described in STATUS.md; not written by this addendum).
+
+ADDENDUM L, 2026-10-29 19:30 PDT (2026-10-30 02:30 UTC), before any job it affects: SIX US MACRO RELEASE CALENDARS AS A
+PREDICTOR GROUP, BUILT AS THE FOMC CALENDAR, WITH NO LOOKAHEAD
+   REQUESTED BY THE AUTHOR ON 29 OCTOBER, NOT PRE-REGISTERED: "can we check if the dataset has [cpi release, employment
+   release, ppi release, gdp release, trade release, retail release] and treat it similarly to fomc? There needs to be no
+   lookahead bias. run the necessary ablations on carc and hoffman. drive it to the end with an update on overleaf for
+   the tables"; and "make sure there is maximum parallelism".  The compute in (f) is approved by those words.
+   (a) Data.  data/releases.parquet (commit 312c495): six 0/1 columns, one flag a release on the bar ending 09:00 ET
+       (the 08:30 release); GDP = the advance estimate only.  Checked against OMB's annual Schedule of Release Dates for
+       Principal Federal Economic Indicators 2002-2024 (results/macro_calendar_2026-10-29: scheduled.csv, 1,656 dates;
+       mismatch.csv, the 28 changes; SOURCES.md): the flags are the actual dates, except file errors corrected in
+       src/data/loading.py (the raw columns are not modified): MACRO_OMITTED_RELEASES (releases on Good Fridays with no
+       futures bar: employment 2007-04-06, 2010-04-02, 2012-04-06, 1999-04-02; CPI 2017-04-14, 2020-04-10; retail
+       2017-04-14; trade flags missing on trading days 2006-08-10, 2007-02-13, 2008-08-12), MACRO_MISDATED_RELEASES
+       (GDP 2009-10-28 -> 10-29, 2018-10-25 -> 10-26; retail 2003-11-11 -> 11-14, 2003-12-15 -> 12-11), and the dead tail
+       after the file's last flags (2023-10-26 .. 2024-01-09): MACRO_MISSING_RELEASES to 2024-04-30 and
+       MACRO_NEXT_RELEASE (CPI 05-15, employment 05-03, PPI 05-14, GDP 07-25, trade 05-02, retail 05-15), all = OMB's.
+   (b) Features (src/data/loading.py, ex-flag MACRO_CALENDARS, default off; off = every existing output bit for bit):
+       for r in {cpi, emp, ppi, gdp, trade, retail} the series mac_<r>_day, mac_<r>_until_inv, mac_<r>_since_inv built as
+       FOMC's (add_fomc_features: on the calendar-open grid before the dead-session drop; until_inv = 1/(1 + bars to the
+       next release), since_inv = 1/(1 + bars since the last)), FOMC's transforms (day flags pass through; until / since
+       logged, not winsorized; no diurnal adjustment; src/features/transforms/target.py), the executor's availability
+       flags and trailing averages k in {1, 5, 25, 125, 625, 3125}, rolling robust scaling over W rows: 216 columns
+       (adj_<s>_ma_<k> and <s>_avail_ma_<k>, 18 series; no release-bar dummy, as EXCLUDE_FOMC_RELEASE).  SUBGROUPS
+       "macro" (18 series) and "all_features_mac" (64); ALL_FEATURES (46 series) unchanged.
+   (c) No lookahead.  Same-day flags are known before the first scored bar (08:30 release; design rows are bar ends;
+       trailing means shifted one bar).  The distance features use the schedule as known at the bar (MACRO_SCHEDULE_FIX,
+       MACRO_RESCHEDULED, 27 records = the 28 changes less the GDP second estimate of 2013-11-26, outside the
+       advance-only series; the FOMC_SCHEDULE_2020_FIX rule extended to three states): until_inv counts to the
+       originally scheduled date until the postponement became public (the start of a funding lapse counts as the
+       notice: 2013-10-01 for all six, 2018-12-22 for GDP, trade, retail; a postponement is public at the latest on the
+       bar the release was due); from then until the new date was announced it is unknown (NaN before the forward fill:
+       availability 0); after, it counts to the new date.  since_inv counts from the last actual release.  Announcements
+       at 17:00 ET of their day unless a time is recorded (employment September 2013: 16:38); a bound date is taken at
+       its latest.  In the evaluation span this touches only 2019: until_inv unknown on GDP 392, trade 340 and retail 529
+       regular-hours rows.
+   (d) Gates.  Run before any walk (laptop, PASSED 29 Oct): GM-F (flag off = flag on in all 77 existing frame columns,
+       FOMC included, on the calendar-open frame and the panel; exactly the 18 mac_ series added; every release bar at
+       09:00; the calendar from 2002 = OMB's schedule with the moved dates replaced by their actual dates) and GNL-1 (no
+       lookahead: 0 failures in 17,283 perturbations of the calendar after the information set at 16,731 cut bars -- both
+       shutdown windows, the 2020 FOMC window, +-3 bars of every 2014-24 release, 2,000 random -- and 26,166 real-time
+       recomputations from the information set alone; results/macro_calendar_2026-10-29/gate_GMF.json, gate_GNL1.json;
+       experiments/macro_calendar_check.py; writeup/tests/test_macro_calendar.py, 56 tests).  On the clusters, before
+       the walks: GM0 (CARC, in the build job: y, b_oos, dates bytes and the 564 non-macro columns bit-identical to the
+       patched cache, X md5 725eb201...; names and order: har, the 46 series' value averages, the macro value averages,
+       the 46 availability averages, the macro availability averages, calendar; macro columns finite; config = cell B +
+       MACRO_CALENDARS; experiments/ablate_design.py checkmac); GMT (trees, each CPU model: arms full and har on the mac
+       cache text-identical to fomcfix forecasts_gb / the templates at the first and last 10 origins; full_mac walked at
+       the first 10 for T2); LF (the 14 gate-L linear lines on the mac cache's own 564-column copy, X md5 725eb201...
+       checked: the walks' config must record the flag); T2 at the merge.  The design-level truncated-build check drafted
+       as GNL-2 is not run: every step after the frame (trailing means shifted one bar, rolling scaling over the past W
+       rows, late-start warmup, unobserved-neutral) is causal and shared with the gated existing columns, and GNL-1b
+       already recomputes the macro series from the information set alone.
+   (e) Arms (experiments/ablate_arms.py; every existing arm unchanged; the mac cache's 564-column subset = the patched
+       full set): add_mac = HAR + macro (228 columns); add_rm_fomc_mac = HAR + RM + FOMC + macro (348); full_mac = full +
+       macro (780); add_rm_fomc_mac_<r> = HAR + RM + FOMC + mac_<r> (168), one release at a time.  Classes: ridge, lasso,
+       elastic net (the add-arm convention: the full set's frozen penalty, r = 0.01 on the HAR block), OLS on
+       add_rm_fomc_mac and add_rm_fomc_mac_<r> (the arms extending the benchmark that runs OLS), LightGBM and XGBoost at
+       their frozen configurations; no random forest (its arms alone would cost 2,000-5,000 CPU-hours; as addenda G, J,
+       K).  Every bar walked as Table 1: W = 3,000 days, refit at every bar, 33,970 bars 2014-01-02 .. 2024-04-30.
+   (f) Compute (cost model calibrated on addendum F (d)'s measured FOMC arms): LightGBM ~1,213 CPU-hours (63 pieces,
+       tasks/trees_mac_carc.txt), XGBoost ~1,019-1,444 (108 pieces, tasks/trees_mac_h2.txt), linear ~5-6 (55 lines,
+       tasks/linear_mac.txt, gate L's 14 first), build + gates ~30; total ~2,300-2,960 (<= ~3,250 allocated), above the
+       2,500 line of addendum J (c), approved by the author's words above.  For wall time ("maximum parallelism"):
+       LightGBM on CARC main (EPYC 7513 / 7542, 8-CPU array tasks); XGBoost, the linear walks and the merges on Hoffman2
+       (Slurm campus24 Gold 6240 / 6442Y / Xeon 6736P pools, UGE Gold 6140); the design built on CARC
+       (cluster/ablate/carc_build_mac.sh, as the patched cache) and streamed md5-checked to Hoffman2.  New staging
+       directories only (CARC /home1/jc_905/abl_mac, /scratch1/jc_905/abl_mac; Hoffman2 $B/*_mac).
+   (g) Scoring (experiments/ablate_score.py --design fix, Table 1's 33,527 bars): spans every bar, ORDINARY / EVENT
+       (FOMC, 81 days), rel (days with any of the six releases: 590), quiet (neither: 1,932), rel_<r> (CPI 122,
+       employment 120, PPI 124, GDP 42, trade 122, retail 123; asserted from the features' calendar function); QLIKE %
+       change and DM (HLN, daily average QLIKE, HAC as every day-type DM); pairs add_mac vs HAR, add_rm_fomc_mac vs
+       add_rm_fomc, full_mac vs full, add_rm_fomc_mac_<r> vs add_rm_fomc.
+   (h) Paper: Panel F of tab:rh_ablation (a continuation float) and tab:rh_ablation_macro (one row per release) by
+       writeup/make_rehaul_ablations.py; the channel tables keep their eight pre-registered groups; disclosure in
+       appendix prose, not in table notes (author, 28 Oct); every live sentence the new numbers touch is checked;
+       Overleaf is updated by the post-commit hook.

@@ -9,7 +9,9 @@ No imports from core/ or projects/ — only numpy, pandas, os, functools.
 from __future__ import annotations
 
 import os
-from functools import reduce
+from collections.abc import Iterable, Sequence
+from functools import lru_cache, reduce
+from typing import NamedTuple
 
 import numpy as np
 import pandas as pd
@@ -149,6 +151,41 @@ EXCLUDE_FOMC_RELEASE: bool = True
 if EXCLUDE_FOMC_RELEASE:
     ALL_FEATURES.remove("fomc_release")
 
+# ── Macro release calendars (2026-10-29, author: "can we check if the dataset has cpi release, employment release,
+# ppi release, gdp release, trade release, retail release and treat it similarly to fomc? There needs to be no
+# lookahead bias.") ──────────────────────────────────────────────────────────────────────────────────────────────
+# data/releases.parquet carries six more 0/1 calendars beside "fomc release", keyed like it by the bar END in naive ET;
+# every release is flagged on the bar ending 09:00 (the 08:30 ET release), on its ACTUAL release date (the 2013 and
+# 2018-19 shutdown dates are the delayed ones).  GDP is the advance estimate only.  Each release r gets FOMC's three
+# design series (the 0/1 statement-bar dummy is out of the design, EXCLUDE_FOMC_RELEASE), stem mac_<r> for fomc, built
+# by add_fomc_features' construction on the calendar-open grid (add_macro_features, below):
+#   mac_<r>_day        1 on every bar of a release date
+#   mac_<r>_until_inv  1 / (1 + bars to the next release)  (under MACRO_SCHEDULE_FIX: the next release as scheduled at
+#                      the bar; NaN while a postponed release has no new date, so its availability flag is 0)
+#   mac_<r>_since_inv  1 / (1 + bars since the last actual release)
+# for r in cpi, emp, ppi, gdp, trade, retail -- 18 series:
+#   mac_cpi_day mac_cpi_until_inv mac_cpi_since_inv   mac_emp_day mac_emp_until_inv mac_emp_since_inv
+#   mac_ppi_day mac_ppi_until_inv mac_ppi_since_inv   mac_gdp_day mac_gdp_until_inv mac_gdp_since_inv
+#   mac_trade_day mac_trade_until_inv mac_trade_since_inv   mac_retail_day mac_retail_until_inv mac_retail_since_inv
+# Executor design columns (as FOMC's): adj_<s>_ma_<k> and <s>_avail_ma_<k> (and <s>_active_ma_<k> for a mode-inflated
+# series when DROP_ACTIVITY_MA is off).  Registered in NON_NEGATIVE_SERIES and SUBGROUPS["macro"]; SUBGROUPS
+# ["all_features_mac"] = ALL_FEATURES + macro.  NOT in ALL_FEATURES: the 46-series set (and every design built from it)
+# is unchanged.  MACRO_CALENDARS off (default): load_raw_data builds no mac_ column, every output bit for bit as before.
+# Gates: experiments/macro_calendar_check.py (GM-F frame, GNL-1 no-lookahead); unit tests writeup/tests/
+# test_macro_calendar.py.
+MACRO_CALENDARS: bool = False
+MACRO_RELEASES: dict[str, str] = {
+    "cpi": "cpi release",
+    "emp": "employment release",
+    "ppi": "ppi release",
+    "gdp": "gdp release",  # the advance estimate only
+    "trade": "trade release",
+    "retail": "retail release",
+}
+MACRO_SERIES_SUFFIXES: tuple[str, ...] = ("day", "until_inv", "since_inv")
+MACRO_SERIES_OF: dict[str, list[str]] = {r: [f"mac_{r}_{s}" for s in MACRO_SERIES_SUFFIXES] for r in MACRO_RELEASES}
+MACRO_FEATURES: list[str] = [s for r in MACRO_RELEASES for s in MACRO_SERIES_OF[r]]
+
 # Options block (real options data; panel-v4 activation). Date-keyed options
 # features (GEX family + chain aggregates) enter the panel through
 # src/data/options_features.py, which enforces the publication-lag (go-live)
@@ -282,6 +319,8 @@ NON_NEGATIVE_SERIES: frozenset[str] = frozenset(
         "fomc_day",
         "fomc_until_inv",
         "fomc_since_inv",
+        # 2026-10-29: the macro release calendars, as the FOMC series (MACRO_CALENDARS)
+        *MACRO_FEATURES,
     }
 )
 SIGNED_SERIES: frozenset[str] = frozenset(
@@ -471,6 +510,133 @@ FOMC_2020_SCHEDULED: str = "2020-03-18 14:30"  # the replaced meeting's schedule
 FOMC_2020_ANNOUNCEMENT: str = "2020-03-15 17:00"  # the emergency action (Sunday, ET)
 FOMC_2020_NEXT: str = "2020-04-29 14:30"  # the next statement issued
 
+# ── Macro release calendars: fixes (MACRO_CALENDARS; see the block at MACRO_RELEASES) ─────────────────────────────
+# Source of every date below (2026-10-29 schedule research): OMB's annual "Schedule of Release Dates for Principal
+# Federal Economic Indicators" 2002-2024 (all 1,656 scheduled dates of the six series, frozen as issued the autumn
+# before; results/macro_calendar_2026-10-29/scheduled.csv), checked against the realized dates (ALFRED, the agencies' release
+# texts and notices): 27 scheduled dates of our six series moved (MACRO_RESCHEDULED), every other scheduled date was a
+# release.  All six release at 08:30 ET throughout (stamp: the 09:00 bar end), the moved ones included.
+# Against that calendar the file's flags 2002-01 .. its last flag are the actual releases except: three trade releases
+# missing on days the file has bars, the releases on the Good Fridays the futures market did not open (no bar in the
+# file: 2007-04-06, 2010-04-02, 2012-04-06 jobs; 2017-04-14 CPI and retail; 2020-04-10 CPI), and four flags a few days
+# off the release (MACRO_MISDATED_RELEASES).  MACRO_CALENDAR_FIX (as FOMC_CALENDAR_FIX) applies the three tables below
+# (the file is not edited, nor its columns in the frame): the releases after each calendar's last flag up to the panel
+# end 2024-04-30 (the file's macro calendars stop between 2023-10-26 (GDP) and 2024-01-09 (trade)), the omitted and
+# misdated ones, and the first release after the panel (the next event of the last rows' until_inv).  Before 2002 the
+# file is not checked (no OMB table here); the one 1999 Good Friday jobs report is added; the file has no flag in
+# 2001-09 for retail and PPI (the week of 11 September 2001), unverified, not changed.
+MACRO_CALENDAR_FIX: bool = True
+MACRO_MISSING_RELEASES: dict[str, tuple[str, ...]] = {
+    "cpi": ("2024-01-11 09:00", "2024-02-13 09:00", "2024-03-12 09:00", "2024-04-10 09:00"),
+    "emp": ("2024-01-05 09:00", "2024-02-02 09:00", "2024-03-08 09:00", "2024-04-05 09:00"),
+    "ppi": ("2024-01-12 09:00", "2024-02-16 09:00", "2024-03-14 09:00", "2024-04-11 09:00"),
+    "gdp": ("2024-01-25 09:00", "2024-04-25 09:00"),  # Q4 2023, Q1 2024 advance (file: last 2023-10-26)
+    "trade": ("2024-02-07 09:00", "2024-03-07 09:00", "2024-04-04 09:00"),  # file: last 2024-01-09
+    "retail": ("2024-01-17 09:00", "2024-02-15 09:00", "2024-03-14 09:00", "2024-04-15 09:00"),
+}
+MACRO_OMITTED_RELEASES: dict[str, tuple[str, ...]] = {
+    "cpi": ("2017-04-14 09:00", "2020-04-10 09:00"),  # Good Friday, no futures session
+    "emp": ("1999-04-02 09:00", "2007-04-06 09:00", "2010-04-02 09:00", "2012-04-06 09:00"),  # Good Friday
+    "ppi": (),
+    "gdp": (),
+    "trade": ("2006-08-10 09:00", "2007-02-13 09:00", "2008-08-12 09:00"),  # bars in the file, no flag
+    "retail": ("2017-04-14 09:00",),  # Good Friday
+}
+# (file flag, actual release): the file's flag is dropped and the release added
+MACRO_MISDATED_RELEASES: dict[str, tuple[tuple[str, str], ...]] = {
+    "cpi": (),
+    "emp": (),
+    "ppi": (),
+    "gdp": (("2009-10-28 09:00", "2009-10-29 09:00"), ("2018-10-25 09:00", "2018-10-26 09:00")),  # Q3 advance
+    "trade": (),
+    "retail": (("2003-11-11 09:00", "2003-11-14 09:00"), ("2003-12-15 09:00", "2003-12-11 09:00")),
+}
+MACRO_NEXT_RELEASE: dict[str, str] = {
+    "cpi": "2024-05-15 09:00",
+    "emp": "2024-05-03 09:00",
+    "ppi": "2024-05-14 09:00",
+    "gdp": "2024-07-25 09:00",
+    "trade": "2024-05-02 09:00",
+    "retail": "2024-05-15 09:00",
+}
+
+
+class MacroReschedule(NamedTuple):
+    """A release moved after it was scheduled (MACRO_SCHEDULE_FIX).  Stamps: naive ET; ``scheduled`` and ``actual`` are
+    bar ends (09:00 for an 08:30 ET release), the two notices the time they became public (known at a bar ending at or
+    after it)."""
+
+    scheduled: str  # the original scheduled release (OMB's annual schedule)
+    postponed_public: str  # the old date withdrawn: the postponement notice, or the start of a funding lapse
+    new_date_public: str  # the new date (= actual) announced
+    actual: str  # the release (a stamp of the calendar)
+    note: str = ""
+
+
+def _moved(scheduled: str, actual: str, postponed_public: str, new_date_public: str, note: str) -> MacroReschedule:
+    return MacroReschedule(f"{scheduled} 09:00", postponed_public, new_date_public, f"{actual} 09:00", note)
+
+
+# MACRO_SCHEDULE_FIX (the lookahead control; as FOMC_SCHEDULE_2020_FIX): the calendar holds ACTUAL dates, so without a
+# fix until_inv would count, from the moment a release was due, to a date no one knew yet.  A moved release passes
+# through three states: before the postponement notice, its old date; from the notice until the new date is announced,
+# no date (pending: until_inv NaN before the forward fill, so its availability flag is 0, the impute-and-indicate
+# path's neutral fill); after the announcement, the new date.  With the flag on this holds on the bars whose next
+# release is a moved one; a postponement is public at the latest on the bar the release was due (the 09:00 bar shows it
+# did not come).  since_inv counts from the last ACTUAL release (a withdrawn date is not a release); day is 1 on the
+# actual date (the flag is 1 on the date of the last release or of the next release as scheduled at the bar: on every
+# bar of an actual release date and on no other while each new date is public before its release day, as all were;
+# the frame gate asserts the equality).  Notices (2026-10-29 schedule research, macro_schedule_sources.md 6.1-6.3):
+# the start of a funding lapse is the postponement notice of every release of the closed agencies -- 2013-10-01 for
+# BLS, BEA and Census, 2018-12-22 for BEA and Census (BLS was funded); a notice is public from 17:00 ET of its day
+# unless the sources give a time (the change applies from the next session); where they give only a bound ("set by
+# 02-28") the latest date (pending longer).  Every new date was public at least a day ahead.  Off: no record applies
+# (actual dates only).
+MACRO_SCHEDULE_FIX: bool = True
+_LAPSE_2013 = "2013-10-01 17:00"  # lapse in appropriations 2013-10-01 .. 2013-10-16: BLS, BEA, Census
+_LAPSE_2018 = "2018-12-22 17:00"  # lapse 2018-12-22 .. 2019-01-25: BEA, Census
+MACRO_RESCHEDULED: dict[str, tuple[MacroReschedule, ...]] = {
+    "cpi": (
+        _moved("2013-10-16", "2013-10-30", _LAPSE_2013, "2013-10-17 17:00", "Sep-2013; BLS revised schedule 10-17"),
+        _moved("2013-11-15", "2013-11-20", _LAPSE_2013, "2013-10-23 17:00", "Oct-2013; by 10-23 (AP list, DOL)"),
+    ),
+    "emp": (
+        _moved("2013-10-04", "2013-10-22", _LAPSE_2013, "2013-10-17 16:38", "Sep-2013; BLS 10-17 (posted 16:38 ET)"),
+        _moved("2013-11-01", "2013-11-08", _LAPSE_2013, "2013-10-17 17:00", "Oct-2013; BLS 10-17"),
+    ),
+    "ppi": (
+        _moved("2004-02-19", "2004-03-18", "2004-02-17 17:00", "2004-03-17 17:00", "Jan-2004, NAICS conversion"),
+        _moved("2004-03-12", "2004-04-01", "2004-03-05 17:00", "2004-03-31 17:00", "Feb-2004; date set by 03-31"),
+        _moved("2004-04-08", "2004-04-22", "2004-04-01 17:00", "2004-04-21 17:00", "Mar-2004; date set by 04-21"),
+        _moved("2004-06-11", "2004-06-17", "2004-06-07 17:00", "2004-06-16 17:00", "May-2004; EO 13343 closure"),
+        _moved("2013-10-11", "2013-10-29", _LAPSE_2013, "2013-10-17 17:00", "Sep-2013; BLS 10-17"),
+        _moved("2013-11-14", "2013-11-21", _LAPSE_2013, "2013-10-23 17:00", "Oct-2013; by 10-23 (DOL 13-2065)"),
+    ),
+    "gdp": (
+        _moved("2013-10-30", "2013-11-07", _LAPSE_2013, "2013-10-21 17:00", "Q3-2013 advance; BEA 10-21"),
+        _moved("2019-01-30", "2019-02-28", _LAPSE_2018, "2019-02-06 17:00", "Q4-2018 advance ('initial'); BEA 02-06"),
+    ),
+    "trade": (
+        _moved("2004-06-11", "2004-06-14", "2004-06-07 17:00", "2004-06-11 17:00", "Apr-2004; EO 13343; by 06-11"),
+        _moved("2013-10-08", "2013-10-24", _LAPSE_2013, "2013-10-21 17:00", "Aug-2013; Census/BEA 10-21"),
+        _moved("2013-11-05", "2013-11-14", _LAPSE_2013, "2013-10-21 17:00", "Sep-2013; Census/BEA 10-21"),
+        _moved("2019-01-08", "2019-02-06", _LAPSE_2018, "2019-01-30 17:00", "Nov-2018; BEA / Census 01-30"),
+        _moved("2019-02-05", "2019-03-06", _LAPSE_2018, "2019-02-06 17:00", "Dec-2018; BEA 02-06"),
+        _moved("2019-03-07", "2019-03-27", _LAPSE_2018, "2019-02-28 17:00", "Jan-2019; by 02-28 (Census)"),
+        _moved("2019-04-03", "2019-04-17", _LAPSE_2018, "2019-02-28 17:00", "Feb-2019; by 02-28 (Census)"),
+        _moved("2019-05-07", "2019-05-09", _LAPSE_2018, "2019-02-28 17:00", "Mar-2019; by 02-28 (Census)"),
+    ),
+    "retail": (
+        _moved("2010-02-11", "2010-02-12", "2010-02-10 17:00", "2010-02-10 17:00", "Jan-2010; snow closure"),
+        _moved("2013-10-11", "2013-10-29", _LAPSE_2013, "2013-10-21 17:00", "Sep-2013; Census 10-21"),
+        _moved("2013-11-14", "2013-11-20", _LAPSE_2013, "2013-10-21 17:00", "Oct-2013; Census 10-21"),
+        _moved("2019-01-16", "2019-02-14", _LAPSE_2018, "2019-02-06 17:00", "Dec-2018; Census 02-06"),
+        _moved("2019-02-15", "2019-03-11", _LAPSE_2018, "2019-02-28 17:00", "Jan-2019; set by 02-28"),
+        _moved("2019-03-14", "2019-04-01", _LAPSE_2018, "2019-02-28 17:00", "Feb-2019; by 02-28 (Census)"),
+        _moved("2019-04-16", "2019-04-18", _LAPSE_2018, "2019-02-28 17:00", "Mar-2019; by 02-28 (Census)"),
+    ),
+}
+
 # VIX / VIX3M / VVIX stop at 2024-02-12 in data/vix_and_voldemand.parquet, 54 of the 866
 # trade days short of the panel end; their imputed tail put the VIX availability ladders
 # outside their training range on all 54 days.  The Yahoo hourly snapshot
@@ -635,6 +801,180 @@ def add_fomc_features(df: pd.DataFrame) -> list[str]:
     else:
         df[FOMC_FEATURES] = np.nan
     return list(FOMC_FEATURES)
+
+
+# ── Macro release calendars: construction (MACRO_CALENDARS) ──────────────────────────────────────────────────────
+
+
+def _grid_positions(tv: np.ndarray, stamps: np.ndarray) -> np.ndarray:
+    """Positions of ``stamps`` on the calendar-open grid of the frame's bar ends ``tv`` (sorted datetime64[ns]): the row
+    of a stamp inside the frame (it must be a bar of the frame), ``n - 1 +`` the calendar-open bars to a stamp after the
+    last bar (FOMC_NEXT_STATEMENT's rule), ``-`` the calendar-open bars from a stamp before the first bar to it."""
+    n = len(tv)
+    pos = np.searchsorted(tv, stamps, side="left").astype(np.int64)
+    out = np.empty(len(stamps), dtype=np.int64)
+    for j, s in enumerate(stamps):
+        p = int(pos[j])
+        if p < n and tv[p] == s:
+            out[j] = p
+        elif s > tv[-1]:
+            out[j] = n - 1 + _calendar_open_bars_between(pd.Timestamp(tv[-1]), pd.Timestamp(s))
+        elif s < tv[0]:
+            out[j] = -_calendar_open_bars_between(pd.Timestamp(s), pd.Timestamp(tv[0]))
+        else:
+            raise ValueError(f"release stamp {pd.Timestamp(s)} is inside the frame but not one of its bars")
+    return out
+
+
+def _ts64(s: str | pd.Timestamp | np.datetime64) -> np.datetime64:
+    return np.datetime64(pd.Timestamp(s).as_unit("ns").to_datetime64())
+
+
+def macro_calendar_series(
+    t: pd.Series | pd.DatetimeIndex | np.ndarray,
+    stamps: Iterable[str | pd.Timestamp | np.datetime64] | pd.DatetimeIndex,
+    reschedules: Sequence[MacroReschedule] = (),
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """(day, until_inv, since_inv) of one release calendar on the bar ends ``t`` (the calendar-open grid, sorted).
+
+    ``stamps``: the actual release bar stamps (any order; may lie after the frame: the next release of the last rows).
+    ``reschedules``: MacroReschedule records whose ``actual`` is one of ``stamps`` (others are ignored).
+    add_fomc_features' construction: until_inv = 1 / (1 + bars to the next release) (1 on the release bar), since_inv =
+    1 / (1 + bars since the last release, the release bar included), NaN before the frame's first release (releases
+    before the first bar are not seen, as FOMC's); rows after the calendar's last release are NaN in all three (the
+    calendar is not known there: FOMC's dead tail).  The day flag is 1 on a bar whose date is the date of the last
+    release at or before it or of its next release as scheduled at the bar.  Each record changes the rows whose next
+    release is its ``actual``: before the postponement is public (at the latest the ``scheduled`` bar) until_inv counts
+    to ``scheduled`` (and day follows it); from then until the new date is public until_inv is NaN (and no next date
+    enters day); after that, unchanged.  since_inv is never changed.  Row-local: a row reads only the releases up to its
+    next one and that release's notices public by the row (experiments/macro_calendar_check.py GNL-1)."""
+    tv = pd.DatetimeIndex(pd.to_datetime(t)).as_unit("ns").to_numpy()
+    n = len(tv)
+    day = np.full(n, np.nan, dtype=np.float64)
+    until = np.full(n, np.nan, dtype=np.float64)
+    since = np.full(n, np.nan, dtype=np.float64)
+    if n == 0:
+        return day, until, since
+    st = np.unique(pd.DatetimeIndex(pd.to_datetime(list(stamps))).as_unit("ns").to_numpy())
+    st = st[st >= tv[0]]
+    if not st.size:
+        return day, until, since
+    sp = _grid_positions(tv, st)
+    i = np.arange(n)
+    nxt = np.searchsorted(sp, i, side="left")  # the first release at or after the row
+    prev = np.searchsorted(sp, i, side="right") - 1  # the last release at or before the row
+    ok = nxt < sp.size
+    until[ok] = 1.0 / (1.0 + (sp[nxt[ok]] - i[ok]).astype(np.float64))
+    ok2 = prev >= 0
+    since[ok2] = 1.0 / (1.0 + (i[ok2] - sp[prev[ok2]]).astype(np.float64))
+    nat = np.datetime64("NaT", "ns")
+    sched = np.full(n, nat)  # the next release's date as scheduled at the row (NaT: none / unknown)
+    sched[ok] = st[nxt[ok]]
+    seen: set[np.datetime64] = set()
+    for rec in reschedules:
+        a, o = _ts64(rec.actual), _ts64(rec.scheduled)
+        p_pub, n_pub = _ts64(rec.postponed_public), _ts64(rec.new_date_public)
+        if not (p_pub <= n_pub <= a) or o == a:
+            raise ValueError(f"inconsistent reschedule record {rec}")
+        if a in seen:
+            raise ValueError(f"two reschedule records for the release {rec.actual}")
+        seen.add(a)
+        k = int(np.searchsorted(st, a))
+        if k >= st.size or st[k] != a:
+            continue  # not a release of this calendar / frame
+        rows = nxt == k
+        postponed = min(p_pub, o)  # public at the latest on the bar the release was due
+        before = rows & (tv < postponed)
+        if before.any():
+            p_o = int(_grid_positions(tv, np.array([o]))[0])
+            until[before] = 1.0 / (1.0 + (p_o - i[before]).astype(np.float64))
+            sched[before] = o
+        unknown = rows & (tv >= postponed) & (tv < n_pub)
+        until[unknown] = np.nan
+        sched[unknown] = nat
+    dd = tv.astype("datetime64[D]")
+    last_day = np.full(n, np.datetime64("NaT", "D"))
+    last_day[ok2] = st[prev[ok2]].astype("datetime64[D]")
+    day[:] = ((dd == last_day) | (dd == sched.astype("datetime64[D]"))).astype(np.float64)
+    if sp[-1] < n - 1:
+        dead = i > sp[-1]
+        day[dead] = until[dead] = since[dead] = np.nan
+    return day, until, since
+
+
+def _macro_fixed_calendar(r: str, file_stamps: pd.DatetimeIndex, include_next: bool = True) -> pd.DatetimeIndex:
+    """Release r's file flags with MACRO_CALENDAR_FIX applied (sorted, unique): the misdated flags replaced by their
+    releases, the missing and omitted releases added (and the next release with ``include_next``)."""
+    st = pd.DatetimeIndex(file_stamps)
+    if MACRO_CALENDAR_FIX:
+        mis = MACRO_MISDATED_RELEASES.get(r, ())
+        st = st[~st.isin(pd.to_datetime([w for w, _ in mis]))]
+        add = [*MACRO_MISSING_RELEASES.get(r, ()), *MACRO_OMITTED_RELEASES.get(r, ()), *(a for _, a in mis)]
+        if include_next and MACRO_NEXT_RELEASE.get(r):
+            add.append(MACRO_NEXT_RELEASE[r])
+        st = st.append(pd.DatetimeIndex(pd.to_datetime(add)))
+    return pd.DatetimeIndex(st.unique()).sort_values()
+
+
+def macro_frame_calendar(df: pd.DataFrame, r: str) -> tuple[pd.DatetimeIndex, tuple[MacroReschedule, ...]]:
+    """Release r's calendar as add_macro_features reads it from a frame: (stamps, reschedule records).  The stamps are
+    the frame's flags fixed by MACRO_CALENDAR_FIX (MACRO_NEXT_RELEASE included: the next event past the frame)."""
+    t = pd.to_datetime(df["t"])
+    raw = pd.to_numeric(df[MACRO_RELEASES[r]], errors="coerce").to_numpy(dtype=np.float64)
+    stamps = _macro_fixed_calendar(r, pd.DatetimeIndex(t[np.nan_to_num(raw, nan=0.0) > 0.0]))
+    recs = MACRO_RESCHEDULED.get(r, ()) if MACRO_SCHEDULE_FIX else ()
+    return stamps, tuple(recs)
+
+
+def add_macro_features(df: pd.DataFrame, releases: Iterable[str] | None = None) -> list[str]:
+    """The macro release calendars' series (MACRO_FEATURES) on the calendar-open grid, in place; returns the names.
+
+    Called by load_raw_data under MACRO_CALENDARS, after add_fomc_features (before the dead-session drop: distances are
+    counted on the calendar-open grid).  The raw release columns are not changed.  A release whose column is missing
+    is skipped."""
+    if "t" not in df.columns:
+        return []
+    t = pd.to_datetime(df["t"])
+    added: list[str] = []
+    for r, col in MACRO_RELEASES.items():
+        if (releases is not None and r not in releases) or col not in df.columns:
+            continue
+        stamps, recs = macro_frame_calendar(df, r)
+        day, until, since = macro_calendar_series(t, stamps, recs)
+        names = MACRO_SERIES_OF[r]
+        df[names[0]], df[names[1]], df[names[2]] = day, until, since
+        added += names
+    return added
+
+
+_REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+
+@lru_cache(maxsize=4)
+def _release_file_stamps(path: str) -> dict[str, pd.DatetimeIndex]:
+    rel = pd.read_parquet(path, columns=["endbartime", *MACRO_RELEASES.values()])
+    tt = pd.to_datetime(rel["endbartime"])
+    return {
+        r: pd.DatetimeIndex(tt[(pd.to_numeric(rel[c], errors="coerce").fillna(0.0) > 0.0).to_numpy()])
+        for r, c in MACRO_RELEASES.items()
+    }
+
+
+def macro_release_stamps(r: str, path: str | None = None, include_next: bool = False) -> pd.DatetimeIndex:
+    """Release r's actual release bar stamps after all fixes (bar END, naive ET; 09:00 = the 08:30 ET release), sorted:
+    the file's flags (data/releases.parquet, the whole file) with, under MACRO_CALENDAR_FIX, the misdated flags moved
+    to their releases and the missing and omitted releases added (MACRO_MISDATED_RELEASES, MACRO_MISSING_RELEASES,
+    MACRO_OMITTED_RELEASES; MACRO_NEXT_RELEASE with ``include_next``).  The scheduled dates of moved releases
+    (MACRO_RESCHEDULED) are not releases and are not among them."""
+    if r not in MACRO_RELEASES:
+        raise KeyError(f"unknown macro release {r!r}; valid: {list(MACRO_RELEASES)}")
+    p = path or os.path.join(_REPO_ROOT, "data", "releases.parquet")
+    return _macro_fixed_calendar(r, _release_file_stamps(os.path.abspath(p))[r], include_next=include_next)
+
+
+def macro_release_days(r: str, path: str | None = None, include_next: bool = False) -> pd.DatetimeIndex:
+    """The calendar dates (midnight) of macro_release_stamps(r)."""
+    return pd.DatetimeIndex(macro_release_stamps(r, path, include_next).normalize().unique())
 
 
 def _is_moment(f: str) -> bool:
@@ -823,6 +1163,10 @@ SUBGROUPS["lean_vol_vix"] = [
     "sumvolume",
     "vix",
 ]
+# 2026-10-29 (author; MACRO_CALENDARS): the six macro release calendars, 3 series a release (18), and the full set
+# with them.  Outside ALL_FEATURES like the blocks above; the columns exist only when MACRO_CALENDARS is on.
+SUBGROUPS["macro"] = list(MACRO_FEATURES)
+SUBGROUPS["all_features_mac"] = list(ALL_FEATURES) + list(MACRO_FEATURES)
 
 
 def get_bucket(name: str) -> list[str]:
@@ -984,6 +1328,9 @@ def load_raw_data(
     # it NaN overnight lets the normal ffill / impute-and-indicate path handle it honestly.
     add_derived_features(df)
     add_fomc_features(df)
+    if MACRO_CALENDARS:
+        # 2026-10-29 (author): the macro release calendars, as FOMC's (see MACRO_RELEASES)
+        add_macro_features(df)
 
     # ── 7. Dead-session drop / RV fill ────────────────────────────────
     if drop_dead_session:

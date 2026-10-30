@@ -18,6 +18,19 @@ usage: python experiments/ablate_design.py <mode> [options]
                                          cache (LATE_START_WARMUP), its first live row, dates where the cache has
                                          them, live share of the 2014-2024 evaluation rows; checked against the
                                          window sweep's latestart_rule_all.csv (w3000)
+  2026-10-29 addendum L (the macro release calendars):
+  buildmac  --out D [--data data]        the macro cache (bucket all_features_mac): pool_linear_pretune.py design with
+                                         the FOMC-patched design's arguments (CFG + cell B's flags, as fomcfix's
+                                         lin_stage.sh design stage ran them through the orchestrator: one thread)
+                                         + MACRO_CALENDARS=1; its names checked (ablate_arms.check_mac_names)
+  checkmac  --mac D --full D --out J     gate GM0: the patched full cache's X md5 = 725eb201...; the macro cache's y /
+                                         b_oos / dates bytes = its; bucket, config (cell B + MACRO_CALENDARS) and names
+                                         (the 564 in their order + the 216 macro columns in place); the 564 columns
+                                         bit-identical; the macro columns finite (exit 3 on a failure)
+  submac    --mac D --root R [--arms A,..]
+                                         the linear caches from the macro cache: R/har_sub (12, baseline), R/full (the
+                                         564, all_features: gate LF's full set; X md5 must be 725eb201..., har_sub's
+                                         05da4b5b...) and R/<arm> for every macro arm (exit 3 on an md5 failure)
 """
 
 from __future__ import annotations
@@ -206,6 +219,187 @@ def cmd_checkfix(a) -> int:
     Path(a.out).write_text(json.dumps(rec, indent=1))
     say(f"gate F0 {'PASS' if rec['pass'] else 'FAIL'}: {len(diff)} differing columns; {rec['fail']}")
     return 0 if rec["pass"] else 3
+
+
+# ============================================================================ addendum L: the macro cache
+# fomcfix cell B's design flags (results/fomcfix_2026-10-26/RULE.txt; lin_stage.sh CELL, after LATE_START_WARMUP), then
+# the macro calendars
+CELL_B = ["FOMC_SCHEDULE_2020_FIX=1", "FOMC_PROXIMITY_NO_WINSOR=1", "DROP_HOLIDAY_SESSIONS=0"]
+MAC_FLAGS = [*CELL_B, "MACRO_CALENDARS=1"]
+RUNNER = ROOT / "experiments" / "pool_linear_pretune.py"
+
+
+def mac_cfg() -> list[str]:
+    """The macro cache's runner arguments after "design --bucket all_features_mac --out D": the orchestrator's CFG (=
+    CFG here) followed by the cell's flags, as pooled_linear_rerun_2026_10_19_13.py main extends its CFG for
+    lin_stage.sh's design stage, + MACRO_CALENDARS=1."""
+    out = list(CFG)
+    for f in MAC_FLAGS:
+        out += ["--ex-flag", f]
+    return out
+
+
+def mac_config(full_config: dict) -> dict:
+    """The macro cache's design.json config: the patched full cache's, with MACRO_CALENDARS on."""
+    c = json.loads(json.dumps(full_config))
+    c["ex_flags"] = dict(c["ex_flags"], MACRO_CALENDARS=True)
+    return c
+
+
+def cmd_buildmac(a) -> int:
+    """The macro cache as the patched cache was built: pooled_linear_rerun_2026_10_19_13.run's subprocess (one thread
+    for OpenMP / OpenBLAS / MKL / numba, cwd = the code tree), the runner's design mode on bucket all_features_mac."""
+    import subprocess
+
+    out = Path(a.out).resolve()
+    args = ["design", "--bucket", AA.MAC_BUCKET, "--out", str(out)]
+    if a.data != "data":
+        args += ["--data", a.data]
+    env = dict(
+        os.environ,
+        OMP_NUM_THREADS="1",
+        OPENBLAS_NUM_THREADS="1",
+        MKL_NUM_THREADS="1",
+        NUMBA_NUM_THREADS="1",
+        PYTHONUNBUFFERED="1",
+    )
+    cmd = [sys.executable, "-u", str(RUNNER), *args, *mac_cfg()]
+    say(f"buildmac: {' '.join(cmd[2:])}")
+    t0 = time.time()
+    r = subprocess.run(cmd, env=env, cwd=ROOT)
+    if r.returncode:
+        say(f"buildmac: runner exit {r.returncode}")
+        return r.returncode
+    m = meta(out)
+    AA.check_mac_names(m["names"])
+    assert m["bucket"] == AA.MAC_BUCKET and m["f_order"], (m["bucket"], m["f_order"])
+    assert m["config"]["ex_flags"].get("MACRO_CALENDARS") is True, m["config"]
+    say(
+        f"buildmac done in {time.time() - t0:.0f} s: {m['shape']}, {len(m['names'])} columns; X md5 {md5(out / 'X.npy')}"
+    )
+    return 0
+
+
+def _npy_md5(a: np.ndarray) -> str:
+    import io
+
+    buf = io.BytesIO()
+    np.save(buf, a)
+    return hashlib.md5(buf.getvalue()).hexdigest()
+
+
+def cmd_checkmac(a) -> int:
+    """Gate GM0 (addendum L): the macro cache against the FOMC-patched full cache."""
+    mac, full = Path(a.mac), Path(a.full)
+    rec: dict = {"mac": str(mac), "full": str(full), "fail": []}
+    rec["full_x_md5"] = md5(full / "X.npy")
+    if rec["full_x_md5"] != FIX_X_MD5:
+        rec["fail"].append(f"patched cache X md5 {rec['full_x_md5']} != {FIX_X_MD5}")
+    rec["mac_md5"] = {f: md5(mac / f) for f in ("X.npy", "y.npy", "b_oos.npy", "dates_oos.csv", "design.json")}
+    for f in ("y.npy", "b_oos.npy", "dates_oos.csv"):
+        if (mac / f).read_bytes() != (full / f).read_bytes():
+            rec["fail"].append(f"{f} differs")
+    mm, mf = meta(mac), meta(full)
+    if mm.get("bucket") != AA.MAC_BUCKET:
+        rec["fail"].append(f"bucket {mm.get('bucket')} != {AA.MAC_BUCKET}")
+    rec["config_mac"], rec["config_full"] = mm.get("config"), mf.get("config")
+    if mm.get("config") != mac_config(mf["config"]):
+        rec["fail"].append(f"config {mm.get('config')} != the patched cache's + MACRO_CALENDARS")
+    names, fn = list(mm["names"]), list(mf["names"])
+    gs, ms = AA.group_series(), AA.mac_series()
+    rec["macro_series"] = ms
+    try:
+        AA.check_mac_names(names, gs, ms)
+    except AssertionError as e:
+        rec["fail"].append(f"names: {e}")
+    base = [n for n in names if not AA.is_mac_col(n)]
+    if base != fn:
+        rec["fail"].append("the non-macro names (in order) differ from the patched cache's")
+    if names != AA.mac_names(fn, ms):
+        rec["fail"].append("names != the patched names with the macro blocks in place")
+    Xm, Xf = load_X(mac), load_X(full)
+    rec["shape"], rec["f_order"] = list(Xm.shape), bool(mm.get("f_order"))
+    if Xm.shape[0] != Xf.shape[0] or not (Xm.flags.f_contiguous and Xf.flags.f_contiguous):
+        rec["fail"].append(f"rows / layout: {Xm.shape} {Xf.shape}")
+    diff = []
+    for j, n in enumerate(fn):
+        if n not in names:
+            diff.append(n)
+            continue
+        x, y = np.asarray(Xm[:, names.index(n)]), np.asarray(Xf[:, j])
+        if not (np.array_equal(x, y) and x.tobytes() == y.tobytes()):
+            diff.append(n)
+    rec["differing_columns"] = diff
+    if diff:
+        rec["fail"].append(f"{len(diff)} of the 564 columns not bit-identical: {diff[:6]}")
+    # recorded: the 564 columns written as a cache would be (F order) -- = the patched X.npy byte for byte when the
+    # columns are and np.save writes the same header
+    idx = [names.index(n) for n in fn if n in names]
+    if len(idx) == len(fn):
+        rec["subset_npy_md5"] = _npy_md5(np.asfortranarray(Xm[:, idx]))
+        rec["subset_npy_md5_equal"] = rec["subset_npy_md5"] == FIX_X_MD5
+    st = {}
+    for n in [n for n in names if AA.is_mac_col(n)]:
+        c = np.asarray(Xm[:, names.index(n)])
+        nz = np.flatnonzero(c != 0.0)
+        st[n] = dict(
+            finite=bool(np.isfinite(c).all()),
+            min=float(np.nanmin(c)),
+            max=float(np.nanmax(c)),
+            zeros=int(np.sum(c == 0.0)),
+            first_nonzero_row=int(nz[0]) if len(nz) else -1,
+            sd_after_w=float(np.std(c[W:])) if np.isfinite(c).all() else float("nan"),
+        )
+        if not st[n]["finite"]:
+            rec["fail"].append(f"macro column {n} not finite")
+        if "_avail_ma_" in n and not (st[n]["min"] >= 0.0 and st[n]["max"] <= 1.0):
+            rec["fail"].append(f"availability column {n} outside [0, 1]")
+    rec["macro_columns"] = st
+    rec["macro_constant"] = sorted(n for n, v in st.items() if v["sd_after_w"] == 0.0)  # recorded
+    rec["pass"] = not rec["fail"]
+    Path(a.out).parent.mkdir(parents=True, exist_ok=True)
+    Path(a.out).write_text(json.dumps(rec, indent=1))
+    say(
+        f"gate GM0 {'PASS' if rec['pass'] else 'FAIL'}: {len(names)} columns, {len(st)} macro, X md5 "
+        f"{rec['mac_md5']['X.npy']}; {rec['fail'][:5]}"
+    )
+    return 0 if rec["pass"] else 3
+
+
+def cmd_submac(a) -> int:
+    """The linear caches of addendum L from the macro cache (column subsets, F order, labelled as every linear arm):
+    har_sub (baseline) and full (all_features) for gate LF, and the macro arms."""
+    mac, root = Path(a.mac), Path(a.root)
+    m = meta(mac)
+    assert m["bucket"] == AA.MAC_BUCKET, m["bucket"]
+    names = list(m["names"])
+    gs, ms = AA.group_series(), AA.mac_series()
+    AA.check_mac_names(names, gs, ms)
+    only = [x for x in a.arms.split(",") if x]
+    recs, fail = [], []
+    if not only or "har_sub" in only:
+        r = write_subset(mac, AA.arm_names("har", names, gs), root / "har_sub", "har_sub", "baseline")
+        if r["x_md5"] != TEMPLATE_MD5["baseline"]["X.npy"]:
+            fail.append(f"har_sub X md5 {r['x_md5']} != the baseline cache's")
+        recs.append(r)
+    if not only or "full" in only:
+        cols = AA.arm_names("full", names, gs)
+        assert len(cols) == AA.N_FULL, len(cols)
+        r = write_subset(mac, cols, root / "full", "full", "all_features")
+        if r["x_md5"] != FIX_X_MD5:
+            fail.append(f"full X md5 {r['x_md5']} != the patched cache's {FIX_X_MD5}")
+        recs.append(r)
+    for arm in [x for x in only if x not in ("har_sub", "full")] or AA.MAC_ARMS:
+        assert AA.is_mac_arm(arm), arm
+        cols = AA.arm_names(arm, names, gs, ms)
+        assert len(cols) == AA.n_cols(arm), (arm, len(cols), AA.n_cols(arm))
+        recs.append(write_subset(mac, cols, root / arm, arm, "all_features"))
+        say(f"subset {arm}: {len(cols)} columns")
+    pd.DataFrame(recs).to_csv(
+        root / ("subsets_mac.csv" if not only else f"subsets_mac_{'_'.join(only)}.csv"), index=False
+    )
+    say(f"submac: {len(recs)} caches -> {root}; {'PASS' if not fail else 'FAIL ' + str(fail)}")
+    return 0 if not fail else 3
 
 
 # ============================================================================ the new series
@@ -440,7 +634,11 @@ def cmd_latestart(a) -> int:
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("mode", choices=("check", "newseries", "cmpnew", "subsets", "latestart", "checkfix"))
+    ap.add_argument(
+        "mode",
+        choices=("check", "newseries", "cmpnew", "subsets", "latestart", "checkfix", "buildmac", "checkmac", "submac"),
+    )
+    ap.add_argument("--mac", default="", help="checkmac / submac: the macro cache (addendum L)")
     ap.add_argument("--full", default="")
     ap.add_argument("--har", default="")
     ap.add_argument("--new", default="")
@@ -458,6 +656,9 @@ def main() -> int:
         "subsets": cmd_subsets,
         "latestart": cmd_latestart,
         "checkfix": cmd_checkfix,
+        "buildmac": cmd_buildmac,
+        "checkmac": cmd_checkmac,
+        "submac": cmd_submac,
     }[a.mode](a)
 
 

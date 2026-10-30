@@ -147,6 +147,8 @@ DIURNAL_EXCLUDED_STEMS: tuple[str, ...] = (
     "fomc_day",
     "fomc_until_inv",
     "fomc_since_inv",
+    # 2026-10-29: the macro release calendars (src/data/loading.py MACRO_FEATURES, stem mac_<r>), as the FOMC series
+    "mac_",
 )
 
 
@@ -207,6 +209,15 @@ FOMC_FLAG_SERIES: frozenset[str] = frozenset({"fomc_release", "fomc_day"})
 # step are unchanged.  Off: the chain before the flag, bit for bit.
 FOMC_PROXIMITY_NO_WINSOR: bool = True
 FOMC_PROXIMITY_SERIES: frozenset[str] = frozenset({"fomc_until_inv", "fomc_since_inv"})
+# 2026-10-29 (author; src/data/loading.py MACRO_CALENDARS): the macro release calendars take the FOMC series' current
+# chain, unconditionally (new series, no earlier chain to reproduce): the day flags pass through (as FOMC_FLAG_SERIES
+# under FOMC_FLAGS_IDENTITY), until_inv / since_inv take the log and are not winsorized (as FOMC_PROXIMITY_SERIES under
+# FOMC_PROXIMITY_NO_WINSOR); none is diurnally adjusted (stem "mac_" in DIURNAL_EXCLUDED_STEMS).
+MACRO_RELEASE_KEYS: tuple[str, ...] = ("cpi", "emp", "ppi", "gdp", "trade", "retail")
+MACRO_FLAG_SERIES: frozenset[str] = frozenset(f"mac_{r}_day" for r in MACRO_RELEASE_KEYS)
+MACRO_PROXIMITY_SERIES: frozenset[str] = frozenset(
+    f"mac_{r}_{s}" for r in MACRO_RELEASE_KEYS for s in ("until_inv", "since_inv")
+)
 # CAUSAL_SD_FLOOR: the signed branch's s.d. floor is DIURNAL_STD_FLOOR_FRAC x the median of the
 # per-slot s.d. over the rows UP TO the current one (each s.d. is itself built from earlier
 # in-slot rows), not over the full sample (2026-10-15 audit: the causal floor sits 8-50 %
@@ -752,8 +763,9 @@ def robust_transform(
         )
     if col_name in SKIP_VARS:
         return df[col_name].copy(), pd.Series(1.0, index=df.index)
-    if FOMC_FLAGS_IDENTITY and col_name in FOMC_FLAG_SERIES:
+    if (FOMC_FLAGS_IDENTITY and col_name in FOMC_FLAG_SERIES) or col_name in MACRO_FLAG_SERIES:
         # 2026-10-15 (user): 0/1 flags pass through (no log, no winsorising); see FOMC_FLAGS_IDENTITY
+        # (2026-10-29: and the macro day flags, MACRO_FLAG_SERIES)
         return df[col_name].astype(np.float64).copy(), pd.Series(1.0, index=df.index)
     if slot_band is None:
         slot_band = 0.0 if is_target else DIURNAL_SLOT_BAND_FRAC
@@ -835,7 +847,7 @@ def robust_transform(
         series = series.fillna(0.0)  # matches rule 5's NaN policy for signed features
 
     # 2026-10-25 (FOMC_PROXIMITY_NO_WINSOR): the FOMC proximity ramps are not winsorized
-    no_winsor = FOMC_PROXIMITY_NO_WINSOR and col_name in FOMC_PROXIMITY_SERIES
+    no_winsor = (FOMC_PROXIMITY_NO_WINSOR and col_name in FOMC_PROXIMITY_SERIES) or col_name in MACRO_PROXIMITY_SERIES
     if winsor_window != 0 and not no_winsor:
         ww = winsor_window if winsor_window is not None else 240
         series = rolling_winsorize(

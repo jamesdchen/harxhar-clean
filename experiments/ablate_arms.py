@@ -12,6 +12,9 @@ An arm is a list of column names of a design cache:
   shar, harq, lhar, sharql   classical HAR extensions (value averages of the new series of bucket abl_new)
   brung_<est>_<k>   addendum I: add_rm_fomc + the top k remaining-block series of the model's ranking (LADDER)
   lrung_<est>_<k>   addendum K: the HAR set + the top k of the 46 series of the model's own ranking (LADALL)
+  add_mac, add_rm_fomc_mac, full_mac, add_rm_fomc_mac_<r>   addendum L: the macro release calendars (MAC_ARMS); read
+                    from the macro cache (bucket all_features_mac), on which every other arm means what it means on
+                    the full cache (the macro columns are dropped first: "full" stays the 564-column set)
 Column order: the cache's own order (har ladder, value ladders, availability ladders, calendar).
 """
 
@@ -273,6 +276,109 @@ def lrung_parts(arm: str) -> tuple[str, int]:
     return est, int(k)
 
 
+# 2026-10-29 addendum L (requested by the author on 29 October; not pre-registered): six US macro release calendars
+# built as the FOMC calendar (src/data/loading.py ex-flag MACRO_CALENDARS; series stem mac_<r>, three series a release
+# as FOMC's; SUBGROUPS["macro"], 18 series; SUBGROUPS["all_features_mac"] = ALL_FEATURES + macro, the macro series kept
+# OUT of ALL_FEATURES).  The macro cache (bucket all_features_mac) holds the full set's 564 columns bit for bit plus the
+# 216 macro columns, in the order: har ladder, the 46 series' value averages, the macro value averages, the 46 series'
+# availability averages, the macro availability averages, calendar.  Groups "mac" (all 18 series, 216 columns) and
+# "mac_<r>" (one release, 36 columns).  Kept out of every list above, so the task files those generate stay as they were.
+MAC_RELEASES = ("cpi", "emp", "ppi", "gdp", "trade", "retail")
+MAC_SUBGROUP = "macro"
+MAC_BUCKET = "all_features_mac"
+MAC_PER_RELEASE = 3  # the FOMC calendar's three series (day flag, until_inv, since_inv), per release
+MAC_GROUPS = ["mac"] + [f"mac_{r}" for r in MAC_RELEASES]
+MAC_N_SERIES = {"mac": MAC_PER_RELEASE * len(MAC_RELEASES), **{f"mac_{r}": MAC_PER_RELEASE for r in MAC_RELEASES}}
+MAC_LABEL = {
+    "mac": "Macro releases",
+    "mac_cpi": "CPI",
+    "mac_emp": "Employment",
+    "mac_ppi": "PPI",
+    "mac_gdp": "GDP (advance)",
+    "mac_trade": "Trade",
+    "mac_retail": "Retail sales",
+}
+MAC_PER = [f"add_rm_fomc_mac_{r}" for r in MAC_RELEASES]
+MAC_ARMS = ["full_mac", "add_rm_fomc_mac", "add_mac", *MAC_PER]  # the largest first
+# the OLS where the existing add arms run it: the augmented-HAR benchmarks HAR + RM (+ FOMC) (OLS_ARMS, addendum F),
+# so here HAR + RM + FOMC + macro and HAR + RM + FOMC + one release; not add_mac (as add_fomc) nor full_mac (as full)
+MAC_OLS_ARMS = ["add_rm_fomc_mac", *MAC_PER]
+N_FULL = 564
+N_FULL_MAC = N_FULL + 12 * MAC_N_SERIES["mac"]  # 780
+
+
+def is_mac_series(s: str | None) -> bool:
+    """A macro calendar series (stem mac_<r>, r in MAC_RELEASES); no series of the 46 or of abl_new is one."""
+    return s is not None and any(s == f"mac_{r}" or s.startswith(f"mac_{r}_") for r in MAC_RELEASES)
+
+
+def is_mac_col(col: str) -> bool:
+    return is_mac_series(series_of(col))
+
+
+def mac_series() -> dict[str, list[str]]:
+    """'mac' -> the 18 macro series (src/data/loading.py SUBGROUPS["macro"], its order); 'mac_<r>' -> release r's 3.
+    Asserts the interface: the stems, 3 a release, none in ALL_FEATURES, all_features_mac = ALL_FEATURES + macro."""
+    from src.data import loading as LD
+
+    mac = list(LD.SUBGROUPS[MAC_SUBGROUP])
+    assert len(mac) == MAC_N_SERIES["mac"] and len(set(mac)) == len(mac), mac
+    assert all(is_mac_series(s) for s in mac), [s for s in mac if not is_mac_series(s)]
+    assert not set(mac) & set(LD.ALL_FEATURES), sorted(set(mac) & set(LD.ALL_FEATURES))
+    assert list(LD.SUBGROUPS[MAC_BUCKET]) == list(LD.ALL_FEATURES) + mac, "all_features_mac != ALL_FEATURES + macro"
+    out = {"mac": mac}
+    for r in MAC_RELEASES:
+        out[f"mac_{r}"] = [s for s in mac if s == f"mac_{r}" or s.startswith(f"mac_{r}_")]
+    assert {g: len(v) for g, v in out.items()} == MAC_N_SERIES, {g: len(v) for g, v in out.items()}
+    return out
+
+
+def mac_parts(arm: str) -> tuple[list[str], str] | None:
+    """An add arm with macro columns -> (its groups before 'mac', the macro group): add_mac -> ([], 'mac'),
+    add_rm_fomc_mac -> (['rm', 'fomc'], 'mac'), add_rm_fomc_mac_cpi -> (['rm', 'fomc'], 'mac_cpi'); None otherwise."""
+    if not arm.startswith("add_"):
+        return None
+    tok = arm[4:].split("_")
+    if "mac" not in tok:
+        return None
+    i = tok.index("mac")
+    base, rest = tok[:i], tok[i + 1 :]
+    key = "mac" if not rest else "mac_" + "_".join(rest)
+    assert key in MAC_GROUPS and all(g in GROUPS for g in base) and len(set(base)) == len(base), arm
+    return base, key
+
+
+def is_mac_arm(arm: str) -> bool:
+    return arm == "full_mac" or mac_parts(arm) is not None
+
+
+def mac_names(names: list[str], ms: dict[str, list[str]] | None = None) -> list[str]:
+    """The macro cache's expected names: the non-macro names of `names` (the full set's, in its order) with the macro
+    value averages after the last value average and the macro availability averages after the last availability
+    average (series in SUBGROUPS["macro"] order, k ascending, as the full set's own blocks)."""
+    ms = ms or mac_series()
+    base = [n for n in names if not is_mac_col(n)]
+    har = [n for n in base if n.startswith("har_ma_")]
+    val = [n for n in base if n.startswith("adj_")]
+    av = [n for n in base if "_avail_ma_" in n]
+    cal = [n for n in base if n not in set(har) | set(val) | set(av)]
+    assert base == har + val + av + cal, "full set's order is not har, values, availabilities, calendar"
+    mv = [f"adj_{s}_ma_{k}" for s in ms["mac"] for k in HAR_K]
+    ma = [f"{s}_avail_ma_{k}" for s in ms["mac"] for k in HAR_K]
+    return har + val + mv + av + ma + cal
+
+
+def check_mac_names(names: list[str], gs: dict | None = None, ms: dict | None = None) -> None:
+    """The macro cache's 780 columns: the full set's 564 (check_full_names) in their order, the 216 macro columns
+    (each macro series' 6 value and 6 availability averages), in mac_names' order."""
+    ms = ms or mac_series()
+    base = [n for n in names if not is_mac_col(n)]
+    check_full_names(base, gs)
+    assert len(names) == N_FULL_MAC and len(set(names)) == N_FULL_MAC, len(names)
+    assert {n for n in names if is_mac_col(n)} == {c for s in ms["mac"] for c in series_cols(s)}, "macro columns"
+    assert names == mac_names(names, ms), "macro cache column order"
+
+
 def check_ladall(csv: str) -> None:
     """LADALL = the csv's primary ranking per model over all 46 series, first 20, in rank order."""
     import pandas as pd
@@ -333,8 +439,22 @@ def series_of(col: str) -> str | None:
     return m.group(1)
 
 
-def arm_names(arm: str, names: list[str], gs: dict[str, list[str]] | None = None) -> list[str]:
-    """The arm's columns, in the order of the cache `names` (the full design, or abl_new for a classical arm)."""
+def arm_names(
+    arm: str, names: list[str], gs: dict[str, list[str]] | None = None, ms: dict[str, list[str]] | None = None
+) -> list[str]:
+    """The arm's columns, in the order of the cache `names` (the full design, or abl_new for a classical arm, or
+    (addendum L) the macro cache: a macro arm takes its macro columns from it, every other arm drops them first)."""
+    if is_mac_arm(arm):  # addendum L
+        gs = gs or group_series()
+        ms = ms or mac_series()
+        if arm == "full_mac":
+            check_mac_names(names, gs, ms)
+            return list(names)
+        base, key = mac_parts(arm) or ([], "")
+        keep = set(HAR12).union(*(group_cols(g, gs) for g in base), *(series_cols(s) for s in ms[key]))
+        assert keep <= set(names), (arm, sorted(keep - set(names))[:4])
+        return [n for n in names if n in keep]
+    names = [n for n in names if not is_mac_col(n)]  # addendum L: a no-op on every cache without macro columns
     if arm in CLASSICAL:
         want = set(HAR12) | set(CLASSICAL[arm])
         out = [n for n in names if n in want]
@@ -391,6 +511,11 @@ def n_cols(arm: str) -> int:
         return 12
     if arm in CLASSICAL:
         return 12 + len(CLASSICAL[arm])
+    if arm == "full_mac":  # addendum L
+        return N_FULL_MAC
+    mp = mac_parts(arm)
+    if mp is not None:  # addendum L
+        return 12 + 12 * (sum(N_SERIES[g] for g in mp[0]) + MAC_N_SERIES[mp[1]])
     if arm.startswith("add_"):
         return 12 + 12 * sum(N_SERIES[g] for g in add_groups(arm))
     if arm.startswith("brung_"):
