@@ -313,3 +313,12 @@ variant's switches (lin_stage.sh's environment and numpy dispatch, the FOMC-fix 
 cell-B caches (/home1/jc_905/fomcfix_lin/runs/B; the /scratch1 copy is empty), pretune + select on fold 3, the walk and the score stage exactly as the
 FOMC-fix linear walks (--first-fold 3 on the walk and the score, as results/fomcfix_2026-10-26/code/walk_task.py:31; corrected 03:45, the
 first resubmission had dropped it and failed at the walk's halo assertion before any forecast), from a code tree of this commit (LF archive) at /scratch1/jc_905/tx.
+
+ADDENDUM G, 2026-10-30 15:45 PDT, after the linear verdicts were seen.  The author: "you can't use log in a naive way
+bc of the 0s in the dataset ... diurnal adjustments are obviously needed, it's one of the main results of the intraday
+forecasting literature."  V3 (log with the 1e-12 floor: the zero-RV rows go to about -27.6) is not interpreted; V3f
+(addendum D's pre-2013 floor) is the log comparison.  The diurnal variants (V4, V10) confirm the literature and get no
+further runs.  The LightGBM confirmation of section 6 (the 2013 picks V1, V7, V6; refit every bar on 2014-2024; full
+set, and the HAR set where it differs from V0's: V1, V7) runs on CARC EPYC through results/fomcfix_2026-10-26/code/
+tree_task.sh (jobs 13620112-14), merged per variant to runs/<V>/forecasts_lgbm.parquet and scored by
+experiments/transform_score.py as before.
