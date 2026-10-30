@@ -99,6 +99,12 @@ step. Whoever has the Agent tool runs it: the main session or a coordinator. A d
 tool returns its draft, its target line ranges and its edit log to the coordinator, which runs Step 3. **Small edits:**
 if the edit changes at most two sentences and no claim, number, caption or note, run (a) only.
 
+**As a workflow** (the author, 30 Oct 2026: "make it a workflow"): the coordinator can run (a)-(c) and the compile as
+the saved workflow `.claude/workflows/paper-update.js` (args `{file, base, range | task, branch, macroFiles, facts,
+regen, tag}`; it drafts if given a task, runs the code checks, the three auditors in parallel, the fixes as logged named
+operations, round 2 for the slices with confirmed gate violations, and the compile, and returns the counts, the open
+items and `ready_to_commit`). The coordinator still passes session-only facts, queues open items and commits.
+
 **(a) Code checks** (before any auditor, §8.3), on the changed ranges; for edits and rewrites also the diff:
 
     python writeup/style/prose_check.py lint FILE:START-END ... --json

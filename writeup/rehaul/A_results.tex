@@ -520,8 +520,8 @@
     the HAR benchmark set plus one calendar, and the random forest as a model class. It was recorded before the runs
     of the HAR benchmark set plus one calendar and of the random forest.
   \item The split of the scored days changed after the linear models had been scored under the addendum's original
-    split, which set release days against days with neither a release nor an FOMC statement, and after a preview of
-    those scores had been seen.
+    split and after a preview of those scores had been seen. The original split set release days against days with
+    neither a release nor an FOMC statement.
   \end{itemize}
 \item \textbf{Built as the FOMC calendar.} The \rhabNMacReleases{} calendars are those of the consumer and producer
   price indexes (CPI, PPI), the employment situation, the advance estimate of gross domestic product (GDP),
@@ -537,7 +537,7 @@
     FOMC calendar does in March 2020 (Appendix~\ref{app:rh_dp_fomc}). When a government shutdown postponed a release,
     the measure is missing from the notice of the postponement until the new date was announced.
   \end{itemize}
-\item \textbf{Release days split the sample as FOMC statement days do.} Release days are the \rhabNRelDays{} scored
+\item \textbf{Release days split the scored days as FOMC statement days do.} Release days are the \rhabNRelDays{} scored
   days with at least one of the
   releases. Non-release days are the other \rhabNNrelDays{} scored days, FOMC statement days included. Release days
   and non-release days split the scored days as the statement days and the ordinary days do for the FOMC calendar.
@@ -606,7 +606,8 @@
   ridge, lasso, elastic net, LightGBM, XGBoost and the random forest against the HAR benchmark set,
   HAR\,+\,RM\,+\,FOMC and the full predictor set without the bars from \rhmsRobustExclFirst{} to
   \rhmsRobustExclLast. The government shutdown of
-  2018--2019 postponed several releases. In this window, the postponements leave scaling outliers in some calendar predictors.
+  2018--2019 postponed several releases. In this window, the postponements leave scaling outliers in some release
+  calendars.
   \begin{itemize}
   \item OLS on HAR\,+\,RM\,+\,FOMC with all \rhabNMacReleases{} calendars changes the loss against
     HAR\,+\,RM\,+\,FOMC by \rhmsRobustOlsAllPct\% on every bar ($\DM = {}$\rhmsRobustOlsAllDm,
