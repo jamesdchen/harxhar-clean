@@ -17,13 +17,19 @@ S = All (every bar 2014-2024), Close (16:00 bar 2014-2024), CloseLate (16:00 bar
                                 Harq, Lhar, Sharql)
   counts and words of the prose (\\rhabNClassesBeatAddRm, ...), the late-start dates (\\rhabLive<Series>...).
 Macro releases (2026-10-29; only when the scores hold the macro arms, experiments/ablate_score.py MAC, else every output
-is as before; S = All, Rel (release days), Ev (FOMC statement days), Quiet (neither), Close):
+is as before).  Addendum L (iii), 2026-10-30: the day split is FOMC's (Ord / Ev): S = All (every bar), Nrel (the
+scored days without a release; FOMC statement days included), Rel (the days with at least one release), Close (the
+16:00 bar); per release R (Cpi Emp Ppi Gdp Trade Retail), Nrel / Rel are the days without / with release R:
   \\rhab<C>AddMac<S>{Qlike,Pct,Dm,P}            HAR + macro against the class's HAR
   \\rhab<C>AddRmFomcMac<S>{Qlike,Pct,Dm,P}      HAR + RM + FOMC + macro against HAR + RM + FOMC
-  \\rhab<C>FullMac<S>Qlike, \\rhab<C>FullMacVsFull<S>{Pct,Dm,P}   the full set + macro against the full set
-  \\rhab<C>AddRmFomcMac<R>{All,Rel}{Qlike,Pct,Dm,P}   HAR + RM + FOMC + release R alone against HAR + RM + FOMC,
-                                                every bar and R's own release days (R = Cpi Emp Ppi Gdp Trade Retail)
-  \\rhabNRelDays, \\rhabNRelDays<R>, \\rhabNQuietDays, \\rhabNRelFomcDays, \\rhabNMacReleases   the day counts
+  \\rhab<C>FullMac<S>Qlike, \\rhab<C>FullMacVsFull<S>{Pct,Dm,P}   the full set + macro against the full set (the
+                                                forest: against its full set walked on the macro cache, full_fix)
+  \\rhab<C>AddMac<R>{All,Nrel,Rel}{Qlike,Pct,Dm,P}        HAR + release R alone against the class's HAR (the
+                                                counterpart of the FOMC row of Panel B)
+  \\rhab<C>AddRmFomcMac<R>{All,Nrel,Rel}{Qlike,Pct,Dm,P}  HAR + RM + FOMC + release R alone against HAR + RM + FOMC
+  \\rhabNMacReleases; \\rhabNRelDays, \\rhabNNrelDays, \\rhabNRelFomcDays, \\rhabNNrelFomcDays and each with <R>
+  appended (release R's days, the other days, the FOMC statement days among them)   the day counts
+  (the spans Ev and Quiet and \\rhabNQuietDays of addendum L (g) are dropped by (iii)).
   Panel F of tab:rh_ablation and tab:rh_ablation_macro (writeup/generated/rehaul_ablation_macro_table.tex).
 usage: python writeup/make_rehaul_ablations.py [--res <scores dir>] [--out <generated dir>]  (defaults: the paper's)
 """
@@ -101,8 +107,16 @@ MAC = {
     "full_mac": ("FullMacVsFull", "FullMac", "full", "Full set + macro"),
 }
 MAC_ONE = f"{COMBO}_mac_"  # + release
-MAC_SPAN_TEX = {"all": "All", "rel": "Rel", "ev": "Ev", "quiet": "Quiet", "c16": "Close"}
-MAC_SPAN_LABEL = {"all": "every bar", "rel": "release days", "ev": "FOMC days", "quiet": "quiet days"}
+# 2026-10-30 addendum L (iii) (the author: the macro analysis apples to apples with FOMC's): HAR + one release
+# (ablate_arms MAC_HAR_PER), against the class's HAR as the FOMC row of Panel B; the day split of FOMC's ORDINARY /
+# EVENT days (scorer spans nrel / rel, per release nrel_<r> / rel_<r>); the forest on every macro arm, its full_mac
+# against its full set walked on the macro cache (scorer arm full_fix, RF_MAC_FULL), not the template walk
+MAC_HAR_ONE = "add_mac_"  # + release
+RF_MAC_FULL = "full_fix"
+# per-release families: arm prefix -> (macro tag, reference arm)
+MAC_PER = {MAC_HAR_ONE: ("AddMac", "har"), MAC_ONE: ("AddRmFomcMac", COMBO)}
+MAC_SPAN_TEX = {"all": "All", "nrel": "Nrel", "rel": "Rel", "c16": "Close"}
+MAC_SPAN_LABEL = {"all": "every bar", "nrel": "non-release days", "rel": "release days"}
 REL_TEX = {"cpi": "Cpi", "emp": "Emp", "ppi": "Ppi", "gdp": "Gdp", "trade": "Trade", "retail": "Retail"}
 # the row labels of tab:rh_ablation_macro (its note spells them out)
 REL_NAME = {
@@ -372,14 +386,29 @@ def main(argv: list[str] | None = None) -> int:
 
 
 def has_mac(have: set) -> bool:
-    return any(a in MAC or a.startswith(MAC_ONE) for _c, a in have)
+    return any(a in MAC or a.startswith((MAC_ONE, MAC_HAR_ONE)) for _c, a in have)
 
 
 def mac_releases(checks: dict) -> list[str]:
     """The releases of the scorer's calendar (checks.json "macro_releases"), each with its macro tag."""
-    rels = list(checks["macro_releases"]["releases"])
+    mr = checks["macro_releases"]
+    assert "nonrelease_days" in mr and "quiet_days" not in mr, (
+        "scores from before addendum L (iii) (the quiet span): rerun experiments/ablate_score.py --design fix"
+    )
+    rels = list(mr["releases"])
     assert all(r in REL_TEX for r in rels), rels
     return rels
+
+
+def mac_ref(c: str, a: str, b: str) -> str:
+    """The reference of macro arm a of class c (b: MAC's or MAC_PER's); (iii): the forest's full_mac against its full
+    set walked on the macro cache."""
+    return RF_MAC_FULL if (c == "rf" and a == "full_mac") else b
+
+
+def mac_span(sp: str, r: str | None) -> str:
+    """The scorer's span of the day split sp (all, nrel, rel) for release r (None: any of the releases)."""
+    return sp if (sp == "all" or r is None) else f"{sp}_{r}"
 
 
 def mac_change(q, dq, c: str, a: str, b: str, sp: str) -> tuple[float, float | None, float | None] | None:
@@ -391,30 +420,41 @@ def mac_change(q, dq, c: str, a: str, b: str, sp: str) -> tuple[float, float | N
     return gain(q, c, a, b, sp), (None if r is None else r["dm"]), (None if r is None else r["p"])
 
 
+def thou(n: int) -> str:
+    return f"{n:,}".replace(",", "{,}")
+
+
 def mac_macros(q, dq, checks: dict, have: set) -> list[str]:
-    """2026-10-29 addendum L: the macro release calendars.  The three group arms against their reference (MAC) on
-    every bar, release days, FOMC statement days, quiet days and the 16:00 bar; each release alone against HAR + RM +
-    FOMC on every bar and on its own release days; the day counts of the scorer's calendar."""
+    """2026-10-29 addendum L, (iii) of 2026-10-30: the macro release calendars.  The three group arms against their
+    reference (MAC; the forest's full_mac against full_fix) on every bar, non-release days, release days and the 16:00
+    bar; each release alone added to HAR (against HAR) and to HAR + RM + FOMC (against HAR + RM + FOMC) on every bar
+    and on the days without / with that release; the day counts of the scorer's calendar."""
     if not has_mac(have):
         return []
     mr = checks["macro_releases"]
     rels = mac_releases(checks)
     out = [
-        f"% 2026-10-29 addendum L: the macro release calendars; calendar {mr['source']}.  Spans: All every bar, Rel",
-        "% the release days (any of the six), Ev the scheduled FOMC statement days, Quiet neither, Close the 16:00 bar.",
+        f"% 2026-10-29 addendum L, (iii) 2026-10-30: the macro release calendars; calendar {mr['source']}.  Spans, the",
+        "% FOMC calendar's ordinary / statement-day split: All every bar, Nrel the days without a release (per release:",
+        "% without that release; FOMC statement days included), Rel the days with one, Close the 16:00 bar.",
     ]
-
-    def thou(n: int) -> str:
-        return f"{n:,}".replace(",", "{,}")
-
     out.append(mac("NMacReleases", WORDS[len(rels)], "macro release calendars"))
-    out.append(mac("NRelDays", thou(mr["release_days"]), "scored days with at least one macro release"))
+    for tag, k, what in (
+        ("NRelDays", "release_days", "scored days with at least one macro release"),
+        ("NNrelDays", "nonrelease_days", "scored days without a macro release (FOMC statement days included)"),
+        ("NRelFomcDays", "release_and_fomc_days", "scored FOMC statement days with at least one release"),
+        ("NNrelFomcDays", "nonrelease_and_fomc_days", "scored FOMC statement days without a release"),
+    ):
+        out.append(mac(tag, thou(mr[k]), what))
     for r in rels:
-        out.append(mac(f"NRelDays{REL_TEX[r]}", thou(mr["release_days_by_release"][r]), f"scored {r} release days"))
-    out.append(
-        mac("NRelFomcDays", thou(mr["release_and_fomc_days"]), "scored days with a release and a FOMC statement")
-    )
-    out.append(mac("NQuietDays", thou(mr["quiet_days"]), "scored days with neither a release nor a FOMC statement"))
+        t = REL_TEX[r]
+        n_rel, n_ev = mr["release_days_by_release"][r], mr["release_and_fomc_days_by_release"][r]
+        out.append(mac(f"NRelDays{t}", thou(n_rel), f"scored {r} release days"))
+        out.append(
+            mac(f"NNrelDays{t}", thou(mr["nonrelease_days_by_release"][r]), f"scored days without a {r} release")
+        )
+        out.append(mac(f"NRelFomcDays{t}", thou(n_ev), f"scored FOMC statement days with a {r} release"))
+        out.append(mac(f"NNrelFomcDays{t}", thou(mr["fomc_days"] - n_ev), f"scored FOMC days without a {r} release"))
 
     def put(nm: str, qnm: str, c: str, a: str, b: str, sp: str) -> None:
         x = mac_change(q, dq, c, a, b, sp)
@@ -431,11 +471,12 @@ def mac_macros(q, dq, checks: dict, have: set) -> list[str]:
         t = CLS_TEX[c]
         for a, (tag, qtag, b, _lab) in MAC.items():
             for sp, st in MAC_SPAN_TEX.items():
-                put(f"{t}{tag}{st}", f"{t}{qtag}{st}", c, a, b, sp)
-        for r in rels:
-            for sp, st in (("all", "All"), (f"rel_{r}", "Rel")):
-                nm = f"{t}AddRmFomcMac{REL_TEX[r]}{st}"
-                put(nm, nm, c, MAC_ONE + r, COMBO, sp)
+                put(f"{t}{tag}{st}", f"{t}{qtag}{st}", c, a, mac_ref(c, a, b), sp)
+        for pre, (tag, b) in MAC_PER.items():
+            for r in rels:
+                for sp in ("all", "nrel", "rel"):
+                    nm = f"{t}{tag}{REL_TEX[r]}{MAC_SPAN_TEX[sp]}"
+                    put(nm, nm, c, pre + r, b, mac_span(sp, r))
     return out
 
 
@@ -893,11 +934,42 @@ def mac_cell(q, dq, c: str, a: str, b: str, sp: str) -> str:
     return fmt(x[0], 1) if x[1] is None else f"{fmt(x[0], 1)} ({fmt(x[1], 1)})"
 
 
+# (iii): the OLS is walked on the macro arms that extend HAR + RM + FOMC only (ablate_arms MAC_OLS_ARMS); its other
+# macro cells are dashes by design, every other dash is a forecast not merged yet (the arms arrive in stages)
+def mac_ols_runs(a: str) -> bool:
+    return a.startswith(f"{COMBO}_mac")
+
+
+def and_list(xs: list[str]) -> str:
+    return xs[0] if len(xs) == 1 else ", ".join(xs[:-1]) + " and " + xs[-1]
+
+
+def pending_txt(cells: list[tuple[str, str, str]], have: set) -> str:
+    """The note's sentence on the dashes that are not by design: cells = (class, arm, reference) shown in the table;
+    a cell is pending when the class runs the arm and the arm or its reference has no forecasts.  Empty when none."""
+    cols = [
+        c
+        for c in CLS
+        if any(
+            (c, a) not in have or (c, b) not in have
+            for c_, a, b in cells
+            if c_ == c and (c != "ols" or mac_ols_runs(a))
+        )
+    ]
+    if not cols:
+        return ""
+    names = [CLS_NAME[c] for c in cols]
+    s = "s" if len(names) > 1 else ""
+    return f"  The forecasts behind the dashes in the {and_list(names)} column{s} are pending."
+
+
 def panel_f(q, dq, have: set, cols: list[str]) -> list[str]:
     """2026-10-29 addendum L: Panel F of tab:rh_ablation, the macro release calendars against the same set without
     them, by day type.  The table's first part already runs past its page (by about 59pt in the paper's geometry), so
     the panel is a continuation float (caption package, \\ContinuedFloat: same table number, no label) with its own
-    notes; the first part and its notes are byte for byte the table without the macro arms."""
+    notes; the first part and its notes are byte for byte the table without the macro arms.  (iii), 2026-10-30: the
+    rows every bar / non-release days / release days (the FOMC calendar's every bar / ordinary / statement days); the
+    forest's full set + macro against its full set walked on the macro cache (mac_ref)."""
     n = len(cols) + 1
     out = [
         "% Panel F (2026-10-29): continuation of tab:rh_ablation (\\ContinuedFloat; the label is on the first part).",
@@ -915,23 +987,17 @@ def panel_f(q, dq, have: set, cols: list[str]) -> list[str]:
         f"\\multicolumn{{{n}}}{{@{{}}l}}{{\\textit{{F. Macroeconomic release calendars added, against the same set"
         " without them ($-$: the calendars add accuracy)}} \\\\",
     ]
+    shown: list[tuple[str, str, str]] = []
     for i, (a, (_tag, _qtag, b, lab)) in enumerate(MAC.items()):
         if i:
             out.append("\\addlinespace[2pt]")
         ref = {"har": "HAR", COMBO: "HAR + RM + FOMC", "full": "the full set"}[b]
         out.append(f"\\multicolumn{{{n}}}{{@{{}}l}}{{{lab}, against {ref}}} \\\\")
+        shown += [(c, a, mac_ref(c, a, b)) for c in cols]
         for sp, sl in MAC_SPAN_LABEL.items():
-            out.append(f"\\quad {sl} & " + " & ".join(mac_cell(q, dq, c, a, b, sp) for c in cols) + " \\\\")
-    not_run = [CLS_NAME[c] for c in cols if not any((c, a) in have for a in MAC)]
-    nr = {"Forest": "random forest"}
-    nr_txt = (
-        " The "
-        + " and the ".join(nr.get(x, x) for x in not_run)
-        + (" is" if len(not_run) == 1 else " are")
-        + " not run."
-        if not_run
-        else ""
-    )
+            out.append(
+                f"\\quad {sl} & " + " & ".join(mac_cell(q, dq, c, a, mac_ref(c, a, b), sp) for c in cols) + " \\\\"
+            )
     out += [
         "\\bottomrule",
         "\\end{tabular*}",
@@ -941,15 +1007,26 @@ def panel_f(q, dq, have: set, cols: list[str]) -> list[str]:
         " Diebold--Mariano statistic in parentheses (same sign).  Panel~F, the macroeconomic release calendars added"
         " to the set named in the heading (reference: that set without them): negative, the loss falls when they are"
         " added, i.e.\\ they add accuracy; positive, they hurt.",
+        # 2026-10-30 addendum L (iii): the day split of the FOMC calendar (ordinary / statement days) replaces the
+        # FOMC-day and quiet-day rows; the OLS sentence and the pending sentence (pending_txt) replace "The ... is not
+        # run."  Was: "The other rows score the same forecasts on the \rhabNRelDays{} release days (at least one of the
+        # releases), on the \rhabNEventDays{} scheduled FOMC statement days and on the \rhabNQuietDays{} quiet days
+        # with neither a release nor a statement.  The release days include the \rhabNRelFomcDays{} days that also
+        # hold a FOMC statement."
         "\\item \\textit{Notes:} Macro: the calendars of \\rhabNMacReleases{} scheduled US macroeconomic releases (the"
         " consumer and producer price indexes, the employment situation, the advance estimate of GDP, international"
         " trade and retail sales), built in the same way as the FOMC calendar.  RM: the futures' realized moments."
         "  Every bar: the scored bars of Table~\\ref{tab:rh_oos} (2014--2024).  The other rows score the same"
-        " forecasts on the \\rhabNRelDays{} release days (at least one of the releases), on the \\rhabNEventDays{}"
-        " scheduled FOMC statement days and on the \\rhabNQuietDays{} quiet days with neither a release nor a"
-        " statement.  The release days include the \\rhabNRelFomcDays{} days that also hold a FOMC statement.  The"
-        " test runs on daily average QLIKE.  Every model keeps the full set's frozen hyperparameters (FOMC-patched"
-        " design)." + nr_txt,
+        " forecasts on the \\rhabNNrelDays{} non-release days and on the \\rhabNRelDays{} release days (the days with"
+        " at least one of the releases).  Non-release days and release days split the scored days as the ordinary days"
+        " and the FOMC statement days do for the FOMC calendar.  Of the \\rhabNEventDays{} FOMC statement days,"
+        " \\rhabNNrelFomcDays{} are non-release days and \\rhabNRelFomcDays{} are release days.  The test runs on"
+        # 2026-10-30 (paper-prose audit, V5 TRUE?): the HAR reference is Table 1's HAR walk (the linear classes at the
+        # HAR set's own penalties), so the universal is narrowed.  Was: "Every model keeps the full set's frozen
+        # hyperparameters (FOMC-patched design)."
+        " daily average QLIKE.  The models with the calendars, HAR + RM + FOMC and the full set keep the full set's"
+        " frozen hyperparameters (FOMC-patched design); the HAR benchmark keeps those of Table~\\ref{tab:rh_oos}.  OLS"
+        " is estimated only on HAR + RM + FOMC + macro." + pending_txt(shown, have),
         "\\end{tablenotes}",
         "\\end{threeparttable}",
         "\\end{table}",
@@ -958,81 +1035,120 @@ def panel_f(q, dq, have: set, cols: list[str]) -> list[str]:
     return out
 
 
-MAC_CSHORT = {"ols": "OLS", "ridge": "Ridge", "lasso": "Lasso", "enet": "E.\\ net", "lgbm": "LGBM", "xgb": "XGB"}
+# 2026-10-30 addendum L (iii): tab:rh_ablation_macro.  Panels by comparison, as the FOMC row is shown: A, each calendar
+# added to the HAR benchmark against it (the FOMC row of Panel B of tab:rh_ablation); B, added to HAR + RM + FOMC against
+# it (Panel A of tab:rh_ablation_beyond); within each, the day types in the FOMC calendar's order (every bar, ordinary
+# days, statement days): span -> sub-heading.  One row per release (the release name), then all of them (macro).  The
+# two panels are two floats (the second a \ContinuedFloat, as Panel F): together they run past the page.
+MAC_TAB_SPANS = {
+    "all": "Every bar",
+    "nrel": "Non-release days",  # defined in the notes (the scored days without the row's release)
+    "rel": "Release days",
+}
+MAC_TAB_PANELS = (
+    ("har", MAC_HAR_ONE, "add_mac", "A. HAR benchmark plus the calendar, against the HAR benchmark"),
+    (COMBO, MAC_ONE, f"{COMBO}_mac", "B. HAR + RM + FOMC plus the calendar, against HAR + RM + FOMC"),
+)
 
 
 def macro_table(q, dq, have: set, checks: dict) -> str:
-    """tab:rh_ablation_macro (2026-10-29, addendum L): each release's calendar alone added to HAR + RM + FOMC, against
-    HAR + RM + FOMC, on the release's own days and on every bar; the last row adds all of them (Panel F's second
-    comparison).  One row per release: the % change, with the DM statistic beneath it."""
+    """tab:rh_ablation_macro (2026-10-29, addendum L; (iii) of 2026-10-30): each release's calendar added alone to HAR
+    (Panel A, against HAR: the counterpart of the FOMC row of Panel B) and to HAR + RM + FOMC (Panel B, against HAR +
+    RM + FOMC), and all of them (macro: Panel F's first two comparisons), on every bar and on the days without / with
+    the row's release (the FOMC calendar's every bar / ordinary / statement days).  The classes of tab:rh_ablation as
+    columns, each cell the % change with the DM statistic in parentheses; "--" where a (class, arm) or its reference has
+    no forecasts (the OLS is walked on the HAR + RM + FOMC arms only).  Panel B is a continuation float."""
     mr = checks["macro_releases"]
     rels = mac_releases(checks)
-    cls = [c for c in CLS if c in MAC_CSHORT and any((c, MAC_ONE + r) in have for r in rels)]
-    n = len(cls)
-    spans = (("own", "Own release days"), ("all", "Every bar"))
-
-    def cells(a: str, own: str) -> tuple[list[str], list[str]]:
-        top, bot = [], []
-        for sp, _l in spans:
-            for c in cls:
-                x = mac_change(q, dq, c, a, COMBO, own if sp == "own" else "all")
-                top.append("--" if x is None else fmt(x[0], 1))
-                bot.append("" if x is None or x[1] is None else f"({fmt(x[1], 1)})")
-        return top, bot
-
-    def thou(k: int) -> str:
-        return f"{k:,}".replace(",", "{,}")
-
+    cols = CLS
+    n = len(cols) + 1
+    days = ", ".join(f"{REL_NAME[r]} \\rhabNRelDays{REL_TEX[r]}{{}}" for r in rels)
+    fomc = ", ".join(f"{REL_NAME[r]} \\rhabNRelFomcDays{REL_TEX[r]}{{}}" for r in rels)
+    notes = {
+        "har": [
+            "\\item \\textit{Sign:} each cell is $100\\,(L_{\\text{row}}/L_{\\text{ref}} - 1)$, the percentage change"
+            " in mean QLIKE of the row's forecast against its reference, with the Diebold--Mariano statistic in"
+            " parentheses (same sign; daily average QLIKE).  Panel~A, the row's release calendar added to the HAR"
+            " benchmark set (reference: that set), as the FOMC row of Panel~B of Table~\\ref{tab:rh_ablation}:"
+            " negative, the loss falls when the calendar is added, i.e.\\ the calendar adds accuracy; positive, it"
+            " hurts.",
+            # 2026-10-30 (paper-prose audit): V1, the label key is its own sentence ("split at the colon"); V5, "Each
+            # release's calendar is built" -> "The release calendars are built" (delete the quantifier); V5 TRUE?, the
+            # hyperparameter sentence narrowed to the models with a calendar (the HAR reference is Table 1's walk)
+            "\\item \\textit{Notes:} The release calendars are built in the same way as the FOMC calendar.  Rows:"
+            " CPI and PPI, the consumer and producer price indexes; Employment, the employment situation; GDP"
+            " (advance), the advance estimate of gross domestic product; Trade, international trade.  Macro: the"
+            " \\rhabNMacReleases{} calendars together (Panel~F of Table~\\ref{tab:rh_ablation}).  Every bar: the scored"
+            " bars of Table~\\ref{tab:rh_oos} (2014--2024).  Release days are the scored days on which the row's release"
+            " is published (macro: at least one of the releases), and non-release days are the other scored days."
+            "  Non-release days and release days split the scored days as the ordinary days and the FOMC statement days"
+            f" do for the FOMC calendar.  Release days: {days}; macro \\rhabNRelDays{{}}.  FOMC statement days among"
+            f" them: {fomc}; macro \\rhabNRelFomcDays{{}}.  The test runs on daily average QLIKE.  The models with a"
+            " calendar keep the full set's frozen hyperparameters (FOMC-patched design); the HAR benchmark keeps those"
+            " of Table~\\ref{tab:rh_oos}.  OLS is not estimated on the HAR benchmark set plus a calendar.",
+        ],
+        COMBO: [
+            "\\item \\textit{Sign:} as in Panel~A.  Panel~B, the row's release calendar added to HAR + RM + FOMC"
+            " (reference: HAR + RM + FOMC): negative, the calendar adds accuracy; positive, it hurts.",
+            "\\item \\textit{Notes:} HAR + RM + FOMC: the HAR benchmark set plus the futures' realized moments (RM) and"
+            " the FOMC calendar.  Calendars, days and test as in Panel~A.  The models with a calendar and HAR + RM +"
+            " FOMC keep the full set's frozen hyperparameters (FOMC-patched design).",
+        ],
+    }
     out = [
         HEAD,
-        "% tab:rh_ablation_macro (2026-10-29, addendum L): HAR + RM + FOMC plus one macro release calendar against",
-        f"% HAR + RM + FOMC; DM on daily average QLIKE.  Calendar: {mr['source']}.",
-        "\\begin{table}[htbp]",
-        "\\centering",
-        "\\scriptsize",
-        "\\setlength{\\tabcolsep}{2pt}",
-        "\\begin{threeparttable}",
-        "\\caption{Macroeconomic release calendars one at a time, added to HAR + RM + FOMC: change in QLIKE (\\%)}",
-        "\\label{tab:rh_ablation_macro}",
-        f"\\begin{{tabular*}}{{\\linewidth}}{{@{{\\extracolsep{{\\fill}}}}lr{'r' * (2 * n)}@{{}}}}",
-        "\\toprule",
-        " & & " + " & ".join(f"\\multicolumn{{{n}}}{{c}}{{{lab}}}" for _sp, lab in spans) + " \\\\",
-        f"\\cmidrule(lr){{3-{2 + n}}}\\cmidrule(l){{{3 + n}-{2 + 2 * n}}}",
-        "Release & Days & " + " & ".join(MAC_CSHORT[c] for _sp in spans for c in cls) + " \\\\",
-        "\\midrule",
+        "% tab:rh_ablation_macro (2026-10-29 addendum L; (iii) 2026-10-30): each macro release calendar added alone to",
+        "% HAR (Panel A, vs HAR) and to HAR + RM + FOMC (Panel B, vs HAR + RM + FOMC), then all six; every bar, the",
+        f"% scored days without / with the row's release; DM on daily average QLIKE.  Calendar: {mr['source']}.",
     ]
-    rows = [(REL_NAME[r], MAC_ONE + r, f"rel_{r}", mr["release_days_by_release"][r]) for r in rels]
-    rows.append(("All releases", f"{COMBO}_mac", "rel", mr["release_days"]))
-    for i, (lab, a, own, nd) in enumerate(rows):
-        if i == len(rows) - 1:
-            out.append("\\addlinespace[4pt]")
-        top, bot = cells(a, own)
-        out.append(f"{lab} & {thou(nd)} & " + " & ".join(top) + " \\\\")
-        out.append(" & & " + " & ".join(bot) + " \\\\")
-    rf_txt = "; the random forest is not run" if not any(c == "rf" for c, a in have if a.startswith(MAC_ONE)) else ""
-    out += [
-        "\\bottomrule",
-        "\\end{tabular*}",
-        "\\begin{tablenotes}[flushleft]",
-        "\\footnotesize",
-        "\\item \\textit{Sign:} each cell is $100\\,(L_{\\text{row}}/L_{\\text{ref}} - 1)$, the percentage change in"
-        " mean QLIKE of HAR + RM + FOMC plus the row's release calendar against HAR + RM + FOMC (the reference), with"
-        " the Diebold--Mariano statistic beneath it in parentheses (same sign; daily average QLIKE).  Negative, the"
-        " loss falls when the calendar is added, i.e.\\ the calendar adds accuracy; positive, it hurts.",
-        "\\item \\textit{Notes:} HAR + RM + FOMC: the HAR benchmark set plus the futures' realized moments (RM) and the"
-        " FOMC calendar.  Each row adds one release's calendar to it, built in the same way as the FOMC calendar: CPI"
-        " and PPI, the consumer and producer price indexes; Employment, the employment situation; GDP (advance), the"
-        " advance estimate of gross domestic product; Trade, international trade.  The last row adds all"
-        " \\rhabNMacReleases{} calendars (Panel~F of Table~\\ref{tab:rh_ablation}).  Own release days are the scored"
-        " days on which the row's release is published (Days); for the last row they are the \\rhabNRelDays{} days"
-        " with at least one release.  Every bar: the scored bars of Table~\\ref{tab:rh_oos} (2014--2024).  Every"
-        f" model keeps the full set's frozen hyperparameters (FOMC-patched design){rf_txt}.",
-        "\\end{tablenotes}",
-        "\\end{threeparttable}",
-        "\\end{table}",
-        "",
-    ]
-    return "\n".join(out)
+    for k, (b, pre, group, head) in enumerate(MAC_TAB_PANELS):
+        out += [
+            "\\begin{table}[htbp]",
+            "\\centering",
+            "\\scriptsize",
+            "\\setlength{\\tabcolsep}{1.5pt}",
+            "\\begin{threeparttable}",
+        ]
+        if k:  # inside threeparttable: before \begin{threeparttable} the number still steps (panel_f)
+            out += [
+                "\\ContinuedFloat",
+                "\\caption{Macroeconomic release calendars by day type: change in QLIKE (\\%) (continued)}",
+            ]
+        else:
+            out += [
+                "\\caption{Macroeconomic release calendars by day type: change in QLIKE (\\%)}",
+                "\\label{tab:rh_ablation_macro}",
+            ]
+        out += [
+            f"\\begin{{tabular*}}{{\\linewidth}}{{@{{\\extracolsep{{\\fill}}}}l{'r' * len(cols)}@{{}}}}",
+            "\\toprule",
+            " & " + " & ".join(CLS_NAME[c] for c in cols) + " \\\\",
+            "\\midrule",
+            f"\\multicolumn{{{n}}}{{@{{}}l}}{{\\textit{{{head} ($-$: the calendar adds accuracy)}}}} \\\\",
+        ]
+        rows = [(REL_NAME[r], pre + r, r) for r in rels] + [("All \\rhabNMacReleases{} (macro)", group, None)]
+        for i, (sp, sub) in enumerate(MAC_TAB_SPANS.items()):
+            if i:
+                out.append("\\addlinespace[2pt]")
+            out.append(f"\\multicolumn{{{n}}}{{@{{}}l}}{{{sub}}} \\\\")
+            for j, (lab, a, rel) in enumerate(rows):
+                if j == len(rows) - 1:
+                    out.append("\\addlinespace[1pt]")
+                cells = [mac_cell(q, dq, c, a, mac_ref(c, a, b), mac_span(sp, rel)) for c in cols]
+                out.append(f"\\quad {lab} & " + " & ".join(cells) + " \\\\")
+        shown = [(c, a, mac_ref(c, a, b)) for _lab, a, _rel in rows for c in cols]
+        out += [
+            "\\bottomrule",
+            "\\end{tabular*}",
+            "\\begin{tablenotes}[flushleft]",
+            "\\footnotesize",
+            *notes[b][:-1],
+            notes[b][-1] + pending_txt(shown, have),
+            "\\end{tablenotes}",
+            "\\end{threeparttable}",
+            "\\end{table}",
+        ]
+    return "\n".join(out) + "\n"
 
 
 if __name__ == "__main__":

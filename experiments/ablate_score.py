@@ -18,9 +18,11 @@ Pairs  within class: every arm vs the class's full set and vs its HAR benchmark 
 Checks the template rows reproduce results/oos_final_2014start/table1_w3000/metrics.csv (QLIKE, MSE, every bar; the
        16:00 QLIKE on 2020-2024) to 1e-12 relative and its full-vs-HAR QLIKE DM to 1e-9; the scored set is Table 1's.
 Macro releases (2026-10-29, --design fix, only when forecasts/linear_wide_mac.parquet or trees_wide_mac.parquet holds
-       a macro arm; see MAC below): spans rel (every bar of the scored days with any of the six releases), quiet (days
-       with neither a FOMC statement nor a release) and rel_<r> (release r's days); DM on daily averages; the day counts
-       asserted and written to checks.json "macro_releases".  Without the two files every output is as before.
+       a macro arm; see MAC below).  Addendum L (iii), 2026-10-30: the day split is FOMC's (ORDINARY / EVENT, spans
+       ord / ev): rel (every bar of the scored days with any of the six releases) against nrel (every other scored day,
+       FOMC statement days included), and per release rel_<r> (release r's days) against nrel_<r> (every scored day
+       without release r); the span quiet of addendum L (g) is dropped.  DM on daily averages (as ord / ev); the day
+       counts asserted and written to checks.json "macro_releases".  Without the two files every output is as before.
 
 usage: python experiments/ablate_score.py [--res results/ablations_2014start_w3000]
        -> <res>/scores/metrics.csv, dm.csv, checks.json, latestart_groups.csv (when <res>/latestart/ exists)
@@ -122,9 +124,10 @@ def event_days(days: pd.DatetimeIndex) -> pd.DatetimeIndex:
 
 
 def macro_spans(idx: pd.DatetimeIndex, days: pd.DatetimeIndex, checks: dict) -> dict[str, pd.DatetimeIndex]:
-    """The macro-release spans of the scored bars idx (MAC above): rel (every bar of the scored days with any of the
-    releases), quiet (the scored days with neither a FOMC statement (event_days) nor a release), rel_<r> (release r's
-    days).  Asserts the day counts and writes them to checks["macro_releases"]."""
+    """The macro-release spans of the scored bars idx (MAC above), split as FOMC's ORDINARY / EVENT days (addendum L
+    (iii)): rel (every bar of the scored days with any of the releases) and nrel (every bar of the other scored days,
+    FOMC statement days included); rel_<r> (release r's days) and nrel_<r> (every scored day without release r).  Each
+    pair partitions the scored bars.  Asserts the day counts and writes them to checks["macro_releases"]."""
     rels, cal, src = macro_calendar()
     ev = event_days(days)
     d = pd.DatetimeIndex(idx.normalize())
@@ -132,36 +135,46 @@ def macro_spans(idx: pd.DatetimeIndex, days: pd.DatetimeIndex, checks: dict) -> 
     rel = per[rels[0]]
     for r in rels[1:]:
         rel = rel.union(per[r])
-    quiet = days[~days.isin(rel) & ~days.isin(ev)]
-    sp = {"rel": idx[d.isin(rel)], "quiet": idx[d.isin(quiet)]}
+    nrel = days[~days.isin(rel)]
+    on = d.isin(rel)
+    sp = {"rel": idx[on], "nrel": idx[~on]}
     for r in rels:
-        sp[f"rel_{r}"] = idx[d.isin(per[r])]
+        on_r = d.isin(per[r])
+        sp[f"rel_{r}"], sp[f"nrel_{r}"] = idx[on_r], idx[~on_r]
     n_rel = {r: len(per[r]) for r in rels}
+    n_nrel = {r: N_DAYS - n_rel[r] for r in rels}
     assert all(n > 0 for n in n_rel.values()), n_rel
-    assert len(quiet) + len(rel.union(ev)) == N_DAYS, (len(quiet), len(rel), len(ev))
+    assert len(rel) + len(nrel) == N_DAYS, (len(rel), len(nrel))
     nd = {k: int(pd.DatetimeIndex(v.normalize()).nunique()) for k, v in sp.items()}
-    assert nd["rel"] == len(rel) and nd["quiet"] == len(quiet), (nd, len(rel), len(quiet))
-    assert all(nd[f"rel_{r}"] == n_rel[r] for r in rels), (nd, n_rel)
-    assert len(sp["rel"]) + len(sp["quiet"]) + int((d.isin(ev) & ~d.isin(rel)).sum()) == len(idx)
+    assert nd["rel"] == len(rel) and nd["nrel"] == len(nrel), (nd, len(rel), len(nrel))
+    assert all(nd[f"rel_{r}"] == n_rel[r] and nd[f"nrel_{r}"] == n_nrel[r] for r in rels), (nd, n_rel)
+    assert all(len(sp[f"rel{s}"]) + len(sp[f"nrel{s}"]) == len(idx) for s in ("", *(f"_{r}" for r in rels)))
     fixed = src.startswith("src/")
     if fixed and N_REL_DAYS:  # the features' calendar: its counts on the scored days, fixed with it
         assert n_rel == N_REL_DAYS and len(rel) == N_REL_ANY, (n_rel, len(rel), N_REL_DAYS, N_REL_ANY)
+        assert len(nrel) == N_DAYS - N_REL_ANY, len(nrel)
     checks["macro_releases"] = dict(
         source=src,
         counts_asserted=bool(fixed and N_REL_DAYS),
         releases=list(rels),
         release_days=len(rel),
         release_days_by_release=n_rel,
+        nonrelease_days=len(nrel),
+        nonrelease_days_by_release=n_nrel,
         release_and_fomc_days=int(rel.isin(ev).sum()),
+        release_and_fomc_days_by_release={r: int(per[r].isin(ev).sum()) for r in rels},  # FOMC days inside rel_<r>
+        nonrelease_and_fomc_days=int(nrel.isin(ev).sum()),
         fomc_days=len(ev),
-        quiet_days=len(quiet),
         release_bars=len(sp["rel"]),
-        quiet_bars=len(sp["quiet"]),
+        nonrelease_bars=len(sp["nrel"]),
         release_bars_by_release={r: len(sp[f"rel_{r}"]) for r in rels},
+        nonrelease_bars_by_release={r: len(sp[f"nrel_{r}"]) for r in rels},
         calendar_last={r: str(cal[r].max().date()) for r in rels},
         rule="release day = a scored day of the release's calendar (flag on the 09:00 bar, the 08:30 release); rel = "
-        "the union of the six; quiet = neither a release nor a scheduled FOMC statement (event_days)",
-        label="addendum L: requested by the author on 29 October; not pre-registered",
+        "the union of the six, nrel = every other scored day (FOMC statement days included), as FOMC's EVENT / "
+        "ORDINARY; rel_<r> = release r's days, nrel_<r> = every scored day without release r (addendum L (iii))",
+        label="addendum L: requested by the author on 29 October; not pre-registered; (iii): the day split, HAR + one "
+        "release and the forest, requested by the author (the macro analysis apples to apples with FOMC's)",
     )
     return sp
 
@@ -182,10 +195,18 @@ LOFIX = "trees_wide_lofix.parquet"
 # (HAR + the macro group), add_rm_fomc_mac (HAR + RM + FOMC + macro), full_mac (the full set + macro) and
 # add_rm_fomc_mac_<r> (HAR + RM + FOMC + release r alone; the OLS runs these and add_rm_fomc_mac only); merged into the
 # two files below (read under --design fix).  Pairs: add_mac vs HAR, add_rm_fomc_mac(_<r>) vs add_rm_fomc and full_mac
-# vs full (the general loops; the OLS's add_rm_fomc_mac(_<r>) vs its add_rm_fomc added).  On the rel_<r> spans only the
-# macro arms are tested.
+# vs full (the general loops; the OLS's add_rm_fomc_mac(_<r>) vs its add_rm_fomc added).  On the rel_<r> / nrel_<r>
+# spans only the macro arms are tested.
+# 2026-10-30 addendum L (iii) (the macro analysis apples to apples with FOMC's): add_mac_<r> = HAR + release r alone
+# (ablate_arms MAC_HAR_PER; ridge, lasso, elastic net, LightGBM, XGBoost, forest; no OLS, as add_fomc), against HAR (the
+# general loop, as add_fomc); the forest on every macro arm (ablate_arms MAC_RF_ARMS) plus its full set walked on the
+# macro cache, the FOMC-patched design (trees_wide_mac.parquet "rf_skx|full_fix" -> (rf, full_fix)): the forest's
+# full_mac is tested against that full set (RF_MAC_FULL), not against the template walk.  The arms arrive in stages: a
+# missing (class, arm) has no rows.
 MAC_FILES = ("linear_wide_mac.parquet", "trees_wide_mac.parquet")
 MAC_GROUP_ARMS = ("add_mac", COMBO + "_mac", "full_mac")
+MAC_HAR_ONE = "add_mac_"  # + release: HAR + one release (iii)
+RF_MAC_FULL = "full_fix"
 MAC_RELEASES_DEFAULT = ("cpi", "emp", "ppi", "gdp", "trade", "retail")
 # the scored release days per release and their union, asserted when the calendar comes from src/data/loading.py (the
 # fallback below records its counts without asserting them).  Counted 2026-10-29 on loading.macro_release_days with
@@ -195,7 +216,15 @@ N_REL_ANY = 590
 
 
 def is_mac(arm: str) -> bool:
-    return arm in MAC_GROUP_ARMS or arm.startswith(COMBO + "_mac_")
+    return arm in MAC_GROUP_ARMS or arm.startswith((COMBO + "_mac_", MAC_HAR_ONE))
+
+
+def mac_release_of(arm: str) -> str | None:
+    """The release of a per-release macro arm (add_rm_fomc_mac_<r>, add_mac_<r>), else None."""
+    for pre in (COMBO + "_mac_", MAC_HAR_ONE):
+        if arm.startswith(pre):
+            return arm.removeprefix(pre)
+    return None
 
 
 def macro_calendar() -> tuple[tuple[str, ...], dict[str, pd.DatetimeIndex], str]:
@@ -306,6 +335,8 @@ def load_panel(res: Path, design: str = "pre", rf_fix: str = "") -> tuple[dict[t
                 continue  # the patched add_fomc comes from trees_wide_fix.parquet
             if design == "fix" and name == "trees_wide.parquet" and (cls, arm) in PATCHED_LO:
                 continue  # addendum J: the patched lo_<g> comes from trees_wide_lofix.parquet
+            if name in MAC_FILES and cls == "rf" and arm == "full":  # (iii): ablate_trees joinmac's name, either way
+                arm = RF_MAC_FULL
             assert (cls, arm) not in out, (cls, arm)
             out[(cls, arm)] = pd.Series(w[col].to_numpy() ** 2 * b, index=d)
     return out, B
@@ -371,7 +402,7 @@ def main() -> int:
         )
     if any(is_mac(k[1]) for k in panel):  # 2026-10-29: the macro release calendars (MAC above)
         spans.update(macro_spans(idx, days, checks))
-        own = {a.removeprefix(COMBO + "_mac_") for _c, a in panel if a.startswith(COMBO + "_mac_")}
+        own = {r for _c, a in panel if (r := mac_release_of(a)) is not None}
         assert own <= set(checks["macro_releases"]["releases"]), f"per-release arms without a calendar: {sorted(own)}"
     assert len(spans["c16"]) == N_DAYS and len(spans["c16_2020"]) == SUB_DAYS, (
         len(spans["c16"]),
@@ -414,7 +445,7 @@ def main() -> int:
         out = []
         for li, lname in ((0, "qlike"), (1, "mse")):
             x1, x2, ix = L[(k1, sp)][li], L[(k2, sp)][li], L[(k1, sp)][2]
-            every_bar = sp in ("all", "ord", "ev", "rel", "quiet") or sp.startswith(("live_", "rel_"))
+            every_bar = sp in ("all", "ord", "ev", "rel", "nrel") or sp.startswith(("live_", "rel_", "nrel_"))
             r = dm_test(daily(x1, ix), daily(x2, ix)) if every_bar else dm_test(x1, x2)
             out.append(
                 dict(
@@ -445,7 +476,7 @@ def main() -> int:
                 elif arm in (f"add_{g}", "full", "full_pre"):
                     rows += dm((c, arm), (c, "har"), sp)
                 continue
-            if sp.startswith("rel_") and not is_mac(arm):  # one release's days: the macro arms only
+            if sp.startswith(("rel_", "nrel_")) and not is_mac(arm):  # one release's day split: the macro arms only
                 continue
             if c == "ols":
                 if arm != "har":
@@ -454,6 +485,8 @@ def main() -> int:
                     rows += dm((c, arm), (c, COMBO), sp)
                 continue
             rf_ = ref_full(a.design, c, arm)
+            if c == "rf" and arm == "full_mac":  # (iii): the forest's full set walked on the macro cache
+                rf_ = RF_MAC_FULL
             if arm not in ("full", "full_pre") and (c, rf_) in panel:
                 rows += dm((c, arm), (c, rf_), sp)
             if arm != "har":
