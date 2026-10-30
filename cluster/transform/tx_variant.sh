@@ -30,7 +30,7 @@ for s in baseline all_features; do
     bash "$S" "$OUT" py || { echo "gate $s FAIL: exit 3"; exit 3; }
 done
 bash "$S" "$OUT" pretune_select 4
-PYARGS="experiments/pooled_linear_rerun_2026_10_19_13.py walk --jobs $J $F --chunks all_features/ridge=2 --chunks all_features/lasso=4 --chunks all_features/enet=4 --out $OUT" \
+PYARGS="experiments/pooled_linear_rerun_2026_10_19_13.py walk --jobs $J $F --first-fold 3 --chunks all_features/ridge=2 --chunks all_features/lasso=4 --chunks all_features/enet=4 --out $OUT" \
   bash "$S" "$OUT" py
-PYARGS="experiments/pooled_linear_rerun_2026_10_19_13.py score $F --out $OUT" bash "$S" "$OUT" py
+PYARGS="experiments/pooled_linear_rerun_2026_10_19_13.py score $F --first-fold 3 --out $OUT" bash "$S" "$OUT" py
 echo "tx_variant $V done $(date)"
