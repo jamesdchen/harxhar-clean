@@ -4,6 +4,9 @@
 (Reinhart et al.'s exemplar result; Zhou et al.'s overshoot; Peters & Chin-Yee); T-genre (LAMP; Patchwork rule
 citation); I for the operation list.
 
+**Severity:** gate. At the edit stage (S7, locked layers only), a style edit with no named operation or rule id blocks the return; the drafter reverts it or redoes it as one logged named operation on a flagged sentence.
+**Checked by:** code (scope slice). The code matches every changed sentence to an edit-log entry carrying its operation and rule id.
+
 ## Intent
 
 Change a sentence's style only by one named operation aimed at a flagged sentence, re-measure, and stop once the
@@ -42,9 +45,9 @@ A section is flagged only when it sits outside the band by more than its own sam
 
 ## Consequences
 
-Costs: one call per sentence, and no band-based edits until the corpus exists, so only rule-based flags (AP-V hard
-flags, V5, V6 review flags, V10) drive edits now. Buys: each edit is auditable by rule id, S8 can check it, and the text
-is not pulled toward the corpus median.
+Costs: one call per sentence, and no band-based edits until the corpus exists; until then only rule-based flags (AP-V
+hard flags, V5, V6 review flags, V10) drive edits. Buys: each edit is auditable by rule id, S8 can check it, and the
+text is not pulled toward the corpus median.
 
 ## Detection
 

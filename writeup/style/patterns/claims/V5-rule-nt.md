@@ -4,6 +4,9 @@
 maxim and Cochrane for NEEDED?; the predicate mechanism of §3.3 for TRUE?); the need for the rule is D (Peters &
 Chin-Yee; Zhou et al.).
 
+**Severity:** review. A confirmed NEEDED? failure makes the drafter delete the word, and a TRUE? failure, an unsupported universal or superlative, is gate: it blocks the return until the drafter backs the word with a count, argmax or predicate macro, or deletes it.
+**Checked by:** code + auditor (claims slice). Candidates only: the code greps the lexicon below; NEEDED? and TRUE? stay the auditor's judgment.
+
 ## Intent
 
 Keep a universal, completeness adverb, superlative or booster only if the sentence needs it, and then only if a
@@ -57,7 +60,7 @@ credibility (§4.3.7).
 
 ## Detection
 
-S4b (§8.4; not built). Stage A marks a REDUNDANT-CANDIDATE when the scope noun is in the set registry
+S4b (§8.4), once built. Stage A marks a REDUNDANT-CANDIDATE when the scope noun is in the set registry
 (`writeup/style/sets.json`) and no contrast marker ("including", "even", "although", "except", "despite") is near.
 Stage B, a deletion-equivalence judge, must name the exception the word excludes, or the word goes. Each deletion is
 logged with its reason code; a kept but unbacked universal goes to the agent queue and fails the L4 gate (C18). By

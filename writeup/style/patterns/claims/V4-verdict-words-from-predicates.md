@@ -3,6 +3,9 @@
 **Family:** claims. **Stage:** drafting (S0); check C5 on L2–L4. **Basis:** D for the risk (Alizadeh et al.: the
 prompt flipped verdicts; §8.6); I for the predicate check (§3.3, C5).
 
+**Severity:** gate. A comparison, verdict, magnitude or rank word with no predicate, stated threshold or recorded hand check behind it blocks the return; the drafter backs it with the macro and its test, or removes it, before the text is accepted.
+**Checked by:** auditor (claims slice). Judgment until the predicates and C5 exist: the auditor looks up each such word's macro in `writeup/generated/` and checks its sign, rank, p-value and the stated level.
+
 ## Intent
 
 Write a comparison, verdict or magnitude word only where a generated predicate or a stated threshold licenses it.
@@ -52,7 +55,7 @@ verdicts change with the numbers instead of going stale silently, and C24 can te
 
 ## Detection
 
-C5, `tests/check_claims.py` over `generated/*_predicates.tex` (gate on L2–L4; neither exists yet, Phases 2 and 5). By
+C5, `tests/check_claims.py` over `generated/*_predicates.tex` (gate on L2–L4, once both exist; Phases 2 and 5). By
 hand: for each sentence with a numeric macro and a comparison, verdict or magnitude word, look the macro up in
 `writeup/generated/` and check its sign, rank, p-value and the stated level. S4b reuses the predicates for TRUE? (V5),
 and S8 keeps direction words unchanged in rewrites (V16).

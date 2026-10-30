@@ -3,6 +3,9 @@
 **Family:** scope. **Stage:** edit stage (S8), and any agent rewording meant to keep meaning. **Basis:** T-genre (Lee et
 al. on copying); I.
 
+**Severity:** gate. A rewrite that changes the macros, citations, references, negations, modals, direction words or agents of the sentence it replaces blocks the return; the drafter keeps the old sentence or redoes the rewrite so they hold.
+**Checked by:** code + auditor (scope slice). The code compares the multisets of macros, `\cite` keys and `\ref` labels and diffs negations, modals and direction words; the auditor checks the diffs against the operation's target and looks for invented agents.
+
 ## Intent
 
 A style rewrite keeps the macros, citations, references, negations, modals, direction words and agents of the sentence
@@ -45,8 +48,8 @@ style pass cannot move a claim.
 
 ## Detection
 
-S8 rejects the rewrite automatically on any failure, reruns S2–S5 (rewrites can add markers) and checks the longest
-word n-gram shared with the corpus (V11); not built. By hand: compare the old and new sentence's lists of macros, cites
+Once built, S8 rejects the rewrite automatically on any failure, reruns S2–S5 (rewrites can add markers) and checks
+the longest word n-gram shared with the corpus (V11). By hand: compare the old and new sentence's lists of macros, cites
 and refs, for example with
 `grep -oE '\\(rh|cm|fqs|ladder)[A-Za-z]+|\\cite[tp]?\{[^}]*\}|\\ref\{[^}]*\}' | sort` on each; reread negations, modals
 and direction words; ask who performs each verb.

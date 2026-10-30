@@ -4,6 +4,9 @@
 Oct 2026); D for the copying risk (Lee et al.); I for phrase frames (no published tool, S6); T-genre for the n-gram
 check (S8).
 
+**Severity:** review. A confirmed hit (a run of words shared with a source read for style, or a phrase from one paper's habit) makes the drafter rewrite the sentence from the method's definition in its own words, with the method's `\cite`.
+**Checked by:** auditor (sentences slice). Judgment until S8's n-gram check exists: the auditor compares a sentence written with a source open against that source.
+
 ## Intent
 
 Match how the target journals state standard things through abstracted phrase frames and corpus statistics, never by
@@ -23,8 +26,8 @@ manuscripts "with services provided by third parties" (§4.4).
 ## Applicability
 
 Any sentence written with a paper open for style, and standard statements (Diebold–Mariano, the model confidence set,
-QLIKE, Mincer–Zarnowitz). The corpus and the frames do not exist yet; which papers, through which access, is open
-(§8.9 Q4). Until they exist, write the statement from the method's definition in your own words and cite the method.
+QLIKE, Mincer–Zarnowitz). Which papers form the corpus, through which access, is open (§8.9 Q4). Until the corpus
+and the frames exist, write the statement from the method's definition in your own words and cite the method.
 A term enters the paper's register only if it appears in at least five corpus papers, so one author's habits do not
 become the norm (§4.4).
 
@@ -43,7 +46,7 @@ Buys: no shared spans for a similarity screen to find, and a register set by the
 
 ## Detection
 
-S8 (not built): the longest word n-gram shared with the corpus, through hashed 8-grams; rare shared spans are flagged.
+S8, once built: the longest word n-gram shared with the corpus, through hashed 8-grams; rare shared spans are flagged.
 S5 scores over-used terms against the corpus. By hand: compare a sentence written with a source open against that
 source for shared runs of words.
 

@@ -3,6 +3,9 @@
 **Family:** sentences. **Stage:** drafting (S0) of L1; advisory check C8 before the layer is served. **Basis:** P
 (McCloskey; Minto).
 
+**Severity:** review. A confirmed hit makes the drafter rewrite the label as the claim the beat's bullets support, distinct from its siblings' claims.
+**Checked by:** auditor (sentences slice). Judgment only: is the label a claim or a topic, and does it overlap a sibling?
+
 ## Intent
 
 Make each beat's label state the beat's claim, not its topic, and keep sibling beats from stating the same claim.
@@ -15,13 +18,13 @@ C8; "claims, not topics".
 
 The beats are the paper's top-level claims. Under A2 the author reads L1 once and each corrected beat becomes a locked
 claim (§8.1), so a topic label gives him nothing to lock. In the final layer the label is dropped and the beat's first
-sentence carries its claim as the topic sentence (§8.1; C10). The paper has both kinds side by side:
+sentence carries its claim as the topic sentence (§8.1; C10). On 29 Oct the paper had both kinds side by side:
 `\item \textbf{Small, and only in the boosted trees}` (`writeup/rehaul/08_feature_importance.tex:258`) states a claim;
 `\item \textbf{In short.}` (`08_feature_importance.tex:374`) names a function and is also a summary opener (AP-S6).
 
 ## Applicability
 
-Beat labels: `\item \textbf{…}` today, `\beat{<id>}{<label>}` once the macros of §8.1 exist. Not section titles, which
+Beat labels: `\item \textbf{…}`, or `\beat{<id>}{<label>}` once the macros of §8.1 exist. Not section titles, which
 follow V9. Not labels the author supplied (V13). Existing labels change only through an edit or at the edit stage (V14).
 
 ## Structure / Rewrite
@@ -41,7 +44,7 @@ final topic sentence exists before any prose is written.
 
 ## Detection
 
-C8: an LLM judge, one round, advisory to the agent queue, run before L1 is served (not built). By hand: ask the judge's
+C8: an LLM judge, one round, advisory to the agent queue, run before L1 is served, once built. By hand: ask the judge's
 question of each label (claim or topic? does it overlap a sibling?).
 
 ## Related patterns

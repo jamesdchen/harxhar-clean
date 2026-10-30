@@ -2,6 +2,9 @@
 
 **Family:** scope. **Stage:** every stage and layer, the final build included. **Basis:** I (A4).
 
+**Severity:** gate. Author-supplied text that differs by any byte from his dated record blocks the return; the drafter restores his words exactly before the text is accepted.
+**Checked by:** code (scope slice). The code byte-compares each author span (`\auth`, or the dated `% (author ...)` record until `\auth` exists) with the text the decision recorded.
+
 ## Intent
 
 Put text the author supplied in an edit message into the source exactly as he wrote it, and never restyle, scrub or
@@ -45,7 +48,7 @@ later pass, and he never corrects his own words twice.
 
 ## Detection
 
-C26 (gate; `check_locks.py` against `decisions.yaml`; not built): every `\auth` span is byte-identical to the text its
+C26 (gate; `check_locks.py` against `decisions.yaml`), once built: every `\auth` span is byte-identical to the text its
 decision recorded. In the scrub, S1 removes `\auth` spans from what S2–S7 may touch, and S8 rejects any edit inside one.
 Until then, before changing a sentence, check its dated `% (author ...)` comments and `git log -L` for the edit that
 wrote it.

@@ -3,6 +3,9 @@
 **Family:** numbers. **Stage:** drafting (S0); gate C2 on L0–L4. **Basis:** D (data-to-paper; Jr. AI Scientist; Beel;
 §8.3 C2, §8.6).
 
+**Severity:** gate. A number typed into live text blocks the return; the drafter replaces it with a generated macro, or `\rhPending{<macro name>}`, before the text is accepted.
+**Checked by:** code (claims slice). The code flags digits in live text outside the exemptions and the C2 whitelist; number words ("six classes"), which it misses, are read by the claims auditor.
+
 ## Intent
 
 Every number in the paper's text is a generated macro, so it moves with the results and traces back to the code that
@@ -54,7 +57,7 @@ right number (V4).
 
 ## Detection
 
-C2, `tests/check_numbers.py` (gate in the build and in `push --check`; not built, Phase 0). By hand:
+C2, `tests/check_numbers.py` (gate in the build and in `push --check`, once built; Phase 0). By hand:
 `grep -nE '[0-9]' <file> | grep -v ':\s*%'`, then inspect each hit outside math, `\ref`, `\cite` and labels, and read
 for number words. In the scrub, S1 turns macros into placeholder tokens, and S8 rejects a rewrite that changes the
 multiset of macros (V16).

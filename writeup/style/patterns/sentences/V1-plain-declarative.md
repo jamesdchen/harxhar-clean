@@ -3,6 +3,9 @@
 **Family:** sentences. **Stage:** drafting (S0), before lock. **Basis:** T-genre (Blattman's voice file;
 Goldsmith-Pinkham's style guide); I (A2).
 
+**Severity:** review. A confirmed hit (two claims in one sentence, a late subject or verb, a setup, an importance assertion or a rhetorical figure) makes the drafter split the sentence or rewrite it plain.
+**Checked by:** auditor (sentences slice). Judgment only: the auditor reads the first words of each new sentence for its subject and verb and counts the claims it makes.
+
 ## Intent
 
 Draft each sentence as one plain claim with its subject and verb early, so the author reads and corrects content, not

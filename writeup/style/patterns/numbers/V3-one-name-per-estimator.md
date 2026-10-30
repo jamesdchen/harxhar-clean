@@ -3,6 +3,9 @@
 **Family:** numbers. **Stage:** drafting (S0); also a target of the S7 register pass (§4.5). **Basis:** T-genre (the
 slop and LAMP taxonomies, §4.5); the term list is the repo's notation guide.
 
+**Severity:** gate. A confirmed name the notation guide does not give (for an estimator, predictor set, sample or test) blocks the return; the drafter replaces it with the guide's name before the text is accepted.
+**Checked by:** code + auditor (sentences slice). The code greps the left column of the guide's §5 and the addenda's clashes; the auditor confirms which object each hit names and reads for synonyms chosen for variety, which no list catches.
+
 ## Intent
 
 Call each estimator, predictor set, sample and test by the one name the notation guide gives it, everywhere in the
@@ -43,8 +46,9 @@ objects. S8 checks macros, citations and agents but not names, so a rewrite keep
 
 ## Detection
 
-No check exists. By hand: grep live text for the left column of the guide's §5 table ("all features", "per bar",
-"arm", "baseline", "walk-forward", "shipped", "test window") and for the clashes listed in addenda §B.1 and §B.3.
+If `writeup/style/prose_check.py` exists, it runs this grep; otherwise run it by hand. Grep live text for the left
+column of the guide's §5 table ("all features", "per bar", "arm", "baseline", "walk-forward", "shipped", "test window")
+and for the clashes listed in addenda §B.1 and §B.3.
 
 ## Related patterns
 

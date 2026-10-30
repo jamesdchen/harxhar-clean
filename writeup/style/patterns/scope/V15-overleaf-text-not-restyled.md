@@ -3,6 +3,9 @@
 **Family:** scope. **Stage:** every stage. **Basis:** a provisional deliberation outcome (Q-2026-10-29-11: T2,
 confidence 0.65, importance HIGH, vetoable), extending A4 (I).
 
+**Severity:** gate. A confirmed restyle, scrub or Rule NT cut of text typed on Overleaf blocks the return; the drafter restores the pulled text before the text is accepted.
+**Checked by:** code + auditor (scope slice). Candidates only: the code marks changed sentences that came in through a pull (the pull report and `git blame` until the provenance sidecar exists); the auditor confirms that no person's edit or decision changed them.
+
 ## Intent
 
 Do not scrub, restyle or cut under Rule NT any text a person typed on Overleaf (a collaborator, or the author) that came
@@ -42,9 +45,9 @@ agent pass rewrites what a person typed; only a person's edit or a decision chan
 
 ## Detection
 
-The provenance sidecar that `unflatten.py` is to write at each pull (file, sentence hash, pull SHA, editor) is pending
-(Q-2026-10-29-11's action). Until then: the pull's `writeup/overleaf_sync/REPORT.md` and the commit that applied it;
-`git blame` as an audit cross-check.
+The provenance sidecar that `unflatten.py` is to write at each pull (file, sentence hash, pull SHA, editor;
+Q-2026-10-29-11's action) is the check once it exists. Until then: the pull's `writeup/overleaf_sync/REPORT.md` and
+the commit that applied it; `git blame` as an audit cross-check.
 
 ## Related patterns
 

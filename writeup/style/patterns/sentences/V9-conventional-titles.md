@@ -2,6 +2,9 @@
 
 **Family:** sentences. **Stage:** drafting (S0). **Basis:** the author's rule (28 Oct 2026).
 
+**Severity:** review. A confirmed hit makes the drafter replace the title with the field's noun phrase for its topic, keeping its `\label`.
+**Checked by:** code + auditor (sentences slice). The code lists titles with a colon or a question mark as candidates; the auditor confirms them and reads for full clauses.
+
 ## Intent
 
 Title sections, subsections and appendices as papers in the field do: a short noun phrase naming the topic, not a
@@ -44,8 +47,8 @@ reader finds a section by its topic.
 
 ## Detection
 
-No automatic check. A reviewer treats as candidates titles with a colon, a question mark or a full clause, the three
-forms the 28 Oct edit removed.
+If `writeup/style/prose_check.py` exists, it lists the titles with a colon or a question mark. A reviewer treats as
+candidates titles with a colon, a question mark or a full clause, the three forms the 28 Oct edit removed.
 
 ## Related patterns
 

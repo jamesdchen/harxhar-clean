@@ -3,6 +3,9 @@
 **Family:** sentences. **Stage:** drafting (S0); flagged outright at S4a (Tier C). **Basis:** D for the LLM profile
 (Reinhart et al.; Jiang & Hyland); I for the flag.
 
+**Severity:** review. A confirmed hit makes the drafter replace the evaluative verb with the number or finding it stood for.
+**Checked by:** code + auditor (sentences slice). The code's grep (Detection) finds an inanimate subject with an evaluative verb; the auditor confirms each hit.
+
 ## Intent
 
 Do not give an inanimate subject ("the results", "this analysis", "these findings") an evaluative verb (underscore,
@@ -44,7 +47,7 @@ measured in LLM text is gone.
 
 ## Detection
 
-S4a flags these outright, not against a band (not built). By hand:
+S4a, once built, flags these outright, not against a band. By hand:
 `grep -nEi "(results|analysis|findings|evidence|this|these)( [a-z]+)? (underscore|highlight|showcase|reveal)" writeup/rehaul/*.tex`.
 
 ## Related patterns

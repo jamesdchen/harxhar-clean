@@ -3,6 +3,9 @@
 **Family:** claims. **Stage:** drafting (S0); found at S3 (Tier S) and sent to review. **Basis:** the author's rule
 (29 Oct 2026); I for the detector.
 
+**Severity:** gate. A confirmed clause-final verdict tail blocks the return; the drafter states the qualification as a claim of its own, with its number and test, or deletes it, before the text is accepted.
+**Checked by:** code + auditor (claims slice). The code's tail grep (Detection) finds candidates; the auditor confirms each one.
+
 ## Intent
 
 Do not end a finished clause with a clipped verdict or qualification: state it as a claim of its own, with its number
@@ -19,7 +22,7 @@ Section 8 said the gradient-boosted trees' removals of the other groups change t
 before ablation addendum J that was false (LightGBM's sentiment removal had p = 0.035), and the tail drew no check. It
 became true only when the patched rerun moved that p-value to 0.066 (claim check, 29 Oct 2026;
 `writeup/deliberation/2026-10-29b`). The tail hides a universal ("none", "all", "not one") or a verdict with no number,
-test or count behind it, so Rule NT's TRUE? step (V5) has nothing to check. The same tail is live at
+test or count behind it, so Rule NT's TRUE? step (V5) has nothing to check. On 29 Oct the same tail was also at
 `08_feature_importance.tex:261`, `A_results.tex:180` and `:447` and `A_closing.tex:216`, and a T0 deliberation outcome
 prescribed one (Q-2026-10-29-15; `writeup/deliberation/2026-10-29c/Q-2026-10-29-25.evidence.md`, item 10).
 
@@ -32,7 +35,8 @@ few words after a comma, semicolon, colon or dash that restricts, overturns or g
 - ", and none survive" / ", not one" / "; neither does X" / ", if at all"
 - "-- and only barely" / ": none." / ", and it is not close"
 
-Not author-supplied text (V13) or text pulled from Overleaf (V15). The live tails above wait for the edit stage (V14).
+Not author-supplied text (V13) or text pulled from Overleaf (V15). Tails already in the text wait for the edit stage
+(V14).
 
 ## Structure / Rewrite
 
