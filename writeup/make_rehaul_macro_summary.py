@@ -11,10 +11,11 @@ WRITES  writeup/generated/rehaul_macro_summary_numbers.tex   \\rhms... macros (d
 Panels as tab:rh_ablation_macro: A = HAR + one release calendar against the class's HAR (add_mac_<r> vs har); B = HAR +
 RM + FOMC + one release calendar against HAR + RM + FOMC (add_rm_fomc_mac_<r> vs add_rm_fomc).  Spans S: All (every
 scored bar), Nrel (the scored days without the row's release), Rel (the days with it).  Class groups G: Pen (ridge,
-lasso, elastic net), Ols (Panel B only: the OLS is walked on the HAR + RM + FOMC arms only), Tree (LightGBM, XGBoost);
-no G: the three groups together.  The random forest's macro arms are pending and enter no macro.  A cell is one
-(class, release) pair with forecasts for the arm and its reference; it is significant when its Diebold-Mariano p-value
-is below ALPHA, lower or higher by the sign of the DM statistic (asserted equal to the sign of the QLIKE change).
+lasso, elastic net), Ols (Panel B only: the OLS is walked on the HAR + RM + FOMC arms only), Tree (LightGBM, XGBoost),
+Forest (the random forest; its macro arms scored 30 Oct 2026); no G: Pen, Ols and Tree together, the forest left out
+(the meaning these names had before the forest was scored).  A cell is one (class, release) pair with forecasts for the
+arm and its reference; it is significant when its Diebold-Mariano p-value is below ALPHA, lower or higher by the sign of
+the DM statistic (asserted equal to the sign of the QLIKE change).
   \\rhmsSigLevel                                       ALPHA in percent
   \\rhmsPan<P><S>[<G>]MaxAbsPct                        largest |QLIKE change, %| over the cells (1 decimal, as the table)
   \\rhmsPan<P><S>[<G>]PMin                             smallest DM p-value over the cells
@@ -23,12 +24,14 @@ is below ALPHA, lower or higher by the sign of the DM statistic (asserted equal 
   \\rhmsFomcAllGainMin, ...GainMax, ...PMax            the FOMC row of Panel B of tab:rh_ablation (add_fomc vs har, every
                                                       bar) over the Pen and Tree classes: smallest / largest fall in QLIKE
                                                       (%; asserted to be a fall in each class), largest p
+  \\rhmsFomcAllWithForest{GainMin,GainMax,PMax}        the same over the Pen and Tree classes and the forest
   \\rhmsPanBCpiRelLin{PctMin,PctMax,DmMin,DmMax,PMax,NSigHigher,NCls}
                                                       Panel B, CPI release days, the linear classes (OLS and Pen)
   \\rhmsRobustExclFirst, ...ExclLast                   first and last calendar day of the excluded window [LO, HI)
   \\rhmsRobustOls{All,Ex}{Pct,Dm,P}                    OLS, HAR + RM + FOMC + all six calendars against HAR + RM + FOMC,
                                                       every bar (All) and without the window (Ex)
-  \\rhmsRobustNOther, \\rhmsRobustOtherMaxMove          the other pairs of robust2019.csv: their number and the largest
+  \\rhmsRobustNOther, \\rhmsRobustOtherMaxMove          the other pairs of robust2019.csv (every class in it, the forest
+                                                      included): their number and the largest
                                                       |change of the QLIKE change| without the window (percentage points,
                                                       2 decimals rounded up, so "at most" holds)
   \\rhmsRobustNSigCross                                pairs whose significance at ALPHA differs with and without it
@@ -61,7 +64,9 @@ REL_TEX = {
     "trade": "Trade",
     "retail": "Retail",
 }
-GROUPS = {"Pen": ("ridge", "lasso", "enet"), "Ols": ("ols",), "Tree": ("lgbm", "xgb")}
+GROUPS = {"Pen": ("ridge", "lasso", "enet"), "Ols": ("ols",), "Tree": ("lgbm", "xgb"), "Forest": ("rf",)}
+# the groups of the macros without a group suffix (as before the forest was scored, so those names keep their meaning)
+UNION = ("Pen", "Ols", "Tree")
 # panel -> (arm prefix + release, reference arm), as make_rehaul_ablations.py MAC_PER
 PANELS = {"A": ("add_mac_", "har"), "B": ("add_rm_fomc_mac_", "add_rm_fomc")}
 SPANS = {"all": "All", "nrel": "Nrel", "rel": "Rel"}
@@ -122,12 +127,13 @@ def main() -> int:
             cells: dict[str, list[tuple[float, float, float]]] = {}
             for g, classes in GROUPS.items():
                 cells[g] = [x for c in classes for r in rels if (x := cell(c, pre + r, ref, span(sp, r))) is not None]
-            cells[""] = [x for g in GROUPS for x in cells[g]]
+            cells[""] = [x for g in UNION for x in cells[g]]
+            assert len(cells["Forest"]) == len(rels), f"Panel {P} {sp}: the forest's cells are incomplete"
             for g, xs in cells.items():
                 if not xs:  # the OLS in Panel A: not walked
                     continue
                 nm = f"Pan{P}{st}{g}"
-                who = f"Panel {P} {sp} {g or 'Pen + Ols + Tree'}"
+                who = f"Panel {P} {sp} {g or ' + '.join(UNION)}"
                 sig = [(pc, d) for pc, d, p in xs if p < ALPHA]
                 assert all((pc > 0) == (d > 0) for pc, d in sig), f"{who}: a significant cell with opposite signs"
                 add(
@@ -171,6 +177,21 @@ def main() -> int:
         "... largest fall, % (ridge, lasso, enet, lgbm, xgb)",
     )
     add("FomcAllPMax", fmt_p(max(p for _pc, _d, p in fomc)), "... largest DM p")
+    # the same row with the forest (Panel B of tab:rh_ablation prints the forest's HAR + FOMC cell)
+    fomc_rf = fomc + [x for c in GROUPS["Forest"] if (x := cell(c, "add_fomc", "har", "all")) is not None]
+    assert len(fomc_rf) == len(fomc) + len(GROUPS["Forest"]), len(fomc_rf)
+    assert all(pc < 0 for pc, _d, _p in fomc_rf), "the FOMC calendar no longer lowers the forest's loss"
+    add(
+        "FomcAllWithForestGainMin",
+        fmt(min(-pc for pc, _d, _p in fomc_rf), 1),
+        "HAR + FOMC vs HAR, every bar: smallest fall, % (ridge, lasso, enet, lgbm, xgb, rf)",
+    )
+    add(
+        "FomcAllWithForestGainMax",
+        fmt(max(-pc for pc, _d, _p in fomc_rf), 1),
+        "... largest fall, % (ridge, lasso, enet, lgbm, xgb, rf)",
+    )
+    add("FomcAllWithForestPMax", fmt_p(max(p for _pc, _d, p in fomc_rf)), "... largest DM p (with rf)")
 
     # Panel B, CPI release days, the linear classes
     lin = GROUPS["Ols"] + GROUPS["Pen"]
@@ -216,6 +237,8 @@ def main() -> int:
         "last day of it (the day before mac_robust2019.HI)",
     )
     R = pd.read_csv(RES / "robust2019.csv")
+    # the prose names the classes of the rescored pairs: every class of GROUPS, the forest included
+    assert set(R["cls"]) == {c for cs in GROUPS.values() for c in cs}, sorted(set(R["cls"]))
     for row in R[R["span"] == "all"].itertuples():  # the robustness file's every-bar scores = the scorer's
         x = cell(str(row.cls), str(row.arm), str(row.ref), "all")
         assert x is not None and abs(x[0] - float(row.pct)) < 1e-8, (row.cls, row.arm)
@@ -249,10 +272,11 @@ def main() -> int:
         "% \\rhms...: summary numbers of the macro release calendar ablations (RULE.txt addendum L and (iii)) for",
         "% app:rh_results_macro; from results/ablations_2014start_w3000/scores_fomcfix/ (metrics, dm, checks, robust2019).",
         "% Panels P = A (HAR + one calendar vs HAR), B (HAR + RM + FOMC + one calendar vs HAR + RM + FOMC); spans S = All,",
-        "% Nrel, Rel; groups G = Pen (ridge, lasso, elastic net), Ols (Panel B), Tree (LightGBM, XGBoost), none = all three.",
-        "% The random forest's macro cells are pending and enter no macro.  Macros:",
+        "% Nrel, Rel; groups G = Pen (ridge, lasso, elastic net), Ols (Panel B), Tree (LightGBM, XGBoost), Forest (random",
+        "% forest); none = Pen, Ols and Tree (the forest left out).  Macros:",
         "%   \\rhmsSigLevel; \\rhmsPan<P><S>[<G>]{MaxAbsPct,PMin,NSigLower,NSigHigher,NCells};",
-        "%   \\rhmsFomcAll{GainMin,GainMax,PMax}; \\rhmsPanBCpiRelLin{PctMin,PctMax,DmMin,DmMax,PMax,NSigHigher,NCls};",
+        "%   \\rhmsFomcAll[WithForest]{GainMin,GainMax,PMax};",
+        "%   \\rhmsPanBCpiRelLin{PctMin,PctMax,DmMin,DmMax,PMax,NSigHigher,NCls};",
         "%   \\rhmsRobust{ExclFirst,ExclLast}, \\rhmsRobustOls{All,Ex}{Pct,Dm,P}, \\rhmsRobust{NOther,OtherMaxMove,NSigCross}.",
     ]
     lines += [f"\\providecommand{{\\{n}}}{{}}\\renewcommand{{\\{n}}}{{{v}}}  % {c}" for n, v, c in out]

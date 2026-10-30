@@ -76,25 +76,25 @@ Vol. demand live, removed & -- & $-$2.8 ($-$3.1) & $-$3.2 ($-$2.8) & $-$2.0 ($-$
 \midrule
 \multicolumn{8}{@{}l}{\textit{F. Macroeconomic release calendars added, against the same set without them ($-$: the calendars add accuracy)}} \\
 \multicolumn{8}{@{}l}{HAR + macro, against HAR} \\
-\quad every bar & -- & 0.1 (0.3) & 0.1 (0.3) & 0.0 ($-$0.2) & $-$0.3 ($-$1.4) & $-$0.6 ($-$2.5) & -- \\
-\quad non-release days & -- & 0.1 (0.3) & 0.1 (0.3) & 0.0 ($-$0.3) & $-$0.3 ($-$0.9) & $-$0.6 ($-$2.2) & -- \\
-\quad release days & -- & 0.1 (0.2) & 0.1 (0.2) & 0.0 (0.2) & $-$0.6 ($-$1.4) & $-$0.6 ($-$1.4) & -- \\
+\quad every bar & -- & 0.1 (0.3) & 0.1 (0.3) & 0.0 ($-$0.2) & $-$0.3 ($-$1.4) & $-$0.6 ($-$2.5) & 0.2 (0.6) \\
+\quad non-release days & -- & 0.1 (0.3) & 0.1 (0.3) & 0.0 ($-$0.3) & $-$0.3 ($-$0.9) & $-$0.6 ($-$2.2) & 0.4 (0.9) \\
+\quad release days & -- & 0.1 (0.2) & 0.1 (0.2) & 0.0 (0.2) & $-$0.6 ($-$1.4) & $-$0.6 ($-$1.4) & $-$0.4 ($-$0.8) \\
 \addlinespace[2pt]
 \multicolumn{8}{@{}l}{HAR + RM + FOMC + macro, against HAR + RM + FOMC} \\
-\quad every bar & 3.7 (1.4) & 0.0 (0.1) & 0.1 (0.4) & $-$0.1 ($-$0.5) & 0.0 (0.0) & $-$0.1 ($-$1.1) & -- \\
-\quad non-release days & 4.1 (1.2) & 0.0 (0.1) & 0.1 (0.2) & $-$0.1 ($-$0.6) & 0.0 ($-$0.4) & 0.0 ($-$0.3) & -- \\
-\quad release days & 2.3 (1.7) & 0.0 (0.0) & 0.2 (0.6) & 0.0 (0.0) & 0.2 (0.9) & $-$0.3 ($-$2.0) & -- \\
+\quad every bar & 3.7 (1.4) & 0.0 (0.1) & 0.1 (0.4) & $-$0.1 ($-$0.5) & 0.0 (0.0) & $-$0.1 ($-$1.1) & 0.5 (3.4) \\
+\quad non-release days & 4.1 (1.2) & 0.0 (0.1) & 0.1 (0.2) & $-$0.1 ($-$0.6) & 0.0 ($-$0.4) & 0.0 ($-$0.3) & 0.5 (2.8) \\
+\quad release days & 2.3 (1.7) & 0.0 (0.0) & 0.2 (0.6) & 0.0 (0.0) & 0.2 (0.9) & $-$0.3 ($-$2.0) & 0.4 (2.1) \\
 \addlinespace[2pt]
 \multicolumn{8}{@{}l}{Full set + macro, against the full set} \\
-\quad every bar & -- & 0.0 (0.1) & 0.4 (1.1) & $-$0.1 ($-$0.5) & 0.1 (0.6) & 0.1 (1.2) & -- \\
-\quad non-release days & -- & 0.0 (0.0) & 0.4 (1.1) & $-$0.1 ($-$0.7) & 0.1 (0.7) & 0.1 (1.4) & -- \\
-\quad release days & -- & 0.1 (0.2) & 0.2 (0.6) & 0.1 (0.3) & 0.0 ($-$0.3) & 0.0 (0.0) & -- \\
+\quad every bar & -- & 0.0 (0.1) & 0.4 (1.1) & $-$0.1 ($-$0.5) & 0.1 (0.6) & 0.1 (1.2) & 0.2 (3.6) \\
+\quad non-release days & -- & 0.0 (0.0) & 0.4 (1.1) & $-$0.1 ($-$0.7) & 0.1 (0.7) & 0.1 (1.4) & 0.3 (3.4) \\
+\quad release days & -- & 0.1 (0.2) & 0.2 (0.6) & 0.1 (0.3) & 0.0 ($-$0.3) & 0.0 (0.0) & 0.2 (1.3) \\
 \bottomrule
 \end{tabular*}
 \begin{tablenotes}[flushleft]
 \footnotesize
 \item \textit{Sign:} as in Panels~A to~E, each cell is $100\,(L_{\text{row}}/L_{\text{ref}} - 1)$ with the Diebold--Mariano statistic in parentheses (same sign).  Panel~F, the macroeconomic release calendars added to the set named in the heading (reference: that set without them): negative, the loss falls when they are added, i.e.\ they add accuracy; positive, they hurt.
-\item \textit{Notes:} Macro: the calendars of \rhabNMacReleases{} scheduled US macroeconomic releases (the consumer and producer price indexes, the employment situation, the advance estimate of GDP, international trade and retail sales), built in the same way as the FOMC calendar.  RM: the futures' realized moments.  Every bar: the scored bars of Table~\ref{tab:rh_oos} (2014--2024).  The other rows score the same forecasts on the \rhabNNrelDays{} non-release days and on the \rhabNRelDays{} release days (the days with at least one of the releases).  Non-release days and release days split the scored days as the ordinary days and the FOMC statement days do for the FOMC calendar.  Of the \rhabNEventDays{} FOMC statement days, \rhabNNrelFomcDays{} are non-release days and \rhabNRelFomcDays{} are release days.  The test runs on daily average QLIKE.  The models with the calendars, HAR + RM + FOMC and the full set keep the full set's frozen hyperparameters (FOMC-patched design); the HAR benchmark keeps those of Table~\ref{tab:rh_oos}.  OLS is estimated only on HAR + RM + FOMC + macro.  The forecasts behind the dashes in the Forest column are pending.
+\item \textit{Notes:} Macro: the calendars of \rhabNMacReleases{} scheduled US macroeconomic releases (the consumer and producer price indexes, the employment situation, the advance estimate of GDP, international trade and retail sales), built in the same way as the FOMC calendar.  RM: the futures' realized moments.  Every bar: the scored bars of Table~\ref{tab:rh_oos} (2014--2024).  The other rows score the same forecasts on the \rhabNNrelDays{} non-release days and on the \rhabNRelDays{} release days (the days with at least one of the releases).  Non-release days and release days split the scored days as the ordinary days and the FOMC statement days do for the FOMC calendar.  Of the \rhabNEventDays{} FOMC statement days, \rhabNNrelFomcDays{} are non-release days and \rhabNRelFomcDays{} are release days.  The test runs on daily average QLIKE.  The models with the calendars, HAR + RM + FOMC and the full set keep the full set's frozen hyperparameters (FOMC-patched design); the HAR benchmark keeps those of Table~\ref{tab:rh_oos}.  OLS is estimated only on HAR + RM + FOMC + macro.
 \end{tablenotes}
 \end{threeparttable}
 \end{table}

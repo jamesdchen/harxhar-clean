@@ -5278,6 +5278,198 @@
 \newcommand{\rhabXgbAddRmFomcMacRetailRelPct}{0.0}  % QLIKE change % xgb add_rm_fomc_mac_retail vs add_rm_fomc, rel_retail
 \newcommand{\rhabXgbAddRmFomcMacRetailRelDm}{$-$0.07}  % DM add_rm_fomc_mac_retail vs add_rm_fomc
 \newcommand{\rhabXgbAddRmFomcMacRetailRelP}{0.948}  % p-value
+\newcommand{\rhabRfAddMacAllQlike}{0.1900}  % QLIKE rf add_mac all
+\newcommand{\rhabRfAddMacAllPct}{0.2}  % QLIKE change % rf add_mac vs har, all
+\newcommand{\rhabRfAddMacAllDm}{0.61}  % DM add_mac vs har
+\newcommand{\rhabRfAddMacAllP}{0.539}  % p-value
+\newcommand{\rhabRfAddMacNrelQlike}{0.1893}  % QLIKE rf add_mac nrel
+\newcommand{\rhabRfAddMacNrelPct}{0.4}  % QLIKE change % rf add_mac vs har, nrel
+\newcommand{\rhabRfAddMacNrelDm}{0.87}  % DM add_mac vs har
+\newcommand{\rhabRfAddMacNrelP}{0.384}  % p-value
+\newcommand{\rhabRfAddMacRelQlike}{0.1924}  % QLIKE rf add_mac rel
+\newcommand{\rhabRfAddMacRelPct}{$-$0.4}  % QLIKE change % rf add_mac vs har, rel
+\newcommand{\rhabRfAddMacRelDm}{$-$0.81}  % DM add_mac vs har
+\newcommand{\rhabRfAddMacRelP}{0.417}  % p-value
+\newcommand{\rhabRfAddMacCloseQlike}{0.1294}  % QLIKE rf add_mac c16
+\newcommand{\rhabRfAddMacClosePct}{2.2}  % QLIKE change % rf add_mac vs har, c16
+\newcommand{\rhabRfAddMacCloseDm}{2.30}  % DM add_mac vs har
+\newcommand{\rhabRfAddMacCloseP}{0.021}  % p-value
+\newcommand{\rhabRfAddRmFomcMacAllQlike}{0.1697}  % QLIKE rf add_rm_fomc_mac all
+\newcommand{\rhabRfAddRmFomcMacAllPct}{0.5}  % QLIKE change % rf add_rm_fomc_mac vs add_rm_fomc, all
+\newcommand{\rhabRfAddRmFomcMacAllDm}{3.38}  % DM add_rm_fomc_mac vs add_rm_fomc
+\newcommand{\rhabRfAddRmFomcMacAllP}{\ensuremath{<}0.001}  % p-value
+\newcommand{\rhabRfAddRmFomcMacNrelQlike}{0.1695}  % QLIKE rf add_rm_fomc_mac nrel
+\newcommand{\rhabRfAddRmFomcMacNrelPct}{0.5}  % QLIKE change % rf add_rm_fomc_mac vs add_rm_fomc, nrel
+\newcommand{\rhabRfAddRmFomcMacNrelDm}{2.84}  % DM add_rm_fomc_mac vs add_rm_fomc
+\newcommand{\rhabRfAddRmFomcMacNrelP}{0.004}  % p-value
+\newcommand{\rhabRfAddRmFomcMacRelQlike}{0.1705}  % QLIKE rf add_rm_fomc_mac rel
+\newcommand{\rhabRfAddRmFomcMacRelPct}{0.4}  % QLIKE change % rf add_rm_fomc_mac vs add_rm_fomc, rel
+\newcommand{\rhabRfAddRmFomcMacRelDm}{2.06}  % DM add_rm_fomc_mac vs add_rm_fomc
+\newcommand{\rhabRfAddRmFomcMacRelP}{0.039}  % p-value
+\newcommand{\rhabRfAddRmFomcMacCloseQlike}{0.1241}  % QLIKE rf add_rm_fomc_mac c16
+\newcommand{\rhabRfAddRmFomcMacClosePct}{1.2}  % QLIKE change % rf add_rm_fomc_mac vs add_rm_fomc, c16
+\newcommand{\rhabRfAddRmFomcMacCloseDm}{2.94}  % DM add_rm_fomc_mac vs add_rm_fomc
+\newcommand{\rhabRfAddRmFomcMacCloseP}{0.003}  % p-value
+\newcommand{\rhabRfFullMacAllQlike}{0.1685}  % QLIKE rf full_mac all
+\newcommand{\rhabRfFullMacVsFullAllPct}{0.2}  % QLIKE change % rf full_mac vs full_fix, all
+\newcommand{\rhabRfFullMacVsFullAllDm}{3.60}  % DM full_mac vs full_fix
+\newcommand{\rhabRfFullMacVsFullAllP}{\ensuremath{<}0.001}  % p-value
+\newcommand{\rhabRfFullMacNrelQlike}{0.1683}  % QLIKE rf full_mac nrel
+\newcommand{\rhabRfFullMacVsFullNrelPct}{0.3}  % QLIKE change % rf full_mac vs full_fix, nrel
+\newcommand{\rhabRfFullMacVsFullNrelDm}{3.43}  % DM full_mac vs full_fix
+\newcommand{\rhabRfFullMacVsFullNrelP}{\ensuremath{<}0.001}  % p-value
+\newcommand{\rhabRfFullMacRelQlike}{0.1691}  % QLIKE rf full_mac rel
+\newcommand{\rhabRfFullMacVsFullRelPct}{0.2}  % QLIKE change % rf full_mac vs full_fix, rel
+\newcommand{\rhabRfFullMacVsFullRelDm}{1.30}  % DM full_mac vs full_fix
+\newcommand{\rhabRfFullMacVsFullRelP}{0.193}  % p-value
+\newcommand{\rhabRfFullMacCloseQlike}{0.1251}  % QLIKE rf full_mac c16
+\newcommand{\rhabRfFullMacVsFullClosePct}{0.4}  % QLIKE change % rf full_mac vs full_fix, c16
+\newcommand{\rhabRfFullMacVsFullCloseDm}{1.34}  % DM full_mac vs full_fix
+\newcommand{\rhabRfFullMacVsFullCloseP}{0.180}  % p-value
+\newcommand{\rhabRfAddMacCpiAllQlike}{0.1899}  % QLIKE rf add_mac_cpi all
+\newcommand{\rhabRfAddMacCpiAllPct}{0.2}  % QLIKE change % rf add_mac_cpi vs har, all
+\newcommand{\rhabRfAddMacCpiAllDm}{0.70}  % DM add_mac_cpi vs har
+\newcommand{\rhabRfAddMacCpiAllP}{0.483}  % p-value
+\newcommand{\rhabRfAddMacCpiNrelQlike}{0.1877}  % QLIKE rf add_mac_cpi nrel_cpi
+\newcommand{\rhabRfAddMacCpiNrelPct}{0.2}  % QLIKE change % rf add_mac_cpi vs har, nrel_cpi
+\newcommand{\rhabRfAddMacCpiNrelDm}{0.54}  % DM add_mac_cpi vs har
+\newcommand{\rhabRfAddMacCpiNrelP}{0.587}  % p-value
+\newcommand{\rhabRfAddMacCpiRelQlike}{0.2344}  % QLIKE rf add_mac_cpi rel_cpi
+\newcommand{\rhabRfAddMacCpiRelPct}{0.8}  % QLIKE change % rf add_mac_cpi vs har, rel_cpi
+\newcommand{\rhabRfAddMacCpiRelDm}{0.98}  % DM add_mac_cpi vs har
+\newcommand{\rhabRfAddMacCpiRelP}{0.325}  % p-value
+\newcommand{\rhabRfAddMacEmpAllQlike}{0.1891}  % QLIKE rf add_mac_emp all
+\newcommand{\rhabRfAddMacEmpAllPct}{$-$0.2}  % QLIKE change % rf add_mac_emp vs har, all
+\newcommand{\rhabRfAddMacEmpAllDm}{$-$0.67}  % DM add_mac_emp vs har
+\newcommand{\rhabRfAddMacEmpAllP}{0.503}  % p-value
+\newcommand{\rhabRfAddMacEmpNrelQlike}{0.1921}  % QLIKE rf add_mac_emp nrel_emp
+\newcommand{\rhabRfAddMacEmpNrelPct}{$-$0.2}  % QLIKE change % rf add_mac_emp vs har, nrel_emp
+\newcommand{\rhabRfAddMacEmpNrelDm}{$-$0.53}  % DM add_mac_emp vs har
+\newcommand{\rhabRfAddMacEmpNrelP}{0.596}  % p-value
+\newcommand{\rhabRfAddMacEmpRelQlike}{0.1292}  % QLIKE rf add_mac_emp rel_emp
+\newcommand{\rhabRfAddMacEmpRelPct}{$-$1.3}  % QLIKE change % rf add_mac_emp vs har, rel_emp
+\newcommand{\rhabRfAddMacEmpRelDm}{$-$1.26}  % DM add_mac_emp vs har
+\newcommand{\rhabRfAddMacEmpRelP}{0.209}  % p-value
+\newcommand{\rhabRfAddMacPpiAllQlike}{0.1898}  % QLIKE rf add_mac_ppi all
+\newcommand{\rhabRfAddMacPpiAllPct}{0.1}  % QLIKE change % rf add_mac_ppi vs har, all
+\newcommand{\rhabRfAddMacPpiAllDm}{0.61}  % DM add_mac_ppi vs har
+\newcommand{\rhabRfAddMacPpiAllP}{0.543}  % p-value
+\newcommand{\rhabRfAddMacPpiNrelQlike}{0.1884}  % QLIKE rf add_mac_ppi nrel_ppi
+\newcommand{\rhabRfAddMacPpiNrelPct}{0.2}  % QLIKE change % rf add_mac_ppi vs har, nrel_ppi
+\newcommand{\rhabRfAddMacPpiNrelDm}{0.89}  % DM add_mac_ppi vs har
+\newcommand{\rhabRfAddMacPpiNrelP}{0.373}  % p-value
+\newcommand{\rhabRfAddMacPpiRelQlike}{0.2172}  % QLIKE rf add_mac_ppi rel_ppi
+\newcommand{\rhabRfAddMacPpiRelPct}{$-$1.1}  % QLIKE change % rf add_mac_ppi vs har, rel_ppi
+\newcommand{\rhabRfAddMacPpiRelDm}{$-$1.44}  % DM add_mac_ppi vs har
+\newcommand{\rhabRfAddMacPpiRelP}{0.149}  % p-value
+\newcommand{\rhabRfAddMacGdpAllQlike}{0.1889}  % QLIKE rf add_mac_gdp all
+\newcommand{\rhabRfAddMacGdpAllPct}{$-$0.3}  % QLIKE change % rf add_mac_gdp vs har, all
+\newcommand{\rhabRfAddMacGdpAllDm}{$-$0.92}  % DM add_mac_gdp vs har
+\newcommand{\rhabRfAddMacGdpAllP}{0.359}  % p-value
+\newcommand{\rhabRfAddMacGdpNrelQlike}{0.1885}  % QLIKE rf add_mac_gdp nrel_gdp
+\newcommand{\rhabRfAddMacGdpNrelPct}{$-$0.2}  % QLIKE change % rf add_mac_gdp vs har, nrel_gdp
+\newcommand{\rhabRfAddMacGdpNrelDm}{$-$0.69}  % DM add_mac_gdp vs har
+\newcommand{\rhabRfAddMacGdpNrelP}{0.489}  % p-value
+\newcommand{\rhabRfAddMacGdpRelQlike}{0.2130}  % QLIKE rf add_mac_gdp rel_gdp
+\newcommand{\rhabRfAddMacGdpRelPct}{$-$4.2}  % QLIKE change % rf add_mac_gdp vs har, rel_gdp
+\newcommand{\rhabRfAddMacGdpRelDm}{$-$2.19}  % DM add_mac_gdp vs har
+\newcommand{\rhabRfAddMacGdpRelP}{0.028}  % p-value
+\newcommand{\rhabRfAddMacTradeAllQlike}{0.1903}  % QLIKE rf add_mac_trade all
+\newcommand{\rhabRfAddMacTradeAllPct}{0.4}  % QLIKE change % rf add_mac_trade vs har, all
+\newcommand{\rhabRfAddMacTradeAllDm}{1.48}  % DM add_mac_trade vs har
+\newcommand{\rhabRfAddMacTradeAllP}{0.140}  % p-value
+\newcommand{\rhabRfAddMacTradeNrelQlike}{0.1911}  % QLIKE rf add_mac_trade nrel_trade
+\newcommand{\rhabRfAddMacTradeNrelPct}{0.3}  % QLIKE change % rf add_mac_trade vs har, nrel_trade
+\newcommand{\rhabRfAddMacTradeNrelDm}{1.13}  % DM add_mac_trade vs har
+\newcommand{\rhabRfAddMacTradeNrelP}{0.259}  % p-value
+\newcommand{\rhabRfAddMacTradeRelQlike}{0.1733}  % QLIKE rf add_mac_trade rel_trade
+\newcommand{\rhabRfAddMacTradeRelPct}{2.4}  % QLIKE change % rf add_mac_trade vs har, rel_trade
+\newcommand{\rhabRfAddMacTradeRelDm}{2.71}  % DM add_mac_trade vs har
+\newcommand{\rhabRfAddMacTradeRelP}{0.007}  % p-value
+\newcommand{\rhabRfAddMacRetailAllQlike}{0.1897}  % QLIKE rf add_mac_retail all
+\newcommand{\rhabRfAddMacRetailAllPct}{0.1}  % QLIKE change % rf add_mac_retail vs har, all
+\newcommand{\rhabRfAddMacRetailAllDm}{0.61}  % DM add_mac_retail vs har
+\newcommand{\rhabRfAddMacRetailAllP}{0.543}  % p-value
+\newcommand{\rhabRfAddMacRetailNrelQlike}{0.1899}  % QLIKE rf add_mac_retail nrel_retail
+\newcommand{\rhabRfAddMacRetailNrelPct}{0.1}  % QLIKE change % rf add_mac_retail vs har, nrel_retail
+\newcommand{\rhabRfAddMacRetailNrelDm}{0.66}  % DM add_mac_retail vs har
+\newcommand{\rhabRfAddMacRetailNrelP}{0.508}  % p-value
+\newcommand{\rhabRfAddMacRetailRelQlike}{0.1875}  % QLIKE rf add_mac_retail rel_retail
+\newcommand{\rhabRfAddMacRetailRelPct}{$-$0.1}  % QLIKE change % rf add_mac_retail vs har, rel_retail
+\newcommand{\rhabRfAddMacRetailRelDm}{$-$0.10}  % DM add_mac_retail vs har
+\newcommand{\rhabRfAddMacRetailRelP}{0.924}  % p-value
+\newcommand{\rhabRfAddRmFomcMacCpiAllQlike}{0.1693}  % QLIKE rf add_rm_fomc_mac_cpi all
+\newcommand{\rhabRfAddRmFomcMacCpiAllPct}{0.2}  % QLIKE change % rf add_rm_fomc_mac_cpi vs add_rm_fomc, all
+\newcommand{\rhabRfAddRmFomcMacCpiAllDm}{2.37}  % DM add_rm_fomc_mac_cpi vs add_rm_fomc
+\newcommand{\rhabRfAddRmFomcMacCpiAllP}{0.018}  % p-value
+\newcommand{\rhabRfAddRmFomcMacCpiNrelQlike}{0.1678}  % QLIKE rf add_rm_fomc_mac_cpi nrel_cpi
+\newcommand{\rhabRfAddRmFomcMacCpiNrelPct}{0.2}  % QLIKE change % rf add_rm_fomc_mac_cpi vs add_rm_fomc, nrel_cpi
+\newcommand{\rhabRfAddRmFomcMacCpiNrelDm}{2.17}  % DM add_rm_fomc_mac_cpi vs add_rm_fomc
+\newcommand{\rhabRfAddRmFomcMacCpiNrelP}{0.030}  % p-value
+\newcommand{\rhabRfAddRmFomcMacCpiRelQlike}{0.1988}  % QLIKE rf add_rm_fomc_mac_cpi rel_cpi
+\newcommand{\rhabRfAddRmFomcMacCpiRelPct}{0.4}  % QLIKE change % rf add_rm_fomc_mac_cpi vs add_rm_fomc, rel_cpi
+\newcommand{\rhabRfAddRmFomcMacCpiRelDm}{0.93}  % DM add_rm_fomc_mac_cpi vs add_rm_fomc
+\newcommand{\rhabRfAddRmFomcMacCpiRelP}{0.355}  % p-value
+\newcommand{\rhabRfAddRmFomcMacEmpAllQlike}{0.1690}  % QLIKE rf add_rm_fomc_mac_emp all
+\newcommand{\rhabRfAddRmFomcMacEmpAllPct}{0.0}  % QLIKE change % rf add_rm_fomc_mac_emp vs add_rm_fomc, all
+\newcommand{\rhabRfAddRmFomcMacEmpAllDm}{0.10}  % DM add_rm_fomc_mac_emp vs add_rm_fomc
+\newcommand{\rhabRfAddRmFomcMacEmpAllP}{0.922}  % p-value
+\newcommand{\rhabRfAddRmFomcMacEmpNrelQlike}{0.1712}  % QLIKE rf add_rm_fomc_mac_emp nrel_emp
+\newcommand{\rhabRfAddRmFomcMacEmpNrelPct}{0.0}  % QLIKE change % rf add_rm_fomc_mac_emp vs add_rm_fomc, nrel_emp
+\newcommand{\rhabRfAddRmFomcMacEmpNrelDm}{0.24}  % DM add_rm_fomc_mac_emp vs add_rm_fomc
+\newcommand{\rhabRfAddRmFomcMacEmpNrelP}{0.808}  % p-value
+\newcommand{\rhabRfAddRmFomcMacEmpRelQlike}{0.1236}  % QLIKE rf add_rm_fomc_mac_emp rel_emp
+\newcommand{\rhabRfAddRmFomcMacEmpRelPct}{$-$0.4}  % QLIKE change % rf add_rm_fomc_mac_emp vs add_rm_fomc, rel_emp
+\newcommand{\rhabRfAddRmFomcMacEmpRelDm}{$-$1.33}  % DM add_rm_fomc_mac_emp vs add_rm_fomc
+\newcommand{\rhabRfAddRmFomcMacEmpRelP}{0.185}  % p-value
+\newcommand{\rhabRfAddRmFomcMacPpiAllQlike}{0.1692}  % QLIKE rf add_rm_fomc_mac_ppi all
+\newcommand{\rhabRfAddRmFomcMacPpiAllPct}{0.2}  % QLIKE change % rf add_rm_fomc_mac_ppi vs add_rm_fomc, all
+\newcommand{\rhabRfAddRmFomcMacPpiAllDm}{2.64}  % DM add_rm_fomc_mac_ppi vs add_rm_fomc
+\newcommand{\rhabRfAddRmFomcMacPpiAllP}{0.008}  % p-value
+\newcommand{\rhabRfAddRmFomcMacPpiNrelQlike}{0.1685}  % QLIKE rf add_rm_fomc_mac_ppi nrel_ppi
+\newcommand{\rhabRfAddRmFomcMacPpiNrelPct}{0.2}  % QLIKE change % rf add_rm_fomc_mac_ppi vs add_rm_fomc, nrel_ppi
+\newcommand{\rhabRfAddRmFomcMacPpiNrelDm}{2.78}  % DM add_rm_fomc_mac_ppi vs add_rm_fomc
+\newcommand{\rhabRfAddRmFomcMacPpiNrelP}{0.005}  % p-value
+\newcommand{\rhabRfAddRmFomcMacPpiRelQlike}{0.1838}  % QLIKE rf add_rm_fomc_mac_ppi rel_ppi
+\newcommand{\rhabRfAddRmFomcMacPpiRelPct}{$-$0.1}  % QLIKE change % rf add_rm_fomc_mac_ppi vs add_rm_fomc, rel_ppi
+\newcommand{\rhabRfAddRmFomcMacPpiRelDm}{$-$0.52}  % DM add_rm_fomc_mac_ppi vs add_rm_fomc
+\newcommand{\rhabRfAddRmFomcMacPpiRelP}{0.605}  % p-value
+\newcommand{\rhabRfAddRmFomcMacGdpAllQlike}{0.1690}  % QLIKE rf add_rm_fomc_mac_gdp all
+\newcommand{\rhabRfAddRmFomcMacGdpAllPct}{0.0}  % QLIKE change % rf add_rm_fomc_mac_gdp vs add_rm_fomc, all
+\newcommand{\rhabRfAddRmFomcMacGdpAllDm}{0.67}  % DM add_rm_fomc_mac_gdp vs add_rm_fomc
+\newcommand{\rhabRfAddRmFomcMacGdpAllP}{0.505}  % p-value
+\newcommand{\rhabRfAddRmFomcMacGdpNrelQlike}{0.1687}  % QLIKE rf add_rm_fomc_mac_gdp nrel_gdp
+\newcommand{\rhabRfAddRmFomcMacGdpNrelPct}{0.1}  % QLIKE change % rf add_rm_fomc_mac_gdp vs add_rm_fomc, nrel_gdp
+\newcommand{\rhabRfAddRmFomcMacGdpNrelDm}{0.87}  % DM add_rm_fomc_mac_gdp vs add_rm_fomc
+\newcommand{\rhabRfAddRmFomcMacGdpNrelP}{0.383}  % p-value
+\newcommand{\rhabRfAddRmFomcMacGdpRelQlike}{0.1860}  % QLIKE rf add_rm_fomc_mac_gdp rel_gdp
+\newcommand{\rhabRfAddRmFomcMacGdpRelPct}{$-$0.6}  % QLIKE change % rf add_rm_fomc_mac_gdp vs add_rm_fomc, rel_gdp
+\newcommand{\rhabRfAddRmFomcMacGdpRelDm}{$-$1.40}  % DM add_rm_fomc_mac_gdp vs add_rm_fomc
+\newcommand{\rhabRfAddRmFomcMacGdpRelP}{0.161}  % p-value
+\newcommand{\rhabRfAddRmFomcMacTradeAllQlike}{0.1693}  % QLIKE rf add_rm_fomc_mac_trade all
+\newcommand{\rhabRfAddRmFomcMacTradeAllPct}{0.2}  % QLIKE change % rf add_rm_fomc_mac_trade vs add_rm_fomc, all
+\newcommand{\rhabRfAddRmFomcMacTradeAllDm}{3.18}  % DM add_rm_fomc_mac_trade vs add_rm_fomc
+\newcommand{\rhabRfAddRmFomcMacTradeAllP}{0.001}  % p-value
+\newcommand{\rhabRfAddRmFomcMacTradeNrelQlike}{0.1697}  % QLIKE rf add_rm_fomc_mac_trade nrel_trade
+\newcommand{\rhabRfAddRmFomcMacTradeNrelPct}{0.2}  % QLIKE change % rf add_rm_fomc_mac_trade vs add_rm_fomc, nrel_trade
+\newcommand{\rhabRfAddRmFomcMacTradeNrelDm}{2.71}  % DM add_rm_fomc_mac_trade vs add_rm_fomc
+\newcommand{\rhabRfAddRmFomcMacTradeNrelP}{0.007}  % p-value
+\newcommand{\rhabRfAddRmFomcMacTradeRelQlike}{0.1608}  % QLIKE rf add_rm_fomc_mac_trade rel_trade
+\newcommand{\rhabRfAddRmFomcMacTradeRelPct}{0.9}  % QLIKE change % rf add_rm_fomc_mac_trade vs add_rm_fomc, rel_trade
+\newcommand{\rhabRfAddRmFomcMacTradeRelDm}{2.67}  % DM add_rm_fomc_mac_trade vs add_rm_fomc
+\newcommand{\rhabRfAddRmFomcMacTradeRelP}{0.008}  % p-value
+\newcommand{\rhabRfAddRmFomcMacRetailAllQlike}{0.1692}  % QLIKE rf add_rm_fomc_mac_retail all
+\newcommand{\rhabRfAddRmFomcMacRetailAllPct}{0.2}  % QLIKE change % rf add_rm_fomc_mac_retail vs add_rm_fomc, all
+\newcommand{\rhabRfAddRmFomcMacRetailAllDm}{2.74}  % DM add_rm_fomc_mac_retail vs add_rm_fomc
+\newcommand{\rhabRfAddRmFomcMacRetailAllP}{0.006}  % p-value
+\newcommand{\rhabRfAddRmFomcMacRetailNrelQlike}{0.1696}  % QLIKE rf add_rm_fomc_mac_retail nrel_retail
+\newcommand{\rhabRfAddRmFomcMacRetailNrelPct}{0.2}  % QLIKE change % rf add_rm_fomc_mac_retail vs add_rm_fomc, nrel_retail
+\newcommand{\rhabRfAddRmFomcMacRetailNrelDm}{2.65}  % DM add_rm_fomc_mac_retail vs add_rm_fomc
+\newcommand{\rhabRfAddRmFomcMacRetailNrelP}{0.008}  % p-value
+\newcommand{\rhabRfAddRmFomcMacRetailRelQlike}{0.1612}  % QLIKE rf add_rm_fomc_mac_retail rel_retail
+\newcommand{\rhabRfAddRmFomcMacRetailRelPct}{0.2}  % QLIKE change % rf add_rm_fomc_mac_retail vs add_rm_fomc, rel_retail
+\newcommand{\rhabRfAddRmFomcMacRetailRelDm}{0.82}  % DM add_rm_fomc_mac_retail vs add_rm_fomc
+\newcommand{\rhabRfAddRmFomcMacRetailRelP}{0.412}  % p-value
 \newcommand{\rhabRidgeFullVsOlsAddRmAllDm}{$-$5.18}  % DM ridge full vs OLS add_rm
 \newcommand{\rhabRidgeFullVsOlsAddRmAllP}{\ensuremath{<}0.001}  % p-value
 \newcommand{\rhabRidgeFullVsOlsAddRmCloseDm}{1.65}  % DM ridge full vs OLS add_rm

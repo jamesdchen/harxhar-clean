@@ -2,10 +2,11 @@
 % \rhms...: summary numbers of the macro release calendar ablations (RULE.txt addendum L and (iii)) for
 % app:rh_results_macro; from results/ablations_2014start_w3000/scores_fomcfix/ (metrics, dm, checks, robust2019).
 % Panels P = A (HAR + one calendar vs HAR), B (HAR + RM + FOMC + one calendar vs HAR + RM + FOMC); spans S = All,
-% Nrel, Rel; groups G = Pen (ridge, lasso, elastic net), Ols (Panel B), Tree (LightGBM, XGBoost), none = all three.
-% The random forest's macro cells are pending and enter no macro.  Macros:
+% Nrel, Rel; groups G = Pen (ridge, lasso, elastic net), Ols (Panel B), Tree (LightGBM, XGBoost), Forest (random
+% forest); none = Pen, Ols and Tree (the forest left out).  Macros:
 %   \rhmsSigLevel; \rhmsPan<P><S>[<G>]{MaxAbsPct,PMin,NSigLower,NSigHigher,NCells};
-%   \rhmsFomcAll{GainMin,GainMax,PMax}; \rhmsPanBCpiRelLin{PctMin,PctMax,DmMin,DmMax,PMax,NSigHigher,NCls};
+%   \rhmsFomcAll[WithForest]{GainMin,GainMax,PMax};
+%   \rhmsPanBCpiRelLin{PctMin,PctMax,DmMin,DmMax,PMax,NSigHigher,NCls};
 %   \rhmsRobust{ExclFirst,ExclLast}, \rhmsRobustOls{All,Ex}{Pct,Dm,P}, \rhmsRobust{NOther,OtherMaxMove,NSigCross}.
 \providecommand{\rhmsSigLevel}{}\renewcommand{\rhmsSigLevel}{5}  % significance level of the counts, % (the paper's 5% level)
 \providecommand{\rhmsPanAAllPenMaxAbsPct}{}\renewcommand{\rhmsPanAAllPenMaxAbsPct}{0.1}  % Panel A all Pen: largest |QLIKE change|, %
@@ -18,6 +19,11 @@
 \providecommand{\rhmsPanAAllTreeNSigLower}{}\renewcommand{\rhmsPanAAllTreeNSigLower}{5}  % Panel A all Tree: cells significantly lower, p < ALPHA
 \providecommand{\rhmsPanAAllTreeNSigHigher}{}\renewcommand{\rhmsPanAAllTreeNSigHigher}{0}  % Panel A all Tree: cells significantly higher
 \providecommand{\rhmsPanAAllTreeNCells}{}\renewcommand{\rhmsPanAAllTreeNCells}{12}  % Panel A all Tree: (class, release) cells with forecasts
+\providecommand{\rhmsPanAAllForestMaxAbsPct}{}\renewcommand{\rhmsPanAAllForestMaxAbsPct}{0.4}  % Panel A all Forest: largest |QLIKE change|, %
+\providecommand{\rhmsPanAAllForestPMin}{}\renewcommand{\rhmsPanAAllForestPMin}{0.140}  % Panel A all Forest: smallest DM p
+\providecommand{\rhmsPanAAllForestNSigLower}{}\renewcommand{\rhmsPanAAllForestNSigLower}{0}  % Panel A all Forest: cells significantly lower, p < ALPHA
+\providecommand{\rhmsPanAAllForestNSigHigher}{}\renewcommand{\rhmsPanAAllForestNSigHigher}{0}  % Panel A all Forest: cells significantly higher
+\providecommand{\rhmsPanAAllForestNCells}{}\renewcommand{\rhmsPanAAllForestNCells}{6}  % Panel A all Forest: (class, release) cells with forecasts
 \providecommand{\rhmsPanAAllMaxAbsPct}{}\renewcommand{\rhmsPanAAllMaxAbsPct}{0.6}  % Panel A all Pen + Ols + Tree: largest |QLIKE change|, %
 \providecommand{\rhmsPanAAllPMin}{}\renewcommand{\rhmsPanAAllPMin}{\ensuremath{<}0.001}  % Panel A all Pen + Ols + Tree: smallest DM p
 \providecommand{\rhmsPanAAllNSigLower}{}\renewcommand{\rhmsPanAAllNSigLower}{6}  % Panel A all Pen + Ols + Tree: cells significantly lower, p < ALPHA
@@ -33,6 +39,11 @@
 \providecommand{\rhmsPanANrelTreeNSigLower}{}\renewcommand{\rhmsPanANrelTreeNSigLower}{6}  % Panel A nrel Tree: cells significantly lower, p < ALPHA
 \providecommand{\rhmsPanANrelTreeNSigHigher}{}\renewcommand{\rhmsPanANrelTreeNSigHigher}{0}  % Panel A nrel Tree: cells significantly higher
 \providecommand{\rhmsPanANrelTreeNCells}{}\renewcommand{\rhmsPanANrelTreeNCells}{12}  % Panel A nrel Tree: (class, release) cells with forecasts
+\providecommand{\rhmsPanANrelForestMaxAbsPct}{}\renewcommand{\rhmsPanANrelForestMaxAbsPct}{0.3}  % Panel A nrel Forest: largest |QLIKE change|, %
+\providecommand{\rhmsPanANrelForestPMin}{}\renewcommand{\rhmsPanANrelForestPMin}{0.259}  % Panel A nrel Forest: smallest DM p
+\providecommand{\rhmsPanANrelForestNSigLower}{}\renewcommand{\rhmsPanANrelForestNSigLower}{0}  % Panel A nrel Forest: cells significantly lower, p < ALPHA
+\providecommand{\rhmsPanANrelForestNSigHigher}{}\renewcommand{\rhmsPanANrelForestNSigHigher}{0}  % Panel A nrel Forest: cells significantly higher
+\providecommand{\rhmsPanANrelForestNCells}{}\renewcommand{\rhmsPanANrelForestNCells}{6}  % Panel A nrel Forest: (class, release) cells with forecasts
 \providecommand{\rhmsPanANrelMaxAbsPct}{}\renewcommand{\rhmsPanANrelMaxAbsPct}{0.6}  % Panel A nrel Pen + Ols + Tree: largest |QLIKE change|, %
 \providecommand{\rhmsPanANrelPMin}{}\renewcommand{\rhmsPanANrelPMin}{\ensuremath{<}0.001}  % Panel A nrel Pen + Ols + Tree: smallest DM p
 \providecommand{\rhmsPanANrelNSigLower}{}\renewcommand{\rhmsPanANrelNSigLower}{6}  % Panel A nrel Pen + Ols + Tree: cells significantly lower, p < ALPHA
@@ -48,6 +59,11 @@
 \providecommand{\rhmsPanARelTreeNSigLower}{}\renewcommand{\rhmsPanARelTreeNSigLower}{1}  % Panel A rel Tree: cells significantly lower, p < ALPHA
 \providecommand{\rhmsPanARelTreeNSigHigher}{}\renewcommand{\rhmsPanARelTreeNSigHigher}{0}  % Panel A rel Tree: cells significantly higher
 \providecommand{\rhmsPanARelTreeNCells}{}\renewcommand{\rhmsPanARelTreeNCells}{12}  % Panel A rel Tree: (class, release) cells with forecasts
+\providecommand{\rhmsPanARelForestMaxAbsPct}{}\renewcommand{\rhmsPanARelForestMaxAbsPct}{4.2}  % Panel A rel Forest: largest |QLIKE change|, %
+\providecommand{\rhmsPanARelForestPMin}{}\renewcommand{\rhmsPanARelForestPMin}{0.007}  % Panel A rel Forest: smallest DM p
+\providecommand{\rhmsPanARelForestNSigLower}{}\renewcommand{\rhmsPanARelForestNSigLower}{1}  % Panel A rel Forest: cells significantly lower, p < ALPHA
+\providecommand{\rhmsPanARelForestNSigHigher}{}\renewcommand{\rhmsPanARelForestNSigHigher}{1}  % Panel A rel Forest: cells significantly higher
+\providecommand{\rhmsPanARelForestNCells}{}\renewcommand{\rhmsPanARelForestNCells}{6}  % Panel A rel Forest: (class, release) cells with forecasts
 \providecommand{\rhmsPanARelMaxAbsPct}{}\renewcommand{\rhmsPanARelMaxAbsPct}{3.1}  % Panel A rel Pen + Ols + Tree: largest |QLIKE change|, %
 \providecommand{\rhmsPanARelPMin}{}\renewcommand{\rhmsPanARelPMin}{0.016}  % Panel A rel Pen + Ols + Tree: smallest DM p
 \providecommand{\rhmsPanARelNSigLower}{}\renewcommand{\rhmsPanARelNSigLower}{1}  % Panel A rel Pen + Ols + Tree: cells significantly lower, p < ALPHA
@@ -68,6 +84,11 @@
 \providecommand{\rhmsPanBAllTreeNSigLower}{}\renewcommand{\rhmsPanBAllTreeNSigLower}{0}  % Panel B all Tree: cells significantly lower, p < ALPHA
 \providecommand{\rhmsPanBAllTreeNSigHigher}{}\renewcommand{\rhmsPanBAllTreeNSigHigher}{0}  % Panel B all Tree: cells significantly higher
 \providecommand{\rhmsPanBAllTreeNCells}{}\renewcommand{\rhmsPanBAllTreeNCells}{12}  % Panel B all Tree: (class, release) cells with forecasts
+\providecommand{\rhmsPanBAllForestMaxAbsPct}{}\renewcommand{\rhmsPanBAllForestMaxAbsPct}{0.2}  % Panel B all Forest: largest |QLIKE change|, %
+\providecommand{\rhmsPanBAllForestPMin}{}\renewcommand{\rhmsPanBAllForestPMin}{0.001}  % Panel B all Forest: smallest DM p
+\providecommand{\rhmsPanBAllForestNSigLower}{}\renewcommand{\rhmsPanBAllForestNSigLower}{0}  % Panel B all Forest: cells significantly lower, p < ALPHA
+\providecommand{\rhmsPanBAllForestNSigHigher}{}\renewcommand{\rhmsPanBAllForestNSigHigher}{4}  % Panel B all Forest: cells significantly higher
+\providecommand{\rhmsPanBAllForestNCells}{}\renewcommand{\rhmsPanBAllForestNCells}{6}  % Panel B all Forest: (class, release) cells with forecasts
 \providecommand{\rhmsPanBAllMaxAbsPct}{}\renewcommand{\rhmsPanBAllMaxAbsPct}{0.1}  % Panel B all Pen + Ols + Tree: largest |QLIKE change|, %
 \providecommand{\rhmsPanBAllPMin}{}\renewcommand{\rhmsPanBAllPMin}{0.150}  % Panel B all Pen + Ols + Tree: smallest DM p
 \providecommand{\rhmsPanBAllNSigLower}{}\renewcommand{\rhmsPanBAllNSigLower}{0}  % Panel B all Pen + Ols + Tree: cells significantly lower, p < ALPHA
@@ -88,6 +109,11 @@
 \providecommand{\rhmsPanBNrelTreeNSigLower}{}\renewcommand{\rhmsPanBNrelTreeNSigLower}{0}  % Panel B nrel Tree: cells significantly lower, p < ALPHA
 \providecommand{\rhmsPanBNrelTreeNSigHigher}{}\renewcommand{\rhmsPanBNrelTreeNSigHigher}{0}  % Panel B nrel Tree: cells significantly higher
 \providecommand{\rhmsPanBNrelTreeNCells}{}\renewcommand{\rhmsPanBNrelTreeNCells}{12}  % Panel B nrel Tree: (class, release) cells with forecasts
+\providecommand{\rhmsPanBNrelForestMaxAbsPct}{}\renewcommand{\rhmsPanBNrelForestMaxAbsPct}{0.2}  % Panel B nrel Forest: largest |QLIKE change|, %
+\providecommand{\rhmsPanBNrelForestPMin}{}\renewcommand{\rhmsPanBNrelForestPMin}{0.005}  % Panel B nrel Forest: smallest DM p
+\providecommand{\rhmsPanBNrelForestNSigLower}{}\renewcommand{\rhmsPanBNrelForestNSigLower}{0}  % Panel B nrel Forest: cells significantly lower, p < ALPHA
+\providecommand{\rhmsPanBNrelForestNSigHigher}{}\renewcommand{\rhmsPanBNrelForestNSigHigher}{4}  % Panel B nrel Forest: cells significantly higher
+\providecommand{\rhmsPanBNrelForestNCells}{}\renewcommand{\rhmsPanBNrelForestNCells}{6}  % Panel B nrel Forest: (class, release) cells with forecasts
 \providecommand{\rhmsPanBNrelMaxAbsPct}{}\renewcommand{\rhmsPanBNrelMaxAbsPct}{0.2}  % Panel B nrel Pen + Ols + Tree: largest |QLIKE change|, %
 \providecommand{\rhmsPanBNrelPMin}{}\renewcommand{\rhmsPanBNrelPMin}{0.104}  % Panel B nrel Pen + Ols + Tree: smallest DM p
 \providecommand{\rhmsPanBNrelNSigLower}{}\renewcommand{\rhmsPanBNrelNSigLower}{0}  % Panel B nrel Pen + Ols + Tree: cells significantly lower, p < ALPHA
@@ -108,6 +134,11 @@
 \providecommand{\rhmsPanBRelTreeNSigLower}{}\renewcommand{\rhmsPanBRelTreeNSigLower}{0}  % Panel B rel Tree: cells significantly lower, p < ALPHA
 \providecommand{\rhmsPanBRelTreeNSigHigher}{}\renewcommand{\rhmsPanBRelTreeNSigHigher}{1}  % Panel B rel Tree: cells significantly higher
 \providecommand{\rhmsPanBRelTreeNCells}{}\renewcommand{\rhmsPanBRelTreeNCells}{12}  % Panel B rel Tree: (class, release) cells with forecasts
+\providecommand{\rhmsPanBRelForestMaxAbsPct}{}\renewcommand{\rhmsPanBRelForestMaxAbsPct}{0.9}  % Panel B rel Forest: largest |QLIKE change|, %
+\providecommand{\rhmsPanBRelForestPMin}{}\renewcommand{\rhmsPanBRelForestPMin}{0.008}  % Panel B rel Forest: smallest DM p
+\providecommand{\rhmsPanBRelForestNSigLower}{}\renewcommand{\rhmsPanBRelForestNSigLower}{0}  % Panel B rel Forest: cells significantly lower, p < ALPHA
+\providecommand{\rhmsPanBRelForestNSigHigher}{}\renewcommand{\rhmsPanBRelForestNSigHigher}{1}  % Panel B rel Forest: cells significantly higher
+\providecommand{\rhmsPanBRelForestNCells}{}\renewcommand{\rhmsPanBRelForestNCells}{6}  % Panel B rel Forest: (class, release) cells with forecasts
 \providecommand{\rhmsPanBRelMaxAbsPct}{}\renewcommand{\rhmsPanBRelMaxAbsPct}{3.7}  % Panel B rel Pen + Ols + Tree: largest |QLIKE change|, %
 \providecommand{\rhmsPanBRelPMin}{}\renewcommand{\rhmsPanBRelPMin}{0.002}  % Panel B rel Pen + Ols + Tree: smallest DM p
 \providecommand{\rhmsPanBRelNSigLower}{}\renewcommand{\rhmsPanBRelNSigLower}{2}  % Panel B rel Pen + Ols + Tree: cells significantly lower, p < ALPHA
@@ -116,6 +147,9 @@
 \providecommand{\rhmsFomcAllGainMin}{}\renewcommand{\rhmsFomcAllGainMin}{3.1}  % HAR + FOMC vs HAR, every bar: smallest fall, %
 \providecommand{\rhmsFomcAllGainMax}{}\renewcommand{\rhmsFomcAllGainMax}{9.5}  % ... largest fall, % (ridge, lasso, enet, lgbm, xgb)
 \providecommand{\rhmsFomcAllPMax}{}\renewcommand{\rhmsFomcAllPMax}{\ensuremath{<}0.001}  % ... largest DM p
+\providecommand{\rhmsFomcAllWithForestGainMin}{}\renewcommand{\rhmsFomcAllWithForestGainMin}{3.1}  % HAR + FOMC vs HAR, every bar: smallest fall, % (ridge, lasso, enet, lgbm, xgb, rf)
+\providecommand{\rhmsFomcAllWithForestGainMax}{}\renewcommand{\rhmsFomcAllWithForestGainMax}{9.5}  % ... largest fall, % (ridge, lasso, enet, lgbm, xgb, rf)
+\providecommand{\rhmsFomcAllWithForestPMax}{}\renewcommand{\rhmsFomcAllWithForestPMax}{\ensuremath{<}0.001}  % ... largest DM p (with rf)
 \providecommand{\rhmsPanBCpiRelLinPctMin}{}\renewcommand{\rhmsPanBCpiRelLinPctMin}{0.9}  % Panel B, CPI release days, OLS ridge lasso enet: smallest QLIKE change, %
 \providecommand{\rhmsPanBCpiRelLinPctMax}{}\renewcommand{\rhmsPanBCpiRelLinPctMax}{1.3}  % Panel B, CPI release days, OLS ridge lasso enet: largest QLIKE change, %
 \providecommand{\rhmsPanBCpiRelLinDmMin}{}\renewcommand{\rhmsPanBCpiRelLinDmMin}{2.23}  % Panel B, CPI release days, OLS ridge lasso enet: smallest DM
@@ -131,6 +165,6 @@
 \providecommand{\rhmsRobustOlsExPct}{}\renewcommand{\rhmsRobustOlsExPct}{0.4}  % OLS HAR + RM + FOMC + all six vs HAR + RM + FOMC, ex2019h1: QLIKE change, %
 \providecommand{\rhmsRobustOlsExDm}{}\renewcommand{\rhmsRobustOlsExDm}{0.67}  % OLS HAR + RM + FOMC + all six vs HAR + RM + FOMC, ex2019h1: DM
 \providecommand{\rhmsRobustOlsExP}{}\renewcommand{\rhmsRobustOlsExP}{0.501}  % OLS HAR + RM + FOMC + all six vs HAR + RM + FOMC, ex2019h1: p
-\providecommand{\rhmsRobustNOther}{}\renewcommand{\rhmsRobustNOther}{81}  % other macro pairs of robust2019.csv
+\providecommand{\rhmsRobustNOther}{}\renewcommand{\rhmsRobustNOther}{96}  % other macro pairs of robust2019.csv
 \providecommand{\rhmsRobustOtherMaxMove}{}\renewcommand{\rhmsRobustOtherMaxMove}{0.14}  % their largest |change| without the window, pp
 \providecommand{\rhmsRobustNSigCross}{}\renewcommand{\rhmsRobustNSigCross}{2}  % pairs significant at ALPHA on one of the two spans only
