@@ -104,7 +104,7 @@ def mac_task_lines() -> list[tuple[str, str, int, int]]:
     macro arm with ridge / lasso / elastic net (the add-arm convention: the full set's penalty, r = 0.01 on the HAR
     block), the largest first, then the OLS on MAC_OLS_ARMS."""
     out = task_lines()[:14]
-    for arm in AA.MAC_ARMS:
+    for arm in AA.MAC_ARMS_L:  # 2026-10-30: addendum L's arms (MAC_ARMS before (iii)), so the file is unchanged
         for m in PEN:
             k = n_chunks(arm, m)
             out += [(arm, m, c, k) for c in range(k)]
@@ -112,8 +112,20 @@ def mac_task_lines() -> list[tuple[str, str, int, int]]:
     return out
 
 
+def mac2_task_lines() -> list[tuple[str, str, int, int]]:
+    """Addendum L (iii): HAR + one release (MAC_HAR_PER) with ridge / lasso / elastic net, the add-arm convention of
+    mac_task_lines; no OLS (as add_fomc); no gate lines (gate LF passed on the same macro cache)."""
+    out = []
+    for arm in AA.MAC_HAR_PER:
+        for m in PEN:
+            k = n_chunks(arm, m)
+            out += [(arm, m, c, k) for c in range(k)]
+    return out
+
+
 def cmd_tasks(a) -> int:
-    lines = mac_task_lines() if a.mac else task_lines()  # addendum L: --mac
+    # addendum L: --mac; (iii): --mac2
+    lines = mac2_task_lines() if a.mac2 else mac_task_lines() if a.mac else task_lines()
     Path(a.out).parent.mkdir(parents=True, exist_ok=True)
     Path(a.out).write_text("".join(f"{arm} {m} {c} {k}\n" for arm, m, c, k in lines))
     say(f"{len(lines)} linear walks -> {a.out}")
@@ -309,6 +321,7 @@ def main() -> int:
     ap.add_argument("--ref-full", default="", help="gate: the full-set walks' reference parquet (addendum D)")
     ap.add_argument("--wide", default="", help="merge: also the compact file of the ablation walks (addendum F)")
     ap.add_argument("--mac", action="store_true", help="tasks: the macro arms' task file (addendum L)")
+    ap.add_argument("--mac2", action="store_true", help="tasks: HAR + one release (addendum L (iii))")
     a = ap.parse_args()
     return {"tasks": cmd_tasks, "walk1": cmd_walk1, "gate": cmd_gate, "merge": cmd_merge}[a.mode](a)
 

@@ -699,3 +699,45 @@ PREDICTOR GROUP, BUILT AS THE FOMC CALENDAR, WITH NO LOOKAHEAD
        were not executed; they await the author's approval.  Until then the full_mac XGBoost pieces stay queued on CARC
        under (i).
        (ii) IN EFFECT from 23:16 PDT, 29 Oct (the author: "approve L(ii)"), as written above.
+  (iii) 2026-10-30 01:10 PDT, before any job it affects: THE MACRO ARMS APPLES-TO-APPLES WITH FOMC'S.  The author: "match
+       FOMC split.  Also per my standing rule (methodology held fixed across related tests): make the macro arms
+       apples-to-apples with FOMC wherever possible, e.g. add the random forest for the macro arms (no compute cap) and
+       include a HAR+release row comparable to FOMC's Panel B row alongside the HAR+RM+FOMC-based rows.  Keep the
+       three-state lookahead rule.  Record it as an amendment before running"; and "Maximize throughput on the new macro
+       runs ... No compute cap; just don't sacrifice accuracy or change the design".  Features, cache, windows, refits,
+       gates of (b)-(e) and the three-state rule of (c) unchanged.
+       1. Day split as FOMC's ORDINARY / EVENT: rel (scored days with any of the six releases, 590) against nrel
+          (every other scored day, FOMC days included, 1,989), and rel_<r> against nrel_<r> (every scored day without
+          release r); the span quiet of (g) is dropped.  Same QLIKE % change and DM (HLN, daily-average QLIKE, the HAC of
+          every day-type DM).  Tables print every bar / non-release days / release days as FOMC's rows print every bar /
+          ordinary / event days.
+       2. HAR + one release, add_mac_<r> (experiments/ablate_arms.py MAC_HAR_PER, 48 columns), against HAR: FOMC's
+          Panel B counterpart (add_fomc), next to HAR + RM + FOMC + release; classes ridge, lasso, elastic net (the
+          add-arm convention), LightGBM, XGBoost and the forest; no OLS (as add_fomc).
+       3. The forest (rf_skx, rf400_rf_opt_00 on oneDAL, Panel B's) on every macro arm: add_mac, add_mac_<r>,
+          add_rm_fomc_mac, add_rm_fomc_mac_<r>, full_mac, and its full set on the FOMC-patched design (arm full on the
+          macro cache, merged as rf_skx|full_fix), the reference full_mac needs because the template forest is
+          pre-patch.  References: the forest's HAR (the template), HAR + RM + FOMC (addendum F), full_fix (here).
+          Gate GMT-RF on every CPU model that runs forest pieces (ablate_trees.py gatemac --est rf_skx, MAC_GATE_RF):
+          on the macro cache, HAR at the first and last 10 origins within RF_TOL (1e-14) of the template, HAR + FOMC
+          there within RF_TOL of the patched rf_skx|add_fomc (forecasts/trees_wide_fix.parquet), full_mac at the first
+          10 finite, true_adj and B equal; one CPU family a piece (ONE_CPU), an arm's pieces from several gated models
+          (as addendum C).  Models: CARC EPYC 7513 / 7542 (the template's family), Hoffman2 Gold 6240, Gold 6442Y,
+          Xeon 6736P (the forest's earlier T1 models).
+       4. Tasks (ablate_trees.py tasksmac2, ablate_linear.py tasks --mac2; addendum L's own task files regenerate byte
+          for byte): tasks/trees_mac2_rf.txt, 1,835 forest pieces of <= 1 hour at EPYC speed (14,634 CPU-hours by the
+          cost model), one file for both clusters, split by reserving the other cluster's lines in each claims dir and
+          rebalanced by moving reservations as throughput shows; tasks/trees_mac2_gb.txt, 84 LightGBM / XGBoost pieces
+          of add_mac_<r> (~620 CPU-hours) on Hoffman2 (both classes GMT-gated there, T2 identical); tasks/linear_mac2.txt,
+          18 linear walks on Hoffman2 (linear caches of add_mac_<r> by ablate_design.py submac --arms).  Compute: no cap
+          (the author).  Throughput: Hoffman2 whole nodes up to the 16-node cap, CARC pool5.sh jobs of 16 CPUs (two
+          workers) for backfill up to the account limits, short time limits.
+       5. Merges: the forest's pieces of both clusters gathered on one side and merged by ablate_trees.py mergemac (no
+          T2 for the forest: ONE_CPU and RF_TOL per piece model, as cmd_merge); joinmac --allow-missing joins in stages
+          (the tables print "--" for a class / arm not yet merged).  Scoring and tables: experiments/ablate_score.py,
+          writeup/make_rehaul_ablations.py (forest pairs: add_mac(_<r>) vs its HAR, add_rm_fomc_mac(_<r>) vs its
+          HAR + RM + FOMC, full_mac vs rf_skx|full_fix).
+       6. An independent read-only audit of the macro calendar computations (dates and times against the official
+          calendars, the features on release days, the columns reaching the models, the scoring spans, FOMC's result
+          reproduced) runs in parallel (the author, 30 Oct); a defect it finds is fixed and rerun before any result is
+          reported.

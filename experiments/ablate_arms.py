@@ -299,7 +299,14 @@ MAC_LABEL = {
     "mac_retail": "Retail sales",
 }
 MAC_PER = [f"add_rm_fomc_mac_{r}" for r in MAC_RELEASES]
-MAC_ARMS = ["full_mac", "add_rm_fomc_mac", "add_mac", *MAC_PER]  # the largest first
+# 2026-10-30 addendum L (iii): HAR + one release, the counterpart of FOMC's Panel B row (add_fomc), appended so that
+# every list addendum L already generated keeps its lines
+MAC_HAR_PER = [f"add_mac_{r}" for r in MAC_RELEASES]
+MAC_ARMS = ["full_mac", "add_rm_fomc_mac", "add_mac", *MAC_PER, *MAC_HAR_PER]  # the largest first, then (iii)'s
+MAC_ARMS_L = MAC_ARMS[: -len(MAC_HAR_PER)]  # the arms of addendum L before (iii)
+# (iii): the forest on every macro arm, plus its full set on the FOMC-patched design ("full" on the macro cache, the
+# reference of full_mac; the template forest is pre-patch); merged as rf_skx|full_fix
+MAC_RF_ARMS = ["full_mac", "full", "add_rm_fomc_mac", "add_mac", *MAC_PER, *MAC_HAR_PER]
 # the OLS where the existing add arms run it: the augmented-HAR benchmarks HAR + RM (+ FOMC) (OLS_ARMS, addendum F),
 # so here HAR + RM + FOMC + macro and HAR + RM + FOMC + one release; not add_mac (as add_fomc) nor full_mac (as full)
 MAC_OLS_ARMS = ["add_rm_fomc_mac", *MAC_PER]

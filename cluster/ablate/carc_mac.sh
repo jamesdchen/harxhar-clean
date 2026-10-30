@@ -36,8 +36,12 @@ case "$MODE" in
     [ "$m" = "$MACX" ] || { echo "X md5 $m != MACX $MACX: exit 2"; exit 2; }
     O=$D/gate/$TAG
     mkdir -p "$O/logs"
-    for e in lgbm xgb; do
-      for at in full:ends har:ends full_mac:first; do
+    # 2026-10-30 addendum L (iii): GEST=rf_skx is the forest's gate, run alone (ablate_trees.py MAC_GATE_RF)
+    GEST=${GEST:-lgbm,xgb}
+    GATE_ARMS="full:ends har:ends full_mac:first"
+    [ "$GEST" = rf_skx ] && GATE_ARMS="har:ends add_fomc:ends full_mac:first"
+    for e in ${GEST//,/ }; do
+      for at in $GATE_ARMS; do
         a=${at%%:*}
         sel=--${at##*:}
         rc=0
@@ -46,7 +50,7 @@ case "$MODE" in
         echo "$e $a $sel 10 walk rc $rc $(date)"
       done
     done
-    "$PY" experiments/ablate_trees.py gatemac --out "$O" --est lgbm,xgb \
+    "$PY" experiments/ablate_trees.py gatemac --out "$O" --est "$GEST" \
       --template-gb "$CODE/results/fomcfix_2026-10-26/forecasts/forecasts_gb.parquet"
     ;;
   piece)

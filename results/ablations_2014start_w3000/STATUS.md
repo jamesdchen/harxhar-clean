@@ -241,3 +241,4 @@ CARC: 20 workers (13535682_[1,4-20], 13535907_[1-2]) on lines 134-153 (LightGBM 
 | 23:16 | addendum L (ii) approved by the author ("approve L(ii)"): CARC full_mac XGBoost pools cancelled, the 66 pieces submitted on Hoffman2 |
 | 23:17-23:19 | L (ii): CARC 13595712-18 cancelled unstarted; Hoffman2 full_mac XGBoost pools 577421-29, 577434 (claims runs/claims_trees_xgbfull), pending 574364-65 cancelled; H2 XGBoost eight arms 148/148 done; CARC LightGBM 62/63 |
 | 23:22-23:24 | Hoffman2 merges: linear 577493 (gate LF PASS; 41 walks, missing 0; linear_wide 34 arms md5 def979de), XGBoost eight arms 577507 (T2 lgbm + xgb PASS; 8 arms x 33,970 bars md5 8cf5dcda); CARC LightGBM merge 13599184 afterok the array; merge_mac.sh MTASKS / MTO (88f86b4) installed |
+| 01:10 | addendum L (iii) recorded: FOMC's split; HAR + one release; the forest on every macro arm (+ its patched full set); task files trees_mac2_rf (1,835), trees_mac2_gb (84), linear_mac2 (18); audit in parallel |

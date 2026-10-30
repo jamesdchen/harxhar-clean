@@ -23,16 +23,20 @@ m=$(md5sum "$TFULL/X.npy" | cut -d' ' -f1)
 [ "$m" = "$MACX" ] || { echo "X md5 $m != MACX $MACX: exit 2"; exit 2; }
 O=$B/gate/mac/$TAG
 mkdir -p $O/logs
+# 2026-10-30 addendum L (iii): EST=rf_skx is the forest's gate, run alone: env skx, pieces har and add_fomc at the
+# first and last 10 origins and full_mac at the first 10 (ablate_trees.py MAC_GATE_RF), then gatemac --est rf_skx
+GATE_ARMS="full:ends har:ends full_mac:first"; ENV=gb
+[ "$EST" = rf_skx ] && { GATE_ARMS="har:ends add_fomc:ends full_mac:first"; ENV=skx; }
 for e in ${EST//+/ }; do
-  for at in full:ends har:ends full_mac:first; do
+  for at in $GATE_ARMS; do
     a=${at%%:*}
     sel=--${at##*:}
-    NT=8 bash $B/code/cluster/ablate/py.sh gb experiments/ablate_trees.py walk --arm $a --est $e $sel 10 \
+    NT=8 bash $B/code/cluster/ablate/py.sh $ENV experiments/ablate_trees.py walk --arm $a --est $e $sel 10 \
       --full $TFULL --out $O --threads 8 > $O/logs/$e.$a.log 2>&1
     echo "$e $a $sel 10 walk rc $? $(date)"
   done
 done
-NT=1 bash $B/code/cluster/ablate/py.sh gb experiments/ablate_trees.py gatemac --out $O --est ${EST//+/,} \
+NT=1 bash $B/code/cluster/ablate/py.sh $ENV experiments/ablate_trees.py gatemac --out $O --est ${EST//+/,} \
   --template-gb $B/code/results/fomcfix_2026-10-26/forecasts/forecasts_gb.parquet
 rc=$?
 echo "tgatemac $TAG done rc $rc $(date)"

@@ -182,9 +182,9 @@ def cmd_walk(a) -> int:
         or arm in AA.COMBO
         or arm in AA.RUNGS.get(est, [])
         or (arm.startswith("lrung_") and AA.lrung_parts(arm)[0] == est)
-        or (arm in AA.MAC_ARMS and est != "rf_skx")
+        or arm in AA.MAC_ARMS
     ), (arm, est)  # addendum F: + COMBO; addendum I: + the model's own ladder rungs; addendum K: + its lrung_ rungs;
-    # addendum L: + the macro arms (LightGBM and XGBoost; no forest)
+    # addendum L: + the macro arms (LightGBM and XGBoost); 2026-10-30 (iii): + the forest on them
     assert not AA.is_mac_arm(arm) or F.mac, f"{arm}: needs the macro cache (bucket {AA.MAC_BUCKET}), not {F.dir}"
     rows, tag = select(a, F)
     out = Path(a.out)
@@ -323,7 +323,7 @@ def mac_projection() -> pd.DataFrame:
     rows = []
     for est in ("lgbm", "xgb"):
         lo, hi = MAC_CAL[est]
-        for arm in AA.MAC_ARMS:
+        for arm in AA.MAC_ARMS_L:  # 2026-10-30: addendum L's arms (MAC_ARMS before (iii))
             p = AA.n_cols(arm)
             c = cost_cpu_h(est, p)
             rows.append(dict(est=est, arm=arm, n_cols=p, model_cpu_h=c, proj_lo=c * lo, proj_hi=c * hi))
@@ -336,7 +336,7 @@ def cmd_tasksmac(a) -> int:
     target = {"carc": a.target_carc, "h2": a.target_h2}
     for cl, est in MAC_CLUSTER.items():
         lines = []
-        for arm in sorted(AA.MAC_ARMS, key=lambda x: -cost_cpu_h(est, AA.n_cols(x))):
+        for arm in sorted(AA.MAC_ARMS_L, key=lambda x: -cost_cpu_h(est, AA.n_cols(x))):
             wall = cost_cpu_h(est, AA.n_cols(arm)) / 8.0
             n = max(1, math.ceil(wall / target[cl]))
             lines += [f"{est} {arm} {i}/{n} {wall / n:.2f}" for i in range(1, n + 1)]
@@ -353,6 +353,30 @@ def cmd_tasksmac(a) -> int:
             f"  {est} total: model {g['model_cpu_h'].sum():,.0f}, projected {g['proj_lo'].sum():,.0f}-"
             f"{g['proj_hi'].sum():,.0f} CPU-hours"
         )
+    return 0
+
+
+def mac2_lines(est: str, arms: list[str], target: float) -> list[str]:
+    """Pieces of <= target hours (8 threads, the cost model's EPYC speed), the largest arm first."""
+    lines = []
+    for arm in sorted(arms, key=lambda x: -cost_cpu_h(est, AA.n_cols(x))):
+        wall = cost_cpu_h(est, AA.n_cols(arm)) / 8.0
+        n = max(1, math.ceil(wall / target))
+        lines += [f"{est} {arm} {i}/{n} {wall / n:.2f}" for i in range(1, n + 1)]
+    return lines
+
+
+def cmd_tasksmac2(a) -> int:
+    """Addendum L (iii): D/trees_mac2_rf.txt (the forest on MAC_RF_ARMS; one file for both clusters, split by
+    reserving claims) and D/trees_mac2_gb.txt (LightGBM and XGBoost on HAR + one release, MAC_HAR_PER)."""
+    d = Path(a.dir)
+    d.mkdir(parents=True, exist_ok=True)
+    rf = mac2_lines("rf_skx", AA.MAC_RF_ARMS, a.target_rf)
+    gb = mac2_lines("lgbm", AA.MAC_HAR_PER, a.target_h2) + mac2_lines("xgb", AA.MAC_HAR_PER, a.target_h2)
+    for name, lines in (("trees_mac2_rf.txt", rf), ("trees_mac2_gb.txt", gb)):
+        (d / name).write_text("".join(ln + "\n" for ln in lines))
+        hours = sum(float(ln.split()[3]) for ln in lines)
+        say(f"{len(lines)} pieces, {hours:,.1f} piece-hours ({8 * hours:,.0f} CPU-hours at EPYC speed) -> {d / name}")
     return 0
 
 
@@ -592,6 +616,11 @@ def cmd_merge(a) -> int:
 
 # ============================================================================ addendum L: gate GMT, T2, merge, join
 MAC_GATE = (("full", "ends10"), ("har", "ends10"), ("full_mac", "first10"))  # the gate pieces of each class
+# 2026-10-30 (iii): the forest's gate pieces -- no forest full set exists on the FOMC-patched design, so its T1 is HAR
+# against the template and HAR + FOMC against the patched rf_skx|add_fomc (forecasts/trees_wide_fix.parquet), both
+# within RF_TOL (the forest's pieces of several gated models differ by ~1e-15), plus full_mac finite with true_adj / B
+MAC_GATE_RF = (("har", "ends10"), ("add_fomc", "ends10"), ("full_mac", "first10"))
+RF_FIX_REF = ROOT / "results" / "ablations_2014start_w3000" / "forecasts" / "trees_wide_fix.parquet"
 
 
 def cmd_gatemac(a) -> int:
@@ -599,6 +628,9 @@ def cmd_gatemac(a) -> int:
     out = Path(a.out)
     rec: dict = {"dir": str(out), "classes": {}, "fail": []}
     ests = [e for e in a.est.split(",") if e]
+    if ests == ["rf_skx"]:
+        return gatemac_rf(out)
+    assert "rf_skx" not in ests, "the forest's gate runs alone (--est rf_skx)"
     tf_cache: dict = {}
     ok_ests = []
     for est in ests:
@@ -668,6 +700,75 @@ def cmd_gatemac(a) -> int:
     return 0 if rec["pass"] else 3
 
 
+def gatemac_rf(out: Path) -> int:
+    """Addendum L (iii): the forest's gate on one CPU model (MAC_GATE_RF) -> out/passed_rf_skx, out/gatemac_rf.json."""
+    rec: dict = {"dir": str(out), "est": "rf_skx", "checks": [], "fail": []}
+    tf = template("rf_skx")
+    side_t = tf[tf["predictor_set"] == "all_features"].set_index("date")
+    har_t = tf[tf["predictor_set"] == SET_OF["har"]].set_index("date")
+    ref = pd.read_parquet(RF_FIX_REF, columns=["date", "rf_skx|add_fomc"]).set_index("date")["rf_skx|add_fomc"]
+    cpus: set = set()
+    for arm, tag in MAC_GATE_RF:
+        p = piece_path(out, arm, "rf_skx", tag)
+        if not (p.is_file() and p.with_suffix(".json").is_file()):
+            rec["checks"].append(dict(arm=arm, tag=tag, missing=True))
+            rec["fail"].append(f"{arm}: missing")
+            continue
+        m = json.loads(p.with_suffix(".json").read_text())
+        dm = json.loads((Path(m["design"]) / "design.json").read_text())
+        f = pd.read_parquet(p)
+        d = pd.DatetimeIndex(f["date"])
+        cpus |= set(m["cpus"])
+        s = side_t.reindex(d)
+        side = bool(np.array_equal(f["true_adj"].to_numpy(), s["true_adj"].to_numpy())) and bool(
+            np.array_equal(f["B"].to_numpy(), s["B"].to_numpy())
+        )
+        x = f["pred_adj"].to_numpy()
+        rel = None
+        if arm == "har":
+            y = har_t["pred_adj"].reindex(d).to_numpy()
+            rel = float(np.max(np.abs(x - y) / np.abs(y)))
+        elif arm == "add_fomc":
+            y = ref.reindex(d).to_numpy()
+            rel = float(np.max(np.abs(x - y) / np.abs(y)))
+        good = (
+            dm.get("bucket") == AA.MAC_BUCKET
+            and len(dm["names"]) == AA.N_FULL_MAC
+            and m["n_columns"] == AA.n_cols(arm)
+            and len(m["cpus"]) == 1
+            and len(f) == (20 if tag == "ends10" else 10)
+            and bool(np.isfinite(x).all())
+            and side
+            and (rel is None or rel <= RF_TOL)
+        )
+        rec["checks"].append(
+            dict(
+                arm=arm,
+                tag=tag,
+                n_columns=m["n_columns"],
+                rows=len(f),
+                cpus=m["cpus"],
+                max_rel=rel,
+                side_equal=side,
+                sec_refit=m["wall_sec"] / max(1, m["refits"]),
+                skx_dispatch=m.get("skx_dispatch"),
+                pass_=bool(good),
+            )
+        )
+        if not good:
+            rec["fail"].append(f"{arm}: max_rel {rel}, side {side}")
+    if len(cpus) != 1:
+        rec["fail"].append(f"CPU models {sorted(cpus)}")
+    rec["cpus"] = sorted(cpus)
+    rec["rf_tol"] = RF_TOL
+    rec["pass"] = not rec["fail"]
+    if rec["pass"]:
+        (out / "passed_rf_skx").write_text(sorted(cpus)[0] + "\n")
+    (out / "gatemac_rf.json").write_text(json.dumps(rec, indent=1))
+    say(f"gate GMT-RF {out.name} {sorted(cpus)}: {'PASS' if rec['pass'] else 'FAIL ' + str(rec['fail'])}")
+    return 0 if rec["pass"] else 3
+
+
 def t2mac(gates: list[Path], out: Path) -> dict:
     """T2 of addendum L: each class's gate pieces (MAC_GATE, concatenated) bit-identical across the gate dirs that
     passed it, in the gate2 format cmd_merge reads."""
@@ -733,8 +834,11 @@ def cmd_mergemac(a) -> int:
 
 
 def cmd_joinmac(a) -> int:
-    """The CARC (LightGBM) and Hoffman2 (XGBoost) compact files of addendum L -> one compact file."""
+    """The CARC (LightGBM) and Hoffman2 (XGBoost) compact files of addendum L -> one compact file.  2026-10-30 (iii):
+    + the forest's columns (rf_skx|full, the forest's full set on the patched design, renamed rf_skx|full_fix) and
+    HAR + one release; --allow-missing joins what is there and lists the rest (a staged join)."""
     parts = [pd.read_parquet(p) for p in a.parts.split(",") if p]
+    parts = [f.rename(columns={"rf_skx|full": "rf_skx|full_fix"}) for f in parts]
     w = parts[0]
     for f in parts[1:]:
         assert pd.DatetimeIndex(f["date"]).equals(pd.DatetimeIndex(w["date"])), "dates differ"
@@ -744,7 +848,13 @@ def cmd_joinmac(a) -> int:
     w = w[["date", *sorted(c for c in w.columns if c != "date")]]
     assert len(w) == 33970 and w.notna().all().all(), (len(w), int(w.isna().sum().sum()))
     want = {f"{e}|{x}" for e in MAC_CLUSTER.values() for x in AA.MAC_ARMS}
-    assert set(w.columns) - {"date"} == want, sorted(set(w.columns) ^ want)
+    want |= {f"rf_skx|{'full_fix' if x == 'full' else x}" for x in AA.MAC_RF_ARMS}
+    have = set(w.columns) - {"date"}
+    assert not have - want, sorted(have - want)
+    if not a.allow_missing:
+        assert have == want, sorted(want - have)
+    elif want - have:
+        say(f"joinmac: {len(want - have)} arms not yet there: {sorted(want - have)}")
     w.to_parquet(a.to, index=False)
     say(f"{w.shape[1] - 1} macro tree arms x {len(w)} bars -> {a.to}")
     return 0
@@ -763,6 +873,7 @@ def main() -> int:
             "merge",
             "gatebase",
             "tasksmac",
+            "tasksmac2",
             "gatemac",
             "mergemac",
             "joinmac",
@@ -774,6 +885,8 @@ def main() -> int:
     ap.add_argument("--target-h2", type=float, default=2.0, help="tasksmac: Hoffman2 piece hours (addendum L)")
     ap.add_argument("--to", default="", help="mergemac / joinmac: the compact file (addendum L)")
     ap.add_argument("--parts", default="", help="joinmac: the clusters' compact files (addendum L)")
+    ap.add_argument("--allow-missing", action="store_true", help="joinmac: a staged join (addendum L (iii))")
+    ap.add_argument("--target-rf", type=float, default=1.0, help="tasksmac2: forest piece hours (addendum L (iii))")
     ap.add_argument("--spread", type=int, default=0, help="walk: n origins spread over the span (addendum I)")
     ap.add_argument("--base", default="", help="gatebase: the merged BASE forecasts dir (<est>_add_rm_fomc.parquet)")
     ap.add_argument("--arm", default="")
@@ -803,6 +916,7 @@ def main() -> int:
         "project": cmd_project,
         "merge": cmd_merge,
         "tasksmac": cmd_tasksmac,
+        "tasksmac2": cmd_tasksmac2,
         "gatemac": cmd_gatemac,
         "mergemac": cmd_mergemac,
         "joinmac": cmd_joinmac,
