@@ -235,3 +235,6 @@ CARC: 20 workers (13535682_[1,4-20], 13535907_[1-2]) on lines 134-153 (LightGBM 
 | (29 Oct) 19:42 | addendum L (43e3115) submitted on CARC after a code install (the first archive carried CRLF line endings: `* text=auto` + Windows core.eol; reinstalled on both clusters from an LF archive, `git -c core.eol=lf archive`, tar md5 9f1790d8, every file = the commit's blob, 0 files with CR): mac_build 13593816 (5.7 min; GM0 PASS: 780 columns, 216 macro, X md5 eb96c76a), gates GMT e7513 13593817 / e7542 13593818 (both classes PASS), LightGBM array 13593819_[1-63] RUNNING from 19:55 |
 | 20:54 | macro cache streamed CARC -> Hoffman2 designs_mac/full_mac (tar over ssh, MD5SUMS OK) |
 | 21:15 | addendum L (i), wall time only: XGBoost re-cut to <= 1 h pieces (214) and split by arm (full_mac 66 on CARC, the other eight arms 148 on Hoffman2) |
+| 21:00-21:33 | Hoffman2: prep_mac 574356 PASS (11 linear caches); gates GMT s6240 574357, s6442y 574358, s6736p 574359 PASS (both classes); linear pool 574375: 55/55 tasks done 21:33; XGBoost pools 574360-74 from 21:06 |
+| 22:17 | check: H2 XGBoost 70/148 done, the other 78 claimed and running; CARC LightGBM 46/63 done, 17 running; CARC XGBoost pools 13595712-18 pending (scheduler start estimate 30-31 Oct) |
+| 22:25 | addendum L (ii): the 66 full_mac XGBoost pieces move to Hoffman2 (CARC pools cancelled unstarted, 0 claimed) |

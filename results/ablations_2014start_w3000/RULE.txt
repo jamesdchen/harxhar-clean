@@ -686,3 +686,12 @@ PREDICTOR GROUP, BUILT AS THE FOMC CALENDAR, WITH NO LOOKAHEAD
        63 pieces, running since 19:55) is unchanged.  The CARC XGBoost arm is merged on CARC (carc_mac.sh MODE=merge,
        T2 over the CARC gates) and joined with the Hoffman2 merge on the laptop; the cross-cluster T2 record covers every
        gated CPU model of both clusters.
+  (ii) 2026-10-29 22:25 PDT, before any full_mac XGBoost piece ran (0 of 66 claimed): wall time only, under the
+       author's "use as much compute as makes the macro release ablations finish fastest".  CARC's scheduler put the
+       seven pool5.sh jobs for tasks/trees_mac_carc_xgb.txt at a start on 30-31 Oct (priority behind 510 pending jobs
+       on main), while Hoffman2 had gated nodes idle.  The 66 full_mac XGBoost pieces therefore run on Hoffman2 instead
+       (pool4.sh, the same task file, REQGATE gate/mac: GMT passed for XGBoost on s6240, s6442y and s6736p, each with
+       its full_mac check; the same full_mac cache, the md5-checked copy of CARC's build); the CARC jobs 13595712-18
+       are cancelled unstarted.  Merge: ablate_trees.py mergemac on Hoffman2 with --tasks tasks/trees_mac_carc_xgb.txt
+       (T2 over the Hoffman2 gates) -> runs/trees_mac/trees_wide_xgbfull.parquet, joined on the laptop with the other
+       two parts (joinmac).  Pieces, arms, classes, refits, windows, gates and scoring are unchanged.
