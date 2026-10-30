@@ -1,6 +1,6 @@
 ---
 name: paper-prose
-description: "Style patterns for the harxhar JFEc paper. Use it before you write or rewrite any text of this paper: sections, beats, bullets, body sentences, section titles, captions, table notes, note strings in writeup/make_*.py generators, and the wording you apply from an author's edit or a deliberation outcome. It routes each task to the few pattern files it needs in writeup/style/patterns/ (index: writeup/style/voice.md) and ends with a self-check. Never use it to change the author's own words or text collaborators typed on Overleaf (those are copied or kept as written), and never to polish a layer the author has not locked. Coordinators name it in every drafting subagent's prompt."
+description: "Style patterns for the harxhar JFEc paper. Invoke it whenever the conversation turns to writing the paper up: the author talking about writing it up, the write-up, drafting, wording, phrasing, how to say or frame a result, prose, a sentence, paragraph, section, title, caption or table note, editing or rewriting text, putting a result or table into the paper, or sending edits to the PDF or Overleaf; and before you write or rewrite any text of this paper yourself (sections, beats, bullets, body sentences, titles, captions, table notes, note strings in writeup/make_*.py generators, the wording of an author's edit or a deliberation outcome). It routes each task to the few pattern files it needs in writeup/style/patterns/ (index: writeup/style/voice.md) and ends with a self-check. Never use it to change the author's own words or text collaborators typed on Overleaf (those are copied or kept as written), and never to polish a layer the author has not locked. Coordinators name it in every drafting subagent's prompt (subagents do not see this trigger)."
 ---
 
 # paper-prose: which style patterns to read, by task
@@ -8,6 +8,12 @@ description: "Style patterns for the harxhar JFEc paper. Use it before you write
 The author, 29 Oct 2026: "the style guide seems like it should be part of a skill or something. Maybe it needs to be
 invoked like a Gang of 4 style skill tree". The rules are pattern files, one per rule, in the GoF template (intent,
 applicability, rewrite, detection, source). This skill picks the ones a task needs: read only those, in the order given.
+
+**How it is triggered** (author, 29 Oct 2026, answering Q-2026-10-29-25: "no. We shouldn't need the CLAUDE.md line
+because it should be a skill that I invoke in prose whenever we're talking about writing it up. Make sure the
+paper-prose skill triggers from that, not from CLAUDE.md."): by the description above, when the author's messages turn
+to writing the paper up, and before any agent writes paper text. There is no CLAUDE.md line for it. A coordinator still
+names it in drafting subagents' prompts, because subagents do not receive the author's messages.
 
 - **Index:** `writeup/style/voice.md` (V1–V16, AP-V, AP-S).
 - **Patterns:** `writeup/style/patterns/<family>/<id>-<slug>.md`; families `claims/`, `numbers/`, `sentences/`,
