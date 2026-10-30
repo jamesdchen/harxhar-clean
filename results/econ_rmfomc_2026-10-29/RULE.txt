@@ -1,0 +1,110 @@
+X8. THE SIGN STRATEGY ON THE HAR + RM + FOMC FORECASTS
+=====================================================
+PROPOSED AFTER THE AUTHOR'S 27 OCT REMARK; NOT PRE-REGISTERED.
+
+Written 2026-10-30T02:10Z (2026-10-29 19:10 PDT), BEFORE any statistic of a strategy on the HAR + RM + FOMC forecasts
+was computed: no position, return, Sharpe ratio or test of such a strategy existed when this file was written.
+Repository HEAD at writing: a407a47 (branch insurance-selling-2026-09-19-e34).
+Origin: proposed by the agent on 27 Oct 2026 (19:02Z), after the author's remark on the abstract's economics sentence
+("The abstract wording should be neither. Both miss the point of the bigger story"): "no strategy is built on the
+HAR + RM + FOMC forecasts ... a local computation, no cluster". Queued as X8 (writeup/deliberation/2026-10-29/
+adjudication.md, section X8; Q-2026-10-29-21.adjudication.json). Author's answer, 29 Oct 2026: "X8 yes".
+Computation: local only (laptop), from forecasts that exist; no cluster job, no refit, no re-tuning.
+This file is not changed after results are seen. Any deviation goes into a dated ADDENDUM at the end, with its reason.
+
+What had been seen before writing (no strategy statistic of a HAR + RM + FOMC forecast among them): the accuracy of the
+add_rm_fomc arm (Table tab:rh_ablation, Panel D; results/ablations_2014start_w3000/scores_fomcfix/metrics.csv), the
+printed economics of the full-set and HAR-set forecasts (Table tab:rh_econ_main), the schemas, row counts, NaN counts
+and minima of the two forecast files below, and their md5s.
+
+0. QUESTION
+   Do the 36 series beyond HAR + RM + FOMC add trading value? Within each model class, the sign strategy on the
+   class's full-predictor-set forecast against the sign strategy on its HAR + RM + FOMC forecast. Secondary: what
+   HAR + RM + FOMC gains over the HAR benchmark set, over the OLS-HAR strategy (the primary benchmark, D2) and over the
+   unconditional short straddle, as the paper reports for the full set.
+
+1. SAMPLE
+   The 866 option days of T_opt for the positions; every statistic on the 614 post-warmup days (me.pw_days(): option
+   days t > 252, 2021-08-11 .. 2024-04-30), as Section 7.
+
+2. FORECASTS (inputs; md5 of the files at writing)
+   HAR + RM + FOMC: the ablation arm add_rm_fomc (results/ablations_2014start_w3000/RULE.txt, addendum F): the HAR
+   benchmark set (12 columns) + the futures' realized-moment group (84) + the FOMC group (36) = 132 columns of the
+   FOMC-patched final design (fomcfix cell B), W = 3,000 trading days (39,000 bars), refit at every bar, 2014-01-02 ..
+   2024-04-30; ridge, lasso, elastic net with the full set's frozen penalties and r = 0.01 on the HAR block; the
+   min-norm OLS; LightGBM, XGBoost and the oneDAL forest at their frozen configurations.
+     results/ablations_2014start_w3000/forecasts/linear_wide_rmfomc.parquet   aced527588e68a01dc07595adbf7d644
+       columns date, ridge|add_rm_fomc, lasso|add_rm_fomc, enet|add_rm_fomc, ols|add_rm_fomc (pred_adj)
+     results/ablations_2014start_w3000/forecasts/trees_wide_rmfomc.parquet    e1741bd4aa99a229206e4e38afc9d47a
+       columns date, lgbm|add_rm_fomc, xgb|add_rm_fomc, rf_skx|add_rm_fomc (pred_adj; rf_skx read as the forest)
+   The 16:00 rule, as pooled_linear_13.at16 and pooled_trees_13.at16 take the full-set and HAR-set forecasts: the
+   forecast of trading day t is the row stamped 16:00 ET (the forecast of the 15:30-16:00 variance made at 15:30), and
+   plain = pred_adj^2 x B, with B the bar's diurnal scale of the paper's final linear run at the same bar (asserted
+   equal to the final tree run's B on those rows).
+   Full set, HAR set, OLS-HAR, short straddle: exactly as writeup/make_rehaul_econ_main.py builds them under
+   REHAUL_FINAL_RUN=1 (the FOMC-patched final runs, final_run.FOMCFIX_RUNS):
+     results/window_sweep_2014start_fomcfix/w3000/forecasts.parquet           ecee9323783730ba66b5f29413cab42f
+     results/pooled_trees_final_2014start_fomcfix_w3000/forecasts.parquet     431e8d9a1ccc0698c7e302ef9a945c08
+     results/pooled_rf_skx_2014start_fomcfix_w3000/forecasts.parquet          4dff304d75476c0be35dc2c3374e0da4
+     results/close_master_table/master_table_daily.parquet                    721e8dc41a4178c06657eaad7fac14a8
+     results/close_master_table/master_table.csv                              7c01f4180221801aa1deac82f14e3365
+     results/close_master_table/paper_model_set.csv                           0699e6133110e33dc1f76814b5272e54
+     results/atm_straddle_0dte_1530/daily_a0.parquet (the quote book)         9e128e7c2d96be364e7129c25d6a79a3
+   Implied and realized variance of day t: iv_var and rv_unclipped of the closing-interval OLS row (sub_ols_baseline)
+   of the master table's per-day frame, as every pooled row of Section 7 takes them.
+
+3. STRATEGY (the paper's, unchanged and not re-implemented)
+   The sign strategy of Section 7: q_t = sign(plain_t - IV_t^2), ties short (np.where(plain > iv_var, 1, -1)), one
+   straddle held from 15:30 ET to the close; mid return q_t R_t; bid/ask return master_table_gui.rows._crossed_return
+   (a purchase pays the ask, a sale receives the bid, spread at entry only). The rows are built by the code path of
+   make_rehaul_econ_main.add_ols_har (the same frame columns), so they are traded and scored as every pooled row.
+   No sizing rule, no other strategy.
+
+4. STATISTICS (make_rehaul_econ_main.row_stats and pair, unchanged; author decision D19)
+   - SR: the paper's Sharpe ratio, sqrt(q) mean / sd (ddof 1) of the 614 post-warmup daily returns, q = T / sum_y c_y
+     = 225.5 (hac_inference.paper_sharpe), at mid and at quoted bid/ask prices; mean daily return in % of the premium.
+   - Delta SR of two strategies (a minus b) on the same 614 days, at mid and at bid/ask, with the p-value of the
+     Ledoit-Wolf (2008) test of equal Sharpe ratios (me.sr_p: hac_inference.lw_sharpe_test, block 10, 4,999
+     resamples, seed 20080901), the test of record.
+   - Check only (CSV): the paired circular block bootstrap p of the pooled difference (me.boot_p).
+   - The fixed-b t (and p) of the mean daily mid-return differential (me.nw_t / me.hac_p: Newey-West, bandwidth
+     S = 33, fixed-b critical values).
+
+5. COMPARISONS (per model class c; the tests of record at mid, bid/ask reported alongside)
+   For c in {ridge, lasso, elastic net, LightGBM, XGBoost, random forest}:
+     (P) PRIMARY: full set_c minus HAR + RM + FOMC_c. "The 36 series add trading value in class c" iff Delta SR > 0
+         with Ledoit-Wolf p < 0.05 at mid-quotes.
+     (H) HAR + RM + FOMC_c minus HAR set_c (the class's own HAR-set forecast; the three linear ones coincide with the
+         OLS-HAR, Table tab:rh_econ_main note b).
+     (O) HAR + RM + FOMC_c minus the OLS-HAR strategy (poolpt13_ols_baseline, the primary benchmark, D2).
+     (S) HAR + RM + FOMC_c minus the unconditional short straddle (q = -1): Delta SR with its Ledoit-Wolf p, and the
+         fixed-b t of the mean daily return differential.
+   OLS (the OLS on HAR + RM + FOMC, the augmented-HAR benchmark): (H) = (O), against the OLS-HAR, and (S); no (P),
+   since the paper has no OLS on the full predictor set.
+   Reported: per row SR (mid, bid/ask), mean daily return (mid, bid/ask), every Delta SR with its p; counts over the
+   six classes of Delta SR > 0 and of Delta SR > 0 with p < 0.05, for (P), (H), (O) and (S); the smallest p of (P).
+   No multiplicity adjustment. Each reading is stated for the mid-quote test; nothing is selected on the results.
+
+6. GATES (the run stops on a failure)
+   (a) Every check of make_rehaul_econ_main.py passes as before (its gate against the printed macros, the
+       tab:rh_app_hac_robust panels, the draft claims), and its existing outputs are byte-identical except the added
+       lines: regenerated before and after the change into scratch directories and compared file by file.
+   (b) The HAR + RM + FOMC rows: a finite positive 16:00 forecast on every one of the 866 option days; B of the linear
+       run equals B of the tree run on the 16:00 rows; the run's realized variance of the 16:00 bar equals the OLS
+       row's rv_unclipped on the 866 days (the gate of me.lin_16 / me.tree_16).
+   (c) Alignment with the ablation scorer: on the 2,579 evaluation days of the ablations (16:00 rows with a positive
+       realized variance, early closes dropped, 2014-01-02 .. 2024-04-30), the mean 16:00 QLIKE of each class's
+       HAR + RM + FOMC forecast reproduces results/ablations_2014start_w3000/scores_fomcfix/metrics.csv (arm
+       add_rm_fomc, span c16; md5 dab691ca0378705fc2a1f6d053f6e110) to 1e-10 relative.
+
+7. OUTPUTS
+   - results/econ_rmfomc_2026-10-29/stats.csv (one row per strategy) and pairs.csv (one row per comparison of
+     section 5, mid and bid/ask, Ledoit-Wolf p, bootstrap check p, fixed-b t and p), each headed by this label.
+   - writeup/make_rehaul_econ_main.py extended (dated comment, this label): macros \rhem<Est>RmFomc... appended to
+     writeup/generated/rehaul_econ_main_numbers.tex (its existing lines unchanged); a new table
+     writeup/generated/rehaul_econ_rmfomc_table.tex (tab:rh_econ_rmfomc); the new pairs appended to
+     writeup/generated/sharpe_tests_d19_econ_main.csv.
+   - Placement: the economics appendix (rehaul/A_econ.tex), wired by the coordinator. The main text and the abstract's
+     trading sentence (rehaul/99_author_notes.tex:136-138, on the author's pending check) are untouched. The
+     disclosure ("proposed after the author's 27 Oct remark; not pre-registered") goes in the appendix prose; the table
+     note carries no such label (author, 28 Oct).
