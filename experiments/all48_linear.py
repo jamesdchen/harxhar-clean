@@ -164,7 +164,7 @@ def st_gate(a) -> None:
         b48, b13 = np.load(O.design_dir(s) / "b_oos.npy"), np.load(cb / "_work" / f"design_{s}" / "b_oos.npy")
         i48 = d48.get_indexer(d13)
         have = i48 >= 0
-        late = (d13.normalize() >= pd.Timestamp(FIRST_DAY)).to_numpy()
+        late = np.asarray(d13.normalize() >= pd.Timestamp(FIRST_DAY))  # 2026-10-30: a bool ndarray, no .to_numpy()
         j13, j48 = np.flatnonzero(have), i48[have]
         same_y = bool(np.array_equal(y48[Wn + j48], y13[W13 + j13], equal_nan=True))
         same_b = bool(np.array_equal(b48[j48], b13[j13], equal_nan=True))
