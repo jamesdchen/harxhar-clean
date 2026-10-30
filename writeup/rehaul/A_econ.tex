@@ -336,6 +336,41 @@
   \end{itemize}
 \end{itemize}
 
+% 2026-10-29 (X8, Q-2026-10-29-21; author: "X8 yes"). Rule results/econ_rmfomc_2026-10-29/RULE.txt (6acaee1, before any
+% computation); writeup/make_rehaul_econ_main.py (X8). Backing: "No difference is significant" = \rhemFullVsRmFomcPMin
+% >= the level \rhemSigPct\% (\rhemFullVsRmFomcSig = \rhemFullVsRmFomcSigNeg = 0); "the other" = Pos + Neg = NCls
+% (4 + 2 = 6); "the gain" (HAR set, OLS-HAR, short straddle) = \rhemRmFomcVs{Har,Ols,Short}Pos = \rhemRmFomcNCls.
+% Audited 29 Oct (paper-prose Step 3): V4 backing corrected; V5, V7 and two V1 fixes applied as named operations.
+\subsection{Economic value beyond HAR, realized moments and the FOMC calendar}
+\label{app:rh_econ_rmfomc}
+\begin{itemize}
+\item \textbf{Not pre-registered.} We proposed this comparison after the results of Table~\ref{tab:rh_econ_main} and
+  of Table~\ref{tab:rh_ablation}, Panel~D, had been seen. Its design was fixed in a written rule before any of its
+  statistics was computed. Each model class trades the sign strategy of Section~\ref{sec:rh_econ_strategy} on its
+  forecast from HAR\,+\,RM\,+\,FOMC, the HAR benchmark set with the futures' realized moments and the FOMC calendar
+  (Table~\ref{tab:rh_ablation}, Panel~D), on the \rheSzDays{} post-warmup days (Table~\ref{tab:rh_econ_rmfomc}).
+\item \textbf{The other series add no significant trading value.} Within a model class, we measure what the other
+  \rhbyFLNSeries{} series add to the strategy by the full-set forecast's Sharpe ratio minus that of the
+  HAR\,+\,RM\,+\,FOMC forecast. The full predictor
+  set has the higher mid-quote Sharpe ratio in \rhemFullVsRmFomcPosWord{} of the \rhemRmFomcNClsWord{} classes and the
+  lower in the other \rhemFullVsRmFomcNegWord. The differences run from \rhemFullVsRmFomcMin{} to
+  \rhemFullVsRmFomcMax. No difference is significant at the \rhemSigPct\% level (smallest Ledoit--Wolf
+  $p = \rhemFullVsRmFomcPMin$).
+\item \textbf{HAR\,+\,RM\,+\,FOMC raises the Sharpe ratio significantly over the HAR benchmark set in
+  \rhemRmFomcVsHarSigWord{} of the \rhemRmFomcNClsWord{} classes.} Against the HAR-set forecast of
+  the same class, HAR\,+\,RM\,+\,FOMC raises the mid-quote Sharpe ratio in \rhemRmFomcVsHarPosWord{} of the
+  \rhemRmFomcNClsWord{} classes, by \rhemRmFomcVsHarMin{} to \rhemRmFomcVsHarMax. The gain is significant at the
+  \rhemSigPct\% level for \rhemRmFomcVsHarSigWord{} of them (Ledoit--Wolf test). Against the benchmark forecast, the
+  OLS on the HAR benchmark set, the gain is \rhemRmFomcVsOlsMin{} to \rhemRmFomcVsOlsMax. It is significant at the
+  \rhemSigPct\% level for \rhemRmFomcVsOlsSigWord{} of the \rhemRmFomcNClsWord{} classes. Over the short straddle the
+  gain is \rhemRmFomcVsShortMin{} to \rhemRmFomcVsShortMax. It is significant at the \rhemSigPct\% level for
+  \rhemRmFomcVsShortSigWord{} of the \rhemRmFomcNClsWord{} classes, against \rhemFullVsShortSigWord{} of the
+  \rhemRmFomcNClsWord{} full-set forecasts (Table~\ref{tab:rh_econ_main}). The OLS on HAR\,+\,RM\,+\,FOMC has
+  $\SR = \rhemShOlsRmFomc$ at mid-quotes, against \rhemShOlsHar{} for the benchmark forecast
+  ($\Delta\SR = \rhemDShOlsRmFomcVsHar$, Ledoit--Wolf $p = \rhemPDShOlsRmFomcVsHar$).
+\end{itemize}
+\input{generated/rehaul_econ_rmfomc_table}
+
 % 2026-10-26 (integration, JFEc): added from drafts/2026-10-25_econ_decomp.tex (generator
 % writeup/make_rehaul_econ_decomp.py, \rhed... macros), lightly edited: "HAR twin" -> the HAR-set forecast of the same
 % class; the worthless-expiry item now carries the share that the parked "Concentration of economic gains" item of

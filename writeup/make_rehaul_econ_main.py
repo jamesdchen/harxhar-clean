@@ -37,11 +37,29 @@ BREAK-EVEN SPREAD
   quoted half-spread and in percent of the premium, k* times the median of h_t / P_t over the 614 post-warmup days.
   A strategy whose statistic is not positive at mid has no break-even ("--").
 
+X8: THE HAR + RM + FOMC FORECASTS (2026-10-29; Q-2026-10-29-21, the author: "X8 yes")
+  PROPOSED AFTER THE AUTHOR'S 27 OCT REMARK; NOT PRE-REGISTERED. Rule: results/econ_rmfomc_2026-10-29/RULE.txt,
+  committed (6acaee1) before any of these statistics was computed.  The sign strategy above on each class's forecast
+  from HAR + RM + FOMC (the ablation arm add_rm_fomc, results/ablations_2014start_w3000/RULE.txt addendum F: the HAR
+  benchmark set, the futures' realized moments and the FOMC group, 132 columns of the FOMC-patched final design; the
+  OLS, ridge, lasso, elastic net, LightGBM, XGBoost and the forest).  The 16:00 row of each day, plain = pred_adj^2 x B
+  (B and the bar's realized variance from the final linear run's 16:00 rows, as pooled_linear_13.at16), traded by
+  sign_row (the lines of add_ols_har) and scored by row_stats and pair, unchanged.  Comparisons at mid (bid/ask
+  alongside): each class's full set minus its HAR + RM + FOMC (the question: do the other series add trading value?),
+  and HAR + RM + FOMC minus the class's HAR set, the OLS-HAR and the short straddle.  Gates: the input md5s of the rule;
+  B of the linear and tree runs equal; every option day has a finite positive forecast whose bar's realized variance is
+  the OLS row's; the 16:00 QLIKE on the ablations' 2,579 evaluation days reproduces scores_fomcfix/metrics.csv (c16)
+  to 1e-10.  Outputs: the \\rhem<Est>RmFomc... macros appended to the numbers file (its other lines unchanged), the
+  table below, the new pairs appended to sharpe_tests_d19_econ_main.csv, and results/econ_rmfomc_2026-10-29/stats.csv
+  and pairs.csv.  The table note carries no disclosure label (author, 28 Oct); the appendix prose does.
+
 OUTPUTS (new files; nothing else is written)
   writeup/generated/rehaul_econ_main_numbers.tex   \\rhem... macros (macro-only)
   writeup/generated/rehaul_econ_main_table.tex     Table tab:rh_econ_main
   writeup/generated/rehaul_econ_byyear.pdf         the Sharpe ratio by calendar year
   writeup/generated/rehaul_econ_byyear_fig.tex     its float, fig:rh_econ_byyear
+  writeup/generated/rehaul_econ_rmfomc_table.tex   2026-10-29 (X8): Table tab:rh_econ_rmfomc
+  results/econ_rmfomc_2026-10-29/stats.csv, pairs.csv   2026-10-29 (X8): every statistic of the rule, unrounded
 
 Run (Git Bash, repository root):  python writeup/make_rehaul_econ_main.py [--preview DIR]
 REHAUL_FINAL_RUN is set to 1 here (the paper's pooled forecasts are the final rerun).
@@ -50,6 +68,7 @@ REHAUL_FINAL_RUN is set to 1 here (the paper's pooled forecasts are the final re
 from __future__ import annotations
 
 import argparse
+import hashlib
 import math
 import os
 import re
@@ -101,6 +120,23 @@ OLSH = "poolpt13_ols_baseline"
 SHORT = me.SHORT
 YEAR_WORD = ("One", "Two", "Three", "Four", "Five", "Six")
 WORDS = {0: "zero", 1: "one", 2: "two", 3: "three", 4: "four", 5: "five", 6: "six"}
+# 2026-10-29 (X8, Q-2026-10-29-21; the author: "X8 yes"): proposed after the author's 27 Oct remark; not
+# pre-registered. The sign strategy on the HAR + RM + FOMC forecasts (rule results/econ_rmfomc_2026-10-29/RULE.txt,
+# commit 6acaee1, written before any computation; the module docstring, X8).
+RMF_LABEL = "proposed after the author's 27 Oct remark; not pre-registered"
+RMF_ABL = me.ROOT / "results" / "ablations_2014start_w3000"
+RMF_FC = {
+    "linear": RMF_ABL / "forecasts" / "linear_wide_rmfomc.parquet",
+    "trees": RMF_ABL / "forecasts" / "trees_wide_rmfomc.parquet",
+}
+RMF_MD5 = {"linear": "aced527588e68a01dc07595adbf7d644", "trees": "e1741bd4aa99a229206e4e38afc9d47a"}  # RULE.txt 2
+RMF_METRICS = RMF_ABL / "scores_fomcfix" / "metrics.csv"
+RMF_OUT = me.ROOT / "results" / "econ_rmfomc_2026-10-29"
+RMF_TABLE = GEN / "rehaul_econ_rmfomc_table.tex"
+RMF_CLS = ("ols", *EST)  # the OLS on HAR + RM + FOMC (no full-set twin) and the six classes of the main table
+RMF_COL = {e: f"{'rf_skx' if e == 'rf' else e}|add_rm_fomc" for e in RMF_CLS}  # columns of the two wide files
+RMF_N_EVAL = 2579  # the ablations' evaluation days (experiments/ablate_score.py N_DAYS; metrics.csv c16 n_days)
+X8_SIG_LEVEL = 0.05  # 2026-10-29 (paper-prose V2): the level of the X8 Ledoit-Wolf counts, printed as \rhemSigPct
 
 
 def key(est: str, pset: str) -> str:
@@ -108,8 +144,15 @@ def key(est: str, pset: str) -> str:
     return f"poolpt13_{est}_{pset}" if est in LINEAR else f"pooltree_{est}_{pset}"
 
 
+def rkey(est: str) -> str:
+    """2026-10-29 (X8): series key of a class's HAR + RM + FOMC strategy (added by add_rmfomc)."""
+    return f"rmfomc_{est}"
+
+
 def tag(k: str) -> str:
-    """Macro stem of a row: <Est><Set>, CiHar or Short."""
+    """Macro stem of a row: <Est><Set>, CiHar or Short; 2026-10-29 (X8): <Est>RmFomc (Est = Ols, ...)."""
+    if k.startswith("rmfomc_"):
+        return {"ols": "Ols", **EST_MAC}[k.removeprefix("rmfomc_")] + "RmFomc"
     if k == CI:
         return "CiHar"
     if k == OLSH:
@@ -175,10 +218,18 @@ def add_ols_har(series: dict) -> None:
     iv, rv = ref["iv_var"].to_numpy(float), ref["rv_unclipped"].to_numpy(float)
     assert np.isfinite(iv).all() and np.isfinite(rv).all()
     p = me.lin_16("ols", "baseline", days, rv)
+    assert OLSH not in series
+    series[OLSH] = sign_row(b, p, iv, rv)  # 2026-10-29 (X8): the frame's lines moved to sign_row, unchanged
+
+
+def sign_row(b: pd.DataFrame, p: np.ndarray, iv: np.ndarray, rv: np.ndarray) -> pd.DataFrame:
+    """The sign strategy of one 16:00 forecast p on the option days of b (the CI row's frame: the quote book's
+    straddle), as add_ols_har trades the OLS-HAR: q = sign(p - iv_var), ties short; mid q R; bid/ask by
+    gui._crossed_return; QLIKE against the bar's realized variance rv.  2026-10-29 (X8): taken out of add_ols_har
+    unchanged, so the HAR + RM + FOMC rows (add_rmfomc) are traded by the same lines."""
     q = np.where(p > iv, 1.0, -1.0)
     ratio = rv / p
-    assert OLSH not in series
-    series[OLSH] = pd.DataFrame(
+    return pd.DataFrame(
         {
             "q": q,
             "mid": q * b["R"].to_numpy(float),
@@ -190,8 +241,97 @@ def add_ols_har(series: dict) -> None:
             "bid": b["bid"].to_numpy(float),
             "ask": b["ask"].to_numpy(float),
         },
-        index=days,
+        index=b.index,
     )
+
+
+# ============================================================================================ X8: HAR + RM + FOMC
+def rmfomc_16() -> dict[str, pd.DataFrame]:
+    """2026-10-29 (X8): the 16:00 rows of each class's HAR + RM + FOMC forecast (the ablation arm add_rm_fomc), one row
+    a trading day: plain = pred_adj^2 x B and rv, the bar's realized variance.  B and rv are the final linear run's at
+    the same bar (pooled_linear_13's frame, the rows pl13.at16 reads); B is asserted equal to the final tree run's.
+    The 16:00 row is the forecast of the 15:30-16:00 variance made at 15:30, the one the closing trade uses."""
+    lin = me.pl13._frame()
+    g = lin[(lin["model"] == "ridge") & (lin["predictor_set"] == "all_features")]
+    tg = pd.DatetimeIndex(pd.to_datetime(g["date"]))
+    at = (tg.hour == 16) & (tg.minute == 0)
+    ref = pd.DataFrame({"B": g["B"].to_numpy(float)[at], "rv": g["rv_actual"].to_numpy(float)[at]}, index=tg[at])
+    tr = me.pt13._frame()
+    h = tr[(tr["model"] == "lgbm") & (tr["predictor_set"] == "all_features")]
+    b_tree = pd.Series(h["B"].to_numpy(float), index=pd.DatetimeIndex(pd.to_datetime(h["date"])))
+    out: dict[str, pd.DataFrame] = {}
+    for kind, path in RMF_FC.items():
+        assert hashlib.md5(path.read_bytes()).hexdigest() == RMF_MD5[kind], (path, "md5 is not the rule's")
+        w = pd.read_parquet(path)
+        d = pd.DatetimeIndex(w["date"])
+        at16 = (d.hour == 16) & (d.minute == 0)
+        ts = d[at16]
+        bb = ref["B"].reindex(ts).to_numpy(float)
+        assert np.isfinite(bb).all() and np.array_equal(bb, b_tree.reindex(ts).to_numpy(float)), (kind, "B")
+        for e in RMF_CLS:
+            if RMF_COL[e] in w.columns:
+                v = w[RMF_COL[e]].to_numpy(float)[at16]
+                out[e] = pd.DataFrame(
+                    {"plain": v**2 * bb, "rv": ref["rv"].reindex(ts).to_numpy(float)},
+                    index=pd.DatetimeIndex(ts.normalize()).as_unit("ns"),
+                )
+    assert set(out) == set(RMF_CLS), sorted(out)
+    for e, a in out.items():
+        assert not a.index.duplicated().any(), e
+    return out
+
+
+def rmfomc_qlike_gate(f16: dict[str, pd.DataFrame]) -> dict[str, tuple[float, float]]:
+    """2026-10-29 (X8), RULE.txt 6 (c): on the ablations' 2,579 evaluation days (16:00 rows with a positive realized
+    variance, early closes dropped, 2014-01-02 .. 2024-04-30) the mean 16:00 QLIKE of each class's HAR + RM + FOMC
+    forecast reproduces the ablation scorer's (scores_fomcfix/metrics.csv, arm add_rm_fomc, span c16) to 1e-10."""
+    m = pd.read_csv(RMF_METRICS)
+    m = m[(m["arm"] == "add_rm_fomc") & (m["span"] == "c16")].set_index("cls")
+    early = pd.DatetimeIndex(pd.to_datetime(list(me.asl.EARLY_CLOSE_DATES))).normalize()
+    a = f16["ols"]
+    rv = a["rv"].to_numpy(float)
+    keep = (rv > 0) & np.isfinite(rv) & ~a.index.isin(early) & (a.index >= fr.FIRST_DAY) & (a.index <= fr.LAST_DAY)
+    days = a.index[keep]
+    assert len(days) == RMF_N_EVAL, len(days)
+    out = {}
+    for e in RMF_CLS:
+        g = f16[e].reindex(days)
+        r = (g["rv"] / g["plain"]).to_numpy(float)
+        ql = float(np.mean(r - np.log(r) - 1.0))
+        assert int(m.loc[e, "n_days"]) == RMF_N_EVAL, (e, m.loc[e, "n_days"])
+        want = float(m.loc[e, "qlike"])
+        assert abs(ql / want - 1.0) <= 1e-10, (e, ql, want)
+        out[e] = (ql, want)
+    return out
+
+
+def add_rmfomc(series: dict) -> dict[str, tuple[float, float]]:
+    """2026-10-29 (X8): each class's HAR + RM + FOMC forecast as a strategy row rmfomc_<est>, traded by sign_row on the
+    OLS row's days, implied variance and realized variance (as add_ols_har), with the gates of me.lin_16: a finite
+    positive forecast on every option day, and the bar's realized variance equal to the OLS row's rv_unclipped.
+    Returns the QLIKE gate's values (rmfomc_qlike_gate)."""
+    daily = pd.read_parquet(me.RES / "master_table_daily.parquet", columns=["key", "day", "iv_var", "rv_unclipped"])
+    daily["day"] = pd.to_datetime(daily["day"]).dt.normalize()
+    b = series[CI]
+    days = b.index
+    ref = daily[daily["key"] == CI].set_index("day").sort_index()
+    ref.index = ref.index.astype(days.dtype)
+    ref = ref.reindex(days)
+    iv, rv = ref["iv_var"].to_numpy(float), ref["rv_unclipped"].to_numpy(float)
+    assert np.isfinite(iv).all() and np.isfinite(rv).all()
+    f16 = rmfomc_16()
+    qgate = rmfomc_qlike_gate(f16)
+    for e in RMF_CLS:
+        a = f16[e]
+        a.index = a.index.astype(days.dtype)
+        a = a.reindex(days)
+        p = a["plain"].to_numpy(float)
+        assert np.isfinite(p).all() and (p > 0).all(), (e, int((~np.isfinite(p)).sum()))
+        assert np.allclose(a["rv"].to_numpy(float), rv, rtol=1e-12, atol=0.0), e
+        k = rkey(e)
+        assert k not in series, k
+        series[k] = sign_row(b, p, iv, rv)
+    return qgate
 
 
 def har_linear_check() -> dict:
@@ -795,6 +935,237 @@ def table_tex(st: dict, pairs: dict) -> str:
     )
 
 
+# ============================================================================================ X8 statistics and LaTeX
+def x8_stats(series: dict) -> tuple[dict, dict]:
+    """2026-10-29 (X8), RULE.txt 5: row_stats of each HAR + RM + FOMC row (SR, mean, against the short straddle) and
+    the pairs (pair, unchanged): ("full", e) the class's full set minus its HAR + RM + FOMC (the primary comparison);
+    ("har", e) HAR + RM + FOMC minus the class's HAR set; ("ols", e) minus the OLS-HAR. The OLS's own HAR set is the
+    OLS-HAR, so its ("har", "ols") and ("ols", "ols") are one pair."""
+    xs = {rkey(e): row_stats(series, rkey(e)) for e in RMF_CLS}
+    xp: dict = {}
+    for e in EST:
+        xp[("full", e)] = pair(series, key(e, "all_features"), rkey(e))
+        xp[("har", e)] = pair(series, rkey(e), key(e, "baseline"))
+        xp[("ols", e)] = pair(series, rkey(e), OLSH)
+    xp[("har", "ols")] = xp[("ols", "ols")] = pair(series, rkey("ols"), OLSH)
+    return xs, xp
+
+
+def _mac_line(name: str, val: str, note: str) -> str:
+    """One macro line in the numbers file's form (numbers_tex.mac)."""
+    assert re.fullmatch(r"rhem[A-Za-z]+", name), name
+    return f"\\providecommand{{\\{name}}}{{}}\\renewcommand{{\\{name}}}{{{val}}}  % {note}"
+
+
+def x8_numbers(xs: dict, xp: dict) -> str:
+    """2026-10-29 (X8): the \\rhem<Est>RmFomc... macros, appended to the numbers file after its existing lines."""
+    lines = [
+        "% ---- 2026-10-29 (X8, Q-2026-10-29-21): the sign strategy on the HAR + RM + FOMC forecasts (ablation arm",
+        f"% add_rm_fomc); {RMF_LABEL}. Rule: results/econ_rmfomc_2026-10-29/RULE.txt.",
+        "% Row stems <Est>RmFomc (Est = Ols, Ridge, Lasso, Enet, Lgbm, Xgb, Rf). Delta SR at mid (X: at quoted bid/ask)",
+        "% with its Ledoit-Wolf p (D19); T: fixed-b t of the mean daily mid-return differential (S = 33).",
+    ]
+
+    def mac(name: str, val: str, note: str) -> None:
+        lines.append(_mac_line(name, val, note))
+
+    def cnt(name: str, n: int, note: str) -> None:
+        mac(name, str(n), note)
+        mac(name + "Word", WORDS[n], "... in words")
+
+    # 2026-10-29 (paper-prose V2): the significance level the X8 counts use, as a macro, so the text types no digit
+    mac("rhemSigPct", f"{100 * X8_SIG_LEVEL:g}", "significance level of the X8 Ledoit-Wolf counts, %")
+    for e in RMF_CLS:
+        k = rkey(e)
+        r, t = xs[k], tag(k)
+        mac(f"rhemSh{t}", num(r["sh_mid"]), f"{k}: SR, mid")
+        mac(f"rhemShX{t}", num(r["sh_x"]), "... at quoted bid/ask")
+        mac(f"rhemMean{t}", num(100 * r["mean_mid"], 1), "... mean daily return, %, mid")
+        mac(f"rhemMeanX{t}", num(100 * r["mean_x"], 1), "... mean daily return, %, bid/ask")
+        mac(f"rhemDSh{t}VsShort", num(r["dsh_short"]), "... minus the short straddle: Delta SR, mid")
+        mac(f"rhemPDSh{t}VsShort", pval(r["p_short"]), "... its Ledoit-Wolf p")
+        mac(f"rhemDShX{t}VsShort", num(r["dsh_short_x"]), "... Delta SR at bid/ask")
+        mac(f"rhemPDShX{t}VsShort", pval(r["p_short_x"]), "... its Ledoit-Wolf p")
+        mac(f"rhemT{t}VsShort", num(r["t_short"]), "... fixed-b t of the mean mid return differential")
+        mac(f"rhemPT{t}VsShort", pval(r["pt_short"]), "... its fixed-b p")
+        for nm, what in (("har", "Har"), ("ols", "Ols")):
+            p_ = xp[(nm, e)]
+            ref = "the class's HAR set" if nm == "har" else "the OLS-HAR"
+            mac(f"rhemDSh{t}Vs{what}", num(p_["dsh"]), f"... minus {ref}: Delta SR, mid")
+            mac(f"rhemPDSh{t}Vs{what}", pval(p_["p"]), "... its Ledoit-Wolf p")
+            mac(f"rhemDShX{t}Vs{what}", num(p_["dsh_x"]), "... Delta SR at bid/ask")
+            mac(f"rhemPDShX{t}Vs{what}", pval(p_["p_x"]), "... its Ledoit-Wolf p")
+    lines.append("% ---- the primary comparison: each class's full set minus its HAR + RM + FOMC (RULE.txt 5 (P))")
+    for e in EST:
+        p_, t = xp[("full", e)], EST_MAC[e]
+        mac(f"rhemDSh{t}FullVsRmFomc", num(p_["dsh"]), f"{e}: full set minus HAR + RM + FOMC, Delta SR, mid")
+        mac(f"rhemPDSh{t}FullVsRmFomc", pval(p_["p"]), "... its Ledoit-Wolf p")
+        mac(f"rhemDShX{t}FullVsRmFomc", num(p_["dsh_x"]), "... Delta SR at bid/ask")
+        mac(f"rhemPDShX{t}FullVsRmFomc", pval(p_["p_x"]), "... its Ledoit-Wolf p")
+        mac(f"rhemT{t}FullVsRmFomc", num(p_["t"]), "... fixed-b t of the mean mid return differential")
+        mac(f"rhemPT{t}FullVsRmFomc", pval(p_["pt"]), "... its fixed-b p")
+    lines.append(
+        "% ---- over the six classes (Ols excluded); 5 % level; Sig = Delta SR > 0 with p < 0.05, SigNeg = < 0"
+    )
+    cnt("rhemRmFomcNCls", len(EST), "model classes with a full-set and a HAR + RM + FOMC forecast")
+    groups = {
+        "FullVsRmFomc": [xp[("full", e)] for e in EST],
+        "RmFomcVsHar": [xp[("har", e)] for e in EST],
+        "RmFomcVsOls": [xp[("ols", e)] for e in EST],
+        "RmFomcVsShort": [
+            {
+                "dsh": xs[rkey(e)]["dsh_short"],
+                "p": xs[rkey(e)]["p_short"],
+                "dsh_x": xs[rkey(e)]["dsh_short_x"],
+                "p_x": xs[rkey(e)]["p_short_x"],
+            }
+            for e in EST
+        ],
+    }
+    for g, ps in groups.items():
+        d, p = [x["dsh"] for x in ps], [x["p"] for x in ps]
+        mac(f"rhem{g}Min", num(min(d)), f"{g}: Delta SR mid, min over the six")
+        mac(f"rhem{g}Max", num(max(d)), "... max")
+        mac(f"rhem{g}PMin", pval(min(p)), "... smallest Ledoit-Wolf p")
+        mac(f"rhem{g}PMax", pval(max(p)), "... largest Ledoit-Wolf p")
+        cnt(f"rhem{g}Pos", sum(x > 0 for x in d), "... Delta SR > 0, mid")
+        cnt(f"rhem{g}Neg", sum(x < 0 for x in d), "... Delta SR < 0, mid")
+        cnt(f"rhem{g}Sig", sum(x["dsh"] > 0 and x["p"] < X8_SIG_LEVEL for x in ps), "... significantly positive, mid")
+        cnt(
+            f"rhem{g}SigNeg", sum(x["dsh"] < 0 and x["p"] < X8_SIG_LEVEL for x in ps), "... significantly negative, mid"
+        )
+        cnt(f"rhem{g}PosX", sum(x["dsh_x"] > 0 for x in ps), "... Delta SR > 0 at bid/ask")
+        cnt(
+            f"rhem{g}SigX",
+            sum(x["dsh_x"] > 0 and x["p_x"] < X8_SIG_LEVEL for x in ps),
+            "... significantly positive, bid/ask",
+        )
+    sh = [xs[rkey(e)]["sh_mid"] for e in EST]
+    shx = [xs[rkey(e)]["sh_x"] for e in EST]
+    mac("rhemRmFomcShMin", num(min(sh)), "SR mid of the six HAR + RM + FOMC forecasts: min")
+    mac("rhemRmFomcShMax", num(max(sh)), "... max")
+    mac("rhemRmFomcShXMin", num(min(shx)), "SR at bid/ask: min")
+    mac("rhemRmFomcShXMax", num(max(shx)), "... max")
+    return "\n".join(lines) + "\n"
+
+
+def x8_table_tex(xs: dict, xp: dict) -> str:
+    """2026-10-29 (X8): Table tab:rh_econ_rmfomc. Rows: the OLS and the six classes on HAR + RM + FOMC; Delta SR at
+    mid with the Ledoit-Wolf p in brackets, as Table tab:rh_econ_main. The note carries no disclosure label (author,
+    28 Oct); the appendix prose discloses that the analysis was proposed after the author's 27 Oct remark."""
+    ncol = 7
+    dash = "--$^{\\phantom{***}}$"
+    body = ""
+    for e in RMF_CLS:
+        r = xs[rkey(e)]
+        cmp_ = [xp.get(("full", e)), None, xp[("har", e)], xp[("ols", e)]]
+        cmp_[1] = {"dsh": r["dsh_short"], "p": r["p_short"]}
+        top = [me.cell(r["sh_mid"], 2, starred=False), me.cell(r["sh_x"], 2, starred=False)]
+        under = ["", ""]
+        for c in cmp_:
+            top.append(me.cell(c["dsh"], 2, me.n_stars_p(c["p"])) if c else dash)
+            under.append(me.pbrack(c["p"]) if c else "")
+        body += me.rows2("OLS\\tnote{a}" if e == "ols" else EST_NAME[e], top, under)
+    return (
+        HEADER + f"% Table tab:rh_econ_rmfomc (2026-10-29, X8; {RMF_LABEL}; rule\n"
+        "% results/econ_rmfomc_2026-10-29/RULE.txt): the sign strategy on the HAR + RM + FOMC forecasts, 614 post-warmup\n"
+        "% days. Macros: \\rhem<Est>RmFomc... (rehaul_econ_main_numbers.tex).\n"
+        "\\ifdefined\\rhemShOlsRmFomc\\else\\input{generated/rehaul_econ_main_numbers}\\fi\n"
+        "\\begin{table}[tbp]\n\\centering\n\\footnotesize\n\\setlength{\\tabcolsep}{4pt}\n"
+        "\\begin{threeparttable}\n"
+        "\\caption{Economic value of the HAR\\,+\\,RM\\,+\\,FOMC forecasts}\n"
+        "\\label{tab:rh_econ_rmfomc}\n"
+        f"\\begin{{tabular}}{{@{{}}l{'r' * (ncol - 1)}@{{}}}}\n\\toprule\n"
+        " & \\multicolumn{2}{c}{$\\SR$} & \\multicolumn{4}{c}{$\\Delta\\SR$} \\\\\n"
+        "\\cmidrule(lr){2-3}\\cmidrule(l){4-7}\n"
+        " & Mid & Bid/ask & Full set & Short straddle & HAR set & OLS-HAR \\\\\n"
+        "\\midrule\n" + body + "\\bottomrule\n\\end{tabular}\n\\begin{tablenotes}[flushleft]\n\\footnotesize\n"
+        "\\item \\textit{Notes:} The sign strategy of Table~\\ref{tab:rh_econ_main} on the forecasts from "
+        "HAR\\,+\\,RM\\,+\\,FOMC, the HAR benchmark set with the futures' realized moments and the FOMC calendar "
+        "(Table~\\ref{tab:rh_ablation}, Panel~D), on the \\rheSzDays{} post-warmup days of $\\mathcal T_{\\mathrm{opt}}$. "
+        "Each model keeps the full predictor set's frozen hyperparameters. $\\SR$ is the annualized Sharpe ratio of "
+        "Section~\\ref{sec:rh_econ_measures}, at mid-quotes and at quoted bid/ask prices. $\\Delta\\SR$ is a "
+        "difference of Sharpe ratios at mid-quotes. In column Full set it is the same model class on the full "
+        "predictor set minus the row. In the other three columns it is the row minus the short straddle, minus the "
+        "same model class on the HAR benchmark set, and minus the OLS on the HAR benchmark set. Under each "
+        "$\\Delta\\SR$, in brackets, the $p$-value of the \\citet{LedoitWolf2008} test of equal Sharpe ratios (block "
+        "length \\rheLWBlock{}, \\rheLWBoot{} resamples). " + me.STAR_NOTE + "\n"
+        "\\item[a] The OLS on HAR\\,+\\,RM\\,+\\,FOMC. Its HAR benchmark set is the OLS-HAR, and it has no forecast on "
+        "the full predictor set.\n"
+        "\\end{tablenotes}\n\\end{threeparttable}\n\\end{table}\n"
+    )
+
+
+def x8_csv(series: dict, xs: dict, xp: dict, qgate: dict) -> None:
+    """2026-10-29 (X8), RULE.txt 7: results/econ_rmfomc_2026-10-29/stats.csv (one row per strategy) and pairs.csv (one
+    row per comparison), unrounded, each headed by the label and the rule."""
+    head = (
+        f"# X8 (Q-2026-10-29-21): {RMF_LABEL}. Rule: results/econ_rmfomc_2026-10-29/RULE.txt. 614 post-warmup days.\n"
+    )
+    rows = []
+    for e in RMF_CLS:
+        r = xs[rkey(e)]
+        rows.append(
+            {
+                "key": rkey(e),
+                "class": e,
+                **{c: r[c] for c in ("sh_mid", "sh_x", "mean_mid", "mean_x", "sh_d6", "sh_d1", "be_mean", "be_sh")},
+                **{c: r[c] for c in ("dsh_short", "p_short", "pb_short", "t_short", "pt_short", "dmean_short")},
+                **{c: r[c] for c in ("dsh_short_x", "p_short_x", "pb_short_x")},
+                "long_days": int((series[rkey(e)]["q"].to_numpy(float)[me.WARMUP :] > 0).sum()),
+                "qlike16_eval": qgate[e][0],
+                "qlike16_ablation_metrics": qgate[e][1],
+            }
+        )
+    out_p = []
+    names = {
+        "full": ("full set", "HAR + RM + FOMC"),
+        "har": ("HAR + RM + FOMC", "HAR set"),
+        "ols": ("HAR + RM + FOMC", "OLS-HAR"),
+    }
+    for (nm, e), p_ in xp.items():
+        if (nm, e) == ("ols", "ols"):
+            continue  # the same pair as ("har", "ols")
+        a, b = names[nm]
+        out_p.append(
+            {
+                "comparison": nm,
+                "class": e,
+                "a": a,
+                "b": b,
+                **{c: p_[c] for c in ("dsh", "p", "pb", "dsh_x", "p_x", "pb_x")},
+                "t": p_["t"],
+                "pt": p_["pt"],
+                "dmean": p_["dmean"],
+            }
+        )
+    for e in RMF_CLS:
+        r = xs[rkey(e)]
+        out_p.append(
+            {
+                "comparison": "short",
+                "class": e,
+                "a": "HAR + RM + FOMC",
+                "b": "short straddle",
+                "dsh": r["dsh_short"],
+                "p": r["p_short"],
+                "pb": r["pb_short"],
+                "dsh_x": r["dsh_short_x"],
+                "p_x": r["p_short_x"],
+                "pb_x": r["pb_short_x"],
+                "t": r["t_short"],
+                "pt": r["pt_short"],
+                "dmean": r["dmean_short"],
+            }
+        )
+    RMF_OUT.mkdir(parents=True, exist_ok=True)
+    for name, frame in (("stats.csv", pd.DataFrame(rows)), ("pairs.csv", pd.DataFrame(out_p))):
+        with open(RMF_OUT / name, "w", encoding="utf-8", newline="\n") as fh:
+            fh.write(head)
+            frame.to_csv(fh, index=False, float_format="%.10g", lineterminator="\n")
+        print("wrote", fr.rel(RMF_OUT / name))
+
+
 # ============================================================================================ figure
 MAG, BLUE, INK = me.FAM_COLOR["pooled"], me.FAM_COLOR["linear"], me.FAM_COLOR["short"]
 
@@ -1034,9 +1405,21 @@ def main() -> None:
     pw = me.pw_days()
     draft_claims(st, pairs, yr)
 
-    write(NUMBERS, numbers_tex(st, pairs, spread, harlin, yr))
+    # 2026-10-29 (X8; proposed after the author's 27 Oct remark; not pre-registered): the HAR + RM + FOMC strategies,
+    # after every existing statistic, so the test log gains rows at its end and the existing outputs are unchanged.
+    # Their statistics stay out of st (draft_claims and the gate read st).
+    qgate = add_rmfomc(series)
+    for e, (got, want) in qgate.items():
+        print(f"  gate X8 16:00 QLIKE {e:5s} on {RMF_N_EVAL} days: {got:.12f} (ablation metrics.csv {want:.12f})")
+    xs, xp = x8_stats(series)
+
+    # 2026-10-29 (X8): the X8 macros appended after the existing ones. Was: write(NUMBERS, numbers_tex(st, pairs,
+    # spread, harlin, yr))
+    write(NUMBERS, numbers_tex(st, pairs, spread, harlin, yr) + x8_numbers(xs, xp))
     me.write_test_log("econ_main")  # 2026-10-26 (D19): Ledoit-Wolf p and the bootstrap check p of every tested pair
     write(TABLE, table_tex(st, pairs))
+    write(RMF_TABLE, x8_table_tex(xs, xp))  # 2026-10-29 (X8)
+    x8_csv(series, xs, xp, qgate)  # 2026-10-29 (X8)
     fig_byyear(yr, pw[0], pw[-1])
     write(FIG_TEX, fig_float_tex(yr))
 
@@ -1059,6 +1442,17 @@ def main() -> None:
     print("\nby year:", yr["years"], "N_y", yr["n_y"])
     for nm in ("full_med", "full_min", "full_max", "har_med", "har_med6", "har_min", "har_max", "ci", "short"):
         print(f"  {nm:9s}", [round(v, 2) for v in yr[nm]])
+    # 2026-10-29 (X8): the HAR + RM + FOMC rows
+    print(f"\nX8 ({RMF_LABEL}): HAR + RM + FOMC, Delta SR mid [Ledoit-Wolf p]")
+    print(
+        f"{'class':6s} {'SRmid':>6s} {'SRba':>6s} {'Full-RMF':>15s} {'RMF-short':>15s} {'RMF-HAR':>15s} {'RMF-OLSH':>15s}"
+    )
+    for e in RMF_CLS:
+        r = xs[rkey(e)]
+        f = xp.get(("full", e))
+        cells = [(f["dsh"], f["p"]) if f else (np.nan, np.nan), (r["dsh_short"], r["p_short"])]
+        cells += [(xp[(nm, e)]["dsh"], xp[(nm, e)]["p"]) for nm in ("har", "ols")]
+        print(f"{e:6s} {r['sh_mid']:6.2f} {r['sh_x']:6.2f} " + " ".join(f"{d:7.2f} [{p:5.3f}]" for d, p in cells))
 
 
 if __name__ == "__main__":

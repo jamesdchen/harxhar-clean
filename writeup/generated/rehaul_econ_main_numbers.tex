@@ -533,3 +533,242 @@
 \providecommand{\rhemPartialDaysPct}{}\renewcommand{\rhemPartialDaysPct}{24}  % ... in % of the post-warmup days
 \providecommand{\rhemYearsShortNeg}{}\renewcommand{\rhemYearsShortNeg}{2}  % years in which the short straddle has SR_y < 0
 \providecommand{\rhemYearsShortNegWord}{}\renewcommand{\rhemYearsShortNegWord}{two}  % ... in words
+% ---- 2026-10-29 (X8, Q-2026-10-29-21): the sign strategy on the HAR + RM + FOMC forecasts (ablation arm
+% add_rm_fomc); proposed after the author's 27 Oct remark; not pre-registered. Rule: results/econ_rmfomc_2026-10-29/RULE.txt.
+% Row stems <Est>RmFomc (Est = Ols, Ridge, Lasso, Enet, Lgbm, Xgb, Rf). Delta SR at mid (X: at quoted bid/ask)
+% with its Ledoit-Wolf p (D19); T: fixed-b t of the mean daily mid-return differential (S = 33).
+\providecommand{\rhemSigPct}{}\renewcommand{\rhemSigPct}{5}  % significance level of the X8 Ledoit-Wolf counts, %
+\providecommand{\rhemShOlsRmFomc}{}\renewcommand{\rhemShOlsRmFomc}{0.96}  % rmfomc_ols: SR, mid
+\providecommand{\rhemShXOlsRmFomc}{}\renewcommand{\rhemShXOlsRmFomc}{0.60}  % ... at quoted bid/ask
+\providecommand{\rhemMeanOlsRmFomc}{}\renewcommand{\rhemMeanOlsRmFomc}{7.3}  % ... mean daily return, %, mid
+\providecommand{\rhemMeanXOlsRmFomc}{}\renewcommand{\rhemMeanXOlsRmFomc}{4.6}  % ... mean daily return, %, bid/ask
+\providecommand{\rhemDShOlsRmFomcVsShort}{}\renewcommand{\rhemDShOlsRmFomcVsShort}{0.64}  % ... minus the short straddle: Delta SR, mid
+\providecommand{\rhemPDShOlsRmFomcVsShort}{}\renewcommand{\rhemPDShOlsRmFomcVsShort}{0.213}  % ... its Ledoit-Wolf p
+\providecommand{\rhemDShXOlsRmFomcVsShort}{}\renewcommand{\rhemDShXOlsRmFomcVsShort}{0.63}  % ... Delta SR at bid/ask
+\providecommand{\rhemPDShXOlsRmFomcVsShort}{}\renewcommand{\rhemPDShXOlsRmFomcVsShort}{0.212}  % ... its Ledoit-Wolf p
+\providecommand{\rhemTOlsRmFomcVsShort}{}\renewcommand{\rhemTOlsRmFomcVsShort}{1.19}  % ... fixed-b t of the mean mid return differential
+\providecommand{\rhemPTOlsRmFomcVsShort}{}\renewcommand{\rhemPTOlsRmFomcVsShort}{0.257}  % ... its fixed-b p
+\providecommand{\rhemDShOlsRmFomcVsHar}{}\renewcommand{\rhemDShOlsRmFomcVsHar}{0.01}  % ... minus the class's HAR set: Delta SR, mid
+\providecommand{\rhemPDShOlsRmFomcVsHar}{}\renewcommand{\rhemPDShOlsRmFomcVsHar}{0.992}  % ... its Ledoit-Wolf p
+\providecommand{\rhemDShXOlsRmFomcVsHar}{}\renewcommand{\rhemDShXOlsRmFomcVsHar}{0.00}  % ... Delta SR at bid/ask
+\providecommand{\rhemPDShXOlsRmFomcVsHar}{}\renewcommand{\rhemPDShXOlsRmFomcVsHar}{0.997}  % ... its Ledoit-Wolf p
+\providecommand{\rhemDShOlsRmFomcVsOls}{}\renewcommand{\rhemDShOlsRmFomcVsOls}{0.01}  % ... minus the OLS-HAR: Delta SR, mid
+\providecommand{\rhemPDShOlsRmFomcVsOls}{}\renewcommand{\rhemPDShOlsRmFomcVsOls}{0.992}  % ... its Ledoit-Wolf p
+\providecommand{\rhemDShXOlsRmFomcVsOls}{}\renewcommand{\rhemDShXOlsRmFomcVsOls}{0.00}  % ... Delta SR at bid/ask
+\providecommand{\rhemPDShXOlsRmFomcVsOls}{}\renewcommand{\rhemPDShXOlsRmFomcVsOls}{0.997}  % ... its Ledoit-Wolf p
+\providecommand{\rhemShRidgeRmFomc}{}\renewcommand{\rhemShRidgeRmFomc}{1.58}  % rmfomc_ridge: SR, mid
+\providecommand{\rhemShXRidgeRmFomc}{}\renewcommand{\rhemShXRidgeRmFomc}{1.21}  % ... at quoted bid/ask
+\providecommand{\rhemMeanRidgeRmFomc}{}\renewcommand{\rhemMeanRidgeRmFomc}{11.9}  % ... mean daily return, %, mid
+\providecommand{\rhemMeanXRidgeRmFomc}{}\renewcommand{\rhemMeanXRidgeRmFomc}{9.2}  % ... mean daily return, %, bid/ask
+\providecommand{\rhemDShRidgeRmFomcVsShort}{}\renewcommand{\rhemDShRidgeRmFomcVsShort}{1.26}  % ... minus the short straddle: Delta SR, mid
+\providecommand{\rhemPDShRidgeRmFomcVsShort}{}\renewcommand{\rhemPDShRidgeRmFomcVsShort}{0.034}  % ... its Ledoit-Wolf p
+\providecommand{\rhemDShXRidgeRmFomcVsShort}{}\renewcommand{\rhemDShXRidgeRmFomcVsShort}{1.24}  % ... Delta SR at bid/ask
+\providecommand{\rhemPDShXRidgeRmFomcVsShort}{}\renewcommand{\rhemPDShXRidgeRmFomcVsShort}{0.034}  % ... its Ledoit-Wolf p
+\providecommand{\rhemTRidgeRmFomcVsShort}{}\renewcommand{\rhemTRidgeRmFomcVsShort}{2.07}  % ... fixed-b t of the mean mid return differential
+\providecommand{\rhemPTRidgeRmFomcVsShort}{}\renewcommand{\rhemPTRidgeRmFomcVsShort}{0.054}  % ... its fixed-b p
+\providecommand{\rhemDShRidgeRmFomcVsHar}{}\renewcommand{\rhemDShRidgeRmFomcVsHar}{0.63}  % ... minus the class's HAR set: Delta SR, mid
+\providecommand{\rhemPDShRidgeRmFomcVsHar}{}\renewcommand{\rhemPDShRidgeRmFomcVsHar}{0.382}  % ... its Ledoit-Wolf p
+\providecommand{\rhemDShXRidgeRmFomcVsHar}{}\renewcommand{\rhemDShXRidgeRmFomcVsHar}{0.61}  % ... Delta SR at bid/ask
+\providecommand{\rhemPDShXRidgeRmFomcVsHar}{}\renewcommand{\rhemPDShXRidgeRmFomcVsHar}{0.401}  % ... its Ledoit-Wolf p
+\providecommand{\rhemDShRidgeRmFomcVsOls}{}\renewcommand{\rhemDShRidgeRmFomcVsOls}{0.63}  % ... minus the OLS-HAR: Delta SR, mid
+\providecommand{\rhemPDShRidgeRmFomcVsOls}{}\renewcommand{\rhemPDShRidgeRmFomcVsOls}{0.382}  % ... its Ledoit-Wolf p
+\providecommand{\rhemDShXRidgeRmFomcVsOls}{}\renewcommand{\rhemDShXRidgeRmFomcVsOls}{0.61}  % ... Delta SR at bid/ask
+\providecommand{\rhemPDShXRidgeRmFomcVsOls}{}\renewcommand{\rhemPDShXRidgeRmFomcVsOls}{0.401}  % ... its Ledoit-Wolf p
+\providecommand{\rhemShLassoRmFomc}{}\renewcommand{\rhemShLassoRmFomc}{1.51}  % rmfomc_lasso: SR, mid
+\providecommand{\rhemShXLassoRmFomc}{}\renewcommand{\rhemShXLassoRmFomc}{1.14}  % ... at quoted bid/ask
+\providecommand{\rhemMeanLassoRmFomc}{}\renewcommand{\rhemMeanLassoRmFomc}{11.4}  % ... mean daily return, %, mid
+\providecommand{\rhemMeanXLassoRmFomc}{}\renewcommand{\rhemMeanXLassoRmFomc}{8.7}  % ... mean daily return, %, bid/ask
+\providecommand{\rhemDShLassoRmFomcVsShort}{}\renewcommand{\rhemDShLassoRmFomcVsShort}{1.19}  % ... minus the short straddle: Delta SR, mid
+\providecommand{\rhemPDShLassoRmFomcVsShort}{}\renewcommand{\rhemPDShLassoRmFomcVsShort}{0.050}  % ... its Ledoit-Wolf p
+\providecommand{\rhemDShXLassoRmFomcVsShort}{}\renewcommand{\rhemDShXLassoRmFomcVsShort}{1.17}  % ... Delta SR at bid/ask
+\providecommand{\rhemPDShXLassoRmFomcVsShort}{}\renewcommand{\rhemPDShXLassoRmFomcVsShort}{0.051}  % ... its Ledoit-Wolf p
+\providecommand{\rhemTLassoRmFomcVsShort}{}\renewcommand{\rhemTLassoRmFomcVsShort}{1.83}  % ... fixed-b t of the mean mid return differential
+\providecommand{\rhemPTLassoRmFomcVsShort}{}\renewcommand{\rhemPTLassoRmFomcVsShort}{0.085}  % ... its fixed-b p
+\providecommand{\rhemDShLassoRmFomcVsHar}{}\renewcommand{\rhemDShLassoRmFomcVsHar}{0.56}  % ... minus the class's HAR set: Delta SR, mid
+\providecommand{\rhemPDShLassoRmFomcVsHar}{}\renewcommand{\rhemPDShLassoRmFomcVsHar}{0.434}  % ... its Ledoit-Wolf p
+\providecommand{\rhemDShXLassoRmFomcVsHar}{}\renewcommand{\rhemDShXLassoRmFomcVsHar}{0.54}  % ... Delta SR at bid/ask
+\providecommand{\rhemPDShXLassoRmFomcVsHar}{}\renewcommand{\rhemPDShXLassoRmFomcVsHar}{0.455}  % ... its Ledoit-Wolf p
+\providecommand{\rhemDShLassoRmFomcVsOls}{}\renewcommand{\rhemDShLassoRmFomcVsOls}{0.56}  % ... minus the OLS-HAR: Delta SR, mid
+\providecommand{\rhemPDShLassoRmFomcVsOls}{}\renewcommand{\rhemPDShLassoRmFomcVsOls}{0.434}  % ... its Ledoit-Wolf p
+\providecommand{\rhemDShXLassoRmFomcVsOls}{}\renewcommand{\rhemDShXLassoRmFomcVsOls}{0.54}  % ... Delta SR at bid/ask
+\providecommand{\rhemPDShXLassoRmFomcVsOls}{}\renewcommand{\rhemPDShXLassoRmFomcVsOls}{0.455}  % ... its Ledoit-Wolf p
+\providecommand{\rhemShEnetRmFomc}{}\renewcommand{\rhemShEnetRmFomc}{2.03}  % rmfomc_enet: SR, mid
+\providecommand{\rhemShXEnetRmFomc}{}\renewcommand{\rhemShXEnetRmFomc}{1.68}  % ... at quoted bid/ask
+\providecommand{\rhemMeanEnetRmFomc}{}\renewcommand{\rhemMeanEnetRmFomc}{15.2}  % ... mean daily return, %, mid
+\providecommand{\rhemMeanXEnetRmFomc}{}\renewcommand{\rhemMeanXEnetRmFomc}{12.6}  % ... mean daily return, %, bid/ask
+\providecommand{\rhemDShEnetRmFomcVsShort}{}\renewcommand{\rhemDShEnetRmFomcVsShort}{1.71}  % ... minus the short straddle: Delta SR, mid
+\providecommand{\rhemPDShEnetRmFomcVsShort}{}\renewcommand{\rhemPDShEnetRmFomcVsShort}{0.013}  % ... its Ledoit-Wolf p
+\providecommand{\rhemDShXEnetRmFomcVsShort}{}\renewcommand{\rhemDShXEnetRmFomcVsShort}{1.71}  % ... Delta SR at bid/ask
+\providecommand{\rhemPDShXEnetRmFomcVsShort}{}\renewcommand{\rhemPDShXEnetRmFomcVsShort}{0.014}  % ... its Ledoit-Wolf p
+\providecommand{\rhemTEnetRmFomcVsShort}{}\renewcommand{\rhemTEnetRmFomcVsShort}{2.29}  % ... fixed-b t of the mean mid return differential
+\providecommand{\rhemPTEnetRmFomcVsShort}{}\renewcommand{\rhemPTEnetRmFomcVsShort}{0.034}  % ... its fixed-b p
+\providecommand{\rhemDShEnetRmFomcVsHar}{}\renewcommand{\rhemDShEnetRmFomcVsHar}{1.08}  % ... minus the class's HAR set: Delta SR, mid
+\providecommand{\rhemPDShEnetRmFomcVsHar}{}\renewcommand{\rhemPDShEnetRmFomcVsHar}{0.014}  % ... its Ledoit-Wolf p
+\providecommand{\rhemDShXEnetRmFomcVsHar}{}\renewcommand{\rhemDShXEnetRmFomcVsHar}{1.08}  % ... Delta SR at bid/ask
+\providecommand{\rhemPDShXEnetRmFomcVsHar}{}\renewcommand{\rhemPDShXEnetRmFomcVsHar}{0.014}  % ... its Ledoit-Wolf p
+\providecommand{\rhemDShEnetRmFomcVsOls}{}\renewcommand{\rhemDShEnetRmFomcVsOls}{1.08}  % ... minus the OLS-HAR: Delta SR, mid
+\providecommand{\rhemPDShEnetRmFomcVsOls}{}\renewcommand{\rhemPDShEnetRmFomcVsOls}{0.014}  % ... its Ledoit-Wolf p
+\providecommand{\rhemDShXEnetRmFomcVsOls}{}\renewcommand{\rhemDShXEnetRmFomcVsOls}{1.08}  % ... Delta SR at bid/ask
+\providecommand{\rhemPDShXEnetRmFomcVsOls}{}\renewcommand{\rhemPDShXEnetRmFomcVsOls}{0.014}  % ... its Ledoit-Wolf p
+\providecommand{\rhemShLgbmRmFomc}{}\renewcommand{\rhemShLgbmRmFomc}{1.68}  % rmfomc_lgbm: SR, mid
+\providecommand{\rhemShXLgbmRmFomc}{}\renewcommand{\rhemShXLgbmRmFomc}{1.33}  % ... at quoted bid/ask
+\providecommand{\rhemMeanLgbmRmFomc}{}\renewcommand{\rhemMeanLgbmRmFomc}{12.6}  % ... mean daily return, %, mid
+\providecommand{\rhemMeanXLgbmRmFomc}{}\renewcommand{\rhemMeanXLgbmRmFomc}{10.0}  % ... mean daily return, %, bid/ask
+\providecommand{\rhemDShLgbmRmFomcVsShort}{}\renewcommand{\rhemDShLgbmRmFomcVsShort}{1.36}  % ... minus the short straddle: Delta SR, mid
+\providecommand{\rhemPDShLgbmRmFomcVsShort}{}\renewcommand{\rhemPDShLgbmRmFomcVsShort}{0.042}  % ... its Ledoit-Wolf p
+\providecommand{\rhemDShXLgbmRmFomcVsShort}{}\renewcommand{\rhemDShXLgbmRmFomcVsShort}{1.36}  % ... Delta SR at bid/ask
+\providecommand{\rhemPDShXLgbmRmFomcVsShort}{}\renewcommand{\rhemPDShXLgbmRmFomcVsShort}{0.040}  % ... its Ledoit-Wolf p
+\providecommand{\rhemTLgbmRmFomcVsShort}{}\renewcommand{\rhemTLgbmRmFomcVsShort}{1.76}  % ... fixed-b t of the mean mid return differential
+\providecommand{\rhemPTLgbmRmFomcVsShort}{}\renewcommand{\rhemPTLgbmRmFomcVsShort}{0.098}  % ... its fixed-b p
+\providecommand{\rhemDShLgbmRmFomcVsHar}{}\renewcommand{\rhemDShLgbmRmFomcVsHar}{1.03}  % ... minus the class's HAR set: Delta SR, mid
+\providecommand{\rhemPDShLgbmRmFomcVsHar}{}\renewcommand{\rhemPDShLgbmRmFomcVsHar}{0.021}  % ... its Ledoit-Wolf p
+\providecommand{\rhemDShXLgbmRmFomcVsHar}{}\renewcommand{\rhemDShXLgbmRmFomcVsHar}{1.02}  % ... Delta SR at bid/ask
+\providecommand{\rhemPDShXLgbmRmFomcVsHar}{}\renewcommand{\rhemPDShXLgbmRmFomcVsHar}{0.021}  % ... its Ledoit-Wolf p
+\providecommand{\rhemDShLgbmRmFomcVsOls}{}\renewcommand{\rhemDShLgbmRmFomcVsOls}{0.73}  % ... minus the OLS-HAR: Delta SR, mid
+\providecommand{\rhemPDShLgbmRmFomcVsOls}{}\renewcommand{\rhemPDShLgbmRmFomcVsOls}{0.086}  % ... its Ledoit-Wolf p
+\providecommand{\rhemDShXLgbmRmFomcVsOls}{}\renewcommand{\rhemDShXLgbmRmFomcVsOls}{0.73}  % ... Delta SR at bid/ask
+\providecommand{\rhemPDShXLgbmRmFomcVsOls}{}\renewcommand{\rhemPDShXLgbmRmFomcVsOls}{0.085}  % ... its Ledoit-Wolf p
+\providecommand{\rhemShXgbRmFomc}{}\renewcommand{\rhemShXgbRmFomc}{1.46}  % rmfomc_xgb: SR, mid
+\providecommand{\rhemShXXgbRmFomc}{}\renewcommand{\rhemShXXgbRmFomc}{1.10}  % ... at quoted bid/ask
+\providecommand{\rhemMeanXgbRmFomc}{}\renewcommand{\rhemMeanXgbRmFomc}{10.9}  % ... mean daily return, %, mid
+\providecommand{\rhemMeanXXgbRmFomc}{}\renewcommand{\rhemMeanXXgbRmFomc}{8.3}  % ... mean daily return, %, bid/ask
+\providecommand{\rhemDShXgbRmFomcVsShort}{}\renewcommand{\rhemDShXgbRmFomcVsShort}{1.13}  % ... minus the short straddle: Delta SR, mid
+\providecommand{\rhemPDShXgbRmFomcVsShort}{}\renewcommand{\rhemPDShXgbRmFomcVsShort}{0.100}  % ... its Ledoit-Wolf p
+\providecommand{\rhemDShXXgbRmFomcVsShort}{}\renewcommand{\rhemDShXXgbRmFomcVsShort}{1.14}  % ... Delta SR at bid/ask
+\providecommand{\rhemPDShXXgbRmFomcVsShort}{}\renewcommand{\rhemPDShXXgbRmFomcVsShort}{0.099}  % ... its Ledoit-Wolf p
+\providecommand{\rhemTXgbRmFomcVsShort}{}\renewcommand{\rhemTXgbRmFomcVsShort}{1.48}  % ... fixed-b t of the mean mid return differential
+\providecommand{\rhemPTXgbRmFomcVsShort}{}\renewcommand{\rhemPTXgbRmFomcVsShort}{0.162}  % ... its fixed-b p
+\providecommand{\rhemDShXgbRmFomcVsHar}{}\renewcommand{\rhemDShXgbRmFomcVsHar}{0.47}  % ... minus the class's HAR set: Delta SR, mid
+\providecommand{\rhemPDShXgbRmFomcVsHar}{}\renewcommand{\rhemPDShXgbRmFomcVsHar}{0.234}  % ... its Ledoit-Wolf p
+\providecommand{\rhemDShXXgbRmFomcVsHar}{}\renewcommand{\rhemDShXXgbRmFomcVsHar}{0.47}  % ... Delta SR at bid/ask
+\providecommand{\rhemPDShXXgbRmFomcVsHar}{}\renewcommand{\rhemPDShXXgbRmFomcVsHar}{0.238}  % ... its Ledoit-Wolf p
+\providecommand{\rhemDShXgbRmFomcVsOls}{}\renewcommand{\rhemDShXgbRmFomcVsOls}{0.50}  % ... minus the OLS-HAR: Delta SR, mid
+\providecommand{\rhemPDShXgbRmFomcVsOls}{}\renewcommand{\rhemPDShXgbRmFomcVsOls}{0.212}  % ... its Ledoit-Wolf p
+\providecommand{\rhemDShXXgbRmFomcVsOls}{}\renewcommand{\rhemDShXXgbRmFomcVsOls}{0.50}  % ... Delta SR at bid/ask
+\providecommand{\rhemPDShXXgbRmFomcVsOls}{}\renewcommand{\rhemPDShXXgbRmFomcVsOls}{0.209}  % ... its Ledoit-Wolf p
+\providecommand{\rhemShRfRmFomc}{}\renewcommand{\rhemShRfRmFomc}{1.50}  % rmfomc_rf: SR, mid
+\providecommand{\rhemShXRfRmFomc}{}\renewcommand{\rhemShXRfRmFomc}{1.15}  % ... at quoted bid/ask
+\providecommand{\rhemMeanRfRmFomc}{}\renewcommand{\rhemMeanRfRmFomc}{11.3}  % ... mean daily return, %, mid
+\providecommand{\rhemMeanXRfRmFomc}{}\renewcommand{\rhemMeanXRfRmFomc}{8.6}  % ... mean daily return, %, bid/ask
+\providecommand{\rhemDShRfRmFomcVsShort}{}\renewcommand{\rhemDShRfRmFomcVsShort}{1.18}  % ... minus the short straddle: Delta SR, mid
+\providecommand{\rhemPDShRfRmFomcVsShort}{}\renewcommand{\rhemPDShRfRmFomcVsShort}{0.082}  % ... its Ledoit-Wolf p
+\providecommand{\rhemDShXRfRmFomcVsShort}{}\renewcommand{\rhemDShXRfRmFomcVsShort}{1.18}  % ... Delta SR at bid/ask
+\providecommand{\rhemPDShXRfRmFomcVsShort}{}\renewcommand{\rhemPDShXRfRmFomcVsShort}{0.082}  % ... its Ledoit-Wolf p
+\providecommand{\rhemTRfRmFomcVsShort}{}\renewcommand{\rhemTRfRmFomcVsShort}{1.59}  % ... fixed-b t of the mean mid return differential
+\providecommand{\rhemPTRfRmFomcVsShort}{}\renewcommand{\rhemPTRfRmFomcVsShort}{0.133}  % ... its fixed-b p
+\providecommand{\rhemDShRfRmFomcVsHar}{}\renewcommand{\rhemDShRfRmFomcVsHar}{1.18}  % ... minus the class's HAR set: Delta SR, mid
+\providecommand{\rhemPDShRfRmFomcVsHar}{}\renewcommand{\rhemPDShRfRmFomcVsHar}{0.064}  % ... its Ledoit-Wolf p
+\providecommand{\rhemDShXRfRmFomcVsHar}{}\renewcommand{\rhemDShXRfRmFomcVsHar}{1.18}  % ... Delta SR at bid/ask
+\providecommand{\rhemPDShXRfRmFomcVsHar}{}\renewcommand{\rhemPDShXRfRmFomcVsHar}{0.066}  % ... its Ledoit-Wolf p
+\providecommand{\rhemDShRfRmFomcVsOls}{}\renewcommand{\rhemDShRfRmFomcVsOls}{0.55}  % ... minus the OLS-HAR: Delta SR, mid
+\providecommand{\rhemPDShRfRmFomcVsOls}{}\renewcommand{\rhemPDShRfRmFomcVsOls}{0.239}  % ... its Ledoit-Wolf p
+\providecommand{\rhemDShXRfRmFomcVsOls}{}\renewcommand{\rhemDShXRfRmFomcVsOls}{0.55}  % ... Delta SR at bid/ask
+\providecommand{\rhemPDShXRfRmFomcVsOls}{}\renewcommand{\rhemPDShXRfRmFomcVsOls}{0.239}  % ... its Ledoit-Wolf p
+% ---- the primary comparison: each class's full set minus its HAR + RM + FOMC (RULE.txt 5 (P))
+\providecommand{\rhemDShRidgeFullVsRmFomc}{}\renewcommand{\rhemDShRidgeFullVsRmFomc}{0.06}  % ridge: full set minus HAR + RM + FOMC, Delta SR, mid
+\providecommand{\rhemPDShRidgeFullVsRmFomc}{}\renewcommand{\rhemPDShRidgeFullVsRmFomc}{0.920}  % ... its Ledoit-Wolf p
+\providecommand{\rhemDShXRidgeFullVsRmFomc}{}\renewcommand{\rhemDShXRidgeFullVsRmFomc}{0.08}  % ... Delta SR at bid/ask
+\providecommand{\rhemPDShXRidgeFullVsRmFomc}{}\renewcommand{\rhemPDShXRidgeFullVsRmFomc}{0.902}  % ... its Ledoit-Wolf p
+\providecommand{\rhemTRidgeFullVsRmFomc}{}\renewcommand{\rhemTRidgeFullVsRmFomc}{0.10}  % ... fixed-b t of the mean mid return differential
+\providecommand{\rhemPTRidgeFullVsRmFomc}{}\renewcommand{\rhemPTRidgeFullVsRmFomc}{0.927}  % ... its fixed-b p
+\providecommand{\rhemDShLassoFullVsRmFomc}{}\renewcommand{\rhemDShLassoFullVsRmFomc}{0.21}  % lasso: full set minus HAR + RM + FOMC, Delta SR, mid
+\providecommand{\rhemPDShLassoFullVsRmFomc}{}\renewcommand{\rhemPDShLassoFullVsRmFomc}{0.709}  % ... its Ledoit-Wolf p
+\providecommand{\rhemDShXLassoFullVsRmFomc}{}\renewcommand{\rhemDShXLassoFullVsRmFomc}{0.23}  % ... Delta SR at bid/ask
+\providecommand{\rhemPDShXLassoFullVsRmFomc}{}\renewcommand{\rhemPDShXLassoFullVsRmFomc}{0.696}  % ... its Ledoit-Wolf p
+\providecommand{\rhemTLassoFullVsRmFomc}{}\renewcommand{\rhemTLassoFullVsRmFomc}{0.39}  % ... fixed-b t of the mean mid return differential
+\providecommand{\rhemPTLassoFullVsRmFomc}{}\renewcommand{\rhemPTLassoFullVsRmFomc}{0.709}  % ... its fixed-b p
+\providecommand{\rhemDShEnetFullVsRmFomc}{}\renewcommand{\rhemDShEnetFullVsRmFomc}{\ensuremath{-}0.18}  % enet: full set minus HAR + RM + FOMC, Delta SR, mid
+\providecommand{\rhemPDShEnetFullVsRmFomc}{}\renewcommand{\rhemPDShEnetFullVsRmFomc}{0.541}  % ... its Ledoit-Wolf p
+\providecommand{\rhemDShXEnetFullVsRmFomc}{}\renewcommand{\rhemDShXEnetFullVsRmFomc}{\ensuremath{-}0.18}  % ... Delta SR at bid/ask
+\providecommand{\rhemPDShXEnetFullVsRmFomc}{}\renewcommand{\rhemPDShXEnetFullVsRmFomc}{0.536}  % ... its Ledoit-Wolf p
+\providecommand{\rhemTEnetFullVsRmFomc}{}\renewcommand{\rhemTEnetFullVsRmFomc}{\ensuremath{-}0.56}  % ... fixed-b t of the mean mid return differential
+\providecommand{\rhemPTEnetFullVsRmFomc}{}\renewcommand{\rhemPTEnetFullVsRmFomc}{0.588}  % ... its fixed-b p
+\providecommand{\rhemDShLgbmFullVsRmFomc}{}\renewcommand{\rhemDShLgbmFullVsRmFomc}{\ensuremath{-}0.15}  % lgbm: full set minus HAR + RM + FOMC, Delta SR, mid
+\providecommand{\rhemPDShLgbmFullVsRmFomc}{}\renewcommand{\rhemPDShLgbmFullVsRmFomc}{0.568}  % ... its Ledoit-Wolf p
+\providecommand{\rhemDShXLgbmFullVsRmFomc}{}\renewcommand{\rhemDShXLgbmFullVsRmFomc}{\ensuremath{-}0.15}  % ... Delta SR at bid/ask
+\providecommand{\rhemPDShXLgbmFullVsRmFomc}{}\renewcommand{\rhemPDShXLgbmFullVsRmFomc}{0.562}  % ... its Ledoit-Wolf p
+\providecommand{\rhemTLgbmFullVsRmFomc}{}\renewcommand{\rhemTLgbmFullVsRmFomc}{\ensuremath{-}0.58}  % ... fixed-b t of the mean mid return differential
+\providecommand{\rhemPTLgbmFullVsRmFomc}{}\renewcommand{\rhemPTLgbmFullVsRmFomc}{0.581}  % ... its fixed-b p
+\providecommand{\rhemDShXgbFullVsRmFomc}{}\renewcommand{\rhemDShXgbFullVsRmFomc}{0.09}  % xgb: full set minus HAR + RM + FOMC, Delta SR, mid
+\providecommand{\rhemPDShXgbFullVsRmFomc}{}\renewcommand{\rhemPDShXgbFullVsRmFomc}{0.686}  % ... its Ledoit-Wolf p
+\providecommand{\rhemDShXXgbFullVsRmFomc}{}\renewcommand{\rhemDShXXgbFullVsRmFomc}{0.09}  % ... Delta SR at bid/ask
+\providecommand{\rhemPDShXXgbFullVsRmFomc}{}\renewcommand{\rhemPDShXXgbFullVsRmFomc}{0.691}  % ... its Ledoit-Wolf p
+\providecommand{\rhemTXgbFullVsRmFomc}{}\renewcommand{\rhemTXgbFullVsRmFomc}{0.44}  % ... fixed-b t of the mean mid return differential
+\providecommand{\rhemPTXgbFullVsRmFomc}{}\renewcommand{\rhemPTXgbFullVsRmFomc}{0.670}  % ... its fixed-b p
+\providecommand{\rhemDShRfFullVsRmFomc}{}\renewcommand{\rhemDShRfFullVsRmFomc}{0.38}  % rf: full set minus HAR + RM + FOMC, Delta SR, mid
+\providecommand{\rhemPDShRfFullVsRmFomc}{}\renewcommand{\rhemPDShRfFullVsRmFomc}{0.254}  % ... its Ledoit-Wolf p
+\providecommand{\rhemDShXRfFullVsRmFomc}{}\renewcommand{\rhemDShXRfFullVsRmFomc}{0.37}  % ... Delta SR at bid/ask
+\providecommand{\rhemPDShXRfFullVsRmFomc}{}\renewcommand{\rhemPDShXRfFullVsRmFomc}{0.261}  % ... its Ledoit-Wolf p
+\providecommand{\rhemTRfFullVsRmFomc}{}\renewcommand{\rhemTRfFullVsRmFomc}{1.26}  % ... fixed-b t of the mean mid return differential
+\providecommand{\rhemPTRfFullVsRmFomc}{}\renewcommand{\rhemPTRfFullVsRmFomc}{0.229}  % ... its fixed-b p
+% ---- over the six classes (Ols excluded); 5 % level; Sig = Delta SR > 0 with p < 0.05, SigNeg = < 0
+\providecommand{\rhemRmFomcNCls}{}\renewcommand{\rhemRmFomcNCls}{6}  % model classes with a full-set and a HAR + RM + FOMC forecast
+\providecommand{\rhemRmFomcNClsWord}{}\renewcommand{\rhemRmFomcNClsWord}{six}  % ... in words
+\providecommand{\rhemFullVsRmFomcMin}{}\renewcommand{\rhemFullVsRmFomcMin}{\ensuremath{-}0.18}  % FullVsRmFomc: Delta SR mid, min over the six
+\providecommand{\rhemFullVsRmFomcMax}{}\renewcommand{\rhemFullVsRmFomcMax}{0.38}  % ... max
+\providecommand{\rhemFullVsRmFomcPMin}{}\renewcommand{\rhemFullVsRmFomcPMin}{0.254}  % ... smallest Ledoit-Wolf p
+\providecommand{\rhemFullVsRmFomcPMax}{}\renewcommand{\rhemFullVsRmFomcPMax}{0.920}  % ... largest Ledoit-Wolf p
+\providecommand{\rhemFullVsRmFomcPos}{}\renewcommand{\rhemFullVsRmFomcPos}{4}  % ... Delta SR > 0, mid
+\providecommand{\rhemFullVsRmFomcPosWord}{}\renewcommand{\rhemFullVsRmFomcPosWord}{four}  % ... in words
+\providecommand{\rhemFullVsRmFomcNeg}{}\renewcommand{\rhemFullVsRmFomcNeg}{2}  % ... Delta SR < 0, mid
+\providecommand{\rhemFullVsRmFomcNegWord}{}\renewcommand{\rhemFullVsRmFomcNegWord}{two}  % ... in words
+\providecommand{\rhemFullVsRmFomcSig}{}\renewcommand{\rhemFullVsRmFomcSig}{0}  % ... significantly positive, mid
+\providecommand{\rhemFullVsRmFomcSigWord}{}\renewcommand{\rhemFullVsRmFomcSigWord}{zero}  % ... in words
+\providecommand{\rhemFullVsRmFomcSigNeg}{}\renewcommand{\rhemFullVsRmFomcSigNeg}{0}  % ... significantly negative, mid
+\providecommand{\rhemFullVsRmFomcSigNegWord}{}\renewcommand{\rhemFullVsRmFomcSigNegWord}{zero}  % ... in words
+\providecommand{\rhemFullVsRmFomcPosX}{}\renewcommand{\rhemFullVsRmFomcPosX}{4}  % ... Delta SR > 0 at bid/ask
+\providecommand{\rhemFullVsRmFomcPosXWord}{}\renewcommand{\rhemFullVsRmFomcPosXWord}{four}  % ... in words
+\providecommand{\rhemFullVsRmFomcSigX}{}\renewcommand{\rhemFullVsRmFomcSigX}{0}  % ... significantly positive, bid/ask
+\providecommand{\rhemFullVsRmFomcSigXWord}{}\renewcommand{\rhemFullVsRmFomcSigXWord}{zero}  % ... in words
+\providecommand{\rhemRmFomcVsHarMin}{}\renewcommand{\rhemRmFomcVsHarMin}{0.47}  % RmFomcVsHar: Delta SR mid, min over the six
+\providecommand{\rhemRmFomcVsHarMax}{}\renewcommand{\rhemRmFomcVsHarMax}{1.18}  % ... max
+\providecommand{\rhemRmFomcVsHarPMin}{}\renewcommand{\rhemRmFomcVsHarPMin}{0.014}  % ... smallest Ledoit-Wolf p
+\providecommand{\rhemRmFomcVsHarPMax}{}\renewcommand{\rhemRmFomcVsHarPMax}{0.434}  % ... largest Ledoit-Wolf p
+\providecommand{\rhemRmFomcVsHarPos}{}\renewcommand{\rhemRmFomcVsHarPos}{6}  % ... Delta SR > 0, mid
+\providecommand{\rhemRmFomcVsHarPosWord}{}\renewcommand{\rhemRmFomcVsHarPosWord}{six}  % ... in words
+\providecommand{\rhemRmFomcVsHarNeg}{}\renewcommand{\rhemRmFomcVsHarNeg}{0}  % ... Delta SR < 0, mid
+\providecommand{\rhemRmFomcVsHarNegWord}{}\renewcommand{\rhemRmFomcVsHarNegWord}{zero}  % ... in words
+\providecommand{\rhemRmFomcVsHarSig}{}\renewcommand{\rhemRmFomcVsHarSig}{2}  % ... significantly positive, mid
+\providecommand{\rhemRmFomcVsHarSigWord}{}\renewcommand{\rhemRmFomcVsHarSigWord}{two}  % ... in words
+\providecommand{\rhemRmFomcVsHarSigNeg}{}\renewcommand{\rhemRmFomcVsHarSigNeg}{0}  % ... significantly negative, mid
+\providecommand{\rhemRmFomcVsHarSigNegWord}{}\renewcommand{\rhemRmFomcVsHarSigNegWord}{zero}  % ... in words
+\providecommand{\rhemRmFomcVsHarPosX}{}\renewcommand{\rhemRmFomcVsHarPosX}{6}  % ... Delta SR > 0 at bid/ask
+\providecommand{\rhemRmFomcVsHarPosXWord}{}\renewcommand{\rhemRmFomcVsHarPosXWord}{six}  % ... in words
+\providecommand{\rhemRmFomcVsHarSigX}{}\renewcommand{\rhemRmFomcVsHarSigX}{2}  % ... significantly positive, bid/ask
+\providecommand{\rhemRmFomcVsHarSigXWord}{}\renewcommand{\rhemRmFomcVsHarSigXWord}{two}  % ... in words
+\providecommand{\rhemRmFomcVsOlsMin}{}\renewcommand{\rhemRmFomcVsOlsMin}{0.50}  % RmFomcVsOls: Delta SR mid, min over the six
+\providecommand{\rhemRmFomcVsOlsMax}{}\renewcommand{\rhemRmFomcVsOlsMax}{1.08}  % ... max
+\providecommand{\rhemRmFomcVsOlsPMin}{}\renewcommand{\rhemRmFomcVsOlsPMin}{0.014}  % ... smallest Ledoit-Wolf p
+\providecommand{\rhemRmFomcVsOlsPMax}{}\renewcommand{\rhemRmFomcVsOlsPMax}{0.434}  % ... largest Ledoit-Wolf p
+\providecommand{\rhemRmFomcVsOlsPos}{}\renewcommand{\rhemRmFomcVsOlsPos}{6}  % ... Delta SR > 0, mid
+\providecommand{\rhemRmFomcVsOlsPosWord}{}\renewcommand{\rhemRmFomcVsOlsPosWord}{six}  % ... in words
+\providecommand{\rhemRmFomcVsOlsNeg}{}\renewcommand{\rhemRmFomcVsOlsNeg}{0}  % ... Delta SR < 0, mid
+\providecommand{\rhemRmFomcVsOlsNegWord}{}\renewcommand{\rhemRmFomcVsOlsNegWord}{zero}  % ... in words
+\providecommand{\rhemRmFomcVsOlsSig}{}\renewcommand{\rhemRmFomcVsOlsSig}{1}  % ... significantly positive, mid
+\providecommand{\rhemRmFomcVsOlsSigWord}{}\renewcommand{\rhemRmFomcVsOlsSigWord}{one}  % ... in words
+\providecommand{\rhemRmFomcVsOlsSigNeg}{}\renewcommand{\rhemRmFomcVsOlsSigNeg}{0}  % ... significantly negative, mid
+\providecommand{\rhemRmFomcVsOlsSigNegWord}{}\renewcommand{\rhemRmFomcVsOlsSigNegWord}{zero}  % ... in words
+\providecommand{\rhemRmFomcVsOlsPosX}{}\renewcommand{\rhemRmFomcVsOlsPosX}{6}  % ... Delta SR > 0 at bid/ask
+\providecommand{\rhemRmFomcVsOlsPosXWord}{}\renewcommand{\rhemRmFomcVsOlsPosXWord}{six}  % ... in words
+\providecommand{\rhemRmFomcVsOlsSigX}{}\renewcommand{\rhemRmFomcVsOlsSigX}{1}  % ... significantly positive, bid/ask
+\providecommand{\rhemRmFomcVsOlsSigXWord}{}\renewcommand{\rhemRmFomcVsOlsSigXWord}{one}  % ... in words
+\providecommand{\rhemRmFomcVsShortMin}{}\renewcommand{\rhemRmFomcVsShortMin}{1.13}  % RmFomcVsShort: Delta SR mid, min over the six
+\providecommand{\rhemRmFomcVsShortMax}{}\renewcommand{\rhemRmFomcVsShortMax}{1.71}  % ... max
+\providecommand{\rhemRmFomcVsShortPMin}{}\renewcommand{\rhemRmFomcVsShortPMin}{0.013}  % ... smallest Ledoit-Wolf p
+\providecommand{\rhemRmFomcVsShortPMax}{}\renewcommand{\rhemRmFomcVsShortPMax}{0.100}  % ... largest Ledoit-Wolf p
+\providecommand{\rhemRmFomcVsShortPos}{}\renewcommand{\rhemRmFomcVsShortPos}{6}  % ... Delta SR > 0, mid
+\providecommand{\rhemRmFomcVsShortPosWord}{}\renewcommand{\rhemRmFomcVsShortPosWord}{six}  % ... in words
+\providecommand{\rhemRmFomcVsShortNeg}{}\renewcommand{\rhemRmFomcVsShortNeg}{0}  % ... Delta SR < 0, mid
+\providecommand{\rhemRmFomcVsShortNegWord}{}\renewcommand{\rhemRmFomcVsShortNegWord}{zero}  % ... in words
+\providecommand{\rhemRmFomcVsShortSig}{}\renewcommand{\rhemRmFomcVsShortSig}{3}  % ... significantly positive, mid
+\providecommand{\rhemRmFomcVsShortSigWord}{}\renewcommand{\rhemRmFomcVsShortSigWord}{three}  % ... in words
+\providecommand{\rhemRmFomcVsShortSigNeg}{}\renewcommand{\rhemRmFomcVsShortSigNeg}{0}  % ... significantly negative, mid
+\providecommand{\rhemRmFomcVsShortSigNegWord}{}\renewcommand{\rhemRmFomcVsShortSigNegWord}{zero}  % ... in words
+\providecommand{\rhemRmFomcVsShortPosX}{}\renewcommand{\rhemRmFomcVsShortPosX}{6}  % ... Delta SR > 0 at bid/ask
+\providecommand{\rhemRmFomcVsShortPosXWord}{}\renewcommand{\rhemRmFomcVsShortPosXWord}{six}  % ... in words
+\providecommand{\rhemRmFomcVsShortSigX}{}\renewcommand{\rhemRmFomcVsShortSigX}{3}  % ... significantly positive, bid/ask
+\providecommand{\rhemRmFomcVsShortSigXWord}{}\renewcommand{\rhemRmFomcVsShortSigXWord}{three}  % ... in words
+\providecommand{\rhemRmFomcShMin}{}\renewcommand{\rhemRmFomcShMin}{1.46}  % SR mid of the six HAR + RM + FOMC forecasts: min
+\providecommand{\rhemRmFomcShMax}{}\renewcommand{\rhemRmFomcShMax}{2.03}  % ... max
+\providecommand{\rhemRmFomcShXMin}{}\renewcommand{\rhemRmFomcShXMin}{1.10}  % SR at bid/ask: min
+\providecommand{\rhemRmFomcShXMax}{}\renewcommand{\rhemRmFomcShXMax}{1.68}  % ... max
