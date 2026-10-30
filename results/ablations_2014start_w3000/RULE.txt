@@ -673,3 +673,16 @@ PREDICTOR GROUP, BUILT AS THE FOMC CALENDAR, WITH NO LOOKAHEAD
        writeup/make_rehaul_ablations.py; the channel tables keep their eight pre-registered groups; disclosure in
        appendix prose, not in table notes (author, 28 Oct); every live sentence the new numbers touch is checked;
        Overleaf is updated by the post-commit hook.
+   (i) 2026-10-29 21:15 PDT, before any XGBoost or linear job (the author: "can we make the macro release ablations
+       finish faster? Without sacrificing accuracy or changing the design (every model refits every bar, same
+       methodology across arms)"; "use as much compute as makes the macro release ablations finish fastest (still within
+       cluster account limits ...)"): wall time only; arms, classes, refit schedule, windows, gates and scoring unchanged.
+       The XGBoost pieces are re-cut to at most 1 hour at EPYC speed (ablate_trees.py tasksmac --target-h2 1; 214 pieces,
+       the same 1,699 model CPU-hours; a piece is a block of consecutive bar origins, each refit independent, so the cut
+       does not change any forecast) and split by arm: tasks/trees_mac_carc_xgb.txt (full_mac, 66 pieces) runs on CARC
+       main (EPYC 7513 / 7542, gated for both classes by GMT e7513 / e7542) in pool5.sh claim pools of 8 workers a job;
+       tasks/trees_mac_h2.txt (the other eight arms, 148 pieces) runs in Hoffman2's pool4.sh pools on up to 15 whole
+       nodes (Xeon 6736P 9 workers, Gold 6442Y 6, Gold 6240 4; gated by GMT per model).  LightGBM (tasks/trees_mac_carc.txt,
+       63 pieces, running since 19:55) is unchanged.  The CARC XGBoost arm is merged on CARC (carc_mac.sh MODE=merge,
+       T2 over the CARC gates) and joined with the Hoffman2 merge on the laptop; the cross-cluster T2 record covers every
+       gated CPU model of both clusters.
