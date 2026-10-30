@@ -698,3 +698,4 @@ PREDICTOR GROUP, BUILT AS THE FOMC CALENDAR, WITH NO LOOKAHEAD
        (ii) NOT IN EFFECT (22:30 PDT): the job changes it describes (cancel 13595712-18, submit the Hoffman2 pools)
        were not executed; they await the author's approval.  Until then the full_mac XGBoost pieces stay queued on CARC
        under (i).
+       (ii) IN EFFECT from 23:16 PDT, 29 Oct (the author: "approve L(ii)"), as written above.
