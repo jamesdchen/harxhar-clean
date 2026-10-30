@@ -695,3 +695,6 @@ PREDICTOR GROUP, BUILT AS THE FOMC CALENDAR, WITH NO LOOKAHEAD
        are cancelled unstarted.  Merge: ablate_trees.py mergemac on Hoffman2 with --tasks tasks/trees_mac_carc_xgb.txt
        (T2 over the Hoffman2 gates) -> runs/trees_mac/trees_wide_xgbfull.parquet, joined on the laptop with the other
        two parts (joinmac).  Pieces, arms, classes, refits, windows, gates and scoring are unchanged.
+       (ii) NOT IN EFFECT (22:30 PDT): the job changes it describes (cancel 13595712-18, submit the Hoffman2 pools)
+       were not executed; they await the author's approval.  Until then the full_mac XGBoost pieces stay queued on CARC
+       under (i).

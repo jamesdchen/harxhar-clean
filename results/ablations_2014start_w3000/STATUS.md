@@ -237,4 +237,4 @@ CARC: 20 workers (13535682_[1,4-20], 13535907_[1-2]) on lines 134-153 (LightGBM 
 | 21:15 | addendum L (i), wall time only: XGBoost re-cut to <= 1 h pieces (214) and split by arm (full_mac 66 on CARC, the other eight arms 148 on Hoffman2) |
 | 21:00-21:33 | Hoffman2: prep_mac 574356 PASS (11 linear caches); gates GMT s6240 574357, s6442y 574358, s6736p 574359 PASS (both classes); linear pool 574375: 55/55 tasks done 21:33; XGBoost pools 574360-74 from 21:06 |
 | 22:17 | check: H2 XGBoost 70/148 done, the other 78 claimed and running; CARC LightGBM 46/63 done, 17 running; CARC XGBoost pools 13595712-18 pending (scheduler start estimate 30-31 Oct) |
-| 22:25 | addendum L (ii): the 66 full_mac XGBoost pieces move to Hoffman2 (CARC pools cancelled unstarted, 0 claimed) |
+| 22:25 | addendum L (ii) proposed (the 66 full_mac XGBoost pieces to Hoffman2), NOT executed: awaits the author; CARC pools still queued |
