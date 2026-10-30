@@ -8,10 +8,10 @@
 #   pred_adj and B; its plain / QLIKE are not used for the log or level variants: experiments/transform_score.py
 #   applies each variant's inverse map).
 # env: V (variant), FF_BASE (staging dir holding code/; runs go to $FF_BASE/runs/$V), REF (cell-B run dir, default
-#      /scratch1/jc_905/fomcfix/runs/B), J (walk jobs, default 10), FF_PY (python; lin_stage.sh's default)
+#      /home1/jc_905/fomcfix_lin/runs/B), J (walk jobs, default 10), FF_PY (python; lin_stage.sh's default)
 set -euo pipefail
 : "${V:?}" "${FF_BASE:?}"
-REF=${REF:-/scratch1/jc_905/fomcfix/runs/B}
+REF=${REF:-/home1/jc_905/fomcfix_lin/runs/B}  # 2026-10-30: the cell-B caches (the /scratch1 copy is empty)
 J=${J:-10}
 PY=${FF_PY:-/scratch1/jc_905/wsweep/venv/bin/python}
 S=$FF_BASE/code/results/fomcfix_2026-10-26/code/lin_stage.sh
@@ -24,7 +24,7 @@ F="--window-days 3000 --first-day 2014-01-02 --ex-flag LATE_START_WARMUP=1"
 for kv in ${CELL//,/ }; do F="$F --ex-flag $kv"; done
 OUT=../runs/$V
 echo "tx_variant $V on $(hostname) $(date); CELL=$CELL"
-bash "$S" "$OUT" design 2
+if [ -f "$OUT/_work/design_baseline/design.json" ] && [ -f "$OUT/_work/design_all_features/design.json" ]; then echo "designs present: kept"; else bash "$S" "$OUT" design 2; fi
 for s in baseline all_features; do
   PYARGS="experiments/transform_design_gate.py gate --ref $REF/_work/design_$s --new $OUT/_work/design_$s --variant $V --out $OUT/gate_$s.json" \
     bash "$S" "$OUT" py || { echo "gate $s FAIL: exit 3"; exit 3; }
