@@ -23,11 +23,29 @@
    "days": 1082
   }
  },
- "level_floored_bars": {},
+ "level_floored_bars": {
+  "V8/enet/full": 691,
+  "V8/lasso/full": 456,
+  "V8/ridge/full": 1461,
+  "V9/enet/full": 294,
+  "V9/lasso/full": 264,
+  "V9/ridge/full": 279
+ },
  "table1_values_checked": 39,
  "sel2013_days": 249,
  "pass": true,
  "keys": [
-  "V0"
+  "V0",
+  "V1",
+  "V10",
+  "V2",
+  "V3",
+  "V3f",
+  "V4",
+  "V5",
+  "V6",
+  "V7",
+  "V8",
+  "V9"
  ]
 }
