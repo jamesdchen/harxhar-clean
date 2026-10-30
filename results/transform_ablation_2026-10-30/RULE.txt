@@ -305,3 +305,10 @@ E. 2026-10-30 about 10:13Z, BEFORE ANY VARIANT FORECAST EXISTS: the Part A score
    Tested before use (writeup/tests/test_transform_score.py): V0 reproduces Table 1 (39 values to 1e-12); synthetic
    variant files with known forecasts (log and level maps, B = 1, a constant level factor, the 2013 ranking, a linear
    pre-tune) are scored to 1e-12.
+
+ADDENDUM F, 2026-10-30, before any variant job: where and how Part A runs.  The linear chain of each variant (V0, V1,
+V2, V3, V3f, V4-V10) runs on CARC's oneweek partition (Xeon 4116 / 2640v4; its own QOS, so the macro forest on main
+keeps its CPUs), one job of 10 CPUs a variant, payload cluster/transform/tx_variant.sh: design with cell B plus the
+variant's switches (lin_stage.sh's environment and numpy dispatch, the FOMC-fix linear stages'), the gate against the
+cell-B caches (/scratch1/jc_905/fomcfix/runs/B), pretune + select on fold 3, the walk and the score stage exactly as the
+FOMC-fix linear walks (no --first-fold on the walk), from a code tree of this commit (LF archive) at /scratch1/jc_905/tx.
