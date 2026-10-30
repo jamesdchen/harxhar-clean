@@ -1,0 +1,19 @@
+{
+ "rule": "RULE.txt addendum D: the 1st percentile of positive RV / B, 48-interval grid, rows before 2013-01-01 with a defined diurnal baseline (B != 1.0)",
+ "value": 0.08546851996977486,
+ "value_repr": "0.08546851996977486",
+ "log_value": -2.459607158325091,
+ "executor_constant": 0.08546851996977486,
+ "equal": true,
+ "rows_pre": 161678,
+ "rows_used": 160561,
+ "rows_b_undefined": 240,
+ "zeros_pre": 887,
+ "zeros_all": 935,
+ "share_pre_below": 0.016842118284491395,
+ "share_all_below": 0.013963129692000448,
+ "min_positive_pre_defined_b": 1.3667352162104327e-06,
+ "min_positive_pre_any": 1.3607709002089174e-08,
+ "first_row": "1998-01-05 01:30:00",
+ "median_pre": 0.7998098745031078
+}

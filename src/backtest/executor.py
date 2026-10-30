@@ -236,10 +236,17 @@ DROP_HOLIDAY_SESSIONS: bool = False
 #                       skipped with it (the prescale=False path of _backtest_and_save)
 # The inverse map of a TARGET_LOG / TARGET_LEVEL design is exp(pred) x B / pred x B: a scorer of such a design must
 # use it (apply_duan_smearing's pred_raw squares and is meaningless there).
+# 2026-10-30, later (coordinator; RULE.txt addendum D, written before any V3 result): TARGET_LOG_FLOOR on (with
+# TARGET_LOG) takes log(max(RV / B, TARGET_LOG_FLOOR_VALUE)) instead of the name rule's floor 1e-12 -- variant V3f.
+# TARGET_LOG_FLOOR_VALUE is a recorded constant, not a flag: the pre-sample 1st percentile of positive RV / B (the
+# 48-interval grid, rows before 2013-01-01 with a defined baseline), computed once by experiments/transform_log_floor.py
+# (results/transform_ablation_2026-10-30/log_floor.json); log = -2.4596.
 TARGET_DIURNAL: bool = True
 TARGET_WINSOR: bool = True
 TARGET_WINSOR_5_95: bool = False
 TARGET_LOG: bool = False
+TARGET_LOG_FLOOR: bool = False
+TARGET_LOG_FLOOR_VALUE: float = 0.08546851996977486
 TARGET_LEVEL: bool = False
 EXOG_DIURNAL: bool = True
 EXOG_SEMANTIC: bool = True
@@ -1063,6 +1070,7 @@ def load_and_transform(
     #     if B_REGULAR_BARS_ONLY and target_use_diurnal:  (and: elif DROP_HOLIDAY_SESSIONS and target_use_diurnal:)
     assert not (TARGET_LOG and TARGET_LEVEL), "TARGET_LOG and TARGET_LEVEL exclude each other"
     assert TARGET_WINSOR or not TARGET_WINSOR_5_95, "TARGET_WINSOR_5_95 needs TARGET_WINSOR on"
+    assert TARGET_LOG or not TARGET_LOG_FLOOR, "TARGET_LOG_FLOOR needs TARGET_LOG on"  # 2026-10-30 (addendum D)
     t_diurnal = bool(target_use_diurnal) and TARGET_DIURNAL
     transform_kwargs: dict = {"is_target": True, "use_diurnal": t_diurnal}
     if target_winsor_window is not None:
@@ -1073,6 +1081,8 @@ def load_and_transform(
         transform_kwargs["winsor_q"] = (0.05, 0.95)
     if TARGET_LOG or TARGET_LEVEL:
         transform_kwargs["target_map"] = "log" if TARGET_LOG else "level"
+    if TARGET_LOG_FLOOR:  # 2026-10-30 (RULE.txt addendum D): V3f
+        transform_kwargs["log_floor"] = TARGET_LOG_FLOOR_VALUE
     if B_REGULAR_BARS_ONLY and t_diurnal and target_b_exclude:
         # 2026-10-15 (user): B over regular bars only; see B_REGULAR_BARS_ONLY
         excl = early_close_post_bars(df["t"])

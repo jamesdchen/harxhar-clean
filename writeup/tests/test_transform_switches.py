@@ -33,6 +33,7 @@ FLAGS = {
     "TARGET_WINSOR": True,
     "TARGET_WINSOR_5_95": False,
     "TARGET_LOG": False,
+    "TARGET_LOG_FLOOR": False,  # 2026-10-30 (RULE.txt addendum D, V3f)
     "TARGET_LEVEL": False,
     "EXOG_DIURNAL": True,
     "EXOG_SEMANTIC": True,
@@ -41,6 +42,8 @@ FLAGS = {
 }
 TARGET_FLAGS = {"TARGET_DIURNAL": False, "TARGET_WINSOR": False, "TARGET_WINSOR_5_95": True, "TARGET_LOG": True}
 TARGET_FLAGS_LEVEL = {"TARGET_LEVEL": True}
+TARGET_FLAGS_V3F = {"TARGET_LOG": True, "TARGET_LOG_FLOOR": True}  # 2026-10-30 (addendum D)
+LOG_FLOOR_JSON = ROOT / "results" / "transform_ablation_2026-10-30" / "log_floor.json"
 EXOG_FLAGS = {"EXOG_DIURNAL": False, "EXOG_SEMANTIC": False, "FEATURE_WINSOR": False}
 EXOG = ["sumret2", "sumret", "vix"]  # sqrt by name + diurnal; signed identity + diurnal; log, diurnal excluded
 WIN = 240  # the pipeline's target_winsor_window
@@ -182,7 +185,7 @@ def test_baseline_py_call_unchanged(raw):
     assert not same(excl["baseline"], b)  # the B exclusion matters on this frame, so the test has power
 
 
-@pytest.mark.parametrize("flags", [*({k: v} for k, v in TARGET_FLAGS.items()), TARGET_FLAGS_LEVEL])
+@pytest.mark.parametrize("flags", [*({k: v} for k, v in TARGET_FLAGS.items()), TARGET_FLAGS_LEVEL, TARGET_FLAGS_V3F])
 def test_target_switch_leaves_predictors(raw, monkeypatch, flags):
     base, cols0 = lt()
     for k, v in flags.items():
@@ -240,6 +243,46 @@ def test_exog_switch_leaves_target(raw, monkeypatch, flag):
         assert same(out[f"adj_{c}"].to_numpy()[ok], r.to_numpy()[ok]), (flag, c)
 
 
+def test_v3f_floored_log(raw, monkeypatch):
+    """V3f: log(max(RV / B, TARGET_LOG_FLOOR_VALUE)), the rest as V3; the zero prints of the frame land on the floor
+    (before winsorizing) instead of log(1e-12)."""
+    kw: dict = {"is_target": True, "use_diurnal": True, "baseline_exclude": EX.early_close_post_bars(raw["t"])}
+    f = EX.TARGET_LOG_FLOOR_VALUE
+    monkeypatch.setattr(EX, "TARGET_LOG", True)
+    v3, _ = lt(exog=[])
+    monkeypatch.setattr(EX, "TARGET_LOG_FLOOR", True)
+    v3f, _ = lt(exog=[])
+    ref, rb = TG.robust_transform(raw, "RV", winsor_window=WIN, target_map="log", log_floor=f, **kw)
+    assert same(v3f["adj_RV"], ref) and same(v3f["baseline"], rb)
+    assert not same(v3f["adj_RV"], v3["adj_RV"])
+    assert np.nanmin(v3f["adj_RV"]) >= np.log(f) and np.nanmin(v3["adj_RV"]) < np.log(f)
+    # without winsorization the floored log is exactly log(max(x, f)) of the level target
+    lvl, _ = TG.robust_transform(raw, "RV", winsor_window=0, target_map="level", **kw)
+    flo, _ = TG.robust_transform(raw, "RV", winsor_window=0, target_map="log", log_floor=f, **kw)
+    assert same(flo, np.log(np.maximum(lvl, f)))
+
+
+def test_log_floor_argument():
+    df = frame()
+    kw = dict(is_target=True, use_diurnal=True, winsor_window=WIN, target_map="log")
+    a, _ = TG.robust_transform(df, "RV", **kw)
+    b, _ = TG.robust_transform(df, "RV", log_floor=1e-12, **kw)
+    assert same(a, b)  # None = the name rule's floor 1e-12
+    for bad in (dict(kw, target_map="sqrt", log_floor=0.1), dict(kw, log_floor=0.0), dict(kw, log_floor=-1.0)):
+        with pytest.raises(ValueError):
+            TG.robust_transform(df, "RV", **bad)
+
+
+def test_log_floor_constant_recorded():
+    """The constant is the recorded pre-sample statistic (experiments/transform_log_floor.py; skipped before it ran)."""
+    if not LOG_FLOOR_JSON.is_file():
+        pytest.skip("log_floor.json not written yet")
+    import json
+
+    rec = json.loads(LOG_FLOOR_JSON.read_text())
+    assert rec["value"] == EX.TARGET_LOG_FLOOR_VALUE and rec["equal"]
+
+
 def test_exclusive_target_flags(raw, monkeypatch):
     monkeypatch.setattr(EX, "TARGET_LOG", True)
     monkeypatch.setattr(EX, "TARGET_LEVEL", True)
@@ -249,6 +292,11 @@ def test_exclusive_target_flags(raw, monkeypatch):
     monkeypatch.setattr(EX, "TARGET_LEVEL", False)
     monkeypatch.setattr(EX, "TARGET_WINSOR", False)
     monkeypatch.setattr(EX, "TARGET_WINSOR_5_95", True)
+    with pytest.raises(AssertionError):
+        lt(exog=[])
+    monkeypatch.setattr(EX, "TARGET_WINSOR", True)
+    monkeypatch.setattr(EX, "TARGET_WINSOR_5_95", False)
+    monkeypatch.setattr(EX, "TARGET_LOG_FLOOR", True)  # the floor without the log
     with pytest.raises(AssertionError):
         lt(exog=[])
 

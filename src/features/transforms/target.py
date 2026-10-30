@@ -733,13 +733,15 @@ def robust_transform(
     baseline_exclude: np.ndarray | None = None,
     winsor_q: tuple[float, float] | None = None,
     target_map: str | None = None,
+    log_floor: float | None = None,
 ) -> tuple[pd.Series, pd.Series]:
     """Chain diurnal_adjust -> apply_semantic_transform -> rolling_winsorize.
 
     2026-10-30 (results/transform_ablation_2026-10-30/RULE.txt; the switches of src/backtest/executor.py):
     ``winsor_q`` is the quantile pair of the rolling winsorization (None = WINSOR_LOWER_Q / WINSOR_UPPER_Q, as
     before); ``target_map`` replaces the name rule's map (apply_semantic_transform) by "sqrt", "log" (rule 6's log,
-    floor 1e-12) or "level" (the identity).  None (default) = the name rule, as before.
+    floor 1e-12) or "level" (the identity).  None (default) = the name rule, as before.  ``log_floor`` (with
+    target_map "log" only; RULE.txt addendum D, variant V3f) replaces that floor 1e-12; None = 1e-12.
 
     ``baseline_exclude`` (2026-10-15): rows left out of the unsigned per-slot trailing mean (see
     :func:`diurnal_adjust`); the executor passes the NYSE early closes' post-13:00 bars for the
@@ -776,6 +778,8 @@ def robust_transform(
         )
     if target_map not in (None, "sqrt", "log", "level"):  # 2026-10-30
         raise ValueError(f"target_map must be None, 'sqrt', 'log' or 'level', got {target_map!r}")
+    if log_floor is not None and (target_map != "log" or not float(log_floor) > 0):  # 2026-10-30 (addendum D)
+        raise ValueError(f"log_floor needs target_map 'log' and a positive value, got {log_floor!r} / {target_map!r}")
     if col_name in SKIP_VARS:
         return df[col_name].copy(), pd.Series(1.0, index=df.index)
     if (FOMC_FLAGS_IDENTITY and col_name in FOMC_FLAG_SERIES) or col_name in MACRO_FLAG_SERIES:
@@ -859,7 +863,8 @@ def robust_transform(
         if target_map == "sqrt":
             series = np.sqrt(series)
         elif target_map == "log":
-            series = np.log(series.clip(lower=1e-12))  # rule 6 of apply_semantic_transform
+            # rule 6 of apply_semantic_transform (floor 1e-12), or the given floor (addendum D, V3f)
+            series = np.log(series.clip(lower=1e-12 if log_floor is None else float(log_floor)))
     elif use_transform and not stabilized:
         series = apply_semantic_transform(
             series, col_name, has_negatives, allow_missing=allow_missing

@@ -259,3 +259,49 @@ C. 2026-10-30 about 09:35Z (02:35 PDT), before any walk (an execution detail of 
    not used: its merge requires true_adj and B equal to the templates', which the target-side variants change by
    construction. The words "deterministic=True and force_col_wise=True as the ablation run" of section 6 are replaced by
    this.
+
+D. 2026-10-30 about 10:13Z (03:13 PDT), BEFORE ANY V3 RESULT (no forecast of any variant exists; requested by the
+   coordinator after the phase-0 commit cebebbe): the floored-log variant V3f, as addendum B offered.
+     V3f  target log, floored   TARGET_LOG=1 TARGET_LOG_FLOOR=1   y = winsorized log(max(RV / B, f)) instead of
+                                                                  log(max(RV / B, 1e-12)); everything else as V3
+   f = 0.08546851996977486 (log f = -2.4596), src/backtest/executor.py TARGET_LOG_FLOOR_VALUE, a recorded constant.
+   Rule: the 1st percentile (numpy's linear quantile) of the positive RV / B on the target's own rows (the
+   48-interval grid the HAR averages run over; load_and_transform as the incumbent, B with B_REGULAR_BARS_ONLY) dated
+   before 2013-01-01 with a defined diurnal baseline: 160,561 rows.  Pre-sample only: the cut is the start of fold
+   3's validation year, so no row that is validated (2013) or evaluated (2014-2024) enters it.  Computed once by
+   experiments/transform_log_floor.py -> results/transform_ablation_2026-10-30/log_floor.json (its rerun exits 3 if the
+   constant ever differs).
+   Why this level.  The quantile is the incumbent's own lower winsorization quantile (target.WINSOR_LOWER_Q = 0.01):
+   V3f gives a zero or sub-percentile print the pre-sample level T3 clips the bulk at, so its lower tail is treated
+   as the incumbent's is in a window without a cluster of zero prints, instead of log(1e-12) = -27.6 or a rolling
+   bound dragged down by such a cluster (V3: y down to -18.6, the scaled har_ma_1 to -21.7).  The smallest positive
+   pre-sample RV / B (the coordinator's example) was considered and rejected: it is 1.36e-8, on a row whose B is the
+   "too little history" sentinel 1.0 (240 rows of 1998-2003: raw RV, not RV / B), and 1.37e-6 (log -13.5) among rows
+   with a defined B -- an extreme order statistic of the artifact cluster that bounds nothing.  Rows below f: 1.68 %
+   of the pre-sample rows (0.55 % are zero prints), 1.40 % of all rows; on the 13-bar design y >= -2.4596 (median
+   -0.25) and the scaled har_ma_1 >= -2.75 (laptop HAR-only build).
+   Role: V3f joins the primary family (the MCS over V0 .. V8 and V3f) and gets its own section-7 verdict ("sqrt vs
+   floored log"); V3 keeps its own ("sqrt vs the literal log").  Inverse map exp(pred) x B, as V3.  Gates: V3f is
+   target-side in experiments/transform_design_gate.py (y and har_ma_* change; b_oos, the calendar and every
+   predictor column bit-equal to V0); laptop, HAR-only: V0 rebuilt with this code md5-equal to cell B (X 05da4b5b...,
+   y 996504f1..., b_oos 7670f01a...), V3f gate PASS (invariance/baseline_V3f.json).  Compute: one more design stage
+   (~8 CPU-h), linear pretune and walks (~4), LightGBM 2013 (~2).
+
+E. 2026-10-30 about 10:13Z, BEFORE ANY VARIANT FORECAST EXISTS: the Part A scorer of section 11,
+   experiments/transform_score.py, implementing sections 4-7 and addendum D as written, with these execution details:
+   (a) inputs: <runs>/<V>/forecasts*.parquet (confirmation; columns model, predictor_set, date, pred_adj, B; rows from
+       2014-01-02), <runs>/<V>/forecasts_sel2013*.parquet (the LightGBM 2013 walk merged under that name), the linear
+       pre-tune of fold 3 (<V>/_work/pretune, frozen_penalties.json, the design caches: pred_adj = y + resid at the
+       selected penalty); V0 = the paper's final forecasts unless <runs>/V0 holds forecasts; a run's design.json
+       must carry exactly its variant's switches.
+   (b) the bars of section 5 are Table 1's 33,527, fixed by V0's 13 forecasts; a variant missing one of them, or not
+       finite and positive on one, fails the run (no re-definition of the bar set).
+   (c) scoring C uses the c of Part B on each variant's own forecast (the first 20 sessions identity).
+   (d) the 2013 selection bars: the 2013 bars with RV > 0 on days with a positive 16:00 print (early closes dropped)
+       that every variant of the class forecasts.
+   (e) the "% of QLIKE(V_T)" of section 7 is the column v0_vs_variant_pct = 100 (QLIKE(V0) / QLIKE(V_T) - 1):
+       negative = the transform helps.  Frozen-penalty runs (<V>_frz) are scored with their variant's map and reported,
+       outside the MCS families and the verdicts.
+   Tested before use (writeup/tests/test_transform_score.py): V0 reproduces Table 1 (39 values to 1e-12); synthetic
+   variant files with known forecasts (log and level maps, B = 1, a constant level factor, the 2013 ranking, a linear
+   pre-tune) are scored to 1e-12.

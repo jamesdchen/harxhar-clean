@@ -354,7 +354,40 @@
     "y.npy": "996504f16da7982d64656d1ba0d9722a",
     "b_oos.npy": "7670f01a3055265dfac28ebac1eca864"
    }
+  },
+  "baseline_V3f": {
+   "passed": true,
+   "fail": [],
+   "changed": {
+    "y": true,
+    "b_oos": false,
+    "har": [
+     "har_ma_1",
+     "har_ma_5",
+     "har_ma_25",
+     "har_ma_125",
+     "har_ma_625",
+     "har_ma_3125"
+    ],
+    "calendar": [],
+    "exog_n": 0,
+    "exog_of": 0
+   },
+   "md5_new": {
+    "X.npy": "ddd353bf3912052de4bc03d02d387be4",
+    "y.npy": "c9728052766e04e9d862a73fa95c71be",
+    "b_oos.npy": "7670f01a3055265dfac28ebac1eca864"
+   }
   }
  },
- "all_passed": true
+ "all_passed": true,
+ "addendum_D": {
+  "note": "after the TARGET_LOG_FLOOR code: V0 HAR-only rebuilt md5-equal to cell B; V3f gated against that rebuild",
+  "v0_rebuild": {
+   "X": "05da4b5b30ec4579df77f1a3b6dd57ed",
+   "y": "996504f16da7982d64656d1ba0d9722a",
+   "b_oos": "7670f01a3055265dfac28ebac1eca864"
+  },
+  "v3f_passed": true
+ }
 }

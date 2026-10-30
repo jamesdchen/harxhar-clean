@@ -1,0 +1,33 @@
+{
+ "fail": [],
+ "rule": "results/transform_ablation_2026-10-30/RULE.txt sections 4-7, addenda D-E",
+ "spans": {
+  "all": {
+   "bars": 33527,
+   "days": 2579
+  },
+  "ord": {
+   "bars": 32474,
+   "days": 2498
+  },
+  "ev": {
+   "bars": 1053,
+   "days": 81
+  },
+  "c16": {
+   "bars": 2579,
+   "days": 2579
+  },
+  "c16_2020": {
+   "bars": 1082,
+   "days": 1082
+  }
+ },
+ "level_floored_bars": {},
+ "table1_values_checked": 39,
+ "sel2013_days": 249,
+ "pass": true,
+ "keys": [
+  "V0"
+ ]
+}

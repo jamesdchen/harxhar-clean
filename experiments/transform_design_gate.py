@@ -5,9 +5,10 @@ the design stage with --ex-flag.  This compares a variant's cache (experiments/p
 y.npy, b_oos.npy, dates_oos.csv, design.json) with V0's and checks what may and what must not change:
   every variant   the rows and the column names equal V0's; dates_oos equal; design.json config.ex_flags = V0's plus
                   exactly the variant's flags
-  y, b_oos        equal in V4 .. V7 (predictor-side); y differs in V1 .. V3, V8 .. V10; b_oos equal except V10 (B = 1)
+  y, b_oos        equal in V4 .. V7 (predictor-side); y differs in V1 .. V3, V3f, V8 .. V10; b_oos equal except V10
+                  (B = 1)
   har_ma_*        bit-equal in V4 .. V6 (the HAR set is untouched: on the HAR-only bucket the whole X is md5-equal)
-  predictors      every exogenous column bit-equal in V1 .. V3, V9, V10 (target-side); some differ in V4 .. V6 (on a
+  predictors      every exogenous column bit-equal in V1 .. V3, V3f, V9, V10 (target-side); some differ in V4 .. V6 (on a
                   bucket the switch acts on)
   V0              (--variant V0) X, y, b_oos md5-equal (the default-invariance gate; dates_oos modulo line endings)
 
@@ -32,6 +33,8 @@ VARIANTS: dict[str, tuple[str, dict[str, bool]]] = {
     "V1": ("target winsor off", {"TARGET_WINSOR": False}),
     "V2": ("target 5/95", {"TARGET_WINSOR_5_95": True}),
     "V3": ("target log", {"TARGET_LOG": True}),
+    # 2026-10-30 (RULE.txt addendum D, before any V3 result): the floored log, RV / B >= TARGET_LOG_FLOOR_VALUE
+    "V3f": ("target log, floored", {"TARGET_LOG": True, "TARGET_LOG_FLOOR": True}),
     "V4": ("exog diurnal off", {"EXOG_DIURNAL": False}),
     "V5": ("exog name map off", {"EXOG_SEMANTIC": False}),
     "V6": ("feature winsor off", {"FEATURE_WINSOR": False}),
@@ -50,7 +53,7 @@ VARIANTS: dict[str, tuple[str, dict[str, bool]]] = {
     "V9": ("target level", {"TARGET_LEVEL": True}),
     "V10": ("target diurnal off", {"TARGET_DIURNAL": False}),
 }
-TARGET_SIDE = ("V1", "V2", "V3", "V9", "V10")
+TARGET_SIDE = ("V1", "V2", "V3", "V3f", "V9", "V10")
 EXOG_SIDE = ("V4", "V5", "V6")
 CALENDAR = re.compile(r"^(DOW_\d|hour|is_overnight)$")
 
