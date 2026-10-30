@@ -456,6 +456,135 @@
 \input{generated/rehaul_beyond_factor_table}
 
 % ---------------------------------------------------------------------------------------------------------------------
+\subsection{Macroeconomic release calendars}
+\label{app:rh_results_macro}
+% 2026-10-30 (drafting subagent; paper-prose branches A, C, D; the Step 3 audit is the coordinator's): the six US
+% macro release calendars of results/ablations_2014start_w3000/RULE.txt addendum L (29 Oct 2026) and its amendment
+% (iii) (30 Oct 2026). Floats: Panel F of tab:rh_ablation and tab:rh_ablation_macro (writeup/make_rehaul_ablations.py);
+% summary numbers \rhms... (writeup/make_rehaul_macro_summary.py, from scores_fomcfix/ metrics.csv, dm.csv,
+% checks.json and robust2019.csv). The disclosure is in this prose, not in the table notes (RULE L (h); author, 28
+% Oct). The random forest's macro forecasts are pending: each class statement names the classes it covers, and none
+% is about the forest. Backing of the words that are not macros:
+%   "requested ... after the main results had been seen", "not part of the pre-specified design" = RULE L header
+%   ("REQUESTED BY THE AUTHOR ON 29 OCTOBER, NOT PRE-REGISTERED"); "before any model with a release calendar was
+%   estimated" = RULE L "before any job it affects" (commit 43e3115, 19:26 PDT; the first macro walks, LightGBM, from
+%   19:55, RULE L (i)); "recorded before the runs of ..." = RULE L (iii) "before any job it affects" (commit 7aedef9,
+%   01:01 PDT 30 Oct; the HAR + one calendar and forest jobs from 01:02); the split changed after a preview = the
+%   coordinator's scratch scoring of the linear arms under the release / quiet split (~23:35, 29 Oct), reported to
+%   the author before (iii) (2026-10-30 audit round 1, claims V5); the amendment's three items = RULE L (iii) 1-3.
+%   "built as the FOMC calendar", "the same transforms ..." = RULE L (b); "follow the official release calendars" =
+%   RULE L (a) and results/macro_calendar_2026-10-29/AUDIT_2026-10-30.md part 1; "come at 08:30 ET, in the bar ending
+%   at 09:00" = RULE L (a) and AUDIT part 1 (every 2014-2024 release at 08:30 ET; the bar mapping checked); the
+%   shutdown rule = RULE L (c) (the three-state rule).
+%   "lowers ... by \rhmsFomcAllGainMin to \rhmsFomcAllGainMax" = the five classes' changes all negative (asserted in
+%   the generator), \rhmsFomcAllPMax < 0.05; "by at most" = the \rhms...MaxAbsPct maxima (1 decimal, as the table
+%   prints them); "significantly lower / higher in N of the M cells" = \rhms...NSigLower / NSigHigher / NCells (DM
+%   p < 0.05, sign of the DM); "No cell ... is significant" = \rhmsPanBAll... and \rhmsPanBNrel...NSigLower =
+%   NSigHigher = 0, its smallest p shown; "raises the CPI release-day loss of OLS, the ridge, the lasso and the
+%   elastic net" = \rhmsPanBCpiRelLinNSigHigher = \rhmsPanBCpiRelLinNCls (each p < 0.05); "rises" (LightGBM) =
+%   \rhabLgbmAddRmFomcMacCpiRelPct > 0 with \rhabLgbmAddRmFomcMacCpiRelP < 0.05; "not significant" (XGBoost) =
+%   \rhabXgbAddRmFomcMacCpiRelP >= 0.05; "move by at most" = \rhmsRobustOtherMaxMove (the maximum, rounded up);
+%   "scaling outliers" = AUDIT part 2 (last item) and experiments/mac_robust2019.py (docstring).
+%   "the gap between the FOMC row and the rows of the release calendars" = \rhmsFomcAllGainMin >
+%   \rhmsPanAAllMaxAbsPct. The timing bullet is an interpretation, hedged (V7), from AUDIT part 5 and Section 6.2; it
+%   has no number.
+\begin{itemize}
+\item \textbf{Added after the main results.} The author requested the release calendars after the main results had
+  been seen. They are not part of the pre-specified design.
+  \begin{itemize}
+  \item A dated addendum to the ablation rule fixed the construction of the calendars, the specifications and the
+    tests before any model with a release calendar was estimated.
+  \item A later amendment aligned the comparisons with those of the FOMC calendar: the same split of the scored days,
+    the HAR benchmark set plus one calendar, and the random forest as a model class. It was recorded before the runs
+    of the HAR benchmark set plus one calendar and of the random forest.
+  \item The split of the scored days changed after the linear models had been scored under the addendum's original
+    split, which set release days against days with neither a release nor an FOMC statement, and after a preview of
+    those scores had been seen.
+  \end{itemize}
+\item \textbf{Built as the FOMC calendar.} The \rhabNMacReleases{} calendars are those of the consumer and producer
+  price indexes (CPI, PPI), the employment situation, the advance estimate of gross domestic product (GDP),
+  international trade and retail sales.
+  \begin{itemize}
+  \item The calendars are built as the FOMC calendar (Section~\ref{sec:rh_data}): an indicator for a release on day
+    $t$ and the proximity measures $1/(1+n^{+}_{t,i})$ and $1/(1+n^{-}_{t,i})$, with $n^{+}_{t,i}$ and $n^{-}_{t,i}$
+    the number of intervals until the next and since the last release. These series pass through the same
+    transforms, trailing averages and availability averages as the FOMC series.
+  \item The release dates follow the official release calendars. The releases come at 08:30~ET, in the bar ending at
+    09:00, before the first scored bar of the day.
+  \item The proximity to the next release follows the release schedule as it was public at each interval, as the
+    FOMC calendar does in March 2020 (Appendix~\ref{app:rh_dp_fomc}). When a government shutdown postponed a release,
+    the measure is missing from the notice of the postponement until the new date was announced.
+  \end{itemize}
+\item \textbf{Release days split the sample as FOMC statement days do.} Release days are the \rhabNRelDays{} scored
+  days with at least one of the
+  releases. Non-release days are the other \rhabNNrelDays{} scored days, FOMC statement days included. Release days
+  and non-release days split the scored days as the statement days and the ordinary days do for the FOMC calendar.
+  For a single calendar, release days are the days of that release. The notes of Table~\ref{tab:rh_ablation_macro}
+  give their counts.
+  Table~\ref{tab:rh_ablation_macro} adds one calendar at a time to the HAR benchmark set (Panel~A) and to
+  HAR\,+\,RM\,+\,FOMC (Panel~B). Panel~F of Table~\ref{tab:rh_ablation} adds the \rhabNMacReleases{} calendars
+  together to the HAR benchmark set, to HAR\,+\,RM\,+\,FOMC and to the full predictor set.
+\item \textbf{On every bar, one calendar moves the loss of the HAR benchmark set less than the FOMC calendar}
+  (Table~\ref{tab:rh_ablation_macro}, Panel~A). The panel is
+  the counterpart of the FOMC row of Panel~B of Table~\ref{tab:rh_ablation}.
+  \begin{itemize}
+  \item On every bar, the FOMC calendar lowers the loss of the ridge, lasso, elastic net, LightGBM and XGBoost by
+    \rhmsFomcAllGainMin\% to \rhmsFomcAllGainMax\% (largest $p$, \rhmsFomcAllPMax).
+  \item On every bar, the largest absolute change in the loss of the ridge, lasso and elastic net from a single release
+    calendar is \rhmsPanAAllPenMaxAbsPct\%. At the \rhmsSigLevel\% level, their loss is significantly lower in
+    \rhmsPanAAllPenNSigLower{} and significantly higher in \rhmsPanAAllPenNSigHigher{} of their
+    \rhmsPanAAllPenNCells{} cells.
+  \item On every bar, the largest absolute change in the loss of LightGBM and XGBoost from a single release calendar
+    is \rhmsPanAAllTreeMaxAbsPct\%. Their loss is significantly lower in \rhmsPanAAllTreeNSigLower{} and significantly
+    higher in \rhmsPanAAllTreeNSigHigher{} of their \rhmsPanAAllTreeNCells{} cells.
+  \item On non-release days, the loss of LightGBM and XGBoost is significantly lower in
+    \rhmsPanANrelTreeNSigLower{} and significantly higher in \rhmsPanANrelTreeNSigHigher{} of their cells. On release
+    days, it is significantly lower in \rhmsPanARelTreeNSigLower{} and significantly higher in
+    \rhmsPanARelTreeNSigHigher{} of them.
+  \item No cell of the ridge, lasso and elastic net is significant at the \rhmsSigLevel\% level on non-release days
+    (smallest $p$,
+    \rhmsPanANrelPenPMin). On release days, their loss is significantly lower in \rhmsPanARelPenNSigLower{} and
+    significantly higher in \rhmsPanARelPenNSigHigher{} of their cells.
+  \end{itemize}
+\item \textbf{Every-bar changes beyond HAR\,+\,RM\,+\,FOMC are not significant for OLS, the penalized linear models,
+  LightGBM and XGBoost} (Table~\ref{tab:rh_ablation_macro}, Panel~B).
+  \begin{itemize}
+  \item On every bar, the largest absolute change in the loss of OLS, the ridge, lasso, elastic net, LightGBM and
+    XGBoost from a single release calendar is \rhmsPanBAllMaxAbsPct\%. No cell of these classes is significant at the
+    \rhmsSigLevel\% level
+    on every bar (smallest $p$, \rhmsPanBAllPMin) or on non-release days (smallest $p$, \rhmsPanBNrelPMin).
+  \item On release days, the loss is significantly higher in \rhmsPanBRelNSigHigher{} and significantly lower in
+    \rhmsPanBRelNSigLower{} of the \rhmsPanBRelNCells{} cells of these classes.
+  \item The CPI calendar raises the CPI release-day loss of OLS, the ridge, the lasso and the elastic net by
+    \rhmsPanBCpiRelLinPctMin\% to \rhmsPanBCpiRelLinPctMax\% ($\DM$ from \rhmsPanBCpiRelLinDmMin{} to
+    \rhmsPanBCpiRelLinDmMax; largest $p$, \rhmsPanBCpiRelLinPMax). LightGBM's CPI release-day loss rises by
+    \rhabLgbmAddRmFomcMacCpiRelPct\% ($\DM = {}$\rhabLgbmAddRmFomcMacCpiRelDm, $p = {}$\rhabLgbmAddRmFomcMacCpiRelP).
+    XGBoost's change of \rhabXgbAddRmFomcMacCpiRelPct\% is not significant ($p = {}$\rhabXgbAddRmFomcMacCpiRelP).
+  \end{itemize}
+\item \textbf{Without early 2019, the OLS's increase shrinks.} We rescore the specifications with calendars of OLS, the
+  ridge, lasso, elastic net, LightGBM and XGBoost against the HAR benchmark set, HAR\,+\,RM\,+\,FOMC and the full
+  predictor set without the bars from \rhmsRobustExclFirst{} to \rhmsRobustExclLast. The government shutdown of
+  2018--2019 postponed several releases. In this window, the postponements leave scaling outliers in some calendar predictors.
+  \begin{itemize}
+  \item OLS on HAR\,+\,RM\,+\,FOMC with all \rhabNMacReleases{} calendars changes the loss against
+    HAR\,+\,RM\,+\,FOMC by \rhmsRobustOlsAllPct\% on every bar ($\DM = {}$\rhmsRobustOlsAllDm,
+    $p = {}$\rhmsRobustOlsAllP) and by \rhmsRobustOlsExPct\% without the window ($\DM = {}$\rhmsRobustOlsExDm,
+    $p = {}$\rhmsRobustOlsExP).
+  \item The other \rhmsRobustNOther{} comparisons move by at most \rhmsRobustOtherMaxMove{} percentage points. In
+    \rhmsRobustNSigCross{} comparisons, significance at the \rhmsSigLevel\% level differs with and without the
+    window.
+  \end{itemize}
+\item \textbf{The releases precede the first forecast.} The releases come at 08:30~ET, before the
+  first forecast of the
+  day, made at 09:30~ET for the bar ending at 10:00. When that forecast is made, the HAR components and the futures'
+  realized moments may already reflect the rise in variance at the release. The FOMC statement comes at 14:00~ET,
+  inside the bar ending at 14:30 and after that bar's forecast is made (Section~\ref{sec:rh_results_channels}). This
+  difference in timing is one possible reason for the gap between the FOMC row and the rows of the release calendars.
+\end{itemize}
+% 2026-10-30 (drafting subagent): the macro table (writeup/make_rehaul_ablations.py), cited in this subsection.
+\input{generated/rehaul_ablation_macro_table}
+
+% ---------------------------------------------------------------------------------------------------------------------
 % 2026-10-28 (author: conventional titles). Was: \subsection{Model classes and the closing-interval HAR benchmark}
 \subsection{Closing-interval HAR benchmark}
 \label{app:rh_results_classes}

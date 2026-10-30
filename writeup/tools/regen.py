@@ -114,6 +114,8 @@ GENERATORS: dict[str, Gen] = {
     "holiday": Gen(after=("economics", "econ_main")),
     "ladder": Gen(modes=((), ("--prepatch",), ("--everybar",))),
     "live_windows": Gen(needs=("numba",)),
+    # results/ablations_2014start_w3000/scores_fomcfix/ only (the scorer's files and robust2019.csv)
+    "macro_summary": Gen(),
     # rehaul_econ_numbers, rehaul_results_numbers, rehaul_results_oos (.tex), results/oos_final_2014start/
     "mcs": Gen(after=("economics", "results", "oos_rerun")),
     "oos_rerun": Gen(),  # --span 2014: its default under REHAUL_FINAL_RUN=1
