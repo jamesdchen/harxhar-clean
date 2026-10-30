@@ -1,0 +1,217 @@
+ALL48: EVERY HALF-HOUR INTERVAL OF THE 48-INTERVAL GRID SCORED
+=============================================================
+EXPLORATORY.  PROPOSED AFTER THE MAIN RESULTS WERE SEEN; NOT PRE-REGISTERED.  Its tables are for an appendix or a
+report, not the main text.
+
+Written 2026-10-30 about 12:30 PDT (19:30 UTC), before any computation of this study: no design, walk, gate, piece or
+score of it exists.  The Part 1 forecasts below exist since 2026-10-24 and have never been scored on the 35 intervals
+outside regular hours.  Repository HEAD at writing: 21a7091 (branch insurance-selling-2026-09-19-e34).
+Origin: the author, relayed by the coordinator on 30 Oct 2026: "score all 48 bars to see what happens. First check
+whether the ALL48 robustness forecasts kept their overnight rows; if so, score all 48 bars in a separate overnight/all-48
+table (exploratory, not main text). If not, regenerate on the current design (post-FOMC fix, same methodology as main),
+compute uncapped, CPU on Hoffman2/CARC with backfill. Watch disk."
+Drafted by the agent; the coordinator owns the clusters and every submission.  Nothing of the paper (writeup/rehaul,
+writeup/generated, the generators) is edited by this study; no Overleaf sync.  This file is not changed after results
+are seen.  A deviation goes into a dated ADDENDUM at the end, written before the job it affects, with its reason.
+
+0. WHAT HAD BEEN SEEN BEFORE WRITING
+   - The main results: Table 1 (the 13 regular-hours bars, end stamps 10:00 .. 16:00 ET, of the FOMC-patched cell-B
+     design, results/fomcfix_2026-10-26/RULE.txt; 33,527 scored bars on 2,579 days) and every ablation and robustness
+     table built on it.
+   - The three-way training-sample comparison ("train3way"; linear: branch insurance-selling-2026-09-19-e34-train3way,
+     results/linear_train3way_2014start_w3000 at 0106ccb; trees: branch ...-train3way-trees,
+     results/trees_train3way_2014start_w3000 at 3501ab7).  Its ALL48 arm trained on all 48 intervals (runner --sample
+     48, DROP_OVERNIGHT_INDICATOR=0, W = 3,000 days x 48 = 144,000 rows) on the design BEFORE the FOMC fix, and was scored
+     on the 13 RTH bars and at 16:00 only (e.g. every RTH bar, QLIKE: OLS HAR 0.19171, ridge full 0.18250, lasso full
+     0.18198, elastic net full 0.18172; full vs HAR DM -6.7 / -7.1 / -6.7).  No score on any other interval was seen.
+   - The author's first question ("did the ALL48 forecasts keep their overnight rows?"), answered from the train3way
+     code and records (Part 1's checks confirm it on the files before anything is scored):
+       linear  YES.  The ALL48 walks refit at every row of the 48-interval design (linear RULE section 5 and the note to
+               its addendum B: option A, full refit) and their raw walk tables hold every row, all 48 end stamps:
+               /scratch1/jc_905/train3way/code/results/linear_train3way_2014start_w3000/ALL48/_work/walk/<set>/<model>/
+               [c<k>/]causal_tune_linear/<runner model>/<set>/results.csv (columns date, horizon, true_adj, pred_adj,
+               true_raw, pred_raw; true_raw = true_adj^2 x B).  Only the export (forecasts_rth.parquet) kept the RTH rows.
+       trees   NO.  The ALL48 tree walks refit only at the 33,970 RTH origins (trees RULE section 4); no forecast of any
+               other interval exists.
+   Hence two parts: Part 1 scores the existing linear forecasts on all 48 intervals (the author's "if so"); Part 2
+   regenerates ALL48 on the current design for every class (the trees need it; the linear models are re-walked so
+   that every class of the table is on one design, the main one).
+
+1. PART 1 -- FIRST LOOK: THE EXISTING LINEAR ALL48 FORECASTS (PRE-FIX DESIGN)
+   Forecasts: the 7 train3way ALL48 linear walks (OLS on the HAR benchmark set; ridge, lasso, elastic net on the HAR
+   benchmark set and on the full set; penalties of ALL48/frozen_penalties.json: ridge 1e3 / 1e3, lasso 1e-4 / 1e-4,
+   elastic net 1e-3 / 1e-4, HAR / full), every chunk of a model stitched in order (c0, c1, ...), duplicate rows removed
+   after asserting that they agree (date, true_adj, pred_adj).  B: the ALL48 design cache's b_oos.npy / dates_oos.csv
+   when present on CARC (asserted equal to true_raw / true_adj^2 to 1e-9 relative wherever true_adj > 0), else
+   true_raw / true_adj^2.  plain = pred_adj^2 x B.  Scored as section 3.  Labelled "pre-FOMC-fix design (train3way)".
+   Checks before any table (all must hold, else stop and report):
+     (a) every model's table covers each design row from its walk start to the last row once, all 48 end stamps
+         present, row counts by end stamp recorded;
+     (b) the rth13 span reproduces train3way's scores_all/qlike_bar.csv for ALL48 (QLIKE and MSE x 1e10 of the seven
+         models on 33,527 bars) to 1e-12 relative and its full-vs-HAR every-bar QLIKE DM (scores_all/gap.csv) to
+         1e-9; the 16:00 interval reproduces its 16:00 QLIKE and full-vs-HAR DM (gap.csv, target 16:00) the same way.
+
+2. PART 2 -- REGENERATION ON THE CURRENT DESIGN (THE MAIN METHODOLOGY ON THE 48-INTERVAL SAMPLE)
+   2.1 Design.  The runner experiments/pool_linear_pretune.py through the main orchestrator
+       experiments/pooled_linear_rerun_2026_10_19_13.py, configured for the 48-interval sample by
+       experiments/all48_linear.py (as train3way's linear_train3way.py configured its ALL48 arm):
+         --sample 48 (segment none: every row of the 48-interval grid -- overnight, Sunday-evening and exchange-holiday
+         rows and the NYSE early-close sessions' rows, as the 48-interval sample has always been built), --har-base 5,
+         ex-flags DROP_ACTIVITY_MA=1, CALENDAR_THROUGH_OVERNIGHT=1, DROP_OVERNIGHT_INDICATOR=0 (is_overnight kept, as
+         train3way's ALL48), LEAN_GLOBAL_LAGS=1, LATE_START_WARMUP=1 and cell B's FOMC_SCHEDULE_2020_FIX=1,
+         FOMC_PROXIMITY_NO_WINSOR=1, DROP_HOLIDAY_SESSIONS=0; --window-days 3000 (W = 144,000 rows); every other flag
+         at its default (UNOBSERVED_NEUTRAL, EXCLUDE_FOMC_RELEASE on; MACRO_CALENDARS off; the transform switches at
+         their defaults).
+       Columns: HAR benchmark set 13 (har_ma_1 .. har_ma_3125, DOW_0 .. DOW_4, hour, is_overnight); full set 565 (the
+       cell-B 13-bar design's 564 names + is_overnight).  The target adj_RV, its diurnal factor B and every trailing
+       average are built on the full 48-interval grid, as in the main design; what necessarily differs from the main
+       design is the rows (48 a day) and the sample-dependent steps on them (the rolling robust scaler over the last W
+       rows, its guards, the late-start warm-up), as train3way RULE section 3.
+       Gates (exit 3 on a failure; everything else waits on them):
+         D1  names and config: the column lists above, config sample 48, 48 rows a day, window 144,000, har_base 5,
+             the ex-flags above;
+         D2  y and B equal the cell-B 13-bar design's (/home1/jc_905/fomcfix_lin/runs/B, md5 of gates/G3.json) at every
+             common OOS stamp, bit for bit; every OOS stamp of the 13-bar design from 2014-01-02 on is a row here;
+         D3  against train3way's ALL48 caches (when they are still on CARC): the HAR benchmark cache md5-equal (X, y,
+             b_oos, dates_oos), the full cache's y, b_oos, dates_oos md5-equal and its X equal bit for bit except the 12
+             FOMC proximity value averages adj_fomc_{until,since}_inv_ma_k (results/fomcfix_2026-10-26/code/
+             design_gate.py --expect fomc, the fomcfix G3 rule).  If those caches are gone, D3 is recorded as not run
+             and D1, D2 gate alone;
+         D4  a Hoffman2 copy (only if trees run there): copied from CARC cluster to cluster, or built on Hoffman2 by the
+             same code in its container (OpenBLAS Prescott, numpy's AVX-512 dispatch off); either way the md5 of X, y,
+             b_oos, dates_oos of both sets equal CARC's (MD5SUMS compared), else Hoffman2 runs no tree piece of this
+             study.  No design copy passes through the laptop.
+   2.2 Linear models (OLS; ridge, lasso, elastic net on the HAR benchmark set and the full set).
+       Penalties: the main rule on the ALL48 sample's pre-sample fold 3 (train3way ALL48's): validation = the 250 x 48 =
+       12,000 rows before the first 2014-01-02 row, embargo 1,200 rows, fit = the 144,000 rows before it; the grids
+       (ridge 1e-2 .. 1e3, lasso and elastic net 1e-6 .. 1e-2, l1_ratio 0.5) with the grid rule (RULE_std.txt); the
+       lowest mean validation MSE on the adjusted scale over every validation row (all 48 intervals); one penalty a
+       model, frozen over the evaluation span.  OLS min-norm.  STANDARDIZE_PENALTY and WALK_KKT_RESEED on; penalty factor
+       0.01 / 1 on the HAR benchmark block (its 13 columns) of the full / HAR set.
+       Walk: refit at EVERY row of the 48-interval design (every interval origin, overnight, weekend and holiday rows
+       included) from the 250-solve boundary at or before the first 2014-01-02 row to the last row (2024-04-30 23:30):
+       the runner's walk unchanged (rank-one / warm homotopy every row, identifiability mask and cold seed every 250th
+       solve, window = the last W rows).  Chunks ridge 2, lasso 8, elastic net 5 (full set; train3way's), each from a
+       250-solve boundary with a W-row halo.  The forecast of every row is kept and exported (not only RTH rows).
+       Gates:
+         L1  (when D3 passed) the HAR-set penalties equal train3way ALL48's and the first 50 rows from the walk start of
+             the four HAR-set walks (OLS, ridge, lasso, elastic net) are identical to Part 1's walk tables (strings of
+             date, true_adj, pred_adj); not run if D3 was not run (recorded);
+         L2  the seam check of train3way (gate_seam): full-set ridge, lasso, elastic net and the OLS, rows [S0, S0 + 500)
+             as one walk against a chunk starting at S0 + 250: the chunk's last 250 rows identical.
+       The walks run after L1 and L2 pass.
+   2.3 Trees (LightGBM lgbm_opt_00, XGBoost xgb_opt_00, the random forest rf400_rf_opt_00 on oneDAL "rf_skx"; HAR
+       benchmark set and full set).  The frozen configurations of the main run (experiments/pooled_trees_rerun_13.py
+       model_factory / fit_predict unchanged; seed 42; 8 threads; the forest n_jobs 8 to fit, 1 to predict); LightGBM
+       with deterministic=True and force_col_wise=True, as train3way's ALL48 (its addenda B, D: the 144,000-row window
+       was 1-ulp non-deterministic without them) and every ablation arm.
+       Origins: EVERY OOS row of the 48-interval design dated 2014-01-02 .. 2024-04-30 (the 48-interval grid has 129,332
+       rows on those dates in data/core_stats.parquet; the design's exact count is printed by the task generator).  The
+       forecast at design row r is fitted from scratch on rows [r - W, r) (the rows the linear walk uses at r) and
+       predicts row r.  No state carries between refits, so pieces are contiguous blocks of origins, each <= 1 hour at
+       EPYC 7513 speed (8 threads) by the seconds a refit of section 4; resumable checkpoints; a forest piece never
+       resumes on another CPU family.  Code: experiments/all48_trees.py (walk, tasks, gate, merge).
+       Gates, per CPU model (one tag a model), before any piece of that class runs on it:
+         T1  this code path on the cell-B 13-bar design (W 39,000) at the first and the last 10 of the 33,970 RTH
+             origins, both sets, reproduces the main forecasts: LightGBM, XGBoost pred_adj text-identical (repr), the
+             forest within RF_TOL = 1e-14 relative; true_adj and B equal.  References:
+             results/pooled_trees_final_2014start_fomcfix_w3000/forecasts.parquet (LightGBM, XGBoost) and
+             results/pooled_rf_skx_2014start_fomcfix_w3000/forecasts.parquet (forest);
+         T2  on the 48-interval design (W 144,000) at the first and the last 10 origins (non-RTH intervals of 2014-01-02
+             and 2024-04-30), both sets: the reference model (CARC EPYC 7513 / 7542, the main trees' family) writes the
+             reference pieces; any other model must give LightGBM / XGBoost pred_adj bit-identical and the forest within
+             RF_TOL relative, true_adj and B equal.  Then pieces of different gated models may enter one class and set.
+         M   merge: one complete piece set a class and set, every origin once, finite, plain = pred_adj^2 x B, true_adj
+             and B the design's; every piece's CPU models gated for its class on the cluster it ran on; one CPU family
+             a forest piece; LightGBM's metas record deterministic and col-wise.
+       The scored-only-versus-every-row gate of train3way (its gate 2) does not apply: every origin is refitted.
+
+3. SCORING (experiments/all48_score.py; both parts; the paper's conventions, experiments/ablate_score.py)
+   Forecast plain = pred_adj^2 x B (the design's own B).  Truth: the interval's sumret2 (data/core_stats.parquet), RV > 0.
+   Loss QLIKE = r - ln r - 1, r = RV / plain (primary), and squared error (MSE x 1e10).
+   Evaluation days E: the 2,579 days of Table 1 (NYSE days in 2014-01-02 .. 2024-04-30 with a positive 16:00 print,
+   early closes dropped; ablate_score.evaluation_days).  An interval belongs to the calendar date of its bar-end stamp
+   (ET; ablate_score.daily's grouping), so a day's 48 intervals end 00:00, 00:30, .., 23:30.
+   Scored set of a span: its intervals with RV > 0 and a finite positive plain of every model of the part's panel.
+   Spans:
+     all48       every interval of the days in E
+     rth13       end stamps 10:00 .. 16:00 of the days in E (Table 1's 33,527 bars when the panel covers them; recorded)
+     non_rth35   the other 35 end stamps of the days in E (00:00 .. 09:30 and 16:30 .. 23:30): the overnight table
+     clk_HHMM    each of the 48 end stamps alone (per interval)
+     grid, grid_non_rth (secondary)  every grid row dated 2014-01-02 .. 2024-04-30 (Sunday evenings, exchange holidays'
+                 sessions and early-close days included), and its non-RTH rows
+   Per span and model: bars, days, QLIKE, MSE x 1e10.  Tests: Diebold-Mariano (src/evaluation/diebold_mariano.dm_test:
+   HLN, Bartlett, Newey-West lag max(h - 1, floor(4 (T / 100)^(2/9)))) on the daily average loss (all48, rth13,
+   non_rth35, grid spans) or the day's single loss (clk_HHMM); QLIKE (primary) and squared error.  Pairs: full vs HAR
+   benchmark within each class (ridge, lasso, elastic net, LightGBM, XGBoost, forest), per span and per interval;
+   secondary: each full set vs the OLS HAR.  Negative = the full set lower.  % vs HAR = 100 (QLIKE_full / QLIKE_HAR - 1).
+   No correction for the 48 per-interval tests (exploratory; stated in every table).  Context only, no test across
+   designs: Table 1's RTH numbers and, for the linear models, Part 1 against Part 2 (the FOMC fix, the walks otherwise
+   alike).
+   Outputs: metrics.csv, dm.csv, per_interval.csv, checks.json per part.
+
+4. COMPUTE (measured costs; "compute uncapped" -- no cap; a failed gate still stops what depends on it)
+   Part 1: < 0.1 CPU-hour (one process reading seven walk tables of ~130,000 rows; < 2 GB memory).
+   Part 2 linear (train3way's measured ALL48: the same W = 144,000 rows, refit at every row, the same seven models and
+   chunking, CARC EPYC, 1 thread a walk; results/linear_train3way_2014start_w3000/STATUS.md, ALL48/_work/stage_times.txt):
+   design 3,111 s on 2 CPUs (1.7 CPU-hours, 96 GB requested), pretune + select 56 s on 4 CPUs, walks 12.5 CPU-hours
+   (19 one-CPU tasks, the longest 6,370 s), seam gate 119 s; plus D2 / D3 (~0.3), L1 (~0.1), export and score (~0.5):
+   about 16 CPU-hours.
+   Part 2 trees.  Refits N48 = about 129,300 a class and set (the grid's 129,332 rows) = 3.81 x the 33,970 RTH origins
+   train3way's ALL48 refit at (~40 origins a calendar date with rows, ~48 a weekday, against 13), each on the same
+   144,000-row window with the same columns and configurations, so the seconds a refit carry over.  Seconds a refit,
+   train3way ALL48 piece metas, EPYC 7513, 8 threads, median: LightGBM 9.51 full / 0.95 HAR; XGBoost 12.22 / 0.70;
+   forest 249.9 full; forest HAR 1.23 at 20 threads (24.6 CPU-seconds a refit, 3.08 s at 8).  CPU-hours at EPYC speed
+   = s x N48 x 8 / 3600:
+     LightGBM 2,733 full + 273 HAR = 3,006;  XGBoost 3,512 + 201 = 3,713;  forest 71,820 + 884 = 72,704;  total 79,400.
+   Cross-check: train3way ALL48's measured CPU-hours (wall x threads of its piece metas) x 3.807: LightGBM 2,840 + 270,
+   XGBoost 3,563 + 202, forest full 88,900 (its pieces ran on EPYC and on slower Intel models: Gold 6240 276 s,
+   Silver 4116 372 s, Gold 6140 434 s a refit at 8 threads) + HAR 887: 96,700.  Gates T1 + T2: about 15 CPU-hours a CPU
+   model (the forest full set's 20 T2 refits ~11), ~120 for 8 models; pool allocation tails ~10 %.  Expected
+   80,000-110,000 allocated CPU-hours, ~90 % of it the forest's full set.  Task file: ~10,190 lines (forest full set
+   ~9,240 lines of <= 14 refits; LightGBM full ~343, XGBoost full ~440; HAR sets ~170); a piece is at most
+   floor(3,600 / seconds a refit) origins.
+   Wall time: train3way's ALL48 forest full set (~23,600 CPU-hours) took ~1.5 days on both clusters; at that throughput
+   Part 2's trees take ~5-6 days, less with more backfill.
+
+5. DISK ("watch disk")
+   CARC staging /home1/jc_905/all48 (not /scratch1: its failing mounts, fomcfix addendum C):
+     design caches 1.4 GB (full X 300,317 x 565 x 8 B = 1.36 GB, train3way ALL48's row count; HAR X 31 MB; y, b_oos,
+     dates < 10 MB); pretune < 50 MB; linear walk directories ~0.3 GB; linear export ~30 MB; tree pieces ~60 MB, their
+     metas ~40 MB, logs and claim directories ~100 MB in ~40,000 small files (inode quota); merged tree forecasts ~50 MB;
+     scores < 10 MB: about 2.1 GB.  The trees read the linear design caches in place (no copy on CARC).
+   Hoffman2 staging /u/scratch/j/jamesdc1/all48: the 48-interval design copy 1.4 GB (D4); the cell-B 13-bar caches for
+   T1 0.4 GB unless a copy is already there (T1 checks their md5); its pieces and logs ~0.2 GB.
+   Laptop: score tables, gate JSONs, piece metas, task files only (< 20 MB); no design, walk table or forecast panel.
+   Before every submission the free quota is read (myquota on CARC and Hoffman2); if it is below 2 x the step's
+   estimate, nothing is submitted and the coordinator is told.  Part 1 writes < 5 MB.
+
+6. PLACEMENT AND ORDER
+   Part 1: CARC, the wsweep venv (/scratch1/jc_905/wsweep/venv/bin/python, read only), a 1-CPU job or the login node.
+   Linear: CARC main, account pollok_1603, --constraint "epyc-7513|epyc-7542", the fomcfix linear environment
+   (results/fomcfix_2026-10-26/code/lin_stage.sh: OPENBLAS_CORETYPE=Prescott, numpy's AVX-512 dispatch off, 1 thread a
+   process), payload cluster/all48/lin48.sh.
+   Trees: one task file for both clusters; claim pools (cluster/all48/pool.sh: the ablation's pool5.sh claim logic,
+   eligibility = the node's CPU model in a gate's passed_<est>), the clusters' shares split by reserving lines
+   (cluster/ablate/claim_reserve.sh); backfill: pool jobs of 16 CPUs (two 8-thread workers) with short time limits up
+   to the account limits on CARC, whole nodes up to the Slurm campus caps and 8-slot UGE tasks on Hoffman2; a worker
+   starts a line only if 1.3 x its hours fit before its job ends.  Environments: CARC /home1/jc_905/trees_final/
+   venv_skx (lightgbm 4.6.0, xgboost 3.2.0, scikit-learn-intelex 2026.2.0; cluster/ablate/py_carc.sh), Hoffman2 the
+   train3way container and venvs (cluster/all48/py_h2.sh = cluster/ablate/py.sh with the staging from the
+   environment).  CARC's GPUs are never used; no job of another run or user is touched.
+   Order: Part 1 (minutes).  Part 2: the linear chain (design, D1-D3, pretune / select, L1, L2, walks, export, interim
+   linear score); the tree gates after D1-D3 (and D4 on Hoffman2); the pools after their model's gates, lines ordered
+   cheapest first (HAR sets, LightGBM, XGBoost, then the forest's full set) so that results come early; interim scores
+   on what is merged; the final table when every class and set is in.
+
+7. OUTPUTS (results/all48_2026-10-30/)
+   RULE.txt, STATUS.md; part1/ (metrics.csv, dm.csv, per_interval.csv, checks.json); part2/ (gate JSONs,
+   frozen_penalties.json, pretune_mse.csv, the task file, piece metas, forecasts.json, scores as part1/).  Forecast
+   panels and design caches stay on the clusters.
+
+8. ADDENDA (dated; each written before the job it affects)
+
+ADDENDUM A, 2026-10-30, before any computation: staging on CARC /scratch1/jc_905/all48 (A48), not /home1 (the
+/home1 quota stood at 87.6 of 100 GiB; the design caches alone are ~1.4 GB).  Order: Part 1, then Part 2 linear, then
+LightGBM and XGBoost, then the forest (the author: compute uncapped; the forest's ~72,700-89,000 CPU-hours were
+reported to the author before its pools start).
