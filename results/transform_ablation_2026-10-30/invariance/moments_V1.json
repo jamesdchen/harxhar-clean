@@ -1,0 +1,31 @@
+{
+ "variant": "V1",
+ "name": "target winsor off",
+ "ref": "C:\\Users\\james\\AppData\\Local\\Temp\\tabl\\before_moments",
+ "new": "C:\\Users\\james\\AppData\\Local\\Temp\\tabl\\after_moments_V1",
+ "md5": {
+  "before_moments/X.npy": "7fa3f9506adea8de24d096d975c32a85",
+  "before_moments/y.npy": "996504f16da7982d64656d1ba0d9722a",
+  "before_moments/b_oos.npy": "7670f01a3055265dfac28ebac1eca864",
+  "after_moments_V1/X.npy": "fd5a375e1fd4fbb4dd759b2c92e5e4d1",
+  "after_moments_V1/y.npy": "27c4cdbb611b68e88cb2a8824eb77625",
+  "after_moments_V1/b_oos.npy": "7670f01a3055265dfac28ebac1eca864"
+ },
+ "changed": {
+  "y": true,
+  "b_oos": false,
+  "har": [
+   "har_ma_1",
+   "har_ma_5",
+   "har_ma_25",
+   "har_ma_125",
+   "har_ma_625",
+   "har_ma_3125"
+  ],
+  "calendar": [],
+  "exog_n": 0,
+  "exog_of": 84
+ },
+ "fail": [],
+ "passed": true
+}

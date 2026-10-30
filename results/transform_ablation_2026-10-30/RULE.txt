@@ -1,0 +1,261 @@
+T1. DO THE VARIANCE-REDUCING TRANSFORMS HELP? LEAVE-ONE-OUT ABLATION OF THE TRANSFORMS AND A SCORING-SIDE TEST
+================================================================================================================
+DRAFT FOR THE COORDINATOR AND THE AUTHOR.  TWO PARTS, LABELLED DIFFERENTLY:
+  Part A (design-side variants, sections 2-9): written BEFORE any design, walk or score of a variant exists; related
+    results on older panels and designs had been seen (section 0), and the variants were chosen knowing them.
+  Part B (scoring-side back-transforms, section 3): PROPOSED AFTER RELATED RESULTS WERE SEEN; NOT PRE-REGISTERED (the
+    ex-post constant-rescaling bound of 1-3 %, the 2026-08 causal "contract" correction and the 16:00 recalibration
+    record, section 0).  It is computed on the laptop from forecasts that exist, right after this file is written.
+
+Written 2026-10-30 about 09:20Z (02:20 PDT), before any statistic of section 3 or of any variant was computed.
+Repository HEAD at writing: e89b378 (branch insurance-selling-2026-09-19-e34).
+Origin: the author's question, relayed by the coordinator on 30 Oct 2026: "can we investigate if the variance reducing
+transforms are actually helping? and if so by how much? what would be a more principled way to go about it?"
+Drafted by the agent; the coordinator owns the clusters and every submission.  Nothing of the paper (writeup/rehaul,
+writeup/generated) is edited by this run; no Overleaf sync.
+This file is not changed after results are seen.  Any deviation goes into a dated ADDENDUM at the end, with its reason.
+The paper's forecast stays plain = pred_adj^2 x B (author decision 2026-10-06, writeup/D1_CHANGELOG_2026-09-29.md
+lines 1788-1800: all recalibration removed) unless the author decides otherwise; every back-transform of this file is a
+measurement, not a replacement.
+
+0. WHAT HAD BEEN SEEN BEFORE WRITING
+   - The transform map of the pipeline (the coordinator's read-only sweep, verified here at e89b378):
+       target  y = winsorized sqrt(RV / B): T1 diurnal divide (B = trailing 20-observation per-slot mean of RV, the
+               early closes' post-13:00 bars excluded, src/features/transforms/target.py diurnal_adjust_with_floor),
+               T2 sqrt by the name rule (apply_semantic_transform rule 1: "rv"), T3 rolling 240-bar 1/99
+               winsorization (rolling_winsorize; WINSOR_LOWER_Q / WINSOR_UPPER_Q); the HAR terms har_ma_k are trailing
+               means of y on the 48-interval grid.
+       features F1 diurnal divide (exog), F2 name map (sqrt / signed sqrt / cbrt / fourth root / identity / log;
+               asinh where the signed divisor is degenerate), F3 rolling 240-bar 1/99 winsorization, F4 causal fill,
+               F5 trailing averages, F6 rolling robust scaling over W rows (prescale; the trees read the same
+               prescaled design).
+       fit     L2 on y (the adjusted scale); score: plain = pred_adj^2 x B against the bar's unwinsorized RV, QLIKE
+               r - ln r - 1 (r = RV / forecast), no bias correction (experiments/ablate_score.py).
+   - Prior evidence, on older panels and designs only (nothing isolated on 2014-2024 with the final pooled models):
+       writeup/stats/fixed_truth_winsor.json (218,826 bars, an earlier ridge design): target 1/99 QLIKE 0.23503 vs
+       5/95 0.23807 (DM t -4.29) vs none 0.23863 (none vs 5/95: t +0.53); writeup/stats/kernel_experiments.json.
+       The 2026-08 causal "contract" back-transform (previous-window Mincer-Zarnowitz mean map + EWMA(0.6) second
+       moment, experiments/score_unification.py _score_chunk_causal) beat plain in 282 of 282 older unification arms
+       (results/unification_plain_2026-10-06/plain_vs_contract.csv; benchmark 0.24097 -> 0.22521, RV truth;
+       writeup/generated/table_smear_sensitivity.tex, parked).  On the 16:00 per-bar forecasts plain beat a 250-session
+       recalibration in 260 of 316 rows (results/close_master_table/recal_vs_plain.csv; scored on the winsorized
+       truth).  The ex-post constant rescaling c* = mean(RV / plain) would lower the final models' QLIKE by 1-3 % (an
+       ex-post bound, not causal).
+   - Table 1 (results/oos_final_2014start/table1_w3000/metrics.csv): every class's QLIKE and MSE on 33,527 bars.
+   - Not seen: any forecast of any design variant of section 2 (none exists); any causal back-transform of the final
+     2014-2024 forecasts.
+
+1. WHAT IS FIXED (the incumbent V0 = the paper's final run, FOMC-patched cell B; writeup/final_run.py FOMCFIX_RUNS)
+   Design: the 13-bar design of results/fomcfix_2026-10-26 cell B (the final 13-bar design of
+   results/window_sweep_2014start_2026-10-22/w3000 with FOMC_SCHEDULE_2020_FIX and FOMC_PROXIMITY_NO_WINSOR on, holiday
+   sessions kept), W = 3,000 days = 39,000 rows, refit at every bar.  Design caches (md5, gate G3):
+     baseline      X 05da4b5b30ec4579df77f1a3b6dd57ed  y 996504f16da7982d64656d1ba0d9722a
+                   b_oos 7670f01a3055265dfac28ebac1eca864  dates_oos d8a203fe273cd3e8e34987fe5a73048e
+     all_features  X 725eb201044783d3cdc62501307dcc3a  (y, b_oos, dates_oos as baseline)
+   Build: experiments/pooled_linear_rerun_2026_10_19_13.py design (its CFG: --sample rth13 --har-base 5, ex-flags
+   DROP_ACTIVITY_MA, CALENDAR_THROUGH_OVERNIGHT, DROP_OVERNIGHT_INDICATOR, LEAN_GLOBAL_LAGS) --window-days 3000
+   --first-day 2014-01-02 --ex-flag LATE_START_WARMUP=1 --ex-flag FOMC_SCHEDULE_2020_FIX=1
+   --ex-flag FOMC_PROXIMITY_NO_WINSOR=1 --ex-flag DROP_HOLIDAY_SESSIONS=0
+   (results/fomcfix_2026-10-26/code/lin_stage.sh).
+   Penalties (results/window_sweep_2014start_fomcfix/w3000/frozen_penalties.json, chosen on pre-sample fold 3, its
+   validation year 2013, by adjusted-scale MSE): all_features ridge 1000, lasso 1e-4, enet 1e-3, r = 0.01 on the HAR
+   benchmark block; baseline ridge 1e-3, lasso 1e-8, enet 1e-7, r = 1; STANDARDIZE_PENALTY and WALK_KKT_RESEED on;
+   OLS min-norm.  Trees: lgbm_opt_00 (cluster/pooltree_lgbm_config.json), seed 42, 8 threads.
+   Incumbent forecasts (reused, not rerun):
+     results/window_sweep_2014start_fomcfix/w3000/forecasts.parquet         (linear, both sets)
+     results/pooled_trees_final_2014start_fomcfix_w3000/forecasts.parquet   (LightGBM, XGBoost)
+     results/pooled_rf_skx_2014start_fomcfix_w3000/forecasts.parquet        (the forest; Part B only)
+
+2. DESIGN VARIANTS (Part A).  Each is the incumbent with one switch changed (leave one out), set with --ex-flag on the
+   design stage and recorded in design.json config.ex_flags (src/backtest/executor.py, added 2026-10-30 with every
+   default leaving the incumbent's caches bit for bit unchanged; section 8 gate a).  "HAR set" = whether the baseline
+   (HAR-only) design changes.
+     key  name                    flag(s)                                  what changes                       HAR set
+     V0   incumbent               -                                        -                                  -
+     V1   target winsor off       TARGET_WINSOR=0                          T3 off (winsor_window 0)           changes
+     V2   target 5/95             TARGET_WINSOR_5_95=1                     T3 bounds 5/95 (the pre-2026-08-06
+                                                                           setting), window 240               changes
+     V3   target log              TARGET_LOG=1                             T2 = log (the pipeline's log rule,
+                                                                           floor 1e-12) instead of sqrt       changes
+     V4   exog diurnal off        EXOG_DIURNAL=0                           F1 off (and with it the asinh
+                                                                           routing of degenerate signed
+                                                                           divisors, which lives in F1)       no
+     V5   exog name map off       EXOG_SEMANTIC=0                          F2 off (identity map)              no
+     V6   feature winsor off      FEATURE_WINSOR=0                         F3 off on every exogenous series   no
+     V7   robust scaling off      PRESCALE=0                               F6 off: no rolling robust scaling;
+                                                                           LATE_START_WARMUP and
+                                                                           UNOBSERVED_NEUTRAL act on the
+                                                                           scaled matrix and are skipped with
+                                                                           it (the code's prescale=False path)  changes
+     V8   all off                 TARGET_WINSOR=0 TARGET_LEVEL=1           T2, T3, F1, F2, F3, F6 off (target
+                                  EXOG_DIURNAL=0 EXOG_SEMANTIC=0           y = RV / B in levels; T1 kept, so
+                                  FEATURE_WINSOR=0 PRESCALE=0              the scale B and the back-transform
+                                                                           are defined)                        changes
+   Secondary (enabled by the 2026-10-30 fix of target_use_diurnal=False, reported, no verdict of section 7 on them):
+     V9   target level            TARGET_LEVEL=1                           T2 off alone (y = RV / B
+                                                                           winsorized; the leave-one-out of
+                                                                           the sqrt)                           changes
+     V10  target diurnal off      TARGET_DIURNAL=0                         T1 off: B = 1, y = winsorized
+                                                                           sqrt(RV); the 'hour' column alone
+                                                                           carries the intraday pattern        changes
+   Inverse maps (pred_adj -> forecast of RV): sqrt targets pred_adj^2 x B; log exp(pred_adj) x B; level
+   max(pred_adj, 0.01) x B (a level forecast can be <= 0; the floor is 1 % of the slot's trailing mean, every floored
+   bar counted and reported).  The walks' pred_raw / true_raw columns (apply_duan_smearing squares) are not used.
+   Not varied: F4 (causal fill), F5 (trailing averages), the HAR ladder, the window, the calendar (they are not
+   variance-reducing transforms of the series).
+
+3. BACK-TRANSFORMS (Part B: the scoring side; no new forecast).  On the incumbent's forecasts of every class of Table 1
+   (OLS on the HAR set; ridge, lasso, elastic net, LightGBM, XGBoost, the forest on the full and HAR sets: 13
+   forecasts).  Every correction of bar t on trading session d uses only data of the sessions before d (lagged one
+   session), except the contract's EWMA, which uses bars up to t - 1 (observed at the forecast origin, as the 2026-08
+   contract).  Trailing window L = 250 sessions (the sessions of the forecast file, 2014-01-02 on; a session with no
+   usable bar counts); usable bar = finite positive plain, finite B > 0, finite RV > 0.  Burn-in: with fewer than 20
+   sessions of history the correction is the identity (plain); the window expands to 250 sessions.
+     plain      pred_adj^2 x B (the paper's)
+     c          c_d x plain, c_d = mean(RV / plain) over the window (the QLIKE-optimal constant, trailing)
+     c_slot     c_{d,s} x plain, c_{d,s} = mean(RV / plain) over the window's bars of the bar's slot s (13 slots);
+                identity where the slot has fewer than 20 usable bars
+     duan_fit   Duan's smear on the fit scale: mean_i (pred_adj + e_i)^2 x B
+                = (pred_adj^2 + 2 pred_adj ebar + mean e^2) x B,
+                e = true_adj - pred_adj (true_adj = the winsorized target the model is fitted to), over the window
+     duan_raw   the same with e = sqrt(RV / B) - pred_adj (the unwinsorized target; the smear that estimates
+                E[RV | x] when e is independent of x)
+     contract   the 2026-08 causal contract, made strictly causal on the final forecasts: m = a + b pred_adj with
+                (a, b) the OLS of sqrt(RV / B) on [1, pred_adj] over the window (identity if fewer than 3 bars or a
+                degenerate fit); s2_t = 0.6 s2_{t-1} + 0.4 e2_{t-1}, e2 = (sqrt(RV / B) - m)^2 of the previous usable
+                bar (each residual enters once), seeded at the first corrected session with the window's mean squared
+                MZ residual; forecast (m^2 + s2) x B.
+     oracle_c   c* x plain with c* = mean(RV / plain) over the scored bars of the span: EX POST, NOT CAUSAL, the bound.
+   A correction whose forecast is not finite and positive on a bar falls back to plain there (counted).
+
+4. LOSS AND TESTS
+   Loss: QLIKE r - ln r - 1, r = RV / forecast, on the bar's actual unwinsorized RV (data/core_stats.parquet sumret2);
+   secondary: squared error (MSE).  Bars: RV > 0 and every compared forecast finite and positive.
+   Pairwise: Diebold-Mariano as experiments/ablate_score.py (src/evaluation/diebold_mariano.dm_test: HLN-corrected,
+   Bartlett, Newey-West lag max(h - 1, auto)) on the daily average loss for the every-bar spans; on the bar losses for
+   the 16:00 spans.  Negative = the first-named forecast has the lower loss.
+   Many-variant: the model confidence set (src/evaluation/model_confidence_set.model_confidence_set, Hansen, Lunde and
+   Nason 2011, T_max) over V0 .. V8 per class and scoring, on the daily average QLIKE of the 2,579 evaluation days,
+   resample=True (circular block bootstrap), B = 10,000, block 10 days (5 and 21 reported), seed 20261030, alpha 0.10
+   (0.25 reported).  The secondary variants V9, V10 enter a second MCS (V0 .. V10), reported alongside.
+
+5. SAMPLES
+   Selection (pre-sample only): fold 3 of the pre-tune, validation year 2013 (2013-01-02 15:30 .. 2013-12-31 16:00),
+   the fold the frozen penalties were chosen on.  Each variant's penalties are chosen there by the pipeline's own rule
+   (adjusted-scale validation MSE, grid extension rule of RULE_std.txt); the LightGBM variants of section 6 are chosen
+   there.  Nothing of 2014 or later enters any choice.
+   Confirmation (2014-01-02 .. 2024-04-30; the spans of experiments/ablate_score.py):
+     all   every bar of the 2,579 evaluation days (Table 1's 33,527 bars, asserted)              PRIMARY
+     ev    every bar of the 81 scheduled FOMC statement days (ablate_score.event_days)           reported
+     ord   every bar of the other 2,498 days                                                     reported
+     c16   the 16:00 bar of the 2,579 days; c16_2020 the 16:00 bar on 2020-01-03 .. 2024-04-30   reported
+     pb    (Part B only) every bar of the evaluation days from the 251st session of the forecast file on (each
+           correction with a full 250-session window)                                             reported
+
+6. CLASSES AND WALKS
+   Linear first, every variant: the OLS (HAR set) and ridge, lasso, elastic net on the full and HAR sets.
+     (a) PRIMARY: each variant's own fold-3 penalties (pretune --first-fold 3 + select on the variant's design), walked
+         at W = 39,000 rows, refit every bar, from the incumbent's walk start (2013-12-27 16:00, 33,997 rows).
+     (b) SECONDARY: the incumbent's frozen penalties on the variant's design (the effect of the transform with the
+         penalty held).
+     The exog-only variants (V4-V6) leave the HAR set unchanged (gate b): their HAR-set and OLS rows are V0's.
+   LightGBM: at most three variants, chosen on the pre-sample: every variant's full-set design walked over 2013 with
+     the frozen lgbm_opt_00 at the 2013 cadence of results/fomcfix_2026-10-26/RULE.txt 7(c) (--refit day, 251 refits,
+     39,000-row window), QLIKE (plain, inverse map of section 2) on the 2013 bars; the three variants other than V0 with
+     the lowest 2013 QLIKE are walked on 2014-2024 at refit every bar (full and HAR sets; the HAR set only when it
+     differs from V0's), deterministic=True and force_col_wise=True as the ablation run.  Configurations are not
+     re-tuned for any variant (a disadvantage of the variants, stated with the results).
+   XGBoost and the forest: not in this phase.
+
+7. WHAT COUNTS AS "HELPS"
+   Scorings: (P) plain, the variant's inverse map of section 2 without correction (the paper's convention); (C) the
+   causal scalar c of section 3 applied to every variant alike (it removes the level bias that the maps differ in).
+   For a transform T with leave-one-out variant V_T (V1 .. V8; V2 is "1/99 vs 5/95", V3 "sqrt vs log"), per class, on
+   span all:
+     "T helps in class k"   QLIKE(V_T) > QLIKE(V0) with DM p < 0.05 under both (P) and (C)
+     "T hurts in class k"   QLIKE(V_T) < QLIKE(V0) with DM p < 0.05 under both (P) and (C)
+     otherwise              "no robust effect" (each scoring's number reported)
+   By how much: the QLIKE change of V0 against V_T in % of QLIKE(V_T) (the gain the transform buys), with the DM t and
+   p, under (P) and (C), per class; counts over the classes of helps / hurts / no robust effect.  V0 in or out of each
+   MCS.  ev, ord and the 16:00 spans are reported with the same statistics; no verdict rests on them alone (81 event
+   days).  No multiplicity adjustment beyond the MCS.  The pre-sample (2013) numbers are reported and never enter a
+   verdict.
+   Part B: a correction "beats plain in class k" iff its QLIKE is lower with DM p < 0.05 on span all (and "loses" in
+   the mirror case); reported per class (13 forecasts), with the QLIKE change in %, the same on ev, ord, c16, pb; no
+   pooled verdict across classes.  oracle_c is the bound, never a competitor.
+
+8. GATES (a failed gate stops the variant it covers and is reported)
+   (a) Default invariance (laptop, before any cluster job): the HAR-only design built with the 2026-10-30 code and
+       every new flag at its default is md5-equal to the build at e89b378 and to the cell-B caches of section 1
+       (X, y, b_oos; dates_oos modulo line endings); the unit tests of writeup/tests/test_transform_switches.py
+       pass.  On the cluster: V0 rebuilt with the new code is md5-equal to section 1's caches, both sets, before any
+       variant build.
+   (b) Variant designs: rows, dates_oos equal V0's in every variant; y and b_oos equal V0's in V4 .. V7; the HAR-set
+       design md5-equal to V0's in V4 .. V6; in V1 .. V3, V9 every exogenous column of the full set equal to V0's bit
+       for bit (only y and the har_ma_* columns change); in V10 b_oos is 1 on every row.  Each variant's design.json
+       config.ex_flags holds exactly its flags of section 2 beside the incumbent's.
+   (c) Part B: the plain rows reproduce Table 1 (QLIKE and MSE on all, qlike_1600 on c16_2020) to 1e-12 relative on the
+       33,527 bars; the scored bar set asserted; the 81 FOMC days asserted; every correction causal by construction and
+       checked: a forecast of session d is unchanged when every bar of d and later is perturbed (one random session,
+       one class).
+
+9. COMPUTE PLAN (the coordinator submits; CPU-hours = cores x wall; template timings, EPYC)
+   Designs: 10 variants x one design stage (both sets, 8 CPUs, 48 GB, < 1 h wall as the fomcfix designs) ~ 80 CPU-h;
+     V0 rebuild for gate (a) ~ 8.  Disk ~0.4 GB a variant (all_features X 84,747 x 564 float64 = 382 MB).
+   Linear: pretune fold 3 + select ~1 CPU-h a variant; walks ~1.1 CPU-h a variant for the seven, x 2 for (a) and (b)
+     -> ~35 CPU-h for the ten variants.
+   LightGBM pre-sample (2013, refit day, 251 refits, full set): ~2 CPU-h a variant -> ~20.
+   LightGBM confirmation: 3 variants x (full ~250 + HAR ~40) ~ 870 CPU-h (the template's 249.5 / 39.3).
+   Total ~1,000 CPU-h; the principled arm (section 10) is costed when it is specified.
+   Commands: the coordinator's report of 2026-10-30 (per variant: design, pretune, select, walk; tree pieces).
+
+10. LATER PHASE (specified here, run only after the author's go): FIT TO THE EVALUATION LOSS
+   The transforms exist to make an L2 fit on a heavy-tailed target behave; the loss the paper reports is QLIKE.  QLIKE
+   is, per bar, half the gamma deviance of RV against the forecast (y / f - ln(y / f) - 1), so a fit that minimizes the
+   gamma deviance with a log link estimates E[RV | x] directly, with no square-root map, no winsorization and no
+   back-transform bias (Patton 2011: QLIKE is robust to noise in the RV proxy).
+     trees     LightGBM objective "gamma" and XGBoost "reg:gamma" (log link) on y = RV / B of design V8's target
+               (TARGET_LEVEL=1, TARGET_WINSOR=0) with the incumbent's features (the full set of V0); bars with RV = 0
+               given weight 0 (gamma needs y > 0); forecast exp(score) x B; the frozen configurations, with
+               n_estimators and learning_rate re-chosen on fold 3 only.
+     linear    (i) y = log(RV / B) by L2 (design V3 without winsorization), forecast exp(pred) x B times the causal
+               scalar c of section 3; (ii) the penalized gamma GLM with log link (IRLS, ridge penalty chosen on fold
+               3), refit at the 250-solve cadence (no rank-one update exists).
+   Scored as section 4 against V0 (plain and c) on the spans of section 5.
+
+11. OUTPUTS
+   results/transform_ablation_2026-10-30/
+     RULE.txt            this file
+     backtransform/      Part B: metrics.csv, dm.csv, summary.csv, checks.json (experiments/transform_backtransform.py)
+     invariance/         gate (a): md5s of the before / after HAR-only builds (laptop)
+     runs/<V>/           the cluster runs (the coordinator's), scores/ (a scorer written before the first variant
+                         forecast arrives, under this file's rules)
+   Nothing in the paper; placement and wording are the author's.
+
+ADDENDA
+
+A. 2026-10-30 about 09:30Z (02:30 PDT), AFTER the first Part B results were seen (results/transform_ablation_2026-10-30/
+   backtransform/, first run 09:19Z): one diagnostic correction added to section 3, so that the contract's two parts
+   can be read apart.  The contract beat plain on every bar in all 13 forecasts and lost on the 16:00 bar in all 13;
+   its every-bar gain exceeded the ex-post constant bound oracle_c in several classes, so part of it is not a level
+   correction but the bar-level EWMA of the last residuals (an update with information of the forecast origin).
+     mz_window  (m^2 + s2_w) x B: the contract's mean map m (the window's Mincer-Zarnowitz OLS, lagged one session)
+                with s2_w = the window's mean squared MZ residual (lagged one session), no bar-level EWMA.
+   Reported beside the others with the same statistics; it is a diagnostic, not a candidate chosen on these results,
+   and no verdict of section 7 changes because of it.  Nothing else of the file changes (three lines of sections 1,
+   3 and 8 rewrapped to 120 columns, words unchanged).
+
+B. 2026-10-30 about 09:33Z (02:33 PDT), after the laptop's HAR-only design builds of gate 8(a)-(b) (no forecast of any
+   variant exists; nothing was walked or scored): a property of V3 recorded, the variant unchanged.  The literal swap
+   to the name rule's log takes log(max(RV / B, 1e-12)); 4 of the 84,747 rows of the 13-bar design (and more of the
+   48-interval grid the HAR averages run over, mostly overnight) have RV = 0, and the rolling 1/99 bounds (240 bars)
+   leave y as low as -18.6 there (median -0.25), the scaled har_ma_1 as low as -21.7.  QLIKE never scores those bars
+   (RV > 0); their weight in the L2 fit is what V3 measures together with the map.  If the author prefers a log
+   variant with a floor (e.g. RV / B >= 1e-3), it is a new variant V3f, added by addendum before any V3 result is seen.
+
+C. 2026-10-30 about 09:35Z (02:35 PDT), before any walk (an execution detail of section 6, no result seen): the
+   LightGBM walks (2013 pre-sample and 2014-2024 confirmation) use experiments/pooled_trees_rerun_13.py walk / merge,
+   the templates' own runner and its LightGBM settings, on the variant's cache (--design runs/<V>). ablate_trees.py is
+   not used: its merge requires true_adj and B equal to the templates', which the target-side variants change by
+   construction. The words "deterministic=True and force_col_wise=True as the ablation run" of section 6 are replaced by
+   this.

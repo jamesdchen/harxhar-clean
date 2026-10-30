@@ -1,0 +1,24 @@
+{
+ "variant": "V4",
+ "name": "exog diurnal off",
+ "ref": "C:\\Users\\james\\AppData\\Local\\Temp\\tabl\\before_baseline",
+ "new": "C:\\Users\\james\\AppData\\Local\\Temp\\tabl\\after_baseline_V4",
+ "md5": {
+  "before_baseline/X.npy": "05da4b5b30ec4579df77f1a3b6dd57ed",
+  "before_baseline/y.npy": "996504f16da7982d64656d1ba0d9722a",
+  "before_baseline/b_oos.npy": "7670f01a3055265dfac28ebac1eca864",
+  "after_baseline_V4/X.npy": "05da4b5b30ec4579df77f1a3b6dd57ed",
+  "after_baseline_V4/y.npy": "996504f16da7982d64656d1ba0d9722a",
+  "after_baseline_V4/b_oos.npy": "7670f01a3055265dfac28ebac1eca864"
+ },
+ "changed": {
+  "y": false,
+  "b_oos": false,
+  "har": [],
+  "calendar": [],
+  "exog_n": 0,
+  "exog_of": 0
+ },
+ "fail": [],
+ "passed": true
+}

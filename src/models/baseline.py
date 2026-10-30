@@ -23,12 +23,16 @@ def run(
     """
     train_win_periods = train_window * PERIODS_PER_DAY
 
+    # 2026-10-30 (src/backtest/executor.py load_and_transform, the target_use_diurnal fix): this call passed
+    # target_use_diurnal=False, which was a no-op (the target was diurnally adjusted, with no B exclusions); the same
+    # behaviour is now asked for explicitly, so the output is unchanged.  Was: target_use_diurnal=False,
     df, _ = load_and_transform(
         data_path,
         exog_cols=[],
-        target_use_diurnal=False,
+        target_use_diurnal=True,
         target_winsor_window=None,
         dropna_with_exog=False,
+        target_b_exclude=False,
     )
     df, feature_names = generate_har_features(df, target_col="adj_RV")
     max_lag = resolve_har_lags()[-1]

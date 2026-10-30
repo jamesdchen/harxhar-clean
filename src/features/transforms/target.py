@@ -589,14 +589,18 @@ def rolling_winsorize(
     is_target: bool = False,
     slots: pd.Series | None = None,
     soft: bool | None = None,
+    q: tuple[float, float] | None = None,
 ) -> pd.Series:
-    """Clip values to rolling 5th / 95th quantile bounds (shifted by 1).
+    """Clip values to rolling WINSOR_LOWER_Q / WINSOR_UPPER_Q quantile bounds (shifted by 1).
 
     Parameters
     ----------
     series : pd.Series
     window : int
         Lookback window for quantile estimation.
+    q : (lower, upper) | None
+        2026-10-30 (results/transform_ablation_2026-10-30/RULE.txt; executor TARGET_WINSOR_5_95): the quantile pair
+        of this call.  None (default) = the module's WINSOR_LOWER_Q / WINSOR_UPPER_Q read at call time, as before.
     allow_missing : bool
         If True and not is_target, use nanquantile-style (min_periods=1).
     is_target : bool
@@ -620,6 +624,8 @@ def rolling_winsorize(
     """
     use_nan = allow_missing and not is_target
     min_per = 1 if use_nan else window
+    # 2026-10-30: the pair of this call (q), else the module's (the only behaviour before the argument)
+    lo_q, hi_q = (WINSOR_LOWER_Q, WINSOR_UPPER_Q) if q is None else (float(q[0]), float(q[1]))
 
     if slots is not None:
 
@@ -627,17 +633,17 @@ def rolling_winsorize(
             return g.rolling(window, min_periods=min_per).quantile(q).shift(1)
 
         grouped = series.groupby(slots)
-        lower = grouped.transform(_q, WINSOR_LOWER_Q)
-        upper = grouped.transform(_q, WINSOR_UPPER_Q)
+        lower = grouped.transform(_q, lo_q)
+        upper = grouped.transform(_q, hi_q)
     else:
         lower = (
             series.rolling(window, min_periods=min_per)
-            .quantile(WINSOR_LOWER_Q)
+            .quantile(lo_q)
             .shift(1)
         )
         upper = (
             series.rolling(window, min_periods=min_per)
-            .quantile(WINSOR_UPPER_Q)
+            .quantile(hi_q)
             .shift(1)
         )
     if soft if soft is not None else SOFT_GUARDS:
@@ -725,8 +731,15 @@ def robust_transform(
     winsor_by_slot: bool | None = None,
     soft_guards: bool | None = None,
     baseline_exclude: np.ndarray | None = None,
+    winsor_q: tuple[float, float] | None = None,
+    target_map: str | None = None,
 ) -> tuple[pd.Series, pd.Series]:
     """Chain diurnal_adjust -> apply_semantic_transform -> rolling_winsorize.
+
+    2026-10-30 (results/transform_ablation_2026-10-30/RULE.txt; the switches of src/backtest/executor.py):
+    ``winsor_q`` is the quantile pair of the rolling winsorization (None = WINSOR_LOWER_Q / WINSOR_UPPER_Q, as
+    before); ``target_map`` replaces the name rule's map (apply_semantic_transform) by "sqrt", "log" (rule 6's log,
+    floor 1e-12) or "level" (the identity).  None (default) = the name rule, as before.
 
     ``baseline_exclude`` (2026-10-15): rows left out of the unsigned per-slot trailing mean (see
     :func:`diurnal_adjust`); the executor passes the NYSE early closes' post-13:00 bars for the
@@ -761,6 +774,8 @@ def robust_transform(
         raise ValueError(
             f"diurnal_mode must be 'divide' or 'rank', got {diurnal_mode!r}"
         )
+    if target_map not in (None, "sqrt", "log", "level"):  # 2026-10-30
+        raise ValueError(f"target_map must be None, 'sqrt', 'log' or 'level', got {target_map!r}")
     if col_name in SKIP_VARS:
         return df[col_name].copy(), pd.Series(1.0, index=df.index)
     if (FOMC_FLAGS_IDENTITY and col_name in FOMC_FLAG_SERIES) or col_name in MACRO_FLAG_SERIES:
@@ -839,7 +854,13 @@ def robust_transform(
         else:
             series = adjusted
 
-    if use_transform and not stabilized:
+    if use_transform and not stabilized and target_map is not None:
+        # 2026-10-30 (target_map): the given map instead of the name rule
+        if target_map == "sqrt":
+            series = np.sqrt(series)
+        elif target_map == "log":
+            series = np.log(series.clip(lower=1e-12))  # rule 6 of apply_semantic_transform
+    elif use_transform and not stabilized:
         series = apply_semantic_transform(
             series, col_name, has_negatives, allow_missing=allow_missing
         )
@@ -857,6 +878,7 @@ def robust_transform(
             is_target=is_target,
             slots=df[time_col] if (winsor_by_slot and time_col in df.columns) else None,
             soft=soft_guards,
+            q=winsor_q,  # 2026-10-30: None = the module's pair, as before
         )
 
     return series, baseline

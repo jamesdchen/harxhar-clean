@@ -126,6 +126,13 @@ variable's k = 1 column has >= 250 rows off its window mode) and the centring; 3
 penalty factors only; ridge with exact per-bar scaling -- the same estimator) and the binomial availability rule (a
 k > 1 availability average is masked when its window s.d. <= sqrt(p (1 - p) / k), or when it differs from an earlier
 kept one of the same k by an s.d. <= sqrt(2) times that resolution at the pair's mean level; a data-cleaning rule).
+
+2026-10-30 (the author's question "can we investigate if the variance reducing transforms are actually helping?";
+results/transform_ablation_2026-10-30/RULE.txt): the transform switches are executor flags, so --ex-flag sets them and
+the design cache's config records them; no code here changed.  TARGET_DIURNAL, TARGET_WINSOR, TARGET_WINSOR_5_95,
+TARGET_LOG, TARGET_LEVEL, EXOG_DIURNAL, EXOG_SEMANTIC, FEATURE_WINSOR, PRESCALE (src/backtest/executor.py; defaults:
+every design as before, bit for bit).  run_spec_executor's literals (target_use_diurnal=True, target_winsor_window=240,
+prescale=True) stay; TARGET_DIURNAL=0, TARGET_WINSOR=0 and PRESCALE=0 override them inside the executor.
 """
 
 from __future__ import annotations

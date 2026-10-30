@@ -1,0 +1,24 @@
+{
+ "variant": "V0",
+ "name": "incumbent",
+ "ref": "C:\\Users\\james\\AppData\\Local\\Temp\\tabl\\before_moments",
+ "new": "C:\\Users\\james\\AppData\\Local\\Temp\\tabl\\after_moments_V0",
+ "md5": {
+  "before_moments/X.npy": "7fa3f9506adea8de24d096d975c32a85",
+  "before_moments/y.npy": "996504f16da7982d64656d1ba0d9722a",
+  "before_moments/b_oos.npy": "7670f01a3055265dfac28ebac1eca864",
+  "after_moments_V0/X.npy": "7fa3f9506adea8de24d096d975c32a85",
+  "after_moments_V0/y.npy": "996504f16da7982d64656d1ba0d9722a",
+  "after_moments_V0/b_oos.npy": "7670f01a3055265dfac28ebac1eca864"
+ },
+ "changed": {
+  "y": false,
+  "b_oos": false,
+  "har": [],
+  "calendar": [],
+  "exog_n": 0,
+  "exog_of": 84
+ },
+ "fail": [],
+ "passed": true
+}

@@ -213,6 +213,39 @@ UNOBSERVED_NEUTRAL: bool = True
 # flag, bit for bit.
 DROP_HOLIDAY_SESSIONS: bool = False
 
+# -- 2026-10-30 (coordinator; the author's question "can we investigate if the variance reducing transforms are actually
+# helping?"; results/transform_ablation_2026-10-30/RULE.txt section 2): one switch a transform, so that each
+# leave-one-out design is built without editing code -- experiments/pool_linear_pretune.py --ex-flag NAME=0|1 (the
+# design cache's config records it).  Every default is the design before the switches, bit for bit (RULE.txt gate 8(a);
+# writeup/tests/test_transform_switches.py; the HAR-only design rebuilt md5-equal on 2026-10-30).
+#   TARGET_DIURNAL      off: the target is not diurnally adjusted (B = 1).  Also the target_use_diurnal=False argument
+#                       of load_and_transform, which was a no-op until this date (see there).
+#   TARGET_WINSOR       off: the target's rolling winsorization is skipped (winsor_window 0)
+#   TARGET_WINSOR_5_95  on: the target's rolling bounds are the 5 / 95 % quantiles (the setting before 2026-08-06)
+#                       instead of target.WINSOR_LOWER_Q / WINSOR_UPPER_Q; the predictors' bounds are unchanged
+#   TARGET_LOG          on: the target's map is log (rule 6's log, floor 1e-12) instead of the name rule's sqrt
+#   TARGET_LEVEL        on: the target's map is the identity (y = RV / B); TARGET_LOG and TARGET_LEVEL exclude each
+#                       other, as TARGET_WINSOR off and TARGET_WINSOR_5_95 on do
+#   EXOG_DIURNAL        off: no diurnal adjustment of the predictors (nor the asinh routing of a degenerate signed
+#                       divisor, which is part of that step)
+#   EXOG_SEMANTIC       off: no name map of the predictors (the identity; the load_and_transform argument use_semantic,
+#                       which no caller sets, is ANDed with it)
+#   FEATURE_WINSOR      off: no rolling winsorization of the predictors
+#   PRESCALE            off: no rolling robust scaling of the design even where the caller asks for it
+#                       (prescale=True); LATE_START_WARMUP and UNOBSERVED_NEUTRAL act on the scaled matrix and are
+#                       skipped with it (the prescale=False path of _backtest_and_save)
+# The inverse map of a TARGET_LOG / TARGET_LEVEL design is exp(pred) x B / pred x B: a scorer of such a design must
+# use it (apply_duan_smearing's pred_raw squares and is meaningless there).
+TARGET_DIURNAL: bool = True
+TARGET_WINSOR: bool = True
+TARGET_WINSOR_5_95: bool = False
+TARGET_LOG: bool = False
+TARGET_LEVEL: bool = False
+EXOG_DIURNAL: bool = True
+EXOG_SEMANTIC: bool = True
+FEATURE_WINSOR: bool = True
+PRESCALE: bool = True
+
 
 def early_close_post_bars(t: pd.Series) -> np.ndarray:
     """Bars ending 13:30 .. 17:00 ET on an NYSE early-close day (src.data.loading calendar)."""
@@ -744,7 +777,9 @@ def _backtest_and_save(
     # whole-series, keeps its look-back out of the per-chunk backtest (see
     # rolling_robust_scale). The slice below then cuts the pre-scaled array.
     ref_iqr = None
-    if prescale:
+    # 2026-10-30 (PRESCALE, RULE.txt of results/transform_ablation_2026-10-30): off skips the scaling and the two
+    # steps that act on the scaled matrix.  Was: if prescale:
+    if prescale and PRESCALE:
         rows_per_session = None
         if ERODE_IN_BARS:
             tt = pd.to_datetime(df["t"])
@@ -931,6 +966,7 @@ def load_and_transform(
     ffill_limit: int | None | Literal["auto"] = "auto",
     legacy_avail: bool = False,
     neutralise_unobserved: bool = True,
+    target_b_exclude: bool = True,
 ) -> tuple[pd.DataFrame, list[str]]:
     """Load raw data, apply RV + exog robust transforms, return (df, adj_exog).
 
@@ -947,7 +983,14 @@ def load_and_transform(
         Raw exog column names (pre-transform). May be empty.
     target_use_diurnal : bool
         If True, apply diurnal adjustment to the RV target transform.
-        Tree methods: True. Ridge: False.
+        Tree methods: True. Ridge: False.  2026-10-30: False was a no-op until this date (the key was set only when
+        True and robust_transform's use_diurnal defaults to True, so the target was adjusted either way); it now
+        turns the target's diurnal adjustment off (B = 1).  The one caller that passed False, src/models/baseline.py,
+        now passes True with target_b_exclude=False, its exact former behaviour.
+    target_b_exclude : bool
+        2026-10-30: False leaves the early closes' post-13:00 bars (B_REGULAR_BARS_ONLY) and the holiday sessions
+        (DROP_HOLIDAY_SESSIONS) in the target's B, as the former target_use_diurnal=False path did.  Default True: as
+        before for every caller that passed True.
     target_winsor_window : int | None
         Winsorization window for the RV target. Tree methods: 240.
         Ridge: None (no winsorization beyond ``robust_transform``
@@ -1009,12 +1052,28 @@ def load_and_transform(
             # impute_indicate keeps exog-missing rows (filled + flagged below).
             df = df.dropna(subset=["RV"]).reset_index(drop=True)
 
-    transform_kwargs: dict = {"is_target": True}
-    if target_use_diurnal:
-        transform_kwargs["use_diurnal"] = True
+    # 2026-10-30 (fix; results/transform_ablation_2026-10-30/RULE.txt): target_use_diurnal is passed through (False
+    # was a no-op), and the module switches of the target apply (TARGET_DIURNAL, TARGET_WINSOR, TARGET_WINSOR_5_95,
+    # TARGET_LOG, TARGET_LEVEL; defaults: as before).  Was:
+    #     transform_kwargs: dict = {"is_target": True}
+    #     if target_use_diurnal:
+    #         transform_kwargs["use_diurnal"] = True
+    #     if target_winsor_window is not None:
+    #         transform_kwargs["winsor_window"] = target_winsor_window
+    #     if B_REGULAR_BARS_ONLY and target_use_diurnal:  (and: elif DROP_HOLIDAY_SESSIONS and target_use_diurnal:)
+    assert not (TARGET_LOG and TARGET_LEVEL), "TARGET_LOG and TARGET_LEVEL exclude each other"
+    assert TARGET_WINSOR or not TARGET_WINSOR_5_95, "TARGET_WINSOR_5_95 needs TARGET_WINSOR on"
+    t_diurnal = bool(target_use_diurnal) and TARGET_DIURNAL
+    transform_kwargs: dict = {"is_target": True, "use_diurnal": t_diurnal}
     if target_winsor_window is not None:
         transform_kwargs["winsor_window"] = target_winsor_window
-    if B_REGULAR_BARS_ONLY and target_use_diurnal:
+    if not TARGET_WINSOR:
+        transform_kwargs["winsor_window"] = 0  # robust_transform: winsor_window 0 = no winsorization
+    if TARGET_WINSOR_5_95:
+        transform_kwargs["winsor_q"] = (0.05, 0.95)
+    if TARGET_LOG or TARGET_LEVEL:
+        transform_kwargs["target_map"] = "log" if TARGET_LOG else "level"
+    if B_REGULAR_BARS_ONLY and t_diurnal and target_b_exclude:
         # 2026-10-15 (user): B over regular bars only; see B_REGULAR_BARS_ONLY
         excl = early_close_post_bars(df["t"])
         if DROP_HOLIDAY_SESSIONS:
@@ -1022,7 +1081,7 @@ def load_and_transform(
             excl = excl | holiday_rth_bars(df["t"])
         if excl.any():
             transform_kwargs["baseline_exclude"] = excl
-    elif DROP_HOLIDAY_SESSIONS and target_use_diurnal:
+    elif DROP_HOLIDAY_SESSIONS and t_diurnal and target_b_exclude:
         excl = holiday_rth_bars(df["t"])
         if excl.any():
             transform_kwargs["baseline_exclude"] = excl
@@ -1031,14 +1090,18 @@ def load_and_transform(
     df["baseline"] = baseline
 
     adj_exog_cols: list[str] = []
+    # 2026-10-30 (EXOG_SEMANTIC, EXOG_DIURNAL, FEATURE_WINSOR; defaults: the call as before).  Was:
+    #     robust_transform(df, col, use_transform=use_semantic, use_diurnal=True, diurnal_mode=diurnal_mode)
+    exog_winsor: dict = {} if FEATURE_WINSOR else {"winsor_window": 0}
     for col in exog_cols:
         adj_col = f"adj_{col}"
         adj_series, _ = robust_transform(
             df,
             col,
-            use_transform=use_semantic,
-            use_diurnal=True,
+            use_transform=use_semantic and EXOG_SEMANTIC,
+            use_diurnal=EXOG_DIURNAL,
             diurnal_mode=diurnal_mode,
+            **exog_winsor,
         )
         df[adj_col] = adj_series
         adj_exog_cols.append(adj_col)
