@@ -1,1 +1,47 @@
-{}
+{
+ "rule": "RULE.txt section 6: the three variants of the primary family other than V0 with the lowest 2013 QLIKE (plain) of lgbm/full",
+ "ranking": [
+  {
+   "key": "V1",
+   "qlike": 0.17709092715964578
+  },
+  {
+   "key": "V7",
+   "qlike": 0.17776743513033688
+  },
+  {
+   "key": "V6",
+   "qlike": 0.17842306308801256
+  },
+  {
+   "key": "V5",
+   "qlike": 0.17942138654589085
+  },
+  {
+   "key": "V4",
+   "qlike": 0.1807472036562479
+  },
+  {
+   "key": "V8",
+   "qlike": 0.18580035080255536
+  },
+  {
+   "key": "V2",
+   "qlike": 0.1859814652439937
+  },
+  {
+   "key": "V3f",
+   "qlike": 0.18841536324975705
+  },
+  {
+   "key": "V3",
+   "qlike": 0.189412902965867
+  }
+ ],
+ "chosen": [
+  "V1",
+  "V7",
+  "V6"
+ ],
+ "n_bars": 3237
+}
